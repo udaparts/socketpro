@@ -144,7 +144,7 @@ namespace SPA {
 
             virtual void operator+=(const Del& d) {
                 if (d) {
-					m_cs->lock();
+                    m_cs->lock();
 #ifdef SAFE_RESULT_RETURN_EVENT
                     auto pos = std::find(m_vD.cbegin(), m_vD.cend(), d);
                     if (pos == m_vD.cend()) {
@@ -153,13 +153,13 @@ namespace SPA {
 #else
                     m_vD.push_back(d);
 #endif
-					m_cs->unlock();
+                    m_cs->unlock();
                 }
             }
 
             virtual void operator-=(const Del& d) {
                 if (d) {
-					m_cs->lock();
+                    m_cs->lock();
 #ifdef SAFE_RESULT_RETURN_EVENT
                     auto pos = std::find(m_vD.cbegin(), m_vD.cend(), d);
                     if (pos == m_vD.cend()) {
@@ -168,31 +168,31 @@ namespace SPA {
 #else
                     m_vD.push_back(d);
 #endif
-					m_cs->unlock();
+                    m_cs->unlock();
                 }
             }
 
             virtual void operator=(const Del& d) {
-				m_cs->lock();
+                m_cs->lock();
                 m_vD.clear();
                 if (d) {
                     m_vD.push_back(d);
                 }
-				m_cs->unlock();
+                m_cs->unlock();
             }
 
             virtual size_t Count() {
-				m_cs->lock();
+                m_cs->lock();
                 auto size = m_vD.size();
-				m_cs->unlock();
-				return size;
+                m_cs->unlock();
+                return size;
             }
 
             virtual operator bool() {
-				m_cs->lock();
-				auto size = m_vD.size();
-				m_cs->unlock();
-				return (size > 0);
+                m_cs->lock();
+                auto size = m_vD.size();
+                m_cs->unlock();
+                return (size > 0);
             }
 
             template<typename P0>
@@ -628,7 +628,7 @@ namespace SPA {
                 return m_hSocket;
             }
 
-			unsigned int GetPoolId() const;
+            unsigned int GetPoolId() const;
             const CConnectionContext& GetConnectionContext() const;
             static CClientSocket* Seek(USocket_Client_Handle h);
 

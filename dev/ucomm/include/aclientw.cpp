@@ -980,14 +980,15 @@ namespace SPA
         }
 
         std::string CClientSocket::GetErrorMsg() const {
-            char strErrorMsg[1025] = {0};
+            char strErrorMsg[1025] =
+            {0};
             ClientCoreLoader.GetErrorMessage(m_hSocket, strErrorMsg, sizeof (strErrorMsg));
             return strErrorMsg;
         }
 
-		unsigned int CClientSocket::GetPoolId() const {
-			return ClientCoreLoader.GetSocketPoolId(m_hSocket);
-		}
+        unsigned int CClientSocket::GetPoolId() const {
+            return ClientCoreLoader.GetSocketPoolId(m_hSocket);
+        }
 
         bool CClientSocket::IsConnected() const {
             return ClientCoreLoader.IsOpened(m_hSocket);

@@ -1,16 +1,13 @@
 ﻿using System;
 using System.IO;
 
-namespace SocketProAdapter.ClientSide
-{
+namespace SocketProAdapter.ClientSide {
     [ObsoleteAttribute]
-    public class CStreamHelper
-    {
+    public class CStreamHelper {
         public delegate void DProgress(CStreamHelper sender, ulong pos);
         public event DProgress Progress;
 
-        public CStreamHelper(CAsyncServiceHandler ash)
-        {
+        public CStreamHelper(CAsyncServiceHandler ash) {
             if (ash == null)
                 throw new ArgumentNullException("A valid service handler required");
             m_ash = ash;
@@ -21,10 +18,8 @@ namespace SocketProAdapter.ClientSide
         /// <summary>
         /// Remote stream size in bytes. It will be -1 if not available.
         /// </summary>
-        public ulong DownloadingStreamSize
-        {
-            get
-            {
+        public ulong DownloadingStreamSize {
+            get {
                 return m_nDownloadingFileSize;
             }
         }
@@ -32,24 +27,18 @@ namespace SocketProAdapter.ClientSide
         /// <summary>
         /// Nullize stream
         /// </summary>
-        public void Reset()
-        {
-            lock (m_cs)
-            {
+        public void Reset() {
+            lock (m_cs) {
                 m_s = null;
             }
         }
 
-        private bool DataFromServerToClient(CAsyncServiceHandler sender, ushort reqId, CUQueue qData)
-        {
+        private bool DataFromServerToClient(CAsyncServiceHandler sender, ushort reqId, CUQueue qData) {
             bool processed = false;
-            switch (reqId)
-            {
+            switch (reqId) {
                 case CStreamSerializationHelper.idReadDataFromServerToClient:
-                    if (qData.GetSize() > 0)
-                    {
-                        lock (m_cs)
-                        {
+                    if (qData.GetSize() > 0) {
+                        lock (m_cs) {
                             CStreamSerializationHelper.Write(m_s, qData);
                             if (Progress != null)
                                 Progress.Invoke(this, (ulong)m_s.Position);
@@ -70,10 +59,8 @@ namespace SocketProAdapter.ClientSide
         /// <param name="receiver">A stream at client side for receiving data from remote server</param>
         /// <param name="RemotePath">A string for finding an arbuturay file or other object</param>
         /// <returns>An empty string if successful. Otherwise, an error message if failed</returns>
-        public string Download(Stream receiver, string RemotePath)
-        {
-            lock (m_cs)
-            {
+        public string Download(Stream receiver, string RemotePath) {
+            lock (m_cs) {
                 if (m_s != null)
                     throw new InvalidOperationException("A stream during transaction");
                 if (receiver == null || !receiver.CanWrite)
@@ -84,37 +71,29 @@ namespace SocketProAdapter.ClientSide
             m_ash.ResultReturned -= DataFromServerToClient;
             string res = "";
             m_ash.ResultReturned += DataFromServerToClient;
-            bool ok = (m_ash.SendRequest(CStreamSerializationHelper.idStartDownloading, RemotePath, (ar) =>
-            {
+            bool ok = (m_ash.SendRequest(CStreamSerializationHelper.idStartDownloading, RemotePath, (ar) => {
                 ar.Load(out m_nDownloadingFileSize).Load(out res);
             }) && m_ash.WaitAll());
-            lock (m_cs)
-            {
-                if (res != null && res.Length > 0)
-                {
+            lock (m_cs) {
+                if (res != null && res.Length > 0) {
                     m_s = null;
                     return res;
-                }
-                else if (res == null)
+                } else if (res == null)
                     res = "";
-                if (!ok && !m_ash.AttachedClientSocket.Sendable)
-                {
+                if (!ok && !m_ash.AttachedClientSocket.Sendable) {
                     m_s = null;
                     return m_ash.AttachedClientSocket.ErrorMsg;
                 }
                 if (Progress != null)
                     Progress.Invoke(this, (ulong)m_s.Position);
-                if (!m_ash.SendRequest(CStreamSerializationHelper.idDownloadCompleted, (dc) =>
-                {
-                    lock (m_cs)
-                    {
+                if (!m_ash.SendRequest(CStreamSerializationHelper.idDownloadCompleted, (dc) => {
+                    lock (m_cs) {
                         if (Progress != null)
                             Progress.Invoke(this, (ulong)m_s.Position);
                         m_s = null;
                     }
                     m_ash.ResultReturned -= DataFromServerToClient;
-                }))
-                {
+                })) {
                     m_s = null;
                     return m_ash.AttachedClientSocket.ErrorMsg;
                 }
@@ -124,27 +103,22 @@ namespace SocketProAdapter.ClientSide
 
         private object m_cs = new object();
         private Stream m_s; //protected by m_cs
-        private ulong SendDataFromClientToServer()
-        {
+        private ulong SendDataFromClientToServer() {
             if (m_ash.AttachedClientSocket.BytesInSendingBuffer > CStreamSerializationHelper.STREAM_CHUNK_SIZE)
                 return 0;
             ulong send = 0;
-            using (CScopeUQueue su = new CScopeUQueue())
-            {
+            using (CScopeUQueue su = new CScopeUQueue()) {
                 if (m_s == null)
                     return 0;
                 uint read = CStreamSerializationHelper.Read(m_s, su.UQueue);
-                while (read > 0)
-                {
-                    bool ok = m_ash.SendRequest(CStreamSerializationHelper.idWriteDataFromClientToServer, su.UQueue.m_bytes, read, (ar) =>
-                    {
+                while (read > 0) {
+                    bool ok = m_ash.SendRequest(CStreamSerializationHelper.idWriteDataFromClientToServer, su.UQueue.m_bytes, read, (ar) => {
                         SendDataFromClientToServer();
                     });
                     if (Progress != null)
                         Progress.Invoke(this, (ulong)m_s.Position);
 
-                    if (!ok)
-                    {
+                    if (!ok) {
                         m_s = null;
                         break;
                     }
@@ -152,12 +126,9 @@ namespace SocketProAdapter.ClientSide
                     if (m_ash.AttachedClientSocket.BytesInSendingBuffer > 10 * CStreamSerializationHelper.STREAM_CHUNK_SIZE)
                         break;
                     read = CStreamSerializationHelper.Read(m_s, su.UQueue);
-                    if (read == 0)
-                    {
-                        if (!m_ash.SendRequest(CStreamSerializationHelper.idUploadCompleted, (dc) =>
-                        {
-                            lock (m_cs)
-                            {
+                    if (read == 0) {
+                        if (!m_ash.SendRequest(CStreamSerializationHelper.idUploadCompleted, (dc) => {
+                            lock (m_cs) {
                                 if (Progress != null)
                                     Progress.Invoke(this, (ulong)m_s.Position);
                                 m_s = null;
@@ -176,45 +147,37 @@ namespace SocketProAdapter.ClientSide
         /// <param name="source">A source stream at client side</param>
         /// <param name="RemotePath">A string sent to server for a file name or other object which will receive this stream data</param>
         /// <returns>An empty string if successful. Otherwise, an error message if failed</returns>
-        public string Upload(Stream source, string RemotePath)
-        {
+        public string Upload(Stream source, string RemotePath) {
             //remove any exitsing DataFromServerToClient delegate
             m_ash.ResultReturned -= DataFromServerToClient;
-            lock (m_cs)
-            {
+            lock (m_cs) {
                 if (m_s != null)
                     throw new InvalidOperationException("A stream during transaction");
             }
             if (source == null || !source.CanRead)
                 throw new InvalidOperationException("A readable source stream required");
             string res = "";
-            bool ok = (m_ash.SendRequest(CStreamSerializationHelper.idStartUploading, RemotePath, (ar) =>
-            {
+            bool ok = (m_ash.SendRequest(CStreamSerializationHelper.idStartUploading, RemotePath, (ar) => {
                 ar.Load(out res);
             }) && m_ash.WaitAll());
             if (res != null && res.Length > 0)
                 return res;
             if (!ok && !m_ash.AttachedClientSocket.Sendable)
                 return m_ash.AttachedClientSocket.ErrorMsg;
-            lock (m_cs)
-            {
+            lock (m_cs) {
                 if (m_s != null)
                     throw new InvalidOperationException("A stream during transaction");
                 m_s = source;
                 if (Progress != null)
                     Progress.Invoke(this, (ulong)m_s.Position);
-                if (SendDataFromClientToServer() == 0)
-                {
-                    if (!m_ash.SendRequest(CStreamSerializationHelper.idUploadCompleted, (dc) =>
-                    {
-                        lock (m_cs)
-                        {
+                if (SendDataFromClientToServer() == 0) {
+                    if (!m_ash.SendRequest(CStreamSerializationHelper.idUploadCompleted, (dc) => {
+                        lock (m_cs) {
                             if (Progress != null && m_s != null)
                                 Progress.Invoke(this, (ulong)m_s.Position);
                             m_s = null;
                         }
-                    }))
-                    {
+                    })) {
                         m_s = null;
                         if (!m_ash.AttachedClientSocket.Sendable)
                             return m_ash.AttachedClientSocket.ErrorMsg;
@@ -227,18 +190,15 @@ namespace SocketProAdapter.ClientSide
         /// <summary>
         /// Hosting service handler
         /// </summary>
-        public CAsyncServiceHandler AsyncServiceHandler
-        {
-            get
-            {
+        public CAsyncServiceHandler AsyncServiceHandler {
+            get {
                 return m_ash;
             }
         }
         private CAsyncServiceHandler m_ash;
     }
 
-    public class CStreamingFile : CAsyncServiceHandler
-    {
+    public class CStreamingFile : CAsyncServiceHandler {
         public const uint sidFile = BaseServiceID.sidFile; //asynchronous file streaming service id
 
         public delegate void DDownload(CStreamingFile file, int res, string errMsg);
@@ -266,8 +226,7 @@ namespace SocketProAdapter.ClientSide
         public const int CANNOT_OPEN_LOCAL_FILE_FOR_READING = -2;
 
         public CStreamingFile()
-            : base(sidFile)
-        {
+            : base(sidFile) {
         }
 
         /// <summary>
@@ -275,14 +234,11 @@ namespace SocketProAdapter.ClientSide
         /// </summary>
         /// <param name="sid">A service id</param>
         protected CStreamingFile(uint sid)
-            : base(sid)
-        {
+            : base(sid) {
         }
 
-        private class CContext
-        {
-            public CContext(bool uplaod, uint flags)
-            {
+        private class CContext {
+            public CContext(bool uplaod, uint flags) {
                 Uploading = uplaod;
                 Flags = flags;
             }
@@ -305,45 +261,32 @@ namespace SocketProAdapter.ClientSide
         protected object m_csFile = new object();
         private Deque<CContext> m_vContext = new Deque<CContext>(); //protected by m_csFile;
 
-        private static void CloseFile(CContext c)
-        {
-            if (c.File != null)
-            {
+        private static void CloseFile(CContext c) {
+            if (c.File != null) {
                 c.File.Close();
-                if (!c.Uploading && (c.ErrCode != 0 || (c.ErrMsg != null && c.ErrMsg.Length > 0)))
-                {
-                    try
-                    {
+                if (!c.Uploading && (c.ErrCode != 0 || (c.ErrMsg != null && c.ErrMsg.Length > 0))) {
+                    try {
                         System.IO.File.Delete(c.LocalFile);
-                    }
-                    catch { }
-                    finally { }
+                    } catch { } finally { }
                 }
             }
         }
 
-        private void OpenLocalRead(CContext context)
-        {
-            try
-            {
+        private void OpenLocalRead(CContext context) {
+            try {
                 FileShare fs = FileShare.None;
                 if ((context.Flags & FILE_OPEN_SHARE_READ) == FILE_OPEN_SHARE_READ)
                     fs = FileShare.Read;
                 context.File = new FileStream(context.LocalFile, FileMode.Open, FileAccess.Read, fs);
                 context.FileSize = context.File.Length;
-            }
-            catch (Exception err)
-            {
+            } catch (Exception err) {
                 context.ErrCode = CANNOT_OPEN_LOCAL_FILE_FOR_READING;
                 context.ErrMsg = err.Message;
-            }
-            finally { }
+            } finally { }
         }
 
-        private void OpenLocalWrite(CContext context)
-        {
-            try
-            {
+        private void OpenLocalWrite(CContext context) {
+            try {
                 FileMode fm;
                 if ((context.Flags & FILE_OPEN_TRUNCACTED) == FILE_OPEN_TRUNCACTED)
                     fm = FileMode.Create;
@@ -355,21 +298,15 @@ namespace SocketProAdapter.ClientSide
                 if ((context.Flags & FILE_OPEN_SHARE_WRITE) == FILE_OPEN_SHARE_WRITE)
                     fs = FileShare.Write;
                 context.File = new FileStream(context.LocalFile, fm, FileAccess.Write, fs);
-            }
-            catch (Exception err)
-            {
+            } catch (Exception err) {
                 context.ErrCode = CANNOT_OPEN_LOCAL_FILE_FOR_WRITING;
                 context.ErrMsg = err.Message;
-            }
-            finally { }
+            } finally { }
         }
 
-        public override uint CleanCallbacks()
-        {
-            lock (m_csFile)
-            {
-                foreach (CContext c in m_vContext)
-                {
+        public override uint CleanCallbacks() {
+            lock (m_csFile) {
+                foreach (CContext c in m_vContext) {
                     CloseFile(c);
                 }
                 m_vContext.Clear();
@@ -380,12 +317,9 @@ namespace SocketProAdapter.ClientSide
         /// <summary>
         /// The number of files queued
         /// </summary>
-        public uint FilesQueued
-        {
-            get
-            {
-                lock (m_csFile)
-                {
+        public uint FilesQueued {
+            get {
+                lock (m_csFile) {
                     return (uint)m_vContext.Count;
                 }
             }
@@ -394,12 +328,9 @@ namespace SocketProAdapter.ClientSide
         /// <summary>
         /// The file size in bytes for current file being in transaction
         /// </summary>
-        public long FileSize
-        {
-            get
-            {
-                lock (m_csFile)
-                {
+        public long FileSize {
+            get {
+                lock (m_csFile) {
                     if (m_vContext.Count == 0)
                         return -1;
                     return m_vContext[0].FileSize;
@@ -410,12 +341,9 @@ namespace SocketProAdapter.ClientSide
         /// <summary>
         /// Local file name of current file being in transaction
         /// </summary>
-        public string LocalFile
-        {
-            get
-            {
-                lock (m_csFile)
-                {
+        public string LocalFile {
+            get {
+                lock (m_csFile) {
                     if (m_vContext.Count == 0)
                         return null;
                     return m_vContext[0].LocalFile;
@@ -426,12 +354,9 @@ namespace SocketProAdapter.ClientSide
         /// <summary>
         /// Remote file name of current file being in transaction
         /// </summary>
-        public string RemoteFile
-        {
-            get
-            {
-                lock (m_csFile)
-                {
+        public string RemoteFile {
+            get {
+                lock (m_csFile) {
                     if (m_vContext.Count == 0)
                         return null;
                     return m_vContext[0].FilePath;
@@ -439,41 +364,33 @@ namespace SocketProAdapter.ClientSide
             }
         }
 
-        protected override void OnMergeTo(CAsyncServiceHandler to)
-        {
+        protected override void OnMergeTo(CAsyncServiceHandler to) {
             CStreamingFile fTo = (CStreamingFile)to;
-            lock (fTo.m_csFile)
-            {
-                lock (m_csFile)
-                {
+            lock (fTo.m_csFile) {
+                lock (m_csFile) {
                     fTo.m_vContext.InsertRange(fTo.m_vContext.Count, m_vContext);
                     m_vContext.Clear();
                 }
             }
         }
 
-        public bool Upload(string localFile, string remoteFile)
-        {
+        public bool Upload(string localFile, string remoteFile) {
             return Upload(localFile, remoteFile, null, null, null, FILE_OPEN_TRUNCACTED);
         }
 
-        public bool Upload(string localFile, string remoteFile, DUpload up)
-        {
+        public bool Upload(string localFile, string remoteFile, DUpload up) {
             return Upload(localFile, remoteFile, up, null, null, FILE_OPEN_TRUNCACTED);
         }
 
-        public bool Upload(string localFile, string remoteFile, DUpload up, DTransferring trans)
-        {
+        public bool Upload(string localFile, string remoteFile, DUpload up, DTransferring trans) {
             return Upload(localFile, remoteFile, up, trans, null, FILE_OPEN_TRUNCACTED);
         }
 
-        public bool Upload(string localFile, string remoteFile, DUpload up, DTransferring trans, DDiscarded discarded)
-        {
+        public bool Upload(string localFile, string remoteFile, DUpload up, DTransferring trans, DDiscarded discarded) {
             return Upload(localFile, remoteFile, up, trans, discarded, FILE_OPEN_TRUNCACTED);
         }
 
-        public virtual bool Upload(string localFile, string remoteFile, DUpload up, DTransferring trans, DDiscarded discarded, uint flags)
-        {
+        public virtual bool Upload(string localFile, string remoteFile, DUpload up, DTransferring trans, DDiscarded discarded, uint flags) {
             if (localFile == null || localFile.Length == 0)
                 return false;
             if (remoteFile == null || remoteFile.Length == 0)
@@ -484,11 +401,9 @@ namespace SocketProAdapter.ClientSide
             context.Discarded = discarded;
             context.FilePath = remoteFile;
             context.LocalFile = localFile;
-            lock (m_csFile)
-            {
+            lock (m_csFile) {
                 m_vContext.AddToBack(context);
-                if (m_vContext.Count == 1)
-                {
+                if (m_vContext.Count == 1) {
                     ClientCoreLoader.PostProcessing(AttachedClientSocket.Handle, 0, 0);
                     AttachedClientSocket.DoEcho(); //make sure WaitAll works correctly
                 }
@@ -496,28 +411,23 @@ namespace SocketProAdapter.ClientSide
             return true;
         }
 
-        public bool Download(string localFile, string remoteFile)
-        {
+        public bool Download(string localFile, string remoteFile) {
             return Download(localFile, remoteFile, null, null, null, FILE_OPEN_TRUNCACTED);
         }
 
-        public bool Download(string localFile, string remoteFile, DDownload dl)
-        {
+        public bool Download(string localFile, string remoteFile, DDownload dl) {
             return Download(localFile, remoteFile, dl, null, null, FILE_OPEN_TRUNCACTED);
         }
 
-        public bool Download(string localFile, string remoteFile, DDownload dl, DTransferring trans)
-        {
+        public bool Download(string localFile, string remoteFile, DDownload dl, DTransferring trans) {
             return Download(localFile, remoteFile, dl, trans, null, FILE_OPEN_TRUNCACTED);
         }
 
-        public bool Download(string localFile, string remoteFile, DDownload dl, DTransferring trans, DDiscarded discarded)
-        {
+        public bool Download(string localFile, string remoteFile, DDownload dl, DTransferring trans, DDiscarded discarded) {
             return Download(localFile, remoteFile, dl, trans, discarded, FILE_OPEN_TRUNCACTED);
         }
 
-        public virtual bool Download(string localFile, string remoteFile, DDownload dl, DTransferring trans, DDiscarded discarded, uint flags)
-        {
+        public virtual bool Download(string localFile, string remoteFile, DDownload dl, DTransferring trans, DDiscarded discarded, uint flags) {
             if (localFile == null || localFile.Length == 0)
                 return false;
             if (remoteFile == null || remoteFile.Length == 0)
@@ -528,11 +438,9 @@ namespace SocketProAdapter.ClientSide
             context.Discarded = discarded;
             context.FilePath = remoteFile;
             context.LocalFile = localFile;
-            lock (m_csFile)
-            {
+            lock (m_csFile) {
                 m_vContext.AddToBack(context);
-                if (m_vContext.Count == 1)
-                {
+                if (m_vContext.Count == 1) {
                     ClientCoreLoader.PostProcessing(AttachedClientSocket.Handle, 0, 0);
                     AttachedClientSocket.DoEcho(); //make sure WaitAll works correctly
                 }
@@ -540,105 +448,78 @@ namespace SocketProAdapter.ClientSide
             return true;
         }
 
-        protected override void OnPostProcessing(uint hint, ulong data)
-        {
+        protected override void OnPostProcessing(uint hint, ulong data) {
             CContext ctx = new CContext(false, 0);
-            lock (m_csFile)
-            {
-                if (m_vContext.Count > 0)
-                {
+            lock (m_csFile) {
+                if (m_vContext.Count > 0) {
                     CContext context = m_vContext[0];
-                    if (context.Uploading)
-                    {
+                    if (context.Uploading) {
                         OpenLocalRead(context);
-                    }
-                    else
-                    {
+                    } else {
                         OpenLocalWrite(context);
                     }
                     DAsyncResultHandler rh = null;
                     DOnExceptionFromServer se = null;
-                    if (context.ErrCode != 0 || (context.ErrMsg != null && context.ErrMsg.Length > 0))
-                    {
+                    if (context.ErrCode != 0 || (context.ErrMsg != null && context.ErrMsg.Length > 0)) {
                         ctx = m_vContext.RemoveFromFront();
-                        if (m_vContext.Count > 0)
-                        {
+                        if (m_vContext.Count > 0) {
                             ClientCoreLoader.PostProcessing(AttachedClientSocket.Handle, 0, 0);
                             AttachedClientSocket.DoEcho(); //make sure WaitAll works correctly
                         }
-                    }
-                    else if (context.Uploading)
-                    {
+                    } else if (context.Uploading) {
                         SendRequest(idUpload, context.FilePath, context.Flags, context.FileSize, rh, context.Discarded, se);
-                    }
-                    else
-                    {
+                    } else {
                         SendRequest(idDownload, context.FilePath, context.Flags, rh, context.Discarded, se);
                     }
                 }
             }
-            if (ctx.ErrCode != 0 || (ctx.ErrMsg != null && ctx.ErrMsg.Length > 0))
-            {
+            if (ctx.ErrCode != 0 || (ctx.ErrMsg != null && ctx.ErrMsg.Length > 0)) {
                 CloseFile(ctx);
-                if (ctx.Download != null)
-                {
+                if (ctx.Download != null) {
                     ctx.Download(this, ctx.ErrCode, ctx.ErrMsg);
                 }
             }
         }
 
-        protected override void OnResultReturned(ushort reqId, CUQueue mc)
-        {
-            switch (reqId)
-            {
-                case idDownload:
-                    {
+        protected override void OnResultReturned(ushort reqId, CUQueue mc) {
+            switch (reqId) {
+                case idDownload: {
                         int res;
                         string errMsg;
                         mc.Load(out res).Load(out errMsg);
                         DDownload dl;
-                        lock (m_csFile)
-                        {
-                            CContext context = m_vContext.RemoveFromFront();
-                            context.ErrCode = res;
-                            context.ErrMsg = errMsg;
-                            dl = context.Download;
-                            CloseFile(context);
+                        lock (m_csFile) {
+                            dl = m_vContext[0].Download;
                         }
-                        if (dl != null)
-                        {
+                        if (dl != null) {
                             dl.Invoke(this, res, errMsg);
+                        }
+                        lock (m_cs) {
+                            CContext context = m_vContext.RemoveFromFront();
+                            CloseFile(context);
                         }
                         OnPostProcessing(0, 0);
                     }
                     break;
                 case idStartDownloading:
-                    lock (m_csFile)
-                    {
+                    lock (m_csFile) {
                         CContext context = m_vContext[0];
                         mc.Load(out context.FileSize);
                     }
                     break;
-                case idDownloading:
-                    {
+                case idDownloading: {
                         long downloaded = 0;
                         DTransferring trans = null;
                         CContext context = null;
-                        lock (m_cs)
-                        {
+                        lock (m_cs) {
                             context = m_vContext[0];
                             trans = context.Transferring;
                             byte[] buffer = mc.IntenalBuffer;
-                            try
-                            {
+                            try {
                                 context.File.Write(buffer, 0, (int)mc.GetSize());
                                 downloaded = context.File.Position;
-                            }
-                            catch (System.IO.IOException err)
-                            {
-                                context = m_vContext.RemoveFromFront();
+                            } catch (System.IO.IOException err) {
                                 context.ErrMsg = err.Message;
-
 #if SP_MANAGER
                                 context.ErrCode = err.HResult;
 #else
@@ -648,95 +529,70 @@ namespace SocketProAdapter.ClientSide
 
                         }
                         mc.SetSize(0);
-                        if (context.ErrCode != 0 || (context.ErrMsg != null && context.ErrMsg.Length > 0))
-                        {
+                        if (context.ErrCode != 0 || (context.ErrMsg != null && context.ErrMsg.Length > 0)) {
                             CloseFile(context);
-                            if (context.Download != null)
-                            {
+                            if (context.Download != null) {
                                 context.Download.Invoke(this, context.ErrCode, context.ErrMsg);
                             }
+                            m_vContext.RemoveFromFront();
                             OnPostProcessing(0, 0);
-                        }
-                        else if (trans != null)
-                        {
+                        } else if (trans != null) {
                             trans.Invoke(this, downloaded);
                         }
                     }
                     break;
-                case idUpload:
-                    {
+                case idUpload: {
                         CContext context = null;
                         int res;
                         string errMsg;
                         mc.Load(out res).Load(out errMsg);
-                        if (res != 0 || (errMsg != null && errMsg.Length > 0))
-                        {
-                            lock (m_csFile)
-                            {
-                                context = m_vContext.RemoveFromFront();
+                        if (res != 0 || (errMsg != null && errMsg.Length > 0)) {
+                            lock (m_csFile) {
+                                context = m_vContext[0];
                                 context.ErrCode = res;
                                 context.ErrMsg = errMsg;
                             }
-                        }
-                        else
-                        {
-                            lock (m_csFile)
-                            {
+                        } else {
+                            lock (m_csFile) {
                                 bool automerge = (ClientCoreLoader.GetQueueAutoMergeByPool(AttachedClientSocket.PoolId) != 0);
                                 context = m_vContext[0];
-                                using (CScopeUQueue sb = new CScopeUQueue())
-                                {
+                                using (CScopeUQueue sb = new CScopeUQueue()) {
                                     DAsyncResultHandler rh = null;
                                     DOnExceptionFromServer se = null;
                                     if (sb.UQueue.MaxBufferSize < STREAM_CHUNK_SIZE)
                                         sb.UQueue.Realloc(STREAM_CHUNK_SIZE);
                                     byte[] buffer = sb.UQueue.IntenalBuffer;
                                     context.QueueOk = AttachedClientSocket.ClientQueue.StartJob();
-                                    try
-                                    {
+                                    try {
                                         int ret = context.File.Read(buffer, 0, (int)STREAM_CHUNK_SIZE);
-                                        while (ret == STREAM_CHUNK_SIZE)
-                                        {
+                                        while (ret == STREAM_CHUNK_SIZE) {
                                             SendRequest(idUploading, buffer, (uint)ret, rh, context.Discarded, se);
                                             ret = context.File.Read(buffer, 0, (int)STREAM_CHUNK_SIZE);
-                                            if (context.QueueOk)
-                                            {
-                                                if (automerge)
-                                                {
-                                                }
-                                                else if (AttachedClientSocket.ConnectionState > tagConnectionState.csConnected)
-                                                {
+                                            if (context.QueueOk) {
+                                                if (automerge) {
+                                                } else if (AttachedClientSocket.ConnectionState > tagConnectionState.csConnected) {
                                                     uint pending = AttachedClientSocket.ClientQueue.MessagesInDequeuing;
                                                     ulong jobsize = AttachedClientSocket.ClientQueue.JobSize;
                                                     ulong msg = AttachedClientSocket.ClientQueue.MessageCount;
-                                                    if (msg + jobsize - pending > 80)
-                                                    {
+                                                    if (msg + jobsize - pending > 80) {
                                                         break;
                                                     }
                                                 }
-                                            }
-                                            else if (AttachedClientSocket.BytesInSendingBuffer > 40 * STREAM_CHUNK_SIZE || AttachedClientSocket.ConnectionState < tagConnectionState.csConnected)
-                                            {
+                                            } else if (AttachedClientSocket.BytesInSendingBuffer > 40 * STREAM_CHUNK_SIZE || AttachedClientSocket.ConnectionState < tagConnectionState.csConnected) {
                                                 break;
                                             }
                                         }
-                                        if (ret > 0)
-                                        {
+                                        if (ret > 0) {
                                             SendRequest(idUploading, buffer, (uint)ret, rh, context.Discarded, se);
                                         }
-                                        if (ret < STREAM_CHUNK_SIZE)
-                                        {
+                                        if (ret < STREAM_CHUNK_SIZE) {
                                             context.Sent = true;
                                             SendRequest(idUploadCompleted, rh, context.Discarded, se);
-                                            if (context.QueueOk)
-                                            {
+                                            if (context.QueueOk) {
                                                 AttachedClientSocket.ClientQueue.EndJob();
                                             }
                                         }
-                                    }
-                                    catch (System.IO.IOException err)
-                                    {
-                                        context = m_vContext.RemoveFromFront();
+                                    } catch (System.IO.IOException err) {
                                         errMsg = err.Message;
 #if SP_MANAGER
                                         res = err.HResult;
@@ -749,56 +605,46 @@ namespace SocketProAdapter.ClientSide
                                 }
                             }
                         }
-                        if (res != 0 || (errMsg != null && errMsg.Length > 0))
-                        {
+                        if (res != 0 || (errMsg != null && errMsg.Length > 0)) {
                             CloseFile(context);
-                            if (context.Upload != null)
-                            {
+                            if (context.Upload != null) {
                                 context.Upload.Invoke(this, res, errMsg);
+                            }
+                            lock (m_csFile) {
+                                context = m_vContext.RemoveFromFront();
                             }
                             OnPostProcessing(0, 0);
                         }
                     }
                     break;
-                case idUploading:
-                    {
+                case idUploading: {
                         CContext context = null;
                         DTransferring trans = null;
                         long uploaded;
                         mc.Load(out uploaded);
-                        lock (m_csFile)
-                        {
+                        lock (m_csFile) {
                             context = m_vContext[0];
                             trans = context.Transferring;
-                            if (!context.Sent)
-                            {
-                                using (CScopeUQueue sb = new CScopeUQueue())
-                                {
+                            if (!context.Sent) {
+                                using (CScopeUQueue sb = new CScopeUQueue()) {
                                     DAsyncResultHandler rh = null;
                                     DOnExceptionFromServer se = null;
                                     if (sb.UQueue.MaxBufferSize < STREAM_CHUNK_SIZE)
                                         sb.UQueue.Realloc(STREAM_CHUNK_SIZE);
                                     byte[] buffer = sb.UQueue.IntenalBuffer;
-                                    try
-                                    {
+                                    try {
                                         int ret = context.File.Read(buffer, 0, (int)STREAM_CHUNK_SIZE);
-                                        if (ret > 0)
-                                        {
+                                        if (ret > 0) {
                                             SendRequest(idUploading, buffer, (uint)ret, rh, context.Discarded, se);
                                         }
-                                        if (ret < STREAM_CHUNK_SIZE)
-                                        {
+                                        if (ret < STREAM_CHUNK_SIZE) {
                                             context.Sent = true;
                                             SendRequest(idUploadCompleted, rh, context.Discarded, se);
-                                            if (context.QueueOk)
-                                            {
+                                            if (context.QueueOk) {
                                                 AttachedClientSocket.ClientQueue.EndJob();
                                             }
                                         }
-                                    }
-                                    catch (System.IO.IOException err)
-                                    {
-                                        context = m_vContext.RemoveFromFront();
+                                    } catch (System.IO.IOException err) {
                                         context.ErrMsg = err.Message;
 #if SP_MANAGER
                                         context.ErrCode = err.HResult;
@@ -810,33 +656,31 @@ namespace SocketProAdapter.ClientSide
                                 }
                             }
                         }
-                        if (context.ErrCode != 0 || (context.ErrMsg != null && context.ErrMsg.Length > 0))
-                        {
+                        if (context.ErrCode != 0 || (context.ErrMsg != null && context.ErrMsg.Length > 0)) {
                             CloseFile(context);
-                            if (context.Upload != null)
-                            {
+                            if (context.Upload != null) {
                                 context.Upload.Invoke(this, context.ErrCode, context.ErrMsg);
                             }
+                            lock (m_csFile) {
+                                m_vContext.RemoveFromFront();
+                            }
                             OnPostProcessing(0, 0);
-                        }
-                        else if (trans != null)
-                        {
+                        } else if (trans != null) {
                             trans.Invoke(this, uploaded);
                         }
                     }
                     break;
-                case idUploadCompleted:
-                    {
+                case idUploadCompleted: {
                         DUpload upl = null;
-                        lock (m_csFile)
-                        {
-                            CContext context = m_vContext.RemoveFromFront();
-                            upl = context.Upload;
-                            CloseFile(context);
+                        lock (m_csFile) {
+                            upl = m_vContext[0].Upload;
                         }
-                        if (upl != null)
-                        {
+                        if (upl != null) {
                             upl.Invoke(this, 0, "");
+                        }
+                        lock (m_csFile) {
+                            CContext context = m_vContext.RemoveFromFront();
+                            CloseFile(context);
                         }
                         OnPostProcessing(0, 0);
                     }
