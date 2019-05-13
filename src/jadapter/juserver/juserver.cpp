@@ -4,9 +4,6 @@
 #include <string>
 #include <unordered_map>
 #include <algorithm>
-#ifndef NDEBUG
-#include <iostream>
-#endif
 
 #ifdef WINCE
 #elif defined(WIN32_64)
@@ -1562,16 +1559,10 @@ bool CALLBACK OnHttpAuthentication(USocket_Server_Handle h, const wchar_t *userI
 void CALLBACK OnThreadEvent(SPA::ServerSide::tagThreadEvent te) {
     switch (te) {
         case SPA::ServerSide::teStarted:
-#ifndef NDEBUG
-            std::cout << "++++ ServerSide::teStarted @" << __FUNCTION__ << "/" << __LINE__ << std::endl;
-#endif
             SetCurrentThreadAsDaemon();
             break;
         case SPA::ServerSide::teKilling:
             RemoveCurrentThreadAsDaemon();
-#ifndef NDEBUG
-            std::cout << "---- ServerSide::teKilling @" << __FUNCTION__ << "/" << __LINE__ << std::endl;
-#endif
             break;
         default:
             assert(false);

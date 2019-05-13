@@ -4,9 +4,6 @@
 #include <unordered_map>
 #include <algorithm>
 #include <vector>
-#ifndef NDEBUG
-#include <iostream>
-#endif
 
 #ifdef WINCE
 #elif defined(WIN32_64)
@@ -38,6 +35,7 @@ jmethodID g_midOnSocketClosed = nullptr;
 jmethodID g_midOnSocketConnected = nullptr;
 jmethodID g_midOnSpeak = nullptr;
 jmethodID g_midOnSpeakEx = nullptr;
+jmethodID g_midOnPostProcessing = nullptr;
 
 jmethodID g_midMSContructor = nullptr;
 jfieldID g_fidUserId = nullptr;
@@ -83,6 +81,7 @@ void SetCaches(JNIEnv *env) {
     g_midOnSocketConnected = env->GetStaticMethodID(cls, "OnSocketConnected", "(JI)V");
     g_midOnSpeak = env->GetStaticMethodID(cls, "OnSpeak", "(JLjava/lang/Object;[I[B)V");
     g_midOnSpeakEx = env->GetStaticMethodID(cls, "OnSpeakEx", "(JLjava/lang/Object;[I[B)V");
+    g_midOnPostProcessing = env->GetStaticMethodID(cls, "OnPostProcessing", "(JIJ)V");
 
     cls = env->FindClass("SPA/ClientSide/CMessageSender");
     //make a global class reference to CMessageSender
@@ -98,10 +97,6 @@ void SetCaches(JNIEnv *env) {
 void CleanException(JNIEnv *env) {
     jthrowable ex = env->ExceptionOccurred();
     if (ex) {
-#ifndef NDEBUG
-        std::cout << "++++ @" << __FUNCTION__ << std::endl;
-        env->ExceptionDescribe();
-#endif
         env->ExceptionClear();
     }
 }
@@ -110,13 +105,7 @@ void CALLBACK OnSocketClosed(USocket_Client_Handle handler, int nError) {
     JNIEnv *env;
     jint es = g_vmClient->GetEnv((void **) &env, JNI_VERSION_1_6);
     assert(env);
-#ifndef NDEBUG
-    std::cout << "++++ @" << __FUNCTION__ << "/" << "nError: " << nError << std::endl;
-#endif
     env->CallStaticVoidMethod(g_classCClientSocket, g_midOnSocketClosed, (jlong) handler, (jint) nError);
-#ifndef NDEBUG
-    std::cout << "---- @" << __FUNCTION__ << "/" << "nError: " << nError << std::endl;
-#endif
     CleanException(env);
 }
 
@@ -124,13 +113,7 @@ void CALLBACK OnHandShakeCompleted(USocket_Client_Handle handler, int nError) {
     JNIEnv *env;
     jint es = g_vmClient->GetEnv((void **) &env, JNI_VERSION_1_6);
     assert(env);
-#ifndef NDEBUG
-    std::cout << "++++ @" << __FUNCTION__ << "/" << "nError: " << nError << std::endl;
-#endif
     env->CallStaticVoidMethod(g_classCClientSocket, g_midOnHandShakeCompleted, (jlong) handler, (jint) nError);
-#ifndef NDEBUG
-    std::cout << "---- @" << __FUNCTION__ << "/" << "nError: " << nError << std::endl;
-#endif
     CleanException(env);
 }
 
@@ -138,13 +121,7 @@ void CALLBACK OnSocketConnected(USocket_Client_Handle handler, int nError) {
     JNIEnv *env;
     jint es = g_vmClient->GetEnv((void **) &env, JNI_VERSION_1_6);
     assert(env);
-#ifndef NDEBUG
-    std::cout << "++++ @" << __FUNCTION__ << "/" << "nError: " << nError << std::endl;
-#endif
     env->CallStaticVoidMethod(g_classCClientSocket, g_midOnSocketConnected, (jlong) handler, (jint) nError);
-#ifndef NDEBUG
-    std::cout << "---- @" << __FUNCTION__ << "/" << "nError: " << nError << std::endl;
-#endif
     CleanException(env);
 }
 
@@ -171,13 +148,15 @@ void CALLBACK OnBaseRequestProcessed(USocket_Client_Handle handler, unsigned sho
     JNIEnv *env;
     jint es = g_vmClient->GetEnv((void **) &env, JNI_VERSION_1_6);
     assert(env);
-#ifndef NDEBUG
-    std::cout << "++++ @" << __FUNCTION__ << "/" << "Request id: " << requestId << std::endl;
-#endif
     env->CallStaticVoidMethod(g_classCClientSocket, g_midOnBaseRequestProcessed, (jlong) handler, (jshort) requestId);
-#ifndef NDEBUG
-    std::cout << "---- @" << __FUNCTION__ << "/" << "Request id: " << requestId << std::endl;
-#endif
+    CleanException(env);
+}
+
+void CALLBACK OnPostProcessing(USocket_Client_Handle handler, unsigned int hint, SPA::UINT64 data) {
+    JNIEnv *env;
+    jint es = g_vmClient->GetEnv((void **) &env, JNI_VERSION_1_6);
+    assert(env);
+    env->CallStaticVoidMethod(g_classCClientSocket, g_midOnPostProcessing, (jlong) handler, (jint) hint, (jlong) data);
     CleanException(env);
 }
 
@@ -419,15 +398,9 @@ void CALLBACK OnServerException(USocket_Client_Handle handler, unsigned short re
 #else
     jsize size = (jsize) GetLen((const jchar*) errMessage);
 #endif
-#ifndef NDEBUG
-    std::cout << "++++ @" << __FUNCTION__ << "/" << __LINE__ << std::endl;
-#endif
     jobject objMsg = env->NewString((const jchar*) errMessage, size);
     jobject objWhere = env->NewStringUTF(errWhere);
     env->CallStaticVoidMethod(g_classCClientSocket, g_midOnServerException, (jlong) handler, (jshort) requestId, objMsg, objWhere, (jint) errCode);
-#ifndef NDEBUG
-    std::cout << "---- @" << __FUNCTION__ << "/" << __LINE__ << std::endl;
-#endif
     CleanException(env);
     env->DeleteLocalRef(objWhere);
     env->DeleteLocalRef(objMsg);
@@ -465,15 +438,10 @@ typedef pthread_t UTHREAD_ID;
 std::vector<std::pair<unsigned int, UTHREAD_ID> > g_vDThreadClient; //locked by g_csClient
 
 void SetPoolThreadAsDaemon(unsigned int pid) {
-    jint res;
 #ifdef WIN32_64
     UTHREAD_ID tid = ::GetCurrentThreadId();
 #else
     UTHREAD_ID tid = pthread_self();
-#endif
-
-#ifndef NDEBUG
-    std::cout << "++++ ClientSide::speThreadCreated thread id =" << tid << std::endl;
 #endif
     std::pair<unsigned int, UTHREAD_ID> pair = std::make_pair(pid, tid);
     SPA::CAutoLock al(g_csClient);
@@ -483,7 +451,7 @@ void SetPoolThreadAsDaemon(unsigned int pid) {
         args.version = JNI_VERSION_1_6; // choose your JNI version
         args.name = (char*) "uclient_pool_thread"; // you might want to give the java thread a name
         args.group = nullptr; // you might want to assign the java thread to a ThreadGroup
-        res = g_vmClient->AttachCurrentThreadAsDaemon((void **) &env, &args);
+        jint res = g_vmClient->AttachCurrentThreadAsDaemon((void **) &env, &args);
         assert(res == 0);
         if (res == 0)
             g_vDThreadClient.push_back(pair);
@@ -492,14 +460,6 @@ void SetPoolThreadAsDaemon(unsigned int pid) {
 
 void RemovePoolThreadAsDaemon(unsigned int pid) {
     bool removed = true;
-#ifndef NDEBUG
-#ifdef WIN32_64
-    UTHREAD_ID tid = ::GetCurrentThreadId();
-#else
-    UTHREAD_ID tid = pthread_self();
-#endif
-    std::cout << "---- ClientSide::speThreadKilling thread id =" << tid << std::endl;
-#endif
     SPA::CAutoLock al(g_csClient);
     while (removed) {
         removed = false;
@@ -619,6 +579,7 @@ JNIEXPORT void JNICALL Java_SPA_ClientSide_ClientCoreLoader_SetCs(JNIEnv *env, j
     SetOnSocketConnected(native, OnSocketConnected);
     SetOnSpeak(native, OnSpeak);
     SetOnSpeakEx(native, OnSpeakEx);
+    SetOnPostProcessing(native, OnPostProcessing);
 }
 
 JNIEXPORT jint JNICALL Java_SPA_ClientSide_ClientCoreLoader_CreateSocketPool(JNIEnv *env, jclass spObj, jobject spc, jint maxSocketsPerThread, jint maxThreads, jboolean bAvg, jint ta) {
@@ -1069,6 +1030,10 @@ JNIEXPORT jboolean JNICALL Java_SPA_ClientSide_ClientCoreLoader_DequeuedResult(J
 
 JNIEXPORT jint JNICALL Java_SPA_ClientSide_ClientCoreLoader_GetMessagesInDequeuing(JNIEnv *, jclass, jlong h) {
     return (jint) GetMessagesInDequeuing((USocket_Client_Handle) h);
+}
+
+JNIEXPORT void JNICALL Java_SPA_ClientSide_ClientCoreLoader_PostProcessing(JNIEnv *, jclass, jlong h, jint hint, jlong data) {
+    PostProcessing((USocket_Client_Handle) h, (unsigned int) hint, (SPA::UINT64)data);
 }
 
 JNIEXPORT jboolean JNICALL Java_SPA_ClientSide_ClientCoreLoader_IsQueueSecured(JNIEnv *, jclass, jlong h) {

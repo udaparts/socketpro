@@ -383,6 +383,10 @@ public class CAsyncServiceHandler {
     protected void OnAllProcessed() {
 
     }
+    
+    protected void OnPostProcessing(int hint, long data) {
+        
+    }
 
     public final boolean getRouteeRequest() {
         long h = getCSHandle();

@@ -126,7 +126,7 @@ namespace SPA {
         unsigned int len = ::SysStringLen(vtDes.bstrVal);
         std::string s(vtDes.bstrVal, vtDes.bstrVal + len);
         VariantClear(&vtDes);
-		return s;
+        return s;
 #else
 #ifdef BOOST_MP_CPP_INT_HPP
         uint96_t v = decVal.Hi32;

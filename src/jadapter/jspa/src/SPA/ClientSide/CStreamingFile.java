@@ -149,6 +149,11 @@ public class CStreamingFile extends CAsyncServiceHandler {
     }
 
     @Override
+    protected void OnPostProcessing(int hint, long data) {
+
+    }
+
+    @Override
     public int CleanCallbacks() {
         synchronized (m_csFile) {
             for (CContext c : m_vContext) {
