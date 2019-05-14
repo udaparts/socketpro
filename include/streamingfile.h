@@ -144,10 +144,30 @@ namespace SPA {
                         if (context.ErrorCode || context.ErrMsg.size()) {
                             ctx = m_vContext.front();
                         } else if (context.Uploading) {
-                            SendRequest(SFile::idUpload, context.FilePath.c_str(), context.Flags, context.FileSize, rh, context.Discarded, se);
+                            if (!SendRequest(SFile::idUpload, context.FilePath.c_str(), context.Flags, context.FileSize, rh, context.Discarded, se)) {
+#ifdef WIN32_64
+                                context.ErrorCode = ::GetLastError();
+                                context.ErrMsg = Utilities::GetErrorMessage(::GetLastError());
+#else
+                                context.ErrorCode = errno;
+                                std::string err = strerror(errno);
+                                context.ErrMsg = Utilities::ToWide(err);
+#endif
+                                ctx = m_vContext.front();
+                            }
                         } else {
                             //downloading
-                            SendRequest(SFile::idDownload, context.FilePath.c_str(), context.Flags, rh, context.Discarded, se);
+                            if (!SendRequest(SFile::idDownload, context.FilePath.c_str(), context.Flags, rh, context.Discarded, se)) {
+#ifdef WIN32_64
+                                context.ErrorCode = ::GetLastError();
+                                context.ErrMsg = Utilities::GetErrorMessage(::GetLastError());
+#else
+                                context.ErrorCode = errno;
+                                std::string err = strerror(errno);
+                                context.ErrMsg = Utilities::ToWide(err);
+#endif
+                                ctx = m_vContext.front();
+                            }
                         }
                     }
                 }
@@ -292,7 +312,10 @@ namespace SPA {
                                 ok = (ret != -1);
 #endif
                                 while (ok && (unsigned int) ret == SFile::STREAM_CHUNK_SIZE) {
-                                    SendRequest(SFile::idUploading, sb->GetBuffer(), (unsigned int) ret, rh, context.Discarded, se);
+                                    if (!SendRequest(SFile::idUploading, sb->GetBuffer(), (unsigned int) ret, rh, context.Discarded, se)) {
+                                        ok = false;
+                                        break;
+                                    }
 #ifdef WIN32_64
                                     ret = 0;
                                     ok = ::ReadFile(context.File, (LPVOID) sb->GetBuffer(), SFile::STREAM_CHUNK_SIZE, &ret, nullptr) ? true : false;
@@ -309,6 +332,17 @@ namespace SPA {
                                     }
                                 }
                                 if (!ok) {
+                                } else if (ret > 0) {
+                                    ok = SendRequest(SFile::idUploading, sb->GetBuffer(), (unsigned int) ret, rh, context.Discarded, se);
+                                }
+                                if (ok && ret < SFile::STREAM_CHUNK_SIZE) {
+                                    context.Sent = true;
+                                    ok = SendRequest(SFile::idUploadCompleted, (const unsigned char*) nullptr, (unsigned int) 0, rh, context.Discarded, se);
+                                    if (context.QueueOk) {
+                                        GetAttachedClientSocket()->GetClientQueue().EndJob();
+                                    }
+                                }
+                                if (!ok) {
 #ifdef WIN32_64
                                     context.ErrorCode = ::GetLastError();
                                     context.ErrMsg = Utilities::GetErrorMessage(::GetLastError());
@@ -317,20 +351,9 @@ namespace SPA {
                                     std::string err = strerror(errno);
                                     context.ErrMsg = Utilities::ToWide(err);
 #endif
-                                    if (context.QueueOk) {
-                                        GetAttachedClientSocket()->GetClientQueue().AbortJob();
-                                    }
                                     ctx = m_vContext.front();
-                                } else if (ret > 0) {
-                                    SendRequest(SFile::idUploading, sb->GetBuffer(), (unsigned int) ret, rh, context.Discarded, se);
                                 }
-                                if (ok && ret < SFile::STREAM_CHUNK_SIZE) {
-                                    context.Sent = true;
-                                    SendRequest(SFile::idUploadCompleted, (const unsigned char*) nullptr, (unsigned int) 0, rh, context.Discarded, se);
-                                    if (context.QueueOk) {
-                                        GetAttachedClientSocket()->GetClientQueue().EndJob();
-                                    }
-                                }
+
                             } else {
                                 assert(false); //shouldn't come here
                             }
@@ -343,6 +366,9 @@ namespace SPA {
                             {
                                 CAutoLock al(m_csFile);
                                 m_vContext.pop_front();
+                            }
+                            if (ctx.QueueOk) {
+                                GetAttachedClientSocket()->GetClientQueue().AbortJob();
                             }
                             OnPostProcessing(0, 0);
                         }
@@ -374,6 +400,17 @@ namespace SPA {
                                     ResultHandler rh;
                                     DServerException se = nullptr;
                                     if (!ok) {
+                                    } else if (ret > 0) {
+                                        ok = SendRequest(SFile::idUploading, sb->GetBuffer(), (unsigned int) ret, rh, context.Discarded, se);
+                                    }
+                                    if (ok && ret < SFile::STREAM_CHUNK_SIZE) {
+                                        context.Sent = true;
+                                        ok = SendRequest(SFile::idUploadCompleted, (const unsigned char*) nullptr, (unsigned int) 0, rh, context.Discarded, se);
+                                        if (context.QueueOk) {
+                                            GetAttachedClientSocket()->GetClientQueue().EndJob();
+                                        }
+                                    }
+                                    if (!ok) {
 #ifdef WIN32_64
                                         context.ErrorCode = ::GetLastError();
                                         context.ErrMsg = Utilities::GetErrorMessage(::GetLastError());
@@ -382,20 +419,7 @@ namespace SPA {
                                         std::string err = strerror(errno);
                                         context.ErrMsg = Utilities::ToWide(err);
 #endif
-                                        if (context.QueueOk) {
-                                            GetAttachedClientSocket()->GetClientQueue().AbortJob();
-                                        }
                                         ctx = m_vContext.front();
-                                        m_vContext.pop_front();
-                                    } else if (ret > 0) {
-                                        SendRequest(SFile::idUploading, sb->GetBuffer(), (unsigned int) ret, rh, context.Discarded, se);
-                                    }
-                                    if (ok && ret < SFile::STREAM_CHUNK_SIZE) {
-                                        context.Sent = true;
-                                        SendRequest(SFile::idUploadCompleted, (const unsigned char*) nullptr, (unsigned int) 0, rh, context.Discarded, se);
-                                        if (context.QueueOk) {
-                                            GetAttachedClientSocket()->GetClientQueue().EndJob();
-                                        }
                                     }
                                 }
                             } else {
@@ -407,6 +431,7 @@ namespace SPA {
                             if (ctx.Download) {
                                 ctx.Download(this, ctx.ErrorCode, ctx.ErrMsg);
                             }
+                            m_vContext.pop_front();
                             OnPostProcessing(0, 0);
                         } else if (trans) {
                             trans(this, (UINT64) uploaded);

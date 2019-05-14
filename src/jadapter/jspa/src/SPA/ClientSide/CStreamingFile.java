@@ -76,9 +76,13 @@ public class CStreamingFile extends CAsyncServiceHandler {
         public DTransferring Transferring = null;
         public DDiscarded Discarded = null;
         public FileChannel File = null;
-        public boolean Tried = false;
         public String ErrMsg = "";
         public boolean QueueOk = false;
+        public int ErrCode = 0;
+
+        public boolean hasError() {
+            return (ErrCode != 0 || (ErrMsg != null && ErrMsg.length() > 0));
+        }
     };
 
     protected final Object m_csFile = new Object();
@@ -150,153 +154,296 @@ public class CStreamingFile extends CAsyncServiceHandler {
 
     @Override
     protected void OnPostProcessing(int hint, long data) {
-
+        CContext ctx = null;
+        CClientSocket cs = getAttachedClientSocket();
+        synchronized (m_csFile) {
+            if (m_vContext.size() > 0) {
+                CContext context = m_vContext.getFirst();
+                if (context.Uploading) {
+                    OpenLocalRead(context);
+                } else {
+                    OpenLocalWrite(context);
+                }
+                DAsyncResultHandler rh = null;
+                DOnExceptionFromServer se = null;
+                if (context.ErrCode != 0 || (context.ErrMsg != null && context.ErrMsg.length() > 0)) {
+                    ctx = context;
+                } else if (context.Uploading) {
+                    try (CScopeUQueue sq = new CScopeUQueue()) {
+                        CUQueue sb = sq.getUQueue();
+                        sb.Save(context.FilePath).Save(context.Flags).Save(context.FileSize);
+                        if (!SendRequest(idUpload, sb, rh, context.Discarded, se)) {
+                            ctx = context;
+                            context.ErrCode = cs.getErrorCode();
+                            context.ErrMsg = cs.getErrorMsg();
+                        }
+                    }
+                } else {
+                    try (CScopeUQueue sq = new CScopeUQueue()) {
+                        CUQueue sb = sq.getUQueue();
+                        sb.Save(context.FilePath).Save(context.Flags).Save(context.FileSize);
+                        if (!SendRequest(idDownload, sb, rh, context.Discarded, se)) {
+                            ctx = context;
+                            context.ErrCode = cs.getErrorCode();
+                            context.ErrMsg = cs.getErrorMsg();
+                        }
+                    }
+                }
+            }
+        }
+        if (ctx == null) {
+            return;
+        }
+        if (ctx.Uploading) {
+            if (ctx.Upload != null) {
+                ctx.Upload.invoke(this, ctx.ErrCode, ctx.ErrMsg);
+            }
+        } else {
+            if (ctx.Download != null) {
+                ctx.Download.invoke(this, ctx.ErrCode, ctx.ErrMsg);
+            }
+        }
+        synchronized (m_csFile) {
+            CloseFile(m_vContext.removeFirst());
+            if (m_vContext.size() > 0) {
+                ClientCoreLoader.PostProcessing(getAttachedClientSocket().getHandle(), 0, 0);
+                getAttachedClientSocket().DoEcho(); //make sure WaitAll works correctly
+            }
+        }
     }
 
     @Override
     public int CleanCallbacks() {
         synchronized (m_csFile) {
             for (CContext c : m_vContext) {
-                if (c.File != null) {
-                    try {
-                        if (c.File.isOpen()) {
-                            c.File.close();
-                        }
-                        if (!c.Uploading) {
-                            java.nio.file.Path path = java.nio.file.Paths.get(c.LocalFile);
-                            java.nio.file.Files.deleteIfExists(path);
-                        }
-                    } catch (IOException err) {
-                    } finally {
-                    }
-                }
+                CloseFile(c);
             }
             m_vContext.clear();
         }
         return super.CleanCallbacks();
     }
 
+    private static void CloseFile(CContext c) {
+        try {
+            if (c.File != null) {
+                if (c.File.isOpen()) {
+                    c.File.close();
+                }
+                if (!c.Uploading) {
+                    java.nio.file.Path path = java.nio.file.Paths.get(c.LocalFile);
+                    java.nio.file.Files.deleteIfExists(path);
+                }
+            }
+        } catch (Exception err) {
+        }
+    }
+
+    private void OpenLocalRead(CContext context) {
+        try {
+            File file = new File(context.LocalFile);
+            context.File = new RandomAccessFile(file, "r").getChannel();
+            context.FileSize = context.File.size();
+        } catch (IOException err) {
+            context.ErrCode = CANNOT_OPEN_LOCAL_FILE_FOR_READING;
+            context.ErrMsg = err.getLocalizedMessage();
+        }
+    }
+
+    private void OpenLocalWrite(CContext context) {
+        try {
+            File file = new File(context.LocalFile);
+            context.File = new RandomAccessFile(file, "rw").getChannel();
+            if ((context.Flags & FILE_OPEN_SHARE_WRITE) == 0) {
+                context.File.lock();
+            }
+            if ((context.Flags & FILE_OPEN_TRUNCACTED) == FILE_OPEN_TRUNCACTED) {
+                context.File.truncate(0);
+            } else if ((context.Flags & FILE_OPEN_APPENDED) == FILE_OPEN_APPENDED) {
+                context.File.position(context.File.size());
+            }
+        } catch (IOException err) {
+            context.ErrMsg = err.getLocalizedMessage();
+            context.ErrCode = CANNOT_OPEN_LOCAL_FILE_FOR_WRITING;
+        }
+    }
+
     @Override
     protected void OnResultReturned(short reqId, CUQueue mc) {
         switch (reqId) {
             case idDownload: {
+                DDownload dl;
                 int res = mc.LoadInt();
                 String errMsg = mc.LoadString();
-                DDownload dl;
                 synchronized (m_csFile) {
-                    CContext context = m_vContext.getFirst();
-                    if (context.File != null) {
-                        try {
-                            if (context.File.isOpen()) {
-                                context.File.close();
-                            }
-                        } catch (IOException err) {
-                        }
-                    } else if (res == 0) {
-                        res = CANNOT_OPEN_LOCAL_FILE_FOR_WRITING;
-                        errMsg = context.ErrMsg;
-                    }
-                    dl = context.Download;
+                    dl = m_vContext.getFirst().Download;
                 }
                 if (dl != null) {
                     dl.invoke(this, res, errMsg);
                 }
                 synchronized (m_csFile) {
-                    m_vContext.removeFirst();
+                    CloseFile(m_vContext.removeFirst());
                 }
+                OnPostProcessing(0, 0);
             }
             break;
             case idStartDownloading:
                 synchronized (m_csFile) {
                     CContext context = m_vContext.getFirst();
                     context.FileSize = mc.LoadLong();
-                    try {
-                        File file = new File(context.LocalFile);
-                        context.File = new RandomAccessFile(file, "rw").getChannel();
-                        if ((context.Flags & FILE_OPEN_SHARE_WRITE) == 0) {
-                            context.File.lock();
-                        }
-                        if ((context.Flags & FILE_OPEN_TRUNCACTED) == FILE_OPEN_TRUNCACTED) {
-                            context.File.truncate(0);
-                        } else if ((context.Flags & FILE_OPEN_APPENDED) == FILE_OPEN_APPENDED) {
-                            context.File.position(context.File.size());
-                        }
-                    } catch (IOException err) {
-                        context.ErrMsg = err.getLocalizedMessage();
-                        if (context.File != null) {
-                            try {
-                                if (context.File.isOpen()) {
-                                    context.File.close();
-                                }
-                            } catch (IOException ex) {
-                            } finally {
-                                context.File = null;
-                            }
-                        }
-                    } finally {
-                    }
                 }
                 break;
             case idDownloading: {
-                long downloaded = -1;
+                long downloaded = 0;
                 DTransferring trans;
-                synchronized (m_cs) {
-                    CContext context = m_vContext.getFirst();
+                CContext context;
+                synchronized (m_csFile) {
+                    context = m_vContext.getFirst();
                     trans = context.Transferring;
-                    if (context.File != null) {
-                        byte[] buffer = mc.getIntenalBuffer();
-                        try {
-                            ByteBuffer bytes = ByteBuffer.wrap(buffer, 0, mc.GetSize());
-                            context.File.write(bytes);
-                            downloaded = context.File.position();
-                        } catch (IOException err) {
-                        }
+                    byte[] buffer = mc.getIntenalBuffer();
+                    try {
+                        ByteBuffer bytes = ByteBuffer.wrap(buffer, 0, mc.GetSize());
+                        context.File.write(bytes);
+                        downloaded = context.File.position();
+                    } catch (IOException err) {
+                        context.ErrMsg = err.getLocalizedMessage();
+                        context.ErrCode = CANNOT_OPEN_LOCAL_FILE_FOR_WRITING;
                     }
                 }
                 mc.SetSize(0);
-                if (trans != null) {
+                if (context.hasError()) {
+                    if (context.Download != null) {
+                        context.Download.invoke(this, context.ErrCode, context.ErrMsg);
+                    }
+                    synchronized (m_csFile) {
+                        CloseFile(m_vContext.removeFirst());
+                    }
+                    OnPostProcessing(0, 0);
+                } else if (trans != null) {
                     trans.invoke(this, downloaded);
                 }
             }
             break;
             case idUpload: {
-                boolean removed = false;
-                DUpload upl = null;
+                CContext context;
+                DUpload upl;
                 int res = mc.LoadInt();
                 String errMsg = mc.LoadString();
-                if (res != 0) {
-                    removed = true;
+                if (res != 0 || (errMsg != null && errMsg.length() > 0)) {
                     synchronized (m_csFile) {
-                        CContext context = m_vContext.getFirst();
+                        context = m_vContext.getFirst();
                         upl = context.Upload;
-                        if (context.File != null) {
-                            try {
-                                context.File.close();
-                            } catch (IOException err) {
+                        context.ErrCode = res;
+                        context.ErrMsg = errMsg;
+                    }
+                } else {
+                    DAsyncResultHandler rh = null;
+                    DOnExceptionFromServer se = null;
+                    CClientSocket cs = getAttachedClientSocket();
+                    synchronized (m_csFile) {
+                        context = m_vContext.getFirst();
+                        upl = context.Upload;
+                        try (CScopeUQueue sq = new CScopeUQueue()) {
+                            CUQueue sb = sq.getUQueue();
+                            if (sb.getMaxBufferSize() < STREAM_CHUNK_SIZE) {
+                                sb.Realloc(STREAM_CHUNK_SIZE);
                             }
+                            byte[] buffer = sb.getIntenalBuffer();
+                            ByteBuffer bytes = ByteBuffer.wrap(buffer, 0, STREAM_CHUNK_SIZE);
+                            context.QueueOk = cs.getClientQueue().StartJob();
+                            int ret = context.File.read(bytes);
+                            while (ret == STREAM_CHUNK_SIZE) {
+                                if (!SendRequest(idUploading, buffer, ret, rh, context.Discarded, se)) {
+                                    context.ErrCode = cs.getErrorCode();
+                                    context.ErrMsg = cs.getErrorMsg();
+                                    break;
+                                }
+                                ret = context.File.read(bytes);
+                                if (context.QueueOk) {
+                                    //save file into client message queue
+                                } else if (cs.getBytesInSendingBuffer() > 40 * STREAM_CHUNK_SIZE) {
+                                    break;
+                                }
+                            }
+                            if (ret > 0 && !context.hasError()) {
+                                if (!SendRequest(idUploading, buffer, ret, rh, context.Discarded, se)) {
+                                    context.ErrCode = cs.getErrorCode();
+                                    context.ErrMsg = cs.getErrorMsg();
+                                }
+                            }
+                            if (ret < STREAM_CHUNK_SIZE && !context.hasError()) {
+                                context.Sent = true;
+                                if (!SendRequest(idUploadCompleted, rh, context.Discarded, se)) {
+                                    context.ErrCode = cs.getErrorCode();
+                                    context.ErrMsg = cs.getErrorMsg();
+                                }
+                            }
+                        } catch (IOException err) {
+                            context.ErrCode = CANNOT_OPEN_LOCAL_FILE_FOR_READING;
+                            context.ErrMsg = err.getLocalizedMessage();
                         }
                     }
                 }
-                if (upl != null) {
-                    upl.invoke(this, res, errMsg);
-                }
-                if (removed) {
-                    synchronized (m_csFile) {
-                        m_vContext.removeFirst();
+                if (context.hasError()) {
+                    if (upl != null) {
+                        upl.invoke(this, context.ErrCode, context.ErrMsg);
                     }
+                    if (context.QueueOk) {
+                        getAttachedClientSocket().getClientQueue().AbortJob();
+                    }
+                    synchronized (m_csFile) {
+                        CloseFile(m_vContext.removeFirst());
+                    }
+                    OnPostProcessing(0, 0);
                 }
             }
             break;
             case idUploading: {
-                DTransferring trans = null;
+                CContext context;
+                DTransferring trans;
+                DAsyncResultHandler rh = null;
+                DOnExceptionFromServer se = null;
+                CClientSocket cs = getAttachedClientSocket();
                 long uploaded = mc.LoadLong();
-                if (uploaded > 0) {
-                    synchronized (m_csFile) {
-                        CContext context = m_vContext.getFirst();
-                        trans = context.Transferring;
+                synchronized (m_csFile) {
+                    context = m_vContext.getFirst();
+                    trans = context.Transferring;
+                    if (!context.Sent) {
+                        try (CScopeUQueue sq = new CScopeUQueue()) {
+                            CUQueue sb = sq.getUQueue();
+                            if (sb.getMaxBufferSize() < STREAM_CHUNK_SIZE) {
+                                sb.Realloc(STREAM_CHUNK_SIZE);
+                            }
+                            byte[] buffer = sb.getIntenalBuffer();
+                            ByteBuffer bytes = ByteBuffer.wrap(buffer, 0, STREAM_CHUNK_SIZE);
+                            int ret = context.File.read(bytes);
+                            if (ret > 0) {
+                                if (!SendRequest(idUploading, buffer, ret, rh, context.Discarded, se)) {
+                                    context.ErrCode = cs.getErrorCode();
+                                    context.ErrMsg = cs.getErrorMsg();
+                                }
+                            }
+                            if (ret < STREAM_CHUNK_SIZE) {
+                                context.Sent = true;
+                                if (!SendRequest(idUploadCompleted, rh, context.Discarded, se)) {
+                                    context.ErrCode = cs.getErrorCode();
+                                    context.ErrMsg = cs.getErrorMsg();
+                                }
+                            }
+                        } catch (IOException err) {
+                            context.ErrMsg = err.getLocalizedMessage();
+                            context.ErrCode = CANNOT_OPEN_LOCAL_FILE_FOR_READING;
+                        }
                     }
                 }
-                if (trans != null) {
+                if (context.hasError()) {
+                    if (context.Upload != null) {
+                        context.Upload.invoke(this, context.ErrCode, context.ErrMsg);
+                    }
+                    synchronized (m_csFile) {
+                        CloseFile(m_vContext.removeFirst());
+                    }
+                    OnPostProcessing(0, 0);
+                } else if (trans != null) {
                     trans.invoke(this, uploaded);
                 }
             }
@@ -304,29 +451,20 @@ public class CStreamingFile extends CAsyncServiceHandler {
             case idUploadCompleted: {
                 DUpload upl;
                 synchronized (m_csFile) {
-                    CContext context = m_vContext.getFirst();
-                    upl = context.Upload;
-                    if (context.File != null) {
-                        try {
-                            context.File.close();
-                        } catch (IOException err) {
-                        }
-                    }
+                    upl = m_vContext.getFirst().Upload;
                 }
                 if (upl != null) {
                     upl.invoke(this, 0, "");
                 }
                 synchronized (m_csFile) {
-                    m_vContext.removeFirst();
+                    CloseFile(m_vContext.removeFirst());
                 }
+                OnPostProcessing(0, 0);
             }
             break;
             default:
                 super.OnResultReturned(reqId, mc);
                 break;
-        }
-        synchronized (m_csFile) {
-            Transfer();
         }
     }
 
@@ -361,8 +499,12 @@ public class CStreamingFile extends CAsyncServiceHandler {
         context.LocalFile = localFile;
         synchronized (m_csFile) {
             m_vContext.addLast(context);
-            return Transfer();
+            if (m_vContext.size() == 1) {
+                ClientCoreLoader.PostProcessing(getAttachedClientSocket().getHandle(), 0, 0);
+                getAttachedClientSocket().DoEcho(); //make sure WaitAll works correctly
+            }
         }
+        return true;
     }
 
     public boolean Upload(String localFile, String remoteFile) {
@@ -396,119 +538,9 @@ public class CStreamingFile extends CAsyncServiceHandler {
         context.LocalFile = localFile;
         synchronized (m_csFile) {
             m_vContext.addLast(context);
-            return Transfer();
-        }
-    }
-
-    private boolean Transfer() {
-        int index = 0;
-        DAsyncResultHandler rh = null;
-        DOnExceptionFromServer se = null;
-        CClientSocket cs = getAttachedClientSocket();
-        if (!cs.getSendable()) {
-            return false;
-        }
-        int sent_buffer_size = cs.getBytesInSendingBuffer();
-        if (sent_buffer_size > 3 * STREAM_CHUNK_SIZE) {
-            return true;
-        }
-        try (CScopeUQueue sb = new CScopeUQueue()) {
-            while (index < m_vContext.size()) {
-                CContext context = (CContext) m_vContext.toArray()[index];
-                if (context.Sent) {
-                    ++index;
-                    return true;
-                }
-                if (context.Uploading && context.Tried && context.File == null) {
-                    if (index == 0) {
-                        if (context.Upload != null) {
-                            context.Upload.invoke(this, CANNOT_OPEN_LOCAL_FILE_FOR_READING, context.ErrMsg);
-                        }
-                        m_vContext.removeFirst();
-                    } else {
-                        ++index;
-                    }
-                    continue;
-                }
-                if (context.Uploading) {
-                    if (!context.Tried) {
-                        context.Tried = true;
-                        try {
-                            File file = new File(context.LocalFile);
-                            context.File = new RandomAccessFile(file, "r").getChannel();
-                            context.FileSize = context.File.size();
-                            sb.getUQueue().SetSize(0);
-                            sb.Save(context.FilePath).Save(context.Flags).Save(context.FileSize);
-                            context.QueueOk = getAttachedClientSocket().getClientQueue().StartJob();
-                            if (!SendRequest(idUpload, sb, rh, context.Discarded, se)) {
-                                return false;
-                            }
-                        } catch (IOException err) {
-                            context.ErrMsg = err.getLocalizedMessage();
-                        }
-                    }
-                    if (context.File == null) {
-                        if (index == 0) {
-                            if (context.Upload != null) {
-                                context.Upload.invoke(this, CANNOT_OPEN_LOCAL_FILE_FOR_READING, context.ErrMsg);
-                            }
-                            m_vContext.removeFirst();
-                        } else {
-                            ++index;
-                        }
-                        continue;
-                    } else {
-                        if (sb.getUQueue().getMaxBufferSize() < STREAM_CHUNK_SIZE) {
-                            sb.getUQueue().Realloc(STREAM_CHUNK_SIZE);
-                        }
-                        byte[] buffer = sb.getUQueue().getIntenalBuffer();
-                        ByteBuffer bytes = ByteBuffer.wrap(buffer, 0, STREAM_CHUNK_SIZE);
-                        try {
-                            int ret = context.File.read(bytes);
-                            while (ret > 0) {
-                                if (!SendRequest(idUploading, buffer, ret, rh, context.Discarded, se)) {
-                                    return false;
-                                }
-                                sent_buffer_size = cs.getBytesInSendingBuffer();
-                                if (ret < STREAM_CHUNK_SIZE) {
-                                    break;
-                                }
-                                if (sent_buffer_size >= 5 * STREAM_CHUNK_SIZE) {
-                                    break;
-                                }
-                                bytes = ByteBuffer.wrap(buffer, 0, STREAM_CHUNK_SIZE);
-                                ret = context.File.read(bytes);
-                            }
-                            if (ret < STREAM_CHUNK_SIZE) {
-                                context.Sent = true;
-                                if (!SendRequest(idUploadCompleted, rh, context.Discarded, se)) {
-                                    return false;
-                                }
-                                if (context.QueueOk) {
-                                    getAttachedClientSocket().getClientQueue().EndJob();
-                                    context.QueueOk = false;
-                                }
-                            }
-                            if (sent_buffer_size >= 4 * STREAM_CHUNK_SIZE) {
-                                break;
-                            }
-                        } catch (IOException err) {
-                        }
-                    }
-                } else {
-                    sb.getUQueue().SetSize(0);
-                    sb.Save(context.FilePath).Save(context.Flags);
-                    if (!SendRequest(idDownload, sb, rh, context.Discarded, se)) {
-                        return false;
-                    }
-                    context.Tried = true;
-                    context.Sent = true;
-                    sent_buffer_size = cs.getBytesInSendingBuffer();
-                    if (sent_buffer_size > 3 * STREAM_CHUNK_SIZE) {
-                        break;
-                    }
-                }
-                ++index;
+            if (m_vContext.size() == 1) {
+                ClientCoreLoader.PostProcessing(getAttachedClientSocket().getHandle(), 0, 0);
+                getAttachedClientSocket().DoEcho(); //make sure WaitAll works correctly
             }
         }
         return true;
