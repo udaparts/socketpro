@@ -128,6 +128,19 @@ namespace SPA {
 
         protected:
 
+            virtual void OnBaseRequestprocessed(unsigned short reqId) {
+                if (reqId == idDoEcho) {
+                    return;
+                }
+                CClientSocket *cs = GetAttachedClientSocket();
+                if (cs->GetCountOfRequestsInQueue() <= 1 && cs->GetClientQueue().IsAvailable()) {
+                    CAutoLock al(m_csFile);
+                    if (m_vContext.size()) {
+                        ClientCoreLoader.PostProcessing(cs->GetHandle(), 0, 0);
+                    }
+                }
+            }
+
             virtual void OnPostProcessing(unsigned int hint, UINT64 data) {
                 ResultHandler rh;
                 DServerException se = nullptr;

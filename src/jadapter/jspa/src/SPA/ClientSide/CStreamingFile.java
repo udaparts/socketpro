@@ -99,6 +99,21 @@ public class CStreamingFile extends CAsyncServiceHandler {
         }
     }
 
+    @Override
+    protected void OnBaseRequestProcessed(short reqId) {
+        if (reqId == SPA.tagBaseRequestID.idDoEcho.getValue()) {
+            return;
+        }
+        CClientSocket cs = getAttachedClientSocket();
+        if (cs.getCountOfRequestsInQueue() <= 1 && cs.getClientQueue().getAvailable()) {
+            synchronized (m_csFile) {
+                if (m_vContext.size() > 0) {
+                    ClientCoreLoader.PostProcessing(cs.getHandle(), 0, 0);
+                }
+            }
+        }
+    }
+
     /**
      * Get the number of files queued
      *

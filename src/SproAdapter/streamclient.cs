@@ -453,6 +453,20 @@ namespace SocketProAdapter.ClientSide {
             return true;
         }
 
+        protected override void OnBaseRequestProcessed(ushort reqId) {
+            if (reqId == (ushort)tagBaseRequestID.idDoEcho) {
+                return;
+            }
+            CClientSocket cs = AttachedClientSocket;
+            if (cs.CountOfRequestsInQueue <= 1 && cs.ClientQueue.Available) {
+                lock (m_csFile) {
+                    if (m_vContext.Count > 0) {
+                        ClientCoreLoader.PostProcessing(cs.Handle, 0, 0);
+                    }
+                }
+            }
+        }
+
         protected override void OnPostProcessing(uint hint, ulong data) {
             CContext ctx = null;
             CClientSocket cs = AttachedClientSocket;
