@@ -554,7 +554,6 @@ namespace SocketProAdapter.ClientSide {
                             }
                         } else {
                             lock (m_csFile) {
-                                bool automerge = (ClientCoreLoader.GetQueueAutoMergeByPool(AttachedClientSocket.PoolId) != 0);
                                 context = m_vContext[0];
                                 using (CScopeUQueue sb = new CScopeUQueue()) {
                                     DAsyncResultHandler rh = null;
@@ -569,15 +568,7 @@ namespace SocketProAdapter.ClientSide {
                                             SendRequest(idUploading, buffer, (uint)ret, rh, context.Discarded, se);
                                             ret = context.File.Read(buffer, 0, (int)STREAM_CHUNK_SIZE);
                                             if (context.QueueOk) {
-                                                if (automerge) {
-                                                } else if (AttachedClientSocket.ConnectionState > tagConnectionState.csConnected) {
-                                                    uint pending = AttachedClientSocket.ClientQueue.MessagesInDequeuing;
-                                                    ulong jobsize = AttachedClientSocket.ClientQueue.JobSize;
-                                                    ulong msg = AttachedClientSocket.ClientQueue.MessageCount;
-                                                    if (msg + jobsize - pending > 80) {
-                                                        break;
-                                                    }
-                                                }
+                                                //save file into client message queue
                                             } else if (AttachedClientSocket.BytesInSendingBuffer > 40 * STREAM_CHUNK_SIZE || AttachedClientSocket.ConnectionState < tagConnectionState.csConnected) {
                                                 break;
                                             }

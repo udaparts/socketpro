@@ -281,7 +281,6 @@ namespace SPA {
                                 bool ok;
                                 ResultHandler rh;
                                 DServerException se = nullptr;
-                                bool automerge = ClientCoreLoader.GetQueueAutoMergeByPool(GetAttachedClientSocket()->GetPoolId());
                                 CContext &context = m_vContext.front();
                                 CScopeUQueue sb(MY_OPERATION_SYSTEM, IsBigEndian(), SFile::STREAM_CHUNK_SIZE);
                                 context.QueueOk = GetAttachedClientSocket()->GetClientQueue().StartJob();
@@ -304,16 +303,8 @@ namespace SPA {
                                     if (!ok) {
                                         break;
                                     }
-                                    if (context.QueueOk) {
-                                        if (automerge) {
-                                        } else if (GetAttachedClientSocket()->GetConnectionState() > csConnected) {
-                                            auto pending = GetAttachedClientSocket()->GetClientQueue().GetMessagesInDequeuing();
-                                            auto jobsize = GetAttachedClientSocket()->GetClientQueue().GetJobSize();
-                                            auto msg = GetAttachedClientSocket()->GetClientQueue().GetMessageCount();
-                                            if (msg + jobsize - pending > 80) {
-                                                break;
-                                            }
-                                        }
+                                    else if (context.QueueOk) {
+										//save file into client message queue
                                     } else if (GetAttachedClientSocket()->GetBytesInSendingBuffer() > 40 * SFile::STREAM_CHUNK_SIZE || GetAttachedClientSocket()->GetConnectionState() < csConnected) {
                                         break;
                                     }

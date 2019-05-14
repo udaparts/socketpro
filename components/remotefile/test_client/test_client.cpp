@@ -85,7 +85,7 @@ int main(int argc, char* argv[]) {
     }, [](CStreamingFile *file, SPA::UINT64 downloaded) {
         //std::cout << "Downloading rate: " << (downloaded * 100) / file->GetFileSize() << "%" << std::endl;
     });
-    ok = rf->WaitAll();
+    //ok = rf->WaitAll();
 
     //uploading test
     LocalFile = L"spfile1.test";
