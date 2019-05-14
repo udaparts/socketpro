@@ -520,10 +520,10 @@ namespace SocketProAdapter.ClientSide {
                                 downloaded = context.File.Position;
                             } catch (System.IO.IOException err) {
                                 context.ErrMsg = err.Message;
-#if SP_MANAGER
-                                context.ErrCode = err.HResult;
-#else
+#if NO_HRESULT
                                 context.ErrCode = CANNOT_OPEN_LOCAL_FILE_FOR_WRITING;
+#else
+                                context.ErrCode = err.HResult;
 #endif
                             }
 
@@ -585,13 +585,16 @@ namespace SocketProAdapter.ClientSide {
                                         }
                                     } catch (System.IO.IOException err) {
                                         errMsg = err.Message;
-#if SP_MANAGER
-                                        res = err.HResult;
-#else
+#if NO_HRESULT
                                         res = CANNOT_OPEN_LOCAL_FILE_FOR_READING;
+#else
+                                        res = err.HResult;
 #endif
                                         context.ErrCode = res;
                                         context.ErrMsg = errMsg;
+                                        if (context.QueueOk) {
+                                            AttachedClientSocket.ClientQueue.AbortJob();
+                                        }
                                     }
                                 }
                             }
@@ -637,10 +640,10 @@ namespace SocketProAdapter.ClientSide {
                                         }
                                     } catch (System.IO.IOException err) {
                                         context.ErrMsg = err.Message;
-#if SP_MANAGER
-                                        context.ErrCode = err.HResult;
-#else
+#if NO_HRESULT
                                         context.ErrCode = CANNOT_OPEN_LOCAL_FILE_FOR_READING;
+#else
+                                        context.ErrCode = err.HResult;
 #endif
                                     }
 

@@ -302,9 +302,8 @@ namespace SPA {
 #endif
                                     if (!ok) {
                                         break;
-                                    }
-                                    else if (context.QueueOk) {
-										//save file into client message queue
+                                    } else if (context.QueueOk) {
+                                        //save file into client message queue
                                     } else if (GetAttachedClientSocket()->GetBytesInSendingBuffer() > 40 * SFile::STREAM_CHUNK_SIZE || GetAttachedClientSocket()->GetConnectionState() < csConnected) {
                                         break;
                                     }

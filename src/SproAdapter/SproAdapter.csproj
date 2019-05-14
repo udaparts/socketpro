@@ -18,7 +18,7 @@
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
     <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>TRACE;DEBUG;TASKS_ENABLED</DefineConstants>
+    <DefineConstants>TRACE;DEBUG;TASKS_ENABLED;SP_MANAGER;NO_HRESULT</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
@@ -27,7 +27,7 @@
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
     <OutputPath>bin\Release\</OutputPath>
-    <DefineConstants>TRACE;TASKS_ENABLED</DefineConstants>
+    <DefineConstants>TRACE;TASKS_ENABLED;SP_MANAGER;NO_HRESULT</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
@@ -37,6 +37,7 @@
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Data" />
+    <Reference Include="System.Runtime.Serialization" />
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
@@ -53,7 +54,7 @@
     <Compile Include="clientsocket.cs" />
     <Compile Include="deque.cs" />
     <Compile Include="gencachepeer.cs" />
-	<Compile Include="genricevents.cs" />
+    <Compile Include="genricevents.cs" />
     <Compile Include="masterpool.cs" />
     <Compile Include="masterslavebase.cs" />
     <Compile Include="odbc.cs" />
