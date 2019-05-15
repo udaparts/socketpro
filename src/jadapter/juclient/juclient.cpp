@@ -1,9 +1,6 @@
 
 #include "../../../include/uclient.h"
 #include "SPA_ClientSide_ClientCoreLoader.h"
-#include <unordered_map>
-#include <algorithm>
-#include <vector>
 
 #ifdef WINCE
 #elif defined(WIN32_64)
@@ -19,7 +16,14 @@ jobject g_currObj = nullptr;
 JavaVM *g_vmClient = nullptr;
 
 SPA::CUCriticalSection g_csClient;
+
+#ifdef WIN32_64
+#include <unordered_map>
 std::unordered_map<unsigned int, jobject> g_mapPJ;
+#else
+#include<boost/unordered_map.hpp>
+boost::unordered_map<unsigned int, jobject> g_mapPJ;
+#endif
 
 //cache CClientSocket class and its callback method ids
 jmethodID g_midOnAllRequestsProcessed = nullptr;

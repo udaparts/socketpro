@@ -39,11 +39,11 @@ OBJECTFILES= \
 
 
 # C Compiler Flags
-CFLAGS=-std=c++11 -static-libgcc -static-libstdc++ -g
+CFLAGS=-std=c++11
 
 # CC Compiler Flags
-CCFLAGS=-std=c++11 -static-libgcc -static-libstdc++ -g
-CXXFLAGS=-std=c++11 -static-libgcc -static-libstdc++ -g
+CCFLAGS=-std=c++11
+CXXFLAGS=-std=c++11
 
 # Fortran Compiler Flags
 FFLAGS=
@@ -52,7 +52,7 @@ FFLAGS=
 ASFLAGS=
 
 # Link Libraries and Options
-LDLIBSOPTIONS=-luservercore
+LDLIBSOPTIONS=-luservercore -ldl
 
 # Build Targets
 .build-conf: ${BUILD_SUBPROJECTS}
@@ -60,7 +60,7 @@ LDLIBSOPTIONS=-luservercore
 
 ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/libjuserver.${CND_DLIB_EXT}: ${OBJECTFILES}
 	${MKDIR} -p ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}
-	g++ -o ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/libjuserver.${CND_DLIB_EXT} ${OBJECTFILES} ${LDLIBSOPTIONS} -std=c++11 -static-libgcc -static-libstdc++ -g -shared -s -fPIC
+	gcc -o ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/libjuserver.${CND_DLIB_EXT} ${OBJECTFILES} ${LDLIBSOPTIONS} -Wl,--no-undefined -lstdc++ -shared -s -fPIC
 
 ${OBJECTDIR}/juserver.o: juserver.cpp 
 	${MKDIR} -p ${OBJECTDIR}

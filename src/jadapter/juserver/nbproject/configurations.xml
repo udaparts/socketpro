@@ -39,20 +39,21 @@
           <incDir>
             <pElem>/usr/lib/jvm/java-1.7.0-openjdk-amd64/include</pElem>
           </incDir>
-          <commandLine>-std=c++11 -static-libgcc -static-libstdc++</commandLine>
+          <commandLine>-std=c++11</commandLine>
         </cTool>
         <ccTool>
           <incDir>
             <pElem>/usr/lib/jvm/java-1.7.0-openjdk-amd64/include</pElem>
           </incDir>
-          <commandLine>-std=c++11 -static-libgcc -static-libstdc++</commandLine>
+          <commandLine>-std=c++11</commandLine>
         </ccTool>
         <linkerTool>
-          <commandlineTool>g++</commandlineTool>
+          <commandlineTool>gcc</commandlineTool>
           <linkerLibItems>
             <linkerOptionItem>-luservercore</linkerOptionItem>
+            <linkerLibStdlibItem>DynamicLinking</linkerLibStdlibItem>
           </linkerLibItems>
-          <commandLine>-std=c++11 -static-libgcc -static-libstdc++ -g</commandLine>
+          <commandLine>-Wl,--no-undefined -lstdc++</commandLine>
         </linkerTool>
       </compileType>
       <item path="juserver.cpp" ex="false" tool="0" flavor2="0">
@@ -71,7 +72,7 @@
           <incDir>
             <pElem>/usr/lib/jvm/java-1.7.0-openjdk-amd64/include</pElem>
           </incDir>
-          <commandLine>-std=c++11 -static-libgcc -static-libstdc++ -g</commandLine>
+          <commandLine>-std=c++11</commandLine>
           <preprocessorList>
             <Elem>NDEBUG</Elem>
           </preprocessorList>
@@ -82,7 +83,7 @@
           <incDir>
             <pElem>/usr/lib/jvm/java-1.7.0-openjdk-amd64/include</pElem>
           </incDir>
-          <commandLine>-std=c++11 -static-libgcc -static-libstdc++ -g</commandLine>
+          <commandLine>-std=c++11</commandLine>
           <preprocessorList>
             <Elem>NDEBUG</Elem>
           </preprocessorList>
@@ -95,11 +96,12 @@
         </asmTool>
         <linkerTool>
           <stripSymbols>true</stripSymbols>
-          <commandlineTool>g++</commandlineTool>
+          <commandlineTool>gcc</commandlineTool>
           <linkerLibItems>
             <linkerOptionItem>-luservercore</linkerOptionItem>
+            <linkerLibStdlibItem>DynamicLinking</linkerLibStdlibItem>
           </linkerLibItems>
-          <commandLine>-std=c++11 -static-libgcc -static-libstdc++ -g</commandLine>
+          <commandLine>-Wl,--no-undefined -lstdc++</commandLine>
         </linkerTool>
       </compileType>
       <item path="juserver.cpp" ex="false" tool="0" flavor2="0">
