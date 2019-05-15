@@ -252,10 +252,15 @@ namespace SPA {
                                 assert(ok);
                                 ok = SetEndOfFile(context.File);
                                 assert(ok);
-                                context.Finished = 0;
 #else
-
+								int ok = ::fsync(context.File);
+								assert(ok != -1);
+								INT64 back = -1((INT64) context.Finished);
+								auto newPos = ::lseek64(context.File, back, SEEK_END);
+								assert(newPos != -1);
+								ok = ::ftruncate(context.File, newPos);
 #endif
+								context.Finished = 0;
                             }
                             mc >> context.FileSize;
                         } else {
