@@ -113,7 +113,7 @@ public class Test_java {
                 //System.out.println("Downloading rate: " + downloaded * 100 / csf.getFileSize());
             }
         });
-        ok = rf.WaitAll();
+        //ok = rf.WaitAll();
 
         //uploading test
         LocalFile = "spfile1.test";
