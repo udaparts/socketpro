@@ -33,7 +33,7 @@ namespace SPA {
             struct CContext {
 
                 CContext(bool uplaod, unsigned int flags)
-                : Uploading(uplaod), FileSize(~0), Flags(flags), QueueOk(false), ErrorCode(0), Sent(false),
+                : Uploading(uplaod), FileSize(~0), Flags(flags), QueueOk(false), ErrorCode(0), Sent(false), Finished(0),
 #ifdef WIN32_64
                 File(INVALID_HANDLE_VALUE)
 #else
@@ -52,6 +52,7 @@ namespace SPA {
                 bool QueueOk;
                 int ErrorCode;
                 bool Sent;
+				UINT64 Finished;
 #ifdef WIN32_64
                 HANDLE File;
 #else
@@ -65,6 +66,7 @@ namespace SPA {
 					return (File != -1);
 #endif
 				}
+				
             };
 
         public:
@@ -216,7 +218,6 @@ namespace SPA {
                             CAutoLock al(m_csFile);
 							if (m_vContext.size()) {
 								CContext &context = m_vContext.front();
-								assert(!context.Uploading);
 								dl = context.Download;
 							}
                         }
@@ -226,10 +227,8 @@ namespace SPA {
                             CAutoLock al(m_csFile);
 							if (m_vContext.size()) {
 								CContext &context = m_vContext.front();
-								if (context.IsOpen()) {
-									CloseFile(context);
-									m_vContext.pop_front();
-								}
+								CloseFile(context);
+								m_vContext.pop_front();
 							}
                         }
                         OnPostProcessing(0, 0);
@@ -241,45 +240,53 @@ namespace SPA {
                         if (m_vContext.size()) {
                             CContext &context = m_vContext.front();
                             assert(!context.Uploading);
-                            mc >> context.FileSize;
-                        } else {
-                            mc.SetSize(0);
+							if (context.Finished) {
+#ifdef WIN32_64
+								BOOL ok = FlushFileBuffers(context.File);
+								assert(ok);
+								LARGE_INTEGER moveDis, newPos;
+								moveDis.QuadPart = -((INT64)context.Finished);
+								ok = SetFilePointerEx(context.File, moveDis, &newPos, FILE_END);
+								assert(ok);
+								ok = SetEndOfFile(context.File);
+								assert(ok);
+								context.Finished = 0;
+#else
+
+#endif
+							}
+							mc >> context.FileSize;
                         }
+						else {
+							mc.SetSize(0);
+						}
                     }
                         break;
                     case SFile::idDownloading:
                     {
                         DTransferring trans;
-                        UINT64 downloaded = 0;
+						UINT64 downloaded = 0;
                         {
                             CAutoLock al(m_csFile);
                             if (m_vContext.size()) {
                                 CContext &context = m_vContext.front();
                                 assert(!context.Uploading);
                                 trans = context.Transferring;
+								context.Finished += mc.GetSize();
 #ifdef WIN32_64
                                 if (context.File != INVALID_HANDLE_VALUE) {
                                     DWORD dw = mc.GetSize(), dwWritten;
                                     BOOL ok = ::WriteFile(context.File, mc.GetBuffer(), dw, &dwWritten, nullptr);
                                     assert(ok);
                                     assert(dwWritten == mc.GetSize());
-                                    dwWritten = 0;
-                                    dw = ::GetFileSize(context.File, &dwWritten);
-                                    downloaded = dwWritten;
-                                    downloaded <<= 32;
-                                    downloaded += dw;
                                 }
 #else
                                 if (context.File != -1) {
                                     auto ret = ::write(context.File, mc.GetBuffer(), mc.GetSize());
                                     assert((unsigned int) ret == mc.GetSize());
-                                    struct stat st;
-                                    static_assert(sizeof (st.st_size) >= sizeof (UINT64), "Big file not supported");
-                                    auto res = ::fstat(context.File, &st);
-                                    assert(res != -1);
-                                    downloaded = st.st_size;
                                 }
 #endif
+								downloaded = context.Finished;
                             }
                         }
                         if (trans)
