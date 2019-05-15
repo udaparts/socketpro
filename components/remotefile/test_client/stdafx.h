@@ -1,6 +1,8 @@
 
 #pragma once
 
+#include <iostream>
+
 #include "../../../include/streamingfile.h"
 
 #ifdef WIN32_64
@@ -10,5 +12,3 @@
 #else
 
 #endif
-
-#include <iostream>
