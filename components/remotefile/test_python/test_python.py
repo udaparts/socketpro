@@ -39,7 +39,7 @@ with CSocketPool(CStreamingFile) as spFile:
     RemoteFile = "libboost_math_tr1f-vc100-mt-sgd-1_60.lib"
     ok = rf.Download(LocalFile, RemoteFile, cbDownload)
 
-    ok = rf.WaitAll()
+    # ok = rf.WaitAll()
 
     def cbUpload(file, res, errmsg):
         if res:

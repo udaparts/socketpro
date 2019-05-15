@@ -30,10 +30,12 @@ public class Program {
                 System.out.println(rf.getAttachedClientSocket().getErrorMsg());
                 break;
             }
+			/*
             if (!rf.WaitAll()) {
                 System.out.println(rf.getAttachedClientSocket().getErrorMsg());
                 break;
             }
+			*/
             //uploading test
             RemoteFile += ".copy";
             if (!rf.Upload(LocalFile, RemoteFile, (csf, res, errMsg) -> {

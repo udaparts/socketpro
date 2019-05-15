@@ -20,7 +20,7 @@ with CSocketPool(CStreamingFile) as spFile:
         def cbDProgress(file, downloaded):
             print('Downloading rate: ' + str(downloaded * 100 / file.FileSize) + '%')
         ok = rf.Download(LocalFile, RemoteFile, cbDownload, cbDProgress)
-        ok = rf.WaitAll()
+        # ok = rf.WaitAll()
 
         RemoteFile += '.copy'
         def cbUpload(file, res, errmsg):
