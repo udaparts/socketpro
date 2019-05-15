@@ -96,6 +96,21 @@ namespace SPA {
                 return file_size;
             }
 
+			size_t Cancel() {
+				size_t canceled = 0;
+				CAutoLock al(m_csFile);
+				while (m_vContext.size()) {
+					auto &back = m_vContext.back();
+					if (back.IsOpen()) {
+						//transferring at this time
+						break;
+					}
+					m_vContext.pop_back();
+					++canceled;
+				}
+				return canceled;
+			}
+
             bool Upload(const wchar_t *localFile, const wchar_t *remoteFile, DUpload up = nullptr, DTransferring trans = nullptr, DDiscarded aborted = nullptr, unsigned int flags = SFile::FILE_OPEN_TRUNCACTED) {
                 if (!localFile || !::wcslen(localFile))
                     return false;

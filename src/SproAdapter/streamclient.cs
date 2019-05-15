@@ -267,6 +267,26 @@ namespace SocketProAdapter.ClientSide {
         protected object m_csFile = new object();
         private Deque<CContext> m_vContext = new Deque<CContext>(); //protected by m_csFile;
 
+        public uint Cancel()
+        {
+            uint canceled = 0;
+            lock (m_csFile)
+            {
+                while (m_vContext.Count > 0)
+                {
+                    var back = m_vContext[m_vContext.Count - 1];
+                    if (back.File != null)
+                    {
+                        //transferring at this time
+                        break; 
+                    }
+                    m_vContext.RemoveFromBack();
+                    ++canceled;
+                }
+            }
+            return canceled;
+        }
+
         private static void CloseFile(CContext c) {
             if (c.File != null) {
                 c.File.Close();
