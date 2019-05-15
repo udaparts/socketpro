@@ -52,21 +52,22 @@ namespace SPA {
                 bool QueueOk;
                 int ErrorCode;
                 bool Sent;
-				UINT64 Finished;
+                UINT64 Finished;
 #ifdef WIN32_64
                 HANDLE File;
 #else
                 int File;
 #endif
                 std::wstring ErrMsg;
-				inline bool IsOpen() const {
+
+                inline bool IsOpen() const {
 #ifdef WIN32_64
-					return (File != INVALID_HANDLE_VALUE);
+                    return (File != INVALID_HANDLE_VALUE);
 #else
-					return (File != -1);
+                    return (File != -1);
 #endif
-				}
-				
+                }
+
             };
 
         public:
@@ -136,6 +137,7 @@ namespace SPA {
             }
 
         protected:
+
             virtual void OnPostProcessing(unsigned int hint, UINT64 data) {
                 ResultHandler rh;
                 DServerException se = nullptr;
@@ -216,20 +218,20 @@ namespace SPA {
                         DDownload dl;
                         {
                             CAutoLock al(m_csFile);
-							if (m_vContext.size()) {
-								CContext &context = m_vContext.front();
-								dl = context.Download;
-							}
+                            if (m_vContext.size()) {
+                                CContext &context = m_vContext.front();
+                                dl = context.Download;
+                            }
                         }
                         if (dl)
                             dl(this, res, errMsg);
                         {
                             CAutoLock al(m_csFile);
-							if (m_vContext.size()) {
-								CContext &context = m_vContext.front();
-								CloseFile(context);
-								m_vContext.pop_front();
-							}
+                            if (m_vContext.size()) {
+                                CContext &context = m_vContext.front();
+                                CloseFile(context);
+                                m_vContext.pop_front();
+                            }
                         }
                         OnPostProcessing(0, 0);
                     }
@@ -240,39 +242,38 @@ namespace SPA {
                         if (m_vContext.size()) {
                             CContext &context = m_vContext.front();
                             assert(!context.Uploading);
-							if (context.Finished) {
+                            if (context.Finished) {
 #ifdef WIN32_64
-								BOOL ok = FlushFileBuffers(context.File);
-								assert(ok);
-								LARGE_INTEGER moveDis, newPos;
-								moveDis.QuadPart = -((INT64)context.Finished);
-								ok = SetFilePointerEx(context.File, moveDis, &newPos, FILE_END);
-								assert(ok);
-								ok = SetEndOfFile(context.File);
-								assert(ok);
-								context.Finished = 0;
+                                BOOL ok = FlushFileBuffers(context.File);
+                                assert(ok);
+                                LARGE_INTEGER moveDis, newPos;
+                                moveDis.QuadPart = -((INT64) context.Finished);
+                                ok = SetFilePointerEx(context.File, moveDis, &newPos, FILE_END);
+                                assert(ok);
+                                ok = SetEndOfFile(context.File);
+                                assert(ok);
+                                context.Finished = 0;
 #else
 
 #endif
-							}
-							mc >> context.FileSize;
+                            }
+                            mc >> context.FileSize;
+                        } else {
+                            mc.SetSize(0);
                         }
-						else {
-							mc.SetSize(0);
-						}
                     }
                         break;
                     case SFile::idDownloading:
                     {
                         DTransferring trans;
-						UINT64 downloaded = 0;
+                        UINT64 downloaded = 0;
                         {
                             CAutoLock al(m_csFile);
                             if (m_vContext.size()) {
                                 CContext &context = m_vContext.front();
                                 assert(!context.Uploading);
                                 trans = context.Transferring;
-								context.Finished += mc.GetSize();
+                                context.Finished += mc.GetSize();
 #ifdef WIN32_64
                                 if (context.File != INVALID_HANDLE_VALUE) {
                                     DWORD dw = mc.GetSize(), dwWritten;
@@ -286,7 +287,7 @@ namespace SPA {
                                     assert((unsigned int) ret == mc.GetSize());
                                 }
 #endif
-								downloaded = context.Finished;
+                                downloaded = context.Finished;
                             }
                         }
                         if (trans)
@@ -398,11 +399,10 @@ namespace SPA {
                                 CContext &context = m_vContext.front();
                                 assert(context.Uploading);
                                 trans = context.Transferring;
-								if (uploaded < 0) {
-									assert(context.QueueOk);
-									CloseFile(context);
-								}
-                                else if (!context.Sent) {
+                                if (uploaded < 0) {
+                                    assert(context.QueueOk);
+                                    CloseFile(context);
+                                } else if (!context.Sent) {
                                     bool ok;
                                     CScopeUQueue sb(MY_OPERATION_SYSTEM, IsBigEndian(), SFile::STREAM_CHUNK_SIZE);
 #ifdef WIN32_64
@@ -457,30 +457,29 @@ namespace SPA {
                         DDownload upl;
                         {
                             CAutoLock al(m_csFile);
-							if (m_vContext.size()) {
-								CContext &context = m_vContext.front();
-								if (context.IsOpen()) {
-									assert(context.Uploading);
-									upl = context.Download;
-								}
-								else {
-									assert(context.QueueOk);
-									context.Sent = false;
-									context.QueueOk = false;
-								}
-							}
+                            if (m_vContext.size()) {
+                                CContext &context = m_vContext.front();
+                                if (context.IsOpen()) {
+                                    assert(context.Uploading);
+                                    upl = context.Download;
+                                } else {
+                                    assert(context.QueueOk);
+                                    context.Sent = false;
+                                    context.QueueOk = false;
+                                }
+                            }
                         }
                         if (upl)
                             upl(this, 0, L"");
                         {
                             CAutoLock al(m_csFile);
-							if (m_vContext.size()) {
-								CContext &context = m_vContext.front();
-								if (context.IsOpen()) {
-									CloseFile(context);
-									m_vContext.pop_front();
-								}
-							}
+                            if (m_vContext.size()) {
+                                CContext &context = m_vContext.front();
+                                if (context.IsOpen()) {
+                                    CloseFile(context);
+                                    m_vContext.pop_front();
+                                }
+                            }
                         }
                         OnPostProcessing(0, 0);
                     }
