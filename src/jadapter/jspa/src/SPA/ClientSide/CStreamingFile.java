@@ -112,6 +112,26 @@ public class CStreamingFile extends CAsyncServiceHandler {
     }
 
     /**
+     * Cancel transferring files queued in memory
+     *
+     * @return the number of transferring files canceled
+     */
+    public int Cancel() {
+        int canceled = 0;
+        synchronized (m_csFile) {
+            while (m_vContext.size() > 0) {
+                CContext back = m_vContext.getLast();
+                if (back.File != null) {
+                    break;
+                }
+                m_vContext.removeLast();
+                ++canceled;
+            }
+        }
+        return canceled;
+    }
+
+    /**
      * Get the file size in bytes for current file being in transaction
      *
      * @return file size in bytes

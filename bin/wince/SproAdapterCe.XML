@@ -661,6 +661,12 @@
             </summary>
             <param name="sid">A service id</param>
         </member>
+        <member name="M:SocketProAdapter.ClientSide.CStreamingFile.Cancel">
+            <summary>
+            Cancel transferring files queued in memory
+            </summary>
+            <returns>the number of transferring files canceled</returns>
+        </member>
         <member name="P:SocketProAdapter.ClientSide.CStreamingFile.FilesQueued">
             <summary>
             The number of files queued
