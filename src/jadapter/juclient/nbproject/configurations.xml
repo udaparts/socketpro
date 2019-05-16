@@ -54,8 +54,9 @@
         <linkerTool>
           <commandlineTool>gcc</commandlineTool>
           <linkerLibItems>
-            <linkerOptionItem>-lusocket</linkerOptionItem>
             <linkerLibStdlibItem>Mathematics</linkerLibStdlibItem>
+            <linkerLibFileItem>/usr/lib/gcc/x86_64-linux-gnu/4.8.4/libstdc++.a</linkerLibFileItem>
+            <linkerOptionItem>-lusocket</linkerOptionItem>
           </linkerLibItems>
           <commandLine>-Wl,--no-undefined</commandLine>
         </linkerTool>
@@ -73,7 +74,7 @@
       </toolsSet>
       <compileType>
         <cTool>
-          <developmentMode>5</developmentMode>
+          <developmentMode>6</developmentMode>
           <stripSymbols>true</stripSymbols>
           <commandlineTool>gcc</commandlineTool>
           <incDir>
@@ -86,7 +87,7 @@
           </preprocessorList>
         </cTool>
         <ccTool>
-          <developmentMode>5</developmentMode>
+          <developmentMode>6</developmentMode>
           <stripSymbols>true</stripSymbols>
           <incDir>
             <pElem>/usr/lib/jvm/java-7-openjdk-amd64/include</pElem>
@@ -107,8 +108,9 @@
           <stripSymbols>true</stripSymbols>
           <commandlineTool>gcc</commandlineTool>
           <linkerLibItems>
-            <linkerOptionItem>-lusocket</linkerOptionItem>
             <linkerLibStdlibItem>Mathematics</linkerLibStdlibItem>
+            <linkerLibFileItem>/usr/lib/gcc/x86_64-linux-gnu/4.8.4/libstdc++.a</linkerLibFileItem>
+            <linkerOptionItem>-lusocket</linkerOptionItem>
           </linkerLibItems>
           <commandLine>-Wl,--no-undefined</commandLine>
         </linkerTool>

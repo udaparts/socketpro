@@ -8,6 +8,7 @@
 #ifndef WIN32_64
 #include <fcntl.h>
 #include <sys/stat.h>
+#include <unistd.h>
 #endif
 
 namespace SPA {
@@ -270,7 +271,7 @@ namespace SPA {
 #else
                                 int ok = ::fsync(context.File);
                                 assert(ok != -1);
-                                INT64 back = -1((INT64) context.Finished);
+                                INT64 back = -((INT64) context.Finished);
                                 auto newPos = ::lseek64(context.File, back, SEEK_END);
                                 assert(newPos != -1);
                                 ok = ::ftruncate(context.File, newPos);
@@ -526,7 +527,7 @@ namespace SPA {
                     ::close(context.File);
                     context.File = -1;
                     if (!context.Uploading && (context.ErrorCode || context.ErrMsg.size())) {
-                        std::string path = Utilities::ToUTF8(it->LocalFile.c_str(), it->LocalFile.size());
+                        std::string path = Utilities::ToUTF8(context.LocalFile);
                         unlink(path.c_str());
                     }
                 }

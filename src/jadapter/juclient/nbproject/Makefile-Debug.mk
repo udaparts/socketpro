@@ -52,11 +52,13 @@ FFLAGS=
 ASFLAGS=
 
 # Link Libraries and Options
-LDLIBSOPTIONS=-lusocket -lm
+LDLIBSOPTIONS=-lm /usr/lib/gcc/x86_64-linux-gnu/4.8.4/libstdc++.a -lusocket
 
 # Build Targets
 .build-conf: ${BUILD_SUBPROJECTS}
 	"${MAKE}"  -f nbproject/Makefile-${CND_CONF}.mk ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/libjuclient.${CND_DLIB_EXT}
+
+${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/libjuclient.${CND_DLIB_EXT}: /usr/lib/gcc/x86_64-linux-gnu/4.8.4/libstdc++.a
 
 ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/libjuclient.${CND_DLIB_EXT}: ${OBJECTFILES}
 	${MKDIR} -p ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}

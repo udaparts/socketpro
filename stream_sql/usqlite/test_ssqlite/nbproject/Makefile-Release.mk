@@ -36,7 +36,6 @@ OBJECTDIR=${CND_BUILDDIR}/${CND_CONF}/${CND_PLATFORM}
 # Object Files
 OBJECTFILES= \
 	${OBJECTDIR}/_ext/932346631/aserverw.o \
-	${OBJECTDIR}/_ext/932346631/error_code.o \
 	${OBJECTDIR}/_ext/932346631/membuffer.o \
 	${OBJECTDIR}/test_ssqlite.o
 
@@ -63,17 +62,12 @@ LDLIBSOPTIONS=-ldl -lpthread
 
 ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/test_ssqlite: ${OBJECTFILES}
 	${MKDIR} -p ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}
-	${LINK.c} -o ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/test_ssqlite ${OBJECTFILES} ${LDLIBSOPTIONS} -lstdc++ -s
+	${LINK.c} -o ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/test_ssqlite ${OBJECTFILES} ${LDLIBSOPTIONS} -lstdc++ -pthread -s
 
 ${OBJECTDIR}/_ext/932346631/aserverw.o: ../../../include/aserverw.cpp 
 	${MKDIR} -p ${OBJECTDIR}/_ext/932346631
 	${RM} "$@.d"
 	$(COMPILE.c) -O2 -s -DNDEBUG -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/932346631/aserverw.o ../../../include/aserverw.cpp
-
-${OBJECTDIR}/_ext/932346631/error_code.o: ../../../include/error_code.cpp 
-	${MKDIR} -p ${OBJECTDIR}/_ext/932346631
-	${RM} "$@.d"
-	$(COMPILE.c) -O2 -s -DNDEBUG -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/932346631/error_code.o ../../../include/error_code.cpp
 
 ${OBJECTDIR}/_ext/932346631/membuffer.o: ../../../include/membuffer.cpp 
 	${MKDIR} -p ${OBJECTDIR}/_ext/932346631

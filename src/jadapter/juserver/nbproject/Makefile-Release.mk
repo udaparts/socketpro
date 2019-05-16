@@ -52,20 +52,22 @@ FFLAGS=
 ASFLAGS=
 
 # Link Libraries and Options
-LDLIBSOPTIONS=-luservercore -ldl
+LDLIBSOPTIONS=-ldl /usr/lib/gcc/x86_64-linux-gnu/4.8.4/libstdc++.a -luservercore
 
 # Build Targets
 .build-conf: ${BUILD_SUBPROJECTS}
 	"${MAKE}"  -f nbproject/Makefile-${CND_CONF}.mk ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/libjuserver.${CND_DLIB_EXT}
 
+${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/libjuserver.${CND_DLIB_EXT}: /usr/lib/gcc/x86_64-linux-gnu/4.8.4/libstdc++.a
+
 ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/libjuserver.${CND_DLIB_EXT}: ${OBJECTFILES}
 	${MKDIR} -p ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}
-	gcc -o ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/libjuserver.${CND_DLIB_EXT} ${OBJECTFILES} ${LDLIBSOPTIONS} -Wl,--no-undefined -lstdc++ -shared -s -fPIC
+	gcc -o ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/libjuserver.${CND_DLIB_EXT} ${OBJECTFILES} ${LDLIBSOPTIONS} -Wl,--no-undefined -shared -s -fPIC
 
 ${OBJECTDIR}/juserver.o: juserver.cpp 
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
-	$(COMPILE.c) -O2 -s -DNDEBUG -I/usr/lib/jvm/java-1.7.0-openjdk-amd64/include -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/juserver.o juserver.cpp
+	$(COMPILE.c) -O3 -s -DNDEBUG -I/usr/lib/jvm/java-1.7.0-openjdk-amd64/include -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/juserver.o juserver.cpp
 
 # Subprojects
 .build-subprojects:

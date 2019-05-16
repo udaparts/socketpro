@@ -57,9 +57,8 @@
           <linkerLibItems>
             <linkerLibStdlibItem>PosixThreads</linkerLibStdlibItem>
             <linkerLibStdlibItem>DynamicLinking</linkerLibStdlibItem>
-            <linkerLibLibItem>boost_system</linkerLibLibItem>
           </linkerLibItems>
-          <commandLine>-std=c++11 -lstdc++</commandLine>
+          <commandLine>-std=c++11 -lstdc++ -pthread</commandLine>
         </linkerTool>
       </compileType>
       <item path="../../../include/aclientw.cpp" ex="false" tool="0" flavor2="0">
@@ -111,9 +110,8 @@
           <linkerLibItems>
             <linkerLibStdlibItem>PosixThreads</linkerLibStdlibItem>
             <linkerLibStdlibItem>DynamicLinking</linkerLibStdlibItem>
-            <linkerLibLibItem>boost_system</linkerLibLibItem>
           </linkerLibItems>
-          <commandLine>-std=c++11 -lstdc++</commandLine>
+          <commandLine>-std=c++11 -lstdc++ -pthread</commandLine>
         </linkerTool>
       </compileType>
       <item path="../../../include/aclientw.cpp" ex="false" tool="0" flavor2="0">

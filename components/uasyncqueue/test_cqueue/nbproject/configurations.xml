@@ -16,7 +16,6 @@
                    displayName="Source Files"
                    projectFiles="true">
       <itemPath>../../../include/aclientw.cpp</itemPath>
-      <itemPath>../../../include/error_code.cpp</itemPath>
       <itemPath>../../../include/membuffer.cpp</itemPath>
       <itemPath>test_cqueue.cpp</itemPath>
     </logicalFolder>
@@ -53,7 +52,7 @@
             <linkerLibStdlibItem>DynamicLinking</linkerLibStdlibItem>
             <linkerLibStdlibItem>PosixThreads</linkerLibStdlibItem>
           </linkerLibItems>
-          <commandLine>-std=c++11</commandLine>
+          <commandLine>-std=c++11 -pthread</commandLine>
         </linkerTool>
       </compileType>
       <item path="../../../include/aclientw.cpp" ex="false" tool="0" flavor2="0">
@@ -61,8 +60,6 @@
       <item path="../../../include/aclientw.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../../include/aqhandler.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="../../../include/error_code.cpp" ex="false" tool="0" flavor2="0">
       </item>
       <item path="../../../include/membuffer.cpp" ex="false" tool="0" flavor2="0">
       </item>
@@ -103,7 +100,7 @@
             <linkerLibStdlibItem>DynamicLinking</linkerLibStdlibItem>
             <linkerLibStdlibItem>PosixThreads</linkerLibStdlibItem>
           </linkerLibItems>
-          <commandLine>-std=c++11</commandLine>
+          <commandLine>-std=c++11 -pthread</commandLine>
         </linkerTool>
       </compileType>
       <item path="../../../include/aclientw.cpp" ex="false" tool="0" flavor2="0">
@@ -111,8 +108,6 @@
       <item path="../../../include/aclientw.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../../include/aqhandler.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="../../../include/error_code.cpp" ex="false" tool="0" flavor2="0">
       </item>
       <item path="../../../include/membuffer.cpp" ex="false" tool="0" flavor2="0">
       </item>

@@ -1,5 +1,7 @@
 
 #include "sfileimpl.h"
+#include<memory>
+
 
 std::shared_ptr<SPA::ServerSide::CSFileService> g_pFile;
 std::wstring g_pathRoot;

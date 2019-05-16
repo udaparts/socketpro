@@ -42,6 +42,7 @@
           <commandLine>-std=c++11</commandLine>
         </cTool>
         <ccTool>
+          <commandlineTool>g++</commandlineTool>
           <incDir>
             <pElem>/usr/lib/jvm/java-1.7.0-openjdk-amd64/include</pElem>
           </incDir>
@@ -50,10 +51,11 @@
         <linkerTool>
           <commandlineTool>gcc</commandlineTool>
           <linkerLibItems>
-            <linkerOptionItem>-luservercore</linkerOptionItem>
             <linkerLibStdlibItem>DynamicLinking</linkerLibStdlibItem>
+            <linkerLibFileItem>/usr/lib/gcc/x86_64-linux-gnu/4.8.4/libstdc++.a</linkerLibFileItem>
+            <linkerOptionItem>-luservercore</linkerOptionItem>
           </linkerLibItems>
-          <commandLine>-Wl,--no-undefined -lstdc++</commandLine>
+          <commandLine>-Wl,--no-undefined</commandLine>
         </linkerTool>
       </compileType>
       <item path="juserver.cpp" ex="false" tool="0" flavor2="0">
@@ -67,7 +69,7 @@
       </toolsSet>
       <compileType>
         <cTool>
-          <developmentMode>5</developmentMode>
+          <developmentMode>6</developmentMode>
           <stripSymbols>true</stripSymbols>
           <incDir>
             <pElem>/usr/lib/jvm/java-1.7.0-openjdk-amd64/include</pElem>
@@ -78,8 +80,9 @@
           </preprocessorList>
         </cTool>
         <ccTool>
-          <developmentMode>5</developmentMode>
+          <developmentMode>6</developmentMode>
           <stripSymbols>true</stripSymbols>
+          <commandlineTool>g++</commandlineTool>
           <incDir>
             <pElem>/usr/lib/jvm/java-1.7.0-openjdk-amd64/include</pElem>
           </incDir>
@@ -98,10 +101,11 @@
           <stripSymbols>true</stripSymbols>
           <commandlineTool>gcc</commandlineTool>
           <linkerLibItems>
-            <linkerOptionItem>-luservercore</linkerOptionItem>
             <linkerLibStdlibItem>DynamicLinking</linkerLibStdlibItem>
+            <linkerLibFileItem>/usr/lib/gcc/x86_64-linux-gnu/4.8.4/libstdc++.a</linkerLibFileItem>
+            <linkerOptionItem>-luservercore</linkerOptionItem>
           </linkerLibItems>
-          <commandLine>-Wl,--no-undefined -lstdc++</commandLine>
+          <commandLine>-Wl,--no-undefined</commandLine>
         </linkerTool>
       </compileType>
       <item path="juserver.cpp" ex="false" tool="0" flavor2="0">

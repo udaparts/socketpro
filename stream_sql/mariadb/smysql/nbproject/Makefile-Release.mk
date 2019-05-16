@@ -71,37 +71,37 @@ ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/libsmysql.${CND_DLIB_EXT}: ${OBJECTFI
 ${OBJECTDIR}/_ext/932346631/aserverw.o: ../../../include/aserverw.cpp 
 	${MKDIR} -p ${OBJECTDIR}/_ext/932346631
 	${RM} "$@.d"
-	$(COMPILE.c) -O2 -s -DMM_DB_SERVER_PLUGIN -DNDEBUG -DMYSQL_DYNAMIC_PLUGIN -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/932346631/aserverw.o ../../../include/aserverw.cpp
+	$(COMPILE.c) -O2 -s -DMM_DB_SERVER_PLUGIN -DMYSQL_DYNAMIC_PLUGIN -DNDEBUG -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/932346631/aserverw.o ../../../include/aserverw.cpp
 
 ${OBJECTDIR}/_ext/932346631/membuffer.o: ../../../include/membuffer.cpp 
 	${MKDIR} -p ${OBJECTDIR}/_ext/932346631
 	${RM} "$@.d"
-	$(COMPILE.c) -O2 -s -DMM_DB_SERVER_PLUGIN -DNDEBUG -DMYSQL_DYNAMIC_PLUGIN -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/932346631/membuffer.o ../../../include/membuffer.cpp
+	$(COMPILE.c) -O2 -s -DMM_DB_SERVER_PLUGIN -DMYSQL_DYNAMIC_PLUGIN -DNDEBUG -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/932346631/membuffer.o ../../../include/membuffer.cpp
 
 ${OBJECTDIR}/_ext/1165644825/mysqlimpl.o: ../../../include/mysql/server_impl/mysqlimpl.cpp 
 	${MKDIR} -p ${OBJECTDIR}/_ext/1165644825
 	${RM} "$@.d"
-	$(COMPILE.c) -O2 -s -DMM_DB_SERVER_PLUGIN -DNDEBUG -DMYSQL_DYNAMIC_PLUGIN -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/1165644825/mysqlimpl.o ../../../include/mysql/server_impl/mysqlimpl.cpp
+	$(COMPILE.c) -O2 -s -DMM_DB_SERVER_PLUGIN -DMYSQL_DYNAMIC_PLUGIN -DNDEBUG -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/1165644825/mysqlimpl.o ../../../include/mysql/server_impl/mysqlimpl.cpp
 
 ${OBJECTDIR}/config.o: config.cpp 
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
-	$(COMPILE.c) -O2 -s -DMM_DB_SERVER_PLUGIN -DNDEBUG -DMYSQL_DYNAMIC_PLUGIN -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/config.o config.cpp
+	$(COMPILE.c) -O2 -s -DMM_DB_SERVER_PLUGIN -DMYSQL_DYNAMIC_PLUGIN -DNDEBUG -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/config.o config.cpp
 
 ${OBJECTDIR}/smysql.o: smysql.cpp 
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
-	$(COMPILE.c) -O2 -s -DMM_DB_SERVER_PLUGIN -DNDEBUG -DMYSQL_DYNAMIC_PLUGIN -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/smysql.o smysql.cpp
+	$(COMPILE.c) -O2 -s -DMM_DB_SERVER_PLUGIN -DMYSQL_DYNAMIC_PLUGIN -DNDEBUG -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/smysql.o smysql.cpp
 
 ${OBJECTDIR}/stdafx.o: stdafx.cpp 
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
-	$(COMPILE.c) -O2 -s -DMM_DB_SERVER_PLUGIN -DNDEBUG -DMYSQL_DYNAMIC_PLUGIN -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/stdafx.o stdafx.cpp
+	$(COMPILE.c) -O2 -s -DMM_DB_SERVER_PLUGIN -DMYSQL_DYNAMIC_PLUGIN -DNDEBUG -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/stdafx.o stdafx.cpp
 
 ${OBJECTDIR}/streamingserver.o: streamingserver.cpp 
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
-	$(COMPILE.c) -O2 -s -DMM_DB_SERVER_PLUGIN -DNDEBUG -DMYSQL_DYNAMIC_PLUGIN -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/streamingserver.o streamingserver.cpp
+	$(COMPILE.c) -O2 -s -DMM_DB_SERVER_PLUGIN -DMYSQL_DYNAMIC_PLUGIN -DNDEBUG -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/streamingserver.o streamingserver.cpp
 
 # Subprojects
 .build-subprojects:

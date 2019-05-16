@@ -1,14 +1,7 @@
 
 #include "../../../include/server_functions.h"
 #include "SPA_ServerSide_ServerCoreLoader.h"
-#include <string>
 #include <algorithm>
-
-#ifdef WINCE
-#elif defined(WIN32_64)
-#else
-#include <unistd.h>
-#endif
 
 SPA::CUCriticalSection g_co;
 JavaVM *g_vm = nullptr;

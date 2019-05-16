@@ -54,7 +54,7 @@ FFLAGS=
 ASFLAGS=
 
 # Link Libraries and Options
-LDLIBSOPTIONS=-lpthread -ldl -lboost_system
+LDLIBSOPTIONS=-lpthread -ldl
 
 # Build Targets
 .build-conf: ${BUILD_SUBPROJECTS}
@@ -62,7 +62,7 @@ LDLIBSOPTIONS=-lpthread -ldl -lboost_system
 
 ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/test_smysql: ${OBJECTFILES}
 	${MKDIR} -p ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}
-	${LINK.c} -o ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/test_smysql ${OBJECTFILES} ${LDLIBSOPTIONS} -lstdc++ -s
+	${LINK.c} -o ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/test_smysql ${OBJECTFILES} ${LDLIBSOPTIONS} -lstdc++ -pthread -s
 
 ${OBJECTDIR}/_ext/932346631/aserverw.o: ../../../include/aserverw.cpp 
 	${MKDIR} -p ${OBJECTDIR}/_ext/932346631

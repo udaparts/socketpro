@@ -49,9 +49,8 @@
           <linkerLibItems>
             <linkerLibStdlibItem>DynamicLinking</linkerLibStdlibItem>
             <linkerLibStdlibItem>PosixThreads</linkerLibStdlibItem>
-            <linkerLibLibItem>boost_system</linkerLibLibItem>
           </linkerLibItems>
-          <commandLine>-lstdc++</commandLine>
+          <commandLine>-lstdc++ -pthread</commandLine>
         </linkerTool>
       </compileType>
       <item path="../../../include/aserverw.cpp" ex="false" tool="0" flavor2="0">
@@ -99,9 +98,8 @@
           <linkerLibItems>
             <linkerLibStdlibItem>PosixThreads</linkerLibStdlibItem>
             <linkerLibStdlibItem>DynamicLinking</linkerLibStdlibItem>
-            <linkerLibLibItem>boost_system</linkerLibLibItem>
           </linkerLibItems>
-          <commandLine>-lstdc++</commandLine>
+          <commandLine>-lstdc++ -pthread</commandLine>
         </linkerTool>
       </compileType>
       <item path="../../../include/aserverw.cpp" ex="false" tool="0" flavor2="0">

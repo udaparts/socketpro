@@ -4,9 +4,15 @@
 
 #ifdef WINCE
 #elif defined(WIN32_64)
+#include<algorithm>
+#include <unordered_map>
+std::unordered_map<unsigned int, jobject> g_mapPJ;
 #else
-#include <unistd.h>
+#include<algorithm>
+#include <boost/unordered_map.hpp>
+boost::unordered_map<unsigned int, jobject> g_mapPJ;
 #endif
+
 
 #define UCERT_OBJECT_ARRAY_SIZE 10
 #define UMESSAGE_OBJECT_ARRAY_SIZE 2
@@ -16,14 +22,6 @@ jobject g_currObj = nullptr;
 JavaVM *g_vmClient = nullptr;
 
 SPA::CUCriticalSection g_csClient;
-
-#ifdef WIN32_64
-#include <unordered_map>
-std::unordered_map<unsigned int, jobject> g_mapPJ;
-#else
-#include<boost/unordered_map.hpp>
-boost::unordered_map<unsigned int, jobject> g_mapPJ;
-#endif
 
 //cache CClientSocket class and its callback method ids
 jmethodID g_midOnAllRequestsProcessed = nullptr;
