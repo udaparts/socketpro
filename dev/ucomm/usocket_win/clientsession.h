@@ -2,7 +2,6 @@
 #ifndef __UMB_CLIENT_SESSION_H__
 #define __UMB_CLIENT_SESSION_H__
 
-#include "../core_shared/pinc/bf.h"
 #include "../clientcore/clientthread.h"
 #include "../core_shared/pinc/mqfile.h"
 #include "../core_shared/shared/certificateimpl.h"

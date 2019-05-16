@@ -46,12 +46,6 @@
   <ItemGroup>
     <Folder Include="Properties\" />
   </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\adapters\SproAdapter\SocketProAdapter2017.csproj">
-      <Project>{3103d317-4893-4f9b-823d-90f6db71569a}</Project>
-      <Name>SocketProAdapter2017</Name>
-    </ProjectReference>
-  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

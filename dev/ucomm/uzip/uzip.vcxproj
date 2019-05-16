@@ -154,7 +154,6 @@
     <ClCompile Include="..\core_shared\pinc\base64.cpp" />
     <ClCompile Include="..\include\membuffer.cpp" />
     <ClCompile Include="adler32.c" />
-    <ClCompile Include="aes.c" />
     <ClCompile Include="blowfish.cpp" />
     <ClCompile Include="compress.c" />
     <ClCompile Include="crc32.c" />

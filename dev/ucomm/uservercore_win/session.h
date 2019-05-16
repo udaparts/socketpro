@@ -2,7 +2,6 @@
 
 #include "../core_shared/shared/certificateimpl.h"
 #include "../servercore/serverthread.h"
-#include "../core_shared/pinc/bf.h"
 #include "../core_shared/pinc/mqfile.h"
 #include "../include/server_functions.h"
 #include "../servercore/httpcontext.h"
