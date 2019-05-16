@@ -90,7 +90,10 @@
             <linkerLibStdlibItem>PosixThreads</linkerLibStdlibItem>
             <linkerOptionItem>`pkg-config --libs libcrypto`</linkerOptionItem>
             <linkerLibStdlibItem>DynamicLinking</linkerLibStdlibItem>
+            <linkerLibStdlibItem>Mathematics</linkerLibStdlibItem>
+            <linkerLibFileItem>/usr/lib/gcc/x86_64-linux-gnu/4.8.4/libstdc++.a</linkerLibFileItem>
           </linkerLibItems>
+          <commandLine>-Wl,--no-undefined</commandLine>
         </linkerTool>
       </compileType>
       <item path="../core_shared/shared/includes.cpp" ex="false" tool="0" flavor2="0">
@@ -228,7 +231,10 @@
             <linkerLibFileItem>../uzip/dist/Release/GNU-Linux-x86/libuzip.a</linkerLibFileItem>
             <linkerOptionItem>`pkg-config --libs libcrypto`</linkerOptionItem>
             <linkerOptionItem>`pkg-config --libs libssl`</linkerOptionItem>
+            <linkerLibStdlibItem>Mathematics</linkerLibStdlibItem>
+            <linkerLibFileItem>/usr/lib/gcc/x86_64-linux-gnu/4.8.4/libstdc++.a</linkerLibFileItem>
           </linkerLibItems>
+          <commandLine>-Wl,--no-undefined</commandLine>
         </linkerTool>
       </compileType>
       <item path="../core_shared/shared/includes.cpp" ex="false" tool="0" flavor2="0">

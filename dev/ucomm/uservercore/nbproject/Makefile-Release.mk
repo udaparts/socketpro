@@ -70,7 +70,7 @@ FFLAGS=
 ASFLAGS=
 
 # Link Libraries and Options
-LDLIBSOPTIONS=-lpthread -ldl ../uzip/dist/Release/GNU-Linux-x86/libuzip.a `pkg-config --libs libcrypto` `pkg-config --libs libssl`  
+LDLIBSOPTIONS=-lpthread -ldl ../uzip/dist/Release/GNU-Linux-x86/libuzip.a `pkg-config --libs libcrypto` `pkg-config --libs libssl` -lm  /usr/lib/gcc/x86_64-linux-gnu/4.8.4/libstdc++.a  
 
 # Build Targets
 .build-conf: ${BUILD_SUBPROJECTS}
@@ -78,9 +78,11 @@ LDLIBSOPTIONS=-lpthread -ldl ../uzip/dist/Release/GNU-Linux-x86/libuzip.a `pkg-c
 
 ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/libuservercore.${CND_DLIB_EXT}: ../uzip/dist/Release/GNU-Linux-x86/libuzip.a
 
+${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/libuservercore.${CND_DLIB_EXT}: /usr/lib/gcc/x86_64-linux-gnu/4.8.4/libstdc++.a
+
 ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/libuservercore.${CND_DLIB_EXT}: ${OBJECTFILES}
 	${MKDIR} -p ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}
-	${LINK.c} -o ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/libuservercore.${CND_DLIB_EXT} ${OBJECTFILES} ${LDLIBSOPTIONS} -shared -s -fPIC
+	${LINK.c} -o ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/libuservercore.${CND_DLIB_EXT} ${OBJECTFILES} ${LDLIBSOPTIONS} -Wl,--no-undefined -shared -s -fPIC
 
 ${OBJECTDIR}/_ext/1719658846/includes.o: ../core_shared/shared/includes.cpp 
 	${MKDIR} -p ${OBJECTDIR}/_ext/1719658846
