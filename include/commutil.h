@@ -9,7 +9,9 @@
 #include "wincommutil.h"
 #else
 #include "nixcommutil.h"
-//#include <boost/multiprecision/cpp_int.hpp>
+#ifdef USE_BOOST_LARGE_INTEGER_FOR_DECIMAL
+#include <boost/multiprecision/cpp_int.hpp>
+#endif
 #endif
 
 #define CUExCode(errMsg, errCode)  SPA::CUException(errMsg, __FILE__, __LINE__, __FUNCTION__, errCode)
