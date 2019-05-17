@@ -356,9 +356,9 @@ namespace UHTTP {
         unsigned int month = d.month();
         unsigned int day = d.day();
         unsigned int dayOfWeek = d.day_of_week();
-        unsigned int hour = td.hours();
-        unsigned int minute = td.minutes();
-        unsigned int second = td.seconds();
+        unsigned int hour = (unsigned int)td.hours();
+        unsigned int minute = (unsigned int)td.minutes();
+        unsigned int second = (unsigned int)td.seconds();
         const char *strWeekday;
         switch (dayOfWeek) {
             case 0:

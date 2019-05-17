@@ -88,7 +88,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>NOT_USE_OPENSSL;BOOST_USE_WINAPI_VERSION=0x0501;USE_SPIRIT_CLSSICAL_FOR_MULTIPART;_WIN64;_DEBUG;USERVERCORE_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>NOT_USE_OPENSSL;USE_SPIRIT_CLSSICAL_FOR_MULTIPART;_WIN64;_DEBUG;USERVERCORE_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
     </ClCompile>
@@ -105,7 +105,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>NOT_USE_OPENSSL;BOOST_USE_WINAPI_VERSION=0x0501;USE_SPIRIT_CLSSICAL_FOR_MULTIPART;WIN32;_DEBUG;USERVERCORE_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>NOT_USE_OPENSSL;USE_SPIRIT_CLSSICAL_FOR_MULTIPART;WIN32;_DEBUG;USERVERCORE_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
     </ClCompile>
@@ -124,7 +124,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>NOT_USE_OPENSSL;BOOST_USE_WINAPI_VERSION=0x0501;USE_SPIRIT_CLSSICAL_FOR_MULTIPART;WIN32;NDEBUG;USERVERCORE_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>NOT_USE_OPENSSL;USE_SPIRIT_CLSSICAL_FOR_MULTIPART;WIN32;NDEBUG;USERVERCORE_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>
@@ -145,7 +145,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>NOT_USE_OPENSSL;BOOST_USE_WINAPI_VERSION=0x0501;USE_SPIRIT_CLSSICAL_FOR_MULTIPART;_WIN64;NDEBUG;USERVERCORE_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>NOT_USE_OPENSSL;USE_SPIRIT_CLSSICAL_FOR_MULTIPART;_WIN64;NDEBUG;USERVERCORE_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>

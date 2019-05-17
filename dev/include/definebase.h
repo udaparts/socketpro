@@ -143,6 +143,8 @@ namespace SPA {
 #include <dlfcn.h>
 #include <wchar.h>
 #include <sys/time.h>
+#include <unistd.h>
+#include <memory>
 
 #define GetProcAddress dlsym
 #define FreeLibrary dlclose

@@ -144,4 +144,6 @@ EXPORTS
 	SetLastCallInfo @141
 	GetQueueAutoMergeByPool @142
 	SetQueueAutoMergeByPool @143
+	SetOnPostProcessing @144
+	PostProcessing @145
 	

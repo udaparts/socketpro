@@ -22,6 +22,9 @@ static bool reg = false;
 				reg = true;
 			}
 
+b2 runtime-link=static address-model=32
+
+b2 runtime-link=static address-model=64
 
 b2 --toolset=msvc-10.0 define=BOOST_USE_WINAPI_VERSION=0x0501 runtime-link=static address-model=32
 

@@ -1,9 +1,9 @@
 
 #include "membuffer.h"
 #include <assert.h>
+#include <ctype.h>
 
-namespace SPA
-{
+namespace SPA {
 #ifdef NODE_JS_ADAPTER_PROJECT
     template<unsigned int InitSize, unsigned int BlockSize, typename mb>
     CUCriticalSection CScopeUQueueEx<InitSize, BlockSize, mb>::m_cs;
@@ -51,7 +51,7 @@ namespace SPA
 #endif
     }
 
-    CUQueue & CUQueue::operator >> (std::wstring & str) {
+    CUQueue & CUQueue::operator>>(std::wstring & str) {
         unsigned int size;
         Pop((unsigned char*) &size, sizeof (unsigned int));
         switch (size) {
@@ -303,7 +303,7 @@ namespace SPA
     unsigned int CUQueue::Pop(VARIANT& vtData, unsigned int position) {
         unsigned int total = 0;
 #ifndef _WIN32_WCE
-        try{
+        try {
 #endif
             if (vtData.vt == VT_BSTR) {
                 VariantClear(&vtData);
@@ -311,9 +311,7 @@ namespace SPA
                 VariantClear(&vtData);
             }
 #ifndef _WIN32_WCE
-        }
-
-        catch(...) {
+        } catch (...) {
         }
 #endif
         total = Pop(&(vtData.vt), position);
@@ -666,18 +664,37 @@ namespace SPA
         return total;
     }
 
-    namespace Utilities{
+    namespace Utilities {
+
+        void Trim(std::string & s) {
+            while (s.size() && ::isspace(s.back())) {
+                s.pop_back();
+            }
+            while (s.size() && ::isspace(s.front())) {
+                s.erase(s.begin());
+            }
+        }
+
+        void Trim(std::wstring & s) {
+            while (s.size() && ::isspace(s.back())) {
+                s.pop_back();
+            }
+            while (s.size() && ::isspace(s.front())) {
+                s.erase(s.begin());
+            }
+        }
+
 #ifdef WIN32_64
 
         std::wstring GetErrorMessage(DWORD dwError) {
             wchar_t *lpMsgBuf = nullptr;
             DWORD res = ::FormatMessageW(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_IGNORE_INSERTS,
-            nullptr,
-            dwError,
-            MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), // Default language
-            (LPWSTR) & lpMsgBuf,
-            0,
-            nullptr);
+                    nullptr,
+                    dwError,
+                    MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), // Default language
+                    (LPWSTR) & lpMsgBuf,
+                    0,
+                    nullptr);
             std::wstring s(lpMsgBuf ? lpMsgBuf : L"");
             if (lpMsgBuf)
                 LocalFree(lpMsgBuf);

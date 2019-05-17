@@ -23,7 +23,7 @@ CClientSession *MapHandleToClientSession(USocket_Client_Handle h) {
     return p;
 }
 
-std::string g_strVersion("6.2.0.4");
+std::string g_strVersion("6.3.0.1");
 
 const char* WINAPI GetUClientSocketVersion() {
     return g_strVersion.c_str();
@@ -1208,3 +1208,16 @@ const char* WINAPI GetClientWorkDirectory() {
     CAutoLock al(g_mutex);
     return CClientSession::m_WorkingPath.c_str();
 }
+
+void WINAPI SetOnPostProcessing(USocket_Client_Handle h, POnPostProcessing p) {
+    CClientSession *s = MapHandleToClientSession(h);
+    if (s)
+        s->SetOnPostProcessing(p);
+}
+
+void WINAPI PostProcessing(USocket_Client_Handle h, unsigned int hint, SPA::UINT64 data) {
+    CClientSession *cs = MapHandleToClientSession(h);
+    if (cs)
+        cs->PostProcessing(hint, data);
+}
+

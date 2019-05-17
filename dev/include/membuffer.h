@@ -2,6 +2,7 @@
 #define __UCOMM_SHARED_MEMORY_QUEUE_H_
 
 #include "commutil.h"
+#include <algorithm>
 
 #ifdef WIN32_64	
 
@@ -18,6 +19,8 @@ namespace SPA {
     class CUQueue;
 
     namespace Utilities {
+        void Trim(std::string &s);
+        void Trim(std::wstring &s);
 
 #if defined(__ANDROID__) || defined(ANDROID)
 

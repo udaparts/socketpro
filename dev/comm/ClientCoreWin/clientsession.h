@@ -149,6 +149,8 @@ public:
     void EnableRoutingQueueIndex(bool enable);
     bool IsRoutingQueueIndexEnabled();
     const unsigned char* GetResultBuffer();
+	void PostProcessing(unsigned int hint, SPA::UINT64 data);
+	void SetOnPostProcessing(POnPostProcessing p);
 
 private:
     static bool SortQueueConfirm(const MQ_FILE::CDequeueConfirmInfo &dci0, const MQ_FILE::CDequeueConfirmInfo &dci1);
@@ -202,6 +204,7 @@ private:
     void DoConfirmDequeue();
     void FreeCredHandle();
     SECURITY_STATUS OpenCred();
+	void OnPostProcessing(unsigned int hint, SPA::UINT64 data);
 
 public:
     static std::string m_WorkingPath;
@@ -311,6 +314,7 @@ public:
     POnSendUserMessage2 m_OnPostUserMessage2;
 
     CClientSession *m_to;
+	POnPostProcessing m_OnPostProcessing;
     std::string m_hn;
 };
 
