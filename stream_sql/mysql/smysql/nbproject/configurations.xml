@@ -54,12 +54,14 @@
           <commandLine>-std=c++11 -static-libgcc -static-libstdc++ -Wall</commandLine>
           <preprocessorList>
             <Elem>MYSQL_DYNAMIC_PLUGIN</Elem>
+            <Elem>USE_BOOST_LARGE_INTEGER_FOR_DECIMAL</Elem>
           </preprocessorList>
         </cTool>
         <ccTool>
           <commandLine>-std=c++11 -static-libgcc -static-libstdc++ -Wall</commandLine>
           <preprocessorList>
             <Elem>MYSQL_DYNAMIC_PLUGIN</Elem>
+            <Elem>USE_BOOST_LARGE_INTEGER_FOR_DECIMAL</Elem>
           </preprocessorList>
         </ccTool>
         <linkerTool>
@@ -115,6 +117,7 @@
           <preprocessorList>
             <Elem>MYSQL_DYNAMIC_PLUGIN</Elem>
             <Elem>NDEBUG</Elem>
+            <Elem>USE_BOOST_LARGE_INTEGER_FOR_DECIMAL</Elem>
           </preprocessorList>
         </cTool>
         <ccTool>
@@ -124,6 +127,7 @@
           <preprocessorList>
             <Elem>MYSQL_DYNAMIC_PLUGIN</Elem>
             <Elem>NDEBUG</Elem>
+            <Elem>USE_BOOST_LARGE_INTEGER_FOR_DECIMAL</Elem>
           </preprocessorList>
         </ccTool>
         <fortranCompilerTool>

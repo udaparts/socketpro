@@ -16,6 +16,7 @@
 #define SPA_PHP_EXPORT __declspec(dllexport)
 
 #else
+#define USE_BOOST_LARGE_INTEGER_FOR_DECIMAL
 #define SPA_PHP_EXPORT __attribute__ ((visibility ("default")))
 #endif
 

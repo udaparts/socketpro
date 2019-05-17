@@ -13,7 +13,7 @@
 #include <windows.h>
 
 #else
-
+#define USE_BOOST_LARGE_INTEGER_FOR_DECIMAL
 #endif
 
 #include "../../../include/tablecache.h"

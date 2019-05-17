@@ -18,7 +18,6 @@
                    displayName="Source Files"
                    projectFiles="true">
       <itemPath>../../../include/aclientw.cpp</itemPath>
-      <itemPath>../../../include/error_code.cpp</itemPath>
       <itemPath>../../../include/membuffer.cpp</itemPath>
       <itemPath>test_mysql.cpp</itemPath>
     </logicalFolder>
@@ -45,9 +44,15 @@
       <compileType>
         <cTool>
           <commandLine>-std=c++11 -Wall</commandLine>
+          <preprocessorList>
+            <Elem>USE_BOOST_LARGE_INTEGER_FOR_DECIMAL</Elem>
+          </preprocessorList>
         </cTool>
         <ccTool>
           <commandLine>-std=c++11 -Wall</commandLine>
+          <preprocessorList>
+            <Elem>USE_BOOST_LARGE_INTEGER_FOR_DECIMAL</Elem>
+          </preprocessorList>
         </ccTool>
         <linkerTool>
           <commandlineTool>g++</commandlineTool>
@@ -55,7 +60,7 @@
             <linkerLibStdlibItem>PosixThreads</linkerLibStdlibItem>
             <linkerLibStdlibItem>DynamicLinking</linkerLibStdlibItem>
           </linkerLibItems>
-          <commandLine>-std=c++11 -lstdc++</commandLine>
+          <commandLine>-std=c++11 -lstdc++ -pthread</commandLine>
         </linkerTool>
       </compileType>
       <item path="../../../include/aclientw.cpp" ex="false" tool="0" flavor2="0">
@@ -63,8 +68,6 @@
       <item path="../../../include/aclientw.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../../include/async_odbc.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="../../../include/error_code.cpp" ex="false" tool="0" flavor2="0">
       </item>
       <item path="../../../include/membuffer.cpp" ex="false" tool="0" flavor2="0">
       </item>
@@ -88,11 +91,19 @@
           <developmentMode>5</developmentMode>
           <stripSymbols>true</stripSymbols>
           <commandLine>-std=c++11</commandLine>
+          <preprocessorList>
+            <Elem>NDEBUG</Elem>
+            <Elem>USE_BOOST_LARGE_INTEGER_FOR_DECIMAL</Elem>
+          </preprocessorList>
         </cTool>
         <ccTool>
           <developmentMode>5</developmentMode>
           <stripSymbols>true</stripSymbols>
           <commandLine>-std=c++11</commandLine>
+          <preprocessorList>
+            <Elem>NDEBUG</Elem>
+            <Elem>USE_BOOST_LARGE_INTEGER_FOR_DECIMAL</Elem>
+          </preprocessorList>
         </ccTool>
         <fortranCompilerTool>
           <developmentMode>5</developmentMode>
@@ -107,7 +118,7 @@
             <linkerLibStdlibItem>PosixThreads</linkerLibStdlibItem>
             <linkerLibStdlibItem>DynamicLinking</linkerLibStdlibItem>
           </linkerLibItems>
-          <commandLine>-std=c++11 -lstdc++</commandLine>
+          <commandLine>-std=c++11 -lstdc++ -pthread</commandLine>
         </linkerTool>
       </compileType>
       <item path="../../../include/aclientw.cpp" ex="false" tool="0" flavor2="0">
@@ -115,8 +126,6 @@
       <item path="../../../include/aclientw.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../../include/async_odbc.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="../../../include/error_code.cpp" ex="false" tool="0" flavor2="0">
       </item>
       <item path="../../../include/membuffer.cpp" ex="false" tool="0" flavor2="0">
       </item>

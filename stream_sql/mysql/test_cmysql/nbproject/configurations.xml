@@ -41,9 +41,15 @@
       <compileType>
         <cTool>
           <commandLine>-std=c++11 -Wall</commandLine>
+          <preprocessorList>
+            <Elem>USE_BOOST_LARGE_INTEGER_FOR_DECIMAL</Elem>
+          </preprocessorList>
         </cTool>
         <ccTool>
           <commandLine>-std=c++11 -Wall</commandLine>
+          <preprocessorList>
+            <Elem>USE_BOOST_LARGE_INTEGER_FOR_DECIMAL</Elem>
+          </preprocessorList>
         </ccTool>
         <linkerTool>
           <linkerLibItems>
@@ -73,11 +79,20 @@
       <compileType>
         <cTool>
           <developmentMode>5</developmentMode>
+          <stripSymbols>true</stripSymbols>
           <commandLine>-std=c++11</commandLine>
+          <preprocessorList>
+            <Elem>NDEBUG</Elem>
+            <Elem>USE_BOOST_LARGE_INTEGER_FOR_DECIMAL</Elem>
+          </preprocessorList>
         </cTool>
         <ccTool>
           <developmentMode>5</developmentMode>
           <commandLine>-std=c++11</commandLine>
+          <preprocessorList>
+            <Elem>NDEBUG</Elem>
+            <Elem>USE_BOOST_LARGE_INTEGER_FOR_DECIMAL</Elem>
+          </preprocessorList>
         </ccTool>
         <fortranCompilerTool>
           <developmentMode>5</developmentMode>

@@ -16,7 +16,6 @@
                    displayName="Source Files"
                    projectFiles="true">
       <itemPath>../../../include/aserverw.cpp</itemPath>
-      <itemPath>../../../include/error_code.cpp</itemPath>
       <itemPath>../../../include/membuffer.cpp</itemPath>
       <itemPath>test_sodbc.cpp</itemPath>
     </logicalFolder>
@@ -53,14 +52,12 @@
             <linkerLibStdlibItem>PosixThreads</linkerLibStdlibItem>
             <linkerLibStdlibItem>DynamicLinking</linkerLibStdlibItem>
           </linkerLibItems>
-          <commandLine>-lstdc++</commandLine>
+          <commandLine>-lstdc++ -pthread</commandLine>
         </linkerTool>
       </compileType>
       <item path="../../../include/aserverw.cpp" ex="false" tool="0" flavor2="0">
       </item>
       <item path="../../../include/aserverw.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="../../../include/error_code.cpp" ex="false" tool="0" flavor2="0">
       </item>
       <item path="../../../include/membuffer.cpp" ex="false" tool="0" flavor2="0">
       </item>
@@ -103,14 +100,12 @@
             <linkerLibStdlibItem>PosixThreads</linkerLibStdlibItem>
             <linkerLibStdlibItem>DynamicLinking</linkerLibStdlibItem>
           </linkerLibItems>
-          <commandLine>-lstdc++</commandLine>
+          <commandLine>-lstdc++ -pthread</commandLine>
         </linkerTool>
       </compileType>
       <item path="../../../include/aserverw.cpp" ex="false" tool="0" flavor2="0">
       </item>
       <item path="../../../include/aserverw.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="../../../include/error_code.cpp" ex="false" tool="0" flavor2="0">
       </item>
       <item path="../../../include/membuffer.cpp" ex="false" tool="0" flavor2="0">
       </item>

@@ -49,9 +49,15 @@
       <compileType>
         <cTool>
           <commandLine>-std=c++11 -static-libgcc -static-libstdc++ -Wall</commandLine>
+          <preprocessorList>
+            <Elem>USE_BOOST_LARGE_INTEGER_FOR_DECIMAL</Elem>
+          </preprocessorList>
         </cTool>
         <ccTool>
           <commandLine>-std=c++11 -static-libgcc -static-libstdc++ -Wall</commandLine>
+          <preprocessorList>
+            <Elem>USE_BOOST_LARGE_INTEGER_FOR_DECIMAL</Elem>
+          </preprocessorList>
         </ccTool>
         <linkerTool>
           <commandlineTool>g++</commandlineTool>
@@ -114,6 +120,7 @@
           <commandLine>-std=c++11 -static-libgcc -static-libstdc++</commandLine>
           <preprocessorList>
             <Elem>NDEBUG</Elem>
+            <Elem>USE_BOOST_LARGE_INTEGER_FOR_DECIMAL</Elem>
           </preprocessorList>
         </cTool>
         <ccTool>
@@ -122,6 +129,7 @@
           <commandLine>-std=c++11 -static-libgcc -static-libstdc++</commandLine>
           <preprocessorList>
             <Elem>NDEBUG</Elem>
+            <Elem>USE_BOOST_LARGE_INTEGER_FOR_DECIMAL</Elem>
           </preprocessorList>
         </ccTool>
         <fortranCompilerTool>

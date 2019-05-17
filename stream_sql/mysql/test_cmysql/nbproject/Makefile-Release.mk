@@ -67,17 +67,17 @@ ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/test_cmysql: ${OBJECTFILES}
 ${OBJECTDIR}/_ext/932346631/aclientw.o: ../../../include/aclientw.cpp 
 	${MKDIR} -p ${OBJECTDIR}/_ext/932346631
 	${RM} "$@.d"
-	$(COMPILE.c) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/932346631/aclientw.o ../../../include/aclientw.cpp
+	$(COMPILE.c) -O2 -s -DNDEBUG -DUSE_BOOST_LARGE_INTEGER_FOR_DECIMAL -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/932346631/aclientw.o ../../../include/aclientw.cpp
 
 ${OBJECTDIR}/_ext/932346631/membuffer.o: ../../../include/membuffer.cpp 
 	${MKDIR} -p ${OBJECTDIR}/_ext/932346631
 	${RM} "$@.d"
-	$(COMPILE.c) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/932346631/membuffer.o ../../../include/membuffer.cpp
+	$(COMPILE.c) -O2 -s -DNDEBUG -DUSE_BOOST_LARGE_INTEGER_FOR_DECIMAL -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/932346631/membuffer.o ../../../include/membuffer.cpp
 
 ${OBJECTDIR}/test_cmysql.o: test_cmysql.cpp 
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
-	$(COMPILE.c) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/test_cmysql.o test_cmysql.cpp
+	$(COMPILE.c) -O2 -s -DNDEBUG -DUSE_BOOST_LARGE_INTEGER_FOR_DECIMAL -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/test_cmysql.o test_cmysql.cpp
 
 # Subprojects
 .build-subprojects:

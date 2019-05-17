@@ -68,22 +68,22 @@ ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/libsmysql.${CND_DLIB_EXT}: ${OBJECTFI
 ${OBJECTDIR}/_ext/932346631/aserverw.o: ../../../include/aserverw.cpp 
 	${MKDIR} -p ${OBJECTDIR}/_ext/932346631
 	${RM} "$@.d"
-	$(COMPILE.c) -O2 -s -DNDEBUG -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/932346631/aserverw.o ../../../include/aserverw.cpp
+	$(COMPILE.c) -O2 -s -DNDEBUG -DUSE_BOOST_LARGE_INTEGER_FOR_DECIMAL -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/932346631/aserverw.o ../../../include/aserverw.cpp
 
 ${OBJECTDIR}/_ext/932346631/membuffer.o: ../../../include/membuffer.cpp 
 	${MKDIR} -p ${OBJECTDIR}/_ext/932346631
 	${RM} "$@.d"
-	$(COMPILE.c) -O2 -s -DNDEBUG -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/932346631/membuffer.o ../../../include/membuffer.cpp
+	$(COMPILE.c) -O2 -s -DNDEBUG -DUSE_BOOST_LARGE_INTEGER_FOR_DECIMAL -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/932346631/membuffer.o ../../../include/membuffer.cpp
 
 ${OBJECTDIR}/_ext/1165644825/mysqlimpl.o: ../../../include/mysql/server_impl/mysqlimpl.cpp 
 	${MKDIR} -p ${OBJECTDIR}/_ext/1165644825
 	${RM} "$@.d"
-	$(COMPILE.c) -O2 -s -DNDEBUG -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/1165644825/mysqlimpl.o ../../../include/mysql/server_impl/mysqlimpl.cpp
+	$(COMPILE.c) -O2 -s -DNDEBUG -DUSE_BOOST_LARGE_INTEGER_FOR_DECIMAL -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/1165644825/mysqlimpl.o ../../../include/mysql/server_impl/mysqlimpl.cpp
 
 ${OBJECTDIR}/_ext/1165644825/smysql.o: ../../../include/mysql/server_impl/smysql.cpp 
 	${MKDIR} -p ${OBJECTDIR}/_ext/1165644825
 	${RM} "$@.d"
-	$(COMPILE.c) -O2 -s -DNDEBUG -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/1165644825/smysql.o ../../../include/mysql/server_impl/smysql.cpp
+	$(COMPILE.c) -O2 -s -DNDEBUG -DUSE_BOOST_LARGE_INTEGER_FOR_DECIMAL -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/1165644825/smysql.o ../../../include/mysql/server_impl/smysql.cpp
 
 # Subprojects
 .build-subprojects:
