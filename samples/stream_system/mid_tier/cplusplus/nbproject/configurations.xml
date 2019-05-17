@@ -26,7 +26,6 @@
       <itemPath>../../../../include/aclientw.cpp</itemPath>
       <itemPath>../../../../include/aserverw.cpp</itemPath>
       <itemPath>cplusplus.cpp</itemPath>
-      <itemPath>../../../../include/error_code.cpp</itemPath>
       <itemPath>../../../../include/manager.cpp</itemPath>
       <itemPath>../../../../include/membuffer.cpp</itemPath>
       <itemPath>sspeer.cpp</itemPath>
@@ -66,7 +65,7 @@
             <linkerLibStdlibItem>PosixThreads</linkerLibStdlibItem>
             <linkerLibStdlibItem>DynamicLinking</linkerLibStdlibItem>
           </linkerLibItems>
-          <commandLine>-std=c++11 -lstdc++</commandLine>
+          <commandLine>-std=c++11 -lstdc++ -pthread</commandLine>
         </linkerTool>
       </compileType>
       <item path="../../../../include/aclientw.cpp" ex="false" tool="0" flavor2="0">
@@ -76,8 +75,6 @@
       <item path="../../../../include/aserverw.cpp" ex="false" tool="0" flavor2="0">
       </item>
       <item path="../../../../include/aserverw.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="../../../../include/error_code.cpp" ex="false" tool="0" flavor2="0">
       </item>
       <item path="../../../../include/manager.cpp" ex="false" tool="0" flavor2="0">
       </item>
@@ -147,7 +144,7 @@
             <linkerLibStdlibItem>PosixThreads</linkerLibStdlibItem>
             <linkerLibStdlibItem>DynamicLinking</linkerLibStdlibItem>
           </linkerLibItems>
-          <commandLine>-std=c++11 -lstdc++</commandLine>
+          <commandLine>-std=c++11 -lstdc++ -pthread</commandLine>
         </linkerTool>
       </compileType>
       <item path="../../../../include/aclientw.cpp" ex="false" tool="0" flavor2="0">
@@ -157,8 +154,6 @@
       <item path="../../../../include/aserverw.cpp" ex="false" tool="0" flavor2="0">
       </item>
       <item path="../../../../include/aserverw.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="../../../../include/error_code.cpp" ex="false" tool="0" flavor2="0">
       </item>
       <item path="../../../../include/manager.cpp" ex="false" tool="0" flavor2="0">
       </item>

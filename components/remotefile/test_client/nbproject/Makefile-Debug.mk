@@ -62,7 +62,7 @@ LDLIBSOPTIONS=-lpthread -ldl
 
 ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/test_client: ${OBJECTFILES}
 	${MKDIR} -p ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}
-	${LINK.c} -o ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/test_client ${OBJECTFILES} ${LDLIBSOPTIONS} -lstdc++
+	${LINK.c} -o ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/test_client ${OBJECTFILES} ${LDLIBSOPTIONS} -lstdc++ -pthread
 
 ${OBJECTDIR}/_ext/932346631/aclientw.o: ../../../include/aclientw.cpp 
 	${MKDIR} -p ${OBJECTDIR}/_ext/932346631

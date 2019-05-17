@@ -37,7 +37,6 @@ OBJECTDIR=${CND_BUILDDIR}/${CND_CONF}/${CND_PLATFORM}
 OBJECTFILES= \
 	${OBJECTDIR}/_ext/562988696/aclientw.o \
 	${OBJECTDIR}/_ext/562988696/aserverw.o \
-	${OBJECTDIR}/_ext/562988696/error_code.o \
 	${OBJECTDIR}/_ext/562988696/manager.o \
 	${OBJECTDIR}/_ext/562988696/membuffer.o \
 	${OBJECTDIR}/_ext/562988696/tablecache.o \
@@ -69,7 +68,7 @@ LDLIBSOPTIONS=-lpthread -ldl
 
 ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/cplusplus: ${OBJECTFILES}
 	${MKDIR} -p ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}
-	${LINK.c} -o ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/cplusplus ${OBJECTFILES} ${LDLIBSOPTIONS} -std=c++11 -lstdc++ -s
+	${LINK.c} -o ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/cplusplus ${OBJECTFILES} ${LDLIBSOPTIONS} -std=c++11 -lstdc++ -pthread -s
 
 ${OBJECTDIR}/_ext/562988696/aclientw.o: ../../../../include/aclientw.cpp 
 	${MKDIR} -p ${OBJECTDIR}/_ext/562988696
@@ -80,11 +79,6 @@ ${OBJECTDIR}/_ext/562988696/aserverw.o: ../../../../include/aserverw.cpp
 	${MKDIR} -p ${OBJECTDIR}/_ext/562988696
 	${RM} "$@.d"
 	$(COMPILE.c) -O2 -s -DNDEBUG -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/562988696/aserverw.o ../../../../include/aserverw.cpp
-
-${OBJECTDIR}/_ext/562988696/error_code.o: ../../../../include/error_code.cpp 
-	${MKDIR} -p ${OBJECTDIR}/_ext/562988696
-	${RM} "$@.d"
-	$(COMPILE.c) -O2 -s -DNDEBUG -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/562988696/error_code.o ../../../../include/error_code.cpp
 
 ${OBJECTDIR}/_ext/562988696/manager.o: ../../../../include/manager.cpp 
 	${MKDIR} -p ${OBJECTDIR}/_ext/562988696
