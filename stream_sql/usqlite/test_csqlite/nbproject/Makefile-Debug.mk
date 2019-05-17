@@ -54,7 +54,7 @@ FFLAGS=
 ASFLAGS=
 
 # Link Libraries and Options
-LDLIBSOPTIONS=-ldl -lpthread
+LDLIBSOPTIONS=-ldl
 
 # Build Targets
 .build-conf: ${BUILD_SUBPROJECTS}
@@ -62,7 +62,7 @@ LDLIBSOPTIONS=-ldl -lpthread
 
 ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/test_csqlite: ${OBJECTFILES}
 	${MKDIR} -p ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}
-	${LINK.c} -o ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/test_csqlite ${OBJECTFILES} ${LDLIBSOPTIONS} -std=c++11 -lstdc++ -pthread
+	${LINK.c} -o ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/test_csqlite ${OBJECTFILES} ${LDLIBSOPTIONS} -pthread -lstdc++
 
 ${OBJECTDIR}/_ext/932346631/aclientw.o: ../../../include/aclientw.cpp 
 	${MKDIR} -p ${OBJECTDIR}/_ext/932346631

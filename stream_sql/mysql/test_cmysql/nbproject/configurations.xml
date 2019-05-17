@@ -53,10 +53,9 @@
         </ccTool>
         <linkerTool>
           <linkerLibItems>
-            <linkerLibStdlibItem>PosixThreads</linkerLibStdlibItem>
             <linkerLibStdlibItem>DynamicLinking</linkerLibStdlibItem>
           </linkerLibItems>
-          <commandLine>-std=c++11 -lstdc++ -pthread</commandLine>
+          <commandLine>-lstdc++ -pthread</commandLine>
         </linkerTool>
       </compileType>
       <item path="../../../include/aclientw.cpp" ex="false" tool="0" flavor2="0">
@@ -103,10 +102,9 @@
         <linkerTool>
           <stripSymbols>true</stripSymbols>
           <linkerLibItems>
-            <linkerLibStdlibItem>PosixThreads</linkerLibStdlibItem>
             <linkerLibStdlibItem>DynamicLinking</linkerLibStdlibItem>
           </linkerLibItems>
-          <commandLine>-std=c++11 -lstdc++ -pthread</commandLine>
+          <commandLine>-lstdc++ -pthread</commandLine>
         </linkerTool>
       </compileType>
       <item path="../../../include/aclientw.cpp" ex="false" tool="0" flavor2="0">

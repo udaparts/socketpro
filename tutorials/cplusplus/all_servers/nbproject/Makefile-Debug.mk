@@ -35,9 +35,10 @@ OBJECTDIR=${CND_BUILDDIR}/${CND_CONF}/${CND_PLATFORM}
 
 # Object Files
 OBJECTFILES= \
-	${OBJECTDIR}/_ext/932346631/aclientw.o \
+	${OBJECTDIR}/_ext/932346631/aserverw.o \
 	${OBJECTDIR}/_ext/932346631/membuffer.o \
-	${OBJECTDIR}/test_cmysql.o
+	${OBJECTDIR}/_ext/1510806711/mstruct.o \
+	${OBJECTDIR}/all_servers.o
 
 
 # C Compiler Flags
@@ -58,26 +59,31 @@ LDLIBSOPTIONS=-ldl
 
 # Build Targets
 .build-conf: ${BUILD_SUBPROJECTS}
-	"${MAKE}"  -f nbproject/Makefile-${CND_CONF}.mk ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/test_cmysql
+	"${MAKE}"  -f nbproject/Makefile-${CND_CONF}.mk ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/all_servers
 
-${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/test_cmysql: ${OBJECTFILES}
+${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/all_servers: ${OBJECTFILES}
 	${MKDIR} -p ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}
-	${LINK.c} -o ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/test_cmysql ${OBJECTFILES} ${LDLIBSOPTIONS} -lstdc++ -pthread
+	${LINK.cc} -o ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/all_servers ${OBJECTFILES} ${LDLIBSOPTIONS} -pthread
 
-${OBJECTDIR}/_ext/932346631/aclientw.o: ../../../include/aclientw.cpp 
+${OBJECTDIR}/_ext/932346631/aserverw.o: ../../../include/aserverw.cpp 
 	${MKDIR} -p ${OBJECTDIR}/_ext/932346631
 	${RM} "$@.d"
-	$(COMPILE.c) -g -DUSE_BOOST_LARGE_INTEGER_FOR_DECIMAL -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/932346631/aclientw.o ../../../include/aclientw.cpp
+	$(COMPILE.cc) -g -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/932346631/aserverw.o ../../../include/aserverw.cpp
 
 ${OBJECTDIR}/_ext/932346631/membuffer.o: ../../../include/membuffer.cpp 
 	${MKDIR} -p ${OBJECTDIR}/_ext/932346631
 	${RM} "$@.d"
-	$(COMPILE.c) -g -DUSE_BOOST_LARGE_INTEGER_FOR_DECIMAL -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/932346631/membuffer.o ../../../include/membuffer.cpp
+	$(COMPILE.cc) -g -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/932346631/membuffer.o ../../../include/membuffer.cpp
 
-${OBJECTDIR}/test_cmysql.o: test_cmysql.cpp 
+${OBJECTDIR}/_ext/1510806711/mstruct.o: ../uqueue_demo/mstruct.cpp 
+	${MKDIR} -p ${OBJECTDIR}/_ext/1510806711
+	${RM} "$@.d"
+	$(COMPILE.cc) -g -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/1510806711/mstruct.o ../uqueue_demo/mstruct.cpp
+
+${OBJECTDIR}/all_servers.o: all_servers.cpp 
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
-	$(COMPILE.c) -g -DUSE_BOOST_LARGE_INTEGER_FOR_DECIMAL -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/test_cmysql.o test_cmysql.cpp
+	$(COMPILE.cc) -g -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/all_servers.o all_servers.cpp
 
 # Subprojects
 .build-subprojects:
@@ -85,7 +91,7 @@ ${OBJECTDIR}/test_cmysql.o: test_cmysql.cpp
 # Clean Targets
 .clean-conf: ${CLEAN_SUBPROJECTS}
 	${RM} -r ${CND_BUILDDIR}/${CND_CONF}
-	${RM} ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/test_cmysql
+	${RM} ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/all_servers
 
 # Subprojects
 .clean-subprojects:

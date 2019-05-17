@@ -7,10 +7,9 @@
 #include "../../../include/sqlite/usqlite_server.h"
 #include "../../../include/udatabase.h"
 
-class CMySocketProServer : public CSocketProServer
-{
-
+class CMySocketProServer : public CSocketProServer {
 protected:
+
     virtual bool OnSettingServer(unsigned int listeningPort, unsigned int maxBacklog, bool v6) {
         //amIntegrated and amMixed not supported yet
         CSocketProServer::Config::SetAuthenticationMethod(amOwn);
@@ -23,7 +22,7 @@ protected:
         ok = PushManager::AddAChatGroup(2, L"Sales Department");
         ok = PushManager::AddAChatGroup(3, L"Management Department");
         ok = PushManager::AddAChatGroup(7, L"HR Department");
-		ok = PushManager::AddAChatGroup(SPA::UDB::STREAMING_SQL_CHAT_GROUP_ID, L"Subscribe/publish for front clients");
+        ok = PushManager::AddAChatGroup(SPA::UDB::STREAMING_SQL_CHAT_GROUP_ID, L"Subscribe/publish for front clients");
 
         //load socketpro async sqlite and queue server libraries located at the directory ../socketpro/bin
         auto h = CSocketProServer::DllManager::AddALibrary("ssqlite");
@@ -63,6 +62,7 @@ private:
     SPA::ServerSide::CSocketProService<CHttpPeer> m_myHttp;
 
 private:
+
     void AddServices() {
         //load balancing
         bool ok = m_Pi.AddMe(sidPi);
@@ -84,11 +84,11 @@ private:
 int main(int argc, char* argv[]) {
     CMySocketProServer MySocketProServer;
     //CSocketProServer::QueueManager::SetMessageQueuePassword("MyPasswordForMsgQueue");
-//#ifdef WIN32_64
-//    CSocketProServer::QueueManager::SetWorkDirectory("c:\\sp_test\\");
-//#else
-//    CSocketProServer::QueueManager::SetWorkDirectory("/home/yye/sp_test/");
-//#endif
+    //#ifdef WIN32_64
+    //    CSocketProServer::QueueManager::SetWorkDirectory("c:\\sp_test\\");
+    //#else
+    //    CSocketProServer::QueueManager::SetWorkDirectory("/home/yye/sp_test/");
+    //#endif
     if (!MySocketProServer.Run(20901)) {
         int errCode = MySocketProServer.GetErrorCode();
         std::cout << "Error happens with code = " << errCode << std::endl;

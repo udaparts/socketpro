@@ -4,11 +4,8 @@
     <logicalFolder name="HeaderFiles"
                    displayName="Header Files"
                    projectFiles="true">
-      <itemPath>../../../include/aclientw.h</itemPath>
-      <itemPath>../../../include/async_sqlite.h</itemPath>
+      <itemPath>../../../include/aserverw.h</itemPath>
       <itemPath>../../../include/membuffer.h</itemPath>
-      <itemPath>../../../include/udatabase.h</itemPath>
-      <itemPath>../../../include/udb_client.h</itemPath>
     </logicalFolder>
     <logicalFolder name="ResourceFiles"
                    displayName="Resource Files"
@@ -17,31 +14,10 @@
     <logicalFolder name="SourceFiles"
                    displayName="Source Files"
                    projectFiles="true">
-      <itemPath>../../../include/aclientw.cpp</itemPath>
+      <itemPath>all_servers.cpp</itemPath>
+      <itemPath>../../../include/aserverw.cpp</itemPath>
       <itemPath>../../../include/membuffer.cpp</itemPath>
-      <itemPath>test_csqlite.cpp</itemPath>
-    </logicalFolder>
-    <logicalFolder name="TestFiles"
-                   displayName="Test Files"
-                   projectFiles="false"
-                   kind="TEST_LOGICAL_FOLDER">
-    </logicalFolder>
-    <logicalFolder name="ExternalFiles"
-                   displayName="Important Files"
-                   projectFiles="false"
-                   kind="IMPORTANT_FILES_FOLDER">
-      <itemPath>Makefile</itemPath>
-    </logicalFolder>
-    <logicalFolder name="TestFiles"
-                   displayName="Test Files"
-                   projectFiles="false"
-                   kind="TEST_LOGICAL_FOLDER">
-    </logicalFolder>
-    <logicalFolder name="ExternalFiles"
-                   displayName="Important Files"
-                   projectFiles="false"
-                   kind="IMPORTANT_FILES_FOLDER">
-      <itemPath>Makefile</itemPath>
+      <itemPath>../uqueue_demo/mstruct.cpp</itemPath>
     </logicalFolder>
     <logicalFolder name="TestFiles"
                    displayName="Test Files"
@@ -74,24 +50,20 @@
           <linkerLibItems>
             <linkerLibStdlibItem>DynamicLinking</linkerLibStdlibItem>
           </linkerLibItems>
-          <commandLine>-pthread -lstdc++</commandLine>
+          <commandLine>-pthread</commandLine>
         </linkerTool>
       </compileType>
-      <item path="../../../include/aclientw.cpp" ex="false" tool="0" flavor2="0">
+      <item path="../../../include/aserverw.cpp" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="../../../include/aclientw.h" ex="false" tool="3" flavor2="0">
+      <item path="../../../include/aserverw.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../../../include/async_sqlite.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="../../../include/membuffer.cpp" ex="false" tool="0" flavor2="0">
+      <item path="../../../include/membuffer.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../../include/membuffer.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../../../include/udatabase.h" ex="false" tool="3" flavor2="0">
+      <item path="../uqueue_demo/mstruct.cpp" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="../../../include/udb_client.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="test_csqlite.cpp" ex="false" tool="0" flavor2="0">
+      <item path="all_servers.cpp" ex="false" tool="1" flavor2="0">
       </item>
     </conf>
     <conf name="Release" type="1">
@@ -105,17 +77,11 @@
           <developmentMode>5</developmentMode>
           <stripSymbols>true</stripSymbols>
           <commandLine>-std=c++11</commandLine>
-          <preprocessorList>
-            <Elem>NDEBUG</Elem>
-          </preprocessorList>
         </cTool>
         <ccTool>
           <developmentMode>5</developmentMode>
           <stripSymbols>true</stripSymbols>
           <commandLine>-std=c++11</commandLine>
-          <preprocessorList>
-            <Elem>NDEBUG</Elem>
-          </preprocessorList>
         </ccTool>
         <fortranCompilerTool>
           <developmentMode>5</developmentMode>
@@ -128,24 +94,20 @@
           <linkerLibItems>
             <linkerLibStdlibItem>DynamicLinking</linkerLibStdlibItem>
           </linkerLibItems>
-          <commandLine>-pthread -lstdc++</commandLine>
+          <commandLine>-pthread</commandLine>
         </linkerTool>
       </compileType>
-      <item path="../../../include/aclientw.cpp" ex="false" tool="0" flavor2="0">
+      <item path="../../../include/aserverw.cpp" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="../../../include/aclientw.h" ex="false" tool="3" flavor2="0">
+      <item path="../../../include/aserverw.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../../../include/async_sqlite.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="../../../include/membuffer.cpp" ex="false" tool="0" flavor2="0">
+      <item path="../../../include/membuffer.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../../../include/membuffer.h" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="../../../include/udatabase.h" ex="false" tool="3" flavor2="0">
+      <item path="../uqueue_demo/mstruct.cpp" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="../../../include/udb_client.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="test_csqlite.cpp" ex="false" tool="0" flavor2="0">
+      <item path="all_servers.cpp" ex="false" tool="1" flavor2="0">
       </item>
     </conf>
   </confs>
