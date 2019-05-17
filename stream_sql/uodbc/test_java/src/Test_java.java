@@ -189,84 +189,85 @@ public class Test_java {
         cc.UserId = "uodbc_client_java";
         cc.Password = "pwd_for_uodbc";
 
-        CSocketPool<COdbc> spOdbc = new CSocketPool<>(COdbc.class, true, 600000);
-        boolean ok = spOdbc.StartSocketPool(cc, 1, 1);
-        COdbc odbc = spOdbc.getAsyncHandlers()[0];
-        if (!ok) {
-            System.out.println("No connection error code = " + odbc.getAttachedClientSocket().getErrorCode());
-            in.nextLine();
-            return;
-        }
-        COdbc.DResult dr = (dbHandler, res, errMsg) -> {
-            System.out.format("res = %d, errMsg: %s", res, errMsg);
-            System.out.println();
-        };
-        COdbc.DExecuteResult er = (dbHandler, res, errMsg, affected, fail_ok, lastRowId) -> {
-            System.out.format("affected = %d, fails = %d, oks = %d, res = %d, errMsg: %s", affected, (int) (fail_ok >> 32), (int) fail_ok, res, errMsg);
-            System.out.println();
-        };
-
-        ok = odbc.Open("dsn=ToMySQL;uid=root;pwd=Smash123", dr);
-        java.util.ArrayList<Pair<CDBColumnInfoArray, CDBVariantArray>> ra = new java.util.ArrayList<>();
-        COdbc.DRows r = (dbHandler, lstData) -> {
-            int last = ra.size() - 1;
-            Pair<CDBColumnInfoArray, CDBVariantArray> item = ra.get(last);
-            item.second.addAll(lstData);
-        };
-
-        COdbc.DRowsetHeader rh = (dbHandler) -> {
-            //rowset header comes here
-            CDBColumnInfoArray vColInfo = dbHandler.getColumnInfo();
-            CDBVariantArray vData = new CDBVariantArray();
-            Pair<CDBColumnInfoArray, CDBVariantArray> item = new Pair<>(vColInfo, vData);
-            ra.add(item);
-        };
-
-        TestCreateTables(odbc, er);
-        ok = odbc.Execute("delete from employee", er);
-        ok = odbc.Execute("delete from company", er);
-        TestPreparedStatements(odbc, dr, er);
-        InsertBLOBByPreparedStatement(odbc, dr, er);
-        ok = odbc.Execute("SELECT * from company", er, r, rh);
-        ok = odbc.Execute("select * from employee", er, r, rh);
-        ok = odbc.Execute("select curtime()", er, r, rh);
-
-        CDBVariantArray vPData = TestStoredProcedure(odbc, dr, er, ra);
-        ok = odbc.WaitAll();
-
-        CDBVariantArray vData = TestBatch(odbc, er, r, rh, ra);
-        ok = odbc.WaitAll();
-
-        ok = odbc.Tables("sakila", "", "%", "TABLE", er, r, rh);
-        ok = odbc.WaitAll();
-
-        ok = odbc.Execute("use sakila", er);
-        Pair<CDBColumnInfoArray, CDBVariantArray> tables = ra.get(ra.size() - 1);
-        int columns = tables.first.size();
-        int num_tables = tables.second.size() / columns;
-        for (int n = 0; n < num_tables; ++n) {
-            String sql = "select * from " + tables.second.get(n * columns + 2).toString();
-            ok = odbc.Execute(sql, er, r, rh);
-        }
-        ok = odbc.WaitAll();
-
-        int index = 0;
-        System.out.println();
-        System.out.println("+++++ Start rowsets +++");
-        for (Pair<CDBColumnInfoArray, CDBVariantArray> a : ra) {
-            System.out.format("Statement index = %d", index);
-            if (a.first.size() > 0) {
-                System.out.format(", rowset with columns = %d, records = %d.", a.first.size(), a.second.size() / a.first.size());
-                System.out.println();
-            } else {
-                System.out.println(", no rowset received.");
+        try (CSocketPool<COdbc> spOdbc = new CSocketPool<>(COdbc.class, true, 600000)) {
+            boolean ok = spOdbc.StartSocketPool(cc, 1, 1);
+            COdbc odbc = spOdbc.getAsyncHandlers()[0];
+            if (!ok) {
+                System.out.println("No connection error code = " + odbc.getAttachedClientSocket().getErrorCode());
+                in.nextLine();
+                return;
             }
-            ++index;
+            COdbc.DResult dr = (dbHandler, res, errMsg) -> {
+                System.out.format("res = %d, errMsg: %s", res, errMsg);
+                System.out.println();
+            };
+            COdbc.DExecuteResult er = (dbHandler, res, errMsg, affected, fail_ok, lastRowId) -> {
+                System.out.format("affected = %d, fails = %d, oks = %d, res = %d, errMsg: %s", affected, (int) (fail_ok >> 32), (int) fail_ok, res, errMsg);
+                System.out.println();
+            };
+
+            ok = odbc.Open("dsn=ToMySQL;uid=root;pwd=Smash123", dr);
+            java.util.ArrayList<Pair<CDBColumnInfoArray, CDBVariantArray>> ra = new java.util.ArrayList<>();
+            COdbc.DRows r = (dbHandler, lstData) -> {
+                int last = ra.size() - 1;
+                Pair<CDBColumnInfoArray, CDBVariantArray> item = ra.get(last);
+                item.second.addAll(lstData);
+            };
+
+            COdbc.DRowsetHeader rh = (dbHandler) -> {
+                //rowset header comes here
+                CDBColumnInfoArray vColInfo = dbHandler.getColumnInfo();
+                CDBVariantArray vData = new CDBVariantArray();
+                Pair<CDBColumnInfoArray, CDBVariantArray> item = new Pair<>(vColInfo, vData);
+                ra.add(item);
+            };
+
+            TestCreateTables(odbc, er);
+            ok = odbc.Execute("delete from employee", er);
+            ok = odbc.Execute("delete from company", er);
+            TestPreparedStatements(odbc, dr, er);
+            InsertBLOBByPreparedStatement(odbc, dr, er);
+            ok = odbc.Execute("SELECT * from company", er, r, rh);
+            ok = odbc.Execute("select * from employee", er, r, rh);
+            ok = odbc.Execute("select curtime()", er, r, rh);
+
+            CDBVariantArray vPData = TestStoredProcedure(odbc, dr, er, ra);
+            ok = odbc.WaitAll();
+
+            CDBVariantArray vData = TestBatch(odbc, er, r, rh, ra);
+            ok = odbc.WaitAll();
+
+            ok = odbc.Tables("sakila", "", "%", "TABLE", er, r, rh);
+            ok = odbc.WaitAll();
+
+            ok = odbc.Execute("use sakila", er);
+            Pair<CDBColumnInfoArray, CDBVariantArray> tables = ra.get(ra.size() - 1);
+            int columns = tables.first.size();
+            int num_tables = tables.second.size() / columns;
+            for (int n = 0; n < num_tables; ++n) {
+                String sql = "select * from " + tables.second.get(n * columns + 2).toString();
+                ok = odbc.Execute(sql, er, r, rh);
+            }
+            ok = odbc.WaitAll();
+
+            int index = 0;
+            System.out.println();
+            System.out.println("+++++ Start rowsets +++");
+            for (Pair<CDBColumnInfoArray, CDBVariantArray> a : ra) {
+                System.out.format("Statement index = %d", index);
+                if (a.first.size() > 0) {
+                    System.out.format(", rowset with columns = %d, records = %d.", a.first.size(), a.second.size() / a.first.size());
+                    System.out.println();
+                } else {
+                    System.out.println(", no rowset received.");
+                }
+                ++index;
+            }
+            System.out.println("+++++ End rowsets +++");
+            System.out.println();
+            System.out.println("Press any key to close the application ......");
+            in.nextLine();
         }
-        System.out.println("+++++ End rowsets +++");
-        System.out.println();
-        System.out.println("Press any key to close the application ......");
-        in.nextLine();
     }
 
     static CDBVariantArray TestStoredProcedure(COdbc odbc, COdbc.DResult dr, COdbc.DExecuteResult er, java.util.ArrayList<Pair<CDBColumnInfoArray, CDBVariantArray>> ra) {

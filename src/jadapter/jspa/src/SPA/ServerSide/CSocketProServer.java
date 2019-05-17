@@ -2,11 +2,18 @@ package SPA.ServerSide;
 
 import SPA.CScopeUQueue;
 
-public class CSocketProServer {
+public class CSocketProServer implements AutoCloseable {
+
+    @Override
+    public void close() {
+        StopSocketProServer();
+    }
 
     @Override
     protected void finalize() throws Throwable {
-        ServerCoreLoader.StopSocketProServer();
+        if (ServerCoreLoader.IsRunning()) {
+            ServerCoreLoader.StopSocketProServer();
+        }
         ServerCoreLoader.UninitSocketProServer();
         m_sps = null;
         super.finalize();
@@ -197,8 +204,10 @@ public class CSocketProServer {
     }
 
     public void StopSocketProServer() {
-        ServerCoreLoader.PostQuitPump();
-        ServerCoreLoader.StopSocketProServer();
+        if (ServerCoreLoader.IsRunning()) {
+            ServerCoreLoader.PostQuitPump();
+            ServerCoreLoader.StopSocketProServer();
+        }
     }
 
     public final void UseSSL(String certFile, String keyFile, String pwdForPrivateKeyFile) {

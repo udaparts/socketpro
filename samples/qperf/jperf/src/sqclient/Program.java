@@ -93,55 +93,56 @@ public class Program {
         cc.UserId = "async_queue_client_java";
         cc.Password = "pwd_for_async_queue";
 
-        CSocketPool<CAsyncQueue> spAq = new CSocketPool<>(CAsyncQueue.class);
-        boolean ok = spAq.StartSocketPool(cc, 1, 1);
-        CAsyncQueue sq = spAq.getAsyncHandlers()[0];
-        if (!ok) {
-            System.out.println("No connection error code = " + sq.getAttachedClientSocket().getErrorCode());
-            new java.util.Scanner(System.in).nextLine();
-            return;
+        try (CSocketPool<CAsyncQueue> spAq = new CSocketPool<>(CAsyncQueue.class)) {
+            boolean ok = spAq.StartSocketPool(cc, 1, 1);
+            CAsyncQueue sq = spAq.getAsyncHandlers()[0];
+            if (!ok) {
+                System.out.println("No connection error code = " + sq.getAttachedClientSocket().getErrorCode());
+                new java.util.Scanner(System.in).nextLine();
+                return;
+            }
+
+            String s4 = "Sock";
+            EnqueueToServer(sq, s4, 200000000);
+            DequeueFromServer(sq);
+
+            //Manually batching improves throughput for high volume of tiny messages
+            EnqueueToServerBatch(sq, s4, 200000000, 8 * 1024);
+            DequeueFromServer(sq);
+
+            String s32 = "SocketPro is a world-leading pac";
+            EnqueueToServer(sq, s32, 200000000);
+            DequeueFromServer(sq);
+
+            //Manually batching improves throughput for high volume of small messages
+            EnqueueToServerBatch(sq, s32, 200000000, 8 * 1024);
+            DequeueFromServer(sq);
+
+            String s = "SocketPro is a world-leading package of secured communication software components written with request batching, asynchrony and parallel computation in mind. It offers superior performance and scalabi";
+            EnqueueToServer(sq, s, 50000000);
+            DequeueFromServer(sq);
+
+            //Manually batching improves throughput for high volume of middle messages
+            EnqueueToServerBatch(sq, s, 50000000, 8 * 1024);
+            DequeueFromServer(sq);
+
+            String s1024 = s;
+            for (int n = 0; n < 5; ++n) {
+                s1024 += s;
+            }
+            s1024 = s1024.substring(0, 1024);
+            EnqueueToServer(sq, s1024, 10000000);
+            DequeueFromServer(sq);
+
+            String s10240 = "";
+            for (int n = 0; n < 10; ++n) {
+                s10240 += s1024;
+            }
+            EnqueueToServer(sq, s10240, 1000000);
+            DequeueFromServer(sq);
+
+            System.out.println("Press key ENTER to complete dequeuing messages from server ......");
+            in.nextLine();
         }
-
-        String s4 = "Sock";
-        EnqueueToServer(sq, s4, 200000000);
-        DequeueFromServer(sq);
-
-        //Manually batching improves throughput for high volume of tiny messages
-        EnqueueToServerBatch(sq, s4, 200000000, 8 * 1024);
-        DequeueFromServer(sq);
-
-        String s32 = "SocketPro is a world-leading pac";
-        EnqueueToServer(sq, s32, 200000000);
-        DequeueFromServer(sq);
-
-        //Manually batching improves throughput for high volume of small messages
-        EnqueueToServerBatch(sq, s32, 200000000, 8 * 1024);
-        DequeueFromServer(sq);
-
-        String s = "SocketPro is a world-leading package of secured communication software components written with request batching, asynchrony and parallel computation in mind. It offers superior performance and scalabi";
-        EnqueueToServer(sq, s, 50000000);
-        DequeueFromServer(sq);
-
-        //Manually batching improves throughput for high volume of middle messages
-        EnqueueToServerBatch(sq, s, 50000000, 8 * 1024);
-        DequeueFromServer(sq);
-
-        String s1024 = s;
-        for (int n = 0; n < 5; ++n) {
-            s1024 += s;
-        }
-        s1024 = s1024.substring(0, 1024);
-        EnqueueToServer(sq, s1024, 10000000);
-        DequeueFromServer(sq);
-
-        String s10240 = "";
-        for (int n = 0; n < 10; ++n) {
-            s10240 += s1024;
-        }
-        EnqueueToServer(sq, s10240, 1000000);
-        DequeueFromServer(sq);
-
-        System.out.println("Press key ENTER to complete dequeuing messages from server ......");
-        in.nextLine();
     }
 }

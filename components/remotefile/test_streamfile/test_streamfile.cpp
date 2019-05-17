@@ -11,7 +11,7 @@ protected:
         if (m_h) {
 #ifdef WIN32_64
             PSetRootDirectory SetRootDirectory = (PSetRootDirectory) GetProcAddress(m_h, "SetRootDirectory");
-            SetRootDirectory(L"C:\\udaparts\\boost_1_60_0\\stage\\lib64");
+            SetRootDirectory(L"C:\\cyetest\\nodejsdemos\\file_test\\");
 #endif
         }
         return true;
@@ -31,4 +31,3 @@ int main(int argc, char* argv[]) {
     ::getchar();
     return 0;
 }
-

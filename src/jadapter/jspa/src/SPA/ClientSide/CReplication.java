@@ -1,11 +1,16 @@
 package SPA.ClientSide;
 
-public class CReplication<THandler extends CAsyncServiceHandler> {
+public class CReplication<THandler extends CAsyncServiceHandler> implements AutoCloseable {
 
     private volatile CSocketPool<THandler> m_pool = null;
     private final java.util.HashMap<String, CConnectionContext> m_mapQueueConn = new java.util.HashMap<>();
     private volatile ReplicationSetting m_rs;
     public final static String DIR_SEP = System.getProperty("file.separator");
+
+    @Override
+    public void close() {
+        Cleanup();
+    }
 
     public final int getConnections() {
         if (m_pool == null) {
@@ -13,9 +18,10 @@ public class CReplication<THandler extends CAsyncServiceHandler> {
         }
         return m_pool.getConnectedSockets();
     }
-    
+
     /**
-     * Shutdown its internal socket pool and dispose this object. Don't use the object after calling this method
+     * Shutdown its internal socket pool and dispose this object. Don't use the
+     * object after calling this method
      */
     public void Dispose() {
         Cleanup();

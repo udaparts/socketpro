@@ -18,56 +18,57 @@ public class Test_java {
         cc.UserId = "async_queue_client_java";
         cc.Password = "pwd_for_async_queue";
 
-        CSocketPool<CAsyncQueue> spAq = new CSocketPool<>(CAsyncQueue.class);
-        boolean ok = spAq.StartSocketPool(cc, 1, 1);
-        CAsyncQueue aq = spAq.getAsyncHandlers()[0];
-        if (!ok) {
-            System.out.println("No connection error code = " + aq.getAttachedClientSocket().getErrorCode());
-            in.nextLine();
-            return;
-        }
+        try (CSocketPool<CAsyncQueue> spAq = new CSocketPool<>(CAsyncQueue.class)) {
+			boolean ok = spAq.StartSocketPool(cc, 1, 1);
+			CAsyncQueue aq = spAq.getAsyncHandlers()[0];
+			if (!ok) {
+				System.out.println("No connection error code = " + aq.getAttachedClientSocket().getErrorCode());
+				in.nextLine();
+				return;
+			}
 
-        //Optionally, you can enqueue messages with transaction style by calling the methods StartQueueTrans and EndQueueTrans in pair
-        aq.StartQueueTrans(TEST_QUEUE_KEY, new CAsyncQueue.DQueueTrans() {
-            @Override
-            public void invoke(CAsyncQueue sender, int errCode) {
-                //error code could be one of CAsyncQueue::QUEUE_OK, CAsyncQueue::QUEUE_TRANS_ALREADY_STARTED, ......
-            }
-        });
-        ok = TestEnqueue(aq);
-        aq.EndQueueTrans(false);
+			//Optionally, you can enqueue messages with transaction style by calling the methods StartQueueTrans and EndQueueTrans in pair
+			aq.StartQueueTrans(TEST_QUEUE_KEY, new CAsyncQueue.DQueueTrans() {
+				@Override
+				public void invoke(CAsyncQueue sender, int errCode) {
+					//error code could be one of CAsyncQueue::QUEUE_OK, CAsyncQueue::QUEUE_TRANS_ALREADY_STARTED, ......
+				}
+			});
+			ok = TestEnqueue(aq);
+			aq.EndQueueTrans(false);
 
-        TestDequeue(aq);
-        ok = aq.WaitAll();
+			TestDequeue(aq);
+			ok = aq.WaitAll();
 
-        //test GetKeys
-        final java.util.ArrayList<String> vKey = new java.util.ArrayList<>();
-        ok = aq.GetKeys(new CAsyncQueue.DGetKeys() {
-            @Override
-            public void invoke(CAsyncQueue sender, String[] v) {
-                for (String s : v) {
-                    vKey.add(s);
-                }
-            }
-        });
+			//test GetKeys
+			final java.util.ArrayList<String> vKey = new java.util.ArrayList<>();
+			ok = aq.GetKeys(new CAsyncQueue.DGetKeys() {
+				@Override
+				public void invoke(CAsyncQueue sender, String[] v) {
+					for (String s : v) {
+						vKey.add(s);
+					}
+				}
+			});
 
-        //get a queue key two parameters, message count and queue file size by default option oMemoryCached
-        ok = aq.FlushQueue(TEST_QUEUE_KEY, new CAsyncQueue.DFlush() {
-            @Override
-            public void invoke(CAsyncQueue sender, long messageCount, long fileSize) {
-                System.out.print("Total message count=" + messageCount);
-                System.out.println(", queue file size=" + fileSize);
-            }
-        });
+			//get a queue key two parameters, message count and queue file size by default option oMemoryCached
+			ok = aq.FlushQueue(TEST_QUEUE_KEY, new CAsyncQueue.DFlush() {
+				@Override
+				public void invoke(CAsyncQueue sender, long messageCount, long fileSize) {
+					System.out.print("Total message count=" + messageCount);
+					System.out.println(", queue file size=" + fileSize);
+				}
+			});
 
-        ok = aq.CloseQueue(TEST_QUEUE_KEY, new CAsyncQueue.DClose() {
-            @Override
-            public void invoke(CAsyncQueue sender, int errCode) {
-                //error code could be one of CAsyncQueue::QUEUE_OK, CAsyncQueue::QUEUE_DEQUEUING, ......
-            }
-        });
-        System.out.println("Press a key to complete dequeuing messages from server ......");
-        in.nextLine();
+			ok = aq.CloseQueue(TEST_QUEUE_KEY, new CAsyncQueue.DClose() {
+				@Override
+				public void invoke(CAsyncQueue sender, int errCode) {
+					//error code could be one of CAsyncQueue::QUEUE_OK, CAsyncQueue::QUEUE_DEQUEUING, ......
+				}
+			});
+			System.out.println("Press a key to complete dequeuing messages from server ......");
+			in.nextLine();
+		}
     }
 
     private static boolean TestEnqueue(CAsyncQueue aq) {

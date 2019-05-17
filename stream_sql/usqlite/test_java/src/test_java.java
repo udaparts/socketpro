@@ -14,44 +14,45 @@ public class test_java {
         cc.UserId = "usqlite_client_java";
         cc.Password = "pwd_for_usqlite";
 
-        CSocketPool<CSqlite> spSqlite = new CSocketPool<>(CSqlite.class);
-        boolean ok = spSqlite.StartSocketPool(cc, 1, 1);
-        CSqlite sqlite = spSqlite.getAsyncHandlers()[0];
-        if (!ok) {
-            System.out.println("No connection error code = " + sqlite.getAttachedClientSocket().getErrorCode());
-            in.nextLine();
-            return;
-        }
-        ok = sqlite.Open("", (dbHandler, res, errMsg) -> {
-            System.out.format("res = %d, errMsg: %s", res, errMsg);
-            System.out.println();
-        });
-        TestCreateTables(sqlite);
-        java.util.ArrayList<Pair<CDBColumnInfoArray, CDBVariantArray>> lstRowset = new java.util.ArrayList<>();
-
-        ok = sqlite.BeginTrans();
-        TestPreparedStatements(sqlite, lstRowset);
-        InsertBLOBByPreparedStatement(sqlite, lstRowset);
-        ok = sqlite.EndTrans();
-        TestBatch(sqlite, lstRowset);
-        sqlite.WaitAll();
-        int index = 0;
-        System.out.println();
-        System.out.println("+++++ Start rowsets +++");
-        for (Pair<CDBColumnInfoArray, CDBVariantArray> a : lstRowset) {
-            System.out.format("Statement index = %d", index);
-            if (a.first.size() > 0) {
-                System.out.format(", rowset with columns = %d, records = %d.", a.first.size(), a.second.size() / a.first.size());
-                System.out.println();
-            } else {
-                System.out.println(", no rowset received.");
+        try (CSocketPool<CSqlite> spSqlite = new CSocketPool<>(CSqlite.class)) {
+            boolean ok = spSqlite.StartSocketPool(cc, 1, 1);
+            CSqlite sqlite = spSqlite.getAsyncHandlers()[0];
+            if (!ok) {
+                System.out.println("No connection error code = " + sqlite.getAttachedClientSocket().getErrorCode());
+                in.nextLine();
+                return;
             }
-            ++index;
+            ok = sqlite.Open("", (dbHandler, res, errMsg) -> {
+                System.out.format("res = %d, errMsg: %s", res, errMsg);
+                System.out.println();
+            });
+            TestCreateTables(sqlite);
+            java.util.ArrayList<Pair<CDBColumnInfoArray, CDBVariantArray>> lstRowset = new java.util.ArrayList<>();
+
+            ok = sqlite.BeginTrans();
+            TestPreparedStatements(sqlite, lstRowset);
+            InsertBLOBByPreparedStatement(sqlite, lstRowset);
+            ok = sqlite.EndTrans();
+            TestBatch(sqlite, lstRowset);
+            sqlite.WaitAll();
+            int index = 0;
+            System.out.println();
+            System.out.println("+++++ Start rowsets +++");
+            for (Pair<CDBColumnInfoArray, CDBVariantArray> a : lstRowset) {
+                System.out.format("Statement index = %d", index);
+                if (a.first.size() > 0) {
+                    System.out.format(", rowset with columns = %d, records = %d.", a.first.size(), a.second.size() / a.first.size());
+                    System.out.println();
+                } else {
+                    System.out.println(", no rowset received.");
+                }
+                ++index;
+            }
+            System.out.println("+++++ End rowsets +++");
+            System.out.println();
+            System.out.println("Press any key to close the application ......");
+            in.nextLine();
         }
-        System.out.println("+++++ End rowsets +++");
-        System.out.println();
-        System.out.println("Press any key to close the application ......");
-        in.nextLine();
     }
 
     static void TestBatch(CSqlite sqlite, java.util.ArrayList<Pair<CDBColumnInfoArray, CDBVariantArray>> ra) {

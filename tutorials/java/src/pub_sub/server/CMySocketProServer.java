@@ -20,20 +20,21 @@ public class CMySocketProServer extends CSocketProServer {
     private final CSocketProService<HelloWorldPeer> m_HelloWorld = new CSocketProService<>(HelloWorldPeer.class);
 
     public static void main(String[] args) {
-        CMySocketProServer MySocketProServer = new CMySocketProServer();
+        try (CMySocketProServer MySocketProServer = new CMySocketProServer()) {
 
-        //test certificate and private key files are located at ../SocketProRoot/bin
-        if (SPA.CUQueue.DEFAULT_OS == SPA.tagOperationSystem.osWin) {
-            MySocketProServer.UseSSL("intermediate.pfx", "", "mypassword");
-            //MySocketProServer.UseSSL("root"/*"my"*/, "UDAParts Intermediate CA", ""); //or load cert and private key from windows system cert store
-        } else {
-            MySocketProServer.UseSSL("intermediate.cert.pem", "intermediate.key.pem", "mypassword");
-        }
+            //test certificate and private key files are located at ../SocketProRoot/bin
+            if (SPA.CUQueue.DEFAULT_OS == SPA.tagOperationSystem.osWin) {
+                MySocketProServer.UseSSL("intermediate.pfx", "", "mypassword");
+                //MySocketProServer.UseSSL("root"/*"my"*/, "UDAParts Intermediate CA", ""); //or load cert and private key from windows system cert store
+            } else {
+                MySocketProServer.UseSSL("intermediate.cert.pem", "intermediate.key.pem", "mypassword");
+            }
 
-        if (!MySocketProServer.Run(20901)) {
-            System.out.println("Error code = " + CSocketProServer.getLastSocketError());
+            if (!MySocketProServer.Run(20901)) {
+                System.out.println("Error code = " + CSocketProServer.getLastSocketError());
+            }
+            System.out.println("Input a line to close the application ......");
+            new java.util.Scanner(System.in).nextLine();
         }
-        System.out.println("Input a line to close the application ......");
-        new java.util.Scanner(System.in).nextLine();
     }
 }
