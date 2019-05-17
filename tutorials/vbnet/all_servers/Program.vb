@@ -39,16 +39,10 @@ Public Class CMySocketProServer
     Private m_http As New CSocketProService(Of CMyHttpPeer)()
 
     Shared Sub Main(ByVal args() As String)
-        If System.Environment.OSVersion.Platform = PlatformID.Unix Then
-            CSocketProServer.QueueManager.WorkDirectory = "/home/yye/sp_test/"
-        Else
-            CSocketProServer.QueueManager.WorkDirectory = "c:\sp_test"
-        End If
         Using MySocketProServer As New CMySocketProServer()
-            'CSocketProServer.QueueManager.MessageQueuePassword = "MyPasswordForMsgQueue"
-
-            'test certificate, private key and DH params files are located at the directory ..\SocketProRoot\bin
-            'MySocketProServer.UseSSL("server.pem", "server.pem", "test");
+            'test certificate and private key files are located at ../SocketProRoot/bin
+            'MySocketProServer.UseSSL("intermediate.pfx", "", "mypassword")
+            'MySocketProServer.UseSSL("root"/*"my"*/, "UDAParts Intermediate CA", "") 'or load cert and private key from windows system cert store
 
             If Not MySocketProServer.Run(20901) Then
                 Console.WriteLine("Error code = " & CSocketProServer.LastSocketError.ToString())
@@ -68,6 +62,7 @@ Public Class CMySocketProServer
         PushManager.AddAChatGroup(2, "Sales Department")
         PushManager.AddAChatGroup(3, "Management Department")
         PushManager.AddAChatGroup(7, "HR Department")
+        PushManager.AddAChatGroup(SocketProAdapter.UDB.DB_CONSTS.CACHE_UPDATE_CHAT_GROUP_ID, "Subscribe/publish for front clients")
 
         'load socketpro async sqlite and queue server libraries located at the directory ../socketpro/bin
         Dim p As IntPtr = CSocketProServer.DllManager.AddALibrary("ssqlite")
@@ -77,9 +72,6 @@ Public Class CMySocketProServer
         p = CSocketProServer.DllManager.AddALibrary("uasyncqueue", 24 * 1024) '24 * 1024 batch dequeuing size in bytes
 
         p = CSocketProServer.DllManager.AddALibrary("ustreamfile")
-        If p.ToInt64 <> 0 Then
-            SetRootDirectory("C:\boost_1_60_0\stage\lib64")
-        End If
 
         Return True 'true -- ok; false -- no listening server
     End Function
