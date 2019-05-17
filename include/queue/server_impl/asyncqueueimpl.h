@@ -7,6 +7,7 @@
 #include "../../aserverw.h"
 #include <unordered_map>
 #include "../../scloader.h"
+#include<memory>
 
 namespace SPA {
     namespace ServerSide {
