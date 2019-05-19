@@ -36,7 +36,6 @@ OBJECTDIR=${CND_BUILDDIR}/${CND_CONF}/${CND_PLATFORM}
 # Object Files
 OBJECTFILES= \
 	${OBJECTDIR}/_ext/562988696/aclientw.o \
-	${OBJECTDIR}/_ext/562988696/error_code.o \
 	${OBJECTDIR}/_ext/562988696/membuffer.o \
 	${OBJECTDIR}/cppperf.o
 
@@ -55,7 +54,7 @@ FFLAGS=
 ASFLAGS=
 
 # Link Libraries and Options
-LDLIBSOPTIONS=-lpthread -ldl
+LDLIBSOPTIONS=-ldl
 
 # Build Targets
 .build-conf: ${BUILD_SUBPROJECTS}
@@ -63,17 +62,12 @@ LDLIBSOPTIONS=-lpthread -ldl
 
 ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/cppperf: ${OBJECTFILES}
 	${MKDIR} -p ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}
-	g++ -o ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/cppperf ${OBJECTFILES} ${LDLIBSOPTIONS}
+	g++ -o ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/cppperf ${OBJECTFILES} ${LDLIBSOPTIONS} -pthread
 
 ${OBJECTDIR}/_ext/562988696/aclientw.o: ../../../../include/aclientw.cpp 
 	${MKDIR} -p ${OBJECTDIR}/_ext/562988696
 	${RM} "$@.d"
 	$(COMPILE.c) -g -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/562988696/aclientw.o ../../../../include/aclientw.cpp
-
-${OBJECTDIR}/_ext/562988696/error_code.o: ../../../../include/error_code.cpp 
-	${MKDIR} -p ${OBJECTDIR}/_ext/562988696
-	${RM} "$@.d"
-	$(COMPILE.c) -g -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/562988696/error_code.o ../../../../include/error_code.cpp
 
 ${OBJECTDIR}/_ext/562988696/membuffer.o: ../../../../include/membuffer.cpp 
 	${MKDIR} -p ${OBJECTDIR}/_ext/562988696

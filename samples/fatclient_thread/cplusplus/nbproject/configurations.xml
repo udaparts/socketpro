@@ -45,7 +45,6 @@
         </ccTool>
         <linkerTool>
           <linkerLibItems>
-            <linkerLibStdlibItem>PosixThreads</linkerLibStdlibItem>
             <linkerLibStdlibItem>DynamicLinking</linkerLibStdlibItem>
           </linkerLibItems>
           <commandLine>-std=c++11 -lstdc++ -pthread</commandLine>
@@ -67,10 +66,12 @@
       <compileType>
         <cTool>
           <developmentMode>5</developmentMode>
+          <stripSymbols>true</stripSymbols>
           <commandLine>-std=c++11</commandLine>
         </cTool>
         <ccTool>
           <developmentMode>5</developmentMode>
+          <stripSymbols>true</stripSymbols>
           <commandLine>-std=c++11</commandLine>
         </ccTool>
         <fortranCompilerTool>
@@ -82,7 +83,6 @@
         <linkerTool>
           <stripSymbols>true</stripSymbols>
           <linkerLibItems>
-            <linkerLibStdlibItem>PosixThreads</linkerLibStdlibItem>
             <linkerLibStdlibItem>DynamicLinking</linkerLibStdlibItem>
           </linkerLibItems>
           <commandLine>-std=c++11 -lstdc++ -pthread</commandLine>

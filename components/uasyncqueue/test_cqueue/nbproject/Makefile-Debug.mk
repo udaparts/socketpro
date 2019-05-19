@@ -41,11 +41,11 @@ OBJECTFILES= \
 
 
 # C Compiler Flags
-CFLAGS=-std=c++11 -static-libgcc -static-libstdc++ -Wall
+CFLAGS=-std=c++11 -Wall
 
 # CC Compiler Flags
-CCFLAGS=-std=c++11 -static-libgcc -static-libstdc++ -Wall
-CXXFLAGS=-std=c++11 -static-libgcc -static-libstdc++ -Wall
+CCFLAGS=-std=c++11 -Wall
+CXXFLAGS=-std=c++11 -Wall
 
 # Fortran Compiler Flags
 FFLAGS=
@@ -54,7 +54,7 @@ FFLAGS=
 ASFLAGS=
 
 # Link Libraries and Options
-LDLIBSOPTIONS=-ldl -lpthread
+LDLIBSOPTIONS=-ldl
 
 # Build Targets
 .build-conf: ${BUILD_SUBPROJECTS}

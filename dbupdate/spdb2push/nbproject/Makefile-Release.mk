@@ -36,7 +36,6 @@ OBJECTDIR=${CND_BUILDDIR}/${CND_CONF}/${CND_PLATFORM}
 # Object Files
 OBJECTFILES= \
 	${OBJECTDIR}/_ext/1559065848/aclientw.o \
-	${OBJECTDIR}/_ext/1559065848/error_code.o \
 	${OBJECTDIR}/_ext/1559065848/membuffer.o \
 	${OBJECTDIR}/_ext/1332925342/dbupdateimpl.o \
 	${OBJECTDIR}/_ext/1332925342/udbubase.o \
@@ -71,11 +70,6 @@ ${OBJECTDIR}/_ext/1559065848/aclientw.o: ../../include/aclientw.cpp
 	${MKDIR} -p ${OBJECTDIR}/_ext/1559065848
 	${RM} "$@.d"
 	$(COMPILE.c) -O2 -s -DNDEBUG -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/1559065848/aclientw.o ../../include/aclientw.cpp
-
-${OBJECTDIR}/_ext/1559065848/error_code.o: ../../include/error_code.cpp 
-	${MKDIR} -p ${OBJECTDIR}/_ext/1559065848
-	${RM} "$@.d"
-	$(COMPILE.c) -O2 -s -DNDEBUG -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/1559065848/error_code.o ../../include/error_code.cpp
 
 ${OBJECTDIR}/_ext/1559065848/membuffer.o: ../../include/membuffer.cpp 
 	${MKDIR} -p ${OBJECTDIR}/_ext/1559065848

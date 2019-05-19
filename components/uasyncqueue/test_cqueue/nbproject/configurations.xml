@@ -41,16 +41,15 @@
       </toolsSet>
       <compileType>
         <cTool>
-          <commandLine>-std=c++11 -static-libgcc -static-libstdc++ -Wall</commandLine>
+          <commandLine>-std=c++11 -Wall</commandLine>
         </cTool>
         <ccTool>
-          <commandLine>-std=c++11 -static-libgcc -static-libstdc++ -Wall</commandLine>
+          <commandLine>-std=c++11 -Wall</commandLine>
         </ccTool>
         <linkerTool>
           <commandlineTool>g++</commandlineTool>
           <linkerLibItems>
             <linkerLibStdlibItem>DynamicLinking</linkerLibStdlibItem>
-            <linkerLibStdlibItem>PosixThreads</linkerLibStdlibItem>
           </linkerLibItems>
           <commandLine>-std=c++11 -pthread</commandLine>
         </linkerTool>
@@ -98,7 +97,6 @@
           <commandlineTool>g++</commandlineTool>
           <linkerLibItems>
             <linkerLibStdlibItem>DynamicLinking</linkerLibStdlibItem>
-            <linkerLibStdlibItem>PosixThreads</linkerLibStdlibItem>
           </linkerLibItems>
           <commandLine>-std=c++11 -pthread</commandLine>
         </linkerTool>

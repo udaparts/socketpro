@@ -36,7 +36,6 @@ OBJECTDIR=${CND_BUILDDIR}/${CND_CONF}/${CND_PLATFORM}
 # Object Files
 OBJECTFILES= \
 	${OBJECTDIR}/_ext/562988696/aclientw.o \
-	${OBJECTDIR}/_ext/562988696/error_code.o \
 	${OBJECTDIR}/_ext/562988696/membuffer.o \
 	${OBJECTDIR}/cppperf.o
 
@@ -55,7 +54,7 @@ FFLAGS=
 ASFLAGS=
 
 # Link Libraries and Options
-LDLIBSOPTIONS=-ldl -lpthread
+LDLIBSOPTIONS=-ldl
 
 # Build Targets
 .build-conf: ${BUILD_SUBPROJECTS}
@@ -63,27 +62,22 @@ LDLIBSOPTIONS=-ldl -lpthread
 
 ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/cppperf: ${OBJECTFILES}
 	${MKDIR} -p ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}
-	g++ -o ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/cppperf ${OBJECTFILES} ${LDLIBSOPTIONS} -lstdc++ -s
+	g++ -o ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/cppperf ${OBJECTFILES} ${LDLIBSOPTIONS} -lstdc++ -pthread -s
 
 ${OBJECTDIR}/_ext/562988696/aclientw.o: ../../../../include/aclientw.cpp 
 	${MKDIR} -p ${OBJECTDIR}/_ext/562988696
 	${RM} "$@.d"
-	$(COMPILE.c) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/562988696/aclientw.o ../../../../include/aclientw.cpp
-
-${OBJECTDIR}/_ext/562988696/error_code.o: ../../../../include/error_code.cpp 
-	${MKDIR} -p ${OBJECTDIR}/_ext/562988696
-	${RM} "$@.d"
-	$(COMPILE.c) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/562988696/error_code.o ../../../../include/error_code.cpp
+	$(COMPILE.c) -O2 -s -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/562988696/aclientw.o ../../../../include/aclientw.cpp
 
 ${OBJECTDIR}/_ext/562988696/membuffer.o: ../../../../include/membuffer.cpp 
 	${MKDIR} -p ${OBJECTDIR}/_ext/562988696
 	${RM} "$@.d"
-	$(COMPILE.c) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/562988696/membuffer.o ../../../../include/membuffer.cpp
+	$(COMPILE.c) -O2 -s -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/562988696/membuffer.o ../../../../include/membuffer.cpp
 
 ${OBJECTDIR}/cppperf.o: cppperf.cpp 
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
-	$(COMPILE.c) -O2 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/cppperf.o cppperf.cpp
+	$(COMPILE.c) -O2 -s -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/cppperf.o cppperf.cpp
 
 # Subprojects
 .build-subprojects:

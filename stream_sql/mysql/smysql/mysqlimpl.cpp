@@ -449,7 +449,7 @@ namespace SPA
         }
 
         void CMysqlImpl::sql_abort_row(void *ctx) {
-            CMysqlImpl *impl = (CMysqlImpl *) ctx;
+            //CMysqlImpl *impl = (CMysqlImpl *) ctx;
         }
 
         ulong CMysqlImpl::sql_get_client_capabilities(void *ctx) {
@@ -756,7 +756,7 @@ namespace SPA
         }
 
         void CMysqlImpl::sql_shutdown(void *ctx, int shutdown_server) {
-            CMysqlImpl *impl = (CMysqlImpl *) ctx;
+            //CMysqlImpl *impl = (CMysqlImpl *) ctx;
         }
 
         bool CMysqlImpl::OpenSession(const std::wstring &userName, const std::string & ip) {

@@ -48,7 +48,6 @@
         </ccTool>
         <linkerTool>
           <linkerLibItems>
-            <linkerLibStdlibItem>PosixThreads</linkerLibStdlibItem>
             <linkerLibStdlibItem>DynamicLinking</linkerLibStdlibItem>
           </linkerLibItems>
           <commandLine>-lstdc++ -pthread</commandLine>
@@ -102,7 +101,6 @@
         <linkerTool>
           <stripSymbols>true</stripSymbols>
           <linkerLibItems>
-            <linkerLibStdlibItem>PosixThreads</linkerLibStdlibItem>
             <linkerLibStdlibItem>DynamicLinking</linkerLibStdlibItem>
           </linkerLibItems>
           <commandLine>-lstdc++ -pthread</commandLine>

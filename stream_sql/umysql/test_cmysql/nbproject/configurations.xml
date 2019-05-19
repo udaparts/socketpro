@@ -57,7 +57,6 @@
         </ccTool>
         <linkerTool>
           <linkerLibItems>
-            <linkerLibStdlibItem>PosixThreads</linkerLibStdlibItem>
             <linkerLibStdlibItem>DynamicLinking</linkerLibStdlibItem>
           </linkerLibItems>
           <commandLine>-std=c++11 -lstdc++ -pthread</commandLine>
@@ -117,7 +116,6 @@
         <linkerTool>
           <stripSymbols>true</stripSymbols>
           <linkerLibItems>
-            <linkerLibStdlibItem>PosixThreads</linkerLibStdlibItem>
             <linkerLibStdlibItem>DynamicLinking</linkerLibStdlibItem>
           </linkerLibItems>
           <commandLine>-std=c++11 -lstdc++ -pthread</commandLine>
