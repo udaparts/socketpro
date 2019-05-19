@@ -665,7 +665,7 @@ namespace SPA {
     }
 
     namespace Utilities {
-
+#ifndef WINCE
         void Trim(std::string & s) {
             while (s.size() && ::isspace(s.back())) {
                 s.pop_back();
@@ -683,6 +683,7 @@ namespace SPA {
                 s.erase(s.begin());
             }
         }
+#endif
 
 #ifdef WIN32_64
 

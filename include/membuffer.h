@@ -19,8 +19,11 @@ namespace SPA {
     class CUQueue;
 
     namespace Utilities {
+
+#ifndef WINCE
         void Trim(std::string &s);
         void Trim(std::wstring &s);
+#endif
 
 #if defined(__ANDROID__) || defined(ANDROID)
 
