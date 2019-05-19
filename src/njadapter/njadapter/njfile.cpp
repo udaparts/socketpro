@@ -35,6 +35,7 @@ namespace NJA {
         //methods
         NODE_SET_PROTOTYPE_METHOD(tpl, "Upload", Upload);
         NODE_SET_PROTOTYPE_METHOD(tpl, "Download", Download);
+        NODE_SET_PROTOTYPE_METHOD(tpl, "Cancel", Cancel);
 
         //property
         NODE_SET_PROTOTYPE_METHOD(tpl, "getFilesQueued", getFilesQueued);
@@ -87,6 +88,15 @@ namespace NJA {
         NJFile* obj = ObjectWrap::Unwrap<NJFile>(args.Holder());
         if (obj->IsValid(isolate)) {
             size_t data = obj->m_file->GetFilesQueued();
+            args.GetReturnValue().Set(Number::New(isolate, (double) data));
+        }
+    }
+
+    void NJFile::Cancel(const FunctionCallbackInfo<Value>& args) {
+        Isolate* isolate = args.GetIsolate();
+        NJFile* obj = ObjectWrap::Unwrap<NJFile>(args.Holder());
+        if (obj->IsValid(isolate)) {
+            size_t data = obj->m_file->Cancel();
             args.GetReturnValue().Set(Number::New(isolate, (double) data));
         }
     }

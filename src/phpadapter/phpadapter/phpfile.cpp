@@ -31,6 +31,7 @@ namespace PA
             Php::ByVal("local", Php::Type::String),
             Php::ByVal("remote", Php::Type::String)
         });
+        handler.method<&CPhpFile::Cancel>("Cancel");
         cs.add(handler);
     }
 
@@ -123,6 +124,10 @@ namespace PA
         }
         local = SPA::Utilities::ToWide(l);
         remote = SPA::Utilities::ToWide(r);
+    }
+
+    Php::Value CPhpFile::Cancel() {
+        return m_sh->Cancel();
     }
 
     Php::Value CPhpFile::Download(Php::Parameters & params) {
