@@ -127,7 +127,7 @@ namespace PA
     }
 
     Php::Value CPhpFile::Cancel() {
-        return (int) m_sh->Cancel();
+        return (SPA::INT64) m_sh->Cancel();
     }
 
     Php::Value CPhpFile::Download(Php::Parameters & params) {
