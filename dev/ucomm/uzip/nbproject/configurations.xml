@@ -29,7 +29,6 @@
                    displayName="Source Files"
                    projectFiles="true">
       <itemPath>adler32.c</itemPath>
-      <itemPath>aes.c</itemPath>
       <itemPath>../core_shared/pinc/base64.cpp</itemPath>
       <itemPath>blowfish.cpp</itemPath>
       <itemPath>compress.c</itemPath>
@@ -137,8 +136,6 @@
       <item path="../include/membuffer.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="adler32.c" ex="false" tool="0" flavor2="0">
-      </item>
-      <item path="aes.c" ex="false" tool="0" flavor2="0">
       </item>
       <item path="blowfish.cpp" ex="false" tool="1" flavor2="0">
       </item>
@@ -274,8 +271,6 @@
       <item path="../include/membuffer.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="adler32.c" ex="false" tool="0" flavor2="0">
-      </item>
-      <item path="aes.c" ex="false" tool="0" flavor2="0">
       </item>
       <item path="blowfish.cpp" ex="false" tool="1" flavor2="0">
       </item>

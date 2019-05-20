@@ -44,7 +44,6 @@ OBJECTFILES= \
 	${OBJECTDIR}/_ext/302208857/base64.o \
 	${OBJECTDIR}/_ext/262068057/membuffer.o \
 	${OBJECTDIR}/adler32.o \
-	${OBJECTDIR}/aes.o \
 	${OBJECTDIR}/blowfish.o \
 	${OBJECTDIR}/compress.o \
 	${OBJECTDIR}/crc32.o \
@@ -134,11 +133,6 @@ ${OBJECTDIR}/adler32.o: adler32.c
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
 	$(COMPILE.c) -O3 -s -DNDEBUG -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/adler32.o adler32.c
-
-${OBJECTDIR}/aes.o: aes.c 
-	${MKDIR} -p ${OBJECTDIR}
-	${RM} "$@.d"
-	$(COMPILE.c) -O3 -s -DNDEBUG -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/aes.o aes.c
 
 ${OBJECTDIR}/blowfish.o: blowfish.cpp 
 	${MKDIR} -p ${OBJECTDIR}
