@@ -1089,6 +1089,10 @@ class CAsyncFile extends CHandler {
     Download(localFile, remoteFile, cb = null, progress = null, discarded = null) {
         return this.handler.Download(localFile, remoteFile, cb, progress, discarded);
     }
+	
+	Cancel() {
+		return this.handler.Cancel();
+	}
 
     //Promise version
     upload(localFile, remoteFile, progress = null, cb = null, discarded = null) {
