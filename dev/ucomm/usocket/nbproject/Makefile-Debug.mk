@@ -60,7 +60,7 @@ FFLAGS=
 ASFLAGS=
 
 # Link Libraries and Options
-LDLIBSOPTIONS=../uzip/dist/Debug/GNU-Linux-x86/libuzip.a -ldl -lpthread `pkg-config --libs libcrypto` `pkg-config --libs libssl` -lm  /usr/lib64/gcc/x86_64-suse-linux/4.8/libstdc++.a  
+LDLIBSOPTIONS=../uzip/dist/Debug/GNU-Linux-x86/libuzip.a -ldl -lpthread `pkg-config --libs libcrypto` `pkg-config --libs libssl` -lm  /usr/lib/gcc/x86_64-linux-gnu/4.8.4/libstdc++.a  
 
 # Build Targets
 .build-conf: ${BUILD_SUBPROJECTS}
@@ -68,7 +68,7 @@ LDLIBSOPTIONS=../uzip/dist/Debug/GNU-Linux-x86/libuzip.a -ldl -lpthread `pkg-con
 
 ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/libusocket.${CND_DLIB_EXT}: ../uzip/dist/Debug/GNU-Linux-x86/libuzip.a
 
-${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/libusocket.${CND_DLIB_EXT}: /usr/lib64/gcc/x86_64-suse-linux/4.8/libstdc++.a
+${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/libusocket.${CND_DLIB_EXT}: /usr/lib/gcc/x86_64-linux-gnu/4.8.4/libstdc++.a
 
 ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/libusocket.${CND_DLIB_EXT}: ${OBJECTFILES}
 	${MKDIR} -p ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}
