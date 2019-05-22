@@ -216,6 +216,9 @@ class CAsyncServiceHandler(object):
         h = self._m_ClientSocket_.Handle
         ccl.AbortDequeuedMessage(h)
 
+    def OnPostProcessing(self, hint, data):
+        pass
+
     def OnMergeTo(self, to):
         pass
 
