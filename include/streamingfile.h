@@ -443,9 +443,6 @@ namespace SPA {
                                     if (ok && ret < SFile::STREAM_CHUNK_SIZE) {
                                         context.Sent = true;
                                         ok = SendRequest(SFile::idUploadCompleted, (const unsigned char*) nullptr, (unsigned int) 0, rh, context.Discarded, se);
-                                        if (context.QueueOk) {
-                                            GetAttachedClientSocket()->GetClientQueue().EndJob();
-                                        }
                                     }
                                     if (!ok) {
 #ifdef WIN32_64
