@@ -79,7 +79,7 @@ public class CStreamingFile extends CAsyncServiceHandler {
         public String ErrMsg = "";
         public boolean QueueOk = false;
         public int ErrCode = 0;
-        public long Finished = 0;
+        public long InitSize = -1;
 
         public boolean hasError() {
             return (ErrCode != 0 || (ErrMsg != null && ErrMsg.length() > 0));
@@ -235,8 +235,12 @@ public class CStreamingFile extends CAsyncServiceHandler {
 
     @Override
     public int CleanCallbacks() {
+        int errCode = getAttachedClientSocket().getErrorCode();
+        String errMsg = getAttachedClientSocket().getErrorMsg();
         synchronized (m_csFile) {
             for (CContext c : m_vContext) {
+                c.ErrCode = errCode;
+                c.ErrMsg = errMsg;
                 CloseFile(c);
             }
             m_vContext.clear();
@@ -245,19 +249,25 @@ public class CStreamingFile extends CAsyncServiceHandler {
     }
 
     private static void CloseFile(CContext c) {
-        try {
-            if (c.File != null) {
-                if (c.File.isOpen()) {
+        if (c.File != null) {
+            try {
+                if (!c.Uploading && c.hasError()) {
+                    if (c.InitSize == -1) {
+                        c.File.close();
+                        java.nio.file.Path path = java.nio.file.Paths.get(c.LocalFile);
+                        java.nio.file.Files.deleteIfExists(path);
+                    } else {
+                        c.File.force(false);
+                        c.File.truncate(c.InitSize);
+                        c.File.close();
+                    }
+                } else {
                     c.File.close();
                 }
-                if (!c.Uploading && c.hasError()) {
-                    java.nio.file.Path path = java.nio.file.Paths.get(c.LocalFile);
-                    java.nio.file.Files.deleteIfExists(path);
-                }
+            } catch (Exception err) {
             }
-        } catch (Exception err) {
+            c.File = null;
         }
-        c.File = null;
     }
 
     private void OpenLocalRead(CContext context) {
@@ -274,14 +284,19 @@ public class CStreamingFile extends CAsyncServiceHandler {
     private void OpenLocalWrite(CContext context) {
         try {
             File file = new File(context.LocalFile);
+            boolean existing = file.exists();
             context.File = new RandomAccessFile(file, "rw").getChannel();
             if ((context.Flags & FILE_OPEN_SHARE_WRITE) == 0) {
                 context.File.lock();
             }
-            if ((context.Flags & FILE_OPEN_TRUNCACTED) == FILE_OPEN_TRUNCACTED) {
-                context.File.truncate(0);
-            } else if ((context.Flags & FILE_OPEN_APPENDED) == FILE_OPEN_APPENDED) {
-                context.File.position(context.File.size());
+            if (existing) {
+                context.InitSize = 0;
+                if ((context.Flags & FILE_OPEN_TRUNCACTED) == FILE_OPEN_TRUNCACTED) {
+                    context.File.truncate(0);
+                } else if ((context.Flags & FILE_OPEN_APPENDED) == FILE_OPEN_APPENDED) {
+                    context.File.position(context.File.size());
+                    context.InitSize = context.File.position();
+                }
             }
         } catch (IOException err) {
             context.ErrMsg = err.getLocalizedMessage();
@@ -316,15 +331,14 @@ public class CStreamingFile extends CAsyncServiceHandler {
                 synchronized (m_csFile) {
                     if (m_vContext.size() > 0) {
                         CContext context = m_vContext.getFirst();
-                        if (context.Finished > 0) {
-                            try {
-                                long filesize = context.File.size();
-                                filesize -= context.Finished;
-                                context.File.truncate(filesize);
-                                context.File.position(filesize);
-                            } catch (Exception err) {
+                        long initSize = (context.InitSize > 0) ? context.InitSize : 0;
+                        try {
+                            if (context.File.position() > initSize) {
+                                context.File.position(initSize);
+                                context.File.force(false);
+                                context.File.truncate(initSize);
                             }
-                            context.Finished = 0;
+                        } catch (Exception err) {
                         }
                         context.FileSize = mc.LoadLong();
                     }
@@ -342,8 +356,8 @@ public class CStreamingFile extends CAsyncServiceHandler {
                         try {
                             ByteBuffer bytes = ByteBuffer.wrap(buffer, 0, mc.GetSize());
                             context.File.write(bytes);
-                            context.Finished += mc.GetSize();
-                            downloaded = context.Finished;
+                            long initSize = (context.InitSize > 0) ? context.InitSize : 0;
+                            downloaded = context.File.position() - initSize;
                         } catch (IOException err) {
                             context.ErrMsg = err.getLocalizedMessage();
                             context.ErrCode = CANNOT_OPEN_LOCAL_FILE_FOR_WRITING;
