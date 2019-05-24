@@ -36,9 +36,9 @@ namespace SPA {
             UINT64 m_oFileSize;
             std::wstring m_oFilePath;
             UINT64 m_oPos;
+            INT64 InitSize;
 #ifdef WIN32_64
             HANDLE m_of;
-
 #else
             int m_of;
 #endif  

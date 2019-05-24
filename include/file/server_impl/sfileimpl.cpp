@@ -12,7 +12,7 @@ extern std::wstring g_pathRoot;
 namespace SPA{
     namespace ServerSide
     {
-        CSFileImpl::CSFileImpl() : m_oFileSize(0), m_oPos(0),
+        CSFileImpl::CSFileImpl() : m_oFileSize(0), m_oPos(0), InitSize(-1),
 #ifdef WIN32_64
         m_of(INVALID_HANDLE_VALUE)
 #else
@@ -52,19 +52,44 @@ namespace SPA{
         void CSFileImpl::CleanOF() {
 #ifdef WIN32_64
             if (m_of != INVALID_HANDLE_VALUE) {
-                ::CloseHandle(m_of);
-                ::DeleteFileW(m_oFilePath.c_str());
+                if (InitSize == -1) {
+                    ::CloseHandle(m_of);
+                    ::DeleteFileW(m_oFilePath.c_str());
+                } else {
+                    BOOL ok = ::FlushFileBuffers(m_of);
+                    assert(ok);
+                    LARGE_INTEGER moveDis, newPos;
+                    moveDis.QuadPart = InitSize;
+                    ok = ::SetFilePointerEx(m_of, moveDis, &newPos, FILE_BEGIN);
+                    assert(ok);
+                    ok = ::SetEndOfFile(m_of);
+                    assert(ok);
+                    ::CloseHandle(m_of);
+                }
                 m_of = INVALID_HANDLE_VALUE;
             }
 #else
             if (m_of != -1) {
-                ::close(m_of);
-                std::string path = Utilities::ToUTF8(m_oFilePath.c_str(), m_oFilePath.size());
-                unlink(path.c_str());
+                if (InitSize == -1) {
+                    ::close(m_of);
+                    std::string path = Utilities::ToUTF8(m_oFilePath);
+                    unlink(path.c_str());
+                } else {
+                    auto ok = ::fsync(m_of);
+                    assert(ok != -1);
+                    auto newPos = ::lseek64(m_of, InitSize, SEEK_SET);
+                    assert(newPos != -1);
+                    ok = ::ftruncate(m_of, newPos);
+                    assert(ok != -1);
+                    ::close(m_of);
+                }
                 m_of = -1;
             }
 #endif
             m_oFileSize = 0;
+            m_oFilePath.clear();
+            m_oPos = 0;
+            InitSize = -1;
         }
 
         void CSFileImpl::Uploading(UINT64 & pos) {
@@ -115,7 +140,6 @@ namespace SPA{
 #endif
             CleanOF();
             m_oFileSize = fileSize;
-            m_oPos = 0;
             res = 0;
 #ifdef WIN32_64
             std::size_t pos = filePath.find(L":\\");
@@ -128,26 +152,36 @@ namespace SPA{
             } else {
                 m_oFilePath = g_pathRoot + filePath;
             }
-
+            bool existing = false;
 #ifdef WIN32_64
             DWORD sm = 0;
             if ((flags & FILE_OPEN_SHARE_WRITE) == FILE_OPEN_SHARE_WRITE)
                 sm |= FILE_SHARE_WRITE;
-            m_of = ::CreateFileW(m_oFilePath.c_str(), GENERIC_WRITE, sm, nullptr, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
+            m_of = ::CreateFileW(m_oFilePath.c_str(), GENERIC_WRITE, sm, nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr);
+            if (m_of == INVALID_HANDLE_VALUE) {
+                m_of = ::CreateFileW(m_oFilePath.c_str(), GENERIC_WRITE, sm, nullptr, CREATE_NEW, FILE_ATTRIBUTE_NORMAL, nullptr);
+            } else {
+                existing = true;
+            }
             if (m_of == INVALID_HANDLE_VALUE) {
                 res = (int) ::GetLastError();
                 errMsg = Utilities::GetErrorMessage((DWORD) res);
-            } else {
+            } else if (existing) {
+                BOOL ok = TRUE;
+                InitSize = 0;
                 if ((flags & FILE_OPEN_TRUNCACTED) == FILE_OPEN_TRUNCACTED) {
-                    BOOL ok = ::SetEndOfFile(m_of);
-                    assert(ok);
+                    ok = ::SetEndOfFile(m_of);
                 } else if ((flags & FILE_OPEN_APPENDED) == FILE_OPEN_APPENDED) {
-                    sm = ::SetFilePointer(m_of, 0, nullptr, FILE_END);
+                    LARGE_INTEGER dis, pos;
+                    dis.QuadPart = 0;
+                    ok = ::SetFilePointerEx(m_of, dis, &pos, FILE_END);
+                    InitSize = pos.QuadPart;
                 }
+                assert(ok);
             }
 #else
             std::string s = Utilities::ToUTF8(m_oFilePath.c_str(), m_oFilePath.size());
-            int mode = (O_WRONLY | O_CREAT);
+            int mode = (O_WRONLY | O_CREAT | O_EXCL);
             if ((flags & FILE_OPEN_TRUNCACTED) == FILE_OPEN_TRUNCACTED) {
                 mode |= O_TRUNC;
             } else if ((flags & FILE_OPEN_APPENDED) == FILE_OPEN_APPENDED) {
@@ -156,10 +190,18 @@ namespace SPA{
             mode_t m = (S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH);
             m_of = ::open(s.c_str(), mode, m);
             if (m_of == -1) {
-                res = errno;
-                std::string err = strerror(res);
-                errMsg = Utilities::ToWide(err.c_str(), err.size());
-                return;
+                existing = true;
+                mode = (O_WRONLY | O_CREAT);
+                m_of = ::open(s.c_str(), mode, m);
+                if (m_of == -1) {
+                    res = errno;
+                    std::string err = strerror(res);
+                    errMsg = Utilities::ToWide(err.c_str(), err.size());
+                    return;
+                }
+            }
+            if (existing) {
+                InitSize = ::lseek64(m_of, 0, SEEK_CUR);
             }
             if ((flags & FILE_OPEN_SHARE_WRITE) == 0) {
                 struct flock fl;

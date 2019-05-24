@@ -256,7 +256,7 @@ namespace SocketProAdapter.ClientSide {
             public string ErrMsg = "";
             public bool QueueOk = false;
             public int ErrCode = 0;
-            public ulong Finished = 0;
+            public long InitSize = -1;
             public bool HasError {
                 get {
                     return (ErrCode != 0 || ErrMsg.Length > 0);
@@ -289,11 +289,22 @@ namespace SocketProAdapter.ClientSide {
 
         private static void CloseFile(CContext c) {
             if (c.File != null) {
-                c.File.Close();
                 if (!c.Uploading && c.HasError) {
-                    try {
-                        System.IO.File.Delete(c.LocalFile);
-                    } catch { } finally { }
+                    if (c.InitSize == -1) {
+                        c.File.Close();
+                        try {
+                            System.IO.File.Delete(c.LocalFile);
+                        } catch { }
+                    } else {
+                        try {
+                            c.File.Flush();
+                            c.File.SetLength(c.InitSize);
+                        } catch { } finally {
+                            c.File.Close();
+                        }
+                    }
+                } else {
+                    c.File.Close();
                 }
                 c.File = null;
             }
@@ -309,10 +320,14 @@ namespace SocketProAdapter.ClientSide {
             } catch (Exception err) {
                 context.ErrCode = CANNOT_OPEN_LOCAL_FILE_FOR_READING;
                 context.ErrMsg = err.Message;
-            } finally { }
+            }
         }
 
         private void OpenLocalWrite(CContext context) {
+            bool existing = File.Exists(context.LocalFile);
+            if (existing) {
+                context.InitSize = 0;
+            }
             try {
                 FileMode fm;
                 if ((context.Flags & FILE_OPEN_TRUNCACTED) == FILE_OPEN_TRUNCACTED)
@@ -325,15 +340,22 @@ namespace SocketProAdapter.ClientSide {
                 if ((context.Flags & FILE_OPEN_SHARE_WRITE) == FILE_OPEN_SHARE_WRITE)
                     fs = FileShare.Write;
                 context.File = new FileStream(context.LocalFile, fm, FileAccess.Write, fs);
+                if ((context.Flags & FILE_OPEN_APPENDED) == FILE_OPEN_APPENDED) {
+                    context.InitSize = context.File.Position;
+                }
             } catch (Exception err) {
                 context.ErrCode = CANNOT_OPEN_LOCAL_FILE_FOR_WRITING;
                 context.ErrMsg = err.Message;
-            } finally { }
+            }
         }
 
         public override uint CleanCallbacks() {
+            int errCode = AttachedClientSocket.ErrorCode;
+            string errMsg = AttachedClientSocket.ErrorMsg;
             lock (m_csFile) {
                 foreach (CContext c in m_vContext) {
+                    c.ErrCode = errCode;
+                    c.ErrMsg = errMsg;
                     CloseFile(c);
                 }
                 m_vContext.Clear();
@@ -547,12 +569,10 @@ namespace SocketProAdapter.ClientSide {
                     lock (m_csFile) {
                         if (m_vContext.Count > 0) {
                             CContext context = m_vContext[0];
-                            if (context.Finished > 0) {
+                            long initSize = (context.InitSize > 0) ? context.InitSize : 0;
+                            if (context.File.Position > initSize) {
                                 context.File.Flush();
-                                long offset = -(long)context.Finished;
-                                long len = context.File.Seek(offset, SeekOrigin.End);
-                                context.File.SetLength(len);
-                                context.Finished = 0;
+                                context.File.SetLength(initSize);
                             }
                             mc.Load(out context.FileSize);
                         }
@@ -569,8 +589,8 @@ namespace SocketProAdapter.ClientSide {
                                 byte[] buffer = mc.IntenalBuffer;
                                 try {
                                     context.File.Write(buffer, 0, (int)mc.GetSize());
-                                    context.Finished += mc.GetSize();
-                                    downloaded = (long)context.Finished;
+                                    long initSize = (context.InitSize > 0) ? context.InitSize : 0;
+                                    downloaded = context.File.Position - initSize;
                                 } catch (System.IO.IOException err) {
                                     context.ErrMsg = err.Message;
 #if NO_HRESULT
@@ -580,7 +600,6 @@ namespace SocketProAdapter.ClientSide {
 #endif
                                 }
                             }
-
                         }
                         mc.SetSize(0);
                         if (context != null && context.HasError) {
@@ -652,7 +671,7 @@ namespace SocketProAdapter.ClientSide {
 #if NO_HRESULT
                                             res = CANNOT_OPEN_LOCAL_FILE_FOR_READING;
 #else
-                                        res = err.HResult;
+                                            res = err.HResult;
 #endif
                                             context.ErrCode = res;
                                             context.ErrMsg = errMsg;
@@ -701,9 +720,6 @@ namespace SocketProAdapter.ClientSide {
                                             if (ret < STREAM_CHUNK_SIZE) {
                                                 context.Sent = true;
                                                 SendRequest(idUploadCompleted, rh, context.Discarded, se);
-                                                if (context.QueueOk) {
-                                                    AttachedClientSocket.ClientQueue.EndJob();
-                                                }
                                             }
                                         } catch (System.IO.IOException err) {
                                             context.ErrMsg = err.Message;
