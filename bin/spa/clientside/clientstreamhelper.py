@@ -21,14 +21,22 @@ class CContext(object):
         self.ErrCode = 0
         self.ErrMsg = ''
         self.QueueOk = False
-        self.Finished = 0
+        self.InitSize = -1
 
     def _CloseFile(self):
         if self.File:
-            self.File.close()
-            self.File = None
             if not self.Uploading and (self.ErrCode or self.ErrMsg):
-                os.remove(self.LocalFile)
+                if self.InitSize == -1:
+                    self.File.close()
+                    os.remove(self.LocalFile)
+                else:
+                    self.File.flush()
+                    self.File.seek(self.InitSize)
+                    self.File.truncate(self.InitSize)
+                    self.File.close()
+            else:
+                self.File.close()
+            self.File = None
 
     def _OpenLocalRead(self):
         try:
@@ -46,7 +54,7 @@ class CContext(object):
                 self.File = None
 
     def _OpenLocalWrite(self):
-        self.Finished = 0
+        existing = os.path.isfile(self.LocalFile);
         self.ErrCode = CStreamingFile.CANNOT_OPEN_LOCAL_FILE_FOR_WRITING
         mode = 'xb'
         if (self.Flags & CStreamingFile.FILE_OPEN_TRUNCACTED) == CStreamingFile.FILE_OPEN_TRUNCACTED:
@@ -55,6 +63,8 @@ class CContext(object):
             mode = 'ab'
         try:
             self.File = open(self.LocalFile, mode)
+            if existing:
+                self.InitSize = self.File.tell()
             self.ErrCode = 0
         except IOError as e:
             self.ErrMsg = e.strerror
@@ -90,11 +100,14 @@ class CStreamingFile(CAsyncServiceHandler):
         self._vContext = deque() # protected by self._csFile
 
     def CleanCallbacks(self):
+        errCode = self.AttachedClientSocket.ErrorCode
+        errMsg = self.AttachedClientSocket.ErrorMessage
         with self._csFile:
             for c in self._vContext:
                 if c.File:
-                    c.File.close()
-                    c.File = None
+                    c.ErrCode = -1
+                    c.ErrMsg = "Socket closed"
+                c._CloseFile()
             self._vContext = deque()
         return super(CStreamingFile, self).CleanCallbacks()
 
@@ -235,10 +248,13 @@ class CStreamingFile(CAsyncServiceHandler):
                 if len(self._vContext):
                     front = self._vContext[0]
                     front.FileSize = mc.LoadULong()
-                    if front.Finished:
+                    initSize = 0
+                    if front.InitSize > 0:
+                        initSize = front.InitSize
+                    if front.File.tell() > initSize:
                         front.File.flush()
-                        front.File.truncate(front.Finished)
-                        front.Finished = 0
+                        front.File.seek(initSize)
+                        front.File.truncate(initSize)
                 else:
                     mc.SetSize(0)
         elif reqId == CStreamingFile.idDownloading:
@@ -247,10 +263,12 @@ class CStreamingFile(CAsyncServiceHandler):
             with self._csFile:
                 if len(self._vContext):
                     context = self._vContext[0]
-                    context.Finished += mc.GetSize()
                     trans = context.Transferring
                     context.File.write(mc.GetBuffer())
-                    downloaded = context.Finished
+                    initSize = 0
+                    if context.InitSize > 0:
+                        initSize = context.InitSize
+                    downloaded = context.File.tell() - initSize
             mc.SetSize(0)
             if trans:
                 trans(self, downloaded)
