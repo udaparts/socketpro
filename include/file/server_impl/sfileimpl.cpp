@@ -75,12 +75,12 @@ namespace SPA{
                     std::string path = Utilities::ToUTF8(m_oFilePath);
                     unlink(path.c_str());
                 } else {
-                    auto ok = ::fsync(m_of);
-                    assert(ok != -1);
+                    auto fail = ::fsync(m_of);
+                    assert(!fail);
                     auto newPos = ::lseek64(m_of, InitSize, SEEK_SET);
                     assert(newPos != -1);
-                    ok = ::ftruncate(m_of, newPos);
-                    assert(ok != -1);
+                    fail = ::ftruncate(m_of, newPos);
+                    assert(!fail);
                     ::close(m_of);
                 }
                 m_of = -1;
