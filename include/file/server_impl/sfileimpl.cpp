@@ -129,6 +129,9 @@ namespace SPA{
             }
 #endif
             m_oFileSize = 0;
+            m_oFilePath.clear();
+            m_oPos = 0;
+            InitSize = -1;
         }
 
         void CSFileImpl::Upload(const std::wstring &filePath, unsigned int flags, UINT64 fileSize, int &res, std::wstring & errMsg) {
