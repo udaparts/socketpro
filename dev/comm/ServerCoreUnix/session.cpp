@@ -273,7 +273,6 @@ void CServerSession::Initialize() {
     }
     m_ccb.Initialize(boost::posix_time::microsec_clock::local_time());
     memset(&m_ClientInfo, 0, sizeof (m_ClientInfo));
-    ServiceId = (unsigned int) SPA::sidStartup;
     m_ServerInfo = g_pServer->m_ServerInfo;
     m_pUThread = nullptr;
     m_bZip = g_pServer->m_bZip;
@@ -839,7 +838,8 @@ void CServerSession::Start() {
         m_cs = csConnected;
     }
     m_bCanceled = false;
-    Read();
+    ServiceId = SPA::sidStartup;
+	Read();
 }
 
 void CServerSession::OnSslHandShake(const CErrorCode& Error) {
@@ -1490,7 +1490,7 @@ unsigned int CServerSession::GetRcvBytesInQueue() {
 }
 
 unsigned int CServerSession::GetConnIndex() {
-    if (m_cs < csConnected)
+    if (m_cs < csClosing)
         return 0;
     return m_ulIndex;
 }
