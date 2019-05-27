@@ -73,8 +73,8 @@ unsigned short WINAPI GetOneSlowRequestID(unsigned int serviceId, unsigned short
             return SPA::SFile::idUploadCompleted;
         case 3:
             return SPA::SFile::idUploading;
-		case 4:
-			return SPA::SFile::idUploadBackup;
+        case 4:
+            return SPA::SFile::idUploadBackup;
         default:
             break;
     }
