@@ -75,7 +75,8 @@ namespace SPA{
                 if (InitSize == -1) {
                     ::close(m_of);
                     std::string path = Utilities::ToUTF8(m_oFilePath);
-                    remove(path.c_str());
+                    auto fail = ::remove(path.c_str());
+                    assert(!fail);
                 } else {
                     auto fail = ::fsync(m_of);
                     assert(!fail);
