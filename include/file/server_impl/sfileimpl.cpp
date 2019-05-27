@@ -176,15 +176,18 @@ namespace SPA{
             if (m_of == INVALID_HANDLE_VALUE) {
             } else if (existing) {
                 BOOL ok = TRUE;
-                InitSize = 0;
+                InitSize = initSize;
+				if (initSize == -1) {
+					initSize = 0;
+				}
                 if ((flags & FILE_OPEN_TRUNCACTED) == FILE_OPEN_TRUNCACTED) {
                     ok = ::SetEndOfFile(m_of);
                 } else if ((flags & FILE_OPEN_APPENDED) == FILE_OPEN_APPENDED) {
                     LARGE_INTEGER dis, pos;
                     dis.QuadPart = 0;
                     ok = ::SetFilePointerEx(m_of, dis, &pos, FILE_END);
-                    InitSize = pos.QuadPart;
-                    if (initSize >= 0 && InitSize > initSize) {
+                    INT64 isize = pos.QuadPart;
+                    if (isize && isize > initSize) {
                         InitSize = initSize;
                         dis.QuadPart = initSize;
                         assert(ok);
@@ -212,9 +215,13 @@ namespace SPA{
                 }
             }
             if (existing) {
-                InitSize = ::lseek64(m_of, 0, SEEK_END);
-                if (initSize >= 0 && InitSize > initSize) {
-                    InitSize = ::lseek64(m_of, initSize, SEEK_SET);
+				InitSize = initSize;
+				if (initSize == -1) {
+					initSize = 0;
+				}
+				INT64 isize = ::lseek64(m_of, 0, SEEK_END);
+                if (isize && isize > initSize) {
+					isize = ::lseek64(m_of, initSize, SEEK_SET);
                 }
             }
             if ((flags & FILE_OPEN_SHARE_WRITE) == 0) {
