@@ -17,7 +17,7 @@ namespace SPA {
         static const unsigned short idUpload = 0x7F73;
         static const unsigned short idUploading = 0x7F74;
         static const unsigned short idUploadCompleted = 0x7F75;
-		static const unsigned short idUploadBackup = 0x7F76;
+        static const unsigned short idUploadBackup = 0x7F76;
 
         //file open flags
         static const unsigned int FILE_OPEN_TRUNCACTED = 1;

@@ -343,9 +343,9 @@ namespace SPA {
                             CAutoLock al(m_csFile);
                             if (m_vContext.size()) {
                                 CContext &context = m_vContext.front();
-								if (mc.GetSize()) {
-									mc >> context.InitSize;
-								}
+                                if (mc.GetSize()) {
+                                    mc >> context.InitSize;
+                                }
                                 ctx = m_vContext.front();
                                 ctx.ErrMsg = errMsg;
                                 ctx.ErrorCode = res;
@@ -358,15 +358,15 @@ namespace SPA {
                                 ResultHandler rh;
                                 DServerException se = nullptr;
                                 CContext &context = m_vContext.front();
-								if (mc.GetSize()) {
-									mc >> context.InitSize;
-								}
+                                if (mc.GetSize()) {
+                                    mc >> context.InitSize;
+                                }
                                 CScopeUQueue sb(MY_OPERATION_SYSTEM, IsBigEndian(), SFile::STREAM_CHUNK_SIZE);
                                 context.QueueOk = GetAttachedClientSocket()->GetClientQueue().StartJob();
-								bool queue_enabled = GetAttachedClientSocket()->GetClientQueue().IsAvailable();
-								if (queue_enabled) {
-									SendRequest(SFile::idUploadBackup, context.FilePath.c_str(), context.Flags, context.FileSize, context.InitSize, rh, context.Discarded, se);
-								}
+                                bool queue_enabled = GetAttachedClientSocket()->GetClientQueue().IsAvailable();
+                                if (queue_enabled) {
+                                    SendRequest(SFile::idUploadBackup, context.FilePath.c_str(), context.Flags, context.FileSize, context.InitSize, rh, context.Discarded, se);
+                                }
 #ifdef WIN32_64
                                 DWORD ret = 0;
                                 ok = ::ReadFile(context.File, (LPVOID) sb->GetBuffer(), SFile::STREAM_CHUNK_SIZE, &ret, nullptr) ? true : false;
