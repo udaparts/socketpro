@@ -27,7 +27,7 @@ namespace SPA {
 
         private:
             void Download(const std::wstring &filePath, unsigned int flags, int &res, std::wstring &errMsg);
-            void Upload(const std::wstring &filePath, unsigned int flags, UINT64 fileSize, int &res, std::wstring &errMsg);
+            void Upload(const std::wstring &filePath, unsigned int flags, UINT64 fileSize, INT64 initSize, int &res, std::wstring &errMsg, INT64 &initPos);
             void Uploading(UINT64 &pos);
             void UploadCompleted();
             void CleanOF();

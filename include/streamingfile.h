@@ -193,7 +193,7 @@ namespace SPA {
                         if (context.ErrorCode || context.ErrMsg.size()) {
                             ctx = m_vContext.front();
                         } else if (context.Uploading) {
-                            if (!SendRequest(SFile::idUpload, context.FilePath.c_str(), context.Flags, context.FileSize, rh, context.Discarded, se)) {
+                            if (!SendRequest(SFile::idUpload, context.FilePath.c_str(), context.Flags, context.FileSize, context.InitSize, rh, context.Discarded, se)) {
 #ifdef WIN32_64
                                 context.ErrorCode = ::GetLastError();
                                 context.ErrMsg = Utilities::GetErrorMessage(::GetLastError());
@@ -343,6 +343,7 @@ namespace SPA {
                             CAutoLock al(m_csFile);
                             if (m_vContext.size()) {
                                 CContext &context = m_vContext.front();
+								mc >> context.InitSize;
                                 ctx = m_vContext.front();
                                 ctx.ErrMsg = errMsg;
                                 ctx.ErrorCode = res;
@@ -355,6 +356,7 @@ namespace SPA {
                                 ResultHandler rh;
                                 DServerException se = nullptr;
                                 CContext &context = m_vContext.front();
+								mc >> context.InitSize;
                                 CScopeUQueue sb(MY_OPERATION_SYSTEM, IsBigEndian(), SFile::STREAM_CHUNK_SIZE);
                                 context.QueueOk = GetAttachedClientSocket()->GetClientQueue().StartJob();
 #ifdef WIN32_64

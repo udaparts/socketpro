@@ -42,7 +42,7 @@ namespace SPA{
         int CSFileImpl::OnSlowRequestArrive(unsigned short reqId, unsigned int len) {
             BEGIN_SWITCH(reqId)
             M_I2_R2(idDownload, Download, std::wstring, unsigned int, int, std::wstring)
-            M_I3_R2(idUpload, Upload, std::wstring, unsigned int, UINT64, int, std::wstring)
+            M_I4_R3(idUpload, Upload, std::wstring, unsigned int, UINT64, UINT64, int, std::wstring, INT64)
             M_I0_R1(idUploading, Uploading, UINT64)
             M_I0_R0(idUploadCompleted, UploadCompleted)
             END_SWITCH
@@ -134,8 +134,9 @@ namespace SPA{
             InitSize = -1;
         }
 
-        void CSFileImpl::Upload(const std::wstring &filePath, unsigned int flags, UINT64 fileSize, int &res, std::wstring & errMsg) {
+        void CSFileImpl::Upload(const std::wstring &filePath, unsigned int flags, UINT64 fileSize, INT64 initSize, int &res, std::wstring & errMsg, INT64 &initPos) {
             bool absoulute;
+			initPos = -1;
 #ifdef WIN32_64
             assert(m_of == INVALID_HANDLE_VALUE);
 #else
@@ -172,13 +173,21 @@ namespace SPA{
             } else if (existing) {
                 BOOL ok = TRUE;
                 InitSize = 0;
+				initPos = 0;
                 if ((flags & FILE_OPEN_TRUNCACTED) == FILE_OPEN_TRUNCACTED) {
                     ok = ::SetEndOfFile(m_of);
                 } else if ((flags & FILE_OPEN_APPENDED) == FILE_OPEN_APPENDED) {
                     LARGE_INTEGER dis, pos;
                     dis.QuadPart = 0;
                     ok = ::SetFilePointerEx(m_of, dis, &pos, FILE_END);
-                    InitSize = pos.QuadPart;
+					InitSize = pos.QuadPart;
+					if (initSize >= 0 && InitSize > initSize) {
+						InitSize = initSize;
+						dis.QuadPart = initSize;
+						assert(ok);
+						ok = ::SetFilePointerEx(m_of, dis, &pos, FILE_BEGIN);
+					}
+					initPos = InitSize;
                 }
                 assert(ok);
             }
@@ -205,6 +214,10 @@ namespace SPA{
             }
             if (existing) {
                 InitSize = ::lseek64(m_of, 0, SEEK_CUR);
+				if (initSize >= 0 && InitSize > initSize) {
+					InitSize = ::lseek64(m_of, initSize, SEEK_SET);
+				}
+				initPos = InitSize;
             }
             if ((flags & FILE_OPEN_SHARE_WRITE) == 0) {
                 struct flock fl;
