@@ -220,9 +220,14 @@ namespace SPA{
                 if (initSize == -1) {
                     initSize = 0;
                 }
-                INT64 isize = ::lseek64(m_of, 0, SEEK_END);
-                if (isize && isize > initSize) {
-                    isize = ::lseek64(m_of, initSize, SEEK_SET);
+                if ((flags & FILE_OPEN_TRUNCACTED) == FILE_OPEN_TRUNCACTED) {
+                    auto fail = ::ftruncate(m_of, 0);
+                    assert(!fail);
+                } else if ((flags & FILE_OPEN_APPENDED) == FILE_OPEN_APPENDED) {
+                    INT64 isize = ::lseek64(m_of, 0, SEEK_END);
+                    if (isize && isize > initSize) {
+                        isize = ::lseek64(m_of, initSize, SEEK_SET);
+                    }
                 }
             }
             if ((flags & FILE_OPEN_SHARE_WRITE) == 0) {
@@ -311,7 +316,13 @@ namespace SPA{
                 }
             }
             if (existing) {
-                InitSize = ::lseek64(m_of, 0, SEEK_END);
+                InitSize = 0;
+                if ((flags & FILE_OPEN_TRUNCACTED) == FILE_OPEN_TRUNCACTED) {
+                    auto fail = ::ftruncate(m_of, 0);
+                    assert(!fail);
+                } else if ((flags & FILE_OPEN_APPENDED) == FILE_OPEN_APPENDED) {
+                    InitSize = ::lseek64(m_of, 0, SEEK_END);
+                }
                 initPos = InitSize;
             }
             if ((flags & FILE_OPEN_SHARE_WRITE) == 0) {
