@@ -569,7 +569,7 @@ namespace SPA {
                         std::string path = Utilities::ToUTF8(context.LocalFile);
                         if (context.InitSize == -1) {
                             ::close(context.File);
-                            unlink(path.c_str());
+                            remove(path.c_str());
                         } else {
                             auto fail = ::fsync(context.File);
                             assert(!fail);
