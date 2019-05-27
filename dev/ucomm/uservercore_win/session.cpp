@@ -842,7 +842,7 @@ void CServerSession::Start() {
         m_cs = csConnected;
     }
     m_bCanceled = false;
-	ServiceId = SPA::sidStartup;
+    ServiceId = SPA::sidStartup;
     Read();
 }
 
@@ -912,7 +912,7 @@ void CServerSession::PostCloseInternal(int errCode) {
     if (errCode != 0) {
         m_ec.assign(errCode, boost::asio::error::get_system_category());
     }
-	g_pServer->m_IoService.post(boost::bind(&CServerSession::Close, this));
+    g_pServer->m_IoService.post(boost::bind(&CServerSession::Close, this));
 }
 
 void CServerSession::PostClose(int errCode) {
@@ -1478,6 +1478,8 @@ unsigned int CServerSession::GetRcvBytesInQueue() {
 }
 
 unsigned int CServerSession::GetConnIndex() {
+    if (m_cs < csClosing)
+        return 0;
     return m_ulIndex;
 }
 
