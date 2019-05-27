@@ -270,7 +270,6 @@ void CServerSession::Initialize() {
     }
     m_ccb.Initialize(boost::posix_time::microsec_clock::local_time());
     memset(&m_ClientInfo, 0, sizeof (m_ClientInfo));
-    ServiceId = (unsigned int) SPA::sidStartup;
     m_ServerInfo = g_pServer->m_ServerInfo;
     m_pUThread = nullptr;
     m_bZip = g_pServer->m_bZip;
@@ -843,6 +842,7 @@ void CServerSession::Start() {
         m_cs = csConnected;
     }
     m_bCanceled = false;
+	ServiceId = SPA::sidStartup;
     Read();
 }
 
