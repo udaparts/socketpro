@@ -212,7 +212,7 @@ namespace SPA{
                 }
             }
             if (existing) {
-                InitSize = ::lseek64(m_of, 0, SEEK_CUR);
+                InitSize = ::lseek64(m_of, 0, SEEK_END);
                 if (initSize >= 0 && InitSize > initSize) {
                     InitSize = ::lseek64(m_of, initSize, SEEK_SET);
                 }
@@ -303,7 +303,7 @@ namespace SPA{
                 }
             }
             if (existing) {
-                InitSize = ::lseek64(m_of, 0, SEEK_CUR);
+                InitSize = ::lseek64(m_of, 0, SEEK_END);
                 initPos = InitSize;
             }
             if ((flags & FILE_OPEN_SHARE_WRITE) == 0) {
