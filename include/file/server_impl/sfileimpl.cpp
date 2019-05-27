@@ -42,7 +42,8 @@ namespace SPA{
         int CSFileImpl::OnSlowRequestArrive(unsigned short reqId, unsigned int len) {
             BEGIN_SWITCH(reqId)
             M_I2_R2(idDownload, Download, std::wstring, unsigned int, int, std::wstring)
-            M_I4_R3(idUpload, Upload, std::wstring, unsigned int, UINT64, UINT64, int, std::wstring, INT64)
+            M_I3_R3(idUpload, Upload, std::wstring, unsigned int, UINT64, int, std::wstring, INT64)
+			M_I4_R0(idUploadBackup, UploadBackup, std::wstring, unsigned int, UINT64, INT64)
             M_I0_R1(idUploading, Uploading, UINT64)
             M_I0_R0(idUploadCompleted, UploadCompleted)
             END_SWITCH
@@ -134,8 +135,107 @@ namespace SPA{
             InitSize = -1;
         }
 
-        void CSFileImpl::Upload(const std::wstring &filePath, unsigned int flags, UINT64 fileSize, INT64 initSize, int &res, std::wstring & errMsg, INT64 &initPos) {
-            bool absoulute;
+		void CSFileImpl::UploadBackup(const std::wstring &filePath, unsigned int flags, UINT64 fileSize, INT64 initSize) {
+			assert(IsDequeueRequest()); //client queue is enabled
+			bool absoulute;
+#ifdef WIN32_64
+			if (m_of != INVALID_HANDLE_VALUE)
+#else
+			if (m_of != -1)
+#endif
+			{
+				return;
+			}
+			m_oFileSize = fileSize;
+			m_oPos = 0;
+			InitSize = -1;
+#ifdef WIN32_64
+			std::size_t pos = filePath.find(L":\\");
+			absoulute = (pos != std::wstring::npos && pos > 0);
+#else
+			absoulute = (filePath.front() == L'/');
+#endif
+			if (absoulute) {
+				m_oFilePath = filePath;
+			}
+			else {
+				m_oFilePath = g_pathRoot + filePath;
+			}
+			bool existing = false;
+#ifdef WIN32_64
+			DWORD sm = 0;
+			if ((flags & FILE_OPEN_SHARE_WRITE) == FILE_OPEN_SHARE_WRITE) {
+				sm |= FILE_SHARE_WRITE;
+			}
+			m_of = ::CreateFileW(m_oFilePath.c_str(), GENERIC_WRITE, sm, nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr);
+			if (m_of == INVALID_HANDLE_VALUE) {
+				m_of = ::CreateFileW(m_oFilePath.c_str(), GENERIC_WRITE, sm, nullptr, CREATE_NEW, FILE_ATTRIBUTE_NORMAL, nullptr);
+			}
+			else {
+				existing = true;
+			}
+			if (m_of == INVALID_HANDLE_VALUE) {
+			}
+			else if (existing) {
+				BOOL ok = TRUE;
+				InitSize = 0;
+				if ((flags & FILE_OPEN_TRUNCACTED) == FILE_OPEN_TRUNCACTED) {
+					ok = ::SetEndOfFile(m_of);
+				}
+				else if ((flags & FILE_OPEN_APPENDED) == FILE_OPEN_APPENDED) {
+					LARGE_INTEGER dis, pos;
+					dis.QuadPart = 0;
+					ok = ::SetFilePointerEx(m_of, dis, &pos, FILE_END);
+					InitSize = pos.QuadPart;
+					if (initSize >= 0 && InitSize > initSize) {
+						InitSize = initSize;
+						dis.QuadPart = initSize;
+						assert(ok);
+						ok = ::SetFilePointerEx(m_of, dis, &pos, FILE_BEGIN);
+					}
+				}
+				assert(ok);
+			}
+#else
+			std::string s = Utilities::ToUTF8(m_oFilePath.c_str(), m_oFilePath.size());
+			int mode = (O_WRONLY | O_CREAT | O_EXCL);
+			if ((flags & FILE_OPEN_TRUNCACTED) == FILE_OPEN_TRUNCACTED) {
+				mode |= O_TRUNC;
+			}
+			else if ((flags & FILE_OPEN_APPENDED) == FILE_OPEN_APPENDED) {
+				mode |= O_APPEND;
+			}
+			mode_t m = (S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH);
+			m_of = ::open(s.c_str(), mode, m);
+			if (m_of == -1) {
+				existing = true;
+				mode = (O_WRONLY | O_CREAT);
+				m_of = ::open(s.c_str(), mode, m);
+				if (m_of == -1) {
+					return;
+				}
+			}
+			if (existing) {
+				InitSize = ::lseek64(m_of, 0, SEEK_CUR);
+				if (initSize >= 0 && InitSize > initSize) {
+					InitSize = ::lseek64(m_of, initSize, SEEK_SET);
+				}
+			}
+			if ((flags & FILE_OPEN_SHARE_WRITE) == 0) {
+				struct flock fl;
+				fl.l_whence = SEEK_SET;
+				fl.l_start = 0;
+				fl.l_len = 0;
+				fl.l_type = F_WRLCK;
+				fl.l_pid = ::getpid();
+				if (::fcntl(m_of, F_SETLKW, &fl) == -1) {
+				}
+			}
+#endif
+		}
+
+        void CSFileImpl::Upload(const std::wstring &filePath, unsigned int flags, UINT64 fileSize, int &res, std::wstring & errMsg, INT64 &initPos) {
+			bool absoulute;
 			initPos = -1;
 #ifdef WIN32_64
             assert(m_of == INVALID_HANDLE_VALUE);
@@ -181,12 +281,6 @@ namespace SPA{
                     dis.QuadPart = 0;
                     ok = ::SetFilePointerEx(m_of, dis, &pos, FILE_END);
 					InitSize = pos.QuadPart;
-					if (initSize >= 0 && InitSize > initSize) {
-						InitSize = initSize;
-						dis.QuadPart = initSize;
-						assert(ok);
-						ok = ::SetFilePointerEx(m_of, dis, &pos, FILE_BEGIN);
-					}
 					initPos = InitSize;
                 }
                 assert(ok);
@@ -214,9 +308,6 @@ namespace SPA{
             }
             if (existing) {
                 InitSize = ::lseek64(m_of, 0, SEEK_CUR);
-				if (initSize >= 0 && InitSize > initSize) {
-					InitSize = ::lseek64(m_of, initSize, SEEK_SET);
-				}
 				initPos = InitSize;
             }
             if ((flags & FILE_OPEN_SHARE_WRITE) == 0) {
