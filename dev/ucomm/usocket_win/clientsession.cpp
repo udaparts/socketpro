@@ -1141,7 +1141,7 @@ void CClientSession::OnConnected(const CErrorCode &ec, CResolver::iterator ep) {
 #endif
     }
 
-    m_tRecv = GetTickCount();
+    m_tRecv = GetTimeTick();
     m_tSend = m_tRecv;
     if (IsSslEnabled()) {
         m_ConnState = SPA::ClientSide::csSslShaking;
@@ -1526,7 +1526,7 @@ void CClientSession::CloseInternal(int nError) {
     if (m_ConnState == SPA::ClientSide::csClosed) {
         return;
     }
-    m_tRecv = GetTickCount();
+    m_tRecv = GetTimeTick();
     m_tSend = m_tRecv;
     PSocketPoolCallback spc = m_pThread->GetSocketPoolCallback();
     if (spc) {
