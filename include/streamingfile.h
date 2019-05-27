@@ -333,6 +333,8 @@ namespace SPA {
                         mc.SetSize(0);
                     }
                         break;
+					case SFile::idUploadBackup:
+						break;
                     case SFile::idUpload:
                     {
                         int res;

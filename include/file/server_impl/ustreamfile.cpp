@@ -59,7 +59,7 @@ CSvsContext WINAPI GetOneSvsContext(unsigned int serviceId) {
 }
 
 unsigned short WINAPI GetNumOfSlowRequests(unsigned int serviceId) {
-    return 4; //The service only has four slow requests
+    return 5; //The service only has four slow requests
 }
 
 unsigned short WINAPI GetOneSlowRequestID(unsigned int serviceId, unsigned short index) {
@@ -73,6 +73,8 @@ unsigned short WINAPI GetOneSlowRequestID(unsigned int serviceId, unsigned short
             return SPA::SFile::idUploadCompleted;
         case 3:
             return SPA::SFile::idUploading;
+		case 4:
+			return SPA::SFile::idUploadBackup;
         default:
             break;
     }
