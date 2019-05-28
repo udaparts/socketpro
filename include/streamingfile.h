@@ -275,6 +275,8 @@ namespace SPA {
                             CAutoLock al(m_csFile);
                             if (m_vContext.size()) {
                                 CContext &context = m_vContext.front();
+                                context.ErrorCode = res;
+                                context.ErrMsg = errMsg;
                                 CloseFile(context);
                                 m_vContext.pop_front();
                             }

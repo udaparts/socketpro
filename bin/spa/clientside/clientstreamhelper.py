@@ -237,6 +237,8 @@ class CStreamingFile(CAsyncServiceHandler):
             with self._csFile:
                 if len(self._vContext):
                     context = self._vContext[0]
+                    context.ErrCode = res
+                    context.ErrMsg = errMsg
                     dl = context.Download
             if dl:
                 dl(self, res, errMsg)

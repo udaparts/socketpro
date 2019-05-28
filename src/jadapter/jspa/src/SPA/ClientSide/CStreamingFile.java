@@ -328,7 +328,10 @@ public class CStreamingFile extends CAsyncServiceHandler {
                 String errMsg = mc.LoadString();
                 synchronized (m_csFile) {
                     if (m_vContext.size() > 0) {
-                        dl = m_vContext.getFirst().Download;
+                        CContext front = m_vContext.getFirst();
+                        front.ErrCode = res;
+                        front.ErrMsg = errMsg;
+                        dl = front.Download;
                     }
                 }
                 if (dl != null) {

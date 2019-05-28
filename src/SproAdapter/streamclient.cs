@@ -554,7 +554,10 @@ namespace SocketProAdapter.ClientSide {
                         DDownload dl = null;
                         lock (m_csFile) {
                             if (m_vContext.Count > 0) {
-                                dl = m_vContext[0].Download;
+                                CContext ctx = m_vContext[0];
+                                ctx.ErrCode = res;
+                                ctx.ErrMsg = errMsg;
+                                dl = ctx.Download;
                             }
                         }
                         if (dl != null) {
