@@ -19,6 +19,18 @@ public class CCachedBaseHandler extends CAsyncServiceHandler {
     }
 
     @Override
+    protected void finalize() throws Throwable {
+        CleanCallbacks();
+        super.finalize();
+    }
+
+    @Override
+    public void close() {
+        CleanCallbacks();
+        super.CleanCallbacks();
+    }
+
+    @Override
     public int CleanCallbacks() {
         synchronized (m_csCache) {
             m_mapHandler.clear();

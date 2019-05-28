@@ -102,6 +102,14 @@ class CAsyncServiceHandler(object):
         self.ResultReturned = None
         self._lock_Send_ = threading.Lock()
 
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.CleanCallbacks()
+
+    def __del__(self):
+        self.CleanCallbacks()
 
     def GetCallIndex(self):
         with CAsyncServiceHandler._csCallIndex_:

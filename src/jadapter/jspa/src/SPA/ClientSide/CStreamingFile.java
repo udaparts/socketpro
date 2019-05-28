@@ -15,6 +15,18 @@ public class CStreamingFile extends CAsyncServiceHandler {
         super(sidFile);
     }
 
+    @Override
+    protected void finalize() throws Throwable {
+        CleanCallbacks();
+        super.finalize();
+    }
+
+    @Override
+    public void close() {
+        CleanCallbacks();
+        super.CleanCallbacks();
+    }
+
     /**
      * You may use the protected constructor when extending this class
      *
@@ -33,6 +45,7 @@ public class CStreamingFile extends CAsyncServiceHandler {
     public final static short idUpload = 0x7F73;
     public final static short idUploading = 0x7F74;
     public final static short idUploadCompleted = 0x7F75;
+    public final static short idUploadBackup = 0x7F76;
 
     //file open flags
     public final static int FILE_OPEN_TRUNCACTED = 1;
@@ -235,13 +248,15 @@ public class CStreamingFile extends CAsyncServiceHandler {
 
     @Override
     public int CleanCallbacks() {
-        int errCode = getAttachedClientSocket().getErrorCode();
-        String errMsg = getAttachedClientSocket().getErrorMsg();
         synchronized (m_csFile) {
             for (CContext c : m_vContext) {
-                c.ErrCode = errCode;
-                c.ErrMsg = errMsg;
-                CloseFile(c);
+                if (c.File != null) {
+                    c.ErrCode = CANNOT_OPEN_LOCAL_FILE_FOR_WRITING;
+                    c.ErrMsg = "Clean local writing file";
+                    CloseFile(c);
+                } else {
+                    break;
+                }
             }
             m_vContext.clear();
         }
@@ -378,6 +393,8 @@ public class CStreamingFile extends CAsyncServiceHandler {
                 }
             }
             break;
+            case idUploadBackup:
+                break;
             case idUpload: {
                 CContext context = null;
                 DUpload upl = null;
@@ -388,6 +405,9 @@ public class CStreamingFile extends CAsyncServiceHandler {
                         if (m_vContext.size() > 0) {
                             context = m_vContext.getFirst();
                             upl = context.Upload;
+                            if (mc.GetSize() > 0) {
+                                context.InitSize = mc.LoadLong();
+                            }
                             context.ErrCode = res;
                             context.ErrMsg = errMsg;
                         }
@@ -400,6 +420,9 @@ public class CStreamingFile extends CAsyncServiceHandler {
                         if (m_vContext.size() > 0) {
                             context = m_vContext.getFirst();
                             upl = context.Upload;
+                            if (mc.GetSize() > 0) {
+                                context.InitSize = mc.LoadLong();
+                            }
                             try (CScopeUQueue sq = new CScopeUQueue()) {
                                 CUQueue sb = sq.getUQueue();
                                 if (sb.getMaxBufferSize() < STREAM_CHUNK_SIZE) {
@@ -410,6 +433,14 @@ public class CStreamingFile extends CAsyncServiceHandler {
                                 byte[] buffer = sb.getIntenalBuffer();
                                 ByteBuffer bytes = ByteBuffer.wrap(buffer, 0, buffer.length);
                                 context.QueueOk = cs.getClientQueue().StartJob();
+                                boolean queue_enabled = cs.getClientQueue().getAvailable();
+                                if (queue_enabled) {
+                                    try (CScopeUQueue su = new CScopeUQueue()) {
+                                        CUQueue q = su.getUQueue();
+                                        q.Save(context.FilePath).Save(context.Flags).Save(context.FileSize).Save(context.InitSize);
+                                        SendRequest(idUploadBackup, q, rh, context.Discarded, se);
+                                    }
+                                }
                                 int ret = context.File.read(bytes);
                                 while (ret == buffer.length) {
                                     if (!SendRequest(idUploading, buffer, ret, rh, context.Discarded, se)) {
@@ -419,7 +450,7 @@ public class CStreamingFile extends CAsyncServiceHandler {
                                     }
                                     bytes.clear();
                                     ret = context.File.read(bytes);
-                                    if (context.QueueOk) {
+                                    if (queue_enabled) {
                                         //save file into client message queue
                                     } else if (cs.getBytesInSendingBuffer() > 40 * buffer.length) {
                                         break;

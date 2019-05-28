@@ -23,6 +23,10 @@ namespace SPA {
             CStreamingFile(CClientSocket * cs) : CAsyncServiceHandler(SFile::sidFile, cs) {
             }
 
+            ~CStreamingFile() {
+                CleanCallbacks();
+            }
+
         protected:
             //You may use the protected constructor when extending this class
 
@@ -89,13 +93,15 @@ namespace SPA {
 
             virtual unsigned int CleanCallbacks() {
                 {
-                    auto errCode = GetAttachedClientSocket()->GetErrorCode();
-                    auto errMsg = Utilities::ToWide(GetAttachedClientSocket()->GetErrorMsg());
                     CAutoLock al(m_csFile);
                     for (auto it = m_vContext.begin(), end = m_vContext.end(); it != end; ++it) {
-                        it->ErrMsg = errMsg;
-                        it->ErrorCode = errCode;
-                        CloseFile(*it);
+                        if (it->IsOpen()) {
+                            it->ErrMsg = L"Clean local writing file";
+                            it->ErrorCode = SFile::CANNOT_OPEN_LOCAL_FILE_FOR_WRITING;
+                            CloseFile(*it);
+                        } else {
+                            break;
+                        }
                     }
                     m_vContext.clear();
                 }

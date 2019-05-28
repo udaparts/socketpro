@@ -9,6 +9,18 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
     private static final int ONE_MEGA_BYTES = 0x100000;
     private static final int BLOB_LENGTH_NOT_AVAILABLE = 0xffffffe0;
 
+    @Override
+    protected void finalize() throws Throwable {
+        CleanCallbacks();
+        super.finalize();
+    }
+
+    @Override
+    public void close() {
+        CleanCallbacks();
+        super.CleanCallbacks();
+    }
+
     public CAsyncDBHandler(int sid) {
         super(sid);
     }

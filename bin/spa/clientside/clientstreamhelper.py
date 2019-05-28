@@ -83,6 +83,7 @@ class CStreamingFile(CAsyncServiceHandler):
     idUpload = 0x7F73
     idUploading = 0x7F74
     idUploadCompleted = 0x7F75
+    idUploadBackup = 0x7F76
 
     # file open flags
     FILE_OPEN_TRUNCACTED = 1
@@ -100,14 +101,14 @@ class CStreamingFile(CAsyncServiceHandler):
         self._vContext = deque() # protected by self._csFile
 
     def CleanCallbacks(self):
-        errCode = self.AttachedClientSocket.ErrorCode
-        errMsg = self.AttachedClientSocket.ErrorMessage
         with self._csFile:
             for c in self._vContext:
                 if c.File:
-                    c.ErrCode = -1
-                    c.ErrMsg = "Socket closed"
-                c._CloseFile()
+                    c.ErrCode = CStreamingFile.CANNOT_OPEN_LOCAL_FILE_FOR_WRITING
+                    c.ErrMsg = "Clean local writing file"
+                    c._CloseFile()
+                else:
+                    break
             self._vContext = deque()
         return super(CStreamingFile, self).CleanCallbacks()
 
@@ -272,6 +273,8 @@ class CStreamingFile(CAsyncServiceHandler):
             mc.SetSize(0)
             if trans:
                 trans(self, downloaded)
+        elif reqId == CStreamingFile.idUploadBackup:
+            pass
         elif reqId == CStreamingFile.idUpload:
             cs = self.AttachedClientSocket
             res = mc.LoadInt()
@@ -283,6 +286,8 @@ class CStreamingFile(CAsyncServiceHandler):
                 with self._csFile:
                     if len(self._vContext) > 0:
                         context = self._vContext[0]
+                        if mc.GetSize() > 0:
+                            context.InitSize = mc.LoadLong()
                         context.ErrCode = res
                         context.ErrMsg = errMsg
                         ctx = context
@@ -290,7 +295,14 @@ class CStreamingFile(CAsyncServiceHandler):
                 with self._csFile:
                     if len(self._vContext) > 0:
                         context = self._vContext[0]
+                        if mc.GetSize() > 0:
+                            context.InitSize = mc.LoadLong()
                         context.QueueOk = cs.ClientQueue.StartJob()
+                        queue_enabled = cs.ClientQueue.Available
+                        if queue_enabled:
+                            with CScopeUQueue() as q:
+                                q.SaveString(context.FilePath).SaveUInt(context.Flags).SaveULong(context.FileSize).SaveLong(context.InitSize)
+                                self.SendRequest(CStreamingFile.idUploadBackup, q, None, context.Discarded, None)
                         ret = bytearray(context.File.read(CStreamingFile.STREAM_CHUNK_SIZE))
                         while len(ret) == CStreamingFile.STREAM_CHUNK_SIZE:
                             if not self.SendRequest(CStreamingFile.idUploading, CUQueue(ret), None, context.Discarded, None):
@@ -301,7 +313,7 @@ class CStreamingFile(CAsyncServiceHandler):
                             ret = bytearray(context.File.read(CStreamingFile.STREAM_CHUNK_SIZE))
                             if len(ret) < CStreamingFile.STREAM_CHUNK_SIZE:
                                 break
-                            if not context.QueueOk:
+                            if not queue_enabled:
                                 sent_buffer_size = cs.BytesInSendingBuffer
                                 if sent_buffer_size >= 40 * CStreamingFile.STREAM_CHUNK_SIZE:
                                     break

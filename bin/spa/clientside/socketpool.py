@@ -40,6 +40,14 @@ class CSocketPool(object):
         self.SocketPoolEvent = None
         self.ShutdownPool()
 
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.DoSslServerAuthentication = None
+        self.SocketPoolEvent = None
+        self.ShutdownPool()
+
     def _MapToHandler_(self, h):
         with self._lock_:
             for cs in self._m_dicSocketHandler_.keys():

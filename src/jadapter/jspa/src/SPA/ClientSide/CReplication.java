@@ -12,6 +12,12 @@ public class CReplication<THandler extends CAsyncServiceHandler> implements Auto
         Cleanup();
     }
 
+    @Override
+    protected void finalize() throws Throwable {
+        Cleanup();
+        super.finalize();
+    }
+
     public final int getConnections() {
         if (m_pool == null) {
             return 0;
@@ -32,12 +38,6 @@ public class CReplication<THandler extends CAsyncServiceHandler> implements Auto
             m_pool.ShutdownPool();
             m_pool = null;
         }
-    }
-
-    @Override
-    protected void finalize() throws Throwable {
-        Cleanup();
-        super.finalize();
     }
 
     protected boolean DoSslServerAuthentication(CClientSocket cs) {

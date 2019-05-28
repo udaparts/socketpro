@@ -27,6 +27,12 @@ public class CSocketPool<THandler extends CAsyncServiceHandler> implements AutoC
         ShutdownPool();
     }
 
+    @Override
+    protected void finalize() throws Throwable {
+        ShutdownPool();
+        super.finalize();
+    }
+
     private void invoke(int poolId, int spc, long h) throws InstantiationException, IllegalAccessException, IllegalArgumentException, java.lang.reflect.InvocationTargetException {
         THandler handler = MapToHandler(h);
         tagSocketPoolEvent event = tagSocketPoolEvent.forValue(spc);
@@ -115,12 +121,6 @@ public class CSocketPool<THandler extends CAsyncServiceHandler> implements AutoC
 
     protected void OnSocketPoolEvent(tagSocketPoolEvent spe, THandler h) {
 
-    }
-
-    @Override
-    protected void finalize() throws Throwable {
-        Clean();
-        super.finalize();
     }
 
     void Clean() {

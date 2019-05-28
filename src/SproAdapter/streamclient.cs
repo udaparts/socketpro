@@ -214,6 +214,7 @@ namespace SocketProAdapter.ClientSide {
         public const ushort idUpload = 0x7F73;
         public const ushort idUploading = 0x7F74;
         public const ushort idUploadCompleted = 0x7F75;
+        public const ushort idUploadBackup = 0x7F76;
 
         //file open flags
         public const uint FILE_OPEN_TRUNCACTED = 1;
@@ -350,13 +351,15 @@ namespace SocketProAdapter.ClientSide {
         }
 
         public override uint CleanCallbacks() {
-            int errCode = AttachedClientSocket.ErrorCode;
-            string errMsg = AttachedClientSocket.ErrorMsg;
             lock (m_csFile) {
                 foreach (CContext c in m_vContext) {
-                    c.ErrCode = errCode;
-                    c.ErrMsg = errMsg;
-                    CloseFile(c);
+                    if (c.File != null) {
+                        c.ErrCode = CANNOT_OPEN_LOCAL_FILE_FOR_WRITING;
+                        c.ErrMsg = "Clean local writing file";
+                        CloseFile(c);
+                    } else {
+                        break;
+                    }
                 }
                 m_vContext.Clear();
             }
@@ -613,6 +616,8 @@ namespace SocketProAdapter.ClientSide {
                         }
                     }
                     break;
+                case idUploadBackup:
+                    break;
                 case idUpload: {
                         CContext context = null;
                         int res;
@@ -622,6 +627,9 @@ namespace SocketProAdapter.ClientSide {
                             lock (m_csFile) {
                                 if (m_vContext.Count > 0) {
                                     context = m_vContext[0];
+                                    if (mc.GetSize() > 0) {
+                                        mc.Load(out context.InitSize);
+                                    }
                                     context.ErrCode = res;
                                     context.ErrMsg = errMsg;
                                 }
@@ -631,6 +639,9 @@ namespace SocketProAdapter.ClientSide {
                             lock (m_csFile) {
                                 if (m_vContext.Count > 0) {
                                     context = m_vContext[0];
+                                    if (mc.GetSize() > 0) {
+                                        mc.Load(out context.InitSize);
+                                    }
                                     using (CScopeUQueue sb = new CScopeUQueue()) {
                                         DAsyncResultHandler rh = null;
                                         DOnExceptionFromServer se = null;
@@ -639,6 +650,10 @@ namespace SocketProAdapter.ClientSide {
                                         byte[] buffer = sb.UQueue.IntenalBuffer;
                                         try {
                                             context.QueueOk = cs.ClientQueue.StartJob();
+                                            bool queue_enabled = cs.ClientQueue.Available;
+                                            if (queue_enabled) {
+                                                SendRequest(idUploadBackup, context.FilePath, context.Flags, context.FileSize, context.InitSize, rh, context.Discarded, se);
+                                            }
                                             int ret = context.File.Read(buffer, 0, (int)STREAM_CHUNK_SIZE);
                                             while (ret == STREAM_CHUNK_SIZE) {
                                                 if (!SendRequest(idUploading, buffer, (uint)ret, rh, context.Discarded, se)) {
@@ -647,7 +662,7 @@ namespace SocketProAdapter.ClientSide {
                                                     break;
                                                 }
                                                 ret = context.File.Read(buffer, 0, (int)STREAM_CHUNK_SIZE);
-                                                if (context.QueueOk) {
+                                                if (queue_enabled) {
                                                     //save file into client message queue
                                                 } else if (cs.BytesInSendingBuffer > 40 * STREAM_CHUNK_SIZE) {
                                                     break;
