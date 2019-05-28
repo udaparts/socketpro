@@ -20,7 +20,7 @@ int main(int argc, char* argv[]) {
 #endif
     bool ok = spRf.StartSocketPool(cc, 1, 1);
     if (!ok) {
-        std::cout << "Can not connect to remote server" << std::endl;
+        std::cout << "Can not connect to remote server with error code: " << spRf.GetSockets()[0]->GetErrorCode() << std::endl;
         return -1;
     }
     auto rf = spRf.Seek();
