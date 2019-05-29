@@ -448,7 +448,9 @@ namespace SPA
                 jsFile = "sp_config.json";
             }
             std::shared_ptr<FILE> fp(fopen(jsFile.c_str(), "rb"), [](FILE * f) {
-                ::fclose(f);
+                if (f) {
+                    ::fclose(f);
+                }
             });
             if (!fp || ferror(fp.get())) {
                 m_errMsg = "Cannot open configuration file " + jsFile;
