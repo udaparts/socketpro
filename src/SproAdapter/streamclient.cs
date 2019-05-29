@@ -522,7 +522,7 @@ namespace SocketProAdapter.ClientSide {
                             context.ErrMsg = cs.ErrorMsg;
                         }
                     } else {
-                        if (!SendRequest(idDownload, context.FilePath, context.Flags, rh, context.Discarded, se)) {
+                        if (!SendRequest(idDownload, context.LocalFile, context.FilePath, context.Flags, context.InitSize, rh, context.Discarded, se)) {
                             ctx = context;
                             context.ErrCode = cs.ErrorCode;
                             context.ErrMsg = cs.ErrorMsg;
@@ -573,14 +573,26 @@ namespace SocketProAdapter.ClientSide {
                     break;
                 case idStartDownloading:
                     lock (m_csFile) {
-                        if (m_vContext.Count > 0) {
+                        long fileSize;
+                        string localFile, remoteFile;
+                        uint flags;
+                        long initSize;
+                        mc.Load(out fileSize).Load(out localFile).Load(out remoteFile).Load(out flags).Load(out initSize);
+                        lock (m_csFile) {
+                            if (m_vContext.Count == 0) {
+                                CContext ctx = new CContext(false, flags);
+                                ctx.LocalFile = localFile;
+                                ctx.FilePath = remoteFile;
+                                OpenLocalWrite(ctx);
+                                ctx.InitSize = initSize;
+                                m_vContext.AddToBack(ctx);
+                            }
                             CContext context = m_vContext[0];
-                            long initSize = (context.InitSize > 0) ? context.InitSize : 0;
+                            context.FileSize = fileSize;
+                            initSize = (context.InitSize > 0) ? context.InitSize : 0;
                             if (context.File.Position > initSize) {
-                                context.File.Flush();
                                 context.File.SetLength(initSize);
                             }
-                            mc.Load(out context.FileSize);
                         }
                     }
                     break;
@@ -630,9 +642,7 @@ namespace SocketProAdapter.ClientSide {
                             lock (m_csFile) {
                                 if (m_vContext.Count > 0) {
                                     context = m_vContext[0];
-                                    if (mc.GetSize() > 0) {
-                                        mc.Load(out context.InitSize);
-                                    }
+                                    mc.Load(out context.InitSize);
                                     context.ErrCode = res;
                                     context.ErrMsg = errMsg;
                                 }
@@ -642,9 +652,7 @@ namespace SocketProAdapter.ClientSide {
                             lock (m_csFile) {
                                 if (m_vContext.Count > 0) {
                                     context = m_vContext[0];
-                                    if (mc.GetSize() > 0) {
-                                        mc.Load(out context.InitSize);
-                                    }
+                                    mc.Load(out context.InitSize);
                                     using (CScopeUQueue sb = new CScopeUQueue()) {
                                         DAsyncResultHandler rh = null;
                                         DOnExceptionFromServer se = null;

@@ -171,7 +171,7 @@ class CStreamingFile(CAsyncServiceHandler):
                             ctx = front
                 else:
                     with CScopeUQueue() as q:
-                        q.SaveString(front.FilePath).SaveUInt(front.Flags)
+                        q.SaveString(front.LocalFile).SaveString(front.FilePath).SaveUInt(front.Flags).SaveLong(front.InitSize)
                         if not self.SendRequest(CStreamingFile.idDownload, q, None, front.Discarded, None):
                             front.ErrCode = cs.ErrorCode
                             front.ErrMsg = cs.ErrorMessage
@@ -248,18 +248,27 @@ class CStreamingFile(CAsyncServiceHandler):
             self.OnPostProcessing(0, 0)
         elif reqId == CStreamingFile.idStartDownloading:
             with self._csFile:
-                if len(self._vContext):
-                    front = self._vContext[0]
-                    front.FileSize = mc.LoadULong()
-                    initSize = 0
-                    if front.InitSize > 0:
-                        initSize = front.InitSize
-                    if front.File.tell() > initSize:
-                        front.File.flush()
-                        front.File.seek(initSize)
-                        front.File.truncate(initSize)
-                else:
-                    mc.SetSize(0)
+                fileSize = mc.LoadULong()
+                localFile = mc.LoadString()
+                remoteFile = mc.LoadString()
+                flags = mc.LoadUInt()
+                initSize = mc.LoadLong()
+                if len(self._vContext) == 0:
+                    ctx = CContext(False, flags)
+                    ctx.LocalFile = localFile;
+                    ctx.FilePath = remoteFile;
+                    OpenLocalWrite(ctx);
+                    ctx.InitSize = initSize;
+                    self._vContext.append(ctx)
+                front = self._vContext[0]
+                front.FileSize = fileSize
+                initSize = 0
+                if front.InitSize > 0:
+                    initSize = front.InitSize
+                if front.File.tell() > initSize:
+                    front.File.flush()
+                    front.File.seek(initSize)
+                    front.File.truncate(initSize)
         elif reqId == CStreamingFile.idDownloading:
             downloaded = 0
             trans = None

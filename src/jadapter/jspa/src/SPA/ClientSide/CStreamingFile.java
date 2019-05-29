@@ -215,7 +215,7 @@ public class CStreamingFile extends CAsyncServiceHandler {
                 } else {
                     try (CScopeUQueue sq = new CScopeUQueue()) {
                         CUQueue sb = sq.getUQueue();
-                        sb.Save(context.FilePath).Save(context.Flags).Save(context.FileSize);
+                        sb.Save(context.LocalFile).Save(context.FilePath).Save(context.Flags).Save(context.InitSize);
                         if (!SendRequest(idDownload, sb, rh, context.Discarded, se)) {
                             ctx = context;
                             context.ErrCode = cs.getErrorCode();
@@ -347,18 +347,28 @@ public class CStreamingFile extends CAsyncServiceHandler {
             break;
             case idStartDownloading:
                 synchronized (m_csFile) {
-                    if (m_vContext.size() > 0) {
-                        CContext context = m_vContext.getFirst();
-                        long initSize = (context.InitSize > 0) ? context.InitSize : 0;
-                        try {
-                            if (context.File.position() > initSize) {
-                                context.File.position(initSize);
-                                context.File.force(false);
-                                context.File.truncate(initSize);
-                            }
-                        } catch (Exception err) {
+                    long fileSize = mc.LoadLong();
+                    String localFile = mc.LoadString(), remoteFile = mc.LoadString();
+                    int flags = mc.LoadInt();
+                    long initSize = mc.LoadLong();
+                    if (m_vContext.isEmpty()) {
+                        CContext ctx = new CContext(false, flags);
+                        ctx.LocalFile = localFile;
+                        ctx.FilePath = remoteFile;
+                        OpenLocalWrite(ctx);
+                        ctx.InitSize = initSize;
+                        m_vContext.add(ctx);
+                    }
+                    CContext context = m_vContext.getFirst();
+                    context.FileSize = fileSize;
+                    initSize = (context.InitSize > 0) ? context.InitSize : 0;
+                    try {
+                        if (context.File.position() > initSize) {
+                            context.File.position(initSize);
+                            context.File.force(false);
+                            context.File.truncate(initSize);
                         }
-                        context.FileSize = mc.LoadLong();
+                    } catch (Exception err) {
                     }
                 }
                 break;
@@ -408,9 +418,7 @@ public class CStreamingFile extends CAsyncServiceHandler {
                         if (m_vContext.size() > 0) {
                             context = m_vContext.getFirst();
                             upl = context.Upload;
-                            if (mc.GetSize() > 0) {
-                                context.InitSize = mc.LoadLong();
-                            }
+                            context.InitSize = mc.LoadLong();
                             context.ErrCode = res;
                             context.ErrMsg = errMsg;
                         }
@@ -423,9 +431,7 @@ public class CStreamingFile extends CAsyncServiceHandler {
                         if (m_vContext.size() > 0) {
                             context = m_vContext.getFirst();
                             upl = context.Upload;
-                            if (mc.GetSize() > 0) {
-                                context.InitSize = mc.LoadLong();
-                            }
+                            context.InitSize = mc.LoadLong();
                             try (CScopeUQueue sq = new CScopeUQueue()) {
                                 CUQueue sb = sq.getUQueue();
                                 if (sb.getMaxBufferSize() < STREAM_CHUNK_SIZE) {
