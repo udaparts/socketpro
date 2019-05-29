@@ -301,6 +301,10 @@ namespace SPA {
                             m_vContext.push_back(context);
                         }
                         CContext &context = m_vContext.front();
+                        assert(context.LocalFile == localFile);
+                        assert(context.FilePath == remoteFile);
+                        assert(context.Flags == flags);
+                        assert(context.InitSize == initSize);
                         context.FileSize = fileSize;
                         assert(!context.Uploading);
                         initSize = (context.InitSize > 0) ? context.InitSize : 0;
