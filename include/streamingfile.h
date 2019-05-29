@@ -199,7 +199,7 @@ namespace SPA {
                         if (context.ErrorCode || context.ErrMsg.size()) {
                             ctx = m_vContext.front();
                         } else if (context.Uploading) {
-                            if (!SendRequest(SFile::idUpload, context.FilePath.c_str(), context.Flags, context.FileSize, rh, context.Discarded, se)) {
+                            if (!SendRequest(SFile::idUpload, context.FilePath, context.Flags, context.FileSize, rh, context.Discarded, se)) {
 #ifdef WIN32_64
                                 context.ErrorCode = ::GetLastError();
                                 context.ErrMsg = Utilities::GetErrorMessage(::GetLastError());
@@ -212,7 +212,7 @@ namespace SPA {
                             }
                         } else {
                             //downloading
-                            if (!SendRequest(SFile::idDownload, context.FilePath.c_str(), context.Flags, rh, context.Discarded, se)) {
+                            if (!SendRequest(SFile::idDownload, context.LocalFile, context.FilePath, context.Flags, context.InitSize, rh, context.Discarded, se)) {
 #ifdef WIN32_64
                                 context.ErrorCode = ::GetLastError();
                                 context.ErrMsg = Utilities::GetErrorMessage(::GetLastError());
@@ -286,29 +286,38 @@ namespace SPA {
                         break;
                     case SFile::idStartDownloading:
                     {
+                        UINT64 fileSize;
+                        std::wstring localFile, remoteFile;
+                        unsigned int flags;
+                        INT64 initSize;
+                        mc >> fileSize >> localFile >> remoteFile >> flags >> initSize;
                         CAutoLock al(m_csFile);
-                        if (m_vContext.size()) {
-                            CContext &context = m_vContext.front();
-                            assert(!context.Uploading);
-                            INT64 initSize = (context.InitSize > 0) ? context.InitSize : 0;
-                            if (context.GetFilePos() > initSize) {
+                        if (!m_vContext.size()) {
+                            CContext context(false, flags);
+                            context.LocalFile = localFile;
+                            context.FilePath = remoteFile;
+                            OpenLocalWrite(context);
+                            context.InitSize = initSize;
+                            m_vContext.push_back(context);
+                        }
+                        CContext &context = m_vContext.front();
+                        context.FileSize = fileSize;
+                        assert(!context.Uploading);
+                        initSize = (context.InitSize > 0) ? context.InitSize : 0;
+                        if (context.GetFilePos() > initSize) {
 #ifdef WIN32_64
-                                auto ok = ::FlushFileBuffers(context.File);
-                                assert(ok);
-                                LARGE_INTEGER moveDis, newPos;
-                                moveDis.QuadPart = initSize;
-                                ok = ::SetFilePointerEx(context.File, moveDis, &newPos, FILE_BEGIN);
-                                assert(ok);
+                            auto ok = ::FlushFileBuffers(context.File);
+                            assert(ok);
+                            LARGE_INTEGER moveDis, newPos;
+                            moveDis.QuadPart = initSize;
+                            ok = ::SetFilePointerEx(context.File, moveDis, &newPos, FILE_BEGIN);
+                            assert(ok);
 #else
-                                auto fail = ::fsync(context.File);
-                                assert(!fail);
-                                auto newPos = ::lseek64(context.File, initSize, SEEK_SET);
-                                assert(newPos != -1);
+                            auto fail = ::fsync(context.File);
+                            assert(!fail);
+                            auto newPos = ::lseek64(context.File, initSize, SEEK_SET);
+                            assert(newPos != -1);
 #endif
-                            }
-                            mc >> context.FileSize;
-                        } else {
-                            mc.SetSize(0);
                         }
                     }
                         break;
@@ -353,9 +362,7 @@ namespace SPA {
                             CAutoLock al(m_csFile);
                             if (m_vContext.size()) {
                                 CContext &context = m_vContext.front();
-                                if (mc.GetSize()) {
-                                    mc >> context.InitSize;
-                                }
+                                mc >> context.InitSize;
                                 ctx = m_vContext.front();
                                 ctx.ErrMsg = errMsg;
                                 ctx.ErrorCode = res;
@@ -368,9 +375,7 @@ namespace SPA {
                                 ResultHandler rh;
                                 DServerException se = nullptr;
                                 CContext &context = m_vContext.front();
-                                if (mc.GetSize()) {
-                                    mc >> context.InitSize;
-                                }
+                                mc >> context.InitSize;
                                 CScopeUQueue sb(MY_OPERATION_SYSTEM, IsBigEndian(), SFile::STREAM_CHUNK_SIZE);
                                 context.QueueOk = GetAttachedClientSocket()->GetClientQueue().StartJob();
                                 bool queue_enabled = GetAttachedClientSocket()->GetClientQueue().IsAvailable();
@@ -689,7 +694,7 @@ namespace SPA {
                         break;
                     }
                     LARGE_INTEGER li;
-                    if (!GetFileSizeEx(context.File, &li)) {
+                    if (!::GetFileSizeEx(context.File, &li)) {
                         context.ErrorCode = ::GetLastError();
                         context.ErrMsg = Utilities::GetErrorMessage(::GetLastError());
                         break;

@@ -42,7 +42,7 @@ namespace SPA{
 
         int CSFileImpl::OnSlowRequestArrive(unsigned short reqId, unsigned int len) {
             BEGIN_SWITCH(reqId)
-            M_I2_R2(idDownload, Download, std::wstring, unsigned int, int, std::wstring)
+            M_I4_R2(idDownload, Download, std::wstring, std::wstring, unsigned int, INT64, int, std::wstring)
             M_I3_R3(idUpload, Upload, std::wstring, unsigned int, UINT64, int, std::wstring, INT64)
             M_I4_R0(idUploadBackup, UploadBackup, std::wstring, unsigned int, UINT64, INT64)
             M_I0_R1(idUploading, Uploading, UINT64)
@@ -341,7 +341,7 @@ namespace SPA{
 #endif
         }
 
-        void CSFileImpl::Download(const std::wstring &filePath, unsigned int flags, int &res, std::wstring & errMsg) {
+        void CSFileImpl::Download(const std::wstring &localFile, const std::wstring &filePath, unsigned int flags, INT64 initSize, int &res, std::wstring & errMsg) {
             bool absoulute;
             res = 0;
 #ifdef WIN32_64
@@ -366,14 +366,20 @@ namespace SPA{
                 errMsg = Utilities::GetErrorMessage((DWORD) res);
                 return;
             }
-            DWORD dwHigh = 0;
-            DWORD dwLow = ::GetFileSize(h, &dwHigh);
-            UINT64 StreamSize = dwHigh;
-            StreamSize <<= 32;
-            StreamSize += dwLow;
-            if (SendResult(idStartDownloading, StreamSize) != sizeof (StreamSize)) {
-                ::CloseHandle(h);
-                return; //socket closed or canceled
+            LARGE_INTEGER li;
+            if (!::GetFileSizeEx(h, &li)) {
+                res = ::GetLastError();
+                errMsg = Utilities::GetErrorMessage((DWORD) res);
+                return;
+            }
+            UINT64 StreamSize = (UINT64) li.QuadPart;
+            {
+                CScopeUQueue sb;
+                sb << StreamSize << localFile << filePath << flags << initSize;
+                if (SendResult(idStartDownloading, sb->GetBuffer(), sb->GetSize()) != sb->GetSize()) {
+                    ::CloseHandle(h);
+                    return; //socket closed or canceled
+                }
             }
             CScopeUQueue sb(MY_OPERATION_SYSTEM, IsBigEndian(), STREAM_CHUNK_SIZE);
             unsigned int size = (unsigned int) ((StreamSize > STREAM_CHUNK_SIZE) ? STREAM_CHUNK_SIZE : StreamSize);
@@ -426,9 +432,13 @@ namespace SPA{
             }
             static_assert(sizeof (st.st_size) >= sizeof (UINT64), "Big file not supported");
             UINT64 StreamSize = st.st_size;
-            if (SendResult(idStartDownloading, StreamSize) != sizeof (StreamSize)) {
-                ::close(h);
-                return; //socket closed or canceled
+            {
+                CScopeUQueue sb;
+                sb << StreamSize << localFile << filePath << flags << initSize;
+                if (SendResult(idStartDownloading, sb->GetBuffer(), sb->GetSize()) != sb->GetSize()) {
+                    ::close(h);
+                    return; //socket closed or canceled
+                }
             }
             unsigned int size = (unsigned int) ((StreamSize > STREAM_CHUNK_SIZE) ? STREAM_CHUNK_SIZE : StreamSize);
             CScopeUQueue sb(MY_OPERATION_SYSTEM, IsBigEndian(), STREAM_CHUNK_SIZE);
