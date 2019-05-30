@@ -1,6 +1,7 @@
 57. SocketPro Version 6.3.0.1
 	(a) Add the method PostProcessing to dispatch requests from calling thread onto pool worker thread at client side
-	(b) Upgrade CStreamingFile at client side to use PostProcessing for all adapters
+	(b) Re-write remote file service to use PostProcessing instead
+	(c) Fix a connection time-out issue within window ce client core library
 
 56. SocketPro Version 6.2.0.1-4
 	(a) Fix a potential crash related socket disconnection at client side.

@@ -1,9 +1,11 @@
 85. SocketPro Version 6.3.0.1
 	(a) Add the method PostProcessing to dispatch requests from calling thread onto pool worker thread at client side
-	(b) Upgrade CStreamingFile at client side to use PostProcessing for all adapters
-	(c) Recompile core libraries using Visual C++ 2017 instead of old Visual C++ 2010
-	(d) SocketPro supports windows ce/device 4.0 and windows vsta or later
-	(e) SocketPro still supports windows XP and 2003 by old Visual C++ 2010 compilation per your requirement
+	(b) Re-write remote file service to use PostProcessing instead
+	(c) Fix a connection time-out issue within window client core library
+	(d) Fix the issue, which the virtual function OnReleaseResource(bool bClosing, uint info) at server side, was not called when a session is closed
+	(e) Recompile core libraries using Visual C++ 2017 instead of old Visual C++ 2010
+	(f) SocketPro supports windows ce/device 4.0 and windows vsta or later
+	(g) SocketPro still supports windows XP and 2003 by old Visual C++ 2010 compilation per your requirement
 
 84. SocketPro Version 6.2.0.1-4
 	(a) Add support of TLSv1.2 and TLSv1.3, and disable SSL3
