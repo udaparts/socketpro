@@ -74,7 +74,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
     <IncludePath>C:\cyetest\mysql-8.0.11\include;$(IncludePath)</IncludePath>
-    <LibraryPath>C:\cyetest\mysql-8.0.11\build_x64\archive_output_directory\Release;C:\cyetest\mysql-8.0.11\build_x64\sql\Release;$(LibraryPath)</LibraryPath>
+    <LibraryPath>$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
@@ -83,7 +83,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
     <IncludePath>C:\cyetest\mysql-8.0.11\include;$(IncludePath)</IncludePath>
-    <LibraryPath>C:\cyetest\mysql-8.0.11\build_x64\archive_output_directory\Release;C:\cyetest\mysql-8.0.11\build_x64\sql\Release;$(LibraryPath)</LibraryPath>
+    <LibraryPath>$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
