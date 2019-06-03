@@ -52,12 +52,12 @@ namespace NJA {
     };
 
     //internal utility methods
-    bool From(const Local<Value>& v, const std::string &hint, CComVariant &vt);
-    SPA::UINT64 ToDate(const Local<Value>& d);
+    bool From(Isolate* isolate, const Local<Value>& v, const std::string &hint, CComVariant &vt);
+    SPA::UINT64 ToDate(Isolate* isolate, const Local<Value>& d);
     Local<Value> ToDate(Isolate* isolate, SPA::UINT64 dt);
     Local<String> ToStr(Isolate* isolate, const uint16_t *str, size_t len = (size_t) INVALID_NUMBER);
-    std::wstring ToStr(const Local<Value> &s);
-    std::string ToAStr(const Local<Value> &s);
+    std::wstring ToStr(Isolate* isolate, const Local<Value> &s);
+    std::string ToAStr(Isolate* isolate, const Local<Value> &s);
     bool ToPInfoArray(Isolate* isolate, const Local<Value> &pInfo, CParameterInfoArray &vInfo);
     bool ToGroups(Isolate* isolate, const Local<Value>& p, std::vector<unsigned int> &v);
     Local<Array> ToMeta(Isolate* isolate, const CDBColumnInfoArray &v);

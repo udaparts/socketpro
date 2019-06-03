@@ -49,8 +49,8 @@ namespace NJA {
         NODE_SET_PROTOTYPE_METHOD(tpl, "getEnqNotified", getEnqueueNotified);
         NODE_SET_PROTOTYPE_METHOD(tpl, "setResultReturned", setResultReturned);
 
-        constructor.Reset(isolate, tpl->GetFunction());
-        exports->Set(ToStr(isolate, "CAsyncQueue"), tpl->GetFunction());
+        constructor.Reset(isolate, tpl->GetFunction(isolate->GetCurrentContext()).ToLocalChecked());
+        exports->Set(ToStr(isolate, "CAsyncQueue"), tpl->GetFunction(isolate->GetCurrentContext()).ToLocalChecked());
     }
 
     Local<Object> NJAsyncQueue::New(Isolate* isolate, CAQueue *ash, bool setCb) {
@@ -64,9 +64,9 @@ namespace NJA {
     void NJAsyncQueue::New(const FunctionCallbackInfo<Value>& args) {
         Isolate* isolate = args.GetIsolate();
         if (args.IsConstructCall()) {
-            if (args[0]->IsBoolean() && args[1]->IsNumber() && args[1]->IntegerValue() == SECRECT_NUM && args[2]->IsNumber()) {
+            if (args[0]->IsBoolean() && args[1]->IsNumber() && args[1]->IntegerValue(isolate->GetCurrentContext()).ToChecked() == SECRECT_NUM && args[2]->IsNumber()) {
                 //bool setCb = args[0]->BooleanValue();
-                SPA::INT64 ptr = args[2]->IntegerValue();
+                SPA::INT64 ptr = args[2]->IntegerValue(isolate->GetCurrentContext()).ToChecked();
                 NJAsyncQueue *obj = new NJAsyncQueue((CAQueue*) ptr);
                 obj->Wrap(args.This());
                 args.GetReturnValue().Set(args.This());
@@ -145,7 +145,11 @@ namespace NJA {
             ThrowException(isolate, "A valid key string required to find a queue file at server side");
             return "";
         }
+#if NODE_MODULE_VERSION < 57		
         String::Utf8Value str(jsKey);
+#else
+        String::Utf8Value str(isolate, jsKey);
+#endif
         std::string s(*str);
         if (!s.size()) {
             ThrowException(isolate, "A valid key string required to find a queue file at server side");
@@ -175,7 +179,7 @@ namespace NJA {
             bool rollback = false;
             auto p0 = args[0];
             if (p0->IsBoolean())
-                rollback = p0->BooleanValue();
+                rollback = p0->BooleanValue(isolate->GetCurrentContext()).ToChecked();
             else if (!IsNullOrUndefined(p0)) {
                 ThrowException(isolate, "Boolean value expected for rollback");
                 return;
@@ -199,7 +203,7 @@ namespace NJA {
             auto p = args[3];
             bool perm = false;
             if (p->IsBoolean())
-                perm = p->BooleanValue();
+                perm = p->BooleanValue(isolate->GetCurrentContext()).ToChecked();
             else if (!IsNullOrUndefined(p)) {
                 ThrowException(isolate, "Boolean value expected for permanent delete");
                 return;
@@ -222,7 +226,7 @@ namespace NJA {
             auto p = args[3];
             int option = 0;
             if (p->IsInt32())
-                option = p->Int32Value();
+                option = p->Int32Value(isolate->GetCurrentContext()).ToChecked();
             else if (!IsNullOrUndefined(p)) {
                 ThrowException(isolate, "Integer value expected for flush option");
                 return;
@@ -249,7 +253,7 @@ namespace NJA {
             auto p = args[3];
             unsigned int timeout = 0;
             if (p->IsUint32())
-                timeout = p->Uint32Value();
+                timeout = p->Uint32Value(isolate->GetCurrentContext()).ToChecked();
             else if (!IsNullOrUndefined(p)) {
                 ThrowException(isolate, "Unsigned int value expected for dequeue timeout in millsecond");
                 return;
@@ -271,7 +275,7 @@ namespace NJA {
             auto p = args[1];
             unsigned int reqId = 0;
             if (p->IsUint32())
-                reqId = p->Uint32Value();
+                reqId = p->Uint32Value(isolate->GetCurrentContext()).ToChecked();
             else {
                 ThrowException(isolate, "Unsigned short value expected for message request id");
                 return;
@@ -281,7 +285,7 @@ namespace NJA {
             unsigned int size = 0;
             const unsigned char *buffer = nullptr;
             if (p->IsObject()) {
-                auto qObj = p->ToObject();
+                auto qObj = p->ToObject(isolate->GetCurrentContext()).ToLocalChecked();
                 if (NJQueue::IsUQueue(qObj)) {
                     njq = ObjectWrap::Unwrap<NJQueue>(qObj);
                     SPA::CUQueue *q = njq->get();
@@ -316,7 +320,7 @@ namespace NJA {
                 ThrowException(isolate, "A valid request id expected for the 1st input");
                 return;
             }
-            unsigned int reqId = p0->Uint32Value();
+            unsigned int reqId = p0->Uint32Value(isolate->GetCurrentContext()).ToChecked();
             if (reqId > 0xffff || reqId <= SPA::tagBaseRequestID::idReservedTwo) {
                 ThrowException(isolate, "A valid unsigned short request id expected");
                 return;
@@ -335,7 +339,7 @@ namespace NJA {
                 CAsyncQueue::BatchMessage(reqId, (const unsigned char*) nullptr, 0, *obj->m_qBatch);
                 return;
             } else if (p1->IsObject()) {
-                auto qObj = p1->ToObject();
+                auto qObj = p1->ToObject(isolate->GetCurrentContext()).ToLocalChecked();
                 if (NJQueue::IsUQueue(qObj)) {
                     NJQueue *njq = ObjectWrap::Unwrap<NJQueue>(qObj);
                     SPA::CUQueue *q = njq->get();

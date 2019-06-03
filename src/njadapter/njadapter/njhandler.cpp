@@ -20,8 +20,8 @@ namespace NJA {
 
         NJHandlerRoot::Init(exports, tpl);
 
-        constructor.Reset(isolate, tpl->GetFunction());
-        exports->Set(ToStr(isolate, "CHandler"), tpl->GetFunction());
+        constructor.Reset(isolate, tpl->GetFunction(isolate->GetCurrentContext()).ToLocalChecked());
+        exports->Set(ToStr(isolate, "CHandler"), tpl->GetFunction(isolate->GetCurrentContext()).ToLocalChecked());
     }
 
     Local<Object> NJHandler::New(Isolate* isolate, CAsyncServiceHandler *ash, bool setCb) {
@@ -35,9 +35,9 @@ namespace NJA {
     void NJHandler::New(const FunctionCallbackInfo<Value>& args) {
         Isolate* isolate = args.GetIsolate();
         if (args.IsConstructCall()) {
-            if (args[0]->IsBoolean() && args[1]->IsNumber() && args[1]->IntegerValue() == SECRECT_NUM && args[2]->IsNumber()) {
+            if (args[0]->IsBoolean() && args[1]->IsNumber() && args[1]->IntegerValue(isolate->GetCurrentContext()).ToChecked() == SECRECT_NUM && args[2]->IsNumber()) {
                 //bool setCb = args[0]->BooleanValue();
-                SPA::INT64 ptr = args[2]->IntegerValue();
+                SPA::INT64 ptr = args[2]->IntegerValue(isolate->GetCurrentContext()).ToChecked();
                 NJHandler *obj = new NJHandler((CAsyncServiceHandler*) ptr);
                 obj->Wrap(args.This());
                 args.GetReturnValue().Set(args.This());

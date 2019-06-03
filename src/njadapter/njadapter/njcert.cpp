@@ -19,8 +19,8 @@ namespace NJA {
         //method
         NODE_SET_PROTOTYPE_METHOD(tpl, "Verify", Verify);
 
-        constructor.Reset(isolate, tpl->GetFunction());
-        exports->Set(ToStr(isolate, "CCert"), tpl->GetFunction());
+        constructor.Reset(isolate, tpl->GetFunction(isolate->GetCurrentContext()).ToLocalChecked());
+        exports->Set(ToStr(isolate, "CCert"), tpl->GetFunction(isolate->GetCurrentContext()).ToLocalChecked());
     }
 
     void NJCert::Verify(const FunctionCallbackInfo<Value>& args) {
@@ -76,9 +76,9 @@ namespace NJA {
     void NJCert::New(const FunctionCallbackInfo<Value>& args) {
         Isolate* isolate = args.GetIsolate();
         if (args.IsConstructCall()) {
-            if (args[0]->IsBoolean() && args[1]->IsNumber() && args[1]->IntegerValue() == SECRECT_NUM && args[2]->IsNumber()) {
+            if (args[0]->IsBoolean() && args[1]->IsNumber() && args[1]->IntegerValue(isolate->GetCurrentContext()).ToChecked() == SECRECT_NUM && args[2]->IsNumber()) {
                 //bool setCb = args[0]->BooleanValue();
-                SPA::INT64 ptr = args[2]->IntegerValue();
+                SPA::INT64 ptr = args[2]->IntegerValue(isolate->GetCurrentContext()).ToChecked();
                 NJCert *obj = new NJCert((SPA::IUcert*)ptr);
                 obj->Wrap(args.This());
                 args.GetReturnValue().Set(args.This());

@@ -53,8 +53,8 @@ namespace NJA {
         //NODE_SET_PROTOTYPE_METHOD(tpl, "AppendTo", AppendTo);
         //NODE_SET_PROTOTYPE_METHOD(tpl, "EnsureAppending", EnsureAppending);
 
-        constructor.Reset(isolate, tpl->GetFunction());
-        exports->Set(ToStr(isolate, "CClientQueue"), tpl->GetFunction());
+        constructor.Reset(isolate, tpl->GetFunction(isolate->GetCurrentContext()).ToLocalChecked());
+        exports->Set(ToStr(isolate, "CClientQueue"), tpl->GetFunction(isolate->GetCurrentContext()).ToLocalChecked());
     }
 
     Local<Object> NJClientQueue::New(Isolate* isolate, SPA::ClientSide::IClientQueue *cq, bool setCb) {
@@ -68,9 +68,9 @@ namespace NJA {
     void NJClientQueue::New(const FunctionCallbackInfo<Value>& args) {
         Isolate* isolate = args.GetIsolate();
         if (args.IsConstructCall()) {
-            if (args[0]->IsBoolean() && args[1]->IsNumber() && args[1]->IntegerValue() == SECRECT_NUM && args[2]->IsNumber()) {
+            if (args[0]->IsBoolean() && args[1]->IsNumber() && args[1]->IntegerValue(isolate->GetCurrentContext()).ToChecked() == SECRECT_NUM && args[2]->IsNumber()) {
                 //bool setCb = args[0]->BooleanValue();
-                SPA::INT64 ptr = args[2]->IntegerValue();
+                SPA::INT64 ptr = args[2]->IntegerValue(isolate->GetCurrentContext()).ToChecked();
                 NJClientQueue *obj = new NJClientQueue((SPA::ClientSide::IClientQueue*)ptr);
                 obj->Wrap(args.This());
                 args.GetReturnValue().Set(args.This());
@@ -92,7 +92,7 @@ namespace NJA {
         auto p = args[0];
         std::string qName;
         if (p->IsString()) {
-            qName = ToAStr(p);
+            qName = ToAStr(isolate, p);
         }
         if (!qName.size()) {
             ThrowException(isolate, "A non-empty string expected for client queue name");
@@ -101,7 +101,7 @@ namespace NJA {
         bool secure = (ClientCoreLoader.GetEncryptionMethod(obj->m_cq->GetHandle()) != NoEncryption);
         p = args[1];
         if (p->IsBoolean()) {
-            secure = p->BooleanValue();
+            secure = p->BooleanValue(isolate->GetCurrentContext()).ToChecked();
         } else if (!IsNullOrUndefined(p)) {
             ThrowException(isolate, "A boolean expected for client queue security");
             return;
@@ -109,7 +109,7 @@ namespace NJA {
         p = args[2];
         unsigned int ttl = 24 * 3600;
         if (p->IsUint32()) {
-            ttl = p->Uint32Value();
+            ttl = p->Uint32Value(isolate->GetCurrentContext()).ToChecked();
         } else if (!IsNullOrUndefined(p)) {
             ThrowException(isolate, "An unsigned int value expected for message time-to-live");
             return;
@@ -124,7 +124,7 @@ namespace NJA {
         auto p = args[0];
         bool permanent = false;
         if (p->IsBoolean()) {
-            permanent = p->BooleanValue();
+            permanent = p->BooleanValue(isolate->GetCurrentContext()).ToChecked();
         } else if (!IsNullOrUndefined(p)) {
             ThrowException(isolate, BOOLEAN_EXPECTED);
             return;
@@ -261,7 +261,7 @@ namespace NJA {
         SPA::UINT64 milliseconds = obj->m_cq->GetLastMessageTime();
         milliseconds += time_offset((time_t) milliseconds);
         milliseconds *= 1000;
-        args.GetReturnValue().Set(Date::New(isolate, (double) milliseconds));
+        args.GetReturnValue().Set(Date::New(isolate->GetCurrentContext(), (double) milliseconds).ToLocalChecked());
     }
 
     void NJClientQueue::setRoutingQueueIndex(const FunctionCallbackInfo<Value>& args) {
@@ -270,7 +270,7 @@ namespace NJA {
         bool enabled = false;
         auto p = args[0];
         if (p->IsBoolean()) {
-            enabled = p->BooleanValue();
+            enabled = p->BooleanValue(isolate->GetCurrentContext()).ToChecked();
         } else if (!IsNullOrUndefined(p)) {
             ThrowException(isolate, BOOLEAN_EXPECTED);
             return;
@@ -299,7 +299,7 @@ namespace NJA {
             ThrowException(isolate, "An integer value expected for optimistic value");
             return;
         }
-        int n = p->Int32Value();
+        int n = p->Int32Value(isolate->GetCurrentContext()).ToChecked();
         if (n < oMemoryCached || n > oDiskCommitted) {
             ThrowException(isolate, "A valid value expected for optimistic value");
             return;

@@ -123,8 +123,8 @@ namespace NJA {
         NODE_SET_PROTOTYPE_METHOD(tpl, "setSize", setSize);
         NODE_SET_PROTOTYPE_METHOD(tpl, "getOS", getOS);
 
-        constructor.Reset(isolate, tpl->GetFunction());
-        exports->Set(ToStr(isolate, "CUQueue"), tpl->GetFunction());
+        constructor.Reset(isolate, tpl->GetFunction(isolate->GetCurrentContext()).ToLocalChecked());
+        exports->Set(ToStr(isolate, "CUQueue"), tpl->GetFunction(isolate->GetCurrentContext()).ToLocalChecked());
         m_tpl.Reset(isolate, tpl);
     }
 
@@ -139,8 +139,9 @@ namespace NJA {
     void NJQueue::Discard(const FunctionCallbackInfo<Value>& args) {
         NJQueue* obj = ObjectWrap::Unwrap<NJQueue>(args.Holder());
         unsigned int ret = 0;
+        Isolate* isolate = args.GetIsolate();
         if (obj->m_Buffer && args[0]->IsUint32()) {
-            ret = obj->m_Buffer->Pop((unsigned int) args[0]->Uint32Value());
+            ret = obj->m_Buffer->Pop((unsigned int) args[0]->Uint32Value(args.GetIsolate()->GetCurrentContext()).ToChecked());
         }
         args.GetReturnValue().Set(Uint32::New(args.GetIsolate(), ret));
     }
@@ -148,10 +149,11 @@ namespace NJA {
     void NJQueue::setSize(const FunctionCallbackInfo<Value>& args) {
         NJQueue* obj = ObjectWrap::Unwrap<NJQueue>(args.Holder());
         unsigned int size = 0;
+        Isolate* isolate = args.GetIsolate();
         if (args.Length() && args[0]->IsUint32())
-            size = args[0]->Uint32Value();
+            size = args[0]->Uint32Value(isolate->GetCurrentContext()).ToChecked();
         else {
-            ThrowException(args.GetIsolate(), "Unsigned int expected");
+            ThrowException(isolate, "Unsigned int expected");
             return;
         }
         unsigned int ret = 0;
@@ -159,7 +161,7 @@ namespace NJA {
             obj->m_Buffer->SetSize(size);
             ret = obj->m_Buffer->GetSize();
         }
-        args.GetReturnValue().Set(Uint32::New(args.GetIsolate(), ret));
+        args.GetReturnValue().Set(Uint32::New(isolate, ret));
     }
 
     void NJQueue::getMaxBufferSize(const FunctionCallbackInfo<Value>& args) {
@@ -172,10 +174,11 @@ namespace NJA {
 
     void NJQueue::Realloc(const FunctionCallbackInfo<Value>& args) {
         unsigned int size = 0;
+        Isolate* isolate = args.GetIsolate();
         if (args.Length() && args[0]->IsUint32())
-            size = args[0]->Uint32Value();
+            size = args[0]->Uint32Value(isolate->GetCurrentContext()).ToChecked();
         else {
-            ThrowException(args.GetIsolate(), "Unsigned int expected");
+            ThrowException(isolate, "Unsigned int expected");
             return;
         }
         NJQueue* obj = ObjectWrap::Unwrap<NJQueue>(args.Holder());
@@ -187,15 +190,16 @@ namespace NJA {
 
     void NJQueue::UseStrForDec(const FunctionCallbackInfo<Value>& args) {
         NJQueue* obj = ObjectWrap::Unwrap<NJQueue>(args.Holder());
+        Isolate* isolate = args.GetIsolate();
         if (args[0]->IsBoolean())
-            obj->m_StrForDec = args[0]->BooleanValue();
+            obj->m_StrForDec = args[0]->BooleanValue(isolate->GetCurrentContext()).ToChecked();
         else if (IsNullOrUndefined(args[0]))
             obj->m_StrForDec = false;
         else {
-            ThrowException(args.GetIsolate(), BOOLEAN_EXPECTED);
+            ThrowException(isolate, BOOLEAN_EXPECTED);
             return;
         }
-        args.GetReturnValue().Set(Boolean::New(args.GetIsolate(), obj->m_StrForDec));
+        args.GetReturnValue().Set(Boolean::New(isolate, obj->m_StrForDec));
     }
 
     void NJQueue::getSize(const FunctionCallbackInfo<Value>& args) {
@@ -344,7 +348,7 @@ namespace NJA {
             size = obj->m_Buffer->GetSize();
         }
         if (args.Length() && args[0]->IsUint32())
-            all = args[0]->Uint32Value();
+            all = args[0]->Uint32Value(isolate->GetCurrentContext()).ToChecked();
         if (size > all)
             size = all;
         if (size) {
@@ -455,111 +459,112 @@ namespace NJA {
     }
 
     void NJQueue::SaveByte(const FunctionCallbackInfo<Value>& args) {
+        Isolate* isolate = args.GetIsolate();
         if (args.Length() && args[0]->IsUint32()) {
             NJQueue* obj = ObjectWrap::Unwrap<NJQueue>(args.Holder());
-            unsigned char b = (unsigned char) (args[0]->Uint32Value());
+            unsigned char b = (unsigned char) (args[0]->Uint32Value(isolate->GetCurrentContext()).ToChecked());
             obj->Save(args, b);
         } else {
-            Isolate* isolate = args.GetIsolate();
             ThrowException(isolate, BAD_DATA_TYPE);
         }
     }
 
     void NJQueue::SaveAChar(const FunctionCallbackInfo<Value>& args) {
+        Isolate* isolate = args.GetIsolate();
         if (args.Length() && args[0]->IsInt32()) {
             NJQueue* obj = ObjectWrap::Unwrap<NJQueue>(args.Holder());
-            char b = (char) (args[0]->Int32Value());
+            char b = (char) (args[0]->Int32Value(isolate->GetCurrentContext()).ToChecked());
             obj->Save(args, b);
         } else {
-            Isolate* isolate = args.GetIsolate();
+
             ThrowException(isolate, BAD_DATA_TYPE);
         }
     }
 
     void NJQueue::SaveShort(const FunctionCallbackInfo<Value>& args) {
+        Isolate* isolate = args.GetIsolate();
         if (args.Length() && args[0]->IsInt32()) {
             NJQueue* obj = ObjectWrap::Unwrap<NJQueue>(args.Holder());
-            short b = (short) (args[0]->Int32Value());
+            short b = (short) (args[0]->Int32Value(isolate->GetCurrentContext()).ToChecked());
             obj->Save(args, b);
         } else {
-            Isolate* isolate = args.GetIsolate();
             ThrowException(isolate, BAD_DATA_TYPE);
         }
     }
 
     void NJQueue::SaveInt(const FunctionCallbackInfo<Value>& args) {
+        Isolate* isolate = args.GetIsolate();
         if (args.Length() && args[0]->IsInt32()) {
             NJQueue* obj = ObjectWrap::Unwrap<NJQueue>(args.Holder());
-            int b = (int) (args[0]->Int32Value());
+            int b = (int) (args[0]->Int32Value(isolate->GetCurrentContext()).ToChecked());
             obj->Save(args, b);
         } else {
-            Isolate* isolate = args.GetIsolate();
             ThrowException(isolate, BAD_DATA_TYPE);
         }
     }
 
     void NJQueue::SaveFloat(const FunctionCallbackInfo<Value>& args) {
+        Isolate* isolate = args.GetIsolate();
         if (args.Length() && args[0]->IsNumber()) {
             NJQueue* obj = ObjectWrap::Unwrap<NJQueue>(args.Holder());
-            float b = (float) (args[0]->NumberValue());
+            float b = (float) (args[0]->NumberValue(isolate->GetCurrentContext()).ToChecked());
             obj->Save(args, b);
         } else {
-            Isolate* isolate = args.GetIsolate();
             ThrowException(isolate, BAD_DATA_TYPE);
         }
     }
 
     void NJQueue::SaveDouble(const FunctionCallbackInfo<Value>& args) {
+        Isolate* isolate = args.GetIsolate();
         if (args.Length() && args[0]->IsNumber()) {
             NJQueue* obj = ObjectWrap::Unwrap<NJQueue>(args.Holder());
-            double b = (args[0]->NumberValue());
+            double b = (args[0]->NumberValue(isolate->GetCurrentContext()).ToChecked());
             obj->Save(args, b);
         } else {
-            Isolate* isolate = args.GetIsolate();
             ThrowException(isolate, BAD_DATA_TYPE);
         }
     }
 
     void NJQueue::SaveLong(const FunctionCallbackInfo<Value>& args) {
+        Isolate* isolate = args.GetIsolate();
         if (args.Length() && args[0]->IsNumber()) {
             NJQueue* obj = ObjectWrap::Unwrap<NJQueue>(args.Holder());
-            SPA::INT64 b = args[0]->IntegerValue();
+            SPA::INT64 b = args[0]->IntegerValue(isolate->GetCurrentContext()).ToChecked();
             obj->Save(args, b);
         } else {
-            Isolate* isolate = args.GetIsolate();
             ThrowException(isolate, BAD_DATA_TYPE);
         }
     }
 
     void NJQueue::SaveULong(const FunctionCallbackInfo<Value>& args) {
+        Isolate* isolate = args.GetIsolate();
         if (args.Length() && args[0]->IsNumber()) {
             NJQueue* obj = ObjectWrap::Unwrap<NJQueue>(args.Holder());
-            SPA::UINT64 b = (SPA::UINT64)(args[0]->IntegerValue());
+            SPA::UINT64 b = (SPA::UINT64)(args[0]->IntegerValue(isolate->GetCurrentContext()).ToChecked());
             obj->Save(args, b);
         } else {
-            Isolate* isolate = args.GetIsolate();
             ThrowException(isolate, BAD_DATA_TYPE);
         }
     }
 
     void NJQueue::SaveUInt(const FunctionCallbackInfo<Value>& args) {
+        Isolate* isolate = args.GetIsolate();
         if (args.Length() && args[0]->IsUint32()) {
             NJQueue* obj = ObjectWrap::Unwrap<NJQueue>(args.Holder());
-            unsigned int b = (args[0]->Uint32Value());
+            unsigned int b = (args[0]->Uint32Value(isolate->GetCurrentContext()).ToChecked());
             obj->Save(args, b);
         } else {
-            Isolate* isolate = args.GetIsolate();
             ThrowException(isolate, BAD_DATA_TYPE);
         }
     }
 
     void NJQueue::SaveUShort(const FunctionCallbackInfo<Value>& args) {
+        Isolate* isolate = args.GetIsolate();
         if (args.Length() && args[0]->IsUint32()) {
             NJQueue* obj = ObjectWrap::Unwrap<NJQueue>(args.Holder());
-            unsigned short b = (unsigned short) (args[0]->Uint32Value());
+            unsigned short b = (unsigned short) (args[0]->Uint32Value(isolate->GetCurrentContext()).ToChecked());
             obj->Save(args, b);
         } else {
-            Isolate* isolate = args.GetIsolate();
             ThrowException(isolate, BAD_DATA_TYPE);
         }
     }
@@ -606,6 +611,7 @@ namespace NJA {
     }
 
     void NJQueue::SaveAString(const FunctionCallbackInfo<Value>& args) {
+        Isolate* isolate = args.GetIsolate();
         if (args.Length()) {
             NJQueue* obj = ObjectWrap::Unwrap<NJQueue>(args.Holder());
             obj->Ensure();
@@ -614,20 +620,24 @@ namespace NJA {
                 *obj->m_Buffer << (const char*) nullptr;
             } else {
                 if (!p->IsString())
-                    p = p->ToString();
+                    p = p->ToString(isolate->GetCurrentContext()).ToLocalChecked();
+#if NODE_MODULE_VERSION < 57
                 String::Utf8Value str(p);
+#else
+                String::Utf8Value str(isolate, p);
+#endif
                 unsigned int len = (unsigned int) str.length();
                 *obj->m_Buffer << len;
                 obj->m_Buffer->Push((const unsigned char*) (*str), len);
             }
             args.GetReturnValue().Set(args.Holder());
         } else {
-            Isolate* isolate = args.GetIsolate();
             ThrowException(isolate, BAD_DATA_TYPE);
         }
     }
 
     void NJQueue::SaveString(const FunctionCallbackInfo<Value>& args) {
+        Isolate* isolate = args.GetIsolate();
         if (args.Length()) {
             NJQueue* obj = ObjectWrap::Unwrap<NJQueue>(args.Holder());
             obj->Ensure();
@@ -636,8 +646,12 @@ namespace NJA {
                 *obj->m_Buffer << (const wchar_t *)nullptr;
             } else {
                 if (!p->IsString())
-                    p = p->ToString();
+                    p = p->ToString(isolate->GetCurrentContext()).ToLocalChecked();
+#if NODE_MODULE_VERSION < 57
                 String::Value str(p);
+#else
+                String::Value str(isolate, p);
+#endif
                 unsigned int len = (unsigned int) str.length();
                 len *= sizeof (uint16_t);
                 *obj->m_Buffer << len;
@@ -645,20 +659,24 @@ namespace NJA {
             }
             args.GetReturnValue().Set(args.Holder());
         } else {
-            Isolate* isolate = args.GetIsolate();
             ThrowException(isolate, BAD_DATA_TYPE);
         }
     }
 
     void NJQueue::SaveDecimal(const FunctionCallbackInfo<Value>& args) {
+        Isolate* isolate = args.GetIsolate();
         if (args.Length()) {
             NJQueue* obj = ObjectWrap::Unwrap<NJQueue>(args.Holder());
             obj->Ensure();
             auto p = args[0];
             if (p->IsNumber() || p->IsString()) {
                 if (!p->IsString())
-                    p = p->ToString();
+                    p = p->ToString(isolate->GetCurrentContext()).ToLocalChecked();
+#if NODE_MODULE_VERSION < 57
                 String::Utf8Value str(p);
+#else
+                String::Utf8Value str(isolate, p);
+#endif
                 const char *s = *str;
                 DECIMAL dec;
                 SPA::ParseDec_long(s, dec);
@@ -667,7 +685,6 @@ namespace NJA {
                 return;
             }
         }
-        Isolate* isolate = args.GetIsolate();
         ThrowException(isolate, BAD_DATA_TYPE);
     }
 
@@ -677,7 +694,7 @@ namespace NJA {
             NJQueue* obj = ObjectWrap::Unwrap<NJQueue>(args.Holder());
             obj->Ensure();
             auto p = args[0];
-            SPA::UINT64 d = ToDate(p);
+            SPA::UINT64 d = ToDate(isolate, p);
             if (d == INVALID_NUMBER) {
                 ThrowException(isolate, BAD_DATA_TYPE);
                 return;
@@ -769,7 +786,11 @@ namespace NJA {
         std::string id;
         auto p1 = args[1];
         if (p1->IsString()) {
+#if NODE_MODULE_VERSION < 57
             String::Utf8Value str(p1);
+#else
+            String::Utf8Value str(isolate, p1);
+#endif
             const char *s = *str;
             id.assign(s, str.length());
             std::transform(id.begin(), id.end(), id.begin(), ::tolower);
@@ -991,7 +1012,7 @@ namespace NJA {
                         return;
                     } else
                         dt = dtBool;
-                    VARIANT_BOOL b = d->BooleanValue() ? VARIANT_TRUE : VARIANT_FALSE;
+                    VARIANT_BOOL b = d->BooleanValue(isolate->GetCurrentContext()).ToChecked() ? VARIANT_TRUE : VARIANT_FALSE;
                     sb << b;
                 } else if (d->IsDate()) {
                     if (dt && dt != dtDate) {
@@ -999,7 +1020,7 @@ namespace NJA {
                         return;
                     } else
                         dt = dtDate;
-                    SPA::UINT64 time = ToDate(d);
+                    SPA::UINT64 time = ToDate(isolate, d);
                     sb << time;
 #ifdef HAS_BIGINT
                 } else if (d->IsBigInt() || id == "l" || id == "long") {
@@ -1008,7 +1029,7 @@ namespace NJA {
                         return;
                     } else
                         dt = dtInt64;
-                    sb << d->IntegerValue();
+                    sb << d->IntegerValue(isolate->GetCurrentContext()).ToChecked();
 #endif
                 } else if (d->IsInt32() || id == "i" || id == "int") {
                     if (dt && dt != dtInt32) {
@@ -1016,21 +1037,25 @@ namespace NJA {
                         return;
                     } else
                         dt = dtInt32;
-                    sb << d->Int32Value();
+                    sb << d->Int32Value(isolate->GetCurrentContext()).ToChecked();
                 } else if (d->IsNumber()) {
                     if (dt && dt != dtDouble) {
                         ThrowException(isolate, UNSUPPORTED_ARRAY_TYPE);
                         return;
                     } else
                         dt = dtDouble;
-                    sb << d->NumberValue();
+                    sb << d->NumberValue(isolate->GetCurrentContext()).ToChecked();
                 } else if (d->IsString()) {
                     if (dt && dt != dtString) {
                         ThrowException(isolate, UNSUPPORTED_ARRAY_TYPE);
                         return;
                     } else
                         dt = dtString;
+#if NODE_MODULE_VERSION < 57
                     String::Value str(d);
+#else
+                    String::Value str(isolate, d);
+#endif
                     unsigned int len = (unsigned int) str.length();
                     len *= sizeof (uint16_t);
                     sb << len;
@@ -1089,20 +1114,21 @@ namespace NJA {
     }
 
     void NJQueue::New(const FunctionCallbackInfo<Value>& args) {
+        auto isolate = args.GetIsolate();
         if (args.IsConstructCall()) {
             NJQueue* obj;
             unsigned int initSize = SPA::DEFAULT_INITIAL_MEMORY_BUFFER_SIZE;
             unsigned int blockSize = SPA::DEFAULT_MEMORY_BUFFER_BLOCK_SIZE;
-            if (args[0]->IsBoolean() && args[0]->BooleanValue() && args[1]->IsNumber() && args[1]->IntegerValue() == SECRECT_NUM && args[2]->IsNumber()) {
-                SPA::INT64 ptr = args[2]->IntegerValue();
+            if (args[0]->IsBoolean() && args[0]->BooleanValue(isolate->GetCurrentContext()).ToChecked() && args[1]->IsNumber() && args[1]->IntegerValue(isolate->GetCurrentContext()).ToChecked() == SECRECT_NUM && args[2]->IsNumber()) {
+                SPA::INT64 ptr = args[2]->IntegerValue(isolate->GetCurrentContext()).ToChecked();
                 // Invoked as constructor: `new CUQueue(...)`
                 obj = new NJQueue((CUQueue*) ptr, initSize, blockSize);
             } else {
                 if (args.Length() > 0 && args[0]->IsUint32()) {
-                    initSize = args[0]->Uint32Value();
+                    initSize = args[0]->Uint32Value(isolate->GetCurrentContext()).ToChecked();
                 }
                 if (args.Length() > 1 && args[1]->IsUint32()) {
-                    blockSize = args[1]->Uint32Value();
+                    blockSize = args[1]->Uint32Value(isolate->GetCurrentContext()).ToChecked();
                 }
                 // Invoked as constructor: `new CUQueue(...)`
                 obj = new NJQueue(nullptr, initSize, blockSize);

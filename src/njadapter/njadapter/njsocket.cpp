@@ -79,10 +79,10 @@ namespace NJA {
         NODE_SET_PROTOTYPE_METHOD(tpl, "getPeerAddr", getPeerAddr);
         NODE_SET_PROTOTYPE_METHOD(tpl, "getPush", getPush);
         NODE_SET_PROTOTYPE_METHOD(tpl, "getQueue", getQueue);
-		NODE_SET_PROTOTYPE_METHOD(tpl, "getPoolId", getPoolId);
+        NODE_SET_PROTOTYPE_METHOD(tpl, "getPoolId", getPoolId);
 
-        constructor.Reset(isolate, tpl->GetFunction());
-        exports->Set(ToStr(isolate, "CSocket"), tpl->GetFunction());
+        constructor.Reset(isolate, tpl->GetFunction(isolate->GetCurrentContext()).ToLocalChecked());
+        exports->Set(ToStr(isolate, "CSocket"), tpl->GetFunction(isolate->GetCurrentContext()).ToLocalChecked());
     }
 
     Local<Object> NJSocket::New(Isolate* isolate, CClientSocket *ash, bool setCb) {
@@ -96,9 +96,9 @@ namespace NJA {
     void NJSocket::New(const FunctionCallbackInfo<Value>& args) {
         Isolate* isolate = args.GetIsolate();
         if (args.IsConstructCall()) {
-            if (args[0]->IsBoolean() && args[1]->IsNumber() && args[1]->IntegerValue() == SECRECT_NUM && args[2]->IsNumber()) {
+            if (args[0]->IsBoolean() && args[1]->IsNumber() && args[1]->IntegerValue(isolate->GetCurrentContext()).ToChecked() == SECRECT_NUM && args[2]->IsNumber()) {
                 //bool setCb = args[0]->BooleanValue();
-                SPA::INT64 ptr = args[2]->IntegerValue();
+                SPA::INT64 ptr = args[2]->IntegerValue(isolate->GetCurrentContext()).ToChecked();
                 NJSocket *obj = new NJSocket((CClientSocket*) ptr);
                 obj->Wrap(args.This());
                 args.GetReturnValue().Set(args.This());
@@ -141,7 +141,7 @@ namespace NJA {
             SPA::tagShutdownType st = stBoth;
             auto p = args[0];
             if (p->IsInt32()) {
-                SPA::INT64 data = p->IntegerValue();
+                SPA::INT64 data = p->IntegerValue(isolate->GetCurrentContext()).ToChecked();
                 if (data < 0 || data > SPA::stBoth) {
                     ThrowException(isolate, INTEGER_EXPECTED);
                     return;
@@ -159,7 +159,7 @@ namespace NJA {
             bool zip = false;
             auto p = args[0];
             if (p->IsBoolean())
-                zip = p->BooleanValue();
+                zip = p->BooleanValue(isolate->GetCurrentContext()).ToChecked();
             else if (!IsNullOrUndefined(p)) {
                 ThrowException(isolate, BOOLEAN_EXPECTED);
                 return;
@@ -184,7 +184,7 @@ namespace NJA {
             tagZipLevel zip = zlDefault;
             auto p = args[0];
             if (p->IsInt32()) {
-                SPA::UINT64 data = p->IntegerValue();
+                SPA::UINT64 data = p->IntegerValue(isolate->GetCurrentContext()).ToChecked();
                 if (data < 0 || data > zlBestCompression) {
                     ThrowException(isolate, "Bad zip level value");
                     return;
@@ -214,7 +214,7 @@ namespace NJA {
             unsigned int timeout = DEFAULT_CONN_TIMEOUT;
             auto p = args[0];
             if (p->IsUint32()) {
-                timeout = p->Uint32Value();
+                timeout = p->Uint32Value(isolate->GetCurrentContext()).ToChecked();
             } else if (!IsNullOrUndefined(p)) {
                 ThrowException(isolate, "An unsigned int value expected");
                 return;
@@ -239,7 +239,7 @@ namespace NJA {
             unsigned int timeout = DEFAULT_RECV_TIMEOUT;
             auto p = args[0];
             if (p->IsUint32()) {
-                timeout = p->Uint32Value();
+                timeout = p->Uint32Value(isolate->GetCurrentContext()).ToChecked();
             } else if (!IsNullOrUndefined(p)) {
                 ThrowException(isolate, "An unsigned int valaue expected");
                 return;
@@ -264,7 +264,7 @@ namespace NJA {
             bool ac = false;
             auto p = args[0];
             if (p->IsBoolean())
-                ac = p->BooleanValue();
+                ac = p->BooleanValue(isolate->GetCurrentContext()).ToChecked();
             else if (!IsNullOrUndefined(p)) {
                 ThrowException(isolate, BOOLEAN_EXPECTED);
                 return;
@@ -335,7 +335,7 @@ namespace NJA {
                 ThrowException(isolate, "A request id expected for the 1st input");
                 return;
             }
-            unsigned int reqId = p->Uint32Value();
+            unsigned int reqId = p->Uint32Value(isolate->GetCurrentContext()).ToChecked();
             if (reqId > 0xffff || reqId <= SPA::tagBaseRequestID::idReservedTwo) {
                 ThrowException(isolate, "An unsigned short request id expected");
                 return;
@@ -495,14 +495,14 @@ namespace NJA {
         }
     }
 
-	void NJSocket::getPoolId(const FunctionCallbackInfo<Value>& args) {
-		Isolate* isolate = args.GetIsolate();
-		NJSocket* obj = ObjectWrap::Unwrap<NJSocket>(args.Holder());
-		if (obj->IsValid(isolate)) {
-			auto id = obj->m_socket->GetPoolId();
-			args.GetReturnValue().Set(Number::New(isolate, (double)id));
-		}
-	}
+    void NJSocket::getPoolId(const FunctionCallbackInfo<Value>& args) {
+        Isolate* isolate = args.GetIsolate();
+        NJSocket* obj = ObjectWrap::Unwrap<NJSocket>(args.Holder());
+        if (obj->IsValid(isolate)) {
+            auto id = obj->m_socket->GetPoolId();
+            args.GetReturnValue().Set(Number::New(isolate, (double) id));
+        }
+    }
 
     void NJSocket::getPeerOs(const FunctionCallbackInfo<Value>& args) {
         Isolate* isolate = args.GetIsolate();
@@ -544,7 +544,7 @@ namespace NJA {
             bool zip = false;
             auto p = args[0];
             if (p->IsBoolean())
-                zip = p->BooleanValue();
+                zip = p->BooleanValue(isolate->GetCurrentContext()).ToChecked();
             else if (!IsNullOrUndefined(p)) {
                 ThrowException(isolate, BOOLEAN_EXPECTED);
                 return;
@@ -560,7 +560,7 @@ namespace NJA {
             int zl = SPA::zlDefault;
             auto p = args[0];
             if (p->IsInt32()) {
-                zl = p->Int32Value();
+                zl = p->Int32Value(isolate->GetCurrentContext()).ToChecked();
             } else if (!IsNullOrUndefined(p)) {
                 ThrowException(isolate, INTEGER_EXPECTED);
                 return;

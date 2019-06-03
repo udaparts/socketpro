@@ -237,7 +237,7 @@ namespace NJA {
             for (unsigned int n = 0; n < count; ++n) {
                 auto d = jsArr->Get(n);
                 if (d->IsUint32()) {
-                    v.push_back(d->Uint32Value());
+                    v.push_back(d->Uint32Value(isolate->GetCurrentContext()).ToChecked());
                 } else {
                     ThrowException(isolate, "An unsigned int value expected for a group chat id");
                     return false;
@@ -295,9 +295,13 @@ namespace NJA {
         return String::NewFromTwoByte(isolate, str, v8::NewStringType::kNormal, (int) len).ToLocalChecked();
     }
 
-    std::wstring ToStr(const Local<Value>& s) {
+    std::wstring ToStr(Isolate* isolate, const Local<Value>& s) {
         assert(s->IsString());
+#if NODE_MODULE_VERSION < 57
         String::Value str(s);
+#else
+        String::Value str(isolate, s);
+#endif
 #ifdef WIN32_64
         return (const wchar_t*)*str;
 #else
@@ -307,9 +311,13 @@ namespace NJA {
 #endif
     }
 
-    std::string ToAStr(const Local<Value> &s) {
+    std::string ToAStr(Isolate* isolate, const Local<Value> &s) {
         assert(s->IsString());
+#if NODE_MODULE_VERSION < 57
         String::Utf8Value str(s);
+#else
+        String::Utf8Value str(isolate, s);
+#endif
         return *str;
     }
 
@@ -330,16 +338,16 @@ namespace NJA {
         time += offset;
         time *= 1000;
         time += (us / 1000.0);
-        return Date::New(isolate, time);
+        return Date::New(isolate->GetCurrentContext(), time).ToLocalChecked();
     }
 
-    SPA::UINT64 ToDate(const Local<Value>& d) {
+    SPA::UINT64 ToDate(Isolate* isolate, const Local<Value>& d) {
         SPA::UINT64 millisSinceEpoch;
         if (d->IsDate()) {
             Date *dt = Date::Cast(*d);
             millisSinceEpoch = (SPA::UINT64) dt->ValueOf();
         } else if (d->IsNumber()) {
-            millisSinceEpoch = (SPA::UINT64)(d->IntegerValue());
+            millisSinceEpoch = (SPA::UINT64)(d->IntegerValue(isolate->GetCurrentContext()).ToChecked());
         } else {
             return INVALID_NUMBER;
         }
@@ -350,21 +358,25 @@ namespace NJA {
         return dt.time;
     }
 
-    bool From(const Local<Value>& v, const std::string &id, CComVariant &vt) {
+    bool From(Isolate* isolate, const Local<Value>& v, const std::string &id, CComVariant &vt) {
         vt.Clear();
         if (IsNullOrUndefined(v))
             vt.vt = VT_NULL;
         else if (v->IsDate()) {
             vt.vt = VT_DATE;
-            vt.ullVal = ToDate(v);
+            vt.ullVal = ToDate(isolate, v);
         } else if (v->IsBoolean()) {
             vt.vt = VT_BOOL;
-            vt.boolVal = v->BooleanValue() ? VARIANT_TRUE : VARIANT_FALSE;
+            vt.boolVal = v->BooleanValue(isolate->GetCurrentContext()).ToChecked() ? VARIANT_TRUE : VARIANT_FALSE;
         } else if (v->IsString()) {
             if (id == "a" || id == "ascii") {
                 char *p;
                 vt.vt = (VT_ARRAY | VT_I1);
+#if NODE_MODULE_VERSION <57
                 String::Utf8Value str(v);
+#else
+                String::Utf8Value str(isolate, v);
+#endif
                 unsigned int len = (unsigned int) str.length();
                 SAFEARRAYBOUND sab[] = {len, 0};
                 vt.parray = SafeArrayCreate(VT_I1, 1, sab);
@@ -372,12 +384,20 @@ namespace NJA {
                 memcpy(p, *str, len);
                 SafeArrayUnaccessData(vt.parray);
             } else if (id == "dec" || id == "decimal") {
+#if NODE_MODULE_VERSION <57
                 String::Utf8Value str(v);
+#else
+                String::Utf8Value str(isolate, v);
+#endif
                 vt.vt = VT_DECIMAL;
                 SPA::ParseDec(*str, vt.decVal);
             } else {
                 vt.vt = VT_BSTR;
+#if NODE_MODULE_VERSION <57
                 String::Value str(v);
+#else
+                String::Value str(isolate, v);
+#endif
 #ifdef WIN32_64
                 vt.bstrVal = SysAllocString((const wchar_t*) * str);
 #else
@@ -386,55 +406,59 @@ namespace NJA {
             }
         } else if (v->IsInt32() && id == "") {
             vt.vt = VT_I4;
-            vt.lVal = v->Int32Value();
+            vt.lVal = v->Int32Value(isolate->GetCurrentContext()).ToChecked();
         }
 #ifdef HAS_BIGINT
         else if (v->IsBigInt() && id == "") {
             vt.vt = VT_I8;
-            vt.llVal = v->IntegerValue();
+            vt.llVal = v->IntegerValue(isolate->GetCurrentContext()).ToChecked();
         }
 #endif
         else if (v->IsNumber()) {
             if (id == "f" || id == "float") {
                 vt.vt = VT_R4;
-                vt.fltVal = (float) v->NumberValue();
+                vt.fltVal = (float) v->NumberValue(isolate->GetCurrentContext()).ToChecked();
             } else if (id == "d" || id == "double") {
                 vt.vt = VT_R8;
-                vt.dblVal = v->NumberValue();
+                vt.dblVal = v->NumberValue(isolate->GetCurrentContext()).ToChecked();
             } else if (id == "i" || id == "int") {
                 vt.vt = VT_I4;
-                vt.lVal = v->Int32Value();
+                vt.lVal = v->Int32Value(isolate->GetCurrentContext()).ToChecked();
             } else if (id == "ui" || id == "uint") {
                 vt.vt = VT_UI4;
-                vt.ulVal = v->Uint32Value();
+                vt.ulVal = v->Uint32Value(isolate->GetCurrentContext()).ToChecked();
             } else if (id == "l" || id == "long") {
                 vt.vt = VT_I8;
-                vt.llVal = (SPA::INT64)v->NumberValue();
+                vt.llVal = (SPA::INT64)v->NumberValue(isolate->GetCurrentContext()).ToChecked();
             } else if (id == "ul" || id == "ulong") {
                 vt.vt = VT_UI8;
-                vt.ullVal = (SPA::UINT64)v->NumberValue();
+                vt.ullVal = (SPA::UINT64)v->NumberValue(isolate->GetCurrentContext()).ToChecked();
             } else if (id == "s" || id == "short") {
                 vt.vt = VT_I2;
-                vt.iVal = (short) v->Int32Value();
+                vt.iVal = (short) v->Int32Value(isolate->GetCurrentContext()).ToChecked();
             } else if (id == "us" || id == "ushort") {
                 vt.vt = VT_UI2;
-                vt.iVal = (unsigned short) v->Uint32Value();
+                vt.iVal = (unsigned short) v->Uint32Value(isolate->GetCurrentContext()).ToChecked();
             } else if (id == "dec" || id == "decimal") {
                 vt.vt = VT_DECIMAL;
+#if NODE_MODULE_VERSION < 57
                 String::Utf8Value str(v);
+#else
+                String::Utf8Value str(isolate, v);
+#endif
                 ParseDec(*str, vt.decVal);
             } else if (id == "c" || id == "char") {
                 vt.vt = VT_I1;
-                vt.cVal = (char) v->Int32Value();
+                vt.cVal = (char) v->Int32Value(isolate->GetCurrentContext()).ToChecked();
             } else if (id == "b" || id == "byte") {
                 vt.vt = VT_UI1;
-                vt.bVal = (unsigned char) v->Uint32Value();
+                vt.bVal = (unsigned char) v->Uint32Value(isolate->GetCurrentContext()).ToChecked();
             } else if (id == "date") {
                 vt.vt = VT_DATE;
-                vt.ullVal = (SPA::UINT64)v->NumberValue();
+                vt.ullVal = (SPA::UINT64)v->NumberValue(isolate->GetCurrentContext()).ToChecked();
             } else {
                 vt.vt = VT_R8;
-                vt.dblVal = v->NumberValue();
+                vt.dblVal = v->NumberValue(isolate->GetCurrentContext()).ToChecked();
             }
         } else if (v->IsInt8Array()) {
             char *p;
@@ -631,7 +655,11 @@ namespace NJA {
                     case VT_BSTR:
                     {
                         BSTR *pbstr = (BSTR*) p;
+#if NODE_MODULE_VERSION < 57
                         String::Value str(d);
+#else
+                        String::Value str(isolate, d);
+#endif
 #ifdef WIN32_64
                         pbstr[n] = ::SysAllocString((const wchar_t *) * str);
 #else
@@ -642,31 +670,31 @@ namespace NJA {
                     case VT_BOOL:
                     {
                         VARIANT_BOOL *pb = (VARIANT_BOOL *) p;
-                        pb[n] = d->BooleanValue() ? VARIANT_TRUE : VARIANT_FALSE;
+                        pb[n] = d->BooleanValue(isolate->GetCurrentContext()).ToChecked() ? VARIANT_TRUE : VARIANT_FALSE;
                     }
                         break;
                     case VT_DATE:
                     {
                         SPA::UINT64 *pd = (SPA::UINT64*)p;
-                        pd[n] = ToDate(d);
+                        pd[n] = ToDate(isolate, d);
                     }
                         break;
                     case VT_I4:
                     {
                         int *pi = (int*) p;
-                        pi[n] = d->Int32Value();
+                        pi[n] = d->Int32Value(isolate->GetCurrentContext()).ToChecked();
                     }
                         break;
                     case VT_I8:
                     {
                         int64_t *pi = (int64_t*) p;
-                        pi[n] = d->IntegerValue();
+                        pi[n] = d->IntegerValue(isolate->GetCurrentContext()).ToChecked();
                     }
                         break;
                     case VT_R8:
                     {
                         double *pd = (double*) p;
-                        pd[n] = d->NumberValue();
+                        pd[n] = d->NumberValue(isolate->GetCurrentContext()).ToChecked();
                     }
                         break;
                     default:
@@ -1178,29 +1206,29 @@ namespace NJA {
                 auto d = jsArr->Get(n);
                 switch (dt) {
                     case NJA::dtString:
-                        v.push_back(ToStr(d).c_str());
+                        v.push_back(ToStr(isolate, d).c_str());
                         break;
                     case NJA::dtBool:
-                        v.push_back(d->BooleanValue());
+                        v.push_back(d->BooleanValue(isolate->GetCurrentContext()).ToChecked());
                         break;
                     case NJA::dtDate:
                     {
                         CDBVariant vt;
-                        vt.ullVal = ToDate(d);
+                        vt.ullVal = ToDate(isolate, d);
                         vt.vt = VT_DATE;
                         v.push_back(vt);
                     }
                         break;
 #ifdef HAS_BIGINT
                     case NJA::dtInt64:
-                        v.push_back(d->IntegerValue());
+                        v.push_back(d->IntegerValue(isolate->GetCurrentContext()).ToChecked());
                         break;
 #endif
                     case NJA::dtInt32:
-                        v.push_back(d->Int32Value());
+                        v.push_back(d->Int32Value(isolate->GetCurrentContext()).ToChecked());
                         break;
                     case NJA::dtDouble:
-                        v.push_back(d->NumberValue());
+                        v.push_back(d->NumberValue(isolate->GetCurrentContext()).ToChecked());
                         break;
                     default:
                         assert(false);
@@ -1225,11 +1253,11 @@ namespace NJA {
                     ThrowException(isolate, "Invalid parameter meta found");
                     return false;
                 }
-                auto pi = jsP->ToObject();
+                auto pi = jsP->ToObject(isolate->GetCurrentContext()).ToLocalChecked();
                 CParameterInfo pInfo;
                 auto v = pi->Get(ToStr(isolate, "Direction"));
                 if (v->IsInt32()) {
-                    int d = v->Int32Value();
+                    int d = v->Int32Value(isolate->GetCurrentContext()).ToChecked();
                     if (d < pdInput || d > pdReturnValue) {
                         ThrowException(isolate, "Bad parameter direction value found");
                         return false;
@@ -1241,7 +1269,7 @@ namespace NJA {
                 }
                 v = pi->Get(ToStr(isolate, "DataType"));
                 if (v->IsUint32()) {
-                    unsigned int d = v->Uint32Value();
+                    unsigned int d = v->Uint32Value(isolate->GetCurrentContext()).ToChecked();
                     pInfo.DataType = (VARTYPE) d;
                 } else if (!IsNullOrUndefined(v)) {
                     ThrowException(isolate, "An integer value expected for parameter data type");
@@ -1249,7 +1277,7 @@ namespace NJA {
                 }
                 v = pi->Get(ToStr(isolate, "ColumnSize"));
                 if (v->IsInt32()) {
-                    int d = v->Int32Value();
+                    int d = v->Int32Value(isolate->GetCurrentContext()).ToChecked();
                     /*
                                         if (d < -1) {
                                             ThrowException(isolate, "Bad parameter column size value found");
@@ -1263,7 +1291,7 @@ namespace NJA {
                 }
                 v = pi->Get(ToStr(isolate, "Precision"));
                 if (v->IsInt32()) {
-                    int d = v->Int32Value();
+                    int d = v->Int32Value(isolate->GetCurrentContext()).ToChecked();
                     if (d < 0 || d > 64) {
                         ThrowException(isolate, "Bad parameter precision value found");
                         return false;
@@ -1275,7 +1303,7 @@ namespace NJA {
                 }
                 v = pi->Get(ToStr(isolate, "Scale"));
                 if (v->IsInt32()) {
-                    int d = v->Int32Value();
+                    int d = v->Int32Value(isolate->GetCurrentContext()).ToChecked();
                     if (d < 0 || d > 64) {
                         ThrowException(isolate, "Bad parameter scale value found");
                         return false;
@@ -1287,7 +1315,7 @@ namespace NJA {
                 }
                 v = pi->Get(ToStr(isolate, "ParameterName"));
                 if (v->IsString()) {
-                    pInfo.ParameterName = ToStr(v);
+                    pInfo.ParameterName = ToStr(isolate, v);
                 } else if (!IsNullOrUndefined(v)) {
                     ThrowException(isolate, "An integer value expected for parameter data scale");
                     return false;

@@ -46,8 +46,8 @@ namespace NJA {
         NODE_SET_PROTOTYPE_METHOD(tpl, "getDbMS", getMS);
         NODE_SET_PROTOTYPE_METHOD(tpl, "isOpened", IsOpened);
 
-        constructor.Reset(isolate, tpl->GetFunction());
-        exports->Set(ToStr(isolate, "CDb"), tpl->GetFunction());
+        constructor.Reset(isolate, tpl->GetFunction(isolate->GetCurrentContext()).ToLocalChecked());
+        exports->Set(ToStr(isolate, "CDb"), tpl->GetFunction(isolate->GetCurrentContext()).ToLocalChecked());
     }
 
     Local<Object> NJSqlite::New(Isolate* isolate, CNjDb *ash, bool setCb) {
@@ -61,9 +61,9 @@ namespace NJA {
     void NJSqlite::New(const FunctionCallbackInfo<Value>& args) {
         Isolate* isolate = args.GetIsolate();
         if (args.IsConstructCall()) {
-            if (args[0]->IsBoolean() && args[1]->IsNumber() && args[1]->IntegerValue() == SECRECT_NUM && args[2]->IsNumber()) {
+            if (args[0]->IsBoolean() && args[1]->IsNumber() && args[1]->IntegerValue(isolate->GetCurrentContext()).ToChecked() == SECRECT_NUM && args[2]->IsNumber()) {
                 //bool setCb = args[0]->BooleanValue();
-                SPA::INT64 ptr = args[2]->IntegerValue();
+                SPA::INT64 ptr = args[2]->IntegerValue(isolate->GetCurrentContext()).ToChecked();
                 NJSqlite *obj = new NJSqlite((CNjDb*) ptr);
                 obj->Wrap(args.This());
                 args.GetReturnValue().Set(args.This());
@@ -96,7 +96,7 @@ namespace NJA {
             tagTransactionIsolation isolation = tiReadCommited;
             auto p0 = args[0];
             if (p0->IsInt32()) {
-                int n = p0->Int32Value();
+                int n = p0->Int32Value(isolate->GetCurrentContext()).ToChecked();
                 if (n < 0 || n > tiIsolated) {
                     ThrowException(isolate, "Bad transaction isolation value");
                     return;
@@ -121,7 +121,7 @@ namespace NJA {
             tagRollbackPlan plan = rpDefault;
             auto p0 = args[0];
             if (p0->IsInt32()) {
-                int n = p0->Int32Value();
+                int n = p0->Int32Value(isolate->GetCurrentContext()).ToChecked();
                 if (n < 0 || n > rpRollbackAlways) {
                     ThrowException(isolate, "Bad rollback plan value");
                     return;
@@ -166,7 +166,7 @@ namespace NJA {
             std::wstring strConnection;
             auto p0 = args[0];
             if (p0->IsString()) {
-                strConnection = ToStr(p0);
+                strConnection = ToStr(isolate, p0);
             } else if (!IsNullOrUndefined(p0)) {
                 ThrowException(isolate, "A string expected for DB connection");
                 return;
@@ -175,7 +175,7 @@ namespace NJA {
             unsigned int flags = 0;
             p0 = args[3];
             if (p0->IsUint32()) {
-                flags = p0->Uint32Value();
+                flags = p0->Uint32Value(isolate->GetCurrentContext()).ToChecked();
             } else if (!IsNullOrUndefined(p0)) {
                 ThrowException(isolate, "An unsigned int value expected for DB open flags");
                 return;
@@ -196,7 +196,7 @@ namespace NJA {
                 ThrowException(isolate, "An integer expected for transaction isolation value");
                 return;
             }
-            int n = p->Int32Value();
+            int n = p->Int32Value(isolate->GetCurrentContext()).ToChecked();
             if (n < tiUnspecified || n > tiIsolated) {
                 ThrowException(isolate, "A bad transaction isolation value");
                 return;
@@ -206,7 +206,7 @@ namespace NJA {
             std::wstring sql;
             p = args[1];
             if (p->IsString()) {
-                sql = ToStr(p);
+                sql = ToStr(isolate, p);
             }
             if (!sql.size()) {
                 ThrowException(isolate, "A valid SQL statement expected");
@@ -220,14 +220,14 @@ namespace NJA {
                 for (unsigned int n = 0; n < count; ++n) {
                     auto d = jsArr->Get(n);
                     CDBVariant vt;
-                    if (!From(d, "", vt)) {
+                    if (!From(isolate, d, "", vt)) {
                         ThrowException(isolate, UNSUPPORTED_TYPE);
                         return;
                     }
                     vParam.push_back(std::move(vt));
                 }
             } else if (p->IsObject()) {
-                Local<Object> qObj = p->ToObject();
+                Local<Object> qObj = p->ToObject(isolate->GetCurrentContext()).ToLocalChecked();
                 if (NJQueue::IsUQueue(qObj)) {
                     NJQueue *njq = ObjectWrap::Unwrap<NJQueue>(qObj);
                     if (!NJQueue::ToParamArray(njq, vParam)) {
@@ -248,7 +248,7 @@ namespace NJA {
             tagRollbackPlan rp = rpDefault;
             p = args[8];
             if (p->IsInt32()) {
-                n = p->Int32Value();
+                n = p->Int32Value(isolate->GetCurrentContext()).ToChecked();
                 if (n < rpDefault || n > rpRollbackAlways) {
                     ThrowException(isolate, "A bad rollback plan found");
                     return;
@@ -261,7 +261,7 @@ namespace NJA {
             std::wstring delimiter(L";");
             p = args[9];
             if (p->IsString()) {
-                delimiter = ToStr(p);
+                delimiter = ToStr(isolate, p);
             } else if (!IsNullOrUndefined(p)) {
                 ThrowException(isolate, "A string expected for sql statement delimiter");
                 return;
@@ -292,7 +292,7 @@ namespace NJA {
                 for (unsigned int n = 0; n < count; ++n) {
                     auto d = jsArr->Get(n);
                     CDBVariant vt;
-                    if (!From(d, "", vt)) {
+                    if (!From(isolate, d, "", vt)) {
                         ThrowException(isolate, UNSUPPORTED_TYPE);
                         return;
                     }
@@ -300,7 +300,7 @@ namespace NJA {
                 }
                 index = obj->m_db->Execute(isolate, 4, argv, vParam);
             } else if (p->IsObject() && !p->IsString()) {
-                Local<Object> qObj = p->ToObject();
+                Local<Object> qObj = p->ToObject(isolate->GetCurrentContext()).ToLocalChecked();
                 if (NJQueue::IsUQueue(qObj)) {
                     NJQueue *njq = ObjectWrap::Unwrap<NJQueue>(qObj);
                     CDBVariantArray vParam;
@@ -318,7 +318,7 @@ namespace NJA {
             } else {
                 std::wstring sql;
                 if (p->IsString())
-                    sql = ToStr(p);
+                    sql = ToStr(isolate, p);
                 else if (!IsNullOrUndefined(p)) {
                     ThrowException(isolate, "A SQL statement string or an array of parameter data expected");
                     return;
@@ -346,7 +346,7 @@ namespace NJA {
             std::wstring sql;
             auto p0 = args[0];
             if (p0->IsString()) {
-                sql = ToStr(p0);
+                sql = ToStr(isolate, p0);
             }
             if (!sql.size()) {
                 ThrowException(isolate, "A non-empty sql statement string expected");

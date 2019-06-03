@@ -59,8 +59,8 @@ namespace NJA {
         NODE_SET_PROTOTYPE_METHOD(tpl, "getRows", getRows);
         NODE_SET_PROTOTYPE_METHOD(tpl, "getColumns", getColumns);
 
-        constructor.Reset(isolate, tpl->GetFunction());
-        exports->Set(ToStr(isolate, "CTable"), tpl->GetFunction());
+        constructor.Reset(isolate, tpl->GetFunction(isolate->GetCurrentContext()).ToLocalChecked());
+        exports->Set(ToStr(isolate, "CTable"), tpl->GetFunction(isolate->GetCurrentContext()).ToLocalChecked());
         m_tpl.Reset(isolate, tpl);
     }
 
@@ -75,9 +75,9 @@ namespace NJA {
     void NJTable::New(const FunctionCallbackInfo<Value>& args) {
         Isolate* isolate = args.GetIsolate();
         if (args.IsConstructCall()) {
-            if (args[0]->IsBoolean() && args[1]->IsNumber() && args[1]->IntegerValue() == SECRECT_NUM && args[2]->IsNumber()) {
+            if (args[0]->IsBoolean() && args[1]->IsNumber() && args[1]->IntegerValue(isolate->GetCurrentContext()).ToChecked() == SECRECT_NUM && args[2]->IsNumber()) {
                 //bool setCb = args[0]->BooleanValue();
-                SPA::INT64 ptr = args[2]->IntegerValue();
+                SPA::INT64 ptr = args[2]->IntegerValue(isolate->GetCurrentContext()).ToChecked();
                 NJTable *obj = new NJTable((SPA::CTable*)ptr);
                 obj->Wrap(args.This());
                 args.GetReturnValue().Set(args.This());
@@ -187,7 +187,7 @@ namespace NJA {
         if (obj->IsValid(isolate)) {
             auto p = args[0];
             if (p->IsObject()) {
-                Local<Object> jsObj = p->ToObject();
+                Local<Object> jsObj = p->ToObject(isolate->GetCurrentContext()).ToLocalChecked();
                 if (IsTable(jsObj)) {
                     NJTable* table = ObjectWrap::Unwrap<NJTable>(jsObj);
                     if (table->IsValid(isolate)) {
@@ -214,11 +214,11 @@ namespace NJA {
                 NJA::ThrowException(isolate, COLUMN_ORDINAL_EXPECTED);
                 return;
             }
-            unsigned int ordinal = p0->Uint32Value();
+            unsigned int ordinal = p0->Uint32Value(isolate->GetCurrentContext()).ToChecked();
             auto p1 = args[1];
             bool desc = false;
             if (p1->IsBoolean()) {
-                desc = p1->BooleanValue();
+                desc = p1->BooleanValue(isolate->GetCurrentContext()).ToChecked();
             } else if (!IsNullOrUndefined(p1)) {
                 NJA::ThrowException(isolate, BOOLEAN_EXPECTED);
                 return;
@@ -238,7 +238,11 @@ namespace NJA {
         if (obj->IsValid(isolate)) {
             auto p = args[0];
             if (p->IsString()) {
+#if NODE_MODULE_VERSION < 57
                 String::Utf8Value str(p);
+#else
+                String::Utf8Value str(isolate, p);
+#endif
                 int res = (int) obj->m_table->FindOrdinal(*str);
                 args.GetReturnValue().Set(Int32::New(isolate, res));
             } else {
@@ -256,27 +260,27 @@ namespace NJA {
                 NJA::ThrowException(isolate, COLUMN_ORDINAL_EXPECTED);
                 return;
             }
-            unsigned int ordinal = p0->Uint32Value();
+            unsigned int ordinal = p0->Uint32Value(isolate->GetCurrentContext()).ToChecked();
             auto p1 = args[1];
             if (!p1->IsUint32()) {
                 NJA::ThrowException(isolate, OPERATION_EXPECTED);
                 return;
             }
-            unsigned int data = p1->Uint32Value();
+            unsigned int data = p1->Uint32Value(isolate->GetCurrentContext()).ToChecked();
             if (data > SPA::CTable::is_null) {
                 NJA::ThrowException(isolate, BAD_OPERATION);
                 return;
             }
             auto p2 = args[2];
             CComVariant vt;
-            if (!From(p2, "", vt)) {
+            if (!From(isolate, p2, "", vt)) {
                 NJA::ThrowException(isolate, UNSUPPORTED_TYPE);
                 return;
             }
             auto p3 = args[3];
             bool copy = false;
             if (p3->IsBoolean()) {
-                copy = p3->BooleanValue();
+                copy = p3->BooleanValue(isolate->GetCurrentContext()).ToChecked();
             } else if (!IsNullOrUndefined(p3)) {
                 NJA::ThrowException(isolate, BOOLEAN_EXPECTED);
                 return;
@@ -298,15 +302,15 @@ namespace NJA {
         NJTable* obj = ObjectWrap::Unwrap<NJTable>(args.Holder());
         if (obj->IsValid(isolate)) {
             auto p0 = args[0];
-            if (!p0->Uint32Value()) {
+            if (!p0->Uint32Value(isolate->GetCurrentContext()).ToChecked()) {
                 NJA::ThrowException(isolate, COLUMN_ORDINAL_EXPECTED);
                 return;
             }
-            unsigned int ordinal = p0->Uint32Value();
+            unsigned int ordinal = p0->Uint32Value(isolate->GetCurrentContext()).ToChecked();
             auto p1 = args[1];
             bool copy = false;
             if (p1->IsBoolean()) {
-                copy = p1->BooleanValue();
+                copy = p1->BooleanValue(isolate->GetCurrentContext()).ToChecked();
             } else if (!IsNullOrUndefined(p1)) {
                 NJA::ThrowException(isolate, BOOLEAN_EXPECTED);
                 return;
@@ -332,7 +336,7 @@ namespace NJA {
                 NJA::ThrowException(isolate, COLUMN_ORDINAL_EXPECTED);
                 return;
             }
-            unsigned int ordinal = p0->Uint32Value();
+            unsigned int ordinal = p0->Uint32Value(isolate->GetCurrentContext()).ToChecked();
             SPA::UDB::CDBVariantArray v;
             auto p1 = args[1];
             if (!ToArray(isolate, p1, v)) {
@@ -341,7 +345,7 @@ namespace NJA {
             auto p2 = args[2];
             bool copy = false;
             if (p2->IsBoolean()) {
-                copy = p2->BooleanValue();
+                copy = p2->BooleanValue(isolate->GetCurrentContext()).ToChecked();
             } else if (!IsNullOrUndefined(p2)) {
                 NJA::ThrowException(isolate, BOOLEAN_EXPECTED);
                 return;
@@ -367,25 +371,25 @@ namespace NJA {
                 NJA::ThrowException(isolate, COLUMN_ORDINAL_EXPECTED);
                 return;
             }
-            unsigned int ordinal = p0->Uint32Value();
+            unsigned int ordinal = p0->Uint32Value(isolate->GetCurrentContext()).ToChecked();
 
             auto p1 = args[1];
             CComVariant vt0;
-            if (!From(p1, "", vt0)) {
+            if (!From(isolate, p1, "", vt0)) {
                 NJA::ThrowException(isolate, UNSUPPORTED_TYPE);
                 return;
             }
 
             auto p2 = args[2];
             CComVariant vt1;
-            if (!From(p2, "", vt1)) {
+            if (!From(isolate, p2, "", vt1)) {
                 NJA::ThrowException(isolate, UNSUPPORTED_TYPE);
                 return;
             }
             auto p3 = args[3];
             bool copy = false;
             if (p3->IsBoolean()) {
-                copy = p3->BooleanValue();
+                copy = p3->BooleanValue(isolate->GetCurrentContext()).ToChecked();
             } else if (!IsNullOrUndefined(p3)) {
                 NJA::ThrowException(isolate, BOOLEAN_EXPECTED);
                 return;
@@ -411,7 +415,7 @@ namespace NJA {
                 NJA::ThrowException(isolate, COLUMN_ORDINAL_EXPECTED);
                 return;
             }
-            unsigned int ordinal = p0->Uint32Value();
+            unsigned int ordinal = p0->Uint32Value(isolate->GetCurrentContext()).ToChecked();
             SPA::UDB::CDBVariantArray v;
             auto p1 = args[1];
             if (!ToArray(isolate, p1, v)) {
@@ -420,7 +424,7 @@ namespace NJA {
             auto p2 = args[2];
             bool copy = false;
             if (p2->IsBoolean()) {
-                copy = p2->BooleanValue();
+                copy = p2->BooleanValue(isolate->GetCurrentContext()).ToChecked();
             } else if (!IsNullOrUndefined(p2)) {
                 NJA::ThrowException(isolate, BOOLEAN_EXPECTED);
                 return;

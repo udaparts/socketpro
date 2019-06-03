@@ -27,8 +27,8 @@ namespace NJA {
         NODE_SET_PROTOTYPE_METHOD(tpl, "Unsubscribe", Unsubscribe);
         NODE_SET_PROTOTYPE_METHOD(tpl, "SendUserMessage", SendUserMessage);
 
-        constructor.Reset(isolate, tpl->GetFunction());
-        exports->Set(ToStr(isolate, "CPush"), tpl->GetFunction());
+        constructor.Reset(isolate, tpl->GetFunction(isolate->GetCurrentContext()).ToLocalChecked());
+        exports->Set(ToStr(isolate, "CPush"), tpl->GetFunction(isolate->GetCurrentContext()).ToLocalChecked());
     }
 
     Local<Object> NJPush::New(Isolate* isolate, SPA::IPushEx *p, bool setCb) {
@@ -42,9 +42,9 @@ namespace NJA {
     void NJPush::New(const FunctionCallbackInfo<Value>& args) {
         Isolate* isolate = args.GetIsolate();
         if (args.IsConstructCall()) {
-            if (args[0]->IsBoolean() && args[1]->IsNumber() && args[1]->IntegerValue() == SECRECT_NUM && args[2]->IsNumber()) {
+            if (args[0]->IsBoolean() && args[1]->IsNumber() && args[1]->IntegerValue(isolate->GetCurrentContext()).ToChecked() == SECRECT_NUM && args[2]->IsNumber()) {
                 //bool setCb = args[0]->BooleanValue();
-                SPA::INT64 ptr = args[2]->IntegerValue();
+                SPA::INT64 ptr = args[2]->IntegerValue(isolate->GetCurrentContext()).ToChecked();
                 NJPush *obj = new NJPush((SPA::IPushEx*)ptr);
                 obj->Wrap(args.This());
                 args.GetReturnValue().Set(args.This());
@@ -75,7 +75,7 @@ namespace NJA {
             bool ok = obj->m_p->PublishEx((const unsigned char*) bytes, (unsigned int) len, groups.data(), (unsigned int) groups.size());
             args.GetReturnValue().Set(Boolean::New(isolate, ok));
         } else if (p0->IsObject()) {
-            Local<Object> qObj = p0->ToObject();
+            Local<Object> qObj = p0->ToObject(isolate->GetCurrentContext()).ToLocalChecked();
             if (NJQueue::IsUQueue(qObj)) {
                 NJQueue* njq = ObjectWrap::Unwrap<NJQueue>(qObj);
                 CDBVariant vtMsg;
@@ -92,9 +92,9 @@ namespace NJA {
             std::string hint;
             auto p2 = args[2];
             if (p2->IsString()) {
-                hint = ToAStr(p2);
+                hint = ToAStr(isolate, p2);
             }
-            if (From(p0, hint, vtMsg)) {
+            if (From(isolate, p0, hint, vtMsg)) {
                 bool ok = obj->m_p->Publish(vtMsg, groups.data(), (unsigned int) groups.size());
                 args.GetReturnValue().Set(Boolean::New(isolate, ok));
             } else {
@@ -126,7 +126,7 @@ namespace NJA {
         std::wstring user;
         auto p0 = args[0];
         if (p0->IsString()) {
-            user = ToStr(p0);
+            user = ToStr(isolate, p0);
         }
         if (!user.size()) {
             ThrowException(isolate, "A non-empty string expected for user id");
@@ -139,7 +139,7 @@ namespace NJA {
             bool ok = obj->m_p->SendUserMessageEx(user.c_str(), (const unsigned char*) bytes, (unsigned int) len);
             args.GetReturnValue().Set(Boolean::New(isolate, ok));
         } else if (p1->IsObject()) {
-            Local<Object> qObj = p1->ToObject();
+            Local<Object> qObj = p1->ToObject(isolate->GetCurrentContext()).ToLocalChecked();
             if (NJQueue::IsUQueue(qObj)) {
                 NJQueue* njq = ObjectWrap::Unwrap<NJQueue>(qObj);
                 CDBVariant vtMsg;
@@ -156,9 +156,9 @@ namespace NJA {
             std::string hint;
             auto p2 = args[2];
             if (p2->IsString()) {
-                hint = ToAStr(p2);
+                hint = ToAStr(isolate, p2);
             }
-            if (From(p1, hint, vtMsg)) {
+            if (From(isolate, p1, hint, vtMsg)) {
                 bool ok = obj->m_p->SendUserMessage(vtMsg, user.c_str());
                 args.GetReturnValue().Set(Boolean::New(isolate, ok));
             } else {

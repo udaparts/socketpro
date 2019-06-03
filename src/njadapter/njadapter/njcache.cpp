@@ -58,8 +58,8 @@ namespace NJA {
         NODE_SET_PROTOTYPE_METHOD(tpl, "getDataCase", getDataCase);
         NODE_SET_PROTOTYPE_METHOD(tpl, "getDbTable", getDbTable);
 
-        constructor.Reset(isolate, tpl->GetFunction());
-        exports->Set(ToStr(isolate, "CCache"), tpl->GetFunction());
+        constructor.Reset(isolate, tpl->GetFunction(isolate->GetCurrentContext()).ToLocalChecked());
+        exports->Set(ToStr(isolate, "CCache"), tpl->GetFunction(isolate->GetCurrentContext()).ToLocalChecked());
     }
 
     Local<Object> NJCache::New(Isolate* isolate, SPA::CDataSet *ds, bool setCb) {
@@ -73,9 +73,9 @@ namespace NJA {
     void NJCache::New(const FunctionCallbackInfo<Value>& args) {
         Isolate* isolate = args.GetIsolate();
         if (args.IsConstructCall()) {
-            if (args[0]->IsBoolean() && args[1]->IsNumber() && args[1]->IntegerValue() == SECRECT_NUM && args[2]->IsNumber()) {
+            if (args[0]->IsBoolean() && args[1]->IsNumber() && args[1]->IntegerValue(isolate->GetCurrentContext()).ToChecked() == SECRECT_NUM && args[2]->IsNumber()) {
                 //bool setCb = args[0]->BooleanValue();
-                SPA::INT64 ptr = args[2]->IntegerValue();
+                SPA::INT64 ptr = args[2]->IntegerValue(isolate->GetCurrentContext()).ToChecked();
                 NJCache *obj = new NJCache((SPA::CDataSet*)ptr);
                 obj->Wrap(args.This());
                 args.GetReturnValue().Set(args.This());
@@ -195,8 +195,8 @@ namespace NJA {
             ThrowException(args.GetIsolate(), "DB and table names expected");
             return false;
         }
-        p.first = ToStr(p0);
-        p.second = ToStr(p1);
+        p.first = ToStr(args.GetIsolate(), p0);
+        p.second = ToStr(args.GetIsolate(), p1);
         return true;
     }
 
@@ -260,7 +260,7 @@ namespace NJA {
                     ThrowException(args.GetIsolate(), "Column name expected");
                     return;
                 }
-                std::wstring colName = ToStr(p2);
+                std::wstring colName = ToStr(isolate, p2);
                 int ordinal = (int) obj->m_ds->FindOrdinal(p.first.c_str(), p.second.c_str(), colName.c_str());
                 Local<Value> jsOrdinal = Int32::New(isolate, ordinal);
                 args.GetReturnValue().Set(jsOrdinal);
@@ -279,7 +279,7 @@ namespace NJA {
                     ThrowException(isolate, NJTable::COLUMN_ORDINAL_EXPECTED);
                     return;
                 }
-                unsigned int ordinal = p2->Uint32Value();
+                unsigned int ordinal = p2->Uint32Value(isolate->GetCurrentContext()).ToChecked();
                 SPA::CTable *pTable = new SPA::CTable;
                 int res = obj->m_ds->FindNull(p.first.c_str(), p.second.c_str(), ordinal, *pTable);
                 if (res <= 0) {
@@ -304,9 +304,9 @@ namespace NJA {
                     ThrowException(isolate, NJTable::COLUMN_ORDINAL_EXPECTED);
                     return;
                 }
-                unsigned int ordinal = p2->Uint32Value();
+                unsigned int ordinal = p2->Uint32Value(isolate->GetCurrentContext()).ToChecked();
                 CComVariant vt0, vt1;
-                if (!From(args[3], "", vt0) || !From(args[4], "", vt1) || vt0.vt <= VT_NULL || vt1.vt <= VT_NULL) {
+                if (!From(isolate, args[3], "", vt0) || !From(isolate, args[4], "", vt1) || vt0.vt <= VT_NULL || vt1.vt <= VT_NULL) {
                     ThrowException(isolate, "Fourth and fifth argurments expected");
                 }
                 SPA::CTable *pTable = new SPA::CTable;
@@ -333,13 +333,13 @@ namespace NJA {
                     ThrowException(isolate, NJTable::COLUMN_ORDINAL_EXPECTED);
                     return;
                 }
-                unsigned int ordinal = p2->Uint32Value();
+                unsigned int ordinal = p2->Uint32Value(isolate->GetCurrentContext()).ToChecked();
                 auto p3 = args[3];
                 if (!p3->IsUint32()) {
                     ThrowException(isolate, NJTable::OPERATION_EXPECTED);
                     return;
                 }
-                unsigned int data = p3->Uint32Value();
+                unsigned int data = p3->Uint32Value(isolate->GetCurrentContext()).ToChecked();
                 if (data > SPA::CTable::is_null) {
                     ThrowException(isolate, NJTable::BAD_OPERATION);
                     return;
@@ -349,12 +349,16 @@ namespace NJA {
                 auto p4 = args[4];
                 auto p5 = args[5];
                 if (p5->IsString()) {
+#if NODE_MODULE_VERSION < 57	
                     String::Utf8Value str(p5);
+#else
+                    String::Utf8Value str(isolate, p5);
+#endif
                     hint = *str;
                     std::transform(hint.begin(), hint.end(), hint.begin(), ::tolower);
                 }
                 CComVariant vt;
-                if (!From(p4, hint, vt)) {
+                if (!From(isolate, p4, hint, vt)) {
                     ThrowException(isolate, UNSUPPORTED_TYPE);
                     return;
                 }
@@ -382,7 +386,7 @@ namespace NJA {
                     ThrowException(isolate, NJTable::COLUMN_ORDINAL_EXPECTED);
                     return;
                 }
-                unsigned int ordinal = p2->Uint32Value();
+                unsigned int ordinal = p2->Uint32Value(isolate->GetCurrentContext()).ToChecked();
                 SPA::UDB::CDBVariantArray v;
                 auto p3 = args[3];
                 if (!ToArray(isolate, p3, v)) {
@@ -412,7 +416,7 @@ namespace NJA {
                     ThrowException(isolate, NJTable::COLUMN_ORDINAL_EXPECTED);
                     return;
                 }
-                unsigned int ordinal = p2->Uint32Value();
+                unsigned int ordinal = p2->Uint32Value(isolate->GetCurrentContext()).ToChecked();
                 SPA::UDB::CDBVariantArray v;
                 auto p3 = args[3];
                 if (!ToArray(isolate, p3, v)) {

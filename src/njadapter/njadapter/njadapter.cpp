@@ -28,7 +28,11 @@ namespace NJA {
             ThrowException(isolate, "A CA store location string required");
             return;
         }
+#if NODE_MODULE_VERSION < 57
         String::Utf8Value str(p0);
+#else
+        String::Utf8Value str(isolate, p0);
+#endif
         unsigned int len = (unsigned int) str.length();
         if (!len) {
             ThrowException(isolate, "A CA store location string cannot be empty");
@@ -52,7 +56,11 @@ namespace NJA {
             ThrowException(isolate, "A working directory string required");
             return;
         }
+#if NODE_MODULE_VERSION < 57
         String::Utf8Value str(p0);
+#else
+        String::Utf8Value str(isolate, p0);
+#endif
         unsigned int len = (unsigned int) str.length();
         if (!len) {
             ThrowException(isolate, "A working directory string cannot be empty");
@@ -68,7 +76,11 @@ namespace NJA {
             ThrowException(isolate, "A password string required");
             return;
         }
+#if NODE_MODULE_VERSION < 57
         String::Utf8Value str(p0);
+#else
+        String::Utf8Value str(isolate, p0);
+#endif
         ClientCoreLoader.SetMessageQueuePassword(*str);
     }
 
@@ -83,7 +95,11 @@ namespace NJA {
             for (unsigned int n = 0; n < count; ++n) {
                 auto v = jsArr->Get(n);
                 if (v->IsString()) {
+#if NODE_MODULE_VERSION < 57
                     String::Utf8Value str(v);
+#else
+                    String::Utf8Value str(isolate, v);
+#endif
                     std::string s = *str;
                     Trim(s);
                     std::transform(s.begin(), s.end(), s.begin(), ::tolower);
