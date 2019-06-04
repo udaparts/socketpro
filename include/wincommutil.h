@@ -147,17 +147,21 @@ namespace SPA {
             ::DeleteCriticalSection(&m_sec);
         }
 
+        bool try_lock() {
+            return (::TryEnterCriticalSection(&m_sec) == TRUE);
+        }
+
         /**
          * Lock a critical section
          */
-        inline void lock() {
+        void lock() {
             ::EnterCriticalSection(&m_sec);
         }
 
         /**
          * Unlock a critical section
          */
-        inline void unlock() {
+        void unlock() {
             ::LeaveCriticalSection(&m_sec);
         }
 
