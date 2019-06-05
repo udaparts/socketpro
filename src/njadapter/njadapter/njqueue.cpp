@@ -141,9 +141,9 @@ namespace NJA {
         unsigned int ret = 0;
         Isolate* isolate = args.GetIsolate();
         if (obj->m_Buffer && args[0]->IsUint32()) {
-            ret = obj->m_Buffer->Pop((unsigned int) args[0]->Uint32Value(args.GetIsolate()->GetCurrentContext()).ToChecked());
+            ret = obj->m_Buffer->Pop((unsigned int) args[0]->Uint32Value(isolate->GetCurrentContext()).ToChecked());
         }
-        args.GetReturnValue().Set(Uint32::New(args.GetIsolate(), ret));
+        args.GetReturnValue().Set(Uint32::New(isolate, ret));
     }
 
     void NJQueue::setSize(const FunctionCallbackInfo<Value>& args) {
