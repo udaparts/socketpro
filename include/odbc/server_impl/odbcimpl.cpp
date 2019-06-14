@@ -301,19 +301,14 @@ namespace SPA
                 if (strConnection.size()) {
                     std::wstring sql;
                     if (m_dbms == L"microsoft sql server") {
-                        m_msDriver = msMsSQL;
                         sql = L"USE [" + strConnection + L"]";
                     } else if (m_dbms == L"mysql") {
-                        m_msDriver = msMysql;
                         sql = L"USE " + strConnection;
                     } else if (m_dbms == L"oracle") {
-                        m_msDriver = msOracle;
                         sql = L"ALTER SESSION SET current_schema=" + strConnection;
                     } else if (m_dbms.find(L"db2") != std::wstring::npos) {
-                        m_msDriver = msDB2;
                         sql = L"SET SCHEMA " + strConnection;
                     } else if (m_dbms.find(L"postgre") == 0) {
-                        m_msDriver = msPostgreSQL;
                         sql = L"SET search_path=" + strConnection;
                     }
                     if (sql.size()) {
@@ -401,16 +396,6 @@ namespace SPA
                     } else {
                         errMsg = ODBC_GLOBAL_CONNECTION_STRING;
                     }
-                    if (m_dbms == L"microsoft sql server")
-                        m_msDriver = msMsSQL;
-                    else if (m_dbms == L"mysql")
-                        m_msDriver = msMysql;
-                    else if (m_dbms == L"oracle")
-                        m_msDriver = msOracle;
-                    else if (m_dbms.find(L"db2") != std::wstring::npos)
-                        m_msDriver = msDB2;
-                    else if (m_dbms.find(L"postgre") == 0)
-                        m_msDriver = msPostgreSQL;
                 } while (false);
             }
             ms = m_msDriver;
@@ -1076,7 +1061,18 @@ namespace SPA
             SetStringInfo(hdbc, SQL_DBMS_NAME, mapInfo);
             if (mapInfo.find(SQL_DBMS_NAME) != mapInfo.end()) {
                 m_dbms = mapInfo[SQL_DBMS_NAME].bstrVal;
-                transform(m_dbms.begin(), m_dbms.end(), m_dbms.begin(), ::tolower); //microsoft sql server, oracle, mysql
+                std::transform(m_dbms.begin(), m_dbms.end(), m_dbms.begin(), ::tolower); //microsoft sql server, oracle, mysql
+                if (m_dbms == L"microsoft sql server") {
+                    m_msDriver = msMsSQL;
+                } else if (m_dbms == L"mysql") {
+                    m_msDriver = msMysql;
+                } else if (m_dbms == L"oracle") {
+                    m_msDriver = msOracle;
+                } else if (m_dbms.find(L"db2") != std::wstring::npos) {
+                    m_msDriver = msDB2;
+                } else if (m_dbms.find(L"postgre") == 0) {
+                    m_msDriver = msPostgreSQL;
+                }
             } else {
                 m_dbms.clear();
             }
