@@ -181,7 +181,7 @@ namespace SPA
         : m_oks(0), m_fails(0), m_ti(tiUnspecified), m_global(true),
         m_Blob(*m_sb), m_parameters(0), m_bCall(false), m_bReturn(false),
         m_outputs(0), m_nRecordSize(0), m_pNoSending(nullptr),
-        m_msDriver(msUnknown), m_EnableMessages(false),
+        m_msDriver(msODBC), m_EnableMessages(false),
         m_bPrimaryKeys(SQL_FALSE), m_bProcedureColumns(SQL_FALSE) {
         }
 
@@ -286,7 +286,7 @@ namespace SPA
             m_pOdbc.reset();
             m_vParam.clear();
             ResetMemories();
-            m_msDriver = msUnknown;
+            m_msDriver = msODBC;
             m_EnableMessages = false;
             m_bPrimaryKeys = SQL_FALSE;
             m_bProcedureColumns = SQL_FALSE;
@@ -294,7 +294,6 @@ namespace SPA
 
         void COdbcImpl::Open(const std::wstring &strConnection, unsigned int flags, int &res, std::wstring &errMsg, int &ms) {
             res = 0;
-            ms = msODBC;
             if ((flags & ENABLE_TABLE_UPDATE_MESSAGES) == ENABLE_TABLE_UPDATE_MESSAGES)
                 m_EnableMessages = GetPush().Subscribe(&STREAMING_SQL_CHAT_GROUP_ID, 1);
             if (m_pOdbc.get()) {
@@ -414,6 +413,7 @@ namespace SPA
                         m_msDriver = msPostgreSQL;
                 } while (false);
             }
+            ms = m_msDriver;
             if (m_pOdbc) {
                 SQLGetFunctions(m_pOdbc.get(), SQL_API_SQLPRIMARYKEYS, &m_bPrimaryKeys);
                 SQLGetFunctions(m_pOdbc.get(), SQL_API_SQLPROCEDURECOLUMNS, &m_bProcedureColumns);
@@ -441,6 +441,7 @@ namespace SPA
                     return;
                 }
             }
+            ms = m_msDriver;
             SQLINTEGER attr;
             switch ((tagTransactionIsolation) isolation) {
                 case tiReadUncommited:
