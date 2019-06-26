@@ -86,6 +86,17 @@ private:
 #endif
 };
 
+class CChatSet {
+	bool &m_bChatting;
+public:
+	CChatSet(bool &chat) : m_bChatting(chat) {
+		m_bChatting = true;
+	}
+	~CChatSet() {
+		m_bChatting = false;
+	}
+};
+
 SPA::CUQueue& operator<<(SPA::CUQueue &mc, const SPA::CSwitchInfo &si);
 SPA::CUQueue& operator>>(SPA::CUQueue &mc, SPA::CSwitchInfo &si);
 
