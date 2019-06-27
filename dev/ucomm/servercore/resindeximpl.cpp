@@ -139,13 +139,9 @@ SPA::UINT64 CResIndexImpl::SendAll() {
             *m_pQ << sh << dci;
             POnBaseRequestCame p = session->m_ccb.SvsContext.m_OnBaseRequestCame;
             if (p != nullptr) {
-                session->m_bChatting = true;
                 USocket_Server_Handle index = session->MakeHandlerInternal();
-                {
-                    CRAutoLock ral(session->m_mutex);
-                    p(index, m_uReqId);
-                }
-                session->m_bChatting = false;
+                CRAutoLock ral(session->m_mutex, session->m_bChatting);
+                p(index, m_uReqId);
             }
         } else if (m_uReqId == SPA::idEndJob) {
 #ifndef NDEBUG
@@ -163,13 +159,9 @@ SPA::UINT64 CResIndexImpl::SendAll() {
             *m_pQ << sh << dci;
             POnBaseRequestCame p = session->m_ccb.SvsContext.m_OnBaseRequestCame;
             if (p != nullptr) {
-                session->m_bChatting = true;
                 USocket_Server_Handle index = session->MakeHandlerInternal();
-                {
-                    CRAutoLock ral(session->m_mutex);
-                    p(index, m_uReqId);
-                }
-                session->m_bChatting = false;
+                CRAutoLock ral(session->m_mutex, session->m_bChatting);
+                p(index, m_uReqId);
             }
         }
         if (m_pQ->GetSize()) {

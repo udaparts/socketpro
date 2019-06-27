@@ -66,35 +66,27 @@ class CRAutoLock {
 public:
 #ifndef WINCE
 
-    CRAutoLock(std::mutex &mutex) : m_mutex(mutex) {
+    CRAutoLock(std::mutex &mutex, bool &chatting) : m_mutex(mutex), m_Chatting(chatting) {
 #else
 
-    CRAutoLock(boost::mutex &mutex) : m_mutex(mutex) {
+    CRAutoLock(boost::mutex &mutex, bool &chatting) : m_mutex(mutex), m_Chatting(chatting) {
 #endif
+		m_Chatting = true;
         m_mutex.unlock();
     }
 
     ~CRAutoLock() {
         m_mutex.lock();
+		m_Chatting = false;
     }
 
 private:
+	bool &m_Chatting;
 #ifndef WINCE
     std::mutex &m_mutex;
 #else
     boost::mutex &m_mutex;
 #endif
-};
-
-class CChatSet {
-	bool &m_bChatting;
-public:
-	CChatSet(bool &chat) : m_bChatting(chat) {
-		m_bChatting = true;
-	}
-	~CChatSet() {
-		m_bChatting = false;
-	}
 };
 
 SPA::CUQueue& operator<<(SPA::CUQueue &mc, const SPA::CSwitchInfo &si);

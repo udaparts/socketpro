@@ -474,12 +474,8 @@ bool CServerSession::SetServerInfoInternal(SPA::CSwitchInfo *pServerInfo) {
         } else
             m_ServerInfo.SockMinorVersion = 8;
         if (m_pServiceContext) {
-            m_bChatting = true;
-            {
-                CRAutoLock ral(m_mutex);
-                m_ServerInfo.Param0 = (unsigned int) (m_pServiceContext->GetRouteeSize());
-            }
-            m_bChatting = false;
+            CRAutoLock ral(m_mutex, m_bChatting);
+            m_ServerInfo.Param0 = (unsigned int) (m_pServiceContext->GetRouteeSize());
         }
         m_ServerInfo.SwitchTime = pServerInfo->SwitchTime;
         m_ServerInfo.ServiceId = ServiceId;
@@ -789,7 +785,7 @@ void CServerSession::OnSlowRequestProcessed(unsigned int res, unsigned short usR
     if (p != nullptr) {
         try{
             USocket_Server_Handle index = MakeHandlerInternal();
-            CRAutoLock ral(m_mutex);
+			CRAutoLock ral(m_mutex, m_bChatting);
             p(index, usRequestId);
         }
 
@@ -851,14 +847,12 @@ void CServerSession::OnSslHandShake(const CErrorCode& Error) {
     if (p != nullptr) {
         try{
             USocket_Server_Handle index = MakeHandlerInternal();
-            m_bChatting = true;
-            CRAutoLock rsl(m_mutex);
+			CRAutoLock ral(m_mutex, m_bChatting);
             p(index, Error.value());
         }
 
         catch(...) {
         }
-        m_bChatting = false;
     }
     if (!Error) {
         m_cs = csConnected;
@@ -871,29 +865,25 @@ void CServerSession::OnClose() {
     POnClose p = m_ccb.SvsContext.m_OnClose;
     int errCode = m_ec.value();
     m_cv.notify_all();
-    m_bChatting = true;
-    {
-        USocket_Server_Handle index = MakeHandlerInternal();
-        CRAutoLock rsl(m_mutex);
-        if (p != nullptr) {
-            try{
-                p(index, errCode);
-            }
-
-            catch(...) {
-            }
+    USocket_Server_Handle index = MakeHandlerInternal();
+	CRAutoLock ral(m_mutex, m_bChatting);
+    if (p != nullptr) {
+        try{
+            p(index, errCode);
         }
-        p = g_pServer->m_pOnClose;
-        if (p != nullptr) {
-            try{
-                p(index, errCode);
-            }
 
-            catch(...) {
-            }
+        catch(...) {
         }
     }
-    m_bChatting = false;
+    p = g_pServer->m_pOnClose;
+    if (p != nullptr) {
+        try{
+            p(index, errCode);
+        }
+
+        catch(...) {
+        }
+    }
 }
 
 USocket_Server_Handle CServerSession::MakeHandlerInternal() {
@@ -1218,13 +1208,9 @@ void CServerSession::CloseInternal() {
     }
     m_bCloseInternal = true;
     if (m_cs >= csConnected && m_pRoutingServiceContext != nullptr && m_pServiceContext != nullptr) {
-        m_bChatting = true;
-        {
-            USocket_Server_Handle index = MakeHandlerInternal();
-            CRAutoLock ral(m_mutex);
-            NotifyFailRoutes(index, m_pServiceContext);
-        }
-        m_bChatting = false;
+        USocket_Server_Handle index = MakeHandlerInternal();
+		CRAutoLock ral(m_mutex, m_bChatting);
+        NotifyFailRoutes(index, m_pServiceContext);
     }
     if (m_cs == csClosed) {
         m_bCloseInternal = false;
@@ -1234,24 +1220,20 @@ void CServerSession::CloseInternal() {
     bool notify = m_ccb.ChatGroups.size() > 0;
     if (notify) {
         if (ServiceId != SPA::sidHTTP || (m_pHttpContext && m_pHttpContext->IsWebSocket())) {
-            m_bChatting = true;
             {
-                CRAutoLock rsl(m_mutex);
+				CRAutoLock ral(m_mutex, m_bChatting);
                 g_pServer->Exit(this, m_ccb.ChatGroups.data(), (unsigned int) m_ccb.ChatGroups.size());
             }
-            m_bChatting = false;
             m_ccb.ChatGroups.clear();
         } else if (ServiceId == SPA::sidHTTP) {
             Connection::CConnectionContext::SharedPtr sp = Connection::CConnectionContext::SeekConnectionContext(m_ccb.Id.c_str());
             if (sp && !sp->IsGet && sp->IsOpera) {
                 //Opera AJAX has problem in keep-alive
             } else {
-                m_bChatting = true;
                 {
-                    CRAutoLock rsl(m_mutex);
+					CRAutoLock ral(m_mutex, m_bChatting);
                     g_pServer->Exit(this, m_ccb.ChatGroups.data(), (unsigned int) m_ccb.ChatGroups.size());
                 }
-                m_bChatting = false;
                 m_ccb.ChatGroups.clear();
                 Connection::CConnectionContext::RemoveConnectionContext(m_ccb.Id.c_str());
             }
@@ -1741,7 +1723,7 @@ void CServerSession::OnNonBaseRequestArrive() {
             });
         }
     }
-    CRAutoLock rsl(m_mutex);
+	CRAutoLock ral(m_mutex, m_bChatting);
     if (p != nullptr) {
         p(index, reqId, size);
     }
@@ -1795,16 +1777,14 @@ void CServerSession::OnBaseRequestArrive() {
 #endif
                     if (it != m_mapDequeue.end()) {
                         CVQAttr &vQA = it->second.first;
-                        m_bChatting = true;
                         if (vQA.size() >= 2) {
-                            CRAutoLock rsl(m_mutex);
+							CRAutoLock ral(m_mutex, m_bChatting);
                             g_pServer->ConfirmQueue(qHandle, vQA.data(), vQA.size());
                         } else if (vQA.size() == 1) {
                             const MQ_FILE::QAttr &qa = vQA.front();
-                            CRAutoLock rsl(m_mutex);
+							CRAutoLock ral(m_mutex, m_bChatting);
                             g_pServer->ConfirmQueue(qHandle, qa.MessagePos, qa.MessageIndex, true);
                         }
-                        m_bChatting = false;
                         if (vQA.size()) {
                             removed = RemoveDequeueCache(qHandle, vQA.back().MessageIndex);
                             vQA.clear();
@@ -1826,12 +1806,10 @@ void CServerSession::OnBaseRequestArrive() {
                         CVQAttr &vQA = it->second.first;
                         vQA.push_back(m_qa);
                         assert(vQA.size() >= 2);
-                        m_bChatting = true;
                         {
-                            CRAutoLock rsl(m_mutex);
+							CRAutoLock ral(m_mutex, m_bChatting);
                             g_pServer->ConfirmQueueJob(qHandle, vQA.data(), vQA.size(), !m_bConfirmFail);
                         }
-                        m_bChatting = false;
                         removed = RemoveDequeueCache(qHandle, m_qa.MessageIndex);
                         vQA.clear();
                     } else {
@@ -1851,9 +1829,8 @@ void CServerSession::OnBaseRequestArrive() {
                         if (dci.Fail) {
                             if (it != m_mapDequeue.end()) {
                                 CVQAttr &vQA = it->second.first;
-                                m_bChatting = true;
                                 {
-                                    CRAutoLock rsl(m_mutex);
+									CRAutoLock ral(m_mutex, m_bChatting);
                                     if (vQA.size() >= 2) {
                                         g_pServer->ConfirmQueue(qHandle, vQA.data(), vQA.size());
                                     } else if (vQA.size() == 1) {
@@ -1862,7 +1839,6 @@ void CServerSession::OnBaseRequestArrive() {
                                     }
                                     g_pServer->ConfirmQueue(qHandle, m_qa.MessagePos, m_qa.MessageIndex, !dci.Fail);
                                 }
-                                m_bChatting = false;
                                 removed = RemoveDequeueCache(qHandle, m_qa.MessageIndex);
                                 vQA.clear();
                             } else {
@@ -1876,16 +1852,14 @@ void CServerSession::OnBaseRequestArrive() {
                                 SPA::UINT64 posFront = vQA.front().MessagePos;
                                 SPA::UINT64 posBack = vQA.back().MessagePos;
                                 if (vQA.size() == size || (posBack - posFront) >= 2 * 1024 * 1024) {
-                                    m_bChatting = true;
                                     if (vQA.size() > 1) {
-                                        CRAutoLock rsl(m_mutex);
+										CRAutoLock ral(m_mutex, m_bChatting);
                                         g_pServer->ConfirmQueue(qHandle, vQA.data(), vQA.size());
                                     } else {
                                         const MQ_FILE::QAttr &qa = vQA.front();
-                                        CRAutoLock rsl(m_mutex);
+										CRAutoLock ral(m_mutex, m_bChatting);
                                         g_pServer->ConfirmQueue(qHandle, qa.MessagePos, qa.MessageIndex, true);
                                     }
-                                    m_bChatting = false;
                                     removed = RemoveDequeueCache(qHandle, m_qa.MessageIndex);
                                     vQA.clear();
                                 }
@@ -2030,29 +2004,19 @@ void CServerSession::OnBaseRequestArrive() {
 #endif
     POnBaseRequestCame p = m_ccb.SvsContext.m_OnBaseRequestCame;
     if (p != nullptr) {
-        m_bChatting = true;
         USocket_Server_Handle index = MakeHandlerInternal();
-        {
-            unsigned short reqId = m_ReqInfo.RequestId;
-            CRAutoLock ral(m_mutex);
-            p(index, reqId);
-        }
-        m_bChatting = false;
+        unsigned short reqId = m_ReqInfo.RequestId;
+		CRAutoLock ral(m_mutex, m_bChatting);
+        p(index, reqId);
     }
 }
 
 bool CServerSession::DoAuthentication(unsigned int ServiceId) {
     POnIsPermitted p = g_pServer->m_pOnIsPermitted;
     if (p != nullptr) {
-        bool ok = true;
-        {
-            m_bChatting = true;
-            USocket_Server_Handle index = MakeHandlerInternal();
-            CRAutoLock rsl(m_mutex);
-            ok = p(index, ServiceId);
-        }
-        m_bChatting = false;
-        return ok;
+        USocket_Server_Handle index = MakeHandlerInternal();
+		CRAutoLock ral(m_mutex, m_bChatting);
+        return p(index, ServiceId);
     }
     return false;
 }
@@ -2066,12 +2030,8 @@ void CServerSession::OnSwitchTo(unsigned int OldServiceId, unsigned int NewServi
     m_ServerInfo.SwitchTime = (SPA::UINT64)t;
     if (p != nullptr) {
         USocket_Server_Handle index = MakeHandlerInternal();
-        m_bChatting = true;
-        {
-            CRAutoLock ral(m_mutex);
-            p(index, OldServiceId, NewServiceId);
-        }
-        m_bChatting = false;
+		CRAutoLock ral(m_mutex, m_bChatting);
+        p(index, OldServiceId, NewServiceId);
     }
     if (NewServiceId != SPA::sidHTTP) {
         unsigned int errCode = g_bRegistered ? ERROR_NO_ERROR : ERROR_EVALUATION;
@@ -2111,13 +2071,9 @@ void CServerSession::OnRA() {
                 m_pRoutingServiceContext = g_pServer->SeekServiceContext(m_pServiceContext->GetRoutingSvsId());
             }
             if (m_pRoutingServiceContext != nullptr) {
-                m_bChatting = true;
-                {
-                    CRAutoLock ral(m_mutex);
-                    m_pRoutingServiceContext->AddRoutee(this);
-                    m_pServiceContext->NotifyRouteeChanged((unsigned int) (m_pRoutingServiceContext->GetRouteeSize()));
-                }
-                m_bChatting = false;
+				CRAutoLock ral(m_mutex, m_bChatting);
+                m_pRoutingServiceContext->AddRoutee(this);
+                m_pServiceContext->NotifyRouteeChanged((unsigned int) (m_pRoutingServiceContext->GetRouteeSize()));
             }
         }
 
@@ -2247,39 +2203,33 @@ void CServerSession::OnRA() {
         case SPA::idSendUserMessageEx:
         case SPA::idExit:
         {
-            m_bChatting = true;
             POnChatRequestComing p = m_ccb.SvsContext.m_OnChatRequestComing;
             if (p) {
                 USocket_Server_Handle index = MakeHandlerInternal();
                 unsigned short reqId = m_ReqInfo.RequestId;
                 unsigned int size = m_ReqInfo.Size;
-                CRAutoLock rsl(m_mutex);
+				CRAutoLock ral(m_mutex, m_bChatting);
                 p(index, (SPA::tagChatRequestID)reqId, size);
             }
-            m_bChatting = false;
         }
             OnChatRequestArrive();
             break;
         case SPA::idSendUserMessage:
         case SPA::idSpeak:
         {
-            m_bChatting = true;
             POnChatRequestComing p = m_ccb.SvsContext.m_OnChatRequestComing;
             if (p) {
                 USocket_Server_Handle index = MakeHandlerInternal();
                 unsigned short reqId = m_ReqInfo.RequestId;
                 unsigned int size = m_ReqInfo.Size;
-                CRAutoLock rsl(m_mutex);
+				CRAutoLock ral(m_mutex, m_bChatting);
                 p(index, (SPA::tagChatRequestID)reqId, size);
             }
-            m_bChatting = false;
         }
             OnChatVariantRequestArrive();
             break;
         default:
-            m_bChatting = true;
             OnNonBaseRequestArrive();
-            m_bChatting = false;
             break;
     }
 }
@@ -2354,16 +2304,12 @@ void CServerSession::OnChatVariantRequestArrive() {
             sb >> vtMsg;
             assert(sb->GetSize() == 0);
             if (vGroup.size() > 0) {
-                m_bChatting = true;
-                {
-                    USocket_Server_Handle index = MakeHandlerInternal();
-                    CRAutoLock rsl(m_mutex);
-                    g_pServer->Speak(this, vGroup.data(), (unsigned int) vGroup.size(), vtMsg);
-                    if (crp) {
-                        crp(index, SPA::idSpeak);
-                    }
+                USocket_Server_Handle index = MakeHandlerInternal();
+				CRAutoLock ral(m_mutex, m_bChatting);
+                g_pServer->Speak(this, vGroup.data(), (unsigned int) vGroup.size(), vtMsg);
+                if (crp) {
+                    crp(index, SPA::idSpeak);
                 }
-                m_bChatting = false;
             }
             sb->SetSize(0);
             sb << vtMsg;
@@ -2399,16 +2345,14 @@ void CServerSession::OnChatVariantRequestArrive() {
             std::wstring userId;
             sb >> userId;
             sb >> vtMsg;
-            m_bChatting = true;
             USocket_Server_Handle index = MakeHandlerInternal();
             {
-                CRAutoLock rsl(m_mutex);
+				CRAutoLock ral(m_mutex, m_bChatting);
                 g_pServer->SendUserMessage(this, userId.c_str(), vtMsg);
                 if (crp) {
                     crp(index, SPA::idSendUserMessage);
                 }
             }
-            m_bChatting = false;
             assert(sb->GetSize() == 0);
             sb->SetSize(0);
             sb << vtMsg;
@@ -2479,27 +2423,19 @@ void CServerSession::OnChatRequestArrive() {
             //fake request exit
             nCount = (unsigned int) vExit.size();
             if (nCount > 0) {
-                m_bChatting = true;
-                {
-                    CRAutoLock rsl(m_mutex);
+					CRAutoLock ral(m_mutex, m_bChatting);
                     Exit(vExit.data(), nCount);
-                }
-                m_bChatting = false;
             }
 
             //notify other clients
             nCount = (unsigned int) vNew.size();
             if (nCount > 0) {
-                m_bChatting = true;
                 USocket_Server_Handle index = MakeHandlerInternal();
-                {
-                    CRAutoLock rsl(m_mutex);
-                    g_pServer->Enter(this, vNew.data(), nCount);
-                    if (crp) {
-                        crp(index, SPA::idEnter);
-                    }
+                CRAutoLock ral(m_mutex, m_bChatting);
+                g_pServer->Enter(this, vNew.data(), nCount);
+                if (crp) {
+                    crp(index, SPA::idEnter);
                 }
-                m_bChatting = false;
             }
             for (n = 0; n < nCount; ++n) {
                 m_ccb.ChatGroups.push_back(vNew[n]);
@@ -2544,16 +2480,12 @@ void CServerSession::OnChatRequestArrive() {
                 sb->Pop(nCount * sizeof (unsigned int), size);
             }
             if (vGroup.size() > 0) {
-                m_bChatting = true;
                 USocket_Server_Handle index = MakeHandlerInternal();
-                {
-                    CRAutoLock rsl(m_mutex);
-                    g_pServer->SpeakEx(this, sb->GetBuffer(), size, vGroup.data(), (unsigned int) vGroup.size());
-                    if (crp) {
-                        crp(index, SPA::idSpeakEx);
-                    }
+                CRAutoLock ral(m_mutex, m_bChatting);
+                g_pServer->SpeakEx(this, sb->GetBuffer(), size, vGroup.data(), (unsigned int) vGroup.size());
+                if (crp) {
+                    crp(index, SPA::idSpeakEx);
                 }
-                m_bChatting = false;
             }
             Connection::CConnectionContextBase::ChatGroupsAnd(m_ccb.ChatGroups.data(), (unsigned int) m_ccb.ChatGroups.size(), vGroup.data(), (unsigned int) vGroup.size(), vFinal);
             sb->Insert((const unsigned char*) &size, sizeof (size));
@@ -2568,16 +2500,14 @@ void CServerSession::OnChatRequestArrive() {
         {
             std::wstring userId;
             sb >> userId;
-            m_bChatting = true;
             USocket_Server_Handle index = MakeHandlerInternal();
             {
-                CRAutoLock rsl(m_mutex);
+				CRAutoLock ral(m_mutex, m_bChatting);
                 g_pServer->SendUserMessage(this, userId.c_str(), sb->GetBuffer(), sb->GetSize());
                 if (crp) {
                     crp(index, SPA::idSendUserMessageEx);
                 }
             }
-            m_bChatting = false;
             BounceBackMessage(SPA::idSendUserMessageEx, sb->GetBuffer(), sb->GetSize());
         }
             break;
@@ -2602,16 +2532,14 @@ void CServerSession::OnChatRequestArrive() {
             sb->SetSize(0);
             nCount = (unsigned int) v0.size();
             if (nCount > 0) {
-                m_bChatting = true;
                 USocket_Server_Handle index = MakeHandlerInternal();
                 {
-                    CRAutoLock rsl(m_mutex);
+					CRAutoLock ral(m_mutex, m_bChatting);
                     g_pServer->Exit(this, v0.data(), nCount);
                     if (crp) {
                         crp(index, SPA::idExit);
                     }
                 }
-                m_bChatting = false;
                 sb->Push((const unsigned char*) v0.data(), sizeof (unsigned int) *nCount);
             }
             if (m_cs >= csConnected) {
@@ -2701,7 +2629,6 @@ bool CServerSession::PreocessWebRequest(SPA::CUQueue &q) {
             assert(pWebResponseProcessor->m_nReqCount == 1);
             POnHttpAuthentication p = m_ccb.SvsContext.m_OnHttpAuthentication;
             if (p) {
-                m_bChatting = true;
                 USocket_Server_Handle index = MakeHandlerInternal();
                 {
                     if (SPA::g_bAdapterUTF16 && sizeof (wchar_t) != sizeof (SPA::UTF16)) {
@@ -2710,15 +2637,14 @@ bool CServerSession::PreocessWebRequest(SPA::CUQueue &q) {
                         SPA::CScopeUQueue qPassword;
                         SPA::Utilities::ToUTF16(m_ccb.UserId.c_str(), (unsigned int) m_ccb.UserId.size(), *qUserId);
                         SPA::Utilities::ToUTF16(m_ccb.Password.c_str(), (unsigned int) m_ccb.Password.size(), *qPassword);
-                        CRAutoLock ral(m_mutex);
+						CRAutoLock ral(m_mutex, m_bChatting);
                         ok = p(index, (const wchar_t*) qUserId->GetBuffer(), (const wchar_t*) qPassword->GetBuffer());
 #endif
                     } else {
-                        CRAutoLock ral(m_mutex);
+						CRAutoLock ral(m_mutex, m_bChatting);
                         ok = p(index, m_ccb.UserId.c_str(), m_ccb.Password.c_str());
                     }
                 }
-                m_bChatting = false;
             }
             m_ccb.Password.resize(m_ccb.Password.size(), ' ');
             m_ccb.Password.clear();
@@ -2745,12 +2671,8 @@ bool CServerSession::PreocessWebRequest(SPA::CUQueue &q) {
             POnBaseRequestCame p = m_ccb.SvsContext.m_OnBaseRequestCame;
             if (p) {
                 USocket_Server_Handle index = MakeHandlerInternal();
-                m_bChatting = true;
-                {
-                    CRAutoLock ral(m_mutex);
-                    p(index, SPA::idPing);
-                }
-                m_bChatting = false;
+                CRAutoLock ral(m_mutex, m_bChatting);
+                p(index, SPA::idPing);
             }
         }
 
@@ -2932,12 +2854,10 @@ bool CServerSession::ProcessHttpRequest() {
                 sb << SwitchInfo;
                 sb << m_ccb.UserId;
                 sb << m_ccb.Password;
-                m_bChatting = true;
                 {
-                    CRAutoLock ral(m_mutex);
+					CRAutoLock ral(m_mutex, m_bChatting);
                     FakeAClientRequest(SPA::idSwitchTo, sb->GetBuffer(), sb->GetSize());
                 }
-                m_bChatting = false;
                 if (m_pHttpContext->IsWebSocket()) {
                     if (m_pSspi) {
                         SPA::CScopeUQueue sb;
@@ -3247,12 +3167,10 @@ bool CServerSession::Route() {
         SPA::UINT64 handle = *((SPA::UINT64*)m_qRead.GetBuffer(sizeof (reqId)));
         CServerSession *sender = GetSvrSession(handle, index);
         bool valid;
-        m_bChatting = true;
         {
-            CRAutoLock ral(m_mutex);
+			CRAutoLock ral(m_mutex, m_bChatting);
             valid = m_pServiceContext->IsRoutee(sender);
         }
-        m_bChatting = false;
         if (!valid) {
             m_qRead.Pop(m_ReqInfo.Size);
             m_ReqInfo.RequestId = 0;
@@ -3311,12 +3229,8 @@ bool CServerSession::Route() {
         assert(false);
         return false;
     } else if (!m_receiverHandle) {
-        m_bChatting = true;
-        {
-            CRAutoLock rsl(m_mutex);
-            m_receiverHandle = m_pServiceContext->GetBestRoutee(routeeSize);
-        }
-        m_bChatting = false;
+		CRAutoLock ral(m_mutex, m_bChatting);
+        m_receiverHandle = m_pServiceContext->GetBestRoutee(routeeSize);
     }
     CServerSession *receiver = nullptr;
     if (m_receiverHandle) {
@@ -3349,12 +3263,8 @@ bool CServerSession::Route() {
     }
 
     if (!routeeSize) {
-        m_bChatting = true;
-        {
-            CRAutoLock rsl(m_mutex);
-            routeeSize = receiver->GetWritingBufferSize();
-        }
-        m_bChatting = false;
+		CRAutoLock ral(m_mutex, m_bChatting);
+        routeeSize = receiver->GetWritingBufferSize();
     }
 
     USocket_Server_Handle h = MakeHandlerInternal();
@@ -3809,7 +3719,7 @@ void CServerSession::OnWriteCompleted(const CErrorCode& Error, size_t bytes_tran
         POnResultsSent p = m_ccb.SvsContext.m_OnResultsSent;
         if (p) {
             USocket_Server_Handle index = MakeHandlerInternal();
-            CRAutoLock ral(m_mutex);
+			CRAutoLock ral(m_mutex, m_bChatting);
             p(index);
         }
     }
