@@ -1,7 +1,7 @@
 #ifndef ___SOCKETPRO_CLIENT_HANDLER_TECHOC_H__
 #define ___SOCKETPRO_CLIENT_HANDLER_TECHOC_H__
 
-#include "../../include/aclientw.h"
+#include "../include/aclientw.h"
 using namespace SPA;
 using namespace SPA::ClientSide;
 

@@ -1,7 +1,7 @@
 #ifndef ___SOCKETPRO_SERVICES_IMPL_TECHODIMPL_H__
 #define ___SOCKETPRO_SERVICES_IMPL_TECHODIMPL_H__
 
-#include "../../include/aserverw.h"
+#include "../include/aserverw.h"
 
 using namespace SPA;
 using namespace SPA::ServerSide;

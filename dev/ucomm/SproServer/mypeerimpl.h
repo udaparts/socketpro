@@ -6,7 +6,7 @@
 #pragma once
 
 
-#include "../../include/aserverw.h"
+#include "../include/aserverw.h"
 #include "../utest.h"
 #include <boost/thread.hpp>
 extern SPA::CUCriticalSection g_mutex;

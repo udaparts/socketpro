@@ -1,7 +1,7 @@
 #ifndef ___SOCKETPRO_SERVICES_IMPL_TECHOBIMPL_H__
 #define ___SOCKETPRO_SERVICES_IMPL_TECHOBIMPL_H__
 
-#include "../../include/aserverw.h" 
+#include "../include/aserverw.h" 
 
 /* **** including all of defines, service id(s) and request id(s) ***** */
 #include "../TEchoB_i.h"

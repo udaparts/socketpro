@@ -1,7 +1,7 @@
 #ifndef ___SOCKETPRO_CLIENT_HANDLER_TECHOD_H__
 #define ___SOCKETPRO_CLIENT_HANDLER_TECHOD_H__
 
-#include "../../include/aclientw.h" 
+#include "../include/aclientw.h" 
 #include <ctime>
 
 using namespace SPA;

@@ -7,10 +7,10 @@
     <ClCompile Include="stdafx.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\include\aclientw.cpp">
+    <ClCompile Include="..\include\aclientw.cpp">
       <Filter>Source Files\global</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\include\membuffer.cpp">
+    <ClCompile Include="..\include\membuffer.cpp">
       <Filter>Source Files\global</Filter>
     </ClCompile>
   </ItemGroup>
@@ -20,24 +20,6 @@
     </ClInclude>
     <ClInclude Include="targetver.h">
       <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\include\aclientw.h">
-      <Filter>Header Files\global</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\include\membuffer.h">
-      <Filter>Header Files\global</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\include\commutil.h">
-      <Filter>Header Files\global</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\include\definebase.h">
-      <Filter>Header Files\global</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\include\wincommutil.h">
-      <Filter>Header Files\global</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\include\ucomm.h">
-      <Filter>Header Files\global</Filter>
     </ClInclude>
     <ClInclude Include="TEchoB.h">
       <Filter>Header Files</Filter>
@@ -51,15 +33,15 @@
     <ClInclude Include="TEchoC.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\include\ccloader.h">
-      <Filter>Header Files\global</Filter>
-    </ClInclude>
     <ClInclude Include="TOne.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="ReadMe.txt" />
+    <ClInclude Include="..\include\aclientw.h">
+      <Filter>Header Files\global</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\membuffer.h">
+      <Filter>Header Files\global</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Header Files">

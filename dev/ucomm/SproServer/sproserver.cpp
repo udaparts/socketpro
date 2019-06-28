@@ -8,7 +8,7 @@
 #include "TEchoCImpl.h"
 #include "TEchoDImpl.h"
 #include "TOneImpl.h"
-#include "../../include/scloader.h"
+#include "../include/scloader.h"
 
 SPA::CUCriticalSection g_mutex;
 

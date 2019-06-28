@@ -1,0 +1,41 @@
+#ifndef ___SOCKETPRO_DEFINES_TECHOC_I_H__
+#define ___SOCKETPRO_DEFINES_TECHOC_I_H__
+
+//defines for service CEchoObject
+#define sidCEchoObject	(SPA::sidReserved + 2)
+
+#define idEchoEmptyCEchoObject	(SPA::idReservedTwo + 1)
+#define idEchoBoolCEchoObject	(idEchoEmptyCEchoObject + 1)
+#define idEchoInt8CEchoObject	(idEchoBoolCEchoObject + 1)
+#define idEchoUInt8CEchoObject	(idEchoInt8CEchoObject + 1)
+#define idEchoInt16CEchoObject	(idEchoUInt8CEchoObject + 1)
+#define idEchoUInt16CEchoObject	(idEchoInt16CEchoObject + 1)
+#define idEchoInt32CEchoObject	(idEchoUInt16CEchoObject + 1)
+#define idEchoUInt32CEchoObject	(idEchoInt32CEchoObject + 1)
+#define idEchoInt64CEchoObject	(idEchoUInt32CEchoObject + 1)
+#define idEchoUInt64CEchoObject	(idEchoInt64CEchoObject + 1)
+#define idEchoFloatCEchoObject	(idEchoUInt64CEchoObject + 1)
+#define idEchoDoubleCEchoObject	(idEchoFloatCEchoObject + 1)
+#define idEchoStringCEchoObject	(idEchoDoubleCEchoObject + 1)
+#define idEchoAStringCEchoObject	(idEchoStringCEchoObject + 1)
+#define idEchoDecimalCEchoObject	(idEchoAStringCEchoObject + 1)
+#define idEchoBoolArrayCEchoObject	(idEchoDecimalCEchoObject + 1)
+#define idEchoUInt8ArrayCEchoObject	(idEchoBoolArrayCEchoObject + 1)
+#define idEchoInt16ArrayCEchoObject	(idEchoUInt8ArrayCEchoObject + 1)
+#define idEchoUInt16ArrayCEchoObject	(idEchoInt16ArrayCEchoObject + 1)
+#define idEchoInt32ArrayCEchoObject	(idEchoUInt16ArrayCEchoObject + 1)
+#define idEchoUInt32ArrayCEchoObject	(idEchoInt32ArrayCEchoObject + 1)
+#define idEchoInt64ArrayCEchoObject	(idEchoUInt32ArrayCEchoObject + 1)
+#define idEchoUInt64ArrayCEchoObject	(idEchoInt64ArrayCEchoObject + 1)
+#define idEchoFloatArrayCEchoObject	(idEchoUInt64ArrayCEchoObject + 1)
+#define idEchoDoubleArrayCEchoObject	(idEchoFloatArrayCEchoObject + 1)
+#define idEchoStringArrayCEchoObject	(idEchoDoubleArrayCEchoObject + 1)
+#define idEchoDecimalArrayCEchoObject	(idEchoStringArrayCEchoObject + 1)
+#define idEchoUUIDCEchoObject	(idEchoDecimalArrayCEchoObject + 1)
+#define idEchoUUIDArrayCEchoObject	(idEchoUUIDCEchoObject + 1)
+#define idEchoCYCEchoObject	(idEchoUUIDArrayCEchoObject + 1)
+#define idEchoCYArrayCEchoObject	(idEchoCYCEchoObject + 1)
+#define idEchoDateTimeCEchoObject   (idEchoCYArrayCEchoObject + 1)
+#define idEchoDateTimeArrayCEchoObject  (idEchoDateTimeCEchoObject + 1)
+
+#endif

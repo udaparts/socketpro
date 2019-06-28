@@ -7,7 +7,7 @@
 
 #include <stdio.h>
 
-#include "../../include/definebase.h"
+#include "../include/definebase.h"
 #ifndef WIN32_64
 #include<boost/uuid/uuid.hpp>
 #include<boost/uuid/uuid_generators.hpp>

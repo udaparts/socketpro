@@ -5,7 +5,7 @@
 
 #pragma once
 
-#include "../../include/aserverw.h"
+#include "../include/aserverw.h"
 extern SPA::CUCriticalSection g_mutex;
 
 class CHttpPeer : public SPA::ServerSide::CHttpPeerBase {

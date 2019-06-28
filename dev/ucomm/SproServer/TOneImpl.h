@@ -1,7 +1,7 @@
 #ifndef ___SOCKETPRO_SERVICES_IMPL_TONEIMPL_H__
 #define ___SOCKETPRO_SERVICES_IMPL_TONEIMPL_H__
 
-#include "../../include/aserverw.h"
+#include "../include/aserverw.h"
 
 using namespace SPA;
 using namespace SPA::ServerSide;

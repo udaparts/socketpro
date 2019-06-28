@@ -1,7 +1,7 @@
 
 #pragma once
 
-#include "../../include/aclientw.h"
+#include "../include/aclientw.h"
 #include "../utest.h"
 
 extern SPA::CUCriticalSection g_mutex;
