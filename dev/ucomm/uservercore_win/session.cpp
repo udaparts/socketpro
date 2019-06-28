@@ -3203,7 +3203,6 @@ bool CServerSession::Route() {
             m_qRead.Pop(m_ReqInfo.Size);
             m_ReqInfo.RequestId = 0;
             m_ReqInfo.Size = 0;
-            m_bChatting = true;
             {
                 RouteMap rm;
                 rm.Receiver = MakeHandlerInternal();
@@ -3223,7 +3222,6 @@ bool CServerSession::Route() {
 #endif
                 }
             }
-            m_bChatting = false;
             return true;
         }
         assert(false);

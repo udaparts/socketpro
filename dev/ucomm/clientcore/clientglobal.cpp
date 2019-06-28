@@ -61,17 +61,18 @@ unsigned int WINAPI CreateSocketPool(PSocketPoolCallback spc, unsigned int maxSo
         }
         if (g_vSocketPool.size() == 0) {
             if (CClientSession::m_WorkingPath.size() == 0) {
+				bool chatting;
 #ifdef WINCE
 
 #elif defined(WIN32_64)
                 boost::filesystem::path cp = boost::filesystem::current_path();
                 std::string path = cp.generic_string();
                 std::replace(path.begin(), path.end(), '/', '\\');
-                CRAutoLock ral(g_mutex);
+                CRAutoLock ral(g_mutex, chatting);
                 SetClientWorkDirectory(path.c_str());
 #else
                 boost::filesystem::path cp = boost::filesystem::current_path();
-                CRAutoLock ral(g_mutex);
+                CRAutoLock ral(g_mutex, chatting);
                 SetClientWorkDirectory(cp.c_str());
 #endif
             }

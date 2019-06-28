@@ -336,7 +336,6 @@ CClientSessionPtr CClientThread::Lock() {
                 it->second.Locked = true;
                 m_ml.unlock();
                 if (m_spc) {
-                    //CRAutoLock al(m_mutex);
                     m_spc(m_pSocketPool->GetPoolId(), SPA::ClientSide::speLocked, it->first.get());
                 }
                 return it->first;
@@ -402,7 +401,6 @@ void CClientThread::DisconnectAll() {
             it->second.Locked = false;
             m_ml.unlock();
             //GetIoService().post(boost::bind(&CClientSession::Close, it->first.get()));
-            //CRAutoLock ral(m_mutex);
             it->first->Close();
         }
     }
@@ -419,7 +417,6 @@ bool CClientThread::Unlock(USocket_Client_Handle p) {
             m_ml.unlock();
             m_pSocketPool->Notify();
             if (m_spc) {
-                //CRAutoLock al(m_mutex);
                 m_spc(m_pSocketPool->GetPoolId(), SPA::ClientSide::speUnlocked, it->first.get());
             }
             return true;
