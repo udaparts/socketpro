@@ -1,0 +1,216 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configurationDescriptor version="95">
+  <logicalFolder name="root" displayName="root" projectFiles="true" kind="ROOT">
+    <logicalFolder name="HeaderFiles"
+                   displayName="Header Files"
+                   projectFiles="true">
+      <itemPath>../TEchoBImpl.h</itemPath>
+      <itemPath>../TEchoCImpl.h</itemPath>
+      <itemPath>../TEchoDImpl.h</itemPath>
+      <itemPath>../TOneImpl.h</itemPath>
+      <itemPath>../../../include/aserverw.h</itemPath>
+      <itemPath>../../../include/bvariant.h</itemPath>
+      <itemPath>../httppeer.h</itemPath>
+      <itemPath>../mypeerimpl.h</itemPath>
+      <itemPath>../../../include/scloader.h</itemPath>
+    </logicalFolder>
+    <logicalFolder name="ResourceFiles"
+                   displayName="Resource Files"
+                   projectFiles="true">
+      <itemPath>../reqstudy.htm</itemPath>
+      <itemPath>../simple_batch.htm</itemPath>
+      <itemPath>../uajax.js</itemPath>
+      <itemPath>../ujscript.js</itemPath>
+      <itemPath>../ujson.js</itemPath>
+      <itemPath>../uloader.js</itemPath>
+      <itemPath>../uwebsocket.js</itemPath>
+      <itemPath>../ws0.htm</itemPath>
+      <itemPath>../ws_batch.htm</itemPath>
+      <itemPath>../ws_large.htm</itemPath>
+    </logicalFolder>
+    <logicalFolder name="SourceFiles"
+                   displayName="Source Files"
+                   projectFiles="true">
+      <itemPath>../../../include/aserverw.cpp</itemPath>
+      <itemPath>../../../../../Downloads/boost/libs/system/src/error_code.cpp</itemPath>
+      <itemPath>../../../include/membuffer.cpp</itemPath>
+      <itemPath>../sproserver.cpp</itemPath>
+      <itemPath>../stdafx.cpp</itemPath>
+    </logicalFolder>
+    <logicalFolder name="TestFiles"
+                   displayName="Test Files"
+                   projectFiles="false"
+                   kind="TEST_LOGICAL_FOLDER">
+    </logicalFolder>
+    <logicalFolder name="ExternalFiles"
+                   displayName="Important Files"
+                   projectFiles="false"
+                   kind="IMPORTANT_FILES_FOLDER">
+      <itemPath>Makefile</itemPath>
+    </logicalFolder>
+  </logicalFolder>
+  <projectmakefile>Makefile</projectmakefile>
+  <confs>
+    <conf name="Debug" type="1">
+      <toolsSet>
+        <compilerSet>default</compilerSet>
+        <dependencyChecking>false</dependencyChecking>
+        <rebuildPropChanged>false</rebuildPropChanged>
+      </toolsSet>
+      <compileType>
+        <ccTool>
+          <commandLine>-std=c++11</commandLine>
+        </ccTool>
+        <linkerTool>
+          <output>${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/userver</output>
+          <linkerAddLib>
+            <pElem>../../ServerCore/uservercore/dist/Debug/GNU-Linux-x86</pElem>
+          </linkerAddLib>
+          <linkerLibItems>
+            <linkerLibStdlibItem>DynamicLinking</linkerLibStdlibItem>
+            <linkerLibStdlibItem>PosixThreads</linkerLibStdlibItem>
+          </linkerLibItems>
+        </linkerTool>
+      </compileType>
+      <item path="../../../../../Downloads/boost/libs/system/src/error_code.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../../include/aserverw.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../../include/aserverw.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../../include/bvariant.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../../include/membuffer.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../../include/scloader.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../TEchoBImpl.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../TEchoCImpl.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../TEchoDImpl.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../TOneImpl.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../httppeer.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../mypeerimpl.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../reqstudy.htm" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../simple_batch.htm" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../sproserver.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../stdafx.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../uajax.js" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../ujscript.js" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../ujson.js" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../uloader.js" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../uwebsocket.js" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../ws0.htm" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../ws_batch.htm" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../ws_large.htm" ex="false" tool="3" flavor2="0">
+      </item>
+    </conf>
+    <conf name="Release" type="1">
+      <toolsSet>
+        <compilerSet>default</compilerSet>
+        <dependencyChecking>false</dependencyChecking>
+        <rebuildPropChanged>false</rebuildPropChanged>
+      </toolsSet>
+      <compileType>
+        <cTool>
+          <developmentMode>5</developmentMode>
+          <stripSymbols>true</stripSymbols>
+          <preprocessorList>
+            <Elem>NDEBUG</Elem>
+          </preprocessorList>
+        </cTool>
+        <ccTool>
+          <developmentMode>5</developmentMode>
+          <stripSymbols>true</stripSymbols>
+          <commandLine>-std=c++11</commandLine>
+          <preprocessorList>
+            <Elem>NDEBUG</Elem>
+          </preprocessorList>
+        </ccTool>
+        <fortranCompilerTool>
+          <developmentMode>5</developmentMode>
+        </fortranCompilerTool>
+        <asmTool>
+          <developmentMode>5</developmentMode>
+        </asmTool>
+        <linkerTool>
+          <stripSymbols>true</stripSymbols>
+          <linkerLibItems>
+            <linkerLibStdlibItem>DynamicLinking</linkerLibStdlibItem>
+            <linkerLibStdlibItem>PosixThreads</linkerLibStdlibItem>
+          </linkerLibItems>
+        </linkerTool>
+      </compileType>
+      <item path="../../../../../Downloads/boost/libs/system/src/error_code.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
+      </item>
+      <item path="../../../include/aserverw.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../../include/aserverw.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../../include/bvariant.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../../include/membuffer.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../../../include/scloader.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../TEchoBImpl.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../TEchoCImpl.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../TEchoDImpl.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../TOneImpl.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../httppeer.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../mypeerimpl.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../reqstudy.htm" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../simple_batch.htm" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../sproserver.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../stdafx.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="../uajax.js" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../ujscript.js" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../ujson.js" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../uloader.js" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../uwebsocket.js" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../ws0.htm" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../ws_batch.htm" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../ws_large.htm" ex="false" tool="3" flavor2="0">
+      </item>
+    </conf>
+  </confs>
+</configurationDescriptor>

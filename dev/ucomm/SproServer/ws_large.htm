@@ -1,0 +1,80 @@
+<html>
+    <head>
+        <title>Web socket client sample</title>
+        <style type="text/css">
+            #btnClose
+            {
+                width: 100px;
+            }
+            #Button1
+            {
+                width: 111px;
+            }
+            #btnReconnect
+            {
+                width: 107px;
+            }
+        </style>
+    </head>
+    <script type="text/javascript">
+        var ws;
+
+        function onUHTTPLoaded() {
+            btnReconnect_onclick();
+        }
+        function btnClose_onclick() {
+            ws.close();
+        }
+
+        function btnSendRequest_onclick() {
+            var str = 'Large text from a package of revolutionary software components written from batching, asynchrony and parallel computation with many unique and critical features. These features assist you to quickly develop high speed and scalable distributed applications on Windows and smart devices as well as web browsers';
+            while (str.length < 10*1024*1024) {
+                str += str;
+            }
+            ws.sendRequest('sendLargeText', str, str.length, function (res) {
+                res = JSON.stringify(res);
+                //SPA.log(res);
+            });
+        }
+
+        function btnReconnect_onclick() {
+            if (ws && ws.isOpen())
+                return;
+            ws = UHTTP.connect('socketpro', 'PassOne', 
+                function () {
+                    //SPA.log('Web socket opened!');
+                    document.getElementById('btnSendRequest').disabled = "";
+                },
+			    function () {
+				    document.getElementById('btnSendRequest').disabled = "disabled";
+				    //SPA.log('socket closed');
+			    });
+				ws.onError = function (e) {
+				    //SPA.log('Error = ' + e.toString());
+			    };
+            ws.push.onMessage = function (msg) {
+                //SPA.log(JSON.stringify(msg));
+            };
+        }
+        </script>
+    
+    <body>
+    	<div id="content">
+    	current user => <span id="num">
+            <br />
+            <br />
+            </span>
+    	    <!--<img id="idEB" alt="" src="earth.bmp" style="height: 304px; width: 299px" />
+            <img id="idEC" alt="" src="earthcity.jpg" style="height: 548px; width: 663px" /> -->
+            <br />
+            <input id="btnClose" type="button" value="Close" onclick="return btnClose_onclick()" /><input 
+                id="btnSendRequest" type="button" value="Send Request" 
+                onclick="return btnSendRequest_onclick()" disabled="disabled" /><input 
+                id="btnReconnect" type="button" value="Re-connect" onclick="return btnReconnect_onclick()" /></div>
+
+        <p>
+            &nbsp;</p>
+    <script type="text/javascript" src = "uloader.js"></script>
+    </body>
+
+</html>

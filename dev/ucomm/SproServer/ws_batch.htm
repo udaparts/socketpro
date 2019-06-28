@@ -1,0 +1,122 @@
+﻿<html>
+    <head>
+        <title>Web socket client sample</title>
+        <style type="text/css">
+            #btnClose
+            {
+                width: 100px;
+            }
+            #Button1
+            {
+                width: 111px;
+            }
+            #btnReconnect
+            {
+                width: 107px;
+            }
+        </style>
+    </head>
+    <script type="text/javascript">
+        var ws;
+
+        function onUHTTPLoaded() {
+            btnReconnect_onclick();
+        }
+        function btnClose_onclick() {
+            ws.close();
+        }
+
+        function btnSendRequest_onclick() {
+            var n, count = 2500;
+            for (n = 0; n < count; ++n) {
+                ws.beginBatching();
+                ws.sendRequest('doRequest', 2, false, [1, false, 'te"st'], new Date(), 23423.45679, '驻守南熏礁官兵离奇失踪', { obj: 'test"Object' }, null, 'again', function (res) {
+                    res = JSON.stringify(res);
+                    //SPA.log(res);
+                });
+
+                ws.push.enter([1, 3, 7], function (res) {
+                    res = JSON.stringify(res);
+                    //SPA.log(res);
+                });
+
+                ws.push.speak('南沙群岛在1949年以前', [1, 3, 8], function (res) {
+                    res = JSON.stringify(res);
+                    //SPA.log(res);
+                });
+
+                ws.push.sendUserMessage('南沙Testme以前', 'SocketPRO', function (res) {
+                    res = JSON.stringify(res);
+                    //SPA.log(res);
+                });
+
+                ws.commit();
+
+                //            ws.push.exit(function (res) {
+                //                res = JSON.stringify(res);
+                //                //SPA.log(res);
+                //            });
+            }
+
+            ws.sendRequest('doRequest', 2, false, [1, false, 'te"st'], new Date(), 23423.45679, 'this is a "test string', { obj: 'test"Object' }, null, 'again', function (res) {
+                res = JSON.stringify(res);
+                //SPA.log(res);
+            });
+
+            ws.push.enter([1, 3, 7], function (res) {
+                res = JSON.stringify(res);
+                //SPA.log(res);
+            });
+
+            ws.push.speak('testmessage for method speak', [1, 3, 8], function (res) {
+                res = JSON.stringify(res);
+                //SPA.log(res);
+            });
+
+            ws.push.sendUserMessage('那里多被越南和其他一些周边国家所控制', 'SocketPro', function (res) {
+                res = JSON.stringify(res);
+                //SPA.log(res);
+            });
+        }
+
+        function btnReconnect_onclick() {
+            if (ws && ws.isOpen())
+                return;
+            ws = UHTTP.connect('socketpro', 'PassOne', 
+                function () {
+                    //SPA.log('Web socket opened!');
+                    document.getElementById('btnSendRequest').disabled = "";
+                },
+			    function () {
+				    document.getElementById('btnSendRequest').disabled = "disabled";
+				    //SPA.log('socket closed');
+			    });
+				ws.onError = function (e) {
+				    //SPA.log('Error = ' + e.toString());
+			    };
+            ws.push.onMessage = function (msg) {
+                //SPA.log(JSON.stringify(msg));
+            };
+        }
+        </script>
+    
+    <body>
+    	<div id="content">
+    	current user => <span id="num">
+            <br />
+            <br />
+            </span>
+    	    <!--<img id="idEB" alt="" src="earth.bmp" style="height: 304px; width: 299px" />
+            <img id="idEC" alt="" src="earthcity.jpg" style="height: 548px; width: 663px" /> -->
+            <br />
+            <input id="btnClose" type="button" value="Close" onclick="return btnClose_onclick()" /><input 
+                id="btnSendRequest" type="button" value="Send Request" 
+                onclick="return btnSendRequest_onclick()" disabled="disabled" /><input 
+                id="btnReconnect" type="button" value="Re-connect" onclick="return btnReconnect_onclick()" /></div>
+
+        <p>
+            &nbsp;</p>
+    <script type="text/javascript" src = "uloader.js"></script>
+    </body>
+
+</html>

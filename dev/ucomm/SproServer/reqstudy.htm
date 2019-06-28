@@ -1,0 +1,286 @@
+﻿<html>
+    <head>
+        <title>Web socket client sample</title>
+        <style type="text/css">
+            #btnClose
+            {
+                width: 102px;
+            }
+            #Button1
+            {
+                width: 89px;
+            }
+            #btnReconnect
+            {
+                width: 112px;
+            }
+            #Text1
+            {
+                width: 96px;
+                height: 25px;
+            }
+            #txtMsg
+            {
+                width: 591px;
+                height: 38px;
+            }
+            #txtGroup
+            {
+                width: 87px;
+            }
+            #txtUserId
+            {
+                width: 122px;
+            }
+            .style1
+            {
+                width: 43%;
+            }
+            .style2
+            {
+                width: 131px;
+            }
+            .style3
+            {
+                width: 145px;
+            }
+            #txtOutMessage
+            {
+                width: 265px;
+            }
+            #btnSendMessage
+            {
+                width: 121px;
+            }
+            #btnSendUser
+            {
+                width: 140px;
+            }
+            #btnSendRequest
+            {
+                width: 113px;
+            }
+            #txtMyId
+            {
+                width: 125px;
+            }
+            #btnEnter
+            {
+                width: 87px;
+            }
+            #btnExit
+            {
+                width: 112px;
+            }
+            #doEnter
+            {
+                width: 91px;
+            }
+            #btnDoExit
+            {
+                width: 106px;
+            }
+            #btnDoEnter
+            {
+                width: 88px;
+            }
+            .style4
+            {
+                width: 121px;
+            }
+            #btnDoSendUserMsg
+            {
+                width: 143px;
+            }
+            #btnStudy
+            {
+                width: 94px;
+            }
+        </style>
+    </head>
+    <script type="text/javascript">
+        var ws;
+        function onUHTTPLoaded() {
+            
+        }
+
+        function btnClose_onclick() {
+            if(ws && ws.isOpen())
+                ws.close();
+        }
+
+        function btnSendRequest_onclick() {
+            ws.sendRequest('doRequest', 2, false, [1, false, 'te"st'], new Date(), 23423.45679, '岛礁上共有11名士兵', { obj: 'test"Object' }, null, 'again', function (res) {
+                document.getElementById('txtMsg').value = JSON.stringify(res);
+            });
+        }
+
+        function btnReconnect_onclick() {
+            function disableButtons(enabled) {
+                var str = enabled ? "" : "disabled";
+                document.getElementById('btnSendRequest').disabled = str;
+                document.getElementById('btnSendMessage').disabled = str;
+                document.getElementById('btnSendUser').disabled = str;
+                document.getElementById('btnEnter').disabled = str;
+                document.getElementById('btnExit').disabled = str;
+                document.getElementById('btnDoSpeak').disabled = str;
+                document.getElementById('btnDoSendUserMsg').disabled = str;
+                document.getElementById('btnDoEnter').disabled = str;
+                document.getElementById('btnDoExit').disabled = str;
+                document.getElementById('btnDoException').disabled = str;
+                document.getElementById('btnStudy').disabled = str;
+            }
+
+            if (ws && ws.isOpen())
+                return;
+            ws = UHTTP.connect(document.getElementById('txtMyId').value,
+                'PassOne',
+                function () {
+                    disableButtons(1);
+
+                    //immediately join chat groups
+                    //btnEnter_onclick();
+                },
+			    function () {
+			        disableButtons(0);
+			    }
+            );
+
+            ws.push.onMessage = function (msg) {
+                document.getElementById('txtMsg').value = JSON.stringify(msg);
+            };
+
+            ws.onError = function (err) {
+                document.getElementById('txtMsg').value = 'Error message = ' + err;
+            };
+        }
+
+		function btnSendMessage_onclick() {
+			var groups = document.getElementById('txtGroup').value.split(',');
+			ws.push.speak(document.getElementById('txtOutMessage').value, groups, function (res) {
+			    document.getElementById('txtMsg').value = JSON.stringify(res);
+			});
+		}
+
+        function btnSendUser_onclick() {
+            ws.push.sendUserMessage(document.getElementById('txtOutMessage').value, document.getElementById('txtUserId').value, function (res) {
+                document.getElementById('txtMsg').value = JSON.stringify(res);
+            });
+        }
+
+        function btnEnter_onclick() {
+            var groups = document.getElementById('txtGroup').value.split(',');
+            ws.push.enter(groups, function (res) {
+                document.getElementById('txtMsg').value = JSON.stringify(res);
+            });
+        }
+
+        function btnExit_onclick() {
+            ws.push.exit(function (res) {
+                document.getElementById('txtMsg').value = JSON.stringify(res);
+            });
+        }
+
+        function btnDoSpeak_onclick() {
+            var groups = document.getElementById('txtGroup').value.split(',');
+            ws.sendRequest('doSpeak', groups, document.getElementById('txtOutMessage').value, function (res) {
+                document.getElementById('txtMsg').value = JSON.stringify(res);
+            });
+        }
+
+        function btnDoException_onclick() {
+            ws.sendRequest('doException', 'My exception message', function (res) {
+                document.getElementById('txtMsg').value = JSON.stringify(res);
+            });
+        }
+
+        function btnDoEnter_onclick() {
+            var groups = document.getElementById('txtGroup').value.split(',');
+            ws.sendRequest('doEnter', groups, function (res) {
+                document.getElementById('txtMsg').value = JSON.stringify(res);
+            });
+        }
+
+        function btnDoExit_onclick() {
+            ws.sendRequest('doExit', function (res) {
+                document.getElementById('txtMsg').value = JSON.stringify(res);
+            });
+        }
+
+        function btnDoSendUserMsg_onclick() {
+            ws.sendRequest('doSendUserMsg', document.getElementById('txtUserId').value, document.getElementById('txtOutMessage').value, function (res) {
+                document.getElementById('txtMsg').value = JSON.stringify(res);
+            });
+        }
+
+        function btnStudy_onclick() {
+            ws.sendRequest('doStudy', 1, true, null, 'test args', new Date(), 24.56, function(res) {
+                document.getElementById('txtMsg').value = JSON.stringify(res);
+            });
+        }
+
+    </script>
+    
+    <body>
+    	<div id="content">
+    	    My User Id:&nbsp; 
+            <input id="txtMyId" type="text" value="MyUserId" /><span id="num"><br />
+            <input id="txtMsg" type="text" readonly="readonly" /><br />
+            </span>
+    	    <!--<img id="idEB" alt="" src="earth.bmp" style="height: 304px; width: 299px" />
+            <img id="idEC" alt="" src="earthcity.jpg" style="height: 548px; width: 663px" /> -->
+            <br />
+            <input id="btnClose" type="button" value="Close" onclick="return btnClose_onclick()" /><input 
+                id="btnSendRequest" type="button" value="Send Request" 
+                onclick="return btnSendRequest_onclick()" disabled="disabled" /><input 
+                id="btnReconnect" type="button" value="Connect" 
+                onclick="return btnReconnect_onclick()" /><input 
+                id="btnSendMessage" type="button" value="Speak" 
+                onclick="return btnSendMessage_onclick()" disabled="disabled" /><input id="btnSendUser" 
+                type="button" value="Send User Message" 
+                onclick="return btnSendUser_onclick()" disabled="disabled" /></div>
+
+    <script type="text/javascript" src = "uloader.js"></script>
+        <table class="style1">
+            <tr>
+                <td class="style2">
+                    Groups:</td>
+                <td class="style3">
+                    Receiver:</td>
+                <td colspan="2">
+                    Message:</td>
+            </tr>
+            <tr>
+                <td class="style2">
+                    <input id="txtGroup" type="text" value="1,8,105" /></td>
+                <td class="style3">
+                    <input id="txtUserId" type="text" value="SocketPro" /></td>
+                <td colspan="2">
+                    <input id="txtOutMessage" type="text" value="Some Test Message" /></td>
+            </tr>
+            <tr>
+                <td class="style2">
+            <input id="btnEnter" disabled="disabled" type="button" value="Enter" onclick="return btnEnter_onclick()" /></td>
+                <td class="style3">
+                    <input id="btnExit" type="button" value="Exit" 
+                        onclick="return btnExit_onclick()" disabled="disabled" /></td>
+                <td class="style4">
+                    <input id="btnDoSpeak" disabled="disabled" type="button" value="doSpeak" onclick="return btnDoSpeak_onclick()" /></td>
+                <td>
+                    <input id="btnDoException" type="button" value="doException" 
+                        onclick="return btnDoException_onclick()" disabled="disabled" /></td>
+            </tr>
+            <tr>
+                <td class="style2">
+                    <input id="btnDoEnter" disabled="disabled" type="button" value="doEnter" onclick="return btnDoEnter_onclick()" /></td>
+                <td class="style3">
+                    <input id="btnDoExit" disabled="disabled" type="button" value="doExit" onclick="return btnDoExit_onclick()" /></td>
+                <td colspan="2">
+                    <input id="btnDoSendUserMsg" disabled="disabled" type="button" 
+                        value="doSendUserMessage" onclick="return btnDoSendUserMsg_onclick()" /><input 
+                        id="btnStudy" disabled="disabled" type="button" value="Study" onclick="return btnStudy_onclick()" /></td>
+            </tr>
+        </table>
+        <script type="text/javascript" src = "uloader.js"></script>
+        </body>
+</html>
