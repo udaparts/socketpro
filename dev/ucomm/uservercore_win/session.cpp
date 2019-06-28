@@ -1618,10 +1618,8 @@ void CServerSession::PutOntoWireInternal() {
 }
 
 unsigned int CServerSession::RetrieveRequestBuffer(unsigned char *pBuffer, unsigned int ulBufferSize, bool bPeek) {
-    m_mutex.lock();
-    unsigned int ret = RetrieveRequestBufferInternally(pBuffer, ulBufferSize, bPeek);
-    m_mutex.unlock();
-    return ret;
+    CAutoLock sl(m_mutex);
+    return RetrieveRequestBufferInternally(pBuffer, ulBufferSize, bPeek);
 }
 
 const unsigned char* CServerSession::GetRequestBuffer() {
