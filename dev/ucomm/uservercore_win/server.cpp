@@ -330,7 +330,7 @@ HINSTANCE CServer::AddADll(const char *libFile, int nParam) {
         return nullptr;
     }
     bool suc = false;
-	bool chatting;
+	bool chatting = false;
     CAutoLock sl(m_mutex);
     unsigned short n, count = pi.GetNumOfServices();
     for (n = 0; n < count; ++n) {
@@ -361,7 +361,7 @@ HINSTANCE CServer::AddADll(const char *libFile, int nParam) {
 }
 
 bool CServer::RemoveALibrary(HINSTANCE hLib) {
-	bool chatting;
+	bool chatting = false;
 	CAutoLock sl(m_mutex);
     std::map<HINSTANCE, PlugImpl>::iterator it = m_mapLib.find(hLib);
     if (it == m_mapLib.end())
@@ -1694,7 +1694,7 @@ bool CServer::SendUserMessage(const wchar_t *userId, const unsigned char *messag
 }
 
 void CServer::OnAccepted(CServerSession* pSession, const CErrorCode& Error) {
-	bool chatting;
+	bool chatting = false;
 	CAutoLock al(m_mutex);
     ++m_nConnIndex;
     if (m_nConnIndex > MAX_SESSION_INDEX)
@@ -1818,7 +1818,7 @@ const char* CServer::GetQueueFileName(unsigned int qHandle) {
 }
 
 unsigned int CServer::PeekQueuedRequests(unsigned int qHandle, SPA::CQueuedRequestInfo *qri, unsigned int count) {
-	bool chatting;
+	bool chatting = false;
 	CAutoLock al(m_mQ);
     CMapQueue::iterator it = m_mapQueue.find(qHandle);
     if (it == m_mapQueue.end())
