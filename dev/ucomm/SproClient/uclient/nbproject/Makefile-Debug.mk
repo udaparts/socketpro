@@ -35,7 +35,6 @@ OBJECTDIR=${CND_BUILDDIR}/${CND_CONF}/${CND_PLATFORM}
 
 # Object Files
 OBJECTFILES= \
-	${OBJECTDIR}/_ext/1441729126/error_code.o \
 	${OBJECTDIR}/_ext/932346631/aclientw.o \
 	${OBJECTDIR}/_ext/932346631/membuffer.o \
 	${OBJECTDIR}/_ext/1472/sproclient.o \
@@ -64,12 +63,7 @@ LDLIBSOPTIONS=-Wl,-rpath,../../ClientCore/uclientcore/dist/Debug/GNU-Linux-x86 -
 
 ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/uclient: ${OBJECTFILES}
 	${MKDIR} -p ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}
-	${LINK.cc} -o ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/uclient ${OBJECTFILES} ${LDLIBSOPTIONS}
-
-${OBJECTDIR}/_ext/1441729126/error_code.o: ../../../../../Downloads/boost/libs/system/src/error_code.cpp 
-	${MKDIR} -p ${OBJECTDIR}/_ext/1441729126
-	${RM} "$@.d"
-	$(COMPILE.cc) -g -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/1441729126/error_code.o ../../../../../Downloads/boost/libs/system/src/error_code.cpp
+	${LINK.cc} -o ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/uclient ${OBJECTFILES} ${LDLIBSOPTIONS} -lstdc++ -pthread
 
 ${OBJECTDIR}/_ext/932346631/aclientw.o: ../../../include/aclientw.cpp 
 	${MKDIR} -p ${OBJECTDIR}/_ext/932346631

@@ -61,7 +61,7 @@ unsigned int WINAPI CreateSocketPool(PSocketPoolCallback spc, unsigned int maxSo
         }
         if (g_vSocketPool.size() == 0) {
             if (CClientSession::m_WorkingPath.size() == 0) {
-				bool chatting;
+                bool chatting = false;
 #ifdef WINCE
 
 #elif defined(WIN32_64)

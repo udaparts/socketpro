@@ -35,7 +35,6 @@ OBJECTDIR=${CND_BUILDDIR}/${CND_CONF}/${CND_PLATFORM}
 
 # Object Files
 OBJECTFILES= \
-	${OBJECTDIR}/_ext/1441729126/error_code.o \
 	${OBJECTDIR}/_ext/932346631/aserverw.o \
 	${OBJECTDIR}/_ext/932346631/membuffer.o \
 	${OBJECTDIR}/_ext/1472/sproserver.o \
@@ -64,11 +63,7 @@ LDLIBSOPTIONS=-ldl -lpthread
 
 ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/userver: ${OBJECTFILES}
 	${MKDIR} -p ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}
-	${LINK.cc} -o ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/userver ${OBJECTFILES} ${LDLIBSOPTIONS} -s
-
-${OBJECTDIR}/_ext/1441729126/error_code.o: ../../../../../Downloads/boost/libs/system/src/error_code.cpp 
-	${MKDIR} -p ${OBJECTDIR}/_ext/1441729126
-	$(COMPILE.cc) -O2 -s -DNDEBUG -o ${OBJECTDIR}/_ext/1441729126/error_code.o ../../../../../Downloads/boost/libs/system/src/error_code.cpp
+	${LINK.cc} -o ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/userver ${OBJECTFILES} ${LDLIBSOPTIONS} -lstdc++ -pthread -s
 
 ${OBJECTDIR}/_ext/932346631/aserverw.o: ../../../include/aserverw.cpp 
 	${MKDIR} -p ${OBJECTDIR}/_ext/932346631

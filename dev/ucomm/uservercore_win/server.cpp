@@ -41,8 +41,8 @@ void CServer::Recycle(CServerSession *pSession) {
     if (pSession) {
         if (pSession->m_pRoutingServiceContext != nullptr) {
             CRAutoLock al(pSession->m_mutex, pSession->m_bChatting);
-                pSession->m_pRoutingServiceContext->RemoveRoutee(pSession);
-                pSession->m_pServiceContext->NotifyRouteeChanged((unsigned int) (pSession->m_pRoutingServiceContext->GetRouteeSize()));
+            pSession->m_pRoutingServiceContext->RemoveRoutee(pSession);
+            pSession->m_pServiceContext->NotifyRouteeChanged((unsigned int) (pSession->m_pRoutingServiceContext->GetRouteeSize()));
         }
 
         USocket_Server_Handle h = pSession->MakeHandlerInternal();
@@ -330,7 +330,7 @@ HINSTANCE CServer::AddADll(const char *libFile, int nParam) {
         return nullptr;
     }
     bool suc = false;
-	bool chatting = false;
+    bool chatting = false;
     CAutoLock sl(m_mutex);
     unsigned short n, count = pi.GetNumOfServices();
     for (n = 0; n < count; ++n) {
@@ -361,8 +361,8 @@ HINSTANCE CServer::AddADll(const char *libFile, int nParam) {
 }
 
 bool CServer::RemoveALibrary(HINSTANCE hLib) {
-	bool chatting = false;
-	CAutoLock sl(m_mutex);
+    bool chatting = false;
+    CAutoLock sl(m_mutex);
     std::map<HINSTANCE, PlugImpl>::iterator it = m_mapLib.find(hLib);
     if (it == m_mapLib.end())
         return false;
@@ -888,7 +888,7 @@ void CServer::OnTimer(const CErrorCode& Error) {
     m_Timer.async_wait(boost::bind(&CServer::OnTimer, this, nsPlaceHolders::error));
     m_nRequestCountLast = m_nRequestCount;
     //CAutoLock sl(m_mutex); //dead lock within multi-main-threads environment
-	if (m_pOnIdle) {
+    if (m_pOnIdle) {
         m_pOnIdle(ms);
     }
 }
@@ -1694,8 +1694,8 @@ bool CServer::SendUserMessage(const wchar_t *userId, const unsigned char *messag
 }
 
 void CServer::OnAccepted(CServerSession* pSession, const CErrorCode& Error) {
-	bool chatting = false;
-	CAutoLock al(m_mutex);
+    bool chatting = false;
+    CAutoLock al(m_mutex);
     ++m_nConnIndex;
     if (m_nConnIndex > MAX_SESSION_INDEX)
         m_nConnIndex = 1;
@@ -1818,8 +1818,8 @@ const char* CServer::GetQueueFileName(unsigned int qHandle) {
 }
 
 unsigned int CServer::PeekQueuedRequests(unsigned int qHandle, SPA::CQueuedRequestInfo *qri, unsigned int count) {
-	bool chatting = false;
-	CAutoLock al(m_mQ);
+    bool chatting = false;
+    CAutoLock al(m_mQ);
     CMapQueue::iterator it = m_mapQueue.find(qHandle);
     if (it == m_mapQueue.end())
         return 0;
@@ -2302,7 +2302,7 @@ bool CServer::OpenPfx(const wchar_t *filePfx, const wchar_t *password) {
         //SchannelCred.hRootStore = CCertificateImpl::CertStore.GetCertStore();
         SchannelCred.dwFlags = (SCH_CRED_NO_DEFAULT_CREDS | SCH_CRED_MANUAL_CRED_VALIDATION | SCH_CRED_REVOCATION_CHECK_CHAIN/* | SCH_SEND_ROOT_CERT*/);
         SECURITY_STATUS status = ::AcquireCredentialsHandle(nullptr,
-                (LPWSTR)UNISP_NAME,
+                (LPWSTR) UNISP_NAME,
                 SECPKG_CRED_INBOUND,
                 nullptr,
                 &SchannelCred,

@@ -41,45 +41,37 @@ std::vector<CServerSession*>::iterator CServer::Seek(CServerSession *pSession) {
 void CServer::Recycle(CServerSession *pSession) {
     if (pSession) {
         if (pSession->m_pRoutingServiceContext != nullptr) {
-            pSession->m_bChatting = true;
-            {
-                CRAutoLock al(pSession->m_mutex);
-                pSession->m_pRoutingServiceContext->RemoveRoutee(pSession);
-                pSession->m_pServiceContext->NotifyRouteeChanged((unsigned int) (pSession->m_pRoutingServiceContext->GetRouteeSize()));
-            }
-            pSession->m_bChatting = false;
+            CRAutoLock al(pSession->m_mutex, pSession->m_bChatting);
+            pSession->m_pRoutingServiceContext->RemoveRoutee(pSession);
+            pSession->m_pServiceContext->NotifyRouteeChanged((unsigned int) (pSession->m_pRoutingServiceContext->GetRouteeSize()));
         }
 
         USocket_Server_Handle h = pSession->MakeHandlerInternal();
         pSession->Initialize();
-        pSession->m_bChatting = true;
+        CRAutoLock al(pSession->m_mutex, pSession->m_bChatting);
         {
-            CRAutoLock al(pSession->m_mutex);
-            {
-                //remove queue notification
-                CAutoLock sl(m_mQ);
-                CMapQNotified::iterator s, end = m_mapQNotified.end();
-                for (s = m_mapQNotified.begin(); s != end; ++s) {
-                    std::vector<CSNotified> &v = s->second;
-                    std::vector<CSNotified>::iterator b, send = v.end();
-                    for (b = v.begin(); b != send; ++b) {
-                        if (b->first == h) {
-                            v.erase(b);
-                            break;
-                        }
+            //remove queue notification
+            CAutoLock sl(m_mQ);
+            CMapQNotified::iterator s, end = m_mapQNotified.end();
+            for (s = m_mapQNotified.begin(); s != end; ++s) {
+                std::vector<CSNotified> &v = s->second;
+                std::vector<CSNotified>::iterator b, send = v.end();
+                for (b = v.begin(); b != send; ++b) {
+                    if (b->first == h) {
+                        v.erase(b);
+                        break;
                     }
                 }
             }
-            {
-                CAutoLock sl(m_mutex);
-                std::vector<CServerSession*>::iterator it = Seek(pSession);
-                if (it != m_aSession.end()) {
-                    m_aSession.erase(it);
-                    m_aSessionDead.push_back(pSession);
-                }
+        }
+        {
+            CAutoLock sl(m_mutex);
+            std::vector<CServerSession*>::iterator it = Seek(pSession);
+            if (it != m_aSession.end()) {
+                m_aSession.erase(it);
+                m_aSessionDead.push_back(pSession);
             }
         }
-        pSession->m_bChatting = false;
     }
 }
 
@@ -121,13 +113,15 @@ m_nParam(nParam) {
 void CServer::KillMainThread() {
     if (m_vThread.size()) {
         std::shared_ptr<boost::thread> one = m_vThread.front();
-        try {
+        try{
             m_IoService.stop();
             while (!m_IoService.stopped()) {
                 boost::this_thread::sleep(boost::posix_time::milliseconds(1));
             }
             one->timed_join(boost::posix_time::milliseconds(500));
-        } catch (...) {
+        }
+
+        catch(...) {
 
         }
     }
@@ -350,7 +344,7 @@ void CServer::RemoveASvsContext(unsigned int nServiceId) {
     CAutoLock sl(m_mutexSC);
     std::vector<CServiceContext*>::iterator it = SeekSC(nServiceId);
     if (it != m_vSC.end()) {
-        delete (*it);
+        delete(*it);
         m_vSC.erase(it);
 
     }
@@ -439,13 +433,14 @@ HINSTANCE CServer::AddADll(const char *libFile, int nParam) {
         return nullptr;
     }
     bool suc = false;
+    bool chatting = false;
     CAutoLock sl(m_mutex);
     unsigned short n, count = pi.GetNumOfServices();
     for (n = 0; n < count; ++n) {
         unsigned int svsId = pi.GetAServiceID(n);
         CSvsContext sc = pi.GetOneSvsContext(svsId);
         {
-            CRAutoLock rsl(m_mutex);
+            CRAutoLock rsl(m_mutex, chatting);
             if (!AddSvsContext(svsId, sc))
                 continue;
             suc = true;
@@ -460,7 +455,7 @@ HINSTANCE CServer::AddADll(const char *libFile, int nParam) {
         m_mapLib[h] = pi;
     else {
         std::cout << " No service added successfully" << std::endl;
-        CRAutoLock sl(m_mutex);
+        CRAutoLock sl(m_mutex, chatting);
         if (pi.UninitServerLibrary)
             pi.UninitServerLibrary();
         ::FreeLibrary(h);
@@ -470,13 +465,14 @@ HINSTANCE CServer::AddADll(const char *libFile, int nParam) {
 }
 
 bool CServer::RemoveALibrary(HINSTANCE hLib) {
+    bool chatting = false;
     CAutoLock sl(m_mutex);
     std::map<HINSTANCE, PlugImpl>::iterator it = m_mapLib.find(hLib);
     if (it == m_mapLib.end())
         return false;
     PlugImpl &pi = it->second;
     {
-        CRAutoLock rsl(m_mutex);
+        CRAutoLock rsl(m_mutex, chatting);
         unsigned short n, count = pi.GetNumOfServices();
         for (n = 0; n < count; ++n) {
             unsigned int svsId = pi.GetAServiceID(n);
@@ -484,7 +480,7 @@ bool CServer::RemoveALibrary(HINSTANCE hLib) {
         }
     }
     {
-        CRAutoLock rsl(m_mutex);
+        CRAutoLock rsl(m_mutex, chatting);
         pi.UninitServerLibrary();
         ::FreeLibrary(hLib);
     }
@@ -637,12 +633,14 @@ void CServer::DestroyThreadPool() {
     CAutoLock sl(m_mTP);
     size_t n, size = m_vThreadPool.size();
     for (n = 0; n < size; ++n) {
-        try {
+        try{
             CServerThread *p = m_vThreadPool[n];
             b = p->Kill();
             assert(b);
             delete p;
-        } catch (...) {
+        }
+
+        catch(...) {
         }
     }
     m_vThreadPool.clear();
@@ -702,7 +700,7 @@ void CServer::OnQuit() {
 }
 
 void CServer::StopSocketProServer() {
-    try {
+    try{
         KillMainThread();
         {
             CAutoLock al(m_mutexSC);
@@ -712,7 +710,9 @@ void CServer::StopSocketProServer() {
         DeleteSslContex();
         delete m_pAcceptor;
         m_pAcceptor = nullptr;
-    } catch (...) {
+    }
+
+    catch(...) {
 
     }
 }
@@ -758,21 +758,29 @@ void CServer::StartSubThread() {
     for (auto it = g_vThreadEvent.begin(), end = g_vThreadEvent.end(); it != end; ++it) {
         (*it)(SPA::ServerSide::teStarted);
     }
-    try {
+    try{
         m_IoService.run(m_ec);
-    } catch (boost::system::system_error &err) {
+    }
+
+    catch(boost::system::system_error & err) {
         //#ifndef NDEBUG
         std::cout << "boost::system_error " << err.what() << ", " << __FUNCTION__ << std::endl;
         //#endif
-    } catch (SPA::CUException &err) {
+    }
+
+    catch(SPA::CUException & err) {
         //#ifndef NDEBUG
         std::cout << "SPA::CUException " << err.what() << ", " << __FUNCTION__ << std::endl;
         //#endif
-    } catch (std::exception &err) {
+    }
+
+    catch(std::exception & err) {
         //#ifndef NDEBUG
         std::cout << "std::exception " << err.what() << ", " << __FUNCTION__ << std::endl;
         //#endif
-    } catch (...) {
+    }
+
+    catch(...) {
         //#ifndef NDEBUG
         std::cout << "Unknown exception " << ", " << __FUNCTION__ << std::endl;
         //#endif
@@ -824,28 +832,36 @@ void CServer::StartIOPumpInternal() {
     for (int n = 0; n < sub_threads; ++n) {
         m_vThread.push_back(std::shared_ptr<boost::thread>(new boost::thread(boost::bind(&CServer::StartSubThread, this))));
     }
-    try {
+    try{
         m_IoService.reset();
         m_IoService.run(m_ec);
-    } catch (boost::system::system_error &err) {
+    }
+
+    catch(boost::system::system_error & err) {
         //#ifndef NDEBUG
         std::cout << "boost::system_error " << err.what() << ", " << __FUNCTION__ << std::endl;
         //#endif
-    } catch (SPA::CUException &err) {
+    }
+
+    catch(SPA::CUException & err) {
         //#ifndef NDEBUG
         std::cout << "SPA::CUException " << err.what() << ", " << __FUNCTION__ << std::endl;
         //#endif
-    } catch (std::exception &err) {
+    }
+
+    catch(std::exception & err) {
         //#ifndef NDEBUG
         std::cout << "std::exception " << err.what() << ", " << __FUNCTION__ << std::endl;
         //#endif
-    } catch (...) {
+    }
+
+    catch(...) {
         //#ifndef NDEBUG
         std::cout << "Unknown exception " << ", " << __FUNCTION__ << std::endl;
         //#endif
     }
     m_bStopped = true;
-    try {
+    try{
         {
             CAutoLock al(m_mutex);
             delete m_pSession;
@@ -853,16 +869,21 @@ void CServer::StartIOPumpInternal() {
             DeleteSslContex();
             m_pAcceptor = nullptr;
             m_pSession = nullptr;
-            try {
+            try
+            {
                 Clean();
-            } catch (...) {
+            }
+
+            catch(...) {
             }
         }
         if (CServerSession::m_pQLastIndex) {
             CServerSession::m_pQLastIndex->Stop();
             CServerSession::m_pQLastIndex.reset();
         }
-    } catch (...) {
+    }
+
+    catch(...) {
     }
     for (auto it = g_vThreadEvent.begin(), end = g_vThreadEvent.end(); it != end; ++it) {
         (*it)(SPA::ServerSide::teKilling);
@@ -1747,6 +1768,7 @@ bool CServer::SendUserMessage(CServerSession *pSession, const wchar_t *userId, c
 }
 
 void CServer::OnAccepted(CServerSession* pSession, const CErrorCode& Error) {
+    bool chatting = false;
     CAutoLock al(m_mutex);
     ++m_nConnIndex;
     if (m_nConnIndex > MAX_SESSION_INDEX)
@@ -1768,10 +1790,12 @@ void CServer::OnAccepted(CServerSession* pSession, const CErrorCode& Error) {
 
         if (m_pOnAccept != nullptr) {
             boost::uint64_t handler = pSession->MakeHandlerInternal();
-            try {
-                CRAutoLock ral(m_mutex);
+            try{
+                CRAutoLock ral(m_mutex, chatting);
                 m_pOnAccept(handler, m_ec.value());
-            } catch (...) {
+            }
+
+            catch(...) {
             }
         }
 
@@ -1790,10 +1814,12 @@ void CServer::OnAccepted(CServerSession* pSession, const CErrorCode& Error) {
         pSession->m_ulIndex = 0;
         if (m_pOnAccept != nullptr) {
             boost::uint64_t handler = pSession->MakeHandlerInternal();
-            try {
-                CRAutoLock ral(m_mutex);
+            try{
+                CRAutoLock ral(m_mutex, chatting);
                 m_pOnAccept(handler, m_ec.value());
-            } catch (...) {
+            }
+
+            catch(...) {
             }
         }
     }
@@ -1839,8 +1865,8 @@ unsigned int CServer::StartQueue(const char *qFileName, bool dequeueShared, unsi
         SPA::Utilities::ToWide(id.c_str(), id.size(), *suId);
         SPA::Utilities::ToWide(pwd.c_str(), pwd.size(), *suPwd);
         q = std::shared_ptr<MQ_FILE::CMqFile > (new MQ_FILE::CMqFileEx(fn.c_str(), ttl, SPA::oSystemMemoryCached,
-                (const wchar_t*)suId->GetBuffer(),
-                (const wchar_t*)suPwd->GetBuffer(), CServerSession::m_pQLastIndex.get(), false, dequeueShared));
+                (const wchar_t*) suId->GetBuffer(),
+                (const wchar_t*) suPwd->GetBuffer(), CServerSession::m_pQLastIndex.get(), false, dequeueShared));
 
     } else {
         q = std::shared_ptr<MQ_FILE::CMqFile > (new MQ_FILE::CMqFile(fn.c_str(), ttl, SPA::oSystemMemoryCached, false, false, dequeueShared));
@@ -1871,7 +1897,8 @@ unsigned int CServer::PeekQueuedRequests(unsigned int qHandle, SPA::CQueuedReque
     if (it == m_mapQueue.end())
         return 0;
     {
-        CRAutoLock ral(m_mQ);
+        bool chatting = false;
+        CRAutoLock ral(m_mQ, chatting);
         return it->second->PeekRequests(qri, count);
     }
 }

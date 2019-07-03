@@ -306,7 +306,7 @@ public:
 
     CClientSession *m_to;
     POnPostProcessing m_OnPostProcessing;
-	bool m_bChatting;
+    bool m_bChatting;
     std::string m_hn;
 };
 

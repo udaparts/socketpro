@@ -673,7 +673,7 @@ bool CServerSession::FakeAClientRequest(unsigned short reqId, const unsigned cha
     }
     if (ServiceId == SPA::sidHTTP || m_pHttpContext)
         ++m_nHttpCallCount;
-	assert(m_qRead.GetSize() >= m_ReqInfo.Size);
+    assert(m_qRead.GetSize() >= m_ReqInfo.Size);
     m_qRead.Insert(sb->GetBuffer(), sb->GetSize(), m_ReqInfo.Size);
     return true;
 }
@@ -784,9 +784,9 @@ void CServerSession::OnSlowRequestProcessed(unsigned int res, unsigned short usR
 
     if (p != nullptr) {
         try{
-			bool chatting = false;
+            bool chatting = false;
             USocket_Server_Handle index = MakeHandlerInternal();
-			CRAutoLock ral(m_mutex, chatting);
+            CRAutoLock ral(m_mutex, chatting);
             p(index, usRequestId);
         }
 
@@ -822,7 +822,7 @@ void CServerSession::Start() {
     m_nJobRequest = 0;
     m_nJobConfirm = 0;
 #endif
-	m_bChatting = false;
+    m_bChatting = false;
     m_qBatchDequeueConfirm.SetSize(0);
     GetSocket().set_option(option, m_ec);
     GetSocket().set_option(nodelay, m_ec);
@@ -849,7 +849,7 @@ void CServerSession::OnSslHandShake(const CErrorCode& Error) {
     if (p != nullptr) {
         try{
             USocket_Server_Handle index = MakeHandlerInternal();
-			CRAutoLock ral(m_mutex, m_bChatting);
+            CRAutoLock ral(m_mutex, m_bChatting);
             p(index, Error.value());
         }
 
@@ -868,7 +868,7 @@ void CServerSession::OnClose() {
     int errCode = m_ec.value();
     m_cv.notify_all();
     USocket_Server_Handle index = MakeHandlerInternal();
-	CRAutoLock ral(m_mutex, m_bChatting);
+    CRAutoLock ral(m_mutex, m_bChatting);
     if (p != nullptr) {
         try{
             p(index, errCode);
@@ -1211,7 +1211,7 @@ void CServerSession::CloseInternal() {
     m_bCloseInternal = true;
     if (m_cs >= csConnected && m_pRoutingServiceContext != nullptr && m_pServiceContext != nullptr) {
         USocket_Server_Handle index = MakeHandlerInternal();
-		CRAutoLock ral(m_mutex, m_bChatting);
+        CRAutoLock ral(m_mutex, m_bChatting);
         NotifyFailRoutes(index, m_pServiceContext);
     }
     if (m_cs == csClosed) {
@@ -1223,7 +1223,7 @@ void CServerSession::CloseInternal() {
     if (notify) {
         if (ServiceId != SPA::sidHTTP || (m_pHttpContext && m_pHttpContext->IsWebSocket())) {
             {
-				CRAutoLock ral(m_mutex, m_bChatting);
+                CRAutoLock ral(m_mutex, m_bChatting);
                 g_pServer->Exit(this, m_ccb.ChatGroups.data(), (unsigned int) m_ccb.ChatGroups.size());
             }
             m_ccb.ChatGroups.clear();
@@ -1233,7 +1233,7 @@ void CServerSession::CloseInternal() {
                 //Opera AJAX has problem in keep-alive
             } else {
                 {
-					CRAutoLock ral(m_mutex, m_bChatting);
+                    CRAutoLock ral(m_mutex, m_bChatting);
                     g_pServer->Exit(this, m_ccb.ChatGroups.data(), (unsigned int) m_ccb.ChatGroups.size());
                 }
                 m_ccb.ChatGroups.clear();
@@ -1723,7 +1723,7 @@ void CServerSession::OnNonBaseRequestArrive() {
             });
         }
     }
-	CRAutoLock ral(m_mutex, m_bChatting);
+    CRAutoLock ral(m_mutex, m_bChatting);
     if (p != nullptr) {
         p(index, reqId, size);
     }
@@ -1778,11 +1778,11 @@ void CServerSession::OnBaseRequestArrive() {
                     if (it != m_mapDequeue.end()) {
                         CVQAttr &vQA = it->second.first;
                         if (vQA.size() >= 2) {
-							CRAutoLock ral(m_mutex, m_bChatting);
+                            CRAutoLock ral(m_mutex, m_bChatting);
                             g_pServer->ConfirmQueue(qHandle, vQA.data(), vQA.size());
                         } else if (vQA.size() == 1) {
                             const MQ_FILE::QAttr &qa = vQA.front();
-							CRAutoLock ral(m_mutex, m_bChatting);
+                            CRAutoLock ral(m_mutex, m_bChatting);
                             g_pServer->ConfirmQueue(qHandle, qa.MessagePos, qa.MessageIndex, true);
                         }
                         if (vQA.size()) {
@@ -1807,7 +1807,7 @@ void CServerSession::OnBaseRequestArrive() {
                         vQA.push_back(m_qa);
                         assert(vQA.size() >= 2);
                         {
-							CRAutoLock ral(m_mutex, m_bChatting);
+                            CRAutoLock ral(m_mutex, m_bChatting);
                             g_pServer->ConfirmQueueJob(qHandle, vQA.data(), vQA.size(), !m_bConfirmFail);
                         }
                         removed = RemoveDequeueCache(qHandle, m_qa.MessageIndex);
@@ -1830,7 +1830,7 @@ void CServerSession::OnBaseRequestArrive() {
                             if (it != m_mapDequeue.end()) {
                                 CVQAttr &vQA = it->second.first;
                                 {
-									CRAutoLock ral(m_mutex, m_bChatting);
+                                    CRAutoLock ral(m_mutex, m_bChatting);
                                     if (vQA.size() >= 2) {
                                         g_pServer->ConfirmQueue(qHandle, vQA.data(), vQA.size());
                                     } else if (vQA.size() == 1) {
@@ -1853,11 +1853,11 @@ void CServerSession::OnBaseRequestArrive() {
                                 SPA::UINT64 posBack = vQA.back().MessagePos;
                                 if (vQA.size() == size || (posBack - posFront) >= 2 * 1024 * 1024) {
                                     if (vQA.size() > 1) {
-										CRAutoLock ral(m_mutex, m_bChatting);
+                                        CRAutoLock ral(m_mutex, m_bChatting);
                                         g_pServer->ConfirmQueue(qHandle, vQA.data(), vQA.size());
                                     } else {
                                         const MQ_FILE::QAttr &qa = vQA.front();
-										CRAutoLock ral(m_mutex, m_bChatting);
+                                        CRAutoLock ral(m_mutex, m_bChatting);
                                         g_pServer->ConfirmQueue(qHandle, qa.MessagePos, qa.MessageIndex, true);
                                     }
                                     removed = RemoveDequeueCache(qHandle, m_qa.MessageIndex);
@@ -1944,7 +1944,7 @@ void CServerSession::OnBaseRequestArrive() {
         }
             break;
         case SPA::idStopQueue:
-			assert(m_ReqInfo.Size >= sizeof(m_ClientQFile));
+            assert(m_ReqInfo.Size >= sizeof (m_ClientQFile));
             m_qRead >> m_ClientQFile;
             m_pQLastIndex->Remove(m_ClientQFile.Qs);
             m_ReqInfo.Size = 0;
@@ -1952,7 +1952,7 @@ void CServerSession::OnBaseRequestArrive() {
             m_bDequeueTrans = false;
             break;
         case SPA::idStartQueue:
-			assert(m_ReqInfo.Size >= sizeof(m_ClientQFile));
+            assert(m_ReqInfo.Size >= sizeof (m_ClientQFile));
             m_qRead >> m_ClientQFile;
             if ((m_ClientQFile.MinIndex & MQ_FILE::CQueueInitialInfo::QUEUE_SHARED_INDEX) == MQ_FILE::CQueueInitialInfo::QUEUE_SHARED_INDEX) {
                 if (m_pQLastIndex) {
@@ -1990,11 +1990,11 @@ void CServerSession::OnBaseRequestArrive() {
         default:
         {
             SPA::CScopeUQueue sb;
-			if (m_ReqInfo.Size) {
-				sb->Push(m_qRead.GetBuffer(), m_ReqInfo.Size);
-				m_qRead.Pop(m_ReqInfo.Size);
-				m_ReqInfo.Size = 0;
-			}
+            if (m_ReqInfo.Size) {
+                sb->Push(m_qRead.GetBuffer(), m_ReqInfo.Size);
+                m_qRead.Pop(m_ReqInfo.Size);
+                m_ReqInfo.Size = 0;
+            }
             SendReturnDataInternal(m_ReqInfo.RequestId, sb->GetBuffer(), sb->GetSize());
         }
             break;
@@ -2008,7 +2008,7 @@ void CServerSession::OnBaseRequestArrive() {
     if (p != nullptr) {
         USocket_Server_Handle index = MakeHandlerInternal();
         unsigned short reqId = m_ReqInfo.RequestId;
-		CRAutoLock ral(m_mutex, m_bChatting);
+        CRAutoLock ral(m_mutex, m_bChatting);
         p(index, reqId);
     }
 }
@@ -2017,7 +2017,7 @@ bool CServerSession::DoAuthentication(unsigned int ServiceId) {
     POnIsPermitted p = g_pServer->m_pOnIsPermitted;
     if (p != nullptr) {
         USocket_Server_Handle index = MakeHandlerInternal();
-		CRAutoLock ral(m_mutex, m_bChatting);
+        CRAutoLock ral(m_mutex, m_bChatting);
         return p(index, ServiceId);
     }
     return false;
@@ -2032,7 +2032,7 @@ void CServerSession::OnSwitchTo(unsigned int OldServiceId, unsigned int NewServi
     m_ServerInfo.SwitchTime = (SPA::UINT64)t;
     if (p != nullptr) {
         USocket_Server_Handle index = MakeHandlerInternal();
-		CRAutoLock ral(m_mutex, m_bChatting);
+        CRAutoLock ral(m_mutex, m_bChatting);
         p(index, OldServiceId, NewServiceId);
     }
     if (NewServiceId != SPA::sidHTTP) {
@@ -2073,7 +2073,7 @@ void CServerSession::OnRA() {
                 m_pRoutingServiceContext = g_pServer->SeekServiceContext(m_pServiceContext->GetRoutingSvsId());
             }
             if (m_pRoutingServiceContext != nullptr) {
-				CRAutoLock ral(m_mutex, m_bChatting);
+                CRAutoLock ral(m_mutex, m_bChatting);
                 m_pRoutingServiceContext->AddRoutee(this);
                 m_pServiceContext->NotifyRouteeChanged((unsigned int) (m_pRoutingServiceContext->GetRouteeSize()));
             }
@@ -2210,7 +2210,7 @@ void CServerSession::OnRA() {
                 USocket_Server_Handle index = MakeHandlerInternal();
                 unsigned short reqId = m_ReqInfo.RequestId;
                 unsigned int size = m_ReqInfo.Size;
-				CRAutoLock ral(m_mutex, m_bChatting);
+                CRAutoLock ral(m_mutex, m_bChatting);
                 p(index, (SPA::tagChatRequestID)reqId, size);
             }
         }
@@ -2224,7 +2224,7 @@ void CServerSession::OnRA() {
                 USocket_Server_Handle index = MakeHandlerInternal();
                 unsigned short reqId = m_ReqInfo.RequestId;
                 unsigned int size = m_ReqInfo.Size;
-				CRAutoLock ral(m_mutex, m_bChatting);
+                CRAutoLock ral(m_mutex, m_bChatting);
                 p(index, (SPA::tagChatRequestID)reqId, size);
             }
         }
@@ -2307,7 +2307,7 @@ void CServerSession::OnChatVariantRequestArrive() {
             assert(sb->GetSize() == 0);
             if (vGroup.size() > 0) {
                 USocket_Server_Handle index = MakeHandlerInternal();
-				CRAutoLock ral(m_mutex, m_bChatting);
+                CRAutoLock ral(m_mutex, m_bChatting);
                 g_pServer->Speak(this, vGroup.data(), (unsigned int) vGroup.size(), vtMsg);
                 if (crp) {
                     crp(index, SPA::idSpeak);
@@ -2349,7 +2349,7 @@ void CServerSession::OnChatVariantRequestArrive() {
             sb >> vtMsg;
             USocket_Server_Handle index = MakeHandlerInternal();
             {
-				CRAutoLock ral(m_mutex, m_bChatting);
+                CRAutoLock ral(m_mutex, m_bChatting);
                 g_pServer->SendUserMessage(this, userId.c_str(), vtMsg);
                 if (crp) {
                     crp(index, SPA::idSendUserMessage);
@@ -2425,8 +2425,8 @@ void CServerSession::OnChatRequestArrive() {
             //fake request exit
             nCount = (unsigned int) vExit.size();
             if (nCount > 0) {
-					CRAutoLock ral(m_mutex, m_bChatting);
-                    Exit(vExit.data(), nCount);
+                CRAutoLock ral(m_mutex, m_bChatting);
+                Exit(vExit.data(), nCount);
             }
 
             //notify other clients
@@ -2504,7 +2504,7 @@ void CServerSession::OnChatRequestArrive() {
             sb >> userId;
             USocket_Server_Handle index = MakeHandlerInternal();
             {
-				CRAutoLock ral(m_mutex, m_bChatting);
+                CRAutoLock ral(m_mutex, m_bChatting);
                 g_pServer->SendUserMessage(this, userId.c_str(), sb->GetBuffer(), sb->GetSize());
                 if (crp) {
                     crp(index, SPA::idSendUserMessageEx);
@@ -2536,7 +2536,7 @@ void CServerSession::OnChatRequestArrive() {
             if (nCount > 0) {
                 USocket_Server_Handle index = MakeHandlerInternal();
                 {
-					CRAutoLock ral(m_mutex, m_bChatting);
+                    CRAutoLock ral(m_mutex, m_bChatting);
                     g_pServer->Exit(this, v0.data(), nCount);
                     if (crp) {
                         crp(index, SPA::idExit);
@@ -2639,11 +2639,11 @@ bool CServerSession::PreocessWebRequest(SPA::CUQueue &q) {
                         SPA::CScopeUQueue qPassword;
                         SPA::Utilities::ToUTF16(m_ccb.UserId.c_str(), (unsigned int) m_ccb.UserId.size(), *qUserId);
                         SPA::Utilities::ToUTF16(m_ccb.Password.c_str(), (unsigned int) m_ccb.Password.size(), *qPassword);
-						CRAutoLock ral(m_mutex, m_bChatting);
+                        CRAutoLock ral(m_mutex, m_bChatting);
                         ok = p(index, (const wchar_t*) qUserId->GetBuffer(), (const wchar_t*) qPassword->GetBuffer());
 #endif
                     } else {
-						CRAutoLock ral(m_mutex, m_bChatting);
+                        CRAutoLock ral(m_mutex, m_bChatting);
                         ok = p(index, m_ccb.UserId.c_str(), m_ccb.Password.c_str());
                     }
                 }
@@ -2857,7 +2857,7 @@ bool CServerSession::ProcessHttpRequest() {
                 sb << m_ccb.UserId;
                 sb << m_ccb.Password;
                 {
-					CRAutoLock ral(m_mutex, m_bChatting);
+                    CRAutoLock ral(m_mutex, m_bChatting);
                     FakeAClientRequest(SPA::idSwitchTo, sb->GetBuffer(), sb->GetSize());
                 }
                 if (m_pHttpContext->IsWebSocket()) {
@@ -3170,7 +3170,7 @@ bool CServerSession::Route() {
         CServerSession *sender = GetSvrSession(handle, index);
         bool valid;
         {
-			CRAutoLock ral(m_mutex, m_bChatting);
+            CRAutoLock ral(m_mutex, m_bChatting);
             valid = m_pServiceContext->IsRoutee(sender);
         }
         if (!valid) {
@@ -3229,7 +3229,7 @@ bool CServerSession::Route() {
         assert(false);
         return false;
     } else if (!m_receiverHandle) {
-		CRAutoLock ral(m_mutex, m_bChatting);
+        CRAutoLock ral(m_mutex, m_bChatting);
         m_receiverHandle = m_pServiceContext->GetBestRoutee(routeeSize);
     }
     CServerSession *receiver = nullptr;
@@ -3263,7 +3263,7 @@ bool CServerSession::Route() {
     }
 
     if (!routeeSize) {
-		CRAutoLock ral(m_mutex, m_bChatting);
+        CRAutoLock ral(m_mutex, m_bChatting);
         routeeSize = receiver->GetWritingBufferSize();
     }
 
@@ -3431,8 +3431,8 @@ bool CServerSession::Process() {
             m_bFail = false;
         }
         if (m_ReqInfo.GetQueued()) {
-			assert(m_ReqInfo.Size >= sizeof(m_qa));
-			m_qRead >> m_qa;
+            assert(m_ReqInfo.Size >= sizeof (m_qa));
+            m_qRead >> m_qa;
             m_bLastDequeue = ((m_qa.MessagePos & MQ_FILE::QAttr::RANGE_DEQUEUED_POSITION_END) == MQ_FILE::QAttr::RANGE_DEQUEUED_POSITION_END);
             if (m_bLastDequeue) {
                 m_qa.MessagePos -= MQ_FILE::QAttr::RANGE_DEQUEUED_POSITION_END;
@@ -3630,8 +3630,8 @@ void CServerSession::OnReadCompleted(const CErrorCode& Error, size_t nLen) {
 }
 
 void CServerSession::OnWriteCompleted(const CErrorCode& Error, size_t bytes_transferred) {
-	CAutoLock sl(m_mutex);
-	if (Error) {
+    CAutoLock sl(m_mutex);
+    if (Error) {
         m_ec = Error;
         CloseInternal();
         return;
@@ -3683,9 +3683,9 @@ void CServerSession::OnWriteCompleted(const CErrorCode& Error, size_t bytes_tran
     } else {
         Process();
     }
-	if (m_pServiceContext && m_pServiceContext->GetRandom()) {
-		PutOntoWireInternal();
-	}
+    if (m_pServiceContext && m_pServiceContext->GetRandom()) {
+        PutOntoWireInternal();
+    }
     if (m_bWBLocked > (unsigned int) bytes_transferred) {
         //m_bWBLocked -= (unsigned int)bytes_transferred;
         unsigned int ulLen = m_bWBLocked - (unsigned int) bytes_transferred;
@@ -3716,9 +3716,9 @@ void CServerSession::OnWriteCompleted(const CErrorCode& Error, size_t bytes_tran
     if (!m_bChatting && m_qWrite.GetSize() < 1460 && len >= IO_BUFFER_SIZE) {
         POnResultsSent p = m_ccb.SvsContext.m_OnResultsSent;
         if (p) {
-			bool chatting = false;
+            bool chatting = false;
             USocket_Server_Handle index = MakeHandlerInternal();
-			CRAutoLock ral(m_mutex, chatting);
+            CRAutoLock ral(m_mutex, chatting);
             p(index);
         }
     }

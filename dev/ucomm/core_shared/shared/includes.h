@@ -65,23 +65,24 @@ void ChangeUInt32Endian(unsigned int *pGroup, unsigned int count);
 class CRAutoLock {
 public:
 #ifndef WINCE
+
     CRAutoLock(std::mutex &mutex, bool &chatting) : m_mutex(mutex), m_Chatting(chatting) {
 #else
 
     CRAutoLock(boost::mutex &mutex, bool &chatting) : m_mutex(mutex), m_Chatting(chatting) {
 #endif
-		assert(!chatting);
-		m_Chatting = true;
+        assert(!chatting);
+        m_Chatting = true;
         m_mutex.unlock();
     }
 
     ~CRAutoLock() {
         m_mutex.lock();
-		m_Chatting = false;
+        m_Chatting = false;
     }
 
 private:
-	bool &m_Chatting;
+    bool &m_Chatting;
 #ifndef WINCE
     std::mutex &m_mutex;
 #else
