@@ -35,12 +35,13 @@ namespace NJA {
         //methods
         NODE_SET_PROTOTYPE_METHOD(tpl, "Upload", Upload);
         NODE_SET_PROTOTYPE_METHOD(tpl, "Download", Download);
+        NODE_SET_PROTOTYPE_METHOD(tpl, "Cancel", Cancel);
 
         //property
         NODE_SET_PROTOTYPE_METHOD(tpl, "getFilesQueued", getFilesQueued);
 
-        constructor.Reset(isolate, tpl->GetFunction());
-        exports->Set(ToStr(isolate, "CAsyncFile"), tpl->GetFunction());
+        constructor.Reset(isolate, tpl->GetFunction(isolate->GetCurrentContext()).ToLocalChecked());
+        exports->Set(ToStr(isolate, "CAsyncFile"), tpl->GetFunction(isolate->GetCurrentContext()).ToLocalChecked());
     }
 
     Local<Object> NJFile::New(Isolate* isolate, CSFile *ash, bool setCb) {
@@ -54,9 +55,9 @@ namespace NJA {
     void NJFile::New(const FunctionCallbackInfo<Value>& args) {
         Isolate* isolate = args.GetIsolate();
         if (args.IsConstructCall()) {
-            if (args[0]->IsBoolean() && args[1]->IsNumber() && args[1]->IntegerValue() == SECRECT_NUM && args[2]->IsNumber()) {
-                //bool setCb = args[0]->BooleanValue();
-                SPA::INT64 ptr = args[2]->IntegerValue();
+            if (args[0]->IsBoolean() && args[1]->IsNumber() && args[1]->IntegerValue(isolate->GetCurrentContext()).ToChecked() == SECRECT_NUM && args[2]->IsNumber()) {
+                //bool setCb = args[0]->BooleanValue(isolate->GetCurrentContext()).ToChecked();
+                SPA::INT64 ptr = args[2]->IntegerValue(isolate->GetCurrentContext()).ToChecked();
                 NJFile *obj = new NJFile((CSFile*) ptr);
                 obj->Wrap(args.This());
                 args.GetReturnValue().Set(args.This());
@@ -91,6 +92,15 @@ namespace NJA {
         }
     }
 
+    void NJFile::Cancel(const FunctionCallbackInfo<Value>& args) {
+        Isolate* isolate = args.GetIsolate();
+        NJFile* obj = ObjectWrap::Unwrap<NJFile>(args.Holder());
+        if (obj->IsValid(isolate)) {
+            size_t data = obj->m_file->Cancel();
+            args.GetReturnValue().Set(Number::New(isolate, (double) data));
+        }
+    }
+
     void NJFile::Upload(const FunctionCallbackInfo<Value>& args) {
         Exchange(false, args);
     }
@@ -105,19 +115,27 @@ namespace NJA {
                 ThrowException(isolate, "A local file path required");
                 return;
             }
+#if NODE_MODULE_VERSION < 57
             String::Utf8Value str0(p0);
+#else
+            String::Utf8Value str0(isolate, p0);
+#endif
             std::wstring local = Utilities::ToWide(*str0);
             auto p1 = args[1];
             if (!p0->IsString()) {
                 ThrowException(isolate, "A remote file path required");
                 return;
             }
+#if NODE_MODULE_VERSION < 57
             String::Utf8Value str1(p1);
+#else
+            String::Utf8Value str1(isolate, p1);
+#endif
             std::wstring remote = Utilities::ToWide(*str1);
             Local<Value> argv[] = {args[2], args[3], args[4]};
             auto p2 = args[5];
             if (p2->IsUint32())
-                flags = p2->Uint32Value();
+                flags = p2->Uint32Value(isolate->GetCurrentContext()).ToChecked();
             else if (!IsNullOrUndefined(p2)) {
                 ThrowException(isolate, "Unsigned int required for file creating flags");
                 return;

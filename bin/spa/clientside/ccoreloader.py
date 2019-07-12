@@ -90,6 +90,12 @@ class CCoreLoader(object):
     else:
         POnAllRequestsProcessed = CFUNCTYPE(None, USocket_Client_Handle, c_ushort)
 
+    # typedef void (CALLBACK *POnPostProcessing) (USocket_Client_Handle handler, unsigned int hint, SPA::UINT64 data);
+    if _IsWin_:
+        POnPostProcessing = WINFUNCTYPE(None, USocket_Client_Handle, c_uint, c_uint64)
+    else:
+        POnPostProcessing = CFUNCTYPE(None, USocket_Client_Handle, c_uint, c_uint64)
+
     """
     enum tagSocketPoolEvent {
         speUnknown = -1,
@@ -898,6 +904,16 @@ class CCoreLoader(object):
     SetQueueAutoMergeByPool = _ucsLib_.SetQueueAutoMergeByPool
     SetQueueAutoMergeByPool.argtypes = [c_uint, c_bool]
     SetQueueAutoMergeByPool.restype = None
+
+    # void WINAPI SetOnPostProcessing(USocket_Client_Handle h, POnPostProcessing p);
+    SetOnPostProcessing = _ucsLib_.SetOnPostProcessing
+    SetOnPostProcessing.argtypes = [USocket_Client_Handle, POnPostProcessing]
+    SetOnPostProcessing.restype = None
+
+    #void WINAPI PostProcessing(USocket_Client_Handle h, unsigned int hint, SPA::UINT64 data);
+    PostProcessing = _ucsLib_.PostProcessing
+    PostProcessing.argtypes = [USocket_Client_Handle, c_uint, c_uint64]
+    PostProcessing.restype = None
 
 class CQueueConfigureImpl(object):
     @property

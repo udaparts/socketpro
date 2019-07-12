@@ -10,7 +10,7 @@ namespace PA
     const char *CPhpQueue::PHP_QUEUE_MESSAGES_DEQUEUED = "messagesDequeued";
     const char *CPhpQueue::PHP_QUEUE_BYTES_DEQUEUED = "bytesDequeued";
 
-    CPhpQueue::CPhpQueue(unsigned int poolId, CAsyncQueue *aq, bool locked) : CPhpBaseHandler(locked, aq, poolId), m_aq(aq), m_pBuff(new CPhpBuffer) {
+    CPhpQueue::CPhpQueue(CAsyncQueue *aq, bool locked) : CPhpBaseHandler(locked, aq), m_aq(aq), m_pBuff(new CPhpBuffer) {
     }
 
     Php::Value CPhpQueue::__get(const Php::Value & name) {

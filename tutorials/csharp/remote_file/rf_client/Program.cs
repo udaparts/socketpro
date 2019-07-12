@@ -32,7 +32,7 @@ class Program
                 //downloading progress
                 Console.WriteLine("Downloading rate: {0}%", downloaded * 100 / file.FileSize);
             });
-            ok = rf.WaitAll();
+            //ok = rf.WaitAll();
 
             //uploading test
             RemoteFile += ".copy";

@@ -10,7 +10,7 @@ namespace PA {
 
     class CPhpHandler : public CPhpBaseHandler {
     public:
-        CPhpHandler(unsigned int poolId, CAsyncHandler *pHandler, bool locked);
+        CPhpHandler(CAsyncHandler *pHandler, bool locked);
         CPhpHandler(const CPhpHandler &rh) = delete;
 
     public:

@@ -18,9 +18,30 @@
                    displayName="Source Files"
                    projectFiles="true">
       <itemPath>../../../include/aclientw.cpp</itemPath>
-      <itemPath>../../../include/error_code.cpp</itemPath>
       <itemPath>../../../include/membuffer.cpp</itemPath>
       <itemPath>test_csqlite.cpp</itemPath>
+    </logicalFolder>
+    <logicalFolder name="TestFiles"
+                   displayName="Test Files"
+                   projectFiles="false"
+                   kind="TEST_LOGICAL_FOLDER">
+    </logicalFolder>
+    <logicalFolder name="ExternalFiles"
+                   displayName="Important Files"
+                   projectFiles="false"
+                   kind="IMPORTANT_FILES_FOLDER">
+      <itemPath>Makefile</itemPath>
+    </logicalFolder>
+    <logicalFolder name="TestFiles"
+                   displayName="Test Files"
+                   projectFiles="false"
+                   kind="TEST_LOGICAL_FOLDER">
+    </logicalFolder>
+    <logicalFolder name="ExternalFiles"
+                   displayName="Important Files"
+                   projectFiles="false"
+                   kind="IMPORTANT_FILES_FOLDER">
+      <itemPath>Makefile</itemPath>
     </logicalFolder>
     <logicalFolder name="TestFiles"
                    displayName="Test Files"
@@ -52,9 +73,8 @@
         <linkerTool>
           <linkerLibItems>
             <linkerLibStdlibItem>DynamicLinking</linkerLibStdlibItem>
-            <linkerLibStdlibItem>PosixThreads</linkerLibStdlibItem>
           </linkerLibItems>
-          <commandLine>-std=c++11 -lstdc++</commandLine>
+          <commandLine>-pthread -lstdc++</commandLine>
         </linkerTool>
       </compileType>
       <item path="../../../include/aclientw.cpp" ex="false" tool="0" flavor2="0">
@@ -62,8 +82,6 @@
       <item path="../../../include/aclientw.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../../include/async_sqlite.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="../../../include/error_code.cpp" ex="false" tool="0" flavor2="0">
       </item>
       <item path="../../../include/membuffer.cpp" ex="false" tool="0" flavor2="0">
       </item>
@@ -109,9 +127,8 @@
           <stripSymbols>true</stripSymbols>
           <linkerLibItems>
             <linkerLibStdlibItem>DynamicLinking</linkerLibStdlibItem>
-            <linkerLibStdlibItem>PosixThreads</linkerLibStdlibItem>
           </linkerLibItems>
-          <commandLine>-std=c++11 -lstdc++</commandLine>
+          <commandLine>-pthread -lstdc++</commandLine>
         </linkerTool>
       </compileType>
       <item path="../../../include/aclientw.cpp" ex="false" tool="0" flavor2="0">
@@ -119,8 +136,6 @@
       <item path="../../../include/aclientw.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../../include/async_sqlite.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="../../../include/error_code.cpp" ex="false" tool="0" flavor2="0">
       </item>
       <item path="../../../include/membuffer.cpp" ex="false" tool="0" flavor2="0">
       </item>

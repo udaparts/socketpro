@@ -36,7 +36,7 @@ public class Program {
 
         //for windows platforms, you can use windows system store instead
         //CClientSocket.SSL.SetVerifyLocation("my"); //or "root", "my@currentuser", "root@localmachine"
-        CSocketPool<HelloWorld> spHw = new CSocketPool<>(HelloWorld.class); //true -- automatic reconnecting
+        try (CSocketPool<HelloWorld> spHw = new CSocketPool<>(HelloWorld.class)) //true -- automatic reconnecting
         {
             spHw.DoSslServerAuthentication = (sender, cs) -> {
                 SPA.RefObject<Integer> errCode = new SPA.RefObject<>(0);

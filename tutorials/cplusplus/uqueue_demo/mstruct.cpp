@@ -1,12 +1,12 @@
 
 #include "mystruct.h"
 
-SPA::CUQueue& operator <<(SPA::CUQueue &mc, const CMyStruct &ms) {
+SPA::CUQueue& operator<<(SPA::CUQueue &mc, const CMyStruct &ms) {
     ms.SaveTo(mc);
     return mc;
 }
 
-SPA::CUQueue& operator >>(SPA::CUQueue &mc, CMyStruct &ms) {
+SPA::CUQueue& operator>>(SPA::CUQueue &mc, CMyStruct &ms) {
     ms.LoadFrom(mc);
     return mc;
 }
@@ -17,7 +17,6 @@ void SetMyStruct(CMyStruct &ms) {
     ms.ABool = true;
     ms.ADouble = 1234.567;
     ms.AsciiString = "ASCII";
-#ifdef WIN32_64
     ms.ObjString = L"test";
     {
         int *data;
@@ -39,20 +38,4 @@ void SetMyStruct(CMyStruct &ms) {
         data[1] = ::SysAllocString(L"world");
         ::SafeArrayUnaccessData(ms.objArrString.parray);
     }
-#else
-    ms.ObjString = std::wstring(L"test");
-    {
-        std::vector<int> vs;
-        vs.push_back(1);
-        vs.push_back(76890);
-        ms.objArrInt = vs;
-    }
-    {
-
-        std::vector<std::wstring> vs;
-        vs.push_back(std::wstring(L"Hello"));
-        vs.push_back(std::wstring(L"world"));
-        ms.objArrString = vs;
-    }
-#endif
 }

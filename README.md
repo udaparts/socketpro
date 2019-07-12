@@ -25,8 +25,6 @@
     - SQL streaming for MS SQL server 2008 or later
     - SQL streaming for anyone of databases having ODBC driver
 
-4.  Boost libraries (www.boost.org) are required for C/C++ development on non-window platforms. This is NOT required at all with Visual C++ development.
+4.  We use netbeans (https://netbeans.org/) for Java development on all platforms; and also for C/C++ developments on Linux platforms.
 
-5.  We use netbeans (https://netbeans.org/) for Java development on all platforms; and also for C/C++ developments on Linux platforms.
-
-6.  We use PyCharm (https://www.jetbrains.com/pycharm/) for python development on all platforms. Its free Community Edition works just fine.
+5.  We use PyCharm (https://www.jetbrains.com/pycharm/) for python development on all platforms. Its free Community Edition works just fine.

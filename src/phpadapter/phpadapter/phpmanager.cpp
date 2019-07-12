@@ -400,7 +400,7 @@ namespace PA
         do {
             try{
                 std::shared_ptr<FILE> fp(fopen(Manager.m_ConfigPath.c_str(), "rb"), [](FILE * f) {
-                    ::fclose(f);
+                    if (f) ::fclose(f);
                 });
                 if (!fp || ferror(fp.get())) {
                     throw Php::Exception("Cannot open " + SP_CONFIG);

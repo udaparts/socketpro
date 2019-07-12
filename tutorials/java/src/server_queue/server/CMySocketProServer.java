@@ -2,7 +2,6 @@ package server_queue.server;
 
 import SPA.ServerSide.*;
 
-
 public class CMySocketProServer extends CSocketProServer {
 
     public static void main(String[] args) {
@@ -11,19 +10,17 @@ public class CMySocketProServer extends CSocketProServer {
         } else {
             CSocketProServer.QueueManager.setWorkDirectory("/home/yye/sp_test/");
         }
-        CMySocketProServer MySocketProServer = new CMySocketProServer();
-        
-        //CSocketProServer.QueueManager.setMessageQueuePassword("MyPasswordForMsgQueue");
-        
-        //load socketpro async queue server libraries located at the directory ../socketpro/bin
-        long handle = CSocketProServer.DllManager.AddALibrary("uasyncqueue", 16 * 1024); //16 * 1024 batch dequeuing size in bytes
-        if (handle == 0) {
-            System.out.println("Cannot load async queue library");
+        try (CMySocketProServer MySocketProServer = new CMySocketProServer()) {
+            //CSocketProServer.QueueManager.setMessageQueuePassword("MyPasswordForMsgQueue");
+            //load socketpro async queue server libraries located at the directory ../socketpro/bin
+            long handle = CSocketProServer.DllManager.AddALibrary("uasyncqueue", 16 * 1024); //16 * 1024 batch dequeuing size in bytes
+            if (handle == 0) {
+                System.out.println("Cannot load async queue library");
+            } else if (!MySocketProServer.Run(20901)) {
+                System.out.println("Error code = " + CSocketProServer.getLastSocketError());
+            }
+            System.out.println("Input a line to close the application ......");
+            new java.util.Scanner(System.in).nextLine();
         }
-        else if (!MySocketProServer.Run(20901)) {
-            System.out.println("Error code = " + CSocketProServer.getLastSocketError());
-        }
-        System.out.println("Input a line to close the application ......");
-        new java.util.Scanner(System.in).nextLine();
     }
 }

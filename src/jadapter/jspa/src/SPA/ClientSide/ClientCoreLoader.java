@@ -242,14 +242,16 @@ class ClientCoreLoader {
     static native boolean IsRoutingQueueIndexEnabled(long h);
 
     static native String GetUClientAppName();
-    
+
     static native int GetOptimistic(long h);
-    
+
     static native void SetOptimistic(long h, int optimistic);
-    
+
     static native void SetLastCallInfo(byte[] str, int len);
-    
+
     static native boolean GetQueueAutoMergeByPool(int poolId);
-    
+
     static native void SetQueueAutoMergeByPool(int poolId, boolean autoMerge);
+
+    static native void PostProcessing(long h, int hint, long data);
 }

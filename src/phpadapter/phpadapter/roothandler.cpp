@@ -4,7 +4,7 @@
 namespace PA
 {
 
-    CPhpHandler::CPhpHandler(unsigned int poolId, CAsyncHandler *pHandler, bool locked) : CPhpBaseHandler(locked, pHandler, poolId), m_pHandler(pHandler) {
+    CPhpHandler::CPhpHandler(CAsyncHandler *pHandler, bool locked) : CPhpBaseHandler(locked, pHandler), m_pHandler(pHandler) {
     }
 
     void CPhpHandler::RegisterInto(Php::Class<CPhpBaseHandler> &base, Php::Namespace & cs) {

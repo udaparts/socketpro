@@ -4,7 +4,7 @@
 namespace PA
 {
 
-    CPhpFile::CPhpFile(unsigned int poolId, CAsyncFile *sh, bool locked) : CPhpBaseHandler(locked, sh, poolId), m_sh(sh) {
+    CPhpFile::CPhpFile(CAsyncFile *sh, bool locked) : CPhpBaseHandler(locked, sh), m_sh(sh) {
     }
 
     void CPhpFile::RegisterInto(Php::Class<CPhpBaseHandler> &base, Php::Namespace & cs) {
@@ -31,6 +31,7 @@ namespace PA
             Php::ByVal("local", Php::Type::String),
             Php::ByVal("remote", Php::Type::String)
         });
+        handler.method<&CPhpFile::Cancel>("Cancel");
         cs.add(handler);
     }
 
@@ -123,6 +124,10 @@ namespace PA
         }
         local = SPA::Utilities::ToWide(l);
         remote = SPA::Utilities::ToWide(r);
+    }
+
+    Php::Value CPhpFile::Cancel() {
+        return (SPA::INT64) m_sh->Cancel();
     }
 
     Php::Value CPhpFile::Download(Php::Parameters & params) {

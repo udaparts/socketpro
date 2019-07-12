@@ -14,7 +14,8 @@ namespace SPA {
         class CAsyncQueue : public CAsyncServiceHandler {
         public:
 
-            CAsyncQueue(CClientSocket *pClientSocket, unsigned int sid = SPA::Queue::sidQueue) : CAsyncServiceHandler(sid, pClientSocket), m_nBatchSize(0) {
+            CAsyncQueue(CClientSocket *pClientSocket, unsigned int sid = SPA::Queue::sidQueue) : CAsyncServiceHandler(sid, pClientSocket), m_nBatchSize(0), MessageQueued(m_mq) {
+				m_mq.SetCS(&m_csQ);
             }
 
             //callback definitions
@@ -24,7 +25,6 @@ namespace SPA {
             typedef std::function<void(CAsyncQueue *aq, UINT64 indexMessage) > DEnqueue;
             typedef std::function<void(CAsyncQueue *aq, int errCode) > DClose;
             typedef std::function<void(CAsyncQueue *aq, UINT64 messageCount, UINT64 fileSize, unsigned int messagesDequeuedInBatch, unsigned int bytesDequeuedInBatch) > DDequeue;
-            typedef std::function<void(CAsyncQueue *aq) > DMessageQueued;
 
         public:
 
@@ -432,9 +432,7 @@ namespace SPA {
                             Dequeue(key.c_str(), d, 0);
                         }
                     }
-                        if (MessageQueued) {
-                            MessageQueued(this);
-                        }
+                        m_mq.Invoke(this);
                         break;
                     default:
                         break;
@@ -455,12 +453,6 @@ namespace SPA {
                 }
             }
 
-        public:
-            /**
-             * An event for tracking message queued notification from server side
-             */
-            DMessageQueued MessageQueued;
-
         protected:
             SPA::CUCriticalSection m_csQ;
 
@@ -468,6 +460,21 @@ namespace SPA {
             unsigned int m_nBatchSize;
             std::string m_keyDequeue; //protected by m_csQ
             DDequeue m_dDequeue; //protected by m_csQ
+
+		public:
+#ifndef SAFE_RESULT_RETURN_EVENT
+			typedef std::function<void(CAsyncQueue *aq) > DMessageQueued;
+#else
+			typedef void(*DMessageQueued)(CAsyncQueue *aq);
+#endif
+		private:
+			IUDelImpl<DMessageQueued> m_mq;
+
+		public:
+			/**
+			 * An event for tracking message queued notification from server side
+			 */
+			IUDel<DMessageQueued> &MessageQueued;
         };
 
         typedef CSocketPool<CAsyncQueue> CAsyncQueuePool;

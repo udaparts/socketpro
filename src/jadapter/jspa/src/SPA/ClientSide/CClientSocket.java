@@ -232,6 +232,14 @@ public final class CClientSocket {
         return ClientCoreLoader.GetClientWorkDirectory();
     }
 
+    private static void OnPostProcessing(long h, int hint, long data) {
+        CClientSocket cs = Find(h);
+        CAsyncServiceHandler ash = cs.Seek(cs.getCurrentServiceID());
+        if (ash != null) {
+            ash.OnPostProcessing(hint, data);
+        }
+    }
+
     private static void OnAllRequestsProcessed(long h, short reqId) {
         CClientSocket cs = Find(h);
         CAsyncServiceHandler ash = cs.Seek(cs.getCurrentServiceID());

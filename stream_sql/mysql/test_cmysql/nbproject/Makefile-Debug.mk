@@ -36,7 +36,6 @@ OBJECTDIR=${CND_BUILDDIR}/${CND_CONF}/${CND_PLATFORM}
 # Object Files
 OBJECTFILES= \
 	${OBJECTDIR}/_ext/932346631/aclientw.o \
-	${OBJECTDIR}/_ext/932346631/error_code.o \
 	${OBJECTDIR}/_ext/932346631/membuffer.o \
 	${OBJECTDIR}/test_cmysql.o
 
@@ -55,7 +54,7 @@ FFLAGS=
 ASFLAGS=
 
 # Link Libraries and Options
-LDLIBSOPTIONS=-lpthread -ldl
+LDLIBSOPTIONS=-ldl
 
 # Build Targets
 .build-conf: ${BUILD_SUBPROJECTS}
@@ -63,27 +62,22 @@ LDLIBSOPTIONS=-lpthread -ldl
 
 ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/test_cmysql: ${OBJECTFILES}
 	${MKDIR} -p ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}
-	${LINK.c} -o ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/test_cmysql ${OBJECTFILES} ${LDLIBSOPTIONS} -std=c++11 -lstdc++
+	${LINK.c} -o ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/test_cmysql ${OBJECTFILES} ${LDLIBSOPTIONS} -lstdc++ -pthread
 
 ${OBJECTDIR}/_ext/932346631/aclientw.o: ../../../include/aclientw.cpp 
 	${MKDIR} -p ${OBJECTDIR}/_ext/932346631
 	${RM} "$@.d"
-	$(COMPILE.c) -g -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/932346631/aclientw.o ../../../include/aclientw.cpp
-
-${OBJECTDIR}/_ext/932346631/error_code.o: ../../../include/error_code.cpp 
-	${MKDIR} -p ${OBJECTDIR}/_ext/932346631
-	${RM} "$@.d"
-	$(COMPILE.c) -g -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/932346631/error_code.o ../../../include/error_code.cpp
+	$(COMPILE.c) -g -DUSE_BOOST_LARGE_INTEGER_FOR_DECIMAL -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/932346631/aclientw.o ../../../include/aclientw.cpp
 
 ${OBJECTDIR}/_ext/932346631/membuffer.o: ../../../include/membuffer.cpp 
 	${MKDIR} -p ${OBJECTDIR}/_ext/932346631
 	${RM} "$@.d"
-	$(COMPILE.c) -g -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/932346631/membuffer.o ../../../include/membuffer.cpp
+	$(COMPILE.c) -g -DUSE_BOOST_LARGE_INTEGER_FOR_DECIMAL -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/932346631/membuffer.o ../../../include/membuffer.cpp
 
 ${OBJECTDIR}/test_cmysql.o: test_cmysql.cpp 
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
-	$(COMPILE.c) -g -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/test_cmysql.o test_cmysql.cpp
+	$(COMPILE.c) -g -DUSE_BOOST_LARGE_INTEGER_FOR_DECIMAL -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/test_cmysql.o test_cmysql.cpp
 
 # Subprojects
 .build-subprojects:

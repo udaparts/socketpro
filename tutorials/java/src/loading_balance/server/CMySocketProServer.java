@@ -12,13 +12,14 @@ public class CMySocketProServer extends CSocketProServer {
     private final CSocketProService<CClientPeer> m_PiWorker = new CSocketProService<>(CClientPeer.class);
 
     public static void main(String[] args) {
-        CMySocketProServer MySocketProServer = new CMySocketProServer();
-        if (!MySocketProServer.Run(20901)) {
-            System.out.println("Error code = " + CSocketProServer.getLastSocketError());
-        } else {
-            CSocketProServer.Router.SetRouting(piConst.sidPi, piConst.sidPiWorker);
+        try (CMySocketProServer MySocketProServer = new CMySocketProServer()) {
+            if (!MySocketProServer.Run(20901)) {
+                System.out.println("Error code = " + CSocketProServer.getLastSocketError());
+            } else {
+                CSocketProServer.Router.SetRouting(piConst.sidPi, piConst.sidPiWorker);
+            }
+            System.out.println("Input a line to close the application ......");
+            new java.util.Scanner(System.in).nextLine();
         }
-        System.out.println("Input a line to close the application ......");
-        new java.util.Scanner(System.in).nextLine();
     }
 }

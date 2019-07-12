@@ -87,7 +87,7 @@ class Program
             {
                 //Console.WriteLine("Downloading rate: {0}%", downloaded * 100 / file.FileSize);
             });
-            ok = rf.WaitAll();
+            //ok = rf.WaitAll();
 
             LocalFile = "spfile1.test";
             RemoteFile = "jvm_copy.lib";

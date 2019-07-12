@@ -37,16 +37,16 @@ public class CMySocketProServer : CSocketProServer
 
     static void Main(string[] args)
     {
-        if (System.Environment.OSVersion.Platform == PlatformID.Unix)
-            CSocketProServer.QueueManager.WorkDirectory = "/home/yye/sp_test/";
-        else
-            CSocketProServer.QueueManager.WorkDirectory = "c:\\sp_test";
         using (CMySocketProServer MySocketProServer = new CMySocketProServer())
         {
-            //CSocketProServer.QueueManager.MessageQueuePassword = "MyPasswordForMsgQueue";
-
-            //test certificate, private key and DH params files are located at the directory ..\SocketProRoot\bin
-            //MySocketProServer.UseSSL("server.pem", "server.pem", "test");
+            //test certificate and private key files are located at ../SocketProRoot/bin
+            //if (System.Environment.OSVersion.Platform == PlatformID.Unix)
+            //    MySocketProServer.UseSSL("intermediate.cert.pem", "intermediate.key.pem", "mypassword");
+            //else
+            //{
+            //    MySocketProServer.UseSSL("intermediate.pfx", "", "mypassword");
+            //    //MySocketProServer.UseSSL("root"/*"my"*/, "UDAParts Intermediate CA", ""); //or load cert and private key from windows system cert store
+            //}
 
             if (!MySocketProServer.Run(20901))
                 Console.WriteLine("Error code = " + CSocketProServer.LastSocketError.ToString());
@@ -68,6 +68,7 @@ public class CMySocketProServer : CSocketProServer
         PushManager.AddAChatGroup(2, "Sales Department");
         PushManager.AddAChatGroup(3, "Management Department");
         PushManager.AddAChatGroup(7, "HR Department");
+        PushManager.AddAChatGroup(SocketProAdapter.UDB.DB_CONSTS.CACHE_UPDATE_CHAT_GROUP_ID, "Subscribe/publish for front clients");
 
         //load socketpro async sqlite server plugin located at the directory ../socketpro/bin
         IntPtr p = CSocketProServer.DllManager.AddALibrary("ssqlite");
@@ -81,11 +82,6 @@ public class CMySocketProServer : CSocketProServer
 
         //load SocketPro file streaming server plugin located at the directory ../socketpro/bin
         p = CSocketProServer.DllManager.AddALibrary("ustreamfile");
-        if (p.ToInt64() != 0)
-        {
-            SetRootDirectory("C:\\boost_1_60_0\\stage\\lib64");
-        }
-
         return true; //true -- ok; false -- no listening server
     }
 

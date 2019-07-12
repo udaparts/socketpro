@@ -67,7 +67,7 @@ namespace NJA {
         NJHandlerRoot* obj = ObjectWrap::Unwrap<NJHandlerRoot>(args.Holder());
         auto p0 = args[0];
         if (p0->IsObject()) {
-            auto objH = p0->ToObject();
+            auto objH = p0->ToObject(isolate->GetCurrentContext()).ToLocalChecked();
             if (IsHandler(objH)) {
                 NJHandlerRoot* p = ObjectWrap::Unwrap<NJHandlerRoot>(objH);
                 args.GetReturnValue().Set(Boolean::New(isolate, p->m_ash == obj->m_ash));
@@ -93,7 +93,7 @@ namespace NJA {
             bool server_commit = false;
             auto p = args[0];
             if (p->IsBoolean())
-                server_commit = p->BooleanValue();
+                server_commit = p->BooleanValue(isolate->GetCurrentContext()).ToChecked();
             else if (!IsNullOrUndefined(p)) {
                 ThrowException(isolate, BOOLEAN_EXPECTED);
                 return;
@@ -148,7 +148,7 @@ namespace NJA {
                 ThrowException(isolate, "A request id expected for the 1st input");
                 return;
             }
-            unsigned int reqId = p0->Uint32Value();
+            unsigned int reqId = p0->Uint32Value(isolate->GetCurrentContext()).ToChecked();
             if (reqId > 0xffff || reqId <= SPA::tagBaseRequestID::idReservedTwo) {
                 ThrowException(isolate, "An unsigned short request id expected");
                 return;
@@ -159,7 +159,7 @@ namespace NJA {
             int index = 1;
             auto p1 = args[1];
             if (p1->IsObject()) {
-                auto qObj = p1->ToObject();
+                auto qObj = p1->ToObject(isolate->GetCurrentContext()).ToLocalChecked();
                 if (NJQueue::IsUQueue(qObj)) {
                     njq = ObjectWrap::Unwrap<NJQueue>(qObj);
                     SPA::CUQueue *q = njq->get();

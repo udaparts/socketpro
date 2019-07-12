@@ -26,8 +26,9 @@ namespace SPA {
             virtual void OnBaseRequestArrive(unsigned short requestId);
 
         private:
-            void Download(const std::wstring &filePath, unsigned int flags, int &res, std::wstring &errMsg);
-            void Upload(const std::wstring &filePath, unsigned int flags, UINT64 fileSize, int &res, std::wstring &errMsg);
+            void Download(const std::wstring &localFile, const std::wstring &filePath, unsigned int flags, INT64 initSize, int &res, std::wstring &errMsg);
+            void Upload(const std::wstring &filePath, unsigned int flags, UINT64 fileSize, int &res, std::wstring &errMsg, INT64 &initPos);
+            void UploadBackup(const std::wstring &filePath, unsigned int flags, UINT64 fileSize, INT64 initSize);
             void Uploading(UINT64 &pos);
             void UploadCompleted();
             void CleanOF();
@@ -36,9 +37,9 @@ namespace SPA {
             UINT64 m_oFileSize;
             std::wstring m_oFilePath;
             UINT64 m_oPos;
+            INT64 InitSize;
 #ifdef WIN32_64
             HANDLE m_of;
-
 #else
             int m_of;
 #endif  

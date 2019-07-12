@@ -983,6 +983,14 @@ JNIEXPORT jboolean JNICALL Java_SPA_ClientSide_ClientCoreLoader_GetQueueAutoMerg
 JNIEXPORT void JNICALL Java_SPA_ClientSide_ClientCoreLoader_SetQueueAutoMergeByPool
   (JNIEnv *, jclass, jint, jboolean);
 
+/*
+ * Class:     SPA_ClientSide_ClientCoreLoader
+ * Method:    PostProcessing
+ * Signature: (JIJ)V
+ */
+JNIEXPORT void JNICALL Java_SPA_ClientSide_ClientCoreLoader_PostProcessing
+  (JNIEnv *, jclass, jlong, jint, jlong);
+
 #ifdef __cplusplus
 }
 #endif

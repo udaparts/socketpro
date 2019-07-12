@@ -39,7 +39,7 @@ namespace PA {
 
     class CPhpBaseHandler : public Php::Base {
     protected:
-        CPhpBaseHandler(bool locked, SPA::ClientSide::CAsyncServiceHandler *h, unsigned int poolId);
+        CPhpBaseHandler(bool locked, SPA::ClientSide::CAsyncServiceHandler *h);
         CPhpBaseHandler(const CPhpBaseHandler& h) = delete;
         virtual ~CPhpBaseHandler();
 
@@ -78,7 +78,6 @@ namespace PA {
     private:
         bool m_locked;
         SPA::ClientSide::CAsyncServiceHandler *m_h;
-        unsigned int m_PoolId;
         std::atomic<tagRequestReturnStatus> m_rrs;
     };
 }

@@ -54,6 +54,7 @@
           <preprocessorList>
             <Elem>MM_DB_SERVER_PLUGIN</Elem>
             <Elem>MYSQL_DYNAMIC_PLUGIN</Elem>
+            <Elem>USE_BOOST_LARGE_INTEGER_FOR_DECIMAL</Elem>
           </preprocessorList>
         </cTool>
         <ccTool>
@@ -61,6 +62,7 @@
           <preprocessorList>
             <Elem>MM_DB_SERVER_PLUGIN</Elem>
             <Elem>MYSQL_DYNAMIC_PLUGIN</Elem>
+            <Elem>USE_BOOST_LARGE_INTEGER_FOR_DECIMAL</Elem>
           </preprocessorList>
         </ccTool>
         <linkerTool>
@@ -126,6 +128,7 @@
             <Elem>MM_DB_SERVER_PLUGIN</Elem>
             <Elem>MYSQL_DYNAMIC_PLUGIN</Elem>
             <Elem>NDEBUG</Elem>
+            <Elem>USE_BOOST_LARGE_INTEGER_FOR_DECIMAL</Elem>
           </preprocessorList>
         </cTool>
         <ccTool>
@@ -136,6 +139,7 @@
             <Elem>MM_DB_SERVER_PLUGIN</Elem>
             <Elem>MYSQL_DYNAMIC_PLUGIN</Elem>
             <Elem>NDEBUG</Elem>
+            <Elem>USE_BOOST_LARGE_INTEGER_FOR_DECIMAL</Elem>
           </preprocessorList>
         </ccTool>
         <fortranCompilerTool>

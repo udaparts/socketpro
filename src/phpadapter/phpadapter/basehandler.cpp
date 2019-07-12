@@ -8,7 +8,7 @@
 namespace PA
 {
 
-    CPhpBaseHandler::CPhpBaseHandler(bool locked, SPA::ClientSide::CAsyncServiceHandler *h, unsigned int poolId) : m_locked(locked), m_h(h), m_PoolId(poolId) {
+    CPhpBaseHandler::CPhpBaseHandler(bool locked, SPA::ClientSide::CAsyncServiceHandler *h) : m_locked(locked), m_h(h) {
         assert(m_h);
     }
 
@@ -21,7 +21,7 @@ namespace PA
 
     Php::Value CPhpBaseHandler::Unlock() {
         if (m_locked) {
-            SPA::ClientSide::ClientCoreLoader.UnlockASocket(m_PoolId, m_h->GetAttachedClientSocket()->GetHandle());
+            SPA::ClientSide::ClientCoreLoader.UnlockASocket(m_h->GetAttachedClientSocket()->GetPoolId(), m_h->GetAttachedClientSocket()->GetHandle());
             m_locked = false;
         }
         return true;
@@ -296,7 +296,7 @@ namespace PA
     }
 
     unsigned int CPhpBaseHandler::GetPoolId() const {
-        return m_PoolId;
+        return m_h->GetAttachedClientSocket()->GetPoolId();
     }
 
     int CPhpBaseHandler::__compare(const CPhpBaseHandler & pbh) const {

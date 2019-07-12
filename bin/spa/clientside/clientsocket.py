@@ -270,7 +270,10 @@ class CClientSocket:
         #typedef void (CALLBACK *POnSendUserMessageEx2) (USocket_Client_Handle handler, SPA::ClientSide::CMessageSender *sender, const unsigned char *pMessage, unsigned int size);
         self._m_sume_ = ccl.POnSendUserMessageEx(self._sume_)
         #typedef void (CALLBACK *POnSendUserMessage2) (USocket_Client_Handle handler, SPA::ClientSide::CMessageSender *sender, const unsigned char *message, unsigned int size);
-        self._sum_ = ccl.POnSendUserMessage(self._sum_)
+        self._m_sum_ = ccl.POnSendUserMessage(self._sum_)
+        #typedef void (CALLBACK *POnPostProcessing) (USocket_Client_Handle handler, unsigned int hint, SPA::UINT64 data);
+        self._m_pp_ = ccl.POnPostProcessing(self._pp_)
+
 
         ccl.SetOnHandShakeCompleted(self._m_h_, self._m_hsc_)
         ccl.SetOnRequestProcessed(self._m_h_, self._m_rp_)
@@ -284,7 +287,8 @@ class CClientSocket:
         ccl.SetOnExit(self._m_h_, self._m_exit_)
         ccl.SetOnSpeak(self._m_h_, self._m_s_)
         ccl.SetOnSendUserMessageEx(self._m_h_, self._m_sume_)
-        ccl.SetOnSendUserMessage(self._m_h_, self._sum_)
+        ccl.SetOnSendUserMessage(self._m_h_, self._m_sum_)
+        ccl.SetOnPostProcessing(self._m_h_, self._m_pp_)
 
         self.HandShakeCompleted = None
         self.RequestProcessed = None
@@ -307,6 +311,11 @@ class CClientSocket:
     @property
     def UCert(self):
         return self._m_cert_
+
+    def _pp_(self, handler, hint, data):
+        ash = self._Seek_(self.CurrentServiceID)
+        if not ash is None:
+            ash.OnPostProcessing(hint, data)
 
     def _hsc_(self, handler, nError):
         if not self.HandShakeCompleted is None:

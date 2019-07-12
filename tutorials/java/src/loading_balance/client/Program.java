@@ -15,7 +15,7 @@ public class Program {
             CClientSocket.QueueConfigure.setWorkDirectory("/home/yye/sp_test");
         }
         CConnectionContext cc = new CConnectionContext("localhost", 20901, "lb_client", "pwd_lb_client");
-        CSocketPool<Pi> spPi = new CSocketPool<>(Pi.class, true); //true -- automatic reconnecting
+        try (CSocketPool<Pi> spPi = new CSocketPool<>(Pi.class, true)) //true -- automatic reconnecting
         {
             ok = spPi.StartSocketPool(cc, 1, 1);
             CClientSocket cs = spPi.getSockets()[0];

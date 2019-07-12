@@ -237,8 +237,8 @@ namespace NJA {
         //NODE_SET_PROTOTYPE_METHOD(tpl, "Unlock", Unlock);
         //NODE_SET_PROTOTYPE_METHOD(tpl, "CloseAll", DisconnectAll);
 
-        constructor.Reset(isolate, tpl->GetFunction());
-        exports->Set(ToStr(isolate, "CSocketPool"), tpl->GetFunction());
+        constructor.Reset(isolate, tpl->GetFunction(isolate->GetCurrentContext()).ToLocalChecked());
+        exports->Set(ToStr(isolate, "CSocketPool"), tpl->GetFunction(isolate->GetCurrentContext()).ToLocalChecked());
     }
 
     void NJSocketPool::newSlave(const FunctionCallbackInfo<Value>& args) {
@@ -252,7 +252,7 @@ namespace NJA {
             std::wstring defaultDb(obj->m_defaultDb);
             auto p = args[0];
             if (p->IsString()) {
-                std::wstring s = ToStr(p);
+                std::wstring s = ToStr(isolate, p);
                 if (s.size()) {
                     defaultDb = s;
                 }
@@ -273,7 +273,7 @@ namespace NJA {
         if (args.IsConstructCall()) {
             unsigned int svsId = 0;
             if (args[0]->IsUint32()) {
-                svsId = args[0]->Uint32Value();
+                svsId = args[0]->Uint32Value(isolate->GetCurrentContext()).ToChecked();
             }
             if (svsId < SPA::sidChat || (svsId > SPA::sidODBC && svsId <= SPA::sidReserved)) {
                 ThrowException(isolate, "A valid unsigned int required for service id");
@@ -285,14 +285,18 @@ namespace NJA {
             }
             std::wstring db;
             if (args[1]->IsString()) {
+#if NODE_MODULE_VERSION < 57
                 String::Value str(args[1]);
+#else
+                String::Value str(isolate, args[1]);
+#endif
                 unsigned int len = (unsigned int) str.length();
                 if (len)
                     db.assign(*str, *str + len);
             }
             bool slave = false;
             if (args[2]->IsBoolean()) {
-                slave = args[2]->BooleanValue();
+                slave = args[2]->BooleanValue(isolate->GetCurrentContext()).ToChecked();
             } else if (!IsNullOrUndefined(args[2])) {
                 ThrowException(isolate, "Must be a boolean value for slave pool");
                 return;
@@ -699,7 +703,7 @@ namespace NJA {
         if (obj->IsValid(isolate)) {
             auto p = args[0];
             if (p->IsBoolean()) {
-                bool b = p->BooleanValue();
+                bool b = p->BooleanValue(isolate->GetCurrentContext()).ToChecked();
                 obj->Handler->SetQueueAutoMerge(b);
             } else {
                 ThrowException(isolate, BOOLEAN_EXPECTED);
@@ -722,7 +726,7 @@ namespace NJA {
         if (obj->IsValid(isolate)) {
             auto p = args[0];
             if (p->IsBoolean()) {
-                bool b = p->BooleanValue();
+                bool b = p->BooleanValue(isolate->GetCurrentContext()).ToChecked();
                 obj->Handler->SetAutoConn(b);
             } else {
                 ThrowException(isolate, BOOLEAN_EXPECTED);
@@ -745,7 +749,7 @@ namespace NJA {
         if (obj->IsValid(isolate)) {
             auto p = args[0];
             if (p->IsUint32()) {
-                obj->Handler->SetRecvTimeout(p->Uint32Value());
+                obj->Handler->SetRecvTimeout(p->Uint32Value(isolate->GetCurrentContext()).ToChecked());
             } else {
                 ThrowException(isolate, "An unsigned int value expected for request receiving timeout in milliseconds");
             }
@@ -767,7 +771,7 @@ namespace NJA {
         if (obj->IsValid(isolate)) {
             auto p = args[0];
             if (p->IsUint32()) {
-                obj->Handler->SetConnTimeout(p->Uint32Value());
+                obj->Handler->SetConnTimeout(p->Uint32Value(isolate->GetCurrentContext()).ToChecked());
             } else {
                 ThrowException(isolate, "An unsigned int value expected for connecting timeout in milliseconds");
             }
@@ -789,7 +793,11 @@ namespace NJA {
         if (obj->IsValid(isolate)) {
             auto p = args[0];
             if (p->IsString()) {
+#if NODE_MODULE_VERSION <57
                 String::Utf8Value str(p);
+#else
+                String::Utf8Value str(isolate, p);
+#endif
                 obj->Handler->SetQueueName(*str);
             } else {
                 ThrowException(isolate, BOOLEAN_EXPECTED);
@@ -854,7 +862,7 @@ namespace NJA {
         if (obj->IsValid(isolate)) {
             unsigned int timeout = (~0);
             if (args[0]->IsNumber()) {
-                timeout = args[0]->Uint32Value();
+                timeout = args[0]->Uint32Value(isolate->GetCurrentContext()).ToChecked();
             }
             switch (obj->SvsId) {
                 case SPA::Queue::sidQueue:
@@ -982,7 +990,11 @@ namespace NJA {
                 }
             } else if (p->IsString()) {
                 std::string qname;
+#if NODE_MODULE_VERSION <57
                 String::Utf8Value str(p);
+#else
+                String::Utf8Value str(isolate, p);
+#endif
                 qname = *str;
                 switch (obj->SvsId) {
                     case SPA::Queue::sidQueue:
@@ -1039,7 +1051,7 @@ namespace NJA {
     }
 
     bool NJSocketPool::To(Isolate* isolate, const Local<Object> &obj, SPA::ClientSide::CConnectionContext &cc) {
-        Local<Array> props = obj->GetPropertyNames();
+        Local<Array> props = obj->GetPropertyNames(isolate->GetCurrentContext()).ToLocalChecked();
         if (props->Length() != 8) {
             ThrowException(isolate, "Invalid connection context");
             return false;
@@ -1050,7 +1062,11 @@ namespace NJA {
             ThrowException(isolate, "Invalid host string");
             return false;
         }
+#if NODE_MODULE_VERSION <57
         String::Utf8Value host(v);
+#else
+        String::Utf8Value host(isolate, v);
+#endif
         cc.Host = *host;
 
         v = obj->Get(ToStr(isolate, "Port"));
@@ -1058,14 +1074,18 @@ namespace NJA {
             ThrowException(isolate, "Invalid port number");
             return false;
         }
-        cc.Port = v->Uint32Value();
+        cc.Port = v->Uint32Value(isolate->GetCurrentContext()).ToChecked();
 
         v = obj->Get(ToStr(isolate, "User"));
         if (!v->IsString()) {
             ThrowException(isolate, "Invalid user id string");
             return false;
         }
+#if NODE_MODULE_VERSION < 57
         String::Utf8Value uid(v);
+#else
+        String::Utf8Value uid(isolate, v);
+#endif
         cc.UserId = Utilities::ToWide(*uid);
 
         v = obj->Get(ToStr(isolate, "Pwd"));
@@ -1073,12 +1093,16 @@ namespace NJA {
             ThrowException(isolate, "Invalid password string");
             return false;
         }
+#if NODE_MODULE_VERSION < 57
         String::Utf8Value pwd(v);
+#else
+        String::Utf8Value pwd(isolate, v);
+#endif
         cc.Password = Utilities::ToWide(*pwd);
         unsigned int em = 0;
         v = obj->Get(ToStr(isolate, "EM"));
         if (v->IsUint32()) {
-            em = v->Uint32Value();
+            em = v->Uint32Value(isolate->GetCurrentContext()).ToChecked();
         } else if (!IsNullOrUndefined(v)) {
             ThrowException(isolate, "An integer for encryption method expected");
             return false;
@@ -1091,7 +1115,7 @@ namespace NJA {
 
         v = obj->Get(ToStr(isolate, "Zip"));
         if (v->IsBoolean()) {
-            cc.Zip = v->BooleanValue();
+            cc.Zip = v->BooleanValue(isolate->GetCurrentContext()).ToChecked();
         } else if (!IsNullOrUndefined(v)) {
             ThrowException(isolate, "Boolean value expected for Zip");
             return false;
@@ -1099,14 +1123,14 @@ namespace NJA {
 
         v = obj->Get(ToStr(isolate, "V6"));
         if (v->IsBoolean()) {
-            cc.V6 = v->BooleanValue();
+            cc.V6 = v->BooleanValue(isolate->GetCurrentContext()).ToChecked();
         } else if (!IsNullOrUndefined(v)) {
             ThrowException(isolate, "Boolean value expected for V6");
             return false;
         }
 
         v = obj->Get(ToStr(isolate, "AnyData"));
-        if (!From(v, "", cc.AnyData)) {
+        if (!From(isolate, v, "", cc.AnyData)) {
             ThrowException(isolate, "Invalid data for AnyData");
             return false;
         }
@@ -1123,7 +1147,7 @@ namespace NJA {
             ThrowException(isolate, "An unsigned int number expected for client sockets");
             return;
         }
-        unsigned int sessions = p1->Uint32Value();
+        unsigned int sessions = p1->Uint32Value(isolate->GetCurrentContext()).ToChecked();
         if (!sessions) {
             ThrowException(isolate, "The number of client sockets cannot be zero");
             return;
@@ -1143,7 +1167,7 @@ namespace NJA {
                     ThrowException(isolate, "Invalid connection context found");
                     return;
                 }
-                Local<Object> obj = jsArr->Get(n)->ToObject();
+                Local<Object> obj = jsArr->Get(n)->ToObject(isolate->GetCurrentContext()).ToLocalChecked();
                 SPA::ClientSide::CConnectionContext cc;
                 if (!To(isolate, obj, cc)) {
                     return;
@@ -1152,7 +1176,7 @@ namespace NJA {
             }
             sessions = (unsigned int) vCC.size();
         } else if (p0->IsObject()) {
-            Local<Object> obj = p0->ToObject();
+            Local<Object> obj = p0->ToObject(isolate->GetCurrentContext()).ToLocalChecked();
             SPA::ClientSide::CConnectionContext cc;
             if (!To(isolate, obj, cc)) {
                 return;

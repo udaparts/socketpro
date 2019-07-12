@@ -3,9 +3,8 @@
 #define ___NIX_UCOMM__UTIL_HEADER_FILE___H___
 
 #include <cstdlib>
-#include <boost/thread/recursive_mutex.hpp>
-//#include <mutex>
-#include <boost/uuid/uuid.hpp>
+//#include <boost/thread/recursive_mutex.hpp>
+#include <mutex> //-pthread -std=c++11
 #include <exception>
 
 #ifdef __ANDROID__
@@ -77,17 +76,28 @@ enum VARENUM {
 
 #ifdef BOOST_UUID_HPP
 typedef boost::uuids::uuid GUID;
+#else
+
+//use windows GUID definition
+
+typedef struct _GUID {
+    unsigned int Data1;
+    unsigned short Data2;
+    unsigned short Data3;
+    unsigned char Data4[8];
+} GUID;
+#endif
 static_assert(sizeof (GUID) == sizeof (DECIMAL), "GUID and DECIMAL should have the same size");
 typedef GUID UUID;
 typedef GUID CLSID;
-#endif
 
 namespace SPA {
-    typedef boost::recursive_mutex CUCriticalSection;
-    typedef boost::recursive_mutex::scoped_lock CAutoLock;
+    //typedef boost::recursive_mutex CUCriticalSection;
+    //typedef boost::recursive_mutex::scoped_lock CAutoLock;
 
-    //typedef std::recursive_mutex CUCriticalSection;
+    typedef std::recursive_mutex CUCriticalSection;
     //typedef std::lock_guard<std::recursive_mutex> CAutoLock;
+    typedef std::unique_lock<std::recursive_mutex> CAutoLock;
 
     /** 
      * A class for managing MB exception on non-window platforms

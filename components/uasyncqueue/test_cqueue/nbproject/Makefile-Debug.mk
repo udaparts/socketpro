@@ -36,17 +36,16 @@ OBJECTDIR=${CND_BUILDDIR}/${CND_CONF}/${CND_PLATFORM}
 # Object Files
 OBJECTFILES= \
 	${OBJECTDIR}/_ext/932346631/aclientw.o \
-	${OBJECTDIR}/_ext/932346631/error_code.o \
 	${OBJECTDIR}/_ext/932346631/membuffer.o \
 	${OBJECTDIR}/test_cqueue.o
 
 
 # C Compiler Flags
-CFLAGS=-std=c++11 -static-libgcc -static-libstdc++ -Wall
+CFLAGS=-std=c++11 -Wall
 
 # CC Compiler Flags
-CCFLAGS=-std=c++11 -static-libgcc -static-libstdc++ -Wall
-CXXFLAGS=-std=c++11 -static-libgcc -static-libstdc++ -Wall
+CCFLAGS=-std=c++11 -Wall
+CXXFLAGS=-std=c++11 -Wall
 
 # Fortran Compiler Flags
 FFLAGS=
@@ -55,7 +54,7 @@ FFLAGS=
 ASFLAGS=
 
 # Link Libraries and Options
-LDLIBSOPTIONS=-ldl -lpthread
+LDLIBSOPTIONS=-ldl
 
 # Build Targets
 .build-conf: ${BUILD_SUBPROJECTS}
@@ -63,17 +62,12 @@ LDLIBSOPTIONS=-ldl -lpthread
 
 ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/test_cqueue: ${OBJECTFILES}
 	${MKDIR} -p ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}
-	g++ -o ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/test_cqueue ${OBJECTFILES} ${LDLIBSOPTIONS} -std=c++11
+	g++ -o ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/test_cqueue ${OBJECTFILES} ${LDLIBSOPTIONS} -std=c++11 -pthread
 
 ${OBJECTDIR}/_ext/932346631/aclientw.o: ../../../include/aclientw.cpp 
 	${MKDIR} -p ${OBJECTDIR}/_ext/932346631
 	${RM} "$@.d"
 	$(COMPILE.c) -g -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/932346631/aclientw.o ../../../include/aclientw.cpp
-
-${OBJECTDIR}/_ext/932346631/error_code.o: ../../../include/error_code.cpp 
-	${MKDIR} -p ${OBJECTDIR}/_ext/932346631
-	${RM} "$@.d"
-	$(COMPILE.c) -g -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/932346631/error_code.o ../../../include/error_code.cpp
 
 ${OBJECTDIR}/_ext/932346631/membuffer.o: ../../../include/membuffer.cpp 
 	${MKDIR} -p ${OBJECTDIR}/_ext/932346631

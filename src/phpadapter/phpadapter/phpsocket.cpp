@@ -95,7 +95,9 @@ namespace PA
             return (int64_t) m_cs->GetBytesReceived();
         } else if (name == "BytesSent") {
             return (int64_t) m_cs->GetBytesSent();
-        }
+        } else if (name == "PoolId") {
+			return (int64_t)m_cs->GetPoolId();
+		}
         return Php::Base::__get(name);
     }
 

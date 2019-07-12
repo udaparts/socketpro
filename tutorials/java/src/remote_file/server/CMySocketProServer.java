@@ -16,11 +16,12 @@ public class CMySocketProServer extends CSocketProServer {
     }
 
     public static void main(String[] args) {
-        CMySocketProServer MySocketProServer = new CMySocketProServer();
-        if (!MySocketProServer.Run(20901)) {
-            System.out.println("Error code = " + CSocketProServer.getLastSocketError());
+        try (CMySocketProServer MySocketProServer = new CMySocketProServer()) {
+            if (!MySocketProServer.Run(20901)) {
+                System.out.println("Error code = " + CSocketProServer.getLastSocketError());
+            }
+            System.out.println("Input a line to close the application ......");
+            new java.util.Scanner(System.in).nextLine();
         }
-        System.out.println("Input a line to close the application ......");
-        new java.util.Scanner(System.in).nextLine();
     }
 }

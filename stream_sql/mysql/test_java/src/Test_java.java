@@ -99,63 +99,64 @@ public class Test_java {
         cc.UserId = "root";
         cc.Password = "Smash123";
 
-        CSocketPool<CMysql> spMysql = new CSocketPool<>(CMysql.class);
-        boolean ok = spMysql.StartSocketPool(cc, 1, 1);
-        CMysql mysql = spMysql.getAsyncHandlers()[0];
-        if (!ok) {
-            System.out.println("No connection error code = " + mysql.getAttachedClientSocket().getErrorCode());
-            in.nextLine();
-            return;
-        }
-        CMysql.DResult dr = (dbHandler, res, errMsg) -> {
-            System.out.format("res = %d, errMsg: %s", res, errMsg);
-            System.out.println();
-        };
-        CMysql.DExecuteResult er = (dbHandler, res, errMsg, affected, fail_ok, lastRowId) -> {
-            System.out.format("affected = %d, fails = %d, oks = %d, res = %d, errMsg: %s, last insert id = %s", affected, (int) (fail_ok >> 32), (int) fail_ok, res, errMsg, lastRowId.toString());
-            System.out.println();
-        };
+        try (CSocketPool<CMysql> spMysql = new CSocketPool<>(CMysql.class)) {
+			boolean ok = spMysql.StartSocketPool(cc, 1, 1);
+			CMysql mysql = spMysql.getAsyncHandlers()[0];
+			if (!ok) {
+				System.out.println("No connection error code = " + mysql.getAttachedClientSocket().getErrorCode());
+				in.nextLine();
+				return;
+			}
+			CMysql.DResult dr = (dbHandler, res, errMsg) -> {
+				System.out.format("res = %d, errMsg: %s", res, errMsg);
+				System.out.println();
+			};
+			CMysql.DExecuteResult er = (dbHandler, res, errMsg, affected, fail_ok, lastRowId) -> {
+				System.out.format("affected = %d, fails = %d, oks = %d, res = %d, errMsg: %s, last insert id = %s", affected, (int) (fail_ok >> 32), (int) fail_ok, res, errMsg, lastRowId.toString());
+				System.out.println();
+			};
 
-        ok = mysql.Open(null, dr);
-        final java.util.ArrayList<Pair<CDBColumnInfoArray, CDBVariantArray>> ra = new java.util.ArrayList<>();
-        TestCreateTables(mysql, er);
-        ok = mysql.Execute("delete from employee;delete from company", er);
-        TestPreparedStatements(mysql, dr, er);
-        InsertBLOBByPreparedStatement(mysql, dr, er);
-        ok = mysql.Execute("SELECT * from company;select * from employee;select curtime()", er, (dbHandler, lstData) -> {
-            //rowset data come here
-            int last = ra.size() - 1;
-            Pair<CDBColumnInfoArray, CDBVariantArray> item = ra.get(last);
-            item.second.addAll(lstData);
-        }, (dbHandler) -> {
-            //rowset header comes here
-            CDBColumnInfoArray vColInfo = dbHandler.getColumnInfo();
-            CDBVariantArray vData = new CDBVariantArray();
-            Pair<CDBColumnInfoArray, CDBVariantArray> item = new Pair<>(vColInfo, vData);
-            ra.add(item);
-        });
-        CDBVariantArray vPData = TestStoredProcedure(mysql, dr, er, ra);
-        ok = mysql.WaitAll();
+			ok = mysql.Open(null, dr);
+			final java.util.ArrayList<Pair<CDBColumnInfoArray, CDBVariantArray>> ra = new java.util.ArrayList<>();
+			TestCreateTables(mysql, er);
+			ok = mysql.Execute("delete from employee;delete from company", er);
+			TestPreparedStatements(mysql, dr, er);
+			InsertBLOBByPreparedStatement(mysql, dr, er);
+			ok = mysql.Execute("SELECT * from company;select * from employee;select curtime()", er, (dbHandler, lstData) -> {
+				//rowset data come here
+				int last = ra.size() - 1;
+				Pair<CDBColumnInfoArray, CDBVariantArray> item = ra.get(last);
+				item.second.addAll(lstData);
+			}, (dbHandler) -> {
+				//rowset header comes here
+				CDBColumnInfoArray vColInfo = dbHandler.getColumnInfo();
+				CDBVariantArray vData = new CDBVariantArray();
+				Pair<CDBColumnInfoArray, CDBVariantArray> item = new Pair<>(vColInfo, vData);
+				ra.add(item);
+			});
+			CDBVariantArray vPData = TestStoredProcedure(mysql, dr, er, ra);
+			ok = mysql.WaitAll();
 
-        CDBVariantArray vData = TestBatch(mysql, er, ra);
-        ok = mysql.WaitAll();
-        int index = 0;
-        System.out.println();
-        System.out.println("+++++ Start rowsets +++");
-        for (Pair<CDBColumnInfoArray, CDBVariantArray> a : ra) {
-            System.out.format("Statement index = %d", index);
-            if (a.first.size() > 0) {
-                System.out.format(", rowset with columns = %d, records = %d.", a.first.size(), a.second.size() / a.first.size());
-                System.out.println();
-            } else {
-                System.out.println(", no rowset received.");
-            }
-            ++index;
-        }
-        System.out.println("+++++ End rowsets +++");
-        System.out.println();
-        System.out.println("Press any key to close the application ......");
-        in.nextLine();
+			CDBVariantArray vData = TestBatch(mysql, er, ra);
+			ok = mysql.WaitAll();
+			int index = 0;
+			System.out.println();
+			System.out.println("+++++ Start rowsets +++");
+			for (Pair<CDBColumnInfoArray, CDBVariantArray> a : ra) {
+				System.out.format("Statement index = %d", index);
+				if (a.first.size() > 0) {
+					System.out.format(", rowset with columns = %d, records = %d.", a.first.size(), a.second.size() / a.first.size());
+					System.out.println();
+				} else {
+					System.out.println(", no rowset received.");
+				}
+				++index;
+			}
+			System.out.println("+++++ End rowsets +++");
+			System.out.println();
+			System.out.println("Press any key to close the application ......");
+			in.nextLine();
+		}
     }
 
     static CDBVariantArray TestBatch(CMysql mysql, CMysql.DExecuteResult er, java.util.ArrayList<Pair<CDBColumnInfoArray, CDBVariantArray>> ra) {

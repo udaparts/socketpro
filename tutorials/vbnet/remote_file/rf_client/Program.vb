@@ -29,7 +29,7 @@ Friend Class Program
                                                                   Console.WriteLine("Downloading rate: {0}%", (downloaded * 100) / file.FileSize)
                                                               End Sub
             ok = rf.Download(LocalFile, RemoteFile, cbDownload, cbDProgress)
-            ok = rf.WaitAll()
+            'ok = rf.WaitAll()
 
             Dim cbUpload As CStreamingFile.DUpload = Sub(file, res, errMsg)
                                                          If res <> 0 Then

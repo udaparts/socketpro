@@ -26,6 +26,17 @@
                    kind="IMPORTANT_FILES_FOLDER">
       <itemPath>Makefile</itemPath>
     </logicalFolder>
+    <logicalFolder name="TestFiles"
+                   displayName="Test Files"
+                   projectFiles="false"
+                   kind="TEST_LOGICAL_FOLDER">
+    </logicalFolder>
+    <logicalFolder name="ExternalFiles"
+                   displayName="Important Files"
+                   projectFiles="false"
+                   kind="IMPORTANT_FILES_FOLDER">
+      <itemPath>Makefile</itemPath>
+    </logicalFolder>
   </logicalFolder>
   <projectmakefile>Makefile</projectmakefile>
   <confs>
@@ -39,22 +50,26 @@
         <cTool>
           <commandlineTool>gcc</commandlineTool>
           <incDir>
-            <pElem>/usr/lib/jvm/java-1.7.0-openjdk-amd64/include</pElem>
+            <pElem>/usr/lib/jvm/java-7-openjdk-amd64/include</pElem>
+            <pElem>/usr/lib/jvm/java-7-openjdk-amd64/include/linux</pElem>
           </incDir>
-          <commandLine>-std=c++11 -static-libgcc -static-libstdc++</commandLine>
+          <commandLine>-std=c++11</commandLine>
         </cTool>
         <ccTool>
           <incDir>
-            <pElem>/usr/lib/jvm/java-1.7.0-openjdk-amd64/include</pElem>
+            <pElem>/usr/lib/jvm/java-7-openjdk-amd64/include</pElem>
+            <pElem>/usr/lib/jvm/java-7-openjdk-amd64/include/linux</pElem>
           </incDir>
-          <commandLine>-std=c++11 -static-libgcc -static-libstdc++</commandLine>
+          <commandLine>-std=c++11</commandLine>
         </ccTool>
         <linkerTool>
-          <commandlineTool>g++</commandlineTool>
+          <commandlineTool>gcc</commandlineTool>
           <linkerLibItems>
+            <linkerLibStdlibItem>Mathematics</linkerLibStdlibItem>
+            <linkerLibFileItem>/usr/lib/gcc/x86_64-linux-gnu/4.8.4/libstdc++.a</linkerLibFileItem>
             <linkerOptionItem>-lusocket</linkerOptionItem>
           </linkerLibItems>
-          <commandLine>-std=c++11 -static-libgcc -static-libstdc++ -g</commandLine>
+          <commandLine>-Wl,--no-undefined</commandLine>
         </linkerTool>
       </compileType>
       <item path="SPA_ClientSide_ClientCoreLoader.h" ex="false" tool="3" flavor2="0">
@@ -70,24 +85,26 @@
       </toolsSet>
       <compileType>
         <cTool>
-          <developmentMode>5</developmentMode>
+          <developmentMode>6</developmentMode>
           <stripSymbols>true</stripSymbols>
           <commandlineTool>gcc</commandlineTool>
           <incDir>
-            <pElem>/usr/lib/jvm/java-1.7.0-openjdk-amd64/include</pElem>
+            <pElem>/usr/lib/jvm/java-7-openjdk-amd64/include</pElem>
+            <pElem>/usr/lib/jvm/java-7-openjdk-amd64/include/linux</pElem>
           </incDir>
-          <commandLine>-std=c++11 -static-libgcc -static-libstdc++ -g</commandLine>
+          <commandLine>-std=c++11</commandLine>
           <preprocessorList>
             <Elem>NDEBUG</Elem>
           </preprocessorList>
         </cTool>
         <ccTool>
-          <developmentMode>5</developmentMode>
+          <developmentMode>6</developmentMode>
           <stripSymbols>true</stripSymbols>
           <incDir>
-            <pElem>/usr/lib/jvm/java-1.7.0-openjdk-amd64/include</pElem>
+            <pElem>/usr/lib/jvm/java-7-openjdk-amd64/include</pElem>
+            <pElem>/usr/lib/jvm/java-7-openjdk-amd64/include/linux</pElem>
           </incDir>
-          <commandLine>-std=c++11 -static-libgcc -static-libstdc++</commandLine>
+          <commandLine>-std=c++11</commandLine>
           <preprocessorList>
             <Elem>NDEBUG</Elem>
           </preprocessorList>
@@ -100,11 +117,13 @@
         </asmTool>
         <linkerTool>
           <stripSymbols>true</stripSymbols>
-          <commandlineTool>g++</commandlineTool>
+          <commandlineTool>gcc</commandlineTool>
           <linkerLibItems>
+            <linkerLibStdlibItem>Mathematics</linkerLibStdlibItem>
+            <linkerLibFileItem>/usr/lib/gcc/x86_64-linux-gnu/4.8.4/libstdc++.a</linkerLibFileItem>
             <linkerOptionItem>-lusocket</linkerOptionItem>
           </linkerLibItems>
-          <commandLine>-std=c++11 -static-libgcc -static-libstdc++ -g</commandLine>
+          <commandLine>-Wl,--no-undefined</commandLine>
         </linkerTool>
       </compileType>
       <item path="SPA_ClientSide_ClientCoreLoader.h" ex="false" tool="3" flavor2="0">

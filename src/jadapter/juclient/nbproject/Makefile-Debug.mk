@@ -39,11 +39,11 @@ OBJECTFILES= \
 
 
 # C Compiler Flags
-CFLAGS=-std=c++11 -static-libgcc -static-libstdc++
+CFLAGS=-std=c++11
 
 # CC Compiler Flags
-CCFLAGS=-std=c++11 -static-libgcc -static-libstdc++
-CXXFLAGS=-std=c++11 -static-libgcc -static-libstdc++
+CCFLAGS=-std=c++11
+CXXFLAGS=-std=c++11
 
 # Fortran Compiler Flags
 FFLAGS=
@@ -52,20 +52,22 @@ FFLAGS=
 ASFLAGS=
 
 # Link Libraries and Options
-LDLIBSOPTIONS=-lusocket
+LDLIBSOPTIONS=-lm /usr/lib/gcc/x86_64-linux-gnu/4.8.4/libstdc++.a -lusocket
 
 # Build Targets
 .build-conf: ${BUILD_SUBPROJECTS}
 	"${MAKE}"  -f nbproject/Makefile-${CND_CONF}.mk ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/libjuclient.${CND_DLIB_EXT}
 
+${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/libjuclient.${CND_DLIB_EXT}: /usr/lib/gcc/x86_64-linux-gnu/4.8.4/libstdc++.a
+
 ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/libjuclient.${CND_DLIB_EXT}: ${OBJECTFILES}
 	${MKDIR} -p ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}
-	g++ -o ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/libjuclient.${CND_DLIB_EXT} ${OBJECTFILES} ${LDLIBSOPTIONS} -std=c++11 -static-libgcc -static-libstdc++ -g -shared -fPIC
+	gcc -o ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/libjuclient.${CND_DLIB_EXT} ${OBJECTFILES} ${LDLIBSOPTIONS} -Wl,--no-undefined -shared -fPIC
 
 ${OBJECTDIR}/juclient.o: juclient.cpp 
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
-	$(COMPILE.c) -g -I/usr/lib/jvm/java-1.7.0-openjdk-amd64/include -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/juclient.o juclient.cpp
+	$(COMPILE.c) -g -I/usr/lib/jvm/java-7-openjdk-amd64/include -I/usr/lib/jvm/java-7-openjdk-amd64/include/linux -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/juclient.o juclient.cpp
 
 # Subprojects
 .build-subprojects:

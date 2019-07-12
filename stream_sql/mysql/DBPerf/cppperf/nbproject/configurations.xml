@@ -19,7 +19,6 @@
                    projectFiles="true">
       <itemPath>../../../../include/aclientw.cpp</itemPath>
       <itemPath>cppperf.cpp</itemPath>
-      <itemPath>../../../../include/error_code.cpp</itemPath>
       <itemPath>../../../../include/membuffer.cpp</itemPath>
     </logicalFolder>
     <logicalFolder name="TestFiles"
@@ -52,9 +51,9 @@
         <linkerTool>
           <commandlineTool>g++</commandlineTool>
           <linkerLibItems>
-            <linkerLibStdlibItem>PosixThreads</linkerLibStdlibItem>
             <linkerLibStdlibItem>DynamicLinking</linkerLibStdlibItem>
           </linkerLibItems>
+          <commandLine>-pthread</commandLine>
         </linkerTool>
       </compileType>
       <item path="../../../../../include/aclientw.h" ex="false" tool="3" flavor2="0">
@@ -71,8 +70,6 @@
             flavor2="0">
       </item>
       <item path="../../../../include/aclientw.cpp" ex="false" tool="0" flavor2="0">
-      </item>
-      <item path="../../../../include/error_code.cpp" ex="false" tool="0" flavor2="0">
       </item>
       <item path="../../../../include/membuffer.cpp" ex="false" tool="0" flavor2="0">
       </item>
@@ -104,9 +101,9 @@
           <stripSymbols>true</stripSymbols>
           <commandlineTool>g++</commandlineTool>
           <linkerLibItems>
-            <linkerLibStdlibItem>PosixThreads</linkerLibStdlibItem>
             <linkerLibStdlibItem>DynamicLinking</linkerLibStdlibItem>
           </linkerLibItems>
+          <commandLine>-pthread</commandLine>
         </linkerTool>
       </compileType>
       <item path="../../../../../include/aclientw.h" ex="false" tool="3" flavor2="0">
@@ -123,8 +120,6 @@
             flavor2="0">
       </item>
       <item path="../../../../include/aclientw.cpp" ex="false" tool="0" flavor2="0">
-      </item>
-      <item path="../../../../include/error_code.cpp" ex="false" tool="0" flavor2="0">
       </item>
       <item path="../../../../include/membuffer.cpp" ex="false" tool="0" flavor2="0">
       </item>

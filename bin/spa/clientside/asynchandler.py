@@ -102,6 +102,14 @@ class CAsyncServiceHandler(object):
         self.ResultReturned = None
         self._lock_Send_ = threading.Lock()
 
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.CleanCallbacks()
+
+    def __del__(self):
+        self.CleanCallbacks()
 
     def GetCallIndex(self):
         with CAsyncServiceHandler._csCallIndex_:
@@ -215,6 +223,9 @@ class CAsyncServiceHandler(object):
     def AbortDequeuedMessage(self):
         h = self._m_ClientSocket_.Handle
         ccl.AbortDequeuedMessage(h)
+
+    def OnPostProcessing(self, hint, data):
+        pass
 
     def OnMergeTo(self, to):
         pass

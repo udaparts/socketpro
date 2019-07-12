@@ -1,6 +1,17 @@
 package SPA.ClientSide;
 
-public class CAsyncServiceHandler {
+public class CAsyncServiceHandler implements AutoCloseable {
+
+    @Override
+    public void close() {
+        CleanCallbacks();
+    }
+
+    @Override
+    protected void finalize() throws Throwable {
+        CleanCallbacks();
+        super.finalize();
+    }
 
     public interface DAsyncResultHandler {
 
@@ -381,6 +392,10 @@ public class CAsyncServiceHandler {
     }
 
     protected void OnAllProcessed() {
+
+    }
+
+    protected void OnPostProcessing(int hint, long data) {
 
     }
 
