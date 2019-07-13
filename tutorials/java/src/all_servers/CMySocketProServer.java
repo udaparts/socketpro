@@ -43,13 +43,24 @@ public class CMySocketProServer extends CSocketProServer {
             //} else {
             //    MySocketProServer.UseSSL("intermediate.cert.pem", "intermediate.key.pem", "mypassword");
             //}
+
+            //load socketpro async sqlite library located at the directory ../bin/free_services/sqlite
             long handle = CSocketProServer.DllManager.AddALibrary("ssqlite");
             if (handle != 0) {
+                 //monitoring sakila.db table events (DELETE, INSERT and UPDATE) for tables actor, language, category, country and film_actor
                 Sqlite.SetSqliteDBGlobalConnectionString("usqlite.db+sakila.db.actor;sakila.db.language;sakila.db.category;sakila.db.country;sakila.db.film_actor");
             }
-            handle = CSocketProServer.DllManager.AddALibrary("uasyncqueue", 16 * 1024); //16 * 1024 batch dequeuing size in bytes
+            //load socketPro asynchronous persistent message queue library at the directory ../bin/free_services/queue
+            handle = CSocketProServer.DllManager.AddALibrary("uasyncqueue", 24 * 1024); //24 * 1024 batch dequeuing size in bytes
 
+            //load socketPro file streaming library at the directory ../bin/free_services/file
             handle = CSocketProServer.DllManager.AddALibrary("ustreamfile");
+
+            //load MySQL/MariaDB socketPro server plugin library at the directory ../bin/free_services/mm_middle
+            handle = CSocketProServer.DllManager.AddALibrary("smysql");
+
+            //load ODBC socketPro server plugin library at the directory ../bin/win or ../bin/linux
+            handle = CSocketProServer.DllManager.AddALibrary("sodbc");
 
             //test certificate, private key and DH params files are located at ../SocketProRoot/bin
             //MySocketProServer.UseSSL("server.pem", "server.pem", "test", "dh512.pem");

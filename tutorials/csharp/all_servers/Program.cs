@@ -70,18 +70,25 @@ public class CMySocketProServer : CSocketProServer
         PushManager.AddAChatGroup(7, "HR Department");
         PushManager.AddAChatGroup(SocketProAdapter.UDB.DB_CONSTS.CACHE_UPDATE_CHAT_GROUP_ID, "Subscribe/publish for front clients");
 
-        //load socketpro async sqlite server plugin located at the directory ../socketpro/bin
+        //load socketpro async sqlite library located at the directory ../bin/free_services/sqlite
         IntPtr p = CSocketProServer.DllManager.AddALibrary("ssqlite");
         if (p.ToInt64() != 0) 
         {
             //monitoring sakila.db table events (DELETE, INSERT and UPDATE) for tables actor, language, category, country and film_actor
             SetSqliteDBGlobalConnectionString("usqlite.db+sakila.db.actor;sakila.db.language;sakila.db.category;sakila.db.country;sakila.db.film_actor");
         }
-        //load socketpro async queue server plugin located at the directory ../socketpro/bin
+        //load socketPro asynchronous persistent message queue library at the directory ../bin/free_services/queue
         p = CSocketProServer.DllManager.AddALibrary("uasyncqueue", 24 * 1024); //24 * 1024 batch dequeuing size in bytes
 
-        //load SocketPro file streaming server plugin located at the directory ../socketpro/bin
+        //load socketPro file streaming library at the directory ../bin/free_services/file
         p = CSocketProServer.DllManager.AddALibrary("ustreamfile");
+
+        //load MySQL/MariaDB socketPro server plugin library at the directory ../bin/free_services/mm_middle
+        p = CSocketProServer.DllManager.AddALibrary("smysql");
+
+        //load ODBC socketPro server plugin library at the directory ../bin/win or ../bin/linux
+        p = CSocketProServer.DllManager.AddALibrary("sodbc");
+
         return true; //true -- ok; false -- no listening server
     }
 

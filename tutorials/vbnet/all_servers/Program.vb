@@ -5,17 +5,17 @@ Imports SocketProAdapter
 Imports SocketProAdapter.ServerSide
 
 Public Class CMySocketProServer
-	Inherits CSocketProServer
+    Inherits CSocketProServer
 
     'SocketPro sqlite server defines, which can be found at ../socketpro/include/sqlite/usqlite_server.h
     Const ENABLE_GLOBAL_SQLITE_UPDATE_HOOK As Integer = 1
     Const USE_SHARED_CACHE_MODE As Integer = 2
     Const USE_UTF16_ENCODING As Integer = 4
-    <DllImport("ssqlite")> _
+    <DllImport("ssqlite")>
     Shared Sub SetSqliteDBGlobalConnectionString(<MarshalAs(UnmanagedType.LPWStr)> ByVal sqliteDbFile As String)
     End Sub
 
-    <DllImport("ustreamfile")> _
+    <DllImport("ustreamfile")>
     Shared Sub SetRootDirectory(<MarshalAs(UnmanagedType.LPWStr)> ByVal root As String)
     End Sub
 
@@ -64,14 +64,24 @@ Public Class CMySocketProServer
         PushManager.AddAChatGroup(7, "HR Department")
         PushManager.AddAChatGroup(SocketProAdapter.UDB.DB_CONSTS.CACHE_UPDATE_CHAT_GROUP_ID, "Subscribe/publish for front clients")
 
-        'load socketpro async sqlite and queue server libraries located at the directory ../socketpro/bin
+        'load socketpro async sqlite library located at the directory ../bin/free_services/sqlite
         Dim p As IntPtr = CSocketProServer.DllManager.AddALibrary("ssqlite")
         If p.ToInt64() <> 0 Then
+            'monitoring sakila.db table events (DELETE, INSERT and UPDATE) for tables actor, language, category, country and film_actor
             SetSqliteDBGlobalConnectionString("usqlite.db+sakila.db.actor;sakila.db.language;sakila.db.category;sakila.db.country;sakila.db.film_actor")
         End If
+
+        'load socketPro asynchronous persistent message queue library at the directory ../bin/free_services/queue
         p = CSocketProServer.DllManager.AddALibrary("uasyncqueue", 24 * 1024) '24 * 1024 batch dequeuing size in bytes
 
+        'load socketPro file streaming library at the directory ../bin/free_services/file
         p = CSocketProServer.DllManager.AddALibrary("ustreamfile")
+
+        'load MySQL/MariaDB socketPro server plugin library at the directory ../bin/free_services/mm_middle
+        p = CSocketProServer.DllManager.AddALibrary("smysql")
+
+        'load ODBC socketPro server plugin library at the directory ../bin/win Or ../bin/linux
+        p = CSocketProServer.DllManager.AddALibrary("sodbc")
 
         Return True 'true -- ok; false -- no listening server
     End Function

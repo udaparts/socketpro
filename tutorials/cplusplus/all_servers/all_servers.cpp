@@ -7,7 +7,9 @@
 #include "../../../include/sqlite/usqlite_server.h"
 #include "../../../include/udatabase.h"
 
-class CMySocketProServer : public CSocketProServer {
+class CMySocketProServer : public CSocketProServer
+{
+
 protected:
 
     virtual bool OnSettingServer(unsigned int listeningPort, unsigned int maxBacklog, bool v6) {
@@ -24,17 +26,24 @@ protected:
         ok = PushManager::AddAChatGroup(7, L"HR Department");
         ok = PushManager::AddAChatGroup(SPA::UDB::STREAMING_SQL_CHAT_GROUP_ID, L"Subscribe/publish for front clients");
 
-        //load socketpro async sqlite and queue server libraries located at the directory ../socketpro/bin
+        //load socketpro async sqlite library located at the directory ../bin/free_services/sqlite
         auto h = CSocketProServer::DllManager::AddALibrary("ssqlite");
         if (h) {
             PSetSqliteDBGlobalConnectionString SetSqliteDBGlobalConnectionString = (PSetSqliteDBGlobalConnectionString) GetProcAddress(h, "SetSqliteDBGlobalConnectionString");
+            //monitoring sakila.db table events (DELETE, INSERT and UPDATE) for tables actor, language, category, country and film_actor
             SetSqliteDBGlobalConnectionString(L"usqlite.db+sakila.db.actor;sakila.db.language;sakila.db.category;sakila.db.country;sakila.db.film_actor");
         }
-        //SocketPro asynchronous persistent message queue
+        //load socketPro asynchronous persistent message queue library at the directory ../bin/free_services/queue
         h = CSocketProServer::DllManager::AddALibrary("uasyncqueue", 24 * 1024); //24 * 1024 batch dequeuing size in bytes
 
-        //exchange files by streaming files
+        //load socketPro file streaming library at the directory ../bin/free_services/file
         h = SPA::ServerSide::CSocketProServer::DllManager::AddALibrary("ustreamfile");
+
+        //load MySQL/MariaDB socketPro server plugin library at the directory ../bin/free_services/mm_middle
+        h = SPA::ServerSide::CSocketProServer::DllManager::AddALibrary("smysql");
+
+        //load ODBC socketPro server plugin library at the directory ../bin/win or ../bin/linux
+        h = SPA::ServerSide::CSocketProServer::DllManager::AddALibrary("sodbc");
 
         return true; //true -- ok; false -- no listening server
     }
