@@ -119,9 +119,6 @@ namespace SPA {
             std::ostringstream ss;
             ss << "function: " << funcName << "@line: " << line << " of file: " << file;
             m_stack = ss.str();
-#ifndef	NDEBUG
-            std::cout << "function: " << funcName << "@line: " << line << " of file: " << file << std::endl;
-#endif
         }
 
         /**
@@ -139,9 +136,6 @@ namespace SPA {
          */
         CUException(const char * const errMsg, const char *stack = "", int errCode = MB_ERROR_UNKNOWN)
         : m_errCode(errCode), m_stack(stack), m_errMsg(errMsg) {
-#ifndef	NDEBUG
-            std::cout << "Error message: " << errMsg << ", stack: " << stack << ", errCode: " << errCode << std::endl;
-#endif
         }
 
         /**
@@ -152,7 +146,6 @@ namespace SPA {
         }
 
         ~CUException() throw () {
-
         }
 
     public:
