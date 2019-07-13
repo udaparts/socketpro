@@ -7,9 +7,7 @@
 #include "../../../include/sqlite/usqlite_server.h"
 #include "../../../include/udatabase.h"
 
-class CMySocketProServer : public CSocketProServer
-{
-
+class CMySocketProServer : public CSocketProServer {
 protected:
 
     virtual bool OnSettingServer(unsigned int listeningPort, unsigned int maxBacklog, bool v6) {
