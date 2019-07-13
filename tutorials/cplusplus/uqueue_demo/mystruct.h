@@ -130,7 +130,7 @@ public:
                 >> objArrString //UTF16-lowendian
                 >> objArrInt
                 ;
-        assert(NullStringLen == (~0));
+        assert(NullStringLen == SPA::UQUEUE_NULL_LENGTH);
     }
 
 public:

@@ -145,9 +145,6 @@ namespace SPA {
         : m_errCode(ex.m_errCode), m_stack(ex.m_stack), m_errMsg(ex.m_errMsg) {
         }
 
-        ~CUException() throw () {
-        }
-
     public:
 
         /**
@@ -190,7 +187,7 @@ namespace SPA {
          * Get an error message
          * @return An error message
          */
-        virtual const char * what() const throw () {
+        virtual const char * what() const noexcept {
             return m_errMsg.c_str();
         }
 
