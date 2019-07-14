@@ -33,9 +33,6 @@ namespace SPA {
             std::ostringstream ss;
             ss << "function: " << funcName << "@line: " << line << " of file: " << file;
             m_stack = ss.str();
-#ifndef	NDEBUG
-            std::cout << "function: " << funcName << "@line: " << line << " of file: " << file << std::endl;
-#endif
         }
 
         /**
@@ -49,9 +46,6 @@ namespace SPA {
         : std::exception(), m_errCode(errCode), m_stack(stack), m_msg(errMsg) {
 #else
         : std::exception(errMsg), m_stack(stack), m_errCode(errCode), m_msg(errMsg) {
-#endif
-#ifndef	NDEBUG
-            std::cout << "Error message: " << errMsg << ", stack: " << stack << ", errCode: " << errCode << std::endl;
 #endif
         }
 
