@@ -580,7 +580,6 @@ int CServerSession::ExecuteSlowRequestFromThreadPool(unsigned short sReqId) {
     int res = 0;
     PSLOW_PROCESS p = m_ccb.SvsContext.m_SlowProcess;
     if (p != nullptr) {
-        assert(sReqId == GetCurrentRequestID());
         try{
             res = p(sReqId, m_ReqInfo.Size, MakeHandlerInternal());
         }

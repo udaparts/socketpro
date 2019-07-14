@@ -586,13 +586,10 @@ bool CServerSession::SendUserMessageEx(const wchar_t *userId, const unsigned cha
 
 int CServerSession::ExecuteSlowRequestFromThreadPool(unsigned short sReqId) {
     int res = 0;
-    m_mutex.lock();
     PSLOW_PROCESS p = m_ccb.SvsContext.m_SlowProcess;
-    m_mutex.unlock();
     if (p != nullptr) {
-        assert(sReqId == GetCurrentRequestID());
         try{
-            res = p(sReqId, GetCurrentRequestLen(), MakeHandler());
+            res = p(sReqId, m_ReqInfo.Size, MakeHandlerInternal());
         }
 
         catch(SPA::CUException & err) {
@@ -609,17 +606,6 @@ int CServerSession::ExecuteSlowRequestFromThreadPool(unsigned short sReqId) {
             SendExceptionResult(L"Unknown exception caught", "Inside worker thread for processing slow request", sReqId, MB_UNKNOWN_EXCEPTION);
             res = MB_UNKNOWN_EXCEPTION;
         }
-    }
-    try{
-        CAutoLock al(m_mutex);
-        if (!g_pServer->m_bStopped && !m_bCanceled && m_ReqInfo.GetQueued()) {
-            if (!m_bFail && !m_bDequeueTrans && m_pQLastIndex)
-                m_pQLastIndex->Set(m_ClientQFile.Qs, m_qa);
-            NotifyDequeued();
-        }
-    }
-
-    catch(...) {
     }
     return res;
 }
