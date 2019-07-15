@@ -16,8 +16,7 @@
 CServerSession *GetSvrSession(USocket_Server_Handle h, unsigned int &index) {
     index = (h & MAX_SESSION_INDEX);
     h >>= INDEX_SHIFT_BITS;
-    CServerSession *p = (CServerSession *) h;
-    return p;
+    return (CServerSession *) h;
 }
 
 void WINAPI Close(USocket_Server_Handle h) {

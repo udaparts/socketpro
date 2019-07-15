@@ -20,8 +20,7 @@ extern boost::mutex g_mutex;
 #endif
 
 inline CClientSession *MapHandleToClientSession(USocket_Client_Handle h) {
-    CClientSession *p = (CClientSession*) (h);
-    return p;
+    return (CClientSession*) h;
 }
 
 std::string g_strVersion("6.3.0.3");
