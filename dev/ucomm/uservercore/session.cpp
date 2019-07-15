@@ -3609,7 +3609,7 @@ void CServerSession::OnWriteCompleted(const CErrorCode& Error, size_t bytes_tran
     assert(m_bWBLocked >= (unsigned int) bytes_transferred);
     assert(m_bWBLocked <= (unsigned int) IO_BUFFER_SIZE);
     unsigned int len = m_qWrite.GetSize();
-    if (len > 5 * IO_BUFFER_SIZE && len < 8 * IO_BUFFER_SIZE) {
+    if (len > 5 * IO_BUFFER_SIZE && len < 7 * IO_BUFFER_SIZE) {
         m_cv.notify_all();
     }
     if (ServiceId == SPA::sidHTTP) {

@@ -3645,7 +3645,7 @@ void CServerSession::OnWriteCompleted(const CErrorCode& Error, size_t bytes_tran
         m_ccb.SendTime = (GetTimeTick() - g_pServer->m_tStart);
     }
 
-    if (len > 5 * IO_BUFFER_SIZE && len < 8 * IO_BUFFER_SIZE) {
+    if (len > 5 * IO_BUFFER_SIZE && len < 7 * IO_BUFFER_SIZE) {
         m_cv.notify_all();
     }
 
