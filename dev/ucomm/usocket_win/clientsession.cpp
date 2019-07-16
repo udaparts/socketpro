@@ -440,25 +440,17 @@ unsigned int CClientSession::GetBytesInReceivingBuffer() {
 }
 
 bool CClientSession::IsBatching() {
-    bool b;
-    //m_mutex.lock();
+    //CAutoLock sl(m_mutex);
     if (m_pQBatch && m_ConnState >= SPA::ClientSide::csSwitched)
-        b = true;
-    else
-        b = false;
-    //m_mutex.unlock();
-    return b;
+        return true;
+    return false;
 }
 
 unsigned int CClientSession::GetBytesBatched() {
-	unsigned int len;
-    m_mutex.lock();
-	if (m_pQBatch)
-		len = m_pQBatch->GetSize();
-	else
-		len = 0;
-    m_mutex.unlock();
-    return len;
+    CAutoLock sl(m_mutex);
+    if (m_pQBatch)
+        return m_pQBatch->GetSize();
+    return 0;
 }
 
 unsigned int CClientSession::GetCountOfRequestsInQueue() {

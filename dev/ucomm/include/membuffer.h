@@ -580,8 +580,7 @@ namespace SPA {
 
             if (position > m_nSize) {
                 position = m_nSize;
-            }
-            else if (position == 0 && m_nHeadPos >= len) {
+            } else if (position == 0 && m_nHeadPos >= len) {
                 m_nHeadPos -= len;
                 ::memmove(m_pBuffer + m_nHeadPos, buffer, len);
                 m_nSize += len;
