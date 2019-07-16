@@ -10,8 +10,6 @@
 
 #include "servicecontext.h"
 
-std::mutex CServiceContext::m_mutex;
-
 CServiceContext::CServiceContext(unsigned int nServiceId, const CSvsContext &sc)
 : m_nServiceId(nServiceId), m_sc(sc), m_bRandom(false), m_nRoutingSvsId(0), m_ra(SPA::ServerSide::raDefault), m_bRegisterred(false) {
 
@@ -22,7 +20,6 @@ CServiceContext::~CServiceContext() {
 }
 
 const CSvsContext& CServiceContext::GetSvsContext() {
-    //CAutoLock al(m_mutex);
     return m_sc;
 }
 
@@ -53,17 +50,14 @@ std::vector<unsigned short>::iterator CServiceContext::Seek(unsigned short sReqI
 }
 
 bool CServiceContext::IsSlowRequest(unsigned short sReqId) {
-    CAutoLock al(m_mutex);
     return (Seek(sReqId) != m_vSlowRequestId.end());
 }
 
 size_t CServiceContext::GetCountOfSlowRequests() {
-    CAutoLock al(m_mutex);
     return m_vSlowRequestId.size();
 }
 
 void CServiceContext::AddSlowRequest(unsigned short sReqId) {
-    CAutoLock al(m_mutex);
     if (Seek(sReqId) == m_vSlowRequestId.end())
         m_vSlowRequestId.push_back(sReqId);
 }
@@ -73,25 +67,21 @@ unsigned int CServiceContext::GetSvsID() {
 }
 
 void CServiceContext::RemoveSlowRequest(unsigned short sReqId) {
-    CAutoLock al(m_mutex);
     std::vector<unsigned short>::iterator it = Seek(sReqId);
     if (it != m_vSlowRequestId.end())
         m_vSlowRequestId.erase(it);
 }
 
 void CServiceContext::GetAllSlowRequestId(std::vector<unsigned short> &vRequestId) {
-    CAutoLock al(m_mutex);
     vRequestId = m_vSlowRequestId;
 }
 
 void CServiceContext::AddAlpha(unsigned short reqId) {
-    CAutoLock al(m_mutex);
     if (std::find(m_vAlphaId.begin(), m_vAlphaId.end(), reqId) == m_vAlphaId.end())
         m_vAlphaId.push_back(reqId);
 }
 
 bool CServiceContext::IsAlpah(unsigned short reqId) {
-    //CAutoLock al(m_mutex);
     return (std::find(m_vAlphaId.begin(), m_vAlphaId.end(), reqId) != m_vAlphaId.end());
 }
 
@@ -106,14 +96,13 @@ unsigned int CServiceContext::GetAllAlpaRequestIds(unsigned short *ids, unsigned
 }
 
 void CServiceContext::RemoveAllSlowRequests() {
-    CAutoLock al(m_mutex);
     m_vSlowRequestId.clear();
 }
 
 void CServiceContext::AddRoutee(CServerSession* ss) {
     if (!ss)
         return;
-    CAutoLock al(m_mutex);
+	CAutoLock al(m_mutex);
     m_vRoutee.push_back(ss);
     std::vector<CServerSession*>::iterator it, end = m_vRoutee.end();
     for (it = m_vRoutee.begin(); it != end; ++it) {
@@ -124,7 +113,7 @@ void CServiceContext::AddRoutee(CServerSession* ss) {
 void CServiceContext::RemoveRoutee(CServerSession *ss) {
     if (!ss)
         return;
-    CAutoLock al(m_mutex);
+	CAutoLock al(m_mutex);
     std::vector<CServerSession*>::iterator it = std::find(m_vRoutee.begin(), m_vRoutee.end(), ss);
     if (it != m_vRoutee.end())
         m_vRoutee.erase(it);
@@ -133,7 +122,7 @@ void CServiceContext::RemoveRoutee(CServerSession *ss) {
 bool CServiceContext::IsRoutee(CServerSession *ss) {
     if (!ss)
         return false;
-    CAutoLock al(m_mutex);
+	CAutoLock al(m_mutex);
     std::vector<CServerSession*>::iterator it = std::find(m_vRoutee.begin(), m_vRoutee.end(), ss);
     return (it != m_vRoutee.end());
 }
@@ -144,7 +133,7 @@ SPA::UINT64 CServiceContext::GetBestRouteeByDefault(unsigned int &routeeSize) {
     SPA::UINT64 temp = 0;
     SPA::UINT64 routeeTime = 0;
     {
-        CAutoLock al(m_mutex);
+		CAutoLock al(m_mutex);
         size_t count = m_vRoutee.size();
         if (count == 0)
             return 0;
@@ -183,7 +172,7 @@ SPA::UINT64 CServiceContext::GetBestRouteeByRandom(unsigned int &routeeSize) {
     SPA::UINT64 routeeTime = 0;
     CServerSession *routee = nullptr;
     {
-        CAutoLock al(m_mutex);
+		CAutoLock al(m_mutex);
         size_t count = m_vRoutee.size();
         if (count == 0)
             return 0;
@@ -200,7 +189,7 @@ SPA::UINT64 CServiceContext::GetBestRouteeByAverage(unsigned int &routeeSize) {
     CServerSession *routee = nullptr;
     SPA::UINT64 temp = 0;
     {
-        CAutoLock al(m_mutex);
+		CAutoLock al(m_mutex);
         std::vector<CServerSession*>::iterator it, end = m_vRoutee.end();
         for (it = m_vRoutee.begin(); it != end; ++it) {
             CServerSession *ss = *it;
@@ -229,7 +218,7 @@ SPA::UINT64 CServiceContext::GetBestRouteeByFirst(unsigned int &routeeSize) {
     CServerSession *routee = nullptr;
     SPA::UINT64 temp = 0;
     {
-        CAutoLock al(m_mutex);
+		CAutoLock al(m_mutex);
         std::vector<CServerSession*>::iterator it, end = m_vRoutee.end();
         for (it = m_vRoutee.begin(); it != end; ++it) {
             CServerSession *ss = *it;
@@ -274,17 +263,15 @@ SPA::UINT64 CServiceContext::GetBestRoutee(unsigned int &routeeSize) {
 }
 
 unsigned int CServiceContext::GetRoutingSvsId() {
-    //CAutoLock al(m_mutex);
     return m_nRoutingSvsId;
 }
 
 void CServiceContext::SetRoutingSvsId(unsigned int routingSvsId) {
-    CAutoLock al(m_mutex);
     m_nRoutingSvsId = routingSvsId;
 }
 
 size_t CServiceContext::GetRouteeSize() {
-    CAutoLock al(m_mutex);
+	CAutoLock al(m_mutex);
     return m_vRoutee.size();
 }
 
@@ -295,7 +282,7 @@ void CServiceContext::NotifyRouteeChanged(unsigned int count) {
     sh.Size = sizeof (count);
     sh.RequestId = SPA::idRouteeChanged;
     q << sh << count;
-    CAutoLock al(m_mutex);
+	CAutoLock al(m_mutex);
     std::vector<CServerSession*>::iterator it, end = m_vRoutee.end();
     for (it = m_vRoutee.begin(); it != end; ++it) {
         CServerSession *session = *it;

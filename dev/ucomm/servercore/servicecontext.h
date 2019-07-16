@@ -47,14 +47,14 @@ private:
     SPA::UINT64 GetBestRouteeByFirst(unsigned int &routeeSize);
 
 private:
+	std::mutex m_mutex;
     unsigned int m_nServiceId;
     std::vector<unsigned short> m_vSlowRequestId;
-    static std::mutex m_mutex;
     CSvsContext m_sc;
-    atomic<bool> m_bRandom;
+    bool m_bRandom;
     unsigned int m_nRoutingSvsId;
     boost::random::mt19937 m_gen;
-    std::vector<CServerSession*> m_vRoutee;
+    std::vector<CServerSession*> m_vRoutee; //protected by m_mutex
     std::vector<unsigned short> m_vAlphaId;
     SPA::ServerSide::tagRoutingAlgorithm m_ra;
 

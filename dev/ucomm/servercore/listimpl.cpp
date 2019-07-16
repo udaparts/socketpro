@@ -113,7 +113,7 @@ bool WINAPI AddSvsContext(unsigned int nServiceId, CSvsContext SvsContext) {
     SvsContext.m_ta = SPA::taNone;
 #endif
     //CAutoLock al(g_mutex);
-    if (g_pServer == nullptr)
+    if (g_pServer == nullptr || IsRunning())
         return false;
     return g_pServer->AddSvsContext(nServiceId, SvsContext);
 }
@@ -134,7 +134,7 @@ CSvsContext WINAPI GetSvsContext(unsigned int serviceId) {
 
 void WINAPI RemoveAllSlowRequests(unsigned int serviceId) {
     //CAutoLock al(g_mutex);
-    if (g_pServer == nullptr)
+    if (g_pServer == nullptr || IsRunning())
         return;
     CServiceContext *svs = g_pServer->SeekServiceContext(serviceId);
     if (svs == nullptr) {
@@ -156,7 +156,7 @@ bool WINAPI GetReturnRandom(unsigned int serviceId) {
 
 void WINAPI SetReturnRandom(unsigned int serviceId, bool random) {
     //CAutoLock al(g_mutex);
-    if (g_pServer == nullptr || serviceId <= SPA::sidReserved)
+    if (g_pServer == nullptr || serviceId <= SPA::sidReserved || IsRunning())
         return;
     CServiceContext *svs = g_pServer->SeekServiceContext(serviceId);
     if (svs == nullptr) {
@@ -167,14 +167,14 @@ void WINAPI SetReturnRandom(unsigned int serviceId, bool random) {
 
 bool WINAPI AddSlowRequest(unsigned int nServiceId, unsigned short sReqId) {
     //CAutoLock al(g_mutex);
-    if (g_pServer == nullptr)
+    if (g_pServer == nullptr || IsRunning())
         return false;
     return g_pServer->AddSlowRequest(nServiceId, sReqId);
 }
 
 void WINAPI RemoveSlowRequest(unsigned int nServiceId, unsigned short sReqId) {
     //CAutoLock al(g_mutex);
-    if (g_pServer == nullptr)
+    if (g_pServer == nullptr || IsRunning())
         return;
     g_pServer->RemoveSlowRequest(nServiceId, sReqId);
 }
@@ -889,7 +889,7 @@ unsigned int WINAPI PeekQueuedRequests(unsigned int qHandle, SPA::CQueuedRequest
 }
 
 bool WINAPI SetRouting(unsigned int serviceId0, SPA::ServerSide::tagRoutingAlgorithm ra0, unsigned int serviceId1, SPA::ServerSide::tagRoutingAlgorithm ra1) {
-    if (g_pServer == nullptr)
+    if (g_pServer == nullptr || IsRunning())
         return false;
     return g_pServer->SetRouting(serviceId0, ra0, serviceId1, ra1);
 }
@@ -901,7 +901,7 @@ unsigned int WINAPI CheckRouting(unsigned int serviceId) {
 }
 
 bool WINAPI AddAlphaRequest(unsigned int serviceId, unsigned short reqId) {
-    if (g_pServer == nullptr)
+    if (g_pServer == nullptr || IsRunning())
         return false;
     return g_pServer->AddAlphaRequest(serviceId, reqId);
 }

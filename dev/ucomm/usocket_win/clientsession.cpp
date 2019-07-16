@@ -441,20 +441,22 @@ unsigned int CClientSession::GetBytesInReceivingBuffer() {
 
 bool CClientSession::IsBatching() {
     bool b;
-    m_mutex.lock();
+    //m_mutex.lock();
     if (m_pQBatch && m_ConnState >= SPA::ClientSide::csSwitched)
         b = true;
     else
         b = false;
-    m_mutex.unlock();
+    //m_mutex.unlock();
     return b;
 }
 
 unsigned int CClientSession::GetBytesBatched() {
+	unsigned int len;
     m_mutex.lock();
-    unsigned int len = 0;
-    if (m_pQBatch != nullptr)
-        len = m_pQBatch->GetSize();
+	if (m_pQBatch)
+		len = m_pQBatch->GetSize();
+	else
+		len = 0;
     m_mutex.unlock();
     return len;
 }
