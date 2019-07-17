@@ -1728,7 +1728,7 @@ void CServerSession::OnNonBaseRequestArrive() {
             return;
         }
         assert(m_pUThread == nullptr);
-        m_pUThread = g_pServer->GetOneThread(pSC->GetSvsContext().m_ta);
+        m_pUThread = g_pServer->GetOneThread(m_pServiceContext->GetSvsContext().m_ta);
         m_pUThread->PostMessage(this, m_ReqInfo.RequestId, WM_ASK_FOR_PROCESSING, nullptr, 0);
         return;
     }

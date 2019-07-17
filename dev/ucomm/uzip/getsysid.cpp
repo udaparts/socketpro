@@ -126,9 +126,9 @@ namespace SPA {
                 s += *it;
             }
             s += secret;
-			if (manyMachine <= 1) {
-				s += strAppName;
-			}
+            if (manyMachine <= 1) {
+                s += strAppName;
+            }
             return s;
         }
 
@@ -191,26 +191,26 @@ namespace SPA {
 
             SPA::UJsonDocument docRes;
             SPA::UJsonValue aOs;
-			aOs.SetArray();
+            aOs.SetArray();
             tagOperationSystem os = GetOS();
             switch (os) {
                 case osWin:
-					aOs.PushBack("win", docRes.GetAllocator());
-					aOs.PushBack("apple", docRes.GetAllocator());
+                    aOs.PushBack("win", docRes.GetAllocator());
+                    aOs.PushBack("apple", docRes.GetAllocator());
                     break;
                 case osApple:
-					aOs.PushBack("apple", docRes.GetAllocator());
+                    aOs.PushBack("apple", docRes.GetAllocator());
                     break;
                 case osUnix:
-					aOs.PushBack("unix", docRes.GetAllocator());
-					aOs.PushBack("apple", docRes.GetAllocator());
+                    aOs.PushBack("unix", docRes.GetAllocator());
+                    aOs.PushBack("apple", docRes.GetAllocator());
                     break;
                     break;
                 default:
                     break;
             }
-			aOs.PushBack("android", docRes.GetAllocator());
-			aOs.PushBack("wince", docRes.GetAllocator());
+            aOs.PushBack("android", docRes.GetAllocator());
+            aOs.PushBack("wince", docRes.GetAllocator());
 
             time(&t);
 #if defined(__ANDROID__) || defined(ANDROID) || defined(WINCE)
@@ -344,14 +344,14 @@ namespace SPA {
             t = GetLastWriteTime(RegFileName.c_str());
             if (t > tEnd + 12 * 3600)
                 return false;
-			if (GetHashId(MakeString(RegFileName.c_str(), (unsigned char)2, secret, reg), SPA::GetOS()) == reg.Key)
-				return true;
-            if (GetHashId(MakeString(RegFileName.c_str(), (unsigned char)1, secret, reg), SPA::GetOS()) == reg.Key)
+            if (GetHashId(MakeString(RegFileName.c_str(), (unsigned char) 2, secret, reg), SPA::GetOS()) == reg.Key)
+                return true;
+            if (GetHashId(MakeString(RegFileName.c_str(), (unsigned char) 1, secret, reg), SPA::GetOS()) == reg.Key)
                 return true;
             std::string sysId = GetSysId();
             if (sysId != reg.MachineID)
                 return false;
-            return (GetHashId(MakeString(RegFileName.c_str(), (unsigned char)0, secret, reg), SPA::GetOS()) == reg.Key);
+            return (GetHashId(MakeString(RegFileName.c_str(), (unsigned char) 0, secret, reg), SPA::GetOS()) == reg.Key);
         }
 #endif
     } //namespace ServerSide
