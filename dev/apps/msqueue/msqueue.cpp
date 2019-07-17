@@ -4,14 +4,15 @@
 //
 
 #include "stdafx.h"
-#include "../../pinc/mqfile.h"
+
+#include "../../ucomm/core_shared/pinc/mqfile.h"
 #include <iostream>
 #include <assert.h>
 #include <time.h>
 #include <boost/thread/thread.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
-#include "../../pinc/getsysid.h"
-#include "../../pinc/uzip.h"
+#include "../../ucomm/core_shared/pinc/getsysid.h"
+#include "../../ucomm/core_shared/pinc/uzip.h"
 #include <fstream>
 #include <deque>
 #include <boost/algorithm/string.hpp>

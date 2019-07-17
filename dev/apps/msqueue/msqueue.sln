@@ -1,17 +1,11 @@
 ﻿
-Microsoft Visual Studio Solution File, Format Version 11.00
-# Visual Studio 2010
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.28307.645
+MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "uregme", "..\uregme\uregme.vcxproj", "{FAC1798B-FC18-4003-AA0E-FE87F0511FB0}"
-	ProjectSection(ProjectDependencies) = postProject
-		{B9911AA4-44A9-4D1B-8571-88E4F8F46FE4} = {B9911AA4-44A9-4D1B-8571-88E4F8F46FE4}
-	EndProjectSection
-EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "uzip", "..\uzip\uzip.vcxproj", "{B9911AA4-44A9-4D1B-8571-88E4F8F46FE4}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "msqueue", "msqueue.vcxproj", "{5F892138-5DE8-4498-9D4C-471B3AB83779}"
-	ProjectSection(ProjectDependencies) = postProject
-		{B9911AA4-44A9-4D1B-8571-88E4F8F46FE4} = {B9911AA4-44A9-4D1B-8571-88E4F8F46FE4}
-	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -29,14 +23,6 @@ Global
 		{FAC1798B-FC18-4003-AA0E-FE87F0511FB0}.Release|Win32.Build.0 = Release|Win32
 		{FAC1798B-FC18-4003-AA0E-FE87F0511FB0}.Release|x64.ActiveCfg = Release|x64
 		{FAC1798B-FC18-4003-AA0E-FE87F0511FB0}.Release|x64.Build.0 = Release|x64
-		{B9911AA4-44A9-4D1B-8571-88E4F8F46FE4}.Debug|Win32.ActiveCfg = Debug|Win32
-		{B9911AA4-44A9-4D1B-8571-88E4F8F46FE4}.Debug|Win32.Build.0 = Debug|Win32
-		{B9911AA4-44A9-4D1B-8571-88E4F8F46FE4}.Debug|x64.ActiveCfg = Debug|x64
-		{B9911AA4-44A9-4D1B-8571-88E4F8F46FE4}.Debug|x64.Build.0 = Debug|x64
-		{B9911AA4-44A9-4D1B-8571-88E4F8F46FE4}.Release|Win32.ActiveCfg = Release|Win32
-		{B9911AA4-44A9-4D1B-8571-88E4F8F46FE4}.Release|Win32.Build.0 = Release|Win32
-		{B9911AA4-44A9-4D1B-8571-88E4F8F46FE4}.Release|x64.ActiveCfg = Release|x64
-		{B9911AA4-44A9-4D1B-8571-88E4F8F46FE4}.Release|x64.Build.0 = Release|x64
 		{5F892138-5DE8-4498-9D4C-471B3AB83779}.Debug|Win32.ActiveCfg = Debug|Win32
 		{5F892138-5DE8-4498-9D4C-471B3AB83779}.Debug|Win32.Build.0 = Debug|Win32
 		{5F892138-5DE8-4498-9D4C-471B3AB83779}.Debug|x64.ActiveCfg = Debug|x64
@@ -48,5 +34,8 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {A62B6BA3-659E-4F2C-9BE2-8745DACD2F7F}
 	EndGlobalSection
 EndGlobal

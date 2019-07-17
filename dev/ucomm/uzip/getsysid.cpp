@@ -26,6 +26,9 @@
 extern const char *__progname;
 #endif
 
+#define MAX_REQ_SPEED 5120000
+#define MAX_CLIENTS 1024000
+
 namespace SPA {
     std::string UAppName;
 #if defined(__ANDROID__) || defined(ANDROID)
@@ -65,12 +68,12 @@ namespace SPA {
         typedef rapidjson::PrettyWriter<CUQueue> UJsonPrettyWriter;
 
         URegistration::URegistration() :
-        JavaScript(0),
-        RequestQueue(0),
-        ManyClients(2500),
-        MaxSpeed(2500),
-        Routing(0),
-        Endian(0),
+        JavaScript(1),
+        RequestQueue(1),
+        ManyClients(MAX_CLIENTS),
+        MaxSpeed(MAX_REQ_SPEED),
+        Routing(1),
+        Endian(1),
         Other(0) {
             //crash for segmentation failed error on linux with initialization style 
             //we are forced to comment the below call out
@@ -94,7 +97,7 @@ namespace SPA {
             return std::mktime(&tmDate);
         }
 
-        std::string MakeString(const char *strAppName, bool manyMachine, const char *secret, const URegistration &reg) {
+        std::string MakeString(const char *strAppName, unsigned char manyMachine, const char *secret, const URegistration &reg) {
             std::string s;
             if (manyMachine)
                 s = boost::str(boost::format("%1%%2%%3%%4%%5%%6%%7%%8%%9%") % reg.CompanyName
@@ -123,12 +126,13 @@ namespace SPA {
                 s += *it;
             }
             s += secret;
-            s += strAppName;
-
+			if (manyMachine <= 1) {
+				s += strAppName;
+			}
             return s;
         }
 
-        std::string CreateKey(const char *appName, bool manyMachine, const char *secret, SPA::tagOperationSystem os) {
+        std::string CreateKey(const char *appName, unsigned char manyMachine, const char *secret, SPA::tagOperationSystem os) {
             size_t pos;
             std::string name(appName);
 #ifdef WIN32_64
@@ -187,26 +191,27 @@ namespace SPA {
 
             SPA::UJsonDocument docRes;
             SPA::UJsonValue aOs;
+			aOs.SetArray();
             tagOperationSystem os = GetOS();
             switch (os) {
                 case osWin:
-                    strOs = "win";
-                    break;
-                case osWinCE:
-                    strOs = "wince";
+					aOs.PushBack("win", docRes.GetAllocator());
+					aOs.PushBack("apple", docRes.GetAllocator());
                     break;
                 case osApple:
-                    strOs = "apple";
+					aOs.PushBack("apple", docRes.GetAllocator());
                     break;
                 case osUnix:
-                    strOs = "unix";
+					aOs.PushBack("unix", docRes.GetAllocator());
+					aOs.PushBack("apple", docRes.GetAllocator());
                     break;
-                case osAndroid:
-                    strOs = "android";
                     break;
                 default:
                     break;
             }
+			aOs.PushBack("android", docRes.GetAllocator());
+			aOs.PushBack("wince", docRes.GetAllocator());
+
             time(&t);
 #if defined(__ANDROID__) || defined(ANDROID) || defined(WINCE)
             tm *p = ::gmtime(&t);
@@ -220,18 +225,16 @@ namespace SPA {
             tm *p = ::gmtime(&t);
             ::sprintf(strDate, "%.4d/%.2d/%.2d", p->tm_year + 1900, p->tm_mon + 1, p->tm_mday);
 #endif
-            aOs.SetArray();
-            aOs.PushBack(strOs.c_str(), docRes.GetAllocator());
             docRes.SetObject();
             docRes.AddMember(EndDate.c_str(), strDate, docRes.GetAllocator());
             docRes.AddMember(CompanyName.c_str(), DefaultCompanyNameValue.c_str(), docRes.GetAllocator());
-            docRes.AddMember(JavaScript.c_str(), 0, docRes.GetAllocator());
+            docRes.AddMember(JavaScript.c_str(), 1, docRes.GetAllocator());
             docRes.AddMember(Platforms.c_str(), aOs, docRes.GetAllocator());
-            docRes.AddMember(RequestQueue.c_str(), 0, docRes.GetAllocator());
-            docRes.AddMember(ManyClients.c_str(), 2500, docRes.GetAllocator());
-            docRes.AddMember(MaxSpeed.c_str(), 2500, docRes.GetAllocator());
-            docRes.AddMember(Routing.c_str(), 0, docRes.GetAllocator());
-            docRes.AddMember(Endian.c_str(), 0, docRes.GetAllocator());
+            docRes.AddMember(RequestQueue.c_str(), 1, docRes.GetAllocator());
+            docRes.AddMember(ManyClients.c_str(), MAX_CLIENTS, docRes.GetAllocator());
+            docRes.AddMember(MaxSpeed.c_str(), MAX_REQ_SPEED, docRes.GetAllocator());
+            docRes.AddMember(Routing.c_str(), 1, docRes.GetAllocator());
+            docRes.AddMember(Endian.c_str(), 1, docRes.GetAllocator());
             docRes.AddMember(Other.c_str(), 0, docRes.GetAllocator());
             docRes.AddMember(MachineID.c_str(), id.c_str(), docRes.GetAllocator());
             docRes.AddMember(Key.c_str(), "", docRes.GetAllocator());
@@ -282,32 +285,32 @@ namespace SPA {
             if (json[JavaScript.c_str()].IsUint())
                 reg.JavaScript = json[JavaScript.c_str()].GetUint() ? 1 : 0;
             else
-                reg.JavaScript = 0;
+                reg.JavaScript = 1;
 
             if (json[RequestQueue.c_str()].IsUint())
                 reg.RequestQueue = json[RequestQueue.c_str()].GetUint();
             else
-                reg.RequestQueue = 0;
+                reg.RequestQueue = 1;
 
             if (json[ManyClients.c_str()].IsUint())
                 reg.ManyClients = json[ManyClients.c_str()].GetUint();
             else
-                reg.ManyClients = 2500;
+                reg.ManyClients = MAX_CLIENTS;
 
             if (json[MaxSpeed.c_str()].IsUint())
                 reg.MaxSpeed = json[MaxSpeed.c_str()].GetUint();
             else
-                reg.MaxSpeed = 2500;
+                reg.MaxSpeed = MAX_REQ_SPEED;
 
             if (json[Routing.c_str()].IsUint())
                 reg.Routing = json[Routing.c_str()].GetUint() ? 1 : 0;
             else
-                reg.Routing = 0;
+                reg.Routing = 1;
 
             if (json[Endian.c_str()].IsUint())
                 reg.Endian = json[Endian.c_str()].GetUint() ? 1 : 0;
             else
-                reg.Endian = 0;
+                reg.Endian = 1;
 
             if (json[Other.c_str()].IsUint())
                 reg.Other = json[Other.c_str()].GetUint() ? 1 : 0;
@@ -341,12 +344,14 @@ namespace SPA {
             t = GetLastWriteTime(RegFileName.c_str());
             if (t > tEnd + 12 * 3600)
                 return false;
-            if (GetHashId(MakeString(RegFileName.c_str(), true, secret, reg), SPA::GetOS()) == reg.Key)
+			if (GetHashId(MakeString(RegFileName.c_str(), (unsigned char)2, secret, reg), SPA::GetOS()) == reg.Key)
+				return true;
+            if (GetHashId(MakeString(RegFileName.c_str(), (unsigned char)1, secret, reg), SPA::GetOS()) == reg.Key)
                 return true;
             std::string sysId = GetSysId();
             if (sysId != reg.MachineID)
                 return false;
-            return (GetHashId(MakeString(RegFileName.c_str(), false, secret, reg), SPA::GetOS()) == reg.Key);
+            return (GetHashId(MakeString(RegFileName.c_str(), (unsigned char)0, secret, reg), SPA::GetOS()) == reg.Key);
         }
 #endif
     } //namespace ServerSide

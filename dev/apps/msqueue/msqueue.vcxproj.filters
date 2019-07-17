@@ -24,10 +24,10 @@
     <ClInclude Include="targetver.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\include\membuffer.h">
+    <ClInclude Include="..\..\pinc\mqfile.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\pinc\mqfile.h">
+    <ClInclude Include="..\..\ucomm\include\membuffer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -38,7 +38,7 @@
     <ClCompile Include="msqueue.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\include\membuffer.cpp">
+    <ClCompile Include="..\..\ucomm\include\membuffer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

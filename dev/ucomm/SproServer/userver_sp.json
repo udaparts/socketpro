@@ -1,16 +1,20 @@
 {
-    "EndDate": "2024/02/08",
+    "EndDate": "2021/07/17",
     "CompanyName": "UDAParts",
     "JavaScript": 1,
     "Platforms": [
-        "win", "unix", "apple", "wince", "iphone", "android"
+        "win",
+		"unix",
+        "apple",
+        "android",
+        "wince"
     ],
     "Queue": 1,
-    "MaxClients": 87500,
-    "MaxSpeed": 207500,
+    "MaxClients": 1024000,
+    "MaxSpeed": 5120000,
     "Routing": 1,
-    "Endian": 0,
+    "Endian": 1,
     "Other": 0,
-    "MachineId": "LalGz17HRuPdT28m7tka84DNjHI=",
-    "Key": "NobAkJVA2UuaVtot3z/8em206c8="
+    "MachineId": "Qhb/p6RpGdqvbpYwTELz3mVqn3U=",
+    "Key": "183hnQKP57pgnzwecSiCO1Tyc4w="
 }

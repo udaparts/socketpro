@@ -43,7 +43,7 @@ namespace SPA {
             URegistration& operator=(const URegistration &reg);
         };
         bool IsRegisterred(const char *secret, URegistration &reg);
-        std::string CreateKey(const char *appName, bool manyMachine, const char *secret, SPA::tagOperationSystem os);
+        std::string CreateKey(const char *appName, unsigned char manyMachine, const char *secret, SPA::tagOperationSystem os);
     }; //ServerSide
 
     std::string GetSysId();
