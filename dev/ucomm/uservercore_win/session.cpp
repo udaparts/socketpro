@@ -1449,8 +1449,8 @@ unsigned int CServerSession::GetSndBytesInQueue() {
     return len;
 }
 
-unsigned int  CServerSession::GetSndBytesInQueueInternal() {
-	return m_qWrite.GetSize();
+unsigned int CServerSession::GetSndBytesInQueueInternal() {
+    return m_qWrite.GetSize();
 }
 
 unsigned int CServerSession::GetRcvBytesInQueue() {
