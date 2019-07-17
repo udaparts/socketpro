@@ -644,7 +644,7 @@ void CServer::StartSubThread() {
 #endif
     {
         CAutoLock sl(m_mutex);
-        m_vMainThread.push_back(boost::this_thread::get_id());
+        m_vMainThread.push_back(::GetCurrentThreadId());
     }
     for (auto it = g_vThreadEvent.begin(), end = g_vThreadEvent.end(); it != end; ++it) {
         (*it)(SPA::ServerSide::teStarted);
@@ -689,7 +689,7 @@ void CServer::StartIOPumpInternal() {
     char secret[10] = USecretKey;
     m_bStopped = false;
     m_vMainThread.clear();
-    m_vMainThread.push_back(boost::this_thread::get_id());
+    m_vMainThread.push_back(::GetCurrentThreadId());
 #ifdef WIN32_64
     bool bCOM = (::CoInitializeEx(nullptr, COINIT_MULTITHREADED) == S_OK);
 #endif
@@ -1235,7 +1235,7 @@ int CServer::GetErrorCode() {
 
 bool CServer::IsMainThread() {
     //CAutoLock sl(m_mutex);
-    return std::find(m_vMainThread.begin(), m_vMainThread.end(), boost::this_thread::get_id()) != m_vMainThread.end();
+    return std::find(m_vMainThread.begin(), m_vMainThread.end(), ::GetCurrentThreadId()) != m_vMainThread.end();
 }
 
 unsigned int CServer::GetMainThreads() {

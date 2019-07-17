@@ -3,6 +3,13 @@
 #define __UMB_INCLUDES_FOR_INTERNAL_H_
 
 #include "../../include/membuffer.h"
+
+#ifdef WIN32_64
+typedef DWORD UTHREAD_ID;
+#else
+typedef pthread_t UTHREAD_ID;
+#endif
+
 #include <vector>
 #include <queue>
 
