@@ -286,7 +286,7 @@ namespace SPA {
          * @return Internal buffer pointer
          */
         inline const unsigned char* const GetBuffer(unsigned int offset = 0) const {
-            if (offset >= m_nSize) {
+            if (offset > m_nSize) {
                 offset = m_nSize;
             }
             return (m_pBuffer + offset + m_nHeadPos);
@@ -580,9 +580,7 @@ namespace SPA {
 
             if (position > m_nSize) {
                 position = m_nSize;
-            }
-
-            if (m_nHeadPos >= len && position == 0) {
+            } else if (position == 0 && m_nHeadPos >= len) {
                 m_nHeadPos -= len;
                 ::memmove(m_pBuffer + m_nHeadPos, buffer, len);
                 m_nSize += len;
