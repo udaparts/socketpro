@@ -111,6 +111,7 @@ public:
     unsigned int GetCurrentRequestLen();
     unsigned short GetCurrentRequestID();
     unsigned int GetSndBytesInQueue();
+	unsigned int GetSndBytesInQueueInternal();
     unsigned int GetRcvBytesInQueue();
     unsigned int QueryRequestsQueued();
     unsigned int GetConnIndex();

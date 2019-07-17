@@ -725,7 +725,7 @@ SPA::UINT64 WINAPI Dequeue(unsigned int qHandle, USocket_Server_Handle h, unsign
     if (SPA::sidHTTP == pSession->GetSvsID() || SPA::sidStartup == pSession->GetSvsID())
         return BAD_OPERATION;
     bool bMainThread = ::IsMainThread();
-    while (!bMainThread && pSession->GetSndBytesInQueue() > 60 * IO_BUFFER_SIZE) {
+    while (!bMainThread && pSession->GetSndBytesInQueueInternal() > 60 * IO_BUFFER_SIZE) {
         pSession->Wait();
         if (index != pSession->GetConnIndex())
             return SOCKET_NOT_FOUND;
@@ -746,7 +746,7 @@ SPA::UINT64 WINAPI Dequeue2(unsigned int qHandle, USocket_Server_Handle h, unsig
     if (SPA::sidHTTP == pSession->GetSvsID() || SPA::sidStartup == pSession->GetSvsID())
         return BAD_OPERATION;
     bool bMainThread = ::IsMainThread();
-    while (!bMainThread && pSession->GetSndBytesInQueue() > 60 * IO_BUFFER_SIZE) {
+    while (!bMainThread && pSession->GetSndBytesInQueueInternal() > 60 * IO_BUFFER_SIZE) {
         pSession->Wait();
         if (index != pSession->GetConnIndex())
             return SOCKET_NOT_FOUND;

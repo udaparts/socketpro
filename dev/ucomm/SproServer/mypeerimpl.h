@@ -167,8 +167,8 @@ private:
          */
     }
 
-    void Echo(const std::string &input, /*out*/std::string &output) {
-        output = input;
+    void Echo(std::string &input, /*out*/std::string &output) {
+        output.swap(input);
         ++m_nCalls;
         //bool has = SPA::ServerSide::CSocketProServer::CredentialManager::HasUserId(L"socketPro");
         //has = SPA::ServerSide::CSocketProServer::CredentialManager::HasUserId(L"Win_SOcketPro");

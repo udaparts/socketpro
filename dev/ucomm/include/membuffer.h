@@ -286,7 +286,7 @@ namespace SPA {
          * @return Internal buffer pointer
          */
         inline const unsigned char* const GetBuffer(unsigned int offset = 0) const {
-            if (offset >= m_nSize) {
+            if (offset > m_nSize) {
                 offset = m_nSize;
             }
             return (m_pBuffer + offset + m_nHeadPos);

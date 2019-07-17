@@ -935,14 +935,6 @@ namespace SPA
         }
 
         CBaseService * CBaseService::SeekService(unsigned int nServiceId) {
-#ifdef MAY_CHANGE_SERVICES_AFTER_STARTING_SERVER
-            /*
-             1. Remove this lock as you will not add or remove a service after running a server under most cases.
-             2. Make this lock if you will surely add or remove a service after running a server.
-             3. Adding extra lock may slightly degrade performance.
-             */
-            CAutoLock sl(m_mutex);
-#endif
             std::vector<CBaseService*>::const_iterator it, end = m_vService.cend();
             for (it = m_vService.cbegin(); it != end; ++it) {
                 if ((*it)->GetSvsID() == nServiceId)

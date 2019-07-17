@@ -1846,6 +1846,7 @@ namespace MQ_FILE {
         CAutoLock al(m_cs);
         if (!m_hFile || !m_bEnableDequeue)
             return vMdh;
+		vMdh.reserve(64);
         do {
             fileSize = m_nFileSize;
             if (m_qTransPos != INVALID_NUMBER) {
@@ -1997,6 +1998,7 @@ namespace MQ_FILE {
         vector<unsigned int> vMdh;
         if (!m_hFile || !m_bEnableDequeue)
             return vMdh;
+		vMdh.reserve(64);
         do {
             fileSize = m_nFileSize;
             if (m_qTransPos != INVALID_NUMBER) {

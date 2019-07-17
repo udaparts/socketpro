@@ -466,13 +466,9 @@ bool CServerSession::SetServerInfoInternal(SPA::CSwitchInfo *pServerInfo) {
     if (pServerInfo && ServiceId != SPA::sidStartup) {
         m_ServerInfo.Param2 = g_pServer->m_ulPingInterval / 1000;
         m_ServerInfo.Param2 += g_pServer->m_am * 0x10000;
-        CServiceContext *svs = g_pServer->SeekServiceContext(ServiceId);
-        if (svs) {
-            m_ServerInfo.SockMinorVersion |= (svs->GetRandom() ? RETURN_RESULT_RANDOM : 0);
-            m_ServerInfo.SockMinorVersion |= (svs->GetRoutingSvsId() ? (IS_ROUTING_PARTNER | RETURN_RESULT_RANDOM) : 0);
-        } else
-            m_ServerInfo.SockMinorVersion = 8;
-        if (m_pServiceContext) {
+        m_ServerInfo.SockMinorVersion |= (m_pServiceContext->GetRandom() ? RETURN_RESULT_RANDOM : 0);
+        m_ServerInfo.SockMinorVersion |= (m_pServiceContext->GetRoutingSvsId() ? (IS_ROUTING_PARTNER | RETURN_RESULT_RANDOM) : 0);
+        {
             CRAutoLock ral(m_mutex, m_bChatting);
             m_ServerInfo.Param0 = (unsigned int) (m_pServiceContext->GetRouteeSize());
         }
@@ -1453,6 +1449,10 @@ unsigned int CServerSession::GetSndBytesInQueue() {
     return len;
 }
 
+unsigned int  CServerSession::GetSndBytesInQueueInternal() {
+	return m_qWrite.GetSize();
+}
+
 unsigned int CServerSession::GetRcvBytesInQueue() {
     m_mutex.lock();
     unsigned int len = m_qRead.GetSize();
@@ -1701,17 +1701,12 @@ unsigned int CServerSession::QueryRequestsQueuedInternally() {
 
 void CServerSession::OnNonBaseRequestArrive() {
     m_bDropSlowRequest = false;
-    CServiceContext *pSC = g_pServer->SeekServiceContext(ServiceId);
-    if (pSC == nullptr) {
-        PostCloseInternal(ERROR_SERVICE_NOT_FOUND_AT_SERVER_SIDE);
-        return;
-    }
     POnRequestArrive p = m_ccb.SvsContext.m_OnRequestArrive;
     POnFastRequestArrive pF = m_ccb.SvsContext.m_OnFastRequestArrive;
     USocket_Server_Handle index = MakeHandlerInternal();
     unsigned short reqId = m_ReqInfo.RequestId;
     unsigned long size = m_ReqInfo.Size;
-    if (pSC && pSC->GetRandom()) {
+    if (m_pServiceContext->GetRandom()) {
         if (m_ReqInfo.GetQueued()) {
             m_mapIndex[m_indexCall] = std::shared_ptr<CResIndexImpl>(new CResIndexImpl(m_ReqInfo.RequestId, this, m_qa), [](CResIndexImpl * p) {
                 if (p) delete p;
@@ -1726,12 +1721,12 @@ void CServerSession::OnNonBaseRequestArrive() {
     if (p != nullptr) {
         p(index, reqId, size);
     }
-    if (pSC->IsSlowRequest(m_ReqInfo.RequestId)) {
+    if (m_pServiceContext->IsSlowRequest(m_ReqInfo.RequestId)) {
         if (m_bDropSlowRequest) {
             return;
         }
         assert(m_pUThread == nullptr);
-        m_pUThread = g_pServer->GetOneThread(pSC->GetSvsContext().m_ta);
+        m_pUThread = g_pServer->GetOneThread(m_pServiceContext->GetSvsContext().m_ta);
         m_pUThread->PostMessage(this, m_ReqInfo.RequestId, WM_ASK_FOR_PROCESSING, nullptr, 0);
         return;
     }
@@ -2037,8 +2032,7 @@ void CServerSession::OnSwitchTo(unsigned int OldServiceId, unsigned int NewServi
     if (NewServiceId != SPA::sidHTTP) {
         unsigned int errCode = g_bRegistered ? ERROR_NO_ERROR : ERROR_EVALUATION;
         if (errCode == ERROR_EVALUATION) {
-            CServiceContext *svs = g_pServer->SeekServiceContext(NewServiceId);
-            if (svs && svs->m_bRegisterred)
+            if (m_pServiceContext->m_bRegisterred)
                 errCode = ERROR_NO_ERROR;
         }
         SPA::CScopeUQueue sb;
@@ -2060,9 +2054,7 @@ void CServerSession::OnRA() {
             PostCloseInternal(ERROR_WRONG_SWITCH);
             return;
         }
-        {
-            m_pServiceContext = g_pServer->SeekServiceContext(m_ClientInfo.ServiceId);
-        }
+        m_pServiceContext = g_pServer->SeekServiceContext(m_ClientInfo.ServiceId);
         if (m_pServiceContext == nullptr) {
             PostCloseInternal(ERROR_SERVICE_NOT_FOUND_AT_SERVER_SIDE);
             return;

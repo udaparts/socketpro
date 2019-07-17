@@ -328,7 +328,7 @@ unsigned int WINAPI SendReturnDataIndex(USocket_Server_Handle h, SPA::UINT64 ind
         return SOCKET_NOT_FOUND;
     }
     bool bMainThread = ::IsMainThread();
-    while (!bMainThread && pSession->GetSndBytesInQueue() > 30 * IO_BUFFER_SIZE) {
+    while (!bMainThread && pSession->GetSndBytesInQueueInternal() > 30 * IO_BUFFER_SIZE) {
         if (g_pServer->m_bStopped || !pSession->IsOpened()) {
             return SOCKET_NOT_FOUND;
         }
@@ -352,7 +352,7 @@ unsigned int WINAPI SendReturnData(USocket_Server_Handle h, unsigned short usReq
         return SOCKET_NOT_FOUND;
     }
     bool bMainThread = ::IsMainThread();
-    while (!bMainThread && pSession->GetSndBytesInQueue() > 60 * IO_BUFFER_SIZE) {
+    while (!bMainThread && pSession->GetSndBytesInQueueInternal() > 60 * IO_BUFFER_SIZE) {
         if (g_pServer->m_bStopped || !pSession->IsOpened()) {
             return SOCKET_NOT_FOUND;
         }
@@ -443,7 +443,7 @@ bool WINAPI CommitBatching(USocket_Server_Handle h) {
             return false;
         }
         bool bMainThread = ::IsMainThread();
-        while (!bMainThread && index == pSession->GetConnIndex() && pSession->GetSndBytesInQueue() > 60 * IO_BUFFER_SIZE && !::IsMainThread()) {
+        while (!bMainThread && index == pSession->GetConnIndex() && pSession->GetSndBytesInQueueInternal() > 60 * IO_BUFFER_SIZE && !::IsMainThread()) {
             if (g_pServer->m_bStopped || !pSession->IsOpened()) {
                 return false;
             }
@@ -820,7 +820,7 @@ unsigned int WINAPI SendHTTPReturnDataA(USocket_Server_Handle h, const char *str
     if (g_pServer->m_bStopped) {
         return SOCKET_NOT_FOUND;
     }
-    while (!bMainThread && pSession->GetSndBytesInQueue() > 60 * IO_BUFFER_SIZE) {
+    while (!bMainThread && pSession->GetSndBytesInQueueInternal() > 60 * IO_BUFFER_SIZE) {
         if (g_pServer->m_bStopped || !pSession->IsOpened()) {
             return SOCKET_NOT_FOUND;
         }
@@ -857,7 +857,7 @@ unsigned int WINAPI HTTPCallbackA(USocket_Server_Handle h, const char *name, con
         return SOCKET_NOT_FOUND;
     }
     bool bMainThread = ::IsMainThread();
-    while (!bMainThread && pSession->GetSndBytesInQueue() > 60 * IO_BUFFER_SIZE) {
+    while (!bMainThread && pSession->GetSndBytesInQueueInternal() > 60 * IO_BUFFER_SIZE) {
         if (g_pServer->m_bStopped) {
             return SOCKET_NOT_FOUND;
         }
@@ -900,7 +900,7 @@ unsigned int WINAPI StartHTTPChunkResponse(USocket_Server_Handle h) {
         return SOCKET_NOT_FOUND;
     }
     bool bMainThread = ::IsMainThread();
-    while (!bMainThread && pSession->GetSndBytesInQueue() > 60 * IO_BUFFER_SIZE) {
+    while (!bMainThread && pSession->GetSndBytesInQueueInternal() > 60 * IO_BUFFER_SIZE) {
         if (g_pServer->m_bStopped) {
             return SOCKET_NOT_FOUND;
         }
@@ -922,7 +922,7 @@ unsigned int WINAPI SendHTTPChunk(USocket_Server_Handle h, const unsigned char *
         return SOCKET_NOT_FOUND;
     }
     bool bMainThread = ::IsMainThread();
-    while (!bMainThread && pSession->GetSndBytesInQueue() > 60 * IO_BUFFER_SIZE) {
+    while (!bMainThread && pSession->GetSndBytesInQueueInternal() > 60 * IO_BUFFER_SIZE) {
         if (g_pServer->m_bStopped || !pSession->IsOpened()) {
             return SOCKET_NOT_FOUND;
         }
@@ -944,7 +944,7 @@ unsigned int WINAPI EndHTTPChunkResponse(USocket_Server_Handle h, const unsigned
         return SOCKET_NOT_FOUND;
     }
     bool bMainThread = ::IsMainThread();
-    while (!bMainThread && pSession->GetSndBytesInQueue() > 60 * IO_BUFFER_SIZE) {
+    while (!bMainThread && pSession->GetSndBytesInQueueInternal() > 60 * IO_BUFFER_SIZE) {
         if (g_pServer->m_bStopped) {
             return SOCKET_NOT_FOUND;
         }

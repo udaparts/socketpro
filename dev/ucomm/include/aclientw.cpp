@@ -405,7 +405,7 @@ namespace SPA
                 }
             } else if (count) {
                 if ((*pp)->first == usReqId) {
-					p = *pp;
+                    p = *pp;
                     m_vCallback.Pop((unsigned int) sizeof (PRR_PAIR));
                     return true;
                 }
