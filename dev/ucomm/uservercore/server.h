@@ -232,8 +232,7 @@ private:
     bool m_bSharedAM;
     std::string m_strPfxFile;
     bool m_bZip;
-    //boost::thread::id m_MainThreadId;
-    std::vector<boost::thread::id> m_vMainThread;
+    std::vector<UTHREAD_ID> m_vMainThread;
     SPA::UINT64 m_tStart;
     std::atomic<SPA::UINT64> m_nRequestCount;
     SPA::UINT64 m_nRequestCountLast;
