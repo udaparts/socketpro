@@ -3580,8 +3580,7 @@ void CServerSession::OnReadCompleted(const CErrorCode& Error, size_t nLen) {
 			SPA::CScopeUQueue sb;
 			if (!m_pSspi->Decrypt(m_ReadBuffer, (DWORD)nLen, *sb)) {
 				CAutoLock sl(m_mutex);
-				m_ec.assign(m_pSspi->GetLastStatus(), boost::asio::error::get_system_category());
-				CloseInternal();
+				PostCloseInternal(m_pSspi->GetLastStatus());
 				return;
 			}
 			len = sb->GetSize();
