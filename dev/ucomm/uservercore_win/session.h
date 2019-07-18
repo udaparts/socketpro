@@ -255,7 +255,6 @@ private:
     static bool RemoveARouteMap(RouteMap &rm);
     static void NotifyFailRoutes(SPA::UINT64 receiver, CServiceContext *pServiceContext);
     unsigned int RemoveDequeueCache(unsigned int handle, SPA::UINT64 index);
-    bool DoDecryption(const unsigned char* buffer, DWORD dwSize, unsigned int &len);
     void PutOntoWire();
     void PutOntoWireInternal();
 
@@ -271,7 +270,7 @@ private:
     unsigned char *m_ReadBuffer;
     bool m_bRBLocked;
     unsigned char *m_WriteBuffer;
-    unsigned int m_bWBLocked;
+	unsigned int m_bWBLocked;
     std::mutex m_mutex;
     unsigned int m_ulIndex;
     bool m_bZip;
