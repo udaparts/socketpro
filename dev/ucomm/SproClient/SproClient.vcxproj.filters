@@ -42,6 +42,9 @@
     <ClInclude Include="..\include\membuffer.h">
       <Filter>Header Files\global</Filter>
     </ClInclude>
+    <ClInclude Include="..\include\wincommutil.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Header Files">

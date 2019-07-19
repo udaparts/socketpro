@@ -320,7 +320,7 @@ USocket_Client_Handle CSocketPool::LockClientSession(unsigned int timeout, USock
                     return (USocket_Client_Handle) h;
                 open += arr[it]->GetConnectedSockets();
             }
-            if (!timeout)
+            if (!timeout || !open)
                 return nullptr;
             diff = (boost::posix_time::microsec_clock::local_time() - start).total_milliseconds();
             if (diff >= timeout)
@@ -333,7 +333,7 @@ USocket_Client_Handle CSocketPool::LockClientSession(unsigned int timeout, USock
 }
 
 void CSocketPool::Notify() {
-    m_cv.notify_all();
+	m_cv.notify_all();
 }
 
 bool CSocketPool::GetQueueAutoMerge() {

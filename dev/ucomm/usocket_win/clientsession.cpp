@@ -237,10 +237,13 @@ void CClientSession::OnClosed(int errCode) {
     }
     m_bZip = false;
     POnSocketClosed p = m_OnSocketClosed;
-    if (p != nullptr) {
-        CRAutoLock sl(m_mutex, m_bChatting);
-        p(this, errCode);
-    }
+	{
+		CRAutoLock sl(m_mutex, m_bChatting);
+		if (p != nullptr) {
+			p(this, errCode);
+		}
+		m_pThread->GetPool()->Notify();
+	}
     if (m_bWaiting)
         m_cv.notify_all();
 }
@@ -474,22 +477,22 @@ void CClientSession::OnConnectedInternal(int errCode) {
     m_nRouteeCount = 0;
     m_bRoutingQueueIndexEnabled = false;
     m_qBatchDequeueConfirm.SetSize(0);
-    if (p) {
-        CRAutoLock sl(m_mutex, m_bChatting);
-        p(this, errCode);
-    }
-
-    PSocketPoolCallback spc = m_pThread->GetSocketPoolCallback();
-    if (spc) {
-        CRAutoLock sl(m_mutex, m_bChatting);
-        spc(m_nPoolId, SPA::ClientSide::speConnected, this);
-    }
-
-    if (errCode == 0) {
-        m_pThread->GetPool()->Notify();
-        if (m_bWaiting)
-            m_cv.notify_all();
-    }
+	PSocketPoolCallback spc = m_pThread->GetSocketPoolCallback();
+	{
+		CRAutoLock sl(m_mutex, m_bChatting);
+		if (p) {
+			p(this, errCode);
+		}
+		if (spc) {
+			spc(m_nPoolId, SPA::ClientSide::speConnected, this);
+		}
+		if (errCode == 0) {
+			m_pThread->GetPool()->Notify();
+		}
+	}
+	if (errCode == 0 && m_bWaiting) {
+		m_cv.notify_all();
+	}
     m_routeeNotAvailable = 0;
 }
 
@@ -1017,7 +1020,6 @@ void CClientSession::ConnectInternally() {
 }
 
 SPA::ClientSide::tagConnectionState CClientSession::GetConnectionState() {
-    CAutoLock sl(m_mutex);
     return m_ConnState;
 }
 
@@ -2359,7 +2361,6 @@ void CClientSession::SetVQtrans() {
 }
 
 MQ_FILE::CFilePtr CClientSession::GetQueue() {
-    CAutoLock sl(m_mutex);
     return m_qRequest;
 }
 
