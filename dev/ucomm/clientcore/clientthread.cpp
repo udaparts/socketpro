@@ -400,9 +400,9 @@ void CClientThread::DisconnectAll() {
             //GetIoService().post(boost::bind(&CClientSession::Close, it->first.get()));
             it->first->Close();
         }
-		m_ml.lock();
-		it->second.Locked = false;
-		m_ml.unlock();
+        m_ml.lock();
+        it->second.Locked = false;
+        m_ml.unlock();
     }
 }
 

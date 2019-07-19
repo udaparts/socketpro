@@ -270,7 +270,7 @@ private:
     unsigned char *m_ReadBuffer;
     bool m_bRBLocked;
     unsigned char *m_WriteBuffer;
-	unsigned int m_bWBLocked;
+    unsigned int m_bWBLocked;
     std::mutex m_mutex;
     unsigned int m_ulIndex;
     bool m_bZip;

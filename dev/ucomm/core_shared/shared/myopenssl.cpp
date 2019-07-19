@@ -151,7 +151,6 @@ unsigned int CMyOpenSSL::Decrypt(const void *pBuffer, unsigned int nSize, SPA::C
         } else {
             break;
         }
-        res = 0;
     }
     return nLen;
 }

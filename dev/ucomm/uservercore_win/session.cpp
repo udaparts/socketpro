@@ -2127,7 +2127,7 @@ void CServerSession::OnRA() {
             }
         }
     }
-	if (!m_pServiceContext) return;
+    if (!m_pServiceContext) return;
     switch (m_ReqInfo.RequestId) {
         case SPA::idEndMerge:
         case SPA::idStartMerge:
@@ -3558,8 +3558,8 @@ void CServerSession::OnReadCompleted(const CErrorCode& Error, size_t nLen) {
         unsigned int len = (unsigned int) nLen;
         if (m_pSspi) {
             if (m_pSspi->GetHandshakeState() < SPA::hsDone) {
-				CAutoLock sl(m_mutex);
-				m_ccb.RecvTime = (GetTimeTick() - g_pServer->m_tStart);
+                CAutoLock sl(m_mutex);
+                m_ccb.RecvTime = (GetTimeTick() - g_pServer->m_tStart);
                 m_bRBLocked = false;
                 if (DoHandshake(nLen)) {
                     if (m_pSspi->GetHandshakeState() == SPA::hsDone) {
@@ -3577,25 +3577,25 @@ void CServerSession::OnReadCompleted(const CErrorCode& Error, size_t nLen) {
                 }
                 return;
             }
-			SPA::CScopeUQueue sb;
-			if (!m_pSspi->Decrypt(m_ReadBuffer, (DWORD)nLen, *sb)) {
-				CAutoLock sl(m_mutex);
-				PostCloseInternal(m_pSspi->GetLastStatus());
-				return;
-			}
-			len = sb->GetSize();
-			m_mutex.lock();
-			m_ccb.RecvTime = (GetTimeTick() - g_pServer->m_tStart);
-			if (m_qRead.GetTailSize() < nLen && m_qRead.GetHeadPosition() >= nLen) {
-				m_qRead.SetHeadPosition();
-			}
-			m_qRead.Push(sb->GetBuffer(), len);
+            SPA::CScopeUQueue sb;
+            if (!m_pSspi->Decrypt(m_ReadBuffer, (DWORD) nLen, *sb)) {
+                CAutoLock sl(m_mutex);
+                PostCloseInternal(m_pSspi->GetLastStatus());
+                return;
+            }
+            len = sb->GetSize();
+            m_mutex.lock();
+            m_ccb.RecvTime = (GetTimeTick() - g_pServer->m_tStart);
+            if (m_qRead.GetTailSize() < nLen && m_qRead.GetHeadPosition() >= nLen) {
+                m_qRead.SetHeadPosition();
+            }
+            m_qRead.Push(sb->GetBuffer(), len);
         } else {
-			m_mutex.lock();
-			m_ccb.RecvTime = (GetTimeTick() - g_pServer->m_tStart);
-			if (m_qRead.GetTailSize() < nLen && m_qRead.GetHeadPosition() >= nLen) {
-				m_qRead.SetHeadPosition();
-			}
+            m_mutex.lock();
+            m_ccb.RecvTime = (GetTimeTick() - g_pServer->m_tStart);
+            if (m_qRead.GetTailSize() < nLen && m_qRead.GetHeadPosition() >= nLen) {
+                m_qRead.SetHeadPosition();
+            }
             m_qRead.Push(m_ReadBuffer, len);
         }
         m_ccb.m_ulRead += len;
@@ -3609,7 +3609,7 @@ void CServerSession::OnReadCompleted(const CErrorCode& Error, size_t nLen) {
         m_bCanceled = IsCanceledInternally();
         Process();
         Read();
-		m_mutex.unlock();
+        m_mutex.unlock();
     } else {
         CAutoLock sl(m_mutex);
         if (!m_bChatting) {
@@ -3622,8 +3622,8 @@ void CServerSession::OnReadCompleted(const CErrorCode& Error, size_t nLen) {
 }
 
 void CServerSession::OnWriteCompleted(const CErrorCode& Error, size_t bytes_transferred) {
-	CAutoLock sl(m_mutex);
-	if (Error) {
+    CAutoLock sl(m_mutex);
+    if (Error) {
         m_ec = Error;
         CloseInternal();
         return;
@@ -3674,7 +3674,7 @@ void CServerSession::OnWriteCompleted(const CErrorCode& Error, size_t bytes_tran
 
     }
     if (m_pServiceContext && m_pServiceContext->GetRandom()) {
-		PutOntoWireInternal();
+        PutOntoWireInternal();
     }
     if (m_bWBLocked > (unsigned int) bytes_transferred) {
         //m_bWBLocked -= (unsigned int)bytes_transferred;
@@ -3693,7 +3693,7 @@ void CServerSession::OnWriteCompleted(const CErrorCode& Error, size_t bytes_tran
         m_pSocket->async_write_some(boost::asio::buffer(m_WriteBuffer, ulLen), boost::bind(&CServerSession::OnWriteCompleted, this, nsPlaceHolders::error, nsPlaceHolders::bytes_transferred));
     } else {
         m_bWBLocked = 0;
-		Write(nullptr, 0);
+        Write(nullptr, 0);
     }
     if (m_senderHandle && m_qWrite.GetSize() < IO_BUFFER_SIZE) {
         unsigned int index;

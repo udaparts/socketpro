@@ -333,7 +333,7 @@ USocket_Client_Handle CSocketPool::LockClientSession(unsigned int timeout, USock
 }
 
 void CSocketPool::Notify() {
-	m_cv.notify_all();
+    m_cv.notify_all();
 }
 
 bool CSocketPool::GetQueueAutoMerge() {

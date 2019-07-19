@@ -796,12 +796,10 @@ void CServerSession::OnSlowRequestProcessed(unsigned int res, unsigned short usR
             SendExceptionResultInternal(L"Unknown exception caught", "Inside slow request processed notification", usRequestId, MB_UNKNOWN_EXCEPTION);
         }
     }
-
     if (m_qRead.GetSize() >= sizeof (m_ReqInfo)) {
         Process();
     }
     Read();
-    Write(nullptr, 0);
 }
 
 CSocket& CServerSession::GetSocket() {
@@ -2123,14 +2121,16 @@ void CServerSession::OnRA() {
             }
         }
     }
-
+    if (!m_pServiceContext) {
+        return;
+    }
     switch (m_ReqInfo.RequestId) {
         case SPA::idEndMerge:
         case SPA::idStartMerge:
             assert(false);
             break;
         case SPA::idStartJob:
-            if (m_pServiceContext && m_pServiceContext->GetRandom()) {
+            if (m_pServiceContext->GetRandom()) {
                 m_mapIndex[m_indexCall] = std::shared_ptr<CResIndexImpl>(new CResIndexImpl(m_ReqInfo.RequestId, this, m_qa), [](CResIndexImpl * p) {
                     if (p) delete p;
                 });
@@ -2143,7 +2143,7 @@ void CServerSession::OnRA() {
             }
             break;
         case SPA::idEndJob:
-            if (m_pServiceContext && m_pServiceContext->GetRandom()) {
+            if (m_pServiceContext->GetRandom()) {
                 m_mapIndex[m_indexCall] = std::shared_ptr<CResIndexImpl>(new CResIndexImpl(m_ReqInfo.RequestId, this, m_qa), [](CResIndexImpl * p) {
                     if (p) delete p;
                 });
@@ -2173,7 +2173,7 @@ void CServerSession::OnRA() {
         case SPA::idDoEcho:
         case SPA::idPing:
         case SPA::idSetZipLevelAtSvr:
-            if (m_pServiceContext && m_pServiceContext->GetRandom()) {
+            if (m_pServiceContext->GetRandom()) {
                 if (m_ReqInfo.GetQueued()) {
                     m_mapIndex[m_indexCall] = std::shared_ptr<CResIndexImpl>(new CResIndexImpl(m_ReqInfo.RequestId, this, m_qa), [](CResIndexImpl * p) {
                         if (p) delete p;
@@ -3396,7 +3396,7 @@ bool CServerSession::Process() {
         }
 
         m_bLastDequeue = false;
-        if (m_pRoutingServiceContext != nullptr && IsRoutable(m_ReqInfo.RequestId) && (!m_pServiceContext->IsAlpah(m_ReqInfo.RequestId))) {
+        if (m_pRoutingServiceContext != nullptr && IsRoutable(m_ReqInfo.RequestId) && m_pServiceContext && (!m_pServiceContext->IsAlpah(m_ReqInfo.RequestId))) {
             if (Route()) {
                 continue;
             } else {
@@ -3534,15 +3534,20 @@ bool CServerSession::Process() {
 void CServerSession::OnReadCompleted(const CErrorCode& Error, size_t nLen) {
     if (!Error) {
         unsigned int len = (unsigned int) nLen;
-        CAutoLock sl(m_mutex);
-        m_ccb.RecvTime = (GetTimeTick() - g_pServer->m_tStart);
-        if (m_qRead.GetTailSize() < nLen && m_qRead.GetHeadPosition() >= nLen) {
-            m_qRead.SetHeadPosition();
-        }
         if (m_pSsl) {
             if (m_pSsl->Done()) {
-                m_ccb.m_ulRead += m_pSsl->Decrypt(m_ReadBuffer, len, m_qRead);
+                SPA::CScopeUQueue sb;
+                len = m_pSsl->Decrypt(m_ReadBuffer, len, *sb);
+                m_mutex.lock();
+                m_ccb.RecvTime = (GetTimeTick() - g_pServer->m_tStart);
+                if (m_qRead.GetTailSize() < nLen && m_qRead.GetHeadPosition() >= nLen) {
+                    m_qRead.SetHeadPosition();
+                }
+                m_qRead.Push(sb->GetBuffer(), len);
+                m_ccb.m_ulRead += len;
             } else {
+                m_mutex.lock();
+                m_ccb.RecvTime = (GetTimeTick() - g_pServer->m_tStart);
                 m_bRBLocked = false;
                 bool ok = m_pSsl->DoHandshake(m_ReadBuffer, len, m_qWrite);
                 if (ok) {
@@ -3554,15 +3559,24 @@ void CServerSession::OnReadCompleted(const CErrorCode& Error, size_t nLen) {
                     }
                     if (!m_qRead.GetSize()) {
                         Read();
+                        m_mutex.unlock();
                         return;
+                    } else {
+                        m_ccb.m_ulRead += m_qRead.GetSize();
                     }
                 } else {
                     m_ec.assign(SSL_ERROR_SSL, boost::asio::error::get_ssl_category());
                     CloseInternal();
+                    m_mutex.unlock();
                     return;
                 }
             }
         } else {
+            m_mutex.lock();
+            m_ccb.RecvTime = (GetTimeTick() - g_pServer->m_tStart);
+            if (m_qRead.GetTailSize() < nLen && m_qRead.GetHeadPosition() >= nLen) {
+                m_qRead.SetHeadPosition();
+            }
             m_qRead.Push(m_ReadBuffer, len);
             m_ccb.m_ulRead += len;
         }
@@ -3576,7 +3590,7 @@ void CServerSession::OnReadCompleted(const CErrorCode& Error, size_t nLen) {
         m_bRBLocked = false;
         Process();
         Read();
-        Write(nullptr, 0);
+        m_mutex.unlock();
     } else {
         CAutoLock sl(m_mutex);
         if (!m_bChatting) {
@@ -3633,10 +3647,11 @@ void CServerSession::OnWriteCompleted(const CErrorCode& Error, size_t bytes_tran
             }
         } while (false);
     } else {
-        Process();
+
     }
-    if (m_pServiceContext && m_pServiceContext->GetRandom())
+    if (m_pServiceContext && m_pServiceContext->GetRandom()) {
         PutOntoWireInternal();
+    }
     if (m_bWBLocked > (unsigned int) bytes_transferred) {
         unsigned int ulLen = m_bWBLocked - (unsigned int) bytes_transferred;
         memmove(m_WriteBuffer, m_WriteBuffer + bytes_transferred, ulLen);
@@ -3662,7 +3677,6 @@ void CServerSession::OnWriteCompleted(const CErrorCode& Error, size_t bytes_tran
             g_pServer->m_IoService.post(boost::bind(&CServerSession::ProcessWithLock, pSession));
         }
     }
-    Read();
     if (m_qWrite.GetSize() < 1460 && len >= IO_BUFFER_SIZE) {
         POnResultsSent p = m_ccb.SvsContext.m_OnResultsSent;
         if (p) {
