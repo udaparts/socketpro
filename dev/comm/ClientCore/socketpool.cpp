@@ -291,7 +291,7 @@ USocket_Client_Handle CSocketPool::LockClientSession(unsigned int timeout, USock
                     break;
                 }
             }
-            if (!in || h || !timeout)
+            if (!in || h || !timeout || !open)
                 return (USocket_Client_Handle) h;
             diff = (boost::posix_time::microsec_clock::local_time() - start).total_milliseconds();
             if (diff >= timeout)
@@ -313,7 +313,7 @@ USocket_Client_Handle CSocketPool::LockClientSession(unsigned int timeout, USock
                     return (USocket_Client_Handle) h;
                 open += arr[it]->GetConnectedSockets();
             }
-            if (!timeout)
+            if (!timeout || !open)
                 return nullptr;
             diff = (boost::posix_time::microsec_clock::local_time() - start).total_milliseconds();
             if (diff >= timeout)

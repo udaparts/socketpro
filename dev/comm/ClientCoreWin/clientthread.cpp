@@ -317,13 +317,12 @@ void CClientThread::DisconnectAll() {
     //CAutoLock al(m_mutex);
     for (CMapClientSession::iterator it = m_mapClientSession.begin(), end = m_mapClientSession.end(); it != end; ++it) {
         if (it->first->IsOpened()) {
-            m_ml.lock();
-            it->second.Locked = false;
-            m_ml.unlock();
             //GetIoService().post(boost::bind(&CClientSession::Close, it->first.get()));
-            //CRAutoLock ral(m_mutex);
             it->first->Close();
         }
+        m_ml.lock();
+        it->second.Locked = false;
+        m_ml.unlock();
     }
 }
 
