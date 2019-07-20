@@ -18,7 +18,7 @@ namespace SPA
         Internal::CClientCoreLoader ClientCoreLoader;
 
         CUCriticalSection CAsyncServiceHandler::m_csRR;
-        std::vector<CAsyncServiceHandler::PRR_PAIR> CAsyncServiceHandler::m_vRR;
+        CUQueue CAsyncServiceHandler::m_vRR;
 
         CUCriticalSection CAsyncServiceHandler::m_csIndex;
         UINT64 CAsyncServiceHandler::m_CallIndex = 0; //should be protected by m_csIndex
@@ -71,43 +71,38 @@ namespace SPA
         }
 
         void CAsyncServiceHandler::CleanQueue(CUQueue & q) {
-            unsigned int count = q.GetSize() / sizeof (PRR_PAIR);
-            if (!count)
-                return;
-            PRR_PAIR *p = (PRR_PAIR*) q.GetBuffer();
-            {
+            unsigned int size = q.GetSize();
+            if (size) {
                 CAutoLock al(m_csRR);
-                for (unsigned int n = 0; n < count; ++n) {
-                    assert(nullptr != p[n]);
-                    m_vRR.push_back(p[n]);
-                }
+                m_vRR.Push(q.GetBuffer(), size);
+                q.SetSize(0);
             }
-            q.SetSize(0);
         }
 
-        void CAsyncServiceHandler::ClearResultCallbackPool(size_t remaining) {
+        void CAsyncServiceHandler::ClearResultCallbackPool(unsigned int remaining) {
             CAutoLock al(m_csRR);
-            size_t total = m_vRR.size();
+            unsigned int total = m_vRR.GetSize() / sizeof (PRR_PAIR);
             if (remaining > total) {
                 remaining = total;
             }
-            for (std::vector<PRR_PAIR>::iterator it = m_vRR.begin() + remaining, end = m_vRR.end(); it != end; ++it) {
-                PRR_PAIR p = *it;
+            PRR_PAIR *start = (PRR_PAIR *) m_vRR.GetBuffer();
+            for (unsigned int it = remaining; it < total; ++it) {
+                PRR_PAIR p = *(start + it);
                 delete p;
             }
-            m_vRR.erase(m_vRR.begin() + remaining, m_vRR.end());
+            m_vRR.SetSize(remaining * sizeof (PRR_PAIR));
         }
 
-        size_t CAsyncServiceHandler::CountResultCallbacksInPool() {
+        unsigned int CAsyncServiceHandler::CountResultCallbacksInPool() {
             CAutoLock al(m_csRR);
-            return m_vRR.size();
+            return m_vRR.GetSize() / sizeof (PRR_PAIR);
         }
 
         CAsyncServiceHandler::PRR_PAIR CAsyncServiceHandler::Reuse() {
             CAutoLock al(m_csRR);
-            if (m_vRR.size() > 0) {
-                PRR_PAIR p = m_vRR.back();
-                m_vRR.pop_back();
+            if (m_vRR.GetSize() > 0) {
+                PRR_PAIR p;
+                m_vRR >> p;
                 return p;
             }
             return nullptr;
@@ -116,7 +111,7 @@ namespace SPA
         void CAsyncServiceHandler::Recycle(PRR_PAIR p) {
             if (nullptr != p) {
                 m_csRR.lock();
-                m_vRR.push_back(p);
+                m_vRR << p;
                 m_csRR.unlock();
             }
         }
@@ -425,7 +420,7 @@ namespace SPA
 #endif
 
         CClientSocket::CClientSocket()
-        : m_hSocket((USocket_Client_Handle) nullptr), m_bRandom(false), m_endian(false),
+        : m_hSocket((USocket_Client_Handle) nullptr), m_pHandler(nullptr), m_bRandom(false), m_endian(false),
         m_os(MY_OPERATION_SYSTEM), m_nCurrSvsId(sidStartup), m_routing(false),
         SocketClosed(m_implClosed), HandShakeCompleted(m_implHSC), SocketConnected(m_implConnected),
         ExceptionFromServer(m_implEFS)
@@ -481,11 +476,6 @@ namespace SPA
         }
 
         CClientSocket::~CClientSocket() {
-            for (auto it = m_vHandler.begin(), end = m_vHandler.end(); it != end; ++it) {
-                (*it)->SetNULL();
-            }
-            m_vHandler.clear();
-
             std::vector<CClientSocket*>::iterator it;
             m_mutex.lock();
             std::vector<CClientSocket*>::iterator end = m_vClientSocket.end();
@@ -498,61 +488,20 @@ namespace SPA
             m_mutex.unlock();
         }
 
-        CAsyncServiceHandler * CClientSocket::Seek(unsigned int nServiceId) {
-            CAsyncServiceHandler *p = nullptr;
-            std::vector<CAsyncServiceHandler*>::iterator it;
-            std::vector<CAsyncServiceHandler*>::iterator end = m_vHandler.end();
-            for (it = m_vHandler.begin(); it != end; ++it) {
-                if ((*it)->GetSvsID() == nServiceId) {
-                    p = *it;
-                    break;
-                }
-            }
-            return p;
-        }
-
         bool CClientSocket::Attach(CAsyncServiceHandler * p) {
             if (!p)
                 return false;
-            bool ok = true;
-            std::vector<CAsyncServiceHandler*>::iterator it;
-            std::vector<CAsyncServiceHandler*>::iterator end = m_vHandler.end();
-            for (it = m_vHandler.begin(); it != end; ++it) {
-                if ((*it)->GetSvsID() == p->GetSvsID()) {
-                    ok = false;
-                    break;
-                }
-            }
-            if (ok)
-                m_vHandler.push_back(p);
-            return ok;
+            m_pHandler = p;
+            return true;
         }
 
         CAsyncServiceHandler * CClientSocket::GetCurrentHandler() {
-            std::vector<CAsyncServiceHandler*>::iterator it;
-            unsigned int svsId = GetCurrentServiceID();
-            std::vector<CAsyncServiceHandler*>::iterator end = m_vHandler.end();
-            for (it = m_vHandler.begin(); it != end; ++it) {
-                if ((*it)->GetSvsID() == svsId) {
-                    return *it;
-                }
-            }
-            if (m_vHandler.size() > 0)
-                return m_vHandler.front();
-            return nullptr;
+            return m_pHandler;
         }
 
         void CClientSocket::Detach(CAsyncServiceHandler * p) {
-            if (!p)
-                return;
-            std::vector<CAsyncServiceHandler*>::iterator it;
-            std::vector<CAsyncServiceHandler*>::iterator end = m_vHandler.end();
-            for (it = m_vHandler.begin(); it != end; ++it) {
-                if ((*it) == p) {
-                    p->SetNULL();
-                    m_vHandler.erase(it);
-                    break;
-                }
+            if (p == m_pHandler) {
+                m_pHandler = nullptr;
             }
         }
 
@@ -575,10 +524,11 @@ namespace SPA
             CClientSocket *p = nullptr;
             std::vector<CClientSocket*>::iterator it;
             m_mutex.lock();
-            std::vector<CClientSocket*>::iterator end = m_vClientSocket.end();
-            for (it = m_vClientSocket.begin(); it != end; ++it) {
-                if ((*it)->GetHandle() == h) {
-                    p = (*it);
+            size_t count = m_vClientSocket.size();
+            PClientSocket *start = m_vClientSocket.data();
+            for (size_t it = 0; it < count; ++it) {
+                if (start[it]->m_hSocket == h) {
+                    p = start[it];
                     break;
                 }
             }
@@ -1104,7 +1054,7 @@ namespace SPA
                     const unsigned char *result = ClientCoreLoader.GetResultBuffer(p->m_hSocket);
                     q.Push(result, len);
                 }
-                PAsyncServiceHandler ash = p->Seek(p->m_nCurrSvsId);
+                PAsyncServiceHandler ash = p->m_pHandler;
                 if (ash)
                     ash->OnRR(requestId, q);
 #ifdef ENABLE_SOCKET_REQUEST_AND_ALL_EVENTS
@@ -1322,7 +1272,7 @@ namespace SPA
             CClientSocket *p = Seek(handler);
             if (!p)
                 return;
-            PAsyncServiceHandler ash = p->Seek(ClientCoreLoader.GetCurrentServiceId(handler));
+            PAsyncServiceHandler ash = p->m_pHandler;
             if (ash) {
                 ash->OnPostProcessing(hint, data);
             }
@@ -1336,7 +1286,7 @@ namespace SPA
             CClientSocket *p = Seek(handler);
             if (!p)
                 return;
-            PAsyncServiceHandler ash = p->Seek(ClientCoreLoader.GetCurrentServiceId(handler));
+            PAsyncServiceHandler ash = p->m_pHandler;
             if (ash)
                 ash->OnAllProcessed();
 #ifdef ENABLE_SOCKET_REQUEST_AND_ALL_EVENTS
@@ -1369,7 +1319,7 @@ namespace SPA
                 p->m_nCurrSvsId = ClientCoreLoader.GetCurrentServiceId(handler);
                 p->m_routing = ClientCoreLoader.IsRouting(handler);
             }
-            PAsyncServiceHandler ash = p->Seek(ClientCoreLoader.GetCurrentServiceId(handler));
+            PAsyncServiceHandler ash = p->m_pHandler;
             if (ash) {
                 ash->m_brpImpl.Invoke(ash, requestId);
                 ash->OnBaseRequestprocessed(requestId);
@@ -1410,7 +1360,7 @@ namespace SPA
                 p->m_implEFS.Invoke(p, requestId, errMessage, errWhere, errCode);
 #endif
             }
-            PAsyncServiceHandler ash = p->Seek(ClientCoreLoader.GetCurrentServiceId(handler));
+            PAsyncServiceHandler ash = p->m_pHandler;
             if (ash)
                 ash->OnSE(requestId, errMessage, errWhere, errCode);
             p->OnExceptionFromServer(requestId, errMessage, errWhere, errCode);
