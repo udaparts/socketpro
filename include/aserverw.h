@@ -334,6 +334,8 @@ namespace SPA {
             friend class CBaseService;
         };
 
+        typedef CSocketPeer *PSocketPeer;
+
         class CHttpPeerBase : public CSocketPeer {
 
             class CPushImpl : public IPush {
@@ -759,6 +761,8 @@ namespace SPA {
             friend class CSocketProServer;
             friend class CSocketPeer;
         };
+
+        typedef CBaseService *PBaseService;
 
         class CDummyPeer : public CClientPeer {
         protected:

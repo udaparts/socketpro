@@ -522,7 +522,6 @@ namespace SPA
 
         CClientSocket * CClientSocket::Seek(USocket_Client_Handle h) {
             CClientSocket *p = nullptr;
-            std::vector<CClientSocket*>::iterator it;
             m_mutex.lock();
             size_t count = m_vClientSocket.size();
             PClientSocket *start = m_vClientSocket.data();

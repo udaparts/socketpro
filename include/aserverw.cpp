@@ -935,10 +935,12 @@ namespace SPA
         }
 
         CBaseService * CBaseService::SeekService(unsigned int nServiceId) {
-            std::vector<CBaseService*>::const_iterator it, end = m_vService.cend();
-            for (it = m_vService.cbegin(); it != end; ++it) {
-                if ((*it)->GetSvsID() == nServiceId)
-                    return *it;
+            size_t count = m_vService.size();
+            PBaseService *start = m_vService.data();
+            for (size_t it = 0; it < count; ++it) {
+                if (start[it]->GetSvsID() == nServiceId) {
+                    return start[it];
+                }
             }
             return nullptr;
         }
@@ -961,12 +963,12 @@ namespace SPA
         }
 
         CSocketPeer * CBaseService::Seek(USocket_Server_Handle h) const {
-            std::vector<CSocketPeer*>::const_iterator it;
             CAutoLock sl(m_mutex);
-            std::vector<CSocketPeer*>::const_iterator end = m_vPeer.cend();
-            for (it = m_vPeer.cbegin(); it != end; ++it) {
-                if ((*it)->m_hHandler == h) {
-                    return (*it);
+            size_t size = m_vPeer.size();
+            const PSocketPeer *start = m_vPeer.data();
+            for (size_t it = 0; it < size; ++it) {
+                if (start[it]->m_hHandler == h) {
+                    return start[it];
                 }
             }
             return nullptr;
