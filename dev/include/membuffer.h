@@ -286,7 +286,7 @@ namespace SPA {
          * @return Internal buffer pointer
          */
         inline const unsigned char* const GetBuffer(unsigned int offset = 0) const {
-            if (offset >= m_nSize) {
+            if (offset > m_nSize) {
                 offset = m_nSize;
             }
             return (m_pBuffer + offset + m_nHeadPos);
@@ -580,9 +580,7 @@ namespace SPA {
 
             if (position > m_nSize) {
                 position = m_nSize;
-            }
-
-            if (m_nHeadPos >= len && position == 0) {
+            } else if (position == 0 && m_nHeadPos >= len) {
                 m_nHeadPos -= len;
                 ::memmove(m_pBuffer + m_nHeadPos, buffer, len);
                 m_nSize += len;
@@ -1395,12 +1393,13 @@ namespace SPA {
          */
         static void DestroyUQueuePool() {
             m_cs.lock();
-            size_t size = m_aUQueue.size();
-            for (size_t n = 0; n < size; n++) {
-                mb *p = m_aUQueue[n];
+            PMB *start = (PMB*) m_aUQueue.GetBuffer();
+            unsigned int size = m_aUQueue.GetSize() / sizeof (PMB);
+            for (unsigned int n = 0; n < size; n++) {
+                mb *p = start[n];
                 delete p;
             }
-            m_aUQueue.clear();
+            m_aUQueue.SetSize(0);
             m_cs.unlock();
         }
 
@@ -1409,9 +1408,10 @@ namespace SPA {
          */
         static void ResetSize(unsigned int newSize = InitSize) {
             m_cs.lock();
-            size_t size = m_aUQueue.size();
-            for (size_t n = 0; n < size; n++) {
-                mb *p = m_aUQueue[n];
+            PMB *start = (PMB*) m_aUQueue.GetBuffer();
+            unsigned int size = m_aUQueue.GetSize() / sizeof (PMB);
+            for (unsigned int n = 0; n < size; n++) {
+                mb *p = start[n];
                 if (p->GetMaxSize() > newSize) {
                     p->ReallocBuffer(newSize);
                 }
@@ -1424,9 +1424,10 @@ namespace SPA {
          */
         static void CleanUQueuePool() {
             m_cs.lock();
-            size_t size = m_aUQueue.size();
-            for (size_t n = 0; n < size; n++) {
-                mb *p = m_aUQueue[n];
+            PMB *start = (PMB *) m_aUQueue.GetBlockSize();
+            unsigned int size = m_aUQueue.GetSize() / sizeof (PMB);
+            for (unsigned int n = 0; n < size; n++) {
+                PMB p = start[n];
                 p->CleanTrack();
             }
             m_cs.unlock();
@@ -1440,12 +1441,11 @@ namespace SPA {
          * @param blockSize The block size in byte for internal memory buffer object
          * @return A pointer to a memory buffer object
          */
-        static mb* Lock(tagOperationSystem os = MY_OPERATION_SYSTEM, bool bigEndian = IsBigEndian(), unsigned int initSize = InitSize, unsigned int blockSize = BlockSize) {
-            mb *p;
+        static PMB Lock(tagOperationSystem os = MY_OPERATION_SYSTEM, bool bigEndian = IsBigEndian(), unsigned int initSize = InitSize, unsigned int blockSize = BlockSize) {
+            PMB p;
             m_cs.lock();
-            if (m_aUQueue.size()) {
-                p = m_aUQueue.back();
-                m_aUQueue.pop_back();
+            if (m_aUQueue.GetSize()) {
+                m_aUQueue >> p;
                 m_cs.unlock();
                 p->SetEndian(bigEndian);
                 p->SetOS(os);
@@ -1475,7 +1475,7 @@ namespace SPA {
             }
             memoryChunk->SetSize(0);
             m_cs.lock();
-            m_aUQueue.push_back(memoryChunk);
+            m_aUQueue << memoryChunk;
             m_cs.unlock();
             memoryChunk = nullptr;
         }
@@ -1487,9 +1487,10 @@ namespace SPA {
         static UINT64 GetMemoryConsumed() {
             UINT64 size = 0;
             CAutoLock al(m_cs);
-            size_t count = m_aUQueue.size();
-            for (size_t n = 0; n < count; ++n) {
-                size += (m_aUQueue[n])->GetMaxSize();
+            PMB *start = (PMB *) m_aUQueue.GetBuffer();
+            unsigned int count = m_aUQueue.GetSize() / sizeof (PMB);
+            for (unsigned int n = 0; n < count; ++n) {
+                size += start[n]->GetMaxSize();
             }
             return size;
         }
@@ -1497,7 +1498,7 @@ namespace SPA {
     private:
         mb *m_pUQueue;
         static U_MODULE_HIDDEN CUCriticalSection m_cs;
-        static U_MODULE_HIDDEN std::vector<mb*> m_aUQueue;
+        static U_MODULE_HIDDEN CUQueue m_aUQueue;
     };
 
 #ifndef NODE_JS_ADAPTER_PROJECT
@@ -1505,7 +1506,7 @@ namespace SPA {
     CUCriticalSection CScopeUQueueEx<InitSize, BlockSize, mb>::m_cs;
 
     template<unsigned int InitSize, unsigned int BlockSize, typename mb>
-    std::vector<mb*> CScopeUQueueEx<InitSize, BlockSize, mb>::m_aUQueue;
+    CUQueue CScopeUQueueEx<InitSize, BlockSize, mb>::m_aUQueue;
 #endif
 
     typedef CScopeUQueueEx<DEFAULT_INITIAL_MEMORY_BUFFER_SIZE, DEFAULT_MEMORY_BUFFER_BLOCK_SIZE> CScopeUQueue;
