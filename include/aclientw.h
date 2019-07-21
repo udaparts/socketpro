@@ -381,7 +381,6 @@ namespace SPA {
         private:
             bool Attach(CAsyncServiceHandler *p);
             void Detach(CAsyncServiceHandler *p);
-            inline CAsyncServiceHandler *Seek(unsigned int nServiceId);
             void Set(USocket_Client_Handle h);
 
         private:
@@ -713,7 +712,7 @@ namespace SPA {
             CUCriticalSection m_cs;
             USocket_Client_Handle m_hSocket;
             CPushImpl m_PushImpl;
-            std::vector<CAsyncServiceHandler*> m_vHandler;
+            CAsyncServiceHandler *m_pHandler;
             CQueueImpl m_QueueImpl;
             CConnectionContext m_cc;
             bool m_bRandom;
@@ -827,7 +826,7 @@ namespace SPA {
                 DServerException ExceptionFromServer;
             };
             typedef std::pair<unsigned short, CResultCb>* PRR_PAIR;
-            static std::vector<PRR_PAIR> m_vRR;
+            static CUQueue m_vRR;
             static PRR_PAIR Reuse();
             static void Recycle(PRR_PAIR p);
 
@@ -861,8 +860,8 @@ namespace SPA {
             void AbortDequeuedMessage();
             bool IsDequeuedMessageAborted();
             bool IsRouteeRequest();
-            static void ClearResultCallbackPool(size_t remaining);
-            static size_t CountResultCallbacksInPool();
+            static void ClearResultCallbackPool(unsigned int remaining);
+            static unsigned int CountResultCallbacksInPool();
             static UINT64 GetCallIndex();
 
             bool ProcessR0(unsigned short reqId) {
