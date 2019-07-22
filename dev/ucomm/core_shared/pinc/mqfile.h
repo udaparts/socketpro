@@ -26,6 +26,8 @@
 
 #define INVALID_QUEUE_HANDLE (~0)
 
+SPA::UINT64 GetTimeTick();
+
 namespace MQ_FILE {
 
 #pragma pack(push, 1)
@@ -138,7 +140,12 @@ namespace MQ_FILE {
 #endif
 
     class CMqFile {
+	public:
+		static const std::time_t m_start_time;
+		static const SPA::UINT64 m_startTick;
+
 #ifndef NDEBUG
+	private:
         int m_nJobBalanceDequeue;
         int m_nJobBalanceEnqueue;
         int m_nJobBalanceConfirm;

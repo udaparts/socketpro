@@ -37,6 +37,30 @@ void WINAPI SetLastCallInfo(const char *str) {
     g_LastCallInfo.Push(str);
 }
 
+SPA::UINT64 GetTimeTick() {
+	SPA::UINT64 now;
+#ifdef WIN32_64
+
+#if _WIN32_WINNT > 0x0600
+	now = ::GetTickCount64();
+#else
+	SYSTEMTIME st;
+	::GetLocalTime(&st);
+	FILETIME ft;
+	::SystemTimeToFileTime(&st, &ft);
+	now = ft.dwHighDateTime;
+	now <<= 32;
+	now += ft.dwLowDateTime;
+	now /= 10000;
+#endif
+#else
+	struct timeval start;
+	gettimeofday(&start, NULL);
+	now = start.tv_sec * 1000 + start.tv_usec / 1000;
+#endif
+	return now;
+}
+
 namespace MQ_FILE {
 
     unsigned char CMqFile::empty[PAD_EMPTY_SIZE] = {0};
@@ -194,6 +218,9 @@ namespace MQ_FILE {
 
     mutex CMqFile::m_csAppName;
     std::string CMqFile::m_strAppName;
+
+	const std::time_t CMqFile::m_start_time = std::time(nullptr);
+	const SPA::UINT64 CMqFile::m_startTick = GetTimeTick();
 
     CMqFile::CMqFile(const char *fileName, unsigned int ttl, SPA::tagOptimistic crashSafe, bool secure, bool client, bool shared)
     :
@@ -2375,13 +2402,11 @@ namespace MQ_FILE {
     }
 
     SPA::UINT64 CMqFile::EnqueueInternal(const SPA::CStreamHeader &sh, const unsigned char *buffer, unsigned int size) {
-        size_t written;
         if (buffer == nullptr)
             size = 0;
-        unsigned int len = size;
         MessageDecriptionHeader mdh;
         mdh.Len = size + sizeof (sh);
-        std::time_t rawtime = std::time(nullptr);
+        std::time_t rawtime = m_start_time + (size_t)((GetTimeTick() - m_startTick) / 1000);
         mdh.Time = static_cast<unsigned int> (rawtime - TIME_Y_2013);
         if (!m_hFile)
             return INVALID_NUMBER;
@@ -2421,7 +2446,7 @@ namespace MQ_FILE {
             m_bEnd = true;
         }
         mdh.MessageIndex = ++m_nInternalIndex;
-        written = fwrite(&mdh, sizeof (mdh), 1, m_hFile); //16 bytes
+        size_t written = fwrite(&mdh, sizeof (mdh), 1, m_hFile); //16 bytes
         assert(written == 1);
         m_nFileSize += sizeof (mdh);
 
@@ -2429,10 +2454,10 @@ namespace MQ_FILE {
         assert(written == 1);
         m_nFileSize += sizeof (SPA::CStreamHeader);
 
-        if (len) {
-            written = fwrite(buffer, len, 1, m_hFile);
+        if (size) {
+            written = fwrite(buffer, size, 1, m_hFile);
             assert(written == 1);
-            m_nFileSize += len;
+            m_nFileSize += size;
         }
         ++m_msgCount;
         if ((m_msgCount - m_msgTransCount) == (m_qOut.GetSize() / sizeof (QAttr) + 1)) {

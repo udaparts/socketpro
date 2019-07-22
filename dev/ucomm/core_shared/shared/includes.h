@@ -65,7 +65,6 @@ typedef boost::mutex::scoped_lock CAutoLock;
 typedef boost::condition_variable CConditionVariable;
 #endif
 
-SPA::UINT64 GetTimeTick();
 unsigned int GetNumberOfCores();
 void ChangeUInt32Endian(unsigned int *pGroup, unsigned int count);
 
