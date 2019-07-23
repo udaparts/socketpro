@@ -477,7 +477,7 @@ namespace SPA
 
         CClientSocket::~CClientSocket() {
             if (m_pHandler) {
-                m_pHandler->m_pClientSocket = nullptr;
+                m_pHandler->SetNULL();
             }
             std::vector<CClientSocket*>::iterator it;
             m_mutex.lock();

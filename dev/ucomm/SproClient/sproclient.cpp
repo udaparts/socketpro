@@ -33,19 +33,19 @@ int main(int argc, char* argv[]) {
     std::getline(std::cin, cc.Host);
     cc.Port = 20901;
     cc.Zip = false;
-    cc.EncrytionMethod = SPA::TLSv1;
+    //cc.EncrytionMethod = SPA::TLSv1;
 
     SPA::ClientSide::CClientSocket::SSL::SetCertificateVerifyCallback(CVCallback);
 
 #ifdef WIN32_64
     //ok = SPA::ClientSide::CClientSocket::SSL::SetVerifyLocation("root@localmachine");
     ok = SPA::ClientSide::CClientSocket::SSL::SetVerifyLocation("root");
-    SPA::ClientSide::CClientSocket::QueueConfigure::SetWorkDirectory("c:\\cyetest");
+    //SPA::ClientSide::CClientSocket::QueueConfigure::SetWorkDirectory("c:\\cyetest");
 #else
     //ok = SPA::ClientSide::CClientSocket::SSL::SetVerifyLocation("/home/yye/3rdparty/");
     ok = SPA::ClientSide::CClientSocket::SSL::SetVerifyLocation("/home/yye/3rdparty/ca.cert.pem");
     //ok = SPA::ClientSide::CClientSocket::SSL::SetVerifyLocation("/etc/ssl/certs");
-    SPA::ClientSide::CClientSocket::QueueConfigure::SetWorkDirectory("/home/yye/cyetest");
+    //SPA::ClientSide::CClientSocket::QueueConfigure::SetWorkDirectory("/home/yye/cyetest");
 #endif
     const char *strWorkPath = SPA::ClientSide::CClientSocket::QueueConfigure::GetWorkDirectory();
     SPA::ClientSide::CClientSocket::QueueConfigure::SetMessageQueuePassword("MyPasswordForMessageQueue");
@@ -258,7 +258,7 @@ void TestQueue(const SPA::ClientSide::CConnectionContext &cc) {
         std::cout << "Time required = " << diff.total_milliseconds() << std::endl;
     } while (true);
     std::getchar();
-    size_t total = SPA::ClientSide::CAsyncServiceHandler::CountResultCallbacksInPool();
+    unsigned int total = SPA::ClientSide::CAsyncServiceHandler::CountResultCallbacksInPool();
     std::cout << "ResultCallbacksInPool = " << total << std::endl;
     std::cout << "Press a key to continue ......" << std::endl;
     std::getchar();
@@ -746,17 +746,12 @@ void TestEchoObject(const SPA::ClientSide::CConnectionContext & cc) {
 void TestEchoSys(const SPA::ClientSide::CConnectionContext & cc) {
     unsigned int n;
     bool b;
-    unsigned int count;
     SPA::ClientSide::CSocketPool<CEchoSys> spEchoSys(false);
     std::vector<std::shared_ptr<CEchoSys> > vHandle;
     boost::posix_time::ptime t0 = boost::posix_time::microsec_clock::local_time();
     for (n = 0; n < 50; ++n) {
         b = spEchoSys.StartSocketPool(cc, 1, 1);
-        count = spEchoSys.GetConnectedSockets();
-        if (!count)
-            continue;
-
-        while (vHandle.size() != 1) {
+        while (vHandle.size() != 1 && spEchoSys.GetConnectedSockets()) {
             auto p = spEchoSys.Lock();
             if (p) {
                 std::wstring str;
@@ -779,9 +774,13 @@ void TestEchoSys(const SPA::ClientSide::CConnectionContext & cc) {
 
                 su << ms;
                 SPA::CUQueue q = p->EchoUQueue(*su);
-                q >> rtn;
-                assert(rtn == ms);
-
+				if (q.GetSize()) {
+					q >> rtn;
+					assert(rtn == ms);
+				}
+				else {
+					break;
+				}
                 vHandle.push_back(p);
             }
         }

@@ -227,18 +227,18 @@ int main(int argc, char* argv[]) {
     do {
         CMyServer myServer(param);
         bool crash = CSocketProServer::QueueManager::IsServerQueueIndexPossiblyCrashed();
-#ifdef WIN32_64
-        CSocketProServer::QueueManager::SetWorkDirectory("c:\\cyetest\\");
-#else
-        CSocketProServer::QueueManager::SetWorkDirectory("/home/yye/cyetest/");
-#endif
+//#ifdef WIN32_64
+//        CSocketProServer::QueueManager::SetWorkDirectory("c:\\cyetest\\");
+//#else
+//        CSocketProServer::QueueManager::SetWorkDirectory("/home/yye/cyetest/");
+//#endif
         const char *strWorkPath = CSocketProServer::QueueManager::GetWorkDirectory();
 #ifdef WIN32_64
         //myServer.UseSSL("intermediate.pfx", "", "mypassword");
-        myServer.UseSSL("root", "UDAParts Intermediate CA", "");
+        //myServer.UseSSL("root", "UDAParts Intermediate CA", "");
         HINSTANCE h = CSocketProServer::DllManager::AddALibrary("HelloWorld.dll");
 #else
-        myServer.UseSSL("intermediate.cert.pem", "intermediate.key.pem", "mypassword");
+        //myServer.UseSSL("intermediate.cert.pem", "intermediate.key.pem", "mypassword");
         HINSTANCE h = CSocketProServer::DllManager::AddALibrary("libHelloWorld.so");
 #endif
         if (h) {
