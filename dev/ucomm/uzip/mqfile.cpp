@@ -2391,6 +2391,18 @@ namespace MQ_FILE {
         return false;
     }
 
+	SPA::UINT64 CMqFile::Enqueue(const SPA::CStreamHeader &sh, const unsigned char *buffer, unsigned int size, bool &oneonly) {
+		CAutoLock al(m_cs);
+		SPA::UINT64 res = EnqueueInternal(sh, buffer, size);
+		if (res == INVALID_NUMBER) {
+			oneonly = false;
+		}
+		else {
+			oneonly = (m_msgCount == (1 + m_qOut.GetSize() / sizeof(QAttr)));
+		}
+		return res;
+	}
+
     SPA::UINT64 CMqFile::Enqueue(const SPA::CStreamHeader &sh, const unsigned char *buffer, unsigned int size) {
         CAutoLock al(m_cs);
         return EnqueueInternal(sh, buffer, size);

@@ -228,6 +228,7 @@ namespace MQ_FILE {
 
         //return a non-zero unique message index after en-queuing a message
         virtual SPA::UINT64 Enqueue(const SPA::CStreamHeader &sh, const unsigned char *buffer, unsigned int size);
+		virtual SPA::UINT64 Enqueue(const SPA::CStreamHeader &sh, const unsigned char *buffer, unsigned int size, bool &oneonly);
 
         //return a position and non-zero unique message index
         virtual SPA::UINT64 Dequeue(SPA::CUQueue &q, SPA::UINT64 &mqIndex, unsigned int waitTime);

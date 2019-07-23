@@ -1924,15 +1924,16 @@ SPA::UINT64 CServer::Enqueue(unsigned int qHandle, unsigned short reqId, const u
         queue = it->second;
     }
     bool ok;
+	bool oneonly;
     {
-        qIndex = queue->Enqueue(ReqInfo, buffer, size);
+        qIndex = queue->Enqueue(ReqInfo, buffer, size, oneonly);
         ok = (qIndex != INVALID_NUMBER);
     }
     if (!ok)
         return 0;
 
     //notify clients that a message is available now
-    if (queue->JustOne()) {
+    if (oneonly) {
         CAutoLock sl(m_mQ);
         CMapQNotified::iterator mi = m_mapQNotified.find(qHandle);
         if (mi != m_mapQNotified.end()) {
