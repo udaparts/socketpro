@@ -774,13 +774,12 @@ void TestEchoSys(const SPA::ClientSide::CConnectionContext & cc) {
 
                 su << ms;
                 SPA::CUQueue q = p->EchoUQueue(*su);
-				if (q.GetSize()) {
-					q >> rtn;
-					assert(rtn == ms);
-				}
-				else {
-					break;
-				}
+                if (q.GetSize()) {
+                    q >> rtn;
+                    assert(rtn == ms);
+                } else {
+                    break;
+                }
                 vHandle.push_back(p);
             }
         }
