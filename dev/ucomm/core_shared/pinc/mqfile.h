@@ -140,12 +140,12 @@ namespace MQ_FILE {
 #endif
 
     class CMqFile {
-	public:
-		static const std::time_t m_start_time;
-		static const SPA::UINT64 m_startTick;
+    public:
+        static const std::time_t m_start_time;
+        static const SPA::UINT64 m_startTick;
 
 #ifndef NDEBUG
-	private:
+    private:
         int m_nJobBalanceDequeue;
         int m_nJobBalanceEnqueue;
         int m_nJobBalanceConfirm;

@@ -38,27 +38,27 @@ void WINAPI SetLastCallInfo(const char *str) {
 }
 
 SPA::UINT64 GetTimeTick() {
-	SPA::UINT64 now;
+    SPA::UINT64 now;
 #ifdef WIN32_64
 
 #if _WIN32_WINNT > 0x0600
-	now = ::GetTickCount64();
+    now = ::GetTickCount64();
 #else
-	SYSTEMTIME st;
-	::GetLocalTime(&st);
-	FILETIME ft;
-	::SystemTimeToFileTime(&st, &ft);
-	now = ft.dwHighDateTime;
-	now <<= 32;
-	now += ft.dwLowDateTime;
-	now /= 10000;
+    SYSTEMTIME st;
+    ::GetLocalTime(&st);
+    FILETIME ft;
+    ::SystemTimeToFileTime(&st, &ft);
+    now = ft.dwHighDateTime;
+    now <<= 32;
+    now += ft.dwLowDateTime;
+    now /= 10000;
 #endif
 #else
-	struct timeval start;
-	gettimeofday(&start, NULL);
-	now = start.tv_sec * 1000 + start.tv_usec / 1000;
+    struct timeval start;
+    gettimeofday(&start, NULL);
+    now = start.tv_sec * 1000 + start.tv_usec / 1000;
 #endif
-	return now;
+    return now;
 }
 
 namespace MQ_FILE {
@@ -219,8 +219,8 @@ namespace MQ_FILE {
     mutex CMqFile::m_csAppName;
     std::string CMqFile::m_strAppName;
 
-	const std::time_t CMqFile::m_start_time = std::time(nullptr);
-	const SPA::UINT64 CMqFile::m_startTick = GetTimeTick();
+    const std::time_t CMqFile::m_start_time = std::time(nullptr);
+    const SPA::UINT64 CMqFile::m_startTick = GetTimeTick();
 
     CMqFile::CMqFile(const char *fileName, unsigned int ttl, SPA::tagOptimistic crashSafe, bool secure, bool client, bool shared)
     :
@@ -2406,7 +2406,7 @@ namespace MQ_FILE {
             size = 0;
         MessageDecriptionHeader mdh;
         mdh.Len = size + sizeof (sh);
-        std::time_t rawtime = m_start_time + (size_t)((GetTimeTick() - m_startTick) / 1000);
+        std::time_t rawtime = m_start_time + (size_t) ((GetTimeTick() - m_startTick) / 1000);
         mdh.Time = static_cast<unsigned int> (rawtime - TIME_Y_2013);
         if (!m_hFile)
             return INVALID_NUMBER;

@@ -34,7 +34,6 @@
       <itemPath>compress.c</itemPath>
       <itemPath>crc32.c</itemPath>
       <itemPath>deflate.c</itemPath>
-      <itemPath>../../../../Downloads/boost/libs/system/src/error_code.cpp</itemPath>
       <itemPath>fastujson.cpp</itemPath>
       <itemPath>getsysid.cpp</itemPath>
       <itemPath>infback.c</itemPath>
@@ -91,11 +90,6 @@
             flavor2="0">
       </item>
       <item path="../../../../Downloads/boost/libs/filesystem/src/path.cpp"
-            ex="false"
-            tool="0"
-            flavor2="0">
-      </item>
-      <item path="../../../../Downloads/boost/libs/system/src/error_code.cpp"
             ex="false"
             tool="0"
             flavor2="0">
@@ -228,11 +222,6 @@
       <item path="../../../../Downloads/boost/libs/filesystem/src/path.cpp"
             ex="false"
             tool="1"
-            flavor2="0">
-      </item>
-      <item path="../../../../Downloads/boost/libs/system/src/error_code.cpp"
-            ex="false"
-            tool="0"
             flavor2="0">
       </item>
       <item path="../../../../Downloads/boost/libs/thread/src/pthread/once.cpp"
