@@ -476,6 +476,9 @@ namespace SPA
         }
 
         CClientSocket::~CClientSocket() {
+            if (m_pHandler) {
+                m_pHandler->m_pClientSocket = nullptr;
+            }
             std::vector<CClientSocket*>::iterator it;
             m_mutex.lock();
             std::vector<CClientSocket*>::iterator end = m_vClientSocket.end();
