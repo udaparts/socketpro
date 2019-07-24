@@ -1,8 +1,10 @@
-23. SocketPro Version 6.3.0.1
+23. SocketPro Version 6.3.0.1-3
 	(a) Add the method PostProcessing to dispatch requests from calling thread onto pool worker thread at client side
 	(b) Re-write remote file service to use PostProcessing instead
 	(c) Fix the issue, which the virtual function OnReleaseResource(bool bClosing, uint info) at server side, was not called when a session is closed
-	(d) Remove dependency over boost libraries within C/C++ development environment
+	(d) Performance tuning with improvement about 4% overall with core libiraries, usocket and uservercore
+	(e) Add support of enterprise license
+	(f) Remove dependency over boost libraries within C/C++ development environment
 
 22. SocketPro Version 6.2.0.1-4
 	(a) Add support of TLSv1.2 and TLSv1.3, and disable SSL3
