@@ -210,11 +210,12 @@ public class CAsyncQueue extends CAsyncServiceHandler {
         if (q == null || q.getSize() < 8) {
             throw new java.lang.IllegalArgumentException("Bad operation");
         }
-        try (CScopeUQueue b = new CScopeUQueue()) {
-            b.Save(key).Push(q.getIntenalBuffer(), q.getHeadPosition(), q.getSize());
-            q.SetSize(0);
-            return SendRequest(idEnqueueBatch, b, GetRH(e), discarded);
-        }
+        CUQueue b = CScopeUQueue.Lock();
+        b.Save(key).Push(q.getIntenalBuffer(), q.getHeadPosition(), q.getSize());
+        q.SetSize(0);
+        boolean ok = SendRequest(idEnqueueBatch, b, GetRH(e), discarded, null);
+        CScopeUQueue.Unlock(b);
+        return ok;
     }
 
     public boolean EnqueueBatch(byte[] key, CUQueue q, DEnqueue e) {
@@ -249,10 +250,11 @@ public class CAsyncQueue extends CAsyncServiceHandler {
         if (key == null) {
             key = new byte[0];
         }
-        try (CScopeUQueue q = new CScopeUQueue()) {
-            q.Save(key).Save(idMessage).Push(bytes);
-            return SendRequest(idEnqueue, q, GetRH(e), discarded);
-        }
+        CUQueue q = CScopeUQueue.Lock();
+        q.Save(key).Save(idMessage).Push(bytes);
+        boolean ok = SendRequest(idEnqueue, q, GetRH(e), discarded, null);
+        CScopeUQueue.Unlock(q);
+        return ok;
     }
 
     public boolean Enqueue(byte[] key, short idMessage, CUQueue q) {
@@ -267,10 +269,11 @@ public class CAsyncQueue extends CAsyncServiceHandler {
         if (key == null) {
             key = new byte[0];
         }
-        try (CScopeUQueue sq = new CScopeUQueue()) {
-            sq.Save(key).Save(idMessage).Push(q.getIntenalBuffer(), q.getHeadPosition(), q.getSize());
-            return SendRequest(idEnqueue, sq, GetRH(e), discarded);
-        }
+        CUQueue sq = CScopeUQueue.Lock();
+        sq.Save(key).Save(idMessage).Push(q.getIntenalBuffer(), q.getHeadPosition(), q.getSize());
+        boolean ok = SendRequest(idEnqueue, sq, GetRH(e), discarded, null);
+        CScopeUQueue.Unlock(sq);
+        return ok;
     }
 
     public boolean Enqueue(byte[] key, short idMessage, CScopeUQueue q) {
@@ -286,10 +289,11 @@ public class CAsyncQueue extends CAsyncServiceHandler {
             key = new byte[0];
         }
         CUQueue src = q.getUQueue();
-        try (CScopeUQueue sq = new CScopeUQueue()) {
-            sq.Save(key).Save(idMessage).Push(src.getIntenalBuffer(), src.getHeadPosition(), src.getSize());
-            return SendRequest(idEnqueue, sq, GetRH(e), discarded);
-        }
+        CUQueue sq = CScopeUQueue.Lock();
+        sq.Save(key).Save(idMessage).Push(src.getIntenalBuffer(), src.getHeadPosition(), src.getSize());
+        boolean ok = SendRequest(idEnqueue, sq, GetRH(e), discarded, null);
+        CScopeUQueue.Unlock(sq);
+        return ok;
     }
 
     static private final java.nio.charset.Charset UTF8_CHARSET = java.nio.charset.Charset.forName("UTF-8");
@@ -347,7 +351,7 @@ public class CAsyncQueue extends CAsyncServiceHandler {
                         ar.getUQueue().SetSize(0);
                     }
                 }
-            }, discarded);
+            }, discarded, null);
         }
     }
 
@@ -407,7 +411,7 @@ public class CAsyncQueue extends CAsyncServiceHandler {
                         ar.getUQueue().SetSize(0);
                     }
                 }
-            }, discarded);
+            }, discarded, null);
             IClientQueue cq = this.getAttachedClientSocket().getClientQueue();
             if (cq.getAvailable()) {
                 if (rollback) {
@@ -454,7 +458,7 @@ public class CAsyncQueue extends CAsyncServiceHandler {
                     ar.getUQueue().SetSize(0);
                 }
             }
-        }, discarded);
+        }, discarded, null);
     }
 
     /**
@@ -522,7 +526,7 @@ public class CAsyncQueue extends CAsyncServiceHandler {
                         ar.getUQueue().SetSize(0);
                     }
                 }
-            }, discarded);
+            }, discarded, null);
         }
     }
 
@@ -597,7 +601,7 @@ public class CAsyncQueue extends CAsyncServiceHandler {
                         ar.getUQueue().SetSize(0);
                     }
                 }
-            }, discarded);
+            }, discarded, null);
         }
     }
 
@@ -668,7 +672,7 @@ public class CAsyncQueue extends CAsyncServiceHandler {
         }
         try (CScopeUQueue sq = new CScopeUQueue()) {
             sq.Save(key).Save(timeout);
-            return SendRequest(idDequeue, sq, rh, discarded);
+            return SendRequest(idDequeue, sq, rh, discarded, null);
         }
     }
 
