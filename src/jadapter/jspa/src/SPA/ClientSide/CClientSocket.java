@@ -132,23 +132,19 @@ public final class CClientSocket {
     }
 
     void Detach(CAsyncServiceHandler ash) {
-        if (ash == null) {
+        if (ash == null || ash != m_ash) {
             return;
         }
-        m_lstAsh.remove(ash);
+        m_ash = null;
         ash.SetNull();
     }
 
     boolean Attach(CAsyncServiceHandler ash) {
-        if (ash == null) {
+        if (ash == null || m_ash != null) {
             return false;
         }
-        for (CAsyncServiceHandler h : m_lstAsh) {
-            if (ash.getSvsID() == h.getSvsID()) {
-                return false;
-            }
-        }
-        m_lstAsh.add(ash);
+
+        m_ash = ash;
         return true;
     }
 
@@ -583,12 +579,7 @@ public final class CClientSocket {
     }
 
     CAsyncServiceHandler Seek(int svsId) {
-        for (CAsyncServiceHandler ash : m_lstAsh) {
-            if (ash.getSvsID() == svsId) {
-                return ash;
-            }
-        }
-        return null;
+        return m_ash;
     }
 
     public final CAsyncServiceHandler getCurrentHandler() {
@@ -606,16 +597,13 @@ public final class CClientSocket {
     }
     private final long m_h;
     volatile CConnectionContext ConnectionContext;
-    private final java.util.ArrayList<CAsyncServiceHandler> m_lstAsh = new java.util.ArrayList<>();
+    private CAsyncServiceHandler m_ash = null;
 
     //
     private static CClientSocket Find(long hSocket) {
         synchronized (m_cs) {
-            if (m_mapSocket.containsKey(hSocket)) {
-                return m_mapSocket.get(hSocket);
-            }
+            return m_mapSocket.get(hSocket);
         }
-        return null;
     }
 
     static void Remove(long hSocket) {

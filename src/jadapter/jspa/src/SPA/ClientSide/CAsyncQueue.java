@@ -670,10 +670,11 @@ public class CAsyncQueue extends CAsyncServiceHandler {
                 m_dDequeue = null;
             }
         }
-        try (CScopeUQueue sq = new CScopeUQueue()) {
-            sq.Save(key).Save(timeout);
-            return SendRequest(idDequeue, sq, rh, discarded, null);
-        }
+        CUQueue sq = CScopeUQueue.Lock();
+        sq.Save(key).Save(timeout);
+        boolean ok = SendRequest(idDequeue, sq, rh, discarded, null);
+        CScopeUQueue.Unlock(sq);
+        return ok;
     }
 
     @Override

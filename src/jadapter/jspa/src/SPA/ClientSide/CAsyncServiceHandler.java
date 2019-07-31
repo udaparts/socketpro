@@ -357,15 +357,17 @@ public class CAsyncServiceHandler implements AutoCloseable {
                 }
             }
         }
-        return new java.util.AbstractMap.SimpleEntry<>((short) 0, null);
+        return null;
     }
 
     final void OnSE(short reqId, String errMessage, String errWhere, int errCode) {
         java.util.Map.Entry<Short, CResultCb> p = GetAsyncResultHandler(reqId);
         OnExceptionFromServer(reqId, errMessage, errWhere, errCode);
-        CResultCb rcb = p.getValue();
-        if (rcb != null && rcb.ExceptionFromServer != null) {
-            rcb.ExceptionFromServer.invoke(this, reqId, errMessage, errWhere, errCode);
+        if (p != null) {
+            CResultCb rcb = p.getValue();
+            if (rcb != null && rcb.ExceptionFromServer != null) {
+                rcb.ExceptionFromServer.invoke(this, reqId, errMessage, errWhere, errCode);
+            }
         }
         if (ServerException != null) {
             ServerException.invoke(this, reqId, errMessage, errWhere, errCode);
@@ -374,7 +376,7 @@ public class CAsyncServiceHandler implements AutoCloseable {
 
     final void onRR(short reqId, SPA.CUQueue mc) {
         java.util.Map.Entry<Short, CResultCb> p = GetAsyncResultHandler(reqId);
-        if (p.getValue() != null && p.getValue().AsyncResultHandler != null) {
+        if (p != null && p.getValue() != null && p.getValue().AsyncResultHandler != null) {
             CAsyncResult ar = new CAsyncResult(this, reqId, mc, p.getValue().AsyncResultHandler);
             p.getValue().AsyncResultHandler.invoke(ar);
         } else if (ResultReturned != null && ResultReturned.invoke(this, reqId, mc)) {
