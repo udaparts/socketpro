@@ -8,10 +8,16 @@ public final class CAsyncResult {
         m_UQueue = q;
         m_CurrentAsyncResultHandler = arh;
     }
-    private final CAsyncServiceHandler m_AsyncServiceHandler;
-    private final short m_RequestId;
-    private volatile SPA.CUQueue m_UQueue;
-    private final CAsyncServiceHandler.DAsyncResultHandler m_CurrentAsyncResultHandler;
+
+    void Reset(short sReqId, SPA.CUQueue q, CAsyncServiceHandler.DAsyncResultHandler arh) {
+        m_RequestId = sReqId;
+        m_UQueue = q;
+        m_CurrentAsyncResultHandler = arh;
+    }
+    private CAsyncServiceHandler m_AsyncServiceHandler;
+    private short m_RequestId;
+    private SPA.CUQueue m_UQueue;
+    private CAsyncServiceHandler.DAsyncResultHandler m_CurrentAsyncResultHandler;
 
     public final CAsyncServiceHandler getAsyncServiceHandler() {
         return m_AsyncServiceHandler;

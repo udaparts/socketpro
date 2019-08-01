@@ -159,9 +159,9 @@ public class CAsyncServiceHandler implements AutoCloseable {
             rcb.Discarded = discarded;
             rcb.ExceptionFromServer = exception;
             java.util.Map.Entry<Short, CResultCb> kv = new java.util.AbstractMap.SimpleEntry<>(reqId, rcb);
-            batching = ClientCoreLoader.IsBatching(h);
             synchronized (m_csSend) {
                 synchronized (m_cs) {
+                    batching = m_bBatching;
                     if (batching) {
                         m_kvBatching.add(kv);
                     } else {
@@ -308,14 +308,17 @@ public class CAsyncServiceHandler implements AutoCloseable {
         return CommitBatching(false);
     }
 
+    private boolean m_bBatching = false;
+
     public boolean CommitBatching(boolean bBatchingAtServerSide) {
         long h;
         synchronized (m_cs) {
             m_kvCallback.addAll(m_kvBatching);
             m_kvBatching.clear();
             h = m_ClientSocket.getHandle();
+            m_bBatching = false;
+            return ClientCoreLoader.CommitBatching(h, bBatchingAtServerSide);
         }
-        return ClientCoreLoader.CommitBatching(h, bBatchingAtServerSide);
     }
 
     protected void OnMergeTo(CAsyncServiceHandler to) {
@@ -333,11 +336,14 @@ public class CAsyncServiceHandler implements AutoCloseable {
     }
 
     public final boolean StartBatching() {
-        long h = getCSHandle();
-        if (h == 0) {
-            return false;
+        synchronized (m_cs) {
+            long h = getCSHandle();
+            if (h == 0) {
+                return false;
+            }
+            m_bBatching = false;
+            return ClientCoreLoader.StartBatching(h);
         }
-        return ClientCoreLoader.StartBatching(h);
     }
 
     private java.util.Map.Entry<Short, CResultCb> GetAsyncResultHandler(short reqId) {
@@ -374,11 +380,13 @@ public class CAsyncServiceHandler implements AutoCloseable {
         }
     }
 
+    private final CAsyncResult m_ar = new CAsyncResult(this, (short) 0, null, null);
+
     final void onRR(short reqId, SPA.CUQueue mc) {
         java.util.Map.Entry<Short, CResultCb> p = GetAsyncResultHandler(reqId);
         if (p != null && p.getValue() != null && p.getValue().AsyncResultHandler != null) {
-            CAsyncResult ar = new CAsyncResult(this, reqId, mc, p.getValue().AsyncResultHandler);
-            p.getValue().AsyncResultHandler.invoke(ar);
+            m_ar.Reset(reqId, mc, p.getValue().AsyncResultHandler);
+            p.getValue().AsyncResultHandler.invoke(m_ar);
         } else if (ResultReturned != null && ResultReturned.invoke(this, reqId, mc)) {
         } else {
             OnResultReturned(reqId, mc);
@@ -418,12 +426,13 @@ public class CAsyncServiceHandler implements AutoCloseable {
                 }
             }
             m_kvBatching.clear();
+            m_bBatching = false;
+            long h = getCSHandle();
+            if (h == 0) {
+                return false;
+            }
+            return ClientCoreLoader.AbortBatching(h);
         }
-        long h = getCSHandle();
-        if (h == 0) {
-            return false;
-        }
-        return ClientCoreLoader.AbortBatching(h);
     }
 
     public final void AbortDequeuedMessage() {

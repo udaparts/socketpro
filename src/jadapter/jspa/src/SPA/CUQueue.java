@@ -108,6 +108,17 @@ public final class CUQueue {
         }
     }
 
+    public void UseBuffer(byte[] bytes) {
+        m_position = 0;
+        if (bytes == null) {
+            m_bytes = new byte[0];
+            m_len = 0;
+        } else {
+            m_bytes = bytes;
+            m_len = bytes.length;
+        }
+    }
+
     public final int getHeadPosition() {
         return m_position;
     }

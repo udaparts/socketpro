@@ -305,9 +305,9 @@ public final class CClientSocket {
                 String msg = String.format("Wrong number of bytes retrieved (expected = {0} and obtained = {1})", len, bytes.length);
                 throw new java.lang.UnsupportedOperationException(msg);
             }
+            SPA.CUQueue q = cs.m_qRecv;
             //this does not cause re-allocting bytes memory
-            SPA.CUQueue q = new SPA.CUQueue(bytes);
-
+            q.UseBuffer(bytes);
             q.setOS(tagOperationSystem.forValue(os));
             q.setEndian(endian);
             ash.onRR(reqId, q);
@@ -427,6 +427,7 @@ public final class CClientSocket {
 
     private volatile SPA.tagOperationSystem m_os = SPA.CUQueue.DEFAULT_OS;
     private volatile boolean m_bBigEndian = false;
+    private SPA.CUQueue m_qRecv = new SPA.CUQueue();
 
     public final SPA.tagOperationSystem GetPeerOs() {
         return m_os;
