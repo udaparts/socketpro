@@ -32,6 +32,7 @@ jmethodID g_midOnHttpAuthentication = nullptr;
 jmethodID g_constructorHttpHeaderValue = nullptr;
 jfieldID g_fidHeader = nullptr;
 jfieldID g_fidValue = nullptr;
+unsigned int g_nMainThreads = 0;
 
 void CleanException(JNIEnv *env) {
     jthrowable ex = env->ExceptionOccurred();
@@ -184,6 +185,7 @@ JNIEXPORT void JNICALL Java_SPA_ServerSide_ServerCoreLoader_UninitSocketProServe
 }
 
 JNIEXPORT jboolean JNICALL Java_SPA_ServerSide_ServerCoreLoader_StartSocketProServer(JNIEnv *, jclass, jint port, jint maxBacklog, jboolean v6) {
+    g_nMainThreads = 0;
     return StartSocketProServer((unsigned int) port, (unsigned int) maxBacklog, v6 ? true : false);
 }
 
@@ -416,8 +418,15 @@ JNIEXPORT jbyteArray JNICALL Java_SPA_ServerSide_ServerCoreLoader_RetrieveBuffer
         len = 0;
     jbyteArray bytes = env->NewByteArray(len);
     if (len) {
-        const unsigned char *arr = GetRequestBuffer((USocket_Server_Handle) h);
-        env->SetByteArrayRegion(bytes, 0, len, (const jbyte*) arr);
+        if (g_nMainThreads <= 1) {
+            const unsigned char *arr = GetRequestBuffer((USocket_Server_Handle) h);
+            env->SetByteArrayRegion(bytes, 0, len, (const jbyte*) arr);
+        } else {
+            jbyte *p = env->GetByteArrayElements(bytes, nullptr);
+            unsigned int res = RetrieveBuffer((USocket_Server_Handle) h, len, (unsigned char*) p, false);
+            assert(res == len);
+            env->ReleaseByteArrayElements(bytes, p, 0);
+        }
     }
     return bytes;
 }
@@ -1496,6 +1505,9 @@ void CALLBACK OnSwitchTo(USocket_Server_Handle h, unsigned int oldServiceId, uns
     JNIEnv *env;
     jint es = g_vm->GetEnv((void **) &env, JNI_VERSION_1_6);
     assert(es == JNI_OK);
+    if (!g_nMainThreads) {
+        g_nMainThreads = GetMainThreads();
+    }
     env->CallStaticVoidMethod(g_clsCSocketPeer, g_midOnSwitchTo, (jlong) h, (jint) oldServiceId, (jint) newServiceId);
     CleanException(env);
 }
