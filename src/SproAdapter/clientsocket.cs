@@ -17,53 +17,41 @@ namespace SocketProAdapter
             internal object m_cs = new object(); //used for protecting events
 
             private UDelegate<DOnSocketClosed> m_lstClosed;
-            public event DOnSocketClosed SocketClosed
-            {
-                add
-                {
+            public event DOnSocketClosed SocketClosed {
+                add {
                     m_lstClosed.add(value);
                 }
-                remove
-                {
+                remove {
                     m_lstClosed.remove(value);
                 }
             }
 
             private UDelegate<DOnHandShakeCompleted> m_lstShake;
-            public event DOnHandShakeCompleted HandShakeCompleted
-            {
-                add
-                {
+            public event DOnHandShakeCompleted HandShakeCompleted {
+                add {
                     m_lstShake.add(value);
                 }
-                remove
-                {
+                remove {
                     m_lstShake.remove(value);
                 }
             }
 
             private UDelegate<DOnSocketConnected> m_lstConnected;
-            public event DOnSocketConnected SocketConnected
-            {
-                add
-                {
+            public event DOnSocketConnected SocketConnected {
+                add {
                     m_lstConnected.add(value);
                 }
-                remove
-                {
+                remove {
                     m_lstConnected.remove(value);
                 }
             }
 
             private UDelegate<DOnServerException> m_lstSE;
-            public event DOnServerException SeverException
-            {
-                add
-                {
+            public event DOnServerException SeverException {
+                add {
                     m_lstSE.add(value);
                 }
-                remove
-                {
+                remove {
                     m_lstSE.remove(value);
                 }
             }
@@ -167,10 +155,8 @@ namespace SocketProAdapter
                 m_lstShake = new UDelegate<DOnHandShakeCompleted>(m_cs);
             }
 
-            public CAsyncServiceHandler CurrentHandler
-            {
-                get
-                {
+            public CAsyncServiceHandler CurrentHandler {
+                get {
                     return m_ash;
                 }
             }
@@ -211,111 +197,84 @@ namespace SocketProAdapter
                 ClientCoreLoader.AbortDequeuedMessage(m_h);
             }
 
-            public IUPushClient Push
-            {
-                get
-                {
+            public IUPushClient Push {
+                get {
                     return m_PushImpl;
                 }
             }
 
-            public bool AutoConn
-            {
-                get
-                {
+            public bool AutoConn {
+                get {
                     return ClientCoreLoader.GetAutoConn(m_h) != 0;
                 }
-                set
-                {
+                set {
                     ClientCoreLoader.SetAutoConn(m_h, (byte)(value ? 1 : 0));
                 }
             }
 
-            public uint BytesBatched
-            {
-                get
-                {
+            public uint BytesBatched {
+                get {
                     return ClientCoreLoader.GetBytesBatched(m_h);
                 }
             }
 
-            public uint BytesInReceivingBuffer
-            {
-                get
-                {
+            public uint BytesInReceivingBuffer {
+                get {
                     return ClientCoreLoader.GetBytesInReceivingBuffer(m_h);
                 }
             }
 
-            public uint BytesInSendingBuffer
-            {
-                get
-                {
+            public uint BytesInSendingBuffer {
+                get {
                     return ClientCoreLoader.GetBytesInSendingBuffer(m_h);
                 }
             }
 
-            public ulong BytesReceived
-            {
-                get
-                {
+            public ulong BytesReceived {
+                get {
                     return ClientCoreLoader.GetBytesReceived(m_h);
                 }
             }
 
-            public ulong BytesSent
-            {
-                get
-                {
+            public ulong BytesSent {
+                get {
                     return ClientCoreLoader.GetBytesSent(m_h);
                 }
             }
 
-            public uint ConnectingTimeout
-            {
-                get
-                {
+            public uint ConnectingTimeout {
+                get {
                     return ClientCoreLoader.GetConnTimeout(m_h);
                 }
-                set
-                {
+                set {
                     ClientCoreLoader.SetConnTimeout(m_h, value);
                 }
             }
 
-            public uint CountOfRequestsInQueue
-            {
-                get
-                {
+            public uint CountOfRequestsInQueue {
+                get {
                     return ClientCoreLoader.GetCountOfRequestsQueued(m_h);
                 }
             }
 
-            public ushort CurrentRequestID
-            {
-                get
-                {
+            public ushort CurrentRequestID {
+                get {
                     return ClientCoreLoader.GetCurrentRequestID(m_h);
                 }
             }
 
             private CConnectionContext m_cc = null;
-            public CConnectionContext ConnectionContext
-            {
-                get
-                {
+            public CConnectionContext ConnectionContext {
+                get {
                     return m_cc;
                 }
-                set
-                {
+                set {
                     m_cc = value;
                 }
             }
 
-            public static string Version
-            {
-                get
-                {
+            public static string Version {
+                get {
                     unsafe
                     {
 
@@ -389,23 +348,18 @@ namespace SocketProAdapter
 
             public static class QueueConfigure
             {
-                public static bool IsClientQueueIndexPossiblyCrashed
-                {
-                    get
-                    {
+                public static bool IsClientQueueIndexPossiblyCrashed {
+                    get {
                         return ClientCoreLoader.IsClientQueueIndexPossiblyCrashed() != 0;
                     }
                 }
 
-                public unsafe static string WorkDirectory
-                {
-                    get
-                    {
+                public unsafe static string WorkDirectory {
+                    get {
                         return new string((sbyte*)ClientCoreLoader.GetClientWorkDirectory());
                     }
 
-                    set
-                    {
+                    set {
                         string s = value;
                         if (s == null)
                             s = "";
@@ -417,10 +371,8 @@ namespace SocketProAdapter
                     }
                 }
 
-                public static string MessageQueuePassword
-                {
-                    set
-                    {
+                public static string MessageQueuePassword {
+                    set {
                         string s = value;
                         if (s == null)
                             s = "";
@@ -436,59 +388,45 @@ namespace SocketProAdapter
                 }
             }
 
-            public uint CurrentResultSize
-            {
-                get
-                {
+            public uint CurrentResultSize {
+                get {
                     return ClientCoreLoader.GetCurrentResultSize(m_h);
                 }
             }
 
             private uint m_nCurrentSvsId = BaseServiceID.sidStartup;
-            public uint CurrentServiceID
-            {
-                get
-                {
+            public uint CurrentServiceID {
+                get {
                     return m_nCurrentSvsId;
                 }
             }
 
-            public tagEncryptionMethod EncryptionMethod
-            {
-                get
-                {
+            public tagEncryptionMethod EncryptionMethod {
+                get {
                     return ClientCoreLoader.GetEncryptionMethod(m_h);
                 }
-                set
-                {
+                set {
                     ClientCoreLoader.SetEncryptionMethod(m_h, value);
                 }
             }
 
-            public tagConnectionState ConnectionState
-            {
-                get
-                {
+            public tagConnectionState ConnectionState {
+                get {
                     return ClientCoreLoader.GetConnectionState(m_h);
                 }
             }
 
-            public int ErrorCode
-            {
-                get
-                {
+            public int ErrorCode {
+                get {
                     return ClientCoreLoader.GetErrorCode(m_h);
                 }
             }
 
-            public uint ReceivingTimeout
-            {
-                get
-                {
+            public uint ReceivingTimeout {
+                get {
                     return ClientCoreLoader.GetRecvTimeout(m_h);
                 }
-                set
-                {
+                set {
                     ClientCoreLoader.SetRecvTimeout(m_h, value);
                 }
             }
@@ -521,10 +459,8 @@ namespace SocketProAdapter
                 }
             }
 
-            public string ErrorMsg
-            {
-                get
-                {
+            public string ErrorMsg {
+                get {
                     sbyte[] errMsg = new sbyte[1024];
                     unsafe
                     {
@@ -537,10 +473,8 @@ namespace SocketProAdapter
                 }
             }
 
-            public uint PoolId
-            {
-                get
-                {
+            public uint PoolId {
+                get {
                     return ClientCoreLoader.GetSocketPoolId(m_h);
                 }
             }
@@ -574,83 +508,63 @@ namespace SocketProAdapter
             }
 
             private bool m_bRandom = false;
-            public bool Random
-            {
-                get
-                {
+            public bool Random {
+                get {
                     return m_bRandom;
                 }
             }
 
-            public uint RouteeCount
-            {
-                get
-                {
+            public uint RouteeCount {
+                get {
                     return ClientCoreLoader.GetRouteeCount(m_h);
                 }
             }
             private bool m_routing = false;
-            public bool Routing
-            {
-                get
-                {
+            public bool Routing {
+                get {
                     return m_routing;
                 }
             }
 
-            public bool DequeuedMessageAborted
-            {
-                get
-                {
+            public bool DequeuedMessageAborted {
+                get {
                     return ClientCoreLoader.IsDequeuedMessageAborted(m_h) != 0;
                 }
             }
 
-            public ushort ServerPingTime
-            {
-                get
-                {
+            public ushort ServerPingTime {
+                get {
                     return ClientCoreLoader.GetServerPingTime(m_h);
                 }
             }
 
-            public IntPtr Handle
-            {
-                get
-                {
+            public IntPtr Handle {
+                get {
                     return m_h;
                 }
             }
 
-            public ulong SocketNativeHandle
-            {
-                get
-                {
+            public ulong SocketNativeHandle {
+                get {
                     return ClientCoreLoader.GetSocketNativeHandle(m_h);
                 }
             }
 
 
-            public bool Connected
-            {
-                get
-                {
+            public bool Connected {
+                get {
                     return ClientCoreLoader.IsOpened(m_h) != 0;
                 }
             }
 
-            public IntPtr SslHandle
-            {
-                get
-                {
+            public IntPtr SslHandle {
+                get {
                     return ClientCoreLoader.GetSSL(m_h);
                 }
             }
 
-            public string UID
-            {
-                get
-                {
+            public string UID {
+                get {
                     uint res;
                     char[] id = new char[256];
                     unsafe
@@ -662,49 +576,38 @@ namespace SocketProAdapter
                     }
                     return new string(id, 0, (int)res);
                 }
-                set
-                {
+                set {
                     ClientCoreLoader.SetUserID(m_h, value);
                 }
             }
 
-            public bool Zip
-            {
-                get
-                {
+            public bool Zip {
+                get {
                     return ClientCoreLoader.GetZip(m_h) != 0;
                 }
 
-                set
-                {
+                set {
                     ClientCoreLoader.SetZip(m_h, (byte)(value ? 1 : 0));
                 }
             }
 
-            public tagZipLevel ZipLevel
-            {
-                get
-                {
+            public tagZipLevel ZipLevel {
+                get {
                     return ClientCoreLoader.GetZipLevel(m_h);
                 }
-                set
-                {
+                set {
                     ClientCoreLoader.SetZipLevel(m_h, value);
                 }
             }
 
-            public bool Batching
-            {
-                get
-                {
+            public bool Batching {
+                get {
                     return ClientCoreLoader.IsBatching(m_h) != 0;
                 }
             }
 
-            public string Password
-            {
-                set
-                {
+            public string Password {
+                set {
                     ClientCoreLoader.SetPassword(m_h, value);
                 }
             }
@@ -1059,18 +962,14 @@ namespace SocketProAdapter
                     }
                 }
 
-                public bool DequeueEnabled
-                {
-                    get
-                    {
+                public bool DequeueEnabled {
+                    get {
                         return ClientCoreLoader.IsDequeueEnabled(m_cs.Handle) != 0;
                     }
                 }
 
-                public DateTime LastMessageTime
-                {
-                    get
-                    {
+                public DateTime LastMessageTime {
+                    get {
                         ulong seconds = ClientCoreLoader.GetLastQueueMessageTime(m_cs.Handle);
                         DateTime dt = new DateTime(2013, 1, 1, 0, 0, 0, DateTimeKind.Utc);
                         if (DateTime.Now.IsDaylightSavingTime())
@@ -1155,21 +1054,17 @@ namespace SocketProAdapter
                     return true;
                 }
 
-                public bool RoutingQueueIndex
-                {
-                    get
-                    {
+                public bool RoutingQueueIndex {
+                    get {
                         return ClientCoreLoader.IsRoutingQueueIndexEnabled(m_cs.Handle) != 0;
                     }
 
-                    set
-                    {
+                    set {
                         ClientCoreLoader.EnableRoutingQueueIndex(m_cs.Handle, (byte)(value ? 1 : 0));
                     }
                 }
 
-                public IntPtr Handle
-                {
+                public IntPtr Handle {
                     get { return m_cs.Handle; }
                 }
 
@@ -1201,62 +1096,47 @@ namespace SocketProAdapter
 #endif
                 }
 
-                public uint MessagesInDequeuing
-                {
-                    get
-                    {
+                public uint MessagesInDequeuing {
+                    get {
                         return ClientCoreLoader.GetMessagesInDequeuing(m_cs.Handle);
                     }
                 }
 
-                public ulong MessageCount
-                {
-                    get
-                    {
+                public ulong MessageCount {
+                    get {
                         return ClientCoreLoader.GetMessageCount(m_cs.Handle);
                     }
                 }
 
-                public ulong QueueSize
-                {
-                    get
-                    {
+                public ulong QueueSize {
+                    get {
                         return ClientCoreLoader.GetQueueSize(m_cs.Handle);
                     }
                 }
 
-                public bool Available
-                {
-                    get
-                    {
+                public bool Available {
+                    get {
                         return ClientCoreLoader.IsQueueStarted(m_cs.Handle) != 0;
                     }
                 }
 
-                public bool Secure
-                {
+                public bool Secure {
                     get { return ClientCoreLoader.IsQueueSecured(m_cs.Handle) != 0; }
                 }
 
-                public bool DequeueShared
-                {
-                    get
-                    {
+                public bool DequeueShared {
+                    get {
                         return ClientCoreLoader.IsDequeueShared(m_cs.Handle) != 0;
                     }
                 }
-                public ulong LastIndex
-                {
-                    get
-                    {
+                public ulong LastIndex {
+                    get {
                         return ClientCoreLoader.GetQueueLastIndex(m_cs.Handle);
                     }
                 }
 
-                public string QueueFileName
-                {
-                    get
-                    {
+                public string QueueFileName {
+                    get {
                         IntPtr p = ClientCoreLoader.GetQueueFileName(m_cs.Handle);
                         if (p == IntPtr.Zero)
                             return "";
@@ -1267,10 +1147,8 @@ namespace SocketProAdapter
                     }
                 }
 
-                public string QueueName
-                {
-                    get
-                    {
+                public string QueueName {
+                    get {
                         IntPtr p = ClientCoreLoader.GetQueueName(m_cs.Handle);
                         if (p == IntPtr.Zero)
                             return "";
@@ -1311,8 +1189,7 @@ namespace SocketProAdapter
                     return ClientCoreLoader.EndJob(m_cs.Handle) != 0;
                 }
 
-                public ulong JobSize
-                {
+                public ulong JobSize {
                     get { return ClientCoreLoader.GetJobSize(m_cs.Handle); }
                 }
 
@@ -1321,30 +1198,23 @@ namespace SocketProAdapter
                     return ClientCoreLoader.RemoveQueuedRequestsByTTL(m_cs.Handle);
                 }
 
-                public tagQueueStatus QueueStatus
-                {
-                    get
-                    {
+                public tagQueueStatus QueueStatus {
+                    get {
                         return ClientCoreLoader.GetClientQueueStatus(m_cs.Handle);
                     }
                 }
 
-                public uint TTL
-                {
-                    get
-                    {
+                public uint TTL {
+                    get {
                         return ClientCoreLoader.GetTTL(m_cs.Handle);
                     }
                 }
 
-                public tagOptimistic Optimistic
-                {
-                    get
-                    {
+                public tagOptimistic Optimistic {
+                    get {
                         return ClientCoreLoader.GetOptimistic(m_cs.Handle);
                     }
-                    set
-                    {
+                    set {
                         ClientCoreLoader.SetOptimistic(m_cs.Handle, value);
                     }
                 }
@@ -1354,10 +1224,8 @@ namespace SocketProAdapter
 
             private CClientQueueImpl m_qm;
 
-            public IClientQueue ClientQueue
-            {
-                get
-                {
+            public IClientQueue ClientQueue {
+                get {
                     return m_qm;
                 }
             }
@@ -1388,18 +1256,14 @@ namespace SocketProAdapter
             };
             private CUCertImpl m_cert = null;
 
-            public IUcert UCert
-            {
-                get
-                {
+            public IUcert UCert {
+                get {
                     return m_cert;
                 }
             }
 
-            public bool Sendable
-            {
-                get
-                {
+            public bool Sendable {
+                get {
                     return ((ClientCoreLoader.IsOpened(m_h) != 0) || ClientCoreLoader.IsQueueStarted(m_h) != 0);
                 }
             }
@@ -1422,79 +1286,61 @@ namespace SocketProAdapter
                 #region IUPushClient Members
 
                 private UDelegate<DOnPublish> m_lstPublish;
-                public event DOnPublish OnPublish
-                {
-                    add
-                    {
+                public event DOnPublish OnPublish {
+                    add {
                         m_lstPublish.add(value);
                     }
-                    remove
-                    {
+                    remove {
                         m_lstPublish.remove(value);
                     }
                 }
 
                 private UDelegate<DOnPublishEx> m_lstPublishEx;
-                public event DOnPublishEx OnPublishEx
-                {
-                    add
-                    {
+                public event DOnPublishEx OnPublishEx {
+                    add {
                         m_lstPublishEx.add(value);
                     }
-                    remove
-                    {
+                    remove {
                         m_lstPublishEx.remove(value);
                     }
                 }
 
                 private UDelegate<DOnSendUserMessage> m_lstUser;
-                public event DOnSendUserMessage OnSendUserMessage
-                {
-                    add
-                    {
+                public event DOnSendUserMessage OnSendUserMessage {
+                    add {
                         m_lstUser.add(value);
                     }
-                    remove
-                    {
+                    remove {
                         m_lstUser.remove(value);
                     }
                 }
 
                 private UDelegate<DOnSendUserMessageEx> m_lstUserEx;
-                public event DOnSendUserMessageEx OnSendUserMessageEx
-                {
-                    add
-                    {
+                public event DOnSendUserMessageEx OnSendUserMessageEx {
+                    add {
                         m_lstUserEx.add(value);
                     }
-                    remove
-                    {
+                    remove {
                         m_lstUserEx.remove(value);
                     }
                 }
 
                 private UDelegate<DOnSubscribe> m_lstSubscribe;
-                public event DOnSubscribe OnSubscribe
-                {
-                    add
-                    {
+                public event DOnSubscribe OnSubscribe {
+                    add {
                         m_lstSubscribe.add(value);
                     }
-                    remove
-                    {
+                    remove {
                         m_lstSubscribe.remove(value);
                     }
                 }
 
                 private UDelegate<DOnUnsubscribe> m_lstUnsubscribe;
-                public event DOnUnsubscribe OnUnsubscribe
-                {
-                    add
-                    {
+                public event DOnUnsubscribe OnUnsubscribe {
+                    add {
                         m_lstUnsubscribe.add(value);
                     }
-                    remove
-                    {
+                    remove {
                         m_lstUnsubscribe.remove(value);
                     }
                 }
