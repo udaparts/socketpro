@@ -14,7 +14,7 @@ public final class CAsyncResult {
         m_UQueue = q;
         m_CurrentAsyncResultHandler = arh;
     }
-    private CAsyncServiceHandler m_AsyncServiceHandler;
+    private final CAsyncServiceHandler m_AsyncServiceHandler;
     private short m_RequestId;
     private SPA.CUQueue m_UQueue;
     private CAsyncServiceHandler.DAsyncResultHandler m_CurrentAsyncResultHandler;
