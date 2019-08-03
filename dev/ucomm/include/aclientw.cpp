@@ -1048,10 +1048,12 @@ namespace SPA
             if (p) {
                 if (p->IsRouting())
                     p->m_os = ClientCoreLoader.GetPeerOs(handler, &p->m_endian);
-                CScopeUQueue sb(p->m_os, p->m_endian);
-                CUQueue &q = *sb;
+                CUQueue &q = p->m_qRecv;
+                q.SetSize(0);
+                q.SetOS(p->m_os);
+                q.SetEndian(p->m_endian);
                 if (len > q.GetMaxSize())
-                    q.ReallocBuffer(len + 16);
+                    q.ReallocBuffer(len + sizeof(wchar_t));
                 if (len) {
                     const unsigned char *result = ClientCoreLoader.GetResultBuffer(p->m_hSocket);
                     q.Push(result, len);

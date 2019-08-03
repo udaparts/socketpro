@@ -720,7 +720,7 @@ namespace SPA {
             tagOperationSystem m_os;
             unsigned int m_nCurrSvsId;
             bool m_routing;
-
+            CUQueue m_qRecv;
             static CUCriticalSection m_mutex;
             static std::vector<CClientSocket*> m_vClientSocket;
 
