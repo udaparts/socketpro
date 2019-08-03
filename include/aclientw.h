@@ -844,8 +844,8 @@ namespace SPA {
                 return m_nServiceId;
             }
             void SetSvsID(unsigned int serviceId);
-            virtual bool SendRequest(unsigned short reqId, const unsigned char *pBuffer, unsigned int size, ResultHandler rh, DDiscarded discarded = nullptr, DServerException serverException = nullptr);
-            bool SendRequest(unsigned short reqId, ResultHandler rh, DDiscarded discarded = nullptr, DServerException se = nullptr);
+            virtual bool SendRequest(unsigned short reqId, const unsigned char *pBuffer, unsigned int size, const ResultHandler& rh, const DDiscarded& discarded = nullptr, const DServerException& serverException = nullptr);
+            bool SendRequest(unsigned short reqId, const ResultHandler& rh, const DDiscarded& discarded = nullptr, const DServerException& se = nullptr);
 
             inline CClientSocket *GetAttachedClientSocket() {
                 return m_pClientSocket;
