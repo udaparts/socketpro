@@ -802,20 +802,15 @@ namespace SPA {
                 : AsyncResultHandler(rh), Discarded(discarded), ExceptionFromServer(exceptionFromServer) {
                 }
 
-                /*CResultCb& operator=(const CResultCb &rcb) {
-                    if (this != &rcb) {
-                        AsyncResultHandler = rcb.AsyncResultHandler;
-                        Discarded = rcb.Discarded;
-                        ExceptionFromServer = rcb.ExceptionFromServer;
-                    }
-                    return *this;
-                }*/
+                //no copy contructor or assignment operator
+                CResultCb(const CResultCb &rcb);
+                CResultCb& operator=(const CResultCb &rcb);
 
                 ResultHandler AsyncResultHandler;
                 DDiscarded Discarded;
                 DServerException ExceptionFromServer;
             };
-            typedef std::pair<unsigned short, CResultCb>* PRR_PAIR;
+            typedef std::pair<unsigned short, CResultCb*>* PRR_PAIR;
             static CUQueue m_vRR;
             static PRR_PAIR Reuse();
             static void Recycle(PRR_PAIR p);

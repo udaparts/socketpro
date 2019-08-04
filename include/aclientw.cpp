@@ -88,6 +88,7 @@ namespace SPA
             PRR_PAIR *start = (PRR_PAIR *) m_vRR.GetBuffer();
             for (unsigned int it = remaining; it < total; ++it) {
                 PRR_PAIR p = *(start + it);
+                delete p->second;
                 delete p;
             }
             m_vRR.SetSize(remaining * sizeof (PRR_PAIR));
@@ -238,11 +239,11 @@ namespace SPA
                 p = Reuse();
                 if (p) {
                     p->first = reqId;
-                    p->second.AsyncResultHandler = rh;
-                    p->second.Discarded = discarded;
-                    p->second.ExceptionFromServer = serverException;
+                    p->second->AsyncResultHandler = rh;
+                    p->second->Discarded = discarded;
+                    p->second->ExceptionFromServer = serverException;
                 } else {
-                    p = new std::pair<unsigned short, CResultCb>(reqId, CResultCb(rh, discarded, serverException));
+                    p = new std::pair<unsigned short, CResultCb*>(reqId, new CResultCb(rh, discarded, serverException));
                 }
                 batching = ClientCoreLoader.IsBatching(h);
                 CAutoLock alSend(m_csSend);
@@ -299,8 +300,8 @@ namespace SPA
             PRR_PAIR *pp = (PRR_PAIR*) m_vCallback.GetBuffer();
             unsigned int start = total - count;
             for (; start != count; ++start) {
-                if (pp[start]->second.Discarded) {
-                    pp[start]->second.Discarded(this, true);
+                if (pp[start]->second->Discarded) {
+                    pp[start]->second->Discarded(this, true);
                 }
                 Recycle(pp[start]);
             }
@@ -315,8 +316,8 @@ namespace SPA
             PRR_PAIR p = nullptr;
             OnExceptionFromServer(requestId, errMessage, errWhere, errCode);
             if (GetAsyncResultHandler(requestId, p)) {
-                if (p->second.ExceptionFromServer) {
-                    p->second.ExceptionFromServer(this, requestId, errMessage, errWhere, errCode);
+                if (p->second->ExceptionFromServer) {
+                    p->second->ExceptionFromServer(this, requestId, errMessage, errWhere, errCode);
                 }
                 Recycle(p);
             }
@@ -325,9 +326,9 @@ namespace SPA
 
         void CAsyncServiceHandler::OnRR(unsigned short reqId, CUQueue & mc) {
             PRR_PAIR p = nullptr;
-            if (GetAsyncResultHandler(reqId, p) && p->second.AsyncResultHandler) {
-                CAsyncResult ar(this, reqId, mc, p->second.AsyncResultHandler);
-                p->second.AsyncResultHandler(ar);
+            if (GetAsyncResultHandler(reqId, p) && p->second->AsyncResultHandler) {
+                CAsyncResult ar(this, reqId, mc, p->second->AsyncResultHandler);
+                p->second->AsyncResultHandler(ar);
             } else if (m_rrImpl.Invoke(this, reqId, mc)) {
             } else
                 OnResultReturned(reqId, mc);
@@ -357,16 +358,16 @@ namespace SPA
             unsigned int total = count;
             PRR_PAIR *pp = (PRR_PAIR*) m_vBatching.GetBuffer();
             for (unsigned int it = 0; it < count; ++it) {
-                if (pp[it]->second.Discarded) {
-                    pp[it]->second.Discarded(this, GetAttachedClientSocket()->GetCurrentRequestID() == idCancel);
+                if (pp[it]->second->Discarded) {
+                    pp[it]->second->Discarded(this, GetAttachedClientSocket()->GetCurrentRequestID() == idCancel);
                 }
             }
             CleanQueue(m_vBatching);
             count = m_vCallback.GetSize() / sizeof (PRR_PAIR);
             pp = (PRR_PAIR*) m_vCallback.GetBuffer();
             for (unsigned int it = 0; it < count; ++it) {
-                if (pp[it]->second.Discarded) {
-                    pp[it]->second.Discarded(this, GetAttachedClientSocket()->GetCurrentRequestID() == idCancel);
+                if (pp[it]->second->Discarded) {
+                    pp[it]->second->Discarded(this, GetAttachedClientSocket()->GetCurrentRequestID() == idCancel);
                 }
             }
             CleanQueue(m_vCallback);
