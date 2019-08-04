@@ -249,15 +249,9 @@ namespace SPA
                 {
                     CAutoLock al(m_cs);
                     if (batching) {
-                        if (m_vBatching.GetTailSize() < sizeof (PRR_PAIR) && m_vBatching.GetHeadPosition() > m_vBatching.GetSize()) {
-                            m_vBatching.SetHeadPosition();
-                        }
                         m_vBatching << p;
                         assert((m_vBatching.GetSize() % sizeof (PRR_PAIR)) == 0);
                     } else {
-                        if (m_vCallback.GetTailSize() < sizeof (PRR_PAIR) && m_vCallback.GetHeadPosition() > m_vCallback.GetSize()) {
-                            m_vCallback.SetHeadPosition();
-                        }
                         m_vCallback << p;
                     }
                 }

@@ -798,28 +798,18 @@ namespace SPA {
 
             struct CResultCb {
 
-                CResultCb() {
-                }
-
-                CResultCb(const ResultHandler &rh) : AsyncResultHandler(rh) {
-                }
-
                 CResultCb(const ResultHandler &rh, const DDiscarded& discarded, const DServerException &exceptionFromServer)
                 : AsyncResultHandler(rh), Discarded(discarded), ExceptionFromServer(exceptionFromServer) {
                 }
 
-                CResultCb(const CResultCb &rcb)
-                : AsyncResultHandler(rcb.AsyncResultHandler), Discarded(rcb.Discarded), ExceptionFromServer(rcb.ExceptionFromServer) {
-                }
-
-                CResultCb& operator=(const CResultCb &rcb) {
+                /*CResultCb& operator=(const CResultCb &rcb) {
                     if (this != &rcb) {
                         AsyncResultHandler = rcb.AsyncResultHandler;
                         Discarded = rcb.Discarded;
                         ExceptionFromServer = rcb.ExceptionFromServer;
                     }
                     return *this;
-                }
+                }*/
 
                 ResultHandler AsyncResultHandler;
                 DDiscarded Discarded;
