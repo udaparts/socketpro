@@ -2,7 +2,7 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProductVersion>9.0.30729</ProductVersion>
+    <ProductVersion>9.0.21022</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{7791E581-AE1A-4F06-9444-45B0CA80298B}</ProjectGuid>
     <OutputType>Library</OutputType>
@@ -61,8 +61,8 @@
     <Compile Include="..\SproAdapter\asyncdbhandler.cs">
       <Link>asyncdbhandler.cs</Link>
     </Compile>
-    <Compile Include="..\SproAdapter\asynchandler.cs">
-      <Link>asynchandler.cs</Link>
+    <Compile Include="..\SproAdapter\asynchandlerlock.cs">
+      <Link>asynchandlerlock.cs</Link>
     </Compile>
     <Compile Include="..\SproAdapter\asyncqueue.cs">
       <Link>asyncqueue.cs</Link>
@@ -103,8 +103,8 @@
     <Compile Include="..\SproAdapter\replication.cs">
       <Link>replication.cs</Link>
     </Compile>
-    <Compile Include="..\SproAdapter\scopeuqueue.cs">
-      <Link>scopeuqueue.cs</Link>
+    <Compile Include="..\SproAdapter\scopeuqueuelock.cs">
+      <Link>scopeuqueuelock.cs</Link>
     </Compile>
     <Compile Include="..\SproAdapter\socketpool.cs">
       <Link>socketpool.cs</Link>
@@ -118,8 +118,8 @@
     <Compile Include="..\SproAdapter\udataset.cs">
       <Link>udataset.cs</Link>
     </Compile>
-    <Compile Include="..\SproAdapter\uqueuelock.cs">
-      <Link>uqueuelock.cs</Link>
+    <Compile Include="..\SproAdapter\uqueue.cs">
+      <Link>uqueue.cs</Link>
     </Compile>
     <Compile Include="..\SproAdapter\usqlite.cs">
       <Link>usqlite.cs</Link>
