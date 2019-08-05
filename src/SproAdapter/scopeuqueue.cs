@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.Concurrent;
 
 namespace SocketProAdapter
 {
@@ -12,28 +13,20 @@ namespace SocketProAdapter
 
         public static void DestroyUQueuePool()
         {
-            lock (m_cs)
+            while (m_sQueue.Count > 0)
             {
-                while (m_sQueue.Count > 0)
-                {
-                    m_sQueue.RemoveAt(m_sQueue.Count - 1);
-                }
+                CUQueue q;
+                m_sQueue.TryDequeue(out q);
             }
         }
 
         public static CUQueue Lock(tagOperationSystem os)
         {
-            CUQueue UQueue = null;
-            lock (m_cs)
+            CUQueue UQueue;
+            if (!m_sQueue.TryDequeue(out UQueue))
             {
-                if (m_sQueue.Count > 0)
-                {
-                    UQueue = m_sQueue[m_sQueue.Count - 1];
-                    m_sQueue.RemoveAt(m_sQueue.Count - 1);
-                }
-            }
-            if (UQueue == null)
                 UQueue = new CUQueue();
+            }
             UQueue.OS = os;
             return UQueue;
         }
@@ -44,19 +37,13 @@ namespace SocketProAdapter
         {
             get
             {
-                lock (m_cs)
-                {
-                    return m_cleanSize;
-                }
+                return m_cleanSize;
             }
             set
             {
-                lock (m_cs)
-                {
-                    if (value < 512)
-                        value = 512;
-                    m_cleanSize = value;
-                }
+                if (value < 512)
+                    value = 512;
+                m_cleanSize = value;
             }
         }
 
@@ -65,12 +52,9 @@ namespace SocketProAdapter
             get
             {
                 ulong mem = 0;
-                lock (m_cs)
+                foreach (CUQueue q in m_sQueue)
                 {
-                    foreach (CUQueue q in m_sQueue)
-                    {
-                        mem += q.MaxBufferSize;
-                    }
+                    mem += q.MaxBufferSize;
                 }
                 return mem;
             }
@@ -86,10 +70,7 @@ namespace SocketProAdapter
             if (UQueue != null)
             {
                 UQueue.SetSize(0);
-                lock (m_cs)
-                {
-                    m_sQueue.Add(UQueue);
-                }
+                m_sQueue.Enqueue(UQueue);
             }
         }
 
@@ -139,8 +120,7 @@ namespace SocketProAdapter
         }
 
         private CUQueue m_UQueue;
-        private static List<CUQueue> m_sQueue = new List<CUQueue>();
-        private static object m_cs = new object();
+        private static ConcurrentQueue<CUQueue> m_sQueue = new ConcurrentQueue<CUQueue>();
         #region IDisposable Members
         void IDisposable.Dispose()
         {
