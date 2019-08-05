@@ -1858,9 +1858,9 @@ namespace SocketProAdapter {
             }
             public delegate void DDiscarded(CAsyncServiceHandler h, bool canceled);
             internal class CResultCb {
-                public DAsyncResultHandler AsyncResultHandler = null;
-                public DDiscarded Discarded = null;
-                public DOnExceptionFromServer ExceptionFromServer = null;
+                public DAsyncResultHandler AsyncResultHandler;
+                public DDiscarded Discarded;
+                public DOnExceptionFromServer ExceptionFromServer;
             }
 #if TASKS_ENABLED
             public Task<R> Async<R>(ushort reqId, byte[] data, uint len) {

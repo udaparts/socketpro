@@ -50,11 +50,14 @@ namespace SocketProAdapter
             /// <summary>
             /// An event for tracking message queued notification from server side
             /// </summary>
-            public event DMessageQueued MessageQueued {
-                add {
+            public event DMessageQueued MessageQueued
+            {
+                add
+                {
                     m_lstMQ.add(value);
                 }
-                remove {
+                remove
+                {
                     m_lstMQ.remove(value);
                 }
             }
@@ -79,8 +82,10 @@ namespace SocketProAdapter
             /// <summary>
             /// Dequeue batch size in bytes
             /// </summary>
-            public uint DequeueBatchSize {
-                get {
+            public uint DequeueBatchSize
+            {
+                get
+                {
                     return (m_nBatchSize & 0xffffff);
                 }
             }
@@ -88,8 +93,10 @@ namespace SocketProAdapter
             /// <summary>
             /// Check if remote queue server is able to automatically notify a client when a message is enqueued at server side
             /// </summary>
-            public bool EnqueueNotified {
-                get {
+            public bool EnqueueNotified
+            {
+                get
+                {
                     return ((m_nBatchSize >> 24) == 0);
                 }
             }
@@ -97,14 +104,17 @@ namespace SocketProAdapter
             /// <summary>
             /// Last dequeue callback
             /// </summary>
-            public DDequeue LastDequeueCallback {
-                get {
+            public DDequeue LastDequeueCallback
+            {
+                get
+                {
                     lock (m_csQ)
                     {
                         return m_dDequeue;
                     }
                 }
-                set {
+                set
+                {
                     lock (m_csQ)
                     {
                         m_dDequeue = value;
@@ -114,17 +124,16 @@ namespace SocketProAdapter
 
             private DAsyncResultHandler GetRH(DEnqueue e)
             {
-                DAsyncResultHandler rh = null;
                 if (e != null)
                 {
-                    rh = (ar) =>
+                    return (ar) =>
                     {
                         ulong index;
                         ar.Load(out index);
                         e((CAsyncQueue)ar.AsyncServiceHandler, index);
                     };
                 }
-                return rh;
+                return null;
             }
 
             public static void BatchMessage(ushort idMessage, byte[] message, uint len, CUQueue q)
