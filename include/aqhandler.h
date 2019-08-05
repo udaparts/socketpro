@@ -212,15 +212,14 @@ namespace SPA {
         private:
 
             inline ResultHandler GetRH(const DEnqueue & e) {
-                ResultHandler rh;
                 if (e) {
-                    rh = [e](CAsyncResult & ar) {
+                    return [&e](CAsyncResult & ar) {
                         UINT64 index;
                         ar >> index;
                         e((CAsyncQueue*) ar.AsyncServiceHandler, index);
                     };
                 }
-                return rh;
+                return nullptr;
             }
 
         public:
