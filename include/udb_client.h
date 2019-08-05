@@ -318,8 +318,8 @@ namespace SPA {
              * @return true if request is successfully sent or queued; and false if request is NOT successfully sent or queued
              */
             virtual bool ExecuteBatch(tagTransactionIsolation isolation, const wchar_t *sql, CDBVariantArray &vParam = CDBVariantArray(),
-                    DExecuteResult handler = nullptr, DRows row = nullptr, DRowsetHeader rh = nullptr, DRowsetHeader batchHeader = nullptr,
-                    const CParameterInfoArray& vPInfo = CParameterInfoArray(), tagRollbackPlan plan = rpDefault, DDiscarded discarded = nullptr,
+                    const DExecuteResult& handler = nullptr, const DRows& row = nullptr, const DRowsetHeader& rh = nullptr, const DRowsetHeader& batchHeader = nullptr,
+                    const CParameterInfoArray& vPInfo = CParameterInfoArray(), tagRollbackPlan plan = rpDefault, const DDiscarded& discarded = nullptr,
                     const wchar_t *delimiter = L";", bool meta = true, bool lastInsertId = true) {
                 bool rowset = (rh || row) ? true : false;
                 if (!rowset) {
@@ -385,8 +385,8 @@ namespace SPA {
              * @param discarded a callback for tracking socket closed or request canceled event
              * @return true if request is successfully sent or queued; and false if request is NOT successfully sent or queued
              */
-            virtual bool Execute(CDBVariantArray &vParam, DExecuteResult handler = DExecuteResult(), DRows row = DRows(), DRowsetHeader rh = DRowsetHeader(),
-                    bool meta = true, bool lastInsertId = true, DDiscarded discarded = nullptr) {
+            virtual bool Execute(CDBVariantArray &vParam, const DExecuteResult& handler = nullptr, const DRows& row = nullptr, const DRowsetHeader& rh = nullptr,
+                    bool meta = true, bool lastInsertId = true, const DDiscarded& discarded = nullptr) {
                 bool rowset = (rh || row) ? true : false;
                 if (!rowset) {
                     meta = false;
@@ -447,7 +447,7 @@ namespace SPA {
              * @param discarded a callback for tracking socket closed or request canceled event
              * @return true if request is successfully sent or queued; and false if request is NOT successfully sent or queued
              */
-            virtual bool Execute(const wchar_t* sql, DExecuteResult handler = DExecuteResult(), DRows row = DRows(), DRowsetHeader rh = DRowsetHeader(), bool meta = true, bool lastInsertId = true, DDiscarded discarded = nullptr) {
+            virtual bool Execute(const wchar_t* sql, const DExecuteResult& handler = nullptr, const DRows& row = nullptr, const DRowsetHeader& rh = nullptr, bool meta = true, bool lastInsertId = true, const DDiscarded& discarded = nullptr) {
                 bool rowset = (rh || row) ? true : false;
                 if (!rowset) {
                     meta = false;
@@ -483,7 +483,7 @@ namespace SPA {
              * @param discarded a callback for tracking socket closed or request canceled event
              * @return true if request is successfully sent or queued; and false if request is NOT successfully sent or queued
              */
-            virtual bool Open(const wchar_t* strConnection, DResult handler, unsigned int flags = 0, DDiscarded discarded = nullptr) {
+            virtual bool Open(const wchar_t* strConnection, const DResult& handler, unsigned int flags = 0, const DDiscarded& discarded = nullptr) {
                 std::wstring s;
                 CScopeUQueue sb;
                 {
@@ -538,7 +538,7 @@ namespace SPA {
              * @param discarded a callback for tracking socket closed or request canceled event
              * @return true if request is successfully sent or queued; and false if request is NOT successfully sent or queued
              */
-            virtual bool Prepare(const wchar_t *sql, DResult handler = nullptr, const CParameterInfoArray& vParameterInfo = CParameterInfoArray(), DDiscarded discarded = nullptr) {
+            virtual bool Prepare(const wchar_t *sql, const DResult& handler = nullptr, const CParameterInfoArray& vParameterInfo = CParameterInfoArray(), const DDiscarded& discarded = nullptr) {
                 CScopeUQueue sb;
                 ResultHandler arh = [handler](CAsyncResult & ar) {
                     int res;
@@ -569,7 +569,7 @@ namespace SPA {
              * @param discarded a callback for tracking socket closed or request canceled event
              * @return true if request is successfully sent or queued; and false if request is NOT successfully sent or queued
              */
-            virtual bool Close(DResult handler = nullptr, DDiscarded discarded = nullptr) {
+            virtual bool Close(DResult handler = nullptr, const DDiscarded& discarded = nullptr) {
                 ResultHandler arh = [handler](CAsyncResult & ar) {
                     int res;
                     std::wstring errMsg;
@@ -595,7 +595,7 @@ namespace SPA {
              * @param discarded a callback for tracking socket closed or request canceled event
              * @return true if request is successfully sent or queued; and false if request is NOT successfully sent or queued
              */
-            virtual bool BeginTrans(tagTransactionIsolation isolation = tiReadCommited, DResult handler = nullptr, DDiscarded discarded = nullptr) {
+            virtual bool BeginTrans(tagTransactionIsolation isolation = tiReadCommited, const DResult& handler = nullptr, const DDiscarded& discarded = nullptr) {
                 unsigned int flags;
                 std::wstring connection;
                 CScopeUQueue sb;
@@ -644,7 +644,7 @@ namespace SPA {
              * @param discarded a callback for tracking socket closed or request canceled event
              * @return true if request is successfully sent or queued; and false if request is NOT successfully sent or queued
              */
-            virtual bool EndTrans(tagRollbackPlan plan = rpDefault, DResult handler = nullptr, DDiscarded discarded = nullptr) {
+            virtual bool EndTrans(tagRollbackPlan plan = rpDefault, const DResult& handler = nullptr, const DDiscarded& discarded = nullptr) {
                 CScopeUQueue sb;
                 sb << (int) plan;
                 ResultHandler arh = [handler](CAsyncResult & ar) {
@@ -1012,7 +1012,7 @@ namespace SPA {
 
         private:
 
-            void Process(DExecuteResult handler, CAsyncResult & ar, unsigned short reqId, UINT64 index) {
+            void Process(const DExecuteResult& handler, CAsyncResult & ar, unsigned short reqId, UINT64 index) {
                 INT64 affected;
                 UINT64 fail_ok;
                 int res;
