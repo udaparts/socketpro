@@ -230,6 +230,19 @@ namespace SPA
             return ClientCoreLoader.IsBatching(GetClientSocketHandle());
         }
 
+        bool CAsyncServiceHandler::Remove(CUQueue &q, PRR_PAIR p) {
+            int count = (int) (q.GetSize() / sizeof (PRR_PAIR));
+            PRR_PAIR *pp = (PRR_PAIR*) q.GetBuffer();
+            for (int n = count - 1; n >= 0; --n) {
+                PRR_PAIR it = pp[n];
+                if (it == p) {
+                    q.Pop((unsigned int) sizeof (PRR_PAIR), (unsigned int) (n * sizeof (PRR_PAIR)));
+                    return true;
+                }
+            }
+            return false;
+        }
+
         bool CAsyncServiceHandler::SendRequest(unsigned short reqId, const unsigned char *pBuffer, unsigned int size, const ResultHandler& rh, const DDiscarded& discarded, const DServerException & serverException) {
             PRR_PAIR p = nullptr;
             bool batching = false;
@@ -262,11 +275,12 @@ namespace SPA
             }
             if (!sent) {
                 if (p) {
-                    CAutoLock al(m_cs);
-                    if (batching)
-                        m_vBatching.SetSize(m_vBatching.GetSize() - sizeof (PRR_PAIR));
-                    else
-                        m_vCallback.SetSize(m_vCallback.GetSize() - sizeof (PRR_PAIR));
+                    m_cs.lock();
+                    bool ok = (batching ? Remove(m_vBatching, p) : Remove(m_vCallback, p));
+                    m_cs.unlock();
+                    if (ok) {
+                        Recycle(p);
+                    }
                 }
                 return false;
             }
@@ -1050,7 +1064,7 @@ namespace SPA
                 if (len > q.GetMaxSize())
                     q.ReallocBuffer(len + sizeof (wchar_t));
                 if (len) {
-                    const unsigned char *result = ClientCoreLoader.GetResultBuffer(p->m_hSocket);
+                    const unsigned char *result = ClientCoreLoader.GetResultBuffer(handler);
                     q.Push(result, len);
                 }
                 PAsyncServiceHandler ash = p->m_pHandler;

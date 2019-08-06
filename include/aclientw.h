@@ -1710,6 +1710,7 @@ namespace SPA {
             void SetNULL();
             void EraseBack(unsigned int count);
             void AppendTo(CAsyncServiceHandler &from);
+            static bool Remove(CUQueue &q, PRR_PAIR p);
 
         protected:
             virtual void OnPostProcessing(unsigned int hint, UINT64 data);
