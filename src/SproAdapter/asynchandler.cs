@@ -36,32 +36,24 @@ namespace SocketProAdapter
                 return m_UQueue;
             }
 
-            public CAsyncServiceHandler AsyncServiceHandler
-            {
-                get
-                {
+            public CAsyncServiceHandler AsyncServiceHandler {
+                get {
                     return m_AsyncServiceHandler;
                 }
             }
-            public ushort RequestId
-            {
-                get
-                {
+            public ushort RequestId {
+                get {
                     return m_RequestId;
                 }
             }
-            public CUQueue UQueue
-            {
-                get
-                {
+            public CUQueue UQueue {
+                get {
                     return m_UQueue;
                 }
             }
 
-            public CAsyncServiceHandler.DAsyncResultHandler CurrentAsyncResultHandler
-            {
-                get
-                {
+            public CAsyncServiceHandler.DAsyncResultHandler CurrentAsyncResultHandler {
+                get {
                     return m_CurrentAsyncResultHandler;
                 }
             }
@@ -93,39 +85,30 @@ namespace SocketProAdapter
             public delegate void DOnBaseRequestProcessed(CAsyncServiceHandler sender, ushort reqId);
 
             private UDelegate<DOnResultReturned> m_lstRR;
-            public event DOnResultReturned ResultReturned
-            {
-                add
-                {
+            public event DOnResultReturned ResultReturned {
+                add {
                     m_lstRR.add(value);
                 }
-                remove
-                {
+                remove {
                     m_lstRR.remove(value);
                 }
             }
             private UDelegate<DOnExceptionFromServer> m_lstEFS;
-            public event DOnExceptionFromServer ServerException
-            {
-                add
-                {
+            public event DOnExceptionFromServer ServerException {
+                add {
                     m_lstEFS.add(value);
                 }
-                remove
-                {
+                remove {
 
                     m_lstEFS.remove(value);
                 }
             }
             private UDelegate<DOnBaseRequestProcessed> m_lstBRP;
-            public event DOnBaseRequestProcessed BaseRequestProcessed
-            {
-                add
-                {
+            public event DOnBaseRequestProcessed BaseRequestProcessed {
+                add {
                     m_lstBRP.add(value);
                 }
-                remove
-                {
+                remove {
                     m_lstBRP.Remove(value);
                 }
             }
@@ -183,10 +166,8 @@ namespace SocketProAdapter
                 return ok;
             }
 
-            public uint SvsID
-            {
-                get
-                {
+            public uint SvsID {
+                get {
                     return m_nServiceId;
                 }
             }
@@ -243,10 +224,8 @@ namespace SocketProAdapter
                 ClientCoreLoader.AbortDequeuedMessage(h);
             }
 
-            public bool DequeuedResult
-            {
-                get
-                {
+            public bool DequeuedResult {
+                get {
                     if (m_ClientSocket == null)
                         return false;
                     IntPtr h = m_ClientSocket.Handle;
@@ -254,10 +233,8 @@ namespace SocketProAdapter
                 }
             }
 
-            public bool DequeuedMessageAborted
-            {
-                get
-                {
+            public bool DequeuedMessageAborted {
+                get {
                     if (m_ClientSocket == null)
                         return false;
                     IntPtr h = m_ClientSocket.Handle;
@@ -265,10 +242,8 @@ namespace SocketProAdapter
                 }
             }
 
-            public bool RouteeRequest
-            {
-                get
-                {
+            public bool RouteeRequest {
+                get {
                     if (m_ClientSocket == null)
                         return false;
                     IntPtr h = m_ClientSocket.Handle;
@@ -312,10 +287,8 @@ namespace SocketProAdapter
                 return ClientCoreLoader.WaitAll(h, timeOut) != 0;
             }
 
-            public bool Batching
-            {
-                get
-                {
+            public bool Batching {
+                get {
                     if (m_ClientSocket == null)
                         return false;
                     IntPtr h = m_ClientSocket.Handle;
@@ -2061,10 +2034,8 @@ namespace SocketProAdapter
                 return true;
             }
 
-            public CClientSocket AttachedClientSocket
-            {
-                get
-                {
+            public CClientSocket AttachedClientSocket {
+                get {
                     return m_ClientSocket;
                 }
             }
@@ -2076,7 +2047,7 @@ namespace SocketProAdapter
 
             public virtual bool SendRequest(ushort reqId, byte[] data, uint len, DAsyncResultHandler ash, DDiscarded discarded, DOnExceptionFromServer exception)
             {
-                bool sent = false;
+                bool sent;
                 byte batching = 0;
                 MyKeyValue<ushort, CResultCb> kv = null;
                 if (m_ClientSocket == null)
@@ -2140,9 +2111,9 @@ namespace SocketProAdapter
                     lock (m_cs)
                     {
                         if (batching > 0)
-                            m_kvBatching.RemoveFromBack();
+                            m_kvBatching.Clear();
                         else
-                            m_kvCallback.RemoveFromBack();
+                            m_kvCallback.Clear();
                     }
                 }
                 return false;
@@ -2465,10 +2436,8 @@ namespace SocketProAdapter
             /// <summary>
             /// A property for the number of requests queued inside asynchronous handler
             /// </summary>
-            public int RequestsQueued
-            {
-                get
-                {
+            public int RequestsQueued {
+                get {
                     lock (m_cs)
                     {
                         return m_kvCallback.Count;

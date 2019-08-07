@@ -44,9 +44,14 @@ public class CAsyncServiceHandler implements AutoCloseable {
 
     class CResultCb {
 
-        public DAsyncResultHandler AsyncResultHandler = null;
-        public DDiscarded Discarded = null;
-        public DOnExceptionFromServer ExceptionFromServer = null;
+        public CResultCb(DAsyncResultHandler ash, DDiscarded dis, DOnExceptionFromServer ex) {
+            AsyncResultHandler = ash;
+            Discarded = dis;
+            ExceptionFromServer = ex;
+        }
+        public DAsyncResultHandler AsyncResultHandler;
+        public DDiscarded Discarded;
+        public DOnExceptionFromServer ExceptionFromServer;
     }
 
     private static final Object m_csCallIndex = new Object();
@@ -152,13 +157,9 @@ public class CAsyncServiceHandler implements AutoCloseable {
         }
         boolean sent;
         boolean batching = false;
-        CResultCb rcb = null;
+        java.util.Map.Entry<Short, CResultCb> kv = null;
         if (ash != null || discarded != null || exception != null) {
-            rcb = new CResultCb();
-            rcb.AsyncResultHandler = ash;
-            rcb.Discarded = discarded;
-            rcb.ExceptionFromServer = exception;
-            java.util.Map.Entry<Short, CResultCb> kv = new java.util.AbstractMap.SimpleEntry<>(reqId, rcb);
+            kv = new java.util.AbstractMap.SimpleEntry<>(reqId, new CResultCb(ash, discarded, exception));
             synchronized (m_csSend) {
                 synchronized (m_cs) {
                     batching = m_bBatching;
@@ -176,12 +177,12 @@ public class CAsyncServiceHandler implements AutoCloseable {
         if (sent) {
             return true;
         }
-        if (rcb != null) {
+        if (kv != null) {
             synchronized (m_cs) {
                 if (batching) {
-                    m_kvBatching.removeLast();
+                    m_kvBatching.clear();
                 } else {
-                    m_kvCallback.removeLast();
+                    m_kvCallback.clear();
                 }
             }
         }

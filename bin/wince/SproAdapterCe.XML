@@ -1625,98 +1625,6 @@
             </summary>
             <param name="sid">A service id</param>
         </member>
-        <member name="M:SocketProAdapter.ClientSide.COdbc.#ctor(System.UInt32)">
-            <summary>
-            You may use the protected constructor when extending this class
-            </summary>
-            <param name="sid">A service id</param>
-        </member>
-        <member name="F:SocketProAdapter.UDB.tagRollbackPlan.rpDefault">
-            <summary>
-            Manual transaction will rollback whenever there is an error by default
-            </summary>
-        </member>
-        <member name="F:SocketProAdapter.UDB.tagRollbackPlan.rpRollbackErrorAny">
-            <summary>
-            Manual transaction will rollback whenever there is an error by default
-            </summary>
-        </member>
-        <member name="F:SocketProAdapter.UDB.tagRollbackPlan.rpRollbackErrorLess">
-            <summary>
-            Manual transaction will rollback as long as the number of errors is less than the number of ok processing statements
-            </summary>
-        </member>
-        <member name="F:SocketProAdapter.UDB.tagRollbackPlan.rpRollbackErrorEqual">
-            <summary>
-            Manual transaction will rollback as long as the number of errors is less or equal than the number of ok processing statements
-            </summary>
-        </member>
-        <member name="F:SocketProAdapter.UDB.tagRollbackPlan.rpRollbackErrorMore">
-            <summary>
-            Manual transaction will rollback as long as the number of errors is more than the number of ok processing statements
-            </summary>
-        </member>
-        <member name="F:SocketProAdapter.UDB.tagRollbackPlan.rpRollbackErrorAll">
-            <summary>
-            Manual transaction will rollback only if all the processing statements are failed
-            </summary>
-        </member>
-        <member name="F:SocketProAdapter.UDB.tagRollbackPlan.rpRollbackAlways">
-            <summary>
-            Manual transaction will rollback always no matter what happens.
-            </summary>
-        </member>
-        <member name="F:SocketProAdapter.UDB.tagUpdateEvent.ueInsert">
-            <summary>
-            An event for inserting a record into a table
-            </summary>
-        </member>
-        <member name="F:SocketProAdapter.UDB.tagUpdateEvent.ueUpdate">
-            <summary>
-            An event for updating a record of a table
-            </summary>
-        </member>
-        <member name="F:SocketProAdapter.UDB.tagUpdateEvent.ueDelete">
-            <summary>
-            An event for deleting a record from a table
-            </summary>
-        </member>
-        <member name="F:SocketProAdapter.UDB.DB_CONSTS.idOpen">
-            <summary>
-            Async database client/server just requires the following request identification numbers 
-            </summary>
-        </member>
-        <member name="F:SocketProAdapter.UDB.DB_CONSTS.idDBUpdate">
-            <summary>
-            the request identification numbers used for message push from server to client
-            </summary>
-        </member>
-        <member name="F:SocketProAdapter.UDB.DB_CONSTS.idBeginRows">
-            <summary>
-            Internal request/response identification numbers used for data communication between client and server
-            </summary>
-        </member>
-        <member name="F:SocketProAdapter.UDB.DB_CONSTS.DEFAULT_BIG_FIELD_CHUNK_SIZE">
-            <summary>
-            Whenever a data size in bytes is about twice larger than the defined value,
-            the data will be treated in large object and transferred in chunks for reducing memory foot print
-            </summary>
-        </member>
-        <member name="F:SocketProAdapter.UDB.DB_CONSTS.DEFAULT_RECORD_BATCH_SIZE">
-            <summary>
-            A record data size in bytes is approximately equal to or slightly larger than the defined constant
-            </summary>
-        </member>
-        <member name="F:SocketProAdapter.UDB.DB_CONSTS.ENABLE_TABLE_UPDATE_MESSAGES">
-            <summary>
-            A flag used with idOpen for tracing database table update events
-            </summary>
-        </member>
-        <member name="F:SocketProAdapter.UDB.DB_CONSTS.STREAMING_SQL_CHAT_GROUP_ID">
-            <summary>
-            A chat group id used at SocketPro server side for notifying database events from server to connected clients
-            </summary>
-        </member>
         <member name="T:SocketProAdapter.UDateTime">
             <summary>
             database datetime with accuracy micro-second
@@ -1881,6 +1789,98 @@
         <member name="P:SocketProAdapter.CUQueue.TailSize">
             <summary>
             An integer value for unused bytes
+            </summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.COdbc.#ctor(System.UInt32)">
+            <summary>
+            You may use the protected constructor when extending this class
+            </summary>
+            <param name="sid">A service id</param>
+        </member>
+        <member name="F:SocketProAdapter.UDB.tagRollbackPlan.rpDefault">
+            <summary>
+            Manual transaction will rollback whenever there is an error by default
+            </summary>
+        </member>
+        <member name="F:SocketProAdapter.UDB.tagRollbackPlan.rpRollbackErrorAny">
+            <summary>
+            Manual transaction will rollback whenever there is an error by default
+            </summary>
+        </member>
+        <member name="F:SocketProAdapter.UDB.tagRollbackPlan.rpRollbackErrorLess">
+            <summary>
+            Manual transaction will rollback as long as the number of errors is less than the number of ok processing statements
+            </summary>
+        </member>
+        <member name="F:SocketProAdapter.UDB.tagRollbackPlan.rpRollbackErrorEqual">
+            <summary>
+            Manual transaction will rollback as long as the number of errors is less or equal than the number of ok processing statements
+            </summary>
+        </member>
+        <member name="F:SocketProAdapter.UDB.tagRollbackPlan.rpRollbackErrorMore">
+            <summary>
+            Manual transaction will rollback as long as the number of errors is more than the number of ok processing statements
+            </summary>
+        </member>
+        <member name="F:SocketProAdapter.UDB.tagRollbackPlan.rpRollbackErrorAll">
+            <summary>
+            Manual transaction will rollback only if all the processing statements are failed
+            </summary>
+        </member>
+        <member name="F:SocketProAdapter.UDB.tagRollbackPlan.rpRollbackAlways">
+            <summary>
+            Manual transaction will rollback always no matter what happens.
+            </summary>
+        </member>
+        <member name="F:SocketProAdapter.UDB.tagUpdateEvent.ueInsert">
+            <summary>
+            An event for inserting a record into a table
+            </summary>
+        </member>
+        <member name="F:SocketProAdapter.UDB.tagUpdateEvent.ueUpdate">
+            <summary>
+            An event for updating a record of a table
+            </summary>
+        </member>
+        <member name="F:SocketProAdapter.UDB.tagUpdateEvent.ueDelete">
+            <summary>
+            An event for deleting a record from a table
+            </summary>
+        </member>
+        <member name="F:SocketProAdapter.UDB.DB_CONSTS.idOpen">
+            <summary>
+            Async database client/server just requires the following request identification numbers 
+            </summary>
+        </member>
+        <member name="F:SocketProAdapter.UDB.DB_CONSTS.idDBUpdate">
+            <summary>
+            the request identification numbers used for message push from server to client
+            </summary>
+        </member>
+        <member name="F:SocketProAdapter.UDB.DB_CONSTS.idBeginRows">
+            <summary>
+            Internal request/response identification numbers used for data communication between client and server
+            </summary>
+        </member>
+        <member name="F:SocketProAdapter.UDB.DB_CONSTS.DEFAULT_BIG_FIELD_CHUNK_SIZE">
+            <summary>
+            Whenever a data size in bytes is about twice larger than the defined value,
+            the data will be treated in large object and transferred in chunks for reducing memory foot print
+            </summary>
+        </member>
+        <member name="F:SocketProAdapter.UDB.DB_CONSTS.DEFAULT_RECORD_BATCH_SIZE">
+            <summary>
+            A record data size in bytes is approximately equal to or slightly larger than the defined constant
+            </summary>
+        </member>
+        <member name="F:SocketProAdapter.UDB.DB_CONSTS.ENABLE_TABLE_UPDATE_MESSAGES">
+            <summary>
+            A flag used with idOpen for tracing database table update events
+            </summary>
+        </member>
+        <member name="F:SocketProAdapter.UDB.DB_CONSTS.STREAMING_SQL_CHAT_GROUP_ID">
+            <summary>
+            A chat group id used at SocketPro server side for notifying database events from server to connected clients
             </summary>
         </member>
     </members>

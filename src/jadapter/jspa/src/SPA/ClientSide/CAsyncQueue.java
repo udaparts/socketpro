@@ -204,9 +204,6 @@ public class CAsyncQueue extends CAsyncServiceHandler {
     }
 
     public boolean EnqueueBatch(byte[] key, CUQueue q, DEnqueue e, DDiscarded discarded) {
-        if (key == null) {
-            key = new byte[0];
-        }
         if (q == null || q.getSize() < 8) {
             throw new java.lang.IllegalArgumentException("Bad operation");
         }
@@ -247,9 +244,6 @@ public class CAsyncQueue extends CAsyncServiceHandler {
     }
 
     public boolean Enqueue(byte[] key, short idMessage, byte[] bytes, DEnqueue e, DDiscarded discarded) {
-        if (key == null) {
-            key = new byte[0];
-        }
         CUQueue q = CScopeUQueue.Lock();
         q.Save(key).Save(idMessage).Push(bytes);
         boolean ok = SendRequest(idEnqueue, q, GetRH(e), discarded, null);
@@ -266,9 +260,6 @@ public class CAsyncQueue extends CAsyncServiceHandler {
     }
 
     public boolean Enqueue(byte[] key, short idMessage, CUQueue q, DEnqueue e, DDiscarded discarded) {
-        if (key == null) {
-            key = new byte[0];
-        }
         CUQueue sq = CScopeUQueue.Lock();
         sq.Save(key).Save(idMessage).Push(q.getIntenalBuffer(), q.getHeadPosition(), q.getSize());
         boolean ok = SendRequest(idEnqueue, sq, GetRH(e), discarded, null);
@@ -285,9 +276,6 @@ public class CAsyncQueue extends CAsyncServiceHandler {
     }
 
     public boolean Enqueue(byte[] key, short idMessage, CScopeUQueue q, DEnqueue e, DDiscarded discarded) {
-        if (key == null) {
-            key = new byte[0];
-        }
         CUQueue src = q.getUQueue();
         CUQueue sq = CScopeUQueue.Lock();
         sq.Save(key).Save(idMessage).Push(src.getIntenalBuffer(), src.getHeadPosition(), src.getSize());
@@ -334,9 +322,6 @@ public class CAsyncQueue extends CAsyncServiceHandler {
      * @return true for sending the request successfully, and false for failure
      */
     public boolean StartQueueTrans(byte[] key, final DQueueTrans qt, DDiscarded discarded) {
-        if (key == null) {
-            key = new byte[0];
-        }
         IClientQueue cq = this.getAttachedClientSocket().getClientQueue();
         if (cq.getAvailable()) {
             cq.StartJob();
@@ -512,9 +497,6 @@ public class CAsyncQueue extends CAsyncServiceHandler {
      * @return true for sending the request successfully, and false for failure
      */
     public boolean CloseQueue(byte[] key, final DClose c, DDiscarded discarded, boolean permanent) {
-        if (key == null) {
-            key = new byte[0];
-        }
         try (CScopeUQueue sq = new CScopeUQueue()) {
             sq.Save(key).Save(permanent);
             return SendRequest(idClose, sq, new CAsyncServiceHandler.DAsyncResultHandler() {
@@ -585,9 +567,6 @@ public class CAsyncQueue extends CAsyncServiceHandler {
      * @return true for sending the request successfully, and false for failure
      */
     public boolean FlushQueue(byte[] key, final DFlush f, tagOptimistic option, DDiscarded discarded) {
-        if (key == null) {
-            key = new byte[0];
-        }
         try (CScopeUQueue sq = new CScopeUQueue()) {
             sq.Save(key).Save(option.getValue());
             return SendRequest(idFlush, new CAsyncServiceHandler.DAsyncResultHandler() {
@@ -650,9 +629,6 @@ public class CAsyncQueue extends CAsyncServiceHandler {
      */
     public boolean Dequeue(byte[] key, final DDequeue d, int timeout, DDiscarded discarded) {
         DAsyncResultHandler rh = null;
-        if (key == null) {
-            key = new byte[0];
-        }
         synchronized (m_csQ) {
             m_keyDequeue = key;
             if (d != null) {

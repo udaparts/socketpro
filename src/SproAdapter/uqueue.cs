@@ -457,10 +457,11 @@ namespace SocketProAdapter
 #endif
         private unsafe CUQueue Append(void* pData, uint len)
         {
+            uint remaining = m_position + m_len;
 #if WINCE
             if (((uint)m_bytes.Length - m_position - m_len) < len)
 #else
-            if (((uint)m_bytes.LongLength - m_position - m_len) < len)
+            if (((uint)m_bytes.LongLength - remaining) < len)
 #endif
             {
                 uint addedSize = (((uint)len - TailSize) / m_blockSize + 1) * m_blockSize;
@@ -472,7 +473,7 @@ namespace SocketProAdapter
 #else
             fixed (byte* des = m_bytes)
             {
-                CopyMemory(des + m_position + m_len, pData, len);
+                CopyMemory(des + remaining, pData, len);
             }
 #endif
             m_len += (uint)len;
