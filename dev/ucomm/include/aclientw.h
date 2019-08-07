@@ -798,34 +798,19 @@ namespace SPA {
 
             struct CResultCb {
 
-                CResultCb() {
-                }
-
-                CResultCb(const ResultHandler &rh) : AsyncResultHandler(rh) {
-                }
-
                 CResultCb(const ResultHandler &rh, const DDiscarded& discarded, const DServerException &exceptionFromServer)
                 : AsyncResultHandler(rh), Discarded(discarded), ExceptionFromServer(exceptionFromServer) {
                 }
 
-                CResultCb(const CResultCb &rcb)
-                : AsyncResultHandler(rcb.AsyncResultHandler), Discarded(rcb.Discarded), ExceptionFromServer(rcb.ExceptionFromServer) {
-                }
-
-                CResultCb& operator=(const CResultCb &rcb) {
-                    if (this != &rcb) {
-                        AsyncResultHandler = rcb.AsyncResultHandler;
-                        Discarded = rcb.Discarded;
-                        ExceptionFromServer = rcb.ExceptionFromServer;
-                    }
-                    return *this;
-                }
+                //no copy contructor or assignment operator
+                CResultCb(const CResultCb &rcb);
+                CResultCb& operator=(const CResultCb &rcb);
 
                 ResultHandler AsyncResultHandler;
                 DDiscarded Discarded;
                 DServerException ExceptionFromServer;
             };
-            typedef std::pair<unsigned short, CResultCb>* PRR_PAIR;
+            typedef std::pair<unsigned short, CResultCb*>* PRR_PAIR;
             static CUQueue m_vRR;
             static PRR_PAIR Reuse();
             static void Recycle(PRR_PAIR p);
@@ -844,8 +829,8 @@ namespace SPA {
                 return m_nServiceId;
             }
             void SetSvsID(unsigned int serviceId);
-            virtual bool SendRequest(unsigned short reqId, const unsigned char *pBuffer, unsigned int size, ResultHandler rh, DDiscarded discarded = nullptr, DServerException serverException = nullptr);
-            bool SendRequest(unsigned short reqId, ResultHandler rh, DDiscarded discarded = nullptr, DServerException se = nullptr);
+            virtual bool SendRequest(unsigned short reqId, const unsigned char *pBuffer, unsigned int size, const ResultHandler& rh, const DDiscarded& discarded = nullptr, const DServerException& serverException = nullptr);
+            bool SendRequest(unsigned short reqId, const ResultHandler& rh, const DDiscarded& discarded = nullptr, const DServerException& se = nullptr);
 
             inline CClientSocket *GetAttachedClientSocket() {
                 return m_pClientSocket;
@@ -1725,6 +1710,7 @@ namespace SPA {
             void SetNULL();
             void EraseBack(unsigned int count);
             void AppendTo(CAsyncServiceHandler &from);
+            static bool Remove(CUQueue &q, PRR_PAIR p);
 
         protected:
             virtual void OnPostProcessing(unsigned int hint, UINT64 data);

@@ -1424,7 +1424,7 @@ namespace SPA {
          */
         static void CleanUQueuePool() {
             m_cs.lock();
-            PMB *start = (PMB *) m_aUQueue.GetBlockSize();
+            PMB *start = (PMB *) m_aUQueue.GetBuffer();
             unsigned int size = m_aUQueue.GetSize() / sizeof (PMB);
             for (unsigned int n = 0; n < size; n++) {
                 PMB p = start[n];
