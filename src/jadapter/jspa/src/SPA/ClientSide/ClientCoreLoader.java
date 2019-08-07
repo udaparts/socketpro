@@ -67,6 +67,8 @@ class ClientCoreLoader {
 
     static native boolean IsOpened(long h);
 
+    static native int RetrieveBuffer(long h, byte[] buffer, int len);
+
     static native boolean SendRequest(long h, short reqId, byte[] buffer, int len);
 
     static native boolean WaitAll(long h, int nTimeout);

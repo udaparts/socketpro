@@ -293,21 +293,18 @@ public final class CClientSocket {
         }
     }
 
-    private static void OnRequestProcessed(long h, short reqId, int len, byte[] bytes, byte os, boolean endian) {
+    private static void OnRequestProcessed(long h, short reqId, int len, byte os, boolean endian) {
         CClientSocket cs = Find(h);
-        CAsyncServiceHandler ash = cs.Seek(cs.getCurrentServiceID());
+        CAsyncServiceHandler ash = cs.m_ash;
         if (ash != null) {
-            if (len != 0 && bytes.length != len) {
-                if (bytes.length == 0) {
-                    return; //socket closed
-                }
-                //should never come here!
-                String msg = String.format("Wrong number of bytes retrieved (expected = {0} and obtained = {1})", len, bytes.length);
-                throw new java.lang.UnsupportedOperationException(msg);
-            }
             SPA.CUQueue q = cs.m_qRecv;
+            q.SetSize(0);
+            if (len > q.getMaxBufferSize()) {
+                q.Realloc(len);
+            }
             //this does not cause re-allocting bytes memory
-            q.UseBuffer(bytes, len);
+            int res = ClientCoreLoader.RetrieveBuffer(h, q.getIntenalBuffer(), len);
+            q.SetSize(res);
             q.setOS(tagOperationSystem.forValue(os));
             q.setEndian(endian);
             ash.onRR(reqId, q);
@@ -427,7 +424,7 @@ public final class CClientSocket {
 
     private volatile SPA.tagOperationSystem m_os = SPA.CUQueue.DEFAULT_OS;
     private volatile boolean m_bBigEndian = false;
-    private SPA.CUQueue m_qRecv = new SPA.CUQueue();
+    final private SPA.CUQueue m_qRecv = new SPA.CUQueue();
 
     public final SPA.tagOperationSystem GetPeerOs() {
         return m_os;

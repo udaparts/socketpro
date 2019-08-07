@@ -75,7 +75,7 @@ void SetCaches(JNIEnv *env) {
     g_midOnEnter = env->GetStaticMethodID(cls, "OnEnter", "(JLjava/lang/Object;[I)V");
     g_midOnExit = env->GetStaticMethodID(cls, "OnExit", "(JLjava/lang/Object;[I)V");
     g_midOnHandShakeCompleted = env->GetStaticMethodID(cls, "OnHandShakeCompleted", "(JI)V");
-    g_midOnRequestProcessed = env->GetStaticMethodID(cls, "OnRequestProcessed", "(JSI[BBZ)V");
+    g_midOnRequestProcessed = env->GetStaticMethodID(cls, "OnRequestProcessed", "(JSIBZ)V");
     g_midOnSendUserMessage = env->GetStaticMethodID(cls, "OnSendUserMessage", "(JLjava/lang/Object;[B)V");
     g_midOnSendUserMessageEx = env->GetStaticMethodID(cls, "OnSendUserMessageEx", "(JLjava/lang/Object;[B)V");
     g_midOnServerException = env->GetStaticMethodID(cls, "OnServerException", "(JSLjava/lang/String;Ljava/lang/String;I)V");
@@ -137,13 +137,8 @@ void CALLBACK OnRequestProcessed(USocket_Client_Handle handler, unsigned short r
         len = 0;
     jint es = g_vmClient->GetEnv((void **) &env, JNI_VERSION_1_6);
     assert(env);
-    jbyteArray bytes = env->NewByteArray(len);
-    if (len && bytes) {
-        env->SetByteArrayRegion(bytes, (jsize) 0, (jsize) len, (const jbyte*) arr);
-    }
-    env->CallStaticVoidMethod(g_classCClientSocket, g_midOnRequestProcessed, (jlong) handler, (jshort) requestId, (jint) size, bytes, (jbyte) os, (jboolean) endian);
+    env->CallStaticVoidMethod(g_classCClientSocket, g_midOnRequestProcessed, (jlong) handler, (jshort) requestId, (jint) size, (jbyte) os, (jboolean) endian);
     CleanException(env);
-    env->DeleteLocalRef(bytes);
 }
 
 void CALLBACK OnBaseRequestProcessed(USocket_Client_Handle handler, unsigned short requestId) {
@@ -707,6 +702,16 @@ JNIEXPORT jint JNICALL Java_SPA_ClientSide_ClientCoreLoader_GetSocketPoolId(JNIE
 
 JNIEXPORT jboolean JNICALL Java_SPA_ClientSide_ClientCoreLoader_IsOpened(JNIEnv *, jclass, jlong h) {
     return IsOpened((USocket_Client_Handle) h);
+}
+
+JNIEXPORT jint JNICALL Java_SPA_ClientSide_ClientCoreLoader_RetrieveBuffer(JNIEnv *env, jclass, jlong h, jbyteArray bytes, jint len) {
+    jint res = 0;
+    if (bytes && len > 0) {
+        const unsigned char *arr = GetResultBuffer((USocket_Client_Handle) h);
+        env->SetByteArrayRegion(bytes, 0, len, (const jbyte*) arr);
+        res = len;
+    }
+    return res;
 }
 
 JNIEXPORT jboolean JNICALL Java_SPA_ClientSide_ClientCoreLoader_SendRequest(JNIEnv *env, jclass, jlong h, jshort reqId, jbyteArray bytes, jint len) {

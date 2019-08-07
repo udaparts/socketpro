@@ -247,6 +247,10 @@ JNIEXPORT jboolean JNICALL Java_SPA_ClientSide_ClientCoreLoader_IsOpened
 JNIEXPORT jboolean JNICALL Java_SPA_ClientSide_ClientCoreLoader_SendRequest
   (JNIEnv *, jclass, jlong, jshort, jbyteArray, jint);
 
+
+JNIEXPORT jint JNICALL Java_SPA_ClientSide_ClientCoreLoader_RetrieveBuffer
+  (JNIEnv *, jclass, jlong, jbyteArray, jint);
+
 /*
  * Class:     SPA_ClientSide_ClientCoreLoader
  * Method:    WaitAll
