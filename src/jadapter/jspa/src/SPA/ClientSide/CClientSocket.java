@@ -307,7 +307,7 @@ public final class CClientSocket {
             }
             SPA.CUQueue q = cs.m_qRecv;
             //this does not cause re-allocting bytes memory
-            q.UseBuffer(bytes);
+            q.UseBuffer(bytes, len);
             q.setOS(tagOperationSystem.forValue(os));
             q.setEndian(endian);
             ash.onRR(reqId, q);

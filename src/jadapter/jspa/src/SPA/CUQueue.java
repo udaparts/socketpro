@@ -108,11 +108,38 @@ public final class CUQueue {
         }
     }
 
+    public CUQueue(byte[] bytes, int len) {
+        m_blockSize = DEFAULT_BLOCK_SIZE;
+        if (bytes == null) {
+            m_bytes = new byte[0];
+        } else if (len > 0 && bytes.length > len) {
+            m_bytes = bytes;
+            m_len = len;
+        } else {
+            m_bytes = bytes;
+            m_len = bytes.length;
+        }
+    }
+
     public void UseBuffer(byte[] bytes) {
         m_position = 0;
         if (bytes == null) {
             m_bytes = new byte[0];
             m_len = 0;
+        } else {
+            m_bytes = bytes;
+            m_len = bytes.length;
+        }
+    }
+
+    public void UseBuffer(byte[] bytes, int len) {
+        m_position = 0;
+        if (bytes == null) {
+            m_bytes = new byte[0];
+            m_len = 0;
+        } else if (len > 0 && bytes.length > len) {
+            m_bytes = bytes;
+            m_len = len;
         } else {
             m_bytes = bytes;
             m_len = bytes.length;
