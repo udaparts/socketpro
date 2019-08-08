@@ -1,7 +1,7 @@
 
 #include "../../../include/uclient.h"
 #include "SPA_ClientSide_ClientCoreLoader.h"
-
+#include "../../../include/membuffer.h"
 #include<algorithm>
 
 #ifdef WINCE
@@ -9,13 +9,19 @@
 #include <unordered_map>
 typedef DWORD UTHREAD_ID;
 std::unordered_map<unsigned int, jobject> g_mapPJ;
-std::unordered_map<UTHREAD_ID, jbyteArray> g_mapCache;
 #else
 #include <boost/unordered_map.hpp>
 typedef pthread_t UTHREAD_ID;
 boost::unordered_map<unsigned int, jobject> g_mapPJ;
-boost::unordered_map<UTHREAD_ID, jbyteArray> g_mapCache;
 #endif
+
+struct CBuffCache {
+    UTHREAD_ID Tid;
+    unsigned int Len;
+    jbyteArray Bytes;
+};
+typedef CBuffCache *PBuffCache;
+SPA::CUQueue g_mapCache;
 
 #define UCERT_OBJECT_ARRAY_SIZE 10
 #define UMESSAGE_OBJECT_ARRAY_SIZE 2
@@ -70,17 +76,22 @@ unsigned int GetLen(const SPA::UTF16 *chars) {
 jclass g_classCClientSocket = nullptr;
 jclass g_classCMessageSender = nullptr;
 
-jbyteArray GetCurrentThreadByteArray() {
+PBuffCache GetCurrentThreadByteArray() {
 #ifdef WIN32_64
-	UTHREAD_ID tid = ::GetCurrentThreadId();
+    UTHREAD_ID tid = ::GetCurrentThreadId();
 #else
-	UTHREAD_ID tid = pthread_self();
+    UTHREAD_ID tid = pthread_self();
 #endif
-	SPA::CAutoLock al(g_csClient);
-	auto it = g_mapCache.find(tid);
-	if (it == g_mapCache.end())
-		return nullptr;
-	return g_mapCache[tid];
+    SPA::CAutoLock al(g_csClient);
+    PBuffCache *start = (PBuffCache*) g_mapCache.GetBuffer();
+    unsigned int count = g_mapCache.GetSize() / sizeof (PBuffCache);
+    for (unsigned int n = 0; n < count; ++n) {
+        PBuffCache p = start[n];
+        if (p->Tid == tid) {
+            return p;
+        }
+    }
+    return nullptr;
 }
 
 void SetCaches(JNIEnv *env) {
@@ -101,7 +112,7 @@ void SetCaches(JNIEnv *env) {
     g_midOnSpeak = env->GetStaticMethodID(cls, "OnSpeak", "(JLjava/lang/Object;[I[B)V");
     g_midOnSpeakEx = env->GetStaticMethodID(cls, "OnSpeakEx", "(JLjava/lang/Object;[I[B)V");
     g_midOnPostProcessing = env->GetStaticMethodID(cls, "OnPostProcessing", "(JIJ)V");
-	g_midOnResetBuffer= env->GetStaticMethodID(cls, "OnResetBuffer", "(I)V");
+    g_midOnResetBuffer = env->GetStaticMethodID(cls, "OnResetBuffer", "(I)V");
 
     cls = env->FindClass("SPA/ClientSide/CMessageSender");
     //make a global class reference to CMessageSender
@@ -154,19 +165,20 @@ void CALLBACK OnRequestProcessed(USocket_Client_Handle handler, unsigned short r
         len = 0;
     jint es = g_vmClient->GetEnv((void **) &env, JNI_VERSION_1_6);
     assert(env);
-	jbyteArray buffer = GetCurrentThreadByteArray();
-	if (len) {
-		if (!buffer || len > (unsigned int)env->GetArrayLength(buffer)) {
-			env->CallStaticVoidMethod(g_classCClientSocket, g_midOnResetBuffer, (jint)len);
-			buffer = GetCurrentThreadByteArray();
-		}
-		if (buffer) {
-			env->SetByteArrayRegion(buffer, 0, len, (const jbyte*)arr);
-		}
-		else {
-			len = 0;
-		}
-	}
+    jbyteArray buffer = nullptr;
+    if (len) {
+        auto p = GetCurrentThreadByteArray();
+        if (!p || len > p->Len) {
+            env->CallStaticVoidMethod(g_classCClientSocket, g_midOnResetBuffer, (jint) len);
+            p = GetCurrentThreadByteArray();
+        }
+        if (p) {
+            buffer = p->Bytes;
+            env->SetByteArrayRegion(p->Bytes, 0, len, (const jbyte*) arr);
+        } else {
+            len = 0;
+        }
+    }
     env->CallStaticVoidMethod(g_classCClientSocket, g_midOnRequestProcessed, (jlong) handler, (jshort) requestId, (jint) len, buffer, (jbyte) os, (jboolean) endian);
     CleanException(env);
 }
@@ -482,9 +494,9 @@ void SetPoolThreadAsDaemon(unsigned int pid) {
 void RemovePoolThreadAsDaemon(unsigned int pid) {
     bool removed = true;
 #ifdef WIN32_64
-	UTHREAD_ID tid = ::GetCurrentThreadId();
+    UTHREAD_ID tid = ::GetCurrentThreadId();
 #else
-	UTHREAD_ID tid = pthread_self();
+    UTHREAD_ID tid = pthread_self();
 #endif
     SPA::CAutoLock al(g_csClient);
     while (removed) {
@@ -499,7 +511,6 @@ void RemovePoolThreadAsDaemon(unsigned int pid) {
             }
         }
     }
-	g_mapCache.erase(tid);
 }
 
 void CALLBACK SPC(unsigned int pid, SPA::ClientSide::tagSocketPoolEvent spe, USocket_Client_Handle h) {
@@ -1164,13 +1175,41 @@ JNIEXPORT jstring JNICALL Java_SPA_ClientSide_ClientCoreLoader_GetQueueFileName(
 }
 
 JNIEXPORT void JNICALL Java_SPA_ClientSide_ClientCoreLoader_SetBufferForCurrentThread(JNIEnv *env, jclass, jbyteArray bytes) {
+    unsigned int n;
 #ifdef WIN32_64
-	UTHREAD_ID tid = ::GetCurrentThreadId();
+    UTHREAD_ID tid = ::GetCurrentThreadId();
 #else
-	UTHREAD_ID tid = pthread_self();
+    UTHREAD_ID tid = pthread_self();
 #endif
-	SPA::CAutoLock al(g_csClient);
-	g_mapCache[tid] = bytes;
+    PBuffCache found = nullptr;
+    SPA::CAutoLock al(g_csClient);
+    PBuffCache *start = (PBuffCache*) g_mapCache.GetBuffer();
+    unsigned int count = g_mapCache.GetSize() / sizeof (PBuffCache);
+    for (n = 0; n < count; ++n) {
+        PBuffCache pos = start[n];
+        if (pos->Tid == tid) {
+            found = pos;
+            break;
+        }
+    }
+    if (found) {
+        if (found->Bytes) {
+            env->DeleteGlobalRef(found->Bytes);
+        }
+        if (bytes) {
+            found->Len = (unsigned int) env->GetArrayLength(bytes);
+            found->Bytes = (jbyteArray) env->NewGlobalRef(bytes);
+        } else {
+            g_mapCache.Pop((unsigned int) sizeof (PBuffCache), (unsigned int) (n * sizeof (PBuffCache)));
+            delete found;
+        }
+    } else if (bytes) {
+        found = new CBuffCache;
+        found->Tid = tid;
+        found->Len = (unsigned int) env->GetArrayLength(bytes);
+        found->Bytes = (jbyteArray) env->NewGlobalRef(bytes);
+        g_mapCache << found;
+    }
 }
 
 JNIEXPORT jstring JNICALL Java_SPA_ClientSide_ClientCoreLoader_GetPeerName(JNIEnv *env, jclass, jlong h, jintArray peerPort, jint count) {

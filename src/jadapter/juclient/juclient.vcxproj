@@ -147,6 +147,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\..\include\membuffer.cpp" />
     <ClCompile Include="juclient.cpp" />
   </ItemGroup>
   <ItemGroup>
