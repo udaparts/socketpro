@@ -14,6 +14,7 @@
                    displayName="Source Files"
                    projectFiles="true">
       <itemPath>juclient.cpp</itemPath>
+      <itemPath>../../../include/membuffer.cpp</itemPath>
     </logicalFolder>
     <logicalFolder name="TestFiles"
                    displayName="Test Files"
@@ -72,6 +73,8 @@
           <commandLine>-Wl,--no-undefined</commandLine>
         </linkerTool>
       </compileType>
+      <item path="../../../include/membuffer.cpp" ex="false" tool="0" flavor2="0">
+      </item>
       <item path="SPA_ClientSide_ClientCoreLoader.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="juclient.cpp" ex="false" tool="0" flavor2="0">
@@ -126,6 +129,8 @@
           <commandLine>-Wl,--no-undefined</commandLine>
         </linkerTool>
       </compileType>
+      <item path="../../../include/membuffer.cpp" ex="false" tool="0" flavor2="0">
+      </item>
       <item path="SPA_ClientSide_ClientCoreLoader.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="juclient.cpp" ex="false" tool="0" flavor2="0">
