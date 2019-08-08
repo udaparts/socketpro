@@ -1,7 +1,7 @@
 
 #include "../../../include/uclient.h"
 #include "SPA_ClientSide_ClientCoreLoader.h"
-#include "../../../include/membuffer.h"
+#include <vector>
 #include<algorithm>
 
 #ifdef WINCE
@@ -21,7 +21,7 @@ struct CBuffCache {
     jbyteArray Bytes;
 };
 typedef CBuffCache *PBuffCache;
-SPA::CUQueue g_mapCache;
+std::vector<PBuffCache> g_mapCache;
 
 #define UCERT_OBJECT_ARRAY_SIZE 10
 #define UMESSAGE_OBJECT_ARRAY_SIZE 2
@@ -83,9 +83,9 @@ PBuffCache GetCurrentThreadByteArray() {
     UTHREAD_ID tid = pthread_self();
 #endif
     SPA::CAutoLock al(g_csClient);
-    PBuffCache *start = (PBuffCache*) g_mapCache.GetBuffer();
-    unsigned int count = g_mapCache.GetSize() / sizeof (PBuffCache);
-    for (unsigned int n = 0; n < count; ++n) {
+    PBuffCache *start = g_mapCache.data();
+    size_t count = g_mapCache.size();
+    for (size_t n = 0; n < count; ++n) {
         PBuffCache p = start[n];
         if (p->Tid == tid) {
             return p;
@@ -1175,7 +1175,7 @@ JNIEXPORT jstring JNICALL Java_SPA_ClientSide_ClientCoreLoader_GetQueueFileName(
 }
 
 JNIEXPORT void JNICALL Java_SPA_ClientSide_ClientCoreLoader_SetBufferForCurrentThread(JNIEnv *env, jclass, jbyteArray bytes) {
-    unsigned int n;
+    size_t n;
 #ifdef WIN32_64
     UTHREAD_ID tid = ::GetCurrentThreadId();
 #else
@@ -1183,8 +1183,8 @@ JNIEXPORT void JNICALL Java_SPA_ClientSide_ClientCoreLoader_SetBufferForCurrentT
 #endif
     PBuffCache found = nullptr;
     SPA::CAutoLock al(g_csClient);
-    PBuffCache *start = (PBuffCache*) g_mapCache.GetBuffer();
-    unsigned int count = g_mapCache.GetSize() / sizeof (PBuffCache);
+    PBuffCache *start = g_mapCache.data();
+    size_t count = g_mapCache.size();
     for (n = 0; n < count; ++n) {
         PBuffCache pos = start[n];
         if (pos->Tid == tid) {
@@ -1200,7 +1200,7 @@ JNIEXPORT void JNICALL Java_SPA_ClientSide_ClientCoreLoader_SetBufferForCurrentT
             found->Len = (unsigned int) env->GetArrayLength(bytes);
             found->Bytes = (jbyteArray) env->NewGlobalRef(bytes);
         } else {
-            g_mapCache.Pop((unsigned int) sizeof (PBuffCache), (unsigned int) (n * sizeof (PBuffCache)));
+            g_mapCache.erase(g_mapCache.begin() + n);
             delete found;
         }
     } else if (bytes) {
@@ -1208,7 +1208,7 @@ JNIEXPORT void JNICALL Java_SPA_ClientSide_ClientCoreLoader_SetBufferForCurrentT
         found->Tid = tid;
         found->Len = (unsigned int) env->GetArrayLength(bytes);
         found->Bytes = (jbyteArray) env->NewGlobalRef(bytes);
-        g_mapCache << found;
+        g_mapCache.push_back(found);
     }
 }
 
