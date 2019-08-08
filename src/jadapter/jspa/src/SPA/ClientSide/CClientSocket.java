@@ -274,6 +274,40 @@ public final class CClientSocket {
         }
     }
 
+    private final static java.util.HashMap<Long, byte[]> m_mapCache = new java.util.HashMap<>();
+
+    private static void OnResetBuffer(int len) {
+        byte[] v;
+        long tid = java.lang.Thread.currentThread().getId();
+        if (len < SPA.CUQueue.DEFAULT_BUFFER_SIZE) {
+            len = SPA.CUQueue.DEFAULT_BUFFER_SIZE;
+        }
+        synchronized (m_cs) {
+            if (!m_mapCache.containsKey(tid)) {
+                v = new byte[len];
+                m_mapCache.put(tid, v);
+            } else {
+                v = m_mapCache.get(tid);
+            }
+            if (v.length < len) {
+                int size = ((len % SPA.CUQueue.DEFAULT_BUFFER_SIZE) != 0) ? (len / SPA.CUQueue.DEFAULT_BUFFER_SIZE + 1) * SPA.CUQueue.DEFAULT_BUFFER_SIZE : len;
+                v = new byte[size];
+                m_mapCache.put(tid, v);
+            }
+        }
+        ClientCoreLoader.SetBufferForCurrentThread(v);
+    }
+
+    static void CleanCurrentThreadCache() {
+        long tid = java.lang.Thread.currentThread().getId();
+        ClientCoreLoader.SetBufferForCurrentThread(null);
+        synchronized (m_cs) {
+            if (m_mapCache.containsKey(tid)) {
+                m_mapCache.remove(tid);
+            }
+        }
+    }
+
     private static void OnHandShakeCompleted(long h, int errCode) {
         CClientSocket cs = Find(h);
         if (cs.HandShakeCompleted != null) {
@@ -293,18 +327,12 @@ public final class CClientSocket {
         }
     }
 
-    private static void OnRequestProcessed(long h, short reqId, int len, byte os, boolean endian) {
+    private static void OnRequestProcessed(long h, short reqId, int len, byte[] bytes, byte os, boolean endian) {
         CClientSocket cs = Find(h);
         CAsyncServiceHandler ash = cs.m_ash;
         if (ash != null) {
             SPA.CUQueue q = cs.m_qRecv;
-            q.SetSize(0);
-            if (len > q.getMaxBufferSize()) {
-                q.Realloc(len);
-            }
-            //this does not cause re-allocting bytes memory
-            int res = ClientCoreLoader.RetrieveBuffer(h, q.getIntenalBuffer(), len);
-            q.SetSize(res);
+            q.UseBuffer(bytes, len);
             q.setOS(tagOperationSystem.forValue(os));
             q.setEndian(endian);
             ash.onRR(reqId, q);

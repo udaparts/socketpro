@@ -37,6 +37,8 @@ class ClientCoreLoader {
 
     static native int GetSocketsPerThread(int poolId);
 
+    static native void SetBufferForCurrentThread(byte[] bytes);
+
     static native boolean IsAvg(int poolId);
 
     static native int GetDisconnectedSockets(int poolId);
@@ -66,8 +68,6 @@ class ClientCoreLoader {
     static native int GetSocketPoolId(long h);
 
     static native boolean IsOpened(long h);
-
-    static native int RetrieveBuffer(long h, byte[] buffer, int len);
 
     static native boolean SendRequest(long h, short reqId, byte[] buffer, int len);
 
