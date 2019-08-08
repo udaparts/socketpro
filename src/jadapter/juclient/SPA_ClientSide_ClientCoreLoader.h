@@ -755,6 +755,11 @@ JNIEXPORT jstring JNICALL Java_SPA_ClientSide_ClientCoreLoader_GetQueueFileName
 JNIEXPORT jstring JNICALL Java_SPA_ClientSide_ClientCoreLoader_GetPeerName
   (JNIEnv *, jclass, jlong, jintArray, jint);
 
+
+JNIEXPORT void JNICALL Java_SPA_ClientSide_ClientCoreLoader_SetBufferForCurrentThread
+(JNIEnv *, jclass, jbyteArray);
+
+
 /*
  * Class:     SPA_ClientSide_ClientCoreLoader
  * Method:    GetUCert
