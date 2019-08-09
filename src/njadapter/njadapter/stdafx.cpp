@@ -33,8 +33,9 @@ namespace SPA {
                         *cb.Buffer << h;
                         cb.Buffer->Push(ar.UQueue.GetBuffer(), ar.UQueue.GetSize());
                         ar.UQueue.SetSize(0);
-                        CAutoLock al(this->m_cs);
+                        auto contentions = this->m_cs.lock();
                         this->m_deqReqCb.push_back(cb);
+                        this->m_cs.unlock();
                         int fail = uv_async_send(&this->m_typeReq);
                         assert(!fail);
                     };
@@ -56,8 +57,9 @@ namespace SPA {
                         PAsyncServiceHandler h = ash;
                         cb.Buffer = CScopeUQueue::Lock();
                         *cb.Buffer << h << canceled;
-                        CAutoLock al(this->m_cs);
+                        auto contentions = this->m_cs.lock();
                         this->m_deqReqCb.push_back(cb);
+                        this->m_cs.unlock();
                         int fail = uv_async_send(&this->m_typeReq);
                         assert(!fail);
                     };
@@ -79,8 +81,9 @@ namespace SPA {
                         PAsyncServiceHandler h = ash;
                         cb.Buffer = CScopeUQueue::Lock();
                         *cb.Buffer << h << errMsg << errWhere << errCode;
-                        CAutoLock al(this->m_cs);
+                        auto contentions = this->m_cs.lock();
                         this->m_deqReqCb.push_back(cb);
+                        this->m_cs.unlock();
                         int fail = uv_async_send(&this->m_typeReq);
                         assert(!fail);
                     };
@@ -102,9 +105,11 @@ namespace SPA {
             Isolate* isolate = Isolate::GetCurrent();
             HandleScope handleScope(isolate); //required for Node 4.x
             {
-                SPA::CAutoLock al(obj->m_cs);
+                auto contentions = obj->m_cs.lock();
                 while (obj->m_deqReqCb.size()) {
-                    ReqCb &cb = obj->m_deqReqCb.front();
+                    ReqCb cb = obj->m_deqReqCb.front();
+                    obj->m_deqReqCb.pop_front();
+                    obj->m_cs.unlock();
                     PAsyncServiceHandler processor = nullptr;
                     *cb.Buffer >> processor;
                     assert(processor);
@@ -175,8 +180,9 @@ namespace SPA {
                             assert(false); //shouldn't come here
                             break;
                     }
-                    obj->m_deqReqCb.pop_front();
+                    contentions = obj->m_cs.lock();
                 }
+                obj->m_cs.unlock();
             }
             //isolate->RunMicrotasks();
         }
