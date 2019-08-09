@@ -7,7 +7,7 @@ namespace SPA
 {
 #ifdef NODE_JS_ADAPTER_PROJECT
     template<unsigned int InitSize, unsigned int BlockSize, typename mb>
-    CUCriticalSection CScopeUQueueEx<InitSize, BlockSize, mb>::m_cs;
+    CSpinLock CScopeUQueueEx<InitSize, BlockSize, mb>::m_cs;
 
     template<unsigned int InitSize, unsigned int BlockSize, typename mb>
     CUQueue CScopeUQueueEx<InitSize, BlockSize, mb>::m_aUQueue;

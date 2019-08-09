@@ -20,6 +20,34 @@
 
 namespace SPA {
 
+    class CSpinAutoLock {
+    public:
+
+        /**
+         * Create an instance of CSpinAutoLock, and automatically lock a critical section
+         */
+        CSpinAutoLock(CSpinLock &cs)
+        : m_cs(cs) {
+            unsigned int contentions = m_cs.lock();
+        }
+
+        /**
+         * Destroy an instance of CSpinAutoLock, and automatically unlock a critical section
+         */
+        ~CSpinAutoLock() {
+            m_cs.unlock();
+        }
+
+    private:
+        /// Copy constructor disabled
+        CSpinAutoLock(const CSpinAutoLock &al);
+
+        /// Assignment operator disabled
+        CSpinAutoLock& operator=(const CSpinAutoLock &al);
+
+        CSpinLock &m_cs;
+    };
+
 #ifdef BOOST_MP_CPP_INT_HPP
     using namespace boost::multiprecision;
     typedef number<cpp_int_backend<96, 96, unsigned_magnitude, unchecked, void> > uint96_t;

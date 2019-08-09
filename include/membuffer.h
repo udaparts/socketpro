@@ -1392,7 +1392,7 @@ namespace SPA {
          * Destroy all existing memory objects in pool
          */
         static void DestroyUQueuePool() {
-            m_cs.lock();
+            auto contentions = m_cs.lock();
             PMB *start = (PMB*) m_aUQueue.GetBuffer();
             unsigned int size = m_aUQueue.GetSize() / sizeof (PMB);
             for (unsigned int n = 0; n < size; n++) {
@@ -1407,7 +1407,7 @@ namespace SPA {
          * Reset all existing memory objects in pool to initial size (InitSize)
          */
         static void ResetSize(unsigned int newSize = InitSize) {
-            m_cs.lock();
+            auto contentions = m_cs.lock();
             PMB *start = (PMB*) m_aUQueue.GetBuffer();
             unsigned int size = m_aUQueue.GetSize() / sizeof (PMB);
             for (unsigned int n = 0; n < size; n++) {
@@ -1423,7 +1423,7 @@ namespace SPA {
          * Zero all existing memory objects in pool
          */
         static void CleanUQueuePool() {
-            m_cs.lock();
+            auto contentions = m_cs.lock();
             PMB *start = (PMB *) m_aUQueue.GetBuffer();
             unsigned int size = m_aUQueue.GetSize() / sizeof (PMB);
             for (unsigned int n = 0; n < size; n++) {
@@ -1443,7 +1443,7 @@ namespace SPA {
          */
         static PMB Lock(tagOperationSystem os = MY_OPERATION_SYSTEM, bool bigEndian = IsBigEndian(), unsigned int initSize = InitSize, unsigned int blockSize = BlockSize) {
             PMB p;
-            m_cs.lock();
+            auto contentions = m_cs.lock();
             if (m_aUQueue.GetSize()) {
                 m_aUQueue >> p;
                 m_cs.unlock();
@@ -1474,7 +1474,7 @@ namespace SPA {
                 return;
             }
             memoryChunk->SetSize(0);
-            m_cs.lock();
+            auto contentions = m_cs.lock();
             m_aUQueue << memoryChunk;
             m_cs.unlock();
             memoryChunk = nullptr;
@@ -1486,24 +1486,25 @@ namespace SPA {
          */
         static UINT64 GetMemoryConsumed() {
             UINT64 size = 0;
-            CAutoLock al(m_cs);
+            auto contentions = m_cs.lock();
             PMB *start = (PMB *) m_aUQueue.GetBuffer();
             unsigned int count = m_aUQueue.GetSize() / sizeof (PMB);
             for (unsigned int n = 0; n < count; ++n) {
                 size += start[n]->GetMaxSize();
             }
+            m_cs.unlock();
             return size;
         }
 
     private:
         mb *m_pUQueue;
-        static U_MODULE_HIDDEN CUCriticalSection m_cs;
+        static U_MODULE_HIDDEN CSpinLock m_cs;
         static U_MODULE_HIDDEN CUQueue m_aUQueue;
     };
 
 #ifndef NODE_JS_ADAPTER_PROJECT
     template<unsigned int InitSize, unsigned int BlockSize, typename mb>
-    CUCriticalSection CScopeUQueueEx<InitSize, BlockSize, mb>::m_cs;
+    CSpinLock CScopeUQueueEx<InitSize, BlockSize, mb>::m_cs;
 
     template<unsigned int InitSize, unsigned int BlockSize, typename mb>
     CUQueue CScopeUQueueEx<InitSize, BlockSize, mb>::m_aUQueue;
