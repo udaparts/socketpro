@@ -20,6 +20,57 @@
 
 namespace SPA {
 
+    class CSpinLock {
+    private:
+        volatile unsigned int m_locked;
+
+        //no copy constructor
+        CSpinLock(const CSpinLock &sl);
+        //no assignment operator
+        CSpinLock& operator=(const CSpinLock &sl);
+
+    public:
+
+        CSpinLock() : m_locked(0) {
+        }
+
+        /**
+         * Lock a critical section
+         * @param max_cycle The max spin number
+         * @return The actual spin number
+         * If the returned value is zero or less than the given max spin number, the locking is successful.
+         * Otherwise, the locking is failed
+         */
+        unsigned int lock(unsigned int max_cycle = (~0)) {
+            unsigned int cycle = 0;
+#ifdef WIN32_64
+            while (::InterlockedCompareExchange(&m_locked, 1, 0)) {
+#else
+            while (::__sync_val_compare_and_swap(&m_locked, 0, 1)) {
+#endif
+                ++cycle;
+                if (cycle >= max_cycle) {
+                    break;
+                }
+#ifndef NDEBUG
+                if (cycle > 1 && 1 == (cycle % 16)) {
+                    std::cout << "***** Large contention detected ******" << std::endl;
+                }
+#endif
+            }
+            return cycle;
+        }
+
+        /**
+         * Unlock a critical section
+         * @remark Must call the method lock first before calling this method
+         */
+        void unlock() {
+            assert(m_locked); //must call the method lock first
+            m_locked = 0;
+        }
+    };
+
     class CSpinAutoLock {
     public:
 

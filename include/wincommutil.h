@@ -170,38 +170,6 @@ namespace SPA {
         CRITICAL_SECTION m_sec;
     };
 
-    class CSpinLock {
-    private:
-        volatile unsigned int m_locked;
-
-        //no copy constructor
-        CSpinLock(const CSpinLock &sl);
-        //no assignment operator
-        CSpinLock& operator=(const CSpinLock &sl);
-
-    public:
-
-        CSpinLock() : m_locked(0) {
-        }
-
-        unsigned int lock(unsigned int max_cycle = (~0)) {
-            unsigned int mycycle = 0;
-            while (::InterlockedCompareExchange(&m_locked, 1, 0) && mycycle < max_cycle) {
-                ++mycycle;
-#ifndef NDEBUG
-                if (mycycle > 128 && 1 == (mycycle % 128)) {
-                    std::cout << "***** Large contention detected ******" << std::endl;
-                }
-#endif
-            }
-            return mycycle;
-        }
-
-        void unlock() {
-            m_locked = 0;
-        }
-    };
-
     /** 
      * A class for automatically locking a critical section
      * This class is usually used with stack
