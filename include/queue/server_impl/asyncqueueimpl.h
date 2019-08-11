@@ -32,12 +32,14 @@ namespace SPA {
                 }
 
                 inline unsigned int GetHandle() {
+                    SPA::CAutoLock al(m_cs);
                     if (!m_q.IsAvailable())
                         return 0;
                     return m_q.GetHandle();
                 }
 
                 void Flush(tagOptimistic option, UINT64 &messageCount, UINT64 &fileSize) {
+                    SPA::CAutoLock al(m_cs);
                     if (option != oMemoryCached) {
                         m_q.SetOptimistic((tagOptimistic) option);
                         m_q.SetOptimistic(oMemoryCached);
@@ -47,11 +49,15 @@ namespace SPA {
                 }
 
                 void Enqueue(const CUQueue &buffer, unsigned short idmessage, SPA::UINT64 &index) {
+                    m_cs.lock();
                     index = m_q.Enqueue(idmessage, buffer.GetBuffer(), buffer.GetSize());
+                    m_cs.unlock();
                 }
 
                 void Enqueue(unsigned int count, const unsigned char *msgStruct, SPA::UINT64 &index) {
+                    m_cs.lock();
                     index = m_q.BatchEnqueue(count, msgStruct);
+                    m_cs.unlock();
                 }
 
                 void BatchEnqueue(unsigned int count, CUQueue &buffer, int &errCode) {
@@ -73,6 +79,7 @@ namespace SPA {
                         }
                         return;
                     }
+                    SPA::CAutoLock al(m_cs);
                     if (!m_q.StartJob()) {
                         errCode = Queue::QUEUE_TRANS_COMMITTING_FAILED;
                         return;
@@ -100,17 +107,22 @@ namespace SPA {
                         return;
                     }
                     ret = ServerCoreLoader.Dequeue2(m_q.GetHandle(), socket, CAsyncQueueImpl::m_nBatchSize, !CAsyncQueueImpl::m_bNoAuto, timeout);
+                    SPA::CAutoLock al(m_cs);
                     messageCount = m_q.GetMessageCount() - m_q.GetMessagesInDequeuing();
                     fileSize = m_q.GetQueueSize();
                 }
 
                 void Close(bool permanent, int &errCode) {
+                    SPA::CAutoLock al(m_cs);
                     if (m_q.GetMessagesInDequeuing() != 0) {
                         errCode = Queue::QUEUE_DEQUEUING;
                         return;
                     }
-                    m_q.StopQueue(permanent);
-                    errCode = Queue::QUEUE_OK;
+                    if (ServerCoreLoader.StopQueueByHandle(m_q.GetHandle(), permanent)) {
+                        errCode = Queue::QUEUE_OK;
+                    } else {
+                        errCode = Queue::QUEUE_CLOSE_FAILED;
+                    }
                 }
 
             private:
@@ -118,6 +130,7 @@ namespace SPA {
                 CMyQueue& operator=(const CMyQueue &mq);
 
             private:
+                CUCriticalSection m_cs;
                 CServerQueue m_q;
             };
 
