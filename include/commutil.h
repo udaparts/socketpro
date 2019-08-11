@@ -29,9 +29,19 @@ namespace SPA {
         //no assignment operator
         CSpinLock& operator=(const CSpinLock &sl);
 
+#ifdef MONITORING_SPIN_CONTENTION
+    public:
+        UINT64 Contention;
+#endif
+
     public:
 
-        CSpinLock() : m_locked(0) {
+        CSpinLock() : m_locked(0)
+#ifdef MONITORING_SPIN_CONTENTION
+        ,
+        Contention(0)
+#endif
+        {
         }
 
         /**
@@ -58,6 +68,9 @@ namespace SPA {
                 }
 #endif
             }
+#ifdef MONITORING_SPIN_CONTENTION
+            Contention += cycle;
+#endif
             return cycle;
         }
 
