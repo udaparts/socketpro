@@ -35,14 +35,14 @@ OBJECTDIR=${CND_BUILDDIR}/${CND_CONF}/${CND_PLATFORM}
 
 # Object Files
 OBJECTFILES= \
-	${OBJECTDIR}/_ext/932346631/aclientw.o \
-	${OBJECTDIR}/_ext/932346631/membuffer.o \
+	${OBJECTDIR}/_ext/1559065848/aclientw.o \
+	${OBJECTDIR}/_ext/1559065848/membuffer.o \
 	${OBJECTDIR}/_ext/1472/sproclient.o \
 	${OBJECTDIR}/_ext/1472/stdafx.o
 
 
 # C Compiler Flags
-CFLAGS=
+CFLAGS=-std=c++11
 
 # CC Compiler Flags
 CCFLAGS=-std=c++11
@@ -65,15 +65,15 @@ ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/uclient: ${OBJECTFILES}
 	${MKDIR} -p ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}
 	${LINK.cc} -o ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/uclient ${OBJECTFILES} ${LDLIBSOPTIONS} -lstdc++ -pthread
 
-${OBJECTDIR}/_ext/932346631/aclientw.o: ../../../include/aclientw.cpp 
-	${MKDIR} -p ${OBJECTDIR}/_ext/932346631
+${OBJECTDIR}/_ext/1559065848/aclientw.o: ../../include/aclientw.cpp 
+	${MKDIR} -p ${OBJECTDIR}/_ext/1559065848
 	${RM} "$@.d"
-	$(COMPILE.cc) -g -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/932346631/aclientw.o ../../../include/aclientw.cpp
+	$(COMPILE.c) -g -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/1559065848/aclientw.o ../../include/aclientw.cpp
 
-${OBJECTDIR}/_ext/932346631/membuffer.o: ../../../include/membuffer.cpp 
-	${MKDIR} -p ${OBJECTDIR}/_ext/932346631
+${OBJECTDIR}/_ext/1559065848/membuffer.o: ../../include/membuffer.cpp 
+	${MKDIR} -p ${OBJECTDIR}/_ext/1559065848
 	${RM} "$@.d"
-	$(COMPILE.cc) -g -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/932346631/membuffer.o ../../../include/membuffer.cpp
+	$(COMPILE.c) -g -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/1559065848/membuffer.o ../../include/membuffer.cpp
 
 ${OBJECTDIR}/_ext/1472/sproclient.o: ../sproclient.cpp 
 	${MKDIR} -p ${OBJECTDIR}/_ext/1472

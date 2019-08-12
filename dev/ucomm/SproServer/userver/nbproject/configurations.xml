@@ -8,11 +8,8 @@
       <itemPath>../TEchoCImpl.h</itemPath>
       <itemPath>../TEchoDImpl.h</itemPath>
       <itemPath>../TOneImpl.h</itemPath>
-      <itemPath>../../../include/aserverw.h</itemPath>
-      <itemPath>../../../include/bvariant.h</itemPath>
       <itemPath>../httppeer.h</itemPath>
       <itemPath>../mypeerimpl.h</itemPath>
-      <itemPath>../../../include/scloader.h</itemPath>
     </logicalFolder>
     <logicalFolder name="ResourceFiles"
                    displayName="Resource Files"
@@ -31,8 +28,8 @@
     <logicalFolder name="SourceFiles"
                    displayName="Source Files"
                    projectFiles="true">
-      <itemPath>../../../include/aserverw.cpp</itemPath>
-      <itemPath>../../../include/membuffer.cpp</itemPath>
+      <itemPath>../../include/aserverw.cpp</itemPath>
+      <itemPath>../../include/membuffer.cpp</itemPath>
       <itemPath>../sproserver.cpp</itemPath>
       <itemPath>../stdafx.cpp</itemPath>
     </logicalFolder>
@@ -57,6 +54,9 @@
         <rebuildPropChanged>false</rebuildPropChanged>
       </toolsSet>
       <compileType>
+        <cTool>
+          <commandLine>-std=c++11</commandLine>
+        </cTool>
         <ccTool>
           <commandLine>-std=c++11</commandLine>
         </ccTool>
@@ -72,15 +72,9 @@
           <commandLine>-lstdc++ -pthread</commandLine>
         </linkerTool>
       </compileType>
-      <item path="../../../include/aserverw.cpp" ex="false" tool="1" flavor2="0">
+      <item path="../../include/aserverw.cpp" ex="false" tool="0" flavor2="0">
       </item>
-      <item path="../../../include/aserverw.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="../../../include/bvariant.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="../../../include/membuffer.cpp" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="../../../include/scloader.h" ex="false" tool="3" flavor2="0">
+      <item path="../../include/membuffer.cpp" ex="false" tool="0" flavor2="0">
       </item>
       <item path="../TEchoBImpl.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -129,6 +123,7 @@
         <cTool>
           <developmentMode>5</developmentMode>
           <stripSymbols>true</stripSymbols>
+          <commandLine>-std=c++11</commandLine>
           <preprocessorList>
             <Elem>NDEBUG</Elem>
           </preprocessorList>
@@ -156,15 +151,9 @@
           <commandLine>-lstdc++ -pthread</commandLine>
         </linkerTool>
       </compileType>
-      <item path="../../../include/aserverw.cpp" ex="false" tool="1" flavor2="0">
+      <item path="../../include/aserverw.cpp" ex="false" tool="0" flavor2="0">
       </item>
-      <item path="../../../include/aserverw.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="../../../include/bvariant.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="../../../include/membuffer.cpp" ex="false" tool="1" flavor2="0">
-      </item>
-      <item path="../../../include/scloader.h" ex="false" tool="3" flavor2="0">
+      <item path="../../include/membuffer.cpp" ex="false" tool="0" flavor2="0">
       </item>
       <item path="../TEchoBImpl.h" ex="false" tool="3" flavor2="0">
       </item>

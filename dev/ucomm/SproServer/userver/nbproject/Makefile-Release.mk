@@ -35,14 +35,14 @@ OBJECTDIR=${CND_BUILDDIR}/${CND_CONF}/${CND_PLATFORM}
 
 # Object Files
 OBJECTFILES= \
-	${OBJECTDIR}/_ext/932346631/aserverw.o \
-	${OBJECTDIR}/_ext/932346631/membuffer.o \
+	${OBJECTDIR}/_ext/1559065848/aserverw.o \
+	${OBJECTDIR}/_ext/1559065848/membuffer.o \
 	${OBJECTDIR}/_ext/1472/sproserver.o \
 	${OBJECTDIR}/_ext/1472/stdafx.o
 
 
 # C Compiler Flags
-CFLAGS=
+CFLAGS=-std=c++11
 
 # CC Compiler Flags
 CCFLAGS=-std=c++11
@@ -65,13 +65,13 @@ ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/userver: ${OBJECTFILES}
 	${MKDIR} -p ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}
 	${LINK.cc} -o ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/userver ${OBJECTFILES} ${LDLIBSOPTIONS} -lstdc++ -pthread -s
 
-${OBJECTDIR}/_ext/932346631/aserverw.o: ../../../include/aserverw.cpp 
-	${MKDIR} -p ${OBJECTDIR}/_ext/932346631
-	$(COMPILE.cc) -O2 -s -DNDEBUG -o ${OBJECTDIR}/_ext/932346631/aserverw.o ../../../include/aserverw.cpp
+${OBJECTDIR}/_ext/1559065848/aserverw.o: ../../include/aserverw.cpp 
+	${MKDIR} -p ${OBJECTDIR}/_ext/1559065848
+	$(COMPILE.c) -O2 -s -DNDEBUG -o ${OBJECTDIR}/_ext/1559065848/aserverw.o ../../include/aserverw.cpp
 
-${OBJECTDIR}/_ext/932346631/membuffer.o: ../../../include/membuffer.cpp 
-	${MKDIR} -p ${OBJECTDIR}/_ext/932346631
-	$(COMPILE.cc) -O2 -s -DNDEBUG -o ${OBJECTDIR}/_ext/932346631/membuffer.o ../../../include/membuffer.cpp
+${OBJECTDIR}/_ext/1559065848/membuffer.o: ../../include/membuffer.cpp 
+	${MKDIR} -p ${OBJECTDIR}/_ext/1559065848
+	$(COMPILE.c) -O2 -s -DNDEBUG -o ${OBJECTDIR}/_ext/1559065848/membuffer.o ../../include/membuffer.cpp
 
 ${OBJECTDIR}/_ext/1472/sproserver.o: ../sproserver.cpp 
 	${MKDIR} -p ${OBJECTDIR}/_ext/1472

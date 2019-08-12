@@ -8,6 +8,7 @@
 #ifdef WIN32_64	
 #include "wincommutil.h"
 #else
+#include <atomic>
 #include "nixcommutil.h"
 #ifdef USE_BOOST_LARGE_INTEGER_FOR_DECIMAL
 #include <boost/multiprecision/cpp_int.hpp>
@@ -22,7 +23,11 @@ namespace SPA {
 
     class CSpinLock {
     private:
+#ifdef WIN32_64
         volatile unsigned int m_locked;
+#else
+        std::atomic_flag m_locked;
+#endif
 
         //no copy constructor
         CSpinLock(const CSpinLock &sl);
@@ -36,7 +41,12 @@ namespace SPA {
 
     public:
 
-        CSpinLock() : m_locked(0)
+        CSpinLock() :
+#ifdef WIN32_64
+        m_locked(0)
+#else
+        m_locked(ATOMIC_FLAG_INIT)
+#endif
 #ifdef MONITORING_SPIN_CONTENTION
         ,
         Contention(0)
@@ -56,7 +66,7 @@ namespace SPA {
 #ifdef WIN32_64
             while (::InterlockedCompareExchange(&m_locked, 1, 0)) {
 #else
-            while (::__sync_val_compare_and_swap(&m_locked, 0, 1)) {
+            while (m_locked.test_and_set(std::memory_order_acquire)) {
 #endif
                 ++cycle;
                 if (cycle >= max_cycle) {
@@ -79,8 +89,12 @@ namespace SPA {
          * @remark Must call the method lock first before calling this method
          */
         void unlock() {
+#ifdef WIN32_64
             assert(m_locked); //must call the method lock first
             m_locked = 0;
+#else
+            m_locked.clear(std::memory_order_release);
+#endif
         }
     };
 
