@@ -12,15 +12,15 @@ namespace SPA
 
         CUCriticalSection g_csSpPool;
 
-        CUCriticalSection CClientSocket::m_mutex;
+        CSpinLock CClientSocket::m_mutex;
         std::vector<CClientSocket*> CClientSocket::m_vClientSocket;
 
         Internal::CClientCoreLoader ClientCoreLoader;
 
-        CUCriticalSection CAsyncServiceHandler::m_csRR;
+        CSpinLock CAsyncServiceHandler::m_csRR;
         CUQueue CAsyncServiceHandler::m_vRR;
 
-        CUCriticalSection CAsyncServiceHandler::m_csIndex;
+        CSpinLock CAsyncServiceHandler::m_csIndex;
         UINT64 CAsyncServiceHandler::m_CallIndex = 0; //should be protected by m_csIndex
 
         bool CAsyncServiceHandler::CRRImpl::Invoke(CAsyncServiceHandler *ash, unsigned short reqId, CUQueue & buff) {
@@ -42,9 +42,9 @@ namespace SPA
             }
             m_vCallback.SetBlockSize(128 * 1024);
             m_vCallback.ReallocBuffer(128 * 1024);
-            m_rrImpl.SetCS(&m_cs);
-            m_seImpl.SetCS(&m_cs);
-            m_brpImpl.SetCS(&m_cs);
+            m_rrImpl.SetCS(&m_csCb);
+            m_seImpl.SetCS(&m_csCb);
+            m_brpImpl.SetCS(&m_csCb);
 #ifdef NODE_JS_ADAPTER_PROJECT
             ::memset(&m_typeReq, 0, sizeof (m_typeReq));
             m_typeReq.data = this;
@@ -55,16 +55,17 @@ namespace SPA
 
         CAsyncServiceHandler::~CAsyncServiceHandler() {
             CleanCallbacks();
-            CAutoLock al(m_cs);
+            auto contentions = m_cs.lock();
             if (m_pClientSocket)
                 m_pClientSocket->Detach(this);
+            m_cs.unlock();
 #ifdef NODE_JS_ADAPTER_PROJECT         
             uv_close((uv_handle_t*) & m_typeReq, nullptr);
 #endif
         }
 
         UINT64 CAsyncServiceHandler::GetCallIndex() {
-            m_csIndex.lock();
+            auto contentions = m_csIndex.lock();
             UINT64 index = ++m_CallIndex;
             m_csIndex.unlock();
             return index;
@@ -73,14 +74,15 @@ namespace SPA
         void CAsyncServiceHandler::CleanQueue(CUQueue & q) {
             unsigned int size = q.GetSize();
             if (size) {
-                CAutoLock al(m_csRR);
+                auto contentions = m_csRR.lock();
                 m_vRR.Push(q.GetBuffer(), size);
+                m_csRR.unlock();
                 q.SetSize(0);
             }
         }
 
         void CAsyncServiceHandler::ClearResultCallbackPool(unsigned int remaining) {
-            CAutoLock al(m_csRR);
+            auto contentions = m_csRR.lock();
             unsigned int total = m_vRR.GetSize() / sizeof (PRR_PAIR);
             if (remaining > total) {
                 remaining = total;
@@ -92,20 +94,25 @@ namespace SPA
                 delete p;
             }
             m_vRR.SetSize(remaining * sizeof (PRR_PAIR));
+            m_csRR.unlock();
         }
 
         unsigned int CAsyncServiceHandler::CountResultCallbacksInPool() {
-            CAutoLock al(m_csRR);
-            return m_vRR.GetSize() / sizeof (PRR_PAIR);
+            auto contentions = m_csRR.lock();
+            unsigned int count = m_vRR.GetSize() / sizeof (PRR_PAIR);
+            m_csRR.unlock();
+            return count;
         }
 
         CAsyncServiceHandler::PRR_PAIR CAsyncServiceHandler::Reuse() {
-            CAutoLock al(m_csRR);
+            auto contentions = m_csRR.lock();
             if (m_vRR.GetSize() > 0) {
                 PRR_PAIR p;
                 m_vRR >> p;
+                m_csRR.unlock();
                 return p;
             }
+            m_csRR.unlock();
             return nullptr;
         }
 
@@ -194,9 +201,10 @@ namespace SPA
         }
 
         bool CAsyncServiceHandler::Attach(CClientSocket * cs) {
-            CAutoLock al(m_cs);
-            if (cs && m_pClientSocket == cs)
+            CSpinAutoLock al(m_cs);
+            if (cs && m_pClientSocket == cs) {
                 return true;
+            }
             if (m_pClientSocket)
                 m_pClientSocket->Detach(this);
             if (cs) {
@@ -204,25 +212,24 @@ namespace SPA
                     m_pClientSocket = cs;
                     return true;
                 }
-            } else
+            } else {
                 return true;
+            }
             return false;
         }
 
         bool CAsyncServiceHandler::CommitBatching(bool bBatchingAtServerSide) {
-            {
-                CAutoLock al(m_cs);
-                m_vCallback.Push(m_vBatching.GetBuffer(), m_vBatching.GetSize());
-                m_vBatching.SetSize(0);
-            }
+            auto contentions = m_cs.lock();
+            m_vCallback.Push(m_vBatching.GetBuffer(), m_vBatching.GetSize());
+            m_vBatching.SetSize(0);
+            m_cs.unlock();
             return ClientCoreLoader.CommitBatching(GetClientSocketHandle(), bBatchingAtServerSide);
         }
 
         bool CAsyncServiceHandler::AbortBatching() {
-            {
-                CAutoLock al(m_cs);
-                CleanQueue(m_vBatching);
-            }
+            auto contentions = m_cs.lock();
+            CleanQueue(m_vBatching);
+            m_cs.unlock();
             return ClientCoreLoader.AbortBatching(GetClientSocketHandle());
         }
 
@@ -261,13 +268,14 @@ namespace SPA
                 batching = ClientCoreLoader.IsBatching(h);
                 CAutoLock alSend(m_csSend);
                 {
-                    CAutoLock al(m_cs);
+                    auto contentions = m_cs.lock();
                     if (batching) {
                         m_vBatching << p;
                         assert((m_vBatching.GetSize() % sizeof (PRR_PAIR)) == 0);
                     } else {
                         m_vCallback << p;
                     }
+                    m_cs.unlock();
                 }
                 sent = ClientCoreLoader.SendRequest(h, reqId, pBuffer, size);
             } else {
@@ -275,7 +283,7 @@ namespace SPA
             }
             if (!sent) {
                 if (p) {
-                    m_cs.lock();
+                    auto contentions = m_cs.lock();
                     bool ok = (batching ? Remove(m_vBatching, p) : Remove(m_vCallback, p));
                     m_cs.unlock();
                     if (ok) {
@@ -298,13 +306,13 @@ namespace SPA
         }
 
         void CAsyncServiceHandler::AppendTo(CAsyncServiceHandler & to) {
-            CAutoLock al0(to.m_cs);
-            {
-                CAutoLock al1(m_cs);
-                OnMergeTo(to);
-                to.m_vCallback.Push(m_vCallback.GetBuffer(), m_vCallback.GetSize());
-                m_vCallback.SetSize(0);
-            }
+            auto contentions0 = to.m_cs.lock();
+            auto contentions1 = m_cs.lock();
+            OnMergeTo(to);
+            to.m_vCallback.Push(m_vCallback.GetBuffer(), m_vCallback.GetSize());
+            m_vCallback.SetSize(0);
+            m_cs.unlock();
+            to.m_cs.unlock();
         }
 
         void CAsyncServiceHandler::EraseBack(unsigned int count) {
@@ -350,12 +358,14 @@ namespace SPA
         }
 
         unsigned int CAsyncServiceHandler::GetRequestsQueued() {
-            CAutoLock al(m_cs);
-            return m_vCallback.GetSize() / sizeof (PRR_PAIR);
+            auto contentions = m_cs.lock();
+            unsigned int count = m_vCallback.GetSize() / sizeof (PRR_PAIR);
+            m_cs.unlock();
+            return count;
         }
 
         void CAsyncServiceHandler::ShrinkDeque() {
-            CAutoLock al(m_cs);
+            auto contentions = m_cs.lock();
             unsigned int size = m_vCallback.GetSize();
             if (size < DEFAULT_INITIAL_MEMORY_BUFFER_SIZE)
                 size = DEFAULT_INITIAL_MEMORY_BUFFER_SIZE;
@@ -364,10 +374,11 @@ namespace SPA
             if (size < DEFAULT_INITIAL_MEMORY_BUFFER_SIZE)
                 size = DEFAULT_INITIAL_MEMORY_BUFFER_SIZE;
             m_vBatching.ReallocBuffer(size);
+            m_cs.unlock();
         }
 
         unsigned int CAsyncServiceHandler::CleanCallbacks() {
-            CAutoLock al(m_cs);
+            auto contentions = m_cs.lock();
             unsigned int count = m_vBatching.GetSize() / sizeof (PRR_PAIR);
             unsigned int total = count;
             PRR_PAIR *pp = (PRR_PAIR*) m_vBatching.GetBuffer();
@@ -385,6 +396,7 @@ namespace SPA
                 }
             }
             CleanQueue(m_vCallback);
+            m_cs.unlock();
             total += count;
             return total;
         }
@@ -395,7 +407,7 @@ namespace SPA
         }
 
         bool CAsyncServiceHandler::GetAsyncResultHandler(unsigned short usReqId, PRR_PAIR & p) {
-            CAutoLock al(m_cs);
+            CSpinAutoLock al(m_cs);
             assert((m_vCallback.GetSize() % sizeof (PRR_PAIR)) == 0);
             unsigned int count = m_vCallback.GetSize() / sizeof (PRR_PAIR);
             PRR_PAIR *pp = (PRR_PAIR*) m_vCallback.GetBuffer();
@@ -534,7 +546,7 @@ namespace SPA
 
         CClientSocket * CClientSocket::Seek(USocket_Client_Handle h) {
             CClientSocket *p = nullptr;
-            m_mutex.lock();
+            auto contentions = m_mutex.lock();
             size_t count = m_vClientSocket.size();
             PClientSocket *start = m_vClientSocket.data();
             for (size_t it = 0; it < count; ++it) {
@@ -804,20 +816,24 @@ namespace SPA
 
         bool CClientSocket::CQueueImpl::AbortJob() const {
             CAsyncServiceHandler *ash = CClientSocket::Seek(m_hSocket)->GetCurrentHandler();
-            CAutoLock al(ash->m_cs);
+            auto contentions = ash->m_cs.lock();
             unsigned int aborted = ash->m_vCallback.GetSize() / sizeof (CAsyncServiceHandler::PRR_PAIR) - m_nQIndex;
             if (ClientCoreLoader.AbortJob(m_hSocket)) {
                 ash->EraseBack(aborted);
+                ash->m_cs.unlock();
                 return true;
             }
+            ash->m_cs.unlock();
             return false;
         }
 
         bool CClientSocket::CQueueImpl::StartJob() const {
             CAsyncServiceHandler *ash = CClientSocket::Seek(m_hSocket)->GetCurrentHandler();
-            CAutoLock al(ash->m_cs);
+            auto contentions = ash->m_cs.lock();
             (const_cast<CQueueImpl*> (this))->m_nQIndex = ash->m_vCallback.GetSize() / sizeof (CAsyncServiceHandler::PRR_PAIR);
-            return ClientCoreLoader.StartJob(m_hSocket);
+            bool ok = ClientCoreLoader.StartJob(m_hSocket);
+            ash->m_cs.unlock();
+            return ok;
         }
 
         bool CClientSocket::CQueueImpl::EndJob() const {

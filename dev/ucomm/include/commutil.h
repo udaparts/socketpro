@@ -20,6 +20,98 @@
 
 namespace SPA {
 
+    class CSpinLock {
+    private:
+        volatile unsigned int m_locked;
+
+        //no copy constructor
+        CSpinLock(const CSpinLock &sl);
+        //no assignment operator
+        CSpinLock& operator=(const CSpinLock &sl);
+
+#ifdef MONITORING_SPIN_CONTENTION
+    public:
+        UINT64 Contention;
+#endif
+
+    public:
+
+        CSpinLock() : m_locked(0)
+#ifdef MONITORING_SPIN_CONTENTION
+        ,
+        Contention(0)
+#endif
+        {
+        }
+
+        /**
+         * Lock a critical section
+         * @param max_cycle The max spin number
+         * @return The actual spin number
+         * If the returned value is zero or less than the given max spin number, the locking is successful.
+         * Otherwise, the locking is failed
+         */
+        unsigned int lock(unsigned int max_cycle = (~0)) {
+            unsigned int cycle = 0;
+#ifdef WIN32_64
+            while (::InterlockedCompareExchange(&m_locked, 1, 0)) {
+#else
+            while (::__sync_val_compare_and_swap(&m_locked, 0, 1)) {
+#endif
+                ++cycle;
+                if (cycle >= max_cycle) {
+                    break;
+                }
+#ifndef NDEBUG
+                if (cycle > 1 && 1 == (cycle % 16)) {
+                    std::cout << "*C*";
+                }
+#endif
+            }
+#ifdef MONITORING_SPIN_CONTENTION
+            Contention += cycle;
+#endif
+            return cycle;
+        }
+
+        /**
+         * Unlock a critical section
+         * @remark Must call the method lock first before calling this method
+         */
+        void unlock() {
+            assert(m_locked); //must call the method lock first
+            m_locked = 0;
+        }
+    };
+
+    class CSpinAutoLock {
+    public:
+
+        /**
+         * Create an instance of CSpinAutoLock, and automatically lock a critical section
+         */
+        CSpinAutoLock(CSpinLock &cs)
+        : m_cs(cs) {
+            unsigned int contentions = m_cs.lock();
+        }
+
+        /**
+         * Destroy an instance of CSpinAutoLock, and automatically unlock a critical section
+         */
+        ~CSpinAutoLock() {
+            m_cs.unlock();
+        }
+
+    private:
+        /// Copy constructor disabled
+        CSpinAutoLock(const CSpinAutoLock &al);
+
+        /// Assignment operator disabled
+        CSpinAutoLock& operator=(const CSpinAutoLock &al);
+
+        CSpinLock &m_cs;
+    };
+
 #ifdef BOOST_MP_CPP_INT_HPP
     using namespace boost::multiprecision;
     typedef number<cpp_int_backend<96, 96, unsigned_magnitude, unchecked, void> > uint96_t;

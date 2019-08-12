@@ -257,7 +257,6 @@ namespace SPA {
             unsigned int m_listeningPort;
             unsigned int m_maxBacklog;
             friend class CBaseService;
-            CUCriticalSection m_mutex;
         };
 
         class CBaseService;

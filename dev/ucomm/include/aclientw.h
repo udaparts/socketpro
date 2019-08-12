@@ -721,7 +721,7 @@ namespace SPA {
             unsigned int m_nCurrSvsId;
             bool m_routing;
             CUQueue m_qRecv;
-            static CUCriticalSection m_mutex;
+            static CSpinLock m_mutex;
             static std::vector<CClientSocket*> m_vClientSocket;
 
             template<typename THandler, typename TCS>
@@ -772,7 +772,7 @@ namespace SPA {
         class CAsyncServiceHandler {
             SPA::CScopeUQueue m_suCallback;
             SPA::CScopeUQueue m_suBatching;
-            static CUCriticalSection m_csRR;
+            static CSpinLock m_csRR;
             static void CleanQueue(CUQueue &q);
 
         public:
@@ -822,6 +822,16 @@ namespace SPA {
             virtual void OnAllProcessed();
 
         public:
+#ifdef MONITORING_SPIN_CONTENTION
+
+            UINT64 GetContention() {
+                return m_cs.Contention;
+            }
+
+            static UINT64 GetCacheContention() {
+                return m_csRR.Contention;
+            }
+#endif
             unsigned int GetRequestsQueued();
             void ShrinkDeque();
 
@@ -1762,12 +1772,12 @@ namespace SPA {
             virtual SPA::UINT64 SendRequest(Isolate* isolate, int args, Local<Value> *argv, unsigned short reqId, const unsigned char *pBuffer, unsigned int size);
 
             void Backup(std::shared_ptr<CNJFunc> f) {
-                CAutoLock al(m_cs);
+                CSpinAutoLock al(m_cs);
                 m_fBackup.push_back(f);
             }
 
             void CleanFuncBackups() {
-                CAutoLock al(m_cs);
+                CSpinAutoLock al(m_cs);
                 m_fBackup.clear();
             }
 
@@ -1791,13 +1801,14 @@ namespace SPA {
             std::deque<std::shared_ptr<CNJFunc> > m_fBackup;
 #endif
         private:
-            CUCriticalSection m_cs;
+            CUCriticalSection m_csCb;
+            CSpinLock m_cs;
             CUQueue &m_vCallback;
             CUQueue &m_vBatching;
             unsigned int m_nServiceId;
             CClientSocket *m_pClientSocket;
             CUCriticalSection m_csSend;
-            static CUCriticalSection m_csIndex;
+            static CSpinLock m_csIndex;
             static UINT64 m_CallIndex; //should be protected by IndexLocker;
             friend class CClientSocket;
             template<typename THandler, typename TCS>
