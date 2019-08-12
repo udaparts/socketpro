@@ -206,9 +206,9 @@ void TestQueue(const SPA::ClientSide::CConnectionContext &cc) {
     }
 
     do {
-		SPA::UINT64 memStart = CScopeUQueue::GetContention(),
-			cacheStart = CAsyncServiceHandler::GetCacheContention(),
-			handlerStart = p->GetContention();
+        SPA::UINT64 memStart = CScopeUQueue::GetContention(),
+                cacheStart = CAsyncServiceHandler::GetCacheContention(),
+                handlerStart = p->GetContention();
         std::cout << "Input a number for test option and negative number for quitting the test ......" << std::endl;
         std::cin >> n;
         if (n < 0)
@@ -259,9 +259,9 @@ void TestQueue(const SPA::ClientSide::CConnectionContext &cc) {
         boost::posix_time::ptime t1 = boost::posix_time::microsec_clock::local_time();
         boost::posix_time::time_duration diff = t1 - t0;
         std::cout << "Time required = " << diff.total_milliseconds() << std::endl;
-		std::cout << "Memory spin contention: " << CScopeUQueue::GetContention() - memStart <<
-			", Cache: " << CAsyncServiceHandler::GetCacheContention() - cacheStart <<
-			", Handler: " << p->GetContention() - handlerStart << std::endl;
+        std::cout << "Memory spin contention: " << CScopeUQueue::GetContention() - memStart <<
+                ", Cache: " << CAsyncServiceHandler::GetCacheContention() - cacheStart <<
+                ", Handler: " << p->GetContention() - handlerStart << std::endl;
     } while (true);
     std::getchar();
     unsigned int total = SPA::ClientSide::CAsyncServiceHandler::CountResultCallbacksInPool();
