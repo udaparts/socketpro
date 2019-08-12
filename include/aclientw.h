@@ -822,6 +822,16 @@ namespace SPA {
             virtual void OnAllProcessed();
 
         public:
+#ifdef MONITORING_SPIN_CONTENTION
+
+            UINT64 GetContention() {
+                return m_cs.Contention;
+            }
+
+            static UINT64 GetCacheContention() {
+                return m_csRR.Contention;
+            }
+#endif
             unsigned int GetRequestsQueued();
             void ShrinkDeque();
 

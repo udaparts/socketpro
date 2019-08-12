@@ -64,7 +64,7 @@ namespace SPA {
                 }
 #ifndef NDEBUG
                 if (cycle > 1 && 1 == (cycle % 16)) {
-                    std::cout << "***** Large contention detected ******" << std::endl;
+                    std::cout << "*C*";
                 }
 #endif
             }

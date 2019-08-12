@@ -1271,6 +1271,13 @@ namespace SPA {
         }
 #endif
 
+#ifdef MONITORING_SPIN_CONTENTION
+
+        static UINT64 GetContention() {
+            return m_cs.Contention;
+        }
+#endif
+
         /** 
          * Return a pointer to an internal memory buffer object. The method will return nullptr if no internal memory buffer object is available
          * @return A pointer to an internal memory buffer object
