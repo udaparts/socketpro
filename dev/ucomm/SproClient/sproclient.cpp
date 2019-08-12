@@ -33,7 +33,7 @@ int main(int argc, char* argv[]) {
     std::getline(std::cin, cc.Host);
     cc.Port = 20901;
     cc.Zip = false;
-    //cc.EncrytionMethod = SPA::TLSv1;
+    cc.EncrytionMethod = SPA::TLSv1;
 
     SPA::ClientSide::CClientSocket::SSL::SetCertificateVerifyCallback(CVCallback);
 
@@ -43,7 +43,7 @@ int main(int argc, char* argv[]) {
     //SPA::ClientSide::CClientSocket::QueueConfigure::SetWorkDirectory("c:\\cyetest");
 #else
     //ok = SPA::ClientSide::CClientSocket::SSL::SetVerifyLocation("/home/yye/3rdparty/");
-    ok = SPA::ClientSide::CClientSocket::SSL::SetVerifyLocation("/home/yye/3rdparty/ca.cert.pem");
+    ok = SPA::ClientSide::CClientSocket::SSL::SetVerifyLocation("ca.cert.pem");
     //ok = SPA::ClientSide::CClientSocket::SSL::SetVerifyLocation("/etc/ssl/certs");
     //SPA::ClientSide::CClientSocket::QueueConfigure::SetWorkDirectory("/home/yye/cyetest");
 #endif
