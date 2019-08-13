@@ -124,7 +124,7 @@ namespace SPA
                 m_vParam.clear();
             m_server_status = 0;
             if (m_pMysql) {
-                srv_session_detach(m_pMysql.get(), nullptr);
+                srv_session_detach(m_pMysql.get());
             }
             return 0;
         }
@@ -1133,7 +1133,7 @@ namespace SPA
                     }
                     EndTrans((int) rpRollbackAlways, res, errMsg);
                     if (m_pMysql) {
-                        srv_session_detach(m_pMysql.get(), nullptr);
+                        srv_session_detach(m_pMysql.get());
                     }
                 }
                     break;
