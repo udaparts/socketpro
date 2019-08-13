@@ -183,7 +183,7 @@ void CALLBACK OnRequestProcessed(USocket_Client_Handle handler, unsigned short r
         assert(env);
     }
     env->CallStaticVoidMethod(g_classCClientSocket, g_midOnRequestProcessed, (jlong) handler, (jshort) requestId, (jint) len, buffer, (jbyte) os, (jboolean) endian);
-    CleanException(env);
+    //CleanException(env); //no exception possible as handled in java code
 }
 
 void CALLBACK OnBaseRequestProcessed(USocket_Client_Handle handler, unsigned short requestId) {
@@ -191,7 +191,7 @@ void CALLBACK OnBaseRequestProcessed(USocket_Client_Handle handler, unsigned sho
     jint es = g_vmClient->GetEnv((void **) &env, JNI_VERSION_1_6);
     assert(env);
     env->CallStaticVoidMethod(g_classCClientSocket, g_midOnBaseRequestProcessed, (jlong) handler, (jshort) requestId);
-    CleanException(env);
+    //CleanException(env); //no exception possible as handled in java code
 }
 
 void CALLBACK OnPostProcessing(USocket_Client_Handle handler, unsigned int hint, SPA::UINT64 data) {
@@ -453,7 +453,7 @@ void CALLBACK OnAllRequestsProcessed(USocket_Client_Handle handler, unsigned sho
     jint es = g_vmClient->GetEnv((void **) &env, JNI_VERSION_1_6);
     assert(env);
     env->CallStaticVoidMethod(g_classCClientSocket, g_midOnAllRequestsProcessed, (jlong) handler, (jshort) lastRequestId);
-    CleanException(env);
+    //CleanException(env); //no exception possible as handled in java code
 }
 
 void DoCallback(JNIEnv *env, jobject spc, unsigned int pid, SPA::ClientSide::tagSocketPoolEvent spe, USocket_Client_Handle h) {

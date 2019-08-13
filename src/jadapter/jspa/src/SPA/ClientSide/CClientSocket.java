@@ -237,13 +237,17 @@ public final class CClientSocket {
     }
 
     private static void OnAllRequestsProcessed(long h, short reqId) {
-        CClientSocket cs = Find(h);
-        CAsyncServiceHandler ash = cs.Seek(cs.getCurrentServiceID());
-        if (ash != null) {
-            ash.OnAllProcessed();
-        }
-        if (cs.AllRequestsProcessed != null) {
-            cs.AllRequestsProcessed.invoke(cs, reqId);
+        try {
+            CClientSocket cs = Find(h);
+            CAsyncServiceHandler ash = cs.Seek(cs.getCurrentServiceID());
+            if (ash != null) {
+                ash.OnAllProcessed();
+            }
+            if (cs.AllRequestsProcessed != null) {
+                cs.AllRequestsProcessed.invoke(cs, reqId);
+            }
+        } catch (Exception e) {
+            //ignore exception handling
         }
     }
 
@@ -328,42 +332,50 @@ public final class CClientSocket {
     }
 
     private static void OnRequestProcessed(long h, short reqId, int len, byte[] bytes, byte os, boolean endian) {
-        CClientSocket cs = Find(h);
-        CAsyncServiceHandler ash = cs.m_ash;
-        if (ash != null) {
-            SPA.CUQueue q = cs.m_qRecv;
-            q.UseBuffer(bytes, len);
-            q.setOS(tagOperationSystem.forValue(os));
-            q.setEndian(endian);
-            ash.onRR(reqId, q);
-        }
-        if (cs.RequestProcessed != null) {
-            cs.RequestProcessed.invoke(cs, reqId, len);
+        try {
+            CClientSocket cs = Find(h);
+            CAsyncServiceHandler ash = cs.m_ash;
+            if (ash != null) {
+                SPA.CUQueue q = cs.m_qRecv;
+                q.UseBuffer(bytes, len);
+                q.setOS(tagOperationSystem.forValue(os));
+                q.setEndian(endian);
+                ash.onRR(reqId, q);
+            }
+            if (cs.RequestProcessed != null) {
+                cs.RequestProcessed.invoke(cs, reqId, len);
+            }
+        } catch (Exception e) {
+            //ignore exception handling
         }
     }
 
     private static void OnBaseRequestProcessed(long h, short reqId) {
-        CClientSocket cs = Find(h);
-        if (reqId == SPA.tagBaseRequestID.idSwitchTo.getValue()) {
-            cs.m_bRandom = ClientCoreLoader.IsRandom(h);
-            cs.m_nCurrentServiceId = ClientCoreLoader.GetCurrentServiceId(h);
-            cs.m_bRouting = ClientCoreLoader.IsRouting(h);
-            boolean[] endian = {false};
-            cs.m_os = SPA.tagOperationSystem.forValue(ClientCoreLoader.GetPeerOs(h, endian, 1));
-            cs.m_bBigEndian = endian[0];
-        }
-        CAsyncServiceHandler ash = cs.Seek(cs.getCurrentServiceID());
-        if (ash != null) {
-            if (ash.BaseRequestProcessed != null) {
-                ash.BaseRequestProcessed.invoke(ash, reqId);
+        try {
+            CClientSocket cs = Find(h);
+            if (reqId == SPA.tagBaseRequestID.idSwitchTo.getValue()) {
+                cs.m_bRandom = ClientCoreLoader.IsRandom(h);
+                cs.m_nCurrentServiceId = ClientCoreLoader.GetCurrentServiceId(h);
+                cs.m_bRouting = ClientCoreLoader.IsRouting(h);
+                boolean[] endian = {false};
+                cs.m_os = SPA.tagOperationSystem.forValue(ClientCoreLoader.GetPeerOs(h, endian, 1));
+                cs.m_bBigEndian = endian[0];
             }
-            ash.OnBaseRequestProcessed(reqId);
-            if (reqId == SPA.tagBaseRequestID.idCancel.getValue()) {
-                ash.CleanCallbacks();
+            CAsyncServiceHandler ash = cs.Seek(cs.getCurrentServiceID());
+            if (ash != null) {
+                if (ash.BaseRequestProcessed != null) {
+                    ash.BaseRequestProcessed.invoke(ash, reqId);
+                }
+                ash.OnBaseRequestProcessed(reqId);
+                if (reqId == SPA.tagBaseRequestID.idCancel.getValue()) {
+                    ash.CleanCallbacks();
+                }
             }
-        }
-        if (cs.BaseRequestProcessed != null) {
-            cs.BaseRequestProcessed.invoke(cs, SPA.tagBaseRequestID.forValue(reqId));
+            if (cs.BaseRequestProcessed != null) {
+                cs.BaseRequestProcessed.invoke(cs, SPA.tagBaseRequestID.forValue(reqId));
+            }
+        } catch (Exception e) {
+            //ignore exception handling
         }
     }
 
