@@ -107,6 +107,9 @@ namespace SPA
 
         int CMysqlImpl::OnSlowRequestArrive(unsigned short reqId, unsigned int len) {
             m_NoSending = false;
+            if (m_pMysql) {
+                srv_session_attach(m_pMysql.get(), nullptr);
+            }
             BEGIN_SWITCH(reqId)
             M_I2_R3(idOpen, Open, std::wstring, unsigned int, int, std::wstring, int)
             M_I3_R3(idBeginTrans, BeginTrans, int, std::wstring, unsigned int, int, std::wstring, int)
@@ -120,6 +123,9 @@ namespace SPA
             if (reqId == idExecuteParameters || reqId == idExecuteBatch)
                 m_vParam.clear();
             m_server_status = 0;
+            if (m_pMysql) {
+                srv_session_detach(m_pMysql.get(), nullptr);
+            }
             return 0;
         }
 
@@ -1122,7 +1128,13 @@ namespace SPA
                 {
                     int res;
                     std::wstring errMsg;
+                    if (m_pMysql) {
+                        srv_session_attach(m_pMysql.get(), nullptr);
+                    }
                     EndTrans((int) rpRollbackAlways, res, errMsg);
+                    if (m_pMysql) {
+                        srv_session_detach(m_pMysql.get(), nullptr);
+                    }
                 }
                     break;
                 default:
