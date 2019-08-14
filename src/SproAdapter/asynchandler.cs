@@ -2065,6 +2065,7 @@ namespace SocketProAdapter
                     }
                     else
                     {
+                        kv.Key = reqId;
                         rcb = kv.Value;
                     }
                     rcb.AsyncResultHandler = ash;
