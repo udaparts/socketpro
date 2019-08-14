@@ -378,7 +378,7 @@ namespace SPA
         }
 
         unsigned int CAsyncServiceHandler::CleanCallbacks() {
-            auto contentions = m_cs.lock();
+            CSpinAutoLock al(m_cs);
             unsigned int count = m_vBatching.GetSize() / sizeof (PRR_PAIR);
             unsigned int total = count;
             PRR_PAIR *pp = (PRR_PAIR*) m_vBatching.GetBuffer();
@@ -396,7 +396,6 @@ namespace SPA
                 }
             }
             CleanQueue(m_vCallback);
-            m_cs.unlock();
             total += count;
             return total;
         }
