@@ -337,7 +337,8 @@ public final class CClientSocket {
             CAsyncServiceHandler ash = cs.m_ash;
             if (ash != null) {
                 SPA.CUQueue q = cs.m_qRecv;
-                q.UseBuffer(bytes, len);
+                q.SetSize(0);
+                q.Push(bytes, len);
                 q.setOS(tagOperationSystem.forValue(os));
                 q.setEndian(endian);
                 ash.onRR(reqId, q);

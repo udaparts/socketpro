@@ -737,8 +737,16 @@ public final class CUQueue {
 
     public final CUQueue Push(java.nio.ByteBuffer bb) {
         if (bb != null) {
-            Ensure(bb.limit() - bb.position());
-            m_bytes.put(bb);
+            int limit = bb.limit();
+            int pos = bb.position();
+            int size = limit - pos;
+            Ensure(size);
+            if (size > 0) {
+                m_bytes.put(bb);
+                bb.position(pos);
+                bb.limit(limit);
+                m_len += size;
+            }
         }
         return this;
     }
