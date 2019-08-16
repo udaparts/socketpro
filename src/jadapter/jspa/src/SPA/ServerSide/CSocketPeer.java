@@ -227,19 +227,21 @@ public abstract class CSocketPeer {
                 break;
             case "void":
                 break;
-            case "SPA.CUQueue":
+            case "SPA.CUQueue": {
                 SPA.CUQueue r = (SPA.CUQueue) res;
                 if (r != null) {
                     SPA.CScopeUQueue.Unlock(q);
-                    ServerCoreLoader.SendReturnData(m_sh, reqId, r.GetSize(), r.getIntenalBuffer());
+                    ServerCoreLoader.SendReturnData(m_sh, reqId, r.GetSize(), r.getIntenalBuffer(), r.getHeadPosition());
                     return;
                 }
-                break;
+            }
+            break;
             case "SPA.CScopeUQueue": {
                 SPA.CScopeUQueue scope = (SPA.CScopeUQueue) res;
                 if (scope != null) {
                     SPA.CScopeUQueue.Unlock(q);
-                    ServerCoreLoader.SendReturnData(m_sh, reqId, scope.getUQueue().GetSize(), scope.getUQueue().getIntenalBuffer());
+                    SPA.CUQueue r = scope.getUQueue();
+                    ServerCoreLoader.SendReturnData(m_sh, reqId, r.GetSize(), r.getIntenalBuffer(), r.getHeadPosition());
                     scope.Clean();
                     return;
                 }
@@ -249,7 +251,7 @@ public abstract class CSocketPeer {
                 q.Save((SPA.IUSerializer) res);
                 break;
         }
-        ServerCoreLoader.SendReturnData(m_sh, reqId, q.GetSize(), q.getIntenalBuffer());
+        ServerCoreLoader.SendReturnData(m_sh, reqId, q.GetSize(), q.getIntenalBuffer(), q.getHeadPosition());
         SPA.CScopeUQueue.Unlock(q);
     }
 

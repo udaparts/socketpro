@@ -1,53 +1,21 @@
 package SPA;
 
 import java.nio.ByteBuffer;
-import java.nio.CharBuffer;
+import java.nio.ByteOrder;
 
 public final class CUQueue {
 
-    public static final tagOperationSystem DEFAULT_OS;
-
     public static final int DEFAULT_BUFFER_SIZE = 4 * 1024;
     public static final int DEFAULT_BLOCK_SIZE = 4 * 1024;
+    private int m_blockSize = DEFAULT_BLOCK_SIZE;
+    private ByteBuffer m_bytes;
+    private int m_len = 0;
+    private boolean m_bReading = false;
+    private int m_position = 0;
 
-    private static java.math.BigInteger UINT64_MOD;
-    private static java.math.BigInteger UINT32_MOD;
-    //private static java.math.BigInteger MSDEC_MAX = new java.math.BigInteger("39614081257132168796771975167");
-    //private static java.math.BigInteger MSDEC_MIN = new java.math.BigInteger("-39614081257132168796771975168");
-
-    public final void setSize(int newSize) {
-        SetSize(newSize);
-    }
-
-    public final void SetSize(int size) {
-        if (size == 0) {
-            m_position = 0;
-            m_len = 0;
-            return;
-        }
-        if (size < 0) {
-            throw new java.lang.IllegalArgumentException("New size can not be less than 0");
-        }
-
-        if (size > (m_bytes.length - m_position)) {
-            throw new java.lang.UnsupportedOperationException("Bad new size");
-        }
-        m_len = size;
-    }
-
-    public final void Empty() {
-        m_len = 0;
-        m_position = 0;
-    }
-
-    public CUQueue() {
-        m_blockSize = DEFAULT_BLOCK_SIZE;
-        m_bytes = new byte[DEFAULT_BUFFER_SIZE];
-    }
+    public static final tagOperationSystem DEFAULT_OS;
 
     static {
-        UINT64_MOD = new java.math.BigInteger("10000000000000000", 16);
-        UINT32_MOD = new java.math.BigInteger("100000000", 16);
         String os = System.getProperty("os.name");
         if (os.startsWith("WindowsCE")) {
             DEFAULT_OS = tagOperationSystem.osWinCE;
@@ -61,7 +29,6 @@ public final class CUQueue {
     }
 
     private tagOperationSystem m_os = DEFAULT_OS;
-    private boolean m_bEndian = false;
 
     public final tagOperationSystem getOS() {
         return m_os;
@@ -71,79 +38,115 @@ public final class CUQueue {
         m_os = os;
     }
 
-    public final boolean getEndian() {
-        return m_bEndian;
-    }
-
-    public final void setEndian(boolean e) {
-        m_bEndian = e;
+    public CUQueue() {
+        m_bytes = ByteBuffer.allocateDirect(DEFAULT_BUFFER_SIZE);
+        m_bytes.order(ByteOrder.LITTLE_ENDIAN);
     }
 
     public CUQueue(int maxSize) {
         if (maxSize <= 0) {
             maxSize = DEFAULT_BUFFER_SIZE;
         }
-        m_blockSize = DEFAULT_BLOCK_SIZE;
-        m_bytes = new byte[maxSize];
+        m_bytes = ByteBuffer.allocateDirect(maxSize);
+        m_bytes.order(ByteOrder.LITTLE_ENDIAN);
     }
 
     public CUQueue(int maxSize, int blockSize) {
         if (maxSize <= 0) {
             maxSize = DEFAULT_BUFFER_SIZE;
         }
-        if (blockSize < 0) {
+        if (blockSize <= 0) {
             blockSize = DEFAULT_BLOCK_SIZE;
         }
         m_blockSize = blockSize;
-        m_bytes = new byte[maxSize];
+        m_bytes = ByteBuffer.allocateDirect(maxSize);
+        m_bytes.order(ByteOrder.LITTLE_ENDIAN);
     }
 
     public CUQueue(byte[] bytes) {
-        m_blockSize = DEFAULT_BLOCK_SIZE;
         if (bytes == null) {
-            m_bytes = new byte[0];
+            m_bytes = ByteBuffer.allocateDirect(DEFAULT_BUFFER_SIZE);
         } else {
-            m_bytes = bytes;
             m_len = bytes.length;
+            m_bytes = ByteBuffer.wrap(bytes);
         }
+        m_bytes.order(ByteOrder.LITTLE_ENDIAN);
     }
 
     public CUQueue(byte[] bytes, int len) {
-        m_blockSize = DEFAULT_BLOCK_SIZE;
         if (bytes == null) {
-            m_bytes = new byte[0];
+            m_bytes = ByteBuffer.allocateDirect(DEFAULT_BUFFER_SIZE);
         } else if (len > 0 && bytes.length > len) {
-            m_bytes = bytes;
             m_len = len;
+            m_bytes = ByteBuffer.wrap(bytes);
         } else {
-            m_bytes = bytes;
+            m_bytes = ByteBuffer.wrap(bytes);
             m_len = bytes.length;
         }
+        m_bytes.order(ByteOrder.LITTLE_ENDIAN);
+    }
+
+    public final boolean isDirect() {
+        return m_bytes.isDirect();
     }
 
     public void UseBuffer(byte[] bytes) {
-        m_position = 0;
         if (bytes == null) {
-            m_bytes = new byte[0];
+            m_bytes = ByteBuffer.allocateDirect(DEFAULT_BUFFER_SIZE);
             m_len = 0;
         } else {
-            m_bytes = bytes;
+            m_bytes = ByteBuffer.wrap(bytes);
             m_len = bytes.length;
         }
+        m_bytes.order(ByteOrder.LITTLE_ENDIAN);
+        m_position = 0;
     }
 
     public void UseBuffer(byte[] bytes, int len) {
-        m_position = 0;
         if (bytes == null) {
-            m_bytes = new byte[0];
+            ByteBuffer.allocateDirect(DEFAULT_BUFFER_SIZE);
             m_len = 0;
         } else if (len > 0 && bytes.length > len) {
-            m_bytes = bytes;
+            m_bytes = ByteBuffer.wrap(bytes);
             m_len = len;
         } else {
-            m_bytes = bytes;
+            m_bytes = ByteBuffer.wrap(bytes);
             m_len = bytes.length;
         }
+        m_bytes.order(ByteOrder.LITTLE_ENDIAN);
+        m_position = 0;
+    }
+
+    public final void setSize(int newSize) {
+        SetSize(newSize);
+    }
+
+    public final void SetSize(int size) {
+        if (size < 0) {
+            throw new java.lang.IllegalArgumentException("New size can not be less than 0");
+        } else if (size > (m_bytes.capacity() - m_position)) {
+            throw new java.lang.UnsupportedOperationException("Bad new size");
+        } else if (size == 0) {
+            m_len = 0;
+            m_position = 0;
+            m_bytes.clear();
+        } else {
+            m_len = size;
+        }
+    }
+
+    public final void Empty() {
+        m_len = 0;
+        m_bytes.clear();
+        m_position = 0;
+    }
+
+    public final boolean getEndian() {
+        return (m_bytes.order() == ByteOrder.BIG_ENDIAN);
+    }
+
+    public final void setEndian(boolean e) {
+        m_bytes.order(e ? ByteOrder.BIG_ENDIAN : ByteOrder.LITTLE_ENDIAN);
     }
 
     public final int getHeadPosition() {
@@ -159,11 +162,11 @@ public final class CUQueue {
     }
 
     public final int getTailSize() {
-        return (m_bytes.length - m_position - m_len);
+        return (m_bytes.capacity() - m_position - m_len);
     }
 
     public final int getMaxBufferSize() {
-        return m_bytes.length;
+        return m_bytes.capacity();
     }
 
     public final int Discard(int len) {
@@ -173,53 +176,12 @@ public final class CUQueue {
         m_len -= len;
         if (m_len == 0) {
             m_position = 0;
+            m_bytes.clear();
         } else {
             m_position += len;
+            m_bytes.position(m_position);
         }
         return len;
-    }
-
-    public final CUQueue Save(Byte b) {
-        return Save((byte) b);
-    }
-
-    public final CUQueue Save(Short s) {
-        return Save((short) s);
-    }
-
-    public final CUQueue Save(Integer i) {
-        return Save((int) i);
-    }
-
-    public final CUQueue Save(Long i) {
-        return Save((long) i);
-    }
-
-    public final CUQueue Save(Float f) {
-        return Save((float) f);
-    }
-
-    public final CUQueue Save(Double d) {
-        return Save((double) d);
-    }
-
-    public final CUQueue Save(Boolean b) {
-        return Save((boolean) b);
-    }
-
-    public final <T extends IUSerializer> CUQueue Save(T s) {
-        s.SaveTo(this);
-        return this;
-    }
-
-    public final <T extends IUSerializer> T Load(Class<T> cls) {
-        T t = null;
-        try {
-            t = cls.newInstance();
-            t.LoadFrom(this);
-        } catch (InstantiationException | IllegalAccessException err) {
-        }
-        return t;
     }
 
     public final CUQueue Save(java.sql.Timestamp dt) throws IllegalArgumentException {
@@ -252,395 +214,19 @@ public final class CUQueue {
         return dt;
     }
 
-    public final CUQueue Save(CUQueue q) {
-        int nSize = -1;
-        if (q != null) {
-            nSize = q.GetSize();
-            Save(nSize);
-            Push(q.getIntenalBuffer(), q.getHeadPosition(), nSize);
-        } else {
-            Save(nSize);
-        }
+    public final <T extends IUSerializer> CUQueue Save(T s) {
+        s.SaveTo(this);
         return this;
     }
 
-    public final CUQueue LoadUQueue() {
-        int len = LoadInt();
-        if (len == -1) {
-            return null;
+    public final <T extends IUSerializer> T Load(Class<T> cls) {
+        T t = null;
+        try {
+            t = cls.newInstance();
+            t.LoadFrom(this);
+        } catch (InstantiationException | IllegalAccessException err) {
         }
-        if (len < 0 || len > m_len) {
-            throw new RuntimeException("Invalid data found");
-        }
-        CUQueue q = new CUQueue(len);
-        q.Push(m_bytes, m_position, len);
-        Discard(len);
-        return q;
-    }
-
-    public final void Realloc(int newMaxSize) {
-        if (newMaxSize <= 0) {
-            newMaxSize = 4 * 1024;
-        }
-        newMaxSize = (newMaxSize / m_blockSize + 1) * m_blockSize;
-        byte[] buffer = new byte[newMaxSize];
-        if (buffer == null) {
-            throw new java.lang.OutOfMemoryError("Can not allocate memory with " + newMaxSize + " bytes");
-        }
-        if (m_len > 0) {
-            m_len = (m_len > newMaxSize) ? newMaxSize : m_len;
-            System.arraycopy(m_bytes, m_position, buffer, 0, m_len);
-        }
-        m_bytes = buffer;
-        m_position = 0;
-    }
-
-    public final byte[] GetBuffer(int offset) {
-        if (offset < 0) {
-            offset = 0;
-        }
-        if (offset > m_len) {
-            offset = m_len;
-        }
-        byte[] bytes = new byte[m_len - offset];
-        if (m_len > offset) {
-            System.arraycopy(m_bytes, (int) (m_position + offset), bytes, 0, (int) (m_len - offset));
-        }
-        return bytes;
-    }
-
-    public final byte[] GetBuffer() {
-        return GetBuffer(0);
-    }
-
-    public final byte[] getIntenalBuffer() {
-        return m_bytes;
-    }
-
-    public final CUQueue Push(byte[] bytes, int offset, int len) {
-        if (offset < 0 || len < 0) {
-            throw new IllegalArgumentException();
-        }
-        if (bytes == null || len == 0) {
-            return this;
-        }
-        if (offset + len > bytes.length) {
-            throw new IllegalArgumentException("Bad offset and length");
-        }
-        int tailSize = getTailSize();
-        if (tailSize < len) {
-            int addedSize = ((len - tailSize) / m_blockSize + 1) * m_blockSize;
-            Realloc(getMaxBufferSize() + addedSize);
-        }
-        System.arraycopy(bytes, offset, m_bytes, m_position + m_len, len);
-        m_len += len;
-        return this;
-    }
-
-    public final CUQueue Push(byte[] bytes, int len) {
-        return Push(bytes, 0, len);
-    }
-
-    public final CUQueue Push(byte[] bytes) {
-        if (bytes != null) {
-            Push(bytes, bytes.length);
-        }
-        return this;
-    }
-
-    public final CUQueue Save(int n) {
-        m_b[3] = (byte) (n >>> 24);
-        m_b[2] = (byte) (n >>> 16);
-        m_b[1] = (byte) (n >>> 8);
-        m_b[0] = (byte) n;
-        return Push(m_b, 4);
-    }
-
-    public final CUQueue Save(short n) {
-        m_b[1] = (byte) (n >>> 8);
-        m_b[0] = (byte) n;
-        return Push(m_b, 2);
-    }
-
-    public final CUQueue Save(char c) {
-        return Save((short) c);
-    }
-
-    public final CUQueue Save(byte n) {
-        m_b[0] = n;
-        return Push(m_b, 1);
-    }
-
-    public final CUQueue Save(boolean b) {
-        m_b[0] = b ? (byte) 1 : (byte) 0;
-        return Push(m_b, 1);
-    }
-
-    public final CUQueue Save(long n) {
-        m_b[7] = (byte) (n >> 56);
-        m_b[6] = (byte) (n >> 48);
-        m_b[5] = (byte) (n >> 40);
-        m_b[4] = (byte) (n >> 32);
-        m_b[3] = (byte) (n >> 24);
-        m_b[2] = (byte) (n >> 16);
-        m_b[1] = (byte) (n >> 8);
-        m_b[0] = (byte) n;
-        return Push(m_b, 8);
-    }
-
-    public final CUQueue Save(float f) {
-        return Save(Float.floatToIntBits(f));
-    }
-
-    public final CUQueue Save(double d) {
-        return Save(Double.doubleToLongBits(d));
-    }
-
-    private void Ensure(int len) {
-        if (getTailSize() < len) {
-            Realloc(getMaxBufferSize() + (len - getTailSize()));
-        }
-    }
-
-    public final CUQueue Save(String s) {
-        int len = -1;
-        if (s != null) {
-            len = s.length() * 2;
-            Save(len);
-            if (len > 0) {
-                Ensure(len);
-                CharBuffer cb = CharBuffer.wrap(s);
-                ByteBuffer bb = ByteBuffer.wrap(m_bytes, m_position + m_len, len);
-                m_UTF16.newEncoder().encode(cb, bb, true);
-                m_len += len;
-            }
-        } else {
-            Save(len);
-        }
-        return this;
-    }
-
-    public final CUQueue Save(byte[] bytes) {
-        int len = -1;
-        if (bytes != null) {
-            len = bytes.length;
-            Save(len);
-            Push(bytes, len);
-        } else {
-            Save(len);
-        }
-        return this;
-    }
-
-    private void ChangeHeadLong() {
-        byte temp = m_b[7];
-        m_b[7] = m_b[6];
-        m_b[6] = temp;
-        temp = m_b[5];
-        m_b[5] = m_b[4];
-        m_b[4] = temp;
-        temp = m_b[3];
-        m_b[3] = m_b[0];
-        m_b[0] = temp;
-        temp = m_b[2];
-        m_b[2] = m_b[1];
-        m_b[1] = temp;
-    }
-
-    public final CUQueue Save(java.util.UUID id) throws IllegalArgumentException {
-        if (id == null) {
-            throw new IllegalArgumentException("UUID id can not be null");
-        }
-        java.nio.ByteBuffer bb = java.nio.ByteBuffer.wrap(m_b);
-        bb.putLong(id.getMostSignificantBits());
-        bb.putLong(id.getLeastSignificantBits());
-        ChangeHeadLong();
-        return Push(m_b, 16);
-    }
-
-    public final java.util.UUID LoadUUID() {
-        java.nio.ByteBuffer bb = java.nio.ByteBuffer.wrap(m_b);
-        ChangeHeadLong();
-        long high = bb.getLong();
-        long low = bb.getLong();
-        return new java.util.UUID(high, low);
-    }
-
-    private byte[] Peek(int size, int pos) {
-        if (size < 0 || pos < 0 || (pos + size) > m_len) {
-            throw new RuntimeException("Invalid operation");
-        }
-        byte[] bytes = new byte[size];
-        System.arraycopy(m_bytes, m_position + pos, bytes, 0, size);
-        return bytes;
-    }
-
-    private void Reset(byte[] bytes, int pos) {
-        if (bytes == null || bytes.length == 0) {
-            return;
-        }
-        if (pos < 0) {
-            throw new RuntimeException("Invalid operation");
-        }
-        if ((pos + bytes.length) > m_len) {
-            throw new RuntimeException("Invalid operation");
-        }
-        System.arraycopy(bytes, 0, m_bytes, m_position + pos, bytes.length);
-    }
-
-    public final CUQueue ResetInt(int n, int pos) {
-        byte bytes[] = {(byte) n, (byte) (n >>> 8), (byte) (n >>> 16), (byte) (n >>> 24)};
-        Reset(bytes, pos);
-        return this;
-    }
-
-    public final int PeekInt(int pos) {
-        byte[] data = Peek(4, pos);
-        return (int) ((0xff & data[3]) << 24
-                | (0xff & data[2]) << 16
-                | (0xff & data[1]) << 8
-                | (0xff & data[0]));
-    }
-
-    private byte[] Load(int size) throws RuntimeException {
-        byte[] bytes;
-        if (size < 0 || size > m_len) {
-            throw new RuntimeException("Invalid data found");
-        }
-        if (size > 16) {
-            bytes = new byte[size];
-        } else {
-            bytes = m_b;
-        }
-        System.arraycopy(m_bytes, m_position, bytes, 0, size);
-        m_len -= size;
-        if (m_len != 0) {
-            m_position += size;
-        } else {
-            m_position = 0;
-        }
-        return bytes;
-    }
-
-    public final byte[] LoadBytes() {
-        //!!!!
-        int size = LoadInt();
-        if (size == -1) {
-            return null;
-        }
-        byte[] bytes = new byte[size];
-        System.arraycopy(m_bytes, m_position, bytes, 0, size);
-        m_len -= size;
-        if (m_len != 0) {
-            m_position += size;
-        } else {
-            m_position = 0;
-        }
-        return bytes;
-    }
-
-    public final int PopBytes(byte[] bytes, int size) {
-        //!!!!
-        if (size < 0 || bytes == null) {
-            return 0;
-        }
-        if (size > bytes.length) {
-            size = bytes.length;
-        }
-        if (size > m_len) {
-            size = m_len;
-        }
-        System.arraycopy(m_bytes, m_position, bytes, 0, size);
-        m_len -= size;
-        if (m_len != 0) {
-            m_position += size;
-        } else {
-            m_position = 0;
-        }
-        return size;
-    }
-
-    public final byte[] PopBytes(int size) {
-        //!!!!
-        if (size < 0) {
-            return null;
-        }
-        if (size > m_len) {
-            size = m_len;
-        }
-        byte[] bytes = new byte[size];
-        System.arraycopy(m_bytes, m_position, bytes, 0, size);
-        m_len -= size;
-        if (m_len != 0) {
-            m_position += size;
-        } else {
-            m_position = 0;
-        }
-        return bytes;
-    }
-
-    public final int LoadInt() {
-        byte[] data = Load(4);
-        return (int) ((0xff & data[3]) << 24
-                | (0xff & data[2]) << 16
-                | (0xff & data[1]) << 8
-                | (0xff & data[0]));
-    }
-
-    public final short LoadShort() {
-        byte[] data = Load(2);
-        return (short) ((0xff & data[1]) << 8
-                | (0xff & data[0]));
-    }
-
-    public final byte LoadByte() {
-        byte[] data = Load(1);
-        return data[0];
-    }
-
-    public final long LoadLong() {
-        byte[] data = Load(8);
-        return ((long) (0xff & data[7]) << 56
-                | (long) (0xff & data[6]) << 48
-                | (long) (0xff & data[5]) << 40
-                | (long) (0xff & data[4]) << 32
-                | (long) (0xff & data[3]) << 24
-                | (long) (0xff & data[2]) << 16
-                | (long) (0xff & data[1]) << 8
-                | (long) (0xff & data[0]));
-    }
-
-    public final boolean LoadBoolean() {
-        byte[] data = Load(1);
-        return (data[0] != 0);
-    }
-
-    public final char LoadChar() {
-        return (char) LoadShort();
-    }
-
-    public final float LoadFloat() {
-        return Float.intBitsToFloat(LoadInt());
-    }
-
-    public final double LoadDouble() {
-        return Double.longBitsToDouble(LoadLong());
-    }
-
-    private static java.nio.charset.Charset m_UTF16 = java.nio.charset.Charset.forName("UTF-16LE");
-    private static java.nio.charset.Charset m_UTF8 = java.nio.charset.Charset.forName("UTF-8");
-
-    public final String LoadString() {
-        int len = LoadInt();
-        if (len == -1) {
-            return null;
-        }
-        if (len < 0 || len > m_len) {
-            throw new RuntimeException("Invalid string found");
-        }
-        String s = new String(m_bytes, m_position, len, m_UTF16);
-        Discard(len);
-        return s;
+        return t;
     }
 
     public final <T extends IUSerializer> Object LoadObject(Class<T> cls) {
@@ -683,14 +269,6 @@ public final class CUQueue {
         return obj;
     }
 
-    public static String ToString(byte[] bytes) {
-        String s = null;
-        if (bytes != null) {
-            s = new String(bytes, 0, bytes.length, m_UTF8);
-        }
-        return s;
-    }
-
     public Object LoadObject(short[] datatype) {
         Object obj = null;
         datatype[0] = LoadShort();
@@ -706,8 +284,8 @@ public final class CUQueue {
                 break;
             case tagVariantDataType.sdVT_I1 | tagVariantDataType.sdVT_ARRAY: {
                 int len = LoadInt();
-                obj = new String(m_bytes, m_position, len, m_UTF8);
-                Discard(len);
+                byte[] bytes = PopBytes(len);
+                obj = new String(bytes, 0, len, m_UTF8);
             }
             break;
             case tagVariantDataType.sdVT_UI1 | tagVariantDataType.sdVT_ARRAY:
@@ -881,62 +459,6 @@ public final class CUQueue {
     public final Object LoadObject() {
         short[] datatype = new short[1];
         return LoadObject(datatype);
-    }
-
-    public final CUQueue Save(java.math.BigDecimal dec) throws IllegalArgumentException {
-        if (dec == null) {
-            throw new IllegalArgumentException("BigDecimal dec can not be null");
-        }
-        short wReserved = 14;
-        byte sign = 0;
-        if (dec.signum() < 0) {
-            sign = (byte) 128;
-        }
-        Save(wReserved);
-        int precision = dec.precision();
-        int scale = dec.scale();
-        int left = precision - scale;
-        if (left > 28) {
-            throw new IllegalArgumentException("BigDecimal too big for MS Decimal");
-        }
-        int maxScale = 28 - left;
-        if (scale > maxScale) {
-            dec = dec.setScale(maxScale, java.math.RoundingMode.UP);
-        }
-        scale = dec.scale();
-        Save((byte) scale);
-        Save(sign);
-        if (sign != 0) {
-            dec = dec.negate();
-        }
-        java.math.BigInteger ubi = dec.unscaledValue();
-        int high = ubi.divide(UINT64_MOD).intValue();
-        long low = ubi.mod(UINT64_MOD).longValue();
-        Save(high);
-        return Save(low);
-    }
-
-    public final java.math.BigDecimal LoadDecimal() {
-        short wReserved = LoadShort();
-        byte scale = LoadByte();
-        byte sign = LoadByte();
-        int high = LoadInt();
-        long low = LoadLong();
-        java.math.BigInteger biLow = new java.math.BigInteger("" + low);
-        if (low < 0) {
-            biLow = biLow.add(UINT64_MOD);
-        }
-        java.math.BigInteger biHigh = new java.math.BigInteger("" + high);
-        if (high < 0) {
-            biHigh = biHigh.add(UINT32_MOD);
-        }
-        java.math.BigInteger bi = biHigh.shiftLeft(64);
-        bi = bi.add(biLow);
-        java.math.BigDecimal dec = new java.math.BigDecimal(bi, scale);
-        if (sign != 0) {
-            dec = dec.negate();
-        }
-        return dec;
     }
 
     public final CUQueue Save(Object obj) throws UnsupportedOperationException {
@@ -1174,9 +696,481 @@ public final class CUQueue {
         return this;
     }
 
-    private final int m_blockSize;
-    private int m_position = 0;
-    private int m_len = 0;
-    private byte[] m_bytes;
-    private final byte[] m_b = new byte[16]; //MS DECIMAL and UUID
+    public final void Realloc(int newMaxSize) {
+        if (newMaxSize <= 0) {
+            newMaxSize = DEFAULT_BUFFER_SIZE;
+        }
+        newMaxSize = (newMaxSize / m_blockSize + 1) * m_blockSize;
+        ByteBuffer bytes = ByteBuffer.allocateDirect(newMaxSize);
+        bytes.order(m_bytes.order());
+        if (m_len > 0) {
+            m_len = (m_len > newMaxSize) ? newMaxSize : m_len;
+            m_bytes.position(m_position);
+            m_bytes.limit(m_position + m_len);
+            bytes.put(m_bytes);
+        }
+        m_bytes = bytes;
+        m_position = 0;
+        if (!m_bReading) {
+            bytes.position(m_len);
+        }
+    }
+
+    private void Ensure(int addedBytes) {
+        if (m_bReading) {
+            m_bytes.position(m_position + m_len);
+            m_bytes.limit(m_bytes.capacity());
+            m_bReading = false;
+        }
+        if (getTailSize() <= addedBytes) {
+            if (m_bytes.capacity() - m_len > addedBytes) {
+                m_bytes.position(m_position);
+                m_bytes.compact();
+                m_position = 0;
+                m_bytes.position(m_len);
+            } else {
+                Realloc(m_bytes.capacity() + addedBytes);
+            }
+        }
+    }
+
+    public final CUQueue Push(java.nio.ByteBuffer bb) {
+        if (bb != null) {
+            Ensure(bb.limit() - bb.position());
+            m_bytes.put(bb);
+        }
+        return this;
+    }
+
+    public final CUQueue Push(byte[] bytes, int offset, int len) {
+        if (offset < 0) {
+            offset = 0;
+        }
+        if (bytes == null || len <= 0) {
+            return this;
+        }
+        if (offset + len > bytes.length) {
+            throw new IllegalArgumentException("Bad offset or length");
+        }
+        Ensure(len);
+        m_bytes.put(bytes, offset, len);
+        m_len += len;
+        return this;
+    }
+
+    public final CUQueue Push(byte[] bytes, int len) {
+        return Push(bytes, 0, len);
+    }
+
+    public final CUQueue Push(byte[] bytes) {
+        if (bytes != null) {
+            Push(bytes, bytes.length);
+        }
+        return this;
+    }
+
+    public final CUQueue Save(Byte b) {
+        return Save((byte) b);
+    }
+
+    public final CUQueue Save(Short s) {
+        return Save((short) s);
+    }
+
+    public final CUQueue Save(Integer i) {
+        return Save((int) i);
+    }
+
+    public final CUQueue Save(Long i) {
+        return Save((long) i);
+    }
+
+    public final CUQueue Save(Float f) {
+        return Save((float) f);
+    }
+
+    public final CUQueue Save(Double d) {
+        return Save((double) d);
+    }
+
+    public final CUQueue Save(Boolean b) {
+        return Save((boolean) b);
+    }
+
+    public final CUQueue Save(byte b) {
+        Ensure(1);
+        m_bytes.put(b);
+        m_len += 1;
+        return this;
+    }
+
+    public final CUQueue Save(byte[] bytes) {
+        int len = -1;
+        if (bytes != null) {
+            len = bytes.length;
+            Save(len);
+            Ensure(len);
+            m_bytes.put(bytes);
+            m_len += len;
+        } else {
+            Save(len);
+        }
+        return this;
+    }
+    private static java.nio.charset.Charset m_UTF16 = java.nio.charset.Charset.forName("UTF-16LE");
+    private static java.nio.charset.Charset m_UTF8 = java.nio.charset.Charset.forName("UTF-8");
+
+    public final String LoadString() {
+        byte[] bytes = LoadBytes();
+        if (bytes == null) {
+            return null;
+        }
+        return new String(bytes, 0, bytes.length, m_UTF16);
+    }
+
+    public final CUQueue Save(String s) {
+        int len = -1;
+        if (s != null) {
+            len = s.length() * 2;
+            Save(len);
+            if (len > 0) {
+                Ensure(len);
+                java.nio.CharBuffer cb = java.nio.CharBuffer.wrap(s);
+                m_UTF16.newEncoder().encode(cb, m_bytes, true);
+                m_len += len;
+            }
+        } else {
+            Save(len);
+        }
+        return this;
+    }
+
+    public final CUQueue Save(boolean b) {
+        byte ok = b ? (byte) 1 : (byte) 0;
+        return Save(ok);
+    }
+
+    public final CUQueue Save(short s) {
+        Ensure(2);
+        m_bytes.putShort(s);
+        m_len += 2;
+        return this;
+    }
+
+    public final CUQueue Save(int n) {
+        Ensure(4);
+        m_bytes.putInt(n);
+        m_len += 4;
+        return this;
+    }
+
+    public final CUQueue Save(float f) {
+        Ensure(4);
+        m_bytes.putFloat(f);
+        m_len += 4;
+        return this;
+    }
+
+    public final CUQueue Save(double d) {
+        Ensure(8);
+        m_bytes.putDouble(d);
+        m_len += 8;
+        return this;
+    }
+
+    public final CUQueue Save(long n) {
+        Ensure(8);
+        m_bytes.putLong(n);
+        m_len += 8;
+        return this;
+    }
+
+    public final CUQueue Save(java.util.UUID id) throws IllegalArgumentException {
+        if (id == null) {
+            throw new IllegalArgumentException("UUID id can not be null");
+        }
+        Ensure(16);
+        m_bytes.putLong(id.getMostSignificantBits()).putLong(id.getLeastSignificantBits());
+        m_len += 16;
+        return this;
+    }
+
+    private static java.math.BigInteger UINT64_MOD = new java.math.BigInteger("10000000000000000", 16);
+
+    public final CUQueue Save(java.math.BigDecimal dec) throws IllegalArgumentException {
+        if (dec == null) {
+            throw new IllegalArgumentException("BigDecimal dec can not be null");
+        }
+        short wReserved = 14;
+        byte sign = 0;
+        if (dec.signum() < 0) {
+            sign = (byte) 128;
+        }
+        Save(wReserved);
+        int precision = dec.precision();
+        int scale = dec.scale();
+        int left = precision - scale;
+        if (left > 28) {
+            throw new IllegalArgumentException("BigDecimal too big for MS Decimal");
+        }
+        int maxScale = 28 - left;
+        if (scale > maxScale) {
+            dec = dec.setScale(maxScale, java.math.RoundingMode.UP);
+        }
+        scale = dec.scale();
+        Save((byte) scale);
+        Save(sign);
+        if (sign != 0) {
+            dec = dec.negate();
+        }
+        java.math.BigInteger ubi = dec.unscaledValue();
+        int high = ubi.divide(UINT64_MOD).intValue();
+        long low = ubi.mod(UINT64_MOD).longValue();
+        Save(high);
+        return Save(low);
+    }
+
+    public final CUQueue ForReading() {
+        SetForReading(0);
+        return this;
+    }
+
+    private void SetForReading(int bytes) {
+        if (!m_bReading) {
+            m_bytes.position(m_position);
+            m_bytes.limit(m_position + m_len);
+            m_bReading = true;
+        }
+        if (bytes > m_len) {
+            throw new RuntimeException("Invalid data found");
+        }
+    }
+
+    private void AdjustPosition(int bytes) {
+        assert m_len >= bytes;
+        m_len -= bytes;
+        if (m_len == 0) {
+            m_position = 0;
+            m_bytes.position(0);
+            m_bytes.limit(m_bytes.capacity());
+        } else {
+            m_position += bytes;
+            assert m_position <= m_bytes.limit();
+            assert m_position <= m_bytes.capacity();
+        }
+    }
+
+    public final byte LoadByte() {
+        SetForReading(1);
+        byte b = m_bytes.get();
+        AdjustPosition(1);
+        return b;
+    }
+
+    public final short LoadShort() {
+        SetForReading(2);
+        short s = m_bytes.getShort();
+        AdjustPosition(2);
+        return s;
+    }
+
+    public final int LoadInt() {
+        SetForReading(4);
+        int n = m_bytes.getInt();
+        AdjustPosition(4);
+        return n;
+    }
+
+    public final float LoadFloat() {
+        SetForReading(4);
+        float f = m_bytes.getFloat();
+        AdjustPosition(4);
+        return f;
+    }
+
+    public final double LoadDouble() {
+        SetForReading(8);
+        double d = m_bytes.getDouble();
+        AdjustPosition(8);
+        return d;
+    }
+
+    public final long LoadLong() {
+        SetForReading(8);
+        long n = m_bytes.getLong();
+        AdjustPosition(8);
+        return n;
+    }
+
+    public final java.util.UUID LoadUUID() {
+        SetForReading(16);
+        long high = m_bytes.getLong();
+        long low = m_bytes.getLong();
+        AdjustPosition(16);
+        return new java.util.UUID(high, low);
+    }
+
+    public final ByteBuffer getIntenalBuffer() {
+        SetForReading(0);
+        return m_bytes;
+    }
+
+    private static java.math.BigInteger UINT32_MOD = new java.math.BigInteger("100000000", 16);
+
+    public final java.math.BigDecimal LoadDecimal() {
+        short wReserved = LoadShort();
+        byte scale = LoadByte();
+        byte sign = LoadByte();
+        int high = LoadInt();
+        long low = LoadLong();
+        java.math.BigInteger biLow = new java.math.BigInteger("" + low);
+        if (low < 0) {
+            biLow = biLow.add(UINT64_MOD);
+        }
+        java.math.BigInteger biHigh = new java.math.BigInteger("" + high);
+        if (high < 0) {
+            biHigh = biHigh.add(UINT32_MOD);
+        }
+        java.math.BigInteger bi = biHigh.shiftLeft(64);
+        bi = bi.add(biLow);
+        java.math.BigDecimal dec = new java.math.BigDecimal(bi, scale);
+        if (sign != 0) {
+            dec = dec.negate();
+        }
+        return dec;
+    }
+
+    public final boolean LoadBoolean() {
+        byte data = LoadByte();
+        return data != 0;
+    }
+
+    public final char LoadChar() {
+        return (char) LoadShort();
+    }
+
+    public final int PopBytes(byte[] bytes, int size) {
+        if (size <= 0 || bytes == null) {
+            return 0;
+        }
+        if (size > bytes.length) {
+            size = bytes.length;
+        }
+        if (size > m_len) {
+            size = m_len;
+        }
+        SetForReading(size);
+        m_bytes.get(bytes, 0, size);
+        AdjustPosition(size);
+        return size;
+    }
+
+    public static String ToString(byte[] bytes) {
+        String s = null;
+        if (bytes != null) {
+            s = new String(bytes, 0, bytes.length, m_UTF8);
+        }
+        return s;
+    }
+
+    public final byte[] PopBytes(int size) {
+        if (size < 0) {
+            return null;
+        }
+        if (size == 0) {
+            return new byte[0];
+        } else if (size > m_len) {
+            size = m_len;
+        }
+        byte[] bytes = new byte[size];
+        SetForReading(size);
+        m_bytes.get(bytes, 0, size);
+        AdjustPosition(size);
+        return bytes;
+    }
+
+    public final byte[] GetBuffer(int offset) {
+        if (offset < 0) {
+            offset = 0;
+        }
+        if (offset > m_len) {
+            offset = m_len;
+        }
+        int len = m_len - offset;
+        byte[] bytes = new byte[len];
+        if (len > 0) {
+            SetForReading(0);
+            m_bytes.get(bytes);
+            m_bytes.position(m_position);
+        }
+        return bytes;
+    }
+
+    public final byte[] GetBuffer() {
+        return GetBuffer(0);
+    }
+
+    public final byte[] LoadBytes() {
+        int size = LoadInt();
+        if (size == -1) {
+            return null;
+        } else if (size > m_len) {
+            throw new RuntimeException("Invalid data found");
+        }
+        byte[] bytes = new byte[size];
+        m_bytes.get(bytes);
+        AdjustPosition(size);
+        return bytes;
+    }
+
+    public final CUQueue LoadUQueue() {
+        int len = LoadInt();
+        if (len == -1) {
+            return null;
+        }
+        if (len < 0 || len > m_len) {
+            throw new RuntimeException("Invalid data found");
+        }
+        CUQueue q = new CUQueue(len);
+        if (len > 0) {
+            byte[] bytes = PopBytes(len);
+            q.Push(bytes);
+        }
+        return q;
+    }
+
+    public final CUQueue Save(CUQueue q) {
+        int nSize = -1;
+        if (q != null) {
+            nSize = q.GetSize();
+            Save(nSize);
+            if (nSize > 0) {
+                q.SetForReading(0);
+                q.m_bytes.limit(q.m_position + nSize);
+                Ensure(nSize);
+                m_bytes.put(q.m_bytes);
+            }
+        } else {
+            Save(nSize);
+        }
+        return this;
+    }
+
+    public final int PeekInt(int pos) {
+        if (pos < 0 || pos + 4 > m_len) {
+            throw new RuntimeException("Invalid operation");
+        }
+        return m_bytes.getInt(m_position + pos);
+    }
+
+    public final CUQueue ResetInt(int n, int pos) {
+        if (pos < 0) {
+            pos = 0;
+        }
+        if ((pos + 4) > m_len) {
+            throw new RuntimeException("Invalid operation");
+        }
+        m_bytes.putInt(m_position + pos, n);
+        return this;
+    }
 }

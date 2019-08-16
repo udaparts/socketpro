@@ -136,20 +136,36 @@ public class CAsyncServiceHandler implements AutoCloseable {
         }
     }
 
-    public final boolean SendRequest(short reqId, byte[] data, int len, DAsyncResultHandler ash) {
+    public boolean SendRequest(short reqId, java.nio.ByteBuffer data, DAsyncResultHandler ash) {
+        int len = 0;
+        if (data != null) {
+            len = data.limit() - data.position();
+        }
         return SendRequest(reqId, data, len, ash, null, null);
     }
 
-    public final boolean SendRequest(short reqId, byte[] data, int len, DAsyncResultHandler ash, DDiscarded discarded) {
+    public boolean SendRequest(short reqId, java.nio.ByteBuffer data, DAsyncResultHandler ash, DDiscarded discarded) {
+        int len = 0;
+        if (data != null) {
+            len = data.limit() - data.position();
+        }
         return SendRequest(reqId, data, len, ash, discarded, null);
     }
 
-    public boolean SendRequest(short reqId, byte[] data, int len, DAsyncResultHandler ash, DDiscarded discarded, DOnExceptionFromServer exception) {
+    public boolean SendRequest(short reqId, java.nio.ByteBuffer data, DAsyncResultHandler ash, DDiscarded discarded, DOnExceptionFromServer exception) {
+        int len = 0;
+        if (data != null) {
+            len = data.limit() - data.position();
+        }
+        return SendRequest(reqId, data, len, ash, discarded, exception);
+    }
+
+    public boolean SendRequest(short reqId, java.nio.ByteBuffer data, int len, DAsyncResultHandler ash, DDiscarded discarded, DOnExceptionFromServer exception) {
+        int position = 0;
         if (data == null) {
-            data = new byte[0];
             len = 0;
-        } else if (len > data.length) {
-            len = data.length;
+        } else {
+            position = data.position();
         }
         long h = m_ClientSocket.getHandle();
         if (h == 0) {
@@ -169,10 +185,10 @@ public class CAsyncServiceHandler implements AutoCloseable {
                         m_kvCallback.add(kv);
                     }
                 }
-                sent = ClientCoreLoader.SendRequest(h, reqId, data, len);
+                sent = ClientCoreLoader.SendRequest(h, reqId, data, len, position);
             }
         } else {
-            sent = ClientCoreLoader.SendRequest(h, reqId, data, len);
+            sent = ClientCoreLoader.SendRequest(h, reqId, data, len, position);
         }
         if (sent) {
             return true;
@@ -189,6 +205,30 @@ public class CAsyncServiceHandler implements AutoCloseable {
         return false;
     }
 
+    public final boolean SendRequest(short reqId, byte[] data, int len, DAsyncResultHandler ash) {
+        return SendRequest(reqId, data, len, ash, null, null);
+    }
+
+    public final boolean SendRequest(short reqId, byte[] data, int len, DAsyncResultHandler ash, DDiscarded discarded) {
+        return SendRequest(reqId, data, len, ash, discarded, null);
+    }
+
+    public boolean SendRequest(short reqId, byte[] data, int len, DAsyncResultHandler ash, DDiscarded discarded, DOnExceptionFromServer exception) {
+        java.nio.ByteBuffer bb = null;
+        if (data == null) {
+            len = 0;
+        } else {
+            if (len > data.length) {
+                len = data.length;
+            }
+            bb = java.nio.ByteBuffer.allocateDirect(len);
+            bb.put(data, 0, len);
+            bb.position(0);
+            bb.limit(len);
+        }
+        return SendRequest(reqId, bb, len, ash, discarded, exception);
+    }
+
     public final boolean SendRequest(short reqId, SPA.CUQueue q, DAsyncResultHandler ash) {
         return SendRequest(reqId, q, ash, null, null);
     }
@@ -199,9 +239,7 @@ public class CAsyncServiceHandler implements AutoCloseable {
 
     public final boolean SendRequest(short reqId, SPA.CUQueue q, DAsyncResultHandler ash, DDiscarded discarded, DOnExceptionFromServer exception) {
         if (q == null) {
-            return SendRequest(reqId, (byte[]) null, (int) 0, ash, discarded, exception);
-        } else if (q.getHeadPosition() > 0) {
-            return SendRequest(reqId, q.GetBuffer(), q.GetSize(), ash, discarded, exception);
+            return SendRequest(reqId, (java.nio.ByteBuffer) null, (int) 0, ash, discarded, exception);
         }
         return SendRequest(reqId, q.getIntenalBuffer(), q.GetSize(), ash, discarded, exception);
     }
@@ -216,36 +254,56 @@ public class CAsyncServiceHandler implements AutoCloseable {
 
     public final boolean SendRequest(short reqId, SPA.CScopeUQueue q, DAsyncResultHandler ash, DDiscarded discarded, DOnExceptionFromServer exception) {
         if (q == null) {
-            return SendRequest(reqId, (byte[]) null, (int) 0, ash, discarded, exception);
+            return SendRequest(reqId, (java.nio.ByteBuffer) null, (int) 0, ash, discarded, exception);
         }
         return SendRequest(reqId, q.getUQueue(), ash, discarded, exception);
     }
 
     public final boolean SendRequest(short reqId, DAsyncResultHandler ash) {
-        return SendRequest(reqId, (byte[]) null, (int) 0, ash, null, null);
+        return SendRequest(reqId, (java.nio.ByteBuffer) null, (int) 0, ash, null, null);
     }
 
     public final boolean SendRequest(short reqId, DAsyncResultHandler ash, DDiscarded discarded) {
-        return SendRequest(reqId, (byte[]) null, (int) 0, ash, discarded, null);
+        return SendRequest(reqId, (java.nio.ByteBuffer) null, (int) 0, ash, discarded, null);
     }
 
     public final boolean SendRequest(short reqId, DAsyncResultHandler ash, DDiscarded discarded, DOnExceptionFromServer exception) {
-        return SendRequest(reqId, (byte[]) null, (int) 0, ash, discarded, exception);
+        return SendRequest(reqId, (java.nio.ByteBuffer) null, (int) 0, ash, discarded, exception);
     }
 
-    protected boolean SendRouteeResult(byte[] data, int len, short reqId) {
-        long h;
+    protected boolean SendRouteeResult(java.nio.ByteBuffer data, int len, short reqId) {
         if (data == null) {
-            data = new byte[0];
             len = 0;
-        } else if (len > data.length) {
-            len = data.length;
+        } else if (len > data.limit() - data.position()) {
+            len = data.limit() - data.position();
         }
-        h = m_ClientSocket.getHandle();
+        long h = m_ClientSocket.getHandle();
         if (reqId == 0) {
             reqId = m_ClientSocket.getCurrentRequestID();
         }
-        return ClientCoreLoader.SendRouteeResult(h, reqId, data, len);
+        return ClientCoreLoader.SendRouteeResult(h, reqId, data, len, data.position());
+    }
+
+    protected boolean SendRouteeResult(java.nio.ByteBuffer data, short reqId) {
+        int len = 0;
+        if (data != null) {
+            len = data.limit() - data.position();
+        }
+        return SendRouteeResult(data, len, reqId);
+    }
+
+    protected boolean SendRouteeResult(byte[] data, int len, short reqId) {
+        java.nio.ByteBuffer bb = null;
+        if (data != null) {
+            if (len > data.length) {
+                len = data.length;
+            }
+            bb = java.nio.ByteBuffer.allocateDirect(len);
+            bb.put(data, 0, len);
+            bb.position(0);
+            bb.limit(len);
+        }
+        return SendRouteeResult(bb, len, reqId);
     }
 
     protected final boolean SendRouteeResult(byte[] data, int len) {
@@ -263,8 +321,6 @@ public class CAsyncServiceHandler implements AutoCloseable {
     protected boolean SendRouteeResult(SPA.CUQueue q, short reqId) {
         if (q == null) {
             return SendRouteeResult(reqId);
-        } else if (q.getHeadPosition() > 0) {
-            return SendRouteeResult(q.GetBuffer(), q.GetSize(), reqId);
         }
         return SendRouteeResult(q.getIntenalBuffer(), q.GetSize(), reqId);
     }

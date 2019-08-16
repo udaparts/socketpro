@@ -413,18 +413,19 @@ public class CSocketProServer implements AutoCloseable {
             } else {
                 len = (int) Groups.length;
             }
-            SPA.CScopeUQueue su = new SPA.CScopeUQueue();
-            SPA.CUQueue q = su.getUQueue();
+            SPA.CUQueue q = CScopeUQueue.Lock();
             q.Save(Message);
-            return ServerCoreLoader.SpeakPush(q.getIntenalBuffer(), q.GetSize(), Groups, len);
-
+            boolean ok = ServerCoreLoader.SpeakPush(q.GetBuffer(), q.GetSize(), Groups, len);
+            CScopeUQueue.Unlock(q);
+            return ok;
         }
 
         public static boolean SendUserMessage(Object Message, String UserId) {
-            SPA.CScopeUQueue su = new SPA.CScopeUQueue();
-            SPA.CUQueue q = su.getUQueue();
+            SPA.CUQueue q = CScopeUQueue.Lock();
             q.Save(Message);
-            return ServerCoreLoader.SendUserMessagePush(UserId, q.getIntenalBuffer(), q.GetSize());
+            boolean ok = ServerCoreLoader.SendUserMessagePush(UserId, q.GetBuffer(), q.GetSize());
+            CScopeUQueue.Unlock(q);
+            return ok;
         }
     }
 

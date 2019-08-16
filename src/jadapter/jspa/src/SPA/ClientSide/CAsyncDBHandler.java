@@ -191,11 +191,11 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
         if (q.GetSize() > 0) {
             if (firstRow[0]) {
                 firstRow[0] = false;
-                if (!SendRequest(DB_CONSTS.idBeginRows, q.GetBuffer(), q.GetSize(), null)) {
+                if (!SendRequest(DB_CONSTS.idBeginRows, q.getIntenalBuffer(), null)) {
                     return false;
                 }
             } else {
-                if (!SendRequest(DB_CONSTS.idTransferring, q.GetBuffer(), q.GetSize(), null)) {
+                if (!SendRequest(DB_CONSTS.idTransferring, q.getIntenalBuffer(), null)) {
                     return false;
                 }
             }
@@ -230,7 +230,7 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
                     break;
                 }
             }
-            if (!SendRequest(DB_CONSTS.idEndBLOB, q.GetBuffer(), q.GetSize(), null)) {
+            if (!SendRequest(DB_CONSTS.idEndBLOB, q.getIntenalBuffer(), null)) {
                 return false;
             }
             q.SetSize(0);
@@ -1390,7 +1390,7 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
                     public void invoke(CAsyncResult ar) {
                         Process(handler, ar, DB_CONSTS.idExecuteBatch, index);
                     }
-                }, discarded)) {
+                }, discarded, null)) {
                     synchronized (m_csDB) {
                         m_mapParameterCall.remove(index);
                         if (rowset) {
@@ -1650,19 +1650,19 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
                     if (len != -1 && len > m_Blob.getMaxBufferSize()) {
                         m_Blob.Realloc(len);
                     }
-                    m_Blob.Push(mc.getIntenalBuffer(), mc.getHeadPosition(), mc.GetSize());
+                    m_Blob.Push(mc.getIntenalBuffer());
                     mc.SetSize(0);
                 }
                 break;
             case DB_CONSTS.idChunk:
                 if (mc.GetSize() > 0) {
-                    m_Blob.Push(mc.getIntenalBuffer(), mc.GetSize());
+                    m_Blob.Push(mc.getIntenalBuffer());
                     mc.SetSize(0);
                 }
                 break;
             case DB_CONSTS.idEndBLOB:
                 if (mc.GetSize() > 0 || m_Blob.GetSize() > 0) {
-                    m_Blob.Push(mc.getIntenalBuffer(), mc.GetSize());
+                    m_Blob.Push(mc.getIntenalBuffer());
                     mc.SetSize(0);
                     int len = m_Blob.PeekInt(m_Blob.getHeadPosition() + 2);
                     if (len < 0 && len >= BLOB_LENGTH_NOT_AVAILABLE) {

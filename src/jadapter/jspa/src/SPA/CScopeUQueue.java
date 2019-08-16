@@ -71,6 +71,9 @@ public final class CScopeUQueue implements AutoCloseable {
 
     public static void Unlock(CUQueue UQueue) {
         if (UQueue != null) {
+            if (!UQueue.isDirect()) {
+                throw new UnsupportedOperationException("Cannot put non direct memory buffer into pool for resuse");
+            }
             UQueue.SetSize(0);
             synchronized (m_cs) {
                 m_sQueue.addLast(UQueue);

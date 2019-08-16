@@ -37,9 +37,11 @@ public class CHttpPeerBase extends CSocketPeer {
             } else {
                 len = (int) Groups.length;
             }
-            SPA.CScopeUQueue su = new SPA.CScopeUQueue();
-            su.Save(Message);
-            return ServerCoreLoader.Speak(m_sp.getHandle(), su.getUQueue().getIntenalBuffer(), su.getUQueue().GetSize(), Groups, len);
+            SPA.CUQueue q = SPA.CScopeUQueue.Lock();
+            q.Save(Message);
+            boolean ok = ServerCoreLoader.Speak(m_sp.getHandle(), q.GetBuffer(), q.GetSize(), Groups, len);
+            SPA.CScopeUQueue.Unlock(q);
+            return ok;
         }
 
         @Override
@@ -61,9 +63,11 @@ public class CHttpPeerBase extends CSocketPeer {
 
         @Override
         public final boolean SendUserMessage(Object Message, String UserId) {
-            SPA.CScopeUQueue su = new SPA.CScopeUQueue();
-            su.Save(Message);
-            return ServerCoreLoader.SendUserMessage(m_sp.getHandle(), UserId, su.getUQueue().getIntenalBuffer(), su.getUQueue().GetSize());
+            SPA.CUQueue q = SPA.CScopeUQueue.Lock();
+            q.Save(Message);
+            boolean ok = ServerCoreLoader.SendUserMessage(m_sp.getHandle(), UserId, q.GetBuffer(), q.GetSize());
+            SPA.CScopeUQueue.Unlock(q);
+            return ok;
         }
     }
 
@@ -80,15 +84,15 @@ public class CHttpPeerBase extends CSocketPeer {
     protected boolean DoAuthentication(String userId, String password) {
         return true;
     }
-    
+
     private static boolean DoAuthentication(long hSocket, String userId, String password) {
         CSocketPeer sp = findPeer(hSocket);
         if (sp == null) {
             return true;
         }
-        return ((CHttpPeerBase)sp).DoAuthentication(userId, password);
+        return ((CHttpPeerBase) sp).DoAuthentication(userId, password);
     }
-    
+
     protected void OnPost() {
 
     }
@@ -124,9 +128,9 @@ public class CHttpPeerBase extends CSocketPeer {
     protected void OnMultiPart() {
 
     }
-    
+
     protected void OnConnect() {
-        
+
     }
 
     private void Process(short reqId, int len) {
@@ -181,7 +185,7 @@ public class CHttpPeerBase extends CSocketPeer {
         byte[] bytes = res.getBytes(java.nio.charset.Charset.forName("UTF-8"));
         return ServerCoreLoader.SendHTTPReturnDataA(getHandle(), bytes, bytes.length);
     }
-    
+
     private void Clear() {
         if (m_ReqHeaders != null && !ServerCoreLoader.IsWebSocket(getHandle())) {
             m_ReqHeaders = null;

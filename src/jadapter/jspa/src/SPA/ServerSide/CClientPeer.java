@@ -49,7 +49,7 @@ public class CClientPeer extends CSocketPeer {
             try (SPA.CScopeUQueue su = new SPA.CScopeUQueue()) {
                 SPA.CUQueue q = su.getUQueue();
                 q.Save(Message);
-                return ServerCoreLoader.Speak(m_sp.getHandle(), q.getIntenalBuffer(), q.GetSize(), Groups, len);
+                return ServerCoreLoader.Speak(m_sp.getHandle(), q.GetBuffer(), q.GetSize(), Groups, len);
             }
         }
 
@@ -75,7 +75,7 @@ public class CClientPeer extends CSocketPeer {
             try (SPA.CScopeUQueue su = new SPA.CScopeUQueue()) {
                 SPA.CUQueue q = su.getUQueue();
                 q.Save(Message);
-                return ServerCoreLoader.SendUserMessage(m_sp.getHandle(), UserId, q.getIntenalBuffer(), q.GetSize());
+                return ServerCoreLoader.SendUserMessage(m_sp.getHandle(), UserId, q.GetBuffer(), q.GetSize());
             }
         }
     }
@@ -103,64 +103,78 @@ public class CClientPeer extends CSocketPeer {
     }
 
     protected final int SendResult(short reqId) {
-        return SendResult(reqId, (byte[]) null, 0);
+        return SendResult(reqId, (java.nio.ByteBuffer) null, 0);
     }
 
     protected final int SendResultIndex(long reqIndex, short reqId) {
-        return SendResultIndex(reqIndex, reqId, (byte[]) null, 0);
+        return SendResultIndex(reqIndex, reqId, (java.nio.ByteBuffer) null, 0);
     }
 
     protected int SendResult(short reqId, byte[] data, int len) {
-        if (data == null) {
-            len = 0;
-        } else if (len > data.length) {
-            len = data.length;
-        }
-        if (getRandom()) {
-            return ServerCoreLoader.SendReturnDataIndex(getHandle(), getCurrentRequestIndex(), reqId, len, data);
-        }
-        return ServerCoreLoader.SendReturnData(getHandle(), reqId, len, data);
+        SPA.CUQueue q = SPA.CScopeUQueue.Lock();
+        q.Push(data, len);
+        int res = SendResult(reqId, q);
+        SPA.CScopeUQueue.Unlock(q);
+        return res;
     }
 
-    protected int SendResultIndex(long reqIndex, short reqId, byte[] data, int len) {
+    protected int SendResult(short reqId, java.nio.ByteBuffer data, int len) {
+        int offset = 0;
         if (data == null) {
             len = 0;
-        } else if (len > data.length) {
-            len = data.length;
+        } else {
+            offset = data.position();
         }
-        return ServerCoreLoader.SendReturnDataIndex(getHandle(), reqIndex, reqId, len, data);
+        if (getRandom()) {
+            return ServerCoreLoader.SendReturnDataIndex(getHandle(), getCurrentRequestIndex(), reqId, len, data, offset);
+        }
+        return ServerCoreLoader.SendReturnData(getHandle(), reqId, len, data, offset);
+    }
+    /*
+     protected int SendResultIndex(long reqIndex, short reqId, byte[] data, int len) {
+     if (data == null) {
+     len = 0;
+     } else if (len > data.length) {
+     len = data.length;
+     }
+     return ServerCoreLoader.SendReturnDataIndex(getHandle(), reqIndex, reqId, len, data);
+     }
+     */
+
+    protected int SendResultIndex(long reqIndex, short reqId, java.nio.ByteBuffer data, int len) {
+        int offset = 0;
+        if (data == null) {
+            len = 0;
+        } else {
+            offset = data.position();
+        }
+        return ServerCoreLoader.SendReturnDataIndex(getHandle(), reqIndex, reqId, len, data, offset);
     }
 
     protected final int SendResult(short reqId, SPA.CUQueue q) {
         if (q == null) {
-            return SendResult(reqId, (byte[]) null, 0);
-        } else if (q.getHeadPosition() == 0) {
-            return SendResult(reqId, q.getIntenalBuffer(), q.GetSize());
+            return SendResult(reqId, (java.nio.ByteBuffer) null, 0);
         }
-        byte[] bytes = q.GetBuffer();
-        return SendResult(reqId, bytes, bytes.length);
+        return SendResult(reqId, q.getIntenalBuffer(), q.GetSize());
     }
 
     protected final int SendResultIndex(long reqIndex, short reqId, SPA.CUQueue q) {
         if (q == null) {
-            return SendResultIndex(reqIndex, reqId, (byte[]) null, 0);
-        } else if (q.getHeadPosition() == 0) {
-            return SendResultIndex(reqIndex, reqId, q.getIntenalBuffer(), q.GetSize());
+            return SendResultIndex(reqIndex, reqId, (java.nio.ByteBuffer) null, 0);
         }
-        byte[] bytes = q.GetBuffer();
-        return SendResultIndex(reqIndex, reqId, bytes, bytes.length);
+        return SendResultIndex(reqIndex, reqId, q.getIntenalBuffer(), q.GetSize());
     }
 
     protected final int SendResult(short reqId, SPA.CScopeUQueue su) {
         if (su == null) {
-            return SendResult(reqId, (byte[]) null, 0);
+            return SendResult(reqId, (java.nio.ByteBuffer) null, 0);
         }
         return SendResult(reqId, su.getUQueue());
     }
 
     protected final int SendResultIndex(long reqIndex, short reqId, SPA.CScopeUQueue su) {
         if (su == null) {
-            return SendResultIndex(reqIndex, reqId, (byte[]) null, 0);
+            return SendResultIndex(reqIndex, reqId, (java.nio.ByteBuffer) null, 0);
         }
         return SendResultIndex(reqIndex, reqId, su.getUQueue());
     }

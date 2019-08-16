@@ -369,6 +369,31 @@ public class CReplication<THandler extends CAsyncServiceHandler> implements Auto
         return ok;
     }
 
+    public boolean Send(short reqId, java.nio.ByteBuffer data, int len) {
+        CAsyncServiceHandler.DAsyncResultHandler ash = null;
+        THandler src = getSourceHandler();
+        if (src == null) {
+            return false;
+        }
+        IClientQueue cq = src.getAttachedClientSocket().getClientQueue();
+        if (!cq.getAvailable()) {
+            return false;
+        }
+        boolean ok = src.SendRequest(reqId, data, len, ash, null, null);
+        if (getReplicable() && cq.getJobSize() == 0) {
+            ok = cq.AppendTo(getTargetQueues());
+        }
+        return ok;
+    }
+
+    public boolean Send(short reqId, java.nio.ByteBuffer data) {
+        int len = 0;
+        if (data != null) {
+            len = data.limit() - data.position();
+        }
+        return Send(reqId, data, len);
+    }
+
     public final boolean EndJob() {
         IClientQueue src = getSourceQueue();
         if (src == null || !src.getAvailable()) {
@@ -404,9 +429,6 @@ public class CReplication<THandler extends CAsyncServiceHandler> implements Auto
     public final boolean Send(short reqId, SPA.CUQueue q) {
         if (q == null || q.GetSize() == 0) {
             return Send(reqId);
-        }
-        if (q.getHeadPosition() > 0) {
-            return Send(reqId, q.GetBuffer(), q.GetSize());
         }
         return Send(reqId, q.getIntenalBuffer(), q.GetSize());
     }

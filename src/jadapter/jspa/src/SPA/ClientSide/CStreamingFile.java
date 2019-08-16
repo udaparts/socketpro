@@ -380,10 +380,8 @@ public class CStreamingFile extends CAsyncServiceHandler {
                     if (m_vContext.size() > 0) {
                         context = m_vContext.getFirst();
                         trans = context.Transferring;
-                        byte[] buffer = mc.getIntenalBuffer();
                         try {
-                            ByteBuffer bytes = ByteBuffer.wrap(buffer, 0, mc.GetSize());
-                            context.File.write(bytes);
+                            context.File.write(mc.getIntenalBuffer());
                             long initSize = (context.InitSize > 0) ? context.InitSize : 0;
                             downloaded = context.File.position() - initSize;
                         } catch (IOException err) {
@@ -439,8 +437,6 @@ public class CStreamingFile extends CAsyncServiceHandler {
                                 } else {
                                     sb.Realloc(STREAM_CHUNK_SIZE);
                                 }
-                                byte[] buffer = sb.getIntenalBuffer();
-                                ByteBuffer bytes = ByteBuffer.wrap(buffer, 0, buffer.length);
                                 context.QueueOk = cs.getClientQueue().StartJob();
                                 boolean queue_enabled = cs.getClientQueue().getAvailable();
                                 if (queue_enabled) {
@@ -450,28 +446,30 @@ public class CStreamingFile extends CAsyncServiceHandler {
                                         SendRequest(idUploadBackup, q, rh, context.Discarded, se);
                                     }
                                 }
-                                int ret = context.File.read(bytes);
-                                while (ret == buffer.length) {
-                                    if (!SendRequest(idUploading, buffer, ret, rh, context.Discarded, se)) {
+                                int ret = context.File.read(sb.getIntenalBuffer());
+                                while (ret == sb.getMaxBufferSize()) {
+                                    sb.SetSize(ret);
+                                    if (!SendRequest(idUploading, sb.getIntenalBuffer(), ret, rh, context.Discarded, se)) {
                                         context.ErrCode = cs.getErrorCode();
                                         context.ErrMsg = cs.getErrorMsg();
                                         break;
                                     }
-                                    bytes.clear();
-                                    ret = context.File.read(bytes);
+                                    sb.SetSize(0);
+                                    ret = context.File.read(sb.getIntenalBuffer());
                                     if (queue_enabled) {
                                         //save file into client message queue
-                                    } else if (cs.getBytesInSendingBuffer() > 40 * buffer.length) {
+                                    } else if (cs.getBytesInSendingBuffer() > 40 * sb.getMaxBufferSize()) {
                                         break;
                                     }
                                 }
                                 if (ret > 0 && !context.hasError()) {
-                                    if (!SendRequest(idUploading, buffer, ret, rh, context.Discarded, se)) {
+                                    sb.SetSize(ret);
+                                    if (!SendRequest(idUploading, sb.getIntenalBuffer(), ret, rh, context.Discarded, se)) {
                                         context.ErrCode = cs.getErrorCode();
                                         context.ErrMsg = cs.getErrorMsg();
                                     }
                                 }
-                                if (ret < buffer.length && !context.hasError()) {
+                                if (ret < sb.getMaxBufferSize() && !context.hasError()) {
                                     context.Sent = true;
                                     if (!SendRequest(idUploadCompleted, rh, context.Discarded, se)) {
                                         context.ErrCode = cs.getErrorCode();
@@ -520,11 +518,10 @@ public class CStreamingFile extends CAsyncServiceHandler {
                                 if (sb.getMaxBufferSize() < STREAM_CHUNK_SIZE) {
                                     sb.Realloc(STREAM_CHUNK_SIZE);
                                 }
-                                byte[] buffer = sb.getIntenalBuffer();
-                                ByteBuffer bytes = ByteBuffer.wrap(buffer, 0, STREAM_CHUNK_SIZE);
-                                int ret = context.File.read(bytes);
+                                int ret = context.File.read(sb.getIntenalBuffer());
                                 if (ret > 0) {
-                                    if (!SendRequest(idUploading, buffer, ret, rh, context.Discarded, se)) {
+                                    sb.SetSize(ret);
+                                    if (!SendRequest(idUploading, sb.getIntenalBuffer(), ret, rh, context.Discarded, se)) {
                                         context.ErrCode = cs.getErrorCode();
                                         context.ErrMsg = cs.getErrorMsg();
                                     }

@@ -155,16 +155,9 @@ public class CAsyncQueue extends CAsyncServiceHandler {
             int count = 1;
             q.Save(count);
         } else {
-            byte[] data = q.getIntenalBuffer();
-            int n = (int) ((0xff & data[3]) << 24
-                    | (0xff & data[2]) << 16
-                    | (0xff & data[1]) << 8
-                    | (0xff & data[0]));
+            int n = q.PeekInt(0);
             n += 1;
-            data[3] = (byte) (n >>> 24);
-            data[2] = (byte) (n >>> 16);
-            data[1] = (byte) (n >>> 8);
-            data[0] = (byte) n;
+            q.ResetInt(n, 0);
         }
         q.Save(idMessage).Save(len);
         q.Push(message, len);
@@ -191,12 +184,8 @@ public class CAsyncQueue extends CAsyncServiceHandler {
         if (src == null) {
             message = new byte[0];
             len = 0;
-        } else if (src.getHeadPosition() > 0) {
-            message = src.GetBuffer();
-            len = src.getSize();
-            src.SetSize(0);
         } else {
-            message = src.getIntenalBuffer();
+            message = src.GetBuffer();
             len = src.getSize();
             src.SetSize(0);
         }
@@ -208,7 +197,7 @@ public class CAsyncQueue extends CAsyncServiceHandler {
             throw new java.lang.IllegalArgumentException("Bad operation");
         }
         CUQueue b = CScopeUQueue.Lock();
-        b.Save(key).Push(q.getIntenalBuffer(), q.getHeadPosition(), q.getSize());
+        b.Save(key).Push(q.getIntenalBuffer());
         q.SetSize(0);
         boolean ok = SendRequest(idEnqueueBatch, b, GetRH(e), discarded, null);
         CScopeUQueue.Unlock(b);
@@ -261,7 +250,7 @@ public class CAsyncQueue extends CAsyncServiceHandler {
 
     public boolean Enqueue(byte[] key, short idMessage, CUQueue q, DEnqueue e, DDiscarded discarded) {
         CUQueue sq = CScopeUQueue.Lock();
-        sq.Save(key).Save(idMessage).Push(q.getIntenalBuffer(), q.getHeadPosition(), q.getSize());
+        sq.Save(key).Save(idMessage).Push(q.getIntenalBuffer());
         boolean ok = SendRequest(idEnqueue, sq, GetRH(e), discarded, null);
         CScopeUQueue.Unlock(sq);
         return ok;
@@ -278,7 +267,7 @@ public class CAsyncQueue extends CAsyncServiceHandler {
     public boolean Enqueue(byte[] key, short idMessage, CScopeUQueue q, DEnqueue e, DDiscarded discarded) {
         CUQueue src = q.getUQueue();
         CUQueue sq = CScopeUQueue.Lock();
-        sq.Save(key).Save(idMessage).Push(src.getIntenalBuffer(), src.getHeadPosition(), src.getSize());
+        sq.Save(key).Save(idMessage).Push(src.getIntenalBuffer());
         boolean ok = SendRequest(idEnqueue, sq, GetRH(e), discarded, null);
         CScopeUQueue.Unlock(sq);
         return ok;

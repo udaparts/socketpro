@@ -101,9 +101,9 @@ final class ServerCoreLoader {
 
     static native long GetBytesSent(long h);
 
-    static native int SendReturnData(long h, short requestId, int bufferSize, byte[] buffer);
+    static native int SendReturnData(long h, short requestId, int bufferSize, java.nio.ByteBuffer buffer, int offset);
 
-    static native int SendReturnDataIndex(long h, long index, short requestId, int bufferSize, byte[] buffer);
+    static native int SendReturnDataIndex(long h, long index, short requestId, int bufferSize, java.nio.ByteBuffer buffer, int offset);
 
     static native int GetSvsID(long h);
 
@@ -295,7 +295,7 @@ final class ServerCoreLoader {
 
     static native int GetMessagesInDequeuing(int qHandle);
 
-    static native long Enqueue(int qHandle, short reqId, byte[] buffer, int size);
+    static native long Enqueue(int qHandle, short reqId, java.nio.ByteBuffer buffer, int size, int offset);
 
     static native long GetMessageCount(int qHandle);
 
