@@ -444,20 +444,11 @@ JNIEXPORT jlong JNICALL Java_SPA_ServerSide_ServerCoreLoader_GetBytesSent(JNIEnv
 }
 
 JNIEXPORT jint JNICALL Java_SPA_ServerSide_ServerCoreLoader_SendReturnData(JNIEnv *env, jclass, jlong h, jshort reqId, jint len, jobject buffer, jint offset) {
-	const unsigned char *bytes = nullptr;
-	if (buffer) {
-		bytes = (const unsigned char *)env->GetDirectBufferAddress(buffer) + offset;
-	}
-	jint res = (jint)SendReturnData((USocket_Server_Handle)h, (unsigned short)reqId, (unsigned int)len, bytes);
-	/*
-	jbyte *p = nullptr;
-    if (buffer && len)
-        p = env->GetByteArrayElements(buffer, nullptr);
-    jint res = (jint) SendReturnData((USocket_Server_Handle) h, (unsigned short) reqId, (unsigned int) len, (const unsigned char*) p);
-    if (p)
-        env->ReleaseByteArrayElements(buffer, p, JNI_ABORT);
-	*/
-    return res;
+    const unsigned char *bytes = nullptr;
+    if (buffer) {
+        bytes = (const unsigned char *) env->GetDirectBufferAddress(buffer) + offset;
+    }
+    return (jint) SendReturnData((USocket_Server_Handle) h, (unsigned short) reqId, (unsigned int) len, bytes);
 }
 
 JNIEXPORT jint JNICALL Java_SPA_ServerSide_ServerCoreLoader_SendReturnDataIndex(JNIEnv *env, jclass, jlong h, jlong index, jshort reqId, jint len, jbyteArray buffer) {
@@ -1194,20 +1185,11 @@ JNIEXPORT jint JNICALL Java_SPA_ServerSide_ServerCoreLoader_GetMessagesInDequeui
 }
 
 JNIEXPORT jlong JNICALL Java_SPA_ServerSide_ServerCoreLoader_Enqueue(JNIEnv *env, jclass, jint qHandle, jshort reqId, jobject buffer, jint len, jint offset) {
-	const unsigned char *bytes = nullptr;
-	if (buffer) {
-		bytes = (const unsigned char *)env->GetDirectBufferAddress(buffer) + offset;
-	}
-	jlong res = (jlong)Enqueue((unsigned int)qHandle, (unsigned short)reqId, bytes, (unsigned int)len);
-	/*
-	jbyte *b = nullptr;
-    if (buffer && len)
-        b = env->GetByteArrayElements(buffer, nullptr);
-    jlong res = (jlong) Enqueue((unsigned int) qHandle, (unsigned short) reqId, (const unsigned char*) b, (unsigned int) len);
-    if (b)
-        env->ReleaseByteArrayElements(buffer, b, JNI_ABORT);
-	*/
-    return res;
+    const unsigned char *bytes = nullptr;
+    if (buffer) {
+        bytes = (const unsigned char *) env->GetDirectBufferAddress(buffer) + offset;
+    }
+    return (jlong) Enqueue((unsigned int) qHandle, (unsigned short) reqId, bytes, (unsigned int) len);
 }
 
 JNIEXPORT jlong JNICALL Java_SPA_ServerSide_ServerCoreLoader_GetMessageCount(JNIEnv *, jclass, jint qHandle) {
