@@ -103,9 +103,9 @@ public class Program {
             }
 
             String s4 = "Sock";
-            EnqueueToServer(sq, s4, 50000000);
+            EnqueueToServer(sq, s4, 200000000);
             DequeueFromServer(sq);
-/*
+
             //Manually batching improves throughput for high volume of tiny messages
             EnqueueToServerBatch(sq, s4, 200000000, 8 * 1024);
             DequeueFromServer(sq);
@@ -140,7 +140,7 @@ public class Program {
             }
             EnqueueToServer(sq, s10240, 1000000);
             DequeueFromServer(sq);
-*/
+
             System.out.println("Press key ENTER to complete dequeuing messages from server ......");
             in.nextLine();
         }
