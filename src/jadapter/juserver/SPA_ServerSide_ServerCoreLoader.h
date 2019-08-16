@@ -381,7 +381,7 @@ JNIEXPORT jlong JNICALL Java_SPA_ServerSide_ServerCoreLoader_GetBytesSent
  * Signature: (JSI[B)I
  */
 JNIEXPORT jint JNICALL Java_SPA_ServerSide_ServerCoreLoader_SendReturnData
-  (JNIEnv *, jclass, jlong, jshort, jint, jbyteArray);
+  (JNIEnv *, jclass, jlong, jshort, jint, jobject, jint);
 
 /*
  * Class:     SPA_ServerSide_ServerCoreLoader
@@ -1157,7 +1157,7 @@ JNIEXPORT jint JNICALL Java_SPA_ServerSide_ServerCoreLoader_GetMessagesInDequeui
  * Signature: (IS[BI)J
  */
 JNIEXPORT jlong JNICALL Java_SPA_ServerSide_ServerCoreLoader_Enqueue
-  (JNIEnv *, jclass, jint, jshort, jbyteArray, jint);
+  (JNIEnv *, jclass, jint, jshort, jobject, jint, jint);
 
 /*
  * Class:     SPA_ServerSide_ServerCoreLoader

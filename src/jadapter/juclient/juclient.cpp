@@ -762,13 +762,20 @@ JNIEXPORT jint JNICALL Java_SPA_ClientSide_ClientCoreLoader_RetrieveBuffer(JNIEn
     return res;
 }
 
-JNIEXPORT jboolean JNICALL Java_SPA_ClientSide_ClientCoreLoader_SendRequest(JNIEnv *env, jclass, jlong h, jshort reqId, jbyteArray bytes, jint len) {
-    //can't use GetPrimitiveArrayCritical for thread dead-lock
+JNIEXPORT jboolean JNICALL Java_SPA_ClientSide_ClientCoreLoader_SendRequest(JNIEnv *env, jclass, jlong h, jshort reqId, jobject bytes, jint len, jint offset) {
+	const unsigned char *buffer = nullptr;
+	if (bytes) {
+		buffer = (const unsigned char *)env->GetDirectBufferAddress(bytes) + offset;
+	}
+	jboolean b = SendRequest((USocket_Client_Handle)h, (unsigned short)reqId, buffer, (unsigned int)len);
+	/*
+	//can't use GetPrimitiveArrayCritical for thread dead-lock
     jbyte *arr = env->GetByteArrayElements(bytes, nullptr);
     if (!arr)
         len = 0;
     jboolean b = SendRequest((USocket_Client_Handle) h, (unsigned short) reqId, (const unsigned char*) arr, (unsigned int) len);
     env->ReleaseByteArrayElements(bytes, arr, JNI_ABORT);
+	*/
     return b;
 }
 
@@ -1279,12 +1286,19 @@ JNIEXPORT jint JNICALL Java_SPA_ClientSide_ClientCoreLoader_GetRouteeCount(JNIEn
     return (jint) GetRouteeCount((USocket_Client_Handle) h);
 }
 
-JNIEXPORT jboolean JNICALL Java_SPA_ClientSide_ClientCoreLoader_SendRouteeResult(JNIEnv *env, jclass, jlong h, jshort reqId, jbyteArray bytes, jint len) {
-    jbyte *arr = env->GetByteArrayElements(bytes, nullptr);
+JNIEXPORT jboolean JNICALL Java_SPA_ClientSide_ClientCoreLoader_SendRouteeResult(JNIEnv *env, jclass, jlong h, jshort reqId, jobject bytes, jint len, jint offset) {
+	const unsigned char *buffer = nullptr;
+	if (bytes) {
+		buffer = (const unsigned char *)env->GetDirectBufferAddress(bytes) + offset;
+	}
+	jboolean b = SendRouteeResult((USocket_Client_Handle)h, (unsigned short)reqId, buffer, (unsigned int)len);
+	/*
+	jbyte *arr = env->GetByteArrayElements(bytes, nullptr);
     if (!arr)
         len = 0;
     jboolean b = SendRouteeResult((USocket_Client_Handle) h, (unsigned short) reqId, (const unsigned char*) arr, (unsigned int) len);
     env->ReleaseByteArrayElements(bytes, arr, JNI_ABORT);
+	*/
     return b;
 }
 

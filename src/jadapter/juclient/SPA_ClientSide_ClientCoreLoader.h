@@ -245,7 +245,7 @@ JNIEXPORT jboolean JNICALL Java_SPA_ClientSide_ClientCoreLoader_IsOpened
  * Signature: (JS[BI)Z
  */
 JNIEXPORT jboolean JNICALL Java_SPA_ClientSide_ClientCoreLoader_SendRequest
-  (JNIEnv *, jclass, jlong, jshort, jbyteArray, jint);
+  (JNIEnv *, jclass, jlong, jshort, jobject, jint, jint);
 
 
 JNIEXPORT jint JNICALL Java_SPA_ClientSide_ClientCoreLoader_RetrieveBuffer
@@ -822,7 +822,7 @@ JNIEXPORT jint JNICALL Java_SPA_ClientSide_ClientCoreLoader_GetRouteeCount
  * Signature: (JS[BI)Z
  */
 JNIEXPORT jboolean JNICALL Java_SPA_ClientSide_ClientCoreLoader_SendRouteeResult
-  (JNIEnv *, jclass, jlong, jshort, jbyteArray, jint);
+  (JNIEnv *, jclass, jlong, jshort, jobject, jint, jint);
 
 /*
  * Class:     SPA_ClientSide_ClientCoreLoader

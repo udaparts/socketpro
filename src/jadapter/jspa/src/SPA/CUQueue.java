@@ -125,7 +125,7 @@ public final class CUQueue {
         if (size < 0) {
             throw new java.lang.IllegalArgumentException("New size can not be less than 0");
         } else if (size > (m_bytes.capacity() - m_position)) {
-            throw new java.lang.UnsupportedOperationException("Bad new size");
+            throw new java.lang.IllegalArgumentException("Bad new size");
         } else if (size == 0) {
             m_len = 0;
             m_position = 0;
@@ -225,6 +225,7 @@ public final class CUQueue {
             t = cls.newInstance();
             t.LoadFrom(this);
         } catch (InstantiationException | IllegalAccessException err) {
+            throw new UnsupportedOperationException("InstantiationException or IllegalAccessException");
         }
         return t;
     }
@@ -1158,7 +1159,7 @@ public final class CUQueue {
 
     public final int PeekInt(int pos) {
         if (pos < 0 || pos + 4 > m_len) {
-            throw new RuntimeException("Invalid operation");
+            throw new RuntimeException("Invalid operation for bad position");
         }
         return m_bytes.getInt(m_position + pos);
     }
@@ -1168,7 +1169,7 @@ public final class CUQueue {
             pos = 0;
         }
         if ((pos + 4) > m_len) {
-            throw new RuntimeException("Invalid operation");
+            throw new RuntimeException("Invalid operation for bad positin");
         }
         m_bytes.putInt(m_position + pos, n);
         return this;
