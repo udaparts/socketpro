@@ -92,7 +92,7 @@ public final class CUQueue {
 
     public void UseBuffer(byte[] bytes) {
         if (bytes == null) {
-            m_bytes = ByteBuffer.allocateDirect(DEFAULT_BUFFER_SIZE);
+            m_bytes = ByteBuffer.wrap(new byte[4]);
             m_len = 0;
         } else {
             m_bytes = ByteBuffer.wrap(bytes);
@@ -104,7 +104,7 @@ public final class CUQueue {
 
     public void UseBuffer(byte[] bytes, int len) {
         if (bytes == null) {
-            ByteBuffer.allocateDirect(DEFAULT_BUFFER_SIZE);
+            m_bytes = ByteBuffer.wrap(new byte[4]);
             m_len = 0;
         } else if (len > 0 && bytes.length > len) {
             m_bytes = ByteBuffer.wrap(bytes);
@@ -1099,18 +1099,22 @@ public final class CUQueue {
     }
 
     public final byte[] GetBuffer(int offset) {
+        byte[] bytes;
         if (offset < 0) {
             offset = 0;
-        }
-        if (offset > m_len) {
+        } else if (offset > m_len) {
             offset = m_len;
         }
         int len = m_len - offset;
-        byte[] bytes = new byte[len];
-        if (len > 0) {
-            SetForReading(0);
-            m_bytes.get(bytes);
-            m_bytes.position(m_position);
+        SetForReading(0);
+        if (offset != 0 || m_bytes.isDirect()) {
+            bytes = new byte[len];
+            if (len > 0) {
+                m_bytes.get(bytes);
+                m_bytes.position(m_position);
+            }
+        } else {
+            bytes = m_bytes.array();
         }
         return bytes;
     }
