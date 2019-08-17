@@ -757,7 +757,7 @@ JNIEXPORT jstring JNICALL Java_SPA_ClientSide_ClientCoreLoader_GetPeerName
 
 
 JNIEXPORT void JNICALL Java_SPA_ClientSide_ClientCoreLoader_SetBufferForCurrentThread
-(JNIEnv *, jclass, jbyteArray);
+(JNIEnv *, jclass, jobject, jint);
 
 
 /*

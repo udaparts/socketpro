@@ -18,7 +18,7 @@ boost::unordered_map<unsigned int, jobject> g_mapPJ;
 struct CBuffCache {
     UTHREAD_ID Tid;
     unsigned int Len;
-    jbyteArray Bytes;
+    jobject Bytes;
     JNIEnv *Env;
 };
 typedef CBuffCache *PBuffCache;
@@ -106,7 +106,7 @@ void SetCaches(JNIEnv *env) {
     g_midOnEnter = env->GetStaticMethodID(cls, "OnEnter", "(JLjava/lang/Object;[I)V");
     g_midOnExit = env->GetStaticMethodID(cls, "OnExit", "(JLjava/lang/Object;[I)V");
     g_midOnHandShakeCompleted = env->GetStaticMethodID(cls, "OnHandShakeCompleted", "(JI)V");
-    g_midOnRequestProcessed = env->GetStaticMethodID(cls, "OnRequestProcessed", "(JSI[BBZ)V");
+    g_midOnRequestProcessed = env->GetStaticMethodID(cls, "OnRequestProcessed", "(JSILjava/lang/Object;BZ)V");
     g_midOnSendUserMessage = env->GetStaticMethodID(cls, "OnSendUserMessage", "(JLjava/lang/Object;[B)V");
     g_midOnSendUserMessageEx = env->GetStaticMethodID(cls, "OnSendUserMessageEx", "(JLjava/lang/Object;[B)V");
     g_midOnServerException = env->GetStaticMethodID(cls, "OnServerException", "(JSLjava/lang/String;Ljava/lang/String;I)V");
@@ -166,7 +166,7 @@ void CALLBACK OnRequestProcessed(USocket_Client_Handle handler, unsigned short r
     const unsigned char *arr = GetResultBuffer(handler);
     if (!arr)
         len = 0;
-    jbyteArray buffer = nullptr;
+    jobject buffer = nullptr;
     if (len) {
         auto p = GetCurrentThreadByteArray();
         if (!p || len > p->Len) {
@@ -175,9 +175,10 @@ void CALLBACK OnRequestProcessed(USocket_Client_Handle handler, unsigned short r
             env->CallStaticVoidMethod(g_classCClientSocket, g_midOnResetBuffer, (jint) len);
             p = GetCurrentThreadByteArray();
         }
-        buffer = p->Bytes;
         env = p->Env;
-        env->SetByteArrayRegion(p->Bytes, 0, len, (const jbyte*) arr);
+        buffer = p->Bytes;
+        void *des = env->GetDirectBufferAddress(p->Bytes);
+        ::memcpy(des, arr, len);
     } else {
         jint es = g_vmClient->GetEnv((void **) &env, JNI_VERSION_1_6);
         assert(env);
@@ -1179,7 +1180,7 @@ JNIEXPORT jstring JNICALL Java_SPA_ClientSide_ClientCoreLoader_GetQueueFileName(
     return env->NewStringUTF("");
 }
 
-JNIEXPORT void JNICALL Java_SPA_ClientSide_ClientCoreLoader_SetBufferForCurrentThread(JNIEnv *env, jclass, jbyteArray bytes) {
+JNIEXPORT void JNICALL Java_SPA_ClientSide_ClientCoreLoader_SetBufferForCurrentThread(JNIEnv *env, jclass, jobject bytes, jint len) {
     size_t n;
 #ifdef WIN32_64
     UTHREAD_ID tid = ::GetCurrentThreadId();
@@ -1202,8 +1203,8 @@ JNIEXPORT void JNICALL Java_SPA_ClientSide_ClientCoreLoader_SetBufferForCurrentT
             env->DeleteGlobalRef(found->Bytes);
         }
         if (bytes) {
-            found->Len = (unsigned int) env->GetArrayLength(bytes);
-            found->Bytes = (jbyteArray) env->NewGlobalRef(bytes);
+            found->Len = (unsigned int) len;
+            found->Bytes = env->NewGlobalRef(bytes);
             found->Env = env;
         } else {
             g_vCache.erase(g_vCache.begin() + n);
@@ -1213,8 +1214,8 @@ JNIEXPORT void JNICALL Java_SPA_ClientSide_ClientCoreLoader_SetBufferForCurrentT
         found = new CBuffCache;
         found->Env = env;
         found->Tid = tid;
-        found->Len = (unsigned int) env->GetArrayLength(bytes);
-        found->Bytes = (jbyteArray) env->NewGlobalRef(bytes);
+        found->Len = (unsigned int) len;
+        found->Bytes = env->NewGlobalRef(bytes);
         g_vCache.push_back(found);
     }
     g_csClient.unlock();

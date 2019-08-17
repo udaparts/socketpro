@@ -117,6 +117,18 @@ public final class CUQueue {
         m_position = 0;
     }
 
+    public void UseBuffer(java.nio.ByteBuffer bytes, int len) {
+        if (bytes == null) {
+            m_bytes = ByteBuffer.wrap(new byte[4]);
+            m_len = 0;
+        } else {
+            m_bytes = bytes;
+            m_len = len;
+        }
+        m_bytes.order(ByteOrder.LITTLE_ENDIAN);
+        m_position = 0;
+    }
+
     public final void setSize(int newSize) {
         SetSize(newSize);
     }

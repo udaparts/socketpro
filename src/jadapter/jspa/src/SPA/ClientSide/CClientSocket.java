@@ -278,33 +278,33 @@ public final class CClientSocket {
         }
     }
 
-    private final static java.util.HashMap<Long, byte[]> m_mapCache = new java.util.HashMap<>();
+    private final static java.util.HashMap<Long, java.nio.ByteBuffer> m_mapCache = new java.util.HashMap<>();
 
     private static void OnResetBuffer(int len) {
-        byte[] v;
+        java.nio.ByteBuffer v;
         long tid = java.lang.Thread.currentThread().getId();
         if (len < SPA.CUQueue.DEFAULT_BUFFER_SIZE) {
             len = SPA.CUQueue.DEFAULT_BUFFER_SIZE;
         }
         synchronized (m_cs) {
             if (!m_mapCache.containsKey(tid)) {
-                v = new byte[len];
+                v = java.nio.ByteBuffer.allocateDirect(len);
                 m_mapCache.put(tid, v);
             } else {
                 v = m_mapCache.get(tid);
             }
-            if (v.length < len) {
-                int size = ((len % SPA.CUQueue.DEFAULT_BUFFER_SIZE) != 0) ? (len / SPA.CUQueue.DEFAULT_BUFFER_SIZE + 1) * SPA.CUQueue.DEFAULT_BUFFER_SIZE : len;
-                v = new byte[size];
+            if (v.capacity() < len) {
+                len = ((len % SPA.CUQueue.DEFAULT_BUFFER_SIZE) != 0) ? (len / SPA.CUQueue.DEFAULT_BUFFER_SIZE + 1) * SPA.CUQueue.DEFAULT_BUFFER_SIZE : len;
+                v = java.nio.ByteBuffer.allocateDirect(len);
                 m_mapCache.put(tid, v);
             }
         }
-        ClientCoreLoader.SetBufferForCurrentThread(v);
+        ClientCoreLoader.SetBufferForCurrentThread(v, len);
     }
 
     static void CleanCurrentThreadCache() {
         long tid = java.lang.Thread.currentThread().getId();
-        ClientCoreLoader.SetBufferForCurrentThread(null);
+        ClientCoreLoader.SetBufferForCurrentThread(null, 0);
         synchronized (m_cs) {
             if (m_mapCache.containsKey(tid)) {
                 m_mapCache.remove(tid);
@@ -331,13 +331,13 @@ public final class CClientSocket {
         }
     }
 
-    private static void OnRequestProcessed(long h, short reqId, int len, byte[] bytes, byte os, boolean endian) {
+    private static void OnRequestProcessed(long h, short reqId, int len, Object bytes, byte os, boolean endian) {
         try {
             CClientSocket cs = Find(h);
             CAsyncServiceHandler ash = cs.m_ash;
             if (ash != null) {
                 SPA.CUQueue q = cs.m_qRecv;
-                q.UseBuffer(bytes, len);
+                q.UseBuffer((java.nio.ByteBuffer) bytes, len);
                 q.setOS(tagOperationSystem.forValue(os));
                 q.setEndian(endian);
                 ash.onRR(reqId, q);

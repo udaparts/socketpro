@@ -37,7 +37,7 @@ class ClientCoreLoader {
 
     static native int GetSocketsPerThread(int poolId);
 
-    static native void SetBufferForCurrentThread(byte[] bytes);
+    static native void SetBufferForCurrentThread(java.nio.ByteBuffer bytes, int len);
 
     static native boolean IsAvg(int poolId);
 
