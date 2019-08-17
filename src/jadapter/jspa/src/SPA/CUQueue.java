@@ -123,6 +123,8 @@ public final class CUQueue {
             m_len = 0;
         } else {
             m_bytes = bytes;
+            m_bytes.position(0);
+            m_bytes.limit(m_bytes.capacity());
             m_len = len;
         }
         m_bytes.order(ByteOrder.LITTLE_ENDIAN);
