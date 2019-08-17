@@ -118,17 +118,17 @@ public final class CUQueue {
     }
 
     public void UseBuffer(java.nio.ByteBuffer bytes, int len) {
+        m_position = 0;
         if (bytes == null) {
             m_bytes = ByteBuffer.wrap(new byte[4]);
             m_len = 0;
         } else {
             m_bytes = bytes;
             m_bytes.position(0);
-            m_bytes.limit(m_bytes.capacity());
+            m_bytes.limit(len);
             m_len = len;
         }
         m_bytes.order(ByteOrder.LITTLE_ENDIAN);
-        m_position = 0;
     }
 
     public final void setSize(int newSize) {
@@ -751,14 +751,12 @@ public final class CUQueue {
 
     public final CUQueue Push(java.nio.ByteBuffer bb) {
         if (bb != null) {
-            int limit = bb.limit();
             int pos = bb.position();
-            int size = limit - pos;
+            int size = bb.remaining();
             Ensure(size);
             if (size > 0) {
                 m_bytes.put(bb);
                 bb.position(pos);
-                bb.limit(limit);
                 m_len += size;
             }
         }
@@ -1176,6 +1174,8 @@ public final class CUQueue {
                 q.m_bytes.limit(q.m_position + nSize);
                 Ensure(nSize);
                 m_bytes.put(q.m_bytes);
+                m_len += nSize;
+                q.m_bytes.position(q.m_position);
             }
         } else {
             Save(nSize);
