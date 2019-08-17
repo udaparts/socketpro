@@ -20,6 +20,7 @@ struct CBuffCache {
     unsigned int Len;
     jobject Bytes;
     JNIEnv *Env;
+    void *Des;
 };
 typedef CBuffCache *PBuffCache;
 std::vector<PBuffCache> g_vCache;
@@ -177,8 +178,7 @@ void CALLBACK OnRequestProcessed(USocket_Client_Handle handler, unsigned short r
         }
         env = p->Env;
         buffer = p->Bytes;
-        void *des = env->GetDirectBufferAddress(p->Bytes);
-        ::memcpy(des, arr, len);
+        ::memcpy(p->Des, arr, len);
     } else {
         jint es = g_vmClient->GetEnv((void **) &env, JNI_VERSION_1_6);
         assert(env);
@@ -1206,6 +1206,7 @@ JNIEXPORT void JNICALL Java_SPA_ClientSide_ClientCoreLoader_SetBufferForCurrentT
             found->Len = (unsigned int) len;
             found->Bytes = env->NewGlobalRef(bytes);
             found->Env = env;
+            found->Des = env->GetDirectBufferAddress(bytes);
         } else {
             g_vCache.erase(g_vCache.begin() + n);
             delete found;
@@ -1216,6 +1217,7 @@ JNIEXPORT void JNICALL Java_SPA_ClientSide_ClientCoreLoader_SetBufferForCurrentT
         found->Tid = tid;
         found->Len = (unsigned int) len;
         found->Bytes = env->NewGlobalRef(bytes);
+        found->Des = env->GetDirectBufferAddress(bytes);
         g_vCache.push_back(found);
     }
     g_csClient.unlock();
