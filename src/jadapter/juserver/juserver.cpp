@@ -413,22 +413,22 @@ JNIEXPORT jint JNICALL Java_SPA_ServerSide_ServerCoreLoader_QueryRequestsInQueue
     return (jint) QueryRequestsInQueue((USocket_Server_Handle) h);
 }
 
-JNIEXPORT jbyteArray JNICALL Java_SPA_ServerSide_ServerCoreLoader_RetrieveBuffer(JNIEnv *env, jclass, jlong h, jint len, jboolean peek) {
-    if (len < 0)
+JNIEXPORT jint JNICALL Java_SPA_ServerSide_ServerCoreLoader_RetrieveBuffer(JNIEnv *env, jclass, jlong h, jint len, jboolean peek, jobject bb) {
+    if (len < 0 || !bb) {
         len = 0;
-    jbyteArray bytes = env->NewByteArray(len);
+    }
     if (len) {
+        void *des = env->GetDirectBufferAddress(bb);
         if (g_nMainThreads <= 1) {
             const unsigned char *arr = GetRequestBuffer((USocket_Server_Handle) h);
-            env->SetByteArrayRegion(bytes, 0, len, (const jbyte*) arr);
+            ::memcpy(des, arr, len);
         } else {
-            jbyte *p = env->GetByteArrayElements(bytes, nullptr);
-            unsigned int res = RetrieveBuffer((USocket_Server_Handle) h, len, (unsigned char*) p, false);
+            unsigned int res = RetrieveBuffer((USocket_Server_Handle) h, len, (unsigned char*) des, peek ? true : false);
             assert(res == len);
-            env->ReleaseByteArrayElements(bytes, p, 0);
+            len = res;
         }
     }
-    return bytes;
+    return (jint) len;
 }
 
 JNIEXPORT jboolean JNICALL Java_SPA_ServerSide_ServerCoreLoader_IsOpened(JNIEnv *, jclass, jlong h) {
@@ -451,14 +451,12 @@ JNIEXPORT jint JNICALL Java_SPA_ServerSide_ServerCoreLoader_SendReturnData(JNIEn
     return (jint) SendReturnData((USocket_Server_Handle) h, (unsigned short) reqId, (unsigned int) len, bytes);
 }
 
-JNIEXPORT jint JNICALL Java_SPA_ServerSide_ServerCoreLoader_SendReturnDataIndex(JNIEnv *env, jclass, jlong h, jlong index, jshort reqId, jint len, jbyteArray buffer) {
-    jbyte *p = nullptr;
-    if (buffer && len)
-        p = env->GetByteArrayElements(buffer, nullptr);
-    jint res = (jint) SendReturnDataIndex((USocket_Server_Handle) h, (SPA::UINT64) index, (unsigned short) reqId, (unsigned int) len, (const unsigned char*) p);
-    if (p)
-        env->ReleaseByteArrayElements(buffer, p, JNI_ABORT);
-    return res;
+JNIEXPORT jint JNICALL Java_SPA_ServerSide_ServerCoreLoader_SendReturnDataIndex(JNIEnv *env, jclass, jlong h, jlong index, jshort reqId, jint len, jobject buffer, jint offset) {
+    const unsigned char *bytes = nullptr;
+    if (buffer) {
+        bytes = (const unsigned char *) env->GetDirectBufferAddress(buffer) + offset;
+    }
+    return (jint) SendReturnDataIndex((USocket_Server_Handle) h, (SPA::UINT64) index, (unsigned short) reqId, (unsigned int) len, (const unsigned char*) bytes);
 }
 
 JNIEXPORT void JNICALL Java_SPA_ServerSide_ServerCoreLoader_SetLastCallInfo(JNIEnv *env, jclass, jbyteArray buffer, jint len) {

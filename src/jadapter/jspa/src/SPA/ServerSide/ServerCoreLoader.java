@@ -93,7 +93,7 @@ final class ServerCoreLoader {
 
     static native int QueryRequestsInQueue(long h);
 
-    static native byte[] RetrieveBuffer(long h, int len, boolean peek);
+    static native int RetrieveBuffer(long h, int len, boolean peek, java.nio.ByteBuffer buffer);
 
     static native boolean IsOpened(long h);
 

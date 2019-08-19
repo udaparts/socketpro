@@ -348,8 +348,8 @@ JNIEXPORT jint JNICALL Java_SPA_ServerSide_ServerCoreLoader_QueryRequestsInQueue
  * Method:    RetrieveBuffer
  * Signature: (JIZ)[B
  */
-JNIEXPORT jbyteArray JNICALL Java_SPA_ServerSide_ServerCoreLoader_RetrieveBuffer
-  (JNIEnv *, jclass, jlong, jint, jboolean);
+JNIEXPORT jint JNICALL Java_SPA_ServerSide_ServerCoreLoader_RetrieveBuffer
+  (JNIEnv *, jclass, jlong, jint, jboolean, jobject);
 
 /*
  * Class:     SPA_ServerSide_ServerCoreLoader
@@ -389,7 +389,7 @@ JNIEXPORT jint JNICALL Java_SPA_ServerSide_ServerCoreLoader_SendReturnData
  * Signature: (JJSI[B)I
  */
 JNIEXPORT jint JNICALL Java_SPA_ServerSide_ServerCoreLoader_SendReturnDataIndex
-  (JNIEnv *, jclass, jlong, jlong, jshort, jint, jbyteArray);
+  (JNIEnv *, jclass, jlong, jlong, jshort, jint, jobject, jint);
 
 /*
  * Class:     SPA_ServerSide_ServerCoreLoader
