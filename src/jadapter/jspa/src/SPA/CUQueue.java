@@ -146,6 +146,7 @@ public final class CUQueue {
             m_bytes.clear();
         } else {
             m_len = size;
+            m_bytes.position(m_position);
         }
     }
 
