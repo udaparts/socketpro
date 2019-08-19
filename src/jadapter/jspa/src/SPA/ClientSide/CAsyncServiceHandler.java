@@ -311,7 +311,7 @@ public class CAsyncServiceHandler implements AutoCloseable {
     }
 
     protected final boolean SendRouteeResult(short reqId) {
-        return SendRouteeResult((byte[]) null, (int) 0, reqId);
+        return SendRouteeResult((java.nio.ByteBuffer) null, (int) 0, reqId);
     }
 
     protected final boolean SendRouteeResult() {

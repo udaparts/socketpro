@@ -423,19 +423,19 @@ public class CReplication<THandler extends CAsyncServiceHandler> implements Auto
     }
 
     public final boolean Send(short reqId) {
-        return Send(reqId, (byte[]) null, (int) 0);
+        return Send(reqId, (java.nio.ByteBuffer) null, (int) 0);
     }
 
     public final boolean Send(short reqId, SPA.CUQueue q) {
         if (q == null || q.GetSize() == 0) {
-            return Send(reqId);
+            return Send(reqId, (java.nio.ByteBuffer) null, (int) 0);
         }
         return Send(reqId, q.getIntenalBuffer(), q.GetSize());
     }
 
     public final boolean Send(short reqId, SPA.CScopeUQueue q) {
         if (q == null) {
-            return Send(reqId);
+            return Send(reqId, (java.nio.ByteBuffer) null, (int) 0);
         }
         return Send(reqId, q.getUQueue());
     }
