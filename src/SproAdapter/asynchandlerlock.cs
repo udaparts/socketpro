@@ -2071,13 +2071,13 @@ namespace SocketProAdapter
             public virtual bool SendRequest(ushort reqId, byte[] data, uint len, DAsyncResultHandler ash, DDiscarded discarded, DOnExceptionFromServer exception)
             {
                 bool sent;
-                if (m_ClientSocket == null)
+                if (null == m_ClientSocket)
                     return false;
                 IntPtr h = m_ClientSocket.Handle;
                 if (data != null && len > (uint)data.Length)
                     len = (uint)data.Length;
-                byte batching = 0;
-                MyKeyValue<ushort, CResultCb> kv = null;
+                byte batching;
+                MyKeyValue<ushort, CResultCb> kv;
                 if (ash != null || discarded != null || exception != null)
                 {
                     kv = new MyKeyValue<ushort, CResultCb>(reqId, new CResultCb(ash, discarded, exception));
@@ -2106,6 +2106,8 @@ namespace SocketProAdapter
                 }
                 else
                 {
+                    batching = 0;
+                    kv = null;
                     unsafe
                     {
                         fixed (byte* buffer = data)

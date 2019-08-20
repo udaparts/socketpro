@@ -2048,9 +2048,9 @@ namespace SocketProAdapter
             public virtual bool SendRequest(ushort reqId, byte[] data, uint len, DAsyncResultHandler ash, DDiscarded discarded, DOnExceptionFromServer exception)
             {
                 bool sent;
-                byte batching = 0;
-                MyKeyValue<ushort, CResultCb> kv = null;
-                if (m_ClientSocket == null)
+                byte batching;
+                MyKeyValue<ushort, CResultCb> kv;
+                if (null == m_ClientSocket)
                     return false;
                 IntPtr h = m_ClientSocket.Handle;
                 if (data != null && len > (uint)data.Length)
@@ -2071,7 +2071,6 @@ namespace SocketProAdapter
                     rcb.AsyncResultHandler = ash;
                     rcb.Discarded = discarded;
                     rcb.ExceptionFromServer = exception;
-
                     batching = ClientCoreLoader.IsBatching(h);
                     lock (m_csSend)
                     {
@@ -2097,6 +2096,8 @@ namespace SocketProAdapter
                 }
                 else
                 {
+                    kv = null;
+                    batching = 0;
                     unsafe
                     {
                         fixed (byte* buffer = data)

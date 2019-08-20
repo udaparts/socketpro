@@ -147,7 +147,7 @@ public final class CUQueue {
         } else {
             m_len = size;
             m_bytes.position(m_position);
-            m_bytes.limit(m_len);
+            m_bytes.limit(m_position + m_len);
         }
     }
 

@@ -50,11 +50,14 @@ namespace SocketProAdapter
             /// <summary>
             /// An event for tracking message queued notification from server side
             /// </summary>
-            public event DMessageQueued MessageQueued {
-                add {
+            public event DMessageQueued MessageQueued
+            {
+                add
+                {
                     m_lstMQ.add(value);
                 }
-                remove {
+                remove
+                {
                     m_lstMQ.remove(value);
                 }
             }
@@ -79,8 +82,10 @@ namespace SocketProAdapter
             /// <summary>
             /// Dequeue batch size in bytes
             /// </summary>
-            public uint DequeueBatchSize {
-                get {
+            public uint DequeueBatchSize
+            {
+                get
+                {
                     return (m_nBatchSize & 0xffffff);
                 }
             }
@@ -88,8 +93,10 @@ namespace SocketProAdapter
             /// <summary>
             /// Check if remote queue server is able to automatically notify a client when a message is enqueued at server side
             /// </summary>
-            public bool EnqueueNotified {
-                get {
+            public bool EnqueueNotified
+            {
+                get
+                {
                     return ((m_nBatchSize >> 24) == 0);
                 }
             }
@@ -97,14 +104,17 @@ namespace SocketProAdapter
             /// <summary>
             /// Last dequeue callback
             /// </summary>
-            public DDequeue LastDequeueCallback {
-                get {
+            public DDequeue LastDequeueCallback
+            {
+                get
+                {
                     lock (m_csQ)
                     {
                         return m_dDequeue;
                     }
                 }
-                set {
+                set
+                {
                     lock (m_csQ)
                     {
                         m_dDequeue = value;
@@ -119,7 +129,7 @@ namespace SocketProAdapter
                     return (ar) =>
                     {
                         ulong index;
-                        ar.Load(out index);
+                        ar.UQueue.Load(out index);
                         e((CAsyncQueue)ar.AsyncServiceHandler, index);
                     };
                 }
@@ -522,7 +532,7 @@ namespace SocketProAdapter
                         if (qt != null)
                         {
                             int errCode;
-                            ar.Load(out errCode);
+                            ar.UQueue.Load(out errCode);
                             qt((CAsyncQueue)ar.AsyncServiceHandler, errCode);
                         }
                         else
@@ -577,7 +587,7 @@ namespace SocketProAdapter
                     if (qt != null)
                     {
                         int errCode;
-                        ar.Load(out errCode);
+                        ar.UQueue.Load(out errCode);
                         qt((CAsyncQueue)ar.AsyncServiceHandler, errCode);
                     }
                     else
@@ -616,15 +626,16 @@ namespace SocketProAdapter
             {
                 return SendRequest(idGetKeys, (ar) =>
                 {
+                    CUQueue q = ar.UQueue;
                     if (gk != null)
                     {
                         uint size;
-                        ar.Load(out size);
+                        q.Load(out size);
                         string[] v = new string[size];
                         for (uint n = 0; n < size; ++n)
                         {
                             byte[] bytes;
-                            ar.Load(out bytes);
+                            q.Load(out bytes);
                             if (bytes != null)
                                 v[n] = Encoding.UTF8.GetString(bytes, 0, bytes.Length);
                         }
@@ -632,7 +643,7 @@ namespace SocketProAdapter
                     }
                     else
                     {
-                        ar.UQueue.SetSize(0);
+                        q.SetSize(0);
                     }
                 }, discarded, (DOnExceptionFromServer)null);
             }
@@ -685,7 +696,7 @@ namespace SocketProAdapter
                     if (c != null)
                     {
                         int errCode;
-                        ar.Load(out errCode);
+                        ar.UQueue.Load(out errCode);
                         c((CAsyncQueue)ar.AsyncServiceHandler, errCode);
                     }
                     else
@@ -733,7 +744,7 @@ namespace SocketProAdapter
                     if (f != null)
                     {
                         ulong messageCount, fileSize;
-                        ar.Load(out messageCount).Load(out fileSize);
+                        ar.UQueue.Load(out messageCount).Load(out fileSize);
                         f((CAsyncQueue)ar.AsyncServiceHandler, messageCount, fileSize);
                     }
                     else
@@ -785,7 +796,7 @@ namespace SocketProAdapter
                         rh = (ar) =>
                         {
                             ulong messageCount, fileSize, ret;
-                            ar.Load(out messageCount).Load(out fileSize).Load(out ret);
+                            ar.UQueue.Load(out messageCount).Load(out fileSize).Load(out ret);
                             uint messages = (uint)ret;
                             uint bytes = (uint)(ret >> 32);
                             d((CAsyncQueue)ar.AsyncServiceHandler, messageCount, fileSize, messages, bytes);
@@ -799,8 +810,9 @@ namespace SocketProAdapter
                 }
                 using (CScopeUQueue sb = new CScopeUQueue())
                 {
-                    sb.Save(key).Save(timeout);
-                    return SendRequest(idDequeue, sb, rh, discarded, (DOnExceptionFromServer)null);
+                    CUQueue q = sb.UQueue;
+                    q.Save(key).Save(timeout);
+                    return SendRequest(idDequeue, q, rh, discarded, (DOnExceptionFromServer)null);
                 }
             }
 
