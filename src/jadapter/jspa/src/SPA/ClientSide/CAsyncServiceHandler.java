@@ -137,43 +137,40 @@ public class CAsyncServiceHandler implements AutoCloseable {
     }
 
     public boolean SendRequest(short reqId, java.nio.ByteBuffer data, DAsyncResultHandler ash) {
-        int len = 0;
         if (data != null) {
-            len = data.limit() - data.position();
+            return SendRequest(reqId, data, data.limit() - data.position(), ash, null, null);
         }
-        return SendRequest(reqId, data, len, ash, null, null);
+        return SendRequest(reqId, data, 0, ash, null, null);
     }
 
     public boolean SendRequest(short reqId, java.nio.ByteBuffer data, DAsyncResultHandler ash, DDiscarded discarded) {
-        int len = 0;
         if (data != null) {
-            len = data.limit() - data.position();
+            return SendRequest(reqId, data, data.limit() - data.position(), ash, discarded, null);
         }
-        return SendRequest(reqId, data, len, ash, discarded, null);
+        return SendRequest(reqId, data, 0, ash, discarded, null);
     }
 
     public boolean SendRequest(short reqId, java.nio.ByteBuffer data, DAsyncResultHandler ash, DDiscarded discarded, DOnExceptionFromServer exception) {
-        int len = 0;
         if (data != null) {
-            len = data.limit() - data.position();
+            return SendRequest(reqId, data, data.limit() - data.position(), ash, discarded, exception);
         }
-        return SendRequest(reqId, data, len, ash, discarded, exception);
+        return SendRequest(reqId, data, 0, ash, discarded, exception);
     }
 
     public boolean SendRequest(short reqId, java.nio.ByteBuffer data, int len, DAsyncResultHandler ash, DDiscarded discarded, DOnExceptionFromServer exception) {
-        int position = 0;
-        if (data == null) {
+        int offset;
+        if (data == null || len < 0) {
             len = 0;
+            offset = 0;
         } else {
-            position = data.position();
+            offset = data.position();
         }
         long h = m_ClientSocket.getHandle();
         if (h == 0) {
             return false;
         }
-        boolean sent;
-        boolean batching = false;
-        java.util.Map.Entry<Short, CResultCb> kv = null;
+        boolean sent, batching;
+        java.util.Map.Entry<Short, CResultCb> kv;
         if (ash != null || discarded != null || exception != null) {
             kv = new java.util.AbstractMap.SimpleEntry<>(reqId, new CResultCb(ash, discarded, exception));
             synchronized (m_csSend) {
@@ -185,10 +182,12 @@ public class CAsyncServiceHandler implements AutoCloseable {
                         m_kvCallback.add(kv);
                     }
                 }
-                sent = ClientCoreLoader.SendRequest(h, reqId, data, len, position);
+                sent = ClientCoreLoader.SendRequest(h, reqId, data, len, offset);
             }
         } else {
-            sent = ClientCoreLoader.SendRequest(h, reqId, data, len, position);
+            batching = false;
+            kv = null;
+            sent = ClientCoreLoader.SendRequest(h, reqId, data, len, offset);
         }
         if (sent) {
             return true;
@@ -214,19 +213,21 @@ public class CAsyncServiceHandler implements AutoCloseable {
     }
 
     public boolean SendRequest(short reqId, byte[] data, int len, DAsyncResultHandler ash, DDiscarded discarded, DOnExceptionFromServer exception) {
-        java.nio.ByteBuffer bb = null;
-        if (data == null) {
-            len = 0;
+        SPA.CUQueue q;
+        if (data == null || len <= 0) {
+            q = null;
         } else {
             if (len > data.length) {
                 len = data.length;
             }
-            bb = java.nio.ByteBuffer.allocateDirect(len);
-            bb.put(data, 0, len);
-            bb.position(0);
-            bb.limit(len);
+            q = SPA.CScopeUQueue.Lock();
+            q.Push(data, len);
         }
-        return SendRequest(reqId, bb, len, ash, discarded, exception);
+        boolean ok = SendRequest(reqId, q, ash, discarded, exception);
+        if (q != null) {
+            SPA.CScopeUQueue.Unlock(q);
+        }
+        return ok;
     }
 
     public final boolean SendRequest(short reqId, SPA.CUQueue q, DAsyncResultHandler ash) {
@@ -272,7 +273,7 @@ public class CAsyncServiceHandler implements AutoCloseable {
     }
 
     protected boolean SendRouteeResult(java.nio.ByteBuffer data, int len, short reqId) {
-        if (data == null) {
+        if (data == null || len < 0) {
             len = 0;
         } else if (len > data.limit() - data.position()) {
             len = data.limit() - data.position();
@@ -285,25 +286,26 @@ public class CAsyncServiceHandler implements AutoCloseable {
     }
 
     protected boolean SendRouteeResult(java.nio.ByteBuffer data, short reqId) {
-        int len = 0;
+        int len;
         if (data != null) {
             len = data.limit() - data.position();
+        } else {
+            len = 0;
         }
         return SendRouteeResult(data, len, reqId);
     }
 
     protected boolean SendRouteeResult(byte[] data, int len, short reqId) {
-        java.nio.ByteBuffer bb = null;
-        if (data != null) {
+        if (data != null && len > 0) {
             if (len > data.length) {
                 len = data.length;
             }
-            bb = java.nio.ByteBuffer.allocateDirect(len);
-            bb.put(data, 0, len);
-            bb.position(0);
-            bb.limit(len);
+            SPA.CUQueue q = SPA.CScopeUQueue.Lock();
+            q.Push(data, len);
+            return SendRouteeResult(q.getIntenalBuffer(), len, reqId);
+        } else {
+            return SendRouteeResult((java.nio.ByteBuffer) null, len, reqId);
         }
-        return SendRouteeResult(bb, len, reqId);
     }
 
     protected final boolean SendRouteeResult(byte[] data, int len) {
@@ -415,8 +417,12 @@ public class CAsyncServiceHandler implements AutoCloseable {
             }
         } else {
             synchronized (m_cs) {
-                if (m_kvCallback.size() > 0 && m_kvCallback.getFirst().getKey() == reqId) {
-                    return m_kvCallback.removeFirst();
+                if (!m_kvCallback.isEmpty()) {
+                    java.util.Map.Entry<Short, CResultCb> first = m_kvCallback.getFirst();
+                    if (first.getKey() == reqId) {
+                        return m_kvCallback.pollFirst();
+                    }
+                    return null;
                 }
             }
         }

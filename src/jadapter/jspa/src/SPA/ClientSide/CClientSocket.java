@@ -456,7 +456,7 @@ public final class CClientSocket {
         ClientCoreLoader.Shutdown(m_h, st.getValue());
     }
 
-    private volatile boolean m_bRandom = false;
+    private boolean m_bRandom = false;
 
     public final boolean getRandom() {
         return m_bRandom;
