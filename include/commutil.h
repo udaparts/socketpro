@@ -72,11 +72,6 @@ namespace SPA {
                 if (cycle >= max_cycle) {
                     break;
                 }
-#ifndef NDEBUG
-                if (cycle > 1 && 1 == (cycle % 16)) {
-                    std::cout << "*C*";
-                }
-#endif
             }
 #ifdef MONITORING_SPIN_CONTENTION
             Contention += cycle;
