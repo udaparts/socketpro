@@ -29,3 +29,10 @@ b2 runtime-link=static address-model=64
 b2 --toolset=msvc-10.0 define=BOOST_USE_WINAPI_VERSION=0x0501 runtime-link=static address-model=32
 
 b2 --toolset=msvc-10.0 define=BOOST_USE_WINAPI_VERSION=0x0501 runtime-link=static address-model=64
+
+You can use Valgrind with the following options
+
+valgrind --tool=callgrind ./(Your binary)
+It will generate a file called callgrind.out.x. You can then use kcachegrind tool to read this file. It will give you a graphical analysis of things with results like which lines cost how much.
+
+
