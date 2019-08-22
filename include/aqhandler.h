@@ -15,7 +15,7 @@ namespace SPA {
         public:
 
             CAsyncQueue(CClientSocket *pClientSocket, unsigned int sid = SPA::Queue::sidQueue) : CAsyncServiceHandler(sid, pClientSocket), m_nBatchSize(0), MessageQueued(m_mq) {
-				m_mq.SetCS(&m_csQ);
+                m_mq.SetCS(&m_csQ);
             }
 
             //callback definitions
@@ -65,8 +65,9 @@ namespace SPA {
              * @return true for sending the request successfully, and false for failure
              */
             bool GetKeys(const DGetKeys & gk, const DDiscarded& discarded = nullptr) {
-                ResultHandler rh = [gk](CAsyncResult & ar) {
-                    if (gk) {
+                ResultHandler rh;
+                if (gk) {
+                    rh = [gk](CAsyncResult & ar) {
                         unsigned int size;
                         std::vector<std::string> v;
                         ar >> size;
@@ -76,10 +77,8 @@ namespace SPA {
                             v.push_back(s);
                         }
                         gk((CAsyncQueue*) ar.AsyncServiceHandler, v);
-                    } else {
-                        ar.UQueue.SetSize(0);
-                    }
-                };
+                    };
+                }
                 return SendRequest(Queue::idGetKeys, rh, discarded);
             }
 
@@ -96,15 +95,14 @@ namespace SPA {
                     bool ok = cq.StartJob();
                     assert(ok);
                 }
-                ResultHandler rh = [qt](CAsyncResult & ar) {
-                    if (qt) {
+                ResultHandler rh;
+                if (qt) {
+                    rh = [qt](CAsyncResult & ar) {
                         int errCode;
                         ar >> errCode;
                         qt((CAsyncQueue*) ar.AsyncServiceHandler, errCode);
-                    } else {
-                        ar.UQueue.SetSize(0);
-                    }
-                };
+                    };
+                }
                 return SendRequest(Queue::idStartTrans, key, rh, discarded);
             }
 
@@ -116,15 +114,14 @@ namespace SPA {
              * @return true for sending the request successfully, and false for failure
              */
             bool EndQueueTrans(bool rollback = false, const DQueueTrans& qt = nullptr, const DDiscarded& discarded = nullptr) {
-                ResultHandler rh = [qt](CAsyncResult & ar) {
-                    if (qt) {
+                ResultHandler rh;
+                if (qt) {
+                    rh = [qt](CAsyncResult & ar) {
                         int errCode;
                         ar >> errCode;
                         qt((CAsyncQueue*) ar.AsyncServiceHandler, errCode);
-                    } else {
-                        ar.UQueue.SetSize(0);
-                    }
-                };
+                    };
+                }
                 bool ok = SendRequest(Queue::idEndTrans, rollback, rh, discarded);
                 IClientQueue &cq = GetAttachedClientSocket()->GetClientQueue();
                 if (cq.IsAvailable()) {
@@ -147,15 +144,14 @@ namespace SPA {
              * @return true for sending the request successfully, and false for failure
              */
             bool CloseQueue(const char *key, const DClose& c = nullptr, bool permanent = false, const DDiscarded& discarded = nullptr) {
-                ResultHandler rh = [c](CAsyncResult & ar) {
-                    if (c) {
+                ResultHandler rh;
+                if (c) {
+                    rh = [c](CAsyncResult & ar) {
                         int errCode;
                         ar >> errCode;
                         c((CAsyncQueue*) ar.AsyncServiceHandler, errCode);
-                    } else {
-                        ar.UQueue.SetSize(0);
-                    }
-                };
+                    };
+                }
                 return SendRequest(Queue::idClose, key, permanent, rh, discarded);
             }
 
@@ -168,15 +164,14 @@ namespace SPA {
              * @return true for sending the request successfully, and false for failure
              */
             bool FlushQueue(const char *key, const DFlush& f, tagOptimistic option = oMemoryCached, const DDiscarded& discarded = nullptr) {
-                ResultHandler rh = [f](CAsyncResult & ar) {
-                    if (f) {
+                ResultHandler rh;
+                if (f) {
+                    rh = [f](CAsyncResult & ar) {
                         UINT64 messageCount, fileSize;
                         ar >> messageCount >> fileSize;
                         f((CAsyncQueue*) ar.AsyncServiceHandler, messageCount, fileSize);
-                    } else {
-                        ar.UQueue.SetSize(0);
-                    }
-                };
+                    };
+                }
                 return SendRequest(Queue::idFlush, key, (int) option, rh, discarded);
             }
 
@@ -203,7 +198,7 @@ namespace SPA {
                         };
                         m_dDequeue = d;
                     } else {
-                        m_dDequeue = DDequeue();
+                        m_dDequeue = nullptr;
                     }
                 }
                 return SendRequest(Queue::idDequeue, key, timeout, rh, discarded);
@@ -460,20 +455,20 @@ namespace SPA {
             std::string m_keyDequeue; //protected by m_csQ
             DDequeue m_dDequeue; //protected by m_csQ
 
-		public:
+        public:
 #ifndef SAFE_RESULT_RETURN_EVENT
-			typedef std::function<void(CAsyncQueue *aq) > DMessageQueued;
+            typedef std::function<void(CAsyncQueue *aq) > DMessageQueued;
 #else
-			typedef void(*DMessageQueued)(CAsyncQueue *aq);
+            typedef void(*DMessageQueued)(CAsyncQueue *aq);
 #endif
-		private:
-			IUDelImpl<DMessageQueued> m_mq;
+        private:
+            IUDelImpl<DMessageQueued> m_mq;
 
-		public:
-			/**
-			 * An event for tracking message queued notification from server side
-			 */
-			IUDel<DMessageQueued> &MessageQueued;
+        public:
+            /**
+             * An event for tracking message queued notification from server side
+             */
+            IUDel<DMessageQueued> &MessageQueued;
         };
 
         typedef CSocketPool<CAsyncQueue> CAsyncQueuePool;
