@@ -208,7 +208,11 @@ namespace SPA {
 
             inline ResultHandler GetRH(const DEnqueue & e) {
                 if (e) {
+#if defined(PHP_ADAPTER_PROJECT) || defined(NODE_JS_ADAPTER_PROJECT)
+                    return [e](CAsyncResult & ar) {
+#else
                     return [&e](CAsyncResult & ar) {
+#endif
                         UINT64 index;
                         ar >> index;
                         e((CAsyncQueue*) ar.AsyncServiceHandler, index);
