@@ -100,14 +100,15 @@
 // Forward-declare libuv loop
 struct uv_loop_s;
 
-// Forward-declare TracingController, used by CreatePlatform.
-namespace v8 {
-class TracingController;
-}
-
 // Forward-declare these functions now to stop MSVS from becoming
 // terminally confused when it's done in node_internals.h
 namespace node {
+
+namespace tracing {
+
+class TracingController;
+
+}
 
 NODE_EXTERN v8::Local<v8::Value> ErrnoException(v8::Isolate* isolate,
                                                 int errorno,
@@ -291,6 +292,9 @@ NODE_EXTERN Environment* CreateEnvironment(IsolateData* isolate_data,
 NODE_EXTERN void LoadEnvironment(Environment* env);
 NODE_EXTERN void FreeEnvironment(Environment* env);
 
+// This may return nullptr if context is not associated with a Node instance.
+NODE_EXTERN Environment* GetCurrentEnvironment(v8::Local<v8::Context> context);
+
 // This returns the MultiIsolatePlatform used in the main thread of Node.js.
 // If NODE_USE_V8_PLATFORM haven't been defined when Node.js was built,
 // it returns nullptr.
@@ -298,7 +302,8 @@ NODE_EXTERN MultiIsolatePlatform* GetMainThreadMultiIsolatePlatform();
 
 NODE_EXTERN MultiIsolatePlatform* CreatePlatform(
     int thread_pool_size,
-    v8::TracingController* tracing_controller);
+    node::tracing::TracingController* tracing_controller);
+MultiIsolatePlatform* InitializeV8Platform(int thread_pool_size);
 NODE_EXTERN void FreePlatform(MultiIsolatePlatform* platform);
 
 NODE_EXTERN void EmitBeforeExit(Environment* env);
@@ -312,8 +317,11 @@ NODE_EXTERN struct uv_loop_s* GetCurrentEventLoop(v8::Isolate* isolate);
 /* Converts a unixtime to V8 Date */
 NODE_DEPRECATED("Use v8::Date::New() directly",
                 inline v8::Local<v8::Value> NODE_UNIXTIME_V8(double time) {
-  return v8::Date::New(v8::Isolate::GetCurrent(), 1000 * time);
-})
+                  return v8::Date::New(
+                             v8::Isolate::GetCurrent()->GetCurrentContext(),
+                             1000 * time)
+                      .ToLocalChecked();
+                })
 #define NODE_UNIXTIME_V8 node::NODE_UNIXTIME_V8
 NODE_DEPRECATED("Use v8::Date::ValueOf() directly",
                 inline double NODE_V8_UNIXTIME(v8::Local<v8::Date> date) {
@@ -653,9 +661,10 @@ struct async_context {
 
 /* Registers an additional v8::PromiseHook wrapper. This API exists because V8
  * itself supports only a single PromiseHook. */
-NODE_EXTERN void AddPromiseHook(v8::Isolate* isolate,
-                                promise_hook_func fn,
-                                void* arg);
+NODE_DEPRECATED("Use async_hooks directly instead",
+                NODE_EXTERN void AddPromiseHook(v8::Isolate* isolate,
+                                                promise_hook_func fn,
+                                                void* arg));
 
 /* This is a lot like node::AtExit, except that the hooks added via this
  * function are run before the AtExit ones and will always be registered
