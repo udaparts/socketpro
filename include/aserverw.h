@@ -719,7 +719,7 @@ namespace SPA {
             bool AddAlphaRequest(unsigned short reqId) const;
             std::vector<unsigned short> GetAlphaRequestIds() const;
 
-            CSocketPeer* Seek(USocket_Server_Handle h) const;
+            CSocketPeer* Seek(USocket_Server_Handle h);
             static CBaseService* SeekService(unsigned int nServiceId);
             static CBaseService* SeekService(USocket_Server_Handle h);
 
@@ -731,7 +731,7 @@ namespace SPA {
             CBaseService& operator=(const CBaseService &as);
 
         private:
-            static bool Seek(unsigned int nServiceId);
+            static bool SeekServiceId(unsigned int nServiceId);
             CSocketPeer* CreatePeer(USocket_Server_Handle h, unsigned int oldServiceId);
             void ReleasePeer(USocket_Server_Handle h, bool bClosing, unsigned int info);
             void Clean();
@@ -754,6 +754,7 @@ namespace SPA {
             CSvsContext m_SvsContext;
             std::vector<CSocketPeer*> m_vPeer;
             std::deque<CSocketPeer*> m_vDeadPeer;
+            CUCriticalSection m_cs;
             unsigned int m_nServiceId;
             static U_MODULE_HIDDEN CSpinLock m_mutex;
             static U_MODULE_HIDDEN std::vector<CBaseService*> m_vService;
