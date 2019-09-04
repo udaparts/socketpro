@@ -1399,7 +1399,7 @@ namespace SPA {
          * Destroy all existing memory objects in pool
          */
         static void DestroyUQueuePool() {
-            auto contentions = m_cs.lock();
+            m_cs.lock();
             PMB *start = (PMB*) m_aUQueue.GetBuffer();
             unsigned int size = m_aUQueue.GetSize() / sizeof (PMB);
             for (unsigned int n = 0; n < size; n++) {
@@ -1414,7 +1414,7 @@ namespace SPA {
          * Reset all existing memory objects in pool to initial size (InitSize)
          */
         static void ResetSize(unsigned int newSize = InitSize) {
-            auto contentions = m_cs.lock();
+            m_cs.lock();
             PMB *start = (PMB*) m_aUQueue.GetBuffer();
             unsigned int size = m_aUQueue.GetSize() / sizeof (PMB);
             for (unsigned int n = 0; n < size; n++) {
@@ -1430,7 +1430,7 @@ namespace SPA {
          * Zero all existing memory objects in pool
          */
         static void CleanUQueuePool() {
-            auto contentions = m_cs.lock();
+            m_cs.lock();
             PMB *start = (PMB *) m_aUQueue.GetBuffer();
             unsigned int size = m_aUQueue.GetSize() / sizeof (PMB);
             for (unsigned int n = 0; n < size; n++) {
@@ -1450,7 +1450,7 @@ namespace SPA {
          */
         static PMB Lock(tagOperationSystem os = MY_OPERATION_SYSTEM, bool bigEndian = IsBigEndian(), unsigned int initSize = InitSize, unsigned int blockSize = BlockSize) {
             PMB p;
-            auto contentions = m_cs.lock();
+            m_cs.lock();
             if (m_aUQueue.GetSize()) {
                 m_aUQueue >> p;
                 m_cs.unlock();
@@ -1481,7 +1481,7 @@ namespace SPA {
                 return;
             }
             memoryChunk->SetSize(0);
-            auto contentions = m_cs.lock();
+            m_cs.lock();
             m_aUQueue << memoryChunk;
             m_cs.unlock();
             memoryChunk = nullptr;
@@ -1493,7 +1493,7 @@ namespace SPA {
          */
         static UINT64 GetMemoryConsumed() {
             UINT64 size = 0;
-            auto contentions = m_cs.lock();
+            m_cs.lock();
             PMB *start = (PMB *) m_aUQueue.GetBuffer();
             unsigned int count = m_aUQueue.GetSize() / sizeof (PMB);
             for (unsigned int n = 0; n < count; ++n) {

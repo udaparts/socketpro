@@ -36,7 +36,7 @@ namespace SPA {
 
 #ifdef MONITORING_SPIN_CONTENTION
     public:
-        UINT64 Contention;
+        volatile UINT64 Contention; //Thread not safe
 #endif
 
     public:
@@ -60,9 +60,10 @@ namespace SPA {
          * @return The actual spin number
          * If the returned value is zero or less than the given max spin number, the locking is successful.
          * Otherwise, the locking is failed
+         * @remark Accumulated contention value may be wrong in multi-threaded environments when the locking is failed
          */
-        unsigned int lock(unsigned int max_cycle = (~0)) {
-            unsigned int cycle = 0;
+        UINT64 lock(UINT64 max_cycle = (~0)) {
+            UINT64 cycle = 0;
 #ifdef WIN32_64
             while (::InterlockedCompareExchange(&m_locked, 1, 0)) {
 #else
@@ -72,16 +73,22 @@ namespace SPA {
                 if (cycle >= max_cycle) {
                     break;
                 }
-#ifndef NDEBUG
-                if (cycle > 1 && 1 == (cycle % 16)) {
-                    std::cout << "*C*";
-                }
-#endif
             }
 #ifdef MONITORING_SPIN_CONTENTION
-            Contention += cycle;
+            if (cycle) {
+                Contention += cycle;
+            }
 #endif
             return cycle;
+        }
+
+        /**
+         * Try to lock a critical section
+         * @return True if successful, and false if failed
+         * @remark Accumulated contention value may be wrong in multi-threaded environments when the trying is failed
+         */
+        bool try_lock() {
+            return (0 == lock(0));
         }
 
         /**
@@ -106,7 +113,7 @@ namespace SPA {
          */
         CSpinAutoLock(CSpinLock &cs)
         : m_cs(cs) {
-            unsigned int contentions = m_cs.lock();
+            m_cs.lock();
         }
 
         /**

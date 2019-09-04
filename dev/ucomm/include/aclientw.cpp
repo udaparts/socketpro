@@ -55,7 +55,7 @@ namespace SPA
 
         CAsyncServiceHandler::~CAsyncServiceHandler() {
             CleanCallbacks();
-            auto contentions = m_cs.lock();
+            m_cs.lock();
             if (m_pClientSocket)
                 m_pClientSocket->Detach(this);
             m_cs.unlock();
@@ -65,7 +65,7 @@ namespace SPA
         }
 
         UINT64 CAsyncServiceHandler::GetCallIndex() {
-            auto contentions = m_csIndex.lock();
+            m_csIndex.lock();
             UINT64 index = ++m_CallIndex;
             m_csIndex.unlock();
             return index;
@@ -74,7 +74,7 @@ namespace SPA
         void CAsyncServiceHandler::CleanQueue(CUQueue & q) {
             unsigned int size = q.GetSize();
             if (size) {
-                auto contentions = m_csRR.lock();
+                m_csRR.lock();
                 m_vRR.Push(q.GetBuffer(), size);
                 m_csRR.unlock();
                 q.SetSize(0);
@@ -82,7 +82,7 @@ namespace SPA
         }
 
         void CAsyncServiceHandler::ClearResultCallbackPool(unsigned int remaining) {
-            auto contentions = m_csRR.lock();
+            m_csRR.lock();
             unsigned int total = m_vRR.GetSize() / sizeof (PRR_PAIR);
             if (remaining > total) {
                 remaining = total;
@@ -98,14 +98,14 @@ namespace SPA
         }
 
         unsigned int CAsyncServiceHandler::CountResultCallbacksInPool() {
-            auto contentions = m_csRR.lock();
+            m_csRR.lock();
             unsigned int count = m_vRR.GetSize() / sizeof (PRR_PAIR);
             m_csRR.unlock();
             return count;
         }
 
         CAsyncServiceHandler::PRR_PAIR CAsyncServiceHandler::Reuse() {
-            auto contentions = m_csRR.lock();
+            m_csRR.lock();
             if (m_vRR.GetSize() > 0) {
                 PRR_PAIR p;
                 m_vRR >> p;
@@ -219,7 +219,7 @@ namespace SPA
         }
 
         bool CAsyncServiceHandler::CommitBatching(bool bBatchingAtServerSide) {
-            auto contentions = m_cs.lock();
+            m_cs.lock();
             m_vCallback.Push(m_vBatching.GetBuffer(), m_vBatching.GetSize());
             m_vBatching.SetSize(0);
             m_cs.unlock();
@@ -227,7 +227,7 @@ namespace SPA
         }
 
         bool CAsyncServiceHandler::AbortBatching() {
-            auto contentions = m_cs.lock();
+            m_cs.lock();
             CleanQueue(m_vBatching);
             m_cs.unlock();
             return ClientCoreLoader.AbortBatching(GetClientSocketHandle());
@@ -268,7 +268,7 @@ namespace SPA
                 batching = ClientCoreLoader.IsBatching(h);
                 CAutoLock alSend(m_csSend);
                 {
-                    auto contentions = m_cs.lock();
+                    m_cs.lock();
                     if (batching) {
                         m_vBatching << p;
                         assert((m_vBatching.GetSize() % sizeof (PRR_PAIR)) == 0);
@@ -283,7 +283,7 @@ namespace SPA
             }
             if (!sent) {
                 if (p) {
-                    auto contentions = m_cs.lock();
+                    m_cs.lock();
                     bool ok = (batching ? Remove(m_vBatching, p) : Remove(m_vCallback, p));
                     m_cs.unlock();
                     if (ok) {
@@ -306,8 +306,8 @@ namespace SPA
         }
 
         void CAsyncServiceHandler::AppendTo(CAsyncServiceHandler & to) {
-            auto contentions0 = to.m_cs.lock();
-            auto contentions1 = m_cs.lock();
+            to.m_cs.lock();
+            m_cs.lock();
             OnMergeTo(to);
             to.m_vCallback.Push(m_vCallback.GetBuffer(), m_vCallback.GetSize());
             m_vCallback.SetSize(0);
@@ -358,14 +358,14 @@ namespace SPA
         }
 
         unsigned int CAsyncServiceHandler::GetRequestsQueued() {
-            auto contentions = m_cs.lock();
+            m_cs.lock();
             unsigned int count = m_vCallback.GetSize() / sizeof (PRR_PAIR);
             m_cs.unlock();
             return count;
         }
 
         void CAsyncServiceHandler::ShrinkDeque() {
-            auto contentions = m_cs.lock();
+            m_cs.lock();
             unsigned int size = m_vCallback.GetSize();
             if (size < DEFAULT_INITIAL_MEMORY_BUFFER_SIZE)
                 size = DEFAULT_INITIAL_MEMORY_BUFFER_SIZE;
@@ -545,7 +545,7 @@ namespace SPA
 
         CClientSocket * CClientSocket::Seek(USocket_Client_Handle h) {
             CClientSocket *p = nullptr;
-            auto contentions = m_mutex.lock();
+            m_mutex.lock();
             size_t count = m_vClientSocket.size();
             PClientSocket *start = m_vClientSocket.data();
             for (size_t it = 0; it < count; ++it) {
@@ -815,7 +815,7 @@ namespace SPA
 
         bool CClientSocket::CQueueImpl::AbortJob() const {
             CAsyncServiceHandler *ash = CClientSocket::Seek(m_hSocket)->GetCurrentHandler();
-            auto contentions = ash->m_cs.lock();
+            ash->m_cs.lock();
             unsigned int aborted = ash->m_vCallback.GetSize() / sizeof (CAsyncServiceHandler::PRR_PAIR) - m_nQIndex;
             if (ClientCoreLoader.AbortJob(m_hSocket)) {
                 ash->EraseBack(aborted);
@@ -828,7 +828,7 @@ namespace SPA
 
         bool CClientSocket::CQueueImpl::StartJob() const {
             CAsyncServiceHandler *ash = CClientSocket::Seek(m_hSocket)->GetCurrentHandler();
-            auto contentions = ash->m_cs.lock();
+            ash->m_cs.lock();
             (const_cast<CQueueImpl*> (this))->m_nQIndex = ash->m_vCallback.GetSize() / sizeof (CAsyncServiceHandler::PRR_PAIR);
             bool ok = ClientCoreLoader.StartJob(m_hSocket);
             ash->m_cs.unlock();
