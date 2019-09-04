@@ -755,7 +755,7 @@ namespace SPA {
             std::vector<CSocketPeer*> m_vPeer;
             std::deque<CSocketPeer*> m_vDeadPeer;
             unsigned int m_nServiceId;
-            static U_MODULE_HIDDEN CUCriticalSection m_mutex;
+            static U_MODULE_HIDDEN CSpinLock m_mutex;
             static U_MODULE_HIDDEN std::vector<CBaseService*> m_vService;
             friend class CSocketProServer;
             friend class CSocketPeer;

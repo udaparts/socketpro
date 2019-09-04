@@ -136,7 +136,7 @@ namespace SPA
         }
 
         USocket_Server_Handle CSocketPeer::GetSocketHandle() const {
-            CAutoLock sl(CBaseService::m_mutex);
+            CSpinAutoLock sl(CBaseService::m_mutex);
             return m_hHandler;
         }
 
@@ -506,7 +506,7 @@ namespace SPA
         }
 
         unsigned int CBaseService::m_nMainThreads = (~0);
-        CUCriticalSection CBaseService::m_mutex;
+        CSpinLock CBaseService::m_mutex;
         std::vector<CBaseService*> CBaseService::m_vService;
 
         CBaseService::CBaseService(unsigned int svsId, tagThreadApartment ta)
@@ -526,7 +526,7 @@ namespace SPA
             m_SvsContext.m_OnHttpAuthentication = &CBaseService::OnHttpAuthentication;
             m_SvsContext.m_OnResultsSent = &CBaseService::OnResultsSent;
             m_SvsContext.m_ta = ta;
-            CAutoLock sl(m_mutex);
+            CSpinAutoLock sl(m_mutex);
             m_vService.push_back(this);
         }
 
@@ -852,7 +852,7 @@ namespace SPA
         void CBaseService::RemoveMe() {
             if (m_nServiceId && Seek(m_nServiceId)) {
                 ServerCoreLoader.RemoveASvsContext(m_nServiceId);
-                CAutoLock sl(m_mutex);
+                CSpinAutoLock sl(m_mutex);
                 std::vector<CBaseService*>::iterator location = std::find(m_vService.begin(), m_vService.end(), this);
                 if (location != m_vService.end())
                     m_vService.erase(location);
@@ -947,7 +947,7 @@ namespace SPA
 
         CSocketPeer * CBaseService::CreatePeer(USocket_Server_Handle h, unsigned int oldServiceId) {
             CSocketPeer *p = nullptr;
-            CAutoLock sl(m_mutex);
+            CSpinAutoLock sl(m_mutex);
             size_t size = m_vDeadPeer.size();
             if (size) {
                 p = m_vDeadPeer.front();
@@ -963,7 +963,7 @@ namespace SPA
         }
 
         CSocketPeer * CBaseService::Seek(USocket_Server_Handle h) const {
-            CAutoLock sl(m_mutex);
+            CSpinAutoLock sl(m_mutex);
             size_t size = m_vPeer.size();
             const PSocketPeer *start = m_vPeer.data();
             for (size_t it = 0; it < size; ++it) {
@@ -976,7 +976,7 @@ namespace SPA
 
         void CBaseService::ReleasePeer(USocket_Server_Handle h, bool bClosing, unsigned int info) {
             std::vector<CSocketPeer*>::iterator it;
-            CAutoLock sl(m_mutex);
+            CSpinAutoLock sl(m_mutex);
             std::vector<CSocketPeer*>::iterator end = m_vPeer.end();
             for (it = m_vPeer.begin(); it != end; ++it) {
                 CSocketPeer *pPeer = *it;
@@ -1007,7 +1007,7 @@ namespace SPA
         }
 
         void CBaseService::Clean() {
-            CAutoLock sl(m_mutex);
+            CSpinAutoLock sl(m_mutex);
             for (auto it = m_vDeadPeer.begin(), end = m_vDeadPeer.end(); it != end; ++it) {
                 delete(*it);
             }

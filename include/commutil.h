@@ -62,8 +62,8 @@ namespace SPA {
          * Otherwise, the locking is failed
          * @remark Accumulated contention value may be wrong in multi-threaded environments when the locking is failed
          */
-        unsigned int lock(unsigned int max_cycle = (~0)) {
-            unsigned int cycle = 0;
+        UINT64 lock(UINT64 max_cycle = (~0)) {
+            UINT64 cycle = 0;
 #ifdef WIN32_64
             while (::InterlockedCompareExchange(&m_locked, 1, 0)) {
 #else
@@ -113,7 +113,7 @@ namespace SPA {
          */
         CSpinAutoLock(CSpinLock &cs)
         : m_cs(cs) {
-            unsigned int contentions = m_cs.lock();
+            m_cs.lock();
         }
 
         /**
