@@ -265,7 +265,7 @@ private:
     POnClose m_pOnClose;
     unsigned int m_nPort;
 
-    std::mutex m_mTH;
+    SPA::CSpinLock m_mTH;
     std::queue<SPA::CUThreadMessage> m_qThreadMessage;
 
     //Queue

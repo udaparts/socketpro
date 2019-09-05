@@ -47,7 +47,7 @@ private:
     SPA::UINT64 GetBestRouteeByFirst(unsigned int &routeeSize);
 
 private:
-    std::mutex m_mutex;
+    std::mutex m_mutex; //cannot use SPA::CSpinLock here as crash happens for routing
     unsigned int m_nServiceId;
     std::vector<unsigned short> m_vSlowRequestId;
     CSvsContext m_sc;
