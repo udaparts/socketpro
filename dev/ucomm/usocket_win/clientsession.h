@@ -267,13 +267,13 @@ private:
     std::vector<MQ_FILE::QAttr> m_vQTrans;
     bool m_bConfirmTrans;
     bool m_bConfirmFail;
-    atomic<SPA::UINT64> m_RouterHandle;
+    SPA::UINT64 m_RouterHandle;
     unsigned int m_nRouteeCount;
     bool m_bRegistered;
     bool m_b6;
     bool m_bSync;
     SPA::UINT64 m_routeeNotAvailable;
-    atomic<bool> m_bRoutingQueueIndexEnabled;
+    bool m_bRoutingQueueIndexEnabled;
     bool m_bRoutingWait;
     bool m_bSendWaiting;
     bool m_bWaiting;
@@ -286,7 +286,7 @@ private:
     PCCERT_CONTEXT m_pCertContext;
     bool m_bLastDequeue;
     SPA::CUQueue m_qBatchDequeueConfirm;
-	atomic<unsigned int> m_nRcvBufferSize;
+    unsigned int m_nRcvBufferSize;
 
     static mutex m_mutexQLI;
     static std::vector<MQ_FILE::CFilePtr > m_vQRequest;
