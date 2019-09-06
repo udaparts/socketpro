@@ -1,4 +1,4 @@
-23. SocketPro Version 6.3.0.1-3
+23. SocketPro Version 6.3.0.1-4
 	(a) Add the method PostProcessing to dispatch requests from calling thread onto pool worker thread at client side
 	(b) Re-write remote file service to use PostProcessing instead
 	(c) Fix the issue, which the virtual function OnReleaseResource(bool bClosing, uint info) at server side, was not called when a session is closed
