@@ -15,6 +15,7 @@
 #include "wincommutil.h"
 #else
 #include <atomic>
+#define ATOMIC_AVAILABLE
 #include "nixcommutil.h"
 #ifdef USE_BOOST_LARGE_INTEGER_FOR_DECIMAL
 #include <boost/multiprecision/cpp_int.hpp>
