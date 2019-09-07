@@ -1023,7 +1023,7 @@ void CServer::OnMessage() {
     PSession pSession;
     SPA::CUThreadMessage message;
     {
-        CAutoLock sl(m_mTH);
+        SPA::CSpinAutoLock sl(m_mTH);
         size = m_qThreadMessage.size();
         if (size == 0)
             return;
@@ -1078,7 +1078,7 @@ void CServer::OnMessage() {
         SPA::CScopeUQueue::Unlock(message.m_pMessageBuffer);
 
         {
-            CAutoLock sl(m_mTH);
+            SPA::CSpinAutoLock sl(m_mTH);
             size = m_qThreadMessage.size();
             if (size == 0)
                 return;
