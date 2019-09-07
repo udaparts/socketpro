@@ -75,7 +75,9 @@ namespace SPA {
                 }
             }
 #ifdef MONITORING_SPIN_CONTENTION
-            Contention += cycle;
+            if (cycle) {
+                Contention += cycle;
+            }
 #endif
             return cycle;
         }
