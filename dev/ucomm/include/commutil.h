@@ -5,10 +5,17 @@
 #include "definebase.h"
 #include <sstream>
 
-#ifdef WIN32_64	
+#ifdef WIN32_64
+#if _MSC_VER < 1900
+//old Visual C++
+#else
+#include <atomic>
+#define ATOMIC_AVAILABLE
+#endif
 #include "wincommutil.h"
 #else
 #include <atomic>
+#define ATOMIC_AVAILABLE
 #include "nixcommutil.h"
 #ifdef USE_BOOST_LARGE_INTEGER_FOR_DECIMAL
 #include <boost/multiprecision/cpp_int.hpp>
@@ -23,10 +30,10 @@ namespace SPA {
 
     class CSpinLock {
     private:
-#ifdef WIN32_64
+#ifndef ATOMIC_AVAILABLE
         volatile unsigned int m_locked;
 #else
-        std::atomic_flag m_locked;
+        std::atomic_flag m_locked = ATOMIC_FLAG_INIT;
 #endif
 
         //no copy constructor
@@ -41,17 +48,15 @@ namespace SPA {
 
     public:
 
-        CSpinLock() :
-#ifdef WIN32_64
+        CSpinLock()
+#ifndef ATOMIC_AVAILABLE
+        :
         m_locked(0)
-#else
-        m_locked(ATOMIC_FLAG_INIT)
-#endif
-#ifdef MONITORING_SPIN_CONTENTION
-        ,
-        Contention(0)
 #endif
         {
+#ifdef MONITORING_SPIN_CONTENTION
+            Contention = 0;
+#endif
         }
 
         /**
@@ -64,7 +69,7 @@ namespace SPA {
          */
         UINT64 lock(UINT64 max_cycle = (~0)) {
             UINT64 cycle = 0;
-#ifdef WIN32_64
+#ifndef ATOMIC_AVAILABLE
             while (::InterlockedCompareExchange(&m_locked, 1, 0)) {
 #else
             while (m_locked.test_and_set(std::memory_order_acquire)) {
@@ -96,7 +101,7 @@ namespace SPA {
          * @remark Must call the method lock first before calling this method
          */
         void unlock() {
-#ifdef WIN32_64
+#ifndef ATOMIC_AVAILABLE
             assert(m_locked); //must call the method lock first
             m_locked = 0;
 #else
