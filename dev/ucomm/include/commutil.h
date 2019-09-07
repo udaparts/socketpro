@@ -6,16 +6,9 @@
 #include <sstream>
 
 #ifdef WIN32_64
-#if _MSC_VER < 1900
-//old Visual C++
-#else
-#include <atomic>
-#define ATOMIC_AVAILABLE
-#endif
 #include "wincommutil.h"
 #else
 #include <atomic>
-#define ATOMIC_AVAILABLE
 #include "nixcommutil.h"
 #ifdef USE_BOOST_LARGE_INTEGER_FOR_DECIMAL
 #include <boost/multiprecision/cpp_int.hpp>
@@ -30,10 +23,10 @@ namespace SPA {
 
     class CSpinLock {
     private:
-#ifndef ATOMIC_AVAILABLE
+#ifdef WIN32_64
         volatile unsigned int m_locked;
 #else
-        std::atomic_flag m_locked = ATOMIC_FLAG_INIT;
+        std::atomic_flag m_locked;
 #endif
 
         //no copy constructor
@@ -43,20 +36,22 @@ namespace SPA {
 
 #ifdef MONITORING_SPIN_CONTENTION
     public:
-        volatile UINT64 Contention; //Thread not safe
+        UINT64 Contention; //Thread not safe
 #endif
 
     public:
 
-        CSpinLock()
-#ifndef ATOMIC_AVAILABLE
-        :
+        CSpinLock() :
+#ifdef WIN32_64
         m_locked(0)
+#else
+        m_locked(ATOMIC_FLAG_INIT)
+#endif
+#ifdef MONITORING_SPIN_CONTENTION
+        ,
+        Contention(0)
 #endif
         {
-#ifdef MONITORING_SPIN_CONTENTION
-            Contention = 0;
-#endif
         }
 
         /**
@@ -69,7 +64,7 @@ namespace SPA {
          */
         UINT64 lock(UINT64 max_cycle = (~0)) {
             UINT64 cycle = 0;
-#ifndef ATOMIC_AVAILABLE
+#ifdef WIN32_64
             while (::InterlockedCompareExchange(&m_locked, 1, 0)) {
 #else
             while (m_locked.test_and_set(std::memory_order_acquire)) {
@@ -80,9 +75,7 @@ namespace SPA {
                 }
             }
 #ifdef MONITORING_SPIN_CONTENTION
-            if (cycle) {
-                Contention += cycle;
-            }
+            Contention += cycle;
 #endif
             return cycle;
         }
@@ -101,7 +94,7 @@ namespace SPA {
          * @remark Must call the method lock first before calling this method
          */
         void unlock() {
-#ifndef ATOMIC_AVAILABLE
+#ifdef WIN32_64
             assert(m_locked); //must call the method lock first
             m_locked = 0;
 #else
