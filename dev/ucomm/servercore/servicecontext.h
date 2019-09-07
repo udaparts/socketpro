@@ -47,8 +47,8 @@ private:
     SPA::UINT64 GetBestRouteeByFirst(unsigned int &routeeSize);
 
 private:
-    typedef SPA::CSpinAutoLock CAutoLock;
-    SPA::CSpinLock m_mutex;
+    //typedef SPA::CSpinAutoLock CAutoLock;
+    std::mutex m_mutex; //cannot use SPA::CSpinLock because of unknown crashes on windows
     unsigned int m_nServiceId;
     std::vector<unsigned short> m_vSlowRequestId;
     CSvsContext m_sc;
