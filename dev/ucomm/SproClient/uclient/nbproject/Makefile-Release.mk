@@ -68,22 +68,22 @@ ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/uclient: ${OBJECTFILES}
 ${OBJECTDIR}/_ext/1559065848/aclientw.o: ../../include/aclientw.cpp 
 	${MKDIR} -p ${OBJECTDIR}/_ext/1559065848
 	${RM} "$@.d"
-	$(COMPILE.c) -O2 -s -DNDEBUG -DMONITORING_SPIN_CONTENTION -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/1559065848/aclientw.o ../../include/aclientw.cpp
+	$(COMPILE.c) -O2 -s -DMONITORING_SPIN_CONTENTION -DNDEBUG -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/1559065848/aclientw.o ../../include/aclientw.cpp
 
 ${OBJECTDIR}/_ext/1559065848/membuffer.o: ../../include/membuffer.cpp 
 	${MKDIR} -p ${OBJECTDIR}/_ext/1559065848
 	${RM} "$@.d"
-	$(COMPILE.c) -O2 -s -DNDEBUG -DMONITORING_SPIN_CONTENTION -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/1559065848/membuffer.o ../../include/membuffer.cpp
+	$(COMPILE.c) -O2 -s -DMONITORING_SPIN_CONTENTION -DNDEBUG -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/1559065848/membuffer.o ../../include/membuffer.cpp
 
 ${OBJECTDIR}/_ext/1472/sproclient.o: ../sproclient.cpp 
 	${MKDIR} -p ${OBJECTDIR}/_ext/1472
 	${RM} "$@.d"
-	$(COMPILE.cc) -O2 -s -DNDEBUG -DMONITORING_SPIN_CONTENTION -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/1472/sproclient.o ../sproclient.cpp
+	$(COMPILE.cc) -O2 -s -DMONITORING_SPIN_CONTENTION -DNDEBUG -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/1472/sproclient.o ../sproclient.cpp
 
 ${OBJECTDIR}/_ext/1472/stdafx.o: ../stdafx.cpp 
 	${MKDIR} -p ${OBJECTDIR}/_ext/1472
 	${RM} "$@.d"
-	$(COMPILE.cc) -O2 -s -DNDEBUG -DMONITORING_SPIN_CONTENTION -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/1472/stdafx.o ../stdafx.cpp
+	$(COMPILE.cc) -O2 -s -DMONITORING_SPIN_CONTENTION -DNDEBUG -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/1472/stdafx.o ../stdafx.cpp
 
 # Subprojects
 .build-subprojects:

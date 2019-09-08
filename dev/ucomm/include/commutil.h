@@ -24,9 +24,9 @@ namespace SPA {
     class CSpinLock {
     private:
 #ifdef WIN32_64
-        volatile unsigned int m_locked;
+        volatile long m_locked;
 #else
-        std::atomic_flag m_locked;
+        std::atomic<int> m_locked;
 #endif
 
         //no copy constructor
@@ -41,12 +41,8 @@ namespace SPA {
 
     public:
 
-        CSpinLock() :
-#ifdef WIN32_64
-        m_locked(0)
-#else
-        m_locked(ATOMIC_FLAG_INIT)
-#endif
+        CSpinLock()
+        : m_locked(0)
 #ifdef MONITORING_SPIN_CONTENTION
         ,
         Contention(0)
@@ -65,9 +61,12 @@ namespace SPA {
         UINT64 lock(UINT64 max_cycle = (~0)) {
             UINT64 cycle = 0;
 #ifdef WIN32_64
-            while (::InterlockedCompareExchange(&m_locked, 1, 0)) {
+            while (::_InterlockedCompareExchange(&m_locked, 1, 0)) {
 #else
-            while (m_locked.test_and_set(std::memory_order_acquire)) {
+            int no_lock = 0;
+            while (!m_locked.compare_exchange_weak(no_lock, 1, std::memory_order_release, std::memory_order_relaxed)) {
+                assert(no_lock);
+                no_lock = 0;
 #endif
                 ++cycle;
                 if (cycle >= max_cycle) {
@@ -96,12 +95,8 @@ namespace SPA {
          * @remark Must call the method lock first before calling this method
          */
         void unlock() {
-#ifdef WIN32_64
             assert(m_locked); //must call the method lock first
             m_locked = 0;
-#else
-            m_locked.clear(std::memory_order_release);
-#endif
         }
     };
 
