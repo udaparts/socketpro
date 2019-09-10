@@ -190,25 +190,45 @@
         }
         .style37
         {
-            width: 158px;
+            width: 188px;
             font-weight: bold;
             font-size: medium;
             background-color: #CCFFFF;
         }
         .style38
         {
-            width: 158px;
+            width: 188px;
             background-color: #FFFFCC;
             height: 44px;
         }
         .style39
         {
-            width: 158px;
+            width: 188px;
             height: 233px;
         }
         .style40
         {
             width: 324px;
+        }
+        .style41
+        {
+            color: #0000CC;
+        }
+        #chkPlugin
+        {
+            width: 50px;
+            height: 20px;
+        }
+        .style42
+        {
+            width: 80px;
+            text-align: left;
+            height: 26px;
+        }
+        .style43
+        {
+            width: 324px;
+            height: 26px;
         }
     </style>
     
@@ -219,12 +239,7 @@
             var reg = {};
             reg.nix = document.getElementById('chkLinux').checked ? 1 : 0;
             reg.win = document.getElementById('chkWin').checked ? 1 : 0;
-            reg.js = document.getElementById('chkJavaScript').checked ? 1 : 0;
-            reg.q = document.getElementById('chkQueue').checked ? 1 : 0;
-            reg.r = document.getElementById('chkRouting').checked ? 1 : 0;
             reg.ce = document.getElementById('chkWinCe').checked ? 1 : 0;
-            reg.mc = parseInt(document.getElementById('txtMaxConn').value);
-            reg.ms = parseInt(document.getElementById('txtMaxSpeed').value);
             reg.y = parseInt(document.getElementById('txtYears').value);
             reg.app = document.getElementById('rApp').checked ? 1 : 0;
             return reg;
@@ -254,14 +269,6 @@
                 price += (oss - 1) * 50
             if (reg.ce)
                 price += 150;
-            if (reg.js)
-                price += 100;
-            if (reg.q)
-                price += 200;
-            if (reg.r)
-                price += 500;
-            price += Math.log(reg.mc / 2500) * 200;
-            price += Math.log(reg.ms / 2500) * 200;
 
             if (reg.y >= 8.0)
                 price *= 3.2;
@@ -319,6 +326,10 @@
         }
 
         function chkRouting_onclick() {
+            setPrice();
+        }
+
+        function chkPlugin_onclick() {
             setPrice();
         }
 
@@ -429,7 +440,7 @@
     <p class="style34">
         <strong>Step 1:</strong> Use the below calculator to figure out your license 
         cost and complete purchasing through PayPal.</p>
-    <table style="width:63%;" border="2">
+    <table style="width:63%; height: 755px;" border="2">
         <tbody><tr>
             <td class="style37">Secure order</td>
             <td class="style11">Description</td>
@@ -473,10 +484,10 @@
                         <input type="hidden" name="bn" value="PP-BuyNowBF:btn_buynowCC_LG.gif:NonHostedGuest">
                         <table>
                             <tr>
-                                <td><input type="hidden" name="on0" value="Features">Features                      </tr>
+                                <td><input type="hidden" name="on0" value="Features">Licenses</tr>
                             <tr>
                                 <td><input id="sp_features" type="text" name="os0" maxlength="200" 
-                                        readonly="readonly" value="win=1,mc=2500,ms=2500,y=1"></td>
+                                        readonly="readonly" value="win=1,y=1"></td>
                             </tr>
                         </table>
                         <input type="image" src="https://www.paypalobjects.com/en_US/i/btn/btn_buynowCC_LG.gif" border="0" name="submit" alt="PayPal - The safer, easier way to pay online!">
@@ -499,6 +510,15 @@
                             <a href="manylicense.htm">Per-application</a><br>
                             license for many servers ($9999.00 max)</td>
                     </tr>
+                    <tr>
+                        <td class="style30">
+                            &nbsp;</td>
+                        <td>
+                            <span class="style41"><strong><em>
+                            <br />
+                            Enterprise license</em></strong></span><br />
+                            Contact udaparts at <a href="mailto:support@udaparts.com">support@udaparts.com</a></td>
+                    </tr>
                 </tbody></table>
             </td>
             <td class="style17">
@@ -509,9 +529,9 @@
                         <td class="style40">Windows</td>
                     </tr>
                     <tr>
-                        <td class="style1">
+                        <td class="style42">
                             <input id="chkLinux" type="checkbox" onclick="return chkLinux_onclick()"></td>
-                        <td class="style40">Linuxs</td>
+                        <td class="style43">Linuxs</td>
                     </tr>
                     <tr>
                         <td class="style1">
@@ -520,13 +540,15 @@
                     </tr>
                     <tr>
                         <td class="style1">
-                            <input id="txtMaxConn" min="2500" type="text" value="2500" onchange="return txtMaxConn_onchange()"></td>
+                            <input id="txtMaxConn" type="text" value="1024000" 
+                                onchange="return txtMaxConn_onchange()" readonly="readonly"></td>
                         <td class="style40">Max connections per server</td>
                     </tr>
                     <tr>
                         <td class="style1">
-                            <input id="txtMaxSpeed" min="2500" spellcheck="False" type="text" value="2500" onchange="return txtMaxSpeed_onchange()"></td>
-                        <td class="style40">Max client requests per second per server</td>
+                            <input id="txtMaxSpeed" spellcheck="False" type="text" value="5120000" 
+                                onchange="return txtMaxSpeed_onchange()" readonly="readonly"></td>
+                        <td class="style40">Max requests per second per server</td>
                     </tr>
                     <tr>
                         <td class="style1">
@@ -535,18 +557,28 @@
                     </tr>
                     <tr>
                         <td class="style1">
-                            <input id="chkJavaScript" type="checkbox" onclick="return chkJavaScript_onclick()"></td>
+                            <input id="chkJavaScript" type="checkbox" 
+                                onclick="return chkJavaScript_onclick()" checked="checked" disabled="disabled"></td>
                         <td class="style3">Browser/JavaScript/WebSocket</td>
                     </tr>
                     <tr>
                         <td class="style1">
-                            <input id="chkQueue" type="checkbox" onclick="return chkQueue_onclick()"></td>
+                            <input id="chkQueue" type="checkbox" onclick="return chkQueue_onclick()" 
+                                checked="checked" disabled="disabled"></td>
                         <td class="style40">Persistent message queue</td>
                     </tr>
                     <tr>
                         <td class="style1">
-                            <input id="chkRouting" type="checkbox" onclick="return chkRouting_onclick()"></td>
+                            <input id="chkRouting" type="checkbox" onclick="return chkRouting_onclick()" 
+                                checked="checked" disabled="disabled"></td>
                         <td class="style40">Server load balancing with session sticking support</td>
+                    </tr>
+                    <tr>
+                        <td class="style1">
+                            <input id="chkPlugin" type="checkbox" onclick="return chkPlugin_onclick()" 
+                                checked="checked" disabled="disabled"></td>
+                        <td class="style40">All SocketPro server and database plug-ins customizable and 
+                            extensible for your requirements</td>
                     </tr>
                 </tbody></table>
             </td>
@@ -563,17 +595,18 @@
     <p style="margin-left: 40px">
         <span style="font-style: normal; font-variant: normal; font-weight: normal; letter-spacing: normal; line-height: normal; orphans: auto; text-align: start; text-indent: 0px; text-transform: none; white-space: normal; widows: auto; word-spacing: 0px; -webkit-text-stroke-width: 0px; display: inline !important; float: none; background-color: rgb(255, 255, 255);" 
             class="style35">
-        When your server starts at the very first time, it will automatically create a lock json file named as 
-        YourApplicationName_sp.json. The file will contains the following entries as 
+        When your server starts at 
+        a very first time, it will automatically create a lock json file named as 
+        YourApplicationName_sp.json. The file will contains the feature entries as 
         shown in the below:</span></p>
     <p style="margin-left: 40px">
-        <img alt="" src="sample_lock.jpg" style="height: 214px; width: 447px" /></p>
+        <img alt="" src="sample_lock.jpg" style="height: 368px; width: 596px" /></p>
     <p style="margin-left: 40px">
         Send us your above lock file 
         plus your <span class="style36"><strong><em>company name</em></strong></span> to <a href="mailto:support@udaparts.com">
         support@udaparts.com</a> 
-        for creating a key to unlock the lock file. Note the key is empty here without 
-        any extra features supported initially.</p>
+        for creating a key to unlock the lock file. Note the key will be enabled with 
+        extra features supported.</p>
 
     <p style="height: 27px">
 
@@ -581,13 +614,14 @@
     to replace the above lock file.</span></p>
     <p>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-        <img alt="" src="sample_key.jpg" style="height: 217px; width: 581px" /></p>
+        <img alt="" src="sample_key.jpg" style="height: 373px; width: 581px" /></p>
     <p>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Note the key is not empty now with extra 
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Note the key 
+        entry is not empty now with extra 
         features you select from the above step 1. Further, the license is valid until 
-        Feb. 8, 2024 as an example. After getting such a json file from
+        Auguest 19, 2029 as an example. After getting such a json file from
         <a href="mailto:support@udaparts.com">support@udaparts.com</a>, use it with your 
-        server at last. Finally, the registration is completely done.</p>
+        server at last. At the moment, the registration is completely done.</p>
 
 
 </body></html>
