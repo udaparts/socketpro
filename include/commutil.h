@@ -42,7 +42,7 @@ namespace SPA {
 
 #if defined(MONITORING_SPIN_CONTENTION) && defined(ATOMIC_AVAILABLE)
     public:
-        std::atomic<UINT64> Contention; //Thread not safe
+        std::atomic<UINT64> Contention;
 #endif
 
     public:
