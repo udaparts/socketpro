@@ -40,16 +40,16 @@ namespace SPA {
         //no assignment operator
         CSpinLock& operator=(const CSpinLock &sl);
 
-#ifdef MONITORING_SPIN_CONTENTION
+#if defined(MONITORING_SPIN_CONTENTION) && defined(ATOMIC_AVAILABLE)
     public:
-        UINT64 Contention; //Thread not safe
+        std::atomic<UINT64> Contention; //Thread not safe
 #endif
 
     public:
 
         CSpinLock()
         : m_locked(0)
-#ifdef MONITORING_SPIN_CONTENTION
+#if defined(MONITORING_SPIN_CONTENTION) && defined(ATOMIC_AVAILABLE)
         ,
         Contention(0)
 #endif
@@ -62,9 +62,8 @@ namespace SPA {
          * @return The actual spin number
          * If the returned value is zero or less than the given max spin number, the locking is successful.
          * Otherwise, the locking is failed
-         * @remark Accumulated contention value may be wrong in multi-threaded environments when the locking is failed
          */
-        UINT64 lock(UINT64 max_cycle = (~0)) {
+        inline UINT64 lock(UINT64 max_cycle = (~0)) {
             UINT64 cycle = 0;
 #ifndef ATOMIC_AVAILABLE
             while (::_InterlockedCompareExchange(&m_locked, 1, 0)) {
@@ -79,9 +78,9 @@ namespace SPA {
                     break;
                 }
             }
-#ifdef MONITORING_SPIN_CONTENTION
+#if defined(MONITORING_SPIN_CONTENTION) && defined(ATOMIC_AVAILABLE)
             if (cycle) {
-                Contention += cycle;
+                Contention.fetch_add(cycle, std::memory_order_relaxed);
             }
 #endif
             return cycle;
@@ -90,9 +89,8 @@ namespace SPA {
         /**
          * Try to lock a critical section
          * @return True if successful, and false if failed
-         * @remark Accumulated contention value may be wrong in multi-threaded environments when the trying is failed
          */
-        bool try_lock() {
+        inline bool try_lock() {
             return (0 == lock(0));
         }
 
@@ -100,7 +98,7 @@ namespace SPA {
          * Unlock a critical section
          * @remark Must call the method lock first before calling this method
          */
-        void unlock() {
+        inline void unlock() {
             assert(m_locked); //must call the method lock first
 #ifdef ATOMIC_AVAILABLE
             m_locked.store(0, std::memory_order_relaxed);
