@@ -6,7 +6,7 @@
 #include <sstream>
 
 #ifdef WIN32_64
-#if _MSC_VER < 1700
+#if _MSC_VER < 1900
 #else
 #include <atomic>
 #define ATOMIC_AVAILABLE
@@ -32,7 +32,7 @@ namespace SPA {
 #ifndef ATOMIC_AVAILABLE
         volatile long m_locked;
 #else
-        std::atomic<int> m_locked;
+        std::atomic_flag m_locked = ATOMIC_FLAG_INIT;
 #endif
 
         //no copy constructor
@@ -48,10 +48,12 @@ namespace SPA {
     public:
 
         CSpinLock()
+#ifdef ATOMIC_AVAILABLE
+#ifdef MONITORING_SPIN_CONTENTION
+        : Contention(0)
+#endif
+#else
         : m_locked(0)
-#if defined(MONITORING_SPIN_CONTENTION) && defined(ATOMIC_AVAILABLE)
-        ,
-        Contention(0)
 #endif
         {
         }
@@ -68,10 +70,7 @@ namespace SPA {
 #ifndef ATOMIC_AVAILABLE
             while (::_InterlockedCompareExchange(&m_locked, 1, 0)) {
 #else
-            int no_lock = 0;
-            while (!m_locked.compare_exchange_weak(no_lock, 1, std::memory_order_release, std::memory_order_relaxed)) {
-                assert(no_lock);
-                no_lock = 0;
+            while (m_locked.test_and_set(std::memory_order_acquire)) {
 #endif
                 ++cycle;
                 if (cycle >= max_cycle) {
@@ -99,10 +98,10 @@ namespace SPA {
          * @remark Must call the method lock first before calling this method
          */
         inline void unlock() {
-            assert(m_locked); //must call the method lock first
 #ifdef ATOMIC_AVAILABLE
-            m_locked.store(0, std::memory_order_relaxed);
+            m_locked.clear(std::memory_order_release);
 #else
+            assert(m_locked); //must call the method lock first
             m_locked = 0;
 #endif
         }
