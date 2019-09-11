@@ -6,9 +6,15 @@
 #include <sstream>
 
 #ifdef WIN32_64
+#if _MSC_VER < 1700
+#else
+#include <atomic>
+#define ATOMIC_AVAILABLE
+#endif
 #include "wincommutil.h"
 #else
 #include <atomic>
+#define ATOMIC_AVAILABLE
 #include "nixcommutil.h"
 #ifdef USE_BOOST_LARGE_INTEGER_FOR_DECIMAL
 #include <boost/multiprecision/cpp_int.hpp>
@@ -23,7 +29,7 @@ namespace SPA {
 
     class CSpinLock {
     private:
-#ifdef WIN32_64
+#ifndef ATOMIC_AVAILABLE
         volatile long m_locked;
 #else
         std::atomic<int> m_locked;
@@ -60,7 +66,7 @@ namespace SPA {
          */
         UINT64 lock(UINT64 max_cycle = (~0)) {
             UINT64 cycle = 0;
-#ifdef WIN32_64
+#ifndef ATOMIC_AVAILABLE
             while (::_InterlockedCompareExchange(&m_locked, 1, 0)) {
 #else
             int no_lock = 0;
@@ -96,7 +102,11 @@ namespace SPA {
          */
         void unlock() {
             assert(m_locked); //must call the method lock first
+#ifdef ATOMIC_AVAILABLE
+            m_locked.store(0, std::memory_order_relaxed);
+#else
             m_locked = 0;
+#endif
         }
     };
 
