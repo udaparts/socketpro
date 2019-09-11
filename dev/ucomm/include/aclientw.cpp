@@ -266,7 +266,7 @@ namespace SPA
                     p = new std::pair<unsigned short, CResultCb*>(reqId, new CResultCb(rh, discarded, serverException));
                 }
                 batching = ClientCoreLoader.IsBatching(h);
-                CAutoLock alSend(m_csSend);
+                CSpinAutoLock alSend(m_csSend);
                 {
                     m_cs.lock();
                     if (batching) {

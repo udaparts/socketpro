@@ -828,6 +828,10 @@ namespace SPA {
                 return m_cs.Contention;
             }
 
+            UINT64 GetSendContention() {
+                return m_csSend.Contention;
+            }
+
             static UINT64 GetCacheContention() {
                 return m_csRR.Contention;
             }
@@ -1807,7 +1811,7 @@ namespace SPA {
             CUQueue &m_vBatching;
             unsigned int m_nServiceId;
             CClientSocket *m_pClientSocket;
-            CUCriticalSection m_csSend;
+            CSpinLock m_csSend;
             static CSpinLock m_csIndex;
             static UINT64 m_CallIndex; //should be protected by IndexLocker;
             friend class CClientSocket;
