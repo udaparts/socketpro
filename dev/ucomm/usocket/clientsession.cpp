@@ -1502,7 +1502,7 @@ void CClientSession::CloseInternal(int nError) {
 
 void CClientSession::Close() {
     CAutoLock sl(m_mutex);
-    CloseInternal();
+    CloseInternal(m_ec.value());
 }
 
 bool CClientSession::GetSockAddr(unsigned int *sockPort, char *strIPAddrBuffer, unsigned short chars) {
@@ -2840,16 +2840,15 @@ void CClientSession::OnWriteCompleted(const CErrorCode& Error, size_t bytes_tran
             m_bWBLocked = 0;
             Write(nullptr, 0);
         }
-        Read();
     } else {
         m_ec = Error;
-        m_pIoService->post(boost::bind(&CClientSession::Close, this));
+        //std::cout << "Error code from OnWriteCompleted: " << Error.value() << ", errMsg: " << Error.message() << std::endl;
+        CloseInternal(Error.value());
     }
 }
 
 bool CClientSession::DoEcho() {
     CAutoLock sl(m_mutex);
-
     return SendRequestInternal(sl, SPA::idDoEcho, nullptr, 0);
 }
 

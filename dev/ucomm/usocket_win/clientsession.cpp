@@ -1565,7 +1565,7 @@ void CClientSession::CloseInternal(int nError) {
 
 void CClientSession::Close() {
     CAutoLock sl(m_mutex);
-    CloseInternal();
+    CloseInternal(m_ec.value());
 }
 
 bool CClientSession::GetSockAddr(unsigned int *sockPort, char *strIPAddrBuffer, unsigned short chars) {
@@ -3023,7 +3023,7 @@ void CClientSession::OnWriteCompleted(const CErrorCode& Error, size_t bytes_tran
         Read();
     } else {
         m_ec = Error;
-        m_pIoService->post(boost::bind(&CClientSession::Close, this));
+        CloseInternal(Error.value());
     }
 }
 

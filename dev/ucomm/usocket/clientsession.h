@@ -252,7 +252,7 @@ private:
     CSslSocket *m_pSslSocket;
     CSocket *m_pSocket;
     unsigned char *m_ReadBuffer;
-    bool m_bRBLocked;
+    volatile bool m_bRBLocked;
     unsigned char *m_WriteBuffer;
     size_t m_bWBLocked;
     SPA::tagZipLevel m_zl;

@@ -272,7 +272,7 @@ private:
     SPA::CUQueue m_qRead;
     SPA::CUQueue m_qWrite;
     unsigned char *m_ReadBuffer;
-    bool m_bRBLocked;
+    volatile bool m_bRBLocked;
     unsigned char *m_WriteBuffer;
     unsigned int m_bWBLocked;
     mutex m_mutex;
