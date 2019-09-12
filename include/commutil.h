@@ -63,13 +63,13 @@ namespace SPA {
          * If the returned value is zero or less than the given max spin number, the locking is successful.
          * Otherwise, the locking is failed
          */
-        inline UINT64 lock(UINT64 max_cycle = (~0)) {
+        inline UINT64 lock(UINT64 max_cycle = (~0)) volatile {
             UINT64 cycle = 0;
 #ifndef ATOMIC_AVAILABLE
             while (::_InterlockedCompareExchange(&m_locked, 1, 0)) {
 #else
             int no_lock = 0;
-            while (!m_locked.compare_exchange_weak(no_lock, 1, std::memory_order_release, std::memory_order_relaxed)) {
+            while (!m_locked.compare_exchange_weak(no_lock, 1, std::memory_order_acquire, std::memory_order_relaxed)) {
                 assert(no_lock);
                 no_lock = 0;
 #endif
@@ -90,7 +90,7 @@ namespace SPA {
          * Try to lock a critical section
          * @return True if successful, and false if failed
          */
-        inline bool try_lock() {
+        inline bool try_lock() volatile {
             return (0 == lock(0));
         }
 
@@ -98,10 +98,10 @@ namespace SPA {
          * Unlock a critical section
          * @remark Must call the method lock first before calling this method
          */
-        inline void unlock() {
+        inline void unlock() volatile {
             assert(m_locked); //must call the method lock first
 #ifdef ATOMIC_AVAILABLE
-            m_locked.store(0, std::memory_order_relaxed);
+            m_locked.store(0, std::memory_order_release);
 #else
             m_locked = 0;
 #endif
