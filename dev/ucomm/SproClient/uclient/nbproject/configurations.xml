@@ -8,6 +8,7 @@
       <itemPath>../TEchoC.h</itemPath>
       <itemPath>../TEchoD.h</itemPath>
       <itemPath>../TOne.h</itemPath>
+      <itemPath>../mysvshandler.h</itemPath>
     </logicalFolder>
     <logicalFolder name="ResourceFiles"
                    displayName="Resource Files"
@@ -89,6 +90,8 @@
       </item>
       <item path="../TOne.h" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="../mysvshandler.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="../sproclient.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../stdafx.cpp" ex="false" tool="1" flavor2="0">
@@ -145,6 +148,8 @@
       <item path="../TEchoD.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../TOne.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../mysvshandler.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../sproclient.cpp" ex="false" tool="1" flavor2="0">
       </item>

@@ -48,7 +48,7 @@ private:
 
 private:
     typedef SPA::CSpinAutoLock CAutoLock;
-	SPA::CSpinLock m_mutex;
+    SPA::CSpinLock m_mutex;
     unsigned int m_nServiceId;
     std::vector<unsigned short> m_vSlowRequestId;
     CSvsContext m_sc;

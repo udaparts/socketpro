@@ -999,23 +999,19 @@ bool CClientSession::WaitConnected(CAutoLock &sl, unsigned int nTimeout) {
 }
 
 bool CClientSession::Connect(const char *strHost, unsigned int nPort, bool bSync, bool b6) {
-    {
-        CAutoLock sl(m_mutex);
-        CloseInternal();
-        m_strhost = strHost;
-        std::transform(m_strhost.begin(), m_strhost.end(), m_strhost.begin(), ::tolower);
-        boost::trim(m_strhost);
-        m_nPort = nPort;
-        m_ConnState = SPA::ClientSide::csConnecting;
-        m_tRecv = GetTimeTick();
-        m_tSend = m_tRecv;
-        m_b6 = b6;
-        m_bSync = bSync;
-    }
+    CAutoLock sl(m_mutex);
+    CloseInternal();
+    m_strhost = strHost;
+    std::transform(m_strhost.begin(), m_strhost.end(), m_strhost.begin(), ::tolower);
+    boost::trim(m_strhost);
+    m_nPort = nPort;
+    m_ConnState = SPA::ClientSide::csConnecting;
+    m_tRecv = GetTimeTick();
+    m_tSend = m_tRecv;
+    m_b6 = b6;
+    m_bSync = bSync;
     m_pIoService->post(boost::bind(&CClientSession::ConnectInternally, this));
-
     if (bSync) {
-        CAutoLock sl(m_mutex);
         return WaitConnected(sl, m_nConnTimeout);
     }
     return true;
