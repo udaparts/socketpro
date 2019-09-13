@@ -56,7 +56,7 @@ m_nJobConfirm(0),
 #endif
 m_qRead(INIT_BUFFER_SIZE), m_qWrite(INIT_BUFFER_SIZE, BUFFER_BLOCK_SIZE),
 m_qReqIdWait(INIT_BUFFER_SIZE, BUFFER_BLOCK_SIZE), m_qReqIdCancel(INIT_BUFFER_SIZE, BUFFER_BLOCK_SIZE),
-m_pIoService(&IoService), m_pSocket(nullptr), m_pSslSocket(nullptr), m_ulRead(0), m_ulSent(0),
+m_pIoService(&IoService), m_pSocket(nullptr), m_ulRead(0), m_ulSent(0),
 m_ReadBuffer(GetIoBuffer()), m_bRBLocked(false), m_WriteBuffer(GetIoBuffer()), m_bWBLocked(0),
 m_zl(SPA::zlDefault), m_pQBatch(nullptr), m_bZip(false), m_EncryptionMethod(SPA::NoEncryption),
 m_Resolver(IoService), m_nPort(0), m_OnSocketClosed(nullptr), m_OnHandShakeCompleted(nullptr),
@@ -86,9 +86,7 @@ CClientSession::~CClientSession() {
         GetSocket()->shutdown(boost::asio::socket_base::shutdown_both, ec);
         GetSocket()->close(ec);
     }
-    delete m_pSslSocket;
     delete m_pSocket;
-    m_pSslSocket = nullptr;
     m_pSocket = nullptr;
     SPA::CScopeUQueue::Unlock(m_pQBatch);
     ReleaseIoBuffer(m_ReadBuffer);
@@ -112,7 +110,7 @@ std::string CClientSession::GetErrorMessage() {
 }
 
 bool CClientSession::IsContextSet() {
-    return (m_pSslSocket != nullptr || m_pSocket != nullptr);
+    return (m_pSocket != nullptr);
 }
 
 bool ExecuteSpc(unsigned int id, CClientSession *session, PSocketPoolCallback spc) {
@@ -249,15 +247,15 @@ CSocketPool* CClientSession::GetSocketPool() {
 
 void* CClientSession::GetSSL() {
     CAutoLock al(m_mutex);
-    if (m_pSslSocket)
-        return m_pSslSocket->native_handle();
+    if (m_pSsl)
+        return m_pSsl->GetSSL();
     return nullptr;
 }
 
 CUCertImpl* CClientSession::GetUCert() {
     CAutoLock al(m_mutex);
-    if (!m_pCert && m_pSslSocket)
-        m_pCert.reset(new CUCertImpl(m_pSslSocket->native_handle()));
+    if (!m_pCert && m_pSsl)
+        m_pCert.reset(new CUCertImpl(m_pSsl->GetSSL()));
     return m_pCert.get();
 }
 
@@ -504,8 +502,6 @@ bool CClientSession::IsOpened() {
 }
 
 CSocket* CClientSession::GetSocket() {
-    if (m_pSslSocket != nullptr)
-        return &(m_pSslSocket->next_layer());
     return m_pSocket;
 }
 
@@ -930,10 +926,7 @@ bool CClientSession::SendRequest(unsigned short reqId, const unsigned char *pBuf
 void CClientSession::SetContext() {
     switch (m_EncryptionMethod) {
         case SPA::TLSv1:
-            delete m_pSslSocket;
-            m_pSslSocket = nullptr;
-            m_pSslSocket = new CSslSocket(*m_pIoService, m_pThread->GetSslContext());
-            break;
+            m_pSsl.reset(new CMyOpenSSL(m_pThread->GetSslContext().native_handle(), true));
         default:
             delete m_pSocket;
             m_pSocket = nullptr;
@@ -999,19 +992,22 @@ bool CClientSession::WaitConnected(CAutoLock &sl, unsigned int nTimeout) {
 }
 
 bool CClientSession::Connect(const char *strHost, unsigned int nPort, bool bSync, bool b6) {
-    CAutoLock sl(m_mutex);
-    CloseInternal();
-    m_strhost = strHost;
-    std::transform(m_strhost.begin(), m_strhost.end(), m_strhost.begin(), ::tolower);
-    boost::trim(m_strhost);
-    m_nPort = nPort;
-    m_ConnState = SPA::ClientSide::csConnecting;
-    m_tRecv = GetTimeTick();
-    m_tSend = m_tRecv;
-    m_b6 = b6;
-    m_bSync = bSync;
+    {
+        CAutoLock sl(m_mutex);
+        CloseInternal();
+        m_strhost = strHost;
+        std::transform(m_strhost.begin(), m_strhost.end(), m_strhost.begin(), ::tolower);
+        boost::trim(m_strhost);
+        m_nPort = nPort;
+        m_ConnState = SPA::ClientSide::csConnecting;
+        m_tRecv = GetTimeTick();
+        m_tSend = m_tRecv;
+        m_b6 = b6;
+        m_bSync = bSync;
+    }
     m_pIoService->post(boost::bind(&CClientSession::ConnectInternally, this));
     if (bSync) {
+        CAutoLock sl(m_mutex);
         return WaitConnected(sl, m_nConnTimeout);
     }
     return true;
@@ -1087,13 +1083,23 @@ void CClientSession::OnConnected(const CErrorCode &ec, CResolver::iterator ep) {
     }
     m_tRecv = GetTimeTick();
     m_tSend = m_tRecv;
-
 #ifndef NDEBUG
     std::cout << "TCP connection connected, error code = " << m_ec.value() << std::endl;
 #endif
     if (IsSslEnabled()) {
         m_ConnState = SPA::ClientSide::csSslShaking;
-        m_pSslSocket->async_handshake(boost::asio::ssl::stream_base::client, boost::bind(&CClientSession::OnSslHandShake, this, boost::asio::placeholders::error));
+        SPA::CScopeUQueue sq;
+        bool ok = m_pSsl->DoHandshake(nullptr, 0, *sq);
+        ::memcpy(m_WriteBuffer, sq->GetBuffer(), sq->GetSize());
+        m_pSocket->async_write_some(boost::asio::buffer(m_WriteBuffer, sq->GetSize()), [this](const CErrorCode &ec, size_t size) {
+            if (ec) {
+                CAutoLock sl(m_mutex);
+                OnConnectedInternal(ec.value());
+                CloseInternal(ec.value());
+            } else {
+                m_pSocket->async_read_some(boost::asio::buffer(m_ReadBuffer, IO_BUFFER_SIZE), boost::bind(&CClientSession::OnReadCompleted, this, nsPlaceHolders::error, nsPlaceHolders::bytes_transferred));
+            }
+        });
     } else {
         OnConnectedInternal(ec.value());
         Read();
@@ -1136,11 +1142,7 @@ void CClientSession::Write(const SPA::CStreamHeader &sh, const unsigned char *s,
     }
     m_ulSent += ulLen;
     m_bWBLocked = ulLen;
-    if (m_pSslSocket) {
-        m_pSslSocket->async_write_some(boost::asio::buffer(m_WriteBuffer, ulLen), boost::bind(&CClientSession::OnWriteCompleted, this, nsPlaceHolders::error, nsPlaceHolders::bytes_transferred));
-    } else if (m_pSocket) {
-        m_pSocket->async_write_some(boost::asio::buffer(m_WriteBuffer, ulLen), boost::bind(&CClientSession::OnWriteCompleted, this, nsPlaceHolders::error, nsPlaceHolders::bytes_transferred));
-    }
+    m_pSocket->async_write_some(boost::asio::buffer(m_WriteBuffer, ulLen), boost::bind(&CClientSession::OnWriteCompleted, this, nsPlaceHolders::error, nsPlaceHolders::bytes_transferred));
 }
 
 void CClientSession::Write(const unsigned char *s, unsigned int nSize) {
@@ -1177,11 +1179,7 @@ void CClientSession::Write(const unsigned char *s, unsigned int nSize) {
     }
     m_ulSent += ulLen;
     m_bWBLocked = ulLen;
-    if (m_pSslSocket) {
-        m_pSslSocket->async_write_some(boost::asio::buffer(m_WriteBuffer, ulLen), boost::bind(&CClientSession::OnWriteCompleted, this, nsPlaceHolders::error, nsPlaceHolders::bytes_transferred));
-    } else if (m_pSocket) {
-        m_pSocket->async_write_some(boost::asio::buffer(m_WriteBuffer, ulLen), boost::bind(&CClientSession::OnWriteCompleted, this, nsPlaceHolders::error, nsPlaceHolders::bytes_transferred));
-    }
+    m_pSocket->async_write_some(boost::asio::buffer(m_WriteBuffer, ulLen), boost::bind(&CClientSession::OnWriteCompleted, this, nsPlaceHolders::error, nsPlaceHolders::bytes_transferred));
 }
 
 void CClientSession::Read() {
@@ -1190,12 +1188,7 @@ void CClientSession::Read() {
     if (m_bRBLocked || m_ConnState < SPA::ClientSide::csConnected || m_bRoutingWait)
         return;
     m_bRBLocked = true;
-    if (m_pSslSocket)
-        m_pSslSocket->async_read_some(boost::asio::buffer(m_ReadBuffer, IO_BUFFER_SIZE),
-            boost::bind(&CClientSession::OnReadCompleted, this, nsPlaceHolders::error, nsPlaceHolders::bytes_transferred));
-    else
-        m_pSocket->async_read_some(boost::asio::buffer(m_ReadBuffer, IO_BUFFER_SIZE),
-            boost::bind(&CClientSession::OnReadCompleted, this, nsPlaceHolders::error, nsPlaceHolders::bytes_transferred));
+    m_pSocket->async_read_some(boost::asio::buffer(m_ReadBuffer, IO_BUFFER_SIZE), boost::bind(&CClientSession::OnReadCompleted, this, nsPlaceHolders::error, nsPlaceHolders::bytes_transferred));
 }
 
 void CClientSession::OnHandleShakeCompleted(int errCode) {
@@ -1508,12 +1501,8 @@ void CClientSession::Close() {
 bool CClientSession::GetSockAddr(unsigned int *sockPort, char *strIPAddrBuffer, unsigned short chars) {
     CErrorCode ec;
     unsigned short n;
-    boost::asio::ip::tcp::endpoint ep;
     CAutoLock sl(m_mutex);
-    if (m_pSslSocket)
-        ep = m_pSslSocket->next_layer().local_endpoint(ec);
-    else
-        ep = m_pSocket->local_endpoint(ec);
+    boost::asio::ip::tcp::endpoint ep = m_pSocket->local_endpoint(ec);
     if (ec)
         return false;
     if (sockPort)
@@ -1533,12 +1522,8 @@ bool CClientSession::GetSockAddr(unsigned int *sockPort, char *strIPAddrBuffer, 
 bool CClientSession::GetPeerName(unsigned int *sockPort, char *strIPAddrBuffer, unsigned short chars) {
     CErrorCode ec;
     unsigned short n;
-    boost::asio::ip::tcp::endpoint ep;
     CAutoLock sl(m_mutex);
-    if (m_pSslSocket)
-        ep = m_pSslSocket->next_layer().remote_endpoint(ec);
-    else
-        ep = m_pSocket->remote_endpoint(ec);
+    boost::asio::ip::tcp::endpoint ep = m_pSocket->remote_endpoint(ec);
     if (ec)
         return false;
     if (sockPort)
@@ -2593,6 +2578,15 @@ void CClientSession::OnReadCompleted(const CErrorCode& Error, size_t nLen) {
         CloseInternal(Error.value());
         return;
     }
+    if (m_pSsl) {
+        if (m_pSsl->Done()) {
+
+        } else {
+            bool ok = m_pSsl->DoHandshake(m_ReadBuffer, len, m_qWrite);
+            
+            return;
+        }
+    }
     if (m_ConnState < SPA::ClientSide::csConnected) {
         return;
     }
@@ -2831,11 +2825,7 @@ void CClientSession::OnWriteCompleted(const CErrorCode& Error, size_t bytes_tran
                 ulLen += max_add;
                 m_bWBLocked = ulLen;
             }
-            if (m_pSslSocket) {
-                m_pSslSocket->async_write_some(boost::asio::buffer(m_WriteBuffer, ulLen), boost::bind(&CClientSession::OnWriteCompleted, this, nsPlaceHolders::error, nsPlaceHolders::bytes_transferred));
-            } else if (m_pSocket) {
-                m_pSocket->async_write_some(boost::asio::buffer(m_WriteBuffer, ulLen), boost::bind(&CClientSession::OnWriteCompleted, this, nsPlaceHolders::error, nsPlaceHolders::bytes_transferred));
-            }
+            m_pSocket->async_write_some(boost::asio::buffer(m_WriteBuffer, ulLen), boost::bind(&CClientSession::OnWriteCompleted, this, nsPlaceHolders::error, nsPlaceHolders::bytes_transferred));
         } else {
             m_bWBLocked = 0;
             Write(nullptr, 0);

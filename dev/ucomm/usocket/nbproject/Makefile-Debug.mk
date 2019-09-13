@@ -40,6 +40,7 @@ OBJECTFILES= \
 	${OBJECTDIR}/_ext/718243431/csocketimpl.o \
 	${OBJECTDIR}/_ext/718243431/socketpool.o \
 	${OBJECTDIR}/_ext/1719658846/includes.o \
+	${OBJECTDIR}/_ext/1719658846/myopenssl.o \
 	${OBJECTDIR}/_ext/1719658846/ucertimpl.o \
 	${OBJECTDIR}/_ext/1719658846/uthread.o \
 	${OBJECTDIR}/_ext/262068057/membuffer.o \
@@ -98,6 +99,11 @@ ${OBJECTDIR}/_ext/1719658846/includes.o: ../core_shared/shared/includes.cpp
 	${MKDIR} -p ${OBJECTDIR}/_ext/1719658846
 	${RM} "$@.d"
 	$(COMPILE.c) -g `pkg-config --cflags libcrypto` `pkg-config --cflags libssl`   -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/1719658846/includes.o ../core_shared/shared/includes.cpp
+
+${OBJECTDIR}/_ext/1719658846/myopenssl.o: ../core_shared/shared/myopenssl.cpp 
+	${MKDIR} -p ${OBJECTDIR}/_ext/1719658846
+	${RM} "$@.d"
+	$(COMPILE.c) -g `pkg-config --cflags libcrypto` `pkg-config --cflags libssl`   -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/1719658846/myopenssl.o ../core_shared/shared/myopenssl.cpp
 
 ${OBJECTDIR}/_ext/1719658846/ucertimpl.o: ../core_shared/shared/ucertimpl.cpp 
 	${MKDIR} -p ${OBJECTDIR}/_ext/1719658846

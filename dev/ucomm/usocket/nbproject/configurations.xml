@@ -8,6 +8,7 @@
       <itemPath>../clientcore/clientthread.h</itemPath>
       <itemPath>../core_shared/shared/includes.h</itemPath>
       <itemPath>../include/membuffer.h</itemPath>
+      <itemPath>../core_shared/shared/myopenssl.h</itemPath>
       <itemPath>../clientcore/socketpool.h</itemPath>
       <itemPath>../core_shared/shared/streamhead.h</itemPath>
       <itemPath>../core_shared/shared/ucertimpl.h</itemPath>
@@ -26,6 +27,7 @@
       <itemPath>../clientcore/csocketimpl.cpp</itemPath>
       <itemPath>../core_shared/shared/includes.cpp</itemPath>
       <itemPath>../include/membuffer.cpp</itemPath>
+      <itemPath>../core_shared/shared/myopenssl.cpp</itemPath>
       <itemPath>../clientcore/socketpool.cpp</itemPath>
       <itemPath>../core_shared/shared/ucertimpl.cpp</itemPath>
       <itemPath>../core_shared/shared/uthread.cpp</itemPath>
@@ -86,6 +88,13 @@
       <item path="../core_shared/shared/includes.cpp" ex="false" tool="0" flavor2="0">
       </item>
       <item path="../core_shared/shared/includes.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../core_shared/shared/myopenssl.cpp"
+            ex="false"
+            tool="0"
+            flavor2="0">
+      </item>
+      <item path="../core_shared/shared/myopenssl.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../core_shared/shared/streamhead.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -169,6 +178,13 @@
       <item path="../core_shared/shared/includes.cpp" ex="false" tool="1" flavor2="0">
       </item>
       <item path="../core_shared/shared/includes.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../core_shared/shared/myopenssl.cpp"
+            ex="false"
+            tool="0"
+            flavor2="0">
+      </item>
+      <item path="../core_shared/shared/myopenssl.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../core_shared/shared/streamhead.h" ex="false" tool="3" flavor2="0">
       </item>

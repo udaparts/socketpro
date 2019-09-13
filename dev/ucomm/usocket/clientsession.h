@@ -6,6 +6,7 @@
 #include "../core_shared/pinc/mqfile.h"
 #include "../core_shared/shared/ucertimpl.h"
 #include "../include/uclient.h"
+#include "../core_shared/shared/myopenssl.h"
 
 /*
 boost modification
@@ -249,7 +250,6 @@ private:
     SPA::CUQueue m_qReqIdCancel;
     SPA::CUQueue m_qReqIdWait;
     SPA::CSwitchInfo m_ServerInfo;
-    CSslSocket *m_pSslSocket;
     CSocket *m_pSocket;
     unsigned char *m_ReadBuffer;
     volatile bool m_bRBLocked;
@@ -292,6 +292,7 @@ private:
     unsigned int m_nRecvTimeout;
     unsigned int m_nCancel;
     CCertificateImplPtr m_pCert;
+    std::shared_ptr<CMyOpenSSL> m_pSsl;
 
     std::wstring m_strUserId;
     MQ_FILE::CFilePtr m_qRequest;
