@@ -14,7 +14,6 @@ m_bClient(bClient) {
     int res;
     ::SSL_set_bio(m_pSSL, m_pRBio, m_pWBio);
     if (bClient) {
-        res = ::SSL_connect(m_pSSL);
         ::SSL_set_connect_state(m_pSSL);
     } else {
         res = ::SSL_accept(m_pSSL);
