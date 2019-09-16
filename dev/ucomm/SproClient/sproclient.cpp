@@ -195,14 +195,12 @@ void TestQueue(const SPA::ClientSide::CConnectionContext &cc) {
         std::cout << "No socket connection for queue" << std::endl;
         return;
     }
-    /*
-        IClientQueue &cq = p->GetAttachedClientSocket()->GetClientQueue();
-        b = cq.StartQueue(qName.c_str(), 30 * 24 * 3600, cc.EncrytionMethod != NoEncryption);
-        if (b) {
-            auto found = sp.SeekByQueue(qName);
-            assert(found);
-        }
-     */
+    IClientQueue &cq = p->GetAttachedClientSocket()->GetClientQueue();
+    b = cq.StartQueue(qName.c_str(), 30 * 24 * 3600, cc.EncrytionMethod != NoEncryption);
+    if (b) {
+        auto found = sp.SeekByQueue(qName);
+        assert(found);
+    }
     do {
         SPA::UINT64 memStart = CScopeUQueue::GetContention(),
                 cacheStart = CAsyncServiceHandler::GetCacheContention(),
@@ -217,7 +215,7 @@ void TestQueue(const SPA::ClientSide::CConnectionContext &cc) {
         p->GetAttachedClientSocket()->SetZip(zip);
         boost::posix_time::ptime t0 = boost::posix_time::microsec_clock::local_time();
         for (unsigned int j = 0; j < 5000; ++j) {
-            //            b = cq.StartJob();
+            b = cq.StartJob();
             b = p->OpenDbAsync("This is a test connection string");
             if (batching && shortOne)
                 b = p->StartBatching();
@@ -248,12 +246,10 @@ void TestQueue(const SPA::ClientSide::CConnectionContext &cc) {
             if (batching && shortOne)
                 b = p->CommitBatching(true);
             p->DodequeueAsync(n);
-            /*
-                        b = cq.EndJob();
-                        if (cq.GetQueueSize() > 4 * 1024 * 1024 && p->GetAttachedClientSocket()->IsConnected()) {
-                            p->WaitAll();
-                        }
-             */
+            b = cq.EndJob();
+            if (cq.GetQueueSize() > 4 * 1024 * 1024 && p->GetAttachedClientSocket()->IsConnected()) {
+                p->WaitAll();
+            }
         }
         p->WaitAll();
         boost::posix_time::ptime t1 = boost::posix_time::microsec_clock::local_time();

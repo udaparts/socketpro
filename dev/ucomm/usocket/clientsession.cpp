@@ -1137,7 +1137,7 @@ void CClientSession::Write(const SPA::CStreamHeader &sh, const unsigned char *s,
         ulLen = m_pSsl->Encrypt(m_WriteBuffer, ulLen, *sb);
         m_bWBLocked = ulLen;
         ::memcpy(m_WriteBuffer, sb->GetBuffer(), ulLen);
-        m_pSocket->async_write_some(boost::asio::buffer(m_WriteBuffer, ulLen), boost::bind(&CClientSession::OnWriteCompleted, this, nsPlaceHolders::error, nsPlaceHolders::bytes_transferred));
+        async_write(*m_pSocket, boost::asio::buffer(m_WriteBuffer, ulLen), boost::bind(&CClientSession::OnWriteCompleted, this, nsPlaceHolders::error, nsPlaceHolders::bytes_transferred));
     } else {
         m_pSocket->async_write_some(boost::asio::buffer(m_WriteBuffer, ulLen), boost::bind(&CClientSession::OnWriteCompleted, this, nsPlaceHolders::error, nsPlaceHolders::bytes_transferred));
     }
@@ -1182,7 +1182,7 @@ void CClientSession::Write(const unsigned char *s, unsigned int nSize) {
         ulLen = m_pSsl->Encrypt(m_WriteBuffer, ulLen, *sb);
         m_bWBLocked = ulLen;
         ::memcpy(m_WriteBuffer, sb->GetBuffer(), ulLen);
-        m_pSocket->async_write_some(boost::asio::buffer(m_WriteBuffer, ulLen), boost::bind(&CClientSession::OnWriteCompleted, this, nsPlaceHolders::error, nsPlaceHolders::bytes_transferred));
+        async_write(*m_pSocket, boost::asio::buffer(m_WriteBuffer, ulLen), boost::bind(&CClientSession::OnWriteCompleted, this, nsPlaceHolders::error, nsPlaceHolders::bytes_transferred));
     } else {
         m_pSocket->async_write_some(boost::asio::buffer(m_WriteBuffer, ulLen), boost::bind(&CClientSession::OnWriteCompleted, this, nsPlaceHolders::error, nsPlaceHolders::bytes_transferred));
     }
