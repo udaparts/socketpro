@@ -47,8 +47,12 @@ private:
     SPA::UINT64 GetBestRouteeByFirst(unsigned int &routeeSize);
 
 private:
+#if 1
     typedef SPA::CSpinAutoLock CAutoLock;
     SPA::CSpinLock m_mutex;
+#else
+	std::mutex m_mutex;
+#endif
     unsigned int m_nServiceId;
     std::vector<unsigned short> m_vSlowRequestId;
     CSvsContext m_sc;

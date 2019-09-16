@@ -2590,7 +2590,7 @@ void CClientSession::OnReadCompleted(const CErrorCode& Error, size_t nLen) {
             SPA::CScopeUQueue sq;
             if (!m_pSsl->DoHandshake(m_ReadBuffer, len, *sq)) {
                 CAutoLock sl(m_mutex);
-                CloseInternal(1); //SSL_ERROR_SSL, boost::asio::error::get_ssl_category()
+                CloseInternal(SSL_ERROR_SSL); //SSL_ERROR_SSL, boost::asio::error::get_ssl_category()
                 return;
             }
             if (sq->GetSize()) {
