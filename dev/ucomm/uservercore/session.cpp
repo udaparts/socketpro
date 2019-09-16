@@ -1320,68 +1320,32 @@ unsigned int CServerSession::Write(const unsigned char *s, unsigned int nSize) {
         return 0;
     if (s == nullptr)
         nSize = 0;
-    if (m_pSsl) {
-        SPA::CScopeUQueue su;
-        if (s && nSize) {
-            m_pSsl->Encrypt(s, nSize, *su);
-        }
-        s = su->GetBuffer();
-        nSize = su->GetSize();
-        if (m_bWBLocked) {
-            if (m_qWrite.GetTailSize() < nSize && m_qWrite.GetHeadPosition() >= nSize)
-                m_qWrite.SetHeadPosition();
-            m_qWrite.Push(s, nSize);
-            return nSize;
-        }
-        ulLen = m_qWrite.GetSize();
-        if (ulLen == 0 && s && nSize > 0) {
-            if (nSize <= IO_BUFFER_SIZE) {
-                ::memcpy(m_WriteBuffer, s, nSize);
-                ulLen = nSize;
-            } else {
-                ::memcpy(m_WriteBuffer, s, IO_BUFFER_SIZE);
-                ulLen = IO_BUFFER_SIZE;
-
-                //remaining
-                m_qWrite.Push(s + IO_BUFFER_SIZE, nSize - IO_BUFFER_SIZE);
-            }
+    if (m_bWBLocked) {
+        if (m_qWrite.GetTailSize() < nSize && m_qWrite.GetHeadPosition() >= nSize)
+            m_qWrite.SetHeadPosition();
+        m_qWrite.Push(s, nSize);
+        return nSize;
+    }
+    ulLen = m_qWrite.GetSize();
+    if (ulLen == 0 && s && nSize > 0) {
+        if (nSize <= IO_BUFFER_SIZE) {
+            ::memcpy(m_WriteBuffer, s, nSize);
+            ulLen = nSize;
         } else {
-            m_qWrite.Push(s, nSize);
-            ulLen = m_qWrite.GetSize();
-            if (ulLen == 0)
-                return nSize;
-            if (ulLen > IO_BUFFER_SIZE)
-                ulLen = IO_BUFFER_SIZE;
-            m_qWrite.Pop(m_WriteBuffer, ulLen);
+            ::memcpy(m_WriteBuffer, s, IO_BUFFER_SIZE);
+            ulLen = IO_BUFFER_SIZE;
+
+            //remaining
+            m_qWrite.Push(s + IO_BUFFER_SIZE, nSize - IO_BUFFER_SIZE);
         }
     } else {
-        if (m_bWBLocked) {
-            if (m_qWrite.GetTailSize() < nSize && m_qWrite.GetHeadPosition() >= nSize)
-                m_qWrite.SetHeadPosition();
-            m_qWrite.Push(s, nSize);
-            return nSize;
-        }
+        m_qWrite.Push(s, nSize);
         ulLen = m_qWrite.GetSize();
-        if (ulLen == 0 && s && nSize > 0) {
-            if (nSize <= IO_BUFFER_SIZE) {
-                ::memcpy(m_WriteBuffer, s, nSize);
-                ulLen = nSize;
-            } else {
-                ::memcpy(m_WriteBuffer, s, IO_BUFFER_SIZE);
-                ulLen = IO_BUFFER_SIZE;
-
-                //remaining
-                m_qWrite.Push(s + IO_BUFFER_SIZE, nSize - IO_BUFFER_SIZE);
-            }
-        } else {
-            m_qWrite.Push(s, nSize);
-            ulLen = m_qWrite.GetSize();
-            if (ulLen == 0)
-                return nSize;
-            if (ulLen > IO_BUFFER_SIZE)
-                ulLen = IO_BUFFER_SIZE;
-            m_qWrite.Pop(m_WriteBuffer, ulLen);
-        }
+        if (ulLen == 0)
+            return nSize;
+        if (ulLen > IO_BUFFER_SIZE)
+            ulLen = IO_BUFFER_SIZE;
+        m_qWrite.Pop(m_WriteBuffer, ulLen);
     }
     m_ccb.m_ulSent += ulLen;
     m_bWBLocked = ulLen;
@@ -3523,6 +3487,8 @@ void CServerSession::OnReadCompleted(const CErrorCode& Error, size_t nLen) {
                                 CAutoLock sl(m_mutex);
                                 m_ec = ec;
                                 CloseInternal();
+                            } else if (!m_pSsl->Done()) {
+                                m_pSocket->async_read_some(boost::asio::buffer(m_ReadBuffer, IO_BUFFER_SIZE), boost::bind(&CServerSession::OnReadCompleted, this, nsPlaceHolders::error, nsPlaceHolders::bytes_transferred));
                             }
                         });
                     }
@@ -3537,7 +3503,6 @@ void CServerSession::OnReadCompleted(const CErrorCode& Error, size_t nLen) {
                             return;
                         }
                     } else {
-                        m_pSocket->async_read_some(boost::asio::buffer(m_ReadBuffer, IO_BUFFER_SIZE), boost::bind(&CServerSession::OnReadCompleted, this, nsPlaceHolders::error, nsPlaceHolders::bytes_transferred));
                         m_mutex.unlock();
                         return;
                     }

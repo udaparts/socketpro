@@ -1088,6 +1088,7 @@ void CClientSession::OnConnected(const CErrorCode &ec, CResolver::iterator ep) {
                 OnConnectedInternal(ec.value());
                 CloseInternal(ec.value());
             } else {
+                m_tSend = GetTimeTick();
                 m_pSocket->async_read_some(boost::asio::buffer(m_ReadBuffer, IO_BUFFER_SIZE), boost::bind(&CClientSession::OnReadCompleted, this, nsPlaceHolders::error, nsPlaceHolders::bytes_transferred));
             }
         });
@@ -2598,6 +2599,7 @@ void CClientSession::OnReadCompleted(const CErrorCode& Error, size_t nLen) {
                         OnConnectedInternal(ec.value());
                         CloseInternal(ec.value());
                     } else if (!m_pSsl->Done()) {
+                        m_tSend = GetTimeTick();
                         m_pSocket->async_read_some(boost::asio::buffer(m_ReadBuffer, IO_BUFFER_SIZE), boost::bind(&CClientSession::OnReadCompleted, this, nsPlaceHolders::error, nsPlaceHolders::bytes_transferred));
                     }
                 });
