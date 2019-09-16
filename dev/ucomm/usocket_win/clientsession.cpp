@@ -103,7 +103,7 @@ CClientSession::~CClientSession() {
     StopQueueInternal(false);
     PSocketPoolCallback spc = m_pThread->GetSocketPoolCallback();
     if (spc) {
-		bool chatting = false;
+        bool chatting = false;
         CRAutoLock sl(m_mutex, chatting);
         spc(m_nPoolId, SPA::ClientSide::speUSocketKilled, this);
     }
@@ -239,7 +239,7 @@ void CClientSession::OnClosed(int errCode) {
     m_bZip = false;
     POnSocketClosed p = m_OnSocketClosed;
     {
-		bool chatting = false;
+        bool chatting = false;
         CRAutoLock sl(m_mutex, chatting);
         if (p != nullptr) {
             p(this, errCode);
@@ -366,7 +366,7 @@ bool CClientSession::WaitAllInternal(CAutoLock &sl, unsigned int nTimeout) {
         boost::posix_time::ptime end = boost::posix_time::microsec_clock::local_time() + boost::posix_time::milliseconds(nTimeout);
         do {
             {
-				bool chatting = false;
+                bool chatting = false;
                 CRAutoLock rl(m_mutex, chatting);
                 m_pIoService->poll(m_ec);
             }
@@ -482,7 +482,7 @@ void CClientSession::OnConnectedInternal(int errCode) {
     m_qBatchDequeueConfirm.SetSize(0);
     PSocketPoolCallback spc = m_pThread->GetSocketPoolCallback();
     {
-		bool chatting = false;
+        bool chatting = false;
         CRAutoLock sl(m_mutex, chatting);
         if (p) {
             p(this, errCode);
@@ -691,8 +691,8 @@ bool CClientSession::CommitBatching(bool bBatchingAtServerSide) {
                 {
                     m_qRequest->Enqueue(*sh, *sb);
                     if (m_ConnState == SPA::ClientSide::csClosed) {
-						bool chatting = false;
-						CRAutoLock ral(m_mutex, chatting);
+                        bool chatting = false;
+                        CRAutoLock ral(m_mutex, chatting);
                         m_pThread->GetPool()->OnClose(this);
                     }
                 }
@@ -1009,7 +1009,7 @@ void CClientSession::ConnectInternally() {
             CAutoLock al(g_mutexResover);
 #endif
             {
-				bool chatting = false;
+                bool chatting = false;
                 CRAutoLock rsl(m_mutex, chatting);
                 iterator = r.resolve(ipAddress, ec);
             }
@@ -1150,19 +1150,18 @@ void CClientSession::OnConnected(const CErrorCode &ec, CResolver::iterator ep) {
         SECURITY_STATUS ss = OpenCred();
         if (ss == SEC_E_OK) {
             m_pSspi.reset(new SPA::CSspi(true, &m_hCreds, false));
-			SPA::CScopeUQueue sb;
-			if (m_pSspi->DoHandshake(nullptr, 0, *sb)) {
-				::memcpy(m_WriteBuffer, sb->GetBuffer(), sb->GetSize());
-				m_pSocket->async_write_some(boost::asio::buffer(m_WriteBuffer, sb->GetSize()), [this](const CErrorCode &ec, size_t size) {
-					if (ec) {
-						CAutoLock sl(m_mutex);
-						OnConnectedInternal(ec.value());
-						CloseInternal(ec.value());
-					}
-					else {
-						m_pSocket->async_read_some(boost::asio::buffer(m_ReadBuffer, IO_BUFFER_SIZE), boost::bind(&CClientSession::OnReadCompleted, this, nsPlaceHolders::error, nsPlaceHolders::bytes_transferred));
-					}
-				});
+            SPA::CScopeUQueue sb;
+            if (m_pSspi->DoHandshake(nullptr, 0, *sb)) {
+                ::memcpy(m_WriteBuffer, sb->GetBuffer(), sb->GetSize());
+                m_pSocket->async_write_some(boost::asio::buffer(m_WriteBuffer, sb->GetSize()), [this](const CErrorCode &ec, size_t size) {
+                    if (ec) {
+                        CAutoLock sl(m_mutex);
+                        OnConnectedInternal(ec.value());
+                        CloseInternal(ec.value());
+                    } else {
+                        m_pSocket->async_read_some(boost::asio::buffer(m_ReadBuffer, IO_BUFFER_SIZE), boost::bind(&CClientSession::OnReadCompleted, this, nsPlaceHolders::error, nsPlaceHolders::bytes_transferred));
+                    }
+                });
             } else {
                 ss = m_pSspi->GetLastStatus();
             }
@@ -1257,13 +1256,13 @@ void CClientSession::Write(const unsigned char *s, unsigned int nSize) {
     }
     m_ulSent += ulLen;
     m_bWBLocked = ulLen;
-	if (m_pSspi) {
-		SPA::CScopeUQueue sb;
-		m_pSspi->Encrypt(m_WriteBuffer, ulLen, *sb);
-		m_bWBLocked = ulLen = sb->GetSize();
-		assert(m_bWBLocked <= IO_BUFFER_SIZE + IO_ENCRYPTION_PADDING);
-		::memcpy(m_WriteBuffer, sb->GetBuffer(), ulLen);
-	}
+    if (m_pSspi) {
+        SPA::CScopeUQueue sb;
+        m_pSspi->Encrypt(m_WriteBuffer, ulLen, *sb);
+        m_bWBLocked = ulLen = sb->GetSize();
+        assert(m_bWBLocked <= IO_BUFFER_SIZE + IO_ENCRYPTION_PADDING);
+        ::memcpy(m_WriteBuffer, sb->GetBuffer(), ulLen);
+    }
     m_pSocket->async_write_some(boost::asio::buffer(m_WriteBuffer, ulLen), boost::bind(&CClientSession::OnWriteCompleted, this, nsPlaceHolders::error, nsPlaceHolders::bytes_transferred));
 }
 
@@ -1277,8 +1276,8 @@ void CClientSession::Read() {
 }
 
 void CClientSession::OnHandleShakeCompleted(int errCode) {
-	bool chatting = false;
-	POnHandShakeCompleted p = m_OnHandShakeCompleted;
+    bool chatting = false;
+    POnHandShakeCompleted p = m_OnHandShakeCompleted;
     if (p != nullptr) {
         CRAutoLock sl(m_mutex, chatting);
         p(this, errCode);
@@ -1509,8 +1508,8 @@ void CClientSession::PostCloseInternal(int error) {
 }
 
 void CClientSession::CloseInternal(int nError) {
-	bool chatting = false;
-	if (m_ConnState == SPA::ClientSide::csClosed) {
+    bool chatting = false;
+    if (m_ConnState == SPA::ClientSide::csClosed) {
         return;
     }
     m_tRecv = GetTimeTick();
@@ -1968,16 +1967,16 @@ bool CClientSession::StartJob() {
 }
 
 bool CClientSession::EndJob() {
-	bool chatting = false;
-	CAutoLock al(m_mutex);
+    bool chatting = false;
+    CAutoLock al(m_mutex);
     if (m_pQBatch)
         return false;
     if (m_qRequest && m_qRequest->IsAvailable() && m_qRequest->EndJob() != INVALID_NUMBER) {
         WriteFromQueueFile();
         Write(nullptr, 0);
         if (m_ConnState == SPA::ClientSide::csClosed) {
-			bool chatting = false;
-			CRAutoLock ral(m_mutex, chatting);
+            bool chatting = false;
+            CRAutoLock ral(m_mutex, chatting);
             m_pThread->GetPool()->OnClose(this);
         } else if (m_ConnState >= SPA::ClientSide::csConnected) {
             CRAutoLock ral(m_mutex, chatting);
@@ -2211,7 +2210,7 @@ bool CClientSession::IsSameEndian() {
 
 void CClientSession::OnChatRequest(unsigned short nRequestId, SPA::CScopeUQueue &sb) {
     unsigned int nCount;
-	bool chatting = false;
+    bool chatting = false;
     SPA::ClientSide::CMessageSender sender;
     std::string senderIpAddress;
     std::wstring senderUserId;
@@ -2359,8 +2358,8 @@ MQ_FILE::CFilePtr CClientSession::GetQueue() {
 }
 
 void CClientSession::OnBaseRequestProcessed(unsigned short nRequestId, unsigned int nLen) {
-	bool chatting = false;
-	SPA::CScopeUQueue sb(m_ResultInfo.GetOS(), m_ResultInfo.IsBigEndian());
+    bool chatting = false;
+    SPA::CScopeUQueue sb(m_ResultInfo.GetOS(), m_ResultInfo.IsBigEndian());
     POnServerException se = m_OnServerException;
     POnBaseRequestProcessed brp = m_OnBaseRequestProcessed;
     if (nLen > 0) {
@@ -2576,7 +2575,7 @@ void CClientSession::OnBaseRequestProcessed(unsigned short nRequestId, unsigned 
 void CClientSession::OnRequestProcessed(unsigned short nRequestId, unsigned int nLen) {
     POnRequestProcessed p = m_OnRequestProcessed;
     if (nullptr != p) {
-		bool chatting = false;
+        bool chatting = false;
         CRAutoLock sl(m_mutex, chatting);
         p(this, nRequestId, nLen);
     }
@@ -2657,7 +2656,7 @@ void CClientSession::NotifyDequeued(unsigned int qHandle) {
 void CClientSession::NotifyDequeuedStartQueueTrans(unsigned int qHandle) {
     POnBaseRequestProcessed p = m_OnBaseRequestProcessed;
     if (p != nullptr) {
-		bool chatting = false;
+        bool chatting = false;
         CRAutoLock sl(m_mutex, chatting);
         p(this, SPA::idStartJob);
     }
@@ -2668,7 +2667,7 @@ void CClientSession::NotifyDequeuedStartQueueTrans(unsigned int qHandle) {
 void CClientSession::NotifyDequeuedCommitQueueTrans(unsigned int qHandle) {
     POnBaseRequestProcessed p = m_OnBaseRequestProcessed;
     if (p != nullptr) {
-		bool chatting = false;
+        bool chatting = false;
         CRAutoLock sl(m_mutex, chatting);
         p(this, SPA::idEndJob);
     }
@@ -2687,7 +2686,7 @@ void CClientSession::OnReadCompleted(const CErrorCode& Error, size_t nLen) {
     if (m_ConnState < SPA::ClientSide::csSslShaking) {
         return;
     }
-	CAutoLock sl(m_mutex);
+    CAutoLock sl(m_mutex);
     if (m_qRead.GetTailSize() < len && m_qRead.GetHeadPosition() >= len)
         m_qRead.SetHeadPosition();
     if (m_pSspi) {
@@ -2698,127 +2697,120 @@ void CClientSession::OnReadCompleted(const CErrorCode& Error, size_t nLen) {
                 return;
             }
             m_ulRead += (unsigned int) (m_qRead.GetSize() - nLen);
-			m_bRBLocked = false;
+            m_bRBLocked = false;
         } else {
-			SPA::CScopeUQueue sb;
-			m_tRecv = GetTimeTick();
-			if (!m_pSspi->DoHandshake(m_ReadBuffer, len, *sb)) {
-				CloseInternal(m_pSspi->GetLastStatus());
-				return;
-			}
-			if (sb->GetSize()) {
-				if (sb->GetSize() > IO_ENCRYPTION_PADDING + IO_BUFFER_SIZE) {
-					m_WriteBuffer = (unsigned char*)::realloc(m_WriteBuffer, sb->GetSize());
-				}
-				::memcpy(m_WriteBuffer, sb->GetBuffer(), sb->GetSize());
-				m_pSocket->async_write_some(boost::asio::buffer(m_WriteBuffer, sb->GetSize()), [this](const CErrorCode &ec, size_t size) {
-					if (ec) {
-						CAutoLock sl(m_mutex);
-						OnConnectedInternal(ec.value());
-						CloseInternal(ec.value());
-					}
-					else if (m_pSspi->GetHandshakeState() != SPA::hsDone) {
-						m_pSocket->async_read_some(boost::asio::buffer(m_ReadBuffer, IO_BUFFER_SIZE), boost::bind(&CClientSession::OnReadCompleted, this, nsPlaceHolders::error, nsPlaceHolders::bytes_transferred));
-					}
-				});
-			}
-			if (m_pSspi->GetHandshakeState() == SPA::hsDone) {
-				g_mutexCvc.lock();
-				PCertificateVerifyCallback cvc = g_cvc;
-				g_mutexCvc.unlock();
-				if (cvc) {
-					DWORD dwFlags = 0;
-					PCCERT_CHAIN_CONTEXT pChainContext = nullptr;
-					CERT_ENHKEY_USAGE EnhkeyUsage;
-					CERT_USAGE_MATCH CertUsage;
-					CERT_CHAIN_PARA ChainPara;
-					EnhkeyUsage.cUsageIdentifier = 0;
-					EnhkeyUsage.rgpszUsageIdentifier = nullptr;
-					CertUsage.dwType = USAGE_MATCH_TYPE_AND;
-					CertUsage.Usage = EnhkeyUsage;
-					ChainPara.cbSize = sizeof(CERT_CHAIN_PARA);
-					ChainPara.RequestedUsage = CertUsage;
-					PCCERT_CONTEXT pCertContext = m_pSspi->GetCertContext();
-					if (!::CertGetCertificateChain(nullptr, // use the default chain engine
-						pCertContext, // pointer to the end certificate
-						NULL, // use the default time
-						SPA::CCertificateImpl::CertStore.GetCertStore(), // search no additional stores
-						&ChainPara, // use AND logic and enhanced key usage 
-						dwFlags,
-						NULL, // currently reserved
-						&pChainContext)) // return a pointer to the chain created
-					{
-						//ec.assign(::GetLastError(), boost::system::get_system_category());
-						CloseInternal((int) ::GetLastError());
-						return;
-					}
-					else {
-						int errCode = 0;
-						const char *errMsg = SPA::CCertificateImpl::VerifyOne(pCertContext, &errCode, SPA::CCertificateImpl::CertStore.GetCertStore());
-						bool ok = (errCode == CERT_TRUST_NO_ERROR || ::strlen(errMsg) == 0);
-						PCERT_SIMPLE_CHAIN chains = pChainContext->rgpChain[0];
-						DWORD total = chains->cElement;
-						for (DWORD n = 0; n < total; ++n) {
-							PCERT_CHAIN_ELEMENT one = chains->rgpElement[n];
-							SPA::CCertificateImplPtr pCert(new SPA::CCertificateImpl(one->pCertContext, ""));
-							ok = cvc(ok, n, one->TrustStatus.dwErrorStatus, SPA::CCertificateImpl::MapErrorMessage(one->TrustStatus.dwErrorStatus), pCert.get());
-							if (!ok)
-								break;
-						}
-						::CertFreeCertificateChain(pChainContext);
-						if (!ok) {
-							CloseInternal((int) ::GetLastError());
-							return;
-						}
-					}
-				}
-				CErrorCode ec;
-				m_pCert.reset(new SPA::CCertificateImpl(m_pSspi, ""));
-				OnSslHandShake(ec);
-			}
-			else if (SEC_I_INCOMPLETE_CREDENTIALS == m_pSspi->GetLastStatus()) {
-				if (m_certCN.size()) {
-					m_pCertContext = ::CertFindCertificateInStore(SPA::CCertificateImpl::CertStore.GetCertStore(), X509_ASN_ENCODING | PKCS_7_ASN_ENCODING, 0, CERT_FIND_SUBJECT_STR, CA2CT(m_certCN.c_str()), nullptr);
-					if (m_pCertContext) {
-						m_pSelfCert.reset(new SPA::CCertificateImpl(m_pCertContext, ""));
-					}
-					else {
-						m_pSelfCert.reset();
-					}
-				}
-				SECURITY_STATUS ss = OpenCred();
-				if (ss == SEC_E_OK) {
-					m_pSspi->ResetCredHandle(&m_hCreds);
-					sb->SetSize(0);
-					if (!m_pSspi->DoHandshake(m_ReadBuffer, len, m_qWrite)) {
-						CloseInternal(m_pSspi->GetLastStatus());
-						return;
-					}
-					else {
-						::memcpy(m_WriteBuffer, sb->GetBuffer(), sb->GetSize());
-						m_pSocket->async_write_some(boost::asio::buffer(m_WriteBuffer, sb->GetSize()), [this](const CErrorCode &ec, size_t size) {
-							if (ec) {
-								CAutoLock sl(m_mutex);
-								OnConnectedInternal(ec.value());
-								CloseInternal(ec.value());
-							}
-							else if (m_pSspi->GetHandshakeState() != SPA::hsDone) {
-								m_pSocket->async_read_some(boost::asio::buffer(m_ReadBuffer, IO_BUFFER_SIZE), boost::bind(&CClientSession::OnReadCompleted, this, nsPlaceHolders::error, nsPlaceHolders::bytes_transferred));
-							}
-						});
-					}
-				}
-				else {
-					CloseInternal(ss);
-					return;
-				}
-			}
-			return;
+            SPA::CScopeUQueue sb;
+            m_tRecv = GetTimeTick();
+            if (!m_pSspi->DoHandshake(m_ReadBuffer, len, *sb)) {
+                CloseInternal(m_pSspi->GetLastStatus());
+                return;
+            }
+            if (sb->GetSize()) {
+                if (sb->GetSize() > IO_ENCRYPTION_PADDING + IO_BUFFER_SIZE) {
+                    m_WriteBuffer = (unsigned char*) ::realloc(m_WriteBuffer, sb->GetSize());
+                }
+                ::memcpy(m_WriteBuffer, sb->GetBuffer(), sb->GetSize());
+                m_pSocket->async_write_some(boost::asio::buffer(m_WriteBuffer, sb->GetSize()), [this](const CErrorCode &ec, size_t size) {
+                    if (ec) {
+                        CAutoLock sl(m_mutex);
+                        OnConnectedInternal(ec.value());
+                        CloseInternal(ec.value());
+                    } else if (m_pSspi->GetHandshakeState() != SPA::hsDone) {
+                        m_pSocket->async_read_some(boost::asio::buffer(m_ReadBuffer, IO_BUFFER_SIZE), boost::bind(&CClientSession::OnReadCompleted, this, nsPlaceHolders::error, nsPlaceHolders::bytes_transferred));
+                    }
+                });
+            }
+            if (m_pSspi->GetHandshakeState() == SPA::hsDone) {
+                g_mutexCvc.lock();
+                PCertificateVerifyCallback cvc = g_cvc;
+                g_mutexCvc.unlock();
+                if (cvc) {
+                    DWORD dwFlags = 0;
+                    PCCERT_CHAIN_CONTEXT pChainContext = nullptr;
+                    CERT_ENHKEY_USAGE EnhkeyUsage;
+                    CERT_USAGE_MATCH CertUsage;
+                    CERT_CHAIN_PARA ChainPara;
+                    EnhkeyUsage.cUsageIdentifier = 0;
+                    EnhkeyUsage.rgpszUsageIdentifier = nullptr;
+                    CertUsage.dwType = USAGE_MATCH_TYPE_AND;
+                    CertUsage.Usage = EnhkeyUsage;
+                    ChainPara.cbSize = sizeof (CERT_CHAIN_PARA);
+                    ChainPara.RequestedUsage = CertUsage;
+                    PCCERT_CONTEXT pCertContext = m_pSspi->GetCertContext();
+                    if (!::CertGetCertificateChain(nullptr, // use the default chain engine
+                            pCertContext, // pointer to the end certificate
+                            NULL, // use the default time
+                            SPA::CCertificateImpl::CertStore.GetCertStore(), // search no additional stores
+                            &ChainPara, // use AND logic and enhanced key usage 
+                            dwFlags,
+                            NULL, // currently reserved
+                            &pChainContext)) // return a pointer to the chain created
+                    {
+                        //ec.assign(::GetLastError(), boost::system::get_system_category());
+                        CloseInternal((int) ::GetLastError());
+                        return;
+                    } else {
+                        int errCode = 0;
+                        const char *errMsg = SPA::CCertificateImpl::VerifyOne(pCertContext, &errCode, SPA::CCertificateImpl::CertStore.GetCertStore());
+                        bool ok = (errCode == CERT_TRUST_NO_ERROR || ::strlen(errMsg) == 0);
+                        PCERT_SIMPLE_CHAIN chains = pChainContext->rgpChain[0];
+                        DWORD total = chains->cElement;
+                        for (DWORD n = 0; n < total; ++n) {
+                            PCERT_CHAIN_ELEMENT one = chains->rgpElement[n];
+                            SPA::CCertificateImplPtr pCert(new SPA::CCertificateImpl(one->pCertContext, ""));
+                            ok = cvc(ok, n, one->TrustStatus.dwErrorStatus, SPA::CCertificateImpl::MapErrorMessage(one->TrustStatus.dwErrorStatus), pCert.get());
+                            if (!ok)
+                                break;
+                        }
+                        ::CertFreeCertificateChain(pChainContext);
+                        if (!ok) {
+                            CloseInternal((int) ::GetLastError());
+                            return;
+                        }
+                    }
+                }
+                CErrorCode ec;
+                m_pCert.reset(new SPA::CCertificateImpl(m_pSspi, ""));
+                OnSslHandShake(ec);
+            } else if (SEC_I_INCOMPLETE_CREDENTIALS == m_pSspi->GetLastStatus()) {
+                if (m_certCN.size()) {
+                    m_pCertContext = ::CertFindCertificateInStore(SPA::CCertificateImpl::CertStore.GetCertStore(), X509_ASN_ENCODING | PKCS_7_ASN_ENCODING, 0, CERT_FIND_SUBJECT_STR, CA2CT(m_certCN.c_str()), nullptr);
+                    if (m_pCertContext) {
+                        m_pSelfCert.reset(new SPA::CCertificateImpl(m_pCertContext, ""));
+                    } else {
+                        m_pSelfCert.reset();
+                    }
+                }
+                SECURITY_STATUS ss = OpenCred();
+                if (ss == SEC_E_OK) {
+                    m_pSspi->ResetCredHandle(&m_hCreds);
+                    sb->SetSize(0);
+                    if (!m_pSspi->DoHandshake(m_ReadBuffer, len, m_qWrite)) {
+                        CloseInternal(m_pSspi->GetLastStatus());
+                        return;
+                    } else {
+                        ::memcpy(m_WriteBuffer, sb->GetBuffer(), sb->GetSize());
+                        m_pSocket->async_write_some(boost::asio::buffer(m_WriteBuffer, sb->GetSize()), [this](const CErrorCode &ec, size_t size) {
+                            if (ec) {
+                                CAutoLock sl(m_mutex);
+                                OnConnectedInternal(ec.value());
+                                CloseInternal(ec.value());
+                            } else if (m_pSspi->GetHandshakeState() != SPA::hsDone) {
+                                m_pSocket->async_read_some(boost::asio::buffer(m_ReadBuffer, IO_BUFFER_SIZE), boost::bind(&CClientSession::OnReadCompleted, this, nsPlaceHolders::error, nsPlaceHolders::bytes_transferred));
+                            }
+                        });
+                    }
+                } else {
+                    CloseInternal(ss);
+                    return;
+                }
+            }
+            return;
         }
     } else {
         m_ulRead += len;
         m_qRead.Push(m_ReadBuffer, len);
-		m_bRBLocked = false;
+        m_bRBLocked = false;
     }
     bool notify = (m_qReqIdWait.GetSize() > 0);
     m_tRecv = GetTimeTick();
@@ -2963,7 +2955,7 @@ void CClientSession::OnReadCompleted(const CErrorCode& Error, size_t nLen) {
         if (notify) {
             POnAllRequestsProcessed p = m_OnAllRequestsProcessed;
             if (p) {
-				bool chatting = false;
+                bool chatting = false;
                 CRAutoLock rsl(m_mutex, chatting);
                 p(this, sReqId);
             }
@@ -3020,10 +3012,10 @@ void CClientSession::OnWriteCompleted(const CErrorCode& Error, size_t bytes_tran
             m_pSocket->async_write_some(boost::asio::buffer(m_WriteBuffer, ulLen), boost::bind(&CClientSession::OnWriteCompleted, this, nsPlaceHolders::error, nsPlaceHolders::bytes_transferred));
         } else {
             m_bWBLocked = 0;
-			bool bQueue = CheckQueueAvailable();
-			if (bQueue && m_ConnState >= SPA::ClientSide::csSwitched) {
-				WriteFromQueueFile();
-			}
+            bool bQueue = CheckQueueAvailable();
+            if (bQueue && m_ConnState >= SPA::ClientSide::csSwitched) {
+                WriteFromQueueFile();
+            }
             Write(nullptr, 0);
         }
     } else {

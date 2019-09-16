@@ -1924,7 +1924,7 @@ SPA::UINT64 CServer::Enqueue(unsigned int qHandle, unsigned short reqId, const u
         queue = it->second;
     }
     bool ok;
-	bool oneonly;
+    bool oneonly;
     {
         qIndex = queue->Enqueue(ReqInfo, buffer, size, oneonly);
         ok = (qIndex != INVALID_NUMBER);

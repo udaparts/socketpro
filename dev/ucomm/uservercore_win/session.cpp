@@ -1293,10 +1293,10 @@ void CServerSession::DropCurrentSlowRequest() {
 }
 
 unsigned int CServerSession::Write(const SPA::CStreamHeader &sh, const unsigned char *s, unsigned int nSize) {
-	SPA::CScopeUQueue sb;
-	sb << sh;
-	sb->Push(s, nSize);
-	return Write(sb->GetBuffer(), sb->GetSize());
+    SPA::CScopeUQueue sb;
+    sb << sh;
+    sb->Push(s, nSize);
+    return Write(sb->GetBuffer(), sb->GetSize());
 }
 
 unsigned int CServerSession::Write(const unsigned char *s, unsigned int nSize) {
@@ -1334,13 +1334,13 @@ unsigned int CServerSession::Write(const unsigned char *s, unsigned int nSize) {
     }
     m_ccb.m_ulSent += ulLen;
     m_bWBLocked = ulLen;
-	if (m_pSspi) {
-		SPA::CScopeUQueue sb;
-		m_pSspi->Encrypt(m_WriteBuffer, ulLen, *sb);
-		m_bWBLocked = ulLen = sb->GetSize();
-		assert(m_bWBLocked <= IO_BUFFER_SIZE + IO_ENCRYPTION_PADDING);
-		::memcpy(m_WriteBuffer, sb->GetBuffer(), ulLen);
-	}
+    if (m_pSspi) {
+        SPA::CScopeUQueue sb;
+        m_pSspi->Encrypt(m_WriteBuffer, ulLen, *sb);
+        m_bWBLocked = ulLen = sb->GetSize();
+        assert(m_bWBLocked <= IO_BUFFER_SIZE + IO_ENCRYPTION_PADDING);
+        ::memcpy(m_WriteBuffer, sb->GetBuffer(), ulLen);
+    }
     m_pSocket->async_write_some(boost::asio::buffer(m_WriteBuffer, ulLen), boost::bind(&CServerSession::OnWriteCompleted, this, nsPlaceHolders::error, nsPlaceHolders::bytes_transferred));
     return nSize;
 }
@@ -3458,28 +3458,28 @@ bool CServerSession::DoHandshake(size_t bytes) {
     switch (m_pSspi->GetHandshakeState()) {
         case SPA::hsStart:
         case SPA::hsShaking:
-		{
-			SPA::CScopeUQueue sb;
-			ok = m_pSspi->DoHandshake(m_ReadBuffer, (unsigned int)bytes, *sb);
-			if (ok) {
-				if (sb->GetSize()) {
-					if (sb->GetSize() > IO_ENCRYPTION_PADDING + IO_BUFFER_SIZE) {
-						m_WriteBuffer = (unsigned char*)::realloc(m_WriteBuffer, sb->GetSize());
-					}
-					::memcpy(m_WriteBuffer, sb->GetBuffer(), sb->GetSize());
-					m_pSocket->async_write_some(boost::asio::buffer(m_WriteBuffer, sb->GetSize()), [this](const CErrorCode &ec, size_t size) {
-						if (ec) {
-							CAutoLock sl(m_mutex);
-							m_ec = ec;
-							CloseInternal();
-						}
-					});
-					if (m_pSspi->GetHandshakeState() != SPA::hsDone) {
-						m_pSocket->async_read_some(boost::asio::buffer(m_ReadBuffer, IO_BUFFER_SIZE), boost::bind(&CServerSession::OnReadCompleted, this, nsPlaceHolders::error, nsPlaceHolders::bytes_transferred));
-					}
-				}
-			}
-		}
+        {
+            SPA::CScopeUQueue sb;
+            ok = m_pSspi->DoHandshake(m_ReadBuffer, (unsigned int) bytes, *sb);
+            if (ok) {
+                if (sb->GetSize()) {
+                    if (sb->GetSize() > IO_ENCRYPTION_PADDING + IO_BUFFER_SIZE) {
+                        m_WriteBuffer = (unsigned char*) ::realloc(m_WriteBuffer, sb->GetSize());
+                    }
+                    ::memcpy(m_WriteBuffer, sb->GetBuffer(), sb->GetSize());
+                    m_pSocket->async_write_some(boost::asio::buffer(m_WriteBuffer, sb->GetSize()), [this](const CErrorCode &ec, size_t size) {
+                        if (ec) {
+                            CAutoLock sl(m_mutex);
+                            m_ec = ec;
+                            CloseInternal();
+                        }
+                    });
+                    if (m_pSspi->GetHandshakeState() != SPA::hsDone) {
+                        m_pSocket->async_read_some(boost::asio::buffer(m_ReadBuffer, IO_BUFFER_SIZE), boost::bind(&CServerSession::OnReadCompleted, this, nsPlaceHolders::error, nsPlaceHolders::bytes_transferred));
+                    }
+                }
+            }
+        }
             break;
         default:
             ok = false;
@@ -3504,8 +3504,8 @@ void CServerSession::OnReadCompleted(const CErrorCode& Error, size_t nLen) {
                         CErrorCode ec;
                         m_cs = csConnected;
                         OnSslHandShake(ec);
-						m_bRBLocked = false;
-						Read();
+                        m_bRBLocked = false;
+                        Read();
                     }
                 } else {
                     PostCloseInternal(m_pSspi->GetLastStatus());
