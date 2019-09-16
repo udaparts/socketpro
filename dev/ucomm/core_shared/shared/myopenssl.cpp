@@ -16,7 +16,6 @@ m_bClient(bClient) {
     if (bClient) {
         ::SSL_set_connect_state(m_pSSL);
     } else {
-        res = ::SSL_accept(m_pSSL);
         ::SSL_set_accept_state(m_pSSL);
     }
     res = SSL_set_mode(m_pSSL, SSL_MODE_AUTO_RETRY);

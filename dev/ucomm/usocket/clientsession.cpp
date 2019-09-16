@@ -32,7 +32,7 @@ unsigned char* CClientSession::GetIoBuffer() {
         }
     }
     if (s == nullptr)
-        s = (unsigned char*) ::malloc(IO_BUFFER_SIZE + 16);
+        s = (unsigned char*) ::malloc(IO_BUFFER_SIZE + 32); //add 32 for encryption
     return s;
 }
 
@@ -668,8 +668,8 @@ bool CClientSession::CommitBatching(bool bBatchingAtServerSide) {
         }
         assert(len == 0);
         if (m_bZip && !bQueue) { //don't support queue when zip is enabled
-            SPA::CScopeUQueue sb;
             if (bQueue) {
+                SPA::CScopeUQueue sb;
                 len = CompressRequestTo(SPA::idBatchZipped, m_zl, pBatch->GetBuffer(), pBatch->GetSize(), *sb);
                 SPA::CStreamHeader *sh = (SPA::CStreamHeader *)sb->GetBuffer();
                 sb->Pop((unsigned int) sizeof (SPA::CStreamHeader));
@@ -685,22 +685,16 @@ bool CClientSession::CommitBatching(bool bBatchingAtServerSide) {
             } else {
                 if (m_qWrite.GetTailSize() < len + sizeof (SPA::CStreamHeader) && m_qWrite.GetHeadPosition() > len + sizeof (SPA::CStreamHeader))
                     m_qWrite.SetHeadPosition();
-                if (!m_pSsl) {
-                    len = CompressRequestTo(SPA::idBatchZipped, m_zl, pBatch->GetBuffer(), pBatch->GetSize(), m_qWrite);
-                    m_qReqIdCancel.Push(m_qWrite.GetBuffer(), sizeof (SPA::CStreamHeader));
-                    Write(nullptr, 0);
-                } else {
-                    len = CompressRequestTo(SPA::idBatchZipped, m_zl, pBatch->GetBuffer(), pBatch->GetSize(), *sb);
-                    m_qReqIdCancel.Push(sb->GetBuffer(), sizeof (SPA::CStreamHeader));
-                    Write(sb->GetBuffer(), sb->GetSize());
-                }
+                len = CompressRequestTo(SPA::idBatchZipped, m_zl, pBatch->GetBuffer(), pBatch->GetSize(), m_qWrite);
+                m_qReqIdCancel.Push(m_qWrite.GetBuffer(), sizeof (SPA::CStreamHeader));
+                Write(nullptr, 0);
             }
         } else {
             if (bQueue && m_ConnState > SPA::ClientSide::csConnected) {
                 m_qRequest->BatchEnqueue(*pBatch);
                 WriteFromQueueFile();
                 Write(nullptr, 0);
-            } else if (m_qWrite.GetSize() == 0 && !m_pSsl) {
+            } else if (m_qWrite.GetSize() == 0) {
                 m_qWrite.Swap(*pBatch);
                 Write(nullptr, 0);
             } else {
@@ -865,10 +859,11 @@ bool CClientSession::SendRequestInternal(CAutoLock &al, unsigned short reqId, co
             } else {
                 m_qReqIdCancel << reqInfo;
                 m_qReqIdWait << reqInfo;
-                Write((const unsigned char*) &reqInfo, sizeof (reqInfo));
+                m_qWrite << reqInfo;
             }
         }
     }
+
     if (bQueue) {
         WriteFromQueueFile();
     }
@@ -904,29 +899,15 @@ void CClientSession::WriteFromQueueFile() {
         sh->SetQueued(true);
         m_qReqIdCancel << *sh;
         m_qReqIdWait << *sh;
-        if (m_pSsl) {
-            SPA::CScopeUQueue sb;
-            sb << *sh;
-            if (records == index + 1) {
-                MQ_FILE::QAttr qa = qattr[index];
-                qa.MessagePos |= MQ_FILE::QAttr::RANGE_DEQUEUED_POSITION_END;
-                sb << qa;
-            } else {
-                sb << qattr[index];
-            }
-            sb->Push(qRequests->GetBuffer(pos + sizeof (SPA::CStreamHeader)), size);
-            Write(sb->GetBuffer(), sb->GetSize());
+        m_qWrite << *sh;
+        if (records == index + 1) {
+            MQ_FILE::QAttr qa = qattr[index];
+            qa.MessagePos |= MQ_FILE::QAttr::RANGE_DEQUEUED_POSITION_END;
+            m_qWrite << qa;
         } else {
-            m_qWrite << *sh;
-            if (records == index + 1) {
-                MQ_FILE::QAttr qa = qattr[index];
-                qa.MessagePos |= MQ_FILE::QAttr::RANGE_DEQUEUED_POSITION_END;
-                m_qWrite << qa;
-            } else {
-                m_qWrite << qattr[index];
-            }
-            m_qWrite.Push(qRequests->GetBuffer(pos + sizeof (SPA::CStreamHeader)), size);
+            m_qWrite << qattr[index];
         }
+        m_qWrite.Push(qRequests->GetBuffer(pos + sizeof (SPA::CStreamHeader)), size);
         pos += total;
         ++index;
     }
@@ -1118,13 +1099,6 @@ void CClientSession::OnConnected(const CErrorCode &ec, CResolver::iterator ep) {
 
 void CClientSession::Write(const SPA::CStreamHeader &sh, const unsigned char *s, unsigned int nSize) {
     if (!s) nSize = 0;
-    if (m_pSsl) {
-        SPA::CScopeUQueue sb;
-        sb << sh;
-        sb->Push(s, nSize);
-        Write(sb->GetBuffer(), sb->GetSize());
-        return;
-    }
     if (m_ConnState < SPA::ClientSide::csConnected)
         return;
     if (m_qWrite.GetTailSize() < (nSize + sizeof (sh)) && m_qWrite.GetHeadPosition() > (nSize + sizeof (sh)))
@@ -1158,7 +1132,15 @@ void CClientSession::Write(const SPA::CStreamHeader &sh, const unsigned char *s,
     }
     m_ulSent += ulLen;
     m_bWBLocked = ulLen;
-    m_pSocket->async_write_some(boost::asio::buffer(m_WriteBuffer, ulLen), boost::bind(&CClientSession::OnWriteCompleted, this, nsPlaceHolders::error, nsPlaceHolders::bytes_transferred));
+    if (m_pSsl) {
+        SPA::CScopeUQueue sb;
+        ulLen = m_pSsl->Encrypt(m_WriteBuffer, ulLen, *sb);
+        m_bWBLocked = ulLen;
+        ::memcpy(m_WriteBuffer, sb->GetBuffer(), ulLen);
+        m_pSocket->async_write_some(boost::asio::buffer(m_WriteBuffer, ulLen), boost::bind(&CClientSession::OnWriteCompleted, this, nsPlaceHolders::error, nsPlaceHolders::bytes_transferred));
+    } else {
+        m_pSocket->async_write_some(boost::asio::buffer(m_WriteBuffer, ulLen), boost::bind(&CClientSession::OnWriteCompleted, this, nsPlaceHolders::error, nsPlaceHolders::bytes_transferred));
+    }
 }
 
 void CClientSession::Write(const unsigned char *s, unsigned int nSize) {
@@ -1167,15 +1149,8 @@ void CClientSession::Write(const unsigned char *s, unsigned int nSize) {
         return;
     if (m_qWrite.GetTailSize() < nSize && nSize < m_qWrite.GetHeadPosition())
         m_qWrite.SetHeadPosition();
-    SPA::CUQueue *q = nullptr;
-    if (m_pSsl && nSize) {
-        q = SPA::CScopeUQueue::Lock();
-        nSize = m_pSsl->Encrypt(s, nSize, *q);
-        s = q->GetBuffer();
-    }
     if (m_bWBLocked) {
         m_qWrite.Push(s, nSize);
-        SPA::CScopeUQueue::Unlock(q);
         return;
     }
     unsigned int ulLen = m_qWrite.GetSize();
@@ -1202,8 +1177,15 @@ void CClientSession::Write(const unsigned char *s, unsigned int nSize) {
     }
     m_ulSent += ulLen;
     m_bWBLocked = ulLen;
-    m_pSocket->async_write_some(boost::asio::buffer(m_WriteBuffer, ulLen), boost::bind(&CClientSession::OnWriteCompleted, this, nsPlaceHolders::error, nsPlaceHolders::bytes_transferred));
-    SPA::CScopeUQueue::Unlock(q);
+    if (m_pSsl) {
+        SPA::CScopeUQueue sb;
+        ulLen = m_pSsl->Encrypt(m_WriteBuffer, ulLen, *sb);
+        m_bWBLocked = ulLen;
+        ::memcpy(m_WriteBuffer, sb->GetBuffer(), ulLen);
+        m_pSocket->async_write_some(boost::asio::buffer(m_WriteBuffer, ulLen), boost::bind(&CClientSession::OnWriteCompleted, this, nsPlaceHolders::error, nsPlaceHolders::bytes_transferred));
+    } else {
+        m_pSocket->async_write_some(boost::asio::buffer(m_WriteBuffer, ulLen), boost::bind(&CClientSession::OnWriteCompleted, this, nsPlaceHolders::error, nsPlaceHolders::bytes_transferred));
+    }
 }
 
 void CClientSession::Read() {
@@ -2606,11 +2588,12 @@ void CClientSession::OnReadCompleted(const CErrorCode& Error, size_t nLen) {
         if (!m_pSsl->Done()) {
             m_tRecv = GetTimeTick();
             SPA::CScopeUQueue sq;
-            bool ok = m_pSsl->DoHandshake(m_ReadBuffer, len, *sq);
-            assert(ok);
-            if (m_pSsl->Done()) {
-                OnSslHandShake(Error);
-            } else if (sq->GetSize()) {
+            if (!m_pSsl->DoHandshake(m_ReadBuffer, len, *sq)) {
+                CAutoLock sl(m_mutex);
+                CloseInternal(1); //SSL_ERROR_SSL, boost::asio::error::get_ssl_category()
+                return;
+            }
+            if (sq->GetSize()) {
                 ::memcpy(m_WriteBuffer, sq->GetBuffer(), sq->GetSize());
                 m_pSocket->async_write_some(boost::asio::buffer(m_WriteBuffer, sq->GetSize()), [this](const CErrorCode &ec, size_t size) {
                     if (ec) {
@@ -2622,6 +2605,9 @@ void CClientSession::OnReadCompleted(const CErrorCode& Error, size_t nLen) {
                     }
                 });
             }
+            if (m_pSsl->Done()) {
+                OnSslHandShake(Error);
+            }
             return;
         } else {
             if (m_ConnState < SPA::ClientSide::csConnected) {
@@ -2629,8 +2615,8 @@ void CClientSession::OnReadCompleted(const CErrorCode& Error, size_t nLen) {
             }
             len = m_pSsl->Decrypt(m_ReadBuffer, len, m_qRead);
             m_ulRead += len;
+            m_bRBLocked = false;
         }
-
     } else {
         if (m_ConnState < SPA::ClientSide::csConnected) {
             return;
@@ -2641,8 +2627,9 @@ void CClientSession::OnReadCompleted(const CErrorCode& Error, size_t nLen) {
                 m_qRead.SetHeadPosition();
             m_qRead.Push(m_ReadBuffer, len);
         }
+        m_bRBLocked = false;
     }
-    m_bRBLocked = false;
+
     CAutoLock sl(m_mutex);
     m_ec = Error;
     m_tRecv = GetTimeTick();
@@ -2852,25 +2839,10 @@ void CClientSession::OnWriteCompleted(const CErrorCode& Error, size_t bytes_tran
         return;
     }
     if (!Error) {
-        assert(m_bWBLocked >= bytes_transferred);
-        bool bQueue = CheckQueueAvailable();
-        if (bQueue && m_ConnState >= SPA::ClientSide::csSwitched) {
-            WriteFromQueueFile();
-        }
         if (m_bWBLocked > bytes_transferred) {
-            //m_bWBLocked -= (unsigned int)bytes_transferred;
             unsigned int ulLen = (unsigned int) (m_bWBLocked - bytes_transferred);
             memmove(m_WriteBuffer, m_WriteBuffer + bytes_transferred, ulLen);
             m_bWBLocked = ulLen;
-            unsigned int max_add = (unsigned int) (IO_BUFFER_SIZE - m_bWBLocked);
-            if (max_add && m_qWrite.GetSize()) {
-                if (max_add > m_qWrite.GetSize()) {
-                    max_add = m_qWrite.GetSize();
-                }
-                m_qWrite.Pop(m_WriteBuffer + ulLen, max_add);
-                ulLen += max_add;
-                m_bWBLocked = ulLen;
-            }
             m_pSocket->async_write_some(boost::asio::buffer(m_WriteBuffer, ulLen), boost::bind(&CClientSession::OnWriteCompleted, this, nsPlaceHolders::error, nsPlaceHolders::bytes_transferred));
         } else {
             m_bWBLocked = 0;

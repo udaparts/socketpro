@@ -90,25 +90,19 @@ int main(int argc, char* argv[]) {
     cc.UserId = L"Nix_SocketPro";
 #endif
     cc.Password = L"MyPassword";
-/*
     TestTOne(cc);
-
     std::cout << "Route number ?" << std::endl;
     std::cin >> route;
-
     if (route % 2)
         TestRoute1(cc);
     else if (route)
         TestRoute0(cc);
-*/
     TestQueue(cc);
-/*
     TestAutoConnecting(cc);
     TestEchoBasic(cc);
     TestEchoSys(cc);
     TestEchoObject(cc);
     TestEchoObjectArray(cc);
-*/
     return 0;
 }
 
