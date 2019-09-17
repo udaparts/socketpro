@@ -1172,7 +1172,7 @@ void CClientSession::OnConnected(const CErrorCode &ec, CResolver::iterator ep) {
         }
     } else {
         OnConnectedInternal(ec.value());
-		Read();
+        Read();
     }
 }
 
@@ -2701,13 +2701,13 @@ void CClientSession::OnReadCompleted(const CErrorCode& Error, size_t nLen) {
         } else {
             SPA::CScopeUQueue sb;
             m_tRecv = GetTimeTick();
-			m_qRead.Push(m_ReadBuffer, len);
+            m_qRead.Push(m_ReadBuffer, len);
             if (!m_pSspi->DoHandshake(m_qRead.GetBuffer(), m_qRead.GetSize(), *sb)) {
                 CloseInternal(m_pSspi->GetLastStatus());
                 return;
             }
             if (sb->GetSize()) {
-				m_qRead.SetSize(0);
+                m_qRead.SetSize(0);
                 if (sb->GetSize() > IO_ENCRYPTION_PADDING + IO_BUFFER_SIZE) {
                     m_WriteBuffer = (unsigned char*) ::realloc(m_WriteBuffer, sb->GetSize());
                 }
@@ -2723,7 +2723,7 @@ void CClientSession::OnReadCompleted(const CErrorCode& Error, size_t nLen) {
                 });
             }
             if (m_pSspi->GetHandshakeState() == SPA::hsDone) {
-				m_qRead.SetSize(0);
+                m_qRead.SetSize(0);
                 g_mutexCvc.lock();
                 PCertificateVerifyCallback cvc = g_cvc;
                 g_mutexCvc.unlock();
@@ -2807,11 +2807,10 @@ void CClientSession::OnReadCompleted(const CErrorCode& Error, size_t nLen) {
                     CloseInternal(ss);
                     return;
                 }
+            } else if (m_pSspi->GetLastStatus() == SEC_E_INCOMPLETE_MESSAGE) {
+                //this is possible when server may transferring multiple certificates for large amount of server hello messages
+                m_pSocket->async_read_some(boost::asio::buffer(m_ReadBuffer, IO_ENCRYPTION_PADDING + IO_BUFFER_SIZE), boost::bind(&CClientSession::OnReadCompleted, this, nsPlaceHolders::error, nsPlaceHolders::bytes_transferred));
             }
-			else if (m_pSspi->GetLastStatus() == SEC_E_INCOMPLETE_MESSAGE) {
-				//this is possible when server may transferring multiple certificates for large amount of server hello messages
-				m_pSocket->async_read_some(boost::asio::buffer(m_ReadBuffer, IO_ENCRYPTION_PADDING + IO_BUFFER_SIZE), boost::bind(&CClientSession::OnReadCompleted, this, nsPlaceHolders::error, nsPlaceHolders::bytes_transferred));
-			}
             return;
         }
     } else {

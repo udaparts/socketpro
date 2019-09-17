@@ -3460,11 +3460,11 @@ bool CServerSession::DoHandshake(size_t bytes) {
         case SPA::hsShaking:
         {
             SPA::CScopeUQueue sb;
-			m_qRead.Push(m_ReadBuffer, (unsigned int)bytes);
+            m_qRead.Push(m_ReadBuffer, (unsigned int) bytes);
             ok = m_pSspi->DoHandshake(m_qRead.GetBuffer(), m_qRead.GetSize(), *sb);
             if (ok) {
                 if (sb->GetSize()) {
-					m_qRead.SetSize(0);
+                    m_qRead.SetSize(0);
                     if (sb->GetSize() > IO_ENCRYPTION_PADDING + IO_BUFFER_SIZE) {
                         m_WriteBuffer = (unsigned char*) ::realloc(m_WriteBuffer, sb->GetSize());
                     }
@@ -3479,15 +3479,12 @@ bool CServerSession::DoHandshake(size_t bytes) {
                     if (m_pSspi->GetHandshakeState() != SPA::hsDone) {
                         m_pSocket->async_read_some(boost::asio::buffer(m_ReadBuffer, IO_ENCRYPTION_PADDING + IO_BUFFER_SIZE), boost::bind(&CServerSession::OnReadCompleted, this, nsPlaceHolders::error, nsPlaceHolders::bytes_transferred));
                     }
+                } else if (m_pSspi->GetLastStatus() == SEC_E_INCOMPLETE_MESSAGE) {
+                    m_pSocket->async_read_some(boost::asio::buffer(m_ReadBuffer, IO_ENCRYPTION_PADDING + IO_BUFFER_SIZE), boost::bind(&CServerSession::OnReadCompleted, this, nsPlaceHolders::error, nsPlaceHolders::bytes_transferred));
                 }
-				else if (m_pSspi->GetLastStatus() == SEC_E_INCOMPLETE_MESSAGE) {
-					//this is possible when server may transferring multiple certificates for large amount of server hello messages
-					m_pSocket->async_read_some(boost::asio::buffer(m_ReadBuffer, IO_ENCRYPTION_PADDING + IO_BUFFER_SIZE), boost::bind(&CServerSession::OnReadCompleted, this, nsPlaceHolders::error, nsPlaceHolders::bytes_transferred));
-				}
+            } else {
+                m_qRead.SetSize(0);
             }
-			else {
-				m_qRead.SetSize(0);
-			}
         }
             break;
         default:
@@ -3507,7 +3504,7 @@ void CServerSession::OnReadCompleted(const CErrorCode& Error, size_t nLen) {
                 m_ccb.RecvTime = (GetTimeTick() - g_pServer->m_tStart);
                 if (DoHandshake(nLen)) {
                     if (m_pSspi->GetHandshakeState() == SPA::hsDone) {
-						m_qRead.SetSize(0);
+                        m_qRead.SetSize(0);
                         if (m_pSspi->GetCertContext()) {
                             m_pCert.reset(new SPA::CCertificateImpl(m_pSspi, ""));
                         }

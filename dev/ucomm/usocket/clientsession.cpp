@@ -2610,6 +2610,7 @@ void CClientSession::OnReadCompleted(const CErrorCode& Error, size_t nLen) {
                     }
                 });
             } else if (!m_pSsl->Done()) {
+                //this is possible when server may transferring multiple certificates for large amount of server hello messages
                 m_pSocket->async_read_some(boost::asio::buffer(m_ReadBuffer, IO_BUFFER_SIZE + IO_ENCRYPTION_PADDING), boost::bind(&CClientSession::OnReadCompleted, this, nsPlaceHolders::error, nsPlaceHolders::bytes_transferred));
             }
             if (m_pSsl->Done()) {
