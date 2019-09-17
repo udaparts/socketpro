@@ -1159,7 +1159,7 @@ void CClientSession::OnConnected(const CErrorCode &ec, CResolver::iterator ep) {
                         OnConnectedInternal(ec.value());
                         CloseInternal(ec.value());
                     } else {
-                        m_pSocket->async_read_some(boost::asio::buffer(m_ReadBuffer, IO_BUFFER_SIZE), boost::bind(&CClientSession::OnReadCompleted, this, nsPlaceHolders::error, nsPlaceHolders::bytes_transferred));
+                        m_pSocket->async_read_some(boost::asio::buffer(m_ReadBuffer, IO_ENCRYPTION_PADDING + IO_BUFFER_SIZE), boost::bind(&CClientSession::OnReadCompleted, this, nsPlaceHolders::error, nsPlaceHolders::bytes_transferred));
                     }
                 });
             } else {
@@ -1172,8 +1172,8 @@ void CClientSession::OnConnected(const CErrorCode &ec, CResolver::iterator ep) {
         }
     } else {
         OnConnectedInternal(ec.value());
+		Read();
     }
-    Read();
 }
 
 void CClientSession::Write(const SPA::CStreamHeader &sh, const unsigned char *s, unsigned int nSize) {
@@ -2701,11 +2701,13 @@ void CClientSession::OnReadCompleted(const CErrorCode& Error, size_t nLen) {
         } else {
             SPA::CScopeUQueue sb;
             m_tRecv = GetTimeTick();
-            if (!m_pSspi->DoHandshake(m_ReadBuffer, len, *sb)) {
+			m_qRead.Push(m_ReadBuffer, len);
+            if (!m_pSspi->DoHandshake(m_qRead.GetBuffer(), m_qRead.GetSize(), *sb)) {
                 CloseInternal(m_pSspi->GetLastStatus());
                 return;
             }
             if (sb->GetSize()) {
+				m_qRead.SetSize(0);
                 if (sb->GetSize() > IO_ENCRYPTION_PADDING + IO_BUFFER_SIZE) {
                     m_WriteBuffer = (unsigned char*) ::realloc(m_WriteBuffer, sb->GetSize());
                 }
@@ -2716,11 +2718,12 @@ void CClientSession::OnReadCompleted(const CErrorCode& Error, size_t nLen) {
                         OnConnectedInternal(ec.value());
                         CloseInternal(ec.value());
                     } else if (m_pSspi->GetHandshakeState() != SPA::hsDone) {
-                        m_pSocket->async_read_some(boost::asio::buffer(m_ReadBuffer, IO_BUFFER_SIZE), boost::bind(&CClientSession::OnReadCompleted, this, nsPlaceHolders::error, nsPlaceHolders::bytes_transferred));
+                        m_pSocket->async_read_some(boost::asio::buffer(m_ReadBuffer, IO_ENCRYPTION_PADDING + IO_BUFFER_SIZE), boost::bind(&CClientSession::OnReadCompleted, this, nsPlaceHolders::error, nsPlaceHolders::bytes_transferred));
                     }
                 });
             }
             if (m_pSspi->GetHandshakeState() == SPA::hsDone) {
+				m_qRead.SetSize(0);
                 g_mutexCvc.lock();
                 PCertificateVerifyCallback cvc = g_cvc;
                 g_mutexCvc.unlock();
@@ -2796,7 +2799,7 @@ void CClientSession::OnReadCompleted(const CErrorCode& Error, size_t nLen) {
                                 OnConnectedInternal(ec.value());
                                 CloseInternal(ec.value());
                             } else if (m_pSspi->GetHandshakeState() != SPA::hsDone) {
-                                m_pSocket->async_read_some(boost::asio::buffer(m_ReadBuffer, IO_BUFFER_SIZE), boost::bind(&CClientSession::OnReadCompleted, this, nsPlaceHolders::error, nsPlaceHolders::bytes_transferred));
+                                m_pSocket->async_read_some(boost::asio::buffer(m_ReadBuffer, IO_ENCRYPTION_PADDING + IO_BUFFER_SIZE), boost::bind(&CClientSession::OnReadCompleted, this, nsPlaceHolders::error, nsPlaceHolders::bytes_transferred));
                             }
                         });
                     }
@@ -2805,6 +2808,10 @@ void CClientSession::OnReadCompleted(const CErrorCode& Error, size_t nLen) {
                     return;
                 }
             }
+			else if (m_pSspi->GetLastStatus() == SEC_E_INCOMPLETE_MESSAGE) {
+				//this is possible when server may transferring multiple certificates for large amount of server hello messages
+				m_pSocket->async_read_some(boost::asio::buffer(m_ReadBuffer, IO_ENCRYPTION_PADDING + IO_BUFFER_SIZE), boost::bind(&CClientSession::OnReadCompleted, this, nsPlaceHolders::error, nsPlaceHolders::bytes_transferred));
+			}
             return;
         }
     } else {
