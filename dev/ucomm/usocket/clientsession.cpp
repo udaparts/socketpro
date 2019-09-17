@@ -339,16 +339,18 @@ bool CClientSession::IsSameThread() {
 
 bool CClientSession::WaitAllInternal(CAutoLock &sl, unsigned int nTimeout) {
     bool b = (m_pQBatch != nullptr || m_ConnState < SPA::ClientSide::csConnected);
-    if (b)
+    if (b) {
         return false;
+    }
     b = (m_qReqIdWait.GetSize() == 0);
     if (b) {
         m_qReqIdCancel.SetSize(0);
         return true;
     }
     if (IsSameThread()) {
-        if (m_bSendWaiting)
+        if (m_bSendWaiting) {
             return false;
+        }
         boost::posix_time::ptime end = boost::posix_time::microsec_clock::local_time() + boost::posix_time::milliseconds(nTimeout);
         do {
             {
@@ -1072,9 +1074,6 @@ void CClientSession::OnConnected(const CErrorCode &ec, CResolver::iterator ep) {
     }
     m_tRecv = GetTimeTick();
     m_tSend = m_tRecv;
-#ifndef NDEBUG
-    std::cout << "TCP connection connected, error code = " << m_ec.value() << std::endl;
-#endif
     if (IsSslEnabled()) {
         m_ConnState = SPA::ClientSide::csSslShaking;
         m_pSsl.reset(new CMyOpenSSL(m_pThread->GetSslContext().native_handle(), true));
@@ -1210,9 +1209,6 @@ void CClientSession::OnSslHandShake(const CErrorCode& ec) {
     m_tRecv = GetTimeTick();
     m_tSend = m_tRecv;
     OnHandleShakeCompleted(ec.value());
-#ifndef NDEBUG
-    std::cout << "SSL/TLS connection connected, error code = " << m_ec.value() << std::endl;
-#endif
     OnConnectedInternal(ec.value());
     if (!ec) {
         Read();
@@ -2478,7 +2474,6 @@ void CClientSession::OnRequestProcessed(unsigned short nRequestId, unsigned int 
 }
 
 void CClientSession::SetPeerDequeueFailed(bool fail) {
-
     m_mutex.lock();
     m_bFail = fail;
     m_mutex.unlock();
@@ -2486,13 +2481,11 @@ void CClientSession::SetPeerDequeueFailed(bool fail) {
 
 bool CClientSession::GetPeerDequeueFailed() {
     CAutoLock al(m_mutex);
-
     return m_bFail;
 }
 
 bool CClientSession::IsRouteeRequest() {
     CAutoLock al(m_mutex);
-
     return (m_RouterHandle > 0);
 }
 
@@ -2803,8 +2796,9 @@ void CClientSession::OnReadCompleted(const CErrorCode& Error, size_t nLen) {
             if (m_qConfirm.GetSize() > 0 && m_qRequest) {
                 DoConfirmDequeue();
             }
-            if (m_bWaiting)
+            if (m_bWaiting) {
                 m_cv.notify_all();
+            }
         }
     }
 }
