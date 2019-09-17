@@ -247,8 +247,9 @@ unsigned int CClientThread::GetLocked() {
     for (CMapClientSession::iterator it = m_mapClientSession.begin(), end = m_mapClientSession.end(); it != end; ++it) {
         if (it->first->IsOpened()) {
             CAutoLock alml(m_ml);
-            if (it->second.Locked)
+            if (it->second.Locked) {
                 ++data;
+            }
         }
     }
     return data;
@@ -318,10 +319,11 @@ bool CClientThread::SortUnlocked(const CSessionState &p0, const CSessionState &p
         p1_count = (~0);
     } else {
         MQ_FILE::CFilePtr q = p1.first->GetQueue();
-        if (q)
+        if (q) {
             p1_count = q->GetMessageCount();
-        else
+        } else {
             p1_count = p0.first->GetCountOfRequestsInQueue();
+        }
     }
     return (p0_count < p1_count);
 }
@@ -339,8 +341,9 @@ CClientSessionPtr CClientThread::Lock() {
                     m_spc(m_pSocketPool->GetPoolId(), SPA::ClientSide::speLocked, it->first.get());
                 }
                 return it->first;
-            } else
+            } else {
                 m_ml.unlock();
+            }
         } else {
             m_ml.lock();
             it->second.Locked = false;

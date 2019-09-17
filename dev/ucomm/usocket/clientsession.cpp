@@ -1192,9 +1192,9 @@ void CClientSession::Read() {
 
 void CClientSession::OnHandleShakeCompleted(int errCode) {
     bool chatting = false;
-    CRAutoLock sl(m_mutex, chatting);
     POnHandShakeCompleted p = m_OnHandShakeCompleted;
     PSocketPoolCallback spc = m_pThread->GetSocketPoolCallback();
+    CRAutoLock sl(m_mutex, chatting);
     if (p != nullptr) {
         p(this, errCode);
     }
