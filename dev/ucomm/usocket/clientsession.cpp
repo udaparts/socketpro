@@ -2856,6 +2856,10 @@ void CClientSession::OnWriteCompleted(const CErrorCode& Error, size_t bytes_tran
             m_pSocket->async_write_some(boost::asio::buffer(m_WriteBuffer, ulLen), boost::bind(&CClientSession::OnWriteCompleted, this, nsPlaceHolders::error, nsPlaceHolders::bytes_transferred));
         } else {
             m_bWBLocked = 0;
+            bool bQueue = CheckQueueAvailable();
+            if (bQueue && m_ConnState >= SPA::ClientSide::csSwitched) {
+                WriteFromQueueFile();
+            }
             Write(nullptr, 0);
         }
     } else {
@@ -2876,7 +2880,6 @@ bool CClientSession::SetSockOpt(SPA::tagSocketOption optName, int optValue, SPA:
     if (m_ConnState < SPA::ClientSide::csConnected)
         return false;
     int res = ::setsockopt(GetSocket()->native_handle(), lvl, name, (const char*) &optValue, sizeof (optValue));
-
     return (res == 0);
 }
 
@@ -2884,7 +2887,6 @@ bool CClientSession::SetSockOptAtSvr(SPA::tagSocketOption optName, int optValue,
     SPA::CScopeUQueue su;
     su << (int) optName << optValue << (int) level;
     CAutoLock sl(m_mutex);
-
     return SendRequestInternal(sl, SPA::idSetSockOptAtSvr, su->GetBuffer(), su->GetSize());
 }
 
