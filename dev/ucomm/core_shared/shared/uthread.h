@@ -63,7 +63,7 @@ namespace SPA {
     private:
         CUCommThread(const CUCommThread &t);
         CUCommThread& operator=(const CUCommThread &t);
-        void Call(const CErrorCode &ec);
+        void Call();
 
     protected:
 #ifndef WINCE

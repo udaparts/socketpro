@@ -3488,9 +3488,11 @@ void CServerSession::OnReadCompleted(const CErrorCode& Error, size_t nLen) {
                                 m_ec = ec;
                                 CloseInternal();
                             } else if (!m_pSsl->Done()) {
-                                m_pSocket->async_read_some(boost::asio::buffer(m_ReadBuffer, IO_BUFFER_SIZE), boost::bind(&CServerSession::OnReadCompleted, this, nsPlaceHolders::error, nsPlaceHolders::bytes_transferred));
+                                m_pSocket->async_read_some(boost::asio::buffer(m_ReadBuffer, IO_ENCRYPTION_PADDING + IO_BUFFER_SIZE), boost::bind(&CServerSession::OnReadCompleted, this, nsPlaceHolders::error, nsPlaceHolders::bytes_transferred));
                             }
                         });
+                    } else if (!m_pSsl->Done()) {
+                        m_pSocket->async_read_some(boost::asio::buffer(m_ReadBuffer, IO_ENCRYPTION_PADDING + IO_BUFFER_SIZE), boost::bind(&CServerSession::OnReadCompleted, this, nsPlaceHolders::error, nsPlaceHolders::bytes_transferred));
                     }
                     if (m_pSsl->Done()) {
                         CErrorCode ec;

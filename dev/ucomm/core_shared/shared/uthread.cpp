@@ -11,12 +11,13 @@
 
 #endif
 
-namespace SPA {
+namespace SPA
+{
 
     //CIoService CUCommThread::m_io;
 
     CUCommThread::CUCommThread(tagThreadApartment ta)
-    : m_ta(ta), m_pThread(nullptr) {
+            : m_ta(ta), m_pThread(nullptr) {
 
     }
 
@@ -47,7 +48,7 @@ namespace SPA {
         return m_io;
     }
 
-    void CUCommThread::Call(const CErrorCode & ec) {
+    void CUCommThread::Call() {
 #ifdef WINCE
         bool ok = (CoInitializeEx(nullptr, COINIT_MULTITHREADED) == S_OK);
 #elif defined(WIN32_64)
@@ -62,20 +63,30 @@ namespace SPA {
 #endif
         OnThreadStarted();
         m_cv.notify_all();
-        try {
-            m_io.run(m_ec);
+        try{
+            m_io.run();
 #ifndef NDEBUG
-        } catch (boost::system::system_error & err) {
+        }
+
+        catch(boost::system::system_error & err) {
             std::cout << "boost::system_error " << err.what() << ", " << __FUNCTION__ << std::endl;
-        } catch (SPA::CUException & err) {
+        }
+
+        catch(SPA::CUException & err) {
             std::cout << "SPA::CUException " << err.what() << ", " << __FUNCTION__ << std::endl;
-        } catch (std::exception & err) {
+        }
+
+        catch(std::exception & err) {
             std::cout << "std::exception " << err.what() << ", " << __FUNCTION__ << std::endl;
-        } catch (...) {
+        }
+
+        catch(...) {
             std::cout << "Unknown exception " << ", " << __FUNCTION__ << std::endl;
         }
 #else
-        } catch (...) {
+        }
+
+        catch(...) {
         }
 #endif
 
@@ -90,8 +101,8 @@ namespace SPA {
         CAutoLock sl(m_mutex);
         if (m_pThread != nullptr)
             return true;
-        m_pThread = new thread(boost::bind(&CIoService::run, &m_io, m_ec));
-        m_io.post(boost::bind(&CUCommThread::Call, this, m_ec));
+        m_pThread = new thread(boost::bind(&CIoService::run, &m_io));
+        m_io.post(boost::bind(&CUCommThread::Call, this));
 #ifndef WINCE
         m_cv.wait_for(sl, std::chrono::milliseconds(500));
 #else

@@ -1086,7 +1086,7 @@ void CClientSession::OnConnected(const CErrorCode &ec, CResolver::iterator ep) {
                 OnConnectedInternal(ec.value());
                 CloseInternal(ec.value());
             } else {
-                m_pSocket->async_read_some(boost::asio::buffer(m_ReadBuffer, IO_BUFFER_SIZE), boost::bind(&CClientSession::OnReadCompleted, this, nsPlaceHolders::error, nsPlaceHolders::bytes_transferred));
+                m_pSocket->async_read_some(boost::asio::buffer(m_ReadBuffer, IO_BUFFER_SIZE + IO_ENCRYPTION_PADDING), boost::bind(&CClientSession::OnReadCompleted, this, nsPlaceHolders::error, nsPlaceHolders::bytes_transferred));
             }
         });
     } else {
@@ -1315,7 +1315,14 @@ void CClientSession::OnPostProcessing(unsigned int hint, SPA::UINT64 data) {
 }
 
 void CClientSession::PostProcessing(unsigned int hint, SPA::UINT64 data) {
-    m_pIoService->post(boost::bind(&CClientSession::OnPostProcessing, this, hint, data));
+    m_pIoService->post([hint, data, this]() {
+        m_mutex.lock();
+        POnPostProcessing pp = m_OnPostProcessing;
+                m_mutex.unlock();
+        if (pp) {
+            pp(this, hint, data);
+        }
+    });
 }
 
 SPA::tagOperationSystem CClientSession::GetPeerOs(bool *endian) {
@@ -2599,9 +2606,11 @@ void CClientSession::OnReadCompleted(const CErrorCode& Error, size_t nLen) {
                         OnConnectedInternal(ec.value());
                         CloseInternal(ec.value());
                     } else if (!m_pSsl->Done()) {
-                        m_pSocket->async_read_some(boost::asio::buffer(m_ReadBuffer, IO_BUFFER_SIZE), boost::bind(&CClientSession::OnReadCompleted, this, nsPlaceHolders::error, nsPlaceHolders::bytes_transferred));
+                        m_pSocket->async_read_some(boost::asio::buffer(m_ReadBuffer, IO_BUFFER_SIZE + IO_ENCRYPTION_PADDING), boost::bind(&CClientSession::OnReadCompleted, this, nsPlaceHolders::error, nsPlaceHolders::bytes_transferred));
                     }
                 });
+            } else if (!m_pSsl->Done()) {
+                m_pSocket->async_read_some(boost::asio::buffer(m_ReadBuffer, IO_BUFFER_SIZE + IO_ENCRYPTION_PADDING), boost::bind(&CClientSession::OnReadCompleted, this, nsPlaceHolders::error, nsPlaceHolders::bytes_transferred));
             }
             if (m_pSsl->Done()) {
                 OnSslHandShake(Error);
