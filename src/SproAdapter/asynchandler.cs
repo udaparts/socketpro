@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Concurrent;
 #if TASKS_ENABLED
 using System.Threading.Tasks;
 #endif
@@ -373,7 +372,6 @@ namespace SocketProAdapter
                     {
                         rcb.ExceptionFromServer.Invoke(this, reqId, errMessage, errWhere, errCode);
                     }
-                    m_vRR.Enqueue(p);
                 }
                 lock (m_cs)
                 {
@@ -389,10 +387,6 @@ namespace SocketProAdapter
             internal void onRR(ushort reqId, CUQueue mc)
             {
                 MyKeyValue<ushort, CResultCb> p = GetAsyncResultHandler(reqId);
-                if (null != p)
-                {
-                    m_vRR.Enqueue(p);
-                }
                 do
                 {
                     if (p != null && p.Value != null && p.Value.AsyncResultHandler != null)
@@ -2057,20 +2051,11 @@ namespace SocketProAdapter
                     len = (uint)data.Length;
                 if (ash != null || discarded != null || exception != null)
                 {
-                    CResultCb rcb;
-                    if (!m_vRR.TryDequeue(out kv))
-                    {
-                        rcb = new CResultCb();
-                        kv = new MyKeyValue<ushort, CResultCb>(reqId, rcb);
-                    }
-                    else
-                    {
-                        kv.Key = reqId;
-                        rcb = kv.Value;
-                    }
+                    CResultCb rcb = new CResultCb();
                     rcb.AsyncResultHandler = ash;
                     rcb.Discarded = discarded;
                     rcb.ExceptionFromServer = exception;
+                    kv = new MyKeyValue<ushort, CResultCb>(reqId, rcb);
                     batching = ClientCoreLoader.IsBatching(h);
                     lock (m_csSend)
                     {
@@ -2416,8 +2401,6 @@ namespace SocketProAdapter
                 public K Key;
                 public V Value;
             }
-
-            private static ConcurrentQueue<MyKeyValue<ushort, CResultCb>> m_vRR = new ConcurrentQueue<MyKeyValue<ushort, CResultCb>>();
 
             private Deque<MyKeyValue<ushort, CResultCb>> m_kvCallback = new Deque<MyKeyValue<ushort, CResultCb>>();
             private Deque<MyKeyValue<ushort, CResultCb>> m_kvBatching = new Deque<MyKeyValue<ushort, CResultCb>>();
