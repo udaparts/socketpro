@@ -355,7 +355,7 @@ namespace SPA {
                     sb << m_strConnection << m_flags;
                 }
                 sb << callIndex << vPInfo;
-                ResultHandler arh = [callIndex, handler, this](CAsyncResult & ar) {
+                DResultHandler arh = [callIndex, handler, this](CAsyncResult & ar) {
                     this->Process(handler, ar, idExecuteBatch, callIndex);
                 };
                 if (!SendRequest(idExecuteBatch, sb->GetBuffer(), sb->GetSize(), arh, discarded, nullptr)) {
@@ -418,7 +418,7 @@ namespace SPA {
 #endif
                 }
                 sb << callIndex;
-                ResultHandler arh = [callIndex, handler, this](CAsyncResult & ar) {
+                DResultHandler arh = [callIndex, handler, this](CAsyncResult & ar) {
                     this->Process(handler, ar, idExecuteParameters, callIndex);
                 };
                 if (!SendRequest(idExecuteParameters, sb->GetBuffer(), sb->GetSize(), arh, discarded, nullptr)) {
@@ -464,7 +464,7 @@ namespace SPA {
                     }
                 }
                 sb << sql << rowset << meta << lastInsertId << index;
-                ResultHandler arh = [index, handler, this](CAsyncResult & ar) {
+                DResultHandler arh = [index, handler, this](CAsyncResult & ar) {
                     this->Process(handler, ar, idExecute, index);
                 };
                 if (!SendRequest(idExecute, sb->GetBuffer(), sb->GetSize(), arh, discarded, nullptr)) {
@@ -497,7 +497,7 @@ namespace SPA {
                     }
                 }
                 sb << strConnection << flags;
-                ResultHandler arh = [handler](CAsyncResult & ar) {
+                DResultHandler arh = [handler](CAsyncResult & ar) {
                     int res, ms;
                     std::wstring errMsg;
                     ar >> res >> errMsg >> ms;
@@ -540,7 +540,7 @@ namespace SPA {
              */
             virtual bool Prepare(const wchar_t *sql, const DResult& handler = nullptr, const CParameterInfoArray& vParameterInfo = CParameterInfoArray(), const DDiscarded& discarded = nullptr) {
                 CScopeUQueue sb;
-                ResultHandler arh = [handler](CAsyncResult & ar) {
+                DResultHandler arh = [handler](CAsyncResult & ar) {
                     int res;
                     std::wstring errMsg;
                     unsigned int parameters;
@@ -570,7 +570,7 @@ namespace SPA {
              * @return true if request is successfully sent or queued; and false if request is NOT successfully sent or queued
              */
             virtual bool Close(DResult handler = nullptr, const DDiscarded& discarded = nullptr) {
-                ResultHandler arh = [handler](CAsyncResult & ar) {
+                DResultHandler arh = [handler](CAsyncResult & ar) {
                     int res;
                     std::wstring errMsg;
                     ar >> res >> errMsg;
@@ -599,7 +599,7 @@ namespace SPA {
                 unsigned int flags;
                 std::wstring connection;
                 CScopeUQueue sb;
-                ResultHandler arh = [handler](CAsyncResult & ar) {
+                DResultHandler arh = [handler](CAsyncResult & ar) {
                     int res, ms;
                     std::wstring errMsg;
                     ar >> res >> errMsg >> ms;
@@ -647,7 +647,7 @@ namespace SPA {
             virtual bool EndTrans(tagRollbackPlan plan = rpDefault, const DResult& handler = nullptr, const DDiscarded& discarded = nullptr) {
                 CScopeUQueue sb;
                 sb << (int) plan;
-                ResultHandler arh = [handler](CAsyncResult & ar) {
+                DResultHandler arh = [handler](CAsyncResult & ar) {
                     int res;
                     std::wstring errMsg;
                     ar >> res >> errMsg;

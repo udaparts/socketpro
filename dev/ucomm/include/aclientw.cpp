@@ -250,7 +250,7 @@ namespace SPA
             return false;
         }
 
-        bool CAsyncServiceHandler::SendRequest(unsigned short reqId, const unsigned char *pBuffer, unsigned int size, const ResultHandler& rh, const DDiscarded& discarded, const DServerException & serverException) {
+        bool CAsyncServiceHandler::SendRequest(unsigned short reqId, const unsigned char *pBuffer, unsigned int size, const DResultHandler& rh, const DDiscarded& discarded, const DServerException & serverException) {
             PRR_PAIR p = nullptr;
             bool batching = false;
             bool sent = false;
@@ -330,7 +330,7 @@ namespace SPA
             m_vCallback.SetSize(m_vCallback.GetSize() - count * sizeof (PRR_PAIR));
         }
 
-        bool CAsyncServiceHandler::SendRequest(unsigned short reqId, const ResultHandler& rh, const DDiscarded& discarded, const DServerException & se) {
+        bool CAsyncServiceHandler::SendRequest(unsigned short reqId, const DResultHandler& rh, const DDiscarded& discarded, const DServerException & se) {
             return SendRequest(reqId, (const unsigned char *) nullptr, (unsigned int) 0, rh, discarded, se);
         }
 
