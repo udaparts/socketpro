@@ -97,12 +97,12 @@ namespace SPA {
         typedef std::function<void(CAsyncResult&) > DResultHandler;
         typedef DResultHandler ResultHandler;
 
-        const static ResultHandler NULL_RH;
+        const static DResultHandler NULL_RH;
 
         class CAsyncResult {
         private:
 
-            CAsyncResult(CAsyncServiceHandler *pAsyncServiceHandler, unsigned short ReqId, CUQueue &q, ResultHandler & rh)
+            CAsyncResult(CAsyncServiceHandler *pAsyncServiceHandler, unsigned short ReqId, CUQueue &q, DResultHandler & rh)
             : AsyncServiceHandler(pAsyncServiceHandler), RequestId(ReqId), UQueue(q), CurrentAsyncResultHandler(rh) {
             }
 
@@ -118,7 +118,7 @@ namespace SPA {
             CAsyncServiceHandler *AsyncServiceHandler;
             unsigned short RequestId;
             CUQueue &UQueue;
-            ResultHandler &CurrentAsyncResultHandler;
+            DResultHandler &CurrentAsyncResultHandler;
 
         private:
             CAsyncResult(const CAsyncResult & ar);
@@ -798,7 +798,7 @@ namespace SPA {
 
             struct CResultCb {
 
-                CResultCb(const ResultHandler &rh, const DDiscarded& discarded, const DServerException &exceptionFromServer)
+                CResultCb(const DResultHandler &rh, const DDiscarded& discarded, const DServerException &exceptionFromServer)
                 : AsyncResultHandler(rh), Discarded(discarded), ExceptionFromServer(exceptionFromServer) {
                 }
 
@@ -806,7 +806,7 @@ namespace SPA {
                 CResultCb(const CResultCb &rcb);
                 CResultCb& operator=(const CResultCb &rcb);
 
-                ResultHandler AsyncResultHandler;
+                DResultHandler AsyncResultHandler;
                 DDiscarded Discarded;
                 DServerException ExceptionFromServer;
             };
@@ -843,8 +843,8 @@ namespace SPA {
                 return m_nServiceId;
             }
             void SetSvsID(unsigned int serviceId);
-            virtual bool SendRequest(unsigned short reqId, const unsigned char *pBuffer, unsigned int size, const ResultHandler& rh, const DDiscarded& discarded = nullptr, const DServerException& serverException = nullptr);
-            bool SendRequest(unsigned short reqId, const ResultHandler& rh, const DDiscarded& discarded = nullptr, const DServerException& se = nullptr);
+            virtual bool SendRequest(unsigned short reqId, const unsigned char *pBuffer, unsigned int size, const DResultHandler& rh, const DDiscarded& discarded = nullptr, const DServerException& serverException = nullptr);
+            bool SendRequest(unsigned short reqId, const DResultHandler& rh, const DDiscarded& discarded = nullptr, const DServerException& se = nullptr);
 
             inline CClientSocket *GetAttachedClientSocket() {
                 return m_pClientSocket;
@@ -1329,70 +1329,70 @@ namespace SPA {
             }
 
             template<typename T0>
-            bool SendRequest(unsigned short reqId, const T0 &t0, const ResultHandler &rh, DDiscarded discarded = nullptr, DServerException se = nullptr) {
+            bool SendRequest(unsigned short reqId, const T0 &t0, const DResultHandler &rh, DDiscarded discarded = nullptr, DServerException se = nullptr) {
                 CScopeUQueue sb;
                 sb << t0;
                 return SendRequest(reqId, sb->GetBuffer(), sb->GetSize(), rh, discarded, se);
             }
 
             template<typename T0, typename T1>
-            bool SendRequest(unsigned short reqId, const T0 &t0, const T1 &t1, const ResultHandler &rh, DDiscarded discarded = nullptr, DServerException se = nullptr) {
+            bool SendRequest(unsigned short reqId, const T0 &t0, const T1 &t1, const DResultHandler &rh, DDiscarded discarded = nullptr, DServerException se = nullptr) {
                 CScopeUQueue sb;
                 sb << t0 << t1;
                 return SendRequest(reqId, sb->GetBuffer(), sb->GetSize(), rh, discarded, se);
             }
 
             template<typename T0, typename T1, typename T2>
-            bool SendRequest(unsigned short reqId, const T0 &t0, const T1 &t1, const T2 &t2, const ResultHandler &rh, DDiscarded discarded = nullptr, DServerException se = nullptr) {
+            bool SendRequest(unsigned short reqId, const T0 &t0, const T1 &t1, const T2 &t2, const DResultHandler &rh, DDiscarded discarded = nullptr, DServerException se = nullptr) {
                 CScopeUQueue sb;
                 sb << t0 << t1 << t2;
                 return SendRequest(reqId, sb->GetBuffer(), sb->GetSize(), rh, discarded, se);
             }
 
             template<typename T0, typename T1, typename T2, typename T3>
-            bool SendRequest(unsigned short reqId, const T0 &t0, const T1 &t1, const T2 &t2, const T3 &t3, const ResultHandler &rh, DDiscarded discarded = nullptr, DServerException se = nullptr) {
+            bool SendRequest(unsigned short reqId, const T0 &t0, const T1 &t1, const T2 &t2, const T3 &t3, const DResultHandler &rh, DDiscarded discarded = nullptr, DServerException se = nullptr) {
                 CScopeUQueue sb;
                 sb << t0 << t1 << t2 << t3;
                 return SendRequest(reqId, sb->GetBuffer(), sb->GetSize(), rh, discarded, se);
             }
 
             template<typename T0, typename T1, typename T2, typename T3, typename T4>
-            bool SendRequest(unsigned short reqId, const T0 &t0, const T1 &t1, const T2 &t2, const T3 &t3, const T4 &t4, const ResultHandler &rh, DDiscarded discarded = nullptr, DServerException se = nullptr) {
+            bool SendRequest(unsigned short reqId, const T0 &t0, const T1 &t1, const T2 &t2, const T3 &t3, const T4 &t4, const DResultHandler &rh, DDiscarded discarded = nullptr, DServerException se = nullptr) {
                 CScopeUQueue sb;
                 sb << t0 << t1 << t2 << t3 << t4;
                 return SendRequest(reqId, sb->GetBuffer(), sb->GetSize(), rh, discarded, se);
             }
 
             template<typename T0, typename T1, typename T2, typename T3, typename T4, typename T5>
-            bool SendRequest(unsigned short reqId, const T0 &t0, const T1 &t1, const T2 &t2, const T3 &t3, const T4 &t4, const T5 &t5, const ResultHandler &rh, DDiscarded discarded = nullptr, DServerException se = nullptr) {
+            bool SendRequest(unsigned short reqId, const T0 &t0, const T1 &t1, const T2 &t2, const T3 &t3, const T4 &t4, const T5 &t5, const DResultHandler &rh, DDiscarded discarded = nullptr, DServerException se = nullptr) {
                 CScopeUQueue sb;
                 sb << t0 << t1 << t2 << t3 << t4 << t5;
                 return SendRequest(reqId, sb->GetBuffer(), sb->GetSize(), rh, discarded, se);
             }
 
             template<typename T0, typename T1, typename T2, typename T3, typename T4, typename T5, typename T6>
-            bool SendRequest(unsigned short reqId, const T0 &t0, const T1 &t1, const T2 &t2, const T3 &t3, const T4 &t4, const T5 &t5, const T6 &t6, const ResultHandler &rh, DDiscarded discarded = nullptr, DServerException se = nullptr) {
+            bool SendRequest(unsigned short reqId, const T0 &t0, const T1 &t1, const T2 &t2, const T3 &t3, const T4 &t4, const T5 &t5, const T6 &t6, const DResultHandler &rh, DDiscarded discarded = nullptr, DServerException se = nullptr) {
                 CScopeUQueue sb;
                 sb << t0 << t1 << t2 << t3 << t4 << t5 << t6;
                 return SendRequest(reqId, sb->GetBuffer(), sb->GetSize(), rh, discarded, se);
             }
 
             template<typename T0, typename T1, typename T2, typename T3, typename T4, typename T5, typename T6, typename T7>
-            bool SendRequest(unsigned short reqId, const T0 &t0, const T1 &t1, const T2 &t2, const T3 &t3, const T4 &t4, const T5 &t5, const T6 &t6, const T7 &t7, const ResultHandler &rh, DDiscarded discarded = nullptr, DServerException se = nullptr) {
+            bool SendRequest(unsigned short reqId, const T0 &t0, const T1 &t1, const T2 &t2, const T3 &t3, const T4 &t4, const T5 &t5, const T6 &t6, const T7 &t7, const DResultHandler &rh, DDiscarded discarded = nullptr, DServerException se = nullptr) {
                 CScopeUQueue sb;
                 sb << t0 << t1 << t2 << t3 << t4 << t5 << t6 << t7;
                 return SendRequest(reqId, sb->GetBuffer(), sb->GetSize(), rh, discarded, se);
             }
 
             template<typename T0, typename T1, typename T2, typename T3, typename T4, typename T5, typename T6, typename T7, typename T8>
-            bool SendRequest(unsigned short reqId, const T0 &t0, const T1 &t1, const T2 &t2, const T3 &t3, const T4 &t4, const T5 &t5, const T6 &t6, const T7 &t7, const T8 &t8, const ResultHandler &rh, DDiscarded discarded = nullptr, DServerException se = nullptr) {
+            bool SendRequest(unsigned short reqId, const T0 &t0, const T1 &t1, const T2 &t2, const T3 &t3, const T4 &t4, const T5 &t5, const T6 &t6, const T7 &t7, const T8 &t8, const DResultHandler &rh, DDiscarded discarded = nullptr, DServerException se = nullptr) {
                 CScopeUQueue sb;
                 sb << t0 << t1 << t2 << t3 << t4 << t5 << t6 << t7 << t8;
                 return SendRequest(reqId, sb->GetBuffer(), sb->GetSize(), rh, discarded, se);
             }
 
             template<typename T0, typename T1, typename T2, typename T3, typename T4, typename T5, typename T6, typename T7, typename T8, typename T9>
-            bool SendRequest(unsigned short reqId, const T0 &t0, const T1 &t1, const T2 &t2, const T3 &t3, const T4 &t4, const T5 &t5, const T6 &t6, const T7 &t7, const T8 &t8, const T9 &t9, const ResultHandler &rh, DDiscarded discarded = nullptr, DServerException se = nullptr) {
+            bool SendRequest(unsigned short reqId, const T0 &t0, const T1 &t1, const T2 &t2, const T3 &t3, const T4 &t4, const T5 &t5, const T6 &t6, const T7 &t7, const T8 &t8, const T9 &t9, const DResultHandler &rh, DDiscarded discarded = nullptr, DServerException se = nullptr) {
                 CScopeUQueue sb;
                 sb << t0 << t1 << t2 << t3 << t4 << t5 << t6 << t7 << t8 << t9;
                 return SendRequest(reqId, sb->GetBuffer(), sb->GetSize(), rh, discarded, se);
@@ -1425,7 +1425,7 @@ namespace SPA {
                     } catch (...) {
                     }
                 };
-                ResultHandler rh = [prom](CAsyncResult & ar) {
+                DResultHandler rh = [prom](CAsyncResult & ar) {
                     prom->set_value();
                 };
                 if (!SendRequest(reqId, pBuffer, size, rh, discarded, se)) {
@@ -1533,7 +1533,7 @@ namespace SPA {
                     } catch (...) {
                     }
                 };
-                ResultHandler rh = [prom](CAsyncResult & ar) {
+                DResultHandler rh = [prom](CAsyncResult & ar) {
                     try {
                         R r;
                         ar >> r;
@@ -1632,7 +1632,7 @@ namespace SPA {
 
             bool P(unsigned short reqId, const CUQueue &qSender) {
                 bool ok = true;
-                ResultHandler rh = [](CAsyncResult & ar) {
+                DResultHandler rh = [](CAsyncResult & ar) {
                 };
                 DDiscarded discarded = [&ok](CAsyncServiceHandler *h, bool canceled) {
                     ok = false;
@@ -1646,7 +1646,7 @@ namespace SPA {
             template<typename R0>
             bool P(unsigned short reqId, const CUQueue &qSender, R0 &r0) {
                 bool ok = true;
-                ResultHandler rh = [&r0](CAsyncResult & ar) {
+                DResultHandler rh = [&r0](CAsyncResult & ar) {
                     ar >> r0;
                 };
                 DDiscarded discarded = [&ok](CAsyncServiceHandler *h, bool canceled) {
@@ -1661,7 +1661,7 @@ namespace SPA {
             template<typename R0, typename R1>
             bool P(unsigned short reqId, const CUQueue &qSender, R0 &r0, R1 &r1) {
                 bool ok = true;
-                ResultHandler rh = [&r0, &r1](CAsyncResult & ar) {
+                DResultHandler rh = [&r0, &r1](CAsyncResult & ar) {
                     ar >> r0 >> r1;
                 };
                 DDiscarded discarded = [&ok](CAsyncServiceHandler *h, bool canceled) {
@@ -1676,7 +1676,7 @@ namespace SPA {
             template<typename R0, typename R1, typename R2>
             bool P(unsigned short reqId, const CUQueue &qSender, R0 &r0, R1 &r1, R2 &r2) {
                 bool ok = true;
-                ResultHandler rh = [&r0, &r1, &r2](CAsyncResult & ar) {
+                DResultHandler rh = [&r0, &r1, &r2](CAsyncResult & ar) {
                     ar >> r0 >> r1 >> r2;
                 };
                 DDiscarded discarded = [&ok](CAsyncServiceHandler *h, bool canceled) {
@@ -1691,7 +1691,7 @@ namespace SPA {
             template<typename R0, typename R1, typename R2, typename R3>
             bool P(unsigned short reqId, const CUQueue &qSender, R0 &r0, R1 &r1, R2 &r2, R3 &r3) {
                 bool ok = true;
-                ResultHandler rh = [&r0, &r1, &r2, &r3](CAsyncResult & ar) {
+                DResultHandler rh = [&r0, &r1, &r2, &r3](CAsyncResult & ar) {
                     ar >> r0 >> r1 >> r2 >> r3;
                 };
                 DDiscarded discarded = [&ok](CAsyncServiceHandler *h, bool canceled) {
@@ -1706,7 +1706,7 @@ namespace SPA {
             template<typename R0, typename R1, typename R2, typename R3, typename R4>
             bool P(unsigned short reqId, const CUQueue &qSender, R0 &r0, R1 &r1, R2 &r2, R3 &r3, R4 &r4) {
                 bool ok = true;
-                ResultHandler rh = [&r0, &r1, &r2, &r3, &r4](CAsyncResult & ar) {
+                DResultHandler rh = [&r0, &r1, &r2, &r3, &r4](CAsyncResult & ar) {
                     ar >> r0 >> r1 >> r2 >> r3 >> r4;
                 };
                 DDiscarded discarded = [&ok](CAsyncServiceHandler *h, bool canceled) {
@@ -2669,7 +2669,7 @@ namespace SPA {
             }
 
             virtual bool Send(unsigned short reqId, const unsigned char *buffer, unsigned int len) const {
-                ResultHandler rh;
+                DResultHandler rh;
                 PHandler src = GetSourceHandler();
                 if (!src)
                     return false;

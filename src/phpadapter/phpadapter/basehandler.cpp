@@ -99,7 +99,7 @@ namespace PA
         unsigned int timeout = (~0);
         bool sync = false;
         size_t args = params.size();
-        SPA::ClientSide::ResultHandler rh;
+        SPA::ClientSide::DResultHandler rh;
         std::shared_ptr<CPhpBuffer> buffer;
         if (args > 2) {
             const Php::Value &phpRh = params[2];

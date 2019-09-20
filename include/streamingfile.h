@@ -184,7 +184,7 @@ namespace SPA {
         protected:
 
             virtual void OnPostProcessing(unsigned int hint, UINT64 data) {
-                ResultHandler rh;
+                DResultHandler rh;
                 DServerException se = nullptr;
                 CContext ctx(false, 0);
                 {
@@ -376,7 +376,7 @@ namespace SPA {
                             CAutoLock al(m_csFile);
                             if (m_vContext.size()) {
                                 bool ok;
-                                ResultHandler rh;
+                                DResultHandler rh;
                                 DServerException se = nullptr;
                                 CContext &context = m_vContext.front();
                                 mc >> context.InitSize;
@@ -480,7 +480,7 @@ namespace SPA {
                                     ok = (ret != -1);
 #endif
                                     assert(ok);
-                                    ResultHandler rh;
+                                    DResultHandler rh;
                                     DServerException se = nullptr;
                                     if (!ok) {
                                     } else if (ret > 0) {

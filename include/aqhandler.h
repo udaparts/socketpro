@@ -65,7 +65,7 @@ namespace SPA {
              * @return true for sending the request successfully, and false for failure
              */
             bool GetKeys(const DGetKeys & gk, const DDiscarded& discarded = nullptr) {
-                ResultHandler rh;
+                DResultHandler rh;
                 if (gk) {
                     rh = [gk](CAsyncResult & ar) {
                         unsigned int size;
@@ -95,7 +95,7 @@ namespace SPA {
                     bool ok = cq.StartJob();
                     assert(ok);
                 }
-                ResultHandler rh;
+                DResultHandler rh;
                 if (qt) {
                     rh = [qt](CAsyncResult & ar) {
                         int errCode;
@@ -114,7 +114,7 @@ namespace SPA {
              * @return true for sending the request successfully, and false for failure
              */
             bool EndQueueTrans(bool rollback = false, const DQueueTrans& qt = nullptr, const DDiscarded& discarded = nullptr) {
-                ResultHandler rh;
+                DResultHandler rh;
                 if (qt) {
                     rh = [qt](CAsyncResult & ar) {
                         int errCode;
@@ -144,7 +144,7 @@ namespace SPA {
              * @return true for sending the request successfully, and false for failure
              */
             bool CloseQueue(const char *key, const DClose& c = nullptr, bool permanent = false, const DDiscarded& discarded = nullptr) {
-                ResultHandler rh;
+                DResultHandler rh;
                 if (c) {
                     rh = [c](CAsyncResult & ar) {
                         int errCode;
@@ -164,7 +164,7 @@ namespace SPA {
              * @return true for sending the request successfully, and false for failure
              */
             bool FlushQueue(const char *key, const DFlush& f, tagOptimistic option = oMemoryCached, const DDiscarded& discarded = nullptr) {
-                ResultHandler rh;
+                DResultHandler rh;
                 if (f) {
                     rh = [f](CAsyncResult & ar) {
                         UINT64 messageCount, fileSize;
@@ -184,7 +184,7 @@ namespace SPA {
              * @return true for sending the request successfully, and false for failure
              */
             bool Dequeue(const char *key, const DDequeue& d, unsigned int timeout = 0, const DDiscarded& discarded = nullptr) {
-                ResultHandler rh;
+                DResultHandler rh;
                 {
                     CAutoLock al(m_csQ);
                     m_keyDequeue = key ? key : "";
@@ -206,7 +206,7 @@ namespace SPA {
 
         private:
 
-            inline ResultHandler GetRH(const DEnqueue & e) {
+            inline DResultHandler GetRH(const DEnqueue & e) {
                 if (e) {
 #if defined(PHP_ADAPTER_PROJECT) || defined(NODE_JS_ADAPTER_PROJECT)
                     return [e](CAsyncResult & ar) {

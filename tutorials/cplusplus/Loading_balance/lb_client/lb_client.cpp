@@ -35,7 +35,7 @@ int main(int argc, char* argv[]) {
 	double dStep = 1.0 / nNum / nDivision;
 	std::map<double, double> mapReturn;
 	
-	ResultHandler rh = [&dPi, &mapReturn](CAsyncResult & ar) {
+	DResultHandler rh = [&dPi, &mapReturn](CAsyncResult & ar) {
 		double res, start;
 		ar >> res >> start;
 		dPi += res;

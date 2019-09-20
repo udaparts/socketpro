@@ -14,7 +14,7 @@ namespace SPA {
 
         SPA::UINT64 CAsyncServiceHandler::SendRequest(Isolate* isolate, int args, Local<Value> *argv, unsigned short reqId, const unsigned char *pBuffer, unsigned int size) {
             if (!argv) args = 0;
-            ResultHandler rh;
+            DResultHandler rh;
             DServerException se;
             DDiscarded dd;
             UINT64 callIndex = GetCallIndex();
