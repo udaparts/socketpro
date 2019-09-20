@@ -122,7 +122,7 @@ namespace SocketProAdapter
                 }
             }
 
-            private DAsyncResultHandler GetRH(DEnqueue e)
+            private static DAsyncResultHandler GetRH(DEnqueue e)
             {
                 if (e != null)
                 {

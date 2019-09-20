@@ -109,7 +109,7 @@ namespace SPA {
         public:
 
             template<class ctype >
-            CUQueue& operator>>(ctype & receiver) {
+            inline CUQueue& operator>>(ctype & receiver) {
                 UQueue >> receiver;
                 return UQueue;
             }

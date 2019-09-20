@@ -673,11 +673,13 @@ namespace SocketProAdapter
                 CAsyncServiceHandler ash = Seek(CurrentServiceID);
                 if (ash != null)
                 {
-                    if (m_routing)
-                        m_os = ClientCoreLoader.GetPeerOs(handler, ref m_endian);
                     CUQueue q = m_qRecv;
-                    q.OS = m_os;
-                    q.Endian = m_endian;
+                    if (m_routing)
+                    {
+                        m_os = ClientCoreLoader.GetPeerOs(handler, ref m_endian);
+                        q.OS = m_os;
+                        q.Endian = m_endian;
+                    }
                     if (q.MaxBufferSize < len)
                         q.Realloc(len);
                     if (len > 0)

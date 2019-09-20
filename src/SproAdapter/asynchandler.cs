@@ -35,24 +35,32 @@ namespace SocketProAdapter
                 return m_UQueue;
             }
 
-            public CAsyncServiceHandler AsyncServiceHandler {
-                get {
+            public CAsyncServiceHandler AsyncServiceHandler
+            {
+                get
+                {
                     return m_AsyncServiceHandler;
                 }
             }
-            public ushort RequestId {
-                get {
+            public ushort RequestId
+            {
+                get
+                {
                     return m_RequestId;
                 }
             }
-            public CUQueue UQueue {
-                get {
+            public CUQueue UQueue
+            {
+                get
+                {
                     return m_UQueue;
                 }
             }
 
-            public CAsyncServiceHandler.DAsyncResultHandler CurrentAsyncResultHandler {
-                get {
+            public CAsyncServiceHandler.DAsyncResultHandler CurrentAsyncResultHandler
+            {
+                get
+                {
                     return m_CurrentAsyncResultHandler;
                 }
             }
@@ -84,30 +92,39 @@ namespace SocketProAdapter
             public delegate void DOnBaseRequestProcessed(CAsyncServiceHandler sender, ushort reqId);
 
             private UDelegate<DOnResultReturned> m_lstRR;
-            public event DOnResultReturned ResultReturned {
-                add {
+            public event DOnResultReturned ResultReturned
+            {
+                add
+                {
                     m_lstRR.add(value);
                 }
-                remove {
+                remove
+                {
                     m_lstRR.remove(value);
                 }
             }
             private UDelegate<DOnExceptionFromServer> m_lstEFS;
-            public event DOnExceptionFromServer ServerException {
-                add {
+            public event DOnExceptionFromServer ServerException
+            {
+                add
+                {
                     m_lstEFS.add(value);
                 }
-                remove {
+                remove
+                {
 
                     m_lstEFS.remove(value);
                 }
             }
             private UDelegate<DOnBaseRequestProcessed> m_lstBRP;
-            public event DOnBaseRequestProcessed BaseRequestProcessed {
-                add {
+            public event DOnBaseRequestProcessed BaseRequestProcessed
+            {
+                add
+                {
                     m_lstBRP.add(value);
                 }
-                remove {
+                remove
+                {
                     m_lstBRP.Remove(value);
                 }
             }
@@ -165,8 +182,10 @@ namespace SocketProAdapter
                 return ok;
             }
 
-            public uint SvsID {
-                get {
+            public uint SvsID
+            {
+                get
+                {
                     return m_nServiceId;
                 }
             }
@@ -223,8 +242,10 @@ namespace SocketProAdapter
                 ClientCoreLoader.AbortDequeuedMessage(h);
             }
 
-            public bool DequeuedResult {
-                get {
+            public bool DequeuedResult
+            {
+                get
+                {
                     if (m_ClientSocket == null)
                         return false;
                     IntPtr h = m_ClientSocket.Handle;
@@ -232,8 +253,10 @@ namespace SocketProAdapter
                 }
             }
 
-            public bool DequeuedMessageAborted {
-                get {
+            public bool DequeuedMessageAborted
+            {
+                get
+                {
                     if (m_ClientSocket == null)
                         return false;
                     IntPtr h = m_ClientSocket.Handle;
@@ -241,8 +264,10 @@ namespace SocketProAdapter
                 }
             }
 
-            public bool RouteeRequest {
-                get {
+            public bool RouteeRequest
+            {
+                get
+                {
                     if (m_ClientSocket == null)
                         return false;
                     IntPtr h = m_ClientSocket.Handle;
@@ -286,8 +311,10 @@ namespace SocketProAdapter
                 return ClientCoreLoader.WaitAll(h, timeOut) != 0;
             }
 
-            public bool Batching {
-                get {
+            public bool Batching
+            {
+                get
+                {
                     if (m_ClientSocket == null)
                         return false;
                     IntPtr h = m_ClientSocket.Handle;
@@ -345,8 +372,7 @@ namespace SocketProAdapter
                     {
                         if (m_kvCallback.Count > 0 && m_kvCallback[0].Key == reqId)
                         {
-                            MyKeyValue<ushort, CResultCb> kv = m_kvCallback.RemoveFromFront();
-                            return kv;
+                            return m_kvCallback.RemoveFromFront();
                         }
                     }
                 }
@@ -798,77 +824,77 @@ namespace SocketProAdapter
 
             public bool ProcessR0(ushort reqId)
             {
-                if (!SendRequest(reqId, delegate (CAsyncResult ar) { }))
+                if (!SendRequest(reqId, delegate(CAsyncResult ar) { }))
                     return false;
                 return WaitAll();
             }
 
             public bool ProcessR0<T0>(ushort reqId, T0 t0)
             {
-                if (!SendRequest(reqId, t0, delegate (CAsyncResult ar) { }))
+                if (!SendRequest(reqId, t0, delegate(CAsyncResult ar) { }))
                     return false;
                 return WaitAll();
             }
 
             public bool ProcessR0<T0, T1>(ushort reqId, T0 t0, T1 t1)
             {
-                if (!SendRequest(reqId, t0, t1, delegate (CAsyncResult ar) { }))
+                if (!SendRequest(reqId, t0, t1, delegate(CAsyncResult ar) { }))
                     return false;
                 return WaitAll();
             }
 
             public bool ProcessR0<T0, T1, T2>(ushort reqId, T0 t0, T1 t1, T2 t2)
             {
-                if (!SendRequest(reqId, t0, t1, t2, delegate (CAsyncResult ar) { }))
+                if (!SendRequest(reqId, t0, t1, t2, delegate(CAsyncResult ar) { }))
                     return false;
                 return WaitAll();
             }
 
             public bool ProcessR0<T0, T1, T2, T3>(ushort reqId, T0 t0, T1 t1, T2 t2, T3 t3)
             {
-                if (!SendRequest(reqId, t0, t1, t2, t3, delegate (CAsyncResult ar) { }))
+                if (!SendRequest(reqId, t0, t1, t2, t3, delegate(CAsyncResult ar) { }))
                     return false;
                 return WaitAll();
             }
 
             public bool ProcessR0<T0, T1, T2, T3, T4>(ushort reqId, T0 t0, T1 t1, T2 t2, T3 t3, T4 t4)
             {
-                if (!SendRequest(reqId, t0, t1, t2, t3, t4, delegate (CAsyncResult ar) { }))
+                if (!SendRequest(reqId, t0, t1, t2, t3, t4, delegate(CAsyncResult ar) { }))
                     return false;
                 return WaitAll();
             }
 
             public bool ProcessR0<T0, T1, T2, T3, T4, T5>(ushort reqId, T0 t0, T1 t1, T2 t2, T3 t3, T4 t4, T5 t5)
             {
-                if (!SendRequest(reqId, t0, t1, t2, t3, t4, t5, delegate (CAsyncResult ar) { }))
+                if (!SendRequest(reqId, t0, t1, t2, t3, t4, t5, delegate(CAsyncResult ar) { }))
                     return false;
                 return WaitAll();
             }
 
             public bool ProcessR0<T0, T1, T2, T3, T4, T5, T6>(ushort reqId, T0 t0, T1 t1, T2 t2, T3 t3, T4 t4, T5 t5, T6 t6)
             {
-                if (!SendRequest(reqId, t0, t1, t2, t3, t4, t5, t6, delegate (CAsyncResult ar) { }))
+                if (!SendRequest(reqId, t0, t1, t2, t3, t4, t5, t6, delegate(CAsyncResult ar) { }))
                     return false;
                 return WaitAll();
             }
 
             public bool ProcessR0<T0, T1, T2, T3, T4, T5, T6, T7>(ushort reqId, T0 t0, T1 t1, T2 t2, T3 t3, T4 t4, T5 t5, T6 t6, T7 t7)
             {
-                if (!SendRequest(reqId, t0, t1, t2, t3, t4, t5, t6, t7, delegate (CAsyncResult ar) { }))
+                if (!SendRequest(reqId, t0, t1, t2, t3, t4, t5, t6, t7, delegate(CAsyncResult ar) { }))
                     return false;
                 return WaitAll();
             }
 
             public bool ProcessR0<T0, T1, T2, T3, T4, T5, T6, T7, T8>(ushort reqId, T0 t0, T1 t1, T2 t2, T3 t3, T4 t4, T5 t5, T6 t6, T7 t7, T8 t8)
             {
-                if (!SendRequest(reqId, t0, t1, t2, t3, t4, t5, t6, t7, t8, delegate (CAsyncResult ar) { }))
+                if (!SendRequest(reqId, t0, t1, t2, t3, t4, t5, t6, t7, t8, delegate(CAsyncResult ar) { }))
                     return false;
                 return WaitAll();
             }
 
             public bool ProcessR0<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9>(ushort reqId, T0 t0, T1 t1, T2 t2, T3 t3, T4 t4, T5 t5, T6 t6, T7 t7, T8 t8, T9 t9)
             {
-                if (!SendRequest(reqId, t0, t1, t2, t3, t4, t5, t6, t7, t8, t9, delegate (CAsyncResult ar) { }))
+                if (!SendRequest(reqId, t0, t1, t2, t3, t4, t5, t6, t7, t8, t9, delegate(CAsyncResult ar) { }))
                     return false;
                 return WaitAll();
             }
@@ -877,7 +903,7 @@ namespace SocketProAdapter
             {
                 R0 res0 = default(R0);
                 r0 = default(R0);
-                if (!SendRequest(reqId, delegate (CAsyncResult ar)
+                if (!SendRequest(reqId, delegate(CAsyncResult ar)
                 {
                     ar.Load(out res0);
                 }))
@@ -892,7 +918,7 @@ namespace SocketProAdapter
             {
                 R0 res0 = default(R0);
                 r0 = default(R0);
-                if (!SendRequest(reqId, t0, delegate (CAsyncResult ar)
+                if (!SendRequest(reqId, t0, delegate(CAsyncResult ar)
                 {
                     ar.Load(out res0);
                 }))
@@ -907,7 +933,7 @@ namespace SocketProAdapter
             {
                 R0 res0 = default(R0);
                 r0 = default(R0);
-                if (!SendRequest(reqId, t0, t1, delegate (CAsyncResult ar)
+                if (!SendRequest(reqId, t0, t1, delegate(CAsyncResult ar)
                 {
                     ar.Load(out res0);
                 }))
@@ -922,7 +948,7 @@ namespace SocketProAdapter
             {
                 R0 res0 = default(R0);
                 r0 = default(R0);
-                if (!SendRequest(reqId, t0, t1, t2, delegate (CAsyncResult ar)
+                if (!SendRequest(reqId, t0, t1, t2, delegate(CAsyncResult ar)
                 {
                     ar.Load(out res0);
                 }))
@@ -937,7 +963,7 @@ namespace SocketProAdapter
             {
                 R0 res0 = default(R0);
                 r0 = default(R0);
-                if (!SendRequest(reqId, t0, t1, t2, t3, delegate (CAsyncResult ar)
+                if (!SendRequest(reqId, t0, t1, t2, t3, delegate(CAsyncResult ar)
                 {
                     ar.Load(out res0);
                 }))
@@ -952,7 +978,7 @@ namespace SocketProAdapter
             {
                 R0 res0 = default(R0);
                 r0 = default(R0);
-                if (!SendRequest(reqId, t0, t1, t2, t3, t4, delegate (CAsyncResult ar)
+                if (!SendRequest(reqId, t0, t1, t2, t3, t4, delegate(CAsyncResult ar)
                 {
                     ar.Load(out res0);
                 }))
@@ -967,7 +993,7 @@ namespace SocketProAdapter
             {
                 R0 res0 = default(R0);
                 r0 = default(R0);
-                if (!SendRequest(reqId, t0, t1, t2, t3, t4, t5, delegate (CAsyncResult ar)
+                if (!SendRequest(reqId, t0, t1, t2, t3, t4, t5, delegate(CAsyncResult ar)
                 {
                     ar.Load(out res0);
                 }))
@@ -982,7 +1008,7 @@ namespace SocketProAdapter
             {
                 R0 res0 = default(R0);
                 r0 = default(R0);
-                if (!SendRequest(reqId, t0, t1, t2, t3, t4, t5, t6, delegate (CAsyncResult ar)
+                if (!SendRequest(reqId, t0, t1, t2, t3, t4, t5, t6, delegate(CAsyncResult ar)
                 {
                     ar.Load(out res0);
                 }))
@@ -997,7 +1023,7 @@ namespace SocketProAdapter
             {
                 R0 res0 = default(R0);
                 r0 = default(R0);
-                if (!SendRequest(reqId, t0, t1, t2, t3, t4, t5, t6, t7, delegate (CAsyncResult ar)
+                if (!SendRequest(reqId, t0, t1, t2, t3, t4, t5, t6, t7, delegate(CAsyncResult ar)
                 {
                     ar.Load(out res0);
                 }))
@@ -1012,7 +1038,7 @@ namespace SocketProAdapter
             {
                 R0 res0 = default(R0);
                 r0 = default(R0);
-                if (!SendRequest(reqId, t0, t1, t2, t3, t4, t5, t6, t7, t8, delegate (CAsyncResult ar)
+                if (!SendRequest(reqId, t0, t1, t2, t3, t4, t5, t6, t7, t8, delegate(CAsyncResult ar)
                 {
                     ar.Load(out res0);
                 }))
@@ -1027,7 +1053,7 @@ namespace SocketProAdapter
             {
                 R0 res0 = default(R0);
                 r0 = default(R0);
-                if (!SendRequest(reqId, t0, t1, t2, t3, t4, t5, t6, t7, t8, t9, delegate (CAsyncResult ar)
+                if (!SendRequest(reqId, t0, t1, t2, t3, t4, t5, t6, t7, t8, t9, delegate(CAsyncResult ar)
                 {
                     ar.Load(out res0);
                 }))
@@ -1044,7 +1070,7 @@ namespace SocketProAdapter
                 r0 = default(R0);
                 R1 res1 = default(R1);
                 r1 = default(R1);
-                if (!SendRequest(reqId, delegate (CAsyncResult ar)
+                if (!SendRequest(reqId, delegate(CAsyncResult ar)
                 {
                     ar.Load(out res0).Load(out res1);
                 }))
@@ -1062,7 +1088,7 @@ namespace SocketProAdapter
                 r0 = default(R0);
                 R1 res1 = default(R1);
                 r1 = default(R1);
-                if (!SendRequest(reqId, t0, delegate (CAsyncResult ar)
+                if (!SendRequest(reqId, t0, delegate(CAsyncResult ar)
                 {
                     ar.Load(out res0).Load(out res1);
                 }))
@@ -1080,7 +1106,7 @@ namespace SocketProAdapter
                 r0 = default(R0);
                 R1 res1 = default(R1);
                 r1 = default(R1);
-                if (!SendRequest(reqId, t0, t1, delegate (CAsyncResult ar)
+                if (!SendRequest(reqId, t0, t1, delegate(CAsyncResult ar)
                 {
                     ar.Load(out res0).Load(out res1);
                 }))
@@ -1098,7 +1124,7 @@ namespace SocketProAdapter
                 r0 = default(R0);
                 R1 res1 = default(R1);
                 r1 = default(R1);
-                if (!SendRequest(reqId, t0, t1, t2, delegate (CAsyncResult ar)
+                if (!SendRequest(reqId, t0, t1, t2, delegate(CAsyncResult ar)
                 {
                     ar.Load(out res0).Load(out res1);
                 }))
@@ -1116,7 +1142,7 @@ namespace SocketProAdapter
                 r0 = default(R0);
                 R1 res1 = default(R1);
                 r1 = default(R1);
-                if (!SendRequest(reqId, t0, t1, t2, t3, delegate (CAsyncResult ar)
+                if (!SendRequest(reqId, t0, t1, t2, t3, delegate(CAsyncResult ar)
                 {
                     ar.Load(out res0).Load(out res1);
                 }))
@@ -1134,7 +1160,7 @@ namespace SocketProAdapter
                 r0 = default(R0);
                 R1 res1 = default(R1);
                 r1 = default(R1);
-                if (!SendRequest(reqId, t0, t1, t2, t3, t4, delegate (CAsyncResult ar)
+                if (!SendRequest(reqId, t0, t1, t2, t3, t4, delegate(CAsyncResult ar)
                 {
                     ar.Load(out res0).Load(out res1);
                 }))
@@ -1152,7 +1178,7 @@ namespace SocketProAdapter
                 r0 = default(R0);
                 R1 res1 = default(R1);
                 r1 = default(R1);
-                if (!SendRequest(reqId, t0, t1, t2, t3, t4, t5, delegate (CAsyncResult ar)
+                if (!SendRequest(reqId, t0, t1, t2, t3, t4, t5, delegate(CAsyncResult ar)
                 {
                     ar.Load(out res0).Load(out res1);
                 }))
@@ -1170,7 +1196,7 @@ namespace SocketProAdapter
                 r0 = default(R0);
                 R1 res1 = default(R1);
                 r1 = default(R1);
-                if (!SendRequest(reqId, t0, t1, t2, t3, t4, t5, t6, delegate (CAsyncResult ar)
+                if (!SendRequest(reqId, t0, t1, t2, t3, t4, t5, t6, delegate(CAsyncResult ar)
                 {
                     ar.Load(out res0).Load(out res1);
                 }))
@@ -1188,7 +1214,7 @@ namespace SocketProAdapter
                 r0 = default(R0);
                 R1 res1 = default(R1);
                 r1 = default(R1);
-                if (!SendRequest(reqId, t0, t1, t2, t3, t4, t5, t6, t7, delegate (CAsyncResult ar)
+                if (!SendRequest(reqId, t0, t1, t2, t3, t4, t5, t6, t7, delegate(CAsyncResult ar)
                 {
                     ar.Load(out res0).Load(out res1);
                 }))
@@ -1206,7 +1232,7 @@ namespace SocketProAdapter
                 r0 = default(R0);
                 R1 res1 = default(R1);
                 r1 = default(R1);
-                if (!SendRequest(reqId, t0, t1, t2, t3, t4, t5, t6, t7, t8, delegate (CAsyncResult ar)
+                if (!SendRequest(reqId, t0, t1, t2, t3, t4, t5, t6, t7, t8, delegate(CAsyncResult ar)
                 {
                     ar.Load(out res0).Load(out res1);
                 }))
@@ -1224,7 +1250,7 @@ namespace SocketProAdapter
                 r0 = default(R0);
                 R1 res1 = default(R1);
                 r1 = default(R1);
-                if (!SendRequest(reqId, t0, t1, t2, t3, t4, t5, t6, t7, t8, t9, delegate (CAsyncResult ar)
+                if (!SendRequest(reqId, t0, t1, t2, t3, t4, t5, t6, t7, t8, t9, delegate(CAsyncResult ar)
                 {
                     ar.Load(out res0).Load(out res1);
                 }))
@@ -1244,7 +1270,7 @@ namespace SocketProAdapter
                 r1 = default(R1);
                 R2 res2 = default(R2);
                 r2 = default(R2);
-                if (!SendRequest(reqId, delegate (CAsyncResult ar)
+                if (!SendRequest(reqId, delegate(CAsyncResult ar)
                 {
                     ar.Load(out res0).Load(out res1).Load(out res2);
                 }))
@@ -1265,7 +1291,7 @@ namespace SocketProAdapter
                 r1 = default(R1);
                 R2 res2 = default(R2);
                 r2 = default(R2);
-                if (!SendRequest(reqId, t0, delegate (CAsyncResult ar)
+                if (!SendRequest(reqId, t0, delegate(CAsyncResult ar)
                 {
                     ar.Load(out res0).Load(out res1).Load(out res2);
                 }))
@@ -1286,7 +1312,7 @@ namespace SocketProAdapter
                 r1 = default(R1);
                 R2 res2 = default(R2);
                 r2 = default(R2);
-                if (!SendRequest(reqId, t0, t1, delegate (CAsyncResult ar)
+                if (!SendRequest(reqId, t0, t1, delegate(CAsyncResult ar)
                 {
                     ar.Load(out res0).Load(out res1).Load(out res2);
                 }))
@@ -1307,7 +1333,7 @@ namespace SocketProAdapter
                 r1 = default(R1);
                 R2 res2 = default(R2);
                 r2 = default(R2);
-                if (!SendRequest(reqId, t0, t1, t2, delegate (CAsyncResult ar)
+                if (!SendRequest(reqId, t0, t1, t2, delegate(CAsyncResult ar)
                 {
                     ar.Load(out res0).Load(out res1).Load(out res2);
                 }))
@@ -1328,7 +1354,7 @@ namespace SocketProAdapter
                 r1 = default(R1);
                 R2 res2 = default(R2);
                 r2 = default(R2);
-                if (!SendRequest(reqId, t0, t1, t2, t3, delegate (CAsyncResult ar)
+                if (!SendRequest(reqId, t0, t1, t2, t3, delegate(CAsyncResult ar)
                 {
                     ar.Load(out res0).Load(out res1).Load(out res2);
                 }))
@@ -1349,7 +1375,7 @@ namespace SocketProAdapter
                 r1 = default(R1);
                 R2 res2 = default(R2);
                 r2 = default(R2);
-                if (!SendRequest(reqId, t0, t1, t2, t3, t4, delegate (CAsyncResult ar)
+                if (!SendRequest(reqId, t0, t1, t2, t3, t4, delegate(CAsyncResult ar)
                 {
                     ar.Load(out res0).Load(out res1).Load(out res2);
                 }))
@@ -1370,7 +1396,7 @@ namespace SocketProAdapter
                 r1 = default(R1);
                 R2 res2 = default(R2);
                 r2 = default(R2);
-                if (!SendRequest(reqId, t0, t1, t2, t3, t4, t5, delegate (CAsyncResult ar)
+                if (!SendRequest(reqId, t0, t1, t2, t3, t4, t5, delegate(CAsyncResult ar)
                 {
                     ar.Load(out res0).Load(out res1).Load(out res2);
                 }))
@@ -1391,7 +1417,7 @@ namespace SocketProAdapter
                 r1 = default(R1);
                 R2 res2 = default(R2);
                 r2 = default(R2);
-                if (!SendRequest(reqId, t0, t1, t2, t3, t4, t5, t6, delegate (CAsyncResult ar)
+                if (!SendRequest(reqId, t0, t1, t2, t3, t4, t5, t6, delegate(CAsyncResult ar)
                 {
                     ar.Load(out res0).Load(out res1).Load(out res2);
                 }))
@@ -1412,7 +1438,7 @@ namespace SocketProAdapter
                 r1 = default(R1);
                 R2 res2 = default(R2);
                 r2 = default(R2);
-                if (!SendRequest(reqId, t0, t1, t2, t3, t4, t5, t6, t7, delegate (CAsyncResult ar)
+                if (!SendRequest(reqId, t0, t1, t2, t3, t4, t5, t6, t7, delegate(CAsyncResult ar)
                 {
                     ar.Load(out res0).Load(out res1).Load(out res2);
                 }))
@@ -1433,7 +1459,7 @@ namespace SocketProAdapter
                 r1 = default(R1);
                 R2 res2 = default(R2);
                 r2 = default(R2);
-                if (!SendRequest(reqId, t0, t1, t2, t3, t4, t5, t6, t7, t8, delegate (CAsyncResult ar)
+                if (!SendRequest(reqId, t0, t1, t2, t3, t4, t5, t6, t7, t8, delegate(CAsyncResult ar)
                 {
                     ar.Load(out res0).Load(out res1).Load(out res2);
                 }))
@@ -1454,7 +1480,7 @@ namespace SocketProAdapter
                 r1 = default(R1);
                 R2 res2 = default(R2);
                 r2 = default(R2);
-                if (!SendRequest(reqId, t0, t1, t2, t3, t4, t5, t6, t7, t8, t9, delegate (CAsyncResult ar)
+                if (!SendRequest(reqId, t0, t1, t2, t3, t4, t5, t6, t7, t8, t9, delegate(CAsyncResult ar)
                 {
                     ar.Load(out res0).Load(out res1).Load(out res2);
                 }))
@@ -1477,7 +1503,7 @@ namespace SocketProAdapter
                 r2 = default(R2);
                 R3 res3 = default(R3);
                 r3 = default(R3);
-                if (!SendRequest(reqId, delegate (CAsyncResult ar)
+                if (!SendRequest(reqId, delegate(CAsyncResult ar)
                 {
                     ar.Load(out res0).Load(out res1).Load(out res2).Load(out res3);
                 }))
@@ -1501,7 +1527,7 @@ namespace SocketProAdapter
                 r2 = default(R2);
                 R3 res3 = default(R3);
                 r3 = default(R3);
-                if (!SendRequest(reqId, t0, delegate (CAsyncResult ar)
+                if (!SendRequest(reqId, t0, delegate(CAsyncResult ar)
                 {
                     ar.Load(out res0).Load(out res1).Load(out res2).Load(out res3);
                 }))
@@ -1525,7 +1551,7 @@ namespace SocketProAdapter
                 r2 = default(R2);
                 R3 res3 = default(R3);
                 r3 = default(R3);
-                if (!SendRequest(reqId, t0, t1, delegate (CAsyncResult ar)
+                if (!SendRequest(reqId, t0, t1, delegate(CAsyncResult ar)
                 {
                     ar.Load(out res0).Load(out res1).Load(out res2).Load(out res3);
                 }))
@@ -1549,7 +1575,7 @@ namespace SocketProAdapter
                 r2 = default(R2);
                 R3 res3 = default(R3);
                 r3 = default(R3);
-                if (!SendRequest(reqId, t0, t1, t2, delegate (CAsyncResult ar)
+                if (!SendRequest(reqId, t0, t1, t2, delegate(CAsyncResult ar)
                 {
                     ar.Load(out res0).Load(out res1).Load(out res2).Load(out res3);
                 }))
@@ -1573,7 +1599,7 @@ namespace SocketProAdapter
                 r2 = default(R2);
                 R3 res3 = default(R3);
                 r3 = default(R3);
-                if (!SendRequest(reqId, t0, t1, t2, t3, delegate (CAsyncResult ar)
+                if (!SendRequest(reqId, t0, t1, t2, t3, delegate(CAsyncResult ar)
                 {
                     ar.Load(out res0).Load(out res1).Load(out res2).Load(out res3);
                 }))
@@ -1597,7 +1623,7 @@ namespace SocketProAdapter
                 r2 = default(R2);
                 R3 res3 = default(R3);
                 r3 = default(R3);
-                if (!SendRequest(reqId, t0, t1, t2, t3, t4, delegate (CAsyncResult ar)
+                if (!SendRequest(reqId, t0, t1, t2, t3, t4, delegate(CAsyncResult ar)
                 {
                     ar.Load(out res0).Load(out res1).Load(out res2).Load(out res3);
                 }))
@@ -1621,7 +1647,7 @@ namespace SocketProAdapter
                 r2 = default(R2);
                 R3 res3 = default(R3);
                 r3 = default(R3);
-                if (!SendRequest(reqId, t0, t1, t2, t3, t4, t5, delegate (CAsyncResult ar)
+                if (!SendRequest(reqId, t0, t1, t2, t3, t4, t5, delegate(CAsyncResult ar)
                 {
                     ar.Load(out res0).Load(out res1).Load(out res2).Load(out res3);
                 }))
@@ -1645,7 +1671,7 @@ namespace SocketProAdapter
                 r2 = default(R2);
                 R3 res3 = default(R3);
                 r3 = default(R3);
-                if (!SendRequest(reqId, t0, t1, t2, t3, t4, t5, t6, delegate (CAsyncResult ar)
+                if (!SendRequest(reqId, t0, t1, t2, t3, t4, t5, t6, delegate(CAsyncResult ar)
                 {
                     ar.Load(out res0).Load(out res1).Load(out res2).Load(out res3);
                 }))
@@ -1669,7 +1695,7 @@ namespace SocketProAdapter
                 r2 = default(R2);
                 R3 res3 = default(R3);
                 r3 = default(R3);
-                if (!SendRequest(reqId, t0, t1, t2, t3, t4, t5, t6, t7, delegate (CAsyncResult ar)
+                if (!SendRequest(reqId, t0, t1, t2, t3, t4, t5, t6, t7, delegate(CAsyncResult ar)
                 {
                     ar.Load(out res0).Load(out res1).Load(out res2).Load(out res3);
                 }))
@@ -1693,7 +1719,7 @@ namespace SocketProAdapter
                 r2 = default(R2);
                 R3 res3 = default(R3);
                 r3 = default(R3);
-                if (!SendRequest(reqId, t0, t1, t2, t3, t4, t5, t6, t7, t8, delegate (CAsyncResult ar)
+                if (!SendRequest(reqId, t0, t1, t2, t3, t4, t5, t6, t7, t8, delegate(CAsyncResult ar)
                 {
                     ar.Load(out res0).Load(out res1).Load(out res2).Load(out res3);
                 }))
@@ -1717,7 +1743,7 @@ namespace SocketProAdapter
                 r2 = default(R2);
                 R3 res3 = default(R3);
                 r3 = default(R3);
-                if (!SendRequest(reqId, t0, t1, t2, t3, t4, t5, t6, t7, t8, t9, delegate (CAsyncResult ar)
+                if (!SendRequest(reqId, t0, t1, t2, t3, t4, t5, t6, t7, t8, t9, delegate(CAsyncResult ar)
                 {
                     ar.Load(out res0).Load(out res1).Load(out res2).Load(out res3);
                 }))
@@ -1743,7 +1769,7 @@ namespace SocketProAdapter
                 r3 = default(R3);
                 R4 res4 = default(R4);
                 r4 = default(R4);
-                if (!SendRequest(reqId, delegate (CAsyncResult ar)
+                if (!SendRequest(reqId, delegate(CAsyncResult ar)
                 {
                     ar.Load(out res0).Load(out res1).Load(out res2).Load(out res3).Load(out res4);
                 }))
@@ -1770,7 +1796,7 @@ namespace SocketProAdapter
                 r3 = default(R3);
                 R4 res4 = default(R4);
                 r4 = default(R4);
-                if (!SendRequest(reqId, t0, delegate (CAsyncResult ar)
+                if (!SendRequest(reqId, t0, delegate(CAsyncResult ar)
                 {
                     ar.Load(out res0).Load(out res1).Load(out res2).Load(out res3).Load(out res4);
                 }))
@@ -1797,7 +1823,7 @@ namespace SocketProAdapter
                 r3 = default(R3);
                 R4 res4 = default(R4);
                 r4 = default(R4);
-                if (!SendRequest(reqId, t0, t1, delegate (CAsyncResult ar)
+                if (!SendRequest(reqId, t0, t1, delegate(CAsyncResult ar)
                 {
                     ar.Load(out res0).Load(out res1).Load(out res2).Load(out res3).Load(out res4);
                 }))
@@ -1824,7 +1850,7 @@ namespace SocketProAdapter
                 r3 = default(R3);
                 R4 res4 = default(R4);
                 r4 = default(R4);
-                if (!SendRequest(reqId, t0, t1, t2, delegate (CAsyncResult ar)
+                if (!SendRequest(reqId, t0, t1, t2, delegate(CAsyncResult ar)
                 {
                     ar.Load(out res0).Load(out res1).Load(out res2).Load(out res3).Load(out res4);
                 }))
@@ -1851,7 +1877,7 @@ namespace SocketProAdapter
                 r3 = default(R3);
                 R4 res4 = default(R4);
                 r4 = default(R4);
-                if (!SendRequest(reqId, t0, t1, t2, t3, delegate (CAsyncResult ar)
+                if (!SendRequest(reqId, t0, t1, t2, t3, delegate(CAsyncResult ar)
                 {
                     ar.Load(out res0).Load(out res1).Load(out res2).Load(out res3).Load(out res4);
                 }))
@@ -1878,7 +1904,7 @@ namespace SocketProAdapter
                 r3 = default(R3);
                 R4 res4 = default(R4);
                 r4 = default(R4);
-                if (!SendRequest(reqId, t0, t1, t2, t3, t4, delegate (CAsyncResult ar)
+                if (!SendRequest(reqId, t0, t1, t2, t3, t4, delegate(CAsyncResult ar)
                 {
                     ar.Load(out res0).Load(out res1).Load(out res2).Load(out res3).Load(out res4);
                 }))
@@ -1905,7 +1931,7 @@ namespace SocketProAdapter
                 r3 = default(R3);
                 R4 res4 = default(R4);
                 r4 = default(R4);
-                if (!SendRequest(reqId, t0, t1, t2, t3, t4, t5, delegate (CAsyncResult ar)
+                if (!SendRequest(reqId, t0, t1, t2, t3, t4, t5, delegate(CAsyncResult ar)
                 {
                     ar.Load(out res0).Load(out res1).Load(out res2).Load(out res3).Load(out res4);
                 }))
@@ -1932,7 +1958,7 @@ namespace SocketProAdapter
                 r3 = default(R3);
                 R4 res4 = default(R4);
                 r4 = default(R4);
-                if (!SendRequest(reqId, t0, t1, t2, t3, t4, t5, t6, delegate (CAsyncResult ar)
+                if (!SendRequest(reqId, t0, t1, t2, t3, t4, t5, t6, delegate(CAsyncResult ar)
                 {
                     ar.Load(out res0).Load(out res1).Load(out res2).Load(out res3).Load(out res4);
                 }))
@@ -1959,7 +1985,7 @@ namespace SocketProAdapter
                 r3 = default(R3);
                 R4 res4 = default(R4);
                 r4 = default(R4);
-                if (!SendRequest(reqId, t0, t1, t2, t3, t4, t5, t6, t7, delegate (CAsyncResult ar)
+                if (!SendRequest(reqId, t0, t1, t2, t3, t4, t5, t6, t7, delegate(CAsyncResult ar)
                 {
                     ar.Load(out res0).Load(out res1).Load(out res2).Load(out res3).Load(out res4);
                 }))
@@ -1986,7 +2012,7 @@ namespace SocketProAdapter
                 r3 = default(R3);
                 R4 res4 = default(R4);
                 r4 = default(R4);
-                if (!SendRequest(reqId, t0, t1, t2, t3, t4, t5, t6, t7, t8, delegate (CAsyncResult ar)
+                if (!SendRequest(reqId, t0, t1, t2, t3, t4, t5, t6, t7, t8, delegate(CAsyncResult ar)
                 {
                     ar.Load(out res0).Load(out res1).Load(out res2).Load(out res3).Load(out res4);
                 }))
@@ -2013,7 +2039,7 @@ namespace SocketProAdapter
                 r3 = default(R3);
                 R4 res4 = default(R4);
                 r4 = default(R4);
-                if (!SendRequest(reqId, t0, t1, t2, t3, t4, t5, t6, t7, t8, t9, delegate (CAsyncResult ar)
+                if (!SendRequest(reqId, t0, t1, t2, t3, t4, t5, t6, t7, t8, t9, delegate(CAsyncResult ar)
                 {
                     ar.Load(out res0).Load(out res1).Load(out res2).Load(out res3).Load(out res4);
                 }))
@@ -2028,8 +2054,10 @@ namespace SocketProAdapter
                 return true;
             }
 
-            public CClientSocket AttachedClientSocket {
-                get {
+            public CClientSocket AttachedClientSocket
+            {
+                get
+                {
                     return m_ClientSocket;
                 }
             }
@@ -2051,10 +2079,7 @@ namespace SocketProAdapter
                     len = (uint)data.Length;
                 if (ash != null || discarded != null || exception != null)
                 {
-                    CResultCb rcb = new CResultCb();
-                    rcb.AsyncResultHandler = ash;
-                    rcb.Discarded = discarded;
-                    rcb.ExceptionFromServer = exception;
+                    CResultCb rcb = new CResultCb(ash, discarded, exception);
                     kv = new MyKeyValue<ushort, CResultCb>(reqId, rcb);
                     batching = ClientCoreLoader.IsBatching(h);
                     lock (m_csSend)
@@ -2108,6 +2133,12 @@ namespace SocketProAdapter
             public delegate void DDiscarded(CAsyncServiceHandler h, bool canceled);
             internal class CResultCb
             {
+                public CResultCb(DAsyncResultHandler rh, DDiscarded d, DOnExceptionFromServer ex)
+                {
+                    AsyncResultHandler = rh;
+                    Discarded = d;
+                    ExceptionFromServer = ex;
+                }
                 public DAsyncResultHandler AsyncResultHandler;
                 public DDiscarded Discarded;
                 public DOnExceptionFromServer ExceptionFromServer;
@@ -2421,8 +2452,10 @@ namespace SocketProAdapter
             /// <summary>
             /// A property for the number of requests queued inside asynchronous handler
             /// </summary>
-            public int RequestsQueued {
-                get {
+            public int RequestsQueued
+            {
+                get
+                {
                     lock (m_cs)
                     {
                         return m_kvCallback.Count;

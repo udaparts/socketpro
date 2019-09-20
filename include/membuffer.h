@@ -683,7 +683,7 @@ namespace SPA {
          * @param str A pointer to an array of ASCII chars
          * @return Reference to this memory buffer
          */
-        CUQueue& operator<<(const char* str) {
+        inline CUQueue& operator<<(const char* str) {
             unsigned int size;
             if (!str) {
                 size = UQUEUE_NULL_LENGTH;
@@ -1159,7 +1159,7 @@ namespace SPA {
          * @return The reference to this memory buffer
          */
         template<class ctype>
-        CUQueue& operator<<(const ctype &data) {
+        inline CUQueue& operator<<(const ctype &data) {
             Push(&data);
             return *this;
         }
@@ -1182,7 +1182,7 @@ namespace SPA {
          * @return The reference to this memory buffer
          */
         template<class ctype>
-        CUQueue& operator>>(ctype &data) {
+        inline CUQueue& operator>>(ctype &data) {
             Pop((unsigned char*) &data, sizeof (data));
             return *this;
         }

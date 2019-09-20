@@ -379,8 +379,6 @@ namespace SocketProAdapter
 
         public void SetSize(uint size)
         {
-            if (m_bytes == null && size > 0)
-                throw new InvalidOperationException("Buffer is empty");
             if (size == 0)
             {
                 m_position = 0;

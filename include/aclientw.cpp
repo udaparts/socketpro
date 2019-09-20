@@ -1070,12 +1070,13 @@ namespace SPA
         void WINAPI CClientSocket::OnRequestProcessed(USocket_Client_Handle handler, unsigned short requestId, unsigned int len) {
             CClientSocket *p = Seek(handler);
             if (p) {
-                if (p->IsRouting())
-                    p->m_os = ClientCoreLoader.GetPeerOs(handler, &p->m_endian);
                 CUQueue &q = p->m_qRecv;
                 q.SetSize(0);
-                q.SetOS(p->m_os);
-                q.SetEndian(p->m_endian);
+                if (p->IsRouting()) {
+                    p->m_os = ClientCoreLoader.GetPeerOs(handler, &p->m_endian);
+                    q.SetOS(p->m_os);
+                    q.SetEndian(p->m_endian);
+                }
                 if (len > q.GetMaxSize())
                     q.ReallocBuffer(len + sizeof (wchar_t));
                 if (len) {
@@ -1346,6 +1347,8 @@ namespace SPA
                 p->m_os = ClientCoreLoader.GetPeerOs(handler, &p->m_endian);
                 p->m_nCurrSvsId = ClientCoreLoader.GetCurrentServiceId(handler);
                 p->m_routing = ClientCoreLoader.IsRouting(handler);
+                p->m_qRecv.SetEndian(p->m_endian);
+                p->m_qRecv.SetOS(p->m_os);
             }
             PAsyncServiceHandler ash = p->m_pHandler;
             if (ash) {
