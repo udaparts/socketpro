@@ -95,7 +95,7 @@ namespace SPA {
         class CAsyncResult;
 
         typedef std::function<void(CAsyncResult&) > DResultHandler;
-        typedef DResultHandler ResultHandler;
+        typedef DResultHandler ResultHandler; //ResultHandler will be removed in the near future
 
         const static DResultHandler NULL_RH;
 
