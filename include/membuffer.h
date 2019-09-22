@@ -808,10 +808,10 @@ namespace SPA {
             if (len == 0) {
                 return 0;
             }
-            if (m_nSize < position) {
+            else if (m_nSize <= position) {
                 return 0;
             }
-            if (len > m_nSize - position) {
+            else if (len > m_nSize - position) {
                 len = m_nSize - position;
             }
             m_nSize -= len;

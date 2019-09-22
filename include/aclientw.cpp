@@ -259,9 +259,14 @@ namespace SPA
                 p = Reuse();
                 if (p) {
                     p->first = reqId;
-                    p->second->AsyncResultHandler = rh;
-                    p->second->Discarded = discarded;
-                    p->second->ExceptionFromServer = serverException;
+					CResultCb *rcb = p->second;
+					rcb->AsyncResultHandler = rh;
+					if (rcb->Discarded || discarded) {
+						rcb->Discarded = discarded;
+					}
+					if (rcb->ExceptionFromServer || serverException) {
+						rcb->ExceptionFromServer = serverException;
+					}
                 } else {
                     p = new std::pair<unsigned short, CResultCb*>(reqId, new CResultCb(rh, discarded, serverException));
                 }
