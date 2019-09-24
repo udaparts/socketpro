@@ -290,7 +290,7 @@ namespace SPA {
                 return;
             }
             size_t space = m_capacity - m_count;
-            if (space > count && m_count < m_capacity / 2) {
+            if (space > count && m_count < (m_capacity >> 1)) {
                 ::memmove(m_p + space, m_p + m_header, m_count * sizeof (T));
                 m_header = space - count;
                 ::memcpy(m_p + m_header, p, count * sizeof (T));
