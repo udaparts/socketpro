@@ -1229,7 +1229,7 @@ namespace SPA {
             typedef mb *PMB;
 
             void DestroyUQueuePool() {
-                SPA::CSpinAutoLock al(m_sl);
+                CSpinAutoLock al(m_sl);
                 for (size_t n = 0; n < m_count; ++n) {
                     PMB p = m_p[m_header + n];
                     delete p;
@@ -1239,7 +1239,7 @@ namespace SPA {
             }
 
             void CleanUQueuePool() {
-                SPA::CSpinAutoLock al(m_sl);
+                CSpinAutoLock al(m_sl);
                 for (size_t n = 0; n < m_count; ++n) {
                     PMB p = m_p[m_header + n];
                     p->CleanTrack();
@@ -1248,7 +1248,7 @@ namespace SPA {
 
             UINT64 GetMemoryConsumed() {
                 UINT64 size = 0;
-                SPA::CSpinAutoLock al(m_sl);
+                CSpinAutoLock al(m_sl);
                 for (size_t n = 0; n < m_count; ++n) {
                     PMB p = m_p[m_header + n];
                     size += p->GetMaxSize();
@@ -1257,7 +1257,7 @@ namespace SPA {
             }
 
             void ResetSize(unsigned int newSize = InitSize) {
-                SPA::CSpinAutoLock al(m_sl);
+                CSpinAutoLock al(m_sl);
                 for (size_t n = 0; n < m_count; ++n) {
                     PMB p = m_p[m_header + n];
                     if (p->GetMaxSize() > newSize) {

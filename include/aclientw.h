@@ -865,7 +865,7 @@ namespace SPA {
             }
 
             static UINT64 GetCacheContention() {
-                return m_csRR.Contention;
+                return m_rrStack.contention();
             }
 #endif
             unsigned int GetRequestsQueued();
