@@ -772,7 +772,6 @@ namespace SPA {
         class CAsyncServiceHandler {
             SPA::CScopeUQueue m_suCallback;
             SPA::CScopeUQueue m_suBatching;
-            static CSpinLock m_csRR;
             static void CleanQueue(CUQueue &q);
 
         public:
@@ -810,10 +809,43 @@ namespace SPA {
                 DDiscarded Discarded;
                 DServerException ExceptionFromServer;
             };
-            typedef std::pair<unsigned short, CResultCb*>* PRR_PAIR;
-            static CUQueue m_vRR;
-            static PRR_PAIR Reuse();
-            static void Recycle(PRR_PAIR p);
+            typedef std::pair<unsigned short, CResultCb*> *PRR_PAIR;
+
+            class CRR : public CSafeDeque<PRR_PAIR> {
+            public:
+
+                inline PRR_PAIR Reuse() {
+                    PRR_PAIR pp;
+                    if (!pop_front(pp)) {
+                        pp = nullptr;
+                    }
+                    return pp;
+                }
+
+                inline void Recycle(PRR_PAIR p) {
+                    if (p) {
+                        push_front(p);
+                    }
+                }
+
+                void ClearResultCallbackPool(size_t remaining) {
+                    CSpinAutoLock al(m_sl);
+                    if (remaining > m_count) {
+                        remaining = m_count;
+                    }
+                    PRR_PAIR *start = m_p + m_header;
+                    for (size_t it = remaining; it < m_count; ++it) {
+                        PRR_PAIR p = start[it];
+                        delete p->second;
+                        delete p;
+                    }
+                    m_count = remaining;
+                    if (!m_count) {
+                        m_header = 0;
+                    }
+                }
+            };
+            static CRR m_rrStack;
 
         protected:
             virtual void OnResultReturned(unsigned short reqId, CUQueue &mc);

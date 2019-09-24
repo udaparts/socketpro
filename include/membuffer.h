@@ -1222,7 +1222,7 @@ namespace SPA {
         /// Assignment operator disabled
         CScopeUQueueEx& operator=(const CScopeUQueueEx& sb);
 
-    public:
+    private:
 
         class CQPool : public CSafeDeque<mb*> {
         public:
@@ -1266,7 +1266,7 @@ namespace SPA {
                 }
             }
 
-            PMB Lock(tagOperationSystem os, bool bigEndian, unsigned int initSize, unsigned int blockSize) {
+            inline PMB Lock(tagOperationSystem os, bool bigEndian, unsigned int initSize, unsigned int blockSize) {
                 PMB p;
                 if (pop_front(p)) {
                     p->SetEndian(bigEndian);
@@ -1523,10 +1523,8 @@ namespace SPA {
         static U_MODULE_HIDDEN CMemPool m_memPool;
     };
 
-#ifndef NODE_JS_ADAPTER_PROJECT
     template<unsigned int InitSize, unsigned int BlockSize, typename mb>
     typename CScopeUQueueEx<InitSize, BlockSize, mb>::CMemPool CScopeUQueueEx<InitSize, BlockSize, mb>::m_memPool;
-#endif
 
     typedef CScopeUQueueEx<DEFAULT_INITIAL_MEMORY_BUFFER_SIZE, DEFAULT_MEMORY_BUFFER_BLOCK_SIZE> CScopeUQueue;
 

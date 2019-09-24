@@ -5,11 +5,6 @@
 
 namespace SPA
 {
-#ifdef NODE_JS_ADAPTER_PROJECT
-    template<unsigned int InitSize, unsigned int BlockSize, typename mb>
-    typename CScopeUQueueEx<InitSize, BlockSize, mb>::CMemPool CScopeUQueueEx<InitSize, BlockSize, mb>::m_memPool;
-#endif
-
     const UINT64 SAFE_DOUBLE = 9007199254740991ULL; //2^53-1
 
     unsigned int SHARED_BUFFER_CLEAN_SIZE = 32 * 1024;

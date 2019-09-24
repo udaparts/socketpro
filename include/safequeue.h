@@ -7,6 +7,14 @@ namespace SPA {
 
     static const size_t INITIAL_CAPACITY = 128;
 
+    /**
+     * A base template class using a spin lock to protect its members for thread safety
+     *
+     * The class provides basic functionalities for stack, deque and array operations with thread safety
+     *
+     * Inaddition to push or pop one element in eitther front or back,
+     * the class also supports pushing or popping elements in bulk for the best performance
+     */
     template<typename T>
     class CSafeDeque {
     public:
@@ -75,21 +83,21 @@ namespace SPA {
         }
 #endif
 
-        inline size_t size() const {
+        inline size_t size() {
             m_sl.lock();
             size_t count = m_count;
             m_sl.unlock();
             return count;
         }
 
-        inline size_t max_size() const {
+        inline size_t max_size() {
             m_sl.lock();
             size_t max = m_capacity;
             m_sl.unlock();
             return max;
         }
 
-        inline bool empty() const {
+        inline bool empty() {
             return (!size());
         }
 
@@ -283,8 +291,8 @@ namespace SPA {
             }
             size_t space = m_capacity - m_count;
             if (space > count && m_count < m_capacity / 2) {
-                ::memmove(m_p + m_capacity - m_count, m_p + m_header, m_count * sizeof (T));
-                m_header = m_capacity - m_count - count;
+                ::memmove(m_p + space, m_p + m_header, m_count * sizeof (T));
+                m_header = space - count;
                 ::memcpy(m_p + m_header, p, count * sizeof (T));
                 m_count += count;
             } else {
@@ -301,15 +309,40 @@ namespace SPA {
             }
         }
 
+    private:
+        /**
+         * The capacity is automatically adjusted according to the number of elements inside the deque if required
+         *
+         * Shouldn't never access this member directly
+         */
+        size_t m_capacity; //protected by m_sl
+
+        /**
+         * Permissions are given to access the following members from a sub class,
+         * as shown in the classes CScopeUQueueEx::CQPool and CAsyncServiceHandler::CRR
+         */
     protected:
+        /**
+         * A spin lock used for protecting other members
+         */
         CSpinLock m_sl;
-        size_t m_capacity;
+
+        /**
+         * A value to indicate the starting position for an array of elements inside the deque
+         */
         size_t m_header;
+
+        /**
+         * A value to indicate the number of elements inside the deque
+         */
         size_t m_count;
+
+        /**
+         * A pointer to a buffer containing an array of elements starting from the position m_header (m_p + m_header)
+         */
         T *m_p;
     };
 
 }; //namespace SPA
-
 
 #endif
