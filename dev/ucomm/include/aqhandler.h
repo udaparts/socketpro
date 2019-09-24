@@ -206,7 +206,7 @@ namespace SPA {
 
         private:
 
-            inline DResultHandler GetRH(const DEnqueue & e) {
+            inline static DResultHandler GetRH(const DEnqueue & e) {
                 if (e) {
 #if defined(PHP_ADAPTER_PROJECT) || defined(NODE_JS_ADAPTER_PROJECT)
                     return [e](CAsyncResult & ar) {

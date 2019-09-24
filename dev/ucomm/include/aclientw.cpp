@@ -17,8 +17,7 @@ namespace SPA
 
         Internal::CClientCoreLoader ClientCoreLoader;
 
-        CSpinLock CAsyncServiceHandler::m_csRR;
-        CUQueue CAsyncServiceHandler::m_vRR;
+        CAsyncServiceHandler::CRR CAsyncServiceHandler::m_rrStack;
 
         CSpinLock CAsyncServiceHandler::m_csIndex;
         UINT64 CAsyncServiceHandler::m_CallIndex = 0; //should be protected by m_csIndex
@@ -71,56 +70,21 @@ namespace SPA
             return index;
         }
 
-        void CAsyncServiceHandler::CleanQueue(CUQueue & q) {
-            unsigned int size = q.GetSize();
-            if (size) {
-                m_csRR.lock();
-                m_vRR.Push(q.GetBuffer(), size);
-                m_csRR.unlock();
-                q.SetSize(0);
-            }
-        }
-
         void CAsyncServiceHandler::ClearResultCallbackPool(unsigned int remaining) {
-            m_csRR.lock();
-            unsigned int total = m_vRR.GetSize() / sizeof (PRR_PAIR);
-            if (remaining > total) {
-                remaining = total;
-            }
-            PRR_PAIR *start = (PRR_PAIR *) m_vRR.GetBuffer();
-            for (unsigned int it = remaining; it < total; ++it) {
-                PRR_PAIR p = *(start + it);
-                delete p->second;
-                delete p;
-            }
-            m_vRR.SetSize(remaining * sizeof (PRR_PAIR));
-            m_csRR.unlock();
+            m_rrStack.ClearResultCallbackPool(remaining);
         }
 
         unsigned int CAsyncServiceHandler::CountResultCallbacksInPool() {
-            m_csRR.lock();
-            unsigned int count = m_vRR.GetSize() / sizeof (PRR_PAIR);
-            m_csRR.unlock();
-            return count;
+            return (unsigned int) m_rrStack.size();
         }
 
-        CAsyncServiceHandler::PRR_PAIR CAsyncServiceHandler::Reuse() {
-            m_csRR.lock();
-            if (m_vRR.GetSize() > 0) {
-                PRR_PAIR p;
-                m_vRR >> p;
-                m_csRR.unlock();
-                return p;
-            }
-            m_csRR.unlock();
-            return nullptr;
-        }
-
-        void CAsyncServiceHandler::Recycle(PRR_PAIR p) {
-            if (nullptr != p) {
-                m_csRR.lock();
-                m_vRR << p;
-                m_csRR.unlock();
+        void CAsyncServiceHandler::CleanQueue(CUQueue & q) {
+            unsigned int size = q.GetSize();
+            if (size) {
+                PRR_PAIR *pp = (PRR_PAIR*) q.GetBuffer();
+                size /= sizeof (PRR_PAIR);
+                m_rrStack.push_back(pp, size);
+                q.SetSize(0);
             }
         }
 
@@ -256,12 +220,17 @@ namespace SPA
             bool sent = false;
             USocket_Client_Handle h = GetClientSocketHandle();
             if (rh || discarded || serverException) {
-                p = Reuse();
+                p = m_rrStack.Reuse();
                 if (p) {
                     p->first = reqId;
-                    p->second->AsyncResultHandler = rh;
-                    p->second->Discarded = discarded;
-                    p->second->ExceptionFromServer = serverException;
+                    CResultCb *rcb = p->second;
+                    rcb->AsyncResultHandler = rh;
+                    if (rcb->Discarded || discarded) {
+                        rcb->Discarded = discarded;
+                    }
+                    if (rcb->ExceptionFromServer || serverException) {
+                        rcb->ExceptionFromServer = serverException;
+                    }
                 } else {
                     p = new std::pair<unsigned short, CResultCb*>(reqId, new CResultCb(rh, discarded, serverException));
                 }
@@ -287,7 +256,7 @@ namespace SPA
                     bool ok = (batching ? Remove(m_vBatching, p) : Remove(m_vCallback, p));
                     m_cs.unlock();
                     if (ok) {
-                        Recycle(p);
+                        m_rrStack.Recycle(p);
                     }
                 }
                 return false;
@@ -325,7 +294,7 @@ namespace SPA
                 if (pp[start]->second->Discarded) {
                     pp[start]->second->Discarded(this, true);
                 }
-                Recycle(pp[start]);
+                m_rrStack.Recycle(pp[start]);
             }
             m_vCallback.SetSize(m_vCallback.GetSize() - count * sizeof (PRR_PAIR));
         }
@@ -341,7 +310,7 @@ namespace SPA
                 if (p->second->ExceptionFromServer) {
                     p->second->ExceptionFromServer(this, requestId, errMessage, errWhere, errCode);
                 }
-                Recycle(p);
+                m_rrStack.Recycle(p);
             }
             m_seImpl.Invoke(this, requestId, errMessage, errWhere, errCode);
         }
@@ -354,7 +323,7 @@ namespace SPA
             } else if (m_rrImpl.Invoke(this, reqId, mc)) {
             } else
                 OnResultReturned(reqId, mc);
-            Recycle(p);
+            m_rrStack.Recycle(p);
         }
 
         unsigned int CAsyncServiceHandler::GetRequestsQueued() {
@@ -419,10 +388,12 @@ namespace SPA
                     }
                 }
             } else if (count) {
-                if ((*pp)->first == usReqId) {
-                    p = *pp;
+                p = *pp;
+                if (p->first == usReqId) {
                     m_vCallback.Pop((unsigned int) sizeof (PRR_PAIR));
                     return true;
+                } else {
+                    p = nullptr;
                 }
             }
             return false;
@@ -1070,12 +1041,13 @@ namespace SPA
         void WINAPI CClientSocket::OnRequestProcessed(USocket_Client_Handle handler, unsigned short requestId, unsigned int len) {
             CClientSocket *p = Seek(handler);
             if (p) {
-                if (p->IsRouting())
-                    p->m_os = ClientCoreLoader.GetPeerOs(handler, &p->m_endian);
                 CUQueue &q = p->m_qRecv;
                 q.SetSize(0);
-                q.SetOS(p->m_os);
-                q.SetEndian(p->m_endian);
+                if (p->IsRouting()) {
+                    p->m_os = ClientCoreLoader.GetPeerOs(handler, &p->m_endian);
+                    q.SetOS(p->m_os);
+                    q.SetEndian(p->m_endian);
+                }
                 if (len > q.GetMaxSize())
                     q.ReallocBuffer(len + sizeof (wchar_t));
                 if (len) {
@@ -1346,6 +1318,8 @@ namespace SPA
                 p->m_os = ClientCoreLoader.GetPeerOs(handler, &p->m_endian);
                 p->m_nCurrSvsId = ClientCoreLoader.GetCurrentServiceId(handler);
                 p->m_routing = ClientCoreLoader.IsRouting(handler);
+                p->m_qRecv.SetEndian(p->m_endian);
+                p->m_qRecv.SetOS(p->m_os);
             }
             PAsyncServiceHandler ash = p->m_pHandler;
             if (ash) {
