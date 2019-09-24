@@ -1227,39 +1227,40 @@ namespace SPA {
         class CQPool : public CSafeDeque<mb*> {
         public:
             typedef mb *PMB;
+            typedef CSafeDeque<mb*> base;
 
             void DestroyUQueuePool() {
-                CSpinAutoLock al(m_sl);
-                for (size_t n = 0; n < m_count; ++n) {
-                    PMB p = m_p[m_header + n];
+                CSpinAutoLock al(base::m_sl);
+                for (size_t n = 0; n < base::m_count; ++n) {
+                    PMB p = base::m_p[base::m_header + n];
                     delete p;
                 }
-                m_header = 0;
-                m_count = 0;
+                base::m_header = 0;
+                base::m_count = 0;
             }
 
             void CleanUQueuePool() {
-                CSpinAutoLock al(m_sl);
-                for (size_t n = 0; n < m_count; ++n) {
-                    PMB p = m_p[m_header + n];
+                CSpinAutoLock al(base::m_sl);
+                for (size_t n = 0; n < base::m_count; ++n) {
+                    PMB p = base::m_p[base::m_header + n];
                     p->CleanTrack();
                 }
             }
 
             UINT64 GetMemoryConsumed() {
                 UINT64 size = 0;
-                CSpinAutoLock al(m_sl);
-                for (size_t n = 0; n < m_count; ++n) {
-                    PMB p = m_p[m_header + n];
+                CSpinAutoLock al(base::m_sl);
+                for (size_t n = 0; n < base::m_count; ++n) {
+                    PMB p = base::m_p[base::m_header + n];
                     size += p->GetMaxSize();
                 }
                 return size;
             }
 
             void ResetSize(unsigned int newSize = InitSize) {
-                CSpinAutoLock al(m_sl);
-                for (size_t n = 0; n < m_count; ++n) {
-                    PMB p = m_p[m_header + n];
+                CSpinAutoLock al(base::m_sl);
+                for (size_t n = 0; n < base::m_count; ++n) {
+                    PMB p = base::m_p[base::m_header + n];
                     if (p->GetMaxSize() > newSize) {
                         p->ReallocBuffer(newSize);
                     }
@@ -1268,7 +1269,7 @@ namespace SPA {
 
             inline PMB Lock(tagOperationSystem os, bool bigEndian, unsigned int initSize, unsigned int blockSize) {
                 PMB p;
-                if (pop_front(p)) {
+                if (base::pop_front(p)) {
                     p->SetEndian(bigEndian);
                     p->SetOS(os);
                     p->SetBlockSize(blockSize);
@@ -1291,12 +1292,10 @@ namespace SPA {
                     return;
                 }
                 memoryChunk->SetSize(0);
-                push_front(memoryChunk);
+                base::push_front(memoryChunk);
                 memoryChunk = nullptr;
             }
         };
-
-        typedef CQPool CMemPool;
 
     public:
         typedef mb *PMB;
@@ -1520,11 +1519,11 @@ namespace SPA {
 
     private:
         mb *m_pUQueue;
-        static U_MODULE_HIDDEN CMemPool m_memPool;
+        static U_MODULE_HIDDEN CQPool m_memPool;
     };
 
     template<unsigned int InitSize, unsigned int BlockSize, typename mb>
-    typename CScopeUQueueEx<InitSize, BlockSize, mb>::CMemPool CScopeUQueueEx<InitSize, BlockSize, mb>::m_memPool;
+    typename CScopeUQueueEx<InitSize, BlockSize, mb>::CQPool CScopeUQueueEx<InitSize, BlockSize, mb>::m_memPool;
 
     typedef CScopeUQueueEx<DEFAULT_INITIAL_MEMORY_BUFFER_SIZE, DEFAULT_MEMORY_BUFFER_BLOCK_SIZE> CScopeUQueue;
 
