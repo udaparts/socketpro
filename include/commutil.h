@@ -118,6 +118,7 @@ namespace SPA {
          */
         CSpinAutoLock(CSpinLock &cs, UINT64 max_cycle = CSpinLock::MAX_CYCLE)
         : m_cs(cs), m_locked(m_cs.lock(max_cycle) < max_cycle) {
+            assert(max_cycle); //If max_cycle == 0, m_locked will be wrong!
         }
 
         /**
