@@ -582,14 +582,14 @@ namespace SPA {
                 position = m_nSize;
             } else if (position == 0 && m_nHeadPos >= len) {
                 m_nHeadPos -= len;
-                ::memmove(m_pBuffer + m_nHeadPos, buffer, len);
+                ::memcpy(m_pBuffer + m_nHeadPos, buffer, len);
                 m_nSize += len;
                 return;
             }
 
             if ((m_nMaxBuffer - m_nHeadPos - m_nSize) >= len) {
                 if (position == m_nSize) {
-                    ::memmove(m_pBuffer + m_nHeadPos + m_nSize, buffer, len);
+                    ::memcpy(m_pBuffer + m_nHeadPos + m_nSize, buffer, len);
                     m_nSize += len;
                     return;
                 }
@@ -597,7 +597,7 @@ namespace SPA {
             SetHeadPosition();
             if ((m_nMaxBuffer - m_nSize) >= len) {
                 ::memmove(m_pBuffer + position + len, m_pBuffer + position, m_nSize - position);
-                ::memmove(m_pBuffer + position, buffer, len);
+                ::memcpy(m_pBuffer + position, buffer, len);
                 m_nSize += len;
                 return;
             }
