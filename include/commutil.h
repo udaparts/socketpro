@@ -71,7 +71,7 @@ namespace SPA {
             while (::_InterlockedCompareExchange(&m_locked, 1, 0)) {
 #else
             int no_lock = 0;
-            while (!m_locked.compare_exchange_weak(no_lock, 1, std::memory_order_acquire, std::memory_order_relaxed)) {
+            while (!m_locked.compare_exchange_strong(no_lock, 1, std::memory_order_acquire, std::memory_order_relaxed)) {
                 assert(no_lock);
                 no_lock = 0;
 #endif
