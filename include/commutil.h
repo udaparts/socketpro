@@ -47,6 +47,8 @@ namespace SPA {
 
     public:
 
+        static const UINT64 MAX_CYCLE = (UINT64) (~0);
+
         CSpinLock()
         : m_locked(0)
 #if defined(MONITORING_SPIN_CONTENTION) && defined(ATOMIC_AVAILABLE)
@@ -63,7 +65,7 @@ namespace SPA {
          * If the returned value is zero or less than the given max spin number, the locking is successful.
          * Otherwise, the locking is failed
          */
-        inline UINT64 lock(UINT64 max_cycle = (~0)) volatile {
+        inline UINT64 lock(UINT64 max_cycle = MAX_CYCLE) volatile {
             UINT64 cycle = 0;
 #ifndef ATOMIC_AVAILABLE
             while (::_InterlockedCompareExchange(&m_locked, 1, 0)) {
@@ -114,16 +116,21 @@ namespace SPA {
         /**
          * Create an instance of CSpinAutoLock, and automatically lock a critical section
          */
-        CSpinAutoLock(CSpinLock &cs)
-        : m_cs(cs) {
-            m_cs.lock();
+        CSpinAutoLock(CSpinLock &cs, UINT64 max_cycle = CSpinLock::MAX_CYCLE)
+        : m_cs(cs), m_locked(m_cs.lock(max_cycle) < max_cycle) {
         }
 
         /**
          * Destroy an instance of CSpinAutoLock, and automatically unlock a critical section
          */
         ~CSpinAutoLock() {
-            m_cs.unlock();
+            if (m_locked) {
+                m_cs.unlock();
+            }
+        }
+
+        inline explicit operator bool() const {
+            return m_locked;
         }
 
     private:
@@ -134,6 +141,7 @@ namespace SPA {
         CSpinAutoLock& operator=(const CSpinAutoLock &al);
 
         CSpinLock &m_cs;
+        bool m_locked;
     };
 
 #ifdef BOOST_MP_CPP_INT_HPP
