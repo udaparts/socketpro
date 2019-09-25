@@ -8,7 +8,11 @@
       <itemPath>../TEchoC.h</itemPath>
       <itemPath>../TEchoD.h</itemPath>
       <itemPath>../TOne.h</itemPath>
+      <itemPath>../../include/aclientw.h</itemPath>
+      <itemPath>../../include/commutil.h</itemPath>
+      <itemPath>../../include/membuffer.h</itemPath>
       <itemPath>../mysvshandler.h</itemPath>
+      <itemPath>../../include/safequeue.h</itemPath>
     </logicalFolder>
     <logicalFolder name="ResourceFiles"
                    displayName="Resource Files"
@@ -80,7 +84,15 @@
       </compileType>
       <item path="../../include/aclientw.cpp" ex="false" tool="0" flavor2="0">
       </item>
+      <item path="../../include/aclientw.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../include/commutil.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="../../include/membuffer.cpp" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="../../include/membuffer.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../include/safequeue.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../TEchoB.h" ex="false" tool="3" flavor2="0">
       </item>
@@ -139,7 +151,15 @@
       </compileType>
       <item path="../../include/aclientw.cpp" ex="false" tool="0" flavor2="0">
       </item>
+      <item path="../../include/aclientw.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../include/commutil.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="../../include/membuffer.cpp" ex="false" tool="0" flavor2="0">
+      </item>
+      <item path="../../include/membuffer.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../include/safequeue.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../TEchoB.h" ex="false" tool="3" flavor2="0">
       </item>

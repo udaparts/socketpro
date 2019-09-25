@@ -801,7 +801,7 @@ namespace SPA {
                 : AsyncResultHandler(rh), Discarded(discarded), ExceptionFromServer(exceptionFromServer) {
                 }
 
-                //no copy contructor or assignment operator
+                //no copy constructor or assignment operator
                 CResultCb(const CResultCb &rcb);
                 CResultCb& operator=(const CResultCb &rcb);
 
@@ -854,7 +854,8 @@ namespace SPA {
             virtual void OnAllProcessed();
 
         public:
-#ifdef MONITORING_SPIN_CONTENTION
+
+#if defined(MONITORING_SPIN_CONTENTION) && defined(ATOMIC_AVAILABLE)
 
             UINT64 GetContention() {
                 return m_cs.Contention;
@@ -2946,4 +2947,3 @@ namespace SPA {
 }; //SPA
 
 #endif
-

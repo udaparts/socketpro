@@ -19,6 +19,8 @@ namespace SPA {
     class CSafeDeque {
     public:
 
+        static const UINT64 MAX_CYCLE = CSpinLock::MAX_CYCLE;
+
         CSafeDeque(size_t initailCapacity = INITIAL_CAPACITY) : m_capacity(initailCapacity), m_header(0), m_count(0) {
             if (m_capacity == 0) {
                 m_capacity = INITIAL_CAPACITY;
@@ -111,48 +113,48 @@ namespace SPA {
             m_capacity = m_count;
         }
 
-        inline void push_back(const T* p, size_t count) {
-            if (!p || !count) {
-                return;
-            }
-            pushback(p, count);
-        }
-
-        inline void push_back(const T& value) {
-            pushback(&value, 1);
-        }
-
-        inline void push_front(const T* p, size_t count) {
-            if (!p || !count) {
-                return;
-            }
-            pushfront(p, count);
-        }
-
-        inline void push_front(const T& value) {
-            pushfront(&value, 1);
-        }
-
-        inline size_t pop_back(T* p, size_t count) {
+        inline size_t push_back(const T* p, size_t count, UINT64 cycle = MAX_CYCLE) {
             if (!p || !count) {
                 return 0;
             }
-            return popback(p, count);
+            return pushback(p, count, cycle);
         }
 
-        inline size_t pop_back(T& value) {
-            return popback(&value, 1);
+        inline size_t push_back(const T& value, UINT64 cycle = MAX_CYCLE) {
+            return pushback(&value, 1, cycle);
         }
 
-        inline size_t pop_front(T* p, size_t count) {
+        inline size_t push_front(const T* p, size_t count, UINT64 cycle = MAX_CYCLE) {
             if (!p || !count) {
                 return 0;
             }
-            return popfront(p, count);
+            return pushfront(p, count, cycle);
         }
 
-        inline size_t pop_front(T& value) {
-            return popfront(&value, 1);
+        inline size_t push_front(const T& value, UINT64 cycle = MAX_CYCLE) {
+            return pushfront(&value, 1, cycle);
+        }
+
+        inline size_t pop_back(T* p, size_t count, UINT64 cycle = MAX_CYCLE) {
+            if (!p || !count) {
+                return 0;
+            }
+            return popback(p, count, cycle);
+        }
+
+        inline size_t pop_back(T& value, UINT64 cycle = MAX_CYCLE) {
+            return popback(&value, 1, cycle);
+        }
+
+        inline size_t pop_front(T* p, size_t count, UINT64 cycle = MAX_CYCLE) {
+            if (!p || !count) {
+                return 0;
+            }
+            return popfront(p, count, cycle);
+        }
+
+        inline size_t pop_front(T& value, UINT64 cycle = MAX_CYCLE) {
+            return popfront(&value, 1, cycle);
         }
 
         inline void clear() {
@@ -191,7 +193,7 @@ namespace SPA {
 
         CSafeDeque& operator=(const CSafeDeque &sd) {
             if (this == &sd) {
-                return;
+                return *this;
             }
             CSpinAutoLock al0(sd.m_sl);
             {
@@ -205,29 +207,30 @@ namespace SPA {
                 m_p = (T*)::malloc(m_capacity * sizeof (T));
                 ::memcpy(m_p + m_header, sd.m_p + m_header, m_count * sizeof (T));
             }
+            return *this;
         }
 
-        inline size_t push_back(const CSafeDeque &sd) {
-            CSpinAutoLock al(sd.m_sl);
-            if (!sd.m_p || !sd.m_count) {
+        inline size_t push_back(const CSafeDeque &sd, UINT64 cycle = MAX_CYCLE) {
+            CSpinAutoLock al(sd.m_sl, cycle);
+            if (!al || !sd.m_count) {
                 return 0;
             }
-            return pushback(sd.m_p + sd.m_header, sd.m_count);
+            return pushback(sd.m_p + sd.m_header, sd.m_count, cycle);
         }
 
-        inline size_t push_front(const CSafeDeque &sd) {
-            CSpinAutoLock al(sd.m_sl);
-            if (!sd.m_p || !sd.m_count) {
+        inline size_t push_front(const CSafeDeque &sd, UINT64 cycle = MAX_CYCLE) {
+            CSpinAutoLock al(sd.m_sl, cycle);
+            if (!al || !sd.m_count) {
                 return 0;
             }
-            return pushfront(sd.m_p + sd.m_header, sd.m_count);
+            return pushfront(sd.m_p + sd.m_header, sd.m_count, cycle);
         }
 
     private:
 
-        size_t popfront(T* p, size_t count) {
-            CSpinAutoLock al(m_sl);
-            if (!m_count) {
+        size_t popfront(T* p, size_t count, UINT64 cycle) {
+            CSpinAutoLock al(m_sl, cycle);
+            if (!al || !m_count) {
                 return 0;
             }
             if (count > m_count) {
@@ -243,9 +246,9 @@ namespace SPA {
             return count;
         }
 
-        size_t popback(T* p, size_t count) {
+        size_t popback(T* p, size_t count, UINT64 cycle) {
             CSpinAutoLock al(m_sl);
-            if (!m_count) {
+            if (!al || !m_count) {
                 return 0;
             }
             if (count > m_count) {
@@ -259,8 +262,11 @@ namespace SPA {
             return count;
         }
 
-        void pushback(const T* p, size_t count) {
+        size_t pushback(const T* p, size_t count, UINT64 cycle) {
             CSpinAutoLock al(m_sl);
+            if (!al) {
+                return 0;
+            }
             size_t tail = m_capacity - (m_header + m_count);
             if (tail >= count) {
                 ::memcpy(m_p + m_header + m_count, p, count * sizeof (T));
@@ -279,15 +285,19 @@ namespace SPA {
                 m_capacity = newCap;
             }
             m_count += count;
+            return count;
         }
 
-        void pushfront(const T* p, size_t count) {
-            CSpinAutoLock al(m_sl);
+        size_t pushfront(const T* p, size_t count, UINT64 cycle) {
+            CSpinAutoLock al(m_sl, cycle);
+            if (!al) {
+                return 0;
+            }
             if (m_header >= count) {
                 m_header -= count;
                 ::memcpy(m_p + m_header, p, count * sizeof (T));
                 m_count += count;
-                return;
+                return count;
             }
             size_t space = m_capacity - m_count;
             if (space > count && m_count < (m_capacity >> 1)) {
@@ -307,6 +317,7 @@ namespace SPA {
                 ::memcpy(m_p + header, p, count * sizeof (T));
                 m_capacity = newCap;
             }
+            return count;
         }
 
     private:
@@ -330,17 +341,17 @@ namespace SPA {
         /**
          * A value to indicate the starting position for an array of elements inside the deque
          */
-        size_t m_header;
+        size_t m_header; //protected by m_sl
 
         /**
          * A value to indicate the number of elements inside the deque
          */
-        size_t m_count;
+        size_t m_count; //protected by m_sl
 
         /**
          * A pointer to a buffer containing an array of elements starting from the position m_header (m_p + m_header)
          */
-        T *m_p;
+        T *m_p; //protected by m_sl
     };
 
 }; //namespace SPA
