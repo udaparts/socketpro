@@ -298,6 +298,7 @@ namespace SPA
                     ret = INVALID_NUMBER;
                     return;
                 }
+                CSpinAutoLock al(m_cs);
                 m_mapKeyQueue[key] = p;
             }
             if (m_qTrans == p)
