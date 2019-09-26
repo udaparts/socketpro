@@ -165,7 +165,7 @@ namespace SPA {
             unsigned int m_count;
             CUQueue *m_bufferBatch;
             std::shared_ptr<CMyQueue> m_qTrans;
-            static CUCriticalSection m_cs;
+            static CSpinLock m_cs;
             static std::unordered_map<std::string, std::shared_ptr<CMyQueue>> m_mapKeyQueue; //protected by m_cs
             static unsigned int m_clients; //protected by m_cs
         };

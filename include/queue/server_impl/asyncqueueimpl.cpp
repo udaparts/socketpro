@@ -10,7 +10,7 @@ namespace SPA
 
         unsigned int CAsyncQueueImpl::m_nBatchSize = 0;
         unsigned char CAsyncQueueImpl::m_bNoAuto = 0;
-        CUCriticalSection CAsyncQueueImpl::m_cs;
+        CSpinLock CAsyncQueueImpl::m_cs;
         std::unordered_map<std::string, std::shared_ptr < CAsyncQueueImpl::CMyQueue >> CAsyncQueueImpl::m_mapKeyQueue;
         unsigned int CAsyncQueueImpl::m_clients = 0;
 
@@ -37,7 +37,7 @@ namespace SPA
                 CScopeUQueue::DestroyUQueuePool();
             }
 
-            CAutoLock al(m_cs);
+            CSpinAutoLock al(m_cs);
             --m_clients;
             if (!m_clients) {
                 m_mapKeyQueue.clear();
@@ -66,7 +66,7 @@ namespace SPA
                 {
                     SPA::CScopeUQueue sb;
                     {
-                        CAutoLock al(m_cs);
+                        CSpinAutoLock al(m_cs);
                         unsigned int size = (unsigned int) m_mapKeyQueue.size();
                         sb << size;
                         for (auto it = m_mapKeyQueue.begin(), end = m_mapKeyQueue.end(); it != end; ++it) {
@@ -167,7 +167,7 @@ namespace SPA
             }
             Pretreat(key);
             {
-                CAutoLock al(m_cs);
+                CSpinAutoLock al(m_cs);
                 auto it = m_mapKeyQueue.find(key);
                 if (it == m_mapKeyQueue.end()) {
                     m_qTrans.reset(new CMyQueue(key.c_str()));
@@ -211,7 +211,7 @@ namespace SPA
                 m_qTrans.reset();
                 m_bufferBatch = nullptr;
             }
-            CAutoLock al(m_cs);
+            CSpinAutoLock al(m_cs);
             auto it = m_mapKeyQueue.find(key);
             if (it == m_mapKeyQueue.end()) {
                 errCode = Queue::QUEUE_OK;
@@ -246,7 +246,7 @@ namespace SPA
             if (!p) {
                 p.reset(new CMyQueue(key.c_str()));
                 if (p && p->GetHandle()) {
-                    CAutoLock al(m_cs);
+                    CSpinAutoLock al(m_cs);
                     m_mapKeyQueue[key] = p;
                 } else {
                     return;
@@ -270,7 +270,7 @@ namespace SPA
             if (!p) {
                 p.reset(new CMyQueue(key.c_str()));
                 if (p && p->GetHandle()) {
-                    CAutoLock al(m_cs);
+                    CSpinAutoLock al(m_cs);
                     m_mapKeyQueue[key] = p;
                 } else {
                     index = INVALID_NUMBER; // == -1
@@ -318,11 +318,10 @@ namespace SPA
 
         std::shared_ptr<CAsyncQueueImpl::CMyQueue> CAsyncQueueImpl::Find(std::string & key) {
             Pretreat(key);
-            CAutoLock al(m_cs);
+            CSpinAutoLock al(m_cs);
             auto it = m_mapKeyQueue.find(key);
             if (it == m_mapKeyQueue.end()) {
-                std::shared_ptr<CMyQueue> p;
-                return p;
+                return nullptr;
             }
             return it->second;
         }
