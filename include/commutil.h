@@ -61,11 +61,9 @@ namespace SPA {
         /**
          * Lock a critical section
          * @param max_cycle The max spin number
-         * @return The actual spin number
-         * If the returned value is zero or less than the given max spin number, the locking is successful.
-         * Otherwise, the locking is failed
+         * @return true if the locking is successful. Otherwise, the locking is failed
          */
-        inline UINT64 lock(UINT64 max_cycle = MAX_CYCLE) volatile {
+        inline bool lock(UINT64 max_cycle = MAX_CYCLE) volatile {
             UINT64 cycle = 0;
 #ifndef ATOMIC_AVAILABLE
             while (::_InterlockedCompareExchange(&m_locked, 1, 0)) {
@@ -85,7 +83,7 @@ namespace SPA {
                 Contention.fetch_add(cycle, std::memory_order_relaxed);
             }
 #endif
-            return cycle;
+            return (cycle < max_cycle || !cycle);
         }
 
         /**
@@ -93,7 +91,7 @@ namespace SPA {
          * @return True if successful, and false if failed
          */
         inline bool try_lock() volatile {
-            return (0 == lock(0));
+            return lock(1);
         }
 
         /**
@@ -117,8 +115,7 @@ namespace SPA {
          * Create an instance of CSpinAutoLock, and automatically lock a critical section
          */
         CSpinAutoLock(CSpinLock &cs, UINT64 max_cycle = CSpinLock::MAX_CYCLE)
-        : m_cs(cs), m_locked(m_cs.lock(max_cycle) < max_cycle) {
-            assert(max_cycle); //If max_cycle == 0, m_locked will be wrong!
+        : m_cs(cs), m_locked(cs.lock(max_cycle)) {
         }
 
         /**
