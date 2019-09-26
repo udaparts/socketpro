@@ -84,7 +84,7 @@ PBuffCache GetCurrentThreadByteArray() {
 #else
     UTHREAD_ID tid = pthread_self();
 #endif
-    auto cycles = g_csClient.lock();
+    g_csClient.lock();
     PBuffCache *start = g_vCache.data();
     size_t count = g_vCache.size();
     for (size_t n = 0; n < count; ++n) {
@@ -479,7 +479,7 @@ void SetPoolThreadAsDaemon(unsigned int pid) {
     UTHREAD_ID tid = pthread_self();
 #endif
     std::pair<unsigned int, UTHREAD_ID> pair = std::make_pair(pid, tid);
-    auto cycles = g_csClient.lock();
+    g_csClient.lock();
     if (std::find(g_vDThreadClient.begin(), g_vDThreadClient.end(), pair) == g_vDThreadClient.end()) {
         JNIEnv *env = nullptr;
         JavaVMAttachArgs args;
@@ -501,7 +501,7 @@ void RemovePoolThreadAsDaemon(unsigned int pid) {
 #else
     UTHREAD_ID tid = pthread_self();
 #endif
-    auto cycles = g_csClient.lock();
+    g_csClient.lock();
     while (removed) {
         removed = false;
         for (auto it = g_vDThreadClient.begin(), end = g_vDThreadClient.end(); it != end; ++it) {
@@ -521,7 +521,7 @@ void CALLBACK SPC(unsigned int pid, SPA::ClientSide::tagSocketPoolEvent spe, USo
     JNIEnv *env;
     jobject spc = nullptr;
     {
-        auto cycles = g_csClient.lock();
+        g_csClient.lock();
         if (g_mapPJ.find(pid) != g_mapPJ.cend())
             spc = g_mapPJ[pid];
         g_csClient.unlock();
@@ -548,7 +548,7 @@ void CALLBACK SPC(unsigned int pid, SPA::ClientSide::tagSocketPoolEvent spe, USo
             assert(env);
             spc = env->NewGlobalRef(g_currObj);
         {
-            auto cycles = g_csClient.lock();
+            g_csClient.lock();
             g_mapPJ[pid] = spc;
             g_csClient.unlock();
         }
@@ -561,7 +561,7 @@ void CALLBACK SPC(unsigned int pid, SPA::ClientSide::tagSocketPoolEvent spe, USo
             assert(spc);
             if (spc)
                 DoCallback(env, spc, pid, spe, h);
-            auto cycles = g_csClient.lock();
+            g_csClient.lock();
             g_mapPJ.erase((unsigned int) pid);
             g_csClient.unlock();
             env->DeleteGlobalRef(spc);
@@ -1188,7 +1188,7 @@ JNIEXPORT void JNICALL Java_SPA_ClientSide_ClientCoreLoader_SetBufferForCurrentT
     UTHREAD_ID tid = pthread_self();
 #endif
     PBuffCache found = nullptr;
-    auto cycles = g_csClient.lock();
+    g_csClient.lock();
     PBuffCache *start = g_vCache.data();
     size_t count = g_vCache.size();
     for (n = 0; n < count; ++n) {
