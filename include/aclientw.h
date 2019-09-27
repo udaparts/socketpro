@@ -139,7 +139,7 @@ namespace SPA {
         template<typename Del>
         struct IUDelImpl : public IUDel<Del> {
 
-            IUDelImpl(CUCriticalSection *cs = nullptr) : m_cs(cs) {
+            IUDelImpl(CSpinLock *cs = nullptr) : m_cs(cs) {
             }
 
             virtual void operator+=(const Del& d) {
@@ -197,7 +197,7 @@ namespace SPA {
 
             template<typename P0>
             void Invoke(P0 p0) {
-                CAutoLock al(*m_cs);
+                CSpinAutoLock al(*m_cs);
                 for (auto it = m_vD.cbegin(), end = m_vD.cend(); it != end; ++it) {
                     auto &d = *it;
                     d(p0);
@@ -206,7 +206,7 @@ namespace SPA {
 
             template<typename P0, typename P1>
             void Invoke(P0 p0, P1 p1) {
-                CAutoLock al(*m_cs);
+                CSpinAutoLock al(*m_cs);
                 for (auto it = m_vD.cbegin(), end = m_vD.cend(); it != end; ++it) {
                     auto &d = *it;
                     d(p0, p1);
@@ -215,7 +215,7 @@ namespace SPA {
 
             template<typename P0, typename P1, typename P2>
             void Invoke(P0 p0, P1 p1, P2 p2) {
-                CAutoLock al(*m_cs);
+                CSpinAutoLock al(*m_cs);
                 for (auto it = m_vD.cbegin(), end = m_vD.cend(); it != end; ++it) {
                     auto &d = *it;
                     d(p0, p1, p2);
@@ -224,7 +224,7 @@ namespace SPA {
 
             template<typename P0, typename P1, typename P2, typename P3>
             void Invoke(P0 p0, P1 p1, P2 p2, P3 p3) {
-                CAutoLock al(*m_cs);
+                CSpinAutoLock al(*m_cs);
                 for (auto it = m_vD.cbegin(), end = m_vD.cend(); it != end; ++it) {
                     auto &d = *it;
                     d(p0, p1, p2, p3);
@@ -233,7 +233,7 @@ namespace SPA {
 
             template<typename P0, typename P1, typename P2, typename P3, typename P4>
             void Invoke(P0 p0, P1 p1, P2 p2, P3 p3, P4 p4) {
-                CAutoLock al(*m_cs);
+                CSpinAutoLock al(*m_cs);
                 for (auto it = m_vD.cbegin(), end = m_vD.cend(); it != end; ++it) {
                     auto &d = *it;
                     d(p0, p1, p2, p3, p4);
@@ -242,7 +242,7 @@ namespace SPA {
 
             template<typename P0, typename P1, typename P2, typename P3, typename P4, typename P5>
             void Invoke(P0 p0, P1 p1, P2 p2, P3 p3, P4 p4, P5 p5) {
-                CAutoLock al(*m_cs);
+                CSpinAutoLock al(*m_cs);
                 for (auto it = m_vD.cbegin(), end = m_vD.cend(); it != end; ++it) {
                     auto &d = *it;
                     d(p0, p1, p2, p3, p4, p5);
@@ -251,12 +251,12 @@ namespace SPA {
 
         public:
 
-            void SetCS(CUCriticalSection *cs) {
+            void SetCS(CSpinLock *cs) {
                 m_cs = cs;
             }
 
         protected:
-            CUCriticalSection *m_cs;
+            CSpinLock *m_cs;
             std::vector<Del> m_vD;
 
         private:
@@ -487,7 +487,7 @@ namespace SPA {
                 struct CScribeDel : public IUDelImpl<DOnSubscribe> {
 
                     void Invoke(CClientSocket* cs, const CMessageSender& sender, const unsigned int* pGroup, unsigned int count) {
-                        CAutoLock al(*m_cs);
+                        CSpinAutoLock al(*m_cs);
                         for (auto it = m_vD.cbegin(), end = m_vD.cend(); it != end; ++it) {
                             auto &d = *it;
                             d(cs, sender, pGroup, count);
@@ -498,7 +498,7 @@ namespace SPA {
                 struct CUserDel : public IUDelImpl<DOnSendUserMessage> {
 
                     void Invoke(CClientSocket* cs, const CMessageSender& sender, const SPA::UVariant& vtMsg) {
-                        CAutoLock al(*m_cs);
+                        CSpinAutoLock al(*m_cs);
                         for (auto it = m_vD.cbegin(), end = m_vD.cend(); it != end; ++it) {
                             auto &d = *it;
                             d(cs, sender, vtMsg);
@@ -509,7 +509,7 @@ namespace SPA {
                 struct CUserExDel : public IUDelImpl<DOnSendUserMessageEx> {
 
                     void Invoke(CClientSocket* cs, const CMessageSender& sender, const unsigned char *buffer, unsigned int bytes) {
-                        CAutoLock al(*m_cs);
+                        CSpinAutoLock al(*m_cs);
                         for (auto it = m_vD.cbegin(), end = m_vD.cend(); it != end; ++it) {
                             auto &d = *it;
                             d(cs, sender, buffer, bytes);
@@ -520,7 +520,7 @@ namespace SPA {
                 struct CPublishDel : public IUDelImpl<DOnPublish> {
 
                     void Invoke(CClientSocket* cs, const CMessageSender& sender, const unsigned int* pGroup, unsigned int count, const SPA::UVariant& vtMsg) {
-                        CAutoLock al(*m_cs);
+                        CSpinAutoLock al(*m_cs);
                         for (auto it = m_vD.cbegin(), end = m_vD.cend(); it != end; ++it) {
                             auto &d = *it;
                             d(cs, sender, pGroup, count, vtMsg);
@@ -532,7 +532,7 @@ namespace SPA {
 #if defined(WIN32_64) && _MSC_VER < 1800
 
                     void Invoke(const CMessageSender& sender, const unsigned int* pGroup, unsigned int count, const unsigned char* buffer, unsigned int bytes) {
-                        CAutoLock al(*m_cs);
+                        CSpinAutoLock al(*m_cs);
                         for (auto it = m_vD.cbegin(), end = m_vD.cend(); it != end; ++it) {
                             auto &d = *it;
                             d(sender, pGroup, count, buffer, bytes);
@@ -541,7 +541,7 @@ namespace SPA {
 #else
 
                     void Invoke(CClientSocket* cs, const CMessageSender& sender, const unsigned int* pGroup, unsigned int count, const unsigned char* buffer, unsigned int bytes) {
-                        CAutoLock al(*m_cs);
+                        CSpinAutoLock al(*m_cs);
                         for (auto it = m_vD.cbegin(), end = m_vD.cend(); it != end; ++it) {
                             auto &d = *it;
                             d(cs, sender, pGroup, count, buffer, bytes);
@@ -709,7 +709,7 @@ namespace SPA {
             CAsyncServiceHandler *GetCurrentHandler();
 
         private:
-            CUCriticalSection m_cs;
+            CSpinLock m_cs;
             USocket_Client_Handle m_hSocket;
             CPushImpl m_PushImpl;
             CAsyncServiceHandler *m_pHandler;
@@ -1838,15 +1838,17 @@ namespace SPA {
             std::deque<std::shared_ptr<CNJFunc> > m_fBackup;
 #endif
         private:
-            CUCriticalSection m_csCb;
+            CSpinLock m_csCb;
             CSpinLock m_cs;
-            CUQueue &m_vCallback;
-            CUQueue &m_vBatching;
+            CUQueue &m_vCallback; //protected by m_cs;
+            CUQueue &m_vBatching; //protected by m_cs;
             unsigned int m_nServiceId;
             CClientSocket *m_pClientSocket;
-            CSpinLock m_csSend;
+#ifndef NODE_JS_ADAPTER_PROJECT
+            CUCriticalSection m_csSend;
+#endif
             static CSpinLock m_csIndex;
-            static UINT64 m_CallIndex; //should be protected by IndexLocker;
+            static UINT64 m_CallIndex; //protected by m_csIndex;
             friend class CClientSocket;
             template<typename THandler, typename TCS>
             friend class CSocketPool; // unbound friend class
@@ -1917,7 +1919,7 @@ namespace SPA {
                 if (!ClientCoreLoader.IsLoaded()) {
                     throw CUExCode("Client core library not accessible!", MB_BAD_OPERATION);
                 }
-                m_implSPE.SetCS(&m_cs);
+                m_implSPE.SetCS(&m_sl);
                 CAutoLock al(g_csSpPool);
                 m_vPool.push_back(this);
             }
@@ -2565,6 +2567,7 @@ namespace SPA {
             PHandler m_pHFrom;
             std::string m_qName;
             static std::vector<CSocketPool*> m_vPool; //protected by g_csSpPool
+            CSpinLock m_sl;
             IUDelImpl<DSocketPoolEvent> m_implSPE;
 
         public:

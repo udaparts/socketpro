@@ -33,7 +33,7 @@ namespace SPA {
                         *cb.Buffer << h;
                         cb.Buffer->Push(ar.UQueue.GetBuffer(), ar.UQueue.GetSize());
                         ar.UQueue.SetSize(0);
-                        auto contentions = this->m_cs.lock();
+                        this->m_cs.lock();
                         this->m_deqReqCb.push_back(cb);
                         this->m_cs.unlock();
                         int fail = uv_async_send(&this->m_typeReq);
@@ -57,7 +57,7 @@ namespace SPA {
                         PAsyncServiceHandler h = ash;
                         cb.Buffer = CScopeUQueue::Lock();
                         *cb.Buffer << h << canceled;
-                        auto contentions = this->m_cs.lock();
+                        this->m_cs.lock();
                         this->m_deqReqCb.push_back(cb);
                         this->m_cs.unlock();
                         int fail = uv_async_send(&this->m_typeReq);
@@ -81,7 +81,7 @@ namespace SPA {
                         PAsyncServiceHandler h = ash;
                         cb.Buffer = CScopeUQueue::Lock();
                         *cb.Buffer << h << errMsg << errWhere << errCode;
-                        auto contentions = this->m_cs.lock();
+                        this->m_cs.lock();
                         this->m_deqReqCb.push_back(cb);
                         this->m_cs.unlock();
                         int fail = uv_async_send(&this->m_typeReq);
@@ -105,7 +105,7 @@ namespace SPA {
             Isolate* isolate = Isolate::GetCurrent();
             HandleScope handleScope(isolate); //required for Node 4.x
             {
-                auto contentions = obj->m_cs.lock();
+                obj->m_cs.lock();
                 while (obj->m_deqReqCb.size()) {
                     ReqCb cb = obj->m_deqReqCb.front();
                     obj->m_deqReqCb.pop_front();
@@ -180,7 +180,7 @@ namespace SPA {
                             assert(false); //shouldn't come here
                             break;
                     }
-                    contentions = obj->m_cs.lock();
+                    obj->m_cs.lock();
                 }
                 obj->m_cs.unlock();
             }

@@ -51,6 +51,7 @@ namespace NJA {
             SPA::PUQueue Buffer;
             std::shared_ptr<CNJFunc> Func;
         };
+        SPA::CUCriticalSection m_csJQ;
         uv_async_t m_qType;
         std::deque<QueueCb> m_deqQCb; //Protected by m_csQ;
         std::shared_ptr<CNJFunc> m_rr; //OnResultReturned protected by m_csQ
