@@ -858,15 +858,15 @@ namespace SPA {
 #if defined(MONITORING_SPIN_CONTENTION) && defined(ATOMIC_AVAILABLE)
 
             UINT64 GetContention() {
-                return m_cs.Contention;
+                return m_cs.Contention; //m_vBatching & m_vCallback
             }
 
-            UINT64 GetSendContention() {
-                return m_csSend.Contention;
+            UINT64 GetCbContention() {
+                return m_csCb.Contention; //callbacks
             }
 
             static UINT64 GetCacheContention() {
-                return m_rrStack.contention();
+                return m_rrStack.contention(); //m_rrStack
             }
 #endif
             unsigned int GetRequestsQueued();
