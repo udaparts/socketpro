@@ -333,7 +333,9 @@ namespace SPA {
 
                 //make sure all parameter data sending and ExecuteParameters sending as one combination sending
                 //to avoid possible request sending overlapping within multiple threading environment
+#ifndef NODE_JS_ADAPTER_PROJECT
                 CAutoLock alOne(m_csOneSending);
+#endif
                 if (vParam.size())
                     queueOk = GetAttachedClientSocket()->GetClientQueue().StartJob();
                 {
@@ -398,7 +400,9 @@ namespace SPA {
                 bool queueOk = false;
                 //make sure all parameter data sending and ExecuteParameters sending as one combination sending
                 //to avoid possible request sending overlapping within multiple threading environment
+#ifndef NODE_JS_ADAPTER_PROJECT
                 CAutoLock alOne(m_csOneSending);
+#endif
                 {
                     if (vParam.size()) {
                         queueOk = GetAttachedClientSocket()->GetClientQueue().StartJob();
@@ -453,7 +457,9 @@ namespace SPA {
                     meta = false;
                 }
                 CScopeUQueue sb;
+#ifndef NODE_JS_ADAPTER_PROJECT
                 CAutoLock alOne(m_csOneSending);
+#endif
                 UINT64 index = GetCallIndex();
                 {
                     //don't make m_csDB locked across calling SendRequest, which may lead to client dead-lock
@@ -621,8 +627,9 @@ namespace SPA {
 
                 //make sure BeginTrans sending and underlying client persistent message queue as one combination sending
                 //to avoid possible request sending/client message writing overlapping within multiple threading environment
+#ifndef NODE_JS_ADAPTER_PROJECT
                 CAutoLock alOne(m_csOneSending);
-
+#endif
                 {
                     //don't make m_csDB locked across calling SendRequest, which may lead to client dead-lock
                     //in case a client asynchronously sends lots of requests without use of client side queue.
@@ -664,8 +671,9 @@ namespace SPA {
 
                 //make sure EndTrans sending and underlying client persistent message queue as one combination sending
                 //to avoid possible request sending/client message writing overlapping within multiple threading environment
+#ifndef NODE_JS_ADAPTER_PROJECT
                 CAutoLock alOne(m_csOneSending);
-
+#endif
                 if (SendRequest(idEndTrans, sb->GetBuffer(), sb->GetSize(), arh, discarded, nullptr)) {
                     if (m_queueOk) {
                         //associate end transaction with underlying client persistent message queue
@@ -1092,7 +1100,9 @@ namespace SPA {
             unsigned int m_parameters;
             unsigned int m_outputs;
             bool m_bCallReturn;
+#ifndef NODE_JS_ADAPTER_PROJECT
             CUCriticalSection m_csOneSending;
+#endif
             bool m_queueOk;
             std::unordered_map<UINT64, DRowsetHeader> m_mapHandler;
             unsigned int m_nParamPos;
