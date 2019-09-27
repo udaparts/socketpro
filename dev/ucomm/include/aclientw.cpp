@@ -6,9 +6,8 @@
 
 #endif
 
-namespace SPA
-{
-    namespace ClientSide{
+namespace SPA {
+    namespace ClientSide {
 
         CUCriticalSection g_csSpPool;
 
@@ -23,7 +22,7 @@ namespace SPA
         UINT64 CAsyncServiceHandler::m_CallIndex = 0; //should be protected by m_csIndex
 
         bool CAsyncServiceHandler::CRRImpl::Invoke(CAsyncServiceHandler *ash, unsigned short reqId, CUQueue & buff) {
-            CAutoLock al(*m_cs);
+            CSpinAutoLock al(*m_cs);
             for (auto it = m_vD.cbegin(), end = m_vD.cend(); it != end; ++it) {
                 auto &rr = *it;
                 if (rr(ash, reqId, buff)) {
@@ -235,7 +234,9 @@ namespace SPA
                     p = new std::pair<unsigned short, CResultCb*>(reqId, new CResultCb(rh, discarded, serverException));
                 }
                 batching = ClientCoreLoader.IsBatching(h);
-                CSpinAutoLock alSend(m_csSend);
+#ifndef NODE_JS_ADAPTER_PROJECT
+                CAutoLock alSend(m_csSend);
+#endif
                 {
                     m_cs.lock();
                     if (batching) {
@@ -504,8 +505,7 @@ namespace SPA
         }
 
         void SetLastCallInfo(const char *str, int data, const char *func) {
-            char buff[4097] =
-            { 0};
+            char buff[4097] = {0};
 #ifdef WIN32_64
             _snprintf_s(buff, sizeof (buff), sizeof (buff), "lf: %s, what: %s, data: %d", func, str, data);
 #else
@@ -630,8 +630,7 @@ namespace SPA
         }
 
         std::string CClientSocket::GetPeerName(unsigned int *port) const {
-            char ipAddr[256] =
-            { 0};
+            char ipAddr[256] = {0};
             ClientCoreLoader.GetPeerName(m_hSocket, port, ipAddr, sizeof (ipAddr));
             return ipAddr;
         }
@@ -664,7 +663,7 @@ namespace SPA
             ClientCoreLoader.SetZip(m_hSocket, zip);
         }
 
-        bool CClientSocket::operator == (const CClientSocket & cs) const {
+        bool CClientSocket::operator==(const CClientSocket & cs) const {
             return (m_hSocket == cs.m_hSocket);
         }
 
@@ -927,8 +926,7 @@ namespace SPA
         }
 
         std::string CClientSocket::GetErrorMsg() const {
-            char strErrorMsg[1025] =
-            {0};
+            char strErrorMsg[1025] = {0};
             ClientCoreLoader.GetErrorMessage(m_hSocket, strErrorMsg, sizeof (strErrorMsg));
             return strErrorMsg;
         }

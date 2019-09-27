@@ -31,14 +31,16 @@ namespace SPA {
             /**
              * Dequeue batch size in bytes
              */
-            unsigned int GetDequeueBatchSize() const {
+            unsigned int GetDequeueBatchSize() {
+                CSpinAutoLock al(m_csQ);
                 return (m_nBatchSize & 0xffffff);
             }
 
             /**
              * Check if remote queue server is able to automatically notify a client when a message is enqueued at server side
              */
-            bool GetEnqueueNotified() const {
+            bool GetEnqueueNotified() {
+                CSpinAutoLock al(m_csQ);
                 return ((m_nBatchSize >> 24) == 0);
             }
 
@@ -46,7 +48,7 @@ namespace SPA {
              * Get last dequeue callback
              */
             DDequeue GetLastDequeueCallback() {
-                CAutoLock al(m_csQ);
+                CSpinAutoLock al(m_csQ);
                 return m_dDequeue;
             }
 
@@ -54,7 +56,7 @@ namespace SPA {
              * set last dequeue callback
              */
             void SetLastDequeueCallback(DDequeue deq = nullptr) {
-                CAutoLock al(m_csQ);
+                CSpinAutoLock al(m_csQ);
                 m_dDequeue = deq;
             }
 
@@ -186,7 +188,7 @@ namespace SPA {
             bool Dequeue(const char *key, const DDequeue& d, unsigned int timeout = 0, const DDiscarded& discarded = nullptr) {
                 DResultHandler rh;
                 {
-                    CAutoLock al(m_csQ);
+                    CSpinAutoLock al(m_csQ);
                     m_keyDequeue = key ? key : "";
                     if (d) {
                         rh = [d](CAsyncResult & ar) {
@@ -444,18 +446,18 @@ namespace SPA {
                         mc.SetSize(0);
                         break;
                     case Queue::idBatchSizeNotified:
+                        m_csQ.lock();
                         mc >> m_nBatchSize;
+                        m_csQ.unlock();
                         break;
                     default:
                         break;
                 }
             }
 
-        protected:
-            SPA::CUCriticalSection m_csQ;
-
         private:
-            unsigned int m_nBatchSize;
+            CSpinLock m_csQ;
+            unsigned int m_nBatchSize; //protected by m_csQ
             std::string m_keyDequeue; //protected by m_csQ
             DDequeue m_dDequeue; //protected by m_csQ
 

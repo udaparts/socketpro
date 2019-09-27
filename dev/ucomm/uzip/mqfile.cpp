@@ -61,9 +61,10 @@ SPA::UINT64 GetTimeTick() {
     return now;
 }
 
-namespace MQ_FILE {
+namespace MQ_FILE{
 
-    unsigned char CMqFile::empty[PAD_EMPTY_SIZE] = {0};
+    unsigned char CMqFile::empty[PAD_EMPTY_SIZE] =
+    {0};
 
     std::time_t CMqFile::TIME_Y_2013 = SPA::Get2013();
 
@@ -75,7 +76,8 @@ namespace MQ_FILE {
     struct sigaction act;
 
     void handler(int sig, siginfo_t *info, void *ptr) {
-        try {
+        try
+        {
             MQ_FILE::CAutoLock al(MQ_FILE::g_csQFile);
             for (auto it = MQ_FILE::g_vQFile.begin(), end = MQ_FILE::g_vQFile.end(); it != end; ++it) {
                 (*it)->SetOptimistic(SPA::oSystemMemoryCached);
@@ -83,8 +85,12 @@ namespace MQ_FILE {
             for (auto it = MQ_FILE::g_vQLastIndex.begin(), end = MQ_FILE::g_vQLastIndex.end(); it != end; ++it) {
                 (*it)->FinalSave();
             }
-        } catch (std::exception & err) {
-        } catch (...) {
+        }
+
+        catch(std::exception & err) {
+        }
+
+        catch(...) {
         }
         if (sig == SIGTSTP)
             return;
@@ -250,7 +256,8 @@ namespace MQ_FILE {
     m_qs(SPA::qsNormal),
     m_bEnd(false),
     m_nFileSize(0) {
-        char str[2048 + 1] = {0};
+        char str[2048 + 1] =
+        {0};
         boost::filesystem::path rawPath(fileName);
 #ifdef WINCE
         {
@@ -311,10 +318,13 @@ namespace MQ_FILE {
             CAutoLock al(m_cs);
             CloseFile();
         }
-        try {
+        try
+        {
             CAutoLock al(g_csQFile);
             g_vQFile.erase(std::find(g_vQFile.begin(), g_vQFile.end(), this));
-        } catch (...) {
+        }
+
+        catch(...) {
 
         }
     }
@@ -1228,7 +1238,7 @@ namespace MQ_FILE {
         return confirms;
     }
 
-    unsigned int CMqFile::DoConfirmDequeue(const SPA::CUQueue &qDCI) {
+    unsigned int CMqFile::DoConfirmDequeue(const SPA::CUQueue & qDCI) {
         bool flush = false;
         CAutoLock al(m_cs);
         if (!m_hFile)
@@ -1250,7 +1260,7 @@ namespace MQ_FILE {
         return confirms;
     }
 
-    unsigned int CMqFile::ConfirmRangeEx(const QAttr *start, unsigned int count, bool &flush) {
+    unsigned int CMqFile::ConfirmRangeEx(const QAttr *start, unsigned int count, bool & flush) {
         unsigned int confirms = 0;
         int continues = 0;
         SPA::UINT64 prev_index = 0;
@@ -1295,7 +1305,7 @@ namespace MQ_FILE {
         return confirms;
     }
 
-    unsigned int CMqFile::ConfirmRangeEx(const CDequeueConfirmInfo *start, unsigned int count, bool &flush) {
+    unsigned int CMqFile::ConfirmRangeEx(const CDequeueConfirmInfo *start, unsigned int count, bool & flush) {
         unsigned int confirms = 0;
         int continues = 0;
         SPA::UINT64 prev_index = 0;
@@ -1974,7 +1984,7 @@ namespace MQ_FILE {
 
 #ifndef NDEBUG
 
-    bool CMqFile::FindConfirmed(const QAttr &qa) {
+    bool CMqFile::FindConfirmed(const QAttr & qa) {
         unsigned int count = m_sbConfirmed->GetSize() / sizeof (QAttr);
         const QAttr *start = (const QAttr *) m_sbConfirmed->GetBuffer();
         for (unsigned int n = 0; n < count; ++n, ++start) {
@@ -1986,7 +1996,7 @@ namespace MQ_FILE {
         return false;
     }
 
-    bool CMqFile::RemoveConfirmed(const QAttr &qa) {
+    bool CMqFile::RemoveConfirmed(const QAttr & qa) {
         unsigned int count = m_sbConfirmed->GetSize() / sizeof (QAttr);
         const QAttr *start = (const QAttr *) m_sbConfirmed->GetBuffer();
         for (unsigned int n = 0; n < count; ++n, ++start) {
@@ -2391,7 +2401,7 @@ namespace MQ_FILE {
         return false;
     }
 
-    SPA::UINT64 CMqFile::Enqueue(const SPA::CStreamHeader &sh, const unsigned char *buffer, unsigned int size, bool &oneonly) {
+    SPA::UINT64 CMqFile::Enqueue(const SPA::CStreamHeader &sh, const unsigned char *buffer, unsigned int size, bool & oneonly) {
         CAutoLock al(m_cs);
         SPA::UINT64 res = EnqueueInternal(sh, buffer, size);
         if (res == INVALID_NUMBER) {
@@ -2689,7 +2699,8 @@ namespace MQ_FILE {
         su->Push(s.c_str());
         su->Push(password);
 
-        unsigned char bytes[128] = {0};
+        unsigned char bytes[128] =
+        {0};
         SPA::CSHA1 sha1;
         sha1.Update(su->GetBuffer(), su->GetSize());
         sha1.Final();
@@ -2781,7 +2792,7 @@ namespace MQ_FILE {
     }
 
     CQLastIndex::CQLastIndex(const char *fileName, bool client)
-    : m_nCrash(0), m_fileName(fileName), m_bDirty(false), m_hFile(nullptr), m_stop(0), m_qs(SPA::qsNormal), m_CheckSum(0) {
+    : m_nCrash(0), m_fileName(fileName), m_bDirty(false), m_hFile(nullptr), m_stop(0), m_qs(SPA::qsNormal), m_CheckSum(0), m_bWaiting(false) {
         if (client)
             m_fileName += "_c.qdx";
         else
@@ -2806,18 +2817,21 @@ namespace MQ_FILE {
     }
 
     void CQLastIndex::Stop() {
-        try {
+        try
+        {
             CAutoLock al(g_csQFile);
             if (!m_stop) {
                 m_stop = 1;
-                try {
+                try{
                     std::vector<CQLastIndex*>::iterator it = g_vQLastIndex.end();
                     if (g_vQLastIndex.size())
                         it = std::find(g_vQLastIndex.begin(), g_vQLastIndex.end(), this);
                     if (it != g_vQLastIndex.end()) {
                         g_vQLastIndex.erase(it);
                     }
-                } catch (...) {
+                }
+
+                catch(...) {
                 }
                 m_cv.notify_one();
                 if (m_thread->joinable()) {
@@ -2827,7 +2841,9 @@ namespace MQ_FILE {
                 CloseFile();
                 //std::cout << "Stopped" << std::endl;
             }
-        } catch (...) {
+        }
+
+        catch(...) {
 
         }
     }
@@ -2839,9 +2855,11 @@ namespace MQ_FILE {
         unsigned int waitTime = LONG_WAIT_TIME;
         do {
             {
+                m_bWaiting = true;
 #ifndef WINCE
-                CAutoLock al(m_cs);
+                CAutoLock al(m_csFile);
                 waited = (m_cv.wait_for(al, ms(waitTime)) == std::cv_status::no_timeout);
+                m_bWaiting = false;
 #else
                 boost::system_time td = boost::get_system_time() + boost::posix_time::milliseconds(waitTime);
                 CAutoLock al(m_cs);
@@ -2890,11 +2908,7 @@ namespace MQ_FILE {
         bool save = (m_CheckSum > 0);
         m_cs.unlock();
         if (save) {
-#ifndef WINCE
             yield();
-#else
-            yield();
-#endif
             unsigned int checksum = 0;
             CAutoLock al(m_csFile);
             if (m_CheckSum == 0)
@@ -2925,7 +2939,7 @@ namespace MQ_FILE {
         SPA::CUQueue &qBuffer = *su;
 
         {
-            CAutoLock al(m_cs);
+            SPA::CSpinAutoLock al(m_cs);
             if (m_hFile == nullptr)
                 return false;
             m_bDirty = false;
@@ -3049,14 +3063,16 @@ namespace MQ_FILE {
             return;
         {
             CMyMap &map = *this;
-            CAutoLock al(m_cs);
+            SPA::CSpinAutoLock al(m_cs);
             CQLastIndex::iterator it = find(key);
             if (it != map.end() && it->second == qa)
                 return;
             map[key] = qa;
             m_bDirty = true;
         }
-        m_cv.notify_one();
+        if (m_bWaiting) {
+            m_cv.notify_one();
+        }
         SaveCheckSum();
     }
 
@@ -3064,7 +3080,7 @@ namespace MQ_FILE {
         bool dirty = false;
         {
             CMyMap &map = *this;
-            CAutoLock al(m_cs);
+            SPA::CSpinAutoLock al(m_cs);
             CQLastIndex::iterator it = find(key);
             if (it != map.end()) {
                 map.erase(it);
@@ -3073,15 +3089,17 @@ namespace MQ_FILE {
             }
         }
         if (dirty) {
-            m_cv.notify_one();
+            if (m_bWaiting) {
+                m_cv.notify_one();
+            }
             SaveCheckSum();
         }
     }
 
     QAttr CQLastIndex::Seek(const QueueSha1 & key) {
         QAttr qa(INVALID_NUMBER, INVALID_NUMBER);
-        CAutoLock al(m_cs);
         CMyMap &map = *this;
+        SPA::CSpinAutoLock al(m_cs);
         CQLastIndex::iterator it = find(key);
         if (it != map.end()) {
             qa = it->second;
@@ -3133,9 +3151,9 @@ namespace MQ_FILE {
                 --len;
             } while (len);
         }
+        CAutoLock al(m_cs);
         m_bf->Encrypt((unsigned char*) su->GetBuffer(), su->GetSize());
         std::vector<unsigned char> buffer(su->GetBuffer(), su->GetBuffer(su->GetSize()));
-        CAutoLock al(m_cs);
         m_objp[src] = buffer;
     }
 

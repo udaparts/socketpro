@@ -415,13 +415,14 @@ namespace MQ_FILE {
         std::string m_fileName;
         bool m_bDirty;
         FILE *m_hFile;
-        mutex m_cs;
+        SPA::CSpinLock m_cs;
         condition_variable m_cv;
         mutex m_csFile;
         thread *m_thread;
         volatile long m_stop;
         SPA::tagQueueStatus m_qs;
         unsigned int m_CheckSum;
+        volatile bool m_bWaiting;
     };
 
     class CMyContainer {
