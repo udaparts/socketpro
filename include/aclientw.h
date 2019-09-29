@@ -483,79 +483,12 @@ namespace SPA {
             private:
                 CClientSocket *m_cs;
                 friend class CClientSocket;
-
-                struct CScribeDel : public IUDelImpl<DOnSubscribe> {
-
-                    void Invoke(CClientSocket* cs, const CMessageSender& sender, const unsigned int* pGroup, unsigned int count) {
-                        CSpinAutoLock al(*m_cs);
-                        for (auto it = m_vD.cbegin(), end = m_vD.cend(); it != end; ++it) {
-                            auto &d = *it;
-                            d(cs, sender, pGroup, count);
-                        }
-                    }
-                };
-
-                struct CUserDel : public IUDelImpl<DOnSendUserMessage> {
-
-                    void Invoke(CClientSocket* cs, const CMessageSender& sender, const SPA::UVariant& vtMsg) {
-                        CSpinAutoLock al(*m_cs);
-                        for (auto it = m_vD.cbegin(), end = m_vD.cend(); it != end; ++it) {
-                            auto &d = *it;
-                            d(cs, sender, vtMsg);
-                        }
-                    }
-                };
-
-                struct CUserExDel : public IUDelImpl<DOnSendUserMessageEx> {
-
-                    void Invoke(CClientSocket* cs, const CMessageSender& sender, const unsigned char *buffer, unsigned int bytes) {
-                        CSpinAutoLock al(*m_cs);
-                        for (auto it = m_vD.cbegin(), end = m_vD.cend(); it != end; ++it) {
-                            auto &d = *it;
-                            d(cs, sender, buffer, bytes);
-                        }
-                    }
-                };
-
-                struct CPublishDel : public IUDelImpl<DOnPublish> {
-
-                    void Invoke(CClientSocket* cs, const CMessageSender& sender, const unsigned int* pGroup, unsigned int count, const SPA::UVariant& vtMsg) {
-                        CSpinAutoLock al(*m_cs);
-                        for (auto it = m_vD.cbegin(), end = m_vD.cend(); it != end; ++it) {
-                            auto &d = *it;
-                            d(cs, sender, pGroup, count, vtMsg);
-                        }
-                    }
-                };
-
-                struct CPublishExDel : public IUDelImpl<DOnPublishEx> {
-#if defined(WIN32_64) && _MSC_VER < 1800
-
-                    void Invoke(const CMessageSender& sender, const unsigned int* pGroup, unsigned int count, const unsigned char* buffer, unsigned int bytes) {
-                        CSpinAutoLock al(*m_cs);
-                        for (auto it = m_vD.cbegin(), end = m_vD.cend(); it != end; ++it) {
-                            auto &d = *it;
-                            d(sender, pGroup, count, buffer, bytes);
-                        }
-                    }
-#else
-
-                    void Invoke(CClientSocket* cs, const CMessageSender& sender, const unsigned int* pGroup, unsigned int count, const unsigned char* buffer, unsigned int bytes) {
-                        CSpinAutoLock al(*m_cs);
-                        for (auto it = m_vD.cbegin(), end = m_vD.cend(); it != end; ++it) {
-                            auto &d = *it;
-                            d(cs, sender, pGroup, count, buffer, bytes);
-                        }
-                    }
-#endif
-                };
-
-                CUserDel m_lstUser;
-                CUserExDel m_lstUserEx;
-                CPublishDel m_lstPublish;
-                CPublishExDel m_lstPublishEx;
-                CScribeDel m_lstSub;
-                CScribeDel m_lstUnsub;
+                IUDelImpl<DOnSendUserMessage> m_lstUser;
+                IUDelImpl<DOnSendUserMessageEx> m_lstUserEx;
+                IUDelImpl<DOnPublish> m_lstPublish;
+                IUDelImpl<DOnPublishEx> m_lstPublishEx;
+                IUDelImpl<DOnSubscribe> m_lstSub;
+                IUDelImpl<DOnSubscribe> m_lstUnsub;
 
             public:
                 IUDel<DOnSendUserMessage>& OnSendUserMessage;
