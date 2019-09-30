@@ -5,6 +5,7 @@
 	(d) Performance tuning with improvement about 6% overall with core libiraries, usocket and uservercore
 	(e) Add support of enterprise license
 	(f) Remove dependency over boost libraries within C/C++ development environment
+	(g) Use spin lock extensively within C/C++ adapter whenever it is proper
 
 22. SocketPro Version 6.2.0.1-4
 	(a) Add support of TLSv1.2 and TLSv1.3, and disable SSL3

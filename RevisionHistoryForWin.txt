@@ -8,6 +8,7 @@
 	(g) Performance tuning with improvement about 6% overall with core libiraries, usocket and uservercore
 	(h) Add support of enterprise license
 	(i) SocketPro still supports windows XP and 2003 by old Visual C++ 2010 compilation per your requirement
+	(j) Use spin lock extensively within C/C++ adapter whenever it is proper
 
 84. SocketPro Version 6.2.0.1-4
 	(a) Add support of TLSv1.2 and TLSv1.3, and disable SSL3
