@@ -64,26 +64,23 @@ namespace SPA {
          * @return true if the locking is successful. Otherwise, the locking is failed
          */
         inline bool lock(UINT64 max_cycle = MAX_CYCLE) volatile {
-            UINT64 cycle = 0;
 #ifndef ATOMIC_AVAILABLE
             while (::_InterlockedCompareExchange(&m_locked, 1, 0)) {
 #else
             int no_lock = 0;
             while (!m_locked.compare_exchange_strong(no_lock, 1, std::memory_order_acquire, std::memory_order_relaxed)) {
-                assert(no_lock);
                 no_lock = 0;
 #endif
-                ++cycle;
-                if (cycle >= max_cycle) {
-                    break;
+#if defined(MONITORING_SPIN_CONTENTION) && defined(ATOMIC_AVAILABLE)
+                Contention.fetch_add(1, std::memory_order_relaxed);
+#endif
+                if (max_cycle > 1) {
+                    --max_cycle;
+                } else {
+                    return false;
                 }
             }
-#if defined(MONITORING_SPIN_CONTENTION) && defined(ATOMIC_AVAILABLE)
-            if (cycle) {
-                Contention.fetch_add(cycle, std::memory_order_relaxed);
-            }
-#endif
-            return (cycle < max_cycle || !cycle);
+            return true;
         }
 
         /**

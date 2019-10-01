@@ -229,8 +229,11 @@ namespace SPA {
     private:
 
         size_t popfront(T* p, size_t count, UINT64 cycle) {
-            CSpinAutoLock al(m_sl, cycle);
-            if (!al || !m_count) {
+            if (!m_sl.lock(cycle)) {
+                return 0;
+            }
+            if (!m_count) {
+                m_sl.unlock();
                 return 0;
             }
             if (count > m_count) {
@@ -243,12 +246,16 @@ namespace SPA {
             } else {
                 m_header += count;
             }
+            m_sl.unlock();
             return count;
         }
 
         size_t popback(T* p, size_t count, UINT64 cycle) {
-            CSpinAutoLock al(m_sl);
-            if (!al || !m_count) {
+            if (!m_sl.lock(cycle)) {
+                return 0;
+            }
+            if (!m_count) {
+                m_sl.unlock();
                 return 0;
             }
             if (count > m_count) {
@@ -259,12 +266,12 @@ namespace SPA {
             if (!m_count) {
                 m_header = 0;
             }
+            m_sl.unlock();
             return count;
         }
 
         size_t pushback(const T* p, size_t count, UINT64 cycle) {
-            CSpinAutoLock al(m_sl);
-            if (!al) {
+            if (!m_sl.lock(cycle)) {
                 return 0;
             }
             size_t tail = m_capacity - (m_header + m_count);
@@ -285,38 +292,37 @@ namespace SPA {
                 m_capacity = newCap;
             }
             m_count += count;
+            m_sl.unlock();
             return count;
         }
 
         size_t pushfront(const T* p, size_t count, UINT64 cycle) {
-            CSpinAutoLock al(m_sl, cycle);
-            if (!al) {
+            if (!m_sl.lock(cycle)) {
                 return 0;
             }
             if (m_header >= count) {
                 m_header -= count;
                 ::memcpy(m_p + m_header, p, count * sizeof (T));
-                m_count += count;
-                return count;
-            }
-            size_t space = m_capacity - m_count;
-            if (space > count && m_count < (m_capacity >> 1)) {
-                ::memmove(m_p + space, m_p + m_header, m_count * sizeof (T));
-                m_header = space - count;
-                ::memcpy(m_p + m_header, p, count * sizeof (T));
-                m_count += count;
             } else {
-                size_t newCap = count + m_capacity * 2;
-                T *m = (T*)::malloc(newCap * sizeof (T));
-                size_t header = newCap - m_count - count;
-                ::memcpy(m + header + count, m_p + m_header, m_count * sizeof (T));
-                m_header = header;
-                ::free(m_p);
-                m_p = m;
-                m_count += count;
-                ::memcpy(m_p + header, p, count * sizeof (T));
-                m_capacity = newCap;
+                size_t space = m_capacity - m_count;
+                if (space > count && m_count < (m_capacity >> 1)) {
+                    ::memmove(m_p + space, m_p + m_header, m_count * sizeof (T));
+                    m_header = space - count;
+                    ::memcpy(m_p + m_header, p, count * sizeof (T));
+                } else {
+                    size_t newCap = count + m_capacity * 2;
+                    T *m = (T*)::malloc(newCap * sizeof (T));
+                    size_t header = newCap - m_count - count;
+                    ::memcpy(m + header + count, m_p + m_header, m_count * sizeof (T));
+                    m_header = header;
+                    ::free(m_p);
+                    m_p = m;
+                    ::memcpy(m_p + header, p, count * sizeof (T));
+                    m_capacity = newCap;
+                }
             }
+            m_count += count;
+            m_sl.unlock();
             return count;
         }
 
