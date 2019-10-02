@@ -403,7 +403,7 @@ namespace SPA {
 #ifdef ENABLE_SOCKET_REQUEST_AND_ALL_EVENTS
 
         void CClientSocket::CIRequestProcessed::Invoke(CClientSocket *cs, unsigned short reqId, CUQueue & mc) {
-            CAutoLock al(*m_cs);
+            CSpinAutoLock al(*m_cs);
             for (auto it = m_vD.cbegin(), end = m_vD.cend(); it != end; ++it) {
                 auto &d = *it;
                 d(cs, reqId, mc);

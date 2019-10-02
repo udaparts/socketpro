@@ -196,7 +196,7 @@ namespace SPA {
             }
 
             template<typename P0>
-            void Invoke(P0 p0) {
+            void Invoke(const P0& p0) {
                 CSpinAutoLock al(*m_cs);
                 for (auto it = m_vD.cbegin(), end = m_vD.cend(); it != end; ++it) {
                     auto &d = *it;
@@ -205,7 +205,7 @@ namespace SPA {
             }
 
             template<typename P0, typename P1>
-            void Invoke(P0 p0, P1 p1) {
+            void Invoke(const P0& p0, const P1& p1) {
                 CSpinAutoLock al(*m_cs);
                 for (auto it = m_vD.cbegin(), end = m_vD.cend(); it != end; ++it) {
                     auto &d = *it;
@@ -214,7 +214,7 @@ namespace SPA {
             }
 
             template<typename P0, typename P1, typename P2>
-            void Invoke(P0 p0, P1 p1, P2 p2) {
+            void Invoke(const P0& p0, const P1& p1, const P2& p2) {
                 CSpinAutoLock al(*m_cs);
                 for (auto it = m_vD.cbegin(), end = m_vD.cend(); it != end; ++it) {
                     auto &d = *it;
@@ -223,7 +223,7 @@ namespace SPA {
             }
 
             template<typename P0, typename P1, typename P2, typename P3>
-            void Invoke(P0 p0, P1 p1, P2 p2, P3 p3) {
+            void Invoke(const P0& p0, const P1& p1, const P2& p2, const P3& p3) {
                 CSpinAutoLock al(*m_cs);
                 for (auto it = m_vD.cbegin(), end = m_vD.cend(); it != end; ++it) {
                     auto &d = *it;
@@ -232,7 +232,7 @@ namespace SPA {
             }
 
             template<typename P0, typename P1, typename P2, typename P3, typename P4>
-            void Invoke(P0 p0, P1 p1, P2 p2, P3 p3, P4 p4) {
+            void Invoke(const P0& p0, const P1& p1, const P2& p2, const P3& p3, const P4& p4) {
                 CSpinAutoLock al(*m_cs);
                 for (auto it = m_vD.cbegin(), end = m_vD.cend(); it != end; ++it) {
                     auto &d = *it;
@@ -241,7 +241,7 @@ namespace SPA {
             }
 
             template<typename P0, typename P1, typename P2, typename P3, typename P4, typename P5>
-            void Invoke(P0 p0, P1 p1, P2 p2, P3 p3, P4 p4, P5 p5) {
+            void Invoke(const P0& p0, const P1& p1, const P2& p2, const P3& p3, const P4& p4, const P5& p5) {
                 CSpinAutoLock al(*m_cs);
                 for (auto it = m_vD.cbegin(), end = m_vD.cend(); it != end; ++it) {
                     auto &d = *it;
@@ -483,79 +483,12 @@ namespace SPA {
             private:
                 CClientSocket *m_cs;
                 friend class CClientSocket;
-
-                struct CScribeDel : public IUDelImpl<DOnSubscribe> {
-
-                    void Invoke(CClientSocket* cs, const CMessageSender& sender, const unsigned int* pGroup, unsigned int count) {
-                        CSpinAutoLock al(*m_cs);
-                        for (auto it = m_vD.cbegin(), end = m_vD.cend(); it != end; ++it) {
-                            auto &d = *it;
-                            d(cs, sender, pGroup, count);
-                        }
-                    }
-                };
-
-                struct CUserDel : public IUDelImpl<DOnSendUserMessage> {
-
-                    void Invoke(CClientSocket* cs, const CMessageSender& sender, const SPA::UVariant& vtMsg) {
-                        CSpinAutoLock al(*m_cs);
-                        for (auto it = m_vD.cbegin(), end = m_vD.cend(); it != end; ++it) {
-                            auto &d = *it;
-                            d(cs, sender, vtMsg);
-                        }
-                    }
-                };
-
-                struct CUserExDel : public IUDelImpl<DOnSendUserMessageEx> {
-
-                    void Invoke(CClientSocket* cs, const CMessageSender& sender, const unsigned char *buffer, unsigned int bytes) {
-                        CSpinAutoLock al(*m_cs);
-                        for (auto it = m_vD.cbegin(), end = m_vD.cend(); it != end; ++it) {
-                            auto &d = *it;
-                            d(cs, sender, buffer, bytes);
-                        }
-                    }
-                };
-
-                struct CPublishDel : public IUDelImpl<DOnPublish> {
-
-                    void Invoke(CClientSocket* cs, const CMessageSender& sender, const unsigned int* pGroup, unsigned int count, const SPA::UVariant& vtMsg) {
-                        CSpinAutoLock al(*m_cs);
-                        for (auto it = m_vD.cbegin(), end = m_vD.cend(); it != end; ++it) {
-                            auto &d = *it;
-                            d(cs, sender, pGroup, count, vtMsg);
-                        }
-                    }
-                };
-
-                struct CPublishExDel : public IUDelImpl<DOnPublishEx> {
-#if defined(WIN32_64) && _MSC_VER < 1800
-
-                    void Invoke(const CMessageSender& sender, const unsigned int* pGroup, unsigned int count, const unsigned char* buffer, unsigned int bytes) {
-                        CSpinAutoLock al(*m_cs);
-                        for (auto it = m_vD.cbegin(), end = m_vD.cend(); it != end; ++it) {
-                            auto &d = *it;
-                            d(sender, pGroup, count, buffer, bytes);
-                        }
-                    }
-#else
-
-                    void Invoke(CClientSocket* cs, const CMessageSender& sender, const unsigned int* pGroup, unsigned int count, const unsigned char* buffer, unsigned int bytes) {
-                        CSpinAutoLock al(*m_cs);
-                        for (auto it = m_vD.cbegin(), end = m_vD.cend(); it != end; ++it) {
-                            auto &d = *it;
-                            d(cs, sender, pGroup, count, buffer, bytes);
-                        }
-                    }
-#endif
-                };
-
-                CUserDel m_lstUser;
-                CUserExDel m_lstUserEx;
-                CPublishDel m_lstPublish;
-                CPublishExDel m_lstPublishEx;
-                CScribeDel m_lstSub;
-                CScribeDel m_lstUnsub;
+                IUDelImpl<DOnSendUserMessage> m_lstUser;
+                IUDelImpl<DOnSendUserMessageEx> m_lstUserEx;
+                IUDelImpl<DOnPublish> m_lstPublish;
+                IUDelImpl<DOnPublishEx> m_lstPublishEx;
+                IUDelImpl<DOnSubscribe> m_lstSub;
+                IUDelImpl<DOnSubscribe> m_lstUnsub;
 
             public:
                 IUDel<DOnSendUserMessage>& OnSendUserMessage;
