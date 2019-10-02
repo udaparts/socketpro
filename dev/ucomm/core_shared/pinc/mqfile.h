@@ -422,7 +422,7 @@ namespace MQ_FILE {
         volatile long m_stop;
         SPA::tagQueueStatus m_qs;
         unsigned int m_CheckSum;
-        volatile bool m_bWaiting;
+        mutex m_csWaiting;
     };
 
     class CMyContainer {
