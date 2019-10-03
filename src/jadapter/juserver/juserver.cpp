@@ -43,12 +43,6 @@ void CleanException(JNIEnv *env) {
 
 void CALLBACK OnThreadEvent(SPA::ServerSide::tagThreadEvent te);
 
-#ifdef WIN32_64
-typedef DWORD UTHREAD_ID;
-#else
-typedef pthread_t UTHREAD_ID;
-#endif
-
 std::vector<UTHREAD_ID> g_vDThread;
 
 void SetCurrentThreadAsDaemon() {

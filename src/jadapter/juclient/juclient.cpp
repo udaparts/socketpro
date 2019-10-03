@@ -7,11 +7,9 @@
 #ifdef WINCE
 #elif defined(WIN32_64)
 #include <unordered_map>
-typedef DWORD UTHREAD_ID;
 std::unordered_map<unsigned int, jobject> g_mapPJ;
 #else
 #include <boost/unordered_map.hpp>
-typedef pthread_t UTHREAD_ID;
 boost::unordered_map<unsigned int, jobject> g_mapPJ;
 #endif
 
