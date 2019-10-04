@@ -132,7 +132,7 @@ public class CAsyncQueue extends CAsyncServiceHandler {
         }
     }
 
-    private DAsyncResultHandler GetRH(final DEnqueue e) {
+    private static DAsyncResultHandler GetRH(final DEnqueue e) {
         if (e != null) {
             return new CAsyncServiceHandler.DAsyncResultHandler() {
                 @Override
