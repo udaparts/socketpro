@@ -97,54 +97,34 @@ void CServerRegistration::SetOSs() {
 }
 
 void CServerRegistration::AddCall(unsigned int svsId, SPA::tagOperationSystem os, bool queue, bool endian) {
-    do {
-        if (!g_bRegistered || !m_bTimeok || !ManyClients) {
-            ++m_nCheapCall;
-            break;
-        }
-
-        if (!RequestQueue && queue) {
-            ++m_nCheapCall;
-            break;
-        }
-
-        if (svsId == SPA::sidHTTP) {
-            if (!JavaScript) {
-                ++m_nCheapCall;
+    if (!g_bRegistered || !m_bTimeok) {
+        ++m_nCheapCall;
+    } else if (svsId != SPA::sidHTTP) {
+        switch (os) {
+            case SPA::osWin:
+                if (!m_bWin)
+                    ++m_nCheapCall;
                 break;
-            }
-        } else {
-            if (endian != SPA::IsBigEndian() && !Endian) {
-                ++m_nCheapCall;
+            case SPA::osApple:
+                if (!m_bApple)
+                    ++m_nCheapCall;
                 break;
-            }
-
-            switch (os) {
-                case SPA::osWin:
-                    if (!m_bWin)
-                        ++m_nCheapCall;
-                    break;
-                case SPA::osApple:
-                    if (!m_bApple)
-                        ++m_nCheapCall;
-                    break;
-                case SPA::osUnix:
-                    if (!m_bUnix)
-                        ++m_nCheapCall;
-                    break;
-                case SPA::osWinCE:
-                    if (!m_bWinCe)
-                        ++m_nCheapCall;
-                    break;
-                case SPA::osAndroid:
-                    if (!m_bAndroid)
-                        ++m_nCheapCall;
-                    break;
-                default:
-                    break;
-            }
+            case SPA::osUnix:
+                if (!m_bUnix)
+                    ++m_nCheapCall;
+                break;
+            case SPA::osWinCE:
+                if (!m_bWinCe)
+                    ++m_nCheapCall;
+                break;
+            case SPA::osAndroid:
+                if (!m_bAndroid)
+                    ++m_nCheapCall;
+                break;
+            default:
+                break;
         }
-    } while (false);
+    }
 }
 
 CConditionVariable CServerSession::m_cv;
