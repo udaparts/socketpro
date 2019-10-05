@@ -1,0 +1,20 @@
+{
+    "EndDate": "2021/10/05",
+    "CompanyName": "UDAParts",
+    "JavaScript": 1,
+    "Platforms": [
+        "unix",
+        "apple",
+        "android",
+        "wince",
+		"win"
+    ],
+    "Queue": 1,
+    "MaxClients": 1024000,
+    "MaxSpeed": 5120000,
+    "Routing": 1,
+    "Endian": 1,
+    "Other": 0,
+    "MachineId": "Bm4X9lAnxrJpCKVwSk3gf9Qpbaw=",
+    "Key": "xuNtX7kye64r4xE1dNXILucbyzI="
+}
