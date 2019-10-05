@@ -8,7 +8,7 @@
 #include <stdio.h>
 #include "../include/definebase.h"
 #ifndef WIN32_64
-#include<boost/uuid/uuid.hpp>
+//#include<boost/uuid/uuid.hpp>
 #endif
 #include "../include/membuffer.h"
 #include "../include/userver.h"

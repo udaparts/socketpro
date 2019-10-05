@@ -8,7 +8,7 @@
 
 #include "../include/aserverw.h"
 #include "../utest.h"
-#include <boost/thread.hpp>
+//#include <boost/thread.hpp>
 extern SPA::CUCriticalSection g_mutex;
 
 class CMyPeer : public SPA::ServerSide::CClientPeer {
