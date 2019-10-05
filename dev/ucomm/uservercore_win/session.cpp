@@ -99,38 +99,34 @@ void CServerRegistration::SetOSs() {
 }
 
 void CServerRegistration::AddCall(unsigned int svsId, SPA::tagOperationSystem os, bool queue, bool endian) {
-    do {
-        if (!g_bRegistered || !m_bTimeok) {
-            ++m_nCheapCall;
-            break;
+    if (!g_bRegistered || !m_bTimeok) {
+        ++m_nCheapCall;
+    } else if (svsId != SPA::sidHTTP) {
+        switch (os) {
+            case SPA::osWin:
+                if (!m_bWin)
+                    ++m_nCheapCall;
+                break;
+            case SPA::osApple:
+                if (!m_bApple)
+                    ++m_nCheapCall;
+                break;
+            case SPA::osUnix:
+                if (!m_bUnix)
+                    ++m_nCheapCall;
+                break;
+            case SPA::osWinCE:
+                if (!m_bWinCe)
+                    ++m_nCheapCall;
+                break;
+            case SPA::osAndroid:
+                if (!m_bAndroid)
+                    ++m_nCheapCall;
+                break;
+            default:
+                break;
         }
-        if (svsId != SPA::sidHTTP) {
-            switch (os) {
-                case SPA::osWin:
-                    if (!m_bWin)
-                        ++m_nCheapCall;
-                    break;
-                case SPA::osApple:
-                    if (!m_bApple)
-                        ++m_nCheapCall;
-                    break;
-                case SPA::osUnix:
-                    if (!m_bUnix)
-                        ++m_nCheapCall;
-                    break;
-                case SPA::osWinCE:
-                    if (!m_bWinCe)
-                        ++m_nCheapCall;
-                    break;
-                case SPA::osAndroid:
-                    if (!m_bAndroid)
-                        ++m_nCheapCall;
-                    break;
-                default:
-                    break;
-            }
-        }
-    } while (false);
+    }
 }
 
 unsigned char* CServerSession::GetIoBuffer() {
