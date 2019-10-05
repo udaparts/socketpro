@@ -100,27 +100,11 @@ void CServerRegistration::SetOSs() {
 
 void CServerRegistration::AddCall(unsigned int svsId, SPA::tagOperationSystem os, bool queue, bool endian) {
     do {
-        if (!g_bRegistered || !m_bTimeok || !ManyClients) {
+        if (!g_bRegistered || !m_bTimeok) {
             ++m_nCheapCall;
             break;
         }
-
-        if (!RequestQueue && queue) {
-            ++m_nCheapCall;
-            break;
-        }
-
-        if (svsId == SPA::sidHTTP) {
-            if (!JavaScript) {
-                ++m_nCheapCall;
-                break;
-            }
-        } else {
-            if (endian != SPA::IsBigEndian() && !Endian) {
-                ++m_nCheapCall;
-                break;
-            }
-
+        if (svsId != SPA::sidHTTP) {
             switch (os) {
                 case SPA::osWin:
                     if (!m_bWin)

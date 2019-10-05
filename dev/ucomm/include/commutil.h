@@ -6,6 +6,7 @@
 #include <sstream>
 
 #ifdef WIN32_64
+typedef DWORD UTHREAD_ID;
 #if _MSC_VER < 1700
 #else
 #include <atomic>
@@ -13,6 +14,7 @@
 #endif
 #include "wincommutil.h"
 #else
+typedef pthread_t UTHREAD_ID;
 #include <atomic>
 #define ATOMIC_AVAILABLE
 #include "nixcommutil.h"
@@ -124,7 +126,7 @@ namespace SPA {
             }
         }
 
-        inline explicit operator bool() const {
+        inline operator bool() const {
             return m_locked;
         }
 
