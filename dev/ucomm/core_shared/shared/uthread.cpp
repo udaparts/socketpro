@@ -103,7 +103,7 @@ namespace SPA
         CAutoLock sl(m_mutex);
         if (m_pThread != nullptr)
             return true;
-        m_pThread = new thread(boost::bind(&CIoService::run_one, &m_io));
+        m_pThread = new thread(boost::bind(&CIoService::run, &m_io));
         m_io.post(boost::bind(&CUCommThread::Call, this));
 #ifndef WINCE
         m_cv.wait_for(sl, std::chrono::milliseconds(60000));
