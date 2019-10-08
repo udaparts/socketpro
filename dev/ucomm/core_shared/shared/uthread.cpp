@@ -63,9 +63,9 @@ namespace SPA
 #endif
         OnThreadStarted();
         try{
-			m_io.post([this]() {
-				m_cv.notify_all();
-			});
+            m_io.post([this]() {
+                m_cv.notify_all();
+            });
             m_io.run();
 #ifndef NDEBUG
         }
@@ -103,10 +103,10 @@ namespace SPA
         CAutoLock sl(m_mutex);
         if (m_pThread != nullptr)
             return true;
-		m_pThread = new thread(boost::bind(&CIoService::run_one, &m_io));
+        m_pThread = new thread(boost::bind(&CIoService::run_one, &m_io));
         m_io.post(boost::bind(&CUCommThread::Call, this));
 #ifndef WINCE
-        m_cv.wait_for(sl, std::chrono::milliseconds(5000));
+        m_cv.wait_for(sl, std::chrono::milliseconds(60000));
 #else
         boost::system_time td = boost::get_system_time() + boost::posix_time::milliseconds(500);
         m_cv.timed_wait(sl, td);
