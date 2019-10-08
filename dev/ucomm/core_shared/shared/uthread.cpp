@@ -1,3 +1,5 @@
+#include <c++/4.8/condition_variable>
+
 #include "uthread.h"
 #ifdef WIN32_64
 #include <objbase.h>
@@ -64,6 +66,7 @@ namespace SPA
         OnThreadStarted();
         try{
             m_io.post([this]() {
+                CAutoLock sl(m_mutex);
                 m_cv.notify_all();
             });
             m_io.run();
@@ -106,7 +109,10 @@ namespace SPA
         m_pThread = new thread(boost::bind(&CIoService::run, &m_io));
         m_io.post(boost::bind(&CUCommThread::Call, this));
 #ifndef WINCE
-        m_cv.wait_for(sl, std::chrono::milliseconds(60000));
+        auto res = m_cv.wait_for(sl, std::chrono::milliseconds(1));
+        while (res == std::cv_status::timeout) {
+            res = m_cv.wait_for(sl, std::chrono::milliseconds(1));
+        }
 #else
         boost::system_time td = boost::get_system_time() + boost::posix_time::milliseconds(500);
         m_cv.timed_wait(sl, td);
