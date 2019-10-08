@@ -107,9 +107,9 @@ namespace SPA
         m_pThread = new thread(boost::bind(&CIoService::run, &m_io));
         m_io.post(boost::bind(&CUCommThread::Call, this));
 #ifndef WINCE
-        auto res = m_cv.wait_for(sl, std::chrono::milliseconds(1));
+        auto res = m_cv.wait_for(sl, std::chrono::milliseconds(10));
         while (res == std::cv_status::timeout) {
-            res = m_cv.wait_for(sl, std::chrono::milliseconds(1));
+            res = m_cv.wait_for(sl, std::chrono::milliseconds(10));
         }
 #else
         boost::system_time td = boost::get_system_time() + boost::posix_time::milliseconds(500);

@@ -987,35 +987,7 @@ bool CClientSession::Connect(const char *strHost, unsigned int nPort, bool bSync
     m_tSend = m_tRecv;
     m_b6 = b6;
     m_bSync = bSync;
-    //Occasionally, no post dispatched for unknown reason. Therefore, we use the below lambda instead
-    //m_pIoService->post(boost::bind(&CClientSession::ConnectInternally, this));
-    m_pIoService->post([this]() {
-        CErrorCode ec;
-        PSocketPoolCallback spc = m_pThread->GetSocketPoolCallback();
-        if (spc) {
-            spc(m_nPoolId, SPA::ClientSide::speConnecting, this);
-        }
-        CAutoLock sl(m_mutex);
-                SetContext();
-                CResolver::query ipAddress(m_b6 ? nsIP::tcp::v6() : nsIP::tcp::v4(), m_strhost, boost::lexical_cast<std::string > (m_nPort), boost::asio::ip::resolver_query_base::numeric_service);
-                CResolver r(*m_pIoService);
-                nsIP::tcp::resolver::iterator iterator;
-        {
-            //it seems that resolve is not thread-safe on linux platforms
-            CAutoLock al(g_mutexResover);
-                    bool chatting = false;
-                    CRAutoLock rsl(m_mutex, chatting);
-                    iterator = r.resolve(ipAddress, ec);
-        }
-        m_ec = ec;
-        if (ec || iterator == nsIP::tcp::resolver::iterator()) {
-            OnConnectedInternal(ec.value());
-                    CloseInternal(ec.value());
-            return;
-        }
-        //async_connect requires a new thread created
-        GetSocket()->async_connect(iterator->endpoint(), boost::bind(&CClientSession::OnConnected, this, boost::asio::placeholders::error, iterator));
-    });
+    m_pIoService->post(boost::bind(&CClientSession::ConnectInternally, this));
     if (bSync) {
         return WaitConnected(sl, m_nConnTimeout);
     }
