@@ -98,18 +98,26 @@ namespace SPA
             ::CoUninitialize();
 #endif
         OnThreadEnded();
+#ifndef NDEBUG
+        std::cout << "IO service running thread dead" << std::endl;
+#endif
     }
 
     bool CUCommThread::Start() {
         CAutoLock sl(m_mutex);
         if (m_pThread != nullptr)
             return true;
-        m_pThread = new thread(boost::bind(&CIoService::run, &m_io));
-        m_io.post(boost::bind(&CUCommThread::Call, this));
+        m_pThread = new thread([this]() {
+            m_io.post(boost::bind(&CUCommThread::Call, this));
+            m_io.run();
+        });
 #ifndef WINCE
-        auto res = m_cv.wait_for(sl, std::chrono::milliseconds(10));
+        auto res = m_cv.wait_for(sl, std::chrono::milliseconds(500));
         while (res == std::cv_status::timeout) {
-            res = m_cv.wait_for(sl, std::chrono::milliseconds(10));
+#ifndef NDEBUG
+            std::cout << "Not io_service started yet" << std::endl;
+#endif
+            res = m_cv.wait_for(sl, std::chrono::milliseconds(500));
         }
 #else
         boost::system_time td = boost::get_system_time() + boost::posix_time::milliseconds(500);
