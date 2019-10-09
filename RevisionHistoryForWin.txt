@@ -1,4 +1,4 @@
-85. SocketPro Version 6.3.0.1-7
+85. SocketPro Version 6.3.0.1-9
 	(a) Add the method PostProcessing to dispatch requests from calling thread onto pool worker thread at client side
 	(b) Re-write remote file service to use PostProcessing instead
 	(c) Fix a connection time-out issue within window client core library
@@ -9,6 +9,7 @@
 	(h) Add support of enterprise license
 	(i) SocketPro still supports windows XP and 2003 by old Visual C++ 2010 compilation per your requirement
 	(j) Use spin lock extensively within C/C++ adapter whenever it is proper
+	(k) Fix the issue that a pool of client sockets may fail to connect to a remote server under extremely situations
 
 84. SocketPro Version 6.2.0.1-4
 	(a) Add support of TLSv1.2 and TLSv1.3, and disable SSL3
