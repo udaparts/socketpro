@@ -126,7 +126,7 @@
       </toolsSet>
       <compileType>
         <cTool>
-          <developmentMode>6</developmentMode>
+          <developmentMode>5</developmentMode>
           <stripSymbols>true</stripSymbols>
           <commandlineTool>gcc</commandlineTool>
           <commandLine>-std=c++11</commandLine>
@@ -135,7 +135,7 @@
           </preprocessorList>
         </cTool>
         <ccTool>
-          <developmentMode>6</developmentMode>
+          <developmentMode>5</developmentMode>
           <stripSymbols>true</stripSymbols>
           <commandLine>-std=c++11</commandLine>
           <preprocessorList>

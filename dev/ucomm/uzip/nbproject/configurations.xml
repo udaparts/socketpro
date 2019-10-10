@@ -190,7 +190,7 @@
       </toolsSet>
       <compileType>
         <cTool>
-          <developmentMode>6</developmentMode>
+          <developmentMode>5</developmentMode>
           <stripSymbols>true</stripSymbols>
           <commandLine>-std=c++11 -static -fPIC</commandLine>
           <preprocessorList>
@@ -198,7 +198,7 @@
           </preprocessorList>
         </cTool>
         <ccTool>
-          <developmentMode>6</developmentMode>
+          <developmentMode>5</developmentMode>
           <stripSymbols>true</stripSymbols>
           <commandLine>-std=c++11 -static -fPIC</commandLine>
           <preprocessorList>

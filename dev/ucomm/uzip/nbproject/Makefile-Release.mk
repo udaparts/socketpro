@@ -91,127 +91,127 @@ ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/libuzip.a: ${OBJECTFILES}
 ${OBJECTDIR}/_ext/473765425/operations.o: ../../../../Downloads/boost/libs/filesystem/src/operations.cpp 
 	${MKDIR} -p ${OBJECTDIR}/_ext/473765425
 	${RM} "$@.d"
-	$(COMPILE.cc) -O3 -s -DNDEBUG -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/473765425/operations.o ../../../../Downloads/boost/libs/filesystem/src/operations.cpp
+	$(COMPILE.cc) -O2 -s -DNDEBUG -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/473765425/operations.o ../../../../Downloads/boost/libs/filesystem/src/operations.cpp
 
 ${OBJECTDIR}/_ext/473765425/path.o: ../../../../Downloads/boost/libs/filesystem/src/path.cpp 
 	${MKDIR} -p ${OBJECTDIR}/_ext/473765425
 	${RM} "$@.d"
-	$(COMPILE.cc) -O3 -s -DNDEBUG -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/473765425/path.o ../../../../Downloads/boost/libs/filesystem/src/path.cpp
+	$(COMPILE.cc) -O2 -s -DNDEBUG -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/473765425/path.o ../../../../Downloads/boost/libs/filesystem/src/path.cpp
 
 ${OBJECTDIR}/_ext/1761269253/once.o: ../../../../Downloads/boost/libs/thread/src/pthread/once.cpp 
 	${MKDIR} -p ${OBJECTDIR}/_ext/1761269253
 	${RM} "$@.d"
-	$(COMPILE.cc) -O3 -s -DNDEBUG -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/1761269253/once.o ../../../../Downloads/boost/libs/thread/src/pthread/once.cpp
+	$(COMPILE.cc) -O2 -s -DNDEBUG -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/1761269253/once.o ../../../../Downloads/boost/libs/thread/src/pthread/once.cpp
 
 ${OBJECTDIR}/_ext/1761269253/thread.o: ../../../../Downloads/boost/libs/thread/src/pthread/thread.cpp 
 	${MKDIR} -p ${OBJECTDIR}/_ext/1761269253
 	${RM} "$@.d"
-	$(COMPILE.cc) -O3 -s -DNDEBUG -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/1761269253/thread.o ../../../../Downloads/boost/libs/thread/src/pthread/thread.cpp
+	$(COMPILE.cc) -O2 -s -DNDEBUG -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/1761269253/thread.o ../../../../Downloads/boost/libs/thread/src/pthread/thread.cpp
 
 ${OBJECTDIR}/_ext/53904016/tss_null.o: ../../../../Downloads/boost/libs/thread/src/tss_null.cpp 
 	${MKDIR} -p ${OBJECTDIR}/_ext/53904016
 	${RM} "$@.d"
-	$(COMPILE.cc) -O3 -s -DNDEBUG -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/53904016/tss_null.o ../../../../Downloads/boost/libs/thread/src/tss_null.cpp
+	$(COMPILE.cc) -O2 -s -DNDEBUG -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/53904016/tss_null.o ../../../../Downloads/boost/libs/thread/src/tss_null.cpp
 
 ${OBJECTDIR}/_ext/302208857/base64.o: ../core_shared/pinc/base64.cpp 
 	${MKDIR} -p ${OBJECTDIR}/_ext/302208857
 	${RM} "$@.d"
-	$(COMPILE.c) -O3 -s -DNDEBUG -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/302208857/base64.o ../core_shared/pinc/base64.cpp
+	$(COMPILE.c) -O2 -s -DNDEBUG -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/302208857/base64.o ../core_shared/pinc/base64.cpp
 
 ${OBJECTDIR}/_ext/262068057/membuffer.o: ../include/membuffer.cpp 
 	${MKDIR} -p ${OBJECTDIR}/_ext/262068057
 	${RM} "$@.d"
-	$(COMPILE.cc) -O3 -s -DNDEBUG -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/262068057/membuffer.o ../include/membuffer.cpp
+	$(COMPILE.cc) -O2 -s -DNDEBUG -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/262068057/membuffer.o ../include/membuffer.cpp
 
 ${OBJECTDIR}/adler32.o: adler32.c 
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
-	$(COMPILE.c) -O3 -s -DNDEBUG -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/adler32.o adler32.c
+	$(COMPILE.c) -O2 -s -DNDEBUG -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/adler32.o adler32.c
 
 ${OBJECTDIR}/blowfish.o: blowfish.cpp 
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
-	$(COMPILE.cc) -O3 -s -DNDEBUG -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/blowfish.o blowfish.cpp
+	$(COMPILE.cc) -O2 -s -DNDEBUG -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/blowfish.o blowfish.cpp
 
 ${OBJECTDIR}/compress.o: compress.c 
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
-	$(COMPILE.c) -O3 -s -DNDEBUG -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/compress.o compress.c
+	$(COMPILE.c) -O2 -s -DNDEBUG -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/compress.o compress.c
 
 ${OBJECTDIR}/crc32.o: crc32.c 
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
-	$(COMPILE.c) -O3 -s -DNDEBUG -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/crc32.o crc32.c
+	$(COMPILE.c) -O2 -s -DNDEBUG -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/crc32.o crc32.c
 
 ${OBJECTDIR}/deflate.o: deflate.c 
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
-	$(COMPILE.c) -O3 -s -DNDEBUG -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/deflate.o deflate.c
+	$(COMPILE.c) -O2 -s -DNDEBUG -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/deflate.o deflate.c
 
 ${OBJECTDIR}/fastujson.o: fastujson.cpp 
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
-	$(COMPILE.cc) -O3 -s -DNDEBUG -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/fastujson.o fastujson.cpp
+	$(COMPILE.cc) -O2 -s -DNDEBUG -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/fastujson.o fastujson.cpp
 
 ${OBJECTDIR}/getsysid.o: getsysid.cpp 
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
-	$(COMPILE.cc) -O3 -s -DNDEBUG -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/getsysid.o getsysid.cpp
+	$(COMPILE.cc) -O2 -s -DNDEBUG -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/getsysid.o getsysid.cpp
 
 ${OBJECTDIR}/infback.o: infback.c 
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
-	$(COMPILE.c) -O3 -s -DNDEBUG -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/infback.o infback.c
+	$(COMPILE.c) -O2 -s -DNDEBUG -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/infback.o infback.c
 
 ${OBJECTDIR}/inffast.o: inffast.c 
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
-	$(COMPILE.c) -O3 -s -DNDEBUG -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/inffast.o inffast.c
+	$(COMPILE.c) -O2 -s -DNDEBUG -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/inffast.o inffast.c
 
 ${OBJECTDIR}/inflate.o: inflate.c 
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
-	$(COMPILE.c) -O3 -s -DNDEBUG -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/inflate.o inflate.c
+	$(COMPILE.c) -O2 -s -DNDEBUG -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/inflate.o inflate.c
 
 ${OBJECTDIR}/inftrees.o: inftrees.c 
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
-	$(COMPILE.c) -O3 -s -DNDEBUG -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/inftrees.o inftrees.c
+	$(COMPILE.c) -O2 -s -DNDEBUG -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/inftrees.o inftrees.c
 
 ${OBJECTDIR}/lz4.o: lz4.c 
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
-	$(COMPILE.c) -O3 -s -DNDEBUG -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/lz4.o lz4.c
+	$(COMPILE.c) -O2 -s -DNDEBUG -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/lz4.o lz4.c
 
 ${OBJECTDIR}/mqfile.o: mqfile.cpp 
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
-	$(COMPILE.cc) -O3 -s -DNDEBUG -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/mqfile.o mqfile.cpp
+	$(COMPILE.cc) -O2 -s -DNDEBUG -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/mqfile.o mqfile.cpp
 
 ${OBJECTDIR}/sha1.o: sha1.cpp 
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
-	$(COMPILE.cc) -O3 -s -DNDEBUG -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/sha1.o sha1.cpp
+	$(COMPILE.cc) -O2 -s -DNDEBUG -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/sha1.o sha1.cpp
 
 ${OBJECTDIR}/trees.o: trees.c 
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
-	$(COMPILE.c) -O3 -s -DNDEBUG -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/trees.o trees.c
+	$(COMPILE.c) -O2 -s -DNDEBUG -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/trees.o trees.c
 
 ${OBJECTDIR}/uncompr.o: uncompr.c 
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
-	$(COMPILE.c) -O3 -s -DNDEBUG -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/uncompr.o uncompr.c
+	$(COMPILE.c) -O2 -s -DNDEBUG -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/uncompr.o uncompr.c
 
 ${OBJECTDIR}/uzip.o: uzip.cpp 
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
-	$(COMPILE.cc) -O3 -s -DNDEBUG -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/uzip.o uzip.cpp
+	$(COMPILE.cc) -O2 -s -DNDEBUG -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/uzip.o uzip.cpp
 
 ${OBJECTDIR}/zutil.o: zutil.c 
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
-	$(COMPILE.c) -O3 -s -DNDEBUG -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/zutil.o zutil.c
+	$(COMPILE.c) -O2 -s -DNDEBUG -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/zutil.o zutil.c
 
 # Subprojects
 .build-subprojects:
