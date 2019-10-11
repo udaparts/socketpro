@@ -1,7 +1,5 @@
-﻿
-using System;
+﻿using System;
 using System.Collections.Generic;
-using SocketProAdapter;
 using SocketProAdapter.ClientSide;
 
 class Program

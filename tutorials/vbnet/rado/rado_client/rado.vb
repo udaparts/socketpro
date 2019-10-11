@@ -1,7 +1,4 @@
-Imports System
-Imports SocketProAdapter
 Imports SocketProAdapter.ClientSide
-Imports System.Data
 
 Public Class RAdo
     Inherits CAsyncAdohandler

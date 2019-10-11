@@ -1,8 +1,5 @@
 ﻿' **** including all of defines, service id(s) and request id(s) ***** 
-Imports System
-Imports SocketProAdapter
 Imports SocketProAdapter.ServerSide
-Imports System.Data
 Imports System.Data.SqlClient
 
 'server implementation for service RAdo

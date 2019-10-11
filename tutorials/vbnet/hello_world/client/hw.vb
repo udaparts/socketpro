@@ -1,6 +1,4 @@
-﻿Imports System
-Imports SocketProAdapter
-Imports SocketProAdapter.ClientSide
+﻿Imports SocketProAdapter.ClientSide
 
 Public Class HelloWorld
     Inherits CAsyncServiceHandler

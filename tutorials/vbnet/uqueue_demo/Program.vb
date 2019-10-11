@@ -1,5 +1,4 @@
-﻿Imports System
-Imports SocketProAdapter
+﻿Imports SocketProAdapter
 
 Friend Class Program
     Private Shared Sub Save(ByVal ms As CMyStruct, ByVal q As CUQueue)

@@ -1,7 +1,5 @@
 ﻿using System;
-using SocketProAdapter;
 using SocketProAdapter.ServerSide;
-using System.Diagnostics;
 
 public class CMyHttpPeer : CHttpPeerBase
 {

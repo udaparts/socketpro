@@ -1,5 +1,4 @@
-﻿
-using System;
+﻿using System;
 using SocketProAdapter;
 using SocketProAdapter.ServerSide;
 using System.Runtime.InteropServices;

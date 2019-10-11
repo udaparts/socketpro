@@ -1,6 +1,4 @@
-﻿Imports System
-Imports SocketProAdapter
-Imports SocketProAdapter.ServerSide
+﻿Imports SocketProAdapter.ServerSide
 
 Public Class CMySocketProServer
 	Inherits CSocketProServer

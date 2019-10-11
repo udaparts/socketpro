@@ -1,6 +1,4 @@
-﻿
-using System;
-using SocketProAdapter;
+﻿using System;
 using SocketProAdapter.ClientSide;
 using System.Data;
 

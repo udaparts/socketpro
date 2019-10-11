@@ -1,6 +1,4 @@
-﻿
-Imports System
-Imports System.Runtime.InteropServices
+﻿Imports System.Runtime.InteropServices
 Imports SocketProAdapter
 Imports SocketProAdapter.ServerSide
 

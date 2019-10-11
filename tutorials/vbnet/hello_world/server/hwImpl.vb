@@ -1,6 +1,4 @@
 ' **** including all of defines, service id(s) and request id(s) ***** 
-Imports System
-Imports SocketProAdapter
 Imports SocketProAdapter.ServerSide
 
 'server implementation for service HelloWorld
