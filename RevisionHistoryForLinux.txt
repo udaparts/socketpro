@@ -7,6 +7,7 @@
 	(f) Remove dependency over boost libraries within C/C++ development environment
 	(g) Use spin lock extensively within C/C++ adapter whenever it is proper
 	(h) Fix the issue that a pool of client sockets may fail to connect to a remote server under extremely situations
+	(i) Use one set of core libiraries (usocket and uservercore) for all linux variants (debian, ubuntu, centos, redhat, opensuse, and so on)
 
 22. SocketPro Version 6.2.0.1-4
 	(a) Add support of TLSv1.2 and TLSv1.3, and disable SSL3
