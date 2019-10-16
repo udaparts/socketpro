@@ -834,8 +834,10 @@ namespace SPA
                 }
                 int r = SQLITE_OK;
                 std::string err_msg;
-                if (!PushRecords(stmt, vColInfo, r, err_msg)) {
-                    return false;
+                if (rowset) {
+                    if (!PushRecords(stmt, vColInfo, r, err_msg)) {
+                        return false;
+                    }
                 }
                 if (r) {
                     ++m_fails;
@@ -1042,7 +1044,7 @@ namespace SPA
                     }
                 }
                 res = SQLITE_OK;
-                if (rowset) {
+                if (rowset || meta) {
                     if (!Process(index, rowset, meta, res, err_msg)) {
                         return;
                     }
@@ -1069,7 +1071,7 @@ namespace SPA
             fail_ok += (unsigned int) (m_oks - oks);
         }
 
-        void CSqliteImpl::ExecuteSqlWithRowset(const char* sqlUtf8, bool meta, bool lastInsertId, UINT64 index, int &res, std::wstring &errMsg, CDBVariant & vtId) {
+        void CSqliteImpl::ExecuteSqlWithRowset(const char* sqlUtf8, bool rowset, bool meta, bool lastInsertId, UINT64 index, int &res, std::wstring &errMsg, CDBVariant & vtId) {
             unsigned int ret;
             bool header_sent = false;
             sqlite3 *db = m_pSqlite.get();
@@ -1120,14 +1122,16 @@ namespace SPA
                     if (ret == REQUEST_CANCELED || ret == SOCKET_NOT_FOUND) {
                         return;
                     }
-                    std::string err_msg;
-                    if (!PushRecords(statement, vColInfo, res, err_msg)) {
-                        return;
-                    }
-                    if (res) {
-                        if (!last_error) {
-                            last_error = res;
-                            last_err_msg = err_msg;
+                    if (rowset) {
+                        std::string err_msg;
+                        if (!PushRecords(statement, vColInfo, res, err_msg)) {
+                            return;
+                        }
+                        if (res) {
+                            if (!last_error) {
+                                last_error = res;
+                                last_err_msg = err_msg;
+                            }
                         }
                     }
                 }
@@ -1248,8 +1252,8 @@ namespace SPA
                 }
             }
             const char *sqlUtf8 = sql.c_str();
-            if (rowset) {
-                ExecuteSqlWithRowset(sqlUtf8, meta, lastInsertId, index, res, errMsg, vtId);
+            if (rowset || meta) {
+                ExecuteSqlWithRowset(sqlUtf8, rowset, meta, lastInsertId, index, res, errMsg, vtId);
             } else {
                 ExecuteSqlWithoutRowset(sqlUtf8, lastInsertId, res, errMsg, vtId);
             }

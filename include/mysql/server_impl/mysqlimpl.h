@@ -133,7 +133,7 @@ namespace SPA {
 
         private:
             void ExecuteSqlWithoutRowset(int &res, std::wstring &errMsg, INT64 &affected);
-            void ExecuteSqlWithRowset(bool meta, UINT64 index, int &res, std::wstring &errMsg, INT64 &affected);
+            void ExecuteSqlWithRowset(bool rowset, bool meta, UINT64 index, int &res, std::wstring &errMsg, INT64 &affected);
             CDBColumnInfoArray GetColInfo(MYSQL_RES *result, unsigned int cols, bool prepare);
             bool PushRecords(MYSQL_RES *result, const CDBColumnInfoArray &vColInfo, int &res, std::wstring &errMsg);
             int Bind(CUQueue &qBufferSize, int row, std::wstring &errMsg);

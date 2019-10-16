@@ -405,8 +405,10 @@ namespace SocketProAdapter
             private bool m_bCallReturn = false;
             private bool m_queueOk = false;
             private uint m_nParamPos = 0;
-            public ushort LastDBRequestId {
-                get {
+            public ushort LastDBRequestId
+            {
+                get
+                {
                     lock (m_csDB)
                     {
                         return m_lastReqId;
@@ -414,8 +416,10 @@ namespace SocketProAdapter
                 }
             }
 
-            public int LastDBErrorCode {
-                get {
+            public int LastDBErrorCode
+            {
+                get
+                {
                     lock (m_csDB)
                     {
                         return m_dbErrCode;
@@ -423,8 +427,10 @@ namespace SocketProAdapter
                 }
             }
 
-            public uint Outputs {
-                get {
+            public uint Outputs
+            {
+                get
+                {
                     lock (m_csDB)
                     {
                         return m_output;
@@ -432,8 +438,10 @@ namespace SocketProAdapter
                 }
             }
 
-            public tagManagementSystem DBManagementSystem {
-                get {
+            public tagManagementSystem DBManagementSystem
+            {
+                get
+                {
                     lock (m_csDB)
                     {
                         return m_ms;
@@ -441,8 +449,10 @@ namespace SocketProAdapter
                 }
             }
 
-            public bool Opened {
-                get {
+            public bool Opened
+            {
+                get
+                {
                     lock (m_csDB)
                     {
                         return (m_strConnection != null && m_strConnection.Length > 0 && m_lastReqId > 0);
@@ -450,8 +460,10 @@ namespace SocketProAdapter
                 }
             }
 
-            public CDBColumnInfoArray ColumnInfo {
-                get {
+            public CDBColumnInfoArray ColumnInfo
+            {
+                get
+                {
                     lock (m_csDB)
                     {
                         return m_vColInfo;
@@ -459,8 +471,10 @@ namespace SocketProAdapter
                 }
             }
 
-            public long LastAffected {
-                get {
+            public long LastAffected
+            {
+                get
+                {
                     lock (m_csDB)
                     {
                         return m_affected;
@@ -468,8 +482,10 @@ namespace SocketProAdapter
                 }
             }
 
-            public string LastDBErrorMessage {
-                get {
+            public string LastDBErrorMessage
+            {
+                get
+                {
                     lock (m_csDB)
                     {
                         return m_dbErrMsg;
@@ -477,8 +493,10 @@ namespace SocketProAdapter
                 }
             }
 
-            public string Connection {
-                get {
+            public string Connection
+            {
+                get
+                {
                     lock (m_csDB)
                     {
                         return m_strConnection;
@@ -495,8 +513,10 @@ namespace SocketProAdapter
                 return base.CleanCallbacks();
             }
 
-            public uint Parameters {
-                get {
+            public uint Parameters
+            {
+                get
+                {
                     lock (m_csDB)
                     {
                         return m_parameters;
@@ -504,8 +524,10 @@ namespace SocketProAdapter
                 }
             }
 
-            public bool CallReturn {
-                get {
+            public bool CallReturn
+            {
+                get
+                {
                     lock (m_csDB)
                     {
                         return m_bCallReturn;
@@ -755,9 +777,8 @@ namespace SocketProAdapter
             /// <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
             public virtual bool Execute(CDBVariantArray vParam, DExecuteResult handler, DRows row, DRowsetHeader rh, bool meta, bool lastInsertId, DDiscarded discarded)
             {
-                bool rowset = (rh != null || row != null) ? true : false;
-                if (!rowset)
-                    meta = false;
+                bool rowset = (row != null);
+                meta = (meta && (rh != null));
                 bool queueOk = false;
                 //make sure all parameter data sending and ExecuteParameters sending as one combination sending
                 //to avoid possible request sending overlapping within multiple threading environment
@@ -780,7 +801,7 @@ namespace SocketProAdapter
                     //in case a client asynchronously sends lots of requests without use of client side queue.
                     lock (m_csDB)
                     {
-                        if (rowset)
+                        if (rowset || meta)
                         {
                             m_mapRowset[callIndex] = new KeyValuePair<DRowsetHeader, DRows>(rh, row);
                         }
@@ -794,7 +815,7 @@ namespace SocketProAdapter
                         lock (m_csDB)
                         {
                             m_mapParameterCall.Remove(callIndex);
-                            if (rowset)
+                            if (rowset || meta)
                             {
                                 m_mapRowset.Remove(callIndex);
                             }
@@ -1004,9 +1025,8 @@ namespace SocketProAdapter
             {
                 if (vPInfo == null)
                     vPInfo = new CParameterInfo[0];
-                bool rowset = (rh != null || row != null) ? true : false;
-                if (!rowset)
-                    meta = false;
+                bool rowset = (row != null);
+                meta = (meta && (rh != null));
                 using (CScopeUQueue sub = new CScopeUQueue())
                 {
                     bool queueOk = false;
@@ -1033,7 +1053,7 @@ namespace SocketProAdapter
                         //in case a client asynchronously sends lots of requests without use of client side queue.
                         lock (m_csDB)
                         {
-                            if (rowset)
+                            if (rowset || meta)
                             {
                                 m_mapRowset[callIndex] = new KeyValuePair<DRowsetHeader, DRows>(rh, row);
                             }
@@ -1056,7 +1076,7 @@ namespace SocketProAdapter
                             {
                                 m_mapHandler.Remove(callIndex);
                                 m_mapParameterCall.Remove(callIndex);
-                                if (rowset)
+                                if (rowset || meta)
                                 {
                                     m_mapRowset.Remove(callIndex);
                                 }
@@ -1160,13 +1180,12 @@ namespace SocketProAdapter
             /// <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
             public virtual bool Execute(string sql, DExecuteResult handler, DRows row, DRowsetHeader rh, bool meta, bool lastInsertId, DDiscarded discarded)
             {
-                bool rowset = (rh != null || row != null) ? true : false;
-                if (!rowset)
-                    meta = false;
+                bool rowset = (row != null);
+                meta = (meta && (rh != null));
                 ulong index = GetCallIndex();
                 //don't make m_csDB locked across calling SendRequest, which may lead to client dead-lock
                 //in case a client asynchronously sends lots of requests without use of client side queue.
-                if (rowset)
+                if (rowset || meta)
                 {
                     lock (m_csDB)
                     {
@@ -1178,9 +1197,12 @@ namespace SocketProAdapter
                     Process(handler, ar, DB_CONSTS.idExecute, index);
                 }, discarded, null))
                 {
-                    lock (m_csDB)
+                    if (rowset || meta)
                     {
-                        m_mapRowset.Remove(index);
+                        lock (m_csDB)
+                        {
+                            m_mapRowset.Remove(index);
+                        }
                     }
                     return false;
                 }

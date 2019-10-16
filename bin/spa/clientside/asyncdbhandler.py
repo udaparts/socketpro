@@ -5,6 +5,7 @@ from spa.udb import *
 from spa.clientside import *
 import collections
 import math, uuid
+from inspect import isfunction
 
 class CAsyncDBHandler(CAsyncServiceHandler):
     ONE_MEGA_BYTES = 0x100000
@@ -530,21 +531,20 @@ class CAsyncDBHandler(CAsyncServiceHandler):
         :return: true if request is successfully sent or queued; and false if request is NOT successfully sent or queued
         """
         ok = True
-        rowset = (rh or row)
-        if not rowset:
-            meta = False
+        rowset = isfunction(row)
+        meta = meta and isfunction(rh)
         q = CScopeUQueue.Lock().SaveString(sql).SaveBool(rowset).SaveBool(meta).SaveBool(lastInsertId)
         with self._csOneSending:
             index = self.GetCallIndex()
             q.SaveULong(index)
             #don't make self._csDB locked across calling SendRequest, which may lead to client dead-lock in case a client asynchronously sends lots of requests without use of client side queue.
             with self._csDB:
-                if rowset:
+                if rowset or meta:
                     self._mapRowset[index] = Pair(rh,row)
             ok = self.SendRequest(DB_CONSTS.idExecute, q, lambda ar: self._Process_(handler, ar, DB_CONSTS.idExecute, index), discarded)
             if not ok:
                 with self._csDB:
-                    if rowset:
+                    if rowset or meta:
                         self._mapRowset.pop(index)
         CScopeUQueue.Unlock(q)
         return ok
@@ -636,9 +636,8 @@ class CAsyncDBHandler(CAsyncServiceHandler):
         """
         ok = True
         queueOk = False
-        rowset = (rh or row)
-        if not rowset:
-            meta = False
+        rowset = isfunction(row)
+        meta = meta and isfunction(rh)
         q = CScopeUQueue.Lock().SaveBool(rowset).SaveBool(meta).SaveBool(lastInsertId)
         with self._csOneSending:
             index = self.GetCallIndex()
@@ -656,12 +655,12 @@ class CAsyncDBHandler(CAsyncServiceHandler):
             #don't make self._csDB locked across calling SendRequest, which may lead to client dead-lock in case a client asynchronously sends lots of requests without use of client side queue.
             with self._csDB:
                 self._mapParameterCall[index] = vParam
-                if rowset:
+                if rowset or meta:
                     self._mapRowset[index] = Pair(rh, row)
             ok = self.SendRequest(DB_CONSTS.idExecuteParameters, q, lambda ar: self._Process_(handler, ar, DB_CONSTS.idExecuteParameters, index), discarded)
             if not ok:
                 with self._csDB:
-                    if rowset:
+                    if rowset or meta:
                         self._mapRowset.pop(index)
                     self._mapParameterCall.pop(index)
             if queueOk:
@@ -690,9 +689,8 @@ class CAsyncDBHandler(CAsyncServiceHandler):
         if not delimiter:
             delimiter = ';'
         ok = True
-        rowset = (rh or row)
-        if not rowset:
-            meta = False
+        rowset = isfunction(row)
+        meta = meta and isfunction(rh)
         if not vPInfo:
             vPInfo = []
 
@@ -713,7 +711,7 @@ class CAsyncDBHandler(CAsyncServiceHandler):
             #don't make self._csDB locked across calling SendRequest, which may lead to client dead-lock in case a client asynchronously sends lots of requests without use of client side queue.
             with self._csDB:
                 self._mapParameterCall[index] = vParam
-                if rowset:
+                if rowset or meta:
                     self._mapRowset[index] = Pair(rh, row)
                 self._mapHandler[index] = batchHeader
                 q.SaveString(self._strConnection).SaveUInt(self._flags)
@@ -724,7 +722,7 @@ class CAsyncDBHandler(CAsyncServiceHandler):
             ok = self.SendRequest(DB_CONSTS.idExecuteBatch, q, lambda ar: self._Process_(handler, ar, DB_CONSTS.idExecuteBatch, index), discarded)
             if not ok:
                 with self._csDB:
-                    if rowset:
+                    if rowset or meta:
                         self._mapRowset.pop(index)
                     self._mapParameterCall.pop(index)
                     self._mapHandler.pop(index)

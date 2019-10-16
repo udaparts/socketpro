@@ -2758,7 +2758,7 @@ namespace SPA
                         break;
                     }
                     if (columns > 0) {
-                        if (rowset) {
+                        if (rowset || meta) {
                             CDBColumnInfoArray vInfo = GetColInfo(hstmt, columns, meta);
                             if (!m_pNoSending) {
                                 unsigned int ret = SendResult(idRowsetHeader, vInfo, index);
@@ -2767,10 +2767,15 @@ namespace SPA
                                 }
                             }
                             bool ok;
-                            if (m_nRecordSize)
-                                ok = PushRecords(hstmt, res, errMsg);
-                            else
-                                ok = PushRecords(hstmt, vInfo, false, res, errMsg);
+                            if (rowset) {
+                                if (m_nRecordSize) {
+                                    ok = PushRecords(hstmt, res, errMsg);
+                                } else {
+                                    ok = PushRecords(hstmt, vInfo, false, res, errMsg);
+                                }
+                            } else {
+                                ok = true;
+                            }
                             ++m_oks;
                             if (!ok) {
                                 return;
@@ -4443,7 +4448,7 @@ namespace SPA
                             if (columns) {
                                 CDBColumnInfoArray vInfo = GetColInfo(m_pPrepare.get(), columns, meta);
                                 bool output = (m_bCall && vInfo[0].TablePath == m_procName && (size_t) m_parameters >= vInfo.size());
-                                if (output || rowset) {
+                                if (output || rowset || meta) {
                                     unsigned int outputs = output ? ((unsigned int) vInfo.size()) : 0;
                                     unsigned int ret = SendResult(idRowsetHeader, vInfo, index, outputs);
                                     if (ret == REQUEST_CANCELED || ret == SOCKET_NOT_FOUND) {
@@ -4451,10 +4456,17 @@ namespace SPA
                                         return;
                                     }
                                     bool ok;
-                                    if (m_nRecordSize && !output)
-                                        ok = PushRecords(m_pPrepare.get(), res, errMsg);
-                                    else
+                                    if (m_nRecordSize && !output) {
+                                        if (rowset) {
+                                            ok = PushRecords(m_pPrepare.get(), res, errMsg);
+                                        } else {
+                                            ok = true;
+                                        }
+                                    } else if (output || rowset) {
                                         ok = PushRecords(m_pPrepare.get(), vInfo, output, temp, errTemp);
+                                    } else {
+                                        ok = true;
+                                    }
                                     output_sent = output;
                                     if (!ok) {
                                         m_vParam.clear();
@@ -4496,7 +4508,7 @@ namespace SPA
                         retcode = SQLNumResultCols(m_pPrepare.get(), &columns);
                         assert(SQL_SUCCEEDED(retcode));
                         if (columns) {
-                            if (rowset) {
+                            if (rowset || meta) {
                                 unsigned int ret;
                                 CDBColumnInfoArray vInfo = GetColInfo(m_pPrepare.get(), columns, meta);
                                 ret = SendResult(idRowsetHeader, vInfo, index);
@@ -4504,7 +4516,12 @@ namespace SPA
                                     m_vParam.clear();
                                     return;
                                 }
-                                bool ok = PushRecords(m_pPrepare.get(), vInfo, false, res, errMsg);
+                                bool ok;
+                                if (rowset) {
+                                    ok = PushRecords(m_pPrepare.get(), vInfo, false, res, errMsg);
+                                } else {
+                                    ok = true;
+                                }
                                 if (!ok) {
                                     m_vParam.clear();
                                     return;

@@ -834,10 +834,8 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
      * request is NOT successfully sent or queued
      */
     public boolean Execute(String sql, final DExecuteResult handler, DRows row, DRowsetHeader rh, boolean meta, boolean lastInsertId, DDiscarded discarded) {
-        boolean rowset = (rh != null || row != null);
-        if (!rowset) {
-            meta = false;
-        }
+        boolean rowset = (row != null);
+        meta = (meta && (rh != null));
         try (CScopeUQueue sb = new CScopeUQueue()) {
             sb.Save(sql);
             sb.Save(rowset);
@@ -849,7 +847,7 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
                 //don't make m_csDB locked across calling SendRequest, which may lead to client dead-lock
                 //in case a client asynchronously sends lots of requests without use of client side queue.
                 synchronized (m_csDB) {
-                    if (rowset) {
+                    if (rowset || meta) {
                         m_mapRowset.put(index, new Pair<>(rh, row));
                     }
                 }
@@ -860,7 +858,7 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
                     }
                 }, discarded)) {
                     synchronized (m_csDB) {
-                        if (rowset) {
+                        if (rowset || meta) {
                             m_mapRowset.remove(index);
                         }
                     }
@@ -1016,10 +1014,8 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
      * request is NOT successfully sent or queued
      */
     public boolean Execute(CDBVariantArray vParam, final DExecuteResult handler, DRows row, DRowsetHeader rh, boolean meta, boolean lastInsertId, DDiscarded discarded) {
-        boolean rowset = (rh != null || row != null);
-        if (!rowset) {
-            meta = false;
-        }
+        boolean rowset = (row != null);
+        meta = (meta && (rh != null));
         boolean queueOk = false;
         //make sure all parameter data sendings and ExecuteParameters sending as one combination sending
         //to avoid possible request sending overlapping within multiple threading environment
@@ -1040,7 +1036,7 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
                 //don't make m_csDB locked across calling SendRequest, which may lead to client dead-lock
                 //in case a client asynchronously sends lots of requests without use of client side queue.
                 synchronized (m_csDB) {
-                    if (rowset) {
+                    if (rowset || meta) {
                         m_mapRowset.put(index, new Pair<>(rh, row));
                     }
                     m_mapParameterCall.put(index, vParam);
@@ -1053,7 +1049,7 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
                 }, discarded)) {
                     synchronized (m_csDB) {
                         m_mapParameterCall.remove(index);
-                        if (rowset) {
+                        if (rowset || meta) {
                             m_mapRowset.remove(index);
                         }
                     }
@@ -1349,10 +1345,8 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
      */
     public boolean ExecuteBatch(tagTransactionIsolation isolation, String sql, CDBVariantArray vParam, final DExecuteResult handler, DRows row, DRowsetHeader rh, DRowsetHeader batchHeader, CParameterInfo[] vPInfo, tagRollbackPlan plan, DDiscarded discarded, String delimiter, boolean meta, boolean lastInsertId) {
         boolean queueOk = false;
-        boolean rowset = (rh != null || row != null);
-        if (!rowset) {
-            meta = false;
-        }
+        boolean rowset = (row != null);
+        meta = (meta && (rh != null));
         if (vPInfo == null) {
             vPInfo = new CParameterInfo[0];
         }
@@ -1373,7 +1367,7 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
                 //don't make m_csDB locked across calling SendRequest, which may lead to client dead-lock
                 //in case a client asynchronously sends lots of requests without use of client side queue.
                 synchronized (m_csDB) {
-                    if (rowset) {
+                    if (rowset || meta) {
                         m_mapRowset.put(index, new Pair<>(rh, row));
                     }
                     m_mapParameterCall.put(index, vParam);
@@ -1393,7 +1387,7 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
                 }, discarded, null)) {
                     synchronized (m_csDB) {
                         m_mapParameterCall.remove(index);
-                        if (rowset) {
+                        if (rowset || meta) {
                             m_mapRowset.remove(index);
                         }
                         m_mapHandler.remove(index);

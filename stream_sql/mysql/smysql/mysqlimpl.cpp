@@ -53,7 +53,7 @@ namespace SPA
         m_bManual(false), m_qSend(*m_sb), m_NoSending(false), m_sql_errno(0),
         m_sql_resultcs(nullptr), m_ColIndex(0), m_sql_flags(0), m_affected_rows(0),
         m_last_insert_id(0), m_server_status(0), m_statement_warn_count(0), m_indexCall(0),
-        m_bBlob(false), m_cmd(COM_SLEEP), m_NoRowset(false) {
+        m_bBlob(false), m_cmd(COM_SLEEP), m_NoRowset(false), m_meta(false) {
             m_qSend.ToUtf8(true); //convert UNICODE into UTF8 automatically
             m_UQueue.ToUtf8(true); //convert UNICODE into UTF8 automatically
         }
@@ -423,7 +423,7 @@ namespace SPA
                 q << impl->m_vColInfo << impl->m_indexCall;
                 if ((server_status & SERVER_PS_OUT_PARAMS) == SERVER_PS_OUT_PARAMS) {
                     q << (unsigned int) impl->m_vColInfo.size();
-                } else if (impl->m_NoRowset) {
+                } else if (impl->m_NoRowset && !impl->m_meta) {
                     q.SetSize(0);
                     return 0;
                 }
@@ -1377,6 +1377,7 @@ namespace SPA
             cmd.com_query.length = (unsigned int) sql.size();
             m_cmd = COM_QUERY;
             m_NoRowset = !rowset;
+            m_meta = meta;
             m_affected_rows = 0;
             int fail = command_service_run_command(m_pMysql.get(), COM_QUERY, &cmd, &my_charset_utf8_general_ci, &m_sql_cbs, CS_BINARY_REPRESENTATION, this);
             if (m_sql_errno) {
@@ -1825,6 +1826,7 @@ namespace SPA
                 cmd.com_stmt_execute.has_new_types = true;
                 cmd.com_stmt_execute.open_cursor = false;
                 m_NoRowset = !rowset;
+                m_meta = meta;
                 m_cmd = COM_STMT_EXECUTE;
                 m_affected_rows = 0;
                 m_server_status = 0;

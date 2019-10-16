@@ -1370,7 +1370,7 @@ namespace SPA
             return true;
         }
 
-        void CMysqlImpl::ExecuteSqlWithRowset(bool meta, UINT64 index, int &res, std::wstring &errMsg, INT64 & affected) {
+        void CMysqlImpl::ExecuteSqlWithRowset(bool rowset, bool meta, UINT64 index, int &res, std::wstring &errMsg, INT64 & affected) {
             do {
                 MYSQL_RES *result = m_remMysql.mysql_use_result(m_pMysql.get());
                 if (result) {
@@ -1383,7 +1383,12 @@ namespace SPA
                             return;
                         }
                     }
-                    bool ok = PushRecords(result, vInfo, res, errMsg);
+                    bool ok;
+                    if (rowset) {
+                        ok = PushRecords(result, vInfo, res, errMsg);
+                    } else {
+                        ok = true;
+                    }
                     m_remMysql.mysql_free_result(result);
                     ++m_oks;
 
@@ -1473,8 +1478,8 @@ namespace SPA
                 errMsg = Utilities::ToWide(m_remMysql.mysql_error(m_pMysql.get()));
                 ++m_fails;
             } else {
-                if (rowset) {
-                    ExecuteSqlWithRowset(meta, index, res, errMsg, affected);
+                if (rowset || meta) {
+                    ExecuteSqlWithRowset(rowset, meta, index, res, errMsg, affected);
                 } else {
                     ExecuteSqlWithoutRowset(res, errMsg, affected);
                 }
@@ -2251,7 +2256,7 @@ namespace SPA
                     }
 
                     //we push stored procedure output parameter meta data onto client to follow common approach for output parameter data
-                    if (output || rowset) {
+                    if (output || rowset || meta) {
                         unsigned int outputs = 0;
                         if (output) {
                             outputs = (unsigned int) vInfo.size();
@@ -2324,7 +2329,7 @@ namespace SPA
                 my_bool myfail = m_remMysql.mysql_stmt_reset(m_pPrepare.get());
                 assert(!myfail);
             }
-            if (!header_sent && rowset) {
+            if (!header_sent && (rowset || meta)) {
                 CDBColumnInfoArray vInfo;
                 SendResult(idRowsetHeader, vInfo, index);
             }
