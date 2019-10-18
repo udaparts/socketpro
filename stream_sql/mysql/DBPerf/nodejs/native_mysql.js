@@ -4,7 +4,7 @@ mysqlx.getSession({
     user: "root",
     password: "Smash123"
 }).then((session)=> {
-	var row;
+	var row, res;
 	var stmt = 'SELECT * FROM sakila.actor WHERE actor_id between 11 and 20';
 	var start = new Date();
 	var count = 100000;
