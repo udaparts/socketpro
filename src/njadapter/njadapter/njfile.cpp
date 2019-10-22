@@ -39,9 +39,9 @@ namespace NJA {
 
         //property
         NODE_SET_PROTOTYPE_METHOD(tpl, "getFilesQueued", getFilesQueued);
-
-        constructor.Reset(isolate, tpl->GetFunction(isolate->GetCurrentContext()).ToLocalChecked());
-        exports->Set(ToStr(isolate, "CAsyncFile"), tpl->GetFunction(isolate->GetCurrentContext()).ToLocalChecked());
+        auto ctx = isolate->GetCurrentContext();
+        constructor.Reset(isolate, tpl->GetFunction(ctx).ToLocalChecked());
+        exports->Set(ctx, ToStr(isolate, "CAsyncFile"), tpl->GetFunction(ctx).ToLocalChecked());
     }
 
     Local<Object> NJFile::New(Isolate* isolate, CSFile *ash, bool setCb) {

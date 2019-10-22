@@ -278,12 +278,13 @@ namespace SPA {
             unsigned int ServiceId;
             bool SelfMessage;
             q >> user >> ipAddr >> Port >> ServiceId >> SelfMessage;
+            auto ctx = isolate->GetCurrentContext();
             Local<Object> obj = Object::New(isolate);
-            obj->Set(NJA::ToStr(isolate, "UserId"), NJA::ToStr(isolate, user.c_str()));
-            obj->Set(NJA::ToStr(isolate, "IpAddr"), NJA::ToStr(isolate, ipAddr.c_str()));
-            obj->Set(NJA::ToStr(isolate, "Port"), Uint32::New(isolate, Port));
-            obj->Set(NJA::ToStr(isolate, "SvsId"), Number::New(isolate, ServiceId));
-            obj->Set(NJA::ToStr(isolate, "Self"), Boolean::New(isolate, SelfMessage));
+            obj->Set(ctx, NJA::ToStr(isolate, "UserId"), NJA::ToStr(isolate, user.c_str()));
+            obj->Set(ctx, NJA::ToStr(isolate, "IpAddr"), NJA::ToStr(isolate, ipAddr.c_str()));
+            obj->Set(ctx, NJA::ToStr(isolate, "Port"), Uint32::New(isolate, Port));
+            obj->Set(ctx, NJA::ToStr(isolate, "SvsId"), Number::New(isolate, ServiceId));
+            obj->Set(ctx, NJA::ToStr(isolate, "Self"), Boolean::New(isolate, SelfMessage));
             return obj;
         }
 #endif		

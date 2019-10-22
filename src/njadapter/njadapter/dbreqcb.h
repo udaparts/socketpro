@@ -16,6 +16,7 @@ namespace SPA {
             if (!obj) return;
             Isolate* isolate = Isolate::GetCurrent();
             HandleScope handleScope(isolate); //required for Node 4.x
+            auto ctx = isolate->GetCurrentContext();
             {
                 SPA::CAutoLock al(obj->m_csDB);
                 while (obj->m_deqDBCb.size()) {
@@ -23,7 +24,6 @@ namespace SPA {
                     PAsyncDBHandler processor = nullptr;
                     *cb.Buffer >> processor;
                     assert(processor);
-                    Local<v8::Object> njDB = CreateDb(isolate, processor);
                     Local<Function> func;
                     assert(cb.Func);
                     if (cb.Func)
@@ -32,8 +32,7 @@ namespace SPA {
                         case eBatchHeader:
                         {
                             assert(!cb.Buffer->GetSize());
-                            Local<Value> argv[] = {njDB};
-                            func->Call(isolate->GetCurrentContext(), Null(isolate), 1, argv);
+                            func->Call(ctx, Null(isolate), 0, nullptr);
                         }
                             break;
                         case eRows:
@@ -48,15 +47,15 @@ namespace SPA {
                                     while (buff.GetSize()) {
                                         try {
                                             Local<Value> d = DbFrom(isolate, buff);
-                                            v->Set(index, d);
+                                            v->Set(ctx, index, d);
                                             ++index;
                                         } catch (SPA::CUException&) {
                                             buff.SetSize(0);
                                         }
                                     }
                                 }
-                                Local<Value> argv[] = {v, Boolean::New(isolate, bProc), njDB};
-                                func->Call(isolate->GetCurrentContext(), Null(isolate), 3, argv);
+                                Local<Value> argv[] = {v, Boolean::New(isolate, bProc)};
+                                func->Call(ctx, Null(isolate), 2, argv);
                             }
                             break;
                         case eExecuteResult:
@@ -74,8 +73,8 @@ namespace SPA {
                                 auto njFails = Number::New(isolate, fails);
                                 auto njOks = Number::New(isolate, oks);
                                 auto njId = From(isolate, vtId);
-                                Local<Value> argv[] = {njRes, njMsg, njAffected, njOks, njFails, njId, njDB};
-                                func->Call(isolate->GetCurrentContext(), Null(isolate), 7, argv);
+                                Local<Value> argv[] = {njRes, njMsg, njAffected, njOks, njFails, njId};
+                                func->Call(ctx, Null(isolate), 6, argv);
                             }
                             break;
                         case eResult:
@@ -86,8 +85,8 @@ namespace SPA {
                                 assert(!cb.Buffer->GetSize());
                                 auto njRes = Int32::New(isolate, res);
                                 auto njMsg = ToStr(isolate, errMsg.c_str());
-                                Local<Value> argv[] = {njRes, njMsg, njDB};
-                                func->Call(isolate->GetCurrentContext(), Null(isolate), 3, argv);
+                                Local<Value> argv[] = {njRes, njMsg};
+                                func->Call(ctx, Null(isolate), 2, argv);
                             }
                             break;
                         case eRowsetHeader:
@@ -96,8 +95,8 @@ namespace SPA {
                                 *cb.Buffer >> v;
                                 assert(!cb.Buffer->GetSize());
                                 Local<Array> jsMeta = ToMeta(isolate, v);
-                                Local<Value> argv[] = {jsMeta, njDB};
-                                func->Call(isolate->GetCurrentContext(), Null(isolate), 2, argv);
+                                Local<Value> argv[] = {jsMeta};
+                                func->Call(ctx, Null(isolate), 1, argv);
                             }
                             break;
                         case eDiscarded:
@@ -106,8 +105,8 @@ namespace SPA {
                                 *cb.Buffer >> canceled;
                                 assert(!cb.Buffer->GetSize());
                                 auto b = Boolean::New(isolate, canceled);
-                                Local<Value> argv[] = {b, njDB};
-                                func->Call(isolate->GetCurrentContext(), Null(isolate), 2, argv);
+                                Local<Value> argv[] = {b};
+                                func->Call(ctx, Null(isolate), 1, argv);
                             }
                             break;
                         default:

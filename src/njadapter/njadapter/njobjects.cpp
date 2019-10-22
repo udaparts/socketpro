@@ -236,9 +236,9 @@ namespace NJA {
         //NODE_SET_PROTOTYPE_METHOD(tpl, "Lock", Lock);
         //NODE_SET_PROTOTYPE_METHOD(tpl, "Unlock", Unlock);
         //NODE_SET_PROTOTYPE_METHOD(tpl, "CloseAll", DisconnectAll);
-
-        constructor.Reset(isolate, tpl->GetFunction(isolate->GetCurrentContext()).ToLocalChecked());
-        exports->Set(ToStr(isolate, "CSocketPool"), tpl->GetFunction(isolate->GetCurrentContext()).ToLocalChecked());
+        auto ctx = isolate->GetCurrentContext();
+        constructor.Reset(isolate, tpl->GetFunction(ctx).ToLocalChecked());
+        exports->Set(ctx, ToStr(isolate, "CSocketPool"), tpl->GetFunction(ctx).ToLocalChecked());
     }
 
     void NJSocketPool::newSlave(const FunctionCallbackInfo<Value>& args) {
@@ -574,13 +574,14 @@ namespace NJA {
         NJSocketPool* obj = ObjectWrap::Unwrap<NJSocketPool>(args.Holder());
         if (obj->IsValid(isolate)) {
             unsigned int index = 0;
+            auto ctx = isolate->GetCurrentContext();
             Local<Array> v = Array::New(isolate);
             switch (obj->SvsId) {
                 case SPA::Queue::sidQueue:
                 {
                     auto handlers = obj->Queue->GetAsyncHandlers();
                     for (auto it = handlers.begin(), end = handlers.end(); it != end; ++it, ++index) {
-                        v->Set(index, NJAsyncQueue::New(isolate, it->get(), true));
+                        v->Set(ctx, index, NJAsyncQueue::New(isolate, it->get(), true));
                     }
                 }
                     break;
@@ -590,7 +591,7 @@ namespace NJA {
                 {
                     auto handlers = obj->Db->GetAsyncHandlers();
                     for (auto it = handlers.begin(), end = handlers.end(); it != end; ++it, ++index) {
-                        v->Set(index, NJSqlite::New(isolate, it->get(), true));
+                        v->Set(ctx, index, NJSqlite::New(isolate, it->get(), true));
                     }
                 }
                     break;
@@ -599,7 +600,7 @@ namespace NJA {
                 {
                     auto handlers = obj->File->GetAsyncHandlers();
                     for (auto it = handlers.begin(), end = handlers.end(); it != end; ++it, ++index) {
-                        v->Set(index, NJFile::New(isolate, it->get(), true));
+                        v->Set(ctx, index, NJFile::New(isolate, it->get(), true));
                     }
                 }
                     break;
@@ -607,7 +608,7 @@ namespace NJA {
                 {
                     auto handlers = obj->Handler->GetAsyncHandlers();
                     for (auto it = handlers.begin(), end = handlers.end(); it != end; ++it, ++index) {
-                        v->Set(index, NJHandler::New(isolate, it->get(), true));
+                        v->Set(ctx, index, NJHandler::New(isolate, it->get(), true));
                     }
                 }
                     break;
@@ -681,9 +682,10 @@ namespace NJA {
         Isolate* isolate = args.GetIsolate();
         NJSocketPool* obj = ObjectWrap::Unwrap<NJSocketPool>(args.Holder());
         Local<Object> errObj = Object::New(isolate);
+        auto ctx = isolate->GetCurrentContext();
         obj->m_cs.lock();
-        errObj->Set(ToStr(isolate, "ec"), Int32::New(isolate, obj->m_errSSL));
-        errObj->Set(ToStr(isolate, "em"), ToStr(isolate, obj->m_errMsg.c_str()));
+        errObj->Set(ctx, ToStr(isolate, "ec"), Int32::New(isolate, obj->m_errSSL));
+        errObj->Set(ctx, ToStr(isolate, "em"), ToStr(isolate, obj->m_errMsg.c_str()));
         obj->m_cs.unlock();
         args.GetReturnValue().Set(errObj);
     }
@@ -818,12 +820,13 @@ namespace NJA {
         Isolate* isolate = args.GetIsolate();
         NJSocketPool* obj = ObjectWrap::Unwrap<NJSocketPool>(args.Holder());
         if (obj->IsValid(isolate)) {
-            Local<Array> v = Array::New(isolate);
+            auto ctx = isolate->GetCurrentContext();
             auto sockets = obj->Handler->GetSockets();
+            Local<Array> v = Array::New(isolate, (int) sockets.size());
             unsigned int index = 0;
             for (auto it = sockets.begin(), end = sockets.end(); it != end; ++it, ++index) {
                 auto s = it->get();
-                v->Set(index, NJSocket::New(isolate, s, true));
+                v->Set(ctx, index, NJSocket::New(isolate, s, true));
             }
             args.GetReturnValue().Set(v);
         }

@@ -113,6 +113,7 @@ namespace SPA {
                     PAsyncServiceHandler processor = nullptr;
                     *cb.Buffer >> processor;
                     assert(processor);
+#if 0
                     Local<v8::Object> njAsh;
                     unsigned int sid = processor->GetSvsID();
                     switch (sid) {
@@ -131,6 +132,7 @@ namespace SPA {
                             njAsh = NJHandler::New(isolate, processor, true);
                             break;
                     }
+#endif
                     Local<Value> jsReqId = Uint32::New(isolate, cb.ReqId);
                     Local<Function> func;
                     assert(cb.Func);
@@ -141,8 +143,8 @@ namespace SPA {
                         {
                             Local<Object> q = NJQueue::New(isolate, cb.Buffer);
                             if (!func.IsEmpty()) {
-                                Local<Value> argv[] = {q, njAsh, jsReqId};
-                                func->Call(isolate->GetCurrentContext(), Null(isolate), 3, argv);
+                                Local<Value> argv[] = {q, jsReqId};
+                                func->Call(isolate->GetCurrentContext(), Null(isolate), 2, argv);
                             }
                         }
                             break;
@@ -154,8 +156,8 @@ namespace SPA {
                             CScopeUQueue::Unlock(cb.Buffer);
                             auto b = Boolean::New(isolate, canceled);
                             if (!func.IsEmpty()) {
-                                Local<Value> argv[] = {b, njAsh, jsReqId};
-                                func->Call(isolate->GetCurrentContext(), Null(isolate), 3, argv);
+                                Local<Value> argv[] = {b, jsReqId};
+                                func->Call(isolate->GetCurrentContext(), Null(isolate), 2, argv);
                             }
                         }
                             break;
@@ -171,8 +173,8 @@ namespace SPA {
                             Local<String> jsWhere = ToStr(isolate, errWhere.c_str());
                             Local<Value> jsCode = Number::New(isolate, errCode);
                             if (!func.IsEmpty()) {
-                                Local<Value> argv[] = {jsMsg, jsCode, jsWhere, njAsh, jsReqId};
-                                func->Call(isolate->GetCurrentContext(), Null(isolate), 5, argv);
+                                Local<Value> argv[] = {jsMsg, jsCode, jsWhere, jsReqId};
+                                func->Call(isolate->GetCurrentContext(), Null(isolate), 4, argv);
                             }
                         }
                             break;
@@ -268,7 +270,7 @@ namespace NJA {
         } else if (len == (size_t) INVALID_NUMBER) {
             len = strlen(str);
         }
-        return String::NewFromUtf8(isolate, str, v8::NewStringType::kInternalized, (int) len).ToLocalChecked();
+        return String::NewFromUtf8(isolate, str, v8::NewStringType::kNormal, (int) len).ToLocalChecked();
     }
 
     Local<String> ToStr(Isolate* isolate, const wchar_t *str, size_t len) {
@@ -279,11 +281,11 @@ namespace NJA {
             len = wcslen(str);
         }
 #ifdef WIN32_64
-        return String::NewFromTwoByte(isolate, (const uint16_t *) str, v8::NewStringType::kInternalized, (int) len).ToLocalChecked();
+        return String::NewFromTwoByte(isolate, (const uint16_t *) str, v8::NewStringType::kNormal, (int) len).ToLocalChecked();
 #else
         SPA::CScopeUQueue sb;
         SPA::Utilities::ToUTF16(str, len, *sb);
-        return String::NewFromTwoByte(isolate, (const uint16_t *) sb->GetBuffer(), v8::NewStringType::kInternalized, (int) (sb->GetSize() / sizeof (uint16_t))).ToLocalChecked();
+        return String::NewFromTwoByte(isolate, (const uint16_t *) sb->GetBuffer(), v8::NewStringType::kNormal, (int) (sb->GetSize() / sizeof (uint16_t))).ToLocalChecked();
 #endif
     }
 
@@ -298,7 +300,7 @@ namespace NJA {
             len = SPA::Utilities::GetLen(str);
 #endif
         }
-        return String::NewFromTwoByte(isolate, str, v8::NewStringType::kInternalized, (int) len).ToLocalChecked();
+        return String::NewFromTwoByte(isolate, str, v8::NewStringType::kNormal, (int) len).ToLocalChecked();
     }
 
     std::wstring ToStr(Isolate* isolate, const Local<Value>& s) {
@@ -944,40 +946,41 @@ namespace NJA {
                         case VT_DECIMAL:
                         case VT_VARIANT:
                         {
-                            Local<Array> v = Array::New(isolate);
+                            auto ctx = isolate->GetCurrentContext();
+                            Local<Array> v = Array::New(isolate, (int) count);
                             for (unsigned int n = 0; n < count; ++n) {
                                 switch (type) {
                                     case VT_BOOL:
                                     {
                                         VARIANT_BOOL *p = (VARIANT_BOOL *) pvt;
-                                        v->Set(n, Boolean::New(isolate, (p[n] == VARIANT_FALSE) ? false : true));
+                                        v->Set(ctx, n, Boolean::New(isolate, (p[n] == VARIANT_FALSE) ? false : true));
                                     }
                                         break;
                                     case VT_UI8:
                                     {
                                         SPA::UINT64 *p = (SPA::UINT64 *)pvt;
-                                        v->Set(n, Number::New(isolate, (double) (p[n])));
+                                        v->Set(ctx, n, Number::New(isolate, (double) (p[n])));
                                     }
                                         break;
                                     case VT_I8:
                                     {
                                         SPA::INT64 *p = (SPA::INT64 *)pvt;
-                                        v->Set(n, Number::New(isolate, (double) (p[n])));
+                                        v->Set(ctx, n, Number::New(isolate, (double) (p[n])));
                                     }
                                         break;
                                     case VT_CY:
                                     {
                                         SPA::INT64 *p = (SPA::INT64 *)pvt;
-                                        v->Set(n, Number::New(isolate, ((double) p[n]) / 10000));
+                                        v->Set(ctx, n, Number::New(isolate, ((double) p[n]) / 10000));
                                     }
                                         break;
                                     case VT_DECIMAL:
                                     {
                                         DECIMAL *p = (DECIMAL *) pvt;
                                         if (p->Hi32 || p->Lo64 > SAFE_DOUBLE)
-                                            v->Set(n, ToStr(isolate, SPA::ToString_long(p[n]).c_str()));
+                                            v->Set(ctx, n, ToStr(isolate, SPA::ToString_long(p[n]).c_str()));
                                         else
-                                            v->Set(n, Number::New(isolate, SPA::ToDouble(p[n])));
+                                            v->Set(ctx, n, Number::New(isolate, SPA::ToDouble(p[n])));
                                     }
                                         break;
                                     case VT_BSTR:
@@ -985,23 +988,23 @@ namespace NJA {
                                         BSTR *p = (BSTR *) pvt;
                                         if (p[n]) {
                                             auto s = ToStr(isolate, p[n], SysStringLen(p[n]));
-                                            v->Set(n, s);
+                                            v->Set(ctx, n, s);
                                         } else
-                                            v->Set(n, Null(isolate));
+                                            v->Set(ctx, n, Null(isolate));
                                     }
                                         break;
                                     case VT_DATE:
                                     {
                                         SPA::UINT64 *p = (SPA::UINT64 *)pvt;
-                                        v->Set(n, ToDate(isolate, p[n]));
+                                        v->Set(ctx, n, ToDate(isolate, p[n]));
                                     }
                                         break;
                                     case VT_VARIANT:
                                     {
-                                        Local<Array> v = Array::New(isolate);
+                                        Local<Array> v = Array::New(isolate, (int) count);
                                         for (unsigned int n = 0; n < count; ++n) {
                                             VARIANT *p = (VARIANT *) pvt;
-                                            v->Set(n, From(isolate, p[n]));
+                                            v->Set(ctx, n, From(isolate, p[n]));
                                         }
                                         ::SafeArrayUnaccessData(vt.parray);
                                         return v;
@@ -1335,46 +1338,48 @@ namespace NJA {
     }
 
     Local<Array> ToMeta(Isolate* isolate, const CDBColumnInfoArray &v) {
-        Local<Array> jsMeta = Array::New(isolate);
+        auto ctx = isolate->GetCurrentContext();
+        Local<Array> jsMeta = Array::New(isolate, (int) v.size());
         unsigned int index = 0;
         for (auto it = v.begin(), end = v.end(); it != end; ++it, ++index) {
             Local<Object> meta = Object::New(isolate);
-            meta->Set(ToStr(isolate, "DBPath"), ToStr(isolate, it->DBPath.c_str()));
-            meta->Set(ToStr(isolate, "TablePath"), ToStr(isolate, it->TablePath.c_str()));
-            meta->Set(ToStr(isolate, "DisplayName"), ToStr(isolate, it->DisplayName.c_str()));
-            meta->Set(ToStr(isolate, "OriginalName"), ToStr(isolate, it->OriginalName.c_str()));
-            meta->Set(ToStr(isolate, "DeclaredType"), ToStr(isolate, it->DeclaredType.c_str()));
-            meta->Set(ToStr(isolate, "Collation"), ToStr(isolate, it->Collation.c_str()));
-            meta->Set(ToStr(isolate, "ColumnSize"), Uint32::New(isolate, it->ColumnSize));
-            meta->Set(ToStr(isolate, "Flags"), Uint32::New(isolate, it->Flags));
-            meta->Set(ToStr(isolate, "DataType"), Uint32::New(isolate, it->DataType));
-            meta->Set(ToStr(isolate, "Precision"), Uint32::New(isolate, it->Precision));
-            meta->Set(ToStr(isolate, "Scale"), Uint32::New(isolate, it->Scale));
-            jsMeta->Set(index, meta);
+            meta->Set(ctx, ToStr(isolate, "DBPath"), ToStr(isolate, it->DBPath.c_str()));
+            meta->Set(ctx, ToStr(isolate, "TablePath"), ToStr(isolate, it->TablePath.c_str()));
+            meta->Set(ctx, ToStr(isolate, "DisplayName"), ToStr(isolate, it->DisplayName.c_str()));
+            meta->Set(ctx, ToStr(isolate, "OriginalName"), ToStr(isolate, it->OriginalName.c_str()));
+            meta->Set(ctx, ToStr(isolate, "DeclaredType"), ToStr(isolate, it->DeclaredType.c_str()));
+            meta->Set(ctx, ToStr(isolate, "Collation"), ToStr(isolate, it->Collation.c_str()));
+            meta->Set(ctx, ToStr(isolate, "ColumnSize"), Uint32::New(isolate, it->ColumnSize));
+            meta->Set(ctx, ToStr(isolate, "Flags"), Uint32::New(isolate, it->Flags));
+            meta->Set(ctx, ToStr(isolate, "DataType"), Uint32::New(isolate, it->DataType));
+            meta->Set(ctx, ToStr(isolate, "Precision"), Uint32::New(isolate, it->Precision));
+            meta->Set(ctx, ToStr(isolate, "Scale"), Uint32::New(isolate, it->Scale));
+            jsMeta->Set(ctx, index, meta);
         }
         return jsMeta;
     }
 
     Local<Array> ToMeta(Isolate* isolate, const SPA::CKeyMap &mapkey) {
-        Local<Array> jsMeta = Array::New(isolate);
+        auto ctx = isolate->GetCurrentContext();
+        Local<Array> jsMeta = Array::New(isolate, (int) mapkey.size());
         unsigned int index = 0;
         for (auto it = mapkey.begin(), end = mapkey.end(); it != end; ++it, ++index) {
             Local<Object> p = Object::New(isolate);
-            p->Set(ToStr(isolate, "Ordinal"), Number::New(isolate, it->first));
+            p->Set(ctx, ToStr(isolate, "Ordinal"), Number::New(isolate, it->first));
             Local<Object> meta = Object::New(isolate);
-            meta->Set(ToStr(isolate, "DBPath"), ToStr(isolate, it->second.DBPath.c_str()));
-            meta->Set(ToStr(isolate, "TablePath"), ToStr(isolate, it->second.TablePath.c_str()));
-            meta->Set(ToStr(isolate, "DisplayName"), ToStr(isolate, it->second.DisplayName.c_str()));
-            meta->Set(ToStr(isolate, "OriginalName"), ToStr(isolate, it->second.OriginalName.c_str()));
-            meta->Set(ToStr(isolate, "DeclaredType"), ToStr(isolate, it->second.DeclaredType.c_str()));
-            meta->Set(ToStr(isolate, "Collation"), ToStr(isolate, it->second.Collation.c_str()));
-            meta->Set(ToStr(isolate, "ColumnSize"), Uint32::New(isolate, it->second.ColumnSize));
-            meta->Set(ToStr(isolate, "Flags"), Uint32::New(isolate, it->second.Flags));
-            meta->Set(ToStr(isolate, "DataType"), Uint32::New(isolate, it->second.DataType));
-            meta->Set(ToStr(isolate, "Precision"), Uint32::New(isolate, it->second.Precision));
-            meta->Set(ToStr(isolate, "Scale"), Uint32::New(isolate, it->second.Scale));
-            p->Set(ToStr(isolate, "Field"), meta);
-            jsMeta->Set(index, p);
+            meta->Set(ctx, ToStr(isolate, "DBPath"), ToStr(isolate, it->second.DBPath.c_str()));
+            meta->Set(ctx, ToStr(isolate, "TablePath"), ToStr(isolate, it->second.TablePath.c_str()));
+            meta->Set(ctx, ToStr(isolate, "DisplayName"), ToStr(isolate, it->second.DisplayName.c_str()));
+            meta->Set(ctx, ToStr(isolate, "OriginalName"), ToStr(isolate, it->second.OriginalName.c_str()));
+            meta->Set(ctx, ToStr(isolate, "DeclaredType"), ToStr(isolate, it->second.DeclaredType.c_str()));
+            meta->Set(ctx, ToStr(isolate, "Collation"), ToStr(isolate, it->second.Collation.c_str()));
+            meta->Set(ctx, ToStr(isolate, "ColumnSize"), Uint32::New(isolate, it->second.ColumnSize));
+            meta->Set(ctx, ToStr(isolate, "Flags"), Uint32::New(isolate, it->second.Flags));
+            meta->Set(ctx, ToStr(isolate, "DataType"), Uint32::New(isolate, it->second.DataType));
+            meta->Set(ctx, ToStr(isolate, "Precision"), Uint32::New(isolate, it->second.Precision));
+            meta->Set(ctx, ToStr(isolate, "Scale"), Uint32::New(isolate, it->second.Scale));
+            p->Set(ctx, ToStr(isolate, "Field"), meta);
+            jsMeta->Set(ctx, index, p);
         }
         return jsMeta;
     }

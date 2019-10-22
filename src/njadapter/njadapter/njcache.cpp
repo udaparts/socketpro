@@ -57,9 +57,9 @@ namespace NJA {
         NODE_SET_PROTOTYPE_METHOD(tpl, "getFieldNameCase", getFieldNameCase);
         NODE_SET_PROTOTYPE_METHOD(tpl, "getDataCase", getDataCase);
         NODE_SET_PROTOTYPE_METHOD(tpl, "getDbTable", getDbTable);
-
-        constructor.Reset(isolate, tpl->GetFunction(isolate->GetCurrentContext()).ToLocalChecked());
-        exports->Set(ToStr(isolate, "CCache"), tpl->GetFunction(isolate->GetCurrentContext()).ToLocalChecked());
+        auto ctx = isolate->GetCurrentContext();
+        constructor.Reset(isolate, tpl->GetFunction(ctx).ToLocalChecked());
+        exports->Set(ctx, ToStr(isolate, "CCache"), tpl->GetFunction(ctx).ToLocalChecked());
     }
 
     Local<Object> NJCache::New(Isolate* isolate, SPA::CDataSet *ds, bool setCb) {
@@ -167,14 +167,15 @@ namespace NJA {
         Isolate* isolate = args.GetIsolate();
         NJCache* obj = ObjectWrap::Unwrap<NJCache>(args.Holder());
         if (obj->IsValid(isolate)) {
-            Local<Array> v = Array::New(isolate);
-            unsigned int index = 0;
+            auto ctx = isolate->GetCurrentContext();
             auto db_table = obj->m_ds->GetDBTablePair();
+            Local<Array> v = Array::New(isolate, (int) db_table.size());
+            unsigned int index = 0;
             for (auto it = db_table.begin(), end = db_table.end(); it != end; ++it, ++index) {
                 Local<Object> p = Object::New(isolate);
-                p->Set(ToStr(isolate, "db"), ToStr(isolate, it->first.c_str()));
-                p->Set(ToStr(isolate, "table"), ToStr(isolate, it->second.c_str()));
-                v->Set(index, p);
+                p->Set(ctx, ToStr(isolate, "db"), ToStr(isolate, it->first.c_str()));
+                p->Set(ctx, ToStr(isolate, "table"), ToStr(isolate, it->second.c_str()));
+                v->Set(ctx, index, p);
             }
             args.GetReturnValue().Set(v);
         }

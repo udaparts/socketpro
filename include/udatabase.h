@@ -839,15 +839,21 @@ namespace SPA {
 
         static CUQueue& operator>>(CUQueue &q, CDBColumnInfoArray &arr) {
             unsigned int size;
-            arr.clear();
             q >> size;
             if (size) {
-                CDBColumnInfo c;
+                while (arr.size() > size) {
+                    arr.pop_back();
+                }
+                while (arr.size() < size) {
+                    CDBColumnInfo info;
+                    arr.push_back(info);
+                }
                 for (unsigned int n = 0; n < size; ++n) {
-                    arr.push_back(c);
-                    CDBColumnInfo &info = arr.back();
+                    CDBColumnInfo &info = arr[n];
                     q >> info;
                 }
+            } else {
+                arr.clear();
             }
             return q;
         }

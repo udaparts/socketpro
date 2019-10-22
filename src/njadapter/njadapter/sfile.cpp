@@ -106,7 +106,7 @@ namespace NJA {
                 *cb.Buffer >> processor;
                 assert(processor);
                 Local<Function> func = Local<Function>::New(isolate, *cb.Func);
-                Local<Object> njFile = NJFile::New(isolate, processor, true);
+                //Local<Object> njFile = NJFile::New(isolate, processor, true);
                 Local<v8::Boolean> download = v8::Boolean::New(isolate, cb.Download);
                 switch (cb.EventType) {
                     case feExchange:
@@ -116,8 +116,8 @@ namespace NJA {
                         *cb.Buffer >> res >> errMsg;
                         Local<Value> jsRes = v8::Int32::New(isolate, res);
                         Local<v8::String> jsMsg = ToStr(isolate, errMsg.c_str());
-                        Local<Value> argv[] = {jsMsg, jsRes, download, njFile};
-                        func->Call(isolate->GetCurrentContext(), Null(isolate), 4, argv);
+                        Local<Value> argv[] = {jsMsg, jsRes, download};
+                        func->Call(isolate->GetCurrentContext(), Null(isolate), 3, argv);
                     }
                         break;
                     case feTrans:
@@ -125,8 +125,8 @@ namespace NJA {
                         SPA::UINT64 pos, size;
                         *cb.Buffer >> pos >> size;
                         assert(!cb.Buffer->GetSize());
-                        Local<Value> argv[] = {v8::Number::New(isolate, (double) pos), v8::Number::New(isolate, (double) size), download, njFile};
-                        func->Call(isolate->GetCurrentContext(), Null(isolate), 4, argv);
+                        Local<Value> argv[] = {v8::Number::New(isolate, (double) pos), v8::Number::New(isolate, (double) size), download};
+                        func->Call(isolate->GetCurrentContext(), Null(isolate), 3, argv);
                     }
                         break;
                     case feDiscarded:
@@ -134,8 +134,8 @@ namespace NJA {
                         bool canceled;
                         *cb.Buffer >> canceled;
                         assert(!cb.Buffer->GetSize());
-                        Local<Value> argv[] = {v8::Boolean::New(isolate, canceled), download, njFile};
-                        func->Call(isolate->GetCurrentContext(), Null(isolate), 3, argv);
+                        Local<Value> argv[] = {v8::Boolean::New(isolate, canceled), download};
+                        func->Call(isolate->GetCurrentContext(), Null(isolate), 2, argv);
                     }
                         break;
                     default:

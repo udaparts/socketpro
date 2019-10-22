@@ -45,9 +45,9 @@ namespace NJA {
         //properties
         NODE_SET_PROTOTYPE_METHOD(tpl, "getDbMS", getMS);
         NODE_SET_PROTOTYPE_METHOD(tpl, "isOpened", IsOpened);
-
-        constructor.Reset(isolate, tpl->GetFunction(isolate->GetCurrentContext()).ToLocalChecked());
-        exports->Set(ToStr(isolate, "CDb"), tpl->GetFunction(isolate->GetCurrentContext()).ToLocalChecked());
+        auto ctx = isolate->GetCurrentContext();
+        constructor.Reset(isolate, tpl->GetFunction(ctx).ToLocalChecked());
+        exports->Set(ctx, ToStr(isolate, "CDb"), tpl->GetFunction(ctx).ToLocalChecked());
     }
 
     Local<Object> NJSqlite::New(Isolate* isolate, CNjDb *ash, bool setCb) {

@@ -26,9 +26,9 @@ namespace NJA {
         NODE_SET_PROTOTYPE_METHOD(tpl, "Subscribe", Subscribe);
         NODE_SET_PROTOTYPE_METHOD(tpl, "Unsubscribe", Unsubscribe);
         NODE_SET_PROTOTYPE_METHOD(tpl, "SendUserMessage", SendUserMessage);
-
-        constructor.Reset(isolate, tpl->GetFunction(isolate->GetCurrentContext()).ToLocalChecked());
-        exports->Set(ToStr(isolate, "CPush"), tpl->GetFunction(isolate->GetCurrentContext()).ToLocalChecked());
+        auto ctx = isolate->GetCurrentContext();
+        constructor.Reset(isolate, tpl->GetFunction(ctx).ToLocalChecked());
+        exports->Set(ctx, ToStr(isolate, "CPush"), tpl->GetFunction(ctx).ToLocalChecked());
     }
 
     Local<Object> NJPush::New(Isolate* isolate, SPA::IPushEx *p, bool setCb) {
