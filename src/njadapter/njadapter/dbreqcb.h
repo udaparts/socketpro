@@ -2,6 +2,7 @@
 #pragma once
 
 #include "../../../include/udb_client.h"
+#include <node_version.h>
 
 namespace SPA {
     namespace ClientSide {
@@ -40,6 +41,7 @@ namespace SPA {
                                 bool bProc;
                                 *cb.Buffer >> bProc;
                                 assert(!cb.Buffer->GetSize());
+#if NODE_VERSION_AT_LEAST(11,6,0)
                                 Local<Array> arr;
                                 if (cb.VData) {
                                     SPA::CUQueue &buff = *cb.VData;
@@ -54,6 +56,23 @@ namespace SPA {
                                     }
                                 }
                                 Local<Value> argv[] = {arr, Boolean::New(isolate, bProc)};
+#else
+                                Local<Array> v = Array::New(isolate);
+                                if (cb.VData) {
+                                    unsigned int index = 0;
+                                    SPA::CUQueue &buff = *cb.VData;
+                                    while (buff.GetSize()) {
+                                        try {
+                                            Local<Value> d = DbFrom(isolate, buff);
+                                            v->Set(ctx, index, d);
+                                            ++index;
+                                        } catch (SPA::CUException&) {
+                                            buff.SetSize(0);
+                                        }
+                                    }
+                                }
+                                Local<Value> argv[] = {v, Boolean::New(isolate, bProc)};
+#endif
                                 func->Call(ctx, Null(isolate), 2, argv);
                             }
                             break;
