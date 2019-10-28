@@ -406,7 +406,7 @@ namespace SPA
                     break;
             }
             CMysqlImpl *impl = (CMysqlImpl *) ctx;
-            impl->m_vColInfo.push_back(info);
+            impl->m_vColInfo.push_back(std::move(info));
             if (impl->m_cmd == COM_STMT_PREPARE) {
                 if (info.DisplayName == L"?")
                     impl->m_stmt.parameters += 1;
