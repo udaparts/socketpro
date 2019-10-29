@@ -8,11 +8,11 @@
 namespace SPA {
 
 #ifdef WIN32_64
-    typedef std::wstring CDBColString;
+    typedef std::wstring CDBString;
 #else
-    typedef std::basic_string<UTF16> CDBColString;
+    typedef std::basic_string<UTF16> CDBString;
 
-    static CUQueue& operator<<(CUQueue &q, const CDBColString &str) {
+    static CUQueue& operator<<(CUQueue &q, const CDBString &str) {
         unsigned int len = (unsigned int) str.size();
         len <<= 1;
         q << len;
@@ -20,7 +20,7 @@ namespace SPA {
         return q;
     }
 
-    static CUQueue& operator>>(CUQueue &q, CDBColString &str) {
+    static CUQueue& operator>>(CUQueue &q, CDBString &str) {
         unsigned int len;
         q >> len;
         switch (len) {
@@ -836,12 +836,12 @@ namespace SPA {
             }
 
         public:
-            CDBColString DBPath;
-            CDBColString TablePath;
-            CDBColString DisplayName;
-            CDBColString OriginalName;
-            CDBColString DeclaredType;
-            CDBColString Collation;
+            CDBString DBPath;
+            CDBString TablePath;
+            CDBString DisplayName;
+            CDBString OriginalName;
+            CDBString DeclaredType;
+            CDBString Collation;
             unsigned int ColumnSize;
             unsigned int Flags;
             unsigned short DataType;
@@ -989,7 +989,7 @@ namespace SPA {
             unsigned int ColumnSize; //-1 BLOB, string length or binary bytes; ignored for other data types
             unsigned char Precision; //datetime, decimal or numeric only
             unsigned char Scale; //datetime, decimal or numeric only
-            CDBColString ParameterName; //may be optional, which depends on remote database system
+            CDBString ParameterName; //may be optional, which depends on remote database system
         };
 
         static CUQueue& operator<<(CUQueue &q, const CParameterInfo &info) {

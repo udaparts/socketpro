@@ -100,8 +100,8 @@ namespace SPA {
                             else
                                 this->Cache.SetUpdater(nullptr);
 
-                            CDBColString dbName = this->ToUTF16(vData[3]);
-                            CDBColString tblName = this->ToUTF16(vData[4]);
+                            CDBString dbName = this->ToUTF16(vData[3]);
+                            CDBString tblName = this->ToUTF16(vData[4]);
                             switch (eventType) {
                                 case UDB::ueInsert:
                                     res = this->Cache.AddRows(dbName.c_str(), tblName.c_str(), vData + 5, vtMsg.parray->rgsabound->cElements - 5);

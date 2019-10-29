@@ -1,7 +1,7 @@
 
 #include "membuffer.h"
 #include <assert.h>
-#include <ctype.h>
+#include <cctype>
 
 namespace SPA {
     const UINT64 SAFE_DOUBLE = 9007199254740991ULL; //2^53-1

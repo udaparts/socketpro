@@ -273,37 +273,17 @@ namespace NJA {
         return String::NewFromUtf8(isolate, str, v8::NewStringType::kNormal, (int) len).ToLocalChecked();
     }
 
-    Local<String> ToStr(Isolate* isolate, const wchar_t *str, size_t len) {
+    Local<String> ToStr(Isolate* isolate, const SPA::UTF16 *str, size_t len) {
         if (!str) {
-            str = L"";
+            str = (const SPA::UTF16 *) L"";
             len = 0;
         } else if (len == (size_t) INVALID_NUMBER) {
-            len = wcslen(str);
-        }
-#ifdef WIN32_64
-        return String::NewFromTwoByte(isolate, (const uint16_t *) str, v8::NewStringType::kNormal, (int) len).ToLocalChecked();
-#else
-        SPA::CScopeUQueue sb;
-        SPA::Utilities::ToUTF16(str, len, *sb);
-        return String::NewFromTwoByte(isolate, (const uint16_t *) sb->GetBuffer(), v8::NewStringType::kNormal, (int) (sb->GetSize() / sizeof (uint16_t))).ToLocalChecked();
-#endif
-    }
-
-    Local<String> ToStr(Isolate* isolate, const UTF16 *str, size_t len) {
-        if (!str) {
-            str = (const UTF16 *) L"";
-            len = 0;
-        } else if (len == (size_t) INVALID_NUMBER) {
-#ifdef WIN32_64
-            len = wcslen((const wchar_t *)str);
-#else
             len = SPA::Utilities::GetLen(str);
-#endif
         }
         return String::NewFromTwoByte(isolate, (const uint16_t*) str, v8::NewStringType::kNormal, (int) len).ToLocalChecked();
     }
 
-    SPA::CDBColString ToStr(Isolate* isolate, const Local<Value>& s) {
+    SPA::CDBString ToStr(Isolate* isolate, const Local<Value>& s) {
         assert(s->IsString());
 #if NODE_MODULE_VERSION < 57
         String::Value str(s);

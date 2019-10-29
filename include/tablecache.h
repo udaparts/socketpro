@@ -80,7 +80,7 @@ namespace SPA {
     };
 
     typedef std::vector<CTable> CRowsetArray;
-    typedef std::pair<CDBColString, CDBColString> CPDbTable; //DB and Table name pair
+    typedef std::pair<CDBString, CDBString> CPDbTable; //DB and Table name pair
 
     class CDataSet {
     public:

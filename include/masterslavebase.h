@@ -36,7 +36,7 @@ namespace SPA {
             return ws;
         }
 
-        static CDBColString ToUTF16(const VARIANT &data) {
+        static CDBString ToUTF16(const VARIANT &data) {
 #ifdef WIN32_64
             if (data.vt == VT_BSTR) {
                 return data.bstrVal;

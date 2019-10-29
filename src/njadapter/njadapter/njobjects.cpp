@@ -252,7 +252,7 @@ namespace NJA {
             std::wstring defaultDb(obj->m_defaultDb);
             auto p = args[0];
             if (p->IsString()) {
-                SPA::CDBColString s = ToStr(isolate, p);
+                SPA::CDBString s = ToStr(isolate, p);
                 if (s.size()) {
 #ifdef WIN32_64
                     defaultDb = s;
