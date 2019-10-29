@@ -58,7 +58,7 @@ namespace SPA {
         int Between(unsigned int ordinal, const VARIANT &vt0, const VARIANT &vt1, CTable &tbl, bool copyData = false) const;
         int Append(const CTable &tbl);
         int Sort(unsigned int ordinal, bool desc = false);
-        unsigned int FindOrdinal(const wchar_t *colName) const;
+        unsigned int FindOrdinal(const UTF16 *colName) const;
         unsigned int FindOrdinal(const char *colName) const;
 
     private:
@@ -80,7 +80,7 @@ namespace SPA {
     };
 
     typedef std::vector<CTable> CRowsetArray;
-    typedef std::pair<std::wstring, std::wstring> CPDbTable; //DB and Table name pair
+    typedef std::pair<CDBColString, CDBColString> CPDbTable; //DB and Table name pair
 
     class CDataSet {
     public:
@@ -90,9 +90,9 @@ namespace SPA {
 
     public:
         std::vector<CPDbTable> GetDBTablePair();
-        UDB::CDBColumnInfoArray GetColumMeta(const wchar_t *dbName, const wchar_t *tblName);
-        size_t GetRowCount(const wchar_t *dbName, const wchar_t *tblName);
-        size_t GetColumnCount(const wchar_t *dbName, const wchar_t *tblName);
+        UDB::CDBColumnInfoArray GetColumMeta(const UTF16 *dbName, const UTF16 *tblName);
+        size_t GetRowCount(const UTF16 *dbName, const UTF16 *tblName);
+        size_t GetColumnCount(const UTF16 *dbName, const UTF16 *tblName);
         std::string GetDBServerIp();
         std::wstring GetDBServerName();
         std::wstring GetUpdater();
@@ -102,7 +102,7 @@ namespace SPA {
         void SetDBServerName(const wchar_t *strDBServerName);
         void SetUpdater(const wchar_t *strUpdater);
         void Empty();
-        CKeyMap FindKeys(const wchar_t *dbName, const wchar_t *tblName);
+        CKeyMap FindKeys(const UTF16 *dbName, const UTF16 *tblName);
         void SetDBNameCaseSensitive(bool bCaseSensitive);
         void SetTableNameCaseSensitive(bool bCaseSensitive);
         void SetFieldNameCaseSensitive(bool bCaseSensitive);
@@ -111,16 +111,16 @@ namespace SPA {
         bool GetTableNameCaseSensitive();
         bool GetFieldNameCaseSensitive();
         bool GetDataCaseSensitive();
-        unsigned int FindOrdinal(const wchar_t *dbName, const wchar_t *tblName, const wchar_t *colName);
+        unsigned int FindOrdinal(const UTF16 *dbName, const UTF16 *tblName, const UTF16 *colName);
         unsigned int FindOrdinal(const char *dbName, const char *tblName, const char *colName);
-        int Find(const wchar_t *dbName, const wchar_t *tblName, unsigned int ordinal, CTable::Operator op, const CComVariant &vt, CTable &tbl);
-        int Find(const wchar_t *dbName, const wchar_t *tblName, unsigned int ordinal, CTable::Operator op, const VARIANT &vt, CTable &tbl);
-        int FindNull(const wchar_t *dbName, const wchar_t *tblName, unsigned int ordinal, CTable &tbl);
-        int In(const wchar_t *dbName, const wchar_t *tblName, unsigned int ordinal, const UDB::CDBVariantArray &v, CTable &tbl);
-        int NotIn(const wchar_t *dbName, const wchar_t *tblName, unsigned int ordinal, const UDB::CDBVariantArray &v, CTable &tbl);
-        int Between(const wchar_t *dbName, const wchar_t *tblName, unsigned int ordinal, const CComVariant &vt0, const CComVariant &vt1, CTable &tbl);
-        int Between(const wchar_t *dbName, const wchar_t *tblName, unsigned int ordinal, const VARIANT &vt0, const VARIANT &vt1, CTable &tbl);
-        size_t DeleteARow(const wchar_t *dbName, const wchar_t *tblName, const CComVariant &key);
+        int Find(const UTF16 *dbName, const UTF16 *tblName, unsigned int ordinal, CTable::Operator op, const CComVariant &vt, CTable &tbl);
+        int Find(const UTF16 *dbName, const UTF16 *tblName, unsigned int ordinal, CTable::Operator op, const VARIANT &vt, CTable &tbl);
+        int FindNull(const UTF16 *dbName, const UTF16 *tblName, unsigned int ordinal, CTable &tbl);
+        int In(const UTF16 *dbName, const UTF16 *tblName, unsigned int ordinal, const UDB::CDBVariantArray &v, CTable &tbl);
+        int NotIn(const UTF16 *dbName, const UTF16 *tblName, unsigned int ordinal, const UDB::CDBVariantArray &v, CTable &tbl);
+        int Between(const UTF16 *dbName, const UTF16 *tblName, unsigned int ordinal, const CComVariant &vt0, const CComVariant &vt1, CTable &tbl);
+        int Between(const UTF16 *dbName, const UTF16 *tblName, unsigned int ordinal, const VARIANT &vt0, const VARIANT &vt1, CTable &tbl);
+        size_t DeleteARow(const UTF16 *dbName, const UTF16 *tblName, const CComVariant &key);
         static std::string ToDate(const VARIANT &vtDate);
 
         /**
@@ -143,7 +143,7 @@ namespace SPA {
          * @param count The number of data in array
          * @return The number of rows added into cache. It could also be 0 and INVALID_VALUE
          */
-        virtual size_t AddRows(const wchar_t *dbName, const wchar_t *tblName, const VARIANT *pvt, size_t count);
+        virtual size_t AddRows(const UTF16 *dbName, const UTF16 *tblName, const VARIANT *pvt, size_t count);
 
         /**
          * Add one or more rows into cache. Track the event of adding rows into cache by overriding this method
@@ -152,7 +152,7 @@ namespace SPA {
          * @param vData A data array
          * @return The number of rows added into cache. It could also be 0 and INVALID_VALUE
          */
-        virtual size_t AddRows(const wchar_t *dbName, const wchar_t *tblName, const UDB::CDBVariantArray &vData);
+        virtual size_t AddRows(const UTF16 *dbName, const UTF16 *tblName, const UDB::CDBVariantArray &vData);
 
         /**
          * Update a row data into cache. Track update event by overriding this method
@@ -162,7 +162,7 @@ namespace SPA {
          * @param count
          * @return The number of updated rows, which could be 0, 1 or INVALID_VALUE
          */
-        virtual size_t UpdateARow(const wchar_t *dbName, const wchar_t *tblName, const VARIANT *pvt, size_t count);
+        virtual size_t UpdateARow(const UTF16 *dbName, const UTF16 *tblName, const VARIANT *pvt, size_t count);
 
         /**
          * Delete one row from cache from one given key value. Track delete event by overriding this method
@@ -171,7 +171,7 @@ namespace SPA {
          * @param key One given key value
          * @return The number of deleted rows, which could be 0, 1 or INVALID_VALUE
          */
-        virtual size_t DeleteARow(const wchar_t *dbName, const wchar_t *tblName, const VARIANT &key);
+        virtual size_t DeleteARow(const UTF16 *dbName, const UTF16 *tblName, const VARIANT &key);
 
         /**
          * Delete one row from cache from one given row of data. Track delete event by overriding this method
@@ -181,7 +181,7 @@ namespace SPA {
          * @param cols the column number
          * @return The number of deleted rows, which could be 0, 1 or INVALID_VALUE
          */
-        virtual size_t DeleteARow(const wchar_t *dbName, const wchar_t *tblName, const VARIANT *pRow, unsigned int cols);
+        virtual size_t DeleteARow(const UTF16 *dbName, const UTF16 *tblName, const VARIANT *pRow, unsigned int cols);
 
     private:
         static CPRow FindARowInternal(const CTable &tbl, size_t f, const VARIANT &key);
@@ -189,7 +189,7 @@ namespace SPA {
         static UDB::CDBVariant Convert(const VARIANT &data, VARTYPE vtTarget);
         static size_t FindKeyColIndex(const UDB::CDBColumnInfoArray &meta);
         static size_t FindKeyColIndex(const UDB::CDBColumnInfoArray &meta, size_t &key1);
-        bool Is(const CTable &tbl, const wchar_t *dbName, const wchar_t *tblName);
+        bool Is(const CTable &tbl, const UTF16 *dbName, const UTF16 *tblName);
 
     protected:
         CUCriticalSection m_cs;

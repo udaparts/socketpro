@@ -334,7 +334,7 @@ namespace SPA {
 #ifdef WCHAR16
     typedef wchar_t UTF16;
 #else
-    typedef unsigned short UTF16;
+    typedef char16_t UTF16;
 #endif
 
     //The following functions atoxxx work correctly for standard and normal number strings without any preventions.

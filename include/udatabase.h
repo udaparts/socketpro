@@ -7,6 +7,41 @@
 
 namespace SPA {
 
+#ifdef WIN32_64
+    typedef std::wstring CDBColString;
+#else
+    typedef std::basic_string<UTF16> CDBColString;
+
+    static CUQueue& operator<<(CUQueue &q, const CDBColString &str) {
+        unsigned int len = (unsigned int) str.size();
+        len <<= 1;
+        q << len;
+        q.Push((const unsigned char*) str.c_str(), len);
+        return q;
+    }
+
+    static CUQueue& operator>>(CUQueue &q, CDBColString &str) {
+        unsigned int len;
+        q >> len;
+        switch (len) {
+            case 0:
+            case UQUEUE_NULL_LENGTH:
+                str.clear();
+                break;
+            default:
+                if (len > q.GetSize() || (len % sizeof (UTF16))) {
+                    throw CUException("Bad data for loading UNICODE string", __FILE__, __LINE__, __FUNCTION__, MB_BAD_DESERIALIZATION);
+                } else {
+                    str.assign((const UTF16*) q.GetBuffer(), len >> 1);
+                    q.Pop(len);
+                }
+                break;
+        }
+        return q;
+    }
+
+#endif
+
     namespace UDB {
 
         enum tagTransactionIsolation {
@@ -801,12 +836,12 @@ namespace SPA {
             }
 
         public:
-            std::wstring DBPath;
-            std::wstring TablePath;
-            std::wstring DisplayName;
-            std::wstring OriginalName;
-            std::wstring DeclaredType;
-            std::wstring Collation;
+            CDBColString DBPath;
+            CDBColString TablePath;
+            CDBColString DisplayName;
+            CDBColString OriginalName;
+            CDBColString DeclaredType;
+            CDBColString Collation;
             unsigned int ColumnSize;
             unsigned int Flags;
             unsigned short DataType;
@@ -954,7 +989,7 @@ namespace SPA {
             unsigned int ColumnSize; //-1 BLOB, string length or binary bytes; ignored for other data types
             unsigned char Precision; //datetime, decimal or numeric only
             unsigned char Scale; //datetime, decimal or numeric only
-            std::wstring ParameterName; //may be optional, which depends on remote database system
+            CDBColString ParameterName; //may be optional, which depends on remote database system
         };
 
         static CUQueue& operator<<(CUQueue &q, const CParameterInfo &info) {

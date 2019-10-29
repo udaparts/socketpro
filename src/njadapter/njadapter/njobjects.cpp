@@ -252,9 +252,13 @@ namespace NJA {
             std::wstring defaultDb(obj->m_defaultDb);
             auto p = args[0];
             if (p->IsString()) {
-                std::wstring s = ToStr(isolate, p);
+                SPA::CDBColString s = ToStr(isolate, p);
                 if (s.size()) {
+#ifdef WIN32_64
                     defaultDb = s;
+#else
+                    defaultDb = Utilities::ToWide(s.c_str(), s.size());
+#endif
                 }
             } else if (!IsNullOrUndefined(p)) {
                 ThrowException(isolate, "A default database name string expected");

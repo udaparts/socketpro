@@ -3,8 +3,7 @@
 #include <assert.h>
 #include <ctype.h>
 
-namespace SPA
-{
+namespace SPA {
     const UINT64 SAFE_DOUBLE = 9007199254740991ULL; //2^53-1
 
     unsigned int SHARED_BUFFER_CLEAN_SIZE = 32 * 1024;
@@ -44,7 +43,7 @@ namespace SPA
 #endif
     }
 
-    CUQueue & CUQueue::operator >> (std::wstring & str) {
+    CUQueue & CUQueue::operator>>(std::wstring & str) {
         unsigned int size;
         Pop((unsigned char*) &size, sizeof (unsigned int));
         switch (size) {
@@ -296,7 +295,7 @@ namespace SPA
     unsigned int CUQueue::Pop(VARIANT& vtData, unsigned int position) {
         unsigned int total = 0;
 #ifndef _WIN32_WCE
-        try{
+        try {
 #endif
             if (vtData.vt == VT_BSTR) {
                 VariantClear(&vtData);
@@ -304,9 +303,7 @@ namespace SPA
                 VariantClear(&vtData);
             }
 #ifndef _WIN32_WCE
-        }
-
-        catch(...) {
+        } catch (...) {
         }
 #endif
         total = Pop(&(vtData.vt), position);
@@ -659,8 +656,9 @@ namespace SPA
         return total;
     }
 
-    namespace Utilities{
+    namespace Utilities {
 #ifndef WINCE
+
         void Trim(std::string & s) {
             while (s.size() && ::isspace(s.back())) {
                 s.pop_back();
@@ -685,12 +683,12 @@ namespace SPA
         std::wstring GetErrorMessage(DWORD dwError) {
             wchar_t *lpMsgBuf = nullptr;
             DWORD res = ::FormatMessageW(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_IGNORE_INSERTS,
-            nullptr,
-            dwError,
-            MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), // Default language
-            (LPWSTR) & lpMsgBuf,
-            0,
-            nullptr);
+                    nullptr,
+                    dwError,
+                    MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), // Default language
+                    (LPWSTR) & lpMsgBuf,
+                    0,
+                    nullptr);
             std::wstring s(lpMsgBuf ? lpMsgBuf : L"");
             if (lpMsgBuf)
                 LocalFree(lpMsgBuf);
@@ -708,6 +706,62 @@ namespace SPA
                 ++chars;
             }
             return len;
+        }
+
+        bool IsEqual(const char *s0, const char *s1, bool case_sensitive) {
+            if (s0 == s1) {
+                return true;
+            } else if (!s0 || !s1) {
+                return false;
+            }
+            size_t len0 = ::strlen(s0), len1 = ::strlen(s1);
+            if (0 == len0 && 0 == len1) {
+                return true;
+            } else if (len0 != len1) {
+                return false;
+            }
+            if (case_sensitive) {
+                for (size_t n = 0; n < len0; ++n) {
+                    if (s0[n] != s1[n]) {
+                        return false;
+                    }
+                }
+            } else {
+                for (size_t n = 0; n < len0; ++n) {
+                    if (std::tolower(s0[n]) != std::tolower(s1[n])) {
+                        return false;
+                    }
+                }
+            }
+            return true;
+        }
+
+        bool IsEqual(const UTF16 *s0, const UTF16 *s1, bool case_sensitive) {
+            if (s0 == s1) {
+                return true;
+            } else if (!s0 || !s1) {
+                return false;
+            }
+            unsigned int len0 = GetLen(s0), len1 = GetLen(s1);
+            if (0 == len0 && 0 == len1) {
+                return true;
+            } else if (len0 != len1) {
+                return false;
+            }
+            if (case_sensitive) {
+                for (unsigned int n = 0; n < len0; ++n) {
+                    if (s0[n] != s1[n]) {
+                        return false;
+                    }
+                }
+            } else {
+                for (unsigned int n = 0; n < len0; ++n) {
+                    if (std::tolower(s0[n]) != std::tolower(s1[n])) {
+                        return false;
+                    }
+                }
+            }
+            return true;
         }
 
 #if defined(__ANDROID__) || defined(ANDROID)
@@ -833,6 +887,46 @@ namespace SPA
         }
 
 #ifdef WCHAR32
+        
+        bool IsEqual(const wchar_t *s0, const wchar_t *s1, bool case_sensitive) {
+            if (s0 == s1) {
+                return true;
+            } else if (!s0 || !s1) {
+                return false;
+            }
+            size_t len0 = ::wcslen(s0), len1 = ::wcslen(s1);
+            if (0 == len0 && 0 == len1) {
+                return true;
+            } else if (len0 != len1) {
+                return false;
+            }
+            if (case_sensitive) {
+                for (size_t n = 0; n < len0; ++n) {
+                    if (s0[n] != s1[n]) {
+                        return false;
+                    }
+                }
+            } else {
+                for (size_t n = 0; n < len0; ++n) {
+                    if (std::tolower(s0[n]) != std::tolower(s1[n])) {
+                        return false;
+                    }
+                }
+            }
+            return true;
+        }
+
+        std::wstring ToWide(const UTF16 *str, size_t chars) {
+            if (!str || !chars) {
+                return L"";
+            }
+            if (chars == (~0)) {
+                chars = GetLen(str);
+            }
+            CScopeUQueue sb;
+            ToWide(str, chars, *sb, true);
+            return (const wchar_t *)sb->GetBuffer();
+        }
 
         void ToWide(const UTF16 *str, size_t chars, CUQueue & q, bool append) {
             if (!append) {

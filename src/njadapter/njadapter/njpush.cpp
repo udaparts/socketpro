@@ -126,7 +126,12 @@ namespace NJA {
         std::wstring user;
         auto p0 = args[0];
         if (p0->IsString()) {
+#ifdef WIN32_64
             user = ToStr(isolate, p0);
+#else
+            auto s = ToAStr(isolate, p0);
+            user = Utilities::ToWide(s);
+#endif
         }
         if (!user.size()) {
             ThrowException(isolate, "A non-empty string expected for user id");

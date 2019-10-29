@@ -49,6 +49,8 @@ namespace SPA {
         std::wstring ToWide(const std::string &s);
 #endif
         unsigned int GetLen(const UTF16 *str);
+        bool IsEqual(const UTF16 *s0, const UTF16 *s1, bool case_sensitive);
+        bool IsEqual(const char *s0, const char *s1, bool case_sensitive);
 
 #if defined(__ANDROID__) || defined(ANDROID)
 
@@ -70,8 +72,11 @@ namespace SPA {
 #elif defined(WCHAR32)
         void ToWide(const UTF16 *str, size_t chars, CUQueue &q, bool append = false);
         void ToUTF16(const wchar_t *str, size_t wchars, CUQueue &q, bool append = false);
+        void ToUTF16(const char *str, size_t chars, CUQueue &q, bool append = false);
         void ToUTF8(const UTF16 *str, size_t chars, CUQueue &q, bool append = false);
         BSTR SysAllocString(const SPA::UTF16 *sz, unsigned int wchars = (~0));
+        std::wstring ToWide(const UTF16 *str, size_t chars = (~0));
+        bool IsEqual(const wchar_t *s0, const wchar_t *s1, bool case_sensitive);
 #endif
     };
 

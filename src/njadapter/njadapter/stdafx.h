@@ -55,8 +55,8 @@ namespace NJA {
     bool From(Isolate* isolate, const Local<Value>& v, const std::string &hint, CComVariant &vt);
     SPA::UINT64 ToDate(Isolate* isolate, const Local<Value>& d);
     Local<Value> ToDate(Isolate* isolate, SPA::UINT64 dt);
-    Local<String> ToStr(Isolate* isolate, const uint16_t *str, size_t len = (size_t) INVALID_NUMBER);
-    std::wstring ToStr(Isolate* isolate, const Local<Value> &s);
+    Local<String> ToStr(Isolate* isolate, const UTF16 *str, size_t len = (size_t) INVALID_NUMBER);
+    SPA::CDBColString ToStr(Isolate* isolate, const Local<Value> &s);
     std::string ToAStr(Isolate* isolate, const Local<Value> &s);
     bool ToPInfoArray(Isolate* isolate, const Local<Value> &pInfo, CParameterInfoArray &vInfo);
     bool ToGroups(Isolate* isolate, const Local<Value>& p, std::vector<unsigned int> &v);

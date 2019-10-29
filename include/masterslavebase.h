@@ -22,13 +22,43 @@ namespace SPA {
             return m_dbDefalut;
         }
 
+    protected:
+
         static std::wstring ToWide(const VARIANT &data) {
+            if (data.vt == VT_BSTR) {
+                return data.bstrVal;
+            }
             const char *s;
             assert(data.vt == (VT_ARRAY | VT_I1));
             ::SafeArrayAccessData(data.parray, (void**) &s);
             std::wstring ws = Utilities::ToWide(s, data.parray->rgsabound->cElements);
             ::SafeArrayUnaccessData(data.parray);
             return ws;
+        }
+
+        static CDBColString ToUTF16(const VARIANT &data) {
+#ifdef WIN32_64
+            if (data.vt == VT_BSTR) {
+                return data.bstrVal;
+            }
+            const char *s;
+            assert(data.vt == (VT_ARRAY | VT_I1));
+            ::SafeArrayAccessData(data.parray, (void**) &s);
+            std::wstring ws = Utilities::ToWide(s, data.parray->rgsabound->cElements);
+            ::SafeArrayUnaccessData(data.parray);
+            return ws;
+#else
+            SPA::CScopeUQueue sb;
+            if (data.vt == VT_BSTR) {
+                Utilities::ToUTF16(data.bstrVal, (~0), *sb, true);
+            }
+            const char *s;
+            assert(data.vt == (VT_ARRAY | VT_I1));
+            ::SafeArrayAccessData(data.parray, (void**) &s);
+            Utilities::ToUTF16(s, data.parray->rgsabound->cElements, *sb, true);
+            ::SafeArrayUnaccessData(data.parray);
+            return (const UTF16*) sb->GetBuffer();
+#endif
         }
 
     private:

@@ -289,9 +289,9 @@ namespace NJA {
 #endif
     }
 
-    Local<String> ToStr(Isolate* isolate, const uint16_t *str, size_t len) {
+    Local<String> ToStr(Isolate* isolate, const UTF16 *str, size_t len) {
         if (!str) {
-            str = (const uint16_t *) L"";
+            str = (const UTF16 *) L"";
             len = 0;
         } else if (len == (size_t) INVALID_NUMBER) {
 #ifdef WIN32_64
@@ -300,23 +300,17 @@ namespace NJA {
             len = SPA::Utilities::GetLen(str);
 #endif
         }
-        return String::NewFromTwoByte(isolate, str, v8::NewStringType::kNormal, (int) len).ToLocalChecked();
+        return String::NewFromTwoByte(isolate, (const uint16_t*) str, v8::NewStringType::kNormal, (int) len).ToLocalChecked();
     }
 
-    std::wstring ToStr(Isolate* isolate, const Local<Value>& s) {
+    SPA::CDBColString ToStr(Isolate* isolate, const Local<Value>& s) {
         assert(s->IsString());
 #if NODE_MODULE_VERSION < 57
         String::Value str(s);
 #else
         String::Value str(isolate, s);
 #endif
-#ifdef WIN32_64
-        return (const wchar_t*)*str;
-#else
-        SPA::CScopeUQueue sb;
-        SPA::Utilities::ToWide(*str, (size_t) str.length(), *sb);
-        return (const wchar_t *)sb->GetBuffer();
-#endif
+        return (const UTF16*) *str;
     }
 
     std::string ToAStr(Isolate* isolate, const Local<Value> &s) {
@@ -409,7 +403,7 @@ namespace NJA {
 #ifdef WIN32_64
                 vt.bstrVal = SysAllocString((const wchar_t*) * str);
 #else
-                vt.bstrVal = SPA::Utilities::SysAllocString(*str, (unsigned int) str.length());
+                vt.bstrVal = SPA::Utilities::SysAllocString((const UTF16*) *str, (unsigned int) str.length());
 #endif
             }
         } else if (v->IsInt32() && id == "") {
@@ -671,7 +665,7 @@ namespace NJA {
 #ifdef WIN32_64
                         pbstr[n] = ::SysAllocString((const wchar_t *) * str);
 #else
-                        pbstr[n] = SPA::Utilities::SysAllocString(*str, (unsigned int) str.length());
+                        pbstr[n] = SPA::Utilities::SysAllocString((const UTF16*) *str, (unsigned int) str.length());
 #endif
                     }
                         break;
@@ -850,8 +844,8 @@ namespace NJA {
                 } else if (len > buff.GetSize()) {
                     throw SPA::CUException("Bad data type");
                 }
-                const uint16_t *str = (const uint16_t *) buff.GetBuffer();
-                auto s = ToStr(isolate, str, len / sizeof (uint16_t));
+                const UTF16 *str = (const UTF16 *) buff.GetBuffer();
+                auto s = ToStr(isolate, str, len / sizeof (UTF16));
                 buff.Pop(len);
                 return s;
             }

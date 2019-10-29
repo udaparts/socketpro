@@ -73,22 +73,8 @@ namespace SPA {
                             else
                                 this->Cache.SetUpdater(nullptr);
 
-                            std::wstring dbName;
-                            if (vData[3].vt == (VT_I1 | VT_ARRAY)) {
-                                dbName = this->ToWide(vData[3]);
-                            } else if (vData[3].vt == VT_BSTR)
-                                dbName = vData[3].bstrVal;
-                            else {
-                                assert(false); //shouldn't come here
-                            }
-                            std::wstring tblName;
-                            if (vData[4].vt == (VT_I1 | VT_ARRAY)) {
-                                tblName = this->ToWide(vData[4]);
-                            } else if (vData[3].vt == VT_BSTR)
-                                tblName = vData[4].bstrVal;
-                            else {
-                                assert(false); //shouldn't come here
-                            }
+                            SPA::CDBColString dbName = this->ToUTF16(vData[3]);
+                            SPA::CDBColString tblName = this->ToUTF16(vData[4]);
                             switch (eventType) {
                                 case UDB::ueInsert:
                                     res = this->Cache.AddRows(dbName.c_str(), tblName.c_str(), vData + 5, vtMsg.parray->rgsabound->cElements - 5);
@@ -146,7 +132,7 @@ namespace SPA {
                 unsigned int port;
                 std::string ip = pHandler->GetAttachedClientSocket()->GetPeerName(&port);
                         ip += ":";
-                        ip += std::to_string((UINT64)port);
+                        ip += std::to_string((UINT64) port);
                         this->m_cache.Set(ip.c_str(), pHandler->GetDBManagementSystem());
                         std::string host = pHandler->GetAttachedClientSocket()->GetConnectionContext().Host;
                         std::wstring s = Utilities::ToWide(host.c_str(), host.size());
