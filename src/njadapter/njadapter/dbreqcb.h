@@ -79,7 +79,7 @@ namespace SPA {
                         case eExecuteResult:
                             if (!func.IsEmpty()) {
                                 int res;
-                                std::wstring errMsg;
+                                SPA::CDBString errMsg;
                                 INT64 affected;
                                 unsigned int fails, oks;
                                 CDBVariant vtId;
@@ -98,7 +98,7 @@ namespace SPA {
                         case eResult:
                             if (!func.IsEmpty()) {
                                 int res;
-                                std::wstring errMsg;
+                                SPA::CDBString errMsg;
                                 *cb.Buffer >> res >> errMsg;
                                 assert(!cb.Buffer->GetSize());
                                 auto njRes = Int32::New(isolate, res);

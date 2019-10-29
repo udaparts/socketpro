@@ -1186,7 +1186,7 @@ namespace SPA {
                 return Execute(vParam, result, r, rh, true, true, dd) ? index : INVALID_NUMBER;
             }
 
-            UINT64 Execute(Isolate* isolate, int args, Local<Value> *argv, const wchar_t *sql) {
+            UINT64 Execute(Isolate* isolate, int args, Local<Value> *argv, const UTF16 *sql) {
                 bool bad;
                 SPA::UINT64 index = GetCallIndex();
                 DExecuteResult result;
@@ -1209,10 +1209,14 @@ namespace SPA {
                     dd = Get(isolate, argv[3], bad);
                     if (bad) return 0;
                 }
+#ifdef WIN32_64
                 return Execute(sql, result, r, rh, true, true, dd) ? index : INVALID_NUMBER;
+#else
+                return Execute(Utilities::ToWide(sql, Utilities::GetLen(sql)).c_str(), result, r, rh, true, true, dd) ? index : INVALID_NUMBER;
+#endif
             }
 
-            UINT64 ExecuteBatch(Isolate* isolate, int args, Local<Value> *argv, tagTransactionIsolation isolation, const wchar_t *sql, CDBVariantArray &vParam, tagRollbackPlan plan, const wchar_t *delimiter, const CParameterInfoArray& vPInfo) {
+            UINT64 ExecuteBatch(Isolate* isolate, int args, Local<Value> *argv, tagTransactionIsolation isolation, const UTF16 *sql, CDBVariantArray &vParam, tagRollbackPlan plan, const UTF16 *delimiter, const CParameterInfoArray& vPInfo) {
                 bool bad;
                 SPA::UINT64 index = GetCallIndex();
                 DExecuteResult result;
@@ -1240,10 +1244,14 @@ namespace SPA {
                     dd = Get(isolate, argv[4], bad);
                     if (bad) return 0;
                 }
+#ifdef WIN32_64
                 return ExecuteBatch(isolation, sql, vParam, result, r, rh, bh, vPInfo, plan, dd, delimiter) ? index : INVALID_NUMBER;
+#else
+                return ExecuteBatch(isolation, Utilities::ToWide(sql, Utilities::GetLen(sql)).c_str(), vParam, result, r, rh, bh, vPInfo, plan, dd, Utilities::ToWide(delimiter, Utilities::GetLen(delimiter)).c_str()) ? index : INVALID_NUMBER;
+#endif
             }
 
-            UINT64 Open(Isolate* isolate, int args, Local<Value> *argv, const wchar_t* strConnection, unsigned int flags) {
+            UINT64 Open(Isolate* isolate, int args, Local<Value> *argv, const UTF16* strConnection, unsigned int flags) {
                 bool bad;
                 SPA::UINT64 index = GetCallIndex();
                 DResult result;
@@ -1256,10 +1264,14 @@ namespace SPA {
                     dd = Get(isolate, argv[1], bad);
                     if (bad) return 0;
                 }
+#ifdef WIN32_64
                 return Open(strConnection, result, flags, dd) ? index : INVALID_NUMBER;
+#else
+                return Open(Utilities::ToWide(strConnection, Utilities::GetLen(strConnection)).c_str(), result, flags, dd) ? index : INVALID_NUMBER;
+#endif
             }
 
-            UINT64 Prepare(Isolate* isolate, int args, Local<Value> *argv, const wchar_t *sql, const CParameterInfoArray& vParameterInfo) {
+            UINT64 Prepare(Isolate* isolate, int args, Local<Value> *argv, const UTF16 *sql, const CParameterInfoArray& vParameterInfo) {
                 bool bad;
                 SPA::UINT64 index = GetCallIndex();
                 DResult result;
@@ -1272,7 +1284,11 @@ namespace SPA {
                     dd = Get(isolate, argv[1], bad);
                     if (bad) return 0;
                 }
+#ifdef WIN32_64
                 return Prepare(sql, result, vParameterInfo, dd) ? index : INVALID_NUMBER;
+#else
+                return Prepare(Utilities::ToWide(sql, Utilities::GetLen(sql)).c_str(), result, vParameterInfo, dd) ? index : INVALID_NUMBER;
+#endif
             }
 
         protected:

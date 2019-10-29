@@ -251,6 +251,7 @@ namespace NJA {
             }
             std::wstring defaultDb(obj->m_defaultDb);
             auto p = args[0];
+
             if (p->IsString()) {
                 SPA::CDBString s = ToStr(isolate, p);
                 if (s.size()) {
@@ -264,7 +265,12 @@ namespace NJA {
                 ThrowException(isolate, "A default database name string expected");
                 return;
             }
+#ifdef WIN32_64
             Local<Value> argv[] = {Number::New(isolate, obj->SvsId), ToStr(isolate, defaultDb.c_str(), defaultDb.size()), Boolean::New(isolate, true)};
+#else
+            std::string s = Utilities::ToUTF8(defaultDb);
+            Local<Value> argv[] = {Number::New(isolate, obj->SvsId), ToStr(isolate, s.c_str(), s.size()), Boolean::New(isolate, true)};
+#endif
             Local<Context> context = isolate->GetCurrentContext();
             Local<Function> cons = Local<Function>::New(isolate, constructor);
             Local<Object> result = cons->NewInstance(context, 3, argv).ToLocalChecked();
@@ -535,7 +541,7 @@ namespace NJA {
                             break;
                         case seServerException:
                             if (!obj->m_se.IsEmpty()) {
-                                std::wstring errMsg;
+                                SPA::CDBString errMsg;
                                 std::string errWhere;
                                 unsigned int errCode = 0;
                                 *se.QData >> errMsg >> errWhere >> errCode;

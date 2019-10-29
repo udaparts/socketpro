@@ -112,7 +112,7 @@ namespace NJA {
                     case feExchange:
                     {
                         int res;
-                        std::wstring errMsg;
+                        SPA::CDBString errMsg;
                         *cb.Buffer >> res >> errMsg;
                         Local<Value> jsRes = v8::Int32::New(isolate, res);
                         Local<v8::String> jsMsg = ToStr(isolate, errMsg.c_str());

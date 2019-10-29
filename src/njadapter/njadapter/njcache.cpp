@@ -103,7 +103,11 @@ namespace NJA {
         Isolate* isolate = args.GetIsolate();
         NJCache* obj = ObjectWrap::Unwrap<NJCache>(args.Holder());
         if (obj->IsValid(isolate)) {
+#ifdef WIN32_64
             args.GetReturnValue().Set(ToStr(isolate, obj->m_ds->GetDBServerName().c_str()));
+#else
+            args.GetReturnValue().Set(ToStr(isolate, Utilities::ToUTF8(obj->m_ds->GetDBServerName()).c_str()));
+#endif
         }
     }
 
@@ -111,7 +115,11 @@ namespace NJA {
         Isolate* isolate = args.GetIsolate();
         NJCache* obj = ObjectWrap::Unwrap<NJCache>(args.Holder());
         if (obj->IsValid(isolate)) {
+#ifdef WIN32_64
             args.GetReturnValue().Set(ToStr(isolate, obj->m_ds->GetUpdater().c_str()));
+#else
+            args.GetReturnValue().Set(ToStr(isolate, Utilities::ToUTF8(obj->m_ds->GetUpdater()).c_str()));
+#endif
         }
     }
 
@@ -261,7 +269,7 @@ namespace NJA {
                     ThrowException(args.GetIsolate(), "Column name expected");
                     return;
                 }
-                std::wstring colName = ToStr(isolate, p2);
+                SPA::CDBString colName = ToStr(isolate, p2);
                 int ordinal = (int) obj->m_ds->FindOrdinal(p.first.c_str(), p.second.c_str(), colName.c_str());
                 Local<Value> jsOrdinal = Int32::New(isolate, ordinal);
                 args.GetReturnValue().Set(jsOrdinal);

@@ -163,7 +163,7 @@ namespace NJA {
         Isolate* isolate = args.GetIsolate();
         NJSqlite* obj = ObjectWrap::Unwrap<NJSqlite>(args.Holder());
         if (obj->IsValid(isolate)) {
-            std::wstring strConnection;
+            SPA::CDBString strConnection;
             auto p0 = args[0];
             if (p0->IsString()) {
                 strConnection = ToStr(isolate, p0);
@@ -203,7 +203,7 @@ namespace NJA {
             }
             tagTransactionIsolation ti = (tagTransactionIsolation) n;
 
-            std::wstring sql;
+            SPA::CDBString sql;
             p = args[1];
             if (p->IsString()) {
                 sql = ToStr(isolate, p);
@@ -258,7 +258,8 @@ namespace NJA {
                 ThrowException(isolate, "An integer expected for rollback plan");
                 return;
             }
-            std::wstring delimiter(L";");
+            SPA::CDBString delimiter;
+            delimiter.push_back(';');
             p = args[9];
             if (p->IsString()) {
                 delimiter = ToStr(isolate, p);
@@ -316,7 +317,7 @@ namespace NJA {
                     return;
                 }
             } else {
-                std::wstring sql;
+                SPA::CDBString sql;
                 if (p->IsString())
                     sql = ToStr(isolate, p);
                 else if (!IsNullOrUndefined(p)) {
@@ -343,7 +344,7 @@ namespace NJA {
         Isolate* isolate = args.GetIsolate();
         NJSqlite* obj = ObjectWrap::Unwrap<NJSqlite>(args.Holder());
         if (obj->IsValid(isolate)) {
-            std::wstring sql;
+            SPA::CDBString sql;
             auto p0 = args[0];
             if (p0->IsString()) {
                 sql = ToStr(isolate, p0);
