@@ -37,11 +37,11 @@ namespace SPA {
                 int fail = uv_async_init(uv_default_loop(), &m_typeDB, req_cb);
                 assert(!fail);
 #endif
-                
+
 #ifdef NO_OUTPUT_BINDING
                 m_bProc = false;
 #else
-				m_Blob.Utf8ToW(true);
+                m_Blob.Utf8ToW(true);
 #endif
             }
 
@@ -62,7 +62,7 @@ namespace SPA {
 #ifdef NO_OUTPUT_BINDING
                 m_bProc = false;
 #else
-				m_Blob.Utf8ToW(true);
+                m_Blob.Utf8ToW(true);
 #endif
             }
 
