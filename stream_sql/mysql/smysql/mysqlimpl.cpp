@@ -1329,7 +1329,7 @@ namespace SPA
             if (ip == "127.0.0.1" || ip == "::ffff:127.0.0.1" || ip == "::1")
                 ip = "localhost";
             std::wstring user = GetUID();
-#ifdef WIn32_64
+#ifdef WIN32_64
             OpenSession(user, ip);
 #else
             OpenSession(Utilities::ToUTF16(user), ip);

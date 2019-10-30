@@ -328,7 +328,7 @@ namespace SPA{
             while (m_qSend.GetSize()) {
                 m_qSend >> vtName >> vtType;
 #ifdef WIN32_64
-                pk.ColumnName = ToString(vtName);
+                pk.ColumnName = Utilities::ToWide(ToString(vtName));
 #else
                 pk.ColumnName = Utilities::ToUTF16(ToString(vtName));
 #endif
