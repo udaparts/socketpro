@@ -869,91 +869,159 @@ namespace SPA
                 switch (f.type) {
                     case MYSQL_TYPE_NEWDECIMAL:
                     case MYSQL_TYPE_DECIMAL:
+#ifdef WIN32_64
                         info.DeclaredType = L"DECIMAL"; //The maximum number of digits for DECIMAL is 65, but the actual range for a given DECIMAL column can be constrained by the precision or scale for a given column.
+#else
+                        info.DeclaredType = u"DECIMAL";
+#endif
                         info.DataType = (VT_I1 | VT_ARRAY); //string
                         info.Scale = (unsigned char) f.decimals;
                         info.Precision = 29;
                         break;
                     case MYSQL_TYPE_TINY:
+#ifdef WIN32_64
                         info.DeclaredType = L"TINYINT";
+#else
+                        info.DeclaredType = u"TINYINT";
+#endif
                         if ((f.flags & UNSIGNED_FLAG) == UNSIGNED_FLAG)
                             info.DataType = VT_UI1;
                         else
                             info.DataType = VT_I1;
                         break;
                     case MYSQL_TYPE_SHORT:
+#ifdef WIN32_64
                         info.DeclaredType = L"SMALLINT";
+#else
+                        info.DeclaredType = u"SMALLINT";
+#endif
                         if ((f.flags & UNSIGNED_FLAG) == UNSIGNED_FLAG)
                             info.DataType = VT_UI2;
                         else
                             info.DataType = VT_I2;
                         break;
                     case MYSQL_TYPE_LONG:
+#ifdef WIN32_64
                         info.DeclaredType = L"INT";
+#else
+                        info.DeclaredType = u"INT";
+#endif
                         if ((f.flags & UNSIGNED_FLAG) == UNSIGNED_FLAG)
                             info.DataType = VT_UI4;
                         else
                             info.DataType = VT_I4;
                         break;
                     case MYSQL_TYPE_FLOAT:
+#ifdef WIN32_64
                         info.DeclaredType = L"FLOAT";
+#else
+                        info.DeclaredType = u"FLOAT";
+#endif
                         info.DataType = VT_R4;
                         break;
                     case MYSQL_TYPE_DOUBLE:
+#ifdef WIN32_64
                         info.DeclaredType = L"DOUBLE";
+#else
+                        info.DeclaredType = u"DOUBLE";
+#endif
                         info.DataType = VT_R8;
                         break;
                     case MYSQL_TYPE_TIMESTAMP:
+#ifdef WIN32_64
                         info.DeclaredType = L"TIMESTAMP";
+#else
+                        info.DeclaredType = u"TIMESTAMP";
+#endif
                         info.Scale = (unsigned char) f.decimals;
                         info.DataType = VT_DATE;
                         break;
                     case MYSQL_TYPE_LONGLONG:
+#ifdef WIN32_64
                         info.DeclaredType = L"BIGINT";
+#else
+                        info.DeclaredType = u"BIGINT";
+#endif
                         if ((f.flags & UNSIGNED_FLAG) == UNSIGNED_FLAG)
                             info.DataType = VT_UI8;
                         else
                             info.DataType = VT_I8;
                         break;
                     case MYSQL_TYPE_INT24:
+#ifdef WIN32_64
                         info.DeclaredType = L"MEDIUMINT";
+#else
+                        info.DeclaredType = u"MEDIUMINT";
+#endif
                         info.DataType = VT_I4;
                         break;
                     case MYSQL_TYPE_DATE:
+#ifdef WIN32_64
                         info.DeclaredType = L"DATE";
+#else
+                        info.DeclaredType = u"DATE";
+#endif
                         info.DataType = VT_DATE;
                         break;
                     case MYSQL_TYPE_TIME:
+#ifdef WIN32_64
                         info.DeclaredType = L"TIME";
+#else
+                        info.DeclaredType = u"TIME";
+#endif
                         info.Scale = (unsigned char) f.decimals;
                         info.DataType = VT_DATE;
                         break;
                     case MYSQL_TYPE_DATETIME: //#define DATETIME_MAX_DECIMALS 6
+#ifdef WIN32_64
                         info.DeclaredType = L"DATETIME";
+#else
+                        info.DeclaredType = u"DATETIME";
+#endif
                         info.Scale = (unsigned char) f.decimals;
                         info.DataType = VT_DATE;
                         break;
                     case MYSQL_TYPE_YEAR:
+#ifdef WIN32_64
                         info.DeclaredType = L"YEAR";
+#else
+                        info.DeclaredType = u"YEAR";
+#endif
                         info.DataType = VT_I2;
                         break;
                     case MYSQL_TYPE_NEWDATE:
+#ifdef WIN32_64
                         info.DeclaredType = L"NEWDATE";
+#else
+                        info.DeclaredType = u"NEWDATE";
+#endif
                         info.DataType = VT_DATE;
                         break;
                     case MYSQL_TYPE_VARCHAR:
                         info.ColumnSize = f.length;
                         if (f.charsetnr == IS_BINARY) {
+#ifdef WIN32_64
                             info.DeclaredType = L"VARBINARY";
+#else
+                            info.DeclaredType = u"VARBINARY";
+#endif
                             info.DataType = (VT_UI1 | VT_ARRAY); //binary
                         } else {
+#ifdef WIN32_64
                             info.DeclaredType = L"VARCHAR";
+#else
+                            info.DeclaredType = u"VARCHAR";
+#endif
                             info.DataType = (VT_I1 | VT_ARRAY); //string
                         }
                         break;
                     case MYSQL_TYPE_BIT:
                         info.ColumnSize = f.length;
+#ifdef WIN32_64
                         info.DeclaredType = L"BIT";
+#else
+                        info.DeclaredType = u"BIT";
+#endif
                         info.Flags |= CDBColumnInfo::FLAG_IS_BIT;
                         if (f.length == 1)
                             info.DataType = VT_BOOL;
@@ -972,65 +1040,113 @@ namespace SPA
 #if defined(MYSQL_VERSION_ID) && MYSQL_VERSION_ID > 50700
                     case MYSQL_TYPE_TIMESTAMP2:
                         info.ColumnSize = f.length;
+#ifdef WIN32_64
                         info.DeclaredType = L"TIMESTAMP2";
+#else
+                        info.DeclaredType = u"TIMESTAMP2";
+#endif
                         info.Scale = (unsigned char) f.decimals;
                         info.DataType = VT_DATE;
                         break;
                     case MYSQL_TYPE_DATETIME2:
                         info.ColumnSize = f.length;
+#ifdef WIN32_64
                         info.DeclaredType = L"DATETIME2";
+#else
+                        info.DeclaredType = u"DATETIME2";
+#endif
                         info.Scale = (unsigned char) f.decimals;
                         info.DataType = VT_DATE;
                         break;
                     case MYSQL_TYPE_TIME2:
                         info.ColumnSize = f.length;
+#ifdef WIN32_64
                         info.DeclaredType = L"TIME2";
+#else
+                        info.DeclaredType = u"TIME2";
+#endif
                         info.Scale = (unsigned char) f.decimals;
                         info.DataType = VT_DATE;
                         break;
                     case MYSQL_TYPE_JSON:
                         info.ColumnSize = f.length;
+#ifdef WIN32_64
                         info.DeclaredType = L"JSON";
+#else
+                        info.DeclaredType = u"JSON";
+#endif
                         info.DataType = (VT_I1 | VT_ARRAY); //string
                         break;
 #endif
                     case MYSQL_TYPE_ENUM:
                         info.ColumnSize = f.length;
+#ifdef WIN32_64
                         info.DeclaredType = L"ENUM";
+#else
+                        info.DeclaredType = u"ENUM";
+#endif
                         info.DataType = (VT_I1 | VT_ARRAY); //string
                         break;
                     case MYSQL_TYPE_SET:
                         info.ColumnSize = f.length;
+#ifdef WIN32_64
                         info.DeclaredType = L"SET";
+#else
+                        info.DeclaredType = u"SET";
+#endif
                         info.DataType = (VT_I1 | VT_ARRAY); //string
                         break;
                     case MYSQL_TYPE_TINY_BLOB:
                         info.ColumnSize = f.length;
                         if (f.charsetnr == IS_BINARY) {
+#ifdef WIN32_64
                             info.DeclaredType = L"TINYBLOB";
+#else
+                            info.DeclaredType = u"TINYBLOB";
+#endif
                             info.DataType = (VT_UI1 | VT_ARRAY); //binary
                         } else {
+#ifdef WIN32_64
                             info.DeclaredType = L"TINYTEXT";
+#else
+                            info.DeclaredType = u"TINYTEXT";
+#endif
                             info.DataType = (VT_I1 | VT_ARRAY); //text
                         }
                         break;
                     case MYSQL_TYPE_MEDIUM_BLOB:
                         info.ColumnSize = f.length;
                         if (f.charsetnr == IS_BINARY) {
+#ifdef WIN32_64
                             info.DeclaredType = L"MEDIUMBLOB";
+#else
+                            info.DeclaredType = u"MEDIUMBLOB";
+#endif
                             info.DataType = (VT_UI1 | VT_ARRAY); //binary
                         } else {
+#ifdef WIN32_64
                             info.DeclaredType = L"MEDIUMTEXT";
+#else
+                            info.DeclaredType = u"MEDIUMTEXT";
+#endif
                             info.DataType = (VT_I1 | VT_ARRAY); //text
                         }
                         break;
                     case MYSQL_TYPE_LONG_BLOB:
                         info.ColumnSize = f.length;
                         if (f.charsetnr == IS_BINARY) {
+#ifdef WIN32_64
                             info.DeclaredType = L"LONGBLOB";
+#else
+                            info.DeclaredType = u"LONGBLOB";
+#endif
                             info.DataType = (VT_UI1 | VT_ARRAY); //binary
                         } else {
+#ifdef WIN32_64
                             info.DeclaredType = L"LONGTEXT";
+#else
+                            info.DeclaredType = u"LONGTEXT";
+#endif
                             info.DataType = (VT_I1 | VT_ARRAY); //text
                         }
                         break;
@@ -1038,24 +1154,56 @@ namespace SPA
                         info.ColumnSize = f.length;
                         if (f.charsetnr == IS_BINARY) {
                             if (f.length == MYSQL_TINYBLOB) {
+#ifdef WIN32_64
                                 info.DeclaredType = L"TINYBLOB";
+#else
+                                info.DeclaredType = u"TINYBLOB";
+#endif
                             } else if (f.length == MYSQL_MIDBLOB) {
+#ifdef WIN32_64
                                 info.DeclaredType = L"MEDIUMBLOB";
+#else
+                                info.DeclaredType = u"MEDIUMBLOB";
+#endif
                             } else if (f.length == MYSQL_BLOB) {
+#ifdef WIN32_64
                                 info.DeclaredType = L"BLOB";
+#else
+                                info.DeclaredType = u"BLOB";
+#endif
                             } else {
+#ifdef WIN32_64
                                 info.DeclaredType = L"LONGBLOB";
+#else
+                                info.DeclaredType = u"LONGBLOB";
+#endif
                             }
                             info.DataType = (VT_UI1 | VT_ARRAY); //binary
                         } else {
                             if (f.length == MYSQL_TINYBLOB) {
+#ifdef WIN32_64
                                 info.DeclaredType = L"TINYTEXT";
+#else
+                                info.DeclaredType = u"TINYTEXT";
+#endif
                             } else if (f.length == MYSQL_MIDBLOB) {
+#ifdef WIN32_64
                                 info.DeclaredType = L"MEDIUMTEXT";
+#else
+                                info.DeclaredType = u"MEDIUMTEXT";
+#endif
                             } else if (f.length == MYSQL_BLOB) {
+#ifdef WIN32_64
                                 info.DeclaredType = L"TEXT";
+#else
+                                info.DeclaredType = u"TEXT";
+#endif
                             } else {
+#ifdef WIN32_64
                                 info.DeclaredType = L"LONGTEXT";
+#else
+                                info.DeclaredType = u"LONGTEXT";
+#endif
                             }
                             info.DataType = (VT_I1 | VT_ARRAY); //text
                         }
@@ -1063,27 +1211,51 @@ namespace SPA
                     case MYSQL_TYPE_VAR_STRING:
                         info.ColumnSize = f.length;
                         if (f.charsetnr == IS_BINARY) {
+#ifdef WIN32_64
                             info.DeclaredType = L"VARBINARY";
+#else
+                            info.DeclaredType = u"VARBINARY";
+#endif
                             info.DataType = (VT_UI1 | VT_ARRAY);
                         } else {
+#ifdef WIN32_64
                             info.DeclaredType = L"VARCHAR";
+#else
+                            info.DeclaredType = u"VARCHAR";
+#endif
                             info.DataType = (VT_I1 | VT_ARRAY); //string
                         }
                         break;
                     case MYSQL_TYPE_STRING:
                         info.ColumnSize = f.length;
                         if ((f.flags & ENUM_FLAG) == ENUM_FLAG) {
+#ifdef WIN32_64
                             info.DeclaredType = L"ENUM";
+#else
+                            info.DeclaredType = u"ENUM";
+#endif
                             info.DataType = (VT_I1 | VT_ARRAY); //string
                         } else if ((f.flags & SET_FLAG) == SET_FLAG) {
+#ifdef WIN32_64
                             info.DeclaredType = L"SET";
+#else
+                            info.DeclaredType = u"SET";
+#endif
                             info.DataType = (VT_I1 | VT_ARRAY); //string
                         } else {
                             if (f.charsetnr == IS_BINARY) {
+#ifdef WIN32_64
                                 info.DeclaredType = L"BINARY";
+#else
+                                info.DeclaredType = u"BINARY";
+#endif
                                 info.DataType = (VT_UI1 | VT_ARRAY);
                             } else {
+#ifdef WIN32_64
                                 info.DeclaredType = L"CHAR";
+#else
+                                info.DeclaredType = u"CHAR";
+#endif
                                 info.DataType = (VT_I1 | VT_ARRAY); //string
                             }
                         }
@@ -1091,7 +1263,11 @@ namespace SPA
                         break;
                     case MYSQL_TYPE_GEOMETRY:
                         info.ColumnSize = f.length;
+#ifdef WIN32_64
                         info.DeclaredType = L"GEOMETRY";
+#else
+                        info.DeclaredType = u"GEOMETRY";
+#endif
                         info.DataType = (VT_UI1 | VT_ARRAY); //binary array
                         break;
                     default:
@@ -2252,7 +2428,11 @@ namespace SPA
                     if (!output) {
                         //Mysql + Mariadb server_status & SERVER_PS_OUT_PARAMS does NOT work correctly for an unknown reason
                         //This is a hack solution for detecting output result, which may be wrong if a table name is EXACTLY the same as stored procedure name
+#ifdef WIN32_64
                         output = (m_bCall && (vInfo[0].TablePath == Utilities::ToWide(m_procName.c_str())));
+#else
+                        output = (m_bCall && (vInfo[0].TablePath == Utilities::ToUTF16(m_procName.c_str())));
+#endif
                     }
 
                     //we push stored procedure output parameter meta data onto client to follow common approach for output parameter data

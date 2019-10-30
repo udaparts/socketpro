@@ -42,12 +42,14 @@ namespace SPA {
 
     namespace Utilities {
 
-        static CDBString ToUTF16(const char *s) {
+        static CDBString ToUTF16(const char *s, size_t len = (size_t) (~0)) {
             if (!s) {
                 return u"";
+            } else if (len == (size_t) (~0)) {
+                len = ::strlen(s);
             }
             CScopeUQueue sb;
-            ToUTF16(s, ::strlen(s), *sb, true);
+            ToUTF16(s, len, *sb, true);
             return (const UTF16*) sb->GetBuffer();
         }
 
@@ -57,6 +59,15 @@ namespace SPA {
 
         static const UTF16* ToUTF16(const std::wstring &str) {
             return ToUTF16(str.c_str(), str.size());
+        }
+
+        static void Trim(CDBString & s) {
+            while (s.size() && ::isspace(s.back())) {
+                s.pop_back();
+            }
+            while (s.size() && ::isspace(s.front())) {
+                s.erase(s.begin());
+            }
         }
     }
 #endif

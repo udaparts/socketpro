@@ -656,7 +656,11 @@ namespace SPA
                 for (size_t r = 0; r < rows; ++r) {
                     size_t pos = r * m_vBindInfo.size() + 3; //Primary key column name
                     BSTR bstrVal = vData[pos].bstrVal;
-                    std::wstring colName = bstrVal ? bstrVal : L"";
+#ifdef WIN32_64
+                    CDBString colName = bstrVal ? bstrVal : L"";
+#else
+                    CDBString colName = bstrVal ? Utilities::ToUTF16(bstrVal) : u"";
+#endif
                     if (colName.size()) {
                         for (auto it = vCol.begin(), end = vCol.end(); it != end; ++it) {
                             if (it->DisplayName == colName) {
@@ -693,33 +697,55 @@ namespace SPA
 
                 if (bPostgres && collen > 8000)
                     collen = 0; //make it to long text or binary
-
-                info.DisplayName = SPA::Utilities::ToWide((const char*) colname, (size_t) colnamelen / sizeof (SQLCHAR)); //display column name
+#ifdef WIN32_64
+                info.DisplayName = Utilities::ToWide((const char*) colname, (size_t) colnamelen / sizeof (SQLCHAR)); //display column name
+#else
+                info.DisplayName = Utilities::ToUTF16((const char*) colname, (size_t) colnamelen / sizeof (SQLCHAR)); //display column name
+#endif
                 if (nullable == SQL_NO_NULLS) {
                     info.Flags |= CDBColumnInfo::FLAG_NOT_NULL;
                 }
 
                 retcode = SQLColAttribute(hstmt, (SQLUSMALLINT) (n + 1), SQL_DESC_BASE_COLUMN_NAME, colname, sizeof (colname), &colnamelen, &displaysize);
                 assert(SQL_SUCCEEDED(retcode));
-                info.OriginalName = SPA::Utilities::ToWide((const char*) colname, (size_t) colnamelen / sizeof (SQLCHAR)); //original column name
-
+#ifdef WIN32_64
+                info.OriginalName = Utilities::ToWide((const char*) colname, (size_t) colnamelen / sizeof (SQLCHAR)); //original column name
+#else
+                info.OriginalName = Utilities::ToUTF16((const char*) colname, (size_t) colnamelen / sizeof (SQLCHAR)); //original column name
+#endif
                 retcode = SQLColAttribute(hstmt, (SQLUSMALLINT) (n + 1), SQL_DESC_SCHEMA_NAME, colname, sizeof (colname), &colnamelen, &displaysize);
                 assert(SQL_SUCCEEDED(retcode));
                 if (colnamelen) {
-                    info.TablePath = SPA::Utilities::ToWide((const char*) colname, (size_t) colnamelen / sizeof (SQLCHAR));
+#ifdef WIN32_64
+                    info.TablePath = Utilities::ToWide((const char*) colname, (size_t) colnamelen / sizeof (SQLCHAR));
+#else
+                    info.TablePath = Utilities::ToUTF16((const char*) colname, (size_t) colnamelen / sizeof (SQLCHAR));
+#endif
                     Utilities::Trim(info.TablePath);
-                    info.TablePath += L".";
+                    info.TablePath.push_back('.');
                 }
                 retcode = SQLColAttribute(hstmt, (SQLUSMALLINT) (n + 1), SQL_DESC_BASE_TABLE_NAME, colname, sizeof (colname), &colnamelen, &displaysize);
                 assert(SQL_SUCCEEDED(retcode));
-                info.TablePath += SPA::Utilities::ToWide((const char*) colname, (size_t) colnamelen / sizeof (SQLCHAR)); //schema.table_name
+#ifdef WIN32_64
+                info.TablePath += Utilities::ToWide((const char*) colname, (size_t) colnamelen / sizeof (SQLCHAR)); //schema.table_name
+#else
+                info.TablePath += Utilities::ToUTF16((const char*) colname, (size_t) colnamelen / sizeof (SQLCHAR)); //schema.table_name
+#endif
                 retcode = SQLColAttribute(hstmt, (SQLUSMALLINT) (n + 1), SQL_DESC_TYPE_NAME, colname, sizeof (colname), &colnamelen, &displaysize);
                 assert(SQL_SUCCEEDED(retcode));
-                info.DeclaredType = SPA::Utilities::ToWide((const char*) colname, (size_t) colnamelen / sizeof (SQLCHAR)); //native data type
+#ifdef WIN32_64
+                info.DeclaredType = Utilities::ToWide((const char*) colname, (size_t) colnamelen / sizeof (SQLCHAR)); //native data type
+#else
+                info.DeclaredType = Utilities::ToUTF16((const char*) colname, (size_t) colnamelen / sizeof (SQLCHAR)); //native data type
+#endif
 
                 retcode = SQLColAttribute(hstmt, (SQLUSMALLINT) (n + 1), SQL_DESC_CATALOG_NAME, colname, sizeof (colname), &colnamelen, &displaysize);
                 assert(SQL_SUCCEEDED(retcode));
-                info.DBPath = SPA::Utilities::ToWide((const char*) colname, (size_t) colnamelen / sizeof (SQLCHAR)); //database name
+#ifdef WIN32_64
+                info.DBPath = Utilities::ToWide((const char*) colname, (size_t) colnamelen / sizeof (SQLCHAR)); //database name
+#else
+                info.DBPath = Utilities::ToUTF16((const char*) colname, (size_t) colnamelen / sizeof (SQLCHAR)); //database name
+#endif
 
                 retcode = SQLColAttribute(hstmt, (SQLUSMALLINT) (n + 1), SQL_DESC_UNSIGNED, nullptr, 0, nullptr, &displaysize);
                 assert(SQL_SUCCEEDED(retcode));
@@ -4447,7 +4473,11 @@ namespace SPA
                             assert(SQL_SUCCEEDED(retcode));
                             if (columns) {
                                 CDBColumnInfoArray vInfo = GetColInfo(m_pPrepare.get(), columns, meta);
+#ifdef WIN32_64
                                 bool output = (m_bCall && vInfo[0].TablePath == m_procName && (size_t) m_parameters >= vInfo.size());
+#else
+                                bool output = (m_bCall && vInfo[0].TablePath == Utilities::ToUTF16(m_procName) && (size_t) m_parameters >= vInfo.size());
+#endif
                                 if (output || rowset || meta) {
                                     unsigned int outputs = output ? ((unsigned int) vInfo.size()) : 0;
                                     unsigned int ret = SendResult(idRowsetHeader, vInfo, index, outputs);
