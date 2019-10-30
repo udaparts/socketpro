@@ -43,7 +43,11 @@ namespace PA
         if (args > 5) {
             std::string s = params[5].stringValue();
             Trim(s);
+#ifdef WIN32_64
             m_pi.ParameterName = SPA::Utilities::ToWide(s);
+#else
+            m_pi.ParameterName = SPA::Utilities::ToUTF16(s.c_str(), s.size());
+#endif
         }
     }
 

@@ -25,12 +25,21 @@ namespace PA
                 throw Php::Exception("An array of column info structures expected");
             }
             SPA::UDB::CDBColumnInfo ci;
+#ifdef WIN32_64
             ci.DBPath = SPA::Utilities::ToWide(col.get("DBPath").stringValue());
             ci.TablePath = SPA::Utilities::ToWide(col.get("TablePath").stringValue());
             ci.DisplayName = SPA::Utilities::ToWide(col.get("DisplayName").stringValue());
             ci.OriginalName = SPA::Utilities::ToWide(col.get("OriginalName").stringValue());
             ci.DeclaredType = SPA::Utilities::ToWide(col.get("DeclaredType").stringValue());
             ci.Collation = SPA::Utilities::ToWide(col.get("Collation").stringValue());
+#else
+            ci.DBPath = SPA::Utilities::ToUTF16(col.get("DBPath").stringValue().c_str());
+            ci.TablePath = SPA::Utilities::ToUTF16(col.get("TablePath").stringValue().c_str());
+            ci.DisplayName = SPA::Utilities::ToUTF16(col.get("DisplayName").stringValue().c_str());
+            ci.OriginalName = SPA::Utilities::ToUTF16(col.get("OriginalName").stringValue().c_str());
+            ci.DeclaredType = SPA::Utilities::ToUTF16(col.get("DeclaredType").stringValue().c_str());
+            ci.Collation = SPA::Utilities::ToUTF16(col.get("Collation").stringValue().c_str());
+#endif
             ci.ColumnSize = (unsigned int) col.get(PHP_COLUMN_SIZE).numericValue();
             ci.Flags = (unsigned int) col.get(PHP_COLUMN_FLAGS).numericValue();
             ci.DataType = (VARTYPE) col.get(PHP_DATATYPE).numericValue();
@@ -286,8 +295,13 @@ namespace PA
     Php::Value CPhpDataSet::FindKeys(Php::Parameters & params) {
         int index = 0;
         Php::Array vArr;
+#ifdef WIN32_64
         std::wstring dbName = SPA::Utilities::ToWide(params[0].stringValue());
         std::wstring tableName = SPA::Utilities::ToWide(params[1].stringValue());
+#else
+        SPA::CDBString dbName = SPA::Utilities::ToUTF16(params[0].stringValue().c_str());
+        SPA::CDBString tableName = SPA::Utilities::ToUTF16(params[1].stringValue().c_str());
+#endif
         auto km = m_ds.FindKeys(dbName.c_str(), tableName.c_str());
         for (auto &p : km) {
             vArr.set(index, From(p.second));
@@ -299,8 +313,13 @@ namespace PA
     Php::Value CPhpDataSet::GetColumMeta(Php::Parameters & params) {
         int index = 0;
         Php::Array vArr;
+#ifdef WIN32_64
         std::wstring dbName = SPA::Utilities::ToWide(params[0].stringValue());
         std::wstring tableName = SPA::Utilities::ToWide(params[1].stringValue());
+#else
+        SPA::CDBString dbName = SPA::Utilities::ToUTF16(params[0].stringValue().c_str());
+        SPA::CDBString tableName = SPA::Utilities::ToUTF16(params[1].stringValue().c_str());
+#endif
         auto meta = m_ds.GetColumMeta(dbName.c_str(), tableName.c_str());
         for (auto &col : meta) {
             vArr.set(index, From(col));
@@ -310,16 +329,26 @@ namespace PA
     }
 
     Php::Value CPhpDataSet::GetRowCount(Php::Parameters & params) {
+#ifdef WIN32_64
         std::wstring dbName = SPA::Utilities::ToWide(params[0].stringValue());
         std::wstring tableName = SPA::Utilities::ToWide(params[1].stringValue());
+#else
+        SPA::CDBString dbName = SPA::Utilities::ToUTF16(params[0].stringValue().c_str());
+        SPA::CDBString tableName = SPA::Utilities::ToUTF16(params[1].stringValue().c_str());
+#endif
         auto res = m_ds.GetRowCount(dbName.c_str(), tableName.c_str());
         CheckResult(res);
         return (int64_t) res;
     }
 
     Php::Value CPhpDataSet::GetColumnCount(Php::Parameters & params) {
+#ifdef WIN32_64
         std::wstring dbName = SPA::Utilities::ToWide(params[0].stringValue());
         std::wstring tableName = SPA::Utilities::ToWide(params[1].stringValue());
+#else
+        SPA::CDBString dbName = SPA::Utilities::ToUTF16(params[0].stringValue().c_str());
+        SPA::CDBString tableName = SPA::Utilities::ToUTF16(params[1].stringValue().c_str());
+#endif
         auto res = m_ds.GetColumnCount(dbName.c_str(), tableName.c_str());
         CheckResult(res);
         return (int64_t) res;
@@ -335,8 +364,8 @@ namespace PA
             int index = 0;
             auto dt = m_ds.GetDBTablePair();
             for (auto &p : dt) {
-                std::string key = SPA::Utilities::ToUTF8(p.first);
-                std::string val = SPA::Utilities::ToUTF8(p.second);
+                std::string key = SPA::Utilities::ToUTF8(p.first.c_str());
+                std::string val = SPA::Utilities::ToUTF8(p.second.c_str());
                 Php::Value v;
                 v.set(key, val);
                 map.set(index, v);

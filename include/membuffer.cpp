@@ -966,6 +966,17 @@ namespace SPA
             return SysAllocStringLen((const wchar_t*) sb->GetBuffer(), sb->GetSize() / sizeof (wchar_t));
         }
 
+        const char* ToUTF8(const UTF16 *str, size_t chars) {
+            if (!str) {
+                return "";
+            } else if (chars == (size_t) (~0)) {
+                chars = GetLen(str);
+            }
+            CScopeUQueue sb;
+            ToUTF8(str, chars, *sb);
+            return (const char*) sb->GetBuffer();
+        }
+
         void ToUTF8(const UTF16 *str, size_t chars, CUQueue & q, bool append) {
             if (!append) {
                 q.SetSize(0);
