@@ -16,6 +16,7 @@ int main(int argc, char* argv[]) {
         CYourServer::Master = (CSQLMasterPool<true, CMysql>*)sc.GetPool("masterdb", &svsId);
         CYourServer::Slave = (CSQLMasterPool<true, CMysql>::CSlavePool*)sc.GetPool("slavedb0", &svsId);
     }
+
     catch(std::exception & err) {
         std::cout << err.what() << std::endl;
         std::cout << "Press any key to stop the server ......" << std::endl;
@@ -33,20 +34,36 @@ int main(int argc, char* argv[]) {
     else
         std::cout << "Table cached:" << std::endl;
     for (auto it = v0.begin(), end = v0.end(); it != end; ++it) {
-        std::wcout << L"DB name = " << it->first << ", table name = " << it->second << std::endl;
+#ifdef WIN32_64
+        std::wcout << "DB name = " << it->first.c_str() << ", table name = " << it->second.c_str() << std::endl;
+#else
+        std::wcout << "DB name = " << SPA::Utilities::ToWide(it->first) << ", table name = " << SPA::Utilities::ToWide(it->second) << std::endl;
+#endif
     }
     std::cout << std::endl;
     if (v0.size()) {
+#ifdef WIN32_64
         std::wcout << "Keys with " << v0.front().first << "." << v0.front().second << ":" << std::endl;
+#else
+        std::wcout << "Keys with " << SPA::Utilities::ToWide(v0.front().first) << "." << SPA::Utilities::ToWide(v0.front().second) << ":" << std::endl;
+#endif
         auto v1 = CYourServer::Master->Cache.FindKeys(v0.front().first.c_str(), v0.front().second.c_str());
         for (auto it = v1.begin(), end = v1.end(); it != end; ++it) {
+#ifdef WIN32_64
             std::wcout << L"Key ordinal = " << it->first << ", key column name = " << it->second.DisplayName << std::endl;
+#else
+            std::wcout << L"Key ordinal = " << it->first << ", key column name = " << SPA::Utilities::ToWide(it->second.DisplayName) << std::endl;
+#endif
         }
         std::cout << std::endl;
     }
     auto v2 = CYourServer::Master->Cache.GetColumMeta(L"sakila", L"actor");
     for (auto it = v2.begin(), end = v2.end(); it != end; ++it) {
+#ifdef WIN32_64
         std::wcout << L"DB name = " << it->DBPath << ", table name = " << it->TablePath << ", column name: " << it->DisplayName << std::endl;
+#else
+        std::wcout << L"DB name = " << SPA::Utilities::ToWide(it->DBPath) << ", table name = " << SPA::Utilities::ToWide(it->TablePath) << ", column name: " << SPA::Utilities::ToWide(it->DisplayName) << std::endl;
+#endif
     }
     std::cout << std::endl;
 

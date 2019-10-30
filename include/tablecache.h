@@ -121,6 +121,8 @@ namespace SPA {
         int Between(const UTF16 *dbName, const UTF16 *tblName, unsigned int ordinal, const CComVariant &vt0, const CComVariant &vt1, CTable &tbl);
         int Between(const UTF16 *dbName, const UTF16 *tblName, unsigned int ordinal, const VARIANT &vt0, const VARIANT &vt1, CTable &tbl);
         size_t DeleteARow(const UTF16 *dbName, const UTF16 *tblName, const CComVariant &key);
+
+
         static std::string ToDate(const VARIANT &vtDate);
 
         /**
@@ -182,6 +184,26 @@ namespace SPA {
          * @return The number of deleted rows, which could be 0, 1 or INVALID_VALUE
          */
         virtual size_t DeleteARow(const UTF16 *dbName, const UTF16 *tblName, const VARIANT *pRow, unsigned int cols);
+
+#ifndef WIN32_64
+        UDB::CDBColumnInfoArray GetColumMeta(const wchar_t *dbName, const wchar_t *tblName);
+        size_t GetRowCount(const wchar_t *dbName, const wchar_t *tblName);
+        size_t GetColumnCount(const wchar_t *dbName, const wchar_t *tblName);
+        unsigned int FindOrdinal(const wchar_t *dbName, const wchar_t *tblName, const wchar_t *colName);
+        int Find(const wchar_t *dbName, const wchar_t *tblName, unsigned int ordinal, CTable::Operator op, const CComVariant &vt, CTable &tbl);
+        int Find(const wchar_t *dbName, const wchar_t *tblName, unsigned int ordinal, CTable::Operator op, const VARIANT &vt, CTable &tbl);
+        int FindNull(const wchar_t *dbName, const wchar_t *tblName, unsigned int ordinal, CTable &tbl);
+        int In(const wchar_t *dbName, const wchar_t *tblName, unsigned int ordinal, const UDB::CDBVariantArray &v, CTable &tbl);
+        int NotIn(const wchar_t *dbName, const wchar_t *tblName, unsigned int ordinal, const UDB::CDBVariantArray &v, CTable &tbl);
+        int Between(const wchar_t *dbName, const wchar_t *tblName, unsigned int ordinal, const CComVariant &vt0, const CComVariant &vt1, CTable &tbl);
+        int Between(const wchar_t *dbName, const wchar_t *tblName, unsigned int ordinal, const VARIANT &vt0, const VARIANT &vt1, CTable &tbl);
+        size_t DeleteARow(const wchar_t *dbName, const wchar_t *tblName, const CComVariant &key);
+        size_t AddRows(const wchar_t *dbName, const wchar_t *tblName, const VARIANT *pvt, size_t count);
+        size_t AddRows(const wchar_t *dbName, const wchar_t *tblName, const UDB::CDBVariantArray &vData);
+        size_t UpdateARow(const wchar_t *dbName, const wchar_t *tblName, const VARIANT *pvt, size_t count);
+        size_t DeleteARow(const wchar_t *dbName, const wchar_t *tblName, const VARIANT &key);
+        size_t DeleteARow(const wchar_t *dbName, const wchar_t *tblName, const VARIANT *pRow, unsigned int cols);
+#endif
 
     private:
         static CPRow FindARowInternal(const CTable &tbl, size_t f, const VARIANT &key);

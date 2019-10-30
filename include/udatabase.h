@@ -39,7 +39,7 @@ namespace SPA {
         }
         return q;
     }
-    
+
     namespace Utilities {
 
         static CDBString ToUTF16(const char *s) {
@@ -49,6 +49,14 @@ namespace SPA {
             CScopeUQueue sb;
             ToUTF16(s, ::strlen(s), *sb, true);
             return (const UTF16*) sb->GetBuffer();
+        }
+
+        static std::wstring ToWide(const CDBString &str) {
+            return ToWide(str.c_str(), str.size());
+        }
+
+        static const UTF16* ToUTF16(const std::wstring &str) {
+            return ToUTF16(str.c_str(), str.size());
         }
     }
 #endif

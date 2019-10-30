@@ -74,9 +74,10 @@ namespace SPA {
         void ToUTF16(const wchar_t *str, size_t wchars, CUQueue &q, bool append = false);
         void ToUTF16(const char *str, size_t chars, CUQueue &q, bool append = false);
         void ToUTF8(const UTF16 *str, size_t chars, CUQueue &q, bool append = false);
-        BSTR SysAllocString(const SPA::UTF16 *sz, unsigned int wchars = (~0));
-        std::wstring ToWide(const UTF16 *str, size_t chars = (~0));
+        BSTR SysAllocString(const SPA::UTF16 *sz, unsigned int wchars = (unsigned int) (~0));
+        std::wstring ToWide(const UTF16 *str, size_t chars = (size_t) (~0));
         bool IsEqual(const wchar_t *s0, const wchar_t *s1, bool case_sensitive);
+        const UTF16* ToUTF16(const wchar_t *s, size_t chars = (size_t) (~0));
 #endif
     };
 

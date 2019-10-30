@@ -1,23 +1,24 @@
 
 #include "tablecache.h"
 
-namespace SPA {
+namespace SPA
+{
 
     CTable::CTable()
-    : m_bFieldNameCaseSensitive(false),
-    m_bDataCaseSensitive(false) {
+            : m_bFieldNameCaseSensitive(false),
+            m_bDataCaseSensitive(false) {
     }
 
     CTable::CTable(const UDB::CDBColumnInfoArray &meta, bool bFieldNameCaseSensitive, bool bDataCaseSensitive)
-    : CPColumnRowset(meta, CDataMatrix()),
-    m_bFieldNameCaseSensitive(bFieldNameCaseSensitive),
-    m_bDataCaseSensitive(bDataCaseSensitive) {
+            : CPColumnRowset(meta, CDataMatrix()),
+            m_bFieldNameCaseSensitive(bFieldNameCaseSensitive),
+            m_bDataCaseSensitive(bDataCaseSensitive) {
     }
 
     CTable::CTable(const CTable & tbl)
-    : CPColumnRowset(tbl),
-    m_bFieldNameCaseSensitive(tbl.m_bFieldNameCaseSensitive),
-    m_bDataCaseSensitive(tbl.m_bDataCaseSensitive) {
+            : CPColumnRowset(tbl),
+            m_bFieldNameCaseSensitive(tbl.m_bFieldNameCaseSensitive),
+            m_bDataCaseSensitive(tbl.m_bDataCaseSensitive) {
     }
 
     const UDB::CDBColumnInfoArray & CTable::GetMeta() const {
@@ -39,7 +40,7 @@ namespace SPA {
         return map;
     }
 
-    CTable & CTable::operator=(const CTable & tbl) {
+    CTable & CTable::operator = (const CTable & tbl){
         if (this == &tbl)
             return *this;
         CPColumnRowset &base = *this;
@@ -325,7 +326,7 @@ namespace SPA {
         return 1;
     }
 
-    unsigned int CTable::FindOrdinal(const UTF16 *str) const {
+    unsigned int CTable::FindOrdinal(const UTF16 * str) const {
         if (!str)
             return INVALID_ORDINAL;
         unsigned int ordinal = 0;
@@ -731,11 +732,11 @@ namespace SPA {
     }
 
     CDataSet::CDataSet()
-    : m_ms(UDB::msUnknown),
-    m_bDBNameCaseSensitive(false),
-    m_bTableNameCaseSensitive(false),
-    m_bFieldNameCaseSensitive(false),
-    m_bDataCaseSensitive(false) {
+            : m_ms(UDB::msUnknown),
+            m_bDBNameCaseSensitive(false),
+            m_bTableNameCaseSensitive(false),
+            m_bFieldNameCaseSensitive(false),
+            m_bDataCaseSensitive(false) {
     }
 
     void CDataSet::Swap(CDataSet & tc) {
@@ -1304,7 +1305,7 @@ namespace SPA {
         return CTable::NO_TABLE_FOUND;
     }
 
-    unsigned int CDataSet::FindOrdinal(const UTF16 *dbName, const UTF16 *tblName, const UTF16 *str) {
+    unsigned int CDataSet::FindOrdinal(const UTF16 *dbName, const UTF16 *tblName, const UTF16 * str) {
         if (!tblName || !str)
             return CTable::INVALID_ORDINAL;
         if (!dbName)
@@ -1339,7 +1340,7 @@ namespace SPA {
 #endif
     }
 
-    void CDataSet::SetDBServerName(const wchar_t *strDBServerName) {
+    void CDataSet::SetDBServerName(const wchar_t * strDBServerName) {
         CAutoLock al(m_cs);
         if (strDBServerName)
             m_strHostName = strDBServerName;
@@ -1348,7 +1349,7 @@ namespace SPA {
             m_strHostName.clear();
     }
 
-    void CDataSet::SetUpdater(const wchar_t *strUpdater) {
+    void CDataSet::SetUpdater(const wchar_t * strUpdater) {
         CAutoLock al(m_cs);
         if (strUpdater)
             m_strUpdater = strUpdater;
@@ -1357,7 +1358,7 @@ namespace SPA {
             m_strUpdater.clear();
     }
 
-    size_t CDataSet::GetColumnCount(const UTF16 *dbName, const UTF16 *tblName) {
+    size_t CDataSet::GetColumnCount(const UTF16 *dbName, const UTF16 * tblName) {
         CAutoLock al(m_cs);
         for (auto it = m_ds.cbegin(), end = m_ds.cend(); it != end; ++it) {
             if (!Is(*it, dbName, tblName))
@@ -1369,7 +1370,7 @@ namespace SPA {
         return CTable::NO_TABLE_FOUND;
     }
 
-    size_t CDataSet::GetRowCount(const UTF16 *dbName, const UTF16 *tblName) {
+    size_t CDataSet::GetRowCount(const UTF16 *dbName, const UTF16 * tblName) {
         CAutoLock al(m_cs);
         for (auto it = m_ds.cbegin(), end = m_ds.cend(); it != end; ++it) {
             if (!Is(*it, dbName, tblName))
@@ -1378,5 +1379,111 @@ namespace SPA {
         }
         return CTable::NO_TABLE_FOUND;
     }
+#ifndef WIN32_64
+
+    UDB::CDBColumnInfoArray CDataSet::GetColumMeta(const wchar_t *dbName, const wchar_t * tblName) {
+        CDBString db = dbName ? Utilities::ToUTF16(dbName) : u"";
+        CDBString tb = tblName ? Utilities::ToUTF16(tblName) : u"";
+        return GetColumMeta(db.c_str(), tb.c_str());
+    }
+
+    size_t CDataSet::GetRowCount(const wchar_t *dbName, const wchar_t * tblName) {
+        CDBString db = dbName ? Utilities::ToUTF16(dbName) : u"";
+        CDBString tb = tblName ? Utilities::ToUTF16(tblName) : u"";
+        return GetRowCount(db.c_str(), tb.c_str());
+    }
+
+    size_t CDataSet::GetColumnCount(const wchar_t *dbName, const wchar_t * tblName) {
+        CDBString db = dbName ? Utilities::ToUTF16(dbName) : u"";
+        CDBString tb = tblName ? Utilities::ToUTF16(tblName) : u"";
+        return GetColumnCount(db.c_str(), tb.c_str());
+    }
+
+    unsigned int CDataSet::FindOrdinal(const wchar_t *dbName, const wchar_t *tblName, const wchar_t * colName) {
+        CDBString db = colName ? Utilities::ToUTF16(dbName) : u"";
+        CDBString tb = tblName ? Utilities::ToUTF16(tblName) : u"";
+        CDBString col = colName ? Utilities::ToUTF16(colName) : u"";
+        return FindOrdinal(db.c_str(), tb.c_str(), col.c_str());
+    }
+
+    int CDataSet::Find(const wchar_t *dbName, const wchar_t *tblName, unsigned int ordinal, CTable::Operator op, const CComVariant &vt, CTable & tbl) {
+        CDBString db = dbName ? Utilities::ToUTF16(dbName) : u"";
+        CDBString tb = tblName ? Utilities::ToUTF16(tblName) : u"";
+        return Find(db.c_str(), tb.c_str(), ordinal, op, vt, tbl);
+    }
+
+    int CDataSet::Find(const wchar_t *dbName, const wchar_t *tblName, unsigned int ordinal, CTable::Operator op, const VARIANT &vt, CTable & tbl) {
+        CDBString db = dbName ? Utilities::ToUTF16(dbName) : u"";
+        CDBString tb = tblName ? Utilities::ToUTF16(tblName) : u"";
+        return Find(db.c_str(), tb.c_str(), ordinal, op, vt, tbl);
+    }
+
+    int CDataSet::FindNull(const wchar_t *dbName, const wchar_t *tblName, unsigned int ordinal, CTable & tbl) {
+        CDBString db = dbName ? Utilities::ToUTF16(dbName) : u"";
+        CDBString tb = tblName ? Utilities::ToUTF16(tblName) : u"";
+        return FindNull(db.c_str(), tb.c_str(), ordinal, tbl);
+    }
+
+    int CDataSet::In(const wchar_t *dbName, const wchar_t *tblName, unsigned int ordinal, const UDB::CDBVariantArray &v, CTable & tbl) {
+        CDBString db = dbName ? Utilities::ToUTF16(dbName) : u"";
+        CDBString tb = tblName ? Utilities::ToUTF16(tblName) : u"";
+        return In(db.c_str(), tb.c_str(), ordinal, v, tbl);
+    }
+
+    int CDataSet::NotIn(const wchar_t *dbName, const wchar_t *tblName, unsigned int ordinal, const UDB::CDBVariantArray &v, CTable & tbl) {
+        CDBString db = dbName ? Utilities::ToUTF16(dbName) : u"";
+        CDBString tb = tblName ? Utilities::ToUTF16(tblName) : u"";
+        return NotIn(db.c_str(), tb.c_str(), ordinal, v, tbl);
+    }
+
+    int CDataSet::Between(const wchar_t *dbName, const wchar_t *tblName, unsigned int ordinal, const CComVariant &vt0, const CComVariant &vt1, CTable & tbl) {
+        CDBString db = dbName ? Utilities::ToUTF16(dbName) : u"";
+        CDBString tb = tblName ? Utilities::ToUTF16(tblName) : u"";
+        return Between(db.c_str(), tb.c_str(), ordinal, vt0, vt1, tbl);
+    }
+
+    int CDataSet::Between(const wchar_t *dbName, const wchar_t *tblName, unsigned int ordinal, const VARIANT &vt0, const VARIANT &vt1, CTable & tbl) {
+        CDBString db = dbName ? Utilities::ToUTF16(dbName) : u"";
+        CDBString tb = tblName ? Utilities::ToUTF16(tblName) : u"";
+        return Between(db.c_str(), tb.c_str(), ordinal, vt0, vt1, tbl);
+    }
+
+    size_t CDataSet::DeleteARow(const wchar_t *dbName, const wchar_t *tblName, const CComVariant & key) {
+        CDBString db = dbName ? Utilities::ToUTF16(dbName) : u"";
+        CDBString tb = tblName ? Utilities::ToUTF16(tblName) : u"";
+        return DeleteARow(db.c_str(), tb.c_str(), key);
+    }
+
+    size_t CDataSet::AddRows(const wchar_t *dbName, const wchar_t *tblName, const VARIANT *pvt, size_t count) {
+        CDBString db = dbName ? Utilities::ToUTF16(dbName) : u"";
+        CDBString tb = tblName ? Utilities::ToUTF16(tblName) : u"";
+        return AddRows(db.c_str(), tb.c_str(), pvt, count);
+    }
+
+    size_t CDataSet::AddRows(const wchar_t *dbName, const wchar_t *tblName, const UDB::CDBVariantArray & vData) {
+        CDBString db = dbName ? Utilities::ToUTF16(dbName) : u"";
+        CDBString tb = tblName ? Utilities::ToUTF16(tblName) : u"";
+        return AddRows(db.c_str(), tb.c_str(), vData);
+    }
+
+    size_t CDataSet::UpdateARow(const wchar_t *dbName, const wchar_t *tblName, const VARIANT *pvt, size_t count) {
+        CDBString db = dbName ? Utilities::ToUTF16(dbName) : u"";
+        CDBString tb = tblName ? Utilities::ToUTF16(tblName) : u"";
+        return UpdateARow(db.c_str(), tb.c_str(), pvt, count);
+    }
+
+    size_t CDataSet::DeleteARow(const wchar_t *dbName, const wchar_t *tblName, const VARIANT & key) {
+        CDBString db = dbName ? Utilities::ToUTF16(dbName) : u"";
+        CDBString tb = tblName ? Utilities::ToUTF16(tblName) : u"";
+        return DeleteARow(db.c_str(), tb.c_str(), key);
+    }
+
+    size_t CDataSet::DeleteARow(const wchar_t *dbName, const wchar_t *tblName, const VARIANT *pRow, unsigned int cols) {
+        CDBString db = dbName ? Utilities::ToUTF16(dbName) : u"";
+        CDBString tb = tblName ? Utilities::ToUTF16(tblName) : u"";
+        return DeleteARow(db.c_str(), tb.c_str(), pRow, cols);
+    }
+#endif
 
 } //namespace SPA
+

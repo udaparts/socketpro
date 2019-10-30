@@ -3,7 +3,8 @@
 #include <assert.h>
 #include <cctype>
 
-namespace SPA {
+namespace SPA
+{
     const UINT64 SAFE_DOUBLE = 9007199254740991ULL; //2^53-1
 
     unsigned int SHARED_BUFFER_CLEAN_SIZE = 32 * 1024;
@@ -43,7 +44,7 @@ namespace SPA {
 #endif
     }
 
-    CUQueue & CUQueue::operator>>(std::wstring & str) {
+    CUQueue & CUQueue::operator >> (std::wstring & str) {
         unsigned int size;
         Pop((unsigned char*) &size, sizeof (unsigned int));
         switch (size) {
@@ -295,7 +296,7 @@ namespace SPA {
     unsigned int CUQueue::Pop(VARIANT& vtData, unsigned int position) {
         unsigned int total = 0;
 #ifndef _WIN32_WCE
-        try {
+        try{
 #endif
             if (vtData.vt == VT_BSTR) {
                 VariantClear(&vtData);
@@ -303,7 +304,9 @@ namespace SPA {
                 VariantClear(&vtData);
             }
 #ifndef _WIN32_WCE
-        } catch (...) {
+        }
+
+        catch(...) {
         }
 #endif
         total = Pop(&(vtData.vt), position);
@@ -656,7 +659,7 @@ namespace SPA {
         return total;
     }
 
-    namespace Utilities {
+    namespace Utilities{
 #ifndef WINCE
 
         void Trim(std::string & s) {
@@ -683,12 +686,12 @@ namespace SPA {
         std::wstring GetErrorMessage(DWORD dwError) {
             wchar_t *lpMsgBuf = nullptr;
             DWORD res = ::FormatMessageW(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_IGNORE_INSERTS,
-                    nullptr,
-                    dwError,
-                    MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), // Default language
-                    (LPWSTR) & lpMsgBuf,
-                    0,
-                    nullptr);
+            nullptr,
+            dwError,
+            MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), // Default language
+            (LPWSTR) & lpMsgBuf,
+            0,
+            nullptr);
             std::wstring s(lpMsgBuf ? lpMsgBuf : L"");
             if (lpMsgBuf)
                 LocalFree(lpMsgBuf);
@@ -887,7 +890,7 @@ namespace SPA {
         }
 
 #ifdef WCHAR32
-        
+
         bool IsEqual(const wchar_t *s0, const wchar_t *s1, bool case_sensitive) {
             if (s0 == s1) {
                 return true;
@@ -920,12 +923,12 @@ namespace SPA {
             if (!str || !chars) {
                 return L"";
             }
-            if (chars == (~0)) {
+            if (chars == (size_t) (~0)) {
                 chars = GetLen(str);
             }
             CScopeUQueue sb;
             ToWide(str, chars, *sb, true);
-            return (const wchar_t *)sb->GetBuffer();
+            return (const wchar_t *) sb->GetBuffer();
         }
 
         void ToWide(const UTF16 *str, size_t chars, CUQueue & q, bool append) {
@@ -986,6 +989,17 @@ namespace SPA {
             res = max_size - size_output;
             q.SetSize(res + q.GetSize());
             q.SetNull();
+        }
+
+        const UTF16 * ToUTF16(const wchar_t *s, size_t chars) {
+            if (!s) {
+                return nullptr;
+            } else if (chars == (size_t) (~0)) {
+                chars = ::wcslen(s);
+            }
+            CScopeUQueue sb;
+            ToUTF16(s, chars, *sb, true);
+            return (const UTF16 *) sb->GetBuffer();
         }
 
         /**
