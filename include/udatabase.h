@@ -39,7 +39,18 @@ namespace SPA {
         }
         return q;
     }
+    
+    namespace Utilities {
 
+        static CDBString ToUTF16(const char *s) {
+            if (!s) {
+                return u"";
+            }
+            CScopeUQueue sb;
+            ToUTF16(s, ::strlen(s), *sb, true);
+            return (const UTF16*) sb->GetBuffer();
+        }
+    }
 #endif
 
     namespace UDB {

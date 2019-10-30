@@ -1723,7 +1723,11 @@ namespace SPA
                     zDbName = str;
                 }
                 if (str) {
+#ifdef WIN32_64
                     info.DBPath = Utilities::ToWide(str);
+#else
+                    info.DBPath = Utilities::ToUTF16(str);
+#endif
                 } else {
                     info.DBPath.clear();
                 }
@@ -1732,7 +1736,11 @@ namespace SPA
                     zTableName = str;
                 }
                 if (str) {
+#ifdef WIN32_64
                     info.TablePath = Utilities::ToWide(str);
+#else
+                    info.TablePath = Utilities::ToUTF16(str);
+#endif
                 } else {
                     info.Flags = (CDBColumnInfo::FLAG_NOT_NULL | CDBColumnInfo::FLAG_NOT_WRITABLE);
                     info.TablePath.clear();
@@ -1740,7 +1748,11 @@ namespace SPA
 
                 str = sqlite3_column_name(stmt, n);
                 if (str) {
+#ifdef WIN32_64
                     info.DisplayName = Utilities::ToWide(str);
+#else
+                    info.DisplayName = Utilities::ToUTF16(str);
+#endif
                 } else {
                     info.DisplayName.clear();
                 }
@@ -1750,14 +1762,22 @@ namespace SPA
                     zColumnName = str;
                 }
                 if (str) {
+#ifdef WIN32_64
                     info.OriginalName = Utilities::ToWide(str);
+#else
+                    info.OriginalName = Utilities::ToUTF16(str);
+#endif
                 } else {
                     info.OriginalName.clear();
                 }
 
                 str = sqlite3_column_decltype(stmt, n);
                 if (str) {
+#ifdef WIN32_64
                     info.DeclaredType = Utilities::ToWide(str);
+#else
+                    info.DeclaredType = Utilities::ToUTF16(str);
+#endif
                 } else {
                     info.DeclaredType.clear();
                 }
@@ -1777,7 +1797,11 @@ namespace SPA
                         if (autoinc)
                             info.Flags |= CDBColumnInfo::FLAG_AUTOINCREMENT;
                         if (colseq) {
+#ifdef WIN32_64
                             info.Collation = Utilities::ToWide(colseq);
+#else
+                            info.Collation = Utilities::ToUTF16(colseq);
+#endif
                         } else {
                             info.Collation.clear();
                         }
