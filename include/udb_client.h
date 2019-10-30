@@ -31,16 +31,17 @@ namespace SPA {
             m_affected(-1), m_dbErrCode(0), m_lastReqId(0),
             m_indexRowset(0), m_indexProc(0), m_ms(msUnknown), m_flags(0),
             m_parameters(0), m_outputs(0), m_bCallReturn(false), m_queueOk(false), m_nParamPos(0) {
-                m_Blob.Utf8ToW(true);
 #ifdef NODE_JS_ADAPTER_PROJECT
                 ::memset(&m_typeDB, 0, sizeof (m_typeDB));
                 m_typeDB.data = this;
                 int fail = uv_async_init(uv_default_loop(), &m_typeDB, req_cb);
                 assert(!fail);
+#else
+                m_Blob.Utf8ToW(true);
 #endif
+
 #ifdef NO_OUTPUT_BINDING
                 m_bProc = false;
-                m_vData.Utf8ToW(true);
 #endif
             }
 
