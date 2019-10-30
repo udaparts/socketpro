@@ -12,19 +12,31 @@
 namespace SPA
 {
     namespace ServerSide{
-
-        const wchar_t * CMysqlImpl::NO_DB_OPENED_YET = L"No mysql database opened yet";
-        const wchar_t * CMysqlImpl::BAD_END_TRANSTACTION_PLAN = L"Bad end transaction plan";
-        const wchar_t * CMysqlImpl::NO_PARAMETER_SPECIFIED = L"No parameter specified";
-        const wchar_t * CMysqlImpl::BAD_PARAMETER_DATA_ARRAY_SIZE = L"Bad parameter data array length";
-        const wchar_t * CMysqlImpl::BAD_PARAMETER_COLUMN_SIZE = L"Bad parameter column size";
-        const wchar_t * CMysqlImpl::DATA_TYPE_NOT_SUPPORTED = L"Data type not supported";
-        const wchar_t * CMysqlImpl::NO_DB_NAME_SPECIFIED = L"No mysql database name specified";
-        const wchar_t * CMysqlImpl::MYSQL_LIBRARY_NOT_INITIALIZED = L"Mysql library not initialized";
-        const wchar_t * CMysqlImpl::BAD_MANUAL_TRANSACTION_STATE = L"Bad manual transaction state";
-        const wchar_t * CMysqlImpl::UNABLE_TO_SWITCH_TO_DATABASE = L"Unable to switch to database ";
-        const wchar_t * CMysqlImpl::SERVICE_COMMAND_ERROR = L"Service command error";
-
+#ifdef WIN32_64
+        const UTF16 * CMysqlImpl::NO_DB_OPENED_YET = L"No mysql database opened yet";
+        const UTF16 * CMysqlImpl::BAD_END_TRANSTACTION_PLAN = L"Bad end transaction plan";
+        const UTF16 * CMysqlImpl::NO_PARAMETER_SPECIFIED = L"No parameter specified";
+        const UTF16 * CMysqlImpl::BAD_PARAMETER_DATA_ARRAY_SIZE = L"Bad parameter data array length";
+        const UTF16 * CMysqlImpl::BAD_PARAMETER_COLUMN_SIZE = L"Bad parameter column size";
+        const UTF16 * CMysqlImpl::DATA_TYPE_NOT_SUPPORTED = L"Data type not supported";
+        const UTF16 * CMysqlImpl::NO_DB_NAME_SPECIFIED = L"No mysql database name specified";
+        const UTF16 * CMysqlImpl::MYSQL_LIBRARY_NOT_INITIALIZED = L"Mysql library not initialized";
+        const UTF16 * CMysqlImpl::BAD_MANUAL_TRANSACTION_STATE = L"Bad manual transaction state";
+        const UTF16 * CMysqlImpl::UNABLE_TO_SWITCH_TO_DATABASE = L"Unable to switch to database ";
+        const UTF16 * CMysqlImpl::SERVICE_COMMAND_ERROR = L"Service command error";
+#else
+        const UTF16 * CMysqlImpl::NO_DB_OPENED_YET = u"No mysql database opened yet";
+        const UTF16 * CMysqlImpl::BAD_END_TRANSTACTION_PLAN = u"Bad end transaction plan";
+        const UTF16 * CMysqlImpl::NO_PARAMETER_SPECIFIED = u"No parameter specified";
+        const UTF16 * CMysqlImpl::BAD_PARAMETER_DATA_ARRAY_SIZE = u"Bad parameter data array length";
+        const UTF16 * CMysqlImpl::BAD_PARAMETER_COLUMN_SIZE = u"Bad parameter column size";
+        const UTF16 * CMysqlImpl::DATA_TYPE_NOT_SUPPORTED = u"Data type not supported";
+        const UTF16 * CMysqlImpl::NO_DB_NAME_SPECIFIED = u"No mysql database name specified";
+        const UTF16 * CMysqlImpl::MYSQL_LIBRARY_NOT_INITIALIZED = u"Mysql library not initialized";
+        const UTF16 * CMysqlImpl::BAD_MANUAL_TRANSACTION_STATE = u"Bad manual transaction state";
+        const UTF16 * CMysqlImpl::UNABLE_TO_SWITCH_TO_DATABASE = u"Unable to switch to database ";
+        const UTF16 * CMysqlImpl::SERVICE_COMMAND_ERROR = u"Service command error";
+#endif
         st_command_service_cbs CMysqlImpl::m_sql_cbs =
         {
             CMysqlImpl::sql_start_result_metadata,
@@ -111,14 +123,14 @@ namespace SPA
                 srv_session_attach(m_pMysql.get(), nullptr);
             }
             BEGIN_SWITCH(reqId)
-            M_I2_R3(idOpen, Open, std::wstring, unsigned int, int, std::wstring, int)
-            M_I3_R3(idBeginTrans, BeginTrans, int, std::wstring, unsigned int, int, std::wstring, int)
-            M_I1_R2(idEndTrans, EndTrans, int, int, std::wstring)
-            M_I5_R5(idExecute, Execute, std::wstring, bool, bool, bool, UINT64, INT64, int, std::wstring, CDBVariant, UINT64)
-            M_I2_R3(idPrepare, Prepare, std::wstring, CParameterInfoArray, int, std::wstring, unsigned int)
-            M_I4_R5(idExecuteParameters, ExecuteParameters, bool, bool, bool, UINT64, INT64, int, std::wstring, CDBVariant, UINT64)
-            M_I10_R5(idExecuteBatch, ExecuteBatch, std::wstring, std::wstring, int, int, bool, bool, bool, std::wstring, unsigned int, UINT64, INT64, int, std::wstring, CDBVariant, UINT64)
-            M_I0_R2(idClose, CloseDb, int, std::wstring)
+            M_I2_R3(idOpen, Open, CDBString, unsigned int, int, CDBString, int)
+            M_I3_R3(idBeginTrans, BeginTrans, int, CDBString, unsigned int, int, CDBString, int)
+            M_I1_R2(idEndTrans, EndTrans, int, int, CDBString)
+            M_I5_R5(idExecute, Execute, CDBString, bool, bool, bool, UINT64, INT64, int, CDBString, CDBVariant, UINT64)
+            M_I2_R3(idPrepare, Prepare, CDBString, CParameterInfoArray, int, CDBString, unsigned int)
+            M_I4_R5(idExecuteParameters, ExecuteParameters, bool, bool, bool, UINT64, INT64, int, CDBString, CDBVariant, UINT64)
+            M_I10_R5(idExecuteBatch, ExecuteBatch, CDBString, CDBString, int, int, bool, bool, bool, CDBString, unsigned int, UINT64, INT64, int, CDBString, CDBVariant, UINT64)
+            M_I0_R2(idClose, CloseDb, int, CDBString)
             END_SWITCH
             if (reqId == idExecuteParameters || reqId == idExecuteBatch)
                 m_vParam.clear();
@@ -926,9 +938,13 @@ namespace SPA
             impl->m_affected_rows += affected_rows;
             if (impl->m_indexCall && last_insert_id)
                 impl->m_last_insert_id = last_insert_id;
-            if (message)
+            if (message) {
+#ifdef WIN32_64
                 impl->m_err_msg = SPA::Utilities::ToWide(message);
-            else
+#else
+                impl->m_err_msg = SPA::Utilities::ToUTF16(message);
+#endif
+            } else
                 impl->m_err_msg.clear();
         }
 
@@ -939,7 +955,11 @@ namespace SPA
             if (impl->m_indexCall)
                 ++impl->m_fails;
             impl->m_sql_errno = (int) sql_errno;
+#ifdef WIN32_64
             impl->m_err_msg = SPA::Utilities::ToWide(err_msg);
+#else
+            impl->m_err_msg = SPA::Utilities::ToUTF16(err_msg);
+#endif
             if (sqlstate)
                 impl->m_sqlstate = sqlstate;
             else
@@ -950,7 +970,7 @@ namespace SPA
             //CMysqlImpl *impl = (CMysqlImpl *) ctx;
         }
 
-        bool CMysqlImpl::OpenSession(const std::wstring &userName, const std::string & ip) {
+        bool CMysqlImpl::OpenSession(const CDBString &userName, const std::string & ip) {
             MYSQL_SESSION st_session = srv_session_open(nullptr, this);
             if (!st_session)
                 return false;
@@ -981,20 +1001,24 @@ namespace SPA
 #ifdef WIN32_64
             std::wstring wsql = L"CREATE FUNCTION PublishDBEvent RETURNS INTEGER SONAME 'smysql.dll'";
 #else
-            std::wstring wsql = L"CREATE FUNCTION PublishDBEvent RETURNS INTEGER SONAME 'libsmysql.so'";
+            CDBString wsql = u"CREATE FUNCTION PublishDBEvent RETURNS INTEGER SONAME 'libsmysql.so'";
 #endif
+#ifdef WIN32_64
             if (!impl.m_pMysql && !impl.OpenSession(L"root", "localhost"))
+#else
+            if (!impl.m_pMysql && !impl.OpenSession(u"root", "localhost"))
+#endif
                 return;
             impl.m_NoSending = true;
             int res = 0;
             INT64 affected;
             SPA::UDB::CDBVariant vtId;
             UINT64 fail_ok;
-            std::wstring errMsg;
+            CDBString errMsg;
             impl.Execute(wsql, true, true, false, 0, affected, res, errMsg, vtId, fail_ok);
             //Setting streaming DB events failed(errCode=1125; errMsg=Function 'PublishDBEvent' already exists)
             if (res && res != ER_UDF_EXISTS) {
-                CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Setting streaming DB events failed(errCode=%d; errMsg=%s)", res, SPA::Utilities::ToUTF8(errMsg.c_str(), errMsg.size()).c_str());
+                CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Setting streaming DB events failed(errCode=%d; errMsg=%s)", res, SPA::Utilities::ToUTF8(errMsg.c_str(), errMsg.size()));
             }
         }
 
@@ -1004,23 +1028,39 @@ namespace SPA
             SPA::UDB::CDBVariant vtId;
             UINT64 fail_ok;
             impl.m_NoSending = true;
-            std::wstring errMsg;
+            CDBString errMsg;
+#ifdef WIN32_64
             if (!impl.m_pMysql && !impl.OpenSession(L"root", "localhost"))
+#else
+            if (!impl.m_pMysql && !impl.OpenSession(u"root", "localhost"))
+#endif
                 return;
+#ifdef WIN32_64
             std::wstring wsql = L"USE sp_streaming_db;CREATE TABLE IF NOT EXISTS service(id INT UNSIGNED PRIMARY KEY NOT NULL,library VARCHAR(2048)NOT NULL,param INT NULL,description VARCHAR(2048)NULL)";
+#else
+            CDBString wsql = u"USE sp_streaming_db;CREATE TABLE IF NOT EXISTS service(id INT UNSIGNED PRIMARY KEY NOT NULL,library VARCHAR(2048)NOT NULL,param INT NULL,description VARCHAR(2048)NULL)";
+#endif
             impl.Execute(wsql, true, true, false, 0, affected, res, errMsg, vtId, fail_ok);
             if (res) {
-                CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Creating the table service failed(errCode=%d; errMsg=%s)", res, SPA::Utilities::ToUTF8(errMsg.c_str(), errMsg.size()).c_str());
+                CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Creating the table service failed(errCode=%d; errMsg=%s)", res, SPA::Utilities::ToUTF8(errMsg.c_str(), errMsg.size()));
                 return;
             }
+#ifdef WIN32_64
             wsql = L"CREATE TABLE IF NOT EXISTS permission(svsid INT UNSIGNED NOT NULL,user VARCHAR(32)NOT NULL,PRIMARY KEY(svsid,user),FOREIGN KEY(svsid)REFERENCES service(id)ON DELETE CASCADE ON UPDATE CASCADE)";
+#else
+            wsql = u"CREATE TABLE IF NOT EXISTS permission(svsid INT UNSIGNED NOT NULL,user VARCHAR(32)NOT NULL,PRIMARY KEY(svsid,user),FOREIGN KEY(svsid)REFERENCES service(id)ON DELETE CASCADE ON UPDATE CASCADE)";
+#endif
             impl.Execute(wsql, true, true, false, 0, affected, res, errMsg, vtId, fail_ok);
             if (res) {
-                CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Creating the table permission failed(errCode=%d; errMsg=%s)", res, SPA::Utilities::ToUTF8(errMsg.c_str(), errMsg.size()).c_str());
+                CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Creating the table permission failed(errCode=%d; errMsg=%s)", res, SPA::Utilities::ToUTF8(errMsg.c_str(), errMsg.size()));
                 return;
             }
             std::vector<CService> vService;
+#ifdef WIN32_64
             wsql = L"select id,library,param,description from service";
+#else
+            wsql = u"select id,library,param,description from service";
+#endif
             impl.Execute(wsql, true, true, false, 0, affected, res, errMsg, vtId, fail_ok);
             SPA::UDB::CDBVariant vtLib, vtParam, vtDesc;
             while (impl.m_qSend.GetSize() && !res) {
@@ -1049,16 +1089,18 @@ namespace SPA
                 return (svs.ServiceId == SPA::Mysql::sidMysql);
             });
             if (it == vService.end()) {
-                wsql = L"INSERT INTO service VALUES(" + std::to_wstring((UINT64) Mysql::sidMysql) +
 #ifdef WIN32_64
+                wsql = L"INSERT INTO service VALUES(" + std::to_wstring((UINT64) Mysql::sidMysql) +
                         L",'smysql.dll'" +
-#else
-                        L",'libsmysql.so'" +
-#endif
                         L",0,'Continous SQL streaming processing service')";
+#else
+                wsql = u"INSERT INTO service VALUES(" + CDBString(Utilities::ToUTF16(std::to_wstring((UINT64) Mysql::sidMysql))) +
+                        u",'libsmysql.so'" +
+                        u",0,'Continous SQL streaming processing service')";
+#endif
                 impl.Execute(wsql, true, true, false, 0, affected, res, errMsg, vtId, fail_ok);
                 if (res) {
-                    CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Inserting the table service failed(errCode=%d; errMsg=%s)", res, SPA::Utilities::ToUTF8(errMsg.c_str(), errMsg.size()).c_str());
+                    CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Inserting the table service failed(errCode=%d; errMsg=%s)", res, SPA::Utilities::ToUTF8(errMsg.c_str(), errMsg.size()));
                 }
             }
 
@@ -1066,16 +1108,19 @@ namespace SPA
                 return (svs.ServiceId == (unsigned int) SPA::sidHTTP);
             });
             if (it == vService.end()) {
-                wsql = L"INSERT INTO service VALUES(" + std::to_wstring((UINT64) SPA::sidHTTP) +
+
 #ifdef WIN32_64
+                wsql = L"INSERT INTO service VALUES(" + std::to_wstring((UINT64) SPA::sidHTTP) +
                         L",'uservercore.dll'" +
-#else
-                        L",'libuservercore.so'" +
-#endif
                         L",0,'HTTP/Websocket processing service')";
+#else
+                wsql = u"INSERT INTO service VALUES(" + CDBString(Utilities::ToUTF16(std::to_wstring((UINT64) SPA::sidHTTP))) +
+                        u",'libuservercore.so'" +
+                        u",0,'HTTP/Websocket processing service')";
+#endif
                 impl.Execute(wsql, true, true, false, 0, affected, res, errMsg, vtId, fail_ok);
                 if (res) {
-                    CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Inserting the table service failed(errCode=%d; errMsg=%s)", res, SPA::Utilities::ToUTF8(errMsg.c_str(), errMsg.size()).c_str());
+                    CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Inserting the table service failed(errCode=%d; errMsg=%s)", res, SPA::Utilities::ToUTF8(errMsg.c_str(), errMsg.size()));
                 }
             }
 
@@ -1102,11 +1147,16 @@ namespace SPA
                         return (svs.ServiceId == svsId);
                     });
                     if (it == vService.end()) {
+#ifdef WIN32_64
                         wsql = L"INSERT INTO service(id,library,param,description)VALUES(" + std::to_wstring((UINT64) svsId) + L",'" +
                                 SPA::Utilities::ToWide(p->c_str(), p->size()) + L"'," + std::to_wstring((INT64) param) + L",'')";
+#else
+                        wsql = u"INSERT INTO service(id,library,param,description)VALUES(" + CDBString(Utilities::ToUTF16(std::to_wstring((UINT64) svsId))) + u",'" +
+                                SPA::Utilities::ToUTF16(p->c_str(), p->size()) + u"'," + CDBString(Utilities::ToUTF16(std::to_wstring((INT64) param))) + u",'')";
+#endif
                         impl.Execute(wsql, true, true, false, 0, affected, res, errMsg, vtId, fail_ok);
                         if (res) {
-                            CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Inserting the table service failed(errCode=%d; errMsg=%s)", res, SPA::Utilities::ToUTF8(errMsg.c_str(), errMsg.size()).c_str());
+                            CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Inserting the table service failed(errCode=%d; errMsg=%s)", res, SPA::Utilities::ToUTF8(errMsg.c_str(), errMsg.size()));
                         }
                     }
                 }
@@ -1115,30 +1165,46 @@ namespace SPA
 
         std::unordered_map<std::string, std::string> CMysqlImpl::ConfigStreamingDB(CMysqlImpl & impl) {
             std::unordered_map<std::string, std::string> map;
+#ifdef WIN32_64
             if (!impl.m_pMysql && !impl.OpenSession(L"root", "localhost"))
+#else
+            if (!impl.m_pMysql && !impl.OpenSession(u"root", "localhost"))
+#endif
                 return map;
+#ifdef WIN32_64
             std::wstring wsql = L"Create database if not exists sp_streaming_db character set utf8 collate utf8_general_ci;USE sp_streaming_db";
+#else
+            CDBString wsql = u"Create database if not exists sp_streaming_db character set utf8 collate utf8_general_ci;USE sp_streaming_db";
+#endif
             int res = 0;
             INT64 affected;
             SPA::UDB::CDBVariant vtId;
             UINT64 fail_ok;
             impl.m_NoSending = true;
-            std::wstring errMsg;
+            CDBString errMsg;
             impl.Execute(wsql, true, true, false, 0, affected, res, errMsg, vtId, fail_ok);
             if (res) {
-                CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Configuring streaming DB failed(errCode=%d; errMsg=%s)", res, SPA::Utilities::ToUTF8(errMsg.c_str(), errMsg.size()).c_str());
+                CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Configuring streaming DB failed(errCode=%d; errMsg=%s)", res, SPA::Utilities::ToUTF8(errMsg.c_str(), errMsg.size()));
                 return map;
             }
+#ifdef WIN32_64
             wsql = L"CREATE TABLE IF NOT EXISTS config(mykey varchar(32)PRIMARY KEY NOT NULL,value text not null)";
+#else
+            wsql = u"CREATE TABLE IF NOT EXISTS config(mykey varchar(32)PRIMARY KEY NOT NULL,value text not null)";
+#endif
             impl.Execute(wsql, true, true, false, 0, affected, res, errMsg, vtId, fail_ok);
             if (res) {
-                CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Configuring streaming DB failed(errCode=%d; errMsg=%s)", res, SPA::Utilities::ToUTF8(errMsg.c_str(), errMsg.size()).c_str());
+                CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Configuring streaming DB failed(errCode=%d; errMsg=%s)", res, SPA::Utilities::ToUTF8(errMsg.c_str(), errMsg.size()));
                 return map;
             }
+#ifdef WIN32_64
             wsql = L"select mykey,value from config";
+#else
+            wsql = u"select mykey,value from config";
+#endif
             impl.Execute(wsql, true, true, false, 0, affected, res, errMsg, vtId, fail_ok);
             if (res) {
-                CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Configuring streaming DB failed(errCode=%d; errMsg=%s)", res, SPA::Utilities::ToUTF8(errMsg.c_str(), errMsg.size()).c_str());
+                CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Configuring streaming DB failed(errCode=%d; errMsg=%s)", res, SPA::Utilities::ToUTF8(errMsg.c_str(), errMsg.size()));
                 return map;
             }
             SPA::UDB::CDBVariant vtKey, vtValue;
@@ -1155,7 +1221,11 @@ namespace SPA
             for (auto it = config.begin(), end = config.end(); it != end; ++it) {
                 auto found = map.find(it->first);
                 if (found == map.end()) {
+#ifdef WIN32_64
                     wsql = L"insert into config values('" + Utilities::ToWide(it->first.c_str(), it->first.size()) + L"','" + Utilities::ToWide(it->second.c_str(), it->second.size()) + L"')";
+#else
+                    wsql = u"insert into config values('" + CDBString(Utilities::ToUTF16(it->first.c_str(), it->first.size())) + u"','" + CDBString(Utilities::ToUTF16(it->second.c_str(), it->second.size())) + u"')";
+#endif
                     impl.Execute(wsql, true, true, false, 0, affected, res, errMsg, vtId, fail_ok);
                     map[it->first] = it->second;
                 }
@@ -1165,25 +1235,38 @@ namespace SPA
 
         bool CMysqlImpl::Authenticate(const std::wstring &userName, const wchar_t *password, const std::string &ip, unsigned int svsId) {
             std::unique_ptr<CMysqlImpl> impl(new CMysqlImpl);
+#ifdef WIN32_64
             if (!impl->OpenSession(L"root", "localhost")) {
+#else
+            if (!impl->OpenSession(u"root", "localhost")) {
+#endif
                 CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Authentication failed as root account not available");
                 return false;
             }
+#ifdef WIN32_64
             std::wstring host = L"localhost";
             if (ip != "localhost")
                 host = L"%";
             std::string user = SPA::Utilities::ToUTF8(userName.c_str(), userName.size());
             std::wstring wsql(L"select authentication_string from mysql.user where password_expired='N' and account_locked='N' and user='");
             wsql += (userName + L"' and host='" + host + L"'");
+#else
+            CDBString host = u"localhost";
+            if (ip != "localhost")
+                host = u"%";
+            std::string user = SPA::Utilities::ToUTF8(userName.c_str(), userName.size());
+            CDBString wsql(u"select authentication_string from mysql.user where password_expired='N' and account_locked='N' and user='");
+            wsql += (CDBString(Utilities::ToUTF16(userName)) + u"' and host='" + host + u"'");
+#endif
             int res = 0;
             INT64 affected;
             SPA::UDB::CDBVariant vtId;
             UINT64 fail_ok;
             impl->m_NoSending = true;
-            std::wstring errMsg;
+            CDBString errMsg;
             impl->Execute(wsql, true, true, false, 0, affected, res, errMsg, vtId, fail_ok);
             if (res || !impl->m_qSend.GetSize()) {
-                CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Authentication failed as user %s not found (errCode=%d; errMsg=%s)", user.c_str(), res, SPA::Utilities::ToUTF8(errMsg.c_str(), errMsg.size()).c_str());
+                CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Authentication failed as user %s not found (errCode=%d; errMsg=%s)", user.c_str(), res, SPA::Utilities::ToUTF8(errMsg.c_str(), errMsg.size()));
                 return false;
             }
             SPA::UDB::CDBVariant vtAuth;
@@ -1193,16 +1276,20 @@ namespace SPA
             std::string hash((const char*) auth_id, vtAuth.parray->rgsabound->cElements);
             ::SafeArrayUnaccessData(vtAuth.parray);
             if (!DoAuthentication(password, hash)) {
-                CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Authentication failed as wrong password for user %s (errCode=%d; errMsg=%s)", user.c_str(), res, SPA::Utilities::ToUTF8(errMsg.c_str(), errMsg.size()).c_str());
+                CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Authentication failed as wrong password for user %s (errCode=%d; errMsg=%s)", user.c_str(), res, SPA::Utilities::ToUTF8(errMsg.c_str(), errMsg.size()));
                 return false;
             }
             if (svsId == SPA::Mysql::sidMysql)
                 return true;
+#ifdef WIN32_64
             wsql = L"SELECT user from sp_streaming_db.permission,sp_streaming_db.service where svsid=id AND svsid=" + std::to_wstring((UINT64) svsId) + L" AND user='" + userName + L"'";
+#else
+            wsql = u"SELECT user from sp_streaming_db.permission,sp_streaming_db.service where svsid=id AND svsid=" + CDBString(Utilities::ToUTF16(std::to_string((UINT64) svsId))) + u" AND user='" + Utilities::ToUTF16(userName) + u"'";
+#endif
             impl->Execute(wsql, true, true, false, 0, affected, res, errMsg, vtId, fail_ok);
             if (res || !impl->m_qSend.GetSize()) {
                 std::string user = SPA::Utilities::ToUTF8(userName.c_str(), userName.size());
-                CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Authentication failed as service %d is not set for user %s yet (errCode=%d; errMsg=%s)", svsId, user.c_str(), res, SPA::Utilities::ToUTF8(errMsg.c_str(), errMsg.size()).c_str());
+                CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Authentication failed as service %d is not set for user %s yet (errCode=%d; errMsg=%s)", svsId, user.c_str(), res, SPA::Utilities::ToUTF8(errMsg.c_str(), errMsg.size()));
                 return false;
             }
             return true;
@@ -1231,7 +1318,7 @@ namespace SPA
             return (digest == s);
         }
 
-        void CMysqlImpl::Open(const std::wstring &strConnection, unsigned int flags, int &res, std::wstring &errMsg, int &ms) {
+        void CMysqlImpl::Open(const CDBString &strConnection, unsigned int flags, int &res, CDBString &errMsg, int &ms) {
             m_indexCall = 0;
             unsigned int port;
             res = 0;
@@ -1242,7 +1329,11 @@ namespace SPA
             if (ip == "127.0.0.1" || ip == "::ffff:127.0.0.1" || ip == "::1")
                 ip = "localhost";
             std::wstring user = GetUID();
+#ifdef WIn32_64
             OpenSession(user, ip);
+#else
+            OpenSession(Utilities::ToUTF16(user), ip);
+#endif
             InitMysqlSession();
             int fail = 0;
             if (strConnection.size()) {
@@ -1264,14 +1355,18 @@ namespace SPA
             } else {
                 res = 0;
                 LEX_CSTRING db_name = srv_session_info_get_current_db(m_pMysql.get());
+#ifdef WIN32_64
                 errMsg = SPA::Utilities::ToWide(db_name.str, db_name.length);
+#else
+                errMsg = SPA::Utilities::ToUTF16(db_name.str, db_name.length);
+#endif
                 if ((flags & SPA::UDB::ENABLE_TABLE_UPDATE_MESSAGES) == SPA::UDB::ENABLE_TABLE_UPDATE_MESSAGES) {
                     m_EnableMessages = GetPush().Subscribe(&SPA::UDB::STREAMING_SQL_CHAT_GROUP_ID, 1);
                 }
             }
         }
 
-        void CMysqlImpl::CloseDb(int &res, std::wstring & errMsg) {
+        void CMysqlImpl::CloseDb(int &res, CDBString & errMsg) {
             if (m_EnableMessages) {
                 GetPush().Unsubscribe();
                 m_EnableMessages = false;
@@ -1312,7 +1407,7 @@ namespace SPA
 #endif
                 {
                     int res;
-                    std::wstring errMsg;
+                    CDBString errMsg;
                     if (m_pMysql) {
                         srv_session_attach(m_pMysql.get(), nullptr);
                     }
@@ -1327,7 +1422,7 @@ namespace SPA
             }
         }
 
-        void CMysqlImpl::BeginTrans(int isolation, const std::wstring &dbConn, unsigned int flags, int &res, std::wstring &errMsg, int &ms) {
+        void CMysqlImpl::BeginTrans(int isolation, const CDBString &dbConn, unsigned int flags, int &res, CDBString &errMsg, int &ms) {
             ms = msMysql;
             m_indexCall = 0;
             if (m_bManual) {
@@ -1384,11 +1479,15 @@ namespace SPA
                 m_ti = (tagTransactionIsolation) isolation;
                 m_bManual = true;
                 LEX_CSTRING db_name = srv_session_info_get_current_db(m_pMysql.get());
+#ifdef WIN32_64
                 errMsg = SPA::Utilities::ToWide(db_name.str, db_name.length);
+#else
+                errMsg = SPA::Utilities::ToUTF16(db_name.str, db_name.length);
+#endif
             }
         }
 
-        void CMysqlImpl::EndTrans(int plan, int &res, std::wstring & errMsg) {
+        void CMysqlImpl::EndTrans(int plan, int &res, CDBString & errMsg) {
             m_indexCall = 0;
             if (!m_bManual) {
                 errMsg = BAD_MANUAL_TRANSACTION_STATE;
@@ -1523,7 +1622,7 @@ namespace SPA
             m_qSend.SetSize(0);
         }
 
-        void CMysqlImpl::Execute(const std::wstring& wsql, bool rowset, bool meta, bool lastInsertId, UINT64 index, INT64 &affected, int &res, std::wstring &errMsg, CDBVariant &vtId, UINT64 & fail_ok) {
+        void CMysqlImpl::Execute(const CDBString& wsql, bool rowset, bool meta, bool lastInsertId, UINT64 index, INT64 &affected, int &res, CDBString &errMsg, CDBVariant &vtId, UINT64 & fail_ok) {
             fail_ok = 0;
             affected = 0;
             m_indexCall = index;
@@ -1582,7 +1681,7 @@ namespace SPA
             fail_ok += (unsigned int) (m_oks - oks);
         }
 
-        void CMysqlImpl::Prepare(const std::wstring& wsql, CParameterInfoArray& params, int &res, std::wstring &errMsg, unsigned int &parameters) {
+        void CMysqlImpl::Prepare(const CDBString& wsql, CParameterInfoArray& params, int &res, CDBString &errMsg, unsigned int &parameters) {
             m_indexCall = 0;
             m_NoRowset = false;
             ResetMemories();
@@ -1645,7 +1744,7 @@ namespace SPA
             return SPA::UDateTime(date, td.second_part).time;
         }
 
-        int CMysqlImpl::SetParams(int row, std::wstring & errMsg) {
+        int CMysqlImpl::SetParams(int row, CDBString & errMsg) {
             int res = 0;
             PS_PARAM *pParam = m_stmt.m_pParam.get();
             for (size_t n = 0; n < m_stmt.parameters; ++n, ++pParam) {
@@ -1764,8 +1863,8 @@ namespace SPA
             return res;
         }
 
-        size_t CMysqlImpl::ComputeParameters(const std::wstring & sql) {
-            const wchar_t quote = '\'', slash = '\\', question = '?';
+        size_t CMysqlImpl::ComputeParameters(const CDBString & sql) {
+            const UTF16 quote = '\'', slash = '\\', question = '?';
             bool b_slash = false, balanced = true;
             size_t params = 0, len = sql.size();
             for (size_t n = 0; n < len; ++n) {
@@ -1801,11 +1900,11 @@ namespace SPA
             }
         }
 
-        std::vector<std::wstring> CMysqlImpl::Split(const std::wstring &sql, const std::wstring & delimiter) {
-            std::vector<std::wstring> v;
+        std::vector<CDBString> CMysqlImpl::Split(const CDBString &sql, const CDBString & delimiter) {
+            std::vector<CDBString> v;
             size_t d_len = delimiter.size();
             if (d_len) {
-                const wchar_t quote = '\'', slash = '\\', done = delimiter[0];
+                const UTF16 quote = '\'', slash = '\\', done = delimiter[0];
                 size_t params = 0, len = sql.size();
                 bool b_slash = false, balanced = true;
                 for (size_t n = 0; n < len; ++n) {
@@ -1839,7 +1938,7 @@ namespace SPA
             return v;
         }
 
-        void CMysqlImpl::ExecuteBatch(const std::wstring& sql, const std::wstring& delimiter, int isolation, int plan, bool rowset, bool meta, bool lastInsertId, const std::wstring &dbConn, unsigned int flags, UINT64 callIndex, INT64 &affected, int &res, std::wstring &errMsg, CDBVariant &vtId, UINT64 & fail_ok) {
+        void CMysqlImpl::ExecuteBatch(const CDBString& sql, const CDBString& delimiter, int isolation, int plan, bool rowset, bool meta, bool lastInsertId, const CDBString &dbConn, unsigned int flags, UINT64 callIndex, INT64 &affected, int &res, CDBString &errMsg, CDBVariant &vtId, UINT64 & fail_ok) {
             CDBVariant id;
             CParameterInfoArray vPInfo;
             m_UQueue >> vPInfo;
@@ -1851,7 +1950,7 @@ namespace SPA
                 Open(dbConn, flags, res, errMsg, ms);
             }
             size_t parameters = 0;
-            std::vector<std::wstring> vSql = Split(sql, delimiter);
+            std::vector<CDBString> vSql = Split(sql, delimiter);
             for (auto it = vSql.cbegin(), end = vSql.cend(); it != end; ++it) {
                 parameters += ComputeParameters(*it);
             }
@@ -1897,7 +1996,11 @@ namespace SPA
                 }
             } else {
                 LEX_CSTRING db_name = srv_session_info_get_current_db(m_pMysql.get());
+#ifdef WIN32_64
                 errMsg = SPA::Utilities::ToWide(db_name.str, db_name.length);
+#else
+                errMsg = SPA::Utilities::ToUTF16(db_name.str, db_name.length);
+#endif
             }
             SendResult(idSqlBatchHeader, res, errMsg, (int) msMysql, (unsigned int) parameters, callIndex);
             errMsg.clear();
@@ -1905,7 +2008,7 @@ namespace SPA
             m_vParam.swap(vAll);
             INT64 aff = 0;
             int r = 0;
-            std::wstring err;
+            CDBString err;
             UINT64 fo = 0;
             size_t pos = 0;
             for (auto it = vSql.begin(), end = vSql.end(); it != end; ++it) {
@@ -1954,7 +2057,7 @@ namespace SPA
             }
         }
 
-        void CMysqlImpl::ExecuteParameters(bool rowset, bool meta, bool lastInsertId, UINT64 index, INT64 &affected, int &res, std::wstring &errMsg, CDBVariant &vtId, UINT64 & fail_ok) {
+        void CMysqlImpl::ExecuteParameters(bool rowset, bool meta, bool lastInsertId, UINT64 index, INT64 &affected, int &res, CDBString &errMsg, CDBVariant &vtId, UINT64 & fail_ok) {
             affected = 0;
             m_indexCall = index;
             if (!m_stmt.m_pParam || !m_stmt.parameters) {

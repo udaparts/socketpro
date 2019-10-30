@@ -46,7 +46,7 @@ namespace SPA {
             };
 
             struct PriKey {
-                std::string ColumnName;
+                CDBString ColumnName;
                 bool Pri;
             };
             typedef std::vector<PriKey> CPriKeyArray;
@@ -70,14 +70,14 @@ namespace SPA {
             virtual void OnBaseRequestArrive(unsigned short requestId);
 
         protected:
-            virtual void Open(const std::wstring &strConnection, unsigned int flags, int &res, std::wstring &errMsg, int &ms);
-            virtual void CloseDb(int &res, std::wstring &errMsg);
-            virtual void BeginTrans(int isolation, const std::wstring &dbConn, unsigned int flags, int &res, std::wstring &errMsg, int &ms);
-            virtual void EndTrans(int plan, int &res, std::wstring &errMsg);
-            virtual void Execute(const std::wstring& sql, bool rowset, bool meta, bool lastInsertId, UINT64 index, INT64 &affected, int &res, std::wstring &errMsg, CDBVariant &vtId, UINT64 &fail_ok);
-            virtual void Prepare(const std::wstring& sql, CParameterInfoArray& params, int &res, std::wstring &errMsg, unsigned int &parameters);
-            virtual void ExecuteParameters(bool rowset, bool meta, bool lastInsertId, UINT64 index, INT64 &affected, int &res, std::wstring &errMsg, CDBVariant &vtId, UINT64 &fail_ok);
-            virtual void ExecuteBatch(const std::wstring& sql, const std::wstring& delimiter, int isolation, int plan, bool rowset, bool meta, bool lastInsertId, const std::wstring &dbConn, unsigned int flags, UINT64 index, INT64 &affected, int &res, std::wstring &errMsg, CDBVariant &vtId, UINT64 &fail_ok);
+            virtual void Open(const CDBString &strConnection, unsigned int flags, int &res, CDBString &errMsg, int &ms);
+            virtual void CloseDb(int &res, CDBString &errMsg);
+            virtual void BeginTrans(int isolation, const CDBString &dbConn, unsigned int flags, int &res, CDBString &errMsg, int &ms);
+            virtual void EndTrans(int plan, int &res, CDBString &errMsg);
+            virtual void Execute(const CDBString& sql, bool rowset, bool meta, bool lastInsertId, UINT64 index, INT64 &affected, int &res, CDBString &errMsg, CDBVariant &vtId, UINT64 &fail_ok);
+            virtual void Prepare(const CDBString& sql, CParameterInfoArray& params, int &res, CDBString &errMsg, unsigned int &parameters);
+            virtual void ExecuteParameters(bool rowset, bool meta, bool lastInsertId, UINT64 index, INT64 &affected, int &res, CDBString &errMsg, CDBVariant &vtId, UINT64 &fail_ok);
+            virtual void ExecuteBatch(const CDBString& sql, const CDBString& delimiter, int isolation, int plan, bool rowset, bool meta, bool lastInsertId, const CDBString &dbConn, unsigned int flags, UINT64 index, INT64 &affected, int &res, CDBString &errMsg, CDBVariant &vtId, UINT64 &fail_ok);
 
         private:
             void StartBLOB(unsigned int lenExpected);
@@ -94,14 +94,14 @@ namespace SPA {
             void ResetMemories();
             void InitMysqlSession();
             void CloseStmt();
-            int SetParams(int row, std::wstring & errMsg);
-            bool OpenSession(const std::wstring &userName, const std::string &ip);
+            int SetParams(int row, CDBString & errMsg);
+            bool OpenSession(const CDBString &userName, const std::string &ip);
             void RemoveUnusedTriggers(const std::vector<std::string> &vecTables);
             void CreateTriggers(const std::string &schema, const std::string &table);
             void SetVParam(CDBVariantArray& vAll, size_t parameters, size_t pos, size_t ps);
-            static std::vector<std::wstring> Split(const std::wstring &sql, const std::wstring &delimiter);
-            static size_t ComputeParameters(const std::wstring &sql);
-            static std::wstring GetCreateTriggerSQL(const wchar_t *db, const wchar_t *table, const CPriKeyArray &vPriKey, SPA::UDB::tagUpdateEvent eventType);
+            static std::vector<CDBString> Split(const CDBString &sql, const CDBString &delimiter);
+            static size_t ComputeParameters(const CDBString &sql);
+            static CDBString GetCreateTriggerSQL(const UTF16 *db, const UTF16 *table, const CPriKeyArray &vPriKey, SPA::UDB::tagUpdateEvent eventType);
             static std::string ToString(const CDBVariant &vtUTF8);
             static UINT64 ConvertBitsToInt(const unsigned char *s, unsigned int bytes);
             static UINT64 ToUDateTime(const MYSQL_TIME &td);
@@ -147,7 +147,7 @@ namespace SPA {
             bool m_NoSending;
 
             int m_sql_errno;
-            std::wstring m_err_msg;
+            CDBString m_err_msg;
 
             const CHARSET_INFO *m_sql_resultcs;
             unsigned int m_ColIndex;
@@ -169,17 +169,17 @@ namespace SPA {
             static const int MYSQL_BLOB = 0xffff;
             static const int MYSQL_MIDBLOB = 0xffffff;
 
-            static const wchar_t* NO_DB_OPENED_YET;
-            static const wchar_t* BAD_END_TRANSTACTION_PLAN;
-            static const wchar_t* NO_PARAMETER_SPECIFIED;
-            static const wchar_t* BAD_PARAMETER_COLUMN_SIZE;
-            static const wchar_t* BAD_PARAMETER_DATA_ARRAY_SIZE;
-            static const wchar_t* DATA_TYPE_NOT_SUPPORTED;
-            static const wchar_t* NO_DB_NAME_SPECIFIED;
-            static const wchar_t* MYSQL_LIBRARY_NOT_INITIALIZED;
-            static const wchar_t* BAD_MANUAL_TRANSACTION_STATE;
-            static const wchar_t* UNABLE_TO_SWITCH_TO_DATABASE;
-            static const wchar_t* SERVICE_COMMAND_ERROR;
+            static const UTF16* NO_DB_OPENED_YET;
+            static const UTF16* BAD_END_TRANSTACTION_PLAN;
+            static const UTF16* NO_PARAMETER_SPECIFIED;
+            static const UTF16* BAD_PARAMETER_COLUMN_SIZE;
+            static const UTF16* BAD_PARAMETER_DATA_ARRAY_SIZE;
+            static const UTF16* DATA_TYPE_NOT_SUPPORTED;
+            static const UTF16* NO_DB_NAME_SPECIFIED;
+            static const UTF16* MYSQL_LIBRARY_NOT_INITIALIZED;
+            static const UTF16* BAD_MANUAL_TRANSACTION_STATE;
+            static const UTF16* UNABLE_TO_SWITCH_TO_DATABASE;
+            static const UTF16* SERVICE_COMMAND_ERROR;
         };
 
         typedef CSocketProService<CMysqlImpl> CMysqlService;

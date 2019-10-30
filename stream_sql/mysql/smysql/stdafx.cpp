@@ -120,7 +120,11 @@ namespace SPA{
         }
 
         void CMysqlImpl::CreateTriggers(CMysqlImpl &impl, const std::vector<std::string> &vecTables) {
+#ifdef WIN32_64
             if (!impl.m_pMysql && !impl.OpenSession(L"root", "localhost"))
+#else
+            if (!impl.m_pMysql && !impl.OpenSession(u"root", "localhost"))
+#endif
                 return;
             impl.m_NoSending = true;
             impl.RemoveUnusedTriggers(vecTables);
@@ -132,13 +136,13 @@ namespace SPA{
             }
         }
 
-        std::wstring CMysqlImpl::GetCreateTriggerSQL(const wchar_t *db, const wchar_t *table, const CPriKeyArray &vPriKey, SPA::UDB::tagUpdateEvent eventType) {
-            std::wstring sql;
+        CDBString CMysqlImpl::GetCreateTriggerSQL(const UTF16 *db, const UTF16 *table, const CPriKeyArray &vPriKey, SPA::UDB::tagUpdateEvent eventType) {
+            CDBString sql;
             CPriKeyArray vDelKey;
             if (!vPriKey.size())
                 return sql;
             const CPriKeyArray *pKey = &vPriKey;
-            std::wstring strDB(db), strTable(table);
+            CDBString strDB(db), strTable(table);
             for (auto it = strDB.begin(), end = strDB.end(); it != end; ++it) {
                 if (isspace(*it)) {
                     *it = L'_';
@@ -149,13 +153,24 @@ namespace SPA{
                     *it = L'_';
                 }
             }
+#ifdef WIN32_64
             sql = L"CREATE TRIGGER ";
             sql += STREAMING_DB_TRIGGER_PREFIX;
             sql += (strDB + L"_");
             sql += (strTable + L"_");
+#else
+            sql = u"CREATE TRIGGER ";
+            sql += STREAMING_DB_TRIGGER_PREFIX;
+            sql += (strDB + u"_");
+            sql += (strTable + u"_");
+#endif
             switch (eventType) {
                 case SPA::UDB::ueDelete:
+#ifdef WIN32_64
                     sql += L"DELETE AFTER DELETE ON `";
+#else
+                    sql += u"DELETE AFTER DELETE ON `";
+#endif
                     for (auto it = vPriKey.begin(), end = vPriKey.end(); it != end; ++it) {
                         if (it->Pri) {
                             vDelKey.push_back(*it);
@@ -166,13 +181,22 @@ namespace SPA{
                     }
                     break;
                 case SPA::UDB::ueInsert:
+#ifdef WIN32_64
                     sql += L"INSERT AFTER INSERT ON `";
+#else
+                    sql += u"INSERT AFTER INSERT ON `";
+#endif
                     break;
                 default: //update
+#ifdef WIN32_64
                     sql += L"UPDATE AFTER UPDATE ON `";
+#else
+                    sql += u"UPDATE AFTER UPDATE ON `";
+#endif
                     break;
             }
             sql += db;
+#ifdef WIN32_64
             sql += L"`.`";
             sql += table;
             sql += L"` FOR EACH ROW BEGIN DECLARE res BIGINT;";
@@ -180,8 +204,18 @@ namespace SPA{
             sql += L",USER(),DATABASE(),'";
             sql += table;
             sql += L"'";
+#else
+            sql += u"`.`";
+            sql += table;
+            sql += u"` FOR EACH ROW BEGIN DECLARE res BIGINT;";
+            sql += u"SELECT PublishDBEvent(" + CDBString(Utilities::ToUTF16(std::to_string((SPA::INT64)eventType)));
+            sql += u",USER(),DATABASE(),'";
+            sql += table;
+            sql += u"'";
+#endif
             for (auto it = pKey->begin(), end = pKey->end(); it != end; ++it) {
                 switch (eventType) {
+#ifdef WIN32_64
                     case SPA::UDB::ueDelete:
                         sql += L",old.`";
                         break;
@@ -191,19 +225,43 @@ namespace SPA{
                     default: //update
                         sql += L",old.`";
                         break;
+#else
+                    case SPA::UDB::ueDelete:
+                        sql += u",old.`";
+                        break;
+                    case SPA::UDB::ueInsert:
+                        sql += u",new.`";
+                        break;
+                    default: //update
+                        sql += u",old.`";
+                        break;
+#endif
                 }
-                sql += (SPA::Utilities::ToWide(it->ColumnName.c_str(), it->ColumnName.size()) + L"`");
+#ifdef WIN32_64
+                sql += (it->ColumnName + L"`");
                 if (eventType == SPA::UDB::ueUpdate) {
                     sql += L",new.`";
-                    sql += (SPA::Utilities::ToWide(it->ColumnName.c_str(), it->ColumnName.size()) + L"`");
+                    sql += (it->ColumnName + L"`");
                 }
+#else
+                sql += (it->ColumnName + u"`");
+                if (eventType == SPA::UDB::ueUpdate) {
+                    sql += u",new.`";
+                    sql += (it->ColumnName + u"`");
+                }
+#endif
             }
+#ifdef WIN32_64
             sql += L")INTO res;END";
+#else
+            sql += u")INTO res;END";
+#endif
             return sql;
         }
 
         void CMysqlImpl::CreateTriggers(const std::string &schema, const std::string & table) {
             bool bDelete = false, bInsert = false, bUpdate = false;
+#ifdef WIN32_64
             std::wstring wSchema = SPA::Utilities::ToWide(schema.c_str(), schema.size());
             std::wstring wTable = SPA::Utilities::ToWide(table.c_str(), table.size());
             std::wstring prefix(STREAMING_DB_TRIGGER_PREFIX);
@@ -212,15 +270,25 @@ namespace SPA{
             sql_existing += L" AND EVENT_OBJECT_TABLE='" + wTable + L"'";
             sql_existing += L" AND ACTION_TIMING='AFTER'";
             sql_existing += L" AND TRIGGER_NAME LIKE '" + prefix + L"%' ORDER BY EVENT_MANIPULATION";
+#else
+            CDBString wSchema = SPA::Utilities::ToUTF16(schema.c_str(), schema.size());
+            CDBString wTable = SPA::Utilities::ToUTF16(table.c_str(), table.size());
+            CDBString prefix(STREAMING_DB_TRIGGER_PREFIX);
+            CDBString sql_existing = u"SELECT EVENT_MANIPULATION, TRIGGER_NAME FROM INFORMATION_SCHEMA.TRIGGERS WHERE ";
+            sql_existing += (u"EVENT_OBJECT_SCHEMA='" + wSchema + u"'");
+            sql_existing += (u" AND EVENT_OBJECT_TABLE='" + wTable + u"'");
+            sql_existing += u" AND ACTION_TIMING='AFTER'";
+            sql_existing += (u" AND TRIGGER_NAME LIKE '" + prefix + u"%' ORDER BY EVENT_MANIPULATION");
+#endif
             int res = 0;
             INT64 affected;
             SPA::UDB::CDBVariant vtId;
             UINT64 fail_ok;
-            std::wstring errMsg;
+            CDBString errMsg;
             SPA::UDB::CDBVariant vtType, vtName;
             Execute(sql_existing, true, true, false, 0, affected, res, errMsg, vtId, fail_ok);
             if (res) {
-                CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Querying the table %s.%s triggers failed(errCode=%d; errMsg=%s)", schema.c_str(), table.c_str(), res, SPA::Utilities::ToUTF8(errMsg.c_str(), errMsg.size()).c_str());
+                CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Querying the table %s.%s triggers failed(errCode=%d; errMsg=%s)", schema.c_str(), table.c_str(), res, SPA::Utilities::ToUTF8(errMsg.c_str(), errMsg.size()));
                 return;
             }
             while (m_qSend.GetSize() && !res) {
@@ -236,12 +304,18 @@ namespace SPA{
             }
             if (bInsert && bDelete && bUpdate)
                 return;
+#ifdef WIN32_64
             std::wstring sql = L"SELECT COLUMN_NAME,COLUMN_KEY FROM information_schema.COLUMNS WHERE TABLE_SCHEMA='";
             sql += (wSchema + L"' AND TABLE_NAME='");
             sql += (wTable + L"' ORDER BY TABLE_NAME,ORDINAL_POSITION");
+#else
+            CDBString sql = u"SELECT COLUMN_NAME,COLUMN_KEY FROM information_schema.COLUMNS WHERE TABLE_SCHEMA='";
+            sql += (wSchema + u"' AND TABLE_NAME='");
+            sql += (wTable + u"' ORDER BY TABLE_NAME,ORDINAL_POSITION");
+#endif
             Execute(sql, true, true, false, 0, affected, res, errMsg, vtId, fail_ok);
             if (res) {
-                CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Querying the table %s.%s failed for creating triggers(errCode=%d; errMsg=%s)", schema.c_str(), table.c_str(), res, SPA::Utilities::ToUTF8(errMsg.c_str(), errMsg.size()).c_str());
+                CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Querying the table %s.%s failed for creating triggers(errCode=%d; errMsg=%s)", schema.c_str(), table.c_str(), res, SPA::Utilities::ToUTF8(errMsg.c_str(), errMsg.size()));
                 return;
             }
             if (!m_qSend.GetSize()) {
@@ -253,7 +327,11 @@ namespace SPA{
             PriKey pk;
             while (m_qSend.GetSize()) {
                 m_qSend >> vtName >> vtType;
+#ifdef WIN32_64
                 pk.ColumnName = ToString(vtName);
+#else
+                pk.ColumnName = Utilities::ToUTF16(ToString(vtName));
+#endif
                 std::string type = ToString(vtType);
                 if (type == "PRI")
                     pk.Pri = true;
@@ -261,46 +339,53 @@ namespace SPA{
                     pk.Pri = false;
                 vKey.push_back(pk);
             }
-
+#ifdef WIN32_64
             sql = L"USE `" + wSchema + L"`";
+#else
+            sql = u"USE `" + wSchema + u"`";
+#endif
             Execute(sql, true, true, false, 0, affected, res, errMsg, vtId, fail_ok);
 
             if (!bInsert) {
                 sql = GetCreateTriggerSQL(wSchema.c_str(), wTable.c_str(), vKey, SPA::UDB::ueInsert);
                 Execute(sql, true, true, false, 0, affected, res, errMsg, vtId, fail_ok);
                 if (res) {
-                    CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Unable to create insert trigger for the table %s.%s(errCode=%d; errMsg=%s)", schema.c_str(), table.c_str(), res, SPA::Utilities::ToUTF8(errMsg.c_str(), errMsg.size()).c_str());
+                    CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Unable to create insert trigger for the table %s.%s(errCode=%d; errMsg=%s)", schema.c_str(), table.c_str(), res, SPA::Utilities::ToUTF8(errMsg.c_str(), errMsg.size()));
                 }
             }
             if (!bDelete) {
                 sql = GetCreateTriggerSQL(wSchema.c_str(), wTable.c_str(), vKey, SPA::UDB::ueDelete);
                 Execute(sql, true, true, false, 0, affected, res, errMsg, vtId, fail_ok);
                 if (res) {
-                    CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Unable to create delete trigger for the table %s.%s(errCode=%d; errMsg=%s)", schema.c_str(), table.c_str(), res, SPA::Utilities::ToUTF8(errMsg.c_str(), errMsg.size()).c_str());
+                    CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Unable to create delete trigger for the table %s.%s(errCode=%d; errMsg=%s)", schema.c_str(), table.c_str(), res, SPA::Utilities::ToUTF8(errMsg.c_str(), errMsg.size()));
                 }
             }
             if (!bUpdate) {
                 sql = GetCreateTriggerSQL(wSchema.c_str(), wTable.c_str(), vKey, SPA::UDB::ueUpdate);
                 Execute(sql, true, true, false, 0, affected, res, errMsg, vtId, fail_ok);
                 if (res) {
-                    CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Unable to create update trigger for the table %s.%s(errCode=%d; errMsg=%s)", schema.c_str(), table.c_str(), res, SPA::Utilities::ToUTF8(errMsg.c_str(), errMsg.size()).c_str());
+                    CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Unable to create update trigger for the table %s.%s(errCode=%d; errMsg=%s)", schema.c_str(), table.c_str(), res, SPA::Utilities::ToUTF8(errMsg.c_str(), errMsg.size()));
                 }
             }
         }
 
         void CMysqlImpl::RemoveUnusedTriggers(const std::vector<std::string> &vecTables) {
-            std::wstring prefix(STREAMING_DB_TRIGGER_PREFIX);
+            CDBString prefix(STREAMING_DB_TRIGGER_PREFIX);
+#ifdef WIN32_64
             std::wstring sql_existing = L"SELECT event_object_schema,trigger_name,EVENT_OBJECT_TABLE FROM INFORMATION_SCHEMA.TRIGGERS where TRIGGER_NAME like '" + prefix + L"%' order by event_object_schema,EVENT_OBJECT_TABLE";
+#else
+            CDBString sql_existing = u"SELECT event_object_schema,trigger_name,EVENT_OBJECT_TABLE FROM INFORMATION_SCHEMA.TRIGGERS where TRIGGER_NAME like '" + prefix + u"%' order by event_object_schema,EVENT_OBJECT_TABLE";
+#endif
             int res = 0;
             INT64 affected;
             SPA::UDB::CDBVariant vtId;
             UINT64 fail_ok;
-            std::wstring errMsg;
+            CDBString errMsg;
             SPA::UDB::CDBVariant vtSchema, vtName, vtTable;
             std::vector<std::string> vec = vecTables;
             Execute(sql_existing, true, true, false, 0, affected, res, errMsg, vtId, fail_ok);
             if (res) {
-                CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Querying SocketPro streaming db triggers failed(errCode=%d; errMsg=%s)", res, SPA::Utilities::ToUTF8(errMsg.c_str(), errMsg.size()).c_str());
+                CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Querying SocketPro streaming db triggers failed(errCode=%d; errMsg=%s)", res, SPA::Utilities::ToUTF8(errMsg.c_str(), errMsg.size()));
             }
 
             SPA::CScopeUQueue sb;
@@ -318,15 +403,23 @@ namespace SPA{
                     return (trigger_db_table == s);
                 });
                 if (ret == vec.end()) {
+#ifdef WIN32_64
                     std::wstring wsql = L"USE `" + SPA::Utilities::ToWide(schema.c_str(), schema.size()) + L"`";
+#else
+                    CDBString wsql = CDBString(u"USE `") + SPA::Utilities::ToUTF16(schema.c_str(), schema.size()) + u"`";
+#endif
                     Execute(wsql, true, true, false, 0, affected, res, errMsg, vtId, fail_ok);
                     res = 0;
 
                     //trigger not needed any more as it is not found inside sp_streaming_db.config.cached_tables
+#ifdef WIN32_64
                     wsql = L"drop trigger " + SPA::Utilities::ToWide(name.c_str(), name.size());
+#else
+                    wsql = CDBString(u"drop trigger ") + SPA::Utilities::ToUTF16(name.c_str(), name.size());
+#endif
                     Execute(wsql, true, true, false, 0, affected, res, errMsg, vtId, fail_ok);
                     if (res) {
-                        CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Removing the unused trigger %s failed(errCode=%d; errMsg=%s)", name.c_str(), res, SPA::Utilities::ToUTF8(errMsg.c_str(), errMsg.size()).c_str());
+                        CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Removing the unused trigger %s failed(errCode=%d; errMsg=%s)", name.c_str(), res, SPA::Utilities::ToUTF8(errMsg.c_str(), errMsg.size()));
                         res = 0;
                     }
                 }
@@ -334,4 +427,3 @@ namespace SPA{
         }
     } //namespace ServerSide
 } //namespace SPA
-
