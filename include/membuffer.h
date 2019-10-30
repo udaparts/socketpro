@@ -79,6 +79,9 @@ namespace SPA {
         bool IsEqual(const wchar_t *s0, const wchar_t *s1, bool case_sensitive);
         const UTF16* ToUTF16(const wchar_t *s, size_t chars = (size_t) (~0));
         const char* ToUTF8(const UTF16 *str, size_t wchars = (size_t) (~0));
+        const UTF16* ToUTF16(const char *s, size_t len = (size_t) (~0));
+        const UTF16* ToUTF16(const std::string &s);
+        const UTF16* ToUTF16(const std::wstring &str);
 #endif
     };
 
