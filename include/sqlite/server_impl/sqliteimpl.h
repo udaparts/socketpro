@@ -76,7 +76,7 @@ namespace SPA {
             void Clean();
             bool SubscribeForEvents(sqlite3 *db, const CDBString &strConnection);
 
-            static std::vector<std::wstring> Split(const CDBString &sql, const CDBString &delimiter);
+            static std::vector<CDBString> Split(const CDBString &sql, const CDBString &delimiter);
             static size_t ComputeParameters(const CDBString &sql);
 
             static int DoStep(sqlite3_stmt *stmt);
