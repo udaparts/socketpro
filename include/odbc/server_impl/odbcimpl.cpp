@@ -12,25 +12,38 @@ namespace SPA
 {
     namespace ServerSide{
 
-        const wchar_t * COdbcImpl::NO_DB_OPENED_YET = L"No ODBC database opened yet";
-        const wchar_t * COdbcImpl::BAD_END_TRANSTACTION_PLAN = L"Bad end transaction plan";
-        const wchar_t * COdbcImpl::NO_PARAMETER_SPECIFIED = L"No parameter specified";
-        const wchar_t * COdbcImpl::BAD_PARAMETER_DATA_ARRAY_SIZE = L"Bad parameter data array length";
-        const wchar_t * COdbcImpl::BAD_PARAMETER_COLUMN_SIZE = L"Bad parameter column size";
-        const wchar_t * COdbcImpl::DATA_TYPE_NOT_SUPPORTED = L"Data type not supported";
-        const wchar_t * COdbcImpl::NO_DB_NAME_SPECIFIED = L"No database name specified";
-        const wchar_t * COdbcImpl::ODBC_ENVIRONMENT_NOT_INITIALIZED = L"ODBC system library not initialized";
-        const wchar_t * COdbcImpl::BAD_MANUAL_TRANSACTION_STATE = L"Bad manual transaction state";
-        const wchar_t * COdbcImpl::BAD_INPUT_PARAMETER_DATA_TYPE = L"Bad input parameter data type";
-        const wchar_t * COdbcImpl::BAD_PARAMETER_DIRECTION_TYPE = L"Bad parameter direction type";
-        const wchar_t * COdbcImpl::CORRECT_PARAMETER_INFO_NOT_PROVIDED_YET = L"Correct parameter information not provided yet";
-
-        SQLHENV COdbcImpl::g_hEnv = nullptr;
-
-        const wchar_t * COdbcImpl::ODBC_GLOBAL_CONNECTION_STRING = L"ODBC_GLOBAL_CONNECTION_STRING";
-
+		SQLHENV COdbcImpl::g_hEnv = nullptr;
+#ifdef WIN32_64
+        const UTF16 * COdbcImpl::NO_DB_OPENED_YET = L"No ODBC database opened yet";
+        const UTF16 * COdbcImpl::BAD_END_TRANSTACTION_PLAN = L"Bad end transaction plan";
+        const UTF16 * COdbcImpl::NO_PARAMETER_SPECIFIED = L"No parameter specified";
+        const UTF16 * COdbcImpl::BAD_PARAMETER_DATA_ARRAY_SIZE = L"Bad parameter data array length";
+        const UTF16 * COdbcImpl::BAD_PARAMETER_COLUMN_SIZE = L"Bad parameter column size";
+        const UTF16 * COdbcImpl::DATA_TYPE_NOT_SUPPORTED = L"Data type not supported";
+        const UTF16 * COdbcImpl::NO_DB_NAME_SPECIFIED = L"No database name specified";
+        const UTF16 * COdbcImpl::ODBC_ENVIRONMENT_NOT_INITIALIZED = L"ODBC system library not initialized";
+        const UTF16 * COdbcImpl::BAD_MANUAL_TRANSACTION_STATE = L"Bad manual transaction state";
+        const UTF16 * COdbcImpl::BAD_INPUT_PARAMETER_DATA_TYPE = L"Bad input parameter data type";
+        const UTF16 * COdbcImpl::BAD_PARAMETER_DIRECTION_TYPE = L"Bad parameter direction type";
+        const UTF16 * COdbcImpl::CORRECT_PARAMETER_INFO_NOT_PROVIDED_YET = L"Correct parameter information not provided yet";
+        const UTF16 * COdbcImpl::ODBC_GLOBAL_CONNECTION_STRING = L"ODBC_GLOBAL_CONNECTION_STRING";
+#else
+		const UTF16 * COdbcImpl::NO_DB_OPENED_YET = u"No ODBC database opened yet";
+		const UTF16 * COdbcImpl::BAD_END_TRANSTACTION_PLAN = u"Bad end transaction plan";
+		const UTF16 * COdbcImpl::NO_PARAMETER_SPECIFIED = u"No parameter specified";
+		const UTF16 * COdbcImpl::BAD_PARAMETER_DATA_ARRAY_SIZE = u"Bad parameter data array length";
+		const UTF16 * COdbcImpl::BAD_PARAMETER_COLUMN_SIZE = u"Bad parameter column size";
+		const UTF16 * COdbcImpl::DATA_TYPE_NOT_SUPPORTED = u"Data type not supported";
+		const UTF16 * COdbcImpl::NO_DB_NAME_SPECIFIED = u"No database name specified";
+		const UTF16 * COdbcImpl::ODBC_ENVIRONMENT_NOT_INITIALIZED = u"ODBC system library not initialized";
+		const UTF16 * COdbcImpl::BAD_MANUAL_TRANSACTION_STATE = u"Bad manual transaction state";
+		const UTF16 * COdbcImpl::BAD_INPUT_PARAMETER_DATA_TYPE = u"Bad input parameter data type";
+		const UTF16 * COdbcImpl::BAD_PARAMETER_DIRECTION_TYPE = u"Bad parameter direction type";
+		const UTF16 * COdbcImpl::CORRECT_PARAMETER_INFO_NOT_PROVIDED_YET = u"Correct parameter information not provided yet";
+		const UTF16 * COdbcImpl::ODBC_GLOBAL_CONNECTION_STRING = u"ODBC_GLOBAL_CONNECTION_STRING";
+#endif
         CUCriticalSection COdbcImpl::m_csPeer;
-        std::wstring COdbcImpl::m_strGlobalConnection;
+        CDBString COdbcImpl::m_strGlobalConnection;
 
         std::unordered_map<USocket_Server_Handle, SQLHDBC> COdbcImpl::m_mapConnection;
 
@@ -233,24 +246,24 @@ namespace SPA
 
         int COdbcImpl::OnSlowRequestArrive(unsigned short reqId, unsigned int len) {
             BEGIN_SWITCH(reqId)
-            M_I0_R2(idClose, CloseDb, int, std::wstring)
-            M_I2_R3(idOpen, Open, std::wstring, unsigned int, int, std::wstring, int)
-            M_I3_R3(idBeginTrans, BeginTrans, int, std::wstring, unsigned int, int, std::wstring, int)
-            M_I1_R2(idEndTrans, EndTrans, int, int, std::wstring)
-            M_I5_R5(idExecute, Execute, std::wstring, bool, bool, bool, UINT64, INT64, int, std::wstring, CDBVariant, UINT64)
-            M_I2_R3(idPrepare, Prepare, std::wstring, CParameterInfoArray, int, std::wstring, unsigned int)
-            M_I4_R5(idExecuteParameters, ExecuteParameters, bool, bool, bool, UINT64, INT64, int, std::wstring, CDBVariant, UINT64)
-            M_I10_R5(idExecuteBatch, ExecuteBatch, std::wstring, std::wstring, int, int, bool, bool, bool, std::wstring, unsigned int, UINT64, INT64, int, std::wstring, CDBVariant, UINT64)
-            M_I5_R3(SPA::Odbc::idSQLColumnPrivileges, DoSQLColumnPrivileges, std::wstring, std::wstring, std::wstring, std::wstring, UINT64, int, std::wstring, UINT64)
-            M_I5_R3(SPA::Odbc::idSQLColumns, DoSQLColumns, std::wstring, std::wstring, std::wstring, std::wstring, UINT64, int, std::wstring, UINT64)
-            M_I7_R3(SPA::Odbc::idSQLForeignKeys, DoSQLForeignKeys, std::wstring, std::wstring, std::wstring, std::wstring, std::wstring, std::wstring, UINT64, int, std::wstring, UINT64)
-            M_I4_R3(SPA::Odbc::idSQLPrimaryKeys, DoSQLPrimaryKeys, std::wstring, std::wstring, std::wstring, UINT64, int, std::wstring, UINT64)
-            M_I5_R3(SPA::Odbc::idSQLProcedureColumns, DoSQLProcedureColumns, std::wstring, std::wstring, std::wstring, std::wstring, UINT64, int, std::wstring, UINT64)
-            M_I4_R3(SPA::Odbc::idSQLProcedures, DoSQLProcedures, std::wstring, std::wstring, std::wstring, UINT64, int, std::wstring, UINT64)
-            M_I7_R3(SPA::Odbc::idSQLSpecialColumns, DoSQLSpecialColumns, SQLSMALLINT, std::wstring, std::wstring, std::wstring, SQLSMALLINT, SQLSMALLINT, UINT64, int, std::wstring, UINT64)
-            M_I6_R3(SPA::Odbc::idSQLStatistics, DoSQLStatistics, std::wstring, std::wstring, std::wstring, SQLUSMALLINT, SQLUSMALLINT, UINT64, int, std::wstring, UINT64)
-            M_I4_R3(SPA::Odbc::idSQLTablePrivileges, DoSQLTablePrivileges, std::wstring, std::wstring, std::wstring, UINT64, int, std::wstring, UINT64)
-            M_I5_R3(SPA::Odbc::idSQLTables, DoSQLTables, std::wstring, std::wstring, std::wstring, std::wstring, UINT64, int, std::wstring, UINT64)
+            M_I0_R2(idClose, CloseDb, int, CDBString)
+            M_I2_R3(idOpen, Open, CDBString, unsigned int, int, CDBString, int)
+            M_I3_R3(idBeginTrans, BeginTrans, int, CDBString, unsigned int, int, CDBString, int)
+            M_I1_R2(idEndTrans, EndTrans, int, int, CDBString)
+            M_I5_R5(idExecute, Execute, CDBString, bool, bool, bool, UINT64, INT64, int, CDBString, CDBVariant, UINT64)
+            M_I2_R3(idPrepare, Prepare, CDBString, CParameterInfoArray, int, CDBString, unsigned int)
+            M_I4_R5(idExecuteParameters, ExecuteParameters, bool, bool, bool, UINT64, INT64, int, CDBString, CDBVariant, UINT64)
+            M_I10_R5(idExecuteBatch, ExecuteBatch, CDBString, CDBString, int, int, bool, bool, bool, CDBString, unsigned int, UINT64, INT64, int, CDBString, CDBVariant, UINT64)
+            M_I5_R3(SPA::Odbc::idSQLColumnPrivileges, DoSQLColumnPrivileges, CDBString, CDBString, CDBString, CDBString, UINT64, int, CDBString, UINT64)
+            M_I5_R3(SPA::Odbc::idSQLColumns, DoSQLColumns, CDBString, CDBString, CDBString, CDBString, UINT64, int, CDBString, UINT64)
+            M_I7_R3(SPA::Odbc::idSQLForeignKeys, DoSQLForeignKeys, CDBString, CDBString, CDBString, CDBString, CDBString, CDBString, UINT64, int, CDBString, UINT64)
+            M_I4_R3(SPA::Odbc::idSQLPrimaryKeys, DoSQLPrimaryKeys, CDBString, CDBString, CDBString, UINT64, int, CDBString, UINT64)
+            M_I5_R3(SPA::Odbc::idSQLProcedureColumns, DoSQLProcedureColumns, CDBString, CDBString, CDBString, CDBString, UINT64, int, CDBString, UINT64)
+            M_I4_R3(SPA::Odbc::idSQLProcedures, DoSQLProcedures, CDBString, CDBString, CDBString, UINT64, int, CDBString, UINT64)
+            M_I7_R3(SPA::Odbc::idSQLSpecialColumns, DoSQLSpecialColumns, SQLSMALLINT, CDBString, CDBString, CDBString, SQLSMALLINT, SQLSMALLINT, UINT64, int, CDBString, UINT64)
+            M_I6_R3(SPA::Odbc::idSQLStatistics, DoSQLStatistics, CDBString, CDBString, CDBString, SQLUSMALLINT, SQLUSMALLINT, UINT64, int, CDBString, UINT64)
+            M_I4_R3(SPA::Odbc::idSQLTablePrivileges, DoSQLTablePrivileges, CDBString, CDBString, CDBString, UINT64, int, CDBString, UINT64)
+            M_I5_R3(SPA::Odbc::idSQLTables, DoSQLTables, CDBString, CDBString, CDBString, CDBString, UINT64, int, CDBString, UINT64)
             END_SWITCH
             m_pExcuting.reset();
             if (reqId == idExecuteParameters || reqId == idExecuteBatch) {
@@ -292,25 +305,43 @@ namespace SPA
             m_bProcedureColumns = SQL_FALSE;
         }
 
-        void COdbcImpl::Open(const std::wstring &strConnection, unsigned int flags, int &res, std::wstring &errMsg, int &ms) {
+        void COdbcImpl::Open(const CDBString &strConnection, unsigned int flags, int &res, CDBString &errMsg, int &ms) {
             res = 0;
             if ((flags & ENABLE_TABLE_UPDATE_MESSAGES) == ENABLE_TABLE_UPDATE_MESSAGES)
                 m_EnableMessages = GetPush().Subscribe(&STREAMING_SQL_CHAT_GROUP_ID, 1);
             if (m_pOdbc.get()) {
                 PushInfo(m_pOdbc.get());
                 if (strConnection.size()) {
-                    std::wstring sql;
+                    CDBString sql;
+#ifdef WIN32_64
                     if (m_dbms == L"microsoft sql server") {
                         sql = L"USE [" + strConnection + L"]";
                     } else if (m_dbms == L"mysql") {
                         sql = L"USE " + strConnection;
                     } else if (m_dbms == L"oracle") {
                         sql = L"ALTER SESSION SET current_schema=" + strConnection;
-                    } else if (m_dbms.find(L"db2") != std::wstring::npos) {
+                    } else if (m_dbms.find(L"db2") != CDBString::npos) {
                         sql = L"SET SCHEMA " + strConnection;
                     } else if (m_dbms.find(L"postgre") == 0) {
                         sql = L"SET search_path=" + strConnection;
                     }
+#else
+					if (m_dbms == u"microsoft sql server") {
+						sql = u"USE [" + strConnection + u"]";
+					}
+					else if (m_dbms == u"mysql") {
+						sql = u"USE " + strConnection;
+					}
+					else if (m_dbms == L"oracle") {
+						sql = u"ALTER SESSION SET current_schema=" + strConnection;
+					}
+					else if (m_dbms.find(u"db2") != CDBString::npos) {
+						sql = u"SET SCHEMA " + strConnection;
+					}
+					else if (m_dbms.find(u"postgre") == 0) {
+						sql = u"SET search_path=" + strConnection;
+					}
+#endif
                     if (sql.size()) {
                         SPA::INT64 affected = 0;
                         SPA::UDB::CDBVariant vtId;
@@ -334,7 +365,7 @@ namespace SPA
                     res = SQL_SUCCESS;
                 }
                 do {
-                    std::wstring db(strConnection);
+                    CDBString db(strConnection);
                     if (!db.size() || db == ODBC_GLOBAL_CONNECTION_STRING) {
                         m_csPeer.lock();
                         db = m_strGlobalConnection;
@@ -359,16 +390,16 @@ namespace SPA
                     }
 
                     if (ocs.database.size()) {
-                        std::string db = SPA::Utilities::ToUTF8(ocs.database.c_str(), ocs.database.size());
+                        std::string db = Utilities::ToUTF8(ocs.database.c_str(), ocs.database.size());
                         retcode = SQLSetConnectAttr(hdbc, SQL_ATTR_CURRENT_CATALOG, (SQLPOINTER) db.c_str(), (SQLINTEGER) (db.size() * sizeof (SQLCHAR)));
                     }
 
                     //retcode = SQLSetConnectAttr(hdbc, SQL_ATTR_ASYNC_ENABLE, (SQLPOINTER) (ocs.async ? SQL_ASYNC_ENABLE_ON : SQL_ASYNC_ENABLE_OFF), 0);
-                    //std::string host = SPA::Utilities::ToUTF8(ocs.host.c_str(), ocs.host.size());
-                    //std::string user = SPA::Utilities::ToUTF8(ocs.user.c_str(), ocs.user.size());
-                    //std::string pwd = SPA::Utilities::ToUTF8(ocs.password.c_str(), ocs.password.size());
+                    //std::string host = Utilities::ToUTF8(ocs.host.c_str(), ocs.host.size());
+                    //std::string user = Utilities::ToUTF8(ocs.user.c_str(), ocs.user.size());
+                    //std::string pwd = Utilities::ToUTF8(ocs.password.c_str(), ocs.password.size());
 
-                    std::string conn = SPA::Utilities::ToUTF8(ocs.connection_string.c_str(), ocs.connection_string.size());
+                    std::string conn = Utilities::ToUTF8(ocs.connection_string.c_str(), ocs.connection_string.size());
 
                     SPA::CScopeUQueue sb;
                     SQLCHAR *ConnStrIn = (SQLCHAR *) conn.c_str();
@@ -405,7 +436,7 @@ namespace SPA
             }
         }
 
-        void COdbcImpl::CloseDb(int &res, std::wstring & errMsg) {
+        void COdbcImpl::CloseDb(int &res, CDBString & errMsg) {
             if (m_EnableMessages) {
                 GetPush().Unsubscribe();
             }
@@ -413,7 +444,7 @@ namespace SPA
             res = SQL_SUCCESS;
         }
 
-        void COdbcImpl::BeginTrans(int isolation, const std::wstring &dbConn, unsigned int flags, int &res, std::wstring &errMsg, int &ms) {
+        void COdbcImpl::BeginTrans(int isolation, const CDBString &dbConn, unsigned int flags, int &res, CDBString &errMsg, int &ms) {
             ms = msODBC;
             if (m_ti != tiUnspecified || isolation == (int) tiUnspecified) {
                 errMsg = BAD_MANUAL_TRANSACTION_STATE;
@@ -467,7 +498,7 @@ namespace SPA
             }
         }
 
-        void COdbcImpl::EndTrans(int plan, int &res, std::wstring & errMsg) {
+        void COdbcImpl::EndTrans(int plan, int &res, CDBString & errMsg) {
             if (m_ti == tiUnspecified) {
                 errMsg = BAD_MANUAL_TRANSACTION_STATE;
                 res = SPA::Odbc::ER_BAD_MANUAL_TRANSACTION_STATE;
@@ -634,11 +665,11 @@ namespace SPA
             return true;
         }
 
-        void COdbcImpl::SetPrimaryKey(const std::wstring &dbName, const std::wstring &schema, const std::wstring &tableName, CDBColumnInfoArray & vCol) {
+        void COdbcImpl::SetPrimaryKey(const CDBString &dbName, const CDBString &schema, const CDBString &tableName, CDBColumnInfoArray & vCol) {
             CScopeUQueue sb;
             CUQueue &q = *sb;
             int res = 0;
-            std::wstring errMsg;
+            CDBString errMsg;
             SPA::UINT64 fail_ok = 0;
             do {
                 m_pNoSending = &q;
@@ -1088,6 +1119,7 @@ namespace SPA
             if (mapInfo.find(SQL_DBMS_NAME) != mapInfo.end()) {
                 m_dbms = mapInfo[SQL_DBMS_NAME].bstrVal;
                 std::transform(m_dbms.begin(), m_dbms.end(), m_dbms.begin(), ::tolower); //microsoft sql server, oracle, mysql
+#ifdef WIN32_64
                 if (m_dbms == L"microsoft sql server") {
                     m_msDriver = msMsSQL;
                 } else if (m_dbms == L"mysql") {
@@ -1099,6 +1131,23 @@ namespace SPA
                 } else if (m_dbms.find(L"postgre") == 0) {
                     m_msDriver = msPostgreSQL;
                 }
+#else
+				if (m_dbms == u"microsoft sql server") {
+					m_msDriver = msMsSQL;
+				}
+				else if (m_dbms == u"mysql") {
+					m_msDriver = msMysql;
+				}
+				else if (m_dbms == u"oracle") {
+					m_msDriver = msOracle;
+				}
+				else if (m_dbms.find(u"db2") != CDBString::npos) {
+					m_msDriver = msDB2;
+				}
+				else if (m_dbms.find(u"postgre") == 0) {
+					m_msDriver = msPostgreSQL;
+				}
+#endif
             } else {
                 m_dbms.clear();
             }
@@ -1249,38 +1298,42 @@ namespace SPA
         }
 
         bool COdbcImpl::PreprocessPreparedStatement() {
-            std::wstring s = m_sqlPrepare;
-            if (s.size() && s.front() == L'{' && s.back() == L'}') {
+            CDBString s = m_sqlPrepare;
+            if (s.size() && s.front() == '{' && s.back() == '}') {
                 s.pop_back();
                 s.erase(s.begin(), s.begin() + 1);
                 Utilities::Trim(s);
             }
-            m_bReturn = (s.front() == L'?');
+            m_bReturn = (s.front() == '?');
             if (m_bReturn) {
                 s.erase(s.begin(), s.begin() + 1); //remove '?'
                 Utilities::Trim(s);
-                if (s.front() != L'=')
+                if (s.front() != '=')
                     return false;
                 s.erase(s.begin(), s.begin() + 1); //remove '='
                 Utilities::Trim(s);
             }
-            std::wstring s_copy = s;
+            CDBString s_copy = s;
             transform(s.begin(), s.end(), s.begin(), ::tolower);
+#ifdef WIN32_64
             m_bCall = (s.find(L"call ") == 0);
+#else
+			m_bCall = (s.find(u"call ") == 0);
+#endif
             if (m_bCall) {
-                auto pos = s_copy.find(L'(');
-                if (pos != std::wstring::npos) {
-                    if (s_copy.back() != L')')
+                auto pos = s_copy.find('(');
+                if (pos != CDBString::npos) {
+                    if (s_copy.back() != ')')
                         return false;
                     m_procName.assign(s_copy.begin() + 5, s_copy.begin() + pos);
                 } else {
-                    if (s_copy.back() == L')')
+                    if (s_copy.back() == ')')
                         return false;
                     m_procName = s_copy.substr(5);
                 }
                 Utilities::Trim(m_procName);
-                pos = m_procName.rfind(L'.');
-                if (pos != std::wstring::npos) {
+                pos = m_procName.rfind('.');
+                if (pos != CDBString::npos) {
                     m_procCatalogSchema = m_procName.substr(0, pos);
                     Utilities::Trim(m_procCatalogSchema);
                     m_procName = m_procName.substr(pos + 1);
@@ -1415,7 +1468,7 @@ namespace SPA
             }
         }
 
-        bool COdbcImpl::PushRecords(SQLHSTMT hstmt, int &res, std::wstring & errMsg) {
+        bool COdbcImpl::PushRecords(SQLHSTMT hstmt, int &res, CDBString & errMsg) {
             assert(!m_Blob.GetSize());
             m_Blob.SetSize(0);
             unsigned int size = DEFAULT_BIG_FIELD_CHUNK_SIZE;
@@ -1610,7 +1663,7 @@ namespace SPA
             return true;
         }
 
-        bool COdbcImpl::PushRecords(SQLHSTMT hstmt, const CDBColumnInfoArray &vColInfo, bool output, int &res, std::wstring & errMsg) {
+        bool COdbcImpl::PushRecords(SQLHSTMT hstmt, const CDBColumnInfoArray &vColInfo, bool output, int &res, CDBString & errMsg) {
             SQLRETURN retcode;
             CScopeUQueue sbTemp(MY_OPERATION_SYSTEM, SPA::IsBigEndian(), DEFAULT_BIG_FIELD_CHUNK_SIZE);
             size_t fields = vColInfo.size();
@@ -1992,7 +2045,7 @@ namespace SPA
             return true;
         }
 
-        void COdbcImpl::DoSQLColumnPrivileges(const std::wstring& catalogName, const std::wstring& schemaName, const std::wstring& tableName, const std::wstring& columnName, UINT64 index, int &res, std::wstring &errMsg, UINT64 & fail_ok) {
+        void COdbcImpl::DoSQLColumnPrivileges(const CDBString& catalogName, const CDBString& schemaName, const CDBString& tableName, const CDBString& columnName, UINT64 index, int &res, CDBString &errMsg, UINT64 & fail_ok) {
             fail_ok = 0;
             if (!m_pOdbc) {
                 res = SPA::Odbc::ER_NO_DB_OPENED_YET;
@@ -2059,7 +2112,7 @@ namespace SPA
             fail_ok += (unsigned int) (m_oks - oks);
         }
 
-        void COdbcImpl::DoSQLTables(const std::wstring& catalogName, const std::wstring& schemaName, const std::wstring& tableName, const std::wstring& tableType, UINT64 index, int &res, std::wstring &errMsg, UINT64 & fail_ok) {
+        void COdbcImpl::DoSQLTables(const CDBString& catalogName, const CDBString& schemaName, const CDBString& tableName, const CDBString& tableType, UINT64 index, int &res, CDBString &errMsg, UINT64 & fail_ok) {
             fail_ok = 0;
             if (!m_pOdbc) {
                 res = SPA::Odbc::ER_NO_DB_OPENED_YET;
@@ -2126,7 +2179,7 @@ namespace SPA
             fail_ok += (unsigned int) (m_oks - oks);
         }
 
-        void COdbcImpl::DoSQLColumns(const std::wstring& catalogName, const std::wstring& schemaName, const std::wstring& tableName, const std::wstring& columnName, UINT64 index, int &res, std::wstring &errMsg, UINT64 & fail_ok) {
+        void COdbcImpl::DoSQLColumns(const CDBString& catalogName, const CDBString& schemaName, const CDBString& tableName, const CDBString& columnName, UINT64 index, int &res, CDBString &errMsg, UINT64 & fail_ok) {
             fail_ok = 0;
             if (!m_pOdbc) {
                 res = SPA::Odbc::ER_NO_DB_OPENED_YET;
@@ -2193,7 +2246,7 @@ namespace SPA
             fail_ok += (unsigned int) (m_oks - oks);
         }
 
-        void COdbcImpl::DoSQLProcedureColumns(const std::wstring& catalogName, const std::wstring& schemaName, const std::wstring& procName, const std::wstring& columnName, UINT64 index, int &res, std::wstring &errMsg, UINT64 & fail_ok) {
+        void COdbcImpl::DoSQLProcedureColumns(const CDBString& catalogName, const CDBString& schemaName, const CDBString& procName, const CDBString& columnName, UINT64 index, int &res, CDBString &errMsg, UINT64 & fail_ok) {
             fail_ok = 0;
             if (!m_pOdbc) {
                 res = SPA::Odbc::ER_NO_DB_OPENED_YET;
@@ -2262,7 +2315,7 @@ namespace SPA
             fail_ok += (unsigned int) (m_oks - oks);
         }
 
-        void COdbcImpl::DoSQLPrimaryKeys(const std::wstring& catalogName, const std::wstring& schemaName, const std::wstring& tableName, UINT64 index, int &res, std::wstring &errMsg, UINT64 & fail_ok) {
+        void COdbcImpl::DoSQLPrimaryKeys(const CDBString& catalogName, const CDBString& schemaName, const CDBString& tableName, UINT64 index, int &res, CDBString &errMsg, UINT64 & fail_ok) {
             fail_ok = 0;
             if (!m_pOdbc) {
                 res = SPA::Odbc::ER_NO_DB_OPENED_YET;
@@ -2328,7 +2381,7 @@ namespace SPA
             fail_ok += (unsigned int) (m_oks - oks);
         }
 
-        void COdbcImpl::DoSQLTablePrivileges(const std::wstring& catalogName, const std::wstring& schemaName, const std::wstring& tableName, UINT64 index, int &res, std::wstring &errMsg, UINT64 & fail_ok) {
+        void COdbcImpl::DoSQLTablePrivileges(const CDBString& catalogName, const CDBString& schemaName, const CDBString& tableName, UINT64 index, int &res, CDBString &errMsg, UINT64 & fail_ok) {
             fail_ok = 0;
             if (!m_pOdbc) {
                 res = SPA::Odbc::ER_NO_DB_OPENED_YET;
@@ -2393,7 +2446,7 @@ namespace SPA
             fail_ok += (unsigned int) (m_oks - oks);
         }
 
-        void COdbcImpl::DoSQLStatistics(const std::wstring& catalogName, const std::wstring& schemaName, const std::wstring& tableName, SQLUSMALLINT unique, SQLUSMALLINT reserved, UINT64 index, int &res, std::wstring &errMsg, UINT64 & fail_ok) {
+        void COdbcImpl::DoSQLStatistics(const CDBString& catalogName, const CDBString& schemaName, const CDBString& tableName, SQLUSMALLINT unique, SQLUSMALLINT reserved, UINT64 index, int &res, CDBString &errMsg, UINT64 & fail_ok) {
             fail_ok = 0;
             if (!m_pOdbc) {
                 res = SPA::Odbc::ER_NO_DB_OPENED_YET;
@@ -2458,7 +2511,7 @@ namespace SPA
             fail_ok += (unsigned int) (m_oks - oks);
         }
 
-        void COdbcImpl::DoSQLProcedures(const std::wstring& catalogName, const std::wstring& schemaName, const std::wstring& procName, UINT64 index, int &res, std::wstring &errMsg, UINT64 & fail_ok) {
+        void COdbcImpl::DoSQLProcedures(const CDBString& catalogName, const CDBString& schemaName, const CDBString& procName, UINT64 index, int &res, CDBString &errMsg, UINT64 & fail_ok) {
             fail_ok = 0;
             if (!m_pOdbc) {
                 res = SPA::Odbc::ER_NO_DB_OPENED_YET;
@@ -2523,7 +2576,7 @@ namespace SPA
             fail_ok += (unsigned int) (m_oks - oks);
         }
 
-        void COdbcImpl::DoSQLSpecialColumns(SQLSMALLINT identifierType, const std::wstring& catalogName, const std::wstring& schemaName, const std::wstring& tableName, SQLSMALLINT scope, SQLSMALLINT nullable, UINT64 index, int &res, std::wstring &errMsg, UINT64 & fail_ok) {
+        void COdbcImpl::DoSQLSpecialColumns(SQLSMALLINT identifierType, const CDBString& catalogName, const CDBString& schemaName, const CDBString& tableName, SQLSMALLINT scope, SQLSMALLINT nullable, UINT64 index, int &res, CDBString &errMsg, UINT64 & fail_ok) {
             fail_ok = 0;
             if (!m_pOdbc) {
                 res = SPA::Odbc::ER_NO_DB_OPENED_YET;
@@ -2588,7 +2641,7 @@ namespace SPA
             fail_ok += (unsigned int) (m_oks - oks);
         }
 
-        void COdbcImpl::DoSQLForeignKeys(const std::wstring& pkCatalogName, const std::wstring& pkSchemaName, const std::wstring& pkTableName, const std::wstring& fkCatalogName, const std::wstring& fkSchemaName, const std::wstring& fkTableName, UINT64 index, int &res, std::wstring &errMsg, UINT64 & fail_ok) {
+        void COdbcImpl::DoSQLForeignKeys(const CDBString& pkCatalogName, const CDBString& pkSchemaName, const CDBString& pkTableName, const CDBString& fkCatalogName, const CDBString& fkSchemaName, const CDBString& fkTableName, UINT64 index, int &res, CDBString &errMsg, UINT64 & fail_ok) {
             fail_ok = 0;
             if (!m_pOdbc) {
                 res = SPA::Odbc::ER_NO_DB_OPENED_YET;
@@ -2659,16 +2712,20 @@ namespace SPA
             fail_ok += (unsigned int) (m_oks - oks);
         }
 
-        std::wstring COdbcImpl::GenerateMsSqlForCachedTables() {
+        CDBString COdbcImpl::GenerateMsSqlForCachedTables() {
             CScopeUQueue sb;
             CUQueue &q = *sb;
             bool rowset = true, lastInsertId = true;
             UINT64 index = 0, fail_ok = 0;
             INT64 affected = 0;
             int res = 0;
-            std::wstring errMsg, strSqlCache;
+            CDBString errMsg, strSqlCache;
             CDBVariant vtId;
-            std::wstring sql = L"SELECT name FROM master.dbo.sysdatabases where name NOT IN('master','tempdb','model','msdb')";
+#ifdef WIN32_64
+            CDBString sql = L"SELECT name FROM master.dbo.sysdatabases where name NOT IN('master','tempdb','model','msdb')";
+#else
+			CDBString sql = u"SELECT name FROM master.dbo.sysdatabases where name NOT IN('master','tempdb','model','msdb')";
+#endif
             m_pNoSending = &q;
             do {
                 Execute(sql, rowset, false, lastInsertId, index, affected, res, errMsg, vtId, fail_ok);
@@ -2681,18 +2738,26 @@ namespace SPA
                     vDb.push_back(std::move(vt));
                 }
                 for (auto it = vDb.cbegin(), end = vDb.cend(); it != end; ++it) {
-                    sql = L"USE [";
+#ifdef WIN32_64
+					sql = L"USE [";
                     sql += it->bstrVal;
                     sql += L"];";
                     sql += L"select object_schema_name(parent_id),OBJECT_NAME(parent_id)from sys.assembly_modules as am,sys.triggers as t where t.object_id=am.object_id and assembly_method like 'PublishDMLEvent%' and assembly_class='USqlStream'";
-                    Execute(sql, rowset, false, lastInsertId, index, affected, res, errMsg, vtId, fail_ok);
+#else
+					sql = u"USE [";
+					sql += Utilities::ToUTF16(it->bstrVal);
+					sql += u"];";
+					sql += u"select object_schema_name(parent_id),OBJECT_NAME(parent_id)from sys.assembly_modules as am,sys.triggers as t where t.object_id=am.object_id and assembly_method like 'PublishDMLEvent%' and assembly_class='USqlStream'";
+#endif
+					Execute(sql, rowset, false, lastInsertId, index, affected, res, errMsg, vtId, fail_ok);
                     if (res)
                         continue;
                     if (strSqlCache.size())
-                        strSqlCache.push_back(L';');
+                        strSqlCache.push_back(';');
                     CDBVariant vtSchema, vtTable;
                     while (q.GetSize()) {
                         q >> vtSchema >> vtTable;
+#ifdef WIN32_64
                         strSqlCache += L"SELECT * FROM [";
                         strSqlCache += it->bstrVal;
                         strSqlCache += L"].[";
@@ -2700,18 +2765,31 @@ namespace SPA
                         strSqlCache += L"].[";
                         strSqlCache += vtTable.bstrVal;
                         strSqlCache += L"] FOR BROWSE";
+#else
+						strSqlCache += u"SELECT * FROM [";
+						strSqlCache += Utilities::ToUTF16(it->bstrVal);
+						strSqlCache += u"].[";
+						strSqlCache += Utilities::ToUTF16(vtSchema.bstrVal);
+						strSqlCache += u"].[";
+						strSqlCache += Utilities::ToUTF16(vtTable.bstrVal);
+						strSqlCache += u"] FOR BROWSE";
+#endif
                         if (q.GetSize())
-                            strSqlCache.push_back(L';');
+                            strSqlCache.push_back(';');
                     }
                 }
             } while (false);
+#ifdef WIN32_64
             sql = L"USE [" + m_dbName + L"]";
+#else
+			sql = u"USE [" + m_dbName + u"]";
+#endif
             Execute(sql, false, false, lastInsertId, index, affected, res, errMsg, vtId, fail_ok);
             m_pNoSending = nullptr;
             return strSqlCache;
         }
 
-        void COdbcImpl::Execute(const std::wstring& wsql, bool rowset, bool meta, bool lastInsertId, UINT64 index, INT64 &affected, int &res, std::wstring &errMsg, CDBVariant &vtId, UINT64 & fail_ok) {
+        void COdbcImpl::Execute(const CDBString& wsql, bool rowset, bool meta, bool lastInsertId, UINT64 index, INT64 &affected, int &res, CDBString &errMsg, CDBVariant &vtId, UINT64 & fail_ok) {
             affected = 0;
             fail_ok = 0;
             ResetMemories();
@@ -2725,7 +2803,7 @@ namespace SPA
             } else {
                 res = SQL_SUCCESS;
             }
-            std::wstring sql = wsql;
+            CDBString sql = wsql;
             if (m_EnableMessages && !sql.size()) {
                 switch (m_msDriver) {
                     case msMsSQL:
@@ -2829,8 +2907,9 @@ namespace SPA
             fail_ok += (unsigned int) (m_oks - oks);
         }
 
-        void COdbcImpl::SetOracleCallParams(const std::vector<tagParameterDirection> &vPD, int &res, std::wstring & errMsg) {
-            std::wstring sql(L"SELECT in_out,data_type FROM SYS.ALL_ARGUMENTS WHERE data_type<>'REF CURSOR' AND owner='");
+        void COdbcImpl::SetOracleCallParams(const std::vector<tagParameterDirection> &vPD, int &res, CDBString & errMsg) {
+#ifdef WIN32_64
+			CDBString sql(L"SELECT in_out,data_type FROM SYS.ALL_ARGUMENTS WHERE data_type<>'REF CURSOR' AND owner='");
             std::transform(m_userName.begin(), m_userName.end(), m_userName.begin(), ::toupper);
             sql += m_userName;
             sql += L"' AND object_name='";
@@ -2845,7 +2924,24 @@ namespace SPA
                 sql += L"' AND package_name IS NULL";
             }
             sql += L" ORDER BY position";
-
+#else
+			CDBString sql(u"SELECT in_out,data_type FROM SYS.ALL_ARGUMENTS WHERE data_type<>'REF CURSOR' AND owner='");
+			std::transform(m_userName.begin(), m_userName.end(), m_userName.begin(), ::toupper);
+			sql += m_userName;
+			sql += u"' AND object_name='";
+			std::transform(m_procName.begin(), m_procName.end(), m_procName.begin(), ::toupper);
+			sql += m_procName;
+			if (m_procCatalogSchema.size()) {
+				sql += u"' AND package_name='";
+				std::transform(m_procCatalogSchema.begin(), m_procCatalogSchema.end(), m_procCatalogSchema.begin(), ::toupper);
+				sql += m_procCatalogSchema;
+				sql += u"'";
+			}
+			else {
+				sql += u"' AND package_name IS NULL";
+			}
+			sql += u" ORDER BY position";
+#endif
             CDBVariant vtId;
             UINT64 index = 0, fail_ok = 0;
             INT64 affected = 0;
@@ -2953,12 +3049,12 @@ namespace SPA
             }
         }
 
-        void COdbcImpl::SetCallParams(const std::vector<tagParameterDirection> &vPD, int &res, std::wstring & errMsg) {
+        void COdbcImpl::SetCallParams(const std::vector<tagParameterDirection> &vPD, int &res, CDBString & errMsg) {
             res = 0;
             UINT64 index = 0, fail_ok = 0;
-            std::wstring column, schema, catalog;
+            CDBString column, schema, catalog;
             std::size_t pos = m_procCatalogSchema.find(L'.');
-            if (pos != std::wstring::npos) {
+            if (pos != CDBString::npos) {
                 schema = m_procCatalogSchema.substr(pos + 1);
                 catalog = m_procCatalogSchema.substr(0, pos);
             } else {
@@ -3116,7 +3212,7 @@ namespace SPA
             }
         }
 
-        void COdbcImpl::Prepare(const std::wstring& wsql, CParameterInfoArray& params, int &res, std::wstring &errMsg, unsigned int &parameters) {
+        void COdbcImpl::Prepare(const CDBString& wsql, CParameterInfoArray& params, int &res, CDBString &errMsg, unsigned int &parameters) {
             ResetMemories();
             m_vPInfo = params;
             parameters = 0;
@@ -4118,15 +4214,15 @@ namespace SPA
             }
         }
 
-        std::vector<std::wstring> COdbcImpl::Split(const std::wstring &sql, const std::wstring & delimiter) {
-            std::vector<std::wstring> v;
+        std::vector<CDBString> COdbcImpl::Split(const CDBString &sql, const CDBString & delimiter) {
+            std::vector<CDBString> v;
             size_t d_len = delimiter.size();
             if (d_len) {
-                const wchar_t quote = '\'', slash = '\\', done = delimiter[0];
+                const UTF16 quote = '\'', slash = '\\', done = delimiter[0];
                 size_t params = 0, len = sql.size();
                 bool b_slash = false, balanced = true;
                 for (size_t n = 0; n < len; ++n) {
-                    const wchar_t &c = sql[n];
+                    const UTF16 &c = sql[n];
                     if (c == slash) {
                         b_slash = true;
                         continue;
@@ -4156,16 +4252,16 @@ namespace SPA
             return v;
         }
 
-        std::vector<tagParameterDirection> COdbcImpl::GetCallDirections(const std::wstring & sql) {
+        std::vector<tagParameterDirection> COdbcImpl::GetCallDirections(const CDBString & sql) {
             bool quest = false;
             bool parenthesis = false;
             bool not_empty = false;
             std::vector<tagParameterDirection> vPD;
-            const wchar_t quote = L'\'', slash = L'\\', coma = L',', question = L'?';
+            const UTF16 quote = L'\'', slash = L'\\', coma = L',', question = L'?';
             bool b_slash = false, balanced = true;
             size_t len = sql.size();
             for (size_t n = 0; n < len; ++n) {
-                const wchar_t &c = sql[n];
+                const UTF16 &c = sql[n];
                 if (!parenthesis && c == L'(') {
                     parenthesis = true;
                     quest = false;
@@ -4201,12 +4297,12 @@ namespace SPA
             return vPD;
         }
 
-        size_t COdbcImpl::ComputeParameters(const std::wstring & sql) {
-            const wchar_t quote = L'\'', slash = L'\\', question = L'?';
+        size_t COdbcImpl::ComputeParameters(const CDBString & sql) {
+            const UTF16 quote = L'\'', slash = L'\\', question = L'?';
             bool b_slash = false, balanced = true;
             size_t params = 0, len = sql.size();
             for (size_t n = 0; n < len; ++n) {
-                const wchar_t &c = sql[n];
+                const UTF16 &c = sql[n];
                 if (c == slash) {
                     b_slash = true;
                     continue;
@@ -4247,7 +4343,7 @@ namespace SPA
             return v;
         }
 
-        void COdbcImpl::ExecuteBatch(const std::wstring& sql, const std::wstring& delimiter, int isolation, int plan, bool rowset, bool meta, bool lastInsertId, const std::wstring &dbConn, unsigned int flags, UINT64 callIndex, INT64 &affected, int &res, std::wstring &errMsg, CDBVariant &vtId, UINT64 & fail_ok) {
+        void COdbcImpl::ExecuteBatch(const CDBString& sql, const CDBString& delimiter, int isolation, int plan, bool rowset, bool meta, bool lastInsertId, const CDBString &dbConn, unsigned int flags, UINT64 callIndex, INT64 &affected, int &res, CDBString &errMsg, CDBVariant &vtId, UINT64 & fail_ok) {
             CParameterInfoArray vPInfo;
             m_UQueue >> vPInfo;
             res = 0;
@@ -4258,7 +4354,7 @@ namespace SPA
                 Open(dbConn, flags, res, errMsg, ms);
             }
             size_t parameters = 0;
-            std::vector<std::wstring> vSql = Split(sql, delimiter);
+            std::vector<CDBString> vSql = Split(sql, delimiter);
             for (auto it = vSql.cbegin(), end = vSql.cend(); it != end; ++it) {
                 parameters += ComputeParameters(*it);
             }
@@ -4328,7 +4424,7 @@ namespace SPA
             m_vParam.swap(vAll);
             INT64 aff = 0;
             int r = 0;
-            std::wstring err;
+            CDBString err;
             UINT64 fo = 0;
             size_t pos = 0;
             for (auto it = vSql.begin(), end = vSql.end(); it != end; ++it) {
@@ -4383,7 +4479,7 @@ namespace SPA
             }
         }
 
-        void COdbcImpl::ExecuteParameters(bool rowset, bool meta, bool lastInsertId, UINT64 index, INT64 &affected, int &res, std::wstring &errMsg, CDBVariant &vtId, UINT64 & fail_ok) {
+        void COdbcImpl::ExecuteParameters(bool rowset, bool meta, bool lastInsertId, UINT64 index, INT64 &affected, int &res, CDBString &errMsg, CDBVariant &vtId, UINT64 & fail_ok) {
             fail_ok = 0;
             affected = 0;
             UINT64 fails = m_fails;
@@ -4467,17 +4563,13 @@ namespace SPA
                         int temp;
                         do {
                             temp = 0;
-                            std::wstring errTemp;
+                            CDBString errTemp;
                             SQLSMALLINT columns = 0;
                             retcode = SQLNumResultCols(m_pPrepare.get(), &columns);
                             assert(SQL_SUCCEEDED(retcode));
                             if (columns) {
                                 CDBColumnInfoArray vInfo = GetColInfo(m_pPrepare.get(), columns, meta);
-#ifdef WIN32_64
                                 bool output = (m_bCall && vInfo[0].TablePath == m_procName && (size_t) m_parameters >= vInfo.size());
-#else
-                                bool output = (m_bCall && vInfo[0].TablePath == Utilities::ToUTF16(m_procName) && (size_t) m_parameters >= vInfo.size());
-#endif
                                 if (output || rowset || meta) {
                                     unsigned int outputs = output ? ((unsigned int) vInfo.size()) : 0;
                                     unsigned int ret = SendResult(idRowsetHeader, vInfo, index, outputs);
@@ -4640,10 +4732,16 @@ namespace SPA
             assert(q.GetSize() == 0);
         }
 
-        void COdbcImpl::GetErrMsg(SQLSMALLINT HandleType, SQLHANDLE Handle, std::wstring & errMsg) {
-            static std::wstring SQLSTATE(L"SQLSTATE=");
-            static std::wstring NATIVE_ERROR(L":NATIVE=");
-            static std::wstring ERROR_MESSAGE(L":ERROR_MESSAGE=");
+        void COdbcImpl::GetErrMsg(SQLSMALLINT HandleType, SQLHANDLE Handle, CDBString & errMsg) {
+#ifdef WIN32_64
+            static CDBString SQLSTATE(L"SQLSTATE=");
+            static CDBString NATIVE_ERROR(L":NATIVE=");
+            static CDBString ERROR_MESSAGE(L":ERROR_MESSAGE=");
+#else
+			static CDBString SQLSTATE(u"SQLSTATE=");
+			static CDBString NATIVE_ERROR(u":NATIVE=");
+			static CDBString ERROR_MESSAGE(u":ERROR_MESSAGE=");
+#endif
             errMsg.clear();
             SQLSMALLINT i = 1, MsgLen = 0;
             SQLINTEGER NativeError = 0;
@@ -4652,11 +4750,19 @@ namespace SPA
             {0};
             SQLRETURN res = SQLGetDiagRec(HandleType, Handle, i, SqlState, &NativeError, Msg, sizeof (Msg) / sizeof (SQLCHAR), &MsgLen);
             while (res != SQL_NO_DATA) {
+#ifdef WIN32_64
                 if (errMsg.size())
                     errMsg += L";";
                 errMsg += (SQLSTATE + SPA::Utilities::ToWide((const char*) SqlState));
                 errMsg += (NATIVE_ERROR + std::to_wstring((INT64) NativeError));
                 errMsg += (ERROR_MESSAGE + SPA::Utilities::ToWide((const char*) Msg));
+#else
+				if (errMsg.size())
+					errMsg += u";";
+				errMsg += (SQLSTATE + SPA::Utilities::ToUTF16((const char*)SqlState));
+				errMsg += (NATIVE_ERROR + Utilities::ToUTF16(std::to_string((INT64)NativeError)));
+				errMsg += (ERROR_MESSAGE + SPA::Utilities::ToUTF16((const char*)Msg));
+#endif
                 ::memset(Msg, 0, sizeof (Msg));
                 ++i;
                 MsgLen = 0;
