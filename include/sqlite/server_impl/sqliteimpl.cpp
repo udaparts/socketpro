@@ -1506,515 +1506,523 @@ namespace SPA
                 m_ti = tiUnspecified;
                 m_fails = 0;
                 m_oks = 0;
-            } else
+            } else {
 #ifdef WIN32_64
                 errMsg = Utilities::ToWide(zErrMsg);
 #else
                 errMsg = Utilities::ToUTF16(zErrMsg);
 #endif
-            if ((m_nParam & Sqlite::DO_NOT_USE_EXTENDED_ERROR_CODE) != Sqlite::DO_NOT_USE_EXTENDED_ERROR_CODE) {
-                res = sqlite3_extended_errcode(db);
-            }
-            sqlite3_free(zErrMsg);
-        }
-    }
-
-    bool CSqliteImpl::SubscribeForEvents(sqlite3 *db, const CDBString & strConnection) {
-        std::string dbfile = SPA::Utilities::ToUTF8(strConnection.c_str(), strConnection.size());
-        if (!InCache(dbfile))
-            return true;
-        int rc = sqlite3_create_function(db, DIU_TRIGGER_FUNC.c_str(), -1, SQLITE_UTF16, this, XFunc, nullptr, nullptr);
-        return (rc == SQLITE_OK);
-    }
-
-    int CSqliteImpl::DoSafeOpen(const CDBString &strConnection, unsigned int flags) {
-        if ((flags & SPA::UDB::ENABLE_TABLE_UPDATE_MESSAGES) == SPA::UDB::ENABLE_TABLE_UPDATE_MESSAGES) {
-            m_EnableMessages = GetPush().Subscribe(&SPA::UDB::STREAMING_SQL_CHAT_GROUP_ID, 1);
-        }
-        int res = SQLITE_OK;
-        bool bUTF16 = false; //((Sqlite::USE_UTF16_ENCODING & m_nParam) == Sqlite::USE_UTF16_ENCODING);
-        sqlite3 *db = nullptr;
-        CScopeUQueue sb;
-        do {
-            if (bUTF16) {
-                res = sqlite3_open16(strConnection.c_str(), &db);
-            } else {
-                Utilities::ToUTF8(strConnection.c_str(), strConnection.size(), *sb);
-                res = sqlite3_open((const char*) sb->GetBuffer(), &db);
-            }
-            if (res == SQLITE_BUSY || res == SQLITE_LOCKED) {
-                sqlite3_sleep(SLEEP_TIME);
-                if (db) {
-                    int ret = sqlite3_close_v2(db);
-                    assert(ret == SQLITE_OK);
-                    db = nullptr;
-                }
-                if (!IsOpened() || IsCanceled()) {
-                    break;
-                }
-            } else {
-                bool ok = SubscribeForEvents(db, strConnection);
-                assert(ok);
-                break;
-            }
-        } while (true);
-        m_pSqlite.reset(db, [](sqlite3 * p) {
-            if (p) {
-                int ret = sqlite3_close_v2(p);
-                assert(ret == SQLITE_OK);
-            }
-        });
-        return res;
-    }
-
-    void CSqliteImpl::Open(const CDBString &strConn, unsigned int flags, int &res, CDBString &errMsg, int &ms) {
-        ms = msSqlite;
-        m_vPreparedStatements.clear();
-        m_pSqlite.reset();
-        ResetMemories();
-        std::wstring strConnection = strConn;
-#ifdef WIN32_64
-        std::transform(strConnection.begin(), strConnection.end(), strConnection.begin(), ::tolower);
-#endif
-        if (strConnection.size()) {
-            m_global = false;
-        } else {
-            m_csPeer.lock();
-            strConnection = m_strGlobalConnection;
-            m_csPeer.unlock();
-            m_global = true;
-        }
-        if (!strConnection.size()) {
-            res = SPA::Sqlite::SQLITE_NO_DB_FILE_SPECIFIED;
-            errMsg = NO_DB_FILE_SPECIFIED;
-            return;
-        }
-        res = DoSafeOpen(strConnection, flags);
-        sqlite3 *db = m_pSqlite.get();
-        if (res) {
-            if (db) {
-                const char *str = sqlite3_errmsg(db);
-                errMsg = Utilities::ToWide(str);
                 if ((m_nParam & Sqlite::DO_NOT_USE_EXTENDED_ERROR_CODE) != Sqlite::DO_NOT_USE_EXTENDED_ERROR_CODE) {
                     res = sqlite3_extended_errcode(db);
                 }
+                sqlite3_free(zErrMsg);
             }
-            return;
-        } else if (!m_global) {
-            const char *str = sqlite3_db_filename(db, nullptr);
-            errMsg = Utilities::ToWide(str);
-        } else {
-            errMsg = strConnection;
         }
-    }
 
-    void CSqliteImpl::SetPrecisionScale(const std::string& str, CDBColumnInfo & info) {
-        size_t pos = str.find('(');
-        if (pos != (size_t) - 1) {
-            info.Precision = (unsigned char) std::atoi(str.c_str() + pos + 1);
+        bool CSqliteImpl::SubscribeForEvents(sqlite3 *db, const CDBString & strConnection) {
+            std::string dbfile = SPA::Utilities::ToUTF8(strConnection.c_str(), strConnection.size());
+            if (!InCache(dbfile))
+                return true;
+            int rc = sqlite3_create_function(db, DIU_TRIGGER_FUNC.c_str(), -1, SQLITE_UTF16, this, XFunc, nullptr, nullptr);
+            return (rc == SQLITE_OK);
         }
-        pos = str.find(',', pos + 1);
-        if (pos != (size_t) - 1) {
-            info.Scale = (unsigned char) std::atoi(str.c_str() + pos + 1);
-        }
-    }
 
-    void CSqliteImpl::SetLen(const std::string& str, CDBColumnInfo & info) {
-        size_t pos = str.find('(');
-        if (pos != (size_t) - 1) {
-            info.ColumnSize = (unsigned int) std::atoi(str.c_str() + pos + 1);
+        int CSqliteImpl::DoSafeOpen(const CDBString &strConnection, unsigned int flags) {
+            if ((flags & SPA::UDB::ENABLE_TABLE_UPDATE_MESSAGES) == SPA::UDB::ENABLE_TABLE_UPDATE_MESSAGES) {
+                m_EnableMessages = GetPush().Subscribe(&SPA::UDB::STREAMING_SQL_CHAT_GROUP_ID, 1);
+            }
+            int res = SQLITE_OK;
+            bool bUTF16 = false; //((Sqlite::USE_UTF16_ENCODING & m_nParam) == Sqlite::USE_UTF16_ENCODING);
+            sqlite3 *db = nullptr;
+            CScopeUQueue sb;
+            do {
+                if (bUTF16) {
+                    res = sqlite3_open16(strConnection.c_str(), &db);
+                } else {
+                    Utilities::ToUTF8(strConnection.c_str(), strConnection.size(), *sb);
+                    res = sqlite3_open((const char*) sb->GetBuffer(), &db);
+                }
+                if (res == SQLITE_BUSY || res == SQLITE_LOCKED) {
+                    sqlite3_sleep(SLEEP_TIME);
+                    if (db) {
+                        int ret = sqlite3_close_v2(db);
+                        assert(ret == SQLITE_OK);
+                        db = nullptr;
+                    }
+                    if (!IsOpened() || IsCanceled()) {
+                        break;
+                    }
+                } else {
+                    bool ok = SubscribeForEvents(db, strConnection);
+                    assert(ok);
+                    break;
+                }
+            } while (true);
+            m_pSqlite.reset(db, [](sqlite3 * p) {
+                if (p) {
+                    int ret = sqlite3_close_v2(p);
+                    assert(ret == SQLITE_OK);
+                }
+            });
+            return res;
         }
-    }
 
-    void CSqliteImpl::SetDataType(const char *str, CDBColumnInfo & info) {
-        if (str) {
-            std::string datatype(str);
-            std::transform(datatype.begin(), datatype.end(), datatype.begin(), ::toupper);
-            if (datatype.find("DOUBLE") != (size_t) - 1) {
-                info.DataType = VT_R8;
-            } else if (datatype.find("REAL") != (size_t) - 1) {
-                info.DataType = VT_R8;
-            } else if (datatype.find("BIGINT") != (size_t) - 1) {
-                info.DataType = VT_I8;
-            } else if (datatype.find("UNSIGNED") != (size_t) - 1) {
-                info.DataType = VT_UI8;
-            } else if (datatype.find("BIGINT") != (size_t) - 1) {
-                info.DataType = VT_I8;
-            } else if (datatype.find("INT8") != (size_t) - 1) {
-                info.DataType = VT_I8;
-            } else if (datatype.find("TINYINT") != (size_t) - 1) {
-                info.DataType = VT_I1;
-            } else if (datatype.find("SMALLINT") != (size_t) - 1) {
-                info.DataType = VT_I2;
-            } else if (datatype.find("INT2") != (size_t) - 1) {
-                info.DataType = VT_I2;
-            } else if (datatype.find("FLOAT") != (size_t) - 1) {
-                info.DataType = VT_R8;
-            } else if (datatype.find("BLOB") != (size_t) - 1) {
-                info.DataType = (VT_UI1 | VT_ARRAY);
-                info.ColumnSize = -1;
-            } else if (datatype.find("NTEXT") != (size_t) - 1) {
-                info.DataType = VT_BSTR;
-                info.ColumnSize = -1;
-            } else if (datatype.find("TEXT") != (size_t) - 1) {
-                info.DataType = (VT_I1 | VT_ARRAY);
-                info.ColumnSize = -1;
-            } else if (datatype.find("CLOB") != (size_t) - 1) {
-                info.DataType = (VT_I1 | VT_ARRAY);
-                info.ColumnSize = -1;
-            } else if (datatype.find("BOOLEAN") != (size_t) - 1) {
-                info.DataType = VT_BOOL;
-            } else if (datatype.find("DATETIME") != (size_t) - 1) {
-                info.DataType = VT_DATE;
-            } else if (datatype.find("DATE") != (size_t) - 1) {
-                info.DataType = VT_DATE;
-            } else if (datatype.find("TIME") != (size_t) - 1) {
-                info.DataType = VT_DATE;
-            } else if (datatype.find("NUM") != (size_t) - 1) {
-                info.DataType = VT_R8;
-                SetPrecisionScale(datatype, info);
-            } else if (datatype.find("DEC") != (size_t) - 1) {
-                info.DataType = VT_R8;
-                SetPrecisionScale(datatype, info);
-            } else if (datatype.find("MEDIUMINT") != (size_t) - 1) {
-                info.DataType = VT_I4;
-            } else if (datatype.find("INT") != (size_t) - 1/*INTEGER*/) {
-                info.DataType = VT_I8;
-            } else if (datatype.find("NATIVE") != (size_t) - 1) {
-                info.DataType = VT_BSTR;
-                SetLen(datatype, info);
-            } else if (datatype.find("NVARCHAR") != (size_t) - 1) {
-                info.DataType = VT_BSTR;
-                SetLen(datatype, info);
-            } else if (datatype.find("NCHAR") != (size_t) - 1) {
-                info.DataType = VT_BSTR;
-                SetLen(datatype, info);
-            } else if (datatype.find("CHAR") != (size_t) - 1) {
-                info.DataType = (VT_I1 | VT_ARRAY);
-                SetLen(datatype, info);
+        void CSqliteImpl::Open(const CDBString &strConn, unsigned int flags, int &res, CDBString &errMsg, int &ms) {
+            ms = msSqlite;
+            m_vPreparedStatements.clear();
+            m_pSqlite.reset();
+            ResetMemories();
+            CDBString strConnection = strConn;
+#ifdef WIN32_64
+            std::transform(strConnection.begin(), strConnection.end(), strConnection.begin(), ::tolower);
+#endif
+            if (strConnection.size()) {
+                m_global = false;
+            } else {
+                m_csPeer.lock();
+                strConnection = m_strGlobalConnection;
+                m_csPeer.unlock();
+                m_global = true;
+            }
+            if (!strConnection.size()) {
+                res = SPA::Sqlite::SQLITE_NO_DB_FILE_SPECIFIED;
+                errMsg = NO_DB_FILE_SPECIFIED;
+                return;
+            }
+            res = DoSafeOpen(strConnection, flags);
+            sqlite3 *db = m_pSqlite.get();
+            if (res) {
+                if (db) {
+                    const char *str = sqlite3_errmsg(db);
+#ifdef WIN32_64
+                    errMsg = Utilities::ToWide(str);
+#else
+                    errMsg = Utilities::ToUTF16(str);
+#endif
+                    if ((m_nParam & Sqlite::DO_NOT_USE_EXTENDED_ERROR_CODE) != Sqlite::DO_NOT_USE_EXTENDED_ERROR_CODE) {
+                        res = sqlite3_extended_errcode(db);
+                    }
+                }
+                return;
+            } else if (!m_global) {
+                const char *str = sqlite3_db_filename(db, nullptr);
+#ifdef WIN32_64
+                errMsg = Utilities::ToWide(str);
+#else
+                errMsg = Utilities::ToUTF16(str);
+#endif
+            } else {
+                errMsg = strConnection;
+            }
+        }
+
+        void CSqliteImpl::SetPrecisionScale(const std::string& str, CDBColumnInfo & info) {
+            size_t pos = str.find('(');
+            if (pos != (size_t) - 1) {
+                info.Precision = (unsigned char) std::atoi(str.c_str() + pos + 1);
+            }
+            pos = str.find(',', pos + 1);
+            if (pos != (size_t) - 1) {
+                info.Scale = (unsigned char) std::atoi(str.c_str() + pos + 1);
+            }
+        }
+
+        void CSqliteImpl::SetLen(const std::string& str, CDBColumnInfo & info) {
+            size_t pos = str.find('(');
+            if (pos != (size_t) - 1) {
+                info.ColumnSize = (unsigned int) std::atoi(str.c_str() + pos + 1);
+            }
+        }
+
+        void CSqliteImpl::SetDataType(const char *str, CDBColumnInfo & info) {
+            if (str) {
+                std::string datatype(str);
+                std::transform(datatype.begin(), datatype.end(), datatype.begin(), ::toupper);
+                if (datatype.find("DOUBLE") != (size_t) - 1) {
+                    info.DataType = VT_R8;
+                } else if (datatype.find("REAL") != (size_t) - 1) {
+                    info.DataType = VT_R8;
+                } else if (datatype.find("BIGINT") != (size_t) - 1) {
+                    info.DataType = VT_I8;
+                } else if (datatype.find("UNSIGNED") != (size_t) - 1) {
+                    info.DataType = VT_UI8;
+                } else if (datatype.find("BIGINT") != (size_t) - 1) {
+                    info.DataType = VT_I8;
+                } else if (datatype.find("INT8") != (size_t) - 1) {
+                    info.DataType = VT_I8;
+                } else if (datatype.find("TINYINT") != (size_t) - 1) {
+                    info.DataType = VT_I1;
+                } else if (datatype.find("SMALLINT") != (size_t) - 1) {
+                    info.DataType = VT_I2;
+                } else if (datatype.find("INT2") != (size_t) - 1) {
+                    info.DataType = VT_I2;
+                } else if (datatype.find("FLOAT") != (size_t) - 1) {
+                    info.DataType = VT_R8;
+                } else if (datatype.find("BLOB") != (size_t) - 1) {
+                    info.DataType = (VT_UI1 | VT_ARRAY);
+                    info.ColumnSize = -1;
+                } else if (datatype.find("NTEXT") != (size_t) - 1) {
+                    info.DataType = VT_BSTR;
+                    info.ColumnSize = -1;
+                } else if (datatype.find("TEXT") != (size_t) - 1) {
+                    info.DataType = (VT_I1 | VT_ARRAY);
+                    info.ColumnSize = -1;
+                } else if (datatype.find("CLOB") != (size_t) - 1) {
+                    info.DataType = (VT_I1 | VT_ARRAY);
+                    info.ColumnSize = -1;
+                } else if (datatype.find("BOOLEAN") != (size_t) - 1) {
+                    info.DataType = VT_BOOL;
+                } else if (datatype.find("DATETIME") != (size_t) - 1) {
+                    info.DataType = VT_DATE;
+                } else if (datatype.find("DATE") != (size_t) - 1) {
+                    info.DataType = VT_DATE;
+                } else if (datatype.find("TIME") != (size_t) - 1) {
+                    info.DataType = VT_DATE;
+                } else if (datatype.find("NUM") != (size_t) - 1) {
+                    info.DataType = VT_R8;
+                    SetPrecisionScale(datatype, info);
+                } else if (datatype.find("DEC") != (size_t) - 1) {
+                    info.DataType = VT_R8;
+                    SetPrecisionScale(datatype, info);
+                } else if (datatype.find("MEDIUMINT") != (size_t) - 1) {
+                    info.DataType = VT_I4;
+                } else if (datatype.find("INT") != (size_t) - 1/*INTEGER*/) {
+                    info.DataType = VT_I8;
+                } else if (datatype.find("NATIVE") != (size_t) - 1) {
+                    info.DataType = VT_BSTR;
+                    SetLen(datatype, info);
+                } else if (datatype.find("NVARCHAR") != (size_t) - 1) {
+                    info.DataType = VT_BSTR;
+                    SetLen(datatype, info);
+                } else if (datatype.find("NCHAR") != (size_t) - 1) {
+                    info.DataType = VT_BSTR;
+                    SetLen(datatype, info);
+                } else if (datatype.find("CHAR") != (size_t) - 1) {
+                    info.DataType = (VT_I1 | VT_ARRAY);
+                    SetLen(datatype, info);
+                } else {
+                    info.DataType = VT_VARIANT;
+                }
             } else {
                 info.DataType = VT_VARIANT;
             }
-        } else {
-            info.DataType = VT_VARIANT;
         }
-    }
 
-    void CSqliteImpl::SetOtherColumnInfoFlags(CDBColumnInfoArray & vCols) {
-        unsigned short pk_dt = VT_EMPTY;
-        int pk_col = -1;
-        int pk_count = 0;
-        int index = 0;
-        for (auto it = vCols.begin(), end = vCols.end(); it != end; ++it) {
-            if ((it->Flags & CDBColumnInfo::FLAG_PRIMARY_KEY) == CDBColumnInfo::FLAG_PRIMARY_KEY) {
-                ++pk_count;
-                pk_col = index;
-                pk_dt = it->DataType;
-            }
-            ++index;
-        }
-        if (pk_count == 1) {
-            vCols[pk_col].Flags |= CDBColumnInfo::FLAG_UNIQUE;
-            bool row_id = true;
-            switch (pk_dt) {
-                case VT_I1:
-                case VT_UI1:
-                case VT_I2:
-                case VT_UI2:
-                case VT_I4:
-                case VT_UI4:
-                case VT_I8:
-                case VT_UI8:
-                case VT_INT:
-                case VT_UINT:
-                    break;
-                default:
-                    row_id = false;
-                    break;
-            }
-            if (row_id) {
-                vCols[pk_col].Flags |= (CDBColumnInfo::FLAG_AUTOINCREMENT | CDBColumnInfo::FLAG_ROWID);
-            }
-        }
-    }
-
-    CDBColumnInfoArray CSqliteImpl::GetColInfo(bool meta, sqlite3_stmt * stmt) {
-        std::string zDbName, zTableName, zColumnName;
-        CDBColumnInfoArray vCols;
-        int cols = sqlite3_column_count(stmt);
-        for (int n = 0; n < cols; ++n) {
-            vCols.push_back(CDBColumnInfo());
-            CDBColumnInfo &info = vCols.back();
-            const char *str = sqlite3_column_database_name(stmt, n);
-            if (meta && str) {
-                zDbName = str;
-            }
-            if (str) {
-#ifdef WIN32_64
-                info.DBPath = Utilities::ToWide(str);
-#else
-                info.DBPath = Utilities::ToUTF16(str);
-#endif
-            } else {
-                info.DBPath.clear();
-            }
-            str = sqlite3_column_table_name(stmt, n);
-            if (meta && str) {
-                zTableName = str;
-            }
-            if (str) {
-#ifdef WIN32_64
-                info.TablePath = Utilities::ToWide(str);
-#else
-                info.TablePath = Utilities::ToUTF16(str);
-#endif
-            } else {
-                info.Flags = (CDBColumnInfo::FLAG_NOT_NULL | CDBColumnInfo::FLAG_NOT_WRITABLE);
-                info.TablePath.clear();
-            }
-
-            str = sqlite3_column_name(stmt, n);
-            if (str) {
-#ifdef WIN32_64
-                info.DisplayName = Utilities::ToWide(str);
-#else
-                info.DisplayName = Utilities::ToUTF16(str);
-#endif
-            } else {
-                info.DisplayName.clear();
-            }
-
-            str = sqlite3_column_origin_name(stmt, n);
-            if (meta && str) {
-                zColumnName = str;
-            }
-            if (str) {
-#ifdef WIN32_64
-                info.OriginalName = Utilities::ToWide(str);
-#else
-                info.OriginalName = Utilities::ToUTF16(str);
-#endif
-            } else {
-                info.OriginalName.clear();
-            }
-
-            str = sqlite3_column_decltype(stmt, n);
-            if (str) {
-#ifdef WIN32_64
-                info.DeclaredType = Utilities::ToWide(str);
-#else
-                info.DeclaredType = Utilities::ToUTF16(str);
-#endif
-            } else {
-                info.DeclaredType.clear();
-            }
-            SetDataType(str, info);
-            if (meta && zTableName.size()) {
-                //char const *dt = nullptr;
-                char const *colseq = nullptr;
-                int not_null = 0, pk = 0, autoinc = 0;
-                int rec = sqlite3_table_column_metadata(m_pSqlite.get(),
-                        zDbName.c_str(), zTableName.c_str(), zColumnName.c_str(),
-                        nullptr, &colseq, &not_null, &pk, &autoinc);
-                if (!rec) {
-                    if (not_null)
-                        info.Flags |= CDBColumnInfo::FLAG_NOT_NULL;
-                    if (pk)
-                        info.Flags |= CDBColumnInfo::FLAG_PRIMARY_KEY;
-                    if (autoinc)
-                        info.Flags |= CDBColumnInfo::FLAG_AUTOINCREMENT;
-                    if (colseq) {
-#ifdef WIN32_64
-                        info.Collation = Utilities::ToWide(colseq);
-#else
-                        info.Collation = Utilities::ToUTF16(colseq);
-#endif
-                    } else {
-                        info.Collation.clear();
-                    }
+        void CSqliteImpl::SetOtherColumnInfoFlags(CDBColumnInfoArray & vCols) {
+            unsigned short pk_dt = VT_EMPTY;
+            int pk_col = -1;
+            int pk_count = 0;
+            int index = 0;
+            for (auto it = vCols.begin(), end = vCols.end(); it != end; ++it) {
+                if ((it->Flags & CDBColumnInfo::FLAG_PRIMARY_KEY) == CDBColumnInfo::FLAG_PRIMARY_KEY) {
+                    ++pk_count;
+                    pk_col = index;
+                    pk_dt = it->DataType;
                 }
-                zDbName.clear();
-                zTableName.clear();
-                zColumnName.clear();
+                ++index;
+            }
+            if (pk_count == 1) {
+                vCols[pk_col].Flags |= CDBColumnInfo::FLAG_UNIQUE;
+                bool row_id = true;
+                switch (pk_dt) {
+                    case VT_I1:
+                    case VT_UI1:
+                    case VT_I2:
+                    case VT_UI2:
+                    case VT_I4:
+                    case VT_UI4:
+                    case VT_I8:
+                    case VT_UI8:
+                    case VT_INT:
+                    case VT_UINT:
+                        break;
+                    default:
+                        row_id = false;
+                        break;
+                }
+                if (row_id) {
+                    vCols[pk_col].Flags |= (CDBColumnInfo::FLAG_AUTOINCREMENT | CDBColumnInfo::FLAG_ROWID);
+                }
             }
         }
-        if (meta) {
-            SetOtherColumnInfoFlags(vCols);
-        }
-        return vCols;
-    }
 
-    bool CSqliteImpl::SendRows(CScopeUQueue& sb, bool transferring) {
-        bool batching = (GetBytesBatched() >= DEFAULT_RECORD_BATCH_SIZE);
-        if (batching) {
-            CommitBatching();
-        }
-        unsigned int ret = SendResult(transferring ? idTransferring : idEndRows, sb->GetBuffer(), sb->GetSize());
-        sb->SetSize(0);
-        if (batching) {
-            StartBatching();
-        }
-        if (ret == REQUEST_CANCELED || ret == SOCKET_NOT_FOUND) {
-            return false;
-        }
-        return true;
-    }
+        CDBColumnInfoArray CSqliteImpl::GetColInfo(bool meta, sqlite3_stmt * stmt) {
+            std::string zDbName, zTableName, zColumnName;
+            CDBColumnInfoArray vCols;
+            int cols = sqlite3_column_count(stmt);
+            for (int n = 0; n < cols; ++n) {
+                vCols.push_back(CDBColumnInfo());
+                CDBColumnInfo &info = vCols.back();
+                const char *str = sqlite3_column_database_name(stmt, n);
+                if (meta && str) {
+                    zDbName = str;
+                }
+                if (str) {
+#ifdef WIN32_64
+                    info.DBPath = Utilities::ToWide(str);
+#else
+                    info.DBPath = Utilities::ToUTF16(str);
+#endif
+                } else {
+                    info.DBPath.clear();
+                }
+                str = sqlite3_column_table_name(stmt, n);
+                if (meta && str) {
+                    zTableName = str;
+                }
+                if (str) {
+#ifdef WIN32_64
+                    info.TablePath = Utilities::ToWide(str);
+#else
+                    info.TablePath = Utilities::ToUTF16(str);
+#endif
+                } else {
+                    info.Flags = (CDBColumnInfo::FLAG_NOT_NULL | CDBColumnInfo::FLAG_NOT_WRITABLE);
+                    info.TablePath.clear();
+                }
 
-    bool CSqliteImpl::SendBlob(unsigned short data_type, const unsigned char *buffer, unsigned int bytes) {
-        unsigned int ret = SendResult(idStartBLOB,
-                (unsigned int) (bytes + sizeof (unsigned short) + sizeof (unsigned int) + sizeof (unsigned int))/* extra 4 bytes for string null termination*/,
-                data_type, bytes);
-        if (ret == REQUEST_CANCELED || ret == SOCKET_NOT_FOUND) {
-            return false;
+                str = sqlite3_column_name(stmt, n);
+                if (str) {
+#ifdef WIN32_64
+                    info.DisplayName = Utilities::ToWide(str);
+#else
+                    info.DisplayName = Utilities::ToUTF16(str);
+#endif
+                } else {
+                    info.DisplayName.clear();
+                }
+
+                str = sqlite3_column_origin_name(stmt, n);
+                if (meta && str) {
+                    zColumnName = str;
+                }
+                if (str) {
+#ifdef WIN32_64
+                    info.OriginalName = Utilities::ToWide(str);
+#else
+                    info.OriginalName = Utilities::ToUTF16(str);
+#endif
+                } else {
+                    info.OriginalName.clear();
+                }
+
+                str = sqlite3_column_decltype(stmt, n);
+                if (str) {
+#ifdef WIN32_64
+                    info.DeclaredType = Utilities::ToWide(str);
+#else
+                    info.DeclaredType = Utilities::ToUTF16(str);
+#endif
+                } else {
+                    info.DeclaredType.clear();
+                }
+                SetDataType(str, info);
+                if (meta && zTableName.size()) {
+                    //char const *dt = nullptr;
+                    char const *colseq = nullptr;
+                    int not_null = 0, pk = 0, autoinc = 0;
+                    int rec = sqlite3_table_column_metadata(m_pSqlite.get(),
+                            zDbName.c_str(), zTableName.c_str(), zColumnName.c_str(),
+                            nullptr, &colseq, &not_null, &pk, &autoinc);
+                    if (!rec) {
+                        if (not_null)
+                            info.Flags |= CDBColumnInfo::FLAG_NOT_NULL;
+                        if (pk)
+                            info.Flags |= CDBColumnInfo::FLAG_PRIMARY_KEY;
+                        if (autoinc)
+                            info.Flags |= CDBColumnInfo::FLAG_AUTOINCREMENT;
+                        if (colseq) {
+#ifdef WIN32_64
+                            info.Collation = Utilities::ToWide(colseq);
+#else
+                            info.Collation = Utilities::ToUTF16(colseq);
+#endif
+                        } else {
+                            info.Collation.clear();
+                        }
+                    }
+                    zDbName.clear();
+                    zTableName.clear();
+                    zColumnName.clear();
+                }
+            }
+            if (meta) {
+                SetOtherColumnInfoFlags(vCols);
+            }
+            return vCols;
         }
-        bool isBatching = IsBatching();
-        if (isBatching)
-            CommitBatching();
-        while (bytes > DEFAULT_BIG_FIELD_CHUNK_SIZE) {
-            ret = SendResult(idChunk, buffer, DEFAULT_BIG_FIELD_CHUNK_SIZE);
+
+        bool CSqliteImpl::SendRows(CScopeUQueue& sb, bool transferring) {
+            bool batching = (GetBytesBatched() >= DEFAULT_RECORD_BATCH_SIZE);
+            if (batching) {
+                CommitBatching();
+            }
+            unsigned int ret = SendResult(transferring ? idTransferring : idEndRows, sb->GetBuffer(), sb->GetSize());
+            sb->SetSize(0);
+            if (batching) {
+                StartBatching();
+            }
             if (ret == REQUEST_CANCELED || ret == SOCKET_NOT_FOUND) {
                 return false;
             }
-            assert(ret == DEFAULT_BIG_FIELD_CHUNK_SIZE);
-            buffer += DEFAULT_BIG_FIELD_CHUNK_SIZE;
-            bytes -= DEFAULT_BIG_FIELD_CHUNK_SIZE;
+            return true;
         }
-        if (isBatching)
-            StartBatching();
-        ret = SendResult(idEndBLOB, buffer, bytes);
-        if (ret == REQUEST_CANCELED || ret == SOCKET_NOT_FOUND) {
-            return false;
-        }
-        return true;
-    }
 
-    bool CSqliteImpl::PushRecords(sqlite3_stmt *statement, const CDBColumnInfoArray &vColInfo, int &res, std::string & errMsg) {
-        unsigned short vt;
-        CScopeUQueue sb;
-        int cols = (int) vColInfo.size();
-        res = DoStep(statement);
-        while (res == SQLITE_ROW) {
-            bool blob = false;
-            for (int n = 0; n < cols; ++n) {
-                const CDBColumnInfo &info = vColInfo[n];
-                int data_type = sqlite3_column_type(statement, n);
-                switch (data_type) {
-                    case SQLITE_INTEGER:
-                        vt = info.DataType;
-                        if (vt == VT_VARIANT) {
-                            vt = VT_I8;
-                        }
-                        sb->Push((const unsigned char*) &vt, sizeof (vt));
-                        if (vt == VT_I8 || vt == VT_UI8 || vt == VT_DATE || vt == VT_VARIANT) {
-                            sb << sqlite3_column_int64(statement, n);
-                        } else if (vt == VT_I4) {
-                            sb << sqlite3_column_int(statement, n);
-                        } else if (vt == VT_I2 || vt == VT_UI2 || vt == VT_BOOL) {
-                            unsigned short data = (unsigned short) sqlite3_column_int(statement, n);
-                            sb << data;
-                        } else if (vt == VT_I1 || vt == VT_UI1) {
-                            unsigned char one_byte = (unsigned char) sqlite3_column_int(statement, n);
-                            sb->Push(&one_byte, sizeof (one_byte));
-                        } else {
-                            assert(false); //shouldn't come here
-                        }
-                        break;
-                    case SQLITE_FLOAT:
-                        vt = VT_R8;
-                        sb->Push((const unsigned char*) &vt, sizeof (vt));
-                        sb << sqlite3_column_double(statement, n);
-                        break;
-                    case SQLITE_TEXT:
-                    {
-                        unsigned int bytes;
-                        const unsigned char *buffer;
-                        vt = info.DataType;
-                        if (VT_BSTR == vt) {
-                            bytes = (unsigned int) sqlite3_column_bytes16(statement, n);
-                            buffer = (const unsigned char*) sqlite3_column_text16(statement, n);
-                        } else {
-                            vt = (VT_ARRAY | VT_I1);
-                            bytes = (unsigned int) sqlite3_column_bytes(statement, n);
-                            buffer = sqlite3_column_text(statement, n);
-                        }
-                        if (bytes > (2 * DEFAULT_BIG_FIELD_CHUNK_SIZE)) {
-                            if (sb->GetSize() && !SendRows(sb, true)) {
-                                return false;
-                            }
-                            bool batching = IsBatching();
-                            if (batching) {
-                                CommitBatching();
-                            }
-                            if (!SendBlob(vt, buffer, (unsigned int) bytes)) {
-                                return false;
-                            }
-                            if (batching) {
-                                StartBatching();
-                            }
-                            blob = true;
-                        } else if (info.DataType == VT_DATE) {
-                            const char *str = (const char*) buffer;
-                            UDateTime udt(str);
-                            vt = VT_DATE;
-                            sb->Push((const unsigned char*) &vt, sizeof (vt));
-                            sb << udt.time;
-                        } else {
-                            sb->Push((const unsigned char*) &vt, sizeof (vt));
-                            sb << bytes;
-                            if (bytes) {
-                                sb->Push(buffer, (unsigned int) bytes);
-                            }
-                        }
-                    }
-                        break;
-                    case SQLITE_BLOB:
-                    {
-                        vt = (VT_UI1 | VT_ARRAY);
-                        int bytes = sqlite3_column_bytes(statement, n);
-                        if (bytes > (int) (2 * DEFAULT_BIG_FIELD_CHUNK_SIZE)) {
-                            if (sb->GetSize() && !SendRows(sb, true)) {
-                                return false;
-                            }
-                            const unsigned char *buffer = (const unsigned char*) sqlite3_column_blob(statement, n);
-                            if (!SendBlob(vt, buffer, (unsigned int) bytes)) {
-                                return false;
-                            }
-                            blob = true;
-                        } else {
-                            sb->Push((const unsigned char*) &vt, sizeof (vt));
-                            sb << (unsigned int) bytes;
-                            if (bytes) {
-                                sb->Push((const unsigned char*) sqlite3_column_blob(statement, n), (unsigned int) bytes);
-                            }
-                        }
-                    }
-                        break;
-                    case SQLITE_NULL:
-                        vt = VT_NULL;
-                        sb->Push((const unsigned char*) &vt, sizeof (vt));
-                        break;
-                    default:
-                        assert(false); //shouldn't come here
-                        break;
-                }
-            }
-            if ((sb->GetSize() >= DEFAULT_RECORD_BATCH_SIZE || blob) && !SendRows(sb)) {
+        bool CSqliteImpl::SendBlob(unsigned short data_type, const unsigned char *buffer, unsigned int bytes) {
+            unsigned int ret = SendResult(idStartBLOB,
+            (unsigned int) (bytes + sizeof (unsigned short) + sizeof (unsigned int) + sizeof (unsigned int))/* extra 4 bytes for string null termination*/,
+            data_type, bytes);
+            if (ret == REQUEST_CANCELED || ret == SOCKET_NOT_FOUND) {
                 return false;
             }
-            res = DoStep(statement);
-        }
-        if (res == SQLITE_DONE) {
-            res = 0;
-        } else if (res) {
-            if ((m_nParam & Sqlite::DO_NOT_USE_EXTENDED_ERROR_CODE) != Sqlite::DO_NOT_USE_EXTENDED_ERROR_CODE) {
-                res = sqlite3_extended_errcode(m_pSqlite.get());
+            bool isBatching = IsBatching();
+            if (isBatching)
+                CommitBatching();
+            while (bytes > DEFAULT_BIG_FIELD_CHUNK_SIZE) {
+                ret = SendResult(idChunk, buffer, DEFAULT_BIG_FIELD_CHUNK_SIZE);
+                if (ret == REQUEST_CANCELED || ret == SOCKET_NOT_FOUND) {
+                    return false;
+                }
+                assert(ret == DEFAULT_BIG_FIELD_CHUNK_SIZE);
+                buffer += DEFAULT_BIG_FIELD_CHUNK_SIZE;
+                bytes -= DEFAULT_BIG_FIELD_CHUNK_SIZE;
             }
-            errMsg = sqlite3_errmsg(m_pSqlite.get());
+            if (isBatching)
+                StartBatching();
+            ret = SendResult(idEndBLOB, buffer, bytes);
+            if (ret == REQUEST_CANCELED || ret == SOCKET_NOT_FOUND) {
+                return false;
+            }
+            return true;
         }
-        if (sb->GetSize()) {
-            return SendRows(sb);
+
+        bool CSqliteImpl::PushRecords(sqlite3_stmt *statement, const CDBColumnInfoArray &vColInfo, int &res, std::string & errMsg) {
+            unsigned short vt;
+            CScopeUQueue sb;
+            int cols = (int) vColInfo.size();
+            res = DoStep(statement);
+            while (res == SQLITE_ROW) {
+                bool blob = false;
+                for (int n = 0; n < cols; ++n) {
+                    const CDBColumnInfo &info = vColInfo[n];
+                    int data_type = sqlite3_column_type(statement, n);
+                    switch (data_type) {
+                        case SQLITE_INTEGER:
+                            vt = info.DataType;
+                            if (vt == VT_VARIANT) {
+                                vt = VT_I8;
+                            }
+                            sb->Push((const unsigned char*) &vt, sizeof (vt));
+                            if (vt == VT_I8 || vt == VT_UI8 || vt == VT_DATE || vt == VT_VARIANT) {
+                                sb << sqlite3_column_int64(statement, n);
+                            } else if (vt == VT_I4) {
+                                sb << sqlite3_column_int(statement, n);
+                            } else if (vt == VT_I2 || vt == VT_UI2 || vt == VT_BOOL) {
+                                unsigned short data = (unsigned short) sqlite3_column_int(statement, n);
+                                sb << data;
+                            } else if (vt == VT_I1 || vt == VT_UI1) {
+                                unsigned char one_byte = (unsigned char) sqlite3_column_int(statement, n);
+                                sb->Push(&one_byte, sizeof (one_byte));
+                            } else {
+                                assert(false); //shouldn't come here
+                            }
+                            break;
+                        case SQLITE_FLOAT:
+                            vt = VT_R8;
+                            sb->Push((const unsigned char*) &vt, sizeof (vt));
+                            sb << sqlite3_column_double(statement, n);
+                            break;
+                        case SQLITE_TEXT:
+                        {
+                            unsigned int bytes;
+                            const unsigned char *buffer;
+                            vt = info.DataType;
+                            if (VT_BSTR == vt) {
+                                bytes = (unsigned int) sqlite3_column_bytes16(statement, n);
+                                buffer = (const unsigned char*) sqlite3_column_text16(statement, n);
+                            } else {
+                                vt = (VT_ARRAY | VT_I1);
+                                bytes = (unsigned int) sqlite3_column_bytes(statement, n);
+                                buffer = sqlite3_column_text(statement, n);
+                            }
+                            if (bytes > (2 * DEFAULT_BIG_FIELD_CHUNK_SIZE)) {
+                                if (sb->GetSize() && !SendRows(sb, true)) {
+                                    return false;
+                                }
+                                bool batching = IsBatching();
+                                if (batching) {
+                                    CommitBatching();
+                                }
+                                if (!SendBlob(vt, buffer, (unsigned int) bytes)) {
+                                    return false;
+                                }
+                                if (batching) {
+                                    StartBatching();
+                                }
+                                blob = true;
+                            } else if (info.DataType == VT_DATE) {
+                                const char *str = (const char*) buffer;
+                                UDateTime udt(str);
+                                vt = VT_DATE;
+                                sb->Push((const unsigned char*) &vt, sizeof (vt));
+                                sb << udt.time;
+                            } else {
+                                sb->Push((const unsigned char*) &vt, sizeof (vt));
+                                sb << bytes;
+                                if (bytes) {
+                                    sb->Push(buffer, (unsigned int) bytes);
+                                }
+                            }
+                        }
+                            break;
+                        case SQLITE_BLOB:
+                        {
+                            vt = (VT_UI1 | VT_ARRAY);
+                            int bytes = sqlite3_column_bytes(statement, n);
+                            if (bytes > (int) (2 * DEFAULT_BIG_FIELD_CHUNK_SIZE)) {
+                                if (sb->GetSize() && !SendRows(sb, true)) {
+                                    return false;
+                                }
+                                const unsigned char *buffer = (const unsigned char*) sqlite3_column_blob(statement, n);
+                                if (!SendBlob(vt, buffer, (unsigned int) bytes)) {
+                                    return false;
+                                }
+                                blob = true;
+                            } else {
+                                sb->Push((const unsigned char*) &vt, sizeof (vt));
+                                sb << (unsigned int) bytes;
+                                if (bytes) {
+                                    sb->Push((const unsigned char*) sqlite3_column_blob(statement, n), (unsigned int) bytes);
+                                }
+                            }
+                        }
+                            break;
+                        case SQLITE_NULL:
+                            vt = VT_NULL;
+                            sb->Push((const unsigned char*) &vt, sizeof (vt));
+                            break;
+                        default:
+                            assert(false); //shouldn't come here
+                            break;
+                    }
+                }
+                if ((sb->GetSize() >= DEFAULT_RECORD_BATCH_SIZE || blob) && !SendRows(sb)) {
+                    return false;
+                }
+                res = DoStep(statement);
+            }
+            if (res == SQLITE_DONE) {
+                res = 0;
+            } else if (res) {
+                if ((m_nParam & Sqlite::DO_NOT_USE_EXTENDED_ERROR_CODE) != Sqlite::DO_NOT_USE_EXTENDED_ERROR_CODE) {
+                    res = sqlite3_extended_errcode(m_pSqlite.get());
+                }
+                errMsg = sqlite3_errmsg(m_pSqlite.get());
+            }
+            if (sb->GetSize()) {
+                return SendRows(sb);
+            }
+            return true;
         }
-        return true;
-    }
-} //namespace ServerSide
+    } //namespace ServerSide
 } //namespace SPA
