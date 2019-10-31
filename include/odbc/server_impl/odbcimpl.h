@@ -160,7 +160,7 @@ namespace SPA {
             //parameterized statement
             std::shared_ptr<void> m_pPrepare;
 
-            //excuting statement
+            //executing statement
             std::shared_ptr<void> m_pExcuting;
 
             SQLSMALLINT m_parameters;
@@ -174,7 +174,7 @@ namespace SPA {
 
             std::vector<CBindInfo> m_vBindInfo;
             unsigned int m_nRecordSize;
-            SPA::CUQueue *m_pNoSending;
+            CUQueue *m_pNoSending;
 
             tagManagementSystem m_msDriver;
             bool m_EnableMessages;

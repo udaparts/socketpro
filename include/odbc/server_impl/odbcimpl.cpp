@@ -12,7 +12,8 @@ namespace SPA
 {
     namespace ServerSide{
 
-		SQLHENV COdbcImpl::g_hEnv = nullptr;
+        SQLHENV COdbcImpl::g_hEnv = nullptr;
+
 #ifdef WIN32_64
         const UTF16 * COdbcImpl::NO_DB_OPENED_YET = L"No ODBC database opened yet";
         const UTF16 * COdbcImpl::BAD_END_TRANSTACTION_PLAN = L"Bad end transaction plan";
@@ -28,19 +29,19 @@ namespace SPA
         const UTF16 * COdbcImpl::CORRECT_PARAMETER_INFO_NOT_PROVIDED_YET = L"Correct parameter information not provided yet";
         const UTF16 * COdbcImpl::ODBC_GLOBAL_CONNECTION_STRING = L"ODBC_GLOBAL_CONNECTION_STRING";
 #else
-		const UTF16 * COdbcImpl::NO_DB_OPENED_YET = u"No ODBC database opened yet";
-		const UTF16 * COdbcImpl::BAD_END_TRANSTACTION_PLAN = u"Bad end transaction plan";
-		const UTF16 * COdbcImpl::NO_PARAMETER_SPECIFIED = u"No parameter specified";
-		const UTF16 * COdbcImpl::BAD_PARAMETER_DATA_ARRAY_SIZE = u"Bad parameter data array length";
-		const UTF16 * COdbcImpl::BAD_PARAMETER_COLUMN_SIZE = u"Bad parameter column size";
-		const UTF16 * COdbcImpl::DATA_TYPE_NOT_SUPPORTED = u"Data type not supported";
-		const UTF16 * COdbcImpl::NO_DB_NAME_SPECIFIED = u"No database name specified";
-		const UTF16 * COdbcImpl::ODBC_ENVIRONMENT_NOT_INITIALIZED = u"ODBC system library not initialized";
-		const UTF16 * COdbcImpl::BAD_MANUAL_TRANSACTION_STATE = u"Bad manual transaction state";
-		const UTF16 * COdbcImpl::BAD_INPUT_PARAMETER_DATA_TYPE = u"Bad input parameter data type";
-		const UTF16 * COdbcImpl::BAD_PARAMETER_DIRECTION_TYPE = u"Bad parameter direction type";
-		const UTF16 * COdbcImpl::CORRECT_PARAMETER_INFO_NOT_PROVIDED_YET = u"Correct parameter information not provided yet";
-		const UTF16 * COdbcImpl::ODBC_GLOBAL_CONNECTION_STRING = u"ODBC_GLOBAL_CONNECTION_STRING";
+        const UTF16 * COdbcImpl::NO_DB_OPENED_YET = u"No ODBC database opened yet";
+        const UTF16 * COdbcImpl::BAD_END_TRANSTACTION_PLAN = u"Bad end transaction plan";
+        const UTF16 * COdbcImpl::NO_PARAMETER_SPECIFIED = u"No parameter specified";
+        const UTF16 * COdbcImpl::BAD_PARAMETER_DATA_ARRAY_SIZE = u"Bad parameter data array length";
+        const UTF16 * COdbcImpl::BAD_PARAMETER_COLUMN_SIZE = u"Bad parameter column size";
+        const UTF16 * COdbcImpl::DATA_TYPE_NOT_SUPPORTED = u"Data type not supported";
+        const UTF16 * COdbcImpl::NO_DB_NAME_SPECIFIED = u"No database name specified";
+        const UTF16 * COdbcImpl::ODBC_ENVIRONMENT_NOT_INITIALIZED = u"ODBC system library not initialized";
+        const UTF16 * COdbcImpl::BAD_MANUAL_TRANSACTION_STATE = u"Bad manual transaction state";
+        const UTF16 * COdbcImpl::BAD_INPUT_PARAMETER_DATA_TYPE = u"Bad input parameter data type";
+        const UTF16 * COdbcImpl::BAD_PARAMETER_DIRECTION_TYPE = u"Bad parameter direction type";
+        const UTF16 * COdbcImpl::CORRECT_PARAMETER_INFO_NOT_PROVIDED_YET = u"Correct parameter information not provided yet";
+        const UTF16 * COdbcImpl::ODBC_GLOBAL_CONNECTION_STRING = u"ODBC_GLOBAL_CONNECTION_STRING";
 #endif
         CUCriticalSection COdbcImpl::m_csPeer;
         CDBString COdbcImpl::m_strGlobalConnection;
@@ -75,15 +76,15 @@ namespace SPA
                 conn += L";DRIVER=";
                 conn += odbcDriver;
             }
-            SPA::CScopeUQueue sb;
+            CScopeUQueue sb;
             SQLSMALLINT cbConnStrOut = 0;
-            std::string strConn = SPA::Utilities::ToUTF8(conn.c_str(), conn.size());
+            std::string strConn = Utilities::ToUTF8(conn.c_str(), conn.size());
             retcode = SQLDriverConnect(hdbc, nullptr, (SQLCHAR*) strConn.c_str(), (SQLSMALLINT) strConn.size(), (SQLCHAR*) sb->GetBuffer(), (SQLSMALLINT) sb->GetSize(), &cbConnStrOut, SQL_DRIVER_NOPROMPT);
             if (!SQL_SUCCEEDED(retcode)) {
                 SQLFreeHandle(SQL_HANDLE_DBC, hdbc);
                 return false;
             }
-            if (nSvsId == SPA::Odbc::sidOdbc) {
+            if (nSvsId == Odbc::sidOdbc) {
                 m_csPeer.lock();
                 m_mapConnection[hSocket] = hdbc;
                 m_csPeer.unlock();
@@ -114,10 +115,15 @@ namespace SPA
 
         void COdbcImpl::SetGlobalConnectionString(const wchar_t * str) {
             m_csPeer.lock();
-            if (str)
+            if (str) {
+#ifdef WIN32_64
                 m_strGlobalConnection = str;
-            else
+#else
+                m_strGlobalConnection = Utilities::ToUTF16(str);
+#endif
+            } else {
                 m_strGlobalConnection.clear();
+            }
             m_csPeer.unlock();
         }
 
@@ -254,16 +260,16 @@ namespace SPA
             M_I2_R3(idPrepare, Prepare, CDBString, CParameterInfoArray, int, CDBString, unsigned int)
             M_I4_R5(idExecuteParameters, ExecuteParameters, bool, bool, bool, UINT64, INT64, int, CDBString, CDBVariant, UINT64)
             M_I10_R5(idExecuteBatch, ExecuteBatch, CDBString, CDBString, int, int, bool, bool, bool, CDBString, unsigned int, UINT64, INT64, int, CDBString, CDBVariant, UINT64)
-            M_I5_R3(SPA::Odbc::idSQLColumnPrivileges, DoSQLColumnPrivileges, CDBString, CDBString, CDBString, CDBString, UINT64, int, CDBString, UINT64)
-            M_I5_R3(SPA::Odbc::idSQLColumns, DoSQLColumns, CDBString, CDBString, CDBString, CDBString, UINT64, int, CDBString, UINT64)
-            M_I7_R3(SPA::Odbc::idSQLForeignKeys, DoSQLForeignKeys, CDBString, CDBString, CDBString, CDBString, CDBString, CDBString, UINT64, int, CDBString, UINT64)
-            M_I4_R3(SPA::Odbc::idSQLPrimaryKeys, DoSQLPrimaryKeys, CDBString, CDBString, CDBString, UINT64, int, CDBString, UINT64)
-            M_I5_R3(SPA::Odbc::idSQLProcedureColumns, DoSQLProcedureColumns, CDBString, CDBString, CDBString, CDBString, UINT64, int, CDBString, UINT64)
-            M_I4_R3(SPA::Odbc::idSQLProcedures, DoSQLProcedures, CDBString, CDBString, CDBString, UINT64, int, CDBString, UINT64)
-            M_I7_R3(SPA::Odbc::idSQLSpecialColumns, DoSQLSpecialColumns, SQLSMALLINT, CDBString, CDBString, CDBString, SQLSMALLINT, SQLSMALLINT, UINT64, int, CDBString, UINT64)
-            M_I6_R3(SPA::Odbc::idSQLStatistics, DoSQLStatistics, CDBString, CDBString, CDBString, SQLUSMALLINT, SQLUSMALLINT, UINT64, int, CDBString, UINT64)
-            M_I4_R3(SPA::Odbc::idSQLTablePrivileges, DoSQLTablePrivileges, CDBString, CDBString, CDBString, UINT64, int, CDBString, UINT64)
-            M_I5_R3(SPA::Odbc::idSQLTables, DoSQLTables, CDBString, CDBString, CDBString, CDBString, UINT64, int, CDBString, UINT64)
+            M_I5_R3(Odbc::idSQLColumnPrivileges, DoSQLColumnPrivileges, CDBString, CDBString, CDBString, CDBString, UINT64, int, CDBString, UINT64)
+            M_I5_R3(Odbc::idSQLColumns, DoSQLColumns, CDBString, CDBString, CDBString, CDBString, UINT64, int, CDBString, UINT64)
+            M_I7_R3(Odbc::idSQLForeignKeys, DoSQLForeignKeys, CDBString, CDBString, CDBString, CDBString, CDBString, CDBString, UINT64, int, CDBString, UINT64)
+            M_I4_R3(Odbc::idSQLPrimaryKeys, DoSQLPrimaryKeys, CDBString, CDBString, CDBString, UINT64, int, CDBString, UINT64)
+            M_I5_R3(Odbc::idSQLProcedureColumns, DoSQLProcedureColumns, CDBString, CDBString, CDBString, CDBString, UINT64, int, CDBString, UINT64)
+            M_I4_R3(Odbc::idSQLProcedures, DoSQLProcedures, CDBString, CDBString, CDBString, UINT64, int, CDBString, UINT64)
+            M_I7_R3(Odbc::idSQLSpecialColumns, DoSQLSpecialColumns, SQLSMALLINT, CDBString, CDBString, CDBString, SQLSMALLINT, SQLSMALLINT, UINT64, int, CDBString, UINT64)
+            M_I6_R3(Odbc::idSQLStatistics, DoSQLStatistics, CDBString, CDBString, CDBString, SQLUSMALLINT, SQLUSMALLINT, UINT64, int, CDBString, UINT64)
+            M_I4_R3(Odbc::idSQLTablePrivileges, DoSQLTablePrivileges, CDBString, CDBString, CDBString, UINT64, int, CDBString, UINT64)
+            M_I5_R3(Odbc::idSQLTables, DoSQLTables, CDBString, CDBString, CDBString, CDBString, UINT64, int, CDBString, UINT64)
             END_SWITCH
             m_pExcuting.reset();
             if (reqId == idExecuteParameters || reqId == idExecuteBatch) {
@@ -326,26 +332,22 @@ namespace SPA
                         sql = L"SET search_path=" + strConnection;
                     }
 #else
-					if (m_dbms == u"microsoft sql server") {
-						sql = u"USE [" + strConnection + u"]";
-					}
-					else if (m_dbms == u"mysql") {
-						sql = u"USE " + strConnection;
-					}
-					else if (m_dbms == L"oracle") {
-						sql = u"ALTER SESSION SET current_schema=" + strConnection;
-					}
-					else if (m_dbms.find(u"db2") != CDBString::npos) {
-						sql = u"SET SCHEMA " + strConnection;
-					}
-					else if (m_dbms.find(u"postgre") == 0) {
-						sql = u"SET search_path=" + strConnection;
-					}
+                    if (m_dbms == u"microsoft sql server") {
+                        sql = u"USE [" + strConnection + u"]";
+                    } else if (m_dbms == u"mysql") {
+                        sql = u"USE " + strConnection;
+                    } else if (m_dbms == u"oracle") {
+                        sql = u"ALTER SESSION SET current_schema=" + strConnection;
+                    } else if (m_dbms.find(u"db2") != CDBString::npos) {
+                        sql = u"SET SCHEMA " + strConnection;
+                    } else if (m_dbms.find(u"postgre") == 0) {
+                        sql = u"SET search_path=" + strConnection;
+                    }
 #endif
                     if (sql.size()) {
-                        SPA::INT64 affected = 0;
-                        SPA::UDB::CDBVariant vtId;
-                        SPA::UINT64 fail_ok = 0;
+                        INT64 affected = 0;
+                        UDB::CDBVariant vtId;
+                        UINT64 fail_ok = 0;
                         Execute(sql, false, false, false, 0, affected, res, errMsg, vtId, fail_ok);
                         if (!res) {
                             errMsg = strConnection;
@@ -358,7 +360,7 @@ namespace SPA
                 }
             } else {
                 if (!g_hEnv) {
-                    res = SPA::Odbc::ER_ODBC_ENVIRONMENT_NOT_INITIALIZED;
+                    res = Odbc::ER_ODBC_ENVIRONMENT_NOT_INITIALIZED;
                     errMsg = ODBC_ENVIRONMENT_NOT_INITIALIZED;
                     return;
                 } else {
@@ -375,11 +377,15 @@ namespace SPA
                         m_global = false;
                     }
                     ODBC_CONNECTION_STRING ocs;
+#ifdef WIN32_64
                     ocs.Parse(db.c_str());
+#else
+                    ocs.Parse(Utilities::ToWide(db).c_str());
+#endif
                     SQLHDBC hdbc = nullptr;
                     SQLRETURN retcode = SQLAllocHandle(SQL_HANDLE_DBC, g_hEnv, &hdbc);
                     if (!SQL_SUCCEEDED(retcode)) {
-                        res = SPA::Odbc::ER_ERROR;
+                        res = Odbc::ER_ERROR;
                         GetErrMsg(SQL_HANDLE_ENV, g_hEnv, errMsg);
                         break;
                     }
@@ -401,14 +407,14 @@ namespace SPA
 
                     std::string conn = Utilities::ToUTF8(ocs.connection_string.c_str(), ocs.connection_string.size());
 
-                    SPA::CScopeUQueue sb;
+                    CScopeUQueue sb;
                     SQLCHAR *ConnStrIn = (SQLCHAR *) conn.c_str();
                     SQLCHAR *ConnStrOut = (SQLCHAR *) sb->GetBuffer();
                     SQLSMALLINT cbConnStrOut;
                     retcode = SQLDriverConnect(hdbc, nullptr, ConnStrIn, (SQLSMALLINT) conn.size(), ConnStrOut, (SQLSMALLINT) sb->GetSize(), &cbConnStrOut, SQL_DRIVER_NOPROMPT);
                     //retcode = SQLConnect(hdbc, (SQLCHAR*) host.c_str(), (SQLSMALLINT) host.size(), (SQLCHAR *) user.c_str(), (SQLSMALLINT) user.size(), (SQLCHAR *) pwd.c_str(), (SQLSMALLINT) pwd.size());
                     if (!SQL_SUCCEEDED(retcode)) {
-                        res = SPA::Odbc::ER_ERROR;
+                        res = Odbc::ER_ERROR;
                         GetErrMsg(SQL_HANDLE_DBC, hdbc, errMsg);
                         SQLFreeHandle(SQL_HANDLE_DBC, hdbc);
                         break;
@@ -448,7 +454,7 @@ namespace SPA
             ms = msODBC;
             if (m_ti != tiUnspecified || isolation == (int) tiUnspecified) {
                 errMsg = BAD_MANUAL_TRANSACTION_STATE;
-                res = SPA::Odbc::ER_BAD_MANUAL_TRANSACTION_STATE;
+                res = Odbc::ER_BAD_MANUAL_TRANSACTION_STATE;
                 return;
             }
             if (!m_pOdbc) {
@@ -483,7 +489,7 @@ namespace SPA
             }
             retcode = SQLSetConnectAttr(m_pOdbc.get(), SQL_ATTR_AUTOCOMMIT, (SQLPOINTER) SQL_FALSE, 0);
             if (!SQL_SUCCEEDED(retcode)) {
-                res = SPA::Odbc::ER_ERROR;
+                res = Odbc::ER_ERROR;
                 GetErrMsg(SQL_HANDLE_DBC, m_pOdbc.get(), errMsg);
             } else {
                 res = SQL_SUCCESS;
@@ -501,16 +507,16 @@ namespace SPA
         void COdbcImpl::EndTrans(int plan, int &res, CDBString & errMsg) {
             if (m_ti == tiUnspecified) {
                 errMsg = BAD_MANUAL_TRANSACTION_STATE;
-                res = SPA::Odbc::ER_BAD_MANUAL_TRANSACTION_STATE;
+                res = Odbc::ER_BAD_MANUAL_TRANSACTION_STATE;
                 return;
             }
             if (plan < 0 || plan > rpRollbackAlways) {
-                res = SPA::Odbc::ER_BAD_END_TRANSTACTION_PLAN;
+                res = Odbc::ER_BAD_END_TRANSTACTION_PLAN;
                 errMsg = BAD_END_TRANSTACTION_PLAN;
                 return;
             }
             if (!m_pOdbc) {
-                res = SPA::Odbc::ER_NO_DB_OPENED_YET;
+                res = Odbc::ER_NO_DB_OPENED_YET;
                 errMsg = NO_DB_OPENED_YET;
                 return;
             }
@@ -541,7 +547,7 @@ namespace SPA
             }
             SQLRETURN retcode = SQLEndTran(SQL_HANDLE_DBC, m_pOdbc.get(), rollback ? SQL_ROLLBACK : SQL_COMMIT);
             if (!SQL_SUCCEEDED(retcode)) {
-                res = SPA::Odbc::ER_ERROR;
+                res = Odbc::ER_ERROR;
                 GetErrMsg(SQL_HANDLE_DBC, m_pOdbc.get(), errMsg);
             } else {
                 res = SQL_SUCCESS;
@@ -670,7 +676,7 @@ namespace SPA
             CUQueue &q = *sb;
             int res = 0;
             CDBString errMsg;
-            SPA::UINT64 fail_ok = 0;
+            UINT64 fail_ok = 0;
             do {
                 m_pNoSending = &q;
                 DoSQLPrimaryKeys(dbName, schema, tableName, 0, res, errMsg, fail_ok);
@@ -679,7 +685,7 @@ namespace SPA
                     break;
                 CDBVariantArray vData;
                 while (q.GetSize()) {
-                    SPA::UDB::CDBVariant vt;
+                    UDB::CDBVariant vt;
                     q >> vt;
                     vData.push_back(std::move(vt));
                 }
@@ -890,7 +896,7 @@ namespace SPA
                         } else {
                             info.DataType = VT_I8;
                         }
-                        bindinfo.BufferSize = sizeof (SPA::INT64);
+                        bindinfo.BufferSize = sizeof (INT64);
                         break;
                     case SQL_BIT:
                         info.DataType = VT_BOOL;
@@ -929,7 +935,7 @@ namespace SPA
                         break;
                     case SQL_XML: //IBM DB2
                     case SQL_SS_XML: //SQL Server
-                        info.DataType = SPA::VT_XML;
+                        info.DataType = VT_XML;
                         info.ColumnSize = (~0);
                         bindinfo.BufferSize = 0;
                         break;
@@ -1093,13 +1099,21 @@ namespace SPA
             SetStringInfo(hdbc, SQL_ACCESSIBLE_TABLES, mapInfo);
             SetStringInfo(hdbc, SQL_DATABASE_NAME, mapInfo);
             if (mapInfo.find(SQL_DATABASE_NAME) != mapInfo.end()) {
+#ifdef WIN32_64
                 m_dbName = mapInfo[SQL_DATABASE_NAME].bstrVal;
+#else
+                m_dbName = Utilities::ToUTF16(mapInfo[SQL_DATABASE_NAME].bstrVal);
+#endif
             } else {
                 m_dbName.clear();
             }
             SetStringInfo(hdbc, SQL_USER_NAME, mapInfo);
             if (mapInfo.find(SQL_USER_NAME) != mapInfo.end()) {
+#ifdef WIN32_64
                 m_userName = mapInfo[SQL_USER_NAME].bstrVal;
+#else
+                m_userName = Utilities::ToUTF16(mapInfo[SQL_USER_NAME].bstrVal);
+#endif
             } else {
                 m_userName.clear();
             }
@@ -1117,7 +1131,11 @@ namespace SPA
             SetStringInfo(hdbc, SQL_DATA_SOURCE_READ_ONLY, mapInfo);
             SetStringInfo(hdbc, SQL_DBMS_NAME, mapInfo);
             if (mapInfo.find(SQL_DBMS_NAME) != mapInfo.end()) {
+#ifdef WIN32_64
                 m_dbms = mapInfo[SQL_DBMS_NAME].bstrVal;
+#else
+                m_dbms = Utilities::ToUTF16(mapInfo[SQL_DBMS_NAME].bstrVal);
+#endif
                 std::transform(m_dbms.begin(), m_dbms.end(), m_dbms.begin(), ::tolower); //microsoft sql server, oracle, mysql
 #ifdef WIN32_64
                 if (m_dbms == L"microsoft sql server") {
@@ -1132,21 +1150,17 @@ namespace SPA
                     m_msDriver = msPostgreSQL;
                 }
 #else
-				if (m_dbms == u"microsoft sql server") {
-					m_msDriver = msMsSQL;
-				}
-				else if (m_dbms == u"mysql") {
-					m_msDriver = msMysql;
-				}
-				else if (m_dbms == u"oracle") {
-					m_msDriver = msOracle;
-				}
-				else if (m_dbms.find(u"db2") != CDBString::npos) {
-					m_msDriver = msDB2;
-				}
-				else if (m_dbms.find(u"postgre") == 0) {
-					m_msDriver = msPostgreSQL;
-				}
+                if (m_dbms == u"microsoft sql server") {
+                    m_msDriver = msMsSQL;
+                } else if (m_dbms == u"mysql") {
+                    m_msDriver = msMysql;
+                } else if (m_dbms == u"oracle") {
+                    m_msDriver = msOracle;
+                } else if (m_dbms.find(u"db2") != CDBString::npos) {
+                    m_msDriver = msDB2;
+                } else if (m_dbms.find(u"postgre") == 0) {
+                    m_msDriver = msPostgreSQL;
+                }
 #endif
             } else {
                 m_dbms.clear();
@@ -1290,7 +1304,7 @@ namespace SPA
             for (auto it = mapInfo.begin(), end = mapInfo.end(); it != end; ++it) {
                 q << it->first << it->second;
             }
-            unsigned int ret = SendResult(SPA::Odbc::idSQLGetInfo, q.GetBuffer(), q.GetSize());
+            unsigned int ret = SendResult(Odbc::idSQLGetInfo, q.GetBuffer(), q.GetSize());
             if (ret == REQUEST_CANCELED || ret == SOCKET_NOT_FOUND) {
                 return false;
             }
@@ -1318,7 +1332,7 @@ namespace SPA
 #ifdef WIN32_64
             m_bCall = (s.find(L"call ") == 0);
 #else
-			m_bCall = (s.find(u"call ") == 0);
+            m_bCall = (s.find(u"call ") == 0);
 #endif
             if (m_bCall) {
                 auto pos = s_copy.find('(');
@@ -1428,7 +1442,7 @@ namespace SPA
                     std::tm tm;
                     TIMESTAMP_STRUCT *dt = (TIMESTAMP_STRUCT*) buffer;
                     unsigned int us = ToCTime(*dt, tm);
-                    SPA::UDateTime udt(tm, us);
+                    UDateTime udt(tm, us);
                     q << (VARTYPE) VT_DATE << udt.time;
                 }
                     break;
@@ -1437,7 +1451,7 @@ namespace SPA
                     std::tm tm;
                     SQL_TIMESTAMP_STRUCT *dt = (SQL_TIMESTAMP_STRUCT*) buffer;
                     unsigned int us = ToCTime(*dt, tm);
-                    SPA::UDateTime udt(tm, us);
+                    UDateTime udt(tm, us);
                     q << (VARTYPE) VT_DATE << udt.time;
                 }
                     break;
@@ -1446,7 +1460,7 @@ namespace SPA
                     std::tm tm;
                     SQL_DATE_STRUCT *dt = (SQL_DATE_STRUCT*) buffer;
                     unsigned int us = ToCTime(*dt, tm);
-                    SPA::UDateTime udt(tm, us);
+                    UDateTime udt(tm, us);
                     q << (VARTYPE) VT_DATE << udt.time;
                 }
                     break;
@@ -1455,7 +1469,7 @@ namespace SPA
                     std::tm tm;
                     SQL_TIME_STRUCT *dt = (SQL_TIME_STRUCT*) buffer;
                     unsigned int us = ToCTime(*dt, tm);
-                    SPA::UDateTime udt(tm, us);
+                    UDateTime udt(tm, us);
                     q << (VARTYPE) VT_DATE << udt.time;
                 }
                     break;
@@ -1480,13 +1494,13 @@ namespace SPA
             }
             SQLRETURN retcode = SQLSetStmtAttr(hstmt, SQL_ROWSET_SIZE, (void*) rowset_size, 0);
             if (!SQL_SUCCEEDED(retcode)) {
-                res = SPA::Odbc::ER_ERROR;
+                res = Odbc::ER_ERROR;
                 GetErrMsg(SQL_HANDLE_STMT, hstmt, errMsg);
                 return false;
             }
             retcode = SQLSetStmtAttr(hstmt, SQL_ATTR_ROW_BIND_TYPE, (void*) m_nRecordSize, 0);
             if (!SQL_SUCCEEDED(retcode)) {
-                res = SPA::Odbc::ER_ERROR;
+                res = Odbc::ER_ERROR;
                 GetErrMsg(SQL_HANDLE_STMT, hstmt, errMsg);
                 return false;
             }
@@ -1499,7 +1513,7 @@ namespace SPA
                 switch (it->DataType) {
                     case VT_VARIANT:
                     case VT_BSTR:
-                    case SPA::VT_XML:
+                    case VT_XML:
                         retcode = SQLBindCol(hstmt, col, SQL_C_WCHAR, p, it->BufferSize, ind);
                         break;
                     case (VT_I1 | VT_ARRAY):
@@ -1556,7 +1570,7 @@ namespace SPA
                 }
                 ++col;
                 if (!SQL_SUCCEEDED(retcode)) {
-                    res = SPA::Odbc::ER_ERROR;
+                    res = Odbc::ER_ERROR;
                     GetErrMsg(SQL_HANDLE_STMT, hstmt, errMsg);
                     SQLFreeStmt(hstmt, SQL_UNBIND);
                     return false;
@@ -1584,7 +1598,7 @@ namespace SPA
                         switch (info.DataType) {
                             case VT_BSTR:
                             case VT_VARIANT:
-                            case SPA::VT_XML:
+                            case VT_XML:
                             {
                                 unsigned int len = (unsigned int) (*ind);
                                 q << (VARTYPE) VT_BSTR;
@@ -1625,9 +1639,9 @@ namespace SPA
                                 unsigned int len = (unsigned int) (*ind);
                                 DECIMAL dec;
                                 if (len <= 19)
-                                    SPA::ParseDec(s, dec);
+                                    ParseDec(s, dec);
                                 else
-                                    SPA::ParseDec_long(s, dec);
+                                    ParseDec_long(s, dec);
                                 q << dec;
                             }
                                 break;
@@ -1635,7 +1649,7 @@ namespace SPA
                             {
                                 q << info.DataType;
                                 const char *s = (const char*) header;
-                                SPA::UDateTime dt(s);
+                                UDateTime dt(s);
                                 q << dt.time;
                             }
                                 break;
@@ -1654,7 +1668,7 @@ namespace SPA
                     break;
             }
             if (!SQL_SUCCEEDED(retcode) && retcode != SQL_NO_DATA) {
-                res = SPA::Odbc::ER_ERROR;
+                res = Odbc::ER_ERROR;
                 GetErrMsg(SQL_HANDLE_STMT, hstmt, errMsg);
                 SQLFreeStmt(hstmt, SQL_UNBIND);
                 return false;
@@ -1665,7 +1679,7 @@ namespace SPA
 
         bool COdbcImpl::PushRecords(SQLHSTMT hstmt, const CDBColumnInfoArray &vColInfo, bool output, int &res, CDBString & errMsg) {
             SQLRETURN retcode;
-            CScopeUQueue sbTemp(MY_OPERATION_SYSTEM, SPA::IsBigEndian(), DEFAULT_BIG_FIELD_CHUNK_SIZE);
+            CScopeUQueue sbTemp(MY_OPERATION_SYSTEM, IsBigEndian(), DEFAULT_BIG_FIELD_CHUNK_SIZE);
             size_t fields = vColInfo.size();
             CScopeUQueue sb;
             CUQueue &q = *sb;
@@ -1693,7 +1707,7 @@ namespace SPA
                                 }
                             }
                                 break;
-                            case SPA::VT_XML:
+                            case VT_XML:
                             case VT_BSTR:
                                 if (vt == VT_XML) {
                                     vt = VT_BSTR;
@@ -1732,7 +1746,7 @@ namespace SPA
                                             q << vt;
                                             std::tm st;
                                             unsigned int us = ToCTime(d, st);
-                                            SPA::UDateTime dt(st, us);
+                                            UDateTime dt(st, us);
                                             q << dt.time;
                                         }
                                     }
@@ -1747,7 +1761,7 @@ namespace SPA
                                             q << vt;
                                             std::tm st;
                                             unsigned int us = ToCTime(d, st);
-                                            SPA::UDateTime dt(st, us);
+                                            UDateTime dt(st, us);
                                             q << dt.time;
                                         }
                                     }
@@ -1762,7 +1776,7 @@ namespace SPA
                                             q << vt;
                                             std::tm st;
                                             unsigned int us = ToCTime(d, st);
-                                            SPA::UDateTime dt(st, us);
+                                            UDateTime dt(st, us);
                                             q << dt.time;
                                         }
                                     }
@@ -1879,7 +1893,7 @@ namespace SPA
                                 break;
                             case VT_I8:
                             {
-                                SPA::INT64 d;
+                                INT64 d;
                                 retcode = SQLGetData(hstmt, (SQLUSMALLINT) (i + 1), SQL_C_SBIGINT, &d, sizeof (d), &len_or_null);
                                 if (len_or_null == SQL_NULL_DATA) {
                                     q << (VARTYPE) VT_NULL;
@@ -1890,7 +1904,7 @@ namespace SPA
                                 break;
                             case VT_UI8:
                             {
-                                SPA::UINT64 d;
+                                UINT64 d;
                                 retcode = SQLGetData(hstmt, (SQLUSMALLINT) (i + 1), SQL_C_UBIGINT, &d, sizeof (d), &len_or_null);
                                 if (len_or_null == SQL_NULL_DATA) {
                                     q << (VARTYPE) VT_NULL;
@@ -1971,9 +1985,9 @@ namespace SPA
                                         } else {
                                             DECIMAL dec;
                                             if (len_or_null <= 19)
-                                                SPA::ParseDec(str, dec);
+                                                ParseDec(str, dec);
                                             else
-                                                SPA::ParseDec_long(str, dec);
+                                                ParseDec_long(str, dec);
                                             q << vt << dec;
                                         }
                                     }
@@ -2018,12 +2032,12 @@ namespace SPA
                                 break;
                         } //for loop
                         if (!SQL_SUCCEEDED(retcode)) {
-                            res = SPA::Odbc::ER_ERROR;
+                            res = Odbc::ER_ERROR;
                             GetErrMsg(SQL_HANDLE_STMT, hstmt, errMsg);
                         }
                     }
                 } else {
-                    res = SPA::Odbc::ER_ERROR;
+                    res = Odbc::ER_ERROR;
                     GetErrMsg(SQL_HANDLE_STMT, hstmt, errMsg);
                     break;
                 }
@@ -2048,7 +2062,7 @@ namespace SPA
         void COdbcImpl::DoSQLColumnPrivileges(const CDBString& catalogName, const CDBString& schemaName, const CDBString& tableName, const CDBString& columnName, UINT64 index, int &res, CDBString &errMsg, UINT64 & fail_ok) {
             fail_ok = 0;
             if (!m_pOdbc) {
-                res = SPA::Odbc::ER_NO_DB_OPENED_YET;
+                res = Odbc::ER_NO_DB_OPENED_YET;
                 errMsg = NO_DB_OPENED_YET;
                 ++m_fails;
                 fail_ok = 1;
@@ -2069,22 +2083,22 @@ namespace SPA
                     }
                 });
                 if (!SQL_SUCCEEDED(retcode)) {
-                    res = SPA::Odbc::ER_ERROR;
+                    res = Odbc::ER_ERROR;
                     GetErrMsg(SQL_HANDLE_DBC, m_pOdbc.get(), errMsg);
                     ++m_fails;
                     break;
                 }
                 m_pExcuting = pStmt;
-                std::string cn = SPA::Utilities::ToUTF8(catalogName.c_str(), catalogName.size());
-                std::string sn = SPA::Utilities::ToUTF8(schemaName.c_str(), schemaName.size());
-                std::string tn = SPA::Utilities::ToUTF8(tableName.c_str(), tableName.size());
-                std::string coln = SPA::Utilities::ToUTF8(columnName.c_str(), columnName.size());
+                std::string cn = Utilities::ToUTF8(catalogName.c_str(), catalogName.size());
+                std::string sn = Utilities::ToUTF8(schemaName.c_str(), schemaName.size());
+                std::string tn = Utilities::ToUTF8(tableName.c_str(), tableName.size());
+                std::string coln = Utilities::ToUTF8(columnName.c_str(), columnName.size());
                 retcode = SQLColumnPrivileges(hstmt, (SQLCHAR*) cn.c_str(), (SQLSMALLINT) cn.size(),
                         (SQLCHAR*) sn.c_str(), (SQLSMALLINT) sn.size(),
                         (SQLCHAR*) tn.c_str(), (SQLSMALLINT) tn.size(),
                         (SQLCHAR*) coln.c_str(), (SQLSMALLINT) coln.size());
                 if (!SQL_SUCCEEDED(retcode)) {
-                    res = SPA::Odbc::ER_ERROR;
+                    res = Odbc::ER_ERROR;
                     GetErrMsg(SQL_HANDLE_STMT, hstmt, errMsg);
                     ++m_fails;
                     break;
@@ -2115,7 +2129,7 @@ namespace SPA
         void COdbcImpl::DoSQLTables(const CDBString& catalogName, const CDBString& schemaName, const CDBString& tableName, const CDBString& tableType, UINT64 index, int &res, CDBString &errMsg, UINT64 & fail_ok) {
             fail_ok = 0;
             if (!m_pOdbc) {
-                res = SPA::Odbc::ER_NO_DB_OPENED_YET;
+                res = Odbc::ER_NO_DB_OPENED_YET;
                 errMsg = NO_DB_OPENED_YET;
                 ++m_fails;
                 fail_ok = 1;
@@ -2136,22 +2150,22 @@ namespace SPA
                     }
                 });
                 if (!SQL_SUCCEEDED(retcode)) {
-                    res = SPA::Odbc::ER_ERROR;
+                    res = Odbc::ER_ERROR;
                     GetErrMsg(SQL_HANDLE_DBC, m_pOdbc.get(), errMsg);
                     ++m_fails;
                     break;
                 }
                 m_pExcuting = pStmt;
-                std::string cn = SPA::Utilities::ToUTF8(catalogName.c_str(), catalogName.size());
-                std::string sn = SPA::Utilities::ToUTF8(schemaName.c_str(), schemaName.size());
-                std::string tn = SPA::Utilities::ToUTF8(tableName.c_str(), tableName.size());
-                std::string tt = SPA::Utilities::ToUTF8(tableType.c_str(), tableType.size());
+                std::string cn = Utilities::ToUTF8(catalogName.c_str(), catalogName.size());
+                std::string sn = Utilities::ToUTF8(schemaName.c_str(), schemaName.size());
+                std::string tn = Utilities::ToUTF8(tableName.c_str(), tableName.size());
+                std::string tt = Utilities::ToUTF8(tableType.c_str(), tableType.size());
                 retcode = SQLTables(hstmt, (SQLCHAR*) cn.c_str(), (SQLSMALLINT) cn.size(),
                         (SQLCHAR*) sn.c_str(), (SQLSMALLINT) sn.size(),
                         (SQLCHAR*) tn.c_str(), (SQLSMALLINT) tn.size(),
                         (SQLCHAR*) tt.c_str(), (SQLSMALLINT) tt.size());
                 if (!SQL_SUCCEEDED(retcode)) {
-                    res = SPA::Odbc::ER_ERROR;
+                    res = Odbc::ER_ERROR;
                     GetErrMsg(SQL_HANDLE_STMT, hstmt, errMsg);
                     ++m_fails;
                     break;
@@ -2182,7 +2196,7 @@ namespace SPA
         void COdbcImpl::DoSQLColumns(const CDBString& catalogName, const CDBString& schemaName, const CDBString& tableName, const CDBString& columnName, UINT64 index, int &res, CDBString &errMsg, UINT64 & fail_ok) {
             fail_ok = 0;
             if (!m_pOdbc) {
-                res = SPA::Odbc::ER_NO_DB_OPENED_YET;
+                res = Odbc::ER_NO_DB_OPENED_YET;
                 errMsg = NO_DB_OPENED_YET;
                 ++m_fails;
                 fail_ok = 1;
@@ -2203,22 +2217,22 @@ namespace SPA
                     }
                 });
                 if (!SQL_SUCCEEDED(retcode)) {
-                    res = SPA::Odbc::ER_ERROR;
+                    res = Odbc::ER_ERROR;
                     GetErrMsg(SQL_HANDLE_DBC, m_pOdbc.get(), errMsg);
                     ++m_fails;
                     break;
                 }
                 m_pExcuting = pStmt;
-                std::string cn = SPA::Utilities::ToUTF8(catalogName.c_str(), catalogName.size());
-                std::string sn = SPA::Utilities::ToUTF8(schemaName.c_str(), schemaName.size());
-                std::string tn = SPA::Utilities::ToUTF8(tableName.c_str(), tableName.size());
-                std::string coln = SPA::Utilities::ToUTF8(columnName.c_str(), columnName.size());
+                std::string cn = Utilities::ToUTF8(catalogName.c_str(), catalogName.size());
+                std::string sn = Utilities::ToUTF8(schemaName.c_str(), schemaName.size());
+                std::string tn = Utilities::ToUTF8(tableName.c_str(), tableName.size());
+                std::string coln = Utilities::ToUTF8(columnName.c_str(), columnName.size());
                 retcode = SQLColumns(hstmt, (SQLCHAR*) cn.c_str(), (SQLSMALLINT) cn.size(),
                         (SQLCHAR*) sn.c_str(), (SQLSMALLINT) sn.size(),
                         (SQLCHAR*) tn.c_str(), (SQLSMALLINT) tn.size(),
                         (SQLCHAR*) coln.c_str(), (SQLSMALLINT) coln.size());
                 if (!SQL_SUCCEEDED(retcode)) {
-                    res = SPA::Odbc::ER_ERROR;
+                    res = Odbc::ER_ERROR;
                     GetErrMsg(SQL_HANDLE_STMT, hstmt, errMsg);
                     ++m_fails;
                     break;
@@ -2249,7 +2263,7 @@ namespace SPA
         void COdbcImpl::DoSQLProcedureColumns(const CDBString& catalogName, const CDBString& schemaName, const CDBString& procName, const CDBString& columnName, UINT64 index, int &res, CDBString &errMsg, UINT64 & fail_ok) {
             fail_ok = 0;
             if (!m_pOdbc) {
-                res = SPA::Odbc::ER_NO_DB_OPENED_YET;
+                res = Odbc::ER_NO_DB_OPENED_YET;
                 errMsg = NO_DB_OPENED_YET;
                 ++m_fails;
                 fail_ok = 1;
@@ -2270,23 +2284,23 @@ namespace SPA
                     }
                 });
                 if (!SQL_SUCCEEDED(retcode)) {
-                    res = SPA::Odbc::ER_ERROR;
+                    res = Odbc::ER_ERROR;
                     GetErrMsg(SQL_HANDLE_DBC, m_pOdbc.get(), errMsg);
                     ++m_fails;
                     break;
                 }
                 m_pExcuting = pStmt;
-                std::string cn = SPA::Utilities::ToUTF8(catalogName.c_str(), catalogName.size());
-                std::string sn = SPA::Utilities::ToUTF8(schemaName.c_str(), schemaName.size());
-                std::string pn = SPA::Utilities::ToUTF8(procName.c_str(), procName.size());
-                std::string coln = SPA::Utilities::ToUTF8(columnName.c_str(), columnName.size());
+                std::string cn = Utilities::ToUTF8(catalogName.c_str(), catalogName.size());
+                std::string sn = Utilities::ToUTF8(schemaName.c_str(), schemaName.size());
+                std::string pn = Utilities::ToUTF8(procName.c_str(), procName.size());
+                std::string coln = Utilities::ToUTF8(columnName.c_str(), columnName.size());
                 size_t col_size = coln.size();
                 retcode = SQLProcedureColumns(hstmt, cn.size() ? (SQLCHAR*) cn.c_str() : nullptr, (SQLSMALLINT) cn.size(),
                         sn.size() ? (SQLCHAR*) sn.c_str() : nullptr, (SQLSMALLINT) sn.size(),
                         (SQLCHAR*) pn.c_str(), (SQLSMALLINT) pn.size(),
                         col_size ? (SQLCHAR*) coln.c_str() : nullptr, (SQLSMALLINT) col_size);
                 if (!SQL_SUCCEEDED(retcode)) {
-                    res = SPA::Odbc::ER_ERROR;
+                    res = Odbc::ER_ERROR;
                     GetErrMsg(SQL_HANDLE_STMT, hstmt, errMsg);
                     ++m_fails;
                     break;
@@ -2318,7 +2332,7 @@ namespace SPA
         void COdbcImpl::DoSQLPrimaryKeys(const CDBString& catalogName, const CDBString& schemaName, const CDBString& tableName, UINT64 index, int &res, CDBString &errMsg, UINT64 & fail_ok) {
             fail_ok = 0;
             if (!m_pOdbc) {
-                res = SPA::Odbc::ER_NO_DB_OPENED_YET;
+                res = Odbc::ER_NO_DB_OPENED_YET;
                 errMsg = NO_DB_OPENED_YET;
                 ++m_fails;
                 fail_ok = 1;
@@ -2339,20 +2353,20 @@ namespace SPA
                     }
                 });
                 if (!SQL_SUCCEEDED(retcode)) {
-                    res = SPA::Odbc::ER_ERROR;
+                    res = Odbc::ER_ERROR;
                     GetErrMsg(SQL_HANDLE_DBC, m_pOdbc.get(), errMsg);
                     ++m_fails;
                     break;
                 }
                 m_pExcuting = pStmt;
-                std::string cn = SPA::Utilities::ToUTF8(catalogName.c_str(), catalogName.size());
-                std::string sn = SPA::Utilities::ToUTF8(schemaName.c_str(), schemaName.size());
-                std::string tn = SPA::Utilities::ToUTF8(tableName.c_str(), tableName.size());
+                std::string cn = Utilities::ToUTF8(catalogName.c_str(), catalogName.size());
+                std::string sn = Utilities::ToUTF8(schemaName.c_str(), schemaName.size());
+                std::string tn = Utilities::ToUTF8(tableName.c_str(), tableName.size());
                 retcode = SQLPrimaryKeys(hstmt, (SQLCHAR*) cn.c_str(), (SQLSMALLINT) cn.size(),
                         (SQLCHAR*) sn.c_str(), (SQLSMALLINT) sn.size(),
                         (SQLCHAR*) tn.c_str(), (SQLSMALLINT) tn.size());
                 if (!SQL_SUCCEEDED(retcode)) {
-                    res = SPA::Odbc::ER_ERROR;
+                    res = Odbc::ER_ERROR;
                     GetErrMsg(SQL_HANDLE_STMT, hstmt, errMsg);
                     ++m_fails;
                     break;
@@ -2384,7 +2398,7 @@ namespace SPA
         void COdbcImpl::DoSQLTablePrivileges(const CDBString& catalogName, const CDBString& schemaName, const CDBString& tableName, UINT64 index, int &res, CDBString &errMsg, UINT64 & fail_ok) {
             fail_ok = 0;
             if (!m_pOdbc) {
-                res = SPA::Odbc::ER_NO_DB_OPENED_YET;
+                res = Odbc::ER_NO_DB_OPENED_YET;
                 errMsg = NO_DB_OPENED_YET;
                 ++m_fails;
                 fail_ok = 1;
@@ -2405,20 +2419,20 @@ namespace SPA
                     }
                 });
                 if (!SQL_SUCCEEDED(retcode)) {
-                    res = SPA::Odbc::ER_ERROR;
+                    res = Odbc::ER_ERROR;
                     GetErrMsg(SQL_HANDLE_DBC, m_pOdbc.get(), errMsg);
                     ++m_fails;
                     break;
                 }
                 m_pExcuting = pStmt;
-                std::string cn = SPA::Utilities::ToUTF8(catalogName.c_str(), catalogName.size());
-                std::string sn = SPA::Utilities::ToUTF8(schemaName.c_str(), schemaName.size());
-                std::string tn = SPA::Utilities::ToUTF8(tableName.c_str(), tableName.size());
+                std::string cn = Utilities::ToUTF8(catalogName.c_str(), catalogName.size());
+                std::string sn = Utilities::ToUTF8(schemaName.c_str(), schemaName.size());
+                std::string tn = Utilities::ToUTF8(tableName.c_str(), tableName.size());
                 retcode = SQLTablePrivileges(hstmt, (SQLCHAR*) cn.c_str(), (SQLSMALLINT) cn.size(),
                         (SQLCHAR*) sn.c_str(), (SQLSMALLINT) sn.size(),
                         (SQLCHAR*) tn.c_str(), (SQLSMALLINT) tn.size());
                 if (!SQL_SUCCEEDED(retcode)) {
-                    res = SPA::Odbc::ER_ERROR;
+                    res = Odbc::ER_ERROR;
                     GetErrMsg(SQL_HANDLE_STMT, hstmt, errMsg);
                     ++m_fails;
                     break;
@@ -2449,7 +2463,7 @@ namespace SPA
         void COdbcImpl::DoSQLStatistics(const CDBString& catalogName, const CDBString& schemaName, const CDBString& tableName, SQLUSMALLINT unique, SQLUSMALLINT reserved, UINT64 index, int &res, CDBString &errMsg, UINT64 & fail_ok) {
             fail_ok = 0;
             if (!m_pOdbc) {
-                res = SPA::Odbc::ER_NO_DB_OPENED_YET;
+                res = Odbc::ER_NO_DB_OPENED_YET;
                 errMsg = NO_DB_OPENED_YET;
                 ++m_fails;
                 fail_ok = 1;
@@ -2470,20 +2484,20 @@ namespace SPA
                     }
                 });
                 if (!SQL_SUCCEEDED(retcode)) {
-                    res = SPA::Odbc::ER_ERROR;
+                    res = Odbc::ER_ERROR;
                     GetErrMsg(SQL_HANDLE_DBC, m_pOdbc.get(), errMsg);
                     ++m_fails;
                     break;
                 }
                 m_pExcuting = pStmt;
-                std::string cn = SPA::Utilities::ToUTF8(catalogName.c_str(), catalogName.size());
-                std::string sn = SPA::Utilities::ToUTF8(schemaName.c_str(), schemaName.size());
-                std::string tn = SPA::Utilities::ToUTF8(tableName.c_str(), tableName.size());
+                std::string cn = Utilities::ToUTF8(catalogName.c_str(), catalogName.size());
+                std::string sn = Utilities::ToUTF8(schemaName.c_str(), schemaName.size());
+                std::string tn = Utilities::ToUTF8(tableName.c_str(), tableName.size());
                 retcode = SQLStatistics(hstmt, (SQLCHAR*) cn.c_str(), (SQLSMALLINT) cn.size(),
                         (SQLCHAR*) sn.c_str(), (SQLSMALLINT) sn.size(),
                         (SQLCHAR*) tn.c_str(), (SQLSMALLINT) tn.size(), unique, reserved);
                 if (!SQL_SUCCEEDED(retcode)) {
-                    res = SPA::Odbc::ER_ERROR;
+                    res = Odbc::ER_ERROR;
                     GetErrMsg(SQL_HANDLE_STMT, hstmt, errMsg);
                     ++m_fails;
                     break;
@@ -2514,7 +2528,7 @@ namespace SPA
         void COdbcImpl::DoSQLProcedures(const CDBString& catalogName, const CDBString& schemaName, const CDBString& procName, UINT64 index, int &res, CDBString &errMsg, UINT64 & fail_ok) {
             fail_ok = 0;
             if (!m_pOdbc) {
-                res = SPA::Odbc::ER_NO_DB_OPENED_YET;
+                res = Odbc::ER_NO_DB_OPENED_YET;
                 errMsg = NO_DB_OPENED_YET;
                 ++m_fails;
                 fail_ok = 1;
@@ -2535,20 +2549,20 @@ namespace SPA
                     }
                 });
                 if (!SQL_SUCCEEDED(retcode)) {
-                    res = SPA::Odbc::ER_ERROR;
+                    res = Odbc::ER_ERROR;
                     GetErrMsg(SQL_HANDLE_DBC, m_pOdbc.get(), errMsg);
                     ++m_fails;
                     break;
                 }
                 m_pExcuting = pStmt;
-                std::string cn = SPA::Utilities::ToUTF8(catalogName.c_str(), catalogName.size());
-                std::string sn = SPA::Utilities::ToUTF8(schemaName.c_str(), schemaName.size());
-                std::string pn = SPA::Utilities::ToUTF8(procName.c_str(), procName.size());
+                std::string cn = Utilities::ToUTF8(catalogName.c_str(), catalogName.size());
+                std::string sn = Utilities::ToUTF8(schemaName.c_str(), schemaName.size());
+                std::string pn = Utilities::ToUTF8(procName.c_str(), procName.size());
                 retcode = SQLProcedures(hstmt, (SQLCHAR*) cn.c_str(), (SQLSMALLINT) cn.size(),
                         (SQLCHAR*) sn.c_str(), (SQLSMALLINT) sn.size(),
                         (SQLCHAR*) pn.c_str(), (SQLSMALLINT) pn.size());
                 if (!SQL_SUCCEEDED(retcode)) {
-                    res = SPA::Odbc::ER_ERROR;
+                    res = Odbc::ER_ERROR;
                     GetErrMsg(SQL_HANDLE_STMT, hstmt, errMsg);
                     ++m_fails;
                     break;
@@ -2579,7 +2593,7 @@ namespace SPA
         void COdbcImpl::DoSQLSpecialColumns(SQLSMALLINT identifierType, const CDBString& catalogName, const CDBString& schemaName, const CDBString& tableName, SQLSMALLINT scope, SQLSMALLINT nullable, UINT64 index, int &res, CDBString &errMsg, UINT64 & fail_ok) {
             fail_ok = 0;
             if (!m_pOdbc) {
-                res = SPA::Odbc::ER_NO_DB_OPENED_YET;
+                res = Odbc::ER_NO_DB_OPENED_YET;
                 errMsg = NO_DB_OPENED_YET;
                 ++m_fails;
                 fail_ok = 1;
@@ -2600,20 +2614,20 @@ namespace SPA
                     }
                 });
                 if (!SQL_SUCCEEDED(retcode)) {
-                    res = SPA::Odbc::ER_ERROR;
+                    res = Odbc::ER_ERROR;
                     GetErrMsg(SQL_HANDLE_DBC, m_pOdbc.get(), errMsg);
                     ++m_fails;
                     break;
                 }
                 m_pExcuting = pStmt;
-                std::string cn = SPA::Utilities::ToUTF8(catalogName.c_str(), catalogName.size());
-                std::string sn = SPA::Utilities::ToUTF8(schemaName.c_str(), schemaName.size());
-                std::string tn = SPA::Utilities::ToUTF8(tableName.c_str(), tableName.size());
+                std::string cn = Utilities::ToUTF8(catalogName.c_str(), catalogName.size());
+                std::string sn = Utilities::ToUTF8(schemaName.c_str(), schemaName.size());
+                std::string tn = Utilities::ToUTF8(tableName.c_str(), tableName.size());
                 retcode = SQLSpecialColumns(hstmt, identifierType, (SQLCHAR*) cn.c_str(), (SQLSMALLINT) cn.size(),
                         (SQLCHAR*) sn.c_str(), (SQLSMALLINT) sn.size(),
                         (SQLCHAR*) tn.c_str(), (SQLSMALLINT) tn.size(), scope, nullable);
                 if (!SQL_SUCCEEDED(retcode)) {
-                    res = SPA::Odbc::ER_ERROR;
+                    res = Odbc::ER_ERROR;
                     GetErrMsg(SQL_HANDLE_STMT, hstmt, errMsg);
                     ++m_fails;
                     break;
@@ -2644,7 +2658,7 @@ namespace SPA
         void COdbcImpl::DoSQLForeignKeys(const CDBString& pkCatalogName, const CDBString& pkSchemaName, const CDBString& pkTableName, const CDBString& fkCatalogName, const CDBString& fkSchemaName, const CDBString& fkTableName, UINT64 index, int &res, CDBString &errMsg, UINT64 & fail_ok) {
             fail_ok = 0;
             if (!m_pOdbc) {
-                res = SPA::Odbc::ER_NO_DB_OPENED_YET;
+                res = Odbc::ER_NO_DB_OPENED_YET;
                 errMsg = NO_DB_OPENED_YET;
                 ++m_fails;
                 fail_ok = 1;
@@ -2665,18 +2679,18 @@ namespace SPA
                     }
                 });
                 if (!SQL_SUCCEEDED(retcode)) {
-                    res = SPA::Odbc::ER_ERROR;
+                    res = Odbc::ER_ERROR;
                     GetErrMsg(SQL_HANDLE_DBC, m_pOdbc.get(), errMsg);
                     ++m_fails;
                     break;
                 }
                 m_pExcuting = pStmt;
-                std::string pk_cn = SPA::Utilities::ToUTF8(pkCatalogName.c_str(), pkCatalogName.size());
-                std::string pk_sn = SPA::Utilities::ToUTF8(pkSchemaName.c_str(), pkSchemaName.size());
-                std::string pk_tn = SPA::Utilities::ToUTF8(pkTableName.c_str(), pkTableName.size());
-                std::string fk_cn = SPA::Utilities::ToUTF8(fkCatalogName.c_str(), fkCatalogName.size());
-                std::string fk_sn = SPA::Utilities::ToUTF8(fkSchemaName.c_str(), fkSchemaName.size());
-                std::string fk_tn = SPA::Utilities::ToUTF8(fkTableName.c_str(), fkTableName.size());
+                std::string pk_cn = Utilities::ToUTF8(pkCatalogName.c_str(), pkCatalogName.size());
+                std::string pk_sn = Utilities::ToUTF8(pkSchemaName.c_str(), pkSchemaName.size());
+                std::string pk_tn = Utilities::ToUTF8(pkTableName.c_str(), pkTableName.size());
+                std::string fk_cn = Utilities::ToUTF8(fkCatalogName.c_str(), fkCatalogName.size());
+                std::string fk_sn = Utilities::ToUTF8(fkSchemaName.c_str(), fkSchemaName.size());
+                std::string fk_tn = Utilities::ToUTF8(fkTableName.c_str(), fkTableName.size());
                 retcode = SQLForeignKeys(hstmt, (SQLCHAR*) pk_cn.c_str(), (SQLSMALLINT) pk_cn.size(),
                         (SQLCHAR*) pkSchemaName.c_str(), (SQLSMALLINT) pkSchemaName.size(),
                         (SQLCHAR*) pk_tn.c_str(), (SQLSMALLINT) pk_tn.size(),
@@ -2684,7 +2698,7 @@ namespace SPA
                         (SQLCHAR*) fk_sn.c_str(), (SQLSMALLINT) fk_sn.size(),
                         (SQLCHAR*) fk_sn.c_str(), (SQLSMALLINT) fk_tn.size());
                 if (!SQL_SUCCEEDED(retcode)) {
-                    res = SPA::Odbc::ER_ERROR;
+                    res = Odbc::ER_ERROR;
                     GetErrMsg(SQL_HANDLE_STMT, hstmt, errMsg);
                     ++m_fails;
                     break;
@@ -2724,14 +2738,14 @@ namespace SPA
 #ifdef WIN32_64
             CDBString sql = L"SELECT name FROM master.dbo.sysdatabases where name NOT IN('master','tempdb','model','msdb')";
 #else
-			CDBString sql = u"SELECT name FROM master.dbo.sysdatabases where name NOT IN('master','tempdb','model','msdb')";
+            CDBString sql = u"SELECT name FROM master.dbo.sysdatabases where name NOT IN('master','tempdb','model','msdb')";
 #endif
             m_pNoSending = &q;
             do {
                 Execute(sql, rowset, false, lastInsertId, index, affected, res, errMsg, vtId, fail_ok);
                 if (res)
                     break;
-                SPA::UDB::CDBVariantArray vDb;
+                UDB::CDBVariantArray vDb;
                 while (q.GetSize()) {
                     CDBVariant vt;
                     q >> vt;
@@ -2739,17 +2753,17 @@ namespace SPA
                 }
                 for (auto it = vDb.cbegin(), end = vDb.cend(); it != end; ++it) {
 #ifdef WIN32_64
-					sql = L"USE [";
+                    sql = L"USE [";
                     sql += it->bstrVal;
                     sql += L"];";
                     sql += L"select object_schema_name(parent_id),OBJECT_NAME(parent_id)from sys.assembly_modules as am,sys.triggers as t where t.object_id=am.object_id and assembly_method like 'PublishDMLEvent%' and assembly_class='USqlStream'";
 #else
-					sql = u"USE [";
-					sql += Utilities::ToUTF16(it->bstrVal);
-					sql += u"];";
-					sql += u"select object_schema_name(parent_id),OBJECT_NAME(parent_id)from sys.assembly_modules as am,sys.triggers as t where t.object_id=am.object_id and assembly_method like 'PublishDMLEvent%' and assembly_class='USqlStream'";
+                    sql = u"USE [";
+                    sql += Utilities::ToUTF16(it->bstrVal);
+                    sql += u"];";
+                    sql += u"select object_schema_name(parent_id),OBJECT_NAME(parent_id)from sys.assembly_modules as am,sys.triggers as t where t.object_id=am.object_id and assembly_method like 'PublishDMLEvent%' and assembly_class='USqlStream'";
 #endif
-					Execute(sql, rowset, false, lastInsertId, index, affected, res, errMsg, vtId, fail_ok);
+                    Execute(sql, rowset, false, lastInsertId, index, affected, res, errMsg, vtId, fail_ok);
                     if (res)
                         continue;
                     if (strSqlCache.size())
@@ -2766,13 +2780,13 @@ namespace SPA
                         strSqlCache += vtTable.bstrVal;
                         strSqlCache += L"] FOR BROWSE";
 #else
-						strSqlCache += u"SELECT * FROM [";
-						strSqlCache += Utilities::ToUTF16(it->bstrVal);
-						strSqlCache += u"].[";
-						strSqlCache += Utilities::ToUTF16(vtSchema.bstrVal);
-						strSqlCache += u"].[";
-						strSqlCache += Utilities::ToUTF16(vtTable.bstrVal);
-						strSqlCache += u"] FOR BROWSE";
+                        strSqlCache += u"SELECT * FROM [";
+                        strSqlCache += Utilities::ToUTF16(it->bstrVal);
+                        strSqlCache += u"].[";
+                        strSqlCache += Utilities::ToUTF16(vtSchema.bstrVal);
+                        strSqlCache += u"].[";
+                        strSqlCache += Utilities::ToUTF16(vtTable.bstrVal);
+                        strSqlCache += u"] FOR BROWSE";
 #endif
                         if (q.GetSize())
                             strSqlCache.push_back(';');
@@ -2782,7 +2796,7 @@ namespace SPA
 #ifdef WIN32_64
             sql = L"USE [" + m_dbName + L"]";
 #else
-			sql = u"USE [" + m_dbName + u"]";
+            sql = u"USE [" + m_dbName + u"]";
 #endif
             Execute(sql, false, false, lastInsertId, index, affected, res, errMsg, vtId, fail_ok);
             m_pNoSending = nullptr;
@@ -2794,7 +2808,7 @@ namespace SPA
             fail_ok = 0;
             ResetMemories();
             if (!m_pOdbc) {
-                res = SPA::Odbc::ER_NO_DB_OPENED_YET;
+                res = Odbc::ER_NO_DB_OPENED_YET;
                 errMsg = NO_DB_OPENED_YET;
                 ++m_fails;
                 fail_ok = 1;
@@ -2825,7 +2839,7 @@ namespace SPA
                     }
                 });
                 if (!SQL_SUCCEEDED(retcode)) {
-                    res = SPA::Odbc::ER_ERROR;
+                    res = Odbc::ER_ERROR;
                     GetErrMsg(SQL_HANDLE_DBC, m_pOdbc.get(), errMsg);
                     ++m_fails;
                     break;
@@ -2840,17 +2854,9 @@ namespace SPA
                             break;
                     }
                 }
-#ifdef WIN32_64
                 retcode = SQLExecDirectW(hstmt, (SQLWCHAR*) sql.c_str(), (SQLINTEGER) sql.size());
-#else
-                {
-                    CScopeUQueue sb;
-                    SPA::Utilities::ToUTF16(sql.c_str(), sql.size(), *sb);
-                    retcode = SQLExecDirectW(hstmt, (SQLWCHAR*) sb->GetBuffer(), (SQLINTEGER) (sb->GetSize() / sizeof (SQLWCHAR)));
-                }
-#endif
                 if (!SQL_SUCCEEDED(retcode) && retcode != SQL_NO_DATA) {
-                    res = SPA::Odbc::ER_ERROR;
+                    res = Odbc::ER_ERROR;
                     GetErrMsg(SQL_HANDLE_STMT, hstmt, errMsg);
                     ++m_fails;
                     break;
@@ -2896,7 +2902,7 @@ namespace SPA
                     }
                 } while ((retcode = SQLMoreResults(hstmt)) == SQL_SUCCESS);
                 if (!SQL_SUCCEEDED(retcode) && retcode != SQL_NO_DATA) {
-                    res = SPA::Odbc::ER_ERROR;
+                    res = Odbc::ER_ERROR;
                     GetErrMsg(SQL_HANDLE_STMT, hstmt, errMsg);
                     ++m_fails;
                 } else {
@@ -2909,7 +2915,7 @@ namespace SPA
 
         void COdbcImpl::SetOracleCallParams(const std::vector<tagParameterDirection> &vPD, int &res, CDBString & errMsg) {
 #ifdef WIN32_64
-			CDBString sql(L"SELECT in_out,data_type FROM SYS.ALL_ARGUMENTS WHERE data_type<>'REF CURSOR' AND owner='");
+            CDBString sql(L"SELECT in_out,data_type FROM SYS.ALL_ARGUMENTS WHERE data_type<>'REF CURSOR' AND owner='");
             std::transform(m_userName.begin(), m_userName.end(), m_userName.begin(), ::toupper);
             sql += m_userName;
             sql += L"' AND object_name='";
@@ -2925,28 +2931,27 @@ namespace SPA
             }
             sql += L" ORDER BY position";
 #else
-			CDBString sql(u"SELECT in_out,data_type FROM SYS.ALL_ARGUMENTS WHERE data_type<>'REF CURSOR' AND owner='");
-			std::transform(m_userName.begin(), m_userName.end(), m_userName.begin(), ::toupper);
-			sql += m_userName;
-			sql += u"' AND object_name='";
-			std::transform(m_procName.begin(), m_procName.end(), m_procName.begin(), ::toupper);
-			sql += m_procName;
-			if (m_procCatalogSchema.size()) {
-				sql += u"' AND package_name='";
-				std::transform(m_procCatalogSchema.begin(), m_procCatalogSchema.end(), m_procCatalogSchema.begin(), ::toupper);
-				sql += m_procCatalogSchema;
-				sql += u"'";
-			}
-			else {
-				sql += u"' AND package_name IS NULL";
-			}
-			sql += u" ORDER BY position";
+            CDBString sql(u"SELECT in_out,data_type FROM SYS.ALL_ARGUMENTS WHERE data_type<>'REF CURSOR' AND owner='");
+            std::transform(m_userName.begin(), m_userName.end(), m_userName.begin(), ::toupper);
+            sql += m_userName;
+            sql += u"' AND object_name='";
+            std::transform(m_procName.begin(), m_procName.end(), m_procName.begin(), ::toupper);
+            sql += m_procName;
+            if (m_procCatalogSchema.size()) {
+                sql += u"' AND package_name='";
+                std::transform(m_procCatalogSchema.begin(), m_procCatalogSchema.end(), m_procCatalogSchema.begin(), ::toupper);
+                sql += m_procCatalogSchema;
+                sql += u"'";
+            } else {
+                sql += u"' AND package_name IS NULL";
+            }
+            sql += u" ORDER BY position";
 #endif
             CDBVariant vtId;
             UINT64 index = 0, fail_ok = 0;
             INT64 affected = 0;
-            SPA::CScopeUQueue sb;
-            SPA::CUQueue &q = *sb;
+            CScopeUQueue sb;
+            CUQueue &q = *sb;
             m_pNoSending = &q;
             Execute(sql, true, true, false, index, affected, res, errMsg, vtId, fail_ok);
             m_pNoSending = nullptr;
@@ -3060,8 +3065,8 @@ namespace SPA
             } else {
                 catalog = m_procCatalogSchema;
             }
-            SPA::CScopeUQueue sb;
-            SPA::CUQueue &q = *sb;
+            CScopeUQueue sb;
+            CUQueue &q = *sb;
             m_pNoSending = &q;
             CDBVariantArray vData;
             DoSQLProcedureColumns(catalog, schema, m_procName, column, index, res, errMsg, fail_ok);
@@ -3191,7 +3196,7 @@ namespace SPA
                         break;
                     case SQL_XML: //IBM DB2
                     case SQL_SS_XML: //SQL Server
-                        pi.DataType = SPA::VT_XML;
+                        pi.DataType = VT_XML;
                         pi.ColumnSize = (~0);
                         break;
                     case SQL_SS_VARIANT:
@@ -3217,7 +3222,7 @@ namespace SPA
             m_vPInfo = params;
             parameters = 0;
             if (!m_pOdbc) {
-                res = SPA::Odbc::ER_NO_DB_OPENED_YET;
+                res = Odbc::ER_NO_DB_OPENED_YET;
                 errMsg = NO_DB_OPENED_YET;
                 return;
             } else {
@@ -3243,38 +3248,30 @@ namespace SPA
                     }
                 });
                 if (!SQL_SUCCEEDED(retcode)) {
-                    res = SPA::Odbc::ER_ERROR;
+                    res = Odbc::ER_ERROR;
                     GetErrMsg(SQL_HANDLE_DBC, m_pOdbc.get(), errMsg);
                     break;
                 }
                 m_pExcuting = m_pPrepare;
-#ifdef WIN32_64
                 retcode = SQLPrepareW(hstmt, (SQLWCHAR*) m_sqlPrepare.c_str(), (SQLINTEGER) m_sqlPrepare.size());
-#else
-                {
-                    CScopeUQueue sb;
-                    SPA::Utilities::ToUTF16(m_sqlPrepare.c_str(), m_sqlPrepare.size(), *sb);
-                    retcode = SQLPrepareW(hstmt, (SQLWCHAR*) sb->GetBuffer(), (SQLINTEGER) (sb->GetSize() / sizeof (SQLWCHAR)));
-                }
-#endif
                 if (!SQL_SUCCEEDED(retcode)) {
-                    res = SPA::Odbc::ER_ERROR;
+                    res = Odbc::ER_ERROR;
                     GetErrMsg(SQL_HANDLE_STMT, hstmt, errMsg);
                     break;
                 }
                 retcode = SQLNumParams(hstmt, &m_parameters);
                 if (!SQL_SUCCEEDED(retcode)) {
-                    res = SPA::Odbc::ER_ERROR;
+                    res = Odbc::ER_ERROR;
                     GetErrMsg(SQL_HANDLE_STMT, hstmt, errMsg);
                     break;
                 } else if (!m_parameters) {
-                    res = SPA::Odbc::ER_BAD_PARAMETER_COLUMN_SIZE;
+                    res = Odbc::ER_BAD_PARAMETER_COLUMN_SIZE;
                     errMsg = BAD_PARAMETER_COLUMN_SIZE;
                     break;
                 } else {
                     if (m_vPInfo.size()) {
                         if (m_bCall && m_parameters != (SQLSMALLINT) m_vPInfo.size()) {
-                            res = SPA::Odbc::ER_BAD_PARAMETER_COLUMN_SIZE;
+                            res = Odbc::ER_BAD_PARAMETER_COLUMN_SIZE;
                             errMsg = BAD_PARAMETER_COLUMN_SIZE;
                             break;
                         }
@@ -3298,7 +3295,7 @@ namespace SPA
                             break;
                         }
                         if (m_bCall && m_parameters != (SQLSMALLINT) m_vPInfo.size()) {
-                            res = SPA::Odbc::ER_BAD_PARAMETER_COLUMN_SIZE;
+                            res = Odbc::ER_BAD_PARAMETER_COLUMN_SIZE;
                             errMsg = BAD_PARAMETER_COLUMN_SIZE;
                             break;
                         }
@@ -3329,16 +3326,16 @@ namespace SPA
                         case (VT_I1 | VT_ARRAY):
                         case VT_BOOL:
                         case VT_VARIANT:
-                        case SPA::VT_XML:
+                        case VT_XML:
                             break;
                         default:
-                            res = SPA::Odbc::ER_BAD_INPUT_PARAMETER_DATA_TYPE;
+                            res = Odbc::ER_BAD_INPUT_PARAMETER_DATA_TYPE;
                             errMsg = BAD_INPUT_PARAMETER_DATA_TYPE;
                             break;
                     }
                     switch (it->Direction) {
                         case pdUnknown:
-                            res = SPA::Odbc::ER_BAD_PARAMETER_DIRECTION_TYPE;
+                            res = Odbc::ER_BAD_PARAMETER_DIRECTION_TYPE;
                             errMsg = BAD_PARAMETER_DIRECTION_TYPE;
                             break;
                         case pdInput:
@@ -3354,7 +3351,7 @@ namespace SPA
                         break;
                 }
                 if ((m_outputs || m_bReturn) && m_vPInfo.size() != (size_t) m_parameters) {
-                    res = SPA::Odbc::ER_CORRECT_PARAMETER_INFO_NOT_PROVIDED_YET;
+                    res = Odbc::ER_CORRECT_PARAMETER_INFO_NOT_PROVIDED_YET;
                     errMsg = CORRECT_PARAMETER_INFO_NOT_PROVIDED_YET;
                     break;
                 }
@@ -3430,9 +3427,9 @@ namespace SPA
             for (SQLSMALLINT col = 0; col < m_parameters; ++col) {
                 CParameterInfo &info = m_vPInfo[col];
                 switch (info.Direction) {
-                    case SPA::UDB::pdOutput:
-                    case SPA::UDB::pdReturnValue:
-                    case SPA::UDB::pdInputOutput:
+                    case UDB::pdOutput:
+                    case UDB::pdReturnValue:
+                    case UDB::pdInputOutput:
                         switch (info.DataType) {
                             case VT_CLSID:
                                 info.ColumnSize = sizeof (GUID);
@@ -3446,7 +3443,7 @@ namespace SPA
                                 info.ColumnSize = DECIMAL_STRING_BUFFER_SIZE;
                                 max_size += DECIMAL_STRING_BUFFER_SIZE;
                                 break;
-                            case SPA::VT_XML:
+                            case VT_XML:
                             case VT_BSTR:
                                 if (info.ColumnSize == 0) {
                                     info.ColumnSize = (DEFAULT_UNICODE_CHAR_SIZE + 1);
@@ -3490,7 +3487,7 @@ namespace SPA
         }
 
         bool COdbcImpl::PushOutputParameters(unsigned int r, UINT64 index) {
-            SPA::CScopeUQueue sb;
+            CScopeUQueue sb;
             unsigned int ret = SendResult(idBeginRows, (const unsigned char*) &index, (unsigned int) sizeof (index));
             if (ret == REQUEST_CANCELED || ret == SOCKET_NOT_FOUND) {
                 return false;
@@ -3499,7 +3496,7 @@ namespace SPA
             const unsigned char *start = m_Blob.GetBuffer();
             for (SQLSMALLINT n = 0; n < m_parameters; ++n) {
                 CParameterInfo &info = m_vPInfo[n];
-                if (info.Direction == SPA::UDB::pdInput)
+                if (info.Direction == UDB::pdInput)
                     continue;
                 VARTYPE vt = VT_NULL;
                 if (pLenInd[n] == SQL_NULL_DATA) {
@@ -3507,7 +3504,7 @@ namespace SPA
                     switch (info.DataType) {
                         case VT_CLSID:
                         case VT_DATE:
-                        case SPA::VT_XML:
+                        case VT_XML:
                         case VT_BSTR:
                         case (VT_UI1 | VT_ARRAY):
                         case (VT_I1 | VT_ARRAY):
@@ -3519,8 +3516,8 @@ namespace SPA
                     }
                     continue;
                 }
-                SPA::UDB::CDBVariant &vtD = m_vParam[(unsigned int) n + r * ((unsigned int) m_parameters)];
-                if (info.DataType == VT_VARIANT || info.DataType == SPA::VT_XML) {
+                UDB::CDBVariant &vtD = m_vParam[(unsigned int) n + r * ((unsigned int) m_parameters)];
+                if (info.DataType == VT_VARIANT || info.DataType == VT_XML) {
                     sb << (VARTYPE) VT_BSTR;
                 } else {
                     sb << info.DataType;
@@ -3564,7 +3561,7 @@ namespace SPA
                         break;
                     case VT_DATE:
                     {
-                        SPA::UDateTime dt;
+                        UDateTime dt;
                         dt.ParseFromDBString((const char*) start);
                         sb << dt.time;
                         start += info.ColumnSize;
@@ -3575,14 +3572,14 @@ namespace SPA
                         DECIMAL dec;
                         const char* s = (const char*) start;
                         if (pLenInd[n] <= 19)
-                            SPA::ParseDec(s, dec);
+                            ParseDec(s, dec);
                         else
-                            SPA::ParseDec_long(s, dec);
+                            ParseDec_long(s, dec);
                         sb << dec;
                         start += info.ColumnSize;
                     }
                         break;
-                    case SPA::VT_XML:
+                    case VT_XML:
                     case VT_BSTR:
                     {
                         sb << (const SQLWCHAR*) start;
@@ -3635,16 +3632,16 @@ namespace SPA
                 SQLSMALLINT InputOutputType = SQL_PARAM_TYPE_UNKNOWN;
                 CParameterInfo &info = m_vPInfo[col];
                 switch (info.Direction) {
-                    case SPA::UDB::pdInput:
+                    case UDB::pdInput:
                         InputOutputType = SQL_PARAM_INPUT;
                         break;
-                    case SPA::UDB::pdOutput:
+                    case UDB::pdOutput:
                         InputOutputType = SQL_PARAM_OUTPUT;
                         break;
-                    case SPA::UDB::pdReturnValue:
+                    case UDB::pdReturnValue:
                         InputOutputType = SQL_PARAM_OUTPUT;
                         break;
-                    case SPA::UDB::pdInputOutput:
+                    case UDB::pdInputOutput:
                         InputOutputType = SQL_PARAM_INPUT_OUTPUT;
                         break;
                     default:
@@ -3777,7 +3774,7 @@ namespace SPA
                                     c_type = SQL_C_WCHAR;
                                     output_pos += (unsigned int) BufferLength;
                                     break;
-                                case SPA::VT_XML:
+                                case VT_XML:
                                     if (m_msDriver == msDB2)
                                         sql_type = SQL_XML;
                                     else
@@ -3881,7 +3878,7 @@ namespace SPA
                                     c_type = SQL_C_WCHAR;
                                     sql_type = SQL_SS_VARIANT;
                                     break;
-                                case SPA::VT_XML:
+                                case VT_XML:
                                     c_type = SQL_C_WCHAR;
                                     if (m_msDriver == msDB2)
                                         sql_type = SQL_XML;
@@ -3945,7 +3942,7 @@ namespace SPA
                     case VT_DATE:
                         c_type = SQL_C_CHAR;
                     {
-                        SPA::UDateTime dt(vtD.ullVal);
+                        UDateTime dt(vtD.ullVal);
                         if (dt.HasMicrosecond()) {
                             DecimalDigits = MAX_TIME_DIGITS;
                         }
@@ -4009,7 +4006,7 @@ namespace SPA
                         c_type = SQL_C_WCHAR;
                         if (info.DataType == VT_VARIANT) {
                             sql_type = SQL_SS_VARIANT;
-                        } else if (info.DataType == SPA::VT_XML) {
+                        } else if (info.DataType == VT_XML) {
                             if (m_msDriver == msDB2)
                                 sql_type = SQL_XML;
                             else
@@ -4049,7 +4046,7 @@ namespace SPA
                         c_type = SQL_C_WCHAR;
                         if (info.DataType == VT_VARIANT) {
                             sql_type = SQL_SS_VARIANT;
-                        } else if (info.DataType == SPA::VT_XML) {
+                        } else if (info.DataType == VT_XML) {
                             if (m_msDriver == msDB2)
                                 sql_type = SQL_XML;
                             else
@@ -4101,9 +4098,9 @@ namespace SPA
                             const DECIMAL &decVal = vtD.decVal;
                             std::string s;
                             if (decVal.Hi32)
-                                s = SPA::ToString_long(decVal);
+                                s = ToString_long(decVal);
                             else
-                                s = SPA::ToString(decVal);
+                                s = ToString(decVal);
                             ParameterValuePtr = (SQLPOINTER) (m_Blob.GetBuffer() + output_pos);
                             memset(ParameterValuePtr, 0, BufferLength);
                             ::memcpy(ParameterValuePtr, s.c_str(), s.size());
@@ -4207,9 +4204,9 @@ namespace SPA
             if (vt.vt == VT_DECIMAL) {
                 std::string s;
                 if (vt.decVal.Hi32)
-                    s = SPA::ToString_long(vt.decVal);
+                    s = ToString_long(vt.decVal);
                 else
-                    s = SPA::ToString(vt.decVal);
+                    s = ToString(vt.decVal);
                 vt = s.c_str();
             }
         }
@@ -4359,7 +4356,7 @@ namespace SPA
                 parameters += ComputeParameters(*it);
             }
             if (!m_pOdbc) {
-                res = SPA::Odbc::ER_NO_DB_OPENED_YET;
+                res = Odbc::ER_NO_DB_OPENED_YET;
                 errMsg = NO_DB_OPENED_YET;
                 fail_ok = vSql.size();
                 fail_ok <<= 32;
@@ -4369,7 +4366,7 @@ namespace SPA
             size_t rows = 0;
             if (parameters) {
                 if (!m_vParam.size()) {
-                    res = SPA::Odbc::ER_BAD_PARAMETER_DATA_ARRAY_SIZE;
+                    res = Odbc::ER_BAD_PARAMETER_DATA_ARRAY_SIZE;
                     errMsg = BAD_PARAMETER_DATA_ARRAY_SIZE;
                     m_fails += vSql.size();
                     fail_ok = vSql.size();
@@ -4378,7 +4375,7 @@ namespace SPA
                     return;
                 }
                 if ((m_vParam.size() % (unsigned short) parameters)) {
-                    res = SPA::Odbc::ER_BAD_PARAMETER_DATA_ARRAY_SIZE;
+                    res = Odbc::ER_BAD_PARAMETER_DATA_ARRAY_SIZE;
                     errMsg = BAD_PARAMETER_DATA_ARRAY_SIZE;
                     m_fails += vSql.size();
                     fail_ok = vSql.size();
@@ -4388,7 +4385,7 @@ namespace SPA
                 }
                 rows = m_vParam.size() / parameters;
                 if (vPInfo.size() && parameters != vPInfo.size()) {
-                    res = SPA::Odbc::ER_CORRECT_PARAMETER_INFO_NOT_PROVIDED_YET;
+                    res = Odbc::ER_CORRECT_PARAMETER_INFO_NOT_PROVIDED_YET;
                     errMsg = CORRECT_PARAMETER_INFO_NOT_PROVIDED_YET;
                     m_fails += vSql.size();
                     fail_ok = vSql.size();
@@ -4486,27 +4483,27 @@ namespace SPA
             UINT64 oks = m_oks;
             do {
                 if (!m_pOdbc) {
-                    res = SPA::Odbc::ER_NO_DB_OPENED_YET;
+                    res = Odbc::ER_NO_DB_OPENED_YET;
                     errMsg = NO_DB_OPENED_YET;
                     ++m_fails;
                     break;
                 }
                 if (!m_pPrepare) {
-                    res = SPA::Odbc::ER_NO_PARAMETER_SPECIFIED;
+                    res = Odbc::ER_NO_PARAMETER_SPECIFIED;
                     errMsg = NO_PARAMETER_SPECIFIED;
                     ++m_fails;
                     break;
                 }
                 if (m_parameters) {
                     if ((m_vParam.size() % (unsigned short) m_parameters) || m_vParam.size() == 0) {
-                        res = SPA::Odbc::ER_BAD_PARAMETER_DATA_ARRAY_SIZE;
+                        res = Odbc::ER_BAD_PARAMETER_DATA_ARRAY_SIZE;
                         errMsg = BAD_PARAMETER_DATA_ARRAY_SIZE;
                         ++m_fails;
                         break;
                     }
                     if (!m_outputs && !m_vPInfo.size()) {
                         if (!SetInputParamInfo()) {
-                            res = SPA::Odbc::ER_BAD_INPUT_PARAMETER_DATA_TYPE;
+                            res = Odbc::ER_BAD_INPUT_PARAMETER_DATA_TYPE;
                             errMsg = BAD_INPUT_PARAMETER_DATA_TYPE;
                             ++m_fails;
                             break;
@@ -4536,7 +4533,7 @@ namespace SPA
                     for (unsigned int r = 0; r < rows; ++r) {
                         output_sent = false;
                         if (!BindParameters(r, pLenInd)) {
-                            res = SPA::Odbc::ER_ERROR;
+                            res = Odbc::ER_ERROR;
                             GetErrMsg(SQL_HANDLE_STMT, m_pPrepare.get(), errMsg);
                             ++m_fails;
                             continue;
@@ -4554,7 +4551,7 @@ namespace SPA
                         retcode = SQLExecute(m_pPrepare.get());
                         if (!SQL_SUCCEEDED(retcode)) {
                             if (!res) {
-                                res = SPA::Odbc::ER_ERROR;
+                                res = Odbc::ER_ERROR;
                                 GetErrMsg(SQL_HANDLE_STMT, m_pPrepare.get(), errMsg);
                             }
                             ++m_fails;
@@ -4620,7 +4617,7 @@ namespace SPA
                 } else {
                     SQLRETURN retcode = SQLExecute(m_pPrepare.get());
                     if (!SQL_SUCCEEDED(retcode)) {
-                        res = SPA::Odbc::ER_ERROR;
+                        res = Odbc::ER_ERROR;
                         GetErrMsg(SQL_HANDLE_STMT, m_pPrepare.get(), errMsg);
                         ++m_fails;
                         break;
@@ -4738,9 +4735,9 @@ namespace SPA
             static CDBString NATIVE_ERROR(L":NATIVE=");
             static CDBString ERROR_MESSAGE(L":ERROR_MESSAGE=");
 #else
-			static CDBString SQLSTATE(u"SQLSTATE=");
-			static CDBString NATIVE_ERROR(u":NATIVE=");
-			static CDBString ERROR_MESSAGE(u":ERROR_MESSAGE=");
+            static CDBString SQLSTATE(u"SQLSTATE=");
+            static CDBString NATIVE_ERROR(u":NATIVE=");
+            static CDBString ERROR_MESSAGE(u":ERROR_MESSAGE=");
 #endif
             errMsg.clear();
             SQLSMALLINT i = 1, MsgLen = 0;
@@ -4753,15 +4750,15 @@ namespace SPA
 #ifdef WIN32_64
                 if (errMsg.size())
                     errMsg += L";";
-                errMsg += (SQLSTATE + SPA::Utilities::ToWide((const char*) SqlState));
+                errMsg += (SQLSTATE + Utilities::ToWide((const char*) SqlState));
                 errMsg += (NATIVE_ERROR + std::to_wstring((INT64) NativeError));
-                errMsg += (ERROR_MESSAGE + SPA::Utilities::ToWide((const char*) Msg));
+                errMsg += (ERROR_MESSAGE + Utilities::ToWide((const char*) Msg));
 #else
-				if (errMsg.size())
-					errMsg += u";";
-				errMsg += (SQLSTATE + SPA::Utilities::ToUTF16((const char*)SqlState));
-				errMsg += (NATIVE_ERROR + Utilities::ToUTF16(std::to_string((INT64)NativeError)));
-				errMsg += (ERROR_MESSAGE + SPA::Utilities::ToUTF16((const char*)Msg));
+                if (errMsg.size())
+                    errMsg += u";";
+                errMsg += (SQLSTATE + Utilities::ToUTF16((const char*) SqlState));
+                errMsg += (NATIVE_ERROR + Utilities::ToUTF16(std::to_string((INT64) NativeError)));
+                errMsg += (ERROR_MESSAGE + Utilities::ToUTF16((const char*) Msg));
 #endif
                 ::memset(Msg, 0, sizeof (Msg));
                 ++i;
