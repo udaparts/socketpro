@@ -82,7 +82,7 @@ namespace SPA {
 
         public:
             CMysqlImpl();
-            virtual void Open(const std::wstring &strConnection, unsigned int flags, int &res, std::wstring &errMsg, int &ms);
+            virtual void Open(const CDBString &strConnection, unsigned int flags, int &res, CDBString &errMsg, int &ms);
             static void CALLBACK OnThreadEvent(tagThreadEvent te);
             static void SetDBGlobalConnectionString(const wchar_t *dbConnection, bool remote);
             static void UnloadMysql();
@@ -113,13 +113,13 @@ namespace SPA {
             virtual void OnBaseRequestArrive(unsigned short requestId);
 
         private:
-            virtual void CloseDb(int &res, std::wstring &errMsg);
-            virtual void BeginTrans(int isolation, const std::wstring &dbConn, unsigned int flags, int &res, std::wstring &errMsg, int &ms);
-            virtual void EndTrans(int plan, int &res, std::wstring &errMsg);
-            virtual void Execute(const std::wstring& sql, bool rowset, bool meta, bool lastInsertId, UINT64 index, INT64 &affected, int &res, std::wstring &errMsg, CDBVariant &vtId, UINT64 &fail_ok);
-            virtual void Prepare(const std::wstring& sql, CParameterInfoArray& params, int &res, std::wstring &errMsg, unsigned int &parameters);
-            virtual void ExecuteParameters(bool rowset, bool meta, bool lastInsertId, UINT64 index, INT64 &affected, int &res, std::wstring &errMsg, CDBVariant &vtId, UINT64 &fail_ok);
-            virtual void ExecuteBatch(const std::wstring& sql, const std::wstring& delimiter, int isolation, int plan, bool rowset, bool meta, bool lastInsertId, const std::wstring &dbConn, unsigned int flags, UINT64 index, INT64 &affected, int &res, std::wstring &errMsg, CDBVariant &vtId, UINT64 &fail_ok);
+            virtual void CloseDb(int &res, CDBString &errMsg);
+            virtual void BeginTrans(int isolation, const CDBString &dbConn, unsigned int flags, int &res, CDBString &errMsg, int &ms);
+            virtual void EndTrans(int plan, int &res, CDBString &errMsg);
+            virtual void Execute(const CDBString& sql, bool rowset, bool meta, bool lastInsertId, UINT64 index, INT64 &affected, int &res, CDBString &errMsg, CDBVariant &vtId, UINT64 &fail_ok);
+            virtual void Prepare(const CDBString& sql, CParameterInfoArray& params, int &res, CDBString &errMsg, unsigned int &parameters);
+            virtual void ExecuteParameters(bool rowset, bool meta, bool lastInsertId, UINT64 index, INT64 &affected, int &res, CDBString &errMsg, CDBVariant &vtId, UINT64 &fail_ok);
+            virtual void ExecuteBatch(const CDBString& sql, const CDBString& delimiter, int isolation, int plan, bool rowset, bool meta, bool lastInsertId, const CDBString &dbConn, unsigned int flags, UINT64 index, INT64 &affected, int &res, CDBString &errMsg, CDBVariant &vtId, UINT64 &fail_ok);
 
         private:
             void StartBLOB(unsigned int lenExpected);
@@ -132,13 +132,13 @@ namespace SPA {
             bool SendBlob(unsigned short data_type, const unsigned char *buffer, unsigned int bytes);
 
         private:
-            void ExecuteSqlWithoutRowset(int &res, std::wstring &errMsg, INT64 &affected);
-            void ExecuteSqlWithRowset(bool rowset, bool meta, UINT64 index, int &res, std::wstring &errMsg, INT64 &affected);
+            void ExecuteSqlWithoutRowset(int &res, CDBString &errMsg, INT64 &affected);
+            void ExecuteSqlWithRowset(bool rowset, bool meta, UINT64 index, int &res, CDBString &errMsg, INT64 &affected);
             CDBColumnInfoArray GetColInfo(MYSQL_RES *result, unsigned int cols, bool prepare);
-            bool PushRecords(MYSQL_RES *result, const CDBColumnInfoArray &vColInfo, int &res, std::wstring &errMsg);
-            int Bind(CUQueue &qBufferSize, int row, std::wstring &errMsg);
-            std::shared_ptr<MYSQL_BIND> PrepareBindResultBuffer(MYSQL_RES *result, const CDBColumnInfoArray &vColInfo, int &res, std::wstring &errMsg, std::shared_ptr<MYSQL_BIND_RESULT_FIELD> &field);
-            bool PushRecords(UINT64 index, MYSQL_BIND *binds, MYSQL_BIND_RESULT_FIELD *fields, const CDBColumnInfoArray &vColInfo, bool rowset, bool output, int &res, std::wstring &errMsg);
+            bool PushRecords(MYSQL_RES *result, const CDBColumnInfoArray &vColInfo, int &res, CDBString &errMsg);
+            int Bind(CUQueue &qBufferSize, int row, CDBString &errMsg);
+            std::shared_ptr<MYSQL_BIND> PrepareBindResultBuffer(MYSQL_RES *result, const CDBColumnInfoArray &vColInfo, int &res, CDBString &errMsg, std::shared_ptr<MYSQL_BIND_RESULT_FIELD> &field);
+            bool PushRecords(UINT64 index, MYSQL_BIND *binds, MYSQL_BIND_RESULT_FIELD *fields, const CDBColumnInfoArray &vColInfo, bool rowset, bool output, int &res, CDBString &errMsg);
             void PreprocessPreparedStatement();
             void CleanDBObjects();
             void ResetMemories();
@@ -148,8 +148,8 @@ namespace SPA {
             static UINT64 ConvertBitsToInt(const unsigned char *s, unsigned int bytes);
             static void ConvertToUTF8OrDouble(CDBVariant &vt);
             static UINT64 ToUDateTime(const MYSQL_TIME &td);
-            static std::vector<std::wstring> Split(const std::wstring &sql, const std::wstring &delimiter);
-            static size_t ComputeParameters(const std::wstring &sql);
+            static std::vector<CDBString> Split(const CDBString &sql, const CDBString &delimiter);
+            static size_t ComputeParameters(const CDBString &sql);
 
         private:
             UINT64 m_oks;
@@ -173,7 +173,7 @@ namespace SPA {
             bool m_bManual;
             bool m_EnableMessages;
             CUQueue *m_pNoSending;
-            std::wstring m_dbNameOpened;
+            CDBString m_dbNameOpened;
 
             static const int IS_BINARY = 63;
             static const int MYSQL_TINYBLOB = 0xff;
@@ -181,25 +181,25 @@ namespace SPA {
             static const int MYSQL_MIDBLOB = 0xffffff;
             static my_bool B_IS_NULL;
 
-            static const wchar_t* NO_DB_OPENED_YET;
-            static const wchar_t* BAD_END_TRANSTACTION_PLAN;
-            static const wchar_t* NO_PARAMETER_SPECIFIED;
-            static const wchar_t* BAD_PARAMETER_COLUMN_SIZE;
-            static const wchar_t* BAD_PARAMETER_DATA_ARRAY_SIZE;
-            static const wchar_t* DATA_TYPE_NOT_SUPPORTED;
-            static const wchar_t* NO_DB_NAME_SPECIFIED;
-            static const wchar_t* MYSQL_LIBRARY_NOT_INITIALIZED;
-            static const wchar_t* BAD_MANUAL_TRANSACTION_STATE;
+            static const UTF16* NO_DB_OPENED_YET;
+            static const UTF16* BAD_END_TRANSTACTION_PLAN;
+            static const UTF16* NO_PARAMETER_SPECIFIED;
+            static const UTF16* BAD_PARAMETER_COLUMN_SIZE;
+            static const UTF16* BAD_PARAMETER_DATA_ARRAY_SIZE;
+            static const UTF16* DATA_TYPE_NOT_SUPPORTED;
+            static const UTF16* NO_DB_NAME_SPECIFIED;
+            static const UTF16* MYSQL_LIBRARY_NOT_INITIALIZED;
+            static const UTF16* BAD_MANUAL_TRANSACTION_STATE;
 
-            static const wchar_t* MYSQL_GLOBAL_CONNECTION_STRING;
+            static const UTF16* MYSQL_GLOBAL_CONNECTION_STRING;
 
             static CUCriticalSection m_csPeer;
-            static std::wstring m_strGlobalConnection; //remote mysql server, protected by m_csPeer
+            static CDBString m_strGlobalConnection; //remote mysql server, protected by m_csPeer
             static bool m_bInitMysql; //protected by m_csPeer
 
             struct MyStruct {
                 std::shared_ptr<MYSQL> Handle;
-                std::wstring DefaultDB;
+                CDBString DefaultDB;
             };
             typedef std::unordered_map<USocket_Server_Handle, MyStruct> CMyMap;
             static CMyMap m_mapConnection; //protected by m_csPeer

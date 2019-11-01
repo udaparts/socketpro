@@ -28,20 +28,31 @@ namespace SPA
 
         CUCriticalSection CMysqlImpl::m_csPeer;
         my_bool CMysqlImpl::B_IS_NULL = 1;
-        std::wstring CMysqlImpl::m_strGlobalConnection;
+        CDBString CMysqlImpl::m_strGlobalConnection;
         bool CMysqlImpl::m_bInitMysql = false;
-
-        const wchar_t * CMysqlImpl::NO_DB_OPENED_YET = L"No mysql database opened yet";
-        const wchar_t * CMysqlImpl::BAD_END_TRANSTACTION_PLAN = L"Bad end transaction plan";
-        const wchar_t * CMysqlImpl::NO_PARAMETER_SPECIFIED = L"No parameter specified";
-        const wchar_t * CMysqlImpl::BAD_PARAMETER_DATA_ARRAY_SIZE = L"Bad parameter data array length";
-        const wchar_t * CMysqlImpl::BAD_PARAMETER_COLUMN_SIZE = L"Bad parameter column size";
-        const wchar_t * CMysqlImpl::DATA_TYPE_NOT_SUPPORTED = L"Data type not supported";
-        const wchar_t * CMysqlImpl::NO_DB_NAME_SPECIFIED = L"No mysql database name specified";
-        const wchar_t * CMysqlImpl::MYSQL_LIBRARY_NOT_INITIALIZED = L"Mysql library not initialized";
-        const wchar_t * CMysqlImpl::BAD_MANUAL_TRANSACTION_STATE = L"Bad manual transaction state";
-
-        const wchar_t * CMysqlImpl::MYSQL_GLOBAL_CONNECTION_STRING = L"MYSQL_GLOBAL_CONNECTION_STRING";
+#ifdef WIN32_64
+        const UTF16 * CMysqlImpl::NO_DB_OPENED_YET = L"No mysql database opened yet";
+        const UTF16 * CMysqlImpl::BAD_END_TRANSTACTION_PLAN = L"Bad end transaction plan";
+        const UTF16 * CMysqlImpl::NO_PARAMETER_SPECIFIED = L"No parameter specified";
+        const UTF16 * CMysqlImpl::BAD_PARAMETER_DATA_ARRAY_SIZE = L"Bad parameter data array length";
+        const UTF16 * CMysqlImpl::BAD_PARAMETER_COLUMN_SIZE = L"Bad parameter column size";
+        const UTF16 * CMysqlImpl::DATA_TYPE_NOT_SUPPORTED = L"Data type not supported";
+        const UTF16 * CMysqlImpl::NO_DB_NAME_SPECIFIED = L"No mysql database name specified";
+        const UTF16 * CMysqlImpl::MYSQL_LIBRARY_NOT_INITIALIZED = L"Mysql library not initialized";
+        const UTF16 * CMysqlImpl::BAD_MANUAL_TRANSACTION_STATE = L"Bad manual transaction state";
+        const UTF16 * CMysqlImpl::MYSQL_GLOBAL_CONNECTION_STRING = L"MYSQL_GLOBAL_CONNECTION_STRING";
+#else
+		const UTF16 * CMysqlImpl::NO_DB_OPENED_YET = u"No mysql database opened yet";
+		const UTF16 * CMysqlImpl::BAD_END_TRANSTACTION_PLAN = u"Bad end transaction plan";
+		const UTF16 * CMysqlImpl::NO_PARAMETER_SPECIFIED = u"No parameter specified";
+		const UTF16 * CMysqlImpl::BAD_PARAMETER_DATA_ARRAY_SIZE = u"Bad parameter data array length";
+		const UTF16 * CMysqlImpl::BAD_PARAMETER_COLUMN_SIZE = u"Bad parameter column size";
+		const UTF16 * CMysqlImpl::DATA_TYPE_NOT_SUPPORTED = u"Data type not supported";
+		const UTF16 * CMysqlImpl::NO_DB_NAME_SPECIFIED = u"No mysql database name specified";
+		const UTF16 * CMysqlImpl::MYSQL_LIBRARY_NOT_INITIALIZED = u"Mysql library not initialized";
+		const UTF16 * CMysqlImpl::BAD_MANUAL_TRANSACTION_STATE = u"Bad manual transaction state";
+		const UTF16 * CMysqlImpl::MYSQL_GLOBAL_CONNECTION_STRING = u"MYSQL_GLOBAL_CONNECTION_STRING";
+#endif
 
         unsigned int CMysqlImpl::m_nParam = 0;
 
@@ -408,7 +419,11 @@ namespace SPA
         void CMysqlImpl::SetDBGlobalConnectionString(const wchar_t *dbConnection, bool remote) {
             m_csPeer.lock();
             if (dbConnection) {
+#ifdef WIN32_64
                 m_strGlobalConnection = dbConnection;
+#else
+				m_strGlobalConnection = Utilities::ToUTF16(dbConnection);
+#endif
             } else {
                 m_strGlobalConnection.clear();
             }
@@ -456,14 +471,14 @@ namespace SPA
 
         int CMysqlImpl::OnSlowRequestArrive(unsigned short reqId, unsigned int len) {
             BEGIN_SWITCH(reqId)
-            M_I0_R2(idClose, CloseDb, int, std::wstring)
-            M_I2_R3(idOpen, Open, std::wstring, unsigned int, int, std::wstring, int)
-            M_I3_R3(idBeginTrans, BeginTrans, int, std::wstring, unsigned int, int, std::wstring, int)
-            M_I1_R2(idEndTrans, EndTrans, int, int, std::wstring)
-            M_I5_R5(idExecute, Execute, std::wstring, bool, bool, bool, UINT64, INT64, int, std::wstring, CDBVariant, UINT64)
-            M_I2_R3(idPrepare, Prepare, std::wstring, CParameterInfoArray, int, std::wstring, unsigned int)
-            M_I4_R5(idExecuteParameters, ExecuteParameters, bool, bool, bool, UINT64, INT64, int, std::wstring, CDBVariant, UINT64)
-            M_I10_R5(idExecuteBatch, ExecuteBatch, std::wstring, std::wstring, int, int, bool, bool, bool, std::wstring, unsigned int, UINT64, INT64, int, std::wstring, CDBVariant, UINT64)
+            M_I0_R2(idClose, CloseDb, int, CDBString)
+            M_I2_R3(idOpen, Open, CDBString, unsigned int, int, CDBString, int)
+            M_I3_R3(idBeginTrans, BeginTrans, int, CDBString, unsigned int, int, CDBString, int)
+            M_I1_R2(idEndTrans, EndTrans, int, int, CDBString)
+            M_I5_R5(idExecute, Execute, CDBString, bool, bool, bool, UINT64, INT64, int, CDBString, CDBVariant, UINT64)
+            M_I2_R3(idPrepare, Prepare, CDBString, CParameterInfoArray, int, CDBString, unsigned int)
+            M_I4_R5(idExecuteParameters, ExecuteParameters, bool, bool, bool, UINT64, INT64, int, CDBString, CDBVariant, UINT64)
+            M_I10_R5(idExecuteBatch, ExecuteBatch, CDBString, CDBString, int, int, bool, bool, bool, CDBString, unsigned int, UINT64, INT64, int, CDBString, CDBVariant, UINT64)
             END_SWITCH
             if (reqId == idExecuteParameters || reqId == idExecuteBatch) {
                 m_vParam.clear();
@@ -471,7 +486,7 @@ namespace SPA
             return 0;
         }
 
-        void CMysqlImpl::Open(const std::wstring &strConnection, unsigned int flags, int &res, std::wstring &errMsg, int &ms) {
+        void CMysqlImpl::Open(const CDBString &strConnection, unsigned int flags, int &res, CDBString &errMsg, int &ms) {
             ms = msMysql;
             if ((flags & ENABLE_TABLE_UPDATE_MESSAGES) == ENABLE_TABLE_UPDATE_MESSAGES) {
                 m_EnableMessages = GetPush().Subscribe(&STREAMING_SQL_CHAT_GROUP_ID, 1);
@@ -483,7 +498,7 @@ namespace SPA
             }
             if (m_pMysql) {
                 res = 0;
-                std::wstring db(strConnection);
+                CDBString db(strConnection);
                 Utilities::Trim(db);
                 if (m_dbNameOpened.size() && !db.size()) {
                     errMsg = m_dbNameOpened;
@@ -597,7 +612,7 @@ namespace SPA
             }
         }
 
-        void CMysqlImpl::CloseDb(int &res, std::wstring & errMsg) {
+        void CMysqlImpl::CloseDb(int &res, CDBString & errMsg) {
             if (m_EnableMessages) {
                 GetPush().Unsubscribe();
             }
@@ -641,7 +656,7 @@ namespace SPA
             }
         }
 
-        void CMysqlImpl::BeginTrans(int isolation, const std::wstring &dbConn, unsigned int flags, int &res, std::wstring &errMsg, int &ms) {
+        void CMysqlImpl::BeginTrans(int isolation, const CDBString &dbConn, unsigned int flags, int &res, CDBString &errMsg, int &ms) {
             ms = msMysql;
             if (m_bManual) {
                 errMsg = BAD_MANUAL_TRANSACTION_STATE;
@@ -697,11 +712,15 @@ namespace SPA
                 m_bManual = true;
             } else {
                 res = m_remMysql.mysql_errno(m_pMysql.get());
+#ifdef WIN32_64
                 errMsg = Utilities::ToWide(m_remMysql.mysql_error(m_pMysql.get()));
+#else
+				errMsg = Utilities::ToUTF16(m_remMysql.mysql_error(m_pMysql.get()));
+#endif
             }
         }
 
-        void CMysqlImpl::EndTrans(int plan, int &res, std::wstring & errMsg) {
+        void CMysqlImpl::EndTrans(int plan, int &res, CDBString & errMsg) {
             if (!m_bManual) {
                 errMsg = BAD_MANUAL_TRANSACTION_STATE;
                 res = SPA::Mysql::ER_BAD_MANUAL_TRANSACTION_STATE;
@@ -750,7 +769,11 @@ namespace SPA
             }
             if (fail) {
                 res = m_remMysql.mysql_errno(m_pMysql.get());
+#ifdef WIN32_64
                 errMsg = Utilities::ToWide(m_remMysql.mysql_error(m_pMysql.get()));
+#else
+				errMsg = Utilities::ToUTF16(m_remMysql.mysql_error(m_pMysql.get()));
+#endif
             } else {
                 res = 0;
                 m_fails = 0;
@@ -759,7 +782,7 @@ namespace SPA
             m_bManual = false;
         }
 
-        void CMysqlImpl::ExecuteSqlWithoutRowset(int &res, std::wstring &errMsg, INT64 & affected) {
+        void CMysqlImpl::ExecuteSqlWithoutRowset(int &res, CDBString &errMsg, INT64 & affected) {
             do {
                 MYSQL_RES *result = m_remMysql.mysql_use_result(m_pMysql.get());
                 if (result) {
@@ -788,7 +811,11 @@ namespace SPA
                     ++m_fails;
                     if (!res) {
                         res = m_remMysql.mysql_errno(m_pMysql.get());
+#ifdef WIN32_64
                         errMsg = Utilities::ToWide(m_remMysql.mysql_error(m_pMysql.get()));
+#else
+						errMsg = Utilities::ToUTF16(m_remMysql.mysql_error(m_pMysql.get()));
+#endif
                     }
                     break;
                 } else if (status == 0) {
@@ -1367,7 +1394,7 @@ namespace SPA
             return n;
         }
 
-        bool CMysqlImpl::PushRecords(MYSQL_RES *result, const CDBColumnInfoArray &vColInfo, int &res, std::wstring & errMsg) {
+        bool CMysqlImpl::PushRecords(MYSQL_RES *result, const CDBColumnInfoArray &vColInfo, int &res, CDBString & errMsg) {
             VARTYPE vt;
             CScopeUQueue sb;
             size_t fields = vColInfo.size();
@@ -1546,7 +1573,7 @@ namespace SPA
             return true;
         }
 
-        void CMysqlImpl::ExecuteSqlWithRowset(bool rowset, bool meta, UINT64 index, int &res, std::wstring &errMsg, INT64 & affected) {
+        void CMysqlImpl::ExecuteSqlWithRowset(bool rowset, bool meta, UINT64 index, int &res, CDBString &errMsg, INT64 & affected) {
             do {
                 MYSQL_RES *result = m_remMysql.mysql_use_result(m_pMysql.get());
                 if (result) {
@@ -1601,7 +1628,11 @@ namespace SPA
                     ++m_fails;
                     if (!res) {
                         res = m_remMysql.mysql_errno(m_pMysql.get());
+#ifdef WIN32_64
                         errMsg = Utilities::ToWide(m_remMysql.mysql_error(m_pMysql.get()));
+#else
+						errMsg = Utilities::ToUTF16(m_remMysql.mysql_error(m_pMysql.get()));
+#endif
                     }
                     break;
                 } else if (status == 0) {
@@ -1612,7 +1643,7 @@ namespace SPA
             } while (true);
         }
 
-        void CMysqlImpl::Execute(const std::wstring& wsql, bool rowset, bool meta, bool lastInsertId, UINT64 index, INT64 &affected, int &res, std::wstring &errMsg, CDBVariant &vtId, UINT64 & fail_ok) {
+        void CMysqlImpl::Execute(const CDBString& wsql, bool rowset, bool meta, bool lastInsertId, UINT64 index, INT64 &affected, int &res, CDBString &errMsg, CDBVariant &vtId, UINT64 & fail_ok) {
             fail_ok = 0;
             affected = 0;
             ResetMemories();
@@ -1651,7 +1682,11 @@ namespace SPA
             int status = m_remMysql.mysql_real_query(m_pMysql.get(), sqlUtf8, (unsigned long) sql.size());
             if (status) {
                 res = m_remMysql.mysql_errno(m_pMysql.get());
+#ifdef WIN32_64
                 errMsg = Utilities::ToWide(m_remMysql.mysql_error(m_pMysql.get()));
+#else
+				errMsg = Utilities::ToUTF16(m_remMysql.mysql_error(m_pMysql.get()));
+#endif
                 ++m_fails;
             } else {
                 if (rowset || meta) {
@@ -1694,7 +1729,7 @@ namespace SPA
             }
         }
 
-        void CMysqlImpl::Prepare(const std::wstring& wsql, CParameterInfoArray& params, int &res, std::wstring &errMsg, unsigned int &parameters) {
+        void CMysqlImpl::Prepare(const CDBString& wsql, CParameterInfoArray& params, int &res, CDBString &errMsg, unsigned int &parameters) {
             ResetMemories();
             parameters = 0;
             if (!m_pMysql) {
@@ -1712,7 +1747,11 @@ namespace SPA
             my_bool fail = m_remMysql.mysql_stmt_prepare(stmt, m_sqlPrepare.c_str(), (unsigned long) m_sqlPrepare.size());
             if (fail) {
                 res = m_remMysql.mysql_stmt_errno(stmt);
+#ifdef WIN32_64
                 errMsg = Utilities::ToWide(m_remMysql.mysql_stmt_error(stmt));
+#else
+				errMsg = Utilities::ToUTF16(m_remMysql.mysql_stmt_error(stmt));
+#endif
                 m_remMysql.mysql_stmt_close(stmt);
             } else {
                 res = 0;
@@ -1726,7 +1765,7 @@ namespace SPA
             }
         }
 
-        int CMysqlImpl::Bind(CUQueue &qBufferSize, int row, std::wstring & errMsg) {
+        int CMysqlImpl::Bind(CUQueue &qBufferSize, int row, CDBString & errMsg) {
             int res = 0;
             if (!m_parameters) {
                 return res;
@@ -1855,7 +1894,7 @@ namespace SPA
             return res;
         }
 
-        std::shared_ptr<MYSQL_BIND> CMysqlImpl::PrepareBindResultBuffer(MYSQL_RES *result, const CDBColumnInfoArray &vColInfo, int &res, std::wstring &errMsg, std::shared_ptr<MYSQL_BIND_RESULT_FIELD> &field) {
+        std::shared_ptr<MYSQL_BIND> CMysqlImpl::PrepareBindResultBuffer(MYSQL_RES *result, const CDBColumnInfoArray &vColInfo, int &res, CDBString &errMsg, std::shared_ptr<MYSQL_BIND_RESULT_FIELD> &field) {
             std::shared_ptr<MYSQL_BIND> p(new MYSQL_BIND[vColInfo.size()], [](MYSQL_BIND * b) {
                 if (b) {
                     delete []b;
@@ -1951,7 +1990,7 @@ namespace SPA
             return p;
         }
 
-        bool CMysqlImpl::PushRecords(UINT64 index, MYSQL_BIND *binds, MYSQL_BIND_RESULT_FIELD *fields, const CDBColumnInfoArray &vColInfo, bool rowset, bool output, int &res, std::wstring & errMsg) {
+        bool CMysqlImpl::PushRecords(UINT64 index, MYSQL_BIND *binds, MYSQL_BIND_RESULT_FIELD *fields, const CDBColumnInfoArray &vColInfo, bool rowset, bool output, int &res, CDBString & errMsg) {
             unsigned int sent;
             size_t cols = vColInfo.size();
             if (output) {
@@ -2017,7 +2056,11 @@ namespace SPA
                                             if (!res) {
                                                 //res == CR_NO_DATA or 2051, a libmariadb bug
                                                 res = m_remMysql.mysql_stmt_errno(m_pPrepare.get());
+#ifdef WIN32_64
                                                 errMsg = Utilities::ToWide(m_remMysql.mysql_stmt_error(m_pPrepare.get()));
+#else
+												errMsg = Utilities::ToUTF16(m_remMysql.mysql_stmt_error(m_pPrepare.get()));
+#endif
                                             }
                                             return true;
                                         }
@@ -2119,7 +2162,11 @@ namespace SPA
             assert(ret != MYSQL_DATA_TRUNCATED);
             if (ret == 1 && !res) {
                 res = m_remMysql.mysql_stmt_errno(m_pPrepare.get());
+#ifdef WIN32_64
                 errMsg = Utilities::ToWide(m_remMysql.mysql_stmt_error(m_pPrepare.get()));
+#else
+				errMsg = Utilities::ToUTF16(m_remMysql.mysql_stmt_error(m_pPrepare.get()));
+#endif
             }
             if (output) {
                 //tell output parameter data
@@ -2152,12 +2199,12 @@ namespace SPA
             return SPA::UDateTime(date, td.second_part).time;
         }
 
-        size_t CMysqlImpl::ComputeParameters(const std::wstring & sql) {
-            const wchar_t quote = '\'', slash = '\\', question = '?';
+        size_t CMysqlImpl::ComputeParameters(const CDBString & sql) {
+            const UTF16 quote = '\'', slash = '\\', question = '?';
             bool b_slash = false, balanced = true;
             size_t params = 0, len = sql.size();
             for (size_t n = 0; n < len; ++n) {
-                const wchar_t &c = sql[n];
+                const UTF16 &c = sql[n];
                 if (c == slash) {
                     b_slash = true;
                     continue;
@@ -2189,11 +2236,11 @@ namespace SPA
             }
         }
 
-        std::vector<std::wstring> CMysqlImpl::Split(const std::wstring &sql, const std::wstring & delimiter) {
-            std::vector<std::wstring> v;
+        std::vector<CDBString> CMysqlImpl::Split(const CDBString &sql, const CDBString & delimiter) {
+            std::vector<CDBString> v;
             size_t d_len = delimiter.size();
             if (d_len) {
-                const wchar_t quote = '\'', slash = '\\', done = delimiter[0];
+                const UTF16 quote = '\'', slash = '\\', done = delimiter[0];
                 size_t params = 0, len = sql.size();
                 bool b_slash = false, balanced = true;
                 for (size_t n = 0; n < len; ++n) {
@@ -2227,7 +2274,7 @@ namespace SPA
             return v;
         }
 
-        void CMysqlImpl::ExecuteBatch(const std::wstring& sql, const std::wstring& delimiter, int isolation, int plan, bool rowset, bool meta, bool lastInsertId, const std::wstring &dbConn, unsigned int flags, UINT64 callIndex, INT64 &affected, int &res, std::wstring &errMsg, CDBVariant &vtId, UINT64 & fail_ok) {
+        void CMysqlImpl::ExecuteBatch(const CDBString& sql, const CDBString& delimiter, int isolation, int plan, bool rowset, bool meta, bool lastInsertId, const CDBString &dbConn, unsigned int flags, UINT64 callIndex, INT64 &affected, int &res, CDBString &errMsg, CDBVariant &vtId, UINT64 & fail_ok) {
             CParameterInfoArray vPInfo;
             m_UQueue >> vPInfo;
             vPInfo.clear();
@@ -2239,7 +2286,7 @@ namespace SPA
                 Open(dbConn, flags, res, errMsg, ms);
             }
             size_t parameters = 0;
-            std::vector<std::wstring> vSql = Split(sql, delimiter);
+            std::vector<CDBString> vSql = Split(sql, delimiter);
             for (auto it = vSql.cbegin(), end = vSql.cend(); it != end; ++it) {
                 parameters += ComputeParameters(*it);
             }
@@ -2292,7 +2339,7 @@ namespace SPA
             m_vParam.swap(vAll);
             INT64 aff = 0;
             int r = 0;
-            std::wstring err;
+            CDBString err;
             UINT64 fo = 0;
             size_t pos = 0;
             vtId = aff;
@@ -2345,7 +2392,7 @@ namespace SPA
             }
         }
 
-        void CMysqlImpl::ExecuteParameters(bool rowset, bool meta, bool lastInsertId, UINT64 index, INT64 &affected, int &res, std::wstring &errMsg, CDBVariant &vtId, UINT64 & fail_ok) {
+        void CMysqlImpl::ExecuteParameters(bool rowset, bool meta, bool lastInsertId, UINT64 index, INT64 &affected, int &res, CDBString &errMsg, CDBVariant &vtId, UINT64 & fail_ok) {
             assert(!m_pNoSending);
             fail_ok = 0;
             affected = 0;
@@ -2402,7 +2449,11 @@ namespace SPA
                 if (ret) {
                     if (!res) {
                         res = m_remMysql.mysql_stmt_errno(m_pPrepare.get());
+#ifdef WIN32_64
                         errMsg = Utilities::ToWide(m_remMysql.mysql_stmt_error(m_pPrepare.get()));
+#else
+						errMsg = Utilities::ToUTF16(m_remMysql.mysql_stmt_error(m_pPrepare.get()));
+#endif
                     }
                     ++m_fails;
                     continue;
@@ -2483,7 +2534,11 @@ namespace SPA
                         //error
                         if (!res) {
                             res = m_remMysql.mysql_stmt_errno(m_pPrepare.get());
+#ifdef WIN32_64
                             errMsg = Utilities::ToWide(m_remMysql.mysql_stmt_error(m_pPrepare.get()));
+#else
+							errMsg = Utilities::ToUTF16(m_remMysql.mysql_stmt_error(m_pPrepare.get()));
+#endif
                         }
                         break;
                     } else {
@@ -2499,7 +2554,11 @@ namespace SPA
                     ret = 1;
                     if (!res) {
                         res = m_remMysql.mysql_stmt_errno(m_pPrepare.get());
-                        errMsg = Utilities::ToWide(m_remMysql.mysql_stmt_error(m_pPrepare.get()));
+#ifdef WIN32_64
+						errMsg = Utilities::ToWide(m_remMysql.mysql_stmt_error(m_pPrepare.get()));
+#else
+						errMsg = Utilities::ToUTF16(m_remMysql.mysql_stmt_error(m_pPrepare.get()));
+#endif
                     }
                 }
                 if (ret)
