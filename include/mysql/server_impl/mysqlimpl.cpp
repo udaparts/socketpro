@@ -169,7 +169,7 @@ namespace SPA
         }
 
         bool CMysqlImpl::RemoveUnusedTriggers(const std::vector<std::string> &vecTables) {
-#ifdef WIN32_65
+#ifdef WIN32_64
             CDBString prefix(STREAMING_DB_TRIGGER_PREFIX);
             CDBString sql_existing = L"SELECT event_object_schema,trigger_name,EVENT_OBJECT_TABLE FROM INFORMATION_SCHEMA.TRIGGERS where TRIGGER_NAME like '" + prefix + L"%' order by event_object_schema,EVENT_OBJECT_TABLE";
 #else
@@ -637,7 +637,7 @@ namespace SPA
                     }
                     m_remMysql.mysql_options(mysql, MYSQL_SET_CHARSET_NAME, "utf8");
                     MYSQL_CONNECTION_STRING conn;
-                    conn.Parse(Utilities::ToUTF8(db.c_str(), db.size()));
+                    conn.Parse(Utilities::ToUTF8(db.c_str(), db.size()).c_str());
                     int failed = m_remMysql.mysql_options(mysql, MYSQL_OPT_CONNECT_TIMEOUT, &conn.timeout);
                     assert(!failed);
 #if 0 //def WIN32_64
