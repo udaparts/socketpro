@@ -637,7 +637,11 @@ namespace SPA
                     }
                     m_remMysql.mysql_options(mysql, MYSQL_SET_CHARSET_NAME, "utf8");
                     MYSQL_CONNECTION_STRING conn;
+#ifdef WIN32_64
                     conn.Parse(Utilities::ToUTF8(db.c_str(), db.size()).c_str());
+#else
+                    conn.Parse(Utilities::ToUTF8(db.c_str(), db.size()));
+#endif
                     int failed = m_remMysql.mysql_options(mysql, MYSQL_OPT_CONNECT_TIMEOUT, &conn.timeout);
                     assert(!failed);
 #if 0 //def WIN32_64
