@@ -133,14 +133,19 @@ long long SetSQLStreamingPlugin(UDF_INIT *initid, UDF_ARGS *args, char *is_null,
         return 0;
     unsigned int len = (unsigned int) args->lengths[0];
     char *str = args->args[0];
-    std::wstring dbConn = SPA::Utilities::ToWide(str, len);
+#ifdef WIN32_64
+    SPA::CDBString dbConn = SPA::Utilities::ToWide(str, len);
     dbConn += L";server=localhost";
+#else
+    SPA::CDBString dbConn = SPA::Utilities::ToUTF16(str, len);
+    dbConn += u";server=localhost";
+#endif
     CMysqlImpl impl;
     int res = 0, ms = 0;
-    std::wstring errMsg;
+    SPA::CDBString errMsg;
     impl.Open(dbConn, 0, res, errMsg, ms);
     if (res) {
-        CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Configuring streaming DB failed when connecting to local database (errCode=%d; errMsg=%s)", res, SPA::Utilities::ToUTF8(errMsg.c_str(), errMsg.size()).c_str());
+        CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Configuring streaming DB failed when connecting to local database (errCode=%d; errMsg=%s)", res, SPA::Utilities::ToUTF8(errMsg.c_str(), errMsg.size()));
     }
     if (!CMysqlImpl::SetPublishDBEvent(impl))
         return 0;

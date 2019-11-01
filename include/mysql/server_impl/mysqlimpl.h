@@ -103,7 +103,7 @@ namespace SPA {
             typedef std::vector<PriKey> CPriKeyArray;
             bool RemoveUnusedTriggers(const std::vector<std::string> &vecTables);
             bool CreateTriggers(const std::string &schema, const std::string &table);
-            std::wstring GetCreateTriggerSQL(const wchar_t *db, const wchar_t *table, const CPriKeyArray &vPriKey, SPA::UDB::tagUpdateEvent eventType);
+            CDBString GetCreateTriggerSQL(const UTF16 *db, const UTF16 *table, const CPriKeyArray &vPriKey, SPA::UDB::tagUpdateEvent eventType);
 #endif
         protected:
             virtual void OnFastRequestArrive(unsigned short reqId, unsigned int len);
