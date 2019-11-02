@@ -1748,11 +1748,10 @@ namespace SPA
 
         CDBColumnInfoArray CSqliteImpl::GetColInfo(bool meta, sqlite3_stmt * stmt) {
             std::string zDbName, zTableName, zColumnName;
-            CDBColumnInfoArray vCols;
             int cols = sqlite3_column_count(stmt);
+            CDBColumnInfoArray vCols((size_t)cols);
             for (int n = 0; n < cols; ++n) {
-                vCols.push_back(CDBColumnInfo());
-                CDBColumnInfo &info = vCols.back();
+                CDBColumnInfo &info = vCols[n];
                 const char *str = sqlite3_column_database_name(stmt, n);
                 if (meta && str) {
                     zDbName = str;

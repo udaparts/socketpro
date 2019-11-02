@@ -715,8 +715,7 @@ namespace SPA
             m_vBindInfo.clear();
             bool hasBlob = false;
             bool hasVariant = false;
-            SQLCHAR colname[256] =
-            {0}; // column name
+            SQLCHAR colname[256] = {0}; // column name
             m_nRecordSize = 0;
             SQLSMALLINT colnamelen = 0; // length of column name
             SQLSMALLINT nullable = 0; // whether column can have NULL value
@@ -724,11 +723,10 @@ namespace SPA
             SQLSMALLINT coltype = 0; // column type
             SQLSMALLINT decimaldigits = 0; // no of digits if column is numeric
             SQLLEN displaysize = 0; // drivers column display size
-            CDBColumnInfoArray vCols;
+            CDBColumnInfoArray vCols((size_t)columns);
             bool bPostgres = (m_msDriver == msPostgreSQL);
             for (SQLSMALLINT n = 0; n < columns; ++n) {
-                vCols.push_back(CDBColumnInfo());
-                CDBColumnInfo &info = vCols.back();
+                CDBColumnInfo &info = vCols[n];
                 SQLRETURN retcode = SQLDescribeCol(hstmt, (SQLUSMALLINT) (n + 1), colname, sizeof (colname) / sizeof (SQLCHAR), &colnamelen, &coltype, &collen, &decimaldigits, &nullable);
                 assert(SQL_SUCCEEDED(retcode));
 

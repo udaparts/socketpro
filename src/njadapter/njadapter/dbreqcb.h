@@ -19,7 +19,7 @@ namespace SPA {
             HandleScope handleScope(isolate); //required for Node 4.x
             auto ctx = isolate->GetCurrentContext();
             {
-                SPA::CAutoLock al(obj->m_csDB);
+                CAutoLock al(obj->m_csDB);
                 while (obj->m_deqDBCb.size()) {
                     DBCb &cb = obj->m_deqDBCb.front();
                     PAsyncDBHandler processor = nullptr;
