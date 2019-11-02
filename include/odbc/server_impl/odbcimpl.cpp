@@ -715,7 +715,8 @@ namespace SPA
             m_vBindInfo.clear();
             bool hasBlob = false;
             bool hasVariant = false;
-            SQLCHAR colname[256] = {0}; // column name
+            SQLCHAR colname[256] =
+            {0}; // column name
             m_nRecordSize = 0;
             SQLSMALLINT colnamelen = 0; // length of column name
             SQLSMALLINT nullable = 0; // whether column can have NULL value
@@ -723,7 +724,7 @@ namespace SPA
             SQLSMALLINT coltype = 0; // column type
             SQLSMALLINT decimaldigits = 0; // no of digits if column is numeric
             SQLLEN displaysize = 0; // drivers column display size
-            CDBColumnInfoArray vCols((size_t)columns);
+            CDBColumnInfoArray vCols((size_t) columns);
             bool bPostgres = (m_msDriver == msPostgreSQL);
             for (SQLSMALLINT n = 0; n < columns; ++n) {
                 CDBColumnInfo &info = vCols[n];
