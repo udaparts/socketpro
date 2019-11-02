@@ -942,11 +942,10 @@ namespace SPA
         }
 
         CDBColumnInfoArray CMysqlImpl::GetColInfo(MYSQL_RES *result, unsigned int cols, bool prepare) {
-            CDBColumnInfoArray vCols;
+            CDBColumnInfoArray vCols(cols);
             MYSQL_FIELD *field = m_remMysql.mysql_fetch_fields(result);
             for (unsigned int n = 0; n < cols; ++n) {
-                vCols.push_back(CDBColumnInfo());
-                CDBColumnInfo &info = vCols.back();
+                CDBColumnInfo &info = vCols[n];
                 MYSQL_FIELD &f = field[n];
                 if (f.name) {
                     info.DisplayName.assign(f.name, f.name + ::strlen(f.name));
