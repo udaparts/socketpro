@@ -4,6 +4,7 @@
 
 #include "membuffer.h"
 #include "ccloader.h"
+#include "udatabase.h"
 #if defined(__ANDROID__) || defined(ANDROID)
 #include <boost/unordered_map.hpp>
 #else
@@ -75,7 +76,7 @@ namespace NJA {
     Local<Value> From(Isolate* isolate, const VARIANT &vt);
     Local<Value> DbFrom(Isolate* isolate, SPA::CUQueue &buff);
     Local<String> ToStr(Isolate* isolate, const char *str, size_t len = (size_t) INVALID_NUMBER);
-    Local<String> ToStr(Isolate* isolate, const wchar_t *str, size_t len = (size_t) INVALID_NUMBER);
+    Local<String> ToStr(Isolate* isolate, const SPA::UTF16 *str, size_t len = (size_t) INVALID_NUMBER);
     bool IsNullOrUndefined(const Local<Value> &v);
 }
 #endif
@@ -278,12 +279,18 @@ namespace SPA {
             unsigned int ServiceId;
             bool SelfMessage;
             q >> user >> ipAddr >> Port >> ServiceId >> SelfMessage;
+            auto ctx = isolate->GetCurrentContext();
             Local<Object> obj = Object::New(isolate);
-            obj->Set(NJA::ToStr(isolate, "UserId"), NJA::ToStr(isolate, user.c_str()));
-            obj->Set(NJA::ToStr(isolate, "IpAddr"), NJA::ToStr(isolate, ipAddr.c_str()));
-            obj->Set(NJA::ToStr(isolate, "Port"), Uint32::New(isolate, Port));
-            obj->Set(NJA::ToStr(isolate, "SvsId"), Number::New(isolate, ServiceId));
-            obj->Set(NJA::ToStr(isolate, "Self"), Boolean::New(isolate, SelfMessage));
+#ifdef WIN32_64
+            obj->Set(ctx, NJA::ToStr(isolate, "UserId"), NJA::ToStr(isolate, user.c_str()));
+#else
+            std::string s = Utilities::ToUTF8(user);
+            obj->Set(ctx, NJA::ToStr(isolate, "UserId"), NJA::ToStr(isolate, s.c_str()));
+#endif
+            obj->Set(ctx, NJA::ToStr(isolate, "IpAddr"), NJA::ToStr(isolate, ipAddr.c_str()));
+            obj->Set(ctx, NJA::ToStr(isolate, "Port"), Uint32::New(isolate, Port));
+            obj->Set(ctx, NJA::ToStr(isolate, "SvsId"), Number::New(isolate, ServiceId));
+            obj->Set(ctx, NJA::ToStr(isolate, "Self"), Boolean::New(isolate, SelfMessage));
             return obj;
         }
 #endif		

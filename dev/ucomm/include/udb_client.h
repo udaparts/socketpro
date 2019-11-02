@@ -31,16 +31,17 @@ namespace SPA {
             m_affected(-1), m_dbErrCode(0), m_lastReqId(0),
             m_indexRowset(0), m_indexProc(0), m_ms(msUnknown), m_flags(0),
             m_parameters(0), m_outputs(0), m_bCallReturn(false), m_queueOk(false), m_nParamPos(0) {
-                m_Blob.Utf8ToW(true);
 #ifdef NODE_JS_ADAPTER_PROJECT
                 ::memset(&m_typeDB, 0, sizeof (m_typeDB));
                 m_typeDB.data = this;
                 int fail = uv_async_init(uv_default_loop(), &m_typeDB, req_cb);
                 assert(!fail);
 #endif
+
 #ifdef NO_OUTPUT_BINDING
                 m_bProc = false;
-                m_vData.Utf8ToW(true);
+#else
+                m_Blob.Utf8ToW(true);
 #endif
             }
 
@@ -51,16 +52,17 @@ namespace SPA {
             m_affected(-1), m_dbErrCode(0), m_lastReqId(0),
             m_indexRowset(0), m_indexProc(0), m_ms(msUnknown), m_flags(0),
             m_parameters(0), m_outputs(0), m_bCallReturn(false), m_queueOk(false), m_nParamPos(0) {
-                m_Blob.Utf8ToW(true);
 #ifdef NODE_JS_ADAPTER_PROJECT
                 ::memset(&m_typeDB, 0, sizeof (m_typeDB));
                 m_typeDB.data = this;
                 int fail = uv_async_init(uv_default_loop(), &m_typeDB, req_cb);
                 assert(!fail);
 #endif
+
 #ifdef NO_OUTPUT_BINDING
                 m_bProc = false;
-                m_vData.Utf8ToW(true);
+#else
+                m_Blob.Utf8ToW(true);
 #endif
             }
 
@@ -321,10 +323,8 @@ namespace SPA {
                     const DExecuteResult& handler = nullptr, const DRows& row = nullptr, const DRowsetHeader& rh = nullptr, const DRowsetHeader& batchHeader = nullptr,
                     const CParameterInfoArray& vPInfo = CParameterInfoArray(), tagRollbackPlan plan = rpDefault, const DDiscarded& discarded = nullptr,
                     const wchar_t *delimiter = L";", bool meta = true, bool lastInsertId = true) {
-                bool rowset = (rh || row) ? true : false;
-                if (!rowset) {
-                    meta = false;
-                }
+                bool rowset = (row) ? true : false;
+                meta = (meta && rh);
                 CScopeUQueue sb;
                 sb << sql << delimiter << (int) isolation << (int) plan << rowset << meta << lastInsertId;
 
@@ -347,7 +347,7 @@ namespace SPA {
                     //don't make m_csDB locked across calling SendRequest, which may lead to client dead-lock 
                     //in case a client asynchronously sends lots of requests without use of client side queue.
                     CAutoLock al(m_csDB);
-                    if (rowset) {
+                    if (rowset || meta) {
                         m_mapRowset[callIndex] = CRowsetHandler(rh, row);
                     }
 #ifndef NO_OUTPUT_BINDING
@@ -365,7 +365,7 @@ namespace SPA {
 #ifndef NO_OUTPUT_BINDING
                     m_mapParameterCall.erase(callIndex);
 #endif
-                    if (rowset) {
+                    if (rowset || meta) {
                         m_mapRowset.erase(callIndex);
                     }
                     m_mapHandler.erase(callIndex);
@@ -389,10 +389,8 @@ namespace SPA {
              */
             virtual bool Execute(CDBVariantArray &vParam, const DExecuteResult& handler = nullptr, const DRows& row = nullptr, const DRowsetHeader& rh = nullptr,
                     bool meta = true, bool lastInsertId = true, const DDiscarded& discarded = nullptr) {
-                bool rowset = (rh || row) ? true : false;
-                if (!rowset) {
-                    meta = false;
-                }
+                bool rowset = (row) ? true : false;
+                meta = (meta && rh);
                 CScopeUQueue sb;
                 sb << rowset << meta << lastInsertId;
 
@@ -414,7 +412,7 @@ namespace SPA {
                     callIndex = GetCallIndex();
                     //don't make m_csDB locked across calling SendRequest, which may lead to client dead-lock in case a client asynchronously sends lots of requests without use of client side queue.
                     CAutoLock al(m_csDB);
-                    if (rowset) {
+                    if (rowset || meta) {
                         m_mapRowset[callIndex] = CRowsetHandler(rh, row);
                     }
 #ifndef NO_OUTPUT_BINDING
@@ -430,7 +428,7 @@ namespace SPA {
 #ifndef NO_OUTPUT_BINDING
                     m_mapParameterCall.erase(callIndex);
 #endif
-                    if (rowset) {
+                    if (rowset || meta) {
                         m_mapRowset.erase(callIndex);
                     }
                     return false;
@@ -452,10 +450,8 @@ namespace SPA {
              * @return true if request is successfully sent or queued; and false if request is NOT successfully sent or queued
              */
             virtual bool Execute(const wchar_t* sql, const DExecuteResult& handler = nullptr, const DRows& row = nullptr, const DRowsetHeader& rh = nullptr, bool meta = true, bool lastInsertId = true, const DDiscarded& discarded = nullptr) {
-                bool rowset = (rh || row) ? true : false;
-                if (!rowset) {
-                    meta = false;
-                }
+                bool rowset = (row) ? true : false;
+                meta = (meta && rh);
                 CScopeUQueue sb;
 #ifndef NODE_JS_ADAPTER_PROJECT
                 CAutoLock alOne(m_csOneSending);
@@ -465,7 +461,7 @@ namespace SPA {
                     //don't make m_csDB locked across calling SendRequest, which may lead to client dead-lock
                     //in case a client asynchronously sends lots of requests without use of client side queue.
                     CAutoLock al(m_csDB);
-                    if (rowset) {
+                    if (rowset || meta) {
                         m_mapRowset[index] = CRowsetHandler(rh, row);
                     }
                 }
@@ -475,7 +471,9 @@ namespace SPA {
                 };
                 if (!SendRequest(idExecute, sb->GetBuffer(), sb->GetSize(), arh, discarded, nullptr)) {
                     CAutoLock al(m_csDB);
-                    m_mapRowset.erase(index);
+                    if (rowset || meta) {
+                        m_mapRowset.erase(index);
+                    }
                     return false;
                 }
                 return true;
@@ -1190,7 +1188,7 @@ namespace SPA {
                 return Execute(vParam, result, r, rh, true, true, dd) ? index : INVALID_NUMBER;
             }
 
-            UINT64 Execute(Isolate* isolate, int args, Local<Value> *argv, const wchar_t *sql) {
+            UINT64 Execute(Isolate* isolate, int args, Local<Value> *argv, const UTF16 *sql) {
                 bool bad;
                 SPA::UINT64 index = GetCallIndex();
                 DExecuteResult result;
@@ -1213,10 +1211,14 @@ namespace SPA {
                     dd = Get(isolate, argv[3], bad);
                     if (bad) return 0;
                 }
+#ifdef WIN32_64
                 return Execute(sql, result, r, rh, true, true, dd) ? index : INVALID_NUMBER;
+#else
+                return Execute(Utilities::ToWide(sql, Utilities::GetLen(sql)).c_str(), result, r, rh, true, true, dd) ? index : INVALID_NUMBER;
+#endif
             }
 
-            UINT64 ExecuteBatch(Isolate* isolate, int args, Local<Value> *argv, tagTransactionIsolation isolation, const wchar_t *sql, CDBVariantArray &vParam, tagRollbackPlan plan, const wchar_t *delimiter, const CParameterInfoArray& vPInfo) {
+            UINT64 ExecuteBatch(Isolate* isolate, int args, Local<Value> *argv, tagTransactionIsolation isolation, const UTF16 *sql, CDBVariantArray &vParam, tagRollbackPlan plan, const UTF16 *delimiter, const CParameterInfoArray& vPInfo) {
                 bool bad;
                 SPA::UINT64 index = GetCallIndex();
                 DExecuteResult result;
@@ -1244,10 +1246,14 @@ namespace SPA {
                     dd = Get(isolate, argv[4], bad);
                     if (bad) return 0;
                 }
+#ifdef WIN32_64
                 return ExecuteBatch(isolation, sql, vParam, result, r, rh, bh, vPInfo, plan, dd, delimiter) ? index : INVALID_NUMBER;
+#else
+                return ExecuteBatch(isolation, Utilities::ToWide(sql, Utilities::GetLen(sql)).c_str(), vParam, result, r, rh, bh, vPInfo, plan, dd, Utilities::ToWide(delimiter, Utilities::GetLen(delimiter)).c_str()) ? index : INVALID_NUMBER;
+#endif
             }
 
-            UINT64 Open(Isolate* isolate, int args, Local<Value> *argv, const wchar_t* strConnection, unsigned int flags) {
+            UINT64 Open(Isolate* isolate, int args, Local<Value> *argv, const UTF16* strConnection, unsigned int flags) {
                 bool bad;
                 SPA::UINT64 index = GetCallIndex();
                 DResult result;
@@ -1260,10 +1266,14 @@ namespace SPA {
                     dd = Get(isolate, argv[1], bad);
                     if (bad) return 0;
                 }
+#ifdef WIN32_64
                 return Open(strConnection, result, flags, dd) ? index : INVALID_NUMBER;
+#else
+                return Open(Utilities::ToWide(strConnection, Utilities::GetLen(strConnection)).c_str(), result, flags, dd) ? index : INVALID_NUMBER;
+#endif
             }
 
-            UINT64 Prepare(Isolate* isolate, int args, Local<Value> *argv, const wchar_t *sql, const CParameterInfoArray& vParameterInfo) {
+            UINT64 Prepare(Isolate* isolate, int args, Local<Value> *argv, const UTF16 *sql, const CParameterInfoArray& vParameterInfo) {
                 bool bad;
                 SPA::UINT64 index = GetCallIndex();
                 DResult result;
@@ -1276,7 +1286,11 @@ namespace SPA {
                     dd = Get(isolate, argv[1], bad);
                     if (bad) return 0;
                 }
+#ifdef WIN32_64
                 return Prepare(sql, result, vParameterInfo, dd) ? index : INVALID_NUMBER;
+#else
+                return Prepare(Utilities::ToWide(sql, Utilities::GetLen(sql)).c_str(), result, vParameterInfo, dd) ? index : INVALID_NUMBER;
+#endif
             }
 
         protected:
