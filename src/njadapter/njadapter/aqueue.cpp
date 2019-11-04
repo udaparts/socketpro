@@ -15,7 +15,7 @@ namespace NJA {
     }
 
     CAQueue::~CAQueue() {
-        SPA::CAutoLock al(m_csJQ);
+        CAutoLock al(m_csJQ);
         uv_close((uv_handle_t*) & m_qType, nullptr);
     }
 
@@ -53,9 +53,11 @@ namespace NJA {
         v8::HandleScope handleScope(isolate); //required for Node 4.x
         auto ctx = isolate->GetCurrentContext();
         {
-            SPA::CAutoLock al(obj->m_csJQ);
+            obj->m_csJQ.lock();
             while (obj->m_deqQCb.size()) {
-                QueueCb &cb = obj->m_deqQCb.front();
+                QueueCb cb = obj->m_deqQCb.front();
+				obj->m_deqQCb.pop_front();
+				obj->m_csJQ.unlock();
                 PAQueue processor = nullptr;
                 *cb.Buffer >> processor;
                 assert(processor);
@@ -155,8 +157,9 @@ namespace NJA {
                         break;
                 }
                 CScopeUQueue::Unlock(cb.Buffer);
-                obj->m_deqQCb.pop_front();
+				obj->m_csJQ.lock();
             }
+			obj->m_csJQ.unlock();
         }
         isolate->RunMicrotasks();
     }

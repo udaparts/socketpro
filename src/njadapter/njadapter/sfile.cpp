@@ -99,9 +99,11 @@ namespace NJA {
         Isolate* isolate = Isolate::GetCurrent();
         v8::HandleScope handleScope(isolate); //required for Node 4.x
         {
-            SPA::CAutoLock al(obj->m_csFile);
+            obj->m_csFile.lock();
             while (obj->m_deqFileCb.size()) {
-                FileCb &cb = obj->m_deqFileCb.front();
+                FileCb cb = obj->m_deqFileCb.front();
+				obj->m_deqFileCb.pop_front();
+				obj->m_csFile.unlock();
                 PSFile processor;
                 *cb.Buffer >> processor;
                 assert(processor);
@@ -143,8 +145,9 @@ namespace NJA {
                         break;
                 }
                 CScopeUQueue::Unlock(cb.Buffer);
-                obj->m_deqFileCb.pop_front();
+				obj->m_csFile.lock();
             }
+			obj->m_csFile.unlock();
         }
         //isolate->RunMicrotasks();
     }

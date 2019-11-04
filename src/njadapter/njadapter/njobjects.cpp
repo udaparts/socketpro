@@ -391,9 +391,11 @@ namespace NJA {
         Isolate* isolate = Isolate::GetCurrent();
         HandleScope handleScope(isolate); //required for Node 4.x or later
         {
-            SPA::CAutoLock al(obj->m_cs);
+            obj->m_cs.lock();
             while (obj->m_deqSocketEvent.size()) {
                 SocketEvent se = obj->m_deqSocketEvent.front();
+				obj->m_deqSocketEvent.pop_front();
+				obj->m_cs.unlock();
                 SPA::ClientSide::PAsyncServiceHandler ash = nullptr;
                 *se.QData >> ash >> reqId;
                 assert(ash);
@@ -558,8 +560,9 @@ namespace NJA {
                     }
                 }
                 CScopeUQueue::Unlock(se.QData);
-                obj->m_deqSocketEvent.pop_front();
+				obj->m_cs.lock();
             }
+			obj->m_cs.unlock();
         }
         if (run_micro)
             isolate->RunMicrotasks();

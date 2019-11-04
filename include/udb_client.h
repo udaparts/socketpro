@@ -334,7 +334,7 @@ namespace SPA {
                 //make sure all parameter data sending and ExecuteParameters sending as one combination sending
                 //to avoid possible request sending overlapping within multiple threading environment
 #ifndef NODE_JS_ADAPTER_PROJECT
-                CAutoLock alOne(m_csOneSending);
+                SPA::CAutoLock alOne(m_csOneSending);
 #endif
                 if (vParam.size())
                     queueOk = GetAttachedClientSocket()->GetClientQueue().StartJob();
@@ -399,7 +399,7 @@ namespace SPA {
                 //make sure all parameter data sending and ExecuteParameters sending as one combination sending
                 //to avoid possible request sending overlapping within multiple threading environment
 #ifndef NODE_JS_ADAPTER_PROJECT
-                CAutoLock alOne(m_csOneSending);
+                SPA::CAutoLock alOne(m_csOneSending);
 #endif
                 {
                     if (vParam.size()) {
@@ -454,7 +454,7 @@ namespace SPA {
                 meta = (meta && rh);
                 CScopeUQueue sb;
 #ifndef NODE_JS_ADAPTER_PROJECT
-                CAutoLock alOne(m_csOneSending);
+                SPA::CAutoLock alOne(m_csOneSending);
 #endif
                 UINT64 index = GetCallIndex();
                 {
@@ -626,7 +626,7 @@ namespace SPA {
                 //make sure BeginTrans sending and underlying client persistent message queue as one combination sending
                 //to avoid possible request sending/client message writing overlapping within multiple threading environment
 #ifndef NODE_JS_ADAPTER_PROJECT
-                CAutoLock alOne(m_csOneSending);
+                SPA::CAutoLock alOne(m_csOneSending);
 #endif
                 {
                     //don't make m_csDB locked across calling SendRequest, which may lead to client dead-lock
@@ -670,7 +670,7 @@ namespace SPA {
                 //make sure EndTrans sending and underlying client persistent message queue as one combination sending
                 //to avoid possible request sending/client message writing overlapping within multiple threading environment
 #ifndef NODE_JS_ADAPTER_PROJECT
-                CAutoLock alOne(m_csOneSending);
+                SPA::CAutoLock alOne(m_csOneSending);
 #endif
                 if (SendRequest(idEndTrans, sb->GetBuffer(), sb->GetSize(), arh, discarded, nullptr)) {
                     if (m_queueOk) {
@@ -1027,7 +1027,7 @@ namespace SPA {
                 CAsyncDBHandler<serviceId> *ash = (CAsyncDBHandler<serviceId>*)ar.AsyncServiceHandler;
                 ar >> affected >> res >> errMsg >> vtId >> fail_ok;
                 {
-                    SPA::CAutoLock al(m_csDB);
+                    CAutoLock al(m_csDB);
                     m_lastReqId = reqId;
                     m_affected = affected;
                     m_dbErrCode = res;
@@ -1072,7 +1072,8 @@ namespace SPA {
             }
 
         protected:
-            CUCriticalSection m_csDB;
+			typedef SPA::CSpinAutoLock CAutoLock;
+            CSpinLock m_csDB;
             CDBColumnInfoArray m_vColInfo;
             std::unordered_map<UINT64, CRowsetHandler> m_mapRowset;
             INT64 m_affected;
