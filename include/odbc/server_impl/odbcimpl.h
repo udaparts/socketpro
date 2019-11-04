@@ -121,7 +121,6 @@ namespace SPA {
             void SetVParam(CDBVariantArray& vAll, size_t parameters, size_t pos, size_t ps);
             void SetCallParams(const std::vector<tagParameterDirection> &vPD, int &res, CDBString &errMsg);
             void SetOracleCallParams(const std::vector<tagParameterDirection> &vPD, int &res, CDBString &errMsg);
-            void SetPrimaryKey(const CDBString &dbName, const CDBString &schema, const CDBString &tableName, CDBColumnInfoArray &vCol);
             CDBString GenerateMsSqlForCachedTables();
             static CParameterInfoArray GetVInfo(const CParameterInfoArray& vPInfo, size_t pos, size_t ps);
             static std::vector<CDBString> Split(const CDBString &sql, const CDBString &delimiter);

@@ -134,7 +134,7 @@ namespace SPA {
         private:
             void ExecuteSqlWithoutRowset(int &res, CDBString &errMsg, INT64 &affected);
             void ExecuteSqlWithRowset(bool rowset, bool meta, UINT64 index, int &res, CDBString &errMsg, INT64 &affected);
-            CDBColumnInfoArray GetColInfo(MYSQL_RES *result, unsigned int cols, bool prepare);
+            CDBColumnInfoArray GetColInfo(MYSQL_RES *result, unsigned int cols, bool meta);
             bool PushRecords(MYSQL_RES *result, const CDBColumnInfoArray &vColInfo, int &res, CDBString &errMsg);
             int Bind(CUQueue &qBufferSize, int row, CDBString &errMsg);
             std::shared_ptr<MYSQL_BIND> PrepareBindResultBuffer(MYSQL_RES *result, const CDBColumnInfoArray &vColInfo, int &res, CDBString &errMsg, std::shared_ptr<MYSQL_BIND_RESULT_FIELD> &field);

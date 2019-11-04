@@ -941,45 +941,55 @@ namespace SPA
             } while (true);
         }
 
-        CDBColumnInfoArray CMysqlImpl::GetColInfo(MYSQL_RES *result, unsigned int cols, bool prepare) {
+        CDBColumnInfoArray CMysqlImpl::GetColInfo(MYSQL_RES *result, unsigned int cols, bool meta) {
             CDBColumnInfoArray vCols(cols);
             MYSQL_FIELD *field = m_remMysql.mysql_fetch_fields(result);
             for (unsigned int n = 0; n < cols; ++n) {
                 CDBColumnInfo &info = vCols[n];
                 MYSQL_FIELD &f = field[n];
-                if (f.name) {
-                    info.DisplayName.assign(f.name, f.name + ::strlen(f.name));
-                } else {
-                    info.DisplayName.clear();
-                }
-                if (f.org_name) {
-                    info.OriginalName.assign(f.org_name, f.org_name + ::strlen(f.org_name));
-                } else {
-                    info.OriginalName = info.DisplayName;
-                }
+				if (meta) {
+					if (f.name) {
+						info.DisplayName.assign(f.name, f.name + ::strlen(f.name));
+					}
+					else {
+						info.DisplayName.clear();
+					}
+					if (f.org_name) {
+						info.OriginalName.assign(f.org_name, f.org_name + ::strlen(f.org_name));
+					}
+					else {
+						info.OriginalName = info.DisplayName;
+					}
 
-                if (f.table) {
-                    info.TablePath.assign(f.table, f.table + ::strlen(f.table));
-                } else if (f.org_table) {
-                    info.TablePath.assign(f.org_table, f.org_table + ::strlen(f.org_table));
-                } else {
-                    info.TablePath.clear();
-                }
-                if (f.db) {
-                    info.DBPath.assign(f.db, f.db + ::strlen(f.db));
-                } else {
-                    info.DBPath.clear();
-                }
+					if (f.table) {
+						info.TablePath.assign(f.table, f.table + ::strlen(f.table));
+					}
+					else if (f.org_table) {
+						info.TablePath.assign(f.org_table, f.org_table + ::strlen(f.org_table));
+					}
+					else {
+						info.TablePath.clear();
+					}
+					if (f.db) {
+						info.DBPath.assign(f.db, f.db + ::strlen(f.db));
+					}
+					else {
+						info.DBPath.clear();
+					}
 
-                if (f.org_table && (f.org_table != f.table)) {
-                    info.Collation.assign(f.org_table, f.org_table + ::strlen(f.org_table));
-                } else if (f.catalog) {
-                    info.Collation.assign(f.catalog, f.catalog + ::strlen(f.catalog));
-                } else if (f.def) {
-                    info.Collation.assign(f.def, f.def + ::strlen(f.def));
-                } else {
-                    info.Collation.clear();
-                }
+					if (f.org_table && (f.org_table != f.table)) {
+						info.Collation.assign(f.org_table, f.org_table + ::strlen(f.org_table));
+					}
+					else if (f.catalog) {
+						info.Collation.assign(f.catalog, f.catalog + ::strlen(f.catalog));
+					}
+					else if (f.def) {
+						info.Collation.assign(f.def, f.def + ::strlen(f.def));
+					}
+					else {
+						info.Collation.clear();
+					}
+				}
                 if ((f.flags & NOT_NULL_FLAG) == NOT_NULL_FLAG) {
                     info.Flags |= CDBColumnInfo::FLAG_NOT_NULL;
                 }
@@ -1010,159 +1020,193 @@ namespace SPA
                 switch (f.type) {
                     case MYSQL_TYPE_NEWDECIMAL:
                     case MYSQL_TYPE_DECIMAL:
+						if (meta) {
 #ifdef WIN32_64
-                        info.DeclaredType = L"DECIMAL"; //The maximum number of digits for DECIMAL is 65, but the actual range for a given DECIMAL column can be constrained by the precision or scale for a given column.
+							info.DeclaredType = L"DECIMAL"; //The maximum number of digits for DECIMAL is 65, but the actual range for a given DECIMAL column can be constrained by the precision or scale for a given column.
 #else
-                        info.DeclaredType = u"DECIMAL";
+							info.DeclaredType = u"DECIMAL";
 #endif
+						}
                         info.DataType = (VT_I1 | VT_ARRAY); //string
                         info.Scale = (unsigned char) f.decimals;
                         info.Precision = 29;
                         break;
                     case MYSQL_TYPE_TINY:
+						if (meta) {
 #ifdef WIN32_64
-                        info.DeclaredType = L"TINYINT";
+							info.DeclaredType = L"TINYINT";
 #else
-                        info.DeclaredType = u"TINYINT";
+							info.DeclaredType = u"TINYINT";
 #endif
+						}
                         if ((f.flags & UNSIGNED_FLAG) == UNSIGNED_FLAG)
                             info.DataType = VT_UI1;
                         else
                             info.DataType = VT_I1;
                         break;
                     case MYSQL_TYPE_SHORT:
+						if (meta) {
 #ifdef WIN32_64
-                        info.DeclaredType = L"SMALLINT";
+							info.DeclaredType = L"SMALLINT";
 #else
-                        info.DeclaredType = u"SMALLINT";
+							info.DeclaredType = u"SMALLINT";
 #endif
+						}
                         if ((f.flags & UNSIGNED_FLAG) == UNSIGNED_FLAG)
                             info.DataType = VT_UI2;
                         else
                             info.DataType = VT_I2;
                         break;
                     case MYSQL_TYPE_LONG:
+						if (meta) {
 #ifdef WIN32_64
-                        info.DeclaredType = L"INT";
+							info.DeclaredType = L"INT";
 #else
-                        info.DeclaredType = u"INT";
+							info.DeclaredType = u"INT";
 #endif
+						}
                         if ((f.flags & UNSIGNED_FLAG) == UNSIGNED_FLAG)
                             info.DataType = VT_UI4;
                         else
                             info.DataType = VT_I4;
                         break;
                     case MYSQL_TYPE_FLOAT:
+						if (meta) {
 #ifdef WIN32_64
-                        info.DeclaredType = L"FLOAT";
+							info.DeclaredType = L"FLOAT";
 #else
-                        info.DeclaredType = u"FLOAT";
+							info.DeclaredType = u"FLOAT";
 #endif
+						}
                         info.DataType = VT_R4;
                         break;
                     case MYSQL_TYPE_DOUBLE:
+						if (meta) {
 #ifdef WIN32_64
-                        info.DeclaredType = L"DOUBLE";
+							info.DeclaredType = L"DOUBLE";
 #else
-                        info.DeclaredType = u"DOUBLE";
+							info.DeclaredType = u"DOUBLE";
 #endif
+						}
                         info.DataType = VT_R8;
                         break;
                     case MYSQL_TYPE_TIMESTAMP:
+						if (meta) {
 #ifdef WIN32_64
-                        info.DeclaredType = L"TIMESTAMP";
+							info.DeclaredType = L"TIMESTAMP";
 #else
-                        info.DeclaredType = u"TIMESTAMP";
+							info.DeclaredType = u"TIMESTAMP";
 #endif
+						}
                         info.Scale = (unsigned char) f.decimals;
                         info.DataType = VT_DATE;
                         break;
                     case MYSQL_TYPE_LONGLONG:
+						if (meta) {
 #ifdef WIN32_64
-                        info.DeclaredType = L"BIGINT";
+							info.DeclaredType = L"BIGINT";
 #else
-                        info.DeclaredType = u"BIGINT";
+							info.DeclaredType = u"BIGINT";
 #endif
+						}
                         if ((f.flags & UNSIGNED_FLAG) == UNSIGNED_FLAG)
                             info.DataType = VT_UI8;
                         else
                             info.DataType = VT_I8;
                         break;
                     case MYSQL_TYPE_INT24:
+						if (meta) {
 #ifdef WIN32_64
-                        info.DeclaredType = L"MEDIUMINT";
+							info.DeclaredType = L"MEDIUMINT";
 #else
-                        info.DeclaredType = u"MEDIUMINT";
+							info.DeclaredType = u"MEDIUMINT";
 #endif
+						}
                         info.DataType = VT_I4;
                         break;
                     case MYSQL_TYPE_DATE:
+						if (meta) {
 #ifdef WIN32_64
-                        info.DeclaredType = L"DATE";
+							info.DeclaredType = L"DATE";
 #else
-                        info.DeclaredType = u"DATE";
+							info.DeclaredType = u"DATE";
 #endif
+						}
                         info.DataType = VT_DATE;
                         break;
                     case MYSQL_TYPE_TIME:
+						if (meta) {
 #ifdef WIN32_64
-                        info.DeclaredType = L"TIME";
+							info.DeclaredType = L"TIME";
 #else
-                        info.DeclaredType = u"TIME";
+							info.DeclaredType = u"TIME";
 #endif
+						}
                         info.Scale = (unsigned char) f.decimals;
                         info.DataType = VT_DATE;
                         break;
                     case MYSQL_TYPE_DATETIME: //#define DATETIME_MAX_DECIMALS 6
+						if (meta) {
 #ifdef WIN32_64
-                        info.DeclaredType = L"DATETIME";
+							info.DeclaredType = L"DATETIME";
 #else
-                        info.DeclaredType = u"DATETIME";
+							info.DeclaredType = u"DATETIME";
 #endif
+						}
                         info.Scale = (unsigned char) f.decimals;
                         info.DataType = VT_DATE;
                         break;
                     case MYSQL_TYPE_YEAR:
+						if (meta) {
 #ifdef WIN32_64
-                        info.DeclaredType = L"YEAR";
+							info.DeclaredType = L"YEAR";
 #else
-                        info.DeclaredType = u"YEAR";
+							info.DeclaredType = u"YEAR";
 #endif
+						}
                         info.DataType = VT_I2;
                         break;
                     case MYSQL_TYPE_NEWDATE:
+						if (meta) {
 #ifdef WIN32_64
-                        info.DeclaredType = L"NEWDATE";
+							info.DeclaredType = L"NEWDATE";
 #else
-                        info.DeclaredType = u"NEWDATE";
+							info.DeclaredType = u"NEWDATE";
 #endif
+						}
                         info.DataType = VT_DATE;
                         break;
                     case MYSQL_TYPE_VARCHAR:
                         info.ColumnSize = f.length;
                         if (f.charsetnr == IS_BINARY) {
+							if (meta) {
 #ifdef WIN32_64
-                            info.DeclaredType = L"VARBINARY";
+								info.DeclaredType = L"VARBINARY";
 #else
-                            info.DeclaredType = u"VARBINARY";
+								info.DeclaredType = u"VARBINARY";
 #endif
+							}
                             info.DataType = (VT_UI1 | VT_ARRAY); //binary
                         } else {
+							if (meta) {
 #ifdef WIN32_64
-                            info.DeclaredType = L"VARCHAR";
+								info.DeclaredType = L"VARCHAR";
 #else
-                            info.DeclaredType = u"VARCHAR";
+								info.DeclaredType = u"VARCHAR";
 #endif
+							}
                             info.DataType = (VT_I1 | VT_ARRAY); //string
                         }
                         break;
                     case MYSQL_TYPE_BIT:
                         info.ColumnSize = f.length;
+						if (meta) {
 #ifdef WIN32_64
-                        info.DeclaredType = L"BIT";
+							info.DeclaredType = L"BIT";
 #else
-                        info.DeclaredType = u"BIT";
+							info.DeclaredType = u"BIT";
 #endif
+						}
                         info.Flags |= CDBColumnInfo::FLAG_IS_BIT;
                         if (f.length == 1)
                             info.DataType = VT_BOOL;
@@ -1181,222 +1225,269 @@ namespace SPA
 #if defined(MYSQL_VERSION_ID) && MYSQL_VERSION_ID > 50700
                     case MYSQL_TYPE_TIMESTAMP2:
                         info.ColumnSize = f.length;
+						if (meta) {
 #ifdef WIN32_64
-                        info.DeclaredType = L"TIMESTAMP2";
+							info.DeclaredType = L"TIMESTAMP2";
 #else
-                        info.DeclaredType = u"TIMESTAMP2";
+							info.DeclaredType = u"TIMESTAMP2";
 #endif
+						}
                         info.Scale = (unsigned char) f.decimals;
                         info.DataType = VT_DATE;
                         break;
                     case MYSQL_TYPE_DATETIME2:
                         info.ColumnSize = f.length;
+						if (meta) {
 #ifdef WIN32_64
-                        info.DeclaredType = L"DATETIME2";
+							info.DeclaredType = L"DATETIME2";
 #else
-                        info.DeclaredType = u"DATETIME2";
+							info.DeclaredType = u"DATETIME2";
 #endif
+						}
                         info.Scale = (unsigned char) f.decimals;
                         info.DataType = VT_DATE;
                         break;
                     case MYSQL_TYPE_TIME2:
                         info.ColumnSize = f.length;
+						if (meta) {
 #ifdef WIN32_64
-                        info.DeclaredType = L"TIME2";
+							info.DeclaredType = L"TIME2";
 #else
-                        info.DeclaredType = u"TIME2";
+							info.DeclaredType = u"TIME2";
 #endif
+						}
                         info.Scale = (unsigned char) f.decimals;
                         info.DataType = VT_DATE;
                         break;
                     case MYSQL_TYPE_JSON:
                         info.ColumnSize = f.length;
+						if (meta) {
 #ifdef WIN32_64
-                        info.DeclaredType = L"JSON";
+							info.DeclaredType = L"JSON";
 #else
-                        info.DeclaredType = u"JSON";
+							info.DeclaredType = u"JSON";
 #endif
+						}
                         info.DataType = (VT_I1 | VT_ARRAY); //string
                         break;
 #endif
                     case MYSQL_TYPE_ENUM:
                         info.ColumnSize = f.length;
+						if (meta) {
 #ifdef WIN32_64
-                        info.DeclaredType = L"ENUM";
+							info.DeclaredType = L"ENUM";
 #else
-                        info.DeclaredType = u"ENUM";
+							info.DeclaredType = u"ENUM";
 #endif
+						}
                         info.DataType = (VT_I1 | VT_ARRAY); //string
                         break;
                     case MYSQL_TYPE_SET:
                         info.ColumnSize = f.length;
+						if (meta) {
 #ifdef WIN32_64
-                        info.DeclaredType = L"SET";
+							info.DeclaredType = L"SET";
 #else
-                        info.DeclaredType = u"SET";
+							info.DeclaredType = u"SET";
 #endif
+						}
                         info.DataType = (VT_I1 | VT_ARRAY); //string
                         break;
                     case MYSQL_TYPE_TINY_BLOB:
                         info.ColumnSize = f.length;
                         if (f.charsetnr == IS_BINARY) {
+							if (meta) {
 #ifdef WIN32_64
-                            info.DeclaredType = L"TINYBLOB";
+								info.DeclaredType = L"TINYBLOB";
 #else
-                            info.DeclaredType = u"TINYBLOB";
+								info.DeclaredType = u"TINYBLOB";
 #endif
+							}
                             info.DataType = (VT_UI1 | VT_ARRAY); //binary
                         } else {
+							if (meta) {
 #ifdef WIN32_64
-                            info.DeclaredType = L"TINYTEXT";
+								info.DeclaredType = L"TINYTEXT";
 #else
-                            info.DeclaredType = u"TINYTEXT";
+								info.DeclaredType = u"TINYTEXT";
 #endif
+							}
                             info.DataType = (VT_I1 | VT_ARRAY); //text
                         }
                         break;
                     case MYSQL_TYPE_MEDIUM_BLOB:
                         info.ColumnSize = f.length;
                         if (f.charsetnr == IS_BINARY) {
+							if (meta) {
 #ifdef WIN32_64
-                            info.DeclaredType = L"MEDIUMBLOB";
+								info.DeclaredType = L"MEDIUMBLOB";
 #else
-                            info.DeclaredType = u"MEDIUMBLOB";
+								info.DeclaredType = u"MEDIUMBLOB";
 #endif
+							}
                             info.DataType = (VT_UI1 | VT_ARRAY); //binary
                         } else {
+							if (meta) {
 #ifdef WIN32_64
-                            info.DeclaredType = L"MEDIUMTEXT";
+								info.DeclaredType = L"MEDIUMTEXT";
 #else
-                            info.DeclaredType = u"MEDIUMTEXT";
+								info.DeclaredType = u"MEDIUMTEXT";
 #endif
+							}
                             info.DataType = (VT_I1 | VT_ARRAY); //text
                         }
                         break;
                     case MYSQL_TYPE_LONG_BLOB:
                         info.ColumnSize = f.length;
                         if (f.charsetnr == IS_BINARY) {
+							if (meta) {
 #ifdef WIN32_64
-                            info.DeclaredType = L"LONGBLOB";
+								info.DeclaredType = L"LONGBLOB";
 #else
-                            info.DeclaredType = u"LONGBLOB";
+								info.DeclaredType = u"LONGBLOB";
 #endif
+							}
                             info.DataType = (VT_UI1 | VT_ARRAY); //binary
                         } else {
+							if (meta) {
 #ifdef WIN32_64
-                            info.DeclaredType = L"LONGTEXT";
+								info.DeclaredType = L"LONGTEXT";
 #else
-                            info.DeclaredType = u"LONGTEXT";
+								info.DeclaredType = u"LONGTEXT";
 #endif
+							}
                             info.DataType = (VT_I1 | VT_ARRAY); //text
                         }
                         break;
                     case MYSQL_TYPE_BLOB:
                         info.ColumnSize = f.length;
                         if (f.charsetnr == IS_BINARY) {
-                            if (f.length == MYSQL_TINYBLOB) {
+							if (meta) {
+								if (f.length == MYSQL_TINYBLOB) {
 #ifdef WIN32_64
-                                info.DeclaredType = L"TINYBLOB";
+									info.DeclaredType = L"TINYBLOB";
 #else
-                                info.DeclaredType = u"TINYBLOB";
+									info.DeclaredType = u"TINYBLOB";
 #endif
-                            } else if (f.length == MYSQL_MIDBLOB) {
+								}
+								else if (f.length == MYSQL_MIDBLOB) {
 #ifdef WIN32_64
-                                info.DeclaredType = L"MEDIUMBLOB";
+									info.DeclaredType = L"MEDIUMBLOB";
 #else
-                                info.DeclaredType = u"MEDIUMBLOB";
+									info.DeclaredType = u"MEDIUMBLOB";
 #endif
-                            } else if (f.length == MYSQL_BLOB) {
+								}
+								else if (f.length == MYSQL_BLOB) {
 #ifdef WIN32_64
-                                info.DeclaredType = L"BLOB";
+									info.DeclaredType = L"BLOB";
 #else
-                                info.DeclaredType = u"BLOB";
+									info.DeclaredType = u"BLOB";
 #endif
-                            } else {
+								}
+								else {
 #ifdef WIN32_64
-                                info.DeclaredType = L"LONGBLOB";
+									info.DeclaredType = L"LONGBLOB";
 #else
-                                info.DeclaredType = u"LONGBLOB";
+									info.DeclaredType = u"LONGBLOB";
 #endif
-                            }
+								}
+							}
                             info.DataType = (VT_UI1 | VT_ARRAY); //binary
                         } else {
-                            if (f.length == MYSQL_TINYBLOB) {
+							if (meta) {
+								if (f.length == MYSQL_TINYBLOB) {
 #ifdef WIN32_64
-                                info.DeclaredType = L"TINYTEXT";
+									info.DeclaredType = L"TINYTEXT";
 #else
-                                info.DeclaredType = u"TINYTEXT";
+									info.DeclaredType = u"TINYTEXT";
 #endif
-                            } else if (f.length == MYSQL_MIDBLOB) {
+								}
+								else if (f.length == MYSQL_MIDBLOB) {
 #ifdef WIN32_64
-                                info.DeclaredType = L"MEDIUMTEXT";
+									info.DeclaredType = L"MEDIUMTEXT";
 #else
-                                info.DeclaredType = u"MEDIUMTEXT";
+									info.DeclaredType = u"MEDIUMTEXT";
 #endif
-                            } else if (f.length == MYSQL_BLOB) {
+								}
+								else if (f.length == MYSQL_BLOB) {
 #ifdef WIN32_64
-                                info.DeclaredType = L"TEXT";
+									info.DeclaredType = L"TEXT";
 #else
-                                info.DeclaredType = u"TEXT";
+									info.DeclaredType = u"TEXT";
 #endif
-                            } else {
+								}
+								else {
 #ifdef WIN32_64
-                                info.DeclaredType = L"LONGTEXT";
+									info.DeclaredType = L"LONGTEXT";
 #else
-                                info.DeclaredType = u"LONGTEXT";
+									info.DeclaredType = u"LONGTEXT";
 #endif
-                            }
+								}
+							}
                             info.DataType = (VT_I1 | VT_ARRAY); //text
                         }
                         break;
                     case MYSQL_TYPE_VAR_STRING:
                         info.ColumnSize = f.length;
                         if (f.charsetnr == IS_BINARY) {
+							if (meta) {
 #ifdef WIN32_64
-                            info.DeclaredType = L"VARBINARY";
+								info.DeclaredType = L"VARBINARY";
 #else
-                            info.DeclaredType = u"VARBINARY";
+								info.DeclaredType = u"VARBINARY";
 #endif
+							}
+
                             info.DataType = (VT_UI1 | VT_ARRAY);
                         } else {
+							if (meta) {
 #ifdef WIN32_64
-                            info.DeclaredType = L"VARCHAR";
+								info.DeclaredType = L"VARCHAR";
 #else
-                            info.DeclaredType = u"VARCHAR";
+								info.DeclaredType = u"VARCHAR";
 #endif
+							}
                             info.DataType = (VT_I1 | VT_ARRAY); //string
                         }
                         break;
                     case MYSQL_TYPE_STRING:
                         info.ColumnSize = f.length;
                         if ((f.flags & ENUM_FLAG) == ENUM_FLAG) {
+							if (meta) {
 #ifdef WIN32_64
-                            info.DeclaredType = L"ENUM";
+								info.DeclaredType = L"ENUM";
 #else
-                            info.DeclaredType = u"ENUM";
+								info.DeclaredType = u"ENUM";
 #endif
+							}
                             info.DataType = (VT_I1 | VT_ARRAY); //string
                         } else if ((f.flags & SET_FLAG) == SET_FLAG) {
+							if (meta) {
 #ifdef WIN32_64
-                            info.DeclaredType = L"SET";
+								info.DeclaredType = L"SET";
 #else
-                            info.DeclaredType = u"SET";
+								info.DeclaredType = u"SET";
 #endif
+							}
                             info.DataType = (VT_I1 | VT_ARRAY); //string
                         } else {
                             if (f.charsetnr == IS_BINARY) {
+								if (meta) {
 #ifdef WIN32_64
-                                info.DeclaredType = L"BINARY";
+									info.DeclaredType = L"BINARY";
 #else
-                                info.DeclaredType = u"BINARY";
+									info.DeclaredType = u"BINARY";
 #endif
+								}
                                 info.DataType = (VT_UI1 | VT_ARRAY);
                             } else {
+								if (meta) {
 #ifdef WIN32_64
-                                info.DeclaredType = L"CHAR";
+									info.DeclaredType = L"CHAR";
 #else
-                                info.DeclaredType = u"CHAR";
+									info.DeclaredType = u"CHAR";
 #endif
+								}
                                 info.DataType = (VT_I1 | VT_ARRAY); //string
                             }
                         }
@@ -1404,11 +1495,13 @@ namespace SPA
                         break;
                     case MYSQL_TYPE_GEOMETRY:
                         info.ColumnSize = f.length;
+						if (meta) {
 #ifdef WIN32_64
-                        info.DeclaredType = L"GEOMETRY";
+							info.DeclaredType = L"GEOMETRY";
 #else
-                        info.DeclaredType = u"GEOMETRY";
+							info.DeclaredType = u"GEOMETRY";
 #endif
+						}
                         info.DataType = (VT_UI1 | VT_ARRAY); //binary array
                         break;
                     default:
@@ -1692,7 +1785,7 @@ namespace SPA
                 MYSQL_RES *result = m_remMysql.mysql_use_result(m_pMysql.get());
                 if (result) {
                     unsigned int cols = m_remMysql.mysql_num_fields(result);
-                    CDBColumnInfoArray vInfo = GetColInfo(result, cols, false);
+                    CDBColumnInfoArray vInfo = GetColInfo(result, cols, meta);
                     if (!m_pNoSending) {
                         unsigned int ret = SendResult(idRowsetHeader, vInfo, index);
                         if (ret == REQUEST_CANCELED || ret == SOCKET_NOT_FOUND) {
@@ -2600,7 +2693,7 @@ namespace SPA
                 }
 #endif
                 while (result && cols) {
-                    CDBColumnInfoArray vInfo = GetColInfo(result, cols, true);
+                    CDBColumnInfoArray vInfo = GetColInfo(result, cols, (meta || m_bCall));
 
                     if (!output) {
                         //Mysql + Mariadb server_status & SERVER_PS_OUT_PARAMS does NOT work correctly for an unknown reason

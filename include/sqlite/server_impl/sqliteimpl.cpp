@@ -1752,69 +1752,77 @@ namespace SPA
             CDBColumnInfoArray vCols((size_t) cols);
             for (int n = 0; n < cols; ++n) {
                 CDBColumnInfo &info = vCols[n];
-                const char *str = sqlite3_column_database_name(stmt, n);
-                if (meta && str) {
-                    zDbName = str;
-                }
-                if (str) {
+				if (meta) {
+					const char *str = sqlite3_column_database_name(stmt, n);
+					if (meta && str) {
+						zDbName = str;
+					}
+					if (str) {
 #ifdef WIN32_64
-                    info.DBPath = Utilities::ToWide(str);
+						info.DBPath = Utilities::ToWide(str);
 #else
-                    info.DBPath = Utilities::ToUTF16(str);
+						info.DBPath = Utilities::ToUTF16(str);
 #endif
-                } else {
-                    info.DBPath.clear();
-                }
-                str = sqlite3_column_table_name(stmt, n);
-                if (meta && str) {
-                    zTableName = str;
-                }
-                if (str) {
+					}
+					else {
+						info.DBPath.clear();
+					}
+					str = sqlite3_column_table_name(stmt, n);
+					if (meta && str) {
+						zTableName = str;
+					}
+					if (str) {
 #ifdef WIN32_64
-                    info.TablePath = Utilities::ToWide(str);
+						info.TablePath = Utilities::ToWide(str);
 #else
-                    info.TablePath = Utilities::ToUTF16(str);
+						info.TablePath = Utilities::ToUTF16(str);
 #endif
-                } else {
-                    info.Flags = (CDBColumnInfo::FLAG_NOT_NULL | CDBColumnInfo::FLAG_NOT_WRITABLE);
-                    info.TablePath.clear();
-                }
+					}
+					else {
+						info.Flags = (CDBColumnInfo::FLAG_NOT_NULL | CDBColumnInfo::FLAG_NOT_WRITABLE);
+						info.TablePath.clear();
+					}
 
-                str = sqlite3_column_name(stmt, n);
-                if (str) {
+					str = sqlite3_column_name(stmt, n);
+					if (str) {
 #ifdef WIN32_64
-                    info.DisplayName = Utilities::ToWide(str);
+						info.DisplayName = Utilities::ToWide(str);
 #else
-                    info.DisplayName = Utilities::ToUTF16(str);
+						info.DisplayName = Utilities::ToUTF16(str);
 #endif
-                } else {
-                    info.DisplayName.clear();
-                }
+					}
+					else {
+						info.DisplayName.clear();
+					}
 
-                str = sqlite3_column_origin_name(stmt, n);
-                if (meta && str) {
-                    zColumnName = str;
-                }
-                if (str) {
+					str = sqlite3_column_origin_name(stmt, n);
+					if (meta && str) {
+						zColumnName = str;
+					}
+					if (str) {
 #ifdef WIN32_64
-                    info.OriginalName = Utilities::ToWide(str);
+						info.OriginalName = Utilities::ToWide(str);
 #else
-                    info.OriginalName = Utilities::ToUTF16(str);
+						info.OriginalName = Utilities::ToUTF16(str);
 #endif
-                } else {
-                    info.OriginalName.clear();
-                }
-
-                str = sqlite3_column_decltype(stmt, n);
-                if (str) {
+					}
+					else {
+						info.OriginalName.clear();
+					}
+				}
+				const char *str = sqlite3_column_decltype(stmt, n);
+				if (meta) {
+					if (str) {
 #ifdef WIN32_64
-                    info.DeclaredType = Utilities::ToWide(str);
+						info.DeclaredType = Utilities::ToWide(str);
 #else
-                    info.DeclaredType = Utilities::ToUTF16(str);
+						info.DeclaredType = Utilities::ToUTF16(str);
 #endif
-                } else {
-                    info.DeclaredType.clear();
-                }
+					}
+					else {
+						info.DeclaredType.clear();
+					}
+				}
                 SetDataType(str, info);
                 if (meta && zTableName.size()) {
                     //char const *dt = nullptr;
