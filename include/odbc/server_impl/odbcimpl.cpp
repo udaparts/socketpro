@@ -688,12 +688,12 @@ namespace SPA
             CDBColumnInfoArray vCols((size_t) columns);
             bool bPostgres = (m_msDriver == msPostgreSQL);
             for (SQLSMALLINT n = 0; n < columns; ++n) {
-                SQLRETURN retcode;
                 CDBColumnInfo &info = vCols[n];
-                if (meta || bPostgres) {
-                    retcode = SQLDescribeCol(hstmt, (SQLUSMALLINT) (n + 1), colname, sizeof (colname) / sizeof (SQLCHAR), &colnamelen, &coltype, &collen, &decimaldigits, &nullable);
-                    assert(SQL_SUCCEEDED(retcode));
-                }
+				SQLRETURN retcode = SQLDescribeCol(hstmt, (SQLUSMALLINT) (n + 1), colname, sizeof (colname) / sizeof (SQLCHAR), &colnamelen, &coltype, &collen, &decimaldigits, &nullable);
+                assert(SQL_SUCCEEDED(retcode));
+				if (nullable == SQL_NO_NULLS) {
+					info.Flags |= CDBColumnInfo::FLAG_NOT_NULL;
+				}
                 if (bPostgres && collen > 8000)
                     collen = 0; //make it to long text or binary
                 if (meta) {
@@ -702,10 +702,6 @@ namespace SPA
 #else
                     info.DisplayName = Utilities::ToUTF16((const char*) colname, (size_t) colnamelen / sizeof (SQLCHAR)); //display column name
 #endif
-                    if (nullable == SQL_NO_NULLS) {
-                        info.Flags |= CDBColumnInfo::FLAG_NOT_NULL;
-                    }
-
                     retcode = SQLColAttribute(hstmt, (SQLUSMALLINT) (n + 1), SQL_DESC_BASE_COLUMN_NAME, colname, sizeof (colname), &colnamelen, &displaysize);
                     assert(SQL_SUCCEEDED(retcode));
 #ifdef WIN32_64
