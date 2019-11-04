@@ -51,7 +51,7 @@ namespace NJA {
             SPA::PUQueue Buffer;
             std::shared_ptr<CNJFunc> Func;
         };
-		typedef SPA::CSpinAutoLock CAutoLock;
+        typedef SPA::CSpinAutoLock CAutoLock;
         SPA::CSpinLock m_csJQ;
         uv_async_t m_qType;
         std::deque<QueueCb> m_deqQCb; //Protected by m_csQ;

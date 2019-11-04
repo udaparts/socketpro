@@ -102,8 +102,8 @@ namespace NJA {
             obj->m_csFile.lock();
             while (obj->m_deqFileCb.size()) {
                 FileCb cb = obj->m_deqFileCb.front();
-				obj->m_deqFileCb.pop_front();
-				obj->m_csFile.unlock();
+                obj->m_deqFileCb.pop_front();
+                obj->m_csFile.unlock();
                 PSFile processor;
                 *cb.Buffer >> processor;
                 assert(processor);
@@ -145,9 +145,9 @@ namespace NJA {
                         break;
                 }
                 CScopeUQueue::Unlock(cb.Buffer);
-				obj->m_csFile.lock();
+                obj->m_csFile.lock();
             }
-			obj->m_csFile.unlock();
+            obj->m_csFile.unlock();
         }
         //isolate->RunMicrotasks();
     }

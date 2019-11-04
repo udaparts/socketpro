@@ -1072,7 +1072,7 @@ namespace SPA {
             }
 
         protected:
-			typedef SPA::CSpinAutoLock CAutoLock;
+            typedef SPA::CSpinAutoLock CAutoLock;
             CSpinLock m_csDB;
             CDBColumnInfoArray m_vColInfo;
             std::unordered_map<UINT64, CRowsetHandler> m_mapRowset;
