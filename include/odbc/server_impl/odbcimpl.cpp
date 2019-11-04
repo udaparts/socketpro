@@ -689,11 +689,11 @@ namespace SPA
             bool bPostgres = (m_msDriver == msPostgreSQL);
             for (SQLSMALLINT n = 0; n < columns; ++n) {
                 CDBColumnInfo &info = vCols[n];
-				SQLRETURN retcode = SQLDescribeCol(hstmt, (SQLUSMALLINT) (n + 1), colname, sizeof (colname) / sizeof (SQLCHAR), &colnamelen, &coltype, &collen, &decimaldigits, &nullable);
+                SQLRETURN retcode = SQLDescribeCol(hstmt, (SQLUSMALLINT) (n + 1), colname, sizeof (colname) / sizeof (SQLCHAR), &colnamelen, &coltype, &collen, &decimaldigits, &nullable);
                 assert(SQL_SUCCEEDED(retcode));
-				if (nullable == SQL_NO_NULLS) {
-					info.Flags |= CDBColumnInfo::FLAG_NOT_NULL;
-				}
+                if (nullable == SQL_NO_NULLS) {
+                    info.Flags |= CDBColumnInfo::FLAG_NOT_NULL;
+                }
                 if (bPostgres && collen > 8000)
                     collen = 0; //make it to long text or binary
                 if (meta) {
