@@ -385,7 +385,7 @@ class CSocket {
         return this.socket.getUserId();
     }
 
-	get PoolId() {
+    get PoolId() {
         return this.socket.getPoolId();
     }
 
@@ -1088,10 +1088,10 @@ class CAsyncFile extends CHandler {
     Download(localFile, remoteFile, cb = null, progress = null, discarded = null) {
         return this.handler.Download(localFile, remoteFile, cb, progress, discarded);
     }
-	
-	Cancel() {
-		return this.handler.Cancel();
-	}
+
+    Cancel() {
+        return this.handler.Cancel();
+    }
 
     //Promise version
     upload(localFile, remoteFile, progress = null, cb = null, discarded = null) {
@@ -1187,12 +1187,12 @@ class CDb extends CHandler {
         return this.handler.Prepare(sql, cb, discarded);
     }
 
-    Execute(sql_or_arrParam, cb = null, rows = null, meta = null, discarded = null) {
-        return this.handler.Execute(sql_or_arrParam, cb, rows, meta, discarded);
+    Execute(sql_or_arrParam, cb = null, rows = null, rh = null, discarded = null, meta = true) {
+        return this.handler.Execute(sql_or_arrParam, cb, rows, rh, discarded, meta);
     }
 
-    ExecuteBatch(isolation, sql, paramBuff, cb = null, rows = null, meta = null, batchHeader = null, discarded = null, rp = exports.DB.RollbackPlan.rpDefault, delimiter = ';', arrP = []) {
-        return this.handler.ExecuteBatch(isolation, sql, paramBuff, cb, rows, meta, batchHeader, discarded, rp, delimiter, arrP);
+    ExecuteBatch(isolation, sql, paramBuff, cb = null, rows = null, rh = null, batchHeader = null, discarded = null, rp = exports.DB.RollbackPlan.rpDefault, delimiter = ';', meta = true, arrP = []) {
+        return this.handler.ExecuteBatch(isolation, sql, paramBuff, cb, rows, rh, batchHeader, discarded, rp, delimiter, arrP, meta);
     }
 
     //Promise
@@ -1328,9 +1328,9 @@ class CDb extends CHandler {
     }
 
     //Promise
-    execute(sql_or_arrParam, rows = null, meta = null, cb = null, discarded = null) {
+    execute(sql_or_arrParam, rows = null, rh = null, cb = null, discarded = null, meta = true) {
         assert(rows === null || rows === undefined || typeof rows === 'function');
-        assert(meta === null || meta === undefined || typeof meta === 'function');
+        assert(rh === null || rh === undefined || typeof rh === 'function');
         assert(cb === null || cb === undefined || typeof cb === 'function');
         assert(discarded === null || discarded === undefined || typeof discarded === 'function');
         return new Promise((res, rej) => {
@@ -1346,11 +1346,11 @@ class CDb extends CHandler {
                     lastId: id
                 };
                 res(ret);
-            }, rows, meta, (canceled) => {
+            }, rows, rh, (canceled) => {
                 if (discarded) ret = discarded(canceled);
                 if (ret === undefined) ret = (canceled ? 'Execute canceled' : 'Connection closed');
                 rej(ret);
-            });
+            }, meta);
             if (!ok) {
                 if (discarded) ret = discarded(false);
                 if (ret === undefined) ret = this.Socket.Error;
@@ -1360,10 +1360,10 @@ class CDb extends CHandler {
     }
 
     //Promise
-    executeBatch(isolation, sql, paramBuff, rows = null, meta = null, rp = exports.DB.RollbackPlan.rpDefault, delimiter = ';', batchHeader = null, cb = null, discarded = null, arrP = []) {
+    executeBatch(isolation, sql, paramBuff, rows = null, rh = null, rp = exports.DB.RollbackPlan.rpDefault, delimiter = ';', batchHeader = null, cb = null, discarded = null, meta = true, arrP = []) {
         assert(sql && typeof sql === 'string');
         assert(rows === null || rows === undefined || typeof rows === 'function');
-        assert(meta === null || meta === undefined || typeof meta === 'function');
+        assert(rh === null || rh === undefined || typeof rh === 'function');
         assert(batchHeader === null || batchHeader === undefined || typeof batchHeader === 'function');
         assert(cb === null || cb === undefined || typeof cb === 'function');
         assert(discarded === null || discarded === undefined || typeof discarded === 'function');
@@ -1380,11 +1380,11 @@ class CDb extends CHandler {
                     lastId: id
                 };
                 res(ret);
-            }, rows, meta, batchHeader, (canceled) => {
+            }, rows, rh, batchHeader, (canceled) => {
                 if (discarded) ret = discarded(canceled);
                 if (ret === undefined) ret = (canceled ? 'ExecuteBatch canceled' : 'Connection closed');
                 rej(ret);
-            }, rp, delimiter, arrP);
+            }, rp, delimiter, arrP, meta);
             if (!ok) {
                 if (discarded) ret = discarded(false);
                 if (ret === undefined) ret = this.Socket.Error;
