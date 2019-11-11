@@ -253,7 +253,7 @@ private:
     POnAccept m_pOnAccept;
     std::vector<CServiceContext*> m_vSC;
     std::mutex m_mutexSC;
-    std::mutex m_mTP;
+    SPA::CSpinLock m_mTP;
     std::vector<CServerThread*> m_vThreadPool;
     std::map<unsigned int, std::wstring> m_mapChatGroup;
     boost::asio::deadline_timer m_Timer;
@@ -283,6 +283,9 @@ private:
     bool m_clientCertAuth;
     SPA::tagCertStoreType m_cst;
     CredHandle m_hCreds;
+
+	typedef std::function<void() > DHandle;
+	DHandle m_dMessage;
 
     friend class CServerSession;
     friend class CConnectionContextBase;

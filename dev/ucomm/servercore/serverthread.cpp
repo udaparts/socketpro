@@ -17,7 +17,8 @@ CServerThread::CServerThread(unsigned int nMaxThreadIdleTimeBeforeSuicide, SPA::
 : SPA::CUCommThread(ta),
 m_bBusy(false),
 m_nMaxThreadIdleTimeBeforeSuicide(nMaxThreadIdleTimeBeforeSuicide + THREAD_SAFE_ALIVE_TIME) {
-    m_tWorking = boost::posix_time::microsec_clock::local_time();
+	m_tWorking = GetTimeTick();
+	m_handle = std::bind(&CServerThread::Handle, this);
 }
 
 unsigned int CServerThread::ProcessSlowRequest(CServerSession *pSession, SPA::CUThreadMessage ThreadMessage) {
@@ -27,51 +28,45 @@ unsigned int CServerThread::ProcessSlowRequest(CServerSession *pSession, SPA::CU
 
 void CServerThread::Handle() {
     while (true) {
-        m_mutex.lock();
-        m_bBusy = true;
+        m_sl.lock();
         if (!m_qThreadMessage.size()) {
-            m_bBusy = false;
-            m_mutex.unlock();
+            m_sl.unlock();
             return;
         }
         SPA::CUThreadMessage message = m_qThreadMessage.front();
         m_qThreadMessage.pop();
-        m_mutex.unlock();
+        m_sl.unlock();
         unsigned int res;
         PSession pSession;
+		m_tWorking = GetTimeTick();
         unsigned int nMsgId = message.m_nMsgId;
         *(message.m_pMessageBuffer) >> pSession;
-        m_mutex.lock();
-        m_tWorking = boost::posix_time::microsec_clock::local_time();
-        m_mutex.unlock();
         switch (nMsgId) {
             case WM_ASK_FOR_PROCESSING:
+				m_bBusy = true;
                 res = ProcessSlowRequest(pSession, message);
+				m_bBusy = false;
                 break;
             default:
                 res = 0;
                 break;
         }
-        m_mutex.lock();
-        m_tWorking = boost::posix_time::microsec_clock::local_time();
-        m_mutex.unlock();
         message.m_nMsgId = WM_REQUEST_PROCESSED;
         message.m_pMessageBuffer->SetSize(0);
         *message.m_pMessageBuffer << pSession;
         *message.m_pMessageBuffer << res;
         g_pServer->PostSproMessage(message);
+		m_tWorking = GetTimeTick();
     }
 }
 
 bool CServerThread::IsBusy() {
-    CAutoLock sl(m_mutex);
-    return m_bBusy;
+    return m_bBusy.load(std::memory_order_relaxed);
 }
 
 bool CServerThread::IsAliveSafe() {
-    boost::posix_time::ptime tNow = boost::posix_time::microsec_clock::local_time() - boost::posix_time::milliseconds(m_nMaxThreadIdleTimeBeforeSuicide - THREAD_SAFE_ALIVE_TIME);
-    CAutoLock sl(m_mutex);
-    bool b = (tNow < m_tWorking);
+    SPA::UINT64 tNow = GetTimeTick() - (m_nMaxThreadIdleTimeBeforeSuicide - THREAD_SAFE_ALIVE_TIME);
+    bool b = (tNow < m_tWorking.load(std::memory_order_relaxed));
     return b;
 }
 
@@ -96,12 +91,18 @@ bool CServerThread::PostMessage(CServerSession *pSession, unsigned short uReques
     if (pBuffer && nSize)
         message.m_pMessageBuffer->Push((const unsigned char*) pBuffer, (unsigned int) nSize);
 
-    CAutoLock sl(m_mutex);
-    if (m_pThread == nullptr)
-        return false;
+	m_sl.lock();
+	if (m_pThread == nullptr) {
+		m_sl.unlock();
+		return false;
+	}
     m_qThreadMessage.push(message);
-    if (m_qThreadMessage.size() == 1) //if queue has two or more message we don't dispatch a handle
-        GetIoService().post(boost::bind(&CServerThread::Handle, this));
+	if (m_qThreadMessage.size() == 1) {//if queue has two or more message we don't dispatch a handle
+		m_sl.unlock();
+		boost::asio::post(GetIoService(), m_handle);
+	}
+	else {
+		m_sl.unlock();
+	}
     return true;
 }
-

@@ -25,9 +25,12 @@ private:
     unsigned int ProcessSlowRequest(CServerSession *pSession, SPA::CUThreadMessage ThreadMessage);
 
 private:
-    bool m_bBusy;
+    std::atomic<bool> m_bBusy;
     unsigned int m_nMaxThreadIdleTimeBeforeSuicide;
-    boost::posix_time::ptime m_tWorking;
+	std::atomic<SPA::UINT64> m_tWorking;
+	typedef std::function<void() > DHandle;
+	DHandle m_handle;
+	SPA::CSpinLock m_sl;
 };
 
 typedef CServerThread* PServerThread;
