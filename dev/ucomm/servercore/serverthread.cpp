@@ -17,8 +17,8 @@ CServerThread::CServerThread(unsigned int nMaxThreadIdleTimeBeforeSuicide, SPA::
 : SPA::CUCommThread(ta),
 m_bBusy(false),
 m_nMaxThreadIdleTimeBeforeSuicide(nMaxThreadIdleTimeBeforeSuicide + THREAD_SAFE_ALIVE_TIME) {
-	m_tWorking = GetTimeTick();
-	m_handle = std::bind(&CServerThread::Handle, this);
+    m_tWorking = GetTimeTick();
+    m_handle = std::bind(&CServerThread::Handle, this);
 }
 
 unsigned int CServerThread::ProcessSlowRequest(CServerSession *pSession, SPA::CUThreadMessage ThreadMessage) {
@@ -38,14 +38,14 @@ void CServerThread::Handle() {
         m_sl.unlock();
         unsigned int res;
         PSession pSession;
-		m_tWorking = GetTimeTick();
+        m_tWorking = GetTimeTick();
         unsigned int nMsgId = message.m_nMsgId;
         *(message.m_pMessageBuffer) >> pSession;
         switch (nMsgId) {
             case WM_ASK_FOR_PROCESSING:
-				m_bBusy = true;
+                m_bBusy = true;
                 res = ProcessSlowRequest(pSession, message);
-				m_bBusy = false;
+                m_bBusy = false;
                 break;
             default:
                 res = 0;
@@ -56,7 +56,7 @@ void CServerThread::Handle() {
         *message.m_pMessageBuffer << pSession;
         *message.m_pMessageBuffer << res;
         g_pServer->PostSproMessage(message);
-		m_tWorking = GetTimeTick();
+        m_tWorking = GetTimeTick();
     }
 }
 
@@ -91,18 +91,17 @@ bool CServerThread::PostMessage(CServerSession *pSession, unsigned short uReques
     if (pBuffer && nSize)
         message.m_pMessageBuffer->Push((const unsigned char*) pBuffer, (unsigned int) nSize);
 
-	m_sl.lock();
-	if (m_pThread == nullptr) {
-		m_sl.unlock();
-		return false;
-	}
+    m_sl.lock();
+    if (m_pThread == nullptr) {
+        m_sl.unlock();
+        return false;
+    }
     m_qThreadMessage.push(message);
-	if (m_qThreadMessage.size() == 1) {//if queue has two or more message we don't dispatch a handle
-		m_sl.unlock();
-		boost::asio::post(GetIoService(), m_handle);
-	}
-	else {
-		m_sl.unlock();
-	}
+    if (m_qThreadMessage.size() == 1) {//if queue has two or more message we don't dispatch a handle
+        m_sl.unlock();
+        boost::asio::post(GetIoService(), m_handle);
+    } else {
+        m_sl.unlock();
+    }
     return true;
 }

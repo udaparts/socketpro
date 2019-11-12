@@ -109,7 +109,7 @@ m_cst(SPA::cstUnknown) {
     ::memset(&m_ServerInfo, 0, sizeof (m_ServerInfo));
     m_ServerInfo.MajorVersion = 2;
     ::memset(&m_hCreds, 0, sizeof (m_hCreds));
-	m_dMessage = std::bind(&CServer::OnMessage, this);
+    m_dMessage = std::bind(&CServer::OnMessage, this);
 }
 
 void CServer::KillMainThread() {
@@ -478,7 +478,7 @@ void CServer::PutThreadBackIntoPool(CServerThread *pThread) {
 void CServer::RemoveThread(CServerThread *pThread) {
     CServerThread *p = nullptr;
     std::vector<CServerThread*>::iterator it;
-	SPA::CSpinAutoLock sl(m_mTP);
+    SPA::CSpinAutoLock sl(m_mTP);
     std::vector<CServerThread*>::iterator end = m_vThreadPool.end();
     for (it = m_vThreadPool.begin(); it != end; ++it) {
         p = *it;
@@ -497,7 +497,7 @@ CServerThread *CServer::GetOneThread(SPA::tagThreadApartment ta) {
     CServerThread *p = nullptr;
     if (ta != SPA::taApartment) {
         int n, size;
-		SPA::CSpinAutoLock sl(m_mTP);
+        SPA::CSpinAutoLock sl(m_mTP);
         size = (int) m_vThreadPool.size();
         for (n = size - 1; n >= 0; --n) {
             p = m_vThreadPool[n];
@@ -527,7 +527,7 @@ CServerThread *CServer::GetOneThread(SPA::tagThreadApartment ta) {
 
 void CServer::DestroyThreadPool() {
     bool b;
-	SPA::CSpinAutoLock sl(m_mTP);
+    SPA::CSpinAutoLock sl(m_mTP);
     size_t n, size = m_vThreadPool.size();
     for (n = 0; n < size; ++n) {
         CServerThread *p = m_vThreadPool[n];
@@ -779,7 +779,7 @@ void CServer::StartIOPumpInternal() {
 void CServer::HandleThreadPoolInternal() {
     bool b;
     size_t n, size;
-	SPA::CSpinAutoLock sl(m_mTP);
+    SPA::CSpinAutoLock sl(m_mTP);
     do {
         b = false;
         size = m_vThreadPool.size();
@@ -978,9 +978,9 @@ bool CServer::PostSproMessage(CServerSession *pSession, unsigned int nMsgId, int
 bool CServer::PostSproMessage(CServerSession *pSession, unsigned int nMsgId, const void *pBuffer, unsigned int nSize) {
     SPA::CUThreadMessage message(nMsgId, SPA::CScopeUQueue::Lock(), 0);
     *(message.m_pMessageBuffer) << pSession;
-	if (pBuffer && nSize) {
-		message.m_pMessageBuffer->Push((const unsigned char*)pBuffer, (unsigned int)nSize);
-	}
+    if (pBuffer && nSize) {
+        message.m_pMessageBuffer->Push((const unsigned char*) pBuffer, (unsigned int) nSize);
+    }
     m_mTH.lock();
     m_qThreadMessage.push(message);
     m_mTH.unlock();
@@ -992,7 +992,7 @@ void CServer::PostSproMessage(SPA::CUThreadMessage message) {
     m_mTH.lock();
     m_qThreadMessage.push(message);
     m_mTH.unlock();
-	boost::asio::post(m_IoService, m_dMessage);
+    boost::asio::post(m_IoService, m_dMessage);
 }
 
 bool CServer::IsSsl() {

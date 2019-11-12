@@ -257,7 +257,7 @@ private:
     POnAccept m_pOnAccept;
     std::vector<CServiceContext*> m_vSC;
     mutex m_mutexSC;
-    mutex m_mTP;
+    SPA::CSpinLock m_mTP;
     std::vector<CServerThread*> m_vThreadPool;
     std::map<unsigned int, std::wstring> m_mapChatGroup;
     boost::asio::deadline_timer m_Timer;

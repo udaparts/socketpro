@@ -574,14 +574,14 @@ void CServer::PutThreadBackIntoPool(CServerThread *pThread) {
         delete pThread;
         return;
     }
-    CAutoLock sl(m_mTP);
+    SPA::CSpinAutoLock sl(m_mTP);
     m_vThreadPool.push_back(pThread);
 }
 
 void CServer::RemoveThread(CServerThread *pThread) {
     CServerThread *p = nullptr;
     std::vector<CServerThread*>::iterator it;
-    CAutoLock sl(m_mTP);
+    SPA::CSpinAutoLock sl(m_mTP);
     std::vector<CServerThread*>::iterator end = m_vThreadPool.end();
     for (it = m_vThreadPool.begin(); it != end; ++it) {
         p = *it;
@@ -600,7 +600,7 @@ CServerThread *CServer::GetOneThread(SPA::tagThreadApartment ta) {
     CServerThread *p = nullptr;
     if (ta != SPA::taApartment) {
         int n, size;
-        CAutoLock sl(m_mTP);
+        SPA::CSpinAutoLock sl(m_mTP);
         size = (int) m_vThreadPool.size();
         for (n = size - 1; n >= 0; --n) {
             p = m_vThreadPool[n];
@@ -630,7 +630,7 @@ CServerThread *CServer::GetOneThread(SPA::tagThreadApartment ta) {
 
 void CServer::DestroyThreadPool() {
     bool b;
-    CAutoLock sl(m_mTP);
+    SPA::CSpinAutoLock sl(m_mTP);
     size_t n, size = m_vThreadPool.size();
     for (n = 0; n < size; ++n) {
         try{
@@ -898,7 +898,7 @@ void CServer::StartIOPumpInternal() {
 void CServer::HandleThreadPoolInternal() {
     bool b;
     size_t n, size;
-    CAutoLock sl(m_mTP);
+    SPA::CSpinAutoLock sl(m_mTP);
     do {
         b = false;
         size = m_vThreadPool.size();

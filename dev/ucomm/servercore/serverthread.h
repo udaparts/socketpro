@@ -27,10 +27,10 @@ private:
 private:
     std::atomic<bool> m_bBusy;
     unsigned int m_nMaxThreadIdleTimeBeforeSuicide;
-	std::atomic<SPA::UINT64> m_tWorking;
-	typedef std::function<void() > DHandle;
-	DHandle m_handle;
-	SPA::CSpinLock m_sl;
+    std::atomic<SPA::UINT64> m_tWorking;
+    typedef std::function<void() > DHandle;
+    DHandle m_handle;
+    SPA::CSpinLock m_sl;
 };
 
 typedef CServerThread* PServerThread;

@@ -284,8 +284,8 @@ private:
     SPA::tagCertStoreType m_cst;
     CredHandle m_hCreds;
 
-	typedef std::function<void() > DHandle;
-	DHandle m_dMessage;
+    typedef std::function<void() > DHandle;
+    DHandle m_dMessage;
 
     friend class CServerSession;
     friend class CConnectionContextBase;
