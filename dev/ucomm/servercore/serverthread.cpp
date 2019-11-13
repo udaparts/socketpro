@@ -28,9 +28,9 @@ unsigned int CServerThread::ProcessSlowRequest(CServerSession *pSession, SPA::CU
 void CServerThread::Handle() {
     while (true) {
         m_sl.lock();
-		m_bBusy = true;
+        m_bBusy = true;
         if (!m_qThreadMessage.size()) {
-			m_bBusy = false;
+            m_bBusy = false;
             m_sl.unlock();
             return;
         }
@@ -60,10 +60,10 @@ void CServerThread::Handle() {
 }
 
 bool CServerThread::IsBusy() {
-	m_sl.lock();
-	bool b = m_bBusy;
-	m_sl.unlock();
-	return b;
+    m_sl.lock();
+    bool b = m_bBusy;
+    m_sl.unlock();
+    return b;
 }
 
 bool CServerThread::IsAliveSafe() {
@@ -88,9 +88,9 @@ bool CServerThread::PostMessage(CServerSession *pSession, unsigned short uReques
     SPA::CUThreadMessage message(nMsgId, SPA::CScopeUQueue::Lock(), uRequestId);
     PSession session = pSession;
     *(message.m_pMessageBuffer) << session;
-	if (pBuffer && nSize) {
-		message.m_pMessageBuffer->Push((const unsigned char*)pBuffer, (unsigned int)nSize);
-	}
+    if (pBuffer && nSize) {
+        message.m_pMessageBuffer->Push((const unsigned char*) pBuffer, (unsigned int) nSize);
+    }
     m_sl.lock();
     if (m_pThread == nullptr) {
         m_sl.unlock();
@@ -98,8 +98,8 @@ bool CServerThread::PostMessage(CServerSession *pSession, unsigned short uReques
     }
     m_qThreadMessage.push(message);
     if (m_qThreadMessage.size() == 1) {//if queue has two or more message we don't dispatch a handle
-		boost::asio::post(GetIoService(), boost::bind(&CServerThread::Handle, this));
+        boost::asio::post(GetIoService(), boost::bind(&CServerThread::Handle, this));
     }
-	m_sl.unlock();
+    m_sl.unlock();
     return true;
 }
