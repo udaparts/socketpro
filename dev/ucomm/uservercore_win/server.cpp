@@ -109,7 +109,6 @@ m_cst(SPA::cstUnknown) {
     ::memset(&m_ServerInfo, 0, sizeof (m_ServerInfo));
     m_ServerInfo.MajorVersion = 2;
     ::memset(&m_hCreds, 0, sizeof (m_hCreds));
-    m_dMessage = std::bind(&CServer::OnMessage, this);
 }
 
 void CServer::KillMainThread() {
@@ -984,7 +983,7 @@ bool CServer::PostSproMessage(CServerSession *pSession, unsigned int nMsgId, con
     m_mTH.lock();
     m_qThreadMessage.push(message);
     m_mTH.unlock();
-    boost::asio::post(m_IoService, m_dMessage);
+    boost::asio::post(m_IoService, boost::bind(&CServer::OnMessage, this));
     return true;
 }
 
@@ -992,7 +991,7 @@ void CServer::PostSproMessage(SPA::CUThreadMessage message) {
     m_mTH.lock();
     m_qThreadMessage.push(message);
     m_mTH.unlock();
-    boost::asio::post(m_IoService, m_dMessage);
+    boost::asio::post(m_IoService, boost::bind(&CServer::OnMessage, this));
 }
 
 bool CServer::IsSsl() {
