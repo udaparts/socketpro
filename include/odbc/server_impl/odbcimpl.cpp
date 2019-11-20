@@ -392,16 +392,16 @@ namespace SPA
                     }
 
                     if (ocs.database.size()) {
-                        std::string db = Utilities::ToUTF8(ocs.database.c_str(), ocs.database.size());
+                        std::string db = Utilities::ToUTF8(ocs.database);
                         retcode = SQLSetConnectAttr(hdbc, SQL_ATTR_CURRENT_CATALOG, (SQLPOINTER) db.c_str(), (SQLINTEGER) (db.size() * sizeof (SQLCHAR)));
                     }
 
                     //retcode = SQLSetConnectAttr(hdbc, SQL_ATTR_ASYNC_ENABLE, (SQLPOINTER) (ocs.async ? SQL_ASYNC_ENABLE_ON : SQL_ASYNC_ENABLE_OFF), 0);
-                    //std::string host = Utilities::ToUTF8(ocs.host.c_str(), ocs.host.size());
-                    //std::string user = Utilities::ToUTF8(ocs.user.c_str(), ocs.user.size());
-                    //std::string pwd = Utilities::ToUTF8(ocs.password.c_str(), ocs.password.size());
+                    //std::string host = Utilities::ToUTF8(ocs.host);
+                    //std::string user = Utilities::ToUTF8(ocs.user);
+                    //std::string pwd = Utilities::ToUTF8(ocs.password);
 
-                    std::string conn = Utilities::ToUTF8(ocs.connection_string.c_str(), ocs.connection_string.size());
+                    std::string conn = Utilities::ToUTF8(ocs.connection_string);
 
                     CScopeUQueue sb;
                     SQLCHAR *ConnStrIn = (SQLCHAR *) conn.c_str();
@@ -1986,10 +1986,10 @@ namespace SPA
                     break;
                 }
                 m_pExcuting = pStmt;
-                std::string cn = Utilities::ToUTF8(catalogName.c_str(), catalogName.size());
-                std::string sn = Utilities::ToUTF8(schemaName.c_str(), schemaName.size());
-                std::string tn = Utilities::ToUTF8(tableName.c_str(), tableName.size());
-                std::string coln = Utilities::ToUTF8(columnName.c_str(), columnName.size());
+                std::string cn = Utilities::ToUTF8(catalogName);
+                std::string sn = Utilities::ToUTF8(schemaName);
+                std::string tn = Utilities::ToUTF8(tableName);
+                std::string coln = Utilities::ToUTF8(columnName);
                 retcode = SQLColumnPrivileges(hstmt, (SQLCHAR*) cn.c_str(), (SQLSMALLINT) cn.size(),
                         (SQLCHAR*) sn.c_str(), (SQLSMALLINT) sn.size(),
                         (SQLCHAR*) tn.c_str(), (SQLSMALLINT) tn.size(),
@@ -2053,10 +2053,10 @@ namespace SPA
                     break;
                 }
                 m_pExcuting = pStmt;
-                std::string cn = Utilities::ToUTF8(catalogName.c_str(), catalogName.size());
-                std::string sn = Utilities::ToUTF8(schemaName.c_str(), schemaName.size());
-                std::string tn = Utilities::ToUTF8(tableName.c_str(), tableName.size());
-                std::string tt = Utilities::ToUTF8(tableType.c_str(), tableType.size());
+                std::string cn = Utilities::ToUTF8(catalogName);
+                std::string sn = Utilities::ToUTF8(schemaName);
+                std::string tn = Utilities::ToUTF8(tableName);
+                std::string tt = Utilities::ToUTF8(tableType);
                 retcode = SQLTables(hstmt, (SQLCHAR*) cn.c_str(), (SQLSMALLINT) cn.size(),
                         (SQLCHAR*) sn.c_str(), (SQLSMALLINT) sn.size(),
                         (SQLCHAR*) tn.c_str(), (SQLSMALLINT) tn.size(),
@@ -2120,10 +2120,10 @@ namespace SPA
                     break;
                 }
                 m_pExcuting = pStmt;
-                std::string cn = Utilities::ToUTF8(catalogName.c_str(), catalogName.size());
-                std::string sn = Utilities::ToUTF8(schemaName.c_str(), schemaName.size());
-                std::string tn = Utilities::ToUTF8(tableName.c_str(), tableName.size());
-                std::string coln = Utilities::ToUTF8(columnName.c_str(), columnName.size());
+                std::string cn = Utilities::ToUTF8(catalogName);
+                std::string sn = Utilities::ToUTF8(schemaName);
+                std::string tn = Utilities::ToUTF8(tableName);
+                std::string coln = Utilities::ToUTF8(columnName);
                 retcode = SQLColumns(hstmt, (SQLCHAR*) cn.c_str(), (SQLSMALLINT) cn.size(),
                         (SQLCHAR*) sn.c_str(), (SQLSMALLINT) sn.size(),
                         (SQLCHAR*) tn.c_str(), (SQLSMALLINT) tn.size(),
@@ -2187,10 +2187,10 @@ namespace SPA
                     break;
                 }
                 m_pExcuting = pStmt;
-                std::string cn = Utilities::ToUTF8(catalogName.c_str(), catalogName.size());
-                std::string sn = Utilities::ToUTF8(schemaName.c_str(), schemaName.size());
-                std::string pn = Utilities::ToUTF8(procName.c_str(), procName.size());
-                std::string coln = Utilities::ToUTF8(columnName.c_str(), columnName.size());
+                std::string cn = Utilities::ToUTF8(catalogName);
+                std::string sn = Utilities::ToUTF8(schemaName);
+                std::string pn = Utilities::ToUTF8(procName);
+                std::string coln = Utilities::ToUTF8(columnName);
                 size_t col_size = coln.size();
                 retcode = SQLProcedureColumns(hstmt, cn.size() ? (SQLCHAR*) cn.c_str() : nullptr, (SQLSMALLINT) cn.size(),
                         sn.size() ? (SQLCHAR*) sn.c_str() : nullptr, (SQLSMALLINT) sn.size(),
@@ -2256,9 +2256,9 @@ namespace SPA
                     break;
                 }
                 m_pExcuting = pStmt;
-                std::string cn = Utilities::ToUTF8(catalogName.c_str(), catalogName.size());
-                std::string sn = Utilities::ToUTF8(schemaName.c_str(), schemaName.size());
-                std::string tn = Utilities::ToUTF8(tableName.c_str(), tableName.size());
+                std::string cn = Utilities::ToUTF8(catalogName);
+                std::string sn = Utilities::ToUTF8(schemaName);
+                std::string tn = Utilities::ToUTF8(tableName);
                 retcode = SQLPrimaryKeys(hstmt, (SQLCHAR*) cn.c_str(), (SQLSMALLINT) cn.size(),
                         (SQLCHAR*) sn.c_str(), (SQLSMALLINT) sn.size(),
                         (SQLCHAR*) tn.c_str(), (SQLSMALLINT) tn.size());
@@ -2322,9 +2322,9 @@ namespace SPA
                     break;
                 }
                 m_pExcuting = pStmt;
-                std::string cn = Utilities::ToUTF8(catalogName.c_str(), catalogName.size());
-                std::string sn = Utilities::ToUTF8(schemaName.c_str(), schemaName.size());
-                std::string tn = Utilities::ToUTF8(tableName.c_str(), tableName.size());
+                std::string cn = Utilities::ToUTF8(catalogName);
+                std::string sn = Utilities::ToUTF8(schemaName);
+                std::string tn = Utilities::ToUTF8(tableName);
                 retcode = SQLTablePrivileges(hstmt, (SQLCHAR*) cn.c_str(), (SQLSMALLINT) cn.size(),
                         (SQLCHAR*) sn.c_str(), (SQLSMALLINT) sn.size(),
                         (SQLCHAR*) tn.c_str(), (SQLSMALLINT) tn.size());
@@ -2387,9 +2387,9 @@ namespace SPA
                     break;
                 }
                 m_pExcuting = pStmt;
-                std::string cn = Utilities::ToUTF8(catalogName.c_str(), catalogName.size());
-                std::string sn = Utilities::ToUTF8(schemaName.c_str(), schemaName.size());
-                std::string tn = Utilities::ToUTF8(tableName.c_str(), tableName.size());
+                std::string cn = Utilities::ToUTF8(catalogName);
+                std::string sn = Utilities::ToUTF8(schemaName);
+                std::string tn = Utilities::ToUTF8(tableName);
                 retcode = SQLStatistics(hstmt, (SQLCHAR*) cn.c_str(), (SQLSMALLINT) cn.size(),
                         (SQLCHAR*) sn.c_str(), (SQLSMALLINT) sn.size(),
                         (SQLCHAR*) tn.c_str(), (SQLSMALLINT) tn.size(), unique, reserved);
@@ -2452,9 +2452,9 @@ namespace SPA
                     break;
                 }
                 m_pExcuting = pStmt;
-                std::string cn = Utilities::ToUTF8(catalogName.c_str(), catalogName.size());
-                std::string sn = Utilities::ToUTF8(schemaName.c_str(), schemaName.size());
-                std::string pn = Utilities::ToUTF8(procName.c_str(), procName.size());
+                std::string cn = Utilities::ToUTF8(catalogName);
+                std::string sn = Utilities::ToUTF8(schemaName);
+                std::string pn = Utilities::ToUTF8(procName);
                 retcode = SQLProcedures(hstmt, (SQLCHAR*) cn.c_str(), (SQLSMALLINT) cn.size(),
                         (SQLCHAR*) sn.c_str(), (SQLSMALLINT) sn.size(),
                         (SQLCHAR*) pn.c_str(), (SQLSMALLINT) pn.size());
@@ -2517,9 +2517,9 @@ namespace SPA
                     break;
                 }
                 m_pExcuting = pStmt;
-                std::string cn = Utilities::ToUTF8(catalogName.c_str(), catalogName.size());
-                std::string sn = Utilities::ToUTF8(schemaName.c_str(), schemaName.size());
-                std::string tn = Utilities::ToUTF8(tableName.c_str(), tableName.size());
+                std::string cn = Utilities::ToUTF8(catalogName);
+                std::string sn = Utilities::ToUTF8(schemaName);
+                std::string tn = Utilities::ToUTF8(tableName);
                 retcode = SQLSpecialColumns(hstmt, identifierType, (SQLCHAR*) cn.c_str(), (SQLSMALLINT) cn.size(),
                         (SQLCHAR*) sn.c_str(), (SQLSMALLINT) sn.size(),
                         (SQLCHAR*) tn.c_str(), (SQLSMALLINT) tn.size(), scope, nullable);
@@ -2582,12 +2582,12 @@ namespace SPA
                     break;
                 }
                 m_pExcuting = pStmt;
-                std::string pk_cn = Utilities::ToUTF8(pkCatalogName.c_str(), pkCatalogName.size());
-                std::string pk_sn = Utilities::ToUTF8(pkSchemaName.c_str(), pkSchemaName.size());
-                std::string pk_tn = Utilities::ToUTF8(pkTableName.c_str(), pkTableName.size());
-                std::string fk_cn = Utilities::ToUTF8(fkCatalogName.c_str(), fkCatalogName.size());
-                std::string fk_sn = Utilities::ToUTF8(fkSchemaName.c_str(), fkSchemaName.size());
-                std::string fk_tn = Utilities::ToUTF8(fkTableName.c_str(), fkTableName.size());
+                std::string pk_cn = Utilities::ToUTF8(pkCatalogName);
+                std::string pk_sn = Utilities::ToUTF8(pkSchemaName);
+                std::string pk_tn = Utilities::ToUTF8(pkTableName);
+                std::string fk_cn = Utilities::ToUTF8(fkCatalogName);
+                std::string fk_sn = Utilities::ToUTF8(fkSchemaName);
+                std::string fk_tn = Utilities::ToUTF8(fkTableName);
                 retcode = SQLForeignKeys(hstmt, (SQLCHAR*) pk_cn.c_str(), (SQLSMALLINT) pk_cn.size(),
                         (SQLCHAR*) pkSchemaName.c_str(), (SQLSMALLINT) pkSchemaName.size(),
                         (SQLCHAR*) pk_tn.c_str(), (SQLSMALLINT) pk_tn.size(),
