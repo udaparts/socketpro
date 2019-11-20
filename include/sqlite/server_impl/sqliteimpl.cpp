@@ -44,7 +44,7 @@ namespace SPA
         }
 
         void CSqliteImpl::SetCacheTables(const CDBString & str) {
-            std::istringstream f(SPA::Utilities::ToUTF8(str.c_str(), str.size()));
+            std::istringstream f(SPA::Utilities::ToUTF8(str));
             std::string s;
             while (getline(f, s, ';')) {
                 Utilities::Trim(s);
@@ -1225,8 +1225,7 @@ namespace SPA
                 fail_ok <<= 32;
                 return;
             }
-            std::string sql = Utilities::ToUTF8(wsql.c_str(), wsql.size());
-
+            std::string sql = Utilities::ToUTF8(wsql);
             UINT64 fails = m_fails;
             UINT64 oks = m_oks;
             int start = sqlite3_total_changes(m_pSqlite.get());
@@ -1480,7 +1479,7 @@ namespace SPA
         }
 
         bool CSqliteImpl::SubscribeForEvents(sqlite3 *db, const CDBString & strConnection) {
-            std::string dbfile = SPA::Utilities::ToUTF8(strConnection.c_str(), strConnection.size());
+            std::string dbfile = SPA::Utilities::ToUTF8(strConnection);
             if (!InCache(dbfile))
                 return true;
             int rc = sqlite3_create_function(db, DIU_TRIGGER_FUNC.c_str(), -1, SQLITE_UTF16, this, XFunc, nullptr, nullptr);
