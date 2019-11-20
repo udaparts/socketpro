@@ -150,7 +150,7 @@ namespace SPA
             impl.Execute(wsql, false, false, false, 0, affected, res, errMsg, vtId, fail_ok);
             //Setting streaming DB events failed(errCode=1125; errMsg=Function 'PublishDBEvent' already exists)
             if (res && res != ER_UDF_EXISTS) {
-                CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Setting streaming DB events failed(errCode=%d; errMsg=%s)", res, SPA::Utilities::ToUTF8(errMsg.c_str(), errMsg.size()));
+                CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Setting streaming DB events failed(errCode=%d; errMsg=%s)", res, Utilities::ToUTF8(errMsg.c_str(), errMsg.size()));
                 return false;
             }
             return true;
@@ -189,7 +189,7 @@ namespace SPA
             Execute(sql_existing, true, true, false, 0, affected, res, errMsg, vtId, fail_ok);
             m_pNoSending = nullptr;
             if (res) {
-                CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Querying SocketPro streaming db triggers failed(errCode=%d; errMsg=%s)", res, SPA::Utilities::ToUTF8(errMsg.c_str(), errMsg.size()));
+                CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Querying SocketPro streaming db triggers failed(errCode=%d; errMsg=%s)", res, Utilities::ToUTF8(errMsg.c_str(), errMsg.size()));
                 return false;
             }
             while (q.GetSize() && !res) {
@@ -204,22 +204,22 @@ namespace SPA
                 });
                 if (ret == vec.end()) {
 #ifdef WIN32_64
-                    CDBString wsql = L"USE `" + SPA::Utilities::ToWide(schema.c_str(), schema.size()) + L"`";
+                    CDBString wsql = L"USE `" + Utilities::ToWide(schema) + L"`";
 #else
-                    CDBString wsql = u"USE `" + CDBString(SPA::Utilities::ToUTF16(schema.c_str(), schema.size())) + u"`";
+                    CDBString wsql = u"USE `" + CDBString(Utilities::ToUTF16(schema)) + u"`";
 #endif
                     Execute(wsql, false, false, false, 0, affected, res, errMsg, vtId, fail_ok);
                     res = 0;
 
                     //trigger not needed any more as it is not found inside sp_streaming_db.config.cached_tables
 #ifdef WIN32_64
-                    wsql = L"drop trigger " + SPA::Utilities::ToWide(name.c_str(), name.size());
+                    wsql = L"drop trigger " + Utilities::ToWide(name);
 #else
-                    wsql = u"drop trigger " + CDBString(SPA::Utilities::ToUTF16(name.c_str(), name.size()));
+                    wsql = u"drop trigger " + CDBString(Utilities::ToUTF16(name));
 #endif
                     Execute(wsql, false, false, false, 0, affected, res, errMsg, vtId, fail_ok);
                     if (res) {
-                        CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Removing the unused trigger %s failed(errCode=%d; errMsg=%s)", name.c_str(), res, SPA::Utilities::ToUTF8(errMsg.c_str(), errMsg.size()));
+                        CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Removing the unused trigger %s failed(errCode=%d; errMsg=%s)", name.c_str(), res, Utilities::ToUTF8(errMsg.c_str(), errMsg.size()));
                         res = 0;
                         return false;
                     }
@@ -230,9 +230,9 @@ namespace SPA
 
         bool CMysqlImpl::CreateTriggers(const std::string &schema, const std::string & table) {
             bool bDelete = false, bInsert = false, bUpdate = false;
+			CDBString wSchema = Utilities::ToUTF16(schema);
+			CDBString wTable = Utilities::ToUTF16(table);
 #ifdef WIN32_64
-            CDBString wSchema = SPA::Utilities::ToWide(schema.c_str(), schema.size());
-            CDBString wTable = SPA::Utilities::ToWide(table.c_str(), table.size());
             CDBString prefix(STREAMING_DB_TRIGGER_PREFIX);
             CDBString sql_existing = L"SELECT EVENT_MANIPULATION, TRIGGER_NAME FROM INFORMATION_SCHEMA.TRIGGERS WHERE ";
             sql_existing += L"EVENT_OBJECT_SCHEMA='" + wSchema + L"'";
@@ -240,8 +240,6 @@ namespace SPA
             sql_existing += L" AND ACTION_TIMING='AFTER'";
             sql_existing += L" AND TRIGGER_NAME LIKE '" + prefix + L"%' ORDER BY EVENT_MANIPULATION";
 #else
-            CDBString wSchema = SPA::Utilities::ToUTF16(schema.c_str(), schema.size());
-            CDBString wTable = SPA::Utilities::ToUTF16(table.c_str(), table.size());
             CDBString prefix(STREAMING_DB_TRIGGER_PREFIX);
             CDBString sql_existing = u"SELECT EVENT_MANIPULATION, TRIGGER_NAME FROM INFORMATION_SCHEMA.TRIGGERS WHERE ";
             sql_existing += u"EVENT_OBJECT_SCHEMA='" + wSchema + u"'";
@@ -261,7 +259,7 @@ namespace SPA
             Execute(sql_existing, true, true, false, 0, affected, res, errMsg, vtId, fail_ok);
             m_pNoSending = nullptr;
             if (res) {
-                CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Querying the table %s.%s triggers failed(errCode=%d; errMsg=%s)", schema.c_str(), table.c_str(), res, SPA::Utilities::ToUTF8(errMsg.c_str(), errMsg.size()));
+                CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Querying the table %s.%s triggers failed(errCode=%d; errMsg=%s)", schema.c_str(), table.c_str(), res, Utilities::ToUTF8(errMsg.c_str(), errMsg.size()));
                 return false;
             }
             while (q.GetSize() && !res) {
@@ -290,7 +288,7 @@ namespace SPA
             Execute(sql, true, true, false, 0, affected, res, errMsg, vtId, fail_ok);
             m_pNoSending = nullptr;
             if (res) {
-                CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Querying the table %s.%s failed for creating triggers(errCode=%d; errMsg=%s)", schema.c_str(), table.c_str(), res, SPA::Utilities::ToUTF8(errMsg.c_str(), errMsg.size()));
+                CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Querying the table %s.%s failed for creating triggers(errCode=%d; errMsg=%s)", schema.c_str(), table.c_str(), res, Utilities::ToUTF8(errMsg.c_str(), errMsg.size()));
                 return false;
             }
             if (!q.GetSize()) {
@@ -319,7 +317,7 @@ namespace SPA
                 sql = GetCreateTriggerSQL(wSchema.c_str(), wTable.c_str(), vKey, SPA::UDB::ueInsert);
                 Execute(sql, false, false, false, 0, affected, res, errMsg, vtId, fail_ok);
                 if (res) {
-                    CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Unable to create insert trigger for the table %s.%s(errCode=%d; errMsg=%s)", schema.c_str(), table.c_str(), res, SPA::Utilities::ToUTF8(errMsg.c_str(), errMsg.size()));
+                    CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Unable to create insert trigger for the table %s.%s(errCode=%d; errMsg=%s)", schema.c_str(), table.c_str(), res, Utilities::ToUTF8(errMsg.c_str(), errMsg.size()));
                     return false;
                 }
             }
@@ -327,7 +325,7 @@ namespace SPA
                 sql = GetCreateTriggerSQL(wSchema.c_str(), wTable.c_str(), vKey, SPA::UDB::ueDelete);
                 Execute(sql, false, false, false, 0, affected, res, errMsg, vtId, fail_ok);
                 if (res) {
-                    CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Unable to create delete trigger for the table %s.%s(errCode=%d; errMsg=%s)", schema.c_str(), table.c_str(), res, SPA::Utilities::ToUTF8(errMsg.c_str(), errMsg.size()));
+                    CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Unable to create delete trigger for the table %s.%s(errCode=%d; errMsg=%s)", schema.c_str(), table.c_str(), res, Utilities::ToUTF8(errMsg.c_str(), errMsg.size()));
                     return false;
                 }
             }
@@ -335,7 +333,7 @@ namespace SPA
                 sql = GetCreateTriggerSQL(wSchema.c_str(), wTable.c_str(), vKey, SPA::UDB::ueUpdate);
                 Execute(sql, false, false, false, 0, affected, res, errMsg, vtId, fail_ok);
                 if (res) {
-                    CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Unable to create update trigger for the table %s.%s(errCode=%d; errMsg=%s)", schema.c_str(), table.c_str(), res, SPA::Utilities::ToUTF8(errMsg.c_str(), errMsg.size()));
+                    CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Unable to create update trigger for the table %s.%s(errCode=%d; errMsg=%s)", schema.c_str(), table.c_str(), res, Utilities::ToUTF8(errMsg.c_str(), errMsg.size()));
                     return false;
                 }
             }
@@ -403,10 +401,10 @@ namespace SPA
                         sql += L",old.`";
                         break;
                 }
-                sql += (SPA::Utilities::ToWide(it->ColumnName.c_str(), it->ColumnName.size()) + L"`");
+                sql += (Utilities::ToWide(it->ColumnName.c_str(), it->ColumnName.size()) + L"`");
                 if (eventType == SPA::UDB::ueUpdate) {
                     sql += L",new.`";
-                    sql += (SPA::Utilities::ToWide(it->ColumnName.c_str(), it->ColumnName.size()) + L"`");
+                    sql += (Utilities::ToWide(it->ColumnName.c_str(), it->ColumnName.size()) + L"`");
                 }
             }
             sql += L")INTO res;END";
@@ -454,10 +452,10 @@ namespace SPA
                         sql += u",old.`";
                         break;
                 }
-                sql += (CDBString(Utilities::ToUTF16(it->ColumnName.c_str(), it->ColumnName.size())) + u"`");
+                sql += (CDBString(Utilities::ToUTF16(it->ColumnName)) + u"`");
                 if (eventType == SPA::UDB::ueUpdate) {
                     sql += u",new.`";
-                    sql += (CDBString(Utilities::ToUTF16(it->ColumnName.c_str(), it->ColumnName.size())) + u"`");
+                    sql += (CDBString(Utilities::ToUTF16(it->ColumnName)) + u"`");
                 }
             }
             sql += u")INTO res;END";
@@ -505,11 +503,7 @@ namespace SPA
         void CMysqlImpl::SetDBGlobalConnectionString(const wchar_t *dbConnection, bool remote) {
             m_csPeer.lock();
             if (dbConnection) {
-#ifdef WIN32_64
-                m_strGlobalConnection = dbConnection;
-#else
                 m_strGlobalConnection = Utilities::ToUTF16(dbConnection);
-#endif
             } else {
                 m_strGlobalConnection.clear();
             }
@@ -687,20 +681,12 @@ namespace SPA
                             CLIENT_MULTI_RESULTS | CLIENT_MULTI_STATEMENTS | CLIENT_LOCAL_FILES | CLIENT_IGNORE_SIGPIPE);
                     if (!ret) {
                         res = m_remMysql.mysql_errno(mysql);
-#ifdef WIN32_64
-                        errMsg = Utilities::ToWide(m_remMysql.mysql_error(mysql));
-#else
                         errMsg = Utilities::ToUTF16(m_remMysql.mysql_error(mysql));
-#endif
                         break;
                     } else {
                         res = 0;
                     }
-#ifdef WIN32_64
-                    m_dbNameOpened = SPA::Utilities::ToWide(conn.database.c_str(), conn.database.size());
-#else
-                    m_dbNameOpened = SPA::Utilities::ToUTF16(conn.database.c_str(), conn.database.size());
-#endif
+                    m_dbNameOpened = Utilities::ToUTF16(conn.database);
                     if (!m_global) {
                         errMsg = db;
                     } else {
@@ -801,11 +787,7 @@ namespace SPA
                 int status = m_remMysql.mysql_real_query(m_pMysql.get(), sql.c_str(), (unsigned long) sql.size());
                 if (status) {
                     res = m_remMysql.mysql_errno(m_pMysql.get());
-#ifdef WIN32_64
-                    errMsg = Utilities::ToWide(m_remMysql.mysql_error(m_pMysql.get()));
-#else
                     errMsg = Utilities::ToUTF16(m_remMysql.mysql_error(m_pMysql.get()));
-#endif
                     return;
                 }
             }
@@ -823,11 +805,7 @@ namespace SPA
                 m_bManual = true;
             } else {
                 res = m_remMysql.mysql_errno(m_pMysql.get());
-#ifdef WIN32_64
-                errMsg = Utilities::ToWide(m_remMysql.mysql_error(m_pMysql.get()));
-#else
                 errMsg = Utilities::ToUTF16(m_remMysql.mysql_error(m_pMysql.get()));
-#endif
             }
         }
 
@@ -880,11 +858,7 @@ namespace SPA
             }
             if (fail) {
                 res = m_remMysql.mysql_errno(m_pMysql.get());
-#ifdef WIN32_64
-                errMsg = Utilities::ToWide(m_remMysql.mysql_error(m_pMysql.get()));
-#else
                 errMsg = Utilities::ToUTF16(m_remMysql.mysql_error(m_pMysql.get()));
-#endif
             } else {
                 res = 0;
                 m_fails = 0;
@@ -911,11 +885,7 @@ namespace SPA
                         ++m_fails;
                         if (!res) {
                             res = errCode;
-#ifdef WIN32_64
-                            errMsg = Utilities::ToWide(m_remMysql.mysql_error(m_pMysql.get()));
-#else
                             errMsg = Utilities::ToUTF16(m_remMysql.mysql_error(m_pMysql.get()));
-#endif
                         }
                     }
                 }
@@ -926,11 +896,7 @@ namespace SPA
                     ++m_fails;
                     if (!res) {
                         res = m_remMysql.mysql_errno(m_pMysql.get());
-#ifdef WIN32_64
-                        errMsg = Utilities::ToWide(m_remMysql.mysql_error(m_pMysql.get()));
-#else
                         errMsg = Utilities::ToUTF16(m_remMysql.mysql_error(m_pMysql.get()));
-#endif
                     }
                     break;
                 } else if (status == 0) {
@@ -1810,11 +1776,7 @@ namespace SPA
                         ++m_fails;
                         if (!res) {
                             res = errCode;
-#ifdef WIN32_64
-                            errMsg = Utilities::ToWide(m_remMysql.mysql_error(m_pMysql.get()));
-#else
                             errMsg = Utilities::ToUTF16(m_remMysql.mysql_error(m_pMysql.get()));
-#endif
                         }
                     }
                 }
@@ -1825,11 +1787,7 @@ namespace SPA
                     ++m_fails;
                     if (!res) {
                         res = m_remMysql.mysql_errno(m_pMysql.get());
-#ifdef WIN32_64
-                        errMsg = Utilities::ToWide(m_remMysql.mysql_error(m_pMysql.get()));
-#else
                         errMsg = Utilities::ToUTF16(m_remMysql.mysql_error(m_pMysql.get()));
-#endif
                     }
                     break;
                 } else if (status == 0) {
@@ -1879,11 +1837,7 @@ namespace SPA
             int status = m_remMysql.mysql_real_query(m_pMysql.get(), sqlUtf8, (unsigned long) sql.size());
             if (status) {
                 res = m_remMysql.mysql_errno(m_pMysql.get());
-#ifdef WIN32_64
-                errMsg = Utilities::ToWide(m_remMysql.mysql_error(m_pMysql.get()));
-#else
                 errMsg = Utilities::ToUTF16(m_remMysql.mysql_error(m_pMysql.get()));
-#endif
                 ++m_fails;
             } else {
                 if (rowset || meta) {
@@ -1944,11 +1898,7 @@ namespace SPA
             my_bool fail = m_remMysql.mysql_stmt_prepare(stmt, m_sqlPrepare.c_str(), (unsigned long) m_sqlPrepare.size());
             if (fail) {
                 res = m_remMysql.mysql_stmt_errno(stmt);
-#ifdef WIN32_64
-                errMsg = Utilities::ToWide(m_remMysql.mysql_stmt_error(stmt));
-#else
                 errMsg = Utilities::ToUTF16(m_remMysql.mysql_stmt_error(stmt));
-#endif
                 m_remMysql.mysql_stmt_close(stmt);
             } else {
                 res = 0;
@@ -2085,11 +2035,7 @@ namespace SPA
             if (!res && m_remMysql.mysql_stmt_bind_param(m_pPrepare.get(), pBind)) {
                 res = m_remMysql.mysql_stmt_errno(m_pPrepare.get());
                 if (!errMsg.size()) {
-#ifdef WIN32_64
-                    errMsg = Utilities::ToWide(m_remMysql.mysql_stmt_error(m_pPrepare.get()));
-#else
                     errMsg = Utilities::ToUTF16(m_remMysql.mysql_stmt_error(m_pPrepare.get()));
-#endif
                 }
             }
             return res;
@@ -2183,11 +2129,7 @@ namespace SPA
             if (fail) {
                 if (!res) {
                     res = m_remMysql.mysql_stmt_errno(m_pPrepare.get());
-#ifdef WIN32_64
-                    errMsg = Utilities::ToWide(m_remMysql.mysql_stmt_error(m_pPrepare.get()));
-#else
                     errMsg = Utilities::ToUTF16(m_remMysql.mysql_stmt_error(m_pPrepare.get()));
-#endif
                 }
                 p.reset();
                 field.reset();
@@ -2261,11 +2203,7 @@ namespace SPA
                                             if (!res) {
                                                 //res == CR_NO_DATA or 2051, a libmariadb bug
                                                 res = m_remMysql.mysql_stmt_errno(m_pPrepare.get());
-#ifdef WIN32_64
-                                                errMsg = Utilities::ToWide(m_remMysql.mysql_stmt_error(m_pPrepare.get()));
-#else
                                                 errMsg = Utilities::ToUTF16(m_remMysql.mysql_stmt_error(m_pPrepare.get()));
-#endif
                                             }
                                             return true;
                                         }
@@ -2367,11 +2305,7 @@ namespace SPA
             assert(ret != MYSQL_DATA_TRUNCATED);
             if (ret == 1 && !res) {
                 res = m_remMysql.mysql_stmt_errno(m_pPrepare.get());
-#ifdef WIN32_64
-                errMsg = Utilities::ToWide(m_remMysql.mysql_stmt_error(m_pPrepare.get()));
-#else
                 errMsg = Utilities::ToUTF16(m_remMysql.mysql_stmt_error(m_pPrepare.get()));
-#endif
             }
             if (output) {
                 //tell output parameter data
@@ -2654,11 +2588,7 @@ namespace SPA
                 if (ret) {
                     if (!res) {
                         res = m_remMysql.mysql_stmt_errno(m_pPrepare.get());
-#ifdef WIN32_64
-                        errMsg = Utilities::ToWide(m_remMysql.mysql_stmt_error(m_pPrepare.get()));
-#else
                         errMsg = Utilities::ToUTF16(m_remMysql.mysql_stmt_error(m_pPrepare.get()));
-#endif
                     }
                     ++m_fails;
                     continue;
@@ -2684,11 +2614,7 @@ namespace SPA
                     if (!output) {
                         //Mysql + Mariadb server_status & SERVER_PS_OUT_PARAMS does NOT work correctly for an unknown reason
                         //This is a hack solution for detecting output result, which may be wrong if a table name is EXACTLY the same as stored procedure name
-#ifdef WIN32_64
-                        output = (m_bCall && (vInfo[0].TablePath == Utilities::ToWide(m_procName.c_str())));
-#else
-                        output = (m_bCall && (vInfo[0].TablePath == Utilities::ToUTF16(m_procName.c_str())));
-#endif
+                        output = (m_bCall && (vInfo[0].TablePath == Utilities::ToUTF16(m_procName)));
                     }
 
                     //we push stored procedure output parameter meta data onto client to follow common approach for output parameter data
@@ -2739,11 +2665,7 @@ namespace SPA
                         //error
                         if (!res) {
                             res = m_remMysql.mysql_stmt_errno(m_pPrepare.get());
-#ifdef WIN32_64
-                            errMsg = Utilities::ToWide(m_remMysql.mysql_stmt_error(m_pPrepare.get()));
-#else
                             errMsg = Utilities::ToUTF16(m_remMysql.mysql_stmt_error(m_pPrepare.get()));
-#endif
                         }
                         break;
                     } else {
@@ -2759,11 +2681,7 @@ namespace SPA
                     ret = 1;
                     if (!res) {
                         res = m_remMysql.mysql_stmt_errno(m_pPrepare.get());
-#ifdef WIN32_64
-                        errMsg = Utilities::ToWide(m_remMysql.mysql_stmt_error(m_pPrepare.get()));
-#else
                         errMsg = Utilities::ToUTF16(m_remMysql.mysql_stmt_error(m_pPrepare.get()));
-#endif
                     }
                 }
                 if (ret)

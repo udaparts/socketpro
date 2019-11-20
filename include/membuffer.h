@@ -38,6 +38,10 @@ namespace SPA {
 #ifdef WIN32_64
         BSTR ToBSTR(const char *utf8, size_t chars = (size_t) (~0));
         std::wstring GetErrorMessage(DWORD dwError);
+        const UTF16* ToUTF16(const wchar_t *s, size_t chars = (size_t) (~0));
+        const UTF16* ToUTF16(const char *s, size_t len = (size_t) (~0));
+        const UTF16* ToUTF16(const std::string &s);
+        const UTF16* ToUTF16(const std::wstring &str);
 #else
         BSTR ToBSTR(const char *utf8, size_t chars);
 #endif

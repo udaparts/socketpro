@@ -261,9 +261,9 @@ namespace SPA{
 
         void CMysqlImpl::CreateTriggers(const std::string &schema, const std::string & table) {
             bool bDelete = false, bInsert = false, bUpdate = false;
+			CDBString wSchema = Utilities::ToUTF16(schema);
+			CDBString wTable = Utilities::ToUTF16(table);
 #ifdef WIN32_64
-            std::wstring wSchema = SPA::Utilities::ToWide(schema.c_str(), schema.size());
-            std::wstring wTable = SPA::Utilities::ToWide(table.c_str(), table.size());
             std::wstring prefix(STREAMING_DB_TRIGGER_PREFIX);
             std::wstring sql_existing = L"SELECT EVENT_MANIPULATION, TRIGGER_NAME FROM INFORMATION_SCHEMA.TRIGGERS WHERE ";
             sql_existing += L"EVENT_OBJECT_SCHEMA='" + wSchema + L"'";
@@ -271,8 +271,6 @@ namespace SPA{
             sql_existing += L" AND ACTION_TIMING='AFTER'";
             sql_existing += L" AND TRIGGER_NAME LIKE '" + prefix + L"%' ORDER BY EVENT_MANIPULATION";
 #else
-            CDBString wSchema = SPA::Utilities::ToUTF16(schema.c_str(), schema.size());
-            CDBString wTable = SPA::Utilities::ToUTF16(table.c_str(), table.size());
             CDBString prefix(STREAMING_DB_TRIGGER_PREFIX);
             CDBString sql_existing = u"SELECT EVENT_MANIPULATION, TRIGGER_NAME FROM INFORMATION_SCHEMA.TRIGGERS WHERE ";
             sql_existing += (u"EVENT_OBJECT_SCHEMA='" + wSchema + u"'");
@@ -288,7 +286,7 @@ namespace SPA{
             SPA::UDB::CDBVariant vtType, vtName;
             Execute(sql_existing, true, true, false, 0, affected, res, errMsg, vtId, fail_ok);
             if (res) {
-                CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Querying the table %s.%s triggers failed(errCode=%d; errMsg=%s)", schema.c_str(), table.c_str(), res, SPA::Utilities::ToUTF8(errMsg.c_str(), errMsg.size()));
+                CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Querying the table %s.%s triggers failed(errCode=%d; errMsg=%s)", schema.c_str(), table.c_str(), res, Utilities::ToUTF8(errMsg));
                 return;
             }
             while (m_qSend.GetSize() && !res) {
@@ -315,7 +313,7 @@ namespace SPA{
 #endif
             Execute(sql, true, true, false, 0, affected, res, errMsg, vtId, fail_ok);
             if (res) {
-                CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Querying the table %s.%s failed for creating triggers(errCode=%d; errMsg=%s)", schema.c_str(), table.c_str(), res, SPA::Utilities::ToUTF8(errMsg.c_str(), errMsg.size()));
+                CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Querying the table %s.%s failed for creating triggers(errCode=%d; errMsg=%s)", schema.c_str(), table.c_str(), res, Utilities::ToUTF8(errMsg));
                 return;
             }
             if (!m_qSend.GetSize()) {
@@ -327,11 +325,7 @@ namespace SPA{
             PriKey pk;
             while (m_qSend.GetSize()) {
                 m_qSend >> vtName >> vtType;
-#ifdef WIN32_64
-                pk.ColumnName = Utilities::ToWide(ToString(vtName));
-#else
                 pk.ColumnName = Utilities::ToUTF16(ToString(vtName));
-#endif
                 std::string type = ToString(vtType);
                 if (type == "PRI")
                     pk.Pri = true;
@@ -350,21 +344,21 @@ namespace SPA{
                 sql = GetCreateTriggerSQL(wSchema.c_str(), wTable.c_str(), vKey, SPA::UDB::ueInsert);
                 Execute(sql, true, true, false, 0, affected, res, errMsg, vtId, fail_ok);
                 if (res) {
-                    CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Unable to create insert trigger for the table %s.%s(errCode=%d; errMsg=%s)", schema.c_str(), table.c_str(), res, SPA::Utilities::ToUTF8(errMsg.c_str(), errMsg.size()));
+                    CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Unable to create insert trigger for the table %s.%s(errCode=%d; errMsg=%s)", schema.c_str(), table.c_str(), res, Utilities::ToUTF8(errMsg));
                 }
             }
             if (!bDelete) {
                 sql = GetCreateTriggerSQL(wSchema.c_str(), wTable.c_str(), vKey, SPA::UDB::ueDelete);
                 Execute(sql, true, true, false, 0, affected, res, errMsg, vtId, fail_ok);
                 if (res) {
-                    CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Unable to create delete trigger for the table %s.%s(errCode=%d; errMsg=%s)", schema.c_str(), table.c_str(), res, SPA::Utilities::ToUTF8(errMsg.c_str(), errMsg.size()));
+                    CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Unable to create delete trigger for the table %s.%s(errCode=%d; errMsg=%s)", schema.c_str(), table.c_str(), res, Utilities::ToUTF8(errMsg));
                 }
             }
             if (!bUpdate) {
                 sql = GetCreateTriggerSQL(wSchema.c_str(), wTable.c_str(), vKey, SPA::UDB::ueUpdate);
                 Execute(sql, true, true, false, 0, affected, res, errMsg, vtId, fail_ok);
                 if (res) {
-                    CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Unable to create update trigger for the table %s.%s(errCode=%d; errMsg=%s)", schema.c_str(), table.c_str(), res, SPA::Utilities::ToUTF8(errMsg.c_str(), errMsg.size()));
+                    CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Unable to create update trigger for the table %s.%s(errCode=%d; errMsg=%s)", schema.c_str(), table.c_str(), res, Utilities::ToUTF8(errMsg));
                 }
             }
         }
@@ -385,7 +379,7 @@ namespace SPA{
             std::vector<std::string> vec = vecTables;
             Execute(sql_existing, true, true, false, 0, affected, res, errMsg, vtId, fail_ok);
             if (res) {
-                CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Querying SocketPro streaming db triggers failed(errCode=%d; errMsg=%s)", res, SPA::Utilities::ToUTF8(errMsg.c_str(), errMsg.size()));
+                CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Querying SocketPro streaming db triggers failed(errCode=%d; errMsg=%s)", res, Utilities::ToUTF8(errMsg));
             }
 
             SPA::CScopeUQueue sb;
@@ -404,22 +398,22 @@ namespace SPA{
                 });
                 if (ret == vec.end()) {
 #ifdef WIN32_64
-                    std::wstring wsql = L"USE `" + SPA::Utilities::ToWide(schema.c_str(), schema.size()) + L"`";
+                    std::wstring wsql = L"USE `" + Utilities::ToWide(schema) + L"`";
 #else
-                    CDBString wsql = CDBString(u"USE `") + SPA::Utilities::ToUTF16(schema.c_str(), schema.size()) + u"`";
+                    CDBString wsql = CDBString(u"USE `") + Utilities::ToUTF16(schema) + u"`";
 #endif
                     Execute(wsql, true, true, false, 0, affected, res, errMsg, vtId, fail_ok);
                     res = 0;
 
                     //trigger not needed any more as it is not found inside sp_streaming_db.config.cached_tables
 #ifdef WIN32_64
-                    wsql = L"drop trigger " + SPA::Utilities::ToWide(name.c_str(), name.size());
+                    wsql = L"drop trigger " + Utilities::ToWide(name);
 #else
-                    wsql = CDBString(u"drop trigger ") + SPA::Utilities::ToUTF16(name.c_str(), name.size());
+                    wsql = CDBString(u"drop trigger ") + Utilities::ToUTF16(name);
 #endif
                     Execute(wsql, true, true, false, 0, affected, res, errMsg, vtId, fail_ok);
                     if (res) {
-                        CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Removing the unused trigger %s failed(errCode=%d; errMsg=%s)", name.c_str(), res, SPA::Utilities::ToUTF8(errMsg.c_str(), errMsg.size()));
+                        CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Removing the unused trigger %s failed(errCode=%d; errMsg=%s)", name.c_str(), res, Utilities::ToUTF8(errMsg));
                         res = 0;
                     }
                 }

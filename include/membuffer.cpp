@@ -694,6 +694,32 @@ namespace SPA {
                 LocalFree(lpMsgBuf);
             return s;
         }
+
+        const UTF16* ToUTF16(const wchar_t *s, size_t chars) {
+            if (!s) {
+                return L"";
+            }
+            return s;
+        }
+
+        const UTF16* ToUTF16(const char *s, size_t len) {
+            if (!s) {
+                return L"";
+            } else if (len == (size_t) (~0)) {
+                len = ::strlen(s);
+            }
+            CScopeUQueue sb;
+            ToWide(s, len, *sb, true);
+            return (const UTF16*) sb->GetBuffer();
+        }
+
+        const UTF16* ToUTF16(const std::string &s) {
+            return ToUTF16(s.c_str(), s.size());
+        }
+
+        const UTF16* ToUTF16(const std::wstring &str) {
+            return str.c_str();
+        }
 #endif
 
         unsigned int GetLen(const UTF16 * chars) {

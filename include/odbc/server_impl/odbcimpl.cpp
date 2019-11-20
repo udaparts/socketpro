@@ -116,11 +116,7 @@ namespace SPA
         void COdbcImpl::SetGlobalConnectionString(const wchar_t * str) {
             m_csPeer.lock();
             if (str) {
-#ifdef WIN32_64
-                m_strGlobalConnection = str;
-#else
                 m_strGlobalConnection = Utilities::ToUTF16(str);
-#endif
             } else {
                 m_strGlobalConnection.clear();
             }
@@ -697,51 +693,26 @@ namespace SPA
                 if (bPostgres && collen > 8000)
                     collen = 0; //make it to long text or binary
                 if (meta) {
-#ifdef WIN32_64
-                    info.DisplayName = Utilities::ToWide((const char*) colname, (size_t) colnamelen / sizeof (SQLCHAR)); //display column name
-#else
                     info.DisplayName = Utilities::ToUTF16((const char*) colname, (size_t) colnamelen / sizeof (SQLCHAR)); //display column name
-#endif
                     retcode = SQLColAttribute(hstmt, (SQLUSMALLINT) (n + 1), SQL_DESC_BASE_COLUMN_NAME, colname, sizeof (colname), &colnamelen, &displaysize);
                     assert(SQL_SUCCEEDED(retcode));
-#ifdef WIN32_64
-                    info.OriginalName = Utilities::ToWide((const char*) colname, (size_t) colnamelen / sizeof (SQLCHAR)); //original column name
-#else
                     info.OriginalName = Utilities::ToUTF16((const char*) colname, (size_t) colnamelen / sizeof (SQLCHAR)); //original column name
-#endif
                     retcode = SQLColAttribute(hstmt, (SQLUSMALLINT) (n + 1), SQL_DESC_SCHEMA_NAME, colname, sizeof (colname), &colnamelen, &displaysize);
                     assert(SQL_SUCCEEDED(retcode));
                     if (colnamelen) {
-#ifdef WIN32_64
-                        info.TablePath = Utilities::ToWide((const char*) colname, (size_t) colnamelen / sizeof (SQLCHAR));
-#else
                         info.TablePath = Utilities::ToUTF16((const char*) colname, (size_t) colnamelen / sizeof (SQLCHAR));
-#endif
                         Utilities::Trim(info.TablePath);
                         info.TablePath.push_back('.');
                     }
                     retcode = SQLColAttribute(hstmt, (SQLUSMALLINT) (n + 1), SQL_DESC_BASE_TABLE_NAME, colname, sizeof (colname), &colnamelen, &displaysize);
                     assert(SQL_SUCCEEDED(retcode));
-#ifdef WIN32_64
-                    info.TablePath += Utilities::ToWide((const char*) colname, (size_t) colnamelen / sizeof (SQLCHAR)); //schema.table_name
-#else
                     info.TablePath += Utilities::ToUTF16((const char*) colname, (size_t) colnamelen / sizeof (SQLCHAR)); //schema.table_name
-#endif
                     retcode = SQLColAttribute(hstmt, (SQLUSMALLINT) (n + 1), SQL_DESC_TYPE_NAME, colname, sizeof (colname), &colnamelen, &displaysize);
                     assert(SQL_SUCCEEDED(retcode));
-#ifdef WIN32_64
-                    info.DeclaredType = Utilities::ToWide((const char*) colname, (size_t) colnamelen / sizeof (SQLCHAR)); //native data type
-#else
                     info.DeclaredType = Utilities::ToUTF16((const char*) colname, (size_t) colnamelen / sizeof (SQLCHAR)); //native data type
-#endif
-
                     retcode = SQLColAttribute(hstmt, (SQLUSMALLINT) (n + 1), SQL_DESC_CATALOG_NAME, colname, sizeof (colname), &colnamelen, &displaysize);
                     assert(SQL_SUCCEEDED(retcode));
-#ifdef WIN32_64
-                    info.DBPath = Utilities::ToWide((const char*) colname, (size_t) colnamelen / sizeof (SQLCHAR)); //database name
-#else
                     info.DBPath = Utilities::ToUTF16((const char*) colname, (size_t) colnamelen / sizeof (SQLCHAR)); //database name
-#endif
                 }
                 retcode = SQLColAttribute(hstmt, (SQLUSMALLINT) (n + 1), SQL_DESC_UNSIGNED, nullptr, 0, nullptr, &displaysize);
                 assert(SQL_SUCCEEDED(retcode));
@@ -1037,21 +1008,13 @@ namespace SPA
             SetStringInfo(hdbc, SQL_ACCESSIBLE_TABLES, mapInfo);
             SetStringInfo(hdbc, SQL_DATABASE_NAME, mapInfo);
             if (mapInfo.find(SQL_DATABASE_NAME) != mapInfo.end()) {
-#ifdef WIN32_64
-                m_dbName = mapInfo[SQL_DATABASE_NAME].bstrVal;
-#else
                 m_dbName = Utilities::ToUTF16(mapInfo[SQL_DATABASE_NAME].bstrVal);
-#endif
             } else {
                 m_dbName.clear();
             }
             SetStringInfo(hdbc, SQL_USER_NAME, mapInfo);
             if (mapInfo.find(SQL_USER_NAME) != mapInfo.end()) {
-#ifdef WIN32_64
-                m_userName = mapInfo[SQL_USER_NAME].bstrVal;
-#else
                 m_userName = Utilities::ToUTF16(mapInfo[SQL_USER_NAME].bstrVal);
-#endif
             } else {
                 m_userName.clear();
             }
@@ -1069,11 +1032,7 @@ namespace SPA
             SetStringInfo(hdbc, SQL_DATA_SOURCE_READ_ONLY, mapInfo);
             SetStringInfo(hdbc, SQL_DBMS_NAME, mapInfo);
             if (mapInfo.find(SQL_DBMS_NAME) != mapInfo.end()) {
-#ifdef WIN32_64
-                m_dbms = mapInfo[SQL_DBMS_NAME].bstrVal;
-#else
                 m_dbms = Utilities::ToUTF16(mapInfo[SQL_DBMS_NAME].bstrVal);
-#endif
                 std::transform(m_dbms.begin(), m_dbms.end(), m_dbms.begin(), ::tolower); //microsoft sql server, oracle, mysql
 #ifdef WIN32_64
                 if (m_dbms == L"microsoft sql server") {
@@ -4685,19 +4644,12 @@ namespace SPA
             {0};
             SQLRETURN res = SQLGetDiagRec(HandleType, Handle, i, SqlState, &NativeError, Msg, sizeof (Msg) / sizeof (SQLCHAR), &MsgLen);
             while (res != SQL_NO_DATA) {
-#ifdef WIN32_64
-                if (errMsg.size())
-                    errMsg += L";";
-                errMsg += (SQLSTATE + Utilities::ToWide((const char*) SqlState));
-                errMsg += (NATIVE_ERROR + std::to_wstring((INT64) NativeError));
-                errMsg += (ERROR_MESSAGE + Utilities::ToWide((const char*) Msg));
-#else
-                if (errMsg.size())
-                    errMsg += u";";
+				if (errMsg.size()) {
+					errMsg.push_back(';');
+				}
                 errMsg += (SQLSTATE + Utilities::ToUTF16((const char*) SqlState));
                 errMsg += (NATIVE_ERROR + Utilities::ToUTF16(std::to_string((INT64) NativeError)));
                 errMsg += (ERROR_MESSAGE + Utilities::ToUTF16((const char*) Msg));
-#endif
                 ::memset(Msg, 0, sizeof (Msg));
                 ++i;
                 MsgLen = 0;

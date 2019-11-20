@@ -924,11 +924,7 @@ namespace SPA
             } else {
                 if (!m_global) {
                     const char *str = sqlite3_db_filename(m_pSqlite.get(), nullptr);
-#ifdef WIN32_64
-                    errMsg = Utilities::ToWide(str);
-#else
                     errMsg = Utilities::ToUTF16(str);
-#endif
                 } else {
                     m_csPeer.lock();
                     errMsg = m_strGlobalConnection;
@@ -1057,11 +1053,7 @@ namespace SPA
             }
             if (last_error) {
                 res = last_error;
-#ifdef WIN32_64
-                errMsg = Utilities::ToWide(last_err_msg.c_str(), last_err_msg.size());
-#else
-                errMsg = Utilities::ToUTF16(last_err_msg.c_str(), last_err_msg.size());
-#endif
+                errMsg = Utilities::ToUTF16(last_err_msg);
             }
             affected = sqlite3_total_changes(m_pSqlite.get()) - start;
             if (lastInsertId) {
@@ -1148,11 +1140,7 @@ namespace SPA
             }
             res = last_error;
             if (last_error) {
-#ifdef WIN32_64
-                errMsg = Utilities::ToWide(last_err_msg.c_str(), last_err_msg.size());
-#else
-                errMsg = Utilities::ToUTF16(last_err_msg.c_str(), last_err_msg.size());
-#endif
+                errMsg = Utilities::ToUTF16(last_err_msg);
             }
             if (!header_sent) {
                 sbRowset->SetSize(0);
@@ -1188,11 +1176,7 @@ namespace SPA
                         } else {
                             last_error = sqlite3_extended_errcode(db);
                         }
-#ifdef WIN32_64
-                        last_err_msg = Utilities::ToWide(sqlite3_errmsg(db));
-#else
                         last_err_msg = Utilities::ToUTF16(sqlite3_errmsg(db));
-#endif
                     }
                     ++m_fails;
                 } else {
@@ -1205,11 +1189,7 @@ namespace SPA
                             } else {
                                 last_error = sqlite3_extended_errcode(db);
                             }
-#ifdef WIN32_64
-                            last_err_msg = Utilities::ToWide(sqlite3_errmsg(db));
-#else
                             last_err_msg = Utilities::ToUTF16(sqlite3_errmsg(db));
-#endif
                         }
                         ++m_fails;
                     } else {
@@ -1334,11 +1314,7 @@ namespace SPA
                         } else {
                             last_error = sqlite3_extended_errcode(db);
                         }
-#ifdef WIN32_64
-                        error_message = Utilities::ToWide(sqlite3_errmsg(db));
-#else
                         error_message = Utilities::ToUTF16(sqlite3_errmsg(db));
-#endif
                     }
                 } else {
                     assert(stmt);
@@ -1364,11 +1340,7 @@ namespace SPA
                 parameters = (unsigned int) m_parameters;
                 if (!res && zTail && strlen(zTail)) {
                     res = SQLITE_WARNING;
-#ifdef WIN32_64
-                    errMsg = Utilities::ToWide(zTail);
-#else
                     errMsg = Utilities::ToUTF16(zTail);
-#endif
                 }
             }
         }
@@ -1426,11 +1398,7 @@ namespace SPA
             if (res == SQLITE_OK) {
                 if (!m_global) {
                     const char *str = sqlite3_db_filename(db, nullptr);
-#ifdef WIN32_64
-                    errMsg = Utilities::ToWide(str);
-#else
                     errMsg = Utilities::ToUTF16(str);
-#endif
                 } else {
                     m_csPeer.lock();
                     errMsg = m_strGlobalConnection;
@@ -1443,11 +1411,7 @@ namespace SPA
                 if ((m_nParam & Sqlite::DO_NOT_USE_EXTENDED_ERROR_CODE) != Sqlite::DO_NOT_USE_EXTENDED_ERROR_CODE) {
                     res = sqlite3_extended_errcode(db);
                 }
-#ifdef WIN32_64
-                errMsg = Utilities::ToWide(zErrMsg);
-#else
                 errMsg = Utilities::ToUTF16(zErrMsg);
-#endif
                 sqlite3_free(zErrMsg);
             }
         }
@@ -1507,11 +1471,7 @@ namespace SPA
                 m_fails = 0;
                 m_oks = 0;
             } else {
-#ifdef WIN32_64
-                errMsg = Utilities::ToWide(zErrMsg);
-#else
                 errMsg = Utilities::ToUTF16(zErrMsg);
-#endif
                 if ((m_nParam & Sqlite::DO_NOT_USE_EXTENDED_ERROR_CODE) != Sqlite::DO_NOT_USE_EXTENDED_ERROR_CODE) {
                     res = sqlite3_extended_errcode(db);
                 }
@@ -1594,11 +1554,7 @@ namespace SPA
             if (res) {
                 if (db) {
                     const char *str = sqlite3_errmsg(db);
-#ifdef WIN32_64
-                    errMsg = Utilities::ToWide(str);
-#else
                     errMsg = Utilities::ToUTF16(str);
-#endif
                     if ((m_nParam & Sqlite::DO_NOT_USE_EXTENDED_ERROR_CODE) != Sqlite::DO_NOT_USE_EXTENDED_ERROR_CODE) {
                         res = sqlite3_extended_errcode(db);
                     }
@@ -1606,11 +1562,7 @@ namespace SPA
                 return;
             } else if (!m_global) {
                 const char *str = sqlite3_db_filename(db, nullptr);
-#ifdef WIN32_64
-                errMsg = Utilities::ToWide(str);
-#else
                 errMsg = Utilities::ToUTF16(str);
-#endif
             } else {
                 errMsg = strConnection;
             }
@@ -1758,11 +1710,7 @@ namespace SPA
                         zDbName = str;
                     }
                     if (str) {
-#ifdef WIN32_64
-                        info.DBPath = Utilities::ToWide(str);
-#else
                         info.DBPath = Utilities::ToUTF16(str);
-#endif
                     } else {
                         info.DBPath.clear();
                     }
@@ -1771,11 +1719,7 @@ namespace SPA
                         zTableName = str;
                     }
                     if (str) {
-#ifdef WIN32_64
-                        info.TablePath = Utilities::ToWide(str);
-#else
                         info.TablePath = Utilities::ToUTF16(str);
-#endif
                     } else {
                         info.Flags = (CDBColumnInfo::FLAG_NOT_NULL | CDBColumnInfo::FLAG_NOT_WRITABLE);
                         info.TablePath.clear();
@@ -1783,11 +1727,7 @@ namespace SPA
 
                     str = sqlite3_column_name(stmt, n);
                     if (str) {
-#ifdef WIN32_64
-                        info.DisplayName = Utilities::ToWide(str);
-#else
                         info.DisplayName = Utilities::ToUTF16(str);
-#endif
                     } else {
                         info.DisplayName.clear();
                     }
@@ -1797,11 +1737,7 @@ namespace SPA
                         zColumnName = str;
                     }
                     if (str) {
-#ifdef WIN32_64
-                        info.OriginalName = Utilities::ToWide(str);
-#else
                         info.OriginalName = Utilities::ToUTF16(str);
-#endif
                     } else {
                         info.OriginalName.clear();
                     }
@@ -1809,11 +1745,7 @@ namespace SPA
                 const char *str = sqlite3_column_decltype(stmt, n);
                 if (meta) {
                     if (str) {
-#ifdef WIN32_64
-                        info.DeclaredType = Utilities::ToWide(str);
-#else
                         info.DeclaredType = Utilities::ToUTF16(str);
-#endif
                     } else {
                         info.DeclaredType.clear();
                     }
@@ -1834,11 +1766,7 @@ namespace SPA
                         if (autoinc)
                             info.Flags |= CDBColumnInfo::FLAG_AUTOINCREMENT;
                         if (colseq) {
-#ifdef WIN32_64
-                            info.Collation = Utilities::ToWide(colseq);
-#else
                             info.Collation = Utilities::ToUTF16(colseq);
-#endif
                         } else {
                             info.Collation.clear();
                         }

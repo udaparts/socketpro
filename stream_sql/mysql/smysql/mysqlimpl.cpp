@@ -1015,11 +1015,7 @@ namespace SPA
             if (impl->m_indexCall && last_insert_id)
                 impl->m_last_insert_id = last_insert_id;
             if (message) {
-#ifdef WIN32_64
-                impl->m_err_msg = SPA::Utilities::ToWide(message);
-#else
-                impl->m_err_msg = SPA::Utilities::ToUTF16(message);
-#endif
+                impl->m_err_msg = Utilities::ToUTF16(message);
             } else
                 impl->m_err_msg.clear();
         }
@@ -1031,11 +1027,7 @@ namespace SPA
             if (impl->m_indexCall)
                 ++impl->m_fails;
             impl->m_sql_errno = (int) sql_errno;
-#ifdef WIN32_64
-            impl->m_err_msg = SPA::Utilities::ToWide(err_msg);
-#else
-            impl->m_err_msg = SPA::Utilities::ToUTF16(err_msg);
-#endif
+            impl->m_err_msg = Utilities::ToUTF16(err_msg);
             if (sqlstate)
                 impl->m_sqlstate = sqlstate;
             else
@@ -1061,7 +1053,7 @@ namespace SPA
             assert(!fail);
             if (fail)
                 return false;
-            std::string userA = SPA::Utilities::ToUTF8(userName.c_str(), userName.size());
+            std::string userA = Utilities::ToUTF8(userName);
             std::string host = "localhost";
             if (ip != host)
                 host = "%";
@@ -1094,7 +1086,7 @@ namespace SPA
             impl.Execute(wsql, true, true, false, 0, affected, res, errMsg, vtId, fail_ok);
             //Setting streaming DB events failed(errCode=1125; errMsg=Function 'PublishDBEvent' already exists)
             if (res && res != ER_UDF_EXISTS) {
-                CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Setting streaming DB events failed(errCode=%d; errMsg=%s)", res, SPA::Utilities::ToUTF8(errMsg.c_str(), errMsg.size()));
+                CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Setting streaming DB events failed(errCode=%d; errMsg=%s)", res, Utilities::ToUTF8(errMsg));
             }
         }
 
@@ -1118,7 +1110,7 @@ namespace SPA
 #endif
             impl.Execute(wsql, true, true, false, 0, affected, res, errMsg, vtId, fail_ok);
             if (res) {
-                CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Creating the table service failed(errCode=%d; errMsg=%s)", res, SPA::Utilities::ToUTF8(errMsg.c_str(), errMsg.size()));
+                CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Creating the table service failed(errCode=%d; errMsg=%s)", res, Utilities::ToUTF8(errMsg));
                 return;
             }
 #ifdef WIN32_64
@@ -1128,7 +1120,7 @@ namespace SPA
 #endif
             impl.Execute(wsql, true, true, false, 0, affected, res, errMsg, vtId, fail_ok);
             if (res) {
-                CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Creating the table permission failed(errCode=%d; errMsg=%s)", res, SPA::Utilities::ToUTF8(errMsg.c_str(), errMsg.size()));
+                CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Creating the table permission failed(errCode=%d; errMsg=%s)", res, Utilities::ToUTF8(errMsg));
                 return;
             }
             std::vector<CService> vService;
@@ -1176,7 +1168,7 @@ namespace SPA
 #endif
                 impl.Execute(wsql, true, true, false, 0, affected, res, errMsg, vtId, fail_ok);
                 if (res) {
-                    CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Inserting the table service failed(errCode=%d; errMsg=%s)", res, SPA::Utilities::ToUTF8(errMsg.c_str(), errMsg.size()));
+                    CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Inserting the table service failed(errCode=%d; errMsg=%s)", res, Utilities::ToUTF8(errMsg));
                 }
             }
 
@@ -1196,7 +1188,7 @@ namespace SPA
 #endif
                 impl.Execute(wsql, true, true, false, 0, affected, res, errMsg, vtId, fail_ok);
                 if (res) {
-                    CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Inserting the table service failed(errCode=%d; errMsg=%s)", res, SPA::Utilities::ToUTF8(errMsg.c_str(), errMsg.size()));
+                    CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Inserting the table service failed(errCode=%d; errMsg=%s)", res, Utilities::ToUTF8(errMsg));
                 }
             }
 
@@ -1225,14 +1217,14 @@ namespace SPA
                     if (it == vService.end()) {
 #ifdef WIN32_64
                         wsql = L"INSERT INTO service(id,library,param,description)VALUES(" + std::to_wstring((UINT64) svsId) + L",'" +
-                                SPA::Utilities::ToWide(p->c_str(), p->size()) + L"'," + std::to_wstring((INT64) param) + L",'')";
+                                Utilities::ToWide(p->c_str(), p->size()) + L"'," + std::to_wstring((INT64) param) + L",'')";
 #else
                         wsql = u"INSERT INTO service(id,library,param,description)VALUES(" + CDBString(Utilities::ToUTF16(std::to_wstring((UINT64) svsId))) + u",'" +
-                                SPA::Utilities::ToUTF16(p->c_str(), p->size()) + u"'," + CDBString(Utilities::ToUTF16(std::to_wstring((INT64) param))) + u",'')";
+                                Utilities::ToUTF16(p->c_str(), p->size()) + u"'," + CDBString(Utilities::ToUTF16(std::to_wstring((INT64) param))) + u",'')";
 #endif
                         impl.Execute(wsql, true, true, false, 0, affected, res, errMsg, vtId, fail_ok);
                         if (res) {
-                            CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Inserting the table service failed(errCode=%d; errMsg=%s)", res, SPA::Utilities::ToUTF8(errMsg.c_str(), errMsg.size()));
+                            CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Inserting the table service failed(errCode=%d; errMsg=%s)", res, Utilities::ToUTF8(errMsg));
                         }
                     }
                 }
@@ -1260,7 +1252,7 @@ namespace SPA
             CDBString errMsg;
             impl.Execute(wsql, true, true, false, 0, affected, res, errMsg, vtId, fail_ok);
             if (res) {
-                CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Configuring streaming DB failed(errCode=%d; errMsg=%s)", res, SPA::Utilities::ToUTF8(errMsg.c_str(), errMsg.size()));
+                CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Configuring streaming DB failed(errCode=%d; errMsg=%s)", res, Utilities::ToUTF8(errMsg));
                 return map;
             }
 #ifdef WIN32_64
@@ -1270,7 +1262,7 @@ namespace SPA
 #endif
             impl.Execute(wsql, true, true, false, 0, affected, res, errMsg, vtId, fail_ok);
             if (res) {
-                CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Configuring streaming DB failed(errCode=%d; errMsg=%s)", res, SPA::Utilities::ToUTF8(errMsg.c_str(), errMsg.size()));
+                CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Configuring streaming DB failed(errCode=%d; errMsg=%s)", res, Utilities::ToUTF8(errMsg));
                 return map;
             }
 #ifdef WIN32_64
@@ -1280,7 +1272,7 @@ namespace SPA
 #endif
             impl.Execute(wsql, true, true, false, 0, affected, res, errMsg, vtId, fail_ok);
             if (res) {
-                CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Configuring streaming DB failed(errCode=%d; errMsg=%s)", res, SPA::Utilities::ToUTF8(errMsg.c_str(), errMsg.size()));
+                CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Configuring streaming DB failed(errCode=%d; errMsg=%s)", res, Utilities::ToUTF8(errMsg));
                 return map;
             }
             SPA::UDB::CDBVariant vtKey, vtValue;
@@ -1298,9 +1290,9 @@ namespace SPA
                 auto found = map.find(it->first);
                 if (found == map.end()) {
 #ifdef WIN32_64
-                    wsql = L"insert into config values('" + Utilities::ToWide(it->first.c_str(), it->first.size()) + L"','" + Utilities::ToWide(it->second.c_str(), it->second.size()) + L"')";
+                    wsql = L"insert into config values('" + Utilities::ToWide(it->first) + L"','" + Utilities::ToWide(it->second) + L"')";
 #else
-                    wsql = u"insert into config values('" + CDBString(Utilities::ToUTF16(it->first.c_str(), it->first.size())) + u"','" + CDBString(Utilities::ToUTF16(it->second.c_str(), it->second.size())) + u"')";
+                    wsql = u"insert into config values('" + CDBString(Utilities::ToUTF16(it->first)) + u"','" + CDBString(Utilities::ToUTF16(it->second)) + u"')";
 #endif
                     impl.Execute(wsql, true, true, false, 0, affected, res, errMsg, vtId, fail_ok);
                     map[it->first] = it->second;
@@ -1323,14 +1315,14 @@ namespace SPA
             std::wstring host = L"localhost";
             if (ip != "localhost")
                 host = L"%";
-            std::string user = SPA::Utilities::ToUTF8(userName.c_str(), userName.size());
+            std::string user = Utilities::ToUTF8(userName);
             std::wstring wsql(L"select authentication_string from mysql.user where password_expired='N' and account_locked='N' and user='");
             wsql += (userName + L"' and host='" + host + L"'");
 #else
             CDBString host = u"localhost";
             if (ip != "localhost")
                 host = u"%";
-            std::string user = SPA::Utilities::ToUTF8(userName.c_str(), userName.size());
+            std::string user = Utilities::ToUTF8(userName);
             CDBString wsql(u"select authentication_string from mysql.user where password_expired='N' and account_locked='N' and user='");
             wsql += (CDBString(Utilities::ToUTF16(userName)) + u"' and host='" + host + u"'");
 #endif
@@ -1342,7 +1334,7 @@ namespace SPA
             CDBString errMsg;
             impl->Execute(wsql, true, true, false, 0, affected, res, errMsg, vtId, fail_ok);
             if (res || !impl->m_qSend.GetSize()) {
-                CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Authentication failed as user %s not found (errCode=%d; errMsg=%s)", user.c_str(), res, SPA::Utilities::ToUTF8(errMsg.c_str(), errMsg.size()));
+                CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Authentication failed as user %s not found (errCode=%d; errMsg=%s)", user.c_str(), res, Utilities::ToUTF8(errMsg));
                 return false;
             }
             SPA::UDB::CDBVariant vtAuth;
@@ -1352,7 +1344,7 @@ namespace SPA
             std::string hash((const char*) auth_id, vtAuth.parray->rgsabound->cElements);
             ::SafeArrayUnaccessData(vtAuth.parray);
             if (!DoAuthentication(password, hash)) {
-                CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Authentication failed as wrong password for user %s (errCode=%d; errMsg=%s)", user.c_str(), res, SPA::Utilities::ToUTF8(errMsg.c_str(), errMsg.size()));
+                CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Authentication failed as wrong password for user %s (errCode=%d; errMsg=%s)", user.c_str(), res, Utilities::ToUTF8(errMsg));
                 return false;
             }
             if (svsId == SPA::Mysql::sidMysql)
@@ -1364,8 +1356,8 @@ namespace SPA
 #endif
             impl->Execute(wsql, true, true, false, 0, affected, res, errMsg, vtId, fail_ok);
             if (res || !impl->m_qSend.GetSize()) {
-                std::string user = SPA::Utilities::ToUTF8(userName.c_str(), userName.size());
-                CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Authentication failed as service %d is not set for user %s yet (errCode=%d; errMsg=%s)", svsId, user.c_str(), res, SPA::Utilities::ToUTF8(errMsg.c_str(), errMsg.size()));
+                std::string user = Utilities::ToUTF8(userName.c_str(), userName.size());
+                CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Authentication failed as service %d is not set for user %s yet (errCode=%d; errMsg=%s)", svsId, user.c_str(), res, Utilities::ToUTF8(errMsg));
                 return false;
             }
             return true;
@@ -1376,7 +1368,7 @@ namespace SPA
                 CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Authentication failed as wrong hash length (expected length=70; found length=%d)", hash.size());
                 return false;
             }
-            std::string pwd = SPA::Utilities::ToUTF8(password);
+            std::string pwd = Utilities::ToUTF8(password);
             std::string header = hash.substr(0, 7);
             if (header != "$A$005$") {
                 CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Authentication failed as wrong hash algorithm (expected=$A$005$; this=%s)", header.c_str());
@@ -1405,15 +1397,11 @@ namespace SPA
             if (ip == "127.0.0.1" || ip == "::ffff:127.0.0.1" || ip == "::1")
                 ip = "localhost";
             std::wstring user = GetUID();
-#ifdef WIN32_64
-            OpenSession(user, ip);
-#else
             OpenSession(Utilities::ToUTF16(user), ip);
-#endif
             InitMysqlSession();
             int fail = 0;
             if (strConnection.size()) {
-                std::string db = SPA::Utilities::ToUTF8(strConnection.c_str(), strConnection.size());
+                std::string db = Utilities::ToUTF8(strConnection);
                 COM_DATA cmd;
                 cmd.com_init_db.db_name = db.c_str();
                 cmd.com_init_db.length = (unsigned long) db.size();
@@ -1431,11 +1419,7 @@ namespace SPA
             } else {
                 res = 0;
                 LEX_CSTRING db_name = srv_session_info_get_current_db(m_pMysql.get());
-#ifdef WIN32_64
-                errMsg = SPA::Utilities::ToWide(db_name.str, db_name.length);
-#else
-                errMsg = SPA::Utilities::ToUTF16(db_name.str, db_name.length);
-#endif
+                errMsg = Utilities::ToUTF16(db_name.str, db_name.length);
                 if ((flags & SPA::UDB::ENABLE_TABLE_UPDATE_MESSAGES) == SPA::UDB::ENABLE_TABLE_UPDATE_MESSAGES) {
                     m_EnableMessages = GetPush().Subscribe(&SPA::UDB::STREAMING_SQL_CHAT_GROUP_ID, 1);
                 }
@@ -1555,11 +1539,7 @@ namespace SPA
                 m_ti = (tagTransactionIsolation) isolation;
                 m_bManual = true;
                 LEX_CSTRING db_name = srv_session_info_get_current_db(m_pMysql.get());
-#ifdef WIN32_64
-                errMsg = SPA::Utilities::ToWide(db_name.str, db_name.length);
-#else
-                errMsg = SPA::Utilities::ToUTF16(db_name.str, db_name.length);
-#endif
+                errMsg = Utilities::ToUTF16(db_name.str, db_name.length);
             }
         }
 
@@ -1715,7 +1695,7 @@ namespace SPA
             }
             UINT64 fails = m_fails;
             UINT64 oks = m_oks;
-            std::string sql = SPA::Utilities::ToUTF8(wsql.c_str(), wsql.size());
+            std::string sql = Utilities::ToUTF8(wsql);
             if (m_EnableMessages && !sql.size() && CSetGlobals::Globals.cached_tables.size()) {
                 //client side is asking for data from cached tables
                 for (auto it = CSetGlobals::Globals.cached_tables.begin(), end = CSetGlobals::Globals.cached_tables.end(); it != end; ++it) {
@@ -2072,11 +2052,7 @@ namespace SPA
                 }
             } else {
                 LEX_CSTRING db_name = srv_session_info_get_current_db(m_pMysql.get());
-#ifdef WIN32_64
-                errMsg = SPA::Utilities::ToWide(db_name.str, db_name.length);
-#else
-                errMsg = SPA::Utilities::ToUTF16(db_name.str, db_name.length);
-#endif
+                errMsg = Utilities::ToUTF16(db_name.str, db_name.length);
             }
             SendResult(idSqlBatchHeader, res, errMsg, (int) msMysql, (unsigned int) parameters, callIndex);
             errMsg.clear();
