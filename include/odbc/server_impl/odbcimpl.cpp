@@ -78,7 +78,7 @@ namespace SPA
             }
             CScopeUQueue sb;
             SQLSMALLINT cbConnStrOut = 0;
-            std::string strConn = Utilities::ToUTF8(conn.c_str(), conn.size());
+            std::string strConn = Utilities::ToUTF8(conn);
             retcode = SQLDriverConnect(hdbc, nullptr, (SQLCHAR*) strConn.c_str(), (SQLSMALLINT) strConn.size(), (SQLCHAR*) sb->GetBuffer(), (SQLSMALLINT) sb->GetSize(), &cbConnStrOut, SQL_DRIVER_NOPROMPT);
             if (!SQL_SUCCEEDED(retcode)) {
                 SQLFreeHandle(SQL_HANDLE_DBC, hdbc);
@@ -4644,9 +4644,9 @@ namespace SPA
             {0};
             SQLRETURN res = SQLGetDiagRec(HandleType, Handle, i, SqlState, &NativeError, Msg, sizeof (Msg) / sizeof (SQLCHAR), &MsgLen);
             while (res != SQL_NO_DATA) {
-				if (errMsg.size()) {
-					errMsg.push_back(';');
-				}
+                if (errMsg.size()) {
+                    errMsg.push_back(';');
+                }
                 errMsg += (SQLSTATE + Utilities::ToUTF16((const char*) SqlState));
                 errMsg += (NATIVE_ERROR + Utilities::ToUTF16(std::to_string((INT64) NativeError)));
                 errMsg += (ERROR_MESSAGE + Utilities::ToUTF16((const char*) Msg));
