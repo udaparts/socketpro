@@ -1086,7 +1086,7 @@ namespace SPA
             impl.Execute(wsql, true, true, false, 0, affected, res, errMsg, vtId, fail_ok);
             //Setting streaming DB events failed(errCode=1125; errMsg=Function 'PublishDBEvent' already exists)
             if (res && res != ER_UDF_EXISTS) {
-                CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Setting streaming DB events failed(errCode=%d; errMsg=%s)", res, Utilities::ToUTF8(errMsg));
+                CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Setting streaming DB events failed(errCode=%d; errMsg=%s)", res, Utilities::ToUTF8(errMsg).c_str());
             }
         }
 
@@ -1110,7 +1110,7 @@ namespace SPA
 #endif
             impl.Execute(wsql, true, true, false, 0, affected, res, errMsg, vtId, fail_ok);
             if (res) {
-                CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Creating the table service failed(errCode=%d; errMsg=%s)", res, Utilities::ToUTF8(errMsg));
+                CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Creating the table service failed(errCode=%d; errMsg=%s)", res, Utilities::ToUTF8(errMsg).c_str());
                 return;
             }
 #ifdef WIN32_64
@@ -1120,7 +1120,7 @@ namespace SPA
 #endif
             impl.Execute(wsql, true, true, false, 0, affected, res, errMsg, vtId, fail_ok);
             if (res) {
-                CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Creating the table permission failed(errCode=%d; errMsg=%s)", res, Utilities::ToUTF8(errMsg));
+                CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Creating the table permission failed(errCode=%d; errMsg=%s)", res, Utilities::ToUTF8(errMsg).c_str());
                 return;
             }
             std::vector<CService> vService;
@@ -1168,7 +1168,7 @@ namespace SPA
 #endif
                 impl.Execute(wsql, true, true, false, 0, affected, res, errMsg, vtId, fail_ok);
                 if (res) {
-                    CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Inserting the table service failed(errCode=%d; errMsg=%s)", res, Utilities::ToUTF8(errMsg));
+                    CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Inserting the table service failed(errCode=%d; errMsg=%s)", res, Utilities::ToUTF8(errMsg).c_str());
                 }
             }
 
@@ -1188,7 +1188,7 @@ namespace SPA
 #endif
                 impl.Execute(wsql, true, true, false, 0, affected, res, errMsg, vtId, fail_ok);
                 if (res) {
-                    CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Inserting the table service failed(errCode=%d; errMsg=%s)", res, Utilities::ToUTF8(errMsg));
+                    CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Inserting the table service failed(errCode=%d; errMsg=%s)", res, Utilities::ToUTF8(errMsg).c_str());
                 }
             }
 
@@ -1224,7 +1224,7 @@ namespace SPA
 #endif
                         impl.Execute(wsql, true, true, false, 0, affected, res, errMsg, vtId, fail_ok);
                         if (res) {
-                            CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Inserting the table service failed(errCode=%d; errMsg=%s)", res, Utilities::ToUTF8(errMsg));
+                            CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Inserting the table service failed(errCode=%d; errMsg=%s)", res, Utilities::ToUTF8(errMsg).c_str());
                         }
                     }
                 }
@@ -1252,7 +1252,7 @@ namespace SPA
             CDBString errMsg;
             impl.Execute(wsql, true, true, false, 0, affected, res, errMsg, vtId, fail_ok);
             if (res) {
-                CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Configuring streaming DB failed(errCode=%d; errMsg=%s)", res, Utilities::ToUTF8(errMsg));
+                CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Configuring streaming DB failed(errCode=%d; errMsg=%s)", res, Utilities::ToUTF8(errMsg).c_str());
                 return map;
             }
 #ifdef WIN32_64
@@ -1262,7 +1262,7 @@ namespace SPA
 #endif
             impl.Execute(wsql, true, true, false, 0, affected, res, errMsg, vtId, fail_ok);
             if (res) {
-                CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Configuring streaming DB failed(errCode=%d; errMsg=%s)", res, Utilities::ToUTF8(errMsg));
+                CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Configuring streaming DB failed(errCode=%d; errMsg=%s)", res, Utilities::ToUTF8(errMsg).c_str());
                 return map;
             }
 #ifdef WIN32_64
@@ -1272,7 +1272,7 @@ namespace SPA
 #endif
             impl.Execute(wsql, true, true, false, 0, affected, res, errMsg, vtId, fail_ok);
             if (res) {
-                CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Configuring streaming DB failed(errCode=%d; errMsg=%s)", res, Utilities::ToUTF8(errMsg));
+                CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Configuring streaming DB failed(errCode=%d; errMsg=%s)", res, Utilities::ToUTF8(errMsg).c_str());
                 return map;
             }
             SPA::UDB::CDBVariant vtKey, vtValue;
@@ -1334,7 +1334,7 @@ namespace SPA
             CDBString errMsg;
             impl->Execute(wsql, true, true, false, 0, affected, res, errMsg, vtId, fail_ok);
             if (res || !impl->m_qSend.GetSize()) {
-                CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Authentication failed as user %s not found (errCode=%d; errMsg=%s)", user.c_str(), res, Utilities::ToUTF8(errMsg));
+                CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Authentication failed as user %s not found (errCode=%d; errMsg=%s)", user.c_str(), res, Utilities::ToUTF8(errMsg).c_str());
                 return false;
             }
             SPA::UDB::CDBVariant vtAuth;
@@ -1344,7 +1344,7 @@ namespace SPA
             std::string hash((const char*) auth_id, vtAuth.parray->rgsabound->cElements);
             ::SafeArrayUnaccessData(vtAuth.parray);
             if (!DoAuthentication(password, hash)) {
-                CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Authentication failed as wrong password for user %s (errCode=%d; errMsg=%s)", user.c_str(), res, Utilities::ToUTF8(errMsg));
+                CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Authentication failed as wrong password for user %s (errCode=%d; errMsg=%s)", user.c_str(), res, Utilities::ToUTF8(errMsg).c_str());
                 return false;
             }
             if (svsId == SPA::Mysql::sidMysql)
@@ -1357,7 +1357,7 @@ namespace SPA
             impl->Execute(wsql, true, true, false, 0, affected, res, errMsg, vtId, fail_ok);
             if (res || !impl->m_qSend.GetSize()) {
                 std::string user = Utilities::ToUTF8(userName.c_str(), userName.size());
-                CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Authentication failed as service %d is not set for user %s yet (errCode=%d; errMsg=%s)", svsId, user.c_str(), res, Utilities::ToUTF8(errMsg));
+                CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Authentication failed as service %d is not set for user %s yet (errCode=%d; errMsg=%s)", svsId, user.c_str(), res, Utilities::ToUTF8(errMsg).c_str());
                 return false;
             }
             return true;

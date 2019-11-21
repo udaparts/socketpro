@@ -145,7 +145,7 @@ long long SetSQLStreamingPlugin(UDF_INIT *initid, UDF_ARGS *args, char *is_null,
     SPA::CDBString errMsg;
     impl.Open(dbConn, 0, res, errMsg, ms);
     if (res) {
-        CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Configuring streaming DB failed when connecting to local database (errCode=%d; errMsg=%s)", res, SPA::Utilities::ToUTF8(errMsg));
+        CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Configuring streaming DB failed when connecting to local database (errCode=%d; errMsg=%s)", res, SPA::Utilities::ToUTF8(errMsg).c_str());
     }
     if (!CMysqlImpl::SetPublishDBEvent(impl))
         return 0;
