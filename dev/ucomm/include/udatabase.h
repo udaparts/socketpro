@@ -54,6 +54,10 @@ namespace SPA {
                 s.erase(s.begin());
             }
         }
+
+        static std::string ToUTF8(const CDBString &str) {
+            return ToUTF8(str.c_str(), str.size());
+        }
     }
 #endif
 
