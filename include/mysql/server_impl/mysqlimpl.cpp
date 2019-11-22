@@ -230,8 +230,8 @@ namespace SPA
 
         bool CMysqlImpl::CreateTriggers(const std::string &schema, const std::string & table) {
             bool bDelete = false, bInsert = false, bUpdate = false;
-			CDBString wSchema = Utilities::ToUTF16(schema);
-			CDBString wTable = Utilities::ToUTF16(table);
+            CDBString wSchema = Utilities::ToUTF16(schema);
+            CDBString wTable = Utilities::ToUTF16(table);
 #ifdef WIN32_64
             CDBString prefix(STREAMING_DB_TRIGGER_PREFIX);
             CDBString sql_existing = L"SELECT EVENT_MANIPULATION, TRIGGER_NAME FROM INFORMATION_SCHEMA.TRIGGERS WHERE ";
@@ -631,11 +631,7 @@ namespace SPA
                     }
                     m_remMysql.mysql_options(mysql, MYSQL_SET_CHARSET_NAME, "utf8");
                     MYSQL_CONNECTION_STRING conn;
-#ifdef WIN32_64
                     conn.Parse(Utilities::ToUTF8(db).c_str());
-#else
-                    conn.Parse(Utilities::ToUTF8(db));
-#endif
                     int failed = m_remMysql.mysql_options(mysql, MYSQL_OPT_CONNECT_TIMEOUT, &conn.timeout);
                     assert(!failed);
 #if 0 //def WIN32_64
