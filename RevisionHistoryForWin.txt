@@ -1,4 +1,4 @@
-85. SocketPro Version 6.3.0.1-9
+85. SocketPro Version 6.3.0.1-10
 	(a) Add the method PostProcessing to dispatch requests from calling thread onto pool worker thread at client side
 	(b) Re-write remote file service to use PostProcessing instead
 	(c) Fix a connection time-out issue within window client core library
