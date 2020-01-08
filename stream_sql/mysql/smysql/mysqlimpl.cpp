@@ -1350,14 +1350,18 @@ namespace SPA
             if (svsId == SPA::Mysql::sidMysql)
                 return true;
 #ifdef WIN32_64
-            wsql = L"SELECT user from sp_streaming_db.permission,sp_streaming_db.service where svsid=id AND svsid=" + std::to_wstring((UINT64) svsId) + L" AND user='" + userName + L"'";
+            wsql = L"SELECT user from sp_streaming_db.permission where svsid=" + std::to_wstring((UINT64) svsId) + L" AND user='" + userName + L"'";
 #else
-            wsql = u"SELECT user from sp_streaming_db.permission,sp_streaming_db.service where svsid=id AND svsid=" + CDBString(Utilities::ToUTF16(std::to_string((UINT64) svsId))) + u" AND user='" + Utilities::ToUTF16(userName) + u"'";
+            wsql = u"SELECT user from sp_streaming_db.permission where svsid=" + CDBString(Utilities::ToUTF16(std::to_string((UINT64) svsId))) + u" AND user='" + Utilities::ToUTF16(userName) + u"'";
 #endif
             impl->Execute(wsql, true, true, false, 0, affected, res, errMsg, vtId, fail_ok);
-            if (res || !impl->m_qSend.GetSize()) {
+            if (res) {
                 std::string user = Utilities::ToUTF8(userName.c_str(), userName.size());
                 CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Authentication failed as service %d is not set for user %s yet (errCode=%d; errMsg=%s)", svsId, user.c_str(), res, Utilities::ToUTF8(errMsg).c_str());
+                return false;
+            } else if (!impl->m_qSend.GetSize()) {
+                std::string user = Utilities::ToUTF8(userName.c_str(), userName.size());
+                CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Authentication failed as service %d is not set for user %s yet", svsId, user.c_str());
                 return false;
             }
             return true;
