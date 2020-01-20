@@ -199,6 +199,14 @@ namespace SPA {
 
     public:
 
+#ifdef MS_SQL_SNI_ADAPTER
+
+        void Reset(unsigned int header_pos, unsigned int len) {
+            m_nHeadPos = header_pos;
+            m_nSize = len;
+        }
+#endif
+
         /**
          * Replace internal memory content with a new buffer
          * @param pos Memory start position
