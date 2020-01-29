@@ -1352,7 +1352,7 @@ namespace SPA
 #ifdef WIN32_64
             wsql = L"SELECT user from sp_streaming_db.permission where svsid=" + std::to_wstring((UINT64) svsId) + L" AND user='" + userName + L"'";
 #else
-            wsql = u"SELECT user from sp_streaming_db.permission where svsid=" + CDBString(Utilities::ToUTF16(std::to_string((UINT64) svsId))) + u" AND user='" + Utilities::ToUTF16(userName) + u"'";
+            wsql = u"SELECT user from sp_streaming_db.permission where svsid=" + CDBString(Utilities::ToUTF16(std::to_string((UINT64) svsId))) + u" AND user='" + CDBString(Utilities::ToUTF16(userName)) + u"'";
 #endif
             impl->Execute(wsql, true, true, false, 0, affected, res, errMsg, vtId, fail_ok);
             if (res) {
