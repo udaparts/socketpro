@@ -1220,7 +1220,7 @@ namespace SPA
                                 Utilities::ToWide(p->c_str(), p->size()) + L"'," + std::to_wstring((INT64) param) + L",'')";
 #else
                         wsql = u"INSERT INTO service(id,library,param,description)VALUES(" + CDBString(Utilities::ToUTF16(std::to_wstring((UINT64) svsId))) + u",'" +
-                                Utilities::ToUTF16(p->c_str(), p->size()) + u"'," + CDBString(Utilities::ToUTF16(std::to_wstring((INT64) param))) + u",'')";
+                                CDBString(Utilities::ToUTF16(p->c_str(), p->size())) + u"'," + CDBString(Utilities::ToUTF16(std::to_wstring((INT64) param))) + u",'')";
 #endif
                         impl.Execute(wsql, true, true, false, 0, affected, res, errMsg, vtId, fail_ok);
                         if (res) {
