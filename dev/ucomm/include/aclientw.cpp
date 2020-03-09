@@ -99,6 +99,10 @@ namespace SPA {
 
         }
 
+		void CAsyncServiceHandler::OnInterrupted(UINT64 options) {
+
+		}
+
         void CAsyncServiceHandler::OnExceptionFromServer(unsigned short requestId, const wchar_t *errMessage, const char* errWhere, unsigned int errCode) {
 
         }
@@ -118,6 +122,11 @@ namespace SPA {
             assert(!(ClientCoreLoader.IsQueueStarted(h) && ClientCoreLoader.GetJobSize(h) > 0));
             return ClientCoreLoader.WaitAll(h, timeOut);
         }
+
+		bool CAsyncServiceHandler::Interrupt(UINT64 options) {
+			assert(ClientCoreLoader.SendInterruptRequest);
+			return ClientCoreLoader.SendInterruptRequest(GetClientSocketHandle(), options);
+		}
 
         bool CAsyncServiceHandler::StartBatching() {
             return ClientCoreLoader.StartBatching(GetClientSocketHandle());
@@ -317,13 +326,21 @@ namespace SPA {
         }
 
         void CAsyncServiceHandler::OnRR(unsigned short reqId, CUQueue & mc) {
-            PRR_PAIR p = nullptr;
+			if (SPA::idInterrupt == reqId) {
+				UINT64 options;
+				mc >> options;
+				OnInterrupted(options);
+				return;
+			}
+			PRR_PAIR p = nullptr;
             if (GetAsyncResultHandler(reqId, p) && p->second->AsyncResultHandler) {
                 CAsyncResult ar(this, reqId, mc, p->second->AsyncResultHandler);
                 p->second->AsyncResultHandler(ar);
             } else if (m_rrImpl.Invoke(this, reqId, mc)) {
-            } else
-                OnResultReturned(reqId, mc);
+			}
+			else {
+				OnResultReturned(reqId, mc);
+			}
             m_rrStack.Recycle(p);
         }
 

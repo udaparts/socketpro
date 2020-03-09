@@ -199,5 +199,5 @@ EXPORTS
 	SendReturnDataIndex @203
 	SendExceptionResultIndex @204
 	GetCurrentRequestIndex @205
-
+	NotifyInterrupt @206
 	

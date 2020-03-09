@@ -121,6 +121,7 @@ public:
     bool StartBatching();
     bool CommitBatching();
     bool AbortBatching();
+	unsigned int NotifyInterrupt(SPA::UINT64 options);
     bool Wait(unsigned int nTimeout = 5);
     int ExecuteSlowRequestFromThreadPool(unsigned short sReqId);
     void SetUserID(const wchar_t *strUserId);

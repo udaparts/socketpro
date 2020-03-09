@@ -585,33 +585,54 @@ bool CServerSession::IsCanceled() {
 bool CServerSession::IsCanceledInternally() {
     unsigned int pos = 0;
     unsigned int lenAll = m_qRead.GetSize();
-    unsigned int total = (m_ReqInfo.RequestId == SPA::idCancel) ? 1 : 0;
+    unsigned int total = (m_ReqInfo.RequestId == SPA::idCancel || m_ReqInfo.RequestId == SPA::idInterrupt) ? 1 : 0;
+	bool interrupted = (m_ReqInfo.RequestId == SPA::idInterrupt);
     if (!total) {
         SPA::CStreamHeader *p = &m_ReqInfo;
         while (lenAll > p->Size) {
             pos += p->Size;
             lenAll -= p->Size;
-            if (lenAll < sizeof (SPA::CStreamHeader))
-                break;
+			if (lenAll < sizeof(SPA::CStreamHeader)) {
+				break;
+			}
             p = (SPA::CStreamHeader*)m_qRead.GetBuffer(pos);
             if (p->RequestId == SPA::idCancel) {
                 total = 1;
                 break;
             }
+			else if (p->RequestId == SPA::idInterrupt) {
+				total = 1;
+				interrupted = true;
+				break;
+			}
             pos += sizeof (SPA::CStreamHeader);
             lenAll -= sizeof (SPA::CStreamHeader);
         }
     }
     if (total) {
-        if (pos) {
-            m_qRead.Pop(pos); //remove previous requests queued
+		if (interrupted) {
+			if (pos) {
+				UINT64 options;
+				SPA::CStreamHeader sh;
+				m_qRead.Pop((unsigned char*)&sh, sizeof(sh), pos);
+				assert(sh.RequestId == SPA::idInterrupt);
+				assert(sh.Size == sizeof(options));
+				m_qRead.Pop((unsigned char*)&options, sizeof(options), pos);
+				m_qRead.Insert((const unsigned char*)&options, sizeof(options), m_ReqInfo.Size);
+				m_qRead.Insert((const unsigned char*)&sh, sizeof(sh), m_ReqInfo.Size);
+			}
+		}
+		else {
+			if (pos) {
+				m_qRead.Pop(pos); //remove previous requests queued
 #ifndef NDEBUG
-            std::cout << "Canceled bytes = " << pos << std::endl;
+				std::cout << "Canceled bytes = " << pos << std::endl;
 #endif
-        }
-        m_qRead >> m_ReqInfo;
-        m_mapIndex.clear();
-        OnBaseRequestArrive();
+			}
+			m_qRead >> m_ReqInfo;
+			m_mapIndex.clear();
+			OnBaseRequestArrive();
+		}
     }
     return (total > 0);
 }
@@ -623,6 +644,18 @@ SPA::UINT64 CServerSession::GetCallIndex() {
         index = m_indexCall;
     m_mutex.unlock();
     return index;
+}
+
+unsigned int CServerSession::NotifyInterrupt(SPA::UINT64 options) {
+	SPA::CStreamHeader reqInfo;
+	reqInfo.RequestId = SPA::idInterrupt;
+	reqInfo.Size = sizeof(options);
+	CAutoLock sl(m_mutex);
+	if (m_cs < csConnected || g_pServer->m_bStopped) {
+		return SOCKET_NOT_FOUND;
+	}
+	Write(reqInfo, (const unsigned char*)&options, sizeof(options));
+	return sizeof(options);
 }
 
 bool CServerSession::FakeAClientRequest(unsigned short reqId, const unsigned char *pBuffer, unsigned int nBufferSize) {
@@ -938,6 +971,7 @@ bool CServerSession::IsRoutable(unsigned short reqId) {
         case SPA::idStartQueue:
         case SPA::idStopQueue:
         case SPA::idDequeueBatchConfirmed:
+		case SPA::idInterrupt:
             return false;
             break;
         default:

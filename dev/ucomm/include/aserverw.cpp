@@ -297,6 +297,10 @@ namespace SPA
             return ServerCoreLoader.Dequeue2(qHandle, GetSocketHandle(), maxBytes, beNotifiedWhenAvailable, waitTime);
         }
 
+		bool CClientPeer::NotifyInterrupt(UINT64 options) const {
+			return (ServerCoreLoader.NotifyInterrupt(GetSocketHandle(), options) == sizeof(options));
+		}
+
         bool CClientPeer::AbortBatching() const {
             return ServerCoreLoader.AbortBatching(GetSocketHandle());
         }
@@ -455,6 +459,10 @@ namespace SPA
 
         }
 
+		void CSocketPeer::OnInterrupted(UINT64 options) {
+
+		}
+
         void CSocketPeer::OnBaseRequestArrive(unsigned short requestId) {
 
         }
@@ -577,7 +585,14 @@ namespace SPA
                         pHttpPerr->m_vArg.clear();
                     }
                 }
-                p->OnRequestArrive(usRequestID, len);
+				if (usRequestID == SPA::idInterrupt) {
+					UINT64 options;
+					mc >> options;
+					p->OnInterrupted(options);
+				}
+				else {
+					p->OnRequestArrive(usRequestID, len);
+				}
             }
         }
 
