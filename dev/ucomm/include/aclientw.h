@@ -1831,18 +1831,11 @@ namespace SPA {
                 }
             };
 
-            struct cs_equal : public std::binary_function < PClientSocket, PClientSocket, bool > {
-
-                inline bool operator()(const PClientSocket &s1, const PClientSocket & s2) const {
-                    return (s1->GetHandle() == s2->GetHandle());
-                }
-            };
-
         public:
 #if defined(__ANDROID__) || defined(ANDROID)
-            typedef boost::unordered_map<PClientSocket, PHandler, cs_hash, cs_equal> CMapSocketHandler;
+            typedef boost::unordered_map<PClientSocket, PHandler, cs_hash> CMapSocketHandler;
 #else
-            typedef std::unordered_map<PClientSocket, PHandler, cs_hash, cs_equal> CMapSocketHandler;
+            typedef std::unordered_map<PClientSocket, PHandler, cs_hash> CMapSocketHandler;
 #endif
         public:
 
