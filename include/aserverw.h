@@ -320,7 +320,6 @@ namespace SPA {
             virtual void OnFastRequestArrive(unsigned short requestId, unsigned int len) = 0;
             virtual int OnSlowRequestArrive(unsigned short requestId, unsigned int len) = 0;
             virtual void OnResultsSent();
-            virtual void OnInterrupted(UINT64 options);
 
         private:
             CScopeUQueue m_sb;
@@ -601,11 +600,12 @@ namespace SPA {
             IPushEx& GetPush();
             void AbortDequeuedMessage() const;
             bool IsDequeuedMessageAborted() const;
-            bool NotifyInterrupt(UINT64 options = 0) const;
+            bool NotifyInterrupt(UINT64 options) const;
 
         protected:
             virtual void OnPublishEx(const unsigned int *pGroup, unsigned int count, const unsigned char *pMessage, unsigned int size);
             virtual void OnSendUserMessageEx(const wchar_t* receiver, const unsigned char *pMessage, unsigned int size);
+            virtual void OnInterrupted(UINT64 options);
 
         public:
             unsigned int SendResult(unsigned short reqId, const unsigned char* pResult, unsigned int size) const;
