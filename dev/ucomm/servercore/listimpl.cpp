@@ -976,23 +976,23 @@ SPA::UINT64 WINAPI GetCurrentRequestIndex(USocket_Server_Handle h) {
 }
 
 unsigned int WINAPI NotifyInterrupt(USocket_Server_Handle h, SPA::UINT64 options) {
-	unsigned int index;
-	CServerSession *pSession = GetSvrSession(h, index);
-	if (index == 0 || index != pSession->GetConnIndex())
-		return SOCKET_NOT_FOUND;
-	if (pSession)
-		return pSession->NotifyInterrupt(options);
-	return SOCKET_NOT_FOUND;
+    unsigned int index;
+    CServerSession *pSession = GetSvrSession(h, index);
+    if (index == 0 || index != pSession->GetConnIndex())
+        return SOCKET_NOT_FOUND;
+    if (pSession)
+        return pSession->NotifyInterrupt(options);
+    return SOCKET_NOT_FOUND;
 }
 
 SPA::UINT64 WINAPI GetInterruptOptions(USocket_Server_Handle h) {
-	unsigned int index;
-	CServerSession *pSession = GetSvrSession(h, index);
-	if (index == 0 || index != pSession->GetConnIndex())
-		return 0;
-	if (pSession)
-		return pSession->GetInterruptOptions();
-	return 0;
+    unsigned int index;
+    CServerSession *pSession = GetSvrSession(h, index);
+    if (index == 0 || index != pSession->GetConnIndex())
+        return 0;
+    if (pSession)
+        return pSession->GetInterruptOptions();
+    return 0;
 }
 
 SPA::IUcert* WINAPI GetUCertEx(USocket_Server_Handle h) {

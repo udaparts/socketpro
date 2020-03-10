@@ -200,9 +200,9 @@ namespace SPA {
         typedef SPA::UINT64(WINAPI *PBatchEnqueue)(unsigned int qHandle, unsigned int count, const unsigned char *msgStruct);
         typedef unsigned int (WINAPI *PSendReturnDataIndex)(USocket_Server_Handle h, SPA::UINT64 index, unsigned short usReqId, unsigned int ulBufferSize, const unsigned char *pBuffer);
         typedef unsigned int (WINAPI *PSendExceptionResultIndex)(USocket_Server_Handle h, SPA::UINT64 index, const wchar_t* errMessage, const char* errWhere, unsigned short requestId, unsigned int errCode);
-        typedef SPA::UINT64 (WINAPI *PGetCurrentRequestIndex)(USocket_Server_Handle h);
-		typedef unsigned int (WINAPI *PNotifyInterrupt)(USocket_Server_Handle h, SPA::UINT64 options);
-		typedef SPA::UINT64 (WINAPI *PGetInterruptOptions)(USocket_Server_Handle h);
+        typedef SPA::UINT64(WINAPI *PGetCurrentRequestIndex)(USocket_Server_Handle h);
+        typedef unsigned int (WINAPI *PNotifyInterrupt)(USocket_Server_Handle h, SPA::UINT64 options);
+        typedef SPA::UINT64(WINAPI *PGetInterruptOptions)(USocket_Server_Handle h);
 
         namespace Internal {
 
@@ -414,8 +414,8 @@ namespace SPA {
                 PSendReturnDataIndex SendReturnDataIndex;
                 PSendExceptionResultIndex SendExceptionResultIndex;
                 PGetCurrentRequestIndex GetCurrentRequestIndex;
-				PNotifyInterrupt NotifyInterrupt;
-				PGetInterruptOptions GetInterruptOptions;
+                PNotifyInterrupt NotifyInterrupt;
+                PGetInterruptOptions GetInterruptOptions;
 
             public:
 
@@ -630,8 +630,8 @@ namespace SPA {
                     SendReturnDataIndex = (PSendReturnDataIndex)::GetProcAddress(m_hServerCore, "SendReturnDataIndex");
                     SendExceptionResultIndex = (PSendExceptionResultIndex)::GetProcAddress(m_hServerCore, "SendExceptionResultIndex");
                     GetCurrentRequestIndex = (PGetCurrentRequestIndex)::GetProcAddress(m_hServerCore, "GetCurrentRequestIndex");
-					NotifyInterrupt = (PNotifyInterrupt)::GetProcAddress(m_hServerCore, "NotifyInterrupt");
-					GetInterruptOptions = (PGetInterruptOptions)::GetProcAddress(m_hServerCore, "GetInterruptOptions");
+                    NotifyInterrupt = (PNotifyInterrupt)::GetProcAddress(m_hServerCore, "NotifyInterrupt");
+                    GetInterruptOptions = (PGetInterruptOptions)::GetProcAddress(m_hServerCore, "GetInterruptOptions");
                 }
 
             private:

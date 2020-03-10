@@ -297,9 +297,9 @@ namespace SPA
             return ServerCoreLoader.Dequeue2(qHandle, GetSocketHandle(), maxBytes, beNotifiedWhenAvailable, waitTime);
         }
 
-		bool CClientPeer::NotifyInterrupt(UINT64 options) const {
-			return (ServerCoreLoader.NotifyInterrupt(GetSocketHandle(), options) == sizeof(options));
-		}
+        bool CClientPeer::NotifyInterrupt(UINT64 options) const {
+            return (ServerCoreLoader.NotifyInterrupt(GetSocketHandle(), options) == sizeof (options));
+        }
 
         bool CClientPeer::AbortBatching() const {
             return ServerCoreLoader.AbortBatching(GetSocketHandle());
@@ -363,9 +363,9 @@ namespace SPA
             return ServerCoreLoader.GetCurrentRequestIndex(m_hHandler);
         }
 
-		UINT64 CSocketPeer::GetInterruptOptions() const {
-			return ServerCoreLoader.GetInterruptOptions(m_hHandler);
-		}
+        UINT64 CSocketPeer::GetInterruptOptions() const {
+            return ServerCoreLoader.GetInterruptOptions(m_hHandler);
+        }
 
         std::vector<unsigned int> CSocketPeer::GetChatGroups() const {
             CScopeUQueue sb;
@@ -463,9 +463,9 @@ namespace SPA
 
         }
 
-		void CSocketPeer::OnInterrupted(UINT64 options) {
+        void CSocketPeer::OnInterrupted(UINT64 options) {
 
-		}
+        }
 
         void CSocketPeer::OnBaseRequestArrive(unsigned short requestId) {
 
@@ -589,14 +589,13 @@ namespace SPA
                         pHttpPerr->m_vArg.clear();
                     }
                 }
-				if (usRequestID == SPA::idInterrupt) {
-					UINT64 options;
-					mc >> options;
-					p->OnInterrupted(options);
-				}
-				else {
-					p->OnRequestArrive(usRequestID, len);
-				}
+                if (usRequestID == SPA::idInterrupt) {
+                    UINT64 options;
+                    mc >> options;
+                    p->OnInterrupted(options);
+                } else {
+                    p->OnRequestArrive(usRequestID, len);
+                }
             }
         }
 

@@ -230,11 +230,11 @@ bool WINAPI WaitAll(USocket_Client_Handle h, unsigned int nTimeout) {
 }
 
 bool WINAPI SendInterruptRequest(USocket_Client_Handle h, SPA::UINT64 options) {
-	CClientSession *p = MapHandleToClientSession(h);
-	if (p) {
-		return p->SendInterruptRequest(options);
-	}
-	return false;
+    CClientSession *p = MapHandleToClientSession(h);
+    if (p) {
+        return p->SendInterruptRequest(options);
+    }
+    return false;
 }
 
 bool WINAPI Cancel(USocket_Client_Handle h, unsigned int requestsQueued) {
