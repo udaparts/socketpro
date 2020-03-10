@@ -177,7 +177,7 @@ m_bWBLocked(0),
 m_bZip(g_pServer->m_bZip),
 m_zl(SPA::zlDefault),
 m_pQBatch(nullptr),
-m_bCanceled(0),
+m_bCanceled(false),
 m_bDropSlowRequest(false),
 m_pHttpContext(nullptr),
 m_nHttpCallCount(0),
@@ -580,11 +580,11 @@ int CServerSession::ExecuteSlowRequestFromThreadPool(unsigned short sReqId) {
     return res;
 }
 
-unsigned int CServerSession::IsCanceled() {
+bool CServerSession::IsCanceled() {
     return m_bCanceled;
 }
 
-unsigned int CServerSession::IsCanceledInternally() {
+bool CServerSession::IsCanceledInternally() {
     unsigned int pos = 0;
     unsigned int lenAll = m_qRead.GetSize();
     unsigned int total = (m_ReqInfo.RequestId == SPA::idCancel || m_ReqInfo.RequestId == SPA::idInterrupt) ? 1 : 0;
@@ -626,7 +626,7 @@ unsigned int CServerSession::IsCanceledInternally() {
 				m_qRead.Insert((const unsigned char*)&m_InterruptOptions, sizeof(m_InterruptOptions), m_ReqInfo.Size);
 				m_qRead.Insert((const unsigned char*)&sh, sizeof(sh), m_ReqInfo.Size);
 			}
-			total = REQUEST_INTERRUPTED;
+			total = 0;
 		}
 		else {
 			if (pos) {
@@ -638,10 +638,9 @@ unsigned int CServerSession::IsCanceledInternally() {
 			m_qRead >> m_ReqInfo;
 			m_mapIndex.clear();
 			OnBaseRequestArrive();
-			total = REQUEST_CANCELED;
 		}
     }
-    return total;
+    return (total > 0);
 }
 
 SPA::UINT64 CServerSession::GetCallIndex() {
@@ -654,10 +653,7 @@ SPA::UINT64 CServerSession::GetCallIndex() {
 }
 
 SPA::UINT64 CServerSession::GetInterruptOptions() {
-	m_mutex.lock();
-	SPA::UINT64 options = m_InterruptOptions;
-	m_mutex.unlock();
-	return options;
+	return m_InterruptOptions;
 }
 
 unsigned int CServerSession::NotifyInterrupt(SPA::UINT64 options) {
@@ -860,7 +856,7 @@ void CServerSession::Start() {
     } else {
         m_cs = csConnected;
     }
-    m_bCanceled = 0;
+    m_bCanceled = false;
     ServiceId = SPA::sidStartup;
     Read();
 }
@@ -1480,7 +1476,7 @@ unsigned int CServerSession::SendReturnDataInternal(unsigned short usReqId, cons
     if (m_cs < csConnected || g_pServer->m_bStopped)
         return SOCKET_NOT_FOUND;
     if (usReqId != SPA::idCancel && m_bCanceled)
-        return m_bCanceled;
+        return REQUEST_CANCELED;
     if (m_pQBatch) {
         SPA::CStreamHeader sh;
         sh.RequestId = usReqId;
@@ -1695,11 +1691,11 @@ void CServerSession::OnNonBaseRequestArrive() {
 		}
 	}
 
+	//reqId == SPA::idInterrupt
 	if (m_ReqInfo.Size) {
 		m_qRead.Pop(m_ReqInfo.Size);
 		m_ReqInfo.Size = 0;
 	}
-	m_bCanceled = 0;
 	m_InterruptOptions = 0;
 }
 

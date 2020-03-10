@@ -51,7 +51,7 @@ unsigned int CResIndexImpl::SendReturnData(unsigned short usReqId, const unsigne
     if (session->m_cs < csConnected || g_pServer->m_bStopped)
         return SOCKET_NOT_FOUND;
     if (usReqId != SPA::idCancel && session->m_bCanceled)
-        return session->m_bCanceled;
+        return REQUEST_CANCELED;
     SPA::CUQueue *q;
     if (usReqId == SPA::idServerException)
         q = m_pQ;
