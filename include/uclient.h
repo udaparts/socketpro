@@ -247,6 +247,7 @@ extern "C" {
     void WINAPI SetQueueAutoMergeByPool(unsigned int poolId, bool autoMerge);
     void WINAPI SetOnPostProcessing(USocket_Client_Handle h, POnPostProcessing p);
     void WINAPI PostProcessing(USocket_Client_Handle h, unsigned int hint, SPA::UINT64 data);
+    bool WINAPI SendInterruptRequest(USocket_Client_Handle h, SPA::UINT64 options);
 
 #ifdef __cplusplus
 }

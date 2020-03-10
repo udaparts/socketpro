@@ -435,6 +435,8 @@ extern "C" {
     unsigned int WINAPI SendReturnDataIndex(USocket_Server_Handle h, SPA::UINT64 index, unsigned short usReqId, unsigned int ulBufferSize, const unsigned char *pBuffer);
     unsigned int WINAPI SendExceptionResultIndex(USocket_Server_Handle h, SPA::UINT64 index, const wchar_t* errMessage, const char* errWhere, unsigned short requestId, unsigned int errCode);
     SPA::UINT64 WINAPI GetCurrentRequestIndex(USocket_Server_Handle h);
+    unsigned int WINAPI NotifyInterrupt(USocket_Server_Handle h, SPA::UINT64 options);
+    SPA::UINT64 WINAPI GetInterruptOptions(USocket_Server_Handle h);
 
 #ifdef __cplusplus
 }

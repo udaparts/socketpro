@@ -6,8 +6,9 @@
 
 #endif
 
-namespace SPA {
-    namespace ClientSide {
+namespace SPA
+{
+    namespace ClientSide{
 
         CUCriticalSection g_csSpPool;
 
@@ -99,6 +100,10 @@ namespace SPA {
 
         }
 
+        void CAsyncServiceHandler::OnInterrupted(UINT64 options) {
+
+        }
+
         void CAsyncServiceHandler::OnExceptionFromServer(unsigned short requestId, const wchar_t *errMessage, const char* errWhere, unsigned int errCode) {
 
         }
@@ -117,6 +122,11 @@ namespace SPA {
             //call the method EndJob or AbortJob
             assert(!(ClientCoreLoader.IsQueueStarted(h) && ClientCoreLoader.GetJobSize(h) > 0));
             return ClientCoreLoader.WaitAll(h, timeOut);
+        }
+
+        bool CAsyncServiceHandler::Interrupt(UINT64 options) {
+            assert(ClientCoreLoader.SendInterruptRequest);
+            return ClientCoreLoader.SendInterruptRequest(GetClientSocketHandle(), options);
         }
 
         bool CAsyncServiceHandler::StartBatching() {
@@ -317,13 +327,20 @@ namespace SPA {
         }
 
         void CAsyncServiceHandler::OnRR(unsigned short reqId, CUQueue & mc) {
+            if (SPA::idInterrupt == reqId) {
+                UINT64 options;
+                mc >> options;
+                OnInterrupted(options);
+                return;
+            }
             PRR_PAIR p = nullptr;
             if (GetAsyncResultHandler(reqId, p) && p->second->AsyncResultHandler) {
                 CAsyncResult ar(this, reqId, mc, p->second->AsyncResultHandler);
                 p->second->AsyncResultHandler(ar);
             } else if (m_rrImpl.Invoke(this, reqId, mc)) {
-            } else
+            } else {
                 OnResultReturned(reqId, mc);
+            }
             m_rrStack.Recycle(p);
         }
 
@@ -505,7 +522,8 @@ namespace SPA {
         }
 
         void SetLastCallInfo(const char *str, int data, const char *func) {
-            char buff[4097] = {0};
+            char buff[4097] =
+            {0};
 #ifdef WIN32_64
             _snprintf_s(buff, sizeof (buff), sizeof (buff), "lf: %s, what: %s, data: %d", func, str, data);
 #else
@@ -630,7 +648,8 @@ namespace SPA {
         }
 
         std::string CClientSocket::GetPeerName(unsigned int *port) const {
-            char ipAddr[256] = {0};
+            char ipAddr[256] =
+            {0};
             ClientCoreLoader.GetPeerName(m_hSocket, port, ipAddr, sizeof (ipAddr));
             return ipAddr;
         }
@@ -663,7 +682,7 @@ namespace SPA {
             ClientCoreLoader.SetZip(m_hSocket, zip);
         }
 
-        bool CClientSocket::operator==(const CClientSocket & cs) const {
+        bool CClientSocket::operator == (const CClientSocket & cs) const {
             return (m_hSocket == cs.m_hSocket);
         }
 
@@ -926,7 +945,8 @@ namespace SPA {
         }
 
         std::string CClientSocket::GetErrorMsg() const {
-            char strErrorMsg[1025] = {0};
+            char strErrorMsg[1025] =
+            {0};
             ClientCoreLoader.GetErrorMessage(m_hSocket, strErrorMsg, sizeof (strErrorMsg));
             return strErrorMsg;
         }

@@ -145,6 +145,7 @@ namespace SPA {
         typedef void (WINAPI *PSetQueueAutoMergeByPool)(unsigned int poolId, bool autoMerge);
         typedef void (WINAPI *PSetOnPostProcessing)(USocket_Client_Handle h, POnPostProcessing p);
         typedef void (WINAPI *PPostProcessing)(USocket_Client_Handle h, unsigned int hint, SPA::UINT64 data);
+        typedef bool (WINAPI *PSendInterruptRequest)(USocket_Client_Handle h, SPA::UINT64 options);
 
         namespace Internal {
 
@@ -300,6 +301,7 @@ namespace SPA {
                     SetQueueAutoMergeByPool = (PSetQueueAutoMergeByPool)::GetProcAddress(m_hClientCore, L"SetQueueAutoMergeByPool");
                     SetOnPostProcessing = (PSetOnPostProcessing)::GetProcAddress(m_hClientCore, L"SetOnPostProcessing");
                     PostProcessing = (PPostProcessing)::GetProcAddress(m_hClientCore, L"PostProcessing");
+                    SendInterruptRequest = (PSendInterruptRequest)::GetProcAddress(m_hClientCore, L"SendInterruptRequest");
 #else
                     CreateSocketPool = (PCreateSocketPool)::GetProcAddress(m_hClientCore, "CreateSocketPool");
                     DestroySocketPool = (PDestroySocketPool)::GetProcAddress(m_hClientCore, "DestroySocketPool");
@@ -439,6 +441,7 @@ namespace SPA {
                     SetQueueAutoMergeByPool = (PSetQueueAutoMergeByPool)::GetProcAddress(m_hClientCore, "SetQueueAutoMergeByPool");
                     SetOnPostProcessing = (PSetOnPostProcessing)::GetProcAddress(m_hClientCore, "SetOnPostProcessing");
                     PostProcessing = (PPostProcessing)::GetProcAddress(m_hClientCore, "PostProcessing");
+                    SendInterruptRequest = (PSendInterruptRequest)::GetProcAddress(m_hClientCore, "SendInterruptRequest");
 #endif
                 }
 
@@ -586,6 +589,7 @@ namespace SPA {
                 PSetQueueAutoMergeByPool SetQueueAutoMergeByPool;
                 PSetOnPostProcessing SetOnPostProcessing;
                 PPostProcessing PostProcessing;
+                PSendInterruptRequest SendInterruptRequest;
 
             public:
 

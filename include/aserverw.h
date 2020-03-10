@@ -304,6 +304,7 @@ namespace SPA {
             void* GetSSL() const;
             void DropCurrentSlowRequest() const;
             UINT64 GetCurrentRequestIndex() const;
+            UINT64 GetInterruptOptions() const;
 
         protected:
             virtual void OnReleaseSource(bool bClosing, unsigned int info);
@@ -319,6 +320,7 @@ namespace SPA {
             virtual void OnFastRequestArrive(unsigned short requestId, unsigned int len) = 0;
             virtual int OnSlowRequestArrive(unsigned short requestId, unsigned int len) = 0;
             virtual void OnResultsSent();
+            virtual void OnInterrupted(UINT64 options);
 
         private:
             CScopeUQueue m_sb;
@@ -599,6 +601,7 @@ namespace SPA {
             IPushEx& GetPush();
             void AbortDequeuedMessage() const;
             bool IsDequeuedMessageAborted() const;
+            bool NotifyInterrupt(UINT64 options = 0) const;
 
         protected:
             virtual void OnPublishEx(const unsigned int *pGroup, unsigned int count, const unsigned char *pMessage, unsigned int size);

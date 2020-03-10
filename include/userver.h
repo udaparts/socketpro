@@ -112,8 +112,9 @@ namespace SPA {
 
 #define	SOCKET_NOT_FOUND		(0xFFFFFFFF)
 #define REQUEST_CANCELED		(0xFFFFFFFE)
-#define BAD_OPERATION			(0xFFFFFFFC)
 #define RESULT_SENDING_FAILED	(0xFFFFFFFD)
+#define BAD_OPERATION			(0xFFFFFFFC)
+#define REQUEST_INTERRUPTED		(0xFFFFFFFB)
 
 #ifdef __cplusplus
 extern "C" {

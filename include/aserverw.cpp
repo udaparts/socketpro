@@ -297,6 +297,10 @@ namespace SPA
             return ServerCoreLoader.Dequeue2(qHandle, GetSocketHandle(), maxBytes, beNotifiedWhenAvailable, waitTime);
         }
 
+        bool CClientPeer::NotifyInterrupt(UINT64 options) const {
+            return (ServerCoreLoader.NotifyInterrupt(GetSocketHandle(), options) == sizeof (options));
+        }
+
         bool CClientPeer::AbortBatching() const {
             return ServerCoreLoader.AbortBatching(GetSocketHandle());
         }
@@ -357,6 +361,10 @@ namespace SPA
 
         UINT64 CSocketPeer::GetCurrentRequestIndex() const {
             return ServerCoreLoader.GetCurrentRequestIndex(m_hHandler);
+        }
+
+        UINT64 CSocketPeer::GetInterruptOptions() const {
+            return ServerCoreLoader.GetInterruptOptions(m_hHandler);
         }
 
         std::vector<unsigned int> CSocketPeer::GetChatGroups() const {
@@ -452,6 +460,10 @@ namespace SPA
         }
 
         void CSocketPeer::OnResultsSent() {
+
+        }
+
+        void CSocketPeer::OnInterrupted(UINT64 options) {
 
         }
 
@@ -577,7 +589,13 @@ namespace SPA
                         pHttpPerr->m_vArg.clear();
                     }
                 }
-                p->OnRequestArrive(usRequestID, len);
+                if (usRequestID == SPA::idInterrupt) {
+                    UINT64 options;
+                    mc >> options;
+                    p->OnInterrupted(options);
+                } else {
+                    p->OnRequestArrive(usRequestID, len);
+                }
             }
         }
 

@@ -792,6 +792,7 @@ namespace SPA {
             virtual void OnExceptionFromServer(unsigned short requestId, const wchar_t *errMessage, const char* errWhere, unsigned int errCode);
             virtual void OnBaseRequestprocessed(unsigned short reqId);
             virtual void OnAllProcessed();
+            virtual void OnInterrupted(UINT64 options);
 
         public:
 
@@ -823,6 +824,7 @@ namespace SPA {
                 return m_pClientSocket;
             }
             virtual bool WaitAll(unsigned int timeOut = (~0));
+            virtual bool Interrupt(UINT64 options);
             bool StartBatching();
             bool CommitBatching(bool bBatchingAtServerSide = false);
             bool AbortBatching();
