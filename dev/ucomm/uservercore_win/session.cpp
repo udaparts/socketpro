@@ -588,57 +588,54 @@ bool CServerSession::IsCanceledInternally() {
     unsigned int pos = 0;
     unsigned int lenAll = m_qRead.GetSize();
     unsigned int total = (m_ReqInfo.RequestId == SPA::idCancel || m_ReqInfo.RequestId == SPA::idInterrupt) ? 1 : 0;
-	bool interrupted = (m_ReqInfo.RequestId == SPA::idInterrupt);
+    bool interrupted = (m_ReqInfo.RequestId == SPA::idInterrupt);
     if (!total) {
         SPA::CStreamHeader *p = &m_ReqInfo;
         while (lenAll > p->Size) {
             pos += p->Size;
             lenAll -= p->Size;
-			if (lenAll < sizeof(SPA::CStreamHeader)) {
-				break;
-			}
+            if (lenAll < sizeof (SPA::CStreamHeader)) {
+                break;
+            }
             p = (SPA::CStreamHeader*)m_qRead.GetBuffer(pos);
             if (p->RequestId == SPA::idCancel) {
                 total = 1;
                 break;
+            } else if (p->RequestId == SPA::idInterrupt) {
+                total = 1;
+                interrupted = true;
+                m_InterruptOptions = *((SPA::UINT64*)m_qRead.GetBuffer(pos + sizeof (SPA::CStreamHeader)));
+                break;
             }
-			else if (p->RequestId == SPA::idInterrupt) {
-				total = 1;
-				interrupted = true;
-				m_InterruptOptions = *((SPA::UINT64*)m_qRead.GetBuffer(pos + sizeof(SPA::CStreamHeader)));
-				break;
-			}
             pos += sizeof (SPA::CStreamHeader);
             lenAll -= sizeof (SPA::CStreamHeader);
         }
+    } else if (interrupted) {
+        m_InterruptOptions = *((SPA::UINT64*)m_qRead.GetBuffer());
     }
-	else if (interrupted) {
-		m_InterruptOptions = *((SPA::UINT64*)m_qRead.GetBuffer());
-	}
     if (total) {
-		if (interrupted) {
-			if (pos) {
-				SPA::CStreamHeader sh;
-				m_qRead.Pop((unsigned char*)&sh, sizeof(sh), pos);
-				assert(sh.RequestId == SPA::idInterrupt);
-				assert(sh.Size == sizeof(m_InterruptOptions));
-				m_qRead.Pop((unsigned char*)&m_InterruptOptions, sizeof(m_InterruptOptions), pos);
-				m_qRead.Insert((const unsigned char*)&m_InterruptOptions, sizeof(m_InterruptOptions), m_ReqInfo.Size);
-				m_qRead.Insert((const unsigned char*)&sh, sizeof(sh), m_ReqInfo.Size);
-			}
-			total = 0;
-		}
-		else {
-			if (pos) {
-				m_qRead.Pop(pos); //remove previous requests queued
+        if (interrupted) {
+            if (pos) {
+                SPA::CStreamHeader sh;
+                m_qRead.Pop((unsigned char*) &sh, sizeof (sh), pos);
+                assert(sh.RequestId == SPA::idInterrupt);
+                assert(sh.Size == sizeof (m_InterruptOptions));
+                m_qRead.Pop((unsigned char*) &m_InterruptOptions, sizeof (m_InterruptOptions), pos);
+                m_qRead.Insert((const unsigned char*) &m_InterruptOptions, sizeof (m_InterruptOptions), m_ReqInfo.Size);
+                m_qRead.Insert((const unsigned char*) &sh, sizeof (sh), m_ReqInfo.Size);
+            }
+            total = 0;
+        } else {
+            if (pos) {
+                m_qRead.Pop(pos); //remove previous requests queued
 #ifndef NDEBUG
-				std::cout << "Canceled bytes = " << pos << std::endl;
+                std::cout << "Canceled bytes = " << pos << std::endl;
 #endif
-			}
-			m_qRead >> m_ReqInfo;
-			m_mapIndex.clear();
-			OnBaseRequestArrive();
-		}
+            }
+            m_qRead >> m_ReqInfo;
+            m_mapIndex.clear();
+            OnBaseRequestArrive();
+        }
     }
     return (total > 0);
 }
@@ -653,19 +650,19 @@ SPA::UINT64 CServerSession::GetCallIndex() {
 }
 
 SPA::UINT64 CServerSession::GetInterruptOptions() {
-	return m_InterruptOptions;
+    return m_InterruptOptions;
 }
 
 unsigned int CServerSession::NotifyInterrupt(SPA::UINT64 options) {
-	SPA::CStreamHeader reqInfo;
-	reqInfo.RequestId = SPA::idInterrupt;
-	reqInfo.Size = sizeof(options);
-	CAutoLock sl(m_mutex);
-	if (m_cs < csConnected || g_pServer->m_bStopped) {
-		return SOCKET_NOT_FOUND;
-	}
-	Write(reqInfo, (const unsigned char*)&options, sizeof(options));
-	return sizeof(options);
+    SPA::CStreamHeader reqInfo;
+    reqInfo.RequestId = SPA::idInterrupt;
+    reqInfo.Size = sizeof (options);
+    CAutoLock sl(m_mutex);
+    if (m_cs < csConnected || g_pServer->m_bStopped) {
+        return SOCKET_NOT_FOUND;
+    }
+    Write(reqInfo, (const unsigned char*) &options, sizeof (options));
+    return sizeof (options);
 }
 
 bool CServerSession::FakeAClientRequest(unsigned short reqId, const unsigned char *pBuffer, unsigned int nBufferSize) {
@@ -981,7 +978,7 @@ bool CServerSession::IsRoutable(unsigned short reqId) {
         case SPA::idStartQueue:
         case SPA::idStopQueue:
         case SPA::idDequeueBatchConfirmed:
-		case SPA::idInterrupt:
+        case SPA::idInterrupt:
             return false;
             break;
         default:
@@ -1669,34 +1666,34 @@ void CServerSession::OnNonBaseRequestArrive() {
             });
         }
     }
-	{
-		CRAutoLock ral(m_mutex, m_bChatting);
-		if (p != nullptr) {
-			p(index, reqId, size);
-		}
-		if (reqId != SPA::idInterrupt) {
-			if (m_pServiceContext->IsSlowRequest(m_ReqInfo.RequestId)) {
-				if (m_bDropSlowRequest) {
-					return;
-				}
-				assert(m_pUThread == nullptr);
-				m_pUThread = g_pServer->GetOneThread(m_pServiceContext->GetSvsContext().m_ta);
-				m_pUThread->PostMessage(this, m_ReqInfo.RequestId, WM_ASK_FOR_PROCESSING, nullptr, 0);
-				return;
-			}
-			if (pF != nullptr) {
-				pF(index, reqId, size);
-			}
-			return;
-		}
-	}
+    {
+        CRAutoLock ral(m_mutex, m_bChatting);
+        if (p != nullptr) {
+            p(index, reqId, size);
+        }
+        if (reqId != SPA::idInterrupt) {
+            if (m_pServiceContext->IsSlowRequest(m_ReqInfo.RequestId)) {
+                if (m_bDropSlowRequest) {
+                    return;
+                }
+                assert(m_pUThread == nullptr);
+                m_pUThread = g_pServer->GetOneThread(m_pServiceContext->GetSvsContext().m_ta);
+                m_pUThread->PostMessage(this, m_ReqInfo.RequestId, WM_ASK_FOR_PROCESSING, nullptr, 0);
+                return;
+            }
+            if (pF != nullptr) {
+                pF(index, reqId, size);
+            }
+            return;
+        }
+    }
 
-	//reqId == SPA::idInterrupt
-	if (m_ReqInfo.Size) {
-		m_qRead.Pop(m_ReqInfo.Size);
-		m_ReqInfo.Size = 0;
-	}
-	m_InterruptOptions = 0;
+    //reqId == SPA::idInterrupt
+    if (m_ReqInfo.Size) {
+        m_qRead.Pop(m_ReqInfo.Size);
+        m_ReqInfo.Size = 0;
+    }
+    m_InterruptOptions = 0;
 }
 
 void CServerSession::OnBaseRequestArrive() {

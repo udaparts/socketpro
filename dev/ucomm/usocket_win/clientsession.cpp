@@ -269,16 +269,16 @@ SPA::CCertificateImpl* CClientSession::GetUCert() {
 }
 
 bool CClientSession::SendInterruptRequest(SPA::UINT64 options) {
-	SPA::CStreamHeader reqInfo;
-	reqInfo.RequestId = SPA::idInterrupt;
-	reqInfo.Size = sizeof(options);
-	CAutoLock sl(m_mutex);
-	if (m_ConnState < SPA::ClientSide::csSwitched) {
-		return false;
-	}
-	m_qReqIdCancel << reqInfo;
-	Write(reqInfo, (const unsigned char*)&options, sizeof(options));
-	return true;
+    SPA::CStreamHeader reqInfo;
+    reqInfo.RequestId = SPA::idInterrupt;
+    reqInfo.Size = sizeof (options);
+    CAutoLock sl(m_mutex);
+    if (m_ConnState < SPA::ClientSide::csSwitched) {
+        return false;
+    }
+    m_qReqIdCancel << reqInfo;
+    Write(reqInfo, (const unsigned char*) &options, sizeof (options));
+    return true;
 }
 
 bool CClientSession::Cancel(unsigned int requestsQueued) {

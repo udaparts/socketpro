@@ -121,7 +121,7 @@ public:
     bool StartBatching();
     bool CommitBatching();
     bool AbortBatching();
-	unsigned int NotifyInterrupt(SPA::UINT64 options);
+    unsigned int NotifyInterrupt(SPA::UINT64 options);
     bool Wait(unsigned int nTimeout = 5);
     int ExecuteSlowRequestFromThreadPool(unsigned short sReqId);
     void SetUserID(const wchar_t *strUserId);
@@ -196,7 +196,7 @@ public:
     SPA::CCertificateImpl* GetUCert();
     static bool IsBuiltinAllowed(unsigned int sid);
     SPA::UINT64 GetCallIndex();
-	SPA::UINT64 GetInterruptOptions();
+    SPA::UINT64 GetInterruptOptions();
 
 private:
     static unsigned int CompressResultTo(bool old, unsigned short reqId, SPA::tagZipLevel zl, const unsigned char *buffer, unsigned int size, SPA::CUQueue &q);
@@ -318,7 +318,7 @@ private:
 
     CMapIndex m_mapIndex;
     SPA::UINT64 m_indexCall;
-	atomic <SPA::UINT64> m_InterruptOptions;
+    atomic <SPA::UINT64> m_InterruptOptions;
 
     static std::mutex m_mutexRouteRequestId;
     static SPA::CUQueue m_qRouteRequestId;

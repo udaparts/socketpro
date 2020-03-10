@@ -254,6 +254,19 @@ CUCertImpl* CClientSession::GetUCert() {
     return m_pCert.get();
 }
 
+bool CClientSession::SendInterruptRequest(SPA::UINT64 options) {
+    SPA::CStreamHeader reqInfo;
+    reqInfo.RequestId = SPA::idInterrupt;
+    reqInfo.Size = sizeof (options);
+    CAutoLock sl(m_mutex);
+    if (m_ConnState < SPA::ClientSide::csSwitched) {
+        return false;
+    }
+    m_qReqIdCancel << reqInfo;
+    Write(reqInfo, (const unsigned char*) &options, sizeof (options));
+    return true;
+}
+
 bool CClientSession::Cancel(unsigned int requestsQueued) {
     CAutoLock sl(m_mutex);
     if (nullptr != m_pQBatch)
@@ -2682,7 +2695,7 @@ void CClientSession::OnReadCompleted(const CErrorCode& Error, size_t nLen) {
         }
         bool queued = m_ResultInfo.GetQueued();
         if (b) {
-            if (sReqId <= SPA::idReservedTwo && !queued) {
+            if (sReqId <= SPA::idReservedTwo && !queued && sReqId != SPA::idInterrupt) {
                 assert(m_RouterHandle == 0);
                 OnBaseRequestProcessed(sReqId, m_ResultInfo.Size);
             } else {

@@ -824,7 +824,7 @@ namespace SPA {
                 return m_pClientSocket;
             }
             virtual bool WaitAll(unsigned int timeOut = (~0));
-            bool Interrupt(UINT64 options = 0);
+            virtual bool Interrupt(UINT64 options);
             bool StartBatching();
             bool CommitBatching(bool bBatchingAtServerSide = false);
             bool AbortBatching();
