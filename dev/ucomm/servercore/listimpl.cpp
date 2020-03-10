@@ -985,6 +985,16 @@ unsigned int WINAPI NotifyInterrupt(USocket_Server_Handle h, SPA::UINT64 options
 	return SOCKET_NOT_FOUND;
 }
 
+SPA::UINT64 WINAPI GetInterruptOptions(USocket_Server_Handle h) {
+	unsigned int index;
+	CServerSession *pSession = GetSvrSession(h, index);
+	if (index == 0 || index != pSession->GetConnIndex())
+		return 0;
+	if (pSession)
+		return pSession->GetInterruptOptions();
+	return 0;
+}
+
 SPA::IUcert* WINAPI GetUCertEx(USocket_Server_Handle h) {
     unsigned int index;
     CServerSession *pSession = GetSvrSession(h, index);

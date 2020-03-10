@@ -304,6 +304,7 @@ namespace SPA {
             void* GetSSL() const;
             void DropCurrentSlowRequest() const;
             UINT64 GetCurrentRequestIndex() const;
+			UINT64 GetInterruptOptions() const;
 
         protected:
             virtual void OnReleaseSource(bool bClosing, unsigned int info);

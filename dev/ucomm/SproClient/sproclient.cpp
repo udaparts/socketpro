@@ -143,10 +143,14 @@ void TestTOne(const SPA::ClientSide::CConnectionContext &cc) {
         SPA::tagQueueStatus qs = p->GetAttachedClientSocket()->GetClientQueue().GetQueueOpenStatus();
         qs = qsNormal;
     }
-    b = p->SendRequest(idQueryCountCTOne, [](SPA::ClientSide::CAsyncResult & ar) {
-
-    });
+	for (int n = 0; n < 10; ++n) {
+		b = p->SendRequest(idQueryCountCTOne, [](SPA::ClientSide::CAsyncResult & ar) {
+		});
+	}
+	b = p->Interrupt(12345);
     assert(b);
+	b = p->WaitAll();
+	assert(b);
 #endif
 }
 

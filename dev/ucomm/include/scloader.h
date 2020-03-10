@@ -202,6 +202,7 @@ namespace SPA {
         typedef unsigned int (WINAPI *PSendExceptionResultIndex)(USocket_Server_Handle h, SPA::UINT64 index, const wchar_t* errMessage, const char* errWhere, unsigned short requestId, unsigned int errCode);
         typedef SPA::UINT64 (WINAPI *PGetCurrentRequestIndex)(USocket_Server_Handle h);
 		typedef unsigned int (WINAPI *PNotifyInterrupt)(USocket_Server_Handle h, SPA::UINT64 options);
+		typedef SPA::UINT64 (WINAPI *PGetInterruptOptions)(USocket_Server_Handle h);
 
         namespace Internal {
 
@@ -414,6 +415,7 @@ namespace SPA {
                 PSendExceptionResultIndex SendExceptionResultIndex;
                 PGetCurrentRequestIndex GetCurrentRequestIndex;
 				PNotifyInterrupt NotifyInterrupt;
+				PGetInterruptOptions GetInterruptOptions;
 
             public:
 
@@ -629,6 +631,7 @@ namespace SPA {
                     SendExceptionResultIndex = (PSendExceptionResultIndex)::GetProcAddress(m_hServerCore, "SendExceptionResultIndex");
                     GetCurrentRequestIndex = (PGetCurrentRequestIndex)::GetProcAddress(m_hServerCore, "GetCurrentRequestIndex");
 					NotifyInterrupt = (PNotifyInterrupt)::GetProcAddress(m_hServerCore, "NotifyInterrupt");
+					GetInterruptOptions = (PGetInterruptOptions)::GetProcAddress(m_hServerCore, "GetInterruptOptions");
                 }
 
             private:

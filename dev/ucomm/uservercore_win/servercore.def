@@ -200,4 +200,5 @@ EXPORTS
 	SendExceptionResultIndex @204
 	GetCurrentRequestIndex @205
 	NotifyInterrupt @206
+	GetInterruptOptions @207
 	

@@ -141,7 +141,7 @@ public:
     unsigned int SendExceptionResultIndex(SPA::UINT64 index, const wchar_t* errMessage, const char* errWhere, unsigned short requestId = 0, unsigned int errCode = 0);
     unsigned int SendExceptionResult(const char* errMessage, const char* errWhere, unsigned short requestId = 0, unsigned int errCode = 0);
     bool FakeAClientRequest(unsigned short reqId, const unsigned char *pBuffer, unsigned int nBufferSize);
-    bool IsCanceled();
+    unsigned int IsCanceled();
 
     //HTTP
     unsigned int GetHTTPRequestHeaders(SPA::ServerSide::CHttpHeaderValue *HeaderValue, unsigned int count);
@@ -196,6 +196,7 @@ public:
     SPA::CCertificateImpl* GetUCert();
     static bool IsBuiltinAllowed(unsigned int sid);
     SPA::UINT64 GetCallIndex();
+	SPA::UINT64 GetInterruptOptions();
 
 private:
     static unsigned int CompressResultTo(bool old, unsigned short reqId, SPA::tagZipLevel zl, const unsigned char *buffer, unsigned int size, SPA::CUQueue &q);
@@ -223,7 +224,7 @@ private:
     void CloseInternal();
     unsigned int RetrieveRequestBufferInternally(unsigned char *pBuffer, unsigned int ulBufferSize, bool bPeek);
     unsigned int QueryRequestsQueuedInternally();
-    bool IsCanceledInternally();
+    unsigned IsCanceledInternally();
     void Exit(const unsigned int *pChatGroupId, unsigned int nCount);
     void BounceBackMessage(unsigned short usReqId, const unsigned char *pBuffer, unsigned int size);
     void SendChatResult(const char *senderAddr, unsigned short senderClientPort, const wchar_t *sendUserId, unsigned int senderServiceId, unsigned short usReqId, const unsigned char *pBuffer, unsigned int size);
@@ -278,7 +279,7 @@ private:
     SPA::tagZipLevel m_zl;
     SPA::CUQueue *m_pQBatch;
     CErrorCode m_ec;
-    atomic<bool> m_bCanceled;
+    atomic<unsigned int> m_bCanceled;
 
 public:
     static CConditionVariable m_cv;
@@ -313,11 +314,11 @@ private:
     SPA::CSspiPtr m_pSspi;
     SPA::CCertificateImplPtr m_pCert;
 
-    bool m_bLastDequeue;
     SPA::CUQueue m_qBatchDequeueConfirm;
 
     CMapIndex m_mapIndex;
     SPA::UINT64 m_indexCall;
+	SPA::UINT64 m_InterruptOptions;
 
     static std::mutex m_mutexRouteRequestId;
     static SPA::CUQueue m_qRouteRequestId;

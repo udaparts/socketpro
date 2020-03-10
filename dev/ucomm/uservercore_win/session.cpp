@@ -177,7 +177,7 @@ m_bWBLocked(0),
 m_bZip(g_pServer->m_bZip),
 m_zl(SPA::zlDefault),
 m_pQBatch(nullptr),
-m_bCanceled(false),
+m_bCanceled(0),
 m_bDropSlowRequest(false),
 m_pHttpContext(nullptr),
 m_nHttpCallCount(0),
@@ -193,7 +193,9 @@ m_senderHandle(0),
 m_bRouteBatching(false),
 m_routingRequestCount(0),
 m_bCloseInternal(false),
-m_bChatting(false) {
+m_bChatting(false),
+m_indexCall(0),
+m_InterruptOptions(0) {
     memset(&m_ReqInfo, 0, sizeof (m_ReqInfo));
     memset(&m_ClientInfo, 0, sizeof (m_ClientInfo));
 }
@@ -578,11 +580,11 @@ int CServerSession::ExecuteSlowRequestFromThreadPool(unsigned short sReqId) {
     return res;
 }
 
-bool CServerSession::IsCanceled() {
+unsigned int CServerSession::IsCanceled() {
     return m_bCanceled;
 }
 
-bool CServerSession::IsCanceledInternally() {
+unsigned int CServerSession::IsCanceledInternally() {
     unsigned int pos = 0;
     unsigned int lenAll = m_qRead.GetSize();
     unsigned int total = (m_ReqInfo.RequestId == SPA::idCancel || m_ReqInfo.RequestId == SPA::idInterrupt) ? 1 : 0;
@@ -603,24 +605,28 @@ bool CServerSession::IsCanceledInternally() {
 			else if (p->RequestId == SPA::idInterrupt) {
 				total = 1;
 				interrupted = true;
+				m_InterruptOptions = *((SPA::UINT64*)m_qRead.GetBuffer(pos + sizeof(SPA::CStreamHeader)));
 				break;
 			}
             pos += sizeof (SPA::CStreamHeader);
             lenAll -= sizeof (SPA::CStreamHeader);
         }
     }
+	else if (interrupted) {
+		m_InterruptOptions = *((SPA::UINT64*)m_qRead.GetBuffer());
+	}
     if (total) {
 		if (interrupted) {
 			if (pos) {
-				UINT64 options;
 				SPA::CStreamHeader sh;
 				m_qRead.Pop((unsigned char*)&sh, sizeof(sh), pos);
 				assert(sh.RequestId == SPA::idInterrupt);
-				assert(sh.Size == sizeof(options));
-				m_qRead.Pop((unsigned char*)&options, sizeof(options), pos);
-				m_qRead.Insert((const unsigned char*)&options, sizeof(options), m_ReqInfo.Size);
+				assert(sh.Size == sizeof(m_InterruptOptions));
+				m_qRead.Pop((unsigned char*)&m_InterruptOptions, sizeof(m_InterruptOptions), pos);
+				m_qRead.Insert((const unsigned char*)&m_InterruptOptions, sizeof(m_InterruptOptions), m_ReqInfo.Size);
 				m_qRead.Insert((const unsigned char*)&sh, sizeof(sh), m_ReqInfo.Size);
 			}
+			total = REQUEST_INTERRUPTED;
 		}
 		else {
 			if (pos) {
@@ -632,9 +638,10 @@ bool CServerSession::IsCanceledInternally() {
 			m_qRead >> m_ReqInfo;
 			m_mapIndex.clear();
 			OnBaseRequestArrive();
+			total = REQUEST_CANCELED;
 		}
     }
-    return (total > 0);
+    return total;
 }
 
 SPA::UINT64 CServerSession::GetCallIndex() {
@@ -644,6 +651,13 @@ SPA::UINT64 CServerSession::GetCallIndex() {
         index = m_indexCall;
     m_mutex.unlock();
     return index;
+}
+
+SPA::UINT64 CServerSession::GetInterruptOptions() {
+	m_mutex.lock();
+	SPA::UINT64 options = m_InterruptOptions;
+	m_mutex.unlock();
+	return options;
 }
 
 unsigned int CServerSession::NotifyInterrupt(SPA::UINT64 options) {
@@ -846,7 +860,7 @@ void CServerSession::Start() {
     } else {
         m_cs = csConnected;
     }
-    m_bCanceled = false;
+    m_bCanceled = 0;
     ServiceId = SPA::sidStartup;
     Read();
 }
@@ -1466,7 +1480,7 @@ unsigned int CServerSession::SendReturnDataInternal(unsigned short usReqId, cons
     if (m_cs < csConnected || g_pServer->m_bStopped)
         return SOCKET_NOT_FOUND;
     if (usReqId != SPA::idCancel && m_bCanceled)
-        return REQUEST_CANCELED;
+        return m_bCanceled;
     if (m_pQBatch) {
         SPA::CStreamHeader sh;
         sh.RequestId = usReqId;
@@ -1659,22 +1673,34 @@ void CServerSession::OnNonBaseRequestArrive() {
             });
         }
     }
-    CRAutoLock ral(m_mutex, m_bChatting);
-    if (p != nullptr) {
-        p(index, reqId, size);
-    }
-    if (m_pServiceContext->IsSlowRequest(m_ReqInfo.RequestId)) {
-        if (m_bDropSlowRequest) {
-            return;
-        }
-        assert(m_pUThread == nullptr);
-        m_pUThread = g_pServer->GetOneThread(m_pServiceContext->GetSvsContext().m_ta);
-        m_pUThread->PostMessage(this, m_ReqInfo.RequestId, WM_ASK_FOR_PROCESSING, nullptr, 0);
-        return;
-    }
-    if (pF != nullptr) {
-        pF(index, reqId, size);
-    }
+	{
+		CRAutoLock ral(m_mutex, m_bChatting);
+		if (p != nullptr) {
+			p(index, reqId, size);
+		}
+		if (reqId != SPA::idInterrupt) {
+			if (m_pServiceContext->IsSlowRequest(m_ReqInfo.RequestId)) {
+				if (m_bDropSlowRequest) {
+					return;
+				}
+				assert(m_pUThread == nullptr);
+				m_pUThread = g_pServer->GetOneThread(m_pServiceContext->GetSvsContext().m_ta);
+				m_pUThread->PostMessage(this, m_ReqInfo.RequestId, WM_ASK_FOR_PROCESSING, nullptr, 0);
+				return;
+			}
+			if (pF != nullptr) {
+				pF(index, reqId, size);
+			}
+			return;
+		}
+	}
+
+	if (m_ReqInfo.Size) {
+		m_qRead.Pop(m_ReqInfo.Size);
+		m_ReqInfo.Size = 0;
+	}
+	m_bCanceled = 0;
+	m_InterruptOptions = 0;
 }
 
 void CServerSession::OnBaseRequestArrive() {
@@ -3331,7 +3357,6 @@ bool CServerSession::Process() {
         if (m_ReqInfo.RequestId > SPA::idSwitchTo && m_pServiceContext && !m_pServiceContext->m_bRegisterred) {
             CServer::m_reg.AddCall(ServiceId, m_ReqInfo.GetOS(), m_ReqInfo.GetQueued(), m_ReqInfo.IsBigEndian());
         }
-        m_bLastDequeue = false;
         if (m_pRoutingServiceContext != nullptr && IsRoutable(m_ReqInfo.RequestId) && m_pServiceContext && (!m_pServiceContext->IsAlpah(m_ReqInfo.RequestId))) {
             if (Route()) {
                 continue;
@@ -3366,8 +3391,8 @@ bool CServerSession::Process() {
         if (m_ReqInfo.GetQueued()) {
             assert(m_ReqInfo.Size >= sizeof (m_qa));
             m_qRead >> m_qa;
-            m_bLastDequeue = ((m_qa.MessagePos & MQ_FILE::QAttr::RANGE_DEQUEUED_POSITION_END) == MQ_FILE::QAttr::RANGE_DEQUEUED_POSITION_END);
-            if (m_bLastDequeue) {
+            bool bLastDequeue = ((m_qa.MessagePos & MQ_FILE::QAttr::RANGE_DEQUEUED_POSITION_END) == MQ_FILE::QAttr::RANGE_DEQUEUED_POSITION_END);
+            if (bLastDequeue) {
                 m_qa.MessagePos -= MQ_FILE::QAttr::RANGE_DEQUEUED_POSITION_END;
             }
             m_ReqInfo.Size -= sizeof (m_qa);
