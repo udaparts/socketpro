@@ -114,7 +114,6 @@ namespace SPA {
 #define REQUEST_CANCELED		(0xFFFFFFFE)
 #define RESULT_SENDING_FAILED	(0xFFFFFFFD)
 #define BAD_OPERATION			(0xFFFFFFFC)
-#define REQUEST_INTERRUPTED		(0xFFFFFFFB)
 
 #ifdef __cplusplus
 extern "C" {
