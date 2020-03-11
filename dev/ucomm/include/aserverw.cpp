@@ -463,7 +463,7 @@ namespace SPA
 
         }
 
-        void CSocketPeer::OnInterrupted(UINT64 options) {
+        void CClientPeer::OnInterrupted(UINT64 options) {
 
         }
 
@@ -588,11 +588,12 @@ namespace SPA
                         pHttpPerr->m_WebRequestName.clear();
                         pHttpPerr->m_vArg.clear();
                     }
-                }
-                if (usRequestID == SPA::idInterrupt) {
+                    p->OnRequestArrive(usRequestID, len);
+                } else if (usRequestID == SPA::idInterrupt) {
                     UINT64 options;
                     mc >> options;
-                    p->OnInterrupted(options);
+                    CClientPeer *cp = (CClientPeer*) p;
+                    cp->OnInterrupted(options);
                 } else {
                     p->OnRequestArrive(usRequestID, len);
                 }
