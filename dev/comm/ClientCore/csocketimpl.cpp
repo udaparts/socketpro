@@ -23,7 +23,7 @@ CClientSession *MapHandleToClientSession(USocket_Client_Handle h) {
     return p;
 }
 
-std::string g_strVersion("6.3.0.3");
+std::string g_strVersion("6.3.1.1");
 
 const char* WINAPI GetUClientSocketVersion() {
     return g_strVersion.c_str();
@@ -251,6 +251,14 @@ bool WINAPI WaitAll(USocket_Client_Handle h, unsigned int nTimeout) {
         ok = p->WaitAll(nTimeout);
     }
     return ok;
+}
+
+bool WINAPI SendInterruptRequest(USocket_Client_Handle h, SPA::UINT64 options) {
+    CClientSession *p = MapHandleToClientSession(h);
+    if (p) {
+        return p->SendInterruptRequest(options);
+    }
+    return false;
 }
 
 bool WINAPI Cancel(USocket_Client_Handle h, unsigned int requestsQueued) {

@@ -146,4 +146,6 @@ EXPORTS
 	SetQueueAutoMergeByPool @143
 	SetOnPostProcessing @144
 	PostProcessing @145
+	SendInterruptRequest @146
+	
 	
