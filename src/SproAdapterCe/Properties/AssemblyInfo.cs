@@ -10,7 +10,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("UDAParts")]
 [assembly: AssemblyProduct("SproAdapterCe")]
-[assembly: AssemblyCopyright("Copyright © UDAParts 2002-2019")]
+[assembly: AssemblyCopyright("Copyright © UDAParts 2002-2020")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
@@ -31,4 +31,4 @@ using System.Runtime.InteropServices;
 //
 // You can specify all the values or you can default the Revision and Build Numbers 
 // by using the '*' as shown below:
-[assembly: AssemblyVersion("4.3.0.6")]
+[assembly: AssemblyVersion("4.3.1.1")]

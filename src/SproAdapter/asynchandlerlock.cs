@@ -409,10 +409,23 @@ namespace SocketProAdapter
                 }
             }
 
+            virtual protected void OnInterrupted(ulong options)
+            {
+
+            }
+
             private CAsyncResult m_ar = null;
 
             internal void onRR(ushort reqId, CUQueue mc)
             {
+                if (tagBaseRequestID.idInterrupt == (tagBaseRequestID)reqId)
+                {
+                    ulong options;
+                    mc.Load(out options);
+                    OnInterrupted(options);
+                    return;
+                }
+
                 MyKeyValue<ushort, CResultCb> p = GetAsyncResultHandler(reqId);
                 do
                 {
@@ -2066,6 +2079,18 @@ namespace SocketProAdapter
             internal void SetNull()
             {
                 m_ClientSocket = null;
+            }
+
+            public virtual bool Interrupt(ulong options)
+            {
+                if (m_ClientSocket == null)
+                    return false;
+                IntPtr h = m_ClientSocket.Handle;
+#if WINCE
+                return (ClientCoreLoader.SendInterruptRequest(h, (uint)options) != 0);
+#else
+                return (ClientCoreLoader.SendInterruptRequest(h, options) != 0);
+#endif
             }
 
             public virtual bool SendRequest(ushort reqId, byte[] data, uint len, DAsyncResultHandler ash, DDiscarded discarded, DOnExceptionFromServer exception)

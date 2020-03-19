@@ -116,7 +116,7 @@ namespace SocketProAdapter
         idStartQueue = (idMessageQueued + 1),
         idStopQueue = (idStartQueue + 1),
         idRoutePeerUnavailable = (idStopQueue + 1),
-
+        idInterrupt = (idRoutePeerUnavailable + 1),
         idReservedOne = 0x100,
         idReservedTwo = 0x2001
     }

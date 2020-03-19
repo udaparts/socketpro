@@ -685,7 +685,8 @@ namespace SocketProAdapter
                         }
                         break;
                     case 10:
-                        switch (outputs) {
+                        switch (outputs)
+                        {
                             case 0:
                                 delType = typeof(DM_I10_R0<,,,,,,,,,>);
                                 break;
@@ -802,10 +803,8 @@ namespace SocketProAdapter
                 SetDel();
             }
 
-            public IUPushEx Push
-            {
-                get
-                {
+            public IUPushEx Push {
+                get {
                     return m_PushImpl;
                 }
             }
@@ -895,34 +894,47 @@ namespace SocketProAdapter
                 ServerCoreLoader.EnableClientDequeue(Handle, enable);
             }
 
-            public tagZipLevel ZipLevel
+            public bool NotifyInterrupt(ulong options)
             {
-                get
-                {
+                return (ServerCoreLoader.NotifyInterrupt(Handle, options) == sizeof(ulong));
+            }
+
+            protected virtual void OnInterrupted(ulong options)
+            {
+
+            }
+
+            internal void OnIntNotified(ulong options)
+            {
+                OnInterrupted(options);
+            }
+
+            public tagZipLevel ZipLevel {
+                get {
                     return ServerCoreLoader.GetZipLevel(Handle);
                 }
-                set
-                {
+                set {
                     ServerCoreLoader.SetZipLevel(Handle, value);
                 }
             }
 
-            public bool Zip
-            {
-                get
-                {
+            public ulong InterruptOptions {
+                get {
+                    return ServerCoreLoader.GetInterruptOptions(Handle);
+                }
+            }
+
+            public bool Zip {
+                get {
                     return ServerCoreLoader.GetZip(Handle);
                 }
-                set
-                {
+                set {
                     ServerCoreLoader.SetZip(Handle, value);
                 }
             }
 
-            public bool DequeuedMessageAborted
-            {
-                get
-                {
+            public bool DequeuedMessageAborted {
+                get {
                     return ServerCoreLoader.IsDequeuedMessageAborted(Handle);
                 }
             }
@@ -932,10 +944,8 @@ namespace SocketProAdapter
                 ServerCoreLoader.AbortDequeuedMessage(Handle);
             }
 
-            public bool IsDequeueRequest
-            {
-                get
-                {
+            public bool IsDequeueRequest {
+                get {
                     return ServerCoreLoader.IsDequeueRequest(Handle);
                 }
             }
@@ -951,10 +961,8 @@ namespace SocketProAdapter
                 return ServerCoreLoader.GetPeerOs(Handle, ref endian);
             }
 
-            public uint BytesBatched
-            {
-                get
-                {
+            public uint BytesBatched {
+                get {
                     return ServerCoreLoader.GetBytesBatched(Handle);
                 }
             }
@@ -2170,7 +2178,7 @@ namespace SocketProAdapter
                 R0 r0;
                 R1 r1;
                 R2 r2;
-                f(a0, a1, a2, a3, a4, a5, a6, out r0, out r1, out  r2);
+                f(a0, a1, a2, a3, a4, a5, a6, out r0, out r1, out r2);
                 return SendResult(CurrentRequestID, r0, r1, r2);
             }
 
@@ -2374,7 +2382,7 @@ namespace SocketProAdapter
                 A7 a7;
                 UQueue.Load(out a7);
                 R0 r0;
-                f(a0, a1, a2, a3, a4, a5, a6, a7, out  r0);
+                f(a0, a1, a2, a3, a4, a5, a6, a7, out r0);
                 return SendResult(CurrentRequestID, r0);
             }
 
@@ -2398,7 +2406,7 @@ namespace SocketProAdapter
                 UQueue.Load(out a7);
                 R0 r0;
                 R1 r1;
-                f(a0, a1, a2, a3, a4, a5, a6, a7, out r0, out  r1);
+                f(a0, a1, a2, a3, a4, a5, a6, a7, out r0, out r1);
                 return SendResult(CurrentRequestID, r0, r1);
             }
 
@@ -2449,7 +2457,7 @@ namespace SocketProAdapter
                 R1 r1;
                 R2 r2;
                 R3 r3;
-                f(a0, a1, a2, a3, a4, a5, a6, a7, out r0, out r1, out r2, out  r3);
+                f(a0, a1, a2, a3, a4, a5, a6, a7, out r0, out r1, out r2, out r3);
                 return SendResult(CurrentRequestID, r0, r1, r2, r3);
             }
 
@@ -2476,7 +2484,7 @@ namespace SocketProAdapter
                 R2 r2;
                 R3 r3;
                 R4 r4;
-                f(a0, a1, a2, a3, a4, a5, a6, a7, out r0, out r1, out r2, out r3, out  r4);
+                f(a0, a1, a2, a3, a4, a5, a6, a7, out r0, out r1, out r2, out r3, out r4);
                 return SendResult(CurrentRequestID, r0, r1, r2, r3, r4);
             }
 

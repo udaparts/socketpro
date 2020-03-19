@@ -321,6 +321,13 @@ namespace SocketProAdapter
 
             [DllImport(CLIENT_CORE_DLL)]
             internal static extern uint GetJobSize(IntPtr h);
+
+            [DllImport(CLIENT_CORE_DLL)]
+            [return: MarshalAs(UnmanagedType.I1)]
+            internal static extern byte SendInterruptRequest(IntPtr h, uint options);
+
+            [DllImport(CLIENT_CORE_DLL)]
+            internal static extern void PostProcessing(IntPtr h, uint hint, uint data);
 #else
             [DllImport(CLIENT_CORE_DLL)]
             internal static extern ulong GetBytesReceived(IntPtr h);
@@ -351,6 +358,13 @@ namespace SocketProAdapter
 
             [DllImport(CLIENT_CORE_DLL)]
             internal static extern ulong GetJobSize(IntPtr h);
+
+            [DllImport(CLIENT_CORE_DLL)]
+            [return: MarshalAs(UnmanagedType.I1)]
+            internal static extern byte SendInterruptRequest(IntPtr h, ulong options);
+
+            [DllImport(CLIENT_CORE_DLL)]
+            internal static extern void PostProcessing(IntPtr h, uint hint, ulong data);
 #endif
 
             [DllImport(CLIENT_CORE_DLL)]
@@ -573,9 +587,6 @@ namespace SocketProAdapter
 
             [DllImport(CLIENT_CORE_DLL)]
             internal static extern void SetOnPostProcessing(IntPtr h, POnPostProcessing p);
-
-            [DllImport(CLIENT_CORE_DLL)]
-            internal static extern void PostProcessing(IntPtr h, uint hint, ulong data);
         }
     }
 }

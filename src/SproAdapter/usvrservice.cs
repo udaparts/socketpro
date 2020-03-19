@@ -28,7 +28,7 @@ namespace SocketProAdapter
             {
                 lock (m_cs)
                 {
-                    CSocketPeer found = m_lstPeer.Find(delegate(CSocketPeer sp) { return (sp.m_sh == hSocket); });
+                    CSocketPeer found = m_lstPeer.Find(delegate (CSocketPeer sp) { return (sp.m_sh == hSocket); });
                     if (found != null)
                     {
                         found.m_qBuffer.SetSize(0);
@@ -124,26 +124,20 @@ namespace SocketProAdapter
                 return false;
             }
 
-            public uint SvsID
-            {
-                get
-                {
+            public uint SvsID {
+                get {
                     return m_svsId;
                 }
             }
 
-            public uint CountOfSlowRequests
-            {
-                get
-                {
+            public uint CountOfSlowRequests {
+                get {
                     return ServerCoreLoader.GetCountOfSlowRequests(m_svsId);
                 }
             }
 
-            public List<ushort> AllSlowRequestIds
-            {
-                get
-                {
+            public List<ushort> AllSlowRequestIds {
+                get {
                     uint res;
                     ushort[] sr = new ushort[4097];
                     unsafe
@@ -162,14 +156,11 @@ namespace SocketProAdapter
                 }
             }
 
-            public bool ReturnRandom
-            {
-                get
-                {
+            public bool ReturnRandom {
+                get {
                     return ServerCoreLoader.GetReturnRandom(m_svsId);
                 }
-                set
-                {
+                set {
                     ServerCoreLoader.SetReturnRandom(m_svsId, value);
                 }
             }
@@ -204,10 +195,8 @@ namespace SocketProAdapter
                 return ServerCoreLoader.AddAlphaRequest(m_svsId, reqId);
             }
 
-            public List<ushort> AlphaRequestIds
-            {
-                get
-                {
+            public List<ushort> AlphaRequestIds {
+                get {
                     uint res;
                     ushort[] sr = new ushort[4097];
                     unsafe
@@ -274,6 +263,14 @@ namespace SocketProAdapter
                 {
                     q.OS = sp.m_os;
                     q.Endian = sp.m_endian;
+                    if ((tagBaseRequestID)usRequestID == tagBaseRequestID.idInterrupt)
+                    {
+                        CClientPeer cp = (CClientPeer)sp;
+                        ulong options;
+                        q.Load(out options);
+                        cp.OnIntNotified(options);
+                        return;
+                    }
                 }
                 else
                 {
