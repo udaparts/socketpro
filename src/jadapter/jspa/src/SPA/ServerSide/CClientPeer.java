@@ -102,6 +102,18 @@ public class CClientPeer extends CSocketPeer {
         return ServerCoreLoader.AbortBatching(getHandle());
     }
 
+    public final boolean NotifyInterrupt(long options) {
+        return (ServerCoreLoader.NotifyInterrupt(getHandle(), options) == 8);
+    }
+
+    public long getInterruptOptions() {
+        return ServerCoreLoader.GetInterruptOptions(getHandle());
+    }
+
+    protected void OnInterrupted(long options) {
+
+    }
+
     protected final int SendResult(short reqId) {
         return SendResult(reqId, (java.nio.ByteBuffer) null, 0);
     }
@@ -130,16 +142,6 @@ public class CClientPeer extends CSocketPeer {
         }
         return ServerCoreLoader.SendReturnData(getHandle(), reqId, len, data, offset);
     }
-    /*
-     protected int SendResultIndex(long reqIndex, short reqId, byte[] data, int len) {
-     if (data == null) {
-     len = 0;
-     } else if (len > data.length) {
-     len = data.length;
-     }
-     return ServerCoreLoader.SendReturnDataIndex(getHandle(), reqIndex, reqId, len, data);
-     }
-     */
 
     protected int SendResultIndex(long reqIndex, short reqId, java.nio.ByteBuffer data, int len) {
         int offset = 0;

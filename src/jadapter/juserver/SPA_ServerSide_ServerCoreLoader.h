@@ -1542,6 +1542,23 @@ JNIEXPORT void JNICALL Java_SPA_ServerSide_Odbc_SetOdbcDBGlobalConnectionString
 
 JNIEXPORT jboolean JNICALL Java_SPA_ServerSide_Odbc_DoODBCAuthentication(JNIEnv *, jclass, jlong, jstring, jstring, jint, jstring, jstring);
 
+/*
+ * Class:     SPA_ServerSide_ServerCoreLoader
+ * Method:    GetInterruptOptions
+ * Signature: (J)J
+ */
+JNIEXPORT jlong JNICALL Java_SPA_ServerSide_ServerCoreLoader_GetInterruptOptions
+(JNIEnv *, jclass, jlong);
+
+/*
+ * Class:     SPA_ServerSide_ServerCoreLoader
+ * Method:    NotifyInterrupt
+ * Signature: (JJ)I
+ */
+JNIEXPORT jint JNICALL Java_SPA_ServerSide_ServerCoreLoader_NotifyInterrupt
+(JNIEnv *, jclass, jlong, jlong);
+
+
 #ifdef __cplusplus
 }
 #endif

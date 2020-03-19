@@ -1342,6 +1342,14 @@ JNIEXPORT jint JNICALL Java_SPA_ServerSide_ServerCoreLoader_GetMainThreads(JNIEn
     return ::GetMainThreads();
 }
 
+JNIEXPORT jlong JNICALL Java_SPA_ServerSide_ServerCoreLoader_GetInterruptOptions(JNIEnv *, jclass, jlong h) {
+    return (jlong) GetInterruptOptions((USocket_Server_Handle) h);
+}
+
+JNIEXPORT jint JNICALL Java_SPA_ServerSide_ServerCoreLoader_NotifyInterrupt(JNIEnv *, jclass, jlong h, jlong options) {
+    return (jint) NotifyInterrupt((USocket_Server_Handle) h, (SPA::UINT64) options);
+}
+
 JNIEXPORT jint JNICALL Java_SPA_ServerSide_ServerCoreLoader_GetTTL(JNIEnv *, jclass, jint qHandle) {
     return (jint) GetTTL((unsigned int) qHandle);
 }

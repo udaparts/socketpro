@@ -256,4 +256,6 @@ class ClientCoreLoader {
     static native void SetQueueAutoMergeByPool(int poolId, boolean autoMerge);
 
     static native void PostProcessing(long h, int hint, long data);
+
+    static native boolean SendInterruptRequest(long h, long options);
 }

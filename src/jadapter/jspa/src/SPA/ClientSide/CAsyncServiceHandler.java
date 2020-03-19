@@ -367,6 +367,14 @@ public class CAsyncServiceHandler implements AutoCloseable {
         return CommitBatching(false);
     }
 
+    public boolean Interrupt(long options) {
+        long h = getCSHandle();
+        if (h == 0) {
+            return false;
+        }
+        return ClientCoreLoader.SendInterruptRequest(h, options);
+    }
+
     private boolean m_bBatching = false;
 
     public boolean CommitBatching(boolean bBatchingAtServerSide) {
@@ -443,9 +451,18 @@ public class CAsyncServiceHandler implements AutoCloseable {
         }
     }
 
+    protected void OnInterrupted(long options) {
+
+    }
+
     private final CAsyncResult m_ar = new CAsyncResult(this, (short) 0, null, null);
 
     final void onRR(short reqId, SPA.CUQueue mc) {
+        if (reqId == SPA.tagBaseRequestID.idInterrupt.getValue()) {
+            long options = mc.LoadLong();
+            OnInterrupted(options);
+            return;
+        }
         java.util.Map.Entry<Short, CResultCb> p = GetAsyncResultHandler(reqId);
         if (p != null && p.getValue() != null && p.getValue().AsyncResultHandler != null) {
             m_ar.Reset(reqId, mc, p.getValue().AsyncResultHandler);

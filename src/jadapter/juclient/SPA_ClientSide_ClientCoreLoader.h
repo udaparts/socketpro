@@ -1000,6 +1000,15 @@ JNIEXPORT void JNICALL Java_SPA_ClientSide_ClientCoreLoader_SetQueueAutoMergeByP
 JNIEXPORT void JNICALL Java_SPA_ClientSide_ClientCoreLoader_PostProcessing
   (JNIEnv *, jclass, jlong, jint, jlong);
 
+
+/*
+ * Class:     SPA_ClientSide_ClientCoreLoader
+ * Method:    SendInterruptRequest
+ * Signature: (JJ)Z
+ */
+JNIEXPORT jboolean JNICALL Java_SPA_ClientSide_ClientCoreLoader_SendInterruptRequest
+(JNIEnv *, jclass, jlong, jlong);
+
 #ifdef __cplusplus
 }
 #endif

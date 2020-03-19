@@ -380,4 +380,8 @@ final class ServerCoreLoader {
     static native void SetLastCallInfo(byte[] str, int len);
 
     static native int GetMainThreads();
+
+    static native int NotifyInterrupt(long h, long options);
+
+    static native long GetInterruptOptions(long h);
 }

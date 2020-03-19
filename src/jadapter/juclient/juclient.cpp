@@ -1384,3 +1384,7 @@ JNIEXPORT jboolean JNICALL Java_SPA_ClientSide_ClientCoreLoader_GetQueueAutoMerg
 JNIEXPORT void JNICALL Java_SPA_ClientSide_ClientCoreLoader_SetQueueAutoMergeByPool(JNIEnv *, jclass, jint poolId, jboolean merge) {
     return SetQueueAutoMergeByPool((unsigned int) poolId, merge ? true : false);
 }
+
+JNIEXPORT jboolean JNICALL Java_SPA_ClientSide_ClientCoreLoader_SendInterruptRequest(JNIEnv *env, jclass, jlong h, jlong options) {
+    return SendInterruptRequest((USocket_Client_Handle) h, (SPA::UINT64) options);
+}
