@@ -518,10 +518,12 @@ public abstract class CSocketPeer {
         if (getSvsID() != SPA.BaseServiceID.sidHTTP) {
             q.setOS(m_os);
             q.setEndian(m_endian);
-            long options = q.LoadLong();
-            CClientPeer cs = (CClientPeer) this;
-            cs.OnInterrupted(options);
-            return;
+            if (requestId == SPA.tagBaseRequestID.idInterrupt.getValue()) {
+                long options = q.LoadLong();
+                CClientPeer cs = (CClientPeer) this;
+                cs.OnInterrupted(options);
+                return;
+            }
         } else {
             CHttpPeerBase hp = (CHttpPeerBase) this;
             hp.m_WebRequestName = null;
