@@ -116,7 +116,8 @@ namespace SocketProAdapter
         idStartQueue = (idMessageQueued + 1),
         idStopQueue = (idStartQueue + 1),
         idRoutePeerUnavailable = (idStopQueue + 1),
-        idInterrupt = (idRoutePeerUnavailable + 1),
+        idDequeueBatchConfirmed = (idRoutePeerUnavailable + 1),
+        idInterrupt = (idDequeueBatchConfirmed + 1),
         idReservedOne = 0x100,
         idReservedTwo = 0x2001
     }
@@ -550,14 +551,11 @@ namespace SocketProAdapter
             }
 
             [DataMember(IsRequired = false)]
-            public string Password
-            {
-                internal get
-                {
+            public string Password {
+                internal get {
                     return m_Password;
                 }
-                set
-                {
+                set {
                     m_Password = value;
                 }
             }
@@ -788,7 +786,7 @@ namespace SocketProAdapter
             amIntegrated = (amMixed + 1),
             amTrusted = (amIntegrated + 1)
         }
-		;
+        ;
 
         public enum tagHttpMethod
         {
