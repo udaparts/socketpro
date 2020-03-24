@@ -304,7 +304,6 @@ namespace SPA {
             void* GetSSL() const;
             void DropCurrentSlowRequest() const;
             UINT64 GetCurrentRequestIndex() const;
-            UINT64 GetInterruptOptions() const;
 
         protected:
             virtual void OnReleaseSource(bool bClosing, unsigned int info);
@@ -601,6 +600,7 @@ namespace SPA {
             void AbortDequeuedMessage() const;
             bool IsDequeuedMessageAborted() const;
             bool NotifyInterrupt(UINT64 options) const;
+            UINT64 GetInterruptOptions() const;
 
         protected:
             virtual void OnPublishEx(const unsigned int *pGroup, unsigned int count, const unsigned char *pMessage, unsigned int size);
