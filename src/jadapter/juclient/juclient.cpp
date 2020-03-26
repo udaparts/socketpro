@@ -58,7 +58,7 @@ jfieldID g_fidSelfMessage = nullptr;
 
 #ifndef WIN32_64
 
-unsigned int GetLen(const SPA::UTF16 *chars) {
+unsigned int GetLen(const unsigned short *chars) {
     if (!chars)
         return 0;
     unsigned int len = 0;
