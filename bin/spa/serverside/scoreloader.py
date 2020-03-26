@@ -1060,6 +1060,16 @@ class SCoreLoader(object):
     GetCurrentRequestIndex.argtypes = [c_uint64]
     GetCurrentRequestIndex.restype = c_uint64
 
+    #unsigned int WINAPI NotifyInterrupt(USocket_Server_Handle h, SPA::UINT64 options);
+    NotifyInterrupt = _ussLib_.NotifyInterrupt
+    NotifyInterrupt.argtypes = [c_uint64, c_uint64]
+    NotifyInterrupt.restype = c_uint
+
+    #SPA::UINT64 WINAPI GetInterruptOptions(USocket_Server_Handle h);
+    GetInterruptOptions = _ussLib_.GetInterruptOptions
+    GetInterruptOptions.argtypes = [c_uint64]
+    GetInterruptOptions.restype = c_uint64
+
 class CSvsContext(Structure):
     _fields_ = [("m_ta", c_int), #required with a worker thread only on window platforms
                 ("m_OnSwitchTo", SCoreLoader.POnSwitchTo),

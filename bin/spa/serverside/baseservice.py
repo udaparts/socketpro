@@ -136,6 +136,10 @@ class CBaseService(object):
                 while count > 0:
                     sp._m_vArg.append(sp._m_qBuffer.LoadObject())
                     count -= 1
+        elif reqId == tagBaseRequestID.idInterrupt:
+            options = sp._m_qBuffer.LoadULong()
+            sp.OnInterrupted(options)
+            return
         sp.OnRequestArrive(reqId, len)
 
     def _OnSwitch(self, hSocket, oldServiceId, newServiceId):

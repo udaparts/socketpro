@@ -39,6 +39,8 @@ class tagBaseRequestID(object):
     idStartQueue = 25
     idStopQueue = 26
     idRoutePeerUnavailable = 27
+    idDequeueBatchConfirmed = 28
+    idInterrupt = 29
     idReservedOne = 0x100
     idReservedTwo = 0x2001
 

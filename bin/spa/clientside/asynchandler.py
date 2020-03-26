@@ -136,6 +136,10 @@ class CAsyncServiceHandler(object):
         bytes = (c_ubyte * q.GetSize()).from_buffer(q._m_bytes_, q._m_position_)
         return ccl.SendRouteeResult(h, reqId, bytes, q.GetSize())
 
+    def Interrupt(self, options):
+        h = self._m_ClientSocket_.Handle
+        return ccl.SendInterruptRequest(h, options)
+
     def SendRequest(self, reqId, q, arh, discarded=None, efs=None):
         if q is None:
             q = CUQueue(bytearray(0))
@@ -224,6 +228,9 @@ class CAsyncServiceHandler(object):
         h = self._m_ClientSocket_.Handle
         ccl.AbortDequeuedMessage(h)
 
+    def OnInterrupted(self, options):
+        pass
+
     def OnPostProcessing(self, hint, data):
         pass
 
@@ -306,6 +313,10 @@ class CAsyncServiceHandler(object):
         pass
 
     def _OnRR_(self, reqId, mc):
+        if tagBaseRequestID.idInterrupt == reqId:
+            options = mc.LoadULong()
+            self.OnInterrupted(options)
+            return
         rcb = self._GetAsyncResultHandler_(reqId)
         if rcb is None or rcb.AsyncResultHandler is None:
             if not (self.ResultReturned and self.ResultReturned(reqId, mc)):
