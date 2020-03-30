@@ -41,6 +41,7 @@ namespace NJA {
         NODE_SET_PROTOTYPE_METHOD(tpl, "AbortDequeuedMessage", AbortDequeuedMessage);
         NODE_SET_PROTOTYPE_METHOD(tpl, "CleanCallbacks", CleanCallbacks);
         NODE_SET_PROTOTYPE_METHOD(tpl, "CommitBatching", CommitBatching);
+		NODE_SET_PROTOTYPE_METHOD(tpl, "Interrupt", Interrupt);
 
         //properties
         NODE_SET_PROTOTYPE_METHOD(tpl, "getSvsId", getSvsId);
@@ -85,6 +86,23 @@ namespace NJA {
             args.GetReturnValue().Set(Uint32::New(isolate, data));
         }
     }
+
+	void NJHandlerRoot::Interrupt(const FunctionCallbackInfo<Value>& args) {
+		Isolate* isolate = args.GetIsolate();
+		NJHandlerRoot* obj = ObjectWrap::Unwrap<NJHandlerRoot>(args.Holder());
+		if (obj->IsValid(isolate)) {
+			SPA::UINT64 options = 0;
+			auto p = args[0];
+			if (p->IsNumber())
+				options = (SPA::UINT64)(p->IntegerValue(isolate->GetCurrentContext()).ToChecked());
+			else if (!IsNullOrUndefined(p)) {
+				ThrowException(isolate, BAD_DATA_TYPE);
+				return;
+			}
+			bool ok = obj->m_ash->Interrupt(options);
+			args.GetReturnValue().Set(Boolean::New(isolate, ok));
+		}
+	}
 
     void NJHandlerRoot::CommitBatching(const FunctionCallbackInfo<Value>& args) {
         Isolate* isolate = args.GetIsolate();
