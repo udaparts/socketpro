@@ -30,7 +30,7 @@ namespace NJA {
         static void IsRouteeResult(const FunctionCallbackInfo<Value>& args);
         static void StartBatching(const FunctionCallbackInfo<Value>& args);
         static void SendRequest(const FunctionCallbackInfo<Value>& args);
-		static void Interrupt(const FunctionCallbackInfo<Value>& args);
+        static void Interrupt(const FunctionCallbackInfo<Value>& args);
         static void getSocket(const FunctionCallbackInfo<Value>& args);
         static void Dispose(const FunctionCallbackInfo<Value>& args);
         static void IsSame(const FunctionCallbackInfo<Value>& args);
