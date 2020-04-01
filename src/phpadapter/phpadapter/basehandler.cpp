@@ -8,7 +8,7 @@
 namespace PA
 {
 
-    CPhpBaseHandler::CPhpBaseHandler(bool locked, SPA::ClientSide::CAsyncServiceHandler *h) : m_locked(locked), m_h(h) {
+    CPhpBaseHandler::CPhpBaseHandler(bool locked, SPA::ClientSide::CAsyncServiceHandler * h) : m_locked(locked), m_h(h) {
         assert(m_h);
     }
 
@@ -272,8 +272,20 @@ namespace PA
         return m_h->StartBatching();
     }
 
-    Php::Value CPhpBaseHandler::CommitBatching() {
-        return m_h->CommitBatching();
+    Php::Value CPhpBaseHandler::CommitBatching(Php::Parameters & params) {
+        bool server_batching = false;
+        if (params.size()) {
+            server_batching = params[0].boolValue();
+        }
+        return m_h->CommitBatching(server_batching);
+    }
+
+    Php::Value CPhpBaseHandler::Interrupt(Php::Parameters & params) {
+        SPA::UINT64 options = 0;
+        if (params.size() && params[0].isNumeric()) {
+            options = (SPA::UINT64)params[0].numericValue();
+        }
+        return m_h->Interrupt(options);
     }
 
     Php::Value CPhpBaseHandler::AbortBatching() {
@@ -289,7 +301,8 @@ namespace PA
         h.method<&CPhpBaseHandler::WaitAll>(PHP_WAITALL);
         h.method<&CPhpBaseHandler::StartBatching>(PHP_STARTBATCHING);
         h.method<&CPhpBaseHandler::AbortBatching>(PHP_ABORTBATCHING);
-        h.method<&CPhpBaseHandler::CommitBatching>(PHP_COMMITBATCHING);
+        h.method<&CPhpBaseHandler::CommitBatching>(PHP_COMMITBATCHING,{Php::ByVal("serverBatching", Php::Type::Bool)});
+        h.method<&CPhpBaseHandler::Interrupt>("Interrupt",{Php::ByVal("options", Php::Type::Numeric)});
         h.method<&CPhpBaseHandler::Unlock>(PHP_UNLOCK);
         h.method<&CPhpBaseHandler::CleanCallbacks>(PHP_CLEAN_CALLBACKS);
         cs.add(h);
