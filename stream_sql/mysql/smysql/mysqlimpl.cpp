@@ -8,6 +8,7 @@
 #include "mysqld_error.h"
 #include "../../../include/server_functions.h"
 #include "crypt_genhash_impl.h"
+#include <algorithm>
 
 namespace SPA
 {
@@ -827,6 +828,157 @@ namespace SPA
             }
             ++impl->m_ColIndex;
             return 0;
+        }
+
+#define DIG_PER_DEC1	9
+#define DIG_MASK		100000000
+#define ROUND_UP(X)		(((X)+DIG_PER_DEC1-1)/DIG_PER_DEC1)
+
+        static inline int count_leading_zeroes(int i, decimal_digit_t val) {
+            int ret = 0;
+            switch (i) {
+                    /* @note Intentional fallthrough in all case labels */
+                case 9: if (val >= 1000000000) break;
+                    ++ret; // Fall through.
+                case 8: if (val >= 100000000) break;
+                    ++ret; // Fall through.
+                case 7: if (val >= 10000000) break;
+                    ++ret; // Fall through.
+                case 6: if (val >= 1000000) break;
+                    ++ret; // Fall through.
+                case 5: if (val >= 100000) break;
+                    ++ret; // Fall through.
+                case 4: if (val >= 10000) break;
+                    ++ret; // Fall through.
+                case 3: if (val >= 1000) break;
+                    ++ret; // Fall through.
+                case 2: if (val >= 100) break;
+                    ++ret; // Fall through.
+                case 1: if (val >= 10) break;
+                    ++ret; // Fall through.
+                case 0: if (val >= 1) break;
+                    ++ret; // Fall through.
+                default:
+                {
+                    assert(false);
+                }
+            }
+            return ret;
+        }
+
+        typedef decimal_digit_t dec1;
+
+        static dec1 * remove_leading_zeroes(const decimal_t *from, int *intg_result) {
+            int intg = from->intg, i;
+            dec1 *buf0 = from->buf;
+            i = ((intg - 1) % DIG_PER_DEC1) + 1;
+            while (intg > 0 && *buf0 == 0) {
+                intg -= i;
+                i = DIG_PER_DEC1;
+                buf0++;
+            }
+            if (intg > 0) {
+                intg -= count_leading_zeroes((intg - 1) % DIG_PER_DEC1, *buf0);
+                assert(intg > 0);
+            } else
+                intg = 0;
+            *intg_result = intg;
+            return buf0;
+        }
+
+        int CMysqlImpl::decimal2string(const decimal_t *from, char *to, int *to_len, int fixed_precision, int fixed_decimals, char filler) {
+            /* {intg_len, frac_len} output widths; {intg, frac} places in input */
+            int len, intg, frac = from->frac, i, intg_len, frac_len, fill;
+            /* number digits before decimal point */
+            int fixed_intg = (fixed_precision ? (fixed_precision - fixed_decimals) : 0);
+            int error = E_DEC_OK;
+            char *s = to;
+            dec1 *buf, *buf0 = from->buf, tmp;
+
+            assert(*to_len >= 2 + from->sign);
+
+            /* removing leading zeroes */
+            buf0 = remove_leading_zeroes(from, &intg);
+            if (unlikely(intg + frac == 0)) {
+                intg = 1;
+                tmp = 0;
+                buf0 = &tmp;
+            }
+
+            if (!(intg_len = fixed_precision ? fixed_intg : intg))
+                intg_len = 1;
+            frac_len = fixed_precision ? fixed_decimals : frac;
+            len = from->sign + intg_len + MY_TEST(frac) + frac_len;
+            if (fixed_precision) {
+                if (frac > fixed_decimals) {
+                    error = E_DEC_TRUNCATED;
+                    frac = fixed_decimals;
+                }
+                if (intg > fixed_intg) {
+                    error = E_DEC_OVERFLOW;
+                    intg = fixed_intg;
+                }
+            } else if (unlikely(len > --*to_len)) /* reserve one byte for \0 */ {
+                int j = len - *to_len; /* excess printable chars */
+                error = (frac && j <= frac + 1) ? E_DEC_TRUNCATED : E_DEC_OVERFLOW;
+
+                /*
+                  If we need to cut more places than frac is wide, we'll end up
+                  dropping the decimal point as well.  Account for this.
+                 */
+                if (frac && j >= frac + 1)
+                    j--;
+
+                if (j > frac) {
+                    intg_len = intg -= j - frac;
+                    frac = 0;
+                } else
+                    frac -= j;
+                frac_len = frac;
+                len = from->sign + intg_len + MY_TEST(frac) + frac_len;
+            }
+            *to_len = len;
+            s[len] = 0;
+
+            if (from->sign)
+                *s++ = '-';
+
+            if (frac) {
+                char *s1 = s + intg_len;
+                fill = frac_len - frac;
+                buf = buf0 + ROUND_UP(intg);
+                *s1++ = '.';
+                for (; frac > 0; frac -= DIG_PER_DEC1) {
+                    dec1 x = *buf++;
+                    for (i = MY_MIN(frac, DIG_PER_DEC1); i; i--) {
+                        dec1 y = x / DIG_MASK;
+                        *s1++ = '0' + (uchar) y;
+                        x -= y * DIG_MASK;
+                        x *= 10;
+                    }
+                }
+                for (; fill > 0; fill--)
+                    *s1++ = filler;
+            }
+
+            fill = intg_len - intg;
+            if (intg == 0)
+                fill--; /* symbol 0 before digital point */
+            for (; fill > 0; fill--)
+                *s++ = filler;
+            if (intg) {
+                s += intg;
+                for (buf = buf0 + ROUND_UP(intg); intg > 0; intg -= DIG_PER_DEC1) {
+                    dec1 x = *--buf;
+                    for (i = MY_MIN(intg, DIG_PER_DEC1); i; i--) {
+                        dec1 y = x / 10;
+                        *--s = '0' + (uchar) (x - y * 10);
+                        x = y;
+                    }
+                }
+            } else
+                *s = '0';
+            return error;
         }
 
         void CMysqlImpl::ToDecimal(const decimal_t &src, bool large, DECIMAL & dec) {

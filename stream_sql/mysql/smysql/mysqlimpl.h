@@ -126,7 +126,7 @@ namespace SPA {
             static void sql_shutdown(void *ctx, int shutdown_server);
             static void ToDecimal(const decimal_t &src, bool large, DECIMAL &dec);
             static bool DoAuthentication(const wchar_t *password, const std::string &hash);
-
+            static int decimal2string(const decimal_t *from, char *to, int *to_len, int fixed_precision, int fixed_decimals, char filler);
         private:
             bool m_EnableMessages;
             UINT64 m_oks;
