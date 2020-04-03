@@ -37,6 +37,7 @@ namespace SPA {
         idStopQueue = (idStartQueue + 1),
         idRoutePeerUnavailable = idStopQueue + 1,
         idDequeueBatchConfirmed = idRoutePeerUnavailable + 1,
+        idInterrupt = idDequeueBatchConfirmed + 1,
         idReservedOne = 0x100,
         idReservedTwo = 0x2001
     };

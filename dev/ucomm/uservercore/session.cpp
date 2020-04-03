@@ -639,6 +639,7 @@ bool CServerSession::IsCanceledInternally() {
     }
     if (total) {
         if (interrupted) {
+/*
             if (pos) {
                 SPA::CStreamHeader sh;
                 m_qRead.Pop((unsigned char*) &sh, sizeof (sh), pos);
@@ -648,6 +649,7 @@ bool CServerSession::IsCanceledInternally() {
                 m_qRead.Insert((const unsigned char*) &m_InterruptOptions, sizeof (m_InterruptOptions), m_ReqInfo.Size);
                 m_qRead.Insert((const unsigned char*) &sh, sizeof (sh), m_ReqInfo.Size);
             }
+*/
             total = 0;
         } else {
             if (pos) {

@@ -47,6 +47,7 @@ public:
     bool SendRequest(unsigned short reqId, const unsigned char *pBuffer, unsigned int len);
     CSocketPool* GetSocketPool();
     bool Cancel(unsigned int requestsQueued = (~0));
+    bool SendInterruptRequest(SPA::UINT64 options);
     bool IsRandom();
     bool IsRouting();
     const SPA::CSwitchInfo* GetServerInfo();

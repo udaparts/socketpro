@@ -363,8 +363,8 @@ namespace SPA
             return ServerCoreLoader.GetCurrentRequestIndex(m_hHandler);
         }
 
-        UINT64 CSocketPeer::GetInterruptOptions() const {
-            return ServerCoreLoader.GetInterruptOptions(m_hHandler);
+        UINT64 CClientPeer::GetInterruptOptions() const {
+            return ServerCoreLoader.GetInterruptOptions(GetSocketHandle());
         }
 
         std::vector<unsigned int> CSocketPeer::GetChatGroups() const {
