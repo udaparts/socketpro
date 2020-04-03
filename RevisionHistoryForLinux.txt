@@ -1,3 +1,8 @@
+24.	SocketPro Version 6.3.1.1
+	(a) Core libraries are added with a new feature Interrupt, which could be used to interrupt a looping processing at the other end
+	(b) All adapters are updated with the new feature Interrupt
+	(c) Make MySQL 8 server plugin support its version 8.0.19 or later
+
 23. SocketPro Version 6.3.0.1-10
 	(a) Add the method PostProcessing to dispatch requests from calling thread onto pool worker thread at client side
 	(b) Re-write remote file service to use PostProcessing instead
