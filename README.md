@@ -19,7 +19,7 @@
     - High performance file streaming (free)
     - SQL streaming for SQLite 3.11.1 or later (free)
     - SQL streaming database server plugin for MySQL 8.0.11 or later (free)
-    - SQL streaming database server plugin for MySQL 5.7.28 or older (free)
+    - SQL streaming database server plugin for MySQL 5.7.29 or older (free)
     - SQL streaming database server plugin for Mariadb (free)
     - SQL streaming for MySQL/Mariadb middle tier (free)
     - SQL streaming for MS SQL server 2008 or later
