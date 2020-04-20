@@ -189,7 +189,10 @@ namespace test_cache
                                 if (dt.Columns[n].ReadOnly)
                                     continue;
                                 object d = vData[5 + 2 * n + 1];
-                                dr[n] = d;
+                                if (d == null)
+                                    dr[n] = DBNull.Value;
+                                else
+                                    dr[n] = d;
                             }
                             message = "Table " + table_name + " updated for row (" + filter + ")";
                         }
@@ -218,7 +221,11 @@ namespace test_cache
                             dr = dt.NewRow();
                             for (int n = 0; n < cols; ++n)
                             {
-                                dr[n] = vData[5 + n];
+                                object d = vData[5 + n];
+                                if (d == null)
+                                    dr[n] = DBNull.Value;
+                                else
+                                    dr[n] = d;
                             }
                             dt.Rows.Add(dr);
                             message = "Table " + table_name + " inserted for row (" + filter + ")";
