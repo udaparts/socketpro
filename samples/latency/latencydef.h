@@ -3,9 +3,9 @@
 
 #include "../../include/ucomm.h"
 
-#define sidLatency	(SPA::sidReserved + 128)
+#define sidLatency  (SPA::sidReserved + 128)
 
-#define idEchoInt1 (SPA::idReservedTwo + 1)
-#define idEchoInt2 (idEchoInt1 + 2)
+#define idEchoInt1  (SPA::idReservedTwo + 1)
+#define idEchoInt2  (idEchoInt1 + 2)
 
 #endif

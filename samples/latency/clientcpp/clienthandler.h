@@ -6,9 +6,10 @@
 
 class CLatencyHandler : public SPA::ClientSide::CAsyncServiceHandler {
 public:
-	CLatencyHandler(SPA::ClientSide::CClientSocket *pClientSocket)
-		: SPA::ClientSide::CAsyncServiceHandler(sidLatency, pClientSocket) {
-	}
+
+    CLatencyHandler(SPA::ClientSide::CClientSocket *pClientSocket)
+    : SPA::ClientSide::CAsyncServiceHandler(sidLatency, pClientSocket) {
+    }
 };
 typedef SPA::ClientSide::CSocketPool<CLatencyHandler, SPA::ClientSide::CClientSocket> CLatencyPool;
 
