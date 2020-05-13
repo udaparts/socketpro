@@ -6,11 +6,11 @@ using std::chrono::system_clock;
 typedef std::chrono::nanoseconds ns;
 
 int main(int argc, char* argv[]) {
-    unsigned int res;
+    unsigned int res = 0, n = 0;
     const unsigned int TEST_CYCLES = 100000;
 
     SPA::ClientSide::CConnectionContext cc;
-    std::cout << "Remote host: " << std::endl;
+    std::cout << "Remote host? " << std::endl;
     std::getline(std::cin, cc.Host);
     cc.Port = 20901;
     cc.UserId = L"MyUserId";
@@ -25,7 +25,7 @@ int main(int argc, char* argv[]) {
     auto latency = latencyPool.Seek();
     std::cout << "Going to test latency for sync/fast request" << std::endl;
     system_clock::time_point start = system_clock::now();
-    for (unsigned int n = 0; n < TEST_CYCLES; ++n) {
+    for (n = 0; n < TEST_CYCLES; ++n) {
         res = latency->async<unsigned int, unsigned int>(idEchoInt1, n).get();
     }
     system_clock::time_point stop = system_clock::now();
@@ -35,7 +35,7 @@ int main(int argc, char* argv[]) {
 
     std::cout << "Going to test latency for sync/slow request" << std::endl;
     start = system_clock::now();
-    for (unsigned int n = 0; n < TEST_CYCLES; ++n) {
+    for (n = 0; n < TEST_CYCLES; ++n) {
         res = latency->async<unsigned int, unsigned int>(idEchoInt2, n).get();
     }
     stop = system_clock::now();
@@ -49,7 +49,7 @@ int main(int argc, char* argv[]) {
 
     std::cout << "Going to test latency for async/fast request" << std::endl;
     start = system_clock::now();
-    for (unsigned int n = 0; n < TEST_CYCLES; ++n) {
+    for (n = 0; n < TEST_CYCLES; ++n) {
         ok = latency->SendRequest(idEchoInt1, n, rh);
     }
     ok = latency->WaitAll();
@@ -60,7 +60,7 @@ int main(int argc, char* argv[]) {
 
     std::cout << "Going to test latency for async/slow request" << std::endl;
     start = system_clock::now();
-    for (unsigned int n = 0; n < TEST_CYCLES; ++n) {
+    for (n = 0; n < TEST_CYCLES; ++n) {
         ok = latency->SendRequest(idEchoInt2, n, rh);
     }
     ok = latency->WaitAll();
