@@ -1,12 +1,8 @@
-#include "../../../include/aserverw.h"
-
 #ifndef ___SOCKETPRO_SERVICES_IMPL_LATENCYIMPL_H__
 #define ___SOCKETPRO_SERVICES_IMPL_LATENCYIMPL_H__
 
-/* **** including all of defines, service id(s) and request id(s) ***** */
+#include "../../../include/aserverw.h"
 #include "../latencydef.h"
-
-//server implementation for service HelloWorld
 
 class CLatencyPeer : public SPA::ServerSide::CClientPeer {
 private:
@@ -37,3 +33,4 @@ protected:
 };
 
 #endif
+
