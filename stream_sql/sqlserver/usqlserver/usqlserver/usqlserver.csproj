@@ -64,8 +64,8 @@
     <Compile Include="..\..\..\..\src\SproAdapter\clientpeer.cs">
       <Link>clientpeer.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\..\src\SproAdapter\scopeuqueue.cs">
-      <Link>scopeuqueue.cs</Link>
+    <Compile Include="..\..\..\..\src\SproAdapter\scopeuqueuelock.cs">
+      <Link>scopeuqueuelock.cs</Link>
     </Compile>
     <Compile Include="..\..\..\..\src\SproAdapter\serverinterop.cs">
       <Link>serverinterop.cs</Link>

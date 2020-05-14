@@ -102,15 +102,16 @@ public static class USqlStream
             catch (Exception err)
             {
                 LogError(conn, err.Message);
+                Plugin = null;
             }
             finally
             {
-                if (ServerCoreLoader.IsRunning())
+                if (res == 10 && ServerCoreLoader.IsRunning())
                 {
-                    AppDomain.CurrentDomain.DomainUnload += (sender, args) => {
-                        ServerCoreLoader.StopSocketProServer();
-                        Plugin = null;
-                    };
+                    //AppDomain.CurrentDomain.DomainUnload += (sender, args) => {
+                    //    ServerCoreLoader.StopSocketProServer();
+                    //    Plugin = null;
+                    //};
                     res += 1;
                 }
                 conn.Close();
@@ -392,7 +393,7 @@ public static class USqlStream
                 string[] v = null;
                 lock (m_cs)
                 {
-                    if (Plugin != null && ServerCoreLoader.IsRunning())
+                    if (ServerCoreLoader.IsRunning())
                     {
                         conn.Open();
                         v = GetUSqlServerKeys(conn);
