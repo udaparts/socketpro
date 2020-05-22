@@ -37,6 +37,8 @@ class ClientCoreLoader {
 
     static native int GetSocketsPerThread(int poolId);
 
+    static native void SetBufferForCurrentThread(java.nio.ByteBuffer bytes, int len);
+
     static native boolean IsAvg(int poolId);
 
     static native int GetDisconnectedSockets(int poolId);
@@ -67,7 +69,7 @@ class ClientCoreLoader {
 
     static native boolean IsOpened(long h);
 
-    static native boolean SendRequest(long h, short reqId, byte[] buffer, int len);
+    static native boolean SendRequest(long h, short reqId, java.nio.ByteBuffer buffer, int len, int offset);
 
     static native boolean WaitAll(long h, int nTimeout);
 
@@ -209,7 +211,7 @@ class ClientCoreLoader {
 
     static native int GetRouteeCount(long h);
 
-    static native boolean SendRouteeResult(long h, short reqId, byte[] buffer, int len);
+    static native boolean SendRouteeResult(long h, short reqId, java.nio.ByteBuffer buffer, int len, int offset);
 
     static native boolean IsDequeueShared(long h);
 
@@ -254,4 +256,6 @@ class ClientCoreLoader {
     static native void SetQueueAutoMergeByPool(int poolId, boolean autoMerge);
 
     static native void PostProcessing(long h, int hint, long data);
+
+    static native boolean SendInterruptRequest(long h, long options);
 }

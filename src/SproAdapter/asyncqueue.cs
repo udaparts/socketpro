@@ -50,11 +50,14 @@ namespace SocketProAdapter
             /// <summary>
             /// An event for tracking message queued notification from server side
             /// </summary>
-            public event DMessageQueued MessageQueued {
-                add {
+            public event DMessageQueued MessageQueued
+            {
+                add
+                {
                     m_lstMQ.add(value);
                 }
-                remove {
+                remove
+                {
                     m_lstMQ.remove(value);
                 }
             }
@@ -79,8 +82,10 @@ namespace SocketProAdapter
             /// <summary>
             /// Dequeue batch size in bytes
             /// </summary>
-            public uint DequeueBatchSize {
-                get {
+            public uint DequeueBatchSize
+            {
+                get
+                {
                     return (m_nBatchSize & 0xffffff);
                 }
             }
@@ -88,8 +93,10 @@ namespace SocketProAdapter
             /// <summary>
             /// Check if remote queue server is able to automatically notify a client when a message is enqueued at server side
             /// </summary>
-            public bool EnqueueNotified {
-                get {
+            public bool EnqueueNotified
+            {
+                get
+                {
                     return ((m_nBatchSize >> 24) == 0);
                 }
             }
@@ -97,14 +104,17 @@ namespace SocketProAdapter
             /// <summary>
             /// Last dequeue callback
             /// </summary>
-            public DDequeue LastDequeueCallback {
-                get {
+            public DDequeue LastDequeueCallback
+            {
+                get
+                {
                     lock (m_csQ)
                     {
                         return m_dDequeue;
                     }
                 }
-                set {
+                set
+                {
                     lock (m_csQ)
                     {
                         m_dDequeue = value;
@@ -112,19 +122,18 @@ namespace SocketProAdapter
                 }
             }
 
-            private DAsyncResultHandler GetRH(DEnqueue e)
+            private static DAsyncResultHandler GetRH(DEnqueue e)
             {
-                DAsyncResultHandler rh = null;
                 if (e != null)
                 {
-                    rh = (ar) =>
+                    return (ar) =>
                     {
                         ulong index;
-                        ar.Load(out index);
+                        ar.UQueue.Load(out index);
                         e((CAsyncQueue)ar.AsyncServiceHandler, index);
                     };
                 }
-                return rh;
+                return null;
             }
 
             public static void BatchMessage(ushort idMessage, byte[] message, uint len, CUQueue q)
@@ -271,8 +280,6 @@ namespace SocketProAdapter
 
             public virtual bool EnqueueBatch(byte[] key, CUQueue q, DEnqueue e, DDiscarded discarded)
             {
-                if (key == null)
-                    key = new byte[0];
                 if (q == null || q.GetSize() < 2 * sizeof(uint))
                 {
                     throw new InvalidOperationException("Bad operation");
@@ -307,8 +314,6 @@ namespace SocketProAdapter
 
             public virtual bool Enqueue(byte[] key, ushort idMessage, byte[] bytes, DEnqueue e, DDiscarded discarded)
             {
-                if (key == null)
-                    key = new byte[0];
                 CUQueue sb = CScopeUQueue.Lock();
                 sb.Save(key).Save(idMessage).Push(bytes);
                 bool ok = SendRequest(idEnqueue, sb, GetRH(e), discarded, (DOnExceptionFromServer)null);
@@ -328,8 +333,6 @@ namespace SocketProAdapter
 
             public virtual bool Enqueue(byte[] key, ushort idMessage, CUQueue buffer, DEnqueue e, DDiscarded discarded)
             {
-                if (key == null)
-                    key = new byte[0];
                 CUQueue sb = CScopeUQueue.Lock();
                 sb.Save(key).Save(idMessage);
                 if (buffer != null)
@@ -350,13 +353,11 @@ namespace SocketProAdapter
             }
             public bool Enqueue<T0>(byte[] key, ushort idMessage, T0 t0, DEnqueue e, DDiscarded discarded)
             {
-                if (key == null)
-                    key = new byte[0];
-                using (CScopeUQueue sb = new CScopeUQueue())
-                {
-                    sb.Save(t0);
-                    return Enqueue(key, idMessage, sb.UQueue, e, discarded);
-                }
+                CUQueue sb = CScopeUQueue.Lock();
+                sb.Save(t0);
+                bool ok = Enqueue(key, idMessage, sb, e, discarded);
+                CScopeUQueue.Unlock(sb);
+                return ok;
             }
 
             public bool Enqueue<T0, T1>(byte[] key, ushort idMessage, T0 t0, T1 t1)
@@ -369,13 +370,11 @@ namespace SocketProAdapter
             }
             public bool Enqueue<T0, T1>(byte[] key, ushort idMessage, T0 t0, T1 t1, DEnqueue e, DDiscarded discarded)
             {
-                if (key == null)
-                    key = new byte[0];
-                using (CScopeUQueue sb = new CScopeUQueue())
-                {
-                    sb.Save(t0).Save(t1);
-                    return Enqueue(key, idMessage, sb.UQueue, e, discarded);
-                }
+                CUQueue sb = CScopeUQueue.Lock();
+                sb.Save(t0).Save(t1);
+                bool ok = Enqueue(key, idMessage, sb, e, discarded);
+                CScopeUQueue.Unlock(sb);
+                return ok;
             }
 
             public bool Enqueue<T0, T1, T2>(byte[] key, ushort idMessage, T0 t0, T1 t1, T2 t2)
@@ -388,13 +387,11 @@ namespace SocketProAdapter
             }
             public bool Enqueue<T0, T1, T2>(byte[] key, ushort idMessage, T0 t0, T1 t1, T2 t2, DEnqueue e, DDiscarded discarded)
             {
-                if (key == null)
-                    key = new byte[0];
-                using (CScopeUQueue sb = new CScopeUQueue())
-                {
-                    sb.Save(t0).Save(t1).Save(t2);
-                    return Enqueue(key, idMessage, sb.UQueue, e, discarded);
-                }
+                CUQueue sb = CScopeUQueue.Lock();
+                sb.Save(t0).Save(t1).Save(t2);
+                bool ok = Enqueue(key, idMessage, sb, e, discarded);
+                CScopeUQueue.Unlock(sb);
+                return ok;
             }
 
             public bool Enqueue<T0, T1, T2, T3>(byte[] key, ushort idMessage, T0 t0, T1 t1, T2 t2, T3 t3)
@@ -407,13 +404,11 @@ namespace SocketProAdapter
             }
             public bool Enqueue<T0, T1, T2, T3>(byte[] key, ushort idMessage, T0 t0, T1 t1, T2 t2, T3 t3, DEnqueue e, DDiscarded discarded)
             {
-                if (key == null)
-                    key = new byte[0];
-                using (CScopeUQueue sb = new CScopeUQueue())
-                {
-                    sb.Save(t0).Save(t1).Save(t2).Save(t3);
-                    return Enqueue(key, idMessage, sb.UQueue, e, discarded);
-                }
+                CUQueue sb = CScopeUQueue.Lock();
+                sb.Save(t0).Save(t1).Save(t2).Save(t3);
+                bool ok = Enqueue(key, idMessage, sb, e, discarded);
+                CScopeUQueue.Unlock(sb);
+                return ok;
             }
 
             public bool Enqueue<T0, T1, T2, T3, T4>(byte[] key, ushort idMessage, T0 t0, T1 t1, T2 t2, T3 t3, T4 t4)
@@ -426,13 +421,11 @@ namespace SocketProAdapter
             }
             public bool Enqueue<T0, T1, T2, T3, T4>(byte[] key, ushort idMessage, T0 t0, T1 t1, T2 t2, T3 t3, T4 t4, DEnqueue e, DDiscarded discarded)
             {
-                if (key == null)
-                    key = new byte[0];
-                using (CScopeUQueue sb = new CScopeUQueue())
-                {
-                    sb.Save(t0).Save(t1).Save(t2).Save(t3).Save(t4);
-                    return Enqueue(key, idMessage, sb.UQueue, e, discarded);
-                }
+                CUQueue sb = CScopeUQueue.Lock();
+                sb.Save(t0).Save(t1).Save(t2).Save(t3).Save(t4);
+                bool ok = Enqueue(key, idMessage, sb, e, discarded);
+                CScopeUQueue.Unlock(sb);
+                return ok;
             }
 
             public bool Enqueue<T0, T1, T2, T3, T4, T5>(byte[] key, ushort idMessage, T0 t0, T1 t1, T2 t2, T3 t3, T4 t4, T5 t5)
@@ -445,13 +438,11 @@ namespace SocketProAdapter
             }
             public bool Enqueue<T0, T1, T2, T3, T4, T5>(byte[] key, ushort idMessage, T0 t0, T1 t1, T2 t2, T3 t3, T4 t4, T5 t5, DEnqueue e, DDiscarded discarded)
             {
-                if (key == null)
-                    key = new byte[0];
-                using (CScopeUQueue sb = new CScopeUQueue())
-                {
-                    sb.Save(t0).Save(t1).Save(t2).Save(t3).Save(t4).Save(t5);
-                    return Enqueue(key, idMessage, sb.UQueue, e, discarded);
-                }
+                CUQueue sb = CScopeUQueue.Lock();
+                sb.Save(t0).Save(t1).Save(t2).Save(t3).Save(t4).Save(t5);
+                bool ok = Enqueue(key, idMessage, sb, e, discarded);
+                CScopeUQueue.Unlock(sb);
+                return ok;
             }
 
             public bool Enqueue<T0, T1, T2, T3, T4, T5, T6>(byte[] key, ushort idMessage, T0 t0, T1 t1, T2 t2, T3 t3, T4 t4, T5 t5, T6 t6)
@@ -464,13 +455,11 @@ namespace SocketProAdapter
             }
             public bool Enqueue<T0, T1, T2, T3, T4, T5, T6>(byte[] key, ushort idMessage, T0 t0, T1 t1, T2 t2, T3 t3, T4 t4, T5 t5, T6 t6, DEnqueue e, DDiscarded discarded)
             {
-                if (key == null)
-                    key = new byte[0];
-                using (CScopeUQueue sb = new CScopeUQueue())
-                {
-                    sb.Save(t0).Save(t1).Save(t2).Save(t3).Save(t4).Save(t5).Save(t6);
-                    return Enqueue(key, idMessage, sb.UQueue, e, discarded);
-                }
+                CUQueue sb = CScopeUQueue.Lock();
+                sb.Save(t0).Save(t1).Save(t2).Save(t3).Save(t4).Save(t5).Save(t6);
+                bool ok = Enqueue(key, idMessage, sb, e, discarded);
+                CScopeUQueue.Unlock(sb);
+                return ok;
             }
 
             public bool Enqueue<T0, T1, T2, T3, T4, T5, T6, T7>(byte[] key, ushort idMessage, T0 t0, T1 t1, T2 t2, T3 t3, T4 t4, T5 t5, T6 t6, T7 t7)
@@ -483,13 +472,11 @@ namespace SocketProAdapter
             }
             public bool Enqueue<T0, T1, T2, T3, T4, T5, T6, T7>(byte[] key, ushort idMessage, T0 t0, T1 t1, T2 t2, T3 t3, T4 t4, T5 t5, T6 t6, T7 t7, DEnqueue e, DDiscarded discarded)
             {
-                if (key == null)
-                    key = new byte[0];
-                using (CScopeUQueue sb = new CScopeUQueue())
-                {
-                    sb.Save(t0).Save(t1).Save(t2).Save(t3).Save(t4).Save(t5).Save(t6).Save(t7);
-                    return Enqueue(key, idMessage, sb.UQueue, e, discarded);
-                }
+                CUQueue sb = CScopeUQueue.Lock();
+                sb.Save(t0).Save(t1).Save(t2).Save(t3).Save(t4).Save(t5).Save(t6).Save(t7);
+                bool ok = Enqueue(key, idMessage, sb, e, discarded);
+                CScopeUQueue.Unlock(sb);
+                return ok;
             }
 
             public bool Enqueue<T0, T1, T2, T3, T4, T5, T6, T7, T8>(byte[] key, ushort idMessage, T0 t0, T1 t1, T2 t2, T3 t3, T4 t4, T5 t5, T6 t6, T7 t7, T8 t8)
@@ -502,13 +489,11 @@ namespace SocketProAdapter
             }
             public bool Enqueue<T0, T1, T2, T3, T4, T5, T6, T7, T8>(byte[] key, ushort idMessage, T0 t0, T1 t1, T2 t2, T3 t3, T4 t4, T5 t5, T6 t6, T7 t7, T8 t8, DEnqueue e, DDiscarded discarded)
             {
-                if (key == null)
-                    key = new byte[0];
-                using (CScopeUQueue sb = new CScopeUQueue())
-                {
-                    sb.Save(t0).Save(t1).Save(t2).Save(t3).Save(t4).Save(t5).Save(t6).Save(t7).Save(t8);
-                    return Enqueue(key, idMessage, sb.UQueue, e, discarded);
-                }
+                CUQueue sb = CScopeUQueue.Lock();
+                sb.Save(t0).Save(t1).Save(t2).Save(t3).Save(t4).Save(t5).Save(t6).Save(t7).Save(t8);
+                bool ok = Enqueue(key, idMessage, sb, e, discarded);
+                CScopeUQueue.Unlock(sb);
+                return ok;
             }
 
             public bool Enqueue<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9>(byte[] key, ushort idMessage, T0 t0, T1 t1, T2 t2, T3 t3, T4 t4, T5 t5, T6 t6, T7 t7, T8 t8, T9 t9)
@@ -521,13 +506,11 @@ namespace SocketProAdapter
             }
             public bool Enqueue<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9>(byte[] key, ushort idMessage, T0 t0, T1 t1, T2 t2, T3 t3, T4 t4, T5 t5, T6 t6, T7 t7, T8 t8, T9 t9, DEnqueue e, DDiscarded discarded)
             {
-                if (key == null)
-                    key = new byte[0];
-                using (CScopeUQueue sb = new CScopeUQueue())
-                {
-                    sb.Save(t0).Save(t1).Save(t2).Save(t3).Save(t4).Save(t5).Save(t6).Save(t7).Save(t8).Save(t9);
-                    return Enqueue(key, idMessage, sb.UQueue, e, discarded);
-                }
+                CUQueue sb = CScopeUQueue.Lock();
+                sb.Save(t0).Save(t1).Save(t2).Save(t3).Save(t4).Save(t5).Save(t6).Save(t7).Save(t8).Save(t9);
+                bool ok = Enqueue(key, idMessage, sb, e, discarded);
+                CScopeUQueue.Unlock(sb);
+                return ok;
             }
 
             /// <summary>
@@ -538,8 +521,6 @@ namespace SocketProAdapter
             /// <returns>true for sending the request successfully, and false for failure</returns>
             public bool StartQueueTrans(byte[] key, DQueueTrans qt)
             {
-                if (key == null)
-                    key = new byte[0];
                 IClientQueue cq = AttachedClientSocket.ClientQueue;
                 if (cq.Available)
                     cq.StartJob();
@@ -551,7 +532,7 @@ namespace SocketProAdapter
                         if (qt != null)
                         {
                             int errCode;
-                            ar.Load(out errCode);
+                            ar.UQueue.Load(out errCode);
                             qt((CAsyncQueue)ar.AsyncServiceHandler, errCode);
                         }
                         else
@@ -606,7 +587,7 @@ namespace SocketProAdapter
                     if (qt != null)
                     {
                         int errCode;
-                        ar.Load(out errCode);
+                        ar.UQueue.Load(out errCode);
                         qt((CAsyncQueue)ar.AsyncServiceHandler, errCode);
                     }
                     else
@@ -645,15 +626,16 @@ namespace SocketProAdapter
             {
                 return SendRequest(idGetKeys, (ar) =>
                 {
+                    CUQueue q = ar.UQueue;
                     if (gk != null)
                     {
                         uint size;
-                        ar.Load(out size);
+                        q.Load(out size);
                         string[] v = new string[size];
                         for (uint n = 0; n < size; ++n)
                         {
                             byte[] bytes;
-                            ar.Load(out bytes);
+                            q.Load(out bytes);
                             if (bytes != null)
                                 v[n] = Encoding.UTF8.GetString(bytes, 0, bytes.Length);
                         }
@@ -661,7 +643,7 @@ namespace SocketProAdapter
                     }
                     else
                     {
-                        ar.UQueue.SetSize(0);
+                        q.SetSize(0);
                     }
                 }, discarded, (DOnExceptionFromServer)null);
             }
@@ -709,14 +691,12 @@ namespace SocketProAdapter
             /// <returns>true for sending the request successfully, and false for failure</returns>
             public virtual bool CloseQueue(byte[] key, DClose c, DDiscarded discarded, bool permanent)
             {
-                if (key == null)
-                    key = new byte[0];
                 return SendRequest(idClose, key, permanent, (ar) =>
                 {
                     if (c != null)
                     {
                         int errCode;
-                        ar.Load(out errCode);
+                        ar.UQueue.Load(out errCode);
                         c((CAsyncQueue)ar.AsyncServiceHandler, errCode);
                     }
                     else
@@ -759,14 +739,12 @@ namespace SocketProAdapter
             /// <returns>true for sending the request successfully, and false for failure</returns>
             public virtual bool FlushQueue(byte[] key, DFlush f, tagOptimistic option, DDiscarded discarded)
             {
-                if (key == null)
-                    key = new byte[0];
                 return SendRequest(idFlush, key, (int)option, (ar) =>
                 {
                     if (f != null)
                     {
                         ulong messageCount, fileSize;
-                        ar.Load(out messageCount).Load(out fileSize);
+                        ar.UQueue.Load(out messageCount).Load(out fileSize);
                         f((CAsyncQueue)ar.AsyncServiceHandler, messageCount, fileSize);
                     }
                     else
@@ -810,8 +788,6 @@ namespace SocketProAdapter
             public virtual bool Dequeue(byte[] key, DDequeue d, uint timeout, DDiscarded discarded)
             {
                 DAsyncResultHandler rh = null;
-                if (key == null)
-                    key = new byte[0];
                 lock (m_csQ)
                 {
                     m_keyDequeue = key;
@@ -820,7 +796,7 @@ namespace SocketProAdapter
                         rh = (ar) =>
                         {
                             ulong messageCount, fileSize, ret;
-                            ar.Load(out messageCount).Load(out fileSize).Load(out ret);
+                            ar.UQueue.Load(out messageCount).Load(out fileSize).Load(out ret);
                             uint messages = (uint)ret;
                             uint bytes = (uint)(ret >> 32);
                             d((CAsyncQueue)ar.AsyncServiceHandler, messageCount, fileSize, messages, bytes);
@@ -834,8 +810,9 @@ namespace SocketProAdapter
                 }
                 using (CScopeUQueue sb = new CScopeUQueue())
                 {
-                    sb.Save(key).Save(timeout);
-                    return SendRequest(idDequeue, sb, rh, discarded, (DOnExceptionFromServer)null);
+                    CUQueue q = sb.UQueue;
+                    q.Save(key).Save(timeout);
+                    return SendRequest(idDequeue, q, rh, discarded, (DOnExceptionFromServer)null);
                 }
             }
 

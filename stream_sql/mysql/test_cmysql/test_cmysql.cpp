@@ -80,8 +80,11 @@ int main(int argc, char* argv[]) {
         column_rowset_pair.first = vColInfo;
         ra.push_back(column_rowset_pair);
     };
-
+#ifdef FOR_MIDDLE_SERVER
+    ok = pMysql->Open(L"user=root;pwd=Smash123;db=mysqldb", dr);
+#else
     ok = pMysql->Open(L"", dr);
+#endif
     TestCreateTables(pMysql);
     ok = pMysql->Execute(L"delete from employee;delete from company", er);
     TestPreparedStatements(pMysql);

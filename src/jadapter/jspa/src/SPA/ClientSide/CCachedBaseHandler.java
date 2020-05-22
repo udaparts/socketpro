@@ -177,19 +177,19 @@ public class CCachedBaseHandler extends CAsyncServiceHandler {
                     if (len != -1 && len > m_Blob.getMaxBufferSize()) {
                         m_Blob.Realloc(len);
                     }
-                    m_Blob.Push(mc.getIntenalBuffer(), mc.getHeadPosition(), mc.GetSize());
+                    m_Blob.Push(mc.getIntenalBuffer());
                     mc.SetSize(0);
                 }
                 break;
             case DB_CONSTS.idChunk:
                 if (mc.GetSize() > 0) {
-                    m_Blob.Push(mc.getIntenalBuffer(), mc.GetSize());
+                    m_Blob.Push(mc.getIntenalBuffer());
                     mc.SetSize(0);
                 }
                 break;
             case DB_CONSTS.idEndBLOB:
                 if (mc.GetSize() > 0 || m_Blob.GetSize() > 0) {
-                    m_Blob.Push(mc.getIntenalBuffer(), mc.GetSize());
+                    m_Blob.Push(mc.getIntenalBuffer());
                     mc.SetSize(0);
                     int len = m_Blob.PeekInt(m_Blob.getHeadPosition() + 2);
                     if (len < 0 && len >= BLOB_LENGTH_NOT_AVAILABLE) {

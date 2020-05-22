@@ -56,6 +56,8 @@ namespace PA
         reg.property("idStartQueue", SPA::idStartQueue, Php::Const);
         reg.property("idStopQueue", SPA::idStopQueue, Php::Const);
         reg.property("idRoutePeerUnavailable", SPA::idRoutePeerUnavailable, Php::Const);
+        reg.property("idDequeueBatchConfirmed", SPA::idDequeueBatchConfirmed, Php::Const);
+        reg.property("idInterrupt", SPA::idInterrupt, Php::Const);
         reg.property("idReservedOne", SPA::idReservedOne, Php::Const);
         reg.property("idReservedTwo", SPA::idReservedTwo, Php::Const);
 

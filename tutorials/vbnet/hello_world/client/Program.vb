@@ -1,16 +1,13 @@
-﻿Imports System
-Imports SocketProAdapter
-Imports SocketProAdapter.ClientSide
+﻿Imports SocketProAdapter.ClientSide
 
 Friend Class Program
     Shared Sub Main(ByVal args() As String)
         Dim cc As New CConnectionContext("localhost", 20901, "hwClientUserId", "password4hwClient")
         Using spHw As New CSocketPool(Of HelloWorld)(True) 'true -- automatic reconnecting
+            'optionally start a persistent queue at client side to ensure auto failure recovery and once-only delivery
+            'spHw.QueueName = "helloworld";
             Dim ok As Boolean = spHw.StartSocketPool(cc, 1, 1)
             Dim hw As HelloWorld = spHw.Seek() 'or HelloWorld hw = spHw.Lock();
-
-            'optionally start a persistent queue at client side to ensure auto failure recovery and once-only delivery
-            ok = hw.AttachedClientSocket.ClientQueue.StartQueue("helloworld", 24 * 3600, False) 'time-to-live 1 day and true for encryption
 
             'process requests one by one synchronously
             Console.WriteLine(hw.SayHello("Jone", "Dole"))

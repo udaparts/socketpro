@@ -1,6 +1,5 @@
 /* **** including all of defines, service id(s) and request id(s) ***** */
 using System;
-using SocketProAdapter;
 using SocketProAdapter.ServerSide;
 using System.Data;
 using System.Data.SqlClient;

@@ -1,5 +1,4 @@
-﻿Imports System
-Imports SocketProAdapter
+﻿Imports SocketProAdapter
 
 Public Class CMyStruct
     Implements IUSerializer

@@ -405,9 +405,10 @@ namespace NJA {
         Isolate* isolate = args.GetIsolate();
         NJSocket* obj = ObjectWrap::Unwrap<NJSocket>(args.Holder());
         if (obj->IsValid(isolate)) {
+            auto ctx = isolate->GetCurrentContext();
             Local<Object> errObj = Object::New(isolate);
-            errObj->Set(ToStr(isolate, "ec"), Int32::New(isolate, obj->m_socket->GetErrorCode()));
-            errObj->Set(ToStr(isolate, "em"), ToStr(isolate, obj->m_socket->GetErrorMsg().c_str()));
+            errObj->Set(ctx, ToStr(isolate, "ec"), Int32::New(isolate, obj->m_socket->GetErrorCode()));
+            errObj->Set(ctx, ToStr(isolate, "em"), ToStr(isolate, obj->m_socket->GetErrorMsg().c_str()));
             args.GetReturnValue().Set(errObj);
         }
     }
@@ -424,16 +425,21 @@ namespace NJA {
         Isolate* isolate = args.GetIsolate();
         NJSocket* obj = ObjectWrap::Unwrap<NJSocket>(args.Holder());
         if (obj->IsValid(isolate)) {
+            auto ctx = isolate->GetCurrentContext();
             auto cc = obj->m_socket->GetConnectionContext();
             Local<Object> objCC = Object::New(isolate);
-            objCC->Set(ToStr(isolate, "Host"), ToStr(isolate, cc.Host.c_str()));
-            objCC->Set(ToStr(isolate, "Port"), Number::New(isolate, cc.Port));
-            objCC->Set(ToStr(isolate, "User"), ToStr(isolate, cc.UserId.c_str()));
-            objCC->Set(ToStr(isolate, "Pwd"), Null(isolate)); //no password returned
-            objCC->Set(ToStr(isolate, "EM"), Number::New(isolate, cc.EncrytionMethod));
-            objCC->Set(ToStr(isolate, "Zip"), Boolean::New(isolate, cc.Zip));
-            objCC->Set(ToStr(isolate, "V6"), Boolean::New(isolate, cc.V6));
-            objCC->Set(ToStr(isolate, "AnyData"), From(isolate, cc.AnyData));
+            objCC->Set(ctx, ToStr(isolate, "Host"), ToStr(isolate, cc.Host.c_str()));
+            objCC->Set(ctx, ToStr(isolate, "Port"), Number::New(isolate, cc.Port));
+#ifdef WIN32_64
+            objCC->Set(ctx, ToStr(isolate, "User"), ToStr(isolate, cc.UserId.c_str()));
+#else
+            objCC->Set(ctx, ToStr(isolate, "User"), ToStr(isolate, Utilities::ToUTF8(cc.UserId).c_str()));
+#endif
+            objCC->Set(ctx, ToStr(isolate, "Pwd"), Null(isolate)); //no password returned
+            objCC->Set(ctx, ToStr(isolate, "EM"), Number::New(isolate, cc.EncrytionMethod));
+            objCC->Set(ctx, ToStr(isolate, "Zip"), Boolean::New(isolate, cc.Zip));
+            objCC->Set(ctx, ToStr(isolate, "V6"), Boolean::New(isolate, cc.V6));
+            objCC->Set(ctx, ToStr(isolate, "AnyData"), From(isolate, cc.AnyData));
             args.GetReturnValue().Set(objCC);
         }
     }
@@ -491,7 +497,11 @@ namespace NJA {
         NJSocket* obj = ObjectWrap::Unwrap<NJSocket>(args.Holder());
         if (obj->IsValid(isolate)) {
             auto uid = obj->m_socket->GetUID();
+#ifdef WIN64
             args.GetReturnValue().Set(ToStr(isolate, uid.c_str()));
+#else
+            args.GetReturnValue().Set(ToStr(isolate, Utilities::ToUTF8(uid).c_str()));
+#endif
         }
     }
 

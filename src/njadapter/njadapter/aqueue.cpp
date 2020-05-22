@@ -15,7 +15,7 @@ namespace NJA {
     }
 
     CAQueue::~CAQueue() {
-        SPA::CAutoLock al(m_csQ);
+        CAutoLock al(m_csJQ);
         uv_close((uv_handle_t*) & m_qType, nullptr);
     }
 
@@ -33,7 +33,7 @@ namespace NJA {
                 qcb.Buffer = CScopeUQueue::Lock();
                 PAQueue ash = (PAQueue) aq;
                 *qcb.Buffer << ash << canceled;
-                CAutoLock al(ash->m_csQ);
+                CAutoLock al(ash->m_csJQ);
                 ash->m_deqQCb.push_back(qcb);
                 int fail = uv_async_send(&ash->m_qType);
                 assert(!fail);
@@ -51,10 +51,13 @@ namespace NJA {
         if (!obj) return;
         Isolate* isolate = Isolate::GetCurrent();
         v8::HandleScope handleScope(isolate); //required for Node 4.x
+        auto ctx = isolate->GetCurrentContext();
         {
-            SPA::CAutoLock al(obj->m_csQ);
+            obj->m_csJQ.lock();
             while (obj->m_deqQCb.size()) {
-                QueueCb &cb = obj->m_deqQCb.front();
+                QueueCb cb = obj->m_deqQCb.front();
+                obj->m_deqQCb.pop_front();
+                obj->m_csJQ.unlock();
                 PAQueue processor = nullptr;
                 *cb.Buffer >> processor;
                 assert(processor);
@@ -65,9 +68,8 @@ namespace NJA {
                         bool canceled;
                         *cb.Buffer >> canceled;
                         assert(!cb.Buffer->GetSize());
-                        Local<Object> njQ = NJAsyncQueue::New(isolate, processor, true);
-                        Local<Value> argv[] = {Boolean::New(isolate, canceled), njQ};
-                        func->Call(isolate->GetCurrentContext(), Null(isolate), 2, argv);
+                        Local<Value> argv[] = {Boolean::New(isolate, canceled)};
+                        func->Call(ctx, Null(isolate), 1, argv);
                     }
                         break;
                     case qeGetKeys:
@@ -75,19 +77,17 @@ namespace NJA {
                         unsigned int size;
                         *cb.Buffer >> size;
                         unsigned int index = 0;
-                        Local<Object> njQ = NJAsyncQueue::New(isolate, processor, true);
-                        Local<Array> jsKeys = Array::New(isolate);
+                        Local<Array> jsKeys = Array::New(isolate, (int) size);
                         while (cb.Buffer->GetSize()) {
                             std::string s;
                             *cb.Buffer >> s;
                             auto str = ToStr(isolate, s.c_str());
-                            bool ok = jsKeys->Set(index, str);
-                            assert(ok);
+                            jsKeys->Set(ctx, index, str);
                             ++index;
                         }
                         assert(index == size);
-                        Local<Value> argv[] = {jsKeys, njQ};
-                        func->Call(isolate->GetCurrentContext(), Null(isolate), 2, argv);
+                        Local<Value> argv[] = {jsKeys};
+                        func->Call(ctx, Null(isolate), 1, argv);
                     }
                         break;
                     case qeEnqueueBatch:
@@ -96,10 +96,9 @@ namespace NJA {
                         SPA::UINT64 indexMessage;
                         *cb.Buffer >> indexMessage;
                         assert(!cb.Buffer->GetSize());
-                        Local<Object> njQ = NJAsyncQueue::New(isolate, processor, true);
                         Local<Value> im = Number::New(isolate, (double) indexMessage);
-                        Local<Value> argv[] = {im, njQ};
-                        func->Call(isolate->GetCurrentContext(), Null(isolate), 2, argv);
+                        Local<Value> argv[] = {im};
+                        func->Call(ctx, Null(isolate), 1, argv);
                     }
                         break;
                     case qeCloseQueue:
@@ -109,10 +108,9 @@ namespace NJA {
                         int errCode;
                         *cb.Buffer >> errCode;
                         assert(!cb.Buffer->GetSize());
-                        Local<Object> njQ = NJAsyncQueue::New(isolate, processor, true);
                         Local<Value> jsCode = Int32::New(isolate, errCode);
-                        Local<Value> argv[] = {jsCode, njQ};
-                        func->Call(isolate->GetCurrentContext(), Null(isolate), 2, argv);
+                        Local<Value> argv[] = {jsCode};
+                        func->Call(ctx, Null(isolate), 1, argv);
                     }
                         break;
                     case qeFlushQueue:
@@ -120,11 +118,11 @@ namespace NJA {
                         SPA::UINT64 messageCount, fileSize;
                         *cb.Buffer >> messageCount >> fileSize;
                         assert(!cb.Buffer->GetSize());
-                        Local<Object> njQ = NJAsyncQueue::New(isolate, processor, true);
+                        //Local<Object> njQ = NJAsyncQueue::New(isolate, processor, true);
                         Local<Value> mc = Number::New(isolate, (double) messageCount);
                         Local<Value> fs = Number::New(isolate, (double) fileSize);
-                        Local<Value> argv[] = {mc, fs, njQ};
-                        func->Call(isolate->GetCurrentContext(), Null(isolate), 3, argv);
+                        Local<Value> argv[] = {mc, fs};
+                        func->Call(ctx, Null(isolate), 2, argv);
                     }
                         break;
                     case qeDequeue:
@@ -133,13 +131,12 @@ namespace NJA {
                         unsigned int messagesDequeuedInBatch, bytesDequeuedInBatch;
                         *cb.Buffer >> messageCount >> fileSize >> messagesDequeuedInBatch >> bytesDequeuedInBatch;
                         assert(!cb.Buffer->GetSize());
-                        Local<Object> njQ = NJAsyncQueue::New(isolate, processor, true);
                         Local<Value> mc = Number::New(isolate, (double) messageCount);
                         Local<Value> fs = Number::New(isolate, (double) fileSize);
                         Local<Value> mdib = Uint32::New(isolate, messagesDequeuedInBatch);
                         Local<Value> bdib = Uint32::New(isolate, bytesDequeuedInBatch);
-                        Local<Value> argv[] = {mc, fs, mdib, bdib, njQ};
-                        func->Call(isolate->GetCurrentContext(), Null(isolate), 5, argv);
+                        Local<Value> argv[] = {mc, fs, mdib, bdib};
+                        func->Call(ctx, Null(isolate), 4, argv);
                     }
                         break;
                     case qeResultReturned:
@@ -149,8 +146,8 @@ namespace NJA {
                         Local<Object> q = NJQueue::New(isolate, cb.Buffer);
                         Local<Value> jsReqid = Uint32::New(isolate, reqId);
                         //Local<Object> njQ = NJAsyncQueue::New(isolate, processor, true);
-                        Local<Value> argv[] = {jsReqid, q, Null(isolate)};
-                        func->Call(isolate->GetCurrentContext(), Null(isolate), 3, argv);
+                        Local<Value> argv[] = {jsReqid, q};
+                        func->Call(ctx, Null(isolate), 2, argv);
                         auto obj = node::ObjectWrap::Unwrap<NJQueue>(q);
                         obj->Release();
                     }
@@ -160,26 +157,27 @@ namespace NJA {
                         break;
                 }
                 CScopeUQueue::Unlock(cb.Buffer);
-                obj->m_deqQCb.pop_front();
+                obj->m_csJQ.lock();
             }
+            obj->m_csJQ.unlock();
         }
         isolate->RunMicrotasks();
     }
 
     void CAQueue::SetRR(Isolate* isolate, Local<Value> rr) {
         if (rr->IsFunction()) {
-            CAutoLock al(m_csQ);
+            CAutoLock al(m_csJQ);
             m_rr.reset(new CNJFunc);
             m_rr->Reset(isolate, Local<Function>::Cast(rr));
         } else if (IsNullOrUndefined(rr)) {
-            CAutoLock al(m_csQ);
+            CAutoLock al(m_csJQ);
             m_rr.reset();
         }
     }
 
     void CAQueue::OnResultReturned(unsigned short reqId, CUQueue &mc) {
         if (reqId > Queue::idEnqueueBatch && reqId != Queue::idBatchSizeNotified) {
-            CAutoLock al(m_csQ);
+            CAutoLock al(m_csJQ);
             if (m_rr) {
                 QueueCb qcb;
                 qcb.EventType = qeResultReturned;
@@ -217,7 +215,7 @@ namespace NJA {
                     for (auto it = v.begin(), end = v.end(); it != end; ++it) {
                         *qcb.Buffer << *it;
                     }
-                    CAutoLock al(ash->m_csQ);
+                    CAutoLock al(ash->m_csJQ);
                     ash->m_deqQCb.push_back(qcb);
                     int fail = uv_async_send(&ash->m_qType);
                     assert(!fail);
@@ -252,7 +250,7 @@ namespace NJA {
                     qcb.Buffer = CScopeUQueue::Lock();
                     PAQueue ash = (PAQueue) aq;
                     *qcb.Buffer << ash << errCode;
-                    CAutoLock al(ash->m_csQ);
+                    CAutoLock al(ash->m_csJQ);
                     ash->m_deqQCb.push_back(qcb);
                     int fail = uv_async_send(&ash->m_qType);
                     assert(!fail);
@@ -287,7 +285,7 @@ namespace NJA {
                     qcb.Buffer = CScopeUQueue::Lock();
                     PAQueue ash = (PAQueue) aq;
                     *qcb.Buffer << ash << errCode;
-                    CAutoLock al(ash->m_csQ);
+                    CAutoLock al(ash->m_csJQ);
                     ash->m_deqQCb.push_back(qcb);
                     int fail = uv_async_send(&ash->m_qType);
                     assert(!fail);
@@ -322,7 +320,7 @@ namespace NJA {
                     qcb.Buffer = CScopeUQueue::Lock();
                     PAQueue ash = (PAQueue) aq;
                     *qcb.Buffer << ash << errCode;
-                    CAutoLock al(ash->m_csQ);
+                    CAutoLock al(ash->m_csJQ);
                     ash->m_deqQCb.push_back(qcb);
                     int fail = uv_async_send(&ash->m_qType);
                     assert(!fail);
@@ -357,7 +355,7 @@ namespace NJA {
                     qcb.Buffer = CScopeUQueue::Lock();
                     PAQueue ash = (PAQueue) aq;
                     *qcb.Buffer << ash << messageCount << fileSize;
-                    CAutoLock al(ash->m_csQ);
+                    CAutoLock al(ash->m_csJQ);
                     ash->m_deqQCb.push_back(qcb);
                     int fail = uv_async_send(&ash->m_qType);
                     assert(!fail);
@@ -392,7 +390,7 @@ namespace NJA {
                     qcb.Buffer = CScopeUQueue::Lock();
                     PAQueue ash = (PAQueue) aq;
                     *qcb.Buffer << ash << messageCount << fileSize << messagesDequeuedInBatch << bytesDequeuedInBatch;
-                    CAutoLock al(ash->m_csQ);
+                    CAutoLock al(ash->m_csJQ);
                     ash->m_deqQCb.push_back(qcb);
                     int fail = uv_async_send(&ash->m_qType);
                     assert(!fail);
@@ -431,7 +429,7 @@ namespace NJA {
                     qcb.Buffer = CScopeUQueue::Lock();
                     PAQueue ash = (PAQueue) aq;
                     *qcb.Buffer << ash << indexMessage;
-                    CAutoLock al(ash->m_csQ);
+                    CAutoLock al(ash->m_csJQ);
                     ash->m_deqQCb.push_back(qcb);
                     int fail = uv_async_send(&ash->m_qType);
                     assert(!fail);
@@ -466,7 +464,7 @@ namespace NJA {
                     qcb.Buffer = CScopeUQueue::Lock();
                     PAQueue ash = (PAQueue) aq;
                     *qcb.Buffer << ash << indexMessage;
-                    CAutoLock al(ash->m_csQ);
+                    CAutoLock al(ash->m_csJQ);
                     ash->m_deqQCb.push_back(qcb);
                     int fail = uv_async_send(&ash->m_qType);
                     assert(!fail);

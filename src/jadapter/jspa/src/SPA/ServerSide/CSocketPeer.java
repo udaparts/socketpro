@@ -2,7 +2,7 @@ package SPA.ServerSide;
 
 public abstract class CSocketPeer {
 
-    private volatile SPA.CUQueue m_qBuffer = new SPA.CUQueue();
+    private SPA.CUQueue m_qBuffer = new SPA.CUQueue();
     volatile long m_sh = 0;
     private boolean m_bRandom = false;
     CBaseService m_Service;
@@ -227,19 +227,21 @@ public abstract class CSocketPeer {
                 break;
             case "void":
                 break;
-            case "SPA.CUQueue":
+            case "SPA.CUQueue": {
                 SPA.CUQueue r = (SPA.CUQueue) res;
                 if (r != null) {
                     SPA.CScopeUQueue.Unlock(q);
-                    ServerCoreLoader.SendReturnData(m_sh, reqId, r.GetSize(), r.getIntenalBuffer());
+                    ServerCoreLoader.SendReturnData(m_sh, reqId, r.GetSize(), r.getIntenalBuffer(), r.getHeadPosition());
                     return;
                 }
-                break;
+            }
+            break;
             case "SPA.CScopeUQueue": {
                 SPA.CScopeUQueue scope = (SPA.CScopeUQueue) res;
                 if (scope != null) {
                     SPA.CScopeUQueue.Unlock(q);
-                    ServerCoreLoader.SendReturnData(m_sh, reqId, scope.getUQueue().GetSize(), scope.getUQueue().getIntenalBuffer());
+                    SPA.CUQueue r = scope.getUQueue();
+                    ServerCoreLoader.SendReturnData(m_sh, reqId, r.GetSize(), r.getIntenalBuffer(), r.getHeadPosition());
                     scope.Clean();
                     return;
                 }
@@ -249,7 +251,7 @@ public abstract class CSocketPeer {
                 q.Save((SPA.IUSerializer) res);
                 break;
         }
-        ServerCoreLoader.SendReturnData(m_sh, reqId, q.GetSize(), q.getIntenalBuffer());
+        ServerCoreLoader.SendReturnData(m_sh, reqId, q.GetSize(), q.getIntenalBuffer(), q.getHeadPosition());
         SPA.CScopeUQueue.Unlock(q);
     }
 
@@ -506,11 +508,22 @@ public abstract class CSocketPeer {
 
     private void OnRArrive(short requestId, int len) {
         m_sCurrentRequestId = requestId;
-        m_qBuffer = new SPA.CUQueue(ServerCoreLoader.RetrieveBuffer(m_sh, len, false));
+        m_qBuffer.SetSize(0);
+        if (m_qBuffer.getMaxBufferSize() < len) {
+            m_qBuffer.Realloc(len);
+        }
+        int res = ServerCoreLoader.RetrieveBuffer(m_sh, len, false, m_qBuffer.getIntenalBuffer());
+        m_qBuffer.SetSize(res);
         SPA.CUQueue q = m_qBuffer;
         if (getSvsID() != SPA.BaseServiceID.sidHTTP) {
             q.setOS(m_os);
             q.setEndian(m_endian);
+            if (requestId == SPA.tagBaseRequestID.idInterrupt.getValue()) {
+                long options = q.LoadLong();
+                CClientPeer cs = (CClientPeer) this;
+                cs.OnInterrupted(options);
+                return;
+            }
         } else {
             CHttpPeerBase hp = (CHttpPeerBase) this;
             hp.m_WebRequestName = null;
@@ -604,7 +617,12 @@ public abstract class CSocketPeer {
         try {
             SPA.tagChatRequestID chatRequestID = SPA.tagChatRequestID.forValue(chatId);
             int svsId = ServerCoreLoader.GetSvsID(m_sh);
-            m_qBuffer = new SPA.CUQueue(ServerCoreLoader.RetrieveBuffer(m_sh, len, true));
+            m_qBuffer.SetSize(0);
+            if (m_qBuffer.getMaxBufferSize() < len) {
+                m_qBuffer.Realloc(len);
+            }
+            int res = ServerCoreLoader.RetrieveBuffer(m_sh, len, true, m_qBuffer.getIntenalBuffer());
+            m_qBuffer.SetSize(res);
             SPA.CUQueue q = m_qBuffer;
             if (svsId != SPA.BaseServiceID.sidHTTP) {
                 q.setEndian(m_endian);

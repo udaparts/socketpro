@@ -132,23 +132,19 @@ public final class CClientSocket {
     }
 
     void Detach(CAsyncServiceHandler ash) {
-        if (ash == null) {
+        if (ash == null || ash != m_ash) {
             return;
         }
-        m_lstAsh.remove(ash);
+        m_ash = null;
         ash.SetNull();
     }
 
     boolean Attach(CAsyncServiceHandler ash) {
-        if (ash == null) {
+        if (ash == null || m_ash != null) {
             return false;
         }
-        for (CAsyncServiceHandler h : m_lstAsh) {
-            if (ash.getSvsID() == h.getSvsID()) {
-                return false;
-            }
-        }
-        m_lstAsh.add(ash);
+
+        m_ash = ash;
         return true;
     }
 
@@ -241,13 +237,17 @@ public final class CClientSocket {
     }
 
     private static void OnAllRequestsProcessed(long h, short reqId) {
-        CClientSocket cs = Find(h);
-        CAsyncServiceHandler ash = cs.Seek(cs.getCurrentServiceID());
-        if (ash != null) {
-            ash.OnAllProcessed();
-        }
-        if (cs.AllRequestsProcessed != null) {
-            cs.AllRequestsProcessed.invoke(cs, reqId);
+        try {
+            CClientSocket cs = Find(h);
+            CAsyncServiceHandler ash = cs.Seek(cs.getCurrentServiceID());
+            if (ash != null) {
+                ash.OnAllProcessed();
+            }
+            if (cs.AllRequestsProcessed != null) {
+                cs.AllRequestsProcessed.invoke(cs, reqId);
+            }
+        } catch (Exception e) {
+            //ignore exception handling
         }
     }
 
@@ -278,6 +278,40 @@ public final class CClientSocket {
         }
     }
 
+    private final static java.util.HashMap<Long, java.nio.ByteBuffer> m_mapCache = new java.util.HashMap<>();
+
+    private static void OnResetBuffer(int len) {
+        java.nio.ByteBuffer v;
+        long tid = java.lang.Thread.currentThread().getId();
+        if (len < SPA.CUQueue.DEFAULT_BUFFER_SIZE) {
+            len = SPA.CUQueue.DEFAULT_BUFFER_SIZE;
+        }
+        synchronized (m_cs) {
+            if (!m_mapCache.containsKey(tid)) {
+                v = java.nio.ByteBuffer.allocateDirect(len);
+                m_mapCache.put(tid, v);
+            } else {
+                v = m_mapCache.get(tid);
+            }
+            if (v.capacity() < len) {
+                len = ((len % SPA.CUQueue.DEFAULT_BUFFER_SIZE) != 0) ? (len / SPA.CUQueue.DEFAULT_BUFFER_SIZE + 1) * SPA.CUQueue.DEFAULT_BUFFER_SIZE : len;
+                v = java.nio.ByteBuffer.allocateDirect(len);
+                m_mapCache.put(tid, v);
+            }
+        }
+        ClientCoreLoader.SetBufferForCurrentThread(v, len);
+    }
+
+    static void CleanCurrentThreadCache() {
+        long tid = java.lang.Thread.currentThread().getId();
+        ClientCoreLoader.SetBufferForCurrentThread(null, 0);
+        synchronized (m_cs) {
+            if (m_mapCache.containsKey(tid)) {
+                m_mapCache.remove(tid);
+            }
+        }
+    }
+
     private static void OnHandShakeCompleted(long h, int errCode) {
         CClientSocket cs = Find(h);
         if (cs.HandShakeCompleted != null) {
@@ -297,52 +331,51 @@ public final class CClientSocket {
         }
     }
 
-    private static void OnRequestProcessed(long h, short reqId, int len, byte[] bytes, byte os, boolean endian) {
-        CClientSocket cs = Find(h);
-        CAsyncServiceHandler ash = cs.Seek(cs.getCurrentServiceID());
-        if (ash != null) {
-            if (len != 0 && bytes.length != len) {
-                if (bytes.length == 0) {
-                    return; //socket closed
-                }
-                //should never come here!
-                String msg = String.format("Wrong number of bytes retrieved (expected = {0} and obtained = {1})", len, bytes.length);
-                throw new java.lang.UnsupportedOperationException(msg);
+    private static void OnRequestProcessed(long h, short reqId, int len, Object bytes, byte os, boolean endian) {
+        try {
+            CClientSocket cs = Find(h);
+            CAsyncServiceHandler ash = cs.m_ash;
+            if (ash != null) {
+                SPA.CUQueue q = cs.m_qRecv;
+                q.UseBuffer((java.nio.ByteBuffer) bytes, len);
+                q.setOS(tagOperationSystem.forValue(os));
+                q.setEndian(endian);
+                ash.onRR(reqId, q);
             }
-            //this does not cause re-allocting bytes memory
-            SPA.CUQueue q = new SPA.CUQueue(bytes);
-
-            q.setOS(tagOperationSystem.forValue(os));
-            q.setEndian(endian);
-            ash.onRR(reqId, q);
-        }
-        if (cs.RequestProcessed != null) {
-            cs.RequestProcessed.invoke(cs, reqId, len);
+            if (cs.RequestProcessed != null) {
+                cs.RequestProcessed.invoke(cs, reqId, len);
+            }
+        } catch (Exception e) {
+            //ignore exception handling
         }
     }
 
     private static void OnBaseRequestProcessed(long h, short reqId) {
-        CClientSocket cs = Find(h);
-        if (reqId == SPA.tagBaseRequestID.idSwitchTo.getValue()) {
-            cs.m_bRandom = ClientCoreLoader.IsRandom(h);
-            cs.m_nCurrentServiceId = ClientCoreLoader.GetCurrentServiceId(h);
-            cs.m_bRouting = ClientCoreLoader.IsRouting(h);
-            boolean[] endian = {false};
-            cs.m_os = SPA.tagOperationSystem.forValue(ClientCoreLoader.GetPeerOs(h, endian, 1));
-            cs.m_bBigEndian = endian[0];
-        }
-        CAsyncServiceHandler ash = cs.Seek(cs.getCurrentServiceID());
-        if (ash != null) {
-            if (ash.BaseRequestProcessed != null) {
-                ash.BaseRequestProcessed.invoke(ash, reqId);
+        try {
+            CClientSocket cs = Find(h);
+            if (reqId == SPA.tagBaseRequestID.idSwitchTo.getValue()) {
+                cs.m_bRandom = ClientCoreLoader.IsRandom(h);
+                cs.m_nCurrentServiceId = ClientCoreLoader.GetCurrentServiceId(h);
+                cs.m_bRouting = ClientCoreLoader.IsRouting(h);
+                boolean[] endian = {false};
+                cs.m_os = SPA.tagOperationSystem.forValue(ClientCoreLoader.GetPeerOs(h, endian, 1));
+                cs.m_bBigEndian = endian[0];
             }
-            ash.OnBaseRequestProcessed(reqId);
-            if (reqId == SPA.tagBaseRequestID.idCancel.getValue()) {
-                ash.CleanCallbacks();
+            CAsyncServiceHandler ash = cs.Seek(cs.getCurrentServiceID());
+            if (ash != null) {
+                if (ash.BaseRequestProcessed != null) {
+                    ash.BaseRequestProcessed.invoke(ash, reqId);
+                }
+                ash.OnBaseRequestProcessed(reqId);
+                if (reqId == SPA.tagBaseRequestID.idCancel.getValue()) {
+                    ash.CleanCallbacks();
+                }
             }
-        }
-        if (cs.BaseRequestProcessed != null) {
-            cs.BaseRequestProcessed.invoke(cs, SPA.tagBaseRequestID.forValue(reqId));
+            if (cs.BaseRequestProcessed != null) {
+                cs.BaseRequestProcessed.invoke(cs, SPA.tagBaseRequestID.forValue(reqId));
+            }
+        } catch (Exception e) {
+            //ignore exception handling
         }
     }
 
@@ -423,7 +456,7 @@ public final class CClientSocket {
         ClientCoreLoader.Shutdown(m_h, st.getValue());
     }
 
-    private volatile boolean m_bRandom = false;
+    private boolean m_bRandom = false;
 
     public final boolean getRandom() {
         return m_bRandom;
@@ -431,6 +464,7 @@ public final class CClientSocket {
 
     private volatile SPA.tagOperationSystem m_os = SPA.CUQueue.DEFAULT_OS;
     private volatile boolean m_bBigEndian = false;
+    final private SPA.CUQueue m_qRecv = new SPA.CUQueue();
 
     public final SPA.tagOperationSystem GetPeerOs() {
         return m_os;
@@ -583,12 +617,7 @@ public final class CClientSocket {
     }
 
     CAsyncServiceHandler Seek(int svsId) {
-        for (CAsyncServiceHandler ash : m_lstAsh) {
-            if (ash.getSvsID() == svsId) {
-                return ash;
-            }
-        }
-        return null;
+        return m_ash;
     }
 
     public final CAsyncServiceHandler getCurrentHandler() {
@@ -606,16 +635,13 @@ public final class CClientSocket {
     }
     private final long m_h;
     volatile CConnectionContext ConnectionContext;
-    private final java.util.ArrayList<CAsyncServiceHandler> m_lstAsh = new java.util.ArrayList<>();
+    private CAsyncServiceHandler m_ash = null;
 
     //
     private static CClientSocket Find(long hSocket) {
         synchronized (m_cs) {
-            if (m_mapSocket.containsKey(hSocket)) {
-                return m_mapSocket.get(hSocket);
-            }
+            return m_mapSocket.get(hSocket);
         }
-        return null;
     }
 
     static void Remove(long hSocket) {

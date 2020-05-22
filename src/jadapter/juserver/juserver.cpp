@@ -32,6 +32,7 @@ jmethodID g_midOnHttpAuthentication = nullptr;
 jmethodID g_constructorHttpHeaderValue = nullptr;
 jfieldID g_fidHeader = nullptr;
 jfieldID g_fidValue = nullptr;
+unsigned int g_nMainThreads = 0;
 
 void CleanException(JNIEnv *env) {
     jthrowable ex = env->ExceptionOccurred();
@@ -41,12 +42,6 @@ void CleanException(JNIEnv *env) {
 }
 
 void CALLBACK OnThreadEvent(SPA::ServerSide::tagThreadEvent te);
-
-#ifdef WIN32_64
-typedef DWORD UTHREAD_ID;
-#else
-typedef pthread_t UTHREAD_ID;
-#endif
 
 std::vector<UTHREAD_ID> g_vDThread;
 
@@ -184,6 +179,7 @@ JNIEXPORT void JNICALL Java_SPA_ServerSide_ServerCoreLoader_UninitSocketProServe
 }
 
 JNIEXPORT jboolean JNICALL Java_SPA_ServerSide_ServerCoreLoader_StartSocketProServer(JNIEnv *, jclass, jint port, jint maxBacklog, jboolean v6) {
+    g_nMainThreads = 0;
     return StartSocketProServer((unsigned int) port, (unsigned int) maxBacklog, v6 ? true : false);
 }
 
@@ -411,15 +407,22 @@ JNIEXPORT jint JNICALL Java_SPA_ServerSide_ServerCoreLoader_QueryRequestsInQueue
     return (jint) QueryRequestsInQueue((USocket_Server_Handle) h);
 }
 
-JNIEXPORT jbyteArray JNICALL Java_SPA_ServerSide_ServerCoreLoader_RetrieveBuffer(JNIEnv *env, jclass, jlong h, jint len, jboolean peek) {
-    if (len < 0)
+JNIEXPORT jint JNICALL Java_SPA_ServerSide_ServerCoreLoader_RetrieveBuffer(JNIEnv *env, jclass, jlong h, jint len, jboolean peek, jobject bb) {
+    if (len < 0 || !bb) {
         len = 0;
-    jbyteArray bytes = env->NewByteArray(len);
-    if (len) {
-        const unsigned char *arr = GetRequestBuffer((USocket_Server_Handle) h);
-        env->SetByteArrayRegion(bytes, 0, len, (const jbyte*) arr);
     }
-    return bytes;
+    if (len) {
+        void *des = env->GetDirectBufferAddress(bb);
+        if (g_nMainThreads <= 1) {
+            const unsigned char *arr = GetRequestBuffer((USocket_Server_Handle) h);
+            ::memcpy(des, arr, len);
+        } else {
+            unsigned int res = RetrieveBuffer((USocket_Server_Handle) h, len, (unsigned char*) des, peek ? true : false);
+            assert(res == len);
+            len = res;
+        }
+    }
+    return (jint) len;
 }
 
 JNIEXPORT jboolean JNICALL Java_SPA_ServerSide_ServerCoreLoader_IsOpened(JNIEnv *, jclass, jlong h) {
@@ -434,24 +437,20 @@ JNIEXPORT jlong JNICALL Java_SPA_ServerSide_ServerCoreLoader_GetBytesSent(JNIEnv
     return (jlong) GetBytesSent((USocket_Server_Handle) h);
 }
 
-JNIEXPORT jint JNICALL Java_SPA_ServerSide_ServerCoreLoader_SendReturnData(JNIEnv *env, jclass, jlong h, jshort reqId, jint len, jbyteArray buffer) {
-    jbyte *p = nullptr;
-    if (buffer && len)
-        p = env->GetByteArrayElements(buffer, nullptr);
-    jint res = (jint) SendReturnData((USocket_Server_Handle) h, (unsigned short) reqId, (unsigned int) len, (const unsigned char*) p);
-    if (p)
-        env->ReleaseByteArrayElements(buffer, p, JNI_ABORT);
-    return res;
+JNIEXPORT jint JNICALL Java_SPA_ServerSide_ServerCoreLoader_SendReturnData(JNIEnv *env, jclass, jlong h, jshort reqId, jint len, jobject buffer, jint offset) {
+    const unsigned char *bytes = nullptr;
+    if (buffer) {
+        bytes = (const unsigned char *) env->GetDirectBufferAddress(buffer) + offset;
+    }
+    return (jint) SendReturnData((USocket_Server_Handle) h, (unsigned short) reqId, (unsigned int) len, bytes);
 }
 
-JNIEXPORT jint JNICALL Java_SPA_ServerSide_ServerCoreLoader_SendReturnDataIndex(JNIEnv *env, jclass, jlong h, jlong index, jshort reqId, jint len, jbyteArray buffer) {
-    jbyte *p = nullptr;
-    if (buffer && len)
-        p = env->GetByteArrayElements(buffer, nullptr);
-    jint res = (jint) SendReturnDataIndex((USocket_Server_Handle) h, (SPA::UINT64) index, (unsigned short) reqId, (unsigned int) len, (const unsigned char*) p);
-    if (p)
-        env->ReleaseByteArrayElements(buffer, p, JNI_ABORT);
-    return res;
+JNIEXPORT jint JNICALL Java_SPA_ServerSide_ServerCoreLoader_SendReturnDataIndex(JNIEnv *env, jclass, jlong h, jlong index, jshort reqId, jint len, jobject buffer, jint offset) {
+    const unsigned char *bytes = nullptr;
+    if (buffer) {
+        bytes = (const unsigned char *) env->GetDirectBufferAddress(buffer) + offset;
+    }
+    return (jint) SendReturnDataIndex((USocket_Server_Handle) h, (SPA::UINT64) index, (unsigned short) reqId, (unsigned int) len, (const unsigned char*) bytes);
 }
 
 JNIEXPORT void JNICALL Java_SPA_ServerSide_ServerCoreLoader_SetLastCallInfo(JNIEnv *env, jclass, jbyteArray buffer, jint len) {
@@ -1177,14 +1176,12 @@ JNIEXPORT jint JNICALL Java_SPA_ServerSide_ServerCoreLoader_GetMessagesInDequeui
     return (jint) GetMessagesInDequeuing((unsigned int) qHandle);
 }
 
-JNIEXPORT jlong JNICALL Java_SPA_ServerSide_ServerCoreLoader_Enqueue(JNIEnv *env, jclass, jint qHandle, jshort reqId, jbyteArray buffer, jint len) {
-    jbyte *b = nullptr;
-    if (buffer && len)
-        b = env->GetByteArrayElements(buffer, nullptr);
-    jlong res = (jlong) Enqueue((unsigned int) qHandle, (unsigned short) reqId, (const unsigned char*) b, (unsigned int) len);
-    if (b)
-        env->ReleaseByteArrayElements(buffer, b, JNI_ABORT);
-    return res;
+JNIEXPORT jlong JNICALL Java_SPA_ServerSide_ServerCoreLoader_Enqueue(JNIEnv *env, jclass, jint qHandle, jshort reqId, jobject buffer, jint len, jint offset) {
+    const unsigned char *bytes = nullptr;
+    if (buffer) {
+        bytes = (const unsigned char *) env->GetDirectBufferAddress(buffer) + offset;
+    }
+    return (jlong) Enqueue((unsigned int) qHandle, (unsigned short) reqId, bytes, (unsigned int) len);
 }
 
 JNIEXPORT jlong JNICALL Java_SPA_ServerSide_ServerCoreLoader_GetMessageCount(JNIEnv *, jclass, jint qHandle) {
@@ -1345,6 +1342,14 @@ JNIEXPORT jint JNICALL Java_SPA_ServerSide_ServerCoreLoader_GetMainThreads(JNIEn
     return ::GetMainThreads();
 }
 
+JNIEXPORT jlong JNICALL Java_SPA_ServerSide_ServerCoreLoader_GetInterruptOptions(JNIEnv *, jclass, jlong h) {
+    return (jlong) GetInterruptOptions((USocket_Server_Handle) h);
+}
+
+JNIEXPORT jint JNICALL Java_SPA_ServerSide_ServerCoreLoader_NotifyInterrupt(JNIEnv *, jclass, jlong h, jlong options) {
+    return (jint) NotifyInterrupt((USocket_Server_Handle) h, (SPA::UINT64) options);
+}
+
 JNIEXPORT jint JNICALL Java_SPA_ServerSide_ServerCoreLoader_GetTTL(JNIEnv *, jclass, jint qHandle) {
     return (jint) GetTTL((unsigned int) qHandle);
 }
@@ -1496,6 +1501,9 @@ void CALLBACK OnSwitchTo(USocket_Server_Handle h, unsigned int oldServiceId, uns
     JNIEnv *env;
     jint es = g_vm->GetEnv((void **) &env, JNI_VERSION_1_6);
     assert(es == JNI_OK);
+    if (!g_nMainThreads) {
+        g_nMainThreads = GetMainThreads();
+    }
     env->CallStaticVoidMethod(g_clsCSocketPeer, g_midOnSwitchTo, (jlong) h, (jint) oldServiceId, (jint) newServiceId);
     CleanException(env);
 }

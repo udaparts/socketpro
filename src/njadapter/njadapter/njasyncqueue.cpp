@@ -48,9 +48,9 @@ namespace NJA {
         NODE_SET_PROTOTYPE_METHOD(tpl, "getDeqBatchSize", getDequeueBatchSize);
         NODE_SET_PROTOTYPE_METHOD(tpl, "getEnqNotified", getEnqueueNotified);
         NODE_SET_PROTOTYPE_METHOD(tpl, "setResultReturned", setResultReturned);
-
-        constructor.Reset(isolate, tpl->GetFunction(isolate->GetCurrentContext()).ToLocalChecked());
-        exports->Set(ToStr(isolate, "CAsyncQueue"), tpl->GetFunction(isolate->GetCurrentContext()).ToLocalChecked());
+        auto ctx = isolate->GetCurrentContext();
+        constructor.Reset(isolate, tpl->GetFunction(ctx).ToLocalChecked());
+        exports->Set(ctx, ToStr(isolate, "CAsyncQueue"), tpl->GetFunction(ctx).ToLocalChecked());
     }
 
     Local<Object> NJAsyncQueue::New(Isolate* isolate, CAQueue *ash, bool setCb) {

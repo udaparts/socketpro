@@ -118,6 +118,12 @@ class CClientPeer(CSocketPeer):
         os = scl.GetPeerOs(self.Handle, byref(b))
         return os, b.value
 
+    def NotifyInterrupt(self, options):
+        return (scl.NotifyInterrupt(self.Handle, options) == 8)
+
+    def OnInterrupted(self, options):
+        pass
+
     @property
     def ZipLevel(self):
         return scl.GetZipLevel(self.Handle)
@@ -145,3 +151,7 @@ class CClientPeer(CSocketPeer):
     @property
     def IsDequeueRequest(self):
         return scl.IsDequeueRequest(self.Handle)
+
+    @property
+    def InterruptOptions(self):
+        return scl.GetInterruptOptions(self.Handle)

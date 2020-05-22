@@ -26,9 +26,9 @@ namespace NJA {
         NODE_SET_PROTOTYPE_METHOD(tpl, "Subscribe", Subscribe);
         NODE_SET_PROTOTYPE_METHOD(tpl, "Unsubscribe", Unsubscribe);
         NODE_SET_PROTOTYPE_METHOD(tpl, "SendUserMessage", SendUserMessage);
-
-        constructor.Reset(isolate, tpl->GetFunction(isolate->GetCurrentContext()).ToLocalChecked());
-        exports->Set(ToStr(isolate, "CPush"), tpl->GetFunction(isolate->GetCurrentContext()).ToLocalChecked());
+        auto ctx = isolate->GetCurrentContext();
+        constructor.Reset(isolate, tpl->GetFunction(ctx).ToLocalChecked());
+        exports->Set(ctx, ToStr(isolate, "CPush"), tpl->GetFunction(ctx).ToLocalChecked());
     }
 
     Local<Object> NJPush::New(Isolate* isolate, SPA::IPushEx *p, bool setCb) {
@@ -126,7 +126,12 @@ namespace NJA {
         std::wstring user;
         auto p0 = args[0];
         if (p0->IsString()) {
+#ifdef WIN32_64
             user = ToStr(isolate, p0);
+#else
+            auto s = ToAStr(isolate, p0);
+            user = Utilities::ToWide(s);
+#endif
         }
         if (!user.size()) {
             ThrowException(isolate, "A non-empty string expected for user id");

@@ -257,7 +257,6 @@ namespace SPA {
             unsigned int m_listeningPort;
             unsigned int m_maxBacklog;
             friend class CBaseService;
-            CUCriticalSection m_mutex;
         };
 
         class CBaseService;
@@ -333,6 +332,8 @@ namespace SPA {
         private:
             friend class CBaseService;
         };
+
+        typedef CSocketPeer *PSocketPeer;
 
         class CHttpPeerBase : public CSocketPeer {
 
@@ -598,10 +599,13 @@ namespace SPA {
             IPushEx& GetPush();
             void AbortDequeuedMessage() const;
             bool IsDequeuedMessageAborted() const;
+            bool NotifyInterrupt(UINT64 options) const;
+            UINT64 GetInterruptOptions() const;
 
         protected:
             virtual void OnPublishEx(const unsigned int *pGroup, unsigned int count, const unsigned char *pMessage, unsigned int size);
             virtual void OnSendUserMessageEx(const wchar_t* receiver, const unsigned char *pMessage, unsigned int size);
+            virtual void OnInterrupted(UINT64 options);
 
         public:
             unsigned int SendResult(unsigned short reqId, const unsigned char* pResult, unsigned int size) const;
@@ -718,7 +722,7 @@ namespace SPA {
             bool AddAlphaRequest(unsigned short reqId) const;
             std::vector<unsigned short> GetAlphaRequestIds() const;
 
-            CSocketPeer* Seek(USocket_Server_Handle h) const;
+            CSocketPeer* Seek(USocket_Server_Handle h);
             static CBaseService* SeekService(unsigned int nServiceId);
             static CBaseService* SeekService(USocket_Server_Handle h);
 
@@ -730,7 +734,7 @@ namespace SPA {
             CBaseService& operator=(const CBaseService &as);
 
         private:
-            static bool Seek(unsigned int nServiceId);
+            static bool SeekServiceId(unsigned int nServiceId);
             CSocketPeer* CreatePeer(USocket_Server_Handle h, unsigned int oldServiceId);
             void ReleasePeer(USocket_Server_Handle h, bool bClosing, unsigned int info);
             void Clean();
@@ -753,12 +757,15 @@ namespace SPA {
             CSvsContext m_SvsContext;
             std::vector<CSocketPeer*> m_vPeer;
             std::deque<CSocketPeer*> m_vDeadPeer;
+            CUCriticalSection m_cs;
             unsigned int m_nServiceId;
-            static U_MODULE_HIDDEN CUCriticalSection m_mutex;
+            static U_MODULE_HIDDEN CSpinLock m_mutex;
             static U_MODULE_HIDDEN std::vector<CBaseService*> m_vService;
             friend class CSocketProServer;
             friend class CSocketPeer;
         };
+
+        typedef CBaseService *PBaseService;
 
         class CDummyPeer : public CClientPeer {
         protected:

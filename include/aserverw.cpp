@@ -136,7 +136,7 @@ namespace SPA
         }
 
         USocket_Server_Handle CSocketPeer::GetSocketHandle() const {
-            CAutoLock sl(CBaseService::m_mutex);
+            CSpinAutoLock sl(CBaseService::m_mutex);
             return m_hHandler;
         }
 
@@ -297,6 +297,10 @@ namespace SPA
             return ServerCoreLoader.Dequeue2(qHandle, GetSocketHandle(), maxBytes, beNotifiedWhenAvailable, waitTime);
         }
 
+        bool CClientPeer::NotifyInterrupt(UINT64 options) const {
+            return (ServerCoreLoader.NotifyInterrupt(GetSocketHandle(), options) == sizeof (options));
+        }
+
         bool CClientPeer::AbortBatching() const {
             return ServerCoreLoader.AbortBatching(GetSocketHandle());
         }
@@ -357,6 +361,10 @@ namespace SPA
 
         UINT64 CSocketPeer::GetCurrentRequestIndex() const {
             return ServerCoreLoader.GetCurrentRequestIndex(m_hHandler);
+        }
+
+        UINT64 CClientPeer::GetInterruptOptions() const {
+            return ServerCoreLoader.GetInterruptOptions(GetSocketHandle());
         }
 
         std::vector<unsigned int> CSocketPeer::GetChatGroups() const {
@@ -455,6 +463,10 @@ namespace SPA
 
         }
 
+        void CClientPeer::OnInterrupted(UINT64 options) {
+
+        }
+
         void CSocketPeer::OnBaseRequestArrive(unsigned short requestId) {
 
         }
@@ -506,7 +518,7 @@ namespace SPA
         }
 
         unsigned int CBaseService::m_nMainThreads = (~0);
-        CUCriticalSection CBaseService::m_mutex;
+        CSpinLock CBaseService::m_mutex;
         std::vector<CBaseService*> CBaseService::m_vService;
 
         CBaseService::CBaseService(unsigned int svsId, tagThreadApartment ta)
@@ -526,7 +538,7 @@ namespace SPA
             m_SvsContext.m_OnHttpAuthentication = &CBaseService::OnHttpAuthentication;
             m_SvsContext.m_OnResultsSent = &CBaseService::OnResultsSent;
             m_SvsContext.m_ta = ta;
-            CAutoLock sl(m_mutex);
+            CSpinAutoLock sl(m_mutex);
             m_vService.push_back(this);
         }
 
@@ -538,7 +550,7 @@ namespace SPA
         void CALLBACK CBaseService::OnReqArrive(USocket_Server_Handle hSocket, unsigned short usRequestID, unsigned int len) {
             assert(ServerCoreLoader.IsMainThread());
             unsigned int ServiceId = ServerCoreLoader.GetSvsID(hSocket);
-            const CBaseService *pService = SeekService(ServiceId);
+            CBaseService *pService = SeekService(ServiceId);
             if (!pService)
                 return;
             CSocketPeer *p = pService->Seek(hSocket);
@@ -576,15 +588,22 @@ namespace SPA
                         pHttpPerr->m_WebRequestName.clear();
                         pHttpPerr->m_vArg.clear();
                     }
+                    p->OnRequestArrive(usRequestID, len);
+                } else if (usRequestID == SPA::idInterrupt) {
+                    UINT64 options;
+                    mc >> options;
+                    CClientPeer *cp = (CClientPeer*) p;
+                    cp->OnInterrupted(options);
+                } else {
+                    p->OnRequestArrive(usRequestID, len);
                 }
-                p->OnRequestArrive(usRequestID, len);
             }
         }
 
         void CALLBACK CBaseService::OnFast(USocket_Server_Handle hSocket, unsigned short usRequestID, unsigned int len) {
             assert(ServerCoreLoader.IsMainThread());
             unsigned int ServiceId = ServerCoreLoader.GetSvsID(hSocket);
-            const CBaseService *pService = SeekService(ServiceId);
+            CBaseService *pService = SeekService(ServiceId);
             if (!pService)
                 return;
             CSocketPeer *p = pService->Seek(hSocket);
@@ -641,7 +660,7 @@ namespace SPA
             int res = 0;
             assert(!ServerCoreLoader.IsMainThread());
             unsigned int ServiceId = ServerCoreLoader.GetSvsID(hSocket);
-            const CBaseService *pService = SeekService(ServiceId);
+            CBaseService *pService = SeekService(ServiceId);
             if (!pService)
                 return res;
             CSocketPeer *p = pService->Seek(hSocket);
@@ -681,7 +700,7 @@ namespace SPA
         void CALLBACK CBaseService::OnBaseCame(USocket_Server_Handle hSocket, unsigned short usRequestID) {
             assert(ServerCoreLoader.IsMainThread());
             unsigned int ServiceId = ServerCoreLoader.GetSvsID(hSocket);
-            const CBaseService *pService = SeekService(ServiceId);
+            CBaseService *pService = SeekService(ServiceId);
             if (!pService)
                 return;
             CSocketPeer *p = pService->Seek(hSocket);
@@ -703,7 +722,7 @@ namespace SPA
         void CALLBACK CBaseService::OnResultsSent(USocket_Server_Handle handler) {
             assert(ServerCoreLoader.IsMainThread());
             unsigned int ServiceId = ServerCoreLoader.GetSvsID(handler);
-            const CBaseService *pService = SeekService(ServiceId);
+            CBaseService *pService = SeekService(ServiceId);
             if (!pService)
                 return;
             CSocketPeer *p = pService->Seek(handler);
@@ -713,7 +732,7 @@ namespace SPA
 
         bool CALLBACK CBaseService::OnHttpAuthentication(USocket_Server_Handle h, const wchar_t *userId, const wchar_t * password) {
             assert(ServerCoreLoader.IsMainThread());
-            const CBaseService *pService = SeekService((unsigned int) sidHTTP);
+            CBaseService *pService = SeekService((unsigned int) sidHTTP);
             if (!pService)
                 return false;
             CSocketPeer *p = pService->Seek(h);
@@ -728,7 +747,7 @@ namespace SPA
         void CALLBACK CBaseService::OnSlowRequestProcessed(USocket_Server_Handle hSocket, unsigned short usRequestID) {
             assert(ServerCoreLoader.IsMainThread());
             unsigned int ServiceId = ServerCoreLoader.GetSvsID(hSocket);
-            const CBaseService *pService = SeekService(ServiceId);
+            CBaseService *pService = SeekService(ServiceId);
             if (!pService)
                 return;
             CSocketPeer *p = pService->Seek(hSocket);
@@ -739,7 +758,7 @@ namespace SPA
         void CALLBACK CBaseService::OnChatComing(USocket_Server_Handle handler, tagChatRequestID chatRequestID, unsigned int len) {
             assert(ServerCoreLoader.IsMainThread());
             unsigned int ServiceId = ServerCoreLoader.GetSvsID(handler);
-            const CBaseService *pService = SeekService(ServiceId);
+            CBaseService *pService = SeekService(ServiceId);
             if (!pService)
                 return;
             CSocketPeer *p = pService->Seek(handler);
@@ -832,7 +851,7 @@ namespace SPA
         void CALLBACK CBaseService::OnChatCame(USocket_Server_Handle handler, tagChatRequestID chatRequestId) {
             assert(ServerCoreLoader.IsMainThread());
             unsigned int ServiceId = ServerCoreLoader.GetSvsID(handler);
-            const CBaseService *pService = SeekService(ServiceId);
+            CBaseService *pService = SeekService(ServiceId);
             if (!pService)
                 return;
             CSocketPeer *p = pService->Seek(handler);
@@ -842,7 +861,7 @@ namespace SPA
 
         bool CBaseService::AddMe(unsigned int nServiceId, tagThreadApartment ta) {
             m_SvsContext.m_ta = ta;
-            if (nServiceId && !Seek(nServiceId) && ServerCoreLoader.AddSvsContext(nServiceId, m_SvsContext)) {
+            if (nServiceId && !SeekServiceId(nServiceId) && ServerCoreLoader.AddSvsContext(nServiceId, m_SvsContext)) {
                 m_nServiceId = nServiceId;
                 return true;
             }
@@ -850,9 +869,9 @@ namespace SPA
         }
 
         void CBaseService::RemoveMe() {
-            if (m_nServiceId && Seek(m_nServiceId)) {
+            if (m_nServiceId && SeekServiceId(m_nServiceId)) {
                 ServerCoreLoader.RemoveASvsContext(m_nServiceId);
-                CAutoLock sl(m_mutex);
+                CSpinAutoLock sl(m_mutex);
                 std::vector<CBaseService*>::iterator location = std::find(m_vService.begin(), m_vService.end(), this);
                 if (location != m_vService.end())
                     m_vService.erase(location);
@@ -915,7 +934,7 @@ namespace SPA
             ServerCoreLoader.RemoveAllSlowRequests(m_nServiceId);
         }
 
-        bool CBaseService::Seek(unsigned int nServiceId) {
+        bool CBaseService::SeekServiceId(unsigned int nServiceId) {
             unsigned int n, count = ServerCoreLoader.GetCountOfServices() + 10;
             CScopeUQueue sb;
             if (sb->GetMaxSize() < count * sizeof (unsigned int))
@@ -935,46 +954,44 @@ namespace SPA
         }
 
         CBaseService * CBaseService::SeekService(unsigned int nServiceId) {
-#ifdef MAY_CHANGE_SERVICES_AFTER_STARTING_SERVER
-            /*
-             1. Remove this lock as you will not add or remove a service after running a server under most cases.
-             2. Make this lock if you will surely add or remove a service after running a server.
-             3. Adding extra lock may slightly degrade performance.
-             */
-            CAutoLock sl(m_mutex);
-#endif
-            std::vector<CBaseService*>::const_iterator it, end = m_vService.cend();
-            for (it = m_vService.cbegin(); it != end; ++it) {
-                if ((*it)->GetSvsID() == nServiceId)
-                    return *it;
+            size_t count = m_vService.size();
+            PBaseService *start = m_vService.data();
+            for (size_t it = 0; it < count; ++it) {
+                if (start[it]->GetSvsID() == nServiceId) {
+                    return start[it];
+                }
             }
             return nullptr;
         }
 
         CSocketPeer * CBaseService::CreatePeer(USocket_Server_Handle h, unsigned int oldServiceId) {
             CSocketPeer *p = nullptr;
-            CAutoLock sl(m_mutex);
-            size_t size = m_vDeadPeer.size();
-            if (size) {
-                p = m_vDeadPeer.front();
-                m_vDeadPeer.pop_front();
-            }
-            if (!p) {
-                p = GetPeerSocket();
-                p->m_pBase = this;
+            {
+                CSpinAutoLock sl(m_mutex);
+                size_t size = m_vDeadPeer.size();
+                if (size) {
+                    p = m_vDeadPeer.front();
+                    m_vDeadPeer.pop_front();
+                }
+                if (!p) {
+                    p = GetPeerSocket();
+                    p->m_pBase = this;
+                }
             }
             p->m_hHandler = h;
+            m_cs.lock();
             m_vPeer.push_back(p);
+            m_cs.unlock();
             return p;
         }
 
-        CSocketPeer * CBaseService::Seek(USocket_Server_Handle h) const {
-            std::vector<CSocketPeer*>::const_iterator it;
-            CAutoLock sl(m_mutex);
-            std::vector<CSocketPeer*>::const_iterator end = m_vPeer.cend();
-            for (it = m_vPeer.cbegin(); it != end; ++it) {
-                if ((*it)->m_hHandler == h) {
-                    return (*it);
+        CSocketPeer * CBaseService::Seek(USocket_Server_Handle h) {
+            CAutoLock sl(m_cs);
+            size_t size = m_vPeer.size();
+            const PSocketPeer *start = m_vPeer.data();
+            for (size_t it = 0; it < size; ++it) {
+                if (start[it]->m_hHandler == h) {
+                    return start[it];
                 }
             }
             return nullptr;
@@ -982,7 +999,7 @@ namespace SPA
 
         void CBaseService::ReleasePeer(USocket_Server_Handle h, bool bClosing, unsigned int info) {
             std::vector<CSocketPeer*>::iterator it;
-            CAutoLock sl(m_mutex);
+            CAutoLock sl(m_cs);
             std::vector<CSocketPeer*>::iterator end = m_vPeer.end();
             for (it = m_vPeer.begin(); it != end; ++it) {
                 CSocketPeer *pPeer = *it;
@@ -998,7 +1015,9 @@ namespace SPA
                         pHttp->m_WebRequestName.clear();
                     }
                     m_vPeer.erase(it);
+                    m_mutex.lock();
                     m_vDeadPeer.push_back(pPeer);
+                    m_mutex.unlock();
                     break;
                 }
             }
@@ -1013,11 +1032,14 @@ namespace SPA
         }
 
         void CBaseService::Clean() {
-            CAutoLock sl(m_mutex);
-            for (auto it = m_vDeadPeer.begin(), end = m_vDeadPeer.end(); it != end; ++it) {
-                delete(*it);
+            {
+                CSpinAutoLock sl(m_mutex);
+                for (auto it = m_vDeadPeer.begin(), end = m_vDeadPeer.end(); it != end; ++it) {
+                    delete(*it);
+                }
+                m_vDeadPeer.clear();
             }
-            m_vDeadPeer.clear();
+            CAutoLock al(m_cs);
             for (auto it = m_vPeer.begin(), end = m_vPeer.end(); it != end; ++it) {
                 //comment out the below call to avoid crashing here
                 //::PostClose((*it)->m_hHandler); 

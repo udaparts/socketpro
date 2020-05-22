@@ -31,16 +31,17 @@ namespace SPA {
             m_affected(-1), m_dbErrCode(0), m_lastReqId(0),
             m_indexRowset(0), m_indexProc(0), m_ms(msUnknown), m_flags(0),
             m_parameters(0), m_outputs(0), m_bCallReturn(false), m_queueOk(false), m_nParamPos(0) {
-                m_Blob.Utf8ToW(true);
 #ifdef NODE_JS_ADAPTER_PROJECT
                 ::memset(&m_typeDB, 0, sizeof (m_typeDB));
                 m_typeDB.data = this;
                 int fail = uv_async_init(uv_default_loop(), &m_typeDB, req_cb);
                 assert(!fail);
 #endif
+
 #ifdef NO_OUTPUT_BINDING
                 m_bProc = false;
-                m_vData.Utf8ToW(true);
+#else
+                m_Blob.Utf8ToW(true);
 #endif
             }
 
@@ -51,16 +52,17 @@ namespace SPA {
             m_affected(-1), m_dbErrCode(0), m_lastReqId(0),
             m_indexRowset(0), m_indexProc(0), m_ms(msUnknown), m_flags(0),
             m_parameters(0), m_outputs(0), m_bCallReturn(false), m_queueOk(false), m_nParamPos(0) {
-                m_Blob.Utf8ToW(true);
 #ifdef NODE_JS_ADAPTER_PROJECT
                 ::memset(&m_typeDB, 0, sizeof (m_typeDB));
                 m_typeDB.data = this;
                 int fail = uv_async_init(uv_default_loop(), &m_typeDB, req_cb);
                 assert(!fail);
 #endif
+
 #ifdef NO_OUTPUT_BINDING
                 m_bProc = false;
-                m_vData.Utf8ToW(true);
+#else
+                m_Blob.Utf8ToW(true);
 #endif
             }
 
@@ -318,13 +320,11 @@ namespace SPA {
              * @return true if request is successfully sent or queued; and false if request is NOT successfully sent or queued
              */
             virtual bool ExecuteBatch(tagTransactionIsolation isolation, const wchar_t *sql, CDBVariantArray &vParam = CDBVariantArray(),
-                    DExecuteResult handler = nullptr, DRows row = nullptr, DRowsetHeader rh = nullptr, DRowsetHeader batchHeader = nullptr,
-                    const CParameterInfoArray& vPInfo = CParameterInfoArray(), tagRollbackPlan plan = rpDefault, DDiscarded discarded = nullptr,
+                    const DExecuteResult& handler = nullptr, const DRows& row = nullptr, const DRowsetHeader& rh = nullptr, const DRowsetHeader& batchHeader = nullptr,
+                    const CParameterInfoArray& vPInfo = CParameterInfoArray(), tagRollbackPlan plan = rpDefault, const DDiscarded& discarded = nullptr,
                     const wchar_t *delimiter = L";", bool meta = true, bool lastInsertId = true) {
-                bool rowset = (rh || row) ? true : false;
-                if (!rowset) {
-                    meta = false;
-                }
+                bool rowset = (row) ? true : false;
+                meta = (meta && rh);
                 CScopeUQueue sb;
                 sb << sql << delimiter << (int) isolation << (int) plan << rowset << meta << lastInsertId;
 
@@ -333,7 +333,9 @@ namespace SPA {
 
                 //make sure all parameter data sending and ExecuteParameters sending as one combination sending
                 //to avoid possible request sending overlapping within multiple threading environment
-                CAutoLock alOne(m_csOneSending);
+#ifndef NODE_JS_ADAPTER_PROJECT
+                SPA::CAutoLock alOne(m_csOneSending);
+#endif
                 if (vParam.size())
                     queueOk = GetAttachedClientSocket()->GetClientQueue().StartJob();
                 {
@@ -345,7 +347,7 @@ namespace SPA {
                     //don't make m_csDB locked across calling SendRequest, which may lead to client dead-lock 
                     //in case a client asynchronously sends lots of requests without use of client side queue.
                     CAutoLock al(m_csDB);
-                    if (rowset) {
+                    if (rowset || meta) {
                         m_mapRowset[callIndex] = CRowsetHandler(rh, row);
                     }
 #ifndef NO_OUTPUT_BINDING
@@ -355,7 +357,7 @@ namespace SPA {
                     sb << m_strConnection << m_flags;
                 }
                 sb << callIndex << vPInfo;
-                ResultHandler arh = [callIndex, handler, this](CAsyncResult & ar) {
+                DResultHandler arh = [callIndex, handler, this](CAsyncResult & ar) {
                     this->Process(handler, ar, idExecuteBatch, callIndex);
                 };
                 if (!SendRequest(idExecuteBatch, sb->GetBuffer(), sb->GetSize(), arh, discarded, nullptr)) {
@@ -363,7 +365,7 @@ namespace SPA {
 #ifndef NO_OUTPUT_BINDING
                     m_mapParameterCall.erase(callIndex);
 #endif
-                    if (rowset) {
+                    if (rowset || meta) {
                         m_mapRowset.erase(callIndex);
                     }
                     m_mapHandler.erase(callIndex);
@@ -385,12 +387,10 @@ namespace SPA {
              * @param discarded a callback for tracking socket closed or request canceled event
              * @return true if request is successfully sent or queued; and false if request is NOT successfully sent or queued
              */
-            virtual bool Execute(CDBVariantArray &vParam, DExecuteResult handler = DExecuteResult(), DRows row = DRows(), DRowsetHeader rh = DRowsetHeader(),
-                    bool meta = true, bool lastInsertId = true, DDiscarded discarded = nullptr) {
-                bool rowset = (rh || row) ? true : false;
-                if (!rowset) {
-                    meta = false;
-                }
+            virtual bool Execute(CDBVariantArray &vParam, const DExecuteResult& handler = nullptr, const DRows& row = nullptr, const DRowsetHeader& rh = nullptr,
+                    bool meta = true, bool lastInsertId = true, const DDiscarded& discarded = nullptr) {
+                bool rowset = (row) ? true : false;
+                meta = (meta && rh);
                 CScopeUQueue sb;
                 sb << rowset << meta << lastInsertId;
 
@@ -398,7 +398,9 @@ namespace SPA {
                 bool queueOk = false;
                 //make sure all parameter data sending and ExecuteParameters sending as one combination sending
                 //to avoid possible request sending overlapping within multiple threading environment
-                CAutoLock alOne(m_csOneSending);
+#ifndef NODE_JS_ADAPTER_PROJECT
+                SPA::CAutoLock alOne(m_csOneSending);
+#endif
                 {
                     if (vParam.size()) {
                         queueOk = GetAttachedClientSocket()->GetClientQueue().StartJob();
@@ -410,7 +412,7 @@ namespace SPA {
                     callIndex = GetCallIndex();
                     //don't make m_csDB locked across calling SendRequest, which may lead to client dead-lock in case a client asynchronously sends lots of requests without use of client side queue.
                     CAutoLock al(m_csDB);
-                    if (rowset) {
+                    if (rowset || meta) {
                         m_mapRowset[callIndex] = CRowsetHandler(rh, row);
                     }
 #ifndef NO_OUTPUT_BINDING
@@ -418,7 +420,7 @@ namespace SPA {
 #endif
                 }
                 sb << callIndex;
-                ResultHandler arh = [callIndex, handler, this](CAsyncResult & ar) {
+                DResultHandler arh = [callIndex, handler, this](CAsyncResult & ar) {
                     this->Process(handler, ar, idExecuteParameters, callIndex);
                 };
                 if (!SendRequest(idExecuteParameters, sb->GetBuffer(), sb->GetSize(), arh, discarded, nullptr)) {
@@ -426,7 +428,7 @@ namespace SPA {
 #ifndef NO_OUTPUT_BINDING
                     m_mapParameterCall.erase(callIndex);
 #endif
-                    if (rowset) {
+                    if (rowset || meta) {
                         m_mapRowset.erase(callIndex);
                     }
                     return false;
@@ -447,29 +449,31 @@ namespace SPA {
              * @param discarded a callback for tracking socket closed or request canceled event
              * @return true if request is successfully sent or queued; and false if request is NOT successfully sent or queued
              */
-            virtual bool Execute(const wchar_t* sql, DExecuteResult handler = DExecuteResult(), DRows row = DRows(), DRowsetHeader rh = DRowsetHeader(), bool meta = true, bool lastInsertId = true, DDiscarded discarded = nullptr) {
-                bool rowset = (rh || row) ? true : false;
-                if (!rowset) {
-                    meta = false;
-                }
+            virtual bool Execute(const wchar_t* sql, const DExecuteResult& handler = nullptr, const DRows& row = nullptr, const DRowsetHeader& rh = nullptr, bool meta = true, bool lastInsertId = true, const DDiscarded& discarded = nullptr) {
+                bool rowset = (row) ? true : false;
+                meta = (meta && rh);
                 CScopeUQueue sb;
-                CAutoLock alOne(m_csOneSending);
+#ifndef NODE_JS_ADAPTER_PROJECT
+                SPA::CAutoLock alOne(m_csOneSending);
+#endif
                 UINT64 index = GetCallIndex();
                 {
                     //don't make m_csDB locked across calling SendRequest, which may lead to client dead-lock
                     //in case a client asynchronously sends lots of requests without use of client side queue.
                     CAutoLock al(m_csDB);
-                    if (rowset) {
+                    if (rowset || meta) {
                         m_mapRowset[index] = CRowsetHandler(rh, row);
                     }
                 }
                 sb << sql << rowset << meta << lastInsertId << index;
-                ResultHandler arh = [index, handler, this](CAsyncResult & ar) {
+                DResultHandler arh = [index, handler, this](CAsyncResult & ar) {
                     this->Process(handler, ar, idExecute, index);
                 };
                 if (!SendRequest(idExecute, sb->GetBuffer(), sb->GetSize(), arh, discarded, nullptr)) {
                     CAutoLock al(m_csDB);
-                    m_mapRowset.erase(index);
+                    if (rowset || meta) {
+                        m_mapRowset.erase(index);
+                    }
                     return false;
                 }
                 return true;
@@ -483,7 +487,7 @@ namespace SPA {
              * @param discarded a callback for tracking socket closed or request canceled event
              * @return true if request is successfully sent or queued; and false if request is NOT successfully sent or queued
              */
-            virtual bool Open(const wchar_t* strConnection, DResult handler, unsigned int flags = 0, DDiscarded discarded = nullptr) {
+            virtual bool Open(const wchar_t* strConnection, const DResult& handler, unsigned int flags = 0, const DDiscarded& discarded = nullptr) {
                 std::wstring s;
                 CScopeUQueue sb;
                 {
@@ -497,7 +501,7 @@ namespace SPA {
                     }
                 }
                 sb << strConnection << flags;
-                ResultHandler arh = [handler](CAsyncResult & ar) {
+                DResultHandler arh = [handler](CAsyncResult & ar) {
                     int res, ms;
                     std::wstring errMsg;
                     ar >> res >> errMsg >> ms;
@@ -538,9 +542,9 @@ namespace SPA {
              * @param discarded a callback for tracking socket closed or request canceled event
              * @return true if request is successfully sent or queued; and false if request is NOT successfully sent or queued
              */
-            virtual bool Prepare(const wchar_t *sql, DResult handler = nullptr, const CParameterInfoArray& vParameterInfo = CParameterInfoArray(), DDiscarded discarded = nullptr) {
+            virtual bool Prepare(const wchar_t *sql, const DResult& handler = nullptr, const CParameterInfoArray& vParameterInfo = CParameterInfoArray(), const DDiscarded& discarded = nullptr) {
                 CScopeUQueue sb;
-                ResultHandler arh = [handler](CAsyncResult & ar) {
+                DResultHandler arh = [handler](CAsyncResult & ar) {
                     int res;
                     std::wstring errMsg;
                     unsigned int parameters;
@@ -569,8 +573,8 @@ namespace SPA {
              * @param discarded a callback for tracking socket closed or request canceled event
              * @return true if request is successfully sent or queued; and false if request is NOT successfully sent or queued
              */
-            virtual bool Close(DResult handler = nullptr, DDiscarded discarded = nullptr) {
-                ResultHandler arh = [handler](CAsyncResult & ar) {
+            virtual bool Close(DResult handler = nullptr, const DDiscarded& discarded = nullptr) {
+                DResultHandler arh = [handler](CAsyncResult & ar) {
                     int res;
                     std::wstring errMsg;
                     ar >> res >> errMsg;
@@ -595,11 +599,11 @@ namespace SPA {
              * @param discarded a callback for tracking socket closed or request canceled event
              * @return true if request is successfully sent or queued; and false if request is NOT successfully sent or queued
              */
-            virtual bool BeginTrans(tagTransactionIsolation isolation = tiReadCommited, DResult handler = nullptr, DDiscarded discarded = nullptr) {
+            virtual bool BeginTrans(tagTransactionIsolation isolation = tiReadCommited, const DResult& handler = nullptr, const DDiscarded& discarded = nullptr) {
                 unsigned int flags;
                 std::wstring connection;
                 CScopeUQueue sb;
-                ResultHandler arh = [handler](CAsyncResult & ar) {
+                DResultHandler arh = [handler](CAsyncResult & ar) {
                     int res, ms;
                     std::wstring errMsg;
                     ar >> res >> errMsg >> ms;
@@ -621,8 +625,9 @@ namespace SPA {
 
                 //make sure BeginTrans sending and underlying client persistent message queue as one combination sending
                 //to avoid possible request sending/client message writing overlapping within multiple threading environment
-                CAutoLock alOne(m_csOneSending);
-
+#ifndef NODE_JS_ADAPTER_PROJECT
+                SPA::CAutoLock alOne(m_csOneSending);
+#endif
                 {
                     //don't make m_csDB locked across calling SendRequest, which may lead to client dead-lock
                     //in case a client asynchronously sends lots of requests without use of client side queue.
@@ -644,10 +649,10 @@ namespace SPA {
              * @param discarded a callback for tracking socket closed or request canceled event
              * @return true if request is successfully sent or queued; and false if request is NOT successfully sent or queued
              */
-            virtual bool EndTrans(tagRollbackPlan plan = rpDefault, DResult handler = nullptr, DDiscarded discarded = nullptr) {
+            virtual bool EndTrans(tagRollbackPlan plan = rpDefault, const DResult& handler = nullptr, const DDiscarded& discarded = nullptr) {
                 CScopeUQueue sb;
                 sb << (int) plan;
-                ResultHandler arh = [handler](CAsyncResult & ar) {
+                DResultHandler arh = [handler](CAsyncResult & ar) {
                     int res;
                     std::wstring errMsg;
                     ar >> res >> errMsg;
@@ -664,8 +669,9 @@ namespace SPA {
 
                 //make sure EndTrans sending and underlying client persistent message queue as one combination sending
                 //to avoid possible request sending/client message writing overlapping within multiple threading environment
-                CAutoLock alOne(m_csOneSending);
-
+#ifndef NODE_JS_ADAPTER_PROJECT
+                SPA::CAutoLock alOne(m_csOneSending);
+#endif
                 if (SendRequest(idEndTrans, sb->GetBuffer(), sb->GetSize(), arh, discarded, nullptr)) {
                     if (m_queueOk) {
                         //associate end transaction with underlying client persistent message queue
@@ -1012,7 +1018,7 @@ namespace SPA {
 
         private:
 
-            void Process(DExecuteResult handler, CAsyncResult & ar, unsigned short reqId, UINT64 index) {
+            void Process(const DExecuteResult& handler, CAsyncResult & ar, unsigned short reqId, UINT64 index) {
                 INT64 affected;
                 UINT64 fail_ok;
                 int res;
@@ -1021,7 +1027,7 @@ namespace SPA {
                 CAsyncDBHandler<serviceId> *ash = (CAsyncDBHandler<serviceId>*)ar.AsyncServiceHandler;
                 ar >> affected >> res >> errMsg >> vtId >> fail_ok;
                 {
-                    SPA::CAutoLock al(m_csDB);
+                    CAutoLock al(m_csDB);
                     m_lastReqId = reqId;
                     m_affected = affected;
                     m_dbErrCode = res;
@@ -1066,7 +1072,8 @@ namespace SPA {
             }
 
         protected:
-            CUCriticalSection m_csDB;
+            typedef SPA::CSpinAutoLock CAutoLock;
+            CSpinLock m_csDB;
             CDBColumnInfoArray m_vColInfo;
             std::unordered_map<UINT64, CRowsetHandler> m_mapRowset;
             INT64 m_affected;
@@ -1092,7 +1099,9 @@ namespace SPA {
             unsigned int m_parameters;
             unsigned int m_outputs;
             bool m_bCallReturn;
+#ifndef NODE_JS_ADAPTER_PROJECT
             CUCriticalSection m_csOneSending;
+#endif
             bool m_queueOk;
             std::unordered_map<UINT64, DRowsetHeader> m_mapHandler;
             unsigned int m_nParamPos;
@@ -1108,165 +1117,117 @@ namespace SPA {
             UINT64 BeginTrans(Isolate* isolate, int args, Local<Value> *argv, tagTransactionIsolation isolation) {
                 bool bad;
                 SPA::UINT64 index = GetCallIndex();
-                DResult result;
-                DDiscarded dd;
-                if (args > 0) {
-                    result = GetResult(isolate, argv[0], bad);
-                    if (bad) return 0;
-                }
-                if (args > 1) {
-                    dd = Get(isolate, argv[1], bad);
-                    if (bad) return 0;
-                }
+                DResult result = GetResult(isolate, argv[0], bad);
+                if (bad) return 0;
+                DDiscarded dd = Get(isolate, argv[1], bad);
+                if (bad) return 0;
                 return BeginTrans(isolation, result, dd) ? index : INVALID_NUMBER;
             }
 
             UINT64 Close(Isolate* isolate, int args, Local<Value> *argv) {
                 bool bad;
                 SPA::UINT64 index = GetCallIndex();
-                DResult result;
-                DDiscarded dd;
-                if (args > 0) {
-                    result = GetResult(isolate, argv[0], bad);
-                    if (bad) return 0;
-                }
-                if (args > 1) {
-                    dd = Get(isolate, argv[1], bad);
-                    if (bad) return 0;
-                }
+                DResult result = GetResult(isolate, argv[0], bad);
+                if (bad) return 0;
+                DDiscarded dd = Get(isolate, argv[1], bad);
+                if (bad) return 0;
                 return Close(result, dd) ? index : INVALID_NUMBER;
             }
 
             UINT64 EndTrans(Isolate* isolate, int args, Local<Value> *argv, tagRollbackPlan plan) {
                 bool bad;
                 SPA::UINT64 index = GetCallIndex();
-                DResult result;
-                DDiscarded dd;
-                if (args > 0) {
-                    result = GetResult(isolate, argv[0], bad);
-                    if (bad) return 0;
-                }
-                if (args > 1) {
-                    bool bad;
-                    dd = Get(isolate, argv[1], bad);
-                    if (bad) return 0;
-                }
+                DResult result = GetResult(isolate, argv[0], bad);
+                if (bad) return 0;
+                DDiscarded dd = Get(isolate, argv[1], bad);
+                if (bad) return 0;
                 return EndTrans(plan, result, dd) ? index : INVALID_NUMBER;
             }
 
             UINT64 Execute(Isolate* isolate, int args, Local<Value> *argv, CDBVariantArray &vParam) {
                 bool bad;
                 SPA::UINT64 index = GetCallIndex();
-                DExecuteResult result;
-                DDiscarded dd;
-                DRows r;
-                DRowsetHeader rh;
-                if (args > 0) {
-                    result = GetExecuteResult(isolate, argv[0], bad);
-                    if (bad) return 0;
-                }
-                if (args > 1) {
-                    r = GetRows(isolate, argv[1], bad);
-                    if (bad) return 0;
-                }
-                if (args > 2) {
-                    rh = GetRowsetHeader(isolate, argv[2], bad);
-                    if (bad) return 0;
-                }
-                if (args > 3) {
-                    dd = Get(isolate, argv[3], bad);
-                    if (bad) return 0;
-                }
-                return Execute(vParam, result, r, rh, true, true, dd) ? index : INVALID_NUMBER;
+                DExecuteResult result = GetExecuteResult(isolate, argv[0], bad);
+                if (bad) return 0;
+                DRows r = GetRows(isolate, argv[1], bad);
+                if (bad) return 0;
+                DRowsetHeader rh = GetRowsetHeader(isolate, argv[2], bad);
+                if (bad) return 0;
+                DDiscarded dd = Get(isolate, argv[3], bad);
+                if (bad) return 0;
+                bool meta = GetMeta(isolate, argv[4], bad);
+                if (bad) return 0;
+                return Execute(vParam, result, r, rh, meta, true, dd) ? index : INVALID_NUMBER;
             }
 
-            UINT64 Execute(Isolate* isolate, int args, Local<Value> *argv, const wchar_t *sql) {
+            UINT64 Execute(Isolate* isolate, int args, Local<Value> *argv, const UTF16 *sql) {
                 bool bad;
                 SPA::UINT64 index = GetCallIndex();
-                DExecuteResult result;
-                DDiscarded dd;
-                DRows r;
-                DRowsetHeader rh;
-                if (args > 0) {
-                    result = GetExecuteResult(isolate, argv[0], bad);
-                    if (bad) return 0;
-                }
-                if (args > 1) {
-                    r = GetRows(isolate, argv[1], bad);
-                    if (bad) return 0;
-                }
-                if (args > 2) {
-                    rh = GetRowsetHeader(isolate, argv[2], bad);
-                    if (bad) return 0;
-                }
-                if (args > 3) {
-                    dd = Get(isolate, argv[3], bad);
-                    if (bad) return 0;
-                }
-                return Execute(sql, result, r, rh, true, true, dd) ? index : INVALID_NUMBER;
+                DExecuteResult result = GetExecuteResult(isolate, argv[0], bad);
+                if (bad) return 0;
+                DRows r = GetRows(isolate, argv[1], bad);
+                if (bad) return 0;
+                DRowsetHeader rh = GetRowsetHeader(isolate, argv[2], bad);
+                if (bad) return 0;
+                DDiscarded dd = Get(isolate, argv[3], bad);
+                if (bad) return 0;
+                bool meta = GetMeta(isolate, argv[4], bad);
+                if (bad) return 0;
+#ifdef WIN32_64
+                return Execute(sql, result, r, rh, meta, true, dd) ? index : INVALID_NUMBER;
+#else
+                return Execute(Utilities::ToWide(sql, Utilities::GetLen(sql)).c_str(), result, r, rh, meta, true, dd) ? index : INVALID_NUMBER;
+#endif
             }
 
-            UINT64 ExecuteBatch(Isolate* isolate, int args, Local<Value> *argv, tagTransactionIsolation isolation, const wchar_t *sql, CDBVariantArray &vParam, tagRollbackPlan plan, const wchar_t *delimiter, const CParameterInfoArray& vPInfo) {
+            UINT64 ExecuteBatch(Isolate* isolate, int args, Local<Value> *argv, tagTransactionIsolation isolation, const UTF16 *sql, CDBVariantArray &vParam, tagRollbackPlan plan, const UTF16 *delimiter, const CParameterInfoArray& vPInfo) {
                 bool bad;
                 SPA::UINT64 index = GetCallIndex();
-                DExecuteResult result;
-                DDiscarded dd;
-                DRows r;
-                DRowsetHeader rh;
-                DRowsetHeader bh;
-                if (args > 0) {
-                    result = GetExecuteResult(isolate, argv[0], bad);
-                    if (bad) return 0;
-                }
-                if (args > 1) {
-                    r = GetRows(isolate, argv[1], bad);
-                    if (bad) return 0;
-                }
-                if (args > 2) {
-                    rh = GetRowsetHeader(isolate, argv[2], bad);
-                    if (bad) return 0;
-                }
-                if (args > 3) {
-                    bh = GetBatchHeader(isolate, argv[3], bad);
-                    if (bad) return 0;
-                }
-                if (args > 4) {
-                    dd = Get(isolate, argv[4], bad);
-                    if (bad) return 0;
-                }
-                return ExecuteBatch(isolation, sql, vParam, result, r, rh, bh, vPInfo, plan, dd, delimiter) ? index : INVALID_NUMBER;
+                DExecuteResult result = GetExecuteResult(isolate, argv[0], bad);
+                if (bad) return 0;
+                DRows r = GetRows(isolate, argv[1], bad);
+                if (bad) return 0;
+                DRowsetHeader rh = GetRowsetHeader(isolate, argv[2], bad);
+                if (bad) return 0;
+                DRowsetHeader bh = GetBatchHeader(isolate, argv[3], bad);
+                if (bad) return 0;
+                DDiscarded dd = Get(isolate, argv[4], bad);
+                if (bad) return 0;
+                bool meta = GetMeta(isolate, argv[5], bad);
+                if (bad) return 0;
+#ifdef WIN32_64
+                return ExecuteBatch(isolation, sql, vParam, result, r, rh, bh, vPInfo, plan, dd, delimiter, meta) ? index : INVALID_NUMBER;
+#else
+                return ExecuteBatch(isolation, Utilities::ToWide(sql, Utilities::GetLen(sql)).c_str(), vParam, result, r, rh, bh, vPInfo, plan, dd, Utilities::ToWide(delimiter, Utilities::GetLen(delimiter)).c_str(), meta) ? index : INVALID_NUMBER;
+#endif
             }
 
-            UINT64 Open(Isolate* isolate, int args, Local<Value> *argv, const wchar_t* strConnection, unsigned int flags) {
+            UINT64 Open(Isolate* isolate, int args, Local<Value> *argv, const UTF16* strConnection, unsigned int flags) {
                 bool bad;
                 SPA::UINT64 index = GetCallIndex();
-                DResult result;
-                DDiscarded dd;
-                if (args > 0) {
-                    result = GetResult(isolate, argv[0], bad);
-                    if (bad) return 0;
-                }
-                if (args > 1) {
-                    dd = Get(isolate, argv[1], bad);
-                    if (bad) return 0;
-                }
+                DResult result = GetResult(isolate, argv[0], bad);
+                if (bad) return 0;
+                DDiscarded dd = Get(isolate, argv[1], bad);
+                if (bad) return 0;
+#ifdef WIN32_64
                 return Open(strConnection, result, flags, dd) ? index : INVALID_NUMBER;
+#else
+                return Open(Utilities::ToWide(strConnection, Utilities::GetLen(strConnection)).c_str(), result, flags, dd) ? index : INVALID_NUMBER;
+#endif
             }
 
-            UINT64 Prepare(Isolate* isolate, int args, Local<Value> *argv, const wchar_t *sql, const CParameterInfoArray& vParameterInfo) {
+            UINT64 Prepare(Isolate* isolate, int args, Local<Value> *argv, const UTF16 *sql, const CParameterInfoArray& vParameterInfo) {
                 bool bad;
                 SPA::UINT64 index = GetCallIndex();
-                DResult result;
-                DDiscarded dd;
-                if (args > 0) {
-                    result = GetResult(isolate, argv[0], bad);
-                    if (bad) return 0;
-                }
-                if (args > 1) {
-                    dd = Get(isolate, argv[1], bad);
-                    if (bad) return 0;
-                }
+                DResult result = GetResult(isolate, argv[0], bad);
+                if (bad) return 0;
+                DDiscarded dd = Get(isolate, argv[1], bad);
+                if (bad) return 0;
+#ifdef WIN32_64
                 return Prepare(sql, result, vParameterInfo, dd) ? index : INVALID_NUMBER;
+#else
+                return Prepare(Utilities::ToWide(sql, Utilities::GetLen(sql)).c_str(), result, vParameterInfo, dd) ? index : INVALID_NUMBER;
+#endif
             }
 
         protected:
@@ -1314,6 +1275,17 @@ namespace SPA {
                     bad = true;
                 }
                 return rh;
+            }
+
+            bool GetMeta(Isolate* isolate, Local<Value> m, bool &bad) {
+                bad = false;
+                if (m->IsBoolean()) {
+                    return m->IsTrue();
+                } else if (!NJA::IsNullOrUndefined(m)) {
+                    NJA::ThrowException(isolate, "A boolean value expected");
+                    bad = true;
+                }
+                return false;
             }
 
             DRowsetHeader GetRowsetHeader(Isolate* isolate, Local<Value> header, bool &bad) {

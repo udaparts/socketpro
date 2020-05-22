@@ -61,8 +61,8 @@
     <Compile Include="..\SproAdapter\asyncdbhandler.cs">
       <Link>asyncdbhandler.cs</Link>
     </Compile>
-    <Compile Include="..\SproAdapter\asynchandler.cs">
-      <Link>asynchandler.cs</Link>
+    <Compile Include="..\SproAdapter\asynchandlerlock.cs">
+      <Link>asynchandlerlock.cs</Link>
     </Compile>
     <Compile Include="..\SproAdapter\asyncqueue.cs">
       <Link>asyncqueue.cs</Link>
@@ -103,8 +103,8 @@
     <Compile Include="..\SproAdapter\replication.cs">
       <Link>replication.cs</Link>
     </Compile>
-    <Compile Include="..\SproAdapter\scopeuqueue.cs">
-      <Link>scopeuqueue.cs</Link>
+    <Compile Include="..\SproAdapter\scopeuqueuelock.cs">
+      <Link>scopeuqueuelock.cs</Link>
     </Compile>
     <Compile Include="..\SproAdapter\socketpool.cs">
       <Link>socketpool.cs</Link>

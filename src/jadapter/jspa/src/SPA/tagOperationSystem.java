@@ -31,6 +31,17 @@ public enum tagOperationSystem {
     }
 
     public static tagOperationSystem forValue(byte value) {
-        return getMappings().get(value);
+        switch (value) {
+            case 0:
+                return osWin;
+            case 1:
+                return osApple;
+            case 2:
+                return osUnix;
+            case 3:
+                return osAndroid;
+            default:
+                return osWinCE;
+        }
     }
 }

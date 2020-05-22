@@ -1,5 +1,4 @@
 ﻿using System;
-using SocketProAdapter;
 using SocketProAdapter.ClientSide;
 
 class Program
@@ -9,11 +8,11 @@ class Program
         CConnectionContext cc = new CConnectionContext("localhost", 20901, "hwClientUserId", "password4hwClient");
         using (CSocketPool<HelloWorld> spHw = new CSocketPool<HelloWorld>(true)) //true -- automatic reconnecting
         {
+            //optionally start a persistent queue at client side to ensure auto failure recovery and once-only delivery
+            //spHw.QueueName = "helloworld";
+
             bool ok = spHw.StartSocketPool(cc, 1, 1);
             HelloWorld hw = spHw.Seek(); //or HelloWorld hw = spHw.Lock();
-
-            //optionally start a persistent queue at client side to ensure auto failure recovery and once-only delivery
-            ok = hw.AttachedClientSocket.ClientQueue.StartQueue("helloworld", 24 * 3600, false); //time-to-live 1 day and true for encryption
 
             //process requests one by one synchronously
             Console.WriteLine(hw.SayHello("Jone", "Dole"));

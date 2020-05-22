@@ -58,9 +58,10 @@ namespace PA {
         void __construct(Php::Parameters &params);
         Php::Value WaitAll(Php::Parameters &params);
         Php::Value StartBatching();
-        Php::Value CommitBatching();
+        Php::Value CommitBatching(Php::Parameters &params);
         Php::Value AbortBatching();
         Php::Value CleanCallbacks(Php::Parameters &params);
+        Php::Value Interrupt(Php::Parameters &params);
 
     protected:
         virtual Php::Value Unlock();

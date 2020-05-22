@@ -53,8 +53,9 @@ namespace NJA {
         //NODE_SET_PROTOTYPE_METHOD(tpl, "AppendTo", AppendTo);
         //NODE_SET_PROTOTYPE_METHOD(tpl, "EnsureAppending", EnsureAppending);
 
-        constructor.Reset(isolate, tpl->GetFunction(isolate->GetCurrentContext()).ToLocalChecked());
-        exports->Set(ToStr(isolate, "CClientQueue"), tpl->GetFunction(isolate->GetCurrentContext()).ToLocalChecked());
+        auto ctx = isolate->GetCurrentContext();
+        constructor.Reset(isolate, tpl->GetFunction(ctx).ToLocalChecked());
+        exports->Set(ctx, ToStr(isolate, "CClientQueue"), tpl->GetFunction(ctx).ToLocalChecked());
     }
 
     Local<Object> NJClientQueue::New(Isolate* isolate, SPA::ClientSide::IClientQueue *cq, bool setCb) {

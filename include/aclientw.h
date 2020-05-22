@@ -4,6 +4,7 @@
 
 #include "membuffer.h"
 #include "ccloader.h"
+#include "udatabase.h"
 #if defined(__ANDROID__) || defined(ANDROID)
 #include <boost/unordered_map.hpp>
 #else
@@ -75,7 +76,7 @@ namespace NJA {
     Local<Value> From(Isolate* isolate, const VARIANT &vt);
     Local<Value> DbFrom(Isolate* isolate, SPA::CUQueue &buff);
     Local<String> ToStr(Isolate* isolate, const char *str, size_t len = (size_t) INVALID_NUMBER);
-    Local<String> ToStr(Isolate* isolate, const wchar_t *str, size_t len = (size_t) INVALID_NUMBER);
+    Local<String> ToStr(Isolate* isolate, const SPA::UTF16 *str, size_t len = (size_t) INVALID_NUMBER);
     bool IsNullOrUndefined(const Local<Value> &v);
 }
 #endif
@@ -95,21 +96,21 @@ namespace SPA {
         class CAsyncResult;
 
         typedef std::function<void(CAsyncResult&) > DResultHandler;
-        typedef DResultHandler ResultHandler;
+        typedef DResultHandler ResultHandler; //ResultHandler will be removed in the near future
 
-        const static ResultHandler NULL_RH;
+        const static DResultHandler NULL_RH;
 
         class CAsyncResult {
         private:
 
-            CAsyncResult(CAsyncServiceHandler *pAsyncServiceHandler, unsigned short ReqId, CUQueue &q, ResultHandler & rh)
+            CAsyncResult(CAsyncServiceHandler *pAsyncServiceHandler, unsigned short ReqId, CUQueue &q, DResultHandler & rh)
             : AsyncServiceHandler(pAsyncServiceHandler), RequestId(ReqId), UQueue(q), CurrentAsyncResultHandler(rh) {
             }
 
         public:
 
             template<class ctype >
-            CUQueue& operator>>(ctype & receiver) {
+            inline CUQueue& operator>>(ctype & receiver) {
                 UQueue >> receiver;
                 return UQueue;
             }
@@ -118,7 +119,7 @@ namespace SPA {
             CAsyncServiceHandler *AsyncServiceHandler;
             unsigned short RequestId;
             CUQueue &UQueue;
-            ResultHandler &CurrentAsyncResultHandler;
+            DResultHandler &CurrentAsyncResultHandler;
 
         private:
             CAsyncResult(const CAsyncResult & ar);
@@ -139,7 +140,7 @@ namespace SPA {
         template<typename Del>
         struct IUDelImpl : public IUDel<Del> {
 
-            IUDelImpl(CUCriticalSection *cs = nullptr) : m_cs(cs) {
+            IUDelImpl(CSpinLock *cs = nullptr) : m_cs(cs) {
             }
 
             virtual void operator+=(const Del& d) {
@@ -196,8 +197,8 @@ namespace SPA {
             }
 
             template<typename P0>
-            void Invoke(P0 p0) {
-                CAutoLock al(*m_cs);
+            void Invoke(const P0& p0) {
+                CSpinAutoLock al(*m_cs);
                 for (auto it = m_vD.cbegin(), end = m_vD.cend(); it != end; ++it) {
                     auto &d = *it;
                     d(p0);
@@ -205,8 +206,8 @@ namespace SPA {
             }
 
             template<typename P0, typename P1>
-            void Invoke(P0 p0, P1 p1) {
-                CAutoLock al(*m_cs);
+            void Invoke(const P0& p0, const P1& p1) {
+                CSpinAutoLock al(*m_cs);
                 for (auto it = m_vD.cbegin(), end = m_vD.cend(); it != end; ++it) {
                     auto &d = *it;
                     d(p0, p1);
@@ -214,8 +215,8 @@ namespace SPA {
             }
 
             template<typename P0, typename P1, typename P2>
-            void Invoke(P0 p0, P1 p1, P2 p2) {
-                CAutoLock al(*m_cs);
+            void Invoke(const P0& p0, const P1& p1, const P2& p2) {
+                CSpinAutoLock al(*m_cs);
                 for (auto it = m_vD.cbegin(), end = m_vD.cend(); it != end; ++it) {
                     auto &d = *it;
                     d(p0, p1, p2);
@@ -223,8 +224,8 @@ namespace SPA {
             }
 
             template<typename P0, typename P1, typename P2, typename P3>
-            void Invoke(P0 p0, P1 p1, P2 p2, P3 p3) {
-                CAutoLock al(*m_cs);
+            void Invoke(const P0& p0, const P1& p1, const P2& p2, const P3& p3) {
+                CSpinAutoLock al(*m_cs);
                 for (auto it = m_vD.cbegin(), end = m_vD.cend(); it != end; ++it) {
                     auto &d = *it;
                     d(p0, p1, p2, p3);
@@ -232,8 +233,8 @@ namespace SPA {
             }
 
             template<typename P0, typename P1, typename P2, typename P3, typename P4>
-            void Invoke(P0 p0, P1 p1, P2 p2, P3 p3, P4 p4) {
-                CAutoLock al(*m_cs);
+            void Invoke(const P0& p0, const P1& p1, const P2& p2, const P3& p3, const P4& p4) {
+                CSpinAutoLock al(*m_cs);
                 for (auto it = m_vD.cbegin(), end = m_vD.cend(); it != end; ++it) {
                     auto &d = *it;
                     d(p0, p1, p2, p3, p4);
@@ -241,8 +242,8 @@ namespace SPA {
             }
 
             template<typename P0, typename P1, typename P2, typename P3, typename P4, typename P5>
-            void Invoke(P0 p0, P1 p1, P2 p2, P3 p3, P4 p4, P5 p5) {
-                CAutoLock al(*m_cs);
+            void Invoke(const P0& p0, const P1& p1, const P2& p2, const P3& p3, const P4& p4, const P5& p5) {
+                CSpinAutoLock al(*m_cs);
                 for (auto it = m_vD.cbegin(), end = m_vD.cend(); it != end; ++it) {
                     auto &d = *it;
                     d(p0, p1, p2, p3, p4, p5);
@@ -251,12 +252,12 @@ namespace SPA {
 
         public:
 
-            void SetCS(CUCriticalSection *cs) {
+            void SetCS(CSpinLock *cs) {
                 m_cs = cs;
             }
 
         protected:
-            CUCriticalSection *m_cs;
+            CSpinLock *m_cs;
             std::vector<Del> m_vD;
 
         private:
@@ -278,12 +279,18 @@ namespace SPA {
             unsigned int ServiceId;
             bool SelfMessage;
             q >> user >> ipAddr >> Port >> ServiceId >> SelfMessage;
+            auto ctx = isolate->GetCurrentContext();
             Local<Object> obj = Object::New(isolate);
-            obj->Set(NJA::ToStr(isolate, "UserId"), NJA::ToStr(isolate, user.c_str()));
-            obj->Set(NJA::ToStr(isolate, "IpAddr"), NJA::ToStr(isolate, ipAddr.c_str()));
-            obj->Set(NJA::ToStr(isolate, "Port"), Uint32::New(isolate, Port));
-            obj->Set(NJA::ToStr(isolate, "SvsId"), Number::New(isolate, ServiceId));
-            obj->Set(NJA::ToStr(isolate, "Self"), Boolean::New(isolate, SelfMessage));
+#ifdef WIN32_64
+            obj->Set(ctx, NJA::ToStr(isolate, "UserId"), NJA::ToStr(isolate, user.c_str()));
+#else
+            std::string s = Utilities::ToUTF8(user);
+            obj->Set(ctx, NJA::ToStr(isolate, "UserId"), NJA::ToStr(isolate, s.c_str()));
+#endif
+            obj->Set(ctx, NJA::ToStr(isolate, "IpAddr"), NJA::ToStr(isolate, ipAddr.c_str()));
+            obj->Set(ctx, NJA::ToStr(isolate, "Port"), Uint32::New(isolate, Port));
+            obj->Set(ctx, NJA::ToStr(isolate, "SvsId"), Number::New(isolate, ServiceId));
+            obj->Set(ctx, NJA::ToStr(isolate, "Self"), Boolean::New(isolate, SelfMessage));
             return obj;
         }
 #endif		
@@ -381,7 +388,6 @@ namespace SPA {
         private:
             bool Attach(CAsyncServiceHandler *p);
             void Detach(CAsyncServiceHandler *p);
-            inline CAsyncServiceHandler *Seek(unsigned int nServiceId);
             void Set(USocket_Client_Handle h);
 
         private:
@@ -484,79 +490,12 @@ namespace SPA {
             private:
                 CClientSocket *m_cs;
                 friend class CClientSocket;
-
-                struct CScribeDel : public IUDelImpl<DOnSubscribe> {
-
-                    void Invoke(CClientSocket* cs, const CMessageSender& sender, const unsigned int* pGroup, unsigned int count) {
-                        CAutoLock al(*m_cs);
-                        for (auto it = m_vD.cbegin(), end = m_vD.cend(); it != end; ++it) {
-                            auto &d = *it;
-                            d(cs, sender, pGroup, count);
-                        }
-                    }
-                };
-
-                struct CUserDel : public IUDelImpl<DOnSendUserMessage> {
-
-                    void Invoke(CClientSocket* cs, const CMessageSender& sender, const SPA::UVariant& vtMsg) {
-                        CAutoLock al(*m_cs);
-                        for (auto it = m_vD.cbegin(), end = m_vD.cend(); it != end; ++it) {
-                            auto &d = *it;
-                            d(cs, sender, vtMsg);
-                        }
-                    }
-                };
-
-                struct CUserExDel : public IUDelImpl<DOnSendUserMessageEx> {
-
-                    void Invoke(CClientSocket* cs, const CMessageSender& sender, const unsigned char *buffer, unsigned int bytes) {
-                        CAutoLock al(*m_cs);
-                        for (auto it = m_vD.cbegin(), end = m_vD.cend(); it != end; ++it) {
-                            auto &d = *it;
-                            d(cs, sender, buffer, bytes);
-                        }
-                    }
-                };
-
-                struct CPublishDel : public IUDelImpl<DOnPublish> {
-
-                    void Invoke(CClientSocket* cs, const CMessageSender& sender, const unsigned int* pGroup, unsigned int count, const SPA::UVariant& vtMsg) {
-                        CAutoLock al(*m_cs);
-                        for (auto it = m_vD.cbegin(), end = m_vD.cend(); it != end; ++it) {
-                            auto &d = *it;
-                            d(cs, sender, pGroup, count, vtMsg);
-                        }
-                    }
-                };
-
-                struct CPublishExDel : public IUDelImpl<DOnPublishEx> {
-#if defined(WIN32_64) && _MSC_VER < 1800
-
-                    void Invoke(const CMessageSender& sender, const unsigned int* pGroup, unsigned int count, const unsigned char* buffer, unsigned int bytes) {
-                        CAutoLock al(*m_cs);
-                        for (auto it = m_vD.cbegin(), end = m_vD.cend(); it != end; ++it) {
-                            auto &d = *it;
-                            d(sender, pGroup, count, buffer, bytes);
-                        }
-                    }
-#else
-
-                    void Invoke(CClientSocket* cs, const CMessageSender& sender, const unsigned int* pGroup, unsigned int count, const unsigned char* buffer, unsigned int bytes) {
-                        CAutoLock al(*m_cs);
-                        for (auto it = m_vD.cbegin(), end = m_vD.cend(); it != end; ++it) {
-                            auto &d = *it;
-                            d(cs, sender, pGroup, count, buffer, bytes);
-                        }
-                    }
-#endif
-                };
-
-                CUserDel m_lstUser;
-                CUserExDel m_lstUserEx;
-                CPublishDel m_lstPublish;
-                CPublishExDel m_lstPublishEx;
-                CScribeDel m_lstSub;
-                CScribeDel m_lstUnsub;
+                IUDelImpl<DOnSendUserMessage> m_lstUser;
+                IUDelImpl<DOnSendUserMessageEx> m_lstUserEx;
+                IUDelImpl<DOnPublish> m_lstPublish;
+                IUDelImpl<DOnPublishEx> m_lstPublishEx;
+                IUDelImpl<DOnSubscribe> m_lstSub;
+                IUDelImpl<DOnSubscribe> m_lstUnsub;
 
             public:
                 IUDel<DOnSendUserMessage>& OnSendUserMessage;
@@ -710,10 +649,10 @@ namespace SPA {
             CAsyncServiceHandler *GetCurrentHandler();
 
         private:
-            CUCriticalSection m_cs;
+            CSpinLock m_cs;
             USocket_Client_Handle m_hSocket;
             CPushImpl m_PushImpl;
-            std::vector<CAsyncServiceHandler*> m_vHandler;
+            CAsyncServiceHandler *m_pHandler;
             CQueueImpl m_QueueImpl;
             CConnectionContext m_cc;
             bool m_bRandom;
@@ -721,8 +660,8 @@ namespace SPA {
             tagOperationSystem m_os;
             unsigned int m_nCurrSvsId;
             bool m_routing;
-
-            static CUCriticalSection m_mutex;
+            CUQueue m_qRecv;
+            static CSpinLock m_mutex;
             static std::vector<CClientSocket*> m_vClientSocket;
 
             template<typename THandler, typename TCS>
@@ -773,7 +712,6 @@ namespace SPA {
         class CAsyncServiceHandler {
             SPA::CScopeUQueue m_suCallback;
             SPA::CScopeUQueue m_suBatching;
-            static CUCriticalSection m_csRR;
             static void CleanQueue(CUQueue &q);
 
         public:
@@ -799,45 +737,79 @@ namespace SPA {
 
             struct CResultCb {
 
-                CResultCb() {
-                }
-
-                CResultCb(const ResultHandler &rh) : AsyncResultHandler(rh) {
-                }
-
-                CResultCb(const ResultHandler &rh, const DDiscarded& discarded, const DServerException &exceptionFromServer)
+                CResultCb(const DResultHandler &rh, const DDiscarded& discarded, const DServerException &exceptionFromServer)
                 : AsyncResultHandler(rh), Discarded(discarded), ExceptionFromServer(exceptionFromServer) {
                 }
 
-                CResultCb(const CResultCb &rcb)
-                : AsyncResultHandler(rcb.AsyncResultHandler), Discarded(rcb.Discarded), ExceptionFromServer(rcb.ExceptionFromServer) {
-                }
+                //no copy constructor or assignment operator
+                CResultCb(const CResultCb &rcb);
+                CResultCb& operator=(const CResultCb &rcb);
 
-                CResultCb& operator=(const CResultCb &rcb) {
-                    if (this != &rcb) {
-                        AsyncResultHandler = rcb.AsyncResultHandler;
-                        Discarded = rcb.Discarded;
-                        ExceptionFromServer = rcb.ExceptionFromServer;
-                    }
-                    return *this;
-                }
-
-                ResultHandler AsyncResultHandler;
+                DResultHandler AsyncResultHandler;
                 DDiscarded Discarded;
                 DServerException ExceptionFromServer;
             };
-            typedef std::pair<unsigned short, CResultCb>* PRR_PAIR;
-            static std::vector<PRR_PAIR> m_vRR;
-            static PRR_PAIR Reuse();
-            static void Recycle(PRR_PAIR p);
+            typedef std::pair<unsigned short, CResultCb*> *PRR_PAIR;
+
+            class CRR : public CSafeDeque<PRR_PAIR> {
+            public:
+
+                inline PRR_PAIR Reuse() {
+                    PRR_PAIR pp;
+                    if (!pop_front(pp)) {
+                        pp = nullptr;
+                    }
+                    return pp;
+                }
+
+                inline void Recycle(PRR_PAIR p) {
+                    if (p) {
+                        push_front(p);
+                    }
+                }
+
+                void ClearResultCallbackPool(size_t remaining) {
+                    CSpinAutoLock al(m_sl);
+                    if (remaining > m_count) {
+                        remaining = m_count;
+                    }
+                    PRR_PAIR *start = m_p + m_header;
+                    for (size_t it = remaining; it < m_count; ++it) {
+                        PRR_PAIR p = start[it];
+                        delete p->second;
+                        delete p;
+                    }
+                    m_count = remaining;
+                    if (!m_count) {
+                        m_header = 0;
+                    }
+                }
+            };
+            static CRR m_rrStack;
 
         protected:
             virtual void OnResultReturned(unsigned short reqId, CUQueue &mc);
             virtual void OnExceptionFromServer(unsigned short requestId, const wchar_t *errMessage, const char* errWhere, unsigned int errCode);
             virtual void OnBaseRequestprocessed(unsigned short reqId);
             virtual void OnAllProcessed();
+            virtual void OnInterrupted(UINT64 options);
 
         public:
+
+#if defined(MONITORING_SPIN_CONTENTION) && defined(ATOMIC_AVAILABLE)
+
+            UINT64 GetContention() {
+                return m_cs.Contention; //m_vBatching & m_vCallback
+            }
+
+            UINT64 GetCbContention() {
+                return m_csCb.Contention; //callbacks
+            }
+
+            static UINT64 GetCacheContention() {
+                return m_rrStack.contention(); //m_rrStack
+            }
+#endif
             unsigned int GetRequestsQueued();
             void ShrinkDeque();
 
@@ -845,13 +817,14 @@ namespace SPA {
                 return m_nServiceId;
             }
             void SetSvsID(unsigned int serviceId);
-            virtual bool SendRequest(unsigned short reqId, const unsigned char *pBuffer, unsigned int size, ResultHandler rh, DDiscarded discarded = nullptr, DServerException serverException = nullptr);
-            bool SendRequest(unsigned short reqId, ResultHandler rh, DDiscarded discarded = nullptr, DServerException se = nullptr);
+            virtual bool SendRequest(unsigned short reqId, const unsigned char *pBuffer, unsigned int size, const DResultHandler& rh, const DDiscarded& discarded = nullptr, const DServerException& serverException = nullptr);
+            bool SendRequest(unsigned short reqId, const DResultHandler& rh, const DDiscarded& discarded = nullptr, const DServerException& se = nullptr);
 
             inline CClientSocket *GetAttachedClientSocket() {
                 return m_pClientSocket;
             }
             virtual bool WaitAll(unsigned int timeOut = (~0));
+            virtual bool Interrupt(UINT64 options);
             bool StartBatching();
             bool CommitBatching(bool bBatchingAtServerSide = false);
             bool AbortBatching();
@@ -861,8 +834,8 @@ namespace SPA {
             void AbortDequeuedMessage();
             bool IsDequeuedMessageAborted();
             bool IsRouteeRequest();
-            static void ClearResultCallbackPool(size_t remaining);
-            static size_t CountResultCallbacksInPool();
+            static void ClearResultCallbackPool(unsigned int remaining);
+            static unsigned int CountResultCallbacksInPool();
             static UINT64 GetCallIndex();
 
             bool ProcessR0(unsigned short reqId) {
@@ -1331,70 +1304,70 @@ namespace SPA {
             }
 
             template<typename T0>
-            bool SendRequest(unsigned short reqId, const T0 &t0, const ResultHandler &rh, DDiscarded discarded = nullptr, DServerException se = nullptr) {
+            bool SendRequest(unsigned short reqId, const T0 &t0, const DResultHandler &rh, DDiscarded discarded = nullptr, DServerException se = nullptr) {
                 CScopeUQueue sb;
                 sb << t0;
                 return SendRequest(reqId, sb->GetBuffer(), sb->GetSize(), rh, discarded, se);
             }
 
             template<typename T0, typename T1>
-            bool SendRequest(unsigned short reqId, const T0 &t0, const T1 &t1, const ResultHandler &rh, DDiscarded discarded = nullptr, DServerException se = nullptr) {
+            bool SendRequest(unsigned short reqId, const T0 &t0, const T1 &t1, const DResultHandler &rh, DDiscarded discarded = nullptr, DServerException se = nullptr) {
                 CScopeUQueue sb;
                 sb << t0 << t1;
                 return SendRequest(reqId, sb->GetBuffer(), sb->GetSize(), rh, discarded, se);
             }
 
             template<typename T0, typename T1, typename T2>
-            bool SendRequest(unsigned short reqId, const T0 &t0, const T1 &t1, const T2 &t2, const ResultHandler &rh, DDiscarded discarded = nullptr, DServerException se = nullptr) {
+            bool SendRequest(unsigned short reqId, const T0 &t0, const T1 &t1, const T2 &t2, const DResultHandler &rh, DDiscarded discarded = nullptr, DServerException se = nullptr) {
                 CScopeUQueue sb;
                 sb << t0 << t1 << t2;
                 return SendRequest(reqId, sb->GetBuffer(), sb->GetSize(), rh, discarded, se);
             }
 
             template<typename T0, typename T1, typename T2, typename T3>
-            bool SendRequest(unsigned short reqId, const T0 &t0, const T1 &t1, const T2 &t2, const T3 &t3, const ResultHandler &rh, DDiscarded discarded = nullptr, DServerException se = nullptr) {
+            bool SendRequest(unsigned short reqId, const T0 &t0, const T1 &t1, const T2 &t2, const T3 &t3, const DResultHandler &rh, DDiscarded discarded = nullptr, DServerException se = nullptr) {
                 CScopeUQueue sb;
                 sb << t0 << t1 << t2 << t3;
                 return SendRequest(reqId, sb->GetBuffer(), sb->GetSize(), rh, discarded, se);
             }
 
             template<typename T0, typename T1, typename T2, typename T3, typename T4>
-            bool SendRequest(unsigned short reqId, const T0 &t0, const T1 &t1, const T2 &t2, const T3 &t3, const T4 &t4, const ResultHandler &rh, DDiscarded discarded = nullptr, DServerException se = nullptr) {
+            bool SendRequest(unsigned short reqId, const T0 &t0, const T1 &t1, const T2 &t2, const T3 &t3, const T4 &t4, const DResultHandler &rh, DDiscarded discarded = nullptr, DServerException se = nullptr) {
                 CScopeUQueue sb;
                 sb << t0 << t1 << t2 << t3 << t4;
                 return SendRequest(reqId, sb->GetBuffer(), sb->GetSize(), rh, discarded, se);
             }
 
             template<typename T0, typename T1, typename T2, typename T3, typename T4, typename T5>
-            bool SendRequest(unsigned short reqId, const T0 &t0, const T1 &t1, const T2 &t2, const T3 &t3, const T4 &t4, const T5 &t5, const ResultHandler &rh, DDiscarded discarded = nullptr, DServerException se = nullptr) {
+            bool SendRequest(unsigned short reqId, const T0 &t0, const T1 &t1, const T2 &t2, const T3 &t3, const T4 &t4, const T5 &t5, const DResultHandler &rh, DDiscarded discarded = nullptr, DServerException se = nullptr) {
                 CScopeUQueue sb;
                 sb << t0 << t1 << t2 << t3 << t4 << t5;
                 return SendRequest(reqId, sb->GetBuffer(), sb->GetSize(), rh, discarded, se);
             }
 
             template<typename T0, typename T1, typename T2, typename T3, typename T4, typename T5, typename T6>
-            bool SendRequest(unsigned short reqId, const T0 &t0, const T1 &t1, const T2 &t2, const T3 &t3, const T4 &t4, const T5 &t5, const T6 &t6, const ResultHandler &rh, DDiscarded discarded = nullptr, DServerException se = nullptr) {
+            bool SendRequest(unsigned short reqId, const T0 &t0, const T1 &t1, const T2 &t2, const T3 &t3, const T4 &t4, const T5 &t5, const T6 &t6, const DResultHandler &rh, DDiscarded discarded = nullptr, DServerException se = nullptr) {
                 CScopeUQueue sb;
                 sb << t0 << t1 << t2 << t3 << t4 << t5 << t6;
                 return SendRequest(reqId, sb->GetBuffer(), sb->GetSize(), rh, discarded, se);
             }
 
             template<typename T0, typename T1, typename T2, typename T3, typename T4, typename T5, typename T6, typename T7>
-            bool SendRequest(unsigned short reqId, const T0 &t0, const T1 &t1, const T2 &t2, const T3 &t3, const T4 &t4, const T5 &t5, const T6 &t6, const T7 &t7, const ResultHandler &rh, DDiscarded discarded = nullptr, DServerException se = nullptr) {
+            bool SendRequest(unsigned short reqId, const T0 &t0, const T1 &t1, const T2 &t2, const T3 &t3, const T4 &t4, const T5 &t5, const T6 &t6, const T7 &t7, const DResultHandler &rh, DDiscarded discarded = nullptr, DServerException se = nullptr) {
                 CScopeUQueue sb;
                 sb << t0 << t1 << t2 << t3 << t4 << t5 << t6 << t7;
                 return SendRequest(reqId, sb->GetBuffer(), sb->GetSize(), rh, discarded, se);
             }
 
             template<typename T0, typename T1, typename T2, typename T3, typename T4, typename T5, typename T6, typename T7, typename T8>
-            bool SendRequest(unsigned short reqId, const T0 &t0, const T1 &t1, const T2 &t2, const T3 &t3, const T4 &t4, const T5 &t5, const T6 &t6, const T7 &t7, const T8 &t8, const ResultHandler &rh, DDiscarded discarded = nullptr, DServerException se = nullptr) {
+            bool SendRequest(unsigned short reqId, const T0 &t0, const T1 &t1, const T2 &t2, const T3 &t3, const T4 &t4, const T5 &t5, const T6 &t6, const T7 &t7, const T8 &t8, const DResultHandler &rh, DDiscarded discarded = nullptr, DServerException se = nullptr) {
                 CScopeUQueue sb;
                 sb << t0 << t1 << t2 << t3 << t4 << t5 << t6 << t7 << t8;
                 return SendRequest(reqId, sb->GetBuffer(), sb->GetSize(), rh, discarded, se);
             }
 
             template<typename T0, typename T1, typename T2, typename T3, typename T4, typename T5, typename T6, typename T7, typename T8, typename T9>
-            bool SendRequest(unsigned short reqId, const T0 &t0, const T1 &t1, const T2 &t2, const T3 &t3, const T4 &t4, const T5 &t5, const T6 &t6, const T7 &t7, const T8 &t8, const T9 &t9, const ResultHandler &rh, DDiscarded discarded = nullptr, DServerException se = nullptr) {
+            bool SendRequest(unsigned short reqId, const T0 &t0, const T1 &t1, const T2 &t2, const T3 &t3, const T4 &t4, const T5 &t5, const T6 &t6, const T7 &t7, const T8 &t8, const T9 &t9, const DResultHandler &rh, DDiscarded discarded = nullptr, DServerException se = nullptr) {
                 CScopeUQueue sb;
                 sb << t0 << t1 << t2 << t3 << t4 << t5 << t6 << t7 << t8 << t9;
                 return SendRequest(reqId, sb->GetBuffer(), sb->GetSize(), rh, discarded, se);
@@ -1427,7 +1400,7 @@ namespace SPA {
                     } catch (...) {
                     }
                 };
-                ResultHandler rh = [prom](CAsyncResult & ar) {
+                DResultHandler rh = [prom](CAsyncResult & ar) {
                     prom->set_value();
                 };
                 if (!SendRequest(reqId, pBuffer, size, rh, discarded, se)) {
@@ -1535,7 +1508,7 @@ namespace SPA {
                     } catch (...) {
                     }
                 };
-                ResultHandler rh = [prom](CAsyncResult & ar) {
+                DResultHandler rh = [prom](CAsyncResult & ar) {
                     try {
                         R r;
                         ar >> r;
@@ -1634,7 +1607,7 @@ namespace SPA {
 
             bool P(unsigned short reqId, const CUQueue &qSender) {
                 bool ok = true;
-                ResultHandler rh = [](CAsyncResult & ar) {
+                DResultHandler rh = [](CAsyncResult & ar) {
                 };
                 DDiscarded discarded = [&ok](CAsyncServiceHandler *h, bool canceled) {
                     ok = false;
@@ -1648,7 +1621,7 @@ namespace SPA {
             template<typename R0>
             bool P(unsigned short reqId, const CUQueue &qSender, R0 &r0) {
                 bool ok = true;
-                ResultHandler rh = [&r0](CAsyncResult & ar) {
+                DResultHandler rh = [&r0](CAsyncResult & ar) {
                     ar >> r0;
                 };
                 DDiscarded discarded = [&ok](CAsyncServiceHandler *h, bool canceled) {
@@ -1663,7 +1636,7 @@ namespace SPA {
             template<typename R0, typename R1>
             bool P(unsigned short reqId, const CUQueue &qSender, R0 &r0, R1 &r1) {
                 bool ok = true;
-                ResultHandler rh = [&r0, &r1](CAsyncResult & ar) {
+                DResultHandler rh = [&r0, &r1](CAsyncResult & ar) {
                     ar >> r0 >> r1;
                 };
                 DDiscarded discarded = [&ok](CAsyncServiceHandler *h, bool canceled) {
@@ -1678,7 +1651,7 @@ namespace SPA {
             template<typename R0, typename R1, typename R2>
             bool P(unsigned short reqId, const CUQueue &qSender, R0 &r0, R1 &r1, R2 &r2) {
                 bool ok = true;
-                ResultHandler rh = [&r0, &r1, &r2](CAsyncResult & ar) {
+                DResultHandler rh = [&r0, &r1, &r2](CAsyncResult & ar) {
                     ar >> r0 >> r1 >> r2;
                 };
                 DDiscarded discarded = [&ok](CAsyncServiceHandler *h, bool canceled) {
@@ -1693,7 +1666,7 @@ namespace SPA {
             template<typename R0, typename R1, typename R2, typename R3>
             bool P(unsigned short reqId, const CUQueue &qSender, R0 &r0, R1 &r1, R2 &r2, R3 &r3) {
                 bool ok = true;
-                ResultHandler rh = [&r0, &r1, &r2, &r3](CAsyncResult & ar) {
+                DResultHandler rh = [&r0, &r1, &r2, &r3](CAsyncResult & ar) {
                     ar >> r0 >> r1 >> r2 >> r3;
                 };
                 DDiscarded discarded = [&ok](CAsyncServiceHandler *h, bool canceled) {
@@ -1708,7 +1681,7 @@ namespace SPA {
             template<typename R0, typename R1, typename R2, typename R3, typename R4>
             bool P(unsigned short reqId, const CUQueue &qSender, R0 &r0, R1 &r1, R2 &r2, R3 &r3, R4 &r4) {
                 bool ok = true;
-                ResultHandler rh = [&r0, &r1, &r2, &r3, &r4](CAsyncResult & ar) {
+                DResultHandler rh = [&r0, &r1, &r2, &r3, &r4](CAsyncResult & ar) {
                     ar >> r0 >> r1 >> r2 >> r3 >> r4;
                 };
                 DDiscarded discarded = [&ok](CAsyncServiceHandler *h, bool canceled) {
@@ -1726,6 +1699,7 @@ namespace SPA {
             void SetNULL();
             void EraseBack(unsigned int count);
             void AppendTo(CAsyncServiceHandler &from);
+            static bool Remove(CUQueue &q, PRR_PAIR p);
 
         protected:
             virtual void OnPostProcessing(unsigned int hint, UINT64 data);
@@ -1777,12 +1751,12 @@ namespace SPA {
             virtual SPA::UINT64 SendRequest(Isolate* isolate, int args, Local<Value> *argv, unsigned short reqId, const unsigned char *pBuffer, unsigned int size);
 
             void Backup(std::shared_ptr<CNJFunc> f) {
-                CAutoLock al(m_cs);
+                CSpinAutoLock al(m_cs);
                 m_fBackup.push_back(f);
             }
 
             void CleanFuncBackups() {
-                CAutoLock al(m_cs);
+                CSpinAutoLock al(m_cs);
                 m_fBackup.clear();
             }
 
@@ -1806,14 +1780,17 @@ namespace SPA {
             std::deque<std::shared_ptr<CNJFunc> > m_fBackup;
 #endif
         private:
-            CUCriticalSection m_cs;
-            CUQueue &m_vCallback;
-            CUQueue &m_vBatching;
+            CSpinLock m_csCb;
+            CSpinLock m_cs;
+            CUQueue &m_vCallback; //protected by m_cs;
+            CUQueue &m_vBatching; //protected by m_cs;
             unsigned int m_nServiceId;
             CClientSocket *m_pClientSocket;
+#ifndef NODE_JS_ADAPTER_PROJECT
             CUCriticalSection m_csSend;
-            static CUCriticalSection m_csIndex;
-            static UINT64 m_CallIndex; //should be protected by IndexLocker;
+#endif
+            static CSpinLock m_csIndex;
+            static UINT64 m_CallIndex; //protected by m_csIndex;
             friend class CClientSocket;
             template<typename THandler, typename TCS>
             friend class CSocketPool; // unbound friend class
@@ -1856,18 +1833,11 @@ namespace SPA {
                 }
             };
 
-            struct cs_equal : public std::binary_function < PClientSocket, PClientSocket, bool > {
-
-                inline bool operator()(const PClientSocket &s1, const PClientSocket & s2) const {
-                    return (s1->GetHandle() == s2->GetHandle());
-                }
-            };
-
         public:
 #if defined(__ANDROID__) || defined(ANDROID)
-            typedef boost::unordered_map<PClientSocket, PHandler, cs_hash, cs_equal> CMapSocketHandler;
+            typedef boost::unordered_map<PClientSocket, PHandler, cs_hash> CMapSocketHandler;
 #else
-            typedef std::unordered_map<PClientSocket, PHandler, cs_hash, cs_equal> CMapSocketHandler;
+            typedef std::unordered_map<PClientSocket, PHandler, cs_hash> CMapSocketHandler;
 #endif
         public:
 
@@ -1884,7 +1854,7 @@ namespace SPA {
                 if (!ClientCoreLoader.IsLoaded()) {
                     throw CUExCode("Client core library not accessible!", MB_BAD_OPERATION);
                 }
-                m_implSPE.SetCS(&m_cs);
+                m_implSPE.SetCS(&m_sl);
                 CAutoLock al(g_csSpPool);
                 m_vPool.push_back(this);
             }
@@ -2532,6 +2502,7 @@ namespace SPA {
             PHandler m_pHFrom;
             std::string m_qName;
             static std::vector<CSocketPool*> m_vPool; //protected by g_csSpPool
+            CSpinLock m_sl;
             IUDelImpl<DSocketPoolEvent> m_implSPE;
 
         public:
@@ -2669,7 +2640,7 @@ namespace SPA {
             }
 
             virtual bool Send(unsigned short reqId, const unsigned char *buffer, unsigned int len) const {
-                ResultHandler rh;
+                DResultHandler rh;
                 PHandler src = GetSourceHandler();
                 if (!src)
                     return false;
@@ -2914,4 +2885,3 @@ namespace SPA {
 }; //SPA
 
 #endif
-

@@ -1,8 +1,4 @@
-﻿Imports System
-Imports System.Collections.Generic
-Imports SocketProAdapter
-Imports SocketProAdapter.ClientSide
-Imports System.Data
+﻿Imports SocketProAdapter.ClientSide
 
 Friend Class Program
     Shared Sub Main(ByVal args() As String)

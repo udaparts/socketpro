@@ -7,6 +7,60 @@
 
 namespace SPA {
 
+#ifdef WIN32_64
+    typedef std::wstring CDBString;
+#else
+    typedef std::basic_string<UTF16> CDBString;
+
+    static CUQueue& operator<<(CUQueue &q, const CDBString &str) {
+        unsigned int len = (unsigned int) str.size();
+        len <<= 1;
+        q << len;
+        q.Push((const unsigned char*) str.c_str(), len);
+        return q;
+    }
+
+    static CUQueue& operator>>(CUQueue &q, CDBString &str) {
+        unsigned int len;
+        q >> len;
+        switch (len) {
+            case 0:
+            case UQUEUE_NULL_LENGTH:
+                str.clear();
+                break;
+            default:
+                if (len > q.GetSize() || (len % sizeof (UTF16))) {
+                    throw CUException("Bad data for loading UNICODE string", __FILE__, __LINE__, __FUNCTION__, MB_BAD_DESERIALIZATION);
+                } else {
+                    str.assign((const UTF16*) q.GetBuffer(), len >> 1);
+                    q.Pop(len);
+                }
+                break;
+        }
+        return q;
+    }
+
+    namespace Utilities {
+
+        static std::wstring ToWide(const CDBString &str) {
+            return ToWide(str.c_str(), str.size());
+        }
+
+        static void Trim(CDBString & s) {
+            while (s.size() && ::isspace(s.back())) {
+                s.pop_back();
+            }
+            while (s.size() && ::isspace(s.front())) {
+                s.erase(s.begin());
+            }
+        }
+
+        static std::string ToUTF8(const CDBString &str) {
+            return ToUTF8(str.c_str(), str.size());
+        }
+    }
+#endif
+
     namespace UDB {
 
         enum tagTransactionIsolation {
@@ -801,12 +855,12 @@ namespace SPA {
             }
 
         public:
-            std::wstring DBPath;
-            std::wstring TablePath;
-            std::wstring DisplayName;
-            std::wstring OriginalName;
-            std::wstring DeclaredType;
-            std::wstring Collation;
+            CDBString DBPath;
+            CDBString TablePath;
+            CDBString DisplayName;
+            CDBString OriginalName;
+            CDBString DeclaredType;
+            CDBString Collation;
             unsigned int ColumnSize;
             unsigned int Flags;
             unsigned short DataType;
@@ -839,15 +893,21 @@ namespace SPA {
 
         static CUQueue& operator>>(CUQueue &q, CDBColumnInfoArray &arr) {
             unsigned int size;
-            arr.clear();
             q >> size;
             if (size) {
-                CDBColumnInfo c;
+                while (arr.size() > size) {
+                    arr.pop_back();
+                }
+                while (arr.size() < size) {
+                    CDBColumnInfo info;
+                    arr.push_back(info);
+                }
                 for (unsigned int n = 0; n < size; ++n) {
-                    arr.push_back(c);
-                    CDBColumnInfo &info = arr.back();
+                    CDBColumnInfo &info = arr[n];
                     q >> info;
                 }
+            } else {
+                arr.clear();
             }
             return q;
         }
@@ -948,7 +1008,7 @@ namespace SPA {
             unsigned int ColumnSize; //-1 BLOB, string length or binary bytes; ignored for other data types
             unsigned char Precision; //datetime, decimal or numeric only
             unsigned char Scale; //datetime, decimal or numeric only
-            std::wstring ParameterName; //may be optional, which depends on remote database system
+            CDBString ParameterName; //may be optional, which depends on remote database system
         };
 
         static CUQueue& operator<<(CUQueue &q, const CParameterInfo &info) {

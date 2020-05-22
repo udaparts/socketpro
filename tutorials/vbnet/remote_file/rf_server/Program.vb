@@ -1,5 +1,4 @@
-﻿Imports System
-Imports System.Runtime.InteropServices
+﻿Imports System.Runtime.InteropServices
 Imports SocketProAdapter.ServerSide
 
 Public Class CMySocketProServer

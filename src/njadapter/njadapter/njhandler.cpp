@@ -19,9 +19,9 @@ namespace NJA {
         tpl->InstanceTemplate()->SetInternalFieldCount(1);
 
         NJHandlerRoot::Init(exports, tpl);
-
-        constructor.Reset(isolate, tpl->GetFunction(isolate->GetCurrentContext()).ToLocalChecked());
-        exports->Set(ToStr(isolate, "CHandler"), tpl->GetFunction(isolate->GetCurrentContext()).ToLocalChecked());
+        auto ctx = isolate->GetCurrentContext();
+        constructor.Reset(isolate, tpl->GetFunction(ctx).ToLocalChecked());
+        exports->Set(ctx, ToStr(isolate, "CHandler"), tpl->GetFunction(ctx).ToLocalChecked());
     }
 
     Local<Object> NJHandler::New(Isolate* isolate, CAsyncServiceHandler *ash, bool setCb) {

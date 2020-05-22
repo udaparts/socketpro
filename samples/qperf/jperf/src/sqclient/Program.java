@@ -61,7 +61,7 @@ public class Program {
             boolean processed = false;
             switch (reqId) {
                 case idMessage: {
-                    byte[] bytes = q.getIntenalBuffer();
+                    byte[] bytes = q.GetBuffer();
                     messages_dequeued[0] += 1;
                     String s = new String(bytes, 0, q.getSize(), UTF8);
                     processed = true;

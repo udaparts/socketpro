@@ -1,7 +1,7 @@
 #ifndef __UCOMM_SHARED_MEMORY_QUEUE_H_
 #define __UCOMM_SHARED_MEMORY_QUEUE_H_
 
-#include "commutil.h"
+#include "safequeue.h"
 #include <algorithm>
 
 #ifdef WIN32_64	
@@ -38,6 +38,10 @@ namespace SPA {
 #ifdef WIN32_64
         BSTR ToBSTR(const char *utf8, size_t chars = (size_t) (~0));
         std::wstring GetErrorMessage(DWORD dwError);
+        const UTF16* ToUTF16(const wchar_t *s, size_t chars = (size_t) (~0));
+        const UTF16* ToUTF16(const char *s, size_t len = (size_t) (~0));
+        const UTF16* ToUTF16(const std::string &s);
+        const UTF16* ToUTF16(const std::wstring &str);
 #else
         BSTR ToBSTR(const char *utf8, size_t chars);
 #endif
@@ -49,6 +53,8 @@ namespace SPA {
         std::wstring ToWide(const std::string &s);
 #endif
         unsigned int GetLen(const UTF16 *str);
+        bool IsEqual(const UTF16 *s0, const UTF16 *s1, bool case_sensitive);
+        bool IsEqual(const char *s0, const char *s1, bool case_sensitive);
 
 #if defined(__ANDROID__) || defined(ANDROID)
 
@@ -70,8 +76,16 @@ namespace SPA {
 #elif defined(WCHAR32)
         void ToWide(const UTF16 *str, size_t chars, CUQueue &q, bool append = false);
         void ToUTF16(const wchar_t *str, size_t wchars, CUQueue &q, bool append = false);
+        void ToUTF16(const char *str, size_t chars, CUQueue &q, bool append = false);
         void ToUTF8(const UTF16 *str, size_t chars, CUQueue &q, bool append = false);
-        BSTR SysAllocString(const SPA::UTF16 *sz, unsigned int wchars = (~0));
+        BSTR SysAllocString(const SPA::UTF16 *sz, unsigned int wchars = (unsigned int) (~0));
+        std::wstring ToWide(const UTF16 *str, size_t chars = (size_t) (~0));
+        bool IsEqual(const wchar_t *s0, const wchar_t *s1, bool case_sensitive);
+        const UTF16* ToUTF16(const wchar_t *s, size_t chars = (size_t) (~0));
+        const char* ToUTF8(const UTF16 *str, size_t wchars = (size_t) (~0));
+        const UTF16* ToUTF16(const char *s, size_t len = (size_t) (~0));
+        const UTF16* ToUTF16(const std::string &s);
+        const UTF16* ToUTF16(const std::wstring &str);
 #endif
     };
 
@@ -185,6 +199,14 @@ namespace SPA {
 
     public:
 
+#ifdef MS_SQL_SNI_ADAPTER
+
+        void Reset(unsigned int header_pos, unsigned int len) {
+            m_nHeadPos = header_pos;
+            m_nSize = len;
+        }
+#endif
+
         /**
          * Replace internal memory content with a new buffer
          * @param pos Memory start position
@@ -286,7 +308,7 @@ namespace SPA {
          * @return Internal buffer pointer
          */
         inline const unsigned char* const GetBuffer(unsigned int offset = 0) const {
-            if (offset >= m_nSize) {
+            if (offset > m_nSize) {
                 offset = m_nSize;
             }
             return (m_pBuffer + offset + m_nHeadPos);
@@ -580,18 +602,16 @@ namespace SPA {
 
             if (position > m_nSize) {
                 position = m_nSize;
-            }
-
-            if (m_nHeadPos >= len && position == 0) {
+            } else if (position == 0 && m_nHeadPos >= len) {
                 m_nHeadPos -= len;
-                ::memmove(m_pBuffer + m_nHeadPos, buffer, len);
+                ::memcpy(m_pBuffer + m_nHeadPos, buffer, len);
                 m_nSize += len;
                 return;
             }
 
             if ((m_nMaxBuffer - m_nHeadPos - m_nSize) >= len) {
                 if (position == m_nSize) {
-                    ::memmove(m_pBuffer + m_nHeadPos + m_nSize, buffer, len);
+                    ::memcpy(m_pBuffer + m_nHeadPos + m_nSize, buffer, len);
                     m_nSize += len;
                     return;
                 }
@@ -599,7 +619,7 @@ namespace SPA {
             SetHeadPosition();
             if ((m_nMaxBuffer - m_nSize) >= len) {
                 ::memmove(m_pBuffer + position + len, m_pBuffer + position, m_nSize - position);
-                ::memmove(m_pBuffer + position, buffer, len);
+                ::memcpy(m_pBuffer + position, buffer, len);
                 m_nSize += len;
                 return;
             }
@@ -685,7 +705,7 @@ namespace SPA {
          * @param str A pointer to an array of ASCII chars
          * @return Reference to this memory buffer
          */
-        CUQueue& operator<<(const char* str) {
+        inline CUQueue& operator<<(const char* str) {
             unsigned int size;
             if (!str) {
                 size = UQUEUE_NULL_LENGTH;
@@ -809,11 +829,9 @@ namespace SPA {
         inline unsigned int Pop(unsigned int len, unsigned int position = 0) {
             if (len == 0) {
                 return 0;
-            }
-            if (m_nSize < position) {
+            } else if (m_nSize <= position) {
                 return 0;
-            }
-            if (len > m_nSize - position) {
+            } else if (len > m_nSize - position) {
                 len = m_nSize - position;
             }
             m_nSize -= len;
@@ -1161,7 +1179,7 @@ namespace SPA {
          * @return The reference to this memory buffer
          */
         template<class ctype>
-        CUQueue& operator<<(const ctype &data) {
+        inline CUQueue& operator<<(const ctype &data) {
             Push(&data);
             return *this;
         }
@@ -1184,7 +1202,7 @@ namespace SPA {
          * @return The reference to this memory buffer
          */
         template<class ctype>
-        CUQueue& operator>>(ctype &data) {
+        inline CUQueue& operator>>(ctype &data) {
             Pop((unsigned char*) &data, sizeof (data));
             return *this;
         }
@@ -1226,7 +1244,83 @@ namespace SPA {
         /// Assignment operator disabled
         CScopeUQueueEx& operator=(const CScopeUQueueEx& sb);
 
+    private:
+
+        class CQPool : public CSafeDeque<mb*> {
+        public:
+            typedef mb *PMB;
+            typedef CSafeDeque<mb*> base;
+
+            void DestroyUQueuePool() {
+                CSpinAutoLock al(base::m_sl);
+                for (size_t n = 0; n < base::m_count; ++n) {
+                    PMB p = base::m_p[base::m_header + n];
+                    delete p;
+                }
+                base::m_header = 0;
+                base::m_count = 0;
+            }
+
+            void CleanUQueuePool() {
+                CSpinAutoLock al(base::m_sl);
+                for (size_t n = 0; n < base::m_count; ++n) {
+                    PMB p = base::m_p[base::m_header + n];
+                    p->CleanTrack();
+                }
+            }
+
+            UINT64 GetMemoryConsumed() {
+                UINT64 size = 0;
+                CSpinAutoLock al(base::m_sl);
+                for (size_t n = 0; n < base::m_count; ++n) {
+                    PMB p = base::m_p[base::m_header + n];
+                    size += p->GetMaxSize();
+                }
+                return size;
+            }
+
+            void ResetSize(unsigned int newSize = InitSize) {
+                CSpinAutoLock al(base::m_sl);
+                for (size_t n = 0; n < base::m_count; ++n) {
+                    PMB p = base::m_p[base::m_header + n];
+                    if (p->GetMaxSize() > newSize) {
+                        p->ReallocBuffer(newSize);
+                    }
+                }
+            }
+
+            inline PMB Lock(tagOperationSystem os, bool bigEndian, unsigned int initSize, unsigned int blockSize) {
+                PMB p;
+                if (base::pop_front(p)) {
+                    p->SetEndian(bigEndian);
+                    p->SetOS(os);
+                    p->SetBlockSize(blockSize);
+                    if (p->GetMaxSize() < initSize) {
+                        p->ReallocBuffer(initSize);
+                    }
+                    p->Utf8ToW(false);
+                    p->ToUtf8(false);
+#ifdef WIN32_64
+                    p->TimeEx(false);
+#endif
+                } else {
+                    p = new mb(initSize, blockSize, os, bigEndian);
+                }
+                return p;
+            }
+
+            inline void Unlock(PMB &memoryChunk) {
+                if (!memoryChunk) {
+                    return;
+                }
+                memoryChunk->SetSize(0);
+                base::push_front(memoryChunk);
+                memoryChunk = nullptr;
+            }
+        };
+
     public:
+        typedef mb *PMB;
 
         /** 
          * Construct an instance of CScopeUQueueEx, and automatically lock a memory buffer object from its pool
@@ -1255,7 +1349,6 @@ namespace SPA {
             su.m_pUQueue = nullptr;
         }
 #endif
-        typedef mb *PMB;
 
     public:
 
@@ -1270,6 +1363,13 @@ namespace SPA {
             }
             Swap(su);
             return *this;
+        }
+#endif
+
+#if defined(MONITORING_SPIN_CONTENTION) && defined(ATOMIC_AVAILABLE)
+
+        static UINT64 GetContention() {
+            return m_memPool.contention();
         }
 #endif
 
@@ -1394,42 +1494,21 @@ namespace SPA {
          * Destroy all existing memory objects in pool
          */
         static void DestroyUQueuePool() {
-            m_cs.lock();
-            size_t size = m_aUQueue.size();
-            for (size_t n = 0; n < size; n++) {
-                mb *p = m_aUQueue[n];
-                delete p;
-            }
-            m_aUQueue.clear();
-            m_cs.unlock();
+            m_memPool.DestroyUQueuePool();
         }
 
         /**
          * Reset all existing memory objects in pool to initial size (InitSize)
          */
         static void ResetSize(unsigned int newSize = InitSize) {
-            m_cs.lock();
-            size_t size = m_aUQueue.size();
-            for (size_t n = 0; n < size; n++) {
-                mb *p = m_aUQueue[n];
-                if (p->GetMaxSize() > newSize) {
-                    p->ReallocBuffer(newSize);
-                }
-            }
-            m_cs.unlock();
+            m_memPool.ResetSize(newSize);
         }
 
         /**
          * Zero all existing memory objects in pool
          */
         static void CleanUQueuePool() {
-            m_cs.lock();
-            size_t size = m_aUQueue.size();
-            for (size_t n = 0; n < size; n++) {
-                mb *p = m_aUQueue[n];
-                p->CleanTrack();
-            }
-            m_cs.unlock();
+            m_memPool.CleanUQueuePool();
         }
 
         /**
@@ -1440,44 +1519,16 @@ namespace SPA {
          * @param blockSize The block size in byte for internal memory buffer object
          * @return A pointer to a memory buffer object
          */
-        static mb* Lock(tagOperationSystem os = MY_OPERATION_SYSTEM, bool bigEndian = IsBigEndian(), unsigned int initSize = InitSize, unsigned int blockSize = BlockSize) {
-            mb *p;
-            m_cs.lock();
-            if (m_aUQueue.size()) {
-                p = m_aUQueue.back();
-                m_aUQueue.pop_back();
-                m_cs.unlock();
-                p->SetEndian(bigEndian);
-                p->SetOS(os);
-                p->SetBlockSize(blockSize);
-                if (p->GetMaxSize() < initSize) {
-                    p->ReallocBuffer(initSize);
-                }
-                p->Utf8ToW(false);
-                p->ToUtf8(false);
-#ifdef WIN32_64
-                p->TimeEx(false);
-#endif
-            } else {
-                m_cs.unlock();
-                p = new mb(initSize, blockSize, os, bigEndian);
-            }
-            return p;
+        static inline PMB Lock(tagOperationSystem os = MY_OPERATION_SYSTEM, bool bigEndian = IsBigEndian(), unsigned int initSize = InitSize, unsigned int blockSize = BlockSize) {
+            return m_memPool.Lock(os, bigEndian, initSize, blockSize);
         }
 
         /**
          * Recycle a memory buffer object into pool for reuse
          * @param memoryChunk A pointer to a memory buffer object
          */
-        static void Unlock(PMB &memoryChunk) {
-            if (!memoryChunk) {
-                return;
-            }
-            memoryChunk->SetSize(0);
-            m_cs.lock();
-            m_aUQueue.push_back(memoryChunk);
-            m_cs.unlock();
-            memoryChunk = nullptr;
+        static inline void Unlock(PMB &memoryChunk) {
+            m_memPool.Unlock(memoryChunk);
         }
 
         /**
@@ -1485,28 +1536,16 @@ namespace SPA {
          * @return The total size of pooled memory buffer objects in byte
          */
         static UINT64 GetMemoryConsumed() {
-            UINT64 size = 0;
-            CAutoLock al(m_cs);
-            size_t count = m_aUQueue.size();
-            for (size_t n = 0; n < count; ++n) {
-                size += (m_aUQueue[n])->GetMaxSize();
-            }
-            return size;
+            return m_memPool.GetMemoryConsumed();
         }
 
     private:
         mb *m_pUQueue;
-        static U_MODULE_HIDDEN CUCriticalSection m_cs;
-        static U_MODULE_HIDDEN std::vector<mb*> m_aUQueue;
+        static U_MODULE_HIDDEN CQPool m_memPool;
     };
 
-#ifndef NODE_JS_ADAPTER_PROJECT
     template<unsigned int InitSize, unsigned int BlockSize, typename mb>
-    CUCriticalSection CScopeUQueueEx<InitSize, BlockSize, mb>::m_cs;
-
-    template<unsigned int InitSize, unsigned int BlockSize, typename mb>
-    std::vector<mb*> CScopeUQueueEx<InitSize, BlockSize, mb>::m_aUQueue;
-#endif
+    typename CScopeUQueueEx<InitSize, BlockSize, mb>::CQPool CScopeUQueueEx<InitSize, BlockSize, mb>::m_memPool;
 
     typedef CScopeUQueueEx<DEFAULT_INITIAL_MEMORY_BUFFER_SIZE, DEFAULT_MEMORY_BUFFER_BLOCK_SIZE> CScopeUQueue;
 

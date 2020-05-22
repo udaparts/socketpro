@@ -10,15 +10,14 @@ public class Program {
     public static void main(String[] args) {
         CConnectionContext cc = new CConnectionContext("localhost", 20901, "hwClientUserId", "password4hwClient");
         try (CSocketPool<HelloWorld> spHw = new CSocketPool<>(HelloWorld.class, true)) {
+            //optionally start a persistent queue at client side to ensure auto failure recovery and once-only delivery
+            //spHw.setQueueName("helloworld");
             boolean ok = spHw.StartSocketPool(cc, 1, 1);
             HelloWorld hw = spHw.getAsyncHandlers()[0];
             if (!hw.getAttachedClientSocket().getConnected()) {
                 System.out.println("No connection error code = " + hw.getAttachedClientSocket().getErrorCode());
                 return;
             }
-            //optionally start a persistent queue at client side to ensure auto failure recovery and once-only delivery
-            ok = hw.getAttachedClientSocket().getClientQueue().StartQueue("helloworld", 24 * 3600, false); //time-to-live 1 day and true for encryption
-
             CMyStruct ms, msOriginal = CMyStruct.MakeOne();
             try {
                 //process requests one by one synchronously

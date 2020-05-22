@@ -348,8 +348,8 @@ JNIEXPORT jint JNICALL Java_SPA_ServerSide_ServerCoreLoader_QueryRequestsInQueue
  * Method:    RetrieveBuffer
  * Signature: (JIZ)[B
  */
-JNIEXPORT jbyteArray JNICALL Java_SPA_ServerSide_ServerCoreLoader_RetrieveBuffer
-  (JNIEnv *, jclass, jlong, jint, jboolean);
+JNIEXPORT jint JNICALL Java_SPA_ServerSide_ServerCoreLoader_RetrieveBuffer
+  (JNIEnv *, jclass, jlong, jint, jboolean, jobject);
 
 /*
  * Class:     SPA_ServerSide_ServerCoreLoader
@@ -381,7 +381,7 @@ JNIEXPORT jlong JNICALL Java_SPA_ServerSide_ServerCoreLoader_GetBytesSent
  * Signature: (JSI[B)I
  */
 JNIEXPORT jint JNICALL Java_SPA_ServerSide_ServerCoreLoader_SendReturnData
-  (JNIEnv *, jclass, jlong, jshort, jint, jbyteArray);
+  (JNIEnv *, jclass, jlong, jshort, jint, jobject, jint);
 
 /*
  * Class:     SPA_ServerSide_ServerCoreLoader
@@ -389,7 +389,7 @@ JNIEXPORT jint JNICALL Java_SPA_ServerSide_ServerCoreLoader_SendReturnData
  * Signature: (JJSI[B)I
  */
 JNIEXPORT jint JNICALL Java_SPA_ServerSide_ServerCoreLoader_SendReturnDataIndex
-  (JNIEnv *, jclass, jlong, jlong, jshort, jint, jbyteArray);
+  (JNIEnv *, jclass, jlong, jlong, jshort, jint, jobject, jint);
 
 /*
  * Class:     SPA_ServerSide_ServerCoreLoader
@@ -1157,7 +1157,7 @@ JNIEXPORT jint JNICALL Java_SPA_ServerSide_ServerCoreLoader_GetMessagesInDequeui
  * Signature: (IS[BI)J
  */
 JNIEXPORT jlong JNICALL Java_SPA_ServerSide_ServerCoreLoader_Enqueue
-  (JNIEnv *, jclass, jint, jshort, jbyteArray, jint);
+  (JNIEnv *, jclass, jint, jshort, jobject, jint, jint);
 
 /*
  * Class:     SPA_ServerSide_ServerCoreLoader
@@ -1541,6 +1541,23 @@ JNIEXPORT void JNICALL Java_SPA_ServerSide_Odbc_SetOdbcDBGlobalConnectionString
 
 
 JNIEXPORT jboolean JNICALL Java_SPA_ServerSide_Odbc_DoODBCAuthentication(JNIEnv *, jclass, jlong, jstring, jstring, jint, jstring, jstring);
+
+/*
+ * Class:     SPA_ServerSide_ServerCoreLoader
+ * Method:    GetInterruptOptions
+ * Signature: (J)J
+ */
+JNIEXPORT jlong JNICALL Java_SPA_ServerSide_ServerCoreLoader_GetInterruptOptions
+(JNIEnv *, jclass, jlong);
+
+/*
+ * Class:     SPA_ServerSide_ServerCoreLoader
+ * Method:    NotifyInterrupt
+ * Signature: (JJ)I
+ */
+JNIEXPORT jint JNICALL Java_SPA_ServerSide_ServerCoreLoader_NotifyInterrupt
+(JNIEnv *, jclass, jlong, jlong);
+
 
 #ifdef __cplusplus
 }

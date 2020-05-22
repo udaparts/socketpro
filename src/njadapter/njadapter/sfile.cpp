@@ -99,25 +99,27 @@ namespace NJA {
         Isolate* isolate = Isolate::GetCurrent();
         v8::HandleScope handleScope(isolate); //required for Node 4.x
         {
-            SPA::CAutoLock al(obj->m_csFile);
+            obj->m_csFile.lock();
             while (obj->m_deqFileCb.size()) {
-                FileCb &cb = obj->m_deqFileCb.front();
+                FileCb cb = obj->m_deqFileCb.front();
+                obj->m_deqFileCb.pop_front();
+                obj->m_csFile.unlock();
                 PSFile processor;
                 *cb.Buffer >> processor;
                 assert(processor);
                 Local<Function> func = Local<Function>::New(isolate, *cb.Func);
-                Local<Object> njFile = NJFile::New(isolate, processor, true);
+                //Local<Object> njFile = NJFile::New(isolate, processor, true);
                 Local<v8::Boolean> download = v8::Boolean::New(isolate, cb.Download);
                 switch (cb.EventType) {
                     case feExchange:
                     {
                         int res;
-                        std::wstring errMsg;
+                        SPA::CDBString errMsg;
                         *cb.Buffer >> res >> errMsg;
                         Local<Value> jsRes = v8::Int32::New(isolate, res);
                         Local<v8::String> jsMsg = ToStr(isolate, errMsg.c_str());
-                        Local<Value> argv[] = {jsMsg, jsRes, download, njFile};
-                        func->Call(isolate->GetCurrentContext(), Null(isolate), 4, argv);
+                        Local<Value> argv[] = {jsMsg, jsRes, download};
+                        func->Call(isolate->GetCurrentContext(), Null(isolate), 3, argv);
                     }
                         break;
                     case feTrans:
@@ -125,8 +127,8 @@ namespace NJA {
                         SPA::UINT64 pos, size;
                         *cb.Buffer >> pos >> size;
                         assert(!cb.Buffer->GetSize());
-                        Local<Value> argv[] = {v8::Number::New(isolate, (double) pos), v8::Number::New(isolate, (double) size), download, njFile};
-                        func->Call(isolate->GetCurrentContext(), Null(isolate), 4, argv);
+                        Local<Value> argv[] = {v8::Number::New(isolate, (double) pos), v8::Number::New(isolate, (double) size), download};
+                        func->Call(isolate->GetCurrentContext(), Null(isolate), 3, argv);
                     }
                         break;
                     case feDiscarded:
@@ -134,8 +136,8 @@ namespace NJA {
                         bool canceled;
                         *cb.Buffer >> canceled;
                         assert(!cb.Buffer->GetSize());
-                        Local<Value> argv[] = {v8::Boolean::New(isolate, canceled), download, njFile};
-                        func->Call(isolate->GetCurrentContext(), Null(isolate), 3, argv);
+                        Local<Value> argv[] = {v8::Boolean::New(isolate, canceled), download};
+                        func->Call(isolate->GetCurrentContext(), Null(isolate), 2, argv);
                     }
                         break;
                     default:
@@ -143,8 +145,9 @@ namespace NJA {
                         break;
                 }
                 CScopeUQueue::Unlock(cb.Buffer);
-                obj->m_deqFileCb.pop_front();
+                obj->m_csFile.lock();
             }
+            obj->m_csFile.unlock();
         }
         //isolate->RunMicrotasks();
     }

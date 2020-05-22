@@ -245,7 +245,11 @@ JNIEXPORT jboolean JNICALL Java_SPA_ClientSide_ClientCoreLoader_IsOpened
  * Signature: (JS[BI)Z
  */
 JNIEXPORT jboolean JNICALL Java_SPA_ClientSide_ClientCoreLoader_SendRequest
-  (JNIEnv *, jclass, jlong, jshort, jbyteArray, jint);
+  (JNIEnv *, jclass, jlong, jshort, jobject, jint, jint);
+
+
+JNIEXPORT jint JNICALL Java_SPA_ClientSide_ClientCoreLoader_RetrieveBuffer
+  (JNIEnv *, jclass, jlong, jbyteArray, jint);
 
 /*
  * Class:     SPA_ClientSide_ClientCoreLoader
@@ -751,6 +755,11 @@ JNIEXPORT jstring JNICALL Java_SPA_ClientSide_ClientCoreLoader_GetQueueFileName
 JNIEXPORT jstring JNICALL Java_SPA_ClientSide_ClientCoreLoader_GetPeerName
   (JNIEnv *, jclass, jlong, jintArray, jint);
 
+
+JNIEXPORT void JNICALL Java_SPA_ClientSide_ClientCoreLoader_SetBufferForCurrentThread
+(JNIEnv *, jclass, jobject, jint);
+
+
 /*
  * Class:     SPA_ClientSide_ClientCoreLoader
  * Method:    GetUCert
@@ -813,7 +822,7 @@ JNIEXPORT jint JNICALL Java_SPA_ClientSide_ClientCoreLoader_GetRouteeCount
  * Signature: (JS[BI)Z
  */
 JNIEXPORT jboolean JNICALL Java_SPA_ClientSide_ClientCoreLoader_SendRouteeResult
-  (JNIEnv *, jclass, jlong, jshort, jbyteArray, jint);
+  (JNIEnv *, jclass, jlong, jshort, jobject, jint, jint);
 
 /*
  * Class:     SPA_ClientSide_ClientCoreLoader
@@ -990,6 +999,15 @@ JNIEXPORT void JNICALL Java_SPA_ClientSide_ClientCoreLoader_SetQueueAutoMergeByP
  */
 JNIEXPORT void JNICALL Java_SPA_ClientSide_ClientCoreLoader_PostProcessing
   (JNIEnv *, jclass, jlong, jint, jlong);
+
+
+/*
+ * Class:     SPA_ClientSide_ClientCoreLoader
+ * Method:    SendInterruptRequest
+ * Signature: (JJ)Z
+ */
+JNIEXPORT jboolean JNICALL Java_SPA_ClientSide_ClientCoreLoader_SendInterruptRequest
+(JNIEnv *, jclass, jlong, jlong);
 
 #ifdef __cplusplus
 }

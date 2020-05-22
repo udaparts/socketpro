@@ -701,6 +701,12 @@ namespace SocketProAdapter
 
             [DllImport(SERVER_CORE_DLL)]
             internal static unsafe extern uint SendReturnDataIndex(ulong h, ulong index, ushort requestId, uint bufferSize, byte* buffer);
+
+            [DllImport(SERVER_CORE_DLL)]
+            internal static extern uint NotifyInterrupt(ulong h, ulong options);
+
+            [DllImport(SERVER_CORE_DLL)]
+            internal static extern ulong GetInterruptOptions(ulong h);
         }
     }
 }

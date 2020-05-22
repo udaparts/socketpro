@@ -122,9 +122,9 @@ namespace NJA {
         NODE_SET_PROTOTYPE_METHOD(tpl, "getSize", getSize);
         NODE_SET_PROTOTYPE_METHOD(tpl, "setSize", setSize);
         NODE_SET_PROTOTYPE_METHOD(tpl, "getOS", getOS);
-
-        constructor.Reset(isolate, tpl->GetFunction(isolate->GetCurrentContext()).ToLocalChecked());
-        exports->Set(ToStr(isolate, "CUQueue"), tpl->GetFunction(isolate->GetCurrentContext()).ToLocalChecked());
+        auto ctx = isolate->GetCurrentContext();
+        constructor.Reset(isolate, tpl->GetFunction(ctx).ToLocalChecked());
+        exports->Set(ctx, ToStr(isolate, "CUQueue"), tpl->GetFunction(ctx).ToLocalChecked());
         m_tpl.Reset(isolate, tpl);
     }
 

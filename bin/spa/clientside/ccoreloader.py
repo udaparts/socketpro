@@ -617,6 +617,11 @@ class CCoreLoader(object):
     IgnoreLastRequest.argtypes = [USocket_Client_Handle, c_ushort]
     IgnoreLastRequest.restype = c_bool
 
+    #bool WINAPI SendInterruptRequest(USocket_Client_Handle h, SPA::UINT64 options);
+    SendInterruptRequest = _ucsLib_.SendInterruptRequest
+    SendInterruptRequest.argtypes = [USocket_Client_Handle, c_uint64]
+    SendInterruptRequest.restype = c_bool
+
     #bool WINAPI SetVerifyLocation(const char *certFile);
     SetVerifyLocation = _ucsLib_.SetVerifyLocation
     SetVerifyLocation.argtypes = [c_char_p]

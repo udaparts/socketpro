@@ -1,8 +1,18 @@
-23. SocketPro Version 6.3.0.1
+24.	SocketPro Version 6.3.1.1
+	(a) Core libraries are added with a new feature Interrupt, which could be used to interrupt a looping processing at the other end
+	(b) All adapters are updated with the new feature Interrupt
+	(c) Make MySQL 8 server plugin support its version 8.0.19 or later
+
+23. SocketPro Version 6.3.0.1-10
 	(a) Add the method PostProcessing to dispatch requests from calling thread onto pool worker thread at client side
 	(b) Re-write remote file service to use PostProcessing instead
 	(c) Fix the issue, which the virtual function OnReleaseResource(bool bClosing, uint info) at server side, was not called when a session is closed
-	(d) Remove dependency over boost libraries within C/C++ development environment
+	(d) Performance tuning with improvement about 6% overall with core libiraries, usocket and uservercore
+	(e) Add support of enterprise license
+	(f) Remove dependency over boost libraries within C/C++ development environment
+	(g) Use spin lock extensively within C/C++ adapter whenever it is proper
+	(h) Fix the issue that a pool of client sockets may fail to connect to a remote server under extremely situations
+	(i) Use one set of core libiraries (usocket and uservercore) for all linux variants (debian, ubuntu, centos, redhat, opensuse, and so on)
 
 22. SocketPro Version 6.2.0.1-4
 	(a) Add support of TLSv1.2 and TLSv1.3, and disable SSL3

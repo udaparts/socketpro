@@ -24,7 +24,7 @@ public final class CPushImpl implements SPA.IUPushEx {
             Groups = new int[0];
         }
         SPA.CUQueue q = SPA.CScopeUQueue.Lock();
-        byte[] bytes = q.Save(Message).getIntenalBuffer();
+        byte[] bytes = q.Save(Message).GetBuffer();
         boolean ok = ClientCoreLoader.Speak(m_cs.getHandle(), bytes, q.getSize(), Groups, Groups.length);
         SPA.CScopeUQueue.Unlock(q);
         return ok;
@@ -47,7 +47,7 @@ public final class CPushImpl implements SPA.IUPushEx {
     @Override
     public boolean SendUserMessage(Object Message, String UserId) {
         SPA.CUQueue q = SPA.CScopeUQueue.Lock();
-        byte[] bytes = q.Save(Message).getIntenalBuffer();
+        byte[] bytes = q.Save(Message).GetBuffer();
         boolean ok = ClientCoreLoader.SendUserMessage(m_cs.getHandle(), UserId, bytes, q.getSize());
         SPA.CScopeUQueue.Unlock(q);
         return ok;

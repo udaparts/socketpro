@@ -1,11 +1,20 @@
-85. SocketPro Version 6.3.0.1
+86.	SocketPro Version 6.3.1.1
+	(a) Core libraries are added with a new feature Interrupt, which could be used to interrupt a looping processing at the other end
+	(b) All adapters are updated with the new feature Interrupt
+	(c) Make MySQL 8 server plugin support its version 8.0.19 or later
+
+85. SocketPro Version 6.3.0.1-10
 	(a) Add the method PostProcessing to dispatch requests from calling thread onto pool worker thread at client side
 	(b) Re-write remote file service to use PostProcessing instead
 	(c) Fix a connection time-out issue within window client core library
 	(d) Fix the issue, which the virtual function OnReleaseResource(bool bClosing, uint info) at server side, was not called when a session is closed
 	(e) Recompile core libraries using Visual C++ 2017 instead of old Visual C++ 2010
 	(f) SocketPro supports windows ce/device 4.0 and windows vsta or later
-	(g) SocketPro still supports windows XP and 2003 by old Visual C++ 2010 compilation per your requirement
+	(g) Performance tuning with improvement about 6% overall with core libiraries, usocket and uservercore
+	(h) Add support of enterprise license
+	(i) SocketPro still supports windows XP and 2003 by old Visual C++ 2010 compilation per your requirement
+	(j) Use spin lock extensively within C/C++ adapter whenever it is proper
+	(k) Fix the issue that a pool of client sockets may fail to connect to a remote server under extremely situations
 
 84. SocketPro Version 6.2.0.1-4
 	(a) Add support of TLSv1.2 and TLSv1.3, and disable SSL3

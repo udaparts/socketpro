@@ -98,6 +98,11 @@ public class CSocketPool<THandler extends CAsyncServiceHandler> implements AutoC
                     ok = ClientCoreLoader.CommitBatching(h, false);
                 }
                 break;
+            case speThreadCreated:
+                break;
+            case speKillingThread:
+                CClientSocket.CleanCurrentThreadCache();
+                break;
             case speQueueMergedFrom:
                 m_hFrom = MapToHandler(h);
                 break;

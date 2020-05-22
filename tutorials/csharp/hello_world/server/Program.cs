@@ -1,5 +1,4 @@
 ﻿using System;
-using SocketProAdapter;
 using SocketProAdapter.ServerSide;
 
 public class CMySocketProServer : CSocketProServer

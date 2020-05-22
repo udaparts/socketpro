@@ -30,6 +30,8 @@ public enum tagBaseRequestID {
     idStartQueue((short) 25),
     idStopQueue((short) 26),
     idRoutePeerUnavailable((short) 27),
+    idDequeueBatchConfirmed((short) 28),
+    idInterrupt((short) 29),
     idReservedOne((short) 0x100);
 
     public final static short idReservedTwo = 0x2001;

@@ -1,5 +1,7 @@
 package SPA.ServerSide;
 
+import SPA.CScopeUQueue;
+
 public class CServerQueue implements IServerQueue {
 
     private int m_nHandle = 0;
@@ -241,32 +243,46 @@ public class CServerQueue implements IServerQueue {
         ServerCoreLoader.SetOptimistic(m_nHandle, optimistic.getValue());
     }
 
-    public long Enqueue(short reqId, byte[] data, int size) {
+    public long Enqueue(short reqId, java.nio.ByteBuffer data) {
+        int size = 0;
+        if (data != null) {
+            size = data.limit() - data.position();
+        }
+        return Enqueue(reqId, data, size);
+    }
+
+    public long Enqueue(short reqId, byte[] data, int len) {
+        SPA.CUQueue q = CScopeUQueue.Lock();
+        q.Push(data, len);
+        long res = Enqueue(reqId, q);
+        CScopeUQueue.Unlock(q);
+        return res;
+    }
+
+    public long Enqueue(short reqId, java.nio.ByteBuffer data, int size) {
+        int position = 0;
         if (data == null) {
-            data = new byte[0];
+            size = 0;
+        } else {
+            position = data.position();
         }
-        if (size > (int) data.length) {
-            size = (int) data.length;
-        }
-        return ServerCoreLoader.Enqueue(m_nHandle, reqId, data, size);
+        return ServerCoreLoader.Enqueue(m_nHandle, reqId, data, size, position);
     }
 
     public final long Enqueue(short reqId, SPA.CUQueue q) {
         if (q == null || q.GetSize() == 0) {
-            return Enqueue(reqId);
-        } else if (q.getHeadPosition() > 0) {
-            return Enqueue(reqId, q.GetBuffer(), q.GetSize());
+            return Enqueue(reqId, (java.nio.ByteBuffer) null, 0);
         }
         return Enqueue(reqId, q.getIntenalBuffer(), q.GetSize());
     }
 
     public final long Enqueue(short reqId) {
-        return Enqueue(reqId, (byte[]) null, (int) 0);
+        return Enqueue(reqId, (java.nio.ByteBuffer) null, (int) 0);
     }
 
     public final long Enqueue(short reqId, SPA.CScopeUQueue q) {
         if (q == null) {
-            return Enqueue(reqId);
+            return Enqueue(reqId, (java.nio.ByteBuffer) null, 0);
         }
         return Enqueue(reqId, q.getUQueue());
     }

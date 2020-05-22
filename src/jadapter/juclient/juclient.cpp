@@ -1,27 +1,36 @@
 
 #include "../../../include/uclient.h"
 #include "SPA_ClientSide_ClientCoreLoader.h"
+#include <vector>
+#include<algorithm>
 
 #ifdef WINCE
 #elif defined(WIN32_64)
-#include<algorithm>
 #include <unordered_map>
 std::unordered_map<unsigned int, jobject> g_mapPJ;
 #else
-#include<algorithm>
 #include <boost/unordered_map.hpp>
 boost::unordered_map<unsigned int, jobject> g_mapPJ;
 #endif
 
+struct CBuffCache {
+    UTHREAD_ID Tid;
+    unsigned int Len;
+    jobject Bytes;
+    JNIEnv *Env;
+    void *Des;
+};
+typedef CBuffCache *PBuffCache;
+std::vector<PBuffCache> g_vCache;
 
 #define UCERT_OBJECT_ARRAY_SIZE 10
 #define UMESSAGE_OBJECT_ARRAY_SIZE 2
 
-SPA::CUCriticalSection g_coClient;
+SPA::CSpinLock g_coClient;
 jobject g_currObj = nullptr;
 JavaVM *g_vmClient = nullptr;
 
-SPA::CUCriticalSection g_csClient;
+SPA::CSpinLock g_csClient;
 
 //cache CClientSocket class and its callback method ids
 jmethodID g_midOnAllRequestsProcessed = nullptr;
@@ -38,6 +47,7 @@ jmethodID g_midOnSocketConnected = nullptr;
 jmethodID g_midOnSpeak = nullptr;
 jmethodID g_midOnSpeakEx = nullptr;
 jmethodID g_midOnPostProcessing = nullptr;
+jmethodID g_midOnResetBuffer = nullptr;
 
 jmethodID g_midMSContructor = nullptr;
 jfieldID g_fidUserId = nullptr;
@@ -48,7 +58,7 @@ jfieldID g_fidSelfMessage = nullptr;
 
 #ifndef WIN32_64
 
-unsigned int GetLen(const SPA::UTF16 *chars) {
+unsigned int GetLen(const unsigned short *chars) {
     if (!chars)
         return 0;
     unsigned int len = 0;
@@ -66,6 +76,26 @@ unsigned int GetLen(const SPA::UTF16 *chars) {
 jclass g_classCClientSocket = nullptr;
 jclass g_classCMessageSender = nullptr;
 
+PBuffCache GetCurrentThreadByteArray() {
+#ifdef WIN32_64
+    UTHREAD_ID tid = ::GetCurrentThreadId();
+#else
+    UTHREAD_ID tid = pthread_self();
+#endif
+    g_csClient.lock();
+    PBuffCache *start = g_vCache.data();
+    size_t count = g_vCache.size();
+    for (size_t n = 0; n < count; ++n) {
+        PBuffCache p = start[n];
+        if (p->Tid == tid) {
+            g_csClient.unlock();
+            return p;
+        }
+    }
+    g_csClient.unlock();
+    return nullptr;
+}
+
 void SetCaches(JNIEnv *env) {
     jclass cls = env->FindClass("SPA/ClientSide/CClientSocket");
     //make a global class reference to CClientSocket
@@ -75,7 +105,7 @@ void SetCaches(JNIEnv *env) {
     g_midOnEnter = env->GetStaticMethodID(cls, "OnEnter", "(JLjava/lang/Object;[I)V");
     g_midOnExit = env->GetStaticMethodID(cls, "OnExit", "(JLjava/lang/Object;[I)V");
     g_midOnHandShakeCompleted = env->GetStaticMethodID(cls, "OnHandShakeCompleted", "(JI)V");
-    g_midOnRequestProcessed = env->GetStaticMethodID(cls, "OnRequestProcessed", "(JSI[BBZ)V");
+    g_midOnRequestProcessed = env->GetStaticMethodID(cls, "OnRequestProcessed", "(JSILjava/lang/Object;BZ)V");
     g_midOnSendUserMessage = env->GetStaticMethodID(cls, "OnSendUserMessage", "(JLjava/lang/Object;[B)V");
     g_midOnSendUserMessageEx = env->GetStaticMethodID(cls, "OnSendUserMessageEx", "(JLjava/lang/Object;[B)V");
     g_midOnServerException = env->GetStaticMethodID(cls, "OnServerException", "(JSLjava/lang/String;Ljava/lang/String;I)V");
@@ -84,6 +114,7 @@ void SetCaches(JNIEnv *env) {
     g_midOnSpeak = env->GetStaticMethodID(cls, "OnSpeak", "(JLjava/lang/Object;[I[B)V");
     g_midOnSpeakEx = env->GetStaticMethodID(cls, "OnSpeakEx", "(JLjava/lang/Object;[I[B)V");
     g_midOnPostProcessing = env->GetStaticMethodID(cls, "OnPostProcessing", "(JIJ)V");
+    g_midOnResetBuffer = env->GetStaticMethodID(cls, "OnResetBuffer", "(I)V");
 
     cls = env->FindClass("SPA/ClientSide/CMessageSender");
     //make a global class reference to CMessageSender
@@ -130,20 +161,28 @@ void CALLBACK OnSocketConnected(USocket_Client_Handle handler, int nError) {
 void CALLBACK OnRequestProcessed(USocket_Client_Handle handler, unsigned short requestId, unsigned int len) {
     JNIEnv *env;
     bool endian;
-    unsigned int size = len;
     SPA::tagOperationSystem os = GetPeerOs(handler, &endian);
     const unsigned char *arr = GetResultBuffer(handler);
     if (!arr)
         len = 0;
-    jint es = g_vmClient->GetEnv((void **) &env, JNI_VERSION_1_6);
-    assert(env);
-    jbyteArray bytes = env->NewByteArray(len);
-    if (len && bytes) {
-        env->SetByteArrayRegion(bytes, (jsize) 0, (jsize) len, (const jbyte*) arr);
+    jobject buffer = nullptr;
+    if (len) {
+        auto p = GetCurrentThreadByteArray();
+        if (!p || len > p->Len) {
+            jint es = g_vmClient->GetEnv((void **) &env, JNI_VERSION_1_6);
+            assert(env);
+            env->CallStaticVoidMethod(g_classCClientSocket, g_midOnResetBuffer, (jint) len);
+            p = GetCurrentThreadByteArray();
+        }
+        env = p->Env;
+        buffer = p->Bytes;
+        ::memcpy(p->Des, arr, len);
+    } else {
+        jint es = g_vmClient->GetEnv((void **) &env, JNI_VERSION_1_6);
+        assert(env);
     }
-    env->CallStaticVoidMethod(g_classCClientSocket, g_midOnRequestProcessed, (jlong) handler, (jshort) requestId, (jint) size, bytes, (jbyte) os, (jboolean) endian);
-    CleanException(env);
-    env->DeleteLocalRef(bytes);
+    env->CallStaticVoidMethod(g_classCClientSocket, g_midOnRequestProcessed, (jlong) handler, (jshort) requestId, (jint) len, buffer, (jbyte) os, (jboolean) endian);
+    //CleanException(env); //no exception possible as handled in java code
 }
 
 void CALLBACK OnBaseRequestProcessed(USocket_Client_Handle handler, unsigned short requestId) {
@@ -151,7 +190,7 @@ void CALLBACK OnBaseRequestProcessed(USocket_Client_Handle handler, unsigned sho
     jint es = g_vmClient->GetEnv((void **) &env, JNI_VERSION_1_6);
     assert(env);
     env->CallStaticVoidMethod(g_classCClientSocket, g_midOnBaseRequestProcessed, (jlong) handler, (jshort) requestId);
-    CleanException(env);
+    //CleanException(env); //no exception possible as handled in java code
 }
 
 void CALLBACK OnPostProcessing(USocket_Client_Handle handler, unsigned int hint, SPA::UINT64 data) {
@@ -412,10 +451,8 @@ void CALLBACK OnAllRequestsProcessed(USocket_Client_Handle handler, unsigned sho
     JNIEnv *env;
     jint es = g_vmClient->GetEnv((void **) &env, JNI_VERSION_1_6);
     assert(env);
-
     env->CallStaticVoidMethod(g_classCClientSocket, g_midOnAllRequestsProcessed, (jlong) handler, (jshort) lastRequestId);
-
-    CleanException(env);
+    //CleanException(env); //no exception possible as handled in java code
 }
 
 void DoCallback(JNIEnv *env, jobject spc, unsigned int pid, SPA::ClientSide::tagSocketPoolEvent spe, USocket_Client_Handle h) {
@@ -431,12 +468,6 @@ void DoCallback(JNIEnv *env, jobject spc, unsigned int pid, SPA::ClientSide::tag
     }
 }
 
-#ifdef WIN32_64
-typedef DWORD UTHREAD_ID;
-#else
-typedef pthread_t UTHREAD_ID;
-#endif
-
 std::vector<std::pair<unsigned int, UTHREAD_ID> > g_vDThreadClient; //locked by g_csClient
 
 void SetPoolThreadAsDaemon(unsigned int pid) {
@@ -446,7 +477,7 @@ void SetPoolThreadAsDaemon(unsigned int pid) {
     UTHREAD_ID tid = pthread_self();
 #endif
     std::pair<unsigned int, UTHREAD_ID> pair = std::make_pair(pid, tid);
-    SPA::CAutoLock al(g_csClient);
+    g_csClient.lock();
     if (std::find(g_vDThreadClient.begin(), g_vDThreadClient.end(), pair) == g_vDThreadClient.end()) {
         JNIEnv *env = nullptr;
         JavaVMAttachArgs args;
@@ -458,11 +489,17 @@ void SetPoolThreadAsDaemon(unsigned int pid) {
         if (res == 0)
             g_vDThreadClient.push_back(pair);
     }
+    g_csClient.unlock();
 }
 
 void RemovePoolThreadAsDaemon(unsigned int pid) {
     bool removed = true;
-    SPA::CAutoLock al(g_csClient);
+#ifdef WIN32_64
+    UTHREAD_ID tid = ::GetCurrentThreadId();
+#else
+    UTHREAD_ID tid = pthread_self();
+#endif
+    g_csClient.lock();
     while (removed) {
         removed = false;
         for (auto it = g_vDThreadClient.begin(), end = g_vDThreadClient.end(); it != end; ++it) {
@@ -475,15 +512,17 @@ void RemovePoolThreadAsDaemon(unsigned int pid) {
             }
         }
     }
+    g_csClient.unlock();
 }
 
 void CALLBACK SPC(unsigned int pid, SPA::ClientSide::tagSocketPoolEvent spe, USocket_Client_Handle h) {
     JNIEnv *env;
     jobject spc = nullptr;
     {
-        SPA::CAutoLock al(g_csClient);
+        g_csClient.lock();
         if (g_mapPJ.find(pid) != g_mapPJ.cend())
             spc = g_mapPJ[pid];
+        g_csClient.unlock();
     }
     jint es = g_vmClient->GetEnv((void **) &env, JNI_VERSION_1_6);
     switch (spe) {
@@ -507,8 +546,9 @@ void CALLBACK SPC(unsigned int pid, SPA::ClientSide::tagSocketPoolEvent spe, USo
             assert(env);
             spc = env->NewGlobalRef(g_currObj);
         {
-            SPA::CAutoLock al(g_csClient);
+            g_csClient.lock();
             g_mapPJ[pid] = spc;
+            g_csClient.unlock();
         }
             if (spc)
                 DoCallback(env, spc, pid, spe, h);
@@ -519,8 +559,9 @@ void CALLBACK SPC(unsigned int pid, SPA::ClientSide::tagSocketPoolEvent spe, USo
             assert(spc);
             if (spc)
                 DoCallback(env, spc, pid, spe, h);
-            SPA::CAutoLock al(g_csClient);
+            g_csClient.lock();
             g_mapPJ.erase((unsigned int) pid);
+            g_csClient.unlock();
             env->DeleteGlobalRef(spc);
         }
             break;
@@ -587,7 +628,7 @@ JNIEXPORT void JNICALL Java_SPA_ClientSide_ClientCoreLoader_SetCs(JNIEnv *env, j
 JNIEXPORT jint JNICALL Java_SPA_ClientSide_ClientCoreLoader_CreateSocketPool(JNIEnv *env, jclass spObj, jobject spc, jint maxSocketsPerThread, jint maxThreads, jboolean bAvg, jint ta) {
     unsigned int id;
     {
-        SPA::CAutoLock al(g_coClient);
+        auto cycles = g_coClient.lock();
         if (g_vmClient == nullptr) {
             jint es = env->GetJavaVM(&g_vmClient);
             assert(JNI_OK == es);
@@ -600,6 +641,7 @@ JNIEXPORT jint JNICALL Java_SPA_ClientSide_ClientCoreLoader_CreateSocketPool(JNI
                 (unsigned int) maxThreads,
                 bAvg ? true : false,
                 (SPA::tagThreadApartment)ta);
+        g_coClient.unlock();
     }
     return (jint) id;
 }
@@ -709,14 +751,22 @@ JNIEXPORT jboolean JNICALL Java_SPA_ClientSide_ClientCoreLoader_IsOpened(JNIEnv 
     return IsOpened((USocket_Client_Handle) h);
 }
 
-JNIEXPORT jboolean JNICALL Java_SPA_ClientSide_ClientCoreLoader_SendRequest(JNIEnv *env, jclass, jlong h, jshort reqId, jbyteArray bytes, jint len) {
-    //can't use GetPrimitiveArrayCritical for thread dead-lock
-    jbyte *arr = env->GetByteArrayElements(bytes, nullptr);
-    if (!arr)
-        len = 0;
-    jboolean b = SendRequest((USocket_Client_Handle) h, (unsigned short) reqId, (const unsigned char*) arr, (unsigned int) len);
-    env->ReleaseByteArrayElements(bytes, arr, JNI_ABORT);
-    return b;
+JNIEXPORT jint JNICALL Java_SPA_ClientSide_ClientCoreLoader_RetrieveBuffer(JNIEnv *env, jclass, jlong h, jbyteArray bytes, jint len) {
+    jint res = 0;
+    if (bytes && len > 0) {
+        const unsigned char *arr = GetResultBuffer((USocket_Client_Handle) h);
+        env->SetByteArrayRegion(bytes, 0, len, (const jbyte*) arr);
+        res = len;
+    }
+    return res;
+}
+
+JNIEXPORT jboolean JNICALL Java_SPA_ClientSide_ClientCoreLoader_SendRequest(JNIEnv *env, jclass, jlong h, jshort reqId, jobject bytes, jint len, jint offset) {
+    const unsigned char *buffer = nullptr;
+    if (bytes) {
+        buffer = (const unsigned char *) env->GetDirectBufferAddress(bytes) + offset;
+    }
+    return SendRequest((USocket_Client_Handle) h, (unsigned short) reqId, buffer, (unsigned int) len);
 }
 
 JNIEXPORT void JNICALL Java_SPA_ClientSide_ClientCoreLoader_SetLastCallInfo(JNIEnv *env, jclass, jbyteArray buffer, jint len) {
@@ -1128,6 +1178,49 @@ JNIEXPORT jstring JNICALL Java_SPA_ClientSide_ClientCoreLoader_GetQueueFileName(
     return env->NewStringUTF("");
 }
 
+JNIEXPORT void JNICALL Java_SPA_ClientSide_ClientCoreLoader_SetBufferForCurrentThread(JNIEnv *env, jclass, jobject bytes, jint len) {
+    size_t n;
+#ifdef WIN32_64
+    UTHREAD_ID tid = ::GetCurrentThreadId();
+#else
+    UTHREAD_ID tid = pthread_self();
+#endif
+    PBuffCache found = nullptr;
+    g_csClient.lock();
+    PBuffCache *start = g_vCache.data();
+    size_t count = g_vCache.size();
+    for (n = 0; n < count; ++n) {
+        PBuffCache pos = start[n];
+        if (pos->Tid == tid) {
+            found = pos;
+            break;
+        }
+    }
+    if (found) {
+        if (found->Bytes) {
+            env->DeleteGlobalRef(found->Bytes);
+        }
+        if (bytes) {
+            found->Len = (unsigned int) len;
+            found->Bytes = env->NewGlobalRef(bytes);
+            found->Env = env;
+            found->Des = env->GetDirectBufferAddress(bytes);
+        } else {
+            g_vCache.erase(g_vCache.begin() + n);
+            delete found;
+        }
+    } else if (bytes) {
+        found = new CBuffCache;
+        found->Env = env;
+        found->Tid = tid;
+        found->Len = (unsigned int) len;
+        found->Bytes = env->NewGlobalRef(bytes);
+        found->Des = env->GetDirectBufferAddress(bytes);
+        g_vCache.push_back(found);
+    }
+    g_csClient.unlock();
+}
+
 JNIEXPORT jstring JNICALL Java_SPA_ClientSide_ClientCoreLoader_GetPeerName(JNIEnv *env, jclass, jlong h, jintArray peerPort, jint count) {
     unsigned int port;
     char name[256] = {0};
@@ -1185,13 +1278,12 @@ JNIEXPORT jint JNICALL Java_SPA_ClientSide_ClientCoreLoader_GetRouteeCount(JNIEn
     return (jint) GetRouteeCount((USocket_Client_Handle) h);
 }
 
-JNIEXPORT jboolean JNICALL Java_SPA_ClientSide_ClientCoreLoader_SendRouteeResult(JNIEnv *env, jclass, jlong h, jshort reqId, jbyteArray bytes, jint len) {
-    jbyte *arr = env->GetByteArrayElements(bytes, nullptr);
-    if (!arr)
-        len = 0;
-    jboolean b = SendRouteeResult((USocket_Client_Handle) h, (unsigned short) reqId, (const unsigned char*) arr, (unsigned int) len);
-    env->ReleaseByteArrayElements(bytes, arr, JNI_ABORT);
-    return b;
+JNIEXPORT jboolean JNICALL Java_SPA_ClientSide_ClientCoreLoader_SendRouteeResult(JNIEnv *env, jclass, jlong h, jshort reqId, jobject bytes, jint len, jint offset) {
+    const unsigned char *buffer = nullptr;
+    if (bytes) {
+        buffer = (const unsigned char *) env->GetDirectBufferAddress(bytes) + offset;
+    }
+    return SendRouteeResult((USocket_Client_Handle) h, (unsigned short) reqId, buffer, (unsigned int) len);
 }
 
 JNIEXPORT jboolean JNICALL Java_SPA_ClientSide_ClientCoreLoader_IsDequeueShared(JNIEnv *, jclass, jlong h) {
@@ -1290,5 +1382,9 @@ JNIEXPORT jboolean JNICALL Java_SPA_ClientSide_ClientCoreLoader_GetQueueAutoMerg
 }
 
 JNIEXPORT void JNICALL Java_SPA_ClientSide_ClientCoreLoader_SetQueueAutoMergeByPool(JNIEnv *, jclass, jint poolId, jboolean merge) {
-    return SetQueueAutoMergeByPool((unsigned int) poolId, merge ? true : false);
+    SetQueueAutoMergeByPool((unsigned int) poolId, merge ? true : false);
+}
+
+JNIEXPORT jboolean JNICALL Java_SPA_ClientSide_ClientCoreLoader_SendInterruptRequest(JNIEnv *, jclass, jlong h, jlong options) {
+    return SendInterruptRequest((USocket_Client_Handle) h, (SPA::UINT64) options);
 }

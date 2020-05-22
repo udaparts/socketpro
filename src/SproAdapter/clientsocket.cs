@@ -2,9 +2,12 @@
 using System.Collections.Generic;
 
 
-namespace SocketProAdapter {
-    namespace ClientSide {
-        public sealed class CClientSocket : IDisposable {
+namespace SocketProAdapter
+{
+    namespace ClientSide
+    {
+        public sealed class CClientSocket : IDisposable
+        {
             public delegate void DOnSocketClosed(CClientSocket sender, int errorCode);
             public delegate void DOnHandShakeCompleted(CClientSocket sender, int errorCode);
             public delegate void DOnSocketConnected(CClientSocket sender, int errorCode);
@@ -87,41 +90,42 @@ namespace SocketProAdapter {
                 }
             }
 #endif
-            private List<CAsyncServiceHandler> m_lstAsh = new List<CAsyncServiceHandler>();
+            private CAsyncServiceHandler m_ash = null;
 
             public const uint DEFAULT_RECV_TIMEOUT = 30000;
             public const uint DEFAULT_CONN_TIMEOUT = 30000;
 
-            internal bool Attach(CAsyncServiceHandler ash) {
-                if (ash == null)
+            internal bool Attach(CAsyncServiceHandler ash)
+            {
+                if (ash == null || ash == m_ash)
                     return false;
-                foreach (CAsyncServiceHandler h in m_lstAsh) {
-                    if (ash.SvsID == h.SvsID)
-                        return false;
-                }
-                m_lstAsh.Add(ash);
+                m_ash = ash;
                 return true;
             }
 
-            internal void Detach(CAsyncServiceHandler ash) {
-                if (ash == null)
+            internal void Detach(CAsyncServiceHandler ash)
+            {
+                if (ash == null || ash != m_ash)
                     return;
-                m_lstAsh.Remove(ash);
+                m_ash = null;
                 ash.SetNull();
             }
 
             #region IDisposable Members
 
-            public void Dispose() {
-                foreach (CAsyncServiceHandler h in m_lstAsh) {
-                    h.SetNull();
+            public void Dispose()
+            {
+                if (m_ash != null)
+                {
+                    m_ash.SetNull();
+                    m_ash = null;
                 }
-                m_lstAsh.Clear();
             }
 
             #endregion
 
-            internal CClientSocket() {
+            internal CClientSocket()
+            {
                 m_h = IntPtr.Zero;
                 m_PushImpl = new CPushImpl(this);
                 m_qm = new CClientQueueImpl(this);
@@ -150,31 +154,25 @@ namespace SocketProAdapter {
                 m_lstSE = new UDelegate<DOnServerException>(m_cs);
                 m_lstShake = new UDelegate<DOnHandShakeCompleted>(m_cs);
             }
+
             public CAsyncServiceHandler CurrentHandler {
                 get {
-                    uint myId = CurrentServiceID;
-                    if (myId == BaseServiceID.sidStartup) {
-                        if (m_lstAsh.Count > 1)
-                            return m_lstAsh[0];
-                        return null;
-                    }
-                    return Seek(CurrentServiceID);
+                    return m_ash;
                 }
             }
 
-            CAsyncServiceHandler Seek(uint svsId) {
-                foreach (CAsyncServiceHandler ash in m_lstAsh) {
-                    if (ash.SvsID == svsId)
-                        return ash;
-                }
-                return null;
+            CAsyncServiceHandler Seek(uint svsId)
+            {
+                return m_ash;
             }
 
-            public bool WaitAll() {
+            public bool WaitAll()
+            {
                 return WaitAll(uint.MaxValue);
             }
 
-            public bool WaitAll(uint timeOut) {
+            public bool WaitAll(uint timeOut)
+            {
                 if (ClientCoreLoader.IsBatching(m_h) != 0)
                     throw new InvalidOperationException("Can't call the method WaitAll during batching requests");
                 if (ClientCoreLoader.IsQueueStarted(m_h) != 0 && ClientCoreLoader.GetJobSize(m_h) > 0)
@@ -182,17 +180,20 @@ namespace SocketProAdapter {
                 return ClientCoreLoader.WaitAll(m_h, timeOut) != 0;
             }
 
-            public bool Cancel() {
+            public bool Cancel()
+            {
                 if (ClientCoreLoader.IsBatching(m_h) != 0)
                     throw new InvalidOperationException("Can't call the method Cancel during batching requests");
                 return ClientCoreLoader.Cancel(m_h, uint.MaxValue) != 0;
             }
 
-            public bool DoEcho() {
+            public bool DoEcho()
+            {
                 return ClientCoreLoader.DoEcho(m_h) != 0;
             }
 
-            public void AbortDequeuedMessage() {
+            public void AbortDequeuedMessage()
+            {
                 ClientCoreLoader.AbortDequeuedMessage(m_h);
             }
 
@@ -286,27 +287,33 @@ namespace SocketProAdapter {
             /// Use the method for debugging crash within cross development environments.
             /// </summary>
             /// <param name="str">A string will be sent to client core library to be output into a crash text file</param>
-            public static void SetLastCallInfo(string str) {
+            public static void SetLastCallInfo(string str)
+            {
                 if (str == null)
                     str = "";
                 unsafe
                 {
-                    fixed (byte* data = System.Text.Encoding.ASCII.GetBytes(str)) {
+                    fixed (byte* data = System.Text.Encoding.ASCII.GetBytes(str))
+                    {
                         IntPtr p = new IntPtr(data);
                         ClientCoreLoader.SetLastCallInfo(p);
                     }
                 }
             }
 
-            public static class SSL {
+            public static class SSL
+            {
                 private static PCertificateVerifyCallback m_cvCallback;
 
                 public delegate bool DOnCertificateVerify(bool preverified, int depth, int errorCode, string errMessage, CertInfo ci);
                 public static event DOnCertificateVerify CertificateVerify;
 
-                static SSL() {
-                    m_cvCallback += (preverified, depth, errCode, errMessage, ptr) => {
-                        if (CertificateVerify != null && ptr != IntPtr.Zero) {
+                static SSL()
+                {
+                    m_cvCallback += (preverified, depth, errCode, errMessage, ptr) =>
+                    {
+                        if (CertificateVerify != null && ptr != IntPtr.Zero)
+                        {
                             string errMsg = null;
                             CertInfo ci = new CertInfo();
                             CertInfoIntenal cii = new CertInfoIntenal();
@@ -324,12 +331,14 @@ namespace SocketProAdapter {
                     ClientCoreLoader.SetCertificateVerifyCallback(m_cvCallback);
                 }
 
-                public static bool SetVerifyLocation(string certFile) {
+                public static bool SetVerifyLocation(string certFile)
+                {
                     if (certFile == null || certFile.Length == 0)
                         throw new ArgumentException("Invalid queue file name");
                     unsafe
                     {
-                        fixed (byte* data = System.Text.Encoding.ASCII.GetBytes(certFile)) {
+                        fixed (byte* data = System.Text.Encoding.ASCII.GetBytes(certFile))
+                        {
                             IntPtr file = new IntPtr(data);
                             return ClientCoreLoader.SetVerifyLocation(file) != 0;
                         }
@@ -337,7 +346,8 @@ namespace SocketProAdapter {
                 }
             }
 
-            public static class QueueConfigure {
+            public static class QueueConfigure
+            {
                 public static bool IsClientQueueIndexPossiblyCrashed {
                     get {
                         return ClientCoreLoader.IsClientQueueIndexPossiblyCrashed() != 0;
@@ -353,7 +363,8 @@ namespace SocketProAdapter {
                         string s = value;
                         if (s == null)
                             s = "";
-                        fixed (byte* data = System.Text.Encoding.ASCII.GetBytes(s)) {
+                        fixed (byte* data = System.Text.Encoding.ASCII.GetBytes(s))
+                        {
                             IntPtr dir = new IntPtr(data);
                             ClientCoreLoader.SetClientWorkDirectory(dir);
                         }
@@ -367,7 +378,8 @@ namespace SocketProAdapter {
                             s = "";
                         unsafe
                         {
-                            fixed (byte* data = System.Text.Encoding.ASCII.GetBytes(s)) {
+                            fixed (byte* data = System.Text.Encoding.ASCII.GetBytes(s))
+                            {
                                 IntPtr pwd = new IntPtr(data);
                                 ClientCoreLoader.SetMessageQueuePassword(pwd);
                             }
@@ -419,24 +431,28 @@ namespace SocketProAdapter {
                 }
             }
 
-            public string GetPeerName() {
+            public string GetPeerName()
+            {
                 uint port = 0;
                 sbyte[] addr = new sbyte[256];
                 unsafe
                 {
-                    fixed (sbyte* p = addr) {
+                    fixed (sbyte* p = addr)
+                    {
                         ClientCoreLoader.GetPeerName(m_h, ref port, p, (ushort)256);
                         return new string(p);
                     }
                 }
             }
 
-            public string GetPeerName(out uint port) {
+            public string GetPeerName(out uint port)
+            {
                 port = 0;
                 sbyte[] addr = new sbyte[256];
                 unsafe
                 {
-                    fixed (sbyte* p = addr) {
+                    fixed (sbyte* p = addr)
+                    {
                         ClientCoreLoader.GetPeerName(m_h, ref port, p, (ushort)256);
                         return new string(p);
                     }
@@ -448,7 +464,8 @@ namespace SocketProAdapter {
                     sbyte[] errMsg = new sbyte[1024];
                     unsafe
                     {
-                        fixed (sbyte* p = errMsg) {
+                        fixed (sbyte* p = errMsg)
+                        {
                             ClientCoreLoader.GetErrorMessage(m_h, p, 1024);
                             return new string(p);
                         }
@@ -464,24 +481,29 @@ namespace SocketProAdapter {
 
             private tagOperationSystem m_os = Defines.OperationSystem;
             private bool m_endian = false;
-            public tagOperationSystem GetPeerOs() {
+            public tagOperationSystem GetPeerOs()
+            {
                 return m_os;
             }
 
-            public tagOperationSystem GetPeerOs(ref bool bigEndian) {
+            public tagOperationSystem GetPeerOs(ref bool bigEndian)
+            {
                 bigEndian = m_endian;
                 return m_os;
             }
 
-            public void Close() {
+            public void Close()
+            {
                 ClientCoreLoader.Close(m_h);
             }
 
-            public void Shutdown() {
+            public void Shutdown()
+            {
                 ClientCoreLoader.Shutdown(m_h, tagShutdownType.stBoth);
             }
 
-            public void Shutdown(tagShutdownType st) {
+            public void Shutdown(tagShutdownType st)
+            {
                 ClientCoreLoader.Shutdown(m_h, st);
             }
 
@@ -547,7 +569,8 @@ namespace SocketProAdapter {
                     char[] id = new char[256];
                     unsafe
                     {
-                        fixed (char* p = id) {
+                        fixed (char* p = id)
+                        {
                             res = ClientCoreLoader.GetUID(m_h, p, 256);
                         }
                     }
@@ -589,63 +612,86 @@ namespace SocketProAdapter {
                 }
             }
 
-            public bool TurnOnZipAtSvr(bool enableZip) {
+            public bool TurnOnZipAtSvr(bool enableZip)
+            {
                 return ClientCoreLoader.TurnOnZipAtSvr(m_h, (byte)(enableZip ? 1 : 0)) != 0;
             }
 
-            public bool SetZipLevelAtSvr(tagZipLevel zipLevel) {
+            public bool SetZipLevelAtSvr(tagZipLevel zipLevel)
+            {
                 return ClientCoreLoader.SetZipLevelAtSvr(m_h, zipLevel) != 0;
             }
 
-            private void OnSClosed(IntPtr handler, int nError) {
+            private void OnSClosed(IntPtr handler, int nError)
+            {
                 CAsyncServiceHandler ash = Seek(CurrentServiceID);
                 if (ash != null && !Sendable)
                     ash.CleanCallbacks();
-                lock (m_cs) {
-                    foreach (var el in m_lstClosed) {
+                lock (m_cs)
+                {
+                    foreach (var el in m_lstClosed)
+                    {
                         el.Invoke(this, nError);
                     }
                 }
             }
 
-            private void OnHSCompleted(IntPtr handler, int nError) {
-                lock (m_cs) {
-                    foreach (var el in m_lstShake) {
+            private void OnHSCompleted(IntPtr handler, int nError)
+            {
+                lock (m_cs)
+                {
+                    foreach (var el in m_lstShake)
+                    {
                         el.Invoke(this, nError);
                     }
                 }
             }
 
-            private void OnSConnected(IntPtr handler, int nError) {
-                if (nError == 0 && ClientCoreLoader.GetSSL(handler).ToInt64() != 0) {
+            private void OnSConnected(IntPtr handler, int nError)
+            {
+                if (nError == 0 && ClientCoreLoader.GetSSL(handler).ToInt64() != 0)
+                {
                     m_cert = new CUCertImpl(this);
-                } else {
+                }
+                else
+                {
                     m_cert = null;
                 }
-                lock (m_cs) {
-                    foreach (var el in m_lstConnected) {
+                lock (m_cs)
+                {
+                    foreach (var el in m_lstConnected)
+                    {
                         el.Invoke(this, nError);
                     }
                 }
             }
 
-            private void OnRProcessed(IntPtr handler, ushort requestId, uint len) {
+            private CUQueue m_qRecv = new CUQueue();
+
+            private void OnRProcessed(IntPtr handler, ushort requestId, uint len)
+            {
                 CAsyncServiceHandler ash = Seek(CurrentServiceID);
-                if (ash != null) {
+                if (ash != null)
+                {
+                    CUQueue q = m_qRecv;
                     if (m_routing)
+                    {
                         m_os = ClientCoreLoader.GetPeerOs(handler, ref m_endian);
-                    CUQueue q = CScopeUQueue.Lock(m_os);
-                    q.Endian = m_endian;
+                        q.OS = m_os;
+                        q.Endian = m_endian;
+                    }
                     if (q.MaxBufferSize < len)
                         q.Realloc(len);
-                    if (len > 0) {
+                    if (len > 0)
+                    {
                         IntPtr source = ClientCoreLoader.GetResultBuffer(handler);
 #if WINCE
                         System.Runtime.InteropServices.Marshal.Copy(source, q.m_bytes, 0, (int)len);
 #else
                         unsafe
                         {
-                            fixed (byte* des = q.m_bytes) {
+                            fixed (byte* des = q.m_bytes)
+                            {
                                 CUQueue.CopyMemory(des, (void*)source, len);
                             }
                         }
@@ -653,7 +699,6 @@ namespace SocketProAdapter {
                     }
                     q.SetSize(len);
                     ash.onRR(requestId, q);
-                    CScopeUQueue.Unlock(q);
                 }
 #if ENABLE_SOCKET_REQUEST_AND_ALL_EVENTS
                 lock (m_cs)
@@ -666,7 +711,8 @@ namespace SocketProAdapter {
 #endif
             }
 
-            private CMessageSender ToMessageSender(CMessageSenderCe senderCe) {
+            private CMessageSender ToMessageSender(CMessageSenderCe senderCe)
+            {
                 CMessageSender sender = new CMessageSender();
                 sender.UserId = senderCe.UserId;
                 unsafe
@@ -679,10 +725,12 @@ namespace SocketProAdapter {
                 return sender;
             }
 
-            private void OnB(IntPtr handler, IntPtr senderCe, IntPtr groups, uint count, IntPtr message, uint size) {
+            private void OnB(IntPtr handler, IntPtr senderCe, IntPtr groups, uint count, IntPtr message, uint size)
+            {
                 CMessageSenderCe msc = new CMessageSenderCe();
                 System.Runtime.InteropServices.Marshal.PtrToStructure(senderCe, msc);
-                using (CScopeUQueue su = new CScopeUQueue()) {
+                using (CScopeUQueue su = new CScopeUQueue())
+                {
                     ushort vt = (ushort)(tagVariantDataType.sdVT_ARRAY | tagVariantDataType.sdVT_UI4);
                     su.UQueue.Save(vt);
                     su.UQueue.Save(count);
@@ -697,20 +745,24 @@ namespace SocketProAdapter {
                 }
             }
 
-            private void OnPUMessage(IntPtr handler, IntPtr senderCe, IntPtr message, uint size) {
+            private void OnPUMessage(IntPtr handler, IntPtr senderCe, IntPtr message, uint size)
+            {
                 CMessageSenderCe msc = new CMessageSenderCe();
                 System.Runtime.InteropServices.Marshal.PtrToStructure(senderCe, msc);
-                using (CScopeUQueue su = new CScopeUQueue()) {
+                using (CScopeUQueue su = new CScopeUQueue())
+                {
                     object msg;
                     su.UQueue.Push(message, size).Load(out msg);
                     m_PushImpl.OnPUMessage(handler, ToMessageSender(msc), msg);
                 }
             }
 
-            private void OnEnter(IntPtr handler, IntPtr senderCe, IntPtr groups, uint count) {
+            private void OnEnter(IntPtr handler, IntPtr senderCe, IntPtr groups, uint count)
+            {
                 CMessageSenderCe msc = new CMessageSenderCe();
                 System.Runtime.InteropServices.Marshal.PtrToStructure(senderCe, msc);
-                using (CScopeUQueue su = new CScopeUQueue()) {
+                using (CScopeUQueue su = new CScopeUQueue())
+                {
                     ushort vt = (ushort)(tagVariantDataType.sdVT_ARRAY | tagVariantDataType.sdVT_UI4);
                     su.UQueue.Save(vt);
                     su.UQueue.Save(count);
@@ -721,10 +773,12 @@ namespace SocketProAdapter {
                 }
             }
 
-            private void OnExit(IntPtr handler, IntPtr senderCe, IntPtr groups, uint count) {
+            private void OnExit(IntPtr handler, IntPtr senderCe, IntPtr groups, uint count)
+            {
                 CMessageSenderCe msc = new CMessageSenderCe();
                 System.Runtime.InteropServices.Marshal.PtrToStructure(senderCe, msc);
-                using (CScopeUQueue su = new CScopeUQueue()) {
+                using (CScopeUQueue su = new CScopeUQueue())
+                {
                     ushort vt = (ushort)(tagVariantDataType.sdVT_ARRAY | tagVariantDataType.sdVT_UI4);
                     su.UQueue.Save(vt);
                     su.UQueue.Save(count);
@@ -735,10 +789,12 @@ namespace SocketProAdapter {
                 }
             }
 
-            private void OnBEx(IntPtr handler, IntPtr senderCe, IntPtr groups, uint count, IntPtr message, uint size) {
+            private void OnBEx(IntPtr handler, IntPtr senderCe, IntPtr groups, uint count, IntPtr message, uint size)
+            {
                 CMessageSenderCe msc = new CMessageSenderCe();
                 System.Runtime.InteropServices.Marshal.PtrToStructure(senderCe, msc);
-                using (CScopeUQueue su = new CScopeUQueue()) {
+                using (CScopeUQueue su = new CScopeUQueue())
+                {
                     ushort vt = (ushort)(tagVariantDataType.sdVT_ARRAY | tagVariantDataType.sdVT_UI4);
                     su.UQueue.Save(vt);
                     su.UQueue.Save(count);
@@ -746,14 +802,16 @@ namespace SocketProAdapter {
                     object obj;
                     su.UQueue.Load(out obj);
                     byte[] msg = new byte[size];
-                    if (size > 0) {
+                    if (size > 0)
+                    {
                         System.Runtime.InteropServices.Marshal.Copy(message, msg, 0, (int)size);
                     }
                     m_PushImpl.OnBEx(handler, ToMessageSender(msc), (uint[])obj, count, msg, size);
                 }
             }
 
-            private void OnPUMessageEx(IntPtr handler, IntPtr senderCe, IntPtr message, uint size) {
+            private void OnPUMessageEx(IntPtr handler, IntPtr senderCe, IntPtr message, uint size)
+            {
                 CMessageSenderCe msc = new CMessageSenderCe();
                 System.Runtime.InteropServices.Marshal.PtrToStructure(senderCe, msc);
                 byte[] msg = new byte[size];
@@ -761,34 +819,43 @@ namespace SocketProAdapter {
                 m_PushImpl.OnPUMessageEx(handler, ToMessageSender(msc), msg);
             }
 
-            private void OnSException(IntPtr handler, ushort requestId, string errMessage, IntPtr errWhere, int errCode) {
+            private void OnSException(IntPtr handler, ushort requestId, string errMessage, IntPtr errWhere, int errCode)
+            {
                 string location = "";
-                if (errWhere != IntPtr.Zero) {
+                if (errWhere != IntPtr.Zero)
+                {
                     unsafe
                     {
                         location = new string((sbyte*)errWhere);
                     }
                 }
                 CAsyncServiceHandler ash = Seek(CurrentServiceID);
-                if (ash != null) {
+                if (ash != null)
+                {
                     ash.OnSE(requestId, errMessage, location, errCode);
                 }
-                lock (m_cs) {
-                    foreach (var el in m_lstSE) {
+                lock (m_cs)
+                {
+                    foreach (var el in m_lstSE)
+                    {
                         el.Invoke(this, requestId, errMessage, location, errCode);
                     }
                 }
             }
 
-            private void OnBRProcessed(IntPtr handler, ushort requestId) {
-                if (requestId == (uint)tagBaseRequestID.idSwitchTo) {
+            private void OnBRProcessed(IntPtr handler, ushort requestId)
+            {
+                if (requestId == (uint)tagBaseRequestID.idSwitchTo)
+                {
                     m_nCurrentSvsId = ClientCoreLoader.GetCurrentServiceId(handler);
                     m_bRandom = (ClientCoreLoader.IsRandom(m_h) != 0);
                     m_routing = (ClientCoreLoader.IsRouting(m_h) != 0);
                     m_os = ClientCoreLoader.GetPeerOs(m_h, ref m_endian);
                 }
                 CAsyncServiceHandler ash = Seek(CurrentServiceID);
-                if (ash != null) {
+                if (ash != null)
+                {
+                    ash.m_bRandom = m_bRandom;
                     ash.OnBProcessed(requestId);
                     if ((tagBaseRequestID)requestId == tagBaseRequestID.idCancel)
                         ash.CleanCallbacks();
@@ -804,7 +871,8 @@ namespace SocketProAdapter {
 #endif
             }
 
-            private void OnARProcessed(IntPtr handler, ushort lastRequestId) {
+            private void OnARProcessed(IntPtr handler, ushort lastRequestId)
+            {
                 CAsyncServiceHandler ash = Seek(CurrentServiceID);
                 if (ash != null)
                     ash.OnAll();
@@ -819,7 +887,8 @@ namespace SocketProAdapter {
 #endif
             }
 
-            private void OnPostProcessing(IntPtr handler, uint hint, ulong data) {
+            private void OnPostProcessing(IntPtr handler, uint hint, ulong data)
+            {
                 CAsyncServiceHandler ash = Seek(CurrentServiceID);
                 if (ash != null)
                     ash.OnPP(hint, data);
@@ -840,7 +909,8 @@ namespace SocketProAdapter {
             private POnSendUserMessageEx m_sume;
             private POnPostProcessing m_pp;
 
-            internal void Set(IntPtr h) {
+            internal void Set(IntPtr h)
+            {
                 ClientCoreLoader.SetOnHandShakeCompleted(h, m_hsc);
                 ClientCoreLoader.SetOnRequestProcessed(h, m_rp);
                 ClientCoreLoader.SetOnSocketClosed(h, m_ss);
@@ -858,9 +928,11 @@ namespace SocketProAdapter {
                 m_h = h;
             }
 
-            class CClientQueueImpl : IClientQueue {
+            class CClientQueueImpl : IClientQueue
+            {
                 private int m_nQIndex = 0;
-                internal CClientQueueImpl(CClientSocket cs) {
+                internal CClientQueueImpl(CClientSocket cs)
+                {
                     m_cs = cs;
                 }
 
@@ -868,20 +940,24 @@ namespace SocketProAdapter {
 
                 #region IClientQueue Members
 
-                public bool StartQueue(string qName, uint ttl) {
+                public bool StartQueue(string qName, uint ttl)
+                {
                     return StartQueue(qName, ttl, true, false);
                 }
 
-                public bool StartQueue(string qName, uint ttl, bool secure) {
+                public bool StartQueue(string qName, uint ttl, bool secure)
+                {
                     return StartQueue(qName, ttl, secure, false);
                 }
 
-                public bool StartQueue(string qName, uint ttl, bool secure, bool dequeueShared) {
+                public bool StartQueue(string qName, uint ttl, bool secure, bool dequeueShared)
+                {
                     if (qName == null || qName.Length == 0)
                         throw new ArgumentException("Invalid queue file name");
                     unsafe
                     {
-                        fixed (byte* data = System.Text.Encoding.ASCII.GetBytes(qName)) {
+                        fixed (byte* data = System.Text.Encoding.ASCII.GetBytes(qName))
+                        {
                             IntPtr name = new IntPtr(data);
                             return ClientCoreLoader.StartQueue(m_cs.Handle, name, (byte)(secure ? 1 : 0), (byte)(dequeueShared ? 1 : 0), ttl) != 0;
                         }
@@ -905,52 +981,61 @@ namespace SocketProAdapter {
                     }
                 }
 
-                public bool AppendTo(IClientQueue[] clientQueues) {
+                public bool AppendTo(IClientQueue[] clientQueues)
+                {
                     if (clientQueues == null || clientQueues.Length == 0)
                         return true;
                     List<IntPtr> qs = new List<IntPtr>();
-                    foreach (IClientQueue cq in clientQueues) {
+                    foreach (IClientQueue cq in clientQueues)
+                    {
                         qs.Add(cq.Handle);
                     }
                     return AppendTo(qs.ToArray());
                 }
 
-                public bool AppendTo(IntPtr[] queueHandles) {
+                public bool AppendTo(IntPtr[] queueHandles)
+                {
                     if (queueHandles == null || queueHandles.Length == 0)
                         return true;
                     unsafe
                     {
-                        fixed (IntPtr* p = queueHandles) {
+                        fixed (IntPtr* p = queueHandles)
+                        {
                             return ClientCoreLoader.PushQueueTo(m_cs.Handle, p, (uint)queueHandles.Length) != 0;
                         }
                     }
                 }
 
-                public bool AppendTo(IClientQueue clientQueue) {
+                public bool AppendTo(IClientQueue clientQueue)
+                {
                     if (clientQueue == null)
                         return true;
                     IntPtr[] queueHandles = { clientQueue.Handle };
                     return AppendTo(queueHandles);
                 }
 
-                public bool EnsureAppending(IClientQueue clientQueue) {
+                public bool EnsureAppending(IClientQueue clientQueue)
+                {
                     if (clientQueue == null)
                         return true;
                     IntPtr[] queueHandles = { clientQueue.Handle };
                     return EnsureAppending(queueHandles);
                 }
 
-                public bool EnsureAppending(IClientQueue[] clientQueues) {
+                public bool EnsureAppending(IClientQueue[] clientQueues)
+                {
                     if (clientQueues == null || clientQueues.Length == 0)
                         return true;
                     List<IntPtr> qs = new List<IntPtr>();
-                    foreach (IClientQueue cq in clientQueues) {
+                    foreach (IClientQueue cq in clientQueues)
+                    {
                         qs.Add(cq.Handle);
                     }
                     return EnsureAppending(qs.ToArray());
                 }
 
-                public bool EnsureAppending(IntPtr[] queueHandles) {
+                public bool EnsureAppending(IntPtr[] queueHandles)
+                {
                     if (!Available)
                         return false;
                     if (QueueStatus != tagQueueStatus.qsMergePushing)
@@ -958,11 +1043,13 @@ namespace SocketProAdapter {
                     if (queueHandles == null || queueHandles.Length == 0)
                         return true;
                     List<IntPtr> vHandles = new List<IntPtr>();
-                    foreach (IntPtr h in queueHandles) {
+                    foreach (IntPtr h in queueHandles)
+                    {
                         if (ClientCoreLoader.GetClientQueueStatus(h) != tagQueueStatus.qsMergeComplete)
                             vHandles.Add(h);
                     }
-                    if (vHandles.Count > 0) {
+                    if (vHandles.Count > 0)
+                    {
                         return AppendTo(vHandles.ToArray());
                     }
                     Reset();
@@ -987,19 +1074,23 @@ namespace SocketProAdapter {
 
                 #region IMessageQueueBasic Members
 
-                public void StopQueue() {
+                public void StopQueue()
+                {
                     ClientCoreLoader.StopQueue(m_cs.Handle, (byte)0);
                 }
 
-                public void StopQueue(bool permanent) {
+                public void StopQueue(bool permanent)
+                {
                     ClientCoreLoader.StopQueue(m_cs.Handle, (byte)(permanent ? 1 : 0));
                 }
 
-                public void Reset() {
+                public void Reset()
+                {
                     ClientCoreLoader.ResetQueue(m_cs.Handle);
                 }
 
-                public ulong CancelQueuedMessages(ulong startIndex, ulong endIndex) {
+                public ulong CancelQueuedMessages(ulong startIndex, ulong endIndex)
+                {
 #if WINCE
                     return ClientCoreLoader.CancelQueuedRequestsByIndex(m_cs.Handle, (uint)startIndex, (uint)endIndex);
 #else
@@ -1070,11 +1161,14 @@ namespace SocketProAdapter {
                     }
                 }
 
-                public bool AbortJob() {
+                public bool AbortJob()
+                {
                     CAsyncServiceHandler ash = m_cs.CurrentHandler;
-                    lock (ash.m_cs) {
+                    lock (ash.m_cs)
+                    {
                         int aborted = ash.GetCallbacks().Count - m_nQIndex;
-                        if (ClientCoreLoader.AbortJob(m_cs.Handle) != 0) {
+                        if (ClientCoreLoader.AbortJob(m_cs.Handle) != 0)
+                        {
                             ash.EraseBack(aborted);
                             return true;
                         }
@@ -1082,15 +1176,18 @@ namespace SocketProAdapter {
                     return false;
                 }
 
-                public bool StartJob() {
+                public bool StartJob()
+                {
                     CAsyncServiceHandler ash = m_cs.CurrentHandler;
-                    lock (ash.m_cs) {
+                    lock (ash.m_cs)
+                    {
                         m_nQIndex = ash.GetCallbacks().Count;
                     }
                     return ClientCoreLoader.StartJob(m_cs.Handle) != 0;
                 }
 
-                public bool EndJob() {
+                public bool EndJob()
+                {
                     return ClientCoreLoader.EndJob(m_cs.Handle) != 0;
                 }
 
@@ -1098,7 +1195,8 @@ namespace SocketProAdapter {
                     get { return ClientCoreLoader.GetJobSize(m_cs.Handle); }
                 }
 
-                public ulong RemoveByTTL() {
+                public ulong RemoveByTTL()
+                {
                     return ClientCoreLoader.RemoveQueuedRequestsByTTL(m_cs.Handle);
                 }
 
@@ -1134,20 +1232,24 @@ namespace SocketProAdapter {
                 }
             }
 
-            class CUCertImpl : IUcert {
+            class CUCertImpl : IUcert
+            {
                 private CClientSocket m_cs;
 
-                internal CUCertImpl(CClientSocket cs) {
+                internal CUCertImpl(CClientSocket cs)
+                {
                     m_cs = cs;
                     IntPtr p = ClientCoreLoader.GetUCert(cs.Handle);
-                    if (p != IntPtr.Zero) {
+                    if (p != IntPtr.Zero)
+                    {
                         CertInfoIntenal cii = new CertInfoIntenal();
                         System.Runtime.InteropServices.Marshal.PtrToStructure(p, cii);
                         Set(cii);
                     }
                 }
 
-                public unsafe override string Verify(out int errCode) {
+                public unsafe override string Verify(out int errCode)
+                {
                     int ec = 0;
                     sbyte* str = (sbyte*)ClientCoreLoader.Verify(m_cs.Handle, ref ec);
                     errCode = ec;
@@ -1168,10 +1270,12 @@ namespace SocketProAdapter {
                 }
             }
 
-            class CPushImpl : IUPushClient {
+            class CPushImpl : IUPushClient
+            {
                 private CClientSocket m_cs;
 
-                internal CPushImpl(CClientSocket cs) {
+                internal CPushImpl(CClientSocket cs)
+                {
                     m_cs = cs;
                     m_lstPublish = new UDelegate<DOnPublish>(cs.m_cs);
                     m_lstPublishEx = new UDelegate<DOnPublishEx>(cs.m_cs);
@@ -1247,17 +1351,21 @@ namespace SocketProAdapter {
 
                 #region IUPush Members
 
-                public bool Publish(object Message, uint[] groups) {
+                public bool Publish(object Message, uint[] groups)
+                {
                     if (groups == null || groups.Length == 0)
                         throw new ArgumentException("Must specify an array of group identification numbers");
 
-                    using (CScopeUQueue su = new CScopeUQueue()) {
+                    using (CScopeUQueue su = new CScopeUQueue())
+                    {
                         byte[] msg = su.Save(Message).m_bytes;
                         unsafe
                         {
-                            fixed (byte* message = msg) {
+                            fixed (byte* message = msg)
+                            {
                                 IntPtr m = new IntPtr(message);
-                                fixed (uint* grps = groups) {
+                                fixed (uint* grps = groups)
+                                {
                                     IntPtr g = new IntPtr(grps);
                                     return ClientCoreLoader.Speak(m_cs.Handle, m, su.UQueue.GetSize(), g, groups.Length) != 0;
                                 }
@@ -1266,7 +1374,8 @@ namespace SocketProAdapter {
                     }
                 }
 
-                public bool Publish(byte[] Message, uint[] groups) {
+                public bool Publish(byte[] Message, uint[] groups)
+                {
                     int lenMsg;
                     int lenGroups;
 
@@ -1280,9 +1389,11 @@ namespace SocketProAdapter {
                         lenGroups = groups.Length;
                     unsafe
                     {
-                        fixed (byte* data = Message) {
+                        fixed (byte* data = Message)
+                        {
                             IntPtr m = new IntPtr(data);
-                            fixed (uint* gp = groups) {
+                            fixed (uint* gp = groups)
+                            {
                                 IntPtr g = new IntPtr(gp);
                                 return ClientCoreLoader.SpeakEx(m_cs.Handle, m, lenMsg, g, lenGroups) != 0;
                             }
@@ -1290,7 +1401,8 @@ namespace SocketProAdapter {
                     }
                 }
 
-                public bool Subscribe(uint[] groups) {
+                public bool Subscribe(uint[] groups)
+                {
                     int len;
                     if (groups == null)
                         len = 0;
@@ -1298,24 +1410,29 @@ namespace SocketProAdapter {
                         len = groups.Length;
                     unsafe
                     {
-                        fixed (uint* grps = groups) {
+                        fixed (uint* grps = groups)
+                        {
                             IntPtr g = new IntPtr(grps);
                             return ClientCoreLoader.Enter(m_cs.Handle, g, len) != 0;
                         }
                     }
                 }
 
-                public bool Unsubscribe() {
+                public bool Unsubscribe()
+                {
                     ClientCoreLoader.Exit(m_cs.Handle);
                     return true;
                 }
 
-                public bool SendUserMessage(object message, string userId) {
-                    using (CScopeUQueue su = new CScopeUQueue()) {
+                public bool SendUserMessage(object message, string userId)
+                {
+                    using (CScopeUQueue su = new CScopeUQueue())
+                    {
                         byte[] msg = su.Save(message).m_bytes;
                         unsafe
                         {
-                            fixed (byte* data = msg) {
+                            fixed (byte* data = msg)
+                            {
                                 IntPtr m = new IntPtr(data);
                                 return ClientCoreLoader.SendUserMessage(m_cs.Handle, userId, m, su.UQueue.GetSize()) != 0;
                             }
@@ -1323,7 +1440,8 @@ namespace SocketProAdapter {
                     }
                 }
 
-                public bool SendUserMessage(string userId, byte[] Message) {
+                public bool SendUserMessage(string userId, byte[] Message)
+                {
                     int len;
                     if (Message == null)
                         len = 0;
@@ -1331,56 +1449,75 @@ namespace SocketProAdapter {
                         len = Message.Length;
                     unsafe
                     {
-                        fixed (byte* data = Message) {
+                        fixed (byte* data = Message)
+                        {
                             IntPtr m = new IntPtr(data);
                             return ClientCoreLoader.SendUserMessageEx(m_cs.Handle, userId, m, len) != 0;
                         }
                     }
                 }
 
-                internal void OnEnter(IntPtr handler, CMessageSender sender, uint[] group, uint count) {
-                    lock (m_cs.m_cs) {
-                        foreach (var el in m_lstSubscribe) {
+                internal void OnEnter(IntPtr handler, CMessageSender sender, uint[] group, uint count)
+                {
+                    lock (m_cs.m_cs)
+                    {
+                        foreach (var el in m_lstSubscribe)
+                        {
                             el.Invoke(m_cs, sender, group);
                         }
                     }
                 }
 
-                internal void OnExit(IntPtr handler, CMessageSender sender, uint[] group, uint count) {
-                    lock (m_cs.m_cs) {
-                        foreach (var el in m_lstUnsubscribe) {
+                internal void OnExit(IntPtr handler, CMessageSender sender, uint[] group, uint count)
+                {
+                    lock (m_cs.m_cs)
+                    {
+                        foreach (var el in m_lstUnsubscribe)
+                        {
                             el.Invoke(m_cs, sender, group);
                         }
                     }
                 }
 
-                internal void OnBEx(IntPtr handler, CMessageSender sender, uint[] group, uint count, byte[] message, uint size) {
-                    lock (m_cs.m_cs) {
-                        foreach (var el in m_lstPublishEx) {
+                internal void OnBEx(IntPtr handler, CMessageSender sender, uint[] group, uint count, byte[] message, uint size)
+                {
+                    lock (m_cs.m_cs)
+                    {
+                        foreach (var el in m_lstPublishEx)
+                        {
                             el.Invoke(m_cs, sender, group, message);
                         }
                     }
                 }
 
-                internal void OnB(IntPtr handler, CMessageSender sender, uint[] group, uint count, object vtMessage) {
-                    lock (m_cs.m_cs) {
-                        foreach (var el in m_lstPublish) {
+                internal void OnB(IntPtr handler, CMessageSender sender, uint[] group, uint count, object vtMessage)
+                {
+                    lock (m_cs.m_cs)
+                    {
+                        foreach (var el in m_lstPublish)
+                        {
                             el.Invoke(m_cs, sender, group, vtMessage);
                         }
                     }
                 }
 
-                internal void OnPUMessage(IntPtr handler, CMessageSender sender, object vtMessage) {
-                    lock (m_cs.m_cs) {
-                        foreach (var el in m_lstUser) {
+                internal void OnPUMessage(IntPtr handler, CMessageSender sender, object vtMessage)
+                {
+                    lock (m_cs.m_cs)
+                    {
+                        foreach (var el in m_lstUser)
+                        {
                             el.Invoke(m_cs, sender, vtMessage);
                         }
                     }
                 }
 
-                internal void OnPUMessageEx(IntPtr handler, CMessageSender sender, byte[] msg) {
-                    lock (m_cs.m_cs) {
-                        foreach (var el in m_lstUserEx) {
+                internal void OnPUMessageEx(IntPtr handler, CMessageSender sender, byte[] msg)
+                {
+                    lock (m_cs.m_cs)
+                    {
+                        foreach (var el in m_lstUserEx)
+                        {
                             el.Invoke(m_cs, sender, msg);
                         }
                     }

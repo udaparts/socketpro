@@ -138,17 +138,18 @@ namespace NJA {
         NJTable* obj = ObjectWrap::Unwrap<NJTable>(args.Holder());
         if (obj->IsValid(isolate)) {
             unsigned int index = 0;
-            Local<Array> jsRows = Array::New(isolate);
+            auto ctx = isolate->GetCurrentContext();
             const CDataMatrix &matrix = obj->m_table->GetDataMatrix();
+            Local<Array> jsRows = Array::New(isolate, (int) matrix.size());
             for (auto it = matrix.begin(), end = matrix.end(); it != end; ++it, ++index) {
                 const CPRow &pr = *it;
-                Local<Array> jsR = Array::New(isolate);
+                Local<Array> jsR = Array::New(isolate, (int) pr->size());
                 unsigned int n = 0;
                 const CRow &r = *pr;
                 for (auto rit = r.begin(), rend = r.end(); rit != rend; ++rit, ++n) {
-                    jsR->Set(n, From(isolate, *rit));
+                    jsR->Set(ctx, n, From(isolate, *rit));
                 }
-                jsRows->Set(index, jsR);
+                jsRows->Set(ctx, index, jsR);
             }
             args.GetReturnValue().Set(jsRows);
         }

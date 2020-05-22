@@ -1,6 +1,4 @@
-﻿Imports System
-Imports SocketProAdapter.ServerSide
-Imports System.Diagnostics
+﻿Imports SocketProAdapter.ServerSide
 
 Public Class CMyHttpPeer
 	Inherits CHttpPeerBase

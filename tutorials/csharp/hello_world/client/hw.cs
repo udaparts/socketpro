@@ -1,6 +1,3 @@
-
-using System;
-using SocketProAdapter;
 using SocketProAdapter.ClientSide;
 
 public class HelloWorld : CAsyncServiceHandler

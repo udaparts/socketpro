@@ -1,7 +1,5 @@
-﻿Imports System
-Imports SocketProAdapter
+﻿Imports SocketProAdapter
 Imports SocketProAdapter.ServerSide
-Imports System.Data
 
 Public Class DBPushPeer
 	Inherits CAdoClientPeer

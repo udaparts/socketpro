@@ -191,11 +191,11 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
         if (q.GetSize() > 0) {
             if (firstRow[0]) {
                 firstRow[0] = false;
-                if (!SendRequest(DB_CONSTS.idBeginRows, q.GetBuffer(), q.GetSize(), null)) {
+                if (!SendRequest(DB_CONSTS.idBeginRows, q.getIntenalBuffer(), null)) {
                     return false;
                 }
             } else {
-                if (!SendRequest(DB_CONSTS.idTransferring, q.GetBuffer(), q.GetSize(), null)) {
+                if (!SendRequest(DB_CONSTS.idTransferring, q.getIntenalBuffer(), null)) {
                     return false;
                 }
             }
@@ -230,7 +230,7 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
                     break;
                 }
             }
-            if (!SendRequest(DB_CONSTS.idEndBLOB, q.GetBuffer(), q.GetSize(), null)) {
+            if (!SendRequest(DB_CONSTS.idEndBLOB, q.getIntenalBuffer(), null)) {
                 return false;
             }
             q.SetSize(0);
@@ -834,10 +834,8 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
      * request is NOT successfully sent or queued
      */
     public boolean Execute(String sql, final DExecuteResult handler, DRows row, DRowsetHeader rh, boolean meta, boolean lastInsertId, DDiscarded discarded) {
-        boolean rowset = (rh != null || row != null);
-        if (!rowset) {
-            meta = false;
-        }
+        boolean rowset = (row != null);
+        meta = (meta && (rh != null));
         try (CScopeUQueue sb = new CScopeUQueue()) {
             sb.Save(sql);
             sb.Save(rowset);
@@ -849,7 +847,7 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
                 //don't make m_csDB locked across calling SendRequest, which may lead to client dead-lock
                 //in case a client asynchronously sends lots of requests without use of client side queue.
                 synchronized (m_csDB) {
-                    if (rowset) {
+                    if (rowset || meta) {
                         m_mapRowset.put(index, new Pair<>(rh, row));
                     }
                 }
@@ -860,7 +858,7 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
                     }
                 }, discarded)) {
                     synchronized (m_csDB) {
-                        if (rowset) {
+                        if (rowset || meta) {
                             m_mapRowset.remove(index);
                         }
                     }
@@ -1016,10 +1014,8 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
      * request is NOT successfully sent or queued
      */
     public boolean Execute(CDBVariantArray vParam, final DExecuteResult handler, DRows row, DRowsetHeader rh, boolean meta, boolean lastInsertId, DDiscarded discarded) {
-        boolean rowset = (rh != null || row != null);
-        if (!rowset) {
-            meta = false;
-        }
+        boolean rowset = (row != null);
+        meta = (meta && (rh != null));
         boolean queueOk = false;
         //make sure all parameter data sendings and ExecuteParameters sending as one combination sending
         //to avoid possible request sending overlapping within multiple threading environment
@@ -1040,7 +1036,7 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
                 //don't make m_csDB locked across calling SendRequest, which may lead to client dead-lock
                 //in case a client asynchronously sends lots of requests without use of client side queue.
                 synchronized (m_csDB) {
-                    if (rowset) {
+                    if (rowset || meta) {
                         m_mapRowset.put(index, new Pair<>(rh, row));
                     }
                     m_mapParameterCall.put(index, vParam);
@@ -1053,7 +1049,7 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
                 }, discarded)) {
                     synchronized (m_csDB) {
                         m_mapParameterCall.remove(index);
-                        if (rowset) {
+                        if (rowset || meta) {
                             m_mapRowset.remove(index);
                         }
                     }
@@ -1349,10 +1345,8 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
      */
     public boolean ExecuteBatch(tagTransactionIsolation isolation, String sql, CDBVariantArray vParam, final DExecuteResult handler, DRows row, DRowsetHeader rh, DRowsetHeader batchHeader, CParameterInfo[] vPInfo, tagRollbackPlan plan, DDiscarded discarded, String delimiter, boolean meta, boolean lastInsertId) {
         boolean queueOk = false;
-        boolean rowset = (rh != null || row != null);
-        if (!rowset) {
-            meta = false;
-        }
+        boolean rowset = (row != null);
+        meta = (meta && (rh != null));
         if (vPInfo == null) {
             vPInfo = new CParameterInfo[0];
         }
@@ -1373,7 +1367,7 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
                 //don't make m_csDB locked across calling SendRequest, which may lead to client dead-lock
                 //in case a client asynchronously sends lots of requests without use of client side queue.
                 synchronized (m_csDB) {
-                    if (rowset) {
+                    if (rowset || meta) {
                         m_mapRowset.put(index, new Pair<>(rh, row));
                     }
                     m_mapParameterCall.put(index, vParam);
@@ -1390,10 +1384,10 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
                     public void invoke(CAsyncResult ar) {
                         Process(handler, ar, DB_CONSTS.idExecuteBatch, index);
                     }
-                }, discarded)) {
+                }, discarded, null)) {
                     synchronized (m_csDB) {
                         m_mapParameterCall.remove(index);
-                        if (rowset) {
+                        if (rowset || meta) {
                             m_mapRowset.remove(index);
                         }
                         m_mapHandler.remove(index);
@@ -1650,19 +1644,19 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
                     if (len != -1 && len > m_Blob.getMaxBufferSize()) {
                         m_Blob.Realloc(len);
                     }
-                    m_Blob.Push(mc.getIntenalBuffer(), mc.getHeadPosition(), mc.GetSize());
+                    m_Blob.Push(mc.getIntenalBuffer());
                     mc.SetSize(0);
                 }
                 break;
             case DB_CONSTS.idChunk:
                 if (mc.GetSize() > 0) {
-                    m_Blob.Push(mc.getIntenalBuffer(), mc.GetSize());
+                    m_Blob.Push(mc.getIntenalBuffer());
                     mc.SetSize(0);
                 }
                 break;
             case DB_CONSTS.idEndBLOB:
                 if (mc.GetSize() > 0 || m_Blob.GetSize() > 0) {
-                    m_Blob.Push(mc.getIntenalBuffer(), mc.GetSize());
+                    m_Blob.Push(mc.getIntenalBuffer());
                     mc.SetSize(0);
                     int len = m_Blob.PeekInt(m_Blob.getHeadPosition() + 2);
                     if (len < 0 && len >= BLOB_LENGTH_NOT_AVAILABLE) {

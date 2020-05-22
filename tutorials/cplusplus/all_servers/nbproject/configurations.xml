@@ -94,7 +94,7 @@
           <linkerLibItems>
             <linkerLibStdlibItem>DynamicLinking</linkerLibStdlibItem>
           </linkerLibItems>
-          <commandLine>-pthread</commandLine>
+          <commandLine>-pthread -static-libstdc++</commandLine>
         </linkerTool>
       </compileType>
       <item path="../../../include/aserverw.cpp" ex="false" tool="1" flavor2="0">

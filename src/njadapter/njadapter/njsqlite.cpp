@@ -45,9 +45,9 @@ namespace NJA {
         //properties
         NODE_SET_PROTOTYPE_METHOD(tpl, "getDbMS", getMS);
         NODE_SET_PROTOTYPE_METHOD(tpl, "isOpened", IsOpened);
-
-        constructor.Reset(isolate, tpl->GetFunction(isolate->GetCurrentContext()).ToLocalChecked());
-        exports->Set(ToStr(isolate, "CDb"), tpl->GetFunction(isolate->GetCurrentContext()).ToLocalChecked());
+        auto ctx = isolate->GetCurrentContext();
+        constructor.Reset(isolate, tpl->GetFunction(ctx).ToLocalChecked());
+        exports->Set(ctx, ToStr(isolate, "CDb"), tpl->GetFunction(ctx).ToLocalChecked());
     }
 
     Local<Object> NJSqlite::New(Isolate* isolate, CNjDb *ash, bool setCb) {
@@ -163,7 +163,7 @@ namespace NJA {
         Isolate* isolate = args.GetIsolate();
         NJSqlite* obj = ObjectWrap::Unwrap<NJSqlite>(args.Holder());
         if (obj->IsValid(isolate)) {
-            std::wstring strConnection;
+            SPA::CDBString strConnection;
             auto p0 = args[0];
             if (p0->IsString()) {
                 strConnection = ToStr(isolate, p0);
@@ -203,7 +203,7 @@ namespace NJA {
             }
             tagTransactionIsolation ti = (tagTransactionIsolation) n;
 
-            std::wstring sql;
+            SPA::CDBString sql;
             p = args[1];
             if (p->IsString()) {
                 sql = ToStr(isolate, p);
@@ -244,7 +244,7 @@ namespace NJA {
                 ThrowException(isolate, "An array of parameter data expected");
                 return;
             }
-            Local<Value> argv[] = {args[3], args[4], args[5], args[6], args[7]};
+            Local<Value> argv[] = {args[3], args[4], args[5], args[6], args[7], args[11]};
             tagRollbackPlan rp = rpDefault;
             p = args[8];
             if (p->IsInt32()) {
@@ -258,7 +258,8 @@ namespace NJA {
                 ThrowException(isolate, "An integer expected for rollback plan");
                 return;
             }
-            std::wstring delimiter(L";");
+            SPA::CDBString delimiter;
+            delimiter.push_back(';');
             p = args[9];
             if (p->IsString()) {
                 delimiter = ToStr(isolate, p);
@@ -271,7 +272,7 @@ namespace NJA {
             p = args[10];
             if (!ToPInfoArray(isolate, p, vPInfo))
                 return;
-            SPA::UINT64 index = obj->m_db->ExecuteBatch(isolate, 5, argv, ti, sql.c_str(), vParam, rp, delimiter.c_str(), vPInfo);
+            SPA::UINT64 index = obj->m_db->ExecuteBatch(isolate, 6, argv, ti, sql.c_str(), vParam, rp, delimiter.c_str(), vPInfo);
             if (index) {
                 args.GetReturnValue().Set(Boolean::New(isolate, index != INVALID_NUMBER));
             }
@@ -284,7 +285,7 @@ namespace NJA {
         if (obj->IsValid(isolate)) {
             SPA::UINT64 index;
             auto p = args[0];
-            Local<Value> argv[] = {args[1], args[2], args[3], args[4]};
+            Local<Value> argv[] = {args[1], args[2], args[3], args[4], args[5]};
             if (p->IsArray()) {
                 CDBVariantArray vParam;
                 Local<Array> jsArr = Local<Array>::Cast(p);
@@ -298,7 +299,7 @@ namespace NJA {
                     }
                     vParam.push_back(std::move(vt));
                 }
-                index = obj->m_db->Execute(isolate, 4, argv, vParam);
+                index = obj->m_db->Execute(isolate, 5, argv, vParam);
             } else if (p->IsObject() && !p->IsString()) {
                 Local<Object> qObj = p->ToObject(isolate->GetCurrentContext()).ToLocalChecked();
                 if (NJQueue::IsUQueue(qObj)) {
@@ -310,20 +311,20 @@ namespace NJA {
                         return;
                     }
                     njq->Release();
-                    index = obj->m_db->Execute(isolate, 4, argv, vParam);
+                    index = obj->m_db->Execute(isolate, 5, argv, vParam);
                 } else {
                     ThrowException(isolate, "A SQL statement string or an array of parameter data expected");
                     return;
                 }
             } else {
-                std::wstring sql;
+                SPA::CDBString sql;
                 if (p->IsString())
                     sql = ToStr(isolate, p);
                 else if (!IsNullOrUndefined(p)) {
                     ThrowException(isolate, "A SQL statement string or an array of parameter data expected");
                     return;
                 }
-                index = obj->m_db->Execute(isolate, 4, argv, sql.c_str());
+                index = obj->m_db->Execute(isolate, 5, argv, sql.c_str());
             }
             if (index) {
                 args.GetReturnValue().Set(Boolean::New(isolate, index != INVALID_NUMBER));
@@ -343,7 +344,7 @@ namespace NJA {
         Isolate* isolate = args.GetIsolate();
         NJSqlite* obj = ObjectWrap::Unwrap<NJSqlite>(args.Holder());
         if (obj->IsValid(isolate)) {
-            std::wstring sql;
+            SPA::CDBString sql;
             auto p0 = args[0];
             if (p0->IsString()) {
                 sql = ToStr(isolate, p0);

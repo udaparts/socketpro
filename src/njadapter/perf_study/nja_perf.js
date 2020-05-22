@@ -17,26 +17,26 @@ if (!p.Start(cc, 1)) {
 var db = p.Seek(); //seek an async DB handler
 if (!db.Open('sakila', (res, err) => {
         if (res) console.log({
-            ec: res,
-            em: err
+            ec: res, em: err
         });
-    }, canceled => {
-        console.log(canceled ? 'Request canceled' : 'Session closed');
     })) {
     console.log(db.Socket.Error);
     return;
 }
 
 function TestPerf(db) {
-    var start = new Date();
-    var count = 100000;
+    var stmt = 'SELECT * FROM sakila.actor WHERE actor_id between 11 and 12';
+	var start = new Date();
+    var count = 8000;
     for (var n = 0; n < count; ++n) {
-        db.Execute('SELECT * FROM sakila.actor WHERE actor_id between 11 and 20', (res, err, affected, fails, oks, id) => {}, data => {}, meta => {});
+        db.Execute(stmt, (res, err, affected, fails, oks, id) => {
+		}, (data) => {
+		});
     }
-    db.Execute('SELECT * FROM sakila.actor WHERE actor_id between 11 and 20', (res, err, affected, fails, oks, id) => {
+    db.Execute(stmt, (res, err, affected, fails, oks, id) => {
         console.log('Time required: ' + (new Date() - start));
-    }, data => {
+    }, (data) => {
         //console.log(data);
-    }, meta => {});
+    });
 }
-TestPerf(db);
+setInterval(()=>{TestPerf(db);}, 1000);

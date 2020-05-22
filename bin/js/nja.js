@@ -385,7 +385,7 @@ class CSocket {
         return this.socket.getUserId();
     }
 
-	get PoolId() {
+    get PoolId() {
         return this.socket.getPoolId();
     }
 
@@ -721,6 +721,11 @@ class CHandler {
         return this.handler.Dispose();
     }
 
+    Interrupt(options) {
+        assert(Number.isSafeInteger(options));
+        return this.handler.Interrupt(options);
+    }
+
     StartBatching() {
         return this.handler.StartBatching();
     }
@@ -736,26 +741,25 @@ class CHandler {
         assert(serverException === null || serverException === undefined || typeof serverException === 'function');
         return new Promise((res, rej) => {
             var ret;
-            var ok = this.handler.SendRequest(reqId, buff, (q, h, id) => {
-                if (cb) ret = cb(q, id, h);
+            var ok = this.handler.SendRequest(reqId, buff, (q, id) => {
+                if (cb) ret = cb(q, id);
                 res(ret);
-            }, (canceled, h, id) => {
-                if (discarded) ret = discarded(canceled, id, h);
+            }, (canceled, id) => {
+                if (discarded) ret = discarded(canceled, id);
                 if (ret === undefined) ret = (canceled ? 'Request canceled' : 'Connection closed');
                 rej(ret);
-            }, (errMsg, errCode, errWhere, h, id) => {
-                if (serverException) ret = serverException(errMsg, errCode, errWhere, id, h);
+            }, (errMsg, errCode, errWhere, id) => {
+                if (serverException) ret = serverException(errMsg, errCode, errWhere, id);
                 if (ret === undefined) ret = {
                     ec: errCode,
                     em: errMsg,
                     stack: errWhere,
-                    reqId: id,
-                    handler: h
+                    reqId: id
                 };
                 rej(ret);
             });
             if (!ok) {
-                if (discarded) ret = discarded(false, reqId, this.handler);
+                if (discarded) ret = discarded(false, reqId);
                 if (ret === undefined) ret = this.Socket.Error;
                 rej(ret);
             }
@@ -797,6 +801,8 @@ exports.BaseID = {
     idStartQueue: 25,
     idStopQueue: 26,
     idRoutePeerUnavailable: 27,
+    idDequeueBatchConfirmed: 28,
+    idInterrupt: 29,
     idReservedOne: 0x100,
     idReservedTwo: 0x2001
 };
@@ -885,17 +891,17 @@ class CAsyncQueue extends CHandler {
         assert(discarded === null || discarded === undefined || typeof discarded === 'function');
         return new Promise((res, rej) => {
             var ret;
-            var ok = this.handler.GetKeys((vKeys, queue) => {
-                if (cb) ret = cb(vKeys, queue);
+            var ok = this.handler.GetKeys((vKeys) => {
+                if (cb) ret = cb(vKeys);
                 if (ret === undefined) ret = vKeys;
                 res(ret);
-            }, (canceled, queue) => {
-                if (discarded) ret = discarded(canceled, queue);
+            }, (canceled) => {
+                if (discarded) ret = discarded(canceled);
                 if (ret === undefined) ret = (canceled ? 'GetKeys canceled' : 'Connection closed');
                 rej(ret);
             });
             if (!ok) {
-                if (discarded) ret = discarded(false, this.handler);
+                if (discarded) ret = discarded(false);
                 if (ret === undefined) ret = this.Socket.Error;
                 rej(ret);
             }
@@ -908,17 +914,17 @@ class CAsyncQueue extends CHandler {
         assert(discarded === null || discarded === undefined || typeof discarded === 'function');
         return new Promise((res, rej) => {
             var ret;
-            var ok = this.handler.Close(key, (errCode, queue) => {
-                if (cb) ret = cb(errCode, queue);
+            var ok = this.handler.Close(key, (errCode) => {
+                if (cb) ret = cb(errCode);
                 if (ret === undefined) ret = errCode;
                 res(ret);
-            }, (canceled, queue) => {
-                if (discarded) ret = discarded(canceled, queue);
+            }, (canceled) => {
+                if (discarded) ret = discarded(canceled);
                 if (ret === undefined) ret = (canceled ? 'Close canceled' : 'Connection closed');
                 rej(ret);
             }, permanent);
             if (!ok) {
-                if (discarded) ret = discarded(false, this.handler);
+                if (discarded) ret = discarded(false);
                 if (ret === undefined) ret = this.Socket.Error;
                 rej(ret);
             }
@@ -931,17 +937,17 @@ class CAsyncQueue extends CHandler {
         assert(discarded === null || discarded === undefined || typeof discarded === 'function');
         return new Promise((res, rej) => {
             var ret;
-            var ok = this.handler.StartTrans(key, (errCode, queue) => {
-                if (cb) ret = cb(errCode, queue);
+            var ok = this.handler.StartTrans(key, (errCode) => {
+                if (cb) ret = cb(errCode);
                 if (ret === undefined) ret = errCode;
                 res(ret);
-            }, (canceled, queue) => {
-                if (discarded) ret = discarded(canceled, queue);
+            }, (canceled) => {
+                if (discarded) ret = discarded(canceled);
                 if (ret === undefined) ret = (canceled ? 'StartTrans canceled' : 'Connection closed');
                 rej(ret);
             });
             if (!ok) {
-                if (discarded) ret = discarded(false, this.handler);
+                if (discarded) ret = discarded(false);
                 if (ret === undefined) ret = this.Socket.Error;
                 rej(ret);
             }
@@ -954,17 +960,17 @@ class CAsyncQueue extends CHandler {
         assert(discarded === null || discarded === undefined || typeof discarded === 'function');
         return new Promise((res, rej) => {
             var ret;
-            var ok = this.handler.EndTrans(rollback, (errCode, queue) => {
-                if (cb) ret = cb(errCode, queue);
+            var ok = this.handler.EndTrans(rollback, (errCode) => {
+                if (cb) ret = cb(errCode);
                 if (ret === undefined) ret = errCode;
                 res(ret);
-            }, (canceled, queue) => {
-                if (discarded) ret = discarded(canceled, queue);
+            }, (canceled) => {
+                if (discarded) ret = discarded(canceled);
                 if (ret === undefined) ret = (canceled ? 'EndTrans canceled' : 'Connection closed');
                 rej(ret);
             });
             if (!ok) {
-                if (discarded) ret = discarded(false, this.handler);
+                if (discarded) ret = discarded(false);
                 if (ret === undefined) ret = this.Socket.Error;
                 rej(ret);
             }
@@ -977,20 +983,20 @@ class CAsyncQueue extends CHandler {
         assert(discarded === null || discarded === undefined || typeof discarded === 'function');
         return new Promise((res, rej) => {
             var ret;
-            var ok = this.handler.Flush(key, (messages, fileSize, queue) => {
-                if (cb) ret = cb(messages, fileSize, queue);
+            var ok = this.handler.Flush(key, (messages, fileSize) => {
+                if (cb) ret = cb(messages, fileSize);
                 if (ret === undefined) ret = {
                     msgs: messages,
                     fsize: fileSize
                 };
                 res(ret);
-            }, (canceled, queue) => {
-                if (discarded) ret = discarded(canceled, queue);
+            }, (canceled) => {
+                if (discarded) ret = discarded(canceled);
                 if (ret === undefined) ret = (canceled ? 'Flush canceled' : 'Connection closed');
                 rej(ret);
             }, option);
             if (!ok) {
-                if (discarded) ret = discarded(false, this.handler);
+                if (discarded) ret = discarded(false);
                 if (ret === undefined) ret = this.Socket.Error;
                 rej(ret);
             }
@@ -1003,17 +1009,17 @@ class CAsyncQueue extends CHandler {
         assert(discarded === null || discarded === undefined || typeof discarded === 'function');
         return new Promise((res, rej) => {
             var ret;
-            var ok = this.handler.Enqueue(key, reqId, buff, (index, queue) => {
-                if (cb) ret = cb(index, queue);
+            var ok = this.handler.Enqueue(key, reqId, buff, (index) => {
+                if (cb) ret = cb(index);
                 if (ret === undefined) ret = index;
                 res(ret);
-            }, (canceled, queue) => {
-                if (discarded) ret = discarded(canceled, queue);
+            }, (canceled) => {
+                if (discarded) ret = discarded(canceled);
                 if (ret === undefined) ret = (canceled ? 'Enqueue canceled' : 'Connection closed');
                 rej(ret);
             });
             if (!ok) {
-                if (discarded) ret = discarded(false, this.handler);
+                if (discarded) ret = discarded(false);
                 if (ret === undefined) ret = this.Socket.Error;
                 rej(ret);
             }
@@ -1026,17 +1032,17 @@ class CAsyncQueue extends CHandler {
         assert(discarded === null || discarded === undefined || typeof discarded === 'function');
         return new Promise((res, rej) => {
             var ret;
-            var ok = this.handler.EnqueueBatch(key, (index, queue) => {
-                if (cb) ret = cb(index, queue);
+            var ok = this.handler.EnqueueBatch(key, (index) => {
+                if (cb) ret = cb(index);
                 if (ret === undefined) ret = index;
                 res(ret);
-            }, (canceled, queue) => {
-                if (discarded) ret = discarded(canceled, queue);
+            }, (canceled) => {
+                if (discarded) ret = discarded(canceled);
                 if (ret === undefined) ret = (canceled ? 'EnqueueBatch canceled' : 'Connection closed');
                 rej(ret);
             });
             if (!ok) {
-                if (discarded) ret = discarded(false, this.handler);
+                if (discarded) ret = discarded(false);
                 if (ret === undefined) ret = this.Socket.Error;
                 rej(ret);
             }
@@ -1049,8 +1055,8 @@ class CAsyncQueue extends CHandler {
         assert(discarded === null || discarded === undefined || typeof discarded === 'function');
         return new Promise((res, rej) => {
             var ret;
-            var ok = this.handler.Dequeue(key, (messages, fileSize, messagesDequeued, bytes, queue) => {
-                if (cb) ret = cb(messages, fileSize, messagesDequeued, bytes, queue);
+            var ok = this.handler.Dequeue(key, (messages, fileSize, messagesDequeued, bytes) => {
+                if (cb) ret = cb(messages, fileSize, messagesDequeued, bytes);
                 if (ret === undefined) ret = {
                     msgs: messages,
                     fsize: fileSize,
@@ -1058,13 +1064,13 @@ class CAsyncQueue extends CHandler {
                     bytes: bytes
                 };
                 res(ret);
-            }, (canceled, queue) => {
-                if (discarded) ret = discarded(canceled, queue);
+            }, (canceled) => {
+                if (discarded) ret = discarded(canceled);
                 if (ret === undefined) ret = (canceled ? 'Dequeue canceled' : 'Connection closed');
                 rej(ret);
             }, timeout);
             if (!ok) {
-                if (discarded) ret = discarded(false, this.handler);
+                if (discarded) ret = discarded(false);
                 if (ret === undefined) ret = this.Socket.Error;
                 rej(ret);
             }
@@ -1089,10 +1095,10 @@ class CAsyncFile extends CHandler {
     Download(localFile, remoteFile, cb = null, progress = null, discarded = null) {
         return this.handler.Download(localFile, remoteFile, cb, progress, discarded);
     }
-	
-	Cancel() {
-		return this.handler.Cancel();
-	}
+
+    Cancel() {
+        return this.handler.Cancel();
+    }
 
     //Promise version
     upload(localFile, remoteFile, progress = null, cb = null, discarded = null) {
@@ -1103,20 +1109,20 @@ class CAsyncFile extends CHandler {
         assert(discarded === null || discarded === undefined || typeof discarded === 'function');
         return new Promise((res, rej) => {
             var ret;
-            var ok = this.handler.Upload(localFile, remoteFile, (errMsg, errCode, download, file) => {
-                if (cb) ret = cb(errMsg, errCode, download, file);
+            var ok = this.handler.Upload(localFile, remoteFile, (errMsg, errCode, download) => {
+                if (cb) ret = cb(errMsg, errCode, download);
                 if (ret === undefined) ret = {
                     ec: errCode,
                     em: errMsg
                 };
                 res(ret);
-            }, progress, (canceled, download, file) => {
-                if (discarded) ret = discarded(canceled, download, file);
+            }, progress, (canceled, download) => {
+                if (discarded) ret = discarded(canceled, download);
                 if (ret === undefined) ret = (canceled ? 'Upload canceled' : 'Connection closed');
                 rej(ret);
             });
             if (!ok) {
-                if (discarded) ret = discarded(false, false, this.handler);
+                if (discarded) ret = discarded(false, false);
                 if (ret === undefined) ret = this.Socket.Error;
                 rej(ret);
             }
@@ -1132,20 +1138,20 @@ class CAsyncFile extends CHandler {
         assert(discarded === null || discarded === undefined || typeof discarded === 'function');
         return new Promise((res, rej) => {
             var ret;
-            var ok = this.handler.Download(localFile, remoteFile, (errMsg, errCode, download, file) => {
-                if (cb) ret = cb(errMsg, errCode, download, file);
+            var ok = this.handler.Download(localFile, remoteFile, (errMsg, errCode, download) => {
+                if (cb) ret = cb(errMsg, errCode, download);
                 if (ret === undefined) ret = {
                     ec: errCode,
                     em: errMsg
                 };
                 res(ret);
-            }, progress, (canceled, download, file) => {
-                if (discarded) ret = discarded(canceled, download, file);
+            }, progress, (canceled, download) => {
+                if (discarded) ret = discarded(canceled, download);
                 if (ret === undefined) ret = (canceled ? 'Download canceled' : 'Connection closed');
                 rej(ret);
             });
             if (!ok) {
-                if (discarded) ret = discarded(false, true, this.handler);
+                if (discarded) ret = discarded(false, true);
                 if (ret === undefined) ret = this.Socket.Error;
                 rej(ret);
             }
@@ -1188,12 +1194,12 @@ class CDb extends CHandler {
         return this.handler.Prepare(sql, cb, discarded);
     }
 
-    Execute(sql_or_arrParam, cb = null, rows = null, meta = null, discarded = null) {
-        return this.handler.Execute(sql_or_arrParam, cb, rows, meta, discarded);
+    Execute(sql_or_arrParam, cb = null, rows = null, rh = null, discarded = null, meta = true) {
+        return this.handler.Execute(sql_or_arrParam, cb, rows, rh, discarded, meta);
     }
 
-    ExecuteBatch(isolation, sql, paramBuff, cb = null, rows = null, meta = null, batchHeader = null, discarded = null, rp = exports.DB.RollbackPlan.rpDefault, delimiter = ';', arrP = []) {
-        return this.handler.ExecuteBatch(isolation, sql, paramBuff, cb, rows, meta, batchHeader, discarded, rp, delimiter, arrP);
+    ExecuteBatch(isolation, sql, paramBuff, cb = null, rows = null, rh = null, batchHeader = null, discarded = null, rp = exports.DB.RollbackPlan.rpDefault, delimiter = ';', meta = true, arrP = []) {
+        return this.handler.ExecuteBatch(isolation, sql, paramBuff, cb, rows, rh, batchHeader, discarded, rp, delimiter, arrP, meta);
     }
 
     //Promise
@@ -1202,20 +1208,20 @@ class CDb extends CHandler {
         assert(discarded === null || discarded === undefined || typeof discarded === 'function');
         return new Promise((res, rej) => {
             var ret;
-            var ok = this.handler.Close((errCode, errMsg, db) => {
-                if (cb) ret = cb(errCode, errMsg, db);
+            var ok = this.handler.Close((errCode, errMsg) => {
+                if (cb) ret = cb(errCode, errMsg);
                 if (ret === undefined) ret = {
                     ec: errCode,
                     em: errMsg
                 };
                 res(ret);
-            }, (canceled, db) => {
-                if (discarded) ret = discarded(canceled, db);
+            }, (canceled) => {
+                if (discarded) ret = discarded(canceled);
                 if (ret === undefined) ret = (canceled ? 'Close canceled' : 'Connection closed');
                 rej(ret);
             });
             if (!ok) {
-                if (discarded) ret = discarded(false, this.handler);
+                if (discarded) ret = discarded(false);
                 if (ret === undefined) ret = this.Socket.Error;
                 rej(ret);
             }
@@ -1229,20 +1235,20 @@ class CDb extends CHandler {
         assert(discarded === null || discarded === undefined || typeof discarded === 'function');
         return new Promise((res, rej) => {
             var ret;
-            var ok = this.handler.Prepare(sql, (errCode, errMsg, db) => {
-                if (cb) ret = cb(errCode, errMsg, db);
+            var ok = this.handler.Prepare(sql, (errCode, errMsg) => {
+                if (cb) ret = cb(errCode, errMsg);
                 if (ret === undefined) ret = {
                     ec: errCode,
                     em: errMsg
                 };
                 res(ret);
-            }, (canceled, db) => {
-                if (discarded) ret = discarded(canceled, db);
+            }, (canceled) => {
+                if (discarded) ret = discarded(canceled);
                 if (ret === undefined) ret = (canceled ? 'Prepare canceled' : 'Connection closed');
                 rej(ret);
             });
             if (!ok) {
-                if (discarded) ret = discarded(false, this.handler);
+                if (discarded) ret = discarded(false);
                 if (ret === undefined) ret = this.Socket.Error;
                 rej(ret);
             }
@@ -1255,20 +1261,20 @@ class CDb extends CHandler {
         assert(discarded === null || discarded === undefined || typeof discarded === 'function');
         return new Promise((res, rej) => {
             var ret;
-            var ok = this.handler.BeginTrans(isolation, (errCode, errMsg, db) => {
-                if (cb) ret = cb(errCode, errMsg, db);
+            var ok = this.handler.BeginTrans(isolation, (errCode, errMsg) => {
+                if (cb) ret = cb(errCode, errMsg);
                 if (ret === undefined) ret = {
                     ec: errCode,
                     em: errMsg
                 };
                 res(ret);
-            }, (canceled, db) => {
-                if (discarded) ret = discarded(canceled, db);
+            }, (canceled) => {
+                if (discarded) ret = discarded(canceled);
                 if (ret === undefined) ret = (canceled ? 'BeginTrans canceled' : 'Connection closed');
                 rej(ret);
             });
             if (!ok) {
-                if (discarded) ret = discarded(false, this.handler);
+                if (discarded) ret = discarded(false);
                 if (ret === undefined) ret = this.Socket.Error;
                 rej(ret);
             }
@@ -1281,20 +1287,20 @@ class CDb extends CHandler {
         assert(discarded === null || discarded === undefined || typeof discarded === 'function');
         return new Promise((res, rej) => {
             var ret;
-            var ok = this.handler.EndTrans(rp, (errCode, errMsg, db) => {
-                if (cb) ret = cb(errCode, errMsg, db);
+            var ok = this.handler.EndTrans(rp, (errCode, errMsg) => {
+                if (cb) ret = cb(errCode, errMsg);
                 if (ret === undefined) ret = {
                     ec: errCode,
                     em: errMsg
                 };
                 res(ret);
-            }, (canceled, db) => {
-                if (discarded) ret = discarded(canceled, db);
+            }, (canceled) => {
+                if (discarded) ret = discarded(canceled);
                 if (ret === undefined) ret = (canceled ? 'EndTrans canceled' : 'Connection closed');
                 rej(ret);
             });
             if (!ok) {
-                if (discarded) ret = discarded(false, this.handler);
+                if (discarded) ret = discarded(false);
                 if (ret === undefined) ret = this.Socket.Error;
                 rej(ret);
             }
@@ -1308,20 +1314,20 @@ class CDb extends CHandler {
         assert(discarded === null || discarded === undefined || typeof discarded === 'function');
         return new Promise((res, rej) => {
             var ret;
-            var ok = this.handler.Open(conn, (errCode, errMsg, db) => {
-                if (cb) ret = cb(errCode, errMsg, db);
+            var ok = this.handler.Open(conn, (errCode, errMsg) => {
+                if (cb) ret = cb(errCode, errMsg);
                 if (ret === undefined) ret = {
                     ec: errCode,
                     em: errMsg
                 };
                 res(ret);
-            }, (canceled, db) => {
-                if (discarded) ret = discarded(canceled, db);
+            }, (canceled) => {
+                if (discarded) ret = discarded(canceled);
                 if (ret === undefined) ret = (canceled ? 'Open canceled' : 'Connection closed');
                 rej(ret);
             });
             if (!ok) {
-                if (discarded) ret = discarded(false, this.handler);
+                if (discarded) ret = discarded(false);
                 if (ret === undefined) ret = this.Socket.Error;
                 rej(ret);
             }
@@ -1329,15 +1335,15 @@ class CDb extends CHandler {
     }
 
     //Promise
-    execute(sql_or_arrParam, rows = null, meta = null, cb = null, discarded = null) {
+    execute(sql_or_arrParam, rows = null, rh = null, cb = null, discarded = null, meta = true) {
         assert(rows === null || rows === undefined || typeof rows === 'function');
-        assert(meta === null || meta === undefined || typeof meta === 'function');
+        assert(rh === null || rh === undefined || typeof rh === 'function');
         assert(cb === null || cb === undefined || typeof cb === 'function');
         assert(discarded === null || discarded === undefined || typeof discarded === 'function');
         return new Promise((res, rej) => {
             var ret;
-            var ok = this.handler.Execute(sql_or_arrParam, (errCode, errMsg, affected, fails, oks, id, db) => {
-                if (cb) ret = cb(errCode, errMsg, affected, fails, oks, id, db);
+            var ok = this.handler.Execute(sql_or_arrParam, (errCode, errMsg, affected, fails, oks, id) => {
+                if (cb) ret = cb(errCode, errMsg, affected, fails, oks, id);
                 if (ret === undefined) ret = {
                     ec: errCode,
                     em: errMsg,
@@ -1347,13 +1353,13 @@ class CDb extends CHandler {
                     lastId: id
                 };
                 res(ret);
-            }, rows, meta, (canceled, db) => {
-                if (discarded) ret = discarded(canceled, db);
+            }, rows, rh, (canceled) => {
+                if (discarded) ret = discarded(canceled);
                 if (ret === undefined) ret = (canceled ? 'Execute canceled' : 'Connection closed');
                 rej(ret);
-            });
+            }, meta);
             if (!ok) {
-                if (discarded) ret = discarded(false, this.handler);
+                if (discarded) ret = discarded(false);
                 if (ret === undefined) ret = this.Socket.Error;
                 rej(ret);
             }
@@ -1361,17 +1367,17 @@ class CDb extends CHandler {
     }
 
     //Promise
-    executeBatch(isolation, sql, paramBuff, rows = null, meta = null, rp = exports.DB.RollbackPlan.rpDefault, delimiter = ';', batchHeader = null, cb = null, discarded = null, arrP = []) {
+    executeBatch(isolation, sql, paramBuff, rows = null, rh = null, rp = exports.DB.RollbackPlan.rpDefault, delimiter = ';', batchHeader = null, cb = null, discarded = null, meta = true, arrP = []) {
         assert(sql && typeof sql === 'string');
         assert(rows === null || rows === undefined || typeof rows === 'function');
-        assert(meta === null || meta === undefined || typeof meta === 'function');
+        assert(rh === null || rh === undefined || typeof rh === 'function');
         assert(batchHeader === null || batchHeader === undefined || typeof batchHeader === 'function');
         assert(cb === null || cb === undefined || typeof cb === 'function');
         assert(discarded === null || discarded === undefined || typeof discarded === 'function');
         return new Promise((res, rej) => {
             var ret;
-            var ok = this.handler.ExecuteBatch(isolation, sql, paramBuff, (errCode, errMsg, affected, fails, oks, id, db) => {
-                if (cb) ret = cb(errCode, errMsg, affected, fails, oks, id, db);
+            var ok = this.handler.ExecuteBatch(isolation, sql, paramBuff, (errCode, errMsg, affected, fails, oks, id) => {
+                if (cb) ret = cb(errCode, errMsg, affected, fails, oks, id);
                 if (ret === undefined) ret = {
                     ec: errCode,
                     em: errMsg,
@@ -1381,13 +1387,13 @@ class CDb extends CHandler {
                     lastId: id
                 };
                 res(ret);
-            }, rows, meta, batchHeader, (canceled, db) => {
-                if (discarded) ret = discarded(canceled, db);
+            }, rows, rh, batchHeader, (canceled) => {
+                if (discarded) ret = discarded(canceled);
                 if (ret === undefined) ret = (canceled ? 'ExecuteBatch canceled' : 'Connection closed');
                 rej(ret);
-            }, rp, delimiter, arrP);
+            }, rp, delimiter, arrP, meta);
             if (!ok) {
-                if (discarded) ret = discarded(false, this.handler);
+                if (discarded) ret = discarded(false);
                 if (ret === undefined) ret = this.Socket.Error;
                 rej(ret);
             }

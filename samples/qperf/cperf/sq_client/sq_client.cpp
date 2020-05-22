@@ -1,10 +1,8 @@
-
 #include "stdafx.h"
-#ifndef WIN32_64
+
 #include <chrono>
 using std::chrono::system_clock;
 typedef std::chrono::milliseconds ms;
-#endif
 
 #define TEST_QUEUE_KEY "qperf"
 static const unsigned short idMessage = idReservedTwo + 128;
@@ -82,11 +80,7 @@ int main(int argc, char* argv[]) {
 void EnqueueToServerBatch(CMyPool::PHandler sq, const std::string &msg, unsigned int cycles, unsigned int batchSize) {
     unsigned int n;
     SPA::CScopeUQueue sb;
-#ifdef WIN32_64
-    DWORD start = ::GetTickCount();
-#else
     system_clock::time_point start = system_clock::now();
-#endif
     std::cout << "Going to enqueue " << cycles << " messages ......" << std::endl;
     for (n = 0; n < cycles; ++n) {
         CAsyncQueue::BatchMessage(idMessage, (const unsigned char*) msg.c_str(), (unsigned int) msg.size(), *sb);
@@ -98,46 +92,27 @@ void EnqueueToServerBatch(CMyPool::PHandler sq, const std::string &msg, unsigned
         sq->EnqueueBatch(TEST_QUEUE_KEY, *sb);
     }
     sq->WaitAll();
-#ifdef WIN32_64
-    DWORD stop = ::GetTickCount();
-    std::cout << cycles << " messages sent to server and enqueued within " << stop - start << " ms" << std::endl;
-#else
     system_clock::time_point stop = system_clock::now();
     ms d = std::chrono::duration_cast<ms>(stop - start);
     std::cout << cycles << " messages sent to server and enqueued within " << d.count() << " ms" << std::endl;
-#endif
 }
 
 void EnqueueToServer(CMyPool::PHandler sq, const std::string &msg, unsigned int cycles) {
     unsigned int n;
-#ifdef WIN32_64
-    DWORD start = ::GetTickCount();
-#else
     system_clock::time_point start = system_clock::now();
-#endif
     std::cout << "Going to enqueue " << cycles << " messages ......" << std::endl;
     for (n = 0; n < cycles; ++n) {
         sq->Enqueue(TEST_QUEUE_KEY, idMessage, (const unsigned char*) msg.c_str(), (unsigned int) msg.size());
     }
     sq->WaitAll();
-#ifdef WIN32_64
-    DWORD stop = ::GetTickCount();
-    std::cout << cycles << " messages sent to server and enqueued within " << stop - start << " ms" << std::endl;
-#else
     system_clock::time_point stop = system_clock::now();
     ms d = std::chrono::duration_cast<ms>(stop - start);
     std::cout << cycles << " messages sent to server and enqueued within " << d.count() << " ms" << std::endl;
-#endif
 }
 
 void DequeueFromServer(CMyPool::PHandler sq) {
-#ifdef WIN32_64
-    DWORD start = ::GetTickCount();
-#else
     system_clock::time_point start = system_clock::now();
-#endif
     unsigned int messages_dequeued = 0;
-
     //prepare a callback for processing returned result of dequeue request
     CAsyncQueue::DDequeue d = [](CAsyncQueue *aq, SPA::UINT64 messageCount, SPA::UINT64 fileSize, unsigned int messages, unsigned int bytes) {
         if (messageCount > 0) {
@@ -167,18 +142,11 @@ void DequeueFromServer(CMyPool::PHandler sq) {
 
     std::cout << "Going to dequeue message ......" << std::endl;
     bool ok = sq->Dequeue(TEST_QUEUE_KEY, d);
-
     //optionally, add one or two extra to improve processing concurrency at both client and server sides for better performance and through-output
     ok = sq->Dequeue(TEST_QUEUE_KEY, d);
     ok = sq->Dequeue(TEST_QUEUE_KEY, d);
-
     sq->WaitAll();
-#ifdef WIN32_64
-    DWORD stop = ::GetTickCount();
-    std::cout << messages_dequeued << " messages dequeued from server within " << stop - start << " ms" << std::endl;
-#else
     system_clock::time_point stop = system_clock::now();
     ms diff = std::chrono::duration_cast<ms>(stop - start);
     std::cout << messages_dequeued << " messages dequeued from server within " << diff.count() << " ms" << std::endl;
-#endif
 }

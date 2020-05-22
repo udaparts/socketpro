@@ -2,6 +2,7 @@
 #pragma once
 
 #include "../../../include/udb_client.h"
+#include <node_version.h>
 
 namespace SPA {
     namespace ClientSide {
@@ -16,14 +17,16 @@ namespace SPA {
             if (!obj) return;
             Isolate* isolate = Isolate::GetCurrent();
             HandleScope handleScope(isolate); //required for Node 4.x
+            auto ctx = isolate->GetCurrentContext();
             {
-                SPA::CAutoLock al(obj->m_csDB);
+                obj->m_csDB.lock();
                 while (obj->m_deqDBCb.size()) {
-                    DBCb &cb = obj->m_deqDBCb.front();
+                    DBCb cb = obj->m_deqDBCb.front();
+                    obj->m_deqDBCb.pop_front();
+                    obj->m_csDB.unlock();
                     PAsyncDBHandler processor = nullptr;
                     *cb.Buffer >> processor;
                     assert(processor);
-                    Local<v8::Object> njDB = CreateDb(isolate, processor);
                     Local<Function> func;
                     assert(cb.Func);
                     if (cb.Func)
@@ -32,8 +35,7 @@ namespace SPA {
                         case eBatchHeader:
                         {
                             assert(!cb.Buffer->GetSize());
-                            Local<Value> argv[] = {njDB};
-                            func->Call(isolate->GetCurrentContext(), Null(isolate), 1, argv);
+                            func->Call(ctx, Null(isolate), 0, nullptr);
                         }
                             break;
                         case eRows:
@@ -41,6 +43,22 @@ namespace SPA {
                                 bool bProc;
                                 *cb.Buffer >> bProc;
                                 assert(!cb.Buffer->GetSize());
+#if NODE_VERSION_AT_LEAST(11,6,0)
+                                Local<Array> arr;
+                                if (cb.VData) {
+                                    SPA::CUQueue &buff = *cb.VData;
+                                    try {
+                                        std::vector<Local < Value>> v;
+                                        while (buff.GetSize()) {
+                                            v.push_back(DbFrom(isolate, buff));
+                                        }
+                                        arr = Array::New(isolate, &v.front(), v.size());
+                                    } catch (SPA::CUException&) {
+                                        buff.SetSize(0);
+                                    }
+                                }
+                                Local<Value> argv[] = {arr, Boolean::New(isolate, bProc)};
+#else
                                 Local<Array> v = Array::New(isolate);
                                 if (cb.VData) {
                                     unsigned int index = 0;
@@ -48,21 +66,22 @@ namespace SPA {
                                     while (buff.GetSize()) {
                                         try {
                                             Local<Value> d = DbFrom(isolate, buff);
-                                            v->Set(index, d);
+                                            v->Set(ctx, index, d);
                                             ++index;
                                         } catch (SPA::CUException&) {
                                             buff.SetSize(0);
                                         }
                                     }
                                 }
-                                Local<Value> argv[] = {v, Boolean::New(isolate, bProc), njDB};
-                                func->Call(isolate->GetCurrentContext(), Null(isolate), 3, argv);
+                                Local<Value> argv[] = {v, Boolean::New(isolate, bProc)};
+#endif
+                                func->Call(ctx, Null(isolate), 2, argv);
                             }
                             break;
                         case eExecuteResult:
                             if (!func.IsEmpty()) {
                                 int res;
-                                std::wstring errMsg;
+                                SPA::CDBString errMsg;
                                 INT64 affected;
                                 unsigned int fails, oks;
                                 CDBVariant vtId;
@@ -74,20 +93,20 @@ namespace SPA {
                                 auto njFails = Number::New(isolate, fails);
                                 auto njOks = Number::New(isolate, oks);
                                 auto njId = From(isolate, vtId);
-                                Local<Value> argv[] = {njRes, njMsg, njAffected, njOks, njFails, njId, njDB};
-                                func->Call(isolate->GetCurrentContext(), Null(isolate), 7, argv);
+                                Local<Value> argv[] = {njRes, njMsg, njAffected, njOks, njFails, njId};
+                                func->Call(ctx, Null(isolate), 6, argv);
                             }
                             break;
                         case eResult:
                             if (!func.IsEmpty()) {
                                 int res;
-                                std::wstring errMsg;
+                                SPA::CDBString errMsg;
                                 *cb.Buffer >> res >> errMsg;
                                 assert(!cb.Buffer->GetSize());
                                 auto njRes = Int32::New(isolate, res);
                                 auto njMsg = ToStr(isolate, errMsg.c_str());
-                                Local<Value> argv[] = {njRes, njMsg, njDB};
-                                func->Call(isolate->GetCurrentContext(), Null(isolate), 3, argv);
+                                Local<Value> argv[] = {njRes, njMsg};
+                                func->Call(ctx, Null(isolate), 2, argv);
                             }
                             break;
                         case eRowsetHeader:
@@ -96,8 +115,8 @@ namespace SPA {
                                 *cb.Buffer >> v;
                                 assert(!cb.Buffer->GetSize());
                                 Local<Array> jsMeta = ToMeta(isolate, v);
-                                Local<Value> argv[] = {jsMeta, njDB};
-                                func->Call(isolate->GetCurrentContext(), Null(isolate), 2, argv);
+                                Local<Value> argv[] = {jsMeta};
+                                func->Call(ctx, Null(isolate), 1, argv);
                             }
                             break;
                         case eDiscarded:
@@ -106,8 +125,8 @@ namespace SPA {
                                 *cb.Buffer >> canceled;
                                 assert(!cb.Buffer->GetSize());
                                 auto b = Boolean::New(isolate, canceled);
-                                Local<Value> argv[] = {b, njDB};
-                                func->Call(isolate->GetCurrentContext(), Null(isolate), 2, argv);
+                                Local<Value> argv[] = {b};
+                                func->Call(ctx, Null(isolate), 1, argv);
                             }
                             break;
                         default:
@@ -115,8 +134,9 @@ namespace SPA {
                             break;
                     }
                     CScopeUQueue::Unlock(cb.Buffer);
-                    obj->m_deqDBCb.pop_front();
+                    obj->m_csDB.lock();
                 }
+                obj->m_csDB.unlock();
             }
             //isolate->RunMicrotasks();
         }

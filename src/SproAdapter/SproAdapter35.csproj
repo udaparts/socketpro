@@ -51,6 +51,7 @@
   <ItemGroup>
     <Compile Include="adoclientpeer.cs" />
     <Compile Include="asyncdbhandler.cs" />
+    <Compile Include="asynchandlerlock.cs" />
     <Compile Include="asyncqueue.cs" />
     <Compile Include="asyncstream.cs" />
     <Compile Include="ccachedbasehandler.cs" />
@@ -62,14 +63,13 @@
     <Compile Include="odbc.cs" />
     <Compile Include="Properties\AssemblyInfo35.cs" />
     <Compile Include="asyncadohandler.cs" />
-    <Compile Include="asynchandler.cs" />
     <Compile Include="basedefines.cs" />
     <Compile Include="clientinterop.cs" />
     <Compile Include="clientpeer.cs" />
     <Compile Include="clientsocket.cs" />
     <Compile Include="remotingadonethelper.cs" />
     <Compile Include="replication.cs" />
-    <Compile Include="scopeuqueue.cs" />
+    <Compile Include="scopeuqueuelock.cs" />
     <Compile Include="serverinterop.cs" />
     <Compile Include="serverpeerbase.cs" />
     <Compile Include="serverqueue.cs" />

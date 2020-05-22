@@ -36,7 +36,11 @@ class Program
                 return;
             }
             CMysql mysql = spMysql.Seek();
+#if FOR_MIDDLE_SERVER
+            bool ok = mysql.Open("user=root;pwd=Smash123;db=mysqldb", dr);
+#else
             bool ok = mysql.Open("", dr);
+#endif
             List<KeyValuePair<CDBColumnInfoArray, CDBVariantArray>> ra = new List<KeyValuePair<CDBColumnInfoArray, CDBVariantArray>>();
 
             CMysql.DRows r = (handler, rowData) =>

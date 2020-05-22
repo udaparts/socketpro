@@ -93,7 +93,7 @@ final class ServerCoreLoader {
 
     static native int QueryRequestsInQueue(long h);
 
-    static native byte[] RetrieveBuffer(long h, int len, boolean peek);
+    static native int RetrieveBuffer(long h, int len, boolean peek, java.nio.ByteBuffer buffer);
 
     static native boolean IsOpened(long h);
 
@@ -101,9 +101,9 @@ final class ServerCoreLoader {
 
     static native long GetBytesSent(long h);
 
-    static native int SendReturnData(long h, short requestId, int bufferSize, byte[] buffer);
+    static native int SendReturnData(long h, short requestId, int bufferSize, java.nio.ByteBuffer buffer, int offset);
 
-    static native int SendReturnDataIndex(long h, long index, short requestId, int bufferSize, byte[] buffer);
+    static native int SendReturnDataIndex(long h, long index, short requestId, int bufferSize, java.nio.ByteBuffer buffer, int offset);
 
     static native int GetSvsID(long h);
 
@@ -295,7 +295,7 @@ final class ServerCoreLoader {
 
     static native int GetMessagesInDequeuing(int qHandle);
 
-    static native long Enqueue(int qHandle, short reqId, byte[] buffer, int size);
+    static native long Enqueue(int qHandle, short reqId, java.nio.ByteBuffer buffer, int size, int offset);
 
     static native long GetMessageCount(int qHandle);
 
@@ -380,4 +380,8 @@ final class ServerCoreLoader {
     static native void SetLastCallInfo(byte[] str, int len);
 
     static native int GetMainThreads();
+
+    static native int NotifyInterrupt(long h, long options);
+
+    static native long GetInterruptOptions(long h);
 }

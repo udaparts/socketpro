@@ -55,11 +55,12 @@ class Program {
                 aq.LastDequeueCallback = null;
             }
         };
-
-        sq.ResultReturned += (sender, reqId, q) => {
+        CAsyncServiceHandler.DOnResultReturned rr = (sender, reqId, q) => {
             bool processed = false;
-            switch (reqId) {
-                case idMessage: {
+            switch (reqId)
+            {
+                case idMessage:
+                    {
                         byte[] utf8 = q.IntenalBuffer;
                         string s = CUQueue.ToString(utf8, (int)q.GetSize());
                         ++messages_dequeued;
@@ -71,6 +72,8 @@ class Program {
             }
             return processed;
         };
+
+        sq.ResultReturned += rr;
         Console.WriteLine("Going to dequeue message ......");
         sw.Start();
         bool ok = sq.Dequeue(TEST_QUEUE_KEY, d);
@@ -79,6 +82,7 @@ class Program {
         ok = sq.Dequeue(TEST_QUEUE_KEY, d);
         ok = sq.Dequeue(TEST_QUEUE_KEY, d);
         sq.WaitAll();
+        sq.ResultReturned -= rr;
         sw.Stop();
         Console.WriteLine(messages_dequeued + " messages dequeued from server within " + sw.ElapsedMilliseconds + " ms");
     }

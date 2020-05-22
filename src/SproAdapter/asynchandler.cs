@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 #if TASKS_ENABLED
 using System.Threading.Tasks;
 #endif
@@ -17,6 +16,14 @@ namespace SocketProAdapter
                 m_UQueue = q;
                 m_CurrentAsyncResultHandler = arh;
             }
+
+            internal void Reset(ushort sReqId, CUQueue q, CAsyncServiceHandler.DAsyncResultHandler arh)
+            {
+                m_RequestId = sReqId;
+                m_UQueue = q;
+                m_CurrentAsyncResultHandler = arh;
+            }
+
             private CAsyncServiceHandler m_AsyncServiceHandler;
             private ushort m_RequestId;
             private CUQueue m_UQueue;
@@ -113,6 +120,7 @@ namespace SocketProAdapter
                 m_lstBRP = new UDelegate<DOnBaseRequestProcessed>(m_cs);
                 m_lstEFS = new UDelegate<DOnExceptionFromServer>(m_cs);
                 m_lstRR = new UDelegate<DOnResultReturned>(m_cs);
+                m_ar = new CAsyncResult(this, 0, null, null);
             }
             public dynamic Pool { get; internal set; }
 #endif
@@ -123,6 +131,7 @@ namespace SocketProAdapter
                 m_lstBRP = new UDelegate<DOnBaseRequestProcessed>(m_cs);
                 m_lstEFS = new UDelegate<DOnExceptionFromServer>(m_cs);
                 m_lstRR = new UDelegate<DOnResultReturned>(m_cs);
+                m_ar = new CAsyncResult(this, 0, null, null);
             }
 
             internal void Detach()
@@ -248,7 +257,7 @@ namespace SocketProAdapter
                 IntPtr h = m_ClientSocket.Handle;
                 lock (m_cs)
                 {
-                    foreach (KeyValuePair<ushort, CResultCb> p in m_kvBatching)
+                    foreach (MyKeyValue<ushort, CResultCb> p in m_kvBatching)
                     {
                         if (p.Value.Discarded != null)
                         {
@@ -292,7 +301,7 @@ namespace SocketProAdapter
                 lock (m_cs)
                 {
                     size = (uint)(m_kvBatching.Count + m_kvCallback.Count);
-                    foreach (KeyValuePair<ushort, CResultCb> p in m_kvBatching)
+                    foreach (MyKeyValue<ushort, CResultCb> p in m_kvBatching)
                     {
                         if (p.Value.Discarded != null)
                         {
@@ -300,7 +309,7 @@ namespace SocketProAdapter
                         }
                     }
                     m_kvBatching.Clear();
-                    foreach (KeyValuePair<ushort, CResultCb> p in m_kvCallback)
+                    foreach (MyKeyValue<ushort, CResultCb> p in m_kvCallback)
                     {
                         if (p.Value.Discarded != null)
                         {
@@ -312,13 +321,15 @@ namespace SocketProAdapter
                 return size;
             }
 
-            KeyValuePair<ushort, CResultCb> GetAsyncResultHandler(ushort reqId)
+            internal bool m_bRandom = false;
+
+            MyKeyValue<ushort, CResultCb> GetAsyncResultHandler(ushort reqId)
             {
-                if (m_ClientSocket.Random)
+                if (m_bRandom)
                 {
                     lock (m_cs)
                     {
-                        foreach (KeyValuePair<ushort, CResultCb> kv in m_kvCallback)
+                        foreach (MyKeyValue<ushort, CResultCb> kv in m_kvCallback)
                         {
                             if (kv.Key == reqId)
                             {
@@ -334,12 +345,11 @@ namespace SocketProAdapter
                     {
                         if (m_kvCallback.Count > 0 && m_kvCallback[0].Key == reqId)
                         {
-                            KeyValuePair<ushort, CResultCb> kv = m_kvCallback.RemoveFromFront();
-                            return kv;
+                            return m_kvCallback.RemoveFromFront();
                         }
                     }
                 }
-                return new KeyValuePair<ushort, CResultCb>(reqId, null);
+                return null;
             }
 
             protected virtual void OnExceptionFromServer(ushort reqId, string errMessage, string errWhere, int errCode)
@@ -352,12 +362,15 @@ namespace SocketProAdapter
 #if DEBUG
                 Console.WriteLine("OnSE reqId = {0}, errMsge = {1}, errWhere = {2}, errCode = {3}", reqId, errMessage, errWhere, errCode);
 #endif
-                KeyValuePair<ushort, CResultCb> p = GetAsyncResultHandler(reqId);
+                MyKeyValue<ushort, CResultCb> p = GetAsyncResultHandler(reqId);
                 OnExceptionFromServer(reqId, errMessage, errWhere, errCode);
-                CResultCb rcb = p.Value;
-                if (rcb != null && rcb.ExceptionFromServer != null)
+                if (p != null)
                 {
-                    rcb.ExceptionFromServer.Invoke(this, reqId, errMessage, errWhere, errCode);
+                    CResultCb rcb = p.Value;
+                    if (rcb != null && rcb.ExceptionFromServer != null)
+                    {
+                        rcb.ExceptionFromServer.Invoke(this, reqId, errMessage, errWhere, errCode);
+                    }
                 }
                 lock (m_cs)
                 {
@@ -368,15 +381,30 @@ namespace SocketProAdapter
                 }
             }
 
+            virtual protected void OnInterrupted(ulong options)
+            {
+
+            }
+
+            private CAsyncResult m_ar = null;
+
             internal void onRR(ushort reqId, CUQueue mc)
             {
-                KeyValuePair<ushort, CResultCb> p = GetAsyncResultHandler(reqId);
+                if (tagBaseRequestID.idInterrupt == (tagBaseRequestID)reqId)
+                {
+                    ulong options;
+                    mc.Load(out options);
+                    OnInterrupted(options);
+                    return;
+                }
+
+                MyKeyValue<ushort, CResultCb> p = GetAsyncResultHandler(reqId);
                 do
                 {
-                    if (p.Value != null && p.Value.AsyncResultHandler != null)
+                    if (p != null && p.Value != null && p.Value.AsyncResultHandler != null)
                     {
-                        CAsyncResult ar = new CAsyncResult(this, reqId, mc, p.Value.AsyncResultHandler);
-                        p.Value.AsyncResultHandler.Invoke(ar);
+                        m_ar.Reset(reqId, mc, p.Value.AsyncResultHandler);
+                        p.Value.AsyncResultHandler.Invoke(m_ar);
                         break;
                     }
                     bool processed = false;
@@ -2023,23 +2051,32 @@ namespace SocketProAdapter
                 m_ClientSocket = null;
             }
 
+            public virtual bool Interrupt(ulong options)
+            {
+                if (m_ClientSocket == null)
+                    return false;
+                IntPtr h = m_ClientSocket.Handle;
+#if WINCE
+                return (ClientCoreLoader.SendInterruptRequest(h, (uint)options) != 0);
+#else
+                return (ClientCoreLoader.SendInterruptRequest(h, options) != 0);
+#endif
+            }
+
             public virtual bool SendRequest(ushort reqId, byte[] data, uint len, DAsyncResultHandler ash, DDiscarded discarded, DOnExceptionFromServer exception)
             {
-                bool sent = false;
-                byte batching = 0;
-                CResultCb rcb = null;
-                if (m_ClientSocket == null)
+                bool sent;
+                byte batching;
+                MyKeyValue<ushort, CResultCb> kv;
+                if (null == m_ClientSocket)
                     return false;
                 IntPtr h = m_ClientSocket.Handle;
                 if (data != null && len > (uint)data.Length)
                     len = (uint)data.Length;
                 if (ash != null || discarded != null || exception != null)
                 {
-                    rcb = new CResultCb();
-                    rcb.AsyncResultHandler = ash;
-                    rcb.Discarded = discarded;
-                    rcb.ExceptionFromServer = exception;
-                    KeyValuePair<ushort, CResultCb> kv = new KeyValuePair<ushort, CResultCb>(reqId, rcb);
+                    CResultCb rcb = new CResultCb(ash, discarded, exception);
+                    kv = new MyKeyValue<ushort, CResultCb>(reqId, rcb);
                     batching = ClientCoreLoader.IsBatching(h);
                     lock (m_csSend)
                     {
@@ -2065,6 +2102,8 @@ namespace SocketProAdapter
                 }
                 else
                 {
+                    kv = null;
+                    batching = 0;
                     unsafe
                     {
                         fixed (byte* buffer = data)
@@ -2075,14 +2114,14 @@ namespace SocketProAdapter
                 }
                 if (sent)
                     return true;
-                if (rcb != null)
+                if (kv != null)
                 {
                     lock (m_cs)
                     {
                         if (batching > 0)
-                            m_kvBatching.RemoveFromBack();
+                            m_kvBatching.Clear();
                         else
-                            m_kvCallback.RemoveFromBack();
+                            m_kvCallback.Clear();
                     }
                 }
                 return false;
@@ -2090,9 +2129,15 @@ namespace SocketProAdapter
             public delegate void DDiscarded(CAsyncServiceHandler h, bool canceled);
             internal class CResultCb
             {
-                public DAsyncResultHandler AsyncResultHandler = null;
-                public DDiscarded Discarded = null;
-                public DOnExceptionFromServer ExceptionFromServer = null;
+                public CResultCb(DAsyncResultHandler rh, DDiscarded d, DOnExceptionFromServer ex)
+                {
+                    AsyncResultHandler = rh;
+                    Discarded = d;
+                    ExceptionFromServer = ex;
+                }
+                public DAsyncResultHandler AsyncResultHandler;
+                public DDiscarded Discarded;
+                public DOnExceptionFromServer ExceptionFromServer;
             }
 #if TASKS_ENABLED
             public Task<R> Async<R>(ushort reqId, byte[] data, uint len)
@@ -2372,8 +2417,20 @@ namespace SocketProAdapter
             internal uint m_nServiceId;
             internal object m_cs = new object();
             private object m_csSend = new object();
-            private Deque<KeyValuePair<ushort, CResultCb>> m_kvCallback = new Deque<KeyValuePair<ushort, CResultCb>>();
-            private Deque<KeyValuePair<ushort, CResultCb>> m_kvBatching = new Deque<KeyValuePair<ushort, CResultCb>>();
+
+            internal class MyKeyValue<K, V>
+            {
+                public MyKeyValue(K key, V value)
+                {
+                    Key = key;
+                    Value = value;
+                }
+                public K Key;
+                public V Value;
+            }
+
+            private Deque<MyKeyValue<ushort, CResultCb>> m_kvCallback = new Deque<MyKeyValue<ushort, CResultCb>>();
+            private Deque<MyKeyValue<ushort, CResultCb>> m_kvBatching = new Deque<MyKeyValue<ushort, CResultCb>>();
             private static object m_csCallIndex = new object();
             private static ulong m_CallIndex = 0;
 
@@ -2400,7 +2457,7 @@ namespace SocketProAdapter
                 }
             }
 
-            internal Deque<KeyValuePair<ushort, CResultCb>> GetCallbacks()
+            internal Deque<MyKeyValue<ushort, CResultCb>> GetCallbacks()
             {
                 return m_kvCallback;
             }

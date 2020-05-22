@@ -60,7 +60,7 @@ namespace SPA {
                 m_mapRowset[index] = CRowsetHandler(rh, row);
                 m_csDB.unlock();
                 sb << CatalogName << SchemaName << TableName << unique << reserved << index;
-                ResultHandler arh = [handler, this, index](CAsyncResult & ar) {
+                DResultHandler arh = [handler, this, index](CAsyncResult & ar) {
                     this->ProcessODBC(handler, ar, SPA::Odbc::idSQLStatistics, index);
                 };
                 if (!SendRequest(SPA::Odbc::idSQLStatistics, sb->GetBuffer(), sb->GetSize(), arh, discarded, nullptr)) {
@@ -144,7 +144,7 @@ namespace SPA {
                 m_mapRowset[index] = CRowsetHandler(rh, row);
                 m_csDB.unlock();
                 sb << s0 << s1 << s2 << index;
-                ResultHandler arh = [id, handler, this, index](CAsyncResult & ar) {
+                DResultHandler arh = [id, handler, this, index](CAsyncResult & ar) {
                     this->ProcessODBC(handler, ar, id, index);
                 };
                 if (!SendRequest(id, sb->GetBuffer(), sb->GetSize(), arh, discarded, nullptr)) {
@@ -164,7 +164,7 @@ namespace SPA {
                 m_mapRowset[index] = CRowsetHandler(rh, row);
                 m_csDB.unlock();
                 sb << s0 << s1 << s2 << s3 << index;
-                ResultHandler arh = [id, handler, this, index](CAsyncResult & ar) {
+                DResultHandler arh = [id, handler, this, index](CAsyncResult & ar) {
                     this->ProcessODBC(handler, ar, id, index);
                 };
                 if (!SendRequest(id, sb->GetBuffer(), sb->GetSize(), arh, discarded, nullptr)) {
@@ -185,7 +185,7 @@ namespace SPA {
                 m_mapRowset[index] = CRowsetHandler(rh, row);
                 m_csDB.unlock();
                 sb << t0 << s0 << s1 << s2 << t1 << t2 << index;
-                ResultHandler arh = [id, handler, this, index](CAsyncResult & ar) {
+                DResultHandler arh = [id, handler, this, index](CAsyncResult & ar) {
                     this->ProcessODBC(handler, ar, id, index);
                 };
                 if (!SendRequest(id, sb->GetBuffer(), sb->GetSize(), arh, discarded, nullptr)) {
