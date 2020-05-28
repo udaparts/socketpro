@@ -79,6 +79,7 @@ public static class USqlStream
                             Directory.CreateDirectory(SQLConfig.WorkingDirectory);
                         Directory.SetCurrentDirectory(SQLConfig.WorkingDirectory);
                         Plugin = new CSqlPlugin(SQLConfig.Param);
+                        res = 1;
                     }
                     if (!ServerCoreLoader.IsRunning())
                     {
@@ -106,13 +107,13 @@ public static class USqlStream
             }
             finally
             {
-                if (res == 10 && ServerCoreLoader.IsRunning())
+                if (res == 11 && ServerCoreLoader.IsRunning())
                 {
-                    //AppDomain.CurrentDomain.DomainUnload += (sender, args) => {
-                    //    ServerCoreLoader.StopSocketProServer();
-                    //    Plugin = null;
-                    //};
-                    res += 1;
+                    AppDomain.CurrentDomain.DomainUnload += (sender, args) =>
+                    {
+                        ServerCoreLoader.StopSocketProServer();
+                        Plugin = null;
+                    };
                 }
                 conn.Close();
             }
