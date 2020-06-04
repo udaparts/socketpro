@@ -235,7 +235,7 @@ namespace SPA {
 
             CDBVariant(tagVARIANT &&vtData) {
                 CDBVariant &me = *this;
-                me = vtData;
+                me = (tagVARIANT&&)vtData;
                 VtExt = vteNormal;
             }
 
@@ -695,10 +695,12 @@ namespace SPA {
             }
 
             CDBVariant& operator=(CDBVariant &&vtData) {
-                tagVTExt ve = VtExt;
-                *this = (tagVARIANT&&)vtData;
-                VtExt = vtData.VtExt;
-                vtData.VtExt = ve;
+                if (this != &vtData) {
+                    tagVTExt ve = VtExt;
+                    *this = (tagVARIANT&&)vtData;
+                    VtExt = vtData.VtExt;
+                    vtData.VtExt = ve;
+                }
                 return *this;
             }
         };
