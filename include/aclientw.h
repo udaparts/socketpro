@@ -1390,12 +1390,12 @@ namespace SPA {
 #if defined(__ANDROID__) || defined(ANDROID)
                     std::string message = Utilities::ToUTF8(errMessage, ::wcslen(errMessage));
                     try {
-                        prom->set_exception(std::make_exception_ptr(CUException(message.c_str(), __FILE__, requestId, __FUNCTION__, errCode)));
+                        prom->set_exception(std::make_exception_ptr(CUException(message.c_str(), errWhere, (int) errCode)));
 #else
                     CScopeUQueue sq;
                     Utilities::ToUTF8(errMessage, ::wcslen(errMessage), *sq);
                     try {
-                        prom->set_exception(std::make_exception_ptr(CUException((const char*) sq->GetBuffer(), __FILE__, requestId, __FUNCTION__, errCode)));
+                        prom->set_exception(std::make_exception_ptr(CUException((const char*) sq->GetBuffer(), errWhere, (int) errCode)));
 #endif
                     } catch (...) {
                     }
@@ -1498,12 +1498,12 @@ namespace SPA {
 #if defined(__ANDROID__) || defined(ANDROID)
                     std::string message = Utilities::ToUTF8(errMessage, ::wcslen(errMessage));
                     try {
-                        prom->set_exception(std::make_exception_ptr(CUException(message.c_str(), __FILE__, requestId, __FUNCTION__, errCode)));
+                        prom->set_exception(std::make_exception_ptr(CUException(message.c_str(), errWhere, (int) errCode)));
 #else
                     CScopeUQueue sq;
                     Utilities::ToUTF8(errMessage, ::wcslen(errMessage), *sq);
                     try {
-                        prom->set_exception(std::make_exception_ptr(CUException((const char*) sq->GetBuffer(), __FILE__, requestId, __FUNCTION__, errCode)));
+                        prom->set_exception(std::make_exception_ptr(CUException((const char*) sq->GetBuffer(), errWhere, (int) errCode)));
 #endif
                     } catch (...) {
                     }
