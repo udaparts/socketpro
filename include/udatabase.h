@@ -228,12 +228,10 @@ namespace SPA {
 
             CDBVariant(CComVariant &&vtData) {
                 *this = (tagVARIANT&&)vtData;
-                VtExt = vteNormal;
             }
 
             CDBVariant(tagVARIANT &&vtData) {
                 *this = (tagVARIANT&&)vtData;
-                VtExt = vteNormal;
             }
 
             CDBVariant(const CDBVariant &vt) : CComVariant(vt), VtExt(vt.VtExt) {
@@ -245,9 +243,8 @@ namespace SPA {
             CDBVariant(const tagVARIANT &vt) : CComVariant(vt), VtExt(vteNormal) {
             }
 
-            CDBVariant() {
+            CDBVariant() : CComVariant(), VtExt(vteNormal) {
                 vt = VT_NULL;
-                VtExt = vteNormal;
             }
 
             CDBVariant(const GUID &uuid) {
@@ -262,17 +259,15 @@ namespace SPA {
             }
 
             template <typename type>
-            CDBVariant(const type& src) : CComVariant(src) {
-                VtExt = vteNormal;
+            CDBVariant(const type& src) : CComVariant(src), VtExt(vteNormal) {
             }
 
-            CDBVariant(const DECIMAL& src) {
+            CDBVariant(const DECIMAL& src) : VtExt(vteNormal) {
                 decVal = src;
                 vt = VT_DECIMAL;
-                VtExt = vteNormal;
             }
 
-            CDBVariant(const unsigned char *buffer, unsigned int bytes) {
+            CDBVariant(const unsigned char *buffer, unsigned int bytes) : VtExt(vteNormal) {
                 if (buffer) {
                     SAFEARRAYBOUND sab[1] = {bytes, 0};
                     parray = ::SafeArrayCreate(VT_UI1, 1, sab);
@@ -286,10 +281,9 @@ namespace SPA {
                 } else {
                     vt = VT_NULL;
                 }
-                VtExt = vteNormal;
             }
 
-            CDBVariant(const char* lpszSrc, unsigned int len = UQUEUE_NULL_LENGTH) {
+            CDBVariant(const char* lpszSrc, unsigned int len = UQUEUE_NULL_LENGTH) : VtExt(vteNormal) {
                 if (lpszSrc) {
                     if (len == UQUEUE_NULL_LENGTH) {
                         len = (unsigned int) ::strlen(lpszSrc);
@@ -306,10 +300,9 @@ namespace SPA {
                 } else {
                     vt = VT_NULL;
                 }
-                VtExt = vteNormal;
             }
 
-            CDBVariant(const wchar_t* lpszSrc, unsigned int len = UQUEUE_NULL_LENGTH) {
+            CDBVariant(const wchar_t* lpszSrc, unsigned int len = UQUEUE_NULL_LENGTH) : VtExt(vteNormal) {
                 if (lpszSrc) {
                     if (len == (unsigned int) (~0)) {
                         len = (unsigned int) ::wcslen(lpszSrc);
@@ -319,50 +312,43 @@ namespace SPA {
                 } else {
                     vt = VT_NULL;
                 }
-                VtExt = vteNormal;
             }
 
-            CDBVariant(const UDateTime &dt) : CComVariant(dt.time) {
+            CDBVariant(const UDateTime &dt) : CComVariant(dt.time), VtExt(vteNormal) {
                 vt = VT_DATE;
-                VtExt = vteNormal;
             }
 
-            CDBVariant(const std::tm &st, unsigned int us = 0) : CComVariant(UDateTime(st, us).time) {
+            CDBVariant(const std::tm &st, unsigned int us = 0) : CComVariant(UDateTime(st, us).time), VtExt(vteNormal) {
                 vt = VT_DATE;
-                VtExt = vteNormal;
             }
 
 #ifdef WIN32_64
 
-            CDBVariant(CComBSTR &&bstr) {
+            CDBVariant(CComBSTR &&bstr) : VtExt(vteNormal) {
                 if (bstr.m_str) {
                     vt = VT_BSTR;
                     bstrVal = bstr.Detach();
                 } else {
                     vt = VT_NULL;
                 }
-                VtExt = vteNormal;
             }
 
-            CDBVariant(double dblSrc, VARTYPE vtSrc = VT_R8/* or VT_DATE*/, unsigned short us = 0) : CComVariant(dblSrc, vtSrc) {
+            CDBVariant(double dblSrc, VARTYPE vtSrc = VT_R8/* or VT_DATE*/, unsigned short us = 0) : CComVariant(dblSrc, vtSrc), VtExt(vteNormal) {
                 if (vtSrc == VT_DATE) {
                     //convert variant date to high precision time on window system
                     UDateTime udt(dblSrc, us);
                     this->ullVal = udt.time;
                 }
-                VtExt = vteNormal;
             }
 
-            CDBVariant(const SYSTEMTIME &st, unsigned short us = 0) : CComVariant(UDateTime(st, us).time) {
+            CDBVariant(const SYSTEMTIME &st, unsigned short us = 0) : CComVariant(UDateTime(st, us).time), VtExt(vteNormal) {
                 vt = VT_DATE;
-                VtExt = vteNormal;
             }
 #else
 
-            CDBVariant(const SYSTEMTIME &st) {
+            CDBVariant(const SYSTEMTIME &st) : VtExt(vteNormal) {
                 vt = VT_DATE;
                 ullVal = UDateTime(st).time;
-                VtExt = vteNormal;
             }
 #endif
         public:
@@ -646,7 +632,6 @@ namespace SPA {
 
             CDBVariant& operator=(CComVariant &&vtData) {
                 *this = (tagVARIANT&&)vtData;
-                VtExt = vteNormal;
                 return *this;
             }
 
