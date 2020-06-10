@@ -186,7 +186,7 @@ typedef struct tagCY {
 typedef struct tagDEC {
     unsigned short wReserved;
 
-    tagDEC() : wReserved(0), Hi32(0), Lo64(0) {
+    tagDEC() : wReserved(0), signscale(0), Hi32(0), Lo64(0) {
     }
 
     union {
