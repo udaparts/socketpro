@@ -98,7 +98,7 @@ typedef struct tagSAFEARRAY {
     unsigned short fFeatures; // Flags used by the SafeArray.
     unsigned int cbElements; // Size of an element of the array.
     unsigned int cLocks; // Number of times the array has been locked without corresponding unlock.
-    PVOID pvData; // Pointer to the data.
+    unsigned char* pvData; // Pointer to the data.
     SAFEARRAYBOUND rgsabound[1]; // One bound for each dimension.
 } SAFEARRAY;
 
@@ -204,7 +204,7 @@ static SAFEARRAY* SafeArrayCreate(VARTYPE vt, unsigned int cDims, SAFEARRAYBOUND
     unsigned char *buffer = (unsigned char*) ::malloc(bytes);
     if (!buffer)
         return nullptr;
-    PVOID pvData = buffer + sizeof (SAFEARRAY);
+    unsigned char* pvData = buffer + sizeof (SAFEARRAY);
     ::memset(pvData, 0, bytes - sizeof (SAFEARRAY));
     SAFEARRAY *sa = (SAFEARRAY *) buffer;
     sa->cbElements = cbElements;
