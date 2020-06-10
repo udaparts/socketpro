@@ -92,8 +92,7 @@ typedef struct tagSAFEARRAYBOUND {
 
 typedef struct tagSAFEARRAY {
 
-    tagSAFEARRAY() {
-        ::memset(this, 0, sizeof (tagSAFEARRAY));
+    tagSAFEARRAY() : cDims(0), fFeatures(0), cbElements(0), cLocks(0), pvData(nullptr) {
     }
     unsigned short cDims; // Count of dimensions in this array. It must be 1 on non-windows platforms.
     unsigned short fFeatures; // Flags used by the SafeArray.
@@ -105,8 +104,7 @@ typedef struct tagSAFEARRAY {
 
 typedef struct tagVARIANT {
 
-    tagVARIANT() {
-        ::memset(this, 0, sizeof (tagVARIANT));
+    tagVARIANT() : vt(VT_EMPTY) {
     }
     VARTYPE vt;
     WORD wReserved1;
@@ -653,11 +651,11 @@ public:
 
     // Operations
 
-    HRESULT Clear() {
+    inline HRESULT Clear() {
         return VariantClear(this);
     }
 
-    HRESULT Copy(const VARIANT* pSrc) {
+    inline HRESULT Copy(const VARIANT* pSrc) {
         return VariantCopy(this, const_cast<VARIANT*> (pSrc));
     }
 };

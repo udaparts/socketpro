@@ -221,21 +221,18 @@ namespace SPA {
             tagVTExt VtExt;
 
             CDBVariant(CDBVariant &&vtData) {
-                CDBVariant &me = *this;
-                me = (tagVARIANT&&)vtData;
+                *this = (tagVARIANT&&)vtData;
                 VtExt = vtData.VtExt;
                 vtData.VtExt = vteNormal;
             }
 
             CDBVariant(CComVariant &&vtData) {
-                CDBVariant &me = *this;
-                me = (tagVARIANT&&)vtData;
+                *this = (tagVARIANT&&)vtData;
                 VtExt = vteNormal;
             }
 
             CDBVariant(tagVARIANT &&vtData) {
-                CDBVariant &me = *this;
-                me = (tagVARIANT&&)vtData;
+                *this = (tagVARIANT&&)vtData;
                 VtExt = vteNormal;
             }
 
@@ -538,23 +535,29 @@ namespace SPA {
             }
 
             CDBVariant& operator=(const CDBVariant &vtData) {
-                CComVariant &me = *this;
-                me = vtData;
-                VtExt = vtData.VtExt;
+                if (this != &vtData) {
+                    CComVariant& me = *this;
+                    me = vtData;
+                    VtExt = vtData.VtExt;
+                }
                 return *this;
             }
 
             CDBVariant& operator=(const CComVariant &vtData) {
-                CComVariant &me = *this;
-                me = vtData;
-                VtExt = vteNormal;
+                if (this != &vtData) {
+                    CComVariant& me = *this;
+                    me = vtData;
+                    VtExt = vteNormal;
+                }
                 return *this;
             }
 
             CDBVariant& operator=(const tagVARIANT &vtData) {
-                CComVariant &me = *this;
-                me = vtData;
-                VtExt = vteNormal;
+                if (this != &vtData) {
+                    CComVariant& me = *this;
+                    me = vtData;
+                    VtExt = vteNormal;
+                }
                 return *this;
             }
 
