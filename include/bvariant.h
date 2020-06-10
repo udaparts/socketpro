@@ -330,12 +330,12 @@ inline static HRESULT SafeArrayCopy(SAFEARRAY *psa, SAFEARRAY **ppsaOut) {
 
 inline static void VariantInit(tagVARIANT *pvarg) {
     if (pvarg) {
-        ::memset(pvarg, 0, sizeof (tagVARIANT));
+        pvarg->vt = VT_EMPTY;
     }
 }
 
 static HRESULT VariantClear(tagVARIANT *pvarg) {
-    HRESULT hr = E_INVALIDARG;
+    HRESULT hr;
     if (pvarg) {
         switch (pvarg->vt) {
             case VT_BSTR:
