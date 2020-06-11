@@ -91,9 +91,11 @@ typedef struct tagSAFEARRAYBOUND {
 #define FADF_VARIANT 0x0800 //An array of VARIANTs
 
 typedef struct tagSAFEARRAY {
-
+    //make sure this is the same with windows
+#if 0
     tagSAFEARRAY() : cDims(0), fFeatures(0), cbElements(0), cLocks(0), pvData(nullptr) {
     }
+#endif
     unsigned short cDims; // Count of dimensions in this array. It must be 1 on non-windows platforms.
     unsigned short fFeatures; // Flags used by the SafeArray.
     unsigned int cbElements; // Size of an element of the array.
@@ -103,9 +105,11 @@ typedef struct tagSAFEARRAY {
 } SAFEARRAY;
 
 typedef struct tagVARIANT {
-
-    tagVARIANT() : vt(VT_EMPTY) {
+    //make sure this is the same with windows
+#if 0
+    tagVARIANT() {
     }
+#endif
     VARTYPE vt;
     WORD wReserved1;
     WORD wReserved2;
@@ -388,11 +392,12 @@ namespace SPA {
 class CComVariant : public tagVARIANT {
 public:
 
-    CComVariant() {
+    CComVariant() noexcept {
+        ::VariantInit(this);
     }
 
-    ~CComVariant() {
-        Clear();
+    ~CComVariant() noexcept {
+        ::VariantClear(this);
     }
 
     CComVariant(const tagVARIANT& varSrc) {
@@ -413,72 +418,72 @@ public:
         bstrVal = SysAllocString(lpszSrc);
     }
 
-    CComVariant(bool bSrc) {
+    CComVariant(bool bSrc) noexcept {
         vt = VT_BOOL;
         boolVal = bSrc ? VARIANT_TRUE : VARIANT_FALSE;
     }
 
-    CComVariant(int nSrc) {
+    CComVariant(int nSrc) noexcept {
         vt = VT_I4;
         intVal = nSrc;
     }
 
-    CComVariant(unsigned char nSrc) {
+    CComVariant(unsigned char nSrc) noexcept {
         vt = VT_UI1;
         bVal = nSrc;
     }
 
-    CComVariant(short nSrc) {
+    CComVariant(short nSrc) noexcept {
         vt = VT_I2;
         iVal = nSrc;
     }
 
-    CComVariant(float fltSrc) {
+    CComVariant(float fltSrc) noexcept {
         vt = VT_R4;
         fltVal = fltSrc;
     }
 
-    CComVariant(double dblSrc) {
+    CComVariant(double dblSrc) noexcept {
         vt = VT_R8;
         dblVal = dblSrc;
     }
 
-    CComVariant(SPA::INT64 nSrc) {
+    CComVariant(SPA::INT64 nSrc) noexcept {
         vt = VT_I8;
         llVal = nSrc;
     }
 
-    CComVariant(SPA::UINT64 nSrc) {
+    CComVariant(SPA::UINT64 nSrc) noexcept {
         vt = VT_UI8;
         ullVal = nSrc;
     }
 
-    CComVariant(CY cySrc) {
+    CComVariant(CY cySrc) noexcept {
         vt = VT_CY;
         cyVal = cySrc;
     }
 
-    CComVariant(const tagDEC& dec) {
+    CComVariant(const tagDEC& dec) noexcept {
         vt = VT_DECIMAL;
         decVal = dec;
     }
 
-    CComVariant(char cSrc) {
+    CComVariant(char cSrc) noexcept {
         vt = VT_I1;
         cVal = cSrc;
     }
 
-    CComVariant(unsigned short nSrc) {
+    CComVariant(unsigned short nSrc) noexcept {
         vt = VT_UI2;
         uiVal = nSrc;
     }
 
-    CComVariant(unsigned int nSrc) {
+    CComVariant(unsigned int nSrc) noexcept {
         vt = VT_UI4;
         uintVal = nSrc;
     }
 
-    CComVariant(SPA::UDateTime dt) {
+    CComVariant(SPA::UDateTime dt) noexcept {
         vt = VT_DATE;
         ullVal = dt.time;
     }
@@ -641,22 +646,22 @@ public:
 
     // Comparison Operators
 
-    bool operator==(const tagVARIANT& varSrc) const {
+    bool operator==(const tagVARIANT& varSrc) const noexcept {
         return SPA::IsEqual(*this, varSrc);
     }
 
-    bool operator!=(const tagVARIANT& varSrc) const {
-        return !operator==(varSrc);
+    bool operator!=(const tagVARIANT& varSrc) const noexcept {
+        return !SPA::IsEqual(*this, varSrc);
     }
 
     // Operations
 
     inline HRESULT Clear() {
-        return VariantClear(this);
+        return ::VariantClear(this);
     }
 
     inline HRESULT Copy(const VARIANT* pSrc) {
-        return VariantCopy(this, const_cast<VARIANT*> (pSrc));
+        return ::VariantCopy(this, const_cast<VARIANT*> (pSrc));
     }
 };
 

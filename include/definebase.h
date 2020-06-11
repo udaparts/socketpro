@@ -175,7 +175,7 @@ typedef struct tagCY {
     int64_t int64;
 
     inline bool operator==(const tagCY & cy) const {
-        return (::memcmp(this, &cy, sizeof (cy)) == 0);
+        return (int64 == cy.int64);
     }
 } CY;
 
@@ -186,8 +186,11 @@ typedef struct tagCY {
 typedef struct tagDEC {
     unsigned short wReserved;
 
+    //make sure this is the same with windows
+#if 0
     tagDEC() : wReserved(0), signscale(0), Hi32(0), Lo64(0) {
     }
+#endif
 
     union {
 
