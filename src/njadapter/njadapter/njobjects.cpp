@@ -797,8 +797,8 @@ namespace NJA {
         Isolate* isolate = args.GetIsolate();
         NJSocketPool* obj = ObjectWrap::Unwrap<NJSocketPool>(args.Holder());
         if (obj->IsValid(isolate)) {
-            std::string queueName = obj->Handler->GetQueueName();
-            args.GetReturnValue().Set(ToStr(isolate, queueName.c_str()));
+            const std::string& queueName = obj->Handler->GetQueueName();
+            args.GetReturnValue().Set(ToStr(isolate, queueName.c_str(), queueName.size()));
         }
     }
 

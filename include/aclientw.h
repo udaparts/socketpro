@@ -2189,7 +2189,7 @@ namespace SPA {
                 m_nPoolId = 0;
             }
 
-            std::string GetQueueName() {
+            const std::string& GetQueueName() {
                 CAutoLock al(m_cs);
                 return m_qName;
             }
