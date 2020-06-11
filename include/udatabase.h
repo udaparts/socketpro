@@ -243,7 +243,7 @@ namespace SPA {
             CDBVariant(const tagVARIANT &vt) : CComVariant(vt), VtExt(vteNormal) {
             }
 
-            CDBVariant() : CComVariant(), VtExt(vteNormal) {
+            CDBVariant() noexcept : CComVariant(), VtExt(vteNormal) {
                 vt = VT_NULL;
             }
 
@@ -259,10 +259,10 @@ namespace SPA {
             }
 
             template <typename type>
-            CDBVariant(const type& src) : CComVariant(src), VtExt(vteNormal) {
+            CDBVariant(const type& src) noexcept : CComVariant(src), VtExt(vteNormal) {
             }
 
-            CDBVariant(const DECIMAL& src) : VtExt(vteNormal) {
+            CDBVariant(const DECIMAL& src) noexcept : VtExt(vteNormal) {
                 decVal = src;
                 vt = VT_DECIMAL;
             }
@@ -314,11 +314,11 @@ namespace SPA {
                 }
             }
 
-            CDBVariant(const UDateTime &dt) : CComVariant(dt.time), VtExt(vteNormal) {
+            CDBVariant(const UDateTime &dt) noexcept : CComVariant(dt.time), VtExt(vteNormal) {
                 vt = VT_DATE;
             }
 
-            CDBVariant(const std::tm &st, unsigned int us = 0) : CComVariant(UDateTime(st, us).time), VtExt(vteNormal) {
+            CDBVariant(const std::tm &st, unsigned int us = 0) noexcept : CComVariant(UDateTime(st, us).time), VtExt(vteNormal) {
                 vt = VT_DATE;
             }
 
@@ -333,7 +333,7 @@ namespace SPA {
                 }
             }
 
-            CDBVariant(double dblSrc, VARTYPE vtSrc = VT_R8/* or VT_DATE*/, unsigned short us = 0) : CComVariant(dblSrc, vtSrc), VtExt(vteNormal) {
+            CDBVariant(double dblSrc, VARTYPE vtSrc = VT_R8/* or VT_DATE*/, unsigned short us = 0) : CComVariant(dblSrc), VtExt(vteNormal) {
                 if (vtSrc == VT_DATE) {
                     //convert variant date to high precision time on window system
                     UDateTime udt(dblSrc, us);
@@ -341,27 +341,27 @@ namespace SPA {
                 }
             }
 
-            CDBVariant(const SYSTEMTIME &st, unsigned short us = 0) : CComVariant(UDateTime(st, us).time), VtExt(vteNormal) {
+            CDBVariant(const SYSTEMTIME &st, unsigned short us = 0) noexcept : CComVariant(UDateTime(st, us).time), VtExt(vteNormal) {
                 vt = VT_DATE;
             }
 #else
 
-            CDBVariant(const SYSTEMTIME &st) : VtExt(vteNormal) {
+            CDBVariant(const SYSTEMTIME &st) noexcept : VtExt(vteNormal) {
                 vt = VT_DATE;
                 ullVal = UDateTime(st).time;
             }
 #endif
         public:
 
-            unsigned short Type() const {
+            unsigned short Type() const noexcept {
                 return vt;
             }
 
-            bool operator!=(const VARIANT &data) const {
+            bool operator!=(const VARIANT &data) const noexcept {
                 return (!(*this == data));
             }
 
-            bool operator==(const VARIANT &data) const {
+            bool operator==(const VARIANT &data) const noexcept {
                 if ((vt == VT_NULL || vt == VT_EMPTY) && (data.vt == VT_EMPTY || data.vt == VT_NULL)) {
                     return true;
                 } else if (vt == VT_BSTR) {
