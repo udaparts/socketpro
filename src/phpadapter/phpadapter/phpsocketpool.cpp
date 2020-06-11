@@ -215,7 +215,8 @@ namespace PA
         } else if (name == "Avg") {
             return Handler->IsAvg();
         } else if (name == "QueueName") {
-            return Handler->GetQueueName();
+            std::string qn = Handler->GetQueueName();
+            return qn;
         } else if (name == KEY_AUTO_MERGE || name == "QueueAutoMerge") {
             return Handler->GetQueueAutoMerge();
         } else if (name == "Started") {
