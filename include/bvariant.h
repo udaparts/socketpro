@@ -93,6 +93,7 @@ typedef struct tagSAFEARRAYBOUND {
 typedef struct tagSAFEARRAY {
     //make sure this is the same with windows
 #if 0
+
     tagSAFEARRAY() : cDims(0), fFeatures(0), cbElements(0), cLocks(0), pvData(nullptr) {
     }
 #endif
@@ -105,11 +106,9 @@ typedef struct tagSAFEARRAY {
 } SAFEARRAY;
 
 typedef struct tagVARIANT {
-    //make sure this is the same with windows
-#if 0
-    tagVARIANT() {
+
+    tagVARIANT() : vt(VT_EMPTY) {
     }
-#endif
     VARTYPE vt;
     WORD wReserved1;
     WORD wReserved2;
@@ -301,9 +300,6 @@ inline static HRESULT SafeArrayCopy(SAFEARRAY *psa, SAFEARRAY **ppsaOut) {
     if (!ppsaOut) {
         assert(false);
         return E_INVALIDARG;
-    } else if (*ppsaOut) {
-        assert(false);
-        return E_INVALIDARG;
     }
     unsigned int bytes = sizeof (SAFEARRAY) + psa->rgsabound->cElements * psa->cbElements + sizeof (char); //add one extra byte for null char
     unsigned char *buffer = (unsigned char*) ::malloc(bytes);
@@ -355,8 +351,7 @@ inline static HRESULT VariantClear(tagVARIANT *pvarg) {
                 break;
         }
         pvarg->vt = VT_EMPTY;
-    }
-    else {
+    } else {
         hr = S_OK;
     }
     return hr;
@@ -396,7 +391,6 @@ class CComVariant : public tagVARIANT {
 public:
 
     CComVariant() noexcept {
-        ::VariantInit(this);
     }
 
     ~CComVariant() noexcept {
@@ -467,8 +461,8 @@ public:
     }
 
     CComVariant(const tagDEC& dec) noexcept {
-        vt = VT_DECIMAL;
         decVal = dec;
+        vt = VT_DECIMAL;
     }
 
     CComVariant(char cSrc) noexcept {
