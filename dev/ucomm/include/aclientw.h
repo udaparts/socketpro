@@ -1376,26 +1376,23 @@ namespace SPA {
 #if defined(_FUTURE_) || defined(_GLIBCXX_FUTURE)
 
             std::future<void> async(unsigned short reqId, const unsigned char *pBuffer, unsigned int size) {
-                std::shared_ptr<std::promise<void> > prom(new std::promise<void>, [](std::promise<void> *p) {
-                    delete p;
-                });
+                std::shared_ptr<std::promise<void> > prom(new std::promise<void>);
                 DDiscarded discarded = [prom, reqId](CAsyncServiceHandler *h, bool canceled) {
                     try {
                         prom->set_exception(std::make_exception_ptr(CUException(canceled ? "Request canceled" : "Socket closed", __FILE__, reqId, __FUNCTION__, MB_REQUEST_ABORTED)));
                     } catch (...) {
-
                     }
                 };
                 DServerException se = [prom](CAsyncServiceHandler *ash, unsigned short requestId, const wchar_t *errMessage, const char* errWhere, unsigned int errCode) {
 #if defined(__ANDROID__) || defined(ANDROID)
                     std::string message = Utilities::ToUTF8(errMessage, ::wcslen(errMessage));
                     try {
-                        prom->set_exception(std::make_exception_ptr(CUException(message.c_str(), __FILE__, requestId, __FUNCTION__, errCode)));
+                        prom->set_exception(std::make_exception_ptr(CUException(message.c_str(), errWhere, (int) errCode)));
 #else
                     CScopeUQueue sq;
                     Utilities::ToUTF8(errMessage, ::wcslen(errMessage), *sq);
                     try {
-                        prom->set_exception(std::make_exception_ptr(CUException((const char*) sq->GetBuffer(), __FILE__, requestId, __FUNCTION__, errCode)));
+                        prom->set_exception(std::make_exception_ptr(CUException((const char*) sq->GetBuffer(), errWhere, (int) errCode)));
 #endif
                     } catch (...) {
                     }
@@ -1485,9 +1482,7 @@ namespace SPA {
 
             template<typename R>
             std::future<R> async(unsigned short reqId, const unsigned char *pBuffer, unsigned int size) {
-                std::shared_ptr<std::promise<R> > prom(new std::promise<R>, [](std::promise<R> *p) {
-                    delete p;
-                });
+                std::shared_ptr<std::promise<R> > prom(new std::promise<R>);
                 DDiscarded discarded = [prom, reqId](CAsyncServiceHandler *h, bool canceled) {
                     try {
                         prom->set_exception(std::make_exception_ptr(CUException(canceled ? "Request canceled" : "Socket closed", __FILE__, reqId, __FUNCTION__, MB_REQUEST_ABORTED)));
@@ -1498,12 +1493,12 @@ namespace SPA {
 #if defined(__ANDROID__) || defined(ANDROID)
                     std::string message = Utilities::ToUTF8(errMessage, ::wcslen(errMessage));
                     try {
-                        prom->set_exception(std::make_exception_ptr(CUException(message.c_str(), __FILE__, requestId, __FUNCTION__, errCode)));
+                        prom->set_exception(std::make_exception_ptr(CUException(message.c_str(), errWhere, (int) errCode)));
 #else
                     CScopeUQueue sq;
                     Utilities::ToUTF8(errMessage, ::wcslen(errMessage), *sq);
                     try {
-                        prom->set_exception(std::make_exception_ptr(CUException((const char*) sq->GetBuffer(), __FILE__, requestId, __FUNCTION__, errCode)));
+                        prom->set_exception(std::make_exception_ptr(CUException((const char*) sq->GetBuffer(), errWhere, (int) errCode)));
 #endif
                     } catch (...) {
                     }
@@ -2194,7 +2189,7 @@ namespace SPA {
                 m_nPoolId = 0;
             }
 
-            std::string GetQueueName() {
+            const std::string& GetQueueName() {
                 CAutoLock al(m_cs);
                 return m_qName;
             }
@@ -2294,7 +2289,7 @@ namespace SPA {
                 IClientQueue &cq = socket->GetClientQueue();
                 if (m_qName.size()) {
                     if (!cq.IsAvailable()) {
-                        bool ok = cq.StartQueue((m_qName + std::to_string(index)).c_str(), DEFAULT_QUEUE_TIME_TO_LIVE, socket->GetEncryptionMethod() != NoEncryption);
+                        cq.StartQueue((m_qName + std::to_string(index)).c_str(), DEFAULT_QUEUE_TIME_TO_LIVE, socket->GetEncryptionMethod() != NoEncryption);
                     }
                 }
             }

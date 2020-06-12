@@ -4,7 +4,7 @@
 #include "safequeue.h"
 #include <algorithm>
 
-#ifdef WIN32_64	
+#ifdef WIN32_64
 
 #elif defined(__ANDROID__) || defined(ANDROID)
 #include <boost/locale/encoding_utf.hpp>
@@ -420,7 +420,9 @@ namespace SPA {
         }
 
         CUQueue& operator=(CUQueue && q) {
-            Swap(q);
+            if (this != &q) {
+                Swap(q);
+            }
             return *this;
         }
 #endif
@@ -1358,10 +1360,9 @@ namespace SPA {
          * Movable assignment operator
          */
         CScopeUQueueEx& operator=(CScopeUQueueEx && su) {
-            if (this == &su) {
-                return *this;
+            if (this != &su) {
+                Swap(su);
             }
-            Swap(su);
             return *this;
         }
 #endif

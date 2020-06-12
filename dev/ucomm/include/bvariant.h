@@ -91,22 +91,23 @@ typedef struct tagSAFEARRAYBOUND {
 #define FADF_VARIANT 0x0800 //An array of VARIANTs
 
 typedef struct tagSAFEARRAY {
+    //make sure this is the same with windows
+#if 0
 
-    tagSAFEARRAY() {
-        ::memset(this, 0, sizeof (tagSAFEARRAY));
+    tagSAFEARRAY() : cDims(0), fFeatures(0), cbElements(0), cLocks(0), pvData(nullptr) {
     }
+#endif
     unsigned short cDims; // Count of dimensions in this array. It must be 1 on non-windows platforms.
     unsigned short fFeatures; // Flags used by the SafeArray.
     unsigned int cbElements; // Size of an element of the array.
     unsigned int cLocks; // Number of times the array has been locked without corresponding unlock.
-    PVOID pvData; // Pointer to the data.
+    unsigned char* pvData; // Pointer to the data.
     SAFEARRAYBOUND rgsabound[1]; // One bound for each dimension.
 } SAFEARRAY;
 
 typedef struct tagVARIANT {
 
-    tagVARIANT() {
-        ::memset(this, 0, sizeof (tagVARIANT));
+    tagVARIANT() : vt(VT_EMPTY) {
     }
     VARTYPE vt;
     WORD wReserved1;
@@ -206,7 +207,7 @@ static SAFEARRAY* SafeArrayCreate(VARTYPE vt, unsigned int cDims, SAFEARRAYBOUND
     unsigned char *buffer = (unsigned char*) ::malloc(bytes);
     if (!buffer)
         return nullptr;
-    PVOID pvData = buffer + sizeof (SAFEARRAY);
+    unsigned char* pvData = buffer + sizeof (SAFEARRAY);
     ::memset(pvData, 0, bytes - sizeof (SAFEARRAY));
     SAFEARRAY *sa = (SAFEARRAY *) buffer;
     sa->cbElements = cbElements;
@@ -299,9 +300,6 @@ inline static HRESULT SafeArrayCopy(SAFEARRAY *psa, SAFEARRAY **ppsaOut) {
     if (!ppsaOut) {
         assert(false);
         return E_INVALIDARG;
-    } else if (*ppsaOut) {
-        assert(false);
-        return E_INVALIDARG;
     }
     unsigned int bytes = sizeof (SAFEARRAY) + psa->rgsabound->cElements * psa->cbElements + sizeof (char); //add one extra byte for null char
     unsigned char *buffer = (unsigned char*) ::malloc(bytes);
@@ -332,12 +330,12 @@ inline static HRESULT SafeArrayCopy(SAFEARRAY *psa, SAFEARRAY **ppsaOut) {
 
 inline static void VariantInit(tagVARIANT *pvarg) {
     if (pvarg) {
-        ::memset(pvarg, 0, sizeof (tagVARIANT));
+        pvarg->vt = VT_EMPTY;
     }
 }
 
-static HRESULT VariantClear(tagVARIANT *pvarg) {
-    HRESULT hr = E_INVALIDARG;
+inline static HRESULT VariantClear(tagVARIANT *pvarg) {
+    HRESULT hr;
     if (pvarg) {
         switch (pvarg->vt) {
             case VT_BSTR:
@@ -353,6 +351,8 @@ static HRESULT VariantClear(tagVARIANT *pvarg) {
                 break;
         }
         pvarg->vt = VT_EMPTY;
+    } else {
+        hr = S_OK;
     }
     return hr;
 }
@@ -390,11 +390,11 @@ namespace SPA {
 class CComVariant : public tagVARIANT {
 public:
 
-    CComVariant() {
+    CComVariant() noexcept {
     }
 
-    ~CComVariant() {
-        Clear();
+    ~CComVariant() noexcept {
+        ::VariantClear(this);
     }
 
     CComVariant(const tagVARIANT& varSrc) {
@@ -415,72 +415,72 @@ public:
         bstrVal = SysAllocString(lpszSrc);
     }
 
-    CComVariant(bool bSrc) {
+    CComVariant(bool bSrc) noexcept {
         vt = VT_BOOL;
         boolVal = bSrc ? VARIANT_TRUE : VARIANT_FALSE;
     }
 
-    CComVariant(int nSrc) {
+    CComVariant(int nSrc) noexcept {
         vt = VT_I4;
         intVal = nSrc;
     }
 
-    CComVariant(unsigned char nSrc) {
+    CComVariant(unsigned char nSrc) noexcept {
         vt = VT_UI1;
         bVal = nSrc;
     }
 
-    CComVariant(short nSrc) {
+    CComVariant(short nSrc) noexcept {
         vt = VT_I2;
         iVal = nSrc;
     }
 
-    CComVariant(float fltSrc) {
+    CComVariant(float fltSrc) noexcept {
         vt = VT_R4;
         fltVal = fltSrc;
     }
 
-    CComVariant(double dblSrc) {
+    CComVariant(double dblSrc) noexcept {
         vt = VT_R8;
         dblVal = dblSrc;
     }
 
-    CComVariant(SPA::INT64 nSrc) {
+    CComVariant(SPA::INT64 nSrc) noexcept {
         vt = VT_I8;
         llVal = nSrc;
     }
 
-    CComVariant(SPA::UINT64 nSrc) {
+    CComVariant(SPA::UINT64 nSrc) noexcept {
         vt = VT_UI8;
         ullVal = nSrc;
     }
 
-    CComVariant(CY cySrc) {
+    CComVariant(CY cySrc) noexcept {
         vt = VT_CY;
         cyVal = cySrc;
     }
 
-    CComVariant(const tagDEC& dec) {
-        vt = VT_DECIMAL;
+    CComVariant(const tagDEC& dec) noexcept {
         decVal = dec;
+        vt = VT_DECIMAL;
     }
 
-    CComVariant(char cSrc) {
+    CComVariant(char cSrc) noexcept {
         vt = VT_I1;
         cVal = cSrc;
     }
 
-    CComVariant(unsigned short nSrc) {
+    CComVariant(unsigned short nSrc) noexcept {
         vt = VT_UI2;
         uiVal = nSrc;
     }
 
-    CComVariant(unsigned int nSrc) {
+    CComVariant(unsigned int nSrc) noexcept {
         vt = VT_UI4;
         uintVal = nSrc;
     }
 
-    CComVariant(SPA::UDateTime dt) {
+    CComVariant(SPA::UDateTime dt) noexcept {
         vt = VT_DATE;
         ullVal = dt.time;
     }
@@ -643,22 +643,22 @@ public:
 
     // Comparison Operators
 
-    bool operator==(const tagVARIANT& varSrc) const {
+    bool operator==(const tagVARIANT& varSrc) const noexcept {
         return SPA::IsEqual(*this, varSrc);
     }
 
-    bool operator!=(const tagVARIANT& varSrc) const {
-        return !operator==(varSrc);
+    bool operator!=(const tagVARIANT& varSrc) const noexcept {
+        return !SPA::IsEqual(*this, varSrc);
     }
 
     // Operations
 
-    HRESULT Clear() {
-        return VariantClear(this);
+    inline HRESULT Clear() {
+        return ::VariantClear(this);
     }
 
-    HRESULT Copy(const VARIANT* pSrc) {
-        return VariantCopy(this, const_cast<VARIANT*> (pSrc));
+    inline HRESULT Copy(const VARIANT* pSrc) {
+        return ::VariantCopy(this, const_cast<VARIANT*> (pSrc));
     }
 };
 
