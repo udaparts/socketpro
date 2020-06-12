@@ -338,7 +338,7 @@ inline static void VariantInit(tagVARIANT *pvarg) {
     }
 }
 
-static HRESULT VariantClear(tagVARIANT *pvarg) {
+inline static HRESULT VariantClear(tagVARIANT *pvarg) {
     HRESULT hr;
     if (pvarg) {
         switch (pvarg->vt) {
@@ -355,6 +355,9 @@ static HRESULT VariantClear(tagVARIANT *pvarg) {
                 break;
         }
         pvarg->vt = VT_EMPTY;
+    }
+    else {
+        hr = S_OK;
     }
     return hr;
 }

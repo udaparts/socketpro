@@ -2289,7 +2289,7 @@ namespace SPA {
                 IClientQueue &cq = socket->GetClientQueue();
                 if (m_qName.size()) {
                     if (!cq.IsAvailable()) {
-                        bool ok = cq.StartQueue((m_qName + std::to_string(index)).c_str(), DEFAULT_QUEUE_TIME_TO_LIVE, socket->GetEncryptionMethod() != NoEncryption);
+                        cq.StartQueue((m_qName + std::to_string(index)).c_str(), DEFAULT_QUEUE_TIME_TO_LIVE, socket->GetEncryptionMethod() != NoEncryption);
                     }
                 }
             }
