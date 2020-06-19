@@ -209,20 +209,17 @@ namespace SPA {
 
 namespace NJA {
 
-    int time_offset(time_t rawtime) {
-        time_t gmt;
+    int time_offset(time_t utctime) {
         struct tm *ptm;
 #ifndef WIN32_64
         struct tm gbuf;
-        ptm = gmtime_r(&rawtime, &gbuf);
+        ptm = gmtime_r(&utctime, &gbuf);
 #else
         ptm = gmtime(&rawtime);
 #endif
         // Request that mktime() looksup dst in timezone database
         ptm->tm_isdst = -1;
-        gmt = mktime(ptm);
-
-        return (int) difftime(rawtime, gmt);
+        return (int) difftime(utctime, std::mktime(ptm));
     }
 
     bool IsNullOrUndefined(const Local<Value> &v) {
@@ -314,9 +311,9 @@ namespace NJA {
             return ToStr(isolate, (const char*) s, strlen((const char*) s));
         }
         tm.tm_isdst = -1; //set daylight saving time flag to no information available
-        time_t rawtime = std::mktime(&tm);
-        double time = (double) rawtime;
-        int offset = time_offset(rawtime);
+        time_t utctime = std::mktime(&tm);
+        double time = (double) utctime;
+        int offset = time_offset(utctime);
         time += offset;
         time *= 1000;
         time += (us / 1000.0);
@@ -795,7 +792,7 @@ namespace NJA {
                 if (len == SPA::UQUEUE_NULL_LENGTH) {
                     return v8::Null(isolate);
                 } else if (len > buff.GetSize()) {
-                    throw SPA::CUException("Bad data type");
+                    throw SPA::CUException("Bad string data type");
                 }
                 const char *str = (const char *) buff.GetBuffer();
                 auto s = ToStr(isolate, str, len);
@@ -822,10 +819,10 @@ namespace NJA {
                 if (len == SPA::UQUEUE_NULL_LENGTH) {
                     return Null(isolate);
                 } else if (len > buff.GetSize()) {
-                    throw SPA::CUException("Bad data type");
+                    throw SPA::CUException("Bad string data type");
                 }
                 const UTF16 *str = (const UTF16 *) buff.GetBuffer();
-                auto s = ToStr(isolate, str, len / sizeof (UTF16));
+                auto s = ToStr(isolate, str, len >> 1);
                 buff.Pop(len);
                 return s;
             }

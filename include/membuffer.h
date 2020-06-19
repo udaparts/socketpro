@@ -1109,6 +1109,98 @@ namespace SPA {
             }
             return *this;
         }
+#else
+
+        /**
+         * Insert an UTF16 string into a proper location
+         * @param str Pointer to an UTF16 string
+         * @param chars The size of the string in char with default to string null-terminated
+         * @param position The position in byte with default to 0
+         */
+        inline void Insert(const UTF16* str, unsigned int chars = UQUEUE_NULL_LENGTH, unsigned int position = 0) {
+            if (str) {
+                if (chars == UQUEUE_NULL_LENGTH) {
+                    chars = Utilities::GetLen(str);
+                    chars <<= 1;
+                }
+                Insert((const unsigned char*) str, chars, position);
+            }
+        }
+
+        /**
+         * Append an UTF16 string
+         * @param str Pointer to an UTF16 string
+         * @param chars The size of the string in char with default to string null-terminated
+         */
+        inline void Push(const UTF16* str, unsigned int chars = UQUEUE_NULL_LENGTH) {
+            Insert(str, chars, UQUEUE_END_POSTION);
+        }
+
+        CUQueue& operator<<(const UTF16 *str) {
+            unsigned int size;
+            if (!str) {
+                size = UQUEUE_NULL_LENGTH;
+                Push((const unsigned char*) &size, sizeof (unsigned int));
+                return *this;
+            }
+            size = Utilities::GetLen(str);
+            size <<= 1;
+            Push((const unsigned char*) &size, sizeof (unsigned int));
+            if (size) {
+                Push((const unsigned char*) str, size);
+            }
+            return *this;
+        }
+
+        CUQueue& operator<<(UTF16 *str) {
+            *this << (const UTF16*) str;
+            return *this;
+        }
+
+        CUQueue& operator<<(const std::u16string& str) {
+            unsigned int size = (unsigned int) str.size();
+            size <<= 1;
+            Push((const unsigned char*) &size, sizeof (unsigned int));
+            if (size) {
+                Push((const unsigned char*) str.c_str(), size);
+            }
+            return *this;
+        }
+
+        CUQueue& operator<<(const UTF16& c) {
+            Push((const unsigned char*) &c, sizeof (c));
+            return *this;
+        }
+
+        CUQueue& operator>>(UTF16& c) {
+            Pop((unsigned char*) &c, sizeof (c));
+            return *this;
+        }
+
+        /**
+         * Pop content into std::u16string string
+         * @param str An instance of std::u16string string for receiving data
+         * @return Reference to this memory buffer
+         */
+        CUQueue& operator>>(std::u16string &str) {
+            unsigned int size;
+            Pop((unsigned char*) &size, sizeof (unsigned int));
+            switch (size) {
+                case UQUEUE_NULL_LENGTH:
+                case 0:
+                    str.clear();
+                    break;
+                default:
+                    if (size > GetSize()) {
+                        throw CUException("Bad data for loading UTF16 string", __FILE__, __LINE__, __FUNCTION__, MB_BAD_DESERIALIZATION);
+                    }
+                    const UTF16 *s = (const UTF16*) GetBuffer();
+                    str.assign(s, size >> 1);
+                    Pop(size); //discard
+                    break;
+            }
+            return *this;
+        }
 #endif
 
         inline void Insert(const UDateTime &dt, unsigned int pos = 0) {
@@ -1165,13 +1257,17 @@ namespace SPA {
         }
 
         CUQueue& operator<<(const char &c) {
-            Push((unsigned char*) &c, 1);
+            Push((const unsigned char*) &c, 1);
             return *this;
         }
 
         CUQueue& operator<<(const wchar_t &c) {
+#ifdef WIN32_64
+            Push((const unsigned char*) &c, sizeof (c));
+#else
             UTF16 utf16 = (UTF16) c;
-            Push((unsigned char*) &utf16, sizeof (UTF16));
+            Push((const unsigned char*) &utf16, sizeof (UTF16));
+#endif
             return *this;
         }
 
@@ -1192,9 +1288,13 @@ namespace SPA {
         }
 
         CUQueue& operator>>(wchar_t &data) {
+#ifdef WIN32_64
+            Pop((unsigned char*) &data, sizeof (data));
+#else
             UTF16 c;
             Pop((unsigned char*) &c, sizeof (c));
             data = c;
+#endif
             return *this;
         }
 
