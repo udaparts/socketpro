@@ -110,7 +110,11 @@ namespace SPA {
 #ifndef WIN32_64
 #define WIN32_64
 #endif
-#define ftime   _ftime    
+#define ftime   _ftime
+
+#if _MSC_VER < 1900
+#define noexcept
+#endif
 
 #include <atlbase.h>
 #include <atlstr.h>

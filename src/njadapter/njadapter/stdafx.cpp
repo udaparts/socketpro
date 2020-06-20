@@ -208,8 +208,19 @@ namespace SPA {
 }
 
 namespace NJA {
+    int time_offset(time_t utcTime) {
+#ifndef WIN32_64
+		struct tm gbuf;
+		struct tm *ptm = gmtime_r(&utcTime, &gbuf);
+#else
+		struct tm *ptm = gmtime(&utcTime);
+#endif
+		//Request that mktime() looksup dst in timezone database
+		ptm->tm_isdst = -1;
+		return (int)difftime(utcTime, mktime(ptm));
+	}
 
-    SPA::INT64 time_offset(struct tm *a, struct tm *b) {
+    static inline SPA::INT64 time_offset(struct tm *a, struct tm *b) {
         return a->tm_sec - b->tm_sec
                 + 60LL * (a->tm_min - b->tm_min)
                 + 3600LL * (a->tm_hour - b->tm_hour)
