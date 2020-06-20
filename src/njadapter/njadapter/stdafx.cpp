@@ -209,13 +209,29 @@ namespace SPA {
 
 namespace NJA {
 
+	SPA::INT64 time_offset(struct tm *a, struct tm *b)
+	{
+		return a->tm_sec - b->tm_sec
+			+ 60LL * (a->tm_min - b->tm_min)
+			+ 3600LL * (a->tm_hour - b->tm_hour)
+			+ 86400LL * (a->tm_yday - b->tm_yday)
+			+ (a->tm_year - 70) * 31536000LL
+			- (a->tm_year - 69) / 4 * 86400LL
+			+ (a->tm_year - 1) / 100 * 86400LL
+			- (a->tm_year + 299) / 400 * 86400LL
+			- (b->tm_year - 70) * 31536000LL
+			+ (b->tm_year - 69) / 4 * 86400LL
+			- (b->tm_year - 1) / 100 * 86400LL
+			+ (b->tm_year + 299) / 400 * 86400LL;
+	}
+
     int time_offset(time_t utctime) {
         struct tm *ptm;
 #ifndef WIN32_64
         struct tm gbuf;
         ptm = gmtime_r(&utctime, &gbuf);
 #else
-        ptm = gmtime(&rawtime);
+        ptm = gmtime(&utctime);
 #endif
         // Request that mktime() looksup dst in timezone database
         ptm->tm_isdst = -1;
@@ -313,8 +329,14 @@ namespace NJA {
         tm.tm_isdst = -1; //set daylight saving time flag to no information available
         time_t utctime = std::mktime(&tm);
         double time = (double) utctime;
-        int offset = time_offset(utctime);
-        time += offset;
+		struct tm *ptm;
+#ifndef WIN32_64
+		struct tm gbuf;
+		ptm = gmtime_r(&utctime, &gbuf);
+#else
+		ptm = std::gmtime(&utctime);
+#endif
+        time += (double)time_offset(&tm, ptm);
         time *= 1000;
         time += (us / 1000.0);
         return Date::New(isolate->GetCurrentContext(), time).ToLocalChecked();
