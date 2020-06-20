@@ -30,6 +30,12 @@ b2 --toolset=msvc-10.0 define=BOOST_USE_WINAPI_VERSION=0x0501 runtime-link=stati
 
 b2 --toolset=msvc-10.0 define=BOOST_USE_WINAPI_VERSION=0x0501 runtime-link=static address-model=64
 
+for reduce shared library size: -flto -Os
+
+For an ELF shared library, use readelf -Ws /path/to/libfoo.so, or (if you have GNU nm) nm -D /path/to/libfoo.so.
+For a non-ELF UNIX shared library, please state which UNIX you are interested in.
+For a Windows DLL, use dumpbin /EXPORTS foo.dll.
+
 You can use Valgrind with the following options
 
 valgrind --tool=callgrind ./(Your binary)
