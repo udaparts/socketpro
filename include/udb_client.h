@@ -481,6 +481,14 @@ namespace SPA {
 
 #ifndef WIN32_64
 
+            /**
+             * Send a parameterized SQL statement for preparing with a given array of parameter informations asynchronously
+             * @param sql a parameterized SQL statement
+             * @param handler a callback for SQL preparing result
+             * @param vParameterInfo a given array of parameter informations
+             * @param discarded a callback for tracking socket closed or request canceled event
+             * @return true if request is successfully sent or queued; and false if request is NOT successfully sent or queued
+             */
             virtual bool Prepare(const char16_t *sql, const DResult& handler = nullptr, const CParameterInfoArray& vParameterInfo = CParameterInfoArray(), const DDiscarded& discarded = nullptr) {
                 CScopeUQueue sb;
                 DResultHandler arh = [handler](CAsyncResult & ar) {
@@ -506,6 +514,23 @@ namespace SPA {
                 return SendRequest(idPrepare, sb->GetBuffer(), sb->GetSize(), arh, discarded, nullptr);
             }
 
+            /**
+             * Execute a batch of SQL statements on one single call
+             * @param isolation a value for manual transaction isolation. Specifically, there is no manual transaction around the batch SQL statements if it is tiUnspecified
+             * @param sql a SQL statement having a batch of individual SQL statements
+             * @param vParam an array of parameter data which will be bounded to previously prepared parameters. The array size can be 0 if the given batch SQL statement doesn't having any prepared statement
+             * @param handler a callback for tracking final result
+             * @param row a callback for receiving records of data
+             * @param rh a callback for tracking row set of header column informations
+             * @param batchHeader a callback for tracking returning batch start error messages
+             * @param vPInfo a given array of parameter informations which may be empty to some of database management systems
+             * @param plan a value for computing how included transactions should be rollback
+             * @param discarded a callback for tracking socket closed or request canceled event
+             * @param delimiter a case-sensitive delimiter string used for separating the batch SQL statements into individual SQL statements at server side for processing
+             * @param meta a boolean for better or more detailed column meta details such as unique, not null, primary key, and so on
+             * @param lastInsertId a boolean for last insert record identification number
+             * @return true if request is successfully sent or queued; and false if request is NOT successfully sent or queued
+             */
             virtual bool ExecuteBatch(tagTransactionIsolation isolation, const char16_t *sql, CDBVariantArray &vParam = CDBVariantArray(),
                     const DExecuteResult& handler = nullptr, const DRows& row = nullptr, const DRowsetHeader& rh = nullptr, const DRowsetHeader& batchHeader = nullptr,
                     const CParameterInfoArray& vPInfo = CParameterInfoArray(), tagRollbackPlan plan = rpDefault, const DDiscarded& discarded = nullptr,
@@ -563,6 +588,17 @@ namespace SPA {
                 return true;
             }
 
+            /**
+             * Process a complex SQL statement which may be combined with multiple basic SQL statements asynchronously.
+             * @param sql a complex SQL statement which may be combined with multiple basic SQL statements
+             * @param handler a callback for tracking final result
+             * @param row a callback for receiving records of data
+             * @param rh a callback for tracking row set of header column informations
+             * @param meta a boolean for better or more detailed column meta details such as unique, not null, primary key, and so on
+             * @param lastInsertId a boolean for last insert record identification number
+             * @param discarded a callback for tracking socket closed or request canceled event
+             * @return true if request is successfully sent or queued; and false if request is NOT successfully sent or queued
+             */
             virtual bool Execute(const char16_t* sql, const DExecuteResult& handler = nullptr, const DRows& row = nullptr, const DRowsetHeader& rh = nullptr, bool meta = true, bool lastInsertId = true, const DDiscarded& discarded = nullptr) {
                 bool rowset = (row) ? true : false;
                 meta = (meta && rh);
@@ -593,6 +629,14 @@ namespace SPA {
                 return true;
             }
 
+            /**
+             * Open a database connection at server side asynchronously
+             * @param strConnection a database connection string. The database connection string can be an empty string if its server side supports global database connection string
+             * @param handler a callback for database connecting result
+             * @param flags a set of flags transferred to server to indicate how to build database connection
+             * @param discarded a callback for tracking socket closed or request canceled event
+             * @return true if request is successfully sent or queued; and false if request is NOT successfully sent or queued
+             */
             virtual bool Open(const char16_t* strConnection, const DResult& handler, unsigned int flags = 0, const DDiscarded& discarded = nullptr) {
                 std::wstring s;
                 CScopeUQueue sb;
