@@ -344,7 +344,7 @@ namespace SPA {
                         return false;
                     }
                     callIndex = GetCallIndex();
-                    //don't make m_csDB locked across calling SendRequest, which may lead to client dead-lock 
+                    //don't make m_csDB locked across calling SendRequest, which may lead to client dead-lock
                     //in case a client asynchronously sends lots of requests without use of client side queue.
                     CAutoLock al(m_csDB);
                     if (rowset || meta) {
@@ -479,6 +479,212 @@ namespace SPA {
                 return true;
             }
 
+#ifndef WIN32_64
+
+            /**
+             * Send a parameterized SQL statement for preparing with a given array of parameter informations asynchronously
+             * @param sql a parameterized SQL statement
+             * @param handler a callback for SQL preparing result
+             * @param vParameterInfo a given array of parameter informations
+             * @param discarded a callback for tracking socket closed or request canceled event
+             * @return true if request is successfully sent or queued; and false if request is NOT successfully sent or queued
+             */
+            virtual bool Prepare(const char16_t *sql, const DResult& handler = nullptr, const CParameterInfoArray& vParameterInfo = CParameterInfoArray(), const DDiscarded& discarded = nullptr) {
+                CScopeUQueue sb;
+                DResultHandler arh = [handler](CAsyncResult & ar) {
+                    int res;
+                    std::wstring errMsg;
+                    unsigned int parameters;
+                    ar >> res >> errMsg >> parameters;
+                    CAsyncDBHandler<serviceId> *ash = (CAsyncDBHandler<serviceId>*)ar.AsyncServiceHandler;
+                    ash->m_csDB.lock();
+                    ash->m_bCallReturn = false;
+                    ash->m_lastReqId = idPrepare;
+                    ash->m_dbErrCode = res;
+                    ash->m_dbErrMsg = errMsg;
+                    ash->m_parameters = (parameters & 0xffff);
+                    ash->m_outputs = (parameters >> 16);
+                    ash->m_indexProc = 0;
+                    ash->m_csDB.unlock();
+                    if (handler) {
+                        handler(*ash, res, errMsg);
+                    }
+                };
+                sb << sql << vParameterInfo;
+                return SendRequest(idPrepare, sb->GetBuffer(), sb->GetSize(), arh, discarded, nullptr);
+            }
+
+            /**
+             * Execute a batch of SQL statements on one single call
+             * @param isolation a value for manual transaction isolation. Specifically, there is no manual transaction around the batch SQL statements if it is tiUnspecified
+             * @param sql a SQL statement having a batch of individual SQL statements
+             * @param vParam an array of parameter data which will be bounded to previously prepared parameters. The array size can be 0 if the given batch SQL statement doesn't having any prepared statement
+             * @param handler a callback for tracking final result
+             * @param row a callback for receiving records of data
+             * @param rh a callback for tracking row set of header column informations
+             * @param batchHeader a callback for tracking returning batch start error messages
+             * @param vPInfo a given array of parameter informations which may be empty to some of database management systems
+             * @param plan a value for computing how included transactions should be rollback
+             * @param discarded a callback for tracking socket closed or request canceled event
+             * @param delimiter a case-sensitive delimiter string used for separating the batch SQL statements into individual SQL statements at server side for processing
+             * @param meta a boolean for better or more detailed column meta details such as unique, not null, primary key, and so on
+             * @param lastInsertId a boolean for last insert record identification number
+             * @return true if request is successfully sent or queued; and false if request is NOT successfully sent or queued
+             */
+            virtual bool ExecuteBatch(tagTransactionIsolation isolation, const char16_t *sql, CDBVariantArray &vParam = CDBVariantArray(),
+                    const DExecuteResult& handler = nullptr, const DRows& row = nullptr, const DRowsetHeader& rh = nullptr, const DRowsetHeader& batchHeader = nullptr,
+                    const CParameterInfoArray& vPInfo = CParameterInfoArray(), tagRollbackPlan plan = rpDefault, const DDiscarded& discarded = nullptr,
+                    const char16_t *delimiter = u";", bool meta = true, bool lastInsertId = true) {
+                bool rowset = (row) ? true : false;
+                meta = (meta && rh);
+                CScopeUQueue sb;
+                sb << sql << delimiter << (int) isolation << (int) plan << rowset << meta << lastInsertId;
+
+                UINT64 callIndex;
+                bool queueOk = false;
+
+                //make sure all parameter data sending and ExecuteParameters sending as one combination sending
+                //to avoid possible request sending overlapping within multiple threading environment
+#ifndef NODE_JS_ADAPTER_PROJECT
+                SPA::CAutoLock alOne(m_csOneSending);
+#endif
+                if (vParam.size())
+                    queueOk = GetAttachedClientSocket()->GetClientQueue().StartJob();
+                {
+                    if (!SendParametersData(vParam)) {
+                        Clean();
+                        return false;
+                    }
+                    callIndex = GetCallIndex();
+                    //don't make m_csDB locked across calling SendRequest, which may lead to client dead-lock
+                    //in case a client asynchronously sends lots of requests without use of client side queue.
+                    CAutoLock al(m_csDB);
+                    if (rowset || meta) {
+                        m_mapRowset[callIndex] = CRowsetHandler(rh, row);
+                    }
+#ifndef NO_OUTPUT_BINDING
+                    m_mapParameterCall[callIndex] = &vParam;
+#endif
+                    m_mapHandler[callIndex] = batchHeader;
+                    sb << m_strConnection << m_flags;
+                }
+                sb << callIndex << vPInfo;
+                DResultHandler arh = [callIndex, handler, this](CAsyncResult & ar) {
+                    this->Process(handler, ar, idExecuteBatch, callIndex);
+                };
+                if (!SendRequest(idExecuteBatch, sb->GetBuffer(), sb->GetSize(), arh, discarded, nullptr)) {
+                    CAutoLock al(m_csDB);
+#ifndef NO_OUTPUT_BINDING
+                    m_mapParameterCall.erase(callIndex);
+#endif
+                    if (rowset || meta) {
+                        m_mapRowset.erase(callIndex);
+                    }
+                    m_mapHandler.erase(callIndex);
+                    return false;
+                }
+                if (queueOk)
+                    GetAttachedClientSocket()->GetClientQueue().EndJob();
+                return true;
+            }
+
+            /**
+             * Process a complex SQL statement which may be combined with multiple basic SQL statements asynchronously.
+             * @param sql a complex SQL statement which may be combined with multiple basic SQL statements
+             * @param handler a callback for tracking final result
+             * @param row a callback for receiving records of data
+             * @param rh a callback for tracking row set of header column informations
+             * @param meta a boolean for better or more detailed column meta details such as unique, not null, primary key, and so on
+             * @param lastInsertId a boolean for last insert record identification number
+             * @param discarded a callback for tracking socket closed or request canceled event
+             * @return true if request is successfully sent or queued; and false if request is NOT successfully sent or queued
+             */
+            virtual bool Execute(const char16_t* sql, const DExecuteResult& handler = nullptr, const DRows& row = nullptr, const DRowsetHeader& rh = nullptr, bool meta = true, bool lastInsertId = true, const DDiscarded& discarded = nullptr) {
+                bool rowset = (row) ? true : false;
+                meta = (meta && rh);
+                CScopeUQueue sb;
+#ifndef NODE_JS_ADAPTER_PROJECT
+                SPA::CAutoLock alOne(m_csOneSending);
+#endif
+                UINT64 index = GetCallIndex();
+                {
+                    //don't make m_csDB locked across calling SendRequest, which may lead to client dead-lock
+                    //in case a client asynchronously sends lots of requests without use of client side queue.
+                    CAutoLock al(m_csDB);
+                    if (rowset || meta) {
+                        m_mapRowset[index] = CRowsetHandler(rh, row);
+                    }
+                }
+                sb << sql << rowset << meta << lastInsertId << index;
+                DResultHandler arh = [index, handler, this](CAsyncResult & ar) {
+                    this->Process(handler, ar, idExecute, index);
+                };
+                if (!SendRequest(idExecute, sb->GetBuffer(), sb->GetSize(), arh, discarded, nullptr)) {
+                    CAutoLock al(m_csDB);
+                    if (rowset || meta) {
+                        m_mapRowset.erase(index);
+                    }
+                    return false;
+                }
+                return true;
+            }
+
+            /**
+             * Open a database connection at server side asynchronously
+             * @param strConnection a database connection string. The database connection string can be an empty string if its server side supports global database connection string
+             * @param handler a callback for database connecting result
+             * @param flags a set of flags transferred to server to indicate how to build database connection
+             * @param discarded a callback for tracking socket closed or request canceled event
+             * @return true if request is successfully sent or queued; and false if request is NOT successfully sent or queued
+             */
+            virtual bool Open(const char16_t* strConnection, const DResult& handler, unsigned int flags = 0, const DDiscarded& discarded = nullptr) {
+                std::wstring s;
+                CScopeUQueue sb;
+                {
+                    //don't make m_csDB locked across calling SendRequest, which may lead to client dead-lock
+                    //in case a client asynchronously sends lots of requests without use of client side queue.
+                    CAutoLock al(m_csDB);
+                    m_flags = flags;
+                    if (strConnection) {
+                        s.swap(m_strConnection);
+                        m_strConnection = SPA::Utilities::ToWide(strConnection);
+                    }
+                }
+                sb << strConnection << flags;
+                DResultHandler arh = [handler](CAsyncResult & ar) {
+                    int res, ms;
+                    std::wstring errMsg;
+                    ar >> res >> errMsg >> ms;
+                    CAsyncDBHandler<serviceId> *ash = (CAsyncDBHandler<serviceId>*)ar.AsyncServiceHandler;
+                    ash->m_csDB.lock();
+                    ash->m_dbErrCode = res;
+                    ash->m_lastReqId = idOpen;
+                    if (res == 0) {
+                        ash->m_strConnection = std::move(errMsg);
+                        errMsg.clear();
+                    } else {
+                        ash->m_strConnection.clear();
+                    }
+                    ash->m_dbErrMsg = errMsg;
+                    ash->m_ms = (tagManagementSystem) ms;
+                    ash->m_parameters = 0;
+                    ash->m_outputs = 0;
+                    ash->m_csDB.unlock();
+                    if (handler) {
+                        handler(*ash, res, errMsg);
+                    }
+                };
+                if (SendRequest(UDB::idOpen, sb->GetBuffer(), sb->GetSize(), arh, discarded, nullptr)) {
+                    return true;
+                }
+                CAutoLock al(m_csDB);
+                if (strConnection) {
+                    m_strConnection.swap(s);
+                }
+                return false;
+            }
+#endif
+
             /**
              * Open a database connection at server side asynchronously
              * @param strConnection a database connection string. The database connection string can be an empty string if its server side supports global database connection string
@@ -496,7 +702,7 @@ namespace SPA {
                     CAutoLock al(m_csDB);
                     m_flags = flags;
                     if (strConnection) {
-                        s = m_strConnection;
+                        s.swap(m_strConnection);
                         m_strConnection = strConnection;
                     }
                 }
@@ -529,7 +735,7 @@ namespace SPA {
                 }
                 CAutoLock al(m_csDB);
                 if (strConnection) {
-                    m_strConnection = s;
+                    m_strConnection.swap(s);
                 }
                 return false;
             }
@@ -1173,11 +1379,7 @@ namespace SPA {
                 if (bad) return 0;
                 bool meta = GetMeta(isolate, argv[4], bad);
                 if (bad) return 0;
-#ifdef WIN32_64
                 return Execute(sql, result, r, rh, meta, true, dd) ? index : INVALID_NUMBER;
-#else
-                return Execute(Utilities::ToWide(sql, Utilities::GetLen(sql)).c_str(), result, r, rh, meta, true, dd) ? index : INVALID_NUMBER;
-#endif
             }
 
             UINT64 ExecuteBatch(Isolate* isolate, int args, Local<Value> *argv, tagTransactionIsolation isolation, const UTF16 *sql, CDBVariantArray &vParam, tagRollbackPlan plan, const UTF16 *delimiter, const CParameterInfoArray& vPInfo) {
@@ -1195,11 +1397,7 @@ namespace SPA {
                 if (bad) return 0;
                 bool meta = GetMeta(isolate, argv[5], bad);
                 if (bad) return 0;
-#ifdef WIN32_64
                 return ExecuteBatch(isolation, sql, vParam, result, r, rh, bh, vPInfo, plan, dd, delimiter, meta) ? index : INVALID_NUMBER;
-#else
-                return ExecuteBatch(isolation, Utilities::ToWide(sql, Utilities::GetLen(sql)).c_str(), vParam, result, r, rh, bh, vPInfo, plan, dd, Utilities::ToWide(delimiter, Utilities::GetLen(delimiter)).c_str(), meta) ? index : INVALID_NUMBER;
-#endif
             }
 
             UINT64 Open(Isolate* isolate, int args, Local<Value> *argv, const UTF16* strConnection, unsigned int flags) {
@@ -1209,11 +1407,7 @@ namespace SPA {
                 if (bad) return 0;
                 DDiscarded dd = Get(isolate, argv[1], bad);
                 if (bad) return 0;
-#ifdef WIN32_64
                 return Open(strConnection, result, flags, dd) ? index : INVALID_NUMBER;
-#else
-                return Open(Utilities::ToWide(strConnection, Utilities::GetLen(strConnection)).c_str(), result, flags, dd) ? index : INVALID_NUMBER;
-#endif
             }
 
             UINT64 Prepare(Isolate* isolate, int args, Local<Value> *argv, const UTF16 *sql, const CParameterInfoArray& vParameterInfo) {
@@ -1223,11 +1417,7 @@ namespace SPA {
                 if (bad) return 0;
                 DDiscarded dd = Get(isolate, argv[1], bad);
                 if (bad) return 0;
-#ifdef WIN32_64
                 return Prepare(sql, result, vParameterInfo, dd) ? index : INVALID_NUMBER;
-#else
-                return Prepare(Utilities::ToWide(sql, Utilities::GetLen(sql)).c_str(), result, vParameterInfo, dd) ? index : INVALID_NUMBER;
-#endif
             }
 
         protected:

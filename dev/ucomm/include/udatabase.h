@@ -10,35 +10,7 @@ namespace SPA {
 #ifdef WIN32_64
     typedef std::wstring CDBString;
 #else
-    typedef std::basic_string<UTF16> CDBString;
-
-    static CUQueue& operator<<(CUQueue &q, const CDBString &str) {
-        unsigned int len = (unsigned int) str.size();
-        len <<= 1;
-        q << len;
-        q.Push((const unsigned char*) str.c_str(), len);
-        return q;
-    }
-
-    static CUQueue& operator>>(CUQueue &q, CDBString &str) {
-        unsigned int len;
-        q >> len;
-        switch (len) {
-            case 0:
-            case UQUEUE_NULL_LENGTH:
-                str.clear();
-                break;
-            default:
-                if (len > q.GetSize() || (len % sizeof (UTF16))) {
-                    throw CUException("Bad data for loading UNICODE string", __FILE__, __LINE__, __FUNCTION__, MB_BAD_DESERIALIZATION);
-                } else {
-                    str.assign((const UTF16*) q.GetBuffer(), len >> 1);
-                    q.Pop(len);
-                }
-                break;
-        }
-        return q;
-    }
+    typedef std::u16string CDBString;
 
     namespace Utilities {
 
