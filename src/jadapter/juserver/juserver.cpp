@@ -1524,29 +1524,14 @@ void CALLBACK OnChatRequestCame(USocket_Server_Handle h, SPA::tagChatRequestID c
     CleanException(env);
 }
 
-#ifndef WIN32_64
-
-unsigned int GetLen(const SPA::UTF16 *chars) {
-    if (!chars)
-        return 0;
-    unsigned int len = 0;
-    while (*chars) {
-        ++len;
-        ++chars;
-    }
-    return len;
-}
-
-#endif
-
 bool CALLBACK OnHttpAuthentication(USocket_Server_Handle h, const wchar_t *userId, const wchar_t *password) {
     JNIEnv *env;
 #ifdef WIN32_64
     jsize idLen = (jsize)::wcslen(userId);
     jsize pwdLen = (jsize)::wcslen(password);
 #else
-    jsize idLen = (jsize) GetLen((const SPA::UTF16 *)userId);
-    jsize pwdLen = (jsize) GetLen((const SPA::UTF16 *)password);
+    jsize idLen = (jsize) SPA::GetLen((const SPA::UTF16 *)userId);
+    jsize pwdLen = (jsize) SPA::GetLen((const SPA::UTF16 *)password);
 #endif
     jboolean res = false;
     jint es = g_vm->GetEnv((void **) &env, JNI_VERSION_1_6);

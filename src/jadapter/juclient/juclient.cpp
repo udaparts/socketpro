@@ -56,23 +56,6 @@ jfieldID g_fidPort = nullptr;
 jfieldID g_fidSvsID = nullptr;
 jfieldID g_fidSelfMessage = nullptr;
 
-#ifndef WIN32_64
-
-unsigned int GetLen(const unsigned short *chars) {
-    if (!chars)
-        return 0;
-    unsigned int len = 0;
-    while (*chars) {
-        ++len;
-        ++chars;
-    }
-    return len;
-}
-#else
-
-
-#endif
-
 jclass g_classCClientSocket = nullptr;
 jclass g_classCMessageSender = nullptr;
 
@@ -273,7 +256,7 @@ jobject create(JNIEnv *env, const SPA::ClientSide::CMessageSender &sender, jobje
 #ifdef WIN32_64
     jsize len = (jsize)::wcslen(sender.UserId);
 #else
-    jsize len = GetLen(str);
+    jsize len = SPA::GetLen((const char16_t*) str);
 #endif
     arrayObject[0] = env->NewString(str, len);
     env->SetObjectField(obj, g_fidUserId, arrayObject[0]);
@@ -437,7 +420,7 @@ void CALLBACK OnServerException(USocket_Client_Handle handler, unsigned short re
 #ifdef WIN32_64
     jsize size = (jsize)::wcslen(errMessage);
 #else
-    jsize size = (jsize) GetLen((const jchar*) errMessage);
+    jsize size = (jsize) SPA::GetLen((const char16_t*) errMessage);
 #endif
     jobject objMsg = env->NewString((const jchar*) errMessage, size);
     jobject objWhere = env->NewStringUTF(errWhere);
