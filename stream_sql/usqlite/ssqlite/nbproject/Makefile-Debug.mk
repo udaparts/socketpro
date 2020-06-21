@@ -43,11 +43,11 @@ OBJECTFILES= \
 
 
 # C Compiler Flags
-CFLAGS=-std=c++11 -static-libgcc -static-libstdc++ -Wall
+CFLAGS=-std=c++11 -Wall
 
 # CC Compiler Flags
-CCFLAGS=-std=c++11 -static-libgcc -static-libstdc++ -Wall
-CXXFLAGS=-std=c++11 -static-libgcc -static-libstdc++ -Wall
+CCFLAGS=-std=c++11 -Wall
+CXXFLAGS=-std=c++11 -Wall
 
 # Fortran Compiler Flags
 FFLAGS=
@@ -64,7 +64,7 @@ LDLIBSOPTIONS=-luservercore
 
 ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/libssqlite.${CND_DLIB_EXT}: ${OBJECTFILES}
 	${MKDIR} -p ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}
-	g++ -o ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/libssqlite.${CND_DLIB_EXT} ${OBJECTFILES} ${LDLIBSOPTIONS} -std=c++11 -static-libgcc -static-libstdc++ -shared -fPIC
+	g++ -o ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/libssqlite.${CND_DLIB_EXT} ${OBJECTFILES} ${LDLIBSOPTIONS} -std=c++11 -shared -fPIC
 
 ${OBJECTDIR}/_ext/932346631/aserverw.o: ../../../include/aserverw.cpp 
 	${MKDIR} -p ${OBJECTDIR}/_ext/932346631

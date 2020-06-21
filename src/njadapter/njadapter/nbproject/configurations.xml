@@ -87,7 +87,7 @@
           <incDir>
             <pElem>node</pElem>
           </incDir>
-          <commandLine>-std=c++11 -static-libstdc++ -Wall</commandLine>
+          <commandLine>-std=c++11 -Wall</commandLine>
           <preprocessorList>
             <Elem>NODE_JS_ADAPTER_PROJECT</Elem>
           </preprocessorList>
@@ -96,7 +96,7 @@
           <incDir>
             <pElem>node</pElem>
           </incDir>
-          <commandLine>-std=c++11 -static-libstdc++ -Wall</commandLine>
+          <commandLine>-std=c++11 -Wall</commandLine>
           <preprocessorList>
             <Elem>NODE_JS_ADAPTER_PROJECT</Elem>
           </preprocessorList>

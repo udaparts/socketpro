@@ -43,13 +43,13 @@
       </toolsSet>
       <compileType>
         <cTool>
-          <commandLine>-std=c++11 -static-libgcc -static-libstdc++ -Wall</commandLine>
+          <commandLine>-std=c++11 -Wall</commandLine>
           <preprocessorList>
             <Elem>USE_BOOST_LARGE_INTEGER_FOR_DECIMAL</Elem>
           </preprocessorList>
         </cTool>
         <ccTool>
-          <commandLine>-std=c++11 -static-libgcc -static-libstdc++ -Wall</commandLine>
+          <commandLine>-std=c++11 -Wall</commandLine>
           <preprocessorList>
             <Elem>USE_BOOST_LARGE_INTEGER_FOR_DECIMAL</Elem>
           </preprocessorList>
@@ -59,7 +59,7 @@
           <linkerLibItems>
             <linkerLibLibItem>uservercore</linkerLibLibItem>
           </linkerLibItems>
-          <commandLine>-std=c++11 -static-libgcc -static-libstdc++</commandLine>
+          <commandLine>-std=c++11</commandLine>
         </linkerTool>
       </compileType>
       <item path="../../../include/aserverw.cpp" ex="false" tool="0" flavor2="0">
@@ -101,7 +101,7 @@
         <cTool>
           <developmentMode>5</developmentMode>
           <stripSymbols>true</stripSymbols>
-          <commandLine>-std=c++11 -static-libgcc -static-libstdc++</commandLine>
+          <commandLine>-std=c++11 -static-libstdc++</commandLine>
           <preprocessorList>
             <Elem>NDEBUG</Elem>
             <Elem>USE_BOOST_LARGE_INTEGER_FOR_DECIMAL</Elem>
@@ -110,7 +110,7 @@
         <ccTool>
           <developmentMode>5</developmentMode>
           <stripSymbols>true</stripSymbols>
-          <commandLine>-std=c++11 -static-libgcc -static-libstdc++ -Wall</commandLine>
+          <commandLine>-std=c++11 -static-libstdc++</commandLine>
           <preprocessorList>
             <Elem>NDEBUG</Elem>
             <Elem>USE_BOOST_LARGE_INTEGER_FOR_DECIMAL</Elem>
@@ -128,7 +128,7 @@
           <linkerLibItems>
             <linkerLibLibItem>uservercore</linkerLibLibItem>
           </linkerLibItems>
-          <commandLine>-std=c++11 -static-libgcc -static-libstdc++</commandLine>
+          <commandLine>-std=c++11</commandLine>
         </linkerTool>
       </compileType>
       <item path="../../../include/aserverw.cpp" ex="false" tool="0" flavor2="0">

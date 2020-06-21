@@ -21,13 +21,13 @@ int main(int argc, char* argv[]) {
     std::string s;
     std::cout << "Database name: " << std::endl;
     std::getline(std::cin, s);
-    std::wstring dbName = SPA::Utilities::ToWide(s.c_str());
+    SPA::CDBString dbName = SPA::Utilities::ToUTF16(s.c_str());
     std::cout << "Table name: " << std::endl;
     std::getline(std::cin, s);
-    std::wstring tableName = SPA::Utilities::ToWide(s.c_str());
+    SPA::CDBString tableName = SPA::Utilities::ToUTF16(s.c_str());
     std::cout << "sql filter: " << std::endl;
     std::getline(std::cin, s);
-    std::wstring filter = SPA::Utilities::ToWide(s.c_str());
+    SPA::CDBString filter = SPA::Utilities::ToUTF16(s.c_str());
     std::cout << "Asynchronous execution (0) or synchronous execution (1) ?" << std::endl;
     std::getline(std::cin, s);
     int sync = std::atoi(s.c_str());
@@ -94,10 +94,17 @@ int main(int argc, char* argv[]) {
     ok = pMysql->Open(dbName.c_str(), dr);
     ok = pMysql->WaitAll();
     obtained = 0;
-    std::wstring sql = L"select * from " + tableName;
+#ifdef NATIVE_UTF16_SUPPORTED
+    SPA::CDBString sql = u"select * from " + tableName;
+    if (filter.size() > 0) {
+        sql += u" where " + filter;
+    }
+#else
+    SPA::CDBString sql = L"select * from " + tableName;
     if (filter.size() > 0) {
         sql += L" where " + filter;
     }
+#endif
     unsigned int count = 500000;
 #ifdef WIN32_64
     DWORD dwStart = ::GetTickCount();
@@ -122,8 +129,13 @@ int main(int argc, char* argv[]) {
 #endif
     std::cout << "Time required = " << diff << " milliseconds for " << obtained << " query requests" << std::endl;
 
+#ifdef NATIVE_UTF16_SUPPORTED
+    ok = pMysql->Execute(u"USE mysqldb;delete from company where id > 3");
+    const char16_t *sql_insert_parameter = u"INSERT INTO company(ID,NAME,ADDRESS,Income)VALUES(?,?,?,?)";
+#else
     ok = pMysql->Execute(L"USE mysqldb;delete from company where id > 3");
     const wchar_t *sql_insert_parameter = L"INSERT INTO company(ID,NAME,ADDRESS,Income)VALUES(?,?,?,?)";
+#endif
     ok = pMysql->Prepare(sql_insert_parameter, dr);
     ok = pMysql->WaitAll();
     int index = 0;
