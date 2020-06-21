@@ -28,8 +28,8 @@ public class Program {
     public static void main(String[] args) {
         java.util.Scanner scanner = new java.util.Scanner(System.in);
         System.out.println("Input your user id ......");
-        //CConnectionContext cc = new CConnectionContext("localhost", 20901, scanner.nextLine(), "MyPassword");
-        CConnectionContext cc = new CConnectionContext("localhost", 20901, scanner.nextLine(), "MyPassword", SPA.tagEncryptionMethod.TLSv1);
+        CConnectionContext cc = new CConnectionContext("localhost", 20901, scanner.nextLine(), "MyPassword");
+        //CConnectionContext cc = new CConnectionContext("localhost", 20901, scanner.nextLine(), "MyPassword", SPA.tagEncryptionMethod.TLSv1);
 
         //CA file is located at the directory ..\SocketProRoot\bin
         CClientSocket.SSL.SetVerifyLocation("ca.cert.pem"); //linux
