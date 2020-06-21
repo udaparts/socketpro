@@ -37,7 +37,7 @@ namespace SPA {
         }
 
         static CDBString ToUTF16(const VARIANT &data) {
-#ifdef WIN32_64
+#ifndef NATIVE_UTF16_SUPPORTED
             if (data.vt == VT_BSTR) {
                 return data.bstrVal;
             }

@@ -23,6 +23,9 @@ namespace SPA {
 #ifndef WINCE
         void Trim(std::string &s);
         void Trim(std::wstring &s);
+#ifdef NATIVE_UTF16_SUPPORTED
+        void Trim(std::u16string &s);
+#endif
 #endif
 
 #if defined(__ANDROID__) || defined(ANDROID)
@@ -42,6 +45,13 @@ namespace SPA {
         const UTF16* ToUTF16(const char *s, size_t len = (size_t) (~0));
         const UTF16* ToUTF16(const std::string &s);
         const UTF16* ToUTF16(const std::wstring &str);
+
+#ifdef NATIVE_UTF16_SUPPORTED
+        void ToUTF16(const char *str, size_t chars, CUQueue &q, bool append = false);
+        const char* ToUTF8(const char16_t *str, size_t wchars = (size_t) (~0));
+        void ToUTF8(const char16_t *str, size_t chars, CUQueue &q, bool append = false);
+        void ToUTF16(const wchar_t *str, size_t wchars, CUQueue &q, bool append = false);
+#endif
 #else
         BSTR ToBSTR(const char *utf8, size_t chars);
 #endif
@@ -52,7 +62,10 @@ namespace SPA {
         std::string ToUTF8(const std::wstring &s);
         std::wstring ToWide(const std::string &s);
 #endif
-        unsigned int GetLen(const UTF16 *str);
+
+        inline static unsigned int GetLen(const UTF16 *str) {
+            return (unsigned int) SPA::GetLen(str);
+        }
         bool IsEqual(const UTF16 *s0, const UTF16 *s1, bool case_sensitive);
         bool IsEqual(const char *s0, const char *s1, bool case_sensitive);
 
@@ -1109,7 +1122,9 @@ namespace SPA {
             }
             return *this;
         }
-#else
+#endif
+
+#ifdef NATIVE_UTF16_SUPPORTED
 
         /**
          * Insert an UTF16 string into a proper location
@@ -1117,10 +1132,10 @@ namespace SPA {
          * @param chars The size of the string in char with default to string null-terminated
          * @param position The position in byte with default to 0
          */
-        inline void Insert(const UTF16* str, unsigned int chars = UQUEUE_NULL_LENGTH, unsigned int position = 0) {
+        inline void Insert(const char16_t* str, unsigned int chars = UQUEUE_NULL_LENGTH, unsigned int position = 0) {
             if (str) {
                 if (chars == UQUEUE_NULL_LENGTH) {
-                    chars = Utilities::GetLen(str);
+                    chars = (unsigned int) GetLen(str);
                     chars <<= 1;
                 }
                 Insert((const unsigned char*) str, chars, position);
@@ -1132,18 +1147,18 @@ namespace SPA {
          * @param str Pointer to an UTF16 string
          * @param chars The size of the string in char with default to string null-terminated
          */
-        inline void Push(const UTF16* str, unsigned int chars = UQUEUE_NULL_LENGTH) {
+        inline void Push(const char16_t* str, unsigned int chars = UQUEUE_NULL_LENGTH) {
             Insert(str, chars, UQUEUE_END_POSTION);
         }
 
-        CUQueue& operator<<(const UTF16 *str) {
+        CUQueue& operator<<(const char16_t *str) {
             unsigned int size;
             if (!str) {
                 size = UQUEUE_NULL_LENGTH;
                 Push((const unsigned char*) &size, sizeof (unsigned int));
                 return *this;
             }
-            size = Utilities::GetLen(str);
+            size = (unsigned int) GetLen(str);
             size <<= 1;
             Push((const unsigned char*) &size, sizeof (unsigned int));
             if (size) {
@@ -1152,8 +1167,8 @@ namespace SPA {
             return *this;
         }
 
-        CUQueue& operator<<(UTF16 *str) {
-            *this << (const UTF16*) str;
+        CUQueue& operator<<(char16_t *str) {
+            *this << (const char16_t*) str;
             return *this;
         }
 
@@ -1167,12 +1182,12 @@ namespace SPA {
             return *this;
         }
 
-        CUQueue& operator<<(const UTF16& c) {
+        CUQueue& operator<<(const char16_t& c) {
             Push((const unsigned char*) &c, sizeof (c));
             return *this;
         }
 
-        CUQueue& operator>>(UTF16& c) {
+        CUQueue& operator>>(char16_t& c) {
             Pop((unsigned char*) &c, sizeof (c));
             return *this;
         }
@@ -1194,7 +1209,7 @@ namespace SPA {
                     if (size > GetSize()) {
                         throw CUException("Bad data for loading UTF16 string", __FILE__, __LINE__, __FUNCTION__, MB_BAD_DESERIALIZATION);
                     }
-                    const UTF16 *s = (const UTF16*) GetBuffer();
+                    const char16_t *s = (const char16_t*) GetBuffer();
                     str.assign(s, size >> 1);
                     Pop(size); //discard
                     break;

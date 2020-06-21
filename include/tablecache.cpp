@@ -1326,7 +1326,7 @@ namespace SPA
             return CTable::INVALID_ORDINAL;
         if (!dbName)
             dbName = "";
-#ifdef WIN32_64
+#ifndef NATIVE_UTF16_SUPPORTED
         std::wstring wdbName = Utilities::ToWide(dbName);
         std::wstring wtblName = Utilities::ToWide(tblName);
         std::wstring wstr = Utilities::ToWide(str);
@@ -1379,7 +1379,8 @@ namespace SPA
         }
         return CTable::NO_TABLE_FOUND;
     }
-#ifndef WIN32_64
+
+#if defined(WCHAR32) || _MSC_VER >= 1900
 
     UDB::CDBColumnInfoArray CDataSet::GetColumMeta(const wchar_t *dbName, const wchar_t * tblName) {
         CDBString db = dbName ? Utilities::ToUTF16(dbName) : u"";

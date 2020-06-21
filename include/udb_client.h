@@ -479,7 +479,7 @@ namespace SPA {
                 return true;
             }
 
-#ifndef WIN32_64
+#ifdef NATIVE_UTF16_SUPPORTED
 
             /**
              * Send a parameterized SQL statement for preparing with a given array of parameter informations asynchronously
@@ -647,7 +647,11 @@ namespace SPA {
                     m_flags = flags;
                     if (strConnection) {
                         s.swap(m_strConnection);
+#ifdef WIN32_64
+                        m_strConnection = (const wchar_t*)strConnection;
+#else
                         m_strConnection = SPA::Utilities::ToWide(strConnection);
+#endif
                     }
                 }
                 sb << strConnection << flags;

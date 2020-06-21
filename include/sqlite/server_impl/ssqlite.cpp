@@ -5,7 +5,7 @@
 std::shared_ptr<SPA::ServerSide::CSqliteService> g_pSqlite;
 
 void WINAPI SetSqliteDBGlobalConnectionString(const wchar_t *dbConnection) {
-    SPA::ServerSide::CSqliteImpl::SetDBGlobalConnectionString(dbConnection);
+    SPA::ServerSide::CSqliteImpl::SetDBGlobalConnectionString(SPA::Utilities::ToUTF16(dbConnection));
 }
 
 bool WINAPI InitServerLibrary(int param) {

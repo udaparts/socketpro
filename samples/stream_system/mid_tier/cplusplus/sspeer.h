@@ -12,7 +12,7 @@ public:
 protected:
     virtual void OnFastRequestArrive(unsigned short reqId, unsigned int len);
     virtual int OnSlowRequestArrive(unsigned short reqId, unsigned int len);
-    virtual void GetCachedTables(const std::wstring &defaultDb, unsigned int flags, SPA::UINT64 index, int &dbMS, int &res, std::wstring &errMsg);
+    virtual void GetCachedTables(const SPA::CDBString &defaultDb, unsigned int flags, SPA::UINT64 index, int &dbMS, int &res, std::wstring &errMsg);
 
 private:
     void GetMasterSlaveConnectedSessions(unsigned int &m_connections, unsigned int &s_connections);

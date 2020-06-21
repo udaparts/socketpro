@@ -192,6 +192,7 @@ typedef struct tagDEC {
 
     //make sure this is the same with windows
 #if 0
+
     tagDEC() : wReserved(0), signscale(0), Hi32(0), Lo64(0) {
     }
 #endif
@@ -341,11 +342,36 @@ namespace SPA {
 
 namespace SPA {
 
-#ifdef WCHAR16
+#if _MSC_VER < 1900 && defined(WCHAR16)
     typedef wchar_t UTF16;
 #else
     typedef char16_t UTF16;
+#define NATIVE_UTF16_SUPPORTED
+
+    inline static size_t GetLen(const char16_t *str) {
+        size_t size = 0;
+        if (str) {
+            while (*str++) {
+                ++size;
+            }
+        }
+        return size;
+    }
 #endif
+
+    inline static size_t GetLen(const char *str) {
+        if (!str) {
+            return 0;
+        }
+        return ::strlen(str);
+    }
+
+    inline static size_t GetLen(const wchar_t *str) {
+        if (!str) {
+            return 0;
+        }
+        return ::wcslen(str);
+    }
 
     //The following functions atoxxx work correctly for standard and normal number strings without any preventions.
     //The function atof does NOT support number strings with e or E.

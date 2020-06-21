@@ -7,31 +7,22 @@
 
 namespace SPA {
 
-#ifdef WIN32_64
-    typedef std::wstring CDBString;
-#else
-    typedef std::u16string CDBString;
+    typedef std::basic_string<UTF16> CDBString;
 
     namespace Utilities {
 
         static std::wstring ToWide(const CDBString &str) {
+#ifdef WIN32_64
+            return (const wchar_t*)str.c_str();
+#else
             return ToWide(str.c_str(), str.size());
-        }
-
-        static void Trim(CDBString & s) {
-            while (s.size() && ::isspace(s.back())) {
-                s.pop_back();
-            }
-            while (s.size() && ::isspace(s.front())) {
-                s.erase(s.begin());
-            }
+#endif
         }
 
         static std::string ToUTF8(const CDBString &str) {
             return ToUTF8(str.c_str(), str.size());
         }
     }
-#endif
 
     namespace UDB {
 

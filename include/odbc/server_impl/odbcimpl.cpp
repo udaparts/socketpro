@@ -14,7 +14,7 @@ namespace SPA
 
         SQLHENV COdbcImpl::g_hEnv = nullptr;
 
-#ifdef WIN32_64
+#ifndef NATIVE_UTF16_SUPPORTED
         const UTF16 * COdbcImpl::NO_DB_OPENED_YET = L"No ODBC database opened yet";
         const UTF16 * COdbcImpl::BAD_END_TRANSTACTION_PLAN = L"Bad end transaction plan";
         const UTF16 * COdbcImpl::NO_PARAMETER_SPECIFIED = L"No parameter specified";
@@ -315,7 +315,7 @@ namespace SPA
                 PushInfo(m_pOdbc.get());
                 if (strConnection.size()) {
                     CDBString sql;
-#ifdef WIN32_64
+#if defined(WIN32_64) && _MSC_VER < 1900
                     if (m_dbms == L"microsoft sql server") {
                         sql = L"USE [" + strConnection + L"]";
                     } else if (m_dbms == L"mysql") {
@@ -373,7 +373,7 @@ namespace SPA
                         m_global = false;
                     }
                     ODBC_CONNECTION_STRING ocs;
-#ifdef WIN32_64
+#if defined(WIN32_64) && _MSC_VER < 1900
                     ocs.Parse(db.c_str());
 #else
                     ocs.Parse(Utilities::ToWide(db).c_str());
@@ -1034,7 +1034,7 @@ namespace SPA
             if (mapInfo.find(SQL_DBMS_NAME) != mapInfo.end()) {
                 m_dbms = Utilities::ToUTF16(mapInfo[SQL_DBMS_NAME].bstrVal);
                 std::transform(m_dbms.begin(), m_dbms.end(), m_dbms.begin(), ::tolower); //microsoft sql server, oracle, mysql
-#ifdef WIN32_64
+#if defined(WIN32_64) && _MSC_VER < 1900
                 if (m_dbms == L"microsoft sql server") {
                     m_msDriver = msMsSQL;
                 } else if (m_dbms == L"mysql") {
@@ -1226,7 +1226,7 @@ namespace SPA
             }
             CDBString s_copy = s;
             transform(s.begin(), s.end(), s.begin(), ::tolower);
-#ifdef WIN32_64
+#ifndef NATIVE_UTF16_SUPPORTED
             m_bCall = (s.find(L"call ") == 0);
 #else
             m_bCall = (s.find(u"call ") == 0);
@@ -2632,7 +2632,7 @@ namespace SPA
             int res = 0;
             CDBString errMsg, strSqlCache;
             CDBVariant vtId;
-#ifdef WIN32_64
+#ifndef NATIVE_UTF16_SUPPORTED
             CDBString sql = L"SELECT name FROM master.dbo.sysdatabases where name NOT IN('master','tempdb','model','msdb')";
 #else
             CDBString sql = u"SELECT name FROM master.dbo.sysdatabases where name NOT IN('master','tempdb','model','msdb')";
@@ -2649,7 +2649,7 @@ namespace SPA
                     vDb.push_back(std::move(vt));
                 }
                 for (auto it = vDb.cbegin(), end = vDb.cend(); it != end; ++it) {
-#ifdef WIN32_64
+#ifndef NATIVE_UTF16_SUPPORTED
                     sql = L"USE [";
                     sql += it->bstrVal;
                     sql += L"];";
@@ -2668,7 +2668,7 @@ namespace SPA
                     CDBVariant vtSchema, vtTable;
                     while (q.GetSize()) {
                         q >> vtSchema >> vtTable;
-#ifdef WIN32_64
+#ifndef NATIVE_UTF16_SUPPORTED
                         strSqlCache += L"SELECT * FROM [";
                         strSqlCache += it->bstrVal;
                         strSqlCache += L"].[";
@@ -2690,7 +2690,7 @@ namespace SPA
                     }
                 }
             } while (false);
-#ifdef WIN32_64
+#ifndef NATIVE_UTF16_SUPPORTED
             sql = L"USE [" + m_dbName + L"]";
 #else
             sql = u"USE [" + m_dbName + u"]";
@@ -2811,7 +2811,7 @@ namespace SPA
         }
 
         void COdbcImpl::SetOracleCallParams(const std::vector<tagParameterDirection> &vPD, int &res, CDBString & errMsg) {
-#ifdef WIN32_64
+#ifndef NATIVE_UTF16_SUPPORTED
             CDBString sql(L"SELECT in_out,data_type FROM SYS.ALL_ARGUMENTS WHERE data_type<>'REF CURSOR' AND owner='");
             std::transform(m_userName.begin(), m_userName.end(), m_userName.begin(), ::toupper);
             sql += m_userName;
@@ -4627,7 +4627,7 @@ namespace SPA
         }
 
         void COdbcImpl::GetErrMsg(SQLSMALLINT HandleType, SQLHANDLE Handle, CDBString & errMsg) {
-#ifdef WIN32_64
+#ifndef NATIVE_UTF16_SUPPORTED
             static CDBString SQLSTATE(L"SQLSTATE=");
             static CDBString NATIVE_ERROR(L":NATIVE=");
             static CDBString ERROR_MESSAGE(L":ERROR_MESSAGE=");

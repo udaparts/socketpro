@@ -24,10 +24,10 @@ int main(int argc, char* argv[]) {
     std::cout << "Table name: " << std::endl;
     std::string s;
     std::getline(std::cin, s);
-    std::wstring tableName = SPA::Utilities::ToWide(s.c_str());
+    SPA::CDBString tableName = SPA::Utilities::ToUTF16(s.c_str());
     std::cout << "sql filter: " << std::endl;
     std::getline(std::cin, s);
-    std::wstring filter = SPA::Utilities::ToWide(s.c_str());
+    SPA::CDBString filter = SPA::Utilities::ToUTF16(s.c_str());
     std::cout << "Asynchronous execution (0) or synchronous execution (1) ?" << std::endl;
     std::getline(std::cin, s);
     int sync = std::atoi(s.c_str());
@@ -88,14 +88,22 @@ int main(int argc, char* argv[]) {
         column_rowset_pair.first = vColInfo;
         ra.push_back(column_rowset_pair);
     };
-
+    obtained = 0;
+#ifdef NATIVE_UTF16_SUPPORTED
+    ok = pSqlite->Open(u"sakila.db", dr);
+    ok = pSqlite->WaitAll();
+    SPA::CDBString sql = u"select * from " + tableName;
+    if (filter.size() > 0) {
+        sql += u" where " + filter;
+    }
+#else
     ok = pSqlite->Open(L"sakila.db", dr);
     ok = pSqlite->WaitAll();
-    obtained = 0;
-    std::wstring sql = L"select * from " + tableName;
+    SPA::CDBString sql = L"select * from " + tableName;
     if (filter.size() > 0) {
         sql += L" where " + filter;
     }
+#endif
     unsigned int count = 10000;
 #ifdef WIN32_64
     DWORD dwStart = ::GetTickCount();
@@ -119,10 +127,15 @@ int main(int argc, char* argv[]) {
     unsigned int diff = d.count();
 #endif
     std::cout << "Time required = " << diff << " milliseconds for " << obtained << " query requests" << std::endl;
-
+#ifdef NATIVE_UTF16_SUPPORTED
+    ok = pSqlite->Open(u"", dr); //open a global database at remote server
+    ok = pSqlite->Execute(u"delete from company where id > 3");
+    const char16_t *sql_insert_parameter = u"INSERT INTO company(ID,NAME,ADDRESS,Income)VALUES(?,?,?,?)";
+#else
     ok = pSqlite->Open(L"", dr); //open a global database at remote server
     ok = pSqlite->Execute(L"delete from company where id > 3");
     const wchar_t *sql_insert_parameter = L"INSERT INTO company(ID,NAME,ADDRESS,Income)VALUES(?,?,?,?)";
+#endif
     ok = pSqlite->Prepare(sql_insert_parameter, dr);
     ok = pSqlite->WaitAll();
     int index = 0;

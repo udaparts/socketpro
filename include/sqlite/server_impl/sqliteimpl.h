@@ -25,7 +25,7 @@ namespace SPA {
             sqlite3* GetDBHandle() const;
             const std::vector<std::shared_ptr<sqlite3_stmt> >& GetPreparedStatements() const;
             bool IsGloballyConnected() const;
-            static void SetDBGlobalConnectionString(const wchar_t *dbConnection);
+            static void SetDBGlobalConnectionString(const UTF16 *dbConnection);
             static void SetInitialParam(unsigned int param);
 
         protected:

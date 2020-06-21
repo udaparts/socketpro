@@ -185,7 +185,7 @@ namespace SPA {
          */
         virtual size_t DeleteARow(const UTF16 *dbName, const UTF16 *tblName, const VARIANT *pRow, unsigned int cols);
 
-#ifndef WIN32_64
+#if defined(WCHAR32) || _MSC_VER >= 1900
         UDB::CDBColumnInfoArray GetColumMeta(const wchar_t *dbName, const wchar_t *tblName);
         size_t GetRowCount(const wchar_t *dbName, const wchar_t *tblName);
         size_t GetColumnCount(const wchar_t *dbName, const wchar_t *tblName);

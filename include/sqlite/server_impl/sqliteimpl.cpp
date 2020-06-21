@@ -13,7 +13,7 @@
 namespace SPA
 {
     namespace ServerSide{
-#ifdef WIN32_64
+#ifndef NATIVE_UTF16_SUPPORTED
         const UTF16 * CSqliteImpl::NO_DB_OPENED_YET = L"No sqlite database opened yet";
         const UTF16 * CSqliteImpl::BAD_END_TRANSTACTION_PLAN = L"Bad end transaction plan";
         const UTF16 * CSqliteImpl::NO_PARAMETER_SPECIFIED = L"No parameter specified";
@@ -285,12 +285,12 @@ namespace SPA
             return 0;
         }
 
-        void CSqliteImpl::SetDBGlobalConnectionString(const wchar_t * dbConnection) {
-#ifdef WIN32_64
+        void CSqliteImpl::SetDBGlobalConnectionString(const UTF16 * dbConnection) {
+#ifndef NATIVE_UTF16_SUPPORTED
             std::wstring str = dbConnection ? dbConnection : L"";
             std::transform(str.begin(), str.end(), str.begin(), ::tolower);
 #else
-            CDBString str = dbConnection ? Utilities::ToUTF16(dbConnection) : u"";
+            CDBString str = dbConnection ? dbConnection : u"";
 #endif
             SPA::CAutoLock al(m_csPeer);
             m_mapCache.clear();

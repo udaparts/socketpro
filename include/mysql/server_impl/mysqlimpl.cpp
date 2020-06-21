@@ -30,7 +30,7 @@ namespace SPA
         my_bool CMysqlImpl::B_IS_NULL = 1;
         CDBString CMysqlImpl::m_strGlobalConnection;
         bool CMysqlImpl::m_bInitMysql = false;
-#ifdef WIN32_64
+#ifndef NATIVE_UTF16_SUPPORTED
         const UTF16 * CMysqlImpl::NO_DB_OPENED_YET = L"No mysql database opened yet";
         const UTF16 * CMysqlImpl::BAD_END_TRANSTACTION_PLAN = L"Bad end transaction plan";
         const UTF16 * CMysqlImpl::NO_PARAMETER_SPECIFIED = L"No parameter specified";
@@ -137,7 +137,7 @@ namespace SPA
         }
 
         bool CMysqlImpl::SetPublishDBEvent(CMysqlImpl & impl) {
-#ifdef WIN32_64
+#ifndef NATIVE_UTF16_SUPPORTED
             CDBString wsql = L"CREATE FUNCTION PublishDBEvent RETURNS INTEGER SONAME 'smysql.dll'";
 #else
             CDBString wsql = u"CREATE FUNCTION PublishDBEvent RETURNS INTEGER SONAME 'libsmysql.so'";
@@ -169,7 +169,7 @@ namespace SPA
         }
 
         bool CMysqlImpl::RemoveUnusedTriggers(const std::vector<std::string> &vecTables) {
-#ifdef WIN32_64
+#ifndef NATIVE_UTF16_SUPPORTED
             CDBString prefix(STREAMING_DB_TRIGGER_PREFIX);
             CDBString sql_existing = L"SELECT event_object_schema,trigger_name,EVENT_OBJECT_TABLE FROM INFORMATION_SCHEMA.TRIGGERS where TRIGGER_NAME like '" + prefix + L"%' order by event_object_schema,EVENT_OBJECT_TABLE";
 #else
@@ -203,7 +203,7 @@ namespace SPA
                     return (trigger_db_table == s);
                 });
                 if (ret == vec.end()) {
-#ifdef WIN32_64
+#ifndef NATIVE_UTF16_SUPPORTED
                     CDBString wsql = L"USE `" + Utilities::ToWide(schema) + L"`";
 #else
                     CDBString wsql = u"USE `" + CDBString(Utilities::ToUTF16(schema)) + u"`";
@@ -212,7 +212,7 @@ namespace SPA
                     res = 0;
 
                     //trigger not needed any more as it is not found inside sp_streaming_db.config.cached_tables
-#ifdef WIN32_64
+#ifndef NATIVE_UTF16_SUPPORTED
                     wsql = L"drop trigger " + Utilities::ToWide(name);
 #else
                     wsql = u"drop trigger " + CDBString(Utilities::ToUTF16(name));
@@ -232,7 +232,7 @@ namespace SPA
             bool bDelete = false, bInsert = false, bUpdate = false;
             CDBString wSchema = Utilities::ToUTF16(schema);
             CDBString wTable = Utilities::ToUTF16(table);
-#ifdef WIN32_64
+#ifndef NATIVE_UTF16_SUPPORTED
             CDBString prefix(STREAMING_DB_TRIGGER_PREFIX);
             CDBString sql_existing = L"SELECT EVENT_MANIPULATION, TRIGGER_NAME FROM INFORMATION_SCHEMA.TRIGGERS WHERE ";
             sql_existing += L"EVENT_OBJECT_SCHEMA='" + wSchema + L"'";
@@ -275,7 +275,7 @@ namespace SPA
             }
             if (bInsert && bDelete && bUpdate)
                 return false;
-#ifdef WIN32_64
+#ifndef NATIVE_UTF16_SUPPORTED
             CDBString sql = L"SELECT COLUMN_NAME,COLUMN_KEY FROM information_schema.COLUMNS WHERE TABLE_SCHEMA='";
             sql += (wSchema + L"' AND TABLE_NAME='");
             sql += (wTable + L"' ORDER BY TABLE_NAME,ORDINAL_POSITION");
@@ -307,7 +307,7 @@ namespace SPA
                     pk.Pri = false;
                 vKey.push_back(pk);
             }
-#ifdef WIN32_64
+#ifndef NATIVE_UTF16_SUPPORTED
             sql = L"USE `" + wSchema + L"`";
 #else
             sql = u"USE `" + wSchema + u"`";
@@ -357,7 +357,7 @@ namespace SPA
                     *it = '_';
                 }
             }
-#ifdef WIN32_64
+#ifndef NATIVE_UTF16_SUPPORTED
             sql = L"CREATE TRIGGER ";
             sql += STREAMING_DB_TRIGGER_PREFIX;
             sql += (strDB + L"_");
@@ -588,7 +588,7 @@ namespace SPA
                     std::transform(m_dbNameOpened.begin(), m_dbNameOpened.end(), m_dbNameOpened.begin(), ::tolower);
 #endif
                     if (!db.size()) {
-#ifdef WIN32_64
+#ifndef NATIVE_UTF16_SUPPORTED
                         db = L"mysql"; //default to mysql database
 #else
                         db = u"mysql"; //default to mysql database
@@ -601,7 +601,7 @@ namespace SPA
                     INT64 affected;
                     CDBVariant vtId;
                     UINT64 fail_ok;
-#ifdef WIN32_64
+#ifndef NATIVE_UTF16_SUPPORTED
                     CDBString sql(L"USE ");
 #else
                     CDBString sql(u"USE ");
@@ -975,7 +975,7 @@ namespace SPA
                     case MYSQL_TYPE_NEWDECIMAL:
                     case MYSQL_TYPE_DECIMAL:
                         if (meta) {
-#ifdef WIN32_64
+#ifndef NATIVE_UTF16_SUPPORTED
                             info.DeclaredType = L"DECIMAL"; //The maximum number of digits for DECIMAL is 65, but the actual range for a given DECIMAL column can be constrained by the precision or scale for a given column.
 #else
                             info.DeclaredType = u"DECIMAL";
@@ -987,7 +987,7 @@ namespace SPA
                         break;
                     case MYSQL_TYPE_TINY:
                         if (meta) {
-#ifdef WIN32_64
+#ifndef NATIVE_UTF16_SUPPORTED
                             info.DeclaredType = L"TINYINT";
 #else
                             info.DeclaredType = u"TINYINT";
@@ -1000,7 +1000,7 @@ namespace SPA
                         break;
                     case MYSQL_TYPE_SHORT:
                         if (meta) {
-#ifdef WIN32_64
+#ifndef NATIVE_UTF16_SUPPORTED
                             info.DeclaredType = L"SMALLINT";
 #else
                             info.DeclaredType = u"SMALLINT";
@@ -1013,7 +1013,7 @@ namespace SPA
                         break;
                     case MYSQL_TYPE_LONG:
                         if (meta) {
-#ifdef WIN32_64
+#ifndef NATIVE_UTF16_SUPPORTED
                             info.DeclaredType = L"INT";
 #else
                             info.DeclaredType = u"INT";
@@ -1026,7 +1026,7 @@ namespace SPA
                         break;
                     case MYSQL_TYPE_FLOAT:
                         if (meta) {
-#ifdef WIN32_64
+#ifndef NATIVE_UTF16_SUPPORTED
                             info.DeclaredType = L"FLOAT";
 #else
                             info.DeclaredType = u"FLOAT";
@@ -1036,7 +1036,7 @@ namespace SPA
                         break;
                     case MYSQL_TYPE_DOUBLE:
                         if (meta) {
-#ifdef WIN32_64
+#ifndef NATIVE_UTF16_SUPPORTED
                             info.DeclaredType = L"DOUBLE";
 #else
                             info.DeclaredType = u"DOUBLE";
@@ -1046,7 +1046,7 @@ namespace SPA
                         break;
                     case MYSQL_TYPE_TIMESTAMP:
                         if (meta) {
-#ifdef WIN32_64
+#ifndef NATIVE_UTF16_SUPPORTED
                             info.DeclaredType = L"TIMESTAMP";
 #else
                             info.DeclaredType = u"TIMESTAMP";
@@ -1057,7 +1057,7 @@ namespace SPA
                         break;
                     case MYSQL_TYPE_LONGLONG:
                         if (meta) {
-#ifdef WIN32_64
+#ifndef NATIVE_UTF16_SUPPORTED
                             info.DeclaredType = L"BIGINT";
 #else
                             info.DeclaredType = u"BIGINT";
@@ -1070,7 +1070,7 @@ namespace SPA
                         break;
                     case MYSQL_TYPE_INT24:
                         if (meta) {
-#ifdef WIN32_64
+#ifndef NATIVE_UTF16_SUPPORTED
                             info.DeclaredType = L"MEDIUMINT";
 #else
                             info.DeclaredType = u"MEDIUMINT";
@@ -1080,7 +1080,7 @@ namespace SPA
                         break;
                     case MYSQL_TYPE_DATE:
                         if (meta) {
-#ifdef WIN32_64
+#ifndef NATIVE_UTF16_SUPPORTED
                             info.DeclaredType = L"DATE";
 #else
                             info.DeclaredType = u"DATE";
@@ -1090,7 +1090,7 @@ namespace SPA
                         break;
                     case MYSQL_TYPE_TIME:
                         if (meta) {
-#ifdef WIN32_64
+#ifndef NATIVE_UTF16_SUPPORTED
                             info.DeclaredType = L"TIME";
 #else
                             info.DeclaredType = u"TIME";
@@ -1101,7 +1101,7 @@ namespace SPA
                         break;
                     case MYSQL_TYPE_DATETIME: //#define DATETIME_MAX_DECIMALS 6
                         if (meta) {
-#ifdef WIN32_64
+#ifndef NATIVE_UTF16_SUPPORTED
                             info.DeclaredType = L"DATETIME";
 #else
                             info.DeclaredType = u"DATETIME";
@@ -1112,7 +1112,7 @@ namespace SPA
                         break;
                     case MYSQL_TYPE_YEAR:
                         if (meta) {
-#ifdef WIN32_64
+#ifndef NATIVE_UTF16_SUPPORTED
                             info.DeclaredType = L"YEAR";
 #else
                             info.DeclaredType = u"YEAR";
@@ -1122,7 +1122,7 @@ namespace SPA
                         break;
                     case MYSQL_TYPE_NEWDATE:
                         if (meta) {
-#ifdef WIN32_64
+#ifndef NATIVE_UTF16_SUPPORTED
                             info.DeclaredType = L"NEWDATE";
 #else
                             info.DeclaredType = u"NEWDATE";
@@ -1134,7 +1134,7 @@ namespace SPA
                         info.ColumnSize = f.length;
                         if (f.charsetnr == IS_BINARY) {
                             if (meta) {
-#ifdef WIN32_64
+#ifndef NATIVE_UTF16_SUPPORTED
                                 info.DeclaredType = L"VARBINARY";
 #else
                                 info.DeclaredType = u"VARBINARY";
@@ -1143,7 +1143,7 @@ namespace SPA
                             info.DataType = (VT_UI1 | VT_ARRAY); //binary
                         } else {
                             if (meta) {
-#ifdef WIN32_64
+#ifndef NATIVE_UTF16_SUPPORTED
                                 info.DeclaredType = L"VARCHAR";
 #else
                                 info.DeclaredType = u"VARCHAR";
@@ -1155,7 +1155,7 @@ namespace SPA
                     case MYSQL_TYPE_BIT:
                         info.ColumnSize = f.length;
                         if (meta) {
-#ifdef WIN32_64
+#ifndef NATIVE_UTF16_SUPPORTED
                             info.DeclaredType = L"BIT";
 #else
                             info.DeclaredType = u"BIT";
@@ -1180,7 +1180,7 @@ namespace SPA
                     case MYSQL_TYPE_TIMESTAMP2:
                         info.ColumnSize = f.length;
                         if (meta) {
-#ifdef WIN32_64
+#ifndef NATIVE_UTF16_SUPPORTED
                             info.DeclaredType = L"TIMESTAMP2";
 #else
                             info.DeclaredType = u"TIMESTAMP2";
@@ -1192,7 +1192,7 @@ namespace SPA
                     case MYSQL_TYPE_DATETIME2:
                         info.ColumnSize = f.length;
                         if (meta) {
-#ifdef WIN32_64
+#ifndef NATIVE_UTF16_SUPPORTED
                             info.DeclaredType = L"DATETIME2";
 #else
                             info.DeclaredType = u"DATETIME2";
@@ -1204,7 +1204,7 @@ namespace SPA
                     case MYSQL_TYPE_TIME2:
                         info.ColumnSize = f.length;
                         if (meta) {
-#ifdef WIN32_64
+#ifndef NATIVE_UTF16_SUPPORTED
                             info.DeclaredType = L"TIME2";
 #else
                             info.DeclaredType = u"TIME2";
@@ -1216,7 +1216,7 @@ namespace SPA
                     case MYSQL_TYPE_JSON:
                         info.ColumnSize = f.length;
                         if (meta) {
-#ifdef WIN32_64
+#ifndef NATIVE_UTF16_SUPPORTED
                             info.DeclaredType = L"JSON";
 #else
                             info.DeclaredType = u"JSON";
@@ -1228,7 +1228,7 @@ namespace SPA
                     case MYSQL_TYPE_ENUM:
                         info.ColumnSize = f.length;
                         if (meta) {
-#ifdef WIN32_64
+#ifndef NATIVE_UTF16_SUPPORTED
                             info.DeclaredType = L"ENUM";
 #else
                             info.DeclaredType = u"ENUM";
@@ -1239,7 +1239,7 @@ namespace SPA
                     case MYSQL_TYPE_SET:
                         info.ColumnSize = f.length;
                         if (meta) {
-#ifdef WIN32_64
+#ifndef NATIVE_UTF16_SUPPORTED
                             info.DeclaredType = L"SET";
 #else
                             info.DeclaredType = u"SET";
@@ -1251,7 +1251,7 @@ namespace SPA
                         info.ColumnSize = f.length;
                         if (f.charsetnr == IS_BINARY) {
                             if (meta) {
-#ifdef WIN32_64
+#ifndef NATIVE_UTF16_SUPPORTED
                                 info.DeclaredType = L"TINYBLOB";
 #else
                                 info.DeclaredType = u"TINYBLOB";
@@ -1260,7 +1260,7 @@ namespace SPA
                             info.DataType = (VT_UI1 | VT_ARRAY); //binary
                         } else {
                             if (meta) {
-#ifdef WIN32_64
+#ifndef NATIVE_UTF16_SUPPORTED
                                 info.DeclaredType = L"TINYTEXT";
 #else
                                 info.DeclaredType = u"TINYTEXT";
@@ -1273,7 +1273,7 @@ namespace SPA
                         info.ColumnSize = f.length;
                         if (f.charsetnr == IS_BINARY) {
                             if (meta) {
-#ifdef WIN32_64
+#ifndef NATIVE_UTF16_SUPPORTED
                                 info.DeclaredType = L"MEDIUMBLOB";
 #else
                                 info.DeclaredType = u"MEDIUMBLOB";
@@ -1282,7 +1282,7 @@ namespace SPA
                             info.DataType = (VT_UI1 | VT_ARRAY); //binary
                         } else {
                             if (meta) {
-#ifdef WIN32_64
+#ifndef NATIVE_UTF16_SUPPORTED
                                 info.DeclaredType = L"MEDIUMTEXT";
 #else
                                 info.DeclaredType = u"MEDIUMTEXT";
@@ -1295,7 +1295,7 @@ namespace SPA
                         info.ColumnSize = f.length;
                         if (f.charsetnr == IS_BINARY) {
                             if (meta) {
-#ifdef WIN32_64
+#ifndef NATIVE_UTF16_SUPPORTED
                                 info.DeclaredType = L"LONGBLOB";
 #else
                                 info.DeclaredType = u"LONGBLOB";
@@ -1304,7 +1304,7 @@ namespace SPA
                             info.DataType = (VT_UI1 | VT_ARRAY); //binary
                         } else {
                             if (meta) {
-#ifdef WIN32_64
+#ifndef NATIVE_UTF16_SUPPORTED
                                 info.DeclaredType = L"LONGTEXT";
 #else
                                 info.DeclaredType = u"LONGTEXT";
@@ -1318,25 +1318,25 @@ namespace SPA
                         if (f.charsetnr == IS_BINARY) {
                             if (meta) {
                                 if (f.length == MYSQL_TINYBLOB) {
-#ifdef WIN32_64
+#ifndef NATIVE_UTF16_SUPPORTED
                                     info.DeclaredType = L"TINYBLOB";
 #else
                                     info.DeclaredType = u"TINYBLOB";
 #endif
                                 } else if (f.length == MYSQL_MIDBLOB) {
-#ifdef WIN32_64
+#ifndef NATIVE_UTF16_SUPPORTED
                                     info.DeclaredType = L"MEDIUMBLOB";
 #else
                                     info.DeclaredType = u"MEDIUMBLOB";
 #endif
                                 } else if (f.length == MYSQL_BLOB) {
-#ifdef WIN32_64
+#ifndef NATIVE_UTF16_SUPPORTED
                                     info.DeclaredType = L"BLOB";
 #else
                                     info.DeclaredType = u"BLOB";
 #endif
                                 } else {
-#ifdef WIN32_64
+#ifndef NATIVE_UTF16_SUPPORTED
                                     info.DeclaredType = L"LONGBLOB";
 #else
                                     info.DeclaredType = u"LONGBLOB";
@@ -1347,25 +1347,25 @@ namespace SPA
                         } else {
                             if (meta) {
                                 if (f.length == MYSQL_TINYBLOB) {
-#ifdef WIN32_64
+#ifndef NATIVE_UTF16_SUPPORTED
                                     info.DeclaredType = L"TINYTEXT";
 #else
                                     info.DeclaredType = u"TINYTEXT";
 #endif
                                 } else if (f.length == MYSQL_MIDBLOB) {
-#ifdef WIN32_64
+#ifndef NATIVE_UTF16_SUPPORTED
                                     info.DeclaredType = L"MEDIUMTEXT";
 #else
                                     info.DeclaredType = u"MEDIUMTEXT";
 #endif
                                 } else if (f.length == MYSQL_BLOB) {
-#ifdef WIN32_64
+#ifndef NATIVE_UTF16_SUPPORTED
                                     info.DeclaredType = L"TEXT";
 #else
                                     info.DeclaredType = u"TEXT";
 #endif
                                 } else {
-#ifdef WIN32_64
+#ifndef NATIVE_UTF16_SUPPORTED
                                     info.DeclaredType = L"LONGTEXT";
 #else
                                     info.DeclaredType = u"LONGTEXT";
@@ -1379,7 +1379,7 @@ namespace SPA
                         info.ColumnSize = f.length;
                         if (f.charsetnr == IS_BINARY) {
                             if (meta) {
-#ifdef WIN32_64
+#ifndef NATIVE_UTF16_SUPPORTED
                                 info.DeclaredType = L"VARBINARY";
 #else
                                 info.DeclaredType = u"VARBINARY";
@@ -1389,7 +1389,7 @@ namespace SPA
                             info.DataType = (VT_UI1 | VT_ARRAY);
                         } else {
                             if (meta) {
-#ifdef WIN32_64
+#ifndef NATIVE_UTF16_SUPPORTED
                                 info.DeclaredType = L"VARCHAR";
 #else
                                 info.DeclaredType = u"VARCHAR";
@@ -1402,7 +1402,7 @@ namespace SPA
                         info.ColumnSize = f.length;
                         if ((f.flags & ENUM_FLAG) == ENUM_FLAG) {
                             if (meta) {
-#ifdef WIN32_64
+#ifndef NATIVE_UTF16_SUPPORTED
                                 info.DeclaredType = L"ENUM";
 #else
                                 info.DeclaredType = u"ENUM";
@@ -1411,7 +1411,7 @@ namespace SPA
                             info.DataType = (VT_I1 | VT_ARRAY); //string
                         } else if ((f.flags & SET_FLAG) == SET_FLAG) {
                             if (meta) {
-#ifdef WIN32_64
+#ifndef NATIVE_UTF16_SUPPORTED
                                 info.DeclaredType = L"SET";
 #else
                                 info.DeclaredType = u"SET";
@@ -1421,7 +1421,7 @@ namespace SPA
                         } else {
                             if (f.charsetnr == IS_BINARY) {
                                 if (meta) {
-#ifdef WIN32_64
+#ifndef NATIVE_UTF16_SUPPORTED
                                     info.DeclaredType = L"BINARY";
 #else
                                     info.DeclaredType = u"BINARY";
@@ -1430,7 +1430,7 @@ namespace SPA
                                 info.DataType = (VT_UI1 | VT_ARRAY);
                             } else {
                                 if (meta) {
-#ifdef WIN32_64
+#ifndef NATIVE_UTF16_SUPPORTED
                                     info.DeclaredType = L"CHAR";
 #else
                                     info.DeclaredType = u"CHAR";
@@ -1444,7 +1444,7 @@ namespace SPA
                     case MYSQL_TYPE_GEOMETRY:
                         info.ColumnSize = f.length;
                         if (meta) {
-#ifdef WIN32_64
+#ifndef NATIVE_UTF16_SUPPORTED
                             info.DeclaredType = L"GEOMETRY";
 #else
                             info.DeclaredType = u"GEOMETRY";
@@ -2746,7 +2746,7 @@ namespace SPA
 
         bool CMysqlImpl::DoSQLAuthentication(USocket_Server_Handle hSocket, const wchar_t *userId, const wchar_t *password, unsigned int nSvsId, const wchar_t * dbConnection) {
             CMysqlImpl impl;
-#ifdef WIN32_64
+#ifndef NATIVE_UTF16_SUPPORTED
             CDBString db(dbConnection ? dbConnection : L"host=localhost;port=3306;timeout=30");
             if (userId && ::wcslen(userId)) {
                 db += L";uid=";
