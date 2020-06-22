@@ -57,11 +57,11 @@ OBJECTFILES= \
 
 
 # C Compiler Flags
-CFLAGS=-std=c++11
+CFLAGS=-std=c++11 -Os
 
 # CC Compiler Flags
-CCFLAGS=-std=c++11
-CXXFLAGS=-std=c++11
+CCFLAGS=-std=c++11 -Os
+CXXFLAGS=-std=c++11 -Os
 
 # Fortran Compiler Flags
 FFLAGS=
@@ -87,97 +87,97 @@ ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/libuservercore.${CND_DLIB_EXT}: ${OBJ
 ${OBJECTDIR}/_ext/1719658846/includes.o: ../core_shared/shared/includes.cpp 
 	${MKDIR} -p ${OBJECTDIR}/_ext/1719658846
 	${RM} "$@.d"
-	$(COMPILE.c) -O2 -s -DNDEBUG -DUSE_SPIRIT_CLSSICAL_FOR_MULTIPART `pkg-config --cflags libcrypto` `pkg-config --cflags libssl`   -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/1719658846/includes.o ../core_shared/shared/includes.cpp
+	$(COMPILE.c) -O3 -s -DNDEBUG -DUSE_SPIRIT_CLSSICAL_FOR_MULTIPART `pkg-config --cflags libcrypto` `pkg-config --cflags libssl`   -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/1719658846/includes.o ../core_shared/shared/includes.cpp
 
 ${OBJECTDIR}/_ext/1719658846/myopenssl.o: ../core_shared/shared/myopenssl.cpp 
 	${MKDIR} -p ${OBJECTDIR}/_ext/1719658846
 	${RM} "$@.d"
-	$(COMPILE.c) -O2 -s -DNDEBUG -DUSE_SPIRIT_CLSSICAL_FOR_MULTIPART `pkg-config --cflags libcrypto` `pkg-config --cflags libssl`   -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/1719658846/myopenssl.o ../core_shared/shared/myopenssl.cpp
+	$(COMPILE.c) -O3 -s -DNDEBUG -DUSE_SPIRIT_CLSSICAL_FOR_MULTIPART `pkg-config --cflags libcrypto` `pkg-config --cflags libssl`   -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/1719658846/myopenssl.o ../core_shared/shared/myopenssl.cpp
 
 ${OBJECTDIR}/_ext/1719658846/ucertimpl.o: ../core_shared/shared/ucertimpl.cpp 
 	${MKDIR} -p ${OBJECTDIR}/_ext/1719658846
 	${RM} "$@.d"
-	$(COMPILE.c) -O2 -s -DNDEBUG -DUSE_SPIRIT_CLSSICAL_FOR_MULTIPART `pkg-config --cflags libcrypto` `pkg-config --cflags libssl`   -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/1719658846/ucertimpl.o ../core_shared/shared/ucertimpl.cpp
+	$(COMPILE.c) -O3 -s -DNDEBUG -DUSE_SPIRIT_CLSSICAL_FOR_MULTIPART `pkg-config --cflags libcrypto` `pkg-config --cflags libssl`   -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/1719658846/ucertimpl.o ../core_shared/shared/ucertimpl.cpp
 
 ${OBJECTDIR}/_ext/1719658846/uthread.o: ../core_shared/shared/uthread.cpp 
 	${MKDIR} -p ${OBJECTDIR}/_ext/1719658846
 	${RM} "$@.d"
-	$(COMPILE.c) -O2 -s -DNDEBUG -DUSE_SPIRIT_CLSSICAL_FOR_MULTIPART `pkg-config --cflags libcrypto` `pkg-config --cflags libssl`   -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/1719658846/uthread.o ../core_shared/shared/uthread.cpp
+	$(COMPILE.c) -O3 -s -DNDEBUG -DUSE_SPIRIT_CLSSICAL_FOR_MULTIPART `pkg-config --cflags libcrypto` `pkg-config --cflags libssl`   -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/1719658846/uthread.o ../core_shared/shared/uthread.cpp
 
 ${OBJECTDIR}/_ext/262068057/membuffer.o: ../include/membuffer.cpp 
 	${MKDIR} -p ${OBJECTDIR}/_ext/262068057
 	${RM} "$@.d"
-	$(COMPILE.c) -O2 -s -DNDEBUG -DUSE_SPIRIT_CLSSICAL_FOR_MULTIPART `pkg-config --cflags libcrypto` `pkg-config --cflags libssl`   -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/262068057/membuffer.o ../include/membuffer.cpp
+	$(COMPILE.c) -O3 -s -DNDEBUG -DUSE_SPIRIT_CLSSICAL_FOR_MULTIPART `pkg-config --cflags libcrypto` `pkg-config --cflags libssl`   -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/262068057/membuffer.o ../include/membuffer.cpp
 
 ${OBJECTDIR}/_ext/648362257/connectioncontext.o: ../servercore/connectioncontext.cpp 
 	${MKDIR} -p ${OBJECTDIR}/_ext/648362257
 	${RM} "$@.d"
-	$(COMPILE.c) -O2 -s -DNDEBUG -DUSE_SPIRIT_CLSSICAL_FOR_MULTIPART `pkg-config --cflags libcrypto` `pkg-config --cflags libssl`   -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/648362257/connectioncontext.o ../servercore/connectioncontext.cpp
+	$(COMPILE.c) -O3 -s -DNDEBUG -DUSE_SPIRIT_CLSSICAL_FOR_MULTIPART `pkg-config --cflags libcrypto` `pkg-config --cflags libssl`   -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/648362257/connectioncontext.o ../servercore/connectioncontext.cpp
 
 ${OBJECTDIR}/_ext/648362257/httpcontext.o: ../servercore/httpcontext.cpp 
 	${MKDIR} -p ${OBJECTDIR}/_ext/648362257
 	${RM} "$@.d"
-	$(COMPILE.c) -O2 -s -DNDEBUG -DUSE_SPIRIT_CLSSICAL_FOR_MULTIPART `pkg-config --cflags libcrypto` `pkg-config --cflags libssl`   -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/648362257/httpcontext.o ../servercore/httpcontext.cpp
+	$(COMPILE.c) -O3 -s -DNDEBUG -DUSE_SPIRIT_CLSSICAL_FOR_MULTIPART `pkg-config --cflags libcrypto` `pkg-config --cflags libssl`   -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/648362257/httpcontext.o ../servercore/httpcontext.cpp
 
 ${OBJECTDIR}/_ext/648362257/httpgrammar.o: ../servercore/httpgrammar.cpp 
 	${MKDIR} -p ${OBJECTDIR}/_ext/648362257
 	${RM} "$@.d"
-	$(COMPILE.c) -O2 -s -DNDEBUG -DUSE_SPIRIT_CLSSICAL_FOR_MULTIPART `pkg-config --cflags libcrypto` `pkg-config --cflags libssl`   -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/648362257/httpgrammar.o ../servercore/httpgrammar.cpp
+	$(COMPILE.c) -O3 -s -DNDEBUG -DUSE_SPIRIT_CLSSICAL_FOR_MULTIPART `pkg-config --cflags libcrypto` `pkg-config --cflags libssl`   -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/648362257/httpgrammar.o ../servercore/httpgrammar.cpp
 
 ${OBJECTDIR}/_ext/648362257/jsloader.o: ../servercore/jsloader.cpp 
 	${MKDIR} -p ${OBJECTDIR}/_ext/648362257
 	${RM} "$@.d"
-	$(COMPILE.c) -O2 -s -DNDEBUG -DUSE_SPIRIT_CLSSICAL_FOR_MULTIPART `pkg-config --cflags libcrypto` `pkg-config --cflags libssl`   -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/648362257/jsloader.o ../servercore/jsloader.cpp
+	$(COMPILE.c) -O3 -s -DNDEBUG -DUSE_SPIRIT_CLSSICAL_FOR_MULTIPART `pkg-config --cflags libcrypto` `pkg-config --cflags libssl`   -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/648362257/jsloader.o ../servercore/jsloader.cpp
 
 ${OBJECTDIR}/_ext/648362257/listimpl.o: ../servercore/listimpl.cpp 
 	${MKDIR} -p ${OBJECTDIR}/_ext/648362257
 	${RM} "$@.d"
-	$(COMPILE.c) -O2 -s -DNDEBUG -DUSE_SPIRIT_CLSSICAL_FOR_MULTIPART `pkg-config --cflags libcrypto` `pkg-config --cflags libssl`   -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/648362257/listimpl.o ../servercore/listimpl.cpp
+	$(COMPILE.c) -O3 -s -DNDEBUG -DUSE_SPIRIT_CLSSICAL_FOR_MULTIPART `pkg-config --cflags libcrypto` `pkg-config --cflags libssl`   -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/648362257/listimpl.o ../servercore/listimpl.cpp
 
 ${OBJECTDIR}/_ext/648362257/multipartgrammar.o: ../servercore/multipartgrammar.cpp 
 	${MKDIR} -p ${OBJECTDIR}/_ext/648362257
 	${RM} "$@.d"
-	$(COMPILE.c) -O2 -s -DNDEBUG -DUSE_SPIRIT_CLSSICAL_FOR_MULTIPART `pkg-config --cflags libcrypto` `pkg-config --cflags libssl`   -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/648362257/multipartgrammar.o ../servercore/multipartgrammar.cpp
+	$(COMPILE.c) -O3 -s -DNDEBUG -DUSE_SPIRIT_CLSSICAL_FOR_MULTIPART `pkg-config --cflags libcrypto` `pkg-config --cflags libssl`   -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/648362257/multipartgrammar.o ../servercore/multipartgrammar.cpp
 
 ${OBJECTDIR}/_ext/648362257/resindeximpl.o: ../servercore/resindeximpl.cpp 
 	${MKDIR} -p ${OBJECTDIR}/_ext/648362257
 	${RM} "$@.d"
-	$(COMPILE.c) -O2 -s -DNDEBUG -DUSE_SPIRIT_CLSSICAL_FOR_MULTIPART `pkg-config --cflags libcrypto` `pkg-config --cflags libssl`   -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/648362257/resindeximpl.o ../servercore/resindeximpl.cpp
+	$(COMPILE.c) -O3 -s -DNDEBUG -DUSE_SPIRIT_CLSSICAL_FOR_MULTIPART `pkg-config --cflags libcrypto` `pkg-config --cflags libssl`   -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/648362257/resindeximpl.o ../servercore/resindeximpl.cpp
 
 ${OBJECTDIR}/_ext/648362257/serverthread.o: ../servercore/serverthread.cpp 
 	${MKDIR} -p ${OBJECTDIR}/_ext/648362257
 	${RM} "$@.d"
-	$(COMPILE.c) -O2 -s -DNDEBUG -DUSE_SPIRIT_CLSSICAL_FOR_MULTIPART `pkg-config --cflags libcrypto` `pkg-config --cflags libssl`   -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/648362257/serverthread.o ../servercore/serverthread.cpp
+	$(COMPILE.c) -O3 -s -DNDEBUG -DUSE_SPIRIT_CLSSICAL_FOR_MULTIPART `pkg-config --cflags libcrypto` `pkg-config --cflags libssl`   -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/648362257/serverthread.o ../servercore/serverthread.cpp
 
 ${OBJECTDIR}/_ext/648362257/servicecontext.o: ../servercore/servicecontext.cpp 
 	${MKDIR} -p ${OBJECTDIR}/_ext/648362257
 	${RM} "$@.d"
-	$(COMPILE.c) -O2 -s -DNDEBUG -DUSE_SPIRIT_CLSSICAL_FOR_MULTIPART `pkg-config --cflags libcrypto` `pkg-config --cflags libssl`   -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/648362257/servicecontext.o ../servercore/servicecontext.cpp
+	$(COMPILE.c) -O3 -s -DNDEBUG -DUSE_SPIRIT_CLSSICAL_FOR_MULTIPART `pkg-config --cflags libcrypto` `pkg-config --cflags libssl`   -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/648362257/servicecontext.o ../servercore/servicecontext.cpp
 
 ${OBJECTDIR}/_ext/648362257/svrimpl.o: ../servercore/svrimpl.cpp 
 	${MKDIR} -p ${OBJECTDIR}/_ext/648362257
 	${RM} "$@.d"
-	$(COMPILE.c) -O2 -s -DNDEBUG -DUSE_SPIRIT_CLSSICAL_FOR_MULTIPART `pkg-config --cflags libcrypto` `pkg-config --cflags libssl`   -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/648362257/svrimpl.o ../servercore/svrimpl.cpp
+	$(COMPILE.c) -O3 -s -DNDEBUG -DUSE_SPIRIT_CLSSICAL_FOR_MULTIPART `pkg-config --cflags libcrypto` `pkg-config --cflags libssl`   -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/648362257/svrimpl.o ../servercore/svrimpl.cpp
 
 ${OBJECTDIR}/_ext/648362257/webrequestprocessor.o: ../servercore/webrequestprocessor.cpp 
 	${MKDIR} -p ${OBJECTDIR}/_ext/648362257
 	${RM} "$@.d"
-	$(COMPILE.c) -O2 -s -DNDEBUG -DUSE_SPIRIT_CLSSICAL_FOR_MULTIPART `pkg-config --cflags libcrypto` `pkg-config --cflags libssl`   -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/648362257/webrequestprocessor.o ../servercore/webrequestprocessor.cpp
+	$(COMPILE.c) -O3 -s -DNDEBUG -DUSE_SPIRIT_CLSSICAL_FOR_MULTIPART `pkg-config --cflags libcrypto` `pkg-config --cflags libssl`   -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/648362257/webrequestprocessor.o ../servercore/webrequestprocessor.cpp
 
 ${OBJECTDIR}/_ext/648362257/webresponseprocessor.o: ../servercore/webresponseprocessor.cpp 
 	${MKDIR} -p ${OBJECTDIR}/_ext/648362257
 	${RM} "$@.d"
-	$(COMPILE.c) -O2 -s -DNDEBUG -DUSE_SPIRIT_CLSSICAL_FOR_MULTIPART `pkg-config --cflags libcrypto` `pkg-config --cflags libssl`   -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/648362257/webresponseprocessor.o ../servercore/webresponseprocessor.cpp
+	$(COMPILE.c) -O3 -s -DNDEBUG -DUSE_SPIRIT_CLSSICAL_FOR_MULTIPART `pkg-config --cflags libcrypto` `pkg-config --cflags libssl`   -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/648362257/webresponseprocessor.o ../servercore/webresponseprocessor.cpp
 
 ${OBJECTDIR}/server.o: server.cpp 
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
-	$(COMPILE.c) -O2 -s -DNDEBUG -DUSE_SPIRIT_CLSSICAL_FOR_MULTIPART `pkg-config --cflags libcrypto` `pkg-config --cflags libssl`   -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/server.o server.cpp
+	$(COMPILE.c) -O3 -s -DNDEBUG -DUSE_SPIRIT_CLSSICAL_FOR_MULTIPART `pkg-config --cflags libcrypto` `pkg-config --cflags libssl`   -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/server.o server.cpp
 
 ${OBJECTDIR}/session.o: session.cpp 
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
-	$(COMPILE.c) -O2 -s -DNDEBUG -DUSE_SPIRIT_CLSSICAL_FOR_MULTIPART `pkg-config --cflags libcrypto` `pkg-config --cflags libssl`   -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/session.o session.cpp
+	$(COMPILE.c) -O3 -s -DNDEBUG -DUSE_SPIRIT_CLSSICAL_FOR_MULTIPART `pkg-config --cflags libcrypto` `pkg-config --cflags libssl`   -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/session.o session.cpp
 
 # Subprojects
 .build-subprojects:

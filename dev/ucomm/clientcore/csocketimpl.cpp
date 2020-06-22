@@ -350,7 +350,7 @@ void WINAPI SetUserID(USocket_Client_Handle h, const wchar_t *strUserId) {
             p->SetUserID(L"");
         } else if (SPA::g_bAdapterUTF16 && sizeof (wchar_t) != sizeof (SPA::UTF16)) {
             const SPA::UTF16 *str = (const SPA::UTF16 *)strUserId;
-            unsigned int len = (unsigned int)SPA::GetLen(str);
+            unsigned int len = (unsigned int) SPA::GetLen(str);
             std::wstring s = SPA::ToNativeString(str, len);
             p->SetUserID(s.c_str());
         } else
@@ -448,7 +448,7 @@ void WINAPI SetPassword(USocket_Client_Handle h, const wchar_t *strPassword) {
             p->SetPassword(L"");
         } else if (SPA::g_bAdapterUTF16 && sizeof (wchar_t) != sizeof (SPA::UTF16)) {
             const SPA::UTF16 *str = (const SPA::UTF16 *)strPassword;
-            unsigned int len = (unsigned int)SPA::GetLen(str);
+            unsigned int len = (unsigned int) SPA::GetLen(str);
             std::wstring s = SPA::ToNativeString(str, len);
             p->SetPassword(s.c_str());
         } else
@@ -500,7 +500,7 @@ bool WINAPI SendUserMessageEx(USocket_Client_Handle h, const wchar_t *userId, co
     if (p) {
         if (SPA::g_bAdapterUTF16 && sizeof (wchar_t) != sizeof (SPA::UTF16)) {
             const SPA::UTF16 *str = (const SPA::UTF16 *)userId;
-            unsigned int len = (unsigned int)SPA::GetLen(str);
+            unsigned int len = (unsigned int) SPA::GetLen(str);
             std::wstring s = SPA::ToNativeString(str, len);
             return p->SendUserMessageEx(s.c_str(), message, size);
         }
@@ -514,7 +514,7 @@ bool WINAPI SendUserMessage(USocket_Client_Handle h, const wchar_t *userId, cons
     if (p) {
         if (SPA::g_bAdapterUTF16 && sizeof (wchar_t) != sizeof (SPA::UTF16)) {
             const SPA::UTF16 *str = (const SPA::UTF16 *)userId;
-            unsigned int len = (unsigned int)SPA::GetLen(str);
+            unsigned int len = (unsigned int) SPA::GetLen(str);
             std::wstring s = SPA::ToNativeString(str, len);
             return p->SendUserMessage(s.c_str(), message, size);
         } else

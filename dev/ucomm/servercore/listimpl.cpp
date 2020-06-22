@@ -215,7 +215,7 @@ void WINAPI AddAChatGroup(unsigned int chatGroupId, const wchar_t *description) 
         g_pServer->AddAChatGroup(chatGroupId, L"");
     } else if (SPA::g_bAdapterUTF16 && sizeof (wchar_t) != sizeof (SPA::UTF16)) {
         const SPA::UTF16 *str = (const SPA::UTF16 *)description;
-        unsigned int len = (unsigned int)SPA::GetLen(str);
+        unsigned int len = (unsigned int) SPA::GetLen(str);
         std::wstring s = SPA::ToNativeString(str, len);
         g_pServer->AddAChatGroup(chatGroupId, s.c_str());
     } else
@@ -496,7 +496,7 @@ bool WINAPI SendUserMessageExPush(const wchar_t *userId, const unsigned char *me
         return false;
     if (userId && SPA::g_bAdapterUTF16 && sizeof (wchar_t) != sizeof (SPA::UTF16)) {
         const SPA::UTF16 *str = (const SPA::UTF16 *)userId;
-        unsigned int len = (unsigned int)SPA::GetLen(str);
+        unsigned int len = (unsigned int) SPA::GetLen(str);
         std::wstring s = SPA::ToNativeString(str, len);
         return g_pServer->SendUserMessage(s.c_str(), message, size);
     }
@@ -513,7 +513,7 @@ bool WINAPI SendUserMessagePush(const wchar_t *userId, const unsigned char *mess
     sb >> vtMsg;
     if (userId && SPA::g_bAdapterUTF16 && sizeof (wchar_t) != sizeof (SPA::UTF16)) {
         const SPA::UTF16 *str = (const SPA::UTF16 *)userId;
-        unsigned int len = (unsigned int)SPA::GetLen(str);
+        unsigned int len = (unsigned int) SPA::GetLen(str);
         std::wstring s = SPA::ToNativeString(str, len);
         return g_pServer->SendUserMessage(s.c_str(), vtMsg);
     }

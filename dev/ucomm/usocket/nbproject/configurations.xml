@@ -126,18 +126,18 @@
       </toolsSet>
       <compileType>
         <cTool>
-          <developmentMode>5</developmentMode>
+          <developmentMode>6</developmentMode>
           <stripSymbols>true</stripSymbols>
           <commandlineTool>gcc</commandlineTool>
-          <commandLine>-std=c++11</commandLine>
+          <commandLine>-std=c++11 -Os</commandLine>
           <preprocessorList>
             <Elem>NDEBUG</Elem>
           </preprocessorList>
         </cTool>
         <ccTool>
-          <developmentMode>5</developmentMode>
+          <developmentMode>6</developmentMode>
           <stripSymbols>true</stripSymbols>
-          <commandLine>-std=c++11</commandLine>
+          <commandLine>-std=c++11 -Os</commandLine>
           <preprocessorList>
             <Elem>NDEBUG</Elem>
           </preprocessorList>

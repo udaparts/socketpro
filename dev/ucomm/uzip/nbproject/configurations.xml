@@ -190,17 +190,17 @@
       </toolsSet>
       <compileType>
         <cTool>
-          <developmentMode>5</developmentMode>
+          <developmentMode>6</developmentMode>
           <stripSymbols>true</stripSymbols>
-          <commandLine>-std=c++11 -static -fPIC</commandLine>
+          <commandLine>-std=c++11 -static -fPIC -Os</commandLine>
           <preprocessorList>
             <Elem>NDEBUG</Elem>
           </preprocessorList>
         </cTool>
         <ccTool>
-          <developmentMode>5</developmentMode>
+          <developmentMode>6</developmentMode>
           <stripSymbols>true</stripSymbols>
-          <commandLine>-std=c++11 -static -fPIC</commandLine>
+          <commandLine>-std=c++11 -static -fPIC -Os</commandLine>
           <preprocessorList>
             <Elem>NDEBUG</Elem>
           </preprocessorList>
