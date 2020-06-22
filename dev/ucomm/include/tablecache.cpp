@@ -1,24 +1,23 @@
 
 #include "tablecache.h"
 
-namespace SPA
-{
+namespace SPA {
 
     CTable::CTable()
-            : m_bFieldNameCaseSensitive(false),
-            m_bDataCaseSensitive(false) {
+    : m_bFieldNameCaseSensitive(false),
+    m_bDataCaseSensitive(false) {
     }
 
     CTable::CTable(const UDB::CDBColumnInfoArray &meta, bool bFieldNameCaseSensitive, bool bDataCaseSensitive)
-            : CPColumnRowset(meta, CDataMatrix()),
-            m_bFieldNameCaseSensitive(bFieldNameCaseSensitive),
-            m_bDataCaseSensitive(bDataCaseSensitive) {
+    : CPColumnRowset(meta, CDataMatrix()),
+    m_bFieldNameCaseSensitive(bFieldNameCaseSensitive),
+    m_bDataCaseSensitive(bDataCaseSensitive) {
     }
 
     CTable::CTable(const CTable & tbl)
-            : CPColumnRowset(tbl),
-            m_bFieldNameCaseSensitive(tbl.m_bFieldNameCaseSensitive),
-            m_bDataCaseSensitive(tbl.m_bDataCaseSensitive) {
+    : CPColumnRowset(tbl),
+    m_bFieldNameCaseSensitive(tbl.m_bFieldNameCaseSensitive),
+    m_bDataCaseSensitive(tbl.m_bDataCaseSensitive) {
     }
 
     const UDB::CDBColumnInfoArray & CTable::GetMeta() const {
@@ -40,7 +39,7 @@ namespace SPA
         return map;
     }
 
-    CTable & CTable::operator = (const CTable & tbl){
+    CTable & CTable::operator=(const CTable & tbl) {
         if (this == &tbl)
             return *this;
         CPColumnRowset &base = *this;
@@ -732,11 +731,11 @@ namespace SPA
     }
 
     CDataSet::CDataSet()
-            : m_ms(UDB::msUnknown),
-            m_bDBNameCaseSensitive(false),
-            m_bTableNameCaseSensitive(false),
-            m_bFieldNameCaseSensitive(false),
-            m_bDataCaseSensitive(false) {
+    : m_ms(UDB::msUnknown),
+    m_bDBNameCaseSensitive(false),
+    m_bTableNameCaseSensitive(false),
+    m_bFieldNameCaseSensitive(false),
+    m_bDataCaseSensitive(false) {
     }
 
     void CDataSet::Swap(CDataSet & tc) {
@@ -1150,13 +1149,11 @@ namespace SPA
 
     std::wstring CDataSet::GetDBServerName() {
         CAutoLock al(m_cs);
-
         return m_strHostName;
     }
 
     std::wstring CDataSet::GetUpdater() {
         CAutoLock al(m_cs);
-
         return m_strUpdater;
     }
 
@@ -1326,7 +1323,7 @@ namespace SPA
             return CTable::INVALID_ORDINAL;
         if (!dbName)
             dbName = "";
-#ifdef WIN32_64
+#ifndef NATIVE_UTF16_SUPPORTED
         std::wstring wdbName = Utilities::ToWide(dbName);
         std::wstring wtblName = Utilities::ToWide(tblName);
         std::wstring wstr = Utilities::ToWide(str);
@@ -1379,7 +1376,8 @@ namespace SPA
         }
         return CTable::NO_TABLE_FOUND;
     }
-#ifndef WIN32_64
+
+#if defined(WCHAR32) || _MSC_VER >= 1900
 
     UDB::CDBColumnInfoArray CDataSet::GetColumMeta(const wchar_t *dbName, const wchar_t * tblName) {
         CDBString db = dbName ? Utilities::ToUTF16(dbName) : u"";

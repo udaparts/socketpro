@@ -7,31 +7,22 @@
 
 namespace SPA {
 
-#ifdef WIN32_64
-    typedef std::wstring CDBString;
-#else
-    typedef std::u16string CDBString;
+    typedef std::basic_string<UTF16> CDBString;
 
     namespace Utilities {
 
         static std::wstring ToWide(const CDBString &str) {
+#ifdef WIN32_64
+            return (const wchar_t*)str.c_str();
+#else
             return ToWide(str.c_str(), str.size());
-        }
-
-        static void Trim(CDBString & s) {
-            while (s.size() && ::isspace(s.back())) {
-                s.pop_back();
-            }
-            while (s.size() && ::isspace(s.front())) {
-                s.erase(s.begin());
-            }
+#endif
         }
 
         static std::string ToUTF8(const CDBString &str) {
             return ToUTF8(str.c_str(), str.size());
         }
     }
-#endif
 
     namespace UDB {
 
@@ -285,6 +276,25 @@ namespace SPA {
                     vt = VT_NULL;
                 }
             }
+
+#ifdef NATIVE_UTF16_SUPPORTED
+
+            CDBVariant(const char16_t* lpszSrc, unsigned int len = UQUEUE_NULL_LENGTH) : VtExt(vteNormal) {
+                if (lpszSrc) {
+                    if (len == (unsigned int) (~0)) {
+                        len = (unsigned int) GetLen(lpszSrc);
+                    }
+#ifdef WIN32_64
+                    bstrVal = ::SysAllocStringLen((const wchar_t*)lpszSrc, len);
+#else
+                    bstrVal = SPA::Utilities::SysAllocString(lpszSrc, len);
+#endif
+                    vt = VT_BSTR;
+                } else {
+                    vt = VT_NULL;
+                }
+            }
+#endif
 
             CDBVariant(const UDateTime &dt) noexcept : CComVariant(dt.time), VtExt(vteNormal) {
                 vt = VT_DATE;
@@ -545,6 +555,26 @@ namespace SPA {
                 VtExt = vteNormal;
                 return *this;
             }
+
+#ifdef NATIVE_UTF16_SUPPORTED
+
+            CDBVariant& operator=(const char16_t* lpszSrc) {
+                Clear();
+                if (lpszSrc) {
+                    unsigned int len = (unsigned int) GetLen(lpszSrc);
+                    vt = VT_BSTR;
+#ifdef WIN32_64
+                    bstrVal = ::SysAllocStringLen((const wchar_t*)lpszSrc, len);
+#else
+                    bstrVal = SPA::Utilities::SysAllocString(lpszSrc, len);
+#endif
+                } else {
+                    vt = VT_NULL;
+                }
+                VtExt = vteNormal;
+                return *this;
+            }
+#endif
 
             CDBVariant& operator=(const GUID &uuid) {
                 void *buffer;

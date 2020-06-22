@@ -8,6 +8,8 @@ namespace SPA {
 
     unsigned int SHARED_BUFFER_CLEAN_SIZE = 32 * 1024;
 
+    static const wchar_t *EMPTY_INTERNAL = L"";
+
     void CUQueue::ChangeArrayInt(void *p, unsigned char sizePerInt, unsigned int count) {
         unsigned int n;
         unsigned char *pData = (unsigned char*) p;
@@ -373,9 +375,15 @@ namespace SPA {
                         }
                         SPA::CScopeUQueue sb;
                         unsigned int wchars = (len >> 1);
-                        const UTF16 *str = (const UTF16 *) GetBuffer(position);
+
                         vtData.vt = (VT_ARRAY | VT_I1);
+#ifdef WIN32_64
+                        const wchar_t *str = (const wchar_t *) GetBuffer(position);
                         Utilities::ToUTF8(str, wchars, *sb);
+#else
+                        const UTF16 *str = (const UTF16 *) GetBuffer(position);
+                        Utilities::ToUTF8(str, wchars, *sb);
+#endif
                         Pop(len, position);
                         total += len;
                         SAFEARRAYBOUND sab[1] = {sb->GetSize(), 0};
@@ -396,10 +404,11 @@ namespace SPA {
                         if ((len + position) > GetSize()) {
                             throw CUException("Bad data for loading UNICODE string", __FILE__, __LINE__, __FUNCTION__, MB_BAD_DESERIALIZATION);
                         }
-                        const UTF16 *str = (const UTF16 *) GetBuffer(position);
 #ifdef WIN32_64
+                        const wchar_t *str = (const wchar_t *) GetBuffer(position);
                         vtData.bstrVal = ::SysAllocStringLen(str, len >> 1);
 #else
+                        const UTF16 *str = (const UTF16 *) GetBuffer(position);
                         vtData.bstrVal = Utilities::SysAllocString(str, len >> 1);
 #endif
                         Pop(len, position);
@@ -589,7 +598,7 @@ namespace SPA {
                                         throw CUException("Bad data for loading UNICODE string", __FILE__, __LINE__, __FUNCTION__, MB_BAD_DESERIALIZATION);
                                     }
 #ifdef WIN32_64
-                                    pbstr[ulIndex] = ::SysAllocStringLen((const UTF16*) GetBuffer(position), (len >> 1));
+                                    pbstr[ulIndex] = ::SysAllocStringLen((const wchar_t*) GetBuffer(position), (len >> 1));
 #else
                                     pbstr[ulIndex] = Utilities::SysAllocString((const UTF16*) GetBuffer(position), (len >> 1));
 #endif
@@ -657,27 +666,6 @@ namespace SPA {
     }
 
     namespace Utilities {
-#ifndef WINCE
-
-        void Trim(std::string & s) {
-            while (s.size() && ::isspace(s.back())) {
-                s.pop_back();
-            }
-            while (s.size() && ::isspace(s.front())) {
-                s.erase(s.begin());
-            }
-        }
-
-        void Trim(std::wstring & s) {
-            while (s.size() && ::isspace(s.back())) {
-                s.pop_back();
-            }
-            while (s.size() && ::isspace(s.front())) {
-                s.erase(s.begin());
-            }
-        }
-#endif
-
 #ifdef WIN32_64
 
         std::wstring GetErrorMessage(DWORD dwError) {
@@ -695,44 +683,58 @@ namespace SPA {
             return s;
         }
 
-        const UTF16* ToUTF16(const wchar_t *s, size_t chars) {
+        const UTF16 * ToUTF16(const wchar_t *s, size_t chars) {
             if (!s) {
-                return L"";
+                return (const UTF16*) EMPTY_INTERNAL;
             }
-            return s;
+            return (const UTF16*) s;
         }
 
-        const UTF16* ToUTF16(const char *s, size_t len) {
-            if (!s) {
-                return L"";
+        const UTF16 * ToUTF16(const char *s, size_t len) {
+            if (!s || !len) {
+                return (const UTF16*) EMPTY_INTERNAL;
             } else if (len == (size_t) (~0)) {
                 len = ::strlen(s);
             }
             CScopeUQueue sb;
-            ToWide(s, len, *sb, true);
+            ToWide(s, len, *sb, false);
             return (const UTF16*) sb->GetBuffer();
         }
 
-        const UTF16* ToUTF16(const std::string &s) {
+        const UTF16 * ToUTF16(const std::string & s) {
             return ToUTF16(s.c_str(), s.size());
         }
 
-        const UTF16* ToUTF16(const std::wstring &str) {
-            return str.c_str();
+        const UTF16 * ToUTF16(const std::wstring & str) {
+            return (const UTF16*) str.c_str();
+        }
+
+#ifdef NATIVE_UTF16_SUPPORTED
+
+        void ToUTF16(const char *str, size_t chars, CUQueue &q, bool append) {
+            ToWide(str, chars, q, append);
+        }
+
+        const char* ToUTF8(const char16_t *str, size_t wchars) {
+            CScopeUQueue sb;
+            CUQueue &q = *sb;
+            ToUTF8((const wchar_t *) str, wchars, q);
+            return (const char*) q.GetBuffer();
+        }
+
+        void ToUTF8(const char16_t *str, size_t chars, CUQueue &q, bool append) {
+            ToUTF8((const wchar_t *) str, chars, q, append);
+        }
+
+        void ToUTF16(const wchar_t *str, size_t wchars, CUQueue &q, bool append) {
+            if (!append) {
+                q.SetSize(0);
+            }
+            q.Insert(str, (unsigned int) wchars, UQUEUE_END_POSTION);
+            q.SetNull();
         }
 #endif
-
-        unsigned int GetLen(const UTF16 * chars) {
-            if (!chars) {
-                return 0;
-            }
-            unsigned int len = 0;
-            while (*chars) {
-                ++len;
-                ++chars;
-            }
-            return len;
-        }
+#endif
 
         bool IsEqual(const char *s0, const char *s1, bool case_sensitive) {
             if (s0 == s1) {
@@ -768,7 +770,7 @@ namespace SPA {
             } else if (!s0 || !s1) {
                 return false;
             }
-            unsigned int len0 = GetLen(s0), len1 = GetLen(s1);
+            unsigned int len0 = (unsigned int) GetLen(s0), len1 = (unsigned int) GetLen(s1);
             if (0 == len0 && 0 == len1) {
                 return true;
             } else if (len0 != len1) {
@@ -942,7 +944,7 @@ namespace SPA {
             return true;
         }
 
-        const UTF16* ToUTF16(const std::wstring &str) {
+        const UTF16 * ToUTF16(const std::wstring & str) {
             return ToUTF16(str.c_str(), str.size());
         }
 
@@ -967,7 +969,7 @@ namespace SPA {
                 return;
             }
             char *input = (char*) str;
-            size_t sizeInput = chars * sizeof (UTF16);
+            size_t sizeInput = (chars << 1);
             if (q.GetTailSize() < (chars + 1) * sizeof (wchar_t)) {
                 q.ReallocBuffer((chars + 1) * sizeof (wchar_t) + q.GetSize());
             }
@@ -995,7 +997,7 @@ namespace SPA {
 
         const char* ToUTF8(const UTF16 *str, size_t chars) {
             if (!str) {
-                return "";
+                return (const char*) EMPTY_INTERNAL;
             } else if (chars == (size_t) (~0)) {
                 chars = GetLen(str);
             }
@@ -1031,7 +1033,9 @@ namespace SPA {
 
         const UTF16 * ToUTF16(const char *s, size_t len) {
             if (!s) {
-                return u"";
+                return nullptr;
+            } else if (!len) {
+                return (const UTF16*) EMPTY_INTERNAL;
             } else if (len == (size_t) (~0)) {
                 len = ::strlen(s);
             }
@@ -1043,6 +1047,8 @@ namespace SPA {
         const UTF16 * ToUTF16(const wchar_t *s, size_t chars) {
             if (!s) {
                 return nullptr;
+            } else if (!chars) {
+                return (const UTF16*) EMPTY_INTERNAL;
             } else if (chars == (size_t) (~0)) {
                 chars = ::wcslen(s);
             }
