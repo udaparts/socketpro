@@ -969,7 +969,7 @@ namespace SPA {
                 return;
             }
             char *input = (char*) str;
-            size_t sizeInput = chars * sizeof (UTF16);
+            size_t sizeInput = (chars << 1);
             if (q.GetTailSize() < (chars + 1) * sizeof (wchar_t)) {
                 q.ReallocBuffer((chars + 1) * sizeof (wchar_t) + q.GetSize());
             }

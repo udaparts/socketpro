@@ -46,10 +46,11 @@ namespace SPA {
         BSTR ToBSTR(const char *utf8, size_t chars = (size_t) (~0));
         std::wstring GetErrorMessage(DWORD dwError);
         const UTF16* ToUTF16(const wchar_t *s, size_t chars = (size_t) (~0));
-        const UTF16* ToUTF16(const char *s, size_t len = (size_t) (~0));
-        const UTF16* ToUTF16(const std::string &s);
         const UTF16* ToUTF16(const std::wstring &str);
 
+        //use these function carefully and returned pointer may be invalid because the internal CScopeUQueue and its CUQueue may be gone possible
+        const UTF16* ToUTF16(const char *s, size_t len = (size_t) (~0));
+        const UTF16* ToUTF16(const std::string &s);
 #ifdef NATIVE_UTF16_SUPPORTED
         void ToUTF16(const char *str, size_t chars, CUQueue &q, bool append = false);
         const char* ToUTF8(const char16_t *str, size_t wchars = (size_t) (~0));
@@ -96,6 +97,8 @@ namespace SPA {
         BSTR SysAllocString(const SPA::UTF16 *sz, unsigned int wchars = (unsigned int) (~0));
         std::wstring ToWide(const UTF16 *str, size_t chars = (size_t) (~0));
         bool IsEqual(const wchar_t *s0, const wchar_t *s1, bool case_sensitive);
+
+        //use these function carefully and returned pointer may be invalid because the internal CScopeUQueue and its CUQueue may be gone possible
         const UTF16* ToUTF16(const wchar_t *s, size_t chars = (size_t) (~0));
         const char* ToUTF8(const UTF16 *str, size_t wchars = (size_t) (~0));
         const UTF16* ToUTF16(const char *s, size_t len = (size_t) (~0));
@@ -1433,7 +1436,11 @@ namespace SPA {
                     return;
                 }
                 memoryChunk->SetSize(0);
+#ifdef NODE_JS_ADAPTER_PROJECT
+                base::push_back(memoryChunk);
+#else
                 base::push_front(memoryChunk);
+#endif
                 memoryChunk = nullptr;
             }
         };
