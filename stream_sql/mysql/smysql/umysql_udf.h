@@ -8,7 +8,7 @@
 
 #include "mysql_com.h"
 
-#ifdef WIN32_64
+#ifndef NATIVE_UTF16_SUPPORTED
 #define STREAMING_DB_TRIGGER_PREFIX  L"sp_streaming_db_trigger_"
 #else
 #define STREAMING_DB_TRIGGER_PREFIX  u"sp_streaming_db_trigger_"

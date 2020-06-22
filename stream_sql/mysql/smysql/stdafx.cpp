@@ -120,7 +120,7 @@ namespace SPA{
         }
 
         void CMysqlImpl::CreateTriggers(CMysqlImpl &impl, const std::vector<std::string> &vecTables) {
-#ifdef WIN32_64
+#ifndef NATIVE_UTF16_SUPPORTED
             if (!impl.m_pMysql && !impl.OpenSession(L"root", "localhost"))
 #else
             if (!impl.m_pMysql && !impl.OpenSession(u"root", "localhost"))
@@ -153,7 +153,7 @@ namespace SPA{
                     *it = L'_';
                 }
             }
-#ifdef WIN32_64
+#ifndef NATIVE_UTF16_SUPPORTED
             sql = L"CREATE TRIGGER ";
             sql += STREAMING_DB_TRIGGER_PREFIX;
             sql += (strDB + L"_");
@@ -166,7 +166,7 @@ namespace SPA{
 #endif
             switch (eventType) {
                 case SPA::UDB::ueDelete:
-#ifdef WIN32_64
+#ifndef NATIVE_UTF16_SUPPORTED
                     sql += L"DELETE AFTER DELETE ON `";
 #else
                     sql += u"DELETE AFTER DELETE ON `";
@@ -181,14 +181,14 @@ namespace SPA{
                     }
                     break;
                 case SPA::UDB::ueInsert:
-#ifdef WIN32_64
+#ifndef NATIVE_UTF16_SUPPORTED
                     sql += L"INSERT AFTER INSERT ON `";
 #else
                     sql += u"INSERT AFTER INSERT ON `";
 #endif
                     break;
                 default: //update
-#ifdef WIN32_64
+#ifndef NATIVE_UTF16_SUPPORTED
                     sql += L"UPDATE AFTER UPDATE ON `";
 #else
                     sql += u"UPDATE AFTER UPDATE ON `";
@@ -196,7 +196,7 @@ namespace SPA{
                     break;
             }
             sql += db;
-#ifdef WIN32_64
+#ifndef NATIVE_UTF16_SUPPORTED
             sql += L"`.`";
             sql += table;
             sql += L"` FOR EACH ROW BEGIN DECLARE res BIGINT;";
@@ -215,7 +215,7 @@ namespace SPA{
 #endif
             for (auto it = pKey->begin(), end = pKey->end(); it != end; ++it) {
                 switch (eventType) {
-#ifdef WIN32_64
+#ifndef NATIVE_UTF16_SUPPORTED
                     case SPA::UDB::ueDelete:
                         sql += L",old.`";
                         break;
@@ -237,7 +237,7 @@ namespace SPA{
                         break;
 #endif
                 }
-#ifdef WIN32_64
+#ifndef NATIVE_UTF16_SUPPORTED
                 sql += (it->ColumnName + L"`");
                 if (eventType == SPA::UDB::ueUpdate) {
                     sql += L",new.`";
@@ -251,7 +251,7 @@ namespace SPA{
                 }
 #endif
             }
-#ifdef WIN32_64
+#ifndef NATIVE_UTF16_SUPPORTED
             sql += L")INTO res;END";
 #else
             sql += u")INTO res;END";
@@ -263,7 +263,7 @@ namespace SPA{
             bool bDelete = false, bInsert = false, bUpdate = false;
 			CDBString wSchema = Utilities::ToUTF16(schema);
 			CDBString wTable = Utilities::ToUTF16(table);
-#ifdef WIN32_64
+#ifndef NATIVE_UTF16_SUPPORTED
             std::wstring prefix(STREAMING_DB_TRIGGER_PREFIX);
             std::wstring sql_existing = L"SELECT EVENT_MANIPULATION, TRIGGER_NAME FROM INFORMATION_SCHEMA.TRIGGERS WHERE ";
             sql_existing += L"EVENT_OBJECT_SCHEMA='" + wSchema + L"'";
@@ -302,7 +302,7 @@ namespace SPA{
             }
             if (bInsert && bDelete && bUpdate)
                 return;
-#ifdef WIN32_64
+#ifndef NATIVE_UTF16_SUPPORTED
             std::wstring sql = L"SELECT COLUMN_NAME,COLUMN_KEY FROM information_schema.COLUMNS WHERE TABLE_SCHEMA='";
             sql += (wSchema + L"' AND TABLE_NAME='");
             sql += (wTable + L"' ORDER BY TABLE_NAME,ORDINAL_POSITION");
@@ -333,7 +333,7 @@ namespace SPA{
                     pk.Pri = false;
                 vKey.push_back(pk);
             }
-#ifdef WIN32_64
+#ifndef NATIVE_UTF16_SUPPORTED
             sql = L"USE `" + wSchema + L"`";
 #else
             sql = u"USE `" + wSchema + u"`";
@@ -365,7 +365,7 @@ namespace SPA{
 
         void CMysqlImpl::RemoveUnusedTriggers(const std::vector<std::string> &vecTables) {
             CDBString prefix(STREAMING_DB_TRIGGER_PREFIX);
-#ifdef WIN32_64
+#ifndef NATIVE_UTF16_SUPPORTED
             std::wstring sql_existing = L"SELECT event_object_schema,trigger_name,EVENT_OBJECT_TABLE FROM INFORMATION_SCHEMA.TRIGGERS where TRIGGER_NAME like '" + prefix + L"%' order by event_object_schema,EVENT_OBJECT_TABLE";
 #else
             CDBString sql_existing = u"SELECT event_object_schema,trigger_name,EVENT_OBJECT_TABLE FROM INFORMATION_SCHEMA.TRIGGERS where TRIGGER_NAME like '" + prefix + u"%' order by event_object_schema,EVENT_OBJECT_TABLE";
@@ -397,7 +397,7 @@ namespace SPA{
                     return (trigger_db_table == s);
                 });
                 if (ret == vec.end()) {
-#ifdef WIN32_64
+#ifndef NATIVE_UTF16_SUPPORTED
                     std::wstring wsql = L"USE `" + Utilities::ToWide(schema) + L"`";
 #else
                     CDBString wsql = CDBString(u"USE `") + Utilities::ToUTF16(schema) + u"`";
@@ -406,7 +406,7 @@ namespace SPA{
                     res = 0;
 
                     //trigger not needed any more as it is not found inside sp_streaming_db.config.cached_tables
-#ifdef WIN32_64
+#ifndef NATIVE_UTF16_SUPPORTED
                     wsql = L"drop trigger " + Utilities::ToWide(name);
 #else
                     wsql = CDBString(u"drop trigger ") + Utilities::ToUTF16(name);
