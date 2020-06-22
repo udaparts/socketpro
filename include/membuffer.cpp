@@ -8,6 +8,8 @@ namespace SPA {
 
     unsigned int SHARED_BUFFER_CLEAN_SIZE = 32 * 1024;
 
+    static const wchar_t *EMPTY_INTERNAL = L"";
+
     void CUQueue::ChangeArrayInt(void *p, unsigned char sizePerInt, unsigned int count) {
         unsigned int n;
         unsigned char *pData = (unsigned char*) p;
@@ -681,18 +683,16 @@ namespace SPA {
             return s;
         }
 
-        static const UTF16 *EMPTY_INTERNAL = (const UTF16 *) L"";
-
         const UTF16 * ToUTF16(const wchar_t *s, size_t chars) {
             if (!s) {
-                return EMPTY_INTERNAL;
+                return (const UTF16*) EMPTY_INTERNAL;
             }
             return (const UTF16*) s;
         }
 
         const UTF16 * ToUTF16(const char *s, size_t len) {
             if (!s || !len) {
-                return EMPTY_INTERNAL;
+                return (const UTF16*) EMPTY_INTERNAL;
             } else if (len == (size_t) (~0)) {
                 len = ::strlen(s);
             }
@@ -997,7 +997,7 @@ namespace SPA {
 
         const char* ToUTF8(const UTF16 *str, size_t chars) {
             if (!str) {
-                return "";
+                return (const char*) EMPTY_INTERNAL;
             } else if (chars == (size_t) (~0)) {
                 chars = GetLen(str);
             }
@@ -1033,7 +1033,9 @@ namespace SPA {
 
         const UTF16 * ToUTF16(const char *s, size_t len) {
             if (!s) {
-                return u"";
+                return nullptr;
+            } else if (!len) {
+                return (const UTF16*) EMPTY_INTERNAL;
             } else if (len == (size_t) (~0)) {
                 len = ::strlen(s);
             }
@@ -1045,6 +1047,8 @@ namespace SPA {
         const UTF16 * ToUTF16(const wchar_t *s, size_t chars) {
             if (!s) {
                 return nullptr;
+            } else if (!chars) {
+                return (const UTF16*) EMPTY_INTERNAL;
             } else if (chars == (size_t) (~0)) {
                 chars = ::wcslen(s);
             }

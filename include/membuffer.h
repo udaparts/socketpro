@@ -48,12 +48,13 @@ namespace SPA {
         const UTF16* ToUTF16(const wchar_t *s, size_t chars = (size_t) (~0));
         const UTF16* ToUTF16(const std::wstring &str);
 
-        //use these function carefully and returned pointer may be invalid because the internal CScopeUQueue and its CUQueue may be gone possible
+        //use the following three functions carefully and returned pointers may be invalid because the internal CScopeUQueue and its CUQueue may be gone possible
         const UTF16* ToUTF16(const char *s, size_t len = (size_t) (~0));
         const UTF16* ToUTF16(const std::string &s);
 #ifdef NATIVE_UTF16_SUPPORTED
-        void ToUTF16(const char *str, size_t chars, CUQueue &q, bool append = false);
         const char* ToUTF8(const char16_t *str, size_t wchars = (size_t) (~0));
+        
+        void ToUTF16(const char *str, size_t chars, CUQueue &q, bool append = false);
         void ToUTF8(const char16_t *str, size_t chars, CUQueue &q, bool append = false);
         void ToUTF16(const wchar_t *str, size_t wchars, CUQueue &q, bool append = false);
 #endif
@@ -98,7 +99,7 @@ namespace SPA {
         std::wstring ToWide(const UTF16 *str, size_t chars = (size_t) (~0));
         bool IsEqual(const wchar_t *s0, const wchar_t *s1, bool case_sensitive);
 
-        //use these function carefully and returned pointer may be invalid because the internal CScopeUQueue and its CUQueue may be gone possible
+        //use the following five functions carefully and returned pointers may be invalid because the internal CScopeUQueue and its CUQueue may be gone possible
         const UTF16* ToUTF16(const wchar_t *s, size_t chars = (size_t) (~0));
         const char* ToUTF8(const UTF16 *str, size_t wchars = (size_t) (~0));
         const UTF16* ToUTF16(const char *s, size_t len = (size_t) (~0));
