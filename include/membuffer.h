@@ -19,13 +19,17 @@ namespace SPA {
     class CUQueue;
 
     namespace Utilities {
-
 #ifndef WINCE
-        void Trim(std::string &s);
-        void Trim(std::wstring &s);
-#ifdef NATIVE_UTF16_SUPPORTED
-        void Trim(std::u16string &s);
-#endif
+
+        template<typename TChar>
+        void Trim(std::basic_string<TChar> &s) {
+            while (s.size() && ::isspace(s.back())) {
+                s.pop_back();
+            }
+            while (s.size() && ::isspace(s.front())) {
+                s.erase(s.begin());
+            }
+        }
 #endif
 
 #if defined(__ANDROID__) || defined(ANDROID)
