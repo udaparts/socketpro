@@ -66,10 +66,8 @@ namespace SPA {
         std::string ToUTF8(const std::wstring &s);
         std::wstring ToWide(const std::string &s);
 #endif
+        using SPA::GetLen;
 
-        inline static unsigned int GetLen(const UTF16 *str) {
-            return (unsigned int) SPA::GetLen(str);
-        }
         bool IsEqual(const UTF16 *s0, const UTF16 *s1, bool case_sensitive);
         bool IsEqual(const char *s0, const char *s1, bool case_sensitive);
 

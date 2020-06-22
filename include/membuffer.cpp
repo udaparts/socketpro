@@ -770,7 +770,7 @@ namespace SPA {
             } else if (!s0 || !s1) {
                 return false;
             }
-            unsigned int len0 = GetLen(s0), len1 = GetLen(s1);
+            unsigned int len0 = (unsigned int) GetLen(s0), len1 = (unsigned int) GetLen(s1);
             if (0 == len0 && 0 == len1) {
                 return true;
             } else if (len0 != len1) {
