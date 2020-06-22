@@ -133,9 +133,9 @@
       </toolsSet>
       <compileType>
         <cTool>
-          <developmentMode>5</developmentMode>
+          <developmentMode>6</developmentMode>
           <stripSymbols>true</stripSymbols>
-          <commandLine>-std=c++11 -static-libstdc++</commandLine>
+          <commandLine>-std=c++11 -static-libstdc++ -Os</commandLine>
           <preprocessorList>
             <Elem>HAVE_GMTIME_R</Elem>
             <Elem>HAVE_LOCALTIME_S</Elem>
@@ -150,9 +150,9 @@
           </preprocessorList>
         </cTool>
         <ccTool>
-          <developmentMode>5</developmentMode>
+          <developmentMode>6</developmentMode>
           <stripSymbols>true</stripSymbols>
-          <commandLine>-std=c++11 -static-libstdc++</commandLine>
+          <commandLine>-std=c++11 -static-libstdc++ -Os</commandLine>
           <preprocessorList>
             <Elem>HAVE_GMTIME_R</Elem>
             <Elem>HAVE_LOCALTIME_S</Elem>

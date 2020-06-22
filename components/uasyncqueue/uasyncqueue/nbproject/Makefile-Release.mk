@@ -42,11 +42,11 @@ OBJECTFILES= \
 
 
 # C Compiler Flags
-CFLAGS=-std=c++11 -static-libgcc -static-libstdc++
+CFLAGS=-std=c++11 -static-libstdc++ -Os
 
 # CC Compiler Flags
-CCFLAGS=-std=c++11 -static-libgcc -static-libstdc++
-CXXFLAGS=-std=c++11 -static-libgcc -static-libstdc++
+CCFLAGS=-std=c++11 -static-libstdc++ -Os
+CXXFLAGS=-std=c++11 -static-libstdc++ -Os
 
 # Fortran Compiler Flags
 FFLAGS=
@@ -63,27 +63,27 @@ LDLIBSOPTIONS=-luservercore
 
 ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/libuasyncqueue.${CND_DLIB_EXT}: ${OBJECTFILES}
 	${MKDIR} -p ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}
-	g++ -o ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/libuasyncqueue.${CND_DLIB_EXT} ${OBJECTFILES} ${LDLIBSOPTIONS} -std=c++11 -static-libgcc -static-libstdc++ -shared -s -fPIC
+	g++ -o ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/libuasyncqueue.${CND_DLIB_EXT} ${OBJECTFILES} ${LDLIBSOPTIONS} -std=c++11 -static-libstdc++ -shared -s -fPIC
 
 ${OBJECTDIR}/_ext/932346631/aserverw.o: ../../../include/aserverw.cpp 
 	${MKDIR} -p ${OBJECTDIR}/_ext/932346631
 	${RM} "$@.d"
-	$(COMPILE.c) -O2 -s -DNDEBUG -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/932346631/aserverw.o ../../../include/aserverw.cpp
+	$(COMPILE.c) -O3 -s -DNDEBUG -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/932346631/aserverw.o ../../../include/aserverw.cpp
 
 ${OBJECTDIR}/_ext/932346631/membuffer.o: ../../../include/membuffer.cpp 
 	${MKDIR} -p ${OBJECTDIR}/_ext/932346631
 	${RM} "$@.d"
-	$(COMPILE.c) -O2 -s -DNDEBUG -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/932346631/membuffer.o ../../../include/membuffer.cpp
+	$(COMPILE.c) -O3 -s -DNDEBUG -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/932346631/membuffer.o ../../../include/membuffer.cpp
 
 ${OBJECTDIR}/_ext/431783432/asyncqueueimpl.o: ../../../include/queue/server_impl/asyncqueueimpl.cpp 
 	${MKDIR} -p ${OBJECTDIR}/_ext/431783432
 	${RM} "$@.d"
-	$(COMPILE.c) -O2 -s -DNDEBUG -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/431783432/asyncqueueimpl.o ../../../include/queue/server_impl/asyncqueueimpl.cpp
+	$(COMPILE.c) -O3 -s -DNDEBUG -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/431783432/asyncqueueimpl.o ../../../include/queue/server_impl/asyncqueueimpl.cpp
 
 ${OBJECTDIR}/_ext/431783432/uasyncqueue.o: ../../../include/queue/server_impl/uasyncqueue.cpp 
 	${MKDIR} -p ${OBJECTDIR}/_ext/431783432
 	${RM} "$@.d"
-	$(COMPILE.c) -O2 -s -DNDEBUG -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/431783432/uasyncqueue.o ../../../include/queue/server_impl/uasyncqueue.cpp
+	$(COMPILE.c) -O3 -s -DNDEBUG -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/431783432/uasyncqueue.o ../../../include/queue/server_impl/uasyncqueue.cpp
 
 # Subprojects
 .build-subprojects:

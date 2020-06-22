@@ -99,18 +99,18 @@
       </toolsSet>
       <compileType>
         <cTool>
-          <developmentMode>5</developmentMode>
+          <developmentMode>6</developmentMode>
           <stripSymbols>true</stripSymbols>
-          <commandLine>-std=c++11 -static-libstdc++</commandLine>
+          <commandLine>-std=c++11 -static-libstdc++ -Os</commandLine>
           <preprocessorList>
             <Elem>NDEBUG</Elem>
             <Elem>USE_BOOST_LARGE_INTEGER_FOR_DECIMAL</Elem>
           </preprocessorList>
         </cTool>
         <ccTool>
-          <developmentMode>5</developmentMode>
+          <developmentMode>6</developmentMode>
           <stripSymbols>true</stripSymbols>
-          <commandLine>-std=c++11 -static-libstdc++</commandLine>
+          <commandLine>-std=c++11 -static-libstdc++ -Os</commandLine>
           <preprocessorList>
             <Elem>NDEBUG</Elem>
             <Elem>USE_BOOST_LARGE_INTEGER_FOR_DECIMAL</Elem>
