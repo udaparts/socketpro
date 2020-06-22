@@ -120,7 +120,7 @@ namespace NJA {
         {
             //make sure static critical sections initialized and pre-allocate an array of SPA::CUQueue
             SPA::CScopeUQueue sb;
-            const unsigned int PRE_COUNT = 2;
+            const unsigned int PRE_COUNT = 4;
             for (unsigned int n = 0; n < PRE_COUNT; ++n) {
                 SPA::CUQueue *q = new SPA::CUQueue;
                 SPA::CScopeUQueue::Unlock(q); //put into memory pool
