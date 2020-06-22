@@ -121,9 +121,9 @@
       </toolsSet>
       <compileType>
         <cTool>
-          <developmentMode>5</developmentMode>
+          <developmentMode>6</developmentMode>
           <stripSymbols>true</stripSymbols>
-          <commandLine>-std=c++11 -static-libstdc++</commandLine>
+          <commandLine>-std=c++11 -static-libstdc++ -Os</commandLine>
           <preprocessorList>
             <Elem>MM_DB_SERVER_PLUGIN</Elem>
             <Elem>MYSQL_DYNAMIC_PLUGIN</Elem>
@@ -132,9 +132,9 @@
           </preprocessorList>
         </cTool>
         <ccTool>
-          <developmentMode>5</developmentMode>
+          <developmentMode>6</developmentMode>
           <stripSymbols>true</stripSymbols>
-          <commandLine>-std=c++11 -static-libstdc++</commandLine>
+          <commandLine>-std=c++11 -static-libstdc++ -Os</commandLine>
           <preprocessorList>
             <Elem>MM_DB_SERVER_PLUGIN</Elem>
             <Elem>MYSQL_DYNAMIC_PLUGIN</Elem>
@@ -154,7 +154,7 @@
           <linkerLibItems>
             <linkerLibLibItem>uservercore</linkerLibLibItem>
           </linkerLibItems>
-          <commandLine>-std=c++11</commandLine>
+          <commandLine>-std=c++11 -static-libstdc++</commandLine>
         </linkerTool>
       </compileType>
       <item path="../../../include/aserverw.cpp" ex="false" tool="0" flavor2="0">
