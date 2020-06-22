@@ -26,7 +26,7 @@ namespace SPA {
         assert(sizeof (wchar_t) != sizeof (UTF16));
         if (chars == nullptr || len == 0)
             return std::wstring();
-        unsigned int utfchars = Utilities::GetLen(chars);
+        unsigned int utfchars = GetLen(chars);
 #if defined(__ANDROID__) || defined(ANDROID)
         return Utilities::ToWide(chars, utfchars);
 #else

@@ -160,7 +160,7 @@ unsigned int WINAPI SendExceptionResult(USocket_Server_Handle h, const wchar_t* 
     if (index != 0 && index == pSession->GetConnIndex()) {
         if (errMessage && SPA::g_bAdapterUTF16 && sizeof (wchar_t) != sizeof (SPA::UTF16)) {
             const SPA::UTF16 *str = (const SPA::UTF16 *)errMessage;
-            unsigned int len = SPA::Utilities::GetLen(str);
+            unsigned int len = (unsigned int)SPA::GetLen(str);
             std::wstring s = SPA::ToNativeString(str, len);
             return pSession->SendExceptionResult(s.c_str(), errWhere, requestId, errCode);
         }
@@ -175,7 +175,7 @@ unsigned int WINAPI SendExceptionResultIndex(USocket_Server_Handle h, SPA::UINT6
     if (index != 0 && index == pSession->GetConnIndex()) {
         if (errMessage && SPA::g_bAdapterUTF16 && sizeof (wchar_t) != sizeof (SPA::UTF16)) {
             const SPA::UTF16 *str = (const SPA::UTF16 *)errMessage;
-            unsigned int len = SPA::Utilities::GetLen(str);
+            unsigned int len = (unsigned int)SPA::GetLen(str);
             std::wstring s = SPA::ToNativeString(str, len);
             return pSession->SendExceptionResultIndex(indexCall, s.c_str(), errWhere, requestId, errCode);
         }
@@ -241,7 +241,7 @@ bool WINAPI SendUserMessageEx(USocket_Server_Handle h, const wchar_t *userId, co
     if (index != 0 && index == pSession->GetConnIndex()) {
         if (userId && SPA::g_bAdapterUTF16 && sizeof (wchar_t) != sizeof (SPA::UTF16)) {
             const SPA::UTF16 *str = (const SPA::UTF16 *)userId;
-            unsigned int len = SPA::Utilities::GetLen(str);
+            unsigned int len = (unsigned int)SPA::GetLen(str);
             std::wstring s = SPA::ToNativeString(str, len);
             return pSession->SendUserMessageEx(s.c_str(), message, size);
         }
@@ -256,7 +256,7 @@ bool WINAPI SendUserMessage(USocket_Server_Handle h, const wchar_t *userId, cons
     if (index != 0 && index == pSession->GetConnIndex()) {
         if (userId && SPA::g_bAdapterUTF16 && sizeof (wchar_t) != sizeof (SPA::UTF16)) {
             const SPA::UTF16 *str = (const SPA::UTF16 *)userId;
-            unsigned int len = SPA::Utilities::GetLen(str);
+            unsigned int len = (unsigned int)SPA::GetLen(str);
             std::wstring s = SPA::ToNativeString(str, len);
             return pSession->SendUserMessage(s.c_str(), message, size);
         }
@@ -482,7 +482,7 @@ bool WINAPI SetUserID(USocket_Server_Handle h, const wchar_t *userId) {
             pSession->SetUserID(L"");
         } else if (SPA::g_bAdapterUTF16 && sizeof (wchar_t) != sizeof (SPA::UTF16)) {
             const SPA::UTF16 *str = (const SPA::UTF16 *)userId;
-            unsigned int len = SPA::Utilities::GetLen(str);
+            unsigned int len = (unsigned int)SPA::GetLen(str);
             std::wstring s = SPA::ToNativeString(str, len);
             pSession->SetUserID(s.c_str());
         } else
@@ -541,7 +541,7 @@ bool WINAPI SetPassword(USocket_Server_Handle h, const wchar_t *password) {
             pSession->SetPassword(L"");
         } else if (SPA::g_bAdapterUTF16 && sizeof (wchar_t) != sizeof (SPA::UTF16)) {
             const SPA::UTF16 *str = (const SPA::UTF16 *)password;
-            unsigned int len = SPA::Utilities::GetLen(str);
+            unsigned int len = (unsigned int)SPA::GetLen(str);
             std::wstring s = SPA::ToNativeString(str, len);
             pSession->SetPassword(s.c_str());
         } else
@@ -837,8 +837,8 @@ unsigned int WINAPI SendHTTPReturnDataW(USocket_Server_Handle h, const wchar_t *
     SPA::CScopeUQueue su;
     if (str) {
 #ifdef WCHAR32
-        if (SPA::g_bAdapterUTF16 && sizeof (wchar_t) != sizeof (SPA::UTF16))
-            SPA::Utilities::ToUTF8((const SPA::UTF16 *)str, SPA::Utilities::GetLen((const SPA::UTF16 *)str), *su);
+        if (SPA::g_bAdapterUTF16)
+            SPA::Utilities::ToUTF8((const SPA::UTF16 *)str, SPA::GetLen((const SPA::UTF16 *)str), *su);
         else
 #endif
             SPA::Utilities::ToUTF8(str, ::wcslen(str), *su);
@@ -875,14 +875,14 @@ unsigned int WINAPI HTTPCallbackW(USocket_Server_Handle h, const char *name, con
     if (str) {
         if (chars == (~0)) {
 #ifdef WCHAR32
-            if (SPA::g_bAdapterUTF16 && sizeof (wchar_t) != sizeof (SPA::UTF16))
-                chars = SPA::Utilities::GetLen((const SPA::UTF16 *)str);
+            if (SPA::g_bAdapterUTF16)
+                chars = (unsigned int)SPA::GetLen((const SPA::UTF16 *)str);
             else
 #endif
                 chars = (unsigned int) ::wcslen(str);
         }
 #ifdef WCHAR32
-        if (SPA::g_bAdapterUTF16 && sizeof (wchar_t) != sizeof (SPA::UTF16))
+        if (SPA::g_bAdapterUTF16)
             SPA::Utilities::ToUTF8((const SPA::UTF16 *)str, chars, *su);
         else
 #endif
