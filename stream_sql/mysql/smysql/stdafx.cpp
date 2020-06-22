@@ -261,8 +261,8 @@ namespace SPA{
 
         void CMysqlImpl::CreateTriggers(const std::string &schema, const std::string & table) {
             bool bDelete = false, bInsert = false, bUpdate = false;
-			CDBString wSchema = Utilities::ToUTF16(schema);
-			CDBString wTable = Utilities::ToUTF16(table);
+            CDBString wSchema = Utilities::ToUTF16(schema);
+            CDBString wTable = Utilities::ToUTF16(table);
 #ifndef NATIVE_UTF16_SUPPORTED
             std::wstring prefix(STREAMING_DB_TRIGGER_PREFIX);
             std::wstring sql_existing = L"SELECT EVENT_MANIPULATION, TRIGGER_NAME FROM INFORMATION_SCHEMA.TRIGGERS WHERE ";
