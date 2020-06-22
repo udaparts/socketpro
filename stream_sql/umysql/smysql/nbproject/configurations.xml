@@ -128,7 +128,7 @@
           <linkerLibItems>
             <linkerLibLibItem>uservercore</linkerLibLibItem>
           </linkerLibItems>
-          <commandLine>-std=c++11</commandLine>
+          <commandLine>-std=c++11 -static-libstdc++</commandLine>
         </linkerTool>
       </compileType>
       <item path="../../../include/aserverw.cpp" ex="false" tool="0" flavor2="0">
