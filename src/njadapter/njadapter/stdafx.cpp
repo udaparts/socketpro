@@ -113,26 +113,6 @@ namespace SPA {
                     PAsyncServiceHandler processor = nullptr;
                     *cb.Buffer >> processor;
                     assert(processor);
-#if 0
-                    Local<v8::Object> njAsh;
-                    unsigned int sid = processor->GetSvsID();
-                    switch (sid) {
-                        case SPA::Odbc::sidOdbc:
-                        case SPA::Mysql::sidMysql:
-                        case SPA::Sqlite::sidSqlite:
-                            njAsh = NJSqlite::New(isolate, (CNjDb*) processor, true);
-                            break;
-                        case SPA::Queue::sidQueue:
-                            njAsh = NJAsyncQueue::New(isolate, (CAQueue*) processor, true);
-                            break;
-                        case SPA::SFile::sidFile:
-                            njAsh = NJFile::New(isolate, (CSFile*) processor, true);
-                            break;
-                        default:
-                            njAsh = NJHandler::New(isolate, processor, true);
-                            break;
-                    }
-#endif
                     Local<Value> jsReqId = Uint32::New(isolate, cb.ReqId);
                     Local<Function> func;
                     assert(cb.Func);
@@ -916,7 +896,7 @@ namespace NJA {
             }
             case VT_BSTR:
 #ifdef WIN32_64
-                return ToStr(isolate, vt.bstrVal, SysStringLen(vt.bstrVal));
+                return ToStr(isolate, (const UTF16*) vt.bstrVal, SysStringLen(vt.bstrVal));
 #else
             {
                 SPA::CScopeUQueue sb;
@@ -986,7 +966,7 @@ namespace NJA {
                                         BSTR *p = (BSTR *) pvt;
                                         if (p[n]) {
 #ifdef WIN32_64
-                                            auto s = ToStr(isolate, p[n], SysStringLen(p[n]));
+                                            auto s = ToStr(isolate, (const UTF16*) p[n], SysStringLen(p[n]));
 #else
                                             SPA::CScopeUQueue sb;
                                             Utilities::ToUTF16(p[n], SysStringLen(p[n]), *sb, true);

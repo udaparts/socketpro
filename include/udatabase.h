@@ -277,6 +277,25 @@ namespace SPA {
                 }
             }
 
+#ifdef NATIVE_UTF16_SUPPORTED
+
+            CDBVariant(const char16_t* lpszSrc, unsigned int len = UQUEUE_NULL_LENGTH) : VtExt(vteNormal) {
+                if (lpszSrc) {
+                    if (len == (unsigned int) (~0)) {
+                        len = (unsigned int) GetLen(lpszSrc);
+                    }
+#ifdef WIN32_64
+                    bstrVal = ::SysAllocStringLen((const wchar_t*)lpszSrc, len);
+#else
+                    bstrVal = SPA::Utilities::SysAllocStringLen(lpszSrc, len);
+#endif
+                    vt = VT_BSTR;
+                } else {
+                    vt = VT_NULL;
+                }
+            }
+#endif
+
             CDBVariant(const UDateTime &dt) noexcept : CComVariant(dt.time), VtExt(vteNormal) {
                 vt = VT_DATE;
             }
@@ -536,6 +555,26 @@ namespace SPA {
                 VtExt = vteNormal;
                 return *this;
             }
+
+#ifdef NATIVE_UTF16_SUPPORTED
+
+            CDBVariant& operator=(const char16_t* lpszSrc) {
+                Clear();
+                if (lpszSrc) {
+                    unsigned int len = (unsigned int) GetLen(lpszSrc);
+                    vt = VT_BSTR;
+#ifdef WIN32_64
+                    bstrVal = ::SysAllocStringLen((const wchar_t*)lpszSrc, len);
+#else
+                    bstrVal = SPA::Utilities::SysAllocStringLen(lpszSrc, len);
+#endif
+                } else {
+                    vt = VT_NULL;
+                }
+                VtExt = vteNormal;
+                return *this;
+            }
+#endif
 
             CDBVariant& operator=(const GUID &uuid) {
                 void *buffer;

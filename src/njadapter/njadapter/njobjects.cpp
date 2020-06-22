@@ -249,17 +249,13 @@ namespace NJA {
                 ThrowException(isolate, "Cannot create a slave pool from a non-master pool");
                 return;
             }
-            std::wstring defaultDb(obj->m_defaultDb);
+            SPA::CDBString defaultDb = SPA::Utilities::ToUTF16(obj->m_defaultDb);
             auto p = args[0];
 
             if (p->IsString()) {
                 SPA::CDBString s = ToStr(isolate, p);
                 if (s.size()) {
-#ifdef WIN32_64
                     defaultDb = s;
-#else
-                    defaultDb = Utilities::ToWide(s.c_str(), s.size());
-#endif
                 }
             } else if (!IsNullOrUndefined(p)) {
                 ThrowException(isolate, "A default database name string expected");

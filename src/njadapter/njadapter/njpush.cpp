@@ -127,7 +127,7 @@ namespace NJA {
         auto p0 = args[0];
         if (p0->IsString()) {
 #ifdef WIN32_64
-            user = ToStr(isolate, p0);
+            user = (const wchar_t*)ToStr(isolate, p0).c_str();
 #else
             auto s = ToAStr(isolate, p0);
             user = Utilities::ToWide(s);

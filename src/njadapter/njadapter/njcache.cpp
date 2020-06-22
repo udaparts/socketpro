@@ -104,9 +104,9 @@ namespace NJA {
         NJCache* obj = ObjectWrap::Unwrap<NJCache>(args.Holder());
         if (obj->IsValid(isolate)) {
 #ifdef WIN32_64
-            args.GetReturnValue().Set(ToStr(isolate, obj->m_ds->GetDBServerName().c_str()));
+            args.GetReturnValue().Set(ToStr(isolate, (const UTF16*) obj->m_ds->GetDBServerName().c_str()));
 #else
-            args.GetReturnValue().Set(ToStr(isolate, Utilities::ToUTF8(obj->m_ds->GetDBServerName()).c_str()));
+            args.GetReturnValue().Set(ToStr(isolate, Utilities::ToUTF16(obj->m_ds->GetDBServerName()).c_str()));
 #endif
         }
     }
@@ -116,9 +116,9 @@ namespace NJA {
         NJCache* obj = ObjectWrap::Unwrap<NJCache>(args.Holder());
         if (obj->IsValid(isolate)) {
 #ifdef WIN32_64
-            args.GetReturnValue().Set(ToStr(isolate, obj->m_ds->GetUpdater().c_str()));
+            args.GetReturnValue().Set(ToStr(isolate, (const UTF16*) obj->m_ds->GetUpdater().c_str()));
 #else
-            args.GetReturnValue().Set(ToStr(isolate, Utilities::ToUTF8(obj->m_ds->GetUpdater()).c_str()));
+            args.GetReturnValue().Set(ToStr(isolate, Utilities::ToUTF16(obj->m_ds->GetUpdater()).c_str()));
 #endif
         }
     }
