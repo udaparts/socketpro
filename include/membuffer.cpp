@@ -667,9 +667,9 @@ namespace SPA
             ToUTF8((const wchar_t *) str, chars, q, append);
         }
 
-		void ToWide(const char16_t *str, size_t chars, CUQueue &q, bool append) {
-			ToUTF16((const wchar_t *)str, chars, q, append);
-		}
+        void ToWide(const char16_t *str, size_t chars, CUQueue &q, bool append) {
+            ToUTF16((const wchar_t *) str, chars, q, append);
+        }
 #endif
 
         void ToUTF16(const char *str, size_t chars, CUQueue &q, bool append) {
