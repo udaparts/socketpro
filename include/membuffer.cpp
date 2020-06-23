@@ -666,6 +666,10 @@ namespace SPA
         void ToUTF8(const char16_t *str, size_t chars, CUQueue &q, bool append) {
             ToUTF8((const wchar_t *) str, chars, q, append);
         }
+
+		void ToWide(const char16_t *str, size_t chars, CUQueue &q, bool append) {
+			ToUTF16((const wchar_t *)str, chars, q, append);
+		}
 #endif
 
         void ToUTF16(const char *str, size_t chars, CUQueue &q, bool append) {
@@ -957,7 +961,7 @@ namespace SPA
             return ::SysAllocStringLen((const wchar_t*) q.GetBuffer(), q.GetSize() / sizeof (wchar_t));
         }
 
-        void ToUTF8(const UTF16 *str, size_t chars, CUQueue & q, bool append) {
+        void ToUTF8(const char16_t *str, size_t chars, CUQueue & q, bool append) {
             if (!append) {
                 q.SetSize(0);
             }
