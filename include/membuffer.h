@@ -69,6 +69,7 @@ namespace SPA {
         }
 
 #ifdef NATIVE_UTF16_SUPPORTED
+        void ToWide(const char16_t *str, size_t chars, CUQueue &q, bool append = false);
         void ToUTF8(const char16_t *str, size_t chars, CUQueue &q, bool append = false);
         std::string ToUTF8(const char16_t *str, size_t chars = (size_t) (~0));
         std::string ToUTF8(const std::basic_string<char16_t> &s);
@@ -79,7 +80,6 @@ namespace SPA {
 #ifdef WIN32_64
         std::wstring GetErrorMessage(DWORD dwError);
 #elif defined(WCHAR32)
-        void ToWide(const char16_t *str, size_t chars, CUQueue &q, bool append = false);
         BSTR SysAllocString(const char16_t *sz, unsigned int wchars = (unsigned int) (~0));
 #else
 #endif

@@ -942,15 +942,19 @@ namespace SPA
         }
 
         BSTR SysAllocString(const SPA::UTF16 *sz, unsigned int wchars) {
-            if (!sz && wchars == (unsigned int) (~0)) {
-                return nullptr;
-            } else if (sz && wchars == (unsigned int) (~0)) {
+            if (!sz) {
+                wchars = 0;
+            } else if (wchars == (unsigned int) (~0)) {
                 wchars = GetLen(sz);
+            } else {
+                assert(wchars <= GetLen(sz));
             }
             CScopeUQueue sb;
             CUQueue &q = *sb;
-            ToWide(sz, wchars, q, true);
-            return SysAllocStringLen((const wchar_t*) q.GetBuffer(), q.GetSize() / sizeof (wchar_t));
+            if (wchars) {
+                ToWide(sz, wchars, q, true);
+            }
+            return ::SysAllocStringLen((const wchar_t*) q.GetBuffer(), q.GetSize() / sizeof (wchar_t));
         }
 
         void ToUTF8(const UTF16 *str, size_t chars, CUQueue & q, bool append) {
