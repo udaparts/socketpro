@@ -16,8 +16,8 @@ namespace SPA {
 
     namespace Utilities {
         using SPA::GetLen;
-#ifndef WINCE
 
+#ifndef WINCE
         template<typename TChar>
         void Trim(std::basic_string<TChar> &s) {
             while (s.size() && ::isspace(s.back())) {

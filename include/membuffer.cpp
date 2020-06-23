@@ -663,13 +663,30 @@ namespace SPA
 
     namespace Utilities{
 #ifdef WIN32_64
+
+#ifdef NATIVE_UTF16_SUPPORTED
+		void ToUTF8(const char16_t *str, size_t chars, CUQueue &q, bool append) {
+            ToUTF8((const wchar_t *) str, chars, q, append);
+        }
+#endif
         void ToUTF16(const char *str, size_t chars, CUQueue &q, bool append) {
             ToWide(str, chars, q, append);
         }
 
-        void ToUTF8(const char16_t *str, size_t chars, CUQueue &q, bool append) {
-            ToUTF8((const wchar_t *) str, chars, q, append);
-        }
+		void ToUTF16(const wchar_t *str, size_t wchars, CUQueue &q, bool append) {
+			if (!append) {
+				q.SetSize(0);
+			}
+			if (!str || !wchars) {
+				q.SetNull();
+				return;
+			}
+			if (wchars == (size_t)(~0)) {
+				wchars = ::wcslen(str);
+			}
+			q.Insert((const unsigned char*)str, (unsigned int)(wchars << 1));
+			q.SetNull();
+		}
 
         std::wstring GetErrorMessage(DWORD dwError) {
             wchar_t *lpMsgBuf = nullptr;
@@ -725,10 +742,12 @@ namespace SPA
         }
 
         BSTR ToBSTR(const char *utf8, size_t chars) {
-            if (!utf8)
-                return nullptr;
-            if ((size_t) (~0) == chars)
+            if (!utf8) {
+                utf8 = (const char*)EMPTY_INTERNAL;
+			}
+            if ((size_t) (~0) == chars) {
                 chars = ::strlen(utf8);
+			}
 #ifdef WIN32_64
             int nConvertedLen = ::MultiByteToWideChar(CP_UTF8, 0, utf8, (int) chars, nullptr, 0);
             BSTR bstr = ::SysAllocStringLen(nullptr, nConvertedLen);
