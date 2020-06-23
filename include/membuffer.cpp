@@ -755,8 +755,9 @@ namespace SPA
             return bstr;
 #else
             CScopeUQueue sb;
-            ToWide(utf8, chars, *sb);
-            return SysAllocStringLen((const wchar_t*) sb->GetBuffer(), sb->GetSize() / sizeof (wchar_t));
+			CUQueue &q = *sb;
+            ToWide(utf8, chars, q, true);
+            return SysAllocStringLen((const wchar_t*) q.GetBuffer(), q.GetSize() / sizeof (wchar_t));
 #endif
         }
 
@@ -768,18 +769,22 @@ namespace SPA
                 chars = ::strlen(utf8);
             }
             CScopeUQueue sb;
-            Utilities::ToWide(utf8, chars, *sb);
-            return (const wchar_t*) sb->GetBuffer();
+			CUQueue &q = *sb;
+            ToWide(utf8, chars, q, true);
+            return std::wstring((const wchar_t*) q.GetBuffer(), q.GetSize()/sizeof(wchar_t));
         }
 
         std::string ToUTF8(const wchar_t *str, size_t wchars) {
-            if (!str || !wchars)
-                return (const char*) EMPTY_INTERNAL;
-            if ((size_t) (~0) == wchars)
-                wchars = ::wcslen(str);
+			if (!str || !wchars) {
+				return (const char*)EMPTY_INTERNAL;
+			}
+			if ((size_t)(~0) == wchars) {
+				wchars = ::wcslen(str);
+			}
             CScopeUQueue sb;
-            Utilities::ToUTF8(str, wchars, *sb);
-            return (const char*) sb->GetBuffer();
+			CUQueue &q = *sb;
+            ToUTF8(str, wchars, q, true);
+            return std::string((const char*) q.GetBuffer(), q.GetSize());
         }
 
         std::string ToUTF8(const std::wstring & s) {
@@ -801,8 +806,9 @@ namespace SPA
                 chars = ::strlen(utf8);
             }
             CScopeUQueue sb;
-            ToUTF16(utf8, chars, *sb, true);
-            return (const UTF16*) sb->GetBuffer();
+			CUQueue &q = *sb;
+            ToUTF16(utf8, chars, q, true);
+            return std::basic_string<UTF16>((const UTF16*) q.GetBuffer(), q.GetSize() >> 1);
         }
 
         std::basic_string<UTF16> ToUTF16(const wchar_t *str, size_t chars) {
@@ -819,8 +825,9 @@ namespace SPA
                 chars = ::wcslen(str);
             }
             CScopeUQueue sb;
-            ToUTF16(str, chars, *sb, true);
-            return (const UTF16*) sb->GetBuffer();
+			CUQueue &q = *sb;
+            ToUTF16(str, chars, q, true);
+            return std::basic_string<UTF16>((const UTF16*) q.GetBuffer(), q.GetSize() >> 1);
 #endif
         }
 
@@ -844,8 +851,9 @@ namespace SPA
                 chars = GetLen(str);
             }
             CScopeUQueue sb;
-            ToWide(str, chars, *sb, true);
-            return (const wchar_t*) sb->GetBuffer();
+			CUQueue &q = *sb;
+            ToWide(str, chars, q, true);
+            return std::wstring((const wchar_t*) q.GetBuffer(), q.GetSize()/sizeof(wchar_t));
 #endif
         }
 
@@ -864,8 +872,9 @@ namespace SPA
                 chars = GetLen(str);
             }
             CScopeUQueue sb;
-            ToUTF8(str, chars, *sb, true);
-            return (const char*) sb->GetBuffer();
+			CUQueue &q = *sb;
+            ToUTF8(str, chars, q, true);
+            return std::string((const char*) q.GetBuffer(), q.GetSize());
         }
 #endif
 
@@ -883,8 +892,9 @@ namespace SPA
 #else
             req_len = (len + 1) * sizeof (wchar_t);
 #endif
-            if ((unsigned int) req_len > q.GetTailSize())
-                q.ReallocBuffer((unsigned int) req_len + q.GetSize());
+			if ((unsigned int)req_len > q.GetTailSize()) {
+				q.ReallocBuffer((unsigned int)req_len + q.GetSize());
+			}
 #ifdef WIN32_64
             req_len = (size_t)::WideCharToMultiByte(CP_UTF8, 0, str, (int) len, (char*) q.GetBuffer(q.GetSize()), (int) q.GetTailSize(), nullptr, nullptr);
             q.SetSize((unsigned int) req_len + q.GetSize());
@@ -932,14 +942,16 @@ namespace SPA
         }
 
         BSTR SysAllocString(const SPA::UTF16 *sz, unsigned int wchars) {
-            if (!sz && wchars == (unsigned int) (~0))
-                return nullptr;
+			if (!sz && wchars == (unsigned int)(~0)) {
+				return nullptr;
+			}
             else if (sz && wchars == (unsigned int) (~0)) {
                 wchars = GetLen(sz);
             }
             CScopeUQueue sb;
-            ToWide(sz, wchars, *sb);
-            return SysAllocStringLen((const wchar_t*) sb->GetBuffer(), sb->GetSize() / sizeof (wchar_t));
+			CUQueue &q = *sb;
+            ToWide(sz, wchars, q, true);
+            return SysAllocStringLen((const wchar_t*) q.GetBuffer(), q.GetSize() / sizeof (wchar_t));
         }
 
         void ToUTF8(const UTF16 *str, size_t chars, CUQueue & q, bool append) {
