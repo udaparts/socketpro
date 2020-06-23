@@ -757,7 +757,7 @@ namespace SPA
             CScopeUQueue sb;
             CUQueue &q = *sb;
             ToWide(utf8, chars, q, true);
-            return SysAllocStringLen((const wchar_t*) q.GetBuffer(), q.GetSize() / sizeof (wchar_t));
+            return ::SysAllocStringLen((const wchar_t*) q.GetBuffer(), q.GetSize() / sizeof (wchar_t));
 #endif
         }
 

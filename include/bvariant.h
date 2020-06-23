@@ -50,19 +50,19 @@ inline static unsigned int SysStringLen(const wchar_t* bstr) {
 }
 
 static BSTR SysAllocStringLen(const wchar_t *sz, unsigned int wchars = (unsigned int) (~0)) {
-    if (wchars == (unsigned int) (~0)) {
-        if (sz) {
-            wchars = SysStringLen(sz);
-        } else {
-            wchars = 0;
-        }
+    if (!sz) {
+        wchars = 0;
+    } else if (wchars == (unsigned int) (~0)) {
+        wchars = ::wcslen(sz);
+    } else {
+        assert(wchars <= ::wcslen(sz));
     }
-    unsigned int bytes = wchars + 1;
+    unsigned int bytes = wchars;
     bytes <<= 2;
-    BSTR bstr = (BSTR)::malloc(bytes);
+    BSTR bstr = (BSTR)::malloc(bytes + sizeof (wchar_t));
     if (bstr) {
-        if (sz) {
-            ::memcpy(bstr, sz, bytes - sizeof (wchar_t));
+        if (sz && wchars) {
+            ::memcpy(bstr, sz, bytes);
         }
         bstr[wchars] = 0;
     }
