@@ -5,11 +5,7 @@
 #include "membuffer.h"
 #include "ccloader.h"
 #include "udatabase.h"
-#if defined(__ANDROID__) || defined(ANDROID)
-#include <boost/unordered_map.hpp>
-#else
 #include <unordered_map>
-#endif
 #include <memory>
 #include <functional>
 
@@ -1379,16 +1375,10 @@ namespace SPA {
                     }
                 };
                 DServerException se = [prom](CAsyncServiceHandler *ash, unsigned short requestId, const wchar_t *errMessage, const char* errWhere, unsigned int errCode) {
-#if defined(__ANDROID__) || defined(ANDROID)
-                    std::string message = Utilities::ToUTF8(errMessage, ::wcslen(errMessage));
-                    try {
-                        prom->set_exception(std::make_exception_ptr(CUException(message.c_str(), errWhere, (int) errCode)));
-#else
                     CScopeUQueue sq;
                     Utilities::ToUTF8(errMessage, ::wcslen(errMessage), *sq);
                     try {
                         prom->set_exception(std::make_exception_ptr(CUException((const char*) sq->GetBuffer(), errWhere, (int) errCode)));
-#endif
                     } catch (...) {
                     }
                 };
@@ -1485,16 +1475,10 @@ namespace SPA {
                     }
                 };
                 DServerException se = [prom](CAsyncServiceHandler *ash, unsigned short requestId, const wchar_t *errMessage, const char* errWhere, unsigned int errCode) {
-#if defined(__ANDROID__) || defined(ANDROID)
-                    std::string message = Utilities::ToUTF8(errMessage, ::wcslen(errMessage));
-                    try {
-                        prom->set_exception(std::make_exception_ptr(CUException(message.c_str(), errWhere, (int) errCode)));
-#else
                     CScopeUQueue sq;
                     Utilities::ToUTF8(errMessage, ::wcslen(errMessage), *sq);
                     try {
                         prom->set_exception(std::make_exception_ptr(CUException((const char*) sq->GetBuffer(), errWhere, (int) errCode)));
-#endif
                     } catch (...) {
                     }
                 };
@@ -1824,11 +1808,7 @@ namespace SPA {
             };
 
         public:
-#if defined(__ANDROID__) || defined(ANDROID)
-            typedef boost::unordered_map<PClientSocket, PHandler, cs_hash> CMapSocketHandler;
-#else
             typedef std::unordered_map<PClientSocket, PHandler, cs_hash> CMapSocketHandler;
-#endif
         public:
 
             CSocketPool(bool autoConn = true,
@@ -2541,11 +2521,7 @@ namespace SPA {
             unsigned int ConnTimeout;
         };
 
-#if defined(__ANDROID__) || defined(ANDROID)
-        typedef boost::unordered_map<std::string, CConnectionContext> CMapQNameConn;
-#else
         typedef std::unordered_map<std::string, CConnectionContext> CMapQNameConn;
-#endif
 
         template<typename THandler, typename TCS = CClientSocket>
         class CReplication {

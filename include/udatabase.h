@@ -9,21 +9,6 @@ namespace SPA {
 
     typedef std::basic_string<UTF16> CDBString;
 
-    namespace Utilities {
-
-        static std::wstring ToWide(const CDBString &str) {
-#ifdef WIN32_64
-            return (const wchar_t*)str.c_str();
-#else
-            return ToWide(str.c_str(), str.size());
-#endif
-        }
-
-        static std::string ToUTF8(const CDBString &str) {
-            return ToUTF8(str.c_str(), str.size());
-        }
-    }
-
     namespace UDB {
 
         enum tagTransactionIsolation {

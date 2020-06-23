@@ -158,12 +158,6 @@ namespace SPA {
 
 typedef void* HINSTANCE;
 
-#if defined(__ANDROID__) || defined(ANDROID)
-namespace std {
-    typedef decltype(nullptr) nullptr_t;
-}
-#endif
-
 #ifndef BOOST_SYSTEM_NO_DEPRECATED
 #define BOOST_SYSTEM_NO_DEPRECATED 1
 #endif
