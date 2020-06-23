@@ -9,8 +9,6 @@ namespace SPA
 
     unsigned int SHARED_BUFFER_CLEAN_SIZE = 32 * 1024;
 
-    static const wchar_t *EMPTY_INTERNAL = L"";
-
     void CUQueue::ChangeArrayInt(void *p, unsigned char sizePerInt, unsigned int count) {
         unsigned int n;
         unsigned char *pData = (unsigned char*) p;
@@ -665,28 +663,29 @@ namespace SPA
 #ifdef WIN32_64
 
 #ifdef NATIVE_UTF16_SUPPORTED
-		void ToUTF8(const char16_t *str, size_t chars, CUQueue &q, bool append) {
+        void ToUTF8(const char16_t *str, size_t chars, CUQueue &q, bool append) {
             ToUTF8((const wchar_t *) str, chars, q, append);
         }
 #endif
+
         void ToUTF16(const char *str, size_t chars, CUQueue &q, bool append) {
             ToWide(str, chars, q, append);
         }
 
-		void ToUTF16(const wchar_t *str, size_t wchars, CUQueue &q, bool append) {
-			if (!append) {
-				q.SetSize(0);
-			}
-			if (!str || !wchars) {
-				q.SetNull();
-				return;
-			}
-			if (wchars == (size_t)(~0)) {
-				wchars = ::wcslen(str);
-			}
-			q.Insert((const unsigned char*)str, (unsigned int)(wchars << 1));
-			q.SetNull();
-		}
+        void ToUTF16(const wchar_t *str, size_t wchars, CUQueue &q, bool append) {
+            if (!append) {
+                q.SetSize(0);
+            }
+            if (!str || !wchars) {
+                q.SetNull();
+                return;
+            }
+            if (wchars == (size_t) (~0)) {
+                wchars = ::wcslen(str);
+            }
+            q.Insert((const unsigned char*) str, (unsigned int) (wchars << 1));
+            q.SetNull();
+        }
 
         std::wstring GetErrorMessage(DWORD dwError) {
             wchar_t *lpMsgBuf = nullptr;
@@ -743,11 +742,11 @@ namespace SPA
 
         BSTR ToBSTR(const char *utf8, size_t chars) {
             if (!utf8) {
-                utf8 = (const char*)EMPTY_INTERNAL;
-			}
+                utf8 = (const char*) EMPTY_INTERNAL;
+            }
             if ((size_t) (~0) == chars) {
                 chars = ::strlen(utf8);
-			}
+            }
 #ifdef WIN32_64
             int nConvertedLen = ::MultiByteToWideChar(CP_UTF8, 0, utf8, (int) chars, nullptr, 0);
             BSTR bstr = ::SysAllocStringLen(nullptr, nConvertedLen);
@@ -762,10 +761,12 @@ namespace SPA
         }
 
         std::wstring ToWide(const char *utf8, size_t chars) {
-            if (!utf8 || !chars)
+            if (!utf8 || !chars) {
                 return EMPTY_INTERNAL;
-            if ((size_t) (~0) == chars)
+            }
+            if ((size_t) (~0) == chars) {
                 chars = ::strlen(utf8);
+            }
             CScopeUQueue sb;
             Utilities::ToWide(utf8, chars, *sb);
             return (const wchar_t*) sb->GetBuffer();
@@ -794,6 +795,11 @@ namespace SPA
         }
 
         std::basic_string<UTF16> ToUTF16(const char *utf8, size_t chars) {
+            if (!utf8 || !chars) {
+                return (const UTF16*) EMPTY_INTERNAL;
+            } else if (chars == (size_t) (~0)) {
+                chars = ::strlen(utf8);
+            }
             CScopeUQueue sb;
             ToUTF16(utf8, chars, *sb, true);
             return (const UTF16*) sb->GetBuffer();
@@ -809,6 +815,9 @@ namespace SPA
             }
             return std::basic_string<UTF16>((const UTF16*) str, chars);
 #else
+            if (chars == (size_t) (~0)) {
+                chars = ::wcslen(str);
+            }
             CScopeUQueue sb;
             ToUTF16(str, chars, *sb, true);
             return (const UTF16*) sb->GetBuffer();
@@ -831,6 +840,9 @@ namespace SPA
             }
             return std::wstring((const wchar_t*) str, chars);
 #else
+            if (chars == (size_t) (~0)) {
+                chars = GetLen(str);
+            }
             CScopeUQueue sb;
             ToWide(str, chars, *sb, true);
             return (const wchar_t*) sb->GetBuffer();
@@ -848,6 +860,8 @@ namespace SPA
         std::string ToUTF8(const char16_t *str, size_t chars) {
             if (!str || !chars) {
                 return (const char *) EMPTY_INTERNAL;
+            } else if (chars == (size_t) (~0)) {
+                chars = GetLen(str);
             }
             CScopeUQueue sb;
             ToUTF8(str, chars, *sb, true);

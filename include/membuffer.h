@@ -18,6 +18,7 @@ namespace SPA {
         using SPA::GetLen;
 
 #ifndef WINCE
+
         template<typename TChar>
         void Trim(std::basic_string<TChar> &s) {
             while (s.size() && ::isspace(s.back())) {
@@ -28,7 +29,7 @@ namespace SPA {
             }
         }
 #endif
-        BSTR ToBSTR(const char *utf8, size_t chars);
+        //BSTR ToBSTR(const char *utf8, size_t chars);
         void ToWide(const char *utf8, size_t chars, CUQueue &q, bool append = false);
         void ToUTF8(const wchar_t *str, size_t wchars, CUQueue &q, bool append = false);
         std::string ToUTF8(const wchar_t *str, size_t wchars = (size_t) (~0));

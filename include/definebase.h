@@ -248,6 +248,7 @@ typedef timeval SYSTEMTIME;
 #endif
 
 namespace SPA {
+    static const wchar_t *EMPTY_INTERNAL = L"";
 
     /** 
      * Query operation system

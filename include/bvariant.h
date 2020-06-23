@@ -49,28 +49,31 @@ inline static unsigned int SysStringLen(const wchar_t* bstr) {
     return (unsigned int) ::wcslen(bstr);
 }
 
-static BSTR SysAllocString(const wchar_t *sz, unsigned int wchars = (~0)) {
-    if (!sz && wchars == (unsigned int) (~0)) {
-        return nullptr;
-    } else if (sz && wchars == (unsigned int) (~0)) {
-        wchars = SysStringLen(sz);
+static BSTR SysAllocStringLen(const wchar_t *sz, unsigned int wchars = (unsigned int) (~0)) {
+    if (wchars == (unsigned int) (~0)) {
+        if (sz) {
+            wchars = SysStringLen(sz);
+        } else {
+            wchars = 0;
+        }
     }
     unsigned int bytes = wchars + 1;
-    bytes *= sizeof (wchar_t);
+    bytes <<= 2;
     BSTR bstr = (BSTR)::malloc(bytes);
     if (bstr) {
         if (sz) {
             ::memcpy(bstr, sz, bytes - sizeof (wchar_t));
-        } else {
-            ::memset(bstr, 0, bytes - sizeof (wchar_t));
         }
         bstr[wchars] = 0;
     }
     return bstr;
 }
 
-static BSTR SysAllocStringLen(const wchar_t *sz, unsigned int wchars) {
-    return SysAllocString(sz, wchars);
+static BSTR SysAllocString(const wchar_t *sz) {
+    if (!sz) {
+        return nullptr;
+    }
+    return SysAllocStringLen(sz, (unsigned int) ::wcslen(sz));
 }
 
 inline static void SysFreeString(BSTR &bstr) {
