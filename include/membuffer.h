@@ -15,8 +15,9 @@ namespace SPA {
     class CUQueue;
 
     namespace Utilities {
-		using SPA::GetLen;
+        using SPA::GetLen;
 #ifndef WINCE
+
         template<typename TChar>
         void Trim(std::basic_string<TChar> &s) {
             while (s.size() && ::isspace(s.back())) {
@@ -27,54 +28,51 @@ namespace SPA {
             }
         }
 #endif
-		BSTR ToBSTR(const char *utf8, size_t chars);
+        BSTR ToBSTR(const char *utf8, size_t chars);
         void ToWide(const char *utf8, size_t chars, CUQueue &q, bool append = false);
         void ToUTF8(const wchar_t *str, size_t wchars, CUQueue &q, bool append = false);
-		std::string ToUTF8(const wchar_t *str, size_t wchars = (size_t)(~0));
-		std::string ToUTF8(const std::wstring &s);
+        std::string ToUTF8(const wchar_t *str, size_t wchars = (size_t) (~0));
+        std::string ToUTF8(const std::wstring &s);
         std::wstring ToWide(const char *utf8, size_t chars = (size_t) (~0));
         std::wstring ToWide(const std::string &s);
-		void ToUTF16(const char *str, size_t chars, CUQueue &q, bool append = false);
-		void ToUTF16(const wchar_t *str, size_t wchars, CUQueue &q, bool append = false);
-		std::basic_string<UTF16> ToUTF16(const char *utf8, size_t chars = (size_t)(~0));
-		std::basic_string<UTF16> ToUTF16(const std::string &s);
-		std::basic_string<UTF16> ToUTF16(const wchar_t *str, size_t wchars = (size_t)(~0));
-		std::basic_string<UTF16> ToUTF16(const std::wstring &s);
+        void ToUTF16(const char *str, size_t chars, CUQueue &q, bool append = false);
+        void ToUTF16(const wchar_t *str, size_t wchars, CUQueue &q, bool append = false);
+        std::basic_string<UTF16> ToUTF16(const char *utf8, size_t chars = (size_t) (~0));
+        std::basic_string<UTF16> ToUTF16(const std::string &s);
+        std::basic_string<UTF16> ToUTF16(const wchar_t *str, size_t wchars = (size_t) (~0));
+        std::basic_string<UTF16> ToUTF16(const std::wstring &s);
 
-		template<typename TChar>
-		bool IsEqual(const TChar *s0, const TChar *s1, bool case_sensitive) {
-			if (s0 == s1) {
-				return true;
-			}
-			else if (!s0 || !s1) {
-				return false;
-			}
-			unsigned int len0 = (unsigned int)GetLen(s0), len1 = (unsigned int)GetLen(s1);
-			if (0 == len0 && 0 == len1) {
-				return true;
-			}
-			else if (len0 != len1) {
-				return false;
-			}
-			if (case_sensitive) {
-				return (0 == ::memcmp(s0, s1, len0 * sizeof(TChar)));
-			}
-			else {
-				for (unsigned int n = 0; n < len0; ++n) {
-					if (::tolower(s0[n]) != ::tolower(s1[n])) {
-						return false;
-					}
-				}
-			}
-			return true;
-		}
+        template<typename TChar>
+        bool IsEqual(const TChar *s0, const TChar *s1, bool case_sensitive) {
+            if (s0 == s1) {
+                return true;
+            } else if (!s0 || !s1) {
+                return false;
+            }
+            unsigned int len0 = (unsigned int) GetLen(s0), len1 = (unsigned int) GetLen(s1);
+            if (0 == len0 && 0 == len1) {
+                return true;
+            } else if (len0 != len1) {
+                return false;
+            }
+            if (case_sensitive) {
+                return (0 == ::memcmp(s0, s1, len0 * sizeof (TChar)));
+            } else {
+                for (unsigned int n = 0; n < len0; ++n) {
+                    if (::tolower(s0[n]) != ::tolower(s1[n])) {
+                        return false;
+                    }
+                }
+            }
+            return true;
+        }
 
 #ifdef NATIVE_UTF16_SUPPORTED
-		void ToUTF8(const char16_t *str, size_t chars, CUQueue &q, bool append = false);
-		std::string ToUTF8(const char16_t *str, size_t chars = (size_t)(~0));
-		std::string ToUTF8(const std::basic_string<char16_t> &s);
-		std::wstring ToWide(const char16_t *str, size_t chars = (size_t)(~0));
-		std::wstring ToWide(const std::basic_string<char16_t> &s);
+        void ToUTF8(const char16_t *str, size_t chars, CUQueue &q, bool append = false);
+        std::string ToUTF8(const char16_t *str, size_t chars = (size_t) (~0));
+        std::string ToUTF8(const std::basic_string<char16_t> &s);
+        std::wstring ToWide(const char16_t *str, size_t chars = (size_t) (~0));
+        std::wstring ToWide(const std::basic_string<char16_t> &s);
 #endif
 
 #ifdef WIN32_64
@@ -1415,11 +1413,7 @@ namespace SPA {
                     return;
                 }
                 memoryChunk->SetSize(0);
-#ifdef NODE_JS_ADAPTER_PROJECT
-                base::push_back(memoryChunk);
-#else
                 base::push_front(memoryChunk);
-#endif
                 memoryChunk = nullptr;
             }
         };

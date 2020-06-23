@@ -118,14 +118,10 @@ namespace NJA {
 
     void InitAll(Local<Object> exports) {
         {
-            //make sure static critical sections initialized and pre-allocate an array of SPA::CUQueue
+            //make sure static critical sections initialized
             SPA::CScopeUQueue sb;
-            const unsigned int PRE_COUNT = 4;
-            for (unsigned int n = 0; n < PRE_COUNT; ++n) {
-                SPA::CUQueue *q = new SPA::CUQueue;
-                SPA::CScopeUQueue::Unlock(q); //put into memory pool
-            }
-            SPA::UINT64 index = CAsyncServiceHandler::GetCallIndex();
+            //call index started with 1
+            CAsyncServiceHandler::GetCallIndex();
         }
         NODE_SET_METHOD(exports, "getVersion", GetVersion);
         NODE_SET_METHOD(exports, "getPools", GetPools);

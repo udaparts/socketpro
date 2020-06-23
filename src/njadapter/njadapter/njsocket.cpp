@@ -431,9 +431,10 @@ namespace NJA {
             objCC->Set(ctx, ToStr(isolate, "Host"), ToStr(isolate, cc.Host.c_str()));
             objCC->Set(ctx, ToStr(isolate, "Port"), Number::New(isolate, cc.Port));
 #ifdef WIN32_64
-            objCC->Set(ctx, ToStr(isolate, "User"), ToStr(isolate, (const UTF16*) cc.UserId.c_str()));
+            objCC->Set(ctx, ToStr(isolate, "User"), ToStr(isolate, (const UTF16*) cc.UserId.c_str(), cc.UserId.size()));
 #else
-            objCC->Set(ctx, ToStr(isolate, "User"), ToStr(isolate, Utilities::ToUTF16(cc.UserId.c_str(), cc.UserId.size())));
+            auto s = Utilities::ToUTF16(cc.UserId.c_str(), cc.UserId.size());
+            objCC->Set(ctx, ToStr(isolate, "User"), ToStr(isolate, s.c_str(), s.size()));
 #endif
             objCC->Set(ctx, ToStr(isolate, "Pwd"), Null(isolate)); //no password returned
             objCC->Set(ctx, ToStr(isolate, "EM"), Number::New(isolate, cc.EncrytionMethod));

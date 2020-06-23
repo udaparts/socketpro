@@ -3,7 +3,8 @@
 #include <assert.h>
 #include <cctype>
 
-namespace SPA {
+namespace SPA
+{
     const UINT64 SAFE_DOUBLE = 9007199254740991ULL; //2^53-1
 
     unsigned int SHARED_BUFFER_CLEAN_SIZE = 32 * 1024;
@@ -42,7 +43,7 @@ namespace SPA {
 #endif
     }
 
-    CUQueue & CUQueue::operator>>(std::wstring & str) {
+    CUQueue & CUQueue::operator >> (std::wstring & str) {
         unsigned int size;
         Pop((unsigned char*) &size, sizeof (unsigned int));
         switch (size) {
@@ -290,7 +291,7 @@ namespace SPA {
     unsigned int CUQueue::Pop(VARIANT& vtData, unsigned int position) {
         unsigned int total = 0;
 #ifndef _WIN32_WCE
-        try {
+        try{
 #endif
             if (vtData.vt == VT_BSTR) {
                 VariantClear(&vtData);
@@ -298,7 +299,9 @@ namespace SPA {
                 VariantClear(&vtData);
             }
 #ifndef _WIN32_WCE
-        } catch (...) {
+        }
+
+        catch(...) {
         }
 #endif
         total = Pop(&(vtData.vt), position);
@@ -658,25 +661,25 @@ namespace SPA {
         return total;
     }
 
-    namespace Utilities {
+    namespace Utilities{
 #ifdef WIN32_64
-		void ToUTF16(const char *str, size_t chars, CUQueue &q, bool append) {
-			ToWide(str, chars, q, append);
-		}
+        void ToUTF16(const char *str, size_t chars, CUQueue &q, bool append) {
+            ToWide(str, chars, q, append);
+        }
 
-		void ToUTF8(const char16_t *str, size_t chars, CUQueue &q, bool append) {
-			ToUTF8((const wchar_t *)str, chars, q, append);
-		}
+        void ToUTF8(const char16_t *str, size_t chars, CUQueue &q, bool append) {
+            ToUTF8((const wchar_t *) str, chars, q, append);
+        }
 
         std::wstring GetErrorMessage(DWORD dwError) {
             wchar_t *lpMsgBuf = nullptr;
             DWORD res = ::FormatMessageW(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_IGNORE_INSERTS,
-                    nullptr,
-                    dwError,
-                    MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), // Default language
-                    (LPWSTR) & lpMsgBuf,
-                    0,
-                    nullptr);
+            nullptr,
+            dwError,
+            MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), // Default language
+            (LPWSTR) & lpMsgBuf,
+            0,
+            nullptr);
             std::wstring s(lpMsgBuf ? lpMsgBuf : L"");
             if (lpMsgBuf)
                 LocalFree(lpMsgBuf);
@@ -751,7 +754,7 @@ namespace SPA {
 
         std::string ToUTF8(const wchar_t *str, size_t wchars) {
             if (!str || !wchars)
-                return (const char*)EMPTY_INTERNAL;
+                return (const char*) EMPTY_INTERNAL;
             if ((size_t) (~0) == wchars)
                 wchars = ::wcslen(str);
             CScopeUQueue sb;
@@ -766,76 +769,71 @@ namespace SPA {
         std::wstring ToWide(const std::string & s) {
             return ToWide(s.c_str(), s.size());
         }
-		void ToUTF16(const wchar_t *str, size_t wchars, CUQueue &q, bool append) {
-			if (!append) {
-				q.SetSize(0);
-			}
-			q.Insert(str, (unsigned int)wchars, UQUEUE_END_POSTION);
-			q.SetNull();
-		}
 
-		std::basic_string<UTF16> ToUTF16(const std::string &s) {
-			return ToUTF16(s.c_str(), s.size());
-		}
+        std::basic_string<UTF16> ToUTF16(const std::string & s) {
+            return ToUTF16(s.c_str(), s.size());
+        }
 
-		std::basic_string<UTF16> ToUTF16(const char *utf8, size_t chars) {
-			CScopeUQueue sb;
-			ToUTF16(utf8, chars, *sb, true);
-			return (const UTF16*)sb->GetBuffer();
-		}
+        std::basic_string<UTF16> ToUTF16(const char *utf8, size_t chars) {
+            CScopeUQueue sb;
+            ToUTF16(utf8, chars, *sb, true);
+            return (const UTF16*) sb->GetBuffer();
+        }
 
-		std::basic_string<UTF16> ToUTF16(const wchar_t *str, size_t chars) {
-			if (!str || !chars) {
-				return (const UTF16*)EMPTY_INTERNAL;
-			}
+        std::basic_string<UTF16> ToUTF16(const wchar_t *str, size_t chars) {
+            if (!str || !chars) {
+                return (const UTF16*) EMPTY_INTERNAL;
+            }
 #ifdef WIN32_64
-			if (chars == (size_t)(~0)) {
-				return (const UTF16*)str;
-			}
-			return std::basic_string<UTF16>((const UTF16*)str, chars);
+            if (chars == (size_t) (~0)) {
+                return (const UTF16*) str;
+            }
+            return std::basic_string<UTF16>((const UTF16*) str, chars);
 #else
-			CScopeUQueue sb;
-			ToUTF16(str, chars, *sb, true);
-			return (const UTF16*)sb->GetBuffer();
+            CScopeUQueue sb;
+            ToUTF16(str, chars, *sb, true);
+            return (const UTF16*) sb->GetBuffer();
 #endif
-		}
-		std::basic_string<UTF16> ToUTF16(const std::wstring &s) {
-			return ToUTF16(s.c_str(), s.size());
-		}
+        }
+
+        std::basic_string<UTF16> ToUTF16(const std::wstring & s) {
+            return ToUTF16(s.c_str(), s.size());
+        }
 
 #ifdef NATIVE_UTF16_SUPPORTED
-		std::wstring ToWide(const char16_t *str, size_t chars) {
-			if (!str || !chars) {
-				return EMPTY_INTERNAL;
-			}
+
+        std::wstring ToWide(const char16_t *str, size_t chars) {
+            if (!str || !chars) {
+                return EMPTY_INTERNAL;
+            }
 #ifdef WIN32_64
-			if (chars == (size_t)(~0)) {
-				return (const wchar_t*)str;
-			}
-			return std::wstring((const wchar_t*)str, chars);
+            if (chars == (size_t) (~0)) {
+                return (const wchar_t*) str;
+            }
+            return std::wstring((const wchar_t*) str, chars);
 #else
-			CScopeUQueue sb;
-			ToWide(str, chars, *sb, true);
-			return (const  wchar_t*)sb->GetBuffer();
+            CScopeUQueue sb;
+            ToWide(str, chars, *sb, true);
+            return (const wchar_t*) sb->GetBuffer();
 #endif
-		}
+        }
 
-		std::wstring ToWide(const std::basic_string<char16_t> &s) {
-			return ToWide(s.c_str(), s.size());
-		}
+        std::wstring ToWide(const std::basic_string<char16_t> &s) {
+            return ToWide(s.c_str(), s.size());
+        }
 
-		std::string ToUTF8(const std::basic_string<char16_t> &s) {
-			return ToUTF8(s.c_str(), s.size());
-		}
+        std::string ToUTF8(const std::basic_string<char16_t> &s) {
+            return ToUTF8(s.c_str(), s.size());
+        }
 
-		std::string ToUTF8(const char16_t *str, size_t chars) {
-			if (!str || !chars) {
-				return (const char *)EMPTY_INTERNAL;
-			}
-			CScopeUQueue sb;
-			ToUTF8(str, chars, *sb, true);
-			return (const char*)sb->GetBuffer();
-		}
+        std::string ToUTF8(const char16_t *str, size_t chars) {
+            if (!str || !chars) {
+                return (const char *) EMPTY_INTERNAL;
+            }
+            CScopeUQueue sb;
+            ToUTF8(str, chars, *sb, true);
+            return (const char*) sb->GetBuffer();
+        }
 #endif
 
         void ToUTF8(const wchar_t *str, size_t len, CUQueue & q, bool append) {
@@ -875,6 +873,7 @@ namespace SPA {
         }
 
 #ifdef WCHAR32
+
         void ToWide(const char16_t *str, size_t chars, CUQueue & q, bool append) {
             if (!append) {
                 q.SetSize(0);
