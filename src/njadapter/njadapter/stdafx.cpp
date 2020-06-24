@@ -379,7 +379,7 @@ namespace NJA {
 #ifdef WIN32_64
                 vt.bstrVal = SysAllocString((const wchar_t*) * str);
 #else
-                vt.bstrVal = SPA::Utilities::SysAllocString((const UTF16*) *str, (unsigned int) str.length());
+                vt.bstrVal = SPA::Utilities::SysAllocStringLen((const UTF16*) *str, (unsigned int) str.length());
 #endif
             }
         } else if (v->IsInt32() && id == "") {
@@ -641,7 +641,7 @@ namespace NJA {
 #ifdef WIN32_64
                         pbstr[n] = ::SysAllocString((const wchar_t *) * str);
 #else
-                        pbstr[n] = SPA::Utilities::SysAllocString((const UTF16*) *str, (unsigned int) str.length());
+                        pbstr[n] = SPA::Utilities::SysAllocStringLen((const UTF16*) *str, (unsigned int) str.length());
 #endif
                     }
                         break;
