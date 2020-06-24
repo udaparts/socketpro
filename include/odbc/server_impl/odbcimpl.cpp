@@ -2887,7 +2887,7 @@ namespace SPA
                 }
                 pos = (unsigned int) (r * cols + 1);
 #ifdef NATIVE_UTF16_SUPPORTED
-                SPA::CDBString dt = vData[pos].bstrVal;
+                SPA::CDBString dt = (const UTF16*) vData[pos].bstrVal;
                 if (dt == u"NUMBER") {
                     pi.DataType = VT_DECIMAL;
                     pi.Precision = MAX_DECIMAL_PRECISION;
