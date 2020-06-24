@@ -29,7 +29,6 @@ namespace SPA {
             }
         }
 #endif
-        BSTR ToBSTR(const char *utf8, size_t chars);
         void ToWide(const char *utf8, size_t chars, CUQueue &q, bool append = false);
         void ToUTF8(const wchar_t *str, size_t wchars, CUQueue &q, bool append = false);
         std::string ToUTF8(const wchar_t *str, size_t wchars = (size_t) (~0));
@@ -78,9 +77,11 @@ namespace SPA {
 #endif
 
 #ifdef WIN32_64
+        BSTR ToBSTR(const char *utf8, size_t chars = (size_t) (~0));
         std::wstring GetErrorMessage(DWORD dwError);
 #elif defined(WCHAR32)
-        BSTR SysAllocString(const char16_t *sz, unsigned int wchars = (unsigned int) (~0));
+        BSTR ToBSTR(const char *utf8, size_t chars);
+        BSTR SysAllocStringLen(const char16_t *sz, unsigned int wchars);
 #else
 #endif
     };

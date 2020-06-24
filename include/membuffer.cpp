@@ -403,7 +403,7 @@ namespace SPA
                         vtData.bstrVal = ::SysAllocStringLen(str, len >> 1);
 #else
                         const UTF16 *str = (const UTF16 *) GetBuffer(position);
-                        vtData.bstrVal = Utilities::SysAllocString(str, len >> 1);
+                        vtData.bstrVal = SPA::Utilities::SysAllocStringLen(str, len >> 1);
 #endif
                         Pop(len, position);
                     }
@@ -594,7 +594,7 @@ namespace SPA
 #ifdef WIN32_64
                                     pbstr[ulIndex] = ::SysAllocStringLen((const wchar_t*) GetBuffer(position), (len >> 1));
 #else
-                                    pbstr[ulIndex] = Utilities::SysAllocString((const UTF16*) GetBuffer(position), (len >> 1));
+                                    pbstr[ulIndex] = SPA::Utilities::SysAllocStringLen((const UTF16*) GetBuffer(position), (len >> 1));
 #endif
                                     Pop(len, position);
                                 }
@@ -945,13 +945,13 @@ namespace SPA
             q.SetNull();
         }
 
-        BSTR SysAllocString(const SPA::UTF16 *sz, unsigned int wchars) {
+        BSTR SysAllocStringLen(const SPA::UTF16 *sz, unsigned int wchars) {
             if (!sz) {
                 wchars = 0;
             } else if (wchars == (unsigned int) (~0)) {
-                wchars = GetLen(sz);
+                wchars = (unsigned int) GetLen(sz);
             } else {
-                assert(wchars <= GetLen(sz));
+                assert(wchars <= (unsigned int) GetLen(sz));
             }
             CScopeUQueue sb;
             CUQueue &q = *sb;

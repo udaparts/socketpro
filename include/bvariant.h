@@ -39,6 +39,7 @@ typedef void *PVOID;
 namespace SPA {
     namespace Utilities {
         BSTR ToBSTR(const char *str, size_t chars = (~0));
+        BSTR SysAllocStringLen(const char16_t *sz, unsigned int wchars = (unsigned int) (~0));
     }; //namespace Utilities
 }; //namespace SPA
 

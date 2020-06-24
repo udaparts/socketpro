@@ -272,7 +272,7 @@ namespace SPA {
 #ifdef WIN32_64
                     bstrVal = ::SysAllocStringLen((const wchar_t*)lpszSrc, len);
 #else
-                    bstrVal = SPA::Utilities::SysAllocString(lpszSrc, len);
+                    bstrVal = SPA::Utilities::SysAllocStringLen(lpszSrc, len);
 #endif
                     vt = VT_BSTR;
                 } else {
@@ -551,7 +551,7 @@ namespace SPA {
 #ifdef WIN32_64
                     bstrVal = ::SysAllocStringLen((const wchar_t*)lpszSrc, len);
 #else
-                    bstrVal = SPA::Utilities::SysAllocString(lpszSrc, len);
+                    bstrVal = SPA::Utilities::SysAllocStringLen(lpszSrc, len);
 #endif
                 } else {
                     vt = VT_NULL;
