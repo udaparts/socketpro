@@ -1008,13 +1008,13 @@ namespace SPA
             SetStringInfo(hdbc, SQL_ACCESSIBLE_TABLES, mapInfo);
             SetStringInfo(hdbc, SQL_DATABASE_NAME, mapInfo);
             if (mapInfo.find(SQL_DATABASE_NAME) != mapInfo.end()) {
-                m_dbName = Utilities::ToUTF16(mapInfo[SQL_DATABASE_NAME].bstrVal);
+                m_dbName = (const UTF16*) mapInfo[SQL_DATABASE_NAME].bstrVal;
             } else {
                 m_dbName.clear();
             }
             SetStringInfo(hdbc, SQL_USER_NAME, mapInfo);
             if (mapInfo.find(SQL_USER_NAME) != mapInfo.end()) {
-                m_userName = Utilities::ToUTF16(mapInfo[SQL_USER_NAME].bstrVal);
+                m_userName = (const UTF16*) mapInfo[SQL_USER_NAME].bstrVal;
             } else {
                 m_userName.clear();
             }
@@ -1032,7 +1032,7 @@ namespace SPA
             SetStringInfo(hdbc, SQL_DATA_SOURCE_READ_ONLY, mapInfo);
             SetStringInfo(hdbc, SQL_DBMS_NAME, mapInfo);
             if (mapInfo.find(SQL_DBMS_NAME) != mapInfo.end()) {
-                m_dbms = Utilities::ToUTF16(mapInfo[SQL_DBMS_NAME].bstrVal);
+                m_dbms = (const UTF16*) mapInfo[SQL_DBMS_NAME].bstrVal;
                 std::transform(m_dbms.begin(), m_dbms.end(), m_dbms.begin(), ::tolower); //microsoft sql server, oracle, mysql
 #if defined(WIN32_64) && _MSC_VER < 1900
                 if (m_dbms == L"microsoft sql server") {
@@ -2656,7 +2656,7 @@ namespace SPA
                     sql += L"select object_schema_name(parent_id),OBJECT_NAME(parent_id)from sys.assembly_modules as am,sys.triggers as t where t.object_id=am.object_id and assembly_method like 'PublishDMLEvent%' and assembly_class='USqlStream'";
 #else
                     sql = u"USE [";
-                    sql += Utilities::ToUTF16(it->bstrVal);
+                    sql += (const UTF16*) it->bstrVal;
                     sql += u"];";
                     sql += u"select object_schema_name(parent_id),OBJECT_NAME(parent_id)from sys.assembly_modules as am,sys.triggers as t where t.object_id=am.object_id and assembly_method like 'PublishDMLEvent%' and assembly_class='USqlStream'";
 #endif
@@ -2678,11 +2678,11 @@ namespace SPA
                         strSqlCache += L"] FOR BROWSE";
 #else
                         strSqlCache += u"SELECT * FROM [";
-                        strSqlCache += Utilities::ToUTF16(it->bstrVal);
+                        strSqlCache += (const UTF16*) it->bstrVal;
                         strSqlCache += u"].[";
-                        strSqlCache += Utilities::ToUTF16(vtSchema.bstrVal);
+                        strSqlCache += (const UTF16*) vtSchema.bstrVal;
                         strSqlCache += u"].[";
-                        strSqlCache += Utilities::ToUTF16(vtTable.bstrVal);
+                        strSqlCache += (const UTF16*) vtTable.bstrVal;
                         strSqlCache += u"] FOR BROWSE";
 #endif
                         if (q.GetSize())
@@ -2886,6 +2886,69 @@ namespace SPA
                     assert(false); //shouldn't come here
                 }
                 pos = (unsigned int) (r * cols + 1);
+#ifdef NATIVE_UTF16_SUPPORTED
+                SPA::CDBString dt = vData[pos].bstrVal;
+                if (dt == u"NUMBER") {
+                    pi.DataType = VT_DECIMAL;
+                    pi.Precision = MAX_DECIMAL_PRECISION;
+                } else if (dt == u"BINARY_FLOAT") {
+                    pi.DataType = VT_R4;
+                } else if (dt == u"BINARY_DOUBLE") {
+                    pi.DataType = VT_R8;
+                } else if (dt == u"CHAR") {
+                    pi.ColumnSize = DEFAULT_UNICODE_CHAR_SIZE;
+                    pi.DataType = (VT_ARRAY | VT_I1);
+                } else if (dt == u"VARCHAR") {
+                    pi.ColumnSize = DEFAULT_UNICODE_CHAR_SIZE;
+                    pi.DataType = (VT_ARRAY | VT_I1);
+                } else if (dt == u"VARCHAR2") {
+                    pi.ColumnSize = MAX_ORACLE_VARCHAR2;
+                    pi.DataType = (VT_ARRAY | VT_I1);
+                } else if (dt == u"NCHAR") {
+                    pi.DataType = VT_BSTR;
+                    pi.ColumnSize = DEFAULT_UNICODE_CHAR_SIZE;
+                } else if (dt == u"NVARCHAR2") {
+                    pi.DataType = VT_BSTR;
+                    pi.ColumnSize = DEFAULT_UNICODE_CHAR_SIZE;
+                } else if (dt == u"DATE") {
+                    pi.DataType = VT_DATE;
+                } else if (dt == u"TIMESTAMP") {
+                    pi.DataType = VT_DATE;
+                    pi.Scale = MAX_TIME_DIGITS;
+                } else if (dt == u"TIMESTAMP WITH TIME ZONE") {
+                    pi.DataType = VT_DATE;
+                    pi.Scale = MAX_TIME_DIGITS;
+                } else if (dt == u"TIMESTAMP WITH LOCAL TIME ZONE") {
+                    pi.DataType = VT_DATE;
+                    pi.Scale = MAX_TIME_DIGITS;
+                } else if (dt == u"LONG") {
+                    pi.ColumnSize = (~0);
+                    pi.DataType = (VT_ARRAY | VT_UI1);
+                } else if (dt == u"BLOB") {
+                    pi.ColumnSize = (~0);
+                    pi.DataType = (VT_ARRAY | VT_UI1);
+                } else if (dt == u"CLOB") {
+                    pi.ColumnSize = (~0);
+                    pi.DataType = (VT_ARRAY | VT_I1);
+                } else if (dt == u"NCLOB") {
+                    pi.ColumnSize = (~0);
+                    pi.DataType = VT_BSTR;
+                } else if (dt == u"RAW") {
+                    pi.ColumnSize = DEFAULT_UNICODE_CHAR_SIZE;
+                    pi.DataType = (VT_ARRAY | VT_UI1);
+                } else if (dt == u"LONG RAW") {
+                    pi.ColumnSize = (~0);
+                    pi.DataType = (VT_ARRAY | VT_UI1);
+                } else if (dt == u"ROWID") {
+                    pi.ColumnSize = DECIMAL_STRING_BUFFER_SIZE; //set to 32
+                    pi.DataType = (VT_ARRAY | VT_UI1);
+                } else if (dt == u"UROWID") {
+                    pi.ColumnSize = DECIMAL_STRING_BUFFER_SIZE; //set to 32
+                    pi.DataType = (VT_ARRAY | VT_UI1);
+                } else {
+                    continue; //not supported
+                }
+#else
                 std::wstring dt = vData[pos].bstrVal;
                 if (dt == L"NUMBER") {
                     pi.DataType = VT_DECIMAL;
@@ -2947,6 +3010,7 @@ namespace SPA
                 } else {
                     continue; //not supported
                 }
+#endif
                 m_vPInfo.push_back(pi);
             }
         }
