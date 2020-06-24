@@ -4,7 +4,7 @@
 
 int main(int argc, char* argv[]) {
     //set configuration settings
-    CSpConfig &sc = SpManager::SetConfig(true, "C:\\cyetest\\socketpro\\samples\\stream_system\\sp_config.json");
+    CSpConfig &sc = SpManager::SetConfig(true, "sp_config.json");
     if (sc.GetErrMsg().size()) {
         std::cout << sc.GetErrMsg() << std::endl;
         std::cout << "Press any key to stop the server ......" << std::endl;
@@ -14,7 +14,15 @@ int main(int argc, char* argv[]) {
     unsigned int svsId;
     try{
         CYourServer::Master = (CSQLMasterPool<true, CMysql>*)sc.GetPool("masterdb", &svsId);
+        std::shared_ptr<CMysql> handler = CYourServer::Master->Seek();
+        if (!handler) {
+            std::cout << "No master DB available now" << std::endl;
+        }
         CYourServer::Slave = (CSQLMasterPool<true, CMysql>::CSlavePool*)sc.GetPool("slavedb0", &svsId);
+        handler = CYourServer::Slave->Seek();
+        if (!handler) {
+            std::cout << "No slave DB available now" << std::endl;
+        }
     }
 
     catch(std::exception & err) {
@@ -93,7 +101,7 @@ int main(int argc, char* argv[]) {
     //or load cert and private key from windows system cert store
     server.UseSSL("C:\\cyetest\\socketpro\\bin\\intermediate.pfx", "", "mypassword");
 #else //non-windows platforms
-    server.UseSSL("intermediate.cert.pem", "intermediate.key.pem", "mypassword");
+    //server.UseSSL("intermediate.cert.pem", "intermediate.key.pem", "mypassword");
 #endif
     //start listening socket with standard TLSv1.x security
     if (!server.Run(20911))

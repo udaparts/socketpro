@@ -12,29 +12,30 @@ namespace SPA {
 
     extern const UINT64 SAFE_DOUBLE;
 
-	template<typename TChar>
-	bool IsEqual(const TChar *s0, const TChar *s1, bool case_sensitive) {
-		return (0 == (case_sensitive ? UCompare(s0, s1) : UCompareNoCase(s0, s1)));
-	}
+    template<typename TChar>
+    bool IsEqual(const TChar *s0, const TChar *s1, bool case_sensitive) {
+        return (0 == (case_sensitive ? UCompare(s0, s1) : UCompareNoCase(s0, s1)));
+    }
 
 #ifndef WINCE
-	template<typename TChar>
-	void Trim(std::basic_string<TChar> &s) {
-		while (s.size() && ::isspace(s.back())) {
-			s.pop_back();
-		}
-		while (s.size() && ::isspace(s.front())) {
-			s.erase(s.begin());
-		}
-	}
+
+    template<typename TChar>
+    void Trim(std::basic_string<TChar> &s) {
+        while (s.size() && ::isspace(s.back())) {
+            s.pop_back();
+        }
+        while (s.size() && ::isspace(s.front())) {
+            s.erase(s.begin());
+        }
+    }
 #endif
 
     class CUQueue;
 
     namespace Utilities {
         using SPA::GetLen;
-		using SPA::Trim;
-		using SPA::IsEqual;
+        using SPA::Trim;
+        using SPA::IsEqual;
         void ToWide(const char *utf8, size_t chars, CUQueue &q, bool append = false);
         void ToUTF8(const wchar_t *str, size_t wchars, CUQueue &q, bool append = false);
         std::string ToUTF8(const wchar_t *str, size_t wchars = (size_t) (~0));
