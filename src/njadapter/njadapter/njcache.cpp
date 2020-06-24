@@ -106,8 +106,8 @@ namespace NJA {
 #ifdef WIN32_64
             args.GetReturnValue().Set(ToStr(isolate, (const UTF16*) obj->m_ds->GetDBServerName().c_str()));
 #else
-            auto s = obj->m_ds->GetDBServerName();
-            args.GetReturnValue().Set(ToStr(isolate, Utilities::ToUTF16(s.c_str(), s.size())));
+            auto s = Utilities::ToUTF16(obj->m_ds->GetDBServerName());
+            args.GetReturnValue().Set(ToStr(isolate, s.c_str(), s.size()));
 #endif
         }
     }
@@ -119,8 +119,8 @@ namespace NJA {
 #ifdef WIN32_64
             args.GetReturnValue().Set(ToStr(isolate, (const UTF16*) obj->m_ds->GetUpdater().c_str()));
 #else
-            auto s = obj->m_ds->GetUpdater();
-            args.GetReturnValue().Set(ToStr(isolate, Utilities::ToUTF16(s.c_str(), s.size())));
+            auto s = Utilities::ToUTF16(obj->m_ds->GetUpdater());
+            args.GetReturnValue().Set(ToStr(isolate, s.c_str(), s.size()));
 #endif
         }
     }
