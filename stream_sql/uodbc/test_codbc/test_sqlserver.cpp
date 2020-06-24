@@ -77,9 +77,9 @@ int main(int argc, char* argv[]) {
         ra.push_back(column_rowset_pair);
     };
 
-    ok = pOdbc->Open(nullptr, dr);
+    ok = pOdbc->Open(u"", dr);
     TestCreateTables(pOdbc);
-    ok = pOdbc->Execute(L"delete from employee;delete from company;delete from test_rare1;delete from SpatialTable;INSERT INTO SpatialTable(mygeometry, mygeography)VALUES(geometry::STGeomFromText('LINESTRING(100 100,20 180,180 180)',0),geography::Point(47.6475,-122.1393,4326))", er);
+    ok = pOdbc->Execute(u"delete from employee;delete from company;delete from test_rare1;delete from SpatialTable;INSERT INTO SpatialTable(mygeometry, mygeography)VALUES(geometry::STGeomFromText('LINESTRING(100 100,20 180,180 180)',0),geography::Point(47.6475,-122.1393,4326))", er);
     ok = pOdbc->Execute(L"INSERT INTO test_rare1(mybool,mymoney,myxml,myvariant,mydateimeoffset)values(1,23.45,'<sometest />', N'美国总统川普下个星期四','2017-05-02 00:00:00.0000000 -04:00');INSERT INTO test_rare1(mybool,mymoney,myvariant)values(0,1223.45,'This is a test for ASCII string inside sql_variant');INSERT INTO test_rare1(myvariant)values(283.45)", er);
     TestPreparedStatements(pOdbc);
     TestPreparedStatements_2(pOdbc);
@@ -114,7 +114,7 @@ int main(int argc, char* argv[]) {
     size_t columns = pTables.first.size();
     size_t tables = pTables.second.size() / pTables.first.size();
     for (size_t n = 0; n < tables; ++n) {
-        std::wstring sql = std::wstring(L"select * from ") + pTables.second[n * columns + 1].bstrVal + L"." + pTables.second[n * columns + 2].bstrVal;
+        SPA::CDBString sql = SPA::CDBString(u"select * from ") + (const SPA::UTF16*)pTables.second[n * columns + 1].bstrVal + u"." + (const SPA::UTF16*)pTables.second[n * columns + 2].bstrVal;
         ok = pOdbc->Execute(sql.c_str(), er, r, rh);
     }
     ok = pOdbc->WaitAll();
@@ -127,7 +127,7 @@ int main(int argc, char* argv[]) {
     columns = pTables.first.size();
     tables = pTables.second.size() / pTables.first.size();
     for (size_t n = 0; n < tables; ++n) {
-        std::wstring sql = std::wstring(L"select * from ") + pTables.second[n * columns + 1].bstrVal + L"." + pTables.second[n * columns + 2].bstrVal;
+		SPA::CDBString sql = SPA::CDBString(u"select * from ") + (const SPA::UTF16*)pTables.second[n * columns + 1].bstrVal + u"." + (const SPA::UTF16*)pTables.second[n * columns + 2].bstrVal;
         ok = pOdbc->Execute(sql.c_str(), er, r, rh);
     }
     ok = pOdbc->WaitAll();
@@ -380,8 +380,8 @@ void TestPreparedStatements_2(std::shared_ptr<CMyHandler> pOdbc) {
     vData.push_back(st);
 
     vData.push_back(guid);
-    vData.push_back(L"<myxmlroot_2 />");
-    vData.push_back(L"马拉阿歌俱乐部");
+    vData.push_back(u"<myxmlroot_2 />");
+    vData.push_back(u"马拉阿歌俱乐部");
 #ifdef WIN32_64
     ::GetLocalTime(&st);
 #else

@@ -90,7 +90,7 @@ int main(int argc, char* argv[]) {
     size_t columns = pTables.first.size();
     size_t tables = pTables.second.size() / pTables.first.size();
     for (size_t n = 0; n < tables; ++n) {
-        std::wstring sql = std::wstring(L"select * from ") + pTables.second[n * columns + 1].bstrVal + L"." + pTables.second[n * columns + 2].bstrVal;
+        SPA::CDBString sql = SPA::CDBString(u"select * from ") + (const SPA::UTF16*)pTables.second[n * columns + 1].bstrVal + u"." + (const SPA::UTF16*)pTables.second[n * columns + 2].bstrVal;
         ok = pOdbc->Execute(sql.c_str(), er, r, rh);
     }
     pOdbc->WaitAll();

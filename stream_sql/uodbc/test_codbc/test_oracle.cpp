@@ -70,11 +70,11 @@ int main(int argc, char* argv[]) {
         ra.push_back(column_rowset_pair);
     };
 
-    ok = pOdbc->Open(L"dsn=ToOracle64;uid=scott;pwd=tiger", dr);
+    ok = pOdbc->Open(u"dsn=ToOracle64;uid=scott;pwd=tiger", dr);
 
     TestCreateTables(pOdbc);
-    ok = pOdbc->Execute(L"delete from ora_emp", er);
-    ok = pOdbc->Execute(L"delete from company", er);
+    ok = pOdbc->Execute(u"delete from ora_emp", er);
+    ok = pOdbc->Execute(u"delete from company", er);
     TestPreparedStatements(pOdbc);
     InsertBLOBByPreparedStatement(pOdbc);
     ok = pOdbc->Execute(L"SELECT * from company", er, r, rh);
@@ -95,7 +95,7 @@ int main(int argc, char* argv[]) {
         size_t columns = pTables.first.size();
         size_t tables = pTables.second.size() / pTables.first.size();
         for (size_t n = 0; n < tables; ++n) {
-            std::wstring sql = std::wstring(L"select * from ") + pTables.second[n * columns + 2].bstrVal;
+            SPA::CDBString sql = SPA::CDBString(u"select * from ") + (const SPA::UTF16*)pTables.second[n * columns + 2].bstrVal;
             ok = pOdbc->Execute(sql.c_str(), er, r, rh);
         }
         ok = pOdbc->WaitAll();
