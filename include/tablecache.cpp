@@ -710,7 +710,6 @@ namespace SPA
     }
 
     void CDataSet::Swap(CDataSet & tc) {
-
         CAutoLock al(m_cs);
         m_ds.swap(tc.m_ds);
         m_strIp.swap(tc.m_strIp);
@@ -722,9 +721,9 @@ namespace SPA
     }
 
     void CDataSet::AddEmptyRowset(const UDB::CDBColumnInfoArray & meta) {
-        if (!meta.size())
-
+        if (!meta.size()) {
             return;
+        }
         CAutoLock al(m_cs);
         m_ds.push_back(CTable(meta, m_bFieldNameCaseSensitive, m_bDataCaseSensitive));
     }
@@ -821,9 +820,9 @@ namespace SPA
         size_t rows = tbl.second.size();
         for (size_t r = 0; r < rows; ++r) {
             const UDB::CDBVariant &vtKey = vRow[r]->at(f);
-			if (tbl.eq(vtKey, key) > 0) {
-				return vRow[r];
-			}
+            if (tbl.eq(vtKey, key) > 0) {
+                return vRow[r];
+            }
         }
         return nullptr;
     }
@@ -834,9 +833,9 @@ namespace SPA
         for (size_t r = 0; r < rows; ++r) {
             const UDB::CDBVariant &vtKey = vRow[r]->at(f0);
             const UDB::CDBVariant &vtKey1 = vRow[r]->at(f1);
-			if (tbl.eq(vtKey, key0) > 0 && tbl.eq(vtKey1, key1) > 0) {
-				return vRow[r];
-			}
+            if (tbl.eq(vtKey, key0) > 0 && tbl.eq(vtKey1, key1) > 0) {
+                return vRow[r];
+            }
         }
         return nullptr;
     }
@@ -987,10 +986,9 @@ namespace SPA
     size_t CDataSet::FindKeyColIndex(const UDB::CDBColumnInfoArray & meta) {
         size_t index = 0;
         for (auto it = meta.cbegin(), end = meta.cend(); it != end; ++it, ++index) {
-			if ((it->Flags & (UDB::CDBColumnInfo::FLAG_PRIMARY_KEY | UDB::CDBColumnInfo::FLAG_AUTOINCREMENT)))
-			{
-				return index;
-			}
+            if ((it->Flags & (UDB::CDBColumnInfo::FLAG_PRIMARY_KEY | UDB::CDBColumnInfo::FLAG_AUTOINCREMENT))) {
+                return index;
+            }
         }
         return INVALID_VALUE;
     }
@@ -1027,9 +1025,9 @@ namespace SPA
         key1 = INVALID_VALUE;
         for (auto it = meta.cbegin(), end = meta.cend(); it != end; ++it) {
             if (index == INVALID_VALUE) {
-				if ((it->Flags & (UDB::CDBColumnInfo::FLAG_PRIMARY_KEY | UDB::CDBColumnInfo::FLAG_AUTOINCREMENT))) {
-					index = it - meta.cbegin();
-				}
+                if ((it->Flags & (UDB::CDBColumnInfo::FLAG_PRIMARY_KEY | UDB::CDBColumnInfo::FLAG_AUTOINCREMENT))) {
+                    index = it - meta.cbegin();
+                }
             } else {
                 if ((it->Flags & (UDB::CDBColumnInfo::FLAG_PRIMARY_KEY | UDB::CDBColumnInfo::FLAG_AUTOINCREMENT))) {
                     key1 = it - meta.cbegin();
@@ -1156,12 +1154,11 @@ namespace SPA
 
     void CDataSet::Set(const char *strIp, UDB::tagManagementSystem ms) {
         CAutoLock al(m_cs);
-		if (strIp) {
-			m_strIp = strIp;
-		}
-		else {
-			m_strIp.clear();
-		}
+        if (strIp) {
+            m_strIp = strIp;
+        } else {
+            m_strIp.clear();
+        }
         m_ms = ms;
     }
 
@@ -1183,19 +1180,18 @@ namespace SPA
     }
 
     int CDataSet::In(const UTF16 *dbName, const UTF16 *tblName, unsigned int ordinal, const UDB::CDBVariantArray &v, CTable & t) {
-		if (!dbName) {
-			dbName = (const UTF16*)L"";
-		}
-		if (!tblName || !Utilities::GetLen(tblName)) {
-			return CTable::NO_TABLE_NAME_GIVEN;
-		}
+        if (!dbName) {
+            dbName = (const UTF16*) EMPTY_INTERNAL;
+        }
+        if (!tblName || !Utilities::GetLen(tblName)) {
+            return CTable::NO_TABLE_NAME_GIVEN;
+        }
         CAutoLock al(m_cs);
         for (auto it = m_ds.cbegin(), end = m_ds.cend(); it != end; ++it) {
             const CTable &tbl = *it;
-			if (!Is(tbl, dbName, tblName))
-			{
-				continue;
-			}
+            if (!Is(tbl, dbName, tblName)) {
+                continue;
+            }
             return tbl.In(ordinal, v, t, true);
         }
         return CTable::NO_TABLE_FOUND;
@@ -1203,16 +1199,15 @@ namespace SPA
 
     int CDataSet::NotIn(const UTF16 *dbName, const UTF16 *tblName, unsigned int ordinal, const UDB::CDBVariantArray &v, CTable & t) {
         if (!dbName)
-            dbName = (const UTF16*) L"";
+            dbName = (const UTF16*) EMPTY_INTERNAL;
         if (!tblName || !Utilities::GetLen(tblName))
             return CTable::NO_TABLE_NAME_GIVEN;
         CAutoLock al(m_cs);
         for (auto it = m_ds.cbegin(), end = m_ds.cend(); it != end; ++it) {
             const CTable &tbl = *it;
-			if (!Is(tbl, dbName, tblName))
-			{
-				continue;
-			}
+            if (!Is(tbl, dbName, tblName)) {
+                continue;
+            }
             return tbl.NotIn(ordinal, v, t, true);
         }
         return CTable::NO_TABLE_FOUND;
@@ -1220,16 +1215,15 @@ namespace SPA
 
     int CDataSet::Find(const UTF16 *dbName, const UTF16 *tblName, unsigned int ordinal, CTable::Operator op, const VARIANT &vt, CTable & t) {
         if (!dbName)
-            dbName = (const UTF16*) L"";
+            dbName = (const UTF16*) EMPTY_INTERNAL;
         if (!tblName || !Utilities::GetLen(tblName))
             return CTable::NO_TABLE_NAME_GIVEN;
         CAutoLock al(m_cs);
         for (auto it = m_ds.cbegin(), end = m_ds.cend(); it != end; ++it) {
             const CTable &tbl = *it;
-			if (!Is(tbl, dbName, tblName))
-			{
-				continue;
-			}
+            if (!Is(tbl, dbName, tblName)) {
+                continue;
+            }
             return tbl.Find(ordinal, op, vt, t, true);
         }
         return CTable::NO_TABLE_FOUND;
@@ -1241,16 +1235,15 @@ namespace SPA
 
     int CDataSet::Between(const UTF16 *dbName, const UTF16 *tblName, unsigned int ordinal, const VARIANT &vt0, const VARIANT &vt1, CTable & t) {
         if (!dbName)
-            dbName = (const UTF16*) L"";
+            dbName = (const UTF16*) EMPTY_INTERNAL;
         if (!tblName || !Utilities::GetLen(tblName))
             return CTable::NO_TABLE_NAME_GIVEN;
         CAutoLock al(m_cs);
         for (auto it = m_ds.cbegin(), end = m_ds.cend(); it != end; ++it) {
             const CTable &tbl = *it;
-			if (!Is(tbl, dbName, tblName))
-			{
-				continue;
-			}
+            if (!Is(tbl, dbName, tblName)) {
+                continue;
+            }
             return tbl.Between(ordinal, vt0, vt1, t, true);
         }
         return CTable::NO_TABLE_FOUND;
@@ -1260,26 +1253,25 @@ namespace SPA
         if (!tblName || !str)
             return CTable::INVALID_ORDINAL;
         if (!dbName)
-            dbName = (const UTF16*) L"";
+            dbName = (const UTF16*) EMPTY_INTERNAL;
         CAutoLock al(m_cs);
         for (auto it = m_ds.cbegin(), end = m_ds.cend(); it != end; ++it) {
             const CTable &tbl = *it;
-			if (!Is(tbl, dbName, tblName))
-			{
-				continue;
-			}
+            if (!Is(tbl, dbName, tblName)) {
+                continue;
+            }
             return tbl.FindOrdinal(str);
         }
         return CTable::NO_TABLE_FOUND;
     }
 
     unsigned int CDataSet::FindOrdinal(const char *dbName, const char *tblName, const char *str) {
-		if (!tblName || !str) {
-			return CTable::INVALID_ORDINAL;
-		}
-		if (!dbName) {
-			dbName = "";
-		}
+        if (!tblName || !str) {
+            return CTable::INVALID_ORDINAL;
+        }
+        if (!dbName) {
+            dbName = "";
+        }
         CScopeUQueue sbDbName, sbTblName, sbStr;
         Utilities::ToUTF16(dbName, ::strlen(dbName), *sbDbName);
         Utilities::ToUTF16(tblName, ::strlen(tblName), *sbTblName);
@@ -1289,30 +1281,28 @@ namespace SPA
 
     void CDataSet::SetDBServerName(const wchar_t * strDBServerName) {
         CAutoLock al(m_cs);
-		if (strDBServerName) {
-			m_strHostName = strDBServerName;
-		}
-		else {
-			m_strHostName.clear();
-		}
+        if (strDBServerName) {
+            m_strHostName = strDBServerName;
+        } else {
+            m_strHostName.clear();
+        }
     }
 
     void CDataSet::SetUpdater(const wchar_t * strUpdater) {
         CAutoLock al(m_cs);
-		if (strUpdater) {
-			m_strUpdater = strUpdater;
-		}
-		else {
-			m_strUpdater.clear();
-		}
+        if (strUpdater) {
+            m_strUpdater = strUpdater;
+        } else {
+            m_strUpdater.clear();
+        }
     }
 
     size_t CDataSet::GetColumnCount(const UTF16 *dbName, const UTF16 * tblName) {
         CAutoLock al(m_cs);
         for (auto it = m_ds.cbegin(), end = m_ds.cend(); it != end; ++it) {
-			if (!Is(*it, dbName, tblName)) {
-				continue;
-			}
+            if (!Is(*it, dbName, tblName)) {
+                continue;
+            }
             const UDB::CDBColumnInfoArray & meta = it->first;
             return meta.size();
         }
@@ -1322,9 +1312,9 @@ namespace SPA
     size_t CDataSet::GetRowCount(const UTF16 *dbName, const UTF16 * tblName) {
         CAutoLock al(m_cs);
         for (auto it = m_ds.cbegin(), end = m_ds.cend(); it != end; ++it) {
-			if (!Is(*it, dbName, tblName)) {
-				continue;
-			}
+            if (!Is(*it, dbName, tblName)) {
+                continue;
+            }
             return it->second.size();
         }
         return CTable::NO_TABLE_FOUND;
