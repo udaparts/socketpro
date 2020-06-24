@@ -22,7 +22,7 @@ int main(int argc, char* argv[]) {
     cc.Port = 20911;
     cc.UserId = L"SomeUserId";
     cc.Password = L"A_Password_For_SomeUserId";
-    cc.EncrytionMethod = SPA::tagEncryptionMethod::TLSv1;
+    //cc.EncrytionMethod = SPA::tagEncryptionMethod::TLSv1;
 #ifndef NDEBUG
     CWebMasterPool master(L"", 3000000); //for your easy debug
 #else
