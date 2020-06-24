@@ -61,18 +61,17 @@ namespace SPA {
                             ClientSide::tagUpdateEvent eventType = (ClientSide::tagUpdateEvent)(vData[0].intVal);
 
                             if (!this->Cache.GetDBServerName().size()) {
-                                if (vData[1].vt == (VT_ARRAY | VT_I1))
+                                if (vData[1].vt == (VT_ARRAY | VT_I1 || vData[1].vt == VT_BSTR)) {
                                     this->Cache.SetDBServerName(this->ToWide(vData[1]).c_str());
-                                else if (vData[1].vt == VT_BSTR)
-                                    this->Cache.SetDBServerName(vData[1].bstrVal);
+                                } else {
+                                    this->Cache.SetDBServerName(L"");
+                                }
                             }
-                            if (vData[2].vt == (VT_ARRAY | VT_I1))
+                            if (vData[2].vt == (VT_ARRAY | VT_I1) || vData[2].vt == VT_BSTR) {
                                 this->Cache.SetUpdater(this->ToWide(vData[2]).c_str());
-                            else if (vData[2].vt == VT_BSTR)
-                                this->Cache.SetUpdater(vData[2].bstrVal);
-                            else
-                                this->Cache.SetUpdater(nullptr);
-
+                            } else {
+                                this->Cache.SetUpdater(L"");
+                            }
                             SPA::CDBString dbName = this->ToUTF16(vData[3]);
                             SPA::CDBString tblName = this->ToUTF16(vData[4]);
                             switch (eventType) {

@@ -26,7 +26,11 @@ namespace SPA {
 
         static std::wstring ToWide(const VARIANT &data) {
             if (data.vt == VT_BSTR) {
+#ifdef WIN32_64
                 return data.bstrVal;
+#else
+                return Utilities::ToWide(data.bstrVal);
+#endif
             }
             const char *s;
             assert(data.vt == (VT_ARRAY | VT_I1));
