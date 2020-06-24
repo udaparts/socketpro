@@ -912,6 +912,7 @@ namespace SPA
 #ifdef WCHAR32
 
         void ToWide(const char16_t *str, size_t chars, CUQueue & q, bool append) {
+            assert(chars != (size_t) (~0));
             if (!append) {
                 q.SetSize(0);
             }
@@ -952,6 +953,7 @@ namespace SPA
         }
 
         void ToUTF8(const char16_t *str, size_t chars, CUQueue & q, bool append) {
+            assert(chars != (size_t) (~0));
             if (!append) {
                 q.SetSize(0);
             }
@@ -982,6 +984,7 @@ namespace SPA
          * @param q
          */
         void ToUTF16(const wchar_t *str, size_t wchars, CUQueue & q, bool append) {
+            assert(wchars != (size_t) (~0));
             if (!append) {
                 q.SetSize(0);
             }
@@ -1006,6 +1009,7 @@ namespace SPA
         }
 
         void ToUTF16(const char *str, size_t chars, CUQueue &q, bool append) {
+            assert(chars != (size_t) (~0));
             if (!append) {
                 q.SetSize(0);
             }
@@ -1014,9 +1018,9 @@ namespace SPA
                 return;
             }
             char *input = (char*) str;
-            size_t sizeInput = chars * sizeof (UTF16);
-            if (q.GetTailSize() < sizeInput + sizeof (wchar_t)) {
-                q.ReallocBuffer(sizeInput + sizeof (wchar_t) + q.GetSize());
+            size_t sizeInput = chars;
+            if (q.GetTailSize() < (sizeInput << 1) + sizeof (wchar_t)) {
+                q.ReallocBuffer((sizeInput << 1) + sizeof (wchar_t) + q.GetSize());
             }
             char *pos = (char*) q.GetBuffer(q.GetSize());
             size_t size_output = q.GetTailSize();

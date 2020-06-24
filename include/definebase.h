@@ -337,23 +337,6 @@ namespace SPA {
 
 namespace SPA {
 
-#if _MSC_VER < 1900 && defined(WCHAR16)
-    typedef wchar_t UTF16;
-#else
-    typedef char16_t UTF16;
-#define NATIVE_UTF16_SUPPORTED
-
-    inline static size_t GetLen(const char16_t *str) {
-        size_t size = 0;
-        if (str) {
-            while (*str++) {
-                ++size;
-            }
-        }
-        return size;
-    }
-#endif
-
     inline static size_t GetLen(const char *str) {
         if (!str) {
             return 0;
@@ -368,6 +351,23 @@ namespace SPA {
         return ::wcslen(str);
     }
 
+    template<typename TChar>
+    inline static size_t GetLen(const TChar *str) {
+        size_t size = 0;
+        if (str) {
+            while (*str++) {
+                ++size;
+            }
+        }
+        return size;
+    }
+
+#if _MSC_VER < 1900 && defined(WCHAR16)
+    typedef wchar_t UTF16;
+#else
+    typedef char16_t UTF16;
+#define NATIVE_UTF16_SUPPORTED
+#endif
     //The following functions atoxxx work correctly for standard and normal number strings without any preventions.
     //The function atof does NOT support number strings with e or E.
     //These functions are reused for faster parsing string into numbers.
