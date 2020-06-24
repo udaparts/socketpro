@@ -398,13 +398,8 @@ namespace SPA
                         if ((len + position) > GetSize()) {
                             throw CUException("Bad data for loading UNICODE string", __FILE__, __LINE__, __FUNCTION__, MB_BAD_DESERIALIZATION);
                         }
-#ifdef WIN32_64
-                        const wchar_t *str = (const wchar_t *) GetBuffer(position);
+                        const BSTR str = (const BSTR) GetBuffer(position);
                         vtData.bstrVal = ::SysAllocStringLen(str, len >> 1);
-#else
-                        const UTF16 *str = (const UTF16 *) GetBuffer(position);
-                        vtData.bstrVal = SPA::Utilities::SysAllocStringLen(str, len >> 1);
-#endif
                         Pop(len, position);
                     }
                     total += (ulLen - GetSize());
@@ -591,14 +586,9 @@ namespace SPA
                                     if ((len + position) > GetSize()) {
                                         throw CUException("Bad data for loading UNICODE string", __FILE__, __LINE__, __FUNCTION__, MB_BAD_DESERIALIZATION);
                                     }
-#ifdef WIN32_64
-                                    pbstr[ulIndex] = ::SysAllocStringLen((const wchar_t*) GetBuffer(position), (len >> 1));
-#else
-                                    pbstr[ulIndex] = SPA::Utilities::SysAllocStringLen((const UTF16*) GetBuffer(position), (len >> 1));
-#endif
+                                    pbstr[ulIndex] = ::SysAllocStringLen((const BSTR) GetBuffer(position), (len >> 1));
                                     Pop(len, position);
                                 }
-
                                 total += (ulLen - GetSize());
                             }
                             SafeArrayUnaccessData(psa);
@@ -760,8 +750,8 @@ namespace SPA
 #else
             CScopeUQueue sb;
             CUQueue &q = *sb;
-            ToWide(utf8, chars, q, true);
-            return ::SysAllocStringLen((const wchar_t*) q.GetBuffer(), q.GetSize() / sizeof (wchar_t));
+            ToUTF16(utf8, chars, q, true);
+            return ::SysAllocStringLen((const char16_t*) q.GetBuffer(), q.GetSize() >> 1);
 #endif
         }
 
@@ -945,20 +935,20 @@ namespace SPA
             q.SetNull();
         }
 
-        BSTR SysAllocStringLen(const SPA::UTF16 *sz, unsigned int wchars) {
+        BSTR SysAllocStringLen(const wchar_t *sz, unsigned int wchars) {
             if (!sz) {
                 wchars = 0;
             } else if (wchars == (unsigned int) (~0)) {
-                wchars = (unsigned int) GetLen(sz);
+                wchars = (unsigned int) ::wcslen(sz);
             } else {
-                assert(wchars <= (unsigned int) GetLen(sz));
+                assert(wchars <= (unsigned int) ::wcslen(sz));
             }
             CScopeUQueue sb;
             CUQueue &q = *sb;
             if (wchars) {
-                ToWide(sz, wchars, q, true);
+                ToUTF16(sz, wchars, q, true);
             }
-            return ::SysAllocStringLen((const wchar_t*) q.GetBuffer(), q.GetSize() / sizeof (wchar_t));
+            return ::SysAllocStringLen((const char16_t*) q.GetBuffer(), q.GetSize() >> 1);
         }
 
         void ToUTF8(const char16_t *str, size_t chars, CUQueue & q, bool append) {
@@ -1098,7 +1088,7 @@ HRESULT VariantChangeType(VARIANT *pvargDest, const VARIANT *pvarSrc, unsigned s
                 case VT_BSTR:
                 {
                     SPA::INT64 data;
-                    int res = swscanf(pvarSrc->bstrVal, L"%lld", &data);
+                    int res = SPA::swscanf(pvarSrc->bstrVal, L"%lld", &data);
                     if (res)
                         pvargDest->cVal = (char) data;
                     else {
@@ -1155,7 +1145,7 @@ HRESULT VariantChangeType(VARIANT *pvargDest, const VARIANT *pvarSrc, unsigned s
                 case VT_BSTR:
                 {
                     SPA::INT64 data;
-                    int res = swscanf(pvarSrc->bstrVal, L"%lld", &data);
+                    int res = SPA::swscanf(pvarSrc->bstrVal, L"%lld", &data);
                     if (res)
                         pvargDest->iVal = (short) data;
                     else {
@@ -1212,7 +1202,7 @@ HRESULT VariantChangeType(VARIANT *pvargDest, const VARIANT *pvarSrc, unsigned s
                 case VT_BSTR:
                 {
                     SPA::INT64 data;
-                    int res = swscanf(pvarSrc->bstrVal, L"%lld", &data);
+                    int res = SPA::swscanf(pvarSrc->bstrVal, L"%lld", &data);
                     if (res)
                         pvargDest->intVal = (int) data;
                     else {
@@ -1269,7 +1259,7 @@ HRESULT VariantChangeType(VARIANT *pvargDest, const VARIANT *pvarSrc, unsigned s
                 case VT_BSTR:
                 {
                     SPA::INT64 data;
-                    int res = swscanf(pvarSrc->bstrVal, L"%lld", &data);
+                    int res = SPA::swscanf(pvarSrc->bstrVal, L"%lld", &data);
                     if (res)
                         pvargDest->llVal = (char) data;
                     else {
@@ -1326,7 +1316,7 @@ HRESULT VariantChangeType(VARIANT *pvargDest, const VARIANT *pvarSrc, unsigned s
                 case VT_BSTR:
                 {
                     float data;
-                    int res = swscanf(pvarSrc->bstrVal, L"%f", &data);
+                    int res = SPA::swscanf(pvarSrc->bstrVal, L"%f", &data);
                     if (res)
                         pvargDest->fltVal = data;
                     else {
@@ -1383,7 +1373,7 @@ HRESULT VariantChangeType(VARIANT *pvargDest, const VARIANT *pvarSrc, unsigned s
                 case VT_BSTR:
                 {
                     double data;
-                    int res = swscanf(pvarSrc->bstrVal, L"%lf", &data);
+                    int res = SPA::swscanf(pvarSrc->bstrVal, L"%lf", &data);
                     if (res)
                         pvargDest->dblVal = data;
                     else {
@@ -1440,7 +1430,7 @@ HRESULT VariantChangeType(VARIANT *pvargDest, const VARIANT *pvarSrc, unsigned s
                 case VT_BSTR:
                 {
                     SPA::UINT64 data;
-                    int res = swscanf(pvarSrc->bstrVal, L"%llu", &data);
+                    int res = SPA::swscanf(pvarSrc->bstrVal, L"%llu", &data);
                     if (res)
                         pvargDest->bVal = (char) data;
                     else {
@@ -1497,7 +1487,7 @@ HRESULT VariantChangeType(VARIANT *pvargDest, const VARIANT *pvarSrc, unsigned s
                 case VT_BSTR:
                 {
                     SPA::UINT64 data;
-                    int res = swscanf(pvarSrc->bstrVal, L"%llu", &data);
+                    int res = SPA::swscanf(pvarSrc->bstrVal, L"%llu", &data);
                     if (res)
                         pvargDest->uiVal = (unsigned short) data;
                     else {
@@ -1555,7 +1545,7 @@ HRESULT VariantChangeType(VARIANT *pvargDest, const VARIANT *pvarSrc, unsigned s
                 case VT_BSTR:
                 {
                     SPA::UINT64 data;
-                    int res = swscanf(pvarSrc->bstrVal, L"%lld", &data);
+                    int res = SPA::swscanf(pvarSrc->bstrVal, L"%lld", &data);
                     if (res)
                         pvargDest->uintVal = (unsigned int) data;
                     else {
@@ -1612,7 +1602,7 @@ HRESULT VariantChangeType(VARIANT *pvargDest, const VARIANT *pvarSrc, unsigned s
                 case VT_BSTR:
                 {
                     SPA::UINT64 data;
-                    int res = swscanf(pvarSrc->bstrVal, L"%llu", &data);
+                    int res = SPA::swscanf(pvarSrc->bstrVal, L"%llu", &data);
                     if (res)
                         pvargDest->ullVal = data;
                     else {
@@ -1720,7 +1710,7 @@ HRESULT VariantChangeType(VARIANT *pvargDest, const VARIANT *pvarSrc, unsigned s
                 case VT_BSTR:
                 {
                     double data;
-                    int res = swscanf(pvarSrc->bstrVal, L"%lf", &data);
+                    int res = SPA::swscanf(pvarSrc->bstrVal, L"%lf", &data);
                     if (res)
                         pvargDest->boolVal = data ? VARIANT_TRUE : VARIANT_FALSE;
                     else {

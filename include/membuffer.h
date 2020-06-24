@@ -81,7 +81,7 @@ namespace SPA {
         std::wstring GetErrorMessage(DWORD dwError);
 #elif defined(WCHAR32)
         BSTR ToBSTR(const char *utf8, size_t chars);
-        BSTR SysAllocStringLen(const char16_t *sz, unsigned int wchars);
+        BSTR SysAllocStringLen(const wchar_t *sz, unsigned int wchars);
 #else
 #endif
     };
@@ -1649,6 +1649,17 @@ namespace SPA {
 
     typedef CScopeUQueueEx<DEFAULT_INITIAL_MEMORY_BUFFER_SIZE, DEFAULT_MEMORY_BUFFER_BLOCK_SIZE> CScopeUQueue;
 
+    template<typename T>
+    int swscanf(BSTR bstrVal, const wchar_t* format, T *t) {
+#ifdef WIN32_64
+        return ::swscanf((const wchar_t*)bstrVal, format, t);
+#else
+        CScopeUQueue sb;
+        CUQueue &q = *sb;
+        Utilities::ToWide(bstrVal, GetLen(bstrVal), q, true);
+        return ::swscanf((const wchar_t*)q.GetBuffer(), format, t);
+#endif
+    }
 }; //namespace SPA
 
 #endif //__UCOMM_SHARED_MEMORY_QUEUE_H_

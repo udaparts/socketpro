@@ -272,7 +272,7 @@ namespace SPA {
 #ifdef WIN32_64
                     bstrVal = ::SysAllocStringLen((const wchar_t*)lpszSrc, len);
 #else
-                    bstrVal = SPA::Utilities::SysAllocStringLen(lpszSrc, len);
+                    bstrVal = ::SysAllocStringLen(lpszSrc, len);
 #endif
                     vt = VT_BSTR;
                 } else {
@@ -338,19 +338,20 @@ namespace SPA {
 #ifdef WIN32_64
                         res = ::_wcsicmp(bstrVal, data.bstrVal);
 #else
-                        res = ::wcscasecmp(bstrVal, data.bstrVal);
+                        res = Utilities::IsEqual(bstrVal, data.bstrVal, false);
 #endif
                     } else if (data.vt == (VT_ARRAY | VT_I1)) {
-                        SPA::CScopeUQueue sb;
+                        CScopeUQueue sb;
                         const char *s0 = nullptr;
                         ::SafeArrayAccessData(data.parray, (void**) &s0);
-                        SPA::Utilities::ToWide(s0, data.parray->rgsabound->cElements);
+                        Utilities::ToUTF16(s0, data.parray->rgsabound->cElements);
                         ::SafeArrayUnaccessData(data.parray);
-                        const wchar_t *s = (const wchar_t*)sb->GetBuffer();
 #ifdef WIN32_64
+                        const wchar_t *s = (const wchar_t*)sb->GetBuffer();
                         res = ::_wcsicmp(s, bstrVal);
 #else
-                        res = ::wcscasecmp(s, bstrVal);
+                        const char16_t *s = (const char16_t*) sb->GetBuffer();
+                        res = Utilities::IsEqual(s, bstrVal, false);
 #endif
                     } else {
                         res = -1;
@@ -374,8 +375,8 @@ namespace SPA {
                         ::SafeArrayUnaccessData(parray);
                         ::SafeArrayUnaccessData(data.parray);
                     } else if (data.vt == VT_BSTR) {
-                        SPA::CScopeUQueue sb;
-                        SPA::Utilities::ToUTF8(data.bstrVal, ::wcslen(data.bstrVal), *sb);
+                        CScopeUQueue sb;
+                        Utilities::ToUTF8(data.bstrVal, GetLen(data.bstrVal), *sb);
                         if (sb->GetSize() != parray->rgsabound->cElements)
                             return false;
                         const char *s0 = (const char*) sb->GetBuffer();
@@ -551,7 +552,7 @@ namespace SPA {
 #ifdef WIN32_64
                     bstrVal = ::SysAllocStringLen((const wchar_t*)lpszSrc, len);
 #else
-                    bstrVal = SPA::Utilities::SysAllocStringLen(lpszSrc, len);
+                    bstrVal = ::SysAllocStringLen(lpszSrc, len);
 #endif
                 } else {
                     vt = VT_NULL;

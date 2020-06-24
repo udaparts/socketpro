@@ -18,7 +18,7 @@ typedef unsigned short VARTYPE;
 typedef unsigned short WORD;
 typedef short VARIANT_BOOL;
 
-typedef wchar_t *BSTR; //It must be a null-terminated string without null char in middle on non-windows platforms.
+typedef char16_t *BSTR; //It must be a null-terminated string without null char in middle on non-windows platforms.
 
 typedef void *PVOID;
 
@@ -39,42 +39,90 @@ typedef void *PVOID;
 namespace SPA {
     namespace Utilities {
         BSTR ToBSTR(const char *str, size_t chars = (~0));
-        BSTR SysAllocStringLen(const char16_t *sz, unsigned int wchars = (unsigned int) (~0));
+        BSTR SysAllocStringLen(const wchar_t *sz, unsigned int wchars = (unsigned int) (~0));
     }; //namespace Utilities
 }; //namespace SPA
 
-inline static unsigned int SysStringLen(const wchar_t* bstr) {
+using SPA::Utilities::SysAllocStringLen;
+
+static int wcscmp(const char16_t* s1, const char16_t* s2) {
+    if (s1 == s2) {
+        return 0;
+    }
+    if (!s1) {
+        return -1;
+    }
+    if (!s2) {
+        return 1;
+    }
+    int res = *s1 - *s2;
+    while (!res && *s1++ && *s2++) {
+        res = *s1 - *s2;
+    }
+    if (res < 0) {
+        return -1;
+    } else if (res > 0) {
+        return 1;
+    }
+    return 0;
+}
+
+static int wcscasecmp(const char16_t *s1, const char16_t *s2) {
+    if (s1 == s2) {
+        return 0;
+    }
+    if (!s1) {
+        return -1;
+    }
+    if (!s2) {
+        return 1;
+    }
+    int res = tolower(*s1) - tolower(*s2);
+    while (!res && *s1++ && *s2++) {
+        res = tolower(*s1) - tolower(*s2);
+    }
+    return res;
+}
+
+inline static unsigned int SysStringLen(const char16_t* bstr) {
     if (!bstr) {
         return 0;
     }
-    return (unsigned int) ::wcslen(bstr);
+    return (unsigned int) SPA::GetLen(bstr);
 }
 
-static BSTR SysAllocStringLen(const wchar_t *sz, unsigned int wchars = (unsigned int) (~0)) {
+static BSTR SysAllocStringLen(const char16_t *sz, unsigned int chars = (unsigned int) (~0)) {
     if (!sz) {
-        wchars = 0;
-    } else if (wchars == (unsigned int) (~0)) {
-        wchars = ::wcslen(sz);
+        chars = 0;
+    } else if (chars == (unsigned int) (~0)) {
+        chars = SPA::GetLen(sz);
     } else {
-        assert(wchars <= ::wcslen(sz));
+        assert(chars <= SPA::GetLen(sz));
     }
-    unsigned int bytes = wchars;
-    bytes <<= 2;
-    BSTR bstr = (BSTR)::malloc(bytes + sizeof (wchar_t));
+    unsigned int bytes = chars;
+    bytes <<= 1;
+    BSTR bstr = (BSTR)::malloc(bytes + sizeof (char16_t));
     if (bstr) {
-        if (sz && wchars) {
+        if (sz && chars) {
             ::memcpy(bstr, sz, bytes);
         }
-        bstr[wchars] = 0;
+        bstr[chars] = 0;
     }
     return bstr;
+}
+
+static BSTR SysAllocString(const char16_t *sz) {
+    if (!sz) {
+        return nullptr;
+    }
+    return SysAllocStringLen(sz, (unsigned int) SPA::GetLen(sz));
 }
 
 static BSTR SysAllocString(const wchar_t *sz) {
     if (!sz) {
         return nullptr;
     }
-    return SysAllocStringLen(sz, (unsigned int) ::wcslen(sz));
+    return SysAllocStringLen(sz, (unsigned int) SPA::GetLen(sz));
 }
 
 inline static void SysFreeString(BSTR &bstr) {

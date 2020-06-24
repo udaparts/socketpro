@@ -379,7 +379,7 @@ namespace NJA {
 #ifdef WIN32_64
                 vt.bstrVal = SysAllocString((const wchar_t*) * str);
 #else
-                vt.bstrVal = SPA::Utilities::SysAllocStringLen((const UTF16*) *str, (unsigned int) str.length());
+                vt.bstrVal = SysAllocStringLen((const UTF16*) *str, (unsigned int) str.length());
 #endif
             }
         } else if (v->IsInt32() && id == "") {
@@ -641,7 +641,7 @@ namespace NJA {
 #ifdef WIN32_64
                         pbstr[n] = ::SysAllocString((const wchar_t *) * str);
 #else
-                        pbstr[n] = SPA::Utilities::SysAllocStringLen((const UTF16*) *str, (unsigned int) str.length());
+                        pbstr[n] = ::SysAllocStringLen((const UTF16*) *str, (unsigned int) str.length());
 #endif
                     }
                         break;
@@ -895,15 +895,7 @@ namespace NJA {
                 return bytes;
             }
             case VT_BSTR:
-#ifdef WIN32_64
                 return ToStr(isolate, (const UTF16*) vt.bstrVal, SysStringLen(vt.bstrVal));
-#else
-            {
-                SPA::CScopeUQueue sb;
-                Utilities::ToUTF16(vt.bstrVal, SysStringLen(vt.bstrVal), *sb, true);
-                return ToStr(isolate, (const UTF16*) sb->GetBuffer());
-            }
-#endif
             default:
             {
                 bool is_array = ((type & VT_ARRAY) == VT_ARRAY);
@@ -965,13 +957,7 @@ namespace NJA {
                                     {
                                         BSTR *p = (BSTR *) pvt;
                                         if (p[n]) {
-#ifdef WIN32_64
                                             auto s = ToStr(isolate, (const UTF16*) p[n], SysStringLen(p[n]));
-#else
-                                            SPA::CScopeUQueue sb;
-                                            Utilities::ToUTF16(p[n], SysStringLen(p[n]), *sb, true);
-                                            auto s = ToStr(isolate, (const UTF16*) sb->GetBuffer());
-#endif
                                             v->Set(ctx, n, s);
                                         } else
                                             v->Set(ctx, n, Null(isolate));

@@ -37,7 +37,6 @@ namespace SPA {
         }
 
         static CDBString ToUTF16(const VARIANT &data) {
-#ifdef WIN32_64
             if (data.vt == VT_BSTR) {
                 return (const UTF16*) data.bstrVal;
             }
@@ -47,19 +46,6 @@ namespace SPA {
             CDBString ws = Utilities::ToUTF16(s, data.parray->rgsabound->cElements);
             ::SafeArrayUnaccessData(data.parray);
             return ws;
-#else
-            SPA::CScopeUQueue sb;
-            if (data.vt == VT_BSTR) {
-                Utilities::ToUTF16(data.bstrVal, (~0), *sb, true);
-                return (const UTF16*) sb->GetBuffer();
-            }
-            const char *s;
-            assert(data.vt == (VT_ARRAY | VT_I1));
-            ::SafeArrayAccessData(data.parray, (void**) &s);
-            Utilities::ToUTF16(s, data.parray->rgsabound->cElements, *sb, true);
-            ::SafeArrayUnaccessData(data.parray);
-            return (const UTF16*) sb->GetBuffer();
-#endif
         }
 
     private:
