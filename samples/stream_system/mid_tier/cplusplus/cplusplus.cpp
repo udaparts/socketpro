@@ -99,7 +99,7 @@ int main(int argc, char* argv[]) {
     CYourServer server(2);
 #ifdef WIN32_64
     //or load cert and private key from windows system cert store
-    server.UseSSL("C:\\cyetest\\socketpro\\bin\\intermediate.pfx", "", "mypassword");
+    //server.UseSSL("C:\\cyetest\\socketpro\\bin\\intermediate.pfx", "", "mypassword");
 #else //non-windows platforms
     //server.UseSSL("intermediate.cert.pem", "intermediate.key.pem", "mypassword");
 #endif
