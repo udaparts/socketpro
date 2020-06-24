@@ -61,7 +61,7 @@ namespace SPA {
                             ClientSide::tagUpdateEvent eventType = (ClientSide::tagUpdateEvent)(vData[0].intVal);
 
                             if (!this->Cache.GetDBServerName().size()) {
-                                if (vData[1].vt == (VT_ARRAY | VT_I1 || vData[1].vt == VT_BSTR)) {
+                                if (vData[1].vt == (VT_ARRAY | VT_I1) || vData[1].vt == VT_BSTR) {
                                     this->Cache.SetDBServerName(this->ToWide(vData[1]).c_str());
                                 } else {
                                     this->Cache.SetDBServerName(L"");
