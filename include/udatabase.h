@@ -342,7 +342,7 @@ namespace SPA {
                         ::SafeArrayAccessData(data.parray, (void**) &s0);
                         Utilities::ToUTF16(s0, data.parray->rgsabound->cElements);
                         ::SafeArrayUnaccessData(data.parray);
-                        const char16_t *s = (const char16_t*) sb->GetBuffer();
+                        const BSTR s = (const BSTR) sb->GetBuffer();
                         res = UCompareNoCase(s, bstrVal);
                     } else {
                         res = -1;

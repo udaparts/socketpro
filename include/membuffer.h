@@ -44,7 +44,7 @@ namespace SPA {
 
         template<typename TChar>
         bool IsEqual(const TChar *s0, const TChar *s1, bool case_sensitive) {
-            return case_sensitive ? UCompare(s0, s1) : UCompareNoCase(s0, s1);
+            return (0 == (case_sensitive ? UCompare(s0, s1) : UCompareNoCase(s0, s1)));
         }
 
 #ifdef NATIVE_UTF16_SUPPORTED
