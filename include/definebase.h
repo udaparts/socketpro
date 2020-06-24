@@ -368,6 +368,48 @@ namespace SPA {
     typedef char16_t UTF16;
 #define NATIVE_UTF16_SUPPORTED
 #endif
+
+    template<typename TChar>
+    static int UCompare(const TChar* s1, const TChar* s2) {
+        if (s1 == s2) {
+            return 0;
+        }
+        if (!s1) {
+            return -1;
+        }
+        if (!s2) {
+            return 1;
+        }
+        int res = *s1 - *s2;
+        while (!res && *s1++ && *s2++) {
+            res = *s1 - *s2;
+        }
+        if (res < 0) {
+            return -1;
+        } else if (res > 0) {
+            return 1;
+        }
+        return 0;
+    }
+
+    template<typename TChar>
+    static int UCompareNoCase(const TChar *s1, const TChar *s2) {
+        if (s1 == s2) {
+            return 0;
+        }
+        if (!s1) {
+            return -1;
+        }
+        if (!s2) {
+            return 1;
+        }
+        int res = tolower(*s1) - tolower(*s2);
+        while (!res && *s1++ && *s2++) {
+            res = tolower(*s1) - tolower(*s2);
+        }
+        return res;
+    }
+
     //The following functions atoxxx work correctly for standard and normal number strings without any preventions.
     //The function atof does NOT support number strings with e or E.
     //These functions are reused for faster parsing string into numbers.

@@ -335,24 +335,15 @@ namespace SPA {
                     int res;
                     //case-insensitive compare
                     if (data.vt == VT_BSTR) {
-#ifdef WIN32_64
-                        res = ::_wcsicmp(bstrVal, data.bstrVal);
-#else
-                        res = Utilities::IsEqual(bstrVal, data.bstrVal, false);
-#endif
+                        res = UCompareNoCase(bstrVal, data.bstrVal);
                     } else if (data.vt == (VT_ARRAY | VT_I1)) {
                         CScopeUQueue sb;
                         const char *s0 = nullptr;
                         ::SafeArrayAccessData(data.parray, (void**) &s0);
                         Utilities::ToUTF16(s0, data.parray->rgsabound->cElements);
                         ::SafeArrayUnaccessData(data.parray);
-#ifdef WIN32_64
-                        const wchar_t *s = (const wchar_t*)sb->GetBuffer();
-                        res = ::_wcsicmp(s, bstrVal);
-#else
                         const char16_t *s = (const char16_t*) sb->GetBuffer();
-                        res = Utilities::IsEqual(s, bstrVal, false);
-#endif
+                        res = UCompareNoCase(s, bstrVal);
                     } else {
                         res = -1;
                     }

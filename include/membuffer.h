@@ -44,27 +44,7 @@ namespace SPA {
 
         template<typename TChar>
         bool IsEqual(const TChar *s0, const TChar *s1, bool case_sensitive) {
-            if (s0 == s1) {
-                return true;
-            } else if (!s0 || !s1) {
-                return false;
-            }
-            unsigned int len0 = (unsigned int) GetLen(s0), len1 = (unsigned int) GetLen(s1);
-            if (0 == len0 && 0 == len1) {
-                return true;
-            } else if (len0 != len1) {
-                return false;
-            }
-            if (case_sensitive) {
-                return (0 == ::memcmp(s0, s1, len0 * sizeof (TChar)));
-            } else {
-                for (unsigned int n = 0; n < len0; ++n) {
-                    if (::tolower(s0[n]) != ::tolower(s1[n])) {
-                        return false;
-                    }
-                }
-            }
-            return true;
+            return case_sensitive ? UCompare(s0, s1) : UCompareNoCase(s0, s1);
         }
 
 #ifdef NATIVE_UTF16_SUPPORTED

@@ -1,23 +1,24 @@
 
 #include "tablecache.h"
 
-namespace SPA {
+namespace SPA
+{
 
     CTable::CTable()
-    : m_bFieldNameCaseSensitive(false),
-    m_bDataCaseSensitive(false) {
+            : m_bFieldNameCaseSensitive(false),
+            m_bDataCaseSensitive(false) {
     }
 
     CTable::CTable(const UDB::CDBColumnInfoArray &meta, bool bFieldNameCaseSensitive, bool bDataCaseSensitive)
-    : CPColumnRowset(meta, CDataMatrix()),
-    m_bFieldNameCaseSensitive(bFieldNameCaseSensitive),
-    m_bDataCaseSensitive(bDataCaseSensitive) {
+            : CPColumnRowset(meta, CDataMatrix()),
+            m_bFieldNameCaseSensitive(bFieldNameCaseSensitive),
+            m_bDataCaseSensitive(bDataCaseSensitive) {
     }
 
     CTable::CTable(const CTable & tbl)
-    : CPColumnRowset(tbl),
-    m_bFieldNameCaseSensitive(tbl.m_bFieldNameCaseSensitive),
-    m_bDataCaseSensitive(tbl.m_bDataCaseSensitive) {
+            : CPColumnRowset(tbl),
+            m_bFieldNameCaseSensitive(tbl.m_bFieldNameCaseSensitive),
+            m_bDataCaseSensitive(tbl.m_bDataCaseSensitive) {
     }
 
     const UDB::CDBColumnInfoArray & CTable::GetMeta() const {
@@ -39,7 +40,7 @@ namespace SPA {
         return map;
     }
 
-    CTable & CTable::operator=(const CTable & tbl) {
+    CTable & CTable::operator = (const CTable & tbl){
         if (this == &tbl)
             return *this;
         CPColumnRowset &base = *this;
@@ -382,13 +383,9 @@ namespace SPA {
                 return (ToDouble(vt0.decVal) > ToDouble(vt1.decVal));
             case VT_BSTR:
                 if (m_bDataCaseSensitive) {
-                    return (::wcscmp(vt0.bstrVal, vt1.bstrVal) > 0);
+                    return (UCompare(vt0.bstrVal, vt1.bstrVal) > 0);
                 } else {
-#ifdef WIN32_64
-                    return (::_wcsicmp(vt0.bstrVal, vt1.bstrVal) > 0);
-#else
-                    return (::wcscasecmp(vt0.bstrVal, vt1.bstrVal) > 0);
-#endif
+                    return (UCompareNoCase(vt0.bstrVal, vt1.bstrVal) > 0);
                 }
             case VT_BOOL:
                 return (vt0.boolVal < vt1.boolVal);
@@ -444,13 +441,9 @@ namespace SPA {
                 return (ToDouble(vt0.decVal) >= ToDouble(vt1.decVal));
             case VT_BSTR:
                 if (m_bDataCaseSensitive) {
-                    return (::wcscmp(vt0.bstrVal, vt1.bstrVal) >= 0);
+                    return (UCompare(vt0.bstrVal, vt1.bstrVal) >= 0);
                 } else {
-#ifdef WIN32_64
-                    return (::_wcsicmp(vt0.bstrVal, vt1.bstrVal) >= 0);
-#else
-                    return (::wcscasecmp(vt0.bstrVal, vt1.bstrVal) >= 0);
-#endif
+                    return (UCompareNoCase(vt0.bstrVal, vt1.bstrVal) >= 0);
                 }
             case VT_BOOL:
                 return (vt0.boolVal <= vt1.boolVal);
@@ -506,13 +499,9 @@ namespace SPA {
                 return (ToDouble(vt0.decVal) < ToDouble(vt1.decVal));
             case VT_BSTR:
                 if (m_bDataCaseSensitive) {
-                    return (::wcscmp(vt0.bstrVal, vt1.bstrVal) < 0);
+                    return (UCompare(vt0.bstrVal, vt1.bstrVal) < 0);
                 } else {
-#ifdef WIN32_64
-                    return (::_wcsicmp(vt0.bstrVal, vt1.bstrVal) < 0);
-#else
-                    return (::wcscasecmp(vt0.bstrVal, vt1.bstrVal) < 0);
-#endif
+                    return (UCompareNoCase(vt0.bstrVal, vt1.bstrVal) < 0);
                 }
             case VT_BOOL:
                 return (vt0.boolVal > vt1.boolVal);
@@ -568,13 +557,9 @@ namespace SPA {
                 return (ToDouble(vt0.decVal) <= ToDouble(vt1.decVal));
             case VT_BSTR:
                 if (m_bDataCaseSensitive) {
-                    return (::wcscmp(vt0.bstrVal, vt1.bstrVal) <= 0);
+                    return (UCompare(vt0.bstrVal, vt1.bstrVal) <= 0);
                 } else {
-#ifdef WIN32_64
-                    return (::_wcsicmp(vt0.bstrVal, vt1.bstrVal) <= 0);
-#else
-                    return (::wcscasecmp(vt0.bstrVal, vt1.bstrVal) <= 0);
-#endif
+                    return (UCompareNoCase(vt0.bstrVal, vt1.bstrVal) <= 0);
                 }
             case VT_BOOL:
                 return (vt0.boolVal >= vt1.boolVal);
@@ -639,13 +624,9 @@ namespace SPA {
                 return (memcmp(&vt0.decVal, &vt1.decVal, sizeof (DECIMAL)) == 0);
             case VT_BSTR:
                 if (m_bDataCaseSensitive) {
-                    return (::wcscmp(vt0.bstrVal, vt1.bstrVal) == 0);
+                    return (UCompare(vt0.bstrVal, vt1.bstrVal) == 0);
                 } else {
-#ifdef WIN32_64
-                    return (::_wcsicmp(vt0.bstrVal, vt1.bstrVal) == 0);
-#else
-                    return (::wcscasecmp(vt0.bstrVal, vt1.bstrVal) == 0);
-#endif
+                    return (UCompareNoCase(vt0.bstrVal, vt1.bstrVal) == 0);
                 }
             case VT_BOOL:
                 return ((vt0.boolVal ? true : false) == (vt1.boolVal ? true : false));
@@ -701,13 +682,9 @@ namespace SPA {
                 return (memcmp(&vt0.decVal, &vt1.decVal, sizeof (DECIMAL)) != 0);
             case VT_BSTR:
                 if (m_bDataCaseSensitive) {
-                    return (::wcscmp(vt0.bstrVal, vt1.bstrVal) != 0);
+                    return (UCompare(vt0.bstrVal, vt1.bstrVal) != 0);
                 } else {
-#ifdef WIN32_64
-                    return (::_wcsicmp(vt0.bstrVal, vt1.bstrVal) != 0);
-#else
-                    return (::wcscasecmp(vt0.bstrVal, vt1.bstrVal) != 0);
-#endif
+                    return (UCompareNoCase(vt0.bstrVal, vt1.bstrVal) != 0);
                 }
             case VT_BOOL:
                 return (vt0.boolVal != vt1.boolVal);
@@ -731,11 +708,11 @@ namespace SPA {
     }
 
     CDataSet::CDataSet()
-    : m_ms(UDB::msUnknown),
-    m_bDBNameCaseSensitive(false),
-    m_bTableNameCaseSensitive(false),
-    m_bFieldNameCaseSensitive(false),
-    m_bDataCaseSensitive(false) {
+            : m_ms(UDB::msUnknown),
+            m_bDBNameCaseSensitive(false),
+            m_bTableNameCaseSensitive(false),
+            m_bFieldNameCaseSensitive(false),
+            m_bDataCaseSensitive(false) {
     }
 
     void CDataSet::Swap(CDataSet & tc) {

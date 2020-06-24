@@ -45,45 +45,6 @@ namespace SPA {
 
 using SPA::Utilities::SysAllocStringLen;
 
-static int wcscmp(const char16_t* s1, const char16_t* s2) {
-    if (s1 == s2) {
-        return 0;
-    }
-    if (!s1) {
-        return -1;
-    }
-    if (!s2) {
-        return 1;
-    }
-    int res = *s1 - *s2;
-    while (!res && *s1++ && *s2++) {
-        res = *s1 - *s2;
-    }
-    if (res < 0) {
-        return -1;
-    } else if (res > 0) {
-        return 1;
-    }
-    return 0;
-}
-
-static int wcscasecmp(const char16_t *s1, const char16_t *s2) {
-    if (s1 == s2) {
-        return 0;
-    }
-    if (!s1) {
-        return -1;
-    }
-    if (!s2) {
-        return 1;
-    }
-    int res = tolower(*s1) - tolower(*s2);
-    while (!res && *s1++ && *s2++) {
-        res = tolower(*s1) - tolower(*s2);
-    }
-    return res;
-}
-
 inline static unsigned int SysStringLen(const char16_t* bstr) {
     if (!bstr) {
         return 0;
