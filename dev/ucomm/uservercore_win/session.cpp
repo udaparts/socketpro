@@ -3676,6 +3676,9 @@ void CServerSession::OnWriteCompleted(const CErrorCode& Error, size_t bytes_tran
             p(index);
         }
     }
+
+    //The following call is necessary to prevent reading from being forgotten under very corner cases
+    Read();
 }
 
 const char* CServerSession::GetHTTPId() {
