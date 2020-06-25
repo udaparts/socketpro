@@ -52,7 +52,7 @@
           <linkerLibItems>
             <linkerLibStdlibItem>DynamicLinking</linkerLibStdlibItem>
           </linkerLibItems>
-          <commandLine>-lstdc++ -pthread</commandLine>
+          <commandLine>-pthread</commandLine>
         </linkerTool>
       </compileType>
       <item path="../../../../include/aclientw.cpp" ex="false" tool="0" flavor2="0">
@@ -99,7 +99,7 @@
           <linkerLibItems>
             <linkerLibStdlibItem>DynamicLinking</linkerLibStdlibItem>
           </linkerLibItems>
-          <commandLine>-lstdc++ -pthread</commandLine>
+          <commandLine>-pthread</commandLine>
         </linkerTool>
       </compileType>
       <item path="../../../../include/aclientw.cpp" ex="false" tool="0" flavor2="0">
