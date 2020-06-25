@@ -86,20 +86,17 @@ namespace SPA {
                             ClientSide::tagUpdateEvent eventType = (ClientSide::tagUpdateEvent)(vData[0].intVal);
 
                             if (!this->Cache.GetDBServerName().size()) {
-                                if (vData[1].vt == (VT_ARRAY | VT_I1))
+                                if (vData[1].vt == (VT_ARRAY | VT_I1) || vData[1].vt == VT_BSTR) {
                                     this->Cache.SetDBServerName(this->ToWide(vData[1]).c_str());
-                                else if (vData[1].vt == VT_BSTR) {
-                                    std::wstring s = vData[1].bstrVal;
-                                    this->Cache.SetDBServerName(s.c_str());
+                                } else {
+                                    this->Cache.SetDBServerName(L"");
                                 }
                             }
-                            if (vData[2].vt == (VT_ARRAY | VT_I1))
+                            if (vData[2].vt == (VT_ARRAY | VT_I1) || vData[2].vt == VT_BSTR) {
                                 this->Cache.SetUpdater(this->ToWide(vData[2]).c_str());
-                            else if (vData[2].vt == VT_BSTR)
-                                this->Cache.SetUpdater(vData[2].bstrVal);
-                            else
-                                this->Cache.SetUpdater(nullptr);
-
+                            } else {
+                                this->Cache.SetUpdater(L"");
+                            }
                             CDBString dbName = this->ToUTF16(vData[3]);
                             CDBString tblName = this->ToUTF16(vData[4]);
                             switch (eventType) {
@@ -162,7 +159,7 @@ namespace SPA {
                     unsigned int port;
                     std::string ip = h.GetAttachedClientSocket()->GetPeerName(&port);
                     ip += ":";
-                    ip += std::to_string((UINT64)port);
+                    ip += std::to_string((UINT64) port);
                     std::string host = h.GetAttachedClientSocket()->GetConnectionContext().Host;
                     std::wstring s = Utilities::ToWide(host.c_str(), host.size());
                     this->m_cache.SetDBServerName(s.c_str());
@@ -180,11 +177,11 @@ namespace SPA {
             [this](CSQLHandler &h, CUQueue & v) {
                 auto &meta = h.GetColumnInfo();
                 const UDB::CDBColumnInfo &info = meta.front();
-                UDB::CDBVariantArray vData;
+                        UDB::CDBVariantArray vData;
                 while (v.GetSize()) {
                     UDB::CDBVariant vt;
-                    v >> vt;
-                    vData.push_back(std::move(vt));
+                            v >> vt;
+                            vData.push_back(std::move(vt));
                 }
                 //populate vData into m_cache container
                 this->m_cache.AddRows(info.DBPath.c_str(), info.TablePath.c_str(), vData);
@@ -192,8 +189,8 @@ namespace SPA {
             [this](CSQLHandler &h, UDB::CDBVariantArray & vData) {
                 auto &meta = h.GetColumnInfo();
                 const UDB::CDBColumnInfo &info = meta.front();
-                //populate vData into m_cache container
-                this->m_cache.AddRows(info.DBPath.c_str(), info.TablePath.c_str(), vData);
+                        //populate vData into m_cache container
+                        this->m_cache.AddRows(info.DBPath.c_str(), info.TablePath.c_str(), vData);
 #endif
             }, [this](CSQLHandler & h) {
                 //a rowset column meta comes

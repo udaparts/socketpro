@@ -4,11 +4,7 @@
 #include "safequeue.h"
 #include <algorithm>
 
-#ifdef WIN32_64
-
-#elif defined(__ANDROID__) || defined(ANDROID)
-#include <boost/locale/encoding_utf.hpp>
-#else
+#ifndef WIN32_64
 #include <iconv.h>
 #endif
 
@@ -16,95 +12,59 @@ namespace SPA {
 
     extern const UINT64 SAFE_DOUBLE;
 
+    template<typename TChar>
+    bool IsEqual(const TChar *s0, const TChar *s1, bool case_sensitive) {
+        return (0 == (case_sensitive ? UCompare(s0, s1) : UCompareNoCase(s0, s1)));
+    }
+
+#ifndef WINCE
+
+    template<typename TChar>
+    void Trim(std::basic_string<TChar> &s) {
+        while (s.size() && ::isspace(s.back())) {
+            s.pop_back();
+        }
+        while (s.size() && ::isspace(s.front())) {
+            s.erase(s.begin());
+        }
+    }
+#endif
+
     class CUQueue;
 
     namespace Utilities {
-#ifndef WINCE
+        using SPA::GetLen;
+        using SPA::Trim;
+        using SPA::IsEqual;
+        void ToWide(const char *utf8, size_t chars, CUQueue &q, bool append = false);
+        void ToUTF8(const wchar_t *str, size_t wchars, CUQueue &q, bool append = false);
+        std::string ToUTF8(const wchar_t *str, size_t wchars = (size_t) (~0));
+        std::string ToUTF8(const std::wstring &s);
+        std::wstring ToWide(const char *utf8, size_t chars = (size_t) (~0));
+        std::wstring ToWide(const std::string &s);
+        void ToUTF16(const char *str, size_t chars, CUQueue &q, bool append = false);
+        void ToUTF16(const wchar_t *str, size_t wchars, CUQueue &q, bool append = false);
+        std::basic_string<UTF16> ToUTF16(const char *utf8, size_t chars = (size_t) (~0));
+        std::basic_string<UTF16> ToUTF16(const std::string &s);
+        std::basic_string<UTF16> ToUTF16(const wchar_t *str, size_t wchars = (size_t) (~0));
+        std::basic_string<UTF16> ToUTF16(const std::wstring &s);
 
-        template<typename TChar>
-        void Trim(std::basic_string<TChar> &s) {
-            while (s.size() && ::isspace(s.back())) {
-                s.pop_back();
-            }
-            while (s.size() && ::isspace(s.front())) {
-                s.erase(s.begin());
-            }
-        }
+#ifdef NATIVE_UTF16_SUPPORTED
+        void ToWide(const char16_t *str, size_t chars, CUQueue &q, bool append = false);
+        void ToUTF8(const char16_t *str, size_t chars, CUQueue &q, bool append = false);
+        std::string ToUTF8(const char16_t *str, size_t chars = (size_t) (~0));
+        std::string ToUTF8(const std::basic_string<char16_t> &s);
+        std::wstring ToWide(const char16_t *str, size_t chars = (size_t) (~0));
+        std::wstring ToWide(const std::basic_string<char16_t> &s);
 #endif
 
-#if defined(__ANDROID__) || defined(ANDROID)
-
-        static std::wstring ToWide(const char *str, size_t src_len) {
-            return boost::locale::conv::utf_to_utf<wchar_t, char>(str, str + src_len);
-        }
-
-        static std::string ToUTF8(const wchar_t *str, size_t len) {
-            return boost::locale::conv::utf_to_utf<char, wchar_t>(str, str + len);
-        }
-#else
 #ifdef WIN32_64
         BSTR ToBSTR(const char *utf8, size_t chars = (size_t) (~0));
         std::wstring GetErrorMessage(DWORD dwError);
-        const UTF16* ToUTF16(const wchar_t *s, size_t chars = (size_t) (~0));
-        const UTF16* ToUTF16(const std::wstring &str);
-
-        //use the following three functions carefully and returned pointers may be invalid because the internal CScopeUQueue and its CUQueue may be gone possible
-        const UTF16* ToUTF16(const char *s, size_t len = (size_t) (~0));
-        const UTF16* ToUTF16(const std::string &s);
-#ifdef NATIVE_UTF16_SUPPORTED
-        const char* ToUTF8(const char16_t *str, size_t wchars = (size_t) (~0));
-        
-        void ToUTF16(const char *str, size_t chars, CUQueue &q, bool append = false);
-        void ToUTF8(const char16_t *str, size_t chars, CUQueue &q, bool append = false);
-        void ToUTF16(const wchar_t *str, size_t wchars, CUQueue &q, bool append = false);
-#endif
-#else
-        BSTR ToBSTR(const char *utf8, size_t chars);
-#endif
-        void ToWide(const char *utf8, size_t chars, CUQueue &q, bool append = false);
-        void ToUTF8(const wchar_t *str, size_t wchars, CUQueue &q, bool append = false);
-        std::wstring ToWide(const char *utf8, size_t chars = (size_t) (~0));
-        std::string ToUTF8(const wchar_t *str, size_t wchars = (size_t) (~0));
-        std::string ToUTF8(const std::wstring &s);
-        std::wstring ToWide(const std::string &s);
-#endif
-        using SPA::GetLen;
-
-        bool IsEqual(const UTF16 *s0, const UTF16 *s1, bool case_sensitive);
-        bool IsEqual(const char *s0, const char *s1, bool case_sensitive);
-
-#if defined(__ANDROID__) || defined(ANDROID)
-
-        static std::wstring ToWide(const UTF16 *str, size_t chars) {
-            return boost::locale::conv::utf_to_utf<wchar_t, UTF16 > (str, str + chars);
-        }
-
-        static std::string ToUTF8(const UTF16 *str, size_t chars) {
-            //static const std::string charset("UTF-16");
-            //return boost::locale::conv::from_utf<UTF16>(str, str + chars, charset);
-            std::wstring s = ToWide(str, chars);
-            return ToUTF8(s.c_str(), s.size());
-        }
-
-        static std::basic_string<UTF16> ToUTF16(const wchar_t *str, size_t wchars) {
-            return boost::locale::conv::utf_to_utf<UTF16, wchar_t>(str, str + wchars);
-        }
-
 #elif defined(WCHAR32)
-        void ToWide(const UTF16 *str, size_t chars, CUQueue &q, bool append = false);
-        void ToUTF16(const wchar_t *str, size_t wchars, CUQueue &q, bool append = false);
-        void ToUTF16(const char *str, size_t chars, CUQueue &q, bool append = false);
-        void ToUTF8(const UTF16 *str, size_t chars, CUQueue &q, bool append = false);
-        BSTR SysAllocString(const SPA::UTF16 *sz, unsigned int wchars = (unsigned int) (~0));
-        std::wstring ToWide(const UTF16 *str, size_t chars = (size_t) (~0));
-        bool IsEqual(const wchar_t *s0, const wchar_t *s1, bool case_sensitive);
-
-        //use the following five functions carefully and returned pointers may be invalid because the internal CScopeUQueue and its CUQueue may be gone possible
-        const UTF16* ToUTF16(const wchar_t *s, size_t chars = (size_t) (~0));
-        const char* ToUTF8(const UTF16 *str, size_t wchars = (size_t) (~0));
-        const UTF16* ToUTF16(const char *s, size_t len = (size_t) (~0));
-        const UTF16* ToUTF16(const std::string &s);
-        const UTF16* ToUTF16(const std::wstring &str);
+        BSTR ToBSTR(const char *utf8, size_t chars);
+        BSTR SysAllocStringLen(const wchar_t *sz, unsigned int wchars);
+#else
 #endif
     };
 
@@ -1437,11 +1397,7 @@ namespace SPA {
                     return;
                 }
                 memoryChunk->SetSize(0);
-#ifdef NODE_JS_ADAPTER_PROJECT
-                base::push_back(memoryChunk);
-#else
                 base::push_front(memoryChunk);
-#endif
                 memoryChunk = nullptr;
             }
         };
@@ -1675,6 +1631,17 @@ namespace SPA {
 
     typedef CScopeUQueueEx<DEFAULT_INITIAL_MEMORY_BUFFER_SIZE, DEFAULT_MEMORY_BUFFER_BLOCK_SIZE> CScopeUQueue;
 
+    template<typename T>
+    int swscanf(BSTR bstrVal, const wchar_t* format, T *t) {
+#ifdef WIN32_64
+        return ::swscanf((const wchar_t*)bstrVal, format, t);
+#else
+        CScopeUQueue sb;
+        CUQueue &q = *sb;
+        Utilities::ToWide(bstrVal, GetLen(bstrVal), q, true);
+        return ::swscanf((const wchar_t*)q.GetBuffer(), format, t);
+#endif
+    }
 }; //namespace SPA
 
 #endif //__UCOMM_SHARED_MEMORY_QUEUE_H_

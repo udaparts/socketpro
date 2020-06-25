@@ -9,21 +9,6 @@ namespace SPA {
 
     typedef std::basic_string<UTF16> CDBString;
 
-    namespace Utilities {
-
-        static std::wstring ToWide(const CDBString &str) {
-#ifdef WIN32_64
-            return (const wchar_t*)str.c_str();
-#else
-            return ToWide(str.c_str(), str.size());
-#endif
-        }
-
-        static std::string ToUTF8(const CDBString &str) {
-            return ToUTF8(str.c_str(), str.size());
-        }
-    }
-
     namespace UDB {
 
         enum tagTransactionIsolation {
@@ -287,7 +272,7 @@ namespace SPA {
 #ifdef WIN32_64
                     bstrVal = ::SysAllocStringLen((const wchar_t*)lpszSrc, len);
 #else
-                    bstrVal = SPA::Utilities::SysAllocString(lpszSrc, len);
+                    bstrVal = ::SysAllocStringLen(lpszSrc, len);
 #endif
                     vt = VT_BSTR;
                 } else {
@@ -350,23 +335,15 @@ namespace SPA {
                     int res;
                     //case-insensitive compare
                     if (data.vt == VT_BSTR) {
-#ifdef WIN32_64
-                        res = ::_wcsicmp(bstrVal, data.bstrVal);
-#else
-                        res = ::wcscasecmp(bstrVal, data.bstrVal);
-#endif
+                        res = UCompareNoCase(bstrVal, data.bstrVal);
                     } else if (data.vt == (VT_ARRAY | VT_I1)) {
-                        SPA::CScopeUQueue sb;
+                        CScopeUQueue sb;
                         const char *s0 = nullptr;
                         ::SafeArrayAccessData(data.parray, (void**) &s0);
-                        SPA::Utilities::ToWide(s0, data.parray->rgsabound->cElements);
+                        Utilities::ToUTF16(s0, data.parray->rgsabound->cElements);
                         ::SafeArrayUnaccessData(data.parray);
-                        const wchar_t *s = (const wchar_t*)sb->GetBuffer();
-#ifdef WIN32_64
-                        res = ::_wcsicmp(s, bstrVal);
-#else
-                        res = ::wcscasecmp(s, bstrVal);
-#endif
+                        const BSTR s = (const BSTR) sb->GetBuffer();
+                        res = UCompareNoCase(s, bstrVal);
                     } else {
                         res = -1;
                     }
@@ -389,8 +366,8 @@ namespace SPA {
                         ::SafeArrayUnaccessData(parray);
                         ::SafeArrayUnaccessData(data.parray);
                     } else if (data.vt == VT_BSTR) {
-                        SPA::CScopeUQueue sb;
-                        SPA::Utilities::ToUTF8(data.bstrVal, ::wcslen(data.bstrVal), *sb);
+                        CScopeUQueue sb;
+                        Utilities::ToUTF8(data.bstrVal, GetLen(data.bstrVal), *sb);
                         if (sb->GetSize() != parray->rgsabound->cElements)
                             return false;
                         const char *s0 = (const char*) sb->GetBuffer();
@@ -566,7 +543,7 @@ namespace SPA {
 #ifdef WIN32_64
                     bstrVal = ::SysAllocStringLen((const wchar_t*)lpszSrc, len);
 #else
-                    bstrVal = SPA::Utilities::SysAllocString(lpszSrc, len);
+                    bstrVal = ::SysAllocStringLen(lpszSrc, len);
 #endif
                 } else {
                     vt = VT_NULL;

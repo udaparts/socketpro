@@ -158,12 +158,6 @@ namespace SPA {
 
 typedef void* HINSTANCE;
 
-#if defined(__ANDROID__) || defined(ANDROID)
-namespace std {
-    typedef decltype(nullptr) nullptr_t;
-}
-#endif
-
 #ifndef BOOST_SYSTEM_NO_DEPRECATED
 #define BOOST_SYSTEM_NO_DEPRECATED 1
 #endif
@@ -254,6 +248,7 @@ typedef timeval SYSTEMTIME;
 #endif
 
 namespace SPA {
+    static const wchar_t *EMPTY_INTERNAL = L"";
 
     /** 
      * Query operation system
@@ -342,23 +337,6 @@ namespace SPA {
 
 namespace SPA {
 
-#if _MSC_VER < 1900 && defined(WCHAR16)
-    typedef wchar_t UTF16;
-#else
-    typedef char16_t UTF16;
-#define NATIVE_UTF16_SUPPORTED
-
-    inline static size_t GetLen(const char16_t *str) {
-        size_t size = 0;
-        if (str) {
-            while (*str++) {
-                ++size;
-            }
-        }
-        return size;
-    }
-#endif
-
     inline static size_t GetLen(const char *str) {
         if (!str) {
             return 0;
@@ -371,6 +349,65 @@ namespace SPA {
             return 0;
         }
         return ::wcslen(str);
+    }
+
+    template<typename TChar>
+    inline static size_t GetLen(const TChar *str) {
+        size_t size = 0;
+        if (str) {
+            while (*str++) {
+                ++size;
+            }
+        }
+        return size;
+    }
+
+#if _MSC_VER < 1900 && defined(WCHAR16)
+    typedef wchar_t UTF16;
+#else
+    typedef char16_t UTF16;
+#define NATIVE_UTF16_SUPPORTED
+#endif
+
+    template<typename TChar>
+    static int UCompare(const TChar* s1, const TChar* s2) {
+        if (s1 == s2) {
+            return 0;
+        }
+        if (!s1) {
+            return -1;
+        }
+        if (!s2) {
+            return 1;
+        }
+        int res = *s1 - *s2;
+        while (!res && *s1++ && *s2++) {
+            res = *s1 - *s2;
+        }
+        if (res < 0) {
+            return -1;
+        } else if (res > 0) {
+            return 1;
+        }
+        return 0;
+    }
+
+    template<typename TChar>
+    static int UCompareNoCase(const TChar *s1, const TChar *s2) {
+        if (s1 == s2) {
+            return 0;
+        }
+        if (!s1) {
+            return -1;
+        }
+        if (!s2) {
+            return 1;
+        }
+        int res = tolower(*s1) - tolower(*s2);
+        while (!res && *s1++ && *s2++) {
+            res = tolower(*s1) - tolower(*s2);
+        }
+        return res;
     }
 
     //The following functions atoxxx work correctly for standard and normal number strings without any preventions.

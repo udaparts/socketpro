@@ -18,7 +18,7 @@ typedef unsigned short VARTYPE;
 typedef unsigned short WORD;
 typedef short VARIANT_BOOL;
 
-typedef wchar_t *BSTR; //It must be a null-terminated string without null char in middle on non-windows platforms.
+typedef char16_t *BSTR; //It must be a null-terminated string without null char in middle on non-windows platforms.
 
 typedef void *PVOID;
 
@@ -39,38 +39,51 @@ typedef void *PVOID;
 namespace SPA {
     namespace Utilities {
         BSTR ToBSTR(const char *str, size_t chars = (~0));
+        BSTR SysAllocStringLen(const wchar_t *sz, unsigned int wchars = (unsigned int) (~0));
     }; //namespace Utilities
 }; //namespace SPA
 
-inline static unsigned int SysStringLen(const wchar_t* bstr) {
+using SPA::Utilities::SysAllocStringLen;
+
+inline static unsigned int SysStringLen(const char16_t* bstr) {
     if (!bstr) {
         return 0;
     }
-    return (unsigned int) ::wcslen(bstr);
+    return (unsigned int) SPA::GetLen(bstr);
 }
 
-static BSTR SysAllocString(const wchar_t *sz, unsigned int wchars = (~0)) {
-    if (!sz && wchars == (unsigned int) (~0)) {
-        return nullptr;
-    } else if (sz && wchars == (unsigned int) (~0)) {
-        wchars = SysStringLen(sz);
+static BSTR SysAllocStringLen(const char16_t *sz, unsigned int chars = (unsigned int) (~0)) {
+    if (!sz) {
+        chars = 0;
+    } else if (chars == (unsigned int) (~0)) {
+        chars = SPA::GetLen(sz);
+    } else {
+        assert(chars <= SPA::GetLen(sz));
     }
-    unsigned int bytes = wchars + 1;
-    bytes *= sizeof (wchar_t);
-    BSTR bstr = (BSTR)::malloc(bytes);
+    unsigned int bytes = chars;
+    bytes <<= 1;
+    BSTR bstr = (BSTR)::malloc(bytes + sizeof (char16_t));
     if (bstr) {
-        if (sz) {
-            ::memcpy(bstr, sz, bytes - sizeof (wchar_t));
-        } else {
-            ::memset(bstr, 0, bytes - sizeof (wchar_t));
+        if (sz && chars) {
+            ::memcpy(bstr, sz, bytes);
         }
-        bstr[wchars] = 0;
+        bstr[chars] = 0;
     }
     return bstr;
 }
 
-static BSTR SysAllocStringLen(const wchar_t *sz, unsigned int wchars) {
-    return SysAllocString(sz, wchars);
+static BSTR SysAllocString(const char16_t *sz) {
+    if (!sz) {
+        return nullptr;
+    }
+    return SysAllocStringLen(sz, (unsigned int) SPA::GetLen(sz));
+}
+
+static BSTR SysAllocString(const wchar_t *sz) {
+    if (!sz) {
+        return nullptr;
+    }
+    return SysAllocStringLen(sz, (unsigned int) SPA::GetLen(sz));
 }
 
 inline static void SysFreeString(BSTR &bstr) {
