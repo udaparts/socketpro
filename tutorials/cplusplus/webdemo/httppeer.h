@@ -13,8 +13,6 @@
 #include <chrono>
 #endif
 
-using SPA::Utilities::ToWide;
-
 class CHttpPeer : public SPA::ServerSide::CHttpPeerBase {
 protected:
 
@@ -84,8 +82,13 @@ protected:
                 SendResult("+++ POST +++ test result");
                 break;
             case SPA::ServerSide::idUserRequest:
-                if (RequestName == "sayHello")
-                    SendResult(SayHello(ToWide(args[0].bstrVal), ToWide(args[1].bstrVal)).c_str());
+                if (RequestName == "sayHello") {
+#ifdef WIN32_64
+                    SendResult(SayHello(args[0].bstrVal, args[1].bstrVal).c_str());
+#else
+                    SendResult(SayHello(SPA::Utilities::ToWide(args[0].bstrVal), SPA::Utilities::ToWide(args[1].bstrVal)).c_str());
+#endif
+                }
                 else if (RequestName == "sleep") {
                     Sleep((unsigned int) args[0].intVal);
                     SendResult("");
