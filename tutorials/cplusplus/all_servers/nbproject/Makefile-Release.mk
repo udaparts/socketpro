@@ -63,7 +63,7 @@ LDLIBSOPTIONS=-ldl
 
 ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/all_servers: ${OBJECTFILES}
 	${MKDIR} -p ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}
-	${LINK.cc} -o ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/all_servers ${OBJECTFILES} ${LDLIBSOPTIONS} -pthread -static-libstdc++ -s
+	${LINK.cc} -o ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/all_servers ${OBJECTFILES} ${LDLIBSOPTIONS} -pthread -s
 
 ${OBJECTDIR}/_ext/932346631/aserverw.o: ../../../include/aserverw.cpp 
 	${MKDIR} -p ${OBJECTDIR}/_ext/932346631

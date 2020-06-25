@@ -74,7 +74,7 @@
       </toolsSet>
       <compileType>
         <cTool>
-          <developmentMode>5</developmentMode>
+          <developmentMode>0</developmentMode>
           <stripSymbols>true</stripSymbols>
           <commandLine>-std=c++11</commandLine>
         </cTool>
@@ -94,7 +94,7 @@
           <linkerLibItems>
             <linkerLibStdlibItem>DynamicLinking</linkerLibStdlibItem>
           </linkerLibItems>
-          <commandLine>-pthread -static-libstdc++</commandLine>
+          <commandLine>-pthread</commandLine>
         </linkerTool>
       </compileType>
       <item path="../../../include/aserverw.cpp" ex="false" tool="1" flavor2="0">
