@@ -1844,4 +1844,11 @@ HRESULT VariantChangeType(VARIANT *pvargDest, const VARIANT *pvarSrc, unsigned s
     return S_OK;
 }
 
+BSTR SysAllocString(const wchar_t *sz) {
+    if (!sz) {
+        return nullptr;
+    }
+    return SPA::Utilities::SysAllocStringLen(sz, (unsigned int) SPA::GetLen(sz));
+}
+
 #endif

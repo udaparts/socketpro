@@ -79,12 +79,7 @@ static BSTR SysAllocString(const char16_t *sz) {
     return SysAllocStringLen(sz, (unsigned int) SPA::GetLen(sz));
 }
 
-static BSTR SysAllocString(const wchar_t *sz) {
-    if (!sz) {
-        return nullptr;
-    }
-    return SysAllocStringLen(sz, (unsigned int) SPA::GetLen(sz));
-}
+BSTR SysAllocString(const wchar_t *sz);
 
 inline static void SysFreeString(BSTR &bstr) {
     if (bstr) {
