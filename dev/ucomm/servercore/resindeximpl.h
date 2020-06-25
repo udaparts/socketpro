@@ -47,10 +47,6 @@ private:
     SPA::CUQueue *m_pQ;
 };
 
-#ifdef WIN32_64
-typedef std::unordered_map<SPA::UINT64, std::shared_ptr<CResIndexImpl>> CMapIndex;
-#else
 typedef std::map<SPA::UINT64, std::shared_ptr<CResIndexImpl>> CMapIndex;
-#endif
 
 bool IsTooMany(const CMapIndex &mi);
