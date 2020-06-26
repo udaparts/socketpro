@@ -148,7 +148,11 @@ protected:
                 } else if (RequestName == "doSpeak") {
                     SendResult("Ok -- doSpeak");
                 } else if (RequestName == "doSendUserMsg") {
+#ifdef WIN32_64
                     GetPush().SendUserMessage(args[1], args[0].bstrVal);
+#else
+                    GetPush().SendUserMessage(args[1], SPA::Utilities::ToWide(args[0].bstrVal).c_str());
+#endif
                     SendResult("Ok -- doSendUserMsg");
                 } else if (RequestName == "doExit") {
                     GetPush().Unsubscribe();

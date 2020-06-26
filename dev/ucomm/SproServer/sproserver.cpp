@@ -197,18 +197,18 @@ void send(int *to, int * from, int count) {
 }
 
 int main(int argc, char* argv[]) {
-	std::map<SPA::UINT64, int> myMap;
-	myMap[3] = 20;
-	myMap[15] = 1;
-	myMap[10] = 2;
-	myMap[1] = 3;
-	myMap[2] = 3;
-	SPA::UINT64 key;
-	int value;
-	for (auto it = myMap.begin(), end = myMap.end(); it != end; ++it) {
-		key = it->first;
-		value = it->second;
-	}
+    std::map<SPA::UINT64, int> myMap;
+    myMap[3] = 20;
+    myMap[15] = 1;
+    myMap[10] = 2;
+    myMap[1] = 3;
+    myMap[2] = 3;
+    SPA::UINT64 key;
+    int value;
+    for (auto it = myMap.begin(), end = myMap.end(); it != end; ++it) {
+        key = it->first;
+        value = it->second;
+    }
 
 
     int param;
