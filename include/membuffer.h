@@ -1252,6 +1252,34 @@ namespace SPA {
             return *this;
         }
 
+        template <typename PrimitiveType>
+        CUQueue& operator<<(const std::vector<PrimitiveType> &data) {
+            unsigned int count = (unsigned int) data.size();
+            *this << count;
+            if (count) {
+                Push((const unsigned char*) data.data(), count * sizeof (PrimitiveType));
+            }
+            return *this;
+        }
+
+        template <typename PrimitiveType>
+        CUQueue& operator>>(std::vector<PrimitiveType> &data) {
+            unsigned int count;
+            *this >> count;
+            if (count) {
+                unsigned int bytes = count * sizeof (PrimitiveType);
+                if (bytes > GetSize()) {
+                    throw CUException("Bad data for loading array of data", __FILE__, __LINE__, __FUNCTION__, MB_BAD_DESERIALIZATION);
+                }
+                data.resize(count);
+                unsigned char *buffer = (unsigned char *) data.data();
+                Pop(buffer, bytes);
+            } else {
+                data.clear();
+            }
+            return *this;
+        }
+
         /**
          * Append a data into this memory object
          * @param data A reference to a primitive type of data or a structure

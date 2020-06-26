@@ -23,7 +23,7 @@ struct CMaxMinAvg {
     double Avg;
 };
 
-static_assert(24 == sizeof (CMaxMinAvg), "sizeof(CMaxMinAvg) == 24!");
+static_assert(24 == sizeof (CMaxMinAvg), "sizeof(CMaxMinAvg) != 24");
 
 struct CRentalDateTimes {
 
@@ -35,26 +35,7 @@ struct CRentalDateTimes {
     SPA::UINT64 LastUpdate;
 };
 
-static_assert(32 == sizeof (CRentalDateTimes), "sizeof(CRentalDateTimes) == 32!");
+static_assert(32 == sizeof (CRentalDateTimes), "sizeof(CRentalDateTimes) != 32");
 typedef std::vector<SPA::INT64> CInt64Array;
-
-namespace SPA {
-
-    static CUQueue& operator<<(CUQueue &q, const CInt64Array &v) {
-        q << (unsigned int) v.size();
-        q.Push((const unsigned char*) v.data(), (unsigned int) (v.size() * sizeof (INT64)));
-        return q;
-    }
-
-    static CUQueue& operator>>(CUQueue &q, CInt64Array &v) {
-        unsigned int count;
-        v.clear();
-        q >> count;
-        auto data = (const INT64*) q.GetBuffer();
-        v.assign(data, data + count);
-        q.Pop(count * sizeof (INT64));
-        return q;
-    }
-};
 
 #endif
