@@ -363,6 +363,9 @@ namespace SPA {
             virtual unsigned int SendResult(const char *utf8, unsigned int chars = (~0)) const;
             virtual unsigned int SendResult(const wchar_t *str, unsigned int chars = (~0)) const;
 
+#ifdef NATIVE_UTF16_SUPPORTED
+            virtual unsigned int SendResult(const char16_t *str, unsigned int chars = (~0)) const;
+#endif
         public:
             IPush& GetPush();
             const std::string& GetUserRequestName() const;

@@ -483,6 +483,19 @@ namespace SPA
             return ServerCoreLoader.SendHTTPReturnDataW(GetSocketHandle(), str, chars);
         }
 
+#ifdef NATIVE_UTF16_SUPPORTED
+
+        unsigned int CHttpPeerBase::SendResult(const char16_t *str, unsigned int chars) const {
+            if (chars == (unsigned int) (~0)) {
+                chars = GetLen(str);
+            }
+            CScopeUQueue sb;
+            Utilities::ToUTF8(str, chars, *sb, true);
+            chars = sb->GetSize();
+            return ServerCoreLoader.SendHTTPReturnDataA(GetSocketHandle(), (const char*) sb->GetBuffer(), chars);
+        }
+#endif
+
         unsigned int CClientPeer::SendResult(unsigned short reqId, const unsigned char* pResult, unsigned int size) const {
             if (!m_bRandom)
                 return ServerCoreLoader.SendReturnData(GetSocketHandle(), reqId, size, pResult);
