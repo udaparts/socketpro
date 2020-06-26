@@ -1476,7 +1476,7 @@ std::string CServerSession::GetErrorMessage() {
 unsigned int CServerSession::SendReturnDataInternal(unsigned short usReqId, const unsigned char *pBuffer, unsigned int ulBufferSize) {
     if (ServiceId == SPA::sidHTTP) {
         g_pServer->m_IoService.post(boost::bind(&CServerSession::ProcessWithLock, this));
-        return 0;
+        return BAD_OPERATION;
     }
     if (usReqId != SPA::idSwitchTo) {
         if (usReqId == m_ReqInfo.RequestId) {
@@ -1536,6 +1536,7 @@ unsigned int CServerSession::SendReturnDataIndex(SPA::UINT64 indexCall, unsigned
 
 unsigned int CServerSession::SendReturnDataIndexInternal(SPA::UINT64 indexCall, unsigned short usReqId, const unsigned char *pBuffer, unsigned int ulBufferSize) {
     auto it = m_mapIndex.find(indexCall);
+    assert(it != m_mapIndex.end());
     if (it == m_mapIndex.end())
         return BAD_OPERATION;
     std::shared_ptr<CResIndexImpl> ri = it->second;
@@ -1585,10 +1586,8 @@ void CServerSession::PutOntoWireInternal() {
 }
 
 unsigned int CServerSession::RetrieveRequestBuffer(unsigned char *pBuffer, unsigned int ulBufferSize, bool bPeek) {
-    m_mutex.lock();
-    unsigned int ret = RetrieveRequestBufferInternally(pBuffer, ulBufferSize, bPeek);
-    m_mutex.unlock();
-    return ret;
+    CAutoLock sl(m_mutex);
+    return RetrieveRequestBufferInternally(pBuffer, ulBufferSize, bPeek);
 }
 
 const unsigned char* CServerSession::GetRequestBuffer() {
