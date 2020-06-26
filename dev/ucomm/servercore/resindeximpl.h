@@ -2,11 +2,7 @@
 #pragma once
 #include <deque>
 #include "../include/membuffer.h"
-#ifdef WIN32_64
-#include <unordered_map>
-#else
 #include <map>
-#endif
 #include "../core_shared/pinc/mqfile.h"
 
 class CResIndexImpl {
