@@ -487,7 +487,7 @@ namespace SPA
 
         unsigned int CHttpPeerBase::SendResult(const char16_t *str, unsigned int chars) const {
             if (chars == (unsigned int) (~0)) {
-                chars = GetLen(str);
+                chars = (unsigned int) GetLen(str);
             }
             CScopeUQueue sb;
             Utilities::ToUTF8(str, chars, *sb, true);
