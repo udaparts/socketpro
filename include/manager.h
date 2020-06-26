@@ -40,7 +40,7 @@ namespace SPA {
         };
 
         struct SpManager {
-            static CSpConfig& SetConfig(bool midTier = false, const char *jsonConfig = nullptr);
+            static CSpConfig& SetConfig(bool midTier = false, const char *jsonConfig = "sp_config.json");
             static void* GetPool(const std::string& poolkey, unsigned int *pSvsId = nullptr);
             static CAsyncServiceHandler* SeekHandler(const std::string& poolKey);
             static CAsyncServiceHandler* SeekHandlerByQueue(const std::string& poolKey);
