@@ -1212,9 +1212,9 @@ namespace SPA {
          * @param buffer Pointer to a primitive type of data or a structure
          * @param position A position indicator with default to 0
          */
-        template<class ctype>
-        inline void Insert(const ctype* buffer, unsigned int position = 0) {
-            Insert((const unsigned char*) buffer, sizeof (ctype), position);
+        template<class PrimitiveType>
+        inline void Insert(const PrimitiveType* buffer, unsigned int position = 0) {
+            Insert((const unsigned char*) buffer, sizeof (PrimitiveType), position);
         }
 
         /**
@@ -1223,18 +1223,18 @@ namespace SPA {
          * @param position A position indicator with default to 0
          * @return Actual data length in byte
          */
-        template <class ctype>
-        inline unsigned int Pop(ctype *buffer, unsigned int position = 0) {
-            return Pop((unsigned char*) buffer, sizeof (ctype), position);
+        template <class PrimitiveType>
+        inline unsigned int Pop(PrimitiveType *buffer, unsigned int position = 0) {
+            return Pop((unsigned char*) buffer, sizeof (PrimitiveType), position);
         }
 
         /**
          * Append a data into this memory object
          * @param buffer Pointer to a primitive type of data or a structure
          */
-        template <class ctype>
-        inline void Push(const ctype *buffer) {
-            Push((const unsigned char*) buffer, sizeof (ctype));
+        template <class PrimitiveType>
+        inline void Push(const PrimitiveType *buffer) {
+            Push((const unsigned char*) buffer, sizeof (PrimitiveType));
         }
 
         CUQueue& operator<<(const char &c) {
@@ -1285,8 +1285,8 @@ namespace SPA {
          * @param data A reference to a primitive type of data or a structure
          * @return The reference to this memory buffer
          */
-        template<class ctype>
-        inline CUQueue& operator<<(const ctype &data) {
+        template<class PrimitiveType>
+        inline CUQueue& operator<<(const PrimitiveType &data) {
             Push(&data);
             return *this;
         }
@@ -1312,8 +1312,8 @@ namespace SPA {
          * @param data A reference to a primitive type of data or a structure for receiving data
          * @return The reference to this memory buffer
          */
-        template<class ctype>
-        inline CUQueue& operator>>(ctype &data) {
+        template<class PrimitiveType>
+        inline CUQueue& operator>>(PrimitiveType &data) {
             Pop((unsigned char*) &data, sizeof (data));
             return *this;
         }
@@ -1580,23 +1580,23 @@ namespace SPA {
 
         /**
          * Push a data into internal memory buffer object, and throw an exception if no memory buffer object is available
-         * @param data A reference to a primitive type of data or a structure
+         * @param data A reference to a type of data or a structure
          * @return The reference to this memory buffer
          */
         template<class ctype>
         inline mb& operator<<(const ctype &data) throw () {
-            *m_pUQueue << data;
+            *m_pUQueue << data; //make sure this operator is correct as expected
             return *m_pUQueue;
         }
 
         /**
          * Pop a data from internal memory buffer object, and throw an exception if no memory buffer object is available
-         * @param data A reference to a primitive type of data or a structure for receiving data
+         * @param data A reference to a type of data or a structure for receiving data
          * @return The reference to internal memory buffer object
          */
         template<class ctype>
         inline mb& operator>>(ctype &data) throw () {
-            *m_pUQueue >> data;
+            *m_pUQueue >> data; //make sure this operator is correct as expected
             return *m_pUQueue;
         }
 
