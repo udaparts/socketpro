@@ -14,65 +14,47 @@ static const unsigned short idGetMasterSlaveConnectedSessions = SPA::idReservedT
 static const unsigned short idUploadEmployees = SPA::idReservedTwo + 3;
 static const unsigned short idGetRentalDateTimes = SPA::idReservedTwo + 4;
 
-
 struct CMaxMinAvg {
-	CMaxMinAvg() {
-		::memset(this, 0, sizeof(CMaxMinAvg));
-	}
-	double Max;
-	double Min;
-	double Avg;
+
+    CMaxMinAvg() : Max(0.0), Min(0.0), Avg(0) {
+    }
+    double Max;
+    double Min;
+    double Avg;
 };
+
+static_assert(24 == sizeof (CMaxMinAvg), "sizeof(CMaxMinAvg) == 24!");
 
 struct CRentalDateTimes {
-	CRentalDateTimes() {
-		::memset(this, 0, sizeof(CRentalDateTimes));
-	}
-	SPA::INT64 rental_id;
-	SPA::UINT64 Rental;
-	SPA::UINT64 Return;
-	SPA::UINT64 LastUpdate;
+
+    CRentalDateTimes() : rental_id(0), Rental(0), Return(0), LastUpdate(0) {
+    }
+    SPA::INT64 rental_id;
+    SPA::UINT64 Rental;
+    SPA::UINT64 Return;
+    SPA::UINT64 LastUpdate;
 };
 
+static_assert(32 == sizeof (CRentalDateTimes), "sizeof(CRentalDateTimes) == 32!");
 typedef std::vector<SPA::INT64> CInt64Array;
 
 namespace SPA {
 
-	static CUQueue& operator<<(CUQueue &q, const CInt64Array &v) {
-		q << (unsigned int)v.size();
-		q.Push((const unsigned char*)v.data(), (unsigned int)(v.size() * sizeof(INT64)));
-		return q;
-	}
+    static CUQueue& operator<<(CUQueue &q, const CInt64Array &v) {
+        q << (unsigned int) v.size();
+        q.Push((const unsigned char*) v.data(), (unsigned int) (v.size() * sizeof (INT64)));
+        return q;
+    }
 
-	static CUQueue& operator>>(CUQueue &q, CInt64Array &v) {
-		unsigned int count;
-		v.clear();
-		q >> count;
-		auto data = (const INT64*)q.GetBuffer();
-		v.assign(data, data + count);
-		q.Pop(count * sizeof(INT64));
-		return q;
-	}
-
-	static CUQueue& operator<<(CUQueue &q, const CMaxMinAvg &v) {
-		q << v.Max << v.Min << v.Avg;
-		return q;
-	}
-
-	static CUQueue& operator>>(CUQueue &q, CMaxMinAvg &v) {
-		q >> v.Max >> v.Min >> v.Avg;
-		return q;
-	}
-
-	static CUQueue& operator<<(CUQueue &q, const CRentalDateTimes &v) {
-		q << v.rental_id << v.Rental << v.Return << v.LastUpdate;
-		return q;
-	}
-
-	static CUQueue& operator>>(CUQueue &q, CRentalDateTimes &v) {
-		q >> v.rental_id >> v.Rental >> v.Return >> v.LastUpdate;
-		return q;
-	}
+    static CUQueue& operator>>(CUQueue &q, CInt64Array &v) {
+        unsigned int count;
+        v.clear();
+        q >> count;
+        auto data = (const INT64*) q.GetBuffer();
+        v.assign(data, data + count);
+        q.Pop(count * sizeof (INT64));
+        return q;
+    }
 };
 
 #endif

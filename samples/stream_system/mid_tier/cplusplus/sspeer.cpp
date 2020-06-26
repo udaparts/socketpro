@@ -244,7 +244,7 @@ void CYourPeerOne::GetRentalDateTimes(SPA::CUQueue &q, SPA::UINT64 reqIndex) {
             this->SendResultIndex(reqIndex, idGetRentalDateTimes, *dates, r, err);
         }
     }, [dates](CMysql &h, SPA::UDB::CDBVariantArray & vData) {
-        dates->rental_id = vData[0].llVal;
+        dates->rental_id = vData[0].lVal;
         dates->Rental = vData[1].ullVal; //date time in high precision format
         dates->Return = vData[2].ullVal;
         dates->LastUpdate = vData[3].ullVal;

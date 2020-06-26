@@ -6,6 +6,7 @@
                    projectFiles="true">
       <itemPath>../../../../include/aclientw.h</itemPath>
       <itemPath>../../../../include/aserverw.h</itemPath>
+      <itemPath>../../../../include/bvariant.h</itemPath>
       <itemPath>../../../../include/manager.h</itemPath>
       <itemPath>../../../../include/membuffer.h</itemPath>
       <itemPath>../../../../include/rdbcache.h</itemPath>
@@ -74,6 +75,8 @@
       <item path="../../../../include/aserverw.cpp" ex="false" tool="0" flavor2="0">
       </item>
       <item path="../../../../include/aserverw.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../../../include/bvariant.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../../../include/manager.cpp" ex="false" tool="0" flavor2="0">
       </item>
@@ -152,6 +155,8 @@
       <item path="../../../../include/aserverw.cpp" ex="false" tool="0" flavor2="0">
       </item>
       <item path="../../../../include/aserverw.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../../../include/bvariant.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="../../../../include/manager.cpp" ex="false" tool="0" flavor2="0">
       </item>
