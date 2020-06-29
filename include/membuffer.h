@@ -939,42 +939,44 @@ namespace SPA {
             return *this;
         }
 
-#if defined(__ATLCOMCLI_H__) || defined(_SOCKETPRO_LINUX_VARIANT_DEFINITION_H_)
-		/**
-		 * Append a BSTR with string length ahead (4 bytes)
-		 * @param bstr An ATL BSTR
-		 * @return Reference to this memory buffer
-		 */
-		CUQueue& operator<<(const CComBSTR &bstr) {
-			(*this) << bstr.m_str;
-			return *this;
-		}
+#ifdef __ATLCOMCLI_H__
 
-		/**
-		 * Pop content into ATL BSTR string
-		 * @param str An instance of ATL BSTR string for receiving data
-		 * @return Reference to this memory buffer
-		 */
-		CUQueue& operator>>(CComBSTR &bstr) {
-			unsigned int ulSize;
-			ATLASSERT(GetSize() >= sizeof(ulSize));
-			Pop((unsigned char*)&ulSize, sizeof(unsigned int));
-			if (ulSize == UQUEUE_NULL_LENGTH) {
-				bstr.Empty();
-			}
-			else if (ulSize == 0) {
-				bstr = L"";
-			}
-			else {
-				if (ulSize > GetSize()) {
-					throw CUException("Bad data for loading UNICODE string", __FILE__, __LINE__, __FUNCTION__, MB_BAD_DESERIALIZATION);
-				}
-				BSTR bstrTemp = ::SysAllocStringLen((LPCWSTR)GetBuffer(), ulSize / sizeof(wchar_t));
-				bstr.Attach(bstrTemp);
-				Pop(ulSize); //discard
-			}
-			return *this;
-		}
+        /**
+         * Append a BSTR with string length ahead (4 bytes)
+         * @param bstr An ATL BSTR
+         * @return Reference to this memory buffer
+         */
+        CUQueue& operator<<(const CComBSTR &bstr) {
+            (*this) << bstr.m_str;
+            return *this;
+        }
+
+        /**
+         * Pop content into ATL BSTR string
+         * @param str An instance of ATL BSTR string for receiving data
+         * @return Reference to this memory buffer
+         */
+        CUQueue& operator>>(CComBSTR &bstr) {
+            unsigned int ulSize;
+            ATLASSERT(GetSize() >= sizeof (ulSize));
+            Pop((unsigned char*) &ulSize, sizeof (unsigned int));
+            if (ulSize == UQUEUE_NULL_LENGTH) {
+                bstr.Empty();
+            } else if (ulSize == 0) {
+                bstr = L"";
+            } else {
+                if (ulSize > GetSize()) {
+                    throw CUException("Bad data for loading UNICODE string", __FILE__, __LINE__, __FUNCTION__, MB_BAD_DESERIALIZATION);
+                }
+                BSTR bstrTemp = ::SysAllocStringLen((LPCWSTR) GetBuffer(), ulSize / sizeof (wchar_t));
+                bstr.Attach(bstrTemp);
+                Pop(ulSize); //discard
+            }
+            return *this;
+        }
+#endif
+
+#if defined(__ATLCOMCLI_H__) || defined(_SOCKETPRO_LINUX_VARIANT_DEFINITION_H_)
 
         /**
          * Append a CComVariant structure
