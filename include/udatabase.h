@@ -291,15 +291,14 @@ namespace SPA {
 
 #ifdef WIN32_64
 
-			CDBVariant(const CComBSTR &bstr) : VtExt(vteNormal) {
-				if (bstr.m_str) {
-					vt = VT_BSTR;
-					bstrVal = bstr.Copy();
-				}
-				else {
-					vt = VT_NULL;
-				}
-			}
+            CDBVariant(const CComBSTR &bstr) : VtExt(vteNormal) {
+                if (bstr.m_str) {
+                    vt = VT_BSTR;
+                    bstrVal = bstr.Copy();
+                } else {
+                    vt = VT_NULL;
+                }
+            }
 
             CDBVariant(CComBSTR &&bstr) noexcept : VtExt(vteNormal) {
                 if (bstr.m_str) {
@@ -706,15 +705,15 @@ namespace SPA {
             }
 
 #ifdef _INC_COMUTIL
-			CDBVariant(const _bstr_t &bstr) : VtExt(vteNormal) {
-				if ((LPCWSTR)bstr) {
-					vt = VT_BSTR;
-					bstrVal = bstr.copy();
-				}
-				else {
-					vt = VT_NULL;
-				}
-			}
+
+            CDBVariant(const _bstr_t &bstr) : VtExt(vteNormal) {
+                if ((LPCWSTR) bstr) {
+                    vt = VT_BSTR;
+                    bstrVal = bstr.copy();
+                } else {
+                    vt = VT_NULL;
+                }
+            }
 
             CDBVariant(_bstr_t &&bstr) noexcept : VtExt(vteNormal) {
                 if ((LPCWSTR) bstr) {
