@@ -1,5 +1,3 @@
-
-
 #include "scloader.h"
 #include "aserverw.h"
 

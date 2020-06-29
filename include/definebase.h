@@ -414,7 +414,8 @@ namespace SPA {
     //The function atof does NOT support number strings with e or E.
     //These functions are reused for faster parsing string into numbers.
 
-    static inline int atoi(const char *p, const char *&end) {
+    template<typename TChar>
+    static inline int atoi(const TChar *p, const TChar *&end) {
         assert(p);
         assert(*p != ' ');
         bool neg;
@@ -436,7 +437,8 @@ namespace SPA {
         return x;
     }
 
-    static inline unsigned int atoui(const char *p, const char *&end) {
+    template<typename TChar>
+    static inline unsigned int atoui(const TChar *p, const TChar *&end) {
         assert(p);
         assert(*p != ' ');
         unsigned int x = 0;
@@ -448,7 +450,8 @@ namespace SPA {
         return x;
     }
 
-    static inline INT64 atoll(const char *p, const char *&end) {
+    template<typename TChar>
+    static inline INT64 atoll(const TChar *p, const TChar *&end) {
         assert(p);
         assert(*p != ' ');
         bool neg;
@@ -470,7 +473,8 @@ namespace SPA {
         return x;
     }
 
-    static inline UINT64 atoull(const char *p, const char *&end) {
+    template<typename TChar>
+    static inline UINT64 atoull(const TChar *p, const TChar *&end) {
         assert(p);
         assert(*p != ' ');
         UINT64 x = 0;
@@ -482,7 +486,8 @@ namespace SPA {
         return x;
     }
 
-    static inline double atof(const char *p, const char *&end) {
+    template<typename TChar>
+    static inline double atof(const TChar *p, const TChar *&end) {
         assert(p);
         assert(*p != ' ');
         bool neg;
