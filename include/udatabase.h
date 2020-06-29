@@ -291,7 +291,7 @@ namespace SPA {
 
 #ifdef WIN32_64
 
-            CDBVariant(CComBSTR &&bstr) : VtExt(vteNormal) {
+            CDBVariant(CComBSTR &&bstr) noexcept : VtExt(vteNormal) {
                 if (bstr.m_str) {
                     vt = VT_BSTR;
                     bstrVal = bstr.Detach();
@@ -299,6 +299,32 @@ namespace SPA {
                     vt = VT_NULL;
                 }
             }
+
+			CDBVariant& operator=(CComBSTR &&bstr) noexcept {
+				::VariantClear(this);
+				if (bstr.m_str) {
+					vt = VT_BSTR;
+					bstrVal = bstr.Detach();
+				}
+				else {
+					vt = VT_NULL;
+				}
+				VtExt = vteNormal;
+				return *this;
+			}
+
+			CDBVariant& operator=(const CComBSTR &bstr) {
+				::VariantClear(this);
+				if (bstr.m_str) {
+					vt = VT_BSTR;
+					bstrVal = bstr.Copy();
+				}
+				else {
+					vt = VT_NULL;
+				}
+				VtExt = vteNormal;
+				return *this;
+			}
 
             CDBVariant(double dblSrc, VARTYPE vtSrc = VT_R8/* or VT_DATE*/, unsigned short us = 0) : CComVariant(dblSrc), VtExt(vteNormal) {
                 if (vtSrc == VT_DATE) {
@@ -670,6 +696,57 @@ namespace SPA {
                 }
                 return *this;
             }
+
+#ifdef _INC_COMUTIL
+			CDBVariant(_bstr_t &&bstr) noexcept : VtExt(vteNormal) {
+				if ((LPCWSTR)bstr) {
+					vt = VT_BSTR;
+					bstrVal = bstr.Detach();
+				}
+				else {
+					vt = VT_NULL;
+				}
+			}
+
+			CDBVariant& operator=(const _bstr_t &bstr) {
+				::VariantClear(this);
+				if ((LPCWSTR)bstr) {
+					vt = VT_BSTR;
+					bstrVal = bstr.copy();
+				}
+				else {
+					vt = VT_NULL;
+				}
+				VtExt = vteNormal;
+				return *this;
+			}
+
+			CDBVariant& operator=(_bstr_t &&bstr) noexcept {
+				::VariantClear(this);
+				if ((LPCWSTR)bstr) {
+					vt = VT_BSTR;
+					bstrVal = bstr.Detach();
+				}
+				else {
+					vt = VT_NULL;
+				}
+				VtExt = vteNormal;
+				return *this;
+			}
+
+			CDBVariant(const _variant_t &vt) : CComVariant(vt), VtExt(vteNormal) {
+			}
+
+			CDBVariant& operator=(const _variant_t &vtData) {
+				*this = (const tagVARIANT&)vtData;
+				return *this;
+			}
+
+			CDBVariant& operator=(_variant_t &&vtData) {
+				*this = (tagVARIANT&&)vtData;
+				return *this;
+			}
+#endif
         };
 
         static CUQueue& operator<<(CUQueue &q, const CDBVariant &vt) {
