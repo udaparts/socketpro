@@ -192,7 +192,7 @@ namespace SPA
             ServerCoreLoader.Exit(m_hSocket);
         }
 
-        bool CHttpPeerBase::CPushImpl::Publish(const UVariant& vtMessage, const unsigned int *pGroups, unsigned int ulGroupCount) const {
+        bool CHttpPeerBase::CPushImpl::Publish(const VARIANT& vtMessage, const unsigned int *pGroups, unsigned int ulGroupCount) const {
             if (pGroups == nullptr || ulGroupCount == 0)
                 return false;
             CScopeUQueue su;
@@ -200,7 +200,7 @@ namespace SPA
             return ServerCoreLoader.Speak(m_hSocket, su->GetBuffer(), su->GetSize(), pGroups, ulGroupCount);
         }
 
-        bool CHttpPeerBase::CPushImpl::SendUserMessage(const UVariant& vtMessage, const wchar_t * strUserId) const {
+        bool CHttpPeerBase::CPushImpl::SendUserMessage(const VARIANT& vtMessage, const wchar_t * strUserId) const {
             CScopeUQueue su;
             su << vtMessage;
             return ServerCoreLoader.SendUserMessage(m_hSocket, strUserId, su->GetBuffer(), su->GetSize());
@@ -214,7 +214,7 @@ namespace SPA
             ServerCoreLoader.Exit(m_hSocket);
         }
 
-        bool CClientPeer::CPushImpl::Publish(const UVariant& vtMessage, const unsigned int *pGroups, unsigned int ulGroupCount) const {
+        bool CClientPeer::CPushImpl::Publish(const VARIANT& vtMessage, const unsigned int *pGroups, unsigned int ulGroupCount) const {
             if (pGroups == nullptr || ulGroupCount == 0)
                 return false;
             CScopeUQueue su;
@@ -222,7 +222,7 @@ namespace SPA
             return ServerCoreLoader.Speak(m_hSocket, su->GetBuffer(), su->GetSize(), pGroups, ulGroupCount);
         }
 
-        bool CClientPeer::CPushImpl::SendUserMessage(const UVariant& vtMessage, const wchar_t * strUserId) const {
+        bool CClientPeer::CPushImpl::SendUserMessage(const VARIANT& vtMessage, const wchar_t * strUserId) const {
             CScopeUQueue su;
             su << vtMessage;
             return ServerCoreLoader.SendUserMessage(m_hSocket, strUserId, su->GetBuffer(), su->GetSize());
@@ -1120,13 +1120,13 @@ namespace SPA
             return ServerCoreLoader.GetCountOfChatGroups();
         }
 
-        bool CSocketProServer::PushManager::Publish(const UVariant& vtMessage, const unsigned int *pGroups, unsigned int ulGroupCount) {
+        bool CSocketProServer::PushManager::Publish(const VARIANT& vtMessage, const unsigned int *pGroups, unsigned int ulGroupCount) {
             CScopeUQueue sb;
             sb << vtMessage;
             return ServerCoreLoader.SpeakPush(sb->GetBuffer(), sb->GetSize(), pGroups, ulGroupCount);
         }
 
-        bool CSocketProServer::PushManager::SendUserMessage(const UVariant& vtMessage, const wchar_t * strUserId) {
+        bool CSocketProServer::PushManager::SendUserMessage(const VARIANT& vtMessage, const wchar_t * strUserId) {
             CScopeUQueue sb;
             sb << vtMessage;
             return ServerCoreLoader.SendUserMessagePush(strUserId, sb->GetBuffer(), sb->GetSize());

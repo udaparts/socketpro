@@ -1,4 +1,5 @@
 
+#include "../../../include/spvariant.h"
 #include "../../../include/membuffer.h"
 
 #ifndef MY_STRUCT_DEMO_H

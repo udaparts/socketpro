@@ -2,6 +2,7 @@
 #define __UMB_SERVER_WRAPPER_H_
 
 #include "userver.h"
+#include "spvariant.h"
 #include "membuffer.h"
 #include <fstream>
 #include <deque>
@@ -208,8 +209,8 @@ namespace SPA {
                 static std::wstring GetAChatGroupDescription(unsigned int groupId);
                 static unsigned int GetCountOfChatGroups();
                 static std::vector<unsigned int> GetAllCreatedChatGroups();
-                static bool Publish(const UVariant& vtMessage, const unsigned int *pGroups, unsigned int ulGroupCount);
-                static bool SendUserMessage(const UVariant& vtMessage, const wchar_t *strUserId);
+                static bool Publish(const VARIANT& vtMessage, const unsigned int *pGroups, unsigned int ulGroupCount);
+                static bool SendUserMessage(const VARIANT& vtMessage, const wchar_t *strUserId);
                 static bool Publish(const unsigned char *message, unsigned int size, const unsigned int *pChatGroupId, unsigned int count);
                 static bool SendUserMessage(const wchar_t *userId, const unsigned char *message, unsigned int size);
             };
@@ -346,8 +347,8 @@ namespace SPA {
 
             public:
                 virtual bool Subscribe(const unsigned int *pChatGroupId, unsigned int count) const;
-                virtual bool Publish(const UVariant& vtMessage, const unsigned int *pGroups, unsigned int ulGroupCount) const;
-                virtual bool SendUserMessage(const SPA::UVariant& vtMessage, const wchar_t *strUserId) const;
+                virtual bool Publish(const VARIANT& vtMessage, const unsigned int *pGroups, unsigned int ulGroupCount) const;
+                virtual bool SendUserMessage(const VARIANT& vtMessage, const wchar_t *strUserId) const;
                 virtual void Unsubscribe() const;
 
             public:
@@ -574,9 +575,9 @@ namespace SPA {
 
             public:
                 virtual bool Subscribe(const unsigned int *pChatGroupId, unsigned int count) const;
-                virtual bool Publish(const UVariant& vtMessage, const unsigned int *pGroups, unsigned int ulGroupCount) const;
+                virtual bool Publish(const VARIANT& vtMessage, const unsigned int *pGroups, unsigned int ulGroupCount) const;
                 virtual bool PublishEx(const unsigned char *message, unsigned int size, const unsigned int *pChatGroupId, unsigned int count) const;
-                virtual bool SendUserMessage(const UVariant& vtMessage, const wchar_t *strUserId) const;
+                virtual bool SendUserMessage(const VARIANT& vtMessage, const wchar_t *strUserId) const;
                 virtual bool SendUserMessageEx(const wchar_t *userId, const unsigned char *message, unsigned int size) const;
                 virtual void Unsubscribe() const;
 

@@ -939,6 +939,7 @@ namespace SPA {
             return *this;
         }
 
+#if defined(__ATLCOMCLI_H__) || defined(_SOCKETPRO_LINUX_VARIANT_DEFINITION_H_)
         /**
          * Append a CComVariant structure
          * @param vtData A CComVariant structure
@@ -975,16 +976,17 @@ namespace SPA {
             Pop((VARIANT &) vtData);
             return *this;
         }
+#endif
 
-#ifdef WIN32_64
+#ifdef _INC_COMUTIL
 
         /**
          * Append a BSTR with string length ahead (4 bytes)
          * @param bstr An ATL BSTR
          * @return Reference to this memory buffer
          */
-        CUQueue& operator<<(const CComBSTR &bstr) {
-            (*this) << bstr.m_str;
+        CUQueue& operator<<(const _bstr_t &bstr) {
+            (*this) << (const wchar_t *) bstr;
             return *this;
         }
 
@@ -993,12 +995,12 @@ namespace SPA {
          * @param str An instance of ATL BSTR string for receiving data
          * @return Reference to this memory buffer
          */
-        CUQueue& operator>>(CComBSTR &bstr) {
+        CUQueue& operator>>(_bstr_t &bstr) {
             unsigned int ulSize;
             ATLASSERT(GetSize() >= sizeof (ulSize));
             Pop((unsigned char*) &ulSize, sizeof (unsigned int));
             if (ulSize == UQUEUE_NULL_LENGTH) {
-                bstr.Empty();
+                bstr.Assign(nullptr);
             } else if (ulSize == 0) {
                 bstr = L"";
             } else {
@@ -1011,6 +1013,74 @@ namespace SPA {
             }
             return *this;
         }
+
+        /**
+         * Pop content into a CComVariant structure from a proper location
+         * @param vtData A CComVariant structure for receiving data
+         * @param position The position in byte with default to 0
+         */
+        unsigned int Pop(_variant_t& vtData, unsigned int position = 0) {
+            return Pop((VARIANT&) vtData);
+        }
+
+        /**
+         * Append a CComVariant structure
+         * @param vtData A CComVariant structure
+         * @return Reference to this memory buffer
+         */
+        CUQueue& operator<<(const _variant_t &vtData) {
+            Insert((const VARIANT &) vtData, UQUEUE_END_POSTION);
+            return *this;
+        }
+
+        /**
+         * Pop content into a CComVariant structure
+         * @param vtData A CComVariant structure for receiving data
+         * @return Reference to this memory buffer
+         */
+        CUQueue& operator>>(_variant_t &vtData) {
+            Pop((VARIANT &) vtData);
+            return *this;
+        }
+
+		/**
+		 * Append a BSTR with string length ahead (4 bytes)
+		 * @param bstr An ATL BSTR
+		 * @return Reference to this memory buffer
+		 */
+		CUQueue& operator<<(const CComBSTR &bstr) {
+			(*this) << bstr.m_str;
+			return *this;
+		}
+
+		/**
+		 * Pop content into ATL BSTR string
+		 * @param str An instance of ATL BSTR string for receiving data
+		 * @return Reference to this memory buffer
+		 */
+		CUQueue& operator>>(CComBSTR &bstr) {
+			unsigned int ulSize;
+			ATLASSERT(GetSize() >= sizeof(ulSize));
+			Pop((unsigned char*)&ulSize, sizeof(unsigned int));
+			if (ulSize == UQUEUE_NULL_LENGTH) {
+				bstr.Empty();
+			}
+			else if (ulSize == 0) {
+				bstr = L"";
+			}
+			else {
+				if (ulSize > GetSize()) {
+					throw CUException("Bad data for loading UNICODE string", __FILE__, __LINE__, __FUNCTION__, MB_BAD_DESERIALIZATION);
+				}
+				BSTR bstrTemp = ::SysAllocStringLen((LPCWSTR)GetBuffer(), ulSize / sizeof(wchar_t));
+				bstr.Attach(bstrTemp);
+				Pop(ulSize); //discard
+			}
+			return *this;
+		}
+#endif
+
+#ifdef __ATLSTR_H__
 
         /**
          * Append an ATL wide string with string length ahead (4 bytes)
@@ -1089,6 +1159,7 @@ namespace SPA {
             return *this;
         }
 #endif
+
 
 #ifdef NATIVE_UTF16_SUPPORTED
 

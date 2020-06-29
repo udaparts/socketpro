@@ -116,8 +116,8 @@ namespace SPA {
 #define noexcept
 #endif
 
-#include <atlbase.h>
-#include <atlstr.h>
+#include <winsock2.h>
+#include <windows.h>
 
 namespace SPA {
     typedef __int64 INT64;
