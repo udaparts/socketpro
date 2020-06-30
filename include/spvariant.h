@@ -150,7 +150,7 @@ namespace SPA {
                     return (vt0.cyVal.int64 == vt1.cyVal.int64);
                 case VT_DECIMAL:
 #ifdef WIN32_64
-                    return (vt0.decVal.Lo64 == vt1.decVal.Lo64 && vt0.decVal.Hi32 == vt1.decVal.Hi32 && vt0.decVal.sigescale == vt1.decVal.signscale);
+                    return (vt0.decVal.Lo64 == vt1.decVal.Lo64 && vt0.decVal.Hi32 == vt1.decVal.Hi32 && vt0.decVal.signscale == vt1.decVal.signscale);
 #else
                     return (vt0.decVal == vt1.decVal);
 #endif
