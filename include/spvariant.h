@@ -68,17 +68,38 @@ namespace SPA {
             for (unsigned int n = 0; n < len; ++n) {
                 switch (vtMe & (~VT_ARRAY)) {
                     case VT_BSTR:
-                        if (vt0.bstrVal && vt1.bstrVal) {
-                            unsigned int chars = SysStringLen(vt0.bstrVal);
-                            unsigned int charsSrc = SysStringLen(vt1.bstrVal);
+                    {
+                        BSTR *pp0 = (BSTR*) p;
+                        BSTR *pp1 = (BSTR*) pSrc;
+                        BSTR bs0 = pp0[n];
+                        BSTR bs1 = pp1[n];
+                        if (bs0 == bs1 && nullptr == bs0) {
+
+                        } else if (!bs0 || !bs1) {
+                            equal = false;
+                        } else {
+                            unsigned int chars = SysStringLen(bs0);
+                            unsigned int charsSrc = SysStringLen(bs1);
                             if (chars == charsSrc) {
-                                equal = (::memcmp(vt0.bstrVal, vt1.bstrVal, chars * sizeof (UTF16)) == 0);
+                                equal = (::memcmp(bs0, bs1, chars * sizeof (UTF16)) == 0);
                             } else {
                                 equal = false;
                             }
-                        } else {
-                            equal = (vt0.bstrVal == vt1.bstrVal);
                         }
+                    }
+                        break;
+                    case VT_DECIMAL:
+                    {
+                        DECIMAL *p0 = (DECIMAL*) p;
+                        DECIMAL *p1 = (DECIMAL*) pSrc;
+#ifdef WIN32_64
+                        DECIMAL &dec0 = p0[n];
+                        DECIMAL &dec1 = p1[n];
+                        equal = (dec0.Lo64 == dec1.Lo64 && dec0.Hi32 == dec1.Hi32 && dec0.signscale == dec1.signscale);
+#else
+                        equal = (p0[n] == p1[n]);
+#endif
+                    }
                         break;
                     case VT_VARIANT:
                         equal = IsEqual(((const tagVARIANT*) p)[n], ((const tagVARIANT*) pSrc)[n]);
@@ -162,7 +183,7 @@ namespace SPA {
         return false;
     }
 
-    /** 
+    /**
      * Map a variant onto MS VARIANT data type
      * @param v A reference to a variant instance
      * @return MS VARIANT data type
