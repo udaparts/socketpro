@@ -687,6 +687,17 @@ namespace SPA {
                         this->bstrVal = vtData.bstrVal;
                         vtData.vt = VT_NULL;
                     }
+                } else if (VT_ARRAY == (vt & VT_ARRAY)) {
+                    VARTYPE vType = vt;
+                    SAFEARRAY *p = this->parray;
+                    ::memcpy(this, &vtData, sizeof (vtData));
+                    vtData.vt = vType;
+                    vtData.parray = p;
+                } else if (VT_BSTR == vt) {
+                    BSTR p = bstrVal;
+                    ::memcpy(this, &vtData, sizeof (vtData));
+                    vtData.vt = VT_BSTR;
+                    vtData.bstrVal = p;
                 } else {
                     ::memcpy(this, &vtData, sizeof (vtData));
                 }
