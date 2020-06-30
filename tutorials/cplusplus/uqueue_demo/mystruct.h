@@ -21,28 +21,6 @@ public:
         ADateTime = st;
     }
 
-    CMyStruct(CMyStruct &&ms)
-    : NullString(ms.NullString),
-    ObjectNull(ms.ObjectNull),
-    ADateTime(ms.ADateTime),
-    ADouble(ms.ADouble),
-    ABool(ms.ABool),
-    UnicodeString(std::move(ms.UnicodeString)),
-    AsciiString(std::move(ms.AsciiString)),
-    ObjBool(ms.ObjBool),
-#ifdef WIN32_64
-    //ATL CComVariant doesnot support move
-    ObjString(ms.ObjString),
-    objArrString(ms.objArrString),
-    objArrInt(ms.objArrInt)
-#else
-    ObjString(std::move(ms.ObjString)),
-    objArrString(std::move(ms.objArrString)),
-    objArrInt(std::move(ms.objArrInt))
-#endif
-    {
-    }
-
     CMyStruct(const CMyStruct& ms)
     : NullString(ms.NullString),
     ObjectNull(ms.ObjectNull),
@@ -78,30 +56,6 @@ public:
         return *this;
     }
 
-    CMyStruct& operator=(CMyStruct&& ms) {
-        if (this != &ms) {
-            NullString = ms.NullString;
-            ObjectNull = ms.ObjectNull;
-            ADateTime = ms.ADateTime;
-            ADouble = ms.ADouble;
-            ABool = ms.ABool;
-            UnicodeString = std::move(ms.UnicodeString);
-            AsciiString = std::move(ms.AsciiString);
-            ObjBool = ms.ObjBool;
-#ifdef WIN32_64
-            //ATL CComVariant doesnot support move
-            ObjString = ms.ObjString;
-            objArrString = ms.objArrString;
-            objArrInt = ms.objArrInt;
-#else
-            ObjString = std::move(ms.ObjString);
-            objArrString = std::move(ms.objArrString);
-            objArrInt = std::move(ms.objArrInt);
-#endif
-        }
-        return *this;
-    }
-
     void SaveTo(SPA::CUQueue &q) const {
         q << NullString //4 bytes for length
                 << ObjectNull //2 bytes for data type
@@ -132,6 +86,7 @@ public:
                 >> objArrInt
                 ;
         assert(NullStringLen == SPA::UQUEUE_NULL_LENGTH);
+        NullString = nullptr;
     }
 
 public:
@@ -146,13 +101,8 @@ public:
                 ADateTime == ms.ADateTime &&
                 ObjBool == ms.ObjBool &&
                 ObjString == ms.ObjString &&
-#ifdef WIN32_64				
                 SPA::IsEqual(objArrString, ms.objArrString) &&
                 SPA::IsEqual(objArrInt, ms.objArrInt)
-#else
-                objArrString == ms.objArrString &&
-                objArrInt == ms.objArrInt
-#endif
                 ;
     }
 

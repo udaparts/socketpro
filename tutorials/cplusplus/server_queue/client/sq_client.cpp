@@ -9,7 +9,7 @@ bool TestEnqueue(CMyPool::PHandler &sq);
 void TestDequeue(CMyPool::PHandler &sq);
 
 int main(int argc, char* argv[]) {
-	CConnectionContext cc;
+    CConnectionContext cc;
     cc.Port = 20901;
     cc.UserId = L"MyUserId";
     cc.Password = L"MyPassword";
@@ -27,9 +27,9 @@ int main(int argc, char* argv[]) {
     bool ok = TestEnqueue(sq);
     TestDequeue(sq);
 
-	std::cout << "Press a key to complete dequeuing messages from server ......" << std::endl;
-	::getchar();
-	return 0;
+    std::cout << "Press a key to complete dequeuing messages from server ......" << std::endl;
+    ::getchar();
+    return 0;
 }
 
 bool TestEnqueue(CMyPool::PHandler &sq) {
