@@ -2,9 +2,10 @@
 #ifndef __UMB_CLIENT_WRAPPER_H_
 #define __UMB_CLIENT_WRAPPER_H_
 
-#include "membuffer.h"
 #include "ccloader.h"
-#include "udatabase.h"
+#include "ucomm.h"
+#include "spvariant.h"
+#include "membuffer.h"
 #include <unordered_map>
 #include <memory>
 #include <functional>
@@ -13,6 +14,7 @@
 #define NO_MIDDLE_TIER
 #include <cctype>
 #elif defined NODE_JS_ADAPTER_PROJECT
+#include "udatabase.h"
 #define NO_MIDDLE_TIER
 #include <cctype>
 #ifdef WIN32_64
@@ -468,9 +470,9 @@ namespace SPA {
 
             public:
                 virtual bool Subscribe(const unsigned int *pChatGroupId, unsigned int count) const;
-                virtual bool Publish(const UVariant& vtMessage, const unsigned int *pGroups, unsigned int ulGroupCount) const;
+                virtual bool Publish(const VARIANT& vtMessage, const unsigned int *pGroups, unsigned int ulGroupCount) const;
                 virtual bool PublishEx(const unsigned char *message, unsigned int size, const unsigned int *pChatGroupId, unsigned int count) const;
-                virtual bool SendUserMessage(const UVariant& vtMessage, const wchar_t *strUserId) const;
+                virtual bool SendUserMessage(const VARIANT& vtMessage, const wchar_t *strUserId) const;
                 virtual bool SendUserMessageEx(const wchar_t *userId, const unsigned char *message, unsigned int size) const;
                 virtual void Unsubscribe() const;
 

@@ -611,7 +611,7 @@ namespace SPA
             ClientCoreLoader.Exit(m_cs->GetHandle());
         }
 
-        bool CClientSocket::CPushImpl::Publish(const UVariant& vtMessage, const unsigned int *pGroups, unsigned int ulGroupCount) const {
+        bool CClientSocket::CPushImpl::Publish(const VARIANT& vtMessage, const unsigned int *pGroups, unsigned int ulGroupCount) const {
             if (pGroups == nullptr || ulGroupCount == 0)
                 return false;
             CScopeUQueue sb;
@@ -619,7 +619,7 @@ namespace SPA
             return ClientCoreLoader.Speak(m_cs->GetHandle(), sb->GetBuffer(), sb->GetSize(), pGroups, ulGroupCount);
         }
 
-        bool CClientSocket::CPushImpl::SendUserMessage(const UVariant& vtMessage, const wchar_t * strUserId) const {
+        bool CClientSocket::CPushImpl::SendUserMessage(const VARIANT& vtMessage, const wchar_t * strUserId) const {
             CScopeUQueue sb;
             sb << vtMessage;
             return ClientCoreLoader.SendUserMessage(m_cs->GetHandle(), strUserId, sb->GetBuffer(), sb->GetSize());

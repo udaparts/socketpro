@@ -133,8 +133,8 @@ namespace SPA {
 
     struct IPush {
         virtual bool Subscribe(const unsigned int *pChatGroupId, unsigned int count) const = 0;
-        virtual bool Publish(const UVariant& vtMessage, const unsigned int *pChatGroupId, unsigned int count) const = 0;
-        virtual bool SendUserMessage(const UVariant& vtMessage, const wchar_t *strUserId) const = 0;
+        virtual bool Publish(const VARIANT& vtMessage, const unsigned int *pChatGroupId, unsigned int count) const = 0;
+        virtual bool SendUserMessage(const VARIANT& vtMessage, const wchar_t *strUserId) const = 0;
         virtual void Unsubscribe() const = 0;
     };
 

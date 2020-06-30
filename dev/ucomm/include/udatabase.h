@@ -2,7 +2,7 @@
 #ifndef __UDAPARTS_DATABASE_COMM_H___
 #define __UDAPARTS_DATABASE_COMM_H___
 
-#include "ucomm.h"
+#include "spvariant.h"
 #include "membuffer.h"
 
 namespace SPA {
@@ -291,13 +291,48 @@ namespace SPA {
 
 #ifdef WIN32_64
 
-            CDBVariant(CComBSTR &&bstr) : VtExt(vteNormal) {
+            CDBVariant(const CComBSTR &bstr) : VtExt(vteNormal) {
+                if (bstr.m_str) {
+                    vt = VT_BSTR;
+                    bstrVal = bstr.Copy();
+                } else {
+                    vt = VT_NULL;
+                }
+            }
+
+            CDBVariant(CComBSTR &&bstr) noexcept : VtExt(vteNormal) {
                 if (bstr.m_str) {
                     vt = VT_BSTR;
                     bstrVal = bstr.Detach();
                 } else {
                     vt = VT_NULL;
                 }
+            }
+
+            CDBVariant& operator=(CComBSTR &&bstr) noexcept {
+                BSTR temp = nullptr;
+                if (vt == VT_BSTR) {
+                    temp = bstrVal;
+                } else if (VT_ARRAY == (vt & VT_ARRAY)) {
+                    ::VariantClear(this);
+                }
+                bstrVal = bstr.Detach();
+                vt = (bstrVal ? VT_BSTR : VT_NULL);
+                bstr.Attach(temp);
+                VtExt = vteNormal;
+                return *this;
+            }
+
+            CDBVariant& operator=(const CComBSTR &bstr) {
+                ::VariantClear(this);
+                if (bstr.m_str) {
+                    vt = VT_BSTR;
+                    bstrVal = bstr.Copy();
+                } else {
+                    vt = VT_NULL;
+                }
+                VtExt = vteNormal;
+                return *this;
             }
 
             CDBVariant(double dblSrc, VARTYPE vtSrc = VT_R8/* or VT_DATE*/, unsigned short us = 0) : CComVariant(dblSrc), VtExt(vteNormal) {
@@ -634,9 +669,10 @@ namespace SPA {
                         this->vt = vtSrc;
                         vtData.vt = VT_BSTR;
                     } else {
+                        SAFEARRAY *p = vtData.parray;
+                        ::memcpy(&vtData, this, sizeof (VARIANT));
+                        this->parray = p;
                         this->vt = vtSrc;
-                        this->parray = vtData.parray;
-                        vtData.vt = VT_NULL;
                     }
                 } else if (vtSrc == VT_BSTR) {
                     if (this->vt == VT_BSTR) {
@@ -650,12 +686,30 @@ namespace SPA {
                         vtData.vt = this->vt;
                         this->vt = VT_BSTR;
                     } else {
-                        this->vt = vtSrc;
-                        this->bstrVal = vtData.bstrVal;
-                        vtData.vt = VT_NULL;
+                        BSTR s = vtData.bstrVal;
+                        ::memcpy(&vtData, this, sizeof (VARIANT));
+                        this->bstrVal = s;
+                        this->vt = VT_BSTR;
                     }
+                } else if (VT_ARRAY == (vt & VT_ARRAY)) {
+                    VARTYPE vType = vt;
+                    SAFEARRAY *p = this->parray;
+                    ::memcpy(this, &vtData, sizeof (VARIANT));
+                    vtData.vt = vType;
+                    vtData.parray = p;
+                } else if (VT_BSTR == vt) {
+                    BSTR p = bstrVal;
+                    ::memcpy(this, &vtData, sizeof (VARIANT));
+                    vtData.vt = VT_BSTR;
+                    vtData.bstrVal = p;
                 } else {
-                    ::memcpy(this, &vtData, sizeof (vtData));
+                    VARIANT temp;
+                    ::memcpy(&temp, this, sizeof (VARIANT));
+                    ::memcpy(this, &vtData, sizeof (VARIANT));
+                    ::memcpy(&vtData, &temp, sizeof (VARIANT));
+                    if (this->vt == VT_EMPTY) {
+                        this->vt = VT_NULL;
+                    }
                 }
                 VtExt = vteNormal;
                 return *this;
@@ -670,6 +724,76 @@ namespace SPA {
                 }
                 return *this;
             }
+
+#ifdef _INC_COMUTIL
+
+            CDBVariant(const _bstr_t &bstr) : VtExt(vteNormal) {
+                if ((LPCWSTR) bstr) {
+                    vt = VT_BSTR;
+                    bstrVal = bstr.copy();
+                } else {
+                    vt = VT_NULL;
+                }
+            }
+
+            CDBVariant(_bstr_t &&bstr) noexcept : VtExt(vteNormal) {
+                if ((LPCWSTR) bstr) {
+                    vt = VT_BSTR;
+                    bstrVal = bstr.Detach();
+                } else {
+                    vt = VT_NULL;
+                }
+            }
+
+            CDBVariant& operator=(const _bstr_t &bstr) {
+                ::VariantClear(this);
+                if ((LPCWSTR) bstr) {
+                    vt = VT_BSTR;
+                    bstrVal = bstr.copy();
+                } else {
+                    vt = VT_NULL;
+                }
+                VtExt = vteNormal;
+                return *this;
+            }
+
+            CDBVariant& operator=(_bstr_t &&bstr) noexcept {
+                BSTR temp = nullptr;
+                if (vt == VT_BSTR) {
+                    temp = bstrVal;
+                } else if (VT_ARRAY == (vt & VT_ARRAY)) {
+                    ::VariantClear(this);
+                }
+                if ((LPCWSTR) bstr) {
+                    bstrVal = bstr.Detach();
+                } else {
+                    bstrVal = nullptr;
+                }
+                vt = (bstrVal ? VT_BSTR : VT_NULL);
+                if (temp) {
+                    bstr.Attach(temp);
+                }
+                VtExt = vteNormal;
+                return *this;
+            }
+
+            CDBVariant(const _variant_t &vt) : CComVariant(vt), VtExt(vteNormal) {
+            }
+
+            CDBVariant(_variant_t &&vtData) {
+                *this = (tagVARIANT&&)vtData;
+            }
+
+            CDBVariant& operator=(const _variant_t &vtData) {
+                *this = (const tagVARIANT&) vtData;
+                return *this;
+            }
+
+            CDBVariant& operator=(_variant_t &&vtData) {
+                *this = (tagVARIANT&&)vtData;
+                return *this;
+            }
+#endif
         };
 
         static CUQueue& operator<<(CUQueue &q, const CDBVariant &vt) {
