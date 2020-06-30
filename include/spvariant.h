@@ -72,7 +72,7 @@ namespace SPA {
                             unsigned int chars = SysStringLen(vt0.bstrVal);
                             unsigned int charsSrc = SysStringLen(vt1.bstrVal);
                             if (chars == charsSrc) {
-                                equal = (::memcmp(vt0.bstrVal, vt1.bstrVal, chars * sizeof (wchar_t)) == 0);
+                                equal = (::memcmp(vt0.bstrVal, vt1.bstrVal, chars * sizeof (UTF16)) == 0);
                             } else {
                                 equal = false;
                             }
@@ -110,7 +110,7 @@ namespace SPA {
                     unsigned int lenSrc = SysStringLen(vt1.bstrVal);
                     if (len != lenSrc)
                         return false;
-                    return (::memcmp(vt0.bstrVal, vt1.bstrVal, len * sizeof (wchar_t)) == 0);
+                    return (::memcmp(vt0.bstrVal, vt1.bstrVal, len * sizeof (UTF16)) == 0);
                 }
                 case VT_I1:
                 case VT_UI1:
@@ -149,7 +149,11 @@ namespace SPA {
                 case VT_CY:
                     return (vt0.cyVal.int64 == vt1.cyVal.int64);
                 case VT_DECIMAL:
-                    return (::memcmp(&vt0.decVal, &vt1.decVal, sizeof (tagDEC)) == 0);
+#ifdef WIN32_64
+                    return (vt0.decVal.Lo64 == vt1.decVal.Lo64 && vt0.decVal.Hi32 == vt1.decVal.Hi32 && vt0.decVal.sigescale == vt1.decVal.signscale);
+#else
+                    return (vt0.decVal == vt1.decVal);
+#endif
                 default:
                     assert(false); //not implemented and shouldn't come here
                     break;

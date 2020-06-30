@@ -211,7 +211,7 @@ typedef struct tagDEC {
     };
 
     inline bool operator==(const tagDEC & dec) const {
-        return (::memcmp(this, &dec, sizeof (dec)) == 0);
+        return (Lo64 == dec.Lo64 && Hi32 == dec.Hi32 && signscale == dec.signscale);
     }
 } DECIMAL;
 #pragma pack(pop)
