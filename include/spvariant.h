@@ -53,9 +53,7 @@ namespace SPA {
         if ((vtMe & VT_ARRAY) == VT_ARRAY) {
             if (vt0.parray == vt1.parray)
                 return true;
-            if (!vt0.parray && vt1.parray)
-                return false;
-            if (vt0.parray && !vt1.parray)
+            if (!vt0.parray || !vt1.parray)
                 return false;
             unsigned int len = vt0.parray->rgsabound->cElements;
             unsigned int lenSrc = vt1.parray->rgsabound->cElements;
@@ -123,9 +121,7 @@ namespace SPA {
                 {
                     if (vt0.bstrVal == vt1.bstrVal)
                         return true;
-                    if (!vt0.bstrVal && vt1.bstrVal)
-                        return false;
-                    if (vt0.bstrVal && !vt1.bstrVal)
+                    if (!vt0.bstrVal || !vt1.bstrVal)
                         return false;
                     unsigned int len = SysStringLen(vt0.bstrVal);
                     unsigned int lenSrc = SysStringLen(vt1.bstrVal);
