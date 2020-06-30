@@ -751,6 +751,10 @@ namespace SPA {
             CDBVariant(const _variant_t &vt) : CComVariant(vt), VtExt(vteNormal) {
             }
 
+            CDBVariant(_variant_t &&vtData) {
+                *this = (tagVARIANT&&)vtData;
+            }
+
             CDBVariant& operator=(const _variant_t &vtData) {
                 *this = (const tagVARIANT&) vtData;
                 return *this;
