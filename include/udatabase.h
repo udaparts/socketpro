@@ -310,13 +310,15 @@ namespace SPA {
             }
 
             CDBVariant& operator=(CComBSTR &&bstr) noexcept {
-                ::VariantClear(this);
-                if (bstr.m_str) {
-                    vt = VT_BSTR;
-                    bstrVal = bstr.Detach();
-                } else {
-                    vt = VT_NULL;
+                BSTR temp = nullptr;
+                if (vt == VT_BSTR) {
+                    temp = bstrVal;
+                } else if (VT_ARRAY == (vt & VT_ARRAY)) {
+                    ::VariantClear(this);
                 }
+                bstrVal = bstr.Detach();
+                vt = (bstrVal ? VT_BSTR : VT_NULL);
+                bstr.Attach(temp);
                 VtExt = vteNormal;
                 return *this;
             }
@@ -667,9 +669,10 @@ namespace SPA {
                         this->vt = vtSrc;
                         vtData.vt = VT_BSTR;
                     } else {
+                        SAFEARRAY *p = vtData.parray;
+                        ::memcpy(&vtData, this, sizeof (VARIANT));
+                        this->parray = p;
                         this->vt = vtSrc;
-                        this->parray = vtData.parray;
-                        vtData.vt = VT_NULL;
                     }
                 } else if (vtSrc == VT_BSTR) {
                     if (this->vt == VT_BSTR) {
@@ -683,23 +686,30 @@ namespace SPA {
                         vtData.vt = this->vt;
                         this->vt = VT_BSTR;
                     } else {
-                        this->vt = vtSrc;
-                        this->bstrVal = vtData.bstrVal;
-                        vtData.vt = VT_NULL;
+                        BSTR s = vtData.bstrVal;
+                        ::memcpy(&vtData, this, sizeof (VARIANT));
+                        this->bstrVal = s;
+                        this->vt = VT_BSTR;
                     }
                 } else if (VT_ARRAY == (vt & VT_ARRAY)) {
                     VARTYPE vType = vt;
                     SAFEARRAY *p = this->parray;
-                    ::memcpy(this, &vtData, sizeof (vtData));
+                    ::memcpy(this, &vtData, sizeof (VARIANT));
                     vtData.vt = vType;
                     vtData.parray = p;
                 } else if (VT_BSTR == vt) {
                     BSTR p = bstrVal;
-                    ::memcpy(this, &vtData, sizeof (vtData));
+                    ::memcpy(this, &vtData, sizeof (VARIANT));
                     vtData.vt = VT_BSTR;
                     vtData.bstrVal = p;
                 } else {
-                    ::memcpy(this, &vtData, sizeof (vtData));
+                    VARIANT temp;
+                    ::memcpy(&temp, this, sizeof (VARIANT));
+                    ::memcpy(this, &vtData, sizeof (VARIANT));
+                    ::memcpy(&vtData, &temp, sizeof (VARIANT));
+                    if (this->vt == VT_EMPTY) {
+                        this->vt = VT_NULL;
+                    }
                 }
                 VtExt = vteNormal;
                 return *this;
@@ -748,12 +758,20 @@ namespace SPA {
             }
 
             CDBVariant& operator=(_bstr_t &&bstr) noexcept {
-                ::VariantClear(this);
+                BSTR temp = nullptr;
+                if (vt == VT_BSTR) {
+                    temp = bstrVal;
+                } else if (VT_ARRAY == (vt & VT_ARRAY)) {
+                    ::VariantClear(this);
+                }
                 if ((LPCWSTR) bstr) {
-                    vt = VT_BSTR;
                     bstrVal = bstr.Detach();
                 } else {
-                    vt = VT_NULL;
+                    bstrVal = nullptr;
+                }
+                vt = (bstrVal ? VT_BSTR : VT_NULL);
+                if (temp) {
+                    bstr.Attach(temp);
                 }
                 VtExt = vteNormal;
                 return *this;
