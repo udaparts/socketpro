@@ -13,6 +13,7 @@
 #include <future>
 #define HAVE_FUTURE
 #elif defined(WCHAR32)
+#include <future>
 #define HAVE_FUTURE
 #else
 #endif
