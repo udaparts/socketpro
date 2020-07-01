@@ -1,6 +1,6 @@
-
 #include "stdafx.h"
 #include "../hello_world/client/HW.h"
+#include "../uqueue_demo/mystruct.h"
 
 void SetMyStruct(CMyStruct &ms);
 
