@@ -86,7 +86,7 @@ unsigned int CDBUpdateImpl::SetSocketProConnectionString(const wchar_t *connecti
         }
         SPA::ClientSide::CClientSocket::SSL::SetVerifyLocation(m_cert.c_str());
         PCConnectionContext ppCCs[1] = {p};
-        bool ok = m_pPool->StartSocketPool(ppCCs, 1, count, true, SPA::taNone);
+        bool ok = m_pPool->StartSocketPool(ppCCs, count, 1);
         m_vCC.clear();
     }
     delete []p;

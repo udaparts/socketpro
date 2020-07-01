@@ -22,7 +22,7 @@ int main(int argc, char* argv[]) {
 	typedef CSocketPool<Pi, CClientSocket> CMyPool;
 	CMyPool spPi;
 
-	bool ok = spPi.StartSocketPool(cc, 1, 1);
+	bool ok = spPi.StartSocketPool(cc, 1);
 	auto pi = spPi.Seek(); //or auto pi = spPi.Lock();
 
 	//use persistent queue to ensure auto failure recovery and at-least-once or once-only delivery
@@ -52,4 +52,3 @@ int main(int argc, char* argv[]) {
 	::getchar();
 	return 0;
 }
-

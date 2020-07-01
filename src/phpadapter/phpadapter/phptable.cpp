@@ -138,11 +138,7 @@ namespace PA
     }
 
     Php::Value CPhpTable::FindOrdinal(Php::Parameters & params) {
-#ifdef WIN32_64
-        std::wstring colName = SPA::Utilities::ToWide(params[0].stringValue());
-#else
         SPA::CDBString colName = SPA::Utilities::ToUTF16(params[0].stringValue().c_str());
-#endif
         auto res = m_table->FindOrdinal(colName.c_str());
         CPhpDataSet::CheckResult(res);
         return (int64_t) res;

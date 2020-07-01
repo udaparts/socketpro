@@ -1,4 +1,3 @@
-
 #include "stdafx.h"
 
 int main(int argc, char* argv[])
@@ -25,7 +24,7 @@ int main(int argc, char* argv[])
 		}
 	}
 	sp.SetQueueName("ar_cpp"); //set a local message queue to backup requests for auto fault recovery
-	bool ok = sp.StartSocketPool(ppCc, THREADS, HOSTS * sessions_per_host);
+	bool ok = sp.StartSocketPool(ppCc, HOSTS * sessions_per_host, THREADS);
 	do
 	{
 		if (!ok) {
@@ -95,4 +94,3 @@ int main(int argc, char* argv[])
 	sp.ShutdownPool();
 	return 0;
 }
-

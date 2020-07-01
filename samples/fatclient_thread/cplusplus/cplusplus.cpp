@@ -314,7 +314,7 @@ int main(int argc, char* argv[]) {
 	cc.Password = L"MyPassword";
 	CMyPool spSqlite;
 	//start socket pool having 1 worker thread which hosts two non-block sockets
-	bool ok = spSqlite.StartSocketPool(cc, 2, 1);
+	bool ok = spSqlite.StartSocketPool(cc, 2);
 	if (!ok) {
 		std::cout << "No connection to sqlite server and press any key to close the demo ......" << std::endl;
 		::getchar();

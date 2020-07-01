@@ -21,7 +21,7 @@ int main(int argc, char* argv[]) {
     std::cout << "Tell me the remote server address: " << std::endl;
     std::getline(std::cin, cc.Host);
     CMyPool spSq;
-    if (!spSq.StartSocketPool(cc, 1, 1)) {
+    if (!spSq.StartSocketPool(cc, 1)) {
         std::cout << "Failed to connect to remote host for enqueuing" << std::endl;
         std::cout << "Press a key to shutdown the application ......" << std::endl;
         ::getchar();

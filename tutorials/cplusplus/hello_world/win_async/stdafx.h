@@ -1,8 +1,3 @@
-
-// stdafx.h : include file for standard system include files,
-// or project specific include files that are used frequently,
-// but are changed infrequently
-
 #pragma once
 
 #ifndef VC_EXTRALEAN
@@ -20,9 +15,6 @@
 #include <afxext.h>         // MFC extensions
 
 
-
-
-
 #ifndef _AFX_NO_OLE_SUPPORT
 #include <afxdtctl.h>           // MFC support for Internet Explorer 4 Common Controls
 #endif
@@ -32,14 +24,6 @@
 
 #include <afxcontrolbars.h>     // MFC support for ribbons and control bars
 
-#include <future>
-
-
 #include "../../hello_world/client/HW.h"
 #include "../../uqueue_demo/mystruct.h"
-
-
-
-
-
 

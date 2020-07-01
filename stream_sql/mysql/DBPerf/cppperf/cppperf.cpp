@@ -33,7 +33,7 @@ int main(int argc, char* argv[]) {
     int sync = std::atoi(s.c_str());
 
     CMyPool spMysql(true, 600000);
-    bool ok = spMysql.StartSocketPool(cc, 1, 1);
+    bool ok = spMysql.StartSocketPool(cc, 1);
     if (!ok) {
         std::cout << "Failed in connecting to remote async mysql server" << std::endl;
         std::cout << "Press any key to close the application ......" << std::endl;

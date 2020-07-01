@@ -18,7 +18,7 @@ int main(int argc, char* argv[]) {
 #else
     CMyPool spRf;
 #endif
-    bool ok = spRf.StartSocketPool(cc, 1, 1);
+    bool ok = spRf.StartSocketPool(cc, 1);
     if (!ok) {
         std::cout << "Can not connect to remote server with error code: " << spRf.GetSockets()[0]->GetErrorCode() << std::endl;
         return -1;

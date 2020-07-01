@@ -1,7 +1,3 @@
-
-// win_asyncDlg.cpp : implementation file
-//
-
 #include "stdafx.h"
 #include "win_async.h"
 #include "win_asyncDlg.h"
@@ -10,9 +6,6 @@
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #endif
-
-
-// CAboutDlg dialog used for App About
 
 class CAboutDlg : public CDialogEx {
 public:
@@ -93,7 +86,7 @@ BOOL Cwin_asyncDlg::OnInitDialog() {
 	cc.UserId = L"MyUserId";
 	cc.Password = L"MyPassword";
 
-	if (!m_spHw.StartSocketPool(cc, 1, 1)) {
+	if (!m_spHw.StartSocketPool(cc, 1)) {
 		USES_CONVERSION;
 		GetDlgItem(IDC_TEST_BUTTON)->EnableWindow(FALSE);
 		std::string err = m_spHw.GetSockets()[0]->GetErrorMsg();

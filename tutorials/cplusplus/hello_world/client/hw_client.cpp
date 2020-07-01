@@ -16,7 +16,7 @@ int main(int argc, char* argv[]) {
     SetMyStruct(ms0);
 
     //spHw.SetQueueName("helloworld"); //optionally start a queue for auto failure recovery
-    bool ok = spHw.StartSocketPool(cc, 1, 1); //1
+    bool ok = spHw.StartSocketPool(cc, 1); //1
     if (!ok) {
         std::cout << "Failed in connecting to remote helloworld server" << std::endl;
         return -1;

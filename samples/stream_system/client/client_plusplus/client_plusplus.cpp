@@ -44,7 +44,7 @@ int main(int argc, char* argv[]) {
     };
     master.DoSslServerAuthentication = cb;
 
-    bool ok = master.StartSocketPool(cc, 1, 1);
+    bool ok = master.StartSocketPool(cc, 1);
     if (!ok) {
         std::cout << "Failed in connecting to remote middle tier server, and press any key to close the application ......" << std::endl;
         ::getchar();

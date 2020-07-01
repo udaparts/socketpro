@@ -497,11 +497,7 @@ namespace PA
                 pi.Precision = (unsigned char) vP.get(PHP_COLUMN_PRECSISON).numericValue();
                 pi.Scale = (unsigned char) vP.get(PHP_COLUMN_SCALE).numericValue();
                 std::string s = vP.get("ParameterName").stringValue();
-#ifdef WIN32_64
-                pi.ParameterName = SPA::Utilities::ToWide(s);
-#else
-                pi.ParameterName = SPA::Utilities::ToUTF16(s.c_str());
-#endif
+                pi.ParameterName = SPA::Utilities::ToUTF16(s.c_str(), s.size());
                 vPInfo.push_back(pi);
             } else {
                 throw Php::Exception("A parameter info structure is expected");

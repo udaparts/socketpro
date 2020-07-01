@@ -28,7 +28,7 @@ int main(int argc, char* argv[]) {
 #else
     CMyPool spSqlite(true, 3600000);
 #endif
-    bool ok = spSqlite.StartSocketPool(cc, 1, 1);
+    bool ok = spSqlite.StartSocketPool(cc, 1);
     if (!ok) {
         std::cout << "Failed in connecting to remote async sqlite server" << std::endl;
         std::cout << "Press any key to close the application ......" << std::endl;

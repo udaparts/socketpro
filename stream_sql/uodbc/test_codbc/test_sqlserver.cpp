@@ -35,7 +35,7 @@ int main(int argc, char* argv[]) {
 #else
     CMyPool spOdbc;
 #endif
-    bool ok = spOdbc.StartSocketPool(cc, 1, 1);
+    bool ok = spOdbc.StartSocketPool(cc, 1);
     if (!ok) {
         std::cout << "Failed in connecting to remote async mysql server" << std::endl;
         std::cout << "Press any key to close the application ......" << std::endl;

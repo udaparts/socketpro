@@ -54,7 +54,7 @@ int main(int argc, char* argv[]) {
         return (errCode == 0); //true -- user id and password will be sent to server
     };
 
-    bool ok = spHw.StartSocketPool(cc, 1, 1);
+    bool ok = spHw.StartSocketPool(cc, 1);
     auto hw = spHw.Seek(); //or auto hw = spHw.Lock();
 
     CClientSocket::CPushImpl &push = hw->GetAttachedClientSocket()->GetPush();

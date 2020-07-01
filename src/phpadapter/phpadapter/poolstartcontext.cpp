@@ -200,25 +200,25 @@ namespace PA
             case SPA::Mysql::sidMysql:
             case SPA::Odbc::sidOdbc:
             case SPA::Sqlite::sidSqlite:
-                ok = PhpDb->StartSocketPool(ppCCs, threads, socketsPerThread);
+                ok = PhpDb->StartSocketPool(ppCCs, socketsPerThread, threads);
                 if (AutoMerge) {
                     PhpDb->SetQueueAutoMerge(true);
                 }
                 break;
             case SPA::Queue::sidQueue:
-                ok = PhpQueue->StartSocketPool(ppCCs, threads, socketsPerThread);
+                ok = PhpQueue->StartSocketPool(ppCCs, socketsPerThread, threads);
                 if (AutoMerge) {
                     PhpQueue->SetQueueAutoMerge(true);
                 }
                 break;
             case SPA::SFile::sidFile:
-                ok = PhpFile->StartSocketPool(ppCCs, threads, socketsPerThread);
+                ok = PhpFile->StartSocketPool(ppCCs, socketsPerThread, threads);
                 if (AutoMerge) {
                     PhpFile->SetQueueAutoMerge(true);
                 }
                 break;
             default:
-                ok = PhpHandler->StartSocketPool(ppCCs, threads, socketsPerThread);
+                ok = PhpHandler->StartSocketPool(ppCCs, socketsPerThread, threads);
                 if (AutoMerge) {
                     PhpHandler->SetQueueAutoMerge(true);
                 }

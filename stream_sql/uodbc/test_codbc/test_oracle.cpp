@@ -1,6 +1,4 @@
-﻿
-
-#include "stdafx.h"
+﻿#include "stdafx.h"
 #include <iostream>
 #include "../../../include/async_odbc.h"
 
@@ -28,7 +26,7 @@ int main(int argc, char* argv[]) {
     cc.UserId = L"MyUserId";
     cc.Password = L"MyPassword";
     CMyPool spOdbc(true, 600000);
-    bool ok = spOdbc.StartSocketPool(cc, 1, 1);
+    bool ok = spOdbc.StartSocketPool(cc, 1);
     if (!ok) {
         std::cout << "Failed in connecting to remote async mysql server" << std::endl;
         std::cout << "Press any key to close the application ......" << std::endl;

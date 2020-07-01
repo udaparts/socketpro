@@ -17,7 +17,7 @@ int main(int argc, char* argv[]) {
     cc.Password = L"MyPassword";
 
     CLatencyPool latencyPool;
-    bool ok = latencyPool.StartSocketPool(cc, 1, 1);
+    bool ok = latencyPool.StartSocketPool(cc, 1);
     if (!ok) {
         std::cout << "Failed in connecting to remote helloworld server" << std::endl;
         return -1;

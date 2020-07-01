@@ -16,7 +16,7 @@ int main(int argc, char* argv[]) {
     std::cout << "Remote host: " << std::endl;
     std::getline(std::cin, cc.Host);
     CMyPool spSq;
-    if (!spSq.StartSocketPool(cc, 1, 1)) {
+    if (!spSq.StartSocketPool(cc, 1)) {
         std::cout << "Failed to connect to remote host for enqueuing" << std::endl;
         std::cout << "Press a key to complete dequeuing messages from server ......" << std::endl;
         ::getchar();
