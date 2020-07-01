@@ -1,4 +1,3 @@
-
 #ifndef __UMB_CLIENT_WRAPPER_H_
 #define __UMB_CLIENT_WRAPPER_H_
 
@@ -9,6 +8,14 @@
 #include <unordered_map>
 #include <memory>
 #include <functional>
+
+#if defined(WIN32_64) && _MSC_VER >= 1800
+#include <future>
+#define HAVE_FUTURE
+#elif defined(WCHAR32)
+#define HAVE_FUTURE
+#else
+#endif
 
 #ifdef PHP_ADAPTER_PROJECT
 #define NO_MIDDLE_TIER
@@ -1366,7 +1373,7 @@ namespace SPA {
                 return SendRequest(reqId, sb->GetBuffer(), sb->GetSize(), rh, discarded, se);
             }
 
-#if defined(_FUTURE_) || defined(_GLIBCXX_FUTURE)
+#ifdef HAVE_FUTURE
 
             std::future<void> async(unsigned short reqId, const unsigned char *pBuffer, unsigned int size) {
                 std::shared_ptr<std::promise<void> > prom(new std::promise<void>);
