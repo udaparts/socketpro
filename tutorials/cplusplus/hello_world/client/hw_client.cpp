@@ -24,9 +24,9 @@ int main(int argc, char* argv[]) {
     auto hw = spHw.Seek(); //or auto hw = spHw.Lock();
 
     //process requests one by one synchronously
-    std::wcout << hw->SayHello(L"Jone", L"Dole") << std::endl;
-    hw->Sleep(5000);
-    CMyStruct ms = hw->Echo(ms0);
+    std::wcout << hw->async<std::wstring>(idSayHelloHelloWorld, L"Jone", L"Dole").get() << std::endl;
+    hw->async(idSleepHelloWorld, (unsigned int) 5000).get();
+    CMyStruct ms = hw->async<CMyStruct, CMyStruct>(idEchoHelloWorld, ms0).get();
     assert(ms == ms0);
 
     //asynchronously process multiple requests with inline batching for best network efficiency
