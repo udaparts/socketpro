@@ -1,4 +1,3 @@
-
 #ifndef __UMB_CLIENT_WRAPPER_H_
 #define __UMB_CLIENT_WRAPPER_H_
 
@@ -9,6 +8,15 @@
 #include <unordered_map>
 #include <memory>
 #include <functional>
+
+#if defined(WIN32_64) && _MSC_VER >= 1800
+#include <future>
+#define HAVE_FUTURE
+#elif defined(WCHAR32)
+#include <future>
+#define HAVE_FUTURE
+#else
+#endif
 
 #ifdef PHP_ADAPTER_PROJECT
 #define NO_MIDDLE_TIER
@@ -1366,7 +1374,7 @@ namespace SPA {
                 return SendRequest(reqId, sb->GetBuffer(), sb->GetSize(), rh, discarded, se);
             }
 
-#if defined(_FUTURE_) || defined(_GLIBCXX_FUTURE)
+#ifdef HAVE_FUTURE
 
             std::future<void> async(unsigned short reqId, const unsigned char *pBuffer, unsigned int size) {
                 std::shared_ptr<std::promise<void> > prom(new std::promise<void>);
@@ -2070,7 +2078,7 @@ namespace SPA {
                 return (count > 0);
             }
 
-            virtual bool StartSocketPool(CConnectionContext **ppCCs, unsigned int threads, unsigned int socketsPerThread, bool avg = true, tagThreadApartment ta = taNone) {
+            virtual bool StartSocketPool(CConnectionContext **ppCCs, unsigned int socketsPerThread, unsigned int threads, bool avg = true, tagThreadApartment ta = taNone) {
                 assert(ppCCs != nullptr);
                 assert(*ppCCs != nullptr);
                 assert(socketsPerThread != 0);
@@ -2082,7 +2090,7 @@ namespace SPA {
                 return PostProcess(ppCCs);
             }
 
-            bool StartSocketPool(const CConnectionContext &cc, unsigned int socketsPerThread, unsigned int threads = 0, bool avg = true, tagThreadApartment ta = taNone) {
+            bool StartSocketPool(const CConnectionContext &cc, unsigned int socketsPerThread, unsigned int threads = 1, bool avg = true, tagThreadApartment ta = taNone) {
                 unsigned int n;
                 assert(socketsPerThread > 0);
                 if (!StartSocketPool(socketsPerThread, threads, avg, ta))
@@ -2314,7 +2322,7 @@ namespace SPA {
                 return (count > 0);
             }
 
-            bool StartSocketPool(unsigned int socketsPerThread, unsigned int threads = 0, bool avg = true, tagThreadApartment ta = taNone) {
+            bool StartSocketPool(unsigned int socketsPerThread, unsigned int threads, bool avg = true, tagThreadApartment ta = taNone) {
                 if (IsStarted())
                     return true;
                 unsigned int poolId = ClientCoreLoader.CreateSocketPool(&CSocketPool::SPE, socketsPerThread, threads, avg, ta);
@@ -2807,7 +2815,7 @@ namespace SPA {
                     };
                 }
                 int n = 0;
-                bool ok = m_pool.StartSocketPool(ppCCs, 1, (unsigned int) (vDbFullName.size()), true, ta);
+                bool ok = m_pool.StartSocketPool(ppCCs, (unsigned int) (vDbFullName.size()), 1);
                 m_SourceHandler.reset();
                 m_vTargetHandlers.clear();
                 m_vTargetQueues.clear();

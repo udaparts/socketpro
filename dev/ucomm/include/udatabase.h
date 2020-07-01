@@ -1,4 +1,3 @@
-
 #ifndef __UDAPARTS_DATABASE_COMM_H___
 #define __UDAPARTS_DATABASE_COMM_H___
 

@@ -123,7 +123,7 @@ namespace SPA {
                             if (PoolEvent)
                                 PoolEvent(this, spe);
                         };
-                        ok = db->StartSocketPool(ppCCs, threads, socketsPerThread);
+                        ok = db->StartSocketPool(ppCCs, socketsPerThread, threads);
                         if (AutoMerge) {
                             db->SetQueueAutoMerge(true);
                         }
@@ -169,7 +169,7 @@ namespace SPA {
                             if (PoolEvent)
                                 PoolEvent(this, spe);
                         };
-                        ok = db->StartSocketPool(ppCCs, threads, socketsPerThread);
+                        ok = db->StartSocketPool(ppCCs, socketsPerThread, threads);
                         if (AutoMerge) {
                             db->SetQueueAutoMerge(true);
                         }
@@ -215,7 +215,7 @@ namespace SPA {
                             if (PoolEvent)
                                 PoolEvent(this, spe);
                         };
-                        ok = db->StartSocketPool(ppCCs, threads, socketsPerThread);
+                        ok = db->StartSocketPool(ppCCs, socketsPerThread, threads);
                         if (AutoMerge) {
                             db->SetQueueAutoMerge(true);
                         }
@@ -238,7 +238,7 @@ namespace SPA {
                             if (PoolEvent)
                                 PoolEvent(this, spe);
                         };
-                        ok = pool->StartSocketPool(ppCCs, threads, socketsPerThread);
+                        ok = pool->StartSocketPool(ppCCs, socketsPerThread, threads);
                         if (AutoMerge) {
                             pool->SetQueueAutoMerge(true);
                         }
@@ -261,7 +261,7 @@ namespace SPA {
                             if (PoolEvent)
                                 PoolEvent(this, spe);
                         };
-                        ok = pool->StartSocketPool(ppCCs, threads, socketsPerThread);
+                        ok = pool->StartSocketPool(ppCCs, socketsPerThread, threads);
                         if (AutoMerge) {
                             pool->SetQueueAutoMerge(true);
                         }
@@ -307,7 +307,7 @@ namespace SPA {
                             if (PoolEvent)
                                 PoolEvent(this, spe);
                         };
-                        ok = db->StartSocketPool(ppCCs, threads, socketsPerThread);
+                        ok = db->StartSocketPool(ppCCs, socketsPerThread, threads);
                         if (AutoMerge) {
                             db->SetQueueAutoMerge(true);
                         }
