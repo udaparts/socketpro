@@ -437,6 +437,17 @@ namespace SPA
         DWORD dwSSPIOutFlags = 0;
         SECURITY_STATUS ss = SEC_E_OK;
 
+#if defined(BAD_COMM_ENVIRONMENT) && defined(ENABLE_RANDOM_HANDSHAKING_CRASH)
+		srand((unsigned int)time(nullptr));
+		unsigned int random = (unsigned int)rand();
+		if (1 == (random % RANDOM_CRASH_STRENGTH)) {
+			CStringW outputMessage;
+			outputMessage.Format(L"File -- %ls, function name -- %ls, line number -- %d, message = %ls\r\n", __FILEW__, __FUNCTIONW__, __LINE__, L"HANDSHAKING_CRASH_CODE");
+			OutputDebugStringW(outputMessage);
+			::exit(HANDSHAKING_CRASH_CODE);
+		}
+#endif
+
         DWORD dwSSPIFlags;
         if (m_client) {
             dwSSPIFlags =

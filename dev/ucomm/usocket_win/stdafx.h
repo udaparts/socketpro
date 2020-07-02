@@ -1,11 +1,10 @@
-
-#include "../include/definebase.h"
-
 #ifndef __UMB_COMM_CLIENT_CORE_HEADER_H_
 #define __UMB_COMM_CLIENT_CORE_HEADER_H_
 
-#if defined(WIN32_64)
+#include "../include/definebase.h"
 
+#if defined(WIN32_64)
+#include <atlbase.h>
 #ifndef WINCE
 #include "targetver.h"
 #endif

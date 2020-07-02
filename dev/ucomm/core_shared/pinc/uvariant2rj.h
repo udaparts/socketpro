@@ -3,6 +3,7 @@
 
 #include "document.h"		// rapidjson's DOM-style API
 #include "writer.h"
+#include "../../include/spvariant.h"
 
 namespace SPA {
 

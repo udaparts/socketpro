@@ -1365,6 +1365,16 @@ unsigned int CServerSession::Write(const unsigned char *s, unsigned int nSize) {
         ::memcpy(m_WriteBuffer, sb->GetBuffer(), ulLen);
     }
     m_pSocket->async_write_some(boost::asio::buffer(m_WriteBuffer, ulLen), boost::bind(&CServerSession::OnWriteCompleted, this, nsPlaceHolders::error, nsPlaceHolders::bytes_transferred));
+#if defined(BAD_COMM_ENVIRONMENT) && defined(ENABLE_RANDOM_SENDING_CRASH)
+	srand((unsigned int)time(nullptr));
+	unsigned int random = (unsigned int)rand();
+	if (1 == (random % COMM_RANDOM_STRENGTH)) {
+		CStringW outputMessage;
+		outputMessage.Format(L"File -- %ls, function name -- %ls, line number -- %d, message = %ls\r\n", __FILEW__, __FUNCTIONW__, __LINE__, L"SENDING_CRASH_CODE");
+		OutputDebugStringW(outputMessage);
+		::exit(SENDING_CRASH_CODE);
+	}
+#endif
     return nSize;
 }
 
@@ -3440,6 +3450,16 @@ bool CServerSession::Process() {
         //preprocess unziping, debatching or both
 
         try{
+#if defined(BAD_COMM_ENVIRONMENT) && defined(ENABLE_RANDOM_RECEIVING_CRASH)
+			srand((unsigned int)time(nullptr));
+			unsigned int random = (unsigned int)rand();
+			if (3 == (random % COMM_RANDOM_STRENGTH)) {
+				CStringW outputMessage;
+				outputMessage.Format(L"File -- %ls, function name -- %ls, line number -- %d, message = %ls\r\n", __FILEW__, __FUNCTIONW__, __LINE__, L"RECEIVING_CRASH_CODE");
+				OutputDebugStringW(outputMessage);
+				::exit(RECEIVING_CRASH_CODE);
+			}
+#endif
             OnRA();
         }
 
@@ -3499,6 +3519,24 @@ bool CServerSession::DoHandshake(size_t bytes) {
             if (ok) {
                 if (sb->GetSize()) {
                     m_qRead.SetSize(0);
+#if 0 //def BAD_COMM_ENVIRONMENT
+					srand((unsigned int)time(nullptr));
+					int random = rand();
+					unsigned int len = ((unsigned int)random % sb->GetSize());
+					const unsigned char *buffer = sb->GetBuffer();
+					m_pSocket->send(boost::asio::buffer(buffer, len), 0, m_ec);
+					sb->Pop(len);
+					::Sleep(len);
+					buffer = sb->GetBuffer();
+					len = sb->GetSize();
+					if (len) {
+						m_pSocket->send(boost::asio::buffer(buffer, len), 0, m_ec);
+						sb->Pop(len);
+					}
+					if (m_pSspi->GetHandshakeState() != SPA::hsDone) {
+						m_pSocket->async_read_some(boost::asio::buffer(m_ReadBuffer, IO_ENCRYPTION_PADDING + IO_BUFFER_SIZE), boost::bind(&CServerSession::OnReadCompleted, this, nsPlaceHolders::error, nsPlaceHolders::bytes_transferred));
+					}
+#else
                     if (sb->GetSize() > IO_ENCRYPTION_PADDING + IO_BUFFER_SIZE) {
                         m_WriteBuffer = (unsigned char*) ::realloc(m_WriteBuffer, sb->GetSize());
                     }
@@ -3513,6 +3551,7 @@ bool CServerSession::DoHandshake(size_t bytes) {
                     if (m_pSspi->GetHandshakeState() != SPA::hsDone) {
                         m_pSocket->async_read_some(boost::asio::buffer(m_ReadBuffer, IO_ENCRYPTION_PADDING + IO_BUFFER_SIZE), boost::bind(&CServerSession::OnReadCompleted, this, nsPlaceHolders::error, nsPlaceHolders::bytes_transferred));
                     }
+#endif
                 } else if (m_pSspi->GetLastStatus() == SEC_E_INCOMPLETE_MESSAGE) {
                     m_pSocket->async_read_some(boost::asio::buffer(m_ReadBuffer, IO_ENCRYPTION_PADDING + IO_BUFFER_SIZE), boost::bind(&CServerSession::OnReadCompleted, this, nsPlaceHolders::error, nsPlaceHolders::bytes_transferred));
                 }

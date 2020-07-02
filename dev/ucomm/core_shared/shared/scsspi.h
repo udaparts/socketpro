@@ -24,6 +24,13 @@
 #include <boost/shared_ptr.hpp>
 #endif
 
+#include "../pinc/random_crash.h"
+#include <atlbase.h>
+#ifdef BAD_COMM_ENVIRONMENT
+#include <time.h>
+#include <atlstr.h>
+#endif
+
 namespace SPA {
 
     typedef SECURITY_STATUS(SEC_ENTRY *PCompleteAuthToken)(PCtxtHandle phContext, PSecBufferDesc pToken);

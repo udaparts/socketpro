@@ -1,8 +1,8 @@
-
 #ifdef OLD_IMPL
 #include "stdafx.h"
 #include "clientsession.h"
 #elif defined(_WIN32_WCE) || defined(WIN32_64)
+#include<atlbase.h>
 #include "../usocket_win/clientsession.h"
 #else
 #include "../usocket/clientsession.h"
@@ -12,6 +12,7 @@
 #include "../include/uclient.h"
 #include "socketpool.h"
 #include "../core_shared/pinc/uzip.h"
+
 
 #ifndef WINCE
 extern std::mutex g_mutex;

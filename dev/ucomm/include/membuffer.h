@@ -3,6 +3,7 @@
 
 #include "safequeue.h"
 #include <algorithm>
+#include "spvariant.h"
 
 #ifndef WIN32_64
 #include <iconv.h>
@@ -1175,9 +1176,8 @@ namespace SPA {
             if (str) {
                 if (chars == UQUEUE_NULL_LENGTH) {
                     chars = (unsigned int) GetLen(str);
-                    chars <<= 1;
                 }
-                Insert((const unsigned char*) str, chars, position);
+                Insert((const unsigned char*) str, chars << 1, position);
             }
         }
 

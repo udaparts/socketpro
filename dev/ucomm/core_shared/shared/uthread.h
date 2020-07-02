@@ -2,6 +2,11 @@
 #define _UMB_THREAD_BASE_H__
 
 #include "includes.h"
+#include "../../include/definebase.h"
+#ifdef WIN32_64
+#include<atlbase.h>
+#endif
+#include "../../include/spvariant.h"
 #include "../../include/membuffer.h"
 #include "../../include/ucomm.h"
 

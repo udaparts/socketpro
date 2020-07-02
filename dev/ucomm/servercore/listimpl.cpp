@@ -1,9 +1,9 @@
-
 #include "../include/definebase.h"
 
 #if defined(OLD_IMPL)
 #include "server.h"
 #elif defined(WIN32_64)
+#include <atlbase.h>
 #include "../uservercore_win/server.h"
 #else
 #include "../uservercore/server.h"

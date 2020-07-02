@@ -3,6 +3,7 @@
 #include <signal.h>
 #include "../core_shared/pinc/mqfile.h"
 #include "StackWalker.h"
+#include <new.h>
 
 extern MQ_FILE::mutex g_csLCI;
 extern SPA::CUQueue g_LastCallInfo;
@@ -42,7 +43,7 @@ void CCrashHandler::SetProcessExceptionHandlers() {
     _set_purecall_handler(PureCallHandler);
 
     // Catch new operator memory allocation exceptions
-    _set_new_handler(NewHandler);
+    _set_new_handler(NewHandler); //not available
 
     // Catch invalid parameter exceptions.
     _set_invalid_parameter_handler(InvalidParameterHandler);
