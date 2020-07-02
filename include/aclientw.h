@@ -3,7 +3,6 @@
 
 #include "ccloader.h"
 #include "ucomm.h"
-#include "spvariant.h"
 #include "membuffer.h"
 #include <unordered_map>
 #include <memory>

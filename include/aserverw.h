@@ -2,7 +2,6 @@
 #define __UMB_SERVER_WRAPPER_H_
 
 #include "userver.h"
-#include "spvariant.h"
 #include "membuffer.h"
 #include <fstream>
 #include <deque>
