@@ -112,10 +112,10 @@ namespace SPA
         }
         /*
         PCCERT_CHAIN_CONTEXT pChainContext = nullptr;
-		CERT_CHAIN_PARA ChainPara;
+                CERT_CHAIN_PARA ChainPara;
         ::memset(&ChainPara, 0, sizeof(ChainPara));
-		ChainPara.cbSize = sizeof (CERT_CHAIN_PARA);
-		ChainPara.RequestedUsage.dwType = USAGE_MATCH_TYPE_AND;
+                ChainPara.cbSize = sizeof (CERT_CHAIN_PARA);
+                ChainPara.RequestedUsage.dwType = USAGE_MATCH_TYPE_AND;
 
         PCCERT_CONTEXT context = nullptr;
         while ((context = ::CertEnumCertificatesInStore(m_hCertStore, context))) {
@@ -129,7 +129,7 @@ namespace SPA
                 ::CertFreeCertificateChain(pChainContext);
         }
         ::CertFreeCertificateChainEngine(hChainEngine);
-        */
+         */
         m_cst = cstCertFile;
         return true;
     }
@@ -438,14 +438,14 @@ namespace SPA
         SECURITY_STATUS ss = SEC_E_OK;
 
 #if defined(BAD_COMM_ENVIRONMENT) && defined(ENABLE_RANDOM_HANDSHAKING_CRASH)
-		srand((unsigned int)time(nullptr));
-		unsigned int random = (unsigned int)rand();
-		if (1 == (random % RANDOM_CRASH_STRENGTH)) {
-			CStringW outputMessage;
-			outputMessage.Format(L"File -- %ls, function name -- %ls, line number -- %d, message = %ls\r\n", __FILEW__, __FUNCTIONW__, __LINE__, L"HANDSHAKING_CRASH_CODE");
-			OutputDebugStringW(outputMessage);
-			::exit(HANDSHAKING_CRASH_CODE);
-		}
+        srand((unsigned int) time(nullptr));
+        unsigned int random = (unsigned int) rand();
+        if (1 == (random % RANDOM_CRASH_STRENGTH)) {
+            CStringW outputMessage;
+            outputMessage.Format(L"File -- %ls, function name -- %ls, line number -- %d, message = %ls\r\n", __FILEW__, __FUNCTIONW__, __LINE__, L"HANDSHAKING_CRASH_CODE");
+            OutputDebugStringW(outputMessage);
+            ::exit(HANDSHAKING_CRASH_CODE);
+        }
 #endif
 
         DWORD dwSSPIFlags;

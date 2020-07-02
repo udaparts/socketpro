@@ -1,11 +1,8 @@
-// MyOpenSSL.h: interface for the CMyOpenSSL class.
-//
-//////////////////////////////////////////////////////////////////////
+
+#include "../pinc/random_crash.h"
 
 #ifndef __UDAPARTS_MY_OPENSSL_H___
 #define __UDAPARTS_MY_OPENSSL_H___
-
-
 
 #include "../../include/membuffer.h"
 #include <openssl/ssl.h> 

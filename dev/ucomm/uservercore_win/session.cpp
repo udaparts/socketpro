@@ -615,17 +615,17 @@ bool CServerSession::IsCanceledInternally() {
     }
     if (total) {
         if (interrupted) {
-/*
-            if (pos) {
-                SPA::CStreamHeader sh;
-                m_qRead.Pop((unsigned char*) &sh, sizeof (sh), pos);
-                assert(sh.RequestId == SPA::idInterrupt);
-                assert(sh.Size == sizeof (m_InterruptOptions));
-                m_qRead.Pop((unsigned char*) &m_InterruptOptions, sizeof (m_InterruptOptions), pos);
-                m_qRead.Insert((const unsigned char*) &m_InterruptOptions, sizeof (m_InterruptOptions), m_ReqInfo.Size);
-                m_qRead.Insert((const unsigned char*) &sh, sizeof (sh), m_ReqInfo.Size);
-            }
-*/
+            /*
+                        if (pos) {
+                            SPA::CStreamHeader sh;
+                            m_qRead.Pop((unsigned char*) &sh, sizeof (sh), pos);
+                            assert(sh.RequestId == SPA::idInterrupt);
+                            assert(sh.Size == sizeof (m_InterruptOptions));
+                            m_qRead.Pop((unsigned char*) &m_InterruptOptions, sizeof (m_InterruptOptions), pos);
+                            m_qRead.Insert((const unsigned char*) &m_InterruptOptions, sizeof (m_InterruptOptions), m_ReqInfo.Size);
+                            m_qRead.Insert((const unsigned char*) &sh, sizeof (sh), m_ReqInfo.Size);
+                        }
+             */
             total = 0;
         } else {
             if (pos) {
@@ -1366,14 +1366,14 @@ unsigned int CServerSession::Write(const unsigned char *s, unsigned int nSize) {
     }
     m_pSocket->async_write_some(boost::asio::buffer(m_WriteBuffer, ulLen), boost::bind(&CServerSession::OnWriteCompleted, this, nsPlaceHolders::error, nsPlaceHolders::bytes_transferred));
 #if defined(BAD_COMM_ENVIRONMENT) && defined(ENABLE_RANDOM_SENDING_CRASH)
-	srand((unsigned int)time(nullptr));
-	unsigned int random = (unsigned int)rand();
-	if (1 == (random % COMM_RANDOM_STRENGTH)) {
-		CStringW outputMessage;
-		outputMessage.Format(L"File -- %ls, function name -- %ls, line number -- %d, message = %ls\r\n", __FILEW__, __FUNCTIONW__, __LINE__, L"SENDING_CRASH_CODE");
-		OutputDebugStringW(outputMessage);
-		::exit(SENDING_CRASH_CODE);
-	}
+    srand((unsigned int) time(nullptr));
+    unsigned int random = (unsigned int) rand();
+    if (1 == (random % COMM_RANDOM_STRENGTH)) {
+        CStringW outputMessage;
+        outputMessage.Format(L"File -- %ls, function name -- %ls, line number -- %d, message = %ls\r\n", __FILEW__, __FUNCTIONW__, __LINE__, L"SENDING_CRASH_CODE");
+        OutputDebugStringW(outputMessage);
+        ::exit(SENDING_CRASH_CODE);
+    }
 #endif
     return nSize;
 }
@@ -3451,14 +3451,14 @@ bool CServerSession::Process() {
 
         try{
 #if defined(BAD_COMM_ENVIRONMENT) && defined(ENABLE_RANDOM_RECEIVING_CRASH)
-			srand((unsigned int)time(nullptr));
-			unsigned int random = (unsigned int)rand();
-			if (3 == (random % COMM_RANDOM_STRENGTH)) {
-				CStringW outputMessage;
-				outputMessage.Format(L"File -- %ls, function name -- %ls, line number -- %d, message = %ls\r\n", __FILEW__, __FUNCTIONW__, __LINE__, L"RECEIVING_CRASH_CODE");
-				OutputDebugStringW(outputMessage);
-				::exit(RECEIVING_CRASH_CODE);
-			}
+            srand((unsigned int) time(nullptr));
+            unsigned int random = (unsigned int) rand();
+            if (3 == (random % COMM_RANDOM_STRENGTH)) {
+                CStringW outputMessage;
+                outputMessage.Format(L"File -- %ls, function name -- %ls, line number -- %d, message = %ls\r\n", __FILEW__, __FUNCTIONW__, __LINE__, L"RECEIVING_CRASH_CODE");
+                OutputDebugStringW(outputMessage);
+                ::exit(RECEIVING_CRASH_CODE);
+            }
 #endif
             OnRA();
         }
@@ -3520,22 +3520,22 @@ bool CServerSession::DoHandshake(size_t bytes) {
                 if (sb->GetSize()) {
                     m_qRead.SetSize(0);
 #if 0 //def BAD_COMM_ENVIRONMENT
-					srand((unsigned int)time(nullptr));
-					int random = rand();
-					unsigned int len = ((unsigned int)random % sb->GetSize());
-					const unsigned char *buffer = sb->GetBuffer();
-					m_pSocket->send(boost::asio::buffer(buffer, len), 0, m_ec);
-					sb->Pop(len);
-					::Sleep(len);
-					buffer = sb->GetBuffer();
-					len = sb->GetSize();
-					if (len) {
-						m_pSocket->send(boost::asio::buffer(buffer, len), 0, m_ec);
-						sb->Pop(len);
-					}
-					if (m_pSspi->GetHandshakeState() != SPA::hsDone) {
-						m_pSocket->async_read_some(boost::asio::buffer(m_ReadBuffer, IO_ENCRYPTION_PADDING + IO_BUFFER_SIZE), boost::bind(&CServerSession::OnReadCompleted, this, nsPlaceHolders::error, nsPlaceHolders::bytes_transferred));
-					}
+                    srand((unsigned int) time(nullptr));
+                    int random = rand();
+                    unsigned int len = ((unsigned int) random % sb->GetSize());
+                    const unsigned char *buffer = sb->GetBuffer();
+                    m_pSocket->send(boost::asio::buffer(buffer, len), 0, m_ec);
+                    sb->Pop(len);
+                    ::Sleep(len);
+                    buffer = sb->GetBuffer();
+                    len = sb->GetSize();
+                    if (len) {
+                        m_pSocket->send(boost::asio::buffer(buffer, len), 0, m_ec);
+                        sb->Pop(len);
+                    }
+                    if (m_pSspi->GetHandshakeState() != SPA::hsDone) {
+                        m_pSocket->async_read_some(boost::asio::buffer(m_ReadBuffer, IO_ENCRYPTION_PADDING + IO_BUFFER_SIZE), boost::bind(&CServerSession::OnReadCompleted, this, nsPlaceHolders::error, nsPlaceHolders::bytes_transferred));
+                    }
 #else
                     if (sb->GetSize() > IO_ENCRYPTION_PADDING + IO_BUFFER_SIZE) {
                         m_WriteBuffer = (unsigned char*) ::realloc(m_WriteBuffer, sb->GetSize());

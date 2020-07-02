@@ -9,14 +9,12 @@
 #include "targetver.h"
 #endif
 
-#define WIN32_LEAN_AND_MEAN             // Exclude rarely-used stuff from Windows headers
+#define WIN32_LEAN_AND_MEAN // Exclude rarely-used stuff from Windows headers
 
 #ifndef WINCE
 #include <windows.h>
 #endif
 
 #endif
-
-// TODO: reference additional headers your program requires here
 
 #endif

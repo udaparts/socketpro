@@ -115,7 +115,7 @@ namespace SPA {
         bool m_clientCertAuth;
     };
 #ifndef WINCE
-	typedef std::shared_ptr<CSspi> CSspiPtr;
+    typedef std::shared_ptr<CSspi> CSspiPtr;
 #else
     typedef boost::shared_ptr<CSspi> CSspiPtr;
 #endif
