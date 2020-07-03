@@ -352,7 +352,7 @@ namespace SPA {
     }
 
     template<typename TChar>
-    inline static size_t GetLen(const TChar *str) {
+    inline size_t GetLen(const TChar *str) {
         size_t size = 0;
         if (str) {
             while (*str++) {
@@ -370,7 +370,7 @@ namespace SPA {
 #endif
 
     template<typename TChar>
-    static int UCompare(const TChar* s1, const TChar* s2) {
+    int UCompare(const TChar* s1, const TChar* s2) {
         if (s1 == s2) {
             return 0;
         }
@@ -393,7 +393,7 @@ namespace SPA {
     }
 
     template<typename TChar>
-    static int UCompareNoCase(const TChar *s1, const TChar *s2) {
+    int UCompareNoCase(const TChar *s1, const TChar *s2) {
         if (s1 == s2) {
             return 0;
         }
@@ -415,7 +415,7 @@ namespace SPA {
     //These functions are reused for faster parsing string into numbers.
 
     template<typename TChar>
-    static inline int atoi(const TChar *p, const TChar *&end) {
+    inline int atoi(const TChar *p, const TChar *&end) {
         assert(p);
         assert(*p != ' ');
         bool neg;
@@ -438,7 +438,7 @@ namespace SPA {
     }
 
     template<typename TChar>
-    static inline unsigned int atoui(const TChar *p, const TChar *&end) {
+    inline unsigned int atoui(const TChar *p, const TChar *&end) {
         assert(p);
         assert(*p != ' ');
         unsigned int x = 0;
@@ -451,7 +451,7 @@ namespace SPA {
     }
 
     template<typename TChar>
-    static inline INT64 atoll(const TChar *p, const TChar *&end) {
+    inline INT64 atoll(const TChar *p, const TChar *&end) {
         assert(p);
         assert(*p != ' ');
         bool neg;
@@ -474,7 +474,7 @@ namespace SPA {
     }
 
     template<typename TChar>
-    static inline UINT64 atoull(const TChar *p, const TChar *&end) {
+    inline UINT64 atoull(const TChar *p, const TChar *&end) {
         assert(p);
         assert(*p != ' ');
         UINT64 x = 0;
@@ -487,7 +487,7 @@ namespace SPA {
     }
 
     template<typename TChar>
-    static inline double atof(const TChar *p, const TChar *&end) {
+    inline double atof(const TChar *p, const TChar *&end) {
         assert(p);
         assert(*p != ' ');
         bool neg;
