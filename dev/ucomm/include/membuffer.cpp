@@ -1,7 +1,10 @@
-
 #include "membuffer.h"
 #include <assert.h>
 #include <cctype>
+
+#ifndef WIN32_64
+#include <iconv.h>
+#endif
 
 namespace SPA
 {

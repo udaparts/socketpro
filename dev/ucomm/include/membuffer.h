@@ -5,8 +5,14 @@
 #include <algorithm>
 #include "spvariant.h"
 
-#ifndef WIN32_64
-#include <iconv.h>
+#ifdef WIN32_64
+#ifdef SUPPORT_PACKING_ATL_STR
+#include <atlstr.h>
+#endif
+#ifdef SUPPORT_PACKING_COMUTIL
+#include <comutil.h>
+#endif
+
 #endif
 
 namespace SPA {
