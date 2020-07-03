@@ -23,6 +23,10 @@ int main(int argc, char* argv[]) {
         if (!handler) {
             std::cout << "No slave DB available now" << std::endl;
         }
+	handler = CYourServer::Slave->SeekByQueue();
+        if (!handler) {
+            std::cout << "Slave DB queue not available. Some of requests will be not supported at server side!" << std::endl;
+        }
     }
 
     catch(std::exception & err) {
