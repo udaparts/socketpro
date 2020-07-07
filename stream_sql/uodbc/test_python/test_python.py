@@ -12,7 +12,7 @@ from decimal import Decimal
 with CSocketPool(COdbc) as spOdbc:
     print('Remote async odbc server host: ')
     cc = CConnectionContext(sys.stdin.readline(), 20901, 'odbcUser', 'TooMuchSecret')
-    ok = spOdbc.StartSocketPool(cc, 1, 1)
+    ok = spOdbc.StartSocketPool(cc, 1)
     odbc = spOdbc.AsyncHandlers[0]
     if not ok:
         print('No connection error code = ' + str(odbc.AttachedClientSocket.ErrorCode))

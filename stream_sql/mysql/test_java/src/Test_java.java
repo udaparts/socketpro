@@ -100,7 +100,7 @@ public class Test_java {
         cc.Password = "Smash123";
 
         try (CSocketPool<CMysql> spMysql = new CSocketPool<>(CMysql.class)) {
-			boolean ok = spMysql.StartSocketPool(cc, 1, 1);
+			boolean ok = spMysql.StartSocketPool(cc, 1);
 			CMysql mysql = spMysql.getAsyncHandlers()[0];
 			if (!ok) {
 				System.out.println("No connection error code = " + mysql.getAttachedClientSocket().getErrorCode());

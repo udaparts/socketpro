@@ -278,7 +278,7 @@ public class Java_demo {
 
         try (CSocketPool<CSqlite> spSqlite = new CSocketPool<>(CSqlite.class)) {
             //start socket pool having 1 worker thread which hosts two non-block socket
-            boolean ok = spSqlite.StartSocketPool(cc, 2, 1);
+            boolean ok = spSqlite.StartSocketPool(cc, 2);
             if (!ok) {
                 System.out.println("No connection to sqlite server and press any key to close the demo ......");
                 in.nextLine();

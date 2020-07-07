@@ -24,7 +24,7 @@ public class Client_java {
                 String res = cert.Verify(ret);
                 return (ret.Value == 0);
             };
-            boolean ok = master.StartSocketPool(cc, 1, 1);
+            boolean ok = master.StartSocketPool(cc, 1);
             if (!ok) {
                 System.out.println("Failed in connecting to remote middle tier server, and press any key to close the application ......");
                 in.nextLine();

@@ -28,7 +28,7 @@ class Program
 #endif
         using (CSocketPool<CMysql> spMysql = new CSocketPool<CMysql>(true, 600000))
         {
-            if (!spMysql.StartSocketPool(cc, 1, 1))
+            if (!spMysql.StartSocketPool(cc, 1))
             {
                 Console.WriteLine("Failed in connecting to remote async mysql server");
                 Console.WriteLine("Press any key to close the application ......");

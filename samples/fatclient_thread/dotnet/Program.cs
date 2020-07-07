@@ -220,7 +220,7 @@ class Program
         using (CSocketPool<CSqlite> spSqlite = new CSocketPool<CSqlite>())
         {
             //start socket pool having 1 worker thread which hosts 2 non-blocking sockets
-            if (!spSqlite.StartSocketPool(cc, 2, 1))
+            if (!spSqlite.StartSocketPool(cc, 2))
             {
                 Console.WriteLine("No connection to sqlite server and press any key to close the demo ......");
                 Console.Read(); return;

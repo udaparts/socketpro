@@ -70,7 +70,7 @@ namespace test_cache
             //set event for MySQL/Mariadb database shutdown
             m_spSqlite.SocketPoolEvent += new CSocketPool<CSqlite>.DOnSocketPoolEvent(m_spSqlite_SocketPoolEvent);
 
-            if (!m_spSqlite.StartSocketPool(cc, 1, 1))
+            if (!m_spSqlite.StartSocketPool(cc, 1))
             {
                 txtMessage.Text = "No connection to " + txtHost.Text;
                 return;

@@ -24,7 +24,7 @@ class Program
         CConnectionContext cc = new CConnectionContext(host, 20903, "sa", "Smash123"); //20901 for plugindev
         using (CSocketPool<COdbc> spOdbc = new CSocketPool<COdbc>(true, 600000))
         {
-            if (!spOdbc.StartSocketPool(cc, 1, 1))
+            if (!spOdbc.StartSocketPool(cc, 1))
             {
                 Console.WriteLine("Failed in connecting to remote async odbc server");
                 Console.WriteLine("Press any key to close the application ......");

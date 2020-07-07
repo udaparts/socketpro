@@ -68,7 +68,7 @@ namespace test_cache
             //set event for MySQL/Mariadb database shutdown
             m_spSql.SocketPoolEvent += new CSocketPool<COdbc>.DOnSocketPoolEvent(m_spSql_SocketPoolEvent);
 
-            if (!m_spSql.StartSocketPool(cc, 1, 1))
+            if (!m_spSql.StartSocketPool(cc, 1))
             {
                 txtMessage.Text = "No connection to " + txtHost.Text;
                 return;

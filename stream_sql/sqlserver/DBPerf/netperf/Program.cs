@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using SocketProAdapter;
 using SocketProAdapter.ClientSide;
 using SocketProAdapter.UDB;
 using System.Data;
@@ -18,7 +17,7 @@ class Program {
         } finally { }
         using (CSocketPool<COdbc> spSql = new CSocketPool<COdbc>()) {
             CConnectionContext cc = new CConnectionContext(host, 20903, "sa", "Smash123");
-            if (!spSql.StartSocketPool(cc, 1, 1)) {
+            if (!spSql.StartSocketPool(cc, 1)) {
                 Console.WriteLine("Failed in connecting to remote helloworld server. Press any key to close the application ......");
                 Console.Read();
                 return;

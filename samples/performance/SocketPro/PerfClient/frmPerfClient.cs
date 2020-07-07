@@ -1,13 +1,7 @@
 using System;
-using System.Collections.Generic;
-using System.ComponentModel;
 using System.Data;
-using System.Drawing;
-using System.Text;
 using System.Windows.Forms;
-using SocketProAdapter;
 using SocketProAdapter.ClientSide;
-
 
 namespace PerfClient
 {
@@ -27,7 +21,7 @@ namespace PerfClient
                 return;
             m_SocketPool.ShutdownPool();
             CConnectionContext cc = new CConnectionContext(txtHost.Text, uint.Parse(txtPort.Text), "SocketPro", "PassOne");
-            if (m_SocketPool.StartSocketPool(cc, 1, 1))
+            if (m_SocketPool.StartSocketPool(cc, 1))
             {
                 btnEcho.Enabled = true;
                 btnSQL.Enabled = true;

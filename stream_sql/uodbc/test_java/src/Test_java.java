@@ -190,7 +190,7 @@ public class Test_java {
         cc.Password = "pwd_for_uodbc";
 
         try (CSocketPool<COdbc> spOdbc = new CSocketPool<>(COdbc.class, true, 600000)) {
-            boolean ok = spOdbc.StartSocketPool(cc, 1, 1);
+            boolean ok = spOdbc.StartSocketPool(cc, 1);
             COdbc odbc = spOdbc.getAsyncHandlers()[0];
             if (!ok) {
                 System.out.println("No connection error code = " + odbc.getAttachedClientSocket().getErrorCode());

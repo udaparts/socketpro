@@ -22,7 +22,7 @@ class Program
         bool sync = (Console.ReadKey().KeyChar != '0');
         using (CSocketPool<COdbc> spOdbc = new CSocketPool<COdbc>())
         {
-            if (!spOdbc.StartSocketPool(cc, 1, 1))
+            if (!spOdbc.StartSocketPool(cc, 1))
             {
                 Console.WriteLine("Failed in connecting to remote async ODBC server");
                 Console.WriteLine("Press any key to close the application ......");

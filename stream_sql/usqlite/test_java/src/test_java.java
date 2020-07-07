@@ -15,7 +15,7 @@ public class test_java {
         cc.Password = "pwd_for_usqlite";
 
         try (CSocketPool<CSqlite> spSqlite = new CSocketPool<>(CSqlite.class)) {
-            boolean ok = spSqlite.StartSocketPool(cc, 1, 1);
+            boolean ok = spSqlite.StartSocketPool(cc, 1);
             CSqlite sqlite = spSqlite.getAsyncHandlers()[0];
             if (!ok) {
                 System.out.println("No connection error code = " + sqlite.getAttachedClientSocket().getErrorCode());

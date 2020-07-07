@@ -92,7 +92,7 @@ class Program {
         string host = Console.ReadLine();
         CConnectionContext cc = new CConnectionContext(host, 20901, "root", "Smash123");
         using (CSocketPool<CAsyncQueue> spAq = new CSocketPool<CAsyncQueue>()) {
-            if (!spAq.StartSocketPool(cc, 1, 1)) {
+            if (!spAq.StartSocketPool(cc, 1)) {
                 Console.WriteLine("Failed in connecting to remote async queue server, and press any key to close the application ......");
                 Console.Read();
                 return;

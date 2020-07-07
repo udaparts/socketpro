@@ -21,7 +21,7 @@ class Program
         bool sync = (Console.ReadKey().KeyChar != '0');
         using (CSocketPool<CSqlite> spSqlite = new CSocketPool<CSqlite>())
         {
-            if (!spSqlite.StartSocketPool(cc, 1, 1))
+            if (!spSqlite.StartSocketPool(cc, 1))
             {
                 Console.WriteLine("Failed in connecting to remote helloworld server");
                 Console.WriteLine("Press any key to close the application ......");

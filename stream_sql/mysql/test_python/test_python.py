@@ -10,7 +10,7 @@ import datetime
 with CSocketPool(CMysql) as spMysql:
     print('Remote async mysql server host: ')
     cc = CConnectionContext(sys.stdin.readline(), 20902, 'root', 'Smash123')
-    ok = spMysql.StartSocketPool(cc, 1, 1)
+    ok = spMysql.StartSocketPool(cc, 1)
     mysql = spMysql.AsyncHandlers[0]
     if not ok:
         print('No connection error code = ' + str(mysql.AttachedClientSocket.ErrorCode))

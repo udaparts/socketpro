@@ -25,7 +25,7 @@ class Program {
                 string res = cert.Verify(out ret);
                 return (ret == 0);
             };
-            ok = master.StartSocketPool(cc, 1, 1);
+            ok = master.StartSocketPool(cc, 1);
             if (!ok) {
                 Console.WriteLine("Failed in connecting to remote middle tier server, and press any key to close the application ......");
                 Console.ReadLine();

@@ -15,7 +15,7 @@ class Program
         using (CSocketPool<CSqlite> spSqlite = new CSocketPool<CSqlite>())
         {
             //start a socket pool with 1 thread hosting 1 non-blocking socket
-            if (!spSqlite.StartSocketPool(cc, 1, 1))
+            if (!spSqlite.StartSocketPool(cc, 1))
             {
                 Console.WriteLine("Failed in connecting to remote async sqlite server");
                 Console.WriteLine("Press any key to close the application ......");

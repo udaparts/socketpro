@@ -10,7 +10,7 @@ import datetime
 with CSocketPool(CSqlite) as spSqlite:
     print('Remote async sqlite server host: ')
     cc = CConnectionContext(sys.stdin.readline(), 20901, 'PythonUser', 'TooMuchSecret')
-    ok = spSqlite.StartSocketPool(cc, 1, 1)
+    ok = spSqlite.StartSocketPool(cc, 1)
     sqlite = spSqlite.AsyncHandlers[0]
     if not ok:
         print('No connection error code = ' + str(sqlite.AttachedClientSocket.ErrorCode))
