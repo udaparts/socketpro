@@ -20,7 +20,7 @@ public class Program {
         cc.Password = "pwd_for_async_queue";
 
         try (CSocketPool<CAsyncQueue> spAq = new CSocketPool<>(CAsyncQueue.class)) {
-            boolean ok = spAq.StartSocketPool(cc, 1, 1);
+            boolean ok = spAq.StartSocketPool(cc, 1);
             CAsyncQueue aq = spAq.getAsyncHandlers()[0];
             if (!ok) {
                 System.out.println("No connection error code = " + aq.getAttachedClientSocket().getErrorCode());

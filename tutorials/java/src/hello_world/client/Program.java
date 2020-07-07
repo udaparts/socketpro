@@ -12,7 +12,7 @@ public class Program {
         try (CSocketPool<HelloWorld> spHw = new CSocketPool<>(HelloWorld.class, true)) {
             //optionally start a persistent queue at client side to ensure auto failure recovery and once-only delivery
             //spHw.setQueueName("helloworld");
-            boolean ok = spHw.StartSocketPool(cc, 1, 1);
+            boolean ok = spHw.StartSocketPool(cc, 1);
             HelloWorld hw = spHw.getAsyncHandlers()[0];
             if (!hw.getAttachedClientSocket().getConnected()) {
                 System.out.println("No connection error code = " + hw.getAttachedClientSocket().getErrorCode());

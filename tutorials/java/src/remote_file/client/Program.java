@@ -9,7 +9,7 @@ public class Program {
         java.util.Scanner scanner = new java.util.Scanner(System.in);
         try (CSocketPool<CStreamingFile> spRf = new CSocketPool<>(CStreamingFile.class)) {
             do {
-                if (!spRf.StartSocketPool(cc, 1, 1)) {
+                if (!spRf.StartSocketPool(cc, 1)) {
                     System.out.println("Can not connect to remote server");
                     break;
                 }

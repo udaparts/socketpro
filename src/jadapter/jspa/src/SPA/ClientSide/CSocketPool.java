@@ -430,8 +430,7 @@ public class CSocketPool<THandler extends CAsyncServiceHandler> implements AutoC
      *
      * @param cc A connection context structure
      * @param socketsPerThread The number of socket connections per thread
-     * @param threads The number of threads in a pool which defaults to the
-     * number of CPU cores
+     * @param threads The number of threads in a pool which defaults to 1
      * @param avg A boolean value for building internal socket pool, which
      * defaults to true.
      * @param ta A value for COM thread apartment if there is COM object
@@ -441,8 +440,8 @@ public class CSocketPool<THandler extends CAsyncServiceHandler> implements AutoC
      * there is one connection started
      */
     public final boolean StartSocketPool(CConnectionContext cc, int socketsPerThread, int threads, boolean avg, SPA.tagThreadApartment ta) {
-        if (threads == 0) {
-            threads = Runtime.getRuntime().availableProcessors();
+        if (threads <= 0) {
+            threads = 1;
         }
         CConnectionContext[][] mcc = new CConnectionContext[threads][socketsPerThread];
         for (int m = 0; m < socketsPerThread; ++m) {
@@ -458,8 +457,7 @@ public class CSocketPool<THandler extends CAsyncServiceHandler> implements AutoC
      *
      * @param cc A connection context structure
      * @param socketsPerThread The number of socket connections per thread
-     * @param threads The number of threads in a pool which defaults to the
-     * number of CPU cores
+     * @param threads The number of threads in a pool which defaults to 1
      * @param avg A boolean value for building internal socket pool, which
      * defaults to true.
      * @return False if there is no connection established; and true as long as
@@ -474,8 +472,7 @@ public class CSocketPool<THandler extends CAsyncServiceHandler> implements AutoC
      *
      * @param cc A connection context structure
      * @param socketsPerThread The number of socket connections per thread
-     * @param threads The number of threads in a pool which defaults to the
-     * number of CPU cores
+     * @param threads The number of threads in a pool which defaults to 1
      * @return False if there is no connection established; and true as long as
      * there is one connection started
      */
