@@ -17,7 +17,7 @@ with CMasterPool(CWebAsyncHandler, '', False) as sp:
 
     sp.DoSslServerAuthentication = ssl_server_authentication
 
-    ok = sp.StartSocketPool(cc, 4, 1)
+    ok = sp.StartSocketPool(cc, 4)
     if not ok:
         input('Failed in connecting to remote middle tier server, and press any key to close the application ......')
         exit(-1)

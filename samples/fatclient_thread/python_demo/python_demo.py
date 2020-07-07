@@ -219,7 +219,7 @@ with CSocketPool(CSqlite) as spSqlite:
     print('Remote async sqlite server host: ')
     cc = CConnectionContext(sys.stdin.readline(), 20901, 'PythonUser', 'TooMuchSecret')
     # start socket pool having 1 worker which hosts 2 non-block sockets
-    ok = spSqlite.StartSocketPool(cc, 2, 1)
+    ok = spSqlite.StartSocketPool(cc, 2)
     if not ok:
         print('No connection to sqlite server and press any key to close the demo ......')
         sys.stdin.readline()
