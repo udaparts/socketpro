@@ -695,7 +695,7 @@ namespace SocketProAdapter
             /// <returns>False if there is no connection established; and true as long as there is one connection started</returns>
             public bool StartSocketPool(CConnectionContext cc, uint socketsPerThread)
             {
-                return StartSocketPool(cc, socketsPerThread, 0, true, tagThreadApartment.taNone);
+                return StartSocketPool(cc, socketsPerThread, 1, true, tagThreadApartment.taNone);
             }
 
             /// <summary>
@@ -703,7 +703,7 @@ namespace SocketProAdapter
             /// </summary>
             /// <param name="cc">A connection context structure</param>
             /// <param name="socketsPerThread">The number of socket connections per thread</param>
-            /// <param name="threads">The number of threads in a pool which defaults to the number of CPU cores</param>
+            /// <param name="threads">The number of threads in a pool which defaults to 1</param>
             /// <returns>False if there is no connection established; and true as long as there is one connection started</returns>
             public bool StartSocketPool(CConnectionContext cc, uint socketsPerThread, uint threads)
             {
@@ -715,7 +715,7 @@ namespace SocketProAdapter
             /// </summary>
             /// <param name="cc">A connection context structure</param>
             /// <param name="socketsPerThread">The number of socket connections per thread</param>
-            /// <param name="threads">The number of threads in a pool which defaults to the number of CPU cores</param>
+            /// <param name="threads">The number of threads in a pool which defaults to 1</param>
             /// <param name="avg">A boolean value for building internal socket pool, which defaults to true.</param>
             /// <returns>False if there is no connection established; and true as long as there is one connection started</returns>
             public bool StartSocketPool(CConnectionContext cc, uint socketsPerThread, uint threads, bool avg)
@@ -728,19 +728,14 @@ namespace SocketProAdapter
             /// </summary>
             /// <param name="cc">A connection context structure</param>
             /// <param name="socketsPerThread">The number of socket connections per thread</param>
-            /// <param name="threads">The number of threads in a pool which defaults to the number of CPU cores</param>
+            /// <param name="threads">The number of threads in a pool which defaults to 1</param>
             /// <param name="avg">A boolean value for building internal socket pool, which defaults to true.</param>
             /// <param name="ta">A value for COM thread apartment if there is COM object involved. It is ignored on non-window platforms, and default to tagThreadApartment.taNone</param>
             /// <returns>False if there is no connection established; and true as long as there is one connection started</returns>
             public bool StartSocketPool(CConnectionContext cc, uint socketsPerThread, uint threads, bool avg, tagThreadApartment ta)
             {
-
                 if (threads == 0)
-#if WINCE
                     threads = 1;
-#else
-                    threads = (uint)Environment.ProcessorCount;
-#endif
                 CConnectionContext[,] mcc = new CConnectionContext[threads, socketsPerThread];
                 for (uint m = 0; m < socketsPerThread; ++m)
                 {

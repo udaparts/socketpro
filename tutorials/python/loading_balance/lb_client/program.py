@@ -14,7 +14,7 @@ else:
     CClientSocket.QueueConfigure.WorkDirectory = "/home/yye/sp_test/"
 cc = CConnectionContext("localhost", 20901, "lb_client", "pwd_lb_client")
 with CSocketPool(Pi) as spPi:
-    ok = spPi.StartSocketPool(cc, 1, 1)
+    ok = spPi.StartSocketPool(cc, 1)
     cs = spPi.Sockets[0]
     ok = cs.ClientQueue.StartQueue("pi_queue", 24 * 3600, (cs.EncryptionMethod == tagEncryptionMethod.TLSv1))
     cs.ClientQueue.RoutingQueueIndex = True

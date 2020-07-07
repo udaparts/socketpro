@@ -1,4 +1,3 @@
-
 import threading
 from spa.clientside.ccoreloader import CCoreLoader as ccl
 from spa import classproperty, CScopeUQueue
@@ -7,7 +6,6 @@ from spa.clientside import tagSocketPoolEvent, BaseServiceID, tagEncryptionMetho
 from spa.clientside.conncontext import CConnectionContext
 from spa.clientside.asynchandler import CAsyncServiceHandler
 from spa.clientside.clientsocket import CClientSocket
-import multiprocessing
 
 class CSocketPool(object):
     DEFAULT_QUEUE_TIME_TO_LIVE = 24 * 3600
@@ -402,18 +400,18 @@ class CSocketPool(object):
     </summary>
     <param name="cc">A connection context structure</param>
     <param name="socketsPerThread">The number of socket connections per thread</param>
-    <param name="threads">The number of threads in a pool which defaults to the number of CPU cores</param>
+    <param name="threads">The number of threads in a pool which defaults to 1</param>
     <param name="avg">A boolean value for building internal socket pool, which defaults to true.</param>
     <param name="ta">A value for COM thread apartment if there is COM object involved. It is ignored on non-window platforms, and default to tagThreadApartment.taNone</param>
     <returns>False if there is no connection established; and true as long as there is one connection started</returns>
     """
-    def StartSocketPool(self, cc, socketsPerThread, threads=0, avg=True, ta=tagThreadApartment.taNone):
+    def StartSocketPool(self, cc, socketsPerThread, threads=1, avg=True, ta=tagThreadApartment.taNone):
         if not isinstance(cc, CConnectionContext):
             raise ValueError('Must input a valid CConnectionContext structure')
         if socketsPerThread <= 0:
             raise ValueError('Must input the number of sockets for each of threads')
-        if threads==0:
-            threads = multiprocessing.cpu_count()
+        if threads<=0:
+            threads = 1
         mcc = [[0 for i in range(socketsPerThread)] for i in range(threads)]
         for m in range(0, socketsPerThread):
             for n in range(0, threads):

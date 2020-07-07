@@ -7,7 +7,7 @@ import sys
 
 with CSocketPool(CHelloWorld) as sp:
     cc = CConnectionContext('localhost', 20901, 'PythonUser', 'TooMuchSecret')
-    ok = sp.StartSocketPool(cc, 1, 1)
+    ok = sp.StartSocketPool(cc, 1)
     hw = sp.Seek()
     ok = hw.AttachedClientSocket.ClientQueue.StartQueue('pqueue', 3600, False)
 

@@ -4,7 +4,7 @@ from spa.clientside import *
 with CSocketPool(CStreamingFile) as spFile:
     print('Remote SocketPro file streaming server:')
     cc = CConnectionContext(sys.stdin.readline(), 20901, 'PythonUser', 'TooMuchSecret')
-    ok = spFile.StartSocketPool(cc, 1, 1)
+    ok = spFile.StartSocketPool(cc, 1)
     if not ok:
         print('Can not connect to remote server')
     else:
