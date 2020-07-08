@@ -29,7 +29,7 @@ namespace SPA {
             void Download(const std::wstring &localFile, const std::wstring &filePath, unsigned int flags, INT64 initSize, int &res, std::wstring &errMsg);
             void Upload(const std::wstring &filePath, unsigned int flags, UINT64 fileSize, int &res, std::wstring &errMsg, INT64 &initPos);
             void UploadBackup(const std::wstring &filePath, unsigned int flags, UINT64 fileSize, INT64 initSize);
-            void Uploading(UINT64 &pos);
+            void Uploading(UINT64 &pos, int &res, std::wstring &errMsg);
             void UploadCompleted();
             void CleanOF();
 

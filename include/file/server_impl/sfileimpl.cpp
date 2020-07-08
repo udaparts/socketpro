@@ -7,6 +7,10 @@
 #endif
 #include "../../scloader.h"
 
+#ifdef WIN32_64
+#include <memory>
+#endif
+
 extern std::wstring g_pathRoot;
 
 namespace SPA{
@@ -45,7 +49,7 @@ namespace SPA{
             M_I4_R2(idDownload, Download, std::wstring, std::wstring, unsigned int, INT64, int, std::wstring)
             M_I3_R3(idUpload, Upload, std::wstring, unsigned int, UINT64, int, std::wstring, INT64)
             M_I4_R0(idUploadBackup, UploadBackup, std::wstring, unsigned int, UINT64, INT64)
-            M_I0_R1(idUploading, Uploading, UINT64)
+            M_I0_R3(idUploading, Uploading, UINT64, int, std::wstring)
             M_I0_R0(idUploadCompleted, UploadCompleted)
             END_SWITCH
             return 0;
@@ -95,26 +99,42 @@ namespace SPA{
             InitSize = -1;
         }
 
-        void CSFileImpl::Uploading(UINT64 & pos) {
+        void CSFileImpl::Uploading(UINT64 & pos, int &res, std::wstring & errMsg) {
+            res = 0;
 #ifdef WIN32_64
             if (m_of != INVALID_HANDLE_VALUE) {
+                bool ok;
                 DWORD dw = m_UQueue.GetSize(), dwWritten;
-                BOOL ok = ::WriteFile(m_of, m_UQueue.GetBuffer(), dw, &dwWritten, nullptr);
+                ok = (FALSE == ::WriteFile(m_of, m_UQueue.GetBuffer(), dw, &dwWritten, nullptr));
                 assert(ok);
-                assert(dw == dwWritten);
-                m_oPos += m_UQueue.GetSize();
-                pos = m_oPos;
+                if (ok) {
+                    assert(dw == dwWritten);
+                    m_oPos += m_UQueue.GetSize();
+                    pos = m_oPos;
+                } else {
+                    res = (int) ::GetLastError();
+                    errMsg = Utilities::GetErrorMessage((DWORD) res);
+                }
             }
 #else
             if (m_of != -1) {
                 auto ret = ::write(m_of, m_UQueue.GetBuffer(), m_UQueue.GetSize());
-                assert((unsigned int) ret == m_UQueue.GetSize());
-                m_oPos += m_UQueue.GetSize();
-                pos = m_oPos;
+                bool ok = ((unsigned int) ret == m_UQueue.GetSize());
+                assert(ok);
+                if (ok) {
+                    m_oPos += m_UQueue.GetSize();
+                    pos = m_oPos;
+                } else {
+                    res = errno;
+                    std::string err = strerror(res);
+                    errMsg = Utilities::ToWide(err.c_str(), err.size());
+                }
             }
 #endif
             else {
                 pos = (~0);
+                res = FILE_BAD_OPERATION;
+                errMsg = L"Bad file operation";
             }
             m_UQueue.SetSize(0);
         }
@@ -245,6 +265,7 @@ namespace SPA{
 
         void CSFileImpl::Upload(const std::wstring &filePath, unsigned int flags, UINT64 fileSize, int &res, std::wstring & errMsg, INT64 & initPos) {
             bool absoulute;
+            res = 0;
             initPos = -1;
 #ifdef WIN32_64
             assert(m_of == INVALID_HANDLE_VALUE);
@@ -253,7 +274,6 @@ namespace SPA{
 #endif
             CleanOF();
             m_oFileSize = fileSize;
-            res = 0;
 #ifdef WIN32_64
             std::size_t pos = filePath.find(L":\\");
             absoulute = (pos != std::wstring::npos && pos > 0);
@@ -268,8 +288,9 @@ namespace SPA{
             bool existing = false;
 #ifdef WIN32_64
             DWORD sm = 0;
-            if ((flags & FILE_OPEN_SHARE_WRITE) == FILE_OPEN_SHARE_WRITE)
+            if ((flags & FILE_OPEN_SHARE_WRITE) == FILE_OPEN_SHARE_WRITE) {
                 sm |= FILE_SHARE_WRITE;
+            }
             m_of = ::CreateFileW(m_oFilePath.c_str(), GENERIC_WRITE, sm, nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr);
             if (m_of == INVALID_HANDLE_VALUE) {
                 m_of = ::CreateFileW(m_oFilePath.c_str(), GENERIC_WRITE, sm, nullptr, CREATE_NEW, FILE_ATTRIBUTE_NORMAL, nullptr);
@@ -293,6 +314,10 @@ namespace SPA{
                     initPos = InitSize;
                 }
                 assert(ok);
+                if (!ok) {
+                    res = (int) ::GetLastError();
+                    errMsg = Utilities::GetErrorMessage((DWORD) res);
+                }
             }
 #else
             std::string s = Utilities::ToUTF8(m_oFilePath.c_str(), m_oFilePath.size());
@@ -343,6 +368,7 @@ namespace SPA{
 
         void CSFileImpl::Download(const std::wstring &localFile, const std::wstring &filePath, unsigned int flags, INT64 initSize, int &res, std::wstring & errMsg) {
             bool absoulute;
+            CleanOF(); //clean file uploading in case it is not completed yet
             res = 0;
 #ifdef WIN32_64
             std::size_t pos = filePath.find(L":\\");
@@ -358,16 +384,21 @@ namespace SPA{
             }
 #ifdef WIN32_64
             DWORD sm = 0;
-            if ((flags & FILE_OPEN_SHARE_READ) == FILE_OPEN_SHARE_READ)
+            if ((flags & FILE_OPEN_SHARE_READ) == FILE_OPEN_SHARE_READ) {
                 sm |= FILE_SHARE_READ;
-            HANDLE h = ::CreateFileW(path.c_str(), GENERIC_READ, sm, nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr);
-            if (h == INVALID_HANDLE_VALUE) {
+            }
+            std::shared_ptr<void> h(::CreateFileW(path.c_str(), GENERIC_READ, sm, nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr), [](HANDLE p) {
+                if (p != INVALID_HANDLE_VALUE) {
+                    ::CloseHandle(p);
+                }
+            });
+            if (h.get() == INVALID_HANDLE_VALUE) {
                 res = (int) ::GetLastError();
                 errMsg = Utilities::GetErrorMessage((DWORD) res);
                 return;
             }
             LARGE_INTEGER li;
-            if (!::GetFileSizeEx(h, &li)) {
+            if (!::GetFileSizeEx(h.get(), &li)) {
                 res = ::GetLastError();
                 errMsg = Utilities::GetErrorMessage((DWORD) res);
                 return;
@@ -377,27 +408,38 @@ namespace SPA{
                 CScopeUQueue sb;
                 sb << StreamSize << localFile << filePath << flags << initSize;
                 if (SendResult(idStartDownloading, sb->GetBuffer(), sb->GetSize()) != sb->GetSize()) {
-                    ::CloseHandle(h);
                     return; //socket closed or canceled
                 }
             }
             CScopeUQueue sb(MY_OPERATION_SYSTEM, IsBigEndian(), STREAM_CHUNK_SIZE);
             unsigned int size = (unsigned int) ((StreamSize > STREAM_CHUNK_SIZE) ? STREAM_CHUNK_SIZE : StreamSize);
             DWORD dwRead = 0;
-            BOOL ok = ::ReadFile(h, (LPVOID) sb->GetBuffer(), size, &dwRead, nullptr);
+            BOOL ok = ::ReadFile(h.get(), (LPVOID) sb->GetBuffer(), size, &dwRead, nullptr);
             assert(ok);
+            if (!ok) {
+                res = ::GetLastError();
+                errMsg = Utilities::GetErrorMessage((DWORD) res);
+                return;
+            }
             while (dwRead > 0) {
+                if (GetInterruptOptions()) {
+                    res = FILE_DOWNLOADING_INTERRUPTED;
+                    errMsg = L"File downloading interrupted";
+                }
                 if (SendResult(idDownloading, sb->GetBuffer(), (unsigned int) dwRead) != dwRead) {
-                    ::CloseHandle(h);
                     return; //socket closed or canceled
                 }
                 StreamSize -= dwRead;
                 size = (unsigned int) ((StreamSize > STREAM_CHUNK_SIZE) ? STREAM_CHUNK_SIZE : StreamSize);
                 dwRead = 0;
-                ok = ::ReadFile(h, (LPVOID) sb->GetBuffer(), size, &dwRead, nullptr);
+                ok = ::ReadFile(h.get(), (LPVOID) sb->GetBuffer(), size, &dwRead, nullptr);
                 assert(ok);
+                if (!ok) {
+                    res = ::GetLastError();
+                    errMsg = Utilities::GetErrorMessage((DWORD) res);
+                    return;
+                }
             }
-            ::CloseHandle(h);
 #else
             std::string s = Utilities::ToUTF8(path.c_str(), path.size());
             int h = ::open(s.c_str(), O_RDONLY);
@@ -444,6 +486,10 @@ namespace SPA{
             CScopeUQueue sb(MY_OPERATION_SYSTEM, IsBigEndian(), STREAM_CHUNK_SIZE);
             auto ret = ::read(h, (void*) sb->GetBuffer(), size);
             while (ret > 0) {
+                if (GetInterruptOptions()) {
+                    res = FILE_DOWNLOADING_INTERRUPTED;
+                    errMsg = L"File downloading interrupted";
+                }
                 if (SendResult(idDownloading, sb->GetBuffer(), (unsigned int) ret) != (unsigned int) ret) {
                     ::close(h);
                     return; //socket closed or canceled
