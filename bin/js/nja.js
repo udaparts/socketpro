@@ -1088,6 +1088,14 @@ class CAsyncFile extends CHandler {
         return this.handler.getFilesQueued();
     }
 
+    get FilesStreamed() {
+        return this.handler.getFilesStreamed();
+    }
+
+    set FilesStreamed(max) {
+        return this.handler.setFilesStreamed(max);
+    }
+
     Upload(localFile, remoteFile, cb = null, progress = null, discarded = null) {
         return this.handler.Upload(localFile, remoteFile, cb, progress, discarded);
     }

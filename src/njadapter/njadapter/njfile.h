@@ -28,6 +28,8 @@ namespace NJA {
         static void Download(const FunctionCallbackInfo<Value>& args);
         static void Exchange(bool download, const FunctionCallbackInfo<Value>& args);
         static void Cancel(const FunctionCallbackInfo<Value>& args);
+        static void getFilesStreamed(const FunctionCallbackInfo<Value>& args);
+        static void setFilesStreamed(const FunctionCallbackInfo<Value>& args);
 
     private:
         static Persistent<Function> constructor;

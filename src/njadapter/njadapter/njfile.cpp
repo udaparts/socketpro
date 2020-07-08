@@ -1,4 +1,3 @@
-
 #include "stdafx.h"
 #include "njfile.h"
 
@@ -39,6 +38,8 @@ namespace NJA {
 
         //property
         NODE_SET_PROTOTYPE_METHOD(tpl, "getFilesQueued", getFilesQueued);
+        NODE_SET_PROTOTYPE_METHOD(tpl, "getFilesStreamed", getFilesStreamed);
+        NODE_SET_PROTOTYPE_METHOD(tpl, "setFilesStreamed", setFilesStreamed);
         auto ctx = isolate->GetCurrentContext();
         constructor.Reset(isolate, tpl->GetFunction(ctx).ToLocalChecked());
         exports->Set(ctx, ToStr(isolate, "CAsyncFile"), tpl->GetFunction(ctx).ToLocalChecked());
@@ -89,6 +90,32 @@ namespace NJA {
         if (obj->IsValid(isolate)) {
             size_t data = obj->m_file->GetFilesQueued();
             args.GetReturnValue().Set(Number::New(isolate, (double) data));
+        }
+    }
+
+    void NJFile::getFilesStreamed(const FunctionCallbackInfo<Value>& args) {
+        Isolate* isolate = args.GetIsolate();
+        NJFile* obj = ObjectWrap::Unwrap<NJFile>(args.Holder());
+        if (obj->IsValid(isolate)) {
+            unsigned int data = obj->m_file->GetFilesStreamed();
+            args.GetReturnValue().Set(Number::New(isolate, (double) data));
+        }
+    }
+
+    void NJFile::setFilesStreamed(const FunctionCallbackInfo<Value>& args) {
+        Isolate* isolate = args.GetIsolate();
+        NJFile* obj = ObjectWrap::Unwrap<NJFile>(args.Holder());
+        if (obj->IsValid(isolate)) {
+            unsigned int max = 1;
+            auto p = args[0];
+            if (p->IsUint32()) {
+                max = p->Uint32Value(isolate->GetCurrentContext()).ToChecked();
+                obj->m_file->SetFilesStreamed(max);
+            } else if (!IsNullOrUndefined(p)) {
+                ThrowException(isolate, "An unsigned int value expected");
+                return;
+            }
+            args.GetReturnValue().Set(Number::New(isolate, obj->m_file->GetFilesStreamed()));
         }
     }
 

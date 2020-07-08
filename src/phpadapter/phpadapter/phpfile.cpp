@@ -214,8 +214,22 @@ namespace PA
             return (int64_t) m_sh->GetFileSize();
         } else if (name == "FilesQueued") {
             return (int64_t) m_sh->GetFilesQueued();
+        } else if (name == "FilesStreamed") {
+            return (int64_t) m_sh->GetFilesStreamed();
         } else {
             return CPhpBaseHandler::__get(name);
+        }
+    }
+
+    void CPhpFile::__set(const Php::Value &name, const Php::Value & value) {
+        if (name == "FilesStreamed") {
+            if (!value.isNumeric()) {
+                throw Php::Exception("An unsigned integer value expected for max number of files streamed");
+            }
+            auto max = value.numericValue();
+            m_sh->SetFilesStreamed((unsigned int) max);
+        } else {
+            Php::Base::__set(name, value);
         }
     }
 
