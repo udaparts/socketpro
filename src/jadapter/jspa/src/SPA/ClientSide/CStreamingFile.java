@@ -1,11 +1,12 @@
 package SPA.ClientSide;
 
 import SPA.*;
-import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.util.ArrayDeque;
 import java.io.IOException;
 import java.io.*;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 public class CStreamingFile extends CAsyncServiceHandler {
 
@@ -56,6 +57,10 @@ public class CStreamingFile extends CAsyncServiceHandler {
     //error code
     public final static int CANNOT_OPEN_LOCAL_FILE_FOR_WRITING = -1;
     public final static int CANNOT_OPEN_LOCAL_FILE_FOR_READING = -2;
+    public final static int FILE_BAD_OPERATION = -3;
+    public final static int FILE_DOWNLOADING_INTERRUPTED = -4;
+
+    public final static int MAX_FILES_STREAMED = 32;
 
     public interface DDownload {
 
@@ -99,17 +104,41 @@ public class CStreamingFile extends CAsyncServiceHandler {
         }
     };
 
-    protected final Object m_csFile = new Object();
+    private int m_MaxDownloading = 1;
+    protected final Lock m_csFile = new ReentrantLock();
     final private ArrayDeque<CContext> m_vContext = new ArrayDeque<>(); //protected by m_csFile;
 
     @Override
     protected void OnMergeTo(CAsyncServiceHandler to) {
         CStreamingFile fTo = (CStreamingFile) to;
-        synchronized (fTo.m_csFile) {
-            synchronized (m_csFile) {
-                fTo.m_vContext.addAll(m_vContext);
-                m_vContext.clear();
+        ArrayDeque<CContext> vHead = new ArrayDeque<>();
+        ArrayDeque<CContext> vTail = new ArrayDeque<>();
+        fTo.m_csFile.lock();
+        try {
+            int count = fTo.m_vContext.size();
+            for (CContext cxt : fTo.m_vContext) {
+                if (cxt.ErrCode == 0 && cxt.ErrMsg.length() == 0 && cxt.File == null) {
+                    vTail.add(cxt);
+                } else {
+                    vHead.add(cxt);
+                }
             }
+            m_csFile.lock();
+            try {
+                vHead.addAll(m_vContext);
+            } finally {
+                m_vContext.clear();
+                m_csFile.unlock();
+            }
+            vHead.addAll(vTail);
+            fTo.m_vContext.clear();
+            fTo.m_vContext.addAll(vHead);
+            if (count == 0 && fTo.m_vContext.size() > 0) {
+                ClientCoreLoader.PostProcessing(fTo.getAttachedClientSocket().getHandle(), 0, 0);
+                fTo.getAttachedClientSocket().DoEcho(); //make sure WaitAll works correctly
+            }
+        } finally {
+            fTo.m_csFile.unlock();
         }
     }
 
@@ -119,8 +148,49 @@ public class CStreamingFile extends CAsyncServiceHandler {
      * @return the number of files queued
      */
     public int getFilesQueued() {
-        synchronized (m_csFile) {
-            return m_vContext.size();
+        int size = 0;
+        m_csFile.lock();
+        try {
+            size = m_vContext.size();
+        } finally {
+            m_csFile.unlock();
+        }
+        return size;
+    }
+
+    /**
+     * Get the number of files streamed
+     *
+     * @return the number of files streamed possibly
+     */
+    public int getFilesStreamed() {
+        int n = 0;
+        m_csFile.lock();
+        try {
+            n = m_MaxDownloading;
+        } finally {
+            m_csFile.unlock();
+        }
+        return n;
+    }
+
+    /**
+     * Set the max number of files streamed possibly
+     *
+     * @param max the max number of files streamed
+     */
+    public void setFilesStreamed(int max) {
+        m_csFile.lock();
+        try {
+            if (max <= 0) {
+                m_MaxDownloading = 1;
+            } else if (max > MAX_FILES_STREAMED) {
+                m_MaxDownloading = MAX_FILES_STREAMED;
+            } else {
+                m_MaxDownloading = max;
+            }
+        } finally {
+            m_csFile.unlock();
         }
     }
 
@@ -131,15 +201,20 @@ public class CStreamingFile extends CAsyncServiceHandler {
      */
     public int Cancel() {
         int canceled = 0;
-        synchronized (m_csFile) {
+        m_csFile.lock();
+        try {
             while (m_vContext.size() > 0) {
                 CContext back = m_vContext.getLast();
                 if (back.File != null) {
+                    //Send an interrupt request onto server to shut down downloading as earlier as possible
+                    Interrupt(1);
                     break;
                 }
                 m_vContext.removeLast();
                 ++canceled;
             }
+        } finally {
+            m_csFile.unlock();
         }
         return canceled;
     }
@@ -150,12 +225,16 @@ public class CStreamingFile extends CAsyncServiceHandler {
      * @return file size in bytes
      */
     public long getFileSize() {
-        synchronized (m_csFile) {
-            if (m_vContext.isEmpty()) {
-                return -1;
+        long n = -1;
+        m_csFile.lock();
+        try {
+            if (!m_vContext.isEmpty()) {
+                n = m_vContext.getFirst().FileSize;
             }
-            return m_vContext.getFirst().FileSize;
+        } finally {
+            m_csFile.unlock();
         }
+        return n;
     }
 
     /**
@@ -164,12 +243,16 @@ public class CStreamingFile extends CAsyncServiceHandler {
      * @return a string for local file name
      */
     public String getLocalFile() {
-        synchronized (m_csFile) {
-            if (m_vContext.isEmpty()) {
-                return null;
+        String s = null;
+        m_csFile.lock();
+        try {
+            if (!m_vContext.isEmpty()) {
+                s = m_vContext.getFirst().LocalFile;
             }
-            return m_vContext.getFirst().LocalFile;
+        } finally {
+            m_csFile.unlock();
         }
+        return s;
     }
 
     /**
@@ -178,77 +261,123 @@ public class CStreamingFile extends CAsyncServiceHandler {
      * @return a string for remote file name
      */
     public String getRemoteFile() {
-        synchronized (m_csFile) {
-            if (m_vContext.isEmpty()) {
-                return null;
+        String s = null;
+        m_csFile.lock();
+        try {
+            if (!m_vContext.isEmpty()) {
+                s = m_vContext.getFirst().FilePath;
             }
-            return m_vContext.getFirst().FilePath;
+        } finally {
+            m_csFile.unlock();
         }
+        return s;
+    }
+
+    private int GetFilesOpened() {
+        int opened = 0;
+        for (CContext it : m_vContext) {
+            if (it.File != null) {
+                ++opened;
+            } else if (it.hasError()) {
+                break;
+            }
+        }
+        return opened;
     }
 
     @Override
     protected void OnPostProcessing(int hint, long data) {
-        CContext ctx = null;
-        CClientSocket cs = getAttachedClientSocket();
-        synchronized (m_csFile) {
-            if (m_vContext.size() > 0) {
-                CContext context = m_vContext.getFirst();
-                if (context.Uploading) {
-                    OpenLocalRead(context);
-                } else {
-                    OpenLocalWrite(context);
+        int d = 0;
+        DAsyncResultHandler rh = null;
+        DOnExceptionFromServer se = null;
+        m_csFile.lock();
+        try {
+            for (CContext it : m_vContext) {
+                if (d >= m_MaxDownloading) {
+                    break;
                 }
-                DAsyncResultHandler rh = null;
-                DOnExceptionFromServer se = null;
-                if (context.ErrCode != 0 || (context.ErrMsg != null && context.ErrMsg.length() > 0)) {
-                    ctx = context;
-                } else if (context.Uploading) {
-                    try (CScopeUQueue sq = new CScopeUQueue()) {
-                        CUQueue sb = sq.getUQueue();
-                        sb.Save(context.FilePath).Save(context.Flags).Save(context.FileSize);
-                        if (!SendRequest(idUpload, sb, rh, context.Discarded, se)) {
-                            ctx = context;
-                            context.ErrCode = cs.getErrorCode();
-                            context.ErrMsg = cs.getErrorMsg();
-                        }
-                    }
-                } else {
-                    try (CScopeUQueue sq = new CScopeUQueue()) {
-                        CUQueue sb = sq.getUQueue();
-                        sb.Save(context.LocalFile).Save(context.FilePath).Save(context.Flags).Save(context.InitSize);
-                        if (!SendRequest(idDownload, sb, rh, context.Discarded, se)) {
-                            ctx = context;
-                            context.ErrCode = cs.getErrorCode();
-                            context.ErrMsg = cs.getErrorMsg();
-                        }
+                if (it.File != null) {
+                    if (it.Uploading) {
+                        break;
+                    } else {
+                        ++d;
+                        continue;
                     }
                 }
+                if (it.hasError()) {
+                    continue;
+                }
+                if (it.Uploading) {
+                    OpenLocalRead(it);
+                    if (!it.hasError()) {
+                        try (CScopeUQueue sq = new CScopeUQueue()) {
+                            CUQueue sb = sq.getUQueue();
+                            sb.Save(it.FilePath).Save(it.Flags).Save(it.FileSize);
+                            SendRequest(idUpload, sb, rh, it.Discarded, se);
+                        }
+                        break;
+                    }
+                } else {
+                    OpenLocalWrite(it);
+                    if (!it.hasError()) {
+                        ++d;
+                        try (CScopeUQueue sq = new CScopeUQueue()) {
+                            CUQueue sb = sq.getUQueue();
+                            sb.Save(it.LocalFile).Save(it.FilePath).Save(it.Flags).Save(it.InitSize);
+                            SendRequest(idDownload, sb, rh, it.Discarded, se);
+                        }
+                    }
+                }
             }
+        } finally {
+            m_csFile.unlock();
         }
-        if (ctx == null) {
-            return;
-        }
-        if (ctx.Uploading) {
-            if (ctx.Upload != null) {
-                ctx.Upload.invoke(this, ctx.ErrCode, ctx.ErrMsg);
+
+        m_csFile.lock();
+        try {
+            while (m_vContext.size() > 0) {
+                CContext it = m_vContext.getFirst();
+                if (it.hasError()) {
+                    CloseFile(it);
+                    if (it.Uploading) {
+                        DUpload cb = it.Upload;
+                        if (cb != null) {
+                            int errCode = it.ErrCode;
+                            String errMsg = it.ErrMsg;
+                            m_csFile.unlock();
+                            try {
+                                cb.invoke(this, errCode, errMsg);
+                            } finally {
+                                m_csFile.lock();
+                            }
+                        }
+                    } else {
+                        DDownload cb = it.Download;
+                        if (cb != null) {
+                            int errCode = it.ErrCode;
+                            String errMsg = it.ErrMsg;
+                            m_csFile.unlock();
+                            try {
+                                cb.invoke(this, errCode, errMsg);
+                            } finally {
+                                m_csFile.lock();
+                            }
+                        }
+                    }
+                    m_vContext.removeFirst();
+                } else {
+                    break;
+                }
             }
-        } else {
-            if (ctx.Download != null) {
-                ctx.Download.invoke(this, ctx.ErrCode, ctx.ErrMsg);
-            }
-        }
-        synchronized (m_csFile) {
-            CloseFile(m_vContext.removeFirst());
-            if (m_vContext.size() > 0) {
-                ClientCoreLoader.PostProcessing(getAttachedClientSocket().getHandle(), 0, 0);
-                getAttachedClientSocket().DoEcho(); //make sure WaitAll works correctly
-            }
+        } finally {
+            m_csFile.unlock();
         }
     }
 
     @Override
     public int CleanCallbacks() {
-        synchronized (m_csFile) {
+        m_csFile.lock();
+        try {
             for (CContext c : m_vContext) {
                 if (c.File != null) {
                     c.ErrCode = CANNOT_OPEN_LOCAL_FILE_FOR_WRITING;
@@ -259,6 +388,8 @@ public class CStreamingFile extends CAsyncServiceHandler {
                 }
             }
             m_vContext.clear();
+        } finally {
+            m_csFile.unlock();
         }
         return super.CleanCallbacks();
     }
@@ -326,31 +457,39 @@ public class CStreamingFile extends CAsyncServiceHandler {
                 DDownload dl = null;
                 int res = mc.LoadInt();
                 String errMsg = mc.LoadString();
-                synchronized (m_csFile) {
+                m_csFile.lock();
+                try {
                     if (m_vContext.size() > 0) {
                         CContext front = m_vContext.getFirst();
                         front.ErrCode = res;
                         front.ErrMsg = errMsg;
                         dl = front.Download;
                     }
+                } finally {
+                    m_csFile.unlock();
                 }
                 if (dl != null) {
                     dl.invoke(this, res, errMsg);
                 }
-                synchronized (m_csFile) {
+                m_csFile.lock();
+                try {
                     if (m_vContext.size() > 0) {
                         CloseFile(m_vContext.removeFirst());
                     }
+                } finally {
+                    m_csFile.unlock();
                 }
                 OnPostProcessing(0, 0);
             }
             break;
             case idStartDownloading:
-                synchronized (m_csFile) {
-                    long fileSize = mc.LoadLong();
-                    String localFile = mc.LoadString(), remoteFile = mc.LoadString();
-                    int flags = mc.LoadInt();
-                    long initSize = mc.LoadLong();
+                long fileSize = mc.LoadLong();
+                String localFile = mc.LoadString();
+                String remoteFile = mc.LoadString();
+                int flags = mc.LoadInt();
+                long initSize = mc.LoadLong();
+                m_csFile.lock();
+                try {
                     if (m_vContext.isEmpty()) {
                         CContext ctx = new CContext(false, flags);
                         ctx.LocalFile = localFile;
@@ -370,33 +509,41 @@ public class CStreamingFile extends CAsyncServiceHandler {
                         }
                     } catch (Exception err) {
                     }
+                } finally {
+                    m_csFile.unlock();
                 }
                 break;
             case idDownloading: {
                 long downloaded = 0;
                 DTransferring trans = null;
                 CContext context = null;
-                synchronized (m_csFile) {
+                m_csFile.lock();
+                try {
                     if (m_vContext.size() > 0) {
                         context = m_vContext.getFirst();
                         trans = context.Transferring;
                         try {
                             context.File.write(mc.getIntenalBuffer());
-                            long initSize = (context.InitSize > 0) ? context.InitSize : 0;
+                            initSize = (context.InitSize > 0) ? context.InitSize : 0;
                             downloaded = context.File.position() - initSize;
                         } catch (IOException err) {
                             context.ErrMsg = err.getLocalizedMessage();
                             context.ErrCode = CANNOT_OPEN_LOCAL_FILE_FOR_WRITING;
                         }
                     }
+                } finally {
+                    m_csFile.unlock();
                 }
                 mc.SetSize(0);
                 if (context != null && context.hasError()) {
                     if (context.Download != null) {
                         context.Download.invoke(this, context.ErrCode, context.ErrMsg);
                     }
-                    synchronized (m_csFile) {
+                    m_csFile.lock();
+                    try {
                         CloseFile(m_vContext.removeFirst());
+                    } finally {
+                        m_csFile.unlock();
                     }
                     OnPostProcessing(0, 0);
                 } else if (trans != null) {
@@ -412,7 +559,8 @@ public class CStreamingFile extends CAsyncServiceHandler {
                 int res = mc.LoadInt();
                 String errMsg = mc.LoadString();
                 if (res != 0 || (errMsg != null && errMsg.length() > 0)) {
-                    synchronized (m_csFile) {
+                    m_csFile.lock();
+                    try {
                         if (m_vContext.size() > 0) {
                             context = m_vContext.getFirst();
                             upl = context.Upload;
@@ -420,12 +568,15 @@ public class CStreamingFile extends CAsyncServiceHandler {
                             context.ErrCode = res;
                             context.ErrMsg = errMsg;
                         }
+                    } finally {
+                        m_csFile.unlock();
                     }
                 } else {
                     DAsyncResultHandler rh = null;
                     DOnExceptionFromServer se = null;
                     CClientSocket cs = getAttachedClientSocket();
-                    synchronized (m_csFile) {
+                    m_csFile.lock();
+                    try {
                         if (m_vContext.size() > 0) {
                             context = m_vContext.getFirst();
                             upl = context.Upload;
@@ -483,6 +634,8 @@ public class CStreamingFile extends CAsyncServiceHandler {
                                 context.ErrMsg = err.getLocalizedMessage();
                             }
                         }
+                    } finally {
+                        m_csFile.unlock();
                     }
                 }
                 if (context != null && context.hasError()) {
@@ -492,25 +645,37 @@ public class CStreamingFile extends CAsyncServiceHandler {
                     if (context.QueueOk) {
                         getAttachedClientSocket().getClientQueue().AbortJob();
                     }
-                    synchronized (m_csFile) {
+                    m_csFile.lock();
+                    try {
                         CloseFile(m_vContext.removeFirst());
+                    } finally {
+                        m_csFile.unlock();
                     }
                     OnPostProcessing(0, 0);
                 }
             }
             break;
             case idUploading: {
+                int errCode = 0;
+                String errMsg = "";
                 CContext context = null;
                 DTransferring trans = null;
                 DAsyncResultHandler rh = null;
                 DOnExceptionFromServer se = null;
                 CClientSocket cs = getAttachedClientSocket();
                 long uploaded = mc.LoadLong();
-                synchronized (m_csFile) {
+                if (mc.getSize() >= 8) {
+                    errCode = mc.LoadInt();
+                    errMsg = mc.LoadString();
+                }
+                m_csFile.lock();
+                try {
                     if (m_vContext.size() > 0) {
                         context = m_vContext.getFirst();
                         trans = context.Transferring;
-                        if (uploaded < 0) {
+                        if (uploaded < 0 || errCode != 0 || errMsg.length() != 0) {
+                            context.ErrCode = errCode;
+                            context.ErrMsg = errMsg;
                             CloseFile(context);
                         } else if (!context.Sent) {
                             try (CScopeUQueue sq = new CScopeUQueue()) {
@@ -539,13 +704,18 @@ public class CStreamingFile extends CAsyncServiceHandler {
                             }
                         }
                     }
+                } finally {
+                    m_csFile.unlock();
                 }
                 if (context != null && context.hasError()) {
                     if (context.Upload != null) {
                         context.Upload.invoke(this, context.ErrCode, context.ErrMsg);
                     }
-                    synchronized (m_csFile) {
+                    m_csFile.lock();
+                    try {
                         CloseFile(m_vContext.removeFirst());
+                    } finally {
+                        m_csFile.unlock();
                     }
                     OnPostProcessing(0, 0);
                 } else if (trans != null) {
@@ -555,7 +725,8 @@ public class CStreamingFile extends CAsyncServiceHandler {
             break;
             case idUploadCompleted: {
                 DUpload upl = null;
-                synchronized (m_csFile) {
+                m_csFile.lock();
+                try {
                     if (m_vContext.size() > 0) {
                         CContext ctx = m_vContext.getFirst();
                         if (ctx.File != null) {
@@ -566,17 +737,22 @@ public class CStreamingFile extends CAsyncServiceHandler {
                             CloseFile(ctx);
                         }
                     }
+                } finally {
+                    m_csFile.unlock();
                 }
                 if (upl != null) {
                     upl.invoke(this, 0, "");
                 }
-                synchronized (m_csFile) {
+                m_csFile.lock();
+                try {
                     if (m_vContext.size() > 0) {
                         CContext ctx = m_vContext.getFirst();
                         if (ctx.File != null) {
                             CloseFile(m_vContext.removeFirst());
                         }
                     }
+                } finally {
+                    m_csFile.unlock();
                 }
                 OnPostProcessing(0, 0);
             }
@@ -616,12 +792,15 @@ public class CStreamingFile extends CAsyncServiceHandler {
         context.Discarded = discarded;
         context.FilePath = remoteFile;
         context.LocalFile = localFile;
-        synchronized (m_csFile) {
+        m_csFile.lock();
+        try {
             m_vContext.addLast(context);
-            if (m_vContext.size() == 1) {
+            if (m_MaxDownloading > GetFilesOpened()) {
                 ClientCoreLoader.PostProcessing(getAttachedClientSocket().getHandle(), 0, 0);
                 getAttachedClientSocket().DoEcho(); //make sure WaitAll works correctly
             }
+        } finally {
+            m_csFile.unlock();
         }
         return true;
     }
@@ -655,12 +834,15 @@ public class CStreamingFile extends CAsyncServiceHandler {
         context.Discarded = discarded;
         context.FilePath = remoteFile;
         context.LocalFile = localFile;
-        synchronized (m_csFile) {
+        m_csFile.lock();
+        try {
             m_vContext.addLast(context);
-            if (m_vContext.size() == 1) {
+            if (m_MaxDownloading > GetFilesOpened()) {
                 ClientCoreLoader.PostProcessing(getAttachedClientSocket().getHandle(), 0, 0);
                 getAttachedClientSocket().DoEcho(); //make sure WaitAll works correctly
             }
+        } finally {
+            m_csFile.unlock();
         }
         return true;
     }
