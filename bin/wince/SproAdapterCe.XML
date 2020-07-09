@@ -636,6 +636,11 @@
             The number of files queued
             </summary>
         </member>
+        <member name="P:SocketProAdapter.ClientSide.CStreamingFile.FilesStreamed">
+            <summary>
+            The max number of files streamed
+            </summary>
+        </member>
         <member name="P:SocketProAdapter.ClientSide.CStreamingFile.FileSize">
             <summary>
             The file size in bytes for current file being in transaction

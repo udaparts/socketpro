@@ -105,7 +105,7 @@ namespace SPA{
             if (m_of != INVALID_HANDLE_VALUE) {
                 bool ok;
                 DWORD dw = m_UQueue.GetSize(), dwWritten;
-                ok = (FALSE == ::WriteFile(m_of, m_UQueue.GetBuffer(), dw, &dwWritten, nullptr));
+                ok = (FALSE != ::WriteFile(m_of, m_UQueue.GetBuffer(), dw, &dwWritten, nullptr));
                 assert(ok);
                 if (ok) {
                     assert(dw == dwWritten);

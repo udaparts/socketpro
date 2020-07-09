@@ -89,6 +89,10 @@ namespace SPA {
 #endif
                 }
 
+                inline bool HasError() const {
+                    return (ErrorCode || ErrMsg.size());
+                }
+
             };
 
         public:
@@ -202,10 +206,10 @@ namespace SPA {
         protected:
 
             virtual void OnPostProcessing(unsigned int hint, UINT64 data) {
-                unsigned int d = 0;
-                DResultHandler rh;
-                DServerException se;
                 {
+                    DResultHandler rh;
+                    DServerException se;
+                    unsigned int d = 0;
                     CAutoLock al(m_csFile);
                     for (auto it = m_vContext.begin(), end = m_vContext.end(); it != end; ++it) {
                         if (d >= m_MaxDownloading) {
@@ -219,18 +223,18 @@ namespace SPA {
                                 continue;
                             }
                         }
-                        if (it->ErrorCode && it->ErrMsg.size()) {
+                        if (it->HasError()) {
                             continue;
                         }
                         if (it->Uploading) {
                             OpenLocalRead(*it);
-                            if (!it->ErrorCode && !it->ErrMsg.size()) {
+                            if (!it->HasError()) {
                                 SendRequest(SFile::idUpload, it->FilePath, it->Flags, it->FileSize, rh, it->Discarded, se);
                                 break;
                             }
                         } else {
                             OpenLocalWrite(*it);
-                            if (!it->ErrorCode && !it->ErrMsg.size()) {
+                            if (!it->HasError()) {
                                 ++d;
                                 SendRequest(SFile::idDownload, it->LocalFile, it->FilePath, it->Flags, it->InitSize, rh, it->Discarded, se);
                             }
@@ -240,14 +244,17 @@ namespace SPA {
                 CAutoLock al(m_csFile);
                 while (m_vContext.size()) {
                     auto it = m_vContext.begin();
-                    if (it->ErrorCode || it->ErrMsg.size()) {
+                    if (it->HasError()) {
                         CloseFile(*it);
                         DDownload cb = it->Download;
                         if (cb) {
                             int errCode = it->ErrorCode;
                             std::wstring errMsg = it->ErrMsg;
                             m_csFile.unlock();
-                            cb(this, errCode, errMsg);
+                            try {
+                                cb(this, errCode, errMsg);
+                            } catch (...) {
+                            }
                             m_csFile.lock();
                         }
                         m_vContext.pop_front();
@@ -264,7 +271,7 @@ namespace SPA {
                 size_t count = fTo.m_vContext.size();
                 std::deque<CContext>::iterator pos = fTo.m_vContext.end();
                 for (auto it = fTo.m_vContext.begin(); it != pos; ++it) {
-                    if (!it->IsOpen() && !it->ErrorCode) {
+                    if (!it->IsOpen() && !it->HasError()) {
                         pos = it;
                         break;
                     }
@@ -470,7 +477,7 @@ namespace SPA {
 
                             }
                         }
-                        if (ctx.ErrorCode || ctx.ErrMsg.size()) {
+                        if (ctx.HasError()) {
                             CloseFile(ctx);
                             if (ctx.Download) {
                                 ctx.Download(this, ctx.ErrorCode, ctx.ErrMsg);
@@ -503,7 +510,7 @@ namespace SPA {
                                 CContext &context = m_vContext.front();
                                 assert(context.Uploading);
                                 trans = context.Transferring;
-                                if (uploaded < 0 || res) {
+                                if (uploaded < 0 || res || errMsg.size()) {
                                     assert(context.QueueOk);
                                     context.ErrorCode = res;
                                     context.ErrMsg = errMsg;
@@ -543,12 +550,15 @@ namespace SPA {
                                 }
                             }
                         }
-                        if (ctx.ErrorCode || ctx.ErrMsg.size()) {
+                        if (ctx.HasError()) {
                             CloseFile(ctx);
                             if (ctx.Download) {
                                 ctx.Download(this, ctx.ErrorCode, ctx.ErrMsg);
                             }
-                            m_vContext.pop_front();
+                            {
+                                CAutoLock al(m_csFile);
+                                m_vContext.pop_front();
+                            }
                             OnPostProcessing(0, 0);
                         } else if (trans) {
                             trans(this, (UINT64) uploaded);
@@ -601,7 +611,7 @@ namespace SPA {
                 for (auto it = m_vContext.cbegin(), end = m_vContext.cend(); it != end; ++it) {
                     if (it->IsOpen()) {
                         ++opened;
-                    } else if (it->ErrorCode || it->ErrMsg.size()) {
+                    } else if (it->HasError()) {
                         break;
                     }
                 }
@@ -611,7 +621,7 @@ namespace SPA {
             static void CloseFile(CContext &context) {
 #ifdef WIN32_64
                 if (context.File != INVALID_HANDLE_VALUE) {
-                    if (!context.Uploading && (context.ErrorCode || context.ErrMsg.size())) {
+                    if (!context.Uploading && context.HasError()) {
                         if (context.InitSize == -1) {
                             ::CloseHandle(context.File);
                             ::DeleteFileW(context.LocalFile.c_str());
@@ -633,7 +643,7 @@ namespace SPA {
                 }
 #else
                 if (context.File != -1) {
-                    if (!context.Uploading && (context.ErrorCode || context.ErrMsg.size())) {
+                    if (!context.Uploading && context.HasError()) {
                         std::string path = Utilities::ToUTF8(context.LocalFile);
                         if (context.InitSize == -1) {
                             ::close(context.File);
