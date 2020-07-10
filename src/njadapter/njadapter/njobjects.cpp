@@ -1211,7 +1211,7 @@ namespace NJA {
         obj->m_errMsg.clear();
         typedef CConnectionContext* PCConnectionContext;
         PCConnectionContext ppCCs[] = {vCCs.data()};
-        bool ok = obj->Handler->StartSocketPool(ppCCs, sessions);
+        bool ok = obj->Handler->StartSocketPool(ppCCs, sessions, 1);
         obj->m_cs.lock();
         if (!ok && !obj->m_errSSL) {
             auto cs = obj->Handler->GetSockets()[0];
