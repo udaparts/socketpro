@@ -174,9 +174,12 @@ namespace SPA {
                 context.LocalFile = localFile;
                 CAutoLock al(m_csFile);
                 m_vContext.push_back(context);
-                if (m_MaxDownloading > GetFilesOpened()) {
+                unsigned int filesOpened = GetFilesOpened();
+                if (m_MaxDownloading > filesOpened) {
                     ClientCoreLoader.PostProcessing(GetAttachedClientSocket()->GetHandle(), 0, 0);
-                    GetAttachedClientSocket()->DoEcho(); //make sure WaitAll works correctly
+                    if (!filesOpened) {
+                        GetAttachedClientSocket()->DoEcho(); //make sure WaitAll works correctly
+                    }
                 }
                 return true;
             }
@@ -196,9 +199,12 @@ namespace SPA {
                 context.LocalFile = localFile;
                 CAutoLock al(m_csFile);
                 m_vContext.push_back(context);
-                if (m_MaxDownloading > GetFilesOpened()) {
+                unsigned int filesOpened = GetFilesOpened();
+                if (m_MaxDownloading > filesOpened) {
                     ClientCoreLoader.PostProcessing(GetAttachedClientSocket()->GetHandle(), 0, 0);
-                    GetAttachedClientSocket()->DoEcho(); //make sure WaitAll works correctly
+                    if (!filesOpened) {
+                        GetAttachedClientSocket()->DoEcho(); //make sure WaitAll works correctly
+                    }
                 }
                 return true;
             }
@@ -206,42 +212,39 @@ namespace SPA {
         protected:
 
             virtual void OnPostProcessing(unsigned int hint, UINT64 data) {
-                {
-                    DResultHandler rh;
-                    DServerException se;
-                    unsigned int d = 0;
-                    CAutoLock al(m_csFile);
-                    for (auto it = m_vContext.begin(), end = m_vContext.end(); it != end; ++it) {
-                        if (d >= m_MaxDownloading) {
+                DResultHandler rh;
+                DServerException se;
+                unsigned int d = 0;
+                CAutoLock al(m_csFile);
+                for (auto it = m_vContext.begin(), end = m_vContext.end(); it != end; ++it) {
+                    if (d >= m_MaxDownloading) {
+                        break;
+                    }
+                    if (it->IsOpen()) {
+                        if (it->Uploading) {
                             break;
-                        }
-                        if (it->IsOpen()) {
-                            if (it->Uploading) {
-                                break;
-                            } else {
-                                ++d;
-                                continue;
-                            }
-                        }
-                        if (it->HasError()) {
+                        } else {
+                            ++d;
                             continue;
                         }
-                        if (it->Uploading) {
-                            OpenLocalRead(*it);
-                            if (!it->HasError()) {
-                                SendRequest(SFile::idUpload, it->FilePath, it->Flags, it->FileSize, rh, it->Discarded, se);
-                                break;
-                            }
-                        } else {
-                            OpenLocalWrite(*it);
-                            if (!it->HasError()) {
-                                ++d;
-                                SendRequest(SFile::idDownload, it->LocalFile, it->FilePath, it->Flags, it->InitSize, rh, it->Discarded, se);
-                            }
+                    }
+                    if (it->HasError()) {
+                        continue;
+                    }
+                    if (it->Uploading) {
+                        OpenLocalRead(*it);
+                        if (!it->HasError()) {
+                            SendRequest(SFile::idUpload, it->FilePath, it->Flags, it->FileSize, rh, it->Discarded, se);
+                            break;
+                        }
+                    } else {
+                        OpenLocalWrite(*it);
+                        if (!it->HasError()) {
+                            ++d;
+                            SendRequest(SFile::idDownload, it->LocalFile, it->FilePath, it->Flags, it->InitSize, rh, it->Discarded, se);
                         }
                     }
                 }
-                CAutoLock al(m_csFile);
                 while (m_vContext.size()) {
                     auto it = m_vContext.begin();
                     if (it->HasError()) {
@@ -611,7 +614,7 @@ namespace SPA {
                 for (auto it = m_vContext.cbegin(), end = m_vContext.cend(); it != end; ++it) {
                     if (it->IsOpen()) {
                         ++opened;
-                    } else if (it->HasError()) {
+                    } else if (!it->HasError()) {
                         break;
                     }
                 }

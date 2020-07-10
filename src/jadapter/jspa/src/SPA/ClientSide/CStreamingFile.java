@@ -278,7 +278,7 @@ public class CStreamingFile extends CAsyncServiceHandler {
         for (CContext it : m_vContext) {
             if (it.File != null) {
                 ++opened;
-            } else if (it.hasError()) {
+            } else if (!it.hasError()) {
                 break;
             }
         }
@@ -329,12 +329,6 @@ public class CStreamingFile extends CAsyncServiceHandler {
                     }
                 }
             }
-        } finally {
-            m_csFile.unlock();
-        }
-
-        m_csFile.lock();
-        try {
             while (m_vContext.size() > 0) {
                 CContext it = m_vContext.getFirst();
                 if (it.hasError()) {
@@ -795,9 +789,12 @@ public class CStreamingFile extends CAsyncServiceHandler {
         m_csFile.lock();
         try {
             m_vContext.addLast(context);
-            if (m_MaxDownloading > GetFilesOpened()) {
+            int filesOpened = GetFilesOpened();
+            if (m_MaxDownloading > filesOpened) {
                 ClientCoreLoader.PostProcessing(getAttachedClientSocket().getHandle(), 0, 0);
-                getAttachedClientSocket().DoEcho(); //make sure WaitAll works correctly
+                if (filesOpened == 0) {
+                    getAttachedClientSocket().DoEcho(); //make sure WaitAll works correctly
+                }
             }
         } finally {
             m_csFile.unlock();
@@ -837,9 +834,12 @@ public class CStreamingFile extends CAsyncServiceHandler {
         m_csFile.lock();
         try {
             m_vContext.addLast(context);
-            if (m_MaxDownloading > GetFilesOpened()) {
+            int filesOpened = GetFilesOpened();
+            if (m_MaxDownloading > filesOpened) {
                 ClientCoreLoader.PostProcessing(getAttachedClientSocket().getHandle(), 0, 0);
-                getAttachedClientSocket().DoEcho(); //make sure WaitAll works correctly
+                if (filesOpened == 0) {
+                    getAttachedClientSocket().DoEcho(); //make sure WaitAll works correctly
+                }
             }
         } finally {
             m_csFile.unlock();

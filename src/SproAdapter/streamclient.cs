@@ -596,10 +596,14 @@ namespace SocketProAdapter.ClientSide
             lock (m_csFile)
             {
                 m_vContext.AddToBack(context);
-                if (m_MaxDownloading > GetFilesOpened())
+                uint filesOpened = GetFilesOpened();
+                if (m_MaxDownloading > filesOpened)
                 {
                     ClientCoreLoader.PostProcessing(AttachedClientSocket.Handle, 0, 0);
-                    AttachedClientSocket.DoEcho(); //make sure WaitAll works correctly
+                    if (filesOpened == 0)
+                    {
+                        AttachedClientSocket.DoEcho(); //make sure WaitAll works correctly
+                    }
                 }
             }
             return true;
@@ -634,7 +638,7 @@ namespace SocketProAdapter.ClientSide
                 {
                     ++opened;
                 }
-                else if (it.HasError)
+                else if (!it.HasError)
                 {
                     break;
                 }
@@ -657,10 +661,14 @@ namespace SocketProAdapter.ClientSide
             lock (m_csFile)
             {
                 m_vContext.AddToBack(context);
-                if (m_MaxDownloading > GetFilesOpened())
+                uint filesOpened = GetFilesOpened();
+                if (m_MaxDownloading > filesOpened)
                 {
                     ClientCoreLoader.PostProcessing(AttachedClientSocket.Handle, 0, 0);
-                    AttachedClientSocket.DoEcho(); //make sure WaitAll works correctly
+                    if (filesOpened == 0)
+                    {
+                        AttachedClientSocket.DoEcho(); //make sure WaitAll works correctly
+                    }
                 }
             }
             return true;
@@ -668,55 +676,51 @@ namespace SocketProAdapter.ClientSide
 
         protected override void OnPostProcessing(uint hint, ulong data)
         {
-            lock (m_csFile)
+            uint d = 0;
+            DAsyncResultHandler rh = null;
+            DOnExceptionFromServer se = null;
+            System.Threading.Monitor.Enter(m_csFile);
+            foreach (CContext it in m_vContext)
             {
-                uint d = 0;
-                DAsyncResultHandler rh = null;
-                DOnExceptionFromServer se = null;
-                foreach (CContext it in m_vContext)
+                if (d >= m_MaxDownloading)
                 {
-                    if (d >= m_MaxDownloading)
+                    break;
+                }
+                if (it.File != null)
+                {
+                    if (it.Uploading)
                     {
                         break;
                     }
-                    if (it.File != null)
-                    {
-                        if (it.Uploading)
-                        {
-                            break;
-                        }
-                        else
-                        {
-                            ++d;
-                            continue;
-                        }
-                    }
-                    if (it.HasError)
-                    {
-                        continue;
-                    }
-                    if (it.Uploading)
-                    {
-                        OpenLocalRead(it);
-                        if (!it.HasError)
-                        {
-                            SendRequest(idUpload, it.FilePath, it.Flags, it.FileSize, rh, it.Discarded, se);
-                            break;
-                        }
-                    }
                     else
                     {
-                        OpenLocalWrite(it);
-                        if (!it.HasError)
-                        {
-                            ++d;
-                            SendRequest(idDownload, it.LocalFile, it.FilePath, it.Flags, it.InitSize, rh, it.Discarded, se);
-                        }
+                        ++d;
+                        continue;
+                    }
+                }
+                if (it.HasError)
+                {
+                    continue;
+                }
+                if (it.Uploading)
+                {
+                    OpenLocalRead(it);
+                    if (!it.HasError)
+                    {
+                        SendRequest(idUpload, it.FilePath, it.Flags, it.FileSize, rh, it.Discarded, se);
+                        break;
+                    }
+                }
+                else
+                {
+                    OpenLocalWrite(it);
+                    if (!it.HasError)
+                    {
+                        ++d;
+                        SendRequest(idDownload, it.LocalFile, it.FilePath, it.Flags, it.InitSize, rh, it.Discarded, se);
                     }
                 }
             }
-
-            System.Threading.Monitor.Enter(m_csFile);
             while (m_vContext.Count > 0)
             {
                 CContext it = m_vContext[0];

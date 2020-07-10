@@ -1,10 +1,9 @@
-
 from spa.clientside import *
 
 with CSocketPool(CStreamingFile) as spFile:
     print('Remote SocketPro file streaming server:')
     cc = CConnectionContext(sys.stdin.readline(), 20901, 'PythonUser', 'TooMuchSecret')
-    ok = spFile.StartSocketPool(cc, 1, 1)
+    ok = spFile.StartSocketPool(cc, 1)
     if not ok:
         print('Can not connect to remote server')
     else:
@@ -39,13 +38,12 @@ with CSocketPool(CStreamingFile) as spFile:
     RemoteFile = "libboost_math_tr1f-vc100-mt-sgd-1_60.lib"
     ok = rf.Download(LocalFile, RemoteFile, cbDownload)
 
-    # ok = rf.WaitAll()
-
     def cbUpload(file, res, errmsg):
         if res:
             print('Error code ' + str(res) + ', error message: ' + errmsg)
         else:
             print('Uploading ' + file.RemoteFile + ' completed')
+
     def cbUProgress(file, uploaded):
         print('Uploading rate: ' + str(uploaded * 100 / file.FileSize) + '%')
 

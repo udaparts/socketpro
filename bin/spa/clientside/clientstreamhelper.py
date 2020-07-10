@@ -1,9 +1,9 @@
-
 from spa import CUQueue, BaseServiceID, CScopeUQueue
 import threading
 from spa.clientside.asynchandler import CAsyncServiceHandler
 from spa.clientside.ccoreloader import CCoreLoader as ccl
 from collections import deque
+import itertools
 import io
 import os
 
@@ -23,6 +23,9 @@ class CContext(object):
         self.QueueOk = False
         self.InitSize = -1
 
+    def _HasError(self):
+        return self.ErrCode or self.ErrMsg
+
     def _CloseFile(self):
         if self.File:
             if not self.Uploading and (self.ErrCode or self.ErrMsg):
@@ -40,7 +43,6 @@ class CContext(object):
 
     def _OpenLocalRead(self):
         try:
-            self.ErrCode = CStreamingFile.CANNOT_OPEN_LOCAL_FILE_FOR_READING
             self.File = open(self.LocalFile, 'rb')
             self.ErrCode = 0
             self.File.seek(0, io.SEEK_END)
@@ -48,25 +50,25 @@ class CContext(object):
             self.File.seek(0, io.SEEK_SET)
         except IOError as e:
             self.ErrMsg = e.strerror
-            self.ErrCode = e.errno
+            self.ErrCode = CStreamingFile.CANNOT_OPEN_LOCAL_FILE_FOR_READING
             if self.File:
                 self.File.close()
                 self.File = None
 
     def _OpenLocalWrite(self):
-        existing = os.path.isfile(self.LocalFile);
-        self.ErrCode = CStreamingFile.CANNOT_OPEN_LOCAL_FILE_FOR_WRITING
-        mode = 'xb'
-        if (self.Flags & CStreamingFile.FILE_OPEN_TRUNCACTED) == CStreamingFile.FILE_OPEN_TRUNCACTED:
-            mode = 'wb'
-        elif (sef.Flags & CStreamingFile.FILE_OPEN_APPENDED) == CStreamingFile.FILE_OPEN_APPENDED:
+        existing = os.path.isfile(self.LocalFile)
+        mode = 'wb'
+        if (self.Flags & CStreamingFile.FILE_OPEN_APPENDED) == CStreamingFile.FILE_OPEN_APPENDED:
             mode = 'ab'
         try:
             self.File = open(self.LocalFile, mode)
+            if mode != 'ab':
+                self.File.truncate(0)
             if existing:
                 self.InitSize = self.File.tell()
             self.ErrCode = 0
         except IOError as e:
+            self.ErrCode = CStreamingFile.CANNOT_OPEN_LOCAL_FILE_FOR_WRITING
             self.ErrMsg = e.strerror
             if self.File:
                 self.File.close()
@@ -94,11 +96,16 @@ class CStreamingFile(CAsyncServiceHandler):
     # error code
     CANNOT_OPEN_LOCAL_FILE_FOR_WRITING = -1
     CANNOT_OPEN_LOCAL_FILE_FOR_READING = -2
+    FILE_BAD_OPERATION = -3
+    FILE_DOWNLOADING_INTERRUPTED = -4
+
+    MAX_FILES_STREAMED = 32
 
     def __init__(self, sid=sidFile):
         super(CStreamingFile, self).__init__(sid)
         self._csFile = threading.Lock()
         self._vContext = deque() # protected by self._csFile
+        self._MaxDownloading = 1
 
     def CleanCallbacks(self):
         with self._csFile:
@@ -138,60 +145,106 @@ class CStreamingFile(CAsyncServiceHandler):
                 return None
             return self._vContext[0].FilePath
 
+    @property
+    def FilesStreamed(self):
+        with self._csFile:
+            return self._MaxDownloading
+
+    @FilesStreamed.setter
+    def FilesStreamed(self, value):
+        with self._csFile:
+            if value <= 0:
+                self._MaxDownloading = 1
+            elif value > CStreamingFile.MAX_FILES_STREAMED:
+                self._MaxDownloading = CStreamingFile.MAX_FILES_STREAMED
+            else:
+                self._MaxDownloading = value
+
     def Cancel(self):
         canceled = 0
         with self._csFile:
             count = len(self._vContext)
             while count > 0:
                 if self._vContext[count-1].File:
+                    # Send an interrupt request onto server to shut down downloading as earlier as possible
+                    self.Interrupt(1)
                     break
                 self._vContext.popleft()
+                count -= 1
                 canceled += 1
         return canceled
 
+    def _GetFilesOpened(self):
+        opened = 0
+        for it in self._vContext:
+            if it.File:
+                opened += 1
+            elif not it._HasError():
+                break
+        return opened
+
     def OnPostProcessing(self, hint, data):
-        cs = self.AttachedClientSocket
-        ctx = CContext(False, 0)
+        d = 0
         with self._csFile:
-            count = len(self._vContext)
-            if count > 0:
-                front = self._vContext[0]
-                if front.Uploading:
-                    front._OpenLocalRead()
+            for it in self._vContext:
+                if d >= self._MaxDownloading:
+                    break
+                if it.File:
+                    if it.Uploading:
+                        break
+                    else:
+                        d += 1
+                        continue
+                if it._HasError():
+                    continue
+                if it.Uploading:
+                    it._OpenLocalRead()
+                    if not it._HasError():
+                        with CScopeUQueue() as q:
+                            q.SaveString(it.FilePath).SaveUInt(it.Flags).SaveULong(it.FileSize)
+                            self.SendRequest(CStreamingFile.idUpload, q, None, it.Discarded, None)
+                        break
                 else:
-                    front._OpenLocalWrite()
-                if front.ErrCode or front.ErrMsg:
-                    ctx = front
-                elif front.Uploading:
-                    with CScopeUQueue() as q:
-                        q.SaveString(front.FilePath).SaveUInt(front.Flags).SaveULong(front.FileSize)
-                        if not self.SendRequest(CStreamingFile.idUpload, q, None, front.Discarded, None):
-                            front.ErrCode = cs.ErrorCode
-                            front.ErrMsg = cs.ErrorMessage
-                            ctx = front
+                    it._OpenLocalWrite()
+                    if not it._HasError():
+                        d += 1
+                        with CScopeUQueue() as q:
+                            q.SaveString(it.LocalFile).SaveString(it.FilePath).SaveUInt(it.Flags).SaveLong(it.InitSize)
+                            self.SendRequest(CStreamingFile.idDownload, q, None, it.Discarded, None)
+
+            while len(self._vContext):
+                it = self._vContext[0]
+                if it._HasError():
+                    cb = it.Download
+                    if cb:
+                        try:
+                            self._csFile.release()
+                            cb(self, it.ErrCode, it.ErrMsg)
+                        finally:
+                            self._csFile.acquire()
+                    self._vContext.popleft()
                 else:
-                    with CScopeUQueue() as q:
-                        q.SaveString(front.LocalFile).SaveString(front.FilePath).SaveUInt(front.Flags).SaveLong(front.InitSize)
-                        if not self.SendRequest(CStreamingFile.idDownload, q, None, front.Discarded, None):
-                            front.ErrCode = cs.ErrorCode
-                            front.ErrMsg = cs.ErrorMessage
-                            ctx = front
-        if ctx.ErrCode or ctx.ErrMsg:
-            ctx._CloseFile()
-            if ctx.Download:
-                ctx.Download(self, ctx.ErrCode, ctx.ErrMsg)
-            with self._csFile:
-                self._vContext.popleft()
-            if len(self._vContext) > 0:
-                #post processing the next one
-                ccl.PostProcessing(self.AttachedClientSocket.Handle, 0, 0)
-                self.AttachedClientSocket.DoEcho #make sure WaitAll works correctly
+                    break
 
     def OnMergeTo(self, to):
         with to._csFile:
+            pos = 0
+            count = len(to._vContext)
+            for it in to._vContext:
+                if not it._HasError() and not it.File:
+                    break
+                pos += 1
+            left = deque(itertools.islice(to._vContext, pos))
+            right = deque(itertools.islice(to._vContext, pos, len(to._vContext)))
             with self._csFile:
-                to._vContext.extend(self._vContext)
+                left.extend(self._vContext)
                 self._vContext = deque()
+            left.extend(right)
+            to._vContext = left
+            if count == 0 and len(to._vContext):
+                ccl.PostProcessing(to.AttachedClientSocket.Handle, 0, 0)
+                if not to.AttachedClientSocket.CountOfRequestsInQueue:
+                    to.AttachedClientSocket.DoEcho() #make sure WaitAll works correctly
 
     def Upload(self, localFile, remoteFile, up=None, trans=None, discarded=None, flags=FILE_OPEN_TRUNCACTED):
         if not localFile:
@@ -206,9 +259,11 @@ class CStreamingFile(CAsyncServiceHandler):
         context.LocalFile = localFile
         with self._csFile:
             self._vContext.append(context)
-            if len(self._vContext) == 1:
+            filesOpened = self._GetFilesOpened()
+            if self._MaxDownloading > filesOpened:
                 ccl.PostProcessing(self.AttachedClientSocket.Handle, 0, 0)
-                self.AttachedClientSocket.DoEcho #make sure WaitAll works correctly
+                if not filesOpened:
+                    self.AttachedClientSocket.DoEcho() #make sure WaitAll works correctly
         return True
 
     def Download(self, localFile, remoteFile, dl=None, trans=None, discarded=None, flags=FILE_OPEN_TRUNCACTED):
@@ -224,9 +279,11 @@ class CStreamingFile(CAsyncServiceHandler):
         context.LocalFile = localFile
         with self._csFile:
             self._vContext.append(context)
-            if len(self._vContext) == 1:
+            filesOpened = self._GetFilesOpened()
+            if self._MaxDownloading > filesOpened:
                 ccl.PostProcessing(self.AttachedClientSocket.Handle, 0, 0)
-                self.AttachedClientSocket.DoEcho #make sure WaitAll works correctly
+                if not filesOpened:
+                    self.AttachedClientSocket.DoEcho()  # make sure WaitAll works correctly
         return True
 
     def OnResultReturned(self, reqId, mc):
@@ -255,10 +312,10 @@ class CStreamingFile(CAsyncServiceHandler):
                 initSize = mc.LoadLong()
                 if len(self._vContext) == 0:
                     ctx = CContext(False, flags)
-                    ctx.LocalFile = localFile;
-                    ctx.FilePath = remoteFile;
-                    OpenLocalWrite(ctx);
-                    ctx.InitSize = initSize;
+                    ctx.LocalFile = localFile
+                    ctx.FilePath = remoteFile
+                    ctx._OpenLocalWrite()
+                    ctx.InitSize = initSize
                     self._vContext.append(ctx)
                 front = self._vContext[0]
                 front.FileSize = fileSize
@@ -353,15 +410,23 @@ class CStreamingFile(CAsyncServiceHandler):
                     cs.ClientQueue.AbortJob()
                 self.OnPostProcessing(0, 0)
         elif reqId == CStreamingFile.idUploading:
+            errCode = 0
+            errMsg = ''
             cs = self.AttachedClientSocket
             ctx = CContext(False, 0)
             trans = None
             uploaded = mc.LoadLong()
+            if mc.GetSize() >= 8:
+                errCode = mc.LoadInt()
+                errMsg = mc.LoadString()
             with self._csFile:
                 if len(self._vContext) > 0:
                     context = self._vContext[0]
                     trans = context.Transferring
-                    if uploaded < 0:
+                    if uploaded < 0 or errCode or errMsg:
+                        context.ErrMsg = errMsg
+                        context.ErrCode = errCode
+                        ctx = context
                         context._CloseFile()
                     elif not context.Sent:
                         ret = bytearray(context.File.read(CStreamingFile.STREAM_CHUNK_SIZE))
