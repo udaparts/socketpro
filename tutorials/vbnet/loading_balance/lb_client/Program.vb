@@ -12,7 +12,7 @@ Friend Class Program
         End If
         Dim cc As New CConnectionContext("localhost", 20901, "lb_client", "pwd_lb_client")
         Using spPi As New CSocketPool(Of Pi)(True) 'true -- automatic reconnecting
-            ok = spPi.StartSocketPool(cc, 1, 1)
+            ok = spPi.StartSocketPool(cc, 1)
             Dim cs As CClientSocket = spPi.Sockets(0)
 
             'use persistent queue to ensure auto failure recovery and at-least-once or once-only delivery

@@ -11,7 +11,7 @@ class Program
             //optionally start a persistent queue at client side to ensure auto failure recovery and once-only delivery
             //spHw.QueueName = "helloworld";
 
-            bool ok = spHw.StartSocketPool(cc, 1, 1);
+            bool ok = spHw.StartSocketPool(cc, 1);
             HelloWorld hw = spHw.Seek(); //or HelloWorld hw = spHw.Lock();
 
             //process requests one by one synchronously

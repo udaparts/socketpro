@@ -6,7 +6,7 @@ Friend Class Program
         Using spHw As New CSocketPool(Of HelloWorld)(True) 'true -- automatic reconnecting
             'optionally start a persistent queue at client side to ensure auto failure recovery and once-only delivery
             'spHw.QueueName = "helloworld";
-            Dim ok As Boolean = spHw.StartSocketPool(cc, 1, 1)
+            Dim ok As Boolean = spHw.StartSocketPool(cc, 1)
             Dim hw As HelloWorld = spHw.Seek() 'or HelloWorld hw = spHw.Lock();
 
             'process requests one by one synchronously

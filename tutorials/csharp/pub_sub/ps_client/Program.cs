@@ -48,7 +48,7 @@ class Program
             };
 
             //error handling ignored for code clarity
-            bool ok = spHw.StartSocketPool(cc, 1, 1);
+            bool ok = spHw.StartSocketPool(cc, 1);
             HelloWorld hw = spHw.Seek(); //or HelloWorld hw = spHw.Lock();
             
             CClientSocket ClientSocket = hw.AttachedClientSocket;

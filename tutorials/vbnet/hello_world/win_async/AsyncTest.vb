@@ -26,7 +26,7 @@ Namespace win_async
 
         Private Sub async_Load(ByVal sender As Object, ByVal e As EventArgs) Handles MyBase.Load
             Dim cc As New CConnectionContext("127.0.0.1", 20901, "MyUserId", "MyPassword")
-            btnTest.Enabled = m_spHw.StartSocketPool(cc, 1, 1)
+            btnTest.Enabled = m_spHw.StartSocketPool(cc, 1)
         End Sub
 
         Private Async Sub btnTest_Click(ByVal sender As Object, ByVal e As EventArgs) Handles btnTest.Click

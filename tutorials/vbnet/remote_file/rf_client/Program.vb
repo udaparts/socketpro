@@ -5,7 +5,7 @@ Friend Class Program
         Console.WriteLine("Remote SocketPro file streaming server:")
         Dim cc As New CConnectionContext(Console.ReadLine(), 20901, "MyUserId", "MyPassword")
         Using spRf As New CSocketPool(Of CStreamingFile)()
-            Dim ok As Boolean = spRf.StartSocketPool(cc, 1, 1)
+            Dim ok As Boolean = spRf.StartSocketPool(cc, 1)
             If Not ok Then
                 Console.WriteLine("Can not connect to remote server, and press key ENTER to shutdown the demo application ......")
                 Console.ReadLine()

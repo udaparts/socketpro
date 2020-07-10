@@ -75,7 +75,7 @@ Class Program
         Dim host As String = Console.ReadLine()
         Dim cc As New CConnectionContext(host, 20901, "async_queue_client", "pwd_for_async_queue")
         Using spAq As New CSocketPool(Of CAsyncQueue)()
-            If Not spAq.StartSocketPool(cc, 1, 1) Then
+            If Not spAq.StartSocketPool(cc, 1) Then
                 Console.WriteLine("Failed in connecting to remote async queue server")
                 Console.WriteLine("Press any key to close the application ......")
                 Console.Read()

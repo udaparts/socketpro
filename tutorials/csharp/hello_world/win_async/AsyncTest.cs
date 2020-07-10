@@ -31,7 +31,7 @@ namespace win_async
         private void async_Load(object sender, EventArgs e)
         {
             CConnectionContext cc = new CConnectionContext("127.0.0.1", 20901, "MyUserId", "MyPassword");
-            btnTest.Enabled = m_spHw.StartSocketPool(cc, 1, 1);
+            btnTest.Enabled = m_spHw.StartSocketPool(cc, 1);
         }
 
         private void AsyncTest_FormClosed(object sender, System.Windows.Forms.FormClosedEventArgs e)

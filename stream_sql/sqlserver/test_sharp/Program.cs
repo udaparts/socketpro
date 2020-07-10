@@ -426,7 +426,7 @@ class Program {
         using (CSocketPool<CSqlServer> spSql = new CSocketPool<CSqlServer>())
 #endif
  {
-            if (!spSql.StartSocketPool(cc, 1, 1)) {
+            if (!spSql.StartSocketPool(cc, 1)) {
                 Console.WriteLine("Failed in connecting to remote async sql server. Press any key to close the application ......");
                 Console.Read();
                 return;

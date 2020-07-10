@@ -20,7 +20,7 @@ with CSocketPool(CHelloWorld) as sp:
         print(cs.UCert.Verify())
         return True
     sp.DoSslServerAuthentication = OnCertVerification
-    ok = sp.StartSocketPool(cc, 1, 1)
+    ok = sp.StartSocketPool(cc, 1)
     hw = sp.Seek()
     cs = hw.AttachedClientSocket
 

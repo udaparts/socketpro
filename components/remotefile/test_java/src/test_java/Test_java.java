@@ -9,7 +9,7 @@ public class Test_java {
         java.util.Scanner scanner = new java.util.Scanner(System.in);
         CConnectionContext cc = new CConnectionContext(scanner.nextLine(), 20901, "MyUserId", "MyPassword");
         try (CSocketPool<CStreamingFile> spRf = new CSocketPool<>(CStreamingFile.class)) {
-            boolean ok = spRf.StartSocketPool(cc, 1, 1);
+            boolean ok = spRf.StartSocketPool(cc, 1);
             if (!ok) {
                 System.out.println("Can not connect to remote server");
                 System.out.println("Press key ENTER to shutdown the demo application ......");

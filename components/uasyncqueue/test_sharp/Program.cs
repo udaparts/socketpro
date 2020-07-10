@@ -113,7 +113,7 @@ class Program
         CConnectionContext cc = new CConnectionContext(host, 20902, "async_queue_client", "pwd_for_async_queue");
         using (CSocketPool<CAsyncQueue> spAq = new CSocketPool<CAsyncQueue>())
         {
-            if (!spAq.StartSocketPool(cc, 1, 1))
+            if (!spAq.StartSocketPool(cc, 1))
             {
                 Console.WriteLine("Failed in connecting to remote async queue server");
                 Console.WriteLine("Press any key to close the application ......");

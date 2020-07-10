@@ -16,7 +16,7 @@ class Program
         CConnectionContext cc = new CConnectionContext(Console.ReadLine(), 20901, "lb_client", "pwd_lb_client");
         using (CSocketPool<Pi> spPi = new CSocketPool<Pi>(true)) //true -- automatic reconnecting
         {
-            ok = spPi.StartSocketPool(cc, 1, 1);
+            ok = spPi.StartSocketPool(cc, 1);
             CClientSocket cs = spPi.Sockets[0];
 
             //use persistent queue to ensure auto failure recovery and at-least-once or once-only delivery

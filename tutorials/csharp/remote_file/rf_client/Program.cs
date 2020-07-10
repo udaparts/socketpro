@@ -9,7 +9,7 @@ class Program
         CConnectionContext cc = new CConnectionContext(Console.ReadLine(), 20901, "MyUserId", "MyPassword");
         using (CSocketPool<CStreamingFile> spRf = new CSocketPool<CStreamingFile>())
         {
-            bool ok = spRf.StartSocketPool(cc, 1, 1);
+            bool ok = spRf.StartSocketPool(cc, 1);
             if (!ok)
             {
                 Console.WriteLine("Can not connect to remote server and press ENTER key to shutdown the application ......");

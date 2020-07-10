@@ -54,7 +54,7 @@ def TestDequeue(aq):
 with CSocketPool(CAsyncQueue) as spAq:
     print('Remote async queue server host: ')
     cc = CConnectionContext(sys.stdin.readline(), 20901, 'SomeUserId', 'APassword')
-    ok = spAq.StartSocketPool(cc, 1, 1)
+    ok = spAq.StartSocketPool(cc, 1)
     aq = spAq.AsyncHandlers[0]
     if not ok:
         print('No connection error code = ' + str(aq.AttachedClientSocket.ErrorCode))

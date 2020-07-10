@@ -42,7 +42,7 @@ Friend Class Program
                                                        End Function
 
             'error handling ignored for code clarity
-            Dim ok As Boolean = spHw.StartSocketPool(cc, 1, 1)
+            Dim ok As Boolean = spHw.StartSocketPool(cc, 1)
             Dim hw As HelloWorld = spHw.Seek() 'or HelloWorld hw = spHw.Lock();
 
             Dim ClientSocket As CClientSocket = hw.AttachedClientSocket
