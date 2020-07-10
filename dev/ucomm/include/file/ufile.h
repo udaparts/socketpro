@@ -28,6 +28,8 @@ namespace SPA {
         //error code
         static const int CANNOT_OPEN_LOCAL_FILE_FOR_WRITING = -1;
         static const int CANNOT_OPEN_LOCAL_FILE_FOR_READING = -2;
+        static const int FILE_BAD_OPERATION = -3;
+        static const int FILE_DOWNLOADING_INTERRUPTED = -4;
 
     } //namespace File
 } //namespace SPA
