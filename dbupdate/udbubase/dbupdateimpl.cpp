@@ -1,7 +1,9 @@
-
 #include "stdafx.h"
 #include "dbupdateimpl.h"
 #include <sstream>
+#ifdef WIN32_64
+#include <atlbase.h>
+#endif
 
 CDBUpdateImpl CDBUpdateImpl::DBUpdate;
 
@@ -86,7 +88,7 @@ unsigned int CDBUpdateImpl::SetSocketProConnectionString(const wchar_t *connecti
         }
         SPA::ClientSide::CClientSocket::SSL::SetVerifyLocation(m_cert.c_str());
         PCConnectionContext ppCCs[1] = {p};
-        bool ok = m_pPool->StartSocketPool(ppCCs, count);
+        bool ok = m_pPool->StartSocketPool(ppCCs, count, 1);
         m_vCC.clear();
     }
     delete []p;
@@ -164,7 +166,7 @@ SPA::UINT64 CDBUpdateImpl::NotifySocketProDatabaseEvent(unsigned int *group, uns
         auto sockets = m_pPool->GetSockets();
         for (auto it = sockets.begin(), end = sockets.end(); it != end; ++it, ++n) {
             auto s = *(it);
-            bool ok = s->GetPush().Publish(str.c_str(), group, count);
+            bool ok = s->GetPush().Publish(CComVariant(str.c_str()), group, count);
             if (ok) {
                 ++connected;
             } else {
