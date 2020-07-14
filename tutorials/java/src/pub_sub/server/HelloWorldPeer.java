@@ -47,7 +47,7 @@ public class HelloWorldPeer extends CClientPeer {
         System.out.println(getUID() + " sends a message (" + message + ") to " + receiver);
     }
 
-    @RequestAttr(RequestID = hwConst.idSayHelloHelloWorld)
+    @RequestAttr(RequestID = hwConst.idSayHello)
     private String SayHello(String firstName, String lastName) {
         //processed within main thread
         assert (CSocketProServer.getIsMainThread());
@@ -60,7 +60,7 @@ public class HelloWorldPeer extends CClientPeer {
         return res;
     }
 
-    @RequestAttr(RequestID = hwConst.idSleepHelloWorld, SlowRequest = true) //true -- slow request
+    @RequestAttr(RequestID = hwConst.idSleep, SlowRequest = true) //true -- slow request
     private void Sleep(int ms) {
         //processed within a worker thread
         assert (!CSocketProServer.getIsMainThread());
@@ -70,7 +70,7 @@ public class HelloWorldPeer extends CClientPeer {
         }
     }
 
-    @RequestAttr(RequestID = hwConst.idEchoHelloWorld)
+    @RequestAttr(RequestID = hwConst.idEcho)
     private CMyStruct Echo(CMyStruct ms) {
         return ms;
     }

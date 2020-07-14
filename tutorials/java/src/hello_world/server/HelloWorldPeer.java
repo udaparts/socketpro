@@ -6,14 +6,14 @@ import uqueue_demo.CMyStruct;
 
 public class HelloWorldPeer extends CClientPeer {
 
-    @RequestAttr(RequestID = hwConst.idSayHelloHelloWorld)
+    @RequestAttr(RequestID = hwConst.idSayHello)
     private String SayHello(String firstName, String lastName) {
         String res = "Hello " + firstName + " " + lastName;
         System.out.println(res);
         return res;
     }
 
-    @RequestAttr(RequestID = hwConst.idSleepHelloWorld, SlowRequest = true) //true -- slow request
+    @RequestAttr(RequestID = hwConst.idSleep, SlowRequest = true) //true -- slow request
     private void Sleep(int ms) {
         try {
             Thread.sleep(ms);
@@ -21,7 +21,7 @@ public class HelloWorldPeer extends CClientPeer {
         }
     }
 
-    @RequestAttr(RequestID = hwConst.idEchoHelloWorld)
+    @RequestAttr(RequestID = hwConst.idEcho)
     private CMyStruct Echo(CMyStruct ms) {
         return ms;
     }

@@ -33,8 +33,8 @@ public class Program {
             ConnQueue.put("ToLinux", cc);
             boolean ok = hw.Start(ConnQueue, "hw_root_queue_name");
             ok = hw.StartJob();
-            ok = hw.Send(hwConst.idSayHelloHelloWorld, new CScopeUQueue().Save("David").Save("Young"));
-            ok = hw.Send(hwConst.idEchoHelloWorld, new CScopeUQueue().Save(CMyStruct.MakeOne()));
+            ok = hw.Send(hwConst.idSayHello, new CScopeUQueue().Save("David").Save("Young"));
+            ok = hw.Send(hwConst.idEcho, new CScopeUQueue().Save(CMyStruct.MakeOne()));
             ok = hw.EndJob();
             System.out.println("Press key ENTER to shut down the application ......");
             new java.util.Scanner(System.in).nextLine();

@@ -14,7 +14,7 @@ public class HelloWorld extends CAsyncServiceHandler {
     public final String SayHello(String firstName, String lastName) throws Exception {
         UFuture<String> f = new UFuture<>();
         try (CScopeUQueue sb = new CScopeUQueue()) {
-            if (!SendRequest(hwConst.idSayHelloHelloWorld, sb.Save(firstName).Save(lastName), (ar) -> {
+            if (!SendRequest(hwConst.idSayHello, sb.Save(firstName).Save(lastName), (ar) -> {
                 f.set(ar.LoadString());
             }, (ash, canceled) -> {
                 f.setCanceled();
@@ -28,7 +28,7 @@ public class HelloWorld extends CAsyncServiceHandler {
     public boolean Sleep(int ms) throws Exception {
         UFuture<Boolean> f = new UFuture<>();
         try (CScopeUQueue sb = new CScopeUQueue()) {
-            if (!SendRequest(hwConst.idSleepHelloWorld, sb.Save(ms), (ar) -> {
+            if (!SendRequest(hwConst.idSleep, sb.Save(ms), (ar) -> {
                 f.set(true);
             }, (ash, canceled) -> {
                 f.setCanceled();
@@ -42,7 +42,7 @@ public class HelloWorld extends CAsyncServiceHandler {
     public uqueue_demo.CMyStruct Echo(uqueue_demo.CMyStruct ms) throws Exception {
         UFuture<uqueue_demo.CMyStruct> f = new UFuture<>();
         try (CScopeUQueue sb = new CScopeUQueue()) {
-            if (!SendRequest(hwConst.idEchoHelloWorld, sb.Save(ms), (ar) -> {
+            if (!SendRequest(hwConst.idEcho, sb.Save(ms), (ar) -> {
                 f.set(ar.Load(uqueue_demo.CMyStruct.class));
             }, (ash, canceled) -> {
                 f.setCanceled();

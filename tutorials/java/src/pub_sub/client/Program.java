@@ -80,13 +80,13 @@ public class Program {
             };
 
             //asynchronously process multiple requests with inline batching for best network efficiency
-            ok = hw.SendRequest(hello_world.hwConst.idSayHelloHelloWorld, new SPA.CScopeUQueue().Save("Jack").Save("Smith"), (ar) -> {
+            ok = hw.SendRequest(hello_world.hwConst.idSayHello, new SPA.CScopeUQueue().Save("Jack").Save("Smith"), (ar) -> {
                 String ret = ar.LoadString();
                 System.out.println(ret);
             });
 
             ok = ClientSocket.getPush().Publish("We are going to call the method Sleep", 1, 2);
-            ok = hw.SendRequest(hello_world.hwConst.idSleepHelloWorld, new SPA.CScopeUQueue().Save(5000), null);
+            ok = hw.SendRequest(hello_world.hwConst.idSleep, new SPA.CScopeUQueue().Save(5000), null);
 
             System.out.println("Input a receiver for receiving my message ......");
             System.out.println();
