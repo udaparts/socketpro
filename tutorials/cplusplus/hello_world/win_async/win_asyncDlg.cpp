@@ -80,11 +80,7 @@ BOOL Cwin_asyncDlg::OnInitDialog() {
 
 	// TODO: Add extra initialization here
 
-	CConnectionContext cc;
-	cc.Host = "127.0.0.1";
-	cc.Port = 20901;
-	cc.UserId = L"MyUserId";
-	cc.Password = L"MyPassword";
+	CConnectionContext cc("127.0.0.1", 20901, L"MyUserId", L"MyPassword");
 
 	if (!m_spHw.StartSocketPool(cc, 1)) {
 		USES_CONVERSION;
@@ -160,7 +156,7 @@ std::future<void> Cwin_asyncDlg::ExecuteTasksInBatch() {
 	SetMyStruct(ms);
 	try {
 		auto fms = hw->async<CMyStruct, CMyStruct>(idEchoHelloWorld, ms);
-		hw->async(idSleepHelloWorld, (unsigned int)5000);
+		hw->async0(idSleepHelloWorld, (unsigned int)5000);
 		std::wstring s = await hw->async<std::wstring>(idSayHelloHelloWorld, L"Hillary", L"Clinton");
 		//fms definitely contains an instance of returned CMyStruct by this time
 		res = fms.get();

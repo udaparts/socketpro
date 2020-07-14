@@ -305,29 +305,14 @@ namespace SPA {
 
             }
 
-            CConnectionContext(const CConnectionContext &cc)
-            : Host(cc.Host),
-            Port(cc.Port),
-            UserId(cc.UserId),
-            Password(cc.Password),
-            EncrytionMethod(cc.EncrytionMethod),
-            V6(cc.V6),
-            Zip(cc.Zip),
-            AnyData(cc.AnyData) {
-            }
-
-            CConnectionContext& operator=(const CConnectionContext &cc) {
-                if (this != &cc) {
-                    Host = cc.Host;
-                    Port = cc.Port;
-                    UserId = cc.UserId;
-                    Password = cc.Password;
-                    EncrytionMethod = cc.EncrytionMethod;
-                    V6 = cc.V6;
-                    Zip = cc.Zip;
-                    AnyData = cc.AnyData;
-                }
-                return *this;
+            CConnectionContext(const char *addr, unsigned short port, const wchar_t *userId, const wchar_t *pwd, tagEncryptionMethod em = NoEncryption, bool v6 = false, bool zip = false)
+            : Host(addr ? addr : ""),
+            Port(port),
+            UserId(userId ? userId : L""),
+            Password(pwd ? pwd : L""),
+            EncrytionMethod(em),
+            V6(v6),
+            Zip(zip) {
             }
 
 #if defined(PHP_ADAPTER_PROJECT) || defined(NODE_JS_ADAPTER_PROJECT)
@@ -1375,7 +1360,7 @@ namespace SPA {
 
 #ifdef HAVE_FUTURE
 
-            std::future<void> async(unsigned short reqId, const unsigned char *pBuffer, unsigned int size) {
+            std::future<void> async0(unsigned short reqId, const unsigned char *pBuffer, unsigned int size) {
                 std::shared_ptr<std::promise<void> > prom(new std::promise<void>);
                 DDiscarded discarded = [prom, reqId](CAsyncServiceHandler *h, bool canceled) {
                     try {
@@ -1400,78 +1385,78 @@ namespace SPA {
                 return prom->get_future();
             }
 
-            std::future<void> async(unsigned short reqId) {
-                return async(reqId, (const unsigned char *) nullptr, (unsigned int) 0);
+            std::future<void> async0(unsigned short reqId) {
+                return async0(reqId, (const unsigned char *) nullptr, (unsigned int) 0);
             }
 
             template<typename T0, typename T1, typename T2, typename T3, typename T4, typename T5, typename T6, typename T7, typename T8, typename T9>
-            std::future<void> async(unsigned short reqId, const T0 &t0, const T1 &t1, const T2 &t2, const T3 &t3, const T4 &t4, const T5 &t5, const T6 &t6, const T7 &t7, const T8 &t8, const T9 &t9) {
+            std::future<void> async0(unsigned short reqId, const T0 &t0, const T1 &t1, const T2 &t2, const T3 &t3, const T4 &t4, const T5 &t5, const T6 &t6, const T7 &t7, const T8 &t8, const T9 &t9) {
                 CScopeUQueue sb;
                 sb << t0 << t1 << t2 << t3 << t4 << t5 << t6 << t7 << t8 << t9;
-                return async(reqId, sb->GetBuffer(), sb->GetSize());
+                return async0(reqId, sb->GetBuffer(), sb->GetSize());
             }
 
             template<typename T0, typename T1, typename T2, typename T3, typename T4, typename T5, typename T6, typename T7, typename T8>
-            std::future<void> async(unsigned short reqId, const T0 &t0, const T1 &t1, const T2 &t2, const T3 &t3, const T4 &t4, const T5 &t5, const T6 &t6, const T7 &t7, const T8 &t8) {
+            std::future<void> async0(unsigned short reqId, const T0 &t0, const T1 &t1, const T2 &t2, const T3 &t3, const T4 &t4, const T5 &t5, const T6 &t6, const T7 &t7, const T8 &t8) {
                 CScopeUQueue sb;
                 sb << t0 << t1 << t2 << t3 << t4 << t5 << t6 << t7 << t8;
-                return async(reqId, sb->GetBuffer(), sb->GetSize());
+                return async0(reqId, sb->GetBuffer(), sb->GetSize());
             }
 
             template<typename T0, typename T1, typename T2, typename T3, typename T4, typename T5, typename T6, typename T7>
-            std::future<void> async(unsigned short reqId, const T0 &t0, const T1 &t1, const T2 &t2, const T3 &t3, const T4 &t4, const T5 &t5, const T6 &t6, const T7 &t7) {
+            std::future<void> async0(unsigned short reqId, const T0 &t0, const T1 &t1, const T2 &t2, const T3 &t3, const T4 &t4, const T5 &t5, const T6 &t6, const T7 &t7) {
                 CScopeUQueue sb;
                 sb << t0 << t1 << t2 << t3 << t4 << t5 << t6 << t7;
-                return async(reqId, sb->GetBuffer(), sb->GetSize());
+                return async0(reqId, sb->GetBuffer(), sb->GetSize());
             }
 
             template<typename T0, typename T1, typename T2, typename T3, typename T4, typename T5, typename T6>
-            std::future<void> async(unsigned short reqId, const T0 &t0, const T1 &t1, const T2 &t2, const T3 &t3, const T4 &t4, const T5 &t5, const T6 &t6) {
+            std::future<void> async0(unsigned short reqId, const T0 &t0, const T1 &t1, const T2 &t2, const T3 &t3, const T4 &t4, const T5 &t5, const T6 &t6) {
                 CScopeUQueue sb;
                 sb << t0 << t1 << t2 << t3 << t4 << t5 << t6;
-                return async(reqId, sb->GetBuffer(), sb->GetSize());
+                return async0(reqId, sb->GetBuffer(), sb->GetSize());
             }
 
             template<typename T0, typename T1, typename T2, typename T3, typename T4, typename T5>
-            std::future<void> async(unsigned short reqId, const T0 &t0, const T1 &t1, const T2 &t2, const T3 &t3, const T4 &t4, const T5 &t5) {
+            std::future<void> async0(unsigned short reqId, const T0 &t0, const T1 &t1, const T2 &t2, const T3 &t3, const T4 &t4, const T5 &t5) {
                 CScopeUQueue sb;
                 sb << t0 << t1 << t2 << t3 << t4 << t5;
-                return async(reqId, sb->GetBuffer(), sb->GetSize());
+                return async0(reqId, sb->GetBuffer(), sb->GetSize());
             }
 
             template<typename T0, typename T1, typename T2, typename T3, typename T4>
-            std::future<void> async(unsigned short reqId, const T0 &t0, const T1 &t1, const T2 &t2, const T3 &t3, const T4 &t4) {
+            std::future<void> async0(unsigned short reqId, const T0 &t0, const T1 &t1, const T2 &t2, const T3 &t3, const T4 &t4) {
                 CScopeUQueue sb;
                 sb << t0 << t1 << t2 << t3 << t4;
-                return async(reqId, sb->GetBuffer(), sb->GetSize());
+                return async0(reqId, sb->GetBuffer(), sb->GetSize());
             }
 
             template<typename T0, typename T1, typename T2, typename T3>
-            std::future<void> async(unsigned short reqId, const T0 &t0, const T1 &t1, const T2 &t2, const T3 &t3) {
+            std::future<void> async0(unsigned short reqId, const T0 &t0, const T1 &t1, const T2 &t2, const T3 &t3) {
                 CScopeUQueue sb;
                 sb << t0 << t1 << t2 << t3;
-                return async(reqId, sb->GetBuffer(), sb->GetSize());
+                return async0(reqId, sb->GetBuffer(), sb->GetSize());
             }
 
             template<typename T0, typename T1, typename T2>
-            std::future<void> async(unsigned short reqId, const T0 &t0, const T1 &t1, const T2 &t2) {
+            std::future<void> async0(unsigned short reqId, const T0 &t0, const T1 &t1, const T2 &t2) {
                 CScopeUQueue sb;
                 sb << t0 << t1 << t2;
-                return async(reqId, sb->GetBuffer(), sb->GetSize());
+                return async0(reqId, sb->GetBuffer(), sb->GetSize());
             }
 
             template<typename T0, typename T1>
-            std::future<void> async(unsigned short reqId, const T0 &t0, const T1 &t1) {
+            std::future<void> async0(unsigned short reqId, const T0 &t0, const T1 &t1) {
                 CScopeUQueue sb;
                 sb << t0 << t1;
-                return async(reqId, sb->GetBuffer(), sb->GetSize());
+                return async0(reqId, sb->GetBuffer(), sb->GetSize());
             }
 
             template<typename T0>
-            std::future<void> async(unsigned short reqId, const T0 &t0) {
+            std::future<void> async0(unsigned short reqId, const T0 &t0) {
                 CScopeUQueue sb;
                 sb << t0;
-                return async(reqId, sb->GetBuffer(), sb->GetSize());
+                return async0(reqId, sb->GetBuffer(), sb->GetSize());
             }
 
             template<typename R>
