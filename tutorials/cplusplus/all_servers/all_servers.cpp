@@ -89,12 +89,6 @@ private:
 
 int main(int argc, char* argv[]) {
     CMySocketProServer MySocketProServer;
-    //CSocketProServer::QueueManager::SetMessageQueuePassword("MyPasswordForMsgQueue");
-    //#ifdef WIN32_64
-    //    CSocketProServer::QueueManager::SetWorkDirectory("c:\\sp_test\\");
-    //#else
-    //    CSocketProServer::QueueManager::SetWorkDirectory("/home/yye/sp_test/");
-    //#endif
     if (!MySocketProServer.Run(20901)) {
         int errCode = MySocketProServer.GetErrorCode();
         std::cout << "Error happens with code = " << errCode << std::endl;
