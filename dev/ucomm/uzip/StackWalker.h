@@ -83,7 +83,7 @@ public:
 
     BOOL LoadModules();
 
-	BOOL ShowCallstack(EXCEPTION_POINTERS* pExcPtrs, bool mainThread);
+    BOOL ShowCallstack(EXCEPTION_POINTERS* pExcPtrs, bool mainThread);
 
     BOOL ShowCallstack(
             HANDLE hThread = GetCurrentThread(),

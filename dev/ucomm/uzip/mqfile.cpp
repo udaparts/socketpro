@@ -88,7 +88,7 @@ namespace MQ_FILE {
         }
         if (sig == SIGTSTP)
             return;
-        std::ofstream myfile(SPA::GetAppName() + "_crash.txt");
+        std::ofstream myfile(SPA::GetAppName() + "_crash.txt", std::ios::app | std::ios::out);
         if (myfile.is_open()) {
             {
                 MQ_FILE::CAutoLock al(g_csLCI);

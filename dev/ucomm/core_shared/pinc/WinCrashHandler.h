@@ -46,7 +46,7 @@ public:
     static void SigsegvHandler(int);
     static void SigtermHandler(int);
 
-	static std::vector<DWORD> MAIN_THREADS;
+    static std::vector<DWORD> MAIN_THREADS;
 };
 
 #endif

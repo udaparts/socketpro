@@ -162,7 +162,7 @@ void CCrashHandler::GetExceptionPointers(DWORD dwExceptionCode,
 
 void CCrashHandler::CreateMiniDump(EXCEPTION_POINTERS* pExcPtrs) {
     {
-		MQ_FILE::CAutoLock al(MQ_FILE::g_csQFile);
+        MQ_FILE::CAutoLock al(MQ_FILE::g_csQFile);
         for (auto it = MQ_FILE::g_vQFile.begin(), end = MQ_FILE::g_vQFile.end(); it != end; ++it) {
             (*it)->SetOptimistic(SPA::oSystemMemoryCached);
         }
@@ -173,11 +173,11 @@ void CCrashHandler::CreateMiniDump(EXCEPTION_POINTERS* pExcPtrs) {
 
     std::string s("last call info = ");
     StackWalker sw;
-	{
-		MQ_FILE::CAutoLock al(g_csLCI);
-		g_LastCallInfo.SetNull();
-		s += (const char*) g_LastCallInfo.GetBuffer();
-	}
+    {
+        MQ_FILE::CAutoLock al(g_csLCI);
+        g_LastCallInfo.SetNull();
+        s += (const char*) g_LastCallInfo.GetBuffer();
+    }
     s += "\r\n";
     sw.OnOutput(s.c_str());
     sw.ShowCallstack(pExcPtrs, std::find(MAIN_THREADS.begin(), MAIN_THREADS.end(), ::GetCurrentThreadId()) != MAIN_THREADS.end());
@@ -255,19 +255,19 @@ void __cdecl CCrashHandler::InvalidParameterHandler(
         unsigned int line,
         uintptr_t pReserved) {
     pReserved;
-	{
-		StackWalker sw;
-		std::wstring s = L"CCrashHandler::InvalidParameterHandler, express: ";
-		s += expression ? expression : L"";
-		s += L", file: ";
-		s += file ? file : L"";
-		s += L", func: ";
-		s += function ? function : L"";
-		s += L", line: " + std::to_wstring(line);
-		std::string utf8 = SPA::Utilities::ToUTF8(s);
-		utf8 += "\n";
-		sw.OnOutput(utf8.c_str());
-	}
+    {
+        StackWalker sw;
+        std::wstring s = L"CCrashHandler::InvalidParameterHandler, express: ";
+        s += expression ? expression : L"";
+        s += L", file: ";
+        s += file ? file : L"";
+        s += L", func: ";
+        s += function ? function : L"";
+        s += L", line: " + std::to_wstring(line);
+        std::string utf8 = SPA::Utilities::ToUTF8(s);
+        utf8 += "\n";
+        sw.OnOutput(utf8.c_str());
+    }
     // Invalid parameter exception
     // Retrieve exception information
     EXCEPTION_POINTERS* pExceptionPtrs = NULL;
@@ -286,18 +286,18 @@ void __cdecl CCrashHandler::InvalidParameterHandler(
 int __cdecl CCrashHandler::NewHandler(size_t size) {
     // 'new' operator memory allocation exception
 
-	{
-		StackWalker sw;
-		std::wstring s = L"CCrashHandler::NewHandler, size: " + std::to_wstring(size);
-		std::string utf8 = SPA::Utilities::ToUTF8(s);
-		utf8 += "\n";
-		sw.OnOutput(utf8.c_str());
-	}
+    {
+        StackWalker sw;
+        std::wstring s = L"CCrashHandler::NewHandler, size: " + std::to_wstring(size);
+        std::string utf8 = SPA::Utilities::ToUTF8(s);
+        utf8 += "\n";
+        sw.OnOutput(utf8.c_str());
+    }
 
     // Retrieve exception information
     EXCEPTION_POINTERS* pExceptionPtrs = NULL;
     GetExceptionPointers(0, &pExceptionPtrs);
-	
+
     // Write minidump file
     CreateMiniDump(pExceptionPtrs);
 
@@ -312,13 +312,13 @@ int __cdecl CCrashHandler::NewHandler(size_t size) {
 
 void CCrashHandler::SigabrtHandler(int data) {
     // Caught SIGABRT C++ signal
-	{
-		StackWalker sw;
-		std::wstring s = L"CCrashHandler::SigabrtHandler, data: " + std::to_wstring(data);
-		std::string utf8 = SPA::Utilities::ToUTF8(s);
-		utf8 += "\n";
-		sw.OnOutput(utf8.c_str());
-	}
+    {
+        StackWalker sw;
+        std::wstring s = L"CCrashHandler::SigabrtHandler, data: " + std::to_wstring(data);
+        std::string utf8 = SPA::Utilities::ToUTF8(s);
+        utf8 += "\n";
+        sw.OnOutput(utf8.c_str());
+    }
 
     // Retrieve exception information
     EXCEPTION_POINTERS* pExceptionPtrs = NULL;
@@ -337,14 +337,14 @@ void CCrashHandler::SigabrtHandler(int data) {
 void CCrashHandler::SigfpeHandler(int code, int subcode) {
     // Floating point exception (SIGFPE)
 
-	{
-		StackWalker sw;
-		std::wstring s = L"CCrashHandler::SigfpeHandler, code: " + std::to_wstring(code);
-		s += L", subcode: " + std::to_wstring(subcode);
-		std::string utf8 = SPA::Utilities::ToUTF8(s);
-		utf8 += "\n";
-		sw.OnOutput(utf8.c_str());
-	}
+    {
+        StackWalker sw;
+        std::wstring s = L"CCrashHandler::SigfpeHandler, code: " + std::to_wstring(code);
+        s += L", subcode: " + std::to_wstring(subcode);
+        std::string utf8 = SPA::Utilities::ToUTF8(s);
+        utf8 += "\n";
+        sw.OnOutput(utf8.c_str());
+    }
 
     EXCEPTION_POINTERS* pExceptionPtrs = (PEXCEPTION_POINTERS) _pxcptinfoptrs;
 
@@ -360,13 +360,13 @@ void CCrashHandler::SigfpeHandler(int code, int subcode) {
 
 void CCrashHandler::SigillHandler(int data) {
     // Illegal instruction (SIGILL)
-	{
-		StackWalker sw;
-		std::wstring s = L"CCrashHandler::SigillHandler, data: " + std::to_wstring(data);
-		std::string utf8 = SPA::Utilities::ToUTF8(s);
-		utf8 += "\n";
-		sw.OnOutput(utf8.c_str());
-	}
+    {
+        StackWalker sw;
+        std::wstring s = L"CCrashHandler::SigillHandler, data: " + std::to_wstring(data);
+        std::string utf8 = SPA::Utilities::ToUTF8(s);
+        utf8 += "\n";
+        sw.OnOutput(utf8.c_str());
+    }
 
     // Retrieve exception information
     EXCEPTION_POINTERS* pExceptionPtrs = NULL;
@@ -385,13 +385,13 @@ void CCrashHandler::SigillHandler(int data) {
 void CCrashHandler::SigintHandler(int data) {
     // Interruption (SIGINT)
 
-	{
-		StackWalker sw;
-		std::wstring s = L"CCrashHandler::SigintHandler, data: " + std::to_wstring(data);
-		std::string utf8 = SPA::Utilities::ToUTF8(s);
-		utf8 += "\n";
-		sw.OnOutput(utf8.c_str());
-	}
+    {
+        StackWalker sw;
+        std::wstring s = L"CCrashHandler::SigintHandler, data: " + std::to_wstring(data);
+        std::string utf8 = SPA::Utilities::ToUTF8(s);
+        utf8 += "\n";
+        sw.OnOutput(utf8.c_str());
+    }
 
     // Retrieve exception information
     EXCEPTION_POINTERS* pExceptionPtrs = NULL;
@@ -410,13 +410,13 @@ void CCrashHandler::SigintHandler(int data) {
 void CCrashHandler::SigsegvHandler(int data) {
     // Invalid storage access (SIGSEGV)
 
-	{
-		StackWalker sw;
-		std::wstring s = L"CCrashHandler::SigsegvHandler, data: " + std::to_wstring(data);
-		std::string utf8 = SPA::Utilities::ToUTF8(s);
-		utf8 += "\n";
-		sw.OnOutput(utf8.c_str());
-	}
+    {
+        StackWalker sw;
+        std::wstring s = L"CCrashHandler::SigsegvHandler, data: " + std::to_wstring(data);
+        std::string utf8 = SPA::Utilities::ToUTF8(s);
+        utf8 += "\n";
+        sw.OnOutput(utf8.c_str());
+    }
 
     PEXCEPTION_POINTERS pExceptionPtrs = (PEXCEPTION_POINTERS) _pxcptinfoptrs;
 
@@ -432,13 +432,13 @@ void CCrashHandler::SigsegvHandler(int data) {
 
 void CCrashHandler::SigtermHandler(int data) {
     // Termination request (SIGTERM)
-	{
-		StackWalker sw;
-		std::wstring s = L"CCrashHandler::SigtermHandler, data: " + std::to_wstring(data);
-		std::string utf8 = SPA::Utilities::ToUTF8(s);
-		utf8 += "\n";
-		sw.OnOutput(utf8.c_str());
-	}
+    {
+        StackWalker sw;
+        std::wstring s = L"CCrashHandler::SigtermHandler, data: " + std::to_wstring(data);
+        std::string utf8 = SPA::Utilities::ToUTF8(s);
+        utf8 += "\n";
+        sw.OnOutput(utf8.c_str());
+    }
     // Retrieve exception information
     EXCEPTION_POINTERS* pExceptionPtrs = NULL;
     GetExceptionPointers(0, &pExceptionPtrs);
