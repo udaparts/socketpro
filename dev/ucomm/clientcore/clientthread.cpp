@@ -1,6 +1,7 @@
 #ifdef WINCE
 #elif WIN32_64
 #include "../usocket_win/clientsession.h"
+#include "../core_shared/pinc/WinCrashHandler.h"
 #else
 #include "../usocket/clientsession.h"
 #endif
@@ -157,6 +158,13 @@ CClientThread::~CClientThread() {
 }
 
 void CClientThread::OnThreadStarted() {
+#ifdef WIN32_64
+	UTHREAD_ID dwId = ::GetCurrentThreadId();
+	g_mutex.lock();
+	CCrashHandler::MAIN_THREADS.push_back(dwId);
+	g_mutex.unlock();
+#else
+#endif
     if (m_spc) {
         m_spc(GetPool()->GetPoolId(), SPA::ClientSide::speThreadCreated, nullptr);
     }
@@ -166,6 +174,14 @@ void CClientThread::OnThreadEnded() {
     if (m_spc) {
         m_spc(GetPool()->GetPoolId(), SPA::ClientSide::speKillingThread, nullptr);
     }
+#ifdef WIN32_64
+	UTHREAD_ID dwId = ::GetCurrentThreadId();
+	g_mutex.lock();
+	auto it = std::find(CCrashHandler::MAIN_THREADS.cbegin(), CCrashHandler::MAIN_THREADS.cend(), dwId);
+	CCrashHandler::MAIN_THREADS.erase(it);
+	g_mutex.unlock();
+#else
+#endif
 }
 
 unsigned int CClientThread::GetTimerInterval() const {

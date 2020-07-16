@@ -718,7 +718,7 @@ public:
 // #############################################################
 
 StackWalker::StackWalker(DWORD dwProcessId, HANDLE hProcess)
-: m_myfile(SPA::GetAppName() + "_crash.txt") {
+: m_myfile(SPA::GetAppName() + "_crash.txt", std::ios::app | std::ios::out) {
     this->m_options = OptionsAll;
     this->m_modulesLoaded = FALSE;
     this->m_hProcess = hProcess;
@@ -728,7 +728,7 @@ StackWalker::StackWalker(DWORD dwProcessId, HANDLE hProcess)
 }
 
 StackWalker::StackWalker(int options, LPCSTR szSymPath, DWORD dwProcessId, HANDLE hProcess)
-: m_myfile(SPA::GetAppName() + "_crash.txt") {
+: m_myfile(SPA::GetAppName() + "_crash.txt", std::ios::app | std::ios::out) {
     this->m_options = options;
     this->m_modulesLoaded = FALSE;
     this->m_hProcess = hProcess;
@@ -856,9 +856,31 @@ BOOL StackWalker::LoadModules() {
 static StackWalker::PReadProcessMemoryRoutine s_readMemoryFunction = NULL;
 static LPVOID s_readMemoryFunction_UserData = NULL;
 
+BOOL StackWalker::ShowCallstack(EXCEPTION_POINTERS* pExcPtrs, bool mainThread) {
+	const CONTEXT *context = nullptr;
+	DWORD dwArgs = (~0), exCode = (~0), exFlags = (~0);
+	do {
+		if (!pExcPtrs) {
+			break;
+		}
+		context = pExcPtrs->ContextRecord;
+		PEXCEPTION_RECORD er = pExcPtrs->ExceptionRecord;
+		if (!er) {
+			break;
+		}
+		dwArgs = er->NumberParameters;
+		exCode = er->ExceptionCode;
+		exFlags = er->ExceptionFlags;
+	} while (false);
+	char buffer[STACKWALK_MAX_NAMELEN] = { 0 };
+	_snprintf_s(buffer, STACKWALK_MAX_NAMELEN, "IsMainThread: %s, NumberParameters: %d, ExceptionCode: %x, ExceptionFlags: %x\n", mainThread ? "true" : "false", (int)dwArgs, exCode, exFlags);
+	OnOutput(buffer);
+	HANDLE hThread = ::GetCurrentThread();
+	return ShowCallstack(hThread, context);
+}
+
 BOOL StackWalker::ShowCallstack(HANDLE hThread, const CONTEXT *context, PReadProcessMemoryRoutine readMemoryFunction, LPVOID pUserData) {
     CONTEXT c;
-    ;
     CallstackEntry csEntry;
     IMAGEHLP_SYMBOL64 *pSym = NULL;
     StackWalkerInternal::IMAGEHLP_MODULE64_V2 Module;
@@ -889,8 +911,10 @@ BOOL StackWalker::ShowCallstack(HANDLE hThread, const CONTEXT *context, PReadPro
                 return FALSE;
             }
         }
-    } else
-        c = *context;
+	}
+	else {
+		c = *context;
+	}
 
     // init STACKFRAME for first call
     STACKFRAME64 s; // in/out stackframe

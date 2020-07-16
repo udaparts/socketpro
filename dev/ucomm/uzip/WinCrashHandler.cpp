@@ -21,7 +21,9 @@ extern SPA::CUQueue g_LastCallInfo;
 EXTERNC void * _AddressOfReturnAddress(void);
 EXTERNC void * _ReturnAddress(void);
 
-#endif 
+#endif
+
+std::vector<DWORD> CCrashHandler::MAIN_THREADS;
 
 CCrashHandler::CCrashHandler() {
 
@@ -178,96 +180,7 @@ void CCrashHandler::CreateMiniDump(EXCEPTION_POINTERS* pExcPtrs) {
 	}
     s += "\r\n";
     sw.OnOutput(s.c_str());
-    sw.ShowCallstack();
-
-    /*
-HMODULE hDbgHelp = NULL;
-HANDLE hFile = NULL;
-MINIDUMP_EXCEPTION_INFORMATION mei;
-MINIDUMP_CALLBACK_INFORMATION mci;
-    
-// Load dbghelp.dll
-hDbgHelp = LoadLibrary(_T("dbghelp.dll"));
-if(hDbgHelp==NULL)
-{
-    // Error - couldn't load dbghelp.dll
-            return;
-}
-
-// Create the minidump file
-hFile = CreateFile(
-    _T("crashdump.dmp"),
-    GENERIC_WRITE,
-    0,
-    NULL,
-    CREATE_ALWAYS,
-    FILE_ATTRIBUTE_NORMAL,
-    NULL);
-
-if(hFile==INVALID_HANDLE_VALUE)
-{
-    // Couldn't create file
-            return;
-}
-	
-    {
-            DWORD dwWritten = 0;
-            char last[] = "last call info = ";
-            boost::mutex::scoped_lock al(g_csLCI);
-            g_LastCallInfo.Push("\r\n");
-            g_LastCallInfo.SetNull();
-            ::WriteFile(hFile, last, strlen(last),  &dwWritten, nullptr);
-            ::WriteFile(hFile, (const char*)g_LastCallInfo.GetBuffer(), g_LastCallInfo.GetSize(),  &dwWritten, nullptr);
-    }
-
-// Write minidump to the file
-mei.ThreadId = GetCurrentThreadId();
-mei.ExceptionPointers = pExcPtrs;
-mei.ClientPointers = FALSE;
-mci.CallbackRoutine = NULL;
-mci.CallbackParam = NULL;
-
-typedef BOOL (WINAPI *LPMINIDUMPWRITEDUMP)(
-    HANDLE hProcess, 
-    DWORD ProcessId, 
-    HANDLE hFile, 
-    MINIDUMP_TYPE DumpType, 
-    CONST PMINIDUMP_EXCEPTION_INFORMATION ExceptionParam, 
-    CONST PMINIDUMP_USER_STREAM_INFORMATION UserEncoderParam, 
-    CONST PMINIDUMP_CALLBACK_INFORMATION CallbackParam);
-
-LPMINIDUMPWRITEDUMP pfnMiniDumpWriteDump = 
-    (LPMINIDUMPWRITEDUMP)GetProcAddress(hDbgHelp, "MiniDumpWriteDump");
-if(!pfnMiniDumpWriteDump)
-{    
-    // Bad MiniDumpWriteDump function
-    return;
-}
-
-HANDLE hProcess = GetCurrentProcess();
-    DWORD dwProcessId = GetCurrentProcessId();
-
-BOOL bWriteDump = pfnMiniDumpWriteDump(
-    hProcess,
-    dwProcessId,
-    hFile,
-    MiniDumpNormal,
-    &mei,
-    NULL,
-    &mci);
-
-if(!bWriteDump)
-{    
-    // Error writing dump.
-    return;
-}
-
-// Close file
-CloseHandle(hFile);
-
-// Unload dbghelp.dll
-FreeLibrary(hDbgHelp);
-     */
+    sw.ShowCallstack(pExcPtrs, std::find(MAIN_THREADS.begin(), MAIN_THREADS.end(), ::GetCurrentThreadId()) != MAIN_THREADS.end());
 }
 
 // Structured exception handler
@@ -342,9 +255,20 @@ void __cdecl CCrashHandler::InvalidParameterHandler(
         unsigned int line,
         uintptr_t pReserved) {
     pReserved;
-
+	{
+		StackWalker sw;
+		std::wstring s = L"CCrashHandler::InvalidParameterHandler, express: ";
+		s += expression ? expression : L"";
+		s += L", file: ";
+		s += file ? file : L"";
+		s += L", func: ";
+		s += function ? function : L"";
+		s += L", line: " + std::to_wstring(line);
+		std::string utf8 = SPA::Utilities::ToUTF8(s);
+		utf8 += "\n";
+		sw.OnOutput(utf8.c_str());
+	}
     // Invalid parameter exception
-
     // Retrieve exception information
     EXCEPTION_POINTERS* pExceptionPtrs = NULL;
     GetExceptionPointers(0, &pExceptionPtrs);
@@ -359,13 +283,21 @@ void __cdecl CCrashHandler::InvalidParameterHandler(
 
 // CRT new operator fault handler
 
-int __cdecl CCrashHandler::NewHandler(size_t) {
+int __cdecl CCrashHandler::NewHandler(size_t size) {
     // 'new' operator memory allocation exception
+
+	{
+		StackWalker sw;
+		std::wstring s = L"CCrashHandler::NewHandler, size: " + std::to_wstring(size);
+		std::string utf8 = SPA::Utilities::ToUTF8(s);
+		utf8 += "\n";
+		sw.OnOutput(utf8.c_str());
+	}
 
     // Retrieve exception information
     EXCEPTION_POINTERS* pExceptionPtrs = NULL;
     GetExceptionPointers(0, &pExceptionPtrs);
-
+	
     // Write minidump file
     CreateMiniDump(pExceptionPtrs);
 
@@ -378,8 +310,15 @@ int __cdecl CCrashHandler::NewHandler(size_t) {
 
 // CRT SIGABRT signal handler
 
-void CCrashHandler::SigabrtHandler(int) {
+void CCrashHandler::SigabrtHandler(int data) {
     // Caught SIGABRT C++ signal
+	{
+		StackWalker sw;
+		std::wstring s = L"CCrashHandler::SigabrtHandler, data: " + std::to_wstring(data);
+		std::string utf8 = SPA::Utilities::ToUTF8(s);
+		utf8 += "\n";
+		sw.OnOutput(utf8.c_str());
+	}
 
     // Retrieve exception information
     EXCEPTION_POINTERS* pExceptionPtrs = NULL;
@@ -395,8 +334,17 @@ void CCrashHandler::SigabrtHandler(int) {
 
 // CRT SIGFPE signal handler
 
-void CCrashHandler::SigfpeHandler(int /*code*/, int subcode) {
+void CCrashHandler::SigfpeHandler(int code, int subcode) {
     // Floating point exception (SIGFPE)
+
+	{
+		StackWalker sw;
+		std::wstring s = L"CCrashHandler::SigfpeHandler, code: " + std::to_wstring(code);
+		s += L", subcode: " + std::to_wstring(subcode);
+		std::string utf8 = SPA::Utilities::ToUTF8(s);
+		utf8 += "\n";
+		sw.OnOutput(utf8.c_str());
+	}
 
     EXCEPTION_POINTERS* pExceptionPtrs = (PEXCEPTION_POINTERS) _pxcptinfoptrs;
 
@@ -410,8 +358,15 @@ void CCrashHandler::SigfpeHandler(int /*code*/, int subcode) {
 
 // CRT sigill signal handler
 
-void CCrashHandler::SigillHandler(int) {
+void CCrashHandler::SigillHandler(int data) {
     // Illegal instruction (SIGILL)
+	{
+		StackWalker sw;
+		std::wstring s = L"CCrashHandler::SigillHandler, data: " + std::to_wstring(data);
+		std::string utf8 = SPA::Utilities::ToUTF8(s);
+		utf8 += "\n";
+		sw.OnOutput(utf8.c_str());
+	}
 
     // Retrieve exception information
     EXCEPTION_POINTERS* pExceptionPtrs = NULL;
@@ -427,8 +382,16 @@ void CCrashHandler::SigillHandler(int) {
 
 // CRT sigint signal handler
 
-void CCrashHandler::SigintHandler(int) {
+void CCrashHandler::SigintHandler(int data) {
     // Interruption (SIGINT)
+
+	{
+		StackWalker sw;
+		std::wstring s = L"CCrashHandler::SigintHandler, data: " + std::to_wstring(data);
+		std::string utf8 = SPA::Utilities::ToUTF8(s);
+		utf8 += "\n";
+		sw.OnOutput(utf8.c_str());
+	}
 
     // Retrieve exception information
     EXCEPTION_POINTERS* pExceptionPtrs = NULL;
@@ -444,8 +407,16 @@ void CCrashHandler::SigintHandler(int) {
 
 // CRT SIGSEGV signal handler
 
-void CCrashHandler::SigsegvHandler(int) {
+void CCrashHandler::SigsegvHandler(int data) {
     // Invalid storage access (SIGSEGV)
+
+	{
+		StackWalker sw;
+		std::wstring s = L"CCrashHandler::SigsegvHandler, data: " + std::to_wstring(data);
+		std::string utf8 = SPA::Utilities::ToUTF8(s);
+		utf8 += "\n";
+		sw.OnOutput(utf8.c_str());
+	}
 
     PEXCEPTION_POINTERS pExceptionPtrs = (PEXCEPTION_POINTERS) _pxcptinfoptrs;
 
@@ -459,9 +430,15 @@ void CCrashHandler::SigsegvHandler(int) {
 
 // CRT SIGTERM signal handler
 
-void CCrashHandler::SigtermHandler(int) {
+void CCrashHandler::SigtermHandler(int data) {
     // Termination request (SIGTERM)
-
+	{
+		StackWalker sw;
+		std::wstring s = L"CCrashHandler::SigtermHandler, data: " + std::to_wstring(data);
+		std::string utf8 = SPA::Utilities::ToUTF8(s);
+		utf8 += "\n";
+		sw.OnOutput(utf8.c_str());
+	}
     // Retrieve exception information
     EXCEPTION_POINTERS* pExceptionPtrs = NULL;
     GetExceptionPointers(0, &pExceptionPtrs);
@@ -473,5 +450,3 @@ void CCrashHandler::SigtermHandler(int) {
     TerminateProcess(GetCurrentProcess(), 1);
 
 }
-
-

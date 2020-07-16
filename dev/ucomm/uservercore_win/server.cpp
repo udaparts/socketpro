@@ -632,6 +632,10 @@ bool CServer::StartIOPump() {
 
 void CServer::StartSubThread() {
 #ifdef WIN32_64
+	m_mutex.lock();
+	UTHREAD_ID dwThreadId = ::GetCurrentThreadId();
+	CCrashHandler::MAIN_THREADS.push_back(dwThreadId);
+	m_mutex.unlock();
     bool bCOM = (::CoInitializeEx(nullptr, COINIT_MULTITHREADED) == S_OK);
 #endif
 
@@ -680,8 +684,13 @@ void CServer::StartSubThread() {
         (*it)(SPA::ServerSide::teKilling);
     }
 #ifdef WIN32_64
+
     if (bCOM)
         ::CoUninitialize();
+	m_mutex.lock();
+	auto it = std::find(CCrashHandler::MAIN_THREADS.cbegin(), CCrashHandler::MAIN_THREADS.cend(), dwThreadId);
+	CCrashHandler::MAIN_THREADS.erase(it);
+	m_mutex.unlock();
 #endif
 }
 
@@ -691,6 +700,10 @@ void CServer::StartIOPumpInternal() {
     m_vMainThread.clear();
     m_vMainThread.push_back(::GetCurrentThreadId());
 #ifdef WIN32_64
+	m_mutex.lock();
+	UTHREAD_ID dwThreadId = ::GetCurrentThreadId();
+	CCrashHandler::MAIN_THREADS.push_back(dwThreadId);
+	m_mutex.unlock();
     bool bCOM = (::CoInitializeEx(nullptr, COINIT_MULTITHREADED) == S_OK);
 #endif
 
@@ -772,6 +785,10 @@ void CServer::StartIOPumpInternal() {
 #ifdef WIN32_64
     if (bCOM)
         ::CoUninitialize();
+	m_mutex.lock();
+	auto it = std::find(CCrashHandler::MAIN_THREADS.cbegin(), CCrashHandler::MAIN_THREADS.cend(), dwThreadId);
+	CCrashHandler::MAIN_THREADS.erase(it);
+	m_mutex.unlock();
 #endif
 }
 

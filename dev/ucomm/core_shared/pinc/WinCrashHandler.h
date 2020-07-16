@@ -45,6 +45,8 @@ public:
     static void SigillHandler(int);
     static void SigsegvHandler(int);
     static void SigtermHandler(int);
+
+	static std::vector<DWORD> MAIN_THREADS;
 };
 
 #endif
