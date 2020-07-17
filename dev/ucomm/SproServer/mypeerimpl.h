@@ -156,18 +156,18 @@ private:
         //boost::this_thread::sleep(boost::posix_time::milliseconds(25000));
         //boost::this_thread::sleep(boost::posix_time::milliseconds(ms / 2));
 #if 0
-		int *p = nullptr;
-		srand((unsigned int)time(nullptr));
-		unsigned int random = (unsigned int)rand();
-		int m = (random % 10);
-		switch (m) {
-		case 9:
-			std::wcout << "*p: " << *p << std::endl;
-			break;
-		default:
-			std::wcout << "n/m: " << 10 / m << std::endl;
-			break;
-		}
+        int *p = nullptr;
+        srand((unsigned int) time(nullptr));
+        unsigned int random = (unsigned int) rand();
+        int m = (random % 10);
+        switch (m) {
+            case 9:
+                std::wcout << "*p: " << *p << std::endl;
+                break;
+            default:
+                std::wcout << "n/m: " << 10 / m << std::endl;
+                break;
+        }
 #endif
     }
 

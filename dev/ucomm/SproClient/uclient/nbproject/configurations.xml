@@ -122,7 +122,6 @@
           <commandLine>-std=c++11</commandLine>
           <preprocessorList>
             <Elem>MONITORING_SPIN_CONTENTION</Elem>
-            <Elem>NDEBUG</Elem>
           </preprocessorList>
         </cTool>
         <ccTool>
@@ -131,7 +130,6 @@
           <commandLine>-std=c++11</commandLine>
           <preprocessorList>
             <Elem>MONITORING_SPIN_CONTENTION</Elem>
-            <Elem>NDEBUG</Elem>
           </preprocessorList>
         </ccTool>
         <fortranCompilerTool>

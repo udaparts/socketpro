@@ -95,7 +95,7 @@ namespace MQ_FILE {
                 g_LastCallInfo.SetNull();
                 myfile << "last call info = " << (const char*) g_LastCallInfo.GetBuffer() << std::endl;
             }
-            myfile << "handler sig = " << sig << ", si_code = " << info->si_code << ", si_errno = " << info->si_errno << std::endl;
+            myfile << "handler sig: " << sig << ", si_code: " << info->si_code << ", si_errno: " << info->si_errno << ", si_signo: " << info->si_signo << std::endl;
             switch (sig) {
                 case SIGILL:
                 case SIGFPE:
