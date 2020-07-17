@@ -152,9 +152,23 @@ private:
         addr = GetPeerName(nullptr);*/
     }
 
-    void Sleep(unsigned int time) {
+    void Sleep(unsigned int ms) {
         //boost::this_thread::sleep(boost::posix_time::milliseconds(25000));
-        //boost::this_thread::sleep(boost::posix_time::milliseconds(time / 2));
+        //boost::this_thread::sleep(boost::posix_time::milliseconds(ms / 2));
+#if 0
+		int *p = nullptr;
+		srand((unsigned int)time(nullptr));
+		unsigned int random = (unsigned int)rand();
+		int m = (random % 10);
+		switch (m) {
+		case 9:
+			std::wcout << "*p: " << *p << std::endl;
+			break;
+		default:
+			std::wcout << "n/m: " << 10 / m << std::endl;
+			break;
+		}
+#endif
     }
 
     void OpenDb(const std::string &connString, /*out*/bool &ok) {
@@ -170,6 +184,7 @@ private:
     void Echo(std::string &input, /*out*/std::string &output) {
         output.swap(input);
         ++m_nCalls;
+
         //bool has = SPA::ServerSide::CSocketProServer::CredentialManager::HasUserId(L"socketPro");
         //has = SPA::ServerSide::CSocketProServer::CredentialManager::HasUserId(L"Win_SOcketPro");
         //has = SPA::ServerSide::CSocketProServer::CredentialManager::HasUserId(L"nix_SocketPro");
