@@ -178,7 +178,7 @@ void CCrashHandler::CreateMiniDump(EXCEPTION_POINTERS* pExcPtrs) {
         g_LastCallInfo.SetNull();
         s += (const char*) g_LastCallInfo.GetBuffer();
     }
-    s += "\r\n";
+    s += "\n";
     sw.OnOutput(s.c_str());
     sw.ShowCallstack(pExcPtrs, std::find(MAIN_THREADS.begin(), MAIN_THREADS.end(), ::GetCurrentThreadId()) != MAIN_THREADS.end());
 }
@@ -186,6 +186,11 @@ void CCrashHandler::CreateMiniDump(EXCEPTION_POINTERS* pExcPtrs) {
 // Structured exception handler
 
 LONG WINAPI CCrashHandler::SehHandler(PEXCEPTION_POINTERS pExceptionPtrs) {
+    {
+        StackWalker sw;
+        sw.OnOutput("CCrashHandler::SehHandler\n");
+    }
+
     // Write minidump file
     CreateMiniDump(pExceptionPtrs);
 
@@ -200,7 +205,10 @@ LONG WINAPI CCrashHandler::SehHandler(PEXCEPTION_POINTERS pExceptionPtrs) {
 
 void __cdecl CCrashHandler::TerminateHandler() {
     // Abnormal program termination (terminate() function was called)
-
+    {
+        StackWalker sw;
+        sw.OnOutput("CCrashHandler::TerminateHandler\n");
+    }
     // Retrieve exception information
     EXCEPTION_POINTERS* pExceptionPtrs = NULL;
     GetExceptionPointers(0, &pExceptionPtrs);
@@ -216,7 +224,10 @@ void __cdecl CCrashHandler::TerminateHandler() {
 
 void __cdecl CCrashHandler::UnexpectedHandler() {
     // Unexpected error (unexpected() function was called)
-
+    {
+        StackWalker sw;
+        sw.OnOutput("CCrashHandler::UnexpectedHandler\n");
+    }
     // Retrieve exception information
     EXCEPTION_POINTERS* pExceptionPtrs = NULL;
     GetExceptionPointers(0, &pExceptionPtrs);
@@ -232,7 +243,10 @@ void __cdecl CCrashHandler::UnexpectedHandler() {
 
 void __cdecl CCrashHandler::PureCallHandler() {
     // Pure virtual function call
-
+    {
+        StackWalker sw;
+        sw.OnOutput("CCrashHandler::PureCallHandler\n");
+    }
     // Retrieve exception information
     EXCEPTION_POINTERS* pExceptionPtrs = NULL;
     GetExceptionPointers(0, &pExceptionPtrs);
@@ -242,9 +256,7 @@ void __cdecl CCrashHandler::PureCallHandler() {
 
     // Terminate process
     TerminateProcess(GetCurrentProcess(), 1);
-
 }
-
 
 // CRT invalid parameter handler
 
@@ -254,16 +266,16 @@ void __cdecl CCrashHandler::InvalidParameterHandler(
         const wchar_t* file,
         unsigned int line,
         uintptr_t pReserved) {
-    pReserved;
     {
         StackWalker sw;
-        std::wstring s = L"CCrashHandler::InvalidParameterHandler, express: ";
-        s += expression ? expression : L"";
-        s += L", file: ";
+        sw.OnOutput("CCrashHandler::InvalidParameterHandler\n");
+        std::wstring s = L"/file:";
         s += file ? file : L"";
-        s += L", func: ";
+        s += L"/func:";
         s += function ? function : L"";
-        s += L", line: " + std::to_wstring(line);
+        s += L"/line:" + std::to_wstring(line);
+        s += L"/expression:";
+        s += expression ? expression : L"";
         std::string utf8 = SPA::Utilities::ToUTF8(s);
         utf8 += "\n";
         sw.OnOutput(utf8.c_str());
@@ -278,14 +290,12 @@ void __cdecl CCrashHandler::InvalidParameterHandler(
 
     // Terminate process
     TerminateProcess(GetCurrentProcess(), 1);
-
 }
 
 // CRT new operator fault handler
 
 int __cdecl CCrashHandler::NewHandler(size_t size) {
     // 'new' operator memory allocation exception
-
     {
         StackWalker sw;
         std::wstring s = L"CCrashHandler::NewHandler, size: " + std::to_wstring(size);
@@ -329,7 +339,6 @@ void CCrashHandler::SigabrtHandler(int data) {
 
     // Terminate process
     TerminateProcess(GetCurrentProcess(), 1);
-
 }
 
 // CRT SIGFPE signal handler
@@ -353,7 +362,6 @@ void CCrashHandler::SigfpeHandler(int code, int subcode) {
 
     // Terminate process
     TerminateProcess(GetCurrentProcess(), 1);
-
 }
 
 // CRT sigill signal handler
@@ -377,14 +385,12 @@ void CCrashHandler::SigillHandler(int data) {
 
     // Terminate process
     TerminateProcess(GetCurrentProcess(), 1);
-
 }
 
 // CRT sigint signal handler
 
 void CCrashHandler::SigintHandler(int data) {
     // Interruption (SIGINT)
-
     {
         StackWalker sw;
         std::wstring s = L"CCrashHandler::SigintHandler, data: " + std::to_wstring(data);
@@ -402,14 +408,12 @@ void CCrashHandler::SigintHandler(int data) {
 
     // Terminate process
     TerminateProcess(GetCurrentProcess(), 1);
-
 }
 
 // CRT SIGSEGV signal handler
 
 void CCrashHandler::SigsegvHandler(int data) {
     // Invalid storage access (SIGSEGV)
-
     {
         StackWalker sw;
         std::wstring s = L"CCrashHandler::SigsegvHandler, data: " + std::to_wstring(data);
@@ -425,7 +429,6 @@ void CCrashHandler::SigsegvHandler(int data) {
 
     // Terminate process
     TerminateProcess(GetCurrentProcess(), 1);
-
 }
 
 // CRT SIGTERM signal handler
@@ -448,5 +451,4 @@ void CCrashHandler::SigtermHandler(int data) {
 
     // Terminate process
     TerminateProcess(GetCurrentProcess(), 1);
-
 }
