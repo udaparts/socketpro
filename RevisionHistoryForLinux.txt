@@ -3,6 +3,7 @@
 	(b) Recompile all libraries after adding support of char16_t
 	(c) C++ Samples and tutorials updated because of the above change (a)
 	(d) Add support of streaming downloading of multiple files for best performance over small files
+	(e) Improve linux crash information output
 
 24.	SocketPro Version 6.3.1.1
 	(a) Core libraries are added with a new feature Interrupt, which could be used to interrupt a looping processing at the other end
