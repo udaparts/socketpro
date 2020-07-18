@@ -45,7 +45,7 @@ namespace SPA {
     using mutex = boost::mutex;
 #endif
 
-    class CUCommThread {
+    class U_MODULE_HIDDEN CUCommThread {
     public:
         CUCommThread(tagThreadApartment ta);
         virtual ~CUCommThread();

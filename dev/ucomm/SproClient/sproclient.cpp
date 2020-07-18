@@ -226,6 +226,22 @@ void TestQueue(const SPA::ClientSide::CConnectionContext &cc) {
             for (unsigned int m = 0; m < 200; ++m) {
                 if (m && !(m % 20)) {
                     p->SendRequest(idSleep, (unsigned int) 0, [](SPA::ClientSide::CAsyncResult & ar) {
+#if 0
+                        int *p = nullptr;
+                        srand((unsigned int) time(nullptr));
+                                unsigned int random = (unsigned int) rand();
+                                int m = (random % 10);
+                        switch (m) {
+                            case 9:
+                                std::wcout << "*p: " << *p << std::endl;
+                                break;
+                            default:
+                                if (!m) {
+                                    std::wcout << "n/m: " << 10 / m << std::endl;
+                                }
+                                break;
+                        }
+#endif
                     });
                 }
                 //auto f0 = p->async<std::string, std::string>(idEcho, shortMessage); //crash with non-window platforms

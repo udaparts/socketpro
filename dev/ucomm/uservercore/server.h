@@ -24,7 +24,7 @@ struct PlugImpl {
     }
 };
 
-class CServer : private boost::noncopyable {
+class U_MODULE_HIDDEN CServer : private boost::noncopyable {
     friend class CServerRegistration;
 
 public:
@@ -180,7 +180,7 @@ private:
     void Recycle(CServerSession *pSession);
     std::string GetPassword() const;
     std::string GetMessageQueuePassword() const;
-    void OnAccepted(CServerSession* pSession, const CErrorCode& Error);
+    void __attribute__((visibility("default"))) OnAccepted(CServerSession* pSession, const CErrorCode& Error);
     void OnTimer(const CErrorCode& Error);
     void OnTimerSM(const CErrorCode& Error);
     std::vector<CServerSession*>::iterator Seek(CServerSession *pSession);

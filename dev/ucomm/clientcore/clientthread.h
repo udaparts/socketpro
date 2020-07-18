@@ -28,7 +28,7 @@ typedef boost::shared_ptr<CClientSession> CClientSessionPtr;
 typedef std::pair<CClientSessionPtr, LockState> CSessionState;
 typedef std::vector<CSessionState> CMapClientSession;
 
-class CClientThread : public SPA::CUCommThread {
+class U_MODULE_HIDDEN CClientThread : public SPA::CUCommThread {
 public:
     CClientThread(PSocketPoolCallback spc, unsigned int session, CSocketPool *pSocketPool, SPA::tagThreadApartment ta);
     ~CClientThread();

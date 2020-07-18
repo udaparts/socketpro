@@ -3,7 +3,7 @@
 
 #include "clientthread.h"
 
-class CSocketPool {
+class U_MODULE_HIDDEN CSocketPool {
 public:
     CSocketPool(PSocketPoolCallback spc, unsigned int socketsPerThread, unsigned int threads, bool bAvg, SPA::tagThreadApartment ta);
     virtual ~CSocketPool();

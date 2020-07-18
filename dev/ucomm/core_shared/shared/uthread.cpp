@@ -16,9 +16,7 @@ namespace SPA
 
     //CIoService CUCommThread::m_io;
 
-    CUCommThread::CUCommThread(tagThreadApartment ta)
-            : m_ta(ta), m_pThread(nullptr) {
-
+    CUCommThread::CUCommThread(tagThreadApartment ta) : m_ta(ta), m_pThread(nullptr) {
     }
 
     CUCommThread::~CUCommThread() {

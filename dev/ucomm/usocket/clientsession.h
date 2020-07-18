@@ -40,7 +40,7 @@ both windows and linux inside boost/asio/ssl/detail/io.hpp
         break;
  */
 
-class CClientSession : public SPA::ClientSide::UClientSocketBase {
+class U_MODULE_HIDDEN CClientSession : public SPA::ClientSide::UClientSocketBase {
 #ifndef NDEBUG
     unsigned int m_nJobRequest;
     unsigned int m_nJobConfirm;
@@ -193,12 +193,12 @@ private:
     static unsigned int DecompressResultTo(unsigned short ratio, SPA::tagZipLevel zl, const unsigned char *buffer, unsigned int size, SPA::CUQueue &q);
     SPA::UINT64 ComputeQueueDistance();
     bool IsRoutingInternal();
-    void OnClosed(int errCode);
-    void OnChatRequest(unsigned short nRequestId, SPA::CScopeUQueue &sb);
-    void OnRequestProcessed(unsigned short nRequestId, unsigned int nLen);
-    void OnBaseRequestProcessed(unsigned short nRequestId, unsigned int nLen);
-    void OnConnectedInternal(int errCode);
-    void OnHandleShakeCompleted(int errCode);
+    void __attribute__((visibility("default"))) OnClosed(int errCode);
+    void __attribute__((visibility("default"))) OnChatRequest(unsigned short nRequestId, SPA::CScopeUQueue &sb);
+    void __attribute__((visibility("default"))) OnRequestProcessed(unsigned short nRequestId, unsigned int nLen);
+    void __attribute__((visibility("default"))) OnBaseRequestProcessed(unsigned short nRequestId, unsigned int nLen);
+    void __attribute__((visibility("default"))) OnConnectedInternal(int errCode);
+    void __attribute__((visibility("default"))) OnHandleShakeCompleted(int errCode);
     bool IsContextSet();
     void SetContext();
     void OnConnected(const CErrorCode &ec, CResolver::iterator ep);
@@ -218,7 +218,7 @@ private:
     static unsigned char* GetIoBuffer();
     static void ReleaseIoBuffer(unsigned char *buffer);
     bool Decompress();
-    void CloseInternal(int nError = 0);
+    void __attribute__((visibility("default"))) CloseInternal(int nError = 0);
     bool WaitConnected(CAutoLock &sl, unsigned int nTimeout);
     bool WaitAllInternal(CAutoLock &sl, unsigned int nTimeout);
     unsigned int RetrieveResultInternal(unsigned char *pBuffer, unsigned int size);

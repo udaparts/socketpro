@@ -21,8 +21,51 @@
 #if defined(__ANDROID__) || defined(ANDROID)
 
 #else
+#include <cxxabi.h>   // for __cxa_demangle
 #include <execinfo.h>
 #include <boost/thread/thread_time.hpp>
+
+// This function produces a stack backtrace with demangled function & method names.
+
+std::string Backtrace(int skip = 2) {
+    void *callstack[128];
+    const int nMaxFrames = sizeof (callstack) / sizeof (callstack[0]);
+    char buf[1024] = {0};
+    int nFrames = backtrace(callstack, nMaxFrames);
+    char **symbols = backtrace_symbols(callstack, nFrames);
+    std::ostringstream trace_buf;
+    for (int i = skip; i < nFrames; i++) {
+        /*
+        const char *found = std::strstr(symbols[i], "_ZN5boost4");
+        if (found) {
+            continue;
+        }
+         */
+        Dl_info info;
+        if (dladdr(callstack[i], &info) && info.dli_sname) {
+            char *demangled = nullptr;
+            int status = -1;
+            if (info.dli_sname[0] == '_') {
+                demangled = abi::__cxa_demangle(info.dli_sname, NULL, 0, &status);
+            }
+            snprintf(buf, sizeof (buf), "%-3d %*p %s + %zd\n",
+                    i, int(2 + sizeof (void*) * 2), callstack[i],
+                    (status == 0) ? demangled :
+                    (info.dli_sname == 0) ? symbols[i] : info.dli_sname,
+                    (char *) callstack[i] - (char *) info.dli_saddr);
+            free(demangled);
+        } else {
+            snprintf(buf, sizeof (buf), "%-3d %*p %s\n", i, int(2 + sizeof (void*) * 2), callstack[i], symbols[i]);
+        }
+        trace_buf << buf;
+    }
+    free(symbols);
+    if (nFrames == nMaxFrames) {
+        trace_buf << "[truncated]\n";
+    }
+    return trace_buf.str();
+}
+
 #endif
 #endif
 
@@ -109,6 +152,9 @@ namespace MQ_FILE {
             typedef void* PVOID;
 #if defined(__ANDROID__) || defined(ANDROID)
 #else
+#if 1
+            myfile << Backtrace();
+#else
             PVOID buffer[100] = {nullptr};
             //backtrace_symbols_fd(buffer, nptrs, STDOUT_FILENO);
             int nptrs = backtrace(buffer, sizeof (buffer) / sizeof (PVOID));
@@ -117,6 +163,7 @@ namespace MQ_FILE {
                 myfile << strings[n] << std::endl;
             }
             free(strings);
+#endif
 #endif
         }
         exit(sig);

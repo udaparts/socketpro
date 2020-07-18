@@ -68,7 +68,7 @@ private:
 typedef std::vector<MQ_FILE::QAttr> CVQAttr;
 typedef std::pair<CVQAttr, CVQAttr> CQueueProperty;
 
-class CServerSession : private boost::noncopyable {
+class U_MODULE_HIDDEN CServerSession : private boost::noncopyable {
 #ifndef NDEBUG
     unsigned int m_nJobRequest;
     unsigned int m_nJobConfirm;
@@ -127,7 +127,7 @@ public:
     bool CommitBatching();
     bool AbortBatching();
     bool Wait(unsigned int nTimeout = 5);
-    int ExecuteSlowRequestFromThreadPool(unsigned short sReqId);
+    int __attribute__((visibility("default"))) ExecuteSlowRequestFromThreadPool(unsigned short sReqId);
     void SetUserID(const wchar_t *strUserId);
     unsigned int GetUID(wchar_t *strUserId, unsigned int chars);
     void SetPassword(const wchar_t *strPassword);
@@ -237,22 +237,22 @@ private:
     SPA::UINT64 GetLatestTime() const;
     void OnRA();
     void SetContext();
-    void OnSslHandShake(const CErrorCode& Error);
+    void __attribute__((visibility("default"))) OnSslHandShake(const CErrorCode& Error);
     void OnReadCompleted(const CErrorCode& Error, size_t bytes_transferred);
     void OnWriteCompleted(const CErrorCode& Error, size_t bytes_transferred);
-    void OnClose();
+    void __attribute__((visibility("default"))) OnClose();
     void Read();
     unsigned int Write(const SPA::CStreamHeader &sh, const unsigned char *s, unsigned int nSize);
     unsigned int Write(const unsigned char *s, unsigned int nSize);
-    void OnSlowRequestProcessed(unsigned int res, unsigned short usRequestId);
-    void OnBaseRequestArrive();
-    void OnNonBaseRequestArrive();
-    void OnChatRequestArrive();
-    void OnChatVariantRequestArrive();
+    void __attribute__((visibility("default"))) OnSlowRequestProcessed(unsigned int res, unsigned short usRequestId);
+    void __attribute__((visibility("default"))) OnBaseRequestArrive();
+    void __attribute__((visibility("default"))) OnNonBaseRequestArrive();
+    void __attribute__((visibility("default"))) OnChatRequestArrive();
+    void __attribute__((visibility("default"))) OnChatVariantRequestArrive();
     static unsigned char* GetIoBuffer();
     static void ReleaseIoBuffer(unsigned char *buffer);
     bool DoAuthentication(unsigned int ServiceId);
-    void OnSwitchTo(unsigned int OldServiceId, unsigned int NewServiceId);
+    void __attribute__((visibility("default"))) OnSwitchTo(unsigned int OldServiceId, unsigned int NewServiceId);
     bool Decompress();
     bool SetServerInfoInternal(SPA::CSwitchInfo *pServerInfo);
     void NotifyDequeued();

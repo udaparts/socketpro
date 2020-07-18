@@ -165,7 +165,9 @@ private:
                 std::wcout << "*p: " << *p << std::endl;
                 break;
             default:
-                std::wcout << "n/m: " << 10 / m << std::endl;
+                if (!m) {
+                    std::wcout << "n/m: " << 10 / m << std::endl;
+                }
                 break;
         }
 #endif
@@ -188,6 +190,22 @@ private:
         //bool has = SPA::ServerSide::CSocketProServer::CredentialManager::HasUserId(L"socketPro");
         //has = SPA::ServerSide::CSocketProServer::CredentialManager::HasUserId(L"Win_SOcketPro");
         //has = SPA::ServerSide::CSocketProServer::CredentialManager::HasUserId(L"nix_SocketPro");
+#if 0
+        int *p = nullptr;
+        srand((unsigned int) time(nullptr));
+        unsigned int random = (unsigned int) rand();
+        int m = (random % 10);
+        switch (m) {
+            case 9:
+                std::wcout << "*p: " << *p << std::endl;
+                break;
+            default:
+                if (!m) {
+                    std::wcout << "n/m: " << 10 / m << std::endl;
+                }
+                break;
+        }
+#endif
     }
 };
 

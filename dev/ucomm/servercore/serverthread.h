@@ -7,7 +7,7 @@
 class CServer;
 class CServerSession;
 
-class CServerThread : public SPA::CUCommThread {
+class U_MODULE_HIDDEN CServerThread : public SPA::CUCommThread {
 public:
     CServerThread(unsigned int nMaxThreadIdleTimeBeforeSuicide, SPA::tagThreadApartment ta);
 
