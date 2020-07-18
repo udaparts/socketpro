@@ -57,7 +57,7 @@ void CCrashHandler::SetProcessExceptionHandlers() {
     // Catch an abnormal program termination
     signal(SIGABRT, SigabrtHandler);
 
-    // Catch illegal instruction handler
+    // Catch CTRL+C interrupt handler
     signal(SIGINT, SigintHandler);
 
     // Catch a termination request
@@ -387,7 +387,7 @@ void CCrashHandler::SigillHandler(int data) {
     TerminateProcess(GetCurrentProcess(), 1);
 }
 
-// CRT sigint signal handler
+// CRT CTRL+C signal handler
 
 void CCrashHandler::SigintHandler(int data) {
     // Interruption (SIGINT)
