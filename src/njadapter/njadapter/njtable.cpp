@@ -37,7 +37,7 @@ namespace NJA {
 
         // Prepare constructor template
         Local<FunctionTemplate> tpl = FunctionTemplate::New(isolate, New);
-        tpl->SetClassName(ToStr(isolate, "CTable"));
+        tpl->SetClassName(ToStr(isolate, u"CTable"));
         tpl->InstanceTemplate()->SetInternalFieldCount(1);
 
         //methods
@@ -60,7 +60,7 @@ namespace NJA {
         NODE_SET_PROTOTYPE_METHOD(tpl, "getColumns", getColumns);
 
         constructor.Reset(isolate, tpl->GetFunction(isolate->GetCurrentContext()).ToLocalChecked());
-        exports->Set(ToStr(isolate, "CTable"), tpl->GetFunction(isolate->GetCurrentContext()).ToLocalChecked());
+        exports->Set(ToStr(isolate, u"CTable"), tpl->GetFunction(isolate->GetCurrentContext()).ToLocalChecked());
         m_tpl.Reset(isolate, tpl);
     }
 

@@ -26,7 +26,7 @@ namespace NJA {
 
         // Prepare constructor template
         Local<FunctionTemplate> tpl = FunctionTemplate::New(isolate, New);
-        tpl->SetClassName(ToStr(isolate, "CAsyncFile"));
+        tpl->SetClassName(ToStr(isolate, u"CAsyncFile"));
         tpl->InstanceTemplate()->SetInternalFieldCount(2);
 
         NJHandlerRoot::Init(exports, tpl);
@@ -42,7 +42,7 @@ namespace NJA {
         NODE_SET_PROTOTYPE_METHOD(tpl, "setFilesStreamed", setFilesStreamed);
         auto ctx = isolate->GetCurrentContext();
         constructor.Reset(isolate, tpl->GetFunction(ctx).ToLocalChecked());
-        exports->Set(ctx, ToStr(isolate, "CAsyncFile"), tpl->GetFunction(ctx).ToLocalChecked());
+        exports->Set(ctx, ToStr(isolate, u"CAsyncFile"), tpl->GetFunction(ctx).ToLocalChecked());
     }
 
     Local<Object> NJFile::New(Isolate* isolate, CSFile *ash, bool setCb) {

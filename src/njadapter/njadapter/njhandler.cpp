@@ -15,13 +15,13 @@ namespace NJA {
 
         // Prepare constructor template
         Local<FunctionTemplate> tpl = FunctionTemplate::New(isolate, New);
-        tpl->SetClassName(ToStr(isolate, "CHandler"));
+        tpl->SetClassName(ToStr(isolate, u"CHandler"));
         tpl->InstanceTemplate()->SetInternalFieldCount(1);
 
         NJHandlerRoot::Init(exports, tpl);
         auto ctx = isolate->GetCurrentContext();
         constructor.Reset(isolate, tpl->GetFunction(ctx).ToLocalChecked());
-        exports->Set(ctx, ToStr(isolate, "CHandler"), tpl->GetFunction(ctx).ToLocalChecked());
+        exports->Set(ctx, ToStr(isolate, u"CHandler"), tpl->GetFunction(ctx).ToLocalChecked());
     }
 
     Local<Object> NJHandler::New(Isolate* isolate, CAsyncServiceHandler *ash, bool setCb) {

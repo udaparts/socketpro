@@ -16,7 +16,7 @@ namespace NJA {
 
         // Prepare constructor template
         Local<FunctionTemplate> tpl = FunctionTemplate::New(isolate, New);
-        tpl->SetClassName(ToStr(isolate, "CClientQueue"));
+        tpl->SetClassName(ToStr(isolate, u"CClientQueue"));
         tpl->InstanceTemplate()->SetInternalFieldCount(1);
 
         //methods
@@ -55,7 +55,7 @@ namespace NJA {
 
         auto ctx = isolate->GetCurrentContext();
         constructor.Reset(isolate, tpl->GetFunction(ctx).ToLocalChecked());
-        exports->Set(ctx, ToStr(isolate, "CClientQueue"), tpl->GetFunction(ctx).ToLocalChecked());
+        exports->Set(ctx, ToStr(isolate, u"CClientQueue"), tpl->GetFunction(ctx).ToLocalChecked());
     }
 
     Local<Object> NJClientQueue::New(Isolate* isolate, SPA::ClientSide::IClientQueue *cq, bool setCb) {

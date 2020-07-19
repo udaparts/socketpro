@@ -28,7 +28,7 @@ namespace NJA {
 
         // Prepare constructor template
         Local<FunctionTemplate> tpl = FunctionTemplate::New(isolate, New);
-        tpl->SetClassName(ToStr(isolate, "CAsyncQueue"));
+        tpl->SetClassName(ToStr(isolate, u"CAsyncQueue"));
         tpl->InstanceTemplate()->SetInternalFieldCount(2);
 
         NJHandlerRoot::Init(exports, tpl);
@@ -50,7 +50,7 @@ namespace NJA {
         NODE_SET_PROTOTYPE_METHOD(tpl, "setResultReturned", setResultReturned);
         auto ctx = isolate->GetCurrentContext();
         constructor.Reset(isolate, tpl->GetFunction(ctx).ToLocalChecked());
-        exports->Set(ctx, ToStr(isolate, "CAsyncQueue"), tpl->GetFunction(ctx).ToLocalChecked());
+        exports->Set(ctx, ToStr(isolate, u"CAsyncQueue"), tpl->GetFunction(ctx).ToLocalChecked());
     }
 
     Local<Object> NJAsyncQueue::New(Isolate* isolate, CAQueue *ash, bool setCb) {

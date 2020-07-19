@@ -31,7 +31,7 @@ namespace NJA {
 
         // Prepare constructor template
         Local<FunctionTemplate> tpl = FunctionTemplate::New(isolate, New);
-        tpl->SetClassName(ToStr(isolate, "CSocket"));
+        tpl->SetClassName(ToStr(isolate, u"CSocket"));
         tpl->InstanceTemplate()->SetInternalFieldCount(1);
 
         //methods
@@ -82,7 +82,7 @@ namespace NJA {
         NODE_SET_PROTOTYPE_METHOD(tpl, "getPoolId", getPoolId);
 
         constructor.Reset(isolate, tpl->GetFunction(isolate->GetCurrentContext()).ToLocalChecked());
-        exports->Set(ToStr(isolate, "CSocket"), tpl->GetFunction(isolate->GetCurrentContext()).ToLocalChecked());
+        exports->Set(ToStr(isolate, u"CSocket"), tpl->GetFunction(isolate->GetCurrentContext()).ToLocalChecked());
     }
 
     Local<Object> NJSocket::New(Isolate* isolate, CClientSocket *ash, bool setCb) {
@@ -407,8 +407,8 @@ namespace NJA {
         if (obj->IsValid(isolate)) {
             auto ctx = isolate->GetCurrentContext();
             Local<Object> errObj = Object::New(isolate);
-            errObj->Set(ctx, ToStr(isolate, "ec"), Int32::New(isolate, obj->m_socket->GetErrorCode()));
-            errObj->Set(ctx, ToStr(isolate, "em"), ToStr(isolate, obj->m_socket->GetErrorMsg().c_str()));
+            errObj->Set(ctx, ToStr(isolate, u"ec"), Int32::New(isolate, obj->m_socket->GetErrorCode()));
+            errObj->Set(ctx, ToStr(isolate, u"em"), ToStr(isolate, obj->m_socket->GetErrorMsg().c_str()));
             args.GetReturnValue().Set(errObj);
         }
     }
@@ -428,19 +428,19 @@ namespace NJA {
             auto ctx = isolate->GetCurrentContext();
             auto cc = obj->m_socket->GetConnectionContext();
             Local<Object> objCC = Object::New(isolate);
-            objCC->Set(ctx, ToStr(isolate, "Host"), ToStr(isolate, cc.Host.c_str()));
-            objCC->Set(ctx, ToStr(isolate, "Port"), Number::New(isolate, cc.Port));
+            objCC->Set(ctx, ToStr(isolate, u"Host"), ToStr(isolate, cc.Host.c_str()));
+            objCC->Set(ctx, ToStr(isolate, u"Port"), Number::New(isolate, cc.Port));
 #ifdef WIN32_64
-            objCC->Set(ctx, ToStr(isolate, "User"), ToStr(isolate, (const UTF16*) cc.UserId.c_str(), cc.UserId.size()));
+            objCC->Set(ctx, ToStr(isolate, u"User"), ToStr(isolate, (const UTF16*) cc.UserId.c_str(), cc.UserId.size()));
 #else
             auto s = Utilities::ToUTF16(cc.UserId.c_str(), cc.UserId.size());
-            objCC->Set(ctx, ToStr(isolate, "User"), ToStr(isolate, s.c_str(), s.size()));
+            objCC->Set(ctx, ToStr(isolate, u"User"), ToStr(isolate, s.c_str(), s.size()));
 #endif
-            objCC->Set(ctx, ToStr(isolate, "Pwd"), Null(isolate)); //no password returned
-            objCC->Set(ctx, ToStr(isolate, "EM"), Number::New(isolate, cc.EncrytionMethod));
-            objCC->Set(ctx, ToStr(isolate, "Zip"), Boolean::New(isolate, cc.Zip));
-            objCC->Set(ctx, ToStr(isolate, "V6"), Boolean::New(isolate, cc.V6));
-            objCC->Set(ctx, ToStr(isolate, "AnyData"), From(isolate, cc.AnyData));
+            objCC->Set(ctx, ToStr(isolate, u"Pwd"), Null(isolate)); //no password returned
+            objCC->Set(ctx, ToStr(isolate, u"EM"), Number::New(isolate, cc.EncrytionMethod));
+            objCC->Set(ctx, ToStr(isolate, u"Zip"), Boolean::New(isolate, cc.Zip));
+            objCC->Set(ctx, ToStr(isolate, u"V6"), Boolean::New(isolate, cc.V6));
+            objCC->Set(ctx, ToStr(isolate, u"AnyData"), From(isolate, cc.AnyData));
             args.GetReturnValue().Set(objCC);
         }
     }

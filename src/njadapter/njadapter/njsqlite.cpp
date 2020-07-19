@@ -28,7 +28,7 @@ namespace NJA {
 
         // Prepare constructor template
         Local<FunctionTemplate> tpl = FunctionTemplate::New(isolate, New);
-        tpl->SetClassName(ToStr(isolate, "CDb"));
+        tpl->SetClassName(ToStr(isolate, u"CDb"));
         tpl->InstanceTemplate()->SetInternalFieldCount(2);
 
         NJHandlerRoot::Init(exports, tpl);
@@ -47,7 +47,7 @@ namespace NJA {
         NODE_SET_PROTOTYPE_METHOD(tpl, "isOpened", IsOpened);
         auto ctx = isolate->GetCurrentContext();
         constructor.Reset(isolate, tpl->GetFunction(ctx).ToLocalChecked());
-        exports->Set(ctx, ToStr(isolate, "CDb"), tpl->GetFunction(ctx).ToLocalChecked());
+        exports->Set(ctx, ToStr(isolate, u"CDb"), tpl->GetFunction(ctx).ToLocalChecked());
     }
 
     Local<Object> NJSqlite::New(Isolate* isolate, CNjDb *ash, bool setCb) {

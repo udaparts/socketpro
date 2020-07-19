@@ -188,7 +188,7 @@ namespace NJA {
 
         // Prepare constructor template
         Local<FunctionTemplate> tpl = FunctionTemplate::New(isolate, New);
-        tpl->SetClassName(ToStr(isolate, "CSocketPool"));
+        tpl->SetClassName(ToStr(isolate, u"CSocketPool"));
         tpl->InstanceTemplate()->SetInternalFieldCount(15);
 
         //methods
@@ -238,7 +238,7 @@ namespace NJA {
         //NODE_SET_PROTOTYPE_METHOD(tpl, "CloseAll", DisconnectAll);
         auto ctx = isolate->GetCurrentContext();
         constructor.Reset(isolate, tpl->GetFunction(ctx).ToLocalChecked());
-        exports->Set(ctx, ToStr(isolate, "CSocketPool"), tpl->GetFunction(ctx).ToLocalChecked());
+        exports->Set(ctx, ToStr(isolate, u"CSocketPool"), tpl->GetFunction(ctx).ToLocalChecked());
     }
 
     void NJSocketPool::newSlave(const FunctionCallbackInfo<Value>& args) {
@@ -420,7 +420,7 @@ namespace NJA {
                     switch (se.Se) {
                         case seChatEnter:
                             if (!obj->m_push.IsEmpty()) {
-                                Local<String> jsName = ToStr(isolate, "Subscribe");
+                                Local<String> jsName = ToStr(isolate, u"Subscribe");
                                 auto sender = ToMessageSender(isolate, *se.QData);
                                 CComVariant vt;
                                 *se.QData >> vt;
@@ -433,7 +433,7 @@ namespace NJA {
                             break;
                         case seChatExit:
                             if (!obj->m_push.IsEmpty()) {
-                                Local<String> jsName = ToStr(isolate, "Unsubscribe");
+                                Local<String> jsName = ToStr(isolate, u"Unsubscribe");
                                 auto sender = ToMessageSender(isolate, *se.QData);
                                 CComVariant vt;
                                 *se.QData >> vt;
@@ -446,7 +446,7 @@ namespace NJA {
                             break;
                         case sePublish:
                             if (!obj->m_push.IsEmpty()) {
-                                Local<String> jsName = ToStr(isolate, "Publish");
+                                Local<String> jsName = ToStr(isolate, u"Publish");
                                 auto sender = ToMessageSender(isolate, *se.QData);
                                 CComVariant vt;
                                 *se.QData >> vt;
@@ -462,7 +462,7 @@ namespace NJA {
                             break;
                         case sePublishEx:
                             if (!obj->m_push.IsEmpty()) {
-                                Local<String> jsName = ToStr(isolate, "PublishEx");
+                                Local<String> jsName = ToStr(isolate, u"PublishEx");
                                 auto sender = ToMessageSender(isolate, *se.QData);
                                 CComVariant vt;
                                 *se.QData >> vt;
@@ -477,7 +477,7 @@ namespace NJA {
                             break;
                         case sePostUserMessage:
                             if (!obj->m_push.IsEmpty()) {
-                                Local<String> jsName = ToStr(isolate, "SendMessage");
+                                Local<String> jsName = ToStr(isolate, u"SendMessage");
                                 auto sender = ToMessageSender(isolate, *se.QData);
                                 CComVariant vt;
                                 *se.QData >> vt;
@@ -490,7 +490,7 @@ namespace NJA {
                             break;
                         case sePostUserMessageEx:
                             if (!obj->m_push.IsEmpty()) {
-                                Local<String> jsName = ToStr(isolate, "SendMessageEx");
+                                Local<String> jsName = ToStr(isolate, u"SendMessageEx");
                                 auto sender = ToMessageSender(isolate, *se.QData);
                                 unsigned int len = se.QData->GetSize();
                                 auto bytes = node::Buffer::Copy(isolate, (const char*) se.QData->GetBuffer(), len).ToLocalChecked();
@@ -693,8 +693,8 @@ namespace NJA {
         Local<Object> errObj = Object::New(isolate);
         auto ctx = isolate->GetCurrentContext();
         obj->m_cs.lock();
-        errObj->Set(ctx, ToStr(isolate, "ec"), Int32::New(isolate, obj->m_errSSL));
-        errObj->Set(ctx, ToStr(isolate, "em"), ToStr(isolate, obj->m_errMsg.c_str()));
+        errObj->Set(ctx, ToStr(isolate, u"ec"), Int32::New(isolate, obj->m_errSSL));
+        errObj->Set(ctx, ToStr(isolate, u"em"), ToStr(isolate, obj->m_errMsg.c_str()));
         obj->m_cs.unlock();
         args.GetReturnValue().Set(errObj);
     }
@@ -1069,7 +1069,7 @@ namespace NJA {
             return false;
         }
 
-        auto v = obj->Get(ToStr(isolate, "Host"));
+        auto v = obj->Get(ToStr(isolate, u"Host"));
         if (!v->IsString()) {
             ThrowException(isolate, "Invalid host string");
             return false;
@@ -1081,14 +1081,14 @@ namespace NJA {
 #endif
         cc.Host = *host;
 
-        v = obj->Get(ToStr(isolate, "Port"));
+        v = obj->Get(ToStr(isolate, u"Port"));
         if (!v->IsUint32()) {
             ThrowException(isolate, "Invalid port number");
             return false;
         }
         cc.Port = v->Uint32Value(isolate->GetCurrentContext()).ToChecked();
 
-        v = obj->Get(ToStr(isolate, "User"));
+        v = obj->Get(ToStr(isolate, u"User"));
         if (!v->IsString()) {
             ThrowException(isolate, "Invalid user id string");
             return false;
@@ -1100,7 +1100,7 @@ namespace NJA {
 #endif
         cc.UserId = Utilities::ToWide(*uid);
 
-        v = obj->Get(ToStr(isolate, "Pwd"));
+        v = obj->Get(ToStr(isolate, u"Pwd"));
         if (!v->IsString()) {
             ThrowException(isolate, "Invalid password string");
             return false;
@@ -1112,7 +1112,7 @@ namespace NJA {
 #endif
         cc.Password = Utilities::ToWide(*pwd);
         unsigned int em = 0;
-        v = obj->Get(ToStr(isolate, "EM"));
+        v = obj->Get(ToStr(isolate, u"EM"));
         if (v->IsUint32()) {
             em = v->Uint32Value(isolate->GetCurrentContext()).ToChecked();
         } else if (!IsNullOrUndefined(v)) {
@@ -1125,7 +1125,7 @@ namespace NJA {
         }
         cc.EncrytionMethod = (SPA::tagEncryptionMethod)em;
 
-        v = obj->Get(ToStr(isolate, "Zip"));
+        v = obj->Get(ToStr(isolate, u"Zip"));
         if (v->IsBoolean()) {
             cc.Zip = v->BooleanValue(isolate->GetCurrentContext()).ToChecked();
         } else if (!IsNullOrUndefined(v)) {
@@ -1133,7 +1133,7 @@ namespace NJA {
             return false;
         }
 
-        v = obj->Get(ToStr(isolate, "V6"));
+        v = obj->Get(ToStr(isolate, u"V6"));
         if (v->IsBoolean()) {
             cc.V6 = v->BooleanValue(isolate->GetCurrentContext()).ToChecked();
         } else if (!IsNullOrUndefined(v)) {
@@ -1141,7 +1141,7 @@ namespace NJA {
             return false;
         }
 
-        v = obj->Get(ToStr(isolate, "AnyData"));
+        v = obj->Get(ToStr(isolate, u"AnyData"));
         if (!From(isolate, v, "", cc.AnyData)) {
             ThrowException(isolate, "Invalid data for AnyData");
             return false;

@@ -64,7 +64,7 @@ namespace NJA {
 
         // Prepare constructor template
         Local<FunctionTemplate> tpl = FunctionTemplate::New(isolate, New);
-        tpl->SetClassName(ToStr(isolate, "CUQueue"));
+        tpl->SetClassName(ToStr(isolate, u"CUQueue"));
         tpl->InstanceTemplate()->SetInternalFieldCount(4);
 
         //methods
@@ -124,7 +124,7 @@ namespace NJA {
         NODE_SET_PROTOTYPE_METHOD(tpl, "getOS", getOS);
         auto ctx = isolate->GetCurrentContext();
         constructor.Reset(isolate, tpl->GetFunction(ctx).ToLocalChecked());
-        exports->Set(ctx, ToStr(isolate, "CUQueue"), tpl->GetFunction(ctx).ToLocalChecked());
+        exports->Set(ctx, ToStr(isolate, u"CUQueue"), tpl->GetFunction(ctx).ToLocalChecked());
         m_tpl.Reset(isolate, tpl);
     }
 
