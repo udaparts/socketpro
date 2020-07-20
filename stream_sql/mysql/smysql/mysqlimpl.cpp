@@ -981,12 +981,11 @@ namespace SPA
             return error;
         }
 
-        void CMysqlImpl::ToDecimal(const decimal_t &src, bool large, DECIMAL & dec) {
-            char str[64] =
-            { 0};
+        void CMysqlImpl::ToDecimal(const decimal_t &src, DECIMAL & dec) {
+            char str[64] = { 0};
             int len = sizeof (str);
             decimal2string(&src, str, &len, 0, 0, 0);
-            if (large) {
+            if (::strlen(str) > 19) {
                 SPA::ParseDec_long(str, dec);
             } else {
                 SPA::ParseDec(str, dec);
@@ -998,8 +997,7 @@ namespace SPA
             if (impl->m_NoRowset && !(impl->m_server_status & SERVER_PS_OUT_PARAMS))
                 return 0;
             DECIMAL dec;
-            const CDBColumnInfo &info = impl->m_vColInfo[impl->m_ColIndex];
-            ToDecimal(*value, info.Precision > 19, dec);
+            ToDecimal(*value, dec);
             CUQueue &q = impl->m_qSend;
             q << (VARTYPE) VT_DECIMAL << dec;
             ++impl->m_ColIndex;
