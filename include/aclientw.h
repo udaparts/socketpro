@@ -286,11 +286,11 @@ namespace SPA {
             q >> user >> ipAddr >> Port >> ServiceId >> SelfMessage;
             auto ctx = isolate->GetCurrentContext();
             Local<Object> obj = Object::New(isolate);
-            obj->Set(ctx, NJA::ToStr(isolate, u"UserId"), NJA::ToStr(isolate, user.c_str()));
-            obj->Set(ctx, NJA::ToStr(isolate, u"IpAddr"), NJA::ToStr(isolate, ipAddr.c_str()));
-            obj->Set(ctx, NJA::ToStr(isolate, u"Port"), Uint32::New(isolate, Port));
-            obj->Set(ctx, NJA::ToStr(isolate, u"SvsId"), Number::New(isolate, ServiceId));
-            obj->Set(ctx, NJA::ToStr(isolate, u"Self"), Boolean::New(isolate, SelfMessage));
+            obj->Set(ctx, NJA::ToStr(isolate, u"UserId", 6), NJA::ToStr(isolate, user.c_str(), user.size()));
+            obj->Set(ctx, NJA::ToStr(isolate, u"IpAddr", 6), NJA::ToStr(isolate, ipAddr.c_str(), ipAddr.size()));
+            obj->Set(ctx, NJA::ToStr(isolate, u"Port", 4), Uint32::New(isolate, Port));
+            obj->Set(ctx, NJA::ToStr(isolate, u"SvsId", 5), Number::New(isolate, ServiceId));
+            obj->Set(ctx, NJA::ToStr(isolate, u"Self", 4), Boolean::New(isolate, SelfMessage));
             return obj;
         }
 #endif		

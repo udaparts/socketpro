@@ -30,7 +30,7 @@ namespace NJA {
 
         // Prepare constructor template
         Local<FunctionTemplate> tpl = FunctionTemplate::New(isolate, New);
-        tpl->SetClassName(ToStr(isolate, u"CCache"));
+        tpl->SetClassName(ToStr(isolate, u"CCache", 6));
         tpl->InstanceTemplate()->SetInternalFieldCount(1);
 
         //methods
@@ -59,7 +59,7 @@ namespace NJA {
         NODE_SET_PROTOTYPE_METHOD(tpl, "getDbTable", getDbTable);
         auto ctx = isolate->GetCurrentContext();
         constructor.Reset(isolate, tpl->GetFunction(ctx).ToLocalChecked());
-        exports->Set(ctx, ToStr(isolate, u"CCache"), tpl->GetFunction(ctx).ToLocalChecked());
+        exports->Set(ctx, ToStr(isolate, u"CCache", 6), tpl->GetFunction(ctx).ToLocalChecked());
     }
 
     Local<Object> NJCache::New(Isolate* isolate, SPA::CDataSet *ds, bool setCb) {
@@ -183,8 +183,8 @@ namespace NJA {
             unsigned int index = 0;
             for (auto it = db_table.begin(), end = db_table.end(); it != end; ++it, ++index) {
                 Local<Object> p = Object::New(isolate);
-                p->Set(ctx, ToStr(isolate, u"db"), ToStr(isolate, it->first.c_str()));
-                p->Set(ctx, ToStr(isolate, u"table"), ToStr(isolate, it->second.c_str()));
+                p->Set(ctx, ToStr(isolate, u"db", 2), ToStr(isolate, it->first.c_str()));
+                p->Set(ctx, ToStr(isolate, u"table", 5), ToStr(isolate, it->second.c_str()));
                 v->Set(ctx, index, p);
             }
             args.GetReturnValue().Set(v);

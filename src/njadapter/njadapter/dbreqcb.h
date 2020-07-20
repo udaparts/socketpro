@@ -88,7 +88,7 @@ namespace SPA {
                                 *cb.Buffer >> res >> errMsg >> affected >> fails >> oks >> vtId;
                                 assert(!cb.Buffer->GetSize());
                                 auto njRes = Int32::New(isolate, res);
-                                auto njMsg = ToStr(isolate, errMsg.c_str());
+                                auto njMsg = ToStr(isolate, errMsg.c_str(), errMsg.size());
                                 auto njAffected = Number::New(isolate, (double) affected);
                                 auto njFails = Number::New(isolate, fails);
                                 auto njOks = Number::New(isolate, oks);
@@ -104,7 +104,7 @@ namespace SPA {
                                 *cb.Buffer >> res >> errMsg;
                                 assert(!cb.Buffer->GetSize());
                                 auto njRes = Int32::New(isolate, res);
-                                auto njMsg = ToStr(isolate, errMsg.c_str());
+                                auto njMsg = ToStr(isolate, errMsg.c_str(), errMsg.size());
                                 Local<Value> argv[] = {njRes, njMsg};
                                 func->Call(ctx, Null(isolate), 2, argv);
                             }

@@ -13,14 +13,14 @@ namespace NJA {
 
         // Prepare constructor template
         Local<FunctionTemplate> tpl = FunctionTemplate::New(isolate, New);
-        tpl->SetClassName(ToStr(isolate, "CCert"));
+        tpl->SetClassName(ToStr(isolate, "CCert", 5));
         tpl->InstanceTemplate()->SetInternalFieldCount(1);
 
         //method
         NODE_SET_PROTOTYPE_METHOD(tpl, "Verify", Verify);
         auto ctx = isolate->GetCurrentContext();
         constructor.Reset(isolate, tpl->GetFunction(ctx).ToLocalChecked());
-        exports->Set(ctx, ToStr(isolate, "CCert"), tpl->GetFunction(ctx).ToLocalChecked());
+        exports->Set(ctx, ToStr(isolate, "CCert", 5), tpl->GetFunction(ctx).ToLocalChecked());
     }
 
     void NJCert::Verify(const FunctionCallbackInfo<Value>& args) {
@@ -30,8 +30,8 @@ namespace NJA {
         Local<Object> res = Object::New(isolate);
         std::string errMsg = obj->m_c->Verify(&errCode);
         auto ctx = isolate->GetCurrentContext();
-        res->Set(ctx, ToStr(isolate, u"ec"), Int32::New(isolate, errCode));
-        res->Set(ctx, ToStr(isolate, u"em"), ToStr(isolate, errMsg.c_str(), errMsg.size()));
+        res->Set(ctx, ToStr(isolate, u"ec", 2), Int32::New(isolate, errCode));
+        res->Set(ctx, ToStr(isolate, u"em", 2), ToStr(isolate, errMsg.c_str(), errMsg.size()));
         args.GetReturnValue().Set(res);
     }
 
@@ -59,17 +59,17 @@ namespace NJA {
         auto jsCert = cons->NewInstance(ctx, 3, argv).ToLocalChecked();
 
         //properties
-        jsCert->Set(ctx, ToStr(isolate, u"Issuer"), ToStr(isolate, c->Issuer));
-        jsCert->Set(ctx, ToStr(isolate, u"Subject"), ToStr(isolate, c->Subject));
-        jsCert->Set(ctx, ToStr(isolate, u"NotBefore"), ToStr(isolate, c->NotBefore));
-        jsCert->Set(ctx, ToStr(isolate, u"NotAfter"), ToStr(isolate, c->NotAfter));
-        jsCert->Set(ctx, ToStr(isolate, u"Validity"), Boolean::New(isolate, c->Validity));
-        jsCert->Set(ctx, ToStr(isolate, u"SigAlg"), ToStr(isolate, c->SigAlg));
-        jsCert->Set(ctx, ToStr(isolate, u"CertPem"), ToStr(isolate, c->CertPem));
-        jsCert->Set(ctx, ToStr(isolate, u"SessionInfo"), ToStr(isolate, c->SessionInfo));
-        jsCert->Set(ctx, ToStr(isolate, u"PublicKey"), ToStr(isolate, ToString(c->PublicKey, c->PKSize).c_str()));
-        jsCert->Set(ctx, ToStr(isolate, u"Algorithm"), ToStr(isolate, ToString(c->Algorithm, c->AlgSize).c_str()));
-        jsCert->Set(ctx, ToStr(isolate, u"SerialNumber"), ToStr(isolate, ToString(c->SerialNumber, c->SNSize).c_str()));
+        jsCert->Set(ctx, ToStr(isolate, u"Issuer", 6), ToStr(isolate, c->Issuer));
+        jsCert->Set(ctx, ToStr(isolate, u"Subject", 7), ToStr(isolate, c->Subject));
+        jsCert->Set(ctx, ToStr(isolate, u"NotBefore", 9), ToStr(isolate, c->NotBefore));
+        jsCert->Set(ctx, ToStr(isolate, u"NotAfter", 8), ToStr(isolate, c->NotAfter));
+        jsCert->Set(ctx, ToStr(isolate, u"Validity", 8), Boolean::New(isolate, c->Validity));
+        jsCert->Set(ctx, ToStr(isolate, u"SigAlg", 6), ToStr(isolate, c->SigAlg));
+        jsCert->Set(ctx, ToStr(isolate, u"CertPem", 7), ToStr(isolate, c->CertPem));
+        jsCert->Set(ctx, ToStr(isolate, u"SessionInfo", 11), ToStr(isolate, c->SessionInfo));
+        jsCert->Set(ctx, ToStr(isolate, u"PublicKey", 9), ToStr(isolate, ToString(c->PublicKey, c->PKSize).c_str()));
+        jsCert->Set(ctx, ToStr(isolate, u"Algorithm", 9), ToStr(isolate, ToString(c->Algorithm, c->AlgSize).c_str()));
+        jsCert->Set(ctx, ToStr(isolate, u"SerialNumber", 12), ToStr(isolate, ToString(c->SerialNumber, c->SNSize).c_str()));
 
         return jsCert;
     }

@@ -18,7 +18,7 @@ namespace NJA {
 
         // Prepare constructor template
         Local<FunctionTemplate> tpl = FunctionTemplate::New(isolate, New);
-        tpl->SetClassName(ToStr(isolate, u"CPush"));
+        tpl->SetClassName(ToStr(isolate, u"CPush", 5));
         tpl->InstanceTemplate()->SetInternalFieldCount(1);
 
         //methods
@@ -28,7 +28,7 @@ namespace NJA {
         NODE_SET_PROTOTYPE_METHOD(tpl, "SendUserMessage", SendUserMessage);
         auto ctx = isolate->GetCurrentContext();
         constructor.Reset(isolate, tpl->GetFunction(ctx).ToLocalChecked());
-        exports->Set(ctx, ToStr(isolate, u"CPush"), tpl->GetFunction(ctx).ToLocalChecked());
+        exports->Set(ctx, ToStr(isolate, u"CPush", 5), tpl->GetFunction(ctx).ToLocalChecked());
     }
 
     Local<Object> NJPush::New(Isolate* isolate, SPA::IPushEx *p, bool setCb) {

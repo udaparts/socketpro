@@ -117,7 +117,7 @@ namespace NJA {
                         SPA::CDBString errMsg;
                         *cb.Buffer >> res >> errMsg;
                         Local<Value> jsRes = v8::Int32::New(isolate, res);
-                        Local<v8::String> jsMsg = ToStr(isolate, errMsg.c_str());
+                        Local<v8::String> jsMsg = ToStr(isolate, errMsg.c_str(), errMsg.size());
                         Local<Value> argv[] = {jsMsg, jsRes, download};
                         func->Call(isolate->GetCurrentContext(), Null(isolate), 3, argv);
                     }
