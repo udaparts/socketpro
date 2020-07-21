@@ -177,15 +177,24 @@ namespace SPA {
 
     static bool ParseDec_long(const char *data, DECIMAL &dec) {
         assert(data);
-
+        if (!data) {
+            return false;
+        }
 #ifdef WIN32_64
-        dec.Hi32 = 0;
-        dec.wReserved = 0;
-		VARIANT vtSrc, vtDes;
-		vtSrc.vt = VT_BSTR;
-		vtSrc.bstrVal = ::SysAllocStringByteLen(data, (unsigned int)::strlen(data));
+        VARIANT vtSrc, vtDes;
+        vtSrc.vt = VT_BSTR;
+        wchar_t buffer[64] = {0};
+        size_t len = ::strlen(data);
+        assert(len < sizeof (buffer) / sizeof (wchar_t));
+        if (len >= sizeof (buffer) / sizeof (wchar_t)) {
+            return false;
+        }
+        for (size_t n = 0; n < len; ++n) {
+            buffer[n] = data[n];
+        }
+        vtSrc.bstrVal = ::SysAllocStringLen(buffer, (unsigned int) len);
         HRESULT hr = ::VariantChangeType(&vtDes, &vtSrc, 0, VT_DECIMAL);
-		::VariantClear(&vtSrc);
+        ::VariantClear(&vtSrc);
         if (FAILED(hr)) {
             return false;
         }
