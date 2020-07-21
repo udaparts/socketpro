@@ -1308,111 +1308,74 @@ namespace NJA {
     }
 
     Local<Array> ToMeta(Isolate* isolate, const CDBColumnInfoArray &v) {
-#if NODE_VERSION_AT_LEAST(12,0,0)
-        std::vector<Local < Value>> vObj;
-        for (auto it = v.begin(), end = v.end(); it != end; ++it) {
-            Local<v8::Name> vN[] = {
-                ToStr(isolate, u"DBPath", 6),
-                ToStr(isolate, u"TablePath", 9),
-                ToStr(isolate, u"DisplayName", 11),
-                ToStr(isolate, u"OriginalName", 12),
-                ToStr(isolate, u"DeclaredType", 12),
-                ToStr(isolate, u"Collation", 9),
-                ToStr(isolate, u"ColumnSize", 10),
-                ToStr(isolate, u"Flags", 5),
-                ToStr(isolate, u"DataType", 8),
-                ToStr(isolate, u"Precision", 9),
-                ToStr(isolate, u"Scale", 5)
-            };
-            Local<Value> vV[] = {
-                ToStr(isolate, it->DBPath.c_str(), it->DBPath.size()),
-                ToStr(isolate, it->TablePath.c_str(), it->TablePath.size()),
-                ToStr(isolate, it->DisplayName.c_str(), it->DisplayName.size()),
-                ToStr(isolate, it->OriginalName.c_str(), it->OriginalName.size()),
-                ToStr(isolate, it->DeclaredType.c_str(), it->DeclaredType.size()),
-                ToStr(isolate, it->Collation.c_str(), it->Collation.size()),
-                Uint32::New(isolate, it->ColumnSize),
-                Uint32::New(isolate, it->Flags),
-                Uint32::New(isolate, it->DataType),
-                Uint32::New(isolate, it->Precision),
-                Uint32::New(isolate, it->Scale)
-            };
-            vObj.push_back(Object::New(isolate, Null(isolate), vN, vV, 11));
-        }
-        return Array::New(isolate, &vObj.front(), vObj.size());
-#else
+        Local<Value> vN[] = {
+            ToStr(isolate, u"DBPath", 6),
+            ToStr(isolate, u"TablePath", 9),
+            ToStr(isolate, u"DisplayName", 11),
+            ToStr(isolate, u"OriginalName", 12),
+            ToStr(isolate, u"DeclaredType", 12),
+            ToStr(isolate, u"Collation", 9),
+            ToStr(isolate, u"ColumnSize", 10),
+            ToStr(isolate, u"Flags", 5),
+            ToStr(isolate, u"DataType", 8),
+            ToStr(isolate, u"Precision", 9),
+            ToStr(isolate, u"Scale", 5)
+        };
         auto ctx = isolate->GetCurrentContext();
         Local<Array> jsMeta = Array::New(isolate, (int) v.size());
         unsigned int index = 0;
         for (auto it = v.begin(), end = v.end(); it != end; ++it, ++index) {
             Local<Object> meta = Object::New(isolate);
-            meta->Set(ctx, ToStr(isolate, u"DBPath", 6), ToStr(isolate, it->DBPath.c_str(), it->DBPath.size()));
-            meta->Set(ctx, ToStr(isolate, u"TablePath", 9), ToStr(isolate, it->TablePath.c_str(), it->TablePath.size()));
-            meta->Set(ctx, ToStr(isolate, u"DisplayName", 11), ToStr(isolate, it->DisplayName.c_str(), it->DisplayName.size()));
-            meta->Set(ctx, ToStr(isolate, u"OriginalName", 12), ToStr(isolate, it->OriginalName.c_str(), it->OriginalName.size()));
-            meta->Set(ctx, ToStr(isolate, u"DeclaredType", 12), ToStr(isolate, it->DeclaredType.c_str(), it->DeclaredType.size()));
-            meta->Set(ctx, ToStr(isolate, u"Collation", 9), ToStr(isolate, it->Collation.c_str(), it->Collation.size()));
-            meta->Set(ctx, ToStr(isolate, u"ColumnSize", 10), Uint32::New(isolate, it->ColumnSize));
-            meta->Set(ctx, ToStr(isolate, u"Flags", 5), Uint32::New(isolate, it->Flags));
-            meta->Set(ctx, ToStr(isolate, u"DataType", 8), Uint32::New(isolate, it->DataType));
-            meta->Set(ctx, ToStr(isolate, u"Precision", 9), Uint32::New(isolate, it->Precision));
-            meta->Set(ctx, ToStr(isolate, u"Scale", 5), Uint32::New(isolate, it->Scale));
+            meta->Set(ctx, vN[0], ToStr(isolate, it->DBPath.c_str(), it->DBPath.size()));
+            meta->Set(ctx, vN[1], ToStr(isolate, it->TablePath.c_str(), it->TablePath.size()));
+            meta->Set(ctx, vN[2], ToStr(isolate, it->DisplayName.c_str(), it->DisplayName.size()));
+            meta->Set(ctx, vN[3], ToStr(isolate, it->OriginalName.c_str(), it->OriginalName.size()));
+            meta->Set(ctx, vN[4], ToStr(isolate, it->DeclaredType.c_str(), it->DeclaredType.size()));
+            meta->Set(ctx, vN[5], ToStr(isolate, it->Collation.c_str(), it->Collation.size()));
+            meta->Set(ctx, vN[6], Uint32::New(isolate, it->ColumnSize));
+            meta->Set(ctx, vN[7], Uint32::New(isolate, it->Flags));
+            meta->Set(ctx, vN[8], Uint32::New(isolate, it->DataType));
+            meta->Set(ctx, vN[9], Uint32::New(isolate, it->Precision));
+            meta->Set(ctx, vN[10], Uint32::New(isolate, it->Scale));
             jsMeta->Set(ctx, index, meta);
         }
         return jsMeta;
-#endif
     }
 
     Local<Array> ToMeta(Isolate* isolate, const SPA::CKeyMap &mapkey) {
+        Local<Value> vN[] = {
+            ToStr(isolate, u"DBPath", 6),
+            ToStr(isolate, u"TablePath", 9),
+            ToStr(isolate, u"DisplayName", 11),
+            ToStr(isolate, u"OriginalName", 12),
+            ToStr(isolate, u"DeclaredType", 12),
+            ToStr(isolate, u"Collation", 9),
+            ToStr(isolate, u"ColumnSize", 10),
+            ToStr(isolate, u"Flags", 5),
+            ToStr(isolate, u"DataType", 8),
+            ToStr(isolate, u"Precision", 9),
+            ToStr(isolate, u"Scale", 5)
+        };
+
         auto ctx = isolate->GetCurrentContext();
         Local<Array> jsMeta = Array::New(isolate, (int) mapkey.size());
         unsigned int index = 0;
         for (auto it = mapkey.begin(), end = mapkey.end(); it != end; ++it, ++index) {
             Local<Object> p = Object::New(isolate);
             p->Set(ctx, ToStr(isolate, u"Ordinal", 7), Number::New(isolate, it->first));
-#if NODE_VERSION_AT_LEAST(12,0,0)
-            Local<v8::Name> vN[] = {
-                ToStr(isolate, u"DBPath", 6),
-                ToStr(isolate, u"TablePath", 9),
-                ToStr(isolate, u"DisplayName", 11),
-                ToStr(isolate, u"OriginalName", 12),
-                ToStr(isolate, u"DeclaredType", 12),
-                ToStr(isolate, u"Collation", 9),
-                ToStr(isolate, u"ColumnSize", 10),
-                ToStr(isolate, u"Flags", 5),
-                ToStr(isolate, u"DataType", 8),
-                ToStr(isolate, u"Precision", 9),
-                ToStr(isolate, u"Scale", 5)
-            };
-            Local<Value> vV[] = {
-                ToStr(isolate, it->second.DBPath.c_str(), it->second.DBPath.size()),
-                ToStr(isolate, it->second.TablePath.c_str(), it->second.TablePath.size()),
-                ToStr(isolate, it->second.DisplayName.c_str(), it->second.DisplayName.size()),
-                ToStr(isolate, it->second.OriginalName.c_str(), it->second.OriginalName.size()),
-                ToStr(isolate, it->second.DeclaredType.c_str(), it->second.DeclaredType.size()),
-                ToStr(isolate, it->second.Collation.c_str(), it->second.Collation.size()),
-                Uint32::New(isolate, it->second.ColumnSize),
-                Uint32::New(isolate, it->second.Flags),
-                Uint32::New(isolate, it->second.DataType),
-                Uint32::New(isolate, it->second.Precision),
-                Uint32::New(isolate, it->second.Scale)
-            };
-            p->Set(ctx, ToStr(isolate, u"Field", 5), Object::New(isolate, Null(isolate), vN, vV, 11));
-#else
             Local<Object> meta = Object::New(isolate);
-            meta->Set(ctx, ToStr(isolate, u"DBPath", 6), ToStr(isolate, it->second.DBPath.c_str(), it->second.DBPath.size()));
-            meta->Set(ctx, ToStr(isolate, u"TablePath", 9), ToStr(isolate, it->second.TablePath.c_str(), it->second.TablePath.size()));
-            meta->Set(ctx, ToStr(isolate, u"DisplayName", 11), ToStr(isolate, it->second.DisplayName.c_str(), it->second.DisplayName.size()));
-            meta->Set(ctx, ToStr(isolate, u"OriginalName", 12), ToStr(isolate, it->second.OriginalName.c_str(), it->second.OriginalName.size()));
-            meta->Set(ctx, ToStr(isolate, u"DeclaredType", 12), ToStr(isolate, it->second.DeclaredType.c_str(), it->second.DeclaredType.size()));
-            meta->Set(ctx, ToStr(isolate, u"Collation", 9), ToStr(isolate, it->second.Collation.c_str(), it->second.Collation.size()));
-            meta->Set(ctx, ToStr(isolate, u"ColumnSize", 10), Uint32::New(isolate, it->second.ColumnSize));
-            meta->Set(ctx, ToStr(isolate, u"Flags", 5), Uint32::New(isolate, it->second.Flags));
-            meta->Set(ctx, ToStr(isolate, u"DataType", 8), Uint32::New(isolate, it->second.DataType));
-            meta->Set(ctx, ToStr(isolate, u"Precision", 9), Uint32::New(isolate, it->second.Precision));
-            meta->Set(ctx, ToStr(isolate, u"Scale", 5), Uint32::New(isolate, it->second.Scale));
+            meta->Set(ctx, vN[0], ToStr(isolate, it->second.DBPath.c_str(), it->second.DBPath.size()));
+            meta->Set(ctx, vN[1], ToStr(isolate, it->second.TablePath.c_str(), it->second.TablePath.size()));
+            meta->Set(ctx, vN[2], ToStr(isolate, it->second.DisplayName.c_str(), it->second.DisplayName.size()));
+            meta->Set(ctx, vN[3], ToStr(isolate, it->second.OriginalName.c_str(), it->second.OriginalName.size()));
+            meta->Set(ctx, vN[4], ToStr(isolate, it->second.DeclaredType.c_str(), it->second.DeclaredType.size()));
+            meta->Set(ctx, vN[5], ToStr(isolate, it->second.Collation.c_str(), it->second.Collation.size()));
+            meta->Set(ctx, vN[6], Uint32::New(isolate, it->second.ColumnSize));
+            meta->Set(ctx, vN[7], Uint32::New(isolate, it->second.Flags));
+            meta->Set(ctx, vN[8], Uint32::New(isolate, it->second.DataType));
+            meta->Set(ctx, vN[9], Uint32::New(isolate, it->second.Precision));
+            meta->Set(ctx, vN[10], Uint32::New(isolate, it->second.Scale));
             p->Set(ctx, ToStr(isolate, u"Field", 5), meta);
-#endif
             jsMeta->Set(ctx, index, p);
         }
         return jsMeta;

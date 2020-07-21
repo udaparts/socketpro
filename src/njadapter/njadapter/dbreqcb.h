@@ -1,4 +1,3 @@
-
 #pragma once
 
 #include "../../../include/udb_client.h"
@@ -9,6 +8,70 @@ namespace SPA {
         using namespace NJA;
 
         Local<v8::Object> CreateDb(Isolate* isolate, CAsyncServiceHandler *ash);
+
+        static Local<Array> ToMeta(Isolate* isolate, CUQueue &v) {
+            int length;
+            Local<v8::Value> vN[] = {
+                ToStr(isolate, u"DBPath", 6),
+                ToStr(isolate, u"TablePath", 9),
+                ToStr(isolate, u"DisplayName", 11),
+                ToStr(isolate, u"OriginalName", 12),
+                ToStr(isolate, u"DeclaredType", 12),
+                ToStr(isolate, u"Collation", 9),
+                ToStr(isolate, u"ColumnSize", 10),
+                ToStr(isolate, u"Flags", 5),
+                ToStr(isolate, u"DataType", 8),
+                ToStr(isolate, u"Precision", 9),
+                ToStr(isolate, u"Scale", 5)
+            };
+            auto ctx = isolate->GetCurrentContext();
+            v >> length;
+            Local<Array> jsMeta = Array::New(isolate, length);
+            unsigned int index = 0;
+            while (v.GetSize()) {
+                unsigned int bytes;
+                Local<Object> meta = Object::New(isolate);
+                v >> bytes;
+                const SPA::UTF16 *str = (const SPA::UTF16 *)v.GetBuffer();
+                meta->Set(ctx, vN[0], ToStr(isolate, str, bytes >> 1));
+                v.Pop(bytes);
+                v >> bytes;
+                str = (const SPA::UTF16 *)v.GetBuffer();
+                meta->Set(ctx, vN[1], ToStr(isolate, str, bytes >> 1));
+                v.Pop(bytes);
+                v >> bytes;
+                str = (const SPA::UTF16 *)v.GetBuffer();
+                meta->Set(ctx, vN[2], ToStr(isolate, str, bytes >> 1));
+                v.Pop(bytes);
+                v >> bytes;
+                str = (const SPA::UTF16 *)v.GetBuffer();
+                meta->Set(ctx, vN[3], ToStr(isolate, str, bytes >> 1));
+                v.Pop(bytes);
+                v >> bytes;
+                str = (const SPA::UTF16 *)v.GetBuffer();
+                meta->Set(ctx, vN[4], ToStr(isolate, str, bytes >> 1));
+                v.Pop(bytes);
+                v >> bytes;
+                str = (const SPA::UTF16 *)v.GetBuffer();
+                meta->Set(ctx, vN[5], ToStr(isolate, str, bytes >> 1));
+                v.Pop(bytes);
+                v >> bytes;
+                meta->Set(ctx, vN[6], Uint32::New(isolate, bytes));
+                v >> bytes;
+                meta->Set(ctx, vN[7], Uint32::New(isolate, bytes));
+                unsigned short DataType;
+                v >> DataType;
+                meta->Set(ctx, vN[8], Uint32::New(isolate, DataType));
+                unsigned char my_byte;
+                v >> my_byte;
+                meta->Set(ctx, vN[9], Uint32::New(isolate, my_byte));
+                v >> my_byte;
+                meta->Set(ctx, vN[10], Uint32::New(isolate, my_byte));
+                jsMeta->Set(ctx, index, meta);
+                ++index;
+            }
+            return jsMeta;
+        }
 
         template<unsigned int serviceId>
         void CAsyncDBHandler<serviceId>::req_cb(uv_async_t* handle) {
@@ -111,10 +174,8 @@ namespace SPA {
                             break;
                         case eRowsetHeader:
                             if (!func.IsEmpty()) {
-                                CDBColumnInfoArray v;
-                                *cb.Buffer >> v;
+                                Local<Array> jsMeta = ToMeta(isolate, *cb.Buffer);
                                 assert(!cb.Buffer->GetSize());
-                                Local<Array> jsMeta = ToMeta(isolate, v);
                                 Local<Value> argv[] = {jsMeta};
                                 func->Call(ctx, Null(isolate), 1, argv);
                             }
