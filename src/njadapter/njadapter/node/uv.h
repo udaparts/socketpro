@@ -177,6 +177,7 @@ extern "C" {
   XX(WORK, work)                                                              \
   XX(GETADDRINFO, getaddrinfo)                                                \
   XX(GETNAMEINFO, getnameinfo)                                                \
+  XX(RANDOM, random)                                                          \
 
 typedef enum {
 #define XX(code, _) UV_ ## code = UV__ ## code,
@@ -234,6 +235,7 @@ typedef struct uv_connect_s uv_connect_t;
 typedef struct uv_udp_send_s uv_udp_send_t;
 typedef struct uv_fs_s uv_fs_t;
 typedef struct uv_work_s uv_work_t;
+typedef struct uv_random_s uv_random_t;
 
 /* None of the above. */
 typedef struct uv_env_item_s uv_env_item_t;
@@ -262,6 +264,8 @@ typedef void* (*uv_malloc_func)(size_t size);
 typedef void* (*uv_realloc_func)(void* ptr, size_t size);
 typedef void* (*uv_calloc_func)(size_t count, size_t size);
 typedef void (*uv_free_func)(void* ptr);
+
+UV_EXTERN void uv_library_shutdown(void);
 
 UV_EXTERN int uv_replace_allocator(uv_malloc_func malloc_func,
                                    uv_realloc_func realloc_func,
@@ -330,6 +334,10 @@ typedef void (*uv_getnameinfo_cb)(uv_getnameinfo_t* req,
                                   int status,
                                   const char* hostname,
                                   const char* service);
+typedef void (*uv_random_cb)(uv_random_t* req,
+                             int status,
+                             void* buf,
+                             size_t buflen);
 
 typedef struct {
   long tv_sec;
@@ -599,7 +607,17 @@ enum uv_udp_flags {
    * (provided they all set the flag) but only the last one to bind will receive
    * any traffic, in effect "stealing" the port from the previous listener.
    */
-  UV_UDP_REUSEADDR = 4
+  UV_UDP_REUSEADDR = 4,
+  /*
+   * Indicates that the message was received by recvmmsg, so the buffer provided
+   * must not be freed by the recv_cb callback.
+   */
+  UV_UDP_MMSG_CHUNK = 8,
+
+  /*
+   * Indicates that recvmmsg should be used, if available.
+   */
+  UV_UDP_RECVMMSG = 256
 };
 
 typedef void (*uv_udp_send_cb)(uv_udp_send_t* req, int status);
@@ -700,10 +718,25 @@ typedef enum {
   UV_TTY_MODE_IO
 } uv_tty_mode_t;
 
+typedef enum {
+  /*
+   * The console supports handling of virtual terminal sequences
+   * (Windows10 new console, ConEmu)
+   */
+  UV_TTY_SUPPORTED,
+  /* The console cannot process the virtual terminal sequence.  (Legacy
+   * console)
+   */
+  UV_TTY_UNSUPPORTED
+} uv_tty_vtermstate_t;
+
+
 UV_EXTERN int uv_tty_init(uv_loop_t*, uv_tty_t*, uv_file fd, int readable);
 UV_EXTERN int uv_tty_set_mode(uv_tty_t*, uv_tty_mode_t mode);
 UV_EXTERN int uv_tty_reset_mode(void);
 UV_EXTERN int uv_tty_get_winsize(uv_tty_t*, int* width, int* height);
+UV_EXTERN void uv_tty_set_vterm_state(uv_tty_vtermstate_t state);
+UV_EXTERN int uv_tty_get_vterm_state(uv_tty_vtermstate_t* state);
 
 #ifdef __cplusplus
 extern "C++" {
@@ -1038,11 +1071,11 @@ UV_EXTERN int uv_cancel(uv_req_t* req);
 
 
 struct uv_cpu_times_s {
-  uint64_t user;
-  uint64_t nice;
-  uint64_t sys;
-  uint64_t idle;
-  uint64_t irq;
+  uint64_t user; /* milliseconds */
+  uint64_t nice; /* milliseconds */
+  uint64_t sys; /* milliseconds */
+  uint64_t idle; /* milliseconds */
+  uint64_t irq; /* milliseconds */
 };
 
 struct uv_cpu_info_s {
@@ -1156,12 +1189,22 @@ UV_EXTERN void uv_os_free_passwd(uv_passwd_t* pwd);
 UV_EXTERN uv_pid_t uv_os_getpid(void);
 UV_EXTERN uv_pid_t uv_os_getppid(void);
 
-#define UV_PRIORITY_LOW 19
-#define UV_PRIORITY_BELOW_NORMAL 10
-#define UV_PRIORITY_NORMAL 0
-#define UV_PRIORITY_ABOVE_NORMAL -7
-#define UV_PRIORITY_HIGH -14
-#define UV_PRIORITY_HIGHEST -20
+#if defined(__PASE__)
+/* On IBM i PASE, the highest process priority is -10 */
+# define UV_PRIORITY_LOW 39            // RUNPTY(99)
+# define UV_PRIORITY_BELOW_NORMAL 15   // RUNPTY(50)
+# define UV_PRIORITY_NORMAL 0          // RUNPTY(20)
+# define UV_PRIORITY_ABOVE_NORMAL -4   // RUNTY(12)
+# define UV_PRIORITY_HIGH -7           // RUNPTY(6)
+# define UV_PRIORITY_HIGHEST -10       // RUNPTY(1)
+#else
+# define UV_PRIORITY_LOW 19
+# define UV_PRIORITY_BELOW_NORMAL 10
+# define UV_PRIORITY_NORMAL 0
+# define UV_PRIORITY_ABOVE_NORMAL -7
+# define UV_PRIORITY_HIGH -14
+# define UV_PRIORITY_HIGHEST -20
+#endif
 
 UV_EXTERN int uv_os_getpriority(uv_pid_t pid, int* priority);
 UV_EXTERN int uv_os_setpriority(uv_pid_t pid, int priority);
@@ -1237,7 +1280,9 @@ typedef enum {
   UV_FS_OPENDIR,
   UV_FS_READDIR,
   UV_FS_CLOSEDIR,
-  UV_FS_STATFS
+  UV_FS_STATFS,
+  UV_FS_MKSTEMP,
+  UV_FS_LUTIME
 } uv_fs_type;
 
 struct uv_dir_s {
@@ -1262,6 +1307,7 @@ struct uv_fs_s {
 
 UV_EXTERN uv_fs_type uv_fs_get_type(const uv_fs_t*);
 UV_EXTERN ssize_t uv_fs_get_result(const uv_fs_t*);
+UV_EXTERN int uv_fs_get_system_error(const uv_fs_t*);
 UV_EXTERN void* uv_fs_get_ptr(const uv_fs_t*);
 UV_EXTERN const char* uv_fs_get_path(const uv_fs_t*);
 UV_EXTERN uv_stat_t* uv_fs_get_statbuf(uv_fs_t*);
@@ -1325,6 +1371,10 @@ UV_EXTERN int uv_fs_mkdir(uv_loop_t* loop,
                           int mode,
                           uv_fs_cb cb);
 UV_EXTERN int uv_fs_mkdtemp(uv_loop_t* loop,
+                            uv_fs_t* req,
+                            const char* tpl,
+                            uv_fs_cb cb);
+UV_EXTERN int uv_fs_mkstemp(uv_loop_t* loop,
                             uv_fs_t* req,
                             const char* tpl,
                             uv_fs_cb cb);
@@ -1403,6 +1453,12 @@ UV_EXTERN int uv_fs_utime(uv_loop_t* loop,
 UV_EXTERN int uv_fs_futime(uv_loop_t* loop,
                            uv_fs_t* req,
                            uv_file file,
+                           double atime,
+                           double mtime,
+                           uv_fs_cb cb);
+UV_EXTERN int uv_fs_lutime(uv_loop_t* loop,
+                           uv_fs_t* req,
+                           const char* path,
                            double atime,
                            double mtime,
                            uv_fs_cb cb);
@@ -1574,6 +1630,26 @@ UV_EXTERN int uv_ip6_name(const struct sockaddr_in6* src, char* dst, size_t size
 UV_EXTERN int uv_inet_ntop(int af, const void* src, char* dst, size_t size);
 UV_EXTERN int uv_inet_pton(int af, const char* src, void* dst);
 
+
+struct uv_random_s {
+  UV_REQ_FIELDS
+  /* read-only */
+  uv_loop_t* loop;
+  /* private */
+  int status;
+  void* buf;
+  size_t buflen;
+  uv_random_cb cb;
+  struct uv__work work_req;
+};
+
+UV_EXTERN int uv_random(uv_loop_t* loop,
+                        uv_random_t* req,
+                        void *buf,
+                        size_t buflen,
+                        unsigned flags,  /* For future extension; must be 0. */
+                        uv_random_cb cb);
+
 #if defined(IF_NAMESIZE)
 # define UV_IF_NAMESIZE (IF_NAMESIZE + 1)
 #elif defined(IFNAMSIZ)
@@ -1600,6 +1676,7 @@ UV_EXTERN uint64_t uv_get_total_memory(void);
 UV_EXTERN uint64_t uv_get_constrained_memory(void);
 
 UV_EXTERN uint64_t uv_hrtime(void);
+UV_EXTERN void uv_sleep(unsigned int msec);
 
 UV_EXTERN void uv_disable_stdio_inheritance(void);
 

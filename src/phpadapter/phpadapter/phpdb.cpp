@@ -308,9 +308,9 @@ namespace PA
             throw Php::Exception(batch ? "A callback required for ExecuteBatch header event" : "A callback required for rowset header event");
         } else {
             CPVPointer callback(new Php::Value(phpRh));
-            rh = [callback, this](CDBHandler & db) {
+            rh = [callback, this](CDBHandler & db, const unsigned char *start, unsigned int bytes) {
                 SPA::CScopeUQueue sb;
-                sb << db.GetColumnInfo();
+                sb->Push(start, bytes);
                 PACallback cb;
                 cb.CallbackType = ctDbRH;
                 cb.Res = sb.Detach();
