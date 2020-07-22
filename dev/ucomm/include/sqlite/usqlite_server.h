@@ -1,4 +1,3 @@
-
 #pragma once
 
 #include "../spa_module.h"
@@ -11,7 +10,7 @@
 extern "C" {
 #endif
 
-    void WINAPI SetSqliteDBGlobalConnectionString(const wchar_t *dbConnection);
+    void U_MODULE_OPENED WINAPI SetSqliteDBGlobalConnectionString(const wchar_t *dbConnection);
 
 #ifdef __cplusplus
 }

@@ -16,14 +16,14 @@ extern "C" {
      * @param dbConnection a global or default string for either embedded mysql database name or remote mysql connection string
      * @param remote reserved for the future use
      */
-    void WINAPI SetMysqlDBGlobalConnectionString(const wchar_t *dbConnection, bool remote);
+    void U_MODULE_OPENED WINAPI SetMysqlDBGlobalConnectionString(const wchar_t *dbConnection, bool remote);
 
     /**
      * Set embedded mysql server initial options. Currently, the function is not implemented but reserved for the future use
      * @param options Embedded mysql initial options string like 'datadir=.;language=./share;default-storage-engine=MyISAM;skip-innodb;key-buffer-size=64M;console'. If the string is null or empty, the options string will not be changed
      * @return options string for embedded mysql server initialization
      */
-    const char* WINAPI SetMysqlEmbeddedOptions(const wchar_t *options);
+    const char* U_MODULE_OPENED WINAPI SetMysqlEmbeddedOptions(const wchar_t *options);
 
     /**
      * Do authentication through MySQL/Mariadb C connector
@@ -34,7 +34,7 @@ extern "C" {
      * @param dbConnection A connection string to MySQL/Mariadb database
      * @return true for success authentication and false for failure authentication
      */
-    bool WINAPI DoMySQLAuthentication(USocket_Server_Handle hSocket, const wchar_t *userId, const wchar_t *password, unsigned int nSvsId, const wchar_t *dbConnection);
+    bool U_MODULE_OPENED WINAPI DoMySQLAuthentication(USocket_Server_Handle hSocket, const wchar_t *userId, const wchar_t *password, unsigned int nSvsId, const wchar_t *dbConnection);
 #ifdef __cplusplus
 }
 #endif

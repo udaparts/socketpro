@@ -79,11 +79,12 @@ namespace SPA {
 
             typedef std::function<void(CAsyncDBHandler &dbHandler, int res, const std::wstring &errMsg) > DResult;
             typedef std::function<void(CAsyncDBHandler &dbHandler, int res, const std::wstring &errMsg, INT64 affected, UINT64 fail_ok, CDBVariant &vtId) > DExecuteResult;
-            typedef std::function<void(CAsyncDBHandler &dbHandler) > DRowsetHeader;
 
 #if defined(PHP_ADAPTER_PROJECT) || defined(NODE_JS_ADAPTER_PROJECT)
+            typedef std::function<void(CAsyncDBHandler &dbHandler, const unsigned char *start, unsigned int bytes) > DRowsetHeader;
             typedef std::function<void(CAsyncDBHandler &dbHandler, CUQueue &vData) > DRows;
 #else
+            typedef std::function<void(CAsyncDBHandler &dbHandler) > DRowsetHeader;
             typedef std::function<void(CAsyncDBHandler &dbHandler, CDBVariantArray &vData) > DRows;
 #endif
 
@@ -967,7 +968,11 @@ namespace SPA {
                             }
                         }
                         if (cb) {
+#if defined(PHP_ADAPTER_PROJECT) || defined(NODE_JS_ADAPTER_PROJECT)
+                            cb(*this, nullptr, 0);
+#else
                             cb(*this);
+#endif
                         }
                     }
                         break;
@@ -979,14 +984,23 @@ namespace SPA {
                             m_Blob.ReallocBuffer(ONE_MEGA_BYTES);
                         }
 #if defined(PHP_ADAPTER_PROJECT) || defined(NODE_JS_ADAPTER_PROJECT)
+                        const unsigned char *start;
+                        unsigned int bytes;
                         m_vData.SetSize(0);
 #else
                         m_vData.clear();
 #endif
                         {
                             unsigned int outputs = 0;
+#if defined(PHP_ADAPTER_PROJECT) || defined(NODE_JS_ADAPTER_PROJECT)
+                            start = mc.GetBuffer();
+#endif
                             CAutoLock al(m_csDB);
-                            mc >> m_vColInfo >> m_indexRowset;
+                            mc >> m_vColInfo;
+#if defined(PHP_ADAPTER_PROJECT) || defined(NODE_JS_ADAPTER_PROJECT)
+                            bytes = mc.GetHeadPosition();
+#endif
+                            mc >> m_indexRowset;
                             if (mc.GetSize()) {
                                 mc >> outputs;
                             }
@@ -998,7 +1012,11 @@ namespace SPA {
                             }
                         }
                         if (header) {
+#if defined(PHP_ADAPTER_PROJECT) || defined(NODE_JS_ADAPTER_PROJECT)
+                            header(*this, start, bytes);
+#else
                             header(*this);
+#endif
                         }
                     }
                         break;
@@ -1452,7 +1470,8 @@ namespace SPA {
                     std::shared_ptr<CNJFunc> func(new CNJFunc);
                     func->Reset(isolate, Local<Function>::Cast(header));
                     Backup(func);
-                    rh = [func](CAsyncDBHandler & db) {
+                    rh = [func](CAsyncDBHandler & db, const unsigned char *start, unsigned int bytes) {
+                        assert(!bytes);
                         DBCb cb;
                         cb.Type = eBatchHeader;
                         cb.Func = func;
@@ -1489,13 +1508,14 @@ namespace SPA {
                     std::shared_ptr<CNJFunc> func(new CNJFunc);
                     func->Reset(isolate, Local<Function>::Cast(header));
                     Backup(func);
-                    rh = [func](CAsyncDBHandler & db) {
+                    rh = [func](CAsyncDBHandler & db, const unsigned char *start, unsigned int bytes) {
                         DBCb cb;
                         cb.Type = eRowsetHeader;
                         cb.Func = func;
                         cb.Buffer = CScopeUQueue::Lock();
                         PAsyncDBHandler ash = &db;
-                        *cb.Buffer << ash << db.GetColumnInfo();
+                        *cb.Buffer << ash;
+                        cb.Buffer->Push(start, bytes);
                         CAutoLock al(ash->m_csDB);
                         ash->m_deqDBCb.push_back(cb);
                         int fail = uv_async_send(&ash->m_typeDB);

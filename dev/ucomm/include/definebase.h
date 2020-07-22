@@ -220,8 +220,10 @@ static_assert(sizeof (tagDEC) == 16, "Bad tagDEC structure size!");
 
 #if __GNUC__ >= 4
 #define U_MODULE_HIDDEN __attribute__ ((visibility ("hidden")))
+#define U_MODULE_OPENED __attribute__ ((visibility ("default")))
 #else
 #define U_MODULE_HIDDEN
+#define U_MODULE_OPENED
 #endif
 
 #endif

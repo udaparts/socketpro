@@ -428,7 +428,14 @@ HINSTANCE CServer::AddADll(const char *libFile, int nParam) {
     pi.UninitServerLibrary = (PUninitServerLibrary)::GetProcAddress(h, "UninitServerLibrary");
 
     if (!pi.IsOk() || !pi.InitServerLibrary(nParam)) {
-        std::cout << strLib << " not initialized successfully" << std::endl;
+        std::cout << strLib << " not initialized successfully";
+#ifndef WIN32_64
+        char *errMsg = dlerror();
+        if (errMsg) {
+            std::cout << ", error message: " << (const char*) errMsg;
+        }
+#endif
+        std::cout << std::endl;
         ::FreeLibrary(h);
         return nullptr;
     }

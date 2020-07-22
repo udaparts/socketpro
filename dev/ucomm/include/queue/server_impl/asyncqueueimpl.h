@@ -93,7 +93,7 @@ namespace SPA {
                     }
 
                     if (!m_q.EndJob()) {
-                        Queue::QUEUE_TRANS_COMMITTING_FAILED;
+                        errCode = Queue::QUEUE_TRANS_COMMITTING_FAILED;
                     } else {
                         errCode = Queue::QUEUE_OK;
                     }
