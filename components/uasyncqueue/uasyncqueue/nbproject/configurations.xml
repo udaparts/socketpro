@@ -101,7 +101,7 @@
         <cTool>
           <developmentMode>6</developmentMode>
           <stripSymbols>true</stripSymbols>
-          <commandLine>-std=c++11 -static-libstdc++ -Os</commandLine>
+          <commandLine>-std=c++11 -static-libstdc++ -Os -fvisibility=hidden</commandLine>
           <preprocessorList>
             <Elem>NDEBUG</Elem>
           </preprocessorList>
@@ -109,7 +109,7 @@
         <ccTool>
           <developmentMode>6</developmentMode>
           <stripSymbols>true</stripSymbols>
-          <commandLine>-std=c++11 -static-libstdc++ -Os</commandLine>
+          <commandLine>-std=c++11 -static-libstdc++ -Os -fvisibility=hidden</commandLine>
           <preprocessorList>
             <Elem>NDEBUG</Elem>
           </preprocessorList>
