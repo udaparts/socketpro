@@ -6,7 +6,7 @@
 #include "httppeer.h"
 using namespace SPA::ServerSide;
 
-class CStreamingServer : public CSocketProServer {
+class U_MODULE_HIDDEN CStreamingServer : public CSocketProServer {
 public:
     CStreamingServer(int nParam = 0);
 
@@ -30,7 +30,7 @@ private:
 
 extern CStreamingServer *g_pStreamingServer;
 
-class CSetGlobals {
+class U_MODULE_HIDDEN CSetGlobals {
 private:
     FILE *m_fLog;
     SPA::CUCriticalSection m_cs;

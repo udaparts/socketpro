@@ -113,7 +113,7 @@
             <pElem>../../../../mysql-8.0.11</pElem>
             <pElem>../../../../mysql-8.0.11/libbinlogevents/export</pElem>
           </incDir>
-          <commandLine>-std=c++11 -static-libstdc++ -Os -fvisibility=hidden</commandLine>
+          <commandLine>-std=c++11 -static-libstdc++ -Os</commandLine>
           <preprocessorList>
             <Elem>MYSQL_DYNAMIC_PLUGIN</Elem>
             <Elem>NDEBUG</Elem>
@@ -123,7 +123,7 @@
         <ccTool>
           <developmentMode>6</developmentMode>
           <stripSymbols>true</stripSymbols>
-          <commandLine>-std=c++11 -static-libstdc++ -Os -fvisibility=hidden</commandLine>
+          <commandLine>-std=c++11 -static-libstdc++ -Os</commandLine>
           <preprocessorList>
             <Elem>MYSQL_DYNAMIC_PLUGIN</Elem>
             <Elem>NDEBUG</Elem>

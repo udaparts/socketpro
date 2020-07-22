@@ -4,14 +4,14 @@
 #include "mysqlimpl.h"
 #include "httppeer.h"
 
-struct CService {
+struct U_MODULE_HIDDEN CService {
     unsigned int ServiceId;
     std::string Library;
     int Param;
     std::string Description;
 };
 
-class CStreamingServer : public SPA::ServerSide::CSocketProServer {
+class U_MODULE_HIDDEN CStreamingServer : public SPA::ServerSide::CSocketProServer {
 public:
     CStreamingServer(int nParam = 0);
 
@@ -34,7 +34,7 @@ private:
 
 extern CStreamingServer *g_pStreamingServer;
 
-class CSetGlobals {
+class U_MODULE_HIDDEN CSetGlobals {
 private:
     FILE *m_fLog;
     SPA::CUCriticalSection m_cs;

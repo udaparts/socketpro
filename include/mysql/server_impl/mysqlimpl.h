@@ -2,7 +2,11 @@
 
 #include <memory>
 #include "mysql_funcs.h"
+#ifdef MM_DB_SERVER_PLUGIN
+#include "../umysql.h"
+#else
 #include "../umysql_server.h"
+#endif
 #include "../../udatabase.h"
 #include "../../aserverw.h"
 #include <unordered_map>
@@ -12,7 +16,7 @@ namespace SPA {
         using namespace UDB;
         using namespace Mysql;
 
-        class CMysqlImpl : public CClientPeer {
+        class U_MODULE_HIDDEN CMysqlImpl : public CClientPeer {
             //no copy constructor
             CMysqlImpl(const CMysqlImpl &impl);
             //no assignment operator

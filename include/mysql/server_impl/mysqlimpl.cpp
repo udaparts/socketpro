@@ -4,7 +4,6 @@
 #ifndef NDEBUG
 #include <iostream>
 #endif
-#include "../umysql_server.h"
 #include "../../scloader.h"
 #include <cctype>
 

@@ -10,7 +10,6 @@
       <itemPath>../../../include/membuffer.h</itemPath>
       <itemPath>../../../include/mysql/server_impl/mysqlimpl.h</itemPath>
       <itemPath>streamingserver.h</itemPath>
-      <itemPath>../../../include/mysql/umysql_server.h</itemPath>
       <itemPath>umysql_udf.h</itemPath>
     </logicalFolder>
     <logicalFolder name="ResourceFiles"
@@ -91,11 +90,6 @@
             tool="3"
             flavor2="0">
       </item>
-      <item path="../../../include/mysql/umysql_server.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
       <item path="config.cpp" ex="false" tool="0" flavor2="0">
       </item>
       <item path="config.h" ex="false" tool="3" flavor2="0">
@@ -123,7 +117,7 @@
         <cTool>
           <developmentMode>6</developmentMode>
           <stripSymbols>true</stripSymbols>
-          <commandLine>-std=c++11 -static-libstdc++ -Os -fvisibility=hidden</commandLine>
+          <commandLine>-std=c++11 -static-libstdc++ -Os</commandLine>
           <preprocessorList>
             <Elem>MM_DB_SERVER_PLUGIN</Elem>
             <Elem>MYSQL_DYNAMIC_PLUGIN</Elem>
@@ -134,7 +128,7 @@
         <ccTool>
           <developmentMode>6</developmentMode>
           <stripSymbols>true</stripSymbols>
-          <commandLine>-std=c++11 -static-libstdc++ -Os -fvisibility=hidden</commandLine>
+          <commandLine>-std=c++11 -static-libstdc++ -Os</commandLine>
           <preprocessorList>
             <Elem>MM_DB_SERVER_PLUGIN</Elem>
             <Elem>MYSQL_DYNAMIC_PLUGIN</Elem>
@@ -171,11 +165,6 @@
             flavor2="0">
       </item>
       <item path="../../../include/mysql/server_impl/mysqlimpl.h"
-            ex="false"
-            tool="3"
-            flavor2="0">
-      </item>
-      <item path="../../../include/mysql/umysql_server.h"
             ex="false"
             tool="3"
             flavor2="0">

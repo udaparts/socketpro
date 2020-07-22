@@ -1685,10 +1685,8 @@ JNIEXPORT jboolean JNICALL Java_SPA_ServerSide_Odbc_DoODBCAuthentication(JNIEnv 
 
 HINSTANCE g_hMysql = nullptr;
 typedef void (WINAPI *PSetMysqlDBGlobalConnectionString)(const wchar_t *dbConnection, bool remote);
-typedef const char* (WINAPI *PSetMysqlEmbeddedOptions)(const wchar_t *options);
 typedef bool(WINAPI *PDoMySQLAuthentication)(USocket_Server_Handle hSocket, const wchar_t *userId, const wchar_t *password, unsigned int nSvsId, const wchar_t *dbConnection);
 static PSetMysqlDBGlobalConnectionString SetMysqlDBGlobalConnectionString = nullptr;
-static PSetMysqlEmbeddedOptions SetMysqlEmbeddedOptions = nullptr;
 static PDoMySQLAuthentication DoMySQLAuthentication = nullptr;
 
 JNIEXPORT void JNICALL Java_SPA_ServerSide_Mysql_SetMysqlDBGlobalConnectionString(JNIEnv *env, jclass pClass, jstring dbConnection, jboolean remote) {

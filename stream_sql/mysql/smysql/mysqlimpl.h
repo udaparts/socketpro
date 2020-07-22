@@ -30,7 +30,7 @@ namespace SPA {
     namespace ServerSide {
         using namespace UDB;
 
-        class CMysqlImpl : public CClientPeer {
+        class U_MODULE_HIDDEN CMysqlImpl : public CClientPeer {
             //no copy constructor
             CMysqlImpl(const CMysqlImpl &impl);
             //no assignment operator
