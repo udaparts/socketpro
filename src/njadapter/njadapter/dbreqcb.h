@@ -106,30 +106,13 @@ namespace SPA {
                                 bool bProc;
                                 *cb.Buffer >> bProc;
                                 assert(!cb.Buffer->GetSize());
-#if NODE_VERSION_AT_LEAST(11,6,0)
-                                Local<Array> arr;
-                                if (cb.VData) {
-                                    SPA::CUQueue &buff = *cb.VData;
-                                    try {
-                                        std::vector<Local < Value>> v;
-                                        while (buff.GetSize()) {
-                                            v.push_back(DbFrom(isolate, buff));
-                                        }
-                                        arr = Array::New(isolate, &v.front(), v.size());
-                                    } catch (SPA::CUException&) {
-                                        buff.SetSize(0);
-                                    }
-                                }
-                                Local<Value> argv[] = {arr, Boolean::New(isolate, bProc)};
-#else
                                 Local<Array> v = Array::New(isolate);
                                 if (cb.VData) {
                                     unsigned int index = 0;
                                     SPA::CUQueue &buff = *cb.VData;
                                     while (buff.GetSize()) {
                                         try {
-                                            Local<Value> d = DbFrom(isolate, buff);
-                                            v->Set(ctx, index, d);
+                                            v->Set(ctx, index, DbFrom(isolate, buff));
                                             ++index;
                                         } catch (SPA::CUException&) {
                                             buff.SetSize(0);
@@ -137,7 +120,6 @@ namespace SPA {
                                     }
                                 }
                                 Local<Value> argv[] = {v, Boolean::New(isolate, bProc)};
-#endif
                                 func->Call(ctx, Null(isolate), 2, argv);
                             }
                             break;
