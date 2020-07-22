@@ -141,6 +141,7 @@ namespace SPA {
 };
 
 #define U_MODULE_HIDDEN
+#define U_MODULE_OPENED
 
 #else
 #include <stdlib.h>
