@@ -144,8 +144,9 @@
           <linkerLibItems>
             <linkerLibLibItem>uservercore</linkerLibLibItem>
             <linkerLibLibItem>odbc</linkerLibLibItem>
+            <linkerLibStdlibItem>DynamicLinking</linkerLibStdlibItem>
           </linkerLibItems>
-          <commandLine>-std=c++11 -static-libstdc++</commandLine>
+          <commandLine>-Wl,--no-undefined</commandLine>
         </linkerTool>
       </compileType>
       <item path="../../../include/aserverw.cpp" ex="false" tool="0" flavor2="0">

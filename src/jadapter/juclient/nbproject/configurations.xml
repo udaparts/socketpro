@@ -92,7 +92,7 @@
             <pElem>/usr/lib/jvm/java-7-openjdk-amd64/include</pElem>
             <pElem>/usr/lib/jvm/java-7-openjdk-amd64/include/linux</pElem>
           </incDir>
-          <commandLine>-std=c++11</commandLine>
+          <commandLine>-std=c++11 -fvisibility=hidden</commandLine>
           <preprocessorList>
             <Elem>NDEBUG</Elem>
           </preprocessorList>
@@ -104,7 +104,7 @@
             <pElem>/usr/lib/jvm/java-7-openjdk-amd64/include</pElem>
             <pElem>/usr/lib/jvm/java-7-openjdk-amd64/include/linux</pElem>
           </incDir>
-          <commandLine>-std=c++11</commandLine>
+          <commandLine>-std=c++11 -fvisibility=hidden</commandLine>
           <preprocessorList>
             <Elem>NDEBUG</Elem>
           </preprocessorList>

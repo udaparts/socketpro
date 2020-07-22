@@ -11,7 +11,7 @@
 extern "C" {
 #endif
 
-    void WINAPI SetRootDirectory(const wchar_t *pathRoot);
+    void U_MODULE_OPENED WINAPI SetRootDirectory(const wchar_t *pathRoot);
 
 #ifdef __cplusplus
 }

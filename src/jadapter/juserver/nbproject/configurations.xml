@@ -74,7 +74,7 @@
           <incDir>
             <pElem>/usr/lib/jvm/java-1.7.0-openjdk-amd64/include</pElem>
           </incDir>
-          <commandLine>-std=c++11</commandLine>
+          <commandLine>-std=c++11 -fvisibility=hidden</commandLine>
           <preprocessorList>
             <Elem>NDEBUG</Elem>
           </preprocessorList>
@@ -86,7 +86,7 @@
           <incDir>
             <pElem>/usr/lib/jvm/java-1.7.0-openjdk-amd64/include</pElem>
           </incDir>
-          <commandLine>-std=c++11</commandLine>
+          <commandLine>-std=c++11 -fvisibility=hidden</commandLine>
           <preprocessorList>
             <Elem>NDEBUG</Elem>
           </preprocessorList>
