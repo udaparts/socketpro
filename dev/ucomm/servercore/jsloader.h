@@ -4,7 +4,7 @@
 
 namespace UHTTP {
 
-    class CUJsLoader {
+    class U_MODULE_HIDDEN CUJsLoader {
 
         struct SetLoader {
             SetLoader();

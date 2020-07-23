@@ -8,7 +8,7 @@
 
 class CServerSession;
 
-class CServiceContext : private boost::noncopyable {
+class U_MODULE_HIDDEN CServiceContext : private boost::noncopyable {
 public:
     CServiceContext(unsigned int nServiceId, const CSvsContext &sc);
     virtual ~CServiceContext();

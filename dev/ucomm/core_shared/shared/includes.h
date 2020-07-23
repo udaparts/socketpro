@@ -68,7 +68,7 @@ typedef boost::condition_variable CConditionVariable;
 unsigned int GetNumberOfCores();
 void ChangeUInt32Endian(unsigned int *pGroup, unsigned int count);
 
-class CRAutoLock {
+class U_MODULE_HIDDEN CRAutoLock {
 public:
 #ifndef WINCE
 

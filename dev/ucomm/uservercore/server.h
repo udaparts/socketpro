@@ -4,7 +4,7 @@
 #include "session.h"
 #include <boost/filesystem.hpp>
 
-struct PlugImpl {
+struct U_MODULE_HIDDEN PlugImpl {
     PInitServerLibrary InitServerLibrary;
     PUninitServerLibrary UninitServerLibrary;
     PGetNumOfServices GetNumOfServices;

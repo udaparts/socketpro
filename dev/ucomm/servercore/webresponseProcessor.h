@@ -5,7 +5,7 @@
 
 namespace UHTTP {
 
-    class CWebResponseProcessor : private boost::noncopyable {
+    class U_MODULE_HIDDEN CWebResponseProcessor : private boost::noncopyable {
     public:
         CWebResponseProcessor(CWebRequestProcessor *pWebRequestProcessor);
         virtual ~CWebResponseProcessor();
@@ -57,7 +57,7 @@ namespace UHTTP {
         static const unsigned int DEFAULT_WEBSOCKET_PING_TIME = 30 * 1000; //30 seconds //IE10 requires ping time not more than 30 seconds
     };
 
-    class CJavaScriptResponseProcessor : public CWebResponseProcessor {
+    class U_MODULE_HIDDEN CJavaScriptResponseProcessor : public CWebResponseProcessor {
     public:
         CJavaScriptResponseProcessor(CJavaScriptRequestProcessor *pJavaScriptRequestProcessor);
 
@@ -66,7 +66,7 @@ namespace UHTTP {
         virtual void WriteEnd(SPA::UJsonDocument &docRes, SPA::CUQueue &Response);
     };
 
-    class CAjaxResponseProcessor : public CWebResponseProcessor {
+    class U_MODULE_HIDDEN CAjaxResponseProcessor : public CWebResponseProcessor {
     public:
         CAjaxResponseProcessor(CAjaxRequestProcessor *pAjaxRequestProcessor);
 
@@ -75,7 +75,7 @@ namespace UHTTP {
         virtual void WriteEnd(SPA::UJsonDocument &docRes, SPA::CUQueue &Response);
     };
 
-    class CWebSocketResponseProcessor : public CWebResponseProcessor {
+    class U_MODULE_HIDDEN CWebSocketResponseProcessor : public CWebResponseProcessor {
     public:
         CWebSocketResponseProcessor(CWebSocketRequestProcessor *pWebSocketRequestProcessor);
 

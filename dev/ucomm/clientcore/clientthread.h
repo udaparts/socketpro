@@ -10,7 +10,7 @@ class CClientSession;
 class CSocketPool;
 class CClientThread;
 
-struct LockState {
+struct U_MODULE_HIDDEN LockState {
 
     LockState(CClientThread *ct = nullptr, bool lock = false) : ClientThread(ct), Locked(lock) {
     }

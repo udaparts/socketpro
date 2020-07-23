@@ -24,7 +24,7 @@ enum tagConnectionState {
 
 extern bool g_bRegistered;
 
-class CServerRegistration : public SPA::ServerSide::URegistration {
+class U_MODULE_HIDDEN CServerRegistration : public SPA::ServerSide::URegistration {
 public:
     CServerRegistration();
 

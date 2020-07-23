@@ -6,7 +6,7 @@
 namespace UHTTP {
 
 #ifdef USE_SPIRIT_CLSSICAL_FOR_MULTIPART
-    struct CMultipartGrammar : public grammar<CMultipartGrammar> {
+    struct U_MODULE_HIDDEN CMultipartGrammar : public grammar<CMultipartGrammar> {
     public:
 
         template <typename ScannerT>

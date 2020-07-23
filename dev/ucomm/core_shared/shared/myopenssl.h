@@ -9,7 +9,7 @@
 
 #define STATIC_BUFFER_SIZE (1460 * 12)
 
-class CMyOpenSSL {
+class U_MODULE_HIDDEN CMyOpenSSL {
 public:
     CMyOpenSSL(SSL_CTX *pContext, bool bClient = false);
     virtual ~CMyOpenSSL();

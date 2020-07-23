@@ -6,7 +6,7 @@ namespace UHTTP {
 
     class CHttpContext;
 
-    class CWebRequestProcessor {
+    class U_MODULE_HIDDEN CWebRequestProcessor {
     public:
         CWebRequestProcessor(CHttpContext *pHttpContext);
         virtual ~CWebRequestProcessor();
@@ -49,12 +49,12 @@ namespace UHTTP {
         CHttpContext *m_pHttpContext;
 
     private:
-		CWebRequestProcessor(const CWebRequestProcessor& wrp);
-		CWebRequestProcessor& operator=(const CWebRequestProcessor& wrp);
+        CWebRequestProcessor(const CWebRequestProcessor& wrp);
+        CWebRequestProcessor& operator=(const CWebRequestProcessor& wrp);
         SPA::CScopeUQueue m_qRequest;
     };
 
-    class CJavaScriptRequestProcessor : public CWebRequestProcessor {
+    class U_MODULE_HIDDEN CJavaScriptRequestProcessor : public CWebRequestProcessor {
     public:
         CJavaScriptRequestProcessor(CHttpContext *pHttpContext);
 
@@ -66,7 +66,7 @@ namespace UHTTP {
         SPA::CScopeUQueue m_jsData;
     };
 
-    class CAjaxRequestProcessor : public CWebRequestProcessor {
+    class U_MODULE_HIDDEN CAjaxRequestProcessor : public CWebRequestProcessor {
     public:
         CAjaxRequestProcessor(CHttpContext *pHttpContext);
 
@@ -79,7 +79,7 @@ namespace UHTTP {
         SPA::CScopeUQueue m_qPost;
     };
 
-    class CWebSocketRequestProcessor : public CWebRequestProcessor {
+    class U_MODULE_HIDDEN CWebSocketRequestProcessor : public CWebRequestProcessor {
     public:
         CWebSocketRequestProcessor(CHttpContext *pHttpContext);
 
