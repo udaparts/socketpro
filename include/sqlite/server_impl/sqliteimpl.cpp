@@ -40,7 +40,6 @@ namespace SPA
         std::string CSqliteImpl::DIU_TRIGGER_FUNC("sp_sqlite_db_event_func");
 
         CSqliteImpl::CSqliteImpl() : m_EnableMessages(false), m_oks(0), m_fails(0), m_ti(tiUnspecified), m_global(true), m_parameters(0) {
-
         }
 
         void CSqliteImpl::SetCacheTables(const CDBString & str) {
@@ -1589,44 +1588,58 @@ namespace SPA
             if (str) {
                 std::string datatype(str);
                 std::transform(datatype.begin(), datatype.end(), datatype.begin(), ::toupper);
-                if (datatype.find("DOUBLE") != (size_t) - 1) {
+                if (datatype.find("CHAR") != (size_t) - 1/*VARCHAR*/) {
+                    info.DataType = (VT_I1 | VT_ARRAY);
+                    SetLen(datatype, info);
+                } else if (datatype.find("DOUBLE") != (size_t) - 1) {
                     info.DataType = VT_R8;
                 } else if (datatype.find("REAL") != (size_t) - 1) {
                     info.DataType = VT_R8;
-                } else if (datatype.find("BIGINT") != (size_t) - 1) {
-                    info.DataType = VT_I8;
-                } else if (datatype.find("UNSIGNED") != (size_t) - 1) {
-                    info.DataType = VT_UI8;
-                } else if (datatype.find("BIGINT") != (size_t) - 1) {
-                    info.DataType = VT_I8;
-                } else if (datatype.find("INT8") != (size_t) - 1) {
-                    info.DataType = VT_I8;
+                } else if (datatype.find("FLOAT") != (size_t) - 1) {
+                    info.DataType = VT_R8;
                 } else if (datatype.find("TINYINT") != (size_t) - 1) {
                     info.DataType = VT_I1;
                 } else if (datatype.find("SMALLINT") != (size_t) - 1) {
                     info.DataType = VT_I2;
                 } else if (datatype.find("INT2") != (size_t) - 1) {
                     info.DataType = VT_I2;
-                } else if (datatype.find("FLOAT") != (size_t) - 1) {
-                    info.DataType = VT_R8;
-                } else if (datatype.find("BLOB") != (size_t) - 1) {
+                } else if (datatype.find("MEDIUMINT") != (size_t) - 1) {
+                    info.DataType = VT_I4;
+                } else if (datatype.find("INT4") != (size_t) - 1) {
+                    info.DataType = VT_I4;
+                } else if (datatype.find("INT") != (size_t) - 1) {
+                    info.DataType = VT_I4;
+                } else if (datatype.find("BIGINT") != (size_t) - 1) {
+                    info.DataType = VT_I8;
+                } else if (datatype.find("INT8") != (size_t) - 1) {
+                    info.DataType = VT_I8;
+                } else if (datatype.find("DATETIME") != (size_t) - 1) {
+                    info.DataType = VT_DATE;
+                } else if (datatype.find("BINARY") != (size_t) - 1/*VARBINARY*/) {
                     info.DataType = (VT_UI1 | VT_ARRAY);
-                    info.ColumnSize = -1;
-                } else if (datatype.find("NTEXT") != (size_t) - 1) {
-                    info.DataType = VT_BSTR;
+                    SetLen(datatype, info);
+                } else if (datatype.find("CLOB") != (size_t) - 1) {
+                    info.DataType = (VT_I1 | VT_ARRAY);
                     info.ColumnSize = -1;
                 } else if (datatype.find("TEXT") != (size_t) - 1) {
                     info.DataType = (VT_I1 | VT_ARRAY);
                     info.ColumnSize = -1;
-                } else if (datatype.find("CLOB") != (size_t) - 1) {
-                    info.DataType = (VT_I1 | VT_ARRAY);
+                } else if (datatype.find("BLOB") != (size_t) - 1) {
+                    info.DataType = (VT_UI1 | VT_ARRAY);
+                    info.ColumnSize = -1;
+                } else if (datatype.find("NVARCHAR") != (size_t) - 1) {
+                    info.DataType = VT_BSTR;
+                    SetLen(datatype, info);
+                } else if (datatype.find("NCHAR") != (size_t) - 1) {
+                    info.DataType = VT_BSTR;
+                    SetLen(datatype, info);
+                } else if (datatype.find("DATE") != (size_t) - 1) {
+                    info.DataType = VT_DATE;
+                } else if (datatype.find("NTEXT") != (size_t) - 1) {
+                    info.DataType = VT_BSTR;
                     info.ColumnSize = -1;
                 } else if (datatype.find("BOOLEAN") != (size_t) - 1) {
                     info.DataType = VT_BOOL;
-                } else if (datatype.find("DATETIME") != (size_t) - 1) {
-                    info.DataType = VT_DATE;
-                } else if (datatype.find("DATE") != (size_t) - 1) {
-                    info.DataType = VT_DATE;
                 } else if (datatype.find("TIME") != (size_t) - 1) {
                     info.DataType = VT_DATE;
                 } else if (datatype.find("NUM") != (size_t) - 1) {
@@ -1635,22 +1648,11 @@ namespace SPA
                 } else if (datatype.find("DEC") != (size_t) - 1) {
                     info.DataType = VT_R8;
                     SetPrecisionScale(datatype, info);
-                } else if (datatype.find("MEDIUMINT") != (size_t) - 1) {
-                    info.DataType = VT_I4;
-                } else if (datatype.find("INT") != (size_t) - 1/*INTEGER*/) {
-                    info.DataType = VT_I8;
                 } else if (datatype.find("NATIVE") != (size_t) - 1) {
                     info.DataType = VT_BSTR;
                     SetLen(datatype, info);
-                } else if (datatype.find("NVARCHAR") != (size_t) - 1) {
-                    info.DataType = VT_BSTR;
-                    SetLen(datatype, info);
-                } else if (datatype.find("NCHAR") != (size_t) - 1) {
-                    info.DataType = VT_BSTR;
-                    SetLen(datatype, info);
-                } else if (datatype.find("CHAR") != (size_t) - 1) {
-                    info.DataType = (VT_I1 | VT_ARRAY);
-                    SetLen(datatype, info);
+                } else if (datatype.find("UNSIGNED") != (size_t) - 1) {
+                    info.DataType = VT_UI8;
                 } else {
                     info.DataType = VT_VARIANT;
                 }
@@ -1698,59 +1700,41 @@ namespace SPA
         }
 
         CDBColumnInfoArray CSqliteImpl::GetColInfo(bool meta, sqlite3_stmt * stmt) {
+            const char *str;
             std::string zDbName, zTableName, zColumnName;
             int cols = sqlite3_column_count(stmt);
             CDBColumnInfoArray vCols((size_t) cols);
             for (int n = 0; n < cols; ++n) {
                 CDBColumnInfo &info = vCols[n];
                 if (meta) {
-                    const char *str = sqlite3_column_database_name(stmt, n);
-                    if (meta && str) {
-                        zDbName = str;
-                    }
+                    str = sqlite3_column_database_name(stmt, n);
                     if (str) {
+                        zDbName = str;
                         info.DBPath = Utilities::ToUTF16(str);
-                    } else {
-                        info.DBPath.clear();
                     }
                     str = sqlite3_column_table_name(stmt, n);
-                    if (meta && str) {
-                        zTableName = str;
-                    }
                     if (str) {
+                        zTableName = str;
                         info.TablePath = Utilities::ToUTF16(str);
                     } else {
                         info.Flags = (CDBColumnInfo::FLAG_NOT_NULL | CDBColumnInfo::FLAG_NOT_WRITABLE);
-                        info.TablePath.clear();
                     }
-
                     str = sqlite3_column_name(stmt, n);
                     if (str) {
                         info.DisplayName = Utilities::ToUTF16(str);
-                    } else {
-                        info.DisplayName.clear();
                     }
-
                     str = sqlite3_column_origin_name(stmt, n);
-                    if (meta && str) {
-                        zColumnName = str;
-                    }
                     if (str) {
+                        zColumnName = str;
                         info.OriginalName = Utilities::ToUTF16(str);
-                    } else {
-                        info.OriginalName.clear();
                     }
                 }
-                const char *str = sqlite3_column_decltype(stmt, n);
-                if (meta) {
-                    if (str) {
-                        info.DeclaredType = Utilities::ToUTF16(str);
-                    } else {
-                        info.DeclaredType.clear();
-                    }
+                str = sqlite3_column_decltype(stmt, n);
+                if (meta && str) {
+                    info.DeclaredType = Utilities::ToUTF16(str);
                 }
                 SetDataType(str, info);
-                if (meta && zTableName.size()) {
+                if (zTableName.size()) {
                     //char const *dt = nullptr;
                     char const *colseq = nullptr;
                     int not_null = 0, pk = 0, autoinc = 0;
@@ -1758,12 +1742,15 @@ namespace SPA
                             zDbName.c_str(), zTableName.c_str(), zColumnName.c_str(),
                             nullptr, &colseq, &not_null, &pk, &autoinc);
                     if (!rec) {
-                        if (not_null)
+                        if (not_null) {
                             info.Flags |= CDBColumnInfo::FLAG_NOT_NULL;
-                        if (pk)
+                        }
+                        if (pk) {
                             info.Flags |= CDBColumnInfo::FLAG_PRIMARY_KEY;
-                        if (autoinc)
+                        }
+                        if (autoinc) {
                             info.Flags |= CDBColumnInfo::FLAG_AUTOINCREMENT;
+                        }
                         if (colseq) {
                             info.Collation = Utilities::ToUTF16(colseq);
                         } else {
