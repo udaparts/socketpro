@@ -10,5 +10,4 @@ EXPORTS
     GetNumOfSlowRequests	@6
     GetOneSlowRequestID	@7
 	SetMysqlDBGlobalConnectionString @8
-	SetMysqlEmbeddedOptions @9
-	DoMySQLAuthentication @10
+	DoMySQLAuthentication @9
