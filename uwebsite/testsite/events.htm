@@ -75,7 +75,7 @@
     <p>
         Major events about SocketPro evolution history:</p>
     <p>
-        18.&nbsp;&nbsp;&nbsp; 04/2020-present -- Release SocketPro versions 6.3.1.1-4 with 
+        18.&nbsp;&nbsp;&nbsp; 04/2020-present -- Release SocketPro versions 6.3.1.1-5 with 
         a new feature Interrupt:</p>
     <ul>
         <li>Core libraries are added with a new feature Interrupt, which could be used to interrupt a looping processing at the other end</li>
@@ -85,9 +85,9 @@
         <li>Recompile all libraries after adding support of char16_t</li>
         <li>Fix a window server core bug related with random sequencing</li>
         <li>C++ Samples and tutorials updated because of adding support of char16_t</li>
-        <li>Add support of streaming downloading of multiple files for best performance over 
-            small files</li>
+        <li>Add support of streaming downloading of multiple files for best performance over small files</li>
         <li>Improve both window and linux crash information output for better debugging</li>
+        <li>Use -fvisibility=hidden to reduce exported symbols of Linux shared libraries</li>
     </ul>
     <p>
         17.&nbsp;&nbsp;&nbsp; 06/2019-03/2020 -- Release SocketPro versions 6.3.0.1-10 with a few improvements and bug fixes:</p>
@@ -95,20 +95,17 @@
         <li>Add the method PostProcessing to dispatch requests from calling thread onto pool worker thread within client core library</li>
         <li>Re-write remote file service to use PostProcessing instead</li>
         <li>Fix the issue, which the virtual function OnReleaseResource(bool bClosing, uint info) at server adapter level, was not called when a session is closed</li>
-        <li>Performance tuning with improvement about 6% overall with core libiraries, 
-            usocket and uservercore</li>
+        <li>Performance tuning with improvement about 6% overall with core libiraries, usocket and uservercore</li>
         <li>Remove dependency over boost libraries within C/C++ development environment with Linux platforms</li>
         <li>Add support of enterprise license</li>
         <li>Fix a connection time-out issue within window client core library</li>
-        <li>Fix MySQL 8.0.x server plugin crash issue when closing a session after opening a 
-            session to MySQL 8.0.x database</li>
+        <li>Fix MySQL 8.0.x server plugin crash issue when closing a session after opening a session to MySQL 8.0.x database</li>
         <li>Recompile core libraries (both client and server core libraries) using Visual C++ 2017 instead of old Visual C++ 2010</li>
         <li>SocketPro supports windows ce/device 4.0 and windows vsta or later by default</li>
         <li>SocketPro still supports windows XP and 2003 by old Visual C++ 2010 compilation per your requirement</li>
         <li>Other minor improvements with adapters</li>
         <li>Use spin lock extensively within C/C++ adapter whenever it is proper</li>
-        <li>Fix the issue that a pool of client sockets may fail to connect to a remote 
-            server under extremely situations</li>
+        <li>Fix the issue that a pool of client sockets may fail to connect to a remote server under extremely situations</li>
         <li>Use one set of core libraries (usocket and uservercore) for all linux variants</li>
     </ul>
     <p>
