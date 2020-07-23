@@ -5,7 +5,7 @@
 #include <map>
 #include "../core_shared/pinc/mqfile.h"
 
-class CResIndexImpl {
+class U_MODULE_HIDDEN CResIndexImpl {
 public:
     CResIndexImpl(unsigned short reqId, void *session);
     CResIndexImpl(unsigned short reqId, void *session, const MQ_FILE::QAttr &qa);

@@ -3,7 +3,7 @@
 #include "../../include/ucomm.h"
 #include "includes.h"
 
-class CUCertImpl : public SPA::IUcert {
+class U_MODULE_HIDDEN CUCertImpl : public SPA::IUcert {
 public:
     CUCertImpl(SSL *pSsl);
     CUCertImpl(X509 *cert);

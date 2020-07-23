@@ -6,7 +6,7 @@
 
 namespace UHTTP {
 
-    class CHttpContext : public boost::noncopyable {
+    class U_MODULE_HIDDEN CHttpContext : public boost::noncopyable {
     private:
         CHttpHeaderScopeUQueue suRequestHeaders;
 

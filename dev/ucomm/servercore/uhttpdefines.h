@@ -57,7 +57,7 @@ namespace UHTTP {
         seAuthenticationFailed,
     };
 
-    struct UHttpRequest {
+    struct U_MODULE_HIDDEN UHttpRequest {
         const char *ReqName;
         const char *Id;
         SPA::INT64 CallIndex;

@@ -12,7 +12,7 @@
 
 namespace SPA {
 
-    struct CUThreadMessage {
+    struct U_MODULE_HIDDEN CUThreadMessage {
         unsigned int m_nMsgId;
         SPA::CUQueue *m_pMessageBuffer;
         unsigned short m_uRequestId;

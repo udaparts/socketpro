@@ -10,7 +10,7 @@
 
 namespace Connection {
 
-    class CConnectionContextBase {
+    class U_MODULE_HIDDEN CConnectionContextBase {
     public:
         CConnectionContextBase();
 
@@ -67,7 +67,7 @@ namespace Connection {
         CConnectionContextBase(const CConnectionContextBase &ccb);
     };
 
-    class CConnectionContext : public CConnectionContextBase {
+    class U_MODULE_HIDDEN CConnectionContext : public CConnectionContextBase {
     public:
         CConnectionContext();
         typedef std::shared_ptr<CConnectionContext> SharedPtr;

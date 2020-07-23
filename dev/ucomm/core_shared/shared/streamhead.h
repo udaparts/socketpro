@@ -31,7 +31,7 @@ namespace SPA {
 
     /**
      */
-    struct CQueuedRequestInfo {
+    struct U_MODULE_HIDDEN CQueuedRequestInfo {
         unsigned short RequestId;
         unsigned short Reserved;
         unsigned int Size;
@@ -40,7 +40,7 @@ namespace SPA {
 
 #pragma pack(push,1)
 
-    struct CSwitchInfo {
+    struct U_MODULE_HIDDEN CSwitchInfo {
 
         CSwitchInfo()
         : ServiceId(SPA::sidStartup),
