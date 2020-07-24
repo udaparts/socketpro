@@ -26,7 +26,7 @@ global.p = p;
 p.Push = onLineMessage;
 
 //create a secure connection context
-var cc = cs.newCC('localhost', 20901, 'root', 'Smash123', 0); //1 TLSv1.x == 1
+var cc = cs.newCC('localhost', 20901, 'root', 'Smash123', 0); //1 0 == NoEncryption, and 1 == TLSv1.x
 
 //start a socket pool having one session to a remote server
 if (!p.Start(cc, 1)) {
