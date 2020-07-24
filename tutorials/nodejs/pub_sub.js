@@ -26,7 +26,7 @@ global.p = p;
 p.Push = onLineMessage;
 
 //create a secure connection context
-var cc = cs.newCC('localhost', 20901, 'root', 'Smash123', 1); //1 -- TLSv1.x
+var cc = cs.newCC('localhost', 20901, 'root', 'Smash123', 0); //1 TLSv1.x == 1
 
 //start a socket pool having one session to a remote server
 if (!p.Start(cc, 1)) {
@@ -34,7 +34,7 @@ if (!p.Start(cc, 1)) {
     return;
 }
 var hw = p.Seek(); //seek an async hello world handler
-var messenger = hw.Socket.Push;
+var msg = hw.Socket.Push; //2
 
 //streaming all the following five requests and two messenger message requests
 var ok = hw.SendRequest(idSayHello, SPA.newBuffer().SaveString('Mary').SaveString('Smith'), q => {
@@ -62,24 +62,12 @@ var data = {
 };
 console.log(data);
 
-//serialize and de-serialize a complex structure with a specific order,
-//pay attention to both serialization and de-serialization,
-//which must be in agreement with server implementation
-
 //echo a complex object
 ok = hw.SendRequest(idEcho, SPA.newBuffer().Save(q => {
-    //serialize member values into buffer q with a specific order, which must be in agreement with server implementation
-    q.SaveString(data.nullStr); //4 bytes for length
-    q.SaveObject(data.objNull); //2 bytes for data type
-    q.SaveDate(data.aDate); //8 bytes for ulong with accuracy to 1 micro-second
-    q.SaveDouble(data.aDouble); //8 bytes
-    q.SaveBool(data.aBool); //1 byte
-    q.SaveString(data.unicodeStr); //4 bytes for string length + (length * 2) bytes for string data -- UTF16 low-endian
-    q.SaveAString(data.asciiStr); //4 bytes for ASCII string length + length bytes for string data
-    q.SaveObject(data.objBool); //2 bytes for data type + 2 bytes for variant bool
-    q.SaveObject(data.objString); //2 bytes for data type + 4 bytes for string length + (length * 2) bytes for string data -- UTF16-lowendian
-    q.SaveObject(data.objArrString); //2 bytes for data type + 4 bytes for array size + (4 bytes for string length + (length * 2) bytes for string data) * arraysize -- UTF16-lowendian
-    q.SaveObject(data.objArrInt); //2 bytes for data type + 4 bytes for array size + arraysize * 4 bytes for int data
+    q.SaveString(data.nullStr).SaveObject(data.objNull).SaveDate(data.aDate);
+    q.SaveDouble(data.aDouble).SaveBool(data.aBool).SaveString(data.unicodeStr);
+    q.SaveAString(data.asciiStr).SaveObject(data.objBool).SaveObject(data.objString);
+    q.SaveObject(data.objArrString).SaveObject(data.objArrInt);
 }), q => {
     //de-serialize once result comes from server
     var d = {
@@ -101,10 +89,9 @@ ok = hw.SendRequest(idEcho, SPA.newBuffer().Save(q => {
 async function asyncWait(hw, fName, lName) {
     try {
         //use sendRequest instead of SendRequest for Promise
-        var result = await hw.sendRequest(idSayHello, SPA.newBuffer().SaveString(fName).SaveString(lName), q => {
+        console.log(await hw.sendRequest(idSayHello, SPA.newBuffer().SaveString(fName).SaveString(lName), q => {
             return q.LoadString();
-        });
-        console.log(result);
+        }));
     } catch (err) {
         console.log(err);
     }
@@ -114,7 +101,7 @@ async function asyncWait(hw, fName, lName) {
 asyncWait(hw, 'Hillary', 'Clinton');
 
 //send a message to a user
-ok = messenger.SendUserMessage('some_user_id', 'A test message from node.js');
+ok = msg.SendUserMessage('some_user_id', 'A test message from node.js'); //3
 
 //send a message to three groups of connected clients
-ok = messenger.Publish('A test publish message from node.js', [1, 3, 7]);
+ok = msg.Publish('A test publish message from node.js', [1, 3, 7]); //4

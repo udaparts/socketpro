@@ -13,26 +13,26 @@ const idEcho = idSleep + 1;
 var cs = SPA.CS; //CS == Client side
 
 //create a global socket pool object
-var p = cs.newPool(sid);
+var p = cs.newPool(sid); //1
 global.p = p;
 
 //create a connection context
-var cc = cs.newCC('localhost', 20901, 'root', 'Smash123');
+var cc = cs.newCC('localhost', 20901, 'root', 'Smash123'); //2
 
 //start a socket pool having one session to a remote server
-if (!p.Start(cc, 1)) {
+if (!p.Start(cc, 1)) { //3
     console.log(p.Error);
     return;
 }
-var hw = p.Seek(); //seek an async hello world handler
+var hw = p.Seek(); //4, seek an async hello world handler
 
-var ok = hw.SendRequest(idSayHello, SPA.newBuffer().SaveString('Jone').SaveString('Dole'), q => {
+var ok = hw.SendRequest(idSayHello, SPA.newBuffer().SaveString('Jone').SaveString('Dole'), q => { //5
     console.log(q.LoadString());
 });
 
 //sleep 5000 ms at server side
-ok = hw.SendRequest(idSleep, SPA.newBuffer().SaveInt(5000), q => {
-	console.log('Sleep returned');
+ok = hw.SendRequest(idSleep, SPA.newBuffer().SaveUInt(5000), q => { //6
+    console.log('Sleep returned');
 });
 
 //prepare a real complex structure for a remote request
@@ -49,14 +49,14 @@ var data = {
     objArrString: ['Hello', 'world'],
     objArrInt: [1, 76890]
 };
-console.log(data);
+console.log(data); //Source data
 
 //serialize and de-serialize a complex structure with a specific order,
 //pay attention to both serialization and de-serialization,
 //which must be in agreement with server implementation
 
 //echo a complex object
-ok = hw.SendRequest(idEcho, SPA.newBuffer().Save(q => {
+ok = hw.SendRequest(idEcho, SPA.newBuffer().Save(q => { //7
     //serialize member values into buffer q with a specific order, which must be in agreement with server implementation
     q.SaveString(data.nullStr); //4 bytes for length
     q.SaveObject(data.objNull); //2 bytes for data type
@@ -69,7 +69,7 @@ ok = hw.SendRequest(idEcho, SPA.newBuffer().Save(q => {
     q.SaveObject(data.objString); //2 bytes for data type + 4 bytes for string length + (length * 2) bytes for string data -- UTF16-lowendian
     q.SaveObject(data.objArrString); //2 bytes for data type + 4 bytes for array size + (4 bytes for string length + (length * 2) bytes for string data) * arraysize -- UTF16-lowendian
     q.SaveObject(data.objArrInt); //2 bytes for data type + 4 bytes for array size + arraysize * 4 bytes for int data
-}), q => {
+}), q => { //8
     //de-serialize once result comes from server
     var d = {
         nullStr: q.LoadString(),
@@ -89,8 +89,8 @@ ok = hw.SendRequest(idEcho, SPA.newBuffer().Save(q => {
 
 async function asyncWait(hw, fName, lName) {
     try {
-        //use sendRequest instead of SendRequest for Promise
-        var result = await hw.sendRequest(idSayHello, SPA.newBuffer().SaveString(fName).SaveString(lName), q => {
+        console.log('++++ use sendRequest instead of SendRequest for Promise ++++');
+        var result = await hw.sendRequest(idSayHello, SPA.newBuffer().SaveString(fName).SaveString(lName), q => { //9
             return q.LoadString();
         });
         console.log(result);

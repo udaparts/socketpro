@@ -26,80 +26,72 @@ if (!p.Start(cc, 1)) {
 var sq = p.Seek(); //seek an async persistent message queue handler
 
 function testEnqueue(sq) {
-    var idMsg;
-    var ok = true;
-    var buff = SPA.newBuffer();
+    var idMsg, n, ok = true, buff = SPA.newBuffer(); const count = 1024;
     console.log('Going to enqueue 1024 messages ......');
-    for (var n = 0; n < 1024; ++n) {
-        var str = '' + n + ' Object test';
+    for (n = 0; n < count; ++n) {
+        var str = n + ' Object test';
         switch (n % 3) {
             case 0:
-                idMsg = idMessage0;
-                break;
+                idMsg = idMessage0; break;
             case 1:
-                idMsg = idMessage1;
-                break;
+                idMsg = idMessage1; break;
             default:
-                idMsg = idMessage2;
-                break;
+                idMsg = idMessage2; break;
         }
-        ok = sq.Enqueue(TEST_QUEUE_KEY, idMsg, buff.SaveString('SampleName').SaveString(str).SaveInt(n));
+        ok = sq.Enqueue(TEST_QUEUE_KEY, idMsg, buff.SaveString('SampleName').SaveString(str).SaveInt(n)); //1
         if (!ok) break;
     }
+    console.log(n + ' messages enqueued');
     return ok;
 }
-
-sq.ResultReturned = (id, q) => {
+sq.ResultReturned = (id, q) => { //2
     switch (id) {
         case idMessage0:
         case idMessage1:
         case idMessage2:
             //parse a dequeued message which should be the same as the above enqueued message (two unicode strings and one int)
-            var name = q.LoadString();
-            var str = q.LoadString();
-            var index = q.LoadInt();
+            var name = q.LoadString(), str = q.LoadString(), index = q.LoadInt(); //3
             console.log('message id=' + id + ', name=' + name + ', str=' + str + ', index=' + index);
-            return true;
+            return true; //true -- result has been processed
         default:
             break;
     }
-	return false;
+    return false;
 };
 
-var cb = function(mc, fsize, msgs, bytes) {
-    console.log('Total message count=' + mc + ', queue file size=' + fsize + ', messages dequeued=' + msgs + ', message bytes dequeued=' + bytes);
+var cb = function (mc, fsize, msgs, bytes) { //4
+    console.log('Dequeue result: Remaining messages=' + mc + ', queue file size=' + fsize + ', {messages=' + msgs + ', bytes=' + bytes + '} dequeued');
     if (mc) {
-        sq.Dequeue(TEST_QUEUE_KEY, cb);
+        console.log('Keeping on Dequeuing ......');
+        sq.Dequeue(TEST_QUEUE_KEY, cb); //5
     }
 };
-
 function testDequeue(sq) {
-    console.log('Going to dequeue messages ......');
+    console.log('Going to Dequeue messages ......');
     //optionally, add one extra to improve processing concurrency at both client and server sides for better performance and through-output
-    return sq.Dequeue(TEST_QUEUE_KEY, cb);
+    return sq.Dequeue(TEST_QUEUE_KEY, cb); //6
 }
 
-var ok = testEnqueue(sq);
-testDequeue(sq);
+var ok = testEnqueue(sq); //7
+ok = testDequeue(sq); //8
 
-async function asyncKeys(sq) {
+async function doMyCalls(sq) {
     try {
-        var ok = sq.Flush(TEST_QUEUE_KEY, (mc, fsize) => {
+        console.log('Going to call Flush ......');
+        var ok = sq.Flush(TEST_QUEUE_KEY, (mc, fsize) => { //9
             console.log({
                 msgs: mc,
                 fsize: fsize
             });
         });
 
-        //use getKeys instead of GetKeys for Promise
-        var result = await sq.getKeys();
-        console.log(result);
+        console.log('++++ use getKeys instead of GetKeys for Promise ++++');
+        console.log(await sq.getKeys()); //10
 
-        //use flush instead of Flush for Promise
-        result = await sq.flush(TEST_QUEUE_KEY);
-        console.log(result);
+        console.log('++++ use flush instead of Flush for Promise ++++');
+        console.log(await sq.flush(TEST_QUEUE_KEY)); //11
     } catch (err) {
         console.log(err);
     }
 }
-console.log(asyncKeys(sq));
+doMyCalls(sq); //12
