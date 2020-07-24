@@ -51,7 +51,7 @@ sq.ResultReturned = (id, q) => { //2
         case idMessage2:
             //parse a dequeued message which should be the same as the above enqueued message (two unicode strings and one int)
             var name = q.LoadString(), str = q.LoadString(), index = q.LoadInt(); //3
-            console.log('message id=' + id + ', name=' + name + ', str=' + str + ', index=' + index);
+            //console.log('message id=' + id + ', name=' + name + ', str=' + str + ', index=' + index);
             return true; //true -- result has been processed
         default:
             break;
@@ -74,24 +74,22 @@ function testDequeue(sq) {
 
 var ok = testEnqueue(sq); //7
 ok = testDequeue(sq); //8
-
-async function doMyCalls(sq) {
+(async () => { //9
     try {
-        console.log('Going to call Flush ......');
-        var ok = sq.Flush(TEST_QUEUE_KEY, (mc, fsize) => { //9
+        console.log('Going to call GetKeys and Flush without promises ......');
+        sq.GetKeys((keys) => { console.log(keys); }); //10
+        sq.Flush(TEST_QUEUE_KEY, (mc, fsize) => { //11
             console.log({
                 msgs: mc,
                 fsize: fsize
             });
         });
 
-        console.log('++++ use getKeys instead of GetKeys for Promise ++++');
-        console.log(await sq.getKeys()); //10
-
-        console.log('++++ use flush instead of Flush for Promise ++++');
-        console.log(await sq.flush(TEST_QUEUE_KEY)); //11
+        console.log('++++ use getKeys and flush instead of GetKeys and Flush, respectively with Promises ++++');
+        var my_arr = await Promise.all([sq.getKeys(), sq.flush(TEST_QUEUE_KEY)]); //12
+        console.log(my_arr[0]);
+        console.log(my_arr[1]);
     } catch (err) {
         console.log(err);
     }
-}
-doMyCalls(sq); //12
+})();
