@@ -26,6 +26,10 @@ private:
 };
 
 int main(int argc, char* argv[]) {
+    const char* str = "1234.567";
+    DECIMAL dec;
+    SPA::ParseDec_long(str, dec);
+    std::string sdec = SPA::ToString_long(dec);
     CMySocketProServer server;
     if (!server.Run(20901)) {
         int errCode = server.GetErrorCode();

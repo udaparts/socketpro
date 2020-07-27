@@ -182,6 +182,7 @@ namespace SPA {
         }
 #ifdef WIN32_64
         VARIANT vtSrc, vtDes;
+        vtDes.vt = VT_EMPTY;
         vtSrc.vt = VT_BSTR;
         wchar_t buffer[64] = {0};
         size_t len = ::strlen(data);
