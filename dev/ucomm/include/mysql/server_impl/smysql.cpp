@@ -7,10 +7,6 @@ void WINAPI SetMysqlDBGlobalConnectionString(const wchar_t *dbConnection, bool r
     SPA::ServerSide::CMysqlImpl::SetDBGlobalConnectionString(dbConnection, remote);
 }
 
-const char* WINAPI SetMysqlEmbeddedOptions(const wchar_t *options) {
-    return nullptr;
-}
-
 bool WINAPI InitServerLibrary(int param) {
     SPA::ServerSide::CMysqlImpl::m_nParam = 0;
     SPA::ServerSide::CMysqlImpl::InitMySql();
