@@ -1607,12 +1607,12 @@ namespace SPA
                     info.DataType = VT_I4;
                 } else if (datatype.find("INT4") != (size_t) - 1) {
                     info.DataType = VT_I4;
-                } else if (datatype.find("INT") != (size_t) - 1) {
-                    info.DataType = VT_I4;
-                } else if (datatype.find("BIGINT") != (size_t) - 1) {
-                    info.DataType = VT_I8;
                 } else if (datatype.find("INT8") != (size_t) - 1) {
                     info.DataType = VT_I8;
+                } else if (datatype.find("BIGINT") != (size_t) - 1) {
+                    info.DataType = VT_I8;
+                } else if (datatype.find("INT") != (size_t) - 1) {
+                    info.DataType = VT_I4;
                 } else if (datatype.find("DATETIME") != (size_t) - 1) {
                     info.DataType = VT_DATE;
                 } else if (datatype.find("BINARY") != (size_t) - 1/*VARBINARY*/) {
@@ -1710,28 +1710,28 @@ namespace SPA
                     str = sqlite3_column_database_name(stmt, n);
                     if (str) {
                         zDbName = str;
-                        info.DBPath = Utilities::ToUTF16(str);
+                        info.DBPath.assign(str, str + zDbName.size());
                     }
                     str = sqlite3_column_table_name(stmt, n);
                     if (str) {
                         zTableName = str;
-                        info.TablePath = Utilities::ToUTF16(str);
+                        info.TablePath.assign(str, str + zTableName.size());
                     } else {
                         info.Flags = (CDBColumnInfo::FLAG_NOT_NULL | CDBColumnInfo::FLAG_NOT_WRITABLE);
                     }
                     str = sqlite3_column_name(stmt, n);
                     if (str) {
-                        info.DisplayName = Utilities::ToUTF16(str);
+                        info.DisplayName.assign(str, str + ::strlen(str));
                     }
                     str = sqlite3_column_origin_name(stmt, n);
                     if (str) {
                         zColumnName = str;
-                        info.OriginalName = Utilities::ToUTF16(str);
+                        info.OriginalName.assign(str, str + zColumnName.size());
                     }
                 }
                 str = sqlite3_column_decltype(stmt, n);
                 if (meta && str) {
-                    info.DeclaredType = Utilities::ToUTF16(str);
+                    info.DeclaredType.assign(str, str + ::strlen(str));
                 }
                 SetDataType(str, info);
                 if (zTableName.size()) {
@@ -1752,9 +1752,7 @@ namespace SPA
                             info.Flags |= CDBColumnInfo::FLAG_AUTOINCREMENT;
                         }
                         if (colseq) {
-                            info.Collation = Utilities::ToUTF16(colseq);
-                        } else {
-                            info.Collation.clear();
+                            info.Collation.assign(colseq, colseq + ::strlen(colseq));
                         }
                     }
                     zDbName.clear();
