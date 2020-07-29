@@ -1603,10 +1603,6 @@ namespace SPA
                     info.DataType = VT_I2;
                 } else if (datatype.find("INT2") != (size_t) - 1) {
                     info.DataType = VT_I2;
-                } else if (datatype.find("MEDIUMINT") != (size_t) - 1) {
-                    info.DataType = VT_I4;
-                } else if (datatype.find("INT4") != (size_t) - 1) {
-                    info.DataType = VT_I4;
                 } else if (datatype.find("INT8") != (size_t) - 1) {
                     info.DataType = VT_I8;
                 } else if (datatype.find("BIGINT") != (size_t) - 1) {
