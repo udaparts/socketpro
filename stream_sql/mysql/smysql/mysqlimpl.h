@@ -124,7 +124,7 @@ namespace SPA {
             static void sql_handle_ok(void * ctx, uint server_status, uint statement_warn_count, ulonglong affected_rows, ulonglong last_insert_id, const char * const message);
             static void sql_handle_error(void * ctx, uint sql_errno, const char * const err_msg, const char * const sqlstate);
             static void sql_shutdown(void *ctx, int shutdown_server);
-            static void ToDecimal(const decimal_t &src, DECIMAL &dec);
+            static void ToDecimal(unsigned char precision, const decimal_t &src, DECIMAL &dec);
             static bool DoAuthentication(const wchar_t *password, const std::string &hash);
             static int decimal2string(const decimal_t *from, char *to, int *to_len, int fixed_precision, int fixed_decimals, char filler);
         private:

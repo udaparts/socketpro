@@ -981,8 +981,38 @@ namespace SPA
             return error;
         }
 
-        void CMysqlImpl::ToDecimal(const decimal_t &src, DECIMAL & dec) {
-            char str[64] = { 0};
+        static const dec1 powers10[DIG_PER_DEC1 + 1] = {1, 10, 100, 1000, 10000, 100000, 1000000, 10000000, 100000000, 1000000000};
+
+        void CMysqlImpl::ToDecimal(unsigned char precision, const decimal_t &src, DECIMAL & dec) {
+            int int_part = ROUND_UP(src.intg);
+            if ((precision <= 19 || int_part < 2) && src.frac <= 9) {
+                dec.wReserved = 0;
+                dec.sign = src.sign ? 0x80 : 0;
+                dec.scale = (unsigned char) src.frac;
+                dec.Hi32 = 0;
+                switch (int_part) {
+                    case 2:
+                        dec.Lo64 = (unsigned int) src.buf[0];
+                        dec.Lo64 *= 1000000000;
+                        dec.Lo64 += (unsigned int) src.buf[1];
+                        break;
+                    case 1:
+                        dec.Lo64 = (unsigned int) src.buf[0];
+                        break;
+                    case 0:
+                        dec.Lo64 = 0;
+                        break;
+                    default:
+                        assert(false); //shouldn't come here
+                        break;
+                }
+                if (src.frac) {
+                    dec.Lo64 *= powers10[src.frac];
+                    dec.Lo64 += src.buf[int_part] / powers10[9 - src.frac];
+                }
+                return;
+            }
+            char str[64] = {0};
             int len = sizeof (str);
             decimal2string(&src, str, &len, 0, 0, 0);
             if (::strlen(str) > 19) {
@@ -997,7 +1027,7 @@ namespace SPA
             if (impl->m_NoRowset && !(impl->m_server_status & SERVER_PS_OUT_PARAMS))
                 return 0;
             DECIMAL dec;
-            ToDecimal(*value, dec);
+            ToDecimal(impl->m_vColInfo[impl->m_ColIndex].Precision, *value, dec);
             CUQueue &q = impl->m_qSend;
             q << (VARTYPE) VT_DECIMAL << dec;
             ++impl->m_ColIndex;
