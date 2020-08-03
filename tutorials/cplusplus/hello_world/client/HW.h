@@ -14,8 +14,8 @@ using namespace SPA::ClientSide;
 class HelloWorld : public CAsyncServiceHandler {
 public:
 
-	HelloWorld(CClientSocket *pClientSocket)
-		: CAsyncServiceHandler(sidHelloWorld, pClientSocket) {
-	}
+    HelloWorld(CClientSocket *pClientSocket)
+    : CAsyncServiceHandler(sidHelloWorld, pClientSocket) {
+    }
 };
 #endif

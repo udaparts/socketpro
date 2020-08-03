@@ -1552,7 +1552,7 @@ namespace SPA {
                             CScopeUQueue::Unlock(p);
                         });
                         PAsyncDBHandler ash = &db;
-                        *cb.Buffer << ash << proc;
+                        *cb.Buffer << ash << proc << (int) db.GetColumnInfo().size();
                         CAutoLock al(ash->m_csDB);
                         ash->m_deqDBCb.push_back(cb);
                         int fail = uv_async_send(&ash->m_typeDB);

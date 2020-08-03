@@ -104,7 +104,8 @@ namespace SPA {
                         case eRows:
                             if (!func.IsEmpty()) {
                                 bool bProc;
-                                *cb.Buffer >> bProc;
+                                int cols;
+                                *cb.Buffer >> bProc >> cols;
                                 assert(!cb.Buffer->GetSize());
                                 Local<Array> v = Array::New(isolate);
                                 if (cb.VData) {
@@ -119,8 +120,8 @@ namespace SPA {
                                         }
                                     }
                                 }
-                                Local<Value> argv[] = {v, Boolean::New(isolate, bProc)};
-                                func->Call(ctx, Null(isolate), 2, argv);
+                                Local<Value> argv[] = {v, Boolean::New(isolate, bProc), Int32::New(isolate, cols)};
+                                func->Call(ctx, Null(isolate), 3, argv);
                             }
                             break;
                         case eExecuteResult:

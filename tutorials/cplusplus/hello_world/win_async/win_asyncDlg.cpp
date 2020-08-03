@@ -80,7 +80,7 @@ BOOL Cwin_asyncDlg::OnInitDialog() {
 
 	// TODO: Add extra initialization here
 
-	CConnectionContext cc("127.0.0.1", 20901, L"MyUserId", L"MyPassword");
+	CConnectionContext cc("localhost", 20901, L"MyUserId", L"MyPassword");
 
 	if (!m_spHw.StartSocketPool(cc, 1)) {
 		USES_CONVERSION;
@@ -136,7 +136,7 @@ HCURSOR Cwin_asyncDlg::OnQueryDragIcon() {
 std::future<void> Cwin_asyncDlg::ExecuteTask() {
 	auto hw = m_spHw.GetAsyncHandlers()[0];
 	try {
-		std::wstring s = await hw->async<std::wstring>(idSayHelloHelloWorld, L"Jack", L"Smith");
+		std::wstring s = co_await hw->async<std::wstring>(idSayHelloHelloWorld, L"Jack", L"Smith");
 		GetDlgItem(IDC_RESULT_EDIT)->SetWindowTextW(s.c_str());
 	}
 	catch (std::future_error &err) {
@@ -157,7 +157,7 @@ std::future<void> Cwin_asyncDlg::ExecuteTasksInBatch() {
 	try {
 		auto fms = hw->async<CMyStruct, CMyStruct>(idEchoHelloWorld, ms);
 		hw->async0(idSleepHelloWorld, (unsigned int)5000);
-		std::wstring s = await hw->async<std::wstring>(idSayHelloHelloWorld, L"Hillary", L"Clinton");
+		std::wstring s = co_await hw->async<std::wstring>(idSayHelloHelloWorld, L"Hillary", L"Clinton");
 		//fms definitely contains an instance of returned CMyStruct by this time
 		res = fms.get();
 		GetDlgItem(IDC_RESULT_EDIT)->SetWindowTextW(s.c_str());

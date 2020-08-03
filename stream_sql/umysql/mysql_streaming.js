@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 
 //loading SocketPro adapter (nja.js + njadapter.node) for nodejs
 var SPA = require('nja.js');
@@ -9,7 +9,7 @@ var p = cs.newPool(SPA.SID.sidMysql); //or sidOdbc, sidSqlite
 global.p = p;
 
 //create a connection context
-var cc = cs.newCC('localhost', 20902, 'root', 'Smash123');
+var cc = cs.newCC('localhost', 20901, 'MyUserName', 'MySQLPluginInMiddle');
 
 //start a socket pool having one session to a remote server
 if (!p.Start(cc, 1)) {
@@ -17,14 +17,11 @@ if (!p.Start(cc, 1)) {
     return;
 }
 var db = p.Seek(); //seek an async DB handler
-if (!db.Open('sakila', (res, err) => {
-        if (res) console.log({
-            ec: res,
-            em: err
-        });
-    }, canceled => {
-        console.log(canceled ? 'request canceled' : 'session closed');
-    })) {
+if (!db.Open('user=root;pwd=Smash123;db=mysqldb', (res, err) => {
+    if (res) console.log({ ec: res, em: err });
+}, canceled => {
+    console.log(canceled ? 'request canceled' : 'session closed');
+})) {
     console.log(db.Socket.Error);
     return;
 }
@@ -32,45 +29,33 @@ if (!db.Open('sakila', (res, err) => {
 //make long strings for testing long text and blob objects
 var wstr = '';
 while (wstr.length < 256 * 1024) {
-	wstr += '广告做得不那么夸张的就不说了，看看这三家，都是正儿八经的公立三甲，附属医院，不是武警，也不是部队，更不是莆田，都在卫生部门直接监管下，照样明目张胆地骗人。';
+    wstr += '广告做得不那么夸张的就不说了，看看这三家，都是正儿八经的公立三甲，附属医院，不是武警，也不是部队，更不是莆田，都在卫生部门直接监管下，照样明目张胆地骗人。';
 }
 var str = '';
 while (str.length < 512 * 1024) {
-	str += 'The epic takedown of his opponent on an all-important voting day was extraordinary even by the standards of the 2016 campaign -- and quickly drew a scathing response from Trump.';
+    str += 'The epic takedown of his opponent on an all-important voting day was extraordinary even by the standards of the 2016 campaign -- and quickly drew a scathing response from Trump.';
 }
 
 function TestCreateTables(db) {
     //track final result event, but ignore row, metat and cancel events
     if (!db.Execute('Create database if not exists mysqldb character set utf8 collate utf8_general_ci;USE mysqldb', (res, err) => {
-            if (res) console.log({
-                ec: res,
-                em: err
-            });
-        })) {
+        if (res) console.log({ ec: res, em: err });
+    })) {
         return false;
     }
     if (!db.Execute('CREATE TABLE IF NOT EXISTS company(ID bigint PRIMARY KEY NOT NULL,name CHAR(64)NOT NULL,ADDRESS varCHAR(256)not null,Income Decimal(21,2)not null)', (res, err) => {
-            if (res) console.log({
-                ec: res,
-                em: err
-            });
-        })) {
+        if (res) console.log({ ec: res, em: err });
+    })) {
         return false;
     }
     if (!db.Execute('CREATE TABLE IF NOT EXISTS employee(EMPLOYEEID bigint AUTO_INCREMENT PRIMARY KEY NOT NULL unique,CompanyId bigint not null,name CHAR(64)NOT NULL,JoinDate DATETIME(6)default null,IMAGE MEDIUMBLOB,DESCRIPTION MEDIUMTEXT,Salary DECIMAL(25,2),FOREIGN KEY(CompanyId)REFERENCES company(id))', (res, err) => {
-            if (res) console.log({
-                ec: res,
-                em: err
-            });
-        })) {
+        if (res) console.log({ ec: res, em: err });
+    })) {
         return false;
     }
     if (!db.Execute('DROP PROCEDURE IF EXISTS sp_TestProc;CREATE PROCEDURE sp_TestProc(in p_company_id int,inout p_sum_salary DECIMAL(25,2),out p_last_dt datetime)BEGIN select * from employee where companyid>=p_company_id;select sum(salary)+p_sum_salary into p_sum_salary from employee where companyid>=p_company_id;select now()into p_last_dt;END', (res, err) => {
-            if (res) console.log({
-                ec: res,
-                em: err
-            });
-        })) {
+        if (res) console.log({ ec: res, em: err });
+    })) {
         return false;
     }
     return true;
@@ -80,42 +65,28 @@ if (!TestCreateTables(db)) {
     return;
 }
 if (!db.Execute('delete from employee;delete from company', (res, err, affected) => {
-        console.log({
-            ec: res,
-            em: err,
-            aff: affected
-        });
-    })) {
+    console.log({ ec: res, em: err, aff: affected });
+})) {
     console.log(db.Socket.Error);
     return;
 }
 
 function TestPreparedStatements(db) {
     if (!db.Prepare('INSERT INTO company(ID,NAME,ADDRESS,Income)VALUES(?,?,?,?)', (res, err) => {
-            if (res) console.log({
-                ec: res,
-                em: err
-            });
-        })) {
+        if (res) console.log({ ec: res, em: err });
+    })) {
         return false;
     }
 
     //set an array of parameter data
     var vParam = [1, 'Google Inc.', '1600 Amphitheatre Parkway, Mountain View, CA 94043, USA', 66000000000.15, //1st set
-     2, 'Microsoft Inc.', '700 Bellevue Way NE- 22nd Floor, Bellevue, WA 98804, USA', 93600000000.12, //2nd set
-     3, 'Apple Inc.', '1 Infinite Loop, Cupertino, CA 95014, USA', 234000000000.14]; //3rd set
+        2, 'Microsoft Inc.', '700 Bellevue Way NE- 22nd Floor, Bellevue, WA 98804, USA', 93600000000.12, //2nd set
+        3, 'Apple Inc.', '1 Infinite Loop, Cupertino, CA 95014, USA', 234000000000.14]; //3rd set
 
     //send three sets in one shot
     if (!db.Execute(vParam, (res, err, affected, fails, oks, id) => {
-            console.log({
-                ec: res,
-                em: err,
-                aff: affected,
-                oks: oks,
-                fails: fails,
-                lastId: id
-            });
-        })) {
+        console.log({ ec: res, em: err, aff: affected, oks: oks, fails: fails, lastId: id });
+    })) {
         return false;
     }
     return true;
@@ -127,11 +98,8 @@ if (!TestPreparedStatements(db)) {
 
 function InsertBLOBByPreparedStatement(db) {
     if (!db.Prepare('insert into employee(CompanyId,name,JoinDate,image,DESCRIPTION,Salary)values(?,?,?,?,?,?)', (res, err) => {
-            if (res) console.log({
-                ec: res,
-                em: err
-            });
-        })) {
+        if (res) console.log({ ec: res, em: err });
+    })) {
         return false;
     }
     var buff = SPA.newBuffer();
@@ -152,15 +120,8 @@ function InsertBLOBByPreparedStatement(db) {
 
     //send three sets in one shot
     if (!db.Execute(buff, (res, err, affected, fails, oks, id) => {
-            console.log({
-                ec: res,
-                em: err,
-                aff: affected,
-                oks: oks,
-                fails: fails,
-                lastId: id
-            });
-        })) {
+        console.log({ ec: res, em: err, aff: affected, oks: oks, fails: fails, lastId: id });
+    })) {
         return false;
     }
     return true;
@@ -171,69 +132,43 @@ if (!InsertBLOBByPreparedStatement(db)) {
 }
 
 if (!db.Execute('SELECT * from company;select curtime()', (res, err, affected, fails, oks, id) => {
-        console.log({
-            ec: res,
-            em: err,
-            aff: affected,
-            oks: oks,
-            fails: fails,
-            lastId: id
-        });
-    }, data => {
-        console.log(data);
-    }, meta => {
-        //console.log(meta);
-    })) {
+    console.log({ ec: res, em: err, aff: affected, oks: oks, fails: fails, lastId: id });
+}, (data, proc, cols) => {
+    console.log({ data: data, proc: proc, cols: cols });
+}, meta => {
+    console.log(meta);
+})) {
     console.log(db.Socket.Error);
     return;
 }
 
 if (!db.Execute('select name, joindate, salary from employee', (res, err, affected, fails, oks, id) => {
-        console.log({
-            ec: res,
-            em: err,
-            aff: affected,
-            oks: oks,
-            fails: fails,
-            lastId: id
-        });
-    }, data => {
-        console.log(data);
-    }, meta => {
-        //console.log(meta);
-    })) {
+    console.log({ ec: res, em: err, aff: affected, oks: oks, fails: fails, lastId: id });
+}, (data, proc, cols) => {
+    console.log({ data: data, proc: proc, cols: cols });
+}, meta => {
+    console.log(meta);
+})) {
     console.log(db.Socket.Error);
     return;
 }
 
 function TestStoredProcedure(db) {
     if (!db.Prepare('call mysqldb.sp_TestProc(?,?,?)', (res, err) => {
-            if (res) console.log({
-                ec: res,
-                em: err
-            });
-        })) {
+        if (res) console.log({ ec: res, em: err });
+    })) {
         return false;
     }
     var vParam = [1, 1.25, null, //1st set
-     2, 1.14, null, //2nd set
-     0, 2.18, null]; //3rd set
+        2, 1.14, null, //2nd set
+        0, 2.18, null]; //3rd set
     if (!db.Execute(vParam, (res, err, affected, fails, oks, id) => {
-            console.log({
-                ec: res,
-                em: err,
-                aff: affected,
-                oks: oks,
-                fails: fails,
-                lastId: id
-            });
-        }, (data, proc) => {
-            if (proc) {
-                console.log(data); //output output parameters
-            }
-        }, meta => {
-            //console.log(meta);
-        })) {
+        console.log({ ec: res, em: err, aff: affected, oks: oks, fails: fails, lastId: id });
+    }, (data, proc, cols) => {
+        if (proc) console.log({ data: data, proc: proc, cols: cols });
+    }, meta => {
+        console.log(meta);
+    })) {
         console.log(db.Socket.Error);
         return false;
     }
@@ -279,25 +214,16 @@ function TestBatch(db) {
     //fourth, SELECT * from company;select * from employee;select curtime()
     //last, three sets of call sp_TestProc(?,?,?)
     if (!db.ExecuteBatch(SPA.DB.TransIsolation.Unspecified, sql, buff, (res, err, affected, fails, oks, id) => {
-            console.log({
-                ec: res,
-                em: err,
-                aff: affected,
-                oks: oks,
-                fails: fails,
-                lastId: id
-            });
-        }, (data, proc) => {
-            if (proc) {
-                console.log(data); //output output parameters
-            }
-        }, meta => {
-            //console.log(meta);
-        }, dbH => {
-            console.log('Batch header comes');
-        }, canceled => {
-            console.log(canceled ? 'Request canceled' : 'Session closed');
-        }, SPA.DB.RollbackPlan.rpDefault, "|")) {
+        console.log({ ec: res, em: err, aff: affected, oks: oks, fails: fails, lastId: id });
+    }, (data, proc, cols) => {
+        if (proc) console.log({ data: data, proc: proc, cols: cols });
+    }, meta => {
+        console.log(meta);
+    }, () => {
+        console.log('Batch header comes');
+    }, canceled => {
+        console.log(canceled ? 'Request canceled' : 'Session closed');
+    }, SPA.DB.RollbackPlan.rpDefault, "|")) {
         console.log(db.Socket.Error);
         return false;
     }
@@ -317,8 +243,8 @@ async function executeSql(db, sql, rows, meta) {
         console.log(err);
     }
 }
-executeSql(db, 'SELECT * from company;select curtime()', data => {
-    console.log(data);
+executeSql(db, 'SELECT * from company;select curtime()', (data, proc, cols) => {
+    console.log({ data: data, proc: proc, cols: cols });
 }, meta => {
-    //console.log(meta);
+    console.log(meta);
 });

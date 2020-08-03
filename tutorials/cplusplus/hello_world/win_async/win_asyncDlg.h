@@ -1,9 +1,5 @@
-
-
 #pragma once
 
-
-// Cwin_asyncDlg dialog
 class Cwin_asyncDlg : public CDialogEx
 {
 	// Construction

@@ -12,7 +12,7 @@ var cs = SPA.CS; var p = cs.newPool(SPA.SID.sidQueue); global.p = p;
 if (!p.Start(cs.newCC('localhost', 20901, 'root', 'Smash123'), 1)) {
     console.log(p.Error);
     return;
-} var sq = p.Seek(); //seek an async persistent message queue handler
+} var sq = p.Seek(); //seek an async server queue handler
 
 function testEnqueue(sq) {
     var idMsg, n, ok = true, buff = SPA.newBuffer(); const count = 1024;
