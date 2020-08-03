@@ -201,21 +201,6 @@ namespace NJA {
         return (int) difftime(utcTime, std::mktime(ptm));
     }
 
-    static inline SPA::INT64 time_offset(struct tm *a, struct tm *b) {
-        return a->tm_sec - b->tm_sec
-                + 60LL * (a->tm_min - b->tm_min)
-                + 3600LL * (a->tm_hour - b->tm_hour)
-                + 86400LL * (a->tm_yday - b->tm_yday)
-                + (a->tm_year - 70) * 31536000LL
-                - (a->tm_year - 69) / 4 * 86400LL
-                + (a->tm_year - 1) / 100 * 86400LL
-                - (a->tm_year + 299) / 400 * 86400LL
-                - (b->tm_year - 70) * 31536000LL
-                + (b->tm_year - 69) / 4 * 86400LL
-                - (b->tm_year - 1) / 100 * 86400LL
-                + (b->tm_year + 299) / 400 * 86400LL;
-    }
-
     bool IsNullOrUndefined(const Local<Value> &v) {
 #ifdef HAS_NULLORUNDEFINED_FUNC
         return v->IsNullOrUndefined();
@@ -295,27 +280,16 @@ namespace NJA {
     }
 
     Local<Value> ToDate(Isolate* isolate, SPA::UINT64 datetime) {
-        SPA::UDateTime dt(datetime);
         unsigned int us;
-        std::tm tm = dt.GetCTime(&us);
-        if (!tm.tm_mday) {
+        bool time_only;
+        SPA::UDateTime dt(datetime);
+        double time = dt.GetTime(time_only, &us) * 1000.0 + us / 1000.0;
+        if (time_only) {
             //time only, convert it to js string
             char s[64] = {0};
             dt.ToDBString(s, sizeof (s));
             return ToStr(isolate, (const char*) s, strlen((const char*) s));
         }
-        tm.tm_isdst = -1; //set daylight saving time flag to no information available
-        time_t utcTime = std::mktime(&tm);
-        double time = (double) utcTime;
-#ifndef WIN32_64
-        struct tm gbuf;
-        struct tm *pGmt = gmtime_r(&utcTime, &gbuf);
-#else
-        struct tm *pGmt = std::gmtime(&utcTime);
-#endif
-        time += (double) time_offset(&tm, pGmt);
-        time *= 1000;
-        time += (us / 1000.0);
         return Date::New(isolate->GetCurrentContext(), time).ToLocalChecked();
     }
 

@@ -598,11 +598,22 @@ namespace SPA {
             return (unsigned int) ((time >> 20) & 0x1ffff);
         }
 
+        std::time_t GetTime(bool& time_only, unsigned int* us = nullptr) {
+            std::tm dt = GetCTime(us);
+            time_only = (0 == dt.tm_mday);
+#ifdef WIN32_64
+            return ::_mkgmtime(&dt);
+#else
+            return ::timegm(&dt);
+#endif
+        }
+
         //convert UDateTime datetime back to std::tm structure and micro-seconds
 
         std::tm GetCTime(unsigned int *us = nullptr) const {
             std::tm datetime;
             ::memset(&datetime, 0, sizeof (datetime));
+            datetime.tm_isdst = -1;
             UINT64 dt = time;
             if (us) {
                 *us = (unsigned int) (dt & MICRO_SECONDS);
