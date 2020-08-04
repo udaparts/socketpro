@@ -672,8 +672,7 @@ namespace SPA
             m_vBindInfo.clear();
             bool hasBlob = false;
             bool hasVariant = false;
-            SQLCHAR colname[256] =
-            {0}; // column name
+            SQLCHAR colname[256] = {0}; // column name
             m_nRecordSize = 0;
             SQLSMALLINT colnamelen = 0; // length of column name
             SQLSMALLINT nullable = 0; // whether column can have NULL value
@@ -3448,6 +3447,7 @@ namespace SPA
         }
 
         bool COdbcImpl::PushOutputParameters(unsigned int r, UINT64 index) {
+            CDBColumnInfoArray vCol;
             CScopeUQueue sb;
             unsigned int ret = SendResult(idBeginRows, (const unsigned char*) &index, (unsigned int) sizeof (index));
             if (ret == REQUEST_CANCELED || ret == SOCKET_NOT_FOUND) {
@@ -3459,6 +3459,13 @@ namespace SPA
                 CParameterInfo &info = m_vPInfo[n];
                 if (info.Direction == UDB::pdInput)
                     continue;
+                CDBColumnInfo colInfo;
+                colInfo.DataType = info.DataType;
+                colInfo.DisplayName = info.ParameterName;
+                colInfo.ColumnSize = info.ColumnSize;
+                colInfo.Precision = info.Precision;
+                colInfo.Scale = info.Scale;
+                vCol.push_back(colInfo);
                 VARTYPE vt = VT_NULL;
                 if (pLenInd[n] == SQL_NULL_DATA) {
                     sb << vt;
@@ -3578,7 +3585,10 @@ namespace SPA
                     }
                 }
             }
-
+            ret = SendResult(idRowsetHeader, vCol, index, (unsigned int) vCol.size());
+            if (ret == REQUEST_CANCELED || ret == SOCKET_NOT_FOUND) {
+                return false;
+            }
             ret = SendResult(idOutputParameter, sb->GetBuffer(), sb->GetSize());
             if (ret == REQUEST_CANCELED || ret == SOCKET_NOT_FOUND) {
                 return false;

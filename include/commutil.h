@@ -7,6 +7,7 @@
 
 #ifdef WIN32_64
 typedef DWORD UTHREAD_ID;
+#pragma warning (disable: 4244)  //'argument': conversion from 'OLECHAR' to 'const _Elem', possible loss of data
 #if _MSC_VER < 1700
 #else
 #include <atomic>
