@@ -127,15 +127,16 @@ namespace PA
             case ctDbR:
             {
                 bool proc;
+                int cols;
                 int index = 0;
-                *cb.Res >> proc;
+                *cb.Res >> proc >> cols;
                 Php::Array vData;
                 CPhpBuffer buff(cb.Res);
                 while (cb.Res->GetSize()) {
                     vData.set(index, buff.LoadObject());
                     ++index;
                 }
-                callback(vData, proc);
+                callback(vData, proc, cols);
             }
                 break;
             case ctDbRes:
@@ -289,6 +290,7 @@ namespace PA
                     sb << db.GetRetValue();
                 }
                 sb->Push(vData.GetBuffer(), vData.GetSize());
+                sb << (int) db.GetColumnInfo().size();
                 vData.SetSize(0);
                 PACallback cb;
                 cb.CallbackType = ctDbR;
