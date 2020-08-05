@@ -97,7 +97,11 @@ namespace NJA {
         Isolate* isolate = args.GetIsolate();
         if (args.IsConstructCall()) {
             if (args[0]->IsBoolean() && args[1]->IsNumber() && args[1]->IntegerValue(isolate->GetCurrentContext()).ToChecked() == SECRECT_NUM && args[2]->IsNumber()) {
+#ifdef BOOL_ISOLATE
+                //bool setCb = args[0]->BooleanValue(isolate);
+#else
                 //bool setCb = args[0]->BooleanValue(isolate->GetCurrentContext()).ToChecked();
+#endif
                 SPA::INT64 ptr = args[2]->IntegerValue(isolate->GetCurrentContext()).ToChecked();
                 NJSocket *obj = new NJSocket((CClientSocket*) ptr);
                 obj->Wrap(args.This());
@@ -158,9 +162,13 @@ namespace NJA {
         if (obj->IsValid(isolate)) {
             bool zip = false;
             auto p = args[0];
-            if (p->IsBoolean())
+            if (p->IsBoolean() || p->IsUint32()) {
+#ifdef BOOL_ISOLATE
+                zip = p->BooleanValue(isolate);
+#else
                 zip = p->BooleanValue(isolate->GetCurrentContext()).ToChecked();
-            else if (!IsNullOrUndefined(p)) {
+#endif
+            } else if (!IsNullOrUndefined(p)) {
                 ThrowException(isolate, BOOLEAN_EXPECTED);
                 return;
             }
@@ -263,9 +271,13 @@ namespace NJA {
         if (obj->IsValid(isolate)) {
             bool ac = false;
             auto p = args[0];
-            if (p->IsBoolean())
+            if (p->IsBoolean() || p->IsUint32()) {
+#ifdef BOOL_ISOLATE
+                ac = p->BooleanValue(isolate);
+#else
                 ac = p->BooleanValue(isolate->GetCurrentContext()).ToChecked();
-            else if (!IsNullOrUndefined(p)) {
+#endif
+            } else if (!IsNullOrUndefined(p)) {
                 ThrowException(isolate, BOOLEAN_EXPECTED);
                 return;
             }
@@ -554,9 +566,13 @@ namespace NJA {
         if (obj->IsValid(isolate)) {
             bool zip = false;
             auto p = args[0];
-            if (p->IsBoolean())
+            if (p->IsBoolean() || p->IsUint32()) {
+#ifdef BOOL_ISOLATE
+                zip = p->BooleanValue(isolate);
+#else
                 zip = p->BooleanValue(isolate->GetCurrentContext()).ToChecked();
-            else if (!IsNullOrUndefined(p)) {
+#endif
+            } else if (!IsNullOrUndefined(p)) {
                 ThrowException(isolate, BOOLEAN_EXPECTED);
                 return;
             }

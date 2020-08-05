@@ -29,6 +29,10 @@
 #define HAS_BIGINT
 #endif
 
+#if NODE_VERSION_AT_LEAST(12,13,0)
+#define BOOL_ISOLATE
+#endif
+
 #include <node_object_wrap.h>
 #include <node_buffer.h>
 

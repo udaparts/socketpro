@@ -76,7 +76,11 @@ namespace NJA {
         Isolate* isolate = args.GetIsolate();
         if (args.IsConstructCall()) {
             if (args[0]->IsBoolean() && args[1]->IsNumber() && args[1]->IntegerValue(isolate->GetCurrentContext()).ToChecked() == SECRECT_NUM && args[2]->IsNumber()) {
+#ifdef BOOL_ISOLATE
+                //bool setCb = args[0]->BooleanValue(isolate);
+#else
                 //bool setCb = args[0]->BooleanValue(isolate->GetCurrentContext()).ToChecked();
+#endif
                 SPA::INT64 ptr = args[2]->IntegerValue(isolate->GetCurrentContext()).ToChecked();
                 NJTable *obj = new NJTable((SPA::CTable*)ptr);
                 obj->Wrap(args.This());
@@ -218,8 +222,12 @@ namespace NJA {
             unsigned int ordinal = p0->Uint32Value(isolate->GetCurrentContext()).ToChecked();
             auto p1 = args[1];
             bool desc = false;
-            if (p1->IsBoolean()) {
+            if (p1->IsBoolean() || p1->IsUint32()) {
+#ifdef BOOL_ISOLATE
+                desc = p1->BooleanValue(isolate);
+#else
                 desc = p1->BooleanValue(isolate->GetCurrentContext()).ToChecked();
+#endif
             } else if (!IsNullOrUndefined(p1)) {
                 NJA::ThrowException(isolate, BOOLEAN_EXPECTED);
                 return;
@@ -280,8 +288,12 @@ namespace NJA {
             }
             auto p3 = args[3];
             bool copy = false;
-            if (p3->IsBoolean()) {
+            if (p3->IsBoolean() || p3->IsUint32()) {
+#ifdef BOOL_ISOLATE
+                copy = p3->BooleanValue(isolate);
+#else
                 copy = p3->BooleanValue(isolate->GetCurrentContext()).ToChecked();
+#endif
             } else if (!IsNullOrUndefined(p3)) {
                 NJA::ThrowException(isolate, BOOLEAN_EXPECTED);
                 return;
@@ -310,8 +322,12 @@ namespace NJA {
             unsigned int ordinal = p0->Uint32Value(isolate->GetCurrentContext()).ToChecked();
             auto p1 = args[1];
             bool copy = false;
-            if (p1->IsBoolean()) {
+            if (p1->IsBoolean() || p1->IsUint32()) {
+#ifdef BOOL_ISOLATE
+                copy = p1->BooleanValue(isolate);
+#else
                 copy = p1->BooleanValue(isolate->GetCurrentContext()).ToChecked();
+#endif
             } else if (!IsNullOrUndefined(p1)) {
                 NJA::ThrowException(isolate, BOOLEAN_EXPECTED);
                 return;
@@ -345,8 +361,12 @@ namespace NJA {
             }
             auto p2 = args[2];
             bool copy = false;
-            if (p2->IsBoolean()) {
+            if (p2->IsBoolean() || p2->IsUint32()) {
+#ifdef BOOL_ISOLATE
+                copy = p2->BooleanValue(isolate);
+#else
                 copy = p2->BooleanValue(isolate->GetCurrentContext()).ToChecked();
+#endif
             } else if (!IsNullOrUndefined(p2)) {
                 NJA::ThrowException(isolate, BOOLEAN_EXPECTED);
                 return;
@@ -389,8 +409,12 @@ namespace NJA {
             }
             auto p3 = args[3];
             bool copy = false;
-            if (p3->IsBoolean()) {
+            if (p3->IsBoolean() || p3->IsUint32()) {
+#ifdef BOOL_ISOLATE
+                copy = p3->BooleanValue(isolate);
+#else
                 copy = p3->BooleanValue(isolate->GetCurrentContext()).ToChecked();
+#endif
             } else if (!IsNullOrUndefined(p3)) {
                 NJA::ThrowException(isolate, BOOLEAN_EXPECTED);
                 return;
@@ -424,8 +448,12 @@ namespace NJA {
             }
             auto p2 = args[2];
             bool copy = false;
-            if (p2->IsBoolean()) {
+            if (p2->IsBoolean() || p2->IsUint32()) {
+#ifdef BOOL_ISOLATE
+                copy = p2->BooleanValue(isolate);
+#else
                 copy = p2->BooleanValue(isolate->GetCurrentContext()).ToChecked();
+#endif
             } else if (!IsNullOrUndefined(p2)) {
                 NJA::ThrowException(isolate, BOOLEAN_EXPECTED);
                 return;

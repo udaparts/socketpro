@@ -110,9 +110,13 @@ namespace NJA {
         if (obj->IsValid(isolate)) {
             bool server_commit = false;
             auto p = args[0];
-            if (p->IsBoolean())
+            if (p->IsBoolean() || p->IsUint32()) {
+#ifdef BOOL_ISOLATE
+                server_commit = p->BooleanValue(isolate);
+#else
                 server_commit = p->BooleanValue(isolate->GetCurrentContext()).ToChecked();
-            else if (!IsNullOrUndefined(p)) {
+#endif
+            } else if (!IsNullOrUndefined(p)) {
                 ThrowException(isolate, BOOLEAN_EXPECTED);
                 return;
             }

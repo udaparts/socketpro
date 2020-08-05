@@ -36,7 +36,11 @@ namespace NJA {
         Isolate* isolate = args.GetIsolate();
         if (args.IsConstructCall()) {
             if (args[0]->IsBoolean() && args[1]->IsNumber() && args[1]->IntegerValue(isolate->GetCurrentContext()).ToChecked() == SECRECT_NUM && args[2]->IsNumber()) {
+#ifdef BOOL_ISOLATE
+                //bool setCb = args[0]->BooleanValue(isolate);
+#else
                 //bool setCb = args[0]->BooleanValue(isolate->GetCurrentContext()).ToChecked();
+#endif
                 SPA::INT64 ptr = args[2]->IntegerValue(isolate->GetCurrentContext()).ToChecked();
                 NJHandler *obj = new NJHandler((CAsyncServiceHandler*) ptr);
                 obj->Wrap(args.This());

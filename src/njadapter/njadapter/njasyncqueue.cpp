@@ -65,7 +65,11 @@ namespace NJA {
         Isolate* isolate = args.GetIsolate();
         if (args.IsConstructCall()) {
             if (args[0]->IsBoolean() && args[1]->IsNumber() && args[1]->IntegerValue(isolate->GetCurrentContext()).ToChecked() == SECRECT_NUM && args[2]->IsNumber()) {
+#ifdef BOOL_ISOLATE
+                //bool setCb = args[0]->BooleanValue(isolate);
+#else
                 //bool setCb = args[0]->BooleanValue(isolate->GetCurrentContext()).ToChecked();
+#endif
                 SPA::INT64 ptr = args[2]->IntegerValue(isolate->GetCurrentContext()).ToChecked();
                 NJAsyncQueue *obj = new NJAsyncQueue((CAQueue*) ptr);
                 obj->Wrap(args.This());
@@ -178,9 +182,13 @@ namespace NJA {
         if (obj->IsValid(isolate)) {
             bool rollback = false;
             auto p0 = args[0];
-            if (p0->IsBoolean())
+            if (p0->IsBoolean() || p0->IsUint32()) {
+#ifdef BOOL_ISOLATE
+                rollback = p0->BooleanValue(isolate);
+#else
                 rollback = p0->BooleanValue(isolate->GetCurrentContext()).ToChecked();
-            else if (!IsNullOrUndefined(p0)) {
+#endif
+            } else if (!IsNullOrUndefined(p0)) {
                 ThrowException(isolate, "Boolean value expected for rollback");
                 return;
             }
@@ -202,9 +210,13 @@ namespace NJA {
             Local<Value> argv[] = {args[1], args[2]};
             auto p = args[3];
             bool perm = false;
-            if (p->IsBoolean())
+            if (p->IsBoolean() || p->IsUint32()) {
+#ifdef BOOL_ISOLATE
+                perm = p->BooleanValue(isolate);
+#else
                 perm = p->BooleanValue(isolate->GetCurrentContext()).ToChecked();
-            else if (!IsNullOrUndefined(p)) {
+#endif
+            } else if (!IsNullOrUndefined(p)) {
                 ThrowException(isolate, "Boolean value expected for permanent delete");
                 return;
             }

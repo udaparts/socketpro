@@ -301,8 +301,12 @@ namespace NJA {
                     db.assign(*str, *str + len);
             }
             bool slave = false;
-            if (args[2]->IsBoolean()) {
+            if (args[2]->IsBoolean() || args[2]->IsUint32()) {
+#ifdef BOOL_ISOLATE
+                slave = args[2]->BooleanValue(isolate);
+#else
                 slave = args[2]->BooleanValue(isolate->GetCurrentContext()).ToChecked();
+#endif
             } else if (!IsNullOrUndefined(args[2])) {
                 ThrowException(isolate, "Must be a boolean value for slave pool");
                 return;
@@ -713,8 +717,12 @@ namespace NJA {
         NJSocketPool* obj = ObjectWrap::Unwrap<NJSocketPool>(args.Holder());
         if (obj->IsValid(isolate)) {
             auto p = args[0];
-            if (p->IsBoolean()) {
+            if (p->IsBoolean() || p->IsUint32()) {
+#ifdef BOOL_ISOLATE
+                bool b = p->BooleanValue(isolate);
+#else
                 bool b = p->BooleanValue(isolate->GetCurrentContext()).ToChecked();
+#endif
                 obj->Handler->SetQueueAutoMerge(b);
             } else {
                 ThrowException(isolate, BOOLEAN_EXPECTED);
@@ -736,8 +744,12 @@ namespace NJA {
         NJSocketPool* obj = ObjectWrap::Unwrap<NJSocketPool>(args.Holder());
         if (obj->IsValid(isolate)) {
             auto p = args[0];
-            if (p->IsBoolean()) {
+            if (p->IsBoolean() || p->IsUint32()) {
+#ifdef BOOL_ISOLATE
+                bool b = p->BooleanValue(isolate);
+#else
                 bool b = p->BooleanValue(isolate->GetCurrentContext()).ToChecked();
+#endif
                 obj->Handler->SetAutoConn(b);
             } else {
                 ThrowException(isolate, BOOLEAN_EXPECTED);
@@ -1126,16 +1138,24 @@ namespace NJA {
         cc.EncrytionMethod = (SPA::tagEncryptionMethod)em;
 
         v = obj->Get(ToStr(isolate, u"Zip", 3));
-        if (v->IsBoolean()) {
+        if (v->IsBoolean() || v->IsUint32()) {
+#ifdef BOOL_ISOLATE
+            cc.Zip = v->BooleanValue(isolate);
+#else
             cc.Zip = v->BooleanValue(isolate->GetCurrentContext()).ToChecked();
+#endif
         } else if (!IsNullOrUndefined(v)) {
             ThrowException(isolate, "Boolean value expected for Zip");
             return false;
         }
 
         v = obj->Get(ToStr(isolate, u"V6", 2));
-        if (v->IsBoolean()) {
+        if (v->IsBoolean() || v->IsUint32()) {
+#ifdef BOOL_ISOLATE
+            cc.V6 = v->BooleanValue(isolate);
+#else
             cc.V6 = v->BooleanValue(isolate->GetCurrentContext()).ToChecked();
+#endif
         } else if (!IsNullOrUndefined(v)) {
             ThrowException(isolate, "Boolean value expected for V6");
             return false;

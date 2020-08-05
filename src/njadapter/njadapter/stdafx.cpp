@@ -319,7 +319,11 @@ namespace NJA {
             vt.ullVal = ToDate(isolate, v);
         } else if (v->IsBoolean()) {
             vt.vt = VT_BOOL;
+#ifdef BOOL_ISOLATE
+            vt.boolVal = v->BooleanValue(isolate) ? VARIANT_TRUE : VARIANT_FALSE;
+#else
             vt.boolVal = v->BooleanValue(isolate->GetCurrentContext()).ToChecked() ? VARIANT_TRUE : VARIANT_FALSE;
+#endif
         } else if (v->IsString()) {
             if (id == "a" || id == "ascii") {
                 char *p;
@@ -622,7 +626,11 @@ namespace NJA {
                     case VT_BOOL:
                     {
                         VARIANT_BOOL *pb = (VARIANT_BOOL *) p;
+#ifdef BOOL_ISOLATE
+                        pb[n] = d->BooleanValue(isolate) ? VARIANT_TRUE : VARIANT_FALSE;
+#else
                         pb[n] = d->BooleanValue(isolate->GetCurrentContext()).ToChecked() ? VARIANT_TRUE : VARIANT_FALSE;
+#endif
                     }
                         break;
                     case VT_DATE:
@@ -1162,7 +1170,11 @@ namespace NJA {
                         v.push_back(ToStr(isolate, d).c_str());
                         break;
                     case NJA::dtBool:
+#ifdef BOOL_ISOLATE
+                        v.push_back(d->BooleanValue(isolate));
+#else
                         v.push_back(d->BooleanValue(isolate->GetCurrentContext()).ToChecked());
+#endif
                         break;
                     case NJA::dtDate:
                     {

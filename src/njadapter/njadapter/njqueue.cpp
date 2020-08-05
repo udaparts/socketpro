@@ -191,9 +191,13 @@ namespace NJA {
     void NJQueue::UseStrForDec(const FunctionCallbackInfo<Value>& args) {
         NJQueue* obj = ObjectWrap::Unwrap<NJQueue>(args.Holder());
         Isolate* isolate = args.GetIsolate();
-        if (args[0]->IsBoolean())
+        if (args[0]->IsBoolean() || args[0]->IsUint32()) {
+#ifdef BOOL_ISOLATE
+            obj->m_StrForDec = args[0]->BooleanValue(isolate);
+#else
             obj->m_StrForDec = args[0]->BooleanValue(isolate->GetCurrentContext()).ToChecked();
-        else if (IsNullOrUndefined(args[0]))
+#endif
+        } else if (IsNullOrUndefined(args[0]))
             obj->m_StrForDec = false;
         else {
             ThrowException(isolate, BOOLEAN_EXPECTED);
@@ -1010,9 +1014,14 @@ namespace NJA {
                     if (dt && dt != dtBool) {
                         ThrowException(isolate, UNSUPPORTED_ARRAY_TYPE);
                         return;
-                    } else
+                    } else {
                         dt = dtBool;
+                    }
+#ifdef BOOL_ISOLATE
+                    VARIANT_BOOL b = d->BooleanValue(isolate) ? VARIANT_TRUE : VARIANT_FALSE;
+#else
                     VARIANT_BOOL b = d->BooleanValue(isolate->GetCurrentContext()).ToChecked() ? VARIANT_TRUE : VARIANT_FALSE;
+#endif
                     sb << b;
                 } else if (d->IsDate()) {
                     if (dt && dt != dtDate) {
@@ -1119,7 +1128,11 @@ namespace NJA {
             NJQueue* obj;
             unsigned int initSize = SPA::DEFAULT_INITIAL_MEMORY_BUFFER_SIZE;
             unsigned int blockSize = SPA::DEFAULT_MEMORY_BUFFER_BLOCK_SIZE;
+#ifdef BOOL_ISOLATE
+            if (args[0]->IsBoolean() && args[0]->BooleanValue(isolate) && args[1]->IsNumber() && args[1]->IntegerValue(isolate->GetCurrentContext()).ToChecked() == SECRECT_NUM && args[2]->IsNumber()) {
+#else
             if (args[0]->IsBoolean() && args[0]->BooleanValue(isolate->GetCurrentContext()).ToChecked() && args[1]->IsNumber() && args[1]->IntegerValue(isolate->GetCurrentContext()).ToChecked() == SECRECT_NUM && args[2]->IsNumber()) {
+#endif
                 SPA::INT64 ptr = args[2]->IntegerValue(isolate->GetCurrentContext()).ToChecked();
                 // Invoked as constructor: `new CUQueue(...)`
                 obj = new NJQueue((CUQueue*) ptr, initSize, blockSize);

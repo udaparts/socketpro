@@ -70,7 +70,11 @@ namespace NJA {
         Isolate* isolate = args.GetIsolate();
         if (args.IsConstructCall()) {
             if (args[0]->IsBoolean() && args[1]->IsNumber() && args[1]->IntegerValue(isolate->GetCurrentContext()).ToChecked() == SECRECT_NUM && args[2]->IsNumber()) {
-                //bool setCb = args[0]->BooleanValue();
+#ifdef BOOL_ISOLATE
+                //bool setCb = args[0]->BooleanValue(isolate);
+#else
+                //bool setCb = args[0]->BooleanValue(isolate->GetCurrentContext()).ToChecked();
+#endif
                 SPA::INT64 ptr = args[2]->IntegerValue(isolate->GetCurrentContext()).ToChecked();
                 NJClientQueue *obj = new NJClientQueue((SPA::ClientSide::IClientQueue*)ptr);
                 obj->Wrap(args.This());
@@ -101,8 +105,12 @@ namespace NJA {
         }
         bool secure = (ClientCoreLoader.GetEncryptionMethod(obj->m_cq->GetHandle()) != NoEncryption);
         p = args[1];
-        if (p->IsBoolean()) {
+        if (p->IsBoolean() || p->IsUint32()) {
+#ifdef BOOL_ISOLATE
+            secure = p->BooleanValue(isolate);
+#else
             secure = p->BooleanValue(isolate->GetCurrentContext()).ToChecked();
+#endif
         } else if (!IsNullOrUndefined(p)) {
             ThrowException(isolate, "A boolean expected for client queue security");
             return;
@@ -124,8 +132,12 @@ namespace NJA {
         NJClientQueue* obj = ObjectWrap::Unwrap<NJClientQueue>(args.Holder());
         auto p = args[0];
         bool permanent = false;
-        if (p->IsBoolean()) {
+        if (p->IsBoolean() || p->IsUint32()) {
+#ifdef BOOL_ISOLATE
+            permanent = p->BooleanValue(isolate);
+#else
             permanent = p->BooleanValue(isolate->GetCurrentContext()).ToChecked();
+#endif
         } else if (!IsNullOrUndefined(p)) {
             ThrowException(isolate, BOOLEAN_EXPECTED);
             return;
@@ -270,8 +282,12 @@ namespace NJA {
         NJClientQueue* obj = ObjectWrap::Unwrap<NJClientQueue>(args.Holder());
         bool enabled = false;
         auto p = args[0];
-        if (p->IsBoolean()) {
+        if (p->IsBoolean() || p->IsUint32()) {
+#ifdef BOOL_ISOLATE
+            enabled = p->BooleanValue(isolate);
+#else
             enabled = p->BooleanValue(isolate->GetCurrentContext()).ToChecked();
+#endif
         } else if (!IsNullOrUndefined(p)) {
             ThrowException(isolate, BOOLEAN_EXPECTED);
             return;
