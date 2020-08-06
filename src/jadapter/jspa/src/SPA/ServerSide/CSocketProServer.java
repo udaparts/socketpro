@@ -174,9 +174,6 @@ public class CSocketProServer implements AutoCloseable {
     }
 
     public boolean Run(int port, int maxBacklog, boolean v6Supported) {
-        if (!OnSettingServer()) {
-            return false;
-        }
         java.lang.Class type = getClass();
         java.lang.reflect.Field[] fis = type.getDeclaredFields();
         for (java.lang.reflect.Field fi : fis) {
@@ -199,6 +196,9 @@ public class CSocketProServer implements AutoCloseable {
                     throw new UnsupportedOperationException("Failed in registering service = " + sa.ServiceID() + ", and check if the service ID is duplicated with the previous one or if the service ID is less or equal to SocketProAdapter.BaseServiceID.sidReserved");
                 }
             }
+        }
+        if (!OnSettingServer()) {
+            return false;
         }
         return ServerCoreLoader.StartSocketProServer(port, maxBacklog, v6Supported);
     }

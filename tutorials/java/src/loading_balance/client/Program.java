@@ -7,21 +7,15 @@ import loading_balance.piConst;
 public class Program {
 
     public static void main(String[] args) {
-        boolean ok;
-        CClientSocket.QueueConfigure.setMessageQueuePassword("MyPwdForMsgQueue");
-        if (CUQueue.DEFAULT_OS == tagOperationSystem.osWin) {
-            CClientSocket.QueueConfigure.setWorkDirectory("c:\\sp_test");
-        } else {
-            CClientSocket.QueueConfigure.setWorkDirectory("/home/yye/sp_test");
-        }
-        CConnectionContext cc = new CConnectionContext("localhost", 20901, "lb_client", "pwd_lb_client");
+        System.out.println("Client: load balancer address:");
+        CConnectionContext cc = new CConnectionContext(new java.util.Scanner(System.in).nextLine(), 20901, "lb_client", "pwd_lb_client");
         try (CSocketPool<Pi> spPi = new CSocketPool<>(Pi.class, true)) //true -- automatic reconnecting
         {
-            ok = spPi.StartSocketPool(cc, 1);
+            boolean ok = spPi.StartSocketPool(cc, 1);
             CClientSocket cs = spPi.getSockets()[0];
 
             //use persistent queue to ensure auto failure recovery and at-least-once or once-only delivery
-            ok = cs.getClientQueue().StartQueue("pi_queue", 24 * 3600, (cs.getEncryptionMethod() == tagEncryptionMethod.TLSv1));
+            ok = cs.getClientQueue().StartQueue("pi_queue", 24 * 3600, false);
             cs.getClientQueue().setRoutingQueueIndex(true);
 
             Pi pi = spPi.getAsyncHandlers()[0];

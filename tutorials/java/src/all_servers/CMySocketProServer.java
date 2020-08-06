@@ -31,7 +31,7 @@ public class CMySocketProServer extends CSocketProServer {
         PushManager.AddAChatGroup(7, "HR Department");
         PushManager.AddAChatGroup(SPA.UDB.DB_CONSTS.CACHE_UPDATE_CHAT_GROUP_ID, "Subscribe/publish for front clients");
 
-        return true; //true -- ok; false -- no listening server
+        return CSocketProServer.Router.SetRouting(piConst.sidPi, piConst.sidPiWorker); //true -- ok; false -- no listening server
     }
 
     public static void main(String[] args) {
@@ -47,7 +47,7 @@ public class CMySocketProServer extends CSocketProServer {
             //load socketpro async sqlite library located at the directory ../bin/free_services/sqlite
             long handle = CSocketProServer.DllManager.AddALibrary("ssqlite");
             if (handle != 0) {
-                 //monitoring sakila.db table events (DELETE, INSERT and UPDATE) for tables actor, language, category, country and film_actor
+                //monitoring sakila.db table events (DELETE, INSERT and UPDATE) for tables actor, language, category, country and film_actor
                 Sqlite.SetSqliteDBGlobalConnectionString("usqlite.db+sakila.db.actor;sakila.db.language;sakila.db.category;sakila.db.country;sakila.db.film_actor");
             }
             //load socketPro asynchronous persistent message queue library at the directory ../bin/free_services/queue
@@ -66,8 +66,6 @@ public class CMySocketProServer extends CSocketProServer {
             //MySocketProServer.UseSSL("server.pem", "server.pem", "test", "dh512.pem");
             if (!MySocketProServer.Run(20901)) {
                 System.out.println("Error code = " + CSocketProServer.getLastSocketError());
-            } else {
-                CSocketProServer.Router.SetRouting(piConst.sidPi, piConst.sidPiWorker);
             }
             System.out.println("Input a line to close the application ......");
             new java.util.Scanner(System.in).nextLine();

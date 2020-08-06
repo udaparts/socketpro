@@ -5,7 +5,8 @@ import SPA.ClientSide.*;
 public class Program {
 
     public static void main(String[] args) {
-        CConnectionContext cc = new CConnectionContext("127.0.0.1", 20901, "lb_worker", "pwdForlb_worker");
+        System.out.println("Worker: load balancer address:");
+        CConnectionContext cc = new CConnectionContext(new java.util.Scanner(System.in).nextLine(), 20901, "lb_worker", "pwdForlb_worker");
         try (CSocketPool<PiWorker> spPi = new CSocketPool<>(PiWorker.class, true)) //true -- automatic reconnecting
         {
             if (!spPi.StartSocketPool(cc, 1, Runtime.getRuntime().availableProcessors())) {

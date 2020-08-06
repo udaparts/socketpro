@@ -78,6 +78,10 @@ public class CAsyncServiceHandler implements AutoCloseable {
         return m_ClientSocket;
     }
 
+    public final CClientSocket getSocket() {
+        return m_ClientSocket;
+    }
+
     protected CAsyncServiceHandler(int nServiceId) {
         m_nServiceId = nServiceId;
         m_ClientSocket = null;
