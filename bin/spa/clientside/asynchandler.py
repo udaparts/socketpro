@@ -1,6 +1,5 @@
-
 import threading
-from spa import tagBaseRequestID
+from spa import tagBaseRequestID, CServerError as Se
 from spa.memqueue import CUQueue, CScopeUQueue
 from spa.clientside.ccoreloader import CCoreLoader as ccl
 from ctypes import c_ubyte
@@ -128,8 +127,14 @@ class CAsyncServiceHandler(object):
         return None
 
     def SendRouteeResult(self, q, reqId=0):
-        if q is None:
-            q = CUQueue()
+        delay = q
+        if isinstance(q, CScopeUQueue):
+            q = q.UQueue
+        elif q is None:
+            delay = CScopeUQueue()
+            q = delay.UQueue
+        elif not isinstance(q, CUQueue):
+            raise ValueError('Bad input for parameter q')
         if reqId == 0:
             reqId = self._m_ClientSocket_.CurrentRequestID
         h = self._m_ClientSocket_.Handle
@@ -141,11 +146,13 @@ class CAsyncServiceHandler(object):
         return ccl.SendInterruptRequest(h, options)
 
     def SendRequest(self, reqId, q, arh, discarded=None, efs=None):
-        if q is None:
-            q = CUQueue(bytearray(0))
+        delay = q
         if isinstance(q, CScopeUQueue):
             q = q.UQueue
-        if not isinstance(q, CUQueue):
+        elif q is None:
+            delay = CScopeUQueue()
+            q = delay.UQueue
+        elif not isinstance(q, CUQueue):
             raise ValueError('Bad input for parameter q')
         #http://stackoverflow.com/questions/21483482/efficient-way-to-convert-string-to-ctypes-c-ubyte-array-in-python
         bytes = (c_ubyte * q.GetSize()).from_buffer(q._m_bytes_, q._m_position_)
@@ -209,6 +216,10 @@ class CAsyncServiceHandler(object):
     def AttachedClientSocket(self):
         return self._m_ClientSocket_
 
+    @property
+    def Socket(self):
+        return self._m_ClientSocket_
+
     def StartBatching(self):
         with self._lock_:
             self._m_kvBatching_.clear()
@@ -256,11 +267,11 @@ class CAsyncServiceHandler(object):
             size = len(self._m_kvBatching_) + len(self._m_kvCallback_)
             for kv in self._m_kvBatching_:
                 if kv[1].Discarded:
-                    kv[1].Discarded(self, self.AttachedClientSocket.CurrentRequestID == tagBaseRequestID.idCancel)
+                    kv[1].Discarded(self, self.Socket.CurrentRequestID == tagBaseRequestID.idCancel)
             self._m_kvBatching_.clear()
             for kv in self._m_kvCallback_:
                 if kv[1].Discarded:
-                    kv[1].Discarded(self, self.AttachedClientSocket.CurrentRequestID == tagBaseRequestID.idCancel)
+                    kv[1].Discarded(self, self.Socket.CurrentRequestID == tagBaseRequestID.idCancel)
             self._m_kvCallback_.clear()
             return size
 
@@ -290,18 +301,17 @@ class CAsyncServiceHandler(object):
     def _SetNull_(self):
         self._m_ClientSocket_ = None
 
-    def OnExceptionFromServer(self, reqId, errMessage, errWhere, errCode):
+    def OnExceptionFromServer(self, se):
         pass
 
     def _OnSE_(self, reqId, errMessage, errWhere, errCode):
-        #print 'reqId = ' + str(reqId) + ', errWhere = ' + errWhere + ', errCode = ' + str(errCode)
-        #print u'errMessage = ' + errMessage
+        se = Se(errCode, errMessage, errWhere, reqId)
         rcb = self._GetAsyncResultHandler_(reqId)
         if rcb and rcb.ExceptionFromServer:
-            rcb.ExceptionFromServer(self, reqId, errMessage, errWhere, errCode)
-        self.OnExceptionFromServer(reqId, errMessage, errWhere, errCode)
-        if not self.ServerException is None:
-            self.ServerException(self, reqId, errMessage, errWhere, errCode)
+            rcb.ExceptionFromServer(self, se)
+        self.OnExceptionFromServer(se)
+        if self.ServerException:
+            self.ServerException(self, se)
 
     def OnResultReturned(self, reqId, q):
         pass

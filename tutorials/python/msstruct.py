@@ -1,4 +1,3 @@
-
 from spa import IUSerializer
 from datetime import datetime
 
@@ -20,11 +19,13 @@ class CMyStruct(IUSerializer):
         self.ObjString = q.LoadObject()
         self.objArrString = q.LoadObject()
         self.objArrInt = q.LoadObject()
+        return q
 
     def SaveTo(self, q):
         q.SaveString(self.NullString).SaveObject(self.ObjectNull).SaveDate(self.ADateTime).SaveDouble(self.ADouble)
         q.SaveBool(self.ABool).SaveString(self.UnicodeString).SaveAString(self.AsciiString).SaveObject(self.ObjBool)
         q.SaveObject(self.ObjString).SaveObject(self.objArrString).SaveObject(self.objArrInt)
+        return q
 
     @staticmethod
     def MakeOne():

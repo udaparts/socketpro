@@ -1,5 +1,4 @@
-
-from helloworldpeer import CHelloWorldPeer
+from hello_world.server.helloworldpeer import CHelloWorldPeer
 from spa.serverside import CSocketProServer, CSocketProService
 from consts import hwConst
 import sys
@@ -11,6 +10,7 @@ with CSocketProServer() as server:
             sp = bs.Seek(hSocket)
             # ......
     server.OnClose = OnClose
+
     def OnIsPermitted(hSocket, userId, pwd, svsId):
         print('Ask for a service ' + str(svsId) + ' from user ' + userId + ' with password = ' + pwd)
         return True

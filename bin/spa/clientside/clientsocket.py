@@ -688,6 +688,10 @@ class CClientSocket:
         return ccl.GetErrorCode(self._m_h_)
 
     @property
+    def ErrCode(self):
+        return ccl.GetErrorCode(self._m_h_)
+
+    @property
     def ZipLevel(self):
         return ccl.GetZipLevel(self._m_h_)
 
@@ -697,6 +701,12 @@ class CClientSocket:
 
     @property
     def ErrorMessage(self):
+        errMsg = create_string_buffer(2048)
+        res = ccl.GetErrorMessage(self._m_h_, errMsg, 2048)
+        return errMsg.value.decode('latin-1')
+
+    @property
+    def ErrMsg(self):
         errMsg = create_string_buffer(2048)
         res = ccl.GetErrorMessage(self._m_h_, errMsg, 2048)
         return errMsg.value.decode('latin-1')

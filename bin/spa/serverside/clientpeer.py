@@ -1,6 +1,5 @@
-
 from spa.serverside.socketpeer import CSocketPeer
-from spa import CUQueue, IPushEx, CScopeUQueue
+from spa import IPushEx, CScopeUQueue
 from ctypes import c_ubyte, c_bool, byref, c_uint
 from spa.serverside.scoreloader import SCoreLoader as scl
 
@@ -17,14 +16,16 @@ class CClientPeer(CSocketPeer):
                 groups = ()
             size = len(groups)
             arr = (c_uint * size)(*groups)
-            q = CUQueue().SaveObject(message, hint)
+            sb = CScopeUQueue()
+            q = sb.UQueue.SaveObject(message, hint)
             bytes = (c_ubyte * q.GetSize()).from_buffer(q._m_bytes_)
             return scl.Speak(self._m_p.Handle, bytes, q.GetSize(), arr, size)
 
         def SendUserMessage(self, message, userId, hint=''):
             if userId is None:
                 userId = u''
-            q = CUQueue().SaveObject(message, hint)
+            sb = CScopeUQueue()
+            q = sb.UQueue.SaveObject(message, hint)
             bytes = (c_ubyte * q.GetSize()).from_buffer(q._m_bytes_)
             return scl.SendUserMessage(self._m_p.Handle, userId, bytes, q.GetSize())
 
@@ -65,30 +66,37 @@ class CClientPeer(CSocketPeer):
         return self._m_push
 
     def SendResult(self, q, reqId=0):
+        delay = q
         if reqId == 0:
             reqId = self.CurrentRequestID
         if isinstance(q, CScopeUQueue):
             q = q.UQueue
-        if q is None:
-            q = CUQueue()
+        elif q is None:
+            delay = CScopeUQueue()
+            q = delay.UQueue
         buffer = (c_ubyte * q.GetSize()).from_buffer(q._m_bytes_, q._m_position_)
         if self.Random:
             return scl.SendReturnDataIndex(self.Handle, self.CurrentRequestIndex, reqId, q.GetSize(), buffer)
         return scl.SendReturnData(self.Handle, reqId, q.GetSize(), buffer)
 
     def SendResultIndex(self, reqIndex, q, reqId):
+        delay = q
         if reqId == 0:
             reqId = self.CurrentRequestID
         if isinstance(q, CScopeUQueue):
             q = q.UQueue
-        if q is None:
-            q = CUQueue()
+        elif q is None:
+            delay = CScopeUQueue()
+            q = delay.UQueue
         buffer = (c_ubyte * q.GetSize()).from_buffer(q._m_bytes_, q._m_position_)
         return scl.SendReturnDataIndex(self.Handle, reqIndex, reqId, q.GetSize(), buffer)
 
     def MakeRequest(self, reqId, q):
-        if q is None:
-            q = CUQueue()
+        if isinstance(q, CScopeUQueue):
+            q = q.UQueue
+        elif q is None:
+            delay = CScopeUQueue()
+            q = delay.UQueue
         buffer = (c_ubyte * q.GetSize()).from_buffer(q._m_bytes_, q._m_position_)
         return scl.MakeRequest(self.Handle, reqId, buffer, q.GetSize())
 

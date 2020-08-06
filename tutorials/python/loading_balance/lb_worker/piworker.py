@@ -1,8 +1,8 @@
-
 from consts import piConst
-from spa.clientside import CAsyncServiceHandler, CUQueue
+from spa.clientside import CAsyncServiceHandler as CAHandler
+from spa import CScopeUQueue as Csb
 
-class PiWorker(CAsyncServiceHandler):
+class PiWorker(CAHandler):
     def __init__(self):
         super(PiWorker, self).__init__(piConst.sidPiWorker)
 
@@ -18,4 +18,5 @@ class PiWorker(CAsyncServiceHandler):
                 dX += dStep
                 ComputeRtn += dd / (1 + dX * dX)
             q.SetSize(0)
-            self.SendRouteeResult(CUQueue().SaveDouble(ComputeRtn))
+            with Csb() as sb:
+                self.SendRouteeResult(sb.SaveDouble(ComputeRtn))

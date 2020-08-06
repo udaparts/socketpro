@@ -1,4 +1,3 @@
-
 import sys, struct, uuid, types
 from decimal import Decimal
 from decimal import localcontext
@@ -103,12 +102,15 @@ class CUQueue(object):
         return self
 
     def __exit__(self, type, value, traceback):
-        self._m_bytes_ = bytearray()
+        self.Empty()
+
+    def __del__(self):
+        self.Empty()
 
     def Empty(self):
         self._m_position_ = 0
         self._m_len_ = 0
-        self._m_bytes_ = bytearray(1)
+        self._m_bytes_ = bytearray(0)
 
     @property
     def OS(self):
@@ -472,8 +474,9 @@ class CUQueue(object):
         return bytes.decode('utf-16-le')
 
     def SaveDate(self, dt):
-        time = UDateTime(dt).time
-        return self.SaveULong(time)
+        udt = UDateTime(dt)
+        ut = udt.time
+        return self.SaveULong(ut)
 
     def LoadDate(self):
         return UDateTime(self.LoadULong()).Get()
@@ -825,6 +828,9 @@ class CScopeUQueue:
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.Dispose()
 
+    def __del__(self):
+        self.Dispose()
+
     def Dispose(self):
         if self._Buffer_:
             CScopeUQueue.Unlock(self._Buffer_)
@@ -834,65 +840,96 @@ class CScopeUQueue:
     def UQueue(self):
         return self._Buffer_
 
+    @property
+    def Size(self):
+        if self._Buffer_:
+            return self._Buffer_.GetSize()
+        return 0
+
+    @Size.setter
+    def Size(self, value):
+        if self._Buffer_:
+            self._Buffer_.SetSize(value)
+
     def SaveDecimal(self, dec):
-        return self._Buffer_.SaveDecimal(dec)
+        self._Buffer_.SaveDecimal(dec)
+        return self
 
     def Save(self, obj):
-        return self._Buffer_.Save(obj)
+        self._Buffer_.Save(obj)
+        return self
 
     def SaveInt(self, n):
-        return self._Buffer_.SaveInt(n)
+        self._Buffer_.SaveInt(n)
+        return self
 
     def SaveUInt(self, n):
-        return self._Buffer_.SaveUInt(n)
+        self._Buffer_.SaveUInt(n)
+        return self
 
     def SaveShort(self, s):
-        return self._Buffer_.SaveShort(s)
+        self._Buffer_.SaveShort(s)
+        return self
 
     def SaveUShort(self, s):
-        return self._Buffer_.SaveUShort(s)
+        self._Buffer_.SaveUShort(s)
+        return self
 
     def SaveChar(self, c):
-        return self._Buffer_.SaveChar(c)
+        self._Buffer_.SaveChar(c)
+        return self
 
     def SaveAChar(self, c):
-        return self._Buffer_.SaveAChar(c)
+        self._Buffer_.SaveAChar(c)
+        return self
 
     def SaveLong(self, n):
-        return self._Buffer_.SaveLong(n)
+        self._Buffer_.SaveLong(n)
+        return self
 
     def SaveULong(self, n):
-        return self._Buffer_.SaveULong(n)
+        self._Buffer_.SaveULong(n)
+        return self
 
     def SaveFloat(self, f):
-        return self._Buffer_.SaveFloat(f)
+        self._Buffer_.SaveFloat(f)
+        return self
 
     def SaveDouble(self, d):
-        return self._Buffer_.SaveDouble(d)
+        self._Buffer_.SaveDouble(d)
+        return self
 
     def SaveBool(self, b):
-        return self._Buffer_.SaveBool(b)
+        self._Buffer_.SaveBool(b)
+        return self
 
     def SaveAString(self, s):
-        return self._Buffer_.SaveAString(s)
+        self._Buffer_.SaveAString(s)
+        return self
 
     def SaveString(self, s):
-        return self._Buffer_.SaveString(s)
+        self._Buffer_.SaveString(s)
+        return self
 
     def SaveDate(self, dt):
-        return self._Buffer_.SaveDate(dt)
+        self._Buffer_.SaveDate(dt)
+        return self
 
     def SaveBytes(self, bytes, length):
-        return self._Buffer_.SaveBytes(bytes, length)
+        self._Buffer_.SaveBytes(bytes, length)
+        return self
 
     def SaveUUID(self, uuid):
-        return self._Buffer_.SaveUUID(uuid)
+        self._Buffer_.SaveUUID(uuid)
+        return self
 
     def SaveObject(self, obj, hint=''):
-        return self._Buffer_.SaveObject(obj, hint)
+        self._Buffer_.SaveObject(obj, hint)
+        return self
 
     def SaveByte(self, b):
-        return self._Buffer_.SaveByte(b)
+        self._Buffer_.SaveByte(b)
+        return self
 
     @staticmethod
     def MemoryConsumed():

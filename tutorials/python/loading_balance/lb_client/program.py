@@ -1,4 +1,3 @@
-
 from consts import piConst
 from spa.clientside import *
 import sys
@@ -19,7 +18,7 @@ with CSocketPool(Pi) as spPi:
     ok = cs.ClientQueue.StartQueue("pi_queue", 24 * 3600, (cs.EncryptionMethod == tagEncryptionMethod.TLSv1))
     cs.ClientQueue.RoutingQueueIndex = True
     pi = spPi.AsyncHandlers[0]
-    pi.WaitAll() #make sure all existing queued requests are processed before executing next requests
+    pi.WaitAll()  # make sure all existing queued requests are processed before executing next requests
     pi.dPi = 0.0
     nDivision = 1000
     nNum = 10000
@@ -30,7 +29,7 @@ with CSocketPool(Pi) as spPi:
         pi.nReturns += 1
     for n in range(0, nDivision):
         dStart = float(n) / nDivision
-        ok = pi.SendRequest(piConst.idComputePi, CUQueue().SaveDouble(dStart).SaveDouble(dStep).SaveInt(nNum), cb)
+        ok = pi.SendRequest(piConst.idComputePi, CScopeUQueue().SaveDouble(dStart).SaveDouble(dStep).SaveInt(nNum), cb)
     ok = pi.WaitAll()
     print('Your pi = ' + str(pi.dPi) + ', returns = ' + str(pi.nReturns))
     print('Press key ENTER to shutdown the demo application ......')

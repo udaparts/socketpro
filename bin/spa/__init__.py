@@ -435,6 +435,10 @@ class classproperty(object):
 
 from spa.memqueue import CUQueue, CScopeUQueue
 
+class CServerError(Exception):
+    def __init__(self, errCode, errMsg, errWhere = '', reqId = 0):
+        Exception.__init__(self, errCode, errMsg, errWhere, reqId)
+
 isVersion3 = (sys.version_info[0] >= 3)
 isVersion320 = (sys.version_info[0] * 100 + sys.version_info[1] * 10 >= 320)
 isVersion342 = (sys.version_info[0] * 100 + sys.version_info[1] * 10 + sys.version_info[2] >= 342)

@@ -1,6 +1,5 @@
-
 from spa.serverside.socketpeer import CSocketPeer
-from spa import IPush, CUQueue
+from spa import IPush, CScopeUQueue
 from ctypes import c_uint, c_ubyte
 from spa.serverside.scoreloader import SCoreLoader as scl, CHttpHV
 from spa.serverside import tagHttpRequestID
@@ -20,14 +19,16 @@ class CHttpPeerBase(CSocketPeer):
                 groups = ()
             size = len(groups)
             arr = (c_uint * size)(*groups)
-            q = CUQueue().SaveObject(message, hint)
+            sb = CScopeUQueue()
+            q = sb.UQueue.SaveObject(message, hint)
             bytes = (c_ubyte * q.GetSize()).from_buffer(q._m_bytes_)
             return scl.Speak(self._m_p.Handle, bytes, q.GetSize(), arr, size)
 
         def SendUserMessage(self, message, userId, hint=''):
             if userId is None:
                 userId = u''
-            q = CUQueue().SaveObject(message, hint)
+            sb = CScopeUQueue()
+            q = sb.UQueue.SaveObject(message, hint)
             bytes = (c_ubyte * q.GetSize()).from_buffer(q._m_bytes_)
             return scl.SendUserMessage(self._m_p.Handle, userId, bytes, q.GetSize())
 

@@ -1,5 +1,5 @@
-
 import threading, traceback, sys
+from spa import CServerError
 from spa.serverside.scoreloader import SCoreLoader as scl, CSvsContext
 from ctypes import c_ushort, c_char, c_bool
 from spa.serverside import *
@@ -81,6 +81,7 @@ class CBaseService(object):
 
     def _calling(self, sp, reqId, len, slow=False):
         ret = 0
+        funcName = ''
         try:
             if sp.SvsID == BaseServiceID.sidHTTP:
                 return sp._OnHttpRequestArrive(reqId, sp._m_qBuffer.GetSize())
@@ -100,10 +101,21 @@ class CBaseService(object):
                         res.Dispose()
                     else:
                         sp.SendResult(None, reqId)
+        except CServerError as ex:
+            ec, em, ew, reqid = ex.args
+            if not ew:
+                ew = funcName
+                if not ew:
+                    exc_type, exc_value, exc_traceback = sys.exc_info()
+                    ew = repr(traceback.format_exception(exc_type, exc_value, exc_traceback))
+            if not reqid:
+                reqid = reqId
+            scl.SendExceptionResult(sp.Handle, em, ew.encode(), reqid, ec)
         except Exception as ex:
-            exc_type, exc_value, exc_traceback = sys.exc_info()
-            stack = repr(traceback.format_exception(exc_type, exc_value, exc_traceback))
-            scl.SendExceptionResult(sp.Handle, ex.message, stack, reqId, 0)
+            if not funcName:
+                exc_type, exc_value, exc_traceback = sys.exc_info()
+                funcName = repr(traceback.format_exception(exc_type, exc_value, exc_traceback))
+            scl.SendExceptionResult(sp.Handle, ex.message, funcName.encode(), reqId, -1)
         if slow:
             return ret
 

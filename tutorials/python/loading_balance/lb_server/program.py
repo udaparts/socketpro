@@ -1,5 +1,3 @@
-
-
 from consts import piConst
 from spa.serverside import CSocketProServer, CSocketProService, CClientPeer
 import sys
