@@ -1,4 +1,3 @@
-
 from spa.serverside import CSocketProServer
 import sys
 from ctypes import *

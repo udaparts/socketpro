@@ -73,6 +73,7 @@ private:
         //load balancing
         bool ok = m_Pi.AddMe(sidPi);
         ok = m_PiWorker.AddMe(sidPiWorker);
+        ok = CSocketProServer::Router::SetRouting(sidPi, sidPiWorker);
 
         //Hello World
         ok = m_HelloWorld.AddMe(sidHelloWorld);
@@ -92,8 +93,6 @@ int main(int argc, char* argv[]) {
     if (!MySocketProServer.Run(20901)) {
         int errCode = MySocketProServer.GetErrorCode();
         std::cout << "Error happens with code = " << errCode << std::endl;
-    } else {
-        CSocketProServer::Router::SetRouting(sidPi, sidPiWorker);
     }
     std::cout << "Press any key to stop the server ......" << std::endl;
     ::getchar();

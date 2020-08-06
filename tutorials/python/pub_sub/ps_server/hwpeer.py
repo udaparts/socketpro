@@ -1,34 +1,33 @@
-
-from spa.serverside import CClientPeer, CUQueue, CSocketProServer
+from spa.serverside import CUQueue, CClientPeer as Cp,\
+    CScopeUQueue as Sb, CSocketProServer as Sps
 from msstruct import CMyStruct
 import time
 
-class CHelloWorldPeer(CClientPeer):
-    def OnSwitchFrom(self, oldServiceId):
-        self.Push.Subscribe((1,3))
+
+class CHelloWorldPeer(Cp):
+    def OnSwitchFrom(self, old_service_id):
+        self.Push.Subscribe((1, 3))
 
     def sayHello(self):
-        assert(CSocketProServer.IsMainThread)
+        assert(Sps.IsMainThread)
         fName = self.UQueue.LoadString()
         lName = self.UQueue.LoadString()
-        #notify a message to groups [2, 3] at server side
+        # notify a message to groups [2, 3] at server side
         self.Push.Publish('Say hello from ' + fName + ' ' + lName, (2,3))
         res = u'Hello ' + fName + ' ' + lName
         print(res)
-        return CUQueue().SaveString(res)
+        return Sb().SaveString(res)
 
     def sleep(self):
-        assert(not CSocketProServer.IsMainThread)
+        assert(not Sps.IsMainThread)
         ms = self.UQueue.LoadUInt()
         time.sleep(ms/1000.0)
 
     def echo(self):
-        assert(CSocketProServer.IsMainThread)
+        assert(Sps.IsMainThread)
         ms = CMyStruct()
         ms.LoadFrom(self.UQueue)
-        q = CUQueue()
-        ms.SaveTo(q)
-        return q
+        return ms.SaveTo(Sb())
 
     def OnSubscribe(self, groups):
         print(self.UID + ' subscribes for groups ' + str(groups))

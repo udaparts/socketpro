@@ -1,4 +1,3 @@
-
 from spa.clientside import *
 
 with CSocketPool(CStreamingFile) as spFile:

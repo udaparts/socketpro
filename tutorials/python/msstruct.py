@@ -1,6 +1,7 @@
 from spa import IUSerializer
 from datetime import datetime
 
+
 class CMyStruct(IUSerializer):
     def __init__(self):
         self.NullString = None

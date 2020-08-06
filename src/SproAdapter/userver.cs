@@ -247,8 +247,6 @@ namespace SocketProAdapter
 
             public virtual bool Run(uint port, uint maxBacklog, bool v6Supported)
             {
-                if (!OnSettingServer())
-                    return false;
                 Type type = GetType();
                 FieldInfo[] fis = type.GetFields(BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.GetField | BindingFlags.Static);
                 foreach (FieldInfo fi in fis)
@@ -269,6 +267,8 @@ namespace SocketProAdapter
                         CBaseService.m_bRegEvent = true;
                     }
                 }
+                if (!OnSettingServer())
+                    return false;
                 bool ok = ServerCoreLoader.StartSocketProServer(port, maxBacklog, v6Supported);
                 CBaseService.m_nMainThreads = uint.MaxValue;
                 return ok;

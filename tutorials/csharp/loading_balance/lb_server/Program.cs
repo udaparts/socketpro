@@ -13,14 +13,17 @@ public class CMySocketProServer : CSocketProServer
     [ServiceAttr(piConst.sidPiWorker)]
     private CSocketProService<CClientPeer> m_PiWorker = new CSocketProService<CClientPeer>();
 
+    protected override bool OnSettingServer()
+    {
+        return CSocketProServer.Router.SetRouting(piConst.sidPi, piConst.sidPiWorker);
+    }
+
     static void Main(string[] args)
     {
         using (CMySocketProServer MySocketProServer = new CMySocketProServer())
         {
             if (!MySocketProServer.Run(20901))
                 Console.WriteLine("Error code = " + CSocketProServer.LastSocketError.ToString());
-            else
-                CSocketProServer.Router.SetRouting(piConst.sidPi, piConst.sidPiWorker);
             Console.WriteLine("Input a line to close the application ......");
             Console.ReadLine();
         }

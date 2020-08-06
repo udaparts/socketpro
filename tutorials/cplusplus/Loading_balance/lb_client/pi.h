@@ -13,8 +13,9 @@ using namespace SPA::ClientSide;
 
 class Pi : public CAsyncServiceHandler {
 public:
-	Pi(CClientSocket *pClientSocket)
-		: CAsyncServiceHandler(sidPi, pClientSocket) {
-	}
+
+    Pi(CClientSocket *pClientSocket)
+    : CAsyncServiceHandler(sidPi, pClientSocket) {
+    }
 };
 #endif

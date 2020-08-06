@@ -1,6 +1,6 @@
-
 from spa.serverside.httppeer import CHttpPeerBase
 import time
+
 
 class CMyHttpPeer(CHttpPeerBase):
     def OnSubscribe(self, groups):

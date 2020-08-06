@@ -49,10 +49,6 @@ public class CMySocketProServer : CSocketProServer
 
             if (!MySocketProServer.Run(20901))
                 Console.WriteLine("Error code = " + CSocketProServer.LastSocketError.ToString());
-            else
-            {
-                CSocketProServer.Router.SetRouting(piConst.sidPi, piConst.sidPiWorker);
-            }
             Console.WriteLine("Input a line to close the application ......");
             Console.ReadLine();
         }
@@ -87,6 +83,8 @@ public class CMySocketProServer : CSocketProServer
 
         //load ODBC socketPro server plugin library at the directory ../bin/win or ../bin/linux
         p = CSocketProServer.DllManager.AddALibrary("sodbc");
+
+        bool ok = CSocketProServer.Router.SetRouting(piConst.sidPi, piConst.sidPiWorker);
 
         return true; //true -- ok; false -- no listening server
     }

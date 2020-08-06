@@ -1,17 +1,13 @@
-
 from spa.clientside import *
 from consts import hwConst
 from msstruct import CMyStruct
+
 
 class CHelloWorld(CAsyncServiceHandler):
     def __init__(self):
         super(CHelloWorld, self).__init__(hwConst.sidHelloWorld)
 
-if CUQueue.DEFAULT_OS == tagOperationSystem.osWin:
-    CClientSocket.QueueConfigure.WorkDirectory = "c:\\sp_test"
-else:
-    CClientSocket.QueueConfigure.WorkDirectory = "/home/yye/sp_test/"
-CClientSocket.QueueConfigure.MessageQueuePassword = "MyPassword"
+
 rs = ReplicationSetting()
 with CReplication(CHelloWorld, rs) as rep:
     ConnQueue = {}

@@ -2,20 +2,18 @@ from consts import piConst
 from spa.clientside import *
 import sys
 
+
 class Pi(CAsyncServiceHandler):
     def __init__(self):
         super(Pi, self).__init__(piConst.sidPi)
 
-CClientSocket.QueueConfigure.MessageQueuePassword = "MyPwdForMsgQueue"
-if CUQueue.DEFAULT_OS == tagOperationSystem.osWin:
-    CClientSocket.QueueConfigure.WorkDirectory = "c:\\sp_test"
-else:
-    CClientSocket.QueueConfigure.WorkDirectory = "/home/yye/sp_test/"
-cc = CConnectionContext("localhost", 20901, "lb_client", "pwd_lb_client")
+
+print('Client: tell me load balance host address:')
+cc = CConnectionContext(sys.stdin.readline().strip(), 20901, "lb_client", "pwd_lb_client")
 with CSocketPool(Pi) as spPi:
     ok = spPi.StartSocketPool(cc, 1)
     cs = spPi.Sockets[0]
-    ok = cs.ClientQueue.StartQueue("pi_queue", 24 * 3600, (cs.EncryptionMethod == tagEncryptionMethod.TLSv1))
+    ok = cs.ClientQueue.StartQueue("pi_queue", 24 * 3600, False)
     cs.ClientQueue.RoutingQueueIndex = True
     pi = spPi.AsyncHandlers[0]
     pi.WaitAll()  # make sure all existing queued requests are processed before executing next requests

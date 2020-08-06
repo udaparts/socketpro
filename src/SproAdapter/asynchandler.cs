@@ -2040,6 +2040,12 @@ namespace SocketProAdapter
                 return true;
             }
 
+            public CClientSocket Socket {
+                get {
+                    return m_ClientSocket;
+                }
+            }
+
             public CClientSocket AttachedClientSocket {
                 get {
                     return m_ClientSocket;
