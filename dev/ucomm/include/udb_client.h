@@ -1492,8 +1492,12 @@ namespace SPA {
 
             bool GetMeta(Isolate* isolate, Local<Value> m, bool &bad) {
                 bad = false;
-                if (m->IsBoolean()) {
-                    return m->IsTrue();
+                if (m->IsBoolean() || m->IsUint32()) {
+#ifdef BOOL_ISOLATE
+                    return m->BooleanValue(isolate);
+#else
+                    return m->BooleanValue(isolate->GetCurrentContext()).ToChecked();
+#endif
                 } else if (!NJA::IsNullOrUndefined(m)) {
                     NJA::ThrowException(isolate, "A boolean value expected");
                     bad = true;
@@ -1552,7 +1556,7 @@ namespace SPA {
                             CScopeUQueue::Unlock(p);
                         });
                         PAsyncDBHandler ash = &db;
-                        *cb.Buffer << ash << proc;
+                        *cb.Buffer << ash << proc << (int) db.GetColumnInfo().size();
                         CAutoLock al(ash->m_csDB);
                         ash->m_deqDBCb.push_back(cb);
                         int fail = uv_async_send(&ash->m_typeDB);

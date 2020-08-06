@@ -34,7 +34,7 @@ if (!p.Start(cc, 1)) {
     console.log(p.Error);
     return;
 }
-var sq = p.Seek(); //seek an async persistent message queue handler
+var sq = p.Seek(); //seek an async server queue handler
 
 function testEnqueue(sq) {
     var idMsg, n, ok = true, buff = SPA.newBuffer(); const count = 1024;
@@ -49,19 +49,19 @@ function testEnqueue(sq) {
             default:
                 idMsg = idMessage2; break;
         }
-        ok = sq.Enqueue(TEST_QUEUE_KEY, idMsg, buff.SaveString('SampleName').SaveString(str).SaveInt(n)); //1
+        ok = sq.Enqueue(TEST_QUEUE_KEY, idMsg, buff.SaveString('SampleName').SaveString(str).SaveInt(n));
         if (!ok) break;
     }
     console.log(n + ' messages enqueued');
     return ok;
 }
-sq.ResultReturned = (id, q) => { //2
+sq.ResultReturned = (id, q) => {
     switch (id) {
         case idMessage0:
         case idMessage1:
         case idMessage2:
             //parse a dequeued message which should be the same as the above enqueued message (two unicode strings and one int)
-            var name = q.LoadString(), str = q.LoadString(), index = q.LoadInt(); //3
+            var name = q.LoadString(), str = q.LoadString(), index = q.LoadInt();
             //console.log('message id=' + id + ', name=' + name + ', str=' + str + ', index=' + index);
             return true; //true -- result has been processed
         default:
@@ -70,52 +70,54 @@ sq.ResultReturned = (id, q) => { //2
     return false;
 };
 
-var cb = function (mc, fsize, msgs, bytes) { //4
+var cb = function (mc, fsize, msgs, bytes) {
     console.log('Dequeue result: Remaining messages=' + mc + ', queue file size=' + fsize + ', {messages=' + msgs + ', bytes=' + bytes + '} dequeued');
     if (mc) {
         console.log('Keeping on Dequeuing ......');
-        sq.Dequeue(TEST_QUEUE_KEY, cb); //5
+        sq.Dequeue(TEST_QUEUE_KEY, cb);
     }
 };
 function testDequeue(sq) {
     console.log('Going to Dequeue messages ......');
     //optionally, add one extra to improve processing concurrency at both client and server sides for better performance and through-output
-    return sq.Dequeue(TEST_QUEUE_KEY, cb); //6
+    return sq.Dequeue(TEST_QUEUE_KEY, cb);
 }
 
-var ok = testEnqueue(sq); //7
-ok = testDequeue(sq); //8
-(async () => { //9
+var ok = testEnqueue(sq);
+ok = testDequeue(sq);
+(async () => {
     try {
         console.log('Going to call GetKeys and Flush without promises ......');
-        sq.GetKeys((keys) => { console.log(keys); }); //10
-        sq.Flush(TEST_QUEUE_KEY, (mc, fsize) => { //11
-            console.log({
-                msgs: mc,
-                fsize: fsize
-            });
+        sq.GetKeys((keys) => { console.log(keys); });
+        sq.Flush(TEST_QUEUE_KEY, (mc, fsize) => {
+            console.log({msgs: mc, fsize: fsize});
         });
 
         console.log('++++ use getKeys and flush instead of GetKeys and Flush, respectively with Promises ++++');
-        var my_arr = await Promise.all([sq.getKeys(), sq.flush(TEST_QUEUE_KEY)]); //12
+        var my_arr = await Promise.all([sq.getKeys(), sq.flush(TEST_QUEUE_KEY)]);
         console.log(my_arr[0]);
         console.log(my_arr[1]);
     } catch (err) {
         console.log(err);
     }
 })();</pre>
-    The file HW.h is here:
+    A sample output is the below after running the above code snippet with node.js.
     <?prettify linenums=1?>
     <pre class="prettyprint">
-using SocketProAdapter.ClientSide;
-
-public class HelloWorld : CAsyncServiceHandler
-{
-    public HelloWorld()
-        : base(hwConst.sidHelloWorld)
-    {
-    }
-}
+Going to enqueue 1024 messages ......
+1024 messages enqueued
+Going to Dequeue messages ......
+Going to call GetKeys and Flush without promises ......
+++++ use getKeys and flush instead of GetKeys and Flush, respectively with Promises ++++
+Dequeue result: Remaining messages=669, queue file size=175784, {messages=355, bytes=31730} dequeued
+Keeping on Dequeuing ......
+[ 'queue_name_0' ]
+{ msgs: 1024, fsize: 175784 }
+Dequeue result: Remaining messages=317, queue file size=175784, {messages=352, bytes=31680} dequeued
+Keeping on Dequeuing ......
+[ 'queue_name_0' ]
+{ msgs: 669, fsize: 175784 }
+Dequeue result: Remaining messages=0, queue file size=175784, {messages=317, bytes=28578} dequeued
 </pre>
 </body>
 </html>
