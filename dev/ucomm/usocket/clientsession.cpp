@@ -268,8 +268,9 @@ bool CClientSession::SendInterruptRequest(SPA::UINT64 options) {
 
 bool CClientSession::Cancel(unsigned int requestsQueued) {
     CAutoLock sl(m_mutex);
-    if (nullptr != m_pQBatch || m_pSspi)
+    if (m_pQBatch) {
         return false;
+    }
     if (CheckQueueAvailable()) {
         if (m_qRequest->Empty() == INVALID_NUMBER) {
             return false;

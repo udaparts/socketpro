@@ -2545,7 +2545,7 @@ void CServer::ResetQueue(unsigned int qHandle) {
     CMapQueue::iterator it = m_mapQueue.find(qHandle);
     if (it == m_mapQueue.end())
         return;
-    it->second->Reset();
+    it->second->Empty();
 }
 
 unsigned int CServer::GetTTL(unsigned int qHandle) {
