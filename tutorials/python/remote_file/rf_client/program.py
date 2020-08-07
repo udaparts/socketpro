@@ -5,7 +5,7 @@ with CSocketPool(CStreamingFile) as spFile:
     cc = CConnectionContext(sys.stdin.readline(), 20901, 'PythonUser', 'TooMuchSecret')
     ok = spFile.StartSocketPool(cc, 1)
     if not ok:
-        print('Can not connect to remote server')
+        print('Can not connect to remote server ' + cc.Host)
     else:
         rf = spFile.Seek()
         print('Input a remote file to download ......')

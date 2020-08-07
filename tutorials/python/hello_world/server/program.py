@@ -13,7 +13,7 @@ with CSocketProServer() as server:
 
     def OnIsPermitted(hSocket, userId, pwd, svsId):
         print('Ask for a service ' + str(svsId) + ' from user ' + userId + ' with password = ' + pwd)
-        return True
+        return True  # True == permitted and False == denied
     server.OnIsPermitted = OnIsPermitted
 
     mapIdMethod = {

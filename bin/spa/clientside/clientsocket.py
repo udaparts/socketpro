@@ -241,7 +241,7 @@ class CClientSocket:
     def __init__(self, handle):
         self._m_h_ = handle
         self._m_cc_ = None
-        self._m_lstAsh_ = []
+        self._m_ash_ = None
         self._m_cert_ = None
         self._m_random_ = False
         self._m_currSvsId = BaseServiceID.sidStartup
@@ -313,17 +313,15 @@ class CClientSocket:
         return self._m_cert_
 
     def _pp_(self, handler, hint, data):
-        ash = self._Seek_(self.CurrentServiceID)
-        if not ash is None:
-            ash.OnPostProcessing(hint, data)
+        if self._m_ash_:
+            self._m_ash_.OnPostProcessing(hint, data)
 
     def _hsc_(self, handler, nError):
         if not self.HandShakeCompleted is None:
             self.HandShakeCompleted(self, nError)
 
     def _rp_(self, handler, reqId, size):
-        ash = self._Seek_(self.CurrentServiceID)
-        if not ash is None:
+        if self._m_ash_:
             mem = (c_char * size)()
             res = ccl.RetrieveResult(handler, mem, size)
             if res != size:
@@ -332,12 +330,12 @@ class CClientSocket:
                 msg = 'Wrong number of bytes retrieved (expected = ' + str(size) + ' and obtained = ' + str(res)
                 raise ValueError(msg)
             q = CUQueue(mem)
-            ash._OnRR_(reqId, q)
+            self._m_ash_._OnRR_(reqId, q)
         if not self.RequestProcessed is None:
             self.RequestProcessed(self, reqId, size)
 
     def _ss_(self, handler, nError):
-        ash = self._Seek_(self.CurrentServiceID)
+        ash = self._m_ash_
         if ash and not self._m_qm_.Available:
             ash.CleanCallbacks()
         if not self.SocketClosed is None:
@@ -428,33 +426,24 @@ class CClientSocket:
         if reqId == tagBaseRequestID.idSwitchTo:
             self._m_random_ = ccl.IsRandom(self._m_h_)
             self._m_currSvsId = ccl.GetCurrentServiceId(self._m_h_)
-        ash = self._Seek_(self.CurrentServiceID)
-        if not ash is None:
-            ash.OnBaseRequestProcessed(reqId)
+        if self._m_ash_:
+            self._m_ash_.OnBaseRequestProcessed(reqId)
             if reqId == tagBaseRequestID.idCancel:
-                ash.CleanCallbacks()
+                self._m_ash_.CleanCallbacks()
         if not self.BaseRequestProcessed is None:
             self.BaseRequestProcessed(self, reqId)
 
     def _arp_(self, handler, reqId):
-        ash = self._Seek_(self.CurrentServiceID)
-        if ash:
-            ash.OnAllProcessed()
+        if self._m_ash_:
+            self._m_ash_.OnAllProcessed()
         if not self.AllRequestsProcessed is None:
             self.AllRequestsProcessed(self, reqId)
 
     def _se_(self, handler, reqId, errMessage, errWhere, errCode):
-        ash = self._Seek_(self.CurrentServiceID)
-        if not ash is None:
-            ash._OnSE_(reqId, errMessage, errWhere, errCode)
+        if self._m_ash_:
+            self._m_ash_._OnSE_(reqId, errMessage, errWhere, errCode)
         if not self.ServerException is None:
             self.ServerException(self, reqId, errMessage, errWhere, errCode)
-
-    def _Seek_(self, svsId):
-        for ash in self._m_lstAsh_:
-            if ash.SvsID == svsId:
-                return ash
-        return None
 
     @staticmethod
     def _makeGroups_(pGroup, count): #pGroup = POINTER(c_uint)
@@ -493,22 +482,23 @@ class CClientSocket:
             self.Push.OnSendUserMessageEx(self, CSender(sender), CClientSocket._prepareBytes(pMessage, size))
 
     def __del__(self):
-        for h in self._m_lstAsh_:
-            h._SetNull_()
-        self._m_lstAsh_ = []
+        if self._m_ash_:
+            self._m_ash_._SetNull_()
+            self._m_ash_ = None
 
     def _Attach_(self, ash):
         if ash is None:
             return
-        for h in self._m_lstAsh_:
-            if h.SvsID == ash.SvsID:
-                return False
-        self._m_lstAsh_.append(ash)
+        if self._m_ash_:
+            self._m_ash_._SetNull_()
+        self._m_ash_ = ash
 
     def _Detach_(self, ash):
         if ash is None:
             return
-        self._m_lstAsh_.remove(ash)
+        if self._m_ash_:
+            self._m_ash_._SetNull_()
+            self._m_ash_ = None
         ash._SetNull_()
 
     def WaitAll(self, timeOut = 0xffffffff):
@@ -619,7 +609,7 @@ class CClientSocket:
 
     @property
     def CurrentHandler(self):
-        return self._Seek_(self._m_currSvsId)
+        return self._m_ash_
 
     @property
     def EncryptionMethod(self):
