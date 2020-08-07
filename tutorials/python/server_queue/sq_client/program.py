@@ -62,7 +62,7 @@ with CSocketPool(CAsyncQueue) as spAq:
     ok = spAq.StartSocketPool(cc, 1)
     aq = spAq.AsyncHandlers[0]
     if not ok:
-        print('No connection error code = ' + str(aq.AttachedClientSocket.ErrorCode))
+        print('No connection error code = ' + str(aq.Socket.ErrorCode))
         exit(0)
 
     # Optionally, you can enqueue messages with transaction style

@@ -8,10 +8,10 @@ import sys
 
 with CSocketPool(CHelloWorld) as sp:
     cc = CConnectionContext('localhost', 20901, 'PythonUser', 'TooMuchSecret')
-    # sp.QueueName = 'pqueue' # turn on client message queue for backing up requests
+    sp.QueueName = 'pqueue'  # turn on client message queue for backing up requests
     ok = sp.StartSocketPool(cc, 1)
     if not ok:
-        print('Cannot connect to server with error message: ' + sp.ConnectedSockets[0].ErrMsg)
+        print('Cannot connect to server with error message: ' + sp.Sockets[0].ErrMsg)
     else:
         hw = sp.Seek()
 
