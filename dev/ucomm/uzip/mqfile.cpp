@@ -2275,6 +2275,29 @@ namespace MQ_FILE {
         return (nullptr != m_hFile);
     }
 
+	SPA::UINT64 CMqFile::Empty() {
+		CAutoLock al(m_cs);
+		if (!m_hFile || m_qTransPos != INVALID_NUMBER)
+			return INVALID_NUMBER;
+		m_nInternalIndex = 0;
+		SPA::UINT64 msgs = m_msgCount;
+		fflush(m_hFile);
+		m_qOut.SetSize(0);
+		m_qTransIndex.SetSize(0);
+		m_CurrentReadPos = 0;
+		m_msgCount = 0;
+		m_nMinIndex = 0;
+		m_bStrange = false;
+		bool ok = Truncate(0);
+#ifndef NDEBUG
+		m_sbConfirmed->SetSize(0);
+#endif
+		assert(ok);
+		fflush(m_hFile);
+		m_bEnd = false;
+		return msgs;
+	}
+
     void CMqFile::StopQueue(SPA::tagQueueStatus qs) {
         {
             CAutoLock al(m_cs);
