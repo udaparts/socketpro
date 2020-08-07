@@ -1,4 +1,3 @@
-
 #pragma once
 
 #include <vector>
@@ -266,7 +265,7 @@ namespace MQ_FILE {
         SPA::UINT64 RemoveByTTL();
         SPA::tagOptimistic IsOptimistic();
         void SetOptimistic(SPA::tagOptimistic optimistic);
-		SPA::UINT64 Empty();
+        SPA::UINT64 Empty();
 
     protected:
         virtual SPA::CUQueue* DoEncryption(const unsigned char *buffer, unsigned int len);

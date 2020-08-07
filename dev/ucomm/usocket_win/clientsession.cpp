@@ -287,9 +287,9 @@ bool CClientSession::Cancel(unsigned int requestsQueued) {
     if (nullptr != m_pQBatch || m_pSspi)
         return false;
     if (CheckQueueAvailable()) {
-		if (m_qRequest->Empty() == INVALID_NUMBER) {
-			return false;
-		}
+        if (m_qRequest->Empty() == INVALID_NUMBER) {
+            return false;
+        }
     }
     unsigned int count = m_qReqIdCancel.GetSize() / sizeof (SPA::CStreamHeader);
     for (unsigned int n = count - 1; n != ((unsigned int) (~0)); --n) {
@@ -300,14 +300,15 @@ bool CClientSession::Cancel(unsigned int requestsQueued) {
         if (total <= m_qWrite.GetSize()) {
             m_qWrite.SetSize(m_qWrite.GetSize() - total);
             m_qReqIdCancel.SetSize(m_qReqIdCancel.GetSize() - sizeof (SPA::CStreamHeader));
-        } else
+        } else {
             break;
+        }
     }
-	requestsQueued = (~0);
-	SPA::CStreamHeader sh;
-	sh.Size = sizeof(requestsQueued);
-	sh.RequestId = SPA::idCancel;
-	Write(sh, (unsigned char*)&requestsQueued, sizeof(requestsQueued));
+    requestsQueued = (~0);
+    SPA::CStreamHeader sh;
+    sh.Size = sizeof (requestsQueued);
+    sh.RequestId = SPA::idCancel;
+    Write(sh, (unsigned char*) &requestsQueued, sizeof (requestsQueued));
     return true;
 }
 
@@ -1790,8 +1791,8 @@ bool CClientSession::IsRoutingQueueIndexEnabled() {
 
 void CClientSession::ResetQueue() {
     CAutoLock al(m_mutex);
-	if (m_qRequest && m_qRequest->IsAvailable())
-		m_qRequest->Empty();
+    if (m_qRequest && m_qRequest->IsAvailable())
+        m_qRequest->Empty();
 }
 
 SPA::UINT64 CClientSession::RemoveQueuedRequestsByTTL() {

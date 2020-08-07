@@ -268,27 +268,32 @@ bool CClientSession::SendInterruptRequest(SPA::UINT64 options) {
 
 bool CClientSession::Cancel(unsigned int requestsQueued) {
     CAutoLock sl(m_mutex);
-    if (nullptr != m_pQBatch)
+    if (nullptr != m_pQBatch || m_pSspi)
         return false;
     if (CheckQueueAvailable()) {
-        m_qRequest->Reset();
-    } else {
-        unsigned int count = m_qReqIdCancel.GetSize() / sizeof (SPA::CStreamHeader);
-        for (unsigned int n = count - 1; n != ((unsigned int) (~0)); --n) {
-            if (m_qWrite.GetSize() < sizeof (SPA::CStreamHeader))
-                break;
-            SPA::CStreamHeader *pStreamHeader = (SPA::CStreamHeader*)m_qReqIdCancel.GetBuffer(n * sizeof (SPA::CStreamHeader));
-            unsigned int total = pStreamHeader->Size + sizeof (SPA::CStreamHeader);
-            if (total <= m_qWrite.GetSize()) {
-                m_qWrite.SetSize(m_qWrite.GetSize() - total);
-                m_qReqIdCancel.SetSize(m_qReqIdCancel.GetSize() - sizeof (SPA::CStreamHeader));
-            } else
-                break;
+        if (m_qRequest->Empty() == INVALID_NUMBER) {
+            return false;
+        }
+    }
+    unsigned int count = m_qReqIdCancel.GetSize() / sizeof (SPA::CStreamHeader);
+    for (unsigned int n = count - 1; n != ((unsigned int) (~0)); --n) {
+        if (m_qWrite.GetSize() < sizeof (SPA::CStreamHeader))
+            break;
+        SPA::CStreamHeader *pStreamHeader = (SPA::CStreamHeader*)m_qReqIdCancel.GetBuffer(n * sizeof (SPA::CStreamHeader));
+        unsigned int total = pStreamHeader->Size + sizeof (SPA::CStreamHeader);
+        if (total <= m_qWrite.GetSize()) {
+            m_qWrite.SetSize(m_qWrite.GetSize() - total);
+            m_qReqIdCancel.SetSize(m_qReqIdCancel.GetSize() - sizeof (SPA::CStreamHeader));
+        } else {
+            break;
         }
     }
     requestsQueued = (~0);
-    bool ok = SendRequestInternal(sl, SPA::idCancel, &requestsQueued, sizeof (requestsQueued));
-    return ok;
+    SPA::CStreamHeader sh;
+    sh.Size = sizeof (requestsQueued);
+    sh.RequestId = SPA::idCancel;
+    Write(sh, (unsigned char*) &requestsQueued, sizeof (requestsQueued));
+    return true;
 }
 
 bool CClientSession::IsRandom() {
