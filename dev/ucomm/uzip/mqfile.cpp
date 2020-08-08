@@ -1703,7 +1703,9 @@ namespace MQ_FILE {
         assert(count >= 2);
         assert(m_msgCount >= count);
         unsigned int removed = RemoveMsgIndex(start, count);
-
+		if (!removed) {
+			return 0;
+		}
 #ifndef NDEBUG
         MessageDecriptionHeaderEx mdh;
 #endif

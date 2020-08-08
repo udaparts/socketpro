@@ -1,4 +1,3 @@
-
 //#include "stdafx.h"
 #include "../../pinc/mqfile.h"
 #include <string>
@@ -492,6 +491,30 @@ namespace MQ_FILE {
     void CMqFile::EnableDequeue(bool enable) {
         CAutoLock al(m_cs);
         m_bEnableDequeue = enable;
+    }
+
+    SPA::UINT64 CMqFile::Empty() {
+        CAutoLock al(m_cs);
+        if (!m_hFile || m_qTransPos != INVALID_NUMBER)
+            return INVALID_NUMBER;
+        m_nInternalIndex = 0;
+        SPA::UINT64 msgs = m_msgCount;
+        fflush(m_hFile);
+        m_qOut.SetSize(0);
+        m_qTransIndex.SetSize(0);
+        m_CurrentReadPos = 0;
+        m_msgCount = 0;
+        m_nMinIndex = 0;
+        m_bStrange = false;
+        m_msgTransCount = 0;
+        bool ok = Truncate(0);
+#ifndef NDEBUG
+        m_sbConfirmed->SetSize(0);
+#endif
+        assert(ok);
+        fflush(m_hFile);
+        m_bEnd = false;
+        return msgs;
     }
 
     int CMqFile::fflush(FILE * file) {
@@ -1390,6 +1413,9 @@ namespace MQ_FILE {
 #endif
             }
         }
+        if (!removed) {
+            return 0;
+        }
         if (!fail) {
             //ConfirmRange(pStartJob, jobs);
             assert(m_msgCount >= removed);
@@ -1634,7 +1660,9 @@ namespace MQ_FILE {
         assert(count >= 2);
         assert(m_msgCount >= count);
         unsigned int removed = RemoveMsgIndex(start, count);
-
+        if (!removed) {
+            return 0;
+        }
 #ifndef NDEBUG
         MessageDecriptionHeaderEx mdh;
 #endif
@@ -1793,6 +1821,9 @@ namespace MQ_FILE {
         }
 #endif
         unsigned int removed = RemoveMsgIndex(start, count);
+        if (!removed) {
+            return 0;
+        }
 #ifndef NDEBUG
         MessageDecriptionHeaderEx mdh;
         for (unsigned int n = 0; n < count; ++n) {
