@@ -284,42 +284,43 @@ bool CClientSession::SendInterruptRequest(SPA::UINT64 options) {
 
 bool CClientSession::Cancel(unsigned int requestsQueued) {
     CAutoLock sl(m_mutex);
-    if (m_pQBatch)
+    if (m_pQBatch) {
         return false;
+    }
     if (CheckQueueAvailable()) {
         if (m_qRequest->Empty() == INVALID_NUMBER) {
             return false;
         }
     }
-	m_nCancel = 0;
+    m_nCancel = 0;
     unsigned int count = m_qReqIdCancel.GetSize() / sizeof (SPA::CStreamHeader);
     for (unsigned int n = count - 1; n != ((unsigned int) (~0)); --n) {
         if (m_qWrite.GetSize() < sizeof (SPA::CStreamHeader))
             break;
         SPA::CStreamHeader *pStreamHeader = (SPA::CStreamHeader*)m_qReqIdCancel.GetBuffer(n * sizeof (SPA::CStreamHeader));
-		bool stopped = false;
-		switch (pStreamHeader->RequestId) {
-		case SPA::idInterrupt:
-		case SPA::idCancel:
-		case SPA::idDequeueConfirmed:
-		case SPA::idDequeueBatchConfirmed:
-		case SPA::idRoutingData:
-		case SPA::idStartBatching:
-		case SPA::idCommitBatching:
-		case SPA::idStopQueue:
-			stopped = true;
-			break;
-		default:
-			break;
-		}
-		if (stopped) {
-			break;
-		}
+        bool stopped = false;
+        switch (pStreamHeader->RequestId) {
+            case SPA::idInterrupt:
+            case SPA::idCancel:
+            case SPA::idDequeueConfirmed:
+            case SPA::idDequeueBatchConfirmed:
+            case SPA::idRoutingData:
+            case SPA::idStartBatching:
+            case SPA::idCommitBatching:
+            case SPA::idStopQueue:
+                stopped = true;
+                break;
+            default:
+                break;
+        }
+        if (stopped) {
+            break;
+        }
         unsigned int total = pStreamHeader->Size + sizeof (SPA::CStreamHeader);
         if (total <= m_qWrite.GetSize()) {
             m_qWrite.SetSize(m_qWrite.GetSize() - total);
             m_qReqIdCancel.SetSize(m_qReqIdCancel.GetSize() - sizeof (SPA::CStreamHeader));
-			++m_nCancel;
+            ++m_nCancel;
         } else {
             break;
         }
@@ -2580,9 +2581,9 @@ void CClientSession::OnBaseRequestProcessed(unsigned short nRequestId, unsigned 
         case SPA::idCancel:
             //ignore the number of requests canceled
             sb->SetSize(0);
-			m_qConfirm.SetSize(0);
-			m_vQTrans.clear();
-			m_bConfirmTrans = false;
+            m_qConfirm.SetSize(0);
+            m_vQTrans.clear();
+            m_bConfirmTrans = false;
         {
             SPA::CStreamHeader *pStreamHeader;
             while (m_qReqIdWait.GetSize() >= sizeof (SPA::CStreamHeader)) {
@@ -2590,7 +2591,7 @@ void CClientSession::OnBaseRequestProcessed(unsigned short nRequestId, unsigned 
                 m_qReqIdWait.Pop(sizeof (SPA::CStreamHeader));
                 if (pStreamHeader->RequestId == SPA::idCancel)
                     break;
-				++m_nCancel;
+                ++m_nCancel;
             }
             while (m_qReqIdCancel.GetSize() >= sizeof (SPA::CStreamHeader)) {
                 pStreamHeader = (SPA::CStreamHeader *)m_qReqIdCancel.GetBuffer();
@@ -2949,9 +2950,9 @@ void CClientSession::OnReadCompleted(const CErrorCode& Error, size_t nLen) {
         if (b) {
             if (sReqId <= SPA::idReservedTwo && !queued && sReqId != SPA::idInterrupt) {
                 assert(m_RouterHandle == 0);
-				if (!notify && m_bWaiting && sReqId == SPA::idCancel) {
-					notify = true;
-				}
+                if (!notify && m_bWaiting && sReqId == SPA::idCancel) {
+                    notify = true;
+                }
                 OnBaseRequestProcessed(sReqId, m_ResultInfo.Size);
             } else {
                 unsigned int qHandle = 0;
@@ -3025,10 +3026,9 @@ void CClientSession::OnReadCompleted(const CErrorCode& Error, size_t nLen) {
                     NotifyDequeued(qHandle);
                 }
             }
-		}
-		else {
-			break;
-		}
+        } else {
+            break;
+        }
         RemoveRequestId(sReqId);
         if (m_ResultInfo.Size > 0)
             m_qRead.Pop(m_ResultInfo.Size);

@@ -622,6 +622,21 @@ bool CServerSession::IsCanceledInternally() {
                 break;
             }
             p = (SPA::CStreamHeader*)m_qRead.GetBuffer(pos);
+            bool stopped = false;
+            switch (p->RequestId) {
+                case SPA::idDequeueConfirmed:
+                case SPA::idDequeueBatchConfirmed:
+                case SPA::idRoutingData:
+                case SPA::idStartBatching:
+                case SPA::idCommitBatching:
+                case SPA::idStopQueue:
+                    stopped = true;
+                default:
+                    break;
+            }
+            if (stopped) {
+                break;
+            }
             if (p->RequestId == SPA::idCancel) {
                 total = 1;
                 break;
@@ -639,7 +654,7 @@ bool CServerSession::IsCanceledInternally() {
     }
     if (total) {
         if (interrupted) {
-            /*
+#if 0
             if (pos) {
                 SPA::CStreamHeader sh;
                 m_qRead.Pop((unsigned char*) &sh, sizeof (sh), pos);
@@ -649,7 +664,7 @@ bool CServerSession::IsCanceledInternally() {
                 m_qRead.Insert((const unsigned char*) &m_InterruptOptions, sizeof (m_InterruptOptions), m_ReqInfo.Size);
                 m_qRead.Insert((const unsigned char*) &sh, sizeof (sh), m_ReqInfo.Size);
             }
-             */
+#endif
             total = 0;
         } else {
             if (pos) {

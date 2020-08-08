@@ -1456,9 +1456,9 @@ namespace MQ_FILE {
 #endif
             }
         }
-		if (!removed) {
-			return 0;
-		}
+        if (!removed) {
+            return 0;
+        }
         if (!fail) {
             //ConfirmRange(pStartJob, jobs);
             assert(m_msgCount >= removed);
@@ -1862,9 +1862,9 @@ namespace MQ_FILE {
         }
 #endif
         unsigned int removed = RemoveMsgIndex(start, count);
-		if (!removed) {
-			return 0;
-		}
+        if (!removed) {
+            return 0;
+        }
 #ifndef NDEBUG
         MessageDecriptionHeaderEx mdh;
         for (unsigned int n = 0; n < count; ++n) {
