@@ -1,3 +1,7 @@
+59.	SocketPro Version 6.3.1.6
+	(a) Add support of streaming downloading of multiple files for best performance over small files
+	(b) Fix the method Cancel bug with secure socket and message queue at client side
+
 58.	SocketPro Version 6.3.1.1
 	(a) Core libraries are added with a new feature Interrupt, which could be used to interrupt a looping processing at the other end
 	(b) All adapters are updated with the new feature Interrupt
