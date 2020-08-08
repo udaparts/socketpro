@@ -291,6 +291,7 @@ bool CClientSession::Cancel(unsigned int requestsQueued) {
             return false;
         }
     }
+	m_nCancel = 0;
     unsigned int count = m_qReqIdCancel.GetSize() / sizeof (SPA::CStreamHeader);
     for (unsigned int n = count - 1; n != ((unsigned int) (~0)); --n) {
         if (m_qWrite.GetSize() < sizeof (SPA::CStreamHeader))
@@ -305,7 +306,6 @@ bool CClientSession::Cancel(unsigned int requestsQueued) {
 		case SPA::idRoutingData:
 		case SPA::idStartBatching:
 		case SPA::idCommitBatching:
-		case SPA::idBatchZipped:
 		case SPA::idStopQueue:
 			stopped = true;
 			break;
@@ -319,6 +319,7 @@ bool CClientSession::Cancel(unsigned int requestsQueued) {
         if (total <= m_qWrite.GetSize()) {
             m_qWrite.SetSize(m_qWrite.GetSize() - total);
             m_qReqIdCancel.SetSize(m_qReqIdCancel.GetSize() - sizeof (SPA::CStreamHeader));
+			++m_nCancel;
         } else {
             break;
         }
@@ -2589,6 +2590,7 @@ void CClientSession::OnBaseRequestProcessed(unsigned short nRequestId, unsigned 
                 m_qReqIdWait.Pop(sizeof (SPA::CStreamHeader));
                 if (pStreamHeader->RequestId == SPA::idCancel)
                     break;
+				++m_nCancel;
             }
             while (m_qReqIdCancel.GetSize() >= sizeof (SPA::CStreamHeader)) {
                 pStreamHeader = (SPA::CStreamHeader *)m_qReqIdCancel.GetBuffer();

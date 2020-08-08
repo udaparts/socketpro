@@ -606,7 +606,6 @@ bool CServerSession::IsCanceledInternally() {
 			case SPA::idRoutingData:
 			case SPA::idStartBatching:
 			case SPA::idCommitBatching:
-			case SPA::idBatchZipped:
 			case SPA::idStopQueue:
 				stopped = true;
 			default:
