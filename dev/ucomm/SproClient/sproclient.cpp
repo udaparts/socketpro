@@ -206,7 +206,7 @@ void TestQueue(const SPA::ClientSide::CConnectionContext &cc) {
         assert(found);
     }
     do {
-		unsigned int j;
+        unsigned int j;
         SPA::UINT64 memStart = CScopeUQueue::GetContention(),
                 cacheStart = CAsyncServiceHandler::GetCacheContention(),
                 handlerStart = p->GetContention();
@@ -269,7 +269,7 @@ void TestQueue(const SPA::ClientSide::CConnectionContext &cc) {
             p->DodequeueAsync(n);
             b = cq.EndJob();
             if (cq.GetQueueSize() > 4 * 1024 * 1024 && p->GetAttachedClientSocket()->IsConnected()) {
-				p->GetAttachedClientSocket()->Cancel();
+                p->GetAttachedClientSocket()->Cancel();
                 p->WaitAll();
             }
         }
