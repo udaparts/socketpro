@@ -5,7 +5,7 @@
 	(d) C++ Samples and tutorials updated because of the above change (a)
 	(e) Add support of streaming downloading of multiple files for best performance over small files
 	(f) Improve window crash information output
-	(g) Fix the method Cancel bug with secure socket and message queue at client side
+	(g) Fix the method Cancel bugs with secure socket and message queue
 
 86.	SocketPro Version 6.3.1.1
 	(a) Core libraries are added with a new feature Interrupt, which could be used to interrupt a looping processing at the other end

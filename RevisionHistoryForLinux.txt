@@ -5,7 +5,7 @@
 	(d) Add support of streaming downloading of multiple files for best performance over small files
 	(e) Improve linux crash information output
 	(f) Use -fvisibility=hidden to reduce exported symbols of shared libraries
-	(g) Fix the method Cancel bug with secure socket and message queue at client side
+	(g) Fix the method Cancel bugs with secure socket and message queue
 
 24.	SocketPro Version 6.3.1.1
 	(a) Core libraries are added with a new feature Interrupt, which could be used to interrupt a looping processing at the other end
