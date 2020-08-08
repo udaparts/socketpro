@@ -293,6 +293,8 @@ bool CClientSession::Cancel(unsigned int requestsQueued) {
     SPA::CStreamHeader sh;
     sh.Size = sizeof (requestsQueued);
     sh.RequestId = SPA::idCancel;
+    m_qReqIdWait << sh;
+    m_qReqIdCancel << sh;
     Write(sh, (unsigned char*) &requestsQueued, sizeof (requestsQueued));
     return true;
 }

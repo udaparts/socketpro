@@ -612,6 +612,7 @@ bool CServerSession::IsCanceledInternally() {
     unsigned int lenAll = m_qRead.GetSize();
     unsigned int total = (m_ReqInfo.RequestId == SPA::idCancel || m_ReqInfo.RequestId == SPA::idInterrupt) ? 1 : 0;
     bool interrupted = (m_ReqInfo.RequestId == SPA::idInterrupt);
+    bool cancel_header = (m_ReqInfo.RequestId == SPA::idCancel);
     if (!total) {
         SPA::CStreamHeader *p = &m_ReqInfo;
         while (lenAll > p->Size) {
@@ -657,9 +658,13 @@ bool CServerSession::IsCanceledInternally() {
                 std::cout << "Canceled bytes = " << pos << std::endl;
 #endif
             }
-            m_qRead >> m_ReqInfo;
             m_mapIndex.clear();
-            OnBaseRequestArrive();
+            if (cancel_header && m_qRead.GetSize() >= sizeof (unsigned int)) {
+                OnBaseRequestArrive();
+            } else if (m_qRead.GetSize() >= sizeof (m_ReqInfo) + sizeof (unsigned int)) {
+                m_qRead >> m_ReqInfo;
+                OnBaseRequestArrive();
+            }
         }
     }
     return (total > 0);

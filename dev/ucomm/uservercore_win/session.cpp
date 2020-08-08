@@ -635,14 +635,13 @@ bool CServerSession::IsCanceledInternally() {
                 std::cout << "Canceled bytes = " << pos << std::endl;
 #endif
             }
-			m_mapIndex.clear();
-			if (cancel_header && m_qRead.GetSize() >= sizeof(unsigned int)) {
-				OnBaseRequestArrive();
-			}
-			else if (m_qRead.GetSize() >= sizeof(m_ReqInfo) + sizeof(unsigned int)) {
-				m_qRead >> m_ReqInfo;
-				OnBaseRequestArrive();
-			}
+            m_mapIndex.clear();
+            if (cancel_header && m_qRead.GetSize() >= sizeof (unsigned int)) {
+                OnBaseRequestArrive();
+            } else if (m_qRead.GetSize() >= sizeof (m_ReqInfo) + sizeof (unsigned int)) {
+                m_qRead >> m_ReqInfo;
+                OnBaseRequestArrive();
+            }
         }
     }
     return (total > 0);
