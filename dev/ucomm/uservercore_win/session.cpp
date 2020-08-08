@@ -626,7 +626,7 @@ bool CServerSession::IsCanceledInternally() {
                 m_qRead.Insert((const unsigned char*) &m_InterruptOptions, sizeof (m_InterruptOptions), m_ReqInfo.Size);
                 m_qRead.Insert((const unsigned char*) &sh, sizeof (sh), m_ReqInfo.Size);
             }
-    */
+ */
             total = 0;
         } else {
             if (pos) {
@@ -635,14 +635,13 @@ bool CServerSession::IsCanceledInternally() {
                 std::cout << "Canceled bytes = " << pos << std::endl;
 #endif
             }
-			m_mapIndex.clear();
-			if (cancel_header && m_qRead.GetSize() >= sizeof(unsigned int)) {
-				OnBaseRequestArrive();
-			}
-			else if (m_qRead.GetSize() >= sizeof(m_ReqInfo) + sizeof(unsigned int)) {
-				m_qRead >> m_ReqInfo;
-				OnBaseRequestArrive();
-			}
+            m_mapIndex.clear();
+            if (cancel_header && m_qRead.GetSize() >= sizeof (unsigned int)) {
+                OnBaseRequestArrive();
+            } else if (m_qRead.GetSize() >= sizeof (m_ReqInfo) + sizeof (unsigned int)) {
+                m_qRead >> m_ReqInfo;
+                OnBaseRequestArrive();
+            }
         }
     }
     return (total > 0);
