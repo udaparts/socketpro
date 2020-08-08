@@ -63,7 +63,7 @@ m_zl(SPA::zlDefault), m_pQBatch(nullptr), m_bZip(false), m_EncryptionMethod(SPA:
 m_Resolver(IoService), m_nPort(0), m_OnSocketClosed(nullptr), m_OnHandShakeCompleted(nullptr),
 m_OnSocketConnected(nullptr), m_OnRequestProcessed(nullptr), m_pThread(pClientThread),
 m_ConnState(SPA::ClientSide::csClosed), m_nConnTimeout(SPA::ClientSide::DEFAULT_CONN_TIMEOUT),
-m_nRecvTimeout(SPA::ClientSide::DEFAULT_RECV_TIMEOUT), m_OnSubscribe(nullptr), m_OnUnsubscribe(nullptr),
+m_nRecvTimeout(SPA::ClientSide::DEFAULT_RECV_TIMEOUT), m_nCancel(0), m_OnSubscribe(nullptr), m_OnUnsubscribe(nullptr),
 m_OnBroadcastEx(nullptr), m_OnBroadcast(nullptr), m_OnPostUserMessageEx(nullptr), m_OnPostUserMessage(nullptr),
 m_OnServerException(nullptr), m_OnBaseRequestProcessed(nullptr), m_OnAllRequestsProcessed(nullptr), m_bAutoConn(false),
 m_nPoolId(m_pThread->GetPool()->GetPoolId()), m_bFail(false), m_bDequeueTrans(false), m_bConfirmTrans(false),
@@ -305,6 +305,8 @@ bool CClientSession::Cancel(unsigned int requestsQueued) {
 		case SPA::idRoutingData:
 		case SPA::idStartBatching:
 		case SPA::idCommitBatching:
+		case SPA::idBatchZipped:
+		case SPA::idStopQueue:
 			stopped = true;
 			break;
 		default:
@@ -2577,6 +2579,9 @@ void CClientSession::OnBaseRequestProcessed(unsigned short nRequestId, unsigned 
         case SPA::idCancel:
             //ignore the number of requests canceled
             sb->SetSize(0);
+			m_qConfirm.SetSize(0);
+			m_vQTrans.clear();
+			m_bConfirmTrans = false;
         {
             SPA::CStreamHeader *pStreamHeader;
             while (m_qReqIdWait.GetSize() >= sizeof (SPA::CStreamHeader)) {
@@ -2942,6 +2947,9 @@ void CClientSession::OnReadCompleted(const CErrorCode& Error, size_t nLen) {
         if (b) {
             if (sReqId <= SPA::idReservedTwo && !queued && sReqId != SPA::idInterrupt) {
                 assert(m_RouterHandle == 0);
+				if (!notify && m_bWaiting && sReqId == SPA::idCancel) {
+					notify = true;
+				}
                 OnBaseRequestProcessed(sReqId, m_ResultInfo.Size);
             } else {
                 unsigned int qHandle = 0;

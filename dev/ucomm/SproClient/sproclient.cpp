@@ -206,6 +206,7 @@ void TestQueue(const SPA::ClientSide::CConnectionContext &cc) {
         assert(found);
     }
     do {
+		unsigned int j;
         SPA::UINT64 memStart = CScopeUQueue::GetContention(),
                 cacheStart = CAsyncServiceHandler::GetCacheContention(),
                 handlerStart = p->GetContention();
@@ -218,7 +219,7 @@ void TestQueue(const SPA::ClientSide::CConnectionContext &cc) {
         bool batching = ((n & 0x2) > 0);
         p->GetAttachedClientSocket()->SetZip(zip);
         boost::posix_time::ptime t0 = boost::posix_time::microsec_clock::local_time();
-        for (unsigned int j = 0; j < 5000; ++j) {
+        for (j = 0; j < 5000; ++j) {
             b = cq.StartJob();
             b = p->OpenDbAsync("This is a test connection string");
             if (batching && shortOne)
@@ -268,6 +269,7 @@ void TestQueue(const SPA::ClientSide::CConnectionContext &cc) {
             p->DodequeueAsync(n);
             b = cq.EndJob();
             if (cq.GetQueueSize() > 4 * 1024 * 1024 && p->GetAttachedClientSocket()->IsConnected()) {
+				p->GetAttachedClientSocket()->Cancel();
                 p->WaitAll();
             }
         }

@@ -599,6 +599,22 @@ bool CServerSession::IsCanceledInternally() {
                 break;
             }
             p = (SPA::CStreamHeader*)m_qRead.GetBuffer(pos);
+			bool stopped = false;
+			switch (p->RequestId) {
+			case SPA::idDequeueConfirmed:
+			case SPA::idDequeueBatchConfirmed:
+			case SPA::idRoutingData:
+			case SPA::idStartBatching:
+			case SPA::idCommitBatching:
+			case SPA::idBatchZipped:
+			case SPA::idStopQueue:
+				stopped = true;
+			default:
+				break;
+			}
+			if (stopped) {
+				break;
+			}
             if (p->RequestId == SPA::idCancel) {
                 total = 1;
                 break;
