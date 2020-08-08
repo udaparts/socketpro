@@ -296,6 +296,23 @@ bool CClientSession::Cancel(unsigned int requestsQueued) {
         if (m_qWrite.GetSize() < sizeof (SPA::CStreamHeader))
             break;
         SPA::CStreamHeader *pStreamHeader = (SPA::CStreamHeader*)m_qReqIdCancel.GetBuffer(n * sizeof (SPA::CStreamHeader));
+		bool stopped = false;
+		switch (pStreamHeader->RequestId) {
+		case SPA::idInterrupt:
+		case SPA::idCancel:
+		case SPA::idDequeueConfirmed:
+		case SPA::idDequeueBatchConfirmed:
+		case SPA::idRoutingData:
+		case SPA::idStartBatching:
+		case SPA::idCommitBatching:
+			stopped = true;
+			break;
+		default:
+			break;
+		}
+		if (stopped) {
+			break;
+		}
         unsigned int total = pStreamHeader->Size + sizeof (SPA::CStreamHeader);
         if (total <= m_qWrite.GetSize()) {
             m_qWrite.SetSize(m_qWrite.GetSize() - total);
@@ -2998,8 +3015,10 @@ void CClientSession::OnReadCompleted(const CErrorCode& Error, size_t nLen) {
                     NotifyDequeued(qHandle);
                 }
             }
-        } else
-            break;
+		}
+		else {
+			break;
+		}
         RemoveRequestId(sReqId);
         if (m_ResultInfo.Size > 0)
             m_qRead.Pop(m_ResultInfo.Size);
