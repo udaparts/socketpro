@@ -589,6 +589,7 @@ bool CServerSession::IsCanceledInternally() {
     unsigned int lenAll = m_qRead.GetSize();
     unsigned int total = (m_ReqInfo.RequestId == SPA::idCancel || m_ReqInfo.RequestId == SPA::idInterrupt) ? 1 : 0;
     bool interrupted = (m_ReqInfo.RequestId == SPA::idInterrupt);
+    bool cancel_header = (m_ReqInfo.RequestId == SPA::idCancel);
     if (!total) {
         SPA::CStreamHeader *p = &m_ReqInfo;
         while (lenAll > p->Size) {
@@ -615,17 +616,17 @@ bool CServerSession::IsCanceledInternally() {
     }
     if (total) {
         if (interrupted) {
-            /*
-                        if (pos) {
-                            SPA::CStreamHeader sh;
-                            m_qRead.Pop((unsigned char*) &sh, sizeof (sh), pos);
-                            assert(sh.RequestId == SPA::idInterrupt);
-                            assert(sh.Size == sizeof (m_InterruptOptions));
-                            m_qRead.Pop((unsigned char*) &m_InterruptOptions, sizeof (m_InterruptOptions), pos);
-                            m_qRead.Insert((const unsigned char*) &m_InterruptOptions, sizeof (m_InterruptOptions), m_ReqInfo.Size);
-                            m_qRead.Insert((const unsigned char*) &sh, sizeof (sh), m_ReqInfo.Size);
-                        }
-             */
+/*
+            if (pos) {
+                SPA::CStreamHeader sh;
+                m_qRead.Pop((unsigned char*) &sh, sizeof (sh), pos);
+                assert(sh.RequestId == SPA::idInterrupt);
+                assert(sh.Size == sizeof (m_InterruptOptions));
+                m_qRead.Pop((unsigned char*) &m_InterruptOptions, sizeof (m_InterruptOptions), pos);
+                m_qRead.Insert((const unsigned char*) &m_InterruptOptions, sizeof (m_InterruptOptions), m_ReqInfo.Size);
+                m_qRead.Insert((const unsigned char*) &sh, sizeof (sh), m_ReqInfo.Size);
+            }
+    */
             total = 0;
         } else {
             if (pos) {
@@ -634,9 +635,14 @@ bool CServerSession::IsCanceledInternally() {
                 std::cout << "Canceled bytes = " << pos << std::endl;
 #endif
             }
-            m_qRead >> m_ReqInfo;
-            m_mapIndex.clear();
-            OnBaseRequestArrive();
+			m_mapIndex.clear();
+			if (cancel_header && m_qRead.GetSize() >= sizeof(unsigned int)) {
+				OnBaseRequestArrive();
+			}
+			else if (m_qRead.GetSize() >= sizeof(m_ReqInfo) + sizeof(unsigned int)) {
+				m_qRead >> m_ReqInfo;
+				OnBaseRequestArrive();
+			}
         }
     }
     return (total > 0);
