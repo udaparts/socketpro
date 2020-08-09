@@ -3,6 +3,7 @@ import threading
 from spa.clientside.asynchandler import CAsyncServiceHandler
 from spa.clientside.ccoreloader import CCoreLoader as ccl
 from collections import deque
+from concurrent.futures import Future as future
 import itertools
 import io
 import os
@@ -22,6 +23,7 @@ class CContext(object):
         self.ErrMsg = ''
         self.QueueOk = False
         self.InitSize = -1
+        self.Se = None
 
     def _HasError(self):
         return self.ErrCode or self.ErrMsg
@@ -202,15 +204,21 @@ class CStreamingFile(CAsyncServiceHandler):
                     if not it._HasError():
                         with CScopeUQueue() as q:
                             q.SaveString(it.FilePath).SaveUInt(it.Flags).SaveULong(it.FileSize)
-                            self.SendRequest(CStreamingFile.idUpload, q, None, it.Discarded, None)
+                            if not self.SendRequest(CStreamingFile.idUpload, q, None, it.Discarded, it.Se):
+                                it.ErrCode = CStreamingFile.SESSION_CLOSED_BEFORE
+                                it.ErrMsg = 'Session already closed before sending the request Upload'
+                                continue
                         break
                 else:
                     it._OpenLocalWrite()
                     if not it._HasError():
-                        d += 1
                         with CScopeUQueue() as q:
                             q.SaveString(it.LocalFile).SaveString(it.FilePath).SaveUInt(it.Flags).SaveLong(it.InitSize)
-                            self.SendRequest(CStreamingFile.idDownload, q, None, it.Discarded, None)
+                            if not self.SendRequest(CStreamingFile.idDownload, q, None, it.Discarded, it.Se):
+                                it.ErrCode = CStreamingFile.SESSION_CLOSED_BEFORE
+                                it.ErrMsg = 'Session already closed before sending the request Download'
+                                continue
+                        d += 1
 
             while len(self._vContext):
                 it = self._vContext[0]
@@ -246,7 +254,7 @@ class CStreamingFile(CAsyncServiceHandler):
                 if not to.AttachedClientSocket.CountOfRequestsInQueue:
                     to.AttachedClientSocket.DoEcho() #make sure WaitAll works correctly
 
-    def Upload(self, localFile, remoteFile, up=None, trans=None, discarded=None, flags=FILE_OPEN_TRUNCACTED):
+    def Upload(self, localFile, remoteFile, up=None, trans=None, discarded=None, flags=FILE_OPEN_TRUNCACTED, se=None):
         if not localFile:
             return False
         if not remoteFile:
@@ -257,6 +265,7 @@ class CStreamingFile(CAsyncServiceHandler):
         context.Discarded = discarded
         context.FilePath = remoteFile
         context.LocalFile = localFile
+        context.Se = se
         with self._csFile:
             self._vContext.append(context)
             filesOpened = self._GetFilesOpened()
@@ -266,7 +275,25 @@ class CStreamingFile(CAsyncServiceHandler):
                     self.AttachedClientSocket.DoEcho() #make sure WaitAll works correctly
         return True
 
-    def Download(self, localFile, remoteFile, dl=None, trans=None, discarded=None, flags=FILE_OPEN_TRUNCACTED):
+    def upload(self, localFile, remoteFile, trans, flags=FILE_OPEN_TRUNCACTED):
+        if not localFile or str(localFile) == 0:
+            raise ValueError('localFile cannot be empty')
+        if not remoteFile or str(remoteFile) == 0:
+            raise ValueError('remoteFile cannot be empty')
+        f = future()
+        def cb_aborted(ah, canceled):
+            if canceled:
+                f.cancel()
+            else:
+                f.set_exception(OSError(CStreamingFile.SESSION_CLOSED_AFTER, 'Session closed after sending the request Upload'))
+        def cb_upload(file, res, errmsg):
+            f.set_result({'ec':res, 'em':errmsg})
+        def server_ex(ah, se):  # an exception from remote server
+            f.set_exception(se)
+        ok = self.Upload(localFile, remoteFile, cb_upload, trans, cb_aborted, flags, server_ex)
+        return f
+
+    def Download(self, localFile, remoteFile, dl=None, trans=None, discarded=None, flags=FILE_OPEN_TRUNCACTED, se=None):
         if not localFile:
             return False
         if not remoteFile:
@@ -277,6 +304,7 @@ class CStreamingFile(CAsyncServiceHandler):
         context.Discarded = discarded
         context.FilePath = remoteFile
         context.LocalFile = localFile
+        context.Se = se
         with self._csFile:
             self._vContext.append(context)
             filesOpened = self._GetFilesOpened()
@@ -285,6 +313,24 @@ class CStreamingFile(CAsyncServiceHandler):
                 if not filesOpened:
                     self.AttachedClientSocket.DoEcho()  # make sure WaitAll works correctly
         return True
+
+    def download(self, localFile, remoteFile, trans, flags=FILE_OPEN_TRUNCACTED):
+        if not localFile or str(localFile) == 0:
+            raise ValueError('localFile cannot be empty')
+        if not remoteFile or str(remoteFile) == 0:
+            raise ValueError('remoteFile cannot be empty')
+        f = future()
+        def cb_aborted(file, canceled):
+            if canceled:
+                f.cancel()
+            else:
+                f.set_exception(OSError(CStreamingFile.SESSION_CLOSED_AFTER, 'Session closed after sending the request Download'))
+        def cb_download(file, res, errmsg):
+            f.set_result({'ec':res, 'em':errmsg})
+        def server_ex(ah, se):  # an exception from remote server
+            f.set_exception(se)
+        ok = self.Download(localFile, remoteFile, cb_download, trans, cb_aborted, flags, server_ex)
+        return f
 
     def OnResultReturned(self, reqId, mc):
         if reqId == CStreamingFile.idDownload:

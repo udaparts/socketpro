@@ -8,6 +8,15 @@ class CMyStruct(IUSerializer):
         self.ObjectNull = None
         self.ADateTime = datetime.now()
 
+    def __str__(self):
+        return str(self.__repr__())
+
+    def __repr__(self):
+        return {'NullString': self.NullString, 'ObjectNull': self.ObjectNull, 'ADateTime': self.ADateTime,
+                'ADouble': self.ADouble, 'ABool': self.ABool, 'UnicodeString': self.UnicodeString,
+                'AsciiString': self.AsciiString, 'ObjBool': self.ObjBool, 'ObjString': self.ObjString,
+                'objArrString': self.objArrString, 'objArrInt': self.objArrInt}
+
     def LoadFrom(self, q):
         self.NullString = q.LoadString()
         self.ObjectNull = q.LoadObject()

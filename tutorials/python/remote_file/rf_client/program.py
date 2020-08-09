@@ -11,26 +11,26 @@ with CSocketPool(CStreamingFile) as spFile:
         print('Input a remote file to download ......')
         RemoteFile = sys.stdin.readline().strip()
         LocalFile = 'spfile.test'
-        def cbDownload(file, res, errmsg):
-            if res:
-                print('Error code ' + str(res) + ', error message: ' + errmsg)
-            else:
-                print('Downloading ' + file.RemoteFile + ' completed')
-        def cbDProgress(file, downloaded):
-            print('Downloading rate: ' + str(downloaded * 100 / file.FileSize) + '%')
-        ok = rf.Download(LocalFile, RemoteFile, cbDownload, cbDProgress)
-        # ok = rf.WaitAll()
 
-        RemoteFile += '.copy'
-        def cbUpload(file, res, errmsg):
-            if res:
-                print('Error code ' + str(res) + ', error message: ' + errmsg)
-            else:
-                print('Uploading ' + file.RemoteFile + ' completed')
-        def cbUProgress(file, uploaded):
-            print('Uploading rate: ' + str(uploaded * 100 / file.FileSize) + '%')
-        ok = rf.Upload(LocalFile, RemoteFile, cbUpload, cbUProgress)
-        ok = rf.WaitAll()
+        def cb_download(file, downloaded):
+            print('Downloading rate: ' + '{:.2f}'.format(downloaded * 100 / file.FileSize) + '%')
 
+        def cb_upload(file, uploaded):
+            print('Uploading rate: ' + '{:.2f}'.format(uploaded * 100 / file.FileSize) + '%')
+
+        try:
+            fut0 = rf.download(LocalFile, RemoteFile, cb_download)
+            RemoteFile += '.copy'
+            fut1 = rf.upload(LocalFile, RemoteFile, cb_upload)
+            print(fut0.result())
+            print(fut1.result())
+        except CServerError as ex:  # an exception from remote server
+            print(ex)
+        except OSError as ex:  # a communication error
+            print(ex)
+        except ValueError as ex:  # bad input parameters
+            print(ex)
+        except Exception as ex:  # an unknown error
+            print(ex)
         print('Press key ENTER to shutdown the demo application ......')
         sys.stdin.readline()

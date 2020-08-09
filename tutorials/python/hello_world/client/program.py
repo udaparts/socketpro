@@ -1,6 +1,5 @@
 from hello_world.client.asynchelloworld import CHelloWorld
-from spa import CScopeUQueue as Sb
-from spa.clientside import UFuture as Future
+from spa import CScopeUQueue as Sb, CServerError as Se
 from spa.clientside import CSocketPool, CConnectionContext
 from consts import hwConst
 from msstruct import CMyStruct
@@ -14,77 +13,42 @@ with CSocketPool(CHelloWorld) as sp:
         print('Cannot connect to server with error message: ' + sp.Sockets[0].ErrMsg)
     else:
         hw = sp.Seek()
-
+        ms = CMyStruct.MakeOne()  # make a complex structure
+        print(ms)
         # process requests one by one synchronously -- three round trips
         try:
-            ms = CMyStruct.MakeOne()
             print(hw.say_hello(u'Jack', u'Smith'))
             hw.sleep(5000)
-            res = hw.echo(ms)
-        except OSError as ex:
+            print(hw.echo(ms))
+        except Se as ex:  # an exception from remote server
             print(ex)
-        except Exception as ex:
+        except OSError as ex:  # a communication error
+            print(ex)
+        except Exception as ex:  # an unknown error
             print(ex)
 
-        def cbAborted(ah, canceled):
-            if canceled:
-                print('Request canceled')
-            elif not hw.Socket.ErrCode:
-                print((2, 'Session closed after request is sent'))
-            else:
-                print((hw.Socket.ErrCode, hw.Socket.ErrMsg))
+        print('')
+        print('Going to send requests with inline batching for better network efficiency and less round trips')
+        try:
+            fut0 = hw.sendRequest(hwConst.idSayHelloHelloWorld, Sb().SaveString('Hilary').SaveString('Clinton'))
+            fut1 = hw.sendRequest(hwConst.idSleepHelloWorld, Sb().SaveUInt(5000))
+            fut2 = hw.sendRequest(hwConst.idSayHelloHelloWorld, Sb().SaveString('Donald').SaveString('Trump'))
+            fut3 = hw.sendRequest(hwConst.idSayHelloHelloWorld, Sb().SaveString('Jack').SaveString('Smith'))
+            # save a complex object that has interface IUSerializer implemented
+            fut4 = hw.sendRequest(hwConst.idEchoHelloWorld, Sb().Save(ms))
+            print('All requests are sent to server for processing ......')
 
-        def serverEx(ah, se):
-            print(se)
-
-        print('Going to send five requests with inline batching for better network efficiency and less round trips')
-        with Sb() as sb:
-            def cbSayHello(ar):
-                print(ar.LoadString())
-            try:
-                if not hw.SendRequest(hwConst.idSayHelloHelloWorld, sb.SaveString('Hilary').SaveString('Clinton'),
-                                      cbSayHello,
-                                      cbAborted, serverEx):
-                    raise OSError(1, 'Session already closed before sending the request say_hello')
-
-                sb.Size = 0  # empty buffer
-                if not hw.SendRequest(hwConst.idSleepHelloWorld, sb.SaveUInt(5000),
-                                      None,
-                                      cbAborted, serverEx):
-                    raise OSError(1, 'Session already closed before sending the request sleep')
-
-                sb.Size = 0
-                if not hw.SendRequest(hwConst.idSayHelloHelloWorld, sb.SaveString('Donald').SaveString('Trump'),
-                                      cbSayHello,
-                                      cbAborted, serverEx):
-                    raise OSError(1, 'Session already closed before sending the request say_hello')
-
-                sb.Size = 0
-                if not hw.SendRequest(hwConst.idSayHelloHelloWorld, sb.SaveString('Jack').SaveString('Smith'),
-                                      cbSayHello,
-                                      cbAborted, serverEx):
-                    raise OSError(1, 'Session already closed before sending the request say_hello')
-
-                sb.Size = 0
-                f = Future()
-
-                def cb_aborted(ah, canceled):
-                    if canceled:
-                        f.cancel()
-                    else:
-                        if hw.Socket.ErrCode:
-                            f.set_exception(OSError(hw.Socket.ErrCode, hw.Socket.ErrMsg))
-                        else:
-                            f.set_exception(OSError(2, 'Session closed after request is sent'))
-
-                if not hw.SendRequest(hwConst.idEchoHelloWorld, sb.Save(ms),
-                                      lambda ar: f.set(ar.Load(CMyStruct())),
-                                      cb_aborted,
-                                      lambda ah, se: f.set_exception(se)):
-                    raise OSError(1, 'Session already closed before sending the request echo')
-                print('All five requests are sent to server for processing ......')
-                res = f.get()  # wait and retrieve an expected complex structure
-            except Exception as ex:
-                print(ex)
+            print(fut0.result().LoadString())
+            print('Buffer size: ' + str(fut1.result().Size))  # sleep returns an empty buffer
+            print(fut2.result().LoadString())
+            print(fut3.result().LoadString())
+            # load a complex object that has interface IUSerializer implemented
+            print(fut4.result().Load(CMyStruct()))
+        except Se as ex:  # an exception from remote server
+            print(ex)
+        except OSError as ex:  # a communication error
+            print(ex)
+        except Exception as ex:  # an unknown error
+            print(ex)
     print('Press ENTER key to shutdown the demo application ......')
     line = sys.stdin.readline()

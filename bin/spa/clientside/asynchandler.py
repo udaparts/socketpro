@@ -1,10 +1,10 @@
 import threading
-from spa import tagBaseRequestID, CServerError as Se
+from spa import tagBaseRequestID, CServerError as Se, isAwaitable
 from spa.memqueue import CUQueue, CScopeUQueue
 from spa.clientside.ccoreloader import CCoreLoader as ccl
 from ctypes import c_ubyte
 from collections import deque
-
+from concurrent.futures import Future as future
 
 class CAsyncResult(object):
     def __init__(self, ash, reqId, q, arh):
@@ -85,6 +85,8 @@ class CResultCb(object):
 class CAsyncServiceHandler(object):
     _csCallIndex_ = threading.Lock()
     _CallIndex_ = 0
+    SESSION_CLOSED_AFTER = -1
+    SESSION_CLOSED_BEFORE = -2
 
     def GetCallIndex():
         with CAsyncServiceHandler._csCallIndex_:
@@ -144,6 +146,23 @@ class CAsyncServiceHandler(object):
     def Interrupt(self, options):
         h = self._m_ClientSocket_.Handle
         return ccl.SendInterruptRequest(h, options)
+
+    def sendRequest(self, reqId, q):
+        f = future()
+        def cb_aborted(ah, canceled):
+            if canceled:
+                f.cancel()
+            else:
+                f.set_exception(OSError(CAsyncServiceHandler.SESSION_CLOSED_AFTER, 'Session closed after sending the request (reqId = ' + str(reqId) + ')'))
+        def arh(ar):  # ar: an instance of CAsyncResult
+            sb = CScopeUQueue()
+            sb.UQueue.Swap(ar.UQueue)
+            f.set_result(sb)
+        def server_ex(ah, se):  # an exception from remote server
+            f.set_exception(se)
+        if not self.SendRequest(reqId, q, arh, cb_aborted, server_ex):
+            raise OSError(CAsyncServiceHandler.SESSION_CLOSED_BEFORE, 'Session already closed before sending the request (reqId = ' + str(reqId) + ')')
+        return f
 
     def SendRequest(self, reqId, q, arh, discarded=None, efs=None):
         delay = q

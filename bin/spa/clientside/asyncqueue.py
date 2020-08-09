@@ -1,4 +1,3 @@
-
 from spa.clientside.asyncdbhandler import CAsyncServiceHandler
 from spa import BaseServiceID, tagBaseRequestID, CUQueue, tagOptimistic, CScopeUQueue
 import threading
@@ -75,7 +74,7 @@ class CAsyncQueue(CAsyncServiceHandler):
         with self._csQ_:
             return self._dDequeue_
 
-    def Enqueue(self, key, idMessage, q, e=None, discarded=None):
+    def Enqueue(self, key, idMessage, q, e=None, discarded=None, se=None):
         """
         Enqueue a message into a queue file identified by a key
         :param key: An ASCII string for identifying a queue at server side
@@ -83,6 +82,7 @@ class CAsyncQueue(CAsyncServiceHandler):
         :param q: an instance of SPA.CUQueue containing a message
         :param e: A callback for tracking returning index
         :param discarded A callback for tracking socket close or request cancel event
+        :param se A callback for tracking an exception from server
         :return: true for sending the request successfully, and false for failure
         """
         if not key:
@@ -92,18 +92,19 @@ class CAsyncQueue(CAsyncServiceHandler):
             buffer.Push(q.IntenalBuffer, q.GetSize())
         ok = None
         if not e:
-            ok = self.SendRequest(CAsyncQueue.idEnqueue, buffer, None, discarded)
+            ok = self.SendRequest(CAsyncQueue.idEnqueue, buffer, None, discarded, se)
         else:
-            ok = self.SendRequest(CAsyncQueue.idEnqueue, buffer, lambda ar: e(ar.AsyncServiceHandler, ar.LoadULong()), discarded)
+            ok = self.SendRequest(CAsyncQueue.idEnqueue, buffer, lambda ar: e(ar.AsyncServiceHandler, ar.LoadULong()), discarded, se)
         CScopeUQueue.Unlock(buffer)
         return ok
 
-    def StartQueueTrans(self, key, qt=None, discarded=None):
+    def StartQueueTrans(self, key, qt=None, discarded=None, se=None):
         """
         Start enqueuing messages with transaction style. Currently, total size of queued messages must be less than 4 G bytes
         :param key: An ASCII string for identifying a queue at server side
         :param qt: A callback for tracking returning error code, which can be one of QUEUE_OK, QUEUE_TRANS_ALREADY_STARTED, and so on
         :param discarded A callback for tracking socket close or request cancel event
+        :param se A callback for tracking an exception from server
         :return: true for sending the request successfully, and false for failure
         """
         if not key:
@@ -114,26 +115,27 @@ class CAsyncQueue(CAsyncServiceHandler):
         if cq.Available:
             cq.StartJob()
         if not qt:
-            ok = self.SendRequest(CAsyncQueue.idStartTrans, buffer, None, discarded)
+            ok = self.SendRequest(CAsyncQueue.idStartTrans, buffer, None, discarded, se)
         else:
-            ok = self.SendRequest(CAsyncQueue.idStartTrans, buffer, lambda ar: qt(ar.AsyncServiceHandler, ar.LoadInt()), discarded)
+            ok = self.SendRequest(CAsyncQueue.idStartTrans, buffer, lambda ar: qt(ar.AsyncServiceHandler, ar.LoadInt()), discarded, se)
         CScopeUQueue.Unlock(buffer)
         return ok
 
-    def EndQueueTrans(self, rollback=False, qt=None, discarded=None):
+    def EndQueueTrans(self, rollback=False, qt=None, discarded=None, se=None):
         """
         End enqueuing messages with transaction style. Currently, total size of queued messages must be less than 4 G bytes
         :param rollback: true for rollback, and false for committing
         :param qt: A callback for tracking returning error code, which can be one of QUEUE_OK, QUEUE_TRANS_NOT_STARTED_YET, and so on
         :param discarded A callback for tracking socket close or request cancel event
+        :param se A callback for tracking an exception from server
         :return: true for sending the request successfully, and false for failure
         """
         buffer = CScopeUQueue.Lock().SaveBool(rollback)
         ok = None
         if not qt:
-            ok = self.SendRequest(CAsyncQueue.idEndTrans, buffer, None, discarded)
+            ok = self.SendRequest(CAsyncQueue.idEndTrans, buffer, None, discarded, se)
         else:
-            ok = self.SendRequest(CAsyncQueue.idEndTrans, buffer, lambda ar: qt(ar.AsyncServiceHandler, ar.LoadInt()), discarded)
+            ok = self.SendRequest(CAsyncQueue.idEndTrans, buffer, lambda ar: qt(ar.AsyncServiceHandler, ar.LoadInt()), discarded, se)
         cq = self.AttachedClientSocket.ClientQueue
         if cq.Available:
             if rollback:
@@ -143,15 +145,16 @@ class CAsyncQueue(CAsyncServiceHandler):
         CScopeUQueue.Unlock(buffer)
         return ok
 
-    def GetKeys(self, gk, discarded=None):
+    def GetKeys(self, gk, discarded=None, se=None):
         """
         Query queue keys opened at server side
         :param gk: A callback for tracking a list of key names
         :param discarded A callback for tracking socket close or request cancel event
+        :param se A callback for tracking an exception from server
         :return: true for sending the request successfully, and false for failure
         """
         if not gk:
-            return self.SendRequest(CAsyncQueue.idGetKeys, None, None, discarded)
+            return self.SendRequest(CAsyncQueue.idGetKeys, None, None, discarded, se)
         def cb(ar):
             v = []
             size = ar.LoadUInt()
@@ -159,15 +162,16 @@ class CAsyncQueue(CAsyncServiceHandler):
                 v.append(ar.LoadAString())
                 size -= 1
             gk(ar.AsyncServiceHandler, v)
-        return self.SendRequest(CAsyncQueue.idGetKeys, None, cb, discarded)
+        return self.SendRequest(CAsyncQueue.idGetKeys, None, cb, discarded, se)
 
-    def CloseQueue(self, key, c=None, discarded=None, permanent=False):
+    def CloseQueue(self, key, c=None, discarded=None, permanent=False, se=None):
         """
         Try to close or delete a persistent queue opened at server side
         :param key: An ASCII string for identifying a queue at server side
         :param c: A callback for tracking returning error code, which can be one of QUEUE_OK, QUEUE_DEQUEUING, and so on
         :param permanent: true for deleting a queue file, and false for closing a queue file
         :param discarded A callback for tracking socket close or request cancel event
+        :param se A callback for tracking an exception from server
         :return: true for sending the request successfully, and false for failure
         """
         if not key:
@@ -175,19 +179,20 @@ class CAsyncQueue(CAsyncServiceHandler):
         buffer = CScopeUQueue.Lock().SaveAString(key).SaveBool(permanent)
         ok = None
         if not c:
-            ok = self.SendRequest(CAsyncQueue.idClose, buffer, None, discarded)
+            ok = self.SendRequest(CAsyncQueue.idClose, buffer, None, discarded, se)
         else:
-            ok = self.SendRequest(CAsyncQueue.idClose, buffer, lambda ar: c(ar.AsyncServiceHandler, ar.LoadInt()), discarded)
+            ok = self.SendRequest(CAsyncQueue.idClose, buffer, lambda ar: c(ar.AsyncServiceHandler, ar.LoadInt()), discarded, se)
         CScopeUQueue.Unlock(buffer)
         return ok
 
-    def FlushQueue(self, key, f, option=tagOptimistic.oMemoryCached, discarded=None):
+    def FlushQueue(self, key, f, option=tagOptimistic.oMemoryCached, discarded=None, se=None):
         """
         May flush memory data into either operation system memory or hard disk, and return message count and queue file size in bytes. Note the method only returns message count and queue file size in bytes if the option is oMemoryCached
         :param key: An ASCII string for identifying a queue at server side
         :param f: A callback for tracking returning message count and queue file size in bytes
         :param option: one of tagOptimistic options, oMemoryCached, oSystemMemoryCached and oDiskCommitted
         :param discarded A callback for tracking socket close or request cancel event
+        :param se A callback for tracking an exception from server
         :return: true for sending the request successfully, and false for failure
         """
         if not key:
@@ -195,19 +200,20 @@ class CAsyncQueue(CAsyncServiceHandler):
         buffer = CScopeUQueue.Lock().SaveAString(key).SaveInt(option)
         ok = None
         if not f:
-            ok = self.SendRequest(CAsyncQueue.idFlush, buffer, None, discarded)
+            ok = self.SendRequest(CAsyncQueue.idFlush, buffer, None, discarded, se)
         else:
-            ok = self.SendRequest(CAsyncQueue.idFlush, buffer, lambda ar: f(ar.AsyncServiceHandler, ar.LoadULong(), ar.LoadULong()), discarded)
+            ok = self.SendRequest(CAsyncQueue.idFlush, buffer, lambda ar: f(ar.AsyncServiceHandler, ar.LoadULong(), ar.LoadULong()), discarded, se)
         CScopeUQueue.Unlock(buffer)
         return ok
 
-    def Dequeue(self, key, d, timeout=0, discarded=None):
+    def Dequeue(self, key, d, timeout=0, discarded=None, se=None):
         """
         Dequeue messages from a persistent message queue file at server side in batch
         :param key: An ASCII string for identifying a queue at server side
         :param d: A callback for tracking data like remaining message count within a server queue file, queue file size in bytes, message dequeued within this batch and bytes dequeued within this batch
         :param timeout: A time-out number in milliseconds
         :param discarded A callback for tracking socket close or request cancel event
+        :param se A callback for tracking an exception from server
         :return: true for sending the request successfully, and false for failure
         """
         if not key:
@@ -218,9 +224,9 @@ class CAsyncQueue(CAsyncServiceHandler):
         buffer = CScopeUQueue.Lock().SaveAString(key).SaveUInt(timeout)
         ok = None
         if not d:
-            ok = self.SendRequest(CAsyncQueue.idDequeue, buffer, None, discarded)
+            ok = self.SendRequest(CAsyncQueue.idDequeue, buffer, None, discarded, se)
         else:
-            ok = self.SendRequest(CAsyncQueue.idDequeue, buffer, lambda ar: d(ar.AsyncServiceHandler, ar.LoadULong(), ar.LoadULong(), ar.LoadUInt(), ar.LoadUInt()), discarded)
+            ok = self.SendRequest(CAsyncQueue.idDequeue, buffer, lambda ar: d(ar.AsyncServiceHandler, ar.LoadULong(), ar.LoadULong(), ar.LoadUInt(), ar.LoadUInt()), discarded, se)
         CScopeUQueue.Unlock(buffer)
         return ok
 
