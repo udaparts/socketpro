@@ -261,7 +261,7 @@ class CStreamingFile(CAsyncServiceHandler):
         :param remoteFile: A path to a remote file at server side
         :param up: A callback for tracking a final result of uploading, which contains an int and an error message
         :param trans: A callback for tracking uploading progress
-        :param discarded: A callback for tarcking communication channel events, close and cancel
+        :param discarded: A callback for tracking communication channel events, close and cancel
         :param flags: An integer bit-wise option flags for one or more options such as
         FILE_OPEN_TRUNCACTED|FILE_OPEN_APPENDED and FILE_OPEN_SHARE_WRITE
         :param se: A callback for tracking an exception (CServerError) from server
@@ -321,7 +321,7 @@ class CStreamingFile(CAsyncServiceHandler):
         :param remoteFile: A path to a remote file at server side
         :param up: A callback for tracking a final result of downloading, which contains an int and an error message
         :param trans: A callback for tracking downloading progress
-        :param discarded: A callback for tarcking communication channel events, close and cancel
+        :param discarded: A callback for tracking communication channel events, close and cancel
         :param flags: An integer bit-wise option flags for one or more options such as
         FILE_OPEN_TRUNCACTED|FILE_OPEN_APPENDED and FILE_OPEN_SHARE_WRITE
         :param se: A callback for tracking an exception (CServerError) from server

@@ -9,10 +9,12 @@ public class UFuture<V> implements Future<V> {
     public final static int PENDING = 0;
     public final static int COMPLETED = 1;
     public final static int CANCELLED = 2;
+    public final static int EXCEPTION = 3;
 
     private int m_state = PENDING;
     private V m_v = null;
     private CAsyncServiceHandler m_handler = null;
+    private ExecutionException m_se = null;
 
     public UFuture(CAsyncServiceHandler h) {
         m_handler = h;
@@ -27,6 +29,22 @@ public class UFuture<V> implements Future<V> {
             if (m_state == PENDING) {
                 m_v = v;
                 m_state = COMPLETED;
+            }
+            m_cv.signalAll();
+        } finally {
+            m_lock.unlock();
+        }
+    }
+
+    public void setException(ExecutionException ex) {
+        try {
+            m_lock.lock();
+            if (m_state == PENDING) {
+                if (ex == null) {
+                    ex = new ExecutionException("Unknown exception", new Throwable("Unknown"));
+                }
+                m_se = ex;
+                m_state = EXCEPTION;
             }
             m_cv.signalAll();
         } finally {
@@ -81,7 +99,7 @@ public class UFuture<V> implements Future<V> {
         boolean res = false;
         try {
             m_lock.lock();
-            res = (m_state >= CANCELLED);
+            res = (m_state == CANCELLED);
         } finally {
             m_lock.unlock();
         }
@@ -114,7 +132,7 @@ public class UFuture<V> implements Future<V> {
                         if (m_state == COMPLETED) {
                             v = m_v;
                         } else {
-                            ee = new ExecutionException("Task canceled", new Throwable("cancelled"));
+                            ee = new ExecutionException("Request canceled", new Throwable("cancelled"));
                         }
                     } else {
                         te = new TimeoutException("UFuture timeout");
@@ -124,8 +142,10 @@ public class UFuture<V> implements Future<V> {
                 }
             } else if (m_state == COMPLETED) {
                 v = m_v;
+            } else if (m_state == EXCEPTION) {
+                ee = m_se;
             } else {
-                ee = new ExecutionException("Task already canceled", new Throwable("cancelled"));
+                ee = new ExecutionException("Request canceled", new Throwable("cancelled"));
             }
         } finally {
             m_lock.unlock();

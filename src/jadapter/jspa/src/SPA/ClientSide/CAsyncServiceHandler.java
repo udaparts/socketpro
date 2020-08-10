@@ -1,6 +1,12 @@
 package SPA.ClientSide;
 
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
+
 public class CAsyncServiceHandler implements AutoCloseable {
+
+    public static final int SESSION_CLOSED_AFTER = -1000;
+    public static final int SESSION_CLOSED_BEFORE = -1001;
 
     @Override
     public void close() {
@@ -216,6 +222,21 @@ public class CAsyncServiceHandler implements AutoCloseable {
         return SendRequest(reqId, data, len, ash, discarded, null);
     }
 
+    /**
+     * Send a request onto a remote server for processing, and return a future
+     * immediately without blocking
+     *
+     * @param reqId An unique request id within a service handler
+     * @param data An array of bytes or null
+     * @param len An integer for data size in bytes
+     * @param ash A callback for tracking an instance of CAsyncResult containing
+     * an expected result
+     * @param discarded A callback for tracking communication channel events,
+     * close and cancel
+     * @param exception A callback for tracking an exception from server
+     * @return True if communication channel is sendable, and False if
+     * communication channel is not sendable
+     */
     public boolean SendRequest(short reqId, byte[] data, int len, DAsyncResultHandler ash, DDiscarded discarded, DOnExceptionFromServer exception) {
         SPA.CUQueue q;
         if (data == null || len <= 0) {
@@ -232,6 +253,51 @@ public class CAsyncServiceHandler implements AutoCloseable {
             SPA.CScopeUQueue.Unlock(q);
         }
         return ok;
+    }
+
+    /**
+     * Send a request onto a remote server for processing, and return
+     * immediately without blocking
+     *
+     * @param reqId An unique request id within a service handler
+     * @param data An array of bytes or null
+     * @param len An integer for data size in bytes
+     * @return A future for an instance of CScopeUQueue containing an expected
+     * result
+     * @throws ExecutionException if communication channel is not sendable
+     */
+    public Future<SPA.CScopeUQueue> sendRequest(final short reqId, byte[] data, int len) throws ExecutionException {
+        final UFuture<SPA.CScopeUQueue> f = new UFuture<>();
+        DAsyncResultHandler ash = new DAsyncResultHandler() {
+            @Override
+            public void invoke(CAsyncResult ar) {
+                SPA.CScopeUQueue sb = new SPA.CScopeUQueue();
+                sb.getUQueue().Swap(ar.getUQueue());
+                f.set(sb);
+            }
+        };
+        DDiscarded aborted = new DDiscarded() {
+            @Override
+            public void invoke(CAsyncServiceHandler sender, boolean discarded) {
+                if (discarded) {
+                    f.cancel(false);
+                } else {
+                    SPA.CServerError ex = new SPA.CServerError(SESSION_CLOSED_AFTER, "Session closed after sending the request (reqId = " + String.valueOf(reqId) + ")", "SendRequest", reqId);
+                    f.setException(ex);
+                }
+            }
+        };
+        DOnExceptionFromServer se = new DOnExceptionFromServer() {
+            @Override
+            public void invoke(CAsyncServiceHandler sender, short reqId, String errMessage, String errWhere, int errCode) {
+                SPA.CServerError ex = new SPA.CServerError(errCode, errMessage, errWhere, reqId);
+                f.setException(ex);
+            }
+        };
+        if (!SendRequest(reqId, data, len, ash, aborted, se)) {
+            throw new SPA.CServerError(SESSION_CLOSED_BEFORE, "Session already closed before sending the request (reqId = " + String.valueOf(reqId) + ")", "SendRequest", reqId);
+        }
+        return f;
     }
 
     public final boolean SendRequest(short reqId, SPA.CUQueue q, DAsyncResultHandler ash) {

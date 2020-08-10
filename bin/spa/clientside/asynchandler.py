@@ -182,7 +182,7 @@ class CAsyncServiceHandler(object):
         :param reqId: An unique request id within a service handler
         :param q: An instance of CScopeUQueue or CUQueue or None
         :param arh: A callback for tracking an instance of CAsyncResult containing an expected result
-        :param discarded: A callback for tarcking communication channel events, close and cancel
+        :param discarded: A callback for tracking communication channel events, close and cancel
         :param efs: A callback for tracking an exception from server
         :return: True if communication channel is sendable, and False if communication channel is not sendable
         """

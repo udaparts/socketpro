@@ -86,6 +86,31 @@ public final class CUQueue {
         m_bytes.order(ByteOrder.LITTLE_ENDIAN);
     }
 
+    public void Swap(CUQueue q) {
+        if (q == null) {
+            return;
+        }
+        ByteBuffer bb = m_bytes;
+        m_bytes = q.m_bytes;
+        q.m_bytes = bb;
+
+        int n = m_len;
+        m_len = q.m_len;
+        q.m_len = n;
+
+        n = m_blockSize;
+        m_blockSize = q.m_blockSize;
+        q.m_blockSize = n;
+
+        n = m_position;
+        m_position = q.m_position;
+        q.m_position = n;
+
+        tagOperationSystem os = m_os;
+        m_os = q.m_os;
+        q.m_os = os;
+    }
+
     public final boolean isDirect() {
         return m_bytes.isDirect();
     }
