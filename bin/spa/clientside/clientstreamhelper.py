@@ -24,6 +24,7 @@ class CContext(object):
         self.QueueOk = False
         self.InitSize = -1
         self.Se = None
+        self.Fut = None
 
     def _HasError(self):
         return self.ErrCode or self.ErrMsg
@@ -207,6 +208,10 @@ class CStreamingFile(CAsyncServiceHandler):
                             if not self.SendRequest(CStreamingFile.idUpload, q, None, it.Discarded, it.Se):
                                 it.ErrCode = CStreamingFile.SESSION_CLOSED_BEFORE
                                 it.ErrMsg = 'Session already closed before sending the request Upload'
+                                if it.Fut:
+                                    it.Fut.set_exception(OSError(CAsyncServiceHandler.SESSION_CLOSED_BEFORE,
+                                                                 'Session already closed before sending the request Upload',
+                                                                 CStreamingFile.idUpload))
                                 continue
                         break
                 else:
@@ -217,6 +222,10 @@ class CStreamingFile(CAsyncServiceHandler):
                             if not self.SendRequest(CStreamingFile.idDownload, q, None, it.Discarded, it.Se):
                                 it.ErrCode = CStreamingFile.SESSION_CLOSED_BEFORE
                                 it.ErrMsg = 'Session already closed before sending the request Download'
+                                if it.Fut:
+                                    it.Fut.set_exception(OSError(CAsyncServiceHandler.SESSION_CLOSED_BEFORE,
+                                                                 'Session already closed before sending the request Download',
+                                                                 CStreamingFile.idDownload))
                                 continue
                         d += 1
 
@@ -224,6 +233,7 @@ class CStreamingFile(CAsyncServiceHandler):
                 it = self._vContext[0]
                 if it._HasError():
                     cb = it.Download
+                    it._CloseFile()
                     if cb:
                         try:
                             self._csFile.release()
@@ -306,7 +316,7 @@ class CStreamingFile(CAsyncServiceHandler):
             if canceled:
                 f.cancel()
             else:
-                f.set_exception(OSError(CStreamingFile.SESSION_CLOSED_AFTER, 'Session closed after sending the request Upload'))
+                f.set_exception(OSError(CStreamingFile.SESSION_CLOSED_AFTER, 'Session closed after sending the request Upload', CStreamingFile.idUpload))
         def cb_upload(file, res, errmsg):
             f.set_result({'ec':res, 'em':errmsg})
         def server_ex(ah, se):  # an exception from remote server
@@ -366,7 +376,7 @@ class CStreamingFile(CAsyncServiceHandler):
             if canceled:
                 f.cancel()
             else:
-                f.set_exception(OSError(CStreamingFile.SESSION_CLOSED_AFTER, 'Session closed after sending the request Download'))
+                f.set_exception(OSError(CStreamingFile.SESSION_CLOSED_AFTER, 'Session closed after sending the request Download', CStreamingFile.idDownload))
         def cb_download(file, res, errmsg):
             f.set_result({'ec':res, 'em':errmsg})
         def server_ex(ah, se):  # an exception from remote server

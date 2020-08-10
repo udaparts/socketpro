@@ -15,8 +15,8 @@ public class CServerError extends java.util.concurrent.ExecutionException {
         return m_ec;
     }
     
-    public int getWhere() {
-        return m_ec;
+    public String getWhere() {
+        return m_errWhere;
     }
     
     public short getReqId() {

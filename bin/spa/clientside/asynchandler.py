@@ -165,7 +165,7 @@ class CAsyncServiceHandler(object):
             if canceled:
                 f.cancel()
             else:
-                f.set_exception(OSError(CAsyncServiceHandler.SESSION_CLOSED_AFTER, 'Session closed after sending the request (reqId = ' + str(reqId) + ')'))
+                f.set_exception(OSError(CAsyncServiceHandler.SESSION_CLOSED_AFTER, 'Session closed after sending the request (reqId = ' + str(reqId) + ')', reqId))
         def arh(ar):  # ar: an instance of CAsyncResult
             sb = CScopeUQueue()
             sb.UQueue.Swap(ar.UQueue)
@@ -173,7 +173,7 @@ class CAsyncServiceHandler(object):
         def server_ex(ah, se):  # an exception from remote server
             f.set_exception(se)
         if not self.SendRequest(reqId, q, arh, cb_aborted, server_ex):
-            raise OSError(CAsyncServiceHandler.SESSION_CLOSED_BEFORE, 'Session already closed before sending the request (reqId = ' + str(reqId) + ')')
+            raise OSError(CAsyncServiceHandler.SESSION_CLOSED_BEFORE, 'Session already closed before sending the request (reqId = ' + str(reqId) + ')', reqId)
         return f
 
     def SendRequest(self, reqId, q, arh, discarded=None, efs=None):

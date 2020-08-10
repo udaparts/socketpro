@@ -256,7 +256,7 @@ public class CAsyncServiceHandler implements AutoCloseable {
     }
 
     /**
-     * Send a request onto a remote server for processing, and return
+     * Send a request onto a remote server for processing, and return a future
      * immediately without blocking
      *
      * @param reqId An unique request id within a service handler
@@ -268,14 +268,6 @@ public class CAsyncServiceHandler implements AutoCloseable {
      */
     public Future<SPA.CScopeUQueue> sendRequest(final short reqId, byte[] data, int len) throws ExecutionException {
         final UFuture<SPA.CScopeUQueue> f = new UFuture<>();
-        DAsyncResultHandler ash = new DAsyncResultHandler() {
-            @Override
-            public void invoke(CAsyncResult ar) {
-                SPA.CScopeUQueue sb = new SPA.CScopeUQueue();
-                sb.getUQueue().Swap(ar.getUQueue());
-                f.set(sb);
-            }
-        };
         DDiscarded aborted = new DDiscarded() {
             @Override
             public void invoke(CAsyncServiceHandler sender, boolean discarded) {
@@ -294,8 +286,16 @@ public class CAsyncServiceHandler implements AutoCloseable {
                 f.setException(ex);
             }
         };
+        DAsyncResultHandler ash = new DAsyncResultHandler() {
+            @Override
+            public void invoke(CAsyncResult ar) {
+                SPA.CScopeUQueue sb = new SPA.CScopeUQueue();
+                sb.getUQueue().Swap(ar.getUQueue());
+                f.set(sb);
+            }
+        };
         if (!SendRequest(reqId, data, len, ash, aborted, se)) {
-            throw new SPA.CServerError(SESSION_CLOSED_BEFORE, "Session already closed before sending the request (reqId = " + String.valueOf(reqId) + ")", "SendRequest", reqId);
+            throw new CSocketError(SESSION_CLOSED_BEFORE, "Session already closed before sending the request (reqId = " + String.valueOf(reqId) + ")", reqId);
         }
         return f;
     }
