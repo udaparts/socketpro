@@ -16,7 +16,7 @@ with CSocketPool(CStreamingFile) as spFile:
             print('Downloading ' + file.RemoteFile + ' completed')
 
     def cbDProgress(file, downloaded):
-        print('Downloading rate: ' + str(downloaded * 100 / file.FileSize) + '%')
+        print('Downloading rate: ' + '{:.2f}'.format(downloaded * 100 / file.FileSize) + '%')
 
     RemoteFile = 'jvm.lib'
     LocalFile = 'spfile1.test'
@@ -36,7 +36,8 @@ with CSocketPool(CStreamingFile) as spFile:
 
     LocalFile = "spfile5.test"
     RemoteFile = "libboost_math_tr1f-vc100-mt-sgd-1_60.lib"
-    ok = rf.Download(LocalFile, RemoteFile, cbDownload)
+    # use download instead of Download for returning a future object
+    fut0 = rf.download(LocalFile, RemoteFile)
 
     def cbUpload(file, res, errmsg):
         if res:
@@ -45,7 +46,7 @@ with CSocketPool(CStreamingFile) as spFile:
             print('Uploading ' + file.RemoteFile + ' completed')
 
     def cbUProgress(file, uploaded):
-        print('Uploading rate: ' + str(uploaded * 100 / file.FileSize) + '%')
+        print('Uploading rate: ' + '{:.2f}'.format(uploaded * 100 / file.FileSize) + '%')
 
     LocalFile = 'spfile1.test'
     RemoteFile = 'jvm_copy.lib'
@@ -65,9 +66,10 @@ with CSocketPool(CStreamingFile) as spFile:
 
     LocalFile = 'spfile5.test'
     RemoteFile = 'libboost_math_tr1f-vc100-mt-sgd-1_60_copy.lib'
-    ok = rf.Upload(LocalFile, RemoteFile, cbUpload)
-
-    ok = rf.WaitAll()
+    # use upload instead of Upload for returning a future object
+    fut1 = rf.upload(LocalFile, RemoteFile)
+    print(fut0.result())
+    print(fut1.result())
 
     print('Press key ENTER to shutdown the demo application ......')
     sys.stdin.readline()

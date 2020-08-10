@@ -36,26 +36,26 @@ class COdbc(CAsyncDBHandler):
     ER_BAD_PARAMETER_DIRECTION_TYPE = -1991
     ER_CORRECT_PARAMETER_INFO_NOT_PROVIDED_YET = -1992
 
-    def ColumnPrivileges(self, CatalogName, SchemaName, TableName, ColumnName, handler, row, rh, canceled = None):
-        return self._DoMeta4(COdbc.idSQLColumnPrivileges, CatalogName, SchemaName, TableName, ColumnName, handler, row, rh, canceled)
+    def ColumnPrivileges(self, CatalogName, SchemaName, TableName, ColumnName, handler, row, rh, canceled=None, se=None):
+        return self._DoMeta4(COdbc.idSQLColumnPrivileges, CatalogName, SchemaName, TableName, ColumnName, handler, row, rh, canceled, se)
 
-    def Columns(self, CatalogName, SchemaName, TableName, ColumnName, handler, row, rh, canceled = None):
-        return self._DoMeta4(COdbc.idSQLColumns, CatalogName, SchemaName, TableName, ColumnName, handler, row, rh, canceled)
+    def Columns(self, CatalogName, SchemaName, TableName, ColumnName, handler, row, rh, canceled=None, se=None):
+        return self._DoMeta4(COdbc.idSQLColumns, CatalogName, SchemaName, TableName, ColumnName, handler, row, rh, canceled, se)
 
-    def ProcedureColumns(self, CatalogName, SchemaName, ProcName, ColumnName, handler, row, rh, canceled = None):
-        return self._DoMeta4(COdbc.idSQLProcedureColumns, CatalogName, SchemaName, ProcName, ColumnName, handler, row, rh, canceled)
+    def ProcedureColumns(self, CatalogName, SchemaName, ProcName, ColumnName, handler, row, rh, canceled=None, se=None):
+        return self._DoMeta4(COdbc.idSQLProcedureColumns, CatalogName, SchemaName, ProcName, ColumnName, handler, row, rh, canceled, se)
 
-    def PrimaryKeys(self, CatalogName, SchemaName, TableName, handler, row, rh, canceled = None):
-        return self._DoMeta3(COdbc.idSQLPrimaryKeys, CatalogName, SchemaName, TableName, handler, row, rh, canceled)
+    def PrimaryKeys(self, CatalogName, SchemaName, TableName, handler, row, rh, canceled=None, se=None):
+        return self._DoMeta3(COdbc.idSQLPrimaryKeys, CatalogName, SchemaName, TableName, handler, row, rh, canceled, se)
 
-    def Procedures(self, CatalogName, SchemaName, ProcName, handler, row, rh, canceled = None):
-        return self._DoMeta3(COdbc.idSQLProcedures, CatalogName, SchemaName, ProcName, handler, row, rh, canceled)
+    def Procedures(self, CatalogName, SchemaName, ProcName, handler, row, rh, canceled=None, se=None):
+        return self._DoMeta3(COdbc.idSQLProcedures, CatalogName, SchemaName, ProcName, handler, row, rh, canceled, se)
 
-    def TablePrivileges(self, CatalogName, SchemaName, TableName, handler, row, rh, canceled = None):
-        return self._DoMeta3(COdbc.idSQLTablePrivileges, CatalogName, SchemaName, TableName, handler, row, rh, canceled)
+    def TablePrivileges(self, CatalogName, SchemaName, TableName, handler, row, rh, canceled=None, se=None):
+        return self._DoMeta3(COdbc.idSQLTablePrivileges, CatalogName, SchemaName, TableName, handler, row, rh, canceled, se)
 
-    def Tables(self, CatalogName, SchemaName, TableName, TableType, handler, row, rh, canceled = None):
-        return self._DoMeta4(COdbc.idSQLTables, CatalogName, SchemaName, TableName, TableType, handler, row, rh, canceled)
+    def Tables(self, CatalogName, SchemaName, TableName, TableType, handler, row, rh, canceled=None, se=None):
+        return self._DoMeta4(COdbc.idSQLTables, CatalogName, SchemaName, TableName, TableType, handler, row, rh, canceled, se)
 
     def _ProcessODBC_(self, handler, ar, reqId, index):
         mc = ar.UQueue;
@@ -72,7 +72,7 @@ class COdbc(CAsyncDBHandler):
         if handler:
             handler(self, res, errMsg, 0, fail_ok, None)
 
-    def Statistics(self, CatalogName, SchemaName, TableName, unique, reserved, handler, row, rh, canceled = None):
+    def Statistics(self, CatalogName, SchemaName, TableName, unique, reserved, handler, row, rh, canceled=None, se=None):
         q = CScopeUQueue.Lock().SaveString(CatalogName).SaveString(SchemaName).SaveString(TableName).SaveUShort(unique).SaveUShort(reserved)
         ok = True
         with self._csOneSending:
@@ -80,14 +80,14 @@ class COdbc(CAsyncDBHandler):
             q.SaveULong(index)
             with self._csDB:
                 self._mapRowset[index] = Pair(rh, row)
-            ok = self.SendRequest(COdbc.idSQLStatistics, q, lambda ar: self._ProcessODBC_(handler, ar, COdbc.idSQLStatistics, index), canceled)
+            ok = self.SendRequest(COdbc.idSQLStatistics, q, lambda ar: self._ProcessODBC_(handler, ar, COdbc.idSQLStatistics, index), canceled, se)
             if not ok:
                 with self._csDB:
                     self._mapRowset.pop(index)
         CScopeUQueue.Unlock(q)
         return ok
 
-    def SpecialColumns(self, identifierType, CatalogName, SchemaName, TableName, scope, nullable, handler, row, rh, canceled = None):
+    def SpecialColumns(self, identifierType, CatalogName, SchemaName, TableName, scope, nullable, handler, row, rh, canceled=None, se=None):
         q = CScopeUQueue.Lock().SaveShort(identifierType).SaveString(CatalogName).SaveString(SchemaName).SaveString(TableName).SaveShort(scope).SaveShort(nullable)
         ok = True
         with self._csOneSending:
@@ -95,14 +95,14 @@ class COdbc(CAsyncDBHandler):
             q.SaveULong(index)
             with self._csDB:
                 self._mapRowset[index] = Pair(rh, row)
-            ok = self.SendRequest(COdbc.idSQLSpecialColumns, q, lambda ar: self._ProcessODBC_(handler, ar, COdbc.idSQLSpecialColumns, index), canceled)
+            ok = self.SendRequest(COdbc.idSQLSpecialColumns, q, lambda ar: self._ProcessODBC_(handler, ar, COdbc.idSQLSpecialColumns, index), canceled, se)
             if not ok:
                 with self._csDB:
                     self._mapRowset.pop(index)
         CScopeUQueue.Unlock(q)
         return ok
 
-    def ForeignKeys(self, PKCatalogName, PKSchemaName, PKTableName, FKCatalogName, FKSchemaName, FKTableName, handler, row, rh, canceled = None):
+    def ForeignKeys(self, PKCatalogName, PKSchemaName, PKTableName, FKCatalogName, FKSchemaName, FKTableName, handler, row, rh, canceled=None, se=None):
         q = CScopeUQueue.Lock().SaveString(PKCatalogName).SaveString(PKSchemaName).SaveString(PKTableName).SaveString(FKCatalogName).SaveString(FKSchemaName).SaveString(FKTableName)
         ok = True
         with self._csOneSending:
@@ -110,14 +110,14 @@ class COdbc(CAsyncDBHandler):
             q.SaveULong(index)
             with self._csDB:
                 self._mapRowset[index] = Pair(rh, row)
-            ok = self.SendRequest(COdbc.idSQLForeignKeys, q, lambda ar: self._ProcessODBC_(handler, ar, COdbc.idSQLForeignKeys, index), canceled)
+            ok = self.SendRequest(COdbc.idSQLForeignKeys, q, lambda ar: self._ProcessODBC_(handler, ar, COdbc.idSQLForeignKeys, index), canceled, se)
             if not ok:
                 with self._csDB:
                     self._mapRowset.pop(index)
         CScopeUQueue.Unlock(q)
         return ok
 
-    def _DoMeta3(self, id, s0, s1, s2, handler, row, rh, canceled):
+    def _DoMeta3(self, id, s0, s1, s2, handler, row, rh, canceled, se):
         q = CScopeUQueue.Lock().SaveString(s0).SaveString(s1).SaveString(s2)
         ok = True
         with self._csOneSending:
@@ -125,14 +125,14 @@ class COdbc(CAsyncDBHandler):
             q.SaveULong(index)
             with self._csDB:
                 self._mapRowset[index] = Pair(rh, row)
-            ok = self.SendRequest(id, q, lambda ar: self._ProcessODBC_(handler, ar, id, index), canceled)
+            ok = self.SendRequest(id, q, lambda ar: self._ProcessODBC_(handler, ar, id, index), canceled, se)
             if not ok:
                 with self._csDB:
                     self._mapRowset.pop(index)
         CScopeUQueue.Unlock(q)
         return ok
 
-    def _DoMeta4(self, id, s0, s1, s2, s3, handler, row, rh, canceled):
+    def _DoMeta4(self, id, s0, s1, s2, s3, handler, row, rh, canceled, se):
         q = CScopeUQueue.Lock().SaveString(s0).SaveString(s1).SaveString(s2).SaveString(s3)
         ok = True
         with self._csOneSending:
@@ -140,7 +140,7 @@ class COdbc(CAsyncDBHandler):
             q.SaveULong(index)
             with self._csDB:
                 self._mapRowset[index] = Pair(rh, row)
-            ok = self.SendRequest(id, q, lambda ar: self._ProcessODBC_(handler, ar, id, index), canceled)
+            ok = self.SendRequest(id, q, lambda ar: self._ProcessODBC_(handler, ar, id, index), canceled, se)
             if not ok:
                 with self._csDB:
                     self._mapRowset.pop(index)

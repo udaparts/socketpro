@@ -68,10 +68,12 @@ with CSocketPool(CAsyncQueue) as spAq:
     aq.WaitAll()
 
     # get a queue key two parameters, message count and queue file size by default option oMemoryCached
-    aq.FlushQueue(TEST_QUEUE_KEY, lambda sender, messageCount, fileSize: print('Total message count=' + str(messageCount) + ', , queue file size=' + str(fileSize)))
+    fut0 = aq.flushQueue(TEST_QUEUE_KEY)
+    fut1 = aq.getKeys()
+    fut2 = aq.closeQueue(TEST_QUEUE_KEY)
+    print(fut0.result())
+    print(fut1.result())
+    print(fut2.result())
 
-    aq.GetKeys(lambda sender, vKey: print(vKey))
-
-    aq.CloseQueue(TEST_QUEUE_KEY, lambda sender, errCode: print('errCode=' + str(errCode)))
     print('Press any key to close the application ......')
     sys.stdin.readline()

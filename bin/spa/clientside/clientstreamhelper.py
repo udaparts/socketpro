@@ -255,9 +255,21 @@ class CStreamingFile(CAsyncServiceHandler):
                     to.AttachedClientSocket.DoEcho() #make sure WaitAll works correctly
 
     def Upload(self, localFile, remoteFile, up=None, trans=None, discarded=None, flags=FILE_OPEN_TRUNCACTED, se=None):
-        if not localFile:
+        """
+        Post a context to upload a local file onto a remote server
+        :param localFile: A path to a local file at client side for uploading
+        :param remoteFile: A path to a remote file at server side
+        :param up: A callback for tracking a final result of uploading, which contains an int and an error message
+        :param trans: A callback for tracking uploading progress
+        :param discarded: A callback for tarcking communication channel events, close and cancel
+        :param flags: An integer bit-wise option flags for one or more options such as
+        FILE_OPEN_TRUNCACTED|FILE_OPEN_APPENDED and FILE_OPEN_SHARE_WRITE
+        :param se: A callback for tracking an exception (CServerError) from server
+        :return: True if successful and False if failed when localFile or remoteFile is empty
+        """
+        if not localFile or str(localFile) == 0:
             return False
-        if not remoteFile:
+        if not remoteFile or str(remoteFile) == 0:
             return False
         context = CContext(True, flags)
         context.Download = up
@@ -275,7 +287,16 @@ class CStreamingFile(CAsyncServiceHandler):
                     self.AttachedClientSocket.DoEcho() #make sure WaitAll works correctly
         return True
 
-    def upload(self, localFile, remoteFile, trans, flags=FILE_OPEN_TRUNCACTED):
+    def upload(self, localFile, remoteFile, trans=None, flags=FILE_OPEN_TRUNCACTED):
+        """
+        Post a context to upload a local file onto a remote server
+        :param localFile: A path to a local file at client side for uploading
+        :param remoteFile: A path to a remote file at server side
+        :param trans: A callback for tracking uploading progress
+        :param flags: An integer bit-wise option flags for one or more options such as
+        FILE_OPEN_TRUNCACTED|FILE_OPEN_APPENDED and FILE_OPEN_SHARE_WRITE
+        :return: A future for a final result of uploading, which contains an int and an error message
+        """
         if not localFile or str(localFile) == 0:
             raise ValueError('localFile cannot be empty')
         if not remoteFile or str(remoteFile) == 0:
@@ -294,9 +315,21 @@ class CStreamingFile(CAsyncServiceHandler):
         return f
 
     def Download(self, localFile, remoteFile, dl=None, trans=None, discarded=None, flags=FILE_OPEN_TRUNCACTED, se=None):
-        if not localFile:
+        """
+        Post a context to download a remote file at server side to a local file at client side
+        :param localFile: A path to a local file at client side for downloading
+        :param remoteFile: A path to a remote file at server side
+        :param up: A callback for tracking a final result of downloading, which contains an int and an error message
+        :param trans: A callback for tracking downloading progress
+        :param discarded: A callback for tarcking communication channel events, close and cancel
+        :param flags: An integer bit-wise option flags for one or more options such as
+        FILE_OPEN_TRUNCACTED|FILE_OPEN_APPENDED and FILE_OPEN_SHARE_WRITE
+        :param se: A callback for tracking an exception (CServerError) from server
+        :return: True if successful and False if failed when localFile or remoteFile is empty
+        """
+        if not localFile or str(localFile) == 0:
             return False
-        if not remoteFile:
+        if not remoteFile or str(remoteFile) == 0:
             return False
         context = CContext(False, flags)
         context.Download = dl
@@ -314,7 +347,16 @@ class CStreamingFile(CAsyncServiceHandler):
                     self.AttachedClientSocket.DoEcho()  # make sure WaitAll works correctly
         return True
 
-    def download(self, localFile, remoteFile, trans, flags=FILE_OPEN_TRUNCACTED):
+    def download(self, localFile, remoteFile, trans=None, flags=FILE_OPEN_TRUNCACTED):
+        """
+        Post a context to download a remote file at server side to a local file at client side
+        :param localFile: A path to a local file at client side for downloading
+        :param remoteFile: A path to a remote file at server side
+        :param trans: A callback for tracking downloading progress
+        :param flags: An integer bit-wise option flags for one or more options such as
+        FILE_OPEN_TRUNCACTED|FILE_OPEN_APPENDED and FILE_OPEN_SHARE_WRITE
+        :return: A future for a final result ({'ec':res, 'em':errmsg}) of downloading, which contains an int and an error message
+        """
         if not localFile or str(localFile) == 0:
             raise ValueError('localFile cannot be empty')
         if not remoteFile or str(remoteFile) == 0:

@@ -85,8 +85,8 @@ class CResultCb(object):
 class CAsyncServiceHandler(object):
     _csCallIndex_ = threading.Lock()
     _CallIndex_ = 0
-    SESSION_CLOSED_AFTER = -1
-    SESSION_CLOSED_BEFORE = -2
+    SESSION_CLOSED_AFTER = -1000
+    SESSION_CLOSED_BEFORE = -1001
 
     def GetCallIndex():
         with CAsyncServiceHandler._csCallIndex_:
@@ -129,6 +129,12 @@ class CAsyncServiceHandler(object):
         return None
 
     def SendRouteeResult(self, q, reqId=0):
+        """
+        Send a result to the other routee
+        :param q: An instance of CScopeUQueue or CUQueue or None
+        :param reqId: An unique request id within a service handler
+        :return: True if socket is connected, and False if socket is closed
+        """
         delay = q
         if isinstance(q, CScopeUQueue):
             q = q.UQueue
@@ -148,6 +154,12 @@ class CAsyncServiceHandler(object):
         return ccl.SendInterruptRequest(h, options)
 
     def sendRequest(self, reqId, q):
+        """
+        Send a request onto a remote server for processing, and return a future immediately without blocking
+        :param reqId: An unique request id within a service handler
+        :param q: An instance of CScopeUQueue or CUQueue or None
+        :return: A future for an instance of CScopeUQueue containing an expected result
+        """
         f = future()
         def cb_aborted(ah, canceled):
             if canceled:
@@ -165,6 +177,15 @@ class CAsyncServiceHandler(object):
         return f
 
     def SendRequest(self, reqId, q, arh, discarded=None, efs=None):
+        """
+        Send a request onto a remote server for processing, and return immediately without blocking
+        :param reqId: An unique request id within a service handler
+        :param q: An instance of CScopeUQueue or CUQueue or None
+        :param arh: A callback for tracking an instance of CAsyncResult containing an expected result
+        :param discarded: A callback for tarcking communication channel events, close and cancel
+        :param efs: A callback for tracking an exception from server
+        :return: True if communication channel is sendable, and False if communication channel is not sendable
+        """
         delay = q
         if isinstance(q, CScopeUQueue):
             q = q.UQueue
@@ -297,9 +318,9 @@ class CAsyncServiceHandler(object):
     def WaitAll(self, timeout = 0xffffffff):
         h = self._m_ClientSocket_.Handle
         if ccl.IsBatching(h):
-            raise ValueError("Can't call the method WaitAll during batching requests")
+            raise ValueError("Can't call the method WaitAll while batching requests")
         if ccl.IsQueueStarted(h) and ccl.GetJobSize(h) > 0:
-            raise ValueError("Can't call the method WaitAll during enqueuing transactional requests")
+            raise ValueError("Can't call the method WaitAll while enqueuing transactional requests")
         return ccl.WaitAll(h, timeout)
 
     def _Attach_(self, cs):

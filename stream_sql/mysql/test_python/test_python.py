@@ -23,10 +23,10 @@ with CSocketPool(CMysql) as spMysql:
         print('affected = ' + str(affected) + ', fails = ' + str(fail_ok >> 32) + ', oks = ' + str(fail_ok & 0xffffffff) + ', res = ' + str(res) + ', errMsg: ' + errMsg + ', last insert id = ' + str(lastRowId))
 
     def TestCreateTables():
-        ok = mysql.ExecuteSql('CREATE DATABASE IF NOT EXISTS mysqldb character set utf8 collate utf8_general_ci;USE mysqldb', cbExecute)
-        ok = mysql.ExecuteSql('CREATE TABLE IF NOT EXISTS company(ID bigint PRIMARY KEY NOT NULL,name CHAR(64)NOT NULL,ADDRESS varCHAR(256)not null,Income decimal(15,2)not null)', cbExecute)
-        ok = mysql.ExecuteSql('CREATE TABLE IF NOT EXISTS employee(EMPLOYEEID bigint AUTO_INCREMENT PRIMARY KEY NOT NULL unique,CompanyId bigint not null,name CHAR(64)NOT NULL,JoinDate DATETIME(6)default null,IMAGE MEDIUMBLOB,DESCRIPTION MEDIUMTEXT,Salary decimal(18,2),FOREIGN KEY(CompanyId)REFERENCES company(id))', cbExecute)
-        ok = mysql.ExecuteSql('DROP PROCEDURE IF EXISTS sp_TestProc;CREATE PROCEDURE sp_TestProc(in p_company_id int,inout p_sum_salary decimal(17,2),out p_last_dt datetime)BEGIN select * from employee where companyid>=p_company_id;select sum(salary)+p_sum_salary into p_sum_salary from employee where companyid>=p_company_id;select now() into p_last_dt;END', cbExecute)
+        ok = mysql.Execute('CREATE DATABASE IF NOT EXISTS mysqldb character set utf8 collate utf8_general_ci;USE mysqldb', cbExecute)
+        ok = mysql.Execute('CREATE TABLE IF NOT EXISTS company(ID bigint PRIMARY KEY NOT NULL,name CHAR(64)NOT NULL,ADDRESS varCHAR(256)not null,Income decimal(15,2)not null)', cbExecute)
+        ok = mysql.Execute('CREATE TABLE IF NOT EXISTS employee(EMPLOYEEID bigint AUTO_INCREMENT PRIMARY KEY NOT NULL unique,CompanyId bigint not null,name CHAR(64)NOT NULL,JoinDate DATETIME(6)default null,IMAGE MEDIUMBLOB,DESCRIPTION MEDIUMTEXT,Salary decimal(18,2),FOREIGN KEY(CompanyId)REFERENCES company(id))', cbExecute)
+        ok = mysql.Execute('DROP PROCEDURE IF EXISTS sp_TestProc;CREATE PROCEDURE sp_TestProc(in p_company_id int,inout p_sum_salary decimal(17,2),out p_last_dt datetime)BEGIN select * from employee where companyid>=p_company_id;select sum(salary)+p_sum_salary into p_sum_salary from employee where companyid>=p_company_id;select now() into p_last_dt;END', cbExecute)
 
     ra = []
 
@@ -40,8 +40,7 @@ with CSocketPool(CMysql) as spMysql:
 
     def TestPreparedStatements():
         sql_insert_parameter = u'INSERT INTO company(ID,NAME,ADDRESS,Income)VALUES(?,?,?,?)'
-        ok = mysql.Prepare(sql_insert_parameter, cb)
-
+        mysql.prepare(sql_insert_parameter)
         vData = []
         vData.append(1)
         vData.append("Google Inc.")
@@ -57,7 +56,7 @@ with CSocketPool(CMysql) as spMysql:
         vData.append("Apple Inc.")
         vData.append("1 Infinite Loop, Cupertino, CA 95014, USA")
         vData.append(234000000000.0)
-        return mysql.ExecuteParameters(vData, cbExecute)
+        return mysql.execute(vData)
 
 
     def cbBatchHeader(mysql):
@@ -129,7 +128,7 @@ with CSocketPool(CMysql) as spMysql:
         # third, three sets of insert into employee(CompanyId,name,JoinDate,image,DESCRIPTION,Salary)values(?,?,?,?,?,?)
         # fourth, SELECT * from company;select * from employee;select curtime()
         # last, three sets of call sp_TestProc(?,?,?)
-        ok = mysql.ExecuteBatch(tagTransactionIsolation.tiUnspecified, sql, vData, cbExecute, cbRows, cbRowHeader, cbBatchHeader, None, tagRollbackPlan.rpDefault, cbDiscarded, '|')
+        print(mysql.executeBatch(tagTransactionIsolation.tiUnspecified, sql, vData, cbRows, cbRowHeader, cbBatchHeader, None, tagRollbackPlan.rpDefault, '|').result())
         return vData
 
     def InsertBLOBByPreparedStatement():
@@ -140,13 +139,13 @@ with CSocketPool(CMysql) as spMysql:
         while len(str) < 256 * 1024:
             str += 'The epic takedown of his opponent on an all-important voting day was extraordinary even by the standards of the 2016 campaign -- and quickly drew a scathing response from Trump.'
         sqlInsert = u'insert into employee(CompanyId,name,JoinDate,image,DESCRIPTION,Salary)values(?,?,?,?,?,?)'
-        ok = mysql.Prepare(sqlInsert, cb)
+        mysql.prepare(sqlInsert)
 
         vData = []
         sbBlob = CUQueue()
 
         #first set of data
-        vData.append(1) #google company id
+        vData.append(1)  # google company id
         vData.append("Ted Cruz")
         vData.append(datetime.datetime.now())
         sbBlob.SaveString(wstr)
@@ -154,8 +153,8 @@ with CSocketPool(CMysql) as spMysql:
         vData.append(wstr)
         vData.append(254000.0)
 
-        #second set of data
-        vData.append(1) #google company id
+        # second set of data
+        vData.append(1)  # google company id
         vData.append("Donald Trump")
         vData.append(datetime.datetime.now())
         sbBlob.SetSize(0)
@@ -164,15 +163,15 @@ with CSocketPool(CMysql) as spMysql:
         vData.append(str)
         vData.append(20254000.0)
 
-        #third set of data
-        vData.append(2) #Microsoft company id
+        # third set of data
+        vData.append(2)  # Microsoft company id
         vData.append("Hillary Clinton")
         vData.append(datetime.datetime.now())
         sbBlob.SaveString(wstr)
         vData.append(sbBlob.GetBuffer())
         vData.append(wstr)
         vData.append(6254000.0)
-        return mysql.ExecuteParameters(vData, cbExecute)
+        return mysql.execute(vData)
 
     def TestStoredProcedure():
         # two sets (2 * 3) of parameter data
@@ -180,18 +179,17 @@ with CSocketPool(CMysql) as spMysql:
         # 2nd set -- 2, 0, 0
         vData = [1, 1.5, 0, 2, 1.8, 0]
 
-        ok = mysql.Prepare('call sp_TestProc(?,?,?)', cb)
-        #send multiple sets of parameter data in one shot
-        ok = mysql.ExecuteParameters(vData, cbExecute, cbRows, cbRowHeader)
+        mysql.prepare('call sp_TestProc(?,?,?)')
+        # send multiple sets of parameter data in one shot
+        ok = mysql.Execute(vData, cbExecute, cbRows, cbRowHeader)
         return vData
 
-    ok = mysql.Open(u'', cb)
+    print(mysql.open(u'').result())
     ok = TestCreateTables()
-    ok = mysql.ExecuteSql('delete from employee;delete from company', cbExecute)
-    ok = TestPreparedStatements()
-    ok = InsertBLOBByPreparedStatement()
-    ok = mysql.ExecuteSql('SELECT * from company;select * from employee;select curtime()', cbExecute, cbRows, cbRowHeader)
-
+    print(mysql.execute('delete from employee;delete from company').result())
+    print(TestPreparedStatements().result())
+    print(InsertBLOBByPreparedStatement().result())
+    print(mysql.execute('SELECT * from company;select * from employee;select curtime()', cbRows, cbRowHeader).result())
     vPData = TestStoredProcedure()
     ok = mysql.WaitAll()
     print('vPData: ' + str(vPData))

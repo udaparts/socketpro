@@ -1,5 +1,6 @@
 from spa.clientside.asyncdbhandler import CAsyncServiceHandler
 from spa import BaseServiceID, tagBaseRequestID, CUQueue, tagOptimistic, CScopeUQueue
+from concurrent.futures import Future as future
 import threading
 
 
@@ -83,7 +84,7 @@ class CAsyncQueue(CAsyncServiceHandler):
         :param e: A callback for tracking returning index
         :param discarded A callback for tracking socket close or request cancel event
         :param se A callback for tracking an exception from server
-        :return: true for sending the request successfully, and false for failure
+        :return: True if communication channel is sendable, and False if communication channel is not sendable
         """
         if not key:
             key = ''
@@ -94,18 +95,40 @@ class CAsyncQueue(CAsyncServiceHandler):
         if not e:
             ok = self.SendRequest(CAsyncQueue.idEnqueue, buffer, None, discarded, se)
         else:
-            ok = self.SendRequest(CAsyncQueue.idEnqueue, buffer, lambda ar: e(ar.AsyncServiceHandler, ar.LoadULong()), discarded, se)
+            ok = self.SendRequest(CAsyncQueue.idEnqueue, buffer,
+                                  lambda ar: e(ar.AsyncServiceHandler, ar.LoadULong()), discarded, se)
         CScopeUQueue.Unlock(buffer)
         return ok
 
+    def enqueue(self, key, idMessage, q):
+        f = future()
+        def cb_aborted(ah, canceled):
+            if canceled:
+                f.cancel()
+            else:
+                f.set_exception(OSError(CAsyncQueue.SESSION_CLOSED_AFTER,
+                                        'Session closed after sending the request Enqueue'))
+        def server_ex(ah, se):  # an exception from remote server
+            f.set_exception(se)
+
+        def cb_enqueue(aq, index):
+            f.set_result(index)
+
+        if not self.Enqueue(key, idMessage, q, cb_enqueue, cb_aborted, server_ex):
+            raise OSError(CAsyncQueue.SESSION_CLOSED_BEFORE,
+                          'Session already closed before sending the request Enqueue')
+        return f
+
     def StartQueueTrans(self, key, qt=None, discarded=None, se=None):
         """
-        Start enqueuing messages with transaction style. Currently, total size of queued messages must be less than 4 G bytes
+        Start enqueuing messages with transaction style.
+        Currently, total size of queued messages must be less than 4 G bytes
         :param key: An ASCII string for identifying a queue at server side
-        :param qt: A callback for tracking returning error code, which can be one of QUEUE_OK, QUEUE_TRANS_ALREADY_STARTED, and so on
+        :param qt: A callback for tracking returning error code,
+        which can be one of QUEUE_OK, QUEUE_TRANS_ALREADY_STARTED, and so on
         :param discarded A callback for tracking socket close or request cancel event
         :param se A callback for tracking an exception from server
-        :return: true for sending the request successfully, and false for failure
+        :return: True if communication channel is sendable, and False if communication channel is not sendable
         """
         if not key:
             key = ''
@@ -117,25 +140,46 @@ class CAsyncQueue(CAsyncServiceHandler):
         if not qt:
             ok = self.SendRequest(CAsyncQueue.idStartTrans, buffer, None, discarded, se)
         else:
-            ok = self.SendRequest(CAsyncQueue.idStartTrans, buffer, lambda ar: qt(ar.AsyncServiceHandler, ar.LoadInt()), discarded, se)
+            ok = self.SendRequest(CAsyncQueue.idStartTrans, buffer,
+                                  lambda ar: qt(ar.AsyncServiceHandler, ar.LoadInt()), discarded, se)
         CScopeUQueue.Unlock(buffer)
         return ok
+
+    def startQueueTrans(self, key):
+        f = future()
+        def cb_aborted(ah, canceled):
+            if canceled:
+                f.cancel()
+            else:
+                f.set_exception(
+                    OSError(CAsyncQueue.SESSION_CLOSED_AFTER,
+                            'Session closed after sending the request StartQueueTrans'))
+        def server_ex(ah, se):  # an exception from remote server
+            f.set_exception(se)
+        def cb(aq, ec):
+            f.set_result(ec)
+        if not self.StartQueueTrans(key, cb, cb_aborted, server_ex):
+            raise OSError(CAsyncQueue.SESSION_CLOSED_BEFORE,
+                          'Session already closed before sending the request StartQueueTrans')
+        return f
 
     def EndQueueTrans(self, rollback=False, qt=None, discarded=None, se=None):
         """
         End enqueuing messages with transaction style. Currently, total size of queued messages must be less than 4 G bytes
         :param rollback: true for rollback, and false for committing
-        :param qt: A callback for tracking returning error code, which can be one of QUEUE_OK, QUEUE_TRANS_NOT_STARTED_YET, and so on
+        :param qt: A callback for tracking returning error code,
+        which can be one of QUEUE_OK, QUEUE_TRANS_NOT_STARTED_YET, and so on
         :param discarded A callback for tracking socket close or request cancel event
         :param se A callback for tracking an exception from server
-        :return: true for sending the request successfully, and false for failure
+        :return: True if communication channel is sendable, and False if communication channel is not sendable
         """
         buffer = CScopeUQueue.Lock().SaveBool(rollback)
         ok = None
         if not qt:
             ok = self.SendRequest(CAsyncQueue.idEndTrans, buffer, None, discarded, se)
         else:
-            ok = self.SendRequest(CAsyncQueue.idEndTrans, buffer, lambda ar: qt(ar.AsyncServiceHandler, ar.LoadInt()), discarded, se)
+            ok = self.SendRequest(CAsyncQueue.idEndTrans, buffer,
+                                  lambda ar: qt(ar.AsyncServiceHandler, ar.LoadInt()), discarded, se)
         cq = self.AttachedClientSocket.ClientQueue
         if cq.Available:
             if rollback:
@@ -145,13 +189,31 @@ class CAsyncQueue(CAsyncServiceHandler):
         CScopeUQueue.Unlock(buffer)
         return ok
 
+    def endQueueTrans(self, rollback=False):
+        f = future()
+        def cb_aborted(ah, canceled):
+            if canceled:
+                f.cancel()
+            else:
+                f.set_exception(
+                    OSError(CAsyncQueue.SESSION_CLOSED_AFTER,
+                            'Session closed after sending the request EndQueueTrans'))
+        def server_ex(ah, se):  # an exception from remote server
+            f.set_exception(se)
+        def cb(aq, ec):
+            f.set_result(ec)
+        if not self.EndQueueTrans(rollback, cb, cb_aborted, server_ex):
+            raise OSError(CAsyncQueue.SESSION_CLOSED_BEFORE,
+                          'Session already closed before sending the request EndQueueTrans')
+        return f
+
     def GetKeys(self, gk, discarded=None, se=None):
         """
         Query queue keys opened at server side
-        :param gk: A callback for tracking a list of key names
+        :param gk: A callback for tracking a list of key names corresponding to a list of queue files
         :param discarded A callback for tracking socket close or request cancel event
         :param se A callback for tracking an exception from server
-        :return: true for sending the request successfully, and false for failure
+        :return: True if communication channel is sendable, and False if communication channel is not sendable
         """
         if not gk:
             return self.SendRequest(CAsyncQueue.idGetKeys, None, None, discarded, se)
@@ -164,6 +226,28 @@ class CAsyncQueue(CAsyncServiceHandler):
             gk(ar.AsyncServiceHandler, v)
         return self.SendRequest(CAsyncQueue.idGetKeys, None, cb, discarded, se)
 
+    def getKeys(self):
+        """
+        Query queue keys opened at server side
+        :return: A future for a list of key names corresponding to a list of queue files
+        """
+        f = future()
+        def cb_aborted(ah, canceled):
+            if canceled:
+                f.cancel()
+            else:
+                f.set_exception(
+                    OSError(CAsyncQueue.SESSION_CLOSED_AFTER,
+                            'Session closed after sending the request GetKeys'))
+        def server_ex(ah, se):  # an exception from remote server
+            f.set_exception(se)
+        def cb(aq, keys):
+            f.set_result(keys)
+        if not self.GetKeys(cb, cb_aborted, server_ex):
+            raise OSError(CAsyncQueue.SESSION_CLOSED_BEFORE,
+                          'Session already closed before sending the request GetKeys')
+        return f
+
     def CloseQueue(self, key, c=None, discarded=None, permanent=False, se=None):
         """
         Try to close or delete a persistent queue opened at server side
@@ -172,7 +256,7 @@ class CAsyncQueue(CAsyncServiceHandler):
         :param permanent: true for deleting a queue file, and false for closing a queue file
         :param discarded A callback for tracking socket close or request cancel event
         :param se A callback for tracking an exception from server
-        :return: true for sending the request successfully, and false for failure
+        :return: True if communication channel is sendable, and False if communication channel is not sendable
         """
         if not key:
             key = ''
@@ -181,19 +265,46 @@ class CAsyncQueue(CAsyncServiceHandler):
         if not c:
             ok = self.SendRequest(CAsyncQueue.idClose, buffer, None, discarded, se)
         else:
-            ok = self.SendRequest(CAsyncQueue.idClose, buffer, lambda ar: c(ar.AsyncServiceHandler, ar.LoadInt()), discarded, se)
+            ok = self.SendRequest(CAsyncQueue.idClose, buffer,
+                                  lambda ar: c(ar.AsyncServiceHandler, ar.LoadInt()), discarded, se)
         CScopeUQueue.Unlock(buffer)
         return ok
 
+    def closeQueue(self, key, permanent=False):
+        """
+        Try to close or delete a persistent queue opened at server side
+        :param key: An ASCII string for identifying a queue at server side
+        :param permanent: true for deleting a queue file, and false for closing a queue file
+        :return: A future object for an error code, which can be one of QUEUE_OK, QUEUE_DEQUEUING, and so on
+        """
+        f = future()
+        def cb_aborted(ah, canceled):
+            if canceled:
+                f.cancel()
+            else:
+                f.set_exception(
+                    OSError(CAsyncQueue.SESSION_CLOSED_AFTER,
+                            'Session closed after sending the request CloseQueue'))
+        def server_ex(ah, se):  # an exception from remote server
+            f.set_exception(se)
+        def cb(aq, ec):
+            f.set_result(ec)
+        if not self.CloseQueue(key, cb, cb_aborted, permanent, server_ex):
+            raise OSError(CAsyncQueue.SESSION_CLOSED_BEFORE,
+                          'Session already closed before sending the request CloseQueue')
+        return f
+
     def FlushQueue(self, key, f, option=tagOptimistic.oMemoryCached, discarded=None, se=None):
         """
-        May flush memory data into either operation system memory or hard disk, and return message count and queue file size in bytes. Note the method only returns message count and queue file size in bytes if the option is oMemoryCached
+        Flush memory data into either operation system memory or hard disk, and return message count and queue file
+        size in bytes. Note the method only returns message count and queue file size in bytes
+        if the option is oMemoryCached
         :param key: An ASCII string for identifying a queue at server side
         :param f: A callback for tracking returning message count and queue file size in bytes
         :param option: one of tagOptimistic options, oMemoryCached, oSystemMemoryCached and oDiskCommitted
         :param discarded A callback for tracking socket close or request cancel event
         :param se A callback for tracking an exception from server
-        :return: true for sending the request successfully, and false for failure
+        :return: True if communication channel is sendable, and False if communication channel is not sendable
         """
         if not key:
             key = ''
@@ -202,19 +313,48 @@ class CAsyncQueue(CAsyncServiceHandler):
         if not f:
             ok = self.SendRequest(CAsyncQueue.idFlush, buffer, None, discarded, se)
         else:
-            ok = self.SendRequest(CAsyncQueue.idFlush, buffer, lambda ar: f(ar.AsyncServiceHandler, ar.LoadULong(), ar.LoadULong()), discarded, se)
+            ok = self.SendRequest(CAsyncQueue.idFlush, buffer,
+                                  lambda ar: f(ar.AsyncServiceHandler, ar.LoadULong(), ar.LoadULong()), discarded, se)
         CScopeUQueue.Unlock(buffer)
         return ok
+
+    def flushQueue(self, key, option=tagOptimistic.oMemoryCached):
+        """
+        Flush memory data into either operation system memory or hard disk, and return message count and queue file
+        size in bytes. Note the method only returns message count and queue file size in bytes
+        if the option is oMemoryCached
+        :param key: An ASCII string for identifying a queue at server side
+        :param option: one of tagOptimistic options, oMemoryCached, oSystemMemoryCached and oDiskCommitted
+        :return: A future for dictionary object containing messages remaining in server queue file and the queue file
+        size in bytes
+        """
+        f = future()
+        def cb_aborted(ah, canceled):
+            if canceled:
+                f.cancel()
+            else:
+                f.set_exception(
+                    OSError(CAsyncQueue.SESSION_CLOSED_AFTER,
+                            'Session closed after sending the request FlushQueue'))
+        def server_ex(ah, se):  # an exception from remote server
+            f.set_exception(se)
+        def cb(aq, message_count, file_size):
+            f.set_result({'messages': message_count, 'fsize': file_size})
+        if not self.FlushQueue(key, cb, option, cb_aborted, server_ex):
+            raise OSError(CAsyncQueue.SESSION_CLOSED_BEFORE,
+                          'Session already closed before sending the request FlushQueue')
+        return f
 
     def Dequeue(self, key, d, timeout=0, discarded=None, se=None):
         """
         Dequeue messages from a persistent message queue file at server side in batch
         :param key: An ASCII string for identifying a queue at server side
-        :param d: A callback for tracking data like remaining message count within a server queue file, queue file size in bytes, message dequeued within this batch and bytes dequeued within this batch
+        :param d: A callback for tracking data like remaining message count within a server queue file, queue file size
+        in bytes, message dequeued within this batch and bytes dequeued within this batch
         :param timeout: A time-out number in milliseconds
         :param discarded A callback for tracking socket close or request cancel event
         :param se A callback for tracking an exception from server
-        :return: true for sending the request successfully, and false for failure
+        :return: True if communication channel is sendable, and False if communication channel is not sendable
         """
         if not key:
             key = ''
@@ -226,9 +366,35 @@ class CAsyncQueue(CAsyncServiceHandler):
         if not d:
             ok = self.SendRequest(CAsyncQueue.idDequeue, buffer, None, discarded, se)
         else:
-            ok = self.SendRequest(CAsyncQueue.idDequeue, buffer, lambda ar: d(ar.AsyncServiceHandler, ar.LoadULong(), ar.LoadULong(), ar.LoadUInt(), ar.LoadUInt()), discarded, se)
+            ok = self.SendRequest(CAsyncQueue.idDequeue, buffer, lambda ar: d(ar.AsyncServiceHandler,
+                 ar.LoadULong(), ar.LoadULong(), ar.LoadUInt(), ar.LoadUInt()), discarded, se)
         CScopeUQueue.Unlock(buffer)
         return ok
+
+    def dequeue(self, key, timeout=0):
+        """
+        Dequeue messages from a persistent message queue file at server side in batch
+        :param key: An ASCII string for identifying a queue at server side
+        :param timeout: A time-out number in milliseconds
+        :return: A future for dictionary object containing messages remaining in server queue file, the queue file size
+        in bytes, messages and bytes dequeued in this dequeue request
+        """
+        f = future()
+        def cb_aborted(ah, canceled):
+            if canceled:
+                f.cancel()
+            else:
+                f.set_exception(
+                    OSError(CAsyncQueue.SESSION_CLOSED_AFTER,
+                            'Session closed after sending the request Dequeue'))
+        def server_ex(ah, se):  # an exception from remote server
+            f.set_exception(se)
+        def cb(aq, message_count, file_size, deq_msgs, deq_bytes):
+            f.set_result({'messages': message_count, 'fsize': file_size, 'deqMsgs' : deq_msgs, 'deqBytes' : deq_bytes})
+        if not self.Dequeue(key, cb, timeout, cb_aborted, server_ex):
+            raise OSError(CAsyncQueue.SESSION_CLOSED_BEFORE,
+                          'Session already closed before sending the request Dequeue')
+        return f
 
     def OnBaseRequestProcessed(self, reqId):
         if reqId == tagBaseRequestID.idMessageQueued:
