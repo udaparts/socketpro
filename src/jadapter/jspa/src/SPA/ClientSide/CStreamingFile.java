@@ -7,7 +7,6 @@ import java.io.IOException;
 import java.io.*;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
 public class CStreamingFile extends CAsyncServiceHandler {
@@ -101,7 +100,7 @@ public class CStreamingFile extends CAsyncServiceHandler {
         public int ErrCode = 0;
         public long InitSize = -1;
         public DOnExceptionFromServer Se = null;
-        public UFuture<SPA.CScopeUQueue> Fut = null;
+        public UFuture<ErrInfo> Fut = null;
 
         public boolean hasError() {
             return (ErrCode != 0 || (ErrMsg != null && ErrMsg.length() > 0));
@@ -317,10 +316,16 @@ public class CStreamingFile extends CAsyncServiceHandler {
                             CUQueue sb = sq.getUQueue();
                             sb.Save(it.FilePath).Save(it.Flags).Save(it.FileSize);
                             if (!SendRequest(idUpload, sb, rh, it.Discarded, it.Se)) {
-                                it.ErrCode = SESSION_CLOSED_BEFORE;
-                                it.ErrMsg = "Session already closed before sending the request Upload";
+                                CClientSocket cs = getSocket();
+                                it.ErrCode = cs.getErrorCode();
+                                if (it.ErrCode == 0) {
+                                    it.ErrCode = SESSION_CLOSED_BEFORE;
+                                    it.ErrMsg = "Session already closed before sending the request Upload";
+                                } else {
+                                    it.ErrMsg = cs.getErrorMsg();
+                                }
                                 if (it.Fut != null) {
-                                    it.Fut.setException(new CSocketError(SESSION_CLOSED_BEFORE, "Session already closed before sending the request Upload", idUpload));
+                                    it.Fut.setException(new CSocketError(it.ErrCode, it.ErrMsg, idUpload, false));
                                 }
                                 continue;
                             }
@@ -334,10 +339,16 @@ public class CStreamingFile extends CAsyncServiceHandler {
                             CUQueue sb = sq.getUQueue();
                             sb.Save(it.LocalFile).Save(it.FilePath).Save(it.Flags).Save(it.InitSize);
                             if (!SendRequest(idDownload, sb, rh, it.Discarded, it.Se)) {
-                                it.ErrCode = SESSION_CLOSED_BEFORE;
-                                it.ErrMsg = "Session already closed before sending the request Download";
+                                CClientSocket cs = getSocket();
+                                it.ErrCode = cs.getErrorCode();
+                                if (it.ErrCode == 0) {
+                                    it.ErrCode = SESSION_CLOSED_BEFORE;
+                                    it.ErrMsg = "Session already closed before sending the request Download";
+                                } else {
+                                    it.ErrMsg = cs.getErrorMsg();
+                                }
                                 if (it.Fut != null) {
-                                    it.Fut.setException(new CSocketError(SESSION_CLOSED_BEFORE, "Session already closed before sending the request Download", idDownload));
+                                    it.Fut.setException(new CSocketError(it.ErrCode, it.ErrMsg, idDownload, false));
                                 }
                                 continue;
                             }
@@ -824,55 +835,35 @@ public class CStreamingFile extends CAsyncServiceHandler {
         return true;
     }
 
-    public Future<SPA.CScopeUQueue> download(String localFile, String remoteFile) {
+    public Future<ErrInfo> download(String localFile, String remoteFile) {
         return download(localFile, remoteFile, null, FILE_OPEN_TRUNCACTED);
     }
 
-    public Future<SPA.CScopeUQueue> download(String localFile, String remoteFile, DTransferring trans) {
+    public Future<ErrInfo> download(String localFile, String remoteFile, DTransferring trans) {
         return download(localFile, remoteFile, trans, FILE_OPEN_TRUNCACTED);
     }
 
-    public Future<SPA.CScopeUQueue> download(String localFile, String remoteFile, DTransferring trans, int flags) {
+    public Future<ErrInfo> download(String localFile, String remoteFile, DTransferring trans, int flags) {
         if (localFile == null || localFile.length() == 0) {
             throw new IllegalArgumentException("localFile cannot be empty");
         }
         if (remoteFile == null || remoteFile.length() == 0) {
             throw new IllegalArgumentException("remoteFile cannot be empty");
         }
-        final UFuture<SPA.CScopeUQueue> f = new UFuture<>();
-        DDiscarded aborted = new DDiscarded() {
-            @Override
-            public void invoke(CAsyncServiceHandler sender, boolean discarded) {
-                if (discarded) {
-                    f.cancel(false);
-                } else {
-                    SPA.CServerError ex = new SPA.CServerError(SESSION_CLOSED_AFTER, "Session closed after sending the request Download", "Download", idDownload);
-                    f.setException(ex);
-                }
-            }
-        };
-        DOnExceptionFromServer se = new DOnExceptionFromServer() {
-            @Override
-            public void invoke(CAsyncServiceHandler sender, short reqId, String errMessage, String errWhere, int errCode) {
-                SPA.CServerError ex = new SPA.CServerError(errCode, errMessage, errWhere, reqId);
-                f.setException(ex);
-            }
-        };
+        final UFuture<ErrInfo> f = new UFuture<>();
         DDownload dl = new DDownload() {
             @Override
             public void invoke(CStreamingFile file, int res, String errMsg) {
-                SPA.CScopeUQueue sb = new SPA.CScopeUQueue();
-                sb.Save(res).Save(errMsg);
-                f.set(sb);
+                f.set(new ErrInfo(res, errMsg));
             }
         };
         CContext context = new CContext(false, flags);
         context.Download = dl;
         context.Transferring = trans;
-        context.Discarded = aborted;
+        context.Discarded = getAborted(f, "Download", idDownload);
         context.FilePath = remoteFile;
         context.LocalFile = localFile;
-        context.Se = se;
+        context.Se = getSE(f);
         context.Fut = f;
         m_csFile.lock();
         try {
@@ -940,55 +931,35 @@ public class CStreamingFile extends CAsyncServiceHandler {
         return true;
     }
 
-    public Future<SPA.CScopeUQueue> upload(String localFile, String remoteFile) {
+    public Future<ErrInfo> upload(String localFile, String remoteFile) {
         return upload(localFile, remoteFile, null, FILE_OPEN_TRUNCACTED);
     }
 
-    public Future<SPA.CScopeUQueue> upload(String localFile, String remoteFile, DTransferring trans) {
+    public Future<ErrInfo> upload(String localFile, String remoteFile, DTransferring trans) {
         return upload(localFile, remoteFile, trans, FILE_OPEN_TRUNCACTED);
     }
 
-    public Future<SPA.CScopeUQueue> upload(String localFile, String remoteFile, DTransferring trans, int flags) {
+    public Future<ErrInfo> upload(String localFile, String remoteFile, DTransferring trans, int flags) {
         if (localFile == null || localFile.length() == 0) {
             throw new IllegalArgumentException("localFile cannot be empty");
         }
         if (remoteFile == null || remoteFile.length() == 0) {
             throw new IllegalArgumentException("remoteFile cannot be empty");
         }
-        final UFuture<SPA.CScopeUQueue> f = new UFuture<>();
-        DDiscarded aborted = new DDiscarded() {
-            @Override
-            public void invoke(CAsyncServiceHandler sender, boolean discarded) {
-                if (discarded) {
-                    f.cancel(false);
-                } else {
-                    SPA.CServerError ex = new SPA.CServerError(SESSION_CLOSED_AFTER, "Session closed after sending the request Upload", "Upload", idUpload);
-                    f.setException(ex);
-                }
-            }
-        };
-        DOnExceptionFromServer se = new DOnExceptionFromServer() {
-            @Override
-            public void invoke(CAsyncServiceHandler sender, short reqId, String errMessage, String errWhere, int errCode) {
-                SPA.CServerError ex = new SPA.CServerError(errCode, errMessage, errWhere, reqId);
-                f.setException(ex);
-            }
-        };
+        final UFuture<ErrInfo> f = new UFuture<>();
         DUpload up = new DUpload() {
             @Override
             public void invoke(CStreamingFile file, int res, String errMsg) {
-                SPA.CScopeUQueue sb = new SPA.CScopeUQueue();
-                sb.Save(res).Save(errMsg);
-                f.set(sb);
+                f.set(new ErrInfo(res, errMsg));
             }
         };
         CContext context = new CContext(true, flags);
         context.Upload = up;
         context.Transferring = trans;
-        context.Discarded = aborted;
+        context.Discarded = getAborted(f, "Upload", idUpload);
         context.FilePath = remoteFile;
         context.LocalFile = localFile;
-        context.Se = se;
+        context.Se = getSE(f);
         context.Fut = f;
         m_csFile.lock();
         try {

@@ -33,22 +33,26 @@ def TestEnqueue(aq):
 def TestDequeue(aq):
     def cbResultReturned(idReq, q):
         if idReq == idMessage0 or idReq == idMessage1 or idReq == idMessage2:
-            # parse a dequeued message which should be the same as the above enqueued message (two unicode strings and one int)
+            # parse a dequeued message which should be the same as
+            # the above enqueued message (two unicode strings and one int)
             s = 'message id=' + str(idReq) + ', name=' + q.LoadString() + ', str=' + q.LoadString() + ', index=' + str(q.LoadInt())
             print(s)
             return True
-        return False #not processed
+        return False # not processed
     aq.ResultReturned = cbResultReturned
+
     def cbDequeue(sender, messageCount, fileSize, messages, bytes):
-        s = 'Total message count=' + str(messageCount) + ', queue file size=' + str(fileSize) + ', messages dequeued=' + str(messages) + ', message bytes dequeued=' + str(bytes)
+        s = 'Total message count=' + str(messageCount) + ', queue file size=' + str(fileSize) + ', messages dequeued='\
+            + str(messages) + ', message bytes dequeued=' + str(bytes)
         print(s)
         if messageCount > 0:
-            # there are more messages left at server queue, we re-send a request to dequeue
+            # there are more messages left at server queue, keep on dequeuing
             sender.Dequeue(TEST_QUEUE_KEY, sender.LastDequeueCallback)
     print('Going to dequeue messages ......')
     aq.Dequeue(TEST_QUEUE_KEY, cbDequeue)
 
-    # optionally, add one extra to improve processing concurrency at both client and server sides for better performance and through-output
+    # optionally, add one extra to improve processing concurrency at both client and server sides
+    # for better performance and through-output
     aq.Dequeue(TEST_QUEUE_KEY, cbDequeue)
 
 with CSocketPool(CAsyncQueue) as spAq:
@@ -60,20 +64,25 @@ with CSocketPool(CAsyncQueue) as spAq:
         print('No connection error code = ' + str(aq.AttachedClientSocket.ErrorCode))
         exit(0)
 
-    #Optionally, you can enqueue messages with transaction style by calling the methods StartQueueTrans and EndQueueTrans in pair
-    aq.StartQueueTrans(TEST_QUEUE_KEY, lambda sender, errCode: print('errCode=' + str(errCode)))
+    # Optionally, you can enqueue messages with transaction style by calling the methods
+    # StartQueueTrans and EndQueueTrans in pair
+    f0 = aq.startQueueTrans(TEST_QUEUE_KEY)
     TestEnqueue(aq)
-    aq.EndQueueTrans()
+    f1 = aq.endQueueTrans()
+    fut0 = aq.flushQueue(TEST_QUEUE_KEY)
+    print('StartQueueTrans return error code: ' + str(f0.result()))
+    print('EndQueueTrans return error code: ' + str(f1.result()))
+    print('Server queue info: ' + str(fut0.result()))
+
     TestDequeue(aq)
     aq.WaitAll()
 
-    # get a queue key two parameters, message count and queue file size by default option oMemoryCached
+    # get a server queue info, remaining message count and queue file size in bytes with default option oMemoryCached
     fut0 = aq.flushQueue(TEST_QUEUE_KEY)
     fut1 = aq.getKeys()
-    fut2 = aq.closeQueue(TEST_QUEUE_KEY)
-    print(fut0.result())
-    print(fut1.result())
-    print(fut2.result())
+
+    print('Server queue info: ' + str(fut0.result()))
+    print('Keys: ' + str(fut1.result()))
 
     print('Press any key to close the application ......')
     sys.stdin.readline()

@@ -256,6 +256,58 @@ public class CAsyncServiceHandler implements AutoCloseable {
     }
 
     /**
+     * Generate a DDiscarded callback
+     *
+     * @param <V> A generic type
+     * @param f a future instance
+     * @param methodName a non-empty method name
+     * @param reqId a request id
+     * @return a DDiscarded callback
+     */
+    public static <V> DDiscarded getAborted(UFuture<V> f, String methodName, short reqId) {
+        if (methodName == null || methodName.length() == 0) {
+            throw new IllegalArgumentException("methodName cannot be empty");
+        }
+        DDiscarded aborted = new DDiscarded() {
+            @Override
+            public void invoke(CAsyncServiceHandler sender, boolean discarded) {
+                if (discarded) {
+                    f.cancel(false);
+                } else {
+                    CClientSocket cs = sender.getSocket();
+                    int ec = cs.getErrorCode();
+                    if (cs.getErrorCode() == 0) {
+                        CSocketError ex = new CSocketError(SESSION_CLOSED_AFTER, "Session closed after sending the request " + methodName, reqId, false);
+                        f.setException(ex);
+                    } else {
+                        CSocketError ex = new CSocketError(ec, cs.getErrorMsg(), reqId);
+                        f.setException(ex);
+                    }
+                }
+            }
+        };
+        return aborted;
+    }
+
+    /**
+     * Generate a DOnExceptionFromServer callback
+     *
+     * @param <V> A generic type
+     * @param f a future instance
+     * @return a DOnExceptionFromServer callback
+     */
+    public static <V> DOnExceptionFromServer getSE(UFuture<V> f) {
+        DOnExceptionFromServer se = new DOnExceptionFromServer() {
+            @Override
+            public void invoke(CAsyncServiceHandler sender, short reqId, String errMessage, String errWhere, int errCode) {
+                SPA.CServerError ex = new SPA.CServerError(errCode, errMessage, errWhere, reqId);
+                f.setException(ex);
+            }
+        };
+        return se;
+    }
+
+    /**
      * Send a request onto a remote server for processing, and return a future
      * immediately without blocking
      *
@@ -268,24 +320,6 @@ public class CAsyncServiceHandler implements AutoCloseable {
      */
     public Future<SPA.CScopeUQueue> sendRequest(final short reqId, byte[] data, int len) throws ExecutionException {
         final UFuture<SPA.CScopeUQueue> f = new UFuture<>();
-        DDiscarded aborted = new DDiscarded() {
-            @Override
-            public void invoke(CAsyncServiceHandler sender, boolean discarded) {
-                if (discarded) {
-                    f.cancel(false);
-                } else {
-                    SPA.CServerError ex = new SPA.CServerError(SESSION_CLOSED_AFTER, "Session closed after sending the request (reqId = " + String.valueOf(reqId) + ")", "SendRequest", reqId);
-                    f.setException(ex);
-                }
-            }
-        };
-        DOnExceptionFromServer se = new DOnExceptionFromServer() {
-            @Override
-            public void invoke(CAsyncServiceHandler sender, short reqId, String errMessage, String errWhere, int errCode) {
-                SPA.CServerError ex = new SPA.CServerError(errCode, errMessage, errWhere, reqId);
-                f.setException(ex);
-            }
-        };
         DAsyncResultHandler ash = new DAsyncResultHandler() {
             @Override
             public void invoke(CAsyncResult ar) {
@@ -294,10 +328,30 @@ public class CAsyncServiceHandler implements AutoCloseable {
                 f.set(sb);
             }
         };
-        if (!SendRequest(reqId, data, len, ash, aborted, se)) {
-            throw new CSocketError(SESSION_CLOSED_BEFORE, "Session already closed before sending the request (reqId = " + String.valueOf(reqId) + ")", reqId);
+        if (!SendRequest(reqId, data, len, ash, getAborted(f, "SendRequest", reqId), getSE(f))) {
+            raise("SendRequest", reqId);
         }
         return f;
+    }
+
+    /**
+     * Throw an exception CSocketError
+     *
+     * @param methodName a non-empty method name
+     * @param reqId a request id
+     * @throws ExecutionException if communication channel is not sendable
+     */
+    public void raise(String methodName, short reqId) throws ExecutionException {
+        if (methodName == null || methodName.length() == 0) {
+            throw new IllegalArgumentException("methodName cannot be empty");
+        }
+        CClientSocket cs = getSocket();
+        int ec = cs.getErrorCode();
+        if (ec == 0) {
+            throw new CSocketError(SESSION_CLOSED_BEFORE, "Session already closed before sending the request " + methodName, reqId);
+        } else {
+            throw new CSocketError(ec, cs.getErrorMsg(), reqId);
+        }
     }
 
     public final boolean SendRequest(short reqId, SPA.CUQueue q, DAsyncResultHandler ash) {

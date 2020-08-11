@@ -102,21 +102,10 @@ class CAsyncQueue(CAsyncServiceHandler):
 
     def enqueue(self, key, idMessage, q):
         f = future()
-        def cb_aborted(ah, canceled):
-            if canceled:
-                f.cancel()
-            else:
-                f.set_exception(OSError(CAsyncQueue.SESSION_CLOSED_AFTER,
-                                        'Session closed after sending the request Enqueue', CAsyncQueue.idEnqueue))
-        def server_ex(ah, se):  # an exception from remote server
-            f.set_exception(se)
-
         def cb_enqueue(aq, index):
             f.set_result(index)
-
-        if not self.Enqueue(key, idMessage, q, cb_enqueue, cb_aborted, server_ex):
-            raise OSError(CAsyncQueue.SESSION_CLOSED_BEFORE,
-                          'Session already closed before sending the request Enqueue', CAsyncQueue.idEnqueue)
+        if not self.Enqueue(key, idMessage, q, cb_enqueue, CAsyncQueue.get_aborted(f, 'Enqueue', CAsyncQueue.idEnqueue), CAsyncQueue.get_se(f)):
+            self.throw('Enqueue', CAsyncQueue.idEnqueue)
         return f
 
     def StartQueueTrans(self, key, qt=None, discarded=None, se=None):
@@ -147,20 +136,10 @@ class CAsyncQueue(CAsyncServiceHandler):
 
     def startQueueTrans(self, key):
         f = future()
-        def cb_aborted(ah, canceled):
-            if canceled:
-                f.cancel()
-            else:
-                f.set_exception(
-                    OSError(CAsyncQueue.SESSION_CLOSED_AFTER,
-                            'Session closed after sending the request StartQueueTrans', CAsyncQueue.idStartTrans))
-        def server_ex(ah, se):  # an exception from remote server
-            f.set_exception(se)
         def cb(aq, ec):
             f.set_result(ec)
-        if not self.StartQueueTrans(key, cb, cb_aborted, server_ex):
-            raise OSError(CAsyncQueue.SESSION_CLOSED_BEFORE,
-                          'Session already closed before sending the request StartQueueTrans', CAsyncQueue.idStartTrans)
+        if not self.StartQueueTrans(key, cb, CAsyncQueue.get_aborted(f, 'StartQueueTrans', CAsyncQueue.idStartTrans), CAsyncQueue.get_se(f)):
+            self.ensureSendable('StartQueueTrans', CAsyncQueue.idStartTrans)
         return f
 
     def EndQueueTrans(self, rollback=False, qt=None, discarded=None, se=None):
@@ -191,20 +170,10 @@ class CAsyncQueue(CAsyncServiceHandler):
 
     def endQueueTrans(self, rollback=False):
         f = future()
-        def cb_aborted(ah, canceled):
-            if canceled:
-                f.cancel()
-            else:
-                f.set_exception(
-                    OSError(CAsyncQueue.SESSION_CLOSED_AFTER,
-                            'Session closed after sending the request EndQueueTrans', CAsyncQueue.idEndTrans))
-        def server_ex(ah, se):  # an exception from remote server
-            f.set_exception(se)
         def cb(aq, ec):
             f.set_result(ec)
-        if not self.EndQueueTrans(rollback, cb, cb_aborted, server_ex):
-            raise OSError(CAsyncQueue.SESSION_CLOSED_BEFORE,
-                          'Session already closed before sending the request EndQueueTrans', CAsyncQueue.idEndTrans)
+        if not self.EndQueueTrans(rollback, cb, CAsyncQueue.get_aborted(f, 'EndQueueTrans', CAsyncQueue.idEndTrans), CAsyncQueue.get_se(f)):
+            self.throw('EndQueueTrans', CAsyncQueue.idEndTrans)
         return f
 
     def GetKeys(self, gk, discarded=None, se=None):
@@ -232,20 +201,10 @@ class CAsyncQueue(CAsyncServiceHandler):
         :return: A future for a list of key names corresponding to a list of queue files
         """
         f = future()
-        def cb_aborted(ah, canceled):
-            if canceled:
-                f.cancel()
-            else:
-                f.set_exception(
-                    OSError(CAsyncQueue.SESSION_CLOSED_AFTER,
-                            'Session closed after sending the request GetKeys', CAsyncQueue.idGetKeys))
-        def server_ex(ah, se):  # an exception from remote server
-            f.set_exception(se)
         def cb(aq, keys):
             f.set_result(keys)
-        if not self.GetKeys(cb, cb_aborted, server_ex):
-            raise OSError(CAsyncQueue.SESSION_CLOSED_BEFORE,
-                          'Session already closed before sending the request GetKeys', CAsyncQueue.idGetKeys)
+        if not self.GetKeys(cb, CAsyncQueue.get_aborted(f, 'GetKeys', CAsyncQueue.idGetKeys), CAsyncQueue.get_se(f)):
+            self.throw('Getkeys', CAsyncQueue.idGetKeys)
         return f
 
     def CloseQueue(self, key, c=None, discarded=None, permanent=False, se=None):
@@ -278,20 +237,10 @@ class CAsyncQueue(CAsyncServiceHandler):
         :return: A future object for an error code, which can be one of QUEUE_OK, QUEUE_DEQUEUING, and so on
         """
         f = future()
-        def cb_aborted(ah, canceled):
-            if canceled:
-                f.cancel()
-            else:
-                f.set_exception(
-                    OSError(CAsyncQueue.SESSION_CLOSED_AFTER,
-                            'Session closed after sending the request CloseQueue', CAsyncQueue.idClose))
-        def server_ex(ah, se):  # an exception from remote server
-            f.set_exception(se)
         def cb(aq, ec):
             f.set_result(ec)
-        if not self.CloseQueue(key, cb, cb_aborted, permanent, server_ex):
-            raise OSError(CAsyncQueue.SESSION_CLOSED_BEFORE,
-                          'Session already closed before sending the request CloseQueue', CAsyncQueue.idClose)
+        if not self.CloseQueue(key, cb, CAsyncQueue.get_aborted(f, 'CloseQueue', CAsyncQueue.idClose), permanent, CAsyncQueue.get_se(f)):
+            self.throw('CloseQueue', CAsyncQueue.idClose)
         return f
 
     def FlushQueue(self, key, f, option=tagOptimistic.oMemoryCached, discarded=None, se=None):
@@ -329,20 +278,10 @@ class CAsyncQueue(CAsyncServiceHandler):
         size in bytes
         """
         f = future()
-        def cb_aborted(ah, canceled):
-            if canceled:
-                f.cancel()
-            else:
-                f.set_exception(
-                    OSError(CAsyncQueue.SESSION_CLOSED_AFTER,
-                            'Session closed after sending the request FlushQueue', CAsyncQueue.idFlush))
-        def server_ex(ah, se):  # an exception from remote server
-            f.set_exception(se)
         def cb(aq, message_count, file_size):
             f.set_result({'messages': message_count, 'fsize': file_size})
-        if not self.FlushQueue(key, cb, option, cb_aborted, server_ex):
-            raise OSError(CAsyncQueue.SESSION_CLOSED_BEFORE,
-                          'Session already closed before sending the request FlushQueue', CAsyncQueue.idFlush)
+        if not self.FlushQueue(key, cb, option, CAsyncQueue.get_aborted(f, 'FlushQueue', CAsyncQueue.idFlush), CAsyncQueue.get_se(f)):
+            self.throw('FlushQueue', CAsyncQueue.idFlush)
         return f
 
     def Dequeue(self, key, d, timeout=0, discarded=None, se=None):
@@ -380,20 +319,10 @@ class CAsyncQueue(CAsyncServiceHandler):
         in bytes, messages and bytes dequeued in this dequeue request
         """
         f = future()
-        def cb_aborted(ah, canceled):
-            if canceled:
-                f.cancel()
-            else:
-                f.set_exception(
-                    OSError(CAsyncQueue.SESSION_CLOSED_AFTER,
-                            'Session closed after sending the request Dequeue', CAsyncQueue.idDequeue))
-        def server_ex(ah, se):  # an exception from remote server
-            f.set_exception(se)
         def cb(aq, message_count, file_size, deq_msgs, deq_bytes):
             f.set_result({'messages': message_count, 'fsize': file_size, 'deqMsgs' : deq_msgs, 'deqBytes' : deq_bytes})
-        if not self.Dequeue(key, cb, timeout, cb_aborted, server_ex):
-            raise OSError(CAsyncQueue.SESSION_CLOSED_BEFORE,
-                          'Session already closed before sending the request Dequeue', CAsyncQueue.idDequeue)
+        if not self.Dequeue(key, cb, timeout, CAsyncQueue.get_aborted(f, 'Dequeue', CAsyncQueue.idDequeue), CAsyncQueue.get_se(f)):
+            self.throw('Dequeue', CAsyncQueue.idDequeue)
         return f
 
     def OnBaseRequestProcessed(self, reqId):

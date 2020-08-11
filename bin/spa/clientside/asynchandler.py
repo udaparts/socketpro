@@ -88,6 +88,25 @@ class CAsyncServiceHandler(object):
     SESSION_CLOSED_AFTER = -1000
     SESSION_CLOSED_BEFORE = -1001
 
+    def get_aborted(fut, method_name, reqId):
+        def cb_aborted(ah, canceled):
+            if canceled:
+                fut.cancel()
+            else:
+                cs = ah.Socket
+                ec = cs.ErrCode
+                if ec:
+                    fut.set_exception(Exception(ec, cs.ErrMsg, reqId, False))
+                else:
+                    fut.set_exception(Exception(CAsyncServiceHandler.SESSION_CLOSED_AFTER,
+                                              'Session closed after sending the request ' + method_name, reqId, False))
+        return cb_aborted
+
+    def get_se(fut):
+        def server_ex(ah, se):  # an exception from remote server
+            fut.set_exception(se)
+        return server_ex
+
     def GetCallIndex():
         with CAsyncServiceHandler._csCallIndex_:
             CAsyncServiceHandler._CallIndex_ += 1
@@ -153,6 +172,14 @@ class CAsyncServiceHandler(object):
         h = self._m_ClientSocket_.Handle
         return ccl.SendInterruptRequest(h, options)
 
+    def throw(self, method_name, reqId):
+        ec = self.Socket.ErrCode
+        if ec:
+            raise Exception(ec, self.Socket.ErrMsg, reqId, True)
+        else:
+            raise Exception(CAsyncServiceHandler.SESSION_CLOSED_BEFORE,
+                          'Session already closed before sending the request ' + method_name, reqId, True)
+
     def sendRequest(self, reqId, q):
         """
         Send a request onto a remote server for processing, and return a future immediately without blocking
@@ -161,19 +188,12 @@ class CAsyncServiceHandler(object):
         :return: A future for an instance of CScopeUQueue containing an expected result
         """
         f = future()
-        def cb_aborted(ah, canceled):
-            if canceled:
-                f.cancel()
-            else:
-                f.set_exception(OSError(CAsyncServiceHandler.SESSION_CLOSED_AFTER, 'Session closed after sending the request (reqId = ' + str(reqId) + ')', reqId))
         def arh(ar):  # ar: an instance of CAsyncResult
             sb = CScopeUQueue()
             sb.UQueue.Swap(ar.UQueue)
             f.set_result(sb)
-        def server_ex(ah, se):  # an exception from remote server
-            f.set_exception(se)
-        if not self.SendRequest(reqId, q, arh, cb_aborted, server_ex):
-            raise OSError(CAsyncServiceHandler.SESSION_CLOSED_BEFORE, 'Session already closed before sending the request (reqId = ' + str(reqId) + ')', reqId)
+        if not self.SendRequest(reqId, q, arh, CAsyncServiceHandler.get_aborted(f, 'SendRequest', reqId), CAsyncServiceHandler.get_se(f)):
+            self.throw('SendRequest', reqId)
         return f
 
     def SendRequest(self, reqId, q, arh, discarded=None, efs=None):

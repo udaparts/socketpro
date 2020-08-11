@@ -209,9 +209,13 @@ class CStreamingFile(CAsyncServiceHandler):
                                 it.ErrCode = CStreamingFile.SESSION_CLOSED_BEFORE
                                 it.ErrMsg = 'Session already closed before sending the request Upload'
                                 if it.Fut:
-                                    it.Fut.set_exception(OSError(CAsyncServiceHandler.SESSION_CLOSED_BEFORE,
-                                                                 'Session already closed before sending the request Upload',
-                                                                 CStreamingFile.idUpload))
+                                    ec = self.Socket.ErrCode
+                                    if ec:
+                                        it.Fut.set_exception(Exception(ec, self.Socket.ErrMsg,
+                                                                       CStreamingFile.idUpload, True))
+                                    else:
+                                        it.Fut.set_exception(Exception(CAsyncServiceHandler.SESSION_CLOSED_BEFORE,
+                                                                       it.ErrMsg, CStreamingFile.idUpload, True))
                                 continue
                         break
                 else:
@@ -223,9 +227,13 @@ class CStreamingFile(CAsyncServiceHandler):
                                 it.ErrCode = CStreamingFile.SESSION_CLOSED_BEFORE
                                 it.ErrMsg = 'Session already closed before sending the request Download'
                                 if it.Fut:
-                                    it.Fut.set_exception(OSError(CAsyncServiceHandler.SESSION_CLOSED_BEFORE,
-                                                                 'Session already closed before sending the request Download',
-                                                                 CStreamingFile.idDownload))
+                                    ec = self.Socket.ErrCode
+                                    if ec:
+                                        it.Fut.set_exception(Exception(ec, self.Socket.ErrMsg,
+                                                                       CStreamingFile.idDownload, True))
+                                    else:
+                                        it.Fut.set_exception(Exception(CAsyncServiceHandler.SESSION_CLOSED_BEFORE,
+                                                                 it.ErrMsg, CStreamingFile.idDownload, True))
                                 continue
                         d += 1
 
@@ -278,9 +286,9 @@ class CStreamingFile(CAsyncServiceHandler):
         :return: True if successful and False if failed when localFile or remoteFile is empty
         """
         if not localFile or str(localFile) == 0:
-            return False
+            raise ValueError('localFile cannot be empty')
         if not remoteFile or str(remoteFile) == 0:
-            return False
+            raise ValueError('remoteFile cannot be empty')
         context = CContext(True, flags)
         context.Download = up
         context.Transferring = trans
@@ -307,21 +315,10 @@ class CStreamingFile(CAsyncServiceHandler):
         FILE_OPEN_TRUNCACTED|FILE_OPEN_APPENDED and FILE_OPEN_SHARE_WRITE
         :return: A future for a final result of uploading, which contains an int and an error message
         """
-        if not localFile or str(localFile) == 0:
-            raise ValueError('localFile cannot be empty')
-        if not remoteFile or str(remoteFile) == 0:
-            raise ValueError('remoteFile cannot be empty')
         f = future()
-        def cb_aborted(ah, canceled):
-            if canceled:
-                f.cancel()
-            else:
-                f.set_exception(OSError(CStreamingFile.SESSION_CLOSED_AFTER, 'Session closed after sending the request Upload', CStreamingFile.idUpload))
         def cb_upload(file, res, errmsg):
             f.set_result({'ec':res, 'em':errmsg})
-        def server_ex(ah, se):  # an exception from remote server
-            f.set_exception(se)
-        ok = self.Upload(localFile, remoteFile, cb_upload, trans, cb_aborted, flags, server_ex)
+        ok = self.Upload(localFile, remoteFile, cb_upload, trans, CStreamingFile.get_aborted(f, 'Upload', CStreamingFile.idUpload), flags, CStreamingFile.get_se(f))
         return f
 
     def Download(self, localFile, remoteFile, dl=None, trans=None, discarded=None, flags=FILE_OPEN_TRUNCACTED, se=None):
@@ -338,9 +335,9 @@ class CStreamingFile(CAsyncServiceHandler):
         :return: True if successful and False if failed when localFile or remoteFile is empty
         """
         if not localFile or str(localFile) == 0:
-            return False
+            raise ValueError('localFile cannot be empty')
         if not remoteFile or str(remoteFile) == 0:
-            return False
+            raise ValueError('remoteFile cannot be empty')
         context = CContext(False, flags)
         context.Download = dl
         context.Transferring = trans
@@ -367,21 +364,10 @@ class CStreamingFile(CAsyncServiceHandler):
         FILE_OPEN_TRUNCACTED|FILE_OPEN_APPENDED and FILE_OPEN_SHARE_WRITE
         :return: A future for a final result ({'ec':res, 'em':errmsg}) of downloading, which contains an int and an error message
         """
-        if not localFile or str(localFile) == 0:
-            raise ValueError('localFile cannot be empty')
-        if not remoteFile or str(remoteFile) == 0:
-            raise ValueError('remoteFile cannot be empty')
         f = future()
-        def cb_aborted(file, canceled):
-            if canceled:
-                f.cancel()
-            else:
-                f.set_exception(OSError(CStreamingFile.SESSION_CLOSED_AFTER, 'Session closed after sending the request Download', CStreamingFile.idDownload))
         def cb_download(file, res, errmsg):
             f.set_result({'ec':res, 'em':errmsg})
-        def server_ex(ah, se):  # an exception from remote server
-            f.set_exception(se)
-        ok = self.Download(localFile, remoteFile, cb_download, trans, cb_aborted, flags, server_ex)
+        ok = self.Download(localFile,remoteFile, cb_download, trans, CStreamingFile.get_aborted(f, 'Download', CStreamingFile.idDownload), flags, CStreamingFile.get_se(f))
         return f
 
     def OnResultReturned(self, reqId, mc):

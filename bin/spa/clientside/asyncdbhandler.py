@@ -392,19 +392,10 @@ class CAsyncDBHandler(CAsyncServiceHandler):
 
     def close(self):
         f = future()
-        def cb_aborted(ah, canceled):
-            if canceled:
-                f.cancel()
-            else:
-                f.set_exception(OSError(CAsyncDBHandler.SESSION_CLOSED_AFTER,
-                                        'Session closed after sending the request Close', DB_CONSTS.idClose))
         def arh(ah, res, err_msg):
             f.set_result({'ec':res, 'em':err_msg})
-        def server_ex(ah, se):  # an exception from remote server
-            f.set_exception(se)
-        if not self.Close(arh, cb_aborted, server_ex):
-            raise OSError(CAsyncDBHandler.SESSION_CLOSED_BEFORE,
-                          'Session already closed before sending the request Close', DB_CONSTS.idClose)
+        if not self.Close(arh, CAsyncDBHandler.get_aborted(f, 'Close', DB_CONSTS.idClose), CAsyncDBHandler.get_se(f)):
+            self.throw('Close', DB_CONSTS.idClose)
         return f
 
     def BeginTrans(self, isolation=tagTransactionIsolation.tiReadCommited, handler=None, discarded=None, se=None):
@@ -440,19 +431,10 @@ class CAsyncDBHandler(CAsyncServiceHandler):
 
     def beginTrans(self, isolation=tagTransactionIsolation.tiReadCommited):
         f = future()
-        def cb_aborted(ah, canceled):
-            if canceled:
-                f.cancel()
-            else:
-                f.set_exception(OSError(CAsyncDBHandler.SESSION_CLOSED_AFTER,
-                                        'Session closed after sending the request BeginTrans', DB_CONSTS.idBeginTrans))
         def arh(ah, res, err_msg):
             f.set_result({'ec':res, 'em':err_msg})
-        def server_ex(ah, se):  # an exception from remote server
-            f.set_exception(se)
-        if not self.BeginTrans(isolation, arh, cb_aborted, server_ex):
-            raise OSError(CAsyncDBHandler.SESSION_CLOSED_BEFORE,
-                          'Session already closed before sending the request BeginTrans', DB_CONSTS.idBeginTrans)
+        if not self.BeginTrans(isolation, arh, CAsyncDBHandler.get_aborted(f, 'BeginTrans', DB_CONSTS.idBeginTrans), CAsyncDBHandler.get_se(f)):
+            self.throw('BeginTrans', DB_CONSTS.idBeginTrans)
         return f
 
     def EndTrans(self, plan=tagRollbackPlan.rpDefault, handler=None, discarded=None, se=None):
@@ -489,19 +471,10 @@ class CAsyncDBHandler(CAsyncServiceHandler):
 
     def endTrans(self, plan=tagRollbackPlan.rpDefault):
         f = future()
-        def cb_aborted(ah, canceled):
-            if canceled:
-                f.cancel()
-            else:
-                f.set_exception(OSError(CAsyncDBHandler.SESSION_CLOSED_AFTER,
-                                        'Session closed after sending the request EndTrans', DB_CONSTS.idEndTrans))
         def arh(ah, res, err_msg):
             f.set_result({'ec':res, 'em':err_msg})
-        def server_ex(ah, se):  # an exception from remote server
-            f.set_exception(se)
-        if not self.EndTrans(plan, arh, cb_aborted, server_ex):
-            raise OSError(CAsyncDBHandler.SESSION_CLOSED_BEFORE,
-                          'Session already closed before sending the request EndTrans', DB_CONSTS.idEndTrans)
+        if not self.EndTrans(plan, arh, CAsyncDBHandler.get_aborted(f, 'EndTrans', DB_CONSTS.idEndTrans), CAsyncDBHandler.get_se(f)):
+            self.throw('EndTrans', DB_CONSTS.idEndTrans)
         return f
 
     def Open(self, strConnection, handler=None, flags=0, discarded=None, se=None):
@@ -537,19 +510,10 @@ class CAsyncDBHandler(CAsyncServiceHandler):
 
     def open(self, strConnection, flags=0):
         f = future()
-        def cb_aborted(ah, canceled):
-            if canceled:
-                f.cancel()
-            else:
-                f.set_exception(OSError(CAsyncDBHandler.SESSION_CLOSED_AFTER,
-                                        'Session closed after sending the request Open', DB_CONSTS.idOpen))
         def arh(ah, res, err_msg):
             f.set_result({'ec':res, 'em':err_msg})
-        def server_ex(ah, se):  # an exception from remote server
-            f.set_exception(se)
-        if not self.Open(strConnection, arh, flags, cb_aborted, server_ex):
-            raise OSError(CAsyncDBHandler.SESSION_CLOSED_BEFORE,
-                          'Session already closed before sending the request Open', DB_CONSTS.idOpen)
+        if not self.Open(strConnection, arh, flags, CAsyncDBHandler.get_aborted(f, 'Open', DB_CONSTS.idOpen), CAsyncDBHandler.get_se(f)):
+            self.throw('Open', DB_CONSTS.idOpen)
         return f
 
     def Prepare(self, sql, handler=None, lstParameterInfo=[], discarded=None, se=None):
@@ -584,19 +548,10 @@ class CAsyncDBHandler(CAsyncServiceHandler):
 
     def prepare(self, sql, lstParameterInfo=[]):
         f = future()
-        def cb_aborted(ah, canceled):
-            if canceled:
-                f.cancel()
-            else:
-                f.set_exception(OSError(CAsyncDBHandler.SESSION_CLOSED_AFTER,
-                                        'Session closed after sending the request Prepare', DB_CONSTS.idPrepare))
         def arh(ah, res, err_msg):
             f.set_result({'ec':res, 'em':err_msg})
-        def server_ex(ah, se):  # an exception from remote server
-            f.set_exception(se)
-        if not self.Prepare(sql, arh, lstParameterInfo, cb_aborted, server_ex):
-            raise OSError(CAsyncDBHandler.SESSION_CLOSED_BEFORE,
-                          'Session already closed before sending the request Prepare', DB_CONSTS.idPrepare)
+        if not self.Prepare(sql, arh, lstParameterInfo, CAsyncDBHandler.get_aborted(f, 'Prepare', DB_CONSTS.idPrepare), CAsyncDBHandler.get_se(f)):
+            self.throw('Prepare', DB_CONSTS.idPrepare)
         return f
 
     def Execute(self, sql_or_array, handler=None, row=None, rh=None, meta=True, lastInsertId=True, discarded=None, se=None):
@@ -607,25 +562,19 @@ class CAsyncDBHandler(CAsyncServiceHandler):
         return self.ExecuteSql(sql_or_array, handler, row, rh, meta, lastInsertId, discarded, se)
 
     def execute(self, sql_or_array, row=None, rh=None, meta=True, lastInsertId=True):
+        method_name = 'ExecuteSql'
         reqId = DB_CONSTS.idExecute;
         if isinstance(sql_or_array, list):
             reqId = DB_CONSTS.idExecuteParameters
+            method_name = 'ExecuteParameters'
         elif isinstance(sql_or_array, tuple):
             reqId = DB_CONSTS.idExecuteParameters
+            method_name = 'ExecuteParameters'
         f = future()
-        def cb_aborted(ah, canceled):
-            if canceled:
-                f.cancel()
-            else:
-                f.set_exception(OSError(CAsyncDBHandler.SESSION_CLOSED_AFTER,
-                                        'Session closed after sending the request Execute', reqId))
         def arh(ah, res, err_msg, affected, fail_ok, last_id):
             f.set_result({'ec':res, 'em':err_msg, 'affected':affected, 'oks': (fail_ok&0xffffffff), 'fails': (fail_ok>>32), 'lastId': last_id})
-        def server_ex(ah, se):  # an exception from remote server
-            f.set_exception(se)
-        if not self.Execute(sql_or_array, arh, row, rh, meta, lastInsertId, cb_aborted, server_ex):
-            raise OSError(CAsyncDBHandler.SESSION_CLOSED_BEFORE,
-                          'Session already closed before sending the request Execute', reqId)
+        if not self.Execute(sql_or_array, arh, row, rh, meta, lastInsertId, CAsyncDBHandler.get_aborted(f, method_name, reqId), CAsyncDBHandler.get_se(f)):
+            self.throw(method_name, reqId)
         return f
 
     def ExecuteSql(self, sql, handler=None, row=None, rh=None, meta=True, lastInsertId=True, discarded=None, se=None):
@@ -855,7 +804,8 @@ class CAsyncDBHandler(CAsyncServiceHandler):
             f.set_result({'ec':res, 'em':err_msg, 'affected':affected, 'oks': (fail_ok&0xffffffff), 'fails': (fail_ok>>32), 'lastId': last_id})
         def server_ex(ah, se):  # an exception from remote server
             f.set_exception(se)
-        if not self.ExecuteBatch(isolation, sql, vParam, arh, row, rh, batchHeader, vPInfo, plan, cb_aborted, delimiter, meta, lastInsertId, server_ex):
-            raise OSError(CAsyncDBHandler.SESSION_CLOSED_BEFORE,
-                          'Session already closed before sending the request ExecuteBatch', DB_CONSTS.idExecuteBatch)
+        if not self.ExecuteBatch(isolation, sql, vParam, arh, row, rh, batchHeader, vPInfo, plan,
+                                 CAsyncDBHandler.get_aborted(f, 'ExecuteBatch', DB_CONSTS.idExecuteBatch), delimiter,
+                                 meta, lastInsertId, CAsyncDBHandler.get_se(f)):
+            self.throw('ExecuteBatch', DB_CONSTS.idExecuteBatch)
         return f
