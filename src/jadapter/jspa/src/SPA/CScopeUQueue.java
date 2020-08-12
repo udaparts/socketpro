@@ -5,12 +5,6 @@ import java.util.ArrayDeque;
 public final class CScopeUQueue implements AutoCloseable {
 
     @Override
-    protected void finalize() throws Throwable {
-        Clean();
-        super.finalize();
-    }
-
-    @Override
     public void close() {
         Clean();
     }

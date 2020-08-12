@@ -506,7 +506,7 @@ JNIEXPORT jboolean JNICALL Java_SPA_ServerSide_ServerCoreLoader_SetUserID(JNIEnv
     if (!userId)
         return SetUserID((USocket_Server_Handle) h, L"");
     const jchar *uid = env->GetStringChars(userId, nullptr);
-    std::vector<jchar> v(uid, uid + env->GetStringLength(userId));
+    std::basic_string<jchar> v(uid, uid + env->GetStringLength(userId));
     jchar c = 0;
     v.push_back(c); //null-terminated
     bool ok = SetUserID((USocket_Server_Handle) h, (const wchar_t *) v.data());
@@ -524,7 +524,7 @@ JNIEXPORT jboolean JNICALL Java_SPA_ServerSide_ServerCoreLoader_SetPassword(JNIE
     if (!pwd)
         return SetPassword((USocket_Server_Handle) h, L"");
     const jchar *p = env->GetStringChars(pwd, nullptr);
-    std::vector<jchar> v(p, p + env->GetStringLength(pwd));
+    std::basic_string<jchar> v(p, p + env->GetStringLength(pwd));
     jchar c = 0;
     v.push_back(c); //null-terminated
     bool ok = SetPassword((USocket_Server_Handle) h, (const wchar_t *) v.data());
@@ -613,7 +613,7 @@ JNIEXPORT jboolean JNICALL Java_SPA_ServerSide_ServerCoreLoader_SpeakExPush(JNIE
 }
 
 JNIEXPORT jboolean JNICALL Java_SPA_ServerSide_ServerCoreLoader_SendUserMessageEx(JNIEnv *env, jclass, jlong h, jstring userId, jbyteArray msg, jint size) {
-    std::vector<jchar> v;
+    std::basic_string<jchar> v;
     const jchar *uid = nullptr;
     if (userId) {
         uid = env->GetStringChars(userId, nullptr);
@@ -633,7 +633,7 @@ JNIEXPORT jboolean JNICALL Java_SPA_ServerSide_ServerCoreLoader_SendUserMessageE
 }
 
 JNIEXPORT jboolean JNICALL Java_SPA_ServerSide_ServerCoreLoader_SendUserMessageExPush(JNIEnv *env, jclass, jstring userId, jbyteArray msg, jint size) {
-    std::vector<jchar> v;
+    std::basic_string<jchar> v;
     const jchar *uid = nullptr;
     if (userId) {
         uid = env->GetStringChars(userId, nullptr);
@@ -653,7 +653,7 @@ JNIEXPORT jboolean JNICALL Java_SPA_ServerSide_ServerCoreLoader_SendUserMessageE
 }
 
 JNIEXPORT jboolean JNICALL Java_SPA_ServerSide_ServerCoreLoader_SendUserMessage(JNIEnv *env, jclass, jlong h, jstring userId, jbyteArray msg, jint size) {
-    std::vector<jchar> v;
+    std::basic_string<jchar> v;
     const jchar *uid = nullptr;
     if (userId) {
         uid = env->GetStringChars(userId, nullptr);
@@ -673,7 +673,7 @@ JNIEXPORT jboolean JNICALL Java_SPA_ServerSide_ServerCoreLoader_SendUserMessage(
 }
 
 JNIEXPORT jboolean JNICALL Java_SPA_ServerSide_ServerCoreLoader_SendUserMessagePush(JNIEnv *env, jclass, jstring userId, jbyteArray msg, jint size) {
-    std::vector<jchar> v;
+    std::basic_string<jchar> v;
     const jchar *uid = nullptr;
     if (userId) {
         uid = env->GetStringChars(userId, nullptr);
@@ -727,7 +727,7 @@ JNIEXPORT jstring JNICALL Java_SPA_ServerSide_ServerCoreLoader_GetLocalName(JNIE
 }
 
 JNIEXPORT jboolean JNICALL Java_SPA_ServerSide_ServerCoreLoader_HasUserId(JNIEnv *env, jclass, jstring userId) {
-    std::vector<jchar> v;
+    std::basic_string<jchar> v;
     const jchar *uid = nullptr;
     if (userId) {
         uid = env->GetStringChars(userId, nullptr);
@@ -746,7 +746,7 @@ JNIEXPORT void JNICALL Java_SPA_ServerSide_ServerCoreLoader_DropCurrentSlowReque
 }
 
 JNIEXPORT void JNICALL Java_SPA_ServerSide_ServerCoreLoader_AddAChatGroup(JNIEnv *env, jclass, jint chatId, jstring description) {
-    std::vector<jchar> v;
+    std::basic_string<jchar> v;
     const jchar *des = nullptr;
     if (description) {
         des = env->GetStringChars(description, nullptr);
@@ -806,7 +806,7 @@ JNIEXPORT jbyte JNICALL Java_SPA_ServerSide_ServerCoreLoader_GetPeerOs(JNIEnv *e
 JNIEXPORT jint JNICALL Java_SPA_ServerSide_ServerCoreLoader_SendExceptionResultIndex(JNIEnv *env, jclass, jlong h, jlong index, jstring errMessage, jbyteArray errWhere, jshort reqId, jint errCode) {
     const jchar *errMsg = nullptr;
     jbyte *errPos = nullptr;
-    std::vector<jchar> vMsg;
+    std::basic_string<jchar> vMsg;
     std::string vWhere;
     if (errMessage) {
         jsize len = env->GetStringLength(errMessage);
@@ -829,7 +829,7 @@ JNIEXPORT jint JNICALL Java_SPA_ServerSide_ServerCoreLoader_SendExceptionResultI
 JNIEXPORT jint JNICALL Java_SPA_ServerSide_ServerCoreLoader_SendExceptionResult(JNIEnv *env, jclass, jlong h, jstring errMessage, jbyteArray errWhere, jshort reqId, jint errCode) {
     const jchar *errMsg = nullptr;
     jbyte *errPos = nullptr;
-    std::vector<jchar> vMsg;
+    std::basic_string<jchar> vMsg;
     std::string vWhere;
     if (errMessage) {
         jsize len = env->GetStringLength(errMessage);

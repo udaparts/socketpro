@@ -4,6 +4,8 @@ import SPA.*;
 import SPA.ClientSide.*;
 import uqueue_demo.CMyStruct;
 import hello_world.hwConst;
+import java.util.concurrent.Future;
+import java.util.concurrent.ExecutionException;
 
 public class Program {
 
@@ -11,8 +13,8 @@ public class Program {
         CConnectionContext cc = new CConnectionContext("localhost", 20901, "hwClientUserId", "password4hwClient");
         try (CSocketPool<HelloWorld> spHw = new CSocketPool<>(HelloWorld.class, true)) {
             //optionally start a persistent queue at client side to ensure auto failure recovery and once-only delivery
-            //spHw.setQueueName("helloworld");
-            boolean ok = spHw.StartSocketPool(cc, 1); //1
+            spHw.setQueueName("helloworld");
+            boolean ok = spHw.StartSocketPool(cc, 1);
             HelloWorld hw = spHw.getAsyncHandlers()[0];
             if (!ok) {
                 System.out.println("No connection error code = " + hw.getAttachedClientSocket().getErrorCode());
@@ -21,38 +23,47 @@ public class Program {
             CMyStruct ms, msO = CMyStruct.MakeOne();
             try {
                 //process requests one by one synchronously
-                System.out.println(hw.SayHello("Jone", "Dole")); //2
-                ok = hw.Sleep(5000); //3
-                ms = hw.Echo(msO); //4
+                System.out.println(hw.SayHello("John", "Dole"));
+                hw.Sleep(5000);
+                ms = hw.Echo(msO);
                 assert ms == msO;
-            } catch (Exception err) {
-                System.out.println(err.getMessage());
+            } catch (CServerError ex) {
+                System.out.println("----SERVER EXCEPTION----");
+                System.out.println(ex.getWhere());
+                System.out.println(ex.getMessage());
+                System.out.println("----EXCEPTION----");
+            } catch (CSocketError ex) {
+                System.out.println(ex.getMessage());
+            } catch (ExecutionException ex) {
+                System.out.println(ex.getMessage());
+            } catch (Exception ex) {
+                System.out.println(ex.getMessage());
             }
-            //asynchronously process multiple requests with inline batching for best network efficiency
-            ok = hw.SendRequest(hwConst.idSayHello, new CScopeUQueue().Save("Jack").Save("Smith"), (ar) -> { //5
-                String ret = ar.LoadString();
-                System.out.println(ret);
-            });
-            ok = hw.SendRequest(hwConst.idSayHello, new CScopeUQueue().Save("Donald").Save("Trump"), (ar) -> { //6
-                String ret = ar.LoadString();
-                System.out.println(ret);
-            });
-            ok = hw.SendRequest(hwConst.idSayHello, new CScopeUQueue().Save("Hilary").Save("Clinton"), (ar) -> { //7
-                String ret = ar.LoadString();
-                System.out.println(ret);
-            });
-            ok = hw.SendRequest(hwConst.idSleep, new CScopeUQueue().Save(5000), null); //8
-            final UFuture<CMyStruct> f = new UFuture<>();
             try {
-                ok = hw.SendRequest(hwConst.idEcho, new CScopeUQueue().Save(msO), (ar) -> { //9
-                    f.set(ar.Load(CMyStruct.class));
-                }, (ash, canceled) -> {
-                    f.setCanceled();
-                });
-                ms = f.get(); //10
+                //asynchronously process multiple requests with inline batching for best network efficiency
+                Future<CScopeUQueue> f0 = hw.sendRequest(hwConst.idSayHello, new CScopeUQueue().Save("Jack").Save("Smith"));
+                Future<CScopeUQueue> f1 = hw.sendRequest(hwConst.idSayHello, new CScopeUQueue().Save("Donald").Save("Trump"));
+                Future<CScopeUQueue> f2 = hw.sendRequest(hwConst.idSleep, new CScopeUQueue().Save(15000));
+                Future<CScopeUQueue> f3 = hw.sendRequest(hwConst.idSayHello, new CScopeUQueue().Save("Hilary").Save("Clinton"));
+                Future<CScopeUQueue> f4 = hw.sendRequest(hwConst.idEcho, new CScopeUQueue().Save(msO));
+                System.out.println(f0.get().getUQueue().LoadString());
+                System.out.println(f1.get().getUQueue().LoadString());
+                assert 0 == f2.get().getUQueue().getSize();
+                System.out.println(f3.get().getUQueue().LoadString());
+                CScopeUQueue sb = f4.get();
+                ms = sb.getUQueue().Load(uqueue_demo.CMyStruct.class);
                 assert ms == msO;
-            } catch (Exception err) {
-                System.out.println(err.getMessage());
+            } catch (CServerError ex) {
+                System.out.println("----SERVER EXCEPTION----");
+                System.out.println(ex.getMessage());
+                System.out.println(ex.getWhere());
+                System.out.println("----EXCEPTION----");
+            } catch (CSocketError ex) {
+                System.out.println(ex.getMessage());
+            } catch (ExecutionException ex) {
+                System.out.println(ex.getMessage());
+            } catch (Exception ex) {
+                System.out.println(ex.getMessage());
             }
             System.out.println("Press ENTER key to shutdown the demo application ......");
             new java.util.Scanner(System.in).nextLine();

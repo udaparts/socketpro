@@ -904,7 +904,7 @@ JNIEXPORT jboolean JNICALL Java_SPA_ClientSide_ClientCoreLoader_SendUserMessage(
         size = 0;
     if (userId) {
         const jchar *uid = env->GetStringChars(userId, nullptr);
-        std::vector<jchar> v(uid, uid + env->GetStringLength(userId));
+        std::basic_string<jchar> v(uid, uid + env->GetStringLength(userId));
         jchar c = 0;
         v.push_back(c); //null-terminated
         ok = SendUserMessage((USocket_Client_Handle) h, (const wchar_t *) v.data(), (const unsigned char*) msg, (unsigned int) size);
@@ -926,7 +926,7 @@ JNIEXPORT jboolean JNICALL Java_SPA_ClientSide_ClientCoreLoader_SendUserMessageE
         size = 0;
     if (userId) {
         const jchar *uid = env->GetStringChars(userId, nullptr);
-        std::vector<jchar> v(uid, uid + env->GetStringLength(userId));
+        std::basic_string<jchar> v(uid, uid + env->GetStringLength(userId));
         jchar c = 0;
         v.push_back(c); //null-terminated
         ok = SendUserMessageEx((USocket_Client_Handle) h, (const wchar_t*) v.data(), (const unsigned char*) msg, (unsigned int) size);

@@ -3,6 +3,7 @@ package SPA.ClientSide;
 import SPA.*;
 import SPA.UDB.*;
 import java.nio.charset.Charset;
+import java.util.concurrent.Future;
 
 public class CAsyncDBHandler extends CAsyncServiceHandler {
 
@@ -350,8 +351,8 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
      * @return true if request is successfully sent or queued; and false if
      * request is NOT successfully sent or queued
      */
-    public final boolean Close() {
-        return Close(null, null);
+    public final boolean CloseDb() {
+        return CloseDb(null, null, null);
     }
 
     /**
@@ -363,8 +364,8 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
      * @return true if request is successfully sent or queued; and false if
      * request is NOT successfully sent or queued
      */
-    public boolean Close(DResult handler) {
-        return Close(handler, null);
+    public boolean CloseDb(DResult handler) {
+        return CloseDb(handler, null, null);
     }
 
     /**
@@ -377,7 +378,22 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
      * @return true if request is successfully sent or queued; and false if
      * request is NOT successfully sent or queued
      */
-    public boolean Close(DResult handler, DDiscarded discarded) {
+    public boolean CloseDb(DResult handler, DDiscarded discarded) {
+        return CloseDb(handler, discarded, null);
+    }
+
+    /**
+     * Notify connected remote server to close database connection string
+     * asynchronously
+     *
+     * @param handler a callback for closing result, which should be OK always
+     * as long as there is network or queue available
+     * @param discarded a callback for tracking cancel or socket closed event
+     * @param se a callback for tracking an exception from server
+     * @return true if request is successfully sent or queued; and false if
+     * request is NOT successfully sent or queued
+     */
+    public boolean CloseDb(DResult handler, DDiscarded discarded, DOnExceptionFromServer se) {
         MyCallback<DResult> cb = new MyCallback<>(DB_CONSTS.idClose, handler);
         synchronized (m_csOneSending) {
             //don't make m_csDB locked across calling SendRequest, which may lead to client dead-lock
@@ -385,7 +401,7 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
             synchronized (m_csDB) {
                 m_deqResult.add(cb);
             }
-            if (!SendRequest(DB_CONSTS.idClose, null, discarded)) {
+            if (!SendRequest(DB_CONSTS.idClose, null, discarded, se)) {
                 synchronized (m_csDB) {
                     m_deqResult.remove(cb);
                 }
@@ -393,6 +409,31 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
             }
         }
         return true;
+    }
+
+    private DResult getHandler(UFuture<ErrInfo> f) {
+        DResult handler = new DResult() {
+            @Override
+            public void invoke(CAsyncDBHandler dbHandler, int res, String errMsg) {
+                f.set(new ErrInfo(res, errMsg));
+            }
+        };
+        return handler;
+    }
+
+    /**
+     * Notify connected remote server to close database connection string
+     * asynchronously
+     *
+     * @return a future for execution error information
+     * @throws CSocketError if communication channel is not sendable
+     */
+    public Future<ErrInfo> closeDb() throws CSocketError {
+        UFuture<ErrInfo> f = new UFuture<>();
+        if (!CloseDb(getHandler(f), CAsyncDBHandler.getAborted(f, "CloseDb", DB_CONSTS.idClose), CAsyncDBHandler.getSE(f))) {
+            raise("CloseDb", DB_CONSTS.idClose);
+        }
+        return f;
     }
 
     /**
@@ -405,7 +446,7 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
      * request is NOT successfully sent or queued
      */
     public final boolean BeginTrans() {
-        return BeginTrans(tagTransactionIsolation.tiReadCommited, null, null);
+        return BeginTrans(tagTransactionIsolation.tiReadCommited, null, null, null);
     }
 
     /**
@@ -413,13 +454,13 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
      * the transaction will be associated with SocketPro client message queue if
      * available to avoid possible transaction lose
      *
-     * @param isolation a second for transaction isolation. It defaults to
+     * @param isolation a transaction isolation. It defaults to
      * tagTransactionIsolation.tiReadCommited
      * @return true if request is successfully sent or queued; and false if
      * request is NOT successfully sent or queued
      */
     public final boolean BeginTrans(tagTransactionIsolation isolation) {
-        return BeginTrans(isolation, null, null);
+        return BeginTrans(isolation, null, null, null);
     }
 
     /**
@@ -427,14 +468,14 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
      * the transaction will be associated with SocketPro client message queue if
      * available to avoid possible transaction lose
      *
-     * @param isolation a second for transaction isolation. It defaults to
+     * @param isolation a transaction isolation. It defaults to
      * tagTransactionIsolation.tiReadCommited
      * @param handler a callback for tracking its response result
      * @return true if request is successfully sent or queued; and false if
      * request is NOT successfully sent or queued
      */
     public final boolean BeginTrans(tagTransactionIsolation isolation, DResult handler) {
-        return BeginTrans(isolation, handler, null);
+        return BeginTrans(isolation, handler, null, null);
     }
 
     /**
@@ -442,14 +483,31 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
      * the transaction will be associated with SocketPro client message queue if
      * available to avoid possible transaction lose
      *
-     * @param isolation a second for transaction isolation. It defaults to
+     * @param isolation a transaction isolation. It defaults to
      * tagTransactionIsolation.tiReadCommited
      * @param handler a callback for tracking its response result
      * @param discarded a callback for tracking cancel or socket closed event
      * @return true if request is successfully sent or queued; and false if
      * request is NOT successfully sent or queued
      */
-    public boolean BeginTrans(tagTransactionIsolation isolation, DResult handler, DDiscarded discarded) {
+    public final boolean BeginTrans(tagTransactionIsolation isolation, DResult handler, DDiscarded discarded) {
+        return BeginTrans(isolation, handler, discarded, null);
+    }
+
+    /**
+     * Start a manual transaction with a given isolation asynchronously. Note
+     * the transaction will be associated with SocketPro client message queue if
+     * available to avoid possible transaction lose
+     *
+     * @param isolation a transaction isolation. It defaults to
+     * tagTransactionIsolation.tiReadCommited
+     * @param handler a callback for tracking its response result
+     * @param discarded a callback for tracking cancel or socket closed event
+     * @param se a callback for tracking an exception from server
+     * @return true if request is successfully sent or queued; and false if
+     * request is NOT successfully sent or queued
+     */
+    public boolean BeginTrans(tagTransactionIsolation isolation, DResult handler, DDiscarded discarded, DOnExceptionFromServer se) {
         MyCallback<DResult> cb = new MyCallback<>(DB_CONSTS.idBeginTrans, handler);
         try (CScopeUQueue sq = new CScopeUQueue()) {
             //make sure BeginTrans sending and underlying client persistent message queue as one combination sending
@@ -464,7 +522,7 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
                     sq.Save(isolation.getValue()).Save(m_strConnection).Save(m_flags);
                     m_deqResult.add(cb);
                 }
-                if (!SendRequest(DB_CONSTS.idBeginTrans, sq, null, discarded)) {
+                if (!SendRequest(DB_CONSTS.idBeginTrans, sq, null, discarded, se)) {
                     synchronized (m_csDB) {
                         m_deqResult.remove(cb);
                     }
@@ -473,6 +531,36 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
             }
             return true;
         }
+    }
+
+    /**
+     * Start a manual transaction with a given isolation asynchronously. Note
+     * the transaction will be associated with SocketPro client message queue if
+     * available to avoid possible transaction lose
+     *
+     * @param isolation a transaction isolation. It defaults to
+     * tagTransactionIsolation.tiReadCommited
+     * @return a future for execution error information
+     * @throws CSocketError if communication channel is not sendable
+     */
+    public Future<ErrInfo> beginTrans(tagTransactionIsolation isolation) throws CSocketError {
+        UFuture<ErrInfo> f = new UFuture<>();
+        if (!BeginTrans(isolation, getHandler(f), CAsyncDBHandler.getAborted(f, "BeginTrans", DB_CONSTS.idBeginTrans), CAsyncDBHandler.getSE(f))) {
+            raise("BeginTrans", DB_CONSTS.idBeginTrans);
+        }
+        return f;
+    }
+
+    /**
+     * Start a manual transaction with a given isolation asynchronously. Note
+     * the transaction will be associated with SocketPro client message queue if
+     * available to avoid possible transaction lose
+     *
+     * @return a future for execution error information
+     * @throws CSocketError if communication channel is not sendable
+     */
+    public Future<ErrInfo> beginTrans() throws CSocketError {
+        return beginTrans(tagTransactionIsolation.tiReadCommited);
     }
 
     /**
@@ -485,7 +573,7 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
      * request is NOT successfully sent or queued
      */
     public final boolean EndTrans() {
-        return EndTrans(tagRollbackPlan.rpDefault, null, null);
+        return EndTrans(tagRollbackPlan.rpDefault, null, null, null);
     }
 
     /**
@@ -493,13 +581,13 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
      * will be associated with SocketPro client message queue if available to
      * avoid possible transaction lose
      *
-     * @param plan a second for computing how included transactions should be
-     * rollback at server side. It defaults to tagRollbackPlan.rpDefault
+     * @param plan a schedule about how included transactions should be rollback
+     * at server side. It defaults to tagRollbackPlan.rpDefault
      * @return true if request is successfully sent or queued; and false if
      * request is NOT successfully sent or queued
      */
     public final boolean EndTrans(tagRollbackPlan plan) {
-        return EndTrans(plan, null, null);
+        return EndTrans(plan, null, null, null);
     }
 
     /**
@@ -507,14 +595,14 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
      * will be associated with SocketPro client message queue if available to
      * avoid possible transaction lose
      *
-     * @param plan a second for computing how included transactions should be
-     * rollback at server side. It defaults to tagRollbackPlan.rpDefault
+     * @param plan a schedule about how included transactions should be rollback
+     * at server side. It defaults to tagRollbackPlan.rpDefault
      * @param handler a callback for tracking its response result
      * @return true if request is successfully sent or queued; and false if
      * request is NOT successfully sent or queued
      */
     public boolean EndTrans(tagRollbackPlan plan, DResult handler) {
-        return EndTrans(plan, handler, null);
+        return EndTrans(plan, handler, null, null);
     }
 
     /**
@@ -522,14 +610,31 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
      * will be associated with SocketPro client message queue if available to
      * avoid possible transaction lose
      *
-     * @param plan a second for computing how included transactions should be
-     * rollback at server side. It defaults to tagRollbackPlan.rpDefault
+     * @param plan a schedule about how included transactions should be rollback
+     * at server side. It defaults to tagRollbackPlan.rpDefault
      * @param handler a callback for tracking its response result
      * @param discarded a callback for tracking cancel or socket closed event
      * @return true if request is successfully sent or queued; and false if
      * request is NOT successfully sent or queued
      */
     public boolean EndTrans(tagRollbackPlan plan, DResult handler, DDiscarded discarded) {
+        return EndTrans(plan, handler, discarded, null);
+    }
+
+    /**
+     * End a manual transaction with a given rollback plan. Note the transaction
+     * will be associated with SocketPro client message queue if available to
+     * avoid possible transaction lose
+     *
+     * @param plan a schedule about how included transactions should be rollback
+     * at server side. It defaults to tagRollbackPlan.rpDefault
+     * @param handler a callback for tracking its response result
+     * @param discarded a callback for tracking cancel or socket closed event
+     * @param se a callback for tracking an exception from server
+     * @return true if request is successfully sent or queued; and false if
+     * request is NOT successfully sent or queued
+     */
+    public boolean EndTrans(tagRollbackPlan plan, DResult handler, DDiscarded discarded, DOnExceptionFromServer se) {
         boolean ok;
         MyCallback<DResult> cb = new MyCallback<>(DB_CONSTS.idEndTrans, handler);
         try (CScopeUQueue sq = new CScopeUQueue()) {
@@ -542,7 +647,7 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
                 synchronized (m_csDB) {
                     m_deqResult.add(cb);
                 }
-                ok = SendRequest(DB_CONSTS.idEndTrans, sq, null, discarded);
+                ok = SendRequest(DB_CONSTS.idEndTrans, sq, null, discarded, se);
                 if (ok) {
                     if (m_queueOk) {
                         //associate end transaction with underlying client persistent message queue
@@ -559,7 +664,50 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
         }
     }
 
+    /**
+     * End a manual transaction with a given rollback plan. Note the transaction
+     * will be associated with SocketPro client message queue if available to
+     * avoid possible transaction lose
+     *
+     * @param plan a schedule about how included transactions should be rollback
+     * at server side. It defaults to tagRollbackPlan.rpDefault
+     * @return A future for execution error information
+     * @throws CSocketError if communication channel is not sendable
+     */
+    public Future<ErrInfo> endTrans(tagRollbackPlan plan) throws CSocketError {
+        UFuture<ErrInfo> f = new UFuture<>();
+        if (!EndTrans(plan, getHandler(f), CAsyncDBHandler.getAborted(f, "EndTrans", DB_CONSTS.idEndTrans), CAsyncDBHandler.getSE(f))) {
+            raise("EndTrans", DB_CONSTS.idEndTrans);
+        }
+        return f;
+    }
+
+    /**
+     * End a manual transaction with a given rollback plan. Note the transaction
+     * will be associated with SocketPro client message queue if available to
+     * avoid possible transaction lose
+     *
+     * @return A future for execution error information
+     * @throws CSocketError if communication channel is not sendable
+     */
+    public Future<ErrInfo> endTrans() throws CSocketError {
+        return endTrans(tagRollbackPlan.rpDefault);
+    }
+
     private static final Charset UTF8_CHARSET = Charset.forName("UTF-8");
+
+    /**
+     * Open a database connection at server side asynchronously
+     *
+     * @param strConnection a database connection string. The database
+     * connection string can be an empty string if its server side supports
+     * global database connection string
+     * @return true if request is successfully sent or queued; and false if
+     * request is NOT successfully sent or queued
+     */
+    public final boolean Open(String strConnection) {
+        return Open(strConnection, null, 0, null, null);
+    }
 
     /**
      * Open a database connection at server side asynchronously
@@ -572,7 +720,7 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
      * request is NOT successfully sent or queued
      */
     public final boolean Open(String strConnection, DResult handler) {
-        return Open(strConnection, handler, 0, null);
+        return Open(strConnection, handler, 0, null, null);
     }
 
     /**
@@ -588,7 +736,7 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
      * request is NOT successfully sent or queued
      */
     public boolean Open(String strConnection, DResult handler, int flags) {
-        return Open(strConnection, handler, flags, null);
+        return Open(strConnection, handler, flags, null, null);
     }
 
     /**
@@ -605,6 +753,24 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
      * request is NOT successfully sent or queued
      */
     public boolean Open(String strConnection, DResult handler, int flags, DDiscarded discarded) {
+        return Open(strConnection, handler, flags, discarded, null);
+    }
+
+    /**
+     * Open a database connection at server side asynchronously
+     *
+     * @param strConnection a database connection string. The database
+     * connection string can be an empty string if its server side supports
+     * global database connection string
+     * @param handler a callback for database connecting result
+     * @param flags a set of flags transferred to server to indicate how to
+     * build database connection at server side. It defaults to zero
+     * @param discarded a callback for tracking cancel or socket closed event
+     * @param se a callback for tracking an exception from server
+     * @return true if request is successfully sent or queued; and false if
+     * request is NOT successfully sent or queued
+     */
+    public boolean Open(String strConnection, DResult handler, int flags, DDiscarded discarded, DOnExceptionFromServer se) {
         String str = null;
         MyCallback<DResult> cb = new MyCallback<>(DB_CONSTS.idOpen, handler);
         try (CScopeUQueue sb = new CScopeUQueue()) {
@@ -620,7 +786,7 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
                     }
                     m_deqResult.add(cb);
                 }
-                if (SendRequest(DB_CONSTS.idOpen, sb, null, discarded)) {
+                if (SendRequest(DB_CONSTS.idOpen, sb, null, discarded, se)) {
                     return true;
                 } else {
                     synchronized (m_csDB) {
@@ -636,6 +802,38 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
     }
 
     /**
+     * Open a database connection at server side asynchronously
+     *
+     * @param strConnection a database connection string. The database
+     * connection string can be an empty string if its server side supports
+     * global database connection string
+     * @param flags a set of flags transferred to server to indicate how to
+     * build database connection at server side. It defaults to zero
+     * @return a future for execution error information
+     * @throws CSocketError if communication channel is not sendable
+     */
+    public Future<ErrInfo> open(String strConnection, int flags) throws CSocketError {
+        UFuture<ErrInfo> f = new UFuture<>();
+        if (!Open(strConnection, getHandler(f), flags, CAsyncDBHandler.getAborted(f, "Open", DB_CONSTS.idOpen), CAsyncDBHandler.getSE(f))) {
+            raise("Open", DB_CONSTS.idOpen);
+        }
+        return f;
+    }
+
+    /**
+     * Open a database connection at server side asynchronously
+     *
+     * @param strConnection a database connection string. The database
+     * connection string can be an empty string if its server side supports
+     * global database connection string
+     * @return a future for execution error information
+     * @throws CSocketError if communication channel is not sendable
+     */
+    public Future<ErrInfo> open(String strConnection) throws CSocketError {
+        return open(strConnection, 0);
+    }
+
+    /**
      * Send a parameterized SQL statement for preparing asynchronously
      *
      * @param sql a parameterized SQL statement
@@ -643,7 +841,7 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
      * request is NOT successfully sent or queued
      */
     public final boolean Prepare(String sql) {
-        return Prepare(sql, null, null, null);
+        return Prepare(sql, null, null, null, null);
     }
 
     /**
@@ -655,7 +853,7 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
      * request is NOT successfully sent or queued
      */
     public final boolean Prepare(String sql, DResult handler) {
-        return Prepare(sql, handler, null, null);
+        return Prepare(sql, handler, null, null, null);
     }
 
     /**
@@ -664,12 +862,13 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
      *
      * @param sql a parameterized SQL statement
      * @param handler a callback for SQL preparing result
-     * @param vParameterInfo a given array of parameter informations
+     * @param vParameterInfo a given array of parameter informations. It
+     * defaults to null
      * @return true if request is successfully sent or queued; and false if
      * request is NOT successfully sent or queued
      */
     public final boolean Prepare(String sql, DResult handler, CParameterInfo[] vParameterInfo) {
-        return Prepare(sql, handler, vParameterInfo, null);
+        return Prepare(sql, handler, vParameterInfo, null, null);
     }
 
     /**
@@ -678,12 +877,30 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
      *
      * @param sql a parameterized SQL statement
      * @param handler a callback for SQL preparing result
-     * @param vParameterInfo a given array of parameter informations
+     * @param vParameterInfo a given array of parameter informations. It
+     * defaults to null
      * @param discarded a callback for tracking cancel or socket closed event
      * @return true if request is successfully sent or queued; and false if
      * request is NOT successfully sent or queued
      */
-    public boolean Prepare(String sql, DResult handler, CParameterInfo[] vParameterInfo, DDiscarded discarded) {
+    public final boolean Prepare(String sql, DResult handler, CParameterInfo[] vParameterInfo, DDiscarded discarded) {
+        return Prepare(sql, handler, vParameterInfo, discarded, null);
+    }
+
+    /**
+     * Send a parameterized SQL statement for preparing with a given array of
+     * parameter informations asynchronously
+     *
+     * @param sql a parameterized SQL statement
+     * @param handler a callback for SQL preparing result
+     * @param vParameterInfo a given array of parameter informations. It
+     * defaults to null
+     * @param discarded a callback for tracking cancel or socket closed event
+     * @param se a callback for tracking an exception from server
+     * @return true if request is successfully sent or queued; and false if
+     * request is NOT successfully sent or queued
+     */
+    public boolean Prepare(String sql, DResult handler, CParameterInfo[] vParameterInfo, DDiscarded discarded, DOnExceptionFromServer se) {
         try (CScopeUQueue sq = new CScopeUQueue()) {
             CUQueue sb = sq.getUQueue();
             sb.Save(sql);
@@ -702,7 +919,7 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
                 synchronized (m_csDB) {
                     m_deqResult.add(cb);
                 }
-                if (SendRequest(DB_CONSTS.idPrepare, sb, null, discarded)) {
+                if (SendRequest(DB_CONSTS.idPrepare, sb, null, discarded, se)) {
                     ok = true;
                 } else {
                     ok = false;
@@ -716,6 +933,36 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
     }
 
     /**
+     * Send a parameterized SQL statement for preparing with a given array of
+     * parameter informations asynchronously
+     *
+     * @param sql a parameterized SQL statement
+     * @param vParameterInfo a given array of parameter informations. It
+     * defaults to null
+     * @return a future for execution error information
+     * @throws CSocketError if communication channel is not sendable
+     */
+    public Future<ErrInfo> prepare(String sql, CParameterInfo[] vParameterInfo) throws CSocketError {
+        UFuture<ErrInfo> f = new UFuture<>();
+        if (!Prepare(sql, getHandler(f), vParameterInfo, CAsyncDBHandler.getAborted(f, "Prepare", DB_CONSTS.idPrepare), CAsyncDBHandler.getSE(f))) {
+            raise("Prepare", DB_CONSTS.idPrepare);
+        }
+        return f;
+    }
+
+    /**
+     * Send a parameterized SQL statement for preparing with a given array of
+     * parameter informations asynchronously
+     *
+     * @param sql a parameterized SQL statement
+     * @return a future for execution error information
+     * @throws CSocketError if communication channel is not sendable
+     */
+    public Future<ErrInfo> perpare(String sql) throws CSocketError {
+        return prepare(sql, null);
+    }
+
+    /**
      * Asynchronously process a complex SQL statement which may be combined with
      * multiple basic SQL statements, and don't expect any data returned
      *
@@ -725,7 +972,7 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
      * request is NOT successfully sent or queued
      */
     public final boolean Execute(String sql) {
-        return Execute(sql, null, null, null, true, true, null);
+        return Execute(sql, null, null, null, true, true, null, null);
     }
 
     /**
@@ -739,7 +986,7 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
      * request is NOT successfully sent or queued
      */
     public final boolean Execute(String sql, DExecuteResult handler) {
-        return Execute(sql, handler, null, null, true, true, null);
+        return Execute(sql, handler, null, null, true, true, null, null);
     }
 
     /**
@@ -754,7 +1001,7 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
      * request is NOT successfully sent or queued
      */
     public final boolean Execute(String sql, DExecuteResult handler, DRows row) {
-        return Execute(sql, handler, row, null, true, true, null);
+        return Execute(sql, handler, row, null, true, true, null, null);
     }
 
     /**
@@ -770,7 +1017,7 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
      * request is NOT successfully sent or queued
      */
     public final boolean Execute(String sql, DExecuteResult handler, DRows row, DRowsetHeader rh) {
-        return Execute(sql, handler, row, rh, true, true, null);
+        return Execute(sql, handler, row, rh, true, true, null, null);
     }
 
     /**
@@ -782,14 +1029,14 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
      * @param handler a callback for tracking final result
      * @param row a callback for receiving records of data
      * @param rh a callback for tracking row set of header column informations
-     * @param meta a boolean second for better or more detailed column meta
+     * @param meta a boolean value for better or more detailed column meta
      * details such as unique, not null, primary first, and so on. It defaults
      * to true
      * @return true if request is successfully sent or queued; and false if
      * request is NOT successfully sent or queued
      */
     public final boolean Execute(String sql, DExecuteResult handler, DRows row, DRowsetHeader rh, boolean meta) {
-        return Execute(sql, handler, row, rh, meta, true, null);
+        return Execute(sql, handler, row, rh, meta, true, null, null);
     }
 
     /**
@@ -802,16 +1049,16 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
      * @param row a callback for tracking record or output parameter returned
      * data
      * @param rh a callback for tracking row set of header column informations
-     * @param meta a boolean second for better or more detailed column meta
+     * @param meta a boolean value for better or more detailed column meta
      * details such as unique, not null, primary first, and so on. It defaults
      * to true
-     * @param lastInsertId a boolean second for last insert record
-     * identification number. It defaults to true
+     * @param lastInsertId a boolean value for last insert record identification
+     * number. It defaults to true
      * @return true if request is successfully sent or queued; and false if
      * request is NOT successfully sent or queued
      */
     public final boolean Execute(String sql, DExecuteResult handler, DRows row, DRowsetHeader rh, boolean meta, boolean lastInsertId) {
-        return Execute(sql, handler, row, rh, meta, lastInsertId, null);
+        return Execute(sql, handler, row, rh, meta, lastInsertId, null, null);
     }
 
     /**
@@ -824,16 +1071,40 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
      * @param row a callback for tracking record or output parameter returned
      * data
      * @param rh a callback for tracking row set of header column informations
-     * @param meta a boolean second for better or more detailed column meta
+     * @param meta a boolean value for better or more detailed column meta
      * details such as unique, not null, primary first, and so on. It defaults
      * to true
-     * @param lastInsertId a boolean second for last insert record
-     * identification number. It defaults to true
+     * @param lastInsertId a boolean value for last insert record identification
+     * number. It defaults to true
      * @param discarded a callback for tracking cancel or socket closed event
      * @return true if request is successfully sent or queued; and false if
      * request is NOT successfully sent or queued
      */
-    public boolean Execute(String sql, final DExecuteResult handler, DRows row, DRowsetHeader rh, boolean meta, boolean lastInsertId, DDiscarded discarded) {
+    public final boolean Execute(String sql, DExecuteResult handler, DRows row, DRowsetHeader rh, boolean meta, boolean lastInsertId, DDiscarded discarded) {
+        return Execute(sql, handler, row, rh, meta, lastInsertId, discarded, null);
+    }
+
+    /**
+     * Process a complex SQL statement which may be combined with multiple basic
+     * SQL statements asynchronously
+     *
+     * @param sql a complex SQL statement which may be combined with multiple
+     * basic SQL statements
+     * @param handler a callback for tracking final result
+     * @param row a callback for tracking record or output parameter returned
+     * data
+     * @param rh a callback for tracking row set of header column informations
+     * @param meta a boolean value for better or more detailed column meta
+     * details such as unique, not null, primary first, and so on. It defaults
+     * to true
+     * @param lastInsertId a boolean value for last insert record identification
+     * number. It defaults to true
+     * @param discarded a callback for tracking cancel or socket closed event
+     * @param se a callback for tracking an exception from server
+     * @return true if request is successfully sent or queued; and false if
+     * request is NOT successfully sent or queued
+     */
+    public boolean Execute(String sql, final DExecuteResult handler, DRows row, DRowsetHeader rh, boolean meta, boolean lastInsertId, DDiscarded discarded, DOnExceptionFromServer se) {
         boolean rowset = (row != null);
         meta = (meta && (rh != null));
         try (CScopeUQueue sb = new CScopeUQueue()) {
@@ -856,7 +1127,7 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
                     public void invoke(CAsyncResult ar) {
                         Process(handler, ar, DB_CONSTS.idExecute, index);
                     }
-                }, discarded)) {
+                }, discarded, se)) {
                     synchronized (m_csDB) {
                         if (rowset || meta) {
                             m_mapRowset.remove(index);
@@ -867,6 +1138,95 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
             }
         }
         return true;
+    }
+
+    /**
+     * Process one or more sets of prepared statements with an array of
+     * parameter data asynchronously
+     *
+     * @param sql a complex SQL statement which may be combined with multiple
+     * basic SQL statements
+     * @param row a callback for tracking record or output parameter returned
+     * data
+     * @param rh a callback for tracking row set of header column informations
+     * @param meta a boolean value for better or more detailed column meta
+     * details such as unique, not null, primary first, and so on. It defaults
+     * to true
+     * @param lastInsertId a boolean value for last insert record identification
+     * number. It defaults to true
+     * @return a future for SQL execution information
+     * @throws CSocketError if communication channel is not sendable
+     */
+    public Future<SQLExeInfo> execute(String sql, DRows row, DRowsetHeader rh, boolean meta, boolean lastInsertId) throws CSocketError {
+        UFuture<SQLExeInfo> f = new UFuture<>();
+        DExecuteResult h = getSqlHandler(f);
+        if (!Execute(sql, h, row, rh, meta, lastInsertId, CAsyncDBHandler.getAborted(f, "ExecuteSQL", DB_CONSTS.idExecute), CAsyncDBHandler.getSE(f))) {
+            raise("ExecuteSQL", DB_CONSTS.idExecute);
+        }
+        return f;
+    }
+
+    /**
+     * Process one or more sets of prepared statements with an array of
+     * parameter data asynchronously
+     *
+     * @param sql a complex SQL statement which may be combined with multiple
+     * basic SQL statements
+     * @param row a callback for tracking record or output parameter returned
+     * data
+     * @param rh a callback for tracking row set of header column informations
+     * @param meta a boolean value for better or more detailed column meta
+     * details such as unique, not null, primary first, and so on. It defaults
+     * to true
+     * @return a future for SQL execution information
+     * @throws CSocketError if communication channel is not sendable
+     */
+    public Future<SQLExeInfo> execute(String sql, DRows row, DRowsetHeader rh, boolean meta) throws CSocketError {
+        return execute(sql, row, rh, meta, true);
+    }
+
+    /**
+     * Process one or more sets of prepared statements with an array of
+     * parameter data asynchronously
+     *
+     * @param sql a complex SQL statement which may be combined with multiple
+     * basic SQL statements
+     * @param row a callback for tracking record or output parameter returned
+     * data
+     * @param rh a callback for tracking row set of header column informations
+     * @return a future for SQL execution information
+     * @throws CSocketError if communication channel is not sendable
+     */
+    public Future<SQLExeInfo> execute(String sql, DRows row, DRowsetHeader rh) throws CSocketError {
+        return execute(sql, row, rh, true, true);
+    }
+
+    /**
+     * Process one or more sets of prepared statements with an array of
+     * parameter data asynchronously
+     *
+     * @param sql a complex SQL statement which may be combined with multiple
+     * basic SQL statements
+     * @param row a callback for tracking record or output parameter returned
+     * data
+     * @return a future for SQL execution information
+     * @throws CSocketError if communication channel is not sendable
+     */
+    public Future<SQLExeInfo> execute(String sql, DRows row) throws CSocketError {
+        return execute(sql, row, null, true, true);
+    }
+
+    /**
+     * Process one or more sets of prepared statements with an array of
+     * parameter data asynchronously
+     *
+     * @param sql a complex SQL statement which may be combined with multiple
+     * basic SQL statements
+     * @return a future for SQL execution information
+     * @throws CSocketError if communication channel is not sendable
+     */
+    public Future<SQLExeInfo> execute(String sql) throws CSocketError {
+        return execute(sql, null, null, true, true);
     }
 
     private void Process(DExecuteResult handler, CAsyncResult ar, short reqId, long index) {
@@ -891,6 +1251,32 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
         }
     }
 
+    public class SQLExeInfo extends ErrInfo {
+
+        public long affected;
+        public int oks;
+        public int fails;
+        public Object lastId;
+
+        SQLExeInfo(int res, String errMsg, long aff, int oks, int fails, Object id) {
+            super(res, errMsg);
+            affected = aff;
+            this.oks = oks;
+            this.fails = fails;
+            lastId = id;
+        }
+    }
+
+    private DExecuteResult getSqlHandler(UFuture<SQLExeInfo> f) {
+        DExecuteResult h = new DExecuteResult() {
+            @Override
+            public void invoke(CAsyncDBHandler dbHandler, int res, String errMsg, long affected, long fail_ok, Object lastRowId) {
+                f.set(new SQLExeInfo(res, errMsg, affected, (int) (fail_ok & 0xffffffff), (int) (fail_ok >> 32), lastRowId));
+            }
+        };
+        return h;
+    }
+
     /**
      * Process one or more sets of prepared statements with an array of
      * parameter data asynchronously, and don't expect any data returned
@@ -901,7 +1287,7 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
      * request is NOT successfully sent or queued
      */
     public final boolean Execute(CDBVariantArray vParam) {
-        return Execute(vParam, null, null, null, true, true, null);
+        return Execute(vParam, null, null, null, true, true, null, null);
     }
 
     /**
@@ -916,7 +1302,7 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
      * request is NOT successfully sent or queued
      */
     public final boolean Execute(CDBVariantArray vParam, DExecuteResult handler) {
-        return Execute(vParam, handler, null, null, true, true, null);
+        return Execute(vParam, handler, null, null, true, true, null, null);
     }
 
     /**
@@ -932,7 +1318,7 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
      * request is NOT successfully sent or queued
      */
     public final boolean Execute(CDBVariantArray vParam, DExecuteResult handler, DRows row) {
-        return Execute(vParam, handler, row, null, true, true, null);
+        return Execute(vParam, handler, row, null, true, true, null, null);
     }
 
     /**
@@ -949,7 +1335,7 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
      * request is NOT successfully sent or queued
      */
     public final boolean Execute(CDBVariantArray vParam, DExecuteResult handler, DRows row, DRowsetHeader rh) {
-        return Execute(vParam, handler, row, rh, true, true, null);
+        return Execute(vParam, handler, row, rh, true, true, null, null);
     }
 
     /**
@@ -962,14 +1348,14 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
      * @param row a callback for tracking record or output parameter returned
      * data
      * @param rh a callback for tracking row set of header column informations
-     * @param meta a boolean second for better or more detailed column meta
+     * @param meta a boolean value for better or more detailed column meta
      * details such as unique, not null, primary first, and so on. It defaults
      * to true
      * @return true if request is successfully sent or queued; and false if
      * request is NOT successfully sent or queued
      */
     public final boolean Execute(CDBVariantArray vParam, DExecuteResult handler, DRows row, DRowsetHeader rh, boolean meta) {
-        return Execute(vParam, handler, row, rh, meta, true, null);
+        return Execute(vParam, handler, row, rh, meta, true, null, null);
     }
 
     /**
@@ -982,16 +1368,16 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
      * @param row a callback for tracking record or output parameter returned
      * data
      * @param rh a callback for tracking row set of header column informations
-     * @param meta a boolean second for better or more detailed column meta
+     * @param meta a boolean value for better or more detailed column meta
      * details such as unique, not null, primary first, and so on. It defaults
      * to true
-     * @param lastInsertId a boolean second for last insert record
-     * identification number. It defaults to true
+     * @param lastInsertId a boolean value for last insert record identification
+     * number. It defaults to true
      * @return true if request is successfully sent or queued; and false if
      * request is NOT successfully sent or queued
      */
     public final boolean Execute(CDBVariantArray vParam, DExecuteResult handler, DRows row, DRowsetHeader rh, boolean meta, boolean lastInsertId) {
-        return Execute(vParam, handler, row, rh, meta, lastInsertId, null);
+        return Execute(vParam, handler, row, rh, meta, lastInsertId, null, null);
     }
 
     /**
@@ -1004,16 +1390,40 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
      * @param row a callback for tracking record or output parameter returned
      * data
      * @param rh a callback for tracking row set of header column informations
-     * @param meta a boolean second for better or more detailed column meta
+     * @param meta a boolean value for better or more detailed column meta
      * details such as unique, not null, primary first, and so on. It defaults
      * to true
-     * @param lastInsertId a boolean second for last insert record
-     * identification number. It defaults to true
+     * @param lastInsertId a boolean value for last insert record identification
+     * number. It defaults to true
      * @param discarded a callback for tracking cancel or socket closed event
      * @return true if request is successfully sent or queued; and false if
      * request is NOT successfully sent or queued
      */
-    public boolean Execute(CDBVariantArray vParam, final DExecuteResult handler, DRows row, DRowsetHeader rh, boolean meta, boolean lastInsertId, DDiscarded discarded) {
+    public final boolean Execute(CDBVariantArray vParam, DExecuteResult handler, DRows row, DRowsetHeader rh, boolean meta, boolean lastInsertId, DDiscarded discarded) {
+        return Execute(vParam, handler, row, rh, meta, lastInsertId, discarded, null);
+    }
+
+    /**
+     * Process one or more sets of prepared statements with an array of
+     * parameter data asynchronously
+     *
+     * @param vParam an array of parameter data which will be bounded to
+     * previously prepared parameters
+     * @param handler a callback for tracking final result
+     * @param row a callback for tracking record or output parameter returned
+     * data
+     * @param rh a callback for tracking row set of header column informations
+     * @param meta a boolean value for better or more detailed column meta
+     * details such as unique, not null, primary first, and so on. It defaults
+     * to true
+     * @param lastInsertId a boolean value for last insert record identification
+     * number. It defaults to true
+     * @param discarded a callback for tracking cancel or socket closed event
+     * @param se a callback for tracking an exception from server
+     * @return true if request is successfully sent or queued; and false if
+     * request is NOT successfully sent or queued
+     */
+    public boolean Execute(CDBVariantArray vParam, DExecuteResult handler, DRows row, DRowsetHeader rh, boolean meta, boolean lastInsertId, DDiscarded discarded, DOnExceptionFromServer se) {
         boolean rowset = (row != null);
         meta = (meta && (rh != null));
         boolean queueOk = false;
@@ -1046,7 +1456,7 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
                     public void invoke(CAsyncResult ar) {
                         Process(handler, ar, DB_CONSTS.idExecuteParameters, index);
                     }
-                }, discarded)) {
+                }, discarded, se)) {
                     synchronized (m_csDB) {
                         m_mapParameterCall.remove(index);
                         if (rowset || meta) {
@@ -1064,6 +1474,95 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
     }
 
     /**
+     * Process one or more sets of prepared statements with an array of
+     * parameter data asynchronously
+     *
+     * @param vParam an array of parameter data which will be bounded to
+     * previously prepared parameters
+     * @param row a callback for tracking record or output parameter returned
+     * data
+     * @param rh a callback for tracking row set of header column informations
+     * @param meta a boolean value for better or more detailed column meta
+     * details such as unique, not null, primary first, and so on. It defaults
+     * to true
+     * @param lastInsertId a boolean value for last insert record identification
+     * number. It defaults to true
+     * @return a future for SQL execution information
+     * @throws CSocketError if communication channel is not sendable
+     */
+    public Future<SQLExeInfo> execute(CDBVariantArray vParam, DRows row, DRowsetHeader rh, boolean meta, boolean lastInsertId) throws CSocketError {
+        UFuture<SQLExeInfo> f = new UFuture<>();
+        DExecuteResult h = getSqlHandler(f);
+        if (!Execute(vParam, h, row, rh, meta, lastInsertId, CAsyncDBHandler.getAborted(f, "ExecuteParameters", DB_CONSTS.idExecuteParameters), CAsyncDBHandler.getSE(f))) {
+            raise("ExecuteParameters", DB_CONSTS.idExecuteParameters);
+        }
+        return f;
+    }
+
+    /**
+     * Process one or more sets of prepared statements with an array of
+     * parameter data asynchronously
+     *
+     * @param vParam an array of parameter data which will be bounded to
+     * previously prepared parameters
+     * @param row a callback for tracking record or output parameter returned
+     * data
+     * @param rh a callback for tracking row set of header column informations
+     * @param meta a boolean value for better or more detailed column meta
+     * details such as unique, not null, primary first, and so on. It defaults
+     * to true
+     * @return a future for SQL execution information
+     * @throws CSocketError if communication channel is not sendable
+     */
+    public Future<SQLExeInfo> execute(CDBVariantArray vParam, DRows row, DRowsetHeader rh, boolean meta) throws CSocketError {
+        return execute(vParam, row, rh, meta, true);
+    }
+
+    /**
+     * Process one or more sets of prepared statements with an array of
+     * parameter data asynchronously
+     *
+     * @param vParam an array of parameter data which will be bounded to
+     * previously prepared parameters
+     * @param row a callback for tracking record or output parameter returned
+     * data
+     * @param rh a callback for tracking row set of header column informations
+     * @return a future for SQL execution information
+     * @throws CSocketError if communication channel is not sendable
+     */
+    public Future<SQLExeInfo> execute(CDBVariantArray vParam, DRows row, DRowsetHeader rh) throws CSocketError {
+        return execute(vParam, row, rh, true, true);
+    }
+
+    /**
+     * Process one or more sets of prepared statements with an array of
+     * parameter data asynchronously
+     *
+     * @param vParam an array of parameter data which will be bounded to
+     * previously prepared parameters
+     * @param row a callback for tracking record or output parameter returned
+     * data
+     * @return a future for SQL execution information
+     * @throws CSocketError if communication channel is not sendable
+     */
+    public Future<SQLExeInfo> execute(CDBVariantArray vParam, DRows row) throws CSocketError {
+        return execute(vParam, row, null, true, true);
+    }
+
+    /**
+     * Process one or more sets of prepared statements with an array of
+     * parameter data asynchronously
+     *
+     * @param vParam an array of parameter data which will be bounded to
+     * previously prepared parameters
+     * @return a future for SQL execution information
+     * @throws CSocketError if communication channel is not sendable
+     */
+    public Future<SQLExeInfo> execute(CDBVariantArray vParam) throws CSocketError {
+        return execute(vParam, null, null, true, true);
+    }
+
+    /**
      * Execute a batch of SQL statements on one single call
      *
      * @param isolation a value for manual transaction isolation. Specifically,
@@ -1074,7 +1573,7 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
      * request is NOT successfully sent or queued
      */
     public boolean ExecuteBatch(tagTransactionIsolation isolation, String sql) {
-        return ExecuteBatch(isolation, sql, new CDBVariantArray(), null, null, null, null, new CParameterInfo[0], tagRollbackPlan.rpDefault, null, ";", true, true);
+        return ExecuteBatch(isolation, sql, new CDBVariantArray(), null, null, null, null, new CParameterInfo[0], tagRollbackPlan.rpDefault, null, ";", true, true, null);
     }
 
     /**
@@ -1091,7 +1590,7 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
      * request is NOT successfully sent or queued
      */
     public boolean ExecuteBatch(tagTransactionIsolation isolation, String sql, CDBVariantArray vParam) {
-        return ExecuteBatch(isolation, sql, vParam, null, null, null, null, new CParameterInfo[0], tagRollbackPlan.rpDefault, null, ";", true, true);
+        return ExecuteBatch(isolation, sql, vParam, null, null, null, null, new CParameterInfo[0], tagRollbackPlan.rpDefault, null, ";", true, true, null);
     }
 
     /**
@@ -1109,7 +1608,7 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
      * request is NOT successfully sent or queued
      */
     public boolean ExecuteBatch(tagTransactionIsolation isolation, String sql, CDBVariantArray vParam, DExecuteResult handler) {
-        return ExecuteBatch(isolation, sql, vParam, handler, null, null, null, new CParameterInfo[0], tagRollbackPlan.rpDefault, null, ";", true, true);
+        return ExecuteBatch(isolation, sql, vParam, handler, null, null, null, new CParameterInfo[0], tagRollbackPlan.rpDefault, null, ";", true, true, null);
     }
 
     /**
@@ -1128,7 +1627,7 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
      * request is NOT successfully sent or queued
      */
     public boolean ExecuteBatch(tagTransactionIsolation isolation, String sql, CDBVariantArray vParam, DExecuteResult handler, DRows row) {
-        return ExecuteBatch(isolation, sql, vParam, handler, row, null, null, new CParameterInfo[0], tagRollbackPlan.rpDefault, null, ";", true, true);
+        return ExecuteBatch(isolation, sql, vParam, handler, row, null, null, new CParameterInfo[0], tagRollbackPlan.rpDefault, null, ";", true, true, null);
     }
 
     /**
@@ -1148,7 +1647,7 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
      * request is NOT successfully sent or queued
      */
     public boolean ExecuteBatch(tagTransactionIsolation isolation, String sql, CDBVariantArray vParam, DExecuteResult handler, DRows row, DRowsetHeader rh) {
-        return ExecuteBatch(isolation, sql, vParam, handler, row, rh, null, new CParameterInfo[0], tagRollbackPlan.rpDefault, null, ";", true, true);
+        return ExecuteBatch(isolation, sql, vParam, handler, row, rh, null, new CParameterInfo[0], tagRollbackPlan.rpDefault, null, ";", true, true, null);
     }
 
     /**
@@ -1170,7 +1669,7 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
      * request is NOT successfully sent or queued
      */
     public boolean ExecuteBatch(tagTransactionIsolation isolation, String sql, CDBVariantArray vParam, DExecuteResult handler, DRows row, DRowsetHeader rh, DRowsetHeader batchHeader) {
-        return ExecuteBatch(isolation, sql, vParam, handler, row, rh, batchHeader, new CParameterInfo[0], tagRollbackPlan.rpDefault, null, ";", true, true);
+        return ExecuteBatch(isolation, sql, vParam, handler, row, rh, batchHeader, new CParameterInfo[0], tagRollbackPlan.rpDefault, null, ";", true, true, null);
     }
 
     /**
@@ -1194,7 +1693,7 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
      * request is NOT successfully sent or queued
      */
     public boolean ExecuteBatch(tagTransactionIsolation isolation, String sql, CDBVariantArray vParam, DExecuteResult handler, DRows row, DRowsetHeader rh, DRowsetHeader batchHeader, CParameterInfo[] vPInfo) {
-        return ExecuteBatch(isolation, sql, vParam, handler, row, rh, batchHeader, vPInfo, tagRollbackPlan.rpDefault, null, ";", true, true);
+        return ExecuteBatch(isolation, sql, vParam, handler, row, rh, batchHeader, vPInfo, tagRollbackPlan.rpDefault, null, ";", true, true, null);
     }
 
     /**
@@ -1215,12 +1714,12 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
      * @param vPInfo a given array of parameter informations which may be empty
      * to some of database management systems
      * @param plan a value for computing how included transactions should be
-     * rollback
+     * rollback. It defaults to tagRollbackPlan.rpDefault
      * @return true if request is successfully sent or queued; and false if
      * request is NOT successfully sent or queued
      */
     public boolean ExecuteBatch(tagTransactionIsolation isolation, String sql, CDBVariantArray vParam, DExecuteResult handler, DRows row, DRowsetHeader rh, DRowsetHeader batchHeader, CParameterInfo[] vPInfo, tagRollbackPlan plan) {
-        return ExecuteBatch(isolation, sql, vParam, handler, row, rh, batchHeader, vPInfo, plan, null, ";", true, true);
+        return ExecuteBatch(isolation, sql, vParam, handler, row, rh, batchHeader, vPInfo, plan, null, ";", true, true, null);
     }
 
     /**
@@ -1241,14 +1740,14 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
      * @param vPInfo a given array of parameter informations which may be empty
      * to some of database management systems
      * @param plan a value for computing how included transactions should be
-     * rollback
+     * rollback . It defaults to tagRollbackPlan.rpDefault
      * @param discarded a callback for tracking socket closed or request
      * canceled event
      * @return true if request is successfully sent or queued; and false if
      * request is NOT successfully sent or queued
      */
     public boolean ExecuteBatch(tagTransactionIsolation isolation, String sql, CDBVariantArray vParam, DExecuteResult handler, DRows row, DRowsetHeader rh, DRowsetHeader batchHeader, CParameterInfo[] vPInfo, tagRollbackPlan plan, DDiscarded discarded) {
-        return ExecuteBatch(isolation, sql, vParam, handler, row, rh, batchHeader, vPInfo, plan, discarded, ";", true, true);
+        return ExecuteBatch(isolation, sql, vParam, handler, row, rh, batchHeader, vPInfo, plan, discarded, ";", true, true, null);
     }
 
     /**
@@ -1269,16 +1768,17 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
      * @param vPInfo a given array of parameter informations which may be empty
      * to some of database management systems
      * @param plan a value for computing how included transactions should be
-     * rollback
+     * rollback. It defaults to tagRollbackPlan.rpDefault
      * @param discarded a callback for tracking socket closed or request
      * canceled event
      * @param delimiter a delimiter string used for separating the batch SQL
-     * statements into individual SQL statements at server side for processing
+     * statements into individual SQL statements at server side for processing.
+     * It defaults to ";"
      * @return true if request is successfully sent or queued; and false if
      * request is NOT successfully sent or queued
      */
     public boolean ExecuteBatch(tagTransactionIsolation isolation, String sql, CDBVariantArray vParam, DExecuteResult handler, DRows row, DRowsetHeader rh, DRowsetHeader batchHeader, CParameterInfo[] vPInfo, tagRollbackPlan plan, DDiscarded discarded, String delimiter) {
-        return ExecuteBatch(isolation, sql, vParam, handler, row, rh, batchHeader, vPInfo, plan, discarded, delimiter, true, true);
+        return ExecuteBatch(isolation, sql, vParam, handler, row, rh, batchHeader, vPInfo, plan, discarded, delimiter, true, true, null);
     }
 
     /**
@@ -1299,18 +1799,19 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
      * @param vPInfo a given array of parameter informations which may be empty
      * to some of database management systems
      * @param plan a value for computing how included transactions should be
-     * rollback
+     * rollback. It defaults to tagRollbackPlan.rpDefault
      * @param discarded a callback for tracking socket closed or request
      * canceled event
      * @param delimiter a delimiter string used for separating the batch SQL
-     * statements into individual SQL statements at server side for processing
+     * statements into individual SQL statements at server side for processing.
+     * It defaults to ";"
      * @param meta a boolean for better or more detailed column meta details
-     * such as unique, not null, primary key, and so on
+     * such as unique, not null, primary key, and so on. It defaults to true
      * @return true if request is successfully sent or queued; and false if
      * request is NOT successfully sent or queued
      */
     public boolean ExecuteBatch(tagTransactionIsolation isolation, String sql, CDBVariantArray vParam, DExecuteResult handler, DRows row, DRowsetHeader rh, DRowsetHeader batchHeader, CParameterInfo[] vPInfo, tagRollbackPlan plan, DDiscarded discarded, String delimiter, boolean meta) {
-        return ExecuteBatch(isolation, sql, vParam, handler, row, rh, batchHeader, vPInfo, plan, discarded, delimiter, meta, true);
+        return ExecuteBatch(isolation, sql, vParam, handler, row, rh, batchHeader, vPInfo, plan, discarded, delimiter, meta, true, null);
     }
 
     /**
@@ -1331,19 +1832,56 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
      * @param vPInfo a given array of parameter informations which may be empty
      * to some of database management systems
      * @param plan a value for computing how included transactions should be
-     * rollback
+     * rollback. It defaults to tagRollbackPlan.rpDefault
      * @param discarded a callback for tracking socket closed or request
      * canceled event
      * @param delimiter a delimiter string used for separating the batch SQL
-     * statements into individual SQL statements at server side for processing
+     * statements into individual SQL statements at server side for processing.
+     * It defaults to ";"
      * @param meta a boolean for better or more detailed column meta details
-     * such as unique, not null, primary key, and so on
+     * such as unique, not null, primary key, and so on. It defaults to true
      * @param lastInsertId a boolean for last insert record identification
-     * number
+     * number. It defaults to true
      * @return true if request is successfully sent or queued; and false if
      * request is NOT successfully sent or queued
      */
-    public boolean ExecuteBatch(tagTransactionIsolation isolation, String sql, CDBVariantArray vParam, final DExecuteResult handler, DRows row, DRowsetHeader rh, DRowsetHeader batchHeader, CParameterInfo[] vPInfo, tagRollbackPlan plan, DDiscarded discarded, String delimiter, boolean meta, boolean lastInsertId) {
+    public boolean ExecuteBatch(tagTransactionIsolation isolation, String sql, CDBVariantArray vParam, DExecuteResult handler, DRows row, DRowsetHeader rh, DRowsetHeader batchHeader, CParameterInfo[] vPInfo, tagRollbackPlan plan, DDiscarded discarded, String delimiter, boolean meta, boolean lastInsertId) {
+        return ExecuteBatch(isolation, sql, vParam, handler, row, rh, batchHeader, vPInfo, plan, discarded, delimiter, meta, lastInsertId, null);
+    }
+
+    /**
+     * Execute a batch of SQL statements on one single call
+     *
+     * @param isolation a value for manual transaction isolation. Specifically,
+     * there is no manual transaction around the batch SQL statements if it is
+     * tiUnspecified
+     * @param sql a SQL statement having a batch of individual SQL statements
+     * @param vParam an array of parameter data which will be bounded to
+     * previously prepared parameters. The array size can be 0 if the given
+     * batch SQL statement doesn't having any prepared statement
+     * @param handler a callback for tracking final result
+     * @param row a callback for receiving records of data
+     * @param rh a callback for tracking row set of header column informations
+     * @param batchHeader a callback for tracking returning batch start error
+     * messages
+     * @param vPInfo a given array of parameter informations which may be empty
+     * to some of database management systems
+     * @param plan a value for computing how included transactions should be
+     * rollback. It defaults to tagRollbackPlan.rpDefault
+     * @param discarded a callback for tracking socket closed or request
+     * canceled event
+     * @param delimiter a delimiter string used for separating the batch SQL
+     * statements into individual SQL statements at server side for processing.
+     * It defaults to ";"
+     * @param meta a boolean for better or more detailed column meta details
+     * such as unique, not null, primary key, and so on. It defaults to true
+     * @param lastInsertId a boolean for last insert record identification
+     * number. It defaults to true
+     * @param se a callback for tracking an exception from server
+     * @return true if request is successfully sent or queued; and false if
+     * request is NOT successfully sent or queued
+     */
+    public boolean ExecuteBatch(tagTransactionIsolation isolation, String sql, CDBVariantArray vParam, DExecuteResult handler, DRows row, DRowsetHeader rh, DRowsetHeader batchHeader, CParameterInfo[] vPInfo, tagRollbackPlan plan, DDiscarded discarded, String delimiter, boolean meta, boolean lastInsertId, DOnExceptionFromServer se) {
         boolean queueOk = false;
         boolean rowset = (row != null);
         meta = (meta && (rh != null));
@@ -1384,7 +1922,7 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
                     public void invoke(CAsyncResult ar) {
                         Process(handler, ar, DB_CONSTS.idExecuteBatch, index);
                     }
-                }, discarded, null)) {
+                }, discarded, se)) {
                     synchronized (m_csDB) {
                         m_mapParameterCall.remove(index);
                         if (rowset || meta) {
@@ -1400,6 +1938,238 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
             }
         }
         return true;
+    }
+
+    /**
+     * Execute a batch of SQL statements on one single call
+     *
+     * @param isolation a value for manual transaction isolation. Specifically,
+     * there is no manual transaction around the batch SQL statements if it is
+     * tiUnspecified
+     * @param sql a SQL statement having a batch of individual SQL statements
+     * @param vParam an array of parameter data which will be bounded to
+     * previously prepared parameters. The array size can be 0 if the given
+     * batch SQL statement doesn't having any prepared statement
+     * @param row a callback for receiving records of data
+     * @param rh a callback for tracking row set of header column informations
+     * @param batchHeader a callback for tracking returning batch start error
+     * messages
+     * @param vPInfo a given array of parameter informations which may be empty
+     * to some of database management systems
+     * @param plan a value for computing how included transactions should be
+     * rollback. It defaults to tagRollbackPlan.rpDefault
+     * @param delimiter a delimiter string used for separating the batch SQL
+     * statements into individual SQL statements at server side for processing.
+     * It defaults to ";"
+     * @param meta a boolean for better or more detailed column meta details
+     * such as unique, not null, primary key, and so on. It defaults to true
+     * @param lastInsertId a boolean for last insert record identification
+     * number. It defaults to true
+     * @return a future for SQL execution information
+     * @throws CSocketError if communication channel is not sendable
+     */
+    public Future<SQLExeInfo> executeBatch(tagTransactionIsolation isolation, String sql, CDBVariantArray vParam, DRows row, DRowsetHeader rh, DRowsetHeader batchHeader, CParameterInfo[] vPInfo, tagRollbackPlan plan, String delimiter, boolean meta, boolean lastInsertId) throws CSocketError {
+        UFuture<SQLExeInfo> f = new UFuture<>();
+        DExecuteResult h = getSqlHandler(f);
+        if (!ExecuteBatch(isolation, sql, vParam, h, row, rh, batchHeader, vPInfo, plan, CAsyncDBHandler.getAborted(f, "ExecuteBatch", DB_CONSTS.idExecuteBatch), delimiter, meta, lastInsertId)) {
+            raise("ExecuteBatch", DB_CONSTS.idExecuteBatch);
+        }
+        return f;
+    }
+
+    /**
+     * Execute a batch of SQL statements on one single call
+     *
+     * @param isolation a value for manual transaction isolation. Specifically,
+     * there is no manual transaction around the batch SQL statements if it is
+     * tiUnspecified
+     * @param sql a SQL statement having a batch of individual SQL statements
+     * @param vParam an array of parameter data which will be bounded to
+     * previously prepared parameters. The array size can be 0 if the given
+     * batch SQL statement doesn't having any prepared statement
+     * @param row a callback for receiving records of data
+     * @param rh a callback for tracking row set of header column informations
+     * @param batchHeader a callback for tracking returning batch start error
+     * messages
+     * @param vPInfo a given array of parameter informations which may be empty
+     * to some of database management systems
+     * @param plan a value for computing how included transactions should be
+     * rollback. It defaults to tagRollbackPlan.rpDefault
+     * @param delimiter a delimiter string used for separating the batch SQL
+     * statements into individual SQL statements at server side for processing.
+     * It defaults to ";"
+     * @param meta a boolean for better or more detailed column meta details
+     * such as unique, not null, primary key, and so on. It defaults to true
+     * @return a future for SQL execution information
+     * @throws CSocketError if communication channel is not sendable
+     */
+    public Future<SQLExeInfo> executeBatch(tagTransactionIsolation isolation, String sql, CDBVariantArray vParam, DRows row, DRowsetHeader rh, DRowsetHeader batchHeader, CParameterInfo[] vPInfo, tagRollbackPlan plan, String delimiter, boolean meta) throws CSocketError {
+        return executeBatch(isolation, sql, vParam, row, rh, batchHeader, vPInfo, plan, delimiter, meta, true);
+    }
+
+    /**
+     * Execute a batch of SQL statements on one single call
+     *
+     * @param isolation a value for manual transaction isolation. Specifically,
+     * there is no manual transaction around the batch SQL statements if it is
+     * tiUnspecified
+     * @param sql a SQL statement having a batch of individual SQL statements
+     * @param vParam an array of parameter data which will be bounded to
+     * previously prepared parameters. The array size can be 0 if the given
+     * batch SQL statement doesn't having any prepared statement
+     * @param row a callback for receiving records of data
+     * @param rh a callback for tracking row set of header column informations
+     * @param batchHeader a callback for tracking returning batch start error
+     * messages
+     * @param vPInfo a given array of parameter informations which may be empty
+     * to some of database management systems
+     * @param plan a value for computing how included transactions should be
+     * rollback. It defaults to tagRollbackPlan.rpDefault
+     * @param delimiter a delimiter string used for separating the batch SQL
+     * statements into individual SQL statements at server side for processing.
+     * It defaults to ";"
+     * @return a future for SQL execution information
+     * @throws CSocketError if communication channel is not sendable
+     */
+    public Future<SQLExeInfo> executeBatch(tagTransactionIsolation isolation, String sql, CDBVariantArray vParam, DRows row, DRowsetHeader rh, DRowsetHeader batchHeader, CParameterInfo[] vPInfo, tagRollbackPlan plan, String delimiter) throws CSocketError {
+        return executeBatch(isolation, sql, vParam, row, rh, batchHeader, vPInfo, plan, delimiter, true, true);
+    }
+
+    /**
+     * Execute a batch of SQL statements on one single call
+     *
+     * @param isolation a value for manual transaction isolation. Specifically,
+     * there is no manual transaction around the batch SQL statements if it is
+     * tiUnspecified
+     * @param sql a SQL statement having a batch of individual SQL statements
+     * @param vParam an array of parameter data which will be bounded to
+     * previously prepared parameters. The array size can be 0 if the given
+     * batch SQL statement doesn't having any prepared statement
+     * @param row a callback for receiving records of data
+     * @param rh a callback for tracking row set of header column informations
+     * @param batchHeader a callback for tracking returning batch start error
+     * messages
+     * @param vPInfo a given array of parameter informations which may be empty
+     * to some of database management systems
+     * @param plan a value for computing how included transactions should be
+     * rollback. It defaults to tagRollbackPlan.rpDefault
+     * @return a future for SQL execution information
+     * @throws CSocketError if communication channel is not sendable
+     */
+    public Future<SQLExeInfo> executeBatch(tagTransactionIsolation isolation, String sql, CDBVariantArray vParam, DRows row, DRowsetHeader rh, DRowsetHeader batchHeader, CParameterInfo[] vPInfo, tagRollbackPlan plan) throws CSocketError {
+        return executeBatch(isolation, sql, vParam, row, rh, batchHeader, vPInfo, plan, ";", true, true);
+    }
+
+    /**
+     * Execute a batch of SQL statements on one single call
+     *
+     * @param isolation a value for manual transaction isolation. Specifically,
+     * there is no manual transaction around the batch SQL statements if it is
+     * tiUnspecified
+     * @param sql a SQL statement having a batch of individual SQL statements
+     * @param vParam an array of parameter data which will be bounded to
+     * previously prepared parameters. The array size can be 0 if the given
+     * batch SQL statement doesn't having any prepared statement
+     * @param row a callback for receiving records of data
+     * @param rh a callback for tracking row set of header column informations
+     * @param batchHeader a callback for tracking returning batch start error
+     * messages
+     * @param vPInfo a given array of parameter informations which may be empty
+     * to some of database management systems
+     * @return a future for SQL execution information
+     * @throws CSocketError if communication channel is not sendable
+     */
+    public Future<SQLExeInfo> executeBatch(tagTransactionIsolation isolation, String sql, CDBVariantArray vParam, DRows row, DRowsetHeader rh, DRowsetHeader batchHeader, CParameterInfo[] vPInfo) throws CSocketError {
+        return executeBatch(isolation, sql, vParam, row, rh, batchHeader, vPInfo, tagRollbackPlan.rpDefault, ";", true, true);
+    }
+
+    /**
+     * Execute a batch of SQL statements on one single call
+     *
+     * @param isolation a value for manual transaction isolation. Specifically,
+     * there is no manual transaction around the batch SQL statements if it is
+     * tiUnspecified
+     * @param sql a SQL statement having a batch of individual SQL statements
+     * @param vParam an array of parameter data which will be bounded to
+     * previously prepared parameters. The array size can be 0 if the given
+     * batch SQL statement doesn't having any prepared statement
+     * @param row a callback for receiving records of data
+     * @param rh a callback for tracking row set of header column informations
+     * @param batchHeader a callback for tracking returning batch start error
+     * messages
+     * @return a future for SQL execution information
+     * @throws CSocketError if communication channel is not sendable
+     */
+    public Future<SQLExeInfo> executeBatch(tagTransactionIsolation isolation, String sql, CDBVariantArray vParam, DRows row, DRowsetHeader rh, DRowsetHeader batchHeader) throws CSocketError {
+        return executeBatch(isolation, sql, vParam, row, rh, batchHeader, null, tagRollbackPlan.rpDefault, ";", true, true);
+    }
+
+    /**
+     * Execute a batch of SQL statements on one single call
+     *
+     * @param isolation a value for manual transaction isolation. Specifically,
+     * there is no manual transaction around the batch SQL statements if it is
+     * tiUnspecified
+     * @param sql a SQL statement having a batch of individual SQL statements
+     * @param vParam an array of parameter data which will be bounded to
+     * previously prepared parameters. The array size can be 0 if the given
+     * batch SQL statement doesn't having any prepared statement
+     * @param row a callback for receiving records of data
+     * @param rh a callback for tracking row set of header column informations
+     * @return a future for SQL execution information
+     * @throws CSocketError if communication channel is not sendable
+     */
+    public Future<SQLExeInfo> executeBatch(tagTransactionIsolation isolation, String sql, CDBVariantArray vParam, DRows row, DRowsetHeader rh) throws CSocketError {
+        return executeBatch(isolation, sql, vParam, row, rh, null, null, tagRollbackPlan.rpDefault, ";", true, true);
+    }
+
+    /**
+     * Execute a batch of SQL statements on one single call
+     *
+     * @param isolation a value for manual transaction isolation. Specifically,
+     * there is no manual transaction around the batch SQL statements if it is
+     * tiUnspecified
+     * @param sql a SQL statement having a batch of individual SQL statements
+     * @param vParam an array of parameter data which will be bounded to
+     * previously prepared parameters. The array size can be 0 if the given
+     * batch SQL statement doesn't having any prepared statement
+     * @param row a callback for receiving records of data
+     * @return a future for SQL execution information
+     * @throws CSocketError if communication channel is not sendable
+     */
+    public Future<SQLExeInfo> executeBatch(tagTransactionIsolation isolation, String sql, CDBVariantArray vParam, DRows row) throws CSocketError {
+        return executeBatch(isolation, sql, vParam, row, null, null, null, tagRollbackPlan.rpDefault, ";", true, true);
+    }
+
+    /**
+     * Execute a batch of SQL statements on one single call
+     *
+     * @param isolation a value for manual transaction isolation. Specifically,
+     * there is no manual transaction around the batch SQL statements if it is
+     * tiUnspecified
+     * @param sql a SQL statement having a batch of individual SQL statements
+     * @param vParam an array of parameter data which will be bounded to
+     * previously prepared parameters. The array size can be 0 if the given
+     * batch SQL statement doesn't having any prepared statement
+     * @return a future for SQL execution information
+     * @throws CSocketError if communication channel is not sendable
+     */
+    public Future<SQLExeInfo> executeBatch(tagTransactionIsolation isolation, String sql, CDBVariantArray vParam) throws CSocketError {
+        return executeBatch(isolation, sql, vParam, null, null, null, null, tagRollbackPlan.rpDefault, ";", true, true);
+    }
+
+    /**
+     * Execute a batch of SQL statements on one single call
+     *
+     * @param isolation a value for manual transaction isolation. Specifically,
+     * there is no manual transaction around the batch SQL statements if it is
+     * tiUnspecified
+     * @param sql a SQL statement having a batch of individual SQL statements
+     * @return a future for SQL execution information
+     * @throws CSocketError if communication channel is not sendable
+     */
+    public Future<SQLExeInfo> executeBatch(tagTransactionIsolation isolation, String sql) throws CSocketError {
+        return executeBatch(isolation, sql, null, null, null, null, null, tagRollbackPlan.rpDefault, ";", true, true);
     }
 
     final protected Object m_csOneSending = new Object();

@@ -1,7 +1,6 @@
 package SPA.ClientSide;
 
 import SPA.*;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
 /**
@@ -206,7 +205,7 @@ public class CAsyncQueue extends CAsyncServiceHandler {
         return ok;
     }
 
-    public Future<Long> enqueueBatch(byte[] key, short idMessage, CUQueue q) throws ExecutionException {
+    public Future<Long> enqueueBatch(byte[] key, short idMessage, CUQueue q) throws CSocketError {
         UFuture<Long> f = new UFuture<>();
         DEnqueue e = new DEnqueue() {
             @Override
@@ -268,7 +267,7 @@ public class CAsyncQueue extends CAsyncServiceHandler {
         return ok;
     }
 
-    public Future<Long> enqueue(byte[] key, short idMessage, byte[] bytes) throws ExecutionException {
+    public Future<Long> enqueue(byte[] key, short idMessage, byte[] bytes) throws CSocketError {
         UFuture<Long> f = new UFuture<>();
         DEnqueue e = new DEnqueue() {
             @Override
@@ -282,7 +281,7 @@ public class CAsyncQueue extends CAsyncServiceHandler {
         return f;
     }
 
-    public Future<Long> enqueue(byte[] key, short idMessage) throws ExecutionException {
+    public Future<Long> enqueue(byte[] key, short idMessage) throws CSocketError {
         return enqueue(key, idMessage, (byte[]) null);
     }
 
@@ -306,7 +305,7 @@ public class CAsyncQueue extends CAsyncServiceHandler {
         return ok;
     }
 
-    public Future<Long> enqueue(byte[] key, short idMessage, CUQueue q) throws ExecutionException {
+    public Future<Long> enqueue(byte[] key, short idMessage, CUQueue q) throws CSocketError {
         UFuture<Long> f = new UFuture<>();
         DEnqueue e = new DEnqueue() {
             @Override
@@ -320,7 +319,7 @@ public class CAsyncQueue extends CAsyncServiceHandler {
         return f;
     }
 
-    public Future<Long> enqueue(byte[] key, short idMessage, CScopeUQueue q) throws ExecutionException {
+    public Future<Long> enqueue(byte[] key, short idMessage, CScopeUQueue q) throws CSocketError {
         return enqueue(key, idMessage, q.getUQueue());
     }
 
@@ -412,7 +411,7 @@ public class CAsyncQueue extends CAsyncServiceHandler {
         }
     }
 
-    public Future<Integer> startQueueTrans(byte[] key) throws ExecutionException {
+    public Future<Integer> startQueueTrans(byte[] key) throws CSocketError {
         UFuture<Integer> f = new UFuture<>();
         DQueueTrans qt = new DQueueTrans() {
             @Override
@@ -513,11 +512,11 @@ public class CAsyncQueue extends CAsyncServiceHandler {
         }
     }
 
-    public Future<Integer> endQueueTrans() throws ExecutionException {
+    public Future<Integer> endQueueTrans() throws CSocketError {
         return endQueueTrans(false);
     }
 
-    public Future<Integer> endQueueTrans(boolean rollback) throws ExecutionException {
+    public Future<Integer> endQueueTrans(boolean rollback) throws CSocketError {
         UFuture<Integer> f = new UFuture<>();
         DQueueTrans qt = new DQueueTrans() {
             @Override
@@ -581,7 +580,7 @@ public class CAsyncQueue extends CAsyncServiceHandler {
         }, discarded, null);
     }
 
-    public Future<String[]> getKeys() throws ExecutionException {
+    public Future<String[]> getKeys() throws CSocketError {
         UFuture<String[]> f = new UFuture<>();
         DGetKeys gk = new DGetKeys() {
             @Override
@@ -678,7 +677,7 @@ public class CAsyncQueue extends CAsyncServiceHandler {
         }
     }
 
-    public Future<Integer> closeQueue(byte[] key, boolean permanent) throws ExecutionException {
+    public Future<Integer> closeQueue(byte[] key, boolean permanent) throws CSocketError {
         UFuture<Integer> f = new UFuture<>();
         DClose c = new DClose() {
             @Override
@@ -692,7 +691,7 @@ public class CAsyncQueue extends CAsyncServiceHandler {
         return f;
     }
 
-    public Future<Integer> closeQueue(byte[] key) throws ExecutionException {
+    public Future<Integer> closeQueue(byte[] key) throws CSocketError {
         return closeQueue(key, false);
     }
 
@@ -806,7 +805,7 @@ public class CAsyncQueue extends CAsyncServiceHandler {
         }
     }
 
-    public Future<QueueInfo> flushQueue(byte[] key, tagOptimistic option) throws ExecutionException {
+    public Future<QueueInfo> flushQueue(byte[] key, tagOptimistic option) throws CSocketError {
         UFuture<QueueInfo> f = new UFuture<>();
         DFlush df = new DFlush() {
             @Override
@@ -820,7 +819,7 @@ public class CAsyncQueue extends CAsyncServiceHandler {
         return f;
     }
 
-    public Future<QueueInfo> flushQueue(byte[] key) throws ExecutionException {
+    public Future<QueueInfo> flushQueue(byte[] key) throws CSocketError {
         return flushQueue(key, tagOptimistic.oMemoryCached);
     }
 
@@ -929,7 +928,7 @@ public class CAsyncQueue extends CAsyncServiceHandler {
         }
     }
 
-    public Future<DeqInfo> dequeue(byte[] key, int timeout) throws ExecutionException {
+    public Future<DeqInfo> dequeue(byte[] key, int timeout) throws CSocketError {
         UFuture<DeqInfo> f = new UFuture<>();
         DDequeue d = new DDequeue() {
             @Override

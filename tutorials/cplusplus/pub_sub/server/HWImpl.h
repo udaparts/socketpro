@@ -22,6 +22,9 @@ class HelloWorldPeer : public CClientPeer {
 private:
 
     void SayHello(const std::wstring &firstName, const std::wstring &lastName, /*out*/std::wstring &SayHelloRtn) {
+        if (!firstName.size()) {
+            throw CUException("First name are required and cannot be empty", __FILE__, __LINE__, "HelloWorldPeer::SayHello", 645321);
+        }
         assert(CSocketProServer::IsMainThread());
         SayHelloRtn = L"Hello " + firstName + L" " + lastName;
         std::wstring msg = L"Say hello from " + firstName + L" " + lastName;
@@ -31,8 +34,11 @@ private:
         GetPush().Publish(vtMessage, groups, 2);
     }
 
-    void Sleep(unsigned int ms) {
+    void Sleep(int ms) {
         assert(!CSocketProServer::IsMainThread());
+        if (ms < 0) {
+            throw CUException("Parameter ms cannot be less than 0", __FILE__, __LINE__, "HelloWorldPeer::Sleep", 123456);
+        }
 #ifdef WIN32_64
         ::Sleep(ms);
 #else
@@ -81,7 +87,7 @@ protected:
 
     virtual int OnSlowRequestArrive(unsigned short reqId, unsigned int len) {
         BEGIN_SWITCH(reqId)
-        M_I1_R0(idSleepHelloWorld, Sleep, unsigned int)
+        M_I1_R0(idSleepHelloWorld, Sleep, int)
         END_SWITCH
         return 0;
     }

@@ -3,7 +3,7 @@ package SPA.ClientSide;
 import java.util.concurrent.*;
 import java.util.concurrent.locks.*;
 
-public class UFuture<V> implements Future<V> {
+public class UFuture<V> implements Future<V>, AutoCloseable {
 
     // States for Future.
     public final static int PENDING = 0;
@@ -21,6 +21,13 @@ public class UFuture<V> implements Future<V> {
     }
 
     public UFuture() {
+    }
+
+    @Override
+    public void close() {
+        if (m_v != null) {
+            m_v = null;
+        }
     }
 
     public void set(V v) {
@@ -131,6 +138,8 @@ public class UFuture<V> implements Future<V> {
                     if (m_cv.await(timeout, unit)) {
                         if (m_state == COMPLETED) {
                             v = m_v;
+                        } else if (m_state == EXCEPTION) {
+                            ee = m_se;
                         } else {
                             ee = new ExecutionException("Request canceled", new Throwable("cancelled"));
                         }
@@ -172,16 +181,20 @@ public class UFuture<V> implements Future<V> {
                     m_cv.await();
                     if (m_state == COMPLETED) {
                         v = m_v;
+                    } else if (m_state == EXCEPTION) {
+                        ee = m_se;
                     } else {
-                        ee = new ExecutionException("Task canceled", new Throwable("cancelled"));
+                        ee = new ExecutionException("Request canceled", new Throwable("cancelled"));
                     }
                 } catch (InterruptedException err) {
                     ie = err;
                 }
             } else if (m_state == COMPLETED) {
                 v = m_v;
+            } else if (m_state == EXCEPTION) {
+                ee = m_se;
             } else {
-                ee = new ExecutionException("Task already canceled", new Throwable("cancelled"));
+                ee = new ExecutionException("Request canceled", new Throwable("cancelled"));
             }
         } finally {
             m_lock.unlock();

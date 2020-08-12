@@ -1,8 +1,11 @@
 package SPA.ServerSide;
 
+import SPA.CServerError;
+import java.lang.reflect.InvocationTargetException;
+
 public abstract class CSocketPeer {
 
-    private SPA.CUQueue m_qBuffer = new SPA.CUQueue();
+    final private SPA.CUQueue m_qBuffer = new SPA.CUQueue();
     volatile long m_sh = 0;
     private boolean m_bRandom = false;
     CBaseService m_Service;
@@ -18,10 +21,25 @@ public abstract class CSocketPeer {
     static String getStack(StackTraceElement[] stes) {
         String s = "";
         for (StackTraceElement e : stes) {
+            String cn = e.getClassName();
+            boolean keepon = false;
+            switch (cn) {
+                case "SPA.ServerSide.CSocketPeer":
+                case "sun.reflect.NativeMethodAccessorImpl":
+                case "sun.reflect.DelegatingMethodAccessorImpl":
+                case "java.lang.reflect.Method":
+                    break;
+                default:
+                    keepon = true;
+                    break;
+            }
+            if (!keepon) {
+                continue;
+            }
             if (s.length() > 0) {
                 s += System.lineSeparator();
             }
-            s += e.getClassName();
+            s += cn;
             s += "|";
             s += e.getMethodName();
             s += "|";
@@ -83,7 +101,7 @@ public abstract class CSocketPeer {
                 sp.OnSwitchFrom(oldServiceId);
             }
         } catch (InstantiationException | IllegalAccessException err) {
-            ServerCoreLoader.SendExceptionResult(h, err.getMessage(), getStack(err.getStackTrace()).getBytes(), SPA.tagBaseRequestID.idSwitchTo.getValue(), 0);
+            ServerCoreLoader.SendExceptionResult(h, err.getMessage(), getStack(err.getStackTrace()).getBytes(), SPA.tagBaseRequestID.idSwitchTo.getValue(), -1);
         }
     }
 
@@ -98,8 +116,24 @@ public abstract class CSocketPeer {
             } else {
                 OnFastRequestArrive(reqId, len);
             }
-        } catch (InstantiationException | IllegalAccessException | IllegalArgumentException | java.lang.reflect.InvocationTargetException err) {
-            ServerCoreLoader.SendExceptionResult(m_sh, err.getMessage(), getStack(err.getStackTrace()).getBytes(), reqId, 0);
+        } catch (InvocationTargetException err) {
+            boolean ok = false;
+            Exception ex = null;
+            try {
+                ex = (Exception) err.getTargetException();
+                CServerError se = (CServerError) ex;
+                ServerCoreLoader.SendExceptionResult(m_sh, se.getMessage(), getStack(se.getStackTrace()).getBytes(), (se.getReqId() == 0) ? reqId : se.getReqId(), se.getErrCode());
+                ok = true;
+            } finally {
+                if (!ok) {
+                    if (ex == null) {
+                        ex = err;
+                    }
+                    ServerCoreLoader.SendExceptionResult(m_sh, ex.getMessage(), getStack(ex.getStackTrace()).getBytes(), reqId, -1);
+                }
+            }
+        } catch (Exception err) {
+            ServerCoreLoader.SendExceptionResult(m_sh, err.getMessage(), getStack(err.getStackTrace()).getBytes(), reqId, -1);
         }
     }
 
@@ -169,90 +203,90 @@ public abstract class CSocketPeer {
     }
 
     private void SendReturnResult(short reqId, Class<?> pt, Object res) {
-        SPA.CUQueue q = SPA.CScopeUQueue.Lock();
-        String name = pt.getName();
-        switch (name) {
-            case "byte":
-            case "java.lang.Byte":
-                q.Save((byte) res);
-                break;
-            case "[B":
-                q.Save((byte[]) res);
-                break;
-            case "boolean":
-            case "java.lang.Boolean":
-                q.Save((boolean) res);
-                break;
-            case "char":
-            case "java.lang.Character":
-                q.Save((char) res);
-                break;
-            case "short":
-            case "java.lang.Short":
-                q.Save((short) res);
-                break;
-            case "int":
-            case "java.lang.Integer":
-                q.Save((int) res);
-                break;
-            case "float":
-            case "java.lang.Float":
-                q.Save((float) res);
-                break;
-            case "long":
-            case "java.lang.Long":
-                q.Save((long) res);
-                break;
-            case "double":
-            case "java.lang.Double":
-                q.Save((double) res);
-                break;
-            case "java.util.Date":
-                q.Save((java.util.Date) res);
-                break;
-            case "java.sql.Timestamp":
-                q.Save((java.sql.Timestamp) res);
-                break;
-            case "java.util.UUID":
-                q.Save((java.util.UUID) res);
-                break;
-            case "java.math.BigDecimal":
-                q.Save((java.math.BigDecimal) res);
-                break;
-            case "java.lang.String":
-                q.Save((String) res);
-                break;
-            case "java.lang.Object":
-                q.Save((Object) res);
-                break;
-            case "void":
-                break;
-            case "SPA.CUQueue": {
-                SPA.CUQueue r = (SPA.CUQueue) res;
-                if (r != null) {
-                    SPA.CScopeUQueue.Unlock(q);
-                    ServerCoreLoader.SendReturnData(m_sh, reqId, r.GetSize(), r.getIntenalBuffer(), r.getHeadPosition());
-                    return;
+        try (SPA.CScopeUQueue sb = new SPA.CScopeUQueue()) {
+            SPA.CUQueue q = sb.getUQueue();
+            String name = pt.getName();
+            switch (name) {
+                case "byte":
+                case "java.lang.Byte":
+                    q.Save((byte) res);
+                    break;
+                case "[B":
+                    q.Save((byte[]) res);
+                    break;
+                case "boolean":
+                case "java.lang.Boolean":
+                    q.Save((boolean) res);
+                    break;
+                case "char":
+                case "java.lang.Character":
+                    q.Save((char) res);
+                    break;
+                case "short":
+                case "java.lang.Short":
+                    q.Save((short) res);
+                    break;
+                case "int":
+                case "java.lang.Integer":
+                    q.Save((int) res);
+                    break;
+                case "float":
+                case "java.lang.Float":
+                    q.Save((float) res);
+                    break;
+                case "long":
+                case "java.lang.Long":
+                    q.Save((long) res);
+                    break;
+                case "double":
+                case "java.lang.Double":
+                    q.Save((double) res);
+                    break;
+                case "java.util.Date":
+                    q.Save((java.util.Date) res);
+                    break;
+                case "java.sql.Timestamp":
+                    q.Save((java.sql.Timestamp) res);
+                    break;
+                case "java.util.UUID":
+                    q.Save((java.util.UUID) res);
+                    break;
+                case "java.math.BigDecimal":
+                    q.Save((java.math.BigDecimal) res);
+                    break;
+                case "java.lang.String":
+                    String temp = (String) res;
+                    q.Save(temp);
+                    break;
+                case "java.lang.Object":
+                    q.Save((Object) res);
+                    break;
+                case "void":
+                    break;
+                case "SPA.CUQueue": {
+                    SPA.CUQueue r = (SPA.CUQueue) res;
+                    if (r != null) {
+                        ServerCoreLoader.SendReturnData(m_sh, reqId, r.GetSize(), r.getIntenalBuffer(), r.getHeadPosition());
+                        return;
+                    }
                 }
-            }
-            break;
-            case "SPA.CScopeUQueue": {
-                SPA.CScopeUQueue scope = (SPA.CScopeUQueue) res;
-                if (scope != null) {
-                    SPA.CScopeUQueue.Unlock(q);
-                    SPA.CUQueue r = scope.getUQueue();
-                    ServerCoreLoader.SendReturnData(m_sh, reqId, r.GetSize(), r.getIntenalBuffer(), r.getHeadPosition());
-                    scope.Clean();
-                    return;
-                }
-            }
-            break;
-            default:
-                q.Save((SPA.IUSerializer) res);
                 break;
+                case "SPA.CScopeUQueue": {
+                    SPA.CScopeUQueue scope = (SPA.CScopeUQueue) res;
+                    if (scope != null) {
+                        SPA.CUQueue r = scope.getUQueue();
+                        ServerCoreLoader.SendReturnData(m_sh, reqId, r.GetSize(), r.getIntenalBuffer(), r.getHeadPosition());
+                        scope.Clean();
+                        return;
+                    }
+                }
+                break;
+                default:
+                    q.Save((SPA.IUSerializer) res);
+                    break;
+            }
+            ServerCoreLoader.SendReturnData(m_sh, reqId, q.GetSize(), q.getIntenalBuffer(), q.getHeadPosition());
         }
-        ServerCoreLoader.SendReturnData(m_sh, reqId, q.GetSize(), q.getIntenalBuffer(), q.getHeadPosition());
-        SPA.CScopeUQueue.Unlock(q);
     }
 
     private int OnSlow(short reqId, int len) {
@@ -266,8 +300,24 @@ public abstract class CSocketPeer {
                 return 0;
             }
             return OnSlowRequestArrive(reqId, len);
-        } catch (InstantiationException | IllegalAccessException | IllegalArgumentException | java.lang.reflect.InvocationTargetException err) {
-            ServerCoreLoader.SendExceptionResult(m_sh, err.getMessage(), getStack(err.getStackTrace()).getBytes(), reqId, 0);
+        } catch (InvocationTargetException err) {
+            boolean ok = false;
+            Exception ex = null;
+            try {
+                ex = (Exception) err.getTargetException();
+                CServerError se = (CServerError) ex;
+                ServerCoreLoader.SendExceptionResult(m_sh, se.getMessage(), getStack(se.getStackTrace()).getBytes(), (se.getReqId() == 0) ? reqId : se.getReqId(), se.getErrCode());
+                ok = true;
+            } finally {
+                if (!ok) {
+                    if (ex == null) {
+                        ex = err;
+                    }
+                    ServerCoreLoader.SendExceptionResult(m_sh, ex.getMessage(), getStack(ex.getStackTrace()).getBytes(), reqId, -1);
+                }
+            }
+        } catch (Exception err) {
+            ServerCoreLoader.SendExceptionResult(m_sh, err.getMessage(), getStack(err.getStackTrace()).getBytes(), reqId, -1);
         }
         return -1;
     }
@@ -408,7 +458,7 @@ public abstract class CSocketPeer {
     }
 
     public final int SendExceptionResult(String errMessage, String errWhere) {
-        return SendExceptionResult(errMessage, errWhere, 0, (short) 0);
+        return SendExceptionResult(errMessage, errWhere, -1, (short) 0);
     }
 
     public final int SendExceptionResult(String errMessage, String errWhere, int errCode) {
@@ -474,7 +524,7 @@ public abstract class CSocketPeer {
         try {
             sp.OnBaseRequestCame(SPA.tagBaseRequestID.forValue(reqId));
         } catch (java.lang.Exception err) {
-            ServerCoreLoader.SendExceptionResult(sp.m_sh, err.getMessage(), getStack(err.getStackTrace()).getBytes(), reqId, 0);
+            ServerCoreLoader.SendExceptionResult(sp.m_sh, err.getMessage(), getStack(err.getStackTrace()).getBytes(), reqId, -1);
         }
     }
 
@@ -490,7 +540,7 @@ public abstract class CSocketPeer {
         try {
             sp.OnChatRequestCame(SPA.tagChatRequestID.forValue(chatRequestId));
         } catch (java.lang.Exception err) {
-            ServerCoreLoader.SendExceptionResult(sp.m_sh, err.getMessage(), getStack(err.getStackTrace()).getBytes(), chatRequestId, 0);
+            ServerCoreLoader.SendExceptionResult(sp.m_sh, err.getMessage(), getStack(err.getStackTrace()).getBytes(), chatRequestId, -1);
         }
     }
 
@@ -542,7 +592,7 @@ public abstract class CSocketPeer {
         try {
             OnRequestArrive(requestId, len);
         } catch (java.lang.Exception err) {
-            ServerCoreLoader.SendExceptionResult(m_sh, err.getMessage(), getStack(err.getStackTrace()).getBytes(), requestId, 0);
+            ServerCoreLoader.SendExceptionResult(m_sh, err.getMessage(), getStack(err.getStackTrace()).getBytes(), requestId, -1);
         }
     }
 
@@ -662,11 +712,11 @@ public abstract class CSocketPeer {
                 }
                 break;
                 default:
-                    ServerCoreLoader.SendExceptionResult(m_sh, "Unexpected chat request", "SPA.ServerSide.CSocketPeer.OnChatComing".getBytes(), chatRequestID.getValue(), 0);
+                    ServerCoreLoader.SendExceptionResult(m_sh, "Unexpected chat request", "SPA.ServerSide.CSocketPeer.OnChatComing".getBytes(), chatRequestID.getValue(), -1);
                     break;
             }
         } catch (java.lang.Exception err) {
-            ServerCoreLoader.SendExceptionResult(m_sh, err.getMessage(), getStack(err.getStackTrace()).getBytes(), chatId, 0);
+            ServerCoreLoader.SendExceptionResult(m_sh, err.getMessage(), getStack(err.getStackTrace()).getBytes(), chatId, -1);
         }
     }
 }
