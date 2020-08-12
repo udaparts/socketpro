@@ -43,7 +43,7 @@ public class Program {
                 //asynchronously process multiple requests with inline batching for best network efficiency
                 Future<CScopeUQueue> f0 = hw.sendRequest(hwConst.idSayHello, new CScopeUQueue().Save("Jack").Save("Smith"));
                 Future<CScopeUQueue> f1 = hw.sendRequest(hwConst.idSayHello, new CScopeUQueue().Save("Donald").Save("Trump"));
-                Future<CScopeUQueue> f2 = hw.sendRequest(hwConst.idSleep, new CScopeUQueue().Save(15000));
+                Future<CScopeUQueue> f2 = hw.sendRequest(hwConst.idSleep, new CScopeUQueue().Save(6000));
                 Future<CScopeUQueue> f3 = hw.sendRequest(hwConst.idSayHello, new CScopeUQueue().Save("Hilary").Save("Clinton"));
                 Future<CScopeUQueue> f4 = hw.sendRequest(hwConst.idEcho, new CScopeUQueue().Save(msO));
                 System.out.println(f0.get().getUQueue().LoadString());

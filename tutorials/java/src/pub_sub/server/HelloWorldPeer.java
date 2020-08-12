@@ -1,5 +1,6 @@
 package pub_sub.server;
 
+import SPA.CServerError;
 import SPA.ServerSide.*;
 import hello_world.hwConst;
 import uqueue_demo.CMyStruct;
@@ -48,7 +49,10 @@ public class HelloWorldPeer extends CClientPeer {
     }
 
     @RequestAttr(RequestID = hwConst.idSayHello)
-    private String SayHello(String firstName, String lastName) {
+    private String SayHello(String firstName, String lastName) throws CServerError {
+        if (firstName == null || firstName.length() == 0) {
+            throw new SPA.CServerError(62345, "First name cannot be empty");
+        }
         //processed within main thread
         assert (CSocketProServer.getIsMainThread());
 
@@ -61,7 +65,10 @@ public class HelloWorldPeer extends CClientPeer {
     }
 
     @RequestAttr(RequestID = hwConst.idSleep, SlowRequest = true) //true -- slow request
-    private void Sleep(int ms) {
+    private void Sleep(int ms) throws CServerError {
+        if (ms < 0) {
+            throw new SPA.CServerError(12345, "ms cannot be negative");
+        }
         //processed within a worker thread
         assert (!CSocketProServer.getIsMainThread());
         try {

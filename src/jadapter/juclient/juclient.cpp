@@ -2,7 +2,7 @@
 #include "../../../include/uclient.h"
 #include "SPA_ClientSide_ClientCoreLoader.h"
 #include <vector>
-#include<algorithm>
+#include <algorithm>
 
 #ifdef WINCE
 #elif defined(WIN32_64)
@@ -419,10 +419,11 @@ void CALLBACK OnServerException(USocket_Client_Handle handler, unsigned short re
     assert(env);
 #ifdef WIN32_64
     jsize size = (jsize)::wcslen(errMessage);
-#else
-    jsize size = (jsize) SPA::GetLen((const char16_t*) errMessage);
-#endif
     jobject objMsg = env->NewString((const jchar*) errMessage, size);
+#else
+    jsize size = (jsize) ::wcslen(errMessage);
+    jobject objMsg = env->NewString((const jchar*) errMessage, size << 1);
+#endif
     jobject objWhere = env->NewStringUTF(errWhere);
     env->CallStaticVoidMethod(g_classCClientSocket, g_midOnServerException, (jlong) handler, (jshort) requestId, objMsg, objWhere, (jint) errCode);
     CleanException(env);
