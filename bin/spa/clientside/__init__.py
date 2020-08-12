@@ -69,7 +69,7 @@ class IClientQueue(IMessageQueueBasic):
         raise NotImplementedError("Please implement this property")
 
 class CSocketError(Exception):
-    def __init__(self, errCode, errMsg, reqId = 0, beforeCall=True):
+    def __init__(self, errCode, errMsg, reqId=0, beforeCall=True):
         Exception.__init__(self, errCode, errMsg, reqId, beforeCall)
 
 from spa.clientside.messagesender import CMessageSender
