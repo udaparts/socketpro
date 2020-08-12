@@ -794,16 +794,8 @@ class CAsyncDBHandler(CAsyncServiceHandler):
 
     def executeBatch(self, isolation, sql, vParam, row=None, rh=None, batchHeader=None, vPInfo=None, plan=tagRollbackPlan.rpDefault, delimiter = ';', meta=True, lastInsertId=True):
         f = future()
-        def cb_aborted(ah, canceled):
-            if canceled:
-                f.cancel()
-            else:
-                f.set_exception(OSError(CAsyncDBHandler.SESSION_CLOSED_AFTER,
-                                        'Session closed after sending the request ExecuteBatch', DB_CONSTS.idExecuteBatch))
         def arh(ah, res, err_msg, affected, fail_ok, last_id):
             f.set_result({'ec':res, 'em':err_msg, 'affected':affected, 'oks': (fail_ok&0xffffffff), 'fails': (fail_ok>>32), 'lastId': last_id})
-        def server_ex(ah, se):  # an exception from remote server
-            f.set_exception(se)
         if not self.ExecuteBatch(isolation, sql, vParam, arh, row, rh, batchHeader, vPInfo, plan,
                                  CAsyncDBHandler.get_aborted(f, 'ExecuteBatch', DB_CONSTS.idExecuteBatch), delimiter,
                                  meta, lastInsertId, CAsyncDBHandler.get_se(f)):

@@ -14,7 +14,7 @@ class CHelloWorld(CAHandler):
         return sb.LoadString()
 
     def sleep(self, ms):
-        sb = self.sendRequest(hwConst.idSleepHelloWorld, Sb().SaveUInt(ms)).result()
+        sb = self.sendRequest(hwConst.idSleepHelloWorld, Sb().SaveInt(ms)).result()
 
     def echo(self, ms):
         return self.sendRequest(hwConst.idEchoHelloWorld, Sb().Save(ms)).result().Load(CMyStruct())

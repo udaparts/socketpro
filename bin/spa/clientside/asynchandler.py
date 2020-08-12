@@ -1,5 +1,6 @@
 import threading
-from spa import tagBaseRequestID, CServerError as Se, isAwaitable
+from spa import tagBaseRequestID, CServerError as Se
+from spa.clientside import CSocketError
 from spa.memqueue import CUQueue, CScopeUQueue
 from spa.clientside.ccoreloader import CCoreLoader as ccl
 from ctypes import c_ubyte
@@ -96,9 +97,9 @@ class CAsyncServiceHandler(object):
                 cs = ah.Socket
                 ec = cs.ErrCode
                 if ec:
-                    fut.set_exception(Exception(ec, cs.ErrMsg, reqId, False))
+                    fut.set_exception(CSocketError(ec, cs.ErrMsg, reqId, False))
                 else:
-                    fut.set_exception(Exception(CAsyncServiceHandler.SESSION_CLOSED_AFTER,
+                    fut.set_exception(CSocketError(CAsyncServiceHandler.SESSION_CLOSED_AFTER,
                                               'Session closed after sending the request ' + method_name, reqId, False))
         return cb_aborted
 
@@ -175,9 +176,9 @@ class CAsyncServiceHandler(object):
     def throw(self, method_name, reqId):
         ec = self.Socket.ErrCode
         if ec:
-            raise Exception(ec, self.Socket.ErrMsg, reqId, True)
+            raise CSocketError(ec, self.Socket.ErrMsg, reqId, True)
         else:
-            raise Exception(CAsyncServiceHandler.SESSION_CLOSED_BEFORE,
+            raise CSocketError(CAsyncServiceHandler.SESSION_CLOSED_BEFORE,
                           'Session already closed before sending the request ' + method_name, reqId, True)
 
     def sendRequest(self, reqId, q):

@@ -1166,6 +1166,21 @@ public final class CUQueue {
         return q;
     }
 
+    public final CUQueue Push(CUQueue q) {
+        if (q != null) {
+            int nSize = q.GetSize();
+            if (nSize > 0) {
+                q.SetForReading(0);
+                q.m_bytes.limit(q.m_position + nSize);
+                Ensure(nSize);
+                m_bytes.put(q.m_bytes);
+                m_len += nSize;
+                q.m_bytes.position(q.m_position);
+            }
+        }
+        return this;
+    }
+
     public final CUQueue Save(CUQueue q) {
         int nSize = -1;
         if (q != null) {

@@ -1,6 +1,6 @@
 from spa import CUQueue, BaseServiceID, CScopeUQueue
 import threading
-from spa.clientside.asynchandler import CAsyncServiceHandler
+from spa.clientside.asynchandler import CAsyncServiceHandler, CSocketError
 from spa.clientside.ccoreloader import CCoreLoader as ccl
 from collections import deque
 from concurrent.futures import Future as future
@@ -211,10 +211,10 @@ class CStreamingFile(CAsyncServiceHandler):
                                 if it.Fut:
                                     ec = self.Socket.ErrCode
                                     if ec:
-                                        it.Fut.set_exception(Exception(ec, self.Socket.ErrMsg,
+                                        it.Fut.set_exception(CSocketError(ec, self.Socket.ErrMsg,
                                                                        CStreamingFile.idUpload, True))
                                     else:
-                                        it.Fut.set_exception(Exception(CAsyncServiceHandler.SESSION_CLOSED_BEFORE,
+                                        it.Fut.set_exception(CSocketError(CAsyncServiceHandler.SESSION_CLOSED_BEFORE,
                                                                        it.ErrMsg, CStreamingFile.idUpload, True))
                                 continue
                         break
@@ -229,10 +229,10 @@ class CStreamingFile(CAsyncServiceHandler):
                                 if it.Fut:
                                     ec = self.Socket.ErrCode
                                     if ec:
-                                        it.Fut.set_exception(Exception(ec, self.Socket.ErrMsg,
+                                        it.Fut.set_exception(CSocketError(ec, self.Socket.ErrMsg,
                                                                        CStreamingFile.idDownload, True))
                                     else:
-                                        it.Fut.set_exception(Exception(CAsyncServiceHandler.SESSION_CLOSED_BEFORE,
+                                        it.Fut.set_exception(CSocketError(CAsyncServiceHandler.SESSION_CLOSED_BEFORE,
                                                                  it.ErrMsg, CStreamingFile.idDownload, True))
                                 continue
                         d += 1

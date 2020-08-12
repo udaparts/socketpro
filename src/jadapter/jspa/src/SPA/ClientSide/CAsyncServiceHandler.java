@@ -1,6 +1,5 @@
 package SPA.ClientSide;
 
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
 public class CAsyncServiceHandler implements AutoCloseable {
@@ -349,8 +348,8 @@ public class CAsyncServiceHandler implements AutoCloseable {
             @Override
             public void invoke(CAsyncResult ar) {
                 SPA.CScopeUQueue sb = new SPA.CScopeUQueue();
-                byte[] bytes = ar.getUQueue().GetBuffer();
-                sb.getUQueue().Push(bytes);
+                sb.getUQueue().Push(ar.getUQueue());
+                ar.getUQueue().SetSize(0);
                 f.set(sb);
             }
         };

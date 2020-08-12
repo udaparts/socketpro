@@ -37,24 +37,17 @@ public class Test_java {
 
             TestDequeue(aq);
             aq.WaitAll();
+            try {
+                //test GetKeys
+                String[] vKey = aq.getKeys().get();
+                //get a queue key two parameters, message count and queue file size by default option oMemoryCached
+                CAsyncQueue.QueueInfo qi = aq.flushQueue(TEST_QUEUE_KEY).get();
 
-            //test GetKeys
-            final java.util.ArrayList<String> vKey = new java.util.ArrayList<>();
-            aq.GetKeys((CAsyncQueue sender, String[] v) -> {
-                for (String s : v) {
-                    vKey.add(s);
-                }
-            });
-
-            //get a queue key two parameters, message count and queue file size by default option oMemoryCached
-            aq.FlushQueue(TEST_QUEUE_KEY, (CAsyncQueue sender, long messageCount, long fileSize) -> {
-                System.out.print("Total message count=" + messageCount);
-                System.out.println(", queue file size=" + fileSize);
-            });
-
-            aq.CloseQueue(TEST_QUEUE_KEY, (CAsyncQueue sender, int errCode) -> {
-                //error code could be one of CAsyncQueue::QUEUE_OK, CAsyncQueue::QUEUE_DEQUEUING, ......
-            });
+                int err_code = aq.closeQueue(TEST_QUEUE_KEY).get();
+                err_code = 0;
+            } catch (Exception ex) {
+                System.out.println(ex.getMessage());
+            }
             System.out.println("Press a key to complete dequeuing messages from server ......");
             in.nextLine();
         }

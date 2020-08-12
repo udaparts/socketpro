@@ -577,7 +577,7 @@ public class CAsyncQueue extends CAsyncServiceHandler {
                     ar.getUQueue().SetSize(0);
                 }
             }
-        }, discarded, null);
+        }, discarded, se);
     }
 
     public Future<String[]> getKeys() throws CSocketError {
@@ -772,7 +772,7 @@ public class CAsyncQueue extends CAsyncServiceHandler {
     public boolean FlushQueue(byte[] key, final DFlush f, tagOptimistic option, DDiscarded discarded, DOnExceptionFromServer se) {
         try (CScopeUQueue sq = new CScopeUQueue()) {
             sq.Save(key).Save(option.getValue());
-            return SendRequest(idFlush, new DAsyncResultHandler() {
+            return SendRequest(idFlush, sq, new DAsyncResultHandler() {
                 @Override
                 public void invoke(CAsyncResult ar) {
                     if (f != null) {

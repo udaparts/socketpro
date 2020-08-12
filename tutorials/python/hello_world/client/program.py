@@ -1,13 +1,13 @@
 from hello_world.client.asynchelloworld import CHelloWorld
 from spa import CScopeUQueue as Sb, CServerError as Se
-from spa.clientside import CSocketPool, CConnectionContext
+from spa.clientside import CSocketPool, CConnectionContext, CSocketError
 from consts import hwConst
 from msstruct import CMyStruct
 import sys
 
 with CSocketPool(CHelloWorld) as sp:
     cc = CConnectionContext('localhost', 20901, 'PythonUser', 'TooMuchSecret')
-    sp.QueueName = 'pqueue'  # turn on client message queue for backing up requests
+    # sp.QueueName = 'pqueue'  # turn on client message queue for backing up requests
     ok = sp.StartSocketPool(cc, 1)
     if not ok:
         print('Cannot connect to server with error message: ' + sp.Sockets[0].ErrMsg)
@@ -18,12 +18,13 @@ with CSocketPool(CHelloWorld) as sp:
         # process requests one by one synchronously -- three round trips
         try:
             print(hw.say_hello(u'Jack', u'Smith'))
-            hw.sleep(5000)
+            hw.sleep(15000)
             print(hw.echo(ms))
         except Se as ex:  # an exception from remote server
             print(ex)
-        except OSError as ex:  # a communication error
+        except CSocketError as ex:  # a communication error
             print(ex)
+            ex = None
         except Exception as ex:  # an unknown error
             print(ex)
 

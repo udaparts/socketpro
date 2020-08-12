@@ -1,4 +1,3 @@
-
 import threading
 from spa.clientside.ccoreloader import CCoreLoader as ccl
 from spa.clientside.ccoreloader import CQueueConfigureImpl, CSSLConfigureImpl

@@ -68,6 +68,10 @@ class IClientQueue(IMessageQueueBasic):
     def RoutingQueueIndex(self, value):
         raise NotImplementedError("Please implement this property")
 
+class CSocketError(Exception):
+    def __init__(self, errCode, errMsg, reqId = 0, beforeCall=True):
+        Exception.__init__(self, errCode, errMsg, reqId, beforeCall)
+
 from spa.clientside.messagesender import CMessageSender
 from spa.clientside.clientsocket import CClientSocket
 from spa.clientside.conncontext import CConnectionContext
