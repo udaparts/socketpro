@@ -206,7 +206,7 @@ public class CAsyncQueue extends CAsyncServiceHandler {
     }
 
     public Future<Long> enqueueBatch(byte[] key, short idMessage, CUQueue q) throws CSocketError {
-        UFuture<Long> f = new UFuture<>();
+        final UFuture<Long> f = new UFuture<>();
         DEnqueue e = new DEnqueue() {
             @Override
             public void invoke(CAsyncQueue aq, long indexMessage) {
@@ -268,7 +268,7 @@ public class CAsyncQueue extends CAsyncServiceHandler {
     }
 
     public Future<Long> enqueue(byte[] key, short idMessage, byte[] bytes) throws CSocketError {
-        UFuture<Long> f = new UFuture<>();
+        final UFuture<Long> f = new UFuture<>();
         DEnqueue e = new DEnqueue() {
             @Override
             public void invoke(CAsyncQueue aq, long indexMessage) {
@@ -306,7 +306,7 @@ public class CAsyncQueue extends CAsyncServiceHandler {
     }
 
     public Future<Long> enqueue(byte[] key, short idMessage, CUQueue q) throws CSocketError {
-        UFuture<Long> f = new UFuture<>();
+        final UFuture<Long> f = new UFuture<>();
         DEnqueue e = new DEnqueue() {
             @Override
             public void invoke(CAsyncQueue aq, long indexMessage) {
@@ -392,7 +392,7 @@ public class CAsyncQueue extends CAsyncServiceHandler {
      * @param se A callback for tracking an exception from server
      * @return true for sending the request successfully, and false for failure
      */
-    public boolean StartQueueTrans(byte[] key, DQueueTrans qt, DDiscarded discarded, DOnExceptionFromServer se) {
+    public boolean StartQueueTrans(byte[] key, final DQueueTrans qt, DDiscarded discarded, DOnExceptionFromServer se) {
         IClientQueue cq = this.getAttachedClientSocket().getClientQueue();
         if (cq.getAvailable()) {
             cq.StartJob();
@@ -412,7 +412,7 @@ public class CAsyncQueue extends CAsyncServiceHandler {
     }
 
     public Future<Integer> startQueueTrans(byte[] key) throws CSocketError {
-        UFuture<Integer> f = new UFuture<>();
+        final UFuture<Integer> f = new UFuture<>();
         DQueueTrans qt = new DQueueTrans() {
             @Override
             public void invoke(CAsyncQueue aq, int errCode) {
@@ -488,7 +488,7 @@ public class CAsyncQueue extends CAsyncServiceHandler {
      * @param se A callback for tracking an exception from server
      * @return true for sending the request successfully, and false for failure
      */
-    public boolean EndQueueTrans(boolean rollback, DQueueTrans qt, DDiscarded discarded, DOnExceptionFromServer se) {
+    public boolean EndQueueTrans(boolean rollback, final DQueueTrans qt, DDiscarded discarded, DOnExceptionFromServer se) {
         try (CScopeUQueue sq = new CScopeUQueue()) {
             boolean ok = SendRequest(idEndTrans, sq.Save(rollback), new DAsyncResultHandler() {
                 @Override
@@ -517,7 +517,7 @@ public class CAsyncQueue extends CAsyncServiceHandler {
     }
 
     public Future<Integer> endQueueTrans(boolean rollback) throws CSocketError {
-        UFuture<Integer> f = new UFuture<>();
+        final UFuture<Integer> f = new UFuture<>();
         DQueueTrans qt = new DQueueTrans() {
             @Override
             public void invoke(CAsyncQueue aq, int errCode) {
@@ -561,7 +561,7 @@ public class CAsyncQueue extends CAsyncServiceHandler {
      * @param se A callback for tracking an exception from server
      * @return true for sending the request successfully, and false for failure
      */
-    public boolean GetKeys(DGetKeys gk, DDiscarded discarded, DOnExceptionFromServer se) {
+    public boolean GetKeys(final DGetKeys gk, DDiscarded discarded, DOnExceptionFromServer se) {
         return SendRequest(idGetKeys, new DAsyncResultHandler() {
             @Override
             public void invoke(CAsyncResult ar) {
@@ -581,7 +581,7 @@ public class CAsyncQueue extends CAsyncServiceHandler {
     }
 
     public Future<String[]> getKeys() throws CSocketError {
-        UFuture<String[]> f = new UFuture<>();
+        final UFuture<String[]> f = new UFuture<>();
         DGetKeys gk = new DGetKeys() {
             @Override
             public void invoke(CAsyncQueue aq, String[] vKey) {
@@ -678,7 +678,7 @@ public class CAsyncQueue extends CAsyncServiceHandler {
     }
 
     public Future<Integer> closeQueue(byte[] key, boolean permanent) throws CSocketError {
-        UFuture<Integer> f = new UFuture<>();
+        final UFuture<Integer> f = new UFuture<>();
         DClose c = new DClose() {
             @Override
             public void invoke(CAsyncQueue aq, int errCode) {
@@ -769,7 +769,7 @@ public class CAsyncQueue extends CAsyncServiceHandler {
      * @param se A callback for tracking an exception from server
      * @return true for sending the request successfully, and false for failure
      */
-    public boolean FlushQueue(byte[] key, DFlush f, tagOptimistic option, DDiscarded discarded, DOnExceptionFromServer se) {
+    public boolean FlushQueue(byte[] key, final DFlush f, tagOptimistic option, DDiscarded discarded, DOnExceptionFromServer se) {
         try (CScopeUQueue sq = new CScopeUQueue()) {
             sq.Save(key).Save(option.getValue());
             return SendRequest(idFlush, new DAsyncResultHandler() {
@@ -806,7 +806,7 @@ public class CAsyncQueue extends CAsyncServiceHandler {
     }
 
     public Future<QueueInfo> flushQueue(byte[] key, tagOptimistic option) throws CSocketError {
-        UFuture<QueueInfo> f = new UFuture<>();
+        final UFuture<QueueInfo> f = new UFuture<>();
         DFlush df = new DFlush() {
             @Override
             public void invoke(CAsyncQueue aq, long messageCount, long fileSize) {
@@ -883,7 +883,7 @@ public class CAsyncQueue extends CAsyncServiceHandler {
      * @param se A callback for tracking an exception from server
      * @return true for sending the request successfully, and false for failure
      */
-    public boolean Dequeue(byte[] key, DDequeue d, int timeout, DDiscarded discarded, DOnExceptionFromServer se) {
+    public boolean Dequeue(byte[] key, final DDequeue d, int timeout, DDiscarded discarded, DOnExceptionFromServer se) {
         DAsyncResultHandler rh = null;
         synchronized (m_csQ) {
             m_keyDequeue = key;
@@ -929,7 +929,7 @@ public class CAsyncQueue extends CAsyncServiceHandler {
     }
 
     public Future<DeqInfo> dequeue(byte[] key, int timeout) throws CSocketError {
-        UFuture<DeqInfo> f = new UFuture<>();
+        final UFuture<DeqInfo> f = new UFuture<>();
         DDequeue d = new DDequeue() {
             @Override
             public void invoke(CAsyncQueue aq, long messageCount, long fileSize, int messages, int bytes) {

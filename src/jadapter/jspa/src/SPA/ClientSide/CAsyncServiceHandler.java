@@ -301,7 +301,7 @@ public class CAsyncServiceHandler implements AutoCloseable {
      * @param reqId a request id
      * @return a DDiscarded callback
      */
-    public static <V> DDiscarded getAborted(UFuture<V> f, String methodName, short reqId) {
+    public static <V> DDiscarded getAborted(final UFuture<V> f, final String methodName, final short reqId) {
         if (methodName == null || methodName.length() == 0) {
             throw new IllegalArgumentException("methodName cannot be empty");
         }
@@ -333,7 +333,7 @@ public class CAsyncServiceHandler implements AutoCloseable {
      * @param f a future instance
      * @return a DOnExceptionFromServer callback
      */
-    public static <V> DOnExceptionFromServer getSE(UFuture<V> f) {
+    public static <V> DOnExceptionFromServer getSE(final UFuture<V> f) {
         DOnExceptionFromServer se = new DOnExceptionFromServer() {
             @Override
             public void invoke(CAsyncServiceHandler sender, short reqId, String errMessage, String errWhere, int errCode) {
@@ -344,7 +344,7 @@ public class CAsyncServiceHandler implements AutoCloseable {
         return se;
     }
 
-    private DAsyncResultHandler get_ash(UFuture<SPA.CScopeUQueue> f) {
+    private DAsyncResultHandler get_ash(final UFuture<SPA.CScopeUQueue> f) {
         DAsyncResultHandler ash = new DAsyncResultHandler() {
             @Override
             public void invoke(CAsyncResult ar) {

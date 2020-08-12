@@ -411,7 +411,7 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
         return true;
     }
 
-    private DResult getHandler(UFuture<ErrInfo> f) {
+    private DResult getHandler(final UFuture<ErrInfo> f) {
         DResult handler = new DResult() {
             @Override
             public void invoke(CAsyncDBHandler dbHandler, int res, String errMsg) {
@@ -1267,7 +1267,7 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
         }
     }
 
-    private DExecuteResult getSqlHandler(UFuture<SQLExeInfo> f) {
+    private DExecuteResult getSqlHandler(final UFuture<SQLExeInfo> f) {
         DExecuteResult h = new DExecuteResult() {
             @Override
             public void invoke(CAsyncDBHandler dbHandler, int res, String errMsg, long affected, long fail_ok, Object lastRowId) {
@@ -1423,7 +1423,7 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
      * @return true if request is successfully sent or queued; and false if
      * request is NOT successfully sent or queued
      */
-    public boolean Execute(CDBVariantArray vParam, DExecuteResult handler, DRows row, DRowsetHeader rh, boolean meta, boolean lastInsertId, DDiscarded discarded, DOnExceptionFromServer se) {
+    public boolean Execute(CDBVariantArray vParam, final DExecuteResult handler, DRows row, DRowsetHeader rh, boolean meta, boolean lastInsertId, DDiscarded discarded, DOnExceptionFromServer se) {
         boolean rowset = (row != null);
         meta = (meta && (rh != null));
         boolean queueOk = false;
@@ -1881,7 +1881,7 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
      * @return true if request is successfully sent or queued; and false if
      * request is NOT successfully sent or queued
      */
-    public boolean ExecuteBatch(tagTransactionIsolation isolation, String sql, CDBVariantArray vParam, DExecuteResult handler, DRows row, DRowsetHeader rh, DRowsetHeader batchHeader, CParameterInfo[] vPInfo, tagRollbackPlan plan, DDiscarded discarded, String delimiter, boolean meta, boolean lastInsertId, DOnExceptionFromServer se) {
+    public boolean ExecuteBatch(tagTransactionIsolation isolation, String sql, CDBVariantArray vParam, final DExecuteResult handler, DRows row, DRowsetHeader rh, DRowsetHeader batchHeader, CParameterInfo[] vPInfo, tagRollbackPlan plan, DDiscarded discarded, String delimiter, boolean meta, boolean lastInsertId, DOnExceptionFromServer se) {
         boolean queueOk = false;
         boolean rowset = (row != null);
         meta = (meta && (rh != null));
