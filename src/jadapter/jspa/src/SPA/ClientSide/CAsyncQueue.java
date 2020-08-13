@@ -798,9 +798,16 @@ public class CAsyncQueue extends CAsyncServiceHandler {
          */
         public long fSize;
 
-        QueueInfo(long message_count, long file_size) {
+        public QueueInfo(long message_count, long file_size) {
             messages = message_count;
             fSize = file_size;
+        }
+
+        @Override
+        public String toString() {
+            String s = "messages: " + String.valueOf(messages);
+            s += ", fsze: " + String.valueOf(fSize);
+            return s;
         }
     }
 
@@ -920,10 +927,19 @@ public class CAsyncQueue extends CAsyncServiceHandler {
          */
         public int DeBytes;
 
-        DeqInfo(long messages, long fSize, int msgs, int bytes) {
+        public DeqInfo(long messages, long fSize, int msgs, int bytes) {
             super(messages, fSize);
             DeMessages = msgs;
             DeBytes = bytes;
+        }
+
+        @Override
+        public String toString() {
+            String s = "messages: " + String.valueOf(messages);
+            s += ", fsze: " + String.valueOf(fSize);
+            s += ", msgsDequeued: " + String.valueOf(DeMessages);
+            s += ", bytes: " + String.valueOf(DeBytes);
+            return s;
         }
     }
 

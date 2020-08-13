@@ -1257,7 +1257,7 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
         public int fails;
         public Object lastId;
 
-        SQLExeInfo(int res, String errMsg, long aff, int oks, int fails, Object id) {
+        public SQLExeInfo(int res, String errMsg, long aff, int oks, int fails, Object id) {
             super(res, errMsg);
             affected = aff;
             this.oks = oks;
