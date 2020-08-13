@@ -113,7 +113,7 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
         }
     }
 
-    public final long geLastAffected() {
+    public final long getLastAffected() {
         synchronized (m_csDB) {
             return m_affected;
         }
@@ -125,7 +125,7 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
         }
     }
 
-    public CDBColumnInfoArray getColumnInfo() {
+    public final CDBColumnInfoArray getColumnInfo() {
         synchronized (m_csDB) {
             return m_vColInfo;
         }
@@ -377,7 +377,7 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
      * @return true if request is successfully sent or queued; and false if
      * request is NOT successfully sent or queued
      */
-    public boolean CloseDb(DResult handler, DDiscarded discarded) {
+    public final boolean CloseDb(DResult handler, DDiscarded discarded) {
         return CloseDb(handler, discarded, null);
     }
 
@@ -600,7 +600,7 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
      * @return true if request is successfully sent or queued; and false if
      * request is NOT successfully sent or queued
      */
-    public boolean EndTrans(tagRollbackPlan plan, DResult handler) {
+    public final boolean EndTrans(tagRollbackPlan plan, DResult handler) {
         return EndTrans(plan, handler, null, null);
     }
 
@@ -616,7 +616,7 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
      * @return true if request is successfully sent or queued; and false if
      * request is NOT successfully sent or queued
      */
-    public boolean EndTrans(tagRollbackPlan plan, DResult handler, DDiscarded discarded) {
+    public final boolean EndTrans(tagRollbackPlan plan, DResult handler, DDiscarded discarded) {
         return EndTrans(plan, handler, discarded, null);
     }
 
@@ -734,7 +734,7 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
      * @return true if request is successfully sent or queued; and false if
      * request is NOT successfully sent or queued
      */
-    public boolean Open(String strConnection, DResult handler, int flags) {
+    public final boolean Open(String strConnection, DResult handler, int flags) {
         return Open(strConnection, handler, flags, null, null);
     }
 
@@ -751,7 +751,7 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
      * @return true if request is successfully sent or queued; and false if
      * request is NOT successfully sent or queued
      */
-    public boolean Open(String strConnection, DResult handler, int flags, DDiscarded discarded) {
+    public final boolean Open(String strConnection, DResult handler, int flags, DDiscarded discarded) {
         return Open(strConnection, handler, flags, discarded, null);
     }
 
@@ -1571,7 +1571,7 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
      * @return true if request is successfully sent or queued; and false if
      * request is NOT successfully sent or queued
      */
-    public boolean ExecuteBatch(tagTransactionIsolation isolation, String sql) {
+    public final boolean ExecuteBatch(tagTransactionIsolation isolation, String sql) {
         return ExecuteBatch(isolation, sql, new CDBVariantArray(), null, null, null, null, new CParameterInfo[0], tagRollbackPlan.rpDefault, null, ";", true, true, null);
     }
 
@@ -1588,7 +1588,7 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
      * @return true if request is successfully sent or queued; and false if
      * request is NOT successfully sent or queued
      */
-    public boolean ExecuteBatch(tagTransactionIsolation isolation, String sql, CDBVariantArray vParam) {
+    public final boolean ExecuteBatch(tagTransactionIsolation isolation, String sql, CDBVariantArray vParam) {
         return ExecuteBatch(isolation, sql, vParam, null, null, null, null, new CParameterInfo[0], tagRollbackPlan.rpDefault, null, ";", true, true, null);
     }
 
@@ -1606,7 +1606,7 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
      * @return true if request is successfully sent or queued; and false if
      * request is NOT successfully sent or queued
      */
-    public boolean ExecuteBatch(tagTransactionIsolation isolation, String sql, CDBVariantArray vParam, DExecuteResult handler) {
+    public final boolean ExecuteBatch(tagTransactionIsolation isolation, String sql, CDBVariantArray vParam, DExecuteResult handler) {
         return ExecuteBatch(isolation, sql, vParam, handler, null, null, null, new CParameterInfo[0], tagRollbackPlan.rpDefault, null, ";", true, true, null);
     }
 
@@ -1625,7 +1625,7 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
      * @return true if request is successfully sent or queued; and false if
      * request is NOT successfully sent or queued
      */
-    public boolean ExecuteBatch(tagTransactionIsolation isolation, String sql, CDBVariantArray vParam, DExecuteResult handler, DRows row) {
+    public final boolean ExecuteBatch(tagTransactionIsolation isolation, String sql, CDBVariantArray vParam, DExecuteResult handler, DRows row) {
         return ExecuteBatch(isolation, sql, vParam, handler, row, null, null, new CParameterInfo[0], tagRollbackPlan.rpDefault, null, ";", true, true, null);
     }
 
@@ -1645,7 +1645,7 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
      * @return true if request is successfully sent or queued; and false if
      * request is NOT successfully sent or queued
      */
-    public boolean ExecuteBatch(tagTransactionIsolation isolation, String sql, CDBVariantArray vParam, DExecuteResult handler, DRows row, DRowsetHeader rh) {
+    public final boolean ExecuteBatch(tagTransactionIsolation isolation, String sql, CDBVariantArray vParam, DExecuteResult handler, DRows row, DRowsetHeader rh) {
         return ExecuteBatch(isolation, sql, vParam, handler, row, rh, null, new CParameterInfo[0], tagRollbackPlan.rpDefault, null, ";", true, true, null);
     }
 
@@ -1667,7 +1667,7 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
      * @return true if request is successfully sent or queued; and false if
      * request is NOT successfully sent or queued
      */
-    public boolean ExecuteBatch(tagTransactionIsolation isolation, String sql, CDBVariantArray vParam, DExecuteResult handler, DRows row, DRowsetHeader rh, DRowsetHeader batchHeader) {
+    public final boolean ExecuteBatch(tagTransactionIsolation isolation, String sql, CDBVariantArray vParam, DExecuteResult handler, DRows row, DRowsetHeader rh, DRowsetHeader batchHeader) {
         return ExecuteBatch(isolation, sql, vParam, handler, row, rh, batchHeader, new CParameterInfo[0], tagRollbackPlan.rpDefault, null, ";", true, true, null);
     }
 
@@ -1691,7 +1691,7 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
      * @return true if request is successfully sent or queued; and false if
      * request is NOT successfully sent or queued
      */
-    public boolean ExecuteBatch(tagTransactionIsolation isolation, String sql, CDBVariantArray vParam, DExecuteResult handler, DRows row, DRowsetHeader rh, DRowsetHeader batchHeader, CParameterInfo[] vPInfo) {
+    public final boolean ExecuteBatch(tagTransactionIsolation isolation, String sql, CDBVariantArray vParam, DExecuteResult handler, DRows row, DRowsetHeader rh, DRowsetHeader batchHeader, CParameterInfo[] vPInfo) {
         return ExecuteBatch(isolation, sql, vParam, handler, row, rh, batchHeader, vPInfo, tagRollbackPlan.rpDefault, null, ";", true, true, null);
     }
 
@@ -1717,7 +1717,7 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
      * @return true if request is successfully sent or queued; and false if
      * request is NOT successfully sent or queued
      */
-    public boolean ExecuteBatch(tagTransactionIsolation isolation, String sql, CDBVariantArray vParam, DExecuteResult handler, DRows row, DRowsetHeader rh, DRowsetHeader batchHeader, CParameterInfo[] vPInfo, tagRollbackPlan plan) {
+    public final boolean ExecuteBatch(tagTransactionIsolation isolation, String sql, CDBVariantArray vParam, DExecuteResult handler, DRows row, DRowsetHeader rh, DRowsetHeader batchHeader, CParameterInfo[] vPInfo, tagRollbackPlan plan) {
         return ExecuteBatch(isolation, sql, vParam, handler, row, rh, batchHeader, vPInfo, plan, null, ";", true, true, null);
     }
 
@@ -1745,7 +1745,7 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
      * @return true if request is successfully sent or queued; and false if
      * request is NOT successfully sent or queued
      */
-    public boolean ExecuteBatch(tagTransactionIsolation isolation, String sql, CDBVariantArray vParam, DExecuteResult handler, DRows row, DRowsetHeader rh, DRowsetHeader batchHeader, CParameterInfo[] vPInfo, tagRollbackPlan plan, DDiscarded discarded) {
+    public final boolean ExecuteBatch(tagTransactionIsolation isolation, String sql, CDBVariantArray vParam, DExecuteResult handler, DRows row, DRowsetHeader rh, DRowsetHeader batchHeader, CParameterInfo[] vPInfo, tagRollbackPlan plan, DDiscarded discarded) {
         return ExecuteBatch(isolation, sql, vParam, handler, row, rh, batchHeader, vPInfo, plan, discarded, ";", true, true, null);
     }
 
@@ -1776,7 +1776,7 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
      * @return true if request is successfully sent or queued; and false if
      * request is NOT successfully sent or queued
      */
-    public boolean ExecuteBatch(tagTransactionIsolation isolation, String sql, CDBVariantArray vParam, DExecuteResult handler, DRows row, DRowsetHeader rh, DRowsetHeader batchHeader, CParameterInfo[] vPInfo, tagRollbackPlan plan, DDiscarded discarded, String delimiter) {
+    public final boolean ExecuteBatch(tagTransactionIsolation isolation, String sql, CDBVariantArray vParam, DExecuteResult handler, DRows row, DRowsetHeader rh, DRowsetHeader batchHeader, CParameterInfo[] vPInfo, tagRollbackPlan plan, DDiscarded discarded, String delimiter) {
         return ExecuteBatch(isolation, sql, vParam, handler, row, rh, batchHeader, vPInfo, plan, discarded, delimiter, true, true, null);
     }
 
@@ -1809,7 +1809,7 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
      * @return true if request is successfully sent or queued; and false if
      * request is NOT successfully sent or queued
      */
-    public boolean ExecuteBatch(tagTransactionIsolation isolation, String sql, CDBVariantArray vParam, DExecuteResult handler, DRows row, DRowsetHeader rh, DRowsetHeader batchHeader, CParameterInfo[] vPInfo, tagRollbackPlan plan, DDiscarded discarded, String delimiter, boolean meta) {
+    public final boolean ExecuteBatch(tagTransactionIsolation isolation, String sql, CDBVariantArray vParam, DExecuteResult handler, DRows row, DRowsetHeader rh, DRowsetHeader batchHeader, CParameterInfo[] vPInfo, tagRollbackPlan plan, DDiscarded discarded, String delimiter, boolean meta) {
         return ExecuteBatch(isolation, sql, vParam, handler, row, rh, batchHeader, vPInfo, plan, discarded, delimiter, meta, true, null);
     }
 
@@ -1844,7 +1844,7 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
      * @return true if request is successfully sent or queued; and false if
      * request is NOT successfully sent or queued
      */
-    public boolean ExecuteBatch(tagTransactionIsolation isolation, String sql, CDBVariantArray vParam, DExecuteResult handler, DRows row, DRowsetHeader rh, DRowsetHeader batchHeader, CParameterInfo[] vPInfo, tagRollbackPlan plan, DDiscarded discarded, String delimiter, boolean meta, boolean lastInsertId) {
+    public final boolean ExecuteBatch(tagTransactionIsolation isolation, String sql, CDBVariantArray vParam, DExecuteResult handler, DRows row, DRowsetHeader rh, DRowsetHeader batchHeader, CParameterInfo[] vPInfo, tagRollbackPlan plan, DDiscarded discarded, String delimiter, boolean meta, boolean lastInsertId) {
         return ExecuteBatch(isolation, sql, vParam, handler, row, rh, batchHeader, vPInfo, plan, discarded, delimiter, meta, lastInsertId, null);
     }
 
@@ -1880,7 +1880,7 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
      * @return true if request is successfully sent or queued; and false if
      * request is NOT successfully sent or queued
      */
-    public boolean ExecuteBatch(tagTransactionIsolation isolation, String sql, CDBVariantArray vParam, final DExecuteResult handler, DRows row, DRowsetHeader rh, DRowsetHeader batchHeader, CParameterInfo[] vPInfo, tagRollbackPlan plan, DDiscarded discarded, String delimiter, boolean meta, boolean lastInsertId, DOnExceptionFromServer se) {
+    public final boolean ExecuteBatch(tagTransactionIsolation isolation, String sql, CDBVariantArray vParam, final DExecuteResult handler, DRows row, DRowsetHeader rh, DRowsetHeader batchHeader, CParameterInfo[] vPInfo, tagRollbackPlan plan, DDiscarded discarded, String delimiter, boolean meta, boolean lastInsertId, DOnExceptionFromServer se) {
         boolean queueOk = false;
         boolean rowset = (row != null);
         meta = (meta && (rh != null));

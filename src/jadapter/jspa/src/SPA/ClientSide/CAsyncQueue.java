@@ -218,43 +218,43 @@ public class CAsyncQueue extends CAsyncServiceHandler {
         return f;
     }
 
-    public boolean EnqueueBatch(byte[] key, CUQueue q, DEnqueue e, DDiscarded discarded) {
+    public final boolean EnqueueBatch(byte[] key, CUQueue q, DEnqueue e, DDiscarded discarded) {
         return EnqueueBatch(key, q, e, discarded, null);
     }
 
-    public boolean EnqueueBatch(byte[] key, CUQueue q, DEnqueue e) {
+    public final boolean EnqueueBatch(byte[] key, CUQueue q, DEnqueue e) {
         return EnqueueBatch(key, q, e, null, null);
     }
 
-    public boolean EnqueueBatch(byte[] key, CUQueue q) {
+    public final boolean EnqueueBatch(byte[] key, CUQueue q) {
         return EnqueueBatch(key, q, null, null, null);
     }
 
-    public boolean Enqueue(byte[] key, short idMessage) {
+    public final boolean Enqueue(byte[] key, short idMessage) {
         return Enqueue(key, idMessage, (byte[]) null, null, null, null);
     }
 
-    public boolean Enqueue(byte[] key, short idMessage, DEnqueue e) {
+    public final boolean Enqueue(byte[] key, short idMessage, DEnqueue e) {
         return Enqueue(key, idMessage, (byte[]) null, e, null, null);
     }
 
-    public boolean Enqueue(byte[] key, short idMessage, DEnqueue e, DDiscarded discarded) {
+    public final boolean Enqueue(byte[] key, short idMessage, DEnqueue e, DDiscarded discarded) {
         return Enqueue(key, idMessage, (byte[]) null, e, discarded, null);
     }
 
-    public boolean Enqueue(byte[] key, short idMessage, DEnqueue e, DDiscarded discarded, DOnExceptionFromServer se) {
+    public final boolean Enqueue(byte[] key, short idMessage, DEnqueue e, DDiscarded discarded, DOnExceptionFromServer se) {
         return Enqueue(key, idMessage, (byte[]) null, e, discarded, se);
     }
 
-    public boolean Enqueue(byte[] key, short idMessage, byte[] bytes) {
+    public final boolean Enqueue(byte[] key, short idMessage, byte[] bytes) {
         return Enqueue(key, idMessage, bytes, null, null, null);
     }
 
-    public boolean Enqueue(byte[] key, short idMessage, byte[] bytes, DEnqueue e) {
+    public final boolean Enqueue(byte[] key, short idMessage, byte[] bytes, DEnqueue e) {
         return Enqueue(key, idMessage, bytes, e, null, null);
     }
 
-    public boolean Enqueue(byte[] key, short idMessage, byte[] bytes, DEnqueue e, DDiscarded discarded) {
+    public final boolean Enqueue(byte[] key, short idMessage, byte[] bytes, DEnqueue e, DDiscarded discarded) {
         return Enqueue(key, idMessage, bytes, e, discarded, null);
     }
 
@@ -284,15 +284,15 @@ public class CAsyncQueue extends CAsyncServiceHandler {
         return enqueue(key, idMessage, (byte[]) null);
     }
 
-    public boolean Enqueue(byte[] key, short idMessage, CUQueue q) {
+    public final boolean Enqueue(byte[] key, short idMessage, CUQueue q) {
         return Enqueue(key, idMessage, q, null, null, null);
     }
 
-    public boolean Enqueue(byte[] key, short idMessage, CUQueue q, DEnqueue e) {
+    public final boolean Enqueue(byte[] key, short idMessage, CUQueue q, DEnqueue e) {
         return Enqueue(key, idMessage, q, e, null, null);
     }
 
-    public boolean Enqueue(byte[] key, short idMessage, CUQueue q, DEnqueue e, DDiscarded discarded) {
+    public final boolean Enqueue(byte[] key, short idMessage, CUQueue q, DEnqueue e, DDiscarded discarded) {
         return Enqueue(key, idMessage, q, e, discarded, null);
     }
 
@@ -322,19 +322,19 @@ public class CAsyncQueue extends CAsyncServiceHandler {
         return enqueue(key, idMessage, q.getUQueue());
     }
 
-    public boolean Enqueue(byte[] key, short idMessage, CScopeUQueue q) {
+    public final boolean Enqueue(byte[] key, short idMessage, CScopeUQueue q) {
         return Enqueue(key, idMessage, q.getUQueue(), null, null, null);
     }
 
-    public boolean Enqueue(byte[] key, short idMessage, CScopeUQueue q, DEnqueue e) {
+    public final boolean Enqueue(byte[] key, short idMessage, CScopeUQueue q, DEnqueue e) {
         return Enqueue(key, idMessage, q.getUQueue(), e, null, null);
     }
 
-    public boolean Enqueue(byte[] key, short idMessage, CScopeUQueue q, DEnqueue e, DDiscarded discarded) {
+    public final boolean Enqueue(byte[] key, short idMessage, CScopeUQueue q, DEnqueue e, DDiscarded discarded) {
         return Enqueue(key, idMessage, q.getUQueue(), e, discarded, null);
     }
 
-    public boolean Enqueue(byte[] key, short idMessage, CScopeUQueue q, DEnqueue e, DDiscarded discarded, DOnExceptionFromServer se) {
+    public final boolean Enqueue(byte[] key, short idMessage, CScopeUQueue q, DEnqueue e, DDiscarded discarded, DOnExceptionFromServer se) {
         return Enqueue(key, idMessage, q.getUQueue(), e, discarded, se);
     }
 
@@ -347,7 +347,7 @@ public class CAsyncQueue extends CAsyncServiceHandler {
      * @param key An ASCII string for identifying a queue at server side
      * @return true for sending the request successfully, and false for failure
      */
-    public boolean StartQueueTrans(byte[] key) {
+    public final boolean StartQueueTrans(byte[] key) {
         return StartQueueTrans(key, null, null);
     }
 
@@ -360,7 +360,7 @@ public class CAsyncQueue extends CAsyncServiceHandler {
      * of QUEUE_OK, QUEUE_TRANS_ALREADY_STARTED, and so on
      * @return true for sending the request successfully, and false for failure
      */
-    public boolean StartQueueTrans(byte[] key, DQueueTrans qt) {
+    public final boolean StartQueueTrans(byte[] key, DQueueTrans qt) {
         return StartQueueTrans(key, qt, null);
     }
 
@@ -375,7 +375,7 @@ public class CAsyncQueue extends CAsyncServiceHandler {
      * event
      * @return true for sending the request successfully, and false for failure
      */
-    public boolean StartQueueTrans(byte[] key, DQueueTrans qt, DDiscarded discarded) {
+    public final boolean StartQueueTrans(byte[] key, DQueueTrans qt, DDiscarded discarded) {
         return StartQueueTrans(key, qt, discarded, null);
     }
 
@@ -391,7 +391,7 @@ public class CAsyncQueue extends CAsyncServiceHandler {
      * @param se A callback for tracking an exception from server
      * @return true for sending the request successfully, and false for failure
      */
-    public boolean StartQueueTrans(byte[] key, final DQueueTrans qt, DDiscarded discarded, DOnExceptionFromServer se) {
+    public final boolean StartQueueTrans(byte[] key, final DQueueTrans qt, DDiscarded discarded, DOnExceptionFromServer se) {
         IClientQueue cq = this.getAttachedClientSocket().getClientQueue();
         if (cq.getAvailable()) {
             cq.StartJob();
@@ -430,7 +430,7 @@ public class CAsyncQueue extends CAsyncServiceHandler {
      *
      * @return true for sending the request successfully, and false for failure
      */
-    public boolean EndQueueTrans() {
+    public final boolean EndQueueTrans() {
         return EndQueueTrans(false, null, null, null);
     }
 
@@ -441,7 +441,7 @@ public class CAsyncQueue extends CAsyncServiceHandler {
      * @param rollback true for rollback, and false for committing
      * @return true for sending the request successfully, and false for failure
      */
-    public boolean EndQueueTrans(boolean rollback) {
+    public final boolean EndQueueTrans(boolean rollback) {
         return EndQueueTrans(rollback, null, null, null);
     }
 
@@ -454,7 +454,7 @@ public class CAsyncQueue extends CAsyncServiceHandler {
      * of QUEUE_OK, QUEUE_TRANS_NOT_STARTED_YET, and so on
      * @return true for sending the request successfully, and false for failure
      */
-    public boolean EndQueueTrans(boolean rollback, DQueueTrans qt) {
+    public final boolean EndQueueTrans(boolean rollback, DQueueTrans qt) {
         return EndQueueTrans(rollback, qt, null, null);
     }
 
@@ -470,7 +470,7 @@ public class CAsyncQueue extends CAsyncServiceHandler {
      * event
      * @return true for sending the request successfully, and false for failure
      */
-    public boolean EndQueueTrans(boolean rollback, DQueueTrans qt, DDiscarded discarded) {
+    public final boolean EndQueueTrans(boolean rollback, DQueueTrans qt, DDiscarded discarded) {
         return EndQueueTrans(rollback, qt, discarded, null);
     }
 
@@ -535,7 +535,7 @@ public class CAsyncQueue extends CAsyncServiceHandler {
      * @param gk A callback for tracking a list of key names
      * @return true for sending the request successfully, and false for failure
      */
-    public boolean GetKeys(DGetKeys gk) {
+    public final boolean GetKeys(DGetKeys gk) {
         return GetKeys(gk, null);
     }
 
@@ -547,7 +547,7 @@ public class CAsyncQueue extends CAsyncServiceHandler {
      * event
      * @return true for sending the request successfully, and false for failure
      */
-    public boolean GetKeys(DGetKeys gk, DDiscarded discarded) {
+    public final boolean GetKeys(DGetKeys gk, DDiscarded discarded) {
         return GetKeys(gk, discarded, null);
     }
 
@@ -600,7 +600,7 @@ public class CAsyncQueue extends CAsyncServiceHandler {
      * @param key An ASCII string for identifying a queue at server side
      * @return true for sending the request successfully, and false for failure
      */
-    public boolean CloseQueue(byte[] key) {
+    public final boolean CloseQueue(byte[] key) {
         return CloseQueue(key, null, null, false, null);
     }
 
@@ -613,7 +613,7 @@ public class CAsyncQueue extends CAsyncServiceHandler {
      * of QUEUE_OK, QUEUE_DEQUEUING, and so on
      * @return true for sending the request successfully, and false for failure
      */
-    public boolean CloseQueue(byte[] key, DClose c) {
+    public final boolean CloseQueue(byte[] key, DClose c) {
         return CloseQueue(key, c, null, false, null);
     }
 
@@ -627,7 +627,7 @@ public class CAsyncQueue extends CAsyncServiceHandler {
      * event
      * @return true for sending the request successfully, and false for failure
      */
-    public boolean CloseQueue(byte[] key, DClose c, DDiscarded discarded) {
+    public final boolean CloseQueue(byte[] key, DClose c, DDiscarded discarded) {
         return CloseQueue(key, c, discarded, false, null);
     }
 
@@ -643,7 +643,7 @@ public class CAsyncQueue extends CAsyncServiceHandler {
      * queue file. It defaults to false
      * @return true for sending the request successfully, and false for failure
      */
-    public boolean CloseQueue(byte[] key, DClose c, DDiscarded discarded, boolean permanent) {
+    public final boolean CloseQueue(byte[] key, DClose c, DDiscarded discarded, boolean permanent) {
         return CloseQueue(key, c, discarded, permanent, null);
     }
 
@@ -700,7 +700,7 @@ public class CAsyncQueue extends CAsyncServiceHandler {
      * @param key An ASCII string for identifying a queue at server side
      * @return true for sending the request successfully, and false for failure
      */
-    public boolean FlushQueue(byte[] key) {
+    public final boolean FlushQueue(byte[] key) {
         return FlushQueue(key, null, tagOptimistic.oMemoryCached, null);
     }
 
@@ -712,7 +712,7 @@ public class CAsyncQueue extends CAsyncServiceHandler {
      * size in bytes
      * @return true for sending the request successfully, and false for failure
      */
-    public boolean FlushQueue(byte[] key, DFlush f) {
+    public final boolean FlushQueue(byte[] key, DFlush f) {
         return FlushQueue(key, f, tagOptimistic.oMemoryCached, null);
     }
 
@@ -729,7 +729,7 @@ public class CAsyncQueue extends CAsyncServiceHandler {
      * oDiskCommitted. It defaults to tagOptimistic.oMemoryCached
      * @return true for sending the request successfully, and false for failure
      */
-    public boolean FlushQueue(byte[] key, DFlush f, tagOptimistic option) {
+    public final boolean FlushQueue(byte[] key, DFlush f, tagOptimistic option) {
         return FlushQueue(key, f, option, null);
     }
 
@@ -748,7 +748,7 @@ public class CAsyncQueue extends CAsyncServiceHandler {
      * event
      * @return true for sending the request successfully, and false for failure
      */
-    public boolean FlushQueue(byte[] key, DFlush f, tagOptimistic option, DDiscarded discarded) {
+    public final boolean FlushQueue(byte[] key, DFlush f, tagOptimistic option, DDiscarded discarded) {
         return FlushQueue(key, f, option, discarded, null);
     }
 
@@ -832,7 +832,7 @@ public class CAsyncQueue extends CAsyncServiceHandler {
      * this batch and bytes dequeued within this batch
      * @return true for sending the request successfully, and false for failure
      */
-    public boolean Dequeue(byte[] key, DDequeue d) {
+    public final boolean Dequeue(byte[] key, DDequeue d) {
         return Dequeue(key, d, 0, null, null);
     }
 
@@ -847,7 +847,7 @@ public class CAsyncQueue extends CAsyncServiceHandler {
      * @param timeout A time-out number in milliseconds. It defaults to zero
      * @return true for sending the request successfully, and false for failure
      */
-    public boolean Dequeue(byte[] key, DDequeue d, int timeout) {
+    public final boolean Dequeue(byte[] key, DDequeue d, int timeout) {
         return Dequeue(key, d, timeout, null, null);
     }
 
@@ -864,7 +864,7 @@ public class CAsyncQueue extends CAsyncServiceHandler {
      * event
      * @return true for sending the request successfully, and false for failure
      */
-    public boolean Dequeue(byte[] key, DDequeue d, int timeout, DDiscarded discarded) {
+    public final boolean Dequeue(byte[] key, DDequeue d, int timeout, DDiscarded discarded) {
         return Dequeue(key, d, timeout, discarded, null);
     }
 

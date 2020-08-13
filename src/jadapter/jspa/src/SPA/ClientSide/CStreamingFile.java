@@ -149,7 +149,7 @@ public class CStreamingFile extends CAsyncServiceHandler {
      *
      * @return the number of files queued
      */
-    public int getFilesQueued() {
+    public final int getFilesQueued() {
         int size = 0;
         m_csFile.lock();
         try {
@@ -165,7 +165,7 @@ public class CStreamingFile extends CAsyncServiceHandler {
      *
      * @return the number of files streamed possibly
      */
-    public int getFilesStreamed() {
+    public final int getFilesStreamed() {
         int n = 0;
         m_csFile.lock();
         try {
@@ -181,7 +181,7 @@ public class CStreamingFile extends CAsyncServiceHandler {
      *
      * @param max the max number of files streamed
      */
-    public void setFilesStreamed(int max) {
+    public final void setFilesStreamed(int max) {
         m_csFile.lock();
         try {
             if (max <= 0) {
@@ -226,7 +226,7 @@ public class CStreamingFile extends CAsyncServiceHandler {
      *
      * @return file size in bytes
      */
-    public long getFileSize() {
+    public final long getFileSize() {
         long n = -1;
         m_csFile.lock();
         try {
@@ -244,7 +244,7 @@ public class CStreamingFile extends CAsyncServiceHandler {
      *
      * @return a string for local file name
      */
-    public String getLocalFile() {
+    public final String getLocalFile() {
         String s = null;
         m_csFile.lock();
         try {
@@ -262,7 +262,7 @@ public class CStreamingFile extends CAsyncServiceHandler {
      *
      * @return a string for remote file name
      */
-    public String getRemoteFile() {
+    public final String getRemoteFile() {
         String s = null;
         m_csFile.lock();
         try {
@@ -784,23 +784,23 @@ public class CStreamingFile extends CAsyncServiceHandler {
         }
     }
 
-    public boolean Download(String localFile, String remoteFile) {
+    public final boolean Download(String localFile, String remoteFile) {
         return Download(localFile, remoteFile, null, null, null, FILE_OPEN_TRUNCACTED, null);
     }
 
-    public boolean Download(String localFile, String remoteFile, DDownload dl) {
+    public final boolean Download(String localFile, String remoteFile, DDownload dl) {
         return Download(localFile, remoteFile, dl, null, null, FILE_OPEN_TRUNCACTED, null);
     }
 
-    public boolean Download(String localFile, String remoteFile, DDownload dl, DTransferring trans) {
+    public final boolean Download(String localFile, String remoteFile, DDownload dl, DTransferring trans) {
         return Download(localFile, remoteFile, dl, trans, null, FILE_OPEN_TRUNCACTED, null);
     }
 
-    public boolean Download(String localFile, String remoteFile, DDownload dl, DTransferring trans, DDiscarded discarded) {
+    public final boolean Download(String localFile, String remoteFile, DDownload dl, DTransferring trans, DDiscarded discarded) {
         return Download(localFile, remoteFile, dl, trans, discarded, FILE_OPEN_TRUNCACTED, null);
     }
 
-    public boolean Download(String localFile, String remoteFile, DDownload dl, DTransferring trans, DDiscarded discarded, int flags) {
+    public final boolean Download(String localFile, String remoteFile, DDownload dl, DTransferring trans, DDiscarded discarded, int flags) {
         return Download(localFile, remoteFile, dl, trans, discarded, flags, null);
     }
 
@@ -880,23 +880,23 @@ public class CStreamingFile extends CAsyncServiceHandler {
         return f;
     }
 
-    public boolean Upload(String localFile, String remoteFile) {
+    public final boolean Upload(String localFile, String remoteFile) {
         return Upload(localFile, remoteFile, null, null, null, FILE_OPEN_TRUNCACTED, null);
     }
 
-    public boolean Upload(String localFile, String remoteFile, DUpload up) {
+    public final boolean Upload(String localFile, String remoteFile, DUpload up) {
         return Upload(localFile, remoteFile, up, null, null, FILE_OPEN_TRUNCACTED, null);
     }
 
-    public boolean Upload(String localFile, String remoteFile, DUpload up, DTransferring trans) {
+    public final boolean Upload(String localFile, String remoteFile, DUpload up, DTransferring trans) {
         return Upload(localFile, remoteFile, up, trans, null, FILE_OPEN_TRUNCACTED, null);
     }
 
-    public boolean Upload(String localFile, String remoteFile, DUpload up, DTransferring trans, DDiscarded discarded) {
+    public final boolean Upload(String localFile, String remoteFile, DUpload up, DTransferring trans, DDiscarded discarded) {
         return Upload(localFile, remoteFile, up, trans, discarded, FILE_OPEN_TRUNCACTED, null);
     }
 
-    public boolean Upload(String localFile, String remoteFile, DUpload up, DTransferring trans, DDiscarded discarded, int flags) {
+    public final boolean Upload(String localFile, String remoteFile, DUpload up, DTransferring trans, DDiscarded discarded, int flags) {
         return Upload(localFile, remoteFile, up, trans, discarded, flags, null);
     }
 

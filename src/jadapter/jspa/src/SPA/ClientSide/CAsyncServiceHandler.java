@@ -145,21 +145,21 @@ public class CAsyncServiceHandler implements AutoCloseable {
         }
     }
 
-    public boolean SendRequest(short reqId, java.nio.ByteBuffer data, DAsyncResultHandler ash) {
+    public final boolean SendRequest(short reqId, java.nio.ByteBuffer data, DAsyncResultHandler ash) {
         if (data != null) {
             return SendRequest(reqId, data, data.limit() - data.position(), ash, null, null);
         }
         return SendRequest(reqId, data, 0, ash, null, null);
     }
 
-    public boolean SendRequest(short reqId, java.nio.ByteBuffer data, DAsyncResultHandler ash, DDiscarded discarded) {
+    public final boolean SendRequest(short reqId, java.nio.ByteBuffer data, DAsyncResultHandler ash, DDiscarded discarded) {
         if (data != null) {
             return SendRequest(reqId, data, data.limit() - data.position(), ash, discarded, null);
         }
         return SendRequest(reqId, data, 0, ash, discarded, null);
     }
 
-    public boolean SendRequest(short reqId, java.nio.ByteBuffer data, DAsyncResultHandler ash, DDiscarded discarded, DOnExceptionFromServer exception) {
+    public final boolean SendRequest(short reqId, java.nio.ByteBuffer data, DAsyncResultHandler ash, DDiscarded discarded, DOnExceptionFromServer exception) {
         if (data != null) {
             return SendRequest(reqId, data, data.limit() - data.position(), ash, discarded, exception);
         }
@@ -225,7 +225,7 @@ public class CAsyncServiceHandler implements AutoCloseable {
      * @throws CSocketError if communication channel is not sendable
      */
     public UFuture<SPA.CScopeUQueue> sendRequest(short reqId, java.nio.ByteBuffer data, int len) throws CSocketError {
-        final UFuture<SPA.CScopeUQueue> f = new UFuture<>("SendRequest", reqId, this);
+        UFuture<SPA.CScopeUQueue> f = new UFuture<>("SendRequest", reqId, this);
         if (!SendRequest(reqId, data, len, get_ash(f), getAborted(f), getSE(f))) {
             raise(f);
         }
@@ -243,7 +243,7 @@ public class CAsyncServiceHandler implements AutoCloseable {
      * @throws CSocketError if communication channel is not sendable
      */
     public UFuture<SPA.CScopeUQueue> sendRequest(short reqId, java.nio.ByteBuffer data) throws CSocketError {
-        final UFuture<SPA.CScopeUQueue> f = new UFuture<>("SendRequest", reqId, this);
+        UFuture<SPA.CScopeUQueue> f = new UFuture<>("SendRequest", reqId, this);
         if (!SendRequest(reqId, data, get_ash(f), getAborted(f), getSE(f))) {
             raise(f);
         }
@@ -363,7 +363,7 @@ public class CAsyncServiceHandler implements AutoCloseable {
      * @throws CSocketError if communication channel is not sendable
      */
     public UFuture<SPA.CScopeUQueue> sendRequest(final short reqId, byte[] data, int len) throws CSocketError {
-        final UFuture<SPA.CScopeUQueue> f = new UFuture<>("SendRequest", reqId, this);
+        UFuture<SPA.CScopeUQueue> f = new UFuture<>("SendRequest", reqId, this);
         if (!SendRequest(reqId, data, len, get_ash(f), getAborted(f), getSE(f))) {
             raise(f);
         }
@@ -412,7 +412,7 @@ public class CAsyncServiceHandler implements AutoCloseable {
      * @throws CSocketError if communication channel is not sendable
      */
     public UFuture<SPA.CScopeUQueue> sendRequest(short reqId, SPA.CUQueue q) throws CSocketError {
-        final UFuture<SPA.CScopeUQueue> f = new UFuture<>("SendRequest", reqId, this);
+        UFuture<SPA.CScopeUQueue> f = new UFuture<>("SendRequest", reqId, this);
         if (!SendRequest(reqId, q, get_ash(f), getAborted(f), getSE(f))) {
             raise(f);
         }
@@ -445,7 +445,7 @@ public class CAsyncServiceHandler implements AutoCloseable {
      * @throws CSocketError if communication channel is not sendable
      */
     public UFuture<SPA.CScopeUQueue> sendRequest(short reqId, SPA.CScopeUQueue q) throws CSocketError {
-        final UFuture<SPA.CScopeUQueue> f = new UFuture<>("SendRequest", reqId, this);
+        UFuture<SPA.CScopeUQueue> f = new UFuture<>("SendRequest", reqId, this);
         if (!SendRequest(reqId, q, get_ash(f), getAborted(f), getSE(f))) {
             raise(f);
         }
@@ -474,7 +474,7 @@ public class CAsyncServiceHandler implements AutoCloseable {
      * @throws CSocketError if communication channel is not sendable
      */
     public UFuture<SPA.CScopeUQueue> sendRequest(final short reqId) throws CSocketError {
-        final UFuture<SPA.CScopeUQueue> f = new UFuture<>("SendRequest", reqId, this);
+        UFuture<SPA.CScopeUQueue> f = new UFuture<>("SendRequest", reqId, this);
         if (!SendRequest(reqId, get_ash(f), getAborted(f), getSE(f))) {
             raise(f);
         }
@@ -611,7 +611,7 @@ public class CAsyncServiceHandler implements AutoCloseable {
         }
     }
 
-    public final boolean StartBatching() {
+    public boolean StartBatching() {
         synchronized (m_cs) {
             long h = getCSHandle();
             if (h == 0) {
@@ -706,7 +706,7 @@ public class CAsyncServiceHandler implements AutoCloseable {
         return ClientCoreLoader.IsRouteeRequest(h);
     }
 
-    public final boolean AbortBatching() {
+    public boolean AbortBatching() {
         synchronized (m_cs) {
             for (java.util.Map.Entry<Short, CResultCb> p : m_kvBatching) {
                 CResultCb rcb = p.getValue();
@@ -724,7 +724,7 @@ public class CAsyncServiceHandler implements AutoCloseable {
         }
     }
 
-    public final void AbortDequeuedMessage() {
+    public void AbortDequeuedMessage() {
         long h = getCSHandle();
         if (h == 0) {
             return;
