@@ -1,11 +1,11 @@
 package SPA.ClientSide;
 
-import java.util.concurrent.Future;
-
 public class CAsyncServiceHandler implements AutoCloseable {
 
     public static final int SESSION_CLOSED_AFTER = -1000;
     public static final int SESSION_CLOSED_BEFORE = -1001;
+    public static final int REQUEST_CANCELED = -1002;
+    public static final long DEFAULT_INTERRUPT_OPTION = 1;
 
     @Override
     public void close() {
@@ -224,10 +224,10 @@ public class CAsyncServiceHandler implements AutoCloseable {
      * result
      * @throws CSocketError if communication channel is not sendable
      */
-    public Future<SPA.CScopeUQueue> sendRequest(short reqId, java.nio.ByteBuffer data, int len) throws CSocketError {
-        final UFuture<SPA.CScopeUQueue> f = new UFuture<>();
-        if (!SendRequest(reqId, data, len, get_ash(f), getAborted(f, "SendRequest", reqId), getSE(f))) {
-            raise("SendRequest", reqId);
+    public UFuture<SPA.CScopeUQueue> sendRequest(short reqId, java.nio.ByteBuffer data, int len) throws CSocketError {
+        final UFuture<SPA.CScopeUQueue> f = new UFuture<>("SendRequest", reqId, this);
+        if (!SendRequest(reqId, data, len, get_ash(f), getAborted(f), getSE(f))) {
+            raise(f);
         }
         return f;
     }
@@ -242,10 +242,10 @@ public class CAsyncServiceHandler implements AutoCloseable {
      * result
      * @throws CSocketError if communication channel is not sendable
      */
-    public Future<SPA.CScopeUQueue> sendRequest(short reqId, java.nio.ByteBuffer data) throws CSocketError {
-        final UFuture<SPA.CScopeUQueue> f = new UFuture<>();
-        if (!SendRequest(reqId, data, get_ash(f), getAborted(f, "SendRequest", reqId), getSE(f))) {
-            raise("SendRequest", reqId);
+    public UFuture<SPA.CScopeUQueue> sendRequest(short reqId, java.nio.ByteBuffer data) throws CSocketError {
+        final UFuture<SPA.CScopeUQueue> f = new UFuture<>("SendRequest", reqId, this);
+        if (!SendRequest(reqId, data, get_ash(f), getAborted(f), getSE(f))) {
+            raise(f);
         }
         return f;
     }
@@ -296,14 +296,9 @@ public class CAsyncServiceHandler implements AutoCloseable {
      *
      * @param <V> A generic type
      * @param f a future instance
-     * @param methodName a non-empty method name
-     * @param reqId a request id
      * @return a DDiscarded callback
      */
-    public static <V> DDiscarded getAborted(final UFuture<V> f, final String methodName, final short reqId) {
-        if (methodName == null || methodName.length() == 0) {
-            throw new IllegalArgumentException("methodName cannot be empty");
-        }
+    public static <V> DDiscarded getAborted(final UFuture<V> f) {
         DDiscarded aborted = new DDiscarded() {
             @Override
             public void invoke(CAsyncServiceHandler sender, boolean discarded) {
@@ -313,10 +308,10 @@ public class CAsyncServiceHandler implements AutoCloseable {
                     CClientSocket cs = sender.getSocket();
                     int ec = cs.getErrorCode();
                     if (cs.getErrorCode() == 0) {
-                        CSocketError ex = new CSocketError(SESSION_CLOSED_AFTER, "Session closed after sending the request " + methodName, reqId, false);
+                        CSocketError ex = new CSocketError(SESSION_CLOSED_AFTER, "Session closed after sending the request " + f.getMethodName(), f.getReqId(), false);
                         f.setException(ex);
                     } else {
-                        CSocketError ex = new CSocketError(ec, cs.getErrorMsg(), reqId);
+                        CSocketError ex = new CSocketError(ec, cs.getErrorMsg(), f.getReqId(), false);
                         f.setException(ex);
                     }
                 }
@@ -367,10 +362,10 @@ public class CAsyncServiceHandler implements AutoCloseable {
      * result
      * @throws CSocketError if communication channel is not sendable
      */
-    public Future<SPA.CScopeUQueue> sendRequest(final short reqId, byte[] data, int len) throws CSocketError {
-        final UFuture<SPA.CScopeUQueue> f = new UFuture<>();
-        if (!SendRequest(reqId, data, len, get_ash(f), getAborted(f, "SendRequest", reqId), getSE(f))) {
-            raise("SendRequest", reqId);
+    public UFuture<SPA.CScopeUQueue> sendRequest(final short reqId, byte[] data, int len) throws CSocketError {
+        final UFuture<SPA.CScopeUQueue> f = new UFuture<>("SendRequest", reqId, this);
+        if (!SendRequest(reqId, data, len, get_ash(f), getAborted(f), getSE(f))) {
+            raise(f);
         }
         return f;
     }
@@ -378,20 +373,16 @@ public class CAsyncServiceHandler implements AutoCloseable {
     /**
      * Throw an exception CSocketError
      *
-     * @param methodName a non-empty method name
-     * @param reqId a request id
+     * @param f a future
      * @throws CSocketError if communication channel is not sendable
      */
-    public void raise(String methodName, short reqId) throws CSocketError {
-        if (methodName == null || methodName.length() == 0) {
-            throw new IllegalArgumentException("methodName cannot be empty");
-        }
+    public void raise(IUFExtra f) throws CSocketError {
         CClientSocket cs = getSocket();
         int ec = cs.getErrorCode();
         if (ec == 0) {
-            throw new CSocketError(SESSION_CLOSED_BEFORE, "Session already closed before sending the request " + methodName, reqId);
+            throw new CSocketError(SESSION_CLOSED_BEFORE, "Session already closed before sending the request " + f.getMethodName(), f.getReqId(), true);
         } else {
-            throw new CSocketError(ec, cs.getErrorMsg(), reqId);
+            throw new CSocketError(ec, cs.getErrorMsg(), f.getReqId(), true);
         }
     }
 
@@ -420,10 +411,10 @@ public class CAsyncServiceHandler implements AutoCloseable {
      * result
      * @throws CSocketError if communication channel is not sendable
      */
-    public Future<SPA.CScopeUQueue> sendRequest(short reqId, SPA.CUQueue q) throws CSocketError {
-        final UFuture<SPA.CScopeUQueue> f = new UFuture<>();
-        if (!SendRequest(reqId, q, get_ash(f), getAborted(f, "SendRequest", reqId), getSE(f))) {
-            raise("SendRequest", reqId);
+    public UFuture<SPA.CScopeUQueue> sendRequest(short reqId, SPA.CUQueue q) throws CSocketError {
+        final UFuture<SPA.CScopeUQueue> f = new UFuture<>("SendRequest", reqId, this);
+        if (!SendRequest(reqId, q, get_ash(f), getAborted(f), getSE(f))) {
+            raise(f);
         }
         return f;
     }
@@ -453,10 +444,10 @@ public class CAsyncServiceHandler implements AutoCloseable {
      * result
      * @throws CSocketError if communication channel is not sendable
      */
-    public Future<SPA.CScopeUQueue> sendRequest(short reqId, SPA.CScopeUQueue q) throws CSocketError {
-        final UFuture<SPA.CScopeUQueue> f = new UFuture<>();
-        if (!SendRequest(reqId, q, get_ash(f), getAborted(f, "SendRequest", reqId), getSE(f))) {
-            raise("SendRequest", reqId);
+    public UFuture<SPA.CScopeUQueue> sendRequest(short reqId, SPA.CScopeUQueue q) throws CSocketError {
+        final UFuture<SPA.CScopeUQueue> f = new UFuture<>("SendRequest", reqId, this);
+        if (!SendRequest(reqId, q, get_ash(f), getAborted(f), getSE(f))) {
+            raise(f);
         }
         return f;
     }
@@ -482,10 +473,10 @@ public class CAsyncServiceHandler implements AutoCloseable {
      * result
      * @throws CSocketError if communication channel is not sendable
      */
-    public Future<SPA.CScopeUQueue> sendRequest(final short reqId) throws CSocketError {
-        final UFuture<SPA.CScopeUQueue> f = new UFuture<>();
-        if (!SendRequest(reqId, get_ash(f), getAborted(f, "SendRequest", reqId), getSE(f))) {
-            raise("SendRequest", reqId);
+    public UFuture<SPA.CScopeUQueue> sendRequest(final short reqId) throws CSocketError {
+        final UFuture<SPA.CScopeUQueue> f = new UFuture<>("SendRequest", reqId, this);
+        if (!SendRequest(reqId, get_ash(f), getAborted(f), getSE(f))) {
+            raise(f);
         }
         return f;
     }

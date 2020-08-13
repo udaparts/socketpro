@@ -1,7 +1,6 @@
 package SPA.ClientSide;
 
 import SPA.*;
-import java.util.concurrent.Future;
 
 /**
  * A client side class for easy accessing remote persistent message queues by
@@ -205,16 +204,16 @@ public class CAsyncQueue extends CAsyncServiceHandler {
         return ok;
     }
 
-    public Future<Long> enqueueBatch(byte[] key, short idMessage, CUQueue q) throws CSocketError {
-        final UFuture<Long> f = new UFuture<>();
+    public UFuture<Long> enqueueBatch(byte[] key, short idMessage, CUQueue q) throws CSocketError {
+        final UFuture<Long> f = new UFuture<>("EnqueueBatch", idEnqueueBatch, this);
         DEnqueue e = new DEnqueue() {
             @Override
             public void invoke(CAsyncQueue aq, long indexMessage) {
                 f.set(indexMessage);
             }
         };
-        if (!EnqueueBatch(key, q, e, getAborted(f, "EnqueueBatch", idEnqueueBatch), getSE(f))) {
-            raise("EnqueueBatch", idEnqueueBatch);
+        if (!EnqueueBatch(key, q, e, getAborted(f), getSE(f))) {
+            raise(f);
         }
         return f;
     }
@@ -267,21 +266,21 @@ public class CAsyncQueue extends CAsyncServiceHandler {
         return ok;
     }
 
-    public Future<Long> enqueue(byte[] key, short idMessage, byte[] bytes) throws CSocketError {
-        final UFuture<Long> f = new UFuture<>();
+    public UFuture<Long> enqueue(byte[] key, short idMessage, byte[] bytes) throws CSocketError {
+        final UFuture<Long> f = new UFuture<>("Enqueue", idEnqueue, this);
         DEnqueue e = new DEnqueue() {
             @Override
             public void invoke(CAsyncQueue aq, long indexMessage) {
                 f.set(indexMessage);
             }
         };
-        if (!Enqueue(key, idMessage, bytes, e, getAborted(f, "Enqueue", idEnqueue), getSE(f))) {
-            raise("Enqueue", idEnqueue);
+        if (!Enqueue(key, idMessage, bytes, e, getAborted(f), getSE(f))) {
+            raise(f);
         }
         return f;
     }
 
-    public Future<Long> enqueue(byte[] key, short idMessage) throws CSocketError {
+    public final UFuture<Long> enqueue(byte[] key, short idMessage) throws CSocketError {
         return enqueue(key, idMessage, (byte[]) null);
     }
 
@@ -305,21 +304,21 @@ public class CAsyncQueue extends CAsyncServiceHandler {
         return ok;
     }
 
-    public Future<Long> enqueue(byte[] key, short idMessage, CUQueue q) throws CSocketError {
-        final UFuture<Long> f = new UFuture<>();
+    public UFuture<Long> enqueue(byte[] key, short idMessage, CUQueue q) throws CSocketError {
+        final UFuture<Long> f = new UFuture<>("Enqueue", idEnqueue, this);
         DEnqueue e = new DEnqueue() {
             @Override
             public void invoke(CAsyncQueue aq, long indexMessage) {
                 f.set(indexMessage);
             }
         };
-        if (!Enqueue(key, idMessage, q, e, getAborted(f, "Enqueue", idEnqueue), getSE(f))) {
-            raise("Enqueue", idEnqueue);
+        if (!Enqueue(key, idMessage, q, e, getAborted(f), getSE(f))) {
+            raise(f);
         }
         return f;
     }
 
-    public Future<Long> enqueue(byte[] key, short idMessage, CScopeUQueue q) throws CSocketError {
+    public final UFuture<Long> enqueue(byte[] key, short idMessage, CScopeUQueue q) throws CSocketError {
         return enqueue(key, idMessage, q.getUQueue());
     }
 
@@ -411,16 +410,16 @@ public class CAsyncQueue extends CAsyncServiceHandler {
         }
     }
 
-    public Future<Integer> startQueueTrans(byte[] key) throws CSocketError {
-        final UFuture<Integer> f = new UFuture<>();
+    public UFuture<Integer> startQueueTrans(byte[] key) throws CSocketError {
+        final UFuture<Integer> f = new UFuture<>("StartQueueTrans", idStartTrans, this);
         DQueueTrans qt = new DQueueTrans() {
             @Override
             public void invoke(CAsyncQueue aq, int errCode) {
                 f.set(errCode);
             }
         };
-        if (!StartQueueTrans(key, qt, getAborted(f, "StartQueueTrans", idStartTrans), getSE(f))) {
-            raise("StartQueueTrans", idStartTrans);
+        if (!StartQueueTrans(key, qt, getAborted(f), getSE(f))) {
+            raise(f);
         }
         return f;
     }
@@ -512,20 +511,20 @@ public class CAsyncQueue extends CAsyncServiceHandler {
         }
     }
 
-    public Future<Integer> endQueueTrans() throws CSocketError {
+    public final UFuture<Integer> endQueueTrans() throws CSocketError {
         return endQueueTrans(false);
     }
 
-    public Future<Integer> endQueueTrans(boolean rollback) throws CSocketError {
-        final UFuture<Integer> f = new UFuture<>();
+    public UFuture<Integer> endQueueTrans(boolean rollback) throws CSocketError {
+        final UFuture<Integer> f = new UFuture<>("EndQueueTrans", idEndTrans, this);
         DQueueTrans qt = new DQueueTrans() {
             @Override
             public void invoke(CAsyncQueue aq, int errCode) {
                 f.set(errCode);
             }
         };
-        if (!EndQueueTrans(rollback, qt, getAborted(f, "EndQueueTrans", idEndTrans), getSE(f))) {
-            raise("EndQueueTrans", idEndTrans);
+        if (!EndQueueTrans(rollback, qt, getAborted(f), getSE(f))) {
+            raise(f);
         }
         return f;
     }
@@ -580,16 +579,16 @@ public class CAsyncQueue extends CAsyncServiceHandler {
         }, discarded, se);
     }
 
-    public Future<String[]> getKeys() throws CSocketError {
-        final UFuture<String[]> f = new UFuture<>();
+    public UFuture<String[]> getKeys() throws CSocketError {
+        final UFuture<String[]> f = new UFuture<>("GetKeys", idGetKeys, this);
         DGetKeys gk = new DGetKeys() {
             @Override
             public void invoke(CAsyncQueue aq, String[] vKey) {
                 f.set(vKey);
             }
         };
-        if (!GetKeys(gk, getAborted(f, "GetKeys", idGetKeys), getSE(f))) {
-            raise("GetKeys", idGetKeys);
+        if (!GetKeys(gk, getAborted(f), getSE(f))) {
+            raise(f);
         }
         return f;
     }
@@ -677,21 +676,21 @@ public class CAsyncQueue extends CAsyncServiceHandler {
         }
     }
 
-    public Future<Integer> closeQueue(byte[] key, boolean permanent) throws CSocketError {
-        final UFuture<Integer> f = new UFuture<>();
+    public UFuture<Integer> closeQueue(byte[] key, boolean permanent) throws CSocketError {
+        final UFuture<Integer> f = new UFuture<>("CloseQueue", idClose, this);
         DClose c = new DClose() {
             @Override
             public void invoke(CAsyncQueue aq, int errCode) {
                 f.set(errCode);
             }
         };
-        if (!CloseQueue(key, c, getAborted(f, "CloseQueue", idClose), permanent, getSE(f))) {
-            raise("CloseQueue", idClose);
+        if (!CloseQueue(key, c, getAborted(f), permanent, getSE(f))) {
+            raise(f);
         }
         return f;
     }
 
-    public Future<Integer> closeQueue(byte[] key) throws CSocketError {
+    public final UFuture<Integer> closeQueue(byte[] key) throws CSocketError {
         return closeQueue(key, false);
     }
 
@@ -805,21 +804,21 @@ public class CAsyncQueue extends CAsyncServiceHandler {
         }
     }
 
-    public Future<QueueInfo> flushQueue(byte[] key, tagOptimistic option) throws CSocketError {
-        final UFuture<QueueInfo> f = new UFuture<>();
+    public UFuture<QueueInfo> flushQueue(byte[] key, tagOptimistic option) throws CSocketError {
+        final UFuture<QueueInfo> f = new UFuture<>("FlushQueue", idFlush, this);
         DFlush df = new DFlush() {
             @Override
             public void invoke(CAsyncQueue aq, long messageCount, long fileSize) {
                 f.set(new QueueInfo(messageCount, fileSize));
             }
         };
-        if (!FlushQueue(key, df, option, getAborted(f, "FlushQueue", idFlush), getSE(f))) {
-            raise("FlushQueue", idFlush);
+        if (!FlushQueue(key, df, option, getAborted(f), getSE(f))) {
+            raise(f);
         }
         return f;
     }
 
-    public Future<QueueInfo> flushQueue(byte[] key) throws CSocketError {
+    public final UFuture<QueueInfo> flushQueue(byte[] key) throws CSocketError {
         return flushQueue(key, tagOptimistic.oMemoryCached);
     }
 
@@ -928,16 +927,16 @@ public class CAsyncQueue extends CAsyncServiceHandler {
         }
     }
 
-    public Future<DeqInfo> dequeue(byte[] key, int timeout) throws CSocketError {
-        final UFuture<DeqInfo> f = new UFuture<>();
+    public UFuture<DeqInfo> dequeue(byte[] key, int timeout) throws CSocketError {
+        final UFuture<DeqInfo> f = new UFuture<>("Dequeue", idDequeue, this);
         DDequeue d = new DDequeue() {
             @Override
             public void invoke(CAsyncQueue aq, long messageCount, long fileSize, int messages, int bytes) {
                 f.set(new DeqInfo(messageCount, fileSize, messages, bytes));
             }
         };
-        if (!Dequeue(key, d, timeout, getAborted(f, "Dequeue", idDequeue), getSE(f))) {
-            raise("Dequeue", idDequeue);
+        if (!Dequeue(key, d, timeout, getAborted(f), getSE(f))) {
+            raise(f);
         }
         return f;
     }

@@ -7,7 +7,6 @@ import java.io.IOException;
 import java.io.*;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
-import java.util.concurrent.Future;
 
 public class CStreamingFile extends CAsyncServiceHandler {
 
@@ -835,22 +834,22 @@ public class CStreamingFile extends CAsyncServiceHandler {
         return true;
     }
 
-    public Future<ErrInfo> download(String localFile, String remoteFile) {
+    public final UFuture<ErrInfo> download(String localFile, String remoteFile) {
         return download(localFile, remoteFile, null, FILE_OPEN_TRUNCACTED);
     }
 
-    public Future<ErrInfo> download(String localFile, String remoteFile, DTransferring trans) {
+    public final UFuture<ErrInfo> download(String localFile, String remoteFile, DTransferring trans) {
         return download(localFile, remoteFile, trans, FILE_OPEN_TRUNCACTED);
     }
 
-    public Future<ErrInfo> download(String localFile, String remoteFile, DTransferring trans, int flags) {
+    public UFuture<ErrInfo> download(String localFile, String remoteFile, DTransferring trans, int flags) {
         if (localFile == null || localFile.length() == 0) {
             throw new IllegalArgumentException("localFile cannot be empty");
         }
         if (remoteFile == null || remoteFile.length() == 0) {
             throw new IllegalArgumentException("remoteFile cannot be empty");
         }
-        final UFuture<ErrInfo> f = new UFuture<>();
+        final UFuture<ErrInfo> f = new UFuture<>("Download", idDownload, this);
         DDownload dl = new DDownload() {
             @Override
             public void invoke(CStreamingFile file, int res, String errMsg) {
@@ -860,7 +859,7 @@ public class CStreamingFile extends CAsyncServiceHandler {
         CContext context = new CContext(false, flags);
         context.Download = dl;
         context.Transferring = trans;
-        context.Discarded = getAborted(f, "Download", idDownload);
+        context.Discarded = getAborted(f);
         context.FilePath = remoteFile;
         context.LocalFile = localFile;
         context.Se = getSE(f);
@@ -931,22 +930,22 @@ public class CStreamingFile extends CAsyncServiceHandler {
         return true;
     }
 
-    public Future<ErrInfo> upload(String localFile, String remoteFile) {
+    public final UFuture<ErrInfo> upload(String localFile, String remoteFile) {
         return upload(localFile, remoteFile, null, FILE_OPEN_TRUNCACTED);
     }
 
-    public Future<ErrInfo> upload(String localFile, String remoteFile, DTransferring trans) {
+    public final UFuture<ErrInfo> upload(String localFile, String remoteFile, DTransferring trans) {
         return upload(localFile, remoteFile, trans, FILE_OPEN_TRUNCACTED);
     }
 
-    public Future<ErrInfo> upload(String localFile, String remoteFile, DTransferring trans, int flags) {
+    public UFuture<ErrInfo> upload(String localFile, String remoteFile, DTransferring trans, int flags) {
         if (localFile == null || localFile.length() == 0) {
             throw new IllegalArgumentException("localFile cannot be empty");
         }
         if (remoteFile == null || remoteFile.length() == 0) {
             throw new IllegalArgumentException("remoteFile cannot be empty");
         }
-        final UFuture<ErrInfo> f = new UFuture<>();
+        final UFuture<ErrInfo> f = new UFuture<>("Upload", idUpload, this);
         DUpload up = new DUpload() {
             @Override
             public void invoke(CStreamingFile file, int res, String errMsg) {
@@ -956,7 +955,7 @@ public class CStreamingFile extends CAsyncServiceHandler {
         CContext context = new CContext(true, flags);
         context.Upload = up;
         context.Transferring = trans;
-        context.Discarded = getAborted(f, "Upload", idUpload);
+        context.Discarded = getAborted(f);
         context.FilePath = remoteFile;
         context.LocalFile = localFile;
         context.Se = getSE(f);

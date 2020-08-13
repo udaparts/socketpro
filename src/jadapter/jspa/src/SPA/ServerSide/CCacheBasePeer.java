@@ -11,15 +11,16 @@ public abstract class CCacheBasePeer extends CClientPeer {
     public class CachedTableResult implements IUSerializer {
 
         @Override
-        public void LoadFrom(CUQueue UQueue) {
+        public CUQueue LoadFrom(CUQueue UQueue) {
             ms = tagManagementSystem.forValue(UQueue.LoadInt());
             res = UQueue.LoadInt();
             errMsg = UQueue.LoadString();
+            return UQueue;
         }
 
         @Override
-        public void SaveTo(CUQueue UQueue) {
-            UQueue.Save(ms.getValue()).Save(res).Save(errMsg);
+        public CUQueue SaveTo(CUQueue UQueue) {
+            return UQueue.Save(ms.getValue()).Save(res).Save(errMsg);
         }
         public tagManagementSystem ms = tagManagementSystem.msUnknown;
         public int res = 0;

@@ -3,7 +3,6 @@ package SPA.ClientSide;
 import SPA.*;
 import SPA.UDB.*;
 import java.nio.charset.Charset;
-import java.util.concurrent.Future;
 
 public class CAsyncDBHandler extends CAsyncServiceHandler {
 
@@ -428,10 +427,10 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
      * @return a future for execution error information
      * @throws CSocketError if communication channel is not sendable
      */
-    public Future<ErrInfo> closeDb() throws CSocketError {
-        UFuture<ErrInfo> f = new UFuture<>();
-        if (!CloseDb(getHandler(f), CAsyncDBHandler.getAborted(f, "CloseDb", DB_CONSTS.idClose), CAsyncDBHandler.getSE(f))) {
-            raise("CloseDb", DB_CONSTS.idClose);
+    public UFuture<ErrInfo> closeDb() throws CSocketError {
+        UFuture<ErrInfo> f = new UFuture<>("CloseDb", DB_CONSTS.idClose, this);
+        if (!CloseDb(getHandler(f), CAsyncDBHandler.getAborted(f), CAsyncDBHandler.getSE(f))) {
+            raise(f);
         }
         return f;
     }
@@ -543,10 +542,10 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
      * @return a future for execution error information
      * @throws CSocketError if communication channel is not sendable
      */
-    public Future<ErrInfo> beginTrans(tagTransactionIsolation isolation) throws CSocketError {
-        UFuture<ErrInfo> f = new UFuture<>();
-        if (!BeginTrans(isolation, getHandler(f), CAsyncDBHandler.getAborted(f, "BeginTrans", DB_CONSTS.idBeginTrans), CAsyncDBHandler.getSE(f))) {
-            raise("BeginTrans", DB_CONSTS.idBeginTrans);
+    public UFuture<ErrInfo> beginTrans(tagTransactionIsolation isolation) throws CSocketError {
+        UFuture<ErrInfo> f = new UFuture<>("BeginTrans", DB_CONSTS.idBeginTrans, this);
+        if (!BeginTrans(isolation, getHandler(f), CAsyncDBHandler.getAborted(f), CAsyncDBHandler.getSE(f))) {
+            raise(f);
         }
         return f;
     }
@@ -559,7 +558,7 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
      * @return a future for execution error information
      * @throws CSocketError if communication channel is not sendable
      */
-    public Future<ErrInfo> beginTrans() throws CSocketError {
+    public final UFuture<ErrInfo> beginTrans() throws CSocketError {
         return beginTrans(tagTransactionIsolation.tiReadCommited);
     }
 
@@ -674,10 +673,10 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
      * @return A future for execution error information
      * @throws CSocketError if communication channel is not sendable
      */
-    public Future<ErrInfo> endTrans(tagRollbackPlan plan) throws CSocketError {
-        UFuture<ErrInfo> f = new UFuture<>();
-        if (!EndTrans(plan, getHandler(f), CAsyncDBHandler.getAborted(f, "EndTrans", DB_CONSTS.idEndTrans), CAsyncDBHandler.getSE(f))) {
-            raise("EndTrans", DB_CONSTS.idEndTrans);
+    public UFuture<ErrInfo> endTrans(tagRollbackPlan plan) throws CSocketError {
+        UFuture<ErrInfo> f = new UFuture<>("EndTrans", DB_CONSTS.idEndTrans, this);
+        if (!EndTrans(plan, getHandler(f), CAsyncDBHandler.getAborted(f), CAsyncDBHandler.getSE(f))) {
+            raise(f);
         }
         return f;
     }
@@ -690,7 +689,7 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
      * @return A future for execution error information
      * @throws CSocketError if communication channel is not sendable
      */
-    public Future<ErrInfo> endTrans() throws CSocketError {
+    public final UFuture<ErrInfo> endTrans() throws CSocketError {
         return endTrans(tagRollbackPlan.rpDefault);
     }
 
@@ -812,10 +811,10 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
      * @return a future for execution error information
      * @throws CSocketError if communication channel is not sendable
      */
-    public Future<ErrInfo> open(String strConnection, int flags) throws CSocketError {
-        UFuture<ErrInfo> f = new UFuture<>();
-        if (!Open(strConnection, getHandler(f), flags, CAsyncDBHandler.getAborted(f, "Open", DB_CONSTS.idOpen), CAsyncDBHandler.getSE(f))) {
-            raise("Open", DB_CONSTS.idOpen);
+    public UFuture<ErrInfo> open(String strConnection, int flags) throws CSocketError {
+        UFuture<ErrInfo> f = new UFuture<>("Open", DB_CONSTS.idOpen, this);
+        if (!Open(strConnection, getHandler(f), flags, CAsyncDBHandler.getAborted(f), CAsyncDBHandler.getSE(f))) {
+            raise(f);
         }
         return f;
     }
@@ -829,7 +828,7 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
      * @return a future for execution error information
      * @throws CSocketError if communication channel is not sendable
      */
-    public Future<ErrInfo> open(String strConnection) throws CSocketError {
+    public final UFuture<ErrInfo> open(String strConnection) throws CSocketError {
         return open(strConnection, 0);
     }
 
@@ -942,10 +941,10 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
      * @return a future for execution error information
      * @throws CSocketError if communication channel is not sendable
      */
-    public Future<ErrInfo> prepare(String sql, CParameterInfo[] vParameterInfo) throws CSocketError {
-        UFuture<ErrInfo> f = new UFuture<>();
-        if (!Prepare(sql, getHandler(f), vParameterInfo, CAsyncDBHandler.getAborted(f, "Prepare", DB_CONSTS.idPrepare), CAsyncDBHandler.getSE(f))) {
-            raise("Prepare", DB_CONSTS.idPrepare);
+    public UFuture<ErrInfo> prepare(String sql, CParameterInfo[] vParameterInfo) throws CSocketError {
+        UFuture<ErrInfo> f = new UFuture<>("Prepare", DB_CONSTS.idPrepare, this);
+        if (!Prepare(sql, getHandler(f), vParameterInfo, CAsyncDBHandler.getAborted(f), CAsyncDBHandler.getSE(f))) {
+            raise(f);
         }
         return f;
     }
@@ -958,7 +957,7 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
      * @return a future for execution error information
      * @throws CSocketError if communication channel is not sendable
      */
-    public Future<ErrInfo> perpare(String sql) throws CSocketError {
+    public final UFuture<ErrInfo> perpare(String sql) throws CSocketError {
         return prepare(sql, null);
     }
 
@@ -1157,11 +1156,11 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
      * @return a future for SQL execution information
      * @throws CSocketError if communication channel is not sendable
      */
-    public Future<SQLExeInfo> execute(String sql, DRows row, DRowsetHeader rh, boolean meta, boolean lastInsertId) throws CSocketError {
-        UFuture<SQLExeInfo> f = new UFuture<>();
+    public UFuture<SQLExeInfo> execute(String sql, DRows row, DRowsetHeader rh, boolean meta, boolean lastInsertId) throws CSocketError {
+        UFuture<SQLExeInfo> f = new UFuture<>("ExecuteSQL", DB_CONSTS.idExecute, this);
         DExecuteResult h = getSqlHandler(f);
-        if (!Execute(sql, h, row, rh, meta, lastInsertId, CAsyncDBHandler.getAborted(f, "ExecuteSQL", DB_CONSTS.idExecute), CAsyncDBHandler.getSE(f))) {
-            raise("ExecuteSQL", DB_CONSTS.idExecute);
+        if (!Execute(sql, h, row, rh, meta, lastInsertId, CAsyncDBHandler.getAborted(f), CAsyncDBHandler.getSE(f))) {
+            raise(f);
         }
         return f;
     }
@@ -1181,7 +1180,7 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
      * @return a future for SQL execution information
      * @throws CSocketError if communication channel is not sendable
      */
-    public Future<SQLExeInfo> execute(String sql, DRows row, DRowsetHeader rh, boolean meta) throws CSocketError {
+    public final UFuture<SQLExeInfo> execute(String sql, DRows row, DRowsetHeader rh, boolean meta) throws CSocketError {
         return execute(sql, row, rh, meta, true);
     }
 
@@ -1197,7 +1196,7 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
      * @return a future for SQL execution information
      * @throws CSocketError if communication channel is not sendable
      */
-    public Future<SQLExeInfo> execute(String sql, DRows row, DRowsetHeader rh) throws CSocketError {
+    public final UFuture<SQLExeInfo> execute(String sql, DRows row, DRowsetHeader rh) throws CSocketError {
         return execute(sql, row, rh, true, true);
     }
 
@@ -1212,7 +1211,7 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
      * @return a future for SQL execution information
      * @throws CSocketError if communication channel is not sendable
      */
-    public Future<SQLExeInfo> execute(String sql, DRows row) throws CSocketError {
+    public final UFuture<SQLExeInfo> execute(String sql, DRows row) throws CSocketError {
         return execute(sql, row, null, true, true);
     }
 
@@ -1225,7 +1224,7 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
      * @return a future for SQL execution information
      * @throws CSocketError if communication channel is not sendable
      */
-    public Future<SQLExeInfo> execute(String sql) throws CSocketError {
+    public final UFuture<SQLExeInfo> execute(String sql) throws CSocketError {
         return execute(sql, null, null, true, true);
     }
 
@@ -1490,11 +1489,11 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
      * @return a future for SQL execution information
      * @throws CSocketError if communication channel is not sendable
      */
-    public Future<SQLExeInfo> execute(CDBVariantArray vParam, DRows row, DRowsetHeader rh, boolean meta, boolean lastInsertId) throws CSocketError {
-        UFuture<SQLExeInfo> f = new UFuture<>();
+    public final UFuture<SQLExeInfo> execute(CDBVariantArray vParam, DRows row, DRowsetHeader rh, boolean meta, boolean lastInsertId) throws CSocketError {
+        UFuture<SQLExeInfo> f = new UFuture<>("ExecuteParameters", DB_CONSTS.idExecuteParameters, this);
         DExecuteResult h = getSqlHandler(f);
-        if (!Execute(vParam, h, row, rh, meta, lastInsertId, CAsyncDBHandler.getAborted(f, "ExecuteParameters", DB_CONSTS.idExecuteParameters), CAsyncDBHandler.getSE(f))) {
-            raise("ExecuteParameters", DB_CONSTS.idExecuteParameters);
+        if (!Execute(vParam, h, row, rh, meta, lastInsertId, CAsyncDBHandler.getAborted(f), CAsyncDBHandler.getSE(f))) {
+            raise(f);
         }
         return f;
     }
@@ -1514,7 +1513,7 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
      * @return a future for SQL execution information
      * @throws CSocketError if communication channel is not sendable
      */
-    public Future<SQLExeInfo> execute(CDBVariantArray vParam, DRows row, DRowsetHeader rh, boolean meta) throws CSocketError {
+    public final UFuture<SQLExeInfo> execute(CDBVariantArray vParam, DRows row, DRowsetHeader rh, boolean meta) throws CSocketError {
         return execute(vParam, row, rh, meta, true);
     }
 
@@ -1530,7 +1529,7 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
      * @return a future for SQL execution information
      * @throws CSocketError if communication channel is not sendable
      */
-    public Future<SQLExeInfo> execute(CDBVariantArray vParam, DRows row, DRowsetHeader rh) throws CSocketError {
+    public final UFuture<SQLExeInfo> execute(CDBVariantArray vParam, DRows row, DRowsetHeader rh) throws CSocketError {
         return execute(vParam, row, rh, true, true);
     }
 
@@ -1545,7 +1544,7 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
      * @return a future for SQL execution information
      * @throws CSocketError if communication channel is not sendable
      */
-    public Future<SQLExeInfo> execute(CDBVariantArray vParam, DRows row) throws CSocketError {
+    public final UFuture<SQLExeInfo> execute(CDBVariantArray vParam, DRows row) throws CSocketError {
         return execute(vParam, row, null, true, true);
     }
 
@@ -1558,7 +1557,7 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
      * @return a future for SQL execution information
      * @throws CSocketError if communication channel is not sendable
      */
-    public Future<SQLExeInfo> execute(CDBVariantArray vParam) throws CSocketError {
+    public final UFuture<SQLExeInfo> execute(CDBVariantArray vParam) throws CSocketError {
         return execute(vParam, null, null, true, true);
     }
 
@@ -1968,11 +1967,11 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
      * @return a future for SQL execution information
      * @throws CSocketError if communication channel is not sendable
      */
-    public Future<SQLExeInfo> executeBatch(tagTransactionIsolation isolation, String sql, CDBVariantArray vParam, DRows row, DRowsetHeader rh, DRowsetHeader batchHeader, CParameterInfo[] vPInfo, tagRollbackPlan plan, String delimiter, boolean meta, boolean lastInsertId) throws CSocketError {
-        UFuture<SQLExeInfo> f = new UFuture<>();
+    public UFuture<SQLExeInfo> executeBatch(tagTransactionIsolation isolation, String sql, CDBVariantArray vParam, DRows row, DRowsetHeader rh, DRowsetHeader batchHeader, CParameterInfo[] vPInfo, tagRollbackPlan plan, String delimiter, boolean meta, boolean lastInsertId) throws CSocketError {
+        UFuture<SQLExeInfo> f = new UFuture<>("ExecuteBatch", DB_CONSTS.idExecuteBatch, this);
         DExecuteResult h = getSqlHandler(f);
-        if (!ExecuteBatch(isolation, sql, vParam, h, row, rh, batchHeader, vPInfo, plan, CAsyncDBHandler.getAborted(f, "ExecuteBatch", DB_CONSTS.idExecuteBatch), delimiter, meta, lastInsertId)) {
-            raise("ExecuteBatch", DB_CONSTS.idExecuteBatch);
+        if (!ExecuteBatch(isolation, sql, vParam, h, row, rh, batchHeader, vPInfo, plan, CAsyncDBHandler.getAborted(f), delimiter, meta, lastInsertId)) {
+            raise(f);
         }
         return f;
     }
@@ -2003,7 +2002,7 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
      * @return a future for SQL execution information
      * @throws CSocketError if communication channel is not sendable
      */
-    public Future<SQLExeInfo> executeBatch(tagTransactionIsolation isolation, String sql, CDBVariantArray vParam, DRows row, DRowsetHeader rh, DRowsetHeader batchHeader, CParameterInfo[] vPInfo, tagRollbackPlan plan, String delimiter, boolean meta) throws CSocketError {
+    public final UFuture<SQLExeInfo> executeBatch(tagTransactionIsolation isolation, String sql, CDBVariantArray vParam, DRows row, DRowsetHeader rh, DRowsetHeader batchHeader, CParameterInfo[] vPInfo, tagRollbackPlan plan, String delimiter, boolean meta) throws CSocketError {
         return executeBatch(isolation, sql, vParam, row, rh, batchHeader, vPInfo, plan, delimiter, meta, true);
     }
 
@@ -2031,7 +2030,7 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
      * @return a future for SQL execution information
      * @throws CSocketError if communication channel is not sendable
      */
-    public Future<SQLExeInfo> executeBatch(tagTransactionIsolation isolation, String sql, CDBVariantArray vParam, DRows row, DRowsetHeader rh, DRowsetHeader batchHeader, CParameterInfo[] vPInfo, tagRollbackPlan plan, String delimiter) throws CSocketError {
+    public final UFuture<SQLExeInfo> executeBatch(tagTransactionIsolation isolation, String sql, CDBVariantArray vParam, DRows row, DRowsetHeader rh, DRowsetHeader batchHeader, CParameterInfo[] vPInfo, tagRollbackPlan plan, String delimiter) throws CSocketError {
         return executeBatch(isolation, sql, vParam, row, rh, batchHeader, vPInfo, plan, delimiter, true, true);
     }
 
@@ -2056,7 +2055,7 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
      * @return a future for SQL execution information
      * @throws CSocketError if communication channel is not sendable
      */
-    public Future<SQLExeInfo> executeBatch(tagTransactionIsolation isolation, String sql, CDBVariantArray vParam, DRows row, DRowsetHeader rh, DRowsetHeader batchHeader, CParameterInfo[] vPInfo, tagRollbackPlan plan) throws CSocketError {
+    public final UFuture<SQLExeInfo> executeBatch(tagTransactionIsolation isolation, String sql, CDBVariantArray vParam, DRows row, DRowsetHeader rh, DRowsetHeader batchHeader, CParameterInfo[] vPInfo, tagRollbackPlan plan) throws CSocketError {
         return executeBatch(isolation, sql, vParam, row, rh, batchHeader, vPInfo, plan, ";", true, true);
     }
 
@@ -2079,7 +2078,7 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
      * @return a future for SQL execution information
      * @throws CSocketError if communication channel is not sendable
      */
-    public Future<SQLExeInfo> executeBatch(tagTransactionIsolation isolation, String sql, CDBVariantArray vParam, DRows row, DRowsetHeader rh, DRowsetHeader batchHeader, CParameterInfo[] vPInfo) throws CSocketError {
+    public final UFuture<SQLExeInfo> executeBatch(tagTransactionIsolation isolation, String sql, CDBVariantArray vParam, DRows row, DRowsetHeader rh, DRowsetHeader batchHeader, CParameterInfo[] vPInfo) throws CSocketError {
         return executeBatch(isolation, sql, vParam, row, rh, batchHeader, vPInfo, tagRollbackPlan.rpDefault, ";", true, true);
     }
 
@@ -2100,7 +2099,7 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
      * @return a future for SQL execution information
      * @throws CSocketError if communication channel is not sendable
      */
-    public Future<SQLExeInfo> executeBatch(tagTransactionIsolation isolation, String sql, CDBVariantArray vParam, DRows row, DRowsetHeader rh, DRowsetHeader batchHeader) throws CSocketError {
+    public final UFuture<SQLExeInfo> executeBatch(tagTransactionIsolation isolation, String sql, CDBVariantArray vParam, DRows row, DRowsetHeader rh, DRowsetHeader batchHeader) throws CSocketError {
         return executeBatch(isolation, sql, vParam, row, rh, batchHeader, null, tagRollbackPlan.rpDefault, ";", true, true);
     }
 
@@ -2119,7 +2118,7 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
      * @return a future for SQL execution information
      * @throws CSocketError if communication channel is not sendable
      */
-    public Future<SQLExeInfo> executeBatch(tagTransactionIsolation isolation, String sql, CDBVariantArray vParam, DRows row, DRowsetHeader rh) throws CSocketError {
+    public final UFuture<SQLExeInfo> executeBatch(tagTransactionIsolation isolation, String sql, CDBVariantArray vParam, DRows row, DRowsetHeader rh) throws CSocketError {
         return executeBatch(isolation, sql, vParam, row, rh, null, null, tagRollbackPlan.rpDefault, ";", true, true);
     }
 
@@ -2137,7 +2136,7 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
      * @return a future for SQL execution information
      * @throws CSocketError if communication channel is not sendable
      */
-    public Future<SQLExeInfo> executeBatch(tagTransactionIsolation isolation, String sql, CDBVariantArray vParam, DRows row) throws CSocketError {
+    public final UFuture<SQLExeInfo> executeBatch(tagTransactionIsolation isolation, String sql, CDBVariantArray vParam, DRows row) throws CSocketError {
         return executeBatch(isolation, sql, vParam, row, null, null, null, tagRollbackPlan.rpDefault, ";", true, true);
     }
 
@@ -2154,7 +2153,7 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
      * @return a future for SQL execution information
      * @throws CSocketError if communication channel is not sendable
      */
-    public Future<SQLExeInfo> executeBatch(tagTransactionIsolation isolation, String sql, CDBVariantArray vParam) throws CSocketError {
+    public final UFuture<SQLExeInfo> executeBatch(tagTransactionIsolation isolation, String sql, CDBVariantArray vParam) throws CSocketError {
         return executeBatch(isolation, sql, vParam, null, null, null, null, tagRollbackPlan.rpDefault, ";", true, true);
     }
 
@@ -2168,7 +2167,7 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
      * @return a future for SQL execution information
      * @throws CSocketError if communication channel is not sendable
      */
-    public Future<SQLExeInfo> executeBatch(tagTransactionIsolation isolation, String sql) throws CSocketError {
+    public final UFuture<SQLExeInfo> executeBatch(tagTransactionIsolation isolation, String sql) throws CSocketError {
         return executeBatch(isolation, sql, null, null, null, null, null, tagRollbackPlan.rpDefault, ";", true, true);
     }
 

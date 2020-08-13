@@ -5,7 +5,7 @@ import java.util.ArrayList;
 public class CDBVariantArray extends ArrayList<Object> implements SPA.IUSerializer, Comparable<CDBVariantArray> {
 
     @Override
-    public void LoadFrom(SPA.CUQueue UQueue) {
+    public SPA.CUQueue LoadFrom(SPA.CUQueue UQueue) {
         clear();
         int size = UQueue.LoadInt();
         while (size > 0) {
@@ -13,15 +13,17 @@ public class CDBVariantArray extends ArrayList<Object> implements SPA.IUSerializ
             add(obj);
             --size;
         }
+        return UQueue;
     }
 
     @Override
-    public void SaveTo(SPA.CUQueue UQueue) {
+    public SPA.CUQueue SaveTo(SPA.CUQueue UQueue) {
         int size = size();
         UQueue.Save(size);
         for (int n = 0; n < size; ++n) {
             UQueue.Save(get(n));
         }
+        return UQueue;
     }
 
     @Override

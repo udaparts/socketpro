@@ -40,10 +40,10 @@ public class CMyStruct implements SPA.IUSerializer {
                 && ABool == ms.ABool
                 && UnicodeString.equals(ms.UnicodeString)
                 && java.util.Arrays.equals(this.AsciiString, ms.AsciiString)
-                && (boolean)ObjBool == (boolean)ms.ObjBool
-                && ((String)ObjString).equals(ms.ObjString)
-                && java.util.Arrays.equals((String[])objArrString, (String[])ms.objArrString)
-                && java.util.Arrays.equals((int[])objArrInt, (int[])ms.objArrInt);
+                && (boolean) ObjBool == (boolean) ms.ObjBool
+                && ((String) ObjString).equals(ms.ObjString)
+                && java.util.Arrays.equals((String[]) objArrString, (String[]) ms.objArrString)
+                && java.util.Arrays.equals((int[]) objArrInt, (int[]) ms.objArrInt);
     }
 
     public static CMyStruct MakeOne() {
@@ -63,7 +63,7 @@ public class CMyStruct implements SPA.IUSerializer {
     }
 
     @Override
-    public void LoadFrom(CUQueue UQueue) {
+    public CUQueue LoadFrom(CUQueue UQueue) {
         NullString = UQueue.LoadString();
         ObjectNull = UQueue.LoadObject();
         ADateTime = UQueue.LoadDate();
@@ -75,11 +75,12 @@ public class CMyStruct implements SPA.IUSerializer {
         ObjString = UQueue.LoadObject();
         objArrString = UQueue.LoadObject();
         objArrInt = UQueue.LoadObject();
+        return UQueue;
     }
 
     @Override
-    public void SaveTo(CUQueue UQueue) {
-        UQueue.Save(NullString) //4 bytes for length
+    public CUQueue SaveTo(CUQueue UQueue) {
+        return UQueue.Save(NullString) //4 bytes for length
                 .Save(ObjectNull) //2 bytes for data type
                 .Save(ADateTime) //8 bytes for long with accuracy to one micro-second
                 .Save(ADouble) //8 bytes

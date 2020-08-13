@@ -3,7 +3,7 @@ package SPA.ClientSide;
 import java.util.concurrent.*;
 import java.util.concurrent.locks.*;
 
-public class UFuture<V> implements Future<V>, AutoCloseable {
+public class UFuture<V> implements Future<V>, IUFExtra, AutoCloseable {
 
     // States for Future.
     public final static int PENDING = 0;
@@ -13,21 +13,48 @@ public class UFuture<V> implements Future<V>, AutoCloseable {
 
     private int m_state = PENDING;
     private V m_v = null;
+    private final String m_mName;
+    private final short m_reqId;
     private CAsyncServiceHandler m_handler = null;
-    private ExecutionException m_se = null;
+    private SPA.CServerError m_se = null;
+    private CSocketError m_ce = null;
 
-    public UFuture(CAsyncServiceHandler h) {
+    /**
+     * Create an instance of UFuture
+     *
+     * @param mName A required request method name used for constructing error
+     * message
+     * @param reqId A required request id which cannot be zero
+     * @param h An optional handler. If it is not null, calling the method
+     * cancel will automatically send an interrupt request to remote server with
+     * the option value CAsyncServiceHandler.DEFAULT_INTERRUPT_OPTION
+     */
+    public UFuture(String mName, short reqId, CAsyncServiceHandler h) {
+        if (mName == null || mName.length() == 0) {
+            throw new IllegalArgumentException("Method name cannot be empty");
+        }
+        if (reqId == 0) {
+            throw new IllegalArgumentException("Request id cannot be zero");
+        }
+        m_mName = mName;
+        m_reqId = reqId;
         m_handler = h;
     }
 
-    public UFuture() {
+    @Override
+    public final String getMethodName() {
+        return m_mName;
+    }
+
+    @Override
+    public final short getReqId() {
+        return m_reqId;
     }
 
     @Override
     public void close() {
-        if (m_v != null) {
-            m_v = null;
-        }
+        m_v = null;
+        m_handler = null;
     }
 
     public void set(V v) {
@@ -43,13 +70,14 @@ public class UFuture<V> implements Future<V>, AutoCloseable {
         }
     }
 
-    public void setException(ExecutionException ex) {
+    @Override
+    public void setException(SPA.CServerError ex) {
+        if (ex == null) {
+            throw new IllegalArgumentException("Parameter ex cannot be null");
+        }
         try {
             m_lock.lock();
             if (m_state == PENDING) {
-                if (ex == null) {
-                    ex = new ExecutionException("Unknown exception", new Throwable("Unknown"));
-                }
                 m_se = ex;
                 m_state = EXCEPTION;
             }
@@ -59,6 +87,24 @@ public class UFuture<V> implements Future<V>, AutoCloseable {
         }
     }
 
+    @Override
+    public void setException(CSocketError ex) {
+        if (ex == null) {
+            throw new IllegalArgumentException("Parameter ex cannot be null");
+        }
+        try {
+            m_lock.lock();
+            if (m_state == PENDING) {
+                m_ce = ex;
+                m_state = EXCEPTION;
+            }
+            m_cv.signalAll();
+        } finally {
+            m_lock.unlock();
+        }
+    }
+
+    @Override
     public int getState() {
         int state = PENDING;
         try {
@@ -70,18 +116,15 @@ public class UFuture<V> implements Future<V>, AutoCloseable {
         return state;
     }
 
-    public void setCanceled() {
-        try {
-            m_lock.lock();
-            if (m_state == PENDING) {
-                m_state = CANCELLED;
-            }
-            m_cv.signalAll();
-        } finally {
-            m_lock.unlock();
-        }
-    }
-
+    /**
+     * Cancel the future if its state is pending
+     *
+     * @param mayInterruptIfRunning A boolean value. If it is true and its
+     * handler is set, calling this method will automatically send an interrupt
+     * request to remote server with the option value
+     * CAsyncServiceHandler.DEFAULT_INTERRUPT_OPTION
+     * @return True if successful. Otherwise, it returns false
+     */
     @Override
     public boolean cancel(boolean mayInterruptIfRunning) {
         boolean cancelled = false;
@@ -91,7 +134,7 @@ public class UFuture<V> implements Future<V>, AutoCloseable {
                 m_state = CANCELLED;
                 cancelled = true;
                 if (mayInterruptIfRunning && m_handler != null) {
-                    cancelled = m_handler.getAttachedClientSocket().Cancel();
+                    cancelled = m_handler.Interrupt(CAsyncServiceHandler.DEFAULT_INTERRUPT_OPTION);
                 }
             }
             m_cv.signalAll();
@@ -126,10 +169,10 @@ public class UFuture<V> implements Future<V>, AutoCloseable {
     }
 
     @Override
-    public V get(long timeout, TimeUnit unit) throws InterruptedException, TimeoutException, ExecutionException {
+    public V get(long timeout, TimeUnit unit) throws SPA.CServerError, TimeoutException, CSocketError {
         TimeoutException te = null;
-        InterruptedException ie = null;
-        ExecutionException ee = null;
+        SPA.CServerError se = null;
+        CSocketError ce = null;
         V v = null;
         try {
             m_lock.lock();
@@ -139,40 +182,48 @@ public class UFuture<V> implements Future<V>, AutoCloseable {
                         if (m_state == COMPLETED) {
                             v = m_v;
                         } else if (m_state == EXCEPTION) {
-                            ee = m_se;
+                            if (m_se != null) {
+                                se = m_se;
+                            } else {
+                                ce = m_ce;
+                            }
                         } else {
-                            ee = new ExecutionException("Request canceled", new Throwable("cancelled"));
+                            ce = new CSocketError(CAsyncServiceHandler.REQUEST_CANCELED, "Request " + m_mName + " canceled", m_reqId, false);
                         }
                     } else {
                         te = new TimeoutException("UFuture timeout");
                     }
                 } catch (InterruptedException err) {
-                    ie = err;
+                    ce = new CSocketError(CAsyncServiceHandler.REQUEST_CANCELED, "Request " + m_mName + " interrupted", m_reqId, false);
                 }
             } else if (m_state == COMPLETED) {
                 v = m_v;
             } else if (m_state == EXCEPTION) {
-                ee = m_se;
+                if (m_se != null) {
+                    se = m_se;
+                } else {
+                    ce = m_ce;
+                }
             } else {
-                ee = new ExecutionException("Request canceled", new Throwable("cancelled"));
+                ce = new CSocketError(CAsyncServiceHandler.REQUEST_CANCELED, "Request " + m_mName + " canceled", m_reqId, false);
             }
         } finally {
             m_lock.unlock();
         }
         if (te != null) {
             throw te;
-        } else if (ie != null) {
-            throw ie;
-        } else if (ee != null) {
-            throw ee;
+        } else if (ce != null) {
+            throw ce;
+        } else if (se != null) {
+            throw se;
         }
         return v;
     }
 
     @Override
-    public V get() throws InterruptedException, ExecutionException {
-        InterruptedException ie = null;
-        ExecutionException ee = null;
+    public V get() throws SPA.CServerError, CSocketError {
+        SPA.CServerError se = null;
+        CSocketError ce = null;
         V v = null;
         try {
             m_lock.lock();
@@ -182,27 +233,35 @@ public class UFuture<V> implements Future<V>, AutoCloseable {
                     if (m_state == COMPLETED) {
                         v = m_v;
                     } else if (m_state == EXCEPTION) {
-                        ee = m_se;
+                        if (m_se != null) {
+                            se = m_se;
+                        } else {
+                            ce = m_ce;
+                        }
                     } else {
-                        ee = new ExecutionException("Request canceled", new Throwable("cancelled"));
+                        ce = new CSocketError(CAsyncServiceHandler.REQUEST_CANCELED, "Request " + m_mName + " canceled", m_reqId, false);
                     }
                 } catch (InterruptedException err) {
-                    ie = err;
+                    ce = new CSocketError(CAsyncServiceHandler.REQUEST_CANCELED, "Request " + m_mName + " interrupted", m_reqId, false);
                 }
             } else if (m_state == COMPLETED) {
                 v = m_v;
             } else if (m_state == EXCEPTION) {
-                ee = m_se;
+                if (m_se != null) {
+                    se = m_se;
+                } else {
+                    ce = m_ce;
+                }
             } else {
-                ee = new ExecutionException("Request canceled", new Throwable("cancelled"));
+                ce = new CSocketError(CAsyncServiceHandler.REQUEST_CANCELED, "Request " + m_mName + " canceled", m_reqId, false);
             }
         } finally {
             m_lock.unlock();
         }
-        if (ie != null) {
-            throw ie;
-        } else if (ee != null) {
-            throw ee;
+        if (ce != null) {
+            throw ce;
+        } else if (se != null) {
+            throw se;
         }
         return v;
     }

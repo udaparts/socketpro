@@ -10,18 +10,18 @@ public class CParameterInfo implements SPA.IUSerializer {
     public String ParameterName = ""; //may be optional, which depends on remote database system
 
     @Override
-    public void LoadFrom(SPA.CUQueue q) {
+    public SPA.CUQueue LoadFrom(SPA.CUQueue q) {
         Direction = tagParameterDirection.forValue(q.LoadInt());
         DataType = q.LoadShort();
         ColumnSize = q.LoadInt();
         Precision = q.LoadByte();
         Scale = q.LoadByte();
         ParameterName = q.LoadString();
+        return q;
     }
 
     @Override
-    public void SaveTo(SPA.CUQueue q) {
-        q.Save(Direction.getValue()).Save(DataType).Save(ColumnSize).Save(Precision).Save(Scale).Save(ParameterName);
-        
+    public SPA.CUQueue SaveTo(SPA.CUQueue q) {
+        return q.Save(Direction.getValue()).Save(DataType).Save(ColumnSize).Save(Precision).Save(Scale).Save(ParameterName);
     }
 }

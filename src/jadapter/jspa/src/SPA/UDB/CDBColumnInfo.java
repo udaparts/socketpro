@@ -29,7 +29,7 @@ public class CDBColumnInfo implements SPA.IUSerializer {
     public byte Scale = 0;
 
     @Override
-    public void LoadFrom(SPA.CUQueue q) {
+    public SPA.CUQueue LoadFrom(SPA.CUQueue q) {
         DBPath = q.LoadString();
         TablePath = q.LoadString();
         DisplayName = q.LoadString();
@@ -41,11 +41,12 @@ public class CDBColumnInfo implements SPA.IUSerializer {
         DataType = q.LoadShort();
         Precision = q.LoadByte();
         Scale = q.LoadByte();
+        return q;
     }
 
     @Override
-    public void SaveTo(SPA.CUQueue q) {
+    public SPA.CUQueue SaveTo(SPA.CUQueue q) {
         q.Save(DBPath).Save(TablePath).Save(DisplayName).Save(OriginalName).Save(DeclaredType).Save(Collation);
-        q.Save(ColumnSize).Save(Flags).Save(DataType).Save(Precision).Save(Scale);
+        return q.Save(ColumnSize).Save(Flags).Save(DataType).Save(Precision).Save(Scale);
     }
 }
