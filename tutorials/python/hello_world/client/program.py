@@ -24,9 +24,6 @@ with CSocketPool(CHelloWorld) as sp:
             print(ex)
         except CSocketError as ex:  # a communication error
             print(ex)
-            ex = None
-        except Exception as ex:  # an unknown error
-            print(ex)
 
         print('')
         print('Going to send requests with inline batching for better network efficiency and less round trips')
@@ -47,9 +44,7 @@ with CSocketPool(CHelloWorld) as sp:
             print(fut4.result().Load(CMyStruct()))
         except Se as ex:  # an exception from remote server
             print(ex)
-        except OSError as ex:  # a communication error
-            print(ex)
-        except Exception as ex:  # an unknown error
+        except CSocketError as ex:  # a communication error
             print(ex)
     print('Press ENTER key to shutdown the demo application ......')
     line = sys.stdin.readline()

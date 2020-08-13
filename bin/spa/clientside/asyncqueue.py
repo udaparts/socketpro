@@ -320,7 +320,7 @@ class CAsyncQueue(CAsyncServiceHandler):
         """
         f = future()
         def cb(aq, message_count, file_size, deq_msgs, deq_bytes):
-            f.set_result({'messages': message_count, 'fsize': file_size, 'deqMsgs' : deq_msgs, 'deqBytes' : deq_bytes})
+            f.set_result({'messages': message_count, 'fsize': file_size, 'msgsDequeued' : deq_msgs, 'bytes' : deq_bytes})
         if not self.Dequeue(key, cb, timeout, CAsyncQueue.get_aborted(f, 'Dequeue', CAsyncQueue.idDequeue), CAsyncQueue.get_se(f)):
             self.throw('Dequeue', CAsyncQueue.idDequeue)
         return f

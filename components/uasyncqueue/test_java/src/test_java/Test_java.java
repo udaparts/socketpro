@@ -27,26 +27,38 @@ public class Test_java {
                 in.nextLine();
                 return;
             }
-
-            //Optionally, you can enqueue messages with transaction style by calling the methods StartQueueTrans and EndQueueTrans in pair
-            aq.StartQueueTrans(TEST_QUEUE_KEY, (CAsyncQueue sender, int errCode) -> {
-                //error code could be one of CAsyncQueue::QUEUE_OK, CAsyncQueue::QUEUE_TRANS_ALREADY_STARTED, ......
-            });
-            TestEnqueue(aq);
-            aq.EndQueueTrans(false);
-
-            TestDequeue(aq);
-            aq.WaitAll();
             try {
-                //test GetKeys
-                String[] vKey = aq.getKeys().get();
-                //get a queue key two parameters, message count and queue file size by default option oMemoryCached
-                CAsyncQueue.QueueInfo qi = aq.flushQueue(TEST_QUEUE_KEY).get();
+                //Optionally, you can enqueue messages with transaction style by calling the methods StartQueueTrans and EndQueueTrans in pair
+                UFuture<Integer> fs = aq.startQueueTrans(TEST_QUEUE_KEY);
+                TestEnqueue(aq);
+                UFuture<Integer> fe = aq.endQueueTrans();
+                System.out.println("StartTrans: " + fs.get());
+                System.out.println("EndTrans: " + fe.get());
 
-                int err_code = aq.closeQueue(TEST_QUEUE_KEY).get();
-                err_code = 0;
-            } catch (Exception ex) {
-                System.out.println(ex.getMessage());
+                TestDequeue(aq);
+                aq.WaitAll();
+
+                //test GetKeys
+                UFuture<String[]> fk = aq.getKeys();
+                UFuture<CAsyncQueue.QueueInfo> ffq = aq.flushQueue(TEST_QUEUE_KEY);
+
+                int index = 0;
+                System.out.print("[");
+                for (String s : fk.get()) {
+                    if (index != 0) {
+                        System.out.print(", ");
+                    }
+                    System.out.print(s);
+                }
+                System.out.println("]");
+
+                //get a queue key two parameters, message count and queue file size by default option oMemoryCached
+                System.out.println(ffq.get());
+
+                UFuture<Integer> fec = aq.closeQueue(TEST_QUEUE_KEY);
+                System.out.println("ec: " + fec.get());
+            } catch (CSocketError | CServerError ex) {
+                System.out.println(ex);
             }
             System.out.println("Press a key to complete dequeuing messages from server ......");
             in.nextLine();

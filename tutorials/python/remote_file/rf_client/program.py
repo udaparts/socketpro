@@ -26,11 +26,7 @@ with CSocketPool(CStreamingFile) as spFile:
             print(fut1.result())
         except CServerError as ex:  # an exception from remote server
             print(ex)
-        except OSError as ex:  # a communication error
-            print(ex)
-        except ValueError as ex:  # bad input parameters
-            print(ex)
-        except Exception as ex:  # an unknown error
+        except CSocketError as ex:  # a communication error
             print(ex)
         print('Press key ENTER to shutdown the demo application ......')
         sys.stdin.readline()

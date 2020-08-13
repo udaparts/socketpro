@@ -8,48 +8,28 @@ public class Program {
         CConnectionContext cc = new CConnectionContext("localhost", 20901, "MyUserId", "MyPassword");
         java.util.Scanner scanner = new java.util.Scanner(System.in);
         try (CSocketPool<CStreamingFile> spRf = new CSocketPool<>(CStreamingFile.class)) {
-            do {
-                if (!spRf.StartSocketPool(cc, 1)) {
-                    System.out.println("Can not connect to remote server");
-                    break;
-                }
+            if (!spRf.StartSocketPool(cc, 1)) {
+                System.out.println("Can not connect to remote server");
+            } else {
                 CStreamingFile rf = spRf.Seek();
                 System.out.println("Input a remote file to download ......");
                 String RemoteFile = scanner.nextLine();
                 String LocalFile = "spfile.test";
-                if (!rf.Download(LocalFile, RemoteFile, (csf, res, errMsg) -> {
-                    if (res != 0) {
-                        System.out.println("Error code: " + res + ", error message: " + errMsg);
-                    } else {
-                        System.out.println("Downloading " + csf.getRemoteFile() + " completed");
-                    }
-                }, (csf, downloaded) -> {
-                    //downloading progress
+                UFuture<ErrInfo> fd = rf.download(LocalFile, RemoteFile, (csf, downloaded) -> {
                     System.out.println("Downloading rate: " + downloaded * 100 / csf.getFileSize());
-                })) {
-                    System.out.println(rf.getAttachedClientSocket().getErrorMsg());
-                    break;
-                }
+                });
                 //uploading test
                 RemoteFile += ".copy";
-                if (!rf.Upload(LocalFile, RemoteFile, (csf, res, errMsg) -> {
-                    if (res != 0) {
-                        System.out.println("Error code: " + res + ", error message: " + errMsg);
-                    } else {
-                        System.out.println("Uploading " + csf.getLocalFile() + " completed");
-                    }
-                }, (csf, uploaded) -> {
-                    //uploading progress
+                UFuture<ErrInfo> fu = rf.upload(LocalFile, RemoteFile, (csf, uploaded) -> {
                     System.out.println("Uploading rate: " + uploaded * 100 / csf.getFileSize());
-                })) {
-                    System.out.println(rf.getAttachedClientSocket().getErrorMsg());
-                    break;
+                });
+                try {
+                    System.out.println(fd.get());
+                    System.out.println(fu.get());
+                } catch (SPA.CServerError | CSocketError ex) {
+                    System.out.println(ex);
                 }
-                if (!rf.WaitAll()) {
-                    System.out.println(rf.getAttachedClientSocket().getErrorMsg());
-                    break;
-                }
-            } while (false);
+            }
             System.out.println("Press key ENTER to shutdown the demo application ......");
             scanner.nextLine();
         }

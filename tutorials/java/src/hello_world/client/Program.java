@@ -25,13 +25,8 @@ public class Program {
                 hw.Sleep(5000);
                 ms = hw.Echo(msO);
                 assert ms == msO;
-            } catch (CServerError ex) {
-                System.out.println("----SERVER EXCEPTION----");
-                System.out.println(ex.getWhere());
-                System.out.println(ex.getMessage());
-                System.out.println("----EXCEPTION----");
-            } catch (CSocketError ex) {
-                System.out.println(ex.getMessage());
+            } catch (CServerError | CSocketError ex) {
+                System.out.println(ex);
             }
             try {
                 //asynchronously process multiple requests with inline batching for best network efficiency
@@ -47,13 +42,8 @@ public class Program {
                 CScopeUQueue sb = f4.get();
                 ms = sb.getUQueue().Load(uqueue_demo.CMyStruct.class);
                 assert ms == msO;
-            } catch (CServerError ex) {
-                System.out.println("----SERVER EXCEPTION----");
-                System.out.println(ex.getMessage());
-                System.out.println(ex.getWhere());
-                System.out.println("----EXCEPTION----");
-            } catch (CSocketError ex) {
-                System.out.println(ex.getMessage());
+            } catch (CServerError | CSocketError ex) {
+                System.out.println(ex);
             }
             System.out.println("Press ENTER key to shutdown the demo application ......");
             new java.util.Scanner(System.in).nextLine();

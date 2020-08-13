@@ -67,20 +67,18 @@ public class Test_java {
             UFuture<ErrInfo> fu4 = rf.upload(LocalFile, RemoteFile);
             try {
                 ErrInfo ei = fd0.get();
-                ei = fd1.get();
-                ei = fd2.get();
-                ei = fd3.get();
-                ei = fd4.get();
-                ei = fu0.get();
-                ei = fu1.get();
-                ei = fu2.get();
-                ei = fu3.get();
-                ei = fu4.get();
-                ei = null;
-            } catch (SPA.CServerError ex) {
-
-            } catch (CSocketError ex) {
-
+                System.out.println(ei);
+                System.out.println(fd1.get());
+                System.out.println(fd2.get());
+                System.out.println(fd3.get());
+                System.out.println(fd4.get());
+                System.out.println(fu0.get());
+                System.out.println(fu1.get());
+                System.out.println(fu2.get());
+                System.out.println(fu3.get());
+                System.out.println(fu4.get());
+            } catch (SPA.CServerError | CSocketError ex) {
+                System.out.println(ex);
             }
             System.out.println("Press key ENTER to shutdown the demo application ......");
             scanner.nextLine();
