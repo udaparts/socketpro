@@ -31,4 +31,12 @@ public class CSocketError extends java.util.concurrent.ExecutionException {
     public boolean getBefore() {
         return m_before;
     }
+
+    @Override
+    public String toString() {
+        String s = "ec: " + String.valueOf(m_ec) + ", em: " + getMessage();
+        s += ", reqId: " + String.valueOf(m_reqId);
+        s += ", before: " + String.valueOf(m_before);
+        return s;
+    }
 }

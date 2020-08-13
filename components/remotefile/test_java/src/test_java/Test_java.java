@@ -21,139 +21,67 @@ public class Test_java {
             //test both downloading and uploading files in file stream (it is different from byte stream)
             String RemoteFile = "jvm.lib";
             String LocalFile = "spfile1.test";
-            rf.Download(LocalFile, RemoteFile, (CStreamingFile csf, int res, String errMsg) -> {
-                if (res != 0) {
-                    System.out.println("Error code: " + res + ", error message: " + errMsg);
-                } else {
-                    System.out.println("Downloading " + csf.getRemoteFile() + " completed");
-                }
-            }, (CStreamingFile csf, long downloaded) -> {
+            UFuture<ErrInfo> fd0 = rf.download(LocalFile, RemoteFile, (CStreamingFile csf, long downloaded) -> {
                 //downloading progress
                 System.out.println("Downloading rate: " + downloaded * 100 / csf.getFileSize());
             });
 
             RemoteFile = "libboost_wave-vc100-mt-sgd-1_60.lib";
             LocalFile = "spfile2.test";
-            rf.Download(LocalFile, RemoteFile, (CStreamingFile csf, int res, String errMsg) -> {
-                if (res != 0) {
-                    System.out.println("Error code: " + res + ", error message: " + errMsg);
-                } else {
-                    System.out.println("Downloading " + csf.getRemoteFile() + " completed");
-                }
-            }, (CStreamingFile csf, long downloaded) -> {
-                //downloading progress
-                //System.out.println("Downloading rate: " + downloaded * 100 / csf.getFileSize());
-            });
+            UFuture<ErrInfo> fd1 = rf.download(LocalFile, RemoteFile);
 
             RemoteFile = "libboost_coroutine-vc100-mt-s-1_60.lib";
             LocalFile = "spfile3.test";
-            rf.Download(LocalFile, RemoteFile, (CStreamingFile csf, int res, String errMsg) -> {
-                if (res != 0) {
-                    System.out.println("Error code: " + res + ", error message: " + errMsg);
-                } else {
-                    System.out.println("Downloading " + csf.getRemoteFile() + " completed");
-                }
-            }, new CStreamingFile.DTransferring() {
-                @Override
-                public void invoke(CStreamingFile csf, long downloaded) {
-                    //downloading progress
-                    //System.out.println("Downloading rate: " + downloaded * 100 / csf.getFileSize());
-                }
-            });
+            UFuture<ErrInfo> fd2 = rf.download(LocalFile, RemoteFile);
 
             RemoteFile = "libboost_serialization-vc100-mt-s-1_60.lib";
             LocalFile = "spfile4.test";
-            rf.Download(LocalFile, RemoteFile, (CStreamingFile csf, int res, String errMsg) -> {
-                if (res != 0) {
-                    System.out.println("Error code: " + res + ", error message: " + errMsg);
-                } else {
-                    System.out.println("Downloading " + csf.getRemoteFile() + " completed");
-                }
-            }, (CStreamingFile csf, long downloaded) -> {
-                //downloading progress
-                //System.out.println("Downloading rate: " + downloaded * 100 / csf.getFileSize());
-            });
+            UFuture<ErrInfo> fd3 = rf.download(LocalFile, RemoteFile);
 
             RemoteFile = "libboost_math_tr1f-vc100-mt-sgd-1_60.lib";
             LocalFile = "spfile5.test";
-            rf.Download(LocalFile, RemoteFile, (CStreamingFile csf, int res, String errMsg) -> {
-                if (res != 0) {
-                    System.out.println("Error code: " + res + ", error message: " + errMsg);
-                } else {
-                    System.out.println("Downloading " + csf.getRemoteFile() + " completed");
-                }
-            }, (CStreamingFile csf, long downloaded) -> {
-                //downloading progress
-                //System.out.println("Downloading rate: " + downloaded * 100 / csf.getFileSize());
-            });
-			//ok = rf.WaitAll();
+            UFuture<ErrInfo> fd4 = rf.download(LocalFile, RemoteFile);
 
             //uploading test
             LocalFile = "spfile1.test";
             RemoteFile = "jvm_copy.lib";
-            rf.Upload(LocalFile, RemoteFile, (CStreamingFile csf, int res, String errMsg) -> {
-                if (res != 0) {
-                    System.out.println("Error code: " + res + ", error message: " + errMsg);
-                } else {
-                    System.out.println("Uploading " + csf.getLocalFile() + " completed");
-                }
-            }, (CStreamingFile csf, long uploaded) -> {
+            UFuture<ErrInfo> fu0 = rf.upload(LocalFile, RemoteFile, (CStreamingFile csf, long uploaded) -> {
                 //downloading progress
                 System.out.println("Uploading rate: " + uploaded * 100 / csf.getFileSize());
             });
 
             LocalFile = "spfile2.test";
             RemoteFile = "libboost_wave-vc100-mt-sgd-1_60_copy.lib";
-            rf.Upload(LocalFile, RemoteFile, (CStreamingFile csf, int res, String errMsg) -> {
-                if (res != 0) {
-                    System.out.println("Error code: " + res + ", error message: " + errMsg);
-                } else {
-                    System.out.println("Uploading " + csf.getLocalFile() + " completed");
-                }
-            }, (CStreamingFile csf, long uploaded) -> {
-                //downloading progress
-                //System.out.println("Uploading rate: " + uploaded * 100 / csf.getFileSize());
-            });
+            UFuture<ErrInfo> fu1 = rf.upload(LocalFile, RemoteFile);
 
             LocalFile = "spfile3.test";
             RemoteFile = "libboost_coroutine-vc100-mt-s-1_60_copy.lib";
-            rf.Upload(LocalFile, RemoteFile, (CStreamingFile csf, int res, String errMsg) -> {
-                if (res != 0) {
-                    System.out.println("Error code: " + res + ", error message: " + errMsg);
-                } else {
-                    System.out.println("Uploading " + csf.getLocalFile() + " completed");
-                }
-            }, (CStreamingFile csf, long uploaded) -> {
-                //downloading progress
-                //System.out.println("Uploading rate: " + uploaded * 100 / csf.getFileSize());
-            });
+            UFuture<ErrInfo> fu2 = rf.upload(LocalFile, RemoteFile);
 
             LocalFile = "spfile4.test";
             RemoteFile = "libboost_serialization-vc100-mt-s-1_60_copy.lib";
-            rf.Upload(LocalFile, RemoteFile, (CStreamingFile csf, int res, String errMsg) -> {
-                if (res != 0) {
-                    System.out.println("Error code: " + res + ", error message: " + errMsg);
-                } else {
-                    System.out.println("Uploading " + csf.getLocalFile() + " completed");
-                }
-            }, (CStreamingFile csf, long uploaded) -> {
-                //downloading progress
-                //System.out.println("Uploading rate: " + uploaded * 100 / csf.getFileSize());
-            });
+            UFuture<ErrInfo> fu3 = rf.upload(LocalFile, RemoteFile);
 
             LocalFile = "spfile5.test";
             RemoteFile = "libboost_math_tr1f-vc100-mt-sgd-1_60_copy.lib";
-            rf.Upload(LocalFile, RemoteFile, (CStreamingFile csf, int res, String errMsg) -> {
-                if (res != 0) {
-                    System.out.println("Error code: " + res + ", error message: " + errMsg);
-                } else {
-                    System.out.println("Uploading " + csf.getLocalFile() + " completed");
-                }
-            }, (CStreamingFile csf, long uploaded) -> {
-                //downloading progress
-                //System.out.println("Uploading rate: " + uploaded * 100 / csf.getFileSize());
-            });
-            rf.WaitAll();
+            UFuture<ErrInfo> fu4 = rf.upload(LocalFile, RemoteFile);
+            try {
+                ErrInfo ei = fd0.get();
+                ei = fd1.get();
+                ei = fd2.get();
+                ei = fd3.get();
+                ei = fd4.get();
+                ei = fu0.get();
+                ei = fu1.get();
+                ei = fu2.get();
+                ei = fu3.get();
+                ei = fu4.get();
+                ei = null;
+            } catch (SPA.CServerError ex) {
+
+            } catch (CSocketError ex) {
+
+            }
             System.out.println("Press key ENTER to shutdown the demo application ......");
             scanner.nextLine();
         }

@@ -1264,6 +1264,16 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
             this.fails = fails;
             lastId = id;
         }
+
+        @Override
+        public String toString() {
+            String s = "ec: " + String.valueOf(ec) + ", em: " + em;
+            s += (", affected: " + String.valueOf(affected));
+            s += (", oks: " + String.valueOf(oks));
+            s += (", fails: " + String.valueOf(fails));
+            s += (", lastId: " + String.valueOf(lastId));
+            return s;
+        }
     }
 
     private DExecuteResult getSqlHandler(final UFuture<SQLExeInfo> f) {
