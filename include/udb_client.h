@@ -1870,8 +1870,8 @@ namespace SPA {
                         int fail = uv_async_send(&ash->m_typeDB);
                         assert(!fail);
                     };
-                } else if (!IsNullOrUndefined(se)) {
-                    ThrowException(isolate, "A callback expected for tracking exception from server");
+                } else if (!NJA::IsNullOrUndefined(se)) {
+                    NJA::ThrowException(isolate, "A callback expected for tracking exception from server");
                     bad = true;
                 }
                 return dSe;
