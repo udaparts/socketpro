@@ -28,6 +28,9 @@ public class Program {
                     System.out.println(fu.get());
                 } catch (SPA.CServerError | CSocketError ex) {
                     System.out.println(ex);
+                } catch (Exception ex) {
+                    //bad parameter
+                    System.out.println("Unexpected error: " + ex.getMessage());
                 }
             }
             System.out.println("Press key ENTER to shutdown the demo application ......");

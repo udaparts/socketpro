@@ -1,4 +1,3 @@
-
 #include "stdafx.h"
 #include "../test_queue.h"
 
@@ -42,23 +41,43 @@ int main(int argc, char* argv[]) {
     ok = sq->EndQueueTrans(false);
     TestDequeue(sq);
     ok = sq->WaitAll();
+    try{
+        //test GetKeys
+        std::future<std::vector < std::string>> fk = sq->getKeys();
 
-    //test GetKeys
-    std::vector<std::string> vKey;
-    ok = sq->GetKeys([&vKey](CAsyncQueue *aq, std::vector<std::string>& keys) {
-        vKey = keys;
-    });
+        //get a queue key two parameters, message count and queue file size by default option oMemoryCached
+        std::future<CAsyncQueue::QueueInfo> fq = sq->flushQueue(TEST_QUEUE_KEY);
 
-    //get a queue key two parameters, message count and queue file size by default option oMemoryCached
-    ok = sq->FlushQueue(TEST_QUEUE_KEY, [](CAsyncQueue *aq, SPA::UINT64 messageCount, SPA::UINT64 fileSize) {
-        std::cout << "Total message count=" << messageCount << ", queue file size=" << fileSize << std::endl;
-    });
+        //test CloseQueue
+        std::future<int> fc = sq->closeQueue(TEST_QUEUE_KEY);
 
-    //test CloseQueue
-    ok = sq->CloseQueue(TEST_QUEUE_KEY, [](CAsyncQueue *aq, int errCode) {
-        //error code could be one of CAsyncQueue::QUEUE_OK, CAsyncQueue::QUEUE_DEQUEUING, ......
-    });
+        int index = 0;
+        auto& v = fk.get();
+        std::cout << "[";
+        for (auto s : v) {
+            if (index) {
+                std::cout << "," << std::endl;
+            }
+            std::cout << s;
+            ++index;
+        }
+        std::cout << "]" << std::endl;
 
+        std::wcout << fq.get().ToString() << std::endl;
+        std::cout << "CloseQueue error code: " << fc.get() << std::endl;
+    }
+
+    catch(CServerError & ex) {
+        std::wcout << ex.ToString() << std::endl;
+    }
+
+    catch(CSocketError & ex) {
+        std::wcout << ex.ToString() << std::endl;
+    }
+
+    catch(std::exception & ex) {
+        std::cout << "Some unexpected error: " << ex.what() << std::endl;
+    }
     std::cout << "Press a key to complete dequeuing messages from server ......" << std::endl;
     ::getchar();
     return 0;

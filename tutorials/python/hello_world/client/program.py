@@ -24,6 +24,8 @@ with CSocketPool(CHelloWorld) as sp:
             print(ex)
         except CSocketError as ex:  # a communication error
             print(ex)
+        except Exception as ex:
+            print('Unexpected error: ' + str(ex))  # invalid parameter, bad de-serialization, and so on
 
         print('')
         print('Going to send requests with inline batching for better network efficiency and less round trips')
@@ -38,6 +40,7 @@ with CSocketPool(CHelloWorld) as sp:
 
             print(fut0.result().LoadString())
             print('Buffer size: ' + str(fut1.result().Size))  # sleep returns an empty buffer
+            # bad_operation = fut1.result().LoadString()
             print(fut2.result().LoadString())
             print(fut3.result().LoadString())
             # load a complex object that has interface IUSerializer implemented
@@ -46,5 +49,21 @@ with CSocketPool(CHelloWorld) as sp:
             print(ex)
         except CSocketError as ex:  # a communication error
             print(ex)
+        except Exception as ex:
+            print('Unexpected error: ' + str(ex))  # invalid parameter, bad de-serialization, and so on
+
+        def cb_aborted(ah, canceled):
+            if canceled:
+                print('Request canceled')
+            else:
+                cs = ah.Socket
+                ec = cs.ErrCode
+                if ec:
+                    print({'ec':ec, 'em': cs.ErrMsg})
+                else:
+                    print({'ec': CHelloWorld.SESSION_CLOSED_AFTER, 'em': 'Session closed after sending the request SendRequest'})
+        ok = hw.SendRequest(hwConst.idSayHelloHelloWorld, Sb().SaveString('SocketPro').SaveString('UDAParts'),
+                lambda ar: print(ar.LoadString()), cb_aborted, lambda ah, se: print(se))
+
     print('Press ENTER key to shutdown the demo application ......')
     line = sys.stdin.readline()

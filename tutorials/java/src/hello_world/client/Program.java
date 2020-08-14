@@ -25,8 +25,15 @@ public class Program {
                 hw.Sleep(5000);
                 ms = hw.Echo(msO);
                 assert ms == msO;
-            } catch (CServerError | CSocketError ex) {
+            } catch (CServerError ex) {
+                System.out.println("---- SERVER EXCEPTION ----");
                 System.out.println(ex);
+            } catch (CSocketError ex) {
+                System.out.println("++++ COMMUNICATION ERROR ++++");
+                System.out.println(ex);
+            } catch (Exception ex) {
+                //bad parameter, CUQueue de-serilization exception
+                System.out.println("Unexpected error: " + ex.getMessage());
             }
             try {
                 //asynchronously process multiple requests with inline batching for best network efficiency
@@ -38,13 +45,42 @@ public class Program {
                 System.out.println(f0.get().getUQueue().LoadString());
                 System.out.println(f1.get().getUQueue().LoadString());
                 assert 0 == f2.get().getUQueue().getSize();
+                //String bad = f2.get().getUQueue().LoadString();
                 System.out.println(f3.get().getUQueue().LoadString());
                 CScopeUQueue sb = f4.get();
                 ms = sb.getUQueue().Load(uqueue_demo.CMyStruct.class);
                 assert ms == msO;
-            } catch (CServerError | CSocketError ex) {
+            } catch (CServerError ex) {
+                System.out.println("---- SERVER EXCEPTION ----");
                 System.out.println(ex);
+            } catch (CSocketError ex) {
+                System.out.println("++++ COMMUNICATION ERROR ++++");
+                System.out.println(ex);
+            } catch (Exception ex) {
+                //bad parameter, CUQueue de-serilization exception
+                System.out.println("Unexpected error: " + ex.getMessage());
             }
+
+            hw.SendRequest(hwConst.idSayHello, new CScopeUQueue().Save("SocketPro").Save("UDAParts"), (ar) -> {
+                System.out.println(ar.LoadString());
+            }, (ah, canceled) -> {
+                if (canceled) {
+                    System.out.println("Request SendRequest is canceled");
+                } else {
+                    String s;
+                    int ec = ah.getSocket().getErrorCode();
+                    if (ec != 0) {
+                        s = "ec: " + String.valueOf(ec) + ", em: " + ah.getSocket().getErrorMsg();
+                    } else {
+                        //socket closed gracefully
+                        s = "ec: " + String.valueOf(HelloWorld.SESSION_CLOSED_AFTER) + ", em: Session closed after sending the request SendRequest";
+                    }
+                    System.out.println(s);
+                }
+            }, (ah, reqId, errMessage, errWhere, errCode) -> {
+                System.out.println("Error message: " + errMessage);
+                System.out.println("Server exception location: " + errWhere);
+            });
             System.out.println("Press ENTER key to shutdown the demo application ......");
             new java.util.Scanner(System.in).nextLine();
         }

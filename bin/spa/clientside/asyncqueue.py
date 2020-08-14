@@ -100,14 +100,6 @@ class CAsyncQueue(CAsyncServiceHandler):
         CScopeUQueue.Unlock(buffer)
         return ok
 
-    def enqueue(self, key, idMessage, q):
-        f = future()
-        def cb_enqueue(aq, index):
-            f.set_result(index)
-        if not self.Enqueue(key, idMessage, q, cb_enqueue, CAsyncQueue.get_aborted(f, 'Enqueue', CAsyncQueue.idEnqueue), CAsyncQueue.get_se(f)):
-            self.throw('Enqueue', CAsyncQueue.idEnqueue)
-        return f
-
     def StartQueueTrans(self, key, qt=None, discarded=None, se=None):
         """
         Start enqueuing messages with transaction style.
