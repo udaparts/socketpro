@@ -45,6 +45,32 @@ namespace NJA {
         return dd;
     }
 
+    SPA::ClientSide::CAsyncServiceHandler::DServerException CAQueue::GetSE(Isolate* isolate, Local<Value> se, bool& bad) {
+        bad = false;
+        SPA::ClientSide::CAsyncServiceHandler::DServerException dSe;
+        if (se->IsFunction()) {
+            std::shared_ptr<CNJFunc> func(new CNJFunc);
+            func->Reset(isolate, Local<Function>::Cast(se));
+            Backup(func);
+            dSe = [func](CAsyncServiceHandler* aq, unsigned short requestId, const wchar_t* errMessage, const char* errWhere, unsigned int errCode) {
+                QueueCb qcb;
+                qcb.EventType = qeException;
+                qcb.Func = func;
+                qcb.Buffer = CScopeUQueue::Lock();
+                PAQueue ash = (PAQueue) aq;
+                *qcb.Buffer << ash << requestId << errMessage << errWhere << errCode;
+                CAutoLock al(ash->m_csJQ);
+                ash->m_deqQCb.push_back(qcb);
+                int fail = uv_async_send(&ash->m_qType);
+                assert(!fail);
+            };
+        } else if (!IsNullOrUndefined(se)) {
+            ThrowException(isolate, "A callback expected for tracking exception from server");
+            bad = true;
+        }
+        return dSe;
+    }
+
     void CAQueue::queue_cb(uv_async_t* handle) {
         CAQueue* obj = (CAQueue*) handle->data; //sender
         assert(obj);
@@ -63,6 +89,21 @@ namespace NJA {
                 assert(processor);
                 Local<Function> func = Local<Function>::New(isolate, *cb.Func);
                 switch (cb.EventType) {
+                    case qeException:
+                        if (!func.IsEmpty()) {
+                            unsigned short reqId;
+                            SPA::CDBString errMsg;
+                            std::string errWhere;
+                            int errCode;
+                            *cb.Buffer >> reqId >> errMsg >> errWhere >> errCode;
+                            assert(!cb.Buffer->GetSize());
+                            Local<String> jsMsg = ToStr(isolate, errMsg.c_str(), errMsg.size());
+                            Local<String> jsWhere = ToStr(isolate, errWhere.c_str());
+                            Local<Value> jsCode = Number::New(isolate, errCode);
+                            Local<Value> argv[] = {jsCode, jsMsg, jsWhere, Number::New(isolate, reqId)};
+                            func->Call(isolate->GetCurrentContext(), Null(isolate), 4, argv);
+                        }
+                        break;
                     case qeDiscarded:
                     {
                         bool canceled;
@@ -200,6 +241,7 @@ namespace NJA {
         SPA::UINT64 index = GetCallIndex();
         DGetKeys gk;
         DDiscarded dd;
+        DServerException se;
         if (args > 0) {
             if (argv[0]->IsFunction()) {
                 std::shared_ptr<CNJFunc> func(new CNJFunc);
@@ -231,13 +273,20 @@ namespace NJA {
             if (bad)
                 return 0;
         }
-        return CAsyncQueue::GetKeys(gk, dd) ? index : INVALID_NUMBER;
+        if (args > 2) {
+            bool bad;
+            se = GetSE(isolate, argv[2], bad);
+            if (bad)
+                return 0;
+        }
+        return CAsyncQueue::GetKeys(gk, dd, se) ? index : INVALID_NUMBER;
     }
 
     SPA::UINT64 CAQueue::StartQueueTrans(Isolate* isolate, int args, Local<Value> *argv, const char *key) {
         SPA::UINT64 index = GetCallIndex();
         DQueueTrans qt;
         DDiscarded dd;
+        DServerException se;
         if (args > 0) {
             if (argv[0]->IsFunction()) {
                 std::shared_ptr<CNJFunc> func(new CNJFunc);
@@ -266,13 +315,20 @@ namespace NJA {
             if (bad)
                 return 0;
         }
-        return CAsyncQueue::StartQueueTrans(key, qt, dd) ? index : INVALID_NUMBER;
+        if (args > 2) {
+            bool bad;
+            se = GetSE(isolate, argv[2], bad);
+            if (bad)
+                return 0;
+        }
+        return CAsyncQueue::StartQueueTrans(key, qt, dd, se) ? index : INVALID_NUMBER;
     }
 
     SPA::UINT64 CAQueue::EndQueueTrans(Isolate* isolate, int args, Local<Value> *argv, bool rollback) {
         SPA::UINT64 index = GetCallIndex();
         DQueueTrans qt;
         DDiscarded dd;
+        DServerException se;
         if (args > 0) {
             if (argv[0]->IsFunction()) {
                 std::shared_ptr<CNJFunc> func(new CNJFunc);
@@ -301,13 +357,20 @@ namespace NJA {
             if (bad)
                 return 0;
         }
-        return CAsyncQueue::EndQueueTrans(rollback, qt, dd) ? index : INVALID_NUMBER;
+        if (args > 2) {
+            bool bad;
+            se = GetSE(isolate, argv[2], bad);
+            if (bad)
+                return 0;
+        }
+        return CAsyncQueue::EndQueueTrans(rollback, qt, dd, se) ? index : INVALID_NUMBER;
     }
 
     SPA::UINT64 CAQueue::CloseQueue(Isolate* isolate, int args, Local<Value> *argv, const char *key, bool permanent) {
         SPA::UINT64 index = GetCallIndex();
         DClose c;
         DDiscarded dd;
+        DServerException se;
         if (args > 0) {
             if (argv[0]->IsFunction()) {
                 std::shared_ptr<CNJFunc> func(new CNJFunc);
@@ -336,13 +399,20 @@ namespace NJA {
             if (bad)
                 return 0;
         }
-        return CAsyncQueue::CloseQueue(key, c, permanent, dd) ? index : INVALID_NUMBER;
+        if (args > 2) {
+            bool bad;
+            se = GetSE(isolate, argv[2], bad);
+            if (bad)
+                return 0;
+        }
+        return CAsyncQueue::CloseQueue(key, c, permanent, dd, se) ? index : INVALID_NUMBER;
     }
 
     SPA::UINT64 CAQueue::FlushQueue(Isolate* isolate, int args, Local<Value> *argv, const char *key, tagOptimistic option) {
         SPA::UINT64 index = GetCallIndex();
         DFlush f;
         DDiscarded dd;
+        DServerException se;
         if (args > 0) {
             if (argv[0]->IsFunction()) {
                 std::shared_ptr<CNJFunc> func(new CNJFunc);
@@ -371,13 +441,20 @@ namespace NJA {
             if (bad)
                 return 0;
         }
-        return CAsyncQueue::FlushQueue(key, f, option, dd) ? index : INVALID_NUMBER;
+        if (args > 2) {
+            bool bad;
+            se = GetSE(isolate, argv[2], bad);
+            if (bad)
+                return 0;
+        }
+        return CAsyncQueue::FlushQueue(key, f, option, dd, se) ? index : INVALID_NUMBER;
     }
 
     SPA::UINT64 CAQueue::Dequeue(Isolate* isolate, int args, Local<Value> *argv, const char *key, unsigned int timeout) {
         SPA::UINT64 index = GetCallIndex();
         DDequeue d;
         DDiscarded dd;
+        DServerException se;
         if (args > 0) {
             if (argv[0]->IsFunction()) {
                 std::shared_ptr<CNJFunc> func(new CNJFunc);
@@ -406,7 +483,13 @@ namespace NJA {
             if (bad)
                 return 0;
         }
-        return CAsyncQueue::Dequeue(key, d, timeout, dd) ? index : INVALID_NUMBER;
+        if (args > 2) {
+            bool bad;
+            se = GetSE(isolate, argv[2], bad);
+            if (bad)
+                return 0;
+        }
+        return CAsyncQueue::Dequeue(key, d, timeout, dd, se) ? index : INVALID_NUMBER;
     }
 
     SPA::UINT64 CAQueue::Enqueue(Isolate* isolate, int args, Local<Value> *argv, const char *key, unsigned short idMessage, const unsigned char *pBuffer, unsigned int size) {
@@ -417,6 +500,7 @@ namespace NJA {
         SPA::UINT64 index = GetCallIndex();
         DEnqueue e;
         DDiscarded dd;
+        DServerException se;
         if (args > 0) {
             if (argv[0]->IsFunction()) {
                 std::shared_ptr<CNJFunc> func(new CNJFunc);
@@ -445,13 +529,20 @@ namespace NJA {
             if (bad)
                 return 0;
         }
-        return CAsyncQueue::Enqueue(key, idMessage, pBuffer, size, e, dd) ? index : INVALID_NUMBER;
+        if (args > 2) {
+            bool bad;
+            se = GetSE(isolate, argv[2], bad);
+            if (bad)
+                return 0;
+        }
+        return CAsyncQueue::Enqueue(key, idMessage, pBuffer, size, e, dd, se) ? index : INVALID_NUMBER;
     }
 
     SPA::UINT64 CAQueue::EnqueueBatch(Isolate* isolate, int args, Local<Value> *argv, const char *key, const unsigned char *pBuffer, unsigned int size) {
         SPA::UINT64 index = GetCallIndex();
         DEnqueue e;
         DDiscarded dd;
+        DServerException se;
         if (args > 0) {
             if (argv[0]->IsFunction()) {
                 std::shared_ptr<CNJFunc> func(new CNJFunc);
@@ -480,6 +571,12 @@ namespace NJA {
             if (bad)
                 return 0;
         }
-        return CAsyncQueue::EnqueueBatch(key, pBuffer, size, e, dd) ? index : INVALID_NUMBER;
+        if (args > 2) {
+            bool bad;
+            se = GetSE(isolate, argv[2], bad);
+            if (bad)
+                return 0;
+        }
+        return CAsyncQueue::EnqueueBatch(key, pBuffer, size, e, dd, se) ? index : INVALID_NUMBER;
     }
 }

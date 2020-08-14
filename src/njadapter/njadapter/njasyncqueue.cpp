@@ -136,8 +136,8 @@ namespace NJA {
         Isolate* isolate = args.GetIsolate();
         NJAsyncQueue* obj = ObjectWrap::Unwrap<NJAsyncQueue>(args.Holder());
         if (obj->IsValid(isolate)) {
-            Local<Value> argv[] = {args[0], args[1]};
-            SPA::UINT64 index = obj->m_aq->GetKeys(isolate, 2, argv);
+            Local<Value> argv[] = {args[0], args[1], args[2]};
+            SPA::UINT64 index = obj->m_aq->GetKeys(isolate, 3, argv);
             if (index) {
                 args.GetReturnValue().Set(Boolean::New(isolate, index != INVALID_NUMBER));
             }
@@ -168,8 +168,8 @@ namespace NJA {
             std::string key = GetKey(isolate, args[0]);
             if (!key.size())
                 return;
-            Local<Value> argv[] = {args[1], args[2]};
-            SPA::UINT64 index = obj->m_aq->StartQueueTrans(isolate, 2, argv, key.c_str());
+            Local<Value> argv[] = {args[1], args[2], args[3]};
+            SPA::UINT64 index = obj->m_aq->StartQueueTrans(isolate, 3, argv, key.c_str());
             if (index) {
                 args.GetReturnValue().Set(Boolean::New(isolate, index != INVALID_NUMBER));
             }
@@ -192,8 +192,8 @@ namespace NJA {
                 ThrowException(isolate, "Boolean value expected for rollback");
                 return;
             }
-            Local<Value> argv[] = {args[1], args[2]};
-            SPA::UINT64 index = obj->m_aq->EndQueueTrans(isolate, 2, argv, rollback);
+            Local<Value> argv[] = {args[1], args[2], args[3]};
+            SPA::UINT64 index = obj->m_aq->EndQueueTrans(isolate, 3, argv, rollback);
             if (index) {
                 args.GetReturnValue().Set(Boolean::New(isolate, index != INVALID_NUMBER));
             }
@@ -207,7 +207,7 @@ namespace NJA {
             std::string key = GetKey(isolate, args[0]);
             if (!key.size())
                 return;
-            Local<Value> argv[] = {args[1], args[2]};
+            Local<Value> argv[] = {args[1], args[2], args[4]};
             auto p = args[3];
             bool perm = false;
             if (p->IsBoolean() || p->IsUint32()) {
@@ -220,7 +220,7 @@ namespace NJA {
                 ThrowException(isolate, "Boolean value expected for permanent delete");
                 return;
             }
-            SPA::UINT64 index = obj->m_aq->CloseQueue(isolate, 2, argv, key.c_str(), perm);
+            SPA::UINT64 index = obj->m_aq->CloseQueue(isolate, 3, argv, key.c_str(), perm);
             if (index) {
                 args.GetReturnValue().Set(Boolean::New(isolate, index != INVALID_NUMBER));
             }
@@ -234,7 +234,7 @@ namespace NJA {
             std::string key = GetKey(isolate, args[0]);
             if (!key.size())
                 return;
-            Local<Value> argv[] = {args[1], args[2]};
+            Local<Value> argv[] = {args[1], args[2], args[4]};
             auto p = args[3];
             int option = 0;
             if (p->IsInt32())
@@ -247,7 +247,7 @@ namespace NJA {
                 ThrowException(isolate, "Bad option value");
                 return;
             }
-            SPA::UINT64 index = obj->m_aq->FlushQueue(isolate, 2, argv, key.c_str(), (SPA::tagOptimistic)option);
+            SPA::UINT64 index = obj->m_aq->FlushQueue(isolate, 3, argv, key.c_str(), (SPA::tagOptimistic)option);
             if (index) {
                 args.GetReturnValue().Set(Boolean::New(isolate, index != INVALID_NUMBER));
             }
@@ -261,7 +261,7 @@ namespace NJA {
             std::string key = GetKey(isolate, args[0]);
             if (!key.size())
                 return;
-            Local<Value> argv[] = {args[1], args[2]};
+            Local<Value> argv[] = {args[1], args[2], args[3]};
             auto p = args[3];
             unsigned int timeout = 0;
             if (p->IsUint32())
@@ -270,7 +270,7 @@ namespace NJA {
                 ThrowException(isolate, "Unsigned int value expected for dequeue timeout in millsecond");
                 return;
             }
-            SPA::UINT64 index = obj->m_aq->Dequeue(isolate, 2, argv, key.c_str(), timeout);
+            SPA::UINT64 index = obj->m_aq->Dequeue(isolate, 3, argv, key.c_str(), timeout);
             if (index) {
                 args.GetReturnValue().Set(Boolean::New(isolate, index != INVALID_NUMBER));
             }
@@ -313,8 +313,8 @@ namespace NJA {
                 ThrowException(isolate, "A CUQueue instance, null or undefined value expected");
                 return;
             }
-            Local<Value> argv[] = {args[3], args[4]};
-            SPA::UINT64 index = obj->m_aq->Enqueue(isolate, 2, argv, key.c_str(), (unsigned short) reqId, buffer, size);
+            Local<Value> argv[] = {args[3], args[4], args[5]};
+            SPA::UINT64 index = obj->m_aq->Enqueue(isolate, 3, argv, key.c_str(), (unsigned short) reqId, buffer, size);
             if (njq)
                 njq->Release();
             if (index) {
@@ -380,8 +380,8 @@ namespace NJA {
                 CScopeUQueue::Unlock(obj->m_qBatch);
                 return;
             }
-            Local<Value> argv[] = {args[1], args[2]};
-            SPA::UINT64 index = obj->m_aq->EnqueueBatch(isolate, 2, argv, key.c_str(), obj->m_qBatch->GetBuffer(), obj->m_qBatch->GetSize());
+            Local<Value> argv[] = {args[1], args[2], args[3]};
+            SPA::UINT64 index = obj->m_aq->EnqueueBatch(isolate, 3, argv, key.c_str(), obj->m_qBatch->GetBuffer(), obj->m_qBatch->GetSize());
             CScopeUQueue::Unlock(obj->m_qBatch);
             if (index) {
                 args.GetReturnValue().Set(Boolean::New(isolate, index != INVALID_NUMBER));

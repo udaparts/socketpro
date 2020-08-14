@@ -18,6 +18,7 @@ namespace NJA {
         DDownload dd;
         DTransferring trans;
         DDiscarded aborted;
+        DServerException se;
         if (args > 0) {
             if (argv[0]->IsFunction()) {
                 std::shared_ptr<CNJFunc> func(new CNJFunc);
@@ -87,9 +88,32 @@ namespace NJA {
                 return 0;
             }
         }
+        if (args > 3) {
+            if (argv[3]->IsFunction()) {
+                std::shared_ptr<CNJFunc> func(new CNJFunc);
+                func->Reset(isolate, Local<Function>::Cast(argv[3]));
+                Backup(func);
+                se = [func, download](CAsyncServiceHandler* file, unsigned short requestId, const wchar_t* errMessage, const char* errWhere, unsigned int errCode) {
+                    FileCb fcb;
+                    fcb.Download = download;
+                    fcb.EventType = feException;
+                    fcb.Func = func;
+                    fcb.Buffer = CScopeUQueue::Lock();
+                    PSFile f = (PSFile) file;
+                    *fcb.Buffer << f << requestId << errMessage << errWhere << errCode;
+                    CAutoLock al(f->m_csFile);
+                    f->m_deqFileCb.push_back(fcb);
+                    int fail = uv_async_send(&f->m_fileType);
+                    assert(!fail);
+                };
+            } else if (!IsNullOrUndefined(argv[2])) {
+                ThrowException(isolate, "A callback expected for tracking exception from server");
+                return 0;
+            }
+        }
         if (download)
-            return Download(localFile, remoteFile, dd, trans, aborted, flags) ? index : INVALID_NUMBER;
-        return Upload(localFile, remoteFile, dd, trans, aborted, flags) ? index : INVALID_NUMBER;
+            return Download(localFile, remoteFile, dd, trans, aborted, flags, se) ? index : INVALID_NUMBER;
+        return Upload(localFile, remoteFile, dd, trans, aborted, flags, se) ? index : INVALID_NUMBER;
     }
 
     void CSFile::file_cb(uv_async_t* handle) {
@@ -139,6 +163,21 @@ namespace NJA {
                         Local<Value> argv[] = {v8::Boolean::New(isolate, canceled), download};
                         func->Call(isolate->GetCurrentContext(), Null(isolate), 2, argv);
                     }
+                        break;
+                    case feException:
+                        if (!func.IsEmpty()) {
+                            unsigned short reqId;
+                            SPA::CDBString errMsg;
+                            std::string errWhere;
+                            int errCode;
+                            *cb.Buffer >> reqId >> errMsg >> errWhere >> errCode;
+                            assert(!cb.Buffer->GetSize());
+                            Local<String> jsMsg = ToStr(isolate, errMsg.c_str(), errMsg.size());
+                            Local<String> jsWhere = ToStr(isolate, errWhere.c_str());
+                            Local<Value> jsCode = Number::New(isolate, errCode);
+                            Local<Value> argv[] = {jsMsg, jsCode, jsWhere, Number::New(isolate, reqId), download};
+                            func->Call(isolate->GetCurrentContext(), Null(isolate), 5, argv);
+                        }
                         break;
                     default:
                         assert(false); //shouldn't come here

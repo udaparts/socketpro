@@ -163,7 +163,7 @@ namespace NJA {
             String::Utf8Value str1(isolate, p1);
 #endif
             std::wstring remote = Utilities::ToWide(*str1);
-            Local<Value> argv[] = {args[2], args[3], args[4]};
+            Local<Value> argv[] = {args[2], args[3], args[4], args[6]};
             auto p2 = args[5];
             if (p2->IsUint32())
                 flags = p2->Uint32Value(isolate->GetCurrentContext()).ToChecked();
@@ -171,7 +171,7 @@ namespace NJA {
                 ThrowException(isolate, "Unsigned int required for file creating flags");
                 return;
             }
-            SPA::UINT64 index = obj->m_file->Exchange(isolate, 3, argv, download, local.c_str(), remote.c_str(), flags);
+            SPA::UINT64 index = obj->m_file->Exchange(isolate, 4, argv, download, local.c_str(), remote.c_str(), flags);
             if (index) {
                 args.GetReturnValue().Set(Boolean::New(isolate, index != INVALID_NUMBER));
             }

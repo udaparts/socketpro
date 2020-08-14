@@ -142,21 +142,21 @@ namespace SPA {
                         }
                             break;
                         case eException:
-                        {
-                            SPA::CDBString errMsg;
-                            std::string errWhere;
-                            unsigned int errCode;
-                            *cb.Buffer >> errMsg >> errWhere >> errCode;
-                            assert(!cb.Buffer->GetSize());
-                            CScopeUQueue::Unlock(cb.Buffer);
-                            Local<String> jsMsg = ToStr(isolate, errMsg.c_str(), errMsg.size());
-                            Local<String> jsWhere = ToStr(isolate, errWhere.c_str());
-                            Local<Value> jsCode = Number::New(isolate, errCode);
                             if (!func.IsEmpty()) {
+                                SPA::CDBString errMsg;
+                                std::string errWhere;
+                                unsigned int errCode;
+                                *cb.Buffer >> errMsg >> errWhere >> errCode;
+                                assert(!cb.Buffer->GetSize());
+                                CScopeUQueue::Unlock(cb.Buffer);
+                                Local<String> jsMsg = ToStr(isolate, errMsg.c_str(), errMsg.size());
+                                Local<String> jsWhere = ToStr(isolate, errWhere.c_str());
+                                Local<Value> jsCode = Number::New(isolate, errCode);
                                 Local<Value> argv[] = {jsMsg, jsCode, jsWhere, jsReqId};
                                 func->Call(isolate->GetCurrentContext(), Null(isolate), 4, argv);
+                            } else {
+                                CScopeUQueue::Unlock(cb.Buffer);
                             }
-                        }
                             break;
                         default:
                             assert(false); //shouldn't come here

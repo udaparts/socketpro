@@ -25,7 +25,8 @@ namespace NJA {
         enum tagFileEvent {
             feExchange = 0,
             feTrans,
-            feDiscarded
+            feDiscarded,
+            feException
         };
 
         struct FileCb {

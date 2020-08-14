@@ -1536,7 +1536,9 @@ namespace SPA {
                 if (bad) return 0;
                 DDiscarded dd = Get(isolate, argv[1], bad);
                 if (bad) return 0;
-                return BeginTrans(isolation, result, dd) ? index : INVALID_NUMBER;
+                DServerException se = GetSE(isolate, argv[2], bad);
+                if (bad) return 0;
+                return BeginTrans(isolation, result, dd, se) ? index : INVALID_NUMBER;
             }
 
             UINT64 Close(Isolate* isolate, int args, Local<Value> *argv) {
@@ -1546,7 +1548,9 @@ namespace SPA {
                 if (bad) return 0;
                 DDiscarded dd = Get(isolate, argv[1], bad);
                 if (bad) return 0;
-                return Close(result, dd) ? index : INVALID_NUMBER;
+                DServerException se = GetSE(isolate, argv[2], bad);
+                if (bad) return 0;
+                return Close(result, dd, se) ? index : INVALID_NUMBER;
             }
 
             UINT64 EndTrans(Isolate* isolate, int args, Local<Value> *argv, tagRollbackPlan plan) {
@@ -1556,7 +1560,9 @@ namespace SPA {
                 if (bad) return 0;
                 DDiscarded dd = Get(isolate, argv[1], bad);
                 if (bad) return 0;
-                return EndTrans(plan, result, dd) ? index : INVALID_NUMBER;
+                DServerException se = GetSE(isolate, argv[2], bad);
+                if (bad) return 0;
+                return EndTrans(plan, result, dd, se) ? index : INVALID_NUMBER;
             }
 
             UINT64 Execute(Isolate* isolate, int args, Local<Value> *argv, CDBVariantArray &vParam) {
@@ -1572,7 +1578,9 @@ namespace SPA {
                 if (bad) return 0;
                 bool meta = GetMeta(isolate, argv[4], bad);
                 if (bad) return 0;
-                return Execute(vParam, result, r, rh, meta, true, dd) ? index : INVALID_NUMBER;
+                DServerException se = GetSE(isolate, argv[5], bad);
+                if (bad) return 0;
+                return Execute(vParam, result, r, rh, meta, true, dd, se) ? index : INVALID_NUMBER;
             }
 
             UINT64 Execute(Isolate* isolate, int args, Local<Value> *argv, const UTF16 *sql) {
@@ -1588,7 +1596,9 @@ namespace SPA {
                 if (bad) return 0;
                 bool meta = GetMeta(isolate, argv[4], bad);
                 if (bad) return 0;
-                return Execute(sql, result, r, rh, meta, true, dd) ? index : INVALID_NUMBER;
+                DServerException se = GetSE(isolate, argv[5], bad);
+                if (bad) return 0;
+                return Execute(sql, result, r, rh, meta, true, dd, se) ? index : INVALID_NUMBER;
             }
 
             UINT64 ExecuteBatch(Isolate* isolate, int args, Local<Value> *argv, tagTransactionIsolation isolation, const UTF16 *sql, CDBVariantArray &vParam, tagRollbackPlan plan, const UTF16 *delimiter, const CParameterInfoArray& vPInfo) {
@@ -1606,7 +1616,9 @@ namespace SPA {
                 if (bad) return 0;
                 bool meta = GetMeta(isolate, argv[5], bad);
                 if (bad) return 0;
-                return ExecuteBatch(isolation, sql, vParam, result, r, rh, bh, vPInfo, plan, dd, delimiter, meta) ? index : INVALID_NUMBER;
+                DServerException se = GetSE(isolate, argv[6], bad);
+                if (bad) return 0;
+                return ExecuteBatch(isolation, sql, vParam, result, r, rh, bh, vPInfo, plan, dd, delimiter, meta, true, se) ? index : INVALID_NUMBER;
             }
 
             UINT64 Open(Isolate* isolate, int args, Local<Value> *argv, const UTF16* strConnection, unsigned int flags) {
@@ -1616,7 +1628,9 @@ namespace SPA {
                 if (bad) return 0;
                 DDiscarded dd = Get(isolate, argv[1], bad);
                 if (bad) return 0;
-                return Open(strConnection, result, flags, dd) ? index : INVALID_NUMBER;
+                DServerException se = GetSE(isolate, argv[2], bad);
+                if (bad) return 0;
+                return Open(strConnection, result, flags, dd, se) ? index : INVALID_NUMBER;
             }
 
             UINT64 Prepare(Isolate* isolate, int args, Local<Value> *argv, const UTF16 *sql, const CParameterInfoArray& vParameterInfo) {
@@ -1626,7 +1640,9 @@ namespace SPA {
                 if (bad) return 0;
                 DDiscarded dd = Get(isolate, argv[1], bad);
                 if (bad) return 0;
-                return Prepare(sql, result, vParameterInfo, dd) ? index : INVALID_NUMBER;
+                DServerException se = GetSE(isolate, argv[2], bad);
+                if (bad) return 0;
+                return Prepare(sql, result, vParameterInfo, dd, se) ? index : INVALID_NUMBER;
             }
 
         protected:
@@ -1637,7 +1653,8 @@ namespace SPA {
                 eRowsetHeader,
                 eRows,
                 eBatchHeader,
-                eDiscarded
+                eDiscarded,
+                eException
             };
 
             struct DBCb {
@@ -1832,6 +1849,32 @@ namespace SPA {
                     bad = true;
                 }
                 return dd;
+            }
+
+            DServerException GetSE(Isolate* isolate, Local<Value> se, bool& bad) {
+                bad = false;
+                SPA::ClientSide::CAsyncServiceHandler::DServerException dSe;
+                if (se->IsFunction()) {
+                    std::shared_ptr<CNJFunc> func(new CNJFunc);
+                    func->Reset(isolate, Local<Function>::Cast(se));
+                    Backup(func);
+                    dSe = [func](CAsyncServiceHandler* db, unsigned short requestId, const wchar_t* errMessage, const char* errWhere, unsigned int errCode) {
+                        DBCb cb;
+                        cb.Type = eException;
+                        cb.Func = func;
+                        cb.Buffer = CScopeUQueue::Lock();
+                        PAsyncDBHandler ash = (PAsyncDBHandler) db;
+                        *cb.Buffer << ash << requestId << errMessage << errWhere << errCode;
+                        CAutoLock al(ash->m_csDB);
+                        ash->m_deqDBCb.push_back(cb);
+                        int fail = uv_async_send(&ash->m_typeDB);
+                        assert(!fail);
+                    };
+                } else if (!IsNullOrUndefined(se)) {
+                    ThrowException(isolate, "A callback expected for tracking exception from server");
+                    bad = true;
+                }
+                return dSe;
             }
 
         private:

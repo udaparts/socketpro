@@ -30,6 +30,7 @@ namespace NJA {
     private:
         static void queue_cb(uv_async_t* handle);
         DDiscarded Get(Isolate* isolate, Local<Value> abort, bool &bad);
+        DServerException GetSE(Isolate* isolate, Local<Value> se, bool& bad);
 
     private:
 
@@ -43,7 +44,8 @@ namespace NJA {
             qeDequeue,
             qeEnqueueBatch,
             qeResultReturned,
-            qeDiscarded
+            qeDiscarded,
+            qeException
         };
 
         struct QueueCb {

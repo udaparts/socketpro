@@ -173,6 +173,20 @@ namespace SPA {
                                 func->Call(ctx, Null(isolate), 1, argv);
                             }
                             break;
+                        case eException:
+                            if (!func.IsEmpty()) {
+                                unsigned short reqId;
+                                SPA::CDBString errMsg;
+                                std::string errWhere;
+                                int errCode;
+                                *cb.Buffer >> reqId >> errMsg >> errWhere >> errCode;
+                                assert(!cb.Buffer->GetSize());
+                                Local<String> jsMsg = ToStr(isolate, errMsg.c_str(), errMsg.size());
+                                Local<String> jsWhere = ToStr(isolate, errWhere.c_str());
+                                Local<Value> jsCode = Number::New(isolate, errCode);
+                                Local<Value> argv[] = {jsCode, jsMsg, jsWhere, Number::New(isolate, reqId)};
+                                func->Call(isolate->GetCurrentContext(), Null(isolate), 4, argv);
+                            }
                         default:
                             assert(false);
                             break;
