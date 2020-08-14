@@ -324,7 +324,7 @@ public class CStreamingFile extends CAsyncServiceHandler {
                                     it.ErrMsg = cs.getErrorMsg();
                                 }
                                 if (it.Fut != null) {
-                                    it.Fut.setException(new CSocketError(it.ErrCode, it.ErrMsg, idUpload, false));
+                                    it.Fut.setException(new CSocketError(it.ErrCode, it.ErrMsg, idUpload, true));
                                 }
                                 continue;
                             }
@@ -347,7 +347,7 @@ public class CStreamingFile extends CAsyncServiceHandler {
                                     it.ErrMsg = cs.getErrorMsg();
                                 }
                                 if (it.Fut != null) {
-                                    it.Fut.setException(new CSocketError(it.ErrCode, it.ErrMsg, idDownload, false));
+                                    it.Fut.setException(new CSocketError(it.ErrCode, it.ErrMsg, idDownload, true));
                                 }
                                 continue;
                             }
