@@ -106,7 +106,7 @@ namespace NJA {
                     int fail = uv_async_send(&f->m_fileType);
                     assert(!fail);
                 };
-            } else if (!IsNullOrUndefined(argv[2])) {
+            } else if (!IsNullOrUndefined(argv[3])) {
                 ThrowException(isolate, "A callback expected for tracking exception from server");
                 return 0;
             }

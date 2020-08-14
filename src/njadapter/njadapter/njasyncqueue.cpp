@@ -261,7 +261,7 @@ namespace NJA {
             std::string key = GetKey(isolate, args[0]);
             if (!key.size())
                 return;
-            Local<Value> argv[] = {args[1], args[2], args[3]};
+            Local<Value> argv[] = {args[1], args[2], args[4]};
             auto p = args[3];
             unsigned int timeout = 0;
             if (p->IsUint32())
