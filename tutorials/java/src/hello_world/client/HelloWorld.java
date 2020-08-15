@@ -16,7 +16,7 @@ public class HelloWorld extends CAsyncServiceHandler {
     public String SayHello(String firstName, String lastName) throws CSocketError, CServerError {
         try (CScopeUQueue sb = new CScopeUQueue()) {
             UFuture<CScopeUQueue> f = sendRequest(hwConst.idSayHello, sb.Save(firstName).Save(lastName));
-            return f.get().getUQueue().LoadString();
+            return f.get().LoadString();
         }
     }
 
@@ -30,7 +30,7 @@ public class HelloWorld extends CAsyncServiceHandler {
     public uqueue_demo.CMyStruct Echo(uqueue_demo.CMyStruct ms) throws CSocketError, CServerError {
         try (CScopeUQueue sb = new CScopeUQueue()) {
             UFuture<SPA.CScopeUQueue> f = sendRequest(hwConst.idEcho, sb.Save(ms));
-            uqueue_demo.CMyStruct res = f.get().getUQueue().Load(uqueue_demo.CMyStruct.class);
+            uqueue_demo.CMyStruct res = f.get().Load(uqueue_demo.CMyStruct.class);
             return res;
         }
     }

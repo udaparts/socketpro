@@ -212,6 +212,70 @@ public final class CScopeUQueue implements AutoCloseable {
         return m_UQueue;
     }
 
+    public final java.util.UUID LoadUUID() {
+        return m_UQueue.LoadUUID();
+    }
+
+    public final byte[] LoadBytes() {
+        return m_UQueue.LoadBytes();
+    }
+
+    public final int LoadInt() {
+        return m_UQueue.LoadInt();
+    }
+
+    public final short LoadShort() {
+        return m_UQueue.LoadShort();
+    }
+
+    public final byte LoadByte() {
+        return m_UQueue.LoadByte();
+    }
+
+    public final long LoadLong() {
+        return m_UQueue.LoadLong();
+    }
+
+    public final boolean LoadBoolean() {
+        return m_UQueue.LoadBoolean();
+    }
+
+    public final char LoadChar() {
+        return m_UQueue.LoadChar();
+    }
+
+    public final float LoadFloat() {
+        return m_UQueue.LoadFloat();
+    }
+
+    public final double LoadDouble() {
+        return m_UQueue.LoadDouble();
+    }
+
+    public final String LoadString() {
+        return m_UQueue.LoadString();
+    }
+
+    public final Object LoadObject() throws UnsupportedOperationException {
+        return m_UQueue.LoadObject();
+    }
+
+    public final java.math.BigDecimal LoadDecimal() {
+        return m_UQueue.LoadDecimal();
+    }
+
+    public final <T extends SPA.IUSerializer> T Load(Class<T> cls) {
+        return m_UQueue.Load(cls);
+    }
+
+    public final <T extends SPA.IUSerializer> Object LoadObject(Class<T> cls) {
+        return m_UQueue.LoadObject(cls);
+    }
+
+    public final java.util.Date LoadDate() {
+        return m_UQueue.LoadDate();
+    }
+
     private CUQueue m_UQueue = Lock();
     private final static Object m_cs = new Object();
     private final static ArrayDeque<CUQueue> m_sQueue = new ArrayDeque<>();

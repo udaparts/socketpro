@@ -42,13 +42,13 @@ public class Program {
                 UFuture<CScopeUQueue> f2 = hw.sendRequest(hwConst.idSleep, new CScopeUQueue().Save(6000));
                 UFuture<CScopeUQueue> f3 = hw.sendRequest(hwConst.idSayHello, new CScopeUQueue().Save("Hilary").Save("Clinton"));
                 UFuture<CScopeUQueue> f4 = hw.sendRequest(hwConst.idEcho, new CScopeUQueue().Save(msO));
-                System.out.println(f0.get().getUQueue().LoadString());
-                System.out.println(f1.get().getUQueue().LoadString());
+                System.out.println(f0.get().LoadString());
+                System.out.println(f1.get().LoadString());
                 assert 0 == f2.get().getUQueue().getSize();
                 //String bad = f2.get().getUQueue().LoadString();
-                System.out.println(f3.get().getUQueue().LoadString());
+                System.out.println(f3.get().LoadString());
                 CScopeUQueue sb = f4.get();
-                ms = sb.getUQueue().Load(uqueue_demo.CMyStruct.class);
+                ms = sb.Load(uqueue_demo.CMyStruct.class);
                 assert ms == msO;
             } catch (CServerError ex) {
                 System.out.println("---- SERVER EXCEPTION ----");
