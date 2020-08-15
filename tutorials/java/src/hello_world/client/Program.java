@@ -11,7 +11,7 @@ public class Program {
         CConnectionContext cc = new CConnectionContext("localhost", 20901, "hwClientUserId", "password4hwClient");
         try (CSocketPool<HelloWorld> spHw = new CSocketPool<>(HelloWorld.class, true)) {
             //optionally start a persistent queue at client side to ensure auto failure recovery and once-only delivery
-            spHw.setQueueName("helloworld");
+            //spHw.setQueueName("helloworld");
             boolean ok = spHw.StartSocketPool(cc, 1);
             HelloWorld hw = spHw.getAsyncHandlers()[0];
             if (!ok) {
@@ -61,7 +61,7 @@ public class Program {
                 System.out.println("Unexpected error: " + ex.getMessage());
             }
 
-            hw.SendRequest(hwConst.idSayHello, new CScopeUQueue().Save("SocketPro").Save("UDAParts"), (ar) -> {
+            if (!hw.SendRequest(hwConst.idSayHello, new CScopeUQueue().Save("SocketPro").Save("UDAParts"), (ar) -> {
                 System.out.println(ar.LoadString());
             }, (ah, canceled) -> {
                 if (canceled) {
@@ -80,7 +80,9 @@ public class Program {
             }, (ah, reqId, errMessage, errWhere, errCode) -> {
                 System.out.println("Error message: " + errMessage);
                 System.out.println("Server exception location: " + errWhere);
-            });
+            })) {
+                System.out.println("ec: " + String.valueOf(HelloWorld.SESSION_CLOSED_BEFORE) + ", em: Session already closed before sending the request SendRequest");
+            }
             System.out.println("Press ENTER key to shutdown the demo application ......");
             new java.util.Scanner(System.in).nextLine();
         }
