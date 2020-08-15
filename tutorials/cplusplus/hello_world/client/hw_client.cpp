@@ -8,8 +8,7 @@ int main(int argc, char* argv[]) {
     CConnectionContext cc("localhost", 20901, L"MyUserId", L"MyPassword");
 
     //spHw.SetQueueName("helloworld"); //optionally start a queue for auto failure recovery
-    bool ok = spHw.StartSocketPool(cc, 1);
-    if (!ok) {
+    if (!spHw.StartSocketPool(cc, 1)) {
         std::cout << "Failed in connecting to remote helloworld server" << std::endl;
         return -1;
     }
@@ -18,7 +17,7 @@ int main(int argc, char* argv[]) {
     SetMyStruct(ms0);
     try{
         //process requests one by one synchronously
-        std::wcout << hw->async<std::wstring>(idSayHelloHelloWorld, L"Blabla", L"Dole").get() << std::endl;
+        std::wcout << hw->async<std::wstring>(idSayHelloHelloWorld, L"John", L"Dole").get() << std::endl;
         hw->async0(idSleepHelloWorld, (unsigned int) 5000).get();
         ms = hw->async<CMyStruct>(idEchoHelloWorld, ms0).get();
         assert(ms == ms0);
@@ -50,27 +49,29 @@ int main(int argc, char* argv[]) {
         std::cout << "Some unexpected error: " << ex.what() << std::endl;
     }
 
-    hw->SendRequest(idSayHelloHelloWorld, L"SocketPro", L"UDAParts", [](CAsyncResult & ar) {
-        std::wstring s;
-        ar >> s;
-        std::wcout << s << std::endl;
-    }, [](CAsyncServiceHandler *ash, bool canceled) {
-        if (canceled) {
-            std::cout << "Request SendRequest canceled" << std::endl;
-        } else {
-            CClientSocket *cs = ash->GetAttachedClientSocket();
-            int ec = cs->GetErrorCode();
-            if (ec) {
-                std::string em = cs->GetErrorMsg();
-                std::cout << "ec: " << ec << ", em: " << em << std::endl;
+    if (!hw->SendRequest(idSayHelloHelloWorld, L"SocketPro", L"UDAParts", [](CAsyncResult & ar) {
+            std::wstring s;
+            ar >> s;
+            std::wcout << s << std::endl;
+        }, [](CAsyncServiceHandler *ash, bool canceled) {
+            if (canceled) {
+                std::cout << "Request SendRequest canceled" << std::endl;
             } else {
-                std::cout << "ec: " << HelloWorld::SESSION_CLOSED_AFTER << ", em: Session closed after sending the request SendRequest" << std::endl;
+                CClientSocket *cs = ash->GetAttachedClientSocket();
+                int ec = cs->GetErrorCode();
+                if (ec) {
+                    std::string em = cs->GetErrorMsg();
+                    std::cout << "ec: " << ec << ", em: " << em << std::endl;
+                } else {
+                    std::cout << "ec: " << HelloWorld::SESSION_CLOSED_AFTER << ", em: Session closed after sending the request SendRequest" << std::endl;
+                }
             }
-        }
-    }, [](CAsyncServiceHandler *ash, unsigned short reqId, const wchar_t *errMsg, const char* errWhere, unsigned int errCode) {
-        std::wcout << L"Server exception error message: " << errMsg;
-        std::cout << ", location: " << errWhere << std::endl;
-    });
+        }, [](CAsyncServiceHandler *ash, unsigned short reqId, const wchar_t *errMsg, const char* errWhere, unsigned int errCode) {
+            std::wcout << L"Server exception error message: " << errMsg;
+            std::cout << ", location: " << errWhere << std::endl;
+        })) {
+        std::cout << "ec: " << HelloWorld::SESSION_CLOSED_BEFORE << ", em: Session already closed before sending the request SendRequest" << std::endl;
+    }
 
     std::wcout << L"Press a key to shutdown the demo application ......" << std::endl;
     ::getchar();
