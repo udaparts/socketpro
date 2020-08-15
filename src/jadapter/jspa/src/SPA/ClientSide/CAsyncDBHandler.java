@@ -516,7 +516,7 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
                 //in case a client asynchronously sends lots of requests without use of client side queue.
 
                 //associate begin transaction with underlying client persistent message queue
-                m_queueOk = getAttachedClientSocket().getClientQueue().StartJob();
+                m_queueOk = getSocket().getClientQueue().StartJob();
                 synchronized (m_csDB) {
                     sq.Save(isolation.getValue()).Save(m_strConnection).Save(m_flags);
                     m_deqResult.add(cb);
@@ -650,7 +650,7 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
                 if (ok) {
                     if (m_queueOk) {
                         //associate end transaction with underlying client persistent message queue
-                        getAttachedClientSocket().getClientQueue().EndJob();
+                        getSocket().getClientQueue().EndJob();
                         m_queueOk = false;
                     }
                 } else {
@@ -1440,7 +1440,7 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
         //to avoid possible request sending overlapping within multiple threading environment
         synchronized (m_csOneSending) {
             if (vParam != null && !vParam.isEmpty()) {
-                queueOk = getAttachedClientSocket().getClientQueue().StartJob();
+                queueOk = getSocket().getClientQueue().StartJob();
                 if (!SendParametersData(vParam)) {
                     Clean();
                     return false;
@@ -1475,7 +1475,7 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
                     return false;
                 }
                 if (queueOk) {
-                    getAttachedClientSocket().getClientQueue().EndJob();
+                    getSocket().getClientQueue().EndJob();
                 }
             }
         }
@@ -1904,7 +1904,7 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
             //to avoid possible request sending overlapping within multiple threading environment
             synchronized (m_csOneSending) {
                 if (vParam != null && vParam.size() > 0) {
-                    queueOk = getAttachedClientSocket().getClientQueue().StartJob();
+                    queueOk = getSocket().getClientQueue().StartJob();
                     if (!SendParametersData(vParam)) {
                         Clean();
                         return false;
@@ -1942,7 +1942,7 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
                     return false;
                 }
                 if (queueOk) {
-                    getAttachedClientSocket().getClientQueue().EndJob();
+                    getSocket().getClientQueue().EndJob();
                 }
             }
         }

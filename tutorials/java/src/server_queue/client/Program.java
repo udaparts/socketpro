@@ -23,7 +23,7 @@ public class Program {
             boolean ok = spAq.StartSocketPool(cc, 1);
             CAsyncQueue aq = spAq.getAsyncHandlers()[0];
             if (!ok) {
-                System.out.println("No connection error code = " + aq.getAttachedClientSocket().getErrorCode());
+                System.out.println("No connection error code = " + aq.getSocket().getErrorCode());
                 in.nextLine();
                 return;
             }

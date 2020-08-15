@@ -766,14 +766,14 @@ public class CAsyncServiceHandler implements AutoCloseable {
             for (java.util.Map.Entry<Short, CResultCb> p : m_kvBatching) {
                 CResultCb rcb = p.getValue();
                 if (rcb.Discarded != null) {
-                    rcb.Discarded.invoke(this, getAttachedClientSocket().getCurrentRequestID() == SPA.tagBaseRequestID.idCancel.getValue());
+                    rcb.Discarded.invoke(this, getSocket().getCurrentRequestID() == SPA.tagBaseRequestID.idCancel.getValue());
                 }
             }
             m_kvBatching.clear();
             for (java.util.Map.Entry<Short, CResultCb> p : m_kvCallback) {
                 CResultCb rcb = p.getValue();
                 if (rcb.Discarded != null) {
-                    rcb.Discarded.invoke(this, getAttachedClientSocket().getCurrentRequestID() == SPA.tagBaseRequestID.idCancel.getValue());
+                    rcb.Discarded.invoke(this, getSocket().getCurrentRequestID() == SPA.tagBaseRequestID.idCancel.getValue());
                 }
             }
             m_kvCallback.clear();

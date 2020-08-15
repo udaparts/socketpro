@@ -73,15 +73,15 @@ public class CSocketPool<THandler extends CAsyncServiceHandler> implements AutoC
             break;
             case speUSocketKilled:
                 if (handler != null) {
-                    CClientSocket.Remove(handler.getAttachedClientSocket().getHandle());
+                    CClientSocket.Remove(handler.getSocket().getHandle());
                     synchronized (m_cs) {
-                        m_dicSocketHandler.remove(handler.getAttachedClientSocket());
+                        m_dicSocketHandler.remove(handler.getSocket());
                     }
                 }
                 break;
             case speConnected:
                 if (ClientCoreLoader.IsOpened(h)) {
-                    CClientSocket cs = handler.getAttachedClientSocket();
+                    CClientSocket cs = handler.getSocket();
                     if (cs.getEncryptionMethod() == SPA.tagEncryptionMethod.TLSv1 && DoSslServerAuthentication != null && !DoSslServerAuthentication.invoke(this, cs)) {
                         return;
                     }
@@ -119,8 +119,8 @@ public class CSocketPool<THandler extends CAsyncServiceHandler> implements AutoC
             SocketPoolEvent.invoke(this, event, handler);
         }
         OnSocketPoolEvent(event, handler);
-        if (event == tagSocketPoolEvent.speConnected && handler.getAttachedClientSocket().getConnected()) {
-            SetQueue(handler.getAttachedClientSocket());
+        if (event == tagSocketPoolEvent.speConnected && handler.getSocket().getConnected()) {
+            SetQueue(handler.getSocket());
         }
     }
 
@@ -726,10 +726,10 @@ public class CSocketPool<THandler extends CAsyncServiceHandler> implements AutoC
                     h = m_dicSocketHandler.get(cs);
                 } else {
                     int cs_coriq = cs.getCountOfRequestsInQueue();
-                    int h_coriq = h.getAttachedClientSocket().getCountOfRequestsInQueue();
+                    int h_coriq = h.getSocket().getCountOfRequestsInQueue();
                     if (cs_coriq < h_coriq) {
                         h = m_dicSocketHandler.get(cs);
-                    } else if (cs_coriq == h_coriq && cs.getBytesSent() < h.getAttachedClientSocket().getBytesSent()) {
+                    } else if (cs_coriq == h_coriq && cs.getBytesSent() < h.getSocket().getBytesSent()) {
                         h = m_dicSocketHandler.get(cs);
                     }
                 }
@@ -759,7 +759,7 @@ public class CSocketPool<THandler extends CAsyncServiceHandler> implements AutoC
                 }
                 if (h == null) {
                     h = m_dicSocketHandler.get(cs);
-                } else if ((cq.getMessageCount() < h.getAttachedClientSocket().getClientQueue().getMessageCount()) || (cs.getConnected() && !h.getAttachedClientSocket().getConnected())) {
+                } else if ((cq.getMessageCount() < h.getSocket().getClientQueue().getMessageCount()) || (cs.getConnected() && !h.getSocket().getConnected())) {
                     h = m_dicSocketHandler.get(cs);
                 }
             }
@@ -832,7 +832,7 @@ public class CSocketPool<THandler extends CAsyncServiceHandler> implements AutoC
         if (handler == null) {
             return;
         }
-        Unlock(handler.getAttachedClientSocket());
+        Unlock(handler.getSocket());
     }
 
     /**

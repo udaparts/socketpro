@@ -91,8 +91,8 @@ public class CReplication<THandler extends CAsyncServiceHandler> implements Auto
                         handler.CleanCallbacks();
                         break;
                     case speConnecting:
-                        if (handler.getAttachedClientSocket().ConnectionContext.Port == -1) {
-                            handler.getAttachedClientSocket().setConnectingTimeout(500);
+                        if (handler.getSocket().ConnectionContext.Port == -1) {
+                            handler.getSocket().setConnectingTimeout(500);
                         }
                         break;
                     default:
@@ -112,7 +112,7 @@ public class CReplication<THandler extends CAsyncServiceHandler> implements Auto
         }
         THandler[] targetHandlers = getTargetHandlers();
         for (THandler h : targetHandlers) {
-            ok = h.getAttachedClientSocket().DoEcho();
+            ok = h.getSocket().DoEcho();
         }
     }
 
@@ -251,7 +251,7 @@ public class CReplication<THandler extends CAsyncServiceHandler> implements Auto
         if (src == null) {
             return null;
         }
-        return src.getAttachedClientSocket().getClientQueue();
+        return src.getSocket().getClientQueue();
     }
 
     public final IClientQueue[] getTargetQueues() {
@@ -262,7 +262,7 @@ public class CReplication<THandler extends CAsyncServiceHandler> implements Auto
         }
         IClientQueue[] tq = new IClientQueue[handlers.length];
         for (THandler h : handlers) {
-            tq[n] = h.getAttachedClientSocket().getClientQueue();
+            tq[n] = h.getSocket().getClientQueue();
             ++n;
         }
         return tq;
@@ -358,7 +358,7 @@ public class CReplication<THandler extends CAsyncServiceHandler> implements Auto
         if (src == null) {
             return false;
         }
-        IClientQueue cq = src.getAttachedClientSocket().getClientQueue();
+        IClientQueue cq = src.getSocket().getClientQueue();
         if (!cq.getAvailable()) {
             return false;
         }
@@ -375,7 +375,7 @@ public class CReplication<THandler extends CAsyncServiceHandler> implements Auto
         if (src == null) {
             return false;
         }
-        IClientQueue cq = src.getAttachedClientSocket().getClientQueue();
+        IClientQueue cq = src.getSocket().getClientQueue();
         if (!cq.getAvailable()) {
             return false;
         }

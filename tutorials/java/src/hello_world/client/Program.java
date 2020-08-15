@@ -15,7 +15,7 @@ public class Program {
             boolean ok = spHw.StartSocketPool(cc, 1);
             HelloWorld hw = spHw.getAsyncHandlers()[0];
             if (!ok) {
-                System.out.println("No connection error code = " + hw.getAttachedClientSocket().getErrorCode());
+                System.out.println("No connection error code = " + hw.getSocket().getErrorCode());
                 return;
             }
             CMyStruct ms, msO = CMyStruct.MakeOne();

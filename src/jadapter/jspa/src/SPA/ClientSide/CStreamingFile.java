@@ -136,8 +136,8 @@ public class CStreamingFile extends CAsyncServiceHandler {
             fTo.m_vContext.clear();
             fTo.m_vContext.addAll(vHead);
             if (count == 0 && fTo.m_vContext.size() > 0) {
-                ClientCoreLoader.PostProcessing(fTo.getAttachedClientSocket().getHandle(), 0, 0);
-                fTo.getAttachedClientSocket().DoEcho(); //make sure WaitAll works correctly
+                ClientCoreLoader.PostProcessing(fTo.getSocket().getHandle(), 0, 0);
+                fTo.getSocket().DoEcho(); //make sure WaitAll works correctly
             }
         } finally {
             fTo.m_csFile.unlock();
@@ -595,7 +595,7 @@ public class CStreamingFile extends CAsyncServiceHandler {
                 } else {
                     DAsyncResultHandler rh = null;
                     DOnExceptionFromServer se = null;
-                    CClientSocket cs = getAttachedClientSocket();
+                    CClientSocket cs = getSocket();
                     m_csFile.lock();
                     try {
                         if (m_vContext.size() > 0) {
@@ -664,7 +664,7 @@ public class CStreamingFile extends CAsyncServiceHandler {
                         upl.invoke(this, context.ErrCode, context.ErrMsg);
                     }
                     if (context.QueueOk) {
-                        getAttachedClientSocket().getClientQueue().AbortJob();
+                        getSocket().getClientQueue().AbortJob();
                     }
                     m_csFile.lock();
                     try {
@@ -683,7 +683,7 @@ public class CStreamingFile extends CAsyncServiceHandler {
                 DTransferring trans = null;
                 DAsyncResultHandler rh = null;
                 DOnExceptionFromServer se = null;
-                CClientSocket cs = getAttachedClientSocket();
+                CClientSocket cs = getSocket();
                 long uploaded = mc.LoadLong();
                 if (mc.getSize() >= 8) {
                     errCode = mc.LoadInt();
@@ -823,9 +823,9 @@ public class CStreamingFile extends CAsyncServiceHandler {
             m_vContext.addLast(context);
             int filesOpened = GetFilesOpened();
             if (m_MaxDownloading > filesOpened) {
-                ClientCoreLoader.PostProcessing(getAttachedClientSocket().getHandle(), 0, 0);
+                ClientCoreLoader.PostProcessing(getSocket().getHandle(), 0, 0);
                 if (filesOpened == 0) {
-                    getAttachedClientSocket().DoEcho(); //make sure WaitAll works correctly
+                    getSocket().DoEcho(); //make sure WaitAll works correctly
                 }
             }
         } finally {
@@ -869,9 +869,9 @@ public class CStreamingFile extends CAsyncServiceHandler {
             m_vContext.addLast(context);
             int filesOpened = GetFilesOpened();
             if (m_MaxDownloading > filesOpened) {
-                ClientCoreLoader.PostProcessing(getAttachedClientSocket().getHandle(), 0, 0);
+                ClientCoreLoader.PostProcessing(getSocket().getHandle(), 0, 0);
                 if (filesOpened == 0) {
-                    getAttachedClientSocket().DoEcho(); //make sure WaitAll works correctly
+                    getSocket().DoEcho(); //make sure WaitAll works correctly
                 }
             }
         } finally {
@@ -919,9 +919,9 @@ public class CStreamingFile extends CAsyncServiceHandler {
             m_vContext.addLast(context);
             int filesOpened = GetFilesOpened();
             if (m_MaxDownloading > filesOpened) {
-                ClientCoreLoader.PostProcessing(getAttachedClientSocket().getHandle(), 0, 0);
+                ClientCoreLoader.PostProcessing(getSocket().getHandle(), 0, 0);
                 if (filesOpened == 0) {
-                    getAttachedClientSocket().DoEcho(); //make sure WaitAll works correctly
+                    getSocket().DoEcho(); //make sure WaitAll works correctly
                 }
             }
         } finally {
@@ -965,9 +965,9 @@ public class CStreamingFile extends CAsyncServiceHandler {
             m_vContext.addLast(context);
             int filesOpened = GetFilesOpened();
             if (m_MaxDownloading > filesOpened) {
-                ClientCoreLoader.PostProcessing(getAttachedClientSocket().getHandle(), 0, 0);
+                ClientCoreLoader.PostProcessing(getSocket().getHandle(), 0, 0);
                 if (filesOpened == 0) {
-                    getAttachedClientSocket().DoEcho(); //make sure WaitAll works correctly
+                    getSocket().DoEcho(); //make sure WaitAll works correctly
                 }
             }
         } finally {

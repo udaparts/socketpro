@@ -342,7 +342,7 @@ public class CAsyncQueue extends CAsyncServiceHandler {
      * @return true for sending the request successfully, and false for failure
      */
     public final boolean StartQueueTrans(byte[] key, final DQueueTrans qt, DDiscarded discarded, DOnExceptionFromServer se) {
-        IClientQueue cq = this.getAttachedClientSocket().getClientQueue();
+        IClientQueue cq = getSocket().getClientQueue();
         if (cq.getAvailable()) {
             cq.StartJob();
         }
@@ -449,7 +449,7 @@ public class CAsyncQueue extends CAsyncServiceHandler {
                     }
                 }
             }, discarded, se);
-            IClientQueue cq = this.getAttachedClientSocket().getClientQueue();
+            IClientQueue cq = this.getSocket().getClientQueue();
             if (cq.getAvailable()) {
                 if (rollback) {
                     cq.AbortJob();

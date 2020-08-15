@@ -52,7 +52,7 @@ public class Program {
             boolean ok = spHw.StartSocketPool(cc, 1);
             HelloWorld hw = spHw.Seek(); //or HelloWorld hw = spHw.Lock();
 
-            CClientSocket ClientSocket = hw.getAttachedClientSocket();
+            CClientSocket ClientSocket = hw.getSocket();
             ClientSocket.getPush().OnSubscribe = (sender, messageSender, groups) -> {
                 System.out.println("Subscribe for " + ToString(groups));
                 System.out.println(ToString(messageSender));

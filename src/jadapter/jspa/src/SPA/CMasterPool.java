@@ -83,11 +83,11 @@ public class CMasterPool<THandler extends CCachedBaseHandler> extends CMasterSla
             @Override
             public void invoke(int res, String errMsg) {
                 SPA.RefObject<Integer> port = new SPA.RefObject<>(0);
-                String ip = m_hander.getAttachedClientSocket().GetPeerName(port);
+                String ip = m_hander.getSocket().GetPeerName(port);
                 ip += ":";
                 ip += port.Value;
                 m_cache.Set(ip, m_hander.getDBManagementSystem());
-                m_cache.setDBServerName(m_hander.getAttachedClientSocket().getConnectionContext().Host);
+                m_cache.setDBServerName(m_hander.getSocket().getConnectionContext().Host);
                 if (res == 0) {
                     Cache.Swap(m_cache); //exchange between master Cache and this m_cache
                     m_cache.Set(ip, m_hander.getDBManagementSystem());
@@ -112,7 +112,7 @@ public class CMasterPool<THandler extends CCachedBaseHandler> extends CMasterSla
         if (spe == tagSocketPoolEvent.speUSocketCreated) {
             if (handler == getAsyncHandlers()[0]) {
                 m_hander = handler;
-                handler.getAttachedClientSocket().getPush().OnPublish = new DOnPublish() {
+                handler.getSocket().getPush().OnPublish = new DOnPublish() {
                     @Override
                     public void invoke(CClientSocket sender, CMessageSender messageSender, int[] group, Object msg) {
                         if (group[0] == DB_CONSTS.CACHE_UPDATE_CHAT_GROUP_ID) {
@@ -191,7 +191,7 @@ public class CMasterPool<THandler extends CCachedBaseHandler> extends CMasterSla
                     }
                 };
             }
-        } else if (spe == tagSocketPoolEvent.speConnected && handler.getAttachedClientSocket().getErrorCode() == 0) {
+        } else if (spe == tagSocketPoolEvent.speConnected && handler.getSocket().getErrorCode() == 0) {
             if (handler == getAsyncHandlers()[0]) {
                 if (m_bMidTier) {
                     Object vtMessage = null;

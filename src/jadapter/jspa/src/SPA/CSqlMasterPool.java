@@ -93,9 +93,9 @@ public class CSqlMasterPool<THandler extends CAsyncDBHandler> extends CMasterSla
             public void invoke(CAsyncDBHandler h, int res, String errMsg) {
                 m_cache.setUpdater("");
                 m_cache.Empty();
-                m_cache.setDBServerName(h.getAttachedClientSocket().getConnectionContext().Host);
+                m_cache.setDBServerName(h.getSocket().getConnectionContext().Host);
                 SPA.RefObject<Integer> port = new SPA.RefObject<>(0);
-                String ip = m_hander.getAttachedClientSocket().GetPeerName(port);
+                String ip = m_hander.getSocket().GetPeerName(port);
                 ip += ":";
                 ip += port.Value;
                 m_cache.Set(ip, m_hander.getDBManagementSystem());
@@ -130,7 +130,7 @@ public class CSqlMasterPool<THandler extends CAsyncDBHandler> extends CMasterSla
         if (spe == tagSocketPoolEvent.speUSocketCreated) {
             if (handler == getAsyncHandlers()[0]) {
                 m_hander = handler;
-                handler.getAttachedClientSocket().getPush().OnPublish = new DOnPublish() {
+                handler.getSocket().getPush().OnPublish = new DOnPublish() {
                     @Override
                     public void invoke(CClientSocket sender, CMessageSender messageSender, int[] group, Object msg) {
                         if (group[0] == DB_CONSTS.CACHE_UPDATE_CHAT_GROUP_ID) {
@@ -209,7 +209,7 @@ public class CSqlMasterPool<THandler extends CAsyncDBHandler> extends CMasterSla
                     }
                 };
             }
-        } else if (spe == tagSocketPoolEvent.speConnected && handler.getAttachedClientSocket().getErrorCode() == 0) {
+        } else if (spe == tagSocketPoolEvent.speConnected && handler.getSocket().getErrorCode() == 0) {
             if (handler == getAsyncHandlers()[0]) {
                 if (m_bMidTier) {
                     Object vtMessage = null;
