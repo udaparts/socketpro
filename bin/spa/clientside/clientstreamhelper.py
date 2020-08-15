@@ -268,9 +268,9 @@ class CStreamingFile(CAsyncServiceHandler):
             left.extend(right)
             to._vContext = left
             if count == 0 and len(to._vContext):
-                ccl.PostProcessing(to.AttachedClientSocket.Handle, 0, 0)
-                if not to.AttachedClientSocket.CountOfRequestsInQueue:
-                    to.AttachedClientSocket.DoEcho() #make sure WaitAll works correctly
+                ccl.PostProcessing(to.Socket.Handle, 0, 0)
+                if not to.Socket.CountOfRequestsInQueue:
+                    to.Socket.DoEcho() #make sure WaitAll works correctly
 
     def Upload(self, localFile, remoteFile, up=None, trans=None, discarded=None, flags=FILE_OPEN_TRUNCACTED, se=None):
         """
@@ -300,9 +300,9 @@ class CStreamingFile(CAsyncServiceHandler):
             self._vContext.append(context)
             filesOpened = self._GetFilesOpened()
             if self._MaxDownloading > filesOpened:
-                ccl.PostProcessing(self.AttachedClientSocket.Handle, 0, 0)
+                ccl.PostProcessing(self.Socket.Handle, 0, 0)
                 if not filesOpened:
-                    self.AttachedClientSocket.DoEcho() #make sure WaitAll works correctly
+                    self.Socket.DoEcho() #make sure WaitAll works correctly
         return True
 
     def upload(self, localFile, remoteFile, trans=None, flags=FILE_OPEN_TRUNCACTED):
@@ -349,9 +349,9 @@ class CStreamingFile(CAsyncServiceHandler):
             self._vContext.append(context)
             filesOpened = self._GetFilesOpened()
             if self._MaxDownloading > filesOpened:
-                ccl.PostProcessing(self.AttachedClientSocket.Handle, 0, 0)
+                ccl.PostProcessing(self.Socket.Handle, 0, 0)
                 if not filesOpened:
-                    self.AttachedClientSocket.DoEcho()  # make sure WaitAll works correctly
+                    self.Socket.DoEcho()  # make sure WaitAll works correctly
         return True
 
     def download(self, localFile, remoteFile, trans=None, flags=FILE_OPEN_TRUNCACTED):
@@ -428,7 +428,7 @@ class CStreamingFile(CAsyncServiceHandler):
         elif reqId == CStreamingFile.idUploadBackup:
             pass
         elif reqId == CStreamingFile.idUpload:
-            cs = self.AttachedClientSocket
+            cs = self.Socket
             res = mc.LoadInt()
             errMsg = mc.LoadString()
             ctx = CContext(False, 0)
@@ -496,7 +496,7 @@ class CStreamingFile(CAsyncServiceHandler):
         elif reqId == CStreamingFile.idUploading:
             errCode = 0
             errMsg = ''
-            cs = self.AttachedClientSocket
+            cs = self.Socket
             ctx = CContext(False, 0)
             trans = None
             uploaded = mc.LoadLong()

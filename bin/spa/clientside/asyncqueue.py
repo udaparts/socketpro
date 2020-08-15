@@ -115,7 +115,7 @@ class CAsyncQueue(CAsyncServiceHandler):
             key = ''
         buffer = CScopeUQueue.Lock().SaveAString(key)
         ok = None
-        cq = self.AttachedClientSocket.ClientQueue
+        cq = self.Socket.ClientQueue
         if cq.Available:
             cq.StartJob()
         if not qt:
@@ -151,7 +151,7 @@ class CAsyncQueue(CAsyncServiceHandler):
         else:
             ok = self.SendRequest(CAsyncQueue.idEndTrans, buffer,
                                   lambda ar: qt(ar.AsyncServiceHandler, ar.LoadInt()), discarded, se)
-        cq = self.AttachedClientSocket.ClientQueue
+        cq = self.Socket.ClientQueue
         if cq.Available:
             if rollback:
                 cq.AbortJob()

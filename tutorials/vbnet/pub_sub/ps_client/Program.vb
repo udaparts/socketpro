@@ -45,7 +45,7 @@ Friend Class Program
             Dim ok As Boolean = spHw.StartSocketPool(cc, 1)
             Dim hw As HelloWorld = spHw.Seek() 'or HelloWorld hw = spHw.Lock();
 
-            Dim ClientSocket As CClientSocket = hw.AttachedClientSocket
+            Dim ClientSocket As CClientSocket = hw.Socket
             AddHandler ClientSocket.Push.OnSubscribe, Sub(cs, messageSender, groups)
                                                           Console.WriteLine("Subscribe for " & ToString(groups))
                                                           Console.WriteLine(ToString(messageSender))

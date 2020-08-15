@@ -27,8 +27,8 @@ class CSqlMasterPool(CMasterSlaveBase):
         self._m_cache_.Empty()
 
         def rh(h, res, errMsg):
-            self._m_cache_.DBServerName = h.AttachedClientSocket.ConnectionContext.Host
-            ip, port = h.AttachedClientSocket.GetPeerName()
+            self._m_cache_.DBServerName = h.Socket.ConnectionContext.Host
+            ip, port = h.Socket.GetPeerName()
             ip += ":"
             ip += str(port)
             self._m_cache_.Set(ip, h.DBManagementSystem)
@@ -84,8 +84,8 @@ class CSqlMasterPool(CMasterSlaveBase):
         if spe == tagSocketPoolEvent.speUSocketCreated:
             if handler == self.AsyncHandlers[0]:
                 self._handler_ = handler
-                handler.AttachedClientSocket.Push.OnPublish = OnPublish
-        elif spe == tagSocketPoolEvent.speConnected and handler.AttachedClientSocket.ErrorCode == 0:
+                handler.Socket.Push.OnPublish = OnPublish
+        elif spe == tagSocketPoolEvent.speConnected and handler.Socket.ErrorCode == 0:
             if handler == self.AsyncHandlers[0]:
                 if self._midTier_:
                     CSocketProServer.PushManager.Publish(None, [DB_CONSTS.CACHE_UPDATE_CHAT_GROUP_ID])

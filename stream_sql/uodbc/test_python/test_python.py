@@ -15,7 +15,7 @@ with CSocketPool(COdbc) as spOdbc:
     ok = spOdbc.StartSocketPool(cc, 1)
     odbc = spOdbc.AsyncHandlers[0]
     if not ok:
-        print('No connection error code = ' + str(odbc.AttachedClientSocket.ErrorCode))
+        print('No connection error code = ' + str(odbc.Socket.ErrorCode))
         spOdbc.ShutdownPool()
         exit(0)
 

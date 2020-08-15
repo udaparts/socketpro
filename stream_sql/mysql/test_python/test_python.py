@@ -13,7 +13,7 @@ with CSocketPool(CMysql) as spMysql:
     ok = spMysql.StartSocketPool(cc, 1)
     mysql = spMysql.AsyncHandlers[0]
     if not ok:
-        print('No connection error code = ' + str(mysql.AttachedClientSocket.ErrorCode))
+        print('No connection error code = ' + str(mysql.Socket.ErrorCode))
         spMysql.ShutdownPool()
         exit(0)
     def cb(mysql, res, errMsg):

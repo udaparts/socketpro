@@ -24,10 +24,10 @@ class CMasterPool(CMasterSlaveBase):
     def _SetInitialCache_(self):
         # bring all cached table data into m_cache first for initial cache, and exchange it with Cache if there is no error
         def sql_result(res, errMsg):
-            ip, port = self._handler_.AttachedClientSocket.GetPeerName()
+            ip, port = self._handler_.Socket.GetPeerName()
             ip += ":"
             ip += str(port)
-            self._m_cache_.DBServerName = self._handler_.AttachedClientSocket.ConnectionContext.Host
+            self._m_cache_.DBServerName = self._handler_.Socket.ConnectionContext.Host
             self._m_cache_.Set(ip, self._handler_.DBManagementSystem)
             if res == 0:
                 self._msTool_.Swap(self._m_cache_) # exchange between master Cache and this m_cache
@@ -78,8 +78,8 @@ class CMasterPool(CMasterSlaveBase):
         if spe == tagSocketPoolEvent.speUSocketCreated:
             if handler == self.AsyncHandlers[0]:
                 self._handler_ = handler
-                handler.AttachedClientSocket.Push.OnPublish = OnPublish
-        elif spe == tagSocketPoolEvent.speConnected and handler.AttachedClientSocket.ErrorCode == 0:
+                handler.Socket.Push.OnPublish = OnPublish
+        elif spe == tagSocketPoolEvent.speConnected and handler.Socket.ErrorCode == 0:
             if handler == self.AsyncHandlers[0]:
                 if self._midTier_:
                     CSocketProServer.PushManager.Publish(None, [DB_CONSTS.CACHE_UPDATE_CHAT_GROUP_ID])

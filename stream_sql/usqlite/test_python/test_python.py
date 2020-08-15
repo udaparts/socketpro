@@ -13,7 +13,7 @@ with CSocketPool(CSqlite) as spSqlite:
     ok = spSqlite.StartSocketPool(cc, 1)
     sqlite = spSqlite.AsyncHandlers[0]
     if not ok:
-        print('No connection error code = ' + str(sqlite.AttachedClientSocket.ErrorCode))
+        print('No connection error code = ' + str(sqlite.Socket.ErrorCode))
         spSqlite.ShutdownPool()
         exit(0)
     def cb(sqlite, res, errMsg):

@@ -69,7 +69,7 @@ class CYourPeer(CCacheBasePeer):
                 res = -2
                 errMsg = 'No connection to a master database'
                 break
-            cs = handler.AttachedClientSocket
+            cs = handler.Socket
             if not handler.BeginTrans() or not handler.Prepare('INSERT INTO mysample.EMPLOYEE(CompanyId,Name,JoinDate)VALUES(?,?,?)'):
                 res = cs.ErrorCode
                 errMsg = cs.ErrorMsg
@@ -298,8 +298,8 @@ class CYourPeer(CCacheBasePeer):
                 f.set(1)
 
             if not handler.Execute(sql, ares, rows, meta, True, True, lambda : f.set(-2)):
-                res = handler.AttachedClientSocket.ErrorCode
-                errMsg = handler.AttachedClientSocket.ErrorMsg
+                res = handler.Socket.ErrorCode
+                errMsg = handler.Socket.ErrorMsg
                 break
 
             # put back locked handler and its socket back into pool for reuse as soon as possible

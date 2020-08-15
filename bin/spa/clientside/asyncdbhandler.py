@@ -67,7 +67,7 @@ class CAsyncDBHandler(CAsyncServiceHandler):
             handler(self, res, errMsg, affected, fail_ok, vtId)
 
     def _GetResultHandler(self, reqId):
-        if self.AttachedClientSocket.Random:
+        if self.Socket.Random:
             with self._csDB:
                 for one in self._deqResult:
                     if one.first == reqId:
@@ -214,7 +214,7 @@ class CAsyncDBHandler(CAsyncServiceHandler):
                 self._indexProc = 0
                 self._parameters = 0
                 self._output = 0
-                if self.AttachedClientSocket.CountOfRequestsInQueue == 1:
+                if self.Socket.CountOfRequestsInQueue == 1:
                     self._mapParameterCall = {}
             if t and t.second:
                 t.second(self, res, errMsg)
@@ -227,7 +227,7 @@ class CAsyncDBHandler(CAsyncServiceHandler):
                 self._lastReqId = reqId
                 self._dbError = res
                 self._dbErrorMsg = errMsg
-                if self.AttachedClientSocket.CountOfRequestsInQueue == 1:
+                if self.Socket.CountOfRequestsInQueue == 1:
                     self._mapParameterCall = {}
             if t and t.second:
                 t.second(self, res, errMsg)
@@ -257,7 +257,7 @@ class CAsyncDBHandler(CAsyncServiceHandler):
                 self._dbError = res
                 self._dbErrorMsg = errMsg
                 self._indexProc = 0
-                if self.AttachedClientSocket.CountOfRequestsInQueue == 1:
+                if self.Socket.CountOfRequestsInQueue == 1:
                     self._mapParameterCall = {}
             if t and t.second:
                 t.second(self, res, errMsg)
@@ -421,7 +421,7 @@ class CAsyncDBHandler(CAsyncServiceHandler):
                 q.SaveInt(isolation).SaveString(self._strConnection).SaveUInt(self._flags)
                 self._deqResult.append(cb)
             #associate begin transaction with underlying client persistent message queue
-            self._queueOk = self.AttachedClientSocket.ClientQueue.StartJob()
+            self._queueOk = self.Socket.ClientQueue.StartJob()
             ok = self.SendRequest(DB_CONSTS.idBeginTrans, q, None, discarded, se)
             if not ok:
                 with self._csDB:
@@ -461,7 +461,7 @@ class CAsyncDBHandler(CAsyncServiceHandler):
             if ok:
                 if self._queueOk:
                     #associate end transaction with underlying client persistent message queue
-                    self.AttachedClientSocket.ClientQueue.EndJob()
+                    self.Socket.ClientQueue.EndJob()
                     self._queueOk = False
             else:
                 with self._csDB:
@@ -708,7 +708,7 @@ class CAsyncDBHandler(CAsyncServiceHandler):
             to avoid possible request sending overlapping within multiple threading environment
             """
             if vParam and len(vParam):
-                queueOk = self.AttachedClientSocket.ClientQueue.StartJob()
+                queueOk = self.Socket.ClientQueue.StartJob()
                 if not self._SendParametersData(vParam):
                     CScopeUQueue.Unlock(q)
                     self._Clean()
@@ -725,7 +725,7 @@ class CAsyncDBHandler(CAsyncServiceHandler):
                         self._mapRowset.pop(index)
                     self._mapParameterCall.pop(index)
             if queueOk:
-                self.AttachedClientSocket.ClientQueue.EndJob()
+                self.Socket.ClientQueue.EndJob()
         CScopeUQueue.Unlock(q)
         return ok
 
@@ -763,7 +763,7 @@ class CAsyncDBHandler(CAsyncServiceHandler):
         """
         with self._csOneSending:
             if vParam and len(vParam):
-                queueOk = self.AttachedClientSocket.ClientQueue.StartJob()
+                queueOk = self.Socket.ClientQueue.StartJob()
                 if not self._SendParametersData(vParam):
                     CScopeUQueue.Unlock(q)
                     self._Clean()
@@ -788,7 +788,7 @@ class CAsyncDBHandler(CAsyncServiceHandler):
                     self._mapParameterCall.pop(index)
                     self._mapHandler.pop(index)
             if queueOk:
-                self.AttachedClientSocket.ClientQueue.EndJob()
+                self.Socket.ClientQueue.EndJob()
         CScopeUQueue.Unlock(q)
         return ok
 

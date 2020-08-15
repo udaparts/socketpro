@@ -100,7 +100,7 @@ class CReplication(object):
         src = self.SourceHandler
         if src is None:
             return None
-        return src.AttachedClientSocket.ClientQueue
+        return src.Socket.ClientQueue
 
     @property
     def TargetQueues(self):
@@ -109,7 +109,7 @@ class CReplication(object):
             return None
         tq = []
         for h in handlers:
-            tq.append(h.AttachedClientSocket.ClientQueue)
+            tq.append(h.Socket.ClientQueue)
         return tq
 
     @property
@@ -168,7 +168,7 @@ class CReplication(object):
         src = self.SourceHandler
         if src is None:
             return False
-        cq = src.AttachedClientSocket.ClientQueue
+        cq = src.Socket.ClientQueue
         if not cq.Available:
             return False
         ok = src.SendRequest(reqId, q, None)
@@ -210,8 +210,8 @@ class CReplication(object):
             if spe == tagSocketPoolEvent.speSocketClosed:
                 handler.CleanCallbacks()
             elif spe == tagSocketPoolEvent.speConnecting:
-                if handler.AttachedClientSocket.ConnectionContext.Port == 0xffff or handler.AttachedClientSocket.ConnectionContext.Port == -1:
-                    handler.AttachedClientSocket.ConnectingTimeout = 500
+                if handler.Socket.ConnectionContext.Port == 0xffff or handler.Socket.ConnectionContext.Port == -1:
+                    handler.Socket.ConnectingTimeout = 500
             else:
                 pass
         self._m_pool_.SocketPoolEvent = PoolEvent
@@ -226,7 +226,7 @@ class CReplication(object):
             self.SourceQueue.EnsureAppending(self.TargetQueues)
         targetHandlers = self.TargetHandlers
         for h in targetHandlers:
-            ok = h.AttachedClientSocket.DoEcho()
+            ok = h.Socket.DoEcho()
 
     def _CheckReplicationSetting_(self, qms):
         if qms.TTL == 0:

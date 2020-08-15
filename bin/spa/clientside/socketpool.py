@@ -203,7 +203,7 @@ class CSocketPool(object):
                 self._PoolId_ = 0
         elif spe == tagSocketPoolEvent.speUSocketKilled:
             with self._lock_:
-                del self._m_dicSocketHandler_[handler.AttachedClientSocket]
+                del self._m_dicSocketHandler_[handler.Socket]
         elif spe == tagSocketPoolEvent.speUSocketCreated:
             cs = CClientSocket(h)
             ash = self._m_cls_()
@@ -220,7 +220,7 @@ class CSocketPool(object):
                 self._m_dicSocketHandler_[cs] = ash
         elif spe == tagSocketPoolEvent.speConnected:
             if ccl.IsOpened(h):
-                cs = handler.AttachedClientSocket
+                cs = handler.Socket
                 if self.DoSslServerAuthentication is not None and cs.EncryptionMethod == tagEncryptionMethod.TLSv1 and (not self.DoSslServerAuthentication(self, cs)):
                     return #don't set password or call SwitchTo in case failure of ssl server authentication on certificate from server
                 ccl.SetSockOpt(h, tagSocketOption.soRcvBuf, 116800, tagSocketLevel.slSocket)
@@ -245,7 +245,7 @@ class CSocketPool(object):
             self.SocketPoolEvent(self, spe, handler)
         self.OnSocketPoolEvent(spe, handler)
         if spe == tagSocketPoolEvent.speConnected and ccl.IsOpened(h):
-            self._SetQueue_(handler.AttachedClientSocket)
+            self._SetQueue_(handler.Socket)
 
     def _start_(self, sockets_per_thread, thread=0, avg=True, ta=0):
         with self._lock_:
@@ -303,10 +303,10 @@ class CSocketPool(object):
                     h = self._m_dicSocketHandler_[cs]
                 else:
                     cs_coriq = cs.CountOfRequestsInQueue
-                    h_coriq = h.AttachedClientSocket.CountOfRequestsInQueue
+                    h_coriq = h.Socket.CountOfRequestsInQueue
                     if cs_coriq < h_coriq:
                         h = self._m_dicSocketHandler_[cs]
-                    elif cs_coriq == h_coriq and cs.BytesSent < h.AttachedClientSocket.BytesSent:
+                    elif cs_coriq == h_coriq and cs.BytesSent < h.Socket.BytesSent:
                         h = self._m_dicSocketHandler_[cs]
         return h
 
@@ -330,7 +330,7 @@ class CSocketPool(object):
                         continue
                     if h is None:
                         h = self._m_dicSocketHandler_[cs]
-                    elif (cq.MessageCount < h.AttachedClientSocket.ClientQueue.MessageCount) or ((not h.AttachedClientSocket.Connected) and cs.Connected):
+                    elif (cq.MessageCount < h.Socket.ClientQueue.MessageCount) or ((not h.Socket.Connected) and cs.Connected):
                         h = self._m_dicSocketHandler_[cs]
         else:
             if CUQueue.DEFAULT_OS == tagOperationSystem.osWin:
@@ -388,7 +388,7 @@ class CSocketPool(object):
         with self._lock_:
             poolId = self._PoolId_
         if isinstance(asyncHandler_or_clientSocket, CAsyncServiceHandler):
-            ccl.UnlockASocket(poolId, asyncHandler_or_clientSocket.AttachedClientSocket.Handle)
+            ccl.UnlockASocket(poolId, asyncHandler_or_clientSocket.Socket.Handle)
         elif isinstance(asyncHandler_or_clientSocket, CClientSocket):
             ccl.UnlockASocket(poolId, asyncHandler_or_clientSocket.Handle)
         else:
