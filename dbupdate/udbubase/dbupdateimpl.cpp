@@ -60,7 +60,7 @@ unsigned int CDBUpdateImpl::SetSocketProConnectionString(const wchar_t *connecti
                                 if (it->second.get() == handler) {
                                     int zip = m_vZip[pos];
                                     if (zip) {
-                                        handler->GetAttachedClientSocket()->SetZipLevel(SPA::zlBestSpeed);
+                                        handler->GetSocket()->SetZipLevel(SPA::zlBestSpeed);
                                     }
                                     break;
                                 }

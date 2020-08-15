@@ -156,7 +156,7 @@ namespace NJA {
         Isolate* isolate = args.GetIsolate();
         NJHandlerRoot* obj = ObjectWrap::Unwrap<NJHandlerRoot>(args.Holder());
         if (obj->IsValid(isolate)) {
-            Local<Object> njSocket = NJSocket::New(isolate, obj->m_ash->GetAttachedClientSocket(), true);
+            Local<Object> njSocket = NJSocket::New(isolate, obj->m_ash->GetSocket(), true);
             args.GetReturnValue().Set(njSocket);
         }
     }

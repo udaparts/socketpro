@@ -89,7 +89,7 @@ namespace NJA {
     void NJSocketPool::SendPoolEvent(tagSocketPoolEvent spe, SPA::ClientSide::PAsyncServiceHandler handler) {
         switch (spe) {
             case SPA::ClientSide::speUSocketCreated:
-                handler->GetAttachedClientSocket()->m_asyncType = &m_csType;
+                handler->GetSocket()->m_asyncType = &m_csType;
                 break;
             default:
                 break;
@@ -506,7 +506,7 @@ namespace NJA {
                             break;
                         case seAllProcessed:
                             run_micro = true;
-                            if (ash && !ash->GetAttachedClientSocket()->GetCountOfRequestsInQueue()) {
+                            if (ash && !ash->GetSocket()->GetCountOfRequestsInQueue()) {
                                 ash->CleanFuncBackups();
                             }
                             if (!obj->m_ap.IsEmpty()) {

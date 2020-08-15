@@ -52,7 +52,7 @@ int main(int argc, char* argv[]) {
     pSqlite->Utf8ToW(false);
 #endif
     //optionally start a persistent queue at client side for auto failure recovery and once-only delivery
-    //ok = pSqlite->GetAttachedClientSocket()->GetClientQueue().StartQueue("sqlite_queue", 24 * 3600, false); //time-to-live 1 day and true for encryption
+    //ok = pSqlite->GetSocket()->GetClientQueue().StartQueue("sqlite_queue", 24 * 3600, false); //time-to-live 1 day and true for encryption
 
     CMyHandler::DResult dr = [](CMyHandler &handler, int res, const std::wstring & errMsg) {
         if (res) {

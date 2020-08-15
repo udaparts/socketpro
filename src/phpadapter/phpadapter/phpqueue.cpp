@@ -146,7 +146,7 @@ namespace PA
         }
         if (!ok) {
             m_aq->ResultReturned = nullptr;
-            throw Php::Exception(PA::PHP_SOCKET_CLOSED + m_aq->GetAttachedClientSocket()->GetErrorMsg());
+            throw Php::Exception(PA::PHP_SOCKET_CLOSED + m_aq->GetSocket()->GetErrorMsg());
         }
         ok = m_aq->WaitAll();
         m_aq->ResultReturned = nullptr;
@@ -160,7 +160,7 @@ namespace PA
                 case rrsCanceled:
                     throw Php::Exception(PHP_REQUEST_CANCELED);
                 default:
-                    throw Php::Exception(PA::PHP_SOCKET_CLOSED + m_aq->GetAttachedClientSocket()->GetErrorMsg());
+                    throw Php::Exception(PA::PHP_SOCKET_CLOSED + m_aq->GetSocket()->GetErrorMsg());
             }
         }
         return ToDeqValue(pF.get());

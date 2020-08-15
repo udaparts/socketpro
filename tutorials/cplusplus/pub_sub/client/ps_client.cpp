@@ -57,7 +57,7 @@ int main(int argc, char* argv[]) {
     bool ok = spHw.StartSocketPool(cc, 1);
     auto hw = spHw.Seek(); //or auto hw = spHw.Lock();
 
-    CClientSocket::CPushImpl &push = hw->GetAttachedClientSocket()->GetPush();
+    CClientSocket::CPushImpl &push = hw->GetSocket()->GetPush();
     push.OnPublish = [](CClientSocket *cs, const CMessageSender &sender, const unsigned int *groups, unsigned int count, const SPA::UVariant & message) {
         std::wcout << std::endl << L"A message (message) from " << ToString(sender) << L" to groups ";
         std::cout << ToString(groups, count) << std::endl;

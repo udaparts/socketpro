@@ -17,8 +17,8 @@ int main(int argc, char* argv[]) {
     auto pi = spPi.Seek(); //or auto pi = spPi.Lock();
 
     //use persistent queue to ensure auto failure recovery and at-least-once or once-only delivery
-    ok = pi->GetAttachedClientSocket()->GetClientQueue().StartQueue("pi_queue", 24 * 3600, false); //time-to-live 1 day and true for encryption
-    pi->GetAttachedClientSocket()->GetClientQueue().EnableRoutingQueueIndex(true);
+    ok = pi->GetSocket()->GetClientQueue().StartQueue("pi_queue", 24 * 3600, false); //time-to-live 1 day and true for encryption
+    pi->GetSocket()->GetClientQueue().EnableRoutingQueueIndex(true);
 
     double dPi = 0.0;
     int nDivision = 1000;

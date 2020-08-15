@@ -193,9 +193,9 @@ namespace SPA {
                 m_vContext.push_back(context);
                 unsigned int filesOpened = GetFilesOpened();
                 if (m_MaxDownloading > filesOpened) {
-                    ClientCoreLoader.PostProcessing(GetAttachedClientSocket()->GetHandle(), 0, 0);
+                    ClientCoreLoader.PostProcessing(GetSocket()->GetHandle(), 0, 0);
                     if (!filesOpened) {
-                        GetAttachedClientSocket()->DoEcho(); //make sure WaitAll works correctly
+                        GetSocket()->DoEcho(); //make sure WaitAll works correctly
                     }
                 }
                 return prom->get_future();
@@ -224,9 +224,9 @@ namespace SPA {
                 m_vContext.push_back(context);
                 unsigned int filesOpened = GetFilesOpened();
                 if (m_MaxDownloading > filesOpened) {
-                    ClientCoreLoader.PostProcessing(GetAttachedClientSocket()->GetHandle(), 0, 0);
+                    ClientCoreLoader.PostProcessing(GetSocket()->GetHandle(), 0, 0);
                     if (!filesOpened) {
-                        GetAttachedClientSocket()->DoEcho(); //make sure WaitAll works correctly
+                        GetSocket()->DoEcho(); //make sure WaitAll works correctly
                     }
                 }
                 return prom->get_future();
@@ -252,9 +252,9 @@ namespace SPA {
                 m_vContext.push_back(context);
                 unsigned int filesOpened = GetFilesOpened();
                 if (m_MaxDownloading > filesOpened) {
-                    ClientCoreLoader.PostProcessing(GetAttachedClientSocket()->GetHandle(), 0, 0);
+                    ClientCoreLoader.PostProcessing(GetSocket()->GetHandle(), 0, 0);
                     if (!filesOpened) {
-                        GetAttachedClientSocket()->DoEcho(); //make sure WaitAll works correctly
+                        GetSocket()->DoEcho(); //make sure WaitAll works correctly
                     }
                 }
                 return true;
@@ -278,9 +278,9 @@ namespace SPA {
                 m_vContext.push_back(context);
                 unsigned int filesOpened = GetFilesOpened();
                 if (m_MaxDownloading > filesOpened) {
-                    ClientCoreLoader.PostProcessing(GetAttachedClientSocket()->GetHandle(), 0, 0);
+                    ClientCoreLoader.PostProcessing(GetSocket()->GetHandle(), 0, 0);
                     if (!filesOpened) {
-                        GetAttachedClientSocket()->DoEcho(); //make sure WaitAll works correctly
+                        GetSocket()->DoEcho(); //make sure WaitAll works correctly
                     }
                 }
                 return true;
@@ -311,7 +311,7 @@ namespace SPA {
                         OpenLocalRead(*it);
                         if (!it->HasError()) {
                             if (!SendRequest(SFile::idUpload, it->FilePath, it->Flags, it->FileSize, rh, it->Discarded, it->Se)) {
-                                CClientSocket *cs = GetAttachedClientSocket();
+                                CClientSocket *cs = GetSocket();
                                 int ec = cs->GetErrorCode();
                                 if (ec) {
                                     it->ErrorCode = ec;
@@ -336,7 +336,7 @@ namespace SPA {
                         OpenLocalWrite(*it);
                         if (!it->HasError()) {
                             if (!SendRequest(SFile::idDownload, it->LocalFile, it->FilePath, it->Flags, it->InitSize, rh, it->Discarded, it->Se)) {
-                                CClientSocket *cs = GetAttachedClientSocket();
+                                CClientSocket *cs = GetSocket();
                                 int ec = cs->GetErrorCode();
                                 if (ec) {
                                     it->ErrorCode = ec;
@@ -403,8 +403,8 @@ namespace SPA {
                 if (!count) {
                     count = fTo.m_vContext.size();
                     if (count) {
-                        ClientCoreLoader.PostProcessing(to.GetAttachedClientSocket()->GetHandle(), 0, 0);
-                        to.GetAttachedClientSocket()->DoEcho(); //make sure WaitAll works correctly
+                        ClientCoreLoader.PostProcessing(to.GetSocket()->GetHandle(), 0, 0);
+                        to.GetSocket()->DoEcho(); //make sure WaitAll works correctly
                     }
                 }
             }
@@ -537,8 +537,8 @@ namespace SPA {
                                 CContext &context = m_vContext.front();
                                 mc >> context.InitSize;
                                 CScopeUQueue sb(MY_OPERATION_SYSTEM, IsBigEndian(), SFile::STREAM_CHUNK_SIZE);
-                                context.QueueOk = GetAttachedClientSocket()->GetClientQueue().StartJob();
-                                bool queue_enabled = GetAttachedClientSocket()->GetClientQueue().IsAvailable();
+                                context.QueueOk = GetSocket()->GetClientQueue().StartJob();
+                                bool queue_enabled = GetSocket()->GetClientQueue().IsAvailable();
                                 if (queue_enabled) {
                                     SendRequest(SFile::idUploadBackup, context.FilePath.c_str(), context.Flags, context.FileSize, context.InitSize, rh, context.Discarded, se);
                                 }
@@ -565,7 +565,7 @@ namespace SPA {
                                         break;
                                     } else if (queue_enabled) {
                                         //save file into client message queue
-                                    } else if (GetAttachedClientSocket()->GetBytesInSendingBuffer() > 40 * SFile::STREAM_CHUNK_SIZE || GetAttachedClientSocket()->GetConnectionState() < csConnected) {
+                                    } else if (GetSocket()->GetBytesInSendingBuffer() > 40 * SFile::STREAM_CHUNK_SIZE || GetSocket()->GetConnectionState() < csConnected) {
                                         break;
                                     }
                                 }
@@ -577,7 +577,7 @@ namespace SPA {
                                     context.Sent = true;
                                     ok = SendRequest(SFile::idUploadCompleted, (const unsigned char*) nullptr, (unsigned int) 0, rh, context.Discarded, se);
                                     if (context.QueueOk) {
-                                        GetAttachedClientSocket()->GetClientQueue().EndJob();
+                                        GetSocket()->GetClientQueue().EndJob();
                                     }
                                 }
                                 if (!ok) {
@@ -604,7 +604,7 @@ namespace SPA {
                                 m_vContext.pop_front();
                             }
                             if (ctx.QueueOk) {
-                                GetAttachedClientSocket()->GetClientQueue().AbortJob();
+                                GetSocket()->GetClientQueue().AbortJob();
                             }
                             OnPostProcessing(0, 0);
                         }

@@ -21,7 +21,7 @@ namespace PA
 
     Php::Value CPhpBaseHandler::Unlock() {
         if (m_locked) {
-            SPA::ClientSide::ClientCoreLoader.UnlockASocket(m_h->GetAttachedClientSocket()->GetPoolId(), m_h->GetAttachedClientSocket()->GetHandle());
+            SPA::ClientSide::ClientCoreLoader.UnlockASocket(m_h->GetSocket()->GetPoolId(), m_h->GetSocket()->GetHandle());
             m_locked = false;
         }
         return true;
@@ -65,7 +65,7 @@ namespace PA
         Unlock();
         PopCallbacks();
         if (!ok) {
-            throw Php::Exception(PA::PHP_SOCKET_CLOSED + m_h->GetAttachedClientSocket()->GetErrorMsg());
+            throw Php::Exception(PA::PHP_SOCKET_CLOSED + m_h->GetSocket()->GetErrorMsg());
         }
         auto status = m_cvPhp.wait_for(lk, std::chrono::milliseconds(timeout));
         PopCallbacks();
@@ -78,7 +78,7 @@ namespace PA
             case rrsCanceled:
                 throw Php::Exception(PHP_REQUEST_CANCELED);
             case rrsClosed:
-                throw Php::Exception(PA::PHP_SOCKET_CLOSED + m_h->GetAttachedClientSocket()->GetErrorMsg());
+                throw Php::Exception(PA::PHP_SOCKET_CLOSED + m_h->GetSocket()->GetErrorMsg());
             case rrsTimeout:
                 throw Php::Exception(PHP_REQUEST_TIMEOUT);
             default:
@@ -309,7 +309,7 @@ namespace PA
     }
 
     unsigned int CPhpBaseHandler::GetPoolId() const {
-        return m_h->GetAttachedClientSocket()->GetPoolId();
+        return m_h->GetSocket()->GetPoolId();
     }
 
     int CPhpBaseHandler::__compare(const CPhpBaseHandler & pbh) const {
@@ -321,11 +321,11 @@ namespace PA
 
     Php::Value CPhpBaseHandler::__get(const Php::Value & name) {
         if (name == "Socket" || name == "ClientSocket" || name == "AttachedClientSocket") {
-            return Php::Object((SPA_CS_NS + PHP_SOCKET).c_str(), new CPhpSocket(m_h->GetAttachedClientSocket()));
+            return Php::Object((SPA_CS_NS + PHP_SOCKET).c_str(), new CPhpSocket(m_h->GetSocket()));
         } else if (name == "Push" || name == "Chat" || name == "Publisher") {
-            return Php::Object((SPA_CS_NS + PHP_PUSH).c_str(), new CPhpPush(m_h->GetAttachedClientSocket()->GetPush()));
+            return Php::Object((SPA_CS_NS + PHP_PUSH).c_str(), new CPhpPush(m_h->GetSocket()->GetPush()));
         } else if (name == "Queue" || name == "ClientQueue") {
-            return Php::Object((SPA_CS_NS + PHP_CLIENTQUEUE).c_str(), new CPhpClientQueue(m_h->GetAttachedClientSocket()->GetClientQueue()));
+            return Php::Object((SPA_CS_NS + PHP_CLIENTQUEUE).c_str(), new CPhpClientQueue(m_h->GetSocket()->GetClientQueue()));
         } else if (name == "Locked") {
             return m_locked;
         } else if (name == "SvsId" || name == "SvsID") {

@@ -370,7 +370,7 @@ namespace SPA {
             PRR_PAIR *pp = (PRR_PAIR*) m_vBatching.GetBuffer();
             for (unsigned int it = 0; it < count; ++it) {
                 if (pp[it]->second->Discarded) {
-                    pp[it]->second->Discarded(this, GetAttachedClientSocket()->GetCurrentRequestID() == idCancel);
+                    pp[it]->second->Discarded(this, GetSocket()->GetCurrentRequestID() == idCancel);
                 }
             }
             CleanQueue(m_vBatching);
@@ -378,7 +378,7 @@ namespace SPA {
             pp = (PRR_PAIR*) m_vCallback.GetBuffer();
             for (unsigned int it = 0; it < count; ++it) {
                 if (pp[it]->second->Discarded) {
-                    pp[it]->second->Discarded(this, GetAttachedClientSocket()->GetCurrentRequestID() == idCancel);
+                    pp[it]->second->Discarded(this, GetSocket()->GetCurrentRequestID() == idCancel);
                 }
             }
             CleanQueue(m_vCallback);

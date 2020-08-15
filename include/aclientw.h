@@ -864,6 +864,10 @@ namespace SPA {
             inline CClientSocket *GetAttachedClientSocket() {
                 return m_pClientSocket;
             }
+
+            inline CClientSocket *GetSocket() {
+                return m_pClientSocket;
+            }
             virtual bool WaitAll(unsigned int timeOut = (~0));
             virtual bool Interrupt(UINT64 options);
             bool StartBatching();
@@ -1424,7 +1428,7 @@ namespace SPA {
                 if (!req_id) {
                     throw std::invalid_argument("Request id cannot be zero");
                 }
-                CClientSocket *cs = GetAttachedClientSocket();
+                CClientSocket *cs = GetSocket();
                 int ec = cs->GetErrorCode();
                 if (ec) {
                     std::string em = cs->GetErrorMsg();
@@ -1537,7 +1541,7 @@ namespace SPA {
                     if (canceled) {
                         prom->set_exception(std::make_exception_ptr(CSocketError(REQUEST_CANCELED, (L"Request " + method_name + L" canceled").c_str(), req_id, false)));
                     } else {
-                        CClientSocket *cs = h->GetAttachedClientSocket();
+                        CClientSocket *cs = h->GetSocket();
                         int ec = cs->GetErrorCode();
                         if (ec) {
                             std::string em = cs->GetErrorMsg();
@@ -1980,12 +1984,12 @@ namespace SPA {
                     if (!h)
                         h = it->second;
                     else {
-                        unsigned int count0 = h->GetAttachedClientSocket()->GetCountOfRequestsInQueue();
+                        unsigned int count0 = h->GetSocket()->GetCountOfRequestsInQueue();
                         unsigned int count1 = it->first->GetCountOfRequestsInQueue();
                         if (count0 > count1)
                             h = it->second;
                         else if (count0 == count1) {
-                            UINT64 sent0 = h->GetAttachedClientSocket()->GetBytesSent();
+                            UINT64 sent0 = h->GetSocket()->GetBytesSent();
                             UINT64 sent1 = it->first->GetBytesSent();
                             if (sent0 >= sent1)
                                 h = it->second;
@@ -2017,9 +2021,9 @@ namespace SPA {
                     if (!h)
                         h = it->second;
                     else {
-                        UINT64 count0 = h->GetAttachedClientSocket()->GetClientQueue().GetMessageCount();
+                        UINT64 count0 = h->GetSocket()->GetClientQueue().GetMessageCount();
                         UINT64 count1 = cq.GetMessageCount();
-                        if (count0 > count1 || (it->first->IsConnected() && !h->GetAttachedClientSocket()->IsConnected()))
+                        if (count0 > count1 || (it->first->IsConnected() && !h->GetSocket()->IsConnected()))
                             h = it->second;
                     }
                 }
@@ -2210,14 +2214,14 @@ namespace SPA {
             void Unlock(const THandler *h) {
                 if (!h)
                     return;
-                const CClientSocket *cs = h->GetAttachedClientSocket();
+                const CClientSocket *cs = h->GetSocket();
                 Unlock(cs);
             }
 
             void Unlock(const PHandler &handler) {
                 if (!handler)
                     return;
-                const CClientSocket *cs = handler->GetAttachedClientSocket();
+                const CClientSocket *cs = handler->GetSocket();
                 Unlock(cs);
             }
 
@@ -2649,7 +2653,7 @@ namespace SPA {
 
             inline IClientQueue* GetSourceQueue() const {
                 if (m_SourceHandler) {
-                    return &(m_SourceHandler->GetAttachedClientSocket()->GetClientQueue());
+                    return &(m_SourceHandler->GetSocket()->GetClientQueue());
                 }
                 return nullptr;
             }
@@ -2692,7 +2696,7 @@ namespace SPA {
                 PHandler src = GetSourceHandler();
                 if (!src)
                     return false;
-                IClientQueue *cq = &src->GetAttachedClientSocket()->GetClientQueue();
+                IClientQueue *cq = &src->GetSocket()->GetClientQueue();
                 if (!cq->IsAvailable())
                     return false;
                 bool ok = src->SendRequest(reqId, buffer, len, rh);
@@ -2917,7 +2921,7 @@ namespace SPA {
                     ok = GetSourceQueue()->EnsureAppending(vHandles.data(), (unsigned int) vHandles.size());
                 }
                 for (auto it = m_vTargetHandlers.begin(), end = m_vTargetHandlers.end(); it != end; ++it) {
-                    ok = (*it)->GetAttachedClientSocket()->DoEcho();
+                    ok = (*it)->GetSocket()->DoEcho();
                 }
             }
 

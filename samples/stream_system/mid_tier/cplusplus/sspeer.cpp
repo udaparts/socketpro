@@ -64,7 +64,7 @@ void CYourPeerOne::UploadEmployees(SPA::CUQueue &q, SPA::UINT64 reqIndex) {
         ret = SendResultIndex(reqIndex, idUploadEmployees, pError->first, pError->second, *pId);
         return;
     }
-    CClientSocket *cs = handler->GetAttachedClientSocket();
+    CClientSocket *cs = handler->GetSocket();
     do {
         if (!handler->BeginTrans() || !handler->Prepare(L"INSERT INTO mysample.EMPLOYEE(CompanyId,Name,JoinDate)VALUES(?,?,?)")) break;
         bool ok = true;
@@ -108,7 +108,7 @@ void CYourPeerOne::UploadEmployees(SPA::CUQueue &q, SPA::UINT64 reqIndex) {
                 }
             }, [reqIndex, pId, this, peer_handle, pError](SPA::ClientSide::CAsyncServiceHandler *h, bool canceled) {
                 if (peer_handle == this->GetSocketHandle()) {
-                    CClientSocket *cs = h->GetAttachedClientSocket();
+                    CClientSocket *cs = h->GetSocket();
                     pError->first = cs->GetErrorCode();
                     std::string err_msg = cs->GetErrorMsg();
                     pError->second = SPA::Utilities::ToWide(err_msg.c_str(), err_msg.size());
@@ -338,8 +338,8 @@ void CYourPeerOne::GetCachedTables(const SPA::CDBString &defaultDb, unsigned int
                 errMsg = L"Request canceled or socket closed";
                 prom->set_value();
             })) {
-        res = handler->GetAttachedClientSocket()->GetErrorCode();
-        errMsg = SPA::Utilities::ToWide(handler->GetAttachedClientSocket()->GetErrorMsg().c_str());
+        res = handler->GetSocket()->GetErrorCode();
+        errMsg = SPA::Utilities::ToWide(handler->GetSocket()->GetErrorMsg().c_str());
         break;
     }
         CYourServer::Master->Unlock(handler); //put back locked handler and its socket back into pool for reuse as soon as possible

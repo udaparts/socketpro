@@ -36,7 +36,7 @@ namespace SPA {
             virtual void OnSocketPoolEvent(ClientSide::tagSocketPoolEvent spe, const std::shared_ptr<THandler> &asyncSQL) {
                 switch (spe) {
                     case SPA::ClientSide::speConnected:
-                        if (asyncSQL->GetAttachedClientSocket()->GetErrorCode() != 0)
+                        if (asyncSQL->GetSocket()->GetErrorCode() != 0)
                             break;
                         asyncSQL->Utf8ToW(true);
                         asyncSQL->Open(this->GetDefaultDBName().c_str(), nullptr); //open a session to backend database by default 
@@ -53,11 +53,11 @@ namespace SPA {
         virtual void OnSocketPoolEvent(ClientSide::tagSocketPoolEvent spe, const std::shared_ptr<THandler> &asyncSQL) {
             switch (spe) {
                 case ClientSide::speConnected:
-                    if (asyncSQL->GetAttachedClientSocket()->GetErrorCode() != 0)
+                    if (asyncSQL->GetSocket()->GetErrorCode() != 0)
                         break;
                     //use the first socket session for table events only, update, delete and insert
                     if (asyncSQL == this->GetAsyncHandlers()[0]) {
-                        asyncSQL->GetAttachedClientSocket()->GetPush().OnPublish = [this, asyncSQL](ClientSide::CClientSocket*cs, const ClientSide::CMessageSender& sender, const unsigned int* groups, unsigned int count, const UVariant & vtMsg) {
+                        asyncSQL->GetSocket()->GetPush().OnPublish = [this, asyncSQL](ClientSide::CClientSocket*cs, const ClientSide::CMessageSender& sender, const unsigned int* groups, unsigned int count, const UVariant & vtMsg) {
                             assert(count == 1);
                             assert(groups != nullptr);
                             assert(groups[0] == UDB::STREAMING_SQL_CHAT_GROUP_ID || groups[0] == UDB::CACHE_UPDATE_CHAT_GROUP_ID);
@@ -157,10 +157,10 @@ namespace SPA {
                     this->m_cache.Empty();
                     h.Utf8ToW(true);
                     unsigned int port;
-                    std::string ip = h.GetAttachedClientSocket()->GetPeerName(&port);
+                    std::string ip = h.GetSocket()->GetPeerName(&port);
                     ip += ":";
                     ip += std::to_string((UINT64) port);
-                    std::string host = h.GetAttachedClientSocket()->GetConnectionContext().Host;
+                    std::string host = h.GetSocket()->GetConnectionContext().Host;
                     std::wstring s = Utilities::ToWide(host.c_str(), host.size());
                     this->m_cache.SetDBServerName(s.c_str());
                     this->m_cache.Set(ip.c_str(), h.GetDBManagementSystem());

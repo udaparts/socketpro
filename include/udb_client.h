@@ -339,7 +339,7 @@ namespace SPA {
                 SPA::CAutoLock alOne(m_csOneSending);
 #endif
                 if (vParam.size())
-                    queueOk = GetAttachedClientSocket()->GetClientQueue().StartJob();
+                    queueOk = GetSocket()->GetClientQueue().StartJob();
                 {
                     if (!SendParametersData(vParam)) {
                         Clean();
@@ -374,7 +374,7 @@ namespace SPA {
                     return false;
                 }
                 if (queueOk)
-                    GetAttachedClientSocket()->GetClientQueue().EndJob();
+                    GetSocket()->GetClientQueue().EndJob();
                 return true;
             }
 
@@ -406,7 +406,7 @@ namespace SPA {
 #endif
                 {
                     if (vParam.size()) {
-                        queueOk = GetAttachedClientSocket()->GetClientQueue().StartJob();
+                        queueOk = GetSocket()->GetClientQueue().StartJob();
                         if (!SendParametersData(vParam)) {
                             Clean();
                             return false;
@@ -437,7 +437,7 @@ namespace SPA {
                     return false;
                 }
                 if (queueOk)
-                    GetAttachedClientSocket()->GetClientQueue().EndJob();
+                    GetSocket()->GetClientQueue().EndJob();
                 return true;
             }
 
@@ -555,7 +555,7 @@ namespace SPA {
                 SPA::CAutoLock alOne(m_csOneSending);
 #endif
                 if (vParam.size())
-                    queueOk = GetAttachedClientSocket()->GetClientQueue().StartJob();
+                    queueOk = GetSocket()->GetClientQueue().StartJob();
                 {
                     if (!SendParametersData(vParam)) {
                         Clean();
@@ -590,7 +590,7 @@ namespace SPA {
                     return false;
                 }
                 if (queueOk)
-                    GetAttachedClientSocket()->GetClientQueue().EndJob();
+                    GetSocket()->GetClientQueue().EndJob();
                 return true;
             }
 
@@ -860,7 +860,7 @@ namespace SPA {
 
                 sb << (int) isolation << connection << flags;
                 //associate begin transaction with underlying client persistent message queue
-                m_queueOk = GetAttachedClientSocket()->GetClientQueue().StartJob();
+                m_queueOk = GetSocket()->GetClientQueue().StartJob();
                 return SendRequest(idBeginTrans, sb->GetBuffer(), sb->GetSize(), arh, discarded, nullptr);
             }
 
@@ -898,7 +898,7 @@ namespace SPA {
                 if (SendRequest(idEndTrans, sb->GetBuffer(), sb->GetSize(), arh, discarded, se)) {
                     if (m_queueOk) {
                         //associate end transaction with underlying client persistent message queue
-                        GetAttachedClientSocket()->GetClientQueue().EndJob();
+                        GetSocket()->GetClientQueue().EndJob();
                         m_queueOk = false;
                     }
                     return true;

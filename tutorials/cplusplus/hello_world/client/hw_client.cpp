@@ -51,7 +51,7 @@ int main(int argc, char* argv[]) {
             if (canceled) {
                 std::cout << "Request SendRequest canceled" << std::endl;
             } else {
-                CClientSocket *cs = ash->GetAttachedClientSocket();
+                CClientSocket *cs = ash->GetSocket();
                 int ec = cs->GetErrorCode();
                 if (ec) {
                     std::string em = cs->GetErrorMsg();

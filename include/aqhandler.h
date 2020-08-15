@@ -94,7 +94,7 @@ namespace SPA {
              * @return true for sending the request successfully, and false for failure
              */
             virtual bool StartQueueTrans(const char *key, const DQueueTrans& qt = nullptr, const DDiscarded& discarded = nullptr, const DServerException& se = nullptr) {
-                IClientQueue &cq = GetAttachedClientSocket()->GetClientQueue();
+                IClientQueue &cq = GetSocket()->GetClientQueue();
                 if (cq.IsAvailable()) {
                     bool ok = cq.StartJob();
                     assert(ok);
@@ -128,7 +128,7 @@ namespace SPA {
                     };
                 }
                 bool ok = SendRequest(Queue::idEndTrans, rollback, rh, discarded, se);
-                IClientQueue &cq = GetAttachedClientSocket()->GetClientQueue();
+                IClientQueue &cq = GetSocket()->GetClientQueue();
                 if (cq.IsAvailable()) {
                     bool ok;
                     if (rollback)

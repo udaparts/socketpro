@@ -38,7 +38,7 @@ int main(int argc, char* argv[]) {
     std::shared_ptr<CMyHandler> pOdbc = spOdbc.Seek();
 
     //optionally start a persistent queue at client side for auto failure recovery and once-only delivery
-    //ok = pOdbc->GetAttachedClientSocket()->GetClientQueue().StartQueue("sqlite", 24 * 3600, false); //time-to-live 1 day and true for encryption
+    //ok = pOdbc->GetSocket()->GetClientQueue().StartQueue("sqlite", 24 * 3600, false); //time-to-live 1 day and true for encryption
 
     CMyHandler::DResult dr = [](CSender &handler, int res, const std::wstring & errMsg) {
         std::cout << "res = " << res;

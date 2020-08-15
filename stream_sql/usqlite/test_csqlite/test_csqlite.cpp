@@ -38,7 +38,7 @@ int main(int argc, char* argv[]) {
     auto pSqlite = spSqlite.Seek();
 
     //optionally start a persistent queue at client side for auto failure recovery and once-only delivery
-    //ok = pSqlite->GetAttachedClientSocket()->GetClientQueue().StartQueue("sqlite", 24 * 3600, false); //time-to-live 1 day and true for encryption
+    //ok = pSqlite->GetSocket()->GetClientQueue().StartQueue("sqlite", 24 * 3600, false); //time-to-live 1 day and true for encryption
 
     ok = pSqlite->Open(L"", [](CMyHandler &handler, int res, const std::wstring & errMsg) {
         std::cout << "res = " << res;
