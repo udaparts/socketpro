@@ -379,7 +379,7 @@ namespace NJA {
                 obj->m_deqPoolEvent.pop_front();
             }
         }
-        //isolate->RunMicrotasks();
+        isolate->RunMicrotasks(); //may speed up pumping
     }
 
     void NJSocketPool::async_cs_cb(uv_async_t* handle) {

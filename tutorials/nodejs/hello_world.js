@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 
 //loading SocketPro adapter (nja.js + njadapter.node) for nodejs
 var SPA = require('nja.js');
@@ -90,10 +90,8 @@ ok = hw.SendRequest(idEcho, SPA.newBuffer().Save(q => { //7
 async function asyncWait(hw, fName, lName) {
     try {
         console.log('++++ use sendRequest instead of SendRequest for Promise ++++');
-        var result = await hw.sendRequest(idSayHello, SPA.newBuffer().SaveString(fName).SaveString(lName), q => { //9
-            return q.LoadString();
-        });
-        console.log(result);
+        var res = (await hw.sendRequest(idSayHello, SPA.newBuffer().SaveString(fName).SaveString(lName))).LoadString();
+        console.log(res);
     } catch (err) {
         console.log(err);
     }

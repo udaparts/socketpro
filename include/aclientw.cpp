@@ -364,24 +364,31 @@ namespace SPA {
         }
 
         unsigned int CAsyncServiceHandler::CleanCallbacks() {
-            CSpinAutoLock al(m_cs);
-            unsigned int count = m_vBatching.GetSize() / sizeof (PRR_PAIR);
+            CScopeUQueue sb0, sb1;
+            {
+                CSpinAutoLock al(m_cs);
+                sb0->Swap(m_vBatching);
+                sb1->Swap(m_vCallback);
+            }
+            CUQueue& vBatching = *sb0;
+            CUQueue& vCallback = *sb1;
+            unsigned int count = vBatching.GetSize() / sizeof (PRR_PAIR);
             unsigned int total = count;
-            PRR_PAIR *pp = (PRR_PAIR*) m_vBatching.GetBuffer();
+            PRR_PAIR *pp = (PRR_PAIR*) vBatching.GetBuffer();
             for (unsigned int it = 0; it < count; ++it) {
                 if (pp[it]->second->Discarded) {
                     pp[it]->second->Discarded(this, GetSocket()->GetCurrentRequestID() == idCancel);
                 }
             }
-            CleanQueue(m_vBatching);
-            count = m_vCallback.GetSize() / sizeof (PRR_PAIR);
-            pp = (PRR_PAIR*) m_vCallback.GetBuffer();
+            CleanQueue(vBatching);
+            count = vCallback.GetSize() / sizeof (PRR_PAIR);
+            pp = (PRR_PAIR*) vCallback.GetBuffer();
             for (unsigned int it = 0; it < count; ++it) {
                 if (pp[it]->second->Discarded) {
                     pp[it]->second->Discarded(this, GetSocket()->GetCurrentRequestID() == idCancel);
                 }
             }
-            CleanQueue(m_vCallback);
+            CleanQueue(vCallback);
             total += count;
             return total;
         }
@@ -521,7 +528,7 @@ namespace SPA {
         }
 
         void SetLastCallInfo(const char *str, int data, const char *func) {
-            char buff[4097] ={0};
+            char buff[4097] = {0};
 #ifdef WIN32_64
             _snprintf_s(buff, sizeof (buff), sizeof (buff), "lf: %s, what: %s, data: %d", func, str, data);
 #else
@@ -646,7 +653,7 @@ namespace SPA {
         }
 
         std::string CClientSocket::GetPeerName(unsigned int *port) const {
-            char ipAddr[256] ={0};
+            char ipAddr[256] = {0};
             ClientCoreLoader.GetPeerName(m_hSocket, port, ipAddr, sizeof (ipAddr));
             return ipAddr;
         }
@@ -942,7 +949,7 @@ namespace SPA {
         }
 
         std::string CClientSocket::GetErrorMsg() const {
-            char strErrorMsg[1025] ={0};
+            char strErrorMsg[1025] = {0};
             ClientCoreLoader.GetErrorMessage(m_hSocket, strErrorMsg, sizeof (strErrorMsg));
             return strErrorMsg;
         }

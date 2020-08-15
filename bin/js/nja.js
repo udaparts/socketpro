@@ -735,7 +735,7 @@ class CHandler {
     }
 
     //Promise version
-    sendRequest(reqId, buff, cb, discarded = null, serverException = null) {
+    sendRequest(reqId, buff, cb = null, discarded = null, serverException = null) {
         assert(cb === null || cb === undefined || typeof cb === 'function');
         assert(discarded === null || discarded === undefined || typeof discarded === 'function');
         assert(serverException === null || serverException === undefined || typeof serverException === 'function');
@@ -743,10 +743,11 @@ class CHandler {
             var ret;
             var ok = this.handler.SendRequest(reqId, buff, (q, id) => {
                 if (cb) ret = cb(q, id);
+                if (ret === undefined) ret = q;
                 res(ret);
             }, (canceled, id) => {
                 if (discarded) ret = discarded(canceled, id);
-                if (ret === undefined) ret = (canceled ? 'Request canceled' : 'Connection closed');
+                if (ret === undefined) ret = (canceled ? 'Request canceled' : 'Session closed after request is sent');
                 rej(ret);
             }, (errMsg, errCode, errWhere, id) => {
                 if (serverException) ret = serverException(errMsg, errCode, errWhere, id);
@@ -760,7 +761,7 @@ class CHandler {
             });
             if (!ok) {
                 if (discarded) ret = discarded(false, reqId);
-                if (ret === undefined) ret = this.Socket.Error;
+                if (ret === undefined) ret = 'Session already closed before request is sent';
                 rej(ret);
             }
         });

@@ -7,8 +7,9 @@
 #include "njsqlite.h"
 
 
-namespace SPA {
-    namespace ClientSide {
+namespace SPA
+{
+    namespace ClientSide{
 
         using namespace NJA;
 
@@ -98,7 +99,7 @@ namespace SPA {
             return callIndex;
         }
 
-        void CAsyncServiceHandler::req_cb(uv_async_t* handle) {
+        void CAsyncServiceHandler::req_cb(uv_async_t * handle) {
             CAsyncServiceHandler* obj = (CAsyncServiceHandler*) handle->data; //sender
             assert(obj);
             if (!obj) return;
@@ -166,10 +167,10 @@ namespace SPA {
                 }
                 obj->m_cs.unlock();
             }
-            //isolate->RunMicrotasks();
+            isolate->RunMicrotasks(); //may speed up pumping
         }
 
-        Local<Object> CreateDb(Isolate* isolate, CAsyncServiceHandler *ash) {
+        Local<Object> CreateDb(Isolate* isolate, CAsyncServiceHandler * ash) {
             Local<Object> njDB;
             unsigned int sid = ash->GetSvsID();
             switch (sid) {
@@ -187,7 +188,7 @@ namespace SPA {
     }
 }
 
-namespace NJA {
+namespace NJA{
 
     int time_offset(time_t utcTime) {
 #ifndef WIN32_64
@@ -310,7 +311,7 @@ namespace NJA {
         return dt.time;
     }
 
-    bool From(Isolate* isolate, const Local<Value>& v, const std::string &id, CComVariant &vt) {
+    bool From(Isolate* isolate, const Local<Value>& v, const std::string &id, CComVariant & vt) {
         vt.Clear();
         if (IsNullOrUndefined(v))
             vt.vt = VT_NULL;
@@ -669,7 +670,7 @@ namespace NJA {
         return true;
     }
 
-    Local<Value> DbFrom(Isolate* isolate, SPA::CUQueue &buff) {
+    Local<Value> DbFrom(Isolate* isolate, SPA::CUQueue & buff) {
         VARTYPE type;
         buff >> type;
         switch (type) {
@@ -813,7 +814,7 @@ namespace NJA {
         return Undefined(isolate);
     }
 
-    Local<Value> From(Isolate* isolate, const VARIANT &vt) {
+    Local<Value> From(Isolate* isolate, const VARIANT & vt) {
         VARTYPE type = vt.vt;
         switch (type) {
             case VT_NULL:
@@ -1057,13 +1058,13 @@ namespace NJA {
     }
 
     template<typename T>
-    void ToArray(const T *p, unsigned int len, CDBVariantArray &v) {
+    void ToArray(const T *p, unsigned int len, CDBVariantArray & v) {
         for (unsigned int n = 0; n < len; ++n) {
             v.push_back(p[n]);
         }
     }
 
-    bool ToArray(Isolate* isolate, const Local<Value> &data, CDBVariantArray &v) {
+    bool ToArray(Isolate* isolate, const Local<Value> &data, CDBVariantArray & v) {
         if (data->IsInt32Array()) {
             Local<v8::Int32Array> vInt = Local<v8::Int32Array>::Cast(data);
             const int *p = (const int*) vInt->Buffer()->GetContents().Data();
@@ -1207,7 +1208,7 @@ namespace NJA {
         return true;
     }
 
-    bool ToPInfoArray(Isolate* isolate, const Local<Value> &p0, CParameterInfoArray &vInfo) {
+    bool ToPInfoArray(Isolate* isolate, const Local<Value> &p0, CParameterInfoArray & vInfo) {
         vInfo.clear();
         if (p0->IsArray()) {
             Local<Array> jsArr = Local<Array>::Cast(p0);
@@ -1293,8 +1294,9 @@ namespace NJA {
         return true;
     }
 
-    Local<Array> ToMeta(Isolate* isolate, const CDBColumnInfoArray &v) {
-        Local<Value> vN[] = {
+    Local<Array> ToMeta(Isolate* isolate, const CDBColumnInfoArray & v) {
+        Local<Value> vN[] =
+        {
             ToStr(isolate, u"DBPath", 6),
             ToStr(isolate, u"TablePath", 9),
             ToStr(isolate, u"DisplayName", 11),
@@ -1328,8 +1330,9 @@ namespace NJA {
         return jsMeta;
     }
 
-    Local<Array> ToMeta(Isolate* isolate, const SPA::CKeyMap &mapkey) {
-        Local<Value> vN[] = {
+    Local<Array> ToMeta(Isolate* isolate, const SPA::CKeyMap & mapkey) {
+        Local<Value> vN[] =
+        {
             ToStr(isolate, u"DBPath", 6),
             ToStr(isolate, u"TablePath", 9),
             ToStr(isolate, u"DisplayName", 11),

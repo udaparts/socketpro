@@ -196,7 +196,7 @@ namespace SPA {
                 }
                 obj->m_csDB.unlock();
             }
-            //isolate->RunMicrotasks();
+            isolate->RunMicrotasks(); //may speed up pumping
         }
     }
 }

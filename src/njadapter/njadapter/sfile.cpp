@@ -2,7 +2,8 @@
 #include "stdafx.h"
 #include "njfile.h"
 
-namespace NJA {
+namespace NJA
+{
 
     CSFile::CSFile(CClientSocket * cs) : CStreamingFile(cs) {
         SetLoop();
@@ -116,7 +117,7 @@ namespace NJA {
         return Upload(localFile, remoteFile, dd, trans, aborted, flags, se) ? index : INVALID_NUMBER;
     }
 
-    void CSFile::file_cb(uv_async_t* handle) {
+    void CSFile::file_cb(uv_async_t * handle) {
         CSFile* obj = (CSFile*) handle->data; //sender
         assert(obj);
         if (!obj) return;
@@ -188,7 +189,7 @@ namespace NJA {
             }
             obj->m_csFile.unlock();
         }
-        //isolate->RunMicrotasks();
+        isolate->RunMicrotasks(); //may speed up pumping
     }
 
     void CSFile::SetLoop() {
