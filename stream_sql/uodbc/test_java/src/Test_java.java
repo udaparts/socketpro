@@ -193,7 +193,7 @@ public class Test_java {
             boolean ok = spOdbc.StartSocketPool(cc, 1);
             COdbc odbc = spOdbc.getAsyncHandlers()[0];
             if (!ok) {
-                System.out.println("No connection error code = " + odbc.getAttachedClientSocket().getErrorCode());
+                System.out.println("No connection error code = " + odbc.getSocket().getErrorCode());
                 in.nextLine();
                 return;
             }

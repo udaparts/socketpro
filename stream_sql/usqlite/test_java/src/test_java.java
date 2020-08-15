@@ -18,7 +18,7 @@ public class test_java {
             boolean ok = spSqlite.StartSocketPool(cc, 1);
             CSqlite sqlite = spSqlite.getAsyncHandlers()[0];
             if (!ok) {
-                System.out.println("No connection error code = " + sqlite.getAttachedClientSocket().getErrorCode());
+                System.out.println("No connection error code = " + sqlite.getSocket().getErrorCode());
                 in.nextLine();
                 return;
             }

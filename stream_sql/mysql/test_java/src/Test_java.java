@@ -103,7 +103,7 @@ public class Test_java {
 			boolean ok = spMysql.StartSocketPool(cc, 1);
 			CMysql mysql = spMysql.getAsyncHandlers()[0];
 			if (!ok) {
-				System.out.println("No connection error code = " + mysql.getAttachedClientSocket().getErrorCode());
+				System.out.println("No connection error code = " + mysql.getSocket().getErrorCode());
 				in.nextLine();
 				return;
 			}

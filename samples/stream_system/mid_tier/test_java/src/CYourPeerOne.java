@@ -58,7 +58,7 @@ public class CYourPeerOne extends CCacheBasePeer {
                         ret = SendResultIndex(reqIndex, Consts.idUploadEmployees, sb.Save((int) -2).Save("No connection to a master database").Save(vId));
                         break;
                     }
-                    CClientSocket cs = handler.getAttachedClientSocket();
+                    CClientSocket cs = handler.getocket();
                     if (!handler.BeginTrans() || !handler.Prepare("INSERT INTO mysample.EMPLOYEE(CompanyId,Name,JoinDate)VALUES(?,?,?)")) {
                         ret = SendResultIndex(reqIndex, Consts.idUploadEmployees, sb.Save(cs.getErrorCode()).Save(cs.getErrorMsg()).Save(vId));
                         break;
@@ -308,8 +308,8 @@ public class CYourPeerOne extends CCacheBasePeer {
                 res.errMsg = canceled ? "Request canceled" : "Socket closed";
                 f.set(-2);
             })) {
-                res.res = handler.getAttachedClientSocket().getErrorCode();
-                res.errMsg = handler.getAttachedClientSocket().getErrorMsg();
+                res.res = handler.getSocket().getErrorCode();
+                res.errMsg = handler.getSocket().getErrorMsg();
                 break;
             }
             //put back locked handler and its socket back into pool for reuse as soon as possible
