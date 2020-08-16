@@ -88,24 +88,32 @@ class CAsyncServiceHandler(object):
     _CallIndex_ = 0
     SESSION_CLOSED_AFTER = -1000
     SESSION_CLOSED_BEFORE = -1001
+    REQUEST_CANCELED = -1002
 
     def get_aborted(fut, method_name, reqId):
         def cb_aborted(ah, canceled):
-            if canceled:
-                fut.cancel()
-            else:
-                cs = ah.Socket
-                ec = cs.ErrCode
-                if ec:
-                    fut.set_exception(CSocketError(ec, cs.ErrMsg, reqId, False))
+            try:
+                if canceled:
+                    fut.set_exception(CSocketError(CAsyncServiceHandler.REQUEST_CANCELED,
+                                                   'Request ' + method_name + ' canceled', reqId, False))
                 else:
-                    fut.set_exception(CSocketError(CAsyncServiceHandler.SESSION_CLOSED_AFTER,
-                                              'Session closed after sending the request ' + method_name, reqId, False))
+                    cs = ah.Socket
+                    ec = cs.ErrCode
+                    if ec:
+                        fut.set_exception(CSocketError(ec, cs.ErrMsg, reqId, False))
+                    else:
+                        fut.set_exception(CSocketError(CAsyncServiceHandler.SESSION_CLOSED_AFTER,
+                                                  'Session closed after sending the request ' + method_name, reqId, False))
+            except Exception as ex:
+                pass
         return cb_aborted
 
     def get_se(fut):
         def server_ex(ah, se):  # an exception from remote server
-            fut.set_exception(se)
+            try:
+                fut.set_exception(se)
+            except Exception as ex:
+                pass
         return server_ex
 
     def GetCallIndex():
@@ -324,17 +332,21 @@ class CAsyncServiceHandler(object):
         return ccl.CommitBatching(h, bBatchingAtServerSide)
 
     def CleanCallbacks(self):
+        kvBatching = 0
+        kvCallback = 0
         with self._lock_:
-            size = len(self._m_kvBatching_) + len(self._m_kvCallback_)
-            for kv in self._m_kvBatching_:
-                if kv[1].Discarded:
-                    kv[1].Discarded(self, self.Socket.CurrentRequestID == tagBaseRequestID.idCancel)
-            self._m_kvBatching_.clear()
-            for kv in self._m_kvCallback_:
-                if kv[1].Discarded:
-                    kv[1].Discarded(self, self.Socket.CurrentRequestID == tagBaseRequestID.idCancel)
-            self._m_kvCallback_.clear()
-            return size
+            kvBatching = self._m_kvBatching_
+            kvCallback = self._m_kvCallback_
+            self._m_kvCallback_ = deque()
+            self._m_kvBatching_ = deque()
+        size = len(kvBatching) + len(kvCallback)
+        for kv in kvBatching:
+            if kv[1].Discarded:
+                kv[1].Discarded(self, self.Socket.CurrentRequestID == tagBaseRequestID.idCancel)
+        for kv in kvCallback:
+            if kv[1].Discarded:
+                kv[1].Discarded(self, self.Socket.CurrentRequestID == tagBaseRequestID.idCancel)
+        return size
 
     def WaitAll(self, timeout = 0xffffffff):
         h = self._m_ClientSocket_.Handle

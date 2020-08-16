@@ -799,19 +799,23 @@ class CHandler {
             }, (canceled, id) => {
                 this.set_aborted(rej, 'SendRequest', reqId, canceled, discarded);
             }, (errMsg, errCode, errWhere, id) => {
-                if (serverException) ret = serverException(errMsg, errCode, errWhere, id);
-                if (ret === undefined) ret = {
-                    ec: errCode,
-                    em: errMsg,
-                    where: errWhere,
-                    reqId: id
-                };
-                rej(ret);
+                this.set_exception(rej, errMsg, errCode, errWhere, id, serverException);
             });
             if (!ok) {
                 this.raise(rej, 'SendRequest', reqId, discarded);
             }
         });
+    }
+
+    set_exception(rej, errMsg, errCode, errWhere, id, serverException) {
+        if (serverException) ret = serverException(errMsg, errCode, errWhere, id);
+        if (ret === undefined) ret = {
+            ec: errCode,
+            em: errMsg,
+            where: errWhere,
+            reqId: id
+        };
+        rej(ret);
     }
 
     /**
@@ -933,55 +937,124 @@ class CAsyncQueue extends CHandler {
         assert(h.getSvsId() === exports.SID.sidQueue);
     }
 
+    /**
+     * A property{int} Batch dequeue size in bytes
+     */
     get DequeueBatchSize() {
         return this.handler.getDeqBatchSize();
     }
-
+    /**
+     * A property{boolean} true if server is set to notify if there is a message available. Otherwise, it is false
+     */
     get EnqueueNotified() {
         return this.handler.getEnqNotified();
     }
 
+    /**
+     * A write-only property{function} A callback for tracking dequeued messages or other returning results
+     */
     set ResultReturned(rr) {
         return this.handler.setResultReturned(rr);
     }
 
+    /**
+     * Pack a message into the handler internal buffer to prepare for coming EqueueBatch or enqueueBatch
+     * @param {any} reqId A request id for the message
+     * @param {any} buff A instance of CUQueue containing a message, null or undefined
+     */
     BatchMessage(reqId, buff) {
-        return this.handler.BatchMessage(reqId, buff);
+        this.handler.BatchMessage(reqId, buff);
     }
 
+    /**
+     * Send a request to server for querying all opened keys that are corresponding server queue files
+     * @param {function} cb A callback for tracking returning keys
+     * @returns true if succsessful, and false if communication channel is closed or not sendable
+     */
     GetKeys(cb, discarded = null, serverException = null) {
         return this.handler.GetKeys(cb, discarded, serverException);
     }
 
+    /**
+     * Start enqueuing messages with transaction style. Currently, total size of queued messages must be less than 4 G bytes
+     * @param {string} key An ASCII string to identify a server queue file
+     * @param {function} cb A callback for tracking returning error code, which can be one of QUEUE_OK, QUEUE_TRANS_ALREADY_STARTED, and so on
+     * @returns true if communication channel is sendable, and false if communication channel is not sendable
+     */
     StartTrans(key, cb = null, discarded = null, serverException = null) {
         return this.handler.StartTrans(key, cb, discarded, serverException);
     }
 
+    /**
+     * End enqueuing messages with transaction style. Currently, total size of queued messages must be less than 4 G bytes
+     * @param {boolean} rollback true for rollback, and false for committing
+     * @param {function} cb A callback for tracking returning error code, which can be one of QUEUE_OK, QUEUE_TRANS_NOT_STARTED_YET, and so on
+     * @returns true if communication channel is sendable, and false if communication channel is not sendable
+     */
     EndTrans(rollback = false, cb = null, discarded = null, serverException = null) {
         return this.handler.EndTrans(rollback, cb, discarded, serverException);
     }
 
+    /**
+     * Try to close or delete a persistent queue opened at server side
+     * @param {string} key An ASCII string for identifying a queue at server side
+     * @param {function} cb A callback for tracking returning error code, which can be one of QUEUE_OK, QUEUE_DEQUEUING, and so on
+     * @param {boolean} permanent true for deleting a queue file, and false for closing a queue file
+     * @returns true if communication channel is sendable, and false if communication channel is not sendable
+     */
     Close(key, cb = null, discarded = null, permanent = false, serverException = null) {
         return this.handler.Close(key, cb, discarded, permanent, serverException);
     }
 
+    /**
+     * Flush memory data into either operation system memory or hard disk, and return message count and queue file size in bytes. Note the method only returns message count and queue file size in bytes if the option is oMemoryCached
+     * @param {string} key An ASCII string for identifying a queue at server side
+     * @param {function} cb A callback for tracking returning message count and queue file size in bytes
+     * @param {int} option one of tagOptimistic options, oMemoryCached, oSystemMemoryCached and oDiskCommitted
+     * @returns true if communication channel is sendable, and false if communication channel is not sendable
+     */
     Flush(key, cb = null, discarded = null, option = exports.CS.Queue.Optimistic.oMemoryCached, serverException = null) {
         return this.handler.Flush(key, cb, discarded, option, serverException);
     }
 
+    /**
+     * Dequeue messages from a persistent message queue file at server side in batch
+     * @param {string} key An ASCII string for identifying a queue at server side
+     * @param {function} cb A callback for tracking data like remaining message count within a server queue file, queue file size in bytes, message dequeued within this batch and bytes dequeued within this batch
+     * @param {int} timeout A time-out number in milliseconds
+     * @returns true if communication channel is sendable, and false if communication channel is not sendable
+     */
     Dequeue(key, cb = null, discarded = null, timeout = 0, serverException = null) {
         return this.handler.Dequeue(key, cb, discarded, timeout, serverException);
     }
 
+    /**
+     *  Enqueue a message into a queue file identified by a key
+     * @param {string} key An ASCII string for identifying a queue at server side
+     * @param {short} reqId  A unsigned short number to identify a message
+     * @param {any} buff an instance of SPA.CUQueue containing a message, null or undefined
+     * @param {any} cb A callback for tracking returning index
+     * @returns true if communication channel is sendable, and false if communication channel is not sendable
+     */
     Enqueue(key, reqId, buff, cb = null, discarded = null, serverException = null) {
         return this.handler.Enqueue(key, reqId, buff, cb, discarded, serverException);
     }
 
+    /**
+     * Enqueue a batch of messages into a queue file identified by a key
+     * @param {string} key An ASCII string for identifying a queue at server side
+     * @param {any} cb  A callback for tracking returning index
+     * @returns true if communication channel is sendable, and false if communication channel is not sendable
+     */
     EnqueueBatch(key, cb = null, discarded = null, serverException = null) {
         return this.handler.EnqueueBatch(key, cb, discarded, serverException);
     }
 
     //Promise
+    /**
+     * Query queue keys opened at server side
+     * @returns An array of string keys by promise
+     */
     getKeys(cb = null, discarded = null, serverException = null) {
         assert(cb === null || cb === undefined || typeof cb === 'function');
         assert(discarded === null || discarded === undefined || typeof discarded === 'function');
@@ -995,14 +1068,7 @@ class CAsyncQueue extends CHandler {
             }, (canceled) => {
                 this.set_aborted(rej, 'GetKeys', exports.CS.Queue.ReqIds.idGetKeys, canceled, discarded);
             }, (errMsg, errCode, errWhere, id) => {
-                if (serverException) ret = serverException(errMsg, errCode, errWhere, id);
-                if (ret === undefined) ret = {
-                    ec: errCode,
-                    em: errMsg,
-                    where: errWhere,
-                    reqId: id
-                };
-                rej(ret);
+                this.set_exception(rej, errMsg, errCode, errWhere, id, serverException);
             });
             if (!ok) {
                 this.raise(rej, 'GetKeys', exports.CS.Queue.ReqIds.idGetKeys, discarded);
@@ -1011,6 +1077,12 @@ class CAsyncQueue extends CHandler {
     }
 
     //Promise
+    /**
+     * Try to close a persistent queue opened at server side
+     * @param {string} key An ASCII string for identifying a queue at server side
+     * @param {boolean} permanent true for deleting a queue file, and false for closing a queue file.
+     * @returns An error code by promise, which can be one of QUEUE_OK, QUEUE_DEQUEUING, and so on
+     */
     close(key, permanent = false, cb = null, discarded = null, serverException = null) {
         assert(cb === null || cb === undefined || typeof cb === 'function');
         assert(discarded === null || discarded === undefined || typeof discarded === 'function');
@@ -1024,14 +1096,7 @@ class CAsyncQueue extends CHandler {
             }, (canceled) => {
                 this.set_aborted(rej, 'Close', exports.CS.Queue.ReqIds.idClose, canceled, discarded);
             }, permanent, (errMsg, errCode, errWhere, id) => {
-                if (serverException) ret = serverException(errMsg, errCode, errWhere, id);
-                if (ret === undefined) ret = {
-                    ec: errCode,
-                    em: errMsg,
-                    where: errWhere,
-                    reqId: id
-                };
-                rej(ret);
+                this.set_exception(rej, errMsg, errCode, errWhere, id, serverException);
             });
             if (!ok) {
                 this.raise(rej, 'Close', exports.CS.Queue.ReqIds.idClose, discarded);
@@ -1040,6 +1105,11 @@ class CAsyncQueue extends CHandler {
     }
 
     //Promise
+    /**
+     * Start to enqueue messages with transaction style. Currently, total size of queued messages must be less than 4 G bytes
+     * @param {string} key An ASCII string for identifying a queue at server side
+     * @returns An error code by promise, which can be one of QUEUE_OK, QUEUE_TRANS_ALREADY_STARTED, and so on
+     */
     startTrans(key, cb = null, discarded = null, serverException = null) {
         assert(cb === null || cb === undefined || typeof cb === 'function');
         assert(discarded === null || discarded === undefined || typeof discarded === 'function');
@@ -1053,14 +1123,7 @@ class CAsyncQueue extends CHandler {
             }, (canceled) => {
                 this.set_aborted(rej, 'StartTrans', exports.CS.Queue.ReqIds.idStartTrans, canceled, discarded);
             }, (errMsg, errCode, errWhere, id) => {
-                if (serverException) ret = serverException(errMsg, errCode, errWhere, id);
-                if (ret === undefined) ret = {
-                    ec: errCode,
-                    em: errMsg,
-                    where: errWhere,
-                    reqId: id
-                };
-                rej(ret);
+                this.set_exception(rej, errMsg, errCode, errWhere, id, serverException);
             });
             if (!ok) {
                 this.raise(rej, 'StartTrans', exports.CS.Queue.ReqIds.idStartTrans, discarded);
@@ -1069,6 +1132,11 @@ class CAsyncQueue extends CHandler {
     }
 
     //Promise
+    /**
+     * End enqueuing messages with transaction style. Currently, total size of queued messages must be less than 4 G bytes
+     * @param {boolean} rollback true for rollback, and false for committing.
+     * @returns An error code by promise, which can be one of QUEUE_OK, QUEUE_TRANS_NOT_STARTED_YET, and so on
+     */
     endTrans(rollback = false, cb = null, discarded = null, serverException = null) {
         assert(cb === null || cb === undefined || typeof cb === 'function');
         assert(discarded === null || discarded === undefined || typeof discarded === 'function');
@@ -1082,14 +1150,7 @@ class CAsyncQueue extends CHandler {
             }, (canceled) => {
                 this.set_aborted(rej, 'EndTrans', exports.CS.Queue.ReqIds.idEndTrans, canceled, discarded);
             }, (errMsg, errCode, errWhere, id) => {
-                if (serverException) ret = serverException(errMsg, errCode, errWhere, id);
-                if (ret === undefined) ret = {
-                    ec: errCode,
-                    em: errMsg,
-                    where: errWhere,
-                    reqId: id
-                };
-                rej(ret);
+                this.set_exception(rej, errMsg, errCode, errWhere, id, serverException);
             });
             if (!ok) {
                 this.raise(rej, 'EndTrans', exports.CS.Queue.ReqIds.idEndTrans, discarded);
@@ -1098,6 +1159,12 @@ class CAsyncQueue extends CHandler {
     }
 
     //Promise
+    /**
+     * Just get message count and queue file size in bytes only
+     * @param {string} key An ASCII string for identifying a queue at server side
+     * @param {any} option one of options, oMemoryCached, oSystemMemoryCached and oDiskCommitted
+     * @returns message count and queue file size in bytes by promise
+     */
     flush(key, option = exports.CS.Queue.Optimistic.oMemoryCached, cb = null, discarded = null, serverException = null) {
         assert(cb === null || cb === undefined || typeof cb === 'function');
         assert(discarded === null || discarded === undefined || typeof discarded === 'function');
@@ -1114,14 +1181,7 @@ class CAsyncQueue extends CHandler {
             }, (canceled) => {
                 this.set_aborted(rej, 'Flush', exports.CS.Queue.ReqIds.idFlush, canceled, discarded);
             }, option, (errMsg, errCode, errWhere, id) => {
-                if (serverException) ret = serverException(errMsg, errCode, errWhere, id);
-                if (ret === undefined) ret = {
-                    ec: errCode,
-                    em: errMsg,
-                    where: errWhere,
-                    reqId: id
-                };
-                rej(ret);
+                this.set_exception(rej, errMsg, errCode, errWhere, id, serverException);
             });
             if (!ok) {
                 this.raise(rej, 'Flush', exports.CS.Queue.ReqIds.idFlush, discarded);
@@ -1130,6 +1190,13 @@ class CAsyncQueue extends CHandler {
     }
 
     //Promise
+    /**
+     * Enqueue a message to a server queue file
+     * @param {string} key An ASCII string for identifying a queue at server side
+     * @param {short} reqId A request id for a message
+     * @param {any} buff An instance of CUQueue containing the message, null or undefined
+     * @returns An index by promise
+     */
     enqueue(key, reqId, buff, cb = null, discarded = null, serverException = null) {
         assert(cb === null || cb === undefined || typeof cb === 'function');
         assert(discarded === null || discarded === undefined || typeof discarded === 'function');
@@ -1143,14 +1210,7 @@ class CAsyncQueue extends CHandler {
             }, (canceled) => {
                 this.set_aborted(rej, 'Enqueue', exports.CS.Queue.ReqIds.idEnqueue, canceled, discarded);
             }, (errMsg, errCode, errWhere, id) => {
-                if (serverException) ret = serverException(errMsg, errCode, errWhere, id);
-                if (ret === undefined) ret = {
-                    ec: errCode,
-                    em: errMsg,
-                    where: errWhere,
-                    reqId: id
-                };
-                rej(ret);
+                this.set_exception(rej, errMsg, errCode, errWhere, id, serverException);
             });
             if (!ok) {
                 this.raise(rej, 'Enqueue', exports.CS.Queue.ReqIds.idEnqueue, discarded);
@@ -1159,6 +1219,11 @@ class CAsyncQueue extends CHandler {
     }
 
     //Promise
+    /**
+     * Enqueue a batch of messages into a server queue file
+     * @param {string} key An ASCII string for identifying a queue at server side
+     * @returns An index by promise
+     */
     enqueueBatch(key, cb = null, discarded = null, serverException = null) {
         assert(cb === null || cb === undefined || typeof cb === 'function');
         assert(discarded === null || discarded === undefined || typeof discarded === 'function');
@@ -1172,14 +1237,7 @@ class CAsyncQueue extends CHandler {
             }, (canceled) => {
                 this.set_aborted(rej, 'EnqueueBatch', exports.CS.Queue.ReqIds.idEnqueueBatch, canceled, discarded);
             }, (errMsg, errCode, errWhere, id) => {
-                if (serverException) ret = serverException(errMsg, errCode, errWhere, id);
-                if (ret === undefined) ret = {
-                    ec: errCode,
-                    em: errMsg,
-                    where: errWhere,
-                    reqId: id
-                };
-                rej(ret);
+                this.set_exception(rej, errMsg, errCode, errWhere, id, serverException);
             });
             if (!ok) {
                 this.raise(rej, 'EnqueueBatch', exports.CS.Queue.ReqIds.idEnqueueBatch, discarded);
@@ -1188,6 +1246,12 @@ class CAsyncQueue extends CHandler {
     }
 
     //Promise
+    /**
+     * 
+     * @param {string} key An ASCII string for identifying a queue at server side
+     * @param {int} timeout A time-out number in millseconds
+     * @returns remaining message count within a server queue file, queue file size in bytes, messages dequeued and bytes dequeued within this batch by promise
+     */
     dequeue(key, timeout = 0, cb = null, discarded = null, serverException = null) {
         assert(cb === null || cb === undefined || typeof cb === 'function');
         assert(discarded === null || discarded === undefined || typeof discarded === 'function');
@@ -1206,14 +1270,7 @@ class CAsyncQueue extends CHandler {
             }, (canceled) => {
                 this.set_aborted(rej, 'Dequeue', exports.CS.Queue.ReqIds.idDequeue, canceled, discarded);
             }, timeout, (errMsg, errCode, errWhere, id) => {
-                if (serverException) ret = serverException(errMsg, errCode, errWhere, id);
-                if (ret === undefined) ret = {
-                    ec: errCode,
-                    em: errMsg,
-                    where: errWhere,
-                    reqId: id
-                };
-                rej(ret);
+                this.set_exception(rej, errMsg, errCode, errWhere, id, serverException);
             });
             if (!ok) {
                 this.raise(rej, 'Dequeue', exports.CS.Queue.ReqIds.idDequeue, discarded);
@@ -1228,6 +1285,9 @@ class CAsyncFile extends CHandler {
         assert(h.getSvsId() === exports.SID.sidFile);
     }
 
+    /**
+     * 
+     */
     get FilesQueued() {
         return this.handler.getFilesQueued();
     }
@@ -1272,14 +1332,7 @@ class CAsyncFile extends CHandler {
             }, progress, (canceled, download) => {
                 this.set_aborted(rej, 'Upload', exports.File.ReqIds.idUpload, canceled, discarded);
             }, flags, (errMsg, errCode, errWhere, id) => {
-                if (serverException) ret = serverException(errMsg, errCode, errWhere, id);
-                if (ret === undefined) ret = {
-                    ec: errCode,
-                    em: errMsg,
-                    where: errWhere,
-                    reqId: id
-                };
-                rej(ret);
+                this.set_exception(rej, errMsg, errCode, errWhere, id, serverException);
             });
         });
     }
@@ -1304,14 +1357,7 @@ class CAsyncFile extends CHandler {
             }, progress, (canceled, download) => {
                 this.set_aborted(rej, 'Download', exports.File.ReqIds.idDownload, canceled, discarded);
             }, flags, (errMsg, errCode, errWhere, id) => {
-                if (serverException) ret = serverException(errMsg, errCode, errWhere, id);
-                if (ret === undefined) ret = {
-                    ec: errCode,
-                    em: errMsg,
-                    where: errWhere,
-                    reqId: id
-                };
-                rej(ret);
+                this.set_exception(rej, errMsg, errCode, errWhere, id, serverException);
             });
         });
     }
@@ -1375,23 +1421,12 @@ class CDb extends CHandler {
                 };
                 res(ret);
             }, (canceled) => {
-                if (discarded) ret = discarded(canceled);
-                if (ret === undefined) ret = (canceled ? 'Close canceled' : 'Connection closed');
-                rej(ret);
+                this.set_aborted(rej, 'Close', exports.DB.ReqIds.idClose, canceled, discarded);
             }, (errMsg, errCode, errWhere, id) => {
-                if (serverException) ret = serverException(errMsg, errCode, errWhere, id);
-                if (ret === undefined) ret = {
-                    ec: errCode,
-                    em: errMsg,
-                    where: errWhere,
-                    reqId: id
-                };
-                rej(ret);
+                this.set_exception(rej, errMsg, errCode, errWhere, id, serverException);
             });
             if (!ok) {
-                if (discarded) ret = discarded(false);
-                if (ret === undefined) ret = this.Socket.Error;
-                rej(ret);
+                this.raise(rej, 'Close', exports.DB.ReqIds.idClose, discarded);
             }
         });
     }
@@ -1414,14 +1449,7 @@ class CDb extends CHandler {
             }, (canceled) => {
                 this.set_aborted(rej, 'Prepare', exports.DB.ReqIds.idPrepare, canceled, discarded);
             }, arrP, (errMsg, errCode, errWhere, id) => {
-                if (serverException) ret = serverException(errMsg, errCode, errWhere, id);
-                if (ret === undefined) ret = {
-                    ec: errCode,
-                    em: errMsg,
-                    where: errWhere,
-                    reqId: id
-                };
-                rej(ret);
+                ithis.set_exception(rej, errMsg, errCode, errWhere, id, serverException);
             });
             if (!ok) {
                 this.raise(rej, 'Prepare', exports.DB.ReqIds.idPrepare, discarded);
@@ -1446,14 +1474,7 @@ class CDb extends CHandler {
             }, (canceled) => {
                 this.set_aborted(rej, 'BeginTrans', exports.DB.ReqIds.idBeginTrans, canceled, discarded);
             }, (errMsg, errCode, errWhere, id) => {
-                if (serverException) ret = serverException(errMsg, errCode, errWhere, id);
-                if (ret === undefined) ret = {
-                    ec: errCode,
-                    em: errMsg,
-                    where: errWhere,
-                    reqId: id
-                };
-                rej(ret);
+                this.set_exception(rej, errMsg, errCode, errWhere, id, serverException);
             });
             if (!ok) {
                 this.raise(rej, 'BeginTrans', exports.DB.ReqIds.idBeginTrans, discarded);
@@ -1478,14 +1499,7 @@ class CDb extends CHandler {
             }, (canceled) => {
                 this.set_aborted(rej, 'EndTrans', exports.DB.ReqIds.idEndTrans, canceled, discarded);
             }, (errMsg, errCode, errWhere, id) => {
-                if (serverException) ret = serverException(errMsg, errCode, errWhere, id);
-                if (ret === undefined) ret = {
-                    ec: errCode,
-                    em: errMsg,
-                    where: errWhere,
-                    reqId: id
-                };
-                rej(ret);
+                this.set_exception(rej, errMsg, errCode, errWhere, id, serverException);
             });
             if (!ok) {
                 this.raise(rej, 'EndTrans', exports.DB.ReqIds.idEndTrans, discarded);
@@ -1511,14 +1525,7 @@ class CDb extends CHandler {
             }, (canceled) => {
                 this.set_aborted(rej, 'Open', exports.DB.ReqIds.idOpen, canceled, discarded);
             }, flags, (errMsg, errCode, errWhere, id) => {
-                if (serverException) ret = serverException(errMsg, errCode, errWhere, id);
-                if (ret === undefined) ret = {
-                    ec: errCode,
-                    em: errMsg,
-                    where: errWhere,
-                    reqId: id
-                };
-                rej(ret);
+                this.set_exception(rej, errMsg, errCode, errWhere, id, serverException);
             });
             if (!ok) {
                 this.raise(rej, 'Open', exports.DB.ReqIds.idOpen, discarded);
@@ -1550,14 +1557,7 @@ class CDb extends CHandler {
             }, rows, rh, (canceled) => {
                 this.set_aborted(rej, sql ? 'ExecuteSQL' : 'ExecuteParameters', sql ? exports.DB.ReqIds.idExecute : exports.DB.ReqIds.idExecuteParameters, canceled, discarded);
             }, meta, (errMsg, errCode, errWhere, id) => {
-                if (serverException) ret = serverException(errMsg, errCode, errWhere, id);
-                if (ret === undefined) ret = {
-                    ec: errCode,
-                    em: errMsg,
-                    where: errWhere,
-                    reqId: id
-                };
-                rej(ret);
+                this.set_exception(rej, errMsg, errCode, errWhere, id, serverException);
             });
             if (!ok) {
                 this.raise(rej, sql ? 'ExecuteSQL' : 'ExecuteParameters', sql ? exports.DB.ReqIds.idExecute : exports.DB.ReqIds.idExecuteParameters, discarded);
@@ -1590,14 +1590,7 @@ class CDb extends CHandler {
             }, rows, rh, batchHeader, (canceled) => {
                 this.set_aborted(rej, 'ExecuteBatch', exports.DB.ReqIds.idExecuteBatch, canceled, discarded);
             }, rp, delimiter, arrP, meta, (errMsg, errCode, errWhere, id) => {
-                if (serverException) ret = serverException(errMsg, errCode, errWhere, id);
-                if (ret === undefined) ret = {
-                    ec: errCode,
-                    em: errMsg,
-                    where: errWhere,
-                    reqId: id
-                };
-                rej(ret);
+                this.set_exception(rej, errMsg, errCode, errWhere, id, serverException);
             });
             if (!ok) {
                 this.raise(rej, 'ExecuteBatch', exports.DB.ReqIds.idExecuteBatch, discarded);
