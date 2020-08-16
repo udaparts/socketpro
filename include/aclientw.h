@@ -1449,12 +1449,10 @@ namespace SPA {
                     sb->Swap(ar.UQueue);
                     try {
                         prom->set_value(std::move(sb));
-                    }
-                    catch (std::future_error&) {
+                    } catch (std::future_error&) {
                         //ignore it
-                    }
-                    catch (...) {
-                        //std::future_error
+                    } catch (...) {
+                        prom->set_exception(std::current_exception());
                     }
                 };
                 if (!SendRequest(reqId, pBuffer, size, rh, discarded, se)) {
@@ -1549,21 +1547,18 @@ namespace SPA {
                     try {
                         if (canceled) {
                             prom->set_exception(std::make_exception_ptr(CSocketError(REQUEST_CANCELED, (L"Request " + method_name + L" canceled").c_str(), req_id, false)));
-                        }
-                        else {
+                        } else {
                             CClientSocket* cs = h->GetSocket();
                             int ec = cs->GetErrorCode();
                             if (ec) {
                                 std::string em = cs->GetErrorMsg();
                                 prom->set_exception(std::make_exception_ptr(CSocketError(ec, Utilities::ToWide(em).c_str(), req_id, false)));
-                            }
-                            else {
+                            } else {
                                 prom->set_exception(std::make_exception_ptr(CSocketError(SESSION_CLOSED_AFTER, (L"Session closed after sending the request " + method_name).c_str(), req_id, false)));
                             }
                         }
-                    }
-                    catch (...) {
-                        //std::future_error
+                    } catch (std::future_error&) {
+                        //ignore
                     }
                 };
                 return discarded;
@@ -1574,9 +1569,8 @@ namespace SPA {
                 DServerException se = [prom](CAsyncServiceHandler *ash, unsigned short requestId, const wchar_t *errMessage, const char* errWhere, unsigned int errCode) {
                     try {
                         prom->set_exception(std::make_exception_ptr(CServerError(errCode, errMessage, errWhere, requestId)));
-                    }
-                    catch(...) {
-                        //std::future_error
+                    } catch (std::future_error&) {
+                        //ignore
                     }
                 };
                 return se;
@@ -1592,11 +1586,9 @@ namespace SPA {
                         R r;
                         ar >> r;
                         prom->set_value(std::move(r));
-                    } 
-                    catch (std::future_error&) {
+                    } catch (std::future_error&) {
                         //ignore it
-                    }
-                    catch (...) {
+                    } catch (...) {
                         prom->set_exception(std::current_exception());
                     }
                 };

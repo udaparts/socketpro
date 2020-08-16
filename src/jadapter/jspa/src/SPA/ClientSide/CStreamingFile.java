@@ -108,7 +108,7 @@ public class CStreamingFile extends CAsyncServiceHandler {
 
     private int m_MaxDownloading = 1;
     protected final Lock m_csFile = new ReentrantLock();
-    final private ArrayDeque<CContext> m_vContext = new ArrayDeque<>(); //protected by m_csFile;
+    private ArrayDeque<CContext> m_vContext = new ArrayDeque<>(); //protected by m_csFile;
 
     @Override
     protected void OnMergeTo(CAsyncServiceHandler to) {
@@ -211,6 +211,14 @@ public class CStreamingFile extends CAsyncServiceHandler {
                     //Send an interrupt request onto server to shut down downloading as earlier as possible
                     Interrupt(1);
                     break;
+                }
+                if (back.Discarded != null) {
+                    try {
+                        m_csFile.unlock();
+                        back.Discarded.invoke(this, true);
+                    } finally {
+                        m_csFile.lock();
+                    }
                 }
                 m_vContext.removeLast();
                 ++canceled;
@@ -325,6 +333,8 @@ public class CStreamingFile extends CAsyncServiceHandler {
                                 }
                                 if (it.Fut != null) {
                                     it.Fut.setException(new CSocketError(it.ErrCode, it.ErrMsg, idUpload, true));
+                                    it.Discarded = null;
+                                    it.Se = null;
                                 }
                                 continue;
                             }
@@ -348,6 +358,8 @@ public class CStreamingFile extends CAsyncServiceHandler {
                                 }
                                 if (it.Fut != null) {
                                     it.Fut.setException(new CSocketError(it.ErrCode, it.ErrMsg, idDownload, true));
+                                    it.Discarded = null;
+                                    it.Se = null;
                                 }
                                 continue;
                             }
@@ -397,21 +409,26 @@ public class CStreamingFile extends CAsyncServiceHandler {
 
     @Override
     public int CleanCallbacks() {
-        m_csFile.lock();
+        ArrayDeque<CContext> vContext;
         try {
-            for (CContext c : m_vContext) {
-                if (c.File != null) {
-                    c.ErrCode = CANNOT_OPEN_LOCAL_FILE_FOR_WRITING;
-                    c.ErrMsg = "Clean local writing file";
-                    CloseFile(c);
-                } else {
-                    break;
-                }
-            }
-            m_vContext.clear();
+            m_csFile.lock();
+            vContext = m_vContext;
+            m_vContext = new ArrayDeque<>();
         } finally {
             m_csFile.unlock();
         }
+        for (CContext c : vContext) {
+            if (c.File != null) {
+                CloseFile(c);
+            }
+            if (c.Discarded != null) {
+                try {
+                    c.Discarded.invoke(this, getSocket().getCurrentRequestID() == SPA.tagBaseRequestID.idCancel.getValue());
+                } finally {
+                }
+            }
+        }
+        vContext.clear();
         return super.CleanCallbacks();
     }
 

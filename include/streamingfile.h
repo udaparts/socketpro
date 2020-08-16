@@ -113,13 +113,12 @@ namespace SPA {
                 for (auto it = vContext.begin(), end = vContext.end(); it != end; ++it) {
                     if (it->IsOpen()) {
                         CloseFile(*it);
-                    } else if (it->ErrorCode || it->ErrMsg.size()) {
-                        if (it->Download) {
-                            it->Download(this, it->ErrorCode, it->ErrMsg);
-                        }
                     }
-                    else if (it->Discarded) {
-                        it->Discarded(this, GetSocket()->GetCurrentRequestID() == idCancel);
+                    if (it->Discarded) {
+                        try {
+                            it->Discarded(this, GetSocket()->GetCurrentRequestID() == idCancel);
+                        } catch (...) {
+                        }
                     }
                 }
                 return CAsyncServiceHandler::CleanCallbacks();
@@ -168,8 +167,7 @@ namespace SPA {
                         try {
                             m_csFile.unlock();
                             back.Discarded(this, true);
-                        }
-                        catch (...) {
+                        } catch (...) {
                         }
                         m_csFile.lock();
                     }
@@ -195,9 +193,8 @@ namespace SPA {
                     ErrInfo ei(res, errMsg.c_str());
                     try {
                         prom->set_value(ei);
-                    }
-                    catch(...) {
-                        //std::future_error
+                    } catch (std::future_error&) {
+                        //ignore
                     }
                 };
                 context.Transferring = progress;
@@ -231,9 +228,8 @@ namespace SPA {
                     ErrInfo ei(res, errMsg.c_str());
                     try {
                         prom->set_value(ei);
-                    }
-                    catch (...) {
-                        //std::future_error
+                    } catch (std::future_error&) {
+                        //ignore
                     }
                 };
                 context.Transferring = progress;
@@ -348,10 +344,11 @@ namespace SPA {
                                 if (it->Promise) {
                                     try {
                                         it->Promise->set_exception(std::make_exception_ptr(CSocketError(it->ErrorCode, it->ErrMsg.c_str(), SFile::idUpload, true)));
+                                    } catch (std::future_error&) {
+                                        //ignore
                                     }
-                                    catch (...) {
-                                        //std::future_error
-                                    }
+                                    it->Se = nullptr;
+                                    it->Discarded = nullptr;
                                 }
 #endif
 #endif
@@ -378,10 +375,11 @@ namespace SPA {
                                 if (it->Promise) {
                                     try {
                                         it->Promise->set_exception(std::make_exception_ptr(CSocketError(it->ErrorCode, it->ErrMsg.c_str(), SFile::idDownload, true)));
+                                    } catch (std::future_error&) {
+                                        //ignore
                                     }
-                                    catch (...) {
-                                        //std::future_error
-                                    }
+                                    it->Se = nullptr;
+                                    it->Discarded = nullptr;
                                 }
 #endif
 #endif
