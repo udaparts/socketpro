@@ -106,18 +106,21 @@ namespace SPA {
         public:
 
             virtual unsigned int CleanCallbacks() {
-                {
-                    CAutoLock al(m_csFile);
-                    for (auto it = m_vContext.begin(), end = m_vContext.end(); it != end; ++it) {
-                        if (it->IsOpen()) {
-                            it->ErrMsg = L"Clean local writing file";
-                            it->ErrorCode = SFile::CANNOT_OPEN_LOCAL_FILE_FOR_WRITING;
-                            CloseFile(*it);
-                        } else {
-                            break;
+                std::deque<CContext> vContext;
+                m_csFile.lock();
+                vContext.swap(m_vContext);
+                m_csFile.unlock();
+                for (auto it = vContext.begin(), end = vContext.end(); it != end; ++it) {
+                    if (it->IsOpen()) {
+                        CloseFile(*it);
+                    } else if (it->ErrorCode || it->ErrMsg.size()) {
+                        if (it->Download) {
+                            it->Download(this, it->ErrorCode, it->ErrMsg);
                         }
                     }
-                    m_vContext.clear();
+                    else if (it->Discarded) {
+                        it->Discarded(this, GetSocket()->GetCurrentRequestID() == idCancel);
+                    }
                 }
                 return CAsyncServiceHandler::CleanCallbacks();
             }
@@ -158,8 +161,17 @@ namespace SPA {
                     auto &back = m_vContext.back();
                     if (back.IsOpen()) {
                         //Send an interrupt request onto server to shut down downloading as earlier as possible
-                        Interrupt(1);
+                        Interrupt(DEFAULT_INTERRUPT_OPTION);
                         break;
+                    }
+                    if (back.Discarded) {
+                        try {
+                            m_csFile.unlock();
+                            back.Discarded(this, true);
+                        }
+                        catch (...) {
+                        }
+                        m_csFile.lock();
                     }
                     m_vContext.pop_back();
                     ++canceled;
@@ -181,7 +193,12 @@ namespace SPA {
                 std::shared_ptr<std::promise<ErrInfo> > prom(new std::promise<ErrInfo>);
                 context.Download = [prom](CStreamingFile *file, int res, const std::wstring & errMsg) {
                     ErrInfo ei(res, errMsg.c_str());
-                    prom->set_value(ei);
+                    try {
+                        prom->set_value(ei);
+                    }
+                    catch(...) {
+                        //std::future_error
+                    }
                 };
                 context.Transferring = progress;
                 context.Discarded = get_aborted(prom, L"Upload", SFile::idUpload);
@@ -212,7 +229,12 @@ namespace SPA {
                 std::shared_ptr<std::promise<ErrInfo> > prom(new std::promise<ErrInfo>);
                 context.Download = [prom](CStreamingFile *file, int res, const std::wstring & errMsg) {
                     ErrInfo ei(res, errMsg.c_str());
-                    prom->set_value(ei);
+                    try {
+                        prom->set_value(ei);
+                    }
+                    catch (...) {
+                        //std::future_error
+                    }
                 };
                 context.Transferring = progress;
                 context.Discarded = get_aborted(prom, L"Download", SFile::idDownload);
@@ -324,7 +346,12 @@ namespace SPA {
 #else
 #ifdef HAVE_FUTURE
                                 if (it->Promise) {
-                                    it->Promise->set_exception(std::make_exception_ptr(CSocketError(it->ErrorCode, it->ErrMsg.c_str(), SFile::idUpload, true)));
+                                    try {
+                                        it->Promise->set_exception(std::make_exception_ptr(CSocketError(it->ErrorCode, it->ErrMsg.c_str(), SFile::idUpload, true)));
+                                    }
+                                    catch (...) {
+                                        //std::future_error
+                                    }
                                 }
 #endif
 #endif
@@ -349,7 +376,12 @@ namespace SPA {
 #else
 #ifdef HAVE_FUTURE
                                 if (it->Promise) {
-                                    it->Promise->set_exception(std::make_exception_ptr(CSocketError(it->ErrorCode, it->ErrMsg.c_str(), SFile::idDownload, true)));
+                                    try {
+                                        it->Promise->set_exception(std::make_exception_ptr(CSocketError(it->ErrorCode, it->ErrMsg.c_str(), SFile::idDownload, true)));
+                                    }
+                                    catch (...) {
+                                        //std::future_error
+                                    }
                                 }
 #endif
 #endif

@@ -1447,7 +1447,15 @@ namespace SPA {
                 DResultHandler rh = [prom](CAsyncResult & ar) {
                     CScopeUQueue sb;
                     sb->Swap(ar.UQueue);
-                    prom->set_value(std::move(sb));
+                    try {
+                        prom->set_value(std::move(sb));
+                    }
+                    catch (std::future_error&) {
+                        //ignore it
+                    }
+                    catch (...) {
+                        //std::future_error
+                    }
                 };
                 if (!SendRequest(reqId, pBuffer, size, rh, discarded, se)) {
                     raise(L"SendRequest", reqId);
@@ -1538,17 +1546,24 @@ namespace SPA {
                     throw std::invalid_argument("Request id cannot be zero");
                 }
                 DDiscarded discarded = [prom, req_id, method_name](CAsyncServiceHandler *h, bool canceled) {
-                    if (canceled) {
-                        prom->set_exception(std::make_exception_ptr(CSocketError(REQUEST_CANCELED, (L"Request " + method_name + L" canceled").c_str(), req_id, false)));
-                    } else {
-                        CClientSocket *cs = h->GetSocket();
-                        int ec = cs->GetErrorCode();
-                        if (ec) {
-                            std::string em = cs->GetErrorMsg();
-                            prom->set_exception(std::make_exception_ptr(CSocketError(ec, Utilities::ToWide(em).c_str(), req_id, false)));
-                        } else {
-                            prom->set_exception(std::make_exception_ptr(CSocketError(SESSION_CLOSED_AFTER, (L"Session closed after sending the request " + method_name).c_str(), req_id, false)));
+                    try {
+                        if (canceled) {
+                            prom->set_exception(std::make_exception_ptr(CSocketError(REQUEST_CANCELED, (L"Request " + method_name + L" canceled").c_str(), req_id, false)));
                         }
+                        else {
+                            CClientSocket* cs = h->GetSocket();
+                            int ec = cs->GetErrorCode();
+                            if (ec) {
+                                std::string em = cs->GetErrorMsg();
+                                prom->set_exception(std::make_exception_ptr(CSocketError(ec, Utilities::ToWide(em).c_str(), req_id, false)));
+                            }
+                            else {
+                                prom->set_exception(std::make_exception_ptr(CSocketError(SESSION_CLOSED_AFTER, (L"Session closed after sending the request " + method_name).c_str(), req_id, false)));
+                            }
+                        }
+                    }
+                    catch (...) {
+                        //std::future_error
                     }
                 };
                 return discarded;
@@ -1557,7 +1572,12 @@ namespace SPA {
             template<typename R>
             static DServerException get_se(std::shared_ptr<std::promise<R> > prom) {
                 DServerException se = [prom](CAsyncServiceHandler *ash, unsigned short requestId, const wchar_t *errMessage, const char* errWhere, unsigned int errCode) {
-                    prom->set_exception(std::make_exception_ptr(CServerError(errCode, errMessage, errWhere, requestId)));
+                    try {
+                        prom->set_exception(std::make_exception_ptr(CServerError(errCode, errMessage, errWhere, requestId)));
+                    }
+                    catch(...) {
+                        //std::future_error
+                    }
                 };
                 return se;
             }
@@ -1572,7 +1592,11 @@ namespace SPA {
                         R r;
                         ar >> r;
                         prom->set_value(std::move(r));
-                    } catch (...) {
+                    } 
+                    catch (std::future_error&) {
+                        //ignore it
+                    }
+                    catch (...) {
                         prom->set_exception(std::current_exception());
                     }
                 };
