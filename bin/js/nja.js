@@ -672,14 +672,23 @@ class CHandler {
         return new CSocket(this.handler.getSocket());
     }
 
+    /**
+     * A property {int} A service id
+     */
     get SvsId() {
         return this.handler.getSvsId();
     }
 
+    /**
+     * A property {int} the number of requests queued
+     */
     get RequestsQueued() {
         return this.handler.getRequestsQueued();
     }
 
+    /**
+     * A property {boolean} true if requests are beening batched
+     */
     get Batching() {
         return this.handler.isBatching();
     }
@@ -695,7 +704,11 @@ class CHandler {
     get RouteeResult() {
         return this.handler.isRouteeResult();
     }
-
+    /**
+     * Check if two handlers are the same
+     * @param {CHandler} h An async request handler
+     * @returns true if they are the same, and false if they are not the same
+     */
     IsSame(h) {
         if (!h) return false;
         return this.handler.isSame(h.handler);
@@ -709,10 +722,26 @@ class CHandler {
         this.handler.AbortDequeuedMessage();
     }
 
+    /**
+     * Start to batch a number of requests manually
+     * @returns true if successful, and false if failed
+    */
+    StartBatching() {
+        return this.handler.StartBatching();
+    }
+
+    /**
+     * Abort requests batched
+     */
     AbortBatching() {
         return this.handler.AbortBatching();
     }
 
+    /**
+     * Commit batching a number of requests and send them to server in one single shot
+     * @param {boolean} serverCommit true if returning results will be returned from server in batch, and false if not
+     * @returns true if successful, and false if failed
+     */
     CommitBatching(serverCommit = false) {
         return this.handler.CommitBatching(serverCommit);
     }
@@ -721,20 +750,42 @@ class CHandler {
         return this.handler.Dispose();
     }
 
+    /**
+     * Send an interrupt request onto server with the fastest priority
+     * @param {bigint} options bit-wise flags to be sent to server
+     * @returns true if successful, and false if failed
+     * @remarks The request is used to tell server side to stop loop like file file downloading and records fetching as soon as possible if implemented
+     */
     Interrupt(options) {
         assert(Number.isSafeInteger(options));
         return this.handler.Interrupt(options);
     }
 
-    StartBatching() {
-        return this.handler.StartBatching();
-    }
-
+    /**
+     *  Send a request onto a remote server for processing, and return immediately without blocking
+     * @param {short} reqId An unique request id within a service handler
+     * @param {CUQueue or null} buff null or an instance of CUQueue or None
+     * @param {function} A callback for tracking an instance of CUQueue containing an expected result
+     * @param {function} discarded A callback for tracking communication channel events, close and cancel
+     * @param {function} serverException A callback for tracking an exception from server
+     * @returns true if successful, and false if communication channel is not sendable
+     */
     SendRequest(reqId, buff, cb, discarded = null, serverException = null) {
         return this.handler.SendRequest(reqId, buff, cb, discarded, serverException);
     }
 
     //Promise version
+
+    /**
+     *  Send a request onto a remote server for processing, and return immediately without blocking
+     * @param {short} reqId An unique request id within a service handler
+     * @param {CUQueue or null} buff null or an instance of CUQueue or None
+     * @param {function} A callback for tracking an instance of CUQueue containing an expected result
+     * @param {function} discarded A callback for tracking communication channel events, close and cancel
+     * @param {function} serverException A callback for tracking an exception from server
+     * @returns A promise
+     * @throws A server or socket close exception
+     */
     sendRequest(reqId, buff, cb = null, discarded = null, serverException = null) {
         assert(cb === null || cb === undefined || typeof cb === 'function');
         assert(discarded === null || discarded === undefined || typeof discarded === 'function');
@@ -746,25 +797,69 @@ class CHandler {
                 if (ret === undefined) ret = q;
                 res(ret);
             }, (canceled, id) => {
-                if (discarded) ret = discarded(canceled, id);
-                if (ret === undefined) ret = (canceled ? 'Request canceled' : 'Session closed after request is sent');
-                rej(ret);
+                this.set_aborted(rej, 'SendRequest', reqId, canceled, discarded);
             }, (errMsg, errCode, errWhere, id) => {
                 if (serverException) ret = serverException(errMsg, errCode, errWhere, id);
                 if (ret === undefined) ret = {
                     ec: errCode,
                     em: errMsg,
-                    stack: errWhere,
+                    where: errWhere,
                     reqId: id
                 };
                 rej(ret);
             });
             if (!ok) {
-                if (discarded) ret = discarded(false, reqId);
-                if (ret === undefined) ret = 'Session already closed before request is sent';
-                rej(ret);
+                this.raise(rej, 'SendRequest', reqId, discarded);
             }
         });
+    }
+
+    /**
+     * set a cancel or communication channel close exception
+     * @param {reject} rej promise reject function
+     * @param {string} method_name a request method name
+     * @param {short} req_id An unique request id within a service handler
+     * @param {boolean} canceled true if the request is canceled, false if communication channel is closed
+     * @param {function} discarded An optinal callback for tracking communication channel events, close and cancel
+     */
+    set_aborted(rej, method_name, req_id, canceled, discarded = null) {
+        var ret;
+        if (discarded) ret = discarded(canceled, req_id, method_name);
+        if (ret === undefined) {
+            if (canceled) {
+                ret = { ec: -1002, em: 'Request ' + method_name + ' canceled', reqId: req_id, before: false };
+            }
+            else {
+                var error = this.Socket.Error;
+                if (!error.ec) {
+                    error.ec = -1000;
+                    error.em = 'Session closed after sending the request ' + method_name;
+                }
+                ret = { ec: error.ec, em: error.em, reqId: req_id, before: false };
+            }
+        }
+        rej(ret);
+    }
+
+    /**
+     * raise a communication channel close exception
+     * @param {reject} rej promise reject function
+     * @param {string} method_name a request method name
+     * @param {short} req_id An unique request id within a service handler
+     * @param {function} discarded An optinal callback for tracking communication channel events, close and cancel
+     */
+    raise(rej, method_name, req_id, discarded = null) {
+        var ret;
+        if (discarded) ret = discarded(false, req_id, method_name);
+        if (ret === undefined) {
+            var error = this.Socket.Error;
+            if (!error.ec) {
+                error.ec = -1001;
+                error.em = 'Session already closed before sending the request ' + method_name;
+            }
+            ret = { ec: error.ec, em: error.em, reqId: req_id, before: true };
+        }
+        rej(ret);
     }
 }
 
@@ -898,23 +993,19 @@ class CAsyncQueue extends CHandler {
                 if (ret === undefined) ret = vKeys;
                 res(ret);
             }, (canceled) => {
-                if (discarded) ret = discarded(canceled);
-                if (ret === undefined) ret = (canceled ? 'GetKeys canceled' : 'Connection closed');
-                rej(ret);
+                this.set_aborted(rej, 'GetKeys', exports.CS.Queue.ReqIds.idGetKeys, canceled, discarded);
             }, (errMsg, errCode, errWhere, id) => {
                 if (serverException) ret = serverException(errMsg, errCode, errWhere, id);
                 if (ret === undefined) ret = {
                     ec: errCode,
                     em: errMsg,
-                    stack: errWhere,
+                    where: errWhere,
                     reqId: id
                 };
                 rej(ret);
             });
             if (!ok) {
-                if (discarded) ret = discarded(false);
-                if (ret === undefined) ret = this.Socket.Error;
-                rej(ret);
+                this.raise(rej, 'GetKeys', exports.CS.Queue.ReqIds.idGetKeys, discarded);
             }
         });
     }
@@ -931,23 +1022,19 @@ class CAsyncQueue extends CHandler {
                 if (ret === undefined) ret = errCode;
                 res(ret);
             }, (canceled) => {
-                if (discarded) ret = discarded(canceled);
-                if (ret === undefined) ret = (canceled ? 'Close canceled' : 'Connection closed');
-                rej(ret);
+                this.set_aborted(rej, 'Close', exports.CS.Queue.ReqIds.idClose, canceled, discarded);
             }, permanent, (errMsg, errCode, errWhere, id) => {
                 if (serverException) ret = serverException(errMsg, errCode, errWhere, id);
                 if (ret === undefined) ret = {
                     ec: errCode,
                     em: errMsg,
-                    stack: errWhere,
+                    where: errWhere,
                     reqId: id
                 };
                 rej(ret);
             });
             if (!ok) {
-                if (discarded) ret = discarded(false);
-                if (ret === undefined) ret = this.Socket.Error;
-                rej(ret);
+                this.raise(rej, 'Close', exports.CS.Queue.ReqIds.idClose, discarded);
             }
         });
     }
@@ -964,23 +1051,19 @@ class CAsyncQueue extends CHandler {
                 if (ret === undefined) ret = errCode;
                 res(ret);
             }, (canceled) => {
-                if (discarded) ret = discarded(canceled);
-                if (ret === undefined) ret = (canceled ? 'StartTrans canceled' : 'Connection closed');
-                rej(ret);
+                this.set_aborted(rej, 'StartTrans', exports.CS.Queue.ReqIds.idStartTrans, canceled, discarded);
             }, (errMsg, errCode, errWhere, id) => {
                 if (serverException) ret = serverException(errMsg, errCode, errWhere, id);
                 if (ret === undefined) ret = {
                     ec: errCode,
                     em: errMsg,
-                    stack: errWhere,
+                    where: errWhere,
                     reqId: id
                 };
                 rej(ret);
             });
             if (!ok) {
-                if (discarded) ret = discarded(false);
-                if (ret === undefined) ret = this.Socket.Error;
-                rej(ret);
+                this.raise(rej, 'StartTrans', exports.CS.Queue.ReqIds.idStartTrans, discarded);
             }
         });
     }
@@ -997,23 +1080,19 @@ class CAsyncQueue extends CHandler {
                 if (ret === undefined) ret = errCode;
                 res(ret);
             }, (canceled) => {
-                if (discarded) ret = discarded(canceled);
-                if (ret === undefined) ret = (canceled ? 'EndTrans canceled' : 'Connection closed');
-                rej(ret);
+                this.set_aborted(rej, 'EndTrans', exports.CS.Queue.ReqIds.idEndTrans, canceled, discarded);
             }, (errMsg, errCode, errWhere, id) => {
                 if (serverException) ret = serverException(errMsg, errCode, errWhere, id);
                 if (ret === undefined) ret = {
                     ec: errCode,
                     em: errMsg,
-                    stack: errWhere,
+                    where: errWhere,
                     reqId: id
                 };
                 rej(ret);
             });
             if (!ok) {
-                if (discarded) ret = discarded(false);
-                if (ret === undefined) ret = this.Socket.Error;
-                rej(ret);
+                this.raise(rej, 'EndTrans', exports.CS.Queue.ReqIds.idEndTrans, discarded);
             }
         });
     }
@@ -1033,23 +1112,19 @@ class CAsyncQueue extends CHandler {
                 };
                 res(ret);
             }, (canceled) => {
-                if (discarded) ret = discarded(canceled);
-                if (ret === undefined) ret = (canceled ? 'Flush canceled' : 'Connection closed');
-                rej(ret);
+                this.set_aborted(rej, 'Flush', exports.CS.Queue.ReqIds.idFlush, canceled, discarded);
             }, option, (errMsg, errCode, errWhere, id) => {
                 if (serverException) ret = serverException(errMsg, errCode, errWhere, id);
                 if (ret === undefined) ret = {
                     ec: errCode,
                     em: errMsg,
-                    stack: errWhere,
+                    where: errWhere,
                     reqId: id
                 };
                 rej(ret);
             });
             if (!ok) {
-                if (discarded) ret = discarded(false);
-                if (ret === undefined) ret = this.Socket.Error;
-                rej(ret);
+                this.raise(rej, 'Flush', exports.CS.Queue.ReqIds.idFlush, discarded);
             }
         });
     }
@@ -1066,23 +1141,19 @@ class CAsyncQueue extends CHandler {
                 if (ret === undefined) ret = index;
                 res(ret);
             }, (canceled) => {
-                if (discarded) ret = discarded(canceled);
-                if (ret === undefined) ret = (canceled ? 'Enqueue canceled' : 'Connection closed');
-                rej(ret);
+                this.set_aborted(rej, 'Enqueue', exports.CS.Queue.ReqIds.idEnqueue, canceled, discarded);
             }, (errMsg, errCode, errWhere, id) => {
                 if (serverException) ret = serverException(errMsg, errCode, errWhere, id);
                 if (ret === undefined) ret = {
                     ec: errCode,
                     em: errMsg,
-                    stack: errWhere,
+                    where: errWhere,
                     reqId: id
                 };
                 rej(ret);
             });
             if (!ok) {
-                if (discarded) ret = discarded(false);
-                if (ret === undefined) ret = this.Socket.Error;
-                rej(ret);
+                this.raise(rej, 'Enqueue', exports.CS.Queue.ReqIds.idEnqueue, discarded);
             }
         });
     }
@@ -1099,23 +1170,19 @@ class CAsyncQueue extends CHandler {
                 if (ret === undefined) ret = index;
                 res(ret);
             }, (canceled) => {
-                if (discarded) ret = discarded(canceled);
-                if (ret === undefined) ret = (canceled ? 'EnqueueBatch canceled' : 'Connection closed');
-                rej(ret);
+                this.set_aborted(rej, 'EnqueueBatch', exports.CS.Queue.ReqIds.idEnqueueBatch, canceled, discarded);
             }, (errMsg, errCode, errWhere, id) => {
                 if (serverException) ret = serverException(errMsg, errCode, errWhere, id);
                 if (ret === undefined) ret = {
                     ec: errCode,
                     em: errMsg,
-                    stack: errWhere,
+                    where: errWhere,
                     reqId: id
                 };
                 rej(ret);
             });
             if (!ok) {
-                if (discarded) ret = discarded(false);
-                if (ret === undefined) ret = this.Socket.Error;
-                rej(ret);
+                this.raise(rej, 'EnqueueBatch', exports.CS.Queue.ReqIds.idEnqueueBatch, discarded);
             }
         });
     }
@@ -1137,23 +1204,19 @@ class CAsyncQueue extends CHandler {
                 };
                 res(ret);
             }, (canceled) => {
-                if (discarded) ret = discarded(canceled);
-                if (ret === undefined) ret = (canceled ? 'Dequeue canceled' : 'Connection closed');
-                rej(ret);
+                this.set_aborted(rej, 'Dequeue', exports.CS.Queue.ReqIds.idDequeue, canceled, discarded);
             }, timeout, (errMsg, errCode, errWhere, id) => {
                 if (serverException) ret = serverException(errMsg, errCode, errWhere, id);
                 if (ret === undefined) ret = {
                     ec: errCode,
                     em: errMsg,
-                    stack: errWhere,
+                    where: errWhere,
                     reqId: id
                 };
                 rej(ret);
             });
             if (!ok) {
-                if (discarded) ret = discarded(false);
-                if (ret === undefined) ret = this.Socket.Error;
-                rej(ret);
+                this.raise(rej, 'Dequeue', exports.CS.Queue.ReqIds.idDequeue, discarded);
             }
         });
     }
@@ -1199,7 +1262,7 @@ class CAsyncFile extends CHandler {
         assert(serverException === null || serverException === undefined || typeof serverException === 'function');
         return new Promise((res, rej) => {
             var ret;
-            var ok = this.handler.Upload(localFile, remoteFile, (errMsg, errCode, download) => {
+            this.handler.Upload(localFile, remoteFile, (errMsg, errCode, download) => {
                 if (cb) ret = cb(errMsg, errCode, download);
                 if (ret === undefined) ret = {
                     ec: errCode,
@@ -1207,24 +1270,17 @@ class CAsyncFile extends CHandler {
                 };
                 res(ret);
             }, progress, (canceled, download) => {
-                if (discarded) ret = discarded(canceled, download);
-                if (ret === undefined) ret = (canceled ? 'Upload canceled' : 'Connection closed');
-                rej(ret);
+                this.set_aborted(rej, 'Upload', exports.File.ReqIds.idUpload, canceled, discarded);
             }, flags, (errMsg, errCode, errWhere, id) => {
                 if (serverException) ret = serverException(errMsg, errCode, errWhere, id);
                 if (ret === undefined) ret = {
                     ec: errCode,
                     em: errMsg,
-                    stack: errWhere,
+                    where: errWhere,
                     reqId: id
                 };
                 rej(ret);
             });
-            if (!ok) {
-                if (discarded) ret = discarded(false, false);
-                if (ret === undefined) ret = this.Socket.Error;
-                rej(ret);
-            }
         });
     }
 
@@ -1238,7 +1294,7 @@ class CAsyncFile extends CHandler {
         assert(serverException === null || serverException === undefined || typeof serverException === 'function');
         return new Promise((res, rej) => {
             var ret;
-            var ok = this.handler.Download(localFile, remoteFile, (errMsg, errCode, download) => {
+            this.handler.Download(localFile, remoteFile, (errMsg, errCode, download) => {
                 if (cb) ret = cb(errMsg, errCode, download);
                 if (ret === undefined) ret = {
                     ec: errCode,
@@ -1246,24 +1302,17 @@ class CAsyncFile extends CHandler {
                 };
                 res(ret);
             }, progress, (canceled, download) => {
-                if (discarded) ret = discarded(canceled, download);
-                if (ret === undefined) ret = (canceled ? 'Download canceled' : 'Connection closed');
-                rej(ret);
+                this.set_aborted(rej, 'Download', exports.File.ReqIds.idDownload, canceled, discarded);
             }, flags, (errMsg, errCode, errWhere, id) => {
                 if (serverException) ret = serverException(errMsg, errCode, errWhere, id);
                 if (ret === undefined) ret = {
                     ec: errCode,
                     em: errMsg,
-                    stack: errWhere,
+                    where: errWhere,
                     reqId: id
                 };
                 rej(ret);
             });
-            if (!ok) {
-                if (discarded) ret = discarded(false, true);
-                if (ret === undefined) ret = this.Socket.Error;
-                rej(ret);
-            }
         });
     }
 }
@@ -1334,7 +1383,7 @@ class CDb extends CHandler {
                 if (ret === undefined) ret = {
                     ec: errCode,
                     em: errMsg,
-                    stack: errWhere,
+                    where: errWhere,
                     reqId: id
                 };
                 rej(ret);
@@ -1363,23 +1412,19 @@ class CDb extends CHandler {
                 };
                 res(ret);
             }, (canceled) => {
-                if (discarded) ret = discarded(canceled);
-                if (ret === undefined) ret = (canceled ? 'Prepare canceled' : 'Connection closed');
-                rej(ret);
+                this.set_aborted(rej, 'Prepare', exports.DB.ReqIds.idPrepare, canceled, discarded);
             }, arrP, (errMsg, errCode, errWhere, id) => {
                 if (serverException) ret = serverException(errMsg, errCode, errWhere, id);
                 if (ret === undefined) ret = {
                     ec: errCode,
                     em: errMsg,
-                    stack: errWhere,
+                    where: errWhere,
                     reqId: id
                 };
                 rej(ret);
             });
             if (!ok) {
-                if (discarded) ret = discarded(false);
-                if (ret === undefined) ret = this.Socket.Error;
-                rej(ret);
+                this.raise(rej, 'Prepare', exports.DB.ReqIds.idPrepare, discarded);
             }
         });
     }
@@ -1399,23 +1444,19 @@ class CDb extends CHandler {
                 };
                 res(ret);
             }, (canceled) => {
-                if (discarded) ret = discarded(canceled);
-                if (ret === undefined) ret = (canceled ? 'BeginTrans canceled' : 'Connection closed');
-                rej(ret);
+                this.set_aborted(rej, 'BeginTrans', exports.DB.ReqIds.idBeginTrans, canceled, discarded);
             }, (errMsg, errCode, errWhere, id) => {
                 if (serverException) ret = serverException(errMsg, errCode, errWhere, id);
                 if (ret === undefined) ret = {
                     ec: errCode,
                     em: errMsg,
-                    stack: errWhere,
+                    where: errWhere,
                     reqId: id
                 };
                 rej(ret);
             });
             if (!ok) {
-                if (discarded) ret = discarded(false);
-                if (ret === undefined) ret = this.Socket.Error;
-                rej(ret);
+                this.raise(rej, 'BeginTrans', exports.DB.ReqIds.idBeginTrans, discarded);
             }
         });
     }
@@ -1435,23 +1476,19 @@ class CDb extends CHandler {
                 };
                 res(ret);
             }, (canceled) => {
-                if (discarded) ret = discarded(canceled);
-                if (ret === undefined) ret = (canceled ? 'EndTrans canceled' : 'Connection closed');
-                rej(ret);
+                this.set_aborted(rej, 'EndTrans', exports.DB.ReqIds.idEndTrans, canceled, discarded);
             }, (errMsg, errCode, errWhere, id) => {
                 if (serverException) ret = serverException(errMsg, errCode, errWhere, id);
                 if (ret === undefined) ret = {
                     ec: errCode,
                     em: errMsg,
-                    stack: errWhere,
+                    where: errWhere,
                     reqId: id
                 };
                 rej(ret);
             });
             if (!ok) {
-                if (discarded) ret = discarded(false);
-                if (ret === undefined) ret = this.Socket.Error;
-                rej(ret);
+                this.raise(rej, 'EndTrans', exports.DB.ReqIds.idEndTrans, discarded);
             }
         });
     }
@@ -1472,23 +1509,19 @@ class CDb extends CHandler {
                 };
                 res(ret);
             }, (canceled) => {
-                if (discarded) ret = discarded(canceled);
-                if (ret === undefined) ret = (canceled ? 'Open canceled' : 'Connection closed');
-                rej(ret);
+                this.set_aborted(rej, 'Open', exports.DB.ReqIds.idOpen, canceled, discarded);
             }, flags, (errMsg, errCode, errWhere, id) => {
                 if (serverException) ret = serverException(errMsg, errCode, errWhere, id);
                 if (ret === undefined) ret = {
                     ec: errCode,
                     em: errMsg,
-                    stack: errWhere,
+                    where: errWhere,
                     reqId: id
                 };
                 rej(ret);
             });
             if (!ok) {
-                if (discarded) ret = discarded(false);
-                if (ret === undefined) ret = this.Socket.Error;
-                rej(ret);
+                this.raise(rej, 'Open', exports.DB.ReqIds.idOpen, discarded);
             }
         });
     }
@@ -1500,6 +1533,7 @@ class CDb extends CHandler {
         assert(cb === null || cb === undefined || typeof cb === 'function');
         assert(discarded === null || discarded === undefined || typeof discarded === 'function');
         assert(serverException === null || serverException === undefined || typeof serverException === 'function');
+        sql = (typeof sql_or_arrParam === 'string' || sql_or_arrParam === null || sql_or_arrParam === undefined);
         return new Promise((res, rej) => {
             var ret;
             var ok = this.handler.Execute(sql_or_arrParam, (errCode, errMsg, affected, fails, oks, id) => {
@@ -1514,23 +1548,19 @@ class CDb extends CHandler {
                 };
                 res(ret);
             }, rows, rh, (canceled) => {
-                if (discarded) ret = discarded(canceled);
-                if (ret === undefined) ret = (canceled ? 'Execute canceled' : 'Connection closed');
-                rej(ret);
+                this.set_aborted(rej, sql ? 'ExecuteSQL' : 'ExecuteParameters', sql ? exports.DB.ReqIds.idExecute : exports.DB.ReqIds.idExecuteParameters, canceled, discarded);
             }, meta, (errMsg, errCode, errWhere, id) => {
                 if (serverException) ret = serverException(errMsg, errCode, errWhere, id);
                 if (ret === undefined) ret = {
                     ec: errCode,
                     em: errMsg,
-                    stack: errWhere,
+                    where: errWhere,
                     reqId: id
                 };
                 rej(ret);
             });
             if (!ok) {
-                if (discarded) ret = discarded(false);
-                if (ret === undefined) ret = this.Socket.Error;
-                rej(ret);
+                this.raise(rej, sql ? 'ExecuteSQL' : 'ExecuteParameters', sql ? exports.DB.ReqIds.idExecute : exports.DB.ReqIds.idExecuteParameters, discarded);
             }
         });
     }
@@ -1558,23 +1588,19 @@ class CDb extends CHandler {
                 };
                 res(ret);
             }, rows, rh, batchHeader, (canceled) => {
-                if (discarded) ret = discarded(canceled);
-                if (ret === undefined) ret = (canceled ? 'ExecuteBatch canceled' : 'Connection closed');
-                rej(ret);
+                this.set_aborted(rej, 'ExecuteBatch', exports.DB.ReqIds.idExecuteBatch, canceled, discarded);
             }, rp, delimiter, arrP, meta, (errMsg, errCode, errWhere, id) => {
                 if (serverException) ret = serverException(errMsg, errCode, errWhere, id);
                 if (ret === undefined) ret = {
                     ec: errCode,
                     em: errMsg,
-                    stack: errWhere,
+                    where: errWhere,
                     reqId: id
                 };
                 rej(ret);
             });
             if (!ok) {
-                if (discarded) ret = discarded(false);
-                if (ret === undefined) ret = this.Socket.Error;
-                rej(ret);
+                this.raise(rej, 'ExecuteBatch', exports.DB.ReqIds.idExecuteBatch, discarded);
             }
         });
     }
@@ -1820,6 +1846,16 @@ exports.File = {
         APPENDED: 2,
         SHARE_READ: 4,
         SHARE_WRITE: 8
+    },
+
+    ReqIds: {
+        idDownload: 0x7F70,
+        idStartDownloading: 0x7F71,
+        idDownloading: 0x7F72,
+        idUpload: 0x7F73,
+        idUploading: 0x7F74,
+        idUploadCompleted: 0x7F75,
+        idUploadBackup: 0x7F76
     }
 };
 

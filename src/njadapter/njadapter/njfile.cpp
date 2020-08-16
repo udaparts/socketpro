@@ -152,6 +152,10 @@ namespace NJA {
             String::Utf8Value str0(isolate, p0);
 #endif
             std::wstring local = Utilities::ToWide(*str0);
+            if (!local.size()) {
+                ThrowException(isolate, "A local file path cannot be empty");
+                return;
+            }
             auto p1 = args[1];
             if (!p0->IsString()) {
                 ThrowException(isolate, "A remote file path required");
@@ -163,6 +167,10 @@ namespace NJA {
             String::Utf8Value str1(isolate, p1);
 #endif
             std::wstring remote = Utilities::ToWide(*str1);
+            if (!remote.size()) {
+                ThrowException(isolate, "A remote file path cannot be empty");
+                return;
+            }
             Local<Value> argv[] = {args[2], args[3], args[4], args[6]};
             auto p2 = args[5];
             if (p2->IsUint32())
