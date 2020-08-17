@@ -1476,7 +1476,7 @@ class CDb extends CHandler {
     }
 
     /**
-     * A property{int} A value for database management system
+     * A property{int} A value for database management system. one of exports.DB.ManagementSystem.Sqlite, Mysql, ODBC, MsSQL, Oracle, DB2, PostgreSQL, and MongoDB
      */
     get DbMS() {
         return this.handler.getDbMS();
@@ -1489,35 +1489,127 @@ class CDb extends CHandler {
         return this.handler.isOpened();
     }
 
+    /**
+     * Start a manual transaction with a given isolation asynchronously. Note
+     * the transaction will be associated with SocketPro client message queue if
+     * available to avoid possible transaction lose
+     * 
+     * @param {int} isolation a transaction isolation. It defaults to exports.DB.tagTransactionIsolation.tiReadCommited
+     * @param {function} cb a callback for tracking its response result
+     * @param {function} discarded an callback for tracking communication channel events, close and cancel
+     * @param {function} serverException a callback for tracking an exception from server
+     * @returns true if request is successfully sent or queued; and false if request is NOT successfully sent or queued
+     */
     BeginTrans(isolation = exports.DB.TransIsolation.ReadCommited, cb = null, discarded = null, serverException = null) {
         return this.handler.BeginTrans(isolation, cb, discarded, serverException);
     }
 
+    /**
+     * Notify connected remote server to close database connection string
+     * asynchronously
+     * @param {function} cb a callback for closing result, which should be OK always as long as there is network or queue available
+     * @param {function} discarded a callback for tracking communication channel events, close and cancel
+     * @param {function} serverException a callback for tracking an exception from server
+     * @returns true if request is successfully sent or queued; and false if request is NOT successfully sent or queued
+     */
     Close(cb = null, discarded = null, serverException = null) {
         return this.handler.Close(cb, discarded, serverException);
     }
 
+    /**
+     * End a manual transaction with a given rollback plan. Note the transaction
+     * will be associated with SocketPro client message queue if available to
+     * avoid possible transaction lose
+     * @param {int} rp plan a schedule about how included transactions should be rollback
+     * at server side. It defaults to exports.DB.tagRollbackPlan.rpDefault
+     * @param {function} cb a callback for tracking its response result
+     * @param {function} discarded an callback for tracking communication channel events, close and cancel
+     * @param {function} serverException a callback for tracking an exception from server
+     * @returns true if request is successfully sent or queued; and false if request is NOT successfully sent or queued
+     */
     EndTrans(rp = exports.DB.RollbackPlan.rpDefault, cb = null, discarded = null, serverException = null) {
         return this.handler.EndTrans(rp, cb, discarded, serverException);
     }
 
+    /**
+     * Open a database connection at server side asynchronously
+     * @param {string} conn a database connection string. The database
+     * connection string can be null, undefined or an empty string if its server side supports
+     * global database connection string
+     * @param {function} cb a callback for database connecting result
+     * @param {function} discarded a callback for tracking communication channel events, close and cancel
+     * @param {int} flags a set of flags transferred to server to indicate how to
+     * build database connection at server side. It defaults to zero
+     * @param {function} serverException a callback for tracking an exception from server
+     */
     Open(conn, cb = null, discarded = null, flags = 0, serverException = null) {
         return this.handler.Open(conn, cb, discarded, flags, serverException);
     }
 
+    /**
+     * Send a parameterized SQL statement for preparing with a given array of
+     * parameter informations asynchronously
+     * @param {string} sql a parameterized SQL statement
+     * @param {function} cb a callback for SQL preparing result
+     * @param {function} discarded a callback for tracking communication channel events, close and cancel
+     * @param {a[]} arrP a given array of parameter informations. It defaults to an empty array
+     * @param {function} serverException a callback for tracking an exception from server
+     * @returns true if request is successfully sent or queued; and false if
+     * request is NOT successfully sent or queued
+     */
     Prepare(sql, cb = null, discarded = null, arrP = [], serverException = null) {
         return this.handler.Prepare(sql, cb, discarded, arrP, serverException);
     }
 
+    /**
+     * Process a complex SQL statement which may be combined with multiple basic
+     * SQL statements asynchronously
+     * @param {string, [] or CUQueue} sql_or_arrParam an SQL statement, an array of parameter data, or an instance of CUQueue containing an array of parameters
+     * @param {function} cb a callback for tracking final result
+     * @param {function} rows a callback for tracking record or output parameter returned data
+     * @param {function} rh a callback for tracking row set of header column meta informations
+     * @param {boolean} meta a boolean value for better or more detailed column meta
+     * details such as unique, not null, primary first, and so on. It defaults to true
+     * @param {function} discarded a callback for tracking communication channel events, close and cancel
+     *  @param {function} serverException a callback for tracking an exception from server
+     * @returns true if request is successfully sent or queued; and false if request is NOT successfully sent or queued
+     */
     Execute(sql_or_arrParam, cb = null, rows = null, rh = null, meta = true, discarded = null, serverException = null) {
         return this.handler.Execute(sql_or_arrParam, cb, rows, rh, discarded, meta, serverException);
     }
 
+    /**
+     * Execute a batch of SQL statements on one single call
+     * @param {int} isolation a value for manual transaction isolation. Specifically,
+     * there is no manual transaction around the batch SQL statements if it is tiUnspecified
+     * @param {string} sql a SQL statement having a batch of individual SQL statements
+     * @param {[]} paramBuff an array of parameter data which will be bounded to previously prepared parameters.
+     * The array size can be 0 if the given batch SQL statement doesn't having any prepared statement
+     * @param {function} cb a callback for tracking final result
+     * @param {function} rows a callback for receiving records of data
+     * @param {function} rh a callback for tracking row set of header column meta informations
+     * @param {function} batchHeader a callback for tracking returning batch start error messages
+     * @param {function} discarded a callback for tracking communication channel events, close and cancel
+     * @param {int} rp a value for computing how included transactions should be rollback. It defaults to exports.DB.tagRollbackPlan.rpDefault
+     * @param {string} delimiter a delimiter string used for separating the batch SQL statements into individual SQL statements at server side
+     * for processing. It defaults to ";"
+     * @param {boolean} meta a boolean for better or more detailed column meta details such as unique, not null, primary key, and so on. It defaults to true
+     * @param {[]} arrP a given array of parameter informations which may be empty to most of database management systems
+     * @param {function} serverException a callback for tracking an exception from server
+     * @returns true if request is successfully sent or queued; and false if request is NOT successfully sent or queued
+     */
     ExecuteBatch(isolation, sql, paramBuff, cb = null, rows = null, rh = null, batchHeader = null, discarded = null, rp = exports.DB.RollbackPlan.rpDefault, delimiter = ';', meta = true, arrP = [], serverException = null) {
         return this.handler.ExecuteBatch(isolation, sql, paramBuff, cb, rows, rh, batchHeader, discarded, rp, delimiter, arrP, meta, serverException);
     }
 
     //Promise
+    /**
+     * Notify connected remote server to close database connection string asynchronously
+     * @param {function} cb an optional callback for tracking returning result
+     * @param {function} discarded an optional callback for tracking communication channel events, close and cancel
+     * @param {function} serverException an optional callback for tracking an exception from server
+     * @returns a future for execution error information
+     */
     close(cb = null, discarded = null, serverException = null) {
         assert(cb === null || cb === undefined || typeof cb === 'function');
         assert(discarded === null || discarded === undefined || typeof discarded === 'function');
@@ -1543,6 +1635,15 @@ class CDb extends CHandler {
     }
 
     //Promise
+    /**
+     * Send a parameterized SQL statement for preparing with a given array of parameter informations asynchronously
+     * @param {string} sql a parameterized SQL statement
+     * @param {[]} arrP a given array of parameter informations. It defaults to empty array
+     * @param {function} cb an optional callback for tracking returning result
+     * @param {function} discarded an optional callback for tracking communication channel events, close and cancel
+     * @param {function} serverException an optional callback for tracking an exception from server
+     * @returns a future for execution error information
+     */
     prepare(sql, arrP = [], cb = null, discarded = null, serverException = null) {
         assert(sql && typeof sql === 'string');
         assert(cb === null || cb === undefined || typeof cb === 'function');
@@ -1569,6 +1670,15 @@ class CDb extends CHandler {
     }
 
     //Promise
+    /**
+     * Start a manual transaction with a given isolation asynchronously. Note the transaction will be associated with SocketPro
+     * client message queue if available to avoid possible transaction lose
+     * @param {int} isolation a transaction isolation. It defaults to exports.DB.TransactionIsolation.tiReadCommited
+     * @param {function} cb an optional callback for tracking returning result
+     * @param {function} discarded an optional callback for tracking communication channel events, close and cancel
+     * @param {function} serverException an optional callback for tracking an exception from server
+     * @returns a future for execution error information
+     */
     beginTrans(isolation = exports.DB.TransIsolation.ReadCommited, cb = null, discarded = null, serverException = null) {
         assert(cb === null || cb === undefined || typeof cb === 'function');
         assert(discarded === null || discarded === undefined || typeof discarded === 'function');
@@ -1594,6 +1704,15 @@ class CDb extends CHandler {
     }
 
     //Promise
+    /**
+     * End a manual transaction with a given rollback plan. Note the transaction will be associated with SocketPro client message queue
+     * if available to avoid possible transaction lose
+     * @param {int} rp a schedule about how included transactions should be rollback at server side. It defaults to exports.DB.RollbackPlan.rpDefault
+     * @param {function} cb an optional callback for tracking returning result
+     * @param {function} discarded an optional callback for tracking communication channel events, close and cancel
+     * @param {function} serverException an optional callback for tracking an exception from server
+     * @returns a future for execution error information
+     */
     endTrans(rp = exports.DB.RollbackPlan.rpDefault, cb = null, discarded = null, serverException = null) {
         assert(cb === null || cb === undefined || typeof cb === 'function');
         assert(discarded === null || discarded === undefined || typeof discarded === 'function');
@@ -1619,6 +1738,16 @@ class CDb extends CHandler {
     }
 
     //Promise
+    /**
+     * Open a database connection at server side asynchronously
+     * @param {string} conn a database connection string. The database connection string can be null, undefined or an empty string
+     * if its server side supports global database connection string
+     * @param {int} flags a set of flags transferred to server to indicate how to build database connection at server side. It defaults to zero
+     * @param {function} cb an optional callback for tracking returning result
+     * @param {function} discarded an optional callback for tracking communication channel events, close and cancel
+     * @param {function} serverException an optional callback for tracking an exception from server
+     * @returns a future for execution error information
+     */
     open(conn, flags = 0, cb = null, discarded = null, serverException = null) {
         assert(conn === null || conn === undefined || typeof conn === 'string');
         assert(cb === null || cb === undefined || typeof cb === 'function');
@@ -1645,13 +1774,26 @@ class CDb extends CHandler {
     }
 
     //Promise
+    /**
+     * Execute one SQL complex statement having multiple basic SQL statements or
+     * one or more sets of prepared statements with an array of parameter data asynchronously
+     * @param {string, [], or CUQueue} sql_or_arrParam an SQL statement, an array of parameter data or an instance of CUQueue containing an array of parameters
+     * @param {function} rows a callback for tracking record data or output parameter returned data
+     * @param {function} rh a callback for tracking row set of header column meta informations
+     * @param {boolean} meta a boolean value for better or more detailed column meta
+     * details such as unique, not null, primary first, and so on. It defaults to true
+     * @param {function} cb a callback for tracking SQL final result
+     * @param {function} discarded an optional callback for tracking communication channel events, close and cancel
+     * @param {function} serverException an optional callback for tracking an exception from server
+     * @returns a future for SQL execution error information
+     */
     execute(sql_or_arrParam, rows = null, rh = null, meta = true, cb = null, discarded = null, serverException = null) {
         assert(rows === null || rows === undefined || typeof rows === 'function');
         assert(rh === null || rh === undefined || typeof rh === 'function');
         assert(cb === null || cb === undefined || typeof cb === 'function');
         assert(discarded === null || discarded === undefined || typeof discarded === 'function');
         assert(serverException === null || serverException === undefined || typeof serverException === 'function');
-        sql = (typeof sql_or_arrParam === 'string' || sql_or_arrParam === null || sql_or_arrParam === undefined);
+        var sql = (typeof sql_or_arrParam === 'string');
         return new Promise((res, rej) => {
             var ok = this.handler.Execute(sql_or_arrParam, (errCode, errMsg, affected, fails, oks, id) => {
                 var ret;
@@ -1675,9 +1817,29 @@ class CDb extends CHandler {
             }
         });
     }
-
+    
     //Promise
-    executeBatch(isolation, sql, paramBuff, rows = null, rh = null, rp = exports.DB.RollbackPlan.rpDefault, delimiter = ';', batchHeader = null, meta = true, arrP = [], cb = null, discarded = null, serverException = null) {
+    /**
+     * Execute a batch of SQL statements on one single call
+     * @param {int} isolation a value for manual transaction isolation. Specifically,
+     * there is no manual transaction around the batch SQL statements if it is exports.DB.TransIsolation.Unspecified
+     * @param {string} sql a SQL statement having a batch of individual SQL statements
+     * @param {[]} paramBuff an array of parameter data which will be bounded to previously prepared parameters.
+     * The array size can be 0 if the given batch SQL statement doesn't having any prepared statement
+     * @param {function} rows a callback for tracking final result
+     * @param {function} rh a callback for tracking row set of header column informations
+     * @param {int} rp a value for computing how included transactions should be rollback. It defaults to exports.DB.RollbackPlan.rpDefault
+     * @param {string} delimiter delimiter a delimiter string used for separating the batch SQL statements into individual SQL statements
+     * at server side for processing. It defaults to ";"
+     * @param {function} batchHeader a callback for tracking batch start event
+     * @param {boolean} meta a boolean value for better or more detailed column meta details such as unique, not null, primary key, and so on. It defaults to true
+     * @param {[]} arrP a given array of parameter informations which may be empty to some of database management systems
+     * @param {function} cb an optional callback for tracking final execution result
+     * @param {function} discarded an optional callback for tracking communication channel events, close and cancel
+     * @param {function} serverException an optional callback for tracking an exception from server
+     * @returns final execution result by promise
+     */
+    executeBatch(isolation, sql, paramBuff, rows = null, rh = null, rp = exports.DB.RollbackPlan.rpDefault, delimiter = ';', batchHeader = null, meta = true, arrP = [], cb = null, discarded = null, serverException = null) { 
         assert(sql && typeof sql === 'string');
         assert(rows === null || rows === undefined || typeof rows === 'function');
         assert(rh === null || rh === undefined || typeof rh === 'function');
