@@ -781,8 +781,8 @@ class CHandler {
      * @param {short} reqId An unique request id within a service handler
      * @param {CUQueue or null} buff null or an instance of CUQueue or None
      * @param {function} A callback for tracking an instance of CUQueue containing an expected result
-     * @param {function} discarded A callback for tracking communication channel events, close and cancel
-     * @param {function} serverException A callback for tracking an exception from server
+     * @param {function} discarded An optional callback for tracking communication channel events, close and cancel
+     * @param {function} serverException An optional callback for tracking an exception from server
      * @returns A promise
      * @throws A server or socket close exception
      */
@@ -791,8 +791,8 @@ class CHandler {
         assert(discarded === null || discarded === undefined || typeof discarded === 'function');
         assert(serverException === null || serverException === undefined || typeof serverException === 'function');
         return new Promise((res, rej) => {
-            var ret;
             var ok = this.handler.SendRequest(reqId, buff, (q, id) => {
+                var ret;
                 if (cb) ret = cb(q, id);
                 if (ret === undefined) ret = q;
                 res(ret);
@@ -807,7 +807,17 @@ class CHandler {
         });
     }
 
+    /**
+     * set a server exception for promise reject
+     * @param {reject} rej promise reject function
+     * @param {string} errMsg an error message
+     * @param {int} errCode an error code
+     * @param {string} errWhere location where exception happens at server side
+     * @param {short} id an unique request id within a service handler
+     * @param {function} serverException an optional callback for tracking an exception from server
+     */
     set_exception(rej, errMsg, errCode, errWhere, id, serverException) {
+        var ret;
         if (serverException) ret = serverException(errMsg, errCode, errWhere, id);
         if (ret === undefined) ret = {
             ec: errCode,
@@ -819,12 +829,12 @@ class CHandler {
     }
 
     /**
-     * set a cancel or communication channel close exception
+     * set a cancel or communication channel close exception for promise reject
      * @param {reject} rej promise reject function
      * @param {string} method_name a request method name
-     * @param {short} req_id An unique request id within a service handler
+     * @param {short} req_id an unique request id within a service handler
      * @param {boolean} canceled true if the request is canceled, false if communication channel is closed
-     * @param {function} discarded An optinal callback for tracking communication channel events, close and cancel
+     * @param {function} discarded an optinal callback for tracking communication channel events, close and cancel
      */
     set_aborted(rej, method_name, req_id, canceled, discarded = null) {
         var ret;
@@ -846,7 +856,7 @@ class CHandler {
     }
 
     /**
-     * raise a communication channel close exception
+     * raise a communication channel close exception for promise reject
      * @param {reject} rej promise reject function
      * @param {string} method_name a request method name
      * @param {short} req_id An unique request id within a service handler
@@ -968,7 +978,9 @@ class CAsyncQueue extends CHandler {
 
     /**
      * Send a request to server for querying all opened keys that are corresponding server queue files
-     * @param {function} cb A callback for tracking returning keys
+     * @param {function} cb A callback for tracking an array of returning keys
+     * @param {function} discarded A callback for tracking communication channel events, close and cancel
+     * @param {function} serverException A callback for tracking an exception from server
      * @returns true if succsessful, and false if communication channel is closed or not sendable
      */
     GetKeys(cb, discarded = null, serverException = null) {
@@ -979,6 +991,8 @@ class CAsyncQueue extends CHandler {
      * Start enqueuing messages with transaction style. Currently, total size of queued messages must be less than 4 G bytes
      * @param {string} key An ASCII string to identify a server queue file
      * @param {function} cb A callback for tracking returning error code, which can be one of QUEUE_OK, QUEUE_TRANS_ALREADY_STARTED, and so on
+     * @param {function} discarded A callback for tracking communication channel events, close and cancel
+     * @param {function} serverException A callback for tracking an exception from server
      * @returns true if communication channel is sendable, and false if communication channel is not sendable
      */
     StartTrans(key, cb = null, discarded = null, serverException = null) {
@@ -989,6 +1003,8 @@ class CAsyncQueue extends CHandler {
      * End enqueuing messages with transaction style. Currently, total size of queued messages must be less than 4 G bytes
      * @param {boolean} rollback true for rollback, and false for committing
      * @param {function} cb A callback for tracking returning error code, which can be one of QUEUE_OK, QUEUE_TRANS_NOT_STARTED_YET, and so on
+     * @param {function} discarded A callback for tracking communication channel events, close and cancel
+     * @param {function} serverException A callback for tracking an exception from server
      * @returns true if communication channel is sendable, and false if communication channel is not sendable
      */
     EndTrans(rollback = false, cb = null, discarded = null, serverException = null) {
@@ -999,7 +1015,9 @@ class CAsyncQueue extends CHandler {
      * Try to close or delete a persistent queue opened at server side
      * @param {string} key An ASCII string for identifying a queue at server side
      * @param {function} cb A callback for tracking returning error code, which can be one of QUEUE_OK, QUEUE_DEQUEUING, and so on
+     * @param {function} discarded A callback for tracking communication channel events, close and cancel
      * @param {boolean} permanent true for deleting a queue file, and false for closing a queue file
+     * @param {function} serverException A callback for tracking an exception from server
      * @returns true if communication channel is sendable, and false if communication channel is not sendable
      */
     Close(key, cb = null, discarded = null, permanent = false, serverException = null) {
@@ -1010,7 +1028,9 @@ class CAsyncQueue extends CHandler {
      * Flush memory data into either operation system memory or hard disk, and return message count and queue file size in bytes. Note the method only returns message count and queue file size in bytes if the option is oMemoryCached
      * @param {string} key An ASCII string for identifying a queue at server side
      * @param {function} cb A callback for tracking returning message count and queue file size in bytes
+     * @param {function} discarded A callback for tracking communication channel events, close and cancel
      * @param {int} option one of tagOptimistic options, oMemoryCached, oSystemMemoryCached and oDiskCommitted
+     * @param {function} serverException A callback for tracking an exception from server
      * @returns true if communication channel is sendable, and false if communication channel is not sendable
      */
     Flush(key, cb = null, discarded = null, option = exports.CS.Queue.Optimistic.oMemoryCached, serverException = null) {
@@ -1021,7 +1041,9 @@ class CAsyncQueue extends CHandler {
      * Dequeue messages from a persistent message queue file at server side in batch
      * @param {string} key An ASCII string for identifying a queue at server side
      * @param {function} cb A callback for tracking data like remaining message count within a server queue file, queue file size in bytes, message dequeued within this batch and bytes dequeued within this batch
+     * @param {function} discarded A callback for tracking communication channel events, close and cancel
      * @param {int} timeout A time-out number in milliseconds
+     * @param {function} serverException A callback for tracking an exception from server
      * @returns true if communication channel is sendable, and false if communication channel is not sendable
      */
     Dequeue(key, cb = null, discarded = null, timeout = 0, serverException = null) {
@@ -1032,8 +1054,10 @@ class CAsyncQueue extends CHandler {
      *  Enqueue a message into a queue file identified by a key
      * @param {string} key An ASCII string for identifying a queue at server side
      * @param {short} reqId  A unsigned short number to identify a message
-     * @param {any} buff an instance of SPA.CUQueue containing a message, null or undefined
-     * @param {any} cb A callback for tracking returning index
+     * @param {CUQueue} buff an instance of SPA.CUQueue containing a message, null or undefined
+     * @param {function} cb A callback for tracking returning index
+     * @param {function} discarded A callback for tracking communication channel events, close and cancel
+     * @param {function} serverException A callback for tracking an exception from server
      * @returns true if communication channel is sendable, and false if communication channel is not sendable
      */
     Enqueue(key, reqId, buff, cb = null, discarded = null, serverException = null) {
@@ -1043,7 +1067,9 @@ class CAsyncQueue extends CHandler {
     /**
      * Enqueue a batch of messages into a queue file identified by a key
      * @param {string} key An ASCII string for identifying a queue at server side
-     * @param {any} cb  A callback for tracking returning index
+     * @param {function} cb  A callback for tracking returning index
+     * @param {function} discarded A callback for tracking communication channel events, close and cancel
+     * @param {function} serverException A callback for tracking an exception from server
      * @returns true if communication channel is sendable, and false if communication channel is not sendable
      */
     EnqueueBatch(key, cb = null, discarded = null, serverException = null) {
@@ -1053,6 +1079,9 @@ class CAsyncQueue extends CHandler {
     //Promise
     /**
      * Query queue keys opened at server side
+     * @param {function} cb An optinal callback for tracking an array of returning keys
+     * @param {function} discarded An optional callback for tracking communication channel events, close and cancel
+     * @param {function} serverException An optional callback for tracking an exception from server
      * @returns An array of string keys by promise
      */
     getKeys(cb = null, discarded = null, serverException = null) {
@@ -1060,8 +1089,8 @@ class CAsyncQueue extends CHandler {
         assert(discarded === null || discarded === undefined || typeof discarded === 'function');
         assert(serverException === null || serverException === undefined || typeof serverException === 'function');
         return new Promise((res, rej) => {
-            var ret;
             var ok = this.handler.GetKeys((vKeys) => {
+                var ret;
                 if (cb) ret = cb(vKeys);
                 if (ret === undefined) ret = vKeys;
                 res(ret);
@@ -1081,6 +1110,9 @@ class CAsyncQueue extends CHandler {
      * Try to close a persistent queue opened at server side
      * @param {string} key An ASCII string for identifying a queue at server side
      * @param {boolean} permanent true for deleting a queue file, and false for closing a queue file.
+     * @param {function} cb An optional callback for tracking returning error code, which can be one of QUEUE_OK, QUEUE_DEQUEUING, and so on
+     * @param {function} discarded An optional callback for tracking communication channel events, close and cancel
+     * @param {function} serverException An optional callback for tracking an exception from server
      * @returns An error code by promise, which can be one of QUEUE_OK, QUEUE_DEQUEUING, and so on
      */
     close(key, permanent = false, cb = null, discarded = null, serverException = null) {
@@ -1088,8 +1120,8 @@ class CAsyncQueue extends CHandler {
         assert(discarded === null || discarded === undefined || typeof discarded === 'function');
         assert(serverException === null || serverException === undefined || typeof serverException === 'function');
         return new Promise((res, rej) => {
-            var ret;
             var ok = this.handler.Close(key, (errCode) => {
+                var ret;
                 if (cb) ret = cb(errCode);
                 if (ret === undefined) ret = errCode;
                 res(ret);
@@ -1108,6 +1140,9 @@ class CAsyncQueue extends CHandler {
     /**
      * Start to enqueue messages with transaction style. Currently, total size of queued messages must be less than 4 G bytes
      * @param {string} key An ASCII string for identifying a queue at server side
+     * @param {function} cb An optional callback for tracking returning error code, which can be one of QUEUE_OK, QUEUE_TRANS_ALREADY_STARTED, and so on
+     * @param {function} discarded An optional callback for tracking communication channel events, close and cancel
+     * @param {function} serverException An optional callback for tracking an exception from server
      * @returns An error code by promise, which can be one of QUEUE_OK, QUEUE_TRANS_ALREADY_STARTED, and so on
      */
     startTrans(key, cb = null, discarded = null, serverException = null) {
@@ -1115,8 +1150,8 @@ class CAsyncQueue extends CHandler {
         assert(discarded === null || discarded === undefined || typeof discarded === 'function');
         assert(serverException === null || serverException === undefined || typeof serverException === 'function');
         return new Promise((res, rej) => {
-            var ret;
             var ok = this.handler.StartTrans(key, (errCode) => {
+                var ret;
                 if (cb) ret = cb(errCode);
                 if (ret === undefined) ret = errCode;
                 res(ret);
@@ -1135,6 +1170,9 @@ class CAsyncQueue extends CHandler {
     /**
      * End enqueuing messages with transaction style. Currently, total size of queued messages must be less than 4 G bytes
      * @param {boolean} rollback true for rollback, and false for committing.
+     * @param {function} cb An optional callback for tracking returning error code, which can be one of QUEUE_OK, QUEUE_TRANS_NOT_STARTED_YET, and so on
+     * @param {function} discarded An optional callback for tracking communication channel events, close and cancel
+     * @param {function} serverException An optional callback for tracking an exception from server
      * @returns An error code by promise, which can be one of QUEUE_OK, QUEUE_TRANS_NOT_STARTED_YET, and so on
      */
     endTrans(rollback = false, cb = null, discarded = null, serverException = null) {
@@ -1142,8 +1180,8 @@ class CAsyncQueue extends CHandler {
         assert(discarded === null || discarded === undefined || typeof discarded === 'function');
         assert(serverException === null || serverException === undefined || typeof serverException === 'function');
         return new Promise((res, rej) => {
-            var ret;
             var ok = this.handler.EndTrans(rollback, (errCode) => {
+                var ret;
                 if (cb) ret = cb(errCode);
                 if (ret === undefined) ret = errCode;
                 res(ret);
@@ -1162,7 +1200,10 @@ class CAsyncQueue extends CHandler {
     /**
      * Just get message count and queue file size in bytes only
      * @param {string} key An ASCII string for identifying a queue at server side
-     * @param {any} option one of options, oMemoryCached, oSystemMemoryCached and oDiskCommitted
+     * @param {int} option one of options, oMemoryCached, oSystemMemoryCached and oDiskCommitted
+     * @param {function} cb An optional callback for tracking returning message count and queue file size in bytes
+     * @param {function} discarded An optional callback for tracking communication channel events, close and cancel
+     * @param {function} serverException An optional callback for tracking an exception from server
      * @returns message count and queue file size in bytes by promise
      */
     flush(key, option = exports.CS.Queue.Optimistic.oMemoryCached, cb = null, discarded = null, serverException = null) {
@@ -1170,8 +1211,8 @@ class CAsyncQueue extends CHandler {
         assert(discarded === null || discarded === undefined || typeof discarded === 'function');
         assert(serverException === null || serverException === undefined || typeof serverException === 'function');
         return new Promise((res, rej) => {
-            var ret;
             var ok = this.handler.Flush(key, (messages, fileSize) => {
+                var ret;
                 if (cb) ret = cb(messages, fileSize);
                 if (ret === undefined) ret = {
                     msgs: messages,
@@ -1194,7 +1235,10 @@ class CAsyncQueue extends CHandler {
      * Enqueue a message to a server queue file
      * @param {string} key An ASCII string for identifying a queue at server side
      * @param {short} reqId A request id for a message
-     * @param {any} buff An instance of CUQueue containing the message, null or undefined
+     * @param {CUQueue} buff An instance of CUQueue containing the message, null or undefined
+     * @param {bigint} cb An optional callback for tracking returning index
+     * @param {function} discarded An optional callback for tracking communication channel events, close and cancel
+     * @param {function} serverException An optional callback for tracking an exception from server
      * @returns An index by promise
      */
     enqueue(key, reqId, buff, cb = null, discarded = null, serverException = null) {
@@ -1202,8 +1246,8 @@ class CAsyncQueue extends CHandler {
         assert(discarded === null || discarded === undefined || typeof discarded === 'function');
         assert(serverException === null || serverException === undefined || typeof serverException === 'function');
         return new Promise((res, rej) => {
-            var ret;
             var ok = this.handler.Enqueue(key, reqId, buff, (index) => {
+                var ret;
                 if (cb) ret = cb(index);
                 if (ret === undefined) ret = index;
                 res(ret);
@@ -1222,6 +1266,9 @@ class CAsyncQueue extends CHandler {
     /**
      * Enqueue a batch of messages into a server queue file
      * @param {string} key An ASCII string for identifying a queue at server side
+     * @param {bigint} cb An optional callback for tracking returning index
+     * @param {function} discarded An optional callback for tracking communication channel events, close and cancel
+     * @param {function} serverException An optional callback for tracking an exception from server
      * @returns An index by promise
      */
     enqueueBatch(key, cb = null, discarded = null, serverException = null) {
@@ -1229,8 +1276,8 @@ class CAsyncQueue extends CHandler {
         assert(discarded === null || discarded === undefined || typeof discarded === 'function');
         assert(serverException === null || serverException === undefined || typeof serverException === 'function');
         return new Promise((res, rej) => {
-            var ret;
             var ok = this.handler.EnqueueBatch(key, (index) => {
+                var ret;
                 if (cb) ret = cb(index);
                 if (ret === undefined) ret = index;
                 res(ret);
@@ -1250,15 +1297,18 @@ class CAsyncQueue extends CHandler {
      * 
      * @param {string} key An ASCII string for identifying a queue at server side
      * @param {int} timeout A time-out number in millseconds
-     * @returns remaining message count within a server queue file, queue file size in bytes, messages dequeued and bytes dequeued within this batch by promise
+     * @param {function} cb An optional callback for tracking data like remaining message count within a server queue file, queue file size in bytes, message dequeued within this batch and bytes dequeued within this batch
+     * @param {function} discarded An optional callback for tracking communication channel events, close and cancel
+     * @param {function} serverException An optional callback for tracking an exception from server
+     * @returns Remaining message count within a server queue file, queue file size in bytes, messages dequeued and bytes dequeued within this batch by promise
      */
     dequeue(key, timeout = 0, cb = null, discarded = null, serverException = null) {
         assert(cb === null || cb === undefined || typeof cb === 'function');
         assert(discarded === null || discarded === undefined || typeof discarded === 'function');
         assert(serverException === null || serverException === undefined || typeof serverException === 'function');
         return new Promise((res, rej) => {
-            var ret;
             var ok = this.handler.Dequeue(key, (messages, fileSize, messagesDequeued, bytes) => {
+                var ret;
                 if (cb) ret = cb(messages, fileSize, messagesDequeued, bytes);
                 if (ret === undefined) ret = {
                     msgs: messages,
@@ -1286,33 +1336,77 @@ class CAsyncFile extends CHandler {
     }
 
     /**
-     * 
+     * A property{int} the number of files queued for transferring
      */
     get FilesQueued() {
         return this.handler.getFilesQueued();
     }
 
+    /**
+     * A property{int} the number of files streamed at max. It defaults to 1
+     */
     get FilesStreamed() {
         return this.handler.getFilesStreamed();
     }
 
+    /**
+     * A property{int} set a max number of  files streamed. The max number could be 32 at hard-coded
+     * @remarks Increasing the property could speed up files downloading if there are a lot of small files to be downloaded from remote server
+     */
     set FilesStreamed(max) {
         return this.handler.setFilesStreamed(max);
     }
 
+    /**
+     * Post a message for uploading a file onto a remote server
+     * @param {string} localFile A non-empty string path to a local file
+     * @param {string} remoteFile A non-empty string path to a remote file at server side
+     * @param {function} cb A callback for tracking the final result of file uploading containing an error code and an error message
+     * @param {function} progress A callback for file uploading progress
+     * @param {function} discarded A callback for tracking communication channel events, close and cancel
+     * @param {int} flags A bit-wsie int flags for opening file options. It could be one or more of these options: exports.File.OpenOption.TRUNCACTED, APPENDED, SHARE_READ and SHARE_WRITE
+     * @param {function} serverException A callback for tracking an exception from server
+     * @returns It always returns true
+     */
     Upload(localFile, remoteFile, cb = null, progress = null, discarded = null, flags = exports.File.OpenOption.TRUNCACTED, serverException = null) {
         return this.handler.Upload(localFile, remoteFile, cb, progress, discarded, flags, serverException);
     }
 
+    /**
+     * Post a message for downloading a file from a remote server
+     * @param {string} localFile A non-empty string path to a local file
+     * @param {string} remoteFile A non-empty string path to a remote file at server side
+     * @param {function} cb A callback for tracking the final result of file downloading containing an error code and an error message
+     * @param {function} progress A callback for file downloading progress
+     * @param {function} discarded A callback for tracking communication channel events, close and cancel
+     * @param {int} flags A bit-wsie int flags for opening file options. It could be one or more of these options: exports.File.OpenOption.TRUNCACTED, APPENDED, SHARE_READ and SHARE_WRITE
+     * @param {function} serverException A callback for tracking an exception from server
+     * @returns It always returns true
+     */
     Download(localFile, remoteFile, cb = null, progress = null, discarded = null, flags = exports.File.OpenOption.TRUNCACTED, serverException = null) {
         return this.handler.Download(localFile, remoteFile, cb, progress, discarded, flags, serverException);
     }
 
+    /**
+     * Cancel file transferrings queued
+     * @returns the number of file transferrings canceled
+     */
     Cancel() {
         return this.handler.Cancel();
     }
 
     //Promise version
+    /**
+     * Post a message for uploading a file onto a remote server
+     * @param {string} localFile A non-empty string path to a local file
+     * @param {string} remoteFile A non-empty string path to a remote file at server side
+     * @param {function} progress A callback for file uploading progress
+     * @param {int} flags A bit-wsie int flags for opening file options. It could be one or more of these options: exports.File.OpenOption.TRUNCACTED, APPENDED, SHARE_READ and SHARE_WRITE
+     * @param {function} cb An optional callback for tracking the final result of file uploading containing an error code and an error message
+     * @param {function} discarded An optional callback for tracking communication channel events, close and cancel
+     * @param {function} serverException An optional callback for tracking an exception from server
+     * @returns A structure for final result of file uploading containing an error code and an error message by promise
+     */
     upload(localFile, remoteFile, progress = null, flags = exports.File.OpenOption.TRUNCACTED, cb = null, discarded = null, serverException = null) {
         assert(localFile && typeof localFile === 'string');
         assert(remoteFile && typeof remoteFile === 'string');
@@ -1321,8 +1415,8 @@ class CAsyncFile extends CHandler {
         assert(discarded === null || discarded === undefined || typeof discarded === 'function');
         assert(serverException === null || serverException === undefined || typeof serverException === 'function');
         return new Promise((res, rej) => {
-            var ret;
             this.handler.Upload(localFile, remoteFile, (errMsg, errCode, download) => {
+                var ret;
                 if (cb) ret = cb(errMsg, errCode, download);
                 if (ret === undefined) ret = {
                     ec: errCode,
@@ -1338,6 +1432,17 @@ class CAsyncFile extends CHandler {
     }
 
     //Promise version
+    /**
+     * Post a message for downloading a file from a remote server
+     * @param {string} localFile A non-empty string path to a local file
+     * @param {string} remoteFile A non-empty string path to a remote file at server side
+     * @param {function} progress A callback for file downloading progress
+     * @param {int} flags A bit-wsie int flags for opening file options. It could be one or more of these options: exports.File.OpenOption.TRUNCACTED, APPENDED, SHARE_READ and SHARE_WRITE
+     * @param {function} cb An optional callback for tracking the final result of file uploading containing an error code and an error message
+     * @param {function} discarded An optional callback for tracking communication channel events, close and cancel
+     * @param {function} serverException An optional callback for tracking an exception from server
+     * @returns A structure for final result of file downloading containing an error code and an error message by promise
+     */
     download(localFile, remoteFile, progress = null, flags = exports.File.OpenOption.TRUNCACTED, cb = null, discarded = null, serverException = null) {
         assert(localFile && typeof localFile === 'string');
         assert(remoteFile && typeof remoteFile === 'string');
@@ -1346,8 +1451,8 @@ class CAsyncFile extends CHandler {
         assert(discarded === null || discarded === undefined || typeof discarded === 'function');
         assert(serverException === null || serverException === undefined || typeof serverException === 'function');
         return new Promise((res, rej) => {
-            var ret;
             this.handler.Download(localFile, remoteFile, (errMsg, errCode, download) => {
+                var ret;
                 if (cb) ret = cb(errMsg, errCode, download);
                 if (ret === undefined) ret = {
                     ec: errCode,
@@ -1370,10 +1475,16 @@ class CDb extends CHandler {
         assert(sid === exports.SID.sidOdbc || sid === exports.SID.sidSqlite || sid === exports.SID.sidMysql);
     }
 
+    /**
+     * A property{int} A value for database management system
+     */
     get DbMS() {
         return this.handler.getDbMS();
     }
 
+    /**
+     * A property{boolean} true if database is connected, and false if database is not opened
+     */
     get Opened() {
         return this.handler.isOpened();
     }
@@ -1412,8 +1523,8 @@ class CDb extends CHandler {
         assert(discarded === null || discarded === undefined || typeof discarded === 'function');
         assert(serverException === null || serverException === undefined || typeof serverException === 'function');
         return new Promise((res, rej) => {
-            var ret;
             var ok = this.handler.Close((errCode, errMsg) => {
+                var ret;
                 if (cb) ret = cb(errCode, errMsg);
                 if (ret === undefined) ret = {
                     ec: errCode,
@@ -1463,8 +1574,8 @@ class CDb extends CHandler {
         assert(discarded === null || discarded === undefined || typeof discarded === 'function');
         assert(serverException === null || serverException === undefined || typeof serverException === 'function');
         return new Promise((res, rej) => {
-            var ret;
             var ok = this.handler.BeginTrans(isolation, (errCode, errMsg) => {
+                var ret;
                 if (cb) ret = cb(errCode, errMsg);
                 if (ret === undefined) ret = {
                     ec: errCode,
@@ -1488,8 +1599,8 @@ class CDb extends CHandler {
         assert(discarded === null || discarded === undefined || typeof discarded === 'function');
         assert(serverException === null || serverException === undefined || typeof serverException === 'function');
         return new Promise((res, rej) => {
-            var ret;
             var ok = this.handler.EndTrans(rp, (errCode, errMsg) => {
+                var ret;
                 if (cb) ret = cb(errCode, errMsg);
                 if (ret === undefined) ret = {
                     ec: errCode,
@@ -1514,8 +1625,8 @@ class CDb extends CHandler {
         assert(discarded === null || discarded === undefined || typeof discarded === 'function');
         assert(serverException === null || serverException === undefined || typeof serverException === 'function');
         return new Promise((res, rej) => {
-            var ret;
             var ok = this.handler.Open(conn, (errCode, errMsg) => {
+                var ret;
                 if (cb) ret = cb(errCode, errMsg);
                 if (ret === undefined) ret = {
                     ec: errCode,
@@ -1542,8 +1653,8 @@ class CDb extends CHandler {
         assert(serverException === null || serverException === undefined || typeof serverException === 'function');
         sql = (typeof sql_or_arrParam === 'string' || sql_or_arrParam === null || sql_or_arrParam === undefined);
         return new Promise((res, rej) => {
-            var ret;
             var ok = this.handler.Execute(sql_or_arrParam, (errCode, errMsg, affected, fails, oks, id) => {
+                var ret;
                 if (cb) ret = cb(errCode, errMsg, affected, fails, oks, id);
                 if (ret === undefined) ret = {
                     ec: errCode,
@@ -1575,8 +1686,8 @@ class CDb extends CHandler {
         assert(discarded === null || discarded === undefined || typeof discarded === 'function');
         assert(serverException === null || serverException === undefined || typeof serverException === 'function');
         return new Promise((res, rej) => {
-            var ret;
             var ok = this.handler.ExecuteBatch(isolation, sql, paramBuff, (errCode, errMsg, affected, fails, oks, id) => {
+                var ret;
                 if (cb) ret = cb(errCode, errMsg, affected, fails, oks, id);
                 if (ret === undefined) ret = {
                     ec: errCode,
