@@ -333,6 +333,19 @@ namespace SocketProAdapter.ClientSide
                     {
                         //Send an interrupt request onto server to shut down downloading as earlier as possible
                         Interrupt(CStreamingFile.DEFAULT_INTERRUPT_OPTION);
+                        break;
+                    }
+                    if (back.Discarded != null)
+                    {
+                        try
+                        {
+                            System.Threading.Monitor.Exit(m_csFile);
+                            back.Discarded(this, true);
+                        }
+                        finally
+                        {
+                            System.Threading.Monitor.Enter(m_csFile);
+                        }
                     }
                     m_vContext.RemoveFromBack();
                     ++canceled;

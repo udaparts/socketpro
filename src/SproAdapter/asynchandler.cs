@@ -303,26 +303,31 @@ namespace SocketProAdapter
             public virtual uint CleanCallbacks()
             {
                 uint size = 0;
+                Deque<MyKeyValue<ushort, CResultCb>> kvCallback, kvBatching;
                 lock (m_cs)
                 {
-                    size = (uint)(m_kvBatching.Count + m_kvCallback.Count);
-                    foreach (MyKeyValue<ushort, CResultCb> p in m_kvBatching)
-                    {
-                        if (p.Value.Discarded != null)
-                        {
-                            p.Value.Discarded.Invoke(this, AttachedClientSocket.CurrentRequestID == (ushort)tagBaseRequestID.idCancel);
-                        }
-                    }
-                    m_kvBatching.Clear();
-                    foreach (MyKeyValue<ushort, CResultCb> p in m_kvCallback)
-                    {
-                        if (p.Value.Discarded != null)
-                        {
-                            p.Value.Discarded.Invoke(this, AttachedClientSocket.CurrentRequestID == (ushort)tagBaseRequestID.idCancel);
-                        }
-                    }
-                    m_kvCallback.Clear();
+                    kvBatching = m_kvBatching;
+                    kvCallback = m_kvCallback;
+                    m_kvBatching = new Deque<MyKeyValue<ushort, CResultCb>>();
+                    m_kvCallback = new Deque<MyKeyValue<ushort, CResultCb>>();
                 }
+                size = (uint)(kvBatching.Count + kvCallback.Count);
+                foreach (MyKeyValue<ushort, CResultCb> p in kvBatching)
+                {
+                    if (p.Value.Discarded != null)
+                    {
+                        p.Value.Discarded.Invoke(this, AttachedClientSocket.CurrentRequestID == (ushort)tagBaseRequestID.idCancel);
+                    }
+                }
+                kvBatching.Clear();
+                foreach (MyKeyValue<ushort, CResultCb> p in kvCallback)
+                {
+                    if (p.Value.Discarded != null)
+                    {
+                        p.Value.Discarded.Invoke(this, AttachedClientSocket.CurrentRequestID == (ushort)tagBaseRequestID.idCancel);
+                    }
+                }
+                kvCallback.Clear();
                 return size;
             }
 

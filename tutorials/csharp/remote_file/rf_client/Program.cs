@@ -1,6 +1,6 @@
 ﻿using System;
 using SocketProAdapter.ClientSide;
-using System.Threading.Tasks;
+
 class Program
 {
     static void Main(string[] args)
@@ -22,26 +22,26 @@ class Program
             try
             {
                 //downloading test
-                Task<ErrInfo> fd = rf.download(LocalFile, RemoteFile, (file, downloaded) =>
+                var td = rf.download(LocalFile, RemoteFile, (file, downloaded) =>
                 {
                     Console.WriteLine("Downloading rate: {0}%", downloaded * 100 / file.FileSize);
                 });
 
                 //uploading test
                 RemoteFile += ".copy";
-                Task<ErrInfo> fu = rf.upload(LocalFile, RemoteFile, (file, uploaded) =>
+                var tu = rf.upload(LocalFile, RemoteFile, (file, uploaded) =>
                 {
                     Console.WriteLine("Uploading rate: {0}%", uploaded * 100 / file.FileSize);
                 });
-                Console.WriteLine(fd.Result);
+                Console.WriteLine(td.Result);
                 Console.WriteLine();
-                Console.WriteLine(fu.Result);
+                Console.WriteLine(tu.Result);
             }
             catch (AggregateException ex)
             {
                 foreach (Exception e in ex.InnerExceptions)
                 {
-                    //An exception from server (CServerError), Socket closed after sending a request (CSocketError) or request canceled (CSocketError), 
+                    //An exception from server (CServerError), Socket closed after sending a request (CSocketError) or request canceled (CSocketError),
                     Console.WriteLine(e);
                 }
             }

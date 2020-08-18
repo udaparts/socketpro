@@ -1011,9 +1011,8 @@ namespace SPA {
             }
 
             virtual std::future<SQLExeInfo> executeBatch(tagTransactionIsolation isolation, const wchar_t* sql, CDBVariantArray& vParam = CDBVariantArray(),
-                    const DRows& row = nullptr, const DRowsetHeader& rh = nullptr, const DRowsetHeader& batchHeader = nullptr,
-                    const CParameterInfoArray& vPInfo = CParameterInfoArray(), tagRollbackPlan plan = rpDefault, const wchar_t* delimiter = L";",
-                    bool meta = true, bool lastInsertId = true) {
+                    const DRows& row = nullptr, const DRowsetHeader& rh = nullptr, const wchar_t* delimiter = L";", const DRowsetHeader& batchHeader = nullptr,
+                    bool meta = true, tagRollbackPlan plan = rpDefault, const CParameterInfoArray& vPInfo = CParameterInfoArray(), bool lastInsertId = true) {
                 std::shared_ptr<std::promise<SQLExeInfo> > prom(new std::promise<SQLExeInfo>);
                 DExecuteResult handler = [prom](CAsyncDBHandler& dbHandler, int res, const std::wstring& errMsg, INT64 affected, UINT64 fail_ok, CDBVariant & vtId) {
                     unsigned int oks = (unsigned int) (fail_ok & 0xffffffff);

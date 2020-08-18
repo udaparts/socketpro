@@ -408,10 +408,8 @@ namespace SocketProAdapter
             private bool m_bCallReturn = false;
             private bool m_queueOk = false;
             private uint m_nParamPos = 0;
-            public ushort LastDBRequestId
-            {
-                get
-                {
+            public ushort LastDBRequestId {
+                get {
                     lock (m_csDB)
                     {
                         return m_lastReqId;
@@ -419,10 +417,8 @@ namespace SocketProAdapter
                 }
             }
 
-            public int LastDBErrorCode
-            {
-                get
-                {
+            public int LastDBErrorCode {
+                get {
                     lock (m_csDB)
                     {
                         return m_dbErrCode;
@@ -430,10 +426,8 @@ namespace SocketProAdapter
                 }
             }
 
-            public uint Outputs
-            {
-                get
-                {
+            public uint Outputs {
+                get {
                     lock (m_csDB)
                     {
                         return m_output;
@@ -441,10 +435,8 @@ namespace SocketProAdapter
                 }
             }
 
-            public tagManagementSystem DBManagementSystem
-            {
-                get
-                {
+            public tagManagementSystem DBManagementSystem {
+                get {
                     lock (m_csDB)
                     {
                         return m_ms;
@@ -452,10 +444,8 @@ namespace SocketProAdapter
                 }
             }
 
-            public bool Opened
-            {
-                get
-                {
+            public bool Opened {
+                get {
                     lock (m_csDB)
                     {
                         return (m_strConnection != null && m_strConnection.Length > 0 && m_lastReqId > 0);
@@ -463,10 +453,8 @@ namespace SocketProAdapter
                 }
             }
 
-            public CDBColumnInfoArray ColumnInfo
-            {
-                get
-                {
+            public CDBColumnInfoArray ColumnInfo {
+                get {
                     lock (m_csDB)
                     {
                         return m_vColInfo;
@@ -474,10 +462,8 @@ namespace SocketProAdapter
                 }
             }
 
-            public long LastAffected
-            {
-                get
-                {
+            public long LastAffected {
+                get {
                     lock (m_csDB)
                     {
                         return m_affected;
@@ -485,10 +471,8 @@ namespace SocketProAdapter
                 }
             }
 
-            public string LastDBErrorMessage
-            {
-                get
-                {
+            public string LastDBErrorMessage {
+                get {
                     lock (m_csDB)
                     {
                         return m_dbErrMsg;
@@ -496,10 +480,8 @@ namespace SocketProAdapter
                 }
             }
 
-            public string Connection
-            {
-                get
-                {
+            public string Connection {
+                get {
                     lock (m_csDB)
                     {
                         return m_strConnection;
@@ -516,10 +498,8 @@ namespace SocketProAdapter
                 return base.CleanCallbacks();
             }
 
-            public uint Parameters
-            {
-                get
-                {
+            public uint Parameters {
+                get {
                     lock (m_csDB)
                     {
                         return m_parameters;
@@ -527,10 +507,8 @@ namespace SocketProAdapter
                 }
             }
 
-            public bool CallReturn
-            {
-                get
-                {
+            public bool CallReturn {
+                get {
                     lock (m_csDB)
                     {
                         return m_bCallReturn;
@@ -703,7 +681,7 @@ namespace SocketProAdapter
             /// <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
             public bool Execute(CDBVariantArray vParam)
             {
-                return Execute(vParam, null, null, null, false, false, null);
+                return Execute(vParam, null, null, null, false, false, null, null);
             }
 
             /// <summary>
@@ -714,7 +692,7 @@ namespace SocketProAdapter
             /// <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
             public bool Execute(CDBVariantArray vParam, DExecuteResult handler)
             {
-                return Execute(vParam, handler, null, null, true, true, null);
+                return Execute(vParam, handler, null, null, true, true, null, null);
             }
 
             /// <summary>
@@ -726,7 +704,7 @@ namespace SocketProAdapter
             /// <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
             public bool Execute(CDBVariantArray vParam, DExecuteResult handler, DRows row)
             {
-                return Execute(vParam, handler, row, null, true, true, null);
+                return Execute(vParam, handler, row, null, true, true, null, null);
             }
 
             /// <summary>
@@ -739,7 +717,7 @@ namespace SocketProAdapter
             /// <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
             public bool Execute(CDBVariantArray vParam, DExecuteResult handler, DRows row, DRowsetHeader rh)
             {
-                return Execute(vParam, handler, row, rh, true, true, null);
+                return Execute(vParam, handler, row, rh, true, true, null, null);
             }
 
             /// <summary>
@@ -753,7 +731,7 @@ namespace SocketProAdapter
             /// <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
             public bool Execute(CDBVariantArray vParam, DExecuteResult handler, DRows row, DRowsetHeader rh, bool meta)
             {
-                return Execute(vParam, handler, row, rh, meta, true, null);
+                return Execute(vParam, handler, row, rh, meta, true, null, null);
             }
 
             /// <summary>
@@ -768,7 +746,22 @@ namespace SocketProAdapter
             /// <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
             public bool Execute(CDBVariantArray vParam, DExecuteResult handler, DRows row, DRowsetHeader rh, bool meta, bool lastInsertId)
             {
-                return Execute(vParam, handler, row, rh, meta, lastInsertId, null);
+                return Execute(vParam, handler, row, rh, meta, lastInsertId, null, null);
+            }
+
+            /// <summary>
+            /// Process one or more sets of prepared statements with an array of parameter data asynchronously
+            /// </summary>
+            /// <param name="vParam">an array of parameter data which will be bounded to previously prepared parameters</param>
+            /// <param name="handler">a callback for tracking final result</param>
+            /// <param name="row">a callback for tracking record or output parameter returned data</param>
+            /// <param name="rh">a callback for tracking row set of header column informations</param>
+            /// <param name="meta">a boolean value for better or more detailed column meta details such as unique, not null, primary key, and so on. It defaults to true</param>
+            /// <param name="lastInsertId">a boolean value for last insert record identification number. It defaults to true</param>
+            /// <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
+            public bool Execute(CDBVariantArray vParam, DExecuteResult handler, DRows row, DRowsetHeader rh, bool meta, bool lastInsertId, DDiscarded discarded)
+            {
+                return Execute(vParam, handler, row, rh, meta, lastInsertId, discarded, null);
             }
 
             /// <summary>
@@ -782,7 +775,7 @@ namespace SocketProAdapter
             /// <param name="lastInsertId">a boolean value for last insert record identification number. It defaults to true</param>
             /// <param name="discarded">a callback for tracking cancel or socket closed event</param>
             /// <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
-            public virtual bool Execute(CDBVariantArray vParam, DExecuteResult handler, DRows row, DRowsetHeader rh, bool meta, bool lastInsertId, DDiscarded discarded)
+            public virtual bool Execute(CDBVariantArray vParam, DExecuteResult handler, DRows row, DRowsetHeader rh, bool meta, bool lastInsertId, DDiscarded discarded, DOnExceptionFromServer se)
             {
                 bool rowset = (row != null);
                 meta = (meta && (rh != null));
@@ -817,7 +810,7 @@ namespace SocketProAdapter
                     if (!SendRequest(DB_CONSTS.idExecuteParameters, rowset, meta, lastInsertId, callIndex, (ar) =>
                     {
                         Process(handler, ar, DB_CONSTS.idExecuteParameters, callIndex);
-                    }, discarded, null))
+                    }, discarded, se))
                     {
                         lock (m_csDB)
                         {
@@ -843,7 +836,7 @@ namespace SocketProAdapter
             /// <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
             public bool ExecuteBatch(tagTransactionIsolation isolation, string sql)
             {
-                return ExecuteBatch(isolation, sql, new CDBVariantArray(), null, null, null, null, null, tagRollbackPlan.rpDefault, null, ";", true, true);
+                return ExecuteBatch(isolation, sql, new CDBVariantArray(), null, null, null, null, null, tagRollbackPlan.rpDefault, null, ";", true, true, null);
             }
 
             /// <summary>
@@ -855,7 +848,7 @@ namespace SocketProAdapter
             /// <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
             public bool ExecuteBatch(tagTransactionIsolation isolation, string sql, CDBVariantArray vParam)
             {
-                return ExecuteBatch(isolation, sql, vParam, null, null, null, null, null, tagRollbackPlan.rpDefault, null, ";", true, true);
+                return ExecuteBatch(isolation, sql, vParam, null, null, null, null, null, tagRollbackPlan.rpDefault, null, ";", true, true, null);
             }
 
             /// <summary>
@@ -868,7 +861,7 @@ namespace SocketProAdapter
             /// <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
             public bool ExecuteBatch(tagTransactionIsolation isolation, string sql, CDBVariantArray vParam, DExecuteResult handler)
             {
-                return ExecuteBatch(isolation, sql, vParam, handler, null, null, null, null, tagRollbackPlan.rpDefault, null, ";", true, true);
+                return ExecuteBatch(isolation, sql, vParam, handler, null, null, null, null, tagRollbackPlan.rpDefault, null, ";", true, true, null);
             }
 
             /// <summary>
@@ -882,7 +875,7 @@ namespace SocketProAdapter
             /// <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
             public bool ExecuteBatch(tagTransactionIsolation isolation, string sql, CDBVariantArray vParam, DExecuteResult handler, DRows row)
             {
-                return ExecuteBatch(isolation, sql, vParam, handler, row, null, null, null, tagRollbackPlan.rpDefault, null, ";", true, true);
+                return ExecuteBatch(isolation, sql, vParam, handler, row, null, null, null, tagRollbackPlan.rpDefault, null, ";", true, true, null);
             }
 
             /// <summary>
@@ -897,7 +890,7 @@ namespace SocketProAdapter
             /// <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
             public bool ExecuteBatch(tagTransactionIsolation isolation, string sql, CDBVariantArray vParam, DExecuteResult handler, DRows row, DRowsetHeader rh)
             {
-                return ExecuteBatch(isolation, sql, vParam, handler, row, rh, null, null, tagRollbackPlan.rpDefault, null, ";", true, true);
+                return ExecuteBatch(isolation, sql, vParam, handler, row, rh, null, null, tagRollbackPlan.rpDefault, null, ";", true, true, null);
             }
 
             /// <summary>
@@ -913,7 +906,7 @@ namespace SocketProAdapter
             /// <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
             public bool ExecuteBatch(tagTransactionIsolation isolation, string sql, CDBVariantArray vParam, DExecuteResult handler, DRows row, DRowsetHeader rh, DRowsetHeader batchHeader)
             {
-                return ExecuteBatch(isolation, sql, vParam, handler, row, rh, batchHeader, null, tagRollbackPlan.rpDefault, null, ";", true, true);
+                return ExecuteBatch(isolation, sql, vParam, handler, row, rh, batchHeader, null, tagRollbackPlan.rpDefault, null, ";", true, true, null);
             }
 
             /// <summary>
@@ -926,11 +919,11 @@ namespace SocketProAdapter
             /// <param name="row">a callback for receiving records of data</param>
             /// <param name="rh">a callback for tracking row set of header column informations</param>
             /// <param name="batchHeader">a callback for tracking returning batch start error messages</param>
-            /// <param name="vPInfo">a given array of parameter informations which may be empty to some of database management systems</param>
+            /// <param name="vPInfo">a given array of parameter informations which may be empty to some of database management systems, and it defaults to null</param>
             /// <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
             public bool ExecuteBatch(tagTransactionIsolation isolation, string sql, CDBVariantArray vParam, DExecuteResult handler, DRows row, DRowsetHeader rh, DRowsetHeader batchHeader, CParameterInfo[] vPInfo)
             {
-                return ExecuteBatch(isolation, sql, vParam, handler, row, rh, batchHeader, vPInfo, tagRollbackPlan.rpDefault, null, ";", true, true);
+                return ExecuteBatch(isolation, sql, vParam, handler, row, rh, batchHeader, vPInfo, tagRollbackPlan.rpDefault, null, ";", true, true, null);
             }
 
             /// <summary>
@@ -943,12 +936,12 @@ namespace SocketProAdapter
             /// <param name="row">a callback for receiving records of data</param>
             /// <param name="rh">a callback for tracking row set of header column informations</param>
             /// <param name="batchHeader">a callback for tracking returning batch start error messages</param>
-            /// <param name="vPInfo">a given array of parameter informations which may be empty to some of database management systems</param>
-            /// <param name="plan">a value for computing how included transactions should be rollback</param>
+            /// <param name="vPInfo">a given array of parameter informations which may be empty to some of database management systems, and it defaults to null</param>
+            /// <param name="plan">a value for computing how included transactions should be rollback, and it defaults to tagRollbackPlan.rpDefault</param>
             /// <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
             public bool ExecuteBatch(tagTransactionIsolation isolation, string sql, CDBVariantArray vParam, DExecuteResult handler, DRows row, DRowsetHeader rh, DRowsetHeader batchHeader, CParameterInfo[] vPInfo, tagRollbackPlan plan)
             {
-                return ExecuteBatch(isolation, sql, vParam, handler, row, rh, batchHeader, vPInfo, plan, null, ";", true, true);
+                return ExecuteBatch(isolation, sql, vParam, handler, row, rh, batchHeader, vPInfo, plan, null, ";", true, true, null);
             }
 
             /// <summary>
@@ -961,13 +954,13 @@ namespace SocketProAdapter
             /// <param name="row">a callback for receiving records of data</param>
             /// <param name="rh">a callback for tracking row set of header column informations</param>
             /// <param name="batchHeader">a callback for tracking returning batch start error messages</param>
-            /// <param name="vPInfo">a given array of parameter informations which may be empty to some of database management systems</param>
-            /// <param name="plan">a value for computing how included transactions should be rollback</param>
+            /// <param name="vPInfo">a given array of parameter informations which may be empty to some of database management systems, and it defaults to null</param>
+            /// <param name="plan">a value for computing how included transactions should be rollback, and it defaults to tagRollbackPlan.rpDefault</param>
             /// <param name="discarded">a callback for tracking socket closed or request canceled event</param>
             /// <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
             public bool ExecuteBatch(tagTransactionIsolation isolation, string sql, CDBVariantArray vParam, DExecuteResult handler, DRows row, DRowsetHeader rh, DRowsetHeader batchHeader, CParameterInfo[] vPInfo, tagRollbackPlan plan, DDiscarded discarded)
             {
-                return ExecuteBatch(isolation, sql, vParam, handler, row, rh, batchHeader, vPInfo, plan, discarded, ";", true, true);
+                return ExecuteBatch(isolation, sql, vParam, handler, row, rh, batchHeader, vPInfo, plan, discarded, ";", true, true, null);
             }
 
             /// <summary>
@@ -980,14 +973,14 @@ namespace SocketProAdapter
             /// <param name="row">a callback for receiving records of data</param>
             /// <param name="rh">a callback for tracking row set of header column informations</param>
             /// <param name="batchHeader">a callback for tracking returning batch start error messages</param>
-            /// <param name="vPInfo">a given array of parameter informations which may be empty to some of database management systems</param>
-            /// <param name="plan">a value for computing how included transactions should be rollback</param>
+            /// <param name="vPInfo">a given array of parameter informations which may be empty to some of database management systems, and it defaults to null</param>
+            /// <param name="plan">a value for computing how included transactions should be rollback, and it defaults to tagRollbackPlan.rpDefault</param>
             /// <param name="discarded">a callback for tracking socket closed or request canceled event</param>
-            /// <param name="delimiter">a case-sensitive delimiter string used for separating the batch SQL statements into individual SQL statements at server side for processing</param>
+            /// <param name="delimiter">a case-sensitive delimiter string used for separating the batch SQL statements into individual SQL statements at server side for processing, and it defaults to ";"</param>
             /// <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
             public bool ExecuteBatch(tagTransactionIsolation isolation, string sql, CDBVariantArray vParam, DExecuteResult handler, DRows row, DRowsetHeader rh, DRowsetHeader batchHeader, CParameterInfo[] vPInfo, tagRollbackPlan plan, DDiscarded discarded, string delimiter)
             {
-                return ExecuteBatch(isolation, sql, vParam, handler, row, rh, batchHeader, vPInfo, plan, discarded, delimiter, true, true);
+                return ExecuteBatch(isolation, sql, vParam, handler, row, rh, batchHeader, vPInfo, plan, discarded, delimiter, true, true, null);
             }
 
             /// <summary>
@@ -1000,15 +993,15 @@ namespace SocketProAdapter
             /// <param name="row">a callback for receiving records of data</param>
             /// <param name="rh">a callback for tracking row set of header column informations</param>
             /// <param name="batchHeader">a callback for tracking returning batch start error messages</param>
-            /// <param name="vPInfo">a given array of parameter informations which may be empty to some of database management systems</param>
-            /// <param name="plan">a value for computing how included transactions should be rollback</param>
+            /// <param name="vPInfo">a given array of parameter informations which may be empty to some of database management systems, and it defaults to null</param>
+            /// <param name="plan">a value for computing how included transactions should be rollback, and it defaults to tagRollbackPlan.rpDefault</param>
             /// <param name="discarded">a callback for tracking socket closed or request canceled event</param>
-            /// <param name="delimiter">a case-sensitive delimiter string used for separating the batch SQL statements into individual SQL statements at server side for processing</param>
-            /// <param name="meta">a boolean for better or more detailed column meta details such as unique, not null, primary key, and so on</param>
+            /// <param name="delimiter">a case-sensitive delimiter string used for separating the batch SQL statements into individual SQL statements at server side for processing, and it defaults to ";"</param>
+            /// <param name="meta">a boolean for better or more detailed column meta details such as unique, not null, primary key, and so on, and it defaults to true</param>
             /// <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
             public bool ExecuteBatch(tagTransactionIsolation isolation, string sql, CDBVariantArray vParam, DExecuteResult handler, DRows row, DRowsetHeader rh, DRowsetHeader batchHeader, CParameterInfo[] vPInfo, tagRollbackPlan plan, DDiscarded discarded, string delimiter, bool meta)
             {
-                return ExecuteBatch(isolation, sql, vParam, handler, row, rh, batchHeader, vPInfo, plan, discarded, delimiter, meta, true);
+                return ExecuteBatch(isolation, sql, vParam, handler, row, rh, batchHeader, vPInfo, plan, discarded, delimiter, meta, true, null);
             }
 
             /// <summary>
@@ -1021,14 +1014,36 @@ namespace SocketProAdapter
             /// <param name="row">a callback for receiving records of data</param>
             /// <param name="rh">a callback for tracking row set of header column informations</param>
             /// <param name="batchHeader">a callback for tracking returning batch start error messages</param>
-            /// <param name="vPInfo">a given array of parameter informations which may be empty to some of database management systems</param>
-            /// <param name="plan">a value for computing how included transactions should be rollback</param>
+            /// <param name="vPInfo">a given array of parameter informations which may be empty to some of database management systems, and it defaults to null</param>
+            /// <param name="plan">a value for computing how included transactions should be rollback, and it defaults to tagRollbackPlan.rpDefault</param>
             /// <param name="discarded">a callback for tracking socket closed or request canceled event</param>
-            /// <param name="delimiter">a case-sensitive delimiter string used for separating the batch SQL statements into individual SQL statements at server side for processing</param>
-            /// <param name="meta">a boolean for better or more detailed column meta details such as unique, not null, primary key, and so on</param>
-            /// <param name="lastInsertId">a boolean for last insert record identification number</param>
+            /// <param name="delimiter">a case-sensitive delimiter string used for separating the batch SQL statements into individual SQL statements at server side for processing, and it defaults to ";"</param>
+            /// <param name="meta">a boolean for better or more detailed column meta details such as unique, not null, primary key, and so on, and it defaults to true</param>
+            /// <param name="lastInsertId">a boolean for last insert record identification number, and it defaults to true</param>
             /// <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
-            public virtual bool ExecuteBatch(tagTransactionIsolation isolation, string sql, CDBVariantArray vParam, DExecuteResult handler, DRows row, DRowsetHeader rh, DRowsetHeader batchHeader, CParameterInfo[] vPInfo, tagRollbackPlan plan, DDiscarded discarded, string delimiter, bool meta, bool lastInsertId)
+            public bool ExecuteBatch(tagTransactionIsolation isolation, string sql, CDBVariantArray vParam, DExecuteResult handler, DRows row, DRowsetHeader rh, DRowsetHeader batchHeader, CParameterInfo[] vPInfo, tagRollbackPlan plan, DDiscarded discarded, string delimiter, bool meta, bool lastInsertId)
+            {
+                return ExecuteBatch(isolation, sql, vParam, handler, row, rh, batchHeader, vPInfo, plan, discarded, delimiter, meta, lastInsertId, null);
+            }
+
+            /// <summary>
+            /// Execute a batch of SQL statements on one single call
+            /// </summary>
+            /// <param name="isolation">a value for manual transaction isolation. Specifically, there is no manual transaction around the batch SQL statements if it is tiUnspecified</param>
+            /// <param name="sql">a SQL statement having a batch of individual SQL statements</param>
+            /// <param name="vParam">an array of parameter data which will be bounded to previously prepared parameters. The array size can be 0 if the given batch SQL statement doesn't having any prepared statement</param>
+            /// <param name="handler">a callback for tracking final result</param>
+            /// <param name="row">a callback for receiving records of data</param>
+            /// <param name="rh">a callback for tracking row set of header column informations</param>
+            /// <param name="batchHeader">a callback for tracking returning batch start error messages</param>
+            /// <param name="vPInfo">a given array of parameter informations which may be empty to some of database management systems, and it defaults to null</param>
+            /// <param name="plan">a value for computing how included transactions should be rollback, and it defaults to tagRollbackPlan.rpDefault</param>
+            /// <param name="discarded">a callback for tracking socket closed or request canceled event</param>
+            /// <param name="delimiter">a case-sensitive delimiter string used for separating the batch SQL statements into individual SQL statements at server side for processing, and it defaults to ";"</param>
+            /// <param name="meta">a boolean for better or more detailed column meta details such as unique, not null, primary key, and so on, and it defaults to true</param>
+            /// <param name="lastInsertId">a boolean for last insert record identification number, and it defaults to true</param>
+            /// <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
+            public virtual bool ExecuteBatch(tagTransactionIsolation isolation, string sql, CDBVariantArray vParam, DExecuteResult handler, DRows row, DRowsetHeader rh, DRowsetHeader batchHeader, CParameterInfo[] vPInfo, tagRollbackPlan plan, DDiscarded discarded, string delimiter, bool meta, bool lastInsertId, DOnExceptionFromServer se)
             {
                 if (vPInfo == null)
                     vPInfo = new CParameterInfo[0];
@@ -1077,7 +1092,7 @@ namespace SocketProAdapter
                         if (!SendRequest(DB_CONSTS.idExecuteBatch, sb.IntenalBuffer, sb.GetSize(), (ar) =>
                         {
                             Process(handler, ar, DB_CONSTS.idExecuteBatch, callIndex);
-                        }, discarded, null))
+                        }, discarded, se))
                         {
                             lock (m_csDB)
                             {
@@ -1106,7 +1121,7 @@ namespace SocketProAdapter
             /// <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
             public bool Execute(string sql)
             {
-                return Execute(sql, null, null, null, true, true, null);
+                return Execute(sql, null, null, null, true, true, null, null);
             }
 
             /// <summary>
@@ -1117,7 +1132,7 @@ namespace SocketProAdapter
             /// <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
             public bool Execute(string sql, DExecuteResult handler)
             {
-                return Execute(sql, handler, null, null, true, true, null);
+                return Execute(sql, handler, null, null, true, true, null, null);
             }
 
             /// <summary>
@@ -1129,7 +1144,7 @@ namespace SocketProAdapter
             /// <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
             public bool Execute(string sql, DExecuteResult handler, DRows row)
             {
-                return Execute(sql, handler, row, null, true, true, null);
+                return Execute(sql, handler, row, null, true, true, null, null);
             }
 
             /// <summary>
@@ -1142,7 +1157,7 @@ namespace SocketProAdapter
             /// <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
             public bool Execute(string sql, DExecuteResult handler, DRows row, DRowsetHeader rh)
             {
-                return Execute(sql, handler, row, rh, true, true, null);
+                return Execute(sql, handler, row, rh, true, true, null, null);
             }
 
             /// <summary>
@@ -1156,7 +1171,7 @@ namespace SocketProAdapter
             /// <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
             public bool Execute(string sql, DExecuteResult handler, DRows row, DRowsetHeader rh, bool meta)
             {
-                return Execute(sql, handler, row, rh, meta, true, null);
+                return Execute(sql, handler, row, rh, meta, true, null, null);
             }
 
             /// <summary>
@@ -1171,7 +1186,7 @@ namespace SocketProAdapter
             /// <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
             public bool Execute(string sql, DExecuteResult handler, DRows row, DRowsetHeader rh, bool meta, bool lastInsertId)
             {
-                return Execute(sql, handler, row, rh, meta, lastInsertId, null);
+                return Execute(sql, handler, row, rh, meta, lastInsertId, null, null);
             }
 
             /// <summary>
@@ -1185,7 +1200,23 @@ namespace SocketProAdapter
             /// <param name="lastInsertId">a boolean value for last insert record identification number. It defaults to true</param>
             /// <param name="discarded">a callback for tracking cancel or socket closed event</param>
             /// <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
-            public virtual bool Execute(string sql, DExecuteResult handler, DRows row, DRowsetHeader rh, bool meta, bool lastInsertId, DDiscarded discarded)
+            public bool Execute(string sql, DExecuteResult handler, DRows row, DRowsetHeader rh, bool meta, bool lastInsertId, DDiscarded discarded)
+            {
+                return Execute(sql, handler, row, rh, meta, lastInsertId, discarded, null);
+            }
+
+            /// <summary>
+            /// Process a complex SQL statement which may be combined with multiple basic SQL statements asynchronously
+            /// </summary>
+            /// <param name="sql">a complex SQL statement which may be combined with multiple basic SQL statements</param>
+            /// <param name="handler">a callback for tracking final result</param>
+            /// <param name="row">a callback for receiving records of data</param>
+            /// <param name="rh">a callback for tracking row set of header column informations</param>
+            /// <param name="meta">a boolean value for better or more detailed column meta details such as unique, not null, primary key, and so on. It defaults to true</param>
+            /// <param name="lastInsertId">a boolean value for last insert record identification number. It defaults to true</param>
+            /// <param name="discarded">a callback for tracking cancel or socket closed event</param>
+            /// <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
+            public virtual bool Execute(string sql, DExecuteResult handler, DRows row, DRowsetHeader rh, bool meta, bool lastInsertId, DDiscarded discarded, DOnExceptionFromServer se)
             {
                 bool rowset = (row != null);
                 meta = (meta && (rh != null));
@@ -1202,7 +1233,7 @@ namespace SocketProAdapter
                 if (!SendRequest(DB_CONSTS.idExecute, sql, rowset, meta, lastInsertId, index, (ar) =>
                 {
                     Process(handler, ar, DB_CONSTS.idExecute, index);
-                }, discarded, null))
+                }, discarded, se))
                 {
                     if (rowset || meta)
                     {
@@ -1248,7 +1279,7 @@ namespace SocketProAdapter
             /// <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
             public bool Open(string strConnection, DResult handler)
             {
-                return Open(strConnection, handler, 0, null);
+                return Open(strConnection, handler, 0, null, null);
             }
 
             /// <summary>
@@ -1260,7 +1291,7 @@ namespace SocketProAdapter
             /// <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
             public bool Open(string strConnection, DResult handler, uint flags)
             {
-                return Open(strConnection, handler, flags, null);
+                return Open(strConnection, handler, flags, null, null);
             }
 
             /// <summary>
@@ -1271,7 +1302,20 @@ namespace SocketProAdapter
             /// <param name="flags">a set of flags transferred to server to indicate how to build database connection at server side. It defaults to zero</param>
             /// <param name="discarded">a callback for tracking cancel or socket closed event</param>
             /// <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
-            public virtual bool Open(string strConnection, DResult handler, uint flags, DDiscarded discarded)
+            public bool Open(string strConnection, DResult handler, uint flags, DDiscarded discarded)
+            {
+                return Open(strConnection, handler, flags, discarded, null);
+            }
+
+            /// <summary>
+            /// Open a database connection at server side asynchronously
+            /// </summary>
+            /// <param name="strConnection">a database connection string. The database connection string can be an empty string if its server side supports global database connection string</param>
+            /// <param name="handler">a callback for database connecting result</param>
+            /// <param name="flags">a set of flags transferred to server to indicate how to build database connection at server side. It defaults to zero</param>
+            /// <param name="discarded">a callback for tracking cancel or socket closed event</param>
+            /// <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
+            public virtual bool Open(string strConnection, DResult handler, uint flags, DDiscarded discarded, DOnExceptionFromServer se)
             {
                 string s = null;
                 //don't make m_csDB locked across calling SendRequest, which may lead to client dead-lock
@@ -1314,7 +1358,7 @@ namespace SocketProAdapter
                     {
                         handler(adb, res, errMsg);
                     }
-                }, discarded, null))
+                }, discarded, se))
                 {
                     return true;
                 }
@@ -1335,7 +1379,7 @@ namespace SocketProAdapter
             /// <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
             public bool Prepare(string sql)
             {
-                return Prepare(sql, null, null, null);
+                return Prepare(sql, null, null, null, null);
             }
 
             /// <summary>
@@ -1346,7 +1390,7 @@ namespace SocketProAdapter
             /// <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
             public bool Prepare(string sql, DResult handler)
             {
-                return Prepare(sql, handler, null, null);
+                return Prepare(sql, handler, null, null, null);
             }
 
             /// <summary>
@@ -1358,7 +1402,19 @@ namespace SocketProAdapter
             /// <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
             public bool Prepare(string sql, DResult handler, CParameterInfo[] vParameterInfo)
             {
-                return Prepare(sql, handler, vParameterInfo, null);
+                return Prepare(sql, handler, vParameterInfo, null, null);
+            }
+
+            /// <summary>
+            /// Send a parameterized SQL statement for preparing with a given array of parameter informations asynchronously
+            /// </summary>
+            /// <param name="sql">a parameterized SQL statement</param>
+            /// <param name="handler">a callback for SQL preparing result</param>
+            /// <param name="vParameterInfo">a given array of parameter informations</param>
+            /// <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
+            public bool Prepare(string sql, DResult handler, CParameterInfo[] vParameterInfo, DDiscarded discarded)
+            {
+                return Prepare(sql, handler, vParameterInfo, discarded, null);
             }
 
             /// <summary>
@@ -1369,7 +1425,7 @@ namespace SocketProAdapter
             /// <param name="vParameterInfo">a given array of parameter informations</param>
             /// <param name="discarded">a callback for tracking cancel or socket closed event</param>
             /// <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
-            public virtual bool Prepare(string sql, DResult handler, CParameterInfo[] vParameterInfo, DDiscarded discarded)
+            public virtual bool Prepare(string sql, DResult handler, CParameterInfo[] vParameterInfo, DDiscarded discarded, DOnExceptionFromServer se)
             {
                 using (CScopeUQueue sb = new CScopeUQueue())
                 {
@@ -1408,7 +1464,7 @@ namespace SocketProAdapter
                         {
                             handler(adb, res, errMsg);
                         }
-                    }, discarded, null))
+                    }, discarded, se))
                     {
                         return false;
                     }
@@ -1422,7 +1478,7 @@ namespace SocketProAdapter
             /// <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
             public bool EndTrans()
             {
-                return EndTrans(tagRollbackPlan.rpDefault, null, null);
+                return EndTrans(tagRollbackPlan.rpDefault, null, null, null);
             }
 
             /// <summary>
@@ -1432,7 +1488,7 @@ namespace SocketProAdapter
             /// <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
             public bool EndTrans(tagRollbackPlan plan)
             {
-                return EndTrans(plan, null, null);
+                return EndTrans(plan, null, null, null);
             }
 
             /// <summary>
@@ -1443,7 +1499,7 @@ namespace SocketProAdapter
             /// <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
             public bool EndTrans(tagRollbackPlan plan, DResult handler)
             {
-                return EndTrans(plan, handler, null);
+                return EndTrans(plan, handler, null, null);
             }
 
             /// <summary>
@@ -1453,7 +1509,19 @@ namespace SocketProAdapter
             /// <param name="handler">a callback for tracking its response result</param>
             /// <param name="discarded">a callback for tracking cancel or socket closed event</param>
             /// <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
-            public virtual bool EndTrans(tagRollbackPlan plan, DResult handler, DDiscarded discarded)
+            public bool EndTrans(tagRollbackPlan plan, DResult handler, DDiscarded discarded)
+            {
+                return EndTrans(plan, handler, discarded, null);
+            }
+
+            /// <summary>
+            /// End a manual transaction with a given rollback plan. Note the transaction will be associated with SocketPro client message queue if available to avoid possible transaction lose
+            /// </summary>
+            /// <param name="plan">a value for computing how included transactions should be rollback at server side. It defaults to tagRollbackPlan.rpDefault</param>
+            /// <param name="handler">a callback for tracking its response result</param>
+            /// <param name="discarded">a callback for tracking cancel or socket closed event</param>
+            /// <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
+            public virtual bool EndTrans(tagRollbackPlan plan, DResult handler, DDiscarded discarded, DOnExceptionFromServer se)
             {
                 //make sure EndTrans sending and underlying client persistent message queue as one combination sending
                 //to avoid possible request sending/client message writing overlapping within multiple threading environment
@@ -1475,7 +1543,7 @@ namespace SocketProAdapter
                         {
                             handler(adb, res, errMsg);
                         }
-                    }, discarded, null))
+                    }, discarded, se))
                     {
                         if (m_queueOk)
                         {
@@ -1495,7 +1563,7 @@ namespace SocketProAdapter
             /// <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
             public bool BeginTrans()
             {
-                return BeginTrans(tagTransactionIsolation.tiReadCommited, null, null);
+                return BeginTrans(tagTransactionIsolation.tiReadCommited, null, null, null);
             }
 
             /// <summary>
@@ -1505,7 +1573,7 @@ namespace SocketProAdapter
             /// <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
             public bool BeginTrans(tagTransactionIsolation isolation)
             {
-                return BeginTrans(isolation, null, null);
+                return BeginTrans(isolation, null, null, null);
             }
 
             /// <summary>
@@ -1516,7 +1584,7 @@ namespace SocketProAdapter
             /// <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
             public bool BeginTrans(tagTransactionIsolation isolation, DResult handler)
             {
-                return BeginTrans(isolation, handler, null);
+                return BeginTrans(isolation, handler, null, null);
             }
 
             /// <summary>
@@ -1526,7 +1594,19 @@ namespace SocketProAdapter
             /// <param name="handler">a callback for tracking its response result</param>
             /// <param name="discarded">a callback for tracking cancel or socket closed event</param>
             /// <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
-            public virtual bool BeginTrans(tagTransactionIsolation isolation, DResult handler, DDiscarded discarded)
+            public bool BeginTrans(tagTransactionIsolation isolation, DResult handler, DDiscarded discarded)
+            {
+                return BeginTrans(isolation, handler, discarded, null);
+            }
+
+            /// <summary>
+            /// Start a manual transaction with a given isolation asynchronously. Note the transaction will be associated with SocketPro client message queue if available to avoid possible transaction lose
+            /// </summary>
+            /// <param name="isolation">a value for transaction isolation. It defaults to tagTransactionIsolation.tiReadCommited</param>
+            /// <param name="handler">a callback for tracking its response result</param>
+            /// <param name="discarded">a callback for tracking cancel or socket closed event</param>
+            /// <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
+            public virtual bool BeginTrans(tagTransactionIsolation isolation, DResult handler, DDiscarded discarded, DOnExceptionFromServer se)
             {
                 uint flags;
                 string connection;
@@ -1565,7 +1645,7 @@ namespace SocketProAdapter
                         {
                             handler(adb, res, errMsg);
                         }
-                    }, discarded, null);
+                    }, discarded, se);
                 }
             }
 
@@ -1575,7 +1655,7 @@ namespace SocketProAdapter
             /// <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
             public bool Close()
             {
-                return Close(null, null);
+                return Close(null, null, null);
             }
 
             /// <summary>
@@ -1585,7 +1665,7 @@ namespace SocketProAdapter
             /// <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
             public bool Close(DResult handler)
             {
-                return Close(handler, null);
+                return Close(handler, null, null);
             }
 
             /// <summary>
@@ -1594,7 +1674,18 @@ namespace SocketProAdapter
             /// <param name="handler">a callback for closing result, which should be OK always as long as there is network or queue available </param>
             /// <param name="discarded">a callback for tracking cancel or socket closed event</param>
             /// <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
-            public virtual bool Close(DResult handler, DDiscarded discarded)
+            public bool Close(DResult handler, DDiscarded discarded)
+            {
+                return Close(handler, discarded, null);
+            }
+
+            /// <summary>
+            /// Notify connected remote server to close database connection string asynchronously
+            /// </summary>
+            /// <param name="handler">a callback for closing result, which should be OK always as long as there is network or queue available </param>
+            /// <param name="discarded">a callback for tracking cancel or socket closed event</param>
+            /// <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
+            public virtual bool Close(DResult handler, DDiscarded discarded, DOnExceptionFromServer se)
             {
                 return SendRequest(DB_CONSTS.idClose, (ar) =>
                 {
@@ -1615,6 +1706,133 @@ namespace SocketProAdapter
                     }
                 }, discarded, null);
             }
+
+            public class SQLExeInfo : ErrInfo
+            {
+                public long affected;
+                public uint oks;
+                public uint fails;
+                public object lastId;
+
+                public SQLExeInfo(int res, string errMsg, long aff, uint oks, uint fails, object id)
+                    : base(res, errMsg)
+                {
+                    affected = aff;
+                    this.oks = oks;
+                    this.fails = fails;
+                    lastId = id;
+                }
+
+                public override string ToString()
+                {
+                    String s = base.ToString();
+                    s += (", affected: " + affected);
+                    s += (", oks: " + oks);
+                    s += (", fails: " + fails);
+                    s += (", lastId: " + lastId);
+                    return s;
+                }
+            }
+
+#if TASKS_ENABLED
+            public virtual Task<ErrInfo> close()
+            {
+                TaskCompletionSource<ErrInfo> tcs = new TaskCompletionSource<ErrInfo>();
+                if (!Close((db, res, em) =>
+                {
+                    tcs.TrySetResult(new ErrInfo(res, em));
+                }, get_aborted(tcs, "Close", DB_CONSTS.idClose), get_se(tcs)))
+                {
+                    raise("Close", DB_CONSTS.idClose);
+                }
+                return tcs.Task;
+            }
+
+            public virtual Task<ErrInfo> open(string conn, uint flags = 0)
+            {
+                TaskCompletionSource<ErrInfo> tcs = new TaskCompletionSource<ErrInfo>();
+                if (!Open(conn, (db, res, em) =>
+                {
+                    tcs.TrySetResult(new ErrInfo(res, em));
+                }, flags, get_aborted(tcs, "Open", DB_CONSTS.idOpen), get_se(tcs)))
+                {
+                    raise("Open", DB_CONSTS.idOpen);
+                }
+                return tcs.Task;
+            }
+
+            public virtual Task<ErrInfo> prepare(string sql, CParameterInfo[] vParameterInfo = null)
+            {
+                TaskCompletionSource<ErrInfo> tcs = new TaskCompletionSource<ErrInfo>();
+                if (!Prepare(sql, (db, res, em) =>
+                {
+                    tcs.TrySetResult(new ErrInfo(res, em));
+                }, vParameterInfo, get_aborted(tcs, "Prepare", DB_CONSTS.idPrepare), get_se(tcs)))
+                {
+                    raise("Prepare", DB_CONSTS.idPrepare);
+                }
+                return tcs.Task;
+            }
+
+            public virtual Task<ErrInfo> beginTrans(tagTransactionIsolation isolation = tagTransactionIsolation.tiReadCommited)
+            {
+                TaskCompletionSource<ErrInfo> tcs = new TaskCompletionSource<ErrInfo>();
+                if (!BeginTrans(isolation, (db, res, em) =>
+                {
+                    tcs.TrySetResult(new ErrInfo(res, em));
+                }, get_aborted(tcs, "BeginTrans", DB_CONSTS.idBeginTrans), get_se(tcs)))
+                {
+                    raise("BeginTrans", DB_CONSTS.idBeginTrans);
+                }
+                return tcs.Task;
+            }
+
+            public virtual Task<SQLExeInfo> execute(string sql, DRows row = null, DRowsetHeader rh = null, bool meta = true, bool lastInsertId = true)
+            {
+                TaskCompletionSource<SQLExeInfo> tcs = new TaskCompletionSource<SQLExeInfo>();
+                if (!Execute(sql, (db, res, errMsg, affected, fail_ok, vtId) =>
+                {
+                    uint oks = (uint)(fail_ok & 0xffffffff);
+                    uint fails = (uint)(fail_ok >> 32);
+                    tcs.TrySetResult(new SQLExeInfo(res, errMsg, affected, oks, fails, vtId));
+                }, row, rh, meta, lastInsertId, get_aborted(tcs, "ExecuteSQL", DB_CONSTS.idExecute), get_se(tcs)))
+                {
+                    raise("ExecuteSQL", DB_CONSTS.idExecute);
+                }
+                return tcs.Task;
+            }
+
+            public virtual Task<SQLExeInfo> execute(CDBVariantArray vParam, DRows row = null, DRowsetHeader rh = null, bool meta = true, bool lastInsertId = true)
+            {
+                TaskCompletionSource<SQLExeInfo> tcs = new TaskCompletionSource<SQLExeInfo>();
+                if (!Execute(vParam, (db, res, errMsg, affected, fail_ok, vtId) =>
+                {
+                    uint oks = (uint)(fail_ok & 0xffffffff);
+                    uint fails = (uint)(fail_ok >> 32);
+                    tcs.TrySetResult(new SQLExeInfo(res, errMsg, affected, oks, fails, vtId));
+                }, row, rh, meta, lastInsertId, get_aborted(tcs, "ExecuteParameters", DB_CONSTS.idExecuteParameters), get_se(tcs)))
+                {
+                    raise("ExecuteParameters", DB_CONSTS.idExecuteParameters);
+                }
+                return tcs.Task;
+            }
+
+            public virtual Task<SQLExeInfo> executeBatch(tagTransactionIsolation isolation, string sql, CDBVariantArray vParam = null, DRows row = null, DRowsetHeader rh = null, string delimiter = ";", DRowsetHeader batchHeader = null, bool meta = true, tagRollbackPlan plan = tagRollbackPlan.rpDefault, CParameterInfo[] vPInfo = null, bool lastInsertId = true)
+            {
+                TaskCompletionSource<SQLExeInfo> tcs = new TaskCompletionSource<SQLExeInfo>();
+                if (!ExecuteBatch(isolation, sql, vParam, (db, res, errMsg, affected, fail_ok, vtId) =>
+                {
+                    uint oks = (uint)(fail_ok & 0xffffffff);
+                    uint fails = (uint)(fail_ok >> 32);
+                    tcs.TrySetResult(new SQLExeInfo(res, errMsg, affected, oks, fails, vtId));
+                }, row, rh, batchHeader, vPInfo, plan,
+                get_aborted(tcs, "ExecuteBatch", DB_CONSTS.idExecuteBatch), delimiter, meta, lastInsertId))
+                {
+                    raise("ExecuteBatch", DB_CONSTS.idExecuteBatch);
+                }
+                return tcs.Task;
+            }
+#endif
 
             protected override void OnAllProcessed()
             {
