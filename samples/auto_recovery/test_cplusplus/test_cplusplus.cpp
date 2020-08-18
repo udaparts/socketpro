@@ -35,23 +35,18 @@ int main(int argc, char* argv[])
 		std::cout << "Input a filter for payment_id" << std::endl;
 		std::wstring filter;
 		std::getline(std::wcin, filter);
-		while (filter.size() && ::isspace(filter.back())) {
-			filter.pop_back();
-		}
-		while (filter.size() && ::isspace(filter.front())) {
-			filter.erase(filter.begin());
-		}
+		SPA::Trim(filter);
 		if (filter.size()) sql += (L" WHERE " + filter);
 		auto v = sp.GetAsyncHandlers();
 		for (auto it = v.begin(), end = v.end(); it != end; ++it) {
-			ok = (*it)->Open(L"sakila.db", [](CSql &h, int res, const std::wstring &errMsg){
+			ok = (*it)->Open(L"sakila.db", [](CSql &h, int res, const std::wstring &errMsg) {
 				if (res)
 					std::wcout << L"Error code: " << res << L", error message: " << errMsg << std::endl;
-			});
+				});
 			assert(ok);
 		}
 		int returned = 0;
-        double dmax = 0.0, dmin = 0.0, davg = 0.0;
+		double dmax = 0.0, dmin = 0.0, davg = 0.0;
 		SPA::UDB::CDBVariantArray row;
 		CSql::DExecuteResult er = [&dmax, &dmin, &davg, &returned, &row](CSql &h, int res, const std::wstring &errMsg, SPA::INT64 affected, SPA::UINT64 fail_ok, SPA::UDB::CDBVariant lastId) {
 			if (res)
@@ -72,24 +67,24 @@ int main(int argc, char* argv[])
 		ok = asql->WaitAll();
 		std::cout << "Result: max = " << dmax << ", min = " << dmin << ", avg = " << davg << std::endl;
 		returned = 0;
-        dmax = 0.0; dmin = 0.0; davg = 0.0;
+		dmax = 0.0; dmin = 0.0; davg = 0.0;
 		std::cout << "Going to get " << cycles << " queries for max, min and avg" << std::endl;
 		for (int n = 0; n < cycles; ++n)
-        {
-            asql = sp.SeekByQueue();
-            ok = asql->Execute(sql.c_str(), er, r);
+		{
+			asql = sp.SeekByQueue();
+			ok = asql->Execute(sql.c_str(), er, r);
 			assert(ok);
-        }
+		}
 		for (auto it = v.begin(), end = v.end(); it != end; ++it) {
 			ok = (*it)->WaitAll();
 		}
 		std::cout << "Retured = " << returned << ", max = " << dmax << ", min = " << dmin << ", avg = " << davg << std::endl;
 		std::cout << "Press any key to close the application ......" << std::endl;
 		::getchar();
-	}while (false);
+	} while (false);
 	for (int t = 0; t < THREADS; ++t) {
 		PCConnectionContext p = ppCc[t];
-		delete []p;
+		delete[]p;
 	}
 	sp.ShutdownPool();
 	return 0;
