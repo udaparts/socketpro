@@ -8,33 +8,27 @@ public class RAdo : CAsyncAdohandler
     {
     }
 
-    public DataSet CurrentDataSet
-    {
-        get
-        {
+    public DataSet CurrentDataSet {
+        get {
             return AdoSerializer.CurrentDataSet;
         }
     }
 
-    public DataTable CurrentDataTable
-    {
-        get
-        {
+    public DataTable CurrentDataTable {
+        get {
             return AdoSerializer.CurrentDataTable;
         }
     }
 
     public DataSet GetDataSet(string sql0, string sql1)
     {
-        if (ProcessR0(radoConst.idGetDataSetRAdo, sql0, sql1))
-            return AdoSerializer.CurrentDataSet;
-        return new DataSet();
+        Async(radoConst.idGetDataSetRAdo, sql0, sql1).Wait();
+        return AdoSerializer.CurrentDataSet;
     }
 
     public DataTable GetDataTable(string sql)
     {
-        if (ProcessR0(radoConst.idGetDataTableRAdo, sql))
-            return AdoSerializer.CurrentDataTable;
-        return new DataTable();
+        Async(radoConst.idGetDataTableRAdo, sql).Wait();
+        return AdoSerializer.CurrentDataTable;
     }
 }

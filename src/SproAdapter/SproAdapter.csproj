@@ -62,10 +62,12 @@
     <Compile Include="remotingadonethelper.cs" />
     <Compile Include="replication.cs" />
     <Compile Include="scopeuqueue.cs" />
+    <Compile Include="servererror.cs" />
     <Compile Include="serverinterop.cs" />
     <Compile Include="serverpeerbase.cs" />
     <Compile Include="serverqueue.cs" />
     <Compile Include="serversocket.cs" />
+    <Compile Include="socketerror.cs" />
     <Compile Include="socketpool.cs" />
     <Compile Include="sqlmasterpool.cs" />
     <Compile Include="streamclient.cs" />

@@ -312,7 +312,7 @@ namespace SocketProAdapter
                             if (sp is CClientPeer)
                                 ((CClientPeer)sp).OnFast(usRequestID, len);
                             else
-                                ServerCoreLoader.SendExceptionResult(hSocket, "Request not registered at server side", Environment.StackTrace, usRequestID, 0);
+                                ServerCoreLoader.SendExceptionResult(hSocket, "Request not registered at server side", Environment.StackTrace, usRequestID, uint.MaxValue);
                         }
                         else
                         {
@@ -322,9 +322,15 @@ namespace SocketProAdapter
                         }
                     }
                 }
+                catch (CServerError ex)
+                {
+                    ushort req_id = ex.ReqId;
+                    if (req_id == 0) req_id = usRequestID;
+                    ServerCoreLoader.SendExceptionResult(hSocket, ex.Message, ex.StackTrace, req_id, (uint)ex.ErrCode);
+                }
                 catch (Exception ex)
                 {
-                    ServerCoreLoader.SendExceptionResult(hSocket, ex.Message, ex.StackTrace, usRequestID, 0);
+                    ServerCoreLoader.SendExceptionResult(hSocket, ex.Message, ex.StackTrace, usRequestID, uint.MaxValue);
                 }
             }
 
@@ -373,7 +379,7 @@ namespace SocketProAdapter
                         {
                             if (sp is CClientPeer)
                                 return ((CClientPeer)sp).OnSlow(usRequestID, len);
-                            ServerCoreLoader.SendExceptionResult(hSocket, "Request not registered at server side", Environment.StackTrace, usRequestID, 0);
+                            ServerCoreLoader.SendExceptionResult(hSocket, "Request not registered at server side", Environment.StackTrace, usRequestID, uint.MaxValue);
                             return 0;
                         }
                         else
@@ -384,9 +390,15 @@ namespace SocketProAdapter
                         }
                     }
                 }
+                catch (CServerError ex)
+                {
+                    ushort req_id = ex.ReqId;
+                    if (req_id == 0) req_id = usRequestID;
+                    ServerCoreLoader.SendExceptionResult(hSocket, ex.Message, ex.StackTrace, req_id, (uint)ex.ErrCode);
+                }
                 catch (Exception ex)
                 {
-                    ServerCoreLoader.SendExceptionResult(hSocket, ex.Message, ex.StackTrace, usRequestID, 0);
+                    ServerCoreLoader.SendExceptionResult(hSocket, ex.Message, ex.StackTrace, usRequestID, uint.MaxValue);
                 }
                 return 0;
             }

@@ -55,7 +55,7 @@
     <Compile Include="clientsocket.cs" />
     <Compile Include="deque.cs" />
     <Compile Include="gencachepeer.cs" />
-	<Compile Include="genricevents.cs" />
+    <Compile Include="genricevents.cs" />
     <Compile Include="masterpool.cs" />
     <Compile Include="masterslavebase.cs" />
     <Compile Include="odbc.cs" />
@@ -63,12 +63,14 @@
     <Compile Include="remotingadonethelper.cs" />
     <Compile Include="replication.cs" />
     <Compile Include="scopeuqueue.cs" />
+    <Compile Include="servererror.cs" />
     <Compile Include="serverinterop.cs" />
     <Compile Include="serverpeerbase.cs" />
     <Compile Include="serverqueue.cs" />
     <Compile Include="serversocket.cs" />
+    <Compile Include="socketerror.cs" />
     <Compile Include="socketpool.cs" />
-	<Compile Include="spmanager.cs" />
+    <Compile Include="spmanager.cs" />
     <Compile Include="sqlmasterpool.cs" />
     <Compile Include="streamclient.cs" />
     <Compile Include="streamserver.cs" />

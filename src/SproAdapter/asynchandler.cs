@@ -78,6 +78,11 @@ namespace SocketProAdapter
 
         public class CAsyncServiceHandler : IDisposable
         {
+            public const int SESSION_CLOSED_AFTER = -1000;
+            public const int SESSION_CLOSED_BEFORE = -1001;
+            public const int REQUEST_CANCELED = -1002;
+            public const ulong DEFAULT_INTERRUPT_OPTION = 1;
+
             public delegate void DAsyncResultHandler(CAsyncResult AsyncResult);
             public delegate bool DOnResultReturned(CAsyncServiceHandler sender, ushort reqId, CUQueue qData);
             public delegate void DOnExceptionFromServer(CAsyncServiceHandler sender, ushort reqId, string errMessage, string errWhere, int errCode);
@@ -808,1238 +813,6 @@ namespace SocketProAdapter
                 return ok;
             }
 
-            public bool ProcessR0(ushort reqId)
-            {
-                if (!SendRequest(reqId, delegate (CAsyncResult ar) { }))
-                    return false;
-                return WaitAll();
-            }
-
-            public bool ProcessR0<T0>(ushort reqId, T0 t0)
-            {
-                if (!SendRequest(reqId, t0, delegate (CAsyncResult ar) { }))
-                    return false;
-                return WaitAll();
-            }
-
-            public bool ProcessR0<T0, T1>(ushort reqId, T0 t0, T1 t1)
-            {
-                if (!SendRequest(reqId, t0, t1, delegate (CAsyncResult ar) { }))
-                    return false;
-                return WaitAll();
-            }
-
-            public bool ProcessR0<T0, T1, T2>(ushort reqId, T0 t0, T1 t1, T2 t2)
-            {
-                if (!SendRequest(reqId, t0, t1, t2, delegate (CAsyncResult ar) { }))
-                    return false;
-                return WaitAll();
-            }
-
-            public bool ProcessR0<T0, T1, T2, T3>(ushort reqId, T0 t0, T1 t1, T2 t2, T3 t3)
-            {
-                if (!SendRequest(reqId, t0, t1, t2, t3, delegate (CAsyncResult ar) { }))
-                    return false;
-                return WaitAll();
-            }
-
-            public bool ProcessR0<T0, T1, T2, T3, T4>(ushort reqId, T0 t0, T1 t1, T2 t2, T3 t3, T4 t4)
-            {
-                if (!SendRequest(reqId, t0, t1, t2, t3, t4, delegate (CAsyncResult ar) { }))
-                    return false;
-                return WaitAll();
-            }
-
-            public bool ProcessR0<T0, T1, T2, T3, T4, T5>(ushort reqId, T0 t0, T1 t1, T2 t2, T3 t3, T4 t4, T5 t5)
-            {
-                if (!SendRequest(reqId, t0, t1, t2, t3, t4, t5, delegate (CAsyncResult ar) { }))
-                    return false;
-                return WaitAll();
-            }
-
-            public bool ProcessR0<T0, T1, T2, T3, T4, T5, T6>(ushort reqId, T0 t0, T1 t1, T2 t2, T3 t3, T4 t4, T5 t5, T6 t6)
-            {
-                if (!SendRequest(reqId, t0, t1, t2, t3, t4, t5, t6, delegate (CAsyncResult ar) { }))
-                    return false;
-                return WaitAll();
-            }
-
-            public bool ProcessR0<T0, T1, T2, T3, T4, T5, T6, T7>(ushort reqId, T0 t0, T1 t1, T2 t2, T3 t3, T4 t4, T5 t5, T6 t6, T7 t7)
-            {
-                if (!SendRequest(reqId, t0, t1, t2, t3, t4, t5, t6, t7, delegate (CAsyncResult ar) { }))
-                    return false;
-                return WaitAll();
-            }
-
-            public bool ProcessR0<T0, T1, T2, T3, T4, T5, T6, T7, T8>(ushort reqId, T0 t0, T1 t1, T2 t2, T3 t3, T4 t4, T5 t5, T6 t6, T7 t7, T8 t8)
-            {
-                if (!SendRequest(reqId, t0, t1, t2, t3, t4, t5, t6, t7, t8, delegate (CAsyncResult ar) { }))
-                    return false;
-                return WaitAll();
-            }
-
-            public bool ProcessR0<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9>(ushort reqId, T0 t0, T1 t1, T2 t2, T3 t3, T4 t4, T5 t5, T6 t6, T7 t7, T8 t8, T9 t9)
-            {
-                if (!SendRequest(reqId, t0, t1, t2, t3, t4, t5, t6, t7, t8, t9, delegate (CAsyncResult ar) { }))
-                    return false;
-                return WaitAll();
-            }
-
-            public bool ProcessR1<R0>(ushort reqId, out R0 r0)
-            {
-                R0 res0 = default(R0);
-                r0 = default(R0);
-                if (!SendRequest(reqId, delegate (CAsyncResult ar)
-                {
-                    ar.Load(out res0);
-                }))
-                    return false;
-                if (!WaitAll())
-                    return false;
-                r0 = res0;
-                return true;
-            }
-
-            public bool ProcessR1<T0, R0>(ushort reqId, T0 t0, out R0 r0)
-            {
-                R0 res0 = default(R0);
-                r0 = default(R0);
-                if (!SendRequest(reqId, t0, delegate (CAsyncResult ar)
-                {
-                    ar.Load(out res0);
-                }))
-                    return false;
-                if (!WaitAll())
-                    return false;
-                r0 = res0;
-                return true;
-            }
-
-            public bool ProcessR1<T0, T1, R0>(ushort reqId, T0 t0, T1 t1, out R0 r0)
-            {
-                R0 res0 = default(R0);
-                r0 = default(R0);
-                if (!SendRequest(reqId, t0, t1, delegate (CAsyncResult ar)
-                {
-                    ar.Load(out res0);
-                }))
-                    return false;
-                if (!WaitAll())
-                    return false;
-                r0 = res0;
-                return true;
-            }
-
-            public bool ProcessR1<T0, T1, T2, R0>(ushort reqId, T0 t0, T1 t1, T2 t2, out R0 r0)
-            {
-                R0 res0 = default(R0);
-                r0 = default(R0);
-                if (!SendRequest(reqId, t0, t1, t2, delegate (CAsyncResult ar)
-                {
-                    ar.Load(out res0);
-                }))
-                    return false;
-                if (!WaitAll())
-                    return false;
-                r0 = res0;
-                return true;
-            }
-
-            public bool ProcessR1<T0, T1, T2, T3, R0>(ushort reqId, T0 t0, T1 t1, T2 t2, T3 t3, out R0 r0)
-            {
-                R0 res0 = default(R0);
-                r0 = default(R0);
-                if (!SendRequest(reqId, t0, t1, t2, t3, delegate (CAsyncResult ar)
-                {
-                    ar.Load(out res0);
-                }))
-                    return false;
-                if (!WaitAll())
-                    return false;
-                r0 = res0;
-                return true;
-            }
-
-            public bool ProcessR1<T0, T1, T2, T3, T4, R0>(ushort reqId, T0 t0, T1 t1, T2 t2, T3 t3, T4 t4, out R0 r0)
-            {
-                R0 res0 = default(R0);
-                r0 = default(R0);
-                if (!SendRequest(reqId, t0, t1, t2, t3, t4, delegate (CAsyncResult ar)
-                {
-                    ar.Load(out res0);
-                }))
-                    return false;
-                if (!WaitAll())
-                    return false;
-                r0 = res0;
-                return true;
-            }
-
-            public bool ProcessR1<T0, T1, T2, T3, T4, T5, R0>(ushort reqId, T0 t0, T1 t1, T2 t2, T3 t3, T4 t4, T5 t5, out R0 r0)
-            {
-                R0 res0 = default(R0);
-                r0 = default(R0);
-                if (!SendRequest(reqId, t0, t1, t2, t3, t4, t5, delegate (CAsyncResult ar)
-                {
-                    ar.Load(out res0);
-                }))
-                    return false;
-                if (!WaitAll())
-                    return false;
-                r0 = res0;
-                return true;
-            }
-
-            public bool ProcessR1<T0, T1, T2, T3, T4, T5, T6, R0>(ushort reqId, T0 t0, T1 t1, T2 t2, T3 t3, T4 t4, T5 t5, T6 t6, out R0 r0)
-            {
-                R0 res0 = default(R0);
-                r0 = default(R0);
-                if (!SendRequest(reqId, t0, t1, t2, t3, t4, t5, t6, delegate (CAsyncResult ar)
-                {
-                    ar.Load(out res0);
-                }))
-                    return false;
-                if (!WaitAll())
-                    return false;
-                r0 = res0;
-                return true;
-            }
-
-            public bool ProcessR1<T0, T1, T2, T3, T4, T5, T6, T7, R0>(ushort reqId, T0 t0, T1 t1, T2 t2, T3 t3, T4 t4, T5 t5, T6 t6, T7 t7, out R0 r0)
-            {
-                R0 res0 = default(R0);
-                r0 = default(R0);
-                if (!SendRequest(reqId, t0, t1, t2, t3, t4, t5, t6, t7, delegate (CAsyncResult ar)
-                {
-                    ar.Load(out res0);
-                }))
-                    return false;
-                if (!WaitAll())
-                    return false;
-                r0 = res0;
-                return true;
-            }
-
-            public bool ProcessR1<T0, T1, T2, T3, T4, T5, T6, T7, T8, R0>(ushort reqId, T0 t0, T1 t1, T2 t2, T3 t3, T4 t4, T5 t5, T6 t6, T7 t7, T8 t8, out R0 r0)
-            {
-                R0 res0 = default(R0);
-                r0 = default(R0);
-                if (!SendRequest(reqId, t0, t1, t2, t3, t4, t5, t6, t7, t8, delegate (CAsyncResult ar)
-                {
-                    ar.Load(out res0);
-                }))
-                    return false;
-                if (!WaitAll())
-                    return false;
-                r0 = res0;
-                return true;
-            }
-
-            public bool ProcessR1<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, R0>(ushort reqId, T0 t0, T1 t1, T2 t2, T3 t3, T4 t4, T5 t5, T6 t6, T7 t7, T8 t8, T9 t9, out R0 r0)
-            {
-                R0 res0 = default(R0);
-                r0 = default(R0);
-                if (!SendRequest(reqId, t0, t1, t2, t3, t4, t5, t6, t7, t8, t9, delegate (CAsyncResult ar)
-                {
-                    ar.Load(out res0);
-                }))
-                    return false;
-                if (!WaitAll())
-                    return false;
-                r0 = res0;
-                return true;
-            }
-
-            public bool ProcessR2<R0, R1>(ushort reqId, out R0 r0, out R1 r1)
-            {
-                R0 res0 = default(R0);
-                r0 = default(R0);
-                R1 res1 = default(R1);
-                r1 = default(R1);
-                if (!SendRequest(reqId, delegate (CAsyncResult ar)
-                {
-                    ar.Load(out res0).Load(out res1);
-                }))
-                    return false;
-                if (!WaitAll())
-                    return false;
-                r0 = res0;
-                r1 = res1;
-                return true;
-            }
-
-            public bool ProcessR2<T0, R0, R1>(ushort reqId, T0 t0, out R0 r0, out R1 r1)
-            {
-                R0 res0 = default(R0);
-                r0 = default(R0);
-                R1 res1 = default(R1);
-                r1 = default(R1);
-                if (!SendRequest(reqId, t0, delegate (CAsyncResult ar)
-                {
-                    ar.Load(out res0).Load(out res1);
-                }))
-                    return false;
-                if (!WaitAll())
-                    return false;
-                r0 = res0;
-                r1 = res1;
-                return true;
-            }
-
-            public bool ProcessR2<T0, T1, R0, R1>(ushort reqId, T0 t0, T1 t1, out R0 r0, out R1 r1)
-            {
-                R0 res0 = default(R0);
-                r0 = default(R0);
-                R1 res1 = default(R1);
-                r1 = default(R1);
-                if (!SendRequest(reqId, t0, t1, delegate (CAsyncResult ar)
-                {
-                    ar.Load(out res0).Load(out res1);
-                }))
-                    return false;
-                if (!WaitAll())
-                    return false;
-                r0 = res0;
-                r1 = res1;
-                return true;
-            }
-
-            public bool ProcessR2<T0, T1, T2, R0, R1>(ushort reqId, T0 t0, T1 t1, T2 t2, out R0 r0, out R1 r1)
-            {
-                R0 res0 = default(R0);
-                r0 = default(R0);
-                R1 res1 = default(R1);
-                r1 = default(R1);
-                if (!SendRequest(reqId, t0, t1, t2, delegate (CAsyncResult ar)
-                {
-                    ar.Load(out res0).Load(out res1);
-                }))
-                    return false;
-                if (!WaitAll())
-                    return false;
-                r0 = res0;
-                r1 = res1;
-                return true;
-            }
-
-            public bool ProcessR2<T0, T1, T2, T3, R0, R1>(ushort reqId, T0 t0, T1 t1, T2 t2, T3 t3, out R0 r0, out R1 r1)
-            {
-                R0 res0 = default(R0);
-                r0 = default(R0);
-                R1 res1 = default(R1);
-                r1 = default(R1);
-                if (!SendRequest(reqId, t0, t1, t2, t3, delegate (CAsyncResult ar)
-                {
-                    ar.Load(out res0).Load(out res1);
-                }))
-                    return false;
-                if (!WaitAll())
-                    return false;
-                r0 = res0;
-                r1 = res1;
-                return true;
-            }
-
-            public bool ProcessR2<T0, T1, T2, T3, T4, R0, R1>(ushort reqId, T0 t0, T1 t1, T2 t2, T3 t3, T4 t4, out R0 r0, out R1 r1)
-            {
-                R0 res0 = default(R0);
-                r0 = default(R0);
-                R1 res1 = default(R1);
-                r1 = default(R1);
-                if (!SendRequest(reqId, t0, t1, t2, t3, t4, delegate (CAsyncResult ar)
-                {
-                    ar.Load(out res0).Load(out res1);
-                }))
-                    return false;
-                if (!WaitAll())
-                    return false;
-                r0 = res0;
-                r1 = res1;
-                return true;
-            }
-
-            public bool ProcessR2<T0, T1, T2, T3, T4, T5, R0, R1>(ushort reqId, T0 t0, T1 t1, T2 t2, T3 t3, T4 t4, T5 t5, out R0 r0, out R1 r1)
-            {
-                R0 res0 = default(R0);
-                r0 = default(R0);
-                R1 res1 = default(R1);
-                r1 = default(R1);
-                if (!SendRequest(reqId, t0, t1, t2, t3, t4, t5, delegate (CAsyncResult ar)
-                {
-                    ar.Load(out res0).Load(out res1);
-                }))
-                    return false;
-                if (!WaitAll())
-                    return false;
-                r0 = res0;
-                r1 = res1;
-                return true;
-            }
-
-            public bool ProcessR2<T0, T1, T2, T3, T4, T5, T6, R0, R1>(ushort reqId, T0 t0, T1 t1, T2 t2, T3 t3, T4 t4, T5 t5, T6 t6, out R0 r0, out R1 r1)
-            {
-                R0 res0 = default(R0);
-                r0 = default(R0);
-                R1 res1 = default(R1);
-                r1 = default(R1);
-                if (!SendRequest(reqId, t0, t1, t2, t3, t4, t5, t6, delegate (CAsyncResult ar)
-                {
-                    ar.Load(out res0).Load(out res1);
-                }))
-                    return false;
-                if (!WaitAll())
-                    return false;
-                r0 = res0;
-                r1 = res1;
-                return true;
-            }
-
-            public bool ProcessR2<T0, T1, T2, T3, T4, T5, T6, T7, R0, R1>(ushort reqId, T0 t0, T1 t1, T2 t2, T3 t3, T4 t4, T5 t5, T6 t6, T7 t7, out R0 r0, out R1 r1)
-            {
-                R0 res0 = default(R0);
-                r0 = default(R0);
-                R1 res1 = default(R1);
-                r1 = default(R1);
-                if (!SendRequest(reqId, t0, t1, t2, t3, t4, t5, t6, t7, delegate (CAsyncResult ar)
-                {
-                    ar.Load(out res0).Load(out res1);
-                }))
-                    return false;
-                if (!WaitAll())
-                    return false;
-                r0 = res0;
-                r1 = res1;
-                return true;
-            }
-
-            public bool ProcessR2<T0, T1, T2, T3, T4, T5, T6, T7, T8, R0, R1>(ushort reqId, T0 t0, T1 t1, T2 t2, T3 t3, T4 t4, T5 t5, T6 t6, T7 t7, T8 t8, out R0 r0, out R1 r1)
-            {
-                R0 res0 = default(R0);
-                r0 = default(R0);
-                R1 res1 = default(R1);
-                r1 = default(R1);
-                if (!SendRequest(reqId, t0, t1, t2, t3, t4, t5, t6, t7, t8, delegate (CAsyncResult ar)
-                {
-                    ar.Load(out res0).Load(out res1);
-                }))
-                    return false;
-                if (!WaitAll())
-                    return false;
-                r0 = res0;
-                r1 = res1;
-                return true;
-            }
-
-            public bool ProcessR2<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, R0, R1>(ushort reqId, T0 t0, T1 t1, T2 t2, T3 t3, T4 t4, T5 t5, T6 t6, T7 t7, T8 t8, T9 t9, out R0 r0, out R1 r1)
-            {
-                R0 res0 = default(R0);
-                r0 = default(R0);
-                R1 res1 = default(R1);
-                r1 = default(R1);
-                if (!SendRequest(reqId, t0, t1, t2, t3, t4, t5, t6, t7, t8, t9, delegate (CAsyncResult ar)
-                {
-                    ar.Load(out res0).Load(out res1);
-                }))
-                    return false;
-                if (!WaitAll())
-                    return false;
-                r0 = res0;
-                r1 = res1;
-                return true;
-            }
-
-            public bool ProcessR3<R0, R1, R2>(ushort reqId, out R0 r0, out R1 r1, out R2 r2)
-            {
-                R0 res0 = default(R0);
-                r0 = default(R0);
-                R1 res1 = default(R1);
-                r1 = default(R1);
-                R2 res2 = default(R2);
-                r2 = default(R2);
-                if (!SendRequest(reqId, delegate (CAsyncResult ar)
-                {
-                    ar.Load(out res0).Load(out res1).Load(out res2);
-                }))
-                    return false;
-                if (!WaitAll())
-                    return false;
-                r0 = res0;
-                r1 = res1;
-                r2 = res2;
-                return true;
-            }
-
-            public bool ProcessR3<T0, R0, R1, R2>(ushort reqId, T0 t0, out R0 r0, out R1 r1, out R2 r2)
-            {
-                R0 res0 = default(R0);
-                r0 = default(R0);
-                R1 res1 = default(R1);
-                r1 = default(R1);
-                R2 res2 = default(R2);
-                r2 = default(R2);
-                if (!SendRequest(reqId, t0, delegate (CAsyncResult ar)
-                {
-                    ar.Load(out res0).Load(out res1).Load(out res2);
-                }))
-                    return false;
-                if (!WaitAll())
-                    return false;
-                r0 = res0;
-                r1 = res1;
-                r2 = res2;
-                return true;
-            }
-
-            public bool ProcessR3<T0, T1, R0, R1, R2>(ushort reqId, T0 t0, T1 t1, out R0 r0, out R1 r1, out R2 r2)
-            {
-                R0 res0 = default(R0);
-                r0 = default(R0);
-                R1 res1 = default(R1);
-                r1 = default(R1);
-                R2 res2 = default(R2);
-                r2 = default(R2);
-                if (!SendRequest(reqId, t0, t1, delegate (CAsyncResult ar)
-                {
-                    ar.Load(out res0).Load(out res1).Load(out res2);
-                }))
-                    return false;
-                if (!WaitAll())
-                    return false;
-                r0 = res0;
-                r1 = res1;
-                r2 = res2;
-                return true;
-            }
-
-            public bool ProcessR3<T0, T1, T2, R0, R1, R2>(ushort reqId, T0 t0, T1 t1, T2 t2, out R0 r0, out R1 r1, out R2 r2)
-            {
-                R0 res0 = default(R0);
-                r0 = default(R0);
-                R1 res1 = default(R1);
-                r1 = default(R1);
-                R2 res2 = default(R2);
-                r2 = default(R2);
-                if (!SendRequest(reqId, t0, t1, t2, delegate (CAsyncResult ar)
-                {
-                    ar.Load(out res0).Load(out res1).Load(out res2);
-                }))
-                    return false;
-                if (!WaitAll())
-                    return false;
-                r0 = res0;
-                r1 = res1;
-                r2 = res2;
-                return true;
-            }
-
-            public bool ProcessR3<T0, T1, T2, T3, R0, R1, R2>(ushort reqId, T0 t0, T1 t1, T2 t2, T3 t3, out R0 r0, out R1 r1, out R2 r2)
-            {
-                R0 res0 = default(R0);
-                r0 = default(R0);
-                R1 res1 = default(R1);
-                r1 = default(R1);
-                R2 res2 = default(R2);
-                r2 = default(R2);
-                if (!SendRequest(reqId, t0, t1, t2, t3, delegate (CAsyncResult ar)
-                {
-                    ar.Load(out res0).Load(out res1).Load(out res2);
-                }))
-                    return false;
-                if (!WaitAll())
-                    return false;
-                r0 = res0;
-                r1 = res1;
-                r2 = res2;
-                return true;
-            }
-
-            public bool ProcessR3<T0, T1, T2, T3, T4, R0, R1, R2>(ushort reqId, T0 t0, T1 t1, T2 t2, T3 t3, T4 t4, out R0 r0, out R1 r1, out R2 r2)
-            {
-                R0 res0 = default(R0);
-                r0 = default(R0);
-                R1 res1 = default(R1);
-                r1 = default(R1);
-                R2 res2 = default(R2);
-                r2 = default(R2);
-                if (!SendRequest(reqId, t0, t1, t2, t3, t4, delegate (CAsyncResult ar)
-                {
-                    ar.Load(out res0).Load(out res1).Load(out res2);
-                }))
-                    return false;
-                if (!WaitAll())
-                    return false;
-                r0 = res0;
-                r1 = res1;
-                r2 = res2;
-                return true;
-            }
-
-            public bool ProcessR3<T0, T1, T2, T3, T4, T5, R0, R1, R2>(ushort reqId, T0 t0, T1 t1, T2 t2, T3 t3, T4 t4, T5 t5, out R0 r0, out R1 r1, out R2 r2)
-            {
-                R0 res0 = default(R0);
-                r0 = default(R0);
-                R1 res1 = default(R1);
-                r1 = default(R1);
-                R2 res2 = default(R2);
-                r2 = default(R2);
-                if (!SendRequest(reqId, t0, t1, t2, t3, t4, t5, delegate (CAsyncResult ar)
-                {
-                    ar.Load(out res0).Load(out res1).Load(out res2);
-                }))
-                    return false;
-                if (!WaitAll())
-                    return false;
-                r0 = res0;
-                r1 = res1;
-                r2 = res2;
-                return true;
-            }
-
-            public bool ProcessR3<T0, T1, T2, T3, T4, T5, T6, R0, R1, R2>(ushort reqId, T0 t0, T1 t1, T2 t2, T3 t3, T4 t4, T5 t5, T6 t6, out R0 r0, out R1 r1, out R2 r2)
-            {
-                R0 res0 = default(R0);
-                r0 = default(R0);
-                R1 res1 = default(R1);
-                r1 = default(R1);
-                R2 res2 = default(R2);
-                r2 = default(R2);
-                if (!SendRequest(reqId, t0, t1, t2, t3, t4, t5, t6, delegate (CAsyncResult ar)
-                {
-                    ar.Load(out res0).Load(out res1).Load(out res2);
-                }))
-                    return false;
-                if (!WaitAll())
-                    return false;
-                r0 = res0;
-                r1 = res1;
-                r2 = res2;
-                return true;
-            }
-
-            public bool ProcessR3<T0, T1, T2, T3, T4, T5, T6, T7, R0, R1, R2>(ushort reqId, T0 t0, T1 t1, T2 t2, T3 t3, T4 t4, T5 t5, T6 t6, T7 t7, out R0 r0, out R1 r1, out R2 r2)
-            {
-                R0 res0 = default(R0);
-                r0 = default(R0);
-                R1 res1 = default(R1);
-                r1 = default(R1);
-                R2 res2 = default(R2);
-                r2 = default(R2);
-                if (!SendRequest(reqId, t0, t1, t2, t3, t4, t5, t6, t7, delegate (CAsyncResult ar)
-                {
-                    ar.Load(out res0).Load(out res1).Load(out res2);
-                }))
-                    return false;
-                if (!WaitAll())
-                    return false;
-                r0 = res0;
-                r1 = res1;
-                r2 = res2;
-                return true;
-            }
-
-            public bool ProcessR3<T0, T1, T2, T3, T4, T5, T6, T7, T8, R0, R1, R2>(ushort reqId, T0 t0, T1 t1, T2 t2, T3 t3, T4 t4, T5 t5, T6 t6, T7 t7, T8 t8, out R0 r0, out R1 r1, out R2 r2)
-            {
-                R0 res0 = default(R0);
-                r0 = default(R0);
-                R1 res1 = default(R1);
-                r1 = default(R1);
-                R2 res2 = default(R2);
-                r2 = default(R2);
-                if (!SendRequest(reqId, t0, t1, t2, t3, t4, t5, t6, t7, t8, delegate (CAsyncResult ar)
-                {
-                    ar.Load(out res0).Load(out res1).Load(out res2);
-                }))
-                    return false;
-                if (!WaitAll())
-                    return false;
-                r0 = res0;
-                r1 = res1;
-                r2 = res2;
-                return true;
-            }
-
-            public bool ProcessR3<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, R0, R1, R2>(ushort reqId, T0 t0, T1 t1, T2 t2, T3 t3, T4 t4, T5 t5, T6 t6, T7 t7, T8 t8, T9 t9, out R0 r0, out R1 r1, out R2 r2)
-            {
-                R0 res0 = default(R0);
-                r0 = default(R0);
-                R1 res1 = default(R1);
-                r1 = default(R1);
-                R2 res2 = default(R2);
-                r2 = default(R2);
-                if (!SendRequest(reqId, t0, t1, t2, t3, t4, t5, t6, t7, t8, t9, delegate (CAsyncResult ar)
-                {
-                    ar.Load(out res0).Load(out res1).Load(out res2);
-                }))
-                    return false;
-                if (!WaitAll())
-                    return false;
-                r0 = res0;
-                r1 = res1;
-                r2 = res2;
-                return true;
-            }
-
-            public bool ProcessR4<R0, R1, R2, R3>(ushort reqId, out R0 r0, out R1 r1, out R2 r2, out R3 r3)
-            {
-                R0 res0 = default(R0);
-                r0 = default(R0);
-                R1 res1 = default(R1);
-                r1 = default(R1);
-                R2 res2 = default(R2);
-                r2 = default(R2);
-                R3 res3 = default(R3);
-                r3 = default(R3);
-                if (!SendRequest(reqId, delegate (CAsyncResult ar)
-                {
-                    ar.Load(out res0).Load(out res1).Load(out res2).Load(out res3);
-                }))
-                    return false;
-                if (!WaitAll())
-                    return false;
-                r0 = res0;
-                r1 = res1;
-                r2 = res2;
-                r3 = res3;
-                return true;
-            }
-
-            public bool ProcessR4<T0, R0, R1, R2, R3>(ushort reqId, T0 t0, out R0 r0, out R1 r1, out R2 r2, out R3 r3)
-            {
-                R0 res0 = default(R0);
-                r0 = default(R0);
-                R1 res1 = default(R1);
-                r1 = default(R1);
-                R2 res2 = default(R2);
-                r2 = default(R2);
-                R3 res3 = default(R3);
-                r3 = default(R3);
-                if (!SendRequest(reqId, t0, delegate (CAsyncResult ar)
-                {
-                    ar.Load(out res0).Load(out res1).Load(out res2).Load(out res3);
-                }))
-                    return false;
-                if (!WaitAll())
-                    return false;
-                r0 = res0;
-                r1 = res1;
-                r2 = res2;
-                r3 = res3;
-                return true;
-            }
-
-            public bool ProcessR4<T0, T1, R0, R1, R2, R3>(ushort reqId, T0 t0, T1 t1, out R0 r0, out R1 r1, out R2 r2, out R3 r3)
-            {
-                R0 res0 = default(R0);
-                r0 = default(R0);
-                R1 res1 = default(R1);
-                r1 = default(R1);
-                R2 res2 = default(R2);
-                r2 = default(R2);
-                R3 res3 = default(R3);
-                r3 = default(R3);
-                if (!SendRequest(reqId, t0, t1, delegate (CAsyncResult ar)
-                {
-                    ar.Load(out res0).Load(out res1).Load(out res2).Load(out res3);
-                }))
-                    return false;
-                if (!WaitAll())
-                    return false;
-                r0 = res0;
-                r1 = res1;
-                r2 = res2;
-                r3 = res3;
-                return true;
-            }
-
-            public bool ProcessR4<T0, T1, T2, R0, R1, R2, R3>(ushort reqId, T0 t0, T1 t1, T2 t2, out R0 r0, out R1 r1, out R2 r2, out R3 r3)
-            {
-                R0 res0 = default(R0);
-                r0 = default(R0);
-                R1 res1 = default(R1);
-                r1 = default(R1);
-                R2 res2 = default(R2);
-                r2 = default(R2);
-                R3 res3 = default(R3);
-                r3 = default(R3);
-                if (!SendRequest(reqId, t0, t1, t2, delegate (CAsyncResult ar)
-                {
-                    ar.Load(out res0).Load(out res1).Load(out res2).Load(out res3);
-                }))
-                    return false;
-                if (!WaitAll())
-                    return false;
-                r0 = res0;
-                r1 = res1;
-                r2 = res2;
-                r3 = res3;
-                return true;
-            }
-
-            public bool ProcessR4<T0, T1, T2, T3, R0, R1, R2, R3>(ushort reqId, T0 t0, T1 t1, T2 t2, T3 t3, out R0 r0, out R1 r1, out R2 r2, out R3 r3)
-            {
-                R0 res0 = default(R0);
-                r0 = default(R0);
-                R1 res1 = default(R1);
-                r1 = default(R1);
-                R2 res2 = default(R2);
-                r2 = default(R2);
-                R3 res3 = default(R3);
-                r3 = default(R3);
-                if (!SendRequest(reqId, t0, t1, t2, t3, delegate (CAsyncResult ar)
-                {
-                    ar.Load(out res0).Load(out res1).Load(out res2).Load(out res3);
-                }))
-                    return false;
-                if (!WaitAll())
-                    return false;
-                r0 = res0;
-                r1 = res1;
-                r2 = res2;
-                r3 = res3;
-                return true;
-            }
-
-            public bool ProcessR4<T0, T1, T2, T3, T4, R0, R1, R2, R3>(ushort reqId, T0 t0, T1 t1, T2 t2, T3 t3, T4 t4, out R0 r0, out R1 r1, out R2 r2, out R3 r3)
-            {
-                R0 res0 = default(R0);
-                r0 = default(R0);
-                R1 res1 = default(R1);
-                r1 = default(R1);
-                R2 res2 = default(R2);
-                r2 = default(R2);
-                R3 res3 = default(R3);
-                r3 = default(R3);
-                if (!SendRequest(reqId, t0, t1, t2, t3, t4, delegate (CAsyncResult ar)
-                {
-                    ar.Load(out res0).Load(out res1).Load(out res2).Load(out res3);
-                }))
-                    return false;
-                if (!WaitAll())
-                    return false;
-                r0 = res0;
-                r1 = res1;
-                r2 = res2;
-                r3 = res3;
-                return true;
-            }
-
-            public bool ProcessR4<T0, T1, T2, T3, T4, T5, R0, R1, R2, R3>(ushort reqId, T0 t0, T1 t1, T2 t2, T3 t3, T4 t4, T5 t5, out R0 r0, out R1 r1, out R2 r2, out R3 r3)
-            {
-                R0 res0 = default(R0);
-                r0 = default(R0);
-                R1 res1 = default(R1);
-                r1 = default(R1);
-                R2 res2 = default(R2);
-                r2 = default(R2);
-                R3 res3 = default(R3);
-                r3 = default(R3);
-                if (!SendRequest(reqId, t0, t1, t2, t3, t4, t5, delegate (CAsyncResult ar)
-                {
-                    ar.Load(out res0).Load(out res1).Load(out res2).Load(out res3);
-                }))
-                    return false;
-                if (!WaitAll())
-                    return false;
-                r0 = res0;
-                r1 = res1;
-                r2 = res2;
-                r3 = res3;
-                return true;
-            }
-
-            public bool ProcessR4<T0, T1, T2, T3, T4, T5, T6, R0, R1, R2, R3>(ushort reqId, T0 t0, T1 t1, T2 t2, T3 t3, T4 t4, T5 t5, T6 t6, out R0 r0, out R1 r1, out R2 r2, out R3 r3)
-            {
-                R0 res0 = default(R0);
-                r0 = default(R0);
-                R1 res1 = default(R1);
-                r1 = default(R1);
-                R2 res2 = default(R2);
-                r2 = default(R2);
-                R3 res3 = default(R3);
-                r3 = default(R3);
-                if (!SendRequest(reqId, t0, t1, t2, t3, t4, t5, t6, delegate (CAsyncResult ar)
-                {
-                    ar.Load(out res0).Load(out res1).Load(out res2).Load(out res3);
-                }))
-                    return false;
-                if (!WaitAll())
-                    return false;
-                r0 = res0;
-                r1 = res1;
-                r2 = res2;
-                r3 = res3;
-                return true;
-            }
-
-            public bool ProcessR4<T0, T1, T2, T3, T4, T5, T6, T7, R0, R1, R2, R3>(ushort reqId, T0 t0, T1 t1, T2 t2, T3 t3, T4 t4, T5 t5, T6 t6, T7 t7, out R0 r0, out R1 r1, out R2 r2, out R3 r3)
-            {
-                R0 res0 = default(R0);
-                r0 = default(R0);
-                R1 res1 = default(R1);
-                r1 = default(R1);
-                R2 res2 = default(R2);
-                r2 = default(R2);
-                R3 res3 = default(R3);
-                r3 = default(R3);
-                if (!SendRequest(reqId, t0, t1, t2, t3, t4, t5, t6, t7, delegate (CAsyncResult ar)
-                {
-                    ar.Load(out res0).Load(out res1).Load(out res2).Load(out res3);
-                }))
-                    return false;
-                if (!WaitAll())
-                    return false;
-                r0 = res0;
-                r1 = res1;
-                r2 = res2;
-                r3 = res3;
-                return true;
-            }
-
-            public bool ProcessR4<T0, T1, T2, T3, T4, T5, T6, T7, T8, R0, R1, R2, R3>(ushort reqId, T0 t0, T1 t1, T2 t2, T3 t3, T4 t4, T5 t5, T6 t6, T7 t7, T8 t8, out R0 r0, out R1 r1, out R2 r2, out R3 r3)
-            {
-                R0 res0 = default(R0);
-                r0 = default(R0);
-                R1 res1 = default(R1);
-                r1 = default(R1);
-                R2 res2 = default(R2);
-                r2 = default(R2);
-                R3 res3 = default(R3);
-                r3 = default(R3);
-                if (!SendRequest(reqId, t0, t1, t2, t3, t4, t5, t6, t7, t8, delegate (CAsyncResult ar)
-                {
-                    ar.Load(out res0).Load(out res1).Load(out res2).Load(out res3);
-                }))
-                    return false;
-                if (!WaitAll())
-                    return false;
-                r0 = res0;
-                r1 = res1;
-                r2 = res2;
-                r3 = res3;
-                return true;
-            }
-
-            public bool ProcessR4<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, R0, R1, R2, R3>(ushort reqId, T0 t0, T1 t1, T2 t2, T3 t3, T4 t4, T5 t5, T6 t6, T7 t7, T8 t8, T9 t9, out R0 r0, out R1 r1, out R2 r2, out R3 r3)
-            {
-                R0 res0 = default(R0);
-                r0 = default(R0);
-                R1 res1 = default(R1);
-                r1 = default(R1);
-                R2 res2 = default(R2);
-                r2 = default(R2);
-                R3 res3 = default(R3);
-                r3 = default(R3);
-                if (!SendRequest(reqId, t0, t1, t2, t3, t4, t5, t6, t7, t8, t9, delegate (CAsyncResult ar)
-                {
-                    ar.Load(out res0).Load(out res1).Load(out res2).Load(out res3);
-                }))
-                    return false;
-                if (!WaitAll())
-                    return false;
-                r0 = res0;
-                r1 = res1;
-                r2 = res2;
-                r3 = res3;
-                return true;
-            }
-
-            public bool ProcessR5<R0, R1, R2, R3, R4>(ushort reqId, out R0 r0, out R1 r1, out R2 r2, out R3 r3, out R4 r4)
-            {
-                R0 res0 = default(R0);
-                r0 = default(R0);
-                R1 res1 = default(R1);
-                r1 = default(R1);
-                R2 res2 = default(R2);
-                r2 = default(R2);
-                R3 res3 = default(R3);
-                r3 = default(R3);
-                R4 res4 = default(R4);
-                r4 = default(R4);
-                if (!SendRequest(reqId, delegate (CAsyncResult ar)
-                {
-                    ar.Load(out res0).Load(out res1).Load(out res2).Load(out res3).Load(out res4);
-                }))
-                    return false;
-                if (!WaitAll())
-                    return false;
-                r0 = res0;
-                r1 = res1;
-                r2 = res2;
-                r3 = res3;
-                r4 = res4;
-                return true;
-            }
-
-            public bool ProcessR5<T0, R0, R1, R2, R3, R4>(ushort reqId, T0 t0, out R0 r0, out R1 r1, out R2 r2, out R3 r3, out R4 r4)
-            {
-                R0 res0 = default(R0);
-                r0 = default(R0);
-                R1 res1 = default(R1);
-                r1 = default(R1);
-                R2 res2 = default(R2);
-                r2 = default(R2);
-                R3 res3 = default(R3);
-                r3 = default(R3);
-                R4 res4 = default(R4);
-                r4 = default(R4);
-                if (!SendRequest(reqId, t0, delegate (CAsyncResult ar)
-                {
-                    ar.Load(out res0).Load(out res1).Load(out res2).Load(out res3).Load(out res4);
-                }))
-                    return false;
-                if (!WaitAll())
-                    return false;
-                r0 = res0;
-                r1 = res1;
-                r2 = res2;
-                r3 = res3;
-                r4 = res4;
-                return true;
-            }
-
-            public bool ProcessR5<T0, T1, R0, R1, R2, R3, R4>(ushort reqId, T0 t0, T1 t1, out R0 r0, out R1 r1, out R2 r2, out R3 r3, out R4 r4)
-            {
-                R0 res0 = default(R0);
-                r0 = default(R0);
-                R1 res1 = default(R1);
-                r1 = default(R1);
-                R2 res2 = default(R2);
-                r2 = default(R2);
-                R3 res3 = default(R3);
-                r3 = default(R3);
-                R4 res4 = default(R4);
-                r4 = default(R4);
-                if (!SendRequest(reqId, t0, t1, delegate (CAsyncResult ar)
-                {
-                    ar.Load(out res0).Load(out res1).Load(out res2).Load(out res3).Load(out res4);
-                }))
-                    return false;
-                if (!WaitAll())
-                    return false;
-                r0 = res0;
-                r1 = res1;
-                r2 = res2;
-                r3 = res3;
-                r4 = res4;
-                return true;
-            }
-
-            public bool ProcessR5<T0, T1, T2, R0, R1, R2, R3, R4>(ushort reqId, T0 t0, T1 t1, T2 t2, out R0 r0, out R1 r1, out R2 r2, out R3 r3, out R4 r4)
-            {
-                R0 res0 = default(R0);
-                r0 = default(R0);
-                R1 res1 = default(R1);
-                r1 = default(R1);
-                R2 res2 = default(R2);
-                r2 = default(R2);
-                R3 res3 = default(R3);
-                r3 = default(R3);
-                R4 res4 = default(R4);
-                r4 = default(R4);
-                if (!SendRequest(reqId, t0, t1, t2, delegate (CAsyncResult ar)
-                {
-                    ar.Load(out res0).Load(out res1).Load(out res2).Load(out res3).Load(out res4);
-                }))
-                    return false;
-                if (!WaitAll())
-                    return false;
-                r0 = res0;
-                r1 = res1;
-                r2 = res2;
-                r3 = res3;
-                r4 = res4;
-                return true;
-            }
-
-            public bool ProcessR5<T0, T1, T2, T3, R0, R1, R2, R3, R4>(ushort reqId, T0 t0, T1 t1, T2 t2, T3 t3, out R0 r0, out R1 r1, out R2 r2, out R3 r3, out R4 r4)
-            {
-                R0 res0 = default(R0);
-                r0 = default(R0);
-                R1 res1 = default(R1);
-                r1 = default(R1);
-                R2 res2 = default(R2);
-                r2 = default(R2);
-                R3 res3 = default(R3);
-                r3 = default(R3);
-                R4 res4 = default(R4);
-                r4 = default(R4);
-                if (!SendRequest(reqId, t0, t1, t2, t3, delegate (CAsyncResult ar)
-                {
-                    ar.Load(out res0).Load(out res1).Load(out res2).Load(out res3).Load(out res4);
-                }))
-                    return false;
-                if (!WaitAll())
-                    return false;
-                r0 = res0;
-                r1 = res1;
-                r2 = res2;
-                r3 = res3;
-                r4 = res4;
-                return true;
-            }
-
-            public bool ProcessR5<T0, T1, T2, T3, T4, R0, R1, R2, R3, R4>(ushort reqId, T0 t0, T1 t1, T2 t2, T3 t3, T4 t4, out R0 r0, out R1 r1, out R2 r2, out R3 r3, out R4 r4)
-            {
-                R0 res0 = default(R0);
-                r0 = default(R0);
-                R1 res1 = default(R1);
-                r1 = default(R1);
-                R2 res2 = default(R2);
-                r2 = default(R2);
-                R3 res3 = default(R3);
-                r3 = default(R3);
-                R4 res4 = default(R4);
-                r4 = default(R4);
-                if (!SendRequest(reqId, t0, t1, t2, t3, t4, delegate (CAsyncResult ar)
-                {
-                    ar.Load(out res0).Load(out res1).Load(out res2).Load(out res3).Load(out res4);
-                }))
-                    return false;
-                if (!WaitAll())
-                    return false;
-                r0 = res0;
-                r1 = res1;
-                r2 = res2;
-                r3 = res3;
-                r4 = res4;
-                return true;
-            }
-
-            public bool ProcessR5<T0, T1, T2, T3, T4, T5, R0, R1, R2, R3, R4>(ushort reqId, T0 t0, T1 t1, T2 t2, T3 t3, T4 t4, T5 t5, out R0 r0, out R1 r1, out R2 r2, out R3 r3, out R4 r4)
-            {
-                R0 res0 = default(R0);
-                r0 = default(R0);
-                R1 res1 = default(R1);
-                r1 = default(R1);
-                R2 res2 = default(R2);
-                r2 = default(R2);
-                R3 res3 = default(R3);
-                r3 = default(R3);
-                R4 res4 = default(R4);
-                r4 = default(R4);
-                if (!SendRequest(reqId, t0, t1, t2, t3, t4, t5, delegate (CAsyncResult ar)
-                {
-                    ar.Load(out res0).Load(out res1).Load(out res2).Load(out res3).Load(out res4);
-                }))
-                    return false;
-                if (!WaitAll())
-                    return false;
-                r0 = res0;
-                r1 = res1;
-                r2 = res2;
-                r3 = res3;
-                r4 = res4;
-                return true;
-            }
-
-            public bool ProcessR5<T0, T1, T2, T3, T4, T5, T6, R0, R1, R2, R3, R4>(ushort reqId, T0 t0, T1 t1, T2 t2, T3 t3, T4 t4, T5 t5, T6 t6, out R0 r0, out R1 r1, out R2 r2, out R3 r3, out R4 r4)
-            {
-                R0 res0 = default(R0);
-                r0 = default(R0);
-                R1 res1 = default(R1);
-                r1 = default(R1);
-                R2 res2 = default(R2);
-                r2 = default(R2);
-                R3 res3 = default(R3);
-                r3 = default(R3);
-                R4 res4 = default(R4);
-                r4 = default(R4);
-                if (!SendRequest(reqId, t0, t1, t2, t3, t4, t5, t6, delegate (CAsyncResult ar)
-                {
-                    ar.Load(out res0).Load(out res1).Load(out res2).Load(out res3).Load(out res4);
-                }))
-                    return false;
-                if (!WaitAll())
-                    return false;
-                r0 = res0;
-                r1 = res1;
-                r2 = res2;
-                r3 = res3;
-                r4 = res4;
-                return true;
-            }
-
-            public bool ProcessR5<T0, T1, T2, T3, T4, T5, T6, T7, R0, R1, R2, R3, R4>(ushort reqId, T0 t0, T1 t1, T2 t2, T3 t3, T4 t4, T5 t5, T6 t6, T7 t7, out R0 r0, out R1 r1, out R2 r2, out R3 r3, out R4 r4)
-            {
-                R0 res0 = default(R0);
-                r0 = default(R0);
-                R1 res1 = default(R1);
-                r1 = default(R1);
-                R2 res2 = default(R2);
-                r2 = default(R2);
-                R3 res3 = default(R3);
-                r3 = default(R3);
-                R4 res4 = default(R4);
-                r4 = default(R4);
-                if (!SendRequest(reqId, t0, t1, t2, t3, t4, t5, t6, t7, delegate (CAsyncResult ar)
-                {
-                    ar.Load(out res0).Load(out res1).Load(out res2).Load(out res3).Load(out res4);
-                }))
-                    return false;
-                if (!WaitAll())
-                    return false;
-                r0 = res0;
-                r1 = res1;
-                r2 = res2;
-                r3 = res3;
-                r4 = res4;
-                return true;
-            }
-
-            public bool ProcessR5<T0, T1, T2, T3, T4, T5, T6, T7, T8, R0, R1, R2, R3, R4>(ushort reqId, T0 t0, T1 t1, T2 t2, T3 t3, T4 t4, T5 t5, T6 t6, T7 t7, T8 t8, out R0 r0, out R1 r1, out R2 r2, out R3 r3, out R4 r4)
-            {
-                R0 res0 = default(R0);
-                r0 = default(R0);
-                R1 res1 = default(R1);
-                r1 = default(R1);
-                R2 res2 = default(R2);
-                r2 = default(R2);
-                R3 res3 = default(R3);
-                r3 = default(R3);
-                R4 res4 = default(R4);
-                r4 = default(R4);
-                if (!SendRequest(reqId, t0, t1, t2, t3, t4, t5, t6, t7, t8, delegate (CAsyncResult ar)
-                {
-                    ar.Load(out res0).Load(out res1).Load(out res2).Load(out res3).Load(out res4);
-                }))
-                    return false;
-                if (!WaitAll())
-                    return false;
-                r0 = res0;
-                r1 = res1;
-                r2 = res2;
-                r3 = res3;
-                r4 = res4;
-                return true;
-            }
-
-            public bool ProcessR5<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, R0, R1, R2, R3, R4>(ushort reqId, T0 t0, T1 t1, T2 t2, T3 t3, T4 t4, T5 t5, T6 t6, T7 t7, T8 t8, T9 t9, out R0 r0, out R1 r1, out R2 r2, out R3 r3, out R4 r4)
-            {
-                R0 res0 = default(R0);
-                r0 = default(R0);
-                R1 res1 = default(R1);
-                r1 = default(R1);
-                R2 res2 = default(R2);
-                r2 = default(R2);
-                R3 res3 = default(R3);
-                r3 = default(R3);
-                R4 res4 = default(R4);
-                r4 = default(R4);
-                if (!SendRequest(reqId, t0, t1, t2, t3, t4, t5, t6, t7, t8, t9, delegate (CAsyncResult ar)
-                {
-                    ar.Load(out res0).Load(out res1).Load(out res2).Load(out res3).Load(out res4);
-                }))
-                    return false;
-                if (!WaitAll())
-                    return false;
-                r0 = res0;
-                r1 = res1;
-                r2 = res2;
-                r3 = res3;
-                r4 = res4;
-                return true;
-            }
-
             public CClientSocket Socket {
                 get {
                     return m_ClientSocket;
@@ -2145,276 +918,182 @@ namespace SocketProAdapter
                 public DDiscarded Discarded;
                 public DOnExceptionFromServer ExceptionFromServer;
             }
+
+            public void raise(string method_name, ushort req_id)
+            {
+                if (method_name == null || method_name.Length == 0)
+                {
+                    throw new ArgumentException("Method name cannot be empty");
+                }
+                if (req_id == 0)
+                {
+                    throw new ArgumentException("Request id cannot be zero");
+                }
+                CClientSocket cs = Socket;
+                int ec = cs.ErrorCode;
+                if (ec == 0)
+                {
+                    string em = cs.ErrorMsg;
+                    throw new CSocketError(ec, em, req_id, true);
+                }
+                else
+                {
+                    throw new CSocketError(SESSION_CLOSED_BEFORE, "Session already closed before sending the request " + method_name, req_id, true);
+                }
+            }
+
 #if TASKS_ENABLED
-            public Task<R> Async<R>(ushort reqId, byte[] data, uint len)
+
+            public static DOnExceptionFromServer get_se<R>(TaskCompletionSource<R> prom)
+            {
+                DOnExceptionFromServer se = (sender, rid, errMessage, errWhere, errCode) =>
+                {
+                    prom.TrySetException(new CServerError(errCode, errMessage, errWhere, rid));
+                };
+                return se;
+            }
+
+            static DDiscarded get_aborted<R>(TaskCompletionSource<R> prom, string method_name, ushort req_id)
+            {
+                if (method_name == null || method_name.Length == 0)
+                {
+                    throw new ArgumentException("Method name cannot be empty");
+                }
+                if (req_id == 0)
+                {
+                    throw new ArgumentException("Request id cannot be zero");
+                }
+                DDiscarded aborted = (h, canceled) =>
+                {
+                    if (canceled)
+                    {
+                        prom.TrySetException(new CSocketError(REQUEST_CANCELED, "Request " + method_name + " canceled", req_id, false));
+                    }
+                    else
+                    {
+                        CClientSocket cs = h.Socket;
+                        int ec = cs.ErrorCode;
+                        if (ec == 0)
+                        {
+                            string em = cs.ErrorMsg;
+                            prom.TrySetException(new CSocketError(ec, em, req_id, false));
+                        }
+                        else
+                        {
+                            prom.TrySetException(new CSocketError(SESSION_CLOSED_AFTER, "Session closed after sending the request " + method_name, req_id, false));
+                        }
+                    }
+                };
+                return aborted;
+            }
+
+            public Task<CScopeUQueue> Async(ushort reqId, byte[] data, uint len)
             {
                 //use threadless task only
-                TaskCompletionSource<R> tcs = new TaskCompletionSource<R>();
+                TaskCompletionSource<CScopeUQueue> tcs = new TaskCompletionSource<CScopeUQueue>();
                 if (!SendRequest(reqId, data, len, (ar) =>
                 {
-                    try
-                    {
-                        R r;
-                        ar.Load(out r);
-                        tcs.SetResult(r);
-                    }
-                    catch (Exception err)
-                    {
-                        tcs.SetException(err);
-                    }
-                }, (h, canceled) =>
+                    CScopeUQueue sb = new CScopeUQueue();
+                    sb.UQueue.Swap(ar.UQueue);
+                    tcs.TrySetResult(sb);
+                }, get_aborted(tcs, "SendRequest", reqId), get_se(tcs)))
                 {
-                    try
-                    {
-                        //tcs.SetException(new Exception("Task canceled"));
-                        tcs.SetCanceled();
-                    }
-                    catch
-                    {
-                    }
-                }, (sender, rid, errMessage, errWhere, errCode) =>
-                {
-                    try
-                    {
-                        tcs.SetException(new Exception(errMessage));
-                    }
-                    catch
-                    {
-                    }
-                }))
-                {
-                    tcs.SetException(new Exception(AttachedClientSocket.ErrorMsg));
+                    raise("SendRequest", reqId);
                 }
                 return tcs.Task;
             }
 
-            public Task Async(ushort reqId, byte[] data, uint len)
-            {
-                //use threadless task only
-                TaskCompletionSource<bool> tcs = new TaskCompletionSource<bool>();
-                if (!SendRequest(reqId, data, len, (ar) =>
-                {
-                    try
-                    {
-                        bool r = true;
-                        tcs.SetResult(r);
-                    }
-                    catch (Exception err)
-                    {
-                        tcs.SetException(err);
-                    }
-                }, (h, canceled) =>
-                {
-                    try
-                    {
-                        //tcs.SetException(new Exception("Task canceled"));
-                        tcs.SetCanceled();
-                    }
-                    catch
-                    {
-                    }
-                }, (sender, rid, errMessage, errWhere, errCode) =>
-                {
-                    try
-                    {
-                        tcs.SetException(new Exception(errMessage));
-                    }
-                    catch
-                    {
-                    }
-                }))
-                {
-                    tcs.SetException(new Exception(AttachedClientSocket.ErrorMsg));
-                }
-                return tcs.Task;
-            }
-
-            public Task<R> Async<R>(ushort reqId)
-            {
-                return Async<R>(reqId, (byte[])null, (uint)0);
-            }
-
-            public Task Async(ushort reqId)
+            public Task<CScopeUQueue> Async(ushort reqId)
             {
                 return Async(reqId, (byte[])null, (uint)0);
             }
 
-            public Task<R> Async<R, T0, T1, T2, T3, T4, T5, T6, T7, T8, T9>(ushort reqId, T0 t0, T1 t1, T2 t2, T3 t3, T4 t4, T5 t5, T6 t6, T7 t7, T8 t8, T9 t9)
+            public Task<CScopeUQueue> Async<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9>(ushort reqId, T0 t0, T1 t1, T2 t2, T3 t3, T4 t4, T5 t5, T6 t6, T7 t7, T8 t8, T9 t9)
             {
                 CUQueue su = CScopeUQueue.Lock();
                 su.Save(t0).Save(t1).Save(t2).Save(t3).Save(t4).Save(t5).Save(t6).Save(t7).Save(t8).Save(t9);
-                Task<R> r = Async<R>(reqId, su.IntenalBuffer, su.GetSize());
+                Task<CScopeUQueue> r = Async(reqId, su.IntenalBuffer, su.GetSize());
                 CScopeUQueue.Unlock(su);
                 return r;
             }
 
-            public Task Async<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9>(ushort reqId, T0 t0, T1 t1, T2 t2, T3 t3, T4 t4, T5 t5, T6 t6, T7 t7, T8 t8, T9 t9)
-            {
-                CUQueue su = CScopeUQueue.Lock();
-                su.Save(t0).Save(t1).Save(t2).Save(t3).Save(t4).Save(t5).Save(t6).Save(t7).Save(t8).Save(t9);
-                Task r = Async(reqId, su.IntenalBuffer, su.GetSize());
-                CScopeUQueue.Unlock(su);
-                return r;
-            }
-
-            public Task<R> Async<R, T0, T1, T2, T3, T4, T5, T6, T7, T8>(ushort reqId, T0 t0, T1 t1, T2 t2, T3 t3, T4 t4, T5 t5, T6 t6, T7 t7, T8 t8)
+            public Task<CScopeUQueue> Async<T0, T1, T2, T3, T4, T5, T6, T7, T8>(ushort reqId, T0 t0, T1 t1, T2 t2, T3 t3, T4 t4, T5 t5, T6 t6, T7 t7, T8 t8)
             {
                 CUQueue su = CScopeUQueue.Lock();
                 su.Save(t0).Save(t1).Save(t2).Save(t3).Save(t4).Save(t5).Save(t6).Save(t7).Save(t8);
-                Task<R> r = Async<R>(reqId, su.IntenalBuffer, su.GetSize());
+                Task<CScopeUQueue> r = Async(reqId, su.IntenalBuffer, su.GetSize());
                 CScopeUQueue.Unlock(su);
                 return r;
             }
 
-            public Task Async<T0, T1, T2, T3, T4, T5, T6, T7, T8>(ushort reqId, T0 t0, T1 t1, T2 t2, T3 t3, T4 t4, T5 t5, T6 t6, T7 t7, T8 t8)
-            {
-                CUQueue su = CScopeUQueue.Lock();
-                su.Save(t0).Save(t1).Save(t2).Save(t3).Save(t4).Save(t5).Save(t6).Save(t7).Save(t8);
-                Task r = Async(reqId, su.IntenalBuffer, su.GetSize());
-                CScopeUQueue.Unlock(su);
-                return r;
-            }
-
-            public Task<R> Async<R, T0, T1, T2, T3, T4, T5, T6, T7>(ushort reqId, T0 t0, T1 t1, T2 t2, T3 t3, T4 t4, T5 t5, T6 t6, T7 t7)
+            public Task<CScopeUQueue> Async<T0, T1, T2, T3, T4, T5, T6, T7>(ushort reqId, T0 t0, T1 t1, T2 t2, T3 t3, T4 t4, T5 t5, T6 t6, T7 t7)
             {
                 CUQueue su = CScopeUQueue.Lock();
                 su.Save(t0).Save(t1).Save(t2).Save(t3).Save(t4).Save(t5).Save(t6).Save(t7);
-                Task<R> r = Async<R>(reqId, su.IntenalBuffer, su.GetSize());
+                Task<CScopeUQueue> r = Async(reqId, su.IntenalBuffer, su.GetSize());
                 CScopeUQueue.Unlock(su);
                 return r;
             }
 
-            public Task Async<T0, T1, T2, T3, T4, T5, T6, T7>(ushort reqId, T0 t0, T1 t1, T2 t2, T3 t3, T4 t4, T5 t5, T6 t6, T7 t7)
-            {
-                CUQueue su = CScopeUQueue.Lock();
-                su.Save(t0).Save(t1).Save(t2).Save(t3).Save(t4).Save(t5).Save(t6).Save(t7);
-                Task r = Async(reqId, su.IntenalBuffer, su.GetSize());
-                CScopeUQueue.Unlock(su);
-                return r;
-            }
-
-            public Task<R> Async<R, T0, T1, T2, T3, T4, T5, T6>(ushort reqId, T0 t0, T1 t1, T2 t2, T3 t3, T4 t4, T5 t5, T6 t6)
+            public Task<CScopeUQueue> Async<T0, T1, T2, T3, T4, T5, T6>(ushort reqId, T0 t0, T1 t1, T2 t2, T3 t3, T4 t4, T5 t5, T6 t6)
             {
                 CUQueue su = CScopeUQueue.Lock();
                 su.Save(t0).Save(t1).Save(t2).Save(t3).Save(t4).Save(t5).Save(t6);
-                Task<R> r = Async<R>(reqId, su.IntenalBuffer, su.GetSize());
+                Task<CScopeUQueue> r = Async(reqId, su.IntenalBuffer, su.GetSize());
                 CScopeUQueue.Unlock(su);
                 return r;
             }
 
-            public Task Async<T0, T1, T2, T3, T4, T5, T6>(ushort reqId, T0 t0, T1 t1, T2 t2, T3 t3, T4 t4, T5 t5, T6 t6)
-            {
-                CUQueue su = CScopeUQueue.Lock();
-                su.Save(t0).Save(t1).Save(t2).Save(t3).Save(t4).Save(t5).Save(t6);
-                Task r = Async(reqId, su.IntenalBuffer, su.GetSize());
-                CScopeUQueue.Unlock(su);
-                return r;
-            }
-
-            public Task<R> Async<R, T0, T1, T2, T3, T4, T5>(ushort reqId, T0 t0, T1 t1, T2 t2, T3 t3, T4 t4, T5 t5)
+            public Task<CScopeUQueue> Async<T0, T1, T2, T3, T4, T5>(ushort reqId, T0 t0, T1 t1, T2 t2, T3 t3, T4 t4, T5 t5)
             {
                 CUQueue su = CScopeUQueue.Lock();
                 su.Save(t0).Save(t1).Save(t2).Save(t3).Save(t4).Save(t5);
-                Task<R> r = Async<R>(reqId, su.IntenalBuffer, su.GetSize());
+                Task<CScopeUQueue> r = Async(reqId, su.IntenalBuffer, su.GetSize());
                 CScopeUQueue.Unlock(su);
                 return r;
             }
 
-            public Task Async<T0, T1, T2, T3, T4, T5>(ushort reqId, T0 t0, T1 t1, T2 t2, T3 t3, T4 t4, T5 t5)
-            {
-                CUQueue su = CScopeUQueue.Lock();
-                su.Save(t0).Save(t1).Save(t2).Save(t3).Save(t4).Save(t5);
-                Task r = Async(reqId, su.IntenalBuffer, su.GetSize());
-                CScopeUQueue.Unlock(su);
-                return r;
-            }
-
-            public Task<R> Async<R, T0, T1, T2, T3, T4>(ushort reqId, T0 t0, T1 t1, T2 t2, T3 t3, T4 t4)
+            public Task<CScopeUQueue> Async<T0, T1, T2, T3, T4>(ushort reqId, T0 t0, T1 t1, T2 t2, T3 t3, T4 t4)
             {
                 CUQueue su = CScopeUQueue.Lock();
                 su.Save(t0).Save(t1).Save(t2).Save(t3).Save(t4);
-                Task<R> r = Async<R>(reqId, su.IntenalBuffer, su.GetSize());
+                Task<CScopeUQueue> r = Async(reqId, su.IntenalBuffer, su.GetSize());
                 CScopeUQueue.Unlock(su);
                 return r;
             }
 
-            public Task Async<T0, T1, T2, T3, T4>(ushort reqId, T0 t0, T1 t1, T2 t2, T3 t3, T4 t4)
-            {
-                CUQueue su = CScopeUQueue.Lock();
-                su.Save(t0).Save(t1).Save(t2).Save(t3).Save(t4);
-                Task r = Async(reqId, su.IntenalBuffer, su.GetSize());
-                CScopeUQueue.Unlock(su);
-                return r;
-            }
-
-            public Task<R> Async<R, T0, T1, T2, T3>(ushort reqId, T0 t0, T1 t1, T2 t2, T3 t3)
+            public Task<CScopeUQueue> Async<T0, T1, T2, T3>(ushort reqId, T0 t0, T1 t1, T2 t2, T3 t3)
             {
                 CUQueue su = CScopeUQueue.Lock();
                 su.Save(t0).Save(t1).Save(t2).Save(t3);
-                Task<R> r = Async<R>(reqId, su.IntenalBuffer, su.GetSize());
+                Task<CScopeUQueue> r = Async(reqId, su.IntenalBuffer, su.GetSize());
                 CScopeUQueue.Unlock(su);
                 return r;
             }
 
-            public Task Async<T0, T1, T2, T3>(ushort reqId, T0 t0, T1 t1, T2 t2, T3 t3)
-            {
-                CUQueue su = CScopeUQueue.Lock();
-                su.Save(t0).Save(t1).Save(t2).Save(t3);
-                Task r = Async(reqId, su.IntenalBuffer, su.GetSize());
-                CScopeUQueue.Unlock(su);
-                return r;
-            }
-
-            public Task<R> Async<R, T0, T1, T2>(ushort reqId, T0 t0, T1 t1, T2 t2)
+            public Task<CScopeUQueue> Async<T0, T1, T2>(ushort reqId, T0 t0, T1 t1, T2 t2)
             {
                 CUQueue su = CScopeUQueue.Lock();
                 su.Save(t0).Save(t1).Save(t2);
-                Task<R> r = Async<R>(reqId, su.IntenalBuffer, su.GetSize());
+                Task<CScopeUQueue> r = Async(reqId, su.IntenalBuffer, su.GetSize());
                 CScopeUQueue.Unlock(su);
                 return r;
             }
 
-            public Task Async<T0, T1, T2>(ushort reqId, T0 t0, T1 t1, T2 t2)
-            {
-                CUQueue su = CScopeUQueue.Lock();
-                su.Save(t0).Save(t1).Save(t2);
-                Task r = Async(reqId, su.IntenalBuffer, su.GetSize());
-                CScopeUQueue.Unlock(su);
-                return r;
-            }
-
-            public Task<R> Async<R, T0, T1>(ushort reqId, T0 t0, T1 t1)
+            public Task<CScopeUQueue> Async<T0, T1>(ushort reqId, T0 t0, T1 t1)
             {
                 CUQueue su = CScopeUQueue.Lock();
                 su.Save(t0).Save(t1);
-                Task<R> r = Async<R>(reqId, su.IntenalBuffer, su.GetSize());
+                Task<CScopeUQueue> r = Async(reqId, su.IntenalBuffer, su.GetSize());
                 CScopeUQueue.Unlock(su);
                 return r;
             }
 
-            public Task Async<T0, T1>(ushort reqId, T0 t0, T1 t1)
-            {
-                CUQueue su = CScopeUQueue.Lock();
-                su.Save(t0).Save(t1);
-                Task r = Async(reqId, su.IntenalBuffer, su.GetSize());
-                CScopeUQueue.Unlock(su);
-                return r;
-            }
-
-            public Task<R> Async<R, T0>(ushort reqId, T0 t0)
+            public Task<CScopeUQueue> Async<T0>(ushort reqId, T0 t0)
             {
                 CUQueue su = CScopeUQueue.Lock();
                 su.Save(t0);
-                Task<R> r = Async<R>(reqId, su.IntenalBuffer, su.GetSize());
-                CScopeUQueue.Unlock(su);
-                return r;
-            }
-
-            public Task Async<T0>(ushort reqId, T0 t0)
-            {
-                CUQueue su = CScopeUQueue.Lock();
-                su.Save(t0);
-                Task r = Async(reqId, su.IntenalBuffer, su.GetSize());
+                Task<CScopeUQueue> r = Async(reqId, su.IntenalBuffer, su.GetSize());
                 CScopeUQueue.Unlock(su);
                 return r;
             }

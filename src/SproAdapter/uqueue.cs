@@ -23,18 +23,14 @@ namespace SocketProAdapter
         /// </summary>
         private ulong m_time;
 
-        public ulong time
-        {
-            get
-            {
+        public ulong time {
+            get {
                 return m_time;
             }
         }
 
-        public DateTime DateTime
-        {
-            get
-            {
+        public DateTime DateTime {
+            get {
                 return GetDateTime();
             }
         }
@@ -296,26 +292,20 @@ namespace SocketProAdapter
         private tagOperationSystem m_os = Defines.OperationSystem;
         private bool m_bEndian = false;
 
-        public tagOperationSystem OS
-        {
-            get
-            {
+        public tagOperationSystem OS {
+            get {
                 return m_os;
             }
-            set
-            {
+            set {
                 m_os = value;
             }
         }
 
-        public bool Endian
-        {
-            get
-            {
+        public bool Endian {
+            get {
                 return m_bEndian;
             }
-            set
-            {
+            set {
                 m_bEndian = value;
             }
         }
@@ -336,6 +326,35 @@ namespace SocketProAdapter
         {
             m_bytes = new Byte[InitialSize];
             m_blockSize = BlockSize;
+        }
+
+        public void Swap(CUQueue q)
+        {
+            if (q == null)
+                return;
+            bool b = m_bEndian;
+            m_bEndian = q.m_bEndian;
+            q.m_bEndian = b;
+
+            uint size = m_blockSize;
+            m_blockSize = q.m_blockSize;
+            q.m_blockSize = size;
+
+            byte[] bytes = m_bytes;
+            m_bytes = q.m_bytes;
+            q.m_bytes = bytes;
+
+            size = m_len;
+            m_len = q.m_len;
+            q.m_len = size;
+
+            size = m_position;
+            m_position = q.m_position;
+            q.m_position = size;
+
+            tagOperationSystem os = m_os;
+            m_os = q.m_os;
+            q.m_os = os;
         }
 
         /// <summary>
@@ -364,10 +383,8 @@ namespace SocketProAdapter
         /// <summary>
         /// A property for internal buffer which contains actual data in binary format. It is more efficient than the method GetBuffer, but you must pay attention to the property HeadPosition.
         /// </summary>
-        public byte[] IntenalBuffer
-        {
-            get
-            {
+        public byte[] IntenalBuffer {
+            get {
                 return m_bytes;
             }
         }
@@ -1421,6 +1438,158 @@ namespace SocketProAdapter
             return false;
         }
 
+        public T Load<T>()
+        {
+            T data;
+            //typeof equal is very fast and generic (http://blogs.msdn.com/b/vancem/archive/2006/10/01/779503.aspx).
+            Type type = typeof(T);
+            data = default(T);
+            if (type == typeof(string))
+            {
+                string str;
+                Load(out str);
+                data = (T)((object)str);
+            }
+            else if (type == typeof(int))
+            {
+                int n;
+                Load(out n);
+                data = (T)((object)n);
+            }
+            else if (type == typeof(uint))
+            {
+                uint n;
+                Load(out n);
+                data = (T)((object)n);
+            }
+            else if (type == typeof(bool))
+            {
+                bool n;
+                Load(out n);
+                data = (T)((object)n);
+            }
+            else if (type == typeof(short))
+            {
+                short n;
+                Load(out n);
+                data = (T)((object)n);
+            }
+            else if (type == typeof(ushort))
+            {
+                ushort n;
+                Load(out n);
+                data = (T)((object)n);
+            }
+            else if (type == typeof(float))
+            {
+                float n;
+                Load(out n);
+                data = (T)((object)n);
+            }
+            else if (type == typeof(double))
+            {
+                double n;
+                Load(out n);
+                data = (T)((object)n);
+            }
+            else if (type == typeof(long))
+            {
+                long n;
+                Load(out n);
+                data = (T)((object)n);
+            }
+            else if (type == typeof(char))
+            {
+                char n;
+                Load(out n);
+                data = (T)((object)n);
+            }
+            else if (type == typeof(sbyte))
+            {
+                sbyte n;
+                Load(out n);
+                data = (T)((object)n);
+            }
+            else if (type == typeof(byte))
+            {
+                byte n;
+                Load(out n);
+                data = (T)((object)n);
+            }
+            else if (type == typeof(byte[]))
+            {
+                byte[] str;
+                Load(out str);
+                data = (T)((object)str);
+            }
+            else if (type == typeof(ulong))
+            {
+                ulong n;
+                Load(out n);
+                data = (T)((object)n);
+            }
+            else if (type == typeof(DateTime))
+            {
+                DateTime n;
+                Load(out n);
+                data = (T)((object)n);
+            }
+            else if (type == typeof(TimeSpan))
+            {
+                TimeSpan ts;
+                Load(out ts);
+                data = (T)((object)ts);
+            }
+            else if (type == typeof(object))
+            {
+                object n;
+                Load(out n);
+                data = (T)(n);
+            }
+            else if (type == typeof(Guid))
+            {
+                Guid n;
+                Load(out n);
+                data = (T)((object)n);
+            }
+            else if (type == typeof(decimal))
+            {
+                decimal n;
+                Load(out n);
+                data = (T)((object)n);
+            }
+            else if (type == typeof(CUQueue))
+            {
+                CUQueue n;
+                Load(out n);
+                data = (T)((object)n);
+            }
+            else if (type == typeof(sbyte[]))
+            {
+                sbyte[] str;
+                Load(out str);
+                data = (T)((object)str);
+            }
+            else if (hasUSerializer(typeof(T)))
+            {
+                IUSerializer uobj = (IUSerializer)(System.Activator.CreateInstance(typeof(T)));
+                uobj.LoadFrom(this);
+                data = (T)((object)uobj);
+            }
+#if WINCE
+#else
+            else if (typeof(T).IsSerializable)
+            {
+                object obj;
+                Deserialize(out obj);
+                data = (T)obj;
+            }
+#endif
+            else
+                throw new InvalidOperationException("Serialization not supported for data type " + typeof(T).FullName + ". To support serialization, your class should be implemented with SocketProAdapter.IUSerializer");
+            return data;
+        }
+
         public CUQueue Load<T>(out T data)
         {
             //typeof equal is very fast and generic (http://blogs.msdn.com/b/vancem/archive/2006/10/01/779503.aspx).
@@ -2168,10 +2337,8 @@ namespace SocketProAdapter
             m_position = 0;
         }
 
-        public uint MaxBufferSize
-        {
-            get
-            {
+        public uint MaxBufferSize {
+            get {
                 if (m_bytes == null)
                     return 0;
 #if WINCE
@@ -2190,10 +2357,8 @@ namespace SocketProAdapter
             return this;
         }
 
-        public uint Size
-        {
-            get
-            {
+        public uint Size {
+            get {
                 return m_len;
             }
         }
@@ -2201,10 +2366,8 @@ namespace SocketProAdapter
         /// <summary>
         /// An integer value for next popping position
         /// </summary>
-        public uint HeadPosition
-        {
-            get
-            {
+        public uint HeadPosition {
+            get {
                 return m_position;
             }
         }
@@ -2212,10 +2375,8 @@ namespace SocketProAdapter
         /// <summary>
         /// An integer value for unused bytes
         /// </summary>
-        public uint TailSize
-        {
-            get
-            {
+        public uint TailSize {
+            get {
                 if (m_bytes == null)
                     return 0;
 #if WINCE

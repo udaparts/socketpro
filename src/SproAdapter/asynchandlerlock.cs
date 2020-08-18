@@ -87,6 +87,34 @@ namespace SocketProAdapter
 
         public class CAsyncServiceHandler : IDisposable
         {
+            public const int SESSION_CLOSED_AFTER = -1000;
+            public const int SESSION_CLOSED_BEFORE = -1001;
+            public const int REQUEST_CANCELED = -1002;
+            public const ulong DEFAULT_INTERRUPT_OPTION = 1;
+
+            public void raise(string method_name, ushort req_id)
+            {
+                if (method_name == null || method_name.Length == 0)
+                {
+                    throw new ArgumentException("Method name cannot be empty");
+                }
+                if (req_id == 0)
+                {
+                    throw new ArgumentException("Request id cannot be zero");
+                }
+                CClientSocket cs = Socket;
+                int ec = cs.ErrorCode;
+                if (ec == 0)
+                {
+                    string em = cs.ErrorMsg;
+                    throw new CSocketError(ec, em, req_id, true);
+                }
+                else
+                {
+                    throw new CSocketError(SESSION_CLOSED_BEFORE, "Session already closed before sending the request " + method_name, req_id, true);
+                }
+            }
+
             public delegate void DAsyncResultHandler(CAsyncResult AsyncResult);
             public delegate bool DOnResultReturned(CAsyncServiceHandler sender, ushort reqId, CUQueue qData);
             public delegate void DOnExceptionFromServer(CAsyncServiceHandler sender, ushort reqId, string errMessage, string errWhere, int errCode);
@@ -2069,6 +2097,14 @@ namespace SocketProAdapter
             }
 
             public CClientSocket AttachedClientSocket
+            {
+                get
+                {
+                    return m_ClientSocket;
+                }
+            }
+
+            public CClientSocket Socket
             {
                 get
                 {

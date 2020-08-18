@@ -32,24 +32,19 @@ namespace SocketProAdapter
 
         private static uint m_cleanSize = 32 * 1024;
 
-        public static uint SHARED_BUFFER_CLEAN_SIZE
-        {
-            get
-            {
+        public static uint SHARED_BUFFER_CLEAN_SIZE {
+            get {
                 return m_cleanSize;
             }
-            set
-            {
+            set {
                 if (value < 512)
                     value = 512;
                 m_cleanSize = value;
             }
         }
 
-        public static ulong MemoryConsumed
-        {
-            get
-            {
+        public static ulong MemoryConsumed {
+            get {
                 ulong mem = 0;
                 foreach (CUQueue q in m_sQueue)
                 {
@@ -96,10 +91,13 @@ namespace SocketProAdapter
             return m_UQueue.Save(data);
         }
 
-        public CUQueue UQueue
+        public T Load<T>()
         {
-            get
-            {
+            return m_UQueue.Load<T>();
+        }
+
+        public CUQueue UQueue {
+            get {
                 return m_UQueue;
             }
         }

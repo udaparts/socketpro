@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using SocketProAdapter;
 using SocketProAdapter.ClientSide;
 
 namespace win_async
@@ -12,17 +13,17 @@ namespace win_async
             InitializeComponent();
         }
 
-        Task<string> GetTask()
+        Task<CScopeUQueue> GetTask()
         {
             HelloWorld hw = m_spHw.AsyncHandlers[0];
-            return hw.Async<string, string, string>(hwConst.idSayHelloHelloWorld, "Jack", "Smith");
+            return hw.Async(hwConst.idSayHelloHelloWorld, "Jack", "Smith");
         }
 
-        Task<string> GetTasksInBatch()
+        Task<CScopeUQueue> GetTasksInBatch()
         {
             HelloWorld hw = m_spHw.AsyncHandlers[0];
             bool ok = hw.SendRequest(hwConst.idSleepHelloWorld, 5000, (ar) => { });
-            Task<string> task = hw.Async<string, string, string>(hwConst.idSayHelloHelloWorld, "Jone", "Don");
+            Task<CScopeUQueue> task = hw.Async(hwConst.idSayHelloHelloWorld, "Jone", "Don");
             return task;
         }
 
@@ -58,10 +59,10 @@ namespace win_async
             try
             {
                 //execute one request asynchronously
-                txtRes.Text = await GetTask();
+                txtRes.Text = (await GetTask()).Load<string>();
 
                 //execute multiple requests asynchronously in batch
-                txtRes.Text = await GetTasksInBatch();
+                txtRes.Text = (await GetTasksInBatch()).Load<string>();
                 btnTest.Enabled = true;
             }
             catch (Exception err)

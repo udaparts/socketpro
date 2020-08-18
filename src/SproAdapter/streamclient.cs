@@ -325,7 +325,7 @@ namespace SocketProAdapter.ClientSide
                     if (back.File != null)
                     {
                         //Send an interrupt request onto server to shut down downloading as earlier as possible
-                        Interrupt(1);
+                        Interrupt(CStreamingFile.DEFAULT_INTERRUPT_OPTION);
                     }
                     m_vContext.RemoveFromBack();
                     ++canceled;
