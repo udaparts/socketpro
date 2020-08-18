@@ -1,5 +1,8 @@
 ﻿using System;
 using System.IO;
+#if TASKS_ENABLED
+using System.Threading.Tasks;
+#endif
 
 namespace SocketProAdapter.ClientSide
 {
@@ -300,6 +303,10 @@ namespace SocketProAdapter.ClientSide
             public bool QueueOk = false;
             public int ErrCode = 0;
             public long InitSize = -1;
+            public DOnExceptionFromServer Se = null;
+#if TASKS_ENABLED
+            public TaskCompletionSource<ErrInfo> Fut = null;
+#endif
             public bool HasError {
                 get {
                     return (ErrCode != 0 || ErrMsg.Length > 0);
@@ -563,36 +570,42 @@ namespace SocketProAdapter.ClientSide
 
         public bool Upload(string localFile, string remoteFile)
         {
-            return Upload(localFile, remoteFile, null, null, null, FILE_OPEN_TRUNCACTED);
+            return Upload(localFile, remoteFile, null, null, null, FILE_OPEN_TRUNCACTED, null);
         }
 
         public bool Upload(string localFile, string remoteFile, DUpload up)
         {
-            return Upload(localFile, remoteFile, up, null, null, FILE_OPEN_TRUNCACTED);
+            return Upload(localFile, remoteFile, up, null, null, FILE_OPEN_TRUNCACTED, null);
         }
 
         public bool Upload(string localFile, string remoteFile, DUpload up, DTransferring trans)
         {
-            return Upload(localFile, remoteFile, up, trans, null, FILE_OPEN_TRUNCACTED);
+            return Upload(localFile, remoteFile, up, trans, null, FILE_OPEN_TRUNCACTED, null);
         }
 
         public bool Upload(string localFile, string remoteFile, DUpload up, DTransferring trans, DDiscarded discarded)
         {
-            return Upload(localFile, remoteFile, up, trans, discarded, FILE_OPEN_TRUNCACTED);
+            return Upload(localFile, remoteFile, up, trans, discarded, FILE_OPEN_TRUNCACTED, null);
         }
 
-        public virtual bool Upload(string localFile, string remoteFile, DUpload up, DTransferring trans, DDiscarded discarded, uint flags)
+        public bool Upload(string localFile, string remoteFile, DUpload up, DTransferring trans, DDiscarded discarded, uint flags)
+        {
+            return Upload(localFile, remoteFile, up, trans, discarded, flags, null);
+        }
+
+        public virtual bool Upload(string localFile, string remoteFile, DUpload up, DTransferring trans, DDiscarded discarded, uint flags, DOnExceptionFromServer se)
         {
             if (localFile == null || localFile.Length == 0)
-                return false;
+                throw new ArgumentException("localFile cannot be empty");
             if (remoteFile == null || remoteFile.Length == 0)
-                return false;
+                throw new ArgumentException("remoteFile cannot be empty");
             CContext context = new CContext(true, flags);
             context.Upload = up;
             context.Transferring = trans;
             context.Discarded = discarded;
             context.FilePath = remoteFile;
             context.LocalFile = localFile;
+            context.Se = se;
             lock (m_csFile)
             {
                 m_vContext.AddToBack(context);
@@ -609,24 +622,99 @@ namespace SocketProAdapter.ClientSide
             return true;
         }
 
+#if TASKS_ENABLED
+        public virtual Task<ErrInfo> download(string localFile, string remoteFile, DTransferring trans = null, uint flags = FILE_OPEN_TRUNCACTED)
+        {
+            if (localFile == null || localFile.Length == 0)
+                throw new ArgumentException("localFile cannot be empty");
+            if (remoteFile == null || remoteFile.Length == 0)
+                throw new ArgumentException("remoteFile cannot be empty");
+            TaskCompletionSource<ErrInfo> tcs = new TaskCompletionSource<ErrInfo>();
+            CContext context = new CContext(false, flags);
+            context.Download = (file, res, em) =>
+            {
+                tcs.TrySetResult(new ErrInfo(res, em));
+            };
+            context.Transferring = trans;
+            context.Discarded = get_aborted(tcs, "Download", idDownload);
+            context.FilePath = remoteFile;
+            context.LocalFile = localFile;
+            context.Se = get_se(tcs);
+            context.Fut = tcs;
+            lock (m_csFile)
+            {
+                m_vContext.AddToBack(context);
+                uint filesOpened = GetFilesOpened();
+                if (m_MaxDownloading > filesOpened)
+                {
+                    ClientCoreLoader.PostProcessing(AttachedClientSocket.Handle, 0, 0);
+                    if (filesOpened == 0)
+                    {
+                        AttachedClientSocket.DoEcho(); //make sure WaitAll works correctly
+                    }
+                }
+            }
+            return tcs.Task;
+        }
+
+        public virtual Task<ErrInfo> upload(string localFile, string remoteFile, DTransferring trans = null, uint flags = FILE_OPEN_TRUNCACTED)
+        {
+            if (localFile == null || localFile.Length == 0)
+                throw new ArgumentException("localFile cannot be empty");
+            if (remoteFile == null || remoteFile.Length == 0)
+                throw new ArgumentException("remoteFile cannot be empty");
+            TaskCompletionSource<ErrInfo> tcs = new TaskCompletionSource<ErrInfo>();
+            CContext context = new CContext(false, flags);
+            context.Download = (file, res, em) =>
+            {
+                tcs.TrySetResult(new ErrInfo(res, em));
+            };
+            context.Transferring = trans;
+            context.Discarded = get_aborted(tcs, "Upload", idUpload);
+            context.FilePath = remoteFile;
+            context.LocalFile = localFile;
+            context.Se = get_se(tcs);
+            context.Fut = tcs;
+            lock (m_csFile)
+            {
+                m_vContext.AddToBack(context);
+                uint filesOpened = GetFilesOpened();
+                if (m_MaxDownloading > filesOpened)
+                {
+                    ClientCoreLoader.PostProcessing(AttachedClientSocket.Handle, 0, 0);
+                    if (filesOpened == 0)
+                    {
+                        AttachedClientSocket.DoEcho(); //make sure WaitAll works correctly
+                    }
+                }
+            }
+            return tcs.Task;
+        }
+#endif
+
         public bool Download(string localFile, string remoteFile)
         {
-            return Download(localFile, remoteFile, null, null, null, FILE_OPEN_TRUNCACTED);
+            return Download(localFile, remoteFile, null, null, null, FILE_OPEN_TRUNCACTED, null);
         }
 
         public bool Download(string localFile, string remoteFile, DDownload dl)
         {
-            return Download(localFile, remoteFile, dl, null, null, FILE_OPEN_TRUNCACTED);
+            return Download(localFile, remoteFile, dl, null, null, FILE_OPEN_TRUNCACTED, null);
         }
 
         public bool Download(string localFile, string remoteFile, DDownload dl, DTransferring trans)
         {
-            return Download(localFile, remoteFile, dl, trans, null, FILE_OPEN_TRUNCACTED);
+            return Download(localFile, remoteFile, dl, trans, null, FILE_OPEN_TRUNCACTED, null);
         }
 
         public bool Download(string localFile, string remoteFile, DDownload dl, DTransferring trans, DDiscarded discarded)
         {
-            return Download(localFile, remoteFile, dl, trans, discarded, FILE_OPEN_TRUNCACTED);
+            return Download(localFile, remoteFile, dl, trans, discarded, FILE_OPEN_TRUNCACTED, null);
+        }
+
+        public bool Download(string localFile, string remoteFile, DDownload dl, DTransferring trans, DDiscarded discarded, uint flags)
+        {
+            return Download(localFile, remoteFile, dl, trans, discarded, flags, null);
         }
 
         private uint GetFilesOpened()
@@ -646,18 +734,19 @@ namespace SocketProAdapter.ClientSide
             return opened;
         }
 
-        public virtual bool Download(string localFile, string remoteFile, DDownload dl, DTransferring trans, DDiscarded discarded, uint flags)
+        public virtual bool Download(string localFile, string remoteFile, DDownload dl, DTransferring trans, DDiscarded discarded, uint flags, DOnExceptionFromServer se)
         {
             if (localFile == null || localFile.Length == 0)
-                return false;
+                throw new ArgumentException("localFile cannot be empty");
             if (remoteFile == null || remoteFile.Length == 0)
-                return false;
+                throw new ArgumentException("remoteFile cannot be empty");
             CContext context = new CContext(false, flags);
             context.Download = dl;
             context.Transferring = trans;
             context.Discarded = discarded;
             context.FilePath = remoteFile;
             context.LocalFile = localFile;
+            context.Se = se;
             lock (m_csFile)
             {
                 m_vContext.AddToBack(context);
@@ -678,7 +767,6 @@ namespace SocketProAdapter.ClientSide
         {
             uint d = 0;
             DAsyncResultHandler rh = null;
-            DOnExceptionFromServer se = null;
             System.Threading.Monitor.Enter(m_csFile);
             foreach (CContext it in m_vContext)
             {
@@ -707,7 +795,29 @@ namespace SocketProAdapter.ClientSide
                     OpenLocalRead(it);
                     if (!it.HasError)
                     {
-                        SendRequest(idUpload, it.FilePath, it.Flags, it.FileSize, rh, it.Discarded, se);
+                        if (!SendRequest(idUpload, it.FilePath, it.Flags, it.FileSize, rh, it.Discarded, it.Se))
+                        {
+                            CClientSocket cs = Socket;
+                            it.ErrCode = cs.ErrorCode;
+                            if (it.ErrCode == 0)
+                            {
+                                it.ErrCode = SESSION_CLOSED_BEFORE;
+                                it.ErrMsg = "Session already closed before sending the request Upload";
+                            }
+                            else
+                            {
+                                it.ErrMsg = cs.ErrorMsg;
+                            }
+#if TASKS_ENABLED
+                            if (it.Fut != null)
+                            {
+                                it.Fut.TrySetException(new CSocketError(it.ErrCode, it.ErrMsg, idUpload, true));
+                                it.Discarded = null;
+                                it.Se = null;
+                            }
+#endif
+                            continue;
+                        }
                         break;
                     }
                 }
@@ -716,8 +826,29 @@ namespace SocketProAdapter.ClientSide
                     OpenLocalWrite(it);
                     if (!it.HasError)
                     {
+                        if (!SendRequest(idDownload, it.LocalFile, it.FilePath, it.Flags, it.InitSize, rh, it.Discarded, it.Se))
+                        {
+                            CClientSocket cs = Socket;
+                            it.ErrCode = cs.ErrorCode;
+                            if (it.ErrCode == 0)
+                            {
+                                it.ErrCode = SESSION_CLOSED_BEFORE;
+                                it.ErrMsg = "Session already closed before sending the request Download";
+                            }
+                            else
+                            {
+                                it.ErrMsg = cs.ErrorMsg;
+                            }
+#if TASKS_ENABLED
+                            if (it.Fut != null)
+                            {
+                                it.Fut.TrySetException(new CSocketError(it.ErrCode, it.ErrMsg, idDownload, true));
+                                it.Discarded = null;
+                                it.Se = null;
+                            }
+#endif
+                        }
                         ++d;
-                        SendRequest(idDownload, it.LocalFile, it.FilePath, it.Flags, it.InitSize, rh, it.Discarded, se);
                     }
                 }
             }

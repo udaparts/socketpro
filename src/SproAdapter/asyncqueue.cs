@@ -1,6 +1,8 @@
-﻿
-using System;
+﻿using System;
 using System.Text;
+#if TASKS_ENABLED
+using System.Threading.Tasks;
+#endif
 
 namespace SocketProAdapter
 {
@@ -50,14 +52,11 @@ namespace SocketProAdapter
             /// <summary>
             /// An event for tracking message queued notification from server side
             /// </summary>
-            public event DMessageQueued MessageQueued
-            {
-                add
-                {
+            public event DMessageQueued MessageQueued {
+                add {
                     m_lstMQ.add(value);
                 }
-                remove
-                {
+                remove {
                     m_lstMQ.remove(value);
                 }
             }
@@ -82,10 +81,8 @@ namespace SocketProAdapter
             /// <summary>
             /// Dequeue batch size in bytes
             /// </summary>
-            public uint DequeueBatchSize
-            {
-                get
-                {
+            public uint DequeueBatchSize {
+                get {
                     return (m_nBatchSize & 0xffffff);
                 }
             }
@@ -93,10 +90,8 @@ namespace SocketProAdapter
             /// <summary>
             /// Check if remote queue server is able to automatically notify a client when a message is enqueued at server side
             /// </summary>
-            public bool EnqueueNotified
-            {
-                get
-                {
+            public bool EnqueueNotified {
+                get {
                     return ((m_nBatchSize >> 24) == 0);
                 }
             }
@@ -104,17 +99,14 @@ namespace SocketProAdapter
             /// <summary>
             /// Last dequeue callback
             /// </summary>
-            public DDequeue LastDequeueCallback
-            {
-                get
-                {
+            public DDequeue LastDequeueCallback {
+                get {
                     lock (m_csQ)
                     {
                         return m_dDequeue;
                     }
                 }
-                set
-                {
+                set {
                     lock (m_csQ)
                     {
                         m_dDequeue = value;
@@ -270,248 +262,497 @@ namespace SocketProAdapter
 
             public bool EnqueueBatch(byte[] key, CUQueue q)
             {
-                return EnqueueBatch(key, q, null);
+                return EnqueueBatch(key, q, null, null, null);
             }
 
             public bool EnqueueBatch(byte[] key, CUQueue q, DEnqueue e)
             {
-                return EnqueueBatch(key, q, e, null);
+                return EnqueueBatch(key, q, e, null, null);
             }
 
-            public virtual bool EnqueueBatch(byte[] key, CUQueue q, DEnqueue e, DDiscarded discarded)
+            public bool EnqueueBatch(byte[] key, CUQueue q, DEnqueue e, DDiscarded discarded)
+            {
+                return EnqueueBatch(key, q, e, discarded, null);
+            }
+
+            public virtual bool EnqueueBatch(byte[] key, CUQueue q, DEnqueue e, DDiscarded discarded, DOnExceptionFromServer se)
             {
                 if (q == null || q.GetSize() < 2 * sizeof(uint))
                 {
-                    throw new InvalidOperationException("Bad operation");
+                    throw new InvalidOperationException("Buffer contains no message");
                 }
                 CUQueue sb = CScopeUQueue.Lock();
                 sb.Save(key).Push(q.IntenalBuffer, q.HeadPosition, q.Size);
                 q.SetSize(0);
-                bool ok = SendRequest(idEnqueueBatch, sb, GetRH(e), discarded, (DOnExceptionFromServer)null);
+                bool ok = SendRequest(idEnqueueBatch, sb, GetRH(e), discarded, se);
                 CScopeUQueue.Unlock(sb);
                 return ok;
             }
 
             public bool Enqueue(byte[] key, ushort idMessage)
             {
-                return Enqueue(key, idMessage, (byte[])null, (DEnqueue)null, (DDiscarded)null);
+                return Enqueue(key, idMessage, (byte[])null, (uint)0, (DEnqueue)null, (DDiscarded)null, (DOnExceptionFromServer)null);
             }
 
             public bool Enqueue(byte[] key, ushort idMessage, DEnqueue e)
             {
-                return Enqueue(key, idMessage, (byte[])null, e, (DDiscarded)null);
+                return Enqueue(key, idMessage, (byte[])null, (uint)0, e, (DDiscarded)null, (DOnExceptionFromServer)null);
             }
 
             public bool Enqueue(byte[] key, ushort idMessage, byte[] bytes)
             {
-                return Enqueue(key, idMessage, bytes, (DEnqueue)null, (DDiscarded)null);
+                return Enqueue(key, idMessage, bytes, (bytes == null) ? 0 : (uint)bytes.Length, (DEnqueue)null, (DDiscarded)null, (DOnExceptionFromServer)null);
             }
 
-            public bool Enqueue(byte[] key, ushort idMessage, byte[] bytes, DEnqueue e)
+            public bool Enqueue(byte[] key, ushort idMessage, byte[] bytes, uint len)
             {
-                return Enqueue(key, idMessage, bytes, e, (DDiscarded)null);
+                return Enqueue(key, idMessage, bytes, len, (DEnqueue)null, (DDiscarded)null, (DOnExceptionFromServer)null);
             }
 
-            public virtual bool Enqueue(byte[] key, ushort idMessage, byte[] bytes, DEnqueue e, DDiscarded discarded)
+            public bool Enqueue(byte[] key, ushort idMessage, byte[] bytes, uint len, DEnqueue e)
+            {
+                return Enqueue(key, idMessage, bytes, len, e, (DDiscarded)null, (DOnExceptionFromServer)null);
+            }
+
+            public bool Enqueue(byte[] key, ushort idMessage, byte[] bytes, uint len, DEnqueue e, DDiscarded discarded)
+            {
+                return Enqueue(key, idMessage, bytes, len, e, discarded, (DOnExceptionFromServer)null);
+            }
+
+            public virtual bool Enqueue(byte[] key, ushort idMessage, byte[] bytes, uint len, DEnqueue e, DDiscarded discarded, DOnExceptionFromServer se)
             {
                 CUQueue sb = CScopeUQueue.Lock();
-                sb.Save(key).Save(idMessage).Push(bytes);
-                bool ok = SendRequest(idEnqueue, sb, GetRH(e), discarded, (DOnExceptionFromServer)null);
+                sb.Save(key).Save(idMessage).Push(bytes, len);
+                bool ok = SendRequest(idEnqueue, sb, GetRH(e), discarded, se);
                 CScopeUQueue.Unlock(sb);
                 return ok;
             }
 
             public bool Enqueue(byte[] key, ushort idMessage, CUQueue buffer)
             {
-                return Enqueue(key, idMessage, buffer, (DEnqueue)null, (DDiscarded)null);
+                return Enqueue(key, idMessage, buffer, (DEnqueue)null, (DDiscarded)null, (DOnExceptionFromServer)null);
             }
 
             public bool Enqueue(byte[] key, ushort idMessage, CUQueue buffer, DEnqueue e)
             {
-                return Enqueue(key, idMessage, buffer, e, (DDiscarded)null);
+                return Enqueue(key, idMessage, buffer, e, (DDiscarded)null, (DOnExceptionFromServer)null);
             }
 
-            public virtual bool Enqueue(byte[] key, ushort idMessage, CUQueue buffer, DEnqueue e, DDiscarded discarded)
+            public bool Enqueue(byte[] key, ushort idMessage, CUQueue buffer, DEnqueue e, DDiscarded discarded)
+            {
+                return Enqueue(key, idMessage, buffer, e, discarded, (DOnExceptionFromServer)null);
+            }
+
+            public virtual bool Enqueue(byte[] key, ushort idMessage, CUQueue buffer, DEnqueue e, DDiscarded discarded, DOnExceptionFromServer se)
             {
                 CUQueue sb = CScopeUQueue.Lock();
                 sb.Save(key).Save(idMessage);
                 if (buffer != null)
                     sb.Push(buffer.IntenalBuffer, buffer.HeadPosition, buffer.Size);
-                bool ok = SendRequest(idEnqueue, sb, GetRH(e), discarded, (DOnExceptionFromServer)null);
+                bool ok = SendRequest(idEnqueue, sb, GetRH(e), discarded, se);
                 CScopeUQueue.Unlock(sb);
                 return ok;
             }
 
             public bool Enqueue<T0>(byte[] key, ushort idMessage, T0 t0)
             {
-                return Enqueue(key, idMessage, t0, (DEnqueue)null, (DDiscarded)null);
+                return Enqueue(key, idMessage, t0, (DEnqueue)null, (DDiscarded)null, (DOnExceptionFromServer)null);
             }
 
             public bool Enqueue<T0>(byte[] key, ushort idMessage, T0 t0, DEnqueue e)
             {
-                return Enqueue<T0>(key, idMessage, t0, e, (DDiscarded)null);
+                return Enqueue<T0>(key, idMessage, t0, e, (DDiscarded)null, (DOnExceptionFromServer)null);
             }
             public bool Enqueue<T0>(byte[] key, ushort idMessage, T0 t0, DEnqueue e, DDiscarded discarded)
             {
+                return Enqueue<T0>(key, idMessage, t0, e, discarded, (DOnExceptionFromServer)null);
+            }
+            public virtual bool Enqueue<T0>(byte[] key, ushort idMessage, T0 t0, DEnqueue e, DDiscarded discarded, DOnExceptionFromServer se)
+            {
                 CUQueue sb = CScopeUQueue.Lock();
                 sb.Save(t0);
-                bool ok = Enqueue(key, idMessage, sb, e, discarded);
+                bool ok = Enqueue(key, idMessage, sb, e, discarded, se);
                 CScopeUQueue.Unlock(sb);
                 return ok;
             }
 
             public bool Enqueue<T0, T1>(byte[] key, ushort idMessage, T0 t0, T1 t1)
             {
-                return Enqueue(key, idMessage, t0, t1, (DEnqueue)null, (DDiscarded)null);
+                return Enqueue(key, idMessage, t0, t1, (DEnqueue)null, (DDiscarded)null, (DOnExceptionFromServer)null);
             }
             public bool Enqueue<T0, T1>(byte[] key, ushort idMessage, T0 t0, T1 t1, DEnqueue e)
             {
-                return Enqueue(key, idMessage, t0, t1, e, (DDiscarded)null);
+                return Enqueue(key, idMessage, t0, t1, e, (DDiscarded)null, (DOnExceptionFromServer)null);
             }
+
             public bool Enqueue<T0, T1>(byte[] key, ushort idMessage, T0 t0, T1 t1, DEnqueue e, DDiscarded discarded)
+            {
+                return Enqueue(key, idMessage, t0, t1, e, discarded, (DOnExceptionFromServer)null);
+            }
+
+            public virtual bool Enqueue<T0, T1>(byte[] key, ushort idMessage, T0 t0, T1 t1, DEnqueue e, DDiscarded discarded, DOnExceptionFromServer se)
             {
                 CUQueue sb = CScopeUQueue.Lock();
                 sb.Save(t0).Save(t1);
-                bool ok = Enqueue(key, idMessage, sb, e, discarded);
+                bool ok = Enqueue(key, idMessage, sb, e, discarded, se);
                 CScopeUQueue.Unlock(sb);
                 return ok;
             }
 
             public bool Enqueue<T0, T1, T2>(byte[] key, ushort idMessage, T0 t0, T1 t1, T2 t2)
             {
-                return Enqueue(key, idMessage, t0, t1, t2, (DEnqueue)null, (DDiscarded)null);
+                return Enqueue(key, idMessage, t0, t1, t2, (DEnqueue)null, (DDiscarded)null, (DOnExceptionFromServer)null);
             }
             public bool Enqueue<T0, T1, T2>(byte[] key, ushort idMessage, T0 t0, T1 t1, T2 t2, DEnqueue e)
             {
-                return Enqueue(key, idMessage, t0, t1, t2, e, (DDiscarded)null);
+                return Enqueue(key, idMessage, t0, t1, t2, e, (DDiscarded)null, (DOnExceptionFromServer)null);
             }
             public bool Enqueue<T0, T1, T2>(byte[] key, ushort idMessage, T0 t0, T1 t1, T2 t2, DEnqueue e, DDiscarded discarded)
             {
+                return Enqueue(key, idMessage, t0, t1, t2, e, discarded, (DOnExceptionFromServer)null);
+            }
+            public virtual bool Enqueue<T0, T1, T2>(byte[] key, ushort idMessage, T0 t0, T1 t1, T2 t2, DEnqueue e, DDiscarded discarded, DOnExceptionFromServer se)
+            {
                 CUQueue sb = CScopeUQueue.Lock();
                 sb.Save(t0).Save(t1).Save(t2);
-                bool ok = Enqueue(key, idMessage, sb, e, discarded);
+                bool ok = Enqueue(key, idMessage, sb, e, discarded, se);
                 CScopeUQueue.Unlock(sb);
                 return ok;
             }
 
             public bool Enqueue<T0, T1, T2, T3>(byte[] key, ushort idMessage, T0 t0, T1 t1, T2 t2, T3 t3)
             {
-                return Enqueue(key, idMessage, t0, t1, t2, t3, (DEnqueue)null, (DDiscarded)null);
+                return Enqueue(key, idMessage, t0, t1, t2, t3, (DEnqueue)null, (DDiscarded)null, (DOnExceptionFromServer)null);
             }
             public bool Enqueue<T0, T1, T2, T3>(byte[] key, ushort idMessage, T0 t0, T1 t1, T2 t2, T3 t3, DEnqueue e)
             {
-                return Enqueue(key, idMessage, t0, t1, t2, t3, e, (DDiscarded)null);
+                return Enqueue(key, idMessage, t0, t1, t2, t3, e, (DDiscarded)null, (DOnExceptionFromServer)null);
             }
             public bool Enqueue<T0, T1, T2, T3>(byte[] key, ushort idMessage, T0 t0, T1 t1, T2 t2, T3 t3, DEnqueue e, DDiscarded discarded)
             {
+                return Enqueue(key, idMessage, t0, t1, t2, t3, e, discarded, (DOnExceptionFromServer)null);
+            }
+            public virtual bool Enqueue<T0, T1, T2, T3>(byte[] key, ushort idMessage, T0 t0, T1 t1, T2 t2, T3 t3, DEnqueue e, DDiscarded discarded, DOnExceptionFromServer se)
+            {
                 CUQueue sb = CScopeUQueue.Lock();
                 sb.Save(t0).Save(t1).Save(t2).Save(t3);
-                bool ok = Enqueue(key, idMessage, sb, e, discarded);
+                bool ok = Enqueue(key, idMessage, sb, e, discarded, se);
                 CScopeUQueue.Unlock(sb);
                 return ok;
             }
 
             public bool Enqueue<T0, T1, T2, T3, T4>(byte[] key, ushort idMessage, T0 t0, T1 t1, T2 t2, T3 t3, T4 t4)
             {
-                return Enqueue(key, idMessage, t0, t1, t2, t3, t4, (DEnqueue)null, (DDiscarded)null);
+                return Enqueue(key, idMessage, t0, t1, t2, t3, t4, (DEnqueue)null, (DDiscarded)null, (DOnExceptionFromServer)null);
             }
             public bool Enqueue<T0, T1, T2, T3, T4>(byte[] key, ushort idMessage, T0 t0, T1 t1, T2 t2, T3 t3, T4 t4, DEnqueue e)
             {
-                return Enqueue(key, idMessage, t0, t1, t2, t3, t4, e, (DDiscarded)null);
+                return Enqueue(key, idMessage, t0, t1, t2, t3, t4, e, (DDiscarded)null, (DOnExceptionFromServer)null);
             }
             public bool Enqueue<T0, T1, T2, T3, T4>(byte[] key, ushort idMessage, T0 t0, T1 t1, T2 t2, T3 t3, T4 t4, DEnqueue e, DDiscarded discarded)
             {
+                return Enqueue(key, idMessage, t0, t1, t2, t3, t4, e, discarded, (DOnExceptionFromServer)null);
+            }
+            public virtual bool Enqueue<T0, T1, T2, T3, T4>(byte[] key, ushort idMessage, T0 t0, T1 t1, T2 t2, T3 t3, T4 t4, DEnqueue e, DDiscarded discarded, DOnExceptionFromServer se)
+            {
                 CUQueue sb = CScopeUQueue.Lock();
                 sb.Save(t0).Save(t1).Save(t2).Save(t3).Save(t4);
-                bool ok = Enqueue(key, idMessage, sb, e, discarded);
+                bool ok = Enqueue(key, idMessage, sb, e, discarded, se);
                 CScopeUQueue.Unlock(sb);
                 return ok;
             }
 
             public bool Enqueue<T0, T1, T2, T3, T4, T5>(byte[] key, ushort idMessage, T0 t0, T1 t1, T2 t2, T3 t3, T4 t4, T5 t5)
             {
-                return Enqueue(key, idMessage, t0, t1, t2, t3, t4, t5, (DEnqueue)null, (DDiscarded)null);
+                return Enqueue(key, idMessage, t0, t1, t2, t3, t4, t5, (DEnqueue)null, (DDiscarded)null, (DOnExceptionFromServer)null);
             }
             public bool Enqueue<T0, T1, T2, T3, T4, T5>(byte[] key, ushort idMessage, T0 t0, T1 t1, T2 t2, T3 t3, T4 t4, T5 t5, DEnqueue e)
             {
-                return Enqueue(key, idMessage, t0, t1, t2, t3, t4, t5, e, (DDiscarded)null);
+                return Enqueue(key, idMessage, t0, t1, t2, t3, t4, t5, e, (DDiscarded)null, (DOnExceptionFromServer)null);
             }
             public bool Enqueue<T0, T1, T2, T3, T4, T5>(byte[] key, ushort idMessage, T0 t0, T1 t1, T2 t2, T3 t3, T4 t4, T5 t5, DEnqueue e, DDiscarded discarded)
             {
+                return Enqueue(key, idMessage, t0, t1, t2, t3, t4, t5, e, discarded, (DOnExceptionFromServer)null);
+            }
+            public virtual bool Enqueue<T0, T1, T2, T3, T4, T5>(byte[] key, ushort idMessage, T0 t0, T1 t1, T2 t2, T3 t3, T4 t4, T5 t5, DEnqueue e, DDiscarded discarded, DOnExceptionFromServer se)
+            {
                 CUQueue sb = CScopeUQueue.Lock();
                 sb.Save(t0).Save(t1).Save(t2).Save(t3).Save(t4).Save(t5);
-                bool ok = Enqueue(key, idMessage, sb, e, discarded);
+                bool ok = Enqueue(key, idMessage, sb, e, discarded, se);
                 CScopeUQueue.Unlock(sb);
                 return ok;
             }
 
             public bool Enqueue<T0, T1, T2, T3, T4, T5, T6>(byte[] key, ushort idMessage, T0 t0, T1 t1, T2 t2, T3 t3, T4 t4, T5 t5, T6 t6)
             {
-                return Enqueue(key, idMessage, t0, t1, t2, t3, t4, t5, t6, (DEnqueue)null, (DDiscarded)null);
+                return Enqueue(key, idMessage, t0, t1, t2, t3, t4, t5, t6, (DEnqueue)null, (DDiscarded)null, (DOnExceptionFromServer)null);
             }
             public bool Enqueue<T0, T1, T2, T3, T4, T5, T6>(byte[] key, ushort idMessage, T0 t0, T1 t1, T2 t2, T3 t3, T4 t4, T5 t5, T6 t6, DEnqueue e)
             {
-                return Enqueue(key, idMessage, t0, t1, t2, t3, t4, t5, t6, e, (DDiscarded)null);
+                return Enqueue(key, idMessage, t0, t1, t2, t3, t4, t5, t6, e, (DDiscarded)null, (DOnExceptionFromServer)null);
             }
             public bool Enqueue<T0, T1, T2, T3, T4, T5, T6>(byte[] key, ushort idMessage, T0 t0, T1 t1, T2 t2, T3 t3, T4 t4, T5 t5, T6 t6, DEnqueue e, DDiscarded discarded)
             {
+                return Enqueue(key, idMessage, t0, t1, t2, t3, t4, t5, t6, e, discarded, (DOnExceptionFromServer)null);
+            }
+            public virtual bool Enqueue<T0, T1, T2, T3, T4, T5, T6>(byte[] key, ushort idMessage, T0 t0, T1 t1, T2 t2, T3 t3, T4 t4, T5 t5, T6 t6, DEnqueue e, DDiscarded discarded, DOnExceptionFromServer se)
+            {
                 CUQueue sb = CScopeUQueue.Lock();
                 sb.Save(t0).Save(t1).Save(t2).Save(t3).Save(t4).Save(t5).Save(t6);
-                bool ok = Enqueue(key, idMessage, sb, e, discarded);
+                bool ok = Enqueue(key, idMessage, sb, e, discarded, se);
                 CScopeUQueue.Unlock(sb);
                 return ok;
             }
 
             public bool Enqueue<T0, T1, T2, T3, T4, T5, T6, T7>(byte[] key, ushort idMessage, T0 t0, T1 t1, T2 t2, T3 t3, T4 t4, T5 t5, T6 t6, T7 t7)
             {
-                return Enqueue(key, idMessage, t0, t1, t2, t3, t4, t5, t6, t7, (DEnqueue)null, (DDiscarded)null);
+                return Enqueue(key, idMessage, t0, t1, t2, t3, t4, t5, t6, t7, (DEnqueue)null, (DDiscarded)null, (DOnExceptionFromServer)null);
             }
             public bool Enqueue<T0, T1, T2, T3, T4, T5, T6, T7>(byte[] key, ushort idMessage, T0 t0, T1 t1, T2 t2, T3 t3, T4 t4, T5 t5, T6 t6, T7 t7, DEnqueue e)
             {
-                return Enqueue(key, idMessage, t0, t1, t2, t3, t4, t5, t6, t7, e, (DDiscarded)null);
+                return Enqueue(key, idMessage, t0, t1, t2, t3, t4, t5, t6, t7, e, (DDiscarded)null, (DOnExceptionFromServer)null);
             }
             public bool Enqueue<T0, T1, T2, T3, T4, T5, T6, T7>(byte[] key, ushort idMessage, T0 t0, T1 t1, T2 t2, T3 t3, T4 t4, T5 t5, T6 t6, T7 t7, DEnqueue e, DDiscarded discarded)
             {
+                return Enqueue(key, idMessage, t0, t1, t2, t3, t4, t5, t6, t7, e, discarded, (DOnExceptionFromServer)null);
+            }
+            public virtual bool Enqueue<T0, T1, T2, T3, T4, T5, T6, T7>(byte[] key, ushort idMessage, T0 t0, T1 t1, T2 t2, T3 t3, T4 t4, T5 t5, T6 t6, T7 t7, DEnqueue e, DDiscarded discarded, DOnExceptionFromServer se)
+            {
                 CUQueue sb = CScopeUQueue.Lock();
                 sb.Save(t0).Save(t1).Save(t2).Save(t3).Save(t4).Save(t5).Save(t6).Save(t7);
-                bool ok = Enqueue(key, idMessage, sb, e, discarded);
+                bool ok = Enqueue(key, idMessage, sb, e, discarded, se);
                 CScopeUQueue.Unlock(sb);
                 return ok;
             }
 
             public bool Enqueue<T0, T1, T2, T3, T4, T5, T6, T7, T8>(byte[] key, ushort idMessage, T0 t0, T1 t1, T2 t2, T3 t3, T4 t4, T5 t5, T6 t6, T7 t7, T8 t8)
             {
-                return Enqueue(key, idMessage, t0, t1, t2, t3, t4, t5, t6, t7, t8, (DEnqueue)null, (DDiscarded)null);
+                return Enqueue(key, idMessage, t0, t1, t2, t3, t4, t5, t6, t7, t8, (DEnqueue)null, (DDiscarded)null, (DOnExceptionFromServer)null);
             }
             public bool Enqueue<T0, T1, T2, T3, T4, T5, T6, T7, T8>(byte[] key, ushort idMessage, T0 t0, T1 t1, T2 t2, T3 t3, T4 t4, T5 t5, T6 t6, T7 t7, T8 t8, DEnqueue e)
             {
-                return Enqueue(key, idMessage, t0, t1, t2, t3, t4, t5, t6, t7, t8, e, (DDiscarded)null);
+                return Enqueue(key, idMessage, t0, t1, t2, t3, t4, t5, t6, t7, t8, e, (DDiscarded)null, (DOnExceptionFromServer)null);
             }
             public bool Enqueue<T0, T1, T2, T3, T4, T5, T6, T7, T8>(byte[] key, ushort idMessage, T0 t0, T1 t1, T2 t2, T3 t3, T4 t4, T5 t5, T6 t6, T7 t7, T8 t8, DEnqueue e, DDiscarded discarded)
             {
+                return Enqueue(key, idMessage, t0, t1, t2, t3, t4, t5, t6, t7, t8, e, discarded, (DOnExceptionFromServer)null);
+            }
+            public virtual bool Enqueue<T0, T1, T2, T3, T4, T5, T6, T7, T8>(byte[] key, ushort idMessage, T0 t0, T1 t1, T2 t2, T3 t3, T4 t4, T5 t5, T6 t6, T7 t7, T8 t8, DEnqueue e, DDiscarded discarded, DOnExceptionFromServer se)
+            {
                 CUQueue sb = CScopeUQueue.Lock();
                 sb.Save(t0).Save(t1).Save(t2).Save(t3).Save(t4).Save(t5).Save(t6).Save(t7).Save(t8);
-                bool ok = Enqueue(key, idMessage, sb, e, discarded);
+                bool ok = Enqueue(key, idMessage, sb, e, discarded, se);
                 CScopeUQueue.Unlock(sb);
                 return ok;
             }
 
             public bool Enqueue<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9>(byte[] key, ushort idMessage, T0 t0, T1 t1, T2 t2, T3 t3, T4 t4, T5 t5, T6 t6, T7 t7, T8 t8, T9 t9)
             {
-                return Enqueue(key, idMessage, t0, t1, t2, t3, t4, t5, t6, t7, t8, t9, (DEnqueue)null, (DDiscarded)null);
+                return Enqueue(key, idMessage, t0, t1, t2, t3, t4, t5, t6, t7, t8, t9, (DEnqueue)null, (DDiscarded)null, (DOnExceptionFromServer)null);
             }
             public bool Enqueue<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9>(byte[] key, ushort idMessage, T0 t0, T1 t1, T2 t2, T3 t3, T4 t4, T5 t5, T6 t6, T7 t7, T8 t8, T9 t9, DEnqueue e)
             {
-                return Enqueue(key, idMessage, t0, t1, t2, t3, t4, t5, t6, t7, t8, t9, e, (DDiscarded)null);
+                return Enqueue(key, idMessage, t0, t1, t2, t3, t4, t5, t6, t7, t8, t9, e, (DDiscarded)null, (DOnExceptionFromServer)null);
             }
             public bool Enqueue<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9>(byte[] key, ushort idMessage, T0 t0, T1 t1, T2 t2, T3 t3, T4 t4, T5 t5, T6 t6, T7 t7, T8 t8, T9 t9, DEnqueue e, DDiscarded discarded)
             {
+                return Enqueue(key, idMessage, t0, t1, t2, t3, t4, t5, t6, t7, t8, t9, e, (DDiscarded)discarded, (DOnExceptionFromServer)null);
+            }
+            public virtual bool Enqueue<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9>(byte[] key, ushort idMessage, T0 t0, T1 t1, T2 t2, T3 t3, T4 t4, T5 t5, T6 t6, T7 t7, T8 t8, T9 t9, DEnqueue e, DDiscarded discarded, DOnExceptionFromServer se)
+            {
                 CUQueue sb = CScopeUQueue.Lock();
                 sb.Save(t0).Save(t1).Save(t2).Save(t3).Save(t4).Save(t5).Save(t6).Save(t7).Save(t8).Save(t9);
-                bool ok = Enqueue(key, idMessage, sb, e, discarded);
+                bool ok = Enqueue(key, idMessage, sb, e, discarded, se);
                 CScopeUQueue.Unlock(sb);
                 return ok;
             }
+
+            public class QueueInfo
+            {
+
+                /// <summary>
+                /// The messages remaining in server message queue file
+                /// </summary>
+
+                public ulong messages;
+
+                /// <summary>
+                /// server message queue file in bytes
+                /// </summary>
+                public ulong fSize;
+
+                public QueueInfo(ulong message_count, ulong file_size)
+                {
+                    messages = message_count;
+                    fSize = file_size;
+                }
+
+                public override string ToString()
+                {
+                    String s = "messages: " + messages;
+                    s += ", fsize: " + fSize;
+                    return s;
+                }
+            }
+
+            public class DeqInfo : QueueInfo
+            {
+                /// <summary>
+                /// messages dequeued from server by this request Dequeue
+                /// </summary>
+                public uint DeMessages;
+
+                /// <summary>
+                /// bytes dequeued from server by this request Dequeue
+                /// </summary>
+                public uint DeBytes;
+
+                public DeqInfo(ulong messages, ulong fSize, uint msgs, uint bytes)
+                        : base(messages, fSize)
+                {
+                    DeMessages = msgs;
+                    DeBytes = bytes;
+                }
+
+                public override string ToString()
+                {
+                    String s = base.ToString();
+                    s += ", msgsDequeued: " + DeMessages;
+                    s += ", bytes: " + DeBytes;
+                    return s;
+                }
+            }
+
+#if TASKS_ENABLED
+            /// <summary>
+            /// Start enqueuing messages with transaction style. Currently, total size of queued messages must be less than 4 G bytes
+            /// </summary>
+            /// <param name="key">An ASCII string for identifying a queue at server side</param>
+            /// <returns>An error code, which can be one of QUEUE_OK, QUEUE_TRANS_ALREADY_STARTED, and so on by task</returns>
+            public virtual Task<int> startQueueTrans(byte[] key)
+            {
+                TaskCompletionSource<int> tcs = new TaskCompletionSource<int>();
+                if (!StartQueueTrans(key, (aq, errCode) =>
+                {
+                    tcs.TrySetResult(errCode);
+                }, get_aborted(tcs, "StartQueueTrans", idStartTrans), get_se(tcs)))
+                {
+                    raise("StartQueueTrans", idStartTrans);
+                }
+                return tcs.Task;
+            }
+
+            /// <summary>
+            /// Try to close or delete a persistent queue opened at server side
+            /// </summary>
+            /// <param name="key">An ASCII string for identifying a queue at server side</param>
+            /// <param name="permanent">true for deleting a queue file, and false for closing a queue file, and it defaults to false</param>
+            /// <returns>An error code, which can be one of QUEUE_OK, QUEUE_DEQUEUING, and so on by task</returns>
+            public virtual Task<int> closeQueue(byte[] key, bool permanent = false)
+            {
+                TaskCompletionSource<int> tcs = new TaskCompletionSource<int>();
+                if (!CloseQueue(key, (aq, errCode) =>
+                {
+                    tcs.TrySetResult(errCode);
+                }, get_aborted(tcs, "CloseQueue", idClose), permanent, get_se(tcs)))
+                {
+                    raise("CloseQueue", idClose);
+                }
+                return tcs.Task;
+            }
+
+            /// <summary>
+            /// End enqueuing messages with transaction style. Currently, total size of queued messages must be less than 4 G bytes
+            /// </summary>
+            /// <param name="rollback">true for rollback, and false for committing, and it defaults to false</param>
+            /// <returns>An error code, which can be one of QUEUE_OK, QUEUE_TRANS_NOT_STARTED_YET, and so on by task</returns>
+            public virtual Task<int> endQueueTrans(bool rollback = false)
+            {
+                TaskCompletionSource<int> tcs = new TaskCompletionSource<int>();
+                if (!EndQueueTrans(rollback, (aq, errCode) =>
+                {
+                    tcs.TrySetResult(errCode);
+                }, get_aborted(tcs, "EndQueueTrans", idEndTrans), get_se(tcs)))
+                {
+                    raise("EndQueueTrans", idEndTrans);
+                }
+                return tcs.Task;
+            }
+
+            /// <summary>
+            /// Query queue keys opened at server side
+            /// </summary>
+            /// <returns>An array of key names corresponding to an array of queue files at server side</returns>
+            public virtual Task<string[]> getKeys()
+            {
+                TaskCompletionSource<string[]> tcs = new TaskCompletionSource<string[]>();
+                if (!GetKeys((aq, keys) =>
+                {
+                    tcs.TrySetResult(keys);
+                }, get_aborted(tcs, "GetKeys", idGetKeys), get_se(tcs)))
+                {
+                    raise("GetKeys", idGetKeys);
+                }
+                return tcs.Task;
+            }
+
+            /// <summary>
+            /// Flush memory data into either operation system memory or hard disk, and return message count and queue file size in bytes.Note the method only returns message count and queue file size in bytes if the option is oMemoryCached
+            /// </summary>
+            /// <param name="key">An ASCII string for identifying a queue at server side</param>
+            /// <param name="option">one of tagOptimistic options, oMemoryCached, oSystemMemoryCached and oDiskCommitted, and it defaults to tagOptimistic.oMemoryCached</param>
+            /// <returns>An instance of QueueInfo by task</returns>
+            public virtual Task<QueueInfo> flushQueue(byte[] key, tagOptimistic option = tagOptimistic.oMemoryCached)
+            {
+                TaskCompletionSource<QueueInfo> tcs = new TaskCompletionSource<QueueInfo>();
+                if (!FlushQueue(key, (aq, messages, fSize) =>
+                {
+                    tcs.TrySetResult(new QueueInfo(messages, fSize));
+                }, option, get_aborted(tcs, "FlushQueue", idFlush), get_se(tcs)))
+                {
+                    raise("FlushQueue", idFlush);
+                }
+                return tcs.Task;
+            }
+
+            /// <summary>
+            /// Dequeue messages from a persistent message queue file at server side in batch
+            /// </summary>
+            /// <param name="key">An ASCII string for identifying a queue at server side</param>
+            /// <param name="timeout">A time-out number in milliseconds, and it defaults to zero</param>
+            /// <returns>An instance of DeqInfo by task</returns>
+            public virtual Task<DeqInfo> dequeue(byte[] key, uint timeout = 0)
+            {
+                TaskCompletionSource<DeqInfo> tcs = new TaskCompletionSource<DeqInfo>();
+                if (!Dequeue(key, (aq, messages, fSize, msg, bytes) =>
+                {
+                    tcs.TrySetResult(new DeqInfo(messages, fSize, msg, bytes));
+                }, timeout, get_aborted(tcs, "Dequeue", idDequeue), get_se(tcs)))
+                {
+                    raise("Dequeue", idDequeue);
+                }
+                return tcs.Task;
+            }
+
+            /// <summary>
+            /// Enqueue a batch of messages in one single shot
+            /// </summary>
+            /// <param name="key">An ASCII string for identifying a queue at server side</param>
+            /// <param name="q">An instance of CUQueue containing a batch of messages</param>
+            /// <returns>An queue index for the last message of the batch by task</returns>
+            public virtual Task<ulong> enqueueBatch(byte[] key, CUQueue q)
+            {
+                TaskCompletionSource<ulong> tcs = new TaskCompletionSource<ulong>();
+                if (!EnqueueBatch(key, q, (aq, index) =>
+                {
+                    tcs.TrySetResult(index);
+                }, get_aborted(tcs, "EnqueueBatch", idEnqueueBatch), get_se(tcs)))
+                {
+                    raise("EnqueueBatch", idEnqueueBatch);
+                }
+                return tcs.Task;
+            }
+#endif
 
             /// <summary>
             /// Start enqueuing messages with transaction style. Currently, total size of queued messages must be less than 4 G bytes
@@ -519,7 +760,7 @@ namespace SocketProAdapter
             /// <param name="key">An ASCII string for identifying a queue at server side</param>
             /// <param name="qt">A callback for tracking returning error code, which can be one of QUEUE_OK, QUEUE_TRANS_ALREADY_STARTED, and so on</param>
             /// <returns>true for sending the request successfully, and false for failure</returns>
-            public bool StartQueueTrans(byte[] key, DQueueTrans qt)
+            public bool StartQueueTrans(byte[] key, DQueueTrans qt, DDiscarded discarded, DOnExceptionFromServer se)
             {
                 IClientQueue cq = AttachedClientSocket.ClientQueue;
                 if (cq.Available)
@@ -539,7 +780,7 @@ namespace SocketProAdapter
                         {
                             ar.UQueue.SetSize(0);
                         }
-                    });
+                    }, discarded, se);
                 }
             }
 
@@ -549,38 +790,51 @@ namespace SocketProAdapter
             /// <returns>true for sending the request successfully, and false for failure</returns>
             public bool EndQueueTrans()
             {
-                return EndQueueTrans(false, null, null);
+                return EndQueueTrans(false, null, null, null);
             }
 
             /// <summary>
             /// End enqueuing messages with transaction style. Currently, total size of queued messages must be less than 4 G bytes
             /// </summary>
-            /// <param name="rollback">true for rollback, and false for committing</param>
+            /// <param name="rollback">true for rollback, and false for committing, and it defaults to false</param>
             /// <returns>true for sending the request successfully, and false for failure</returns>
             public bool EndQueueTrans(bool rollback)
             {
-                return EndQueueTrans(rollback, null, null);
+                return EndQueueTrans(rollback, null, null, null);
             }
 
             /// <summary>
             /// End enqueuing messages with transaction style. Currently, total size of queued messages must be less than 4 G bytes
             /// </summary>
-            /// <param name="rollback">true for rollback, and false for committing</param>
+            /// <param name="rollback">true for rollback, and false for committing, and it defaults to false</param>
             /// <param name="qt">A callback for tracking returning error code, which can be one of QUEUE_OK, QUEUE_TRANS_NOT_STARTED_YET, and so on</param>
             /// <returns>true for sending the request successfully, and false for failure</returns>
             public bool EndQueueTrans(bool rollback, DQueueTrans qt)
             {
-                return EndQueueTrans(rollback, qt, null);
+                return EndQueueTrans(rollback, qt, null, null);
             }
 
             /// <summary>
             /// End enqueuing messages with transaction style. Currently, total size of queued messages must be less than 4 G bytes
             /// </summary>
-            /// <param name="rollback">true for rollback, and false for committing</param>
+            /// <param name="rollback">true for rollback, and false for committing, and it defaults to false</param>
             /// <param name="qt">A callback for tracking returning error code, which can be one of QUEUE_OK, QUEUE_TRANS_NOT_STARTED_YET, and so on</param>
-            /// <param name="discarded">a callback for tracking cancel or socket closed event</param>
+            /// <param name="discarded">A callback for tracking cancel or socket closed event</param>
             /// <returns>true for sending the request successfully, and false for failure</returns>
-            public virtual bool EndQueueTrans(bool rollback, DQueueTrans qt, DDiscarded discarded)
+            public bool EndQueueTrans(bool rollback, DQueueTrans qt, DDiscarded discarded)
+            {
+                return EndQueueTrans(rollback, qt, discarded, null);
+            }
+
+            /// <summary>
+            /// End enqueuing messages with transaction style. Currently, total size of queued messages must be less than 4 G bytes
+            /// </summary>
+            /// <param name="rollback">true for rollback, and false for committing, and it defaults to false</param>
+            /// <param name="qt">A callback for tracking returning error code, which can be one of QUEUE_OK, QUEUE_TRANS_NOT_STARTED_YET, and so on</param>
+            /// <param name="discarded">A callback for tracking cancel or socket closed event</param>
+            /// <param name="se">A callback for tracking an exception from server</param>
+            /// <returns>true for sending the request successfully, and false for failure</returns>
+            public virtual bool EndQueueTrans(bool rollback, DQueueTrans qt, DDiscarded discarded, DOnExceptionFromServer se)
             {
                 bool ok = SendRequest(idEndTrans, rollback, (ar) =>
                 {
@@ -594,7 +848,7 @@ namespace SocketProAdapter
                     {
                         ar.UQueue.SetSize(0);
                     }
-                }, discarded, (DOnExceptionFromServer)null);
+                }, discarded, se);
                 IClientQueue cq = AttachedClientSocket.ClientQueue;
                 if (cq.Available)
                 {
@@ -613,7 +867,7 @@ namespace SocketProAdapter
             /// <returns>true for sending the request successfully, and false for failure</returns>
             public bool GetKeys(DGetKeys gk)
             {
-                return GetKeys(gk, null);
+                return GetKeys(gk, null, null);
             }
 
             /// <summary>
@@ -622,7 +876,19 @@ namespace SocketProAdapter
             /// <param name="gk">A callback for tracking a list of key names</param>
             /// <param name="discarded">a callback for tracking cancel or socket closed event</param>
             /// <returns>true for sending the request successfully, and false for failure</returns>
-            public virtual bool GetKeys(DGetKeys gk, DDiscarded discarded)
+            public bool GetKeys(DGetKeys gk, DDiscarded discarded)
+            {
+                return GetKeys(gk, discarded, null);
+            }
+
+            /// <summary>
+            /// Query queue keys opened at server side
+            /// </summary>
+            /// <param name="gk">A callback for tracking a list of key names</param>
+            /// <param name="discarded">a callback for tracking cancel or socket closed event</param>
+            /// <param name="se">A callback for tracking an exception from server</param>
+            /// <returns>true for sending the request successfully, and false for failure</returns>
+            public virtual bool GetKeys(DGetKeys gk, DDiscarded discarded, DOnExceptionFromServer se)
             {
                 return SendRequest(idGetKeys, (ar) =>
                 {
@@ -645,7 +911,7 @@ namespace SocketProAdapter
                     {
                         q.SetSize(0);
                     }
-                }, discarded, (DOnExceptionFromServer)null);
+                }, discarded, se);
             }
 
             /// <summary>
@@ -655,7 +921,7 @@ namespace SocketProAdapter
             /// <returns>true for sending the request successfully, and false for failure</returns>
             public bool CloseQueue(byte[] key)
             {
-                return CloseQueue(key, null, null, false);
+                return CloseQueue(key, null, null, false, null);
             }
 
             /// <summary>
@@ -666,7 +932,7 @@ namespace SocketProAdapter
             /// <returns>true for sending the request successfully, and false for failure</returns>
             public bool CloseQueue(byte[] key, DClose c)
             {
-                return CloseQueue(key, c, null, false);
+                return CloseQueue(key, c, null, false, null);
             }
 
             /// <summary>
@@ -678,7 +944,7 @@ namespace SocketProAdapter
             /// <returns>true for sending the request successfully, and false for failure</returns>
             public bool CloseQueue(byte[] key, DClose c, DDiscarded discarded)
             {
-                return CloseQueue(key, c, discarded, false);
+                return CloseQueue(key, c, discarded, false, null);
             }
 
             /// <summary>
@@ -687,9 +953,23 @@ namespace SocketProAdapter
             /// <param name="key">An ASCII string for identifying a queue at server side</param>
             /// <param name="c">A callback for tracking returning error code, which can be one of QUEUE_OK, QUEUE_DEQUEUING, and so on</param>
             /// <param name="discarded">a callback for tracking cancel or socket closed event</param>
-            /// <param name="permanent">true for deleting a queue file, and false for closing a queue file</param>
+            /// <param name="permanent">true for deleting a queue file, and false for closing a queue file, and it defaults to false</param>
             /// <returns>true for sending the request successfully, and false for failure</returns>
-            public virtual bool CloseQueue(byte[] key, DClose c, DDiscarded discarded, bool permanent)
+            public bool CloseQueue(byte[] key, DClose c, DDiscarded discarded, bool permanent)
+            {
+                return CloseQueue(key, c, discarded, permanent, null);
+            }
+
+            /// <summary>
+            /// Try to close or delete a persistent queue opened at server side
+            /// </summary>
+            /// <param name="key">An ASCII string for identifying a queue at server side</param>
+            /// <param name="c">A callback for tracking returning error code, which can be one of QUEUE_OK, QUEUE_DEQUEUING, and so on</param>
+            /// <param name="discarded">a callback for tracking cancel or socket closed event</param>
+            /// <param name="permanent">true for deleting a queue file, and false for closing a queue file, and it defaults to false</param>
+            /// <param name="se">A callback for tracking an exception from server</param>
+            /// <returns>true for sending the request successfully, and false for failure</returns>
+            public virtual bool CloseQueue(byte[] key, DClose c, DDiscarded discarded, bool permanent, DOnExceptionFromServer se)
             {
                 return SendRequest(idClose, key, permanent, (ar) =>
                 {
@@ -703,7 +983,7 @@ namespace SocketProAdapter
                     {
                         ar.UQueue.SetSize(0);
                     }
-                }, discarded, (DOnExceptionFromServer)null);
+                }, discarded, se);
             }
 
             /// <summary>
@@ -714,7 +994,7 @@ namespace SocketProAdapter
             /// <returns>true for sending the request successfully, and false for failure</returns>
             public bool FlushQueue(byte[] key, DFlush f)
             {
-                return FlushQueue(key, f, tagOptimistic.oMemoryCached, null);
+                return FlushQueue(key, f, tagOptimistic.oMemoryCached, null, null);
             }
 
             /// <summary>
@@ -722,11 +1002,11 @@ namespace SocketProAdapter
             /// </summary>
             /// <param name="key">An ASCII string for identifying a queue at server side</param>
             /// <param name="f">A callback for tracking returning message count and queue file size in bytes</param>
-            /// <param name="option">one of options, oMemoryCached, oSystemMemoryCached and oDiskCommitted</param>
+            /// <param name="option">one of options, oMemoryCached, oSystemMemoryCached and oDiskCommitted, It defaults to tagOptimistic.oMemoryCached</param>
             /// <returns>true for sending the request successfully, and false for failure</returns>
             public bool FlushQueue(byte[] key, DFlush f, tagOptimistic option)
             {
-                return FlushQueue(key, f, option, null);
+                return FlushQueue(key, f, option, null, null);
             }
 
             /// <summary>
@@ -734,10 +1014,24 @@ namespace SocketProAdapter
             /// </summary>
             /// <param name="key">An ASCII string for identifying a queue at server side</param>
             /// <param name="f">A callback for tracking returning message count and queue file size in bytes</param>
-            /// <param name="option">one of options, oMemoryCached, oSystemMemoryCached and oDiskCommitted</param>
+            /// <param name="option">one of options, oMemoryCached, oSystemMemoryCached and oDiskCommitted, It defaults to tagOptimistic.oMemoryCached</param>
             /// <param name="discarded">a callback for tracking cancel or socket closed event</param>
             /// <returns>true for sending the request successfully, and false for failure</returns>
-            public virtual bool FlushQueue(byte[] key, DFlush f, tagOptimistic option, DDiscarded discarded)
+            public bool FlushQueue(byte[] key, DFlush f, tagOptimistic option, DDiscarded discarded)
+            {
+                return FlushQueue(key, f, option, discarded, null);
+            }
+
+            /// <summary>
+            /// May flush memory data into either operation system memory or hard disk, and return message count and queue file size in bytes. Note the method only returns message count and queue file size in bytes if the option is oMemoryCached
+            /// </summary>
+            /// <param name="key">An ASCII string for identifying a queue at server side</param>
+            /// <param name="f">A callback for tracking returning message count and queue file size in bytes</param>
+            /// <param name="option">one of options, oMemoryCached, oSystemMemoryCached and oDiskCommitted, It defaults to tagOptimistic.oMemoryCached</param>
+            /// <param name="discarded">a callback for tracking cancel or socket closed event</param>
+            /// <param name="se">A callback for tracking an exception from server</param>
+            /// <returns>true for sending the request successfully, and false for failure</returns>
+            public virtual bool FlushQueue(byte[] key, DFlush f, tagOptimistic option, DDiscarded discarded, DOnExceptionFromServer se)
             {
                 return SendRequest(idFlush, key, (int)option, (ar) =>
                 {
@@ -751,7 +1045,7 @@ namespace SocketProAdapter
                     {
                         ar.UQueue.SetSize(0);
                     }
-                }, discarded, (DOnExceptionFromServer)null);
+                }, discarded, se);
             }
 
             /// <summary>
@@ -762,7 +1056,7 @@ namespace SocketProAdapter
             /// <returns>true for sending the request successfully, and false for failure</returns>
             public bool Dequeue(byte[] key, DDequeue d)
             {
-                return Dequeue(key, d, 0, null);
+                return Dequeue(key, d, 0, null, null);
             }
 
             /// <summary>
@@ -770,11 +1064,11 @@ namespace SocketProAdapter
             /// </summary>
             /// <param name="key">An ASCII string for identifying a queue at server side</param>
             /// <param name="d">A callback for tracking data like remaining message count within a server queue file, queue file size in bytes, message dequeued within this batch and bytes dequeued within this batch</param>
-            /// <param name="timeout">A time-out number in milliseconds</param>
+            /// <param name="timeout">A time-out number in milliseconds, It default to zero</param>
             /// <returns>true for sending the request successfully, and false for failure</returns>
             public bool Dequeue(byte[] key, DDequeue d, uint timeout)
             {
-                return Dequeue(key, d, timeout, null);
+                return Dequeue(key, d, timeout, null, null);
             }
 
             /// <summary>
@@ -782,10 +1076,24 @@ namespace SocketProAdapter
             /// </summary>
             /// <param name="key">An ASCII string for identifying a queue at server side</param>
             /// <param name="d">A callback for tracking data like remaining message count within a server queue file, queue file size in bytes, message dequeued within this batch and bytes dequeued within this batch</param>
-            /// <param name="timeout">A time-out number in milliseconds</param>
+            /// <param name="timeout">A time-out number in milliseconds, It default to zero</param>
             /// <param name="discarded">a callback for tracking cancel or socket closed event</param>
             /// <returns>true for sending the request successfully, and false for failure</returns>
-            public virtual bool Dequeue(byte[] key, DDequeue d, uint timeout, DDiscarded discarded)
+            public bool Dequeue(byte[] key, DDequeue d, uint timeout, DDiscarded discarded)
+            {
+                return Dequeue(key, d, timeout, discarded, null);
+            }
+
+            /// <summary>
+            /// Dequeue messages from a persistent message queue file at server side in batch
+            /// </summary>
+            /// <param name="key">An ASCII string for identifying a queue at server side</param>
+            /// <param name="d">A callback for tracking data like remaining message count within a server queue file, queue file size in bytes, message dequeued within this batch and bytes dequeued within this batch</param>
+            /// <param name="timeout">A time-out number in milliseconds, It default to zero</param>
+            /// <param name="discarded">a callback for tracking cancel or socket closed event</param>
+            /// <param name="se">A callback for tracking an exception from server</param>
+            /// <returns>true for sending the request successfully, and false for failure</returns>
+            public virtual bool Dequeue(byte[] key, DDequeue d, uint timeout, DDiscarded discarded, DOnExceptionFromServer se)
             {
                 DAsyncResultHandler rh = null;
                 lock (m_csQ)
@@ -812,7 +1120,7 @@ namespace SocketProAdapter
                 {
                     CUQueue q = sb.UQueue;
                     q.Save(key).Save(timeout);
-                    return SendRequest(idDequeue, q, rh, discarded, (DOnExceptionFromServer)null);
+                    return SendRequest(idDequeue, q, rh, discarded, se);
                 }
             }
 

@@ -46,11 +46,16 @@ public class HelloWorldPeer : CClientPeer
         Console.WriteLine(UID + " sends a message (" + message + ") to " + receiver);
     }
 
-	[RequestAttr(hwConst.idSayHelloHelloWorld)]
-	private string SayHello(string firstName, string lastName)
-	{
+    [RequestAttr(hwConst.idSayHelloHelloWorld)]
+    private string SayHello(string firstName, string lastName)
+    {
         //processed within main thread
         System.Diagnostics.Debug.Assert(CSocketProServer.IsMainThread);
+
+        if (firstName == null || firstName.Length == 0)
+        {
+            throw new SocketProAdapter.CServerError(123456, "First name cannot be empty");
+        }
 
         //notify a message to groups [2, 3] at server side
         Push.Publish("Say hello from " + firstName + " " + lastName, 2, 3);
@@ -58,16 +63,19 @@ public class HelloWorldPeer : CClientPeer
         string res = "Hello " + firstName + " " + lastName;
         Console.WriteLine(res);
         return res;
-	}
+    }
 
-	[RequestAttr(hwConst.idSleepHelloWorld, true)] //true -- slow request
-	private void Sleep(int ms)
-	{
+    [RequestAttr(hwConst.idSleepHelloWorld, true)] //true -- slow request
+    private void Sleep(int ms)
+    {
         //processed within a worker thread
         System.Diagnostics.Debug.Assert(!CSocketProServer.IsMainThread);
-
+        if (ms < 0)
+        {
+            throw new SocketProAdapter.CServerError(654321, "Sleep time cannot be less than zero");
+        }
         System.Threading.Thread.Sleep(ms);
-	}
+    }
 
     [RequestAttr(hwConst.idEchoHelloWorld)]
     private CMyStruct Echo(CMyStruct ms)
@@ -75,4 +83,3 @@ public class HelloWorldPeer : CClientPeer
         return ms;
     }
 }
-

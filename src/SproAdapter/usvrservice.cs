@@ -322,11 +322,34 @@ namespace SocketProAdapter
                         }
                     }
                 }
+                catch (TargetInvocationException tie)
+                {
+                    if (tie.InnerException == null)
+                    {
+                        ServerCoreLoader.SendExceptionResult(hSocket, tie.Message, tie.StackTrace, usRequestID, uint.MaxValue);
+                    }
+                    else if (tie.InnerException is CServerError)
+                    {
+                        CServerError ex = (CServerError)tie.InnerException;
+                        ushort req_id = ex.ReqId;
+                        if (req_id == 0) req_id = usRequestID;
+                        int index = ex.StackTrace.IndexOf("at SocketProAdapter.ServerSide.CClientPeer");
+                        string stack = ex.StackTrace.Substring(0, index).Trim();
+                        ServerCoreLoader.SendExceptionResult(hSocket, ex.Message, stack, req_id, (uint)ex.ErrCode);
+                    }
+                    else
+                    {
+                        Exception ex = tie.InnerException;
+                        ServerCoreLoader.SendExceptionResult(hSocket, ex.Message, ex.StackTrace, usRequestID, uint.MaxValue);
+                    }
+                }
                 catch (CServerError ex)
                 {
                     ushort req_id = ex.ReqId;
                     if (req_id == 0) req_id = usRequestID;
-                    ServerCoreLoader.SendExceptionResult(hSocket, ex.Message, ex.StackTrace, req_id, (uint)ex.ErrCode);
+                    int index = ex.StackTrace.IndexOf("at SocketProAdapter.ServerSide.CClientPeer");
+                    string stack = ex.StackTrace.Substring(0, index).Trim();
+                    ServerCoreLoader.SendExceptionResult(hSocket, ex.Message, stack, req_id, (uint)ex.ErrCode);
                 }
                 catch (Exception ex)
                 {
@@ -390,11 +413,34 @@ namespace SocketProAdapter
                         }
                     }
                 }
+                catch (TargetInvocationException tie)
+                {
+                    if (tie.InnerException == null)
+                    {
+                        ServerCoreLoader.SendExceptionResult(hSocket, tie.Message, tie.StackTrace, usRequestID, uint.MaxValue);
+                    }
+                    else if (tie.InnerException is CServerError)
+                    {
+                        CServerError ex = (CServerError)tie.InnerException;
+                        ushort req_id = ex.ReqId;
+                        if (req_id == 0) req_id = usRequestID;
+                        int index = ex.StackTrace.IndexOf("at SocketProAdapter.ServerSide.CClientPeer");
+                        string stack = ex.StackTrace.Substring(0, index).Trim();
+                        ServerCoreLoader.SendExceptionResult(hSocket, ex.Message, stack, req_id, (uint)ex.ErrCode);
+                    }
+                    else
+                    {
+                        Exception ex = tie.InnerException;
+                        ServerCoreLoader.SendExceptionResult(hSocket, ex.Message, ex.StackTrace, usRequestID, uint.MaxValue);
+                    }
+                }
                 catch (CServerError ex)
                 {
                     ushort req_id = ex.ReqId;
                     if (req_id == 0) req_id = usRequestID;
-                    ServerCoreLoader.SendExceptionResult(hSocket, ex.Message, ex.StackTrace, req_id, (uint)ex.ErrCode);
+                    int index = ex.StackTrace.IndexOf("at SocketProAdapter.ServerSide.CClientPeer");
+                    string stack = ex.StackTrace.Substring(0, index).Trim();
+                    ServerCoreLoader.SendExceptionResult(hSocket, ex.Message, stack, req_id, (uint)ex.ErrCode);
                 }
                 catch (Exception ex)
                 {

@@ -5,6 +5,9 @@ using System.Collections.Generic;
 using SocketProAdapter.ClientSide;
 #endif
 using System.Data;
+#if TASKS_ENABLED
+using System.Threading.Tasks;
+#endif
 
 namespace SocketProAdapter
 {
@@ -688,6 +691,10 @@ namespace SocketProAdapter
                 }
                 return true;
             }
+
+#if TASKS_ENABLED
+
+#endif
 
             /// <summary>
             /// Process one or more sets of prepared statements with an array of parameter data asynchronously, and don't expect any data returned

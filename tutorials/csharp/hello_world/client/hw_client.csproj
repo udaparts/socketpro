@@ -33,9 +33,6 @@
     <TargetFrameworkProfile />
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="SproAdapter">
-      <HintPath>..\..\..\..\bin\dotnet\SproAdapter.dll</HintPath>
-    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
   </ItemGroup>
@@ -51,6 +48,12 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Properties\" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\..\src\SproAdapter\SocketProAdapter2017.csproj">
+      <Project>{3103d317-4893-4f9b-823d-90f6db71569a}</Project>
+      <Name>SocketProAdapter2017</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

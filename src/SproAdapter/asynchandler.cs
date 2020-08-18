@@ -364,9 +364,6 @@ namespace SocketProAdapter
 
             internal void OnSE(ushort reqId, string errMessage, string errWhere, int errCode)
             {
-#if DEBUG
-                Console.WriteLine("OnSE reqId = {0}, errMsge = {1}, errWhere = {2}, errCode = {3}", reqId, errMessage, errWhere, errCode);
-#endif
                 MyKeyValue<ushort, CResultCb> p = GetAsyncResultHandler(reqId);
                 OnExceptionFromServer(reqId, errMessage, errWhere, errCode);
                 if (p != null)
@@ -944,16 +941,16 @@ namespace SocketProAdapter
 
 #if TASKS_ENABLED
 
-            public static DOnExceptionFromServer get_se<R>(TaskCompletionSource<R> prom)
+            public static DOnExceptionFromServer get_se<R>(TaskCompletionSource<R> tcs)
             {
                 DOnExceptionFromServer se = (sender, rid, errMessage, errWhere, errCode) =>
                 {
-                    prom.TrySetException(new CServerError(errCode, errMessage, errWhere, rid));
+                    tcs.TrySetException(new CServerError(errCode, errMessage, errWhere, rid));
                 };
                 return se;
             }
 
-            static DDiscarded get_aborted<R>(TaskCompletionSource<R> prom, string method_name, ushort req_id)
+            public static DDiscarded get_aborted<R>(TaskCompletionSource<R> tcs, string method_name, ushort req_id)
             {
                 if (method_name == null || method_name.Length == 0)
                 {
@@ -967,7 +964,7 @@ namespace SocketProAdapter
                 {
                     if (canceled)
                     {
-                        prom.TrySetException(new CSocketError(REQUEST_CANCELED, "Request " + method_name + " canceled", req_id, false));
+                        tcs.TrySetException(new CSocketError(REQUEST_CANCELED, "Request " + method_name + " canceled", req_id, false));
                     }
                     else
                     {
@@ -976,11 +973,11 @@ namespace SocketProAdapter
                         if (ec == 0)
                         {
                             string em = cs.ErrorMsg;
-                            prom.TrySetException(new CSocketError(ec, em, req_id, false));
+                            tcs.TrySetException(new CSocketError(ec, em, req_id, false));
                         }
                         else
                         {
-                            prom.TrySetException(new CSocketError(SESSION_CLOSED_AFTER, "Session closed after sending the request " + method_name, req_id, false));
+                            tcs.TrySetException(new CSocketError(SESSION_CLOSED_AFTER, "Session closed after sending the request " + method_name, req_id, false));
                         }
                     }
                 };
