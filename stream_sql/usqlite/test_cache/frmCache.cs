@@ -28,13 +28,11 @@ namespace test_cache
         private DMessage m_thread_message;
         private DSessionClose m_closed;
         private object m_cs = new object();
-        private DSQLMessage m_sql_message;
 
         private void frmCache_Load(object sender, EventArgs e)
         {
             m_thread_message = DbMessage;
             m_closed = Connection_Closed;
-            m_sql_message = SQLMessage;
         }
 
         private void Connection_Closed(string s)
@@ -62,7 +60,7 @@ namespace test_cache
             }
         }
 
-        private void btnConnect_Click(object sender, EventArgs e)
+        private async void btnConnect_Click(object sender, EventArgs e)
         {
             CConnectionContext cc = new CConnectionContext(txtHost.Text, 20901, txtUser.Text, txtPassword.Text);
             m_spSqlite = new CSocketPool<CSqlite>(false);
@@ -81,18 +79,12 @@ namespace test_cache
             m_spSqlite.Sockets[0].Push.OnPublish += new DOnPublish(Push_OnPublish);
 
             //create a DB session with default to sample database sakil
-            bool ok = sqlite.Open("sakila.db", null, DB_CONSTS.ENABLE_TABLE_UPDATE_MESSAGES);
+            sqlite.Open("sakila.db", null, DB_CONSTS.ENABLE_TABLE_UPDATE_MESSAGES);
 
             m_ds = new DataSet("real-time cache");
             DataTable dt = null;
-            string errMsg = "";
             //query all cached tables into client side for intial cache data
-            ok = sqlite.Execute("", (h, ret, err_msg, affected, fail_ok, id) =>
-            {
-                //this callback is fired from worker thread from socket pool thread
-                ok = (ret == 0);
-                errMsg = err_msg;
-            }, (h, data) =>
+            var res = await sqlite.execute("", (h, data) =>
             {
                 //this callback is fired from worker thread from socket pool thread
                 CSqlite.AppendRowDataIntoDataTable(data, dt);
@@ -104,8 +96,7 @@ namespace test_cache
                 dt.TableName = name;
                 m_ds.Tables.Add(dt);
             });
-            ok = sqlite.WaitAll();
-            txtMessage.Text = errMsg;
+            txtMessage.Text = res.em;
             lstTables.Items.Clear();
             foreach (DataTable table in m_ds.Tables)
             {
@@ -115,8 +106,8 @@ namespace test_cache
             {
                 lstTables.SelectedIndex = 0;
             }
-            btnDisconnect.Enabled = ok;
-            btnConnect.Enabled = !ok;
+            btnDisconnect.Enabled = (res.ec == 0);
+            btnConnect.Enabled = (res.ec != 0);
         }
 
         static DataRow FindRowByKeys(DataTable dt, List<KeyValuePair<DataColumn, object>> vKey, tagUpdateEvent ue, out string filter)
@@ -254,15 +245,7 @@ namespace test_cache
             }
         }
 
-        delegate void DSQLMessage(int res, string message);
-        private void SQLMessage(int res, string message)
-        {
-            if (res == 0)
-                txtMessage.Text = "";
-            else
-                txtMessage.Text = message;
-        }
-        private void btnDoSQL_Click(object sender, EventArgs e)
+        private async void btnDoSQL_Click(object sender, EventArgs e)
         {
             CSqlite sqlite = null;
             if (m_spSqlite != null)
@@ -272,9 +255,8 @@ namespace test_cache
                 txtMessage.Text = "No connection to a SocketPro SQLite server";
                 return;
             }
-            sqlite.Execute(txtSQL.Text, (h, res, errMsg, affected, fail_ok, lastId) => {
-                BeginInvoke(m_sql_message,res, errMsg);
-            });
+            var res = await sqlite.execute(txtSQL.Text);
+            txtMessage.Text = res.em;
         }
     }
 }

@@ -999,7 +999,7 @@ namespace SPA {
                 return prom->get_future();
             }
 
-            virtual std::future<ErrInfo> open(const wchar_t* sql, unsigned int flags) {
+            virtual std::future<ErrInfo> open(const wchar_t* sql, unsigned int flags = 0) {
                 std::shared_ptr<std::promise<ErrInfo> > prom(new std::promise<ErrInfo>);
                 DResult d = [prom](CAsyncDBHandler& dbHandler, int res, const std::wstring & errMsg) {
                     prom->set_value(ErrInfo(res, errMsg.c_str()));
@@ -1051,7 +1051,7 @@ namespace SPA {
                 return prom->get_future();
             }
 
-            virtual std::future<ErrInfo> open(const char16_t* sql, unsigned int flags) {
+            virtual std::future<ErrInfo> open(const char16_t* sql, unsigned int flags = 0) {
                 std::shared_ptr<std::promise<ErrInfo> > prom(new std::promise<ErrInfo>);
                 DResult d = [prom](CAsyncDBHandler& dbHandler, int res, const std::wstring & errMsg) {
                     prom->set_value(ErrInfo(res, errMsg.c_str()));

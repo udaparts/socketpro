@@ -1,9 +1,9 @@
-﻿
-using System;
+﻿using System;
 using System.Collections.Generic;
 using SocketProAdapter;
 using SocketProAdapter.ClientSide;
 using SocketProAdapter.UDB;
+using System.Threading.Tasks;
 
 class Program
 {
@@ -23,64 +23,89 @@ class Program
                 return;
             }
             CSqlite sqlite = spSqlite.Seek();
-
-            //open a global database at server side because an empty string is given
-            bool ok = sqlite.Open("", (handler, res, errMsg) =>
+            try
             {
-                Console.WriteLine("res = {0}, errMsg: {1}", res, errMsg);
-            });
+                //stream all DB requests with in-line batching for the best network efficiency
+                //open a global database at server side because an empty string is given
+                var topen = sqlite.open("");
 
-            //prepare two test tables, COMPANY and EMPLOYEE
-            TestCreateTables(sqlite);
+                //prepare two test tables, COMPANY and EMPLOYEE
+                Task<CAsyncDBHandler.SQLExeInfo>[] vT = TestCreateTables(sqlite);
 
-            //a container for receiving all tables data
-            List<KeyValuePair<CDBColumnInfoArray, CDBVariantArray>> lstRowset = new List<KeyValuePair<CDBColumnInfoArray, CDBVariantArray>>();
+                //a container for receiving all tables data
+                List<KeyValuePair<CDBColumnInfoArray, CDBVariantArray>> lstRowset = new List<KeyValuePair<CDBColumnInfoArray, CDBVariantArray>>();
+                
+                var tbt = sqlite.beginTrans(); //start manual transaction
+                //test both prepare and query statements
+                var tp0 = TestPreparedStatements(sqlite, lstRowset);
+                //test both prepare and query statements involved with reading and updating BLOB and large text
+                var tp1 = InsertBLOBByPreparedStatement(sqlite, lstRowset);
+                var tet = sqlite.endTrans(); //end manual transaction
+                var vB = TestBatch(sqlite, lstRowset);
 
-            ok = sqlite.BeginTrans(); //start manual transaction
-
-            //test both prepare and query statements
-            TestPreparedStatements(sqlite, lstRowset);
-
-            //test both prepare and query statements involved with reading and updating BLOB and large text
-            InsertBLOBByPreparedStatement(sqlite, lstRowset);
-
-            ok = sqlite.EndTrans(); //end manual transaction
-            TestBatch(sqlite, lstRowset);
-            sqlite.WaitAll();
-
-            //display received rowsets
-            int index = 0;
-            Console.WriteLine();
-            Console.WriteLine("+++++ Start rowsets +++");
-            foreach (KeyValuePair<CDBColumnInfoArray, CDBVariantArray> it in lstRowset)
-            {
-                Console.Write("Statement index = {0}", index);
-                if (it.Key.Count > 0)
-                    Console.WriteLine(", rowset with columns = {0}, records = {1}.", it.Key.Count, it.Value.Count / it.Key.Count);
-                else
-                    Console.WriteLine(", no rowset received.");
-                ++index;
+                //wait for results
+                Console.WriteLine(topen.Result);
+                foreach (var e in vT)
+                {
+                    Console.WriteLine(e.Result);
+                }
+                Console.WriteLine(tbt.Result);
+                Console.WriteLine(tp0.Result);
+                Console.WriteLine(tp1.Result);
+                Console.WriteLine(tet.Result);
+                foreach (var e in vB)
+                {
+                    Console.WriteLine(e.Result);
+                }
+                //display received rowsets
+                int index = 0;
+                Console.WriteLine();
+                Console.WriteLine("+++++ Start rowsets +++");
+                foreach (KeyValuePair<CDBColumnInfoArray, CDBVariantArray> it in lstRowset)
+                {
+                    Console.Write("Statement index = {0}", index);
+                    if (it.Key.Count > 0)
+                        Console.WriteLine(", rowset with columns = {0}, records = {1}.", it.Key.Count, it.Value.Count / it.Key.Count);
+                    else
+                        Console.WriteLine(", no rowset received.");
+                    ++index;
+                }
+                Console.WriteLine("+++++ End rowsets +++");
+                Console.WriteLine();
             }
-            Console.WriteLine("+++++ End rowsets +++");
-            Console.WriteLine();
+            catch (AggregateException ex)
+            {
+                foreach (Exception e in ex.InnerExceptions)
+                {
+                    //An exception from server (CServerError), Socket closed after sending a request (CSocketError) or request canceled (CSocketError),
+                    Console.WriteLine(e);
+                }
+            }
+            catch (CSocketError ex)
+            {
+                //Socket is already closed before sending a request
+                Console.WriteLine(ex);
+            }
+            catch (Exception ex)
+            {
+                //bad operations such as invalid arguments, bad operations and de-serialization errors, and so on
+                Console.WriteLine(ex);
+            }
             Console.WriteLine("Press any key to close the application ......");
             Console.Read();
         }
     }
 
-    static void TestBatch(CSqlite sqlite, List<KeyValuePair<CDBColumnInfoArray, CDBVariantArray>> ra)
+    static Task<CAsyncDBHandler.SQLExeInfo>[] TestBatch(CSqlite sqlite, List<KeyValuePair<CDBColumnInfoArray, CDBVariantArray>> ra)
     {
+        var v = new Task<CAsyncDBHandler.SQLExeInfo>[2];
         CDBVariantArray vParam = new CDBVariantArray();
         vParam.Add(1); //ID
         vParam.Add(2); //EMPLOYEEID
         //there is no manual transaction if isolation is tiUnspecified
-        bool ok = sqlite.ExecuteBatch(tagTransactionIsolation.tiUnspecified,
+        v[0] = sqlite.executeBatch(tagTransactionIsolation.tiUnspecified,
             "Select datetime('now');select * from COMPANY where ID=?;select * from EMPLOYEE where EMPLOYEEID=?",
-            vParam, (handler, res, errMsg, affected, fail_ok, id) =>
-        {
-            Console.WriteLine("affected = {0}, fails = {1}, oks = {2}, res = {3}, errMsg: {4}, last insert id = {5}",
-                affected, (uint)(fail_ok >> 32), (uint)fail_ok, res, errMsg, id);
-        }, (handler, rowData) =>
+            vParam, (handler, rowData) =>
         {
             //rowset data come here
             int last = ra.Count - 1;
@@ -101,13 +126,9 @@ class Program
         //Select datetime('now');select * from COMPANY where ID=1;select * from COMPANY where ID=2;Select datetime('now');
         //select * from EMPLOYEE where EMPLOYEEID=2;select * from EMPLOYEE where EMPLOYEEID=3
         //ok = sqlite.EndTrans();
-        ok = sqlite.ExecuteBatch(tagTransactionIsolation.tiReadCommited,
+        v[1] = sqlite.executeBatch(tagTransactionIsolation.tiReadCommited,
             "Select datetime('now');select * from COMPANY where ID=?;Select datetime('now');select * from EMPLOYEE where EMPLOYEEID=?",
-            vParam, (handler, res, errMsg, affected, fail_ok, id) =>
-            {
-                Console.WriteLine("affected = {0}, fails = {1}, oks = {2}, res = {3}, errMsg: {4}, last insert id = {5}",
-                    affected, (uint)(fail_ok >> 32), (uint)fail_ok, res, errMsg, id);
-            }, (handler, rowData) =>
+            vParam, (handler, rowData) =>
             {
                 //rowset data come here
                 int last = ra.Count - 1;
@@ -119,13 +140,14 @@ class Program
                 KeyValuePair<CDBColumnInfoArray, CDBVariantArray> item = new KeyValuePair<CDBColumnInfoArray, CDBVariantArray>(handler.ColumnInfo, new CDBVariantArray());
                 ra.Add(item);
             });
+        return v;
     }
 
-    static void TestPreparedStatements(CSqlite sqlite, List<KeyValuePair<CDBColumnInfoArray, CDBVariantArray>> ra)
+    static Task<CAsyncDBHandler.SQLExeInfo> TestPreparedStatements(CSqlite sqlite, List<KeyValuePair<CDBColumnInfoArray, CDBVariantArray>> ra)
     {
         //a complex SQL statement combined with query and insert prepare statements
         string sql_insert_parameter = "Select datetime('now');INSERT OR REPLACE INTO COMPANY(ID,NAME,ADDRESS,Income)VALUES(?,?,?,?)";
-        bool ok = sqlite.Prepare(sql_insert_parameter, (handler, res, errMsg) =>
+        sqlite.Prepare(sql_insert_parameter, (handler, res, errMsg) =>
         {
             Console.WriteLine("res = {0}, errMsg: {1}", res, errMsg);
         });
@@ -147,10 +169,7 @@ class Program
         vData.Add(234000000000.0);
 
         //send three sets of parameterized data in one shot for processing
-        ok = sqlite.Execute(vData, (handler, res, errMsg, affected, fail_ok, id) =>
-        {
-            Console.WriteLine("affected = {0}, fails = {1}, oks = {2}, res = {3}, errMsg: {4}, last insert id = {5}", affected, (uint)(fail_ok >> 32), (uint)fail_ok, res, errMsg, id);
-        }, (handler, rowData) =>
+        return sqlite.execute(vData, (handler, rowData) =>
         {
             //rowset data come here
             int last = ra.Count - 1;
@@ -164,7 +183,7 @@ class Program
         });
     }
 
-    static void InsertBLOBByPreparedStatement(CSqlite sqlite, List<KeyValuePair<CDBColumnInfoArray, CDBVariantArray>> ra)
+    static Task<CAsyncDBHandler.SQLExeInfo> InsertBLOBByPreparedStatement(CSqlite sqlite, List<KeyValuePair<CDBColumnInfoArray, CDBVariantArray>> ra)
     {
         string wstr = "";
         //prepare junk data for testing
@@ -180,7 +199,7 @@ class Program
 
         //a complex SQL statement combined with two insert and query prepare statements
         string sqlInsert = "insert or replace into employee(EMPLOYEEID,CompanyId,name,JoinDate,image,DESCRIPTION,Salary)values(?,?,?,?,?,?,?);select * from employee where employeeid=?";
-        bool ok = sqlite.Prepare(sqlInsert, (handler, res, errMsg) =>
+        sqlite.Prepare(sqlInsert, (handler, res, errMsg) =>
         {
             Console.WriteLine("res = {0}, errMsg: {1}", res, errMsg);
         });
@@ -222,10 +241,7 @@ class Program
             vData.Add(3);
         }
         //send three sets of parameterized data in one shot for processing
-        ok = sqlite.Execute(vData, (handler, res, errMsg, affected, fail_ok, id) =>
-        {
-            Console.WriteLine("affected = {0}, fails = {1}, oks = {2}, res = {3}, errMsg: {4}, last insert id = {5}", affected, (uint)(fail_ok >> 32), (uint)fail_ok, res, errMsg, id);
-        }, (handler, rowData) =>
+        return sqlite.execute(vData, (handler, rowData) =>
         {
             //rowset data come here
             int last = ra.Count - 1;
@@ -239,17 +255,13 @@ class Program
         });
     }
 
-    static void TestCreateTables(CSqlite sqlite)
+    static Task<CAsyncDBHandler.SQLExeInfo>[] TestCreateTables(CSqlite sqlite)
     {
+        var v = new Task<CAsyncDBHandler.SQLExeInfo>[2];
         string create_table = "CREATE TABLE COMPANY(ID INT8 PRIMARY KEY NOT NULL,name CHAR(64)NOT NULL,ADDRESS varCHAR(256)not null,Income float not null)";
-        bool ok = sqlite.Execute(create_table, (handler, res, errMsg, affected, fail_ok, id) =>
-        {
-            Console.WriteLine("affected = {0}, fails = {1}, oks = {2}, res = {3}, errMsg: {4}, last insert id = {5}", affected, (uint)(fail_ok >> 32), (uint)fail_ok, res, errMsg, id);
-        });
+        v[0] = sqlite.execute(create_table);
         create_table = "CREATE TABLE EMPLOYEE(EMPLOYEEID INT8 PRIMARY KEY NOT NULL unique,CompanyId INT8 not null,name NCHAR(64)NOT NULL,JoinDate DATETIME not null default(datetime('now')),IMAGE BLOB,DESCRIPTION NTEXT,Salary real,FOREIGN KEY(CompanyId)REFERENCES COMPANY(id))";
-        ok = sqlite.Execute(create_table, (handler, res, errMsg, affected, fail_ok, id) =>
-        {
-            Console.WriteLine("affected = {0}, fails = {1}, oks = {2}, res = {3}, errMsg: {4}, last insert id = {5}", affected, (uint)(fail_ok >> 32), (uint)fail_ok, res, errMsg, id);
-        });
+        v[1] = sqlite.execute(create_table);
+        return v;
     }
 }
