@@ -248,7 +248,7 @@ namespace NJA {
                 ThrowException(isolate, "An array of parameter data expected");
                 return;
             }
-            Local<Value> argv[] = {args[3], args[4], args[5], args[6], args[7], args[11], args[12]};
+            Local<Value> argv[] = {args[3], args[4], args[5], args[6], args[7], args[11], args[12], args[13]};
             tagRollbackPlan rp = rpDefault;
             p = args[8];
             if (p->IsInt32()) {
@@ -276,7 +276,7 @@ namespace NJA {
             p = args[10];
             if (!ToPInfoArray(isolate, p, vPInfo))
                 return;
-            SPA::UINT64 index = obj->m_db->ExecuteBatch(isolate, 7, argv, ti, sql.c_str(), vParam, rp, delimiter.c_str(), vPInfo);
+            SPA::UINT64 index = obj->m_db->ExecuteBatch(isolate, 8, argv, ti, sql.c_str(), vParam, rp, delimiter.c_str(), vPInfo);
             if (index) {
                 args.GetReturnValue().Set(Boolean::New(isolate, index != INVALID_NUMBER));
             }

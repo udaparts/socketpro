@@ -311,20 +311,20 @@ namespace SPA {
              * @param handler a callback for tracking final result
              * @param row a callback for receiving records of data
              * @param rh a callback for tracking row set of header column informations
-             * @param batchHeader a callback for tracking returning batch start error messages
-             * @param vPInfo a given array of parameter informations which may be empty to some of database management systems
-             * @param plan a value for computing how included transactions should be rollback
-             * @param discarded a callback for tracking socket closed or request canceled event
              * @param delimiter a case-sensitive delimiter string used for separating the batch SQL statements into individual SQL statements at server side for processing
+             * @param batchHeader a callback for tracking batch beginning event
+             * @param discarded a callback for tracking socket closed or request canceled event
              * @param meta a boolean for better or more detailed column meta details such as unique, not null, primary key, and so on
+             * @param plan a value for computing how included transactions should be rollback
+             * @param vPInfo a given array of parameter informations which may be empty to some of database management systems
              * @param lastInsertId a boolean for last insert record identification number
              * @param se a callback for tracking an exception from server
              * @return true if request is successfully sent or queued; and false if request is NOT successfully sent or queued
              */
             virtual bool ExecuteBatch(tagTransactionIsolation isolation, const wchar_t *sql, CDBVariantArray &vParam = CDBVariantArray(),
-                    const DExecuteResult& handler = nullptr, const DRows& row = nullptr, const DRowsetHeader& rh = nullptr, const DRowsetHeader& batchHeader = nullptr,
-                    const CParameterInfoArray& vPInfo = CParameterInfoArray(), tagRollbackPlan plan = rpDefault, const DDiscarded& discarded = nullptr,
-                    const wchar_t *delimiter = L";", bool meta = true, bool lastInsertId = true, const DServerException& se = nullptr) {
+                    const DExecuteResult& handler = nullptr, const DRows& row = nullptr, const DRowsetHeader& rh = nullptr, const wchar_t* delimiter = L";",
+                    const DRowsetHeader& batchHeader = nullptr, const DDiscarded& discarded = nullptr, bool meta = true, tagRollbackPlan plan = rpDefault,
+                    const CParameterInfoArray& vPInfo = CParameterInfoArray(), bool lastInsertId = true, const DServerException& se = nullptr) {
                 bool rowset = (row) ? true : false;
                 meta = (meta && rh);
                 CScopeUQueue sb;
@@ -527,20 +527,20 @@ namespace SPA {
              * @param handler a callback for tracking final result
              * @param row a callback for receiving records of data
              * @param rh a callback for tracking row set of header column informations
-             * @param batchHeader a callback for tracking returning batch start error messages
-             * @param vPInfo a given array of parameter informations which may be empty to some of database management systems
-             * @param plan a value for computing how included transactions should be rollback
-             * @param discarded a callback for tracking socket closed or request canceled event
              * @param delimiter a case-sensitive delimiter string used for separating the batch SQL statements into individual SQL statements at server side for processing
+             * @param batchHeader a callback for tracking batch beginning event
+             * @param discarded a callback for tracking socket closed or request canceled event
              * @param meta a boolean for better or more detailed column meta details such as unique, not null, primary key, and so on
+             * @param plan a value for computing how included transactions should be rollback
+             * @param vPInfo a given array of parameter informations which may be empty to some of database management systems
              * @param lastInsertId a boolean for last insert record identification number
              * @param se a callback for tracking an exception from server
              * @return true if request is successfully sent or queued; and false if request is NOT successfully sent or queued
              */
-            virtual bool ExecuteBatch(tagTransactionIsolation isolation, const char16_t *sql, CDBVariantArray &vParam = CDBVariantArray(),
-                    const DExecuteResult& handler = nullptr, const DRows& row = nullptr, const DRowsetHeader& rh = nullptr, const DRowsetHeader& batchHeader = nullptr,
-                    const CParameterInfoArray& vPInfo = CParameterInfoArray(), tagRollbackPlan plan = rpDefault, const DDiscarded& discarded = nullptr,
-                    const char16_t *delimiter = u";", bool meta = true, bool lastInsertId = true, const DServerException& se = nullptr) {
+            virtual bool ExecuteBatch(tagTransactionIsolation isolation, const char16_t* sql, CDBVariantArray& vParam = CDBVariantArray(),
+                    const DExecuteResult& handler = nullptr, const DRows& row = nullptr, const DRowsetHeader& rh = nullptr, const char16_t* delimiter = u";",
+                    const DRowsetHeader& batchHeader = nullptr, const DDiscarded& discarded = nullptr, bool meta = true, tagRollbackPlan plan = rpDefault,
+                    const CParameterInfoArray& vPInfo = CParameterInfoArray(), bool lastInsertId = true, const DServerException& se = nullptr) {
                 bool rowset = (row) ? true : false;
                 meta = (meta && rh);
                 CScopeUQueue sb;
@@ -1019,7 +1019,7 @@ namespace SPA {
                     unsigned int fails = (unsigned int) (fail_ok >> 32);
                     prom->set_value(SQLExeInfo(res, errMsg.c_str(), affected, oks, fails, vtId));
                 };
-                if (!ExecuteBatch(isolation, sql, vParam, handler, row, rh, batchHeader, vPInfo, plan, get_aborted(prom, L"ExecuteBatch", idExecuteBatch), delimiter, meta, lastInsertId, get_se(prom))) {
+                if (!ExecuteBatch(isolation, sql, vParam, handler, row, rh, delimiter, batchHeader, get_aborted(prom, L"ExecuteBatch", idExecuteBatch), meta, plan, vPInfo, lastInsertId, get_se(prom))) {
                     raise(L"ExecuteBatch", idExecuteBatch);
                 }
                 return prom->get_future();
@@ -1063,16 +1063,15 @@ namespace SPA {
             }
 
             virtual std::future<SQLExeInfo> executeBatch(tagTransactionIsolation isolation, const char16_t* sql, CDBVariantArray& vParam = CDBVariantArray(),
-                    const DRows& row = nullptr, const DRowsetHeader& rh = nullptr, const DRowsetHeader& batchHeader = nullptr,
-                    const CParameterInfoArray& vPInfo = CParameterInfoArray(), tagRollbackPlan plan = rpDefault, const char16_t* delimiter = u";",
-                    bool meta = true, bool lastInsertId = true) {
+                    const DRows& row = nullptr, const DRowsetHeader& rh = nullptr, const char16_t* delimiter = u";", const DRowsetHeader& batchHeader = nullptr,
+                    bool meta = true, tagRollbackPlan plan = rpDefault, const CParameterInfoArray& vPInfo = CParameterInfoArray(), bool lastInsertId = true) {
                 std::shared_ptr<std::promise<SQLExeInfo> > prom(new std::promise<SQLExeInfo>);
                 DExecuteResult handler = [prom](CAsyncDBHandler& dbHandler, int res, const std::wstring& errMsg, INT64 affected, UINT64 fail_ok, CDBVariant & vtId) {
                     unsigned int oks = (unsigned int) (fail_ok & 0xffffffff);
                     unsigned int fails = (unsigned int) (fail_ok >> 32);
                     prom->set_value(SQLExeInfo(res, errMsg.c_str(), affected, oks, fails, vtId));
                 };
-                if (!ExecuteBatch(isolation, sql, vParam, handler, row, rh, batchHeader, vPInfo, plan, get_aborted(prom, L"ExecuteBatch", idExecuteBatch), delimiter, meta, lastInsertId, get_se(prom))) {
+                if (!ExecuteBatch(isolation, sql, vParam, handler, row, rh, delimiter, batchHeader, get_aborted(prom, L"ExecuteBatch", idExecuteBatch), meta, plan, vPInfo, lastInsertId, get_se(prom))) {
                     raise(L"ExecuteBatch", idExecuteBatch);
                 }
                 return prom->get_future();
@@ -1615,9 +1614,11 @@ namespace SPA {
                 if (bad) return 0;
                 bool meta = GetMeta(isolate, argv[5], bad);
                 if (bad) return 0;
-                DServerException se = GetSE(isolate, argv[6], bad);
+                bool lastInsertId = GetMeta(isolate, argv[6], bad);
                 if (bad) return 0;
-                return ExecuteBatch(isolation, sql, vParam, result, r, rh, bh, vPInfo, plan, dd, delimiter, meta, true, se) ? index : INVALID_NUMBER;
+                DServerException se = GetSE(isolate, argv[7], bad);
+                if (bad) return 0;
+                return ExecuteBatch(isolation, sql, vParam, result, r, rh, delimiter, bh, dd, meta, plan, vPInfo, lastInsertId, se) ? index : INVALID_NUMBER;
             }
 
             UINT64 Open(Isolate* isolate, int args, Local<Value> *argv, const UTF16* strConnection, unsigned int flags) {

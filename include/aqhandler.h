@@ -358,6 +358,37 @@ namespace SPA {
                 }
                 return prom->get_future();
             }
+
+            /**
+             * Enqueue a batch of messages in one single shot
+             * @param key An ASCII string for identifying a queue at server side
+             * @param buffer A pointer to messages
+             * @param size Buffer size in bytes
+             * @return A future for the last message index at a server queue file
+             */
+            virtual std::future<UINT64> enqueueBatch(const char* key, const unsigned char* buffer, unsigned int size) {
+                std::shared_ptr<std::promise<UINT64> > prom(new std::promise<UINT64>);
+                DEnqueue e = [prom](CAsyncQueue* aq, UINT64 index) {
+                    prom->set_value(index);
+                };
+                if (!EnqueueBatch(key, buffer, size, e, get_aborted(prom, L"EnqueueBatch", Queue::idEnqueueBatch), get_se(prom))) {
+                    raise(L"EnqueueBatch", Queue::idEnqueueBatch);
+                }
+                return prom->get_future();
+            }
+
+            /**
+             * Enqueue a batch of messages in one single shot
+             * @param key An ASCII string for identifying a queue at server side
+             * @param q An instance of CUQueue containing a batch of messages
+             * @return A future for the last message index at a server queue file
+             * @remarks Calling the method will automatically set q size to zero if no exception happens
+             */
+            std::future<UINT64> enqueueBatch(const char* key, CUQueue& q) {
+                std::future<UINT64> f = enqueueBatch(key, q.GetBuffer(), q.GetSize());
+                q.SetSize(0);
+                return f;
+            }
 #endif
 #endif
         private:

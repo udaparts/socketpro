@@ -319,11 +319,7 @@ void TestBatch(std::shared_ptr<CMyHandler> pMysql, CRowsetArray&ra, CDBVariantAr
     };
 
     CMyHandler::DRowsetHeader batchHeader = [](CMyHandler & handler) {
-        //called one time only before calling rh, r and er
-    };
-
-    CMyHandler::DDiscarded discarded = [](SPA::ClientSide::CAsyncServiceHandler *handler, bool canceled) {
-        //called when canceling or socket closed if client queue is NOT used
+        std::cout << "Batch header comes here" << std::endl;
     };
 
     //first, execute delete from employee;delete from company
@@ -337,10 +333,10 @@ void TestBatch(std::shared_ptr<CMyHandler> pMysql, CRowsetArray&ra, CDBVariantAr
                 std::wcout << errMsg;
                 if (!res) {
                     std::cout << ", last insert id = ";
-                            std::cout << vtId.llVal;
+                    std::cout << vtId.llVal;
                 }
                 std::cout << std::endl;
-            }, r, rh, batchHeader, CParameterInfoArray(), rpDefault, discarded, L"|"))
+            }, r, rh, L"|", batchHeader))
             oks = 3;
     else
         oks = 0;

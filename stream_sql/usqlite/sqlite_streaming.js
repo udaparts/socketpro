@@ -96,8 +96,10 @@ while (str.length < 512 * 1024) {
         blob.SaveAString(str).SaveString(wstr);
         buff.SaveObject('Hillary Clinton').SaveObject(new Date()).SaveObject(blob.PopBytes()).SaveObject(wstr).SaveObject(6254000.15);
         //first, execute delete from employee;delete from company
-        //second, three sets of INSERT INTO company(ID,NAME,ADDRESS,Income)VALUES(?,?,?,?)
-        //third, three sets of insert into employee values(?,?,?,?,?,?,?)
+        //second, prepare a sql statement for insert into company
+        //third, execute three sets of INSERT INTO company(ID,NAME,ADDRESS,Income)VALUES(?,?,?,?)
+        //fourth, prepare a sql statement for insert into employee
+        //fifth, execute three sets of insert into employee values(?,?,?,?,?,?,?)
         //last, SELECT * from company;select employeeid,companyid,name,joindate,salary from employee;Select datetime('now')
         var fBatch = db.executeBatch(SPA.DB.TransIsolation.ReadCommited, sql, buff, (data, proc, cols) => {
             console.log({ data: data, proc: proc, cols: cols });
@@ -111,4 +113,3 @@ while (str.length < 512 * 1024) {
         console.log(ex);
     }
 })();
-

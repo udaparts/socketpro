@@ -1590,18 +1590,19 @@ class CDb extends CHandler {
      * @param {function} cb a callback for tracking final result
      * @param {function} rows a callback for receiving records of data
      * @param {function} rh a callback for tracking row set of header column meta informations
-     * @param {function} batchHeader a callback for tracking returning batch start error messages
-     * @param {function} discarded a callback for tracking communication channel events, close and cancel
-     * @param {int} rp a value for computing how included transactions should be rollback. It defaults to exports.DB.tagRollbackPlan.rpDefault
      * @param {string} delimiter a delimiter string used for separating the batch SQL statements into individual SQL statements at server side
      * for processing. It defaults to ";"
+     * @param {function} batchHeader a callback for tracking returning batch start error messages
+     * @param {function} discarded a callback for tracking communication channel events, close and cancel
      * @param {boolean} meta a boolean for better or more detailed column meta details such as unique, not null, primary key, and so on. It defaults to true
+     * @param {int} rp a value for computing how included transactions should be rollback. It defaults to exports.DB.tagRollbackPlan.rpDefault
      * @param {[]} arrP a given array of parameter informations which may be empty to most of database management systems
+     * @param {boolean} lastInsertId true if last insert id is hoped, and false if last insert id is not expected
      * @param {function} serverException a callback for tracking an exception from server
      * @returns true if request is successfully sent or queued; and false if request is NOT successfully sent or queued
      */
-    ExecuteBatch(isolation, sql, paramBuff, cb = null, rows = null, rh = null, batchHeader = null, discarded = null, rp = exports.DB.RollbackPlan.rpDefault, delimiter = ';', meta = true, arrP = [], serverException = null) {
-        return this.handler.ExecuteBatch(isolation, sql, paramBuff, cb, rows, rh, batchHeader, discarded, rp, delimiter, arrP, meta, serverException);
+    ExecuteBatch(isolation, sql, paramBuff, cb = null, rows = null, rh = null, delimiter = ';', batchHeader = null, discarded = null, meta = true, rp = exports.DB.RollbackPlan.rpDefault, arrP = [], lastInsertId = true, serverException = null) {
+        return this.handler.ExecuteBatch(isolation, sql, paramBuff, cb, rows, rh, batchHeader, discarded, rp, delimiter, arrP, meta, lastInsertId, serverException);
     }
 
     //Promise
@@ -1836,12 +1837,13 @@ class CDb extends CHandler {
      * @param {boolean} meta a boolean value for better or more detailed column meta details such as unique, not null, primary key, and so on. It defaults to true
      * @param {int} rp a value for computing how included transactions should be rollback. It defaults to exports.DB.RollbackPlan.rpDefault
      * @param {[]} arrP a given array of parameter informations which may be empty to some of database management systems
+     * @param {boolean} lastInsertId true if last insert id is hoped, and false if last insert id is not expected
      * @param {function} cb an optional callback for tracking final execution result
      * @param {function} discarded an optional callback for tracking communication channel events, close and cancel
      * @param {function} serverException an optional callback for tracking an exception from server
      * @returns final execution result by promise
      */
-    executeBatch(isolation, sql, paramBuff, rows = null, rh = null, delimiter = ';', batchHeader = null, meta = true, rp = exports.DB.RollbackPlan.rpDefault, arrP = [], cb = null, discarded = null, serverException = null) {
+    executeBatch(isolation, sql, paramBuff, rows = null, rh = null, delimiter = ';', batchHeader = null, meta = true, rp = exports.DB.RollbackPlan.rpDefault, arrP = [], lastInsertId = true, cb = null, discarded = null, serverException = null) {
         assert(sql && typeof sql === 'string');
         assert(rows === null || rows === undefined || typeof rows === 'function');
         assert(rh === null || rh === undefined || typeof rh === 'function');
@@ -1864,7 +1866,7 @@ class CDb extends CHandler {
                 res(ret);
             }, rows, rh, batchHeader, (canceled) => {
                 this.set_aborted(rej, 'ExecuteBatch', exports.DB.ReqIds.idExecuteBatch, canceled, discarded);
-            }, rp, delimiter, arrP, meta, (errMsg, errCode, errWhere, id) => {
+            }, rp, delimiter, arrP, meta, lastInsertId, (errMsg, errCode, errWhere, id) => {
                 this.set_exception(rej, errMsg, errCode, errWhere, id, serverException);
             });
             if (!ok) {

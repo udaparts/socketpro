@@ -359,9 +359,9 @@ void TestBatch(std::shared_ptr<CMyHandler> pOdbc, CRowsetArray&ra, CDBVariantArr
             [](CSender & handler, int res, const std::wstring & errMsg, SPA::INT64 affected, SPA::UINT64 fail_ok, CDBVariant & vtId) {
                 std::cout << "affected = " << affected << ", fails = " << (unsigned int) (fail_ok >> 32) << ", oks = " << (unsigned int) fail_ok << ", res = " << res << ", errMsg: ";
                 std::wcout << errMsg << std::endl;
-            }, r, rh, [](CSender & handler) {
+            }, r, rh, L";", [](CSender & handler) {
                 //called before rh, r and er
-            }, vInfo, rpDefault, [](SPA::ClientSide::CAsyncServiceHandler *handler, bool canceled) {
+            }, [](SPA::ClientSide::CAsyncServiceHandler *handler, bool canceled) {
                 //called when canceling or socket closed if client queue is NOT used
             })) {
     oks = 3;
