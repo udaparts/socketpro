@@ -58,14 +58,8 @@ with CSocketPool(CMysql) as spMysql:
         vData.append(234000000000.0)
         return mysql.execute(vData)
 
-
     def cbBatchHeader(mysql):
-        # called before rh, r and er
-        pass
-
-    def cbDiscarded(mysql):
-        # called when canceling or socket closed if client queue is NOT used
-        pass
+        print('Batch header come here')
 
     def TestBatch():
         # sql with delimiter '|'
@@ -128,7 +122,7 @@ with CSocketPool(CMysql) as spMysql:
         # third, three sets of insert into employee(CompanyId,name,JoinDate,image,DESCRIPTION,Salary)values(?,?,?,?,?,?)
         # fourth, SELECT * from company;select * from employee;select curtime()
         # last, three sets of call sp_TestProc(?,?,?)
-        print(mysql.executeBatch(tagTransactionIsolation.tiUnspecified, sql, vData, cbRows, cbRowHeader, cbBatchHeader, None, tagRollbackPlan.rpDefault, '|').result())
+        print(mysql.executeBatch(tagTransactionIsolation.tiUnspecified, sql, vData, cbRows, cbRowHeader, '|', cbBatchHeader).result())
         return vData
 
     def InsertBLOBByPreparedStatement():

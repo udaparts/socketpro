@@ -792,7 +792,7 @@ class CAsyncDBHandler(CAsyncServiceHandler):
         CScopeUQueue.Unlock(q)
         return ok
 
-    def executeBatch(self, isolation, sql, vParam, row=None, rh=None, batchHeader=None, vPInfo=None, plan=tagRollbackPlan.rpDefault, delimiter = ';', meta=True, lastInsertId=True):
+    def executeBatch(self, isolation, sql, vParam, row=None, rh=None, delimiter = ';', batchHeader=None, meta=True, plan=tagRollbackPlan.rpDefault, vPInfo=None, lastInsertId=True):
         f = future()
         def arh(ah, res, err_msg, affected, fail_ok, last_id):
             f.set_result({'ec':res, 'em':err_msg, 'affected':affected, 'oks': (fail_ok&0xffffffff), 'fails': (fail_ok>>32), 'lastId': last_id})
