@@ -103,7 +103,7 @@ while (str.length < 512 * 1024) {
             console.log({ data: data, proc: proc, cols: cols });
         }, (meta) => {
             console.log(meta);
-        }, SPA.DB.RollbackPlan.rpDefault, '|', () => {
+        }, '|', () => {
             console.log('Batch header comes');
         });
         console.log(await fBatch);

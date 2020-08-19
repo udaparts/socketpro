@@ -1230,7 +1230,7 @@ class CAsyncQueue extends CHandler {
         });
     }
 
-    //Promise
+    //Promise disabled because it is not useful at current time
     /**
      * Enqueue a message to a server queue file
      * @param {string} key An ASCII string for identifying a queue at server side
@@ -1241,6 +1241,7 @@ class CAsyncQueue extends CHandler {
      * @param {function} serverException An optional callback for tracking an exception from server
      * @returns An index by promise
      */
+    /*
     enqueue(key, reqId, buff, cb = null, discarded = null, serverException = null) {
         assert(cb === null || cb === undefined || typeof cb === 'function');
         assert(discarded === null || discarded === undefined || typeof discarded === 'function');
@@ -1261,6 +1262,7 @@ class CAsyncQueue extends CHandler {
             }
         });
     }
+    */
 
     //Promise
     /**
@@ -1817,7 +1819,7 @@ class CDb extends CHandler {
             }
         });
     }
-    
+
     //Promise
     /**
      * Execute a batch of SQL statements on one single call
@@ -1828,18 +1830,18 @@ class CDb extends CHandler {
      * The array size can be 0 if the given batch SQL statement doesn't having any prepared statement
      * @param {function} rows a callback for tracking final result
      * @param {function} rh a callback for tracking row set of header column informations
-     * @param {int} rp a value for computing how included transactions should be rollback. It defaults to exports.DB.RollbackPlan.rpDefault
      * @param {string} delimiter delimiter a delimiter string used for separating the batch SQL statements into individual SQL statements
      * at server side for processing. It defaults to ";"
      * @param {function} batchHeader a callback for tracking batch start event
      * @param {boolean} meta a boolean value for better or more detailed column meta details such as unique, not null, primary key, and so on. It defaults to true
+     * @param {int} rp a value for computing how included transactions should be rollback. It defaults to exports.DB.RollbackPlan.rpDefault
      * @param {[]} arrP a given array of parameter informations which may be empty to some of database management systems
      * @param {function} cb an optional callback for tracking final execution result
      * @param {function} discarded an optional callback for tracking communication channel events, close and cancel
      * @param {function} serverException an optional callback for tracking an exception from server
      * @returns final execution result by promise
      */
-    executeBatch(isolation, sql, paramBuff, rows = null, rh = null, rp = exports.DB.RollbackPlan.rpDefault, delimiter = ';', batchHeader = null, meta = true, arrP = [], cb = null, discarded = null, serverException = null) { 
+    executeBatch(isolation, sql, paramBuff, rows = null, rh = null, delimiter = ';', batchHeader = null, meta = true, rp = exports.DB.RollbackPlan.rpDefault, arrP = [], cb = null, discarded = null, serverException = null) {
         assert(sql && typeof sql === 'string');
         assert(rows === null || rows === undefined || typeof rows === 'function');
         assert(rh === null || rh === undefined || typeof rh === 'function');
