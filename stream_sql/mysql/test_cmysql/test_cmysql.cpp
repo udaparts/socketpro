@@ -81,7 +81,7 @@ int main(int argc, char* argv[]) {
         ra.push_back(column_rowset_pair);
     };
 #ifdef FOR_MIDDLE_SERVER
-    ok = pMysql->Open(L"user=root;pwd=Smash123;db=mysqldb", dr);
+    ok = pMysql->Open(L"mysqldb", dr);
 #else
     ok = pMysql->Open(L"", dr);
 #endif
@@ -327,7 +327,7 @@ void TestBatch(std::shared_ptr<CMyHandler> pMysql, CRowsetArray&ra, CDBVariantAr
     //third, three sets of insert into employee(CompanyId,name,JoinDate,image,DESCRIPTION,Salary)values(?,?,?,?,?,?)
     //fourth, SELECT * from company;select * from employee;select curtime()
     //last, three sets of call sp_TestProc(?,?,?)
-    if (pMysql->ExecuteBatch(tiUnspecified, sql.c_str(), vData,
+    if (pMysql->ExecuteBatch(tiReadUncommited, sql.c_str(), vData,
             [](CMyHandler & handler, int res, const std::wstring & errMsg, SPA::INT64 affected, SPA::UINT64 fail_ok, CDBVariant & vtId) {
                 std::cout << "affected = " << affected << ", fails = " << (unsigned int) (fail_ok >> 32) << ", oks = " << (unsigned int) fail_ok << ", res = " << res << ", errMsg: ";
                 std::wcout << errMsg;

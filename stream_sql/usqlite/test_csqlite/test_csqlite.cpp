@@ -112,7 +112,7 @@ void TestBatch(std::shared_ptr<SPA::ClientSide::CSqlite> pSqlite, CRowsetArray &
     //Select datetime('now');select * from COMPANY where ID=1;select * from COMPANY where ID=2;Select datetime('now');
     //select * from EMPLOYEE where EMPLOYEEID=2;select * from EMPLOYEE where EMPLOYEEID=3
     //ok = pSqlite->EndTrans();
-    ok = pSqlite->ExecuteBatch(tiReadCommited,
+    ok = pSqlite->ExecuteBatch(tiUnspecified,
             L"Select datetime('now');select * from COMPANY where ID=?;Select datetime('now');select * from EMPLOYEE where EMPLOYEEID=?",
             vParam, [](CMyHandler &handler, int res, const std::wstring &errMsg, SPA::INT64 affected, SPA::UINT64 fail_ok, CDBVariant & vtId) {
                 std::cout << "affected = " << affected << ", fails = " << (unsigned int) (fail_ok >> 32) << ", oks = " << (unsigned int) fail_ok << ", res = " << res << ", errMsg: ";
