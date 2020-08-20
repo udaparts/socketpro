@@ -429,7 +429,7 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
      */
     public UFuture<ErrInfo> closeDb() throws CSocketError {
         UFuture<ErrInfo> f = new UFuture<>("CloseDb", DB_CONSTS.idClose, this);
-        if (!CloseDb(getHandler(f), getAborted(f), getSE(f))) {
+        if (!CloseDb(getHandler(f), get_aborted(f), get_se(f))) {
             raise(f);
         }
         return f;
@@ -544,7 +544,7 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
      */
     public UFuture<ErrInfo> beginTrans(tagTransactionIsolation isolation) throws CSocketError {
         UFuture<ErrInfo> f = new UFuture<>("BeginTrans", DB_CONSTS.idBeginTrans, this);
-        if (!BeginTrans(isolation, getHandler(f), getAborted(f), getSE(f))) {
+        if (!BeginTrans(isolation, getHandler(f), get_aborted(f), get_se(f))) {
             raise(f);
         }
         return f;
@@ -675,7 +675,7 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
      */
     public UFuture<ErrInfo> endTrans(tagRollbackPlan plan) throws CSocketError {
         UFuture<ErrInfo> f = new UFuture<>("EndTrans", DB_CONSTS.idEndTrans, this);
-        if (!EndTrans(plan, getHandler(f), getAborted(f), getSE(f))) {
+        if (!EndTrans(plan, getHandler(f), get_aborted(f), get_se(f))) {
             raise(f);
         }
         return f;
@@ -813,7 +813,7 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
      */
     public UFuture<ErrInfo> open(String strConnection, int flags) throws CSocketError {
         UFuture<ErrInfo> f = new UFuture<>("Open", DB_CONSTS.idOpen, this);
-        if (!Open(strConnection, getHandler(f), flags, getAborted(f), getSE(f))) {
+        if (!Open(strConnection, getHandler(f), flags, get_aborted(f), get_se(f))) {
             raise(f);
         }
         return f;
@@ -943,7 +943,7 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
      */
     public UFuture<ErrInfo> prepare(String sql, CParameterInfo[] vParameterInfo) throws CSocketError {
         UFuture<ErrInfo> f = new UFuture<>("Prepare", DB_CONSTS.idPrepare, this);
-        if (!Prepare(sql, getHandler(f), vParameterInfo, getAborted(f), getSE(f))) {
+        if (!Prepare(sql, getHandler(f), vParameterInfo, get_aborted(f), get_se(f))) {
             raise(f);
         }
         return f;
@@ -1159,7 +1159,7 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
     public UFuture<SQLExeInfo> execute(String sql, DRows row, DRowsetHeader rh, boolean meta, boolean lastInsertId) throws CSocketError {
         UFuture<SQLExeInfo> f = new UFuture<>("ExecuteSQL", DB_CONSTS.idExecute, this);
         DExecuteResult h = getSqlHandler(f);
-        if (!Execute(sql, h, row, rh, meta, lastInsertId, getAborted(f), getSE(f))) {
+        if (!Execute(sql, h, row, rh, meta, lastInsertId, get_aborted(f), get_se(f))) {
             raise(f);
         }
         return f;
@@ -1499,10 +1499,10 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
      * @return a future for SQL execution information
      * @throws CSocketError if communication channel is not sendable
      */
-    public final UFuture<SQLExeInfo> execute(CDBVariantArray vParam, DRows row, DRowsetHeader rh, boolean meta, boolean lastInsertId) throws CSocketError {
+    public UFuture<SQLExeInfo> execute(CDBVariantArray vParam, DRows row, DRowsetHeader rh, boolean meta, boolean lastInsertId) throws CSocketError {
         UFuture<SQLExeInfo> f = new UFuture<>("ExecuteParameters", DB_CONSTS.idExecuteParameters, this);
         DExecuteResult h = getSqlHandler(f);
-        if (!Execute(vParam, h, row, rh, meta, lastInsertId, getAborted(f), getSE(f))) {
+        if (!Execute(vParam, h, row, rh, meta, lastInsertId, get_aborted(f), get_se(f))) {
             raise(f);
         }
         return f;
@@ -1582,7 +1582,7 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
      * request is NOT successfully sent or queued
      */
     public final boolean ExecuteBatch(tagTransactionIsolation isolation, String sql) {
-        return ExecuteBatch(isolation, sql, null, null, null, null, null, new CParameterInfo[0], tagRollbackPlan.rpDefault, null, ";", true, true, null);
+        return ExecuteBatch(isolation, sql, null, null, null, null, ";", null, null, true, tagRollbackPlan.rpDefault, null, true, null);
     }
 
     /**
@@ -1599,7 +1599,7 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
      * request is NOT successfully sent or queued
      */
     public final boolean ExecuteBatch(tagTransactionIsolation isolation, String sql, CDBVariantArray vParam) {
-        return ExecuteBatch(isolation, sql, vParam, null, null, null, null, null, tagRollbackPlan.rpDefault, null, ";", true, true, null);
+        return ExecuteBatch(isolation, sql, vParam, null, null, null, ";", null, null, true, tagRollbackPlan.rpDefault, null, true, null);
     }
 
     /**
@@ -1616,27 +1616,8 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
      * @return true if request is successfully sent or queued; and false if
      * request is NOT successfully sent or queued
      */
-    public final boolean ExecuteBatch(tagTransactionIsolation isolation, String sql, CDBVariantArray vParam, DExecuteResult handler) {
-        return ExecuteBatch(isolation, sql, vParam, handler, null, null, null, null, tagRollbackPlan.rpDefault, null, ";", true, true, null);
-    }
-
-    /**
-     * Execute a batch of SQL statements on one single call
-     *
-     * @param isolation a value for manual transaction isolation. Specifically,
-     * there is no manual transaction around the batch SQL statements if it is
-     * tiUnspecified
-     * @param sql a SQL statement having a batch of individual SQL statements
-     * @param vParam an array of parameter data which will be bounded to
-     * previously prepared parameters. The array size can be 0 if the given
-     * batch SQL statement doesn't having any prepared statement
-     * @param handler a callback for tracking final result
-     * @param row a callback for receiving records of data
-     * @return true if request is successfully sent or queued; and false if
-     * request is NOT successfully sent or queued
-     */
-    public final boolean ExecuteBatch(tagTransactionIsolation isolation, String sql, CDBVariantArray vParam, DExecuteResult handler, DRows row) {
-        return ExecuteBatch(isolation, sql, vParam, handler, row, null, null, null, tagRollbackPlan.rpDefault, null, ";", true, true, null);
+    public final boolean ExecuteBatch(tagTransactionIsolation isolation, String sql, CDBVariantArray vParam, final DExecuteResult handler) {
+        return ExecuteBatch(isolation, sql, vParam, handler, null, null, ";", null, null, true, tagRollbackPlan.rpDefault, null, true, null);
     }
 
     /**
@@ -1651,12 +1632,11 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
      * batch SQL statement doesn't having any prepared statement
      * @param handler a callback for tracking final result
      * @param row a callback for receiving records of data
-     * @param rh a callback for tracking row set of header column informations
      * @return true if request is successfully sent or queued; and false if
      * request is NOT successfully sent or queued
      */
-    public final boolean ExecuteBatch(tagTransactionIsolation isolation, String sql, CDBVariantArray vParam, DExecuteResult handler, DRows row, DRowsetHeader rh) {
-        return ExecuteBatch(isolation, sql, vParam, handler, row, rh, null, null, tagRollbackPlan.rpDefault, null, ";", true, true, null);
+    public final boolean ExecuteBatch(tagTransactionIsolation isolation, String sql, CDBVariantArray vParam, final DExecuteResult handler, DRows row) {
+        return ExecuteBatch(isolation, sql, vParam, handler, row, null, ";", null, null, true, tagRollbackPlan.rpDefault, null, true, null);
     }
 
     /**
@@ -1672,13 +1652,11 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
      * @param handler a callback for tracking final result
      * @param row a callback for receiving records of data
      * @param rh a callback for tracking row set of header column informations
-     * @param batchHeader a callback for tracking returning batch start error
-     * messages
      * @return true if request is successfully sent or queued; and false if
      * request is NOT successfully sent or queued
      */
-    public final boolean ExecuteBatch(tagTransactionIsolation isolation, String sql, CDBVariantArray vParam, DExecuteResult handler, DRows row, DRowsetHeader rh, DRowsetHeader batchHeader) {
-        return ExecuteBatch(isolation, sql, vParam, handler, row, rh, batchHeader, null, tagRollbackPlan.rpDefault, null, ";", true, true, null);
+    public final boolean ExecuteBatch(tagTransactionIsolation isolation, String sql, CDBVariantArray vParam, final DExecuteResult handler, DRows row, DRowsetHeader rh) {
+        return ExecuteBatch(isolation, sql, vParam, handler, row, rh, ";", null, null, true, tagRollbackPlan.rpDefault, null, true, null);
     }
 
     /**
@@ -1694,100 +1672,14 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
      * @param handler a callback for tracking final result
      * @param row a callback for receiving records of data
      * @param rh a callback for tracking row set of header column informations
-     * @param batchHeader a callback for tracking returning batch start error
-     * messages
-     * @param vPInfo a given array of parameter informations which may be empty
-     * to some of database management systems
-     * @return true if request is successfully sent or queued; and false if
-     * request is NOT successfully sent or queued
-     */
-    public final boolean ExecuteBatch(tagTransactionIsolation isolation, String sql, CDBVariantArray vParam, DExecuteResult handler, DRows row, DRowsetHeader rh, DRowsetHeader batchHeader, CParameterInfo[] vPInfo) {
-        return ExecuteBatch(isolation, sql, vParam, handler, row, rh, batchHeader, vPInfo, tagRollbackPlan.rpDefault, null, ";", true, true, null);
-    }
-
-    /**
-     * Execute a batch of SQL statements on one single call
-     *
-     * @param isolation a value for manual transaction isolation. Specifically,
-     * there is no manual transaction around the batch SQL statements if it is
-     * tiUnspecified
-     * @param sql a SQL statement having a batch of individual SQL statements
-     * @param vParam an array of parameter data which will be bounded to
-     * previously prepared parameters. The array size can be 0 if the given
-     * batch SQL statement doesn't having any prepared statement
-     * @param handler a callback for tracking final result
-     * @param row a callback for receiving records of data
-     * @param rh a callback for tracking row set of header column informations
-     * @param batchHeader a callback for tracking returning batch start error
-     * messages
-     * @param vPInfo a given array of parameter informations which may be empty
-     * to some of database management systems
-     * @param plan a value for computing how included transactions should be
-     * rollback. It defaults to tagRollbackPlan.rpDefault
-     * @return true if request is successfully sent or queued; and false if
-     * request is NOT successfully sent or queued
-     */
-    public final boolean ExecuteBatch(tagTransactionIsolation isolation, String sql, CDBVariantArray vParam, DExecuteResult handler, DRows row, DRowsetHeader rh, DRowsetHeader batchHeader, CParameterInfo[] vPInfo, tagRollbackPlan plan) {
-        return ExecuteBatch(isolation, sql, vParam, handler, row, rh, batchHeader, vPInfo, plan, null, ";", true, true, null);
-    }
-
-    /**
-     * Execute a batch of SQL statements on one single call
-     *
-     * @param isolation a value for manual transaction isolation. Specifically,
-     * there is no manual transaction around the batch SQL statements if it is
-     * tiUnspecified
-     * @param sql a SQL statement having a batch of individual SQL statements
-     * @param vParam an array of parameter data which will be bounded to
-     * previously prepared parameters. The array size can be 0 if the given
-     * batch SQL statement doesn't having any prepared statement
-     * @param handler a callback for tracking final result
-     * @param row a callback for receiving records of data
-     * @param rh a callback for tracking row set of header column informations
-     * @param batchHeader a callback for tracking returning batch start error
-     * messages
-     * @param vPInfo a given array of parameter informations which may be empty
-     * to some of database management systems
-     * @param plan a value for computing how included transactions should be
-     * rollback . It defaults to tagRollbackPlan.rpDefault
-     * @param discarded a callback for tracking socket closed or request
-     * canceled event
-     * @return true if request is successfully sent or queued; and false if
-     * request is NOT successfully sent or queued
-     */
-    public final boolean ExecuteBatch(tagTransactionIsolation isolation, String sql, CDBVariantArray vParam, DExecuteResult handler, DRows row, DRowsetHeader rh, DRowsetHeader batchHeader, CParameterInfo[] vPInfo, tagRollbackPlan plan, DDiscarded discarded) {
-        return ExecuteBatch(isolation, sql, vParam, handler, row, rh, batchHeader, vPInfo, plan, discarded, ";", true, true, null);
-    }
-
-    /**
-     * Execute a batch of SQL statements on one single call
-     *
-     * @param isolation a value for manual transaction isolation. Specifically,
-     * there is no manual transaction around the batch SQL statements if it is
-     * tiUnspecified
-     * @param sql a SQL statement having a batch of individual SQL statements
-     * @param vParam an array of parameter data which will be bounded to
-     * previously prepared parameters. The array size can be 0 if the given
-     * batch SQL statement doesn't having any prepared statement
-     * @param handler a callback for tracking final result
-     * @param row a callback for receiving records of data
-     * @param rh a callback for tracking row set of header column informations
-     * @param batchHeader a callback for tracking returning batch start error
-     * messages
-     * @param vPInfo a given array of parameter informations which may be empty
-     * to some of database management systems
-     * @param plan a value for computing how included transactions should be
-     * rollback. It defaults to tagRollbackPlan.rpDefault
-     * @param discarded a callback for tracking socket closed or request
-     * canceled event
      * @param delimiter a delimiter string used for separating the batch SQL
      * statements into individual SQL statements at server side for processing.
      * It defaults to ";"
      * @return true if request is successfully sent or queued; and false if
      * request is NOT successfully sent or queued
      */
-    public final boolean ExecuteBatch(tagTransactionIsolation isolation, String sql, CDBVariantArray vParam, DExecuteResult handler, DRows row, DRowsetHeader rh, DRowsetHeader batchHeader, CParameterInfo[] vPInfo, tagRollbackPlan plan, DDiscarded discarded, String delimiter) {
-        return ExecuteBatch(isolation, sql, vParam, handler, row, rh, batchHeader, vPInfo, plan, discarded, delimiter, true, true, null);
+    public final boolean ExecuteBatch(tagTransactionIsolation isolation, String sql, CDBVariantArray vParam, final DExecuteResult handler, DRows row, DRowsetHeader rh, String delimiter) {
+        return ExecuteBatch(isolation, sql, vParam, handler, row, rh, delimiter, null, null, true, tagRollbackPlan.rpDefault, null, true, null);
     }
 
     /**
@@ -1803,24 +1695,72 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
      * @param handler a callback for tracking final result
      * @param row a callback for receiving records of data
      * @param rh a callback for tracking row set of header column informations
-     * @param batchHeader a callback for tracking returning batch start error
-     * messages
-     * @param vPInfo a given array of parameter informations which may be empty
-     * to some of database management systems
-     * @param plan a value for computing how included transactions should be
-     * rollback. It defaults to tagRollbackPlan.rpDefault
-     * @param discarded a callback for tracking socket closed or request
-     * canceled event
      * @param delimiter a delimiter string used for separating the batch SQL
      * statements into individual SQL statements at server side for processing.
      * It defaults to ";"
+     * @param batchHeader a callback for tracking returning batch start error
+     * messages
+     * @return true if request is successfully sent or queued; and false if
+     * request is NOT successfully sent or queued
+     */
+    public final boolean ExecuteBatch(tagTransactionIsolation isolation, String sql, CDBVariantArray vParam, final DExecuteResult handler, DRows row, DRowsetHeader rh, String delimiter, DRowsetHeader batchHeader) {
+        return ExecuteBatch(isolation, sql, vParam, handler, row, rh, delimiter, batchHeader, null, true, tagRollbackPlan.rpDefault, null, true, null);
+    }
+
+    /**
+     * Execute a batch of SQL statements on one single call
+     *
+     * @param isolation a value for manual transaction isolation. Specifically,
+     * there is no manual transaction around the batch SQL statements if it is
+     * tiUnspecified
+     * @param sql a SQL statement having a batch of individual SQL statements
+     * @param vParam an array of parameter data which will be bounded to
+     * previously prepared parameters. The array size can be 0 if the given
+     * batch SQL statement doesn't having any prepared statement
+     * @param handler a callback for tracking final result
+     * @param row a callback for receiving records of data
+     * @param rh a callback for tracking row set of header column informations
+     * @param delimiter a delimiter string used for separating the batch SQL
+     * statements into individual SQL statements at server side for processing.
+     * It defaults to ";"
+     * @param batchHeader a callback for tracking returning batch start error
+     * messages
+     * @param discarded a callback for tracking socket closed or request
+     * canceled event
+     * @return true if request is successfully sent or queued; and false if
+     * request is NOT successfully sent or queued
+     */
+    public final boolean ExecuteBatch(tagTransactionIsolation isolation, String sql, CDBVariantArray vParam, final DExecuteResult handler, DRows row, DRowsetHeader rh, String delimiter, DRowsetHeader batchHeader, DDiscarded discarded) {
+        return ExecuteBatch(isolation, sql, vParam, handler, row, rh, delimiter, batchHeader, discarded, true, tagRollbackPlan.rpDefault, null, true, null);
+    }
+
+    /**
+     * Execute a batch of SQL statements on one single call
+     *
+     * @param isolation a value for manual transaction isolation. Specifically,
+     * there is no manual transaction around the batch SQL statements if it is
+     * tiUnspecified
+     * @param sql a SQL statement having a batch of individual SQL statements
+     * @param vParam an array of parameter data which will be bounded to
+     * previously prepared parameters. The array size can be 0 if the given
+     * batch SQL statement doesn't having any prepared statement
+     * @param handler a callback for tracking final result
+     * @param row a callback for receiving records of data
+     * @param rh a callback for tracking row set of header column informations
+     * @param delimiter a delimiter string used for separating the batch SQL
+     * statements into individual SQL statements at server side for processing.
+     * It defaults to ";"
+     * @param batchHeader a callback for tracking returning batch start error
+     * messages
+     * @param discarded a callback for tracking socket closed or request
+     * canceled event
      * @param meta a boolean for better or more detailed column meta details
      * such as unique, not null, primary key, and so on. It defaults to true
      * @return true if request is successfully sent or queued; and false if
      * request is NOT successfully sent or queued
      */
-    public final boolean ExecuteBatch(tagTransactionIsolation isolation, String sql, CDBVariantArray vParam, DExecuteResult handler, DRows row, DRowsetHeader rh, DRowsetHeader batchHeader, CParameterInfo[] vPInfo, tagRollbackPlan plan, DDiscarded discarded, String delimiter, boolean meta) {
-        return ExecuteBatch(isolation, sql, vParam, handler, row, rh, batchHeader, vPInfo, plan, discarded, delimiter, meta, true, null);
+    public final boolean ExecuteBatch(tagTransactionIsolation isolation, String sql, CDBVariantArray vParam, final DExecuteResult handler, DRows row, DRowsetHeader rh, String delimiter, DRowsetHeader batchHeader, DDiscarded discarded, boolean meta) {
+        return ExecuteBatch(isolation, sql, vParam, handler, row, rh, delimiter, batchHeader, discarded, meta, tagRollbackPlan.rpDefault, null, true, null);
     }
 
     /**
@@ -1836,26 +1776,90 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
      * @param handler a callback for tracking final result
      * @param row a callback for receiving records of data
      * @param rh a callback for tracking row set of header column informations
-     * @param batchHeader a callback for tracking returning batch start error
-     * messages
-     * @param vPInfo a given array of parameter informations which may be empty
-     * to some of database management systems
-     * @param plan a value for computing how included transactions should be
-     * rollback. It defaults to tagRollbackPlan.rpDefault
-     * @param discarded a callback for tracking socket closed or request
-     * canceled event
      * @param delimiter a delimiter string used for separating the batch SQL
      * statements into individual SQL statements at server side for processing.
      * It defaults to ";"
+     * @param batchHeader a callback for tracking returning batch start error
+     * messages
+     * @param discarded a callback for tracking socket closed or request
+     * canceled event
      * @param meta a boolean for better or more detailed column meta details
      * such as unique, not null, primary key, and so on. It defaults to true
+     * @param plan a value for computing how included transactions should be
+     * rollback. It defaults to tagRollbackPlan.rpDefault
+     * @return true if request is successfully sent or queued; and false if
+     * request is NOT successfully sent or queued
+     */
+    public final boolean ExecuteBatch(tagTransactionIsolation isolation, String sql, CDBVariantArray vParam, final DExecuteResult handler, DRows row, DRowsetHeader rh, String delimiter, DRowsetHeader batchHeader, DDiscarded discarded, boolean meta, tagRollbackPlan plan) {
+        return ExecuteBatch(isolation, sql, vParam, handler, row, rh, delimiter, batchHeader, discarded, meta, plan, null, true, null);
+    }
+
+    /**
+     * Execute a batch of SQL statements on one single call
+     *
+     * @param isolation a value for manual transaction isolation. Specifically,
+     * there is no manual transaction around the batch SQL statements if it is
+     * tiUnspecified
+     * @param sql a SQL statement having a batch of individual SQL statements
+     * @param vParam an array of parameter data which will be bounded to
+     * previously prepared parameters. The array size can be 0 if the given
+     * batch SQL statement doesn't having any prepared statement
+     * @param handler a callback for tracking final result
+     * @param row a callback for receiving records of data
+     * @param rh a callback for tracking row set of header column informations
+     * @param delimiter a delimiter string used for separating the batch SQL
+     * statements into individual SQL statements at server side for processing.
+     * It defaults to ";"
+     * @param batchHeader a callback for tracking returning batch start error
+     * messages
+     * @param discarded a callback for tracking socket closed or request
+     * canceled event
+     * @param meta a boolean for better or more detailed column meta details
+     * such as unique, not null, primary key, and so on. It defaults to true
+     * @param plan a value for computing how included transactions should be
+     * rollback. It defaults to tagRollbackPlan.rpDefault
+     * @param vPInfo a given array of parameter informations which may be empty
+     * to some of database management systems
+     * @return true if request is successfully sent or queued; and false if
+     * request is NOT successfully sent or queued
+     */
+    public final boolean ExecuteBatch(tagTransactionIsolation isolation, String sql, CDBVariantArray vParam, final DExecuteResult handler, DRows row, DRowsetHeader rh, String delimiter, DRowsetHeader batchHeader, DDiscarded discarded, boolean meta, tagRollbackPlan plan, CParameterInfo[] vPInfo) {
+        return ExecuteBatch(isolation, sql, vParam, handler, row, rh, delimiter, batchHeader, discarded, meta, plan, vPInfo, true, null);
+    }
+
+    /**
+     * Execute a batch of SQL statements on one single call
+     *
+     * @param isolation a value for manual transaction isolation. Specifically,
+     * there is no manual transaction around the batch SQL statements if it is
+     * tiUnspecified
+     * @param sql a SQL statement having a batch of individual SQL statements
+     * @param vParam an array of parameter data which will be bounded to
+     * previously prepared parameters. The array size can be 0 if the given
+     * batch SQL statement doesn't having any prepared statement
+     * @param handler a callback for tracking final result
+     * @param row a callback for receiving records of data
+     * @param rh a callback for tracking row set of header column informations
+     * @param delimiter a delimiter string used for separating the batch SQL
+     * statements into individual SQL statements at server side for processing.
+     * It defaults to ";"
+     * @param batchHeader a callback for tracking returning batch start error
+     * messages
+     * @param discarded a callback for tracking socket closed or request
+     * canceled event
+     * @param meta a boolean for better or more detailed column meta details
+     * such as unique, not null, primary key, and so on. It defaults to true
+     * @param plan a value for computing how included transactions should be
+     * rollback. It defaults to tagRollbackPlan.rpDefault
+     * @param vPInfo a given array of parameter informations which may be empty
+     * to some of database management systems
      * @param lastInsertId a boolean for last insert record identification
      * number. It defaults to true
      * @return true if request is successfully sent or queued; and false if
      * request is NOT successfully sent or queued
      */
-    public final boolean ExecuteBatch(tagTransactionIsolation isolation, String sql, CDBVariantArray vParam, DExecuteResult handler, DRows row, DRowsetHeader rh, DRowsetHeader batchHeader, CParameterInfo[] vPInfo, tagRollbackPlan plan, DDiscarded discarded, String delimiter, boolean meta, boolean lastInsertId) {
-        return ExecuteBatch(isolation, sql, vParam, handler, row, rh, batchHeader, vPInfo, plan, discarded, delimiter, meta, lastInsertId, null);
+    public final boolean ExecuteBatch(tagTransactionIsolation isolation, String sql, CDBVariantArray vParam, final DExecuteResult handler, DRows row, DRowsetHeader rh, String delimiter, DRowsetHeader batchHeader, DDiscarded discarded, boolean meta, tagRollbackPlan plan, CParameterInfo[] vPInfo, boolean lastInsertId) {
+        return ExecuteBatch(isolation, sql, vParam, handler, row, rh, delimiter, batchHeader, discarded, meta, plan, vPInfo, lastInsertId, null);
     }
 
     /**
@@ -1871,26 +1875,26 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
      * @param handler a callback for tracking final result
      * @param row a callback for receiving records of data
      * @param rh a callback for tracking row set of header column informations
-     * @param batchHeader a callback for tracking returning batch start error
-     * messages
-     * @param vPInfo a given array of parameter informations which may be empty
-     * to some of database management systems
-     * @param plan a value for computing how included transactions should be
-     * rollback. It defaults to tagRollbackPlan.rpDefault
-     * @param discarded a callback for tracking socket closed or request
-     * canceled event
      * @param delimiter a delimiter string used for separating the batch SQL
      * statements into individual SQL statements at server side for processing.
      * It defaults to ";"
+     * @param batchHeader a callback for tracking returning batch start error
+     * messages
+     * @param discarded a callback for tracking socket closed or request
+     * canceled event
      * @param meta a boolean for better or more detailed column meta details
      * such as unique, not null, primary key, and so on. It defaults to true
+     * @param plan a value for computing how included transactions should be
+     * rollback. It defaults to tagRollbackPlan.rpDefault
+     * @param vPInfo a given array of parameter informations which may be empty
+     * to some of database management systems
      * @param lastInsertId a boolean for last insert record identification
      * number. It defaults to true
      * @param se a callback for tracking an exception from server
      * @return true if request is successfully sent or queued; and false if
      * request is NOT successfully sent or queued
      */
-    public final boolean ExecuteBatch(tagTransactionIsolation isolation, String sql, CDBVariantArray vParam, final DExecuteResult handler, DRows row, DRowsetHeader rh, DRowsetHeader batchHeader, CParameterInfo[] vPInfo, tagRollbackPlan plan, DDiscarded discarded, String delimiter, boolean meta, boolean lastInsertId, DOnExceptionFromServer se) {
+    public boolean ExecuteBatch(tagTransactionIsolation isolation, String sql, CDBVariantArray vParam, final DExecuteResult handler, DRows row, DRowsetHeader rh, String delimiter, DRowsetHeader batchHeader, DDiscarded discarded, boolean meta, tagRollbackPlan plan, CParameterInfo[] vPInfo, boolean lastInsertId, DOnExceptionFromServer se) {
         boolean queueOk = false;
         boolean rowset = (row != null);
         meta = (meta && (rh != null));
@@ -1980,7 +1984,7 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
     public UFuture<SQLExeInfo> executeBatch(tagTransactionIsolation isolation, String sql, CDBVariantArray vParam, DRows row, DRowsetHeader rh, String delimiter, DRowsetHeader batchHeader, boolean meta, tagRollbackPlan plan, CParameterInfo[] vPInfo, boolean lastInsertId) throws CSocketError {
         UFuture<SQLExeInfo> f = new UFuture<>("ExecuteBatch", DB_CONSTS.idExecuteBatch, this);
         DExecuteResult h = getSqlHandler(f);
-        if (!ExecuteBatch(isolation, sql, vParam, h, row, rh, batchHeader, vPInfo, plan, getAborted(f), delimiter, meta, lastInsertId, getSE(f))) {
+        if (!ExecuteBatch(isolation, sql, vParam, h, row, rh, delimiter, batchHeader, get_aborted(f), meta, plan, vPInfo, lastInsertId, get_se(f))) {
             raise(f);
         }
         return f;

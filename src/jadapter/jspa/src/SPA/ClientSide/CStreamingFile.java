@@ -876,10 +876,10 @@ public class CStreamingFile extends CAsyncServiceHandler {
         CContext context = new CContext(false, flags);
         context.Download = dl;
         context.Transferring = trans;
-        context.Discarded = getAborted(f);
+        context.Discarded = get_aborted(f);
         context.FilePath = remoteFile;
         context.LocalFile = localFile;
-        context.Se = getSE(f);
+        context.Se = get_se(f);
         context.Fut = f;
         m_csFile.lock();
         try {
@@ -972,10 +972,10 @@ public class CStreamingFile extends CAsyncServiceHandler {
         CContext context = new CContext(true, flags);
         context.Upload = up;
         context.Transferring = trans;
-        context.Discarded = getAborted(f);
+        context.Discarded = get_aborted(f);
         context.FilePath = remoteFile;
         context.LocalFile = localFile;
-        context.Se = getSE(f);
+        context.Se = get_se(f);
         context.Fut = f;
         m_csFile.lock();
         try {

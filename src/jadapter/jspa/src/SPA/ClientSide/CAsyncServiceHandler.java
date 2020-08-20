@@ -226,7 +226,7 @@ public class CAsyncServiceHandler implements AutoCloseable {
      */
     public UFuture<SPA.CScopeUQueue> sendRequest(short reqId, java.nio.ByteBuffer data, int len) throws CSocketError {
         UFuture<SPA.CScopeUQueue> f = new UFuture<>("SendRequest", reqId, this);
-        if (!SendRequest(reqId, data, len, get_ash(f), getAborted(f), getSE(f))) {
+        if (!SendRequest(reqId, data, len, get_ash(f), get_aborted(f), get_se(f))) {
             raise(f);
         }
         return f;
@@ -244,7 +244,7 @@ public class CAsyncServiceHandler implements AutoCloseable {
      */
     public UFuture<SPA.CScopeUQueue> sendRequest(short reqId, java.nio.ByteBuffer data) throws CSocketError {
         UFuture<SPA.CScopeUQueue> f = new UFuture<>("SendRequest", reqId, this);
-        if (!SendRequest(reqId, data, get_ash(f), getAborted(f), getSE(f))) {
+        if (!SendRequest(reqId, data, get_ash(f), get_aborted(f), get_se(f))) {
             raise(f);
         }
         return f;
@@ -298,8 +298,8 @@ public class CAsyncServiceHandler implements AutoCloseable {
      * @param f a future instance
      * @return a DDiscarded callback
      */
-    public static <V> DDiscarded getAborted(final UFuture<V> f) {
-        DDiscarded aborted = new DDiscarded() {
+    public static <V> DDiscarded get_aborted(final UFuture<V> f) {
+        return new DDiscarded() {
             @Override
             public void invoke(CAsyncServiceHandler sender, boolean discarded) {
                 if (discarded) {
@@ -317,7 +317,6 @@ public class CAsyncServiceHandler implements AutoCloseable {
                 }
             }
         };
-        return aborted;
     }
 
     /**
@@ -327,15 +326,14 @@ public class CAsyncServiceHandler implements AutoCloseable {
      * @param f a future instance
      * @return a DOnExceptionFromServer callback
      */
-    public static <V> DOnExceptionFromServer getSE(final UFuture<V> f) {
-        DOnExceptionFromServer se = new DOnExceptionFromServer() {
+    public static <V> DOnExceptionFromServer get_se(final UFuture<V> f) {
+        return new DOnExceptionFromServer() {
             @Override
             public void invoke(CAsyncServiceHandler sender, short reqId, String errMessage, String errWhere, int errCode) {
                 SPA.CServerError ex = new SPA.CServerError(errCode, errMessage, errWhere, reqId);
                 f.setException(ex);
             }
         };
-        return se;
     }
 
     private DAsyncResultHandler get_ash(final UFuture<SPA.CScopeUQueue> f) {
@@ -364,7 +362,7 @@ public class CAsyncServiceHandler implements AutoCloseable {
      */
     public UFuture<SPA.CScopeUQueue> sendRequest(final short reqId, byte[] data, int len) throws CSocketError {
         UFuture<SPA.CScopeUQueue> f = new UFuture<>("SendRequest", reqId, this);
-        if (!SendRequest(reqId, data, len, get_ash(f), getAborted(f), getSE(f))) {
+        if (!SendRequest(reqId, data, len, get_ash(f), get_aborted(f), get_se(f))) {
             raise(f);
         }
         return f;
@@ -413,7 +411,7 @@ public class CAsyncServiceHandler implements AutoCloseable {
      */
     public UFuture<SPA.CScopeUQueue> sendRequest(short reqId, SPA.CUQueue q) throws CSocketError {
         UFuture<SPA.CScopeUQueue> f = new UFuture<>("SendRequest", reqId, this);
-        if (!SendRequest(reqId, q, get_ash(f), getAborted(f), getSE(f))) {
+        if (!SendRequest(reqId, q, get_ash(f), get_aborted(f), get_se(f))) {
             raise(f);
         }
         return f;
@@ -446,7 +444,7 @@ public class CAsyncServiceHandler implements AutoCloseable {
      */
     public UFuture<SPA.CScopeUQueue> sendRequest(short reqId, SPA.CScopeUQueue q) throws CSocketError {
         UFuture<SPA.CScopeUQueue> f = new UFuture<>("SendRequest", reqId, this);
-        if (!SendRequest(reqId, q, get_ash(f), getAborted(f), getSE(f))) {
+        if (!SendRequest(reqId, q, get_ash(f), get_aborted(f), get_se(f))) {
             raise(f);
         }
         return f;
@@ -475,7 +473,7 @@ public class CAsyncServiceHandler implements AutoCloseable {
      */
     public UFuture<SPA.CScopeUQueue> sendRequest(final short reqId) throws CSocketError {
         UFuture<SPA.CScopeUQueue> f = new UFuture<>("SendRequest", reqId, this);
-        if (!SendRequest(reqId, get_ash(f), getAborted(f), getSE(f))) {
+        if (!SendRequest(reqId, get_ash(f), get_aborted(f), get_se(f))) {
             raise(f);
         }
         return f;

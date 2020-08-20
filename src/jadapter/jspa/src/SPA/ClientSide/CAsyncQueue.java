@@ -368,7 +368,7 @@ public class CAsyncQueue extends CAsyncServiceHandler {
                 f.set(errCode);
             }
         };
-        if (!StartQueueTrans(key, qt, getAborted(f), getSE(f))) {
+        if (!StartQueueTrans(key, qt, get_aborted(f), get_se(f))) {
             raise(f);
         }
         return f;
@@ -473,7 +473,7 @@ public class CAsyncQueue extends CAsyncServiceHandler {
                 f.set(errCode);
             }
         };
-        if (!EndQueueTrans(rollback, qt, getAborted(f), getSE(f))) {
+        if (!EndQueueTrans(rollback, qt, get_aborted(f), get_se(f))) {
             raise(f);
         }
         return f;
@@ -537,7 +537,7 @@ public class CAsyncQueue extends CAsyncServiceHandler {
                 f.set(vKey);
             }
         };
-        if (!GetKeys(gk, getAborted(f), getSE(f))) {
+        if (!GetKeys(gk, get_aborted(f), get_se(f))) {
             raise(f);
         }
         return f;
@@ -634,7 +634,7 @@ public class CAsyncQueue extends CAsyncServiceHandler {
                 f.set(errCode);
             }
         };
-        if (!CloseQueue(key, c, getAborted(f), permanent, getSE(f))) {
+        if (!CloseQueue(key, c, get_aborted(f), permanent, get_se(f))) {
             raise(f);
         }
         return f;
@@ -769,7 +769,7 @@ public class CAsyncQueue extends CAsyncServiceHandler {
                 f.set(new QueueInfo(messageCount, fileSize));
             }
         };
-        if (!FlushQueue(key, df, option, getAborted(f), getSE(f))) {
+        if (!FlushQueue(key, df, option, get_aborted(f), get_se(f))) {
             raise(f);
         }
         return f;
@@ -901,7 +901,7 @@ public class CAsyncQueue extends CAsyncServiceHandler {
                 f.set(new DeqInfo(messageCount, fileSize, messages, bytes));
             }
         };
-        if (!Dequeue(key, d, timeout, getAborted(f), getSE(f))) {
+        if (!Dequeue(key, d, timeout, get_aborted(f), get_se(f))) {
             raise(f);
         }
         return f;
