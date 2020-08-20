@@ -1,4 +1,3 @@
-
 import SPA.ClientSide.*;
 import SPA.UDB.*;
 import SPA.*;
@@ -136,12 +135,8 @@ public class Test_java {
         vData.add(new BigDecimal("3.12"));
         vData.add(0);
 
-        COdbc.DRowsetHeader batchHeader = (dbHandler) -> {
-            //called before rh, r and er
-        };
-
-        COdbc.DDiscarded discarded = (dbHandler, canceled) -> {
-            //called when canceling or socket closed if client queue is NOT used
+        COdbc.DRowsetHeader batchHeader = (db) -> {
+            System.out.println("Batch header comes here");
         };
 
         //first, execute delete from employee;delete from company
@@ -149,7 +144,7 @@ public class Test_java {
         //third, three sets of insert into employee(CompanyId,name,JoinDate,image,DESCRIPTION,Salary)values(?,?,?,?,?,?)
         //fourth, SELECT * from company;select * from employee;select curtime()
         //last, three sets of call sp_TestProc(?,?,?)
-        boolean ok = odbc.ExecuteBatch(tagTransactionIsolation.tiUnspecified, sql, vData, er, r, rh, batchHeader, null, tagRollbackPlan.rpDefault, discarded);
+        boolean ok = odbc.ExecuteBatch(tagTransactionIsolation.tiUnspecified, sql, vData, er, r, rh, ";", batchHeader);
         return vData;
     }
 
@@ -197,26 +192,26 @@ public class Test_java {
                 in.nextLine();
                 return;
             }
-            COdbc.DResult dr = (dbHandler, res, errMsg) -> {
+            COdbc.DResult dr = (db, res, errMsg) -> {
                 System.out.format("res = %d, errMsg: %s", res, errMsg);
                 System.out.println();
             };
-            COdbc.DExecuteResult er = (dbHandler, res, errMsg, affected, fail_ok, lastRowId) -> {
+            COdbc.DExecuteResult er = (db, res, errMsg, affected, fail_ok, lastRowId) -> {
                 System.out.format("affected = %d, fails = %d, oks = %d, res = %d, errMsg: %s", affected, (int) (fail_ok >> 32), (int) fail_ok, res, errMsg);
                 System.out.println();
             };
 
             ok = odbc.Open("dsn=ToMySQL;uid=root;pwd=Smash123", dr);
             java.util.ArrayList<Pair<CDBColumnInfoArray, CDBVariantArray>> ra = new java.util.ArrayList<>();
-            COdbc.DRows r = (dbHandler, lstData) -> {
+            COdbc.DRows r = (db, lstData) -> {
                 int last = ra.size() - 1;
                 Pair<CDBColumnInfoArray, CDBVariantArray> item = ra.get(last);
                 item.second.addAll(lstData);
             };
 
-            COdbc.DRowsetHeader rh = (dbHandler) -> {
+            COdbc.DRowsetHeader rh = (db) -> {
                 //rowset header comes here
-                CDBColumnInfoArray vColInfo = dbHandler.getColumnInfo();
+                CDBColumnInfoArray vColInfo = db.getColumnInfo();
                 CDBVariantArray vData = new CDBVariantArray();
                 Pair<CDBColumnInfoArray, CDBVariantArray> item = new Pair<>(vColInfo, vData);
                 ra.add(item);
@@ -272,15 +267,15 @@ public class Test_java {
 
     static CDBVariantArray TestStoredProcedure(COdbc odbc, COdbc.DResult dr, COdbc.DExecuteResult er, java.util.ArrayList<Pair<CDBColumnInfoArray, CDBVariantArray>> ra) {
         boolean ok = odbc.Prepare("call sp_TestProc(?,?,?)", dr);
-        COdbc.DRows r = (dbHandler, lstData) -> {
+        COdbc.DRows r = (db, lstData) -> {
             //rowset data come here
             int last = ra.size() - 1;
             Pair<CDBColumnInfoArray, CDBVariantArray> item = ra.get(last);
             item.second.addAll(lstData);
         };
-        COdbc.DRowsetHeader rh = (dbHandler) -> {
+        COdbc.DRowsetHeader rh = (db) -> {
             //rowset header comes here
-            CDBColumnInfoArray vColInfo = dbHandler.getColumnInfo();
+            CDBColumnInfoArray vColInfo = db.getColumnInfo();
             CDBVariantArray vData = new CDBVariantArray();
             Pair<CDBColumnInfoArray, CDBVariantArray> item = new Pair<>(vColInfo, vData);
             ra.add(item);

@@ -1,7 +1,7 @@
-
-import SPA.ClientSide.*;
-import SPA.UDB.*;
 import SPA.*;
+import SPA.UDB.*;
+import SPA.ClientSide.*;
+import java.util.ArrayList;
 
 public class test_java {
 
@@ -15,26 +15,40 @@ public class test_java {
         cc.Password = "pwd_for_usqlite";
 
         try (CSocketPool<CSqlite> spSqlite = new CSocketPool<>(CSqlite.class)) {
-            boolean ok = spSqlite.StartSocketPool(cc, 1);
-            CSqlite sqlite = spSqlite.getAsyncHandlers()[0];
-            if (!ok) {
-                System.out.println("No connection error code = " + sqlite.getSocket().getErrorCode());
+            if (!spSqlite.StartSocketPool(cc, 1)) {
+                System.out.println("No connection error code = " + spSqlite.getSockets()[0].getErrorCode());
                 in.nextLine();
                 return;
             }
-            ok = sqlite.Open("", (dbHandler, res, errMsg) -> {
-                System.out.format("res = %d, errMsg: %s", res, errMsg);
-                System.out.println();
-            });
-            TestCreateTables(sqlite);
+            CSqlite sqlite = spSqlite.getAsyncHandlers()[0];
             java.util.ArrayList<Pair<CDBColumnInfoArray, CDBVariantArray>> lstRowset = new java.util.ArrayList<>();
+            try {
+                //stream all requests with inline batching for the best network efficiency
+                UFuture<ErrInfo> fOpen = sqlite.open("");
+                ArrayList<UFuture<CSqlite.SQLExeInfo>> vC = TestCreateTables(sqlite);
+                UFuture<CSqlite.SQLExeInfo> fD = sqlite.execute("delete from employee;delete from company");
+                UFuture<ErrInfo> fbt = sqlite.beginTrans();
+                UFuture<CSqlite.SQLExeInfo> fP0 = TestPreparedStatements(sqlite, lstRowset);
+                UFuture<CSqlite.SQLExeInfo> fP1 = InsertBLOBByPreparedStatement(sqlite, lstRowset);
+                UFuture<ErrInfo> fet = sqlite.endTrans();
+                ArrayList<UFuture<CSqlite.SQLExeInfo>> vB = TestBatch(sqlite, lstRowset);
 
-            ok = sqlite.BeginTrans();
-            TestPreparedStatements(sqlite, lstRowset);
-            InsertBLOBByPreparedStatement(sqlite, lstRowset);
-            ok = sqlite.EndTrans();
-            TestBatch(sqlite, lstRowset);
-            sqlite.WaitAll();
+                //wait for results
+                System.out.println(fOpen.get());
+                for (UFuture<CSqlite.SQLExeInfo> f : vC) {
+                    System.out.println(f.get());
+                }
+                System.out.println(fD.get());
+                System.out.println(fbt.get());
+                System.out.println(fP0.get());
+                System.out.println(fP1.get());
+                System.out.println(fet.get());
+                for (UFuture<CSqlite.SQLExeInfo> f : vB) {
+                    System.out.println(f.get());
+                }
+            } catch (CSocketError | CServerError ex) {
+                System.out.println(ex);
+            }
             int index = 0;
             System.out.println();
             System.out.println("+++++ Start rowsets +++");
@@ -55,27 +69,24 @@ public class test_java {
         }
     }
 
-    static void TestBatch(CSqlite sqlite, java.util.ArrayList<Pair<CDBColumnInfoArray, CDBVariantArray>> ra) {
+    static ArrayList<UFuture<CSqlite.SQLExeInfo>> TestBatch(CSqlite sqlite, java.util.ArrayList<Pair<CDBColumnInfoArray, CDBVariantArray>> ra) throws CSocketError {
+        ArrayList<UFuture<CSqlite.SQLExeInfo>> v = new ArrayList<>();
         CDBVariantArray vParam = new CDBVariantArray();
         vParam.add(1); //ID
         vParam.add(2); //EMPLOYEEID
         //there is no manual transaction if isolation is tiUnspecified
-        boolean ok = sqlite.ExecuteBatch(tagTransactionIsolation.tiUnspecified,
-                "Select datetime('now');select * from COMPANY where ID=?;select * from EMPLOYEE where EMPLOYEEID=?", vParam,
-                (dbHandler, res, errMsg, affected, fail_ok, lastRowId) -> {
-                    System.out.format("affected = %d, fails = %d, oks = %d, res = %d, errMsg: %s, last insert id = %s", affected, (int) (fail_ok >> 32), (int) fail_ok, res, errMsg, lastRowId.toString());
-                    System.out.println();
-                }, (dbHandler, lstData) -> {
+        v.add(sqlite.executeBatch(tagTransactionIsolation.tiUnspecified, "Select datetime('now');select * from COMPANY where ID=?;select * from EMPLOYEE where EMPLOYEEID=?",
+                vParam, (db, lstData) -> {
                     int last = ra.size() - 1;
                     Pair<CDBColumnInfoArray, CDBVariantArray> item = ra.get(last);
                     item.second.addAll(lstData);
-                }, (dbHandler) -> {
+                }, (db) -> {
                     //rowset header comes here
-                    CDBColumnInfoArray vColInfo = dbHandler.getColumnInfo();
+                    CDBColumnInfoArray vColInfo = db.getColumnInfo();
                     CDBVariantArray vData = new CDBVariantArray();
                     Pair<CDBColumnInfoArray, CDBVariantArray> item = new Pair<>(vColInfo, vData);
                     ra.add(item);
-                });
+                }));
         vParam.clear();
         vParam.add(1); //ID
         vParam.add(2); //EMPLOYEEID
@@ -84,31 +95,24 @@ public class test_java {
         //Same as sqlite.BeginTrans();
         //Select datetime('now');select * from COMPANY where ID=1;select * from COMPANY where ID=2;Select datetime('now');
         //select * from EMPLOYEE where EMPLOYEEID=2;select * from EMPLOYEE where EMPLOYEEID=3
-        //ok = sqlite.EndTrans();
-        ok = sqlite.ExecuteBatch(tagTransactionIsolation.tiReadCommited,
-                "Select datetime('now');select * from COMPANY where ID=?;Select datetime('now');select * from EMPLOYEE where EMPLOYEEID=?", vParam,
-                (dbHandler, res, errMsg, affected, fail_ok, lastRowId) -> {
-                    System.out.format("affected = %d, fails = %d, oks = %d, res = %d, errMsg: %s, last insert id = %s", affected, (int) (fail_ok >> 32), (int) fail_ok, res, errMsg, lastRowId.toString());
-                    System.out.println();
-                }, (dbHandler, lstData) -> {
+        //sqlite.EndTrans() if no error happens, and rollback if there is an error;
+        v.add(sqlite.executeBatch(tagTransactionIsolation.tiReadCommited, "Select datetime('now');select * from COMPANY where ID=?;Select datetime('now');select * from EMPLOYEE where EMPLOYEEID=?",
+                vParam, (db, lstData) -> {
                     int last = ra.size() - 1;
                     Pair<CDBColumnInfoArray, CDBVariantArray> item = ra.get(last);
                     item.second.addAll(lstData);
-                }, (dbHandler) -> {
+                }, (db) -> {
                     //rowset header comes here
-                    CDBColumnInfoArray vColInfo = dbHandler.getColumnInfo();
+                    CDBColumnInfoArray vColInfo = db.getColumnInfo();
                     CDBVariantArray vData = new CDBVariantArray();
                     Pair<CDBColumnInfoArray, CDBVariantArray> item = new Pair<>(vColInfo, vData);
                     ra.add(item);
-                });
+                }));
+        return v;
     }
 
-    static void TestPreparedStatements(CSqlite sqlite, java.util.ArrayList<Pair<CDBColumnInfoArray, CDBVariantArray>> ra) {
-        String sql_insert_parameter = "Select datetime('now');INSERT OR REPLACE INTO COMPANY(ID, NAME, ADDRESS, Income) VALUES (?, ?, ?, ?)";
-        boolean ok = sqlite.Prepare(sql_insert_parameter, (dbHandler, res, errMsg) -> {
-            System.out.format("res = %d, errMsg: %s", res, errMsg);
-            System.out.println();
-        });
+    static UFuture<CSqlite.SQLExeInfo> TestPreparedStatements(CSqlite sqlite, java.util.ArrayList<Pair<CDBColumnInfoArray, CDBVariantArray>> ra) throws CSocketError {
+        sqlite.Prepare("Select datetime('now');INSERT OR REPLACE INTO COMPANY(ID,NAME,ADDRESS,Income)VALUES(?,?,?,?)");
 
         CDBVariantArray vData = new CDBVariantArray();
         vData.add(1);
@@ -127,24 +131,21 @@ public class test_java {
         vData.add(234000000000.0);
 
         //send three sets of parameterized data in one shot for processing
-        ok = sqlite.Execute(vData, (dbHandler, res, errMsg, affected, fail_ok, lastRowId) -> {
-            System.out.format("affected = %d, fails = %d, oks = %d, res = %d, errMsg: %s, last insert id = %s", affected, (int) (fail_ok >> 32), (int) fail_ok, res, errMsg, lastRowId.toString());
-            System.out.println();
-        }, (dbHandler, lstData) -> {
+        return sqlite.execute(vData, (db, lstData) -> {
             //rowset data come here
             int last = ra.size() - 1;
             Pair<CDBColumnInfoArray, CDBVariantArray> item = ra.get(last);
             item.second.addAll(lstData);
-        }, (dbHandler) -> {
+        }, (db) -> {
             //rowset header comes here
-            CDBColumnInfoArray vColInfo = dbHandler.getColumnInfo();
+            CDBColumnInfoArray vColInfo = db.getColumnInfo();
             CDBVariantArray v = new CDBVariantArray();
             Pair<CDBColumnInfoArray, CDBVariantArray> item = new Pair<>(vColInfo, v);
             ra.add(item);
         });
     }
 
-    static void InsertBLOBByPreparedStatement(CSqlite sqlite, java.util.ArrayList<Pair<CDBColumnInfoArray, CDBVariantArray>> ra) {
+    static UFuture<CSqlite.SQLExeInfo> InsertBLOBByPreparedStatement(CSqlite sqlite, java.util.ArrayList<Pair<CDBColumnInfoArray, CDBVariantArray>> ra) throws CSocketError {
         String wstr = "";
         while (wstr.length() < 128 * 1024) {
             wstr += "近日，一则极具震撼性的消息，在中航工业的干部职工中悄然流传：中航工业科技委副主任、总装备部先进制造技术专家组组长、原中航工业制造所所长郭恩明突然失联。老郭突然失联，在中航工业和国防科技工业投下了震撼弹，也给人们留下了难以解开的谜团，以正面形象示人的郭恩明，为什么会涉足谍海，走上不归路，是被人下药被动失足？还是没能逃过漂亮“女间谍“的致命诱惑？还是仇视社会主义，仇视航空工业，自甘堕落与国家与人民为敌？";
@@ -153,11 +154,8 @@ public class test_java {
         while (str.length() < 256 * 1024) {
             str += "The epic takedown of his opponent on an all-important voting day was extraordinary even by the standards of the 2016 campaign -- and quickly drew a scathing response from Trump.";
         }
-        String sqlInsert = "insert or replace into employee(EMPLOYEEID, CompanyId, name, JoinDate, image, DESCRIPTION, Salary) values(?, ?, ?, ?, ?, ?, ?);select * from employee where employeeid = ?";
-        boolean ok = sqlite.Prepare(sqlInsert, (dbHandler, res, errMsg) -> {
-            System.out.format("res = %d, errMsg: %s", res, errMsg);
-            System.out.println();
-        });
+        String sqlInsert = "insert or replace into employee(EMPLOYEEID,CompanyId,name,JoinDate,image,DESCRIPTION,Salary)values(?,?,?,?,?,?,?);select * from employee where employeeid=?";
+        sqlite.Prepare(sqlInsert);
 
         CDBVariantArray vData = new CDBVariantArray();
         CScopeUQueue sbBlob = new CScopeUQueue();
@@ -197,33 +195,26 @@ public class test_java {
         vData.add(3);
 
         //send three sets of parameterized data in one shot for processing
-        ok = sqlite.Execute(vData, (dbHandler, res, errMsg, affected, fail_ok, lastRowId) -> {
-            System.out.format("affected = %d, fails = %d, oks = %d, res = %d, errMsg: %s, last insert id = %s", affected, (int) (fail_ok >> 32), (int) fail_ok, res, errMsg, lastRowId.toString());
-            System.out.println();
-        }, (dbHandler, lstData) -> {
+        return sqlite.execute(vData, (db, lstData) -> {
             //rowset data come here
             int last = ra.size() - 1;
             Pair<CDBColumnInfoArray, CDBVariantArray> item = ra.get(last);
             item.second.addAll(lstData);
-        }, (dbHandler) -> {
+        }, (db) -> {
             //rowset header comes here
-            CDBColumnInfoArray vColInfo = dbHandler.getColumnInfo();
+            CDBColumnInfoArray vColInfo = db.getColumnInfo();
             CDBVariantArray v = new CDBVariantArray();
             Pair<CDBColumnInfoArray, CDBVariantArray> item = new Pair<>(vColInfo, v);
             ra.add(item);
         });
     }
 
-    static void TestCreateTables(CSqlite sqlite) {
+    static ArrayList<UFuture<CSqlite.SQLExeInfo>> TestCreateTables(CSqlite sqlite) throws CSocketError {
+        ArrayList<UFuture<CSqlite.SQLExeInfo>> v = new ArrayList<>();
         String create_table = "CREATE TABLE COMPANY(ID INT8 PRIMARY KEY NOT NULL, name CHAR(64) NOT NULL, ADDRESS varCHAR(256) not null, Income float not null)";
-        boolean ok = sqlite.Execute(create_table, (dbHandler, res, errMsg, affected, fail_ok, lastRowId) -> {
-            System.out.format("affected = %d, fails = %d, oks = %d, res = %d, errMsg: %s, last insert id = %s", affected, (int) (fail_ok >> 32), (int) fail_ok, res, errMsg, lastRowId.toString());
-            System.out.println();
-        });
+        v.add(sqlite.execute(create_table));
         create_table = "CREATE TABLE EMPLOYEE(EMPLOYEEID INT8 PRIMARY KEY NOT NULL unique, CompanyId INT8 not null, name NCHAR(64) NOT NULL, JoinDate DATETIME not null default(datetime('now')), IMAGE BLOB, DESCRIPTION NTEXT, Salary real, FOREIGN KEY(CompanyId) REFERENCES COMPANY(id))";
-        ok = sqlite.Execute(create_table, (dbHandler, res, errMsg, affected, fail_ok, lastRowId) -> {
-            System.out.format("affected = %d, fails = %d, oks = %d, res = %d, errMsg: %s, last insert id = %s", affected, (int) (fail_ok >> 32), (int) fail_ok, res, errMsg, lastRowId.toString());
-            System.out.println();
-        });
+        v.add(sqlite.execute(create_table));
+        return v;
     }
 }

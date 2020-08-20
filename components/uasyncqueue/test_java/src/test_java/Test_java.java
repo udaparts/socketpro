@@ -32,8 +32,8 @@ public class Test_java {
                 UFuture<Integer> fs = aq.startQueueTrans(TEST_QUEUE_KEY);
                 TestEnqueue(aq);
                 UFuture<Integer> fe = aq.endQueueTrans();
-                System.out.println("StartTrans: " + fs.get());
-                System.out.println("EndTrans: " + fe.get());
+                System.out.println("StartTrans/res: " + fs.get());
+                System.out.println("EndTrans/res: " + fe.get());
 
                 TestDequeue(aq);
                 aq.WaitAll();
@@ -56,7 +56,7 @@ public class Test_java {
                 System.out.println(ffq.get());
 
                 UFuture<Integer> fec = aq.closeQueue(TEST_QUEUE_KEY);
-                System.out.println("ec: " + fec.get());
+                System.out.println("CloseQueue/res: " + fec.get());
             } catch (CSocketError | CServerError ex) {
                 System.out.println(ex);
             }
@@ -65,8 +65,7 @@ public class Test_java {
         }
     }
 
-    private static boolean TestEnqueue(CAsyncQueue aq) {
-        boolean ok = true;
+    private static void TestEnqueue(CAsyncQueue aq) throws CSocketError {
         System.out.println("Going to enqueue 1024 messages ......");
         for (int n = 0; n < 1024; ++n) {
             String str = n + " Object test";
@@ -83,15 +82,13 @@ public class Test_java {
                     break;
             }
             //enqueue two unicode strings and one int
-            ok = aq.Enqueue(TEST_QUEUE_KEY, idMessage, new CScopeUQueue().Save("SampleName").Save(str).Save(n));
-            if (!ok) {
-                break;
+            if (!aq.Enqueue(TEST_QUEUE_KEY, idMessage, new CScopeUQueue().Save("SampleName").Save(str).Save(n))) {
+                throw new CSocketError(CAsyncQueue.SESSION_CLOSED_BEFORE, "Enqueue", CAsyncQueue.idEnqueue, true);
             }
         }
-        return ok;
     }
 
-    private static void TestDequeue(final CAsyncQueue aq) {
+    private static void TestDequeue(final CAsyncQueue aq) throws CSocketError {
         //prepare callback for parsing messages dequeued from server side
         aq.ResultReturned = (CAsyncServiceHandler sender, short idReq, CUQueue q) -> {
             boolean processed = false;
@@ -129,9 +126,9 @@ public class Test_java {
         };
 
         System.out.println("Going to dequeue message ......");
-        aq.Dequeue(TEST_QUEUE_KEY, d);
-
         //optionally, add one extra to improve processing concurrency at both client and server sides for better performance and through-output
-        aq.Dequeue(TEST_QUEUE_KEY, d);
+        if (!(aq.Dequeue(TEST_QUEUE_KEY, d) && aq.Dequeue(TEST_QUEUE_KEY, d))) {
+            throw new CSocketError(CAsyncQueue.SESSION_CLOSED_BEFORE, "Socket already closed before sending the request Dequeue", CAsyncQueue.idDequeue, true);
+        }
     }
 }

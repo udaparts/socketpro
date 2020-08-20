@@ -5,7 +5,7 @@
 
 typedef CSocketPool<CAsyncQueue, CClientSocket> CMyPool;
 
-bool TestEnqueue(CMyPool::PHandler &sq);
+void TestEnqueue(CMyPool::PHandler &sq);
 void TestDequeue(CMyPool::PHandler &sq);
 
 int main(int argc, char* argv[]) {
@@ -25,23 +25,24 @@ int main(int argc, char* argv[]) {
     }
     auto sq = spSq.Seek();
 
-    //Optionally, you can enqueue messages with transaction style by calling the methods StartQueueTrans and EndQueueTrans in pair
-    sq->StartQueueTrans(TEST_QUEUE_KEY, [](CAsyncQueue *aq, int errCode) {
-        //error code could be one of CAsyncQueue::QUEUE_OK, CAsyncQueue::QUEUE_TRANS_ALREADY_STARTED, ......
-    });
-    bool ok = TestEnqueue(sq);
-
-    //test message batching
-    {
-        SPA::CScopeUQueue sb;
-        CAsyncQueue::BatchMessage(idMessage3, L"Hello", L"World", *sb);
-        CAsyncQueue::BatchMessage(idMessage4, true, 234.456, L"MyTestWhatever", *sb);
-        ok = sq->EnqueueBatch(TEST_QUEUE_KEY, *sb);
-    }
-    ok = sq->EndQueueTrans(false);
-    TestDequeue(sq);
-    ok = sq->WaitAll();
     try{
+        //Optionally, you can enqueue messages with transaction style by calling the methods StartQueueTrans and EndQueueTrans in pair
+        auto fsqt = sq->startQueueTrans(TEST_QUEUE_KEY);
+        TestEnqueue(sq);
+
+        //test message batching
+        {
+            SPA::CScopeUQueue sb;
+            CAsyncQueue::BatchMessage(idMessage3, L"Hello", L"World", *sb);
+            CAsyncQueue::BatchMessage(idMessage4, true, 234.456, L"MyTestWhatever", *sb);
+            if (!sq->EnqueueBatch(TEST_QUEUE_KEY, *sb)) {
+                throw CSocketError(CAsyncQueue::SESSION_CLOSED_BEFORE, L"Socket already closed before sending the request EnqueueBatch", Queue::idEnqueueBatch, true);
+            }
+        }
+        auto feqt = sq->endQueueTrans(false);
+        TestDequeue(sq);
+        sq->WaitAll();
+
         //test GetKeys
         std::future<std::vector < std::string>> fk = sq->getKeys();
 
@@ -50,6 +51,9 @@ int main(int argc, char* argv[]) {
 
         //test CloseQueue
         std::future<int> fc = sq->closeQueue(TEST_QUEUE_KEY);
+
+        std::cout << "StartQueueTrans/res: " << fsqt.get() << std::endl;
+        std::cout << "EndQueueTrans/res: " << feqt.get() << std::endl;
 
         int index = 0;
         auto& v = fk.get();
@@ -64,7 +68,7 @@ int main(int argc, char* argv[]) {
         std::cout << "]" << std::endl;
 
         std::wcout << fq.get().ToString() << std::endl;
-        std::cout << "CloseQueue error code: " << fc.get() << std::endl;
+        std::cout << "CloseQueue/res: " << fc.get() << std::endl;
     }
 
     catch(CServerError & ex) {
@@ -83,8 +87,7 @@ int main(int argc, char* argv[]) {
     return 0;
 }
 
-bool TestEnqueue(CMyPool::PHandler &sq) {
-    bool ok = true;
+void TestEnqueue(CMyPool::PHandler &sq) {
     std::cout << "Going to enqueue 1024 messages ......" << std::endl;
     for (int n = 0; n < 1024; ++n) {
         std::wstring str = std::to_wstring((SPA::UINT64)n) + L" Object test";
@@ -101,11 +104,10 @@ bool TestEnqueue(CMyPool::PHandler &sq) {
                 break;
         }
         //enqueue two unicode strings and one int
-        ok = sq->Enqueue(TEST_QUEUE_KEY, idMessage, L"SampleName", str, n);
-        if (!ok)
-            break;
+        if (!sq->Enqueue(TEST_QUEUE_KEY, idMessage, L"SampleName", str, n)) {
+            throw CSocketError(CAsyncQueue::SESSION_CLOSED_BEFORE, L"Socket already closed before sending the request Enqueue", Queue::idEnqueue, true);
+        }
     }
-    return ok;
 }
 
 void TestDequeue(CMyPool::PHandler &sq) {
@@ -166,8 +168,8 @@ void TestDequeue(CMyPool::PHandler &sq) {
     };
 
     std::cout << "Going to dequeue message ......" << std::endl;
-    bool ok = sq->Dequeue(TEST_QUEUE_KEY, d);
-
-    //optionally, add one extra to improve processing concurrency at both client and server sides for better performance and through-output
-    ok = sq->Dequeue(TEST_QUEUE_KEY, d);
+    //add an extra Dequeue call for better performance
+    if (!(sq->Dequeue(TEST_QUEUE_KEY, d) && sq->Dequeue(TEST_QUEUE_KEY, d))) {
+        throw CSocketError(CAsyncQueue::SESSION_CLOSED_BEFORE, L"Socket already closed before sending the request Dequeue", Queue::idDequeue, true);
+    }
 }

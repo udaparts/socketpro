@@ -17,9 +17,8 @@ class Program
         TEST_QUEUE_KEY = System.Text.Encoding.UTF8.GetBytes("queue_name_0");
     }
 
-    static bool TestEnqueue(CAsyncQueue aq)
+    static void TestEnqueue(CAsyncQueue aq)
     {
-        bool ok = true;
         Console.WriteLine("Going to enqueue 1024 messages ......");
         for (int n = 0; n < 1024; ++n)
         {
@@ -38,11 +37,11 @@ class Program
                     break;
             }
             //enqueue two unicode strings and one int
-            ok = aq.Enqueue(TEST_QUEUE_KEY, idMessage, "SampleName", str, n);
-            if (!ok)
-                break;
+            if (!aq.Enqueue(TEST_QUEUE_KEY, idMessage, "SampleName", str, n))
+            {
+                throw new CSocketError(CAsyncQueue.SESSION_CLOSED_BEFORE, "Socket already closed before sending the request Enqueue", CAsyncQueue.idEnqueue, true);
+            }
         }
-        return ok;
     }
 
     static void TestDequeue(CAsyncQueue aq)
@@ -100,17 +99,18 @@ class Program
         };
 
         Console.WriteLine("Going to dequeue messages ......");
-        bool ok = aq.Dequeue(TEST_QUEUE_KEY, d);
-
         //optionally, add one extra to improve processing concurrency at both client and server sides for better performance and through-output
-        ok = aq.Dequeue(TEST_QUEUE_KEY, d);
+        if (!(aq.Dequeue(TEST_QUEUE_KEY, d) && aq.Dequeue(TEST_QUEUE_KEY, d)))
+        {
+            throw new CSocketError(CAsyncQueue.SESSION_CLOSED_BEFORE, "Socket already closed before sending the request Dequeue", CAsyncQueue.idDequeue, true);
+        }
     }
 
     static void Main(string[] args)
     {
         Console.WriteLine("Remote host: ");
         string host = Console.ReadLine();
-        CConnectionContext cc = new CConnectionContext(host, 20902, "async_queue_client", "pwd_for_async_queue");
+        CConnectionContext cc = new CConnectionContext(host, 20901, "async_queue_client", "pwd_for_async_queue");
         using (CSocketPool<CAsyncQueue> spAq = new CSocketPool<CAsyncQueue>())
         {
             if (!spAq.StartSocketPool(cc, 1))
@@ -121,45 +121,61 @@ class Program
                 return;
             }
             CAsyncQueue aq = spAq.Seek();
-
-            //Optionally, you can enqueue messages with transaction style by calling the methods StartQueueTrans and EndQueueTrans in pair
-            aq.StartQueueTrans(TEST_QUEUE_KEY, (sender, errCode) =>
+            try
             {
-                //error code could be one of CAsyncQueue.QUEUE_OK, CAsyncQueue.QUEUE_TRANS_ALREADY_STARTED, ......
-            });
-            TestEnqueue(aq);
-
-            //test message batching
-            using (CScopeUQueue sb = new CScopeUQueue())
-            {
-                CUQueue q = sb.UQueue;
-                CAsyncQueue.BatchMessage(idMessage3, "Hello", "World", q);
-                CAsyncQueue.BatchMessage(idMessage4, true, 234.456, "MyTestWhatever", q);
-                aq.EnqueueBatch(TEST_QUEUE_KEY, q, (sender, res) =>
+                //Optionally, you can enqueue messages with transaction style by calling the methods StartQueueTrans and EndQueueTrans in pair
+                var fsqt = aq.startQueueTrans(TEST_QUEUE_KEY);
+                TestEnqueue(aq);
+                //test message batching
+                using (CScopeUQueue sb = new CScopeUQueue())
                 {
-                    System.Diagnostics.Debug.Assert(res == 2);
-                });
+                    CUQueue q = sb.UQueue;
+                    CAsyncQueue.BatchMessage(idMessage3, "Hello", "World", q);
+                    CAsyncQueue.BatchMessage(idMessage4, true, 234.456, "MyTestWhatever", q);
+                    if (!aq.EnqueueBatch(TEST_QUEUE_KEY, q))
+                    {
+                        throw new CSocketError(CAsyncQueue.SESSION_CLOSED_BEFORE, "Socket already closed before sending the request EnqueueBatch", CAsyncQueue.idEnqueueBatch, true);
+                    }
+                }
+                var feqt = aq.endQueueTrans(false);
+                TestDequeue(aq);
+                aq.WaitAll();
+                //get a queue key two parameters, message count and queue file size by default option oMemoryCached
+                var ffq = aq.flushQueue(TEST_QUEUE_KEY);
+                var fgk = aq.getKeys();
+                var fcq = aq.closeQueue(TEST_QUEUE_KEY);
+                Console.WriteLine("StartQueueTrans/res: " + fsqt.Result);
+                Console.WriteLine("EndQueueTrans/res: " + feqt.Result);
+                Console.WriteLine(ffq.Result);
+                int index = 0;
+                Console.Write("[");
+                string[] keys = fgk.Result;
+                foreach(string k in keys)
+                {
+                    if (index != 0) Console.Write(",");
+                    Console.Write(k);
+                }
+                Console.WriteLine("]");
+                Console.WriteLine("CloseQueue/res: " + fcq.Result);
             }
-            aq.EndQueueTrans(false);
-            TestDequeue(aq);
-            aq.WaitAll();
-
-            //get a queue key two parameters, message count and queue file size by default option oMemoryCached
-            aq.FlushQueue(TEST_QUEUE_KEY, (sender, messageCount, fileSize) =>
+            catch (AggregateException ex)
             {
-                Console.WriteLine("Total message count={0}, queue file size={1}", messageCount, fileSize);
-            });
-
-            aq.GetKeys((sender, keys) =>
+                foreach (Exception e in ex.InnerExceptions)
+                {
+                    //An exception from server (CServerError), Socket closed after sending a request (CSocketError) or request canceled (CSocketError),
+                    Console.WriteLine(e);
+                }
+            }
+            catch (CSocketError ex)
             {
-                keys = null;
-            });
-
-            aq.CloseQueue(TEST_QUEUE_KEY, (sender, errCode) =>
+                //Socket is already closed before sending a request
+                Console.WriteLine(ex);
+            }
+            catch (Exception ex)
             {
-                //error code could be one of CAsyncQueue.QUEUE_OK, CAsyncQueue.QUEUE_TRANS_ALREADY_STARTED, ......
-            });
-
+                //bad operations such as invalid arguments, bad operations and de-serialization errors, and so on
+                Console.WriteLine(ex);
+            }
             Console.WriteLine("Press any key to close the application ......");
             Console.Read();
         }
