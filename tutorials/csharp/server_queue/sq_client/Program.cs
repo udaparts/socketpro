@@ -1,7 +1,7 @@
 ﻿using System;
 using SocketProAdapter;
 using SocketProAdapter.ClientSide;
-
+using System.Threading.Tasks;
 class Program
 {
     static byte[] TEST_QUEUE_KEY;
@@ -14,9 +14,8 @@ class Program
         TEST_QUEUE_KEY = System.Text.Encoding.UTF8.GetBytes("queue_name_0");
     }
 
-    static bool TestEnqueue(CAsyncQueue aq)
+    static void TestEnqueue(CAsyncQueue aq)
     {
-        bool ok = true;
         Console.WriteLine("Going to enqueue 1024 messages ......");
         for (int n = 0; n < 1024; ++n)
         {
@@ -35,14 +34,14 @@ class Program
                     break;
             }
             //enqueue two unicode strings and one int
-            ok = aq.Enqueue(TEST_QUEUE_KEY, idMessage, "SampleName", str, n);
-            if (!ok)
-                break;
+            if (!aq.Enqueue(TEST_QUEUE_KEY, idMessage, "SampleName", str, n))
+            {
+                throw new CSocketError(CAsyncQueue.SESSION_CLOSED_BEFORE, "Socket already closed before sending the request Enqueue", CAsyncQueue.idEnqueue, true);
+            }
         }
-        return ok;
     }
 
-    static void TestDequeue(CAsyncQueue aq)
+    static Task<CAsyncQueue.DeqInfo> TestDequeue(CAsyncQueue aq)
     {
         //prepare callback for parsing messages dequeued from server side
         aq.ResultReturned += (sender, idReq, q) =>
@@ -69,22 +68,35 @@ class Program
             return processed;
         };
 
+        TaskCompletionSource<CAsyncQueue.DeqInfo> tcs = new TaskCompletionSource<CAsyncQueue.DeqInfo>();
+        CAsyncQueue.DDiscarded aborted = CAsyncQueue.get_aborted(tcs, "Dequeue", CAsyncQueue.idDequeue);
+        CAsyncQueue.DOnExceptionFromServer se = CAsyncQueue.get_se(tcs);
+
         //prepare a callback for processing returned result of dequeue request
-        CAsyncQueue.DDequeue d = (asyncqueue, messageCount, fileSize, messages, bytes) =>
+        CAsyncQueue.DDequeue d = (asyncq, messageCount, fileSize, messages, bytes) =>
         {
-            Console.WriteLine("Total message count={0}, queue file size={1}, messages dequeued={2}, message bytes dequeued={3}", messageCount, fileSize, messages, bytes);
+            if (messages > 0)
+            {
+                Console.WriteLine("Total message count={0}, queue file size={1}, messages dequeued={2}, message bytes dequeued={3}", messageCount, fileSize, messages, bytes);
+            }
             if (messageCount > 0)
             {
                 //there are more messages left at server queue, we re-send a request to dequeue
-                asyncqueue.Dequeue(TEST_QUEUE_KEY, asyncqueue.LastDequeueCallback);
+                asyncq.Dequeue(TEST_QUEUE_KEY, asyncq.LastDequeueCallback, 0, aborted, se);
+            }
+            else
+            {
+                tcs.TrySetResult(new CAsyncQueue.DeqInfo(messageCount, fileSize, messages, bytes));
             }
         };
 
         Console.WriteLine("Going to dequeue messages ......");
-        bool ok = aq.Dequeue(TEST_QUEUE_KEY, d);
-
         //optionally, add one extra to improve processing concurrency at both client and server sides for better performance and through-output
-        ok = aq.Dequeue(TEST_QUEUE_KEY, d);
+        if (!(aq.Dequeue(TEST_QUEUE_KEY, d, 0, aborted, se) && aq.Dequeue(TEST_QUEUE_KEY, d, 0, aborted, se)))
+        {
+            aq.raise("Dequeue", CAsyncQueue.idDequeue);
+        }
+        return tcs.Task;
     }
 
     static void Main(string[] args)
@@ -102,10 +114,29 @@ class Program
                 return;
             }
             CAsyncQueue aq = spAq.Seek();
-
-            TestEnqueue(aq);
-            TestDequeue(aq);
-
+            try
+            {
+                TestEnqueue(aq);
+                Console.WriteLine(TestDequeue(aq).Result);
+            }
+            catch (AggregateException ex)
+            {
+                foreach (Exception e in ex.InnerExceptions)
+                {
+                    //An exception from server (CServerError), Socket closed after sending a request (CSocketError) or request canceled (CSocketError),
+                    Console.WriteLine(e);
+                }
+            }
+            catch (CSocketError ex)
+            {
+                //Socket is already closed before sending a request
+                Console.WriteLine(ex);
+            }
+            catch (Exception ex)
+            {
+                //bad operations such as invalid arguments, bad operations and de-serialization errors, and so on
+                Console.WriteLine(ex);
+            }
             Console.WriteLine("Press key ENTER to close the application ......");
             Console.ReadLine();
         }

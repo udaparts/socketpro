@@ -5,8 +5,8 @@
 #define TEST_QUEUE_KEY  "queue_name_0"
 
 typedef CSocketPool<CAsyncQueue, CClientSocket> CMyPool;
-bool TestEnqueue(CMyPool::PHandler &sq);
-void TestDequeue(CMyPool::PHandler &sq);
+void TestEnqueue(CMyPool::PHandler &sq);
+std::future<CAsyncQueue::DeqInfo> TestDequeue(CMyPool::PHandler &sq);
 
 int main(int argc, char* argv[]) {
     CConnectionContext cc;
@@ -23,17 +23,28 @@ int main(int argc, char* argv[]) {
         return 1;
     }
     auto sq = spSq.Seek();
+    try{
+        TestEnqueue(sq);
+        std::wcout << TestDequeue(sq).get().ToString() << std::endl;
+    }
 
-    bool ok = TestEnqueue(sq);
-    TestDequeue(sq);
+    catch(CServerError & ex) {
+        std::wcout << ex.ToString() << std::endl;
+    }
 
+    catch(CSocketError & ex) {
+        std::wcout << ex.ToString() << std::endl;
+    }
+
+    catch(std::exception & ex) {
+        std::wcout << "Some unexpected error: " << ex.what() << std::endl;
+    }
     std::cout << "Press a key to complete dequeuing messages from server ......" << std::endl;
     ::getchar();
     return 0;
 }
 
-bool TestEnqueue(CMyPool::PHandler &sq) {
-    bool ok = true;
+void TestEnqueue(CMyPool::PHandler &sq) {
     std::cout << "Going to enqueue 1024 messages ......" << std::endl;
     for (int n = 0; n < 1024; ++n) {
         std::wstring str = std::to_wstring((SPA::UINT64)n) + L" Object test";
@@ -50,14 +61,13 @@ bool TestEnqueue(CMyPool::PHandler &sq) {
                 break;
         }
         //enqueue two unicode strings and one int
-        ok = sq->Enqueue(TEST_QUEUE_KEY, idMessage, L"SampleName", str, n);
-        if (!ok)
-            break;
+        if (!sq->Enqueue(TEST_QUEUE_KEY, idMessage, L"SampleName", str, n)) {
+            throw CSocketError(CAsyncQueue::SESSION_CLOSED_BEFORE, L"Session already closed before sending the request Enqueue", Queue::idEnqueue, true);
+        }
     }
-    return ok;
 }
 
-void TestDequeue(CMyPool::PHandler &sq) {
+std::future<CAsyncQueue::DeqInfo> TestDequeue(CMyPool::PHandler &sq) {
     //prepare callback for parsing messages dequeued from server side
     sq->ResultReturned = [](CAsyncServiceHandler *sender, unsigned short idReq, CUQueue & q) -> bool {
         bool processed = false;
@@ -82,23 +92,35 @@ void TestDequeue(CMyPool::PHandler &sq) {
         }
         return processed;
     };
-
+    std::shared_ptr<std::promise<CAsyncQueue::DeqInfo> > prom(new std::promise<CAsyncQueue::DeqInfo>);
+    auto aborted = CAsyncQueue::get_aborted(prom, L"Dequeue", Queue::idDequeue);
+    auto se = CAsyncQueue::get_se(prom);
     //prepare a callback for processing returned result of dequeue request
-    CAsyncQueue::DDequeue d = [](CAsyncQueue *aq, SPA::UINT64 messageCount, SPA::UINT64 fileSize, unsigned int messages, unsigned int bytes) {
-        std::cout << "Total message count=" << messageCount
-                << ", queue file size=" << fileSize
-                << ", messages dequeued=" << messages
-                << ", message bytes dequeued=" << bytes
-                << std::endl;
+    CAsyncQueue::DDequeue d = [prom, aborted, se](CAsyncQueue *aq, SPA::UINT64 messageCount, SPA::UINT64 fileSize, unsigned int messages, unsigned int bytes) {
+        if (bytes) {
+            std::cout << "Total message count=" << messageCount
+                    << ", queue file size=" << fileSize
+                    << ", messages dequeued=" << messages
+                    << ", message bytes dequeued=" << bytes
+                    << std::endl;
+        }
         if (messageCount > 0) {
             //there are more messages left at server queue, we re-send a request to dequeue
-            aq->Dequeue(TEST_QUEUE_KEY, aq->GetLastDequeueCallback());
+            aq->Dequeue(TEST_QUEUE_KEY, aq->GetLastDequeueCallback(), 0, aborted, se);
+        } else {
+            try{
+                prom->set_value(CAsyncQueue::DeqInfo(messageCount, fileSize, messages, bytes));
+            }
+
+            catch(std::future_error&) {
+                //ignore it
+            }
         }
     };
-
     std::cout << "Going to dequeue message ......" << std::endl;
-    bool ok = sq->Dequeue(TEST_QUEUE_KEY, d);
-
     //optionally, add one extra to improve processing concurrency at both client and server sides for better performance and through-output
-    ok = sq->Dequeue(TEST_QUEUE_KEY, d);
+    if (!(sq->Dequeue(TEST_QUEUE_KEY, d, 0, aborted, se) && sq->Dequeue(TEST_QUEUE_KEY, d, 0, aborted, se))) {
+        sq->raise(L"Dequeue", Queue::idDequeue);
+    }
+    return prom->get_future();
 }

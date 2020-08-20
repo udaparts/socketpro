@@ -27,15 +27,22 @@ public class Program {
                 in.nextLine();
                 return;
             }
-            TestEnqueue(aq);
-            TestDequeue(aq);
+            try {
+                TestEnqueue(aq);
+                UFuture<CAsyncQueue.DeqInfo> f = TestDequeue(aq);
+                System.out.println(f.get());
+            } catch (CSocketError | CServerError ex) {
+                System.out.println(ex);
+            } catch (Exception ex) {
+                //bad parameter
+                System.out.println("Unexpected error: " + ex.getMessage());
+            }
             System.out.println("Press a key to complete dequeuing messages from server ......");
             in.nextLine();
         }
     }
 
-    private static boolean TestEnqueue(CAsyncQueue aq) {
-        boolean ok = true;
+    private static void TestEnqueue(CAsyncQueue aq) throws CSocketError {
         System.out.println("Going to enqueue 1024 messages ......");
         for (int n = 0; n < 1024; ++n) {
             String str = n + " Object test";
@@ -52,15 +59,13 @@ public class Program {
                     break;
             }
             //enqueue two unicode strings and one int
-            ok = aq.Enqueue(TEST_QUEUE_KEY, idMessage, new CScopeUQueue().Save("SampleName").Save(str).Save(n));
-            if (!ok) {
-                break;
+            if (!aq.Enqueue(TEST_QUEUE_KEY, idMessage, new CScopeUQueue().Save("SampleName").Save(str).Save(n))) {
+                throw new CSocketError(CAsyncQueue.SESSION_CLOSED_BEFORE, "Socket already closed before sending the request Enqueue", CAsyncQueue.idEnqueue, true);
             }
         }
-        return ok;
     }
 
-    private static void TestDequeue(CAsyncQueue aq) {
+    private static UFuture<CAsyncQueue.DeqInfo> TestDequeue(CAsyncQueue aq) throws CSocketError {
         //prepare callback for parsing messages dequeued from server side
         aq.ResultReturned = (sender, idReq, q) -> {
             boolean processed = false;
@@ -85,22 +90,30 @@ public class Program {
             return processed;
         };
 
+        UFuture<CAsyncQueue.DeqInfo> f = new UFuture<>("Dequeue", CAsyncQueue.idDequeue, aq);
+        CAsyncQueue.DDiscarded aborted = CAsyncQueue.get_aborted(f);
+        CAsyncQueue.DOnExceptionFromServer se = CAsyncQueue.get_se(f);
+
         //prepare a callback for processing returned result of dequeue request
-        CAsyncQueue.DDequeue d = (asyncqueue, messageCount, fileSize, messagesDequeuedInBatch, bytesDequeuedInBatch) -> {
-            System.out.print("Total message count=" + messageCount);
-            System.out.print(", queue file size=" + fileSize);
-            System.out.print(", messages dequeued=" + messagesDequeuedInBatch);
-            System.out.println(", message bytes dequeued=" + bytesDequeuedInBatch);
-            if (messageCount > 0) {
+        CAsyncQueue.DDequeue d = (asyncq, messages, fileSize, msgs_dequeued, bytes) -> {
+            if (bytes > 0) {
+                System.out.print("Total message count=" + messages);
+                System.out.print(", queue file size=" + fileSize);
+                System.out.print(", messages dequeued=" + msgs_dequeued);
+                System.out.println(", message bytes dequeued=" + bytes);
+            }
+            if (messages > 0) {
                 //there are more messages left at server queue, we re-send a request to dequeue
-                asyncqueue.Dequeue(TEST_QUEUE_KEY, asyncqueue.getLastDequeueCallback());
+                asyncq.Dequeue(TEST_QUEUE_KEY, asyncq.getLastDequeueCallback(), 0, aborted, se);
+            } else {
+                f.set(asyncq.new DeqInfo(messages, fileSize, msgs_dequeued, bytes));
             }
         };
-
         System.out.println("Going to dequeue message ......");
-        boolean ok = aq.Dequeue(TEST_QUEUE_KEY, d);
-
         //optionally, add one extra to improve processing concurrency at both client and server sides for better performance and through-output
-        ok = aq.Dequeue(TEST_QUEUE_KEY, d);
+        if (!(aq.Dequeue(TEST_QUEUE_KEY, d, 0, aborted, se) && aq.Dequeue(TEST_QUEUE_KEY, d, 0, aborted, se))) {
+            aq.raise(f);
+        }
+        return f;
     }
 }
