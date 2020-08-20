@@ -159,128 +159,129 @@ namespace SPA {
                     assert(vtData.parray->rgsabound[0].lLbound == 0);
                     const unsigned char *pBuffer = nullptr;
                     unsigned int size = vtData.parray->rgsabound->cElements;
-                    assert(size);
                     Insert((const unsigned char*) &size, sizeof (size), position);
                     position += sizeof (size);
-                    SafeArrayAccessData(vtData.parray, (void**) &pBuffer);
-                    assert(pBuffer);
-                    if (!pBuffer) {
-                        throw CUSEx("Bad pointer to variant array data");
-                    }
-                    switch (vtData.vt) {
-                        case (VT_UI1 | VT_ARRAY):
-                            Insert(pBuffer, size * sizeof (char), position);
-                            break;
-                        case (VT_I1 | VT_ARRAY):
-                            Insert(pBuffer, size * sizeof (unsigned char), position);
-                            break;
-                        case (VT_I2 | VT_ARRAY):
-                            Insert(pBuffer, size * sizeof (short), position);
-                            break;
-                        case (VT_UI2 | VT_ARRAY):
-                            Insert(pBuffer, size * sizeof (unsigned short), position);
-                            break;
-                        case (VT_I4 | VT_ARRAY):
-                            Insert(pBuffer, size * sizeof (int), position);
-                            break;
-                        case (VT_UI4 | VT_ARRAY):
-                            Insert(pBuffer, size * sizeof (unsigned int), position);
-                            break;
-                        case (VT_R4 | VT_ARRAY):
-                            Insert(pBuffer, size * sizeof (float), position);
-                            break;
-                        case (VT_R8 | VT_ARRAY):
-                            Insert(pBuffer, size * sizeof (double), position);
-                            break;
-                        case (VT_CY | VT_ARRAY):
-                            Insert(pBuffer, size * sizeof (CY), position);
-                            break;
-                        case (VT_DATE | VT_ARRAY):
-                        {
-                            CScopeUQueue su;
+                    if (size) {
+                        SafeArrayAccessData(vtData.parray, (void**) &pBuffer);
+                        assert(pBuffer);
+                        if (!pBuffer) {
+                            throw CUSEx("Bad pointer to variant array data");
+                        }
+                        switch (vtData.vt) {
+                            case (VT_UI1 | VT_ARRAY):
+                                Insert(pBuffer, size * sizeof (char), position);
+                                break;
+                            case (VT_I1 | VT_ARRAY):
+                                Insert(pBuffer, size * sizeof (unsigned char), position);
+                                break;
+                            case (VT_I2 | VT_ARRAY):
+                                Insert(pBuffer, size * sizeof (short), position);
+                                break;
+                            case (VT_UI2 | VT_ARRAY):
+                                Insert(pBuffer, size * sizeof (unsigned short), position);
+                                break;
+                            case (VT_I4 | VT_ARRAY):
+                                Insert(pBuffer, size * sizeof (int), position);
+                                break;
+                            case (VT_UI4 | VT_ARRAY):
+                                Insert(pBuffer, size * sizeof (unsigned int), position);
+                                break;
+                            case (VT_R4 | VT_ARRAY):
+                                Insert(pBuffer, size * sizeof (float), position);
+                                break;
+                            case (VT_R8 | VT_ARRAY):
+                                Insert(pBuffer, size * sizeof (double), position);
+                                break;
+                            case (VT_CY | VT_ARRAY):
+                                Insert(pBuffer, size * sizeof (CY), position);
+                                break;
+                            case (VT_DATE | VT_ARRAY):
+                            {
+                                CScopeUQueue su;
 #ifndef _WIN32_WCE
-                            static_assert(sizeof (UDateTime) == 8, "Bad UDateTime size");
+                                static_assert(sizeof (UDateTime) == 8, "Bad UDateTime size");
 #endif
-                            unsigned int max = size * sizeof (UDateTime);
-                            if (max > su->GetMaxSize()) {
-                                su->ReallocBuffer(max);
-                            }
-                            UDateTime *udt = (UDateTime*) su->GetBuffer();
+                                unsigned int max = size * sizeof (UDateTime);
+                                if (max > su->GetMaxSize()) {
+                                    su->ReallocBuffer(max);
+                                }
+                                UDateTime* udt = (UDateTime*) su->GetBuffer();
 #ifdef WIN32_64
-                            if (m_TimeEx) {
-                                memcpy(udt, pBuffer, max);
-                            } else {
-                                DATE *vd = (DATE*) pBuffer;
-                                for (unsigned int n = 0; n < size; ++n) {
-                                    udt[n].Set(vd[n]);
+                                if (m_TimeEx) {
+                                    memcpy(udt, pBuffer, max);
+                                } else {
+                                    DATE* vd = (DATE*) pBuffer;
+                                    for (unsigned int n = 0; n < size; ++n) {
+                                        udt[n].Set(vd[n]);
+                                    }
                                 }
-                            }
 #else
-                            memcpy(udt, pBuffer, max);
+                                memcpy(udt, pBuffer, max);
 #endif
-                            Insert(su->GetBuffer(), size * sizeof (UDateTime), position);
-                        }
-                            break;
-                        case (VT_BOOL | VT_ARRAY):
-                            Insert(pBuffer, size * sizeof (VARIANT_BOOL), position);
-                            break;
-                        case (VT_VARIANT | VT_ARRAY):
-                        {
-                            unsigned int ul;
-                            VARIANT *pvt = (VARIANT *) pBuffer;
-                            if (position >= GetSize()) {
-                                for (ul = 0; ul < size; ++ul) {
-                                    Push(pvt[ul]);
-                                }
-                            } else {
-                                CScopeUQueue su(m_os, IsBigEndian());
-                                CUQueue &UQueue = *su;
-                                for (ul = 0; ul < size; ++ul) {
-                                    UQueue.Push(pvt[ul]);
-                                }
-                                Insert(UQueue.GetBuffer(), UQueue.GetSize(), position);
+                                Insert(su->GetBuffer(), size * sizeof (UDateTime), position);
                             }
-                        }
-                            break;
-                        case (VT_BSTR | VT_ARRAY):
-                        {
-                            unsigned int ul;
-                            BSTR *pbstr = (BSTR *) pBuffer;
-                            if (position >= GetSize()) {
-                                for (ul = 0; ul < size; ++ul) {
-                                    (*this) << pbstr[ul];
+                                break;
+                            case (VT_BOOL | VT_ARRAY):
+                                Insert(pBuffer, size * sizeof (VARIANT_BOOL), position);
+                                break;
+                            case (VT_VARIANT | VT_ARRAY):
+                            {
+                                unsigned int ul;
+                                VARIANT* pvt = (VARIANT*) pBuffer;
+                                if (position >= GetSize()) {
+                                    for (ul = 0; ul < size; ++ul) {
+                                        Push(pvt[ul]);
+                                    }
+                                } else {
+                                    CScopeUQueue su(m_os, IsBigEndian());
+                                    CUQueue& UQueue = *su;
+                                    for (ul = 0; ul < size; ++ul) {
+                                        UQueue.Push(pvt[ul]);
+                                    }
+                                    Insert(UQueue.GetBuffer(), UQueue.GetSize(), position);
                                 }
-                            } else {
-                                CScopeUQueue su(m_os, IsBigEndian());
-                                CUQueue &q = *su;
-                                for (ul = 0; ul < size; ++ul) {
-                                    q << pbstr[ul];
-                                }
-                                Insert(q.GetBuffer(), q.GetSize(), position);
                             }
+                                break;
+                            case (VT_BSTR | VT_ARRAY):
+                            {
+                                unsigned int ul;
+                                BSTR* pbstr = (BSTR*) pBuffer;
+                                if (position >= GetSize()) {
+                                    for (ul = 0; ul < size; ++ul) {
+                                        (*this) << pbstr[ul];
+                                    }
+                                } else {
+                                    CScopeUQueue su(m_os, IsBigEndian());
+                                    CUQueue& q = *su;
+                                    for (ul = 0; ul < size; ++ul) {
+                                        q << pbstr[ul];
+                                    }
+                                    Insert(q.GetBuffer(), q.GetSize(), position);
+                                }
+                            }
+                                break;
+                            case (VT_DECIMAL | VT_ARRAY):
+                                Insert(pBuffer, size * sizeof (DECIMAL), position);
+                                break;
+                            case (VT_INT | VT_ARRAY):
+                                Insert(pBuffer, size * sizeof (int), position);
+                                break;
+                            case (VT_UINT | VT_ARRAY):
+                                Insert(pBuffer, size * sizeof (unsigned int), position);
+                                break;
+                            case (VT_I8 | VT_ARRAY):
+                                Insert(pBuffer, size * sizeof (INT64), position);
+                                break;
+                            case (VT_UI8 | VT_ARRAY):
+                                Insert(pBuffer, size * sizeof (UINT64), position);
+                                break;
+                            default:
+                                SafeArrayUnaccessData(vtData.parray);
+                                throw CUExCode("Unsupported data type for serialization", MB_SERIALIZATION_NOT_SUPPORTED);
+                                break;
                         }
-                            break;
-                        case (VT_DECIMAL | VT_ARRAY):
-                            Insert(pBuffer, size * sizeof (DECIMAL), position);
-                            break;
-                        case (VT_INT | VT_ARRAY):
-                            Insert(pBuffer, size * sizeof (int), position);
-                            break;
-                        case (VT_UINT | VT_ARRAY):
-                            Insert(pBuffer, size * sizeof (unsigned int), position);
-                            break;
-                        case (VT_I8 | VT_ARRAY):
-                            Insert(pBuffer, size * sizeof (INT64), position);
-                            break;
-                        case (VT_UI8 | VT_ARRAY):
-                            Insert(pBuffer, size * sizeof (UINT64), position);
-                            break;
-                        default:
-                            SafeArrayUnaccessData(vtData.parray);
-                            throw CUExCode("Unsupported data type for serialization", MB_SERIALIZATION_NOT_SUPPORTED);
-                            break;
+                        SafeArrayUnaccessData(vtData.parray);
                     }
-                    SafeArrayUnaccessData(vtData.parray);
                 } else {
                     throw CUExCode("Unsupported data type for serialization", MB_SERIALIZATION_NOT_SUPPORTED);
                 }

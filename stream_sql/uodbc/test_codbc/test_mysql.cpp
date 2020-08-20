@@ -75,9 +75,9 @@ int main(int argc, char* argv[]) {
     ok = pOdbc->Execute(u"delete from company", er);
     TestPreparedStatements(pOdbc);
     InsertBLOBByPreparedStatement(pOdbc);
-    ok = pOdbc->Execute(L"SELECT * from company", er, r, rh);
-    ok = pOdbc->Execute(L"select * from employee", er, r, rh);
-    ok = pOdbc->Execute(L"select curtime()", er, r, rh);
+    ok = pOdbc->Execute(u"SELECT * from company", er, r, rh);
+    ok = pOdbc->Execute(u"select * from employee", er, r, rh);
+    ok = pOdbc->Execute(u"select curtime()", er, r, rh);
 
     unsigned int oks = 0;
     CDBVariantArray vPData;
@@ -88,12 +88,12 @@ int main(int argc, char* argv[]) {
 
     CDBVariantArray vData;
     TestBatch(pOdbc, ra, vData, oks);
-    ok = pOdbc->Tables(L"sakila", L"", L"%", L"TABLE", er, r, rh);
+    ok = pOdbc->Tables(u"sakila", u"", u"%", u"TABLE", er, r, rh);
     ok = pOdbc->WaitAll();
     std::cout << std::endl;
     std::cout << "There are " << pOdbc->GetOutputs() * oks << " output data returned" << std::endl;
 
-    ok = pOdbc->Execute(L"use sakila", er);
+    ok = pOdbc->Execute(u"use sakila", er);
     auto pTables = ra.back();
     size_t columns = pTables.first.size();
     size_t tables = pTables.second.size() / pTables.first.size();
