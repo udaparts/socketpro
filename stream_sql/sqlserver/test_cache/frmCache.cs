@@ -1,5 +1,4 @@
-﻿
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -60,7 +59,7 @@ namespace test_cache
             }
         }
 
-        private void btnConnect_Click(object sender, EventArgs e)
+        private async void btnConnect_Click(object sender, EventArgs e)
         {
             CConnectionContext cc = new CConnectionContext(txtHost.Text, 20903, txtUser.Text, txtPassword.Text);
             m_spSql = new CSocketPool<COdbc>(false);
@@ -79,18 +78,12 @@ namespace test_cache
             m_spSql.Sockets[0].Push.OnPublish += new DOnPublish(Push_OnPublish);
 
             //create a DB session with default to sample database sakila
-            bool ok = sql.Open("sakila", null, DB_CONSTS.ENABLE_TABLE_UPDATE_MESSAGES);
+            var tOpen = sql.open("sakila", DB_CONSTS.ENABLE_TABLE_UPDATE_MESSAGES);
 
             m_ds = new DataSet("real-time cache");
             DataTable dt = null;
-            string errMsg = "";
             //query all cached tables into client side for intial cache data
-            ok = sql.Execute("", (h, ret, err_msg, affected, fail_ok, id) =>
-            {
-                //this callback is fired from worker thread from socket pool thread
-                ok = (ret == 0);
-                errMsg = err_msg;
-            }, (h, data) =>
+            var res = await sql.execute("", (h, data) =>
             {
                 //this callback is fired from worker thread from socket pool thread
                 COdbc.AppendRowDataIntoDataTable(data, dt);
@@ -102,8 +95,7 @@ namespace test_cache
                 dt.TableName = name;
                 m_ds.Tables.Add(dt);
             });
-            ok = sql.WaitAll();
-            txtMessage.Text = errMsg;
+            txtMessage.Text = res.em;
             lstTables.Items.Clear();
             foreach (DataTable table in m_ds.Tables)
             {
@@ -113,8 +105,8 @@ namespace test_cache
             {
                 lstTables.SelectedIndex = 0;
             }
-            btnDisconnect.Enabled = ok;
-            btnConnect.Enabled = !ok;
+            btnDisconnect.Enabled = (res.ec == 0);
+            btnConnect.Enabled = (res.ec != 0);
         }
 
         static DataRow FindRowByKeys(DataTable dt, List<KeyValuePair<DataColumn, object>> vKey, tagUpdateEvent ue, out string filter)

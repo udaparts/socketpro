@@ -1,22 +1,21 @@
-﻿
-
-#include "stdafx.h"
+﻿#include "stdafx.h"
 #include <iostream>
 #include "../../../include/mysql/umysql.h"
 
 using namespace SPA::UDB;
 
 typedef SPA::ClientSide::CAsyncDBHandler<SPA::Mysql::sidMysql> CMyHandler;
+typedef std::future<CMyHandler::SQLExeInfo> CSqlFuture;
 typedef SPA::ClientSide::CSocketPool<CMyHandler> CMyPool;
 typedef SPA::ClientSide::CConnectionContext CMyConnContext;
 typedef std::pair<CDBColumnInfoArray, CDBVariantArray> CPColumnRowset;
 typedef std::vector<CPColumnRowset> CRowsetArray;
 
-void TestCreateTables(std::shared_ptr<CMyHandler> pMysql);
-void TestPreparedStatements(std::shared_ptr<CMyHandler> pMysql);
-void InsertBLOBByPreparedStatement(std::shared_ptr<CMyHandler> pMysql);
-void TestStoredProcedure(std::shared_ptr<CMyHandler> pMysql, CRowsetArray&ra, CDBVariantArray &vPData, unsigned int &oks);
-void TestBatch(std::shared_ptr<CMyHandler> pMysql, CRowsetArray&ra, CDBVariantArray &vData, unsigned int &oks);
+std::vector<CSqlFuture> TestCreateTables(std::shared_ptr<CMyHandler> pMysql);
+CSqlFuture TestPreparedStatements(std::shared_ptr<CMyHandler> pMysql);
+CSqlFuture InsertBLOBByPreparedStatement(std::shared_ptr<CMyHandler> pMysql);
+CSqlFuture TestStoredProcedure(std::shared_ptr<CMyHandler> pMysql, CRowsetArray&ra, CDBVariantArray &vPData);
+CSqlFuture TestBatch(std::shared_ptr<CMyHandler> pMysql, CRowsetArray&ra, CDBVariantArray &vData);
 
 int main(int argc, char* argv[]) {
     CMyConnContext cc;
@@ -35,8 +34,7 @@ int main(int argc, char* argv[]) {
 #else
     CMyPool spMysql;
 #endif
-    bool ok = spMysql.StartSocketPool(cc, 1);
-    if (!ok) {
+    if (!spMysql.StartSocketPool(cc, 1)) {
         std::cout << "Failed in connecting to remote async mysql server" << std::endl;
         std::cout << "Press any key to close the application ......" << std::endl;
         ::getchar();
@@ -46,21 +44,6 @@ int main(int argc, char* argv[]) {
 
     //optionally start a persistent queue at client side for auto failure recovery and once-only delivery
     //ok = pMysql->GetSocket()->GetClientQueue().StartQueue("sqlite", 24 * 3600, false); //time-to-live 1 day and true for encryption
-
-    CMyHandler::DResult dr = [](CMyHandler &handler, int res, const std::wstring & errMsg) {
-        std::cout << "res = " << res;
-        std::wcout << L", errMsg: " << errMsg << std::endl;
-    };
-
-    CMyHandler::DExecuteResult er = [](CMyHandler &handler, int res, const std::wstring &errMsg, SPA::INT64 affected, SPA::UINT64 fail_ok, CDBVariant & vtId) {
-        std::cout << "affected = " << affected << ", fails = " << (unsigned int) (fail_ok >> 32) << ", oks = " << (unsigned int) fail_ok << ", res = " << res << ", errMsg: ";
-        std::wcout << errMsg;
-        if (!res) {
-            std::cout << ", last insert id = ";
-            std::cout << vtId.llVal;
-        }
-        std::cout << std::endl;
-    };
 
     CRowsetArray ra;
     CMyHandler::DRows r = [&ra](CMyHandler &handler, CDBVariantArray & vData) {
@@ -80,50 +63,74 @@ int main(int argc, char* argv[]) {
         column_rowset_pair.first = vColInfo;
         ra.push_back(column_rowset_pair);
     };
+
+    try{
 #ifdef FOR_MIDDLE_SERVER
-    ok = pMysql->Open(L"mysqldb", dr);
+        auto fopen = pMysql->open(u"mysqldb");
 #else
-    ok = pMysql->Open(L"", dr);
+        auto fopen = pMysql->open(u"");
 #endif
-    TestCreateTables(pMysql);
-    ok = pMysql->Execute(L"delete from employee;delete from company", er);
-    TestPreparedStatements(pMysql);
-    InsertBLOBByPreparedStatement(pMysql);
-    ok = pMysql->Execute(L"SELECT * from company;select * from employee;select curtime()", er, r, rh);
-    CDBVariantArray vPData;
-    unsigned int oks = 0;
-    TestStoredProcedure(pMysql, ra, vPData, oks);
-    pMysql->WaitAll();
-    std::cout << std::endl;
-    std::cout << "There are " << pMysql->GetOutputs() * oks << " output data returned" << std::endl;
-
-    CDBVariantArray vData;
-    TestBatch(pMysql, ra, vData, oks);
-    ok = pMysql->WaitAll();
-    std::cout << std::endl;
-    std::cout << "There are " << pMysql->GetOutputs() * oks << " output data returned" << std::endl;
-
-    //print out all received rowsets
-    int index = 0;
-    std::cout << std::endl;
-    std::cout << "+++++ Start rowsets +++" << std::endl;
-    for (auto it = ra.begin(), end = ra.end(); it != end; ++it) {
-        std::cout << "Statement index = " << index;
-        if (it->first.size()) {
-            std::cout << ", rowset with columns = " << it->first.size() << ", records = " << it->second.size() / it->first.size() << "." << std::endl;
-        } else {
-            std::cout << ", no rowset received." << std::endl;
+        auto vF = TestCreateTables(pMysql);
+        auto fD = pMysql->execute(L"delete from employee;delete from company");
+        auto fP0 = TestPreparedStatements(pMysql);
+        auto fP1 = InsertBLOBByPreparedStatement(pMysql);
+        auto fS = pMysql->execute(L"SELECT * from company;select * from employee;select curtime()", r, rh);
+        CDBVariantArray vPData;
+        auto fP2 = TestStoredProcedure(pMysql, ra, vPData);
+        std::wcout << fopen.get().ToString() << std::endl;
+        for (auto& f : vF) {
+            std::wcout << f.get().ToString() << std::endl;
         }
-        ++index;
+        std::wcout << fD.get().ToString() << std::endl;
+        std::wcout << fP0.get().ToString() << std::endl;
+        std::wcout << fP1.get().ToString() << std::endl;
+        std::wcout << fS.get().ToString() << std::endl;
+        CMyHandler::SQLExeInfo &sei0 = fP2.get();
+        std::wcout << sei0.ToString() << std::endl;
+        std::cout << std::endl;
+        std::cout << "There are " << pMysql->GetOutputs() * sei0.oks << " output data returned" << std::endl;
+
+        CDBVariantArray vData;
+        auto fP3 = TestBatch(pMysql, ra, vData);
+        CMyHandler::SQLExeInfo& sei1 = fP3.get();
+        std::wcout << sei1.ToString() << std::endl;
+        std::cout << std::endl;
+        std::cout << "There are " << pMysql->GetOutputs() * 3 << " output data returned" << std::endl;
+
+        //print out all received rowsets
+        int index = 0;
+        std::cout << std::endl;
+        std::cout << "+++++ Start rowsets +++" << std::endl;
+        for (auto it = ra.begin(), end = ra.end(); it != end; ++it) {
+            std::cout << "Statement index = " << index;
+            if (it->first.size()) {
+                std::cout << ", rowset with columns = " << it->first.size() << ", records = " << it->second.size() / it->first.size() << "." << std::endl;
+            } else {
+                std::cout << ", no rowset received." << std::endl;
+            }
+            ++index;
+        }
+        std::cout << "+++++ End rowsets +++" << std::endl;
+        std::cout << std::endl;
     }
-    std::cout << "+++++ End rowsets +++" << std::endl;
-    std::cout << std::endl;
+
+    catch(SPA::ClientSide::CServerError & ex) {
+        std::wcout << ex.ToString() << std::endl;
+    }
+
+    catch(SPA::ClientSide::CSocketError & ex) {
+        std::wcout << ex.ToString() << std::endl;
+    }
+
+    catch(std::exception & ex) {
+        std::wcout << "Some unexpected error: " << ex.what() << std::endl;
+    }
     std::cout << "Press any key to close the application ......" << std::endl;
     ::getchar();
     return 0;
 }
 
-void InsertBLOBByPreparedStatement(std::shared_ptr<CMyHandler> pMysql) {
+CSqlFuture InsertBLOBByPreparedStatement(std::shared_ptr<CMyHandler> pMysql) {
     std::wstring wstr;
     while (wstr.size() < 128 * 1024) {
         wstr += L"广告做得不那么夸张的就不说了，看看这三家，都是正儿八经的公立三甲，附属医院，不是武警，也不是部队，更不是莆田，都在卫生部门直接监管下，照样明目张胆地骗人。";
@@ -135,10 +142,7 @@ void InsertBLOBByPreparedStatement(std::shared_ptr<CMyHandler> pMysql) {
     }
 
     const wchar_t *sqlInsert = L"insert into employee(CompanyId,name,JoinDate,image,DESCRIPTION,Salary)values(?,?,?,?,?,?)";
-    bool ok = pMysql->Prepare(sqlInsert, [](CMyHandler &handler, int res, const std::wstring & errMsg) {
-        std::cout << "res = " << res << ", errMsg: ";
-        std::wcout << errMsg << std::endl;
-    });
+    pMysql->Prepare(sqlInsert);
 
     SYSTEMTIME st;
     CDBVariantArray vData;
@@ -188,18 +192,10 @@ void InsertBLOBByPreparedStatement(std::shared_ptr<CMyHandler> pMysql) {
     vData.push_back(6254000.0);
 
     //execute multiple sets of parameter data in one short
-    ok = pMysql->Execute(vData, [](CMyHandler &handler, int res, const std::wstring &errMsg, SPA::INT64 affected, SPA::UINT64 fail_ok, CDBVariant & vtId) {
-        std::cout << "affected = " << affected << ", fails = " << (unsigned int) (fail_ok >> 32) << ", oks = " << (unsigned int) fail_ok << ", res = " << res << ", errMsg: ";
-        std::wcout << errMsg;
-        if (!res) {
-            std::cout << ", last insert id = ";
-                    std::cout << vtId.llVal;
-        }
-        std::cout << std::endl;
-    });
+    return pMysql->execute(vData);
 }
 
-void TestBatch(std::shared_ptr<CMyHandler> pMysql, CRowsetArray&ra, CDBVariantArray &vData, unsigned int &oks) {
+CSqlFuture TestBatch(std::shared_ptr<CMyHandler> pMysql, CRowsetArray&ra, CDBVariantArray &vData) {
     //sql with delimiter '|'
     std::wstring sql = L"delete from employee;delete from company| \
 		INSERT INTO company(ID,NAME,ADDRESS,Income)VALUES(?,?,?,?)| \
@@ -327,27 +323,12 @@ void TestBatch(std::shared_ptr<CMyHandler> pMysql, CRowsetArray&ra, CDBVariantAr
     //third, three sets of insert into employee(CompanyId,name,JoinDate,image,DESCRIPTION,Salary)values(?,?,?,?,?,?)
     //fourth, SELECT * from company;select * from employee;select curtime()
     //last, three sets of call sp_TestProc(?,?,?)
-    if (pMysql->ExecuteBatch(tiReadUncommited, sql.c_str(), vData,
-            [](CMyHandler & handler, int res, const std::wstring & errMsg, SPA::INT64 affected, SPA::UINT64 fail_ok, CDBVariant & vtId) {
-                std::cout << "affected = " << affected << ", fails = " << (unsigned int) (fail_ok >> 32) << ", oks = " << (unsigned int) fail_ok << ", res = " << res << ", errMsg: ";
-                std::wcout << errMsg;
-                if (!res) {
-                    std::cout << ", last insert id = ";
-                    std::cout << vtId.llVal;
-                }
-                std::cout << std::endl;
-            }, r, rh, L"|", batchHeader))
-            oks = 3;
-    else
-        oks = 0;
+    return pMysql->executeBatch(tiReadUncommited, sql.c_str(), vData, r, rh, L"|", batchHeader);
 }
 
-void TestPreparedStatements(std::shared_ptr<CMyHandler> pMysql) {
+CSqlFuture TestPreparedStatements(std::shared_ptr<CMyHandler> pMysql) {
     const wchar_t *sql_insert_parameter = L"INSERT INTO company(ID,NAME,ADDRESS,Income)VALUES(?,?,?,?)";
-    bool ok = pMysql->Prepare(sql_insert_parameter, [](CMyHandler &handler, int res, const std::wstring & errMsg) {
-        std::cout << "res = " << res << ", errMsg: ";
-        std::wcout << errMsg << std::endl;
-    });
+    pMysql->Prepare(sql_insert_parameter);
 
     CDBVariantArray vData;
     DECIMAL dec;
@@ -377,47 +358,26 @@ void TestPreparedStatements(std::shared_ptr<CMyHandler> pMysql) {
     dec.scale = 2;
     dec.Lo64 = 23400000000014;
     vData.push_back(dec);
-    ok = pMysql->Execute(vData, [](CMyHandler &handler, int res, const std::wstring &errMsg, SPA::INT64 affected, SPA::UINT64 fail_ok, CDBVariant & vtId) {
-        std::cout << "affected = " << affected << ", fails = " << (unsigned int) (fail_ok >> 32) << ", oks = " << (unsigned int) fail_ok << ", res = " << res << ", errMsg: ";
-        std::wcout << errMsg;
-        if (!res) {
-            std::cout << ", last insert id = ";
-                    std::cout << vtId.llVal;
-        }
-        std::cout << std::endl;
-    });
+    return pMysql->execute(vData);
 }
 
-void TestCreateTables(std::shared_ptr<CMyHandler> pMysql) {
+std::vector<CSqlFuture> TestCreateTables(std::shared_ptr<CMyHandler> pMysql) {
+    std::vector<CSqlFuture> v;
     const wchar_t *create_database = L"Create database if not exists mysqldb character set utf8 collate utf8_general_ci;USE mysqldb";
-    bool ok = pMysql->Execute(create_database, [](CMyHandler &handler, int res, const std::wstring &errMsg, SPA::INT64 affected, SPA::UINT64 fail_ok, CDBVariant & vtId) {
-        std::cout << "affected = " << affected << ", fails = " << (unsigned int) (fail_ok >> 32) << ", oks = " << (unsigned int) fail_ok << ", res = " << res << ", errMsg: ";
-        std::wcout << errMsg << std::endl;
-    });
+    v.push_back(pMysql->execute(create_database));
 
     const wchar_t *create_table = L"CREATE TABLE IF NOT EXISTS company(ID bigint PRIMARY KEY NOT NULL,name CHAR(64)NOT NULL,ADDRESS varCHAR(256)not null,Income Decimal(21,2)not null)";
-    ok = pMysql->Execute(create_table, [](CMyHandler &handler, int res, const std::wstring &errMsg, SPA::INT64 affected, SPA::UINT64 fail_ok, CDBVariant & vtId) {
-        std::cout << "affected = " << affected << ", fails = " << (unsigned int) (fail_ok >> 32) << ", oks = " << (unsigned int) fail_ok << ", res = " << res << ", errMsg: ";
-        std::wcout << errMsg << std::endl;
-    });
+    v.push_back(pMysql->execute(create_table));
 
     create_table = L"CREATE TABLE IF NOT EXISTS employee(EMPLOYEEID bigint AUTO_INCREMENT PRIMARY KEY NOT NULL unique,CompanyId bigint not null,name CHAR(64)NOT NULL,JoinDate DATETIME(6)default null,IMAGE MEDIUMBLOB,DESCRIPTION MEDIUMTEXT,Salary DECIMAL(25,2),FOREIGN KEY(CompanyId)REFERENCES company(id))";
-    ok = pMysql->Execute(create_table, [](CMyHandler &handler, int res, const std::wstring &errMsg, SPA::INT64 affected, SPA::UINT64 fail_ok, CDBVariant & vtId) {
-        std::cout << "affected = " << affected << ", fails = " << (unsigned int) (fail_ok >> 32) << ", oks = " << (unsigned int) fail_ok << ", res = " << res << ", errMsg: ";
-        std::wcout << errMsg << std::endl;
-    });
+    v.push_back(pMysql->execute(create_table));
     const wchar_t *create_proc = L"DROP PROCEDURE IF EXISTS sp_TestProc;CREATE PROCEDURE sp_TestProc(in p_company_id int, inout p_sum_salary DECIMAL(25,2),out p_last_dt datetime)BEGIN select * from employee where companyid>=p_company_id;select sum(salary)+p_sum_salary into p_sum_salary from employee where companyid>=p_company_id;select now()into p_last_dt;END";
-    ok = pMysql->Execute(create_proc, [](CMyHandler &handler, int res, const std::wstring &errMsg, SPA::INT64 affected, SPA::UINT64 fail_ok, CDBVariant & vtId) {
-        std::cout << "affected = " << affected << ", fails = " << (unsigned int) (fail_ok >> 32) << ", oks = " << (unsigned int) fail_ok << ", res = " << res << ", errMsg: ";
-        std::wcout << errMsg << std::endl;
-    });
+    v.push_back(pMysql->execute(create_proc));
+    return v;
 }
 
-void TestStoredProcedure(std::shared_ptr<CMyHandler> pMysql, CRowsetArray&ra, CDBVariantArray &vPData, unsigned int &oks) {
-    bool ok = pMysql->Prepare(L"call mysqldb.sp_TestProc(?,?,?)", [](CMyHandler &handler, int res, const std::wstring & errMsg) {
-        std::cout << "res = " << res << ", errMsg: ";
-        std::wcout << errMsg << std::endl;
-    });
+CSqlFuture TestStoredProcedure(std::shared_ptr<CMyHandler> pMysql, CRowsetArray&ra, CDBVariantArray &vPData) {
+    pMysql->Prepare(L"call mysqldb.sp_TestProc(?,?,?)");
     CMyHandler::DRows r = [&ra](CMyHandler &handler, CDBVariantArray & vData) {
         //rowset data come here
         assert((vData.size() % handler.GetColumnInfo().size()) == 0);
@@ -447,16 +407,6 @@ void TestStoredProcedure(std::shared_ptr<CMyHandler> pMysql, CRowsetArray&ra, CD
     vPData.push_back(1.14);
     //output not important, but they are used for receiving proper types of data on mysql
     vPData.push_back(0);
-    oks = 0;
     //process multiple sets of parameters in one shot
-    ok = pMysql->Execute(vPData, [&oks](CMyHandler &handler, int res, const std::wstring &errMsg, SPA::INT64 affected, SPA::UINT64 fail_ok, CDBVariant & vtId) {
-        oks = (unsigned int) fail_ok;
-        std::cout << "affected = " << affected << ", fails = " << (unsigned int) (fail_ok >> 32) << ", oks = " << oks << ", res = " << res << ", errMsg: ";
-                std::wcout << errMsg;
-        if (!res) {
-            std::cout << ", last insert id = ";
-                    std::cout << vtId.llVal;
-        }
-        std::cout << std::endl;
-    }, r, rh);
+    return pMysql->execute(vPData, r, rh);
 }

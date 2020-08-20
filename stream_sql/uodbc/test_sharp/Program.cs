@@ -287,7 +287,7 @@ class Program
             ra.Add(item);
         };
         bool ok = odbc.ExecuteBatch(tagTransactionIsolation.tiUnspecified, "select getdate();{?=call sp_TestRare1(?,?,?,?)};{call sqltestdb.dbo.sp_TestProc(?,?,?)}", vPData,
-            er, r, rh, (handler) => { });
+            er, r, rh);
         return vPData;
     }
 

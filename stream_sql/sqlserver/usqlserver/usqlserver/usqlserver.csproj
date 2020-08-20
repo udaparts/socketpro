@@ -67,6 +67,9 @@
     <Compile Include="..\..\..\..\src\SproAdapter\scopeuqueuelock.cs">
       <Link>scopeuqueuelock.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\..\src\SproAdapter\servererror.cs">
+      <Link>servererror.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\..\src\SproAdapter\serverinterop.cs">
       <Link>serverinterop.cs</Link>
     </Compile>
