@@ -85,6 +85,9 @@ int main(int argc, char* argv[]) {
         auto fS = pMysql->execute(u"SELECT * from company;select * from employee;select curtime()", r, rh);
         CDBVariantArray vPData;
         auto fP2 = TestStoredProcedure(pMysql, ra, vPData);
+        CDBVariantArray vData;
+        auto fP3 = TestBatch(pMysql, ra, vData);
+        std::cout << "All SQL requests streamed, and waiting for results ......" << std::endl;
         std::wcout << fopen.get().ToString() << std::endl;
         for (auto& f : vF) {
             std::wcout << f.get().ToString() << std::endl;
@@ -95,14 +98,9 @@ int main(int argc, char* argv[]) {
         std::wcout << fS.get().ToString() << std::endl;
         CMyHandler::SQLExeInfo &sei0 = fP2.get();
         std::wcout << sei0.ToString() << std::endl;
-        std::cout << std::endl;
-        std::cout << "There are " << pMysql->GetOutputs() * sei0.oks << " output data returned" << std::endl;
-
-        CDBVariantArray vData;
-        auto fP3 = TestBatch(pMysql, ra, vData);
+        std::cout << "There are " << 2 * sei0.oks << " output data returned" << std::endl;
         CMyHandler::SQLExeInfo& sei1 = fP3.get();
         std::wcout << sei1.ToString() << std::endl;
-        std::cout << std::endl;
         std::cout << "There are " << pMysql->GetOutputs() * 3 << " output data returned" << std::endl;
     }
 

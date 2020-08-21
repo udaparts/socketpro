@@ -56,7 +56,7 @@ class Program
                 var tet = sqlite.endTrans(); //end manual transaction
                 var vB = TestBatch(sqlite, lstRowset);
 
-                //wait for results
+                Console.WriteLine("All SQL requests streamed, and waiting for their results");
                 Console.WriteLine(topen.Result);
                 foreach (var e in vT)
                 {

@@ -72,9 +72,10 @@ class Program
                 var tP1 = InsertBLOBByPreparedStatement(mysql);
                 var tSs = mysql.execute("SELECT * from company;select * from employee;select curtime()", r, rh);
                 var tStore = TestStoredProcedure(mysql, ra, out vPData);
+                var tB = TestBatch(mysql, ra, out vData);
                 Console.WriteLine();
 
-                //waiting results in order
+                Console.WriteLine("All SQL requests are streamed, and waiting results in order ......");
                 Console.WriteLine(tOpen.Result);
                 foreach (var t in vT)
                 {
@@ -85,11 +86,9 @@ class Program
                 Console.WriteLine(tP1.Result);
                 Console.WriteLine(tSs.Result);
                 Console.WriteLine(tStore.Result);
-                Console.WriteLine("There are {0} output data returned", mysql.Outputs * 2);
-                tStore = TestBatch(mysql, ra, out vData);
-                Console.WriteLine();
-                Console.WriteLine(tStore.Result);
-                Console.WriteLine("There are {0} output data returned", mysql.Outputs * 3);
+                Console.WriteLine("There are {0} output data returned", 2 * 2);
+                Console.WriteLine(tB.Result);
+                Console.WriteLine("There are {0} output data returned", 2 * 3);
             }
             catch (AggregateException ex)
             {

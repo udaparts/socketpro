@@ -56,7 +56,7 @@ int main(int argc, char* argv[]) {
         auto fet = sqlite->endTrans();
         auto vFb = TestBatch(sqlite, rowset_array);
 
-        //wait for results
+        std::cout << "All SQL requests are streamed, and waiting for results ......" << std::endl;
         std::wcout << fopen.get().ToString() << std::endl;
         for (auto &e : vF) {
             std::wcout << e.get().ToString() << std::endl;

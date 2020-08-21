@@ -1,6 +1,7 @@
 import sys
-from spa.clientside import CSocketPool, CConnectionContext, CAsyncQueue, CUQueue
+from spa.clientside import CSocketPool, CConnectionContext, CAsyncQueue, CUQueue, CSocketError, CServerError as Se
 from spa import tagBaseRequestID
+from concurrent.futures import Future as future
 
 TEST_QUEUE_KEY = "queue_name_0"
 idMessage0 = tagBaseRequestID.idReservedTwo + 100
@@ -22,12 +23,10 @@ def test_enqueue(aq):
         else:
             idMessage = idMessage2
         # enqueue two unicode strings and one int
-        ok = aq.Enqueue(TEST_QUEUE_KEY, idMessage, CUQueue().SaveString('SampleName').SaveString(s).SaveInt(n))
+        if not aq.Enqueue(TEST_QUEUE_KEY, idMessage, CUQueue().SaveString('SampleName').SaveString(s).SaveInt(n)):
+            raise CSocketError(CAsyncQueue.SESSION_CLOSED_BEFORE,
+                               'Socket already closed before sending the request Enqueue', CAsyncQueue.idEnqueue, True)
         n += 1
-        if not ok:
-            return False
-    return True
-
 
 def test_dequeue(aq):
     def cbResultReturned(idReq, q):
@@ -41,20 +40,29 @@ def test_dequeue(aq):
         return False  # not processed
     aq.ResultReturned = cbResultReturned
 
+    f = future()
+    aborted = CAsyncQueue.get_aborted(f, 'Dequeue', CAsyncQueue.idDequeue)
+    se = CAsyncQueue.get_se(f)
     def cbDequeue(aq, messageCount, fileSize, messages, bytes):
-        s = 'Total message count=' + str(messageCount) + ', queue file size=' + \
-            str(fileSize) + ', messages dequeued=' + str(messages) + ', bytes dequeued=' + str(bytes)
-        print(s)
+        if bytes:
+            s = 'Total message count=' + str(messageCount) + ', queue file size=' + \
+                str(fileSize) + ', messages dequeued=' + str(messages) + ', bytes dequeued=' + str(bytes)
+            print(s)
         if messageCount > 0:
             # there are more messages left at server queue, we re-send a request to dequeue
-            aq.Dequeue(TEST_QUEUE_KEY, aq.LastDequeueCallback)
-    print('Going to dequeue messages ......')
-    aq.Dequeue(TEST_QUEUE_KEY, cbDequeue)
+            aq.Dequeue(TEST_QUEUE_KEY, aq.LastDequeueCallback, 0, aborted, se)
+        else:
+            try:
+                f.set_result({'messages': messageCount, 'fsize': fileSize, 'msgsDequeued': messages, 'bytes': bytes})
+            except Exception as ex:
+                pass
 
+    print('Going to dequeue messages ......')
     # optionally, add one extra to improve processing concurrency
     # at both client and server sides for better performance and through-output
-    aq.Dequeue(TEST_QUEUE_KEY, cbDequeue)
-
+    if not (aq.Dequeue(TEST_QUEUE_KEY, cbDequeue, 0, aborted, se) and aq.Dequeue(TEST_QUEUE_KEY, cbDequeue, 0, aborted, se)):
+        raise CSocketError(CAsyncQueue.SESSION_CLOSED_BEFORE,
+                           'Socket already closed before sending the request Dequeue', CAsyncQueue.idDequeue, True)
 
 with CSocketPool(CAsyncQueue) as spAq:
     print('Remote async queue server host: ')
@@ -64,13 +72,18 @@ with CSocketPool(CAsyncQueue) as spAq:
     if not ok:
         print('No connection error code = ' + str(aq.Socket.ErrorCode))
         exit(0)
-
-    # Optionally, you can enqueue messages with transaction style
-    # by calling the methods StartQueueTrans and EndQueueTrans in pair
-    # aq.StartQueueTrans(TEST_QUEUE_KEY, lambda errCode: print('errCode=' + str(errCode)))
-    test_enqueue(aq)
-    # aq.EndQueueTrans()
-    test_dequeue(aq)
-
+    try:
+        # Optionally, you can enqueue messages with transaction style
+        # by calling the methods StartQueueTrans and EndQueueTrans in pair
+        # aq.startQueueTrans(TEST_QUEUE_KEY)
+        test_enqueue(aq)
+        # aq.endQueueTrans()
+        print(test_dequeue(aq).result())
+    except Se as ex:  # an exception from remote server
+        print(ex)
+    except CSocketError as ex:  # a communication error
+        print(ex)
+    except Exception as ex:
+        print('Unexpected error: ' + str(ex))  # invalid parameter, bad de-serialization, and so on
     print('Press any key to close the application ......')
     sys.stdin.readline()

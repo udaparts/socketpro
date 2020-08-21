@@ -131,6 +131,7 @@ public class Test_java {
                 CDBVariantArray vData = new CDBVariantArray();
                 UFuture<CMysql.SQLExeInfo> fB = TestBatch(mysql, ra, vData);
 
+                System.out.println("All SQL requests are streamed, and waiting for results ......");
                 System.out.println(fOpen.get());
                 System.out.println(fbt.get());
                 for (UFuture<CMysql.SQLExeInfo> f : vC) {
@@ -286,3 +287,4 @@ public class Test_java {
         });
     }
 }
+

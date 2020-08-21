@@ -1,3 +1,4 @@
+
 import SPA.*;
 import SPA.UDB.*;
 import SPA.ClientSide.*;
@@ -33,7 +34,7 @@ public class test_java {
                 UFuture<ErrInfo> fet = sqlite.endTrans();
                 ArrayList<UFuture<CSqlite.SQLExeInfo>> vB = TestBatch(sqlite, lstRowset);
 
-                //wait for results
+                System.out.println("All SQL requests are streamed, and waiting for results ......");
                 System.out.println(fOpen.get());
                 for (UFuture<CSqlite.SQLExeInfo> f : vC) {
                     System.out.println(f.get());

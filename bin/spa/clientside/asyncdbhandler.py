@@ -729,7 +729,7 @@ class CAsyncDBHandler(CAsyncServiceHandler):
         CScopeUQueue.Unlock(q)
         return ok
 
-    def ExecuteBatch(self, isolation, sql, vParam, handler=None, row=None, rh=None, batchHeader=None, vPInfo=None, plan=tagRollbackPlan.rpDefault, discarded=None, delimiter = ';', meta=True, lastInsertId=True, se=None):
+    def ExecuteBatch(self, isolation, sql, vParam, handler=None, row=None, rh=None, delimiter = ';', batchHeader=None, discarded=None, meta=True, plan=tagRollbackPlan.rpDefault, vPInfo=None, lastInsertId=True, se=None):
         """
         Execute a batch of SQL statements on one single call
         :param isolation: a value for manual transaction isolation. Specifically, there is no manual transaction around the batch SQL statements if it is tiUnspecified
@@ -738,12 +738,12 @@ class CAsyncDBHandler(CAsyncServiceHandler):
         :param handler: a callback for tracking final result
         :param row: a callback for receiving records of data
         :param rh: a callback for tracking row set of header column informations
-        :param batchHeader: a callback for tracking returning batch start error messages
-        :param vPInfo: a given array of parameter informations which may be empty to some of database management systems
-        :param plan: a value for computing how included transactions should be rollback
-        :param discarded: a callback for tracking socket closed or request canceled event
         :param delimiter: a delimiter string used for separating the batch SQL statements into individual SQL statements at server side for processing
+        :param batchHeader: a callback for tracking returning batch start error messages
+        :param discarded: a callback for tracking socket closed or request canceled event
         :param meta: a boolean for better or more detailed column meta details such as unique, not null, primary key, and so on
+        :param plan: a value for computing how included transactions should be rollback
+        :param vPInfo: a given array of parameter informations which may be empty to some of database management systems
         :param lastInsertId: a boolean for last insert record identification number
         :param se a callback for tracking an exception from server
         :return: True if communication channel is sendable, and False if communication channel is not sendable
@@ -796,8 +796,8 @@ class CAsyncDBHandler(CAsyncServiceHandler):
         f = future()
         def arh(ah, res, err_msg, affected, fail_ok, last_id):
             f.set_result({'ec':res, 'em':err_msg, 'affected':affected, 'oks': (fail_ok&0xffffffff), 'fails': (fail_ok>>32), 'lastId': last_id})
-        if not self.ExecuteBatch(isolation, sql, vParam, arh, row, rh, batchHeader, vPInfo, plan,
-                                 CAsyncDBHandler.get_aborted(f, 'ExecuteBatch', DB_CONSTS.idExecuteBatch), delimiter,
-                                 meta, lastInsertId, CAsyncDBHandler.get_se(f)):
+        if not self.ExecuteBatch(isolation, sql, vParam, arh, row, rh, delimiter, batchHeader,
+                                 CAsyncDBHandler.get_aborted(f, 'ExecuteBatch', DB_CONSTS.idExecuteBatch),
+                                 meta, plan, vPInfo, lastInsertId, CAsyncDBHandler.get_se(f)):
             self.throw('ExecuteBatch', DB_CONSTS.idExecuteBatch)
         return f
