@@ -10,7 +10,7 @@
 
 #if defined(WIN32_64) && _MSC_VER >= 1800
 #include <future>
-#define HAVE_FUTURE
+#define HAVE_FUTURE     1
 #elif defined(WCHAR32)
 #include <future>
 #define HAVE_FUTURE
@@ -104,6 +104,56 @@ namespace SPA {
         typedef DResultHandler ResultHandler; //ResultHandler will be removed in the near future
 
         const static DResultHandler NULL_RH;
+
+        struct ErrInfo {
+
+            ErrInfo(int errCode = 0, const wchar_t *errMsg = L"")
+            : ec(errCode), em(errMsg ? errMsg : L"") {
+            }
+
+            int ec;
+            std::wstring em;
+
+            virtual std::wstring ToString() {
+                std::wstring s = L"ec: " + std::to_wstring(ec);
+                s += (L", em: " + em);
+                return s;
+            }
+        };
+
+        struct CServerError : public ErrInfo {
+
+            CServerError(int errCode, const wchar_t *errMsg, const char *stack, unsigned req_id)
+            : ErrInfo(errCode, errMsg), location(stack ? stack : ""), reqId(req_id) {
+            }
+
+            std::string location;
+            unsigned short reqId;
+
+            std::wstring ToString() {
+                std::wstring s = ErrInfo::ToString();
+                s += (L", where: " + Utilities::ToWide(location));
+                s += (L", reqId: " + std::to_wstring(reqId));
+                return s;
+            }
+        };
+
+        struct CSocketError : public ErrInfo {
+
+            CSocketError(int errCode, const wchar_t* errMsg, short req_id, bool before_call)
+            : ErrInfo(errCode, errMsg), reqId(req_id), before(before_call) {
+            }
+
+            unsigned short reqId;
+            bool before;
+
+            virtual std::wstring ToString() {
+                std::wstring s = ErrInfo::ToString();
+                s += (L", reqId: " + std::to_wstring(reqId));
+                s += (std::wstring(L", before: ") + (before ? L"true" : L"false"));
+                return s;
+            }
+        };
 
         class CAsyncResult {
         private:
@@ -700,6 +750,12 @@ namespace SPA {
             static void CleanQueue(CUQueue &q);
 
         public:
+
+            const static int SESSION_CLOSED_AFTER = -1000;
+            const static int SESSION_CLOSED_BEFORE = -1001;
+            const static int REQUEST_CANCELED = -1002;
+            const static UINT64 DEFAULT_INTERRUPT_OPTION = 1;
+
             virtual ~CAsyncServiceHandler();
 
 #ifndef SAFE_RESULT_RETURN_EVENT
@@ -808,6 +864,10 @@ namespace SPA {
             inline CClientSocket *GetAttachedClientSocket() {
                 return m_pClientSocket;
             }
+
+            inline CClientSocket *GetSocket() {
+                return m_pClientSocket;
+            }
             virtual bool WaitAll(unsigned int timeOut = (~0));
             virtual bool Interrupt(UINT64 options);
             bool StartBatching();
@@ -822,471 +882,6 @@ namespace SPA {
             static void ClearResultCallbackPool(unsigned int remaining);
             static unsigned int CountResultCallbacksInPool();
             static UINT64 GetCallIndex();
-
-            bool ProcessR0(unsigned short reqId) {
-                CScopeUQueue su;
-                return P(reqId, *su);
-            }
-
-            template<typename T0>
-            bool ProcessR0(unsigned short reqId, const T0 &t0) {
-                CScopeUQueue su;
-                su << t0;
-                return P(reqId, *su);
-            }
-
-            template<typename T0, typename T1>
-            bool ProcessR0(unsigned short reqId, const T0 &t0, const T1 &t1) {
-                CScopeUQueue su;
-                su << t0 << t1;
-                return P(reqId, *su);
-            }
-
-            template<typename T0, typename T1, typename T2>
-            bool ProcessR0(unsigned short reqId, const T0 &t0, const T1 &t1, const T2 &t2) {
-                CScopeUQueue su;
-                su << t0 << t1 << t2;
-                return P(reqId, *su);
-            }
-
-            template<typename T0, typename T1, typename T2, typename T3>
-            bool ProcessR0(unsigned short reqId, const T0 &t0, const T1 &t1, const T2 &t2, const T3 &t3) {
-                CScopeUQueue su;
-                su << t0 << t1 << t2 << t3;
-                return P(reqId, *su);
-            }
-
-            template<typename T0, typename T1, typename T2, typename T3, typename T4>
-            bool ProcessR0(unsigned short reqId, const T0 &t0, const T1 &t1, const T2 &t2, const T3 &t3, const T4 &t4) {
-                CScopeUQueue su;
-                su << t0 << t1 << t2 << t3 << t4;
-                return P(reqId, *su);
-            }
-
-            template<typename T0, typename T1, typename T2, typename T3, typename T4, typename T5>
-            bool ProcessR0(unsigned short reqId, const T0 &t0, const T1 &t1, const T2 &t2, const T3 &t3, const T4 &t4, const T5 &t5) {
-                CScopeUQueue su;
-                su << t0 << t1 << t2 << t3 << t4 << t5;
-                return P(reqId, *su);
-            }
-
-            template<typename T0, typename T1, typename T2, typename T3, typename T4, typename T5, typename T6>
-            bool ProcessR0(unsigned short reqId, const T0 &t0, const T1 &t1, const T2 &t2, const T3 &t3, const T4 &t4, const T5 &t5, const T6 &t6) {
-                CScopeUQueue su;
-                su << t0 << t1 << t2 << t3 << t4 << t5 << t6;
-                return P(reqId, *su);
-            }
-
-            template<typename T0, typename T1, typename T2, typename T3, typename T4, typename T5, typename T6, typename T7>
-            bool ProcessR0(unsigned short reqId, const T0 &t0, const T1 &t1, const T2 &t2, const T3 &t3, const T4 &t4, const T5 &t5, const T6 &t6, const T7& t7) {
-                CScopeUQueue su;
-                su << t0 << t1 << t2 << t3 << t4 << t5 << t6 << t7;
-                return P(reqId, *su);
-            }
-
-            template<typename T0, typename T1, typename T2, typename T3, typename T4, typename T5, typename T6, typename T7, typename T8>
-            bool ProcessR0(unsigned short reqId, const T0 &t0, const T1 &t1, const T2 &t2, const T3 &t3, const T4 &t4, const T5 &t5, const T6 &t6, const T7& t7, const T8 &t8) {
-                CScopeUQueue su;
-                su << t0 << t1 << t2 << t3 << t4 << t5 << t6 << t7 << t8;
-                return P(reqId, *su);
-            }
-
-            template<typename T0, typename T1, typename T2, typename T3, typename T4, typename T5, typename T6, typename T7, typename T8, typename T9>
-            bool ProcessR0(unsigned short reqId, const T0 &t0, const T1 &t1, const T2 &t2, const T3 &t3, const T4 &t4, const T5 &t5, const T6 &t6, const T7& t7, const T8 &t8, const T9 &t9) {
-                CScopeUQueue su;
-                su << t0 << t1 << t2 << t3 << t4 << t5 << t6 << t7 << t8 << t9;
-                return P(reqId, *su);
-            }
-
-            //ProcessR1
-
-            template<typename R0>
-            bool ProcessR1(unsigned short reqId, R0 &r0) {
-                CScopeUQueue su;
-                return P(reqId, *su, r0);
-            }
-
-            template<typename T0, typename R0>
-            bool ProcessR1(unsigned short reqId, const T0 &t0, R0 &r0) {
-                CScopeUQueue su;
-                su << t0;
-                return P(reqId, *su, r0);
-            }
-
-            template<typename T0, typename T1, typename R0>
-            bool ProcessR1(unsigned short reqId, const T0 &t0, const T1 &t1, R0 &r0) {
-                CScopeUQueue su;
-                su << t0 << t1;
-                return P(reqId, *su, r0);
-            }
-
-            template<typename T0, typename T1, typename T2, typename R0>
-            bool ProcessR1(unsigned short reqId, const T0 &t0, const T1 &t1, const T2 &t2, R0 &r0) {
-                CScopeUQueue su;
-                su << t0 << t1 << t2;
-                return P(reqId, *su, r0);
-            }
-
-            template<typename T0, typename T1, typename T2, typename T3, typename R0>
-            bool ProcessR1(unsigned short reqId, const T0 &t0, const T1 &t1, const T2 &t2, const T3 &t3, R0 &r0) {
-                CScopeUQueue su;
-                su << t0 << t1 << t2 << t3;
-                return P(reqId, *su, r0);
-            }
-
-            template<typename T0, typename T1, typename T2, typename T3, typename T4, typename R0>
-            bool ProcessR1(unsigned short reqId, const T0 &t0, const T1 &t1, const T2 &t2, const T3 &t3, const T4 &t4, R0 &r0) {
-                CScopeUQueue su;
-                su << t0 << t1 << t2 << t3 << t4;
-                return P(reqId, *su, r0);
-            }
-
-            template<typename T0, typename T1, typename T2, typename T3, typename T4, typename T5, typename R0>
-            bool ProcessR1(unsigned short reqId, const T0 &t0, const T1 &t1, const T2 &t2, const T3 &t3, const T4 &t4, const T5 &t5, R0 &r0) {
-                CScopeUQueue su;
-                su << t0 << t1 << t2 << t3 << t4 << t5;
-                return P(reqId, *su, r0);
-            }
-
-            template<typename T0, typename T1, typename T2, typename T3, typename T4, typename T5, typename T6, typename R0>
-            bool ProcessR1(unsigned short reqId, const T0 &t0, const T1 &t1, const T2 &t2, const T3 &t3, const T4 &t4, const T5 &t5, const T6 &t6, R0 &r0) {
-                CScopeUQueue su;
-                su << t0 << t1 << t2 << t3 << t4 << t5 << t6;
-                return P(reqId, *su, r0);
-            }
-
-            template<typename T0, typename T1, typename T2, typename T3, typename T4, typename T5, typename T6, typename T7, typename R0>
-            bool ProcessR1(unsigned short reqId, const T0 &t0, const T1 &t1, const T2 &t2, const T3 &t3, const T4 &t4, const T5 &t5, const T6 &t6, const T7& t7, R0 &r0) {
-                CScopeUQueue su;
-                su << t0 << t1 << t2 << t3 << t4 << t5 << t6 << t7;
-                return P(reqId, *su, r0);
-            }
-
-            template<typename T0, typename T1, typename T2, typename T3, typename T4, typename T5, typename T6, typename T7, typename T8, typename R0>
-            bool ProcessR1(unsigned short reqId, const T0 &t0, const T1 &t1, const T2 &t2, const T3 &t3, const T4 &t4, const T5 &t5, const T6 &t6, const T7& t7, const T8 &t8, R0 &r0) {
-                CScopeUQueue su;
-                su << t0 << t1 << t2 << t3 << t4 << t5 << t6 << t7 << t8;
-                return P(reqId, *su, r0);
-            }
-
-            template<typename T0, typename T1, typename T2, typename T3, typename T4, typename T5, typename T6, typename T7, typename T8, typename T9, typename R0>
-            bool ProcessR1(unsigned short reqId, const T0 &t0, const T1 &t1, const T2 &t2, const T3 &t3, const T4 &t4, const T5 &t5, const T6 &t6, const T7& t7, const T8 &t8, const T9 &t9, R0 &r0) {
-                CScopeUQueue su;
-                su << t0 << t1 << t2 << t3 << t4 << t5 << t6 << t7 << t8 << t9;
-                return P(reqId, *su, r0);
-            }
-
-            //ProcessR2
-
-            template<typename R0, typename R1>
-            bool ProcessR2(unsigned short reqId, R0 &r0, R1 &r1) {
-                CScopeUQueue su;
-                return P(reqId, *su, r0, r1);
-            }
-
-            template<typename T0, typename R0, typename R1>
-            bool ProcessR2(unsigned short reqId, const T0 &t0, R0 &r0, R1 &r1) {
-                CScopeUQueue su;
-                su << t0;
-                return P(reqId, *su, r0, r1);
-            }
-
-            template<typename T0, typename T1, typename R0, typename R1>
-            bool ProcessR2(unsigned short reqId, const T0 &t0, const T1 &t1, R0 &r0, R1 &r1) {
-                CScopeUQueue su;
-                su << t0 << t1;
-                return P(reqId, *su, r0, r1);
-            }
-
-            template<typename T0, typename T1, typename T2, typename R0, typename R1>
-            bool ProcessR2(unsigned short reqId, const T0 &t0, const T1 &t1, const T2 &t2, R0 &r0, R1 &r1) {
-                CScopeUQueue su;
-                su << t0 << t1 << t2;
-                return P(reqId, *su, r0, r1);
-            }
-
-            template<typename T0, typename T1, typename T2, typename T3, typename R0, typename R1>
-            bool ProcessR2(unsigned short reqId, const T0 &t0, const T1 &t1, const T2 &t2, const T3 &t3, R0 &r0, R1 &r1) {
-                CScopeUQueue su;
-                su << t0 << t1 << t2 << t3;
-                return P(reqId, *su, r0, r1);
-            }
-
-            template<typename T0, typename T1, typename T2, typename T3, typename T4, typename R0, typename R1>
-            bool ProcessR2(unsigned short reqId, const T0 &t0, const T1 &t1, const T2 &t2, const T3 &t3, const T4 &t4, R0 &r0, R1 &r1) {
-                CScopeUQueue su;
-                su << t0 << t1 << t2 << t3 << t4;
-                return P(reqId, *su, r0, r1);
-            }
-
-            template<typename T0, typename T1, typename T2, typename T3, typename T4, typename T5, typename R0, typename R1>
-            bool ProcessR2(unsigned short reqId, const T0 &t0, const T1 &t1, const T2 &t2, const T3 &t3, const T4 &t4, const T5 &t5, R0 &r0, R1 &r1) {
-                CScopeUQueue su;
-                su << t0 << t1 << t2 << t3 << t4 << t5;
-                return P(reqId, *su, r0, r1);
-            }
-
-            template<typename T0, typename T1, typename T2, typename T3, typename T4, typename T5, typename T6, typename R0, typename R1>
-            bool ProcessR2(unsigned short reqId, const T0 &t0, const T1 &t1, const T2 &t2, const T3 &t3, const T4 &t4, const T5 &t5, const T6 &t6, R0 &r0, R1 &r1) {
-                CScopeUQueue su;
-                su << t0 << t1 << t2 << t3 << t4 << t5 << t6;
-                return P(reqId, *su, r0, r1);
-            }
-
-            template<typename T0, typename T1, typename T2, typename T3, typename T4, typename T5, typename T6, typename T7, typename R0, typename R1>
-            bool ProcessR2(unsigned short reqId, const T0 &t0, const T1 &t1, const T2 &t2, const T3 &t3, const T4 &t4, const T5 &t5, const T6 &t6, const T7& t7, R0 &r0, R1 &r1) {
-                CScopeUQueue su;
-                su << t0 << t1 << t2 << t3 << t4 << t5 << t6 << t7;
-                return P(reqId, *su, r0, r1);
-            }
-
-            template<typename T0, typename T1, typename T2, typename T3, typename T4, typename T5, typename T6, typename T7, typename T8, typename R0, typename R1>
-            bool ProcessR2(unsigned short reqId, const T0 &t0, const T1 &t1, const T2 &t2, const T3 &t3, const T4 &t4, const T5 &t5, const T6 &t6, const T7& t7, const T8 &t8, R0 &r0, R1 &r1) {
-                CScopeUQueue su;
-                su << t0 << t1 << t2 << t3 << t4 << t5 << t6 << t7 << t8;
-                return P(reqId, *su, r0, r1);
-            }
-
-            template<typename T0, typename T1, typename T2, typename T3, typename T4, typename T5, typename T6, typename T7, typename T8, typename T9, typename R0, typename R1>
-            bool ProcessR2(unsigned short reqId, const T0 &t0, const T1 &t1, const T2 &t2, const T3 &t3, const T4 &t4, const T5 &t5, const T6 &t6, const T7& t7, const T8 &t8, const T9 &t9, R0 &r0, R1 &r1) {
-                CScopeUQueue su;
-                su << t0 << t1 << t2 << t3 << t4 << t5 << t6 << t7 << t8 << t9;
-                return P(reqId, *su, r0, r1);
-            }
-
-            //ProcessR3
-
-            template<typename R0, typename R1, typename R2>
-            bool ProcessR3(unsigned short reqId, R0 &r0, R1 &r1, R2 &r2) {
-                CScopeUQueue su;
-                return P(reqId, *su, r0, r1, r2);
-            }
-
-            template<typename T0, typename R0, typename R1, typename R2>
-            bool ProcessR3(unsigned short reqId, const T0 &t0, R0 &r0, R1 &r1, R2 &r2) {
-                CScopeUQueue su;
-                su << t0;
-                return P(reqId, *su, r0, r1, r2);
-            }
-
-            template<typename T0, typename T1, typename R0, typename R1, typename R2>
-            bool ProcessR3(unsigned short reqId, const T0 &t0, const T1 &t1, R0 &r0, R1 &r1, R2 &r2) {
-                CScopeUQueue su;
-                su << t0 << t1;
-                return P(reqId, *su, r0, r1, r2);
-            }
-
-            template<typename T0, typename T1, typename T2, typename R0, typename R1, typename R2>
-            bool ProcessR3(unsigned short reqId, const T0 &t0, const T1 &t1, const T2 &t2, R0 &r0, R1 &r1, R2 &r2) {
-                CScopeUQueue su;
-                su << t0 << t1 << t2;
-                return P(reqId, *su, r0, r1, r2);
-            }
-
-            template<typename T0, typename T1, typename T2, typename T3, typename R0, typename R1, typename R2>
-            bool ProcessR3(unsigned short reqId, const T0 &t0, const T1 &t1, const T2 &t2, const T3 &t3, R0 &r0, R1 &r1, R2 &r2) {
-                CScopeUQueue su;
-                su << t0 << t1 << t2 << t3;
-                return P(reqId, *su, r0, r1, r2);
-            }
-
-            template<typename T0, typename T1, typename T2, typename T3, typename T4, typename R0, typename R1, typename R2>
-            bool ProcessR3(unsigned short reqId, const T0 &t0, const T1 &t1, const T2 &t2, const T3 &t3, const T4 &t4, R0 &r0, R1 &r1, R2 &r2) {
-                CScopeUQueue su;
-                su << t0 << t1 << t2 << t3 << t4;
-                return P(reqId, *su, r0, r1, r2);
-            }
-
-            template<typename T0, typename T1, typename T2, typename T3, typename T4, typename T5, typename R0, typename R1, typename R2>
-            bool ProcessR3(unsigned short reqId, const T0 &t0, const T1 &t1, const T2 &t2, const T3 &t3, const T4 &t4, const T5 &t5, R0 &r0, R1 &r1, R2 &r2) {
-                CScopeUQueue su;
-                su << t0 << t1 << t2 << t3 << t4 << t5;
-                return P(reqId, *su, r0, r1, r2);
-            }
-
-            template<typename T0, typename T1, typename T2, typename T3, typename T4, typename T5, typename T6, typename R0, typename R1, typename R2>
-            bool ProcessR3(unsigned short reqId, const T0 &t0, const T1 &t1, const T2 &t2, const T3 &t3, const T4 &t4, const T5 &t5, const T6 &t6, R0 &r0, R1 &r1, R2 &r2) {
-                CScopeUQueue su;
-                su << t0 << t1 << t2 << t3 << t4 << t5 << t6;
-                return P(reqId, *su, r0, r1, r2);
-            }
-
-            template<typename T0, typename T1, typename T2, typename T3, typename T4, typename T5, typename T6, typename T7, typename R0, typename R1, typename R2>
-            bool ProcessR3(unsigned short reqId, const T0 &t0, const T1 &t1, const T2 &t2, const T3 &t3, const T4 &t4, const T5 &t5, const T6 &t6, const T7& t7, R0 &r0, R1 &r1, R2 &r2) {
-                CScopeUQueue su;
-                su << t0 << t1 << t2 << t3 << t4 << t5 << t6 << t7;
-                return P(reqId, *su, r0, r1, r2);
-            }
-
-            template<typename T0, typename T1, typename T2, typename T3, typename T4, typename T5, typename T6, typename T7, typename T8, typename R0, typename R1, typename R2>
-            bool ProcessR3(unsigned short reqId, const T0 &t0, const T1 &t1, const T2 &t2, const T3 &t3, const T4 &t4, const T5 &t5, const T6 &t6, const T7& t7, const T8 &t8, R0 &r0, R1 &r1, R2 &r2) {
-                CScopeUQueue su;
-                su << t0 << t1 << t2 << t3 << t4 << t5 << t6 << t7 << t8;
-                return P(reqId, *su, r0, r1, r2);
-            }
-
-            template<typename T0, typename T1, typename T2, typename T3, typename T4, typename T5, typename T6, typename T7, typename T8, typename T9, typename R0, typename R1, typename R2>
-            bool ProcessR3(unsigned short reqId, const T0 &t0, const T1 &t1, const T2 &t2, const T3 &t3, const T4 &t4, const T5 &t5, const T6 &t6, const T7& t7, const T8 &t8, const T9 &t9, R0 &r0, R1 &r1, R2 &r2) {
-                CScopeUQueue su;
-                su << t0 << t1 << t2 << t3 << t4 << t5 << t6 << t7 << t8 << t9;
-                return P(reqId, *su, r0, r1, r2);
-            }
-
-            //ProcessR4
-
-            template<typename R0, typename R1, typename R2, typename R3>
-            bool ProcessR4(unsigned short reqId, R0 &r0, R1 &r1, R2 &r2, R3 &r3) {
-                CScopeUQueue su;
-                return P(reqId, *su, r0, r1, r2, r3);
-            }
-
-            template<typename T0, typename R0, typename R1, typename R2, typename R3>
-            bool ProcessR4(unsigned short reqId, const T0 &t0, R0 &r0, R1 &r1, R2 &r2, R3 &r3) {
-                CScopeUQueue su;
-                su << t0;
-                return P(reqId, *su, r0, r1, r2, r3);
-            }
-
-            template<typename T0, typename T1, typename R0, typename R1, typename R2, typename R3>
-            bool ProcessR4(unsigned short reqId, const T0 &t0, const T1 &t1, R0 &r0, R1 &r1, R2 &r2, R3 &r3) {
-                CScopeUQueue su;
-                su << t0 << t1;
-                return P(reqId, *su, r0, r1, r2, r3);
-            }
-
-            template<typename T0, typename T1, typename T2, typename R0, typename R1, typename R2, typename R3>
-            bool ProcessR4(unsigned short reqId, const T0 &t0, const T1 &t1, const T2 &t2, R0 &r0, R1 &r1, R2 &r2, R3 &r3) {
-                CScopeUQueue su;
-                su << t0 << t1 << t2;
-                return P(reqId, *su, r0, r1, r2, r3);
-            }
-
-            template<typename T0, typename T1, typename T2, typename T3, typename R0, typename R1, typename R2, typename R3>
-            bool ProcessR4(unsigned short reqId, const T0 &t0, const T1 &t1, const T2 &t2, const T3 &t3, R0 &r0, R1 &r1, R2 &r2, R3 &r3) {
-                CScopeUQueue su;
-                su << t0 << t1 << t2 << t3;
-                return P(reqId, *su, r0, r1, r2, r3);
-            }
-
-            template<typename T0, typename T1, typename T2, typename T3, typename T4, typename R0, typename R1, typename R2, typename R3>
-            bool ProcessR4(unsigned short reqId, const T0 &t0, const T1 &t1, const T2 &t2, const T3 &t3, const T4 &t4, R0 &r0, R1 &r1, R2 &r2, R3 &r3) {
-                CScopeUQueue su;
-                su << t0 << t1 << t2 << t3 << t4;
-                return P(reqId, *su, r0, r1, r2, r3);
-            }
-
-            template<typename T0, typename T1, typename T2, typename T3, typename T4, typename T5, typename R0, typename R1, typename R2, typename R3>
-            bool ProcessR4(unsigned short reqId, const T0 &t0, const T1 &t1, const T2 &t2, const T3 &t3, const T4 &t4, const T5 &t5, R0 &r0, R1 &r1, R2 &r2, R3 &r3) {
-                CScopeUQueue su;
-                su << t0 << t1 << t2 << t3 << t4 << t5;
-                return P(reqId, *su, r0, r1, r2, r3);
-            }
-
-            template<typename T0, typename T1, typename T2, typename T3, typename T4, typename T5, typename T6, typename R0, typename R1, typename R2, typename R3>
-            bool ProcessR4(unsigned short reqId, const T0 &t0, const T1 &t1, const T2 &t2, const T3 &t3, const T4 &t4, const T5 &t5, const T6 &t6, R0 &r0, R1 &r1, R2 &r2, R3 &r3) {
-                CScopeUQueue su;
-                su << t0 << t1 << t2 << t3 << t4 << t5 << t6;
-                return P(reqId, *su, r0, r1, r2, r3);
-            }
-
-            template<typename T0, typename T1, typename T2, typename T3, typename T4, typename T5, typename T6, typename T7, typename R0, typename R1, typename R2, typename R3>
-            bool ProcessR4(unsigned short reqId, const T0 &t0, const T1 &t1, const T2 &t2, const T3 &t3, const T4 &t4, const T5 &t5, const T6 &t6, const T7& t7, R0 &r0, R1 &r1, R2 &r2, R3 &r3) {
-                CScopeUQueue su;
-                su << t0 << t1 << t2 << t3 << t4 << t5 << t6 << t7;
-                return P(reqId, *su, r0, r1, r2, r3);
-            }
-
-            template<typename T0, typename T1, typename T2, typename T3, typename T4, typename T5, typename T6, typename T7, typename T8, typename R0, typename R1, typename R2, typename R3>
-            bool ProcessR4(unsigned short reqId, const T0 &t0, const T1 &t1, const T2 &t2, const T3 &t3, const T4 &t4, const T5 &t5, const T6 &t6, const T7& t7, const T8 &t8, R0 &r0, R1 &r1, R2 &r2, R3 &r3) {
-                CScopeUQueue su;
-                su << t0 << t1 << t2 << t3 << t4 << t5 << t6 << t7 << t8;
-                return P(reqId, *su, r0, r1, r2, r3);
-            }
-
-            template<typename T0, typename T1, typename T2, typename T3, typename T4, typename T5, typename T6, typename T7, typename T8, typename T9, typename R0, typename R1, typename R2, typename R3>
-            bool ProcessR4(unsigned short reqId, const T0 &t0, const T1 &t1, const T2 &t2, const T3 &t3, const T4 &t4, const T5 &t5, const T6 &t6, const T7& t7, const T8 &t8, const T9 &t9, R0 &r0, R1 &r1, R2 &r2, R3 &r3) {
-                CScopeUQueue su;
-                su << t0 << t1 << t2 << t3 << t4 << t5 << t6 << t7 << t8 << t9;
-                return P(reqId, *su, r0, r1, r2, r3);
-            }
-
-            //ProcessR5
-
-            template<typename R0, typename R1, typename R2, typename R3, typename R4>
-            bool ProcessR5(unsigned short reqId, R0 &r0, R1 &r1, R2 &r2, R3 &r3, R4 &r4) {
-                CScopeUQueue su;
-                return P(reqId, *su, r0, r1, r2, r3, r4);
-            }
-
-            template<typename T0, typename R0, typename R1, typename R2, typename R3, typename R4>
-            bool ProcessR5(unsigned short reqId, const T0 &t0, R0 &r0, R1 &r1, R2 &r2, R3 &r3, R4 &r4) {
-                CScopeUQueue su;
-                su << t0;
-                return P(reqId, *su, r0, r1, r2, r3, r4);
-            }
-
-            template<typename T0, typename T1, typename R0, typename R1, typename R2, typename R3, typename R4>
-            bool ProcessR5(unsigned short reqId, const T0 &t0, const T1 &t1, R0 &r0, R1 &r1, R2 &r2, R3 &r3, R4 &r4) {
-                CScopeUQueue su;
-                su << t0 << t1;
-                return P(reqId, *su, r0, r1, r2, r3, r4);
-            }
-
-            template<typename T0, typename T1, typename T2, typename R0, typename R1, typename R2, typename R3, typename R4>
-            bool ProcessR5(unsigned short reqId, const T0 &t0, const T1 &t1, const T2 &t2, R0 &r0, R1 &r1, R2 &r2, R3 &r3, R4 &r4) {
-                CScopeUQueue su;
-                su << t0 << t1 << t2;
-                return P(reqId, *su, r0, r1, r2, r3, r4);
-            }
-
-            template<typename T0, typename T1, typename T2, typename T3, typename R0, typename R1, typename R2, typename R3, typename R4>
-            bool ProcessR5(unsigned short reqId, const T0 &t0, const T1 &t1, const T2 &t2, const T3 &t3, R0 &r0, R1 &r1, R2 &r2, R3 &r3, R4 &r4) {
-                CScopeUQueue su;
-                su << t0 << t1 << t2 << t3;
-                return P(reqId, *su, r0, r1, r2, r3, r4);
-            }
-
-            template<typename T0, typename T1, typename T2, typename T3, typename T4, typename R0, typename R1, typename R2, typename R3, typename R4>
-            bool ProcessR5(unsigned short reqId, const T0 &t0, const T1 &t1, const T2 &t2, const T3 &t3, const T4 &t4, R0 &r0, R1 &r1, R2 &r2, R3 &r3, R4 &r4) {
-                CScopeUQueue su;
-                su << t0 << t1 << t2 << t3 << t4;
-                return P(reqId, *su, r0, r1, r2, r3, r4);
-            }
-
-            template<typename T0, typename T1, typename T2, typename T3, typename T4, typename T5, typename R0, typename R1, typename R2, typename R3, typename R4>
-            bool ProcessR5(unsigned short reqId, const T0 &t0, const T1 &t1, const T2 &t2, const T3 &t3, const T4 &t4, const T5 &t5, R0 &r0, R1 &r1, R2 &r2, R3 &r3, R4 &r4) {
-                CScopeUQueue su;
-                su << t0 << t1 << t2 << t3 << t4 << t5;
-                return P(reqId, *su, r0, r1, r2, r3, r4);
-            }
-
-            template<typename T0, typename T1, typename T2, typename T3, typename T4, typename T5, typename T6, typename R0, typename R1, typename R2, typename R3, typename R4>
-            bool ProcessR5(unsigned short reqId, const T0 &t0, const T1 &t1, const T2 &t2, const T3 &t3, const T4 &t4, const T5 &t5, const T6 &t6, R0 &r0, R1 &r1, R2 &r2, R3 &r3, R4 &r4) {
-                CScopeUQueue su;
-                su << t0 << t1 << t2 << t3 << t4 << t5 << t6;
-                return P(reqId, *su, r0, r1, r2, r3, r4);
-            }
-
-            template<typename T0, typename T1, typename T2, typename T3, typename T4, typename T5, typename T6, typename T7, typename R0, typename R1, typename R2, typename R3, typename R4>
-            bool ProcessR5(unsigned short reqId, const T0 &t0, const T1 &t1, const T2 &t2, const T3 &t3, const T4 &t4, const T5 &t5, const T6 &t6, const T7& t7, R0 &r0, R1 &r1, R2 &r2, R3 &r3, R4 &r4) {
-                CScopeUQueue su;
-                su << t0 << t1 << t2 << t3 << t4 << t5 << t6 << t7;
-                return P(reqId, *su, r0, r1, r2, r3, r4);
-            }
-
-            template<typename T0, typename T1, typename T2, typename T3, typename T4, typename T5, typename T6, typename T7, typename T8, typename R0, typename R1, typename R2, typename R3, typename R4>
-            bool ProcessR5(unsigned short reqId, const T0 &t0, const T1 &t1, const T2 &t2, const T3 &t3, const T4 &t4, const T5 &t5, const T6 &t6, const T7& t7, const T8 &t8, R0 &r0, R1 &r1, R2 &r2, R3 &r3, R4 &r4) {
-                CScopeUQueue su;
-                su << t0 << t1 << t2 << t3 << t4 << t5 << t6 << t7 << t8;
-                return P(reqId, *su, r0, r1, r2, r3, r4);
-            }
-
-            template<typename T0, typename T1, typename T2, typename T3, typename T4, typename T5, typename T6, typename T7, typename T8, typename T9, typename R0, typename R1, typename R2, typename R3, typename R4>
-            bool ProcessR5(unsigned short reqId, const T0 &t0, const T1 &t1, const T2 &t2, const T3 &t3, const T4 &t4, const T5 &t5, const T6 &t6, const T7& t7, const T8 &t8, const T9 &t9, R0 &r0, R1 &r1, R2 &r2, R3 &r3, R4 &r4) {
-                CScopeUQueue su;
-                su << t0 << t1 << t2 << t3 << t4 << t5 << t6 << t7 << t8 << t9;
-                return P(reqId, *su, r0, r1, r2, r3, r4);
-            }
 
             template<typename T0>
             bool SendRequest(unsigned short reqId, const T0 &t0, const DResultHandler &rh, DDiscarded discarded = nullptr, DServerException se = nullptr) {
@@ -1358,135 +953,182 @@ namespace SPA {
                 return SendRequest(reqId, sb->GetBuffer(), sb->GetSize(), rh, discarded, se);
             }
 
+#if defined(PHP_ADAPTER_PROJECT) || defined(NODE_JS_ADAPTER_PROJECT)
+#else
+
+            void raise(const std::wstring& method_name, unsigned short req_id) {
+                if (!method_name.size()) {
+                    throw std::invalid_argument("Method name cannot be empty");
+                }
+                if (!req_id) {
+                    throw std::invalid_argument("Request id cannot be zero");
+                }
+                CClientSocket *cs = GetSocket();
+                int ec = cs->GetErrorCode();
+                if (ec) {
+                    std::string em = cs->GetErrorMsg();
+                    throw CSocketError(ec, Utilities::ToWide(em).c_str(), req_id, true);
+                } else {
+                    throw CSocketError(SESSION_CLOSED_BEFORE, (L"Session already closed before sending the request " + method_name).c_str(), req_id, true);
+                }
+            }
+
 #ifdef HAVE_FUTURE
 
-            std::future<void> async0(unsigned short reqId, const unsigned char *pBuffer, unsigned int size) {
-                std::shared_ptr<std::promise<void> > prom(new std::promise<void>);
-                DDiscarded discarded = [prom, reqId](CAsyncServiceHandler *h, bool canceled) {
-                    try {
-                        prom->set_exception(std::make_exception_ptr(CUException(canceled ? "Request canceled" : "Socket closed", __FILE__, reqId, __FUNCTION__, MB_REQUEST_ABORTED)));
-                    } catch (...) {
-                    }
-                };
-                DServerException se = [prom](CAsyncServiceHandler *ash, unsigned short requestId, const wchar_t *errMessage, const char* errWhere, unsigned int errCode) {
-                    CScopeUQueue sq;
-                    Utilities::ToUTF8(errMessage, ::wcslen(errMessage), *sq);
-                    try {
-                        prom->set_exception(std::make_exception_ptr(CUException((const char*) sq->GetBuffer(), errWhere, (int) errCode)));
-                    } catch (...) {
-                    }
-                };
+            std::future<CScopeUQueue> async0(unsigned short reqId, const unsigned char *pBuffer, unsigned int size) {
+                std::shared_ptr<std::promise<CScopeUQueue> > prom(new std::promise<CScopeUQueue>);
+                DDiscarded discarded = get_aborted(prom, L"SendRequest", reqId);
+                DServerException se = get_se(prom);
                 DResultHandler rh = [prom](CAsyncResult & ar) {
-                    prom->set_value();
+                    CScopeUQueue sb;
+                    sb->Swap(ar.UQueue);
+                    try {
+                        prom->set_value(std::move(sb));
+                    } catch (std::future_error&) {
+                        //ignore it
+                    } catch (...) {
+                        prom->set_exception(std::current_exception());
+                    }
                 };
                 if (!SendRequest(reqId, pBuffer, size, rh, discarded, se)) {
-                    throw CUException(GetAttachedClientSocket()->GetErrorMsg().c_str(), __FILE__, reqId, __FUNCTION__, GetAttachedClientSocket()->GetErrorCode());
+                    raise(L"SendRequest", reqId);
                 }
                 return prom->get_future();
             }
 
-            std::future<void> async0(unsigned short reqId) {
+            std::future<CScopeUQueue> async0(unsigned short reqId) {
                 return async0(reqId, (const unsigned char *) nullptr, (unsigned int) 0);
             }
 
             template<typename T0, typename T1, typename T2, typename T3, typename T4, typename T5, typename T6, typename T7, typename T8, typename T9>
-            std::future<void> async0(unsigned short reqId, const T0 &t0, const T1 &t1, const T2 &t2, const T3 &t3, const T4 &t4, const T5 &t5, const T6 &t6, const T7 &t7, const T8 &t8, const T9 &t9) {
+            std::future<CScopeUQueue> async0(unsigned short reqId, const T0 &t0, const T1 &t1, const T2 &t2, const T3 &t3, const T4 &t4, const T5 &t5, const T6 &t6, const T7 &t7, const T8 &t8, const T9 &t9) {
                 CScopeUQueue sb;
                 sb << t0 << t1 << t2 << t3 << t4 << t5 << t6 << t7 << t8 << t9;
                 return async0(reqId, sb->GetBuffer(), sb->GetSize());
             }
 
             template<typename T0, typename T1, typename T2, typename T3, typename T4, typename T5, typename T6, typename T7, typename T8>
-            std::future<void> async0(unsigned short reqId, const T0 &t0, const T1 &t1, const T2 &t2, const T3 &t3, const T4 &t4, const T5 &t5, const T6 &t6, const T7 &t7, const T8 &t8) {
+            std::future<CScopeUQueue> async0(unsigned short reqId, const T0 &t0, const T1 &t1, const T2 &t2, const T3 &t3, const T4 &t4, const T5 &t5, const T6 &t6, const T7 &t7, const T8 &t8) {
                 CScopeUQueue sb;
                 sb << t0 << t1 << t2 << t3 << t4 << t5 << t6 << t7 << t8;
                 return async0(reqId, sb->GetBuffer(), sb->GetSize());
             }
 
             template<typename T0, typename T1, typename T2, typename T3, typename T4, typename T5, typename T6, typename T7>
-            std::future<void> async0(unsigned short reqId, const T0 &t0, const T1 &t1, const T2 &t2, const T3 &t3, const T4 &t4, const T5 &t5, const T6 &t6, const T7 &t7) {
+            std::future<CScopeUQueue> async0(unsigned short reqId, const T0 &t0, const T1 &t1, const T2 &t2, const T3 &t3, const T4 &t4, const T5 &t5, const T6 &t6, const T7 &t7) {
                 CScopeUQueue sb;
                 sb << t0 << t1 << t2 << t3 << t4 << t5 << t6 << t7;
                 return async0(reqId, sb->GetBuffer(), sb->GetSize());
             }
 
             template<typename T0, typename T1, typename T2, typename T3, typename T4, typename T5, typename T6>
-            std::future<void> async0(unsigned short reqId, const T0 &t0, const T1 &t1, const T2 &t2, const T3 &t3, const T4 &t4, const T5 &t5, const T6 &t6) {
+            std::future<CScopeUQueue> async0(unsigned short reqId, const T0 &t0, const T1 &t1, const T2 &t2, const T3 &t3, const T4 &t4, const T5 &t5, const T6 &t6) {
                 CScopeUQueue sb;
                 sb << t0 << t1 << t2 << t3 << t4 << t5 << t6;
                 return async0(reqId, sb->GetBuffer(), sb->GetSize());
             }
 
             template<typename T0, typename T1, typename T2, typename T3, typename T4, typename T5>
-            std::future<void> async0(unsigned short reqId, const T0 &t0, const T1 &t1, const T2 &t2, const T3 &t3, const T4 &t4, const T5 &t5) {
+            std::future<CScopeUQueue> async0(unsigned short reqId, const T0 &t0, const T1 &t1, const T2 &t2, const T3 &t3, const T4 &t4, const T5 &t5) {
                 CScopeUQueue sb;
                 sb << t0 << t1 << t2 << t3 << t4 << t5;
                 return async0(reqId, sb->GetBuffer(), sb->GetSize());
             }
 
             template<typename T0, typename T1, typename T2, typename T3, typename T4>
-            std::future<void> async0(unsigned short reqId, const T0 &t0, const T1 &t1, const T2 &t2, const T3 &t3, const T4 &t4) {
+            std::future<CScopeUQueue> async0(unsigned short reqId, const T0 &t0, const T1 &t1, const T2 &t2, const T3 &t3, const T4 &t4) {
                 CScopeUQueue sb;
                 sb << t0 << t1 << t2 << t3 << t4;
                 return async0(reqId, sb->GetBuffer(), sb->GetSize());
             }
 
             template<typename T0, typename T1, typename T2, typename T3>
-            std::future<void> async0(unsigned short reqId, const T0 &t0, const T1 &t1, const T2 &t2, const T3 &t3) {
+            std::future<CScopeUQueue> async0(unsigned short reqId, const T0 &t0, const T1 &t1, const T2 &t2, const T3 &t3) {
                 CScopeUQueue sb;
                 sb << t0 << t1 << t2 << t3;
                 return async0(reqId, sb->GetBuffer(), sb->GetSize());
             }
 
             template<typename T0, typename T1, typename T2>
-            std::future<void> async0(unsigned short reqId, const T0 &t0, const T1 &t1, const T2 &t2) {
+            std::future<CScopeUQueue> async0(unsigned short reqId, const T0 &t0, const T1 &t1, const T2 &t2) {
                 CScopeUQueue sb;
                 sb << t0 << t1 << t2;
                 return async0(reqId, sb->GetBuffer(), sb->GetSize());
             }
 
             template<typename T0, typename T1>
-            std::future<void> async0(unsigned short reqId, const T0 &t0, const T1 &t1) {
+            std::future<CScopeUQueue> async0(unsigned short reqId, const T0 &t0, const T1 &t1) {
                 CScopeUQueue sb;
                 sb << t0 << t1;
                 return async0(reqId, sb->GetBuffer(), sb->GetSize());
             }
 
             template<typename T0>
-            std::future<void> async0(unsigned short reqId, const T0 &t0) {
+            std::future<CScopeUQueue> async0(unsigned short reqId, const T0 &t0) {
                 CScopeUQueue sb;
                 sb << t0;
                 return async0(reqId, sb->GetBuffer(), sb->GetSize());
             }
 
             template<typename R>
+            static DDiscarded get_aborted(std::shared_ptr<std::promise<R> > prom, const std::wstring& method_name, unsigned short req_id) {
+                if (!method_name.size()) {
+                    throw std::invalid_argument("Method name cannot be empty");
+                }
+                if (!req_id) {
+                    throw std::invalid_argument("Request id cannot be zero");
+                }
+                DDiscarded discarded = [prom, req_id, method_name](CAsyncServiceHandler *h, bool canceled) {
+                    try {
+                        if (canceled) {
+                            prom->set_exception(std::make_exception_ptr(CSocketError(REQUEST_CANCELED, (L"Request " + method_name + L" canceled").c_str(), req_id, false)));
+                        } else {
+                            CClientSocket* cs = h->GetSocket();
+                            int ec = cs->GetErrorCode();
+                            if (ec) {
+                                std::string em = cs->GetErrorMsg();
+                                prom->set_exception(std::make_exception_ptr(CSocketError(ec, Utilities::ToWide(em).c_str(), req_id, false)));
+                            } else {
+                                prom->set_exception(std::make_exception_ptr(CSocketError(SESSION_CLOSED_AFTER, (L"Session closed after sending the request " + method_name).c_str(), req_id, false)));
+                            }
+                        }
+                    } catch (std::future_error&) {
+                        //ignore
+                    }
+                };
+                return discarded;
+            }
+
+            template<typename R>
+            static DServerException get_se(std::shared_ptr<std::promise<R> > prom) {
+                DServerException se = [prom](CAsyncServiceHandler *ash, unsigned short requestId, const wchar_t *errMessage, const char* errWhere, unsigned int errCode) {
+                    try {
+                        prom->set_exception(std::make_exception_ptr(CServerError(errCode, errMessage, errWhere, requestId)));
+                    } catch (std::future_error&) {
+                        //ignore
+                    }
+                };
+                return se;
+            }
+
+            template<typename R>
             std::future<R> async(unsigned short reqId, const unsigned char *pBuffer, unsigned int size) {
                 std::shared_ptr<std::promise<R> > prom(new std::promise<R>);
-                DDiscarded discarded = [prom, reqId](CAsyncServiceHandler *h, bool canceled) {
-                    try {
-                        prom->set_exception(std::make_exception_ptr(CUException(canceled ? "Request canceled" : "Socket closed", __FILE__, reqId, __FUNCTION__, MB_REQUEST_ABORTED)));
-                    } catch (...) {
-                    }
-                };
-                DServerException se = [prom](CAsyncServiceHandler *ash, unsigned short requestId, const wchar_t *errMessage, const char* errWhere, unsigned int errCode) {
-                    CScopeUQueue sq;
-                    Utilities::ToUTF8(errMessage, ::wcslen(errMessage), *sq);
-                    try {
-                        prom->set_exception(std::make_exception_ptr(CUException((const char*) sq->GetBuffer(), errWhere, (int) errCode)));
-                    } catch (...) {
-                    }
-                };
+                DDiscarded discarded = get_aborted(prom, L"SendRequest", reqId);
+                DServerException se = get_se(prom);
                 DResultHandler rh = [prom](CAsyncResult & ar) {
                     try {
                         R r;
                         ar >> r;
-                        prom->set_value(r);
+                        prom->set_value(std::move(r));
+                    } catch (std::future_error&) {
+                        //ignore it
                     } catch (...) {
                         prom->set_exception(std::current_exception());
                     }
                 };
                 if (!SendRequest(reqId, pBuffer, size, rh, discarded, se)) {
-                    throw CUException(GetAttachedClientSocket()->GetErrorMsg().c_str(), __FILE__, reqId, __FUNCTION__, GetAttachedClientSocket()->GetErrorCode());
+                    raise(L"SendRequest", reqId);
                 }
                 return prom->get_future();
             }
@@ -1566,100 +1208,13 @@ namespace SPA {
                 return async<R>(reqId, sb->GetBuffer(), sb->GetSize());
             }
 #endif
+#endif
         private:
             //The two following functions may be public in the future
             bool Attach(CClientSocket *cs);
             void Detach();
 
             inline USocket_Client_Handle GetClientSocketHandle() const;
-
-            bool P(unsigned short reqId, const CUQueue &qSender) {
-                bool ok = true;
-                DResultHandler rh = [](CAsyncResult & ar) {
-                };
-                DDiscarded discarded = [&ok](CAsyncServiceHandler *h, bool canceled) {
-                    ok = false;
-                };
-                if (!SendRequest(reqId, qSender.GetBuffer(), qSender.GetSize(), rh, discarded, nullptr)) {
-                    return false;
-                }
-                return (WaitAll() && ok);
-            }
-
-            template<typename R0>
-            bool P(unsigned short reqId, const CUQueue &qSender, R0 &r0) {
-                bool ok = true;
-                DResultHandler rh = [&r0](CAsyncResult & ar) {
-                    ar >> r0;
-                };
-                DDiscarded discarded = [&ok](CAsyncServiceHandler *h, bool canceled) {
-                    ok = false;
-                };
-                if (!SendRequest(reqId, qSender.GetBuffer(), qSender.GetSize(), rh, discarded, nullptr)) {
-                    return false;
-                }
-                return (WaitAll() && ok);
-            }
-
-            template<typename R0, typename R1>
-            bool P(unsigned short reqId, const CUQueue &qSender, R0 &r0, R1 &r1) {
-                bool ok = true;
-                DResultHandler rh = [&r0, &r1](CAsyncResult & ar) {
-                    ar >> r0 >> r1;
-                };
-                DDiscarded discarded = [&ok](CAsyncServiceHandler *h, bool canceled) {
-                    ok = false;
-                };
-                if (!SendRequest(reqId, qSender.GetBuffer(), qSender.GetSize(), rh, discarded, nullptr)) {
-                    return false;
-                }
-                return (WaitAll() && ok);
-            }
-
-            template<typename R0, typename R1, typename R2>
-            bool P(unsigned short reqId, const CUQueue &qSender, R0 &r0, R1 &r1, R2 &r2) {
-                bool ok = true;
-                DResultHandler rh = [&r0, &r1, &r2](CAsyncResult & ar) {
-                    ar >> r0 >> r1 >> r2;
-                };
-                DDiscarded discarded = [&ok](CAsyncServiceHandler *h, bool canceled) {
-                    ok = false;
-                };
-                if (!SendRequest(reqId, qSender.GetBuffer(), qSender.GetSize(), rh, discarded, nullptr)) {
-                    return false;
-                }
-                return (WaitAll() && ok);
-            }
-
-            template<typename R0, typename R1, typename R2, typename R3>
-            bool P(unsigned short reqId, const CUQueue &qSender, R0 &r0, R1 &r1, R2 &r2, R3 &r3) {
-                bool ok = true;
-                DResultHandler rh = [&r0, &r1, &r2, &r3](CAsyncResult & ar) {
-                    ar >> r0 >> r1 >> r2 >> r3;
-                };
-                DDiscarded discarded = [&ok](CAsyncServiceHandler *h, bool canceled) {
-                    ok = false;
-                };
-                if (!SendRequest(reqId, qSender.GetBuffer(), qSender.GetSize(), rh, discarded, nullptr)) {
-                    return false;
-                }
-                return (WaitAll() && ok);
-            }
-
-            template<typename R0, typename R1, typename R2, typename R3, typename R4>
-            bool P(unsigned short reqId, const CUQueue &qSender, R0 &r0, R1 &r1, R2 &r2, R3 &r3, R4 &r4) {
-                bool ok = true;
-                DResultHandler rh = [&r0, &r1, &r2, &r3, &r4](CAsyncResult & ar) {
-                    ar >> r0 >> r1 >> r2 >> r3 >> r4;
-                };
-                DDiscarded discarded = [&ok](CAsyncServiceHandler *h, bool canceled) {
-                    ok = false;
-                };
-                if (!SendRequest(reqId, qSender.GetBuffer(), qSender.GetSize(), rh, discarded, nullptr)) {
-                    return false;
-                }
-                return (WaitAll() && ok);
-            }
 
             bool GetAsyncResultHandler(unsigned short usReqId, PRR_PAIR &p);
             void OnRR(unsigned short reqId, CUQueue &mc);
@@ -1892,12 +1447,12 @@ namespace SPA {
                     if (!h)
                         h = it->second;
                     else {
-                        unsigned int count0 = h->GetAttachedClientSocket()->GetCountOfRequestsInQueue();
+                        unsigned int count0 = h->GetSocket()->GetCountOfRequestsInQueue();
                         unsigned int count1 = it->first->GetCountOfRequestsInQueue();
                         if (count0 > count1)
                             h = it->second;
                         else if (count0 == count1) {
-                            UINT64 sent0 = h->GetAttachedClientSocket()->GetBytesSent();
+                            UINT64 sent0 = h->GetSocket()->GetBytesSent();
                             UINT64 sent1 = it->first->GetBytesSent();
                             if (sent0 >= sent1)
                                 h = it->second;
@@ -1929,9 +1484,9 @@ namespace SPA {
                     if (!h)
                         h = it->second;
                     else {
-                        UINT64 count0 = h->GetAttachedClientSocket()->GetClientQueue().GetMessageCount();
+                        UINT64 count0 = h->GetSocket()->GetClientQueue().GetMessageCount();
                         UINT64 count1 = cq.GetMessageCount();
-                        if (count0 > count1 || (it->first->IsConnected() && !h->GetAttachedClientSocket()->IsConnected()))
+                        if (count0 > count1 || (it->first->IsConnected() && !h->GetSocket()->IsConnected()))
                             h = it->second;
                     }
                 }
@@ -2122,14 +1677,14 @@ namespace SPA {
             void Unlock(const THandler *h) {
                 if (!h)
                     return;
-                const CClientSocket *cs = h->GetAttachedClientSocket();
+                const CClientSocket *cs = h->GetSocket();
                 Unlock(cs);
             }
 
             void Unlock(const PHandler &handler) {
                 if (!handler)
                     return;
-                const CClientSocket *cs = handler->GetAttachedClientSocket();
+                const CClientSocket *cs = handler->GetSocket();
                 Unlock(cs);
             }
 
@@ -2561,7 +2116,7 @@ namespace SPA {
 
             inline IClientQueue* GetSourceQueue() const {
                 if (m_SourceHandler) {
-                    return &(m_SourceHandler->GetAttachedClientSocket()->GetClientQueue());
+                    return &(m_SourceHandler->GetSocket()->GetClientQueue());
                 }
                 return nullptr;
             }
@@ -2604,7 +2159,7 @@ namespace SPA {
                 PHandler src = GetSourceHandler();
                 if (!src)
                     return false;
-                IClientQueue *cq = &src->GetAttachedClientSocket()->GetClientQueue();
+                IClientQueue *cq = &src->GetSocket()->GetClientQueue();
                 if (!cq->IsAvailable())
                     return false;
                 bool ok = src->SendRequest(reqId, buffer, len, rh);
@@ -2829,7 +2384,7 @@ namespace SPA {
                     ok = GetSourceQueue()->EnsureAppending(vHandles.data(), (unsigned int) vHandles.size());
                 }
                 for (auto it = m_vTargetHandlers.begin(), end = m_vTargetHandlers.end(); it != end; ++it) {
-                    ok = (*it)->GetAttachedClientSocket()->DoEcho();
+                    ok = (*it)->GetSocket()->DoEcho();
                 }
             }
 

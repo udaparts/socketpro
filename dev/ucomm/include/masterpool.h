@@ -28,11 +28,11 @@ namespace SPA {
         virtual void OnSocketPoolEvent(ClientSide::tagSocketPoolEvent spe, const std::shared_ptr<THandler> &pHandler) {
             switch (spe) {
                 case ClientSide::speConnected:
-                    if (pHandler->GetAttachedClientSocket()->GetErrorCode() != 0)
+                    if (pHandler->GetSocket()->GetErrorCode() != 0)
                         break;
                     //use the first socket session for table events only, update, delete and insert
                     if (pHandler == this->GetAsyncHandlers()[0]) {
-                        pHandler->GetAttachedClientSocket()->GetPush().OnPublish = [this, pHandler](ClientSide::CClientSocket*cs, const ClientSide::CMessageSender& sender, const unsigned int* groups, unsigned int count, const UVariant & vtMsg) {
+                        pHandler->GetSocket()->GetPush().OnPublish = [this, pHandler](ClientSide::CClientSocket*cs, const ClientSide::CMessageSender& sender, const unsigned int* groups, unsigned int count, const UVariant & vtMsg) {
                             assert(count == 1);
                             assert(groups != nullptr);
                             assert(groups[0] == UDB::STREAMING_SQL_CHAT_GROUP_ID || groups[0] == UDB::CACHE_UPDATE_CHAT_GROUP_ID);
@@ -129,11 +129,11 @@ namespace SPA {
             //open default database and subscribe for table update events (update, delete and insert) by setting flag UDB::ENABLE_TABLE_UPDATE_MESSAGES
             bool ok = pHandler->GetCachedTables(this->GetDefaultDBName().c_str(), [this, pHandler](int res, const std::wstring & errMsg) {
                 unsigned int port;
-                std::string ip = pHandler->GetAttachedClientSocket()->GetPeerName(&port);
+                std::string ip = pHandler->GetSocket()->GetPeerName(&port);
                         ip += ":";
                         ip += std::to_string((UINT64) port);
                         this->m_cache.Set(ip.c_str(), pHandler->GetDBManagementSystem());
-                        std::string host = pHandler->GetAttachedClientSocket()->GetConnectionContext().Host;
+                        std::string host = pHandler->GetSocket()->GetConnectionContext().Host;
                         std::wstring s = Utilities::ToWide(host.c_str(), host.size());
                         this->m_cache.SetDBServerName(s.c_str());
                 if (res == 0) {

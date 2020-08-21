@@ -61,6 +61,14 @@ namespace SPA {
                 bool Sent;
                 INT64 InitSize;
                 std::wstring ErrMsg;
+                DServerException Se;
+#if defined(PHP_ADAPTER_PROJECT) || defined(NODE_JS_ADAPTER_PROJECT)
+#else
+#ifdef HAVE_FUTURE
+                std::shared_ptr<std::promise<ErrInfo> > Promise;
+#endif
+#endif
+
 #ifdef WIN32_64
                 HANDLE File;
 #else
@@ -98,18 +106,20 @@ namespace SPA {
         public:
 
             virtual unsigned int CleanCallbacks() {
-                {
-                    CAutoLock al(m_csFile);
-                    for (auto it = m_vContext.begin(), end = m_vContext.end(); it != end; ++it) {
-                        if (it->IsOpen()) {
-                            it->ErrMsg = L"Clean local writing file";
-                            it->ErrorCode = SFile::CANNOT_OPEN_LOCAL_FILE_FOR_WRITING;
-                            CloseFile(*it);
-                        } else {
-                            break;
+                std::deque<CContext> vContext;
+                m_csFile.lock();
+                vContext.swap(m_vContext);
+                m_csFile.unlock();
+                for (auto it = vContext.begin(), end = vContext.end(); it != end; ++it) {
+                    if (it->IsOpen()) {
+                        CloseFile(*it);
+                    }
+                    if (it->Discarded) {
+                        try {
+                            it->Discarded(this, GetSocket()->GetCurrentRequestID() == idCancel);
+                        } catch (...) {
                         }
                     }
-                    m_vContext.clear();
                 }
                 return CAsyncServiceHandler::CleanCallbacks();
             }
@@ -150,16 +160,99 @@ namespace SPA {
                     auto &back = m_vContext.back();
                     if (back.IsOpen()) {
                         //Send an interrupt request onto server to shut down downloading as earlier as possible
-                        Interrupt(1);
+                        Interrupt(DEFAULT_INTERRUPT_OPTION);
                         break;
+                    }
+                    if (back.Discarded) {
+                        try {
+                            m_csFile.unlock();
+                            back.Discarded(this, true);
+                        } catch (...) {
+                        }
+                        m_csFile.lock();
                     }
                     m_vContext.pop_back();
                     ++canceled;
                 }
                 return canceled;
             }
+#if defined(PHP_ADAPTER_PROJECT) || defined(NODE_JS_ADAPTER_PROJECT)
+#else
+#ifdef HAVE_FUTURE
 
-            bool Upload(const wchar_t *localFile, const wchar_t *remoteFile, DUpload up = nullptr, DTransferring trans = nullptr, DDiscarded aborted = nullptr, unsigned int flags = SFile::FILE_OPEN_TRUNCACTED) {
+            virtual std::future<ErrInfo> upload(const wchar_t *localFile, const wchar_t *remoteFile, DTransferring progress = nullptr, unsigned int flags = SFile::FILE_OPEN_TRUNCACTED) {
+                if (!localFile || !::wcslen(localFile)) {
+                    throw std::invalid_argument("Parameter localFile cannot be empty");
+                }
+                if (!remoteFile || !::wcslen(remoteFile)) {
+                    throw std::invalid_argument("Parameter remoteFile cannot be empty");
+                }
+                CContext context(true, flags);
+                std::shared_ptr<std::promise<ErrInfo> > prom(new std::promise<ErrInfo>);
+                context.Download = [prom](CStreamingFile *file, int res, const std::wstring & errMsg) {
+                    ErrInfo ei(res, errMsg.c_str());
+                    try {
+                        prom->set_value(ei);
+                    } catch (std::future_error&) {
+                        //ignore
+                    }
+                };
+                context.Transferring = progress;
+                context.Discarded = get_aborted(prom, L"Upload", SFile::idUpload);
+                context.FilePath = remoteFile;
+                context.LocalFile = localFile;
+                context.Se = get_se(prom);
+                context.Promise = prom;
+                CAutoLock al(m_csFile);
+                m_vContext.push_back(context);
+                unsigned int filesOpened = GetFilesOpened();
+                if (m_MaxDownloading > filesOpened) {
+                    ClientCoreLoader.PostProcessing(GetSocket()->GetHandle(), 0, 0);
+                    if (!filesOpened) {
+                        GetSocket()->DoEcho(); //make sure WaitAll works correctly
+                    }
+                }
+                return prom->get_future();
+            }
+
+            virtual std::future<ErrInfo> download(const wchar_t *localFile, const wchar_t *remoteFile, DTransferring progress = nullptr, unsigned int flags = SFile::FILE_OPEN_TRUNCACTED) {
+                if (!localFile || !::wcslen(localFile)) {
+                    throw std::invalid_argument("Parameter localFile cannot be empty");
+                }
+                if (!remoteFile || !::wcslen(remoteFile)) {
+                    throw std::invalid_argument("Parameter remoteFile cannot be empty");
+                }
+                CContext context(false, flags);
+                std::shared_ptr<std::promise<ErrInfo> > prom(new std::promise<ErrInfo>);
+                context.Download = [prom](CStreamingFile *file, int res, const std::wstring & errMsg) {
+                    ErrInfo ei(res, errMsg.c_str());
+                    try {
+                        prom->set_value(ei);
+                    } catch (std::future_error&) {
+                        //ignore
+                    }
+                };
+                context.Transferring = progress;
+                context.Discarded = get_aborted(prom, L"Download", SFile::idDownload);
+                context.FilePath = remoteFile;
+                context.LocalFile = localFile;
+                context.Se = get_se(prom);
+                context.Promise = prom;
+                CAutoLock al(m_csFile);
+                m_vContext.push_back(context);
+                unsigned int filesOpened = GetFilesOpened();
+                if (m_MaxDownloading > filesOpened) {
+                    ClientCoreLoader.PostProcessing(GetSocket()->GetHandle(), 0, 0);
+                    if (!filesOpened) {
+                        GetSocket()->DoEcho(); //make sure WaitAll works correctly
+                    }
+                }
+                return prom->get_future();
+            }
+#endif
+#endif
+
+            virtual bool Upload(const wchar_t *localFile, const wchar_t *remoteFile, DUpload up = nullptr, DTransferring progress = nullptr, DDiscarded aborted = nullptr, unsigned int flags = SFile::FILE_OPEN_TRUNCACTED, const DServerException& se = nullptr) {
                 if (!localFile || !::wcslen(localFile)) {
                     return false;
                 }
@@ -168,23 +261,24 @@ namespace SPA {
                 }
                 CContext context(true, flags);
                 context.Download = up;
-                context.Transferring = trans;
+                context.Transferring = progress;
                 context.Discarded = aborted;
                 context.FilePath = remoteFile;
                 context.LocalFile = localFile;
+                context.Se = se;
                 CAutoLock al(m_csFile);
                 m_vContext.push_back(context);
                 unsigned int filesOpened = GetFilesOpened();
                 if (m_MaxDownloading > filesOpened) {
-                    ClientCoreLoader.PostProcessing(GetAttachedClientSocket()->GetHandle(), 0, 0);
+                    ClientCoreLoader.PostProcessing(GetSocket()->GetHandle(), 0, 0);
                     if (!filesOpened) {
-                        GetAttachedClientSocket()->DoEcho(); //make sure WaitAll works correctly
+                        GetSocket()->DoEcho(); //make sure WaitAll works correctly
                     }
                 }
                 return true;
             }
 
-            bool Download(const wchar_t *localFile, const wchar_t *remoteFile, DDownload dl = nullptr, DTransferring trans = nullptr, DDiscarded aborted = nullptr, unsigned int flags = SFile::FILE_OPEN_TRUNCACTED) {
+            virtual bool Download(const wchar_t *localFile, const wchar_t *remoteFile, DDownload dl = nullptr, DTransferring progress = nullptr, DDiscarded aborted = nullptr, unsigned int flags = SFile::FILE_OPEN_TRUNCACTED, const DServerException& se = nullptr) {
                 if (!localFile || !::wcslen(localFile)) {
                     return false;
                 }
@@ -193,17 +287,18 @@ namespace SPA {
                 }
                 CContext context(false, flags);
                 context.Download = dl;
-                context.Transferring = trans;
+                context.Transferring = progress;
                 context.Discarded = aborted;
                 context.FilePath = remoteFile;
                 context.LocalFile = localFile;
+                context.Se = se;
                 CAutoLock al(m_csFile);
                 m_vContext.push_back(context);
                 unsigned int filesOpened = GetFilesOpened();
                 if (m_MaxDownloading > filesOpened) {
-                    ClientCoreLoader.PostProcessing(GetAttachedClientSocket()->GetHandle(), 0, 0);
+                    ClientCoreLoader.PostProcessing(GetSocket()->GetHandle(), 0, 0);
                     if (!filesOpened) {
-                        GetAttachedClientSocket()->DoEcho(); //make sure WaitAll works correctly
+                        GetSocket()->DoEcho(); //make sure WaitAll works correctly
                     }
                 }
                 return true;
@@ -213,7 +308,6 @@ namespace SPA {
 
             virtual void OnPostProcessing(unsigned int hint, UINT64 data) {
                 DResultHandler rh;
-                DServerException se;
                 unsigned int d = 0;
                 CAutoLock al(m_csFile);
                 for (auto it = m_vContext.begin(), end = m_vContext.end(); it != end; ++it) {
@@ -234,14 +328,64 @@ namespace SPA {
                     if (it->Uploading) {
                         OpenLocalRead(*it);
                         if (!it->HasError()) {
-                            SendRequest(SFile::idUpload, it->FilePath, it->Flags, it->FileSize, rh, it->Discarded, se);
+                            if (!SendRequest(SFile::idUpload, it->FilePath, it->Flags, it->FileSize, rh, it->Discarded, it->Se)) {
+                                CClientSocket *cs = GetSocket();
+                                int ec = cs->GetErrorCode();
+                                if (ec) {
+                                    it->ErrorCode = ec;
+                                    it->ErrMsg = SPA::Utilities::ToWide(cs->GetErrorMsg());
+                                } else {
+                                    it->ErrorCode = SESSION_CLOSED_BEFORE;
+                                    it->ErrMsg = L"Session already closed before sending the request Upload";
+                                }
+#if defined(PHP_ADAPTER_PROJECT) || defined(NODE_JS_ADAPTER_PROJECT)
+#else
+#ifdef HAVE_FUTURE
+                                if (it->Promise) {
+                                    try {
+                                        it->Promise->set_exception(std::make_exception_ptr(CSocketError(it->ErrorCode, it->ErrMsg.c_str(), SFile::idUpload, true)));
+                                    } catch (std::future_error&) {
+                                        //ignore
+                                    }
+                                    it->Se = nullptr;
+                                    it->Discarded = nullptr;
+                                }
+#endif
+#endif
+                                continue;
+                            }
                             break;
                         }
                     } else {
                         OpenLocalWrite(*it);
                         if (!it->HasError()) {
+                            if (!SendRequest(SFile::idDownload, it->LocalFile, it->FilePath, it->Flags, it->InitSize, rh, it->Discarded, it->Se)) {
+                                CClientSocket *cs = GetSocket();
+                                int ec = cs->GetErrorCode();
+                                if (ec) {
+                                    it->ErrorCode = ec;
+                                    it->ErrMsg = SPA::Utilities::ToWide(cs->GetErrorMsg());
+                                } else {
+                                    it->ErrorCode = SESSION_CLOSED_BEFORE;
+                                    it->ErrMsg = L"Session already closed before sending the request Download";
+                                }
+#if defined(PHP_ADAPTER_PROJECT) || defined(NODE_JS_ADAPTER_PROJECT)
+#else
+#ifdef HAVE_FUTURE
+                                if (it->Promise) {
+                                    try {
+                                        it->Promise->set_exception(std::make_exception_ptr(CSocketError(it->ErrorCode, it->ErrMsg.c_str(), SFile::idDownload, true)));
+                                    } catch (std::future_error&) {
+                                        //ignore
+                                    }
+                                    it->Se = nullptr;
+                                    it->Discarded = nullptr;
+                                }
+#endif
+#endif
+                                continue;
+                            }
                             ++d;
-                            SendRequest(SFile::idDownload, it->LocalFile, it->FilePath, it->Flags, it->InitSize, rh, it->Discarded, se);
                         }
                     }
                 }
@@ -289,8 +433,8 @@ namespace SPA {
                 if (!count) {
                     count = fTo.m_vContext.size();
                     if (count) {
-                        ClientCoreLoader.PostProcessing(to.GetAttachedClientSocket()->GetHandle(), 0, 0);
-                        to.GetAttachedClientSocket()->DoEcho(); //make sure WaitAll works correctly
+                        ClientCoreLoader.PostProcessing(to.GetSocket()->GetHandle(), 0, 0);
+                        to.GetSocket()->DoEcho(); //make sure WaitAll works correctly
                     }
                 }
             }
@@ -369,14 +513,14 @@ namespace SPA {
                         break;
                     case SFile::idDownloading:
                     {
-                        DTransferring trans;
+                        DTransferring progress;
                         UINT64 downloaded = 0;
                         {
                             CAutoLock al(m_csFile);
                             if (m_vContext.size()) {
                                 CContext &context = m_vContext.front();
                                 assert(!context.Uploading);
-                                trans = context.Transferring;
+                                progress = context.Transferring;
 #ifdef WIN32_64
                                 DWORD dw = mc.GetSize(), dwWritten;
                                 BOOL ok = ::WriteFile(context.File, mc.GetBuffer(), dw, &dwWritten, nullptr);
@@ -390,8 +534,8 @@ namespace SPA {
                                 downloaded = (UINT64) context.GetFilePos();
                             }
                         }
-                        if (trans) {
-                            trans(this, downloaded);
+                        if (progress) {
+                            progress(this, downloaded);
                         }
                         mc.SetSize(0);
                     }
@@ -423,8 +567,8 @@ namespace SPA {
                                 CContext &context = m_vContext.front();
                                 mc >> context.InitSize;
                                 CScopeUQueue sb(MY_OPERATION_SYSTEM, IsBigEndian(), SFile::STREAM_CHUNK_SIZE);
-                                context.QueueOk = GetAttachedClientSocket()->GetClientQueue().StartJob();
-                                bool queue_enabled = GetAttachedClientSocket()->GetClientQueue().IsAvailable();
+                                context.QueueOk = GetSocket()->GetClientQueue().StartJob();
+                                bool queue_enabled = GetSocket()->GetClientQueue().IsAvailable();
                                 if (queue_enabled) {
                                     SendRequest(SFile::idUploadBackup, context.FilePath.c_str(), context.Flags, context.FileSize, context.InitSize, rh, context.Discarded, se);
                                 }
@@ -451,7 +595,7 @@ namespace SPA {
                                         break;
                                     } else if (queue_enabled) {
                                         //save file into client message queue
-                                    } else if (GetAttachedClientSocket()->GetBytesInSendingBuffer() > 40 * SFile::STREAM_CHUNK_SIZE || GetAttachedClientSocket()->GetConnectionState() < csConnected) {
+                                    } else if (GetSocket()->GetBytesInSendingBuffer() > 40 * SFile::STREAM_CHUNK_SIZE || GetSocket()->GetConnectionState() < csConnected) {
                                         break;
                                     }
                                 }
@@ -463,7 +607,7 @@ namespace SPA {
                                     context.Sent = true;
                                     ok = SendRequest(SFile::idUploadCompleted, (const unsigned char*) nullptr, (unsigned int) 0, rh, context.Discarded, se);
                                     if (context.QueueOk) {
-                                        GetAttachedClientSocket()->GetClientQueue().EndJob();
+                                        GetSocket()->GetClientQueue().EndJob();
                                     }
                                 }
                                 if (!ok) {
@@ -490,7 +634,7 @@ namespace SPA {
                                 m_vContext.pop_front();
                             }
                             if (ctx.QueueOk) {
-                                GetAttachedClientSocket()->GetClientQueue().AbortJob();
+                                GetSocket()->GetClientQueue().AbortJob();
                             }
                             OnPostProcessing(0, 0);
                         }
@@ -501,7 +645,7 @@ namespace SPA {
                         int res = 0;
                         std::wstring errMsg;
                         CContext ctx(false, 0);
-                        DTransferring trans;
+                        DTransferring progress;
                         INT64 uploaded;
                         mc >> uploaded;
                         if (mc.GetSize() >= sizeof (int) + sizeof (unsigned int)) {
@@ -512,7 +656,7 @@ namespace SPA {
                             if (m_vContext.size()) {
                                 CContext &context = m_vContext.front();
                                 assert(context.Uploading);
-                                trans = context.Transferring;
+                                progress = context.Transferring;
                                 if (uploaded < 0 || res || errMsg.size()) {
                                     assert(context.QueueOk);
                                     context.ErrorCode = res;
@@ -563,8 +707,8 @@ namespace SPA {
                                 m_vContext.pop_front();
                             }
                             OnPostProcessing(0, 0);
-                        } else if (trans) {
-                            trans(this, (UINT64) uploaded);
+                        } else if (progress) {
+                            progress(this, (UINT64) uploaded);
                         }
                     }
                         break;

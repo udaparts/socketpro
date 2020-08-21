@@ -311,19 +311,20 @@ namespace SPA {
              * @param handler a callback for tracking final result
              * @param row a callback for receiving records of data
              * @param rh a callback for tracking row set of header column informations
-             * @param batchHeader a callback for tracking returning batch start error messages
-             * @param vPInfo a given array of parameter informations which may be empty to some of database management systems
-             * @param plan a value for computing how included transactions should be rollback
-             * @param discarded a callback for tracking socket closed or request canceled event
              * @param delimiter a case-sensitive delimiter string used for separating the batch SQL statements into individual SQL statements at server side for processing
+             * @param batchHeader a callback for tracking batch beginning event
+             * @param discarded a callback for tracking socket closed or request canceled event
              * @param meta a boolean for better or more detailed column meta details such as unique, not null, primary key, and so on
+             * @param plan a value for computing how included transactions should be rollback
+             * @param vPInfo a given array of parameter informations which may be empty to some of database management systems
              * @param lastInsertId a boolean for last insert record identification number
+             * @param se a callback for tracking an exception from server
              * @return true if request is successfully sent or queued; and false if request is NOT successfully sent or queued
              */
             virtual bool ExecuteBatch(tagTransactionIsolation isolation, const wchar_t *sql, CDBVariantArray &vParam = CDBVariantArray(),
-                    const DExecuteResult& handler = nullptr, const DRows& row = nullptr, const DRowsetHeader& rh = nullptr, const DRowsetHeader& batchHeader = nullptr,
-                    const CParameterInfoArray& vPInfo = CParameterInfoArray(), tagRollbackPlan plan = rpDefault, const DDiscarded& discarded = nullptr,
-                    const wchar_t *delimiter = L";", bool meta = true, bool lastInsertId = true) {
+                    const DExecuteResult& handler = nullptr, const DRows& row = nullptr, const DRowsetHeader& rh = nullptr, const wchar_t* delimiter = L";",
+                    const DRowsetHeader& batchHeader = nullptr, const DDiscarded& discarded = nullptr, bool meta = true, tagRollbackPlan plan = rpDefault,
+                    const CParameterInfoArray& vPInfo = CParameterInfoArray(), bool lastInsertId = true, const DServerException& se = nullptr) {
                 bool rowset = (row) ? true : false;
                 meta = (meta && rh);
                 CScopeUQueue sb;
@@ -338,7 +339,7 @@ namespace SPA {
                 SPA::CAutoLock alOne(m_csOneSending);
 #endif
                 if (vParam.size())
-                    queueOk = GetAttachedClientSocket()->GetClientQueue().StartJob();
+                    queueOk = GetSocket()->GetClientQueue().StartJob();
                 {
                     if (!SendParametersData(vParam)) {
                         Clean();
@@ -361,7 +362,7 @@ namespace SPA {
                 DResultHandler arh = [callIndex, handler, this](CAsyncResult & ar) {
                     this->Process(handler, ar, idExecuteBatch, callIndex);
                 };
-                if (!SendRequest(idExecuteBatch, sb->GetBuffer(), sb->GetSize(), arh, discarded, nullptr)) {
+                if (!SendRequest(idExecuteBatch, sb->GetBuffer(), sb->GetSize(), arh, discarded, se)) {
                     CAutoLock al(m_csDB);
 #ifndef NO_OUTPUT_BINDING
                     m_mapParameterCall.erase(callIndex);
@@ -373,7 +374,7 @@ namespace SPA {
                     return false;
                 }
                 if (queueOk)
-                    GetAttachedClientSocket()->GetClientQueue().EndJob();
+                    GetSocket()->GetClientQueue().EndJob();
                 return true;
             }
 
@@ -386,10 +387,11 @@ namespace SPA {
              * @param meta a boolean for better or more detailed column meta details such as unique, not null, primary key, and so on
              * @param lastInsertId a boolean for last insert record identification number
              * @param discarded a callback for tracking socket closed or request canceled event
+             * @param se a callback for tracking an exception from server
              * @return true if request is successfully sent or queued; and false if request is NOT successfully sent or queued
              */
             virtual bool Execute(CDBVariantArray &vParam, const DExecuteResult& handler = nullptr, const DRows& row = nullptr, const DRowsetHeader& rh = nullptr,
-                    bool meta = true, bool lastInsertId = true, const DDiscarded& discarded = nullptr) {
+                    bool meta = true, bool lastInsertId = true, const DDiscarded& discarded = nullptr, const DServerException& se = nullptr) {
                 bool rowset = (row) ? true : false;
                 meta = (meta && rh);
                 CScopeUQueue sb;
@@ -404,7 +406,7 @@ namespace SPA {
 #endif
                 {
                     if (vParam.size()) {
-                        queueOk = GetAttachedClientSocket()->GetClientQueue().StartJob();
+                        queueOk = GetSocket()->GetClientQueue().StartJob();
                         if (!SendParametersData(vParam)) {
                             Clean();
                             return false;
@@ -424,7 +426,7 @@ namespace SPA {
                 DResultHandler arh = [callIndex, handler, this](CAsyncResult & ar) {
                     this->Process(handler, ar, idExecuteParameters, callIndex);
                 };
-                if (!SendRequest(idExecuteParameters, sb->GetBuffer(), sb->GetSize(), arh, discarded, nullptr)) {
+                if (!SendRequest(idExecuteParameters, sb->GetBuffer(), sb->GetSize(), arh, discarded, se)) {
                     CAutoLock al(m_csDB);
 #ifndef NO_OUTPUT_BINDING
                     m_mapParameterCall.erase(callIndex);
@@ -435,7 +437,7 @@ namespace SPA {
                     return false;
                 }
                 if (queueOk)
-                    GetAttachedClientSocket()->GetClientQueue().EndJob();
+                    GetSocket()->GetClientQueue().EndJob();
                 return true;
             }
 
@@ -448,9 +450,10 @@ namespace SPA {
              * @param meta a boolean for better or more detailed column meta details such as unique, not null, primary key, and so on
              * @param lastInsertId a boolean for last insert record identification number
              * @param discarded a callback for tracking socket closed or request canceled event
+             * @param se a callback for tracking an exception from server
              * @return true if request is successfully sent or queued; and false if request is NOT successfully sent or queued
              */
-            virtual bool Execute(const wchar_t* sql, const DExecuteResult& handler = nullptr, const DRows& row = nullptr, const DRowsetHeader& rh = nullptr, bool meta = true, bool lastInsertId = true, const DDiscarded& discarded = nullptr) {
+            virtual bool Execute(const wchar_t* sql, const DExecuteResult& handler = nullptr, const DRows& row = nullptr, const DRowsetHeader& rh = nullptr, bool meta = true, bool lastInsertId = true, const DDiscarded& discarded = nullptr, const DServerException& se = nullptr) {
                 bool rowset = (row) ? true : false;
                 meta = (meta && rh);
                 CScopeUQueue sb;
@@ -470,7 +473,7 @@ namespace SPA {
                 DResultHandler arh = [index, handler, this](CAsyncResult & ar) {
                     this->Process(handler, ar, idExecute, index);
                 };
-                if (!SendRequest(idExecute, sb->GetBuffer(), sb->GetSize(), arh, discarded, nullptr)) {
+                if (!SendRequest(idExecute, sb->GetBuffer(), sb->GetSize(), arh, discarded, se)) {
                     CAutoLock al(m_csDB);
                     if (rowset || meta) {
                         m_mapRowset.erase(index);
@@ -488,9 +491,10 @@ namespace SPA {
              * @param handler a callback for SQL preparing result
              * @param vParameterInfo a given array of parameter informations
              * @param discarded a callback for tracking socket closed or request canceled event
+             * @param se a callback for tracking an exception from server
              * @return true if request is successfully sent or queued; and false if request is NOT successfully sent or queued
              */
-            virtual bool Prepare(const char16_t *sql, const DResult& handler = nullptr, const CParameterInfoArray& vParameterInfo = CParameterInfoArray(), const DDiscarded& discarded = nullptr) {
+            virtual bool Prepare(const char16_t *sql, const DResult& handler = nullptr, const CParameterInfoArray& vParameterInfo = CParameterInfoArray(), const DDiscarded& discarded = nullptr, const DServerException& se = nullptr) {
                 CScopeUQueue sb;
                 DResultHandler arh = [handler](CAsyncResult & ar) {
                     int res;
@@ -512,7 +516,7 @@ namespace SPA {
                     }
                 };
                 sb << sql << vParameterInfo;
-                return SendRequest(idPrepare, sb->GetBuffer(), sb->GetSize(), arh, discarded, nullptr);
+                return SendRequest(idPrepare, sb->GetBuffer(), sb->GetSize(), arh, discarded, se);
             }
 
             /**
@@ -523,19 +527,20 @@ namespace SPA {
              * @param handler a callback for tracking final result
              * @param row a callback for receiving records of data
              * @param rh a callback for tracking row set of header column informations
-             * @param batchHeader a callback for tracking returning batch start error messages
-             * @param vPInfo a given array of parameter informations which may be empty to some of database management systems
-             * @param plan a value for computing how included transactions should be rollback
-             * @param discarded a callback for tracking socket closed or request canceled event
              * @param delimiter a case-sensitive delimiter string used for separating the batch SQL statements into individual SQL statements at server side for processing
+             * @param batchHeader a callback for tracking batch beginning event
+             * @param discarded a callback for tracking socket closed or request canceled event
              * @param meta a boolean for better or more detailed column meta details such as unique, not null, primary key, and so on
+             * @param plan a value for computing how included transactions should be rollback
+             * @param vPInfo a given array of parameter informations which may be empty to some of database management systems
              * @param lastInsertId a boolean for last insert record identification number
+             * @param se a callback for tracking an exception from server
              * @return true if request is successfully sent or queued; and false if request is NOT successfully sent or queued
              */
-            virtual bool ExecuteBatch(tagTransactionIsolation isolation, const char16_t *sql, CDBVariantArray &vParam = CDBVariantArray(),
-                    const DExecuteResult& handler = nullptr, const DRows& row = nullptr, const DRowsetHeader& rh = nullptr, const DRowsetHeader& batchHeader = nullptr,
-                    const CParameterInfoArray& vPInfo = CParameterInfoArray(), tagRollbackPlan plan = rpDefault, const DDiscarded& discarded = nullptr,
-                    const char16_t *delimiter = u";", bool meta = true, bool lastInsertId = true) {
+            virtual bool ExecuteBatch(tagTransactionIsolation isolation, const char16_t* sql, CDBVariantArray& vParam = CDBVariantArray(),
+                    const DExecuteResult& handler = nullptr, const DRows& row = nullptr, const DRowsetHeader& rh = nullptr, const char16_t* delimiter = u";",
+                    const DRowsetHeader& batchHeader = nullptr, const DDiscarded& discarded = nullptr, bool meta = true, tagRollbackPlan plan = rpDefault,
+                    const CParameterInfoArray& vPInfo = CParameterInfoArray(), bool lastInsertId = true, const DServerException& se = nullptr) {
                 bool rowset = (row) ? true : false;
                 meta = (meta && rh);
                 CScopeUQueue sb;
@@ -550,7 +555,7 @@ namespace SPA {
                 SPA::CAutoLock alOne(m_csOneSending);
 #endif
                 if (vParam.size())
-                    queueOk = GetAttachedClientSocket()->GetClientQueue().StartJob();
+                    queueOk = GetSocket()->GetClientQueue().StartJob();
                 {
                     if (!SendParametersData(vParam)) {
                         Clean();
@@ -573,7 +578,7 @@ namespace SPA {
                 DResultHandler arh = [callIndex, handler, this](CAsyncResult & ar) {
                     this->Process(handler, ar, idExecuteBatch, callIndex);
                 };
-                if (!SendRequest(idExecuteBatch, sb->GetBuffer(), sb->GetSize(), arh, discarded, nullptr)) {
+                if (!SendRequest(idExecuteBatch, sb->GetBuffer(), sb->GetSize(), arh, discarded, se)) {
                     CAutoLock al(m_csDB);
 #ifndef NO_OUTPUT_BINDING
                     m_mapParameterCall.erase(callIndex);
@@ -585,7 +590,7 @@ namespace SPA {
                     return false;
                 }
                 if (queueOk)
-                    GetAttachedClientSocket()->GetClientQueue().EndJob();
+                    GetSocket()->GetClientQueue().EndJob();
                 return true;
             }
 
@@ -598,9 +603,10 @@ namespace SPA {
              * @param meta a boolean for better or more detailed column meta details such as unique, not null, primary key, and so on
              * @param lastInsertId a boolean for last insert record identification number
              * @param discarded a callback for tracking socket closed or request canceled event
+             * @param se a callback for tracking an exception from server
              * @return true if request is successfully sent or queued; and false if request is NOT successfully sent or queued
              */
-            virtual bool Execute(const char16_t* sql, const DExecuteResult& handler = nullptr, const DRows& row = nullptr, const DRowsetHeader& rh = nullptr, bool meta = true, bool lastInsertId = true, const DDiscarded& discarded = nullptr) {
+            virtual bool Execute(const char16_t* sql, const DExecuteResult& handler = nullptr, const DRows& row = nullptr, const DRowsetHeader& rh = nullptr, bool meta = true, bool lastInsertId = true, const DDiscarded& discarded = nullptr, const DServerException& se = nullptr) {
                 bool rowset = (row) ? true : false;
                 meta = (meta && rh);
                 CScopeUQueue sb;
@@ -620,7 +626,7 @@ namespace SPA {
                 DResultHandler arh = [index, handler, this](CAsyncResult & ar) {
                     this->Process(handler, ar, idExecute, index);
                 };
-                if (!SendRequest(idExecute, sb->GetBuffer(), sb->GetSize(), arh, discarded, nullptr)) {
+                if (!SendRequest(idExecute, sb->GetBuffer(), sb->GetSize(), arh, discarded, se)) {
                     CAutoLock al(m_csDB);
                     if (rowset || meta) {
                         m_mapRowset.erase(index);
@@ -636,9 +642,10 @@ namespace SPA {
              * @param handler a callback for database connecting result
              * @param flags a set of flags transferred to server to indicate how to build database connection
              * @param discarded a callback for tracking socket closed or request canceled event
+             * @param se a callback for tracking an exception from server
              * @return true if request is successfully sent or queued; and false if request is NOT successfully sent or queued
              */
-            virtual bool Open(const char16_t* strConnection, const DResult& handler, unsigned int flags = 0, const DDiscarded& discarded = nullptr) {
+            virtual bool Open(const char16_t* strConnection, const DResult& handler, unsigned int flags = 0, const DDiscarded& discarded = nullptr, const DServerException& se = nullptr) {
                 std::wstring s;
                 CScopeUQueue sb;
                 {
@@ -679,7 +686,7 @@ namespace SPA {
                         handler(*ash, res, errMsg);
                     }
                 };
-                if (SendRequest(UDB::idOpen, sb->GetBuffer(), sb->GetSize(), arh, discarded, nullptr)) {
+                if (SendRequest(UDB::idOpen, sb->GetBuffer(), sb->GetSize(), arh, discarded, se)) {
                     return true;
                 }
                 CAutoLock al(m_csDB);
@@ -696,9 +703,10 @@ namespace SPA {
              * @param handler a callback for database connecting result
              * @param flags a set of flags transferred to server to indicate how to build database connection
              * @param discarded a callback for tracking socket closed or request canceled event
+             * @param se a callback for tracking an exception from server
              * @return true if request is successfully sent or queued; and false if request is NOT successfully sent or queued
              */
-            virtual bool Open(const wchar_t* strConnection, const DResult& handler, unsigned int flags = 0, const DDiscarded& discarded = nullptr) {
+            virtual bool Open(const wchar_t* strConnection, const DResult& handler, unsigned int flags = 0, const DDiscarded& discarded = nullptr, const DServerException& se = nullptr) {
                 std::wstring s;
                 CScopeUQueue sb;
                 {
@@ -735,7 +743,7 @@ namespace SPA {
                         handler(*ash, res, errMsg);
                     }
                 };
-                if (SendRequest(UDB::idOpen, sb->GetBuffer(), sb->GetSize(), arh, discarded, nullptr)) {
+                if (SendRequest(UDB::idOpen, sb->GetBuffer(), sb->GetSize(), arh, discarded, se)) {
                     return true;
                 }
                 CAutoLock al(m_csDB);
@@ -751,9 +759,10 @@ namespace SPA {
              * @param handler a callback for SQL preparing result
              * @param vParameterInfo a given array of parameter informations
              * @param discarded a callback for tracking socket closed or request canceled event
+             * @param se a callback for tracking an exception from server
              * @return true if request is successfully sent or queued; and false if request is NOT successfully sent or queued
              */
-            virtual bool Prepare(const wchar_t *sql, const DResult& handler = nullptr, const CParameterInfoArray& vParameterInfo = CParameterInfoArray(), const DDiscarded& discarded = nullptr) {
+            virtual bool Prepare(const wchar_t *sql, const DResult& handler = nullptr, const CParameterInfoArray& vParameterInfo = CParameterInfoArray(), const DDiscarded& discarded = nullptr, const DServerException& se = nullptr) {
                 CScopeUQueue sb;
                 DResultHandler arh = [handler](CAsyncResult & ar) {
                     int res;
@@ -775,16 +784,17 @@ namespace SPA {
                     }
                 };
                 sb << sql << vParameterInfo;
-                return SendRequest(idPrepare, sb->GetBuffer(), sb->GetSize(), arh, discarded, nullptr);
+                return SendRequest(idPrepare, sb->GetBuffer(), sb->GetSize(), arh, discarded, se);
             }
 
             /**
              * Notify connected remote server to close database connection string asynchronously
              * @param handler a callback for closing result, which should be OK always as long as there is network or queue available
              * @param discarded a callback for tracking socket closed or request canceled event
+             * @param se a callback for tracking an exception from server
              * @return true if request is successfully sent or queued; and false if request is NOT successfully sent or queued
              */
-            virtual bool Close(DResult handler = nullptr, const DDiscarded& discarded = nullptr) {
+            virtual bool Close(DResult handler = nullptr, const DDiscarded& discarded = nullptr, const DServerException& se = nullptr) {
                 DResultHandler arh = [handler](CAsyncResult & ar) {
                     int res;
                     std::wstring errMsg;
@@ -800,7 +810,7 @@ namespace SPA {
                         handler(*ash, res, errMsg);
                     }
                 };
-                return SendRequest(idClose, (const unsigned char*) nullptr, (unsigned int) 0, arh, discarded, nullptr);
+                return SendRequest(idClose, (const unsigned char*) nullptr, (unsigned int) 0, arh, discarded, se);
             }
 
             /**
@@ -808,9 +818,10 @@ namespace SPA {
              * @param isolation a value for isolation
              * @param handler a callback for tracking its response result
              * @param discarded a callback for tracking socket closed or request canceled event
+             * @param se a callback for tracking an exception from server
              * @return true if request is successfully sent or queued; and false if request is NOT successfully sent or queued
              */
-            virtual bool BeginTrans(tagTransactionIsolation isolation = tiReadCommited, const DResult& handler = nullptr, const DDiscarded& discarded = nullptr) {
+            virtual bool BeginTrans(tagTransactionIsolation isolation = tiReadCommited, const DResult& handler = nullptr, const DDiscarded& discarded = nullptr, const DServerException& se = nullptr) {
                 unsigned int flags;
                 std::wstring connection;
                 CScopeUQueue sb;
@@ -849,7 +860,7 @@ namespace SPA {
 
                 sb << (int) isolation << connection << flags;
                 //associate begin transaction with underlying client persistent message queue
-                m_queueOk = GetAttachedClientSocket()->GetClientQueue().StartJob();
+                m_queueOk = GetSocket()->GetClientQueue().StartJob();
                 return SendRequest(idBeginTrans, sb->GetBuffer(), sb->GetSize(), arh, discarded, nullptr);
             }
 
@@ -858,9 +869,10 @@ namespace SPA {
              * @param plan a value for computing how included transactions should be rollback
              * @param handler a callback for tracking its response result
              * @param discarded a callback for tracking socket closed or request canceled event
+             * @param se a callback for tracking an exception from server
              * @return true if request is successfully sent or queued; and false if request is NOT successfully sent or queued
              */
-            virtual bool EndTrans(tagRollbackPlan plan = rpDefault, const DResult& handler = nullptr, const DDiscarded& discarded = nullptr) {
+            virtual bool EndTrans(tagRollbackPlan plan = rpDefault, const DResult& handler = nullptr, const DDiscarded& discarded = nullptr, const DServerException& se = nullptr) {
                 CScopeUQueue sb;
                 sb << (int) plan;
                 DResultHandler arh = [handler](CAsyncResult & ar) {
@@ -883,10 +895,10 @@ namespace SPA {
 #ifndef NODE_JS_ADAPTER_PROJECT
                 SPA::CAutoLock alOne(m_csOneSending);
 #endif
-                if (SendRequest(idEndTrans, sb->GetBuffer(), sb->GetSize(), arh, discarded, nullptr)) {
+                if (SendRequest(idEndTrans, sb->GetBuffer(), sb->GetSize(), arh, discarded, se)) {
                     if (m_queueOk) {
                         //associate end transaction with underlying client persistent message queue
-                        GetAttachedClientSocket()->GetClientQueue().EndJob();
+                        GetSocket()->GetClientQueue().EndJob();
                         m_queueOk = false;
                     }
                     return true;
@@ -894,6 +906,179 @@ namespace SPA {
                 return false;
             }
 
+            struct SQLExeInfo : public ErrInfo {
+                INT64 affected;
+                unsigned int oks;
+                unsigned int fails;
+                CDBVariant lastId;
+
+                SQLExeInfo(int res = 0, const wchar_t* errMsg = nullptr, INT64 aff = 0, unsigned int suc_ones = 0, unsigned int bad_ones = 0, const CDBVariant& id = CDBVariant())
+                : ErrInfo(res, errMsg), affected(aff), oks(suc_ones), fails(bad_ones), lastId(id) {
+                }
+
+                std::wstring ToString() {
+                    std::wstring s = ErrInfo::ToString();
+                    s += (L", affected: " + std::to_wstring(affected));
+                    s += (L", oks: " + std::to_wstring(oks));
+                    s += (L", fails: " + std::to_wstring(fails));
+                    s += ((lastId.vt <= VT_NULL) ? L", lastId: null" : (L", lastId: " + std::to_wstring(lastId.ullVal)).c_str());
+                    return s;
+                }
+            };
+#if defined(PHP_ADAPTER_PROJECT) || defined(NODE_JS_ADAPTER_PROJECT)
+#else
+#ifdef HAVE_FUTURE
+
+            virtual std::future<ErrInfo> beginTrans(tagTransactionIsolation isolation = tiReadCommited) {
+                std::shared_ptr<std::promise<ErrInfo> > prom(new std::promise<ErrInfo>);
+                DResult d = [prom](CAsyncDBHandler& dbHandler, int res, const std::wstring & errMsg) {
+                    prom->set_value(ErrInfo(res, errMsg.c_str()));
+                };
+                if (!BeginTrans(isolation, d, get_aborted(prom, L"BeginTrans", idBeginTrans), get_se(prom))) {
+                    raise(L"BeginTrans", idBeginTrans);
+                }
+                return prom->get_future();
+            }
+
+            virtual std::future<ErrInfo> endTrans(tagRollbackPlan plan = rpDefault) {
+                std::shared_ptr<std::promise<ErrInfo> > prom(new std::promise<ErrInfo>);
+                DResult d = [prom](CAsyncDBHandler& dbHandler, int res, const std::wstring & errMsg) {
+                    prom->set_value(ErrInfo(res, errMsg.c_str()));
+                };
+                if (!EndTrans(plan, d, get_aborted(prom, L"EndTrans", idEndTrans), get_se(prom))) {
+                    raise(L"EndTrans", idEndTrans);
+                }
+                return prom->get_future();
+            }
+
+            virtual std::future<ErrInfo> close() {
+                std::shared_ptr<std::promise<ErrInfo> > prom(new std::promise<ErrInfo>);
+                DResult d = [prom](CAsyncDBHandler& dbHandler, int res, const std::wstring & errMsg) {
+                    prom->set_value(ErrInfo(res, errMsg.c_str()));
+                };
+                if (!Close(d, get_aborted(prom, L"Close", idClose), get_se(prom))) {
+                    raise(L"Close", idClose);
+                }
+                return prom->get_future();
+            }
+
+            virtual std::future<SQLExeInfo> execute(CDBVariantArray& vParam, const DRows& row = nullptr, const DRowsetHeader& rh = nullptr, bool meta = true, bool lastInsertId = true) {
+                std::shared_ptr<std::promise<SQLExeInfo> > prom(new std::promise<SQLExeInfo>);
+                DExecuteResult handler = [prom](CAsyncDBHandler& dbHandler, int res, const std::wstring& errMsg, INT64 affected, UINT64 fail_ok, CDBVariant & vtId) {
+                    unsigned int oks = (unsigned int) (fail_ok & 0xffffffff);
+                    unsigned int fails = (unsigned int) (fail_ok >> 32);
+                    prom->set_value(SQLExeInfo(res, errMsg.c_str(), affected, oks, fails, vtId));
+                };
+                if (!Execute(vParam, handler, row, rh, meta, lastInsertId, get_aborted(prom, L"ExecuteParameters", idExecuteParameters), get_se(prom))) {
+                    raise(L"ExecuteParameters", idExecuteParameters);
+                }
+                return prom->get_future();
+            }
+
+            virtual std::future<SQLExeInfo> execute(const wchar_t *sql, const DRows& row = nullptr, const DRowsetHeader& rh = nullptr, bool meta = true, bool lastInsertId = true) {
+                std::shared_ptr<std::promise<SQLExeInfo> > prom(new std::promise<SQLExeInfo>);
+                DExecuteResult handler = [prom](CAsyncDBHandler& dbHandler, int res, const std::wstring& errMsg, INT64 affected, UINT64 fail_ok, CDBVariant & vtId) {
+                    unsigned int oks = (unsigned int) (fail_ok & 0xffffffff);
+                    unsigned int fails = (unsigned int) (fail_ok >> 32);
+                    prom->set_value(SQLExeInfo(res, errMsg.c_str(), affected, oks, fails, vtId));
+                };
+                if (!Execute(sql, handler, row, rh, meta, lastInsertId, get_aborted(prom, L"ExecuteSQL", idExecute), get_se(prom))) {
+                    raise(L"ExecuteSQL", idExecute);
+                }
+                return prom->get_future();
+            }
+
+            virtual std::future<ErrInfo> prepare(const wchar_t* sql, const CParameterInfoArray& vParameterInfo = CParameterInfoArray()) {
+                std::shared_ptr<std::promise<ErrInfo> > prom(new std::promise<ErrInfo>);
+                DResult d = [prom](CAsyncDBHandler& dbHandler, int res, const std::wstring & errMsg) {
+                    prom->set_value(ErrInfo(res, errMsg.c_str()));
+                };
+                if (!Prepare(sql, d, vParameterInfo, get_aborted(prom, L"Prepare", idPrepare), get_se(prom))) {
+                    raise(L"Prepare", idPrepare);
+                }
+                return prom->get_future();
+            }
+
+            virtual std::future<ErrInfo> open(const wchar_t* sql, unsigned int flags = 0) {
+                std::shared_ptr<std::promise<ErrInfo> > prom(new std::promise<ErrInfo>);
+                DResult d = [prom](CAsyncDBHandler& dbHandler, int res, const std::wstring & errMsg) {
+                    prom->set_value(ErrInfo(res, errMsg.c_str()));
+                };
+                if (!Open(sql, d, flags, get_aborted(prom, L"Open", idOpen), get_se(prom))) {
+                    raise(L"Open", idOpen);
+                }
+                return prom->get_future();
+            }
+
+            virtual std::future<SQLExeInfo> executeBatch(tagTransactionIsolation isolation, const wchar_t* sql, CDBVariantArray& vParam = CDBVariantArray(),
+                    const DRows& row = nullptr, const DRowsetHeader& rh = nullptr, const wchar_t* delimiter = L";", const DRowsetHeader& batchHeader = nullptr,
+                    bool meta = true, tagRollbackPlan plan = rpDefault, const CParameterInfoArray& vPInfo = CParameterInfoArray(), bool lastInsertId = true) {
+                std::shared_ptr<std::promise<SQLExeInfo> > prom(new std::promise<SQLExeInfo>);
+                DExecuteResult handler = [prom](CAsyncDBHandler& dbHandler, int res, const std::wstring& errMsg, INT64 affected, UINT64 fail_ok, CDBVariant & vtId) {
+                    unsigned int oks = (unsigned int) (fail_ok & 0xffffffff);
+                    unsigned int fails = (unsigned int) (fail_ok >> 32);
+                    prom->set_value(SQLExeInfo(res, errMsg.c_str(), affected, oks, fails, vtId));
+                };
+                if (!ExecuteBatch(isolation, sql, vParam, handler, row, rh, delimiter, batchHeader, get_aborted(prom, L"ExecuteBatch", idExecuteBatch), meta, plan, vPInfo, lastInsertId, get_se(prom))) {
+                    raise(L"ExecuteBatch", idExecuteBatch);
+                }
+                return prom->get_future();
+            }
+
+#ifdef NATIVE_UTF16_SUPPORTED
+
+            virtual std::future<SQLExeInfo> execute(const char16_t* sql, const DRows& row = nullptr, const DRowsetHeader& rh = nullptr, bool meta = true, bool lastInsertId = true) {
+                std::shared_ptr<std::promise<SQLExeInfo> > prom(new std::promise<SQLExeInfo>);
+                DExecuteResult handler = [prom](CAsyncDBHandler& dbHandler, int res, const std::wstring& errMsg, INT64 affected, UINT64 fail_ok, CDBVariant & vtId) {
+                    unsigned int oks = (unsigned int) (fail_ok & 0xffffffff);
+                    unsigned int fails = (unsigned int) (fail_ok >> 32);
+                    prom->set_value(SQLExeInfo(res, errMsg.c_str(), affected, oks, fails, vtId));
+                };
+                if (!Execute(sql, handler, row, rh, meta, lastInsertId, get_aborted(prom, L"ExecuteSQL", idExecute), get_se(prom))) {
+                    raise(L"ExecuteSQL", idExecute);
+                }
+                return prom->get_future();
+            }
+
+            virtual std::future<ErrInfo> prepare(const char16_t* sql, const CParameterInfoArray& vParameterInfo = CParameterInfoArray()) {
+                std::shared_ptr<std::promise<ErrInfo> > prom(new std::promise<ErrInfo>);
+                DResult d = [prom](CAsyncDBHandler& dbHandler, int res, const std::wstring & errMsg) {
+                    prom->set_value(ErrInfo(res, errMsg.c_str()));
+                };
+                if (!Prepare(sql, d, vParameterInfo, get_aborted(prom, L"Prepare", idPrepare), get_se(prom))) {
+                    raise(L"Prepare", idPrepare);
+                }
+                return prom->get_future();
+            }
+
+            virtual std::future<ErrInfo> open(const char16_t* sql, unsigned int flags = 0) {
+                std::shared_ptr<std::promise<ErrInfo> > prom(new std::promise<ErrInfo>);
+                DResult d = [prom](CAsyncDBHandler& dbHandler, int res, const std::wstring & errMsg) {
+                    prom->set_value(ErrInfo(res, errMsg.c_str()));
+                };
+                if (!Open(sql, d, flags, get_aborted(prom, L"Open", idOpen), get_se(prom))) {
+                    raise(L"Open", idOpen);
+                }
+                return prom->get_future();
+            }
+
+            virtual std::future<SQLExeInfo> executeBatch(tagTransactionIsolation isolation, const char16_t* sql, CDBVariantArray& vParam = CDBVariantArray(),
+                    const DRows& row = nullptr, const DRowsetHeader& rh = nullptr, const char16_t* delimiter = u";", const DRowsetHeader& batchHeader = nullptr,
+                    bool meta = true, tagRollbackPlan plan = rpDefault, const CParameterInfoArray& vPInfo = CParameterInfoArray(), bool lastInsertId = true) {
+                std::shared_ptr<std::promise<SQLExeInfo> > prom(new std::promise<SQLExeInfo>);
+                DExecuteResult handler = [prom](CAsyncDBHandler& dbHandler, int res, const std::wstring& errMsg, INT64 affected, UINT64 fail_ok, CDBVariant & vtId) {
+                    unsigned int oks = (unsigned int) (fail_ok & 0xffffffff);
+                    unsigned int fails = (unsigned int) (fail_ok >> 32);
+                    prom->set_value(SQLExeInfo(res, errMsg.c_str(), affected, oks, fails, vtId));
+                };
+                if (!ExecuteBatch(isolation, sql, vParam, handler, row, rh, delimiter, batchHeader, get_aborted(prom, L"ExecuteBatch", idExecuteBatch), meta, plan, vPInfo, lastInsertId, get_se(prom))) {
+                    raise(L"ExecuteBatch", idExecuteBatch);
+                }
+                return prom->get_future();
+            }
+#endif
+#endif
+#endif
         protected:
 
             virtual void OnAllProcessed() {
@@ -1349,7 +1534,9 @@ namespace SPA {
                 if (bad) return 0;
                 DDiscarded dd = Get(isolate, argv[1], bad);
                 if (bad) return 0;
-                return BeginTrans(isolation, result, dd) ? index : INVALID_NUMBER;
+                DServerException se = GetSE(isolate, argv[2], bad);
+                if (bad) return 0;
+                return BeginTrans(isolation, result, dd, se) ? index : INVALID_NUMBER;
             }
 
             UINT64 Close(Isolate* isolate, int args, Local<Value> *argv) {
@@ -1359,7 +1546,9 @@ namespace SPA {
                 if (bad) return 0;
                 DDiscarded dd = Get(isolate, argv[1], bad);
                 if (bad) return 0;
-                return Close(result, dd) ? index : INVALID_NUMBER;
+                DServerException se = GetSE(isolate, argv[2], bad);
+                if (bad) return 0;
+                return Close(result, dd, se) ? index : INVALID_NUMBER;
             }
 
             UINT64 EndTrans(Isolate* isolate, int args, Local<Value> *argv, tagRollbackPlan plan) {
@@ -1369,7 +1558,9 @@ namespace SPA {
                 if (bad) return 0;
                 DDiscarded dd = Get(isolate, argv[1], bad);
                 if (bad) return 0;
-                return EndTrans(plan, result, dd) ? index : INVALID_NUMBER;
+                DServerException se = GetSE(isolate, argv[2], bad);
+                if (bad) return 0;
+                return EndTrans(plan, result, dd, se) ? index : INVALID_NUMBER;
             }
 
             UINT64 Execute(Isolate* isolate, int args, Local<Value> *argv, CDBVariantArray &vParam) {
@@ -1385,7 +1576,9 @@ namespace SPA {
                 if (bad) return 0;
                 bool meta = GetMeta(isolate, argv[4], bad);
                 if (bad) return 0;
-                return Execute(vParam, result, r, rh, meta, true, dd) ? index : INVALID_NUMBER;
+                DServerException se = GetSE(isolate, argv[5], bad);
+                if (bad) return 0;
+                return Execute(vParam, result, r, rh, meta, true, dd, se) ? index : INVALID_NUMBER;
             }
 
             UINT64 Execute(Isolate* isolate, int args, Local<Value> *argv, const UTF16 *sql) {
@@ -1401,7 +1594,9 @@ namespace SPA {
                 if (bad) return 0;
                 bool meta = GetMeta(isolate, argv[4], bad);
                 if (bad) return 0;
-                return Execute(sql, result, r, rh, meta, true, dd) ? index : INVALID_NUMBER;
+                DServerException se = GetSE(isolate, argv[5], bad);
+                if (bad) return 0;
+                return Execute(sql, result, r, rh, meta, true, dd, se) ? index : INVALID_NUMBER;
             }
 
             UINT64 ExecuteBatch(Isolate* isolate, int args, Local<Value> *argv, tagTransactionIsolation isolation, const UTF16 *sql, CDBVariantArray &vParam, tagRollbackPlan plan, const UTF16 *delimiter, const CParameterInfoArray& vPInfo) {
@@ -1419,7 +1614,11 @@ namespace SPA {
                 if (bad) return 0;
                 bool meta = GetMeta(isolate, argv[5], bad);
                 if (bad) return 0;
-                return ExecuteBatch(isolation, sql, vParam, result, r, rh, bh, vPInfo, plan, dd, delimiter, meta) ? index : INVALID_NUMBER;
+                bool lastInsertId = GetMeta(isolate, argv[6], bad);
+                if (bad) return 0;
+                DServerException se = GetSE(isolate, argv[7], bad);
+                if (bad) return 0;
+                return ExecuteBatch(isolation, sql, vParam, result, r, rh, delimiter, bh, dd, meta, plan, vPInfo, lastInsertId, se) ? index : INVALID_NUMBER;
             }
 
             UINT64 Open(Isolate* isolate, int args, Local<Value> *argv, const UTF16* strConnection, unsigned int flags) {
@@ -1429,7 +1628,9 @@ namespace SPA {
                 if (bad) return 0;
                 DDiscarded dd = Get(isolate, argv[1], bad);
                 if (bad) return 0;
-                return Open(strConnection, result, flags, dd) ? index : INVALID_NUMBER;
+                DServerException se = GetSE(isolate, argv[2], bad);
+                if (bad) return 0;
+                return Open(strConnection, result, flags, dd, se) ? index : INVALID_NUMBER;
             }
 
             UINT64 Prepare(Isolate* isolate, int args, Local<Value> *argv, const UTF16 *sql, const CParameterInfoArray& vParameterInfo) {
@@ -1439,7 +1640,9 @@ namespace SPA {
                 if (bad) return 0;
                 DDiscarded dd = Get(isolate, argv[1], bad);
                 if (bad) return 0;
-                return Prepare(sql, result, vParameterInfo, dd) ? index : INVALID_NUMBER;
+                DServerException se = GetSE(isolate, argv[2], bad);
+                if (bad) return 0;
+                return Prepare(sql, result, vParameterInfo, dd, se) ? index : INVALID_NUMBER;
             }
 
         protected:
@@ -1450,7 +1653,8 @@ namespace SPA {
                 eRowsetHeader,
                 eRows,
                 eBatchHeader,
-                eDiscarded
+                eDiscarded,
+                eException
             };
 
             struct DBCb {
@@ -1645,6 +1849,32 @@ namespace SPA {
                     bad = true;
                 }
                 return dd;
+            }
+
+            DServerException GetSE(Isolate* isolate, Local<Value> se, bool& bad) {
+                bad = false;
+                SPA::ClientSide::CAsyncServiceHandler::DServerException dSe;
+                if (se->IsFunction()) {
+                    std::shared_ptr<CNJFunc> func(new CNJFunc);
+                    func->Reset(isolate, Local<Function>::Cast(se));
+                    Backup(func);
+                    dSe = [func](CAsyncServiceHandler* db, unsigned short requestId, const wchar_t* errMessage, const char* errWhere, unsigned int errCode) {
+                        DBCb cb;
+                        cb.Type = eException;
+                        cb.Func = func;
+                        cb.Buffer = CScopeUQueue::Lock();
+                        PAsyncDBHandler ash = (PAsyncDBHandler) db;
+                        *cb.Buffer << ash << requestId << errMessage << errWhere << errCode;
+                        CAutoLock al(ash->m_csDB);
+                        ash->m_deqDBCb.push_back(cb);
+                        int fail = uv_async_send(&ash->m_typeDB);
+                        assert(!fail);
+                    };
+                } else if (!NJA::IsNullOrUndefined(se)) {
+                    NJA::ThrowException(isolate, "A callback expected for tracking exception from server");
+                    bad = true;
+                }
+                return dSe;
             }
 
         private:
