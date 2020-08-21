@@ -60,7 +60,7 @@ public class Program {
             }
             //enqueue two unicode strings and one int
             if (!aq.Enqueue(TEST_QUEUE_KEY, idMessage, new CScopeUQueue().Save("SampleName").Save(str).Save(n))) {
-                throw new CSocketError(CAsyncQueue.SESSION_CLOSED_BEFORE, "Socket already closed before sending the request Enqueue", CAsyncQueue.idEnqueue, true);
+                aq.raise("Enqueue", CAsyncQueue.idEnqueue);
             }
         }
     }

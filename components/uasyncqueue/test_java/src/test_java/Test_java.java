@@ -83,7 +83,7 @@ public class Test_java {
             }
             //enqueue two unicode strings and one int
             if (!aq.Enqueue(TEST_QUEUE_KEY, idMessage, new CScopeUQueue().Save("SampleName").Save(str).Save(n))) {
-                throw new CSocketError(CAsyncQueue.SESSION_CLOSED_BEFORE, "Enqueue", CAsyncQueue.idEnqueue, true);
+                aq.raise("Enqueue", CAsyncQueue.idEnqueue);
             }
         }
     }
@@ -128,7 +128,7 @@ public class Test_java {
         System.out.println("Going to dequeue message ......");
         //optionally, add one extra to improve processing concurrency at both client and server sides for better performance and through-output
         if (!(aq.Dequeue(TEST_QUEUE_KEY, d) && aq.Dequeue(TEST_QUEUE_KEY, d))) {
-            throw new CSocketError(CAsyncQueue.SESSION_CLOSED_BEFORE, "Socket already closed before sending the request Dequeue", CAsyncQueue.idDequeue, true);
+            aq.raise("Dequeue", CAsyncQueue.idDequeue);
         }
     }
 }

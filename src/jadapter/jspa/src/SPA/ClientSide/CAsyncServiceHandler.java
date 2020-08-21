@@ -384,6 +384,29 @@ public class CAsyncServiceHandler implements AutoCloseable {
         }
     }
 
+    /**
+     * Throw an exception CSocketError
+     *
+     * @param mName A non-empty request method name
+     * @param reqId A non-zero unique request id within an async handler
+     * @throws CSocketError if communication channel is not sendable
+     */
+    public void raise(String mName, short reqId) throws CSocketError {
+        if (mName == null || mName.length() == 0) {
+            throw new IllegalArgumentException("Method name cannot be empty");
+        }
+        if (reqId == 0) {
+            throw new IllegalArgumentException("Request id cannot be zero");
+        }
+        CClientSocket cs = getSocket();
+        int ec = cs.getErrorCode();
+        if (ec == 0) {
+            throw new CSocketError(SESSION_CLOSED_BEFORE, "Session already closed before sending the request " + mName, reqId, true);
+        } else {
+            throw new CSocketError(ec, cs.getErrorMsg(), reqId, true);
+        }
+    }
+
     public final boolean SendRequest(short reqId, SPA.CUQueue q, DAsyncResultHandler ash) {
         return SendRequest(reqId, q, ash, null, null);
     }
