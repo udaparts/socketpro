@@ -27,7 +27,7 @@ int main(int argc, char* argv[]) {
         auto f1 = hw->async<CMyStruct>(idEchoHelloWorld, ms0);
         auto f2 = hw->async0(idSleepHelloWorld, (unsigned int) 15000);
         auto f3 = hw->async<std::wstring>(idSayHelloHelloWorld, L"Donald", L"Trump");
-        auto f4 = hw->async<std::wstring>(idSayHelloHelloWorld, L"Hilary", L"Trump");
+        auto f4 = hw->async<std::wstring>(idSayHelloHelloWorld, L"Hilary", L"Clinton");
 
         //waiting ......
         std::wcout << f0.get() << std::endl;
