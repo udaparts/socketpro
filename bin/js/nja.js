@@ -875,6 +875,20 @@ class CHandler {
         }
         rej(ret);
     }
+
+    /**
+     * raise a communication channel close exception
+     * @param {string} a request method name
+     * @param {any} req_id An unique request id within a service handler
+     */
+    throw(method_name, req_id) {
+        var error = this.Socket.Error;
+        if (!error.ec) {
+            error.ec = -1001;
+            error.em = 'Session already closed before sending the request ' + method_name;
+        }
+        throw { ec: error.ec, em: error.em, reqId: req_id, before: true };
+    }
 }
 
 exports.newBuffer = function (initSize = 4096, blockSize = 4096) {

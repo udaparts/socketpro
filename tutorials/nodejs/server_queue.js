@@ -16,7 +16,19 @@ if (!p.Start(cs.newCC('localhost', 20901, 'root', 'Smash123'), 1)) {
     console.log(p.Error);
     return;
 }
+
 var sq = p.Seek(); //seek an async server queue handler
+sq.ResultReturned = (id, q) => {
+    switch (id) {
+        case idMessage0: case idMessage1: case idMessage2:
+            //parse a dequeued message which should be the same as the above enqueued message (two unicode strings and one int)
+            var name = q.LoadString(), str = q.LoadString(), index = q.LoadInt();
+            console.log('message id=' + id + ', name=' + name + ', str=' + str + ', index=' + index);
+            return true; //true -- result has been processed
+        default: break;
+    }
+    return false;
+};
 
 function testEnqueue(sq) {
     var idMsg, n, ok = true, buff = SPA.newBuffer(); const count = 1024;
@@ -28,51 +40,58 @@ function testEnqueue(sq) {
             case 1: idMsg = idMessage1; break;
             default: idMsg = idMessage2; break;
         }
-        ok = sq.Enqueue(TEST_QUEUE_KEY, idMsg, buff.SaveString('SampleName').SaveString(str).SaveInt(n));
-        if (!ok) break;
+        if (!sq.Enqueue(TEST_QUEUE_KEY, idMsg, buff.SaveString('SampleName').SaveString(str).SaveInt(n))) {
+            sq.throw('Enqueue', cs.Queue.ReqIds.idEnqueue);
+        }
     }
     console.log(n + ' messages enqueued');
-    return ok;
 }
-sq.ResultReturned = (id, q) => {
-    switch (id) {
-        case idMessage0: case idMessage1: case idMessage2:
-            //parse a dequeued message which should be the same as the above enqueued message (two unicode strings and one int)
-            var name = q.LoadString(), str = q.LoadString(), index = q.LoadInt(); //3
-            //console.log('message id=' + id + ', name=' + name + ', str=' + str + ', index=' + index);
-            return true; //true -- result has been processed
-        default: break;
-    }
-    return false;
-};
 
-var cb = function (mc, fsize, msgs, bytes) {
-    console.log('Dequeue result: Remaining messages=' + mc + ', queue file size=' + fsize + ', {messages=' + msgs + ', bytes=' + bytes + '} dequeued');
-    if (mc) {
-        console.log('Keeping on Dequeuing ......');
-        sq.Dequeue(TEST_QUEUE_KEY, cb);
-    }
-};
 function testDequeue(sq) {
     console.log('Going to Dequeue messages ......');
-    //optionally, add one extra to improve processing concurrency at both client and server sides for better performance and through-output
-    return sq.Dequeue(TEST_QUEUE_KEY, cb);
+    return new Promise((res, rej) => {
+        var cb = function (mc, fsize, msgs, bytes) {
+            if (bytes) {
+                console.log('Dequeue result: Remaining messages=' + mc + ', queue file size=' + fsize + ', {messages=' + msgs + ', bytes=' + bytes + '} dequeued');
+            }
+            if (mc) {
+                console.log('Keeping on Dequeuing ......');
+                sq.Dequeue(TEST_QUEUE_KEY, cb);
+            }
+            else {
+                res({msgs: mc, fsize: fsize, msgsDequeued: msgs, bytes: bytes});
+            }
+        };
+		//add an extra Dequeue call for better dequeue performance
+        if (!(sq.Dequeue(TEST_QUEUE_KEY, cb, (canceled) => {
+            sq.set_aborted(rej, 'Dequeue', cs.Queue.ReqIds.idDequeue, canceled);
+        }, 0, (errMsg, errCode, errWhere, id) => {
+            sq.set_exception(rej, errMsg, errCode, errWhere, id);
+        }) && sq.Dequeue(TEST_QUEUE_KEY, cb, (canceled) => {
+            sq.set_aborted(rej, 'Dequeue', cs.Queue.ReqIds.idDequeue, canceled);
+        }, 0, (errMsg, errCode, errWhere, id) => {
+            sq.set_exception(rej, errMsg, errCode, errWhere, id);
+        }))) {
+            sq.raise(rej, 'Dequeue', cs.Queue.ReqIds.idDequeue);
+        }
+    });
 }
 
-var ok = testEnqueue(sq);
-ok = testDequeue(sq);
 (async () => {
     try {
+        testEnqueue(sq);
+        console.log(await testDequeue(sq));
         console.log('Going to call GetKeys and Flush without promises ......');
-        sq.GetKeys((keys) => { console.log(keys); });
-        sq.Flush(TEST_QUEUE_KEY, (mc, fsize) => {
+        if (!sq.GetKeys((keys) => { console.log(keys); })) {
+            sq.throw('GetKeys', cs.Queue.ReqIds.idGetKeys);
+        }
+        if (!sq.Flush(TEST_QUEUE_KEY, (mc, fsize) => {
             console.log({ msgs: mc, fsize: fsize });
-        });
+        })) {
+            sq.throw('Flush', cs.Queue.ReqIds.idFlush);
+        }
         console.log('++++ use getKeys and flush instead of GetKeys and Flush, respectively with Promises ++++');
-        console.log(await sq.getKeys());
-        console.log(await sq.flush(TEST_QUEUE_KEY));
-        //var my_arr = await Promise.all([sq.getKeys(), sq.flush(TEST_QUEUE_KEY)]);
-        //console.log(my_arr);
+        console.log(await Promise.all([sq.getKeys(), sq.flush(TEST_QUEUE_KEY)]));
     } catch (err) {
         console.log(err);
     }
