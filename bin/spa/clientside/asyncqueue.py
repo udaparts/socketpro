@@ -131,7 +131,7 @@ class CAsyncQueue(CAsyncServiceHandler):
         def cb(aq, ec):
             f.set_result(ec)
         if not self.StartQueueTrans(key, cb, CAsyncQueue.get_aborted(f, 'StartQueueTrans', CAsyncQueue.idStartTrans), CAsyncQueue.get_se(f)):
-            self.ensureSendable('StartQueueTrans', CAsyncQueue.idStartTrans)
+            self.throw('StartQueueTrans', CAsyncQueue.idStartTrans)
         return f
 
     def EndQueueTrans(self, rollback=False, qt=None, discarded=None, se=None):

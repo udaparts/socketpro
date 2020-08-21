@@ -105,7 +105,7 @@ void TestEnqueue(CMyPool::PHandler &sq) {
         }
         //enqueue two unicode strings and one int
         if (!sq->Enqueue(TEST_QUEUE_KEY, idMessage, L"SampleName", str, n)) {
-            throw CSocketError(CAsyncQueue::SESSION_CLOSED_BEFORE, L"Socket already closed before sending the request Enqueue", Queue::idEnqueue, true);
+            sq->raise(L"Enqueue", Queue::idEnqueue);
         }
     }
 }
@@ -156,11 +156,13 @@ void TestDequeue(CMyPool::PHandler &sq) {
 
     //prepare a callback for processing returned result of dequeue request
     CAsyncQueue::DDequeue d = [sq](CAsyncQueue *aq, SPA::UINT64 messageCount, SPA::UINT64 fileSize, unsigned int messages, unsigned int bytes) {
-        std::cout << "Total message count=" << messageCount
+        if (bytes) {
+            std::cout << "Total message count=" << messageCount
                 << ", queue file size=" << fileSize
                 << ", messages dequeued=" << messages
                 << ", message bytes dequeued=" << bytes
                 << std::endl;
+        }
         if (messageCount > 0) {
             //there are more messages left at server queue, we re-send a request to dequeue
             sq->Dequeue(TEST_QUEUE_KEY, sq->GetLastDequeueCallback());
@@ -170,6 +172,6 @@ void TestDequeue(CMyPool::PHandler &sq) {
     std::cout << "Going to dequeue message ......" << std::endl;
     //add an extra Dequeue call for better performance
     if (!(sq->Dequeue(TEST_QUEUE_KEY, d) && sq->Dequeue(TEST_QUEUE_KEY, d))) {
-        throw CSocketError(CAsyncQueue::SESSION_CLOSED_BEFORE, L"Socket already closed before sending the request Dequeue", Queue::idDequeue, true);
+        sq->raise(L"Dequeue", Queue::idDequeue);
     }
 }

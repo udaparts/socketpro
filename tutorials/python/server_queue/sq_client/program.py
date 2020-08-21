@@ -24,8 +24,7 @@ def test_enqueue(aq):
             idMessage = idMessage2
         # enqueue two unicode strings and one int
         if not aq.Enqueue(TEST_QUEUE_KEY, idMessage, CUQueue().SaveString('SampleName').SaveString(s).SaveInt(n)):
-            raise CSocketError(CAsyncQueue.SESSION_CLOSED_BEFORE,
-                               'Socket already closed before sending the request Enqueue', CAsyncQueue.idEnqueue, True)
+            aq.throw('Enqueue', CAsyncQueue.idEnqueue)
         n += 1
 
 def test_dequeue(aq):
@@ -61,8 +60,7 @@ def test_dequeue(aq):
     # optionally, add one extra to improve processing concurrency
     # at both client and server sides for better performance and through-output
     if not (aq.Dequeue(TEST_QUEUE_KEY, cbDequeue, 0, aborted, se) and aq.Dequeue(TEST_QUEUE_KEY, cbDequeue, 0, aborted, se)):
-        raise CSocketError(CAsyncQueue.SESSION_CLOSED_BEFORE,
-                           'Socket already closed before sending the request Dequeue', CAsyncQueue.idDequeue, True)
+        aq.throw('Dequeue', CAsyncQueue.idDequeue)
 
 with CSocketPool(CAsyncQueue) as spAq:
     print('Remote async queue server host: ')

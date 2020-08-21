@@ -62,7 +62,7 @@ void TestEnqueue(CMyPool::PHandler &sq) {
         }
         //enqueue two unicode strings and one int
         if (!sq->Enqueue(TEST_QUEUE_KEY, idMessage, L"SampleName", str, n)) {
-            throw CSocketError(CAsyncQueue::SESSION_CLOSED_BEFORE, L"Session already closed before sending the request Enqueue", Queue::idEnqueue, true);
+            sq->raise(L"Enqueue", Queue::idEnqueue);
         }
     }
 }
