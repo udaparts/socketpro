@@ -6,6 +6,7 @@
 	(e) Improve linux crash information output
 	(f) Use -fvisibility=hidden to reduce exported symbols of shared libraries
 	(g) Fix the method Cancel bugs with secure socket and message queue
+	(h) Implement future, promise and task for various requests and samples
 
 24.	SocketPro Version 6.3.1.1
 	(a) Core libraries are added with a new feature Interrupt, which could be used to interrupt a looping processing at the other end
