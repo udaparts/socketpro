@@ -167,7 +167,7 @@ namespace PA
         unsigned int timeout;
         std::string aconn = params[0].stringValue();
         Trim(aconn);
-        std::wstring conn = SPA::Utilities::ToWide(aconn);
+        SPA::CDBString conn = SPA::Utilities::ToUTF16(aconn);
         CQPointer pV;
         size_t args = params.size();
         CDBHandler::DResult Dr;
@@ -327,14 +327,14 @@ namespace PA
     Php::Value CPhpDb::Execute(Php::Parameters & params) {
         unsigned int timeout;
         SPA::UDB::CDBVariantArray vParam;
-        std::wstring sql;
+        SPA::CDBString sql;
         if (params[0].isString()) {
             std::string asql = params[0].stringValue();
             Trim(asql);
             if (!asql.size()) {
                 throw Php::Exception("SQL statement cannot be empty");
             }
-            sql = SPA::Utilities::ToWide(asql);
+            sql = SPA::Utilities::ToUTF16(asql);
         } else {
             GetParams(params[0], vParam);
         }
@@ -412,7 +412,7 @@ namespace PA
         if (!asql.size()) {
             throw Php::Exception("SQL statement cannot be empty");
         }
-        std::wstring sql = SPA::Utilities::ToWide(asql);
+        SPA::CDBString sql = SPA::Utilities::ToUTF16(asql);
         SPA::UDB::CDBVariantArray vParam;
         GetParams(params[2], vParam);
         CQPointer pV;
@@ -431,59 +431,85 @@ namespace PA
             phpRh = params[5];
         }
         CDBHandler::DRowsetHeader rh = SetRHCallback(phpRh);
-        Php::Value phpBh;
+        SPA::CDBString delimiter(u";");
         if (args > 6) {
-            phpBh = params[6];
-        }
-        CDBHandler::DRowsetHeader bh = SetRHCallback(phpBh, true);
-        SPA::UDB::tagRollbackPlan plan = SPA::UDB::rpDefault;
-        if (args > 7) {
-            if (params[7].isNumeric()) {
-                int64_t p = params[7].numericValue();
-                if (p < SPA::UDB::rpDefault || p > SPA::UDB::rpRollbackAlways) {
-                    throw Php::Exception("Bad rollback plan value");
+            if (params[6].isString()) {
+                std::string s = params[6].stringValue();
+                Trim(s);
+                if (!s.size()) {
+                    throw Php::Exception("Delimiter string cannot be empty");
                 }
-                plan = (SPA::UDB::tagRollbackPlan)p;
-            } else if (!params[7].isNull()) {
-                throw Php::Exception("An integer required for ExecuteBatch rollback plan");
+                delimiter = SPA::Utilities::ToUTF16(s);
+            }
+            else if (!params[6].isNull()) {
+                throw Php::Exception("A string required for delimiter");
             }
         }
+        Php::Value phpBh;
+        if (args > 7) {
+            phpBh = params[7];
+        }
+        CDBHandler::DRowsetHeader bh = SetRHCallback(phpBh, true);
+
         Php::Value phpCanceled;
         if (args > 8) {
             phpCanceled = params[8];
         }
         SPA::ClientSide::CAsyncServiceHandler::DDiscarded discarded = SetAbortCallback(phpCanceled, SPA::UDB::idExecuteBatch, pV ? true : false);
-        std::wstring delimiter(L";");
+        bool meta = true;
         if (args > 9) {
-            if (params[9].isString()) {
-                std::string s = params[9].stringValue();
-                Trim(s);
-                if (!s.size()) {
-                    throw Php::Exception("Delimiter string cannot be empty");
+            if (params[9].isBool()) {
+                meta = params[9].boolValue();
+            }
+            else if (params[9].isNumeric()) {
+                meta = (params[9].numericValue() != 0);
+            }
+            else if (!params[9].isNull()) {
+                throw Php::Exception("A boolean required for ExecuteBatch meta");
+            }
+        }
+        SPA::UDB::tagRollbackPlan plan = SPA::UDB::rpDefault;
+        if (args > 10) {
+            if (params[10].isNumeric()) {
+                int64_t p = params[10].numericValue();
+                if (p < SPA::UDB::rpDefault || p > SPA::UDB::rpRollbackAlways) {
+                    throw Php::Exception("Bad rollback plan value");
                 }
-                delimiter = SPA::Utilities::ToWide(s);
-            } else if (!params[9].isNull()) {
-                throw Php::Exception("A string required for delimiter");
+                plan = (SPA::UDB::tagRollbackPlan)p;
+            } else if (!params[10].isNull()) {
+                throw Php::Exception("An integer required for ExecuteBatch rollback plan");
             }
         }
         SPA::UDB::CParameterInfoArray vPInfo;
-        if (args > 10) {
-            Php::Value vParamInfo = params[10];
+        if (args > 11) {
+            Php::Value vParamInfo = params[11];
             if (vParamInfo.isArray()) {
                 vPInfo = ConvertFrom(vParamInfo);
             } else if (!vParamInfo.isNull()) {
                 throw Php::Exception("An array of parameter info structures required");
             }
         }
+        bool lastInsertId = true;
+        if (args > 12) {
+            if (params[12].isBool()) {
+                lastInsertId = params[12].boolValue();
+            }
+            else if (params[12].isNumeric()) {
+                lastInsertId = (params[12].numericValue() != 0);
+            }
+            else if (!params[12].isNull()) {
+                throw Php::Exception("A boolean required for ExecuteBatch lastInsertId");
+            }
+        }
         {
             std::unique_lock<std::mutex> lk(m_mPhp);
             if (pV) {
-                ReqSyncEnd(m_db->ExecuteBatch(ti, sql.c_str(), vParam, Dr, r, rh, bh, vPInfo, plan, discarded, delimiter.c_str()), lk, timeout);
+                ReqSyncEnd(m_db->ExecuteBatch(ti, sql.c_str(), vParam, Dr, r, rh, delimiter.c_str(), bh, discarded, meta, plan, vPInfo, lastInsertId, nullptr), lk, timeout);
                 return ToPhpValueEx(pV.get());
             }
             PopCallbacks();
         }
-        return m_db->ExecuteBatch(ti, sql.c_str(), vParam, Dr, r, rh, bh, vPInfo, plan, discarded, delimiter.c_str());
+        return m_db->ExecuteBatch(ti, sql.c_str(), vParam, Dr, r, rh, delimiter.c_str(), bh, discarded, meta, plan, vPInfo, lastInsertId, nullptr);
     }
 
     SPA::UDB::CParameterInfoArray CPhpDb::ConvertFrom(Php::Value vP) {
@@ -515,7 +541,7 @@ namespace PA
         if (!asql.size()) {
             throw Php::Exception("SQL statement cannot be empty");
         }
-        std::wstring sql = SPA::Utilities::ToWide(asql);
+        SPA::CDBString sql = SPA::Utilities::ToUTF16(asql);
         CQPointer pV;
         CDBHandler::DResult Dr;
         size_t args = params.size();
