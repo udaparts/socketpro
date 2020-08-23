@@ -29,7 +29,7 @@ private:
 private:
 	void AddServices() {
 		bool ok = m_HelloWorld.AddMe(sidHelloWorld);
-		ok = m_HelloWorld.AddSlowRequest(idSleepHelloWorld);
+		ok = m_HelloWorld.AddSlowRequest(idSleep);
 
 		//HTTP and WebSocket services
 		//Copy all files inside directories ../socketpro/bin/js and ../socketpro/tutorials/webtests into the directory where the application is located

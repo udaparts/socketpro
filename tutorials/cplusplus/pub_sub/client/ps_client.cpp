@@ -80,7 +80,7 @@ int main(int argc, char* argv[]) {
     unsigned int chat_ids[] = {1, 2};
 
     //asynchronously process multiple requests with inline batching for best network efficiency
-    ok = hw->SendRequest(idSayHelloHelloWorld, L"Jack", L"Smith", [](CAsyncResult & ar) {
+    ok = hw->SendRequest(idSayHello, L"Jack", L"Smith", [](CAsyncResult & ar) {
         std::wstring ret;
         ar >> ret;
         std::wcout << ret << std::endl;
@@ -89,7 +89,7 @@ int main(int argc, char* argv[]) {
     SPA::UVariant message(L"We are going to call the method Sleep");
     ok = push.Publish(message, chat_ids, 2);
 
-    ok = hw->SendRequest(idSleepHelloWorld, (int) 5000, NULL_RH);
+    ok = hw->SendRequest(idSleep, (int) 5000, NULL_RH);
 
     std::wstring receiver;
     std::cout << "Input a receiver for receiving my message ......" << std::endl;

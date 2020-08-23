@@ -29,7 +29,7 @@ private:
 	void AddService() {
 		//No COM -- taNone; STA COM -- taApartment; and Free COM -- taFree
 		bool ok = m_HelloWorld.AddMe(sidHelloWorld, taNone);
-		ok = m_HelloWorld.AddSlowRequest(idSleepHelloWorld);
+		ok = m_HelloWorld.AddSlowRequest(idSleep);
 	}
 };
 

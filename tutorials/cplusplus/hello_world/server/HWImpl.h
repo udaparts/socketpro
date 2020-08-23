@@ -44,14 +44,14 @@ protected:
 
     virtual void OnFastRequestArrive(unsigned short reqId, unsigned int len) {
         BEGIN_SWITCH(reqId)
-        M_I2_R1(idSayHelloHelloWorld, SayHello, std::wstring, std::wstring, std::wstring)
-        M_I1_R1(idEchoHelloWorld, Echo, CMyStruct, CMyStruct)
+        M_I2_R1(idSayHello, SayHello, std::wstring, std::wstring, std::wstring)
+        M_I1_R1(idEcho, Echo, CMyStruct, CMyStruct)
         END_SWITCH
     }
 
     virtual int OnSlowRequestArrive(unsigned short reqId, unsigned int len) {
         BEGIN_SWITCH(reqId)
-        M_I1_R0(idSleepHelloWorld, Sleep, int)
+        M_I1_R0(idSleep, Sleep, int)
         END_SWITCH
         return 0;
     }

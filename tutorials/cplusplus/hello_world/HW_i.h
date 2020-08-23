@@ -4,8 +4,8 @@
 //defines for service HelloWorld
 #define sidHelloWorld	(SPA::sidReserved + 1)
 
-#define idSayHelloHelloWorld (SPA::idReservedTwo + 1)
-#define idSleepHelloWorld (idSayHelloHelloWorld + 1)
-#define idEchoHelloWorld (idSleepHelloWorld + 1)
+#define idSayHello (SPA::idReservedTwo + 1)
+#define idSleep (idSayHello + 1)
+#define idEcho (idSleep + 1)
 
 #endif

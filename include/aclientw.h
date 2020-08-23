@@ -986,8 +986,6 @@ namespace SPA {
                         prom->set_value(std::move(sb));
                     } catch (std::future_error&) {
                         //ignore it
-                    } catch (...) {
-                        prom->set_exception(std::current_exception());
                     }
                 };
                 if (!SendRequest(reqId, pBuffer, size, rh, discarded, se)) {
@@ -1078,7 +1076,7 @@ namespace SPA {
                 if (!req_id) {
                     throw std::invalid_argument("Request id cannot be zero");
                 }
-                DDiscarded discarded = [prom, req_id, method_name](CAsyncServiceHandler *h, bool canceled) {
+                return [prom, req_id, method_name](CAsyncServiceHandler *h, bool canceled) {
                     try {
                         if (canceled) {
                             prom->set_exception(std::make_exception_ptr(CSocketError(REQUEST_CANCELED, (L"Request " + method_name + L" canceled").c_str(), req_id, false)));
@@ -1096,19 +1094,17 @@ namespace SPA {
                         //ignore
                     }
                 };
-                return discarded;
             }
 
             template<typename R>
             static DServerException get_se(std::shared_ptr<std::promise<R> > prom) {
-                DServerException se = [prom](CAsyncServiceHandler *ash, unsigned short requestId, const wchar_t *errMessage, const char* errWhere, unsigned int errCode) {
+                return [prom](CAsyncServiceHandler *ash, unsigned short reqId, const wchar_t *errMsg, const char* errWhere, unsigned int errCode) {
                     try {
-                        prom->set_exception(std::make_exception_ptr(CServerError(errCode, errMessage, errWhere, requestId)));
+                        prom->set_exception(std::make_exception_ptr(CServerError(errCode, errMsg, errWhere, reqId)));
                     } catch (std::future_error&) {
                         //ignore
                     }
                 };
-                return se;
             }
 
             template<typename R>

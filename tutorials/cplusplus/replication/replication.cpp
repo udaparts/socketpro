@@ -31,10 +31,10 @@ int main(int argc, char* argv[]) {
 
     bool ok = Replication.Start(mapQNameConn, "cplusplus_rt_root");
 
-    ok = Replication.Send(idSayHelloHelloWorld, L"Jack", L"Smith");
+    ok = Replication.Send(idSayHello, L"Jack", L"Smith");
     CMyStruct ms;
     SetMyStruct(ms);
-    ok = Replication.Send(idEchoHelloWorld, ms);
+    ok = Replication.Send(idEcho, ms);
 
     std::cout << "Press a key to shutdown the demo application ......" << std::endl;
     ::getchar();

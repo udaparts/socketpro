@@ -16,7 +16,7 @@ private:
         bool ok = m_HelloWorld.AddMe(sidHelloWorld, taNone);
         //If ok is false, very possibly you have two services with the same service id!
 
-        ok = m_HelloWorld.AddSlowRequest(idSleepHelloWorld);
+        ok = m_HelloWorld.AddSlowRequest(idSleep);
         //Add all of other services into SocketPro server here!
     }
 

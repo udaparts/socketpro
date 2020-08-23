@@ -1,5 +1,3 @@
-
-#include "../../../include/spvariant.h"
 #include "../../../include/membuffer.h"
 
 #ifndef MY_STRUCT_DEMO_H
@@ -21,41 +19,7 @@ public:
         ADateTime = st;
     }
 
-    CMyStruct(const CMyStruct& ms)
-    : NullString(ms.NullString),
-    ObjectNull(ms.ObjectNull),
-    ADateTime(ms.ADateTime),
-    ADouble(ms.ADouble),
-    ABool(ms.ABool),
-    UnicodeString(ms.UnicodeString),
-    AsciiString(ms.AsciiString),
-    ObjBool(ms.ObjBool),
-    ObjString(ms.ObjString),
-    objArrString(ms.objArrString),
-    objArrInt(ms.objArrInt) {
-
-    }
-
-
 public:
-
-    CMyStruct& operator=(const CMyStruct& ms) {
-        if (this != &ms) {
-            NullString = ms.NullString;
-            ObjectNull = ms.ObjectNull;
-            ADateTime = ms.ADateTime;
-            ADouble = ms.ADouble;
-            ABool = ms.ABool;
-            UnicodeString = ms.UnicodeString;
-            AsciiString = ms.AsciiString;
-            ObjBool = ms.ObjBool;
-            ObjString = ms.ObjString;
-            objArrString = ms.objArrString;
-            objArrInt = ms.objArrInt;
-        }
-        return *this;
-    }
-
     void SaveTo(SPA::CUQueue &q) const {
         q << NullString //4 bytes for length
                 << ObjectNull //2 bytes for data type
