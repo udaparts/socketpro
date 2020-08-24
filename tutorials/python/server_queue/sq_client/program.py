@@ -52,7 +52,8 @@ def test_dequeue(aq):
             aq.Dequeue(TEST_QUEUE_KEY, aq.LastDequeueCallback, 0, aborted, se)
         else:
             try:
-                f.set_result({'messages': messageCount, 'fsize': fileSize, 'msgsDequeued': messages, 'bytes': bytes})
+                if not f.done():
+                    f.set_result({'messages': messageCount, 'fsize': fileSize, 'msgsDequeued': messages, 'bytes': bytes})
             except Exception as ex:
                 pass
 
@@ -61,6 +62,7 @@ def test_dequeue(aq):
     # at both client and server sides for better performance and through-output
     if not (aq.Dequeue(TEST_QUEUE_KEY, cbDequeue, 0, aborted, se) and aq.Dequeue(TEST_QUEUE_KEY, cbDequeue, 0, aborted, se)):
         aq.throw('Dequeue', CAsyncQueue.idDequeue)
+    return f
 
 with CSocketPool(CAsyncQueue) as spAq:
     print('Remote async queue server host: ')
