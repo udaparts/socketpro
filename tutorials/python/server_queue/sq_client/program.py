@@ -50,12 +50,8 @@ def test_dequeue(aq):
         if messageCount > 0:
             # there are more messages left at server queue, we re-send a request to dequeue
             aq.Dequeue(TEST_QUEUE_KEY, aq.LastDequeueCallback, 0, aborted, se)
-        else:
-            try:
-                if not f.done():
-                    f.set_result({'messages': messageCount, 'fsize': fileSize, 'msgsDequeued': messages, 'bytes': bytes})
-            except Exception as ex:
-                pass
+        elif not f.done():
+            f.set_result({'messages': messageCount, 'fsize': fileSize, 'msgsDequeued': messages, 'bytes': bytes})
 
     print('Going to dequeue messages ......')
     # optionally, add one extra to improve processing concurrency
