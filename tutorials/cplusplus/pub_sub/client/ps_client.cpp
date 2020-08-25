@@ -1,6 +1,3 @@
-// hw_client.cpp : Defines the entry point for the console application.
-//
-
 #include "stdafx.h"
 #include "HW.h"
 
@@ -30,13 +27,13 @@ int main(int argc, char* argv[]) {
     std::getline(std::wcin, cc.UserId);
 
     cc.Password = L"MyPassword";
-    //cc.EncrytionMethod = TLSv1;
+    cc.EncrytionMethod = TLSv1;
 
-    //for windows platforms, you can also use windows system store instead
 #ifdef WIN32_64
-    CClientSocket::SSL::SetVerifyLocation("root"); //or "my", "my@currentuser", "root@localmachine"
+    //for windows platforms, you can also use windows system store instead
+    //assuming ca.cert.pem at root, my, my@currentuser or root@localmachine
 #else
-    //CA file is located at the directory ..\SocketProRoot\bin
+    //CA file is located at the directory ../SocketProRoot/bin
     CClientSocket::SSL::SetVerifyLocation("ca.cert.pem"); //linux
 #endif
     typedef CSocketPool<HelloWorld, CClientSocket> CMyPool;
@@ -51,7 +48,8 @@ int main(int argc, char* argv[]) {
 
         //do ssl server certificate authentication here
 
-        return (errCode == 0); //true -- user id and password will be sent to server
+        //true -- user id and password will be sent to server
+        return (errCode == 0);
     };
 
     bool ok = spHw.StartSocketPool(cc, 1);
@@ -96,9 +94,7 @@ int main(int argc, char* argv[]) {
     std::getline(std::wcin, receiver);
     message = (L"A message from " + cc.UserId).c_str();
     ok = push.SendUserMessage(message, receiver.c_str());
-    ok = hw->WaitAll();
     std::cout << "Press a key to shutdown the demo application ......" << std::endl;
     ::getchar();
     return 0;
 }
-

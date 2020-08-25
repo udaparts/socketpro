@@ -29,7 +29,8 @@ public class CMySocketProServer : CSocketProServer
         else
         {
             MySocketProServer.UseSSL("intermediate.pfx", "", "mypassword");
-            //MySocketProServer.UseSSL("root"/*"my"*/, "UDAParts Intermediate CA", ""); //or load cert and private key from windows system cert store
+            //or load cert and private key from windows system cert store
+            //MySocketProServer.UseSSL("root"/*"my"*/, "UDAParts Intermediate CA", "");
         }
 
         if (!MySocketProServer.Run(20901))

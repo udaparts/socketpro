@@ -25,7 +25,8 @@ public class CMySocketProServer extends CSocketProServer {
             //test certificate and private key files are located at ../SocketProRoot/bin
             if (SPA.CUQueue.DEFAULT_OS == SPA.tagOperationSystem.osWin) {
                 MySocketProServer.UseSSL("intermediate.pfx", "", "mypassword");
-                //MySocketProServer.UseSSL("root"/*"my"*/, "UDAParts Intermediate CA", ""); //or load cert and private key from windows system cert store
+                //or load cert and private key from windows system cert store
+                //MySocketProServer.UseSSL("root"/*"my"*/, "UDAParts Intermediate CA", "");
             } else {
                 MySocketProServer.UseSSL("intermediate.cert.pem", "intermediate.key.pem", "mypassword");
             }

@@ -19,7 +19,6 @@ with CSocketProServer() as server:
     }
     server.HelloWorld = CSocketProService(CHelloWorldPeer, hwConst.sidHelloWorld, mapIdReq)
 
-    """
     # test certificate and private key files are located at the directory ..\SocketProRoot\bin
     if CUQueue.DEFAULT_OS == tagOperationSystem.osWin:
         server.UseSSL("intermediate.pfx", "", "mypassword")
@@ -28,7 +27,6 @@ with CSocketProServer() as server:
         # server.UseSSL("root", "UDAParts Intermediate CA", "") # "my"
     else:
         server.UseSSL("intermediate.cert.pem", "intermediate.key.pem", "mypassword")
-    """
 
     if not server.Run(20901):
         print('Error message = ' + CSocketProServer.ErrorMessage)

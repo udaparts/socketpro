@@ -4,20 +4,20 @@ from spa.clientside import *
 import sys
 
 print('Input your user id ......')
-# cc = CConnectionContext('localhost', 20901, sys.stdin.readline().strip(), 'MyPassword', tagEncryptionMethod.TLSv1)
+cc = CConnectionContext('localhost', 20901, sys.stdin.readline().strip(), 'MyPassword', tagEncryptionMethod.TLSv1)
 
-cc = CConnectionContext('localhost', 20901, sys.stdin.readline().strip(), 'MyPassword')
-
-# CA file is located at the directory ..\SocketProRoot\bin
-CClientSocket.SSL.SetVerifyLocation('ca.cert.pem')  # linux
-
-# for windows platforms, you can use windows system store instead
-# CClientSocket.SSL.SetVerifyLocation("my"); #or "root", "my@currentuser", "root@localmachine"
+if CUQueue.DEFAULT_OS == tagOperationSystem.osWin:
+    # for windows platforms, you can use windows system store instead
+    # 'ca.cert.pem' stored at "root", "my@currentuser", or "root@localmachine"
+    pass
+else:
+    # CA file is located at the directory ../SocketProRoot/bin
+    CClientSocket.SSL.SetVerifyLocation('ca.cert.pem')  # linux
 
 with CSocketPool(CHelloWorld) as sp:
 
     def OnCertVerification(sp, cs):
-        print(cs.UCert.CertPem)
+        print(cs.UCert.SessionInfo)
         print(cs.UCert.Verify())
         return True
 

@@ -39,7 +39,8 @@ int main(int argc, char* argv[]) {
 	//test certificate and private key files are located at ../SocketProRoot/bin
 #ifdef WIN32_64 //windows platforms
 	MySocketProServer.UseSSL("intermediate.pfx", "", "mypassword");
-	//MySocketProServer.UseSSL("root"/*"my"*/, "UDAParts Intermediate CA", ""); //or load cert and private key from windows system cert store
+	//or load cert and private key from windows system cert store
+	//MySocketProServer.UseSSL("root"/*"my"*/, "UDAParts Intermediate CA", "");
 #else //non-windows platforms
 	MySocketProServer.UseSSL("intermediate.cert.pem", "intermediate.key.pem", "mypassword");
 #endif

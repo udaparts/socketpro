@@ -2,6 +2,7 @@ package pub_sub.client;
 
 import hello_world.client.HelloWorld;
 import SPA.ClientSide.*;
+import SPA.tagOperationSystem;
 
 public class Program {
 
@@ -28,14 +29,15 @@ public class Program {
     public static void main(String[] args) {
         java.util.Scanner scanner = new java.util.Scanner(System.in);
         System.out.println("Input your user id ......");
-        CConnectionContext cc = new CConnectionContext("localhost", 20901, scanner.nextLine(), "MyPassword");
-        //CConnectionContext cc = new CConnectionContext("localhost", 20901, scanner.nextLine(), "MyPassword", SPA.tagEncryptionMethod.TLSv1);
+        CConnectionContext cc = new CConnectionContext("localhost", 20901, scanner.nextLine(), "MyPassword", SPA.tagEncryptionMethod.TLSv1);
 
-        //CA file is located at the directory ..\SocketProRoot\bin
-        CClientSocket.SSL.SetVerifyLocation("ca.cert.pem"); //linux
-
-        //for windows platforms, you can use windows system store instead
-        //CClientSocket.SSL.SetVerifyLocation("my"); //or "root", "my@currentuser", "root@localmachine"
+        if (SPA.CUQueue.DEFAULT_OS != tagOperationSystem.osWin) {
+            //CA file is located at the directory ../SocketProRoot/bin
+            CClientSocket.SSL.SetVerifyLocation("ca.cert.pem"); //linux
+        } else {
+            //for windows platforms, you can use windows system store instead
+            //"ca.cert.pem" already loaded into "root", "my@currentuser", "root@localmachine"
+        }
         try (CSocketPool<HelloWorld> spHw = new CSocketPool<>(HelloWorld.class)) //true -- automatic reconnecting
         {
             spHw.DoSslServerAuthentication = (sender, cs) -> {
@@ -45,7 +47,9 @@ public class Program {
                 String res = cert.Verify(errCode);
 
                 //do ssl server certificate authentication here
-                return (errCode.Value == 0); //true -- user id and password will be sent to server
+                
+                //true -- user id and password will be sent to server
+                return (errCode.Value == 0);
             };
 
             //error handling ignored for code clarity
@@ -91,7 +95,6 @@ public class Program {
             System.out.println("Input a receiver for receiving my message ......");
             System.out.println();
             ok = ClientSocket.getPush().SendUserMessage("A message from " + cc.UserId, scanner.nextLine());
-            ok = hw.WaitAll();
 
             System.out.println("Press key ENTER to shutdown the demo application ......");
             scanner.nextLine();
