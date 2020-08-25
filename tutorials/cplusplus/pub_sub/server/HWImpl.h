@@ -1,11 +1,8 @@
-
 #include "../../../../include/aserverw.h"
 #include "../../uqueue_demo/mystruct.h"
 
-#ifndef WIN32_64
 #include <thread>
 #include <chrono>
-#endif
 
 #ifndef ___SOCKETPRO_SERVICES_IMPL_HWIMPL_H__
 #define ___SOCKETPRO_SERVICES_IMPL_HWIMPL_H__
@@ -39,11 +36,7 @@ private:
         if (ms < 0) {
             throw CUException("Parameter ms cannot be less than 0", __FILE__, __LINE__, "HelloWorldPeer::Sleep", 123456);
         }
-#ifdef WIN32_64
-        ::Sleep(ms);
-#else
         std::this_thread::sleep_for(std::chrono::milliseconds(ms));
-#endif
     }
 
     void Echo(const CMyStruct &ms, /*out*/CMyStruct &msOut) {
