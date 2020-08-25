@@ -25,9 +25,7 @@ public class UFuture<V> implements Future<V>, IUFExtra, AutoCloseable {
      * @param mName A required request method name used for constructing error
      * message
      * @param reqId A required request id which cannot be zero
-     * @param h An optional handler. If it is not null, calling the method
-     * cancel will automatically send an interrupt request to remote server with
-     * the option value CAsyncServiceHandler.DEFAULT_INTERRUPT_OPTION
+     * @param h An optional async service handler.
      */
     public UFuture(String mName, short reqId, CAsyncServiceHandler h) {
         if (mName == null || mName.length() == 0) {
@@ -39,6 +37,24 @@ public class UFuture<V> implements Future<V>, IUFExtra, AutoCloseable {
         m_mName = mName;
         m_reqId = reqId;
         m_handler = h;
+    }
+
+    /**
+     * Create an instance of UFuture
+     *
+     * @param mName A required request method name used for constructing error
+     * message
+     * @param reqId A required request id which cannot be zero
+     */
+    public UFuture(String mName, short reqId) {
+        if (mName == null || mName.length() == 0) {
+            throw new IllegalArgumentException("Method name cannot be empty");
+        }
+        if (reqId == 0) {
+            throw new IllegalArgumentException("Request id cannot be zero");
+        }
+        m_mName = mName;
+        m_reqId = reqId;
     }
 
     @Override

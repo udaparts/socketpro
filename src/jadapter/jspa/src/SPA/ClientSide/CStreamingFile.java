@@ -866,7 +866,7 @@ public class CStreamingFile extends CAsyncServiceHandler {
         if (remoteFile == null || remoteFile.length() == 0) {
             throw new IllegalArgumentException("remoteFile cannot be empty");
         }
-        final UFuture<ErrInfo> f = new UFuture<>("Download", idDownload, this);
+        final UFuture<ErrInfo> f = new UFuture<>("Download", idDownload);
         DDownload dl = new DDownload() {
             @Override
             public void invoke(CStreamingFile file, int res, String errMsg) {
@@ -962,7 +962,7 @@ public class CStreamingFile extends CAsyncServiceHandler {
         if (remoteFile == null || remoteFile.length() == 0) {
             throw new IllegalArgumentException("remoteFile cannot be empty");
         }
-        final UFuture<ErrInfo> f = new UFuture<>("Upload", idUpload, this);
+        final UFuture<ErrInfo> f = new UFuture<>("Upload", idUpload);
         DUpload up = new DUpload() {
             @Override
             public void invoke(CStreamingFile file, int res, String errMsg) {

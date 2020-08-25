@@ -75,7 +75,8 @@ public class Program {
                 case idMessage2:
                     System.out.print("message id=" + idReq);
                      {
-                        //parse a dequeued message which should be the same as the above enqueued message (two unicode strings and one int)
+                        //parse a dequeued message which should be the same as the above
+                        //enqueued message (two unicode strings and one int)
                         String name = q.LoadString(), str = q.LoadString();
                         int index = q.LoadInt();
                         System.out.print(", name=" + name);
@@ -90,7 +91,7 @@ public class Program {
             return processed;
         };
 
-        UFuture<CAsyncQueue.DeqInfo> f = new UFuture<>("Dequeue", CAsyncQueue.idDequeue, aq);
+        UFuture<CAsyncQueue.DeqInfo> f = new UFuture<>("Dequeue", CAsyncQueue.idDequeue);
         CAsyncQueue.DDiscarded aborted = CAsyncQueue.get_aborted(f);
         CAsyncQueue.DOnExceptionFromServer se = CAsyncQueue.get_se(f);
 
@@ -105,7 +106,7 @@ public class Program {
             if (messages > 0) {
                 //there are more messages left at server queue, we re-send a request to dequeue
                 asyncq.Dequeue(TEST_QUEUE_KEY, asyncq.getLastDequeueCallback(), 0, aborted, se);
-            } else {
+            } else if (!f.isDone()) {
                 f.set(asyncq.new DeqInfo(messages, fileSize, msgs_dequeued, bytes));
             }
         };

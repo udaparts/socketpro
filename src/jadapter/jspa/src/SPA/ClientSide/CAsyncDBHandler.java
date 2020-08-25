@@ -428,7 +428,7 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
      * @throws CSocketError if communication channel is not sendable
      */
     public UFuture<ErrInfo> closeDb() throws CSocketError {
-        UFuture<ErrInfo> f = new UFuture<>("CloseDb", DB_CONSTS.idClose, this);
+        UFuture<ErrInfo> f = new UFuture<>("CloseDb", DB_CONSTS.idClose);
         if (!CloseDb(getHandler(f), get_aborted(f), get_se(f))) {
             raise(f);
         }
@@ -543,7 +543,7 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
      * @throws CSocketError if communication channel is not sendable
      */
     public UFuture<ErrInfo> beginTrans(tagTransactionIsolation isolation) throws CSocketError {
-        UFuture<ErrInfo> f = new UFuture<>("BeginTrans", DB_CONSTS.idBeginTrans, this);
+        UFuture<ErrInfo> f = new UFuture<>("BeginTrans", DB_CONSTS.idBeginTrans);
         if (!BeginTrans(isolation, getHandler(f), get_aborted(f), get_se(f))) {
             raise(f);
         }
@@ -674,7 +674,7 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
      * @throws CSocketError if communication channel is not sendable
      */
     public UFuture<ErrInfo> endTrans(tagRollbackPlan plan) throws CSocketError {
-        UFuture<ErrInfo> f = new UFuture<>("EndTrans", DB_CONSTS.idEndTrans, this);
+        UFuture<ErrInfo> f = new UFuture<>("EndTrans", DB_CONSTS.idEndTrans);
         if (!EndTrans(plan, getHandler(f), get_aborted(f), get_se(f))) {
             raise(f);
         }
@@ -812,7 +812,7 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
      * @throws CSocketError if communication channel is not sendable
      */
     public UFuture<ErrInfo> open(String strConnection, int flags) throws CSocketError {
-        UFuture<ErrInfo> f = new UFuture<>("Open", DB_CONSTS.idOpen, this);
+        UFuture<ErrInfo> f = new UFuture<>("Open", DB_CONSTS.idOpen);
         if (!Open(strConnection, getHandler(f), flags, get_aborted(f), get_se(f))) {
             raise(f);
         }
@@ -942,7 +942,7 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
      * @throws CSocketError if communication channel is not sendable
      */
     public UFuture<ErrInfo> prepare(String sql, CParameterInfo[] vParameterInfo) throws CSocketError {
-        UFuture<ErrInfo> f = new UFuture<>("Prepare", DB_CONSTS.idPrepare, this);
+        UFuture<ErrInfo> f = new UFuture<>("Prepare", DB_CONSTS.idPrepare);
         if (!Prepare(sql, getHandler(f), vParameterInfo, get_aborted(f), get_se(f))) {
             raise(f);
         }
@@ -1157,7 +1157,7 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
      * @throws CSocketError if communication channel is not sendable
      */
     public UFuture<SQLExeInfo> execute(String sql, DRows row, DRowsetHeader rh, boolean meta, boolean lastInsertId) throws CSocketError {
-        UFuture<SQLExeInfo> f = new UFuture<>("ExecuteSQL", DB_CONSTS.idExecute, this);
+        UFuture<SQLExeInfo> f = new UFuture<>("ExecuteSQL", DB_CONSTS.idExecute);
         DExecuteResult h = getSqlHandler(f);
         if (!Execute(sql, h, row, rh, meta, lastInsertId, get_aborted(f), get_se(f))) {
             raise(f);
@@ -1500,7 +1500,7 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
      * @throws CSocketError if communication channel is not sendable
      */
     public UFuture<SQLExeInfo> execute(CDBVariantArray vParam, DRows row, DRowsetHeader rh, boolean meta, boolean lastInsertId) throws CSocketError {
-        UFuture<SQLExeInfo> f = new UFuture<>("ExecuteParameters", DB_CONSTS.idExecuteParameters, this);
+        UFuture<SQLExeInfo> f = new UFuture<>("ExecuteParameters", DB_CONSTS.idExecuteParameters);
         DExecuteResult h = getSqlHandler(f);
         if (!Execute(vParam, h, row, rh, meta, lastInsertId, get_aborted(f), get_se(f))) {
             raise(f);
@@ -1982,7 +1982,7 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
      * @throws CSocketError if communication channel is not sendable
      */
     public UFuture<SQLExeInfo> executeBatch(tagTransactionIsolation isolation, String sql, CDBVariantArray vParam, DRows row, DRowsetHeader rh, String delimiter, DRowsetHeader batchHeader, boolean meta, tagRollbackPlan plan, CParameterInfo[] vPInfo, boolean lastInsertId) throws CSocketError {
-        UFuture<SQLExeInfo> f = new UFuture<>("ExecuteBatch", DB_CONSTS.idExecuteBatch, this);
+        UFuture<SQLExeInfo> f = new UFuture<>("ExecuteBatch", DB_CONSTS.idExecuteBatch);
         DExecuteResult h = getSqlHandler(f);
         if (!ExecuteBatch(isolation, sql, vParam, h, row, rh, delimiter, batchHeader, get_aborted(f), meta, plan, vPInfo, lastInsertId, get_se(f))) {
             raise(f);
