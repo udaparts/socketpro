@@ -1,4 +1,3 @@
-
 #include "mystruct.h"
 
 SPA::CUQueue& operator << (SPA::CUQueue &mc, const CMyStruct &ms) {

@@ -79,9 +79,7 @@ int main(int argc, char* argv[]) {
 
     //asynchronously process multiple requests with inline batching for best network efficiency
     ok = hw->SendRequest(idSayHello, L"Jack", L"Smith", [](CAsyncResult & ar) {
-        std::wstring ret;
-        ar >> ret;
-        std::wcout << ret << std::endl;
+        std::wcout << ar.Load<std::wstring>() << std::endl;
     });
 
     SPA::UVariant message(L"We are going to call the method Sleep");

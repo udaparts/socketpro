@@ -1397,6 +1397,13 @@ namespace SPA {
             return *this;
         }
 
+        template<typename R>
+        inline R Load() {
+            R r;
+            *this >> r;
+            return r;
+        }
+
     private:
         unsigned int m_nMaxBuffer;
         unsigned int m_nSize;

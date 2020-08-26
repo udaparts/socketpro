@@ -20,6 +20,7 @@ public:
     }
 
 public:
+
     void SaveTo(SPA::CUQueue &q) const {
         q << NullString //4 bytes for length
                 << ObjectNull //2 bytes for data type

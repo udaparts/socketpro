@@ -170,6 +170,13 @@ namespace SPA {
                 return UQueue;
             }
 
+            template<typename R>
+            inline R Load() {
+                R r;
+                UQueue >> r;
+                return r;
+            }
+
         public:
             CAsyncServiceHandler *AsyncServiceHandler;
             unsigned short RequestId;
