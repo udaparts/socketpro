@@ -5,7 +5,7 @@
 #pragma once
 
 #ifndef __AFXWIN_H__
-	#error "include 'stdafx.h' before including this file for PCH"
+#error "include 'stdafx.h' before including this file for PCH"
 #endif
 
 #include "resource.h"		// main symbols
@@ -15,19 +15,18 @@
 // See win_async.cpp for the implementation of this class
 //
 
-class Cwin_asyncApp : public CWinApp
-{
+class Cwin_asyncApp : public CWinApp {
 public:
-	Cwin_asyncApp();
-	virtual ~Cwin_asyncApp();
+    Cwin_asyncApp();
+    virtual ~Cwin_asyncApp();
 
-// Overrides
+    // Overrides
 public:
-	virtual BOOL InitInstance();
+    virtual BOOL InitInstance();
 
-// Implementation
+    // Implementation
 
-	DECLARE_MESSAGE_MAP()
+    DECLARE_MESSAGE_MAP()
 };
 
 extern Cwin_asyncApp theApp;
