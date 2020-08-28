@@ -624,74 +624,18 @@ namespace SPA {
             UINT64 Dequeue(unsigned int qHandle, bool bNotifiedWhenAvailable, unsigned int maxBytes = 8 * 1024, unsigned int waitTime = 0) const;
             void EnableClientDequeue(bool enable) const;
 
-            template<class ctype0>
-            unsigned int SendResult(unsigned short usRequestID, const ctype0& data0) const {
+            template<typename ...Ts>
+            unsigned int SendResult(unsigned short reqId, const Ts& ...data) const {
                 CScopeUQueue sb;
-                sb << data0;
-                return SendResult(usRequestID, sb->GetBuffer(), sb->GetSize());
+                sb->Save(data ...);
+                return SendResult(reqId, sb->GetBuffer(), sb->GetSize());
             }
 
-            template<class ctype0>
-            unsigned int SendResultIndex(UINT64 callIndex, unsigned short usRequestID, const ctype0& data0) const {
+            template<typename ...Ts>
+            unsigned int SendResultIndex(UINT64 callIndex, unsigned short reqId, const Ts& ...data) const {
                 CScopeUQueue sb;
-                sb << data0;
-                return SendResultIndex(callIndex, usRequestID, sb->GetBuffer(), sb->GetSize());
-            }
-
-            template<class ctype0, class ctype1>
-            unsigned int SendResult(unsigned short usRequestID, const ctype0& data0, const ctype1& data1) const {
-                CScopeUQueue sb;
-                sb << data0 << data1;
-                return SendResult(usRequestID, sb->GetBuffer(), sb->GetSize());
-            }
-
-            template<class ctype0, class ctype1>
-            unsigned int SendResultIndex(UINT64 callIndex, unsigned short usRequestID, const ctype0& data0, const ctype1& data1) const {
-                CScopeUQueue sb;
-                sb << data0 << data1;
-                return SendResultIndex(callIndex, usRequestID, sb->GetBuffer(), sb->GetSize());
-            }
-
-            template<class ctype0, class ctype1, class ctype2>
-            unsigned int SendResult(unsigned short usRequestID, const ctype0& data0, const ctype1& data1, const ctype2& data2) const {
-                CScopeUQueue sb;
-                sb << data0 << data1 << data2;
-                return SendResult(usRequestID, sb->GetBuffer(), sb->GetSize());
-            }
-
-            template<class ctype0, class ctype1, class ctype2>
-            unsigned int SendResultIndex(UINT64 callIndex, unsigned short usRequestID, const ctype0& data0, const ctype1& data1, const ctype2& data2) const {
-                CScopeUQueue sb;
-                sb << data0 << data1 << data2;
-                return SendResultIndex(callIndex, usRequestID, sb->GetBuffer(), sb->GetSize());
-            }
-
-            template<class ctype0, class ctype1, class ctype2, class ctype3>
-            unsigned int SendResult(unsigned short usRequestID, const ctype0& data0, const ctype1& data1, const ctype2& data2, const ctype3& data3) const {
-                CScopeUQueue sb;
-                sb << data0 << data1 << data2 << data3;
-                return SendResult(usRequestID, sb->GetBuffer(), sb->GetSize());
-            }
-
-            template<class ctype0, class ctype1, class ctype2, class ctype3>
-            unsigned int SendResultIndex(UINT64 callIndex, unsigned short usRequestID, const ctype0& data0, const ctype1& data1, const ctype2& data2, const ctype3& data3) const {
-                CScopeUQueue sb;
-                sb << data0 << data1 << data2 << data3;
-                return SendResultIndex(callIndex, usRequestID, sb->GetBuffer(), sb->GetSize());
-            }
-
-            template<class ctype0, class ctype1, class ctype2, class ctype3, class ctype4>
-            unsigned int SendResult(unsigned short usRequestID, const ctype0& data0, const ctype1& data1, const ctype2& data2, const ctype3& data3, const ctype4& data4) const {
-                CScopeUQueue sb;
-                sb << data0 << data1 << data2 << data3 << data4;
-                return SendResult(usRequestID, sb->GetBuffer(), sb->GetSize());
-            }
-
-            template<class ctype0, class ctype1, class ctype2, class ctype3, class ctype4>
-            unsigned int SendResultIndex(UINT64 callIndex, unsigned short usRequestID, const ctype0& data0, const ctype1& data1, const ctype2& data2, const ctype3& data3, const ctype4& data4) const {
-                CScopeUQueue sb;
-                sb << data0 << data1 << data2 << data3 << data4;
-                return SendResultIndex(callIndex, usRequestID, sb->GetBuffer(), sb->GetSize());
+                sb->Save(data ...);
+                return SendResultIndex(callIndex, reqId, sb->GetBuffer(), sb->GetSize());
             }
 
         private:
