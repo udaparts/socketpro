@@ -497,23 +497,13 @@ namespace SPA {
                 typedef std::function<void(CClientSocket*, const CMessageSender&, const SPA::UVariant&) > DOnSendUserMessage;
                 typedef std::function<void(CClientSocket*, const CMessageSender&, const unsigned char*, unsigned int) > DOnSendUserMessageEx;
                 typedef std::function<void(CClientSocket*, const CMessageSender&, const unsigned int*, unsigned int, const SPA::UVariant&) > DOnPublish;
-#if defined(WIN32_64) && _MSC_VER < 1800
-                //Visual C++ has implementation limitation of std::function on the number of parameters -- temporary solution
-                typedef std::tr1::function<void(const CMessageSender&, const unsigned int*, unsigned int, const unsigned char*, unsigned int) > DOnPublishEx;
-#else
                 typedef std::function<void(CClientSocket*, const CMessageSender&, const unsigned int*, unsigned int, const unsigned char*, unsigned int) > DOnPublishEx;
-#endif
 #else
                 typedef void(*DOnSubscribe)(CClientSocket*, const CMessageSender&, const unsigned int*, unsigned int);
                 typedef void(*DOnSendUserMessage)(CClientSocket*, const CMessageSender&, const SPA::UVariant&);
                 typedef void(*DOnSendUserMessageEx)(CClientSocket*, const CMessageSender&, const unsigned char*, unsigned int);
                 typedef void(*DOnPublish)(CClientSocket*, const CMessageSender&, const unsigned int*, unsigned int, const SPA::UVariant&);
-#if defined(WIN32_64) && _MSC_VER < 1800
-                //Visual C++ has implementation limitation of std::function on the number of parameters -- temporary solution
-                typedef void(*DOnPublishEx)(const CMessageSender&, const unsigned int*, unsigned int, const unsigned char*, unsigned int);
-#else
                 typedef void(*DOnPublishEx)(CClientSocket*, const CMessageSender&, const unsigned int*, unsigned int, const unsigned char*, unsigned int);
-#endif
 #endif
                 typedef DOnSubscribe DOnUnsubscribe;
 
@@ -642,20 +632,10 @@ namespace SPA {
 
 #ifndef SAFE_RESULT_RETURN_EVENT
             typedef std::function<void(CClientSocket*, int) > DSocketEvent;
-#if defined(WIN32_64) && _MSC_VER < 1800
-            //Visual C++ has implementation limitation of std::function on the number of parameters -- temporary solution
-            typedef std::tr1::function<void(CClientSocket*, const wchar_t*, const char*, unsigned int) > DExceptionFromServer;
-#else
             typedef std::function<void(CClientSocket*, unsigned short, const wchar_t*, const char*, unsigned int) > DExceptionFromServer;
-#endif
 #else
             typedef void(*DSocketEvent)(CClientSocket*, int);
-#if defined(WIN32_64) && _MSC_VER < 1800
-            //Visual C++ has implementation limitation of std::function on the number of parameters -- temporary solution
-            typedef void(*DExceptionFromServer)(CClientSocket*, const wchar_t*, const char*, unsigned int);
-#else
             typedef void(*DExceptionFromServer)(CClientSocket*, unsigned short, const wchar_t*, const char*, unsigned int);
-#endif
 #endif
         protected:
             virtual void OnSocketClosed(int nError);

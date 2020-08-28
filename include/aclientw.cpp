@@ -1198,12 +1198,7 @@ namespace SPA {
             CClientSocket *p = Seek(handler);
             if (!p)
                 return;
-#if defined(WIN32_64) && _MSC_VER < 1800
-            //Visual C++ has implementation limitation of std::function on the number of parameters -- temporary solution
-            p->GetPush().m_lstPublishEx.Invoke(sender, pGroup, count, pMessage, size);
-#else
             p->GetPush().m_lstPublishEx.Invoke(p, sender, pGroup, count, pMessage, size);
-#endif
             p->OnPublishEx(sender, pGroup, count, pMessage, size);
 #ifdef NODE_JS_ADAPTER_PROJECT
             do {
@@ -1376,12 +1371,7 @@ namespace SPA {
             if (!p)
                 return;
             if (p->ExceptionFromServer) {
-#if defined(WIN32_64) && _MSC_VER < 1800
-                //Visual C++ has implementation limitation of std::function on the number of parameters -- temporary solution
-                p->m_implEFS.Invoke(p, errMessage, errWhere, errCode);
-#else
                 p->m_implEFS.Invoke(p, requestId, errMessage, errWhere, errCode);
-#endif
             }
             PAsyncServiceHandler ash = p->m_pHandler;
             if (ash)
