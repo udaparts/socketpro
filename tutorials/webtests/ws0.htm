@@ -6,10 +6,6 @@
             {
                 width: 100px;
             }
-            #Button1
-            {
-                width: 111px;
-            }
             #btnReconnect
             {
                 width: 107px;
@@ -21,118 +17,101 @@
             #btnPublish
             {
                 height: 27px;
-                width: 142px;
-            }
-            #Text1
-            {
-                width: 123px;
+                width: 54px;
             }
             #txtMessage
             {
-                width: 312px;
+                width: 552px;
             }
             #btnSendUserMessage
             {
-                width: 141px;
+                width: 139px;
+            }
+            #txtReceiver
+            {
+                width: 100px;
             }
         </style>
     </head>
     <script type="text/javascript">
-		function getBrowserName() {
-			var agent = navigator.userAgent;
-			if (agent.indexOf("Opera") != -1) 
-				return 'Opera';
-			else if (agent.indexOf("MSIE") != -1)
-				return 'MSIE';
-			else if (agent.indexOf("Chrome") != -1)
-				return 'Chrome';
-			else if (agent.indexOf("Safari") != -1)
-				return 'Safari';
-			else if (agent.indexOf("Firefox") != -1)
-				return 'FireFox';
-			else
-				return 'Browser';
-		}
-        var ws;
-		//a global function to track the event 
+        function getBrowserName() {
+            var agent = navigator.userAgent;
+            if (agent.indexOf("Opera") != -1 || agent.indexOf(" OPR/") != -1)
+                return 'Opera';
+            else if (agent.indexOf("MSIE") != -1 || agent.indexOf("Trident") != -1)
+                return 'MSIE';
+            else if (agent.indexOf(" Edg/") != -1)
+                return 'Edge';
+            else if (agent.indexOf("Chrome") != -1)
+                return 'Chrome';
+            else if (agent.indexOf("Safari") != -1)
+                return 'Safari';
+            else if (agent.indexOf("Firefox") != -1)
+                return 'FireFox';
+            else
+               return 'Browser';
+        }
+
+        //a global function to track the event
         //that SocketPro adapter for JavaScript is just loaded.
         function onUHTTPLoaded() {
             btnReconnect_onclick();
         }
+
+        var ws, push;
         function btnClose_onclick() {
             ws.close();
         }
         function btnReconnect_onclick() {
-            if (ws && ws.isOpen())
-                return;
-            ws = UHTTP.connect(getBrowserName(), 'PassOne', 
-                function () {
-                    document.getElementById('btnSayHello').disabled = "";
-                    document.getElementById('btnSleep').disabled = "";
-                    document.getElementById('btnPublish').disabled = "";
-                    document.getElementById('btnSendUserMessage').disabled = "";
-                },
-			    function () {
-			        document.getElementById('btnSayHello').disabled = "disabled";
-			        document.getElementById('btnSleep').disabled = "disabled";
-			        document.getElementById('btnPublish').disabled = "disabled";
-			        document.getElementById('btnSendUserMessage').disabled = "disabled";
-			    });
-			ws.onError = function (e) {
-			};
-            ws.push.onMessage = function (msg) {
+            if (ws && ws.isOpen()) return;
+            ws = UHTTP.connect(getBrowserName(), 'MyPassword', () => {
+                document.getElementById('btnSayHello').disabled = "";
+                document.getElementById('btnSleep').disabled = "";
+                document.getElementById('btnPublish').disabled = "";
+                document.getElementById('btnSendUserMessage').disabled = "";
+            }, () => {
+                document.getElementById('btnSayHello').disabled = "disabled";
+                document.getElementById('btnSleep').disabled = "disabled";
+                document.getElementById('btnPublish').disabled = "disabled";
+                document.getElementById('btnSendUserMessage').disabled = "disabled";
+			});
+            push = ws.push;
+            push.onMessage = (msg) => {
                 document.getElementById('txtMessage').value = JSON.stringify(msg);
             };
         }
-		
         function btnSleep_onclick() {
-            ws.sendRequest('sleep', 2000, function (res) {
+            ws.sendRequest('sleep', 2000, (res) => {
                 res = JSON.stringify(res);
                 alert(res);
             });
         }
 		function btnSayHello_onclick() {
-            ws.sendRequest('sayHello', 'Jack', 'Smith', function (res) {
+            ws.sendRequest('sayHello', 'Jack', 'Smith', (res) => {
                 res = JSON.stringify(res);
                 alert(res);
             });
         }
 		
         function btnPublish_onclick() {
-            ws.push.speak(document.getElementById('txtMessage').value, [1,2,7], function (res) {
-                //document.getElementById('txtMessage').value = JSON.stringify(res);
-            });
+            push.speak(document.getElementById('txtMessage').value, [1,2,7]);
         }
         function btnSendUserMessage_onclick() {
-            ws.push.sendUserMessage(document.getElementById('txtMessage').value,
-                document.getElementById('txtReceiver').value, function (res) {
-                //document.getElementById('txtMessage').value = JSON.stringify(res);
-            });
+            push.sendUserMessage(document.getElementById('txtMessage').value, document.getElementById('txtReceiver').value);
         }
-
     </script>
     
-    <body>
-    	<div id="content">
-    	    A image loaded from SocketPro HTTP/WebSocket server 
-            <span id="num">
-            <br />
-            </span>
-            <img id="idEC" alt="" src="earthcity.jpg" style="height: 548px; width: 663px" />
-            <br />
-            <input id="btnClose" type="button" value="Close" onclick="return btnClose_onclick()" />
-            <input id="btnSayHello" type="button" value="Say Hello" onclick="return btnSayHello_onclick()" disabled="disabled" />
-            <input id="btnSleep" type="button" value="Sleep" disabled="disabled" onclick="return btnSleep_onclick()" />
-            <input id="btnReconnect" type="button" value="Re-connect" onclick="return btnReconnect_onclick()" /><br />
-            <input id="btnPublish" disabled="disabled" type="button" value="Publish" onclick="return btnPublish_onclick()" /><input 
-                id="txtMessage" type="text" />&lt;== message<br />
-            <input id="btnSendUserMessage" disabled="disabled" type="button" 
-                value="Send User Message" onclick="return btnSendUserMessage_onclick()" /><input 
-                id="txtReceiver" type="text" />&lt;== receiver</div>
-
-        <p>
-            &nbsp;</p>
+<body>
+    <img id="idEC" alt="" src="earthcity.jpg" style="height: 548px; width: 663px" />
+    <br />A image loaded from SocketPro HTTP/WebSocket server<br />
+    <input id="btnClose" type="button" value="Close" onclick="return btnClose_onclick()" />
+    <input id="btnSayHello" type="button" value="Say Hello" onclick="return btnSayHello_onclick()" disabled="disabled" />
+    <input id="btnSleep" type="button" value="Sleep" disabled="disabled" onclick="return btnSleep_onclick()" />
+    <input id="btnReconnect" type="button" value="Re-connect" onclick="return btnReconnect_onclick()" /><br />
+    <input id="btnPublish" disabled="disabled" type="button" value="Publish" onclick="return btnPublish_onclick()" />
+    <input id="txtMessage" type="text" /> message<br />
+    <input id="btnSendUserMessage" disabled="disabled" type="button" value="SendUserMessage" onclick="return btnSendUserMessage_onclick()" />
+    <input id="txtReceiver" type="text" />&lt;= receiver
     <script type="text/javascript" src = "uloader.js"></script>
-    </body>
-
+</body>
 </html>
