@@ -32,7 +32,9 @@ private:
         ok = m_HelloWorld.AddSlowRequest(idSleep);
 
         //HTTP and WebSocket services
-        //Copy all files inside directories ../socketpro/bin/js and ../socketpro/tutorials/webtests into the directory where the application is located
+        //Copy all files inside directories ../socketpro/bin/js and
+        //../socketpro/tutorials/webtests into the directory
+        //where the application is located
         ok = m_myHttp.AddMe(SPA::sidHTTP);
         ok = m_myHttp.AddSlowRequest(SPA::ServerSide::idGet);
         ok = m_myHttp.AddSlowRequest(SPA::ServerSide::idPost);
