@@ -431,73 +431,10 @@ namespace SPA {
                 BatchMessage(idMessage, (const unsigned char*) nullptr, 0, q);
             }
 
-            template<typename T0>
-            static void BatchMessage(unsigned short idMessage, const T0 &t0, CUQueue &q) {
+            template<typename ...Ts>
+            static void BatchMessage(unsigned short idMessage, CUQueue& q, const Ts& ...t) {
                 SPA::CScopeUQueue sb;
-                sb << t0;
-                BatchMessage(idMessage, sb->GetBuffer(), sb->GetSize(), q);
-            }
-
-            template<typename T0, typename T1>
-            static void BatchMessage(unsigned short idMessage, const T0 &t0, const T1 &t1, CUQueue &q) {
-                SPA::CScopeUQueue sb;
-                sb << t0 << t1;
-                BatchMessage(idMessage, sb->GetBuffer(), sb->GetSize(), q);
-            }
-
-            template<typename T0, typename T1, typename T2>
-            static void BatchMessage(unsigned short idMessage, const T0 &t0, const T1 &t1, const T2 &t2, CUQueue &q) {
-                SPA::CScopeUQueue sb;
-                sb << t0 << t1 << t2;
-                BatchMessage(idMessage, sb->GetBuffer(), sb->GetSize(), q);
-            }
-
-            template<typename T0, typename T1, typename T2, typename T3>
-            static void BatchMessage(unsigned short idMessage, const T0 &t0, const T1 &t1, const T2 &t2, const T3 &t3, CUQueue &q) {
-                SPA::CScopeUQueue sb;
-                sb << t0 << t1 << t2 << t3;
-                BatchMessage(idMessage, sb->GetBuffer(), sb->GetSize(), q);
-            }
-
-            template<typename T0, typename T1, typename T2, typename T3, typename T4>
-            static void BatchMessage(unsigned short idMessage, const T0 &t0, const T1 &t1, const T2 &t2, const T3 &t3, const T4 &t4, CUQueue &q) {
-                SPA::CScopeUQueue sb;
-                sb << t0 << t1 << t2 << t3 << t4;
-                BatchMessage(idMessage, sb->GetBuffer(), sb->GetSize(), q);
-            }
-
-            template<typename T0, typename T1, typename T2, typename T3, typename T4, typename T5>
-            static void BatchMessage(unsigned short idMessage, const T0 &t0, const T1 &t1, const T2 &t2, const T3 &t3, const T4 &t4, const T5 &t5, CUQueue &q) {
-                SPA::CScopeUQueue sb;
-                sb << t0 << t1 << t2 << t3 << t4 << t5;
-                BatchMessage(idMessage, sb->GetBuffer(), sb->GetSize(), q);
-            }
-
-            template<typename T0, typename T1, typename T2, typename T3, typename T4, typename T5, typename T6>
-            static void BatchMessage(unsigned short idMessage, const T0 &t0, const T1 &t1, const T2 &t2, const T3 &t3, const T4 &t4, const T5 &t5, const T6 &t6, CUQueue &q) {
-                SPA::CScopeUQueue sb;
-                sb << t0 << t1 << t2 << t3 << t4 << t5 << t6;
-                BatchMessage(idMessage, sb->GetBuffer(), sb->GetSize(), q);
-            }
-
-            template<typename T0, typename T1, typename T2, typename T3, typename T4, typename T5, typename T6, typename T7>
-            static void BatchMessage(unsigned short idMessage, const T0 &t0, const T1 &t1, const T2 &t2, const T3 &t3, const T4 &t4, const T5 &t5, const T6 &t6, const T7 &t7, CUQueue &q) {
-                SPA::CScopeUQueue sb;
-                sb << t0 << t1 << t2 << t3 << t4 << t5 << t6 << t7;
-                BatchMessage(idMessage, sb->GetBuffer(), sb->GetSize(), q);
-            }
-
-            template<typename T0, typename T1, typename T2, typename T3, typename T4, typename T5, typename T6, typename T7, typename T8>
-            static void BatchMessage(unsigned short idMessage, const T0 &t0, const T1 &t1, const T2 &t2, const T3 &t3, const T4 &t4, const T5 &t5, const T6 &t6, const T7 &t7, const T8 &t8, CUQueue &q) {
-                SPA::CScopeUQueue sb;
-                sb << t0 << t1 << t2 << t3 << t4 << t5 << t6 << t7 << t8;
-                BatchMessage(idMessage, sb->GetBuffer(), sb->GetSize(), q);
-            }
-
-            template<typename T0, typename T1, typename T2, typename T3, typename T4, typename T5, typename T6, typename T7, typename T8, typename T9>
-            static void BatchMessage(unsigned short idMessage, const T0 &t0, const T1 &t1, const T2 &t2, const T3 &t3, const T4 &t4, const T5 &t5, const T6 &t6, const T7 &t7, const T8 &t8, const T9 &t9, CUQueue &q) {
-                SPA::CScopeUQueue sb;
-                sb << t0 << t1 << t2 << t3 << t4 << t5 << t6 << t7 << t8 << t9;
+                sb->Save(t ...);
                 BatchMessage(idMessage, sb->GetBuffer(), sb->GetSize(), q);
             }
 
@@ -532,6 +469,14 @@ namespace SPA {
                 return SendRequest(Queue::idEnqueue, key, idMessage, GetRH(e), discarded, se);
             }
 
+            template<typename ...Ts>
+            bool Enqueue(const char* key, unsigned short idMessage, const DEnqueue& e, const DDiscarded& discarded, const DServerException& se, const Ts& ...t) {
+                CScopeUQueue sb;
+                sb << key << idMessage;
+                sb->Save(t ...);
+                return SendRequest(Queue::idEnqueue, sb->GetBuffer(), sb->GetSize(), GetRH(e), discarded, se);
+            }
+
             template<typename T0>
             bool Enqueue(const char *key, unsigned short idMessage, const T0 &t0, const DEnqueue& e = nullptr, const DDiscarded& discarded = nullptr, const DServerException& se = nullptr) {
                 CScopeUQueue sb;
@@ -564,41 +509,6 @@ namespace SPA {
             bool Enqueue(const char *key, unsigned short idMessage, const T0 &t0, const T1 &t1, const T2 &t2, const T3 &t3, const T4 &t4, const DEnqueue& e = nullptr, const DDiscarded& discarded = nullptr, const DServerException& se = nullptr) {
                 CScopeUQueue sb;
                 sb << key << idMessage << t0 << t1 << t2 << t3 << t4;
-                return SendRequest(Queue::idEnqueue, sb->GetBuffer(), sb->GetSize(), GetRH(e), discarded, se);
-            }
-
-            template<typename T0, typename T1, typename T2, typename T3, typename T4, typename T5>
-            bool Enqueue(const char *key, unsigned short idMessage, const T0 &t0, const T1 &t1, const T2 &t2, const T3 &t3, const T4 &t4, const T5 &t5, const DEnqueue& e = nullptr, const DDiscarded& discarded = nullptr, const DServerException& se = nullptr) {
-                CScopeUQueue sb;
-                sb << key << idMessage << t0 << t1 << t2 << t3 << t4 << t5;
-                return SendRequest(Queue::idEnqueue, sb->GetBuffer(), sb->GetSize(), GetRH(e), discarded, se);
-            }
-
-            template<typename T0, typename T1, typename T2, typename T3, typename T4, typename T5, typename T6>
-            bool Enqueue(const char *key, unsigned short idMessage, const T0 &t0, const T1 &t1, const T2 &t2, const T3 &t3, const T4 &t4, const T5 &t5, const T6 &t6, const DEnqueue& e = nullptr, const DDiscarded& discarded = nullptr, const DServerException& se = nullptr) {
-                CScopeUQueue sb;
-                sb << key << idMessage << t0 << t1 << t2 << t3 << t4 << t5 << t6;
-                return SendRequest(Queue::idEnqueue, sb->GetBuffer(), sb->GetSize(), GetRH(e), discarded, se);
-            }
-
-            template<typename T0, typename T1, typename T2, typename T3, typename T4, typename T5, typename T6, typename T7>
-            bool Enqueue(const char *key, unsigned short idMessage, const T0 &t0, const T1 &t1, const T2 &t2, const T3 &t3, const T4 &t4, const T5 &t5, const T6 &t6, const T7 &t7, const DEnqueue& e = nullptr, const DDiscarded& discarded = nullptr, const DServerException& se = nullptr) {
-                CScopeUQueue sb;
-                sb << key << idMessage << t0 << t1 << t2 << t3 << t4 << t5 << t6 << t7;
-                return SendRequest(Queue::idEnqueue, sb->GetBuffer(), sb->GetSize(), GetRH(e), discarded, se);
-            }
-
-            template<typename T0, typename T1, typename T2, typename T3, typename T4, typename T5, typename T6, typename T7, typename T8>
-            bool Enqueue(const char *key, unsigned short idMessage, const T0 &t0, const T1 &t1, const T2 &t2, const T3 &t3, const T4 &t4, const T5 &t5, const T6 &t6, const T7 &t7, const T8 &t8, const DEnqueue& e = nullptr, const DDiscarded& discarded = nullptr, const DServerException& se = nullptr) {
-                CScopeUQueue sb;
-                sb << key << idMessage << t0 << t1 << t2 << t3 << t4 << t5 << t6 << t7 << t8;
-                return SendRequest(Queue::idEnqueue, sb->GetBuffer(), sb->GetSize(), GetRH(e), discarded, se);
-            }
-
-            template<typename T0, typename T1, typename T2, typename T3, typename T4, typename T5, typename T6, typename T7, typename T8, typename T9>
-            bool Enqueue(const char *key, unsigned short idMessage, const T0 &t0, const T1 &t1, const T2 &t2, const T3 &t3, const T4 &t4, const T5 &t5, const T6 &t6, const T7 &t7, const T8 &t8, const T9 &t9, const DEnqueue& e = nullptr, const DDiscarded& discarded = nullptr, const DServerException& se = nullptr) {
-                CScopeUQueue sb;
-                sb << key << idMessage << t0 << t1 << t2 << t3 << t4 << t5 << t6 << t7 << t8 << t9;
                 return SendRequest(Queue::idEnqueue, sb->GetBuffer(), sb->GetSize(), GetRH(e), discarded, se);
             }
 
