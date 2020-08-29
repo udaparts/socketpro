@@ -46,7 +46,7 @@ int main(int argc, char* argv[]) {
 void TestEnqueue(CMyPool::PHandler &sq) {
     std::cout << "Going to enqueue 1024 messages ......" << std::endl;
     for (int n = 0; n < 1024; ++n) {
-        std::wstring str = std::to_wstring((SPA::UINT64)n) + L" Object test";
+        std::wstring str = std::to_wstring(n) + L" Object test";
         unsigned short idMessage;
         switch (n % 3) {
             case 0:

@@ -1,21 +1,21 @@
-
 #include "asyncqueueimpl.h"
+using namespace SPA::ServerSide;
 
-std::shared_ptr<SPA::ServerSide::CSocketProService<SPA::ServerSide::CAsyncQueueImpl> > g_pAsyncQueue;
-static const unsigned int DEFAULT_DEQUEUE_BATCH_SIZE = 16384; //default dequeue batch size
+std::shared_ptr<CSocketProService<CAsyncQueueImpl> > g_pAsyncQueue;
+static const unsigned int DEFAULT_DEQUEUE_BATCH_SIZE = 16384;
 static const unsigned int MIN_DEQUEUE_BATCH_SIZE = 2048;
 
 bool WINAPI InitServerLibrary(int param) {
     unsigned options = (unsigned int) param;
-    SPA::ServerSide::CAsyncQueueImpl::m_bNoAuto = (unsigned char) (options >> 24);
+    CAsyncQueueImpl::m_bNoAuto = (unsigned char) (options >> 24);
     unsigned int batchSize = (options & 0xffffff);
     if (!batchSize) {
         batchSize = DEFAULT_DEQUEUE_BATCH_SIZE;
     } else if (batchSize < MIN_DEQUEUE_BATCH_SIZE) {
         batchSize = MIN_DEQUEUE_BATCH_SIZE;
     }
-    SPA::ServerSide::CAsyncQueueImpl::m_nBatchSize = batchSize;
-    g_pAsyncQueue.reset(new SPA::ServerSide::CSocketProService<SPA::ServerSide::CAsyncQueueImpl>(SPA::Queue::sidQueue, SPA::taNone));
+    CAsyncQueueImpl::m_nBatchSize = batchSize;
+    g_pAsyncQueue.reset(new CSocketProService<CAsyncQueueImpl>(SPA::Queue::sidQueue, SPA::taNone));
     return true;
 }
 
@@ -51,22 +51,16 @@ unsigned short WINAPI GetOneSlowRequestID(unsigned int serviceId, unsigned short
     switch (index) {
         case 0:
             return SPA::Queue::idDequeue;
-            break;
         case 1:
             return SPA::Queue::idEnqueue;
-            break;
         case 2:
             return SPA::Queue::idFlush;
-            break;
         case 3:
             return SPA::Queue::idClose;
-            break;
         case 4:
             return SPA::Queue::idEndTrans;
-            break;
         case 5:
             return SPA::Queue::idEnqueueBatch;
-            break;
         default:
             break;
     }

@@ -1,10 +1,6 @@
-
 #include "sqliteimpl.h"
 #ifndef WIN32_64
 #include <sched.h>
-#endif
-#ifndef NDEBUG
-#include <iostream>
 #endif
 #include <sstream>
 #include <cctype>
