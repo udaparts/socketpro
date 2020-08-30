@@ -861,7 +861,7 @@ namespace SPA {
                 sb << (int) isolation << connection << flags;
                 //associate begin transaction with underlying client persistent message queue
                 m_queueOk = GetSocket()->GetClientQueue().StartJob();
-                return SendRequest(idBeginTrans, sb->GetBuffer(), sb->GetSize(), arh, discarded, nullptr);
+                return SendRequest(idBeginTrans, sb->GetBuffer(), sb->GetSize(), arh, discarded, se);
             }
 
             /**

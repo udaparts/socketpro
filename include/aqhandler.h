@@ -107,7 +107,7 @@ namespace SPA {
                         qt((CAsyncQueue*) ar.AsyncServiceHandler, errCode);
                     };
                 }
-                return SendRequest(Queue::idStartTrans, key, rh, discarded, se);
+                return SendRequest(Queue::idStartTrans, rh, discarded, se, key);
             }
 
             /**
@@ -127,7 +127,7 @@ namespace SPA {
                         qt((CAsyncQueue*) ar.AsyncServiceHandler, errCode);
                     };
                 }
-                bool ok = SendRequest(Queue::idEndTrans, rollback, rh, discarded, se);
+                bool ok = SendRequest(Queue::idEndTrans, rh, discarded, se, rollback);
                 IClientQueue &cq = GetSocket()->GetClientQueue();
                 if (cq.IsAvailable()) {
                     bool ok;
@@ -158,7 +158,7 @@ namespace SPA {
                         c((CAsyncQueue*) ar.AsyncServiceHandler, errCode);
                     };
                 }
-                return SendRequest(Queue::idClose, key, permanent, rh, discarded, se);
+                return SendRequest(Queue::idClose, rh, discarded, se, key, permanent);
             }
 
             /**
@@ -179,7 +179,7 @@ namespace SPA {
                         f((CAsyncQueue*) ar.AsyncServiceHandler, messageCount, fileSize);
                     };
                 }
-                return SendRequest(Queue::idFlush, key, (int) option, rh, discarded, se);
+                return SendRequest(Queue::idFlush, rh, discarded, se, key, (int) option);
             }
 
             struct QueueInfo {
@@ -231,7 +231,7 @@ namespace SPA {
                         m_dDequeue = nullptr;
                     }
                 }
-                return SendRequest(Queue::idDequeue, key, timeout, rh, discarded, se);
+                return SendRequest(Queue::idDequeue, rh, discarded, se, key, timeout);
             }
 
             struct DeqInfo : public QueueInfo {
@@ -466,7 +466,7 @@ namespace SPA {
             }
 
             bool Enqueue(const char *key, unsigned short idMessage, const DEnqueue& e = nullptr, const DDiscarded& discarded = nullptr, const DServerException& se = nullptr) {
-                return SendRequest(Queue::idEnqueue, key, idMessage, GetRH(e), discarded, se);
+                return SendRequest(Queue::idEnqueue, GetRH(e), discarded, se, key, idMessage);
             }
 
             template<typename ...Ts>
@@ -477,39 +477,33 @@ namespace SPA {
                 return SendRequest(Queue::idEnqueue, sb->GetBuffer(), sb->GetSize(), GetRH(e), discarded, se);
             }
 
-            template<typename T0>
-            bool Enqueue(const char *key, unsigned short idMessage, const T0 &t0, const DEnqueue& e = nullptr, const DDiscarded& discarded = nullptr, const DServerException& se = nullptr) {
+            template<typename ...Ts>
+            bool Enqueue(const char* key, unsigned short idMessage, const DEnqueue& e, const DDiscarded& discarded, const Ts& ...t) {
+                static DServerException se;
                 CScopeUQueue sb;
-                sb << key << idMessage << t0;
+                sb << key << idMessage;
+                sb->Save(t ...);
                 return SendRequest(Queue::idEnqueue, sb->GetBuffer(), sb->GetSize(), GetRH(e), discarded, se);
             }
 
-            template<typename T0, typename T1>
-            bool Enqueue(const char *key, unsigned short idMessage, const T0 &t0, const T1 &t1, const DEnqueue& e = nullptr, const DDiscarded& discarded = nullptr, const DServerException& se = nullptr) {
+            template<typename ...Ts>
+            bool Enqueue(const char* key, unsigned short idMessage, const DEnqueue& e, const Ts& ...t) {
+                static DDiscarded discarded;
+                static DServerException se;
                 CScopeUQueue sb;
-                sb << key << idMessage << t0 << t1;
+                sb << key << idMessage;
+                sb->Save(t ...);
                 return SendRequest(Queue::idEnqueue, sb->GetBuffer(), sb->GetSize(), GetRH(e), discarded, se);
             }
 
-            template<typename T0, typename T1, typename T2>
-            bool Enqueue(const char *key, unsigned short idMessage, const T0 &t0, const T1 &t1, const T2 &t2, const DEnqueue& e = nullptr, const DDiscarded& discarded = nullptr, const DServerException& se = nullptr) {
+            template<typename ...Ts>
+            bool Enqueue(const char* key, unsigned short idMessage, const Ts& ...t) {
+                static DDiscarded discarded;
+                static DServerException se;
                 CScopeUQueue sb;
-                sb << key << idMessage << t0 << t1 << t2;
-                return SendRequest(Queue::idEnqueue, sb->GetBuffer(), sb->GetSize(), GetRH(e), discarded, se);
-            }
-
-            template<typename T0, typename T1, typename T2, typename T3>
-            bool Enqueue(const char *key, unsigned short idMessage, const T0 &t0, const T1 &t1, const T2 &t2, const T3 &t3, const DEnqueue& e = nullptr, const DDiscarded& discarded = nullptr, const DServerException& se = nullptr) {
-                CScopeUQueue sb;
-                sb << key << idMessage << t0 << t1 << t2 << t3;
-                return SendRequest(Queue::idEnqueue, sb->GetBuffer(), sb->GetSize(), GetRH(e), discarded, se);
-            }
-
-            template<typename T0, typename T1, typename T2, typename T3, typename T4>
-            bool Enqueue(const char *key, unsigned short idMessage, const T0 &t0, const T1 &t1, const T2 &t2, const T3 &t3, const T4 &t4, const DEnqueue& e = nullptr, const DDiscarded& discarded = nullptr, const DServerException& se = nullptr) {
-                CScopeUQueue sb;
-                sb << key << idMessage << t0 << t1 << t2 << t3 << t4;
-                return SendRequest(Queue::idEnqueue, sb->GetBuffer(), sb->GetSize(), GetRH(e), discarded, se);
+                sb << key << idMessage;
+                sb->Save(t ...);
+                return SendRequest(Queue::idEnqueue, sb->GetBuffer(), sb->GetSize(), NULL_RH, discarded, se);
             }
 
         protected:

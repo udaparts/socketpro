@@ -160,14 +160,6 @@ namespace SPA {
             return SendRouteeResult((const unsigned char *) nullptr, (unsigned int) 0, reqId);
         }
 
-        bool CAsyncServiceHandler::SendRouteeResult(const CUQueue &mc, unsigned short reqId) {
-            return SendRouteeResult(mc.GetBuffer(), mc.GetSize(), reqId);
-        }
-
-        bool CAsyncServiceHandler::SendRouteeResult(const CScopeUQueue &sb, unsigned short reqId) {
-            return SendRouteeResult(sb->GetBuffer(), sb->GetSize(), reqId);
-        }
-
         void CAsyncServiceHandler::Detach() {
             Attach(nullptr);
         }

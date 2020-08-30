@@ -15,7 +15,7 @@ bool CWebAsyncHandler::QueryPaymentMaxMinAvgs(const wchar_t *filter, DMaxMinAvg 
         if (mma)
             mma(m_m_a, res, errMsg);
     };
-    return SendRequest(idQueryMaxMinAvgs, filter, arh, discarded);
+    return SendRequest(idQueryMaxMinAvgs, arh, discarded, filter);
 }
 
 bool CWebAsyncHandler::GetRentalDateTimes(SPA::INT64 rentalId, DRentalDateTimes rdt, DMyDiscarded discarded) {
@@ -27,7 +27,7 @@ bool CWebAsyncHandler::GetRentalDateTimes(SPA::INT64 rentalId, DRentalDateTimes 
         if (rdt)
             rdt(rDateTime, res, errMsg);
     };
-    return SendRequest(idGetRentalDateTimes, rentalId, arh, discarded);
+    return SendRequest(idGetRentalDateTimes, arh, discarded, rentalId);
 }
 
 bool CWebAsyncHandler::GetMasterSlaveConnectedSessions(DConnectedSessions cs, DMyDiscarded discarded) {
@@ -49,5 +49,5 @@ bool CWebAsyncHandler::UploadEmployees(const SPA::UDB::CDBVariantArray &vData, D
         if (res)
             res(errCode, errMsg, vId);
     };
-    return SendRequest(idUploadEmployees, vData, arh, discarded);
+    return SendRequest(idUploadEmployees, arh, discarded, vData);
 }

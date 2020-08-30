@@ -36,7 +36,7 @@ protected:
                         dX += dStep;
                         ComputeRtn += dd / (1 + dX * dX);
                     }
-                    SendRouteeResult(ComputeRtn, dStart);
+                    SendRouteeResult(idComputePi, ComputeRtn, dStart);
                 }
                     break;
                 default:

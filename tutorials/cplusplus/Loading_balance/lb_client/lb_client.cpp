@@ -35,7 +35,7 @@ int main(int argc, char* argv[]) {
 
     for (int n = 0; n < nDivision; ++n) {
         double dStart = (double) n / nDivision;
-        ok = pi->SendRequest(idComputePi, dStart, dStep, nNum, rh);
+        ok = pi->SendRequest(idComputePi, rh, dStart, dStep, nNum);
     }
     ok = pi->WaitAll();
     std::cout << "Your pi = " << dPi << ", returns = " << mapReturn.size() << std::endl;

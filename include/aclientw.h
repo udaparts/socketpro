@@ -870,46 +870,28 @@ namespace SPA {
             static unsigned int CountResultCallbacksInPool();
             static UINT64 GetCallIndex();
 
-            template<typename T0>
-            bool SendRequest(unsigned short reqId, const T0& t0, const DResultHandler& rh, DDiscarded discarded = nullptr, DServerException se = nullptr) {
-                CScopeUQueue sb;
-                sb << t0;
-                return SendRequest(reqId, sb->GetBuffer(), sb->GetSize(), rh, discarded, se);
-            }
-
-            template<typename T0, typename T1>
-            bool SendRequest(unsigned short reqId, const T0& t0, const T1& t1, const DResultHandler& rh, DDiscarded discarded = nullptr, DServerException se = nullptr) {
-                CScopeUQueue sb;
-                sb << t0 << t1;
-                return SendRequest(reqId, sb->GetBuffer(), sb->GetSize(), rh, discarded, se);
-            }
-
-            template<typename T0, typename T1, typename T2>
-            bool SendRequest(unsigned short reqId, const T0& t0, const T1& t1, const T2& t2, const DResultHandler& rh, DDiscarded discarded = nullptr, DServerException se = nullptr) {
-                CScopeUQueue sb;
-                sb << t0 << t1 << t2;
-                return SendRequest(reqId, sb->GetBuffer(), sb->GetSize(), rh, discarded, se);
-            }
-
-            template<typename T0, typename T1, typename T2, typename T3>
-            bool SendRequest(unsigned short reqId, const T0& t0, const T1& t1, const T2& t2, const T3& t3, const DResultHandler& rh, DDiscarded discarded = nullptr, DServerException se = nullptr) {
-                CScopeUQueue sb;
-                sb << t0 << t1 << t2 << t3;
-                return SendRequest(reqId, sb->GetBuffer(), sb->GetSize(), rh, discarded, se);
-            }
-
-            template<typename T0, typename T1, typename T2, typename T3, typename T4>
-            bool SendRequest(unsigned short reqId, const T0& t0, const T1& t1, const T2& t2, const T3& t3, const T4& t4, const DResultHandler& rh, DDiscarded discarded = nullptr, DServerException se = nullptr) {
-                CScopeUQueue sb;
-                sb << t0 << t1 << t2 << t3 << t4;
-                return SendRequest(reqId, sb->GetBuffer(), sb->GetSize(), rh, discarded, se);
-            }
-
             template<typename ...Ts>
             bool SendRequest(unsigned short reqId, const DResultHandler& rh, DDiscarded discarded, DServerException se, const Ts& ...t) {
                 CScopeUQueue sb;
                 sb->Save(t ...);
                 return SendRequest(reqId, sb->GetBuffer(), sb->GetSize(), rh, discarded, se);
+            }
+
+            template<typename ...Ts>
+            bool SendRequest(unsigned short reqId, const DResultHandler& rh, DDiscarded discarded, const Ts& ...t) {
+                static DServerException se;
+                CScopeUQueue sb;
+                sb->Save(t ...);
+                return SendRequest(reqId, sb->GetBuffer(), sb->GetSize(), rh, discarded, se);
+            }
+
+            template<typename ...Ts>
+            bool SendRequest(unsigned short reqId, const DResultHandler& rh, const Ts& ...t) {
+                static DServerException se;
+                static DDiscarded aborted;
+                CScopeUQueue sb;
+                sb->Save(t ...);
+                return SendRequest(reqId, sb->GetBuffer(), sb->GetSize(), rh, aborted, se);
             }
 
 #if defined(PHP_ADAPTER_PROJECT) || defined(NODE_JS_ADAPTER_PROJECT)
@@ -1058,11 +1040,8 @@ namespace SPA {
             virtual void OnMergeTo(CAsyncServiceHandler & to);
             virtual bool SendRouteeResult(const unsigned char *buffer, unsigned int len, unsigned short reqId = 0);
             bool SendRouteeResult(unsigned short reqId = 0);
-            bool SendRouteeResult(const CUQueue &mc, unsigned short reqId = 0);
-            bool SendRouteeResult(const CScopeUQueue &sb, unsigned short reqId = 0);
-
             template<typename ...Ts>
-            bool SendRouteeResult(const Ts& ... data, unsigned short reqId = 0) {
+            bool SendRouteeResult(unsigned short reqId, const Ts& ... data) {
                 CScopeUQueue sb;
                 sb->Save(data ...);
                 return SendRouteeResult(sb->GetBuffer(), sb->GetSize(), reqId);
