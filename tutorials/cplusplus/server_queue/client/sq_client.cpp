@@ -75,8 +75,7 @@ future<CAsyncQueue::DeqInfo> TestDequeue(CMyPool::PHandler &sq) {
             case idMessage2:
                 cout << "message id=" << idReq;
             {
-                wstring name, str;
-                int index;
+                wstring name, str; int index;
 
                 //parse a dequeued message which should be the same as the above enqueued message (two unicode strings and one int)
                 q >> name >> str >> index;
