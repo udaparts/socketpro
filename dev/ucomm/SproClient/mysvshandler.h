@@ -107,7 +107,7 @@ public:
     }
 
     std::wstring BadRequest(unsigned int n, const wchar_t* input) {
-		return async<std::wstring>(idBadRequest, n, input).get();
+        return async<std::wstring>(idBadRequest, n, input).get();
     }
 
     bool OpenDb(const char *connString) {
@@ -119,7 +119,7 @@ public:
     }
 
     std::string Echo(const char *input) {
-		return async<std::string>(idEcho, input).get();
+        return async<std::string>(idEcho, input).get();
     }
 
     SPA::CUQueue DoRequest0(char aChar, wchar_t aWChar, const char *str, const wchar_t *wstr, unsigned short us, double d, bool b, SPA::UDateTime dt) {

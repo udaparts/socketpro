@@ -1036,6 +1036,7 @@ namespace SPA {
             virtual void OnMergeTo(CAsyncServiceHandler & to);
             virtual bool SendRouteeResult(const unsigned char *buffer, unsigned int len, unsigned short reqId = 0);
             bool SendRouteeResult(unsigned short reqId = 0);
+
             template<typename ...Ts>
             bool SendRouteeResult(unsigned short reqId, const Ts& ... data) {
                 CScopeUQueue sb;

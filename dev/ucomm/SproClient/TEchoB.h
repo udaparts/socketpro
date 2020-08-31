@@ -21,11 +21,11 @@ public:
 public:
 
     bool EchoBool(bool b) {
-		return async<bool>(idEchoBoolCEchoBasic, b).get();
+        return async<bool>(idEchoBoolCEchoBasic, b).get();
     }
 
     char EchoInt8(char c) {
-		return async<char>(idEchoInt8CEchoBasic, c).get();
+        return async<char>(idEchoInt8CEchoBasic, c).get();
     }
 
     unsigned char EchoUInt8(unsigned char b) {

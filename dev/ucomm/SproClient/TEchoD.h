@@ -22,7 +22,7 @@ public:
 public:
 
     MyStruct EchoMyStruct(const MyStruct &my) {
-		return async<MyStruct>(idEchoMyStructCEchoSys, my).get();
+        return async<MyStruct>(idEchoMyStructCEchoSys, my).get();
     }
 
     CUQueue EchoUQueue(const CUQueue &q) {
@@ -31,8 +31,8 @@ public:
 
     UVariant EchoComplex0(double d, const wchar_t* s, const UVariant &simpleObj, bool b, /*out*/std::wstring &sOut) {
         auto sb = async0(idEchoComplex0CEchoSys, d, s, simpleObj, b).get();
-		sb >> sOut;
-		return sb->Load<UVariant>();
+        sb >> sOut;
+        return sb->Load<UVariant>();
     }
 };
 

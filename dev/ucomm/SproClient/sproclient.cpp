@@ -1,5 +1,3 @@
-﻿// SproClient.cpp : Defines the entry point for the console application.
-//
 #include "stdafx.h"
 
 #include "mysvshandler.h"
@@ -243,7 +241,7 @@ void TestQueue(const SPA::ClientSide::CConnectionContext &cc) {
                                 break;
                         }
 #endif
-                    }, (unsigned int)0);
+                    }, (unsigned int) 0);
                 }
                 //auto f0 = p->async<std::string, std::string>(idEcho, shortMessage); //crash with non-window platforms
                 if (shortOne) {

@@ -6,9 +6,9 @@
 #include "spvariant.h"
 
 #if defined(WIN32_64) && _MSC_VER >= 1700
-#define HAVE_FUTURE 1
+#define HAVE_FUTURE     1
 #elif defined(WCHAR32)
-#define HAVE_FUTURE	1
+#define HAVE_FUTURE     1
 #else
 #endif
 
@@ -1418,6 +1418,7 @@ namespace SPA {
         }
 
 #ifdef HAVE_FUTURE
+
         template<typename T, typename ...Ts>
         inline CUQueue& Save(const T& data, const Ts& ... others) {
             Save(data);
