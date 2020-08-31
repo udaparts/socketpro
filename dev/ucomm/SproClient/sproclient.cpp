@@ -226,7 +226,7 @@ void TestQueue(const SPA::ClientSide::CConnectionContext &cc) {
                 b = p->StartBatching();
             for (unsigned int m = 0; m < 200; ++m) {
                 if (m && !(m % 20)) {
-                    p->SendRequest(idSleep, (unsigned int) 0, [](SPA::ClientSide::CAsyncResult & ar) {
+                    p->SendRequest(idSleep, [](SPA::ClientSide::CAsyncResult & ar) {
 #if 0
                         int *p = nullptr;
                         srand((unsigned int) time(nullptr));
@@ -243,25 +243,25 @@ void TestQueue(const SPA::ClientSide::CConnectionContext &cc) {
                                 break;
                         }
 #endif
-                    });
+                    }, (unsigned int)0);
                 }
                 //auto f0 = p->async<std::string, std::string>(idEcho, shortMessage); //crash with non-window platforms
                 if (shortOne) {
-                    b = p->SendRequest(idEcho, shortMessage, [&shortMessage](SPA::ClientSide::CAsyncResult & ar) {
+                    b = p->SendRequest(idEcho, [&shortMessage](SPA::ClientSide::CAsyncResult & ar) {
                         std::string s;
                         ar >> s;
                         if (s != shortMessage) {
                             std::cout << s << std::endl;
                         }
-                    });
+                    }, shortMessage);
                 } else {
-                    b = p->SendRequest(idEcho, sEchoTest, [&sEchoTest](SPA::ClientSide::CAsyncResult & ar) {
+                    b = p->SendRequest(idEcho, [&sEchoTest](SPA::ClientSide::CAsyncResult & ar) {
                         std::string s;
                         ar >> s;
                         if (s != sEchoTest) {
                             std::cout << s << std::endl;
                         }
-                    });
+                    }, sEchoTest);
                 }
             }
             if (batching && shortOne)
@@ -894,17 +894,17 @@ void TestRoute1(const SPA::ClientSide::CConnectionContext & cc) {
 
         b = p->GetAttachedClientSocket()->GetClientQueue().StartJob();
 
-        b = p->SendRequest(idREcho1, str, [](SPA::ClientSide::CAsyncResult & ar) {
+        b = p->SendRequest(idREcho1, [](SPA::ClientSide::CAsyncResult & ar) {
             std::string res;
             ar >> res;
                     std::cout << "Result -- 1 - 0: " << res << std::endl;
-        });
+        }, str);
 
-        b = p->SendRequest(idREcho1, str, [](SPA::ClientSide::CAsyncResult & ar) {
+        b = p->SendRequest(idREcho1, [](SPA::ClientSide::CAsyncResult & ar) {
             std::string res;
             ar >> res;
                     std::cout << "Result -- 1 - 1: " << res << std::endl;
-        });
+        }, str);
 
         b = p->GetAttachedClientSocket()->GetClientQueue().EndJob();
         std::cout << "Input a number for test (negative value for stopping)" << std::endl;

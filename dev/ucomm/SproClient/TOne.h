@@ -21,37 +21,29 @@ public:
 public:
 
     int QueryCount() {
-        int QueryCountRtn;
-        bool bProcessRy = ProcessR1(idQueryCountCTOne, QueryCountRtn);
-        return QueryCountRtn;
+		return async<int>(idQueryCountCTOne).get();
     }
 
     int QueryGlobalCount() {
-        int QueryGlobalCountRtn;
-        bool bProcessRy = ProcessR1(idQueryGlobalCountCTOne, QueryGlobalCountRtn);
-        return QueryGlobalCountRtn;
+		return async<int>(idQueryGlobalCountCTOne).get();
     }
 
     int QueryGlobalFastCount() {
-        int QueryGlobalFastCountRtn;
-        bool bProcessRy = ProcessR1(idQueryGlobalFastCountCTOne, QueryGlobalFastCountRtn);
-        return QueryGlobalFastCountRtn;
+		return async<int>(idQueryGlobalFastCountCTOne).get();
     }
 
     void Sleep(int nTime) {
-        bool bProcessRy = ProcessR0(idSleepCTOne, nTime);
+		async0(idSleepCTOne, nTime).get();
     }
 
     UVariant Echo(const UVariant &objInput) {
-        UVariant EchoRtn;
-        bool bProcessRy = ProcessR1(idEchoCTOne, objInput, EchoRtn);
-        return EchoRtn;
+		return async<UVariant>(idEchoCTOne, objInput).get();
     }
 
     bool EchoEx(const char* str, const wchar_t* wstr, const MyStruct/*Please override >> && << for the class!!!*/&ms, /*out*/std::string &strOut, /*out*/std::wstring &wstrOut) {
-        bool EchoExRtn;
-        bool bProcessRy = ProcessR3(idEchoExCTOne, str, wstr, ms, strOut, wstrOut, EchoExRtn);
-        return EchoExRtn;
+		auto sb = async0(idEchoExCTOne, str, wstr, ms).get();
+		sb >> strOut >> wstrOut;
+		return sb->Load<bool>();
     }
 };
 #endif

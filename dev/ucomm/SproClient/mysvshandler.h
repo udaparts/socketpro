@@ -99,37 +99,31 @@ public:
 public:
 
     void Sleep(unsigned int time) {
-        bool ok = ProcessR0(idSleep, time);
+        async0(idSleep, time).get();
     }
 
     void DodequeueAsync(unsigned int messageCount) {
-        bool ok = SendRequest(idDequeue, messageCount, SPA::ClientSide::ResultHandler());
+        bool ok = SendRequest(idDequeue, SPA::ClientSide::NULL_RH, messageCount);
     }
 
     std::wstring BadRequest(unsigned int n, const wchar_t* input) {
-        std::wstring str;
-        bool ok = ProcessR1(idBadRequest, n, input, str);
-        return str;
+		return async<std::wstring>(idBadRequest, n, input).get();
     }
 
     bool OpenDb(const char *connString) {
-        return ProcessR0(idOpenDb, connString);
+        return async<bool>(idOpenDb, connString).get();
     }
 
     bool OpenDbAsync(const char *connString) {
-        return SendRequest(idOpenDb, connString, SPA::ClientSide::ResultHandler());
+        return SendRequest(idOpenDb, SPA::ClientSide::NULL_RH, connString);
     }
 
     std::string Echo(const char *input) {
-        std::string str;
-        bool ok = ProcessR1(idEcho, input, str);
-        return str;
+		return async<std::string>(idEcho, input).get();
     }
 
     SPA::CUQueue DoRequest0(char aChar, wchar_t aWChar, const char *str, const wchar_t *wstr, unsigned short us, double d, bool b, SPA::UDateTime dt) {
-        SPA::CUQueue q;
-        bool ok = ProcessR1(idDoRequest0, aChar, aWChar, str, wstr, us, d, b, dt, q);
-        return q;
+        return async<SPA::CUQueue>(idDoRequest0, aChar, aWChar, str, wstr, us, d, b, dt).get();
     }
 
 private:

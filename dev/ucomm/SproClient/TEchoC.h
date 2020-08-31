@@ -20,201 +20,135 @@ public:
 public:
 
     UVariant EchoEmpty(const UVariant &empty) {
-        UVariant EchoEmptyRtn;
-        bool bProcessRy = ProcessR1(idEchoEmptyCEchoObject, empty, EchoEmptyRtn);
-        return EchoEmptyRtn;
+        return async<UVariant>(idEchoEmptyCEchoObject, empty).get();
     }
 
     UVariant EchoBool(const UVariant &b) {
-        UVariant EchoBoolRtn;
-        bool bProcessRy = ProcessR1(idEchoBoolCEchoObject, b, EchoBoolRtn);
-        return EchoBoolRtn;
+        return async<UVariant>(idEchoBoolCEchoObject, b).get();
     }
 
     UVariant EchoInt8(const UVariant &c) {
-        UVariant EchoInt8Rtn;
-        bool bProcessRy = ProcessR1(idEchoInt8CEchoObject, c, EchoInt8Rtn);
-        return EchoInt8Rtn;
+		return async<UVariant>(idEchoInt8CEchoObject, c).get();
     }
 
     UVariant EchoUInt8(const UVariant &b) {
-        UVariant EchoUInt8Rtn;
-        bool bProcessRy = ProcessR1(idEchoUInt8CEchoObject, b, EchoUInt8Rtn);
-        return EchoUInt8Rtn;
+		return async<UVariant>(idEchoUInt8CEchoObject, b).get();
     }
 
     UVariant EchoInt16(const UVariant &s) {
-        UVariant EchoInt16Rtn;
-        bool bProcessRy = ProcessR1(idEchoInt16CEchoObject, s, EchoInt16Rtn);
-        return EchoInt16Rtn;
+		return async<UVariant>(idEchoInt16CEchoObject, s).get();
     }
 
     UVariant EchoUInt16(const UVariant &s) {
-        UVariant EchoUInt16Rtn;
-        bool bProcessRy = ProcessR1(idEchoUInt16CEchoObject, s, EchoUInt16Rtn);
-        return EchoUInt16Rtn;
+		return async<UVariant>(idEchoUInt16CEchoObject, s).get();
     }
 
     UVariant EchoInt32(const UVariant &data) {
-        UVariant EchoInt32Rtn;
-        bool bProcessRy = ProcessR1(idEchoInt32CEchoObject, data, EchoInt32Rtn);
-        return EchoInt32Rtn;
+		return async<UVariant>(idEchoInt32CEchoObject, data).get();
     }
 
     UVariant EchoUInt32(const UVariant &data) {
-        UVariant EchoUInt32Rtn;
-        bool bProcessRy = ProcessR1(idEchoUInt32CEchoObject, data, EchoUInt32Rtn);
-        return EchoUInt32Rtn;
+		return async<UVariant>(idEchoUInt32CEchoObject, data).get();
     }
 
     UVariant EchoInt64(const UVariant &data) {
-        UVariant EchoInt64Rtn;
-        bool bProcessRy = ProcessR1(idEchoInt64CEchoObject, data, EchoInt64Rtn);
-        return EchoInt64Rtn;
+		return async<UVariant>(idEchoInt64CEchoObject, data).get();
     }
 
     UVariant EchoUInt64(const UVariant &data) {
-        UVariant EchoUInt64Rtn;
-        bool bProcessRy = ProcessR1(idEchoUInt64CEchoObject, data, EchoUInt64Rtn);
-        return EchoUInt64Rtn;
+		return async<UVariant>(idEchoUInt64CEchoObject, data).get();
     }
 
     UVariant EchoFloat(const UVariant &data) {
-        UVariant EchoFloatRtn;
-        bool bProcessRy = ProcessR1(idEchoFloatCEchoObject, data, EchoFloatRtn);
-        return EchoFloatRtn;
+		return async<UVariant>(idEchoFloatCEchoObject, data).get();
     }
 
     UVariant EchoDouble(const UVariant &data) {
-        UVariant EchoDoubleRtn;
-        bool bProcessRy = ProcessR1(idEchoDoubleCEchoObject, data, EchoDoubleRtn);
-        return EchoDoubleRtn;
+		return async<UVariant>(idEchoDoubleCEchoObject, data).get();
     }
 
     UVariant EchoString(const UVariant &str) {
-        UVariant EchoStringRtn;
-        bool bProcessRy = ProcessR1(idEchoStringCEchoObject, str, EchoStringRtn);
-        return EchoStringRtn;
+		return async<UVariant>(idEchoStringCEchoObject, str).get();
     }
 
     UVariant EchoAString(const UVariant &str) {
-        UVariant EchoAStringRtn;
-        bool bProcessRy = ProcessR1(idEchoAStringCEchoObject, str, EchoAStringRtn);
-        return EchoAStringRtn;
+		return async<UVariant>(idEchoAStringCEchoObject, str).get();
     }
 
     UVariant EchoDecimal(const UVariant &dec) {
-        UVariant EchoDecimalRtn;
-        bool bProcessRy = ProcessR1(idEchoDecimalCEchoObject, dec, EchoDecimalRtn);
-        return EchoDecimalRtn;
+		return async<UVariant>(idEchoDecimalCEchoObject, dec).get();
     }
 
     UVariant EchoBoolArray(const UVariant &bArr) {
-        UVariant EchoBoolArrayRtn;
-        bool bProcessRy = ProcessR1(idEchoBoolArrayCEchoObject, bArr, EchoBoolArrayRtn);
-        return EchoBoolArrayRtn;
+		return async<UVariant>(idEchoBoolArrayCEchoObject, bArr).get();
     }
 
     UVariant EchoUInt8Array(const UVariant &bArr) {
-        UVariant EchoUInt8ArrayRtn;
-        bool bProcessRy = ProcessR1(idEchoUInt8ArrayCEchoObject, bArr, EchoUInt8ArrayRtn);
-        return EchoUInt8ArrayRtn;
+		return async<UVariant>(idEchoUInt8ArrayCEchoObject, bArr).get();
     }
 
     UVariant EchoInt16Array(const UVariant &shortArr) {
-        UVariant EchoInt16ArrayRtn;
-        bool bProcessRy = ProcessR1(idEchoInt16ArrayCEchoObject, shortArr, EchoInt16ArrayRtn);
-        return EchoInt16ArrayRtn;
+		return async<UVariant>(idEchoInt16ArrayCEchoObject, shortArr).get();
     }
 
     UVariant EchoUInt16Array(const UVariant &ushortArr) {
-        UVariant EchoUInt16ArrayRtn;
-        bool bProcessRy = ProcessR1(idEchoUInt16ArrayCEchoObject, ushortArr, EchoUInt16ArrayRtn);
-        return EchoUInt16ArrayRtn;
+		return async<UVariant>(idEchoUInt16ArrayCEchoObject, ushortArr).get();
     }
 
     UVariant EchoInt32Array(const UVariant &intArr) {
-        UVariant EchoInt32ArrayRtn;
-        bool bProcessRy = ProcessR1(idEchoInt32ArrayCEchoObject, intArr, EchoInt32ArrayRtn);
-        return EchoInt32ArrayRtn;
+		return async<UVariant>(idEchoInt32ArrayCEchoObject, intArr).get();
     }
 
     UVariant EchoUInt32Array(const UVariant &uintArr) {
-        UVariant EchoUInt32ArrayRtn;
-        bool bProcessRy = ProcessR1(idEchoUInt32ArrayCEchoObject, uintArr, EchoUInt32ArrayRtn);
-        return EchoUInt32ArrayRtn;
+		return async<UVariant>(idEchoUInt32ArrayCEchoObject, uintArr).get();
     }
 
     UVariant EchoInt64Array(const UVariant &longArr) {
-        UVariant EchoInt64ArrayRtn;
-        bool bProcessRy = ProcessR1(idEchoInt64ArrayCEchoObject, longArr, EchoInt64ArrayRtn);
-        return EchoInt64ArrayRtn;
+		return async<UVariant>(idEchoInt64ArrayCEchoObject, longArr).get();
     }
 
     UVariant EchoUInt64Array(const UVariant &ulongArr) {
-        UVariant EchoUInt64ArrayRtn;
-        bool bProcessRy = ProcessR1(idEchoUInt64ArrayCEchoObject, ulongArr, EchoUInt64ArrayRtn);
-        return EchoUInt64ArrayRtn;
+		return async<UVariant>(idEchoUInt64ArrayCEchoObject, ulongArr).get();
     }
 
     UVariant EchoFloatArray(const UVariant &fArr) {
-        UVariant EchoFloatArrayRtn;
-        bool bProcessRy = ProcessR1(idEchoFloatArrayCEchoObject, fArr, EchoFloatArrayRtn);
-        return EchoFloatArrayRtn;
+		return async<UVariant>(idEchoFloatArrayCEchoObject, fArr).get();
     }
 
     UVariant EchoDoubleArray(const UVariant &dArr) {
-        UVariant EchoDoubleArrayRtn;
-        bool bProcessRy = ProcessR1(idEchoDoubleArrayCEchoObject, dArr, EchoDoubleArrayRtn);
-        return EchoDoubleArrayRtn;
+		return async<UVariant>(idEchoDoubleArrayCEchoObject, dArr).get();
     }
 
     UVariant EchoStringArray(const UVariant &strArr) {
-        UVariant EchoStringArrayRtn;
-        bool bProcessRy = ProcessR1(idEchoStringArrayCEchoObject, strArr, EchoStringArrayRtn);
-        return EchoStringArrayRtn;
+		return async<UVariant>(idEchoStringArrayCEchoObject, strArr).get();
     }
 
     UVariant EchoDecimalArray(const UVariant &decArr) {
-        UVariant EchoDecimalArrayRtn;
-        bool bProcessRy = ProcessR1(idEchoDecimalArrayCEchoObject, decArr, EchoDecimalArrayRtn);
-        return EchoDecimalArrayRtn;
+		return async<UVariant>(idEchoDecimalArrayCEchoObject, decArr).get();
     }
 
     UVariant EchoUUID(const UVariant &clsid) {
-        UVariant EchoUUIDRtn;
-        bool bProcessRy = ProcessR1(idEchoUUIDCEchoObject, clsid, EchoUUIDRtn);
-        return EchoUUIDRtn;
+		return async<UVariant>(idEchoUUIDCEchoObject, clsid).get();
     }
 
     UVariant EchoUUIDArray(const UVariant &clsidArr) {
-        UVariant EchoUUIDArrayRtn;
-        bool bProcessRy = ProcessR1(idEchoUUIDArrayCEchoObject, clsidArr, EchoUUIDArrayRtn);
-        return EchoUUIDArrayRtn;
+		return async<UVariant>(idEchoUUIDArrayCEchoObject, clsidArr).get();
     }
 
     UVariant EchoCY(const UVariant &cy) {
-        UVariant EchoCYRtn;
-        bool bProcessRy = ProcessR1(idEchoCYCEchoObject, cy, EchoCYRtn);
-        return EchoCYRtn;
+		return async<UVariant>(idEchoCYCEchoObject, cy).get();
     }
 
     UVariant EchoCYArray(const UVariant &cyArray) {
-        UVariant EchoCYArrayRtn;
-        bool bProcessRy = ProcessR1(idEchoCYArrayCEchoObject, cyArray, EchoCYArrayRtn);
-        return EchoCYArrayRtn;
+		return async<UVariant>(idEchoCYArrayCEchoObject, cyArray).get();
     }
 
     UVariant EchoDateTime(const UVariant &dt) {
-        UVariant EchoDateTimeRtn;
-        bool bProcessRy = ProcessR1(idEchoDateTimeCEchoObject, dt, EchoDateTimeRtn);
-        return EchoDateTimeRtn;
+		return async<UVariant>(idEchoDateTimeCEchoObject, dt).get();
     }
 
     UVariant EchoDateTimeArray(const UVariant &dtArr) {
-        UVariant EchoDateTimeArrayRtn;
-        bool bProcessRy = ProcessR1(idEchoDateTimeArrayCEchoObject, dtArr, EchoDateTimeArrayRtn);
-        return EchoDateTimeArrayRtn;
+		return async<UVariant>(idEchoDateTimeArrayCEchoObject, dtArr).get();
     }
 };
 #endif

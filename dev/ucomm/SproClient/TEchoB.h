@@ -21,112 +21,75 @@ public:
 public:
 
     bool EchoBool(bool b) {
-        bool EchoBoolRtn;
-        bool bProcessRy = ProcessR1(idEchoBoolCEchoBasic, b, EchoBoolRtn);
-        return EchoBoolRtn;
+		return async<bool>(idEchoBoolCEchoBasic, b).get();
     }
 
     char EchoInt8(char c) {
-        char EchoInt8Rtn;
-        bool bProcessRy = ProcessR1(idEchoInt8CEchoBasic, c, EchoInt8Rtn);
-        return EchoInt8Rtn;
+		return async<char>(idEchoInt8CEchoBasic, c).get();
     }
 
     unsigned char EchoUInt8(unsigned char b) {
-        unsigned char EchoUInt8Rtn;
-        bool bProcessRy = ProcessR1(idEchoUInt8CEchoBasic, b, EchoUInt8Rtn);
-        return EchoUInt8Rtn;
+        return async<unsigned char>(idEchoUInt8CEchoBasic, b).get();
     }
 
     short EchoInt16(short s) {
-        short EchoInt16Rtn;
-        bool bProcessRy = ProcessR1(idEchoInt16CEchoBasic, s, EchoInt16Rtn);
-        return EchoInt16Rtn;
+        return async<short>(idEchoInt16CEchoBasic, s).get();
     }
 
     unsigned short EchoUInt16(unsigned short s) {
-        unsigned short EchoUInt16Rtn;
-        bool bProcessRy = ProcessR1(idEchoUInt16CEchoBasic, s, EchoUInt16Rtn);
-        return EchoUInt16Rtn;
+        return async<unsigned short>(idEchoUInt16CEchoBasic, s).get();
     }
 
     int EchoInt32(int data) {
-        int EchoInt32Rtn;
-        bool bProcessRy = ProcessR1(idEchoInt32CEchoBasic, data, EchoInt32Rtn);
-        return EchoInt32Rtn;
+        return async<int>(idEchoInt32CEchoBasic, data).get();
     }
 
     unsigned int EchoUInt32(unsigned int data) {
-        unsigned int EchoUInt32Rtn;
-        bool bProcessRy = ProcessR1(idEchoUInt32CEchoBasic, data, EchoUInt32Rtn);
-        return EchoUInt32Rtn;
+        return async<unsigned int>(idEchoUInt32CEchoBasic, data).get();
     }
 
     SPA::INT64 EchoInt64(SPA::INT64 data) {
-        SPA::INT64 EchoInt64Rtn;
-        bool bProcessRy = ProcessR1(idEchoInt64CEchoBasic, data, EchoInt64Rtn);
-        return EchoInt64Rtn;
+        return async<SPA::INT64>(idEchoInt64CEchoBasic, data).get();
     }
 
     SPA::UINT64 EchoUInt64(SPA::UINT64 data) {
-        SPA::UINT64 EchoUInt64Rtn;
-        bool bProcessRy = ProcessR1(idEchoUInt64CEchoBasic, data, EchoUInt64Rtn);
-        return EchoUInt64Rtn;
+        return async<SPA::UINT64>(idEchoUInt64CEchoBasic, data).get();
     }
 
     float EchoFloat(float data) {
-        float EchoFloatRtn;
-        bool bProcessRy = ProcessR1(idEchoFloatCEchoBasic, data, EchoFloatRtn);
-        return EchoFloatRtn;
+        return async<float>(idEchoFloatCEchoBasic, data).get();
     }
 
     double EchoDouble(double data) {
-        double EchoDoubleRtn;
-        bool bProcessRy = ProcessR1(idEchoDoubleCEchoBasic, data, EchoDoubleRtn);
-        return EchoDoubleRtn;
+        return async<double>(idEchoDoubleCEchoBasic, data).get();
     }
 
     std::wstring EchoString(const wchar_t* str) {
-        std::wstring EchoStringRtn;
-        bool bProcessRy = ProcessR1(idEchoStringCEchoBasic, str, EchoStringRtn);
-        assert(bProcessRy);
-        return EchoStringRtn;
+        return async<std::wstring>(idEchoStringCEchoBasic, str).get();
     }
 
     std::string EchoAString(const char* str) {
-        std::string EchoAStringRtn;
-        bool bProcessRy = ProcessR1(idEchoAStringCEchoBasic, str, EchoAStringRtn);
-        return EchoAStringRtn;
+        return async<std::string>(idEchoAStringCEchoBasic, str).get();
     }
 
     DECIMAL EchoDecimal(DECIMAL dec) {
-        DECIMAL EchoDecimalRtn;
-        bool bProcessRy = ProcessR1(idEchoDecimalCEchoBasic, dec, EchoDecimalRtn);
-        return EchoDecimalRtn;
+        return async<DECIMAL>(idEchoDecimalCEchoBasic, dec).get();
     }
 
     wchar_t EchoWChar(wchar_t wc) {
-        wchar_t EchoWCharRtn;
-        bool bProcessRy = ProcessR1(idEchoWCharCEchoBasic, wc, EchoWCharRtn);
-        return EchoWCharRtn;
+        return async<wchar_t>(idEchoWCharCEchoBasic, wc).get();
     }
 
     GUID EchoGuid(const GUID &guid) {
-        GUID EchoGuidRtn;
-        bool bProcessRy = ProcessR1(idEchoGuidCEchoBasic, guid, EchoGuidRtn);
-        return EchoGuidRtn;
+        return async<GUID>(idEchoGuidCEchoBasic, guid).get();
     }
 
     CY EchoCy(const CY &cy) {
-        CY EchoCyRtn;
-        bool bProcessRy = ProcessR1(idEchoCyCEchoBasic, cy, EchoCyRtn);
-        return EchoCyRtn;
+        return async<CY>(idEchoCyCEchoBasic, cy).get();
     }
 
     SPA::UDateTime EchoDateTime(const SPA::UDateTime &dt) {
-        SPA::UDateTime EchoDateTimeRtn;
-        bool bProcessRy = ProcessR1(idEchoDateTime, dt, EchoDateTimeRtn);
-        return EchoDateTimeRtn;
+        return async<SPA::UDateTime>(idEchoDateTime, dt).get();
     }
 };
 #endif

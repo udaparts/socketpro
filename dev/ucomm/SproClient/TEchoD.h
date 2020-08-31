@@ -22,21 +22,17 @@ public:
 public:
 
     MyStruct EchoMyStruct(const MyStruct &my) {
-        MyStruct EchoMyStructRtn;
-        bool bProcessRy = ProcessR1(idEchoMyStructCEchoSys, my, EchoMyStructRtn);
-        return EchoMyStructRtn;
+		return async<MyStruct>(idEchoMyStructCEchoSys, my).get();
     }
 
     CUQueue EchoUQueue(const CUQueue &q) {
-        CUQueue EchoUQueueRtn;
-        bool bProcessRy = ProcessR1(idEchoUQueueCEchoSys, q, EchoUQueueRtn);
-        return EchoUQueueRtn;
+        return async<CUQueue>(idEchoUQueueCEchoSys, q).get();
     }
 
     UVariant EchoComplex0(double d, const wchar_t* s, const UVariant &simpleObj, bool b, /*out*/std::wstring &sOut) {
-        UVariant EchoComplex0Rtn;
-        bool bProcessRy = ProcessR2(idEchoComplex0CEchoSys, d, s, simpleObj, b, sOut, EchoComplex0Rtn);
-        return EchoComplex0Rtn;
+        auto sb = async0(idEchoComplex0CEchoSys, d, s, simpleObj, b).get();
+		sb >> sOut;
+		return sb->Load<UVariant>();
     }
 };
 
@@ -50,9 +46,7 @@ public:
 public:
 
     std::string DoMyEcho0(const char *str) {
-        std::string s;
-        bool bProcessRy = ProcessR1(idREcho0, str, s);
-        return s;
+        return async<std::string>(idREcho0, str).get();
     }
 
 protected:
@@ -75,7 +69,7 @@ protected:
                     assert(GetAttachedClientSocket()->GetCurrentRequestID() == reqId);
 
                     //send back result
-                    SendRouteeResult(str + " from routing peer 0 ++++++");
+                    SendRouteeResult(idREcho1, str + " from routing peer 0 ++++++");
                 }
                 break;
             default:
@@ -92,9 +86,7 @@ public:
     }
 
     std::string DoMyEcho1(const char *str) {
-        std::string s;
-        bool bProcessRy = ProcessR1(idREcho1, str, s);
-        return s;
+        return async<std::string>(idREcho1, str).get();
     }
 
 protected:
@@ -117,7 +109,7 @@ protected:
                     assert(GetAttachedClientSocket()->GetCurrentRequestID() == reqId);
 
                     //send back result
-                    SendRouteeResult(str + " from routing peer 1 -----");
+                    SendRouteeResult(idREcho0, str + " from routing peer 1 -----");
                 }
                 break;
             default:
