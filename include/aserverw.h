@@ -611,11 +611,11 @@ namespace SPA {
             virtual void OnInterrupted(UINT64 options);
 
         public:
-            unsigned int SendResult(unsigned short reqId, const unsigned char* pResult, unsigned int size) const;
+            virtual unsigned int SendResult(unsigned short reqId, const unsigned char* pResult, unsigned int size) const;
             unsigned int SendResult(unsigned short reqId, const CUQueue &mc) const;
             unsigned int SendResult(unsigned short reqId, const CScopeUQueue &sb) const;
             unsigned int SendResult(unsigned short reqId) const;
-            unsigned int SendResultIndex(UINT64 callIndex, unsigned short reqId, const unsigned char* pResult, unsigned int size) const;
+            virtual unsigned int SendResultIndex(UINT64 callIndex, unsigned short reqId, const unsigned char* pResult, unsigned int size) const;
             unsigned int SendResultIndex(UINT64 callIndex, unsigned short reqId, const CUQueue &mc) const;
             unsigned int SendResultIndex(UINT64 callIndex, unsigned short reqId, const CScopeUQueue &sb) const;
             unsigned int SendResultIndex(UINT64 callIndex, unsigned short reqId) const;
