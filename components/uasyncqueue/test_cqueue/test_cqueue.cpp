@@ -56,9 +56,9 @@ int main(int argc, char* argv[]) {
         std::cout << "EndQueueTrans/res: " << feqt.get() << std::endl;
 
         int index = 0;
-        auto& v = fk.get();
+        const auto& v = fk.get();
         std::cout << "[";
-        for (auto s : v) {
+        for (auto& s : v) {
             if (index) {
                 std::cout << "," << std::endl;
             }
@@ -158,10 +158,10 @@ void TestDequeue(CMyPool::PHandler &sq) {
     CAsyncQueue::DDequeue d = [sq](CAsyncQueue *aq, SPA::UINT64 messageCount, SPA::UINT64 fileSize, unsigned int messages, unsigned int bytes) {
         if (bytes) {
             std::cout << "Total message count=" << messageCount
-                << ", queue file size=" << fileSize
-                << ", messages dequeued=" << messages
-                << ", message bytes dequeued=" << bytes
-                << std::endl;
+                    << ", queue file size=" << fileSize
+                    << ", messages dequeued=" << messages
+                    << ", message bytes dequeued=" << bytes
+                    << std::endl;
         }
         if (messageCount > 0) {
             //there are more messages left at server queue, we re-send a request to dequeue
