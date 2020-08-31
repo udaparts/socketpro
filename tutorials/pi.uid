@@ -1,9 +1,0 @@
-
-[	
-	ServiceID = 5
-]			
-Pi
-{
-	$double Compute(in double dStart, in double dStep, in int nNum); 	
-}
-
