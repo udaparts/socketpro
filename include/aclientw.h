@@ -184,8 +184,8 @@ namespace SPA {
             DResultHandler &CurrentAsyncResultHandler;
 
         private:
-            CAsyncResult(const CAsyncResult & ar);
-            CAsyncResult& operator=(const CAsyncResult & ar);
+            CAsyncResult(const CAsyncResult & ar) = delete;
+            CAsyncResult& operator=(const CAsyncResult & ar) = delete;
 
             friend class CAsyncServiceHandler;
         };
@@ -433,14 +433,16 @@ namespace SPA {
             void Set(USocket_Client_Handle h);
 
         private:
-            CClientSocket(const CClientSocket &cs);
-            CClientSocket& operator=(const CClientSocket &cs);
+            CClientSocket(const CClientSocket &cs) = delete;
+            CClientSocket& operator=(const CClientSocket &cs) = delete;
 
             class CQueueImpl : public IClientQueue {
             public:
 
                 CQueueImpl() : m_hSocket(0), m_nQIndex(0) {
                 }
+                CQueueImpl(const CQueueImpl& qi) = delete;
+                CQueueImpl& operator=(const CQueueImpl& qi) = delete;
 
                 bool StartQueue(const char *qName, unsigned int ttl, bool secure = true, bool dequeueShared = false) const;
                 void StopQueue(bool permanent = false);
@@ -516,8 +518,8 @@ namespace SPA {
                 virtual void Unsubscribe() const;
 
             private:
-                CPushImpl(const CPushImpl &p);
-                CPushImpl& operator=(const CPushImpl &p);
+                CPushImpl(const CPushImpl &p) = delete;
+                CPushImpl& operator=(const CPushImpl &p) = delete;
 
             private:
                 CClientSocket *m_cs;
@@ -755,13 +757,15 @@ namespace SPA {
             typedef void(*DServerException)(CAsyncServiceHandler *ash, unsigned short requestId, const wchar_t *errMessage, const char* errWhere, unsigned int errCode);
 #endif
             typedef std::function<void(CAsyncServiceHandler *ash, bool canceled) > DDiscarded;
+            static DServerException NULL_SE;
+            static DDiscarded NULL_ABORTED;
 
         protected:
             CAsyncServiceHandler(unsigned int nServiceId, CClientSocket *cs);
 
         private:
-            CAsyncServiceHandler(const CAsyncServiceHandler&);
-            CAsyncServiceHandler& operator=(const CAsyncServiceHandler&);
+            CAsyncServiceHandler(const CAsyncServiceHandler&) = delete;
+            CAsyncServiceHandler& operator=(const CAsyncServiceHandler&) = delete;
 
             struct CResultCb {
 
@@ -770,8 +774,8 @@ namespace SPA {
                 }
 
                 //no copy constructor or assignment operator
-                CResultCb(const CResultCb &rcb);
-                CResultCb& operator=(const CResultCb &rcb);
+                CResultCb(const CResultCb &rcb) = delete;
+                CResultCb& operator=(const CResultCb &rcb) = delete;
 
                 DResultHandler AsyncResultHandler;
                 DDiscarded Discarded;
@@ -879,19 +883,16 @@ namespace SPA {
 
             template<typename ...Ts>
             bool SendRequest(unsigned short reqId, const DResultHandler& rh, DDiscarded discarded, const Ts& ...t) {
-                static DServerException se;
                 CScopeUQueue sb;
                 sb->Save(t ...);
-                return SendRequest(reqId, sb->GetBuffer(), sb->GetSize(), rh, discarded, se);
+                return SendRequest(reqId, sb->GetBuffer(), sb->GetSize(), rh, discarded, NULL_SE);
             }
 
             template<typename ...Ts>
             bool SendRequest(unsigned short reqId, const DResultHandler& rh, const Ts& ...t) {
-                static DServerException se;
-                static DDiscarded aborted;
                 CScopeUQueue sb;
                 sb->Save(t ...);
-                return SendRequest(reqId, sb->GetBuffer(), sb->GetSize(), rh, aborted, se);
+                return SendRequest(reqId, sb->GetBuffer(), sb->GetSize(), rh, NULL_ABORTED, NULL_SE);
             }
 
 #if defined(PHP_ADAPTER_PROJECT) || defined(NODE_JS_ADAPTER_PROJECT)
@@ -1172,8 +1173,8 @@ namespace SPA {
             }
 
         private:
-            CSocketPool(const CSocketPool &sp);
-            CSocketPool& operator=(const CSocketPool &sp);
+            CSocketPool(const CSocketPool &sp) = delete;
+            CSocketPool& operator=(const CSocketPool &sp) = delete;
 
         public:
 
@@ -2106,8 +2107,8 @@ namespace SPA {
 
         private:
             //disable copy constructor and assignment operator
-            CReplication(const CReplication &r);
-            CReplication& operator=(const CReplication &r);
+            CReplication(const CReplication &r) = delete;
+            CReplication& operator=(const CReplication &r) = delete;
 
             bool DoesQueueExist(const std::string &qName) {
                 std::string str1Cpy(qName);

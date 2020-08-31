@@ -885,11 +885,7 @@ namespace SPA {
             DataType(info.DataType),
             Precision(info.Precision),
             Scale(info.Scale) {
-                info.ColumnSize = 0;
-                info.Flags = 0;
-                info.DataType = VT_EMPTY;
-                info.Precision = 0;
-                info.Scale = 0;
+
             }
 
             CDBColumnInfo& operator=(const CDBColumnInfo &info) {
@@ -1075,11 +1071,7 @@ namespace SPA {
             Precision(info.Precision),
             Scale(info.Scale),
             ParameterName(std::move(info.ParameterName)) {
-                info.Direction = pdInput;
-                info.DataType = VT_EMPTY;
-                info.ColumnSize = 0;
-                info.Precision = 0;
-                info.Scale = 0;
+
             }
 
             CParameterInfo& operator=(CParameterInfo &&info) {

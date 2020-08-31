@@ -405,7 +405,7 @@ namespace SPA {
                         e((CAsyncQueue*) ar.AsyncServiceHandler, index);
                     };
                 }
-                return nullptr;
+                return NULL_RH;
             }
 
         public:
@@ -479,31 +479,26 @@ namespace SPA {
 
             template<typename ...Ts>
             bool Enqueue(const char* key, unsigned short idMessage, const DEnqueue& e, const DDiscarded& discarded, const Ts& ...t) {
-                static DServerException se;
                 CScopeUQueue sb;
                 sb << key << idMessage;
                 sb->Save(t ...);
-                return SendRequest(Queue::idEnqueue, sb->GetBuffer(), sb->GetSize(), GetRH(e), discarded, se);
+                return SendRequest(Queue::idEnqueue, sb->GetBuffer(), sb->GetSize(), GetRH(e), discarded, NULL_SE);
             }
 
             template<typename ...Ts>
             bool Enqueue(const char* key, unsigned short idMessage, const DEnqueue& e, const Ts& ...t) {
-                static DDiscarded discarded;
-                static DServerException se;
                 CScopeUQueue sb;
                 sb << key << idMessage;
                 sb->Save(t ...);
-                return SendRequest(Queue::idEnqueue, sb->GetBuffer(), sb->GetSize(), GetRH(e), discarded, se);
+                return SendRequest(Queue::idEnqueue, sb->GetBuffer(), sb->GetSize(), GetRH(e), NULL_ABORTED, NULL_SE);
             }
 
             template<typename ...Ts>
             bool Enqueue(const char* key, unsigned short idMessage, const Ts& ...t) {
-                static DDiscarded discarded;
-                static DServerException se;
                 CScopeUQueue sb;
                 sb << key << idMessage;
                 sb->Save(t ...);
-                return SendRequest(Queue::idEnqueue, sb->GetBuffer(), sb->GetSize(), NULL_RH, discarded, se);
+                return SendRequest(Queue::idEnqueue, sb->GetBuffer(), sb->GetSize(), NULL_RH, NULL_ABORTED, NULL_SE);
             }
 
         protected:

@@ -178,10 +178,10 @@ namespace SPA {
         }
 
     private:
-        /// no copy constructor!
-        CUQueue(const CUQueue &mc);
-        /// no assignment operator! 
-        CUQueue& operator=(const CUQueue &mc);
+        // no copy constructor!
+        CUQueue(const CUQueue &mc) = delete;
+        // no assignment operator!
+        CUQueue& operator=(const CUQueue &mc) = delete;
 
     public:
 
@@ -1448,11 +1448,11 @@ namespace SPA {
      */
     template<unsigned int InitSize, unsigned int BlockSize, typename mb = CUQueue>
     class CScopeUQueueEx {
-        /// Copy constructor disabled
-        CScopeUQueueEx(const CScopeUQueueEx& sb);
+        // Copy constructor disabled
+        CScopeUQueueEx(const CScopeUQueueEx& sb) = delete;
 
-        /// Assignment operator disabled
-        CScopeUQueueEx& operator=(const CScopeUQueueEx& sb);
+        // Assignment operator disabled
+        CScopeUQueueEx& operator=(const CScopeUQueueEx& sb) = delete;
 
     private:
 
