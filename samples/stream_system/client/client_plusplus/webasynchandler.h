@@ -24,8 +24,4 @@ public:
 
     typedef std::function<void(const CRentalDateTimes &dates, int res, const std::wstring &errMsg) > DRentalDateTimes;
     bool GetRentalDateTimes(SPA::INT64 rentalId, DRentalDateTimes rdt, DMyDiscarded discarded = nullptr);
-
-private:
-    CWebAsyncHandler(const CWebAsyncHandler &wah);
-    CWebAsyncHandler& operator=(const CWebAsyncHandler &wah);
 };

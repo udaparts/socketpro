@@ -22,9 +22,5 @@ public:
 
 private:
     CSocketProService<CYourPeerOne> m_SSPeer;
-
-private:
-    CYourServer(const CYourServer &s);
-    CYourServer& operator=(const CYourServer &s);
 };
 

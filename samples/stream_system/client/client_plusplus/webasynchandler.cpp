@@ -1,9 +1,9 @@
-
 #include "stdafx.h"
 #include "webasynchandler.h"
 
 CWebAsyncHandler::CWebAsyncHandler(CClientSocket *pClientSocket)
 : CCachedBaseHandler<sidStreamSystem>(pClientSocket) {
+
 }
 
 bool CWebAsyncHandler::QueryPaymentMaxMinAvgs(const wchar_t *filter, DMaxMinAvg mma, DMyDiscarded discarded) {

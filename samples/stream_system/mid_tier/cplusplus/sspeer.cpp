@@ -1,10 +1,5 @@
-
 #include "stdafx.h"
 #include "ssserver.h"
-
-#ifndef NDEBUG
-SPA::CUCriticalSection CYourPeerOne::m_csConsole;
-#endif
 
 CYourPeerOne::CYourPeerOne() {
 }
@@ -12,17 +7,16 @@ CYourPeerOne::CYourPeerOne() {
 void CYourPeerOne::OnFastRequestArrive(unsigned short reqId, unsigned int len) {
     if (reqId == idQueryMaxMinAvgs) {
         QueryPaymentMaxMinAvgs(m_UQueue, GetCurrentRequestIndex());
-        return;
     } else if (reqId == idUploadEmployees) {
         UploadEmployees(m_UQueue, GetCurrentRequestIndex());
-        return;
     } else if (reqId == idGetRentalDateTimes) {
         GetRentalDateTimes(m_UQueue, GetCurrentRequestIndex());
-        return;
     }
-    BEGIN_SWITCH(reqId)
-    M_I0_R2(idGetMasterSlaveConnectedSessions, GetMasterSlaveConnectedSessions, unsigned int, unsigned int)
-    END_SWITCH
+    else {
+        BEGIN_SWITCH(reqId)
+            M_I0_R2(idGetMasterSlaveConnectedSessions, GetMasterSlaveConnectedSessions, unsigned int, unsigned int)
+        END_SWITCH
+    }
 }
 
 int CYourPeerOne::OnSlowRequestArrive(unsigned short reqId, unsigned int len) {
@@ -201,13 +195,6 @@ void CYourPeerOne::UploadEmployees(SPA::CUQueue &q, SPA::UINT64 reqIndex) {
                 }, [reqIndex, pData, this, peer_handle](SPA::ClientSide::CAsyncServiceHandler *h, bool canceled) {
                     //we need to retry as long as front socket is not closed yet
                     if (peer_handle == this->GetSocketHandle()) {
-#ifndef NDEBUG
-                        {
-                            SPA::CAutoLock al(m_csConsole);
-                            //socket closed after sending
-                            std::cout << "Retrying UploadEmployees ......" << std::endl;
-                        }
-#endif
                         SPA::CScopeUQueue sq;
                         //repack original request data and retry if socket is closed after sending
                         sq << *pData;

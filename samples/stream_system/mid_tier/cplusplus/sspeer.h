@@ -19,12 +19,4 @@ private:
     void QueryPaymentMaxMinAvgs(SPA::CUQueue &q, SPA::UINT64 reqIndex);
     void UploadEmployees(SPA::CUQueue &q, SPA::UINT64 reqIndex);
     void GetRentalDateTimes(SPA::CUQueue &q, SPA::UINT64 reqIndex);
-
-private:
-    CYourPeerOne(const CYourPeerOne &p);
-    CYourPeerOne& operator=(const CYourPeerOne &p);
-
-#ifndef NDEBUG
-    static SPA::CUCriticalSection m_csConsole;
-#endif
 };
