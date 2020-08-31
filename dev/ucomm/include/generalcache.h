@@ -51,7 +51,7 @@ namespace SPA {
                 m_mapRowset[index] = CRowsetHandler(rh, row);
                 m_csCache.unlock();
 
-                if (!SendRequest(idGetCachedTables, defaultDb, flags, index, [index, handler, this](CAsyncResult & ar) {
+                if (!SendRequest(idGetCachedTables, [index, handler, this](CAsyncResult & ar) {
                         int res, dbMS;
                         std::wstring errMsg;
                                 ar >> dbMS >> res >> errMsg;
@@ -65,7 +65,7 @@ namespace SPA {
                         if (handler) {
                             handler(res, errMsg);
                         }
-                    })) {
+                    }, defaultDb, flags, index)) {
                 CAutoLock al(m_csCache);
                 m_mapRowset.erase(index);
                 return false;

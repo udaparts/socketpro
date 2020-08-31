@@ -23,13 +23,24 @@ public:
     }
 
     CComVariant(const char* lpszSrc) {
-        vt = VT_BSTR;
-        bstrVal = SPA::Utilities::ToBSTR(lpszSrc);
+        if (lpszSrc) {
+            vt = VT_BSTR;
+            bstrVal = SPA::Utilities::ToBSTR(lpszSrc);
+        }
+    }
+
+    CComVariant(const char16_t* lpszSrc) {
+        if (lpszSrc) {
+            vt = VT_BSTR;
+            bstrVal = SysAllocString(lpszSrc);
+        }
     }
 
     CComVariant(const wchar_t* lpszSrc) {
-        vt = VT_BSTR;
-        bstrVal = SysAllocString(lpszSrc);
+        if (lpszSrc) {
+            vt = VT_BSTR;
+            bstrVal = SysAllocString(lpszSrc);
+        }
     }
 
     CComVariant(bool bSrc) noexcept {
@@ -120,15 +131,28 @@ public:
 
     CComVariant& operator=(const char* lpszSrc) {
         Clear();
-        vt = VT_BSTR;
-        bstrVal = SPA::Utilities::ToBSTR(lpszSrc);
+        if (lpszSrc) {
+            vt = VT_BSTR;
+            bstrVal = SPA::Utilities::ToBSTR(lpszSrc);
+        }
+        return *this;
+    }
+
+    CComVariant& operator=(const char16_t* lpszSrc) {
+        Clear();
+        if (lpszSrc) {
+            vt = VT_BSTR;
+            bstrVal = SysAllocString(lpszSrc);
+        }
         return *this;
     }
 
     CComVariant& operator=(const wchar_t* lpszSrc) {
         Clear();
-        vt = VT_BSTR;
-        bstrVal = SysAllocString(lpszSrc);
+        if (lpszSrc) {
+            vt = VT_BSTR;
+            bstrVal = SysAllocString(lpszSrc);
+        }
         return *this;
     }
 

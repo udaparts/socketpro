@@ -8,12 +8,12 @@
 #include <memory>
 #include <functional>
 
-#if defined(WIN32_64) && _MSC_VER >= 1800
+#if defined(WIN32_64) && _MSC_VER >= 1700
 #include <future>
-#define HAVE_FUTURE     1
+#define HAVE_FUTURE 1
 #elif defined(WCHAR32)
 #include <future>
-#define HAVE_FUTURE
+#define HAVE_FUTURE	1
 #else
 #endif
 
@@ -168,6 +168,13 @@ namespace SPA {
             inline CUQueue& operator>>(ctype & receiver) {
                 UQueue >> receiver;
                 return UQueue;
+            }
+
+            template<typename R>
+            inline R Load() {
+                R r;
+                UQueue >> r;
+                return r;
             }
 
         public:
@@ -490,23 +497,13 @@ namespace SPA {
                 typedef std::function<void(CClientSocket*, const CMessageSender&, const SPA::UVariant&) > DOnSendUserMessage;
                 typedef std::function<void(CClientSocket*, const CMessageSender&, const unsigned char*, unsigned int) > DOnSendUserMessageEx;
                 typedef std::function<void(CClientSocket*, const CMessageSender&, const unsigned int*, unsigned int, const SPA::UVariant&) > DOnPublish;
-#if defined(WIN32_64) && _MSC_VER < 1800
-                //Visual C++ has implementation limitation of std::function on the number of parameters -- temporary solution
-                typedef std::tr1::function<void(const CMessageSender&, const unsigned int*, unsigned int, const unsigned char*, unsigned int) > DOnPublishEx;
-#else
                 typedef std::function<void(CClientSocket*, const CMessageSender&, const unsigned int*, unsigned int, const unsigned char*, unsigned int) > DOnPublishEx;
-#endif
 #else
                 typedef void(*DOnSubscribe)(CClientSocket*, const CMessageSender&, const unsigned int*, unsigned int);
                 typedef void(*DOnSendUserMessage)(CClientSocket*, const CMessageSender&, const SPA::UVariant&);
                 typedef void(*DOnSendUserMessageEx)(CClientSocket*, const CMessageSender&, const unsigned char*, unsigned int);
                 typedef void(*DOnPublish)(CClientSocket*, const CMessageSender&, const unsigned int*, unsigned int, const SPA::UVariant&);
-#if defined(WIN32_64) && _MSC_VER < 1800
-                //Visual C++ has implementation limitation of std::function on the number of parameters -- temporary solution
-                typedef void(*DOnPublishEx)(const CMessageSender&, const unsigned int*, unsigned int, const unsigned char*, unsigned int);
-#else
                 typedef void(*DOnPublishEx)(CClientSocket*, const CMessageSender&, const unsigned int*, unsigned int, const unsigned char*, unsigned int);
-#endif
 #endif
                 typedef DOnSubscribe DOnUnsubscribe;
 
@@ -635,20 +632,10 @@ namespace SPA {
 
 #ifndef SAFE_RESULT_RETURN_EVENT
             typedef std::function<void(CClientSocket*, int) > DSocketEvent;
-#if defined(WIN32_64) && _MSC_VER < 1800
-            //Visual C++ has implementation limitation of std::function on the number of parameters -- temporary solution
-            typedef std::tr1::function<void(CClientSocket*, const wchar_t*, const char*, unsigned int) > DExceptionFromServer;
-#else
             typedef std::function<void(CClientSocket*, unsigned short, const wchar_t*, const char*, unsigned int) > DExceptionFromServer;
-#endif
 #else
             typedef void(*DSocketEvent)(CClientSocket*, int);
-#if defined(WIN32_64) && _MSC_VER < 1800
-            //Visual C++ has implementation limitation of std::function on the number of parameters -- temporary solution
-            typedef void(*DExceptionFromServer)(CClientSocket*, const wchar_t*, const char*, unsigned int);
-#else
             typedef void(*DExceptionFromServer)(CClientSocket*, unsigned short, const wchar_t*, const char*, unsigned int);
-#endif
 #endif
         protected:
             virtual void OnSocketClosed(int nError);
@@ -883,74 +870,28 @@ namespace SPA {
             static unsigned int CountResultCallbacksInPool();
             static UINT64 GetCallIndex();
 
-            template<typename T0>
-            bool SendRequest(unsigned short reqId, const T0 &t0, const DResultHandler &rh, DDiscarded discarded = nullptr, DServerException se = nullptr) {
+            template<typename ...Ts>
+            bool SendRequest(unsigned short reqId, const DResultHandler& rh, DDiscarded discarded, DServerException se, const Ts& ...t) {
                 CScopeUQueue sb;
-                sb << t0;
+                sb->Save(t ...);
                 return SendRequest(reqId, sb->GetBuffer(), sb->GetSize(), rh, discarded, se);
             }
 
-            template<typename T0, typename T1>
-            bool SendRequest(unsigned short reqId, const T0 &t0, const T1 &t1, const DResultHandler &rh, DDiscarded discarded = nullptr, DServerException se = nullptr) {
+            template<typename ...Ts>
+            bool SendRequest(unsigned short reqId, const DResultHandler& rh, DDiscarded discarded, const Ts& ...t) {
+                static DServerException se;
                 CScopeUQueue sb;
-                sb << t0 << t1;
+                sb->Save(t ...);
                 return SendRequest(reqId, sb->GetBuffer(), sb->GetSize(), rh, discarded, se);
             }
 
-            template<typename T0, typename T1, typename T2>
-            bool SendRequest(unsigned short reqId, const T0 &t0, const T1 &t1, const T2 &t2, const DResultHandler &rh, DDiscarded discarded = nullptr, DServerException se = nullptr) {
+            template<typename ...Ts>
+            bool SendRequest(unsigned short reqId, const DResultHandler& rh, const Ts& ...t) {
+                static DServerException se;
+                static DDiscarded aborted;
                 CScopeUQueue sb;
-                sb << t0 << t1 << t2;
-                return SendRequest(reqId, sb->GetBuffer(), sb->GetSize(), rh, discarded, se);
-            }
-
-            template<typename T0, typename T1, typename T2, typename T3>
-            bool SendRequest(unsigned short reqId, const T0 &t0, const T1 &t1, const T2 &t2, const T3 &t3, const DResultHandler &rh, DDiscarded discarded = nullptr, DServerException se = nullptr) {
-                CScopeUQueue sb;
-                sb << t0 << t1 << t2 << t3;
-                return SendRequest(reqId, sb->GetBuffer(), sb->GetSize(), rh, discarded, se);
-            }
-
-            template<typename T0, typename T1, typename T2, typename T3, typename T4>
-            bool SendRequest(unsigned short reqId, const T0 &t0, const T1 &t1, const T2 &t2, const T3 &t3, const T4 &t4, const DResultHandler &rh, DDiscarded discarded = nullptr, DServerException se = nullptr) {
-                CScopeUQueue sb;
-                sb << t0 << t1 << t2 << t3 << t4;
-                return SendRequest(reqId, sb->GetBuffer(), sb->GetSize(), rh, discarded, se);
-            }
-
-            template<typename T0, typename T1, typename T2, typename T3, typename T4, typename T5>
-            bool SendRequest(unsigned short reqId, const T0 &t0, const T1 &t1, const T2 &t2, const T3 &t3, const T4 &t4, const T5 &t5, const DResultHandler &rh, DDiscarded discarded = nullptr, DServerException se = nullptr) {
-                CScopeUQueue sb;
-                sb << t0 << t1 << t2 << t3 << t4 << t5;
-                return SendRequest(reqId, sb->GetBuffer(), sb->GetSize(), rh, discarded, se);
-            }
-
-            template<typename T0, typename T1, typename T2, typename T3, typename T4, typename T5, typename T6>
-            bool SendRequest(unsigned short reqId, const T0 &t0, const T1 &t1, const T2 &t2, const T3 &t3, const T4 &t4, const T5 &t5, const T6 &t6, const DResultHandler &rh, DDiscarded discarded = nullptr, DServerException se = nullptr) {
-                CScopeUQueue sb;
-                sb << t0 << t1 << t2 << t3 << t4 << t5 << t6;
-                return SendRequest(reqId, sb->GetBuffer(), sb->GetSize(), rh, discarded, se);
-            }
-
-            template<typename T0, typename T1, typename T2, typename T3, typename T4, typename T5, typename T6, typename T7>
-            bool SendRequest(unsigned short reqId, const T0 &t0, const T1 &t1, const T2 &t2, const T3 &t3, const T4 &t4, const T5 &t5, const T6 &t6, const T7 &t7, const DResultHandler &rh, DDiscarded discarded = nullptr, DServerException se = nullptr) {
-                CScopeUQueue sb;
-                sb << t0 << t1 << t2 << t3 << t4 << t5 << t6 << t7;
-                return SendRequest(reqId, sb->GetBuffer(), sb->GetSize(), rh, discarded, se);
-            }
-
-            template<typename T0, typename T1, typename T2, typename T3, typename T4, typename T5, typename T6, typename T7, typename T8>
-            bool SendRequest(unsigned short reqId, const T0 &t0, const T1 &t1, const T2 &t2, const T3 &t3, const T4 &t4, const T5 &t5, const T6 &t6, const T7 &t7, const T8 &t8, const DResultHandler &rh, DDiscarded discarded = nullptr, DServerException se = nullptr) {
-                CScopeUQueue sb;
-                sb << t0 << t1 << t2 << t3 << t4 << t5 << t6 << t7 << t8;
-                return SendRequest(reqId, sb->GetBuffer(), sb->GetSize(), rh, discarded, se);
-            }
-
-            template<typename T0, typename T1, typename T2, typename T3, typename T4, typename T5, typename T6, typename T7, typename T8, typename T9>
-            bool SendRequest(unsigned short reqId, const T0 &t0, const T1 &t1, const T2 &t2, const T3 &t3, const T4 &t4, const T5 &t5, const T6 &t6, const T7 &t7, const T8 &t8, const T9 &t9, const DResultHandler &rh, DDiscarded discarded = nullptr, DServerException se = nullptr) {
-                CScopeUQueue sb;
-                sb << t0 << t1 << t2 << t3 << t4 << t5 << t6 << t7 << t8 << t9;
-                return SendRequest(reqId, sb->GetBuffer(), sb->GetSize(), rh, discarded, se);
+                sb->Save(t ...);
+                return SendRequest(reqId, sb->GetBuffer(), sb->GetSize(), rh, aborted, se);
             }
 
 #if defined(PHP_ADAPTER_PROJECT) || defined(NODE_JS_ADAPTER_PROJECT)
@@ -986,8 +927,6 @@ namespace SPA {
                         prom->set_value(std::move(sb));
                     } catch (std::future_error&) {
                         //ignore it
-                    } catch (...) {
-                        prom->set_exception(std::current_exception());
                     }
                 };
                 if (!SendRequest(reqId, pBuffer, size, rh, discarded, se)) {
@@ -1000,73 +939,10 @@ namespace SPA {
                 return async0(reqId, (const unsigned char *) nullptr, (unsigned int) 0);
             }
 
-            template<typename T0, typename T1, typename T2, typename T3, typename T4, typename T5, typename T6, typename T7, typename T8, typename T9>
-            std::future<CScopeUQueue> async0(unsigned short reqId, const T0 &t0, const T1 &t1, const T2 &t2, const T3 &t3, const T4 &t4, const T5 &t5, const T6 &t6, const T7 &t7, const T8 &t8, const T9 &t9) {
+            template<typename ...Ts>
+            std::future<CScopeUQueue> async0(unsigned short reqId, const Ts& ... args) {
                 CScopeUQueue sb;
-                sb << t0 << t1 << t2 << t3 << t4 << t5 << t6 << t7 << t8 << t9;
-                return async0(reqId, sb->GetBuffer(), sb->GetSize());
-            }
-
-            template<typename T0, typename T1, typename T2, typename T3, typename T4, typename T5, typename T6, typename T7, typename T8>
-            std::future<CScopeUQueue> async0(unsigned short reqId, const T0 &t0, const T1 &t1, const T2 &t2, const T3 &t3, const T4 &t4, const T5 &t5, const T6 &t6, const T7 &t7, const T8 &t8) {
-                CScopeUQueue sb;
-                sb << t0 << t1 << t2 << t3 << t4 << t5 << t6 << t7 << t8;
-                return async0(reqId, sb->GetBuffer(), sb->GetSize());
-            }
-
-            template<typename T0, typename T1, typename T2, typename T3, typename T4, typename T5, typename T6, typename T7>
-            std::future<CScopeUQueue> async0(unsigned short reqId, const T0 &t0, const T1 &t1, const T2 &t2, const T3 &t3, const T4 &t4, const T5 &t5, const T6 &t6, const T7 &t7) {
-                CScopeUQueue sb;
-                sb << t0 << t1 << t2 << t3 << t4 << t5 << t6 << t7;
-                return async0(reqId, sb->GetBuffer(), sb->GetSize());
-            }
-
-            template<typename T0, typename T1, typename T2, typename T3, typename T4, typename T5, typename T6>
-            std::future<CScopeUQueue> async0(unsigned short reqId, const T0 &t0, const T1 &t1, const T2 &t2, const T3 &t3, const T4 &t4, const T5 &t5, const T6 &t6) {
-                CScopeUQueue sb;
-                sb << t0 << t1 << t2 << t3 << t4 << t5 << t6;
-                return async0(reqId, sb->GetBuffer(), sb->GetSize());
-            }
-
-            template<typename T0, typename T1, typename T2, typename T3, typename T4, typename T5>
-            std::future<CScopeUQueue> async0(unsigned short reqId, const T0 &t0, const T1 &t1, const T2 &t2, const T3 &t3, const T4 &t4, const T5 &t5) {
-                CScopeUQueue sb;
-                sb << t0 << t1 << t2 << t3 << t4 << t5;
-                return async0(reqId, sb->GetBuffer(), sb->GetSize());
-            }
-
-            template<typename T0, typename T1, typename T2, typename T3, typename T4>
-            std::future<CScopeUQueue> async0(unsigned short reqId, const T0 &t0, const T1 &t1, const T2 &t2, const T3 &t3, const T4 &t4) {
-                CScopeUQueue sb;
-                sb << t0 << t1 << t2 << t3 << t4;
-                return async0(reqId, sb->GetBuffer(), sb->GetSize());
-            }
-
-            template<typename T0, typename T1, typename T2, typename T3>
-            std::future<CScopeUQueue> async0(unsigned short reqId, const T0 &t0, const T1 &t1, const T2 &t2, const T3 &t3) {
-                CScopeUQueue sb;
-                sb << t0 << t1 << t2 << t3;
-                return async0(reqId, sb->GetBuffer(), sb->GetSize());
-            }
-
-            template<typename T0, typename T1, typename T2>
-            std::future<CScopeUQueue> async0(unsigned short reqId, const T0 &t0, const T1 &t1, const T2 &t2) {
-                CScopeUQueue sb;
-                sb << t0 << t1 << t2;
-                return async0(reqId, sb->GetBuffer(), sb->GetSize());
-            }
-
-            template<typename T0, typename T1>
-            std::future<CScopeUQueue> async0(unsigned short reqId, const T0 &t0, const T1 &t1) {
-                CScopeUQueue sb;
-                sb << t0 << t1;
-                return async0(reqId, sb->GetBuffer(), sb->GetSize());
-            }
-
-            template<typename T0>
-            std::future<CScopeUQueue> async0(unsigned short reqId, const T0 &t0) {
-                CScopeUQueue sb;
-                sb << t0;
+                sb->Save(args ...);
                 return async0(reqId, sb->GetBuffer(), sb->GetSize());
             }
 
@@ -1078,7 +954,7 @@ namespace SPA {
                 if (!req_id) {
                     throw std::invalid_argument("Request id cannot be zero");
                 }
-                DDiscarded discarded = [prom, req_id, method_name](CAsyncServiceHandler *h, bool canceled) {
+                return [prom, req_id, method_name](CAsyncServiceHandler *h, bool canceled) {
                     try {
                         if (canceled) {
                             prom->set_exception(std::make_exception_ptr(CSocketError(REQUEST_CANCELED, (L"Request " + method_name + L" canceled").c_str(), req_id, false)));
@@ -1096,19 +972,17 @@ namespace SPA {
                         //ignore
                     }
                 };
-                return discarded;
             }
 
             template<typename R>
             static DServerException get_se(std::shared_ptr<std::promise<R> > prom) {
-                DServerException se = [prom](CAsyncServiceHandler *ash, unsigned short requestId, const wchar_t *errMessage, const char* errWhere, unsigned int errCode) {
+                return [prom](CAsyncServiceHandler *ash, unsigned short reqId, const wchar_t *errMsg, const char* errWhere, unsigned int errCode) {
                     try {
-                        prom->set_exception(std::make_exception_ptr(CServerError(errCode, errMessage, errWhere, requestId)));
+                        prom->set_exception(std::make_exception_ptr(CServerError(errCode, errMsg, errWhere, reqId)));
                     } catch (std::future_error&) {
                         //ignore
                     }
                 };
-                return se;
             }
 
             template<typename R>
@@ -1138,73 +1012,10 @@ namespace SPA {
                 return async<R>(reqId, (const unsigned char *) nullptr, (unsigned int) 0);
             }
 
-            template<typename R, typename T0, typename T1, typename T2, typename T3, typename T4, typename T5, typename T6, typename T7, typename T8, typename T9>
-            std::future<R> async(unsigned short reqId, const T0 &t0, const T1 &t1, const T2 &t2, const T3 &t3, const T4 &t4, const T5 &t5, const T6 &t6, const T7 &t7, const T8 &t8, const T9 &t9) {
+            template<typename R, typename ... Ts>
+            std::future<R> async(unsigned short reqId, const Ts& ... args) {
                 CScopeUQueue sb;
-                sb << t0 << t1 << t2 << t3 << t4 << t5 << t6 << t7 << t8 << t9;
-                return async<R>(reqId, sb->GetBuffer(), sb->GetSize());
-            }
-
-            template<typename R, typename T0, typename T1, typename T2, typename T3, typename T4, typename T5, typename T6, typename T7, typename T8>
-            std::future<R> async(unsigned short reqId, const T0 &t0, const T1 &t1, const T2 &t2, const T3 &t3, const T4 &t4, const T5 &t5, const T6 &t6, const T7 &t7, const T8 &t8) {
-                CScopeUQueue sb;
-                sb << t0 << t1 << t2 << t3 << t4 << t5 << t6 << t7 << t8;
-                return async<R>(reqId, sb->GetBuffer(), sb->GetSize());
-            }
-
-            template<typename R, typename T0, typename T1, typename T2, typename T3, typename T4, typename T5, typename T6, typename T7>
-            std::future<R> async(unsigned short reqId, const T0 &t0, const T1 &t1, const T2 &t2, const T3 &t3, const T4 &t4, const T5 &t5, const T6 &t6, const T7 &t7) {
-                CScopeUQueue sb;
-                sb << t0 << t1 << t2 << t3 << t4 << t5 << t6 << t7;
-                return async<R>(reqId, sb->GetBuffer(), sb->GetSize());
-            }
-
-            template<typename R, typename T0, typename T1, typename T2, typename T3, typename T4, typename T5, typename T6>
-            std::future<R> async(unsigned short reqId, const T0 &t0, const T1 &t1, const T2 &t2, const T3 &t3, const T4 &t4, const T5 &t5, const T6 &t6) {
-                CScopeUQueue sb;
-                sb << t0 << t1 << t2 << t3 << t4 << t5 << t6;
-                return async<R>(reqId, sb->GetBuffer(), sb->GetSize());
-            }
-
-            template<typename R, typename T0, typename T1, typename T2, typename T3, typename T4, typename T5>
-            std::future<R> async(unsigned short reqId, const T0 &t0, const T1 &t1, const T2 &t2, const T3 &t3, const T4 &t4, const T5 &t5) {
-                CScopeUQueue sb;
-                sb << t0 << t1 << t2 << t3 << t4 << t5;
-                return async<R>(reqId, sb->GetBuffer(), sb->GetSize());
-            }
-
-            template<typename R, typename T0, typename T1, typename T2, typename T3, typename T4>
-            std::future<R> async(unsigned short reqId, const T0 &t0, const T1 &t1, const T2 &t2, const T3 &t3, const T4 &t4) {
-                CScopeUQueue sb;
-                sb << t0 << t1 << t2 << t3 << t4;
-                return async<R>(reqId, sb->GetBuffer(), sb->GetSize());
-            }
-
-            template<typename R, typename T0, typename T1, typename T2, typename T3>
-            std::future<R> async(unsigned short reqId, const T0 &t0, const T1 &t1, const T2 &t2, const T3 &t3) {
-                CScopeUQueue sb;
-                sb << t0 << t1 << t2 << t3;
-                return async<R>(reqId, sb->GetBuffer(), sb->GetSize());
-            }
-
-            template<typename R, typename T0, typename T1, typename T2>
-            std::future<R> async(unsigned short reqId, const T0 &t0, const T1 &t1, const T2 &t2) {
-                CScopeUQueue sb;
-                sb << t0 << t1 << t2;
-                return async<R>(reqId, sb->GetBuffer(), sb->GetSize());
-            }
-
-            template<typename R, typename T0, typename T1>
-            std::future<R> async(unsigned short reqId, const T0 &t0, const T1 &t1) {
-                CScopeUQueue sb;
-                sb << t0 << t1;
-                return async<R>(reqId, sb->GetBuffer(), sb->GetSize());
-            }
-
-            template<typename R, typename T0>
-            std::future<R> async(unsigned short reqId, const T0 &t0) {
-                CScopeUQueue sb;
-                sb << t0;
+                sb->Save(args ...);
                 return async<R>(reqId, sb->GetBuffer(), sb->GetSize());
             }
 #endif
@@ -1229,42 +1040,11 @@ namespace SPA {
             virtual void OnMergeTo(CAsyncServiceHandler & to);
             virtual bool SendRouteeResult(const unsigned char *buffer, unsigned int len, unsigned short reqId = 0);
             bool SendRouteeResult(unsigned short reqId = 0);
-            bool SendRouteeResult(const CUQueue &mc, unsigned short reqId = 0);
-            bool SendRouteeResult(const CScopeUQueue &sb, unsigned short reqId = 0);
-
-            template <class ctype0>
-            bool SendRouteeResult(const ctype0& data0, unsigned short usRequestID = 0) {
+            template<typename ...Ts>
+            bool SendRouteeResult(unsigned short reqId, const Ts& ... data) {
                 CScopeUQueue sb;
-                sb << data0;
-                return SendRouteeResult(sb->GetBuffer(), sb->GetSize(), usRequestID);
-            }
-
-            template<class ctype0, class ctype1>
-            bool SendRouteeResult(const ctype0& data0, const ctype1& data1, unsigned short usRequestID = 0) {
-                CScopeUQueue sb;
-                sb << data0 << data1;
-                return SendRouteeResult(sb->GetBuffer(), sb->GetSize(), usRequestID);
-            }
-
-            template<class ctype0, class ctype1, class ctype2>
-            bool SendRouteeResult(const ctype0& data0, const ctype1& data1, const ctype1& data2, unsigned short usRequestID = 0) {
-                CScopeUQueue sb;
-                sb << data0 << data1 << data2;
-                return SendRouteeResult(sb->GetBuffer(), sb->GetSize(), usRequestID);
-            }
-
-            template<class ctype0, class ctype1, class ctype2, class ctype3>
-            bool SendRouteeResult(const ctype0& data0, const ctype1& data1, const ctype2& data2, const ctype3& data3, unsigned short usRequestID = 0) {
-                CScopeUQueue sb;
-                sb << data0 << data1 << data2 << data3;
-                return SendRouteeResult(sb->GetBuffer(), sb->GetSize(), usRequestID);
-            }
-
-            template<class ctype0, class ctype1, class ctype2, class ctype3, class ctype4>
-            bool SendRouteeResult(const ctype0& data0, const ctype1& data1, const ctype2& data2, const ctype3& data3, const ctype4& data4, unsigned short usRequestID = 0) {
-                CScopeUQueue sb;
-                sb << data0 << data1 << data2 << data3 << data4;
-                return SendRouteeResult(sb->GetBuffer(), sb->GetSize(), usRequestID);
+                sb->Save(data ...);
+                return SendRouteeResult(sb->GetBuffer(), sb->GetSize(), reqId);
             }
 
 #if defined(NODE_JS_ADAPTER_PROJECT)

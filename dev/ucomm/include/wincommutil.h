@@ -1,11 +1,7 @@
-
 #ifndef	___WIN_UCOMM__UTIL_HEADER_FILE___H___
 #define ___WIN_UCOMM__UTIL_HEADER_FILE___H___
 
 #include <exception>
-#ifndef NDEBUG
-#include <iostream>
-#endif
 
 namespace SPA {
 

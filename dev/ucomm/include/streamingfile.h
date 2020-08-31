@@ -328,7 +328,7 @@ namespace SPA {
                     if (it->Uploading) {
                         OpenLocalRead(*it);
                         if (!it->HasError()) {
-                            if (!SendRequest(SFile::idUpload, it->FilePath, it->Flags, it->FileSize, rh, it->Discarded, it->Se)) {
+                            if (!SendRequest(SFile::idUpload, rh, it->Discarded, it->Se, it->FilePath, it->Flags, it->FileSize)) {
                                 CClientSocket *cs = GetSocket();
                                 int ec = cs->GetErrorCode();
                                 if (ec) {
@@ -359,7 +359,7 @@ namespace SPA {
                     } else {
                         OpenLocalWrite(*it);
                         if (!it->HasError()) {
-                            if (!SendRequest(SFile::idDownload, it->LocalFile, it->FilePath, it->Flags, it->InitSize, rh, it->Discarded, it->Se)) {
+                            if (!SendRequest(SFile::idDownload, rh, it->Discarded, it->Se, it->LocalFile, it->FilePath, it->Flags, it->InitSize)) {
                                 CClientSocket *cs = GetSocket();
                                 int ec = cs->GetErrorCode();
                                 if (ec) {
@@ -570,7 +570,7 @@ namespace SPA {
                                 context.QueueOk = GetSocket()->GetClientQueue().StartJob();
                                 bool queue_enabled = GetSocket()->GetClientQueue().IsAvailable();
                                 if (queue_enabled) {
-                                    SendRequest(SFile::idUploadBackup, context.FilePath.c_str(), context.Flags, context.FileSize, context.InitSize, rh, context.Discarded, se);
+                                    SendRequest(SFile::idUploadBackup, rh, context.Discarded, se, context.FilePath.c_str(), context.Flags, context.FileSize, context.InitSize);
                                 }
 #ifdef WIN32_64
                                 DWORD ret = 0;

@@ -1397,6 +1397,26 @@ namespace SPA {
             return *this;
         }
 
+        template<typename R>
+        inline R Load() {
+            R r;
+            *this >> r;
+            return r;
+        }
+
+        template<typename T>
+        inline CUQueue& Save(const T& data) {
+            *this << data;
+            return *this;
+        }
+
+        template<typename T, typename ...Ts>
+        inline CUQueue& Save(const T& data, const Ts& ... others) {
+            Save(data);
+            Save(others ...);
+            return *this;
+        }
+
     private:
         unsigned int m_nMaxBuffer;
         unsigned int m_nSize;
