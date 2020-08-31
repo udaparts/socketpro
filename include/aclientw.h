@@ -8,13 +8,8 @@
 #include <memory>
 #include <functional>
 
-#if defined(WIN32_64) && _MSC_VER >= 1700
+#ifdef HAVE_FUTURE
 #include <future>
-#define HAVE_FUTURE 1
-#elif defined(WCHAR32)
-#include <future>
-#define HAVE_FUTURE	1
-#else
 #endif
 
 #ifdef PHP_ADAPTER_PROJECT
@@ -1950,15 +1945,7 @@ namespace SPA {
             }
 
             bool Send(unsigned short reqId) const {
-                return Send(reqId, (const unsigned char *) nullptr, 0);
-            }
-
-            bool Send(unsigned short reqId, const CUQueue &q) const {
-                return Send(reqId, q.GetBuffer(), q.GetSize());
-            }
-
-            bool Send(unsigned short reqId, const CScopeUQueue &q) const {
-                return Send(reqId, q->GetBuffer(), q->GetSize());
+                return Send(reqId, (const unsigned char *) nullptr, (unsigned int) 0);
             }
 
             bool EndJob() const {
@@ -1985,73 +1972,10 @@ namespace SPA {
                 return src->AbortJob();
             }
 
-            template<typename T0>
-            bool Send(unsigned short reqId, const T0 &t0) const {
+            template<typename ... Ts>
+            bool Send(unsigned short reqId, const Ts& ...t) const {
                 CScopeUQueue sb;
-                sb << t0;
-                return Send(reqId, sb->GetBuffer(), sb->GetSize());
-            }
-
-            template<typename T0, typename T1>
-            bool Send(unsigned short reqId, const T0 &t0, const T1 &t1) const {
-                CScopeUQueue sb;
-                sb << t0 << t1;
-                return Send(reqId, sb->GetBuffer(), sb->GetSize());
-            }
-
-            template<typename T0, typename T1, typename T2>
-            bool Send(unsigned short reqId, const T0 &t0, const T1 &t1, const T2 &t2) const {
-                CScopeUQueue sb;
-                sb << t0 << t1 << t2;
-                return Send(reqId, sb->GetBuffer(), sb->GetSize());
-            }
-
-            template<typename T0, typename T1, typename T2, typename T3>
-            bool Send(unsigned short reqId, const T0 &t0, const T1 &t1, const T2 &t2, const T3 &t3) const {
-                CScopeUQueue sb;
-                sb << t0 << t1 << t2 << t3;
-                return Send(reqId, sb->GetBuffer(), sb->GetSize());
-            }
-
-            template<typename T0, typename T1, typename T2, typename T3, typename T4>
-            bool Send(unsigned short reqId, const T0 &t0, const T1 &t1, const T2 &t2, const T3 &t3, const T4 &t4) const {
-                CScopeUQueue sb;
-                sb << t0 << t1 << t2 << t3 << t4;
-                return Send(reqId, sb->GetBuffer(), sb->GetSize());
-            }
-
-            template<typename T0, typename T1, typename T2, typename T3, typename T4, typename T5>
-            bool Send(unsigned short reqId, const T0 &t0, const T1 &t1, const T2 &t2, const T3 &t3, const T4 &t4, const T5 &t5) const {
-                CScopeUQueue sb;
-                sb << t0 << t1 << t2 << t3 << t4 << t5;
-                return Send(reqId, sb->GetBuffer(), sb->GetSize());
-            }
-
-            template<typename T0, typename T1, typename T2, typename T3, typename T4, typename T5, typename T6>
-            bool Send(unsigned short reqId, const T0 &t0, const T1 &t1, const T2 &t2, const T3 &t3, const T4 &t4, const T5 &t5, const T6 &t6) const {
-                CScopeUQueue sb;
-                sb << t0 << t1 << t2 << t3 << t4 << t5 << t6;
-                return Send(reqId, sb->GetBuffer(), sb->GetSize());
-            }
-
-            template<typename T0, typename T1, typename T2, typename T3, typename T4, typename T5, typename T6, typename T7>
-            bool Send(unsigned short reqId, const T0 &t0, const T1 &t1, const T2 &t2, const T3 &t3, const T4 &t4, const T5 &t5, const T6 &t6, const T7 &t7) const {
-                CScopeUQueue sb;
-                sb << t0 << t1 << t2 << t3 << t4 << t5 << t6 << t7;
-                return Send(reqId, sb->GetBuffer(), sb->GetSize());
-            }
-
-            template<typename T0, typename T1, typename T2, typename T3, typename T4, typename T5, typename T6, typename T7, typename T8>
-            bool Send(unsigned short reqId, const T0 &t0, const T1 &t1, const T2 &t2, const T3 &t3, const T4 &t4, const T5 &t5, const T6 &t6, const T7 &t7, const T8 &t8) const {
-                CScopeUQueue sb;
-                sb << t0 << t1 << t2 << t3 << t4 << t5 << t6 << t7 << t8;
-                return Send(reqId, sb->GetBuffer(), sb->GetSize());
-            }
-
-            template<typename T0, typename T1, typename T2, typename T3, typename T4, typename T5, typename T6, typename T7, typename T8, typename T9>
-            bool Send(unsigned short reqId, const T0 &t0, const T1 &t1, const T2 &t2, const T3 &t3, const T4 &t4, const T5 &t5, const T6 &t6, const T7 &t7, const T8 &t8, const T9 &t9) const {
-                CScopeUQueue sb;
-                sb << t0 << t1 << t2 << t3 << t4 << t5 << t6 << t7 << t8 << t9;
+                sb->Save(t ...);
                 return Send(reqId, sb->GetBuffer(), sb->GetSize());
             }
 

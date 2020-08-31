@@ -5,6 +5,13 @@
 #include <algorithm>
 #include "spvariant.h"
 
+#if defined(WIN32_64) && _MSC_VER >= 1700
+#define HAVE_FUTURE 1
+#elif defined(WCHAR32)
+#define HAVE_FUTURE	1
+#else
+#endif
+
 #ifdef WIN32_64
 #ifdef SUPPORT_PACKING_ATL_STR
 #include <atlstr.h>
@@ -1410,12 +1417,14 @@ namespace SPA {
             return *this;
         }
 
+#ifdef HAVE_FUTURE
         template<typename T, typename ...Ts>
         inline CUQueue& Save(const T& data, const Ts& ... others) {
             Save(data);
             Save(others ...);
             return *this;
         }
+#endif
 
     private:
         unsigned int m_nMaxBuffer;

@@ -51,79 +51,12 @@ namespace SPA {
             void SetOptimistic(tagOptimistic optimistic) const;
 
             UINT64 Enqueue(unsigned short reqId, const unsigned char *buffer, unsigned int size) const;
-            UINT64 Enqueue(unsigned short reqId, const CUQueue & qBuffer) const;
+            UINT64 Enqueue(unsigned short reqId) const;
 
-            UINT64 Enqueue(unsigned short reqId) const {
-                return Enqueue(reqId, (const unsigned char*) nullptr, (unsigned int) 0);
-            }
-
-            template<typename T0>
-            UINT64 Enqueue(unsigned short reqId, const T0 & t0) const {
+            template<typename ...Ts>
+            UINT64 Enqueue(unsigned short reqId, const Ts& ...t) const {
                 CScopeUQueue sb;
-                sb << t0;
-                return Enqueue(reqId, sb->GetBuffer(), sb->GetSize());
-            }
-
-            template<typename T0, typename T1>
-            UINT64 Enqueue(unsigned short reqId, const T0 &t0, const T1 & t1) const {
-                CScopeUQueue sb;
-                sb << t0 << t1;
-                return Enqueue(reqId, sb->GetBuffer(), sb->GetSize());
-            }
-
-            template<typename T0, typename T1, typename T2>
-            UINT64 Enqueue(unsigned short reqId, const T0 &t0, const T1 &t1, const T2 & t2) const {
-                CScopeUQueue sb;
-                sb << t0 << t1 << t2;
-                return Enqueue(reqId, sb->GetBuffer(), sb->GetSize());
-            }
-
-            template<typename T0, typename T1, typename T2, typename T3>
-            UINT64 Enqueue(unsigned short reqId, const T0 &t0, const T1 &t1, const T2 &t2, const T3 & t3) const {
-                CScopeUQueue sb;
-                sb << t0 << t1 << t2 << t3;
-                return Enqueue(reqId, sb->GetBuffer(), sb->GetSize());
-            }
-
-            template<typename T0, typename T1, typename T2, typename T3, typename T4>
-            UINT64 Enqueue(unsigned short reqId, const T0 &t0, const T1 &t1, const T2 &t2, const T3 &t3, const T4 & t4) const {
-                CScopeUQueue sb;
-                sb << t0 << t1 << t2 << t3 << t4;
-                return Enqueue(reqId, sb->GetBuffer(), sb->GetSize());
-            }
-
-            template<typename T0, typename T1, typename T2, typename T3, typename T4, typename T5>
-            UINT64 Enqueue(unsigned short reqId, const T0 &t0, const T1 &t1, const T2 &t2, const T3 &t3, const T4 &t4, const T5 & t5) {
-                CScopeUQueue sb;
-                sb << t0 << t1 << t2 << t3 << t4 << t5;
-                return Enqueue(reqId, sb->GetBuffer(), sb->GetSize());
-            }
-
-            template<typename T0, typename T1, typename T2, typename T3, typename T4, typename T5, typename T6>
-            UINT64 Enqueue(unsigned short reqId, const T0 &t0, const T1 &t1, const T2 &t2, const T3 &t3, const T4 &t4, const T5 &t5, const T6 & t6) const {
-                CScopeUQueue sb;
-                sb << t0 << t1 << t2 << t3 << t4 << t5 << t6;
-                return Enqueue(reqId, sb->GetBuffer(), sb->GetSize());
-            }
-
-            template<typename T0, typename T1, typename T2, typename T3, typename T4, typename T5, typename T6, typename T7>
-            UINT64 Enqueue(unsigned short reqId, const T0 &t0, const T1 &t1, const T2 &t2, const T3 &t3, const T4 &t4, const T5 &t5, const T6 &t6, const T7 & t7) const {
-                CScopeUQueue sb;
-                sb << t0 << t1 << t2 << t3 << t4 << t5 << t6 << t7;
-                return Enqueue(reqId, sb->GetBuffer(), sb->GetSize());
-            }
-
-            template<typename T0, typename T1, typename T2, typename T3, typename T4, typename T5, typename T6, typename T7, typename T8>
-            UINT64 Enqueue(unsigned short reqId, const T0 &t0, const T1 &t1, const T2 &t2, const T3 &t3, const T4 &t4, const T5 &t5, const T6 &t6, const T7 &t7, const T8 & t8) const {
-                CScopeUQueue sb;
-                sb << t0 << t1 << t2 << t3 << t4 << t5 << t6 << t7 << t8;
-                return Enqueue(reqId, reqId, sb->GetBuffer(), sb->GetSize());
-            }
-
-            template<typename T0, typename T1, typename T2, typename T3, typename T4, typename T5, typename T6, typename T7, typename T8, typename T9>
-            UINT64 Enqueue(unsigned short reqId, const T0 &t0, const T1 &t1, const T2 &t2, const T3 &t3, const T4 &t4, const T5 &t5, const T6 &t6, const T7 &t7, const T8 &t8, const T9 & t9) const {
-                CScopeUQueue sb;
-                sb << t0 << t1 << t2 << t3 << t4 << t5 << t6 << t7 << t8 << t9;
+                sb->Save(t ...);
                 return Enqueue(reqId, sb->GetBuffer(), sb->GetSize());
             }
 
@@ -240,8 +173,8 @@ namespace SPA {
             virtual void OnSSLShakeCompleted(USocket_Server_Handle h, int errCode);
 
         private:
-            CSocketProServer(const CSocketProServer &as);
-            CSocketProServer& operator=(const CSocketProServer &as);
+            CSocketProServer(const CSocketProServer &as) = delete;
+            CSocketProServer& operator=(const CSocketProServer &as) = delete;
 
         private:
             static void WINAPI OnSSLShakeCompletedInternal(USocket_Server_Handle Handler, int errCode);
@@ -263,8 +196,8 @@ namespace SPA {
 
         class CSocketPeer {
         private:
-            CSocketPeer(const CSocketPeer &p);
-            CSocketPeer& operator=(const CSocketPeer &p);
+            CSocketPeer(const CSocketPeer &p) = delete;
+            CSocketPeer& operator=(const CSocketPeer &p) = delete;
 
         protected:
             CSocketPeer();
@@ -397,8 +330,8 @@ namespace SPA {
             std::string m_WebRequestName;
             bool m_bHttpOk;
             std::vector<UVariant> m_vArg;
-            CHttpPeerBase(const CHttpPeerBase &p);
-            CHttpPeerBase& operator=(const CHttpPeerBase &p);
+            CHttpPeerBase(const CHttpPeerBase &p) = delete;
+            CHttpPeerBase& operator=(const CHttpPeerBase &p) = delete;
             friend class CBaseService;
         };
 
@@ -562,8 +495,8 @@ namespace SPA {
 
         class CClientPeer : public CSocketPeer {
         private:
-            CClientPeer(const CClientPeer &p);
-            CClientPeer& operator=(const CClientPeer &p);
+            CClientPeer(const CClientPeer &p) = delete;
+            CClientPeer& operator=(const CClientPeer &p) = delete;
 
             class CPushImpl : public IPushEx {
             public:
@@ -677,8 +610,8 @@ namespace SPA {
             virtual CSocketPeer* GetPeerSocket() const = 0;
 
         private:
-            CBaseService(const CBaseService &as);
-            CBaseService& operator=(const CBaseService &as);
+            CBaseService(const CBaseService &as) = delete;
+            CBaseService& operator=(const CBaseService &as) = delete;
 
         private:
             static bool SeekServiceId(unsigned int nServiceId);
@@ -740,8 +673,8 @@ namespace SPA {
             }
 
         private:
-            CSocketProService(const CSocketProService &svs);
-            CSocketProService& operator=(const CSocketProService &svs);
+            CSocketProService(const CSocketProService &svs) = delete;
+            CSocketProService& operator=(const CSocketProService &svs) = delete;
         };
 
         typedef CDummyPeer CNotifier;

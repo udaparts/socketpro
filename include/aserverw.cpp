@@ -1272,8 +1272,8 @@ namespace SPA
             return ServerCoreLoader.Enqueue(m_handle, reqId, buffer, size);
         }
 
-        UINT64 CServerQueue::Enqueue(unsigned short reqId, const CUQueue & qBuffer) const {
-            return Enqueue(reqId, qBuffer.GetBuffer(), qBuffer.GetSize());
+        UINT64 CServerQueue::Enqueue(unsigned short reqId) const {
+            return Enqueue(reqId, (const unsigned char *) nullptr, (unsigned int) 0);
         }
 
         UINT64 CServerQueue::GetMessageCount() const {
