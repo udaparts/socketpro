@@ -2,6 +2,7 @@ import sys
 from spa.clientside import CSocketPool, CConnectionContext, CAsyncQueue, CUQueue, CSocketError, CServerError as Se
 from spa import tagBaseRequestID
 from concurrent.futures import Future as future
+from time import sleep
 
 TEST_QUEUE_KEY = "queue_name_0"
 idMessage0 = tagBaseRequestID.idReservedTwo + 100
@@ -22,6 +23,7 @@ def test_enqueue(aq):
             idMessage = idMessage1
         else:
             idMessage = idMessage2
+        # sleep(0.1)
         # enqueue two unicode strings and one int
         if not aq.Enqueue(TEST_QUEUE_KEY, idMessage, CUQueue().SaveString('SampleName').SaveString(s).SaveInt(n)):
             aq.throw('Enqueue', CAsyncQueue.idEnqueue)
@@ -61,6 +63,7 @@ def test_dequeue(aq):
     return f
 
 with CSocketPool(CAsyncQueue) as spAq:
+    # spAq.QueueName = 'qname'
     print('Remote async queue server host: ')
     cc = CConnectionContext(sys.stdin.readline(), 20901, 'PythonUser', 'TooMuchSecret')
     ok = spAq.StartSocketPool(cc, 1)

@@ -33,6 +33,7 @@ class Program
                     idMessage = idMessage2;
                     break;
             }
+            //System.Threading.Thread.Sleep(100);
             //enqueue two unicode strings and one int
             if (!aq.Enqueue(TEST_QUEUE_KEY, idMessage, "SampleName", str, n))
             {
@@ -106,6 +107,7 @@ class Program
         CConnectionContext cc = new CConnectionContext(host, 20901, "async_queue_client", "pwd_for_async_queue");
         using (CSocketPool<CAsyncQueue> spAq = new CSocketPool<CAsyncQueue>())
         {
+            //spAq.QueueName = "qname";
             if (!spAq.StartSocketPool(cc, 1))
             {
                 Console.WriteLine("Failed in connecting to remote async queue server");

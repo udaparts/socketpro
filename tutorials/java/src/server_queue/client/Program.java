@@ -20,6 +20,7 @@ public class Program {
         cc.Password = "pwd_for_async_queue";
 
         try (CSocketPool<CAsyncQueue> spAq = new CSocketPool<>(CAsyncQueue.class)) {
+            //spAq.setQueueName("qname");
             boolean ok = spAq.StartSocketPool(cc, 1);
             CAsyncQueue aq = spAq.getAsyncHandlers()[0];
             if (!ok) {
@@ -58,6 +59,10 @@ public class Program {
                     idMessage = idMessage2;
                     break;
             }
+            //try {
+            //   java.lang.Thread.sleep(100);
+            //} catch (Exception ex) {
+            //}
             //enqueue two unicode strings and one int
             if (!aq.Enqueue(TEST_QUEUE_KEY, idMessage, new CScopeUQueue().Save("SampleName").Save(str).Save(n))) {
                 aq.raise("Enqueue", CAsyncQueue.idEnqueue);
