@@ -307,7 +307,6 @@ namespace SPA {
         protected:
 
             virtual void OnPostProcessing(unsigned int hint, UINT64 data) {
-                DResultHandler rh;
                 unsigned int d = 0;
                 CAutoLock al(m_csFile);
                 for (auto it = m_vContext.begin(), end = m_vContext.end(); it != end; ++it) {
@@ -328,7 +327,7 @@ namespace SPA {
                     if (it->Uploading) {
                         OpenLocalRead(*it);
                         if (!it->HasError()) {
-                            if (!SendRequest(SFile::idUpload, rh, it->Discarded, it->Se, it->FilePath, it->Flags, it->FileSize)) {
+                            if (!SendRequest(SFile::idUpload, NULL_RH, it->Discarded, it->Se, it->FilePath, it->Flags, it->FileSize)) {
                                 CClientSocket *cs = GetSocket();
                                 int ec = cs->GetErrorCode();
                                 if (ec) {
@@ -359,7 +358,7 @@ namespace SPA {
                     } else {
                         OpenLocalWrite(*it);
                         if (!it->HasError()) {
-                            if (!SendRequest(SFile::idDownload, rh, it->Discarded, it->Se, it->LocalFile, it->FilePath, it->Flags, it->InitSize)) {
+                            if (!SendRequest(SFile::idDownload, NULL_RH, it->Discarded, it->Se, it->LocalFile, it->FilePath, it->Flags, it->InitSize)) {
                                 CClientSocket *cs = GetSocket();
                                 int ec = cs->GetErrorCode();
                                 if (ec) {

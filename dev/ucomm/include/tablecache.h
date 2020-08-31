@@ -228,8 +228,8 @@ namespace SPA {
         bool m_bDataCaseSensitive;
 
     private:
-        CDataSet(const CDataSet &tc);
-        CDataSet& operator=(const CDataSet &tc);
+        CDataSet(const CDataSet &tc) = delete;
+        CDataSet& operator=(const CDataSet &tc) = delete;
     };
 }; //namespace SPA
 

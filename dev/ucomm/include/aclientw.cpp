@@ -21,6 +21,9 @@ namespace SPA {
         CSpinLock CAsyncServiceHandler::m_csIndex;
         UINT64 CAsyncServiceHandler::m_CallIndex = 0; //should be protected by m_csIndex
 
+        CAsyncServiceHandler::DServerException CAsyncServiceHandler::NULL_SE;
+        CAsyncServiceHandler::DDiscarded CAsyncServiceHandler::NULL_ABORTED;
+
         bool CAsyncServiceHandler::CRRImpl::Invoke(CAsyncServiceHandler *ash, unsigned short reqId, CUQueue & buff) {
             CSpinAutoLock al(*m_cs);
             for (auto it = m_vD.cbegin(), end = m_vD.cend(); it != end; ++it) {
