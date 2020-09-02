@@ -6,7 +6,7 @@ static const unsigned int DEFAULT_DEQUEUE_BATCH_SIZE = 16384;
 static const unsigned int MIN_DEQUEUE_BATCH_SIZE = 2048;
 
 bool WINAPI InitServerLibrary(int param) {
-    unsigned options = (unsigned int) param;
+    unsigned int options = (unsigned int) param;
     CAsyncQueueImpl::m_bNoAuto = (unsigned char) (options >> 24);
     unsigned int batchSize = (options & 0xffffff);
     if (!batchSize) {
