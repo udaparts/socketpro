@@ -9,8 +9,8 @@ namespace SPA {
     namespace ServerSide {
 
         class CCacheBasePeer : public CClientPeer {
-            CCacheBasePeer(const CCacheBasePeer &p);
-            CCacheBasePeer& operator=(const CCacheBasePeer &p);
+            CCacheBasePeer(const CCacheBasePeer &p) = delete;
+            CCacheBasePeer& operator=(const CCacheBasePeer &p) = delete;
 
         public:
 

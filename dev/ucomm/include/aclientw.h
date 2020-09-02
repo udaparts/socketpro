@@ -890,6 +890,13 @@ namespace SPA {
                 return SendRequest(reqId, sb->GetBuffer(), sb->GetSize(), rh, NULL_ABORTED, NULL_SE);
             }
 
+            template<typename ...Ts>
+            bool SendRequest(unsigned short reqId, const Ts& ...t) {
+                CScopeUQueue sb;
+                sb->Save(t ...);
+                return SendRequest(reqId, sb->GetBuffer(), sb->GetSize(), NULL_RH, NULL_ABORTED, NULL_SE);
+            }
+
 #if defined(PHP_ADAPTER_PROJECT) || defined(NODE_JS_ADAPTER_PROJECT)
 #else
 
