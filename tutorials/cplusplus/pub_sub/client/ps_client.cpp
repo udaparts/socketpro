@@ -85,7 +85,7 @@ int main(int argc, char* argv[]) {
     SPA::UVariant message(L"We are going to call the method Sleep");
     ok = push.Publish(message, chat_ids, 2);
 
-    ok = hw->SendRequest(idSleep, NULL_RH, (int) 5000);
+    ok = hw->SendRequest(idSleep, (int) 5000);
 
     std::wstring receiver;
     std::cout << "Input a receiver for receiving my message ......" << std::endl;
