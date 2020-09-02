@@ -12,13 +12,9 @@ int main(int argc, char* argv[]) {
 
     typedef CSocketPool<Pi, CClientSocket> CMyPool;
     CMyPool spPi;
-
+    spPi.SetQueueName("pi_queue");
     bool ok = spPi.StartSocketPool(cc, 1);
-    auto pi = spPi.Seek(); //or auto pi = spPi.Lock();
-
-    //use persistent queue to ensure auto failure recovery and at-least-once or once-only delivery
-    ok = pi->GetSocket()->GetClientQueue().StartQueue("pi_queue", 24 * 3600, false); //time-to-live 1 day and true for encryption
-    pi->GetSocket()->GetClientQueue().EnableRoutingQueueIndex(true);
+    auto pi = spPi.Seek();
 
     double dPi = 0.0;
     int nDivision = 1000;
