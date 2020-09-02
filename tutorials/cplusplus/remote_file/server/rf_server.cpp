@@ -7,9 +7,9 @@ protected:
 
     virtual bool OnSettingServer(unsigned int listeningPort, unsigned int maxBacklog, bool v6) {
         //amIntegrated and amMixed not supported yet
-        CSocketProServer::Config::SetAuthenticationMethod(amOwn);
+        Config::SetAuthenticationMethod(amOwn);
 
-        m_h = SPA::ServerSide::CSocketProServer::DllManager::AddALibrary("ustreamfile");
+        m_h = DllManager::AddALibrary("ustreamfile");
 
         //create four chat groups or topics
         PushManager::AddAChatGroup(1, L"R&D Department");

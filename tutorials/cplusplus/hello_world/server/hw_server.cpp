@@ -1,6 +1,3 @@
-// hw_server.cpp : Defines the entry point for the console application.
-//
-
 #include "stdafx.h"
 #include "HWImpl.h"
 
@@ -24,7 +21,7 @@ protected:
 
     virtual bool OnSettingServer(unsigned int listeningPort, unsigned int maxBacklog, bool v6) {
         //amIntegrated and amMixed not supported yet
-        CSocketProServer::Config::SetAuthenticationMethod(amOwn);
+        Config::SetAuthenticationMethod(amOwn);
 
         //add service(s) into SocketPro server
         AddService();

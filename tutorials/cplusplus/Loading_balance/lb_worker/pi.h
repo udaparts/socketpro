@@ -25,8 +25,7 @@ protected:
             switch (reqId) {
                 case idComputePi:
                 {
-                    double dStart;
-                    double dStep;
+                    double dStart, dStep;
                     int nNum;
                     mc >> dStart >> dStep >> nNum;
                     double dX = dStart + dStep / 2;
@@ -36,7 +35,7 @@ protected:
                         dX += dStep;
                         ComputeRtn += dd / (1 + dX * dX);
                     }
-                    SendRouteeResult(idComputePi, ComputeRtn, dStart);
+                    SendRouteeResult(reqId, ComputeRtn, dStart);
                 }
                     break;
                 default:

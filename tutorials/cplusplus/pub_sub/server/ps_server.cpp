@@ -6,7 +6,7 @@ class CMySocketProServer : public CSocketProServer {
 protected:
     virtual bool OnSettingServer(unsigned int listeningPort, unsigned int maxBacklog, bool v6) {
         //amIntegrated and amMixed not supported yet
-        CSocketProServer::Config::SetAuthenticationMethod(amOwn);
+        Config::SetAuthenticationMethod(amOwn);
 
         //add service(s) into SocketPro server
         AddService();

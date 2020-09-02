@@ -8,7 +8,7 @@ class CMySocketProServer : public CSocketProServer
 protected:
     virtual bool OnSettingServer(unsigned int listeningPort, unsigned int maxBacklog, bool v6) {
         //amIntegrated and amMixed not supported yet
-        CSocketProServer::Config::SetAuthenticationMethod(amOwn);
+        Config::SetAuthenticationMethod(amOwn);
 
         //add service(s) into SocketPro server
         AddServices();
@@ -24,7 +24,7 @@ protected:
 
 private:
     CSocketProService<HelloWorldPeer> m_HelloWorld;
-    SPA::ServerSide::CSocketProService<CHttpPeer> m_myHttp;
+    CSocketProService<CHttpPeer> m_myHttp;
 
 private:
     void AddServices() {

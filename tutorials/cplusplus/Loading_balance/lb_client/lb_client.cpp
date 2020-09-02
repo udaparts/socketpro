@@ -1,11 +1,12 @@
 #include "stdafx.h"
 #include "pi.h"
 #include <map>
+using namespace std;
 
 int main(int argc, char* argv[]) {
     CConnectionContext cc;
-    std::cout << "Input router server ip address ......" << std::endl;
-    std::getline(std::cin, cc.Host);
+    cout << "Input router server ip address ......\n";
+    getline(cin, cc.Host);
     cc.Port = 20901;
     cc.UserId = L"MyUserId";
     cc.Password = L"MyPassword";
@@ -20,7 +21,7 @@ int main(int argc, char* argv[]) {
     int nDivision = 1000;
     int nNum = 10000000;
     double dStep = 1.0 / nNum / nDivision;
-    std::map<double, double> mapReturn;
+    map<double, double> mapReturn;
 
     DResultHandler rh = [&dPi, &mapReturn](CAsyncResult & ar) {
         double res, start;
@@ -34,8 +35,8 @@ int main(int argc, char* argv[]) {
         ok = pi->SendRequest(idComputePi, rh, dStart, dStep, nNum);
     }
     ok = pi->WaitAll();
-    std::cout << "Your pi = " << dPi << ", returns = " << mapReturn.size() << std::endl;
-    std::cout << "Press a key to shutdown the demo application ......" << std::endl;
+    cout << "Your pi = " << dPi << ", returns = " << mapReturn.size() << endl;
+    cout << "Press a key to shutdown the demo application ......\n";
     ::getchar();
     return 0;
 }

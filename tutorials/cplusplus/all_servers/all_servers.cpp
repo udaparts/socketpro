@@ -9,9 +9,22 @@
 class CMySocketProServer : public CSocketProServer {
 protected:
 
+    virtual bool OnIsPermitted(USocket_Server_Handle h, const wchar_t* userId, const wchar_t* password, unsigned int serviceId) {
+        std::wcout << L"Ask for a service " << serviceId << L" from user " << userId << L" with password = " << password << std::endl;
+        return true;
+    }
+
+    virtual void OnClose(USocket_Server_Handle h, int errCode) {
+        CBaseService* bs = CBaseService::SeekService(h);
+        if (bs != nullptr) {
+            CSocketPeer* sp = bs->Seek(h);
+            // ......
+        }
+    }
+
     virtual bool OnSettingServer(unsigned int listeningPort, unsigned int maxBacklog, bool v6) {
         //amIntegrated and amMixed not supported yet
-        CSocketProServer::Config::SetAuthenticationMethod(amOwn);
+        Config::SetAuthenticationMethod(amOwn);
 
         //add service(s) into SocketPro server
         AddServices();
@@ -24,56 +37,42 @@ protected:
         ok = PushManager::AddAChatGroup(SPA::UDB::STREAMING_SQL_CHAT_GROUP_ID, L"Subscribe/publish for front clients");
 
         //load socketpro async sqlite library located at the directory ../bin/free_services/sqlite
-        auto h = CSocketProServer::DllManager::AddALibrary("ssqlite");
+        auto h = DllManager::AddALibrary("ssqlite");
         if (h) {
             PSetSqliteDBGlobalConnectionString SetSqliteDBGlobalConnectionString = (PSetSqliteDBGlobalConnectionString) GetProcAddress(h, "SetSqliteDBGlobalConnectionString");
             //monitoring sakila.db table events (DELETE, INSERT and UPDATE) for tables actor, language, category, country and film_actor
             SetSqliteDBGlobalConnectionString(L"usqlite.db+sakila.db.actor;sakila.db.language;sakila.db.category;sakila.db.country;sakila.db.film_actor");
         }
         //load socketPro asynchronous persistent message queue library at the directory ../bin/free_services/queue
-        h = CSocketProServer::DllManager::AddALibrary("uasyncqueue", 24 * 1024); //24 * 1024 batch dequeuing size in bytes
+        h = DllManager::AddALibrary("uasyncqueue", 24 * 1024); //24 * 1024 batch dequeuing size in bytes
 
         //load socketPro file streaming library at the directory ../bin/free_services/file
-        h = SPA::ServerSide::CSocketProServer::DllManager::AddALibrary("ustreamfile");
+        h = DllManager::AddALibrary("ustreamfile");
 
         //load MySQL/MariaDB socketPro server plugin library at the directory ../bin/free_services/mm_middle
-        h = SPA::ServerSide::CSocketProServer::DllManager::AddALibrary("smysql");
+        h = DllManager::AddALibrary("smysql");
 
         //load ODBC socketPro server plugin library at the directory ../bin/win or ../bin/linux
-        h = SPA::ServerSide::CSocketProServer::DllManager::AddALibrary("sodbc");
+        h = DllManager::AddALibrary("sodbc");
 
         return true; //true -- ok; false -- no listening server
-    }
-
-    virtual bool OnIsPermitted(USocket_Server_Handle h, const wchar_t* userId, const wchar_t *password, unsigned int serviceId) {
-        std::wcout << L"Ask for a service " << serviceId << L" from user " << userId << L" with password = " << password << std::endl;
-        return true;
-    }
-
-    virtual void OnClose(USocket_Server_Handle h, int errCode) {
-        CBaseService *bs = CBaseService::SeekService(h);
-        if (bs != nullptr) {
-            CSocketPeer *sp = bs->Seek(h);
-            // ......
-        }
     }
 
 private:
     CSocketProService<HelloWorldPeer> m_HelloWorld;
 
-    //SocketPro load balancing demo
-    CSocketProService<SPA::ServerSide::CDummyPeer> m_Pi;
-    CSocketProService<SPA::ServerSide::CDummyPeer> m_PiWorker;
+    //SocketPro server routing demo
+    CSocketProService<CDummyPeer> m_Pi;
+    CSocketProService<CDummyPeer> m_PiWorker;
 
-    SPA::ServerSide::CSocketProService<CHttpPeer> m_myHttp;
+    CSocketProService<CHttpPeer> m_myHttp;
 
 private:
 
     void AddServices() {
-        //load balancing
         bool ok = m_Pi.AddMe(sidPi);
         ok = m_PiWorker.AddMe(sidPiWorker);
-        ok = CSocketProServer::Router::SetRouting(sidPi, sidPiWorker);
+        ok = Router::SetRouting(sidPi, sidPiWorker);
 
         //Hello World
         ok = m_HelloWorld.AddMe(sidHelloWorld);

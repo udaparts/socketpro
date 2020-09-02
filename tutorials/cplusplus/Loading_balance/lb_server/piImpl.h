@@ -14,7 +14,7 @@ protected:
 
     virtual bool OnSettingServer(unsigned int listeningPort, unsigned int maxBacklog, bool v6) {
         //amIntegrated and amMixed not supported yet
-        CSocketProServer::Config::SetAuthenticationMethod(amOwn);
+        Config::SetAuthenticationMethod(amOwn);
 
         //add service(s) into SocketPro server
         AddServices();
@@ -22,9 +22,8 @@ protected:
     }
 
 private:
-    CSocketProService<SPA::ServerSide::CDummyPeer> m_Pi;
-    CSocketProService<SPA::ServerSide::CDummyPeer> m_PiWorker;
-    //One SocketPro server supports any number of services. You can list them here!
+    CSocketProService<CDummyPeer> m_Pi;
+    CSocketProService<CDummyPeer> m_PiWorker;
 
 private:
 
@@ -33,7 +32,7 @@ private:
         std::cout << "m_Pi.AddMe ok: " << ok << std::endl;
         ok = m_PiWorker.AddMe(sidPiWorker);
         std::cout << "m_PiWorker.AddMe ok: " << ok << std::endl;
-        ok = CSocketProServer::Router::SetRouting(sidPi, sidPiWorker);
+        ok = Router::SetRouting(sidPi, sidPiWorker);
         std::cout << "Router::SetRouting ok: " << ok << std::endl;
     }
 };

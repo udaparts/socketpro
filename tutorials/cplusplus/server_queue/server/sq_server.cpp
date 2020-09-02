@@ -6,10 +6,10 @@ class CMySocketProServer : public CSocketProServer
 protected:
     virtual bool OnSettingServer(unsigned int listeningPort, unsigned int maxBacklog, bool v6) {
         //amIntegrated and amMixed not supported yet
-        CSocketProServer::Config::SetAuthenticationMethod(amOwn);
+        Config::SetAuthenticationMethod(amOwn);
 
         //load socketpro async queue server libraries located at the directory ../socketpro/bin
-        HINSTANCE h = SPA::ServerSide::CSocketProServer::DllManager::AddALibrary("uasyncqueue", 16 * 1024); //16 * 1024 batch dequeuing size in bytes
+        HINSTANCE h = DllManager::AddALibrary("uasyncqueue", 16 * 1024); //16 * 1024 batch dequeuing size in bytes
         return (h != nullptr); //true -- ok; false -- no listening server
     }
 };
