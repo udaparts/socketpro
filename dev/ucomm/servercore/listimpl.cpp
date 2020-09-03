@@ -21,7 +21,7 @@ extern bool g_bRegistered;
 
 CServerSession *GetSvrSession(USocket_Server_Handle h, unsigned int &index);
 
-std::string g_strVersion("6.3.1.6");
+std::string g_strVersion("6.3.1.7");
 
 const char* WINAPI GetUServerSocketVersion() {
     return g_strVersion.c_str();

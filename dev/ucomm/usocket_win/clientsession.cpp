@@ -2420,6 +2420,10 @@ void CClientSession::OnBaseRequestProcessed(unsigned short nRequestId, unsigned 
             break;
         case SPA::idRouteeChanged:
             sb >> m_nRouteeCount;
+            if (m_ConnState >= SPA::ClientSide::csSwitched) {
+                WriteFromQueueFile(); //router requires this call for fast wakeup
+                Write(nullptr, 0);
+            }
             break;
         case SPA::idSetZipLevelAtSvr:
         case SPA::idTurnOnZipAtSvr:
