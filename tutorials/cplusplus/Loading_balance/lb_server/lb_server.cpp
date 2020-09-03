@@ -2,12 +2,12 @@
 #include "piImpl.h"
 
 int main(int argc, char* argv[]) {
-    CMySocketProServer MySocketProServer;
-    if (!MySocketProServer.Run(20901)) {
-        int errCode = MySocketProServer.GetErrorCode();
-        std::cout << "Error happens with code = " << errCode << std::endl;
+    CMySocketProServer server;
+    if (!server.Run(20901)) {
+        int errCode = server.GetErrorCode();
+        std::cout << "Error code: " << errCode << "\n";
     }
-    std::cout << "Press any key to stop the server ......" << std::endl;
+    std::cout << "Press any key to stop the server ......\n";
     ::getchar();
     return 0;
 }

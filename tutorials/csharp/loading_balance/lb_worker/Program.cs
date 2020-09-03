@@ -9,10 +9,9 @@ class Program
         CConnectionContext cc = new CConnectionContext(Console.ReadLine(), 20901, "lb_worker", "pwdForlb_worker");
         using (CSocketPool<PiWorker> spPi = new CSocketPool<PiWorker>(true)) //true -- automatic reconnecting
         {
-            spPi.StartSocketPool(cc, 1);
+            spPi.StartSocketPool(cc, 1, (uint)Environment.ProcessorCount);
             Console.WriteLine("Press key ENTER to shutdown the demo application ......");
             Console.ReadLine();
         }
     }
 }
-

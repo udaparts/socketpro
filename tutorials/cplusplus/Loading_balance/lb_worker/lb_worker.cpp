@@ -1,11 +1,12 @@
 #include "stdafx.h"
 #include "pi.h"
 #include <thread>
+using namespace std;
 
 int main(int argc, char* argv[]) {
     CConnectionContext cc;
-    std::cout << "This is worker. Input router server ip address ......" << std::endl;
-    std::getline(std::cin, cc.Host);
+    cout << "This is worker. Input router server ip address ......\n";
+    getline(cin, cc.Host);
 
     cc.Port = 20901;
     cc.UserId = L"My_LB_UserId";
@@ -13,8 +14,10 @@ int main(int argc, char* argv[]) {
 
     typedef CSocketPool<Pi, CClientSocket> CMyPool;
     CMyPool spPi;
-    bool ok = spPi.StartSocketPool(cc, 1, std::thread::hardware_concurrency());
-    std::cout << "Press a key to shutdown the demo application ......" << std::endl;
+    if (!spPi.StartSocketPool(cc, 1, thread::hardware_concurrency())) {
+        cout << "No connection to " << cc.Host << endl;
+    }
+    cout << "Press a key to kill the demo ......\n";
     ::getchar();
     return 0;
 }

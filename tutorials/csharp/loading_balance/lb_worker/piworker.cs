@@ -27,7 +27,7 @@ public class PiWorker : CAsyncServiceHandler
                             dX += dStep;
                             ComputeRtn += dd / (1 + dX * dX);
                         }
-                        SendRouteeResult(ComputeRtn);
+                        SendRouteeResult(ComputeRtn, dStart);
                     } 
                     break;
                 default:

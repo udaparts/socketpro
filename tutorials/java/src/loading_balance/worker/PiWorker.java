@@ -1,15 +1,17 @@
 package loading_balance.worker;
 
 import loading_balance.piConst;
+import SPA.*;
+import SPA.ClientSide.CAsyncServiceHandler;
 
-public class PiWorker extends SPA.ClientSide.CAsyncServiceHandler {
+public class PiWorker extends CAsyncServiceHandler {
 
     public PiWorker() {
         super(loading_balance.piConst.sidPiWorker);
     }
 
     @Override
-    protected void OnResultReturned(short sRequestId, SPA.CUQueue UQueue) {
+    protected void OnResultReturned(short sRequestId, CUQueue UQueue) {
         if (getRouteeRequest()) {
             switch (sRequestId) {
                 case piConst.idComputePi: {
@@ -23,7 +25,9 @@ public class PiWorker extends SPA.ClientSide.CAsyncServiceHandler {
                         dX += dStep;
                         ComputeRtn += dd / (1 + dX * dX);
                     }
-                    SendRouteeResult(new SPA.CScopeUQueue().Save(ComputeRtn));
+                    try (CScopeUQueue sb = new CScopeUQueue()) {
+                        SendRouteeResult(sb.Save(ComputeRtn).Save(dStart));
+                    }
                 }
                 break;
                 default:

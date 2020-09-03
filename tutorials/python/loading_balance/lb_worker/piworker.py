@@ -19,4 +19,4 @@ class PiWorker(CAHandler):
                 dX += dStep
                 ComputeRtn += dd / (1 + dX * dX)
             q.SetSize(0)
-            self.SendRouteeResult(Csb().SaveDouble(ComputeRtn))
+            self.SendRouteeResult(Csb().SaveDouble(ComputeRtn).SaveDouble(dStart))
