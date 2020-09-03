@@ -31,7 +31,7 @@ int main(int argc, char* argv[]) {
 
     double res;
     for (auto& f : vfR) {
-        CScopeUQueue &sb = f.get();
+        CScopeUQueue sb = f.get();
         sb >> res;
         dPi += res;
         cout << "dStart: " << sb->Load<double>() << "\n";
