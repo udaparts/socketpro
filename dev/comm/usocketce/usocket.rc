@@ -27,8 +27,8 @@ LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 3,3,1,6
- PRODUCTVERSION 6,3,1,6
+ FILEVERSION 3,3,1,7
+ PRODUCTVERSION 6,3,1,7
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
  FILEFLAGS 0x1L
@@ -46,12 +46,12 @@ BEGIN
             VALUE "Comments", "Client core of SocketPro package for WinCE"
             VALUE "CompanyName", "UDAParts      support@udaparts.com"
             VALUE "FileDescription", "Client core of SocketPro package for WinCE"
-            VALUE "FileVersion", "3, 3, 1, 6"
+            VALUE "FileVersion", "3, 3, 1, 7"
             VALUE "InternalName", "usocket"
             VALUE "LegalCopyright", "Copyright © UDAParts 2002-2020. All rights reserved."
             VALUE "OriginalFilename", "usocket"
             VALUE "ProductName", "usocket"
-            VALUE "ProductVersion", "6, 3, 1, 6"
+            VALUE "ProductVersion", "6, 3, 1, 7"
         END
     END
     BLOCK "VarFileInfo"
