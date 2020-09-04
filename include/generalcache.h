@@ -65,7 +65,7 @@ namespace SPA {
                         if (handler) {
                             handler(res, errMsg);
                         }
-                    }, defaultDb, flags, index)) {
+                    }, nullptr, nullptr, defaultDb, flags, index)) {
                 CAutoLock al(m_csCache);
                 m_mapRowset.erase(index);
                 return false;
