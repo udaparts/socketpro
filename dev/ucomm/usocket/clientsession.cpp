@@ -984,8 +984,8 @@ void CClientSession::ConnectInternally() {
     {
         //it seems that resolve is not thread-safe on linux platforms
         CAutoLock al(g_mutexResover);
-        bool chatting = false;
-        CRAutoLock rsl(m_mutex, chatting);
+        //bool chatting = false;
+        //CRAutoLock rsl(m_mutex, chatting);
         iterator = r.resolve(ipAddress, ec);
     }
     m_ec = ec;
@@ -2823,8 +2823,9 @@ void CClientSession::OnReadCompleted(const CErrorCode& Error, size_t nLen) {
                     NotifyDequeued(qHandle);
                 }
             }
-        } else
+        } else {
             break;
+        }
         RemoveRequestId(sReqId);
         if (m_ResultInfo.Size > 0)
             m_qRead.Pop(m_ResultInfo.Size);
@@ -2879,7 +2880,6 @@ void CClientSession::DoConfirmDequeue() {
         m_qRequest->DoConfirmDequeue(m_qConfirm);
         m_qConfirm.SetSize(0);
     }
-    m_qConfirm.SetSize(0);
 }
 
 void CClientSession::OnWriteCompleted(const CErrorCode& Error, size_t bytes_transferred) {
