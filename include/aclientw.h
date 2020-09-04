@@ -870,31 +870,10 @@ namespace SPA {
             static UINT64 GetCallIndex();
 
             template<typename ...Ts>
-            bool SendRequest(unsigned short reqId, const DResultHandler& rh, DDiscarded discarded, DServerException se, const Ts& ...t) {
+            bool SendRequest(unsigned short reqId, const DResultHandler& rh, const DDiscarded& discarded, const DServerException& se, const Ts& ...t) {
                 CScopeUQueue sb;
                 sb->Save(t ...);
                 return SendRequest(reqId, sb->GetBuffer(), sb->GetSize(), rh, discarded, se);
-            }
-
-            template<typename ...Ts>
-            bool SendRequest(unsigned short reqId, const DResultHandler& rh, DDiscarded discarded, const Ts& ...t) {
-                CScopeUQueue sb;
-                sb->Save(t ...);
-                return SendRequest(reqId, sb->GetBuffer(), sb->GetSize(), rh, discarded, NULL_SE);
-            }
-
-            template<typename ...Ts>
-            bool SendRequest(unsigned short reqId, const DResultHandler& rh, const Ts& ...t) {
-                CScopeUQueue sb;
-                sb->Save(t ...);
-                return SendRequest(reqId, sb->GetBuffer(), sb->GetSize(), rh, NULL_ABORTED, NULL_SE);
-            }
-
-            template<typename ...Ts>
-            bool SendRequest(unsigned short reqId, const Ts& ...t) {
-                CScopeUQueue sb;
-                sb->Save(t ...);
-                return SendRequest(reqId, sb->GetBuffer(), sb->GetSize(), NULL_RH, NULL_ABORTED, NULL_SE);
             }
 
 #if defined(PHP_ADAPTER_PROJECT) || defined(NODE_JS_ADAPTER_PROJECT)
