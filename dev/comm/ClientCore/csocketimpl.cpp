@@ -478,7 +478,7 @@ unsigned int WINAPI GetUID(USocket_Client_Handle h, wchar_t *strUserId, unsigned
             unsigned int bufferSize = (chars + 1) * sizeof (wchar_t);
             if (q.GetMaxSize() < bufferSize)
                 q.ReallocBuffer(bufferSize);
-            wchar_t *userId = (wchar_t *)q.GetBuffer();
+            wchar_t *userId = (wchar_t *) q.GetBuffer();
             unsigned int len = p->GetUID(userId, chars);
 #if defined(__ANDROID__) || defined(ANDROID)
             auto uid = SPA::Utilities::ToUTF16(userId, len);

@@ -1598,7 +1598,7 @@ std::wstring CClientSession::GetPwd() {
 #else
     SPA::CScopeUQueue su;
     SPA::Utilities::ToWide(str.c_str(), str.size(), *su);
-    return (const wchar_t*)su->GetBuffer();
+    return (const wchar_t*) su->GetBuffer();
 #endif
 }
 
@@ -1615,7 +1615,7 @@ bool CClientSession::StartQueueInternal(const char *qName, bool secure, bool deq
 #else
     SPA::CScopeUQueue tempSQ;
     SPA::Utilities::ToWide(pwdA.c_str(), pwdA.size(), *tempSQ);
-    std::wstring pwd = (const wchar_t*)tempSQ->GetBuffer();
+    std::wstring pwd = (const wchar_t*) tempSQ->GetBuffer();
 #endif
     std::string fn(qName);
     boost::trim(fn);
@@ -1638,7 +1638,7 @@ bool CClientSession::StartQueueInternal(const char *qName, bool secure, bool deq
 #else
         tempSQ->SetSize(0);
         SPA::Utilities::ToWide(id.c_str(), id.size(), *tempSQ);
-        std::wstring wid = (const wchar_t*)tempSQ->GetBuffer();
+        std::wstring wid = (const wchar_t*) tempSQ->GetBuffer();
 #endif
         m_qRequest = boost::shared_ptr<MQ_FILE::CMqFile > (new MQ_FILE::CMqFileEx(fn.c_str(), ttl, SPA::oSystemMemoryCached, wid.c_str(), pwd.c_str(), m_pQLastIndex.get(), true, dequeueShared));
     } else {
@@ -1941,7 +1941,7 @@ void CClientSession::StopQueueInternal(bool permanent) {
 #ifdef WINCE
         SPA::CScopeUQueue su;
         SPA::Utilities::ToWide(qFileName.c_str(), qFileName.size(), *su);
-        DeleteFile((const wchar_t*)su->GetBuffer());
+        DeleteFile((const wchar_t*) su->GetBuffer());
 #else
         ::remove(qFileName.c_str());
 #endif
@@ -2104,7 +2104,7 @@ void CClientSession::OnChatRequest(unsigned short nRequestId, SPA::CScopeUQueue 
     sb->Pop(bytes);
     sbCe->SetNull();
     sb >> sender.ServiceId;
-    sender.UserId = (const wchar_t*)sbCe->GetBuffer();
+    sender.UserId = (const wchar_t*) sbCe->GetBuffer();
 #else
     sb >> senderIpAddress >> sender.Port >> senderUserId >> sender.ServiceId;
     sender.UserId = senderUserId.c_str();
@@ -2114,11 +2114,11 @@ void CClientSession::OnChatRequest(unsigned short nRequestId, SPA::CScopeUQueue 
     SPA::CScopeUQueue suUTF16;
     if (SPA::g_bAdapterUTF16 && sizeof (wchar_t) != sizeof (SPA::UTF16)) {
 #if defined(__ANDROID__) || defined(ANDROID)
-        sender.UserId = (const wchar_t*)SPA::Utilities::ToUTF16(senderUserId.c_str(), (unsigned int) senderUserId.size()).c_str();
+        sender.UserId = (const wchar_t*) SPA::Utilities::ToUTF16(senderUserId.c_str(), (unsigned int) senderUserId.size()).c_str();
 #else
         SPA::CUQueue &qUTF16 = *suUTF16;
         SPA::Utilities::ToUTF16(senderUserId.c_str(), (unsigned int) senderUserId.size(), qUTF16);
-        sender.UserId = (const wchar_t*)qUTF16.GetBuffer();
+        sender.UserId = (const wchar_t*) qUTF16.GetBuffer();
 #endif
     }
 #endif
@@ -2256,7 +2256,7 @@ void CClientSession::OnBaseRequestProcessed(unsigned short nRequestId, unsigned 
             break;
         case SPA::idRouteeChanged:
             sb >> m_nRouteeCount;
-			if (m_qRequest && m_nRouteeCount == 0 && m_ConnState >= SPA::ClientSide::csSwitched) {
+            if (m_qRequest && m_nRouteeCount == 0 && m_ConnState >= SPA::ClientSide::csSwitched) {
                 m_qRequest->ReleaseMessageAttributesInDequeuing();
                 WriteFromQueueFile(); //router requires this call for fast wakeup
                 Write(nullptr, 0);

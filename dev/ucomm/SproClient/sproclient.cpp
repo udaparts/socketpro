@@ -241,7 +241,7 @@ void TestQueue(const SPA::ClientSide::CConnectionContext &cc) {
                                 break;
                         }
 #endif
-                    }, (unsigned int) 0);
+                    }, nullptr, nullptr, (unsigned int) 0);
                 }
                 //auto f0 = p->async<std::string, std::string>(idEcho, shortMessage); //crash with non-window platforms
                 if (shortOne) {
@@ -251,7 +251,7 @@ void TestQueue(const SPA::ClientSide::CConnectionContext &cc) {
                         if (s != shortMessage) {
                             std::cout << s << std::endl;
                         }
-                    }, shortMessage);
+                    }, nullptr, nullptr, shortMessage);
                 } else {
                     b = p->SendRequest(idEcho, [&sEchoTest](SPA::ClientSide::CAsyncResult & ar) {
                         std::string s;
@@ -259,7 +259,7 @@ void TestQueue(const SPA::ClientSide::CConnectionContext &cc) {
                         if (s != sEchoTest) {
                             std::cout << s << std::endl;
                         }
-                    }, sEchoTest);
+                    }, nullptr, nullptr, sEchoTest);
                 }
             }
             if (batching && shortOne)
@@ -895,14 +895,14 @@ void TestRoute1(const SPA::ClientSide::CConnectionContext & cc) {
         b = p->SendRequest(idREcho1, [](SPA::ClientSide::CAsyncResult & ar) {
             std::string res;
             ar >> res;
-                    std::cout << "Result -- 1 - 0: " << res << std::endl;
-        }, str);
+            std::cout << "Result -- 1 - 0: " << res << std::endl;
+        }, nullptr, nullptr, str);
 
         b = p->SendRequest(idREcho1, [](SPA::ClientSide::CAsyncResult & ar) {
             std::string res;
             ar >> res;
-                    std::cout << "Result -- 1 - 1: " << res << std::endl;
-        }, str);
+            std::cout << "Result -- 1 - 1: " << res << std::endl;
+        }, nullptr, nullptr, str);
 
         b = p->GetAttachedClientSocket()->GetClientQueue().EndJob();
         std::cout << "Input a number for test (negative value for stopping)" << std::endl;

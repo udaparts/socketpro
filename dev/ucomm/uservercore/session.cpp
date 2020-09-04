@@ -3217,12 +3217,11 @@ bool CServerSession::Route() {
 
     if (!receiver) {
         if (m_ReqInfo.GetQueued()) {
-			m_bFail = true;
-			NotifyDequeued();
-		}
-		else {
-			SendExceptionResultInternal(L"Routee is disconnected", "SocketPro server", m_ReqInfo.RequestId, MB_ROUTEE_DISCONNECTED);
-		}
+            m_bFail = true;
+            NotifyDequeued();
+        } else {
+            SendExceptionResultInternal(L"Routee is disconnected", "SocketPro server", m_ReqInfo.RequestId, MB_ROUTEE_DISCONNECTED);
+        }
         m_qRead.Pop(m_ReqInfo.Size);
         m_ReqInfo.Size = 0;
 
@@ -3388,16 +3387,6 @@ bool CServerSession::Process() {
                 if (m_pServiceContext->GetRouteeSize() == 0) {
                     m_mutex.lock();
                     m_bChatting = false;
-                    SendExceptionResultInternal(L"The peer routee is not available", "Inside request processing loop", m_ReqInfo.RequestId, MB_QUEUE_FILE_NOT_AVAILABLE);
-                    if (m_ReqInfo.GetQueued()) {
-                        m_qRead >> m_qa;
-                        m_ReqInfo.Size -= sizeof (m_qa);
-                        m_bFail = true;
-                        NotifyDequeued();
-                    }
-                    m_qRead.Pop(m_ReqInfo.Size);
-                    m_ReqInfo.Size = 0;
-                    m_ReqInfo.RequestId = 0;
                     continue;
                 } else {
                     m_mutex.lock();

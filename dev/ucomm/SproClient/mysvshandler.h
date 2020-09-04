@@ -103,7 +103,7 @@ public:
     }
 
     void DodequeueAsync(unsigned int messageCount) {
-        bool ok = SendRequest(idDequeue, SPA::ClientSide::NULL_RH, messageCount);
+        bool ok = SendRequest(idDequeue, nullptr, nullptr, nullptr, messageCount);
     }
 
     std::wstring BadRequest(unsigned int n, const wchar_t* input) {
@@ -115,7 +115,7 @@ public:
     }
 
     bool OpenDbAsync(const char *connString) {
-        return SendRequest(idOpenDb, SPA::ClientSide::NULL_RH, connString);
+        return SendRequest(idOpenDb, nullptr, nullptr, nullptr, connString);
     }
 
     std::string Echo(const char *input) {
