@@ -50,7 +50,7 @@ int main(int argc, char* argv[]) {
     std::cout << "Going to test latency for async/fast request" << std::endl;
     start = system_clock::now();
     for (n = 0; n < TEST_CYCLES; ++n) {
-        ok = latency->SendRequest(idEchoInt1, rh, n);
+        ok = latency->SendRequest(idEchoInt1, rh, nullptr, nullptr, n);
     }
     ok = latency->WaitAll();
     stop = system_clock::now();
@@ -61,7 +61,7 @@ int main(int argc, char* argv[]) {
     std::cout << "Going to test latency for async/slow request" << std::endl;
     start = system_clock::now();
     for (n = 0; n < TEST_CYCLES; ++n) {
-        ok = latency->SendRequest(idEchoInt2, rh, n);
+        ok = latency->SendRequest(idEchoInt2, rh, nullptr, nullptr, n);
     }
     ok = latency->WaitAll();
     stop = system_clock::now();

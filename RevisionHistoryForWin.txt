@@ -1,4 +1,4 @@
-87.	SocketPro Version 6.3.1.2-6
+87.	SocketPro Version 6.3.1.2-7
 	(a) Add support to char16_t
 	(b) Recompile all libraries after adding support of char16_t
 	(c) Fix a window server core bug related with random sequencing
@@ -7,6 +7,7 @@
 	(f) Improve window crash information output
 	(g) Fix the method Cancel bugs with secure socket and message queue
 	(h) Implement future, promise and task for various requests and samples
+	(i) Fix a server routing error related with client message queue enabled
 
 86.	SocketPro Version 6.3.1.1
 	(a) Core libraries are added with a new feature Interrupt, which could be used to interrupt a looping processing at the other end
