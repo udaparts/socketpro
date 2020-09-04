@@ -3225,8 +3225,13 @@ bool CServerSession::Route() {
     }
 
     if (!receiver) {
-        m_bFail = true;
-        NotifyDequeued();
+		if (m_ReqInfo.GetQueued()) {
+			m_bFail = true;
+			NotifyDequeued();
+		}
+		else {
+			SendExceptionResultInternal(L"Routee is disconnected", "SocketPro server", m_ReqInfo.RequestId, MB_ROUTEE_DISCONNECTED);
+		}
         m_qRead.Pop(m_ReqInfo.Size);
         m_ReqInfo.Size = 0;
 
@@ -3386,28 +3391,19 @@ bool CServerSession::Process() {
             if (Route()) {
                 continue;
             } else {
-                m_bChatting = true;
-                m_mutex.unlock();
-                if (m_pServiceContext->GetRouteeSize() == 0) {
-                    m_mutex.lock();
-                    m_bChatting = false;
-                    SendExceptionResultInternal(L"The peer routee is not available", "Inside request processing loop", m_ReqInfo.RequestId, MB_QUEUE_FILE_NOT_AVAILABLE);
-                    if (m_ReqInfo.GetQueued()) {
-                        m_qRead >> m_qa;
-                        m_ReqInfo.Size -= sizeof (m_qa);
-                        m_bFail = true;
-                        NotifyDequeued();
-                    }
-                    m_qRead.Pop(m_ReqInfo.Size);
-                    m_ReqInfo.Size = 0;
-                    m_ReqInfo.RequestId = 0;
-                    continue;
-                } else {
-                    m_mutex.lock();
-                    m_bChatting = false;
-                    //Routee's writing buffer has too many data to be sent. Therefore, stop here
-                    return false;
-                }
+				m_bChatting = true;
+				m_mutex.unlock();
+				if (m_pServiceContext->GetRouteeSize() == 0) {
+					m_mutex.lock();
+					m_bChatting = false;
+					continue;
+				}
+				else {
+					m_mutex.lock();
+					m_bChatting = false;
+					//Routee's writing buffer has too many data to be sent. Therefore, stop here
+					return false;
+				}
             }
         }
         if (!m_bDequeueTrans) {

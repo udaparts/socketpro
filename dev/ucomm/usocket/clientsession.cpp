@@ -2293,7 +2293,8 @@ void CClientSession::OnBaseRequestProcessed(unsigned short nRequestId, unsigned 
             break;
         case SPA::idRouteeChanged:
             sb >> m_nRouteeCount;
-            if (m_ConnState >= SPA::ClientSide::csSwitched) {
+            if (m_qRequest && m_nRouteeCount == 0 && m_ConnState >= SPA::ClientSide::csSwitched) {
+                m_qRequest->ReleaseMessageAttributesInDequeuing();
                 WriteFromQueueFile(); //router requires this call for fast wakeup
                 Write(nullptr, 0);
             }

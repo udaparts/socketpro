@@ -3216,8 +3216,13 @@ bool CServerSession::Route() {
     }
 
     if (!receiver) {
-        m_bFail = true;
-        NotifyDequeued();
+        if (m_ReqInfo.GetQueued()) {
+			m_bFail = true;
+			NotifyDequeued();
+		}
+		else {
+			SendExceptionResultInternal(L"Routee is disconnected", "SocketPro server", m_ReqInfo.RequestId, MB_ROUTEE_DISCONNECTED);
+		}
         m_qRead.Pop(m_ReqInfo.Size);
         m_ReqInfo.Size = 0;
 

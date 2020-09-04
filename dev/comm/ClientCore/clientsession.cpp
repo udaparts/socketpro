@@ -150,10 +150,8 @@ void CClientSession::TimerHandler() {
         case SPA::ClientSide::csSwitched:
         {
             Read();
-            if (m_qRequest)
-                WriteFromQueueFile();
-            else
-                Write(nullptr, 0);
+            WriteFromQueueFile();
+            Write(nullptr, 0);
         }
         case SPA::ClientSide::csConnected:
             if (m_qReqIdWait.GetSize() / sizeof (SPA::CStreamHeader) > 0 && (now > lastOne + m_nRecvTimeout)) {
@@ -2258,6 +2256,11 @@ void CClientSession::OnBaseRequestProcessed(unsigned short nRequestId, unsigned 
             break;
         case SPA::idRouteeChanged:
             sb >> m_nRouteeCount;
+			if (m_qRequest && m_nRouteeCount == 0 && m_ConnState >= SPA::ClientSide::csSwitched) {
+                m_qRequest->ReleaseMessageAttributesInDequeuing();
+                WriteFromQueueFile(); //router requires this call for fast wakeup
+                Write(nullptr, 0);
+            }
             break;
         case SPA::idSetZipLevelAtSvr:
         case SPA::idTurnOnZipAtSvr:
