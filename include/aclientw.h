@@ -845,7 +845,7 @@ namespace SPA {
             }
             void SetSvsID(unsigned int serviceId);
             virtual bool SendRequest(unsigned short reqId, const unsigned char *pBuffer, unsigned int size, const DResultHandler& rh, const DDiscarded& discarded = nullptr, const DServerException& serverException = nullptr);
-            bool SendRequest(unsigned short reqId, const DResultHandler& rh, const DDiscarded& discarded = nullptr, const DServerException& se = nullptr);
+            bool SendRequest(unsigned short reqId, const DResultHandler& rh = nullptr, const DDiscarded& discarded = nullptr, const DServerException& se = nullptr);
 
             inline CClientSocket *GetAttachedClientSocket() {
                 return m_pClientSocket;
