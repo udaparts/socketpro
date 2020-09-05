@@ -2293,11 +2293,6 @@ void CClientSession::OnBaseRequestProcessed(unsigned short nRequestId, unsigned 
             break;
         case SPA::idRouteeChanged:
             sb >> m_nRouteeCount;
-            if (m_qRequest && m_nRouteeCount == 0 && m_ConnState >= SPA::ClientSide::csSwitched) {
-                m_qRequest->ReleaseMessageAttributesInDequeuing();
-                WriteFromQueueFile(); //router requires this call for fast wakeup
-                Write(nullptr, 0);
-            }
             break;
         case SPA::idSetZipLevelAtSvr:
         case SPA::idTurnOnZipAtSvr:
@@ -2873,11 +2868,21 @@ bool CClientSession::SortQueueConfirm(const MQ_FILE::CDequeueConfirmInfo &dci0, 
 
 void CClientSession::DoConfirmDequeue() {
     if (m_qConfirm.GetSize() > 0) {
+        unsigned int confirms = 0;
         MQ_FILE::CDequeueConfirmInfo *start = (MQ_FILE::CDequeueConfirmInfo*)m_qConfirm.GetBuffer();
         assert((m_qConfirm.GetSize() % sizeof (MQ_FILE::CDequeueConfirmInfo)) == 0);
         unsigned int count = m_qConfirm.GetSize() / sizeof (MQ_FILE::CDequeueConfirmInfo);
         std::sort(start, start + count, SortQueueConfirm);
-        m_qRequest->DoConfirmDequeue(m_qConfirm);
+        if ((m_ServerInfo.SockMinorVersion & IS_ROUTING_PARTNER) == IS_ROUTING_PARTNER) {
+            start = (MQ_FILE::CDequeueConfirmInfo*)m_qConfirm.GetBuffer();
+            for (unsigned int n = 0; n < count; ++n) {
+                MQ_FILE::QAttr &qa = start[n].QA;
+                confirms += (m_qRequest->ConfirmDequeue(qa.MessagePos & (~(MQ_FILE::QAttr::RANGE_DEQUEUED_END | MQ_FILE::QAttr::RANGE_DEQUEUED_START)), qa.MessageIndex, start[n].Fail) ? 1 : 0);
+            }
+        } else {
+            confirms = m_qRequest->DoConfirmDequeue(m_qConfirm);
+        }
+        assert(confirms == count);
         m_qConfirm.SetSize(0);
     }
 }
