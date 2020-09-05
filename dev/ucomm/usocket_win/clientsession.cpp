@@ -2732,6 +2732,7 @@ void CClientSession::OnReadCompleted(const CErrorCode& Error, size_t nLen) {
     unsigned int len = (unsigned int) nLen;
     if (Error) {
         CAutoLock sl(m_mutex);
+        m_ec = Error;
         CloseInternal(Error.value());
         return;
     }
