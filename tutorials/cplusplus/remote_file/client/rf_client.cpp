@@ -10,7 +10,7 @@ int main(int argc, char* argv[]) {
     cc.UserId = L"MyUserId";
     cc.Password = L"MyPassword";
 
-    typedef CSocketPool<CStreamingFile, CClientSocket> CMyPool;
+    typedef CSocketPool<CStreamingFile> CMyPool;
 #ifndef NDEBUG
     CMyPool spRf(true, 7200000); //large timeout for better debugging
 #else

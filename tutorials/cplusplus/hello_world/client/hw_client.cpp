@@ -3,7 +3,7 @@
 #include "../../uqueue_demo/mystruct.h"
 
 int main(int argc, char* argv[]) {
-    typedef CSocketPool<HelloWorld, CClientSocket> CMyPool;
+    typedef CSocketPool<HelloWorld> CMyPool;
     CMyPool spHw;
     CConnectionContext cc("localhost", 20901, L"MyUserId", L"MyPassword");
 

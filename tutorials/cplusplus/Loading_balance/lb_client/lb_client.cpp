@@ -10,7 +10,7 @@ int main(int argc, char* argv[]) {
     cc.UserId = L"MyUserId";
     cc.Password = L"MyPassword";
 
-    typedef CSocketPool<Pi, CClientSocket> CMyPool;
+    typedef CSocketPool<Pi> CMyPool;
     CMyPool spPi;
     spPi.SetQueueName("pi_queue");
     if (!spPi.StartSocketPool(cc, 1)) {
@@ -36,6 +36,7 @@ int main(int argc, char* argv[]) {
         dPi += res;
         cout << "dStart: " << sb->Load<double>() << "\n";
     }
+    cout.precision(14);
     cout << "pi: " << dPi << ", returns: " << vfR.size() <<
             "\nPress a key to shutdown the demo ......\n";
     ::getchar();

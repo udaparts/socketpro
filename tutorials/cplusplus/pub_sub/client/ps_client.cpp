@@ -36,7 +36,7 @@ int main(int argc, char* argv[]) {
     //CA file is located at the directory ../SocketProRoot/bin
     CClientSocket::SSL::SetVerifyLocation("ca.cert.pem"); //linux
 #endif
-    typedef CSocketPool<HelloWorld, CClientSocket> CMyPool;
+    typedef CSocketPool<HelloWorld> CMyPool;
     CMyPool spHw;
 
     spHw.DoSslServerAuthentication = [](CMyPool *sender, CClientSocket * cs)->bool {

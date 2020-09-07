@@ -3,7 +3,7 @@
 
 #define TEST_QUEUE_KEY  "queue_name_0"
 using namespace std;
-typedef CSocketPool<CAsyncQueue, CClientSocket> CMyPool;
+typedef CSocketPool<CAsyncQueue> CMyPool;
 void TestEnqueue(CMyPool::PHandler &sq);
 future<CAsyncQueue::DeqInfo> TestDequeue(CMyPool::PHandler &sq);
 

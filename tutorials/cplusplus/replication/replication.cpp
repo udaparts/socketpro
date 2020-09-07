@@ -5,7 +5,7 @@
 void SetMyStruct(CMyStruct &ms);
 
 int main(int argc, char* argv[]) {
-    typedef CReplication<HelloWorld, CClientSocket> CMyReplication;
+    typedef CReplication<HelloWorld> CMyReplication;
 
 #ifdef WIN32_64
     CClientSocket::QueueConfigure::SetWorkDirectory("c:\\sp_test");

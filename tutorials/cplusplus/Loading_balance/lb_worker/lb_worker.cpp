@@ -12,7 +12,7 @@ int main(int argc, char* argv[]) {
     cc.UserId = L"My_LB_UserId";
     cc.Password = L"My_LB_Password";
 
-    typedef CSocketPool<Pi, CClientSocket> CMyPool;
+    typedef CSocketPool<Pi> CMyPool;
     CMyPool spPi;
     if (!spPi.StartSocketPool(cc, 1, thread::hardware_concurrency())) {
         cout << "No connection to " << cc.Host << endl;

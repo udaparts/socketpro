@@ -6,30 +6,20 @@
 #include "../../../include/sqlite/usqlite_server.h"
 #include "../../../include/udatabase.h"
 
-class CMySocketProServer : public CSocketProServer {
+class CMyServer : public CSocketProServer {
 protected:
 
     virtual bool OnIsPermitted(USocket_Server_Handle h, const wchar_t* userId, const wchar_t* password, unsigned int serviceId) {
-        std::wcout << L"Ask for a service " << serviceId << L" from user " << userId << L" with password = " << password << std::endl;
+        std::wcout << L"Ask for a service " << serviceId << L" from user " << userId << L" with password = " << password << "\n";
         return true;
     }
 
-    virtual void OnClose(USocket_Server_Handle h, int errCode) {
-        CBaseService* bs = CBaseService::SeekService(h);
-        if (bs != nullptr) {
-            CSocketPeer* sp = bs->Seek(h);
-            // ......
-        }
-    }
-
     virtual bool OnSettingServer(unsigned int listeningPort, unsigned int maxBacklog, bool v6) {
-        //amIntegrated and amMixed not supported yet
         Config::SetAuthenticationMethod(amOwn);
 
         //add service(s) into SocketPro server
         AddServices();
 
-        //create four chat groups or topics
         bool ok = PushManager::AddAChatGroup(1, L"R&D Department");
         ok = PushManager::AddAChatGroup(2, L"Sales Department");
         ok = PushManager::AddAChatGroup(3, L"Management Department");
@@ -79,21 +69,21 @@ private:
         ok = m_HelloWorld.AddSlowRequest(idSleep);
 
         //HTTP and WebSocket services
-        //Copy all files inside directories ../socketpro/bin/js and ../socketpro/tutorials/webtests into the directory where the application is located
+        //Copy uloader.js & uwebsocket.js at ../socketpro/bin/js and earthcity.jpg & ws0.htm ../socketpro/tutorials/webtests into the directory where the application is located
         ok = m_myHttp.AddMe(SPA::sidHTTP);
-        ok = m_myHttp.AddSlowRequest(SPA::ServerSide::idGet);
-        ok = m_myHttp.AddSlowRequest(SPA::ServerSide::idPost);
-        ok = m_myHttp.AddSlowRequest(SPA::ServerSide::idUserRequest);
+        ok = m_myHttp.AddSlowRequest(idGet);
+        ok = m_myHttp.AddSlowRequest(idPost);
+        ok = m_myHttp.AddSlowRequest(idUserRequest);
     }
 };
 
 int main(int argc, char* argv[]) {
-    CMySocketProServer MySocketProServer;
-    if (!MySocketProServer.Run(20901)) {
-        int errCode = MySocketProServer.GetErrorCode();
-        std::cout << "Error happens with code = " << errCode << std::endl;
+    CMyServer server;
+    if (!server.Run(20901)) {
+        int errCode = server.GetErrorCode();
+        std::cout << "Error code: " << errCode << "\n";
     }
-    std::cout << "Press any key to stop the server ......" << std::endl;
+    std::cout << "Press a key to stop the server ......\n";
     ::getchar();
     return 0;
 }
