@@ -1,4 +1,3 @@
-
 #ifndef _UDAPARTS_ASYNC_ODBC_HANDLER_H_
 #define _UDAPARTS_ASYNC_ODBC_HANDLER_H_
 
@@ -10,11 +9,8 @@ namespace SPA {
         typedef CAsyncDBHandler<SPA::Odbc::sidOdbc> COdbcBase;
 
         class COdbc : public COdbcBase {
-            //no copy constructor supported
-            COdbc(const COdbc& ao);
-
-            //no assignment operator supported
-            COdbc& operator=(const COdbc& ao);
+            COdbc(const COdbc& ao) = delete;
+            COdbc& operator=(const COdbc& ao) = delete;
 
         public:
 

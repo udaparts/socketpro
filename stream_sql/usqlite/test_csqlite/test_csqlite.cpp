@@ -1,6 +1,7 @@
 ﻿#include "stdafx.h"
 #include <iostream>
 #include "../../../include/async_sqlite.h"
+
 using namespace SPA::UDB;
 using namespace SPA::ClientSide;
 using namespace std;
@@ -83,8 +84,7 @@ int main(int argc, char* argv[]) {
     }
     //print out all received rowsets
     int index = 0;
-    cout << endl;
-    cout << "+++++ Start rowsets +++\n";
+    cout << "\n+++++ Start rowsets +++\n";
     for (auto &pair : rowset_array) {
         cout << "Statement index: " << index;
         if (pair.first.size()) {
@@ -110,11 +110,11 @@ vector<CSqlFuture> TestBatch(shared_ptr<CSqlite> sqlite, CRowsetArray &ra) {
         vParam, [&ra](CSqlite &handler, CDBVariantArray & vData) {
             //rowset data come here
             assert((vData.size() % handler.GetColumnInfo().size()) == 0);
-            CDBVariantArray &rd = ra.back().second;
-            if (rd.empty())
-                rd = move(vData);
+            CDBVariantArray &va = ra.back().second;
+            if (va.empty())
+                va = move(vData);
             else
-                move(vData.begin(), vData.end(), back_inserter(rd));
+                move(vData.begin(), vData.end(), back_inserter(va));
         }, [&ra](CSqlite & handler) {
             //rowset header comes here
             auto &vColInfo = handler.GetColumnInfo();
@@ -136,11 +136,11 @@ vector<CSqlFuture> TestBatch(shared_ptr<CSqlite> sqlite, CRowsetArray &ra) {
         vParam, [&ra](CSqlite &handler, CDBVariantArray & vData) {
             //rowset data come here
             assert((vData.size() % handler.GetColumnInfo().size()) == 0);
-            CDBVariantArray &rd = ra.back().second;
-            if (rd.empty())
-                rd = move(vData);
+            CDBVariantArray &va = ra.back().second;
+            if (va.empty())
+                va = move(vData);
             else
-                move(vData.begin(), vData.end(), back_inserter(rd));
+                move(vData.begin(), vData.end(), back_inserter(va));
         }, [&ra](CSqlite & handler) {
             //rowset header comes here
             auto &vColInfo = handler.GetColumnInfo();
@@ -173,11 +173,11 @@ CSqlFuture TestPreparedStatements(shared_ptr<CSqlite> sqlite, CRowsetArray &ra) 
     return sqlite->execute(vData, [&ra](CSqlite &handler, CDBVariantArray & vData) {
         //rowset data come here
         assert((vData.size() % handler.GetColumnInfo().size()) == 0);
-        CDBVariantArray &rd = ra.back().second;
-        if (rd.empty())
-            rd = move(vData);
+        CDBVariantArray &va = ra.back().second;
+        if (va.empty())
+            va = move(vData);
         else
-            move(vData.begin(), vData.end(), back_inserter(rd));
+            move(vData.begin(), vData.end(), back_inserter(va));
     }, [&ra](CSqlite & handler) {
         //rowset header comes here
         auto &vColInfo = handler.GetColumnInfo();
@@ -255,11 +255,11 @@ CSqlFuture InsertBLOBByPreparedStatement(shared_ptr<CSqlite> sqlite, CRowsetArra
     return sqlite->execute(vData, [&ra](CSqlite &handler, CDBVariantArray & vData) {
         //rowset data come here
         assert((vData.size() % handler.GetColumnInfo().size()) == 0);
-        CDBVariantArray &rd = ra.back().second;
-        if (rd.empty())
-            rd = move(vData);
+        CDBVariantArray &va = ra.back().second;
+        if (va.empty())
+            va = move(vData);
         else
-            move(vData.begin(), vData.end(), back_inserter(rd));
+            move(vData.begin(), vData.end(), back_inserter(va));
     }, [&ra](CSqlite & handler) {
         //rowset header comes here
         auto &vColInfo = handler.GetColumnInfo();
