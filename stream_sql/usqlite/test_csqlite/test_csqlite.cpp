@@ -110,11 +110,11 @@ vector<CSqlFuture> TestBatch(shared_ptr<CSqlite> sqlite, CRowsetArray &ra) {
         vParam, [&ra](CSqlite &handler, CDBVariantArray & vData) {
             //rowset data come here
             assert((vData.size() % handler.GetColumnInfo().size()) == 0);
-            CDBVariantArray &row_data = ra.back().second;
-            for (size_t n = 0; n < vData.size(); ++n) {
-                auto &d = vData[n];
-                row_data.push_back(move(d)); //avoid memory repeatedly allocation/de-allocation for better performance
-            }
+            CDBVariantArray &rd = ra.back().second;
+            if (rd.empty())
+                rd = move(vData);
+            else
+                move(vData.begin(), vData.end(), back_inserter(rd));
         }, [&ra](CSqlite & handler) {
             //rowset header comes here
             auto &vColInfo = handler.GetColumnInfo();
@@ -136,12 +136,11 @@ vector<CSqlFuture> TestBatch(shared_ptr<CSqlite> sqlite, CRowsetArray &ra) {
         vParam, [&ra](CSqlite &handler, CDBVariantArray & vData) {
             //rowset data come here
             assert((vData.size() % handler.GetColumnInfo().size()) == 0);
-            CDBVariantArray &row_data = ra.back().second;
-            for (size_t n = 0; n < vData.size(); ++n) {
-                auto &d = vData[n];
-                //avoid memory repeatedly allocation/de-allocation for better performance
-                row_data.push_back(move(d));
-            }
+            CDBVariantArray &rd = ra.back().second;
+            if (rd.empty())
+                rd = move(vData);
+            else
+                move(vData.begin(), vData.end(), back_inserter(rd));
         }, [&ra](CSqlite & handler) {
             //rowset header comes here
             auto &vColInfo = handler.GetColumnInfo();
@@ -174,12 +173,11 @@ CSqlFuture TestPreparedStatements(shared_ptr<CSqlite> sqlite, CRowsetArray &ra) 
     return sqlite->execute(vData, [&ra](CSqlite &handler, CDBVariantArray & vData) {
         //rowset data come here
         assert((vData.size() % handler.GetColumnInfo().size()) == 0);
-        CDBVariantArray &row_data = ra.back().second;
-        for (size_t n = 0; n < vData.size(); ++n) {
-            auto &d = vData[n];
-            //avoid memory repeatedly allocation/de-allocation for better performance
-            row_data.push_back(move(d));
-        }
+        CDBVariantArray &rd = ra.back().second;
+        if (rd.empty())
+            rd = move(vData);
+        else
+            move(vData.begin(), vData.end(), back_inserter(rd));
     }, [&ra](CSqlite & handler) {
         //rowset header comes here
         auto &vColInfo = handler.GetColumnInfo();
@@ -257,12 +255,11 @@ CSqlFuture InsertBLOBByPreparedStatement(shared_ptr<CSqlite> sqlite, CRowsetArra
     return sqlite->execute(vData, [&ra](CSqlite &handler, CDBVariantArray & vData) {
         //rowset data come here
         assert((vData.size() % handler.GetColumnInfo().size()) == 0);
-        CDBVariantArray &row_data = ra.back().second;
-        for (size_t n = 0; n < vData.size(); ++n) {
-            CDBVariant &d = vData[n];
-            //avoid memory repeatedly allocation/de-allocation for better performance
-            row_data.push_back(move(d));
-        }
+        CDBVariantArray &rd = ra.back().second;
+        if (rd.empty())
+            rd = move(vData);
+        else
+            move(vData.begin(), vData.end(), back_inserter(rd));
     }, [&ra](CSqlite & handler) {
         //rowset header comes here
         auto &vColInfo = handler.GetColumnInfo();
