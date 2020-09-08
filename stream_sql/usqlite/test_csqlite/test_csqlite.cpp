@@ -251,7 +251,7 @@ CSqlFuture InsertBLOBByPreparedStatement(shared_ptr<CSqlite> sqlite, CRowsetArra
     vData.push_back(6254000.0);
     vData.push_back(3);
 
-    //execute multiple sets of parameter data in one short
+    //execute multiple sets of parameter data in one call
     return sqlite->execute(vData, [&ra](CSqlite &handler, CDBVariantArray & vData) {
         //rowset data come here
         assert((vData.size() % handler.GetColumnInfo().size()) == 0);
