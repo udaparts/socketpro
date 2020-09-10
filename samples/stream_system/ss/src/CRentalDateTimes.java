@@ -1,4 +1,3 @@
-
 import SPA.*;
 import java.sql.Timestamp;
 
@@ -10,15 +9,17 @@ public class CRentalDateTimes implements IUSerializer {
     public Timestamp LastUpdate = new Timestamp(0);
 
     @Override
-    public void LoadFrom(CUQueue q) {
+    public CUQueue LoadFrom(CUQueue q) {
         rental_id = q.LoadLong();
         Rental = q.LoadTimestamp();
         Return = q.LoadTimestamp();
         LastUpdate = q.LoadTimestamp();
+        return q;
     }
 
     @Override
-    public void SaveTo(CUQueue q) {
+    public CUQueue SaveTo(CUQueue q) {
         q.Save(rental_id).Save(Rental).Save(Return).Save(LastUpdate);
+        return q;
     }
 }

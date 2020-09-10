@@ -8,14 +8,16 @@ public class CMaxMinAvg implements IUSerializer {
     public double Avg = 0;
 
     @Override
-    public void LoadFrom(CUQueue q) {
+    public CUQueue LoadFrom(CUQueue q) {
         Max = q.LoadDouble();
         Min = q.LoadDouble();
         Avg = q.LoadDouble();
+        return q;
     }
 
     @Override
-    public void SaveTo(CUQueue q) {
+    public CUQueue SaveTo(CUQueue q) {
         q.Save(Max).Save(Min).Save(Avg);
+        return q;
     }
 }

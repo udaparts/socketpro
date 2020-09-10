@@ -1,8 +1,7 @@
 
 import SPA.*;
-import SPA.UDB.*;
 import SPA.ClientSide.*;
-import java.util.concurrent.*;
+import java.util.*;
 
 public class Client_java {
 
@@ -24,25 +23,17 @@ public class Client_java {
                 String res = cert.Verify(ret);
                 return (ret.Value == 0);
             };
+            //master.setQueueName("mcqueue");
             boolean ok = master.StartSocketPool(cc, 1);
             if (!ok) {
-                System.out.println("Failed in connecting to remote middle tier server, and press any key to close the application ......");
+                System.out.println("No connection to remote middle tier server, and press any key to close the demo ......");
                 in.nextLine();
                 return;
             }
-            CDataSet cache = master.getCache(); //accessing real-time update cache
+            //accessing real-time update cache
+            CDataSet cache = master.getCache();
             CWebAsyncHandler handler = master.Seek();
-            ok = handler.GetMasterSlaveConnectedSessions((m, s) -> {
-                System.out.format("master connections: %d, slave connections: %d%n", m, s);
-            });
-            ok = handler.QueryPaymentMaxMinAvgs(filter, (mma, res, errMsg) -> {
-                if (res != 0) {
-                    System.out.format("QueryPaymentMaxMinAvgs error code: %d, error message: %s%n", res, errMsg);
-                } else {
-                    System.out.format("QueryPaymentMaxMinAvgs max: %f, min: %f, avg: %f%n", mma.Max, mma.Min, mma.Avg);
-                }
-            });
-            CDBVariantArray vData = new CDBVariantArray();
+            SPA.UDB.CDBVariantArray vData = new SPA.UDB.CDBVariantArray();
             vData.add(1); //Google company id
             vData.add("Ted Cruz");
             vData.add(new java.sql.Timestamp(System.currentTimeMillis()));
@@ -52,84 +43,95 @@ public class Client_java {
             vData.add(2); //Microsoft company id
             vData.add("Hillary Clinton");
             vData.add(new java.sql.Timestamp(System.currentTimeMillis()));
-            UFuture<Boolean> f = new UFuture<>();
-            ok = handler.UploadEmployees(vData, (res, errMsg, vId) -> {
+            CUQueue sb = new CUQueue();
+            try {
+                UFuture<CScopeUQueue> fms = handler.sendRequest(Consts.idGetMasterSlaveConnectedSessions);
+                sb.Save(filter);
+                UFuture<CScopeUQueue> fmma = handler.sendRequest(Consts.idQueryMaxMinAvgs, sb);
+                sb.SetSize(0);
+                vData.SaveTo(sb);
+                UFuture<CScopeUQueue> fue = handler.sendRequest(Consts.idUploadEmployees, sb);
+                sb.SetSize(0);
+                CScopeUQueue rb = fms.get();
+                System.out.format("master connections: %d, slave connections: %d%n", rb.LoadInt(), rb.LoadInt());
+                rb = fmma.get();
+                int res = rb.LoadInt();
+                String errMsg = rb.LoadString();
+                CMaxMinAvg mma = rb.Load(CMaxMinAvg.class);
                 if (res != 0) {
-                    System.out.format("UploadEmployees Error code = %d, error message = %s%n", res, errMsg);
+                    System.out.format("QueryPaymentMaxMinAvgs error code: %d, message: %s%n", res, errMsg);
+                } else {
+                    System.out.format("QueryPaymentMaxMinAvgs max: %f, min: %f, avg: %f%n", mma.Max, mma.Min, mma.Avg);
+                }
+                rb = fue.get(5, java.util.concurrent.TimeUnit.SECONDS);
+                res = rb.LoadInt();
+                errMsg = rb.LoadString();
+                CLongArray vId = rb.Load(CLongArray.class);
+                if (res != 0) {
+                    System.out.format("UploadEmployees Error code: %d, message: %s%n", res, errMsg);
                 } else {
                     vId.stream().forEach((id) -> {
                         System.out.println("Last id: " + id);
                     });
                 }
-                f.set(true);
-            }, (h, canceled) -> {
-                if (canceled) {
-                    System.out.println("Request canceled");
-                } else {
-                    System.out.println("Socket closed");
+                System.out.println("Press ENTER key to test requests parallel processing and fault tolerance at server side ......");
+                in.nextLine();
+                Deque<UFuture<CScopeUQueue>> qF = new ArrayDeque<>();
+                sb.Save(filter);
+                CMaxMinAvg sum_mma = new CMaxMinAvg();
+                long start = System.currentTimeMillis();
+                for (int n = 0; n < 10000; ++n) {
+                    qF.add(handler.sendRequest(Consts.idQueryMaxMinAvgs, sb));
                 }
-                f.set(true);
-            });
-            if (ok) {
-                try {
-                    f.get(5000, TimeUnit.MILLISECONDS);
-                } catch (InterruptedException | TimeoutException | ExecutionException err) {
-                    System.out.println("The above requests are not completed in 5 seconds");
-                }
-            } else {
-                System.out.println("Socket already closed before sending request");
-            }
-            System.out.println("Press ENTER key to test requests parallel processing and fault tolerance at server side ......");
-            in.nextLine();
-            CMaxMinAvg sum_mma = new CMaxMinAvg();
-            long start = System.currentTimeMillis();
-            RefObject<Integer> returned = new RefObject<>(0);
-            for (int n = 0; n < 10000; ++n) {
-                if (!handler.QueryPaymentMaxMinAvgs(filter, (mma, res, errMsg) -> {
+                int returns = qF.size();
+                while (qF.size() > 0) {
+                    rb = qF.removeFirst().get();
+                    res = rb.LoadInt();
+                    errMsg = rb.LoadString();
                     if (res != 0) {
-                        System.out.format("QueryPaymentMaxMinAvgs call error code: %d, error message: %s%n", res, errMsg);
+                        System.out.format("QueryPaymentMaxMinAvgs call error code: %d, message: %s%n", res, errMsg);
                     } else {
+                        mma = rb.Load(CMaxMinAvg.class);
                         sum_mma.Avg += mma.Avg;
                         sum_mma.Max += mma.Max;
                         sum_mma.Min += mma.Min;
                     }
-                    returned.Value += 1;
-                })) {
-                    break;
                 }
-            }
-            if (!handler.WaitAll()) {
-                System.out.println("Socket closed");
-            }
-            System.out.format("Time required: %d milliseconds for %d requests%n", System.currentTimeMillis() - start, returned.Value);
-            System.out.format("QueryPaymentMaxMinAvgs sum_max: %f, sum_min: %f, sum_avg: %f%n", sum_mma.Max, sum_mma.Min, sum_mma.Avg);
-            System.out.println("Press ENTER key to test requests server parallel processing, fault tolerance and sequence returning ......");
-            in.nextLine();
-            SPA.RefObject<Long> prev_rental_id = new SPA.RefObject<>((long) 0);
-            CWebAsyncHandler.DRentalDateTimes rdt = (dates, res, errMsg) -> {
-                if (res != 0) {
-                    System.out.format("GetRentalDateTimes error code: %d, error message: %s%n", res, errMsg);
-                    prev_rental_id.Value = (long) 0;
-                } else if (dates.rental_id == 0) {
-                    System.out.format("GetRentalDateTimes rental_id=%d not available%n", dates.rental_id);
-                    prev_rental_id.Value = (long) 0;
-                } else {
-                    if (0 == prev_rental_id.Value || dates.rental_id == prev_rental_id.Value + 1) {
-                        System.out.format("GetRentalDateTimes rental_id=%d and dates (%s, %s, %s)%n", dates.rental_id, dates.Rental.toString(), dates.Return.toString(), dates.LastUpdate.toString());
+                System.out.format("Time required: %d milliseconds for %d requests%n", System.currentTimeMillis() - start, returns);
+                System.out.format("QueryPaymentMaxMinAvgs sum_max: %f, sum_min: %f, sum_avg: %f%n", sum_mma.Max, sum_mma.Min, sum_mma.Avg);
+                System.out.println("Press ENTER key to test requests server parallel processing, fault tolerance and sequence returning ......");
+                in.nextLine();
+                for (long n = 0; n < 16000; ++n) {
+                    sb.SetSize(0);
+                    sb.Save(n + 1);
+                    qF.add(handler.sendRequest(Consts.idGetRentalDateTimes, sb));
+                }
+                long prev_rental_id = 0;
+                System.out.println("GetRentalDateTimes:");
+                while (qF.size() > 0) {
+                    rb = qF.removeFirst().get();
+                    CRentalDateTimes dates = rb.Load(CRentalDateTimes.class);
+                    res = rb.LoadInt();
+                    errMsg = rb.LoadString();
+                    if (res != 0) {
+                        System.out.format("\terror code: %d, message: %s%n", res, errMsg);
+                    } else if (dates.LastUpdate.getTime() <= 0 && dates.Rental.getTime() <= 0 && dates.Return.getTime() <= 0) {
+                        System.out.format("\trental_id: %d not available%n", dates.rental_id);
                     } else {
-                        System.out.println("****** GetRentalDateTimes returned out of order ******");
+                        if (0 == prev_rental_id || dates.rental_id == prev_rental_id + 1) {
+                            //System.out.format("\trental_id: %d and dates (%s, %s, %s)%n", dates.rental_id, dates.Rental.toString(), dates.Return.toString(), dates.LastUpdate.toString());
+                        } else {
+                            System.out.println("\t****** returned out of order ******");
+                        }
                     }
-                    prev_rental_id.Value = dates.rental_id;
+                    prev_rental_id = dates.rental_id;
                 }
-            };
-            //all requests should be returned in sequence (max rental_id = 16049)
-            for (int n = 0; n < 1000; ++n) {
-                if (!handler.GetRentalDateTimes(n + 1, rdt)) {
-                    break;
-                }
-            }
-            if (!handler.WaitAll()) {
-                System.out.println("Socket closed");
+            } catch (java.util.concurrent.TimeoutException ex) {
+                System.out.println("The request UploadEmployees not completed in 5 seconds");
+            } catch (CServerError | CSocketError ex) {
+                System.out.println(ex);
+            } catch (Exception ex) {
+                System.out.println(ex);
             }
             System.out.println("Press a key to shutdown the demo application ......");
             in.nextLine();

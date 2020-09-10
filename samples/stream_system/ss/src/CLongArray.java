@@ -5,7 +5,7 @@ import java.util.ArrayList;
 public class CLongArray extends ArrayList<Long> implements IUSerializer {
 
     @Override
-    public void LoadFrom(CUQueue q) {
+    public CUQueue LoadFrom(CUQueue q) {
 
         clear();
         int size = q.LoadInt();
@@ -14,13 +14,15 @@ public class CLongArray extends ArrayList<Long> implements IUSerializer {
             add(n);
             --size;
         }
+        return q;
     }
 
     @Override
-    public void SaveTo(CUQueue q) {
+    public CUQueue SaveTo(CUQueue q) {
         q.Save(size());
         for (long n : this) {
             q.Save(n);
         }
+        return q;
     }
 }

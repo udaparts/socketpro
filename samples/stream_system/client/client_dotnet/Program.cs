@@ -35,12 +35,12 @@ class Program
             ok = master.StartSocketPool(cc, 1);
             if (!ok)
             {
-                Console.WriteLine("No connection to remote middle tier server, and press any key to close the application ......");
+                Console.WriteLine("No connection to remote middle tier server, and press a key to kill the demo ......");
                 Console.ReadLine();
                 return;
             }
-
-            CDataSet cache = master.Cache; //accessing real-time update cache
+            //accessing real-time update cache
+            CDataSet cache = master.Cache;
             CWebAsyncHandler handler = master.Seek();
             CDBVariantArray vData = new CDBVariantArray();
             vData.Add(1); //Google company id
@@ -133,12 +133,10 @@ class Program
                     if (res != 0)
                     {
                         Console.WriteLine("\terror code: {0}, message: {1}", res, errMsg);
-                        prev_rental_id = 0;
                     }
                     else if (dates.LastUpdate.Ticks == 0 && dates.Rental.Ticks == 0 && dates.Return.Ticks == 0)
                     {
                         Console.WriteLine("\trental_id: {0} not available", dates.rental_id);
-                        prev_rental_id = 0;
                     }
                     else
                     {
@@ -148,8 +146,8 @@ class Program
                         }
                         else
                             Console.WriteLine("\t****** returned out of order ******");
-                        prev_rental_id = dates.rental_id;
                     }
+                    prev_rental_id = dates.rental_id;
                     sb.Dispose();
                 }
             }
@@ -169,7 +167,7 @@ class Program
             {
                 Console.WriteLine(ex);
             }
-            Console.WriteLine("Press a key to shutdown the demo application ......");
+            Console.WriteLine("Press a key to kill the demo ......");
             Console.ReadLine();
         }
     }

@@ -42,12 +42,13 @@ int main(int argc, char* argv[]) {
     };
     //master.SetQueueName("mcqueue");
     if (!master.StartSocketPool(cc, 1)) {
-        cout << "No connection to remote middle tier server, and press any key to close the application ......\n";
+        cout << "No connection to remote middle tier server, and press a key to kill the demo ......\n";
         ::getchar();
         return 1;
     }
     auto handler = master.Seek();
-    CDataSet &cache = master.Cache; //accessing real-time update cache
+    //accessing real-time update cache
+    CDataSet &cache = master.Cache;
 
     SYSTEMTIME st;
     CDBVariantArray vData;
@@ -99,7 +100,7 @@ int main(int argc, char* argv[]) {
         }
         auto status = fue.wait_for(chrono::seconds(5));
         if (status == future_status::timeout) {
-            cout << "The above requests are not completed in 5 seconds\n";
+            cout << "The request UploadEmployees not completed in 5 seconds\n";
         } else {
             int res;
             wstring errMsg;
@@ -151,10 +152,8 @@ int main(int argc, char* argv[]) {
             if (res) {
                 cout << "\terror code: " << res << ", error message: ";
                 wcout << errMsg << endl;
-                prev_rental_id = 0;
             } else if (dates.Rental == 0 && dates.Return == 0 && dates.LastUpdate == 0) {
                 cout << "\trental_id: " << dates.rental_id << " not available\n";
-                prev_rental_id = 0;
             } else {
                 UDateTime rental_date(dates.Rental), return_date(dates.Return), laste_update(dates.LastUpdate);
                 if (0 == prev_rental_id || dates.rental_id == prev_rental_id + 1) {
@@ -162,8 +161,8 @@ int main(int argc, char* argv[]) {
                 }
                 else
                     cout << "\t****** returned out of order ******\n";
-                prev_rental_id = dates.rental_id;
             }
+            prev_rental_id = dates.rental_id;
             qF.pop_front();
         }
     }
@@ -172,7 +171,7 @@ int main(int argc, char* argv[]) {
         wcout << ex.ToString() << endl;
     }
 
-    cout << "Press a key to shutdown the demo ......\n";
+    cout << "Press a key to kill the demo ......\n";
     ::getchar();
     return 0;
 }
