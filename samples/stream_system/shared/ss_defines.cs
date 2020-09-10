@@ -63,20 +63,14 @@ namespace ss
         public long rental_id = 0;
         public CRentalDateTimes()
         {
-            Rental = new DateTime(1900, 1, 1);
-            Return = new DateTime(1900, 1, 1);
-            LastUpdate = new DateTime(1900, 1, 1);
         }
         public CRentalDateTimes(long rentaLId)
         {
             rental_id = rentaLId;
-            Rental = new DateTime(1900, 1, 1);
-            Return = new DateTime(1900, 1, 1);
-            LastUpdate = new DateTime(1900, 1, 1);
         }
-        public DateTime Rental;
-        public DateTime Return;
-        public DateTime LastUpdate;
+        public DateTime Rental = new DateTime(0);
+        public DateTime Return = new DateTime(0);
+        public DateTime LastUpdate = new DateTime(0);
         public void LoadFrom(CUQueue UQueue)
         {
             UQueue.Load(out rental_id).Load(out Rental).Load(out Return).Load(out LastUpdate);
@@ -84,7 +78,16 @@ namespace ss
 
         public void SaveTo(CUQueue UQueue)
         {
-            UQueue.Save(rental_id).Save(Rental).Save(Return).Save(LastUpdate);
+            UQueue.Save(rental_id);
+            if (Rental.Ticks == 0 || Return.Ticks == 0 || LastUpdate.Ticks == 0)
+            {
+                ulong ticks = 0;
+                UQueue.Save(ticks).Save(ticks).Save(ticks);
+            }
+            else
+            {
+                UQueue.Save(Rental).Save(Return).Save(LastUpdate);
+            }
         }
     };
 }

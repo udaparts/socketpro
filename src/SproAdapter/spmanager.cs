@@ -1,5 +1,4 @@
-﻿
-using System;
+﻿using System;
 using System.IO;
 using System.Runtime.Serialization;
 using System.Runtime.Serialization.Json;
@@ -595,7 +594,6 @@ namespace SocketProAdapter.ClientSide {
                         break;
                 }
                 pool.QueueName = pc.Queue;
-                pool.QueueAutoMerge = pc.AutoMerge;
                 pc.Pool = pool;
                 CConnectionContext[,] ppCC = new CConnectionContext[pc.Threads, pc.Hosts.Count];
                 for (uint i = 0; i < pc.Threads; ++i) {
@@ -606,6 +604,7 @@ namespace SocketProAdapter.ClientSide {
                 if (!pool.StartSocketPool(ppCC)) {
                     throw new Exception("There is no connection establised for pool " + poolKey);
                 }
+                pool.QueueAutoMerge = pc.AutoMerge;
                 return pool;
             }
         }

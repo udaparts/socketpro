@@ -119,7 +119,7 @@ namespace SocketProAdapter
         private CUQueue m_UQueue;
         private static ConcurrentQueue<CUQueue> m_sQueue = new ConcurrentQueue<CUQueue>();
         #region IDisposable Members
-        void IDisposable.Dispose()
+        public void Dispose()
         {
             CleanUp();
         }

@@ -18,9 +18,8 @@ public:
     static void CreateTestDB();
     static CSQLMasterPool<true, CMysql> *Master;
     static CSQLMasterPool<true, CMysql>::CSlavePool *Slave;
-    static std::vector<SPA::CDBString> FrontCachedTables;
+    static vector<CDBString> FrontCachedTables;
 
 private:
     CSocketProService<CYourPeerOne> m_SSPeer;
 };
-

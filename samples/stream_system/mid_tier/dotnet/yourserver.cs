@@ -27,6 +27,8 @@ class CYourServer : CSocketProServer
         //amIntegrated and amMixed not supported yet
         Config.AuthenticationMethod = tagAuthenticationMethod.amOwn;
         SetChatGroups();
+        //results could be returned randomly and not in order
+        m_SSPeer.ReturnRandom = true;
         return true;
     }
 
@@ -50,15 +52,5 @@ class CYourServer : CSocketProServer
             string sql = "CREATE DATABASE IF NOT EXISTS mysample character set utf8 collate utf8_general_ci;USE mysample;CREATE TABLE IF NOT EXISTS COMPANY(ID BIGINT PRIMARY KEY NOT NULL,Name CHAR(64)NOT NULL);CREATE TABLE IF NOT EXISTS EMPLOYEE(EMPLOYEEID BIGINT PRIMARY KEY AUTO_INCREMENT,CompanyId BIGINT NOT NULL,Name NCHAR(64)NOT NULL,JoinDate DATETIME(6)DEFAULT NULL,FOREIGN KEY(CompanyId)REFERENCES COMPANY(id));USE sakila;INSERT INTO mysample.COMPANY(ID,Name)VALUES(1,'Google Inc.'),(2,'Microsoft Inc.'),(3,'Amazon Inc.')";
             bool ok = handler.Execute(sql);
         }
-    }
-
-    public override bool Run(uint port, uint maxBacklog, bool v6Supported)
-    {
-        bool ok = base.Run(port, maxBacklog, v6Supported);
-        if (ok)
-        {
-            m_SSPeer.ReturnRandom = true; //results could be returned randomly and not in order
-        }
-        return ok;
     }
 }

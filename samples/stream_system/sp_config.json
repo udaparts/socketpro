@@ -1,8 +1,7 @@
 ﻿{
-  "WorkingDir": "c:\\ProgramData\\webdir",
   "Hosts": {
     "db_master": {
-      "Host": "windesk",
+      "Host": "debian",
       "Port": 20902,
       "UserId": "root",
       "Password": "Smash123",
@@ -17,7 +16,7 @@
       "Password": "Smash123"
     },
     "db_slave_remote": {
-      "Host": "192.168.2.172",
+      "Host": "192.168.2.117",
       "Port": 20902,
       "UserId": "root",
       "Password": "Smash123",
@@ -33,21 +32,20 @@
         "db_master"
       ],
       "DefaultDb": "sakila",
-      "Queue": "mdb",
-      "AutoMerge": false,
       "Slaves": {
         "slavedb0": {
           "Hosts": [
             "db_slave_0",
             "db_slave_0",
             "db_slave_0",
-            "db_master",
-            "db_slave_remote"
+			"db_master",
+			"db_slave_remote",
+            "db_master"
           ],
           "Queue": "sdb",
           "AutoMerge": true,
           "RecvTimeout": 60000,
-          "Threads": 2
+          "Threads": 1
         },
         "db_no_backup": {
           "Hosts": [

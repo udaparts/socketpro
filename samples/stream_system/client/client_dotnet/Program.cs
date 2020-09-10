@@ -3,8 +3,10 @@ using SocketProAdapter;
 using SocketProAdapter.ClientSide;
 using SocketProAdapter.UDB;
 using System.Threading.Tasks;
+using System.Collections.Generic;
 
 using CMaster = SocketProAdapter.CMasterPool<CWebAsyncHandler, SocketProAdapter.CDataSet>;
+using ss;
 
 class Program {
     static void Main(string[] args) {
@@ -25,25 +27,16 @@ class Program {
                 string res = cert.Verify(out ret);
                 return (ret == 0);
             };
+            //master.QueueName = "mcqueue";
             ok = master.StartSocketPool(cc, 1);
             if (!ok) {
-                Console.WriteLine("Failed in connecting to remote middle tier server, and press any key to close the application ......");
+                Console.WriteLine("No connection to remote middle tier server, and press any key to close the application ......");
                 Console.ReadLine();
                 return;
             }
 
             CDataSet cache = master.Cache; //accessing real-time update cache
             CWebAsyncHandler handler = master.Seek();
-            ok = handler.GetMasterSlaveConnectedSessions((m, s) => {
-                Console.WriteLine("master connections: {0}, slave connections: {1}", m, s);
-            });
-            ok = handler.QueryPaymentMaxMinAvgs(filter, (mma, res, errMsg) => {
-                if (res != 0)
-                    Console.WriteLine("QueryPaymentMaxMinAvgs error code: {0}, error message: {1}", res, errMsg);
-                else
-                    Console.WriteLine("QueryPaymentMaxMinAvgs max: {0}, min: {1}, avg: {2}", mma.Max, mma.Min, mma.Avg);
-            });
-
             CDBVariantArray vData = new CDBVariantArray();
             vData.Add(1); //Google company id
             vData.Add("Ted Cruz");
@@ -55,70 +48,114 @@ class Program {
             vData.Add("Hillary Clinton");
             vData.Add(DateTime.Now);
 
-            TaskCompletionSource<bool> tcs = new TaskCompletionSource<bool>();
-            ok = handler.UploadEmployees(vData, (res, errMsg, vId) => {
+            try
+            {
+                var tms = handler.Async(Consts.idGetMasterSlaveConnectedSessions);
+                var tmma = handler.Async(Consts.idQueryMaxMinAvgs, filter);
+                var tue = handler.Async(Consts.idUploadEmployees, vData);
+                var sb = tms.Result;
+                Console.WriteLine("master connections: {0}, slave connections: {1}", sb.Load<uint>(), sb.Load<uint>());
+                sb = tmma.Result;
+                int res = sb.Load<int>();
+                string errMsg = sb.Load<string>();
                 if (res != 0)
-                    Console.WriteLine("UploadEmployees Error code = {0}, , error message = {1}", res, errMsg);
-                else {
-                    foreach (object id in vId) {
-                        Console.WriteLine("Last id: " + id);
+                    Console.WriteLine("QueryPaymentMaxMinAvgs error code: {0}, error message: {1}", res, errMsg);
+                else
+                {
+                    CMaxMinAvg mma = sb.Load<CMaxMinAvg>();
+                    Console.WriteLine("QueryPaymentMaxMinAvgs max: {0}, min: {1}, avg: {2}", mma.Max, mma.Min, mma.Avg);
+                }
+                if (tue.Wait(5000))
+                {
+                    sb = tue.Result;
+                    res = sb.Load<int>();
+                    errMsg = sb.Load<string>();
+                    if (res != 0)
+                        Console.WriteLine("UploadEmployees Error code: {0}, , message: {1}", res, errMsg);
+                    else
+                    {
+                        var vId = sb.Load<CInt64Array>();
+                        foreach (object id in vId)
+                        {
+                            Console.WriteLine("Last id: " + id);
+                        }
                     }
                 }
-                tcs.SetResult(true);
-            }, (h, canceled) => {
-                Console.WriteLine("Socket closed or request cancelled");
-                tcs.SetResult(true);
-            });
-            if (ok) {
-                if (!tcs.Task.Wait(5000))
-                    Console.WriteLine("The above requests are not completed in 5 seconds");
-            } else
-                Console.WriteLine("Socket already closed before sending request");
+                else
+                {
+                    Console.WriteLine("The request UploadEmployees not completed in 5 seconds");
+                }
+                Console.WriteLine("Press ENTER key to test requests parallel processing and fault tolerance at server side ......");
+                Console.ReadLine();
+                CMaxMinAvg sum_mma = new CMaxMinAvg();
+                Queue<Task<CScopeUQueue>> qT = new Queue<Task<CScopeUQueue>>();
+                DateTime start = DateTime.Now;
+                for (uint n = 0; n < 10000; ++n)
+                    qT.Enqueue(handler.Async(Consts.idQueryMaxMinAvgs, filter));
 
-            Console.WriteLine("Press ENTER key to test requests parallel processing and fault tolerance at server side ......");
-            Console.ReadLine();
-            ss.CMaxMinAvg sum_mma = new ss.CMaxMinAvg();
-            DateTime start = DateTime.Now;
-            uint returned = 0;
-            for (uint n = 0; n < 10000; ++n) {
-                ok = handler.QueryPaymentMaxMinAvgs(filter, (mma, res, errMsg) => {
+                int count = qT.Count;
+                while (qT.Count > 0)
+                {
+                    sb = qT.Dequeue().Result;
+                    res = sb.Load<int>();
+                    errMsg = sb.Load<string>();
                     if (res != 0)
                         Console.WriteLine("QueryPaymentMaxMinAvgs error code: {0}, error message: {1}", res, errMsg);
-                    else {
+                    else
+                    {
+                        CMaxMinAvg mma = sb.Load<CMaxMinAvg>();
                         sum_mma.Avg += mma.Avg;
                         sum_mma.Max += mma.Max;
                         sum_mma.Min += mma.Min;
                     }
-                    ++returned;
-                });
-            }
-            ok = handler.WaitAll();
-            Console.WriteLine("Time required: {0} seconds for {1} requests", (DateTime.Now - start).TotalSeconds, returned);
-            Console.WriteLine("QueryPaymentMaxMinAvgs sum_max: {0}, sum_min: {1}, sum_avg: {2}", sum_mma.Max, sum_mma.Min, sum_mma.Avg);
-
-            Console.WriteLine("Press ENTER key to test requests server parallel processing, fault tolerance and sequence returning ......");
-            Console.ReadLine();
-            long prev_rental_id = 0;
-            CWebAsyncHandler.DRentalDateTimes rdt = (dates, res, errMsg) => {
-                if (res != 0) {
-                    Console.WriteLine("GetRentalDateTimes call error code: {0}, error message: {1}", res, errMsg);
-                    prev_rental_id = 0;
-                } else if (dates.rental_id == 0) {
-                    Console.WriteLine("GetRentalDateTimes call rental_id={0} not available", dates.rental_id);
-                    prev_rental_id = 0;
-                } else {
-                    if (0 == prev_rental_id || dates.rental_id == prev_rental_id + 1)
-                        Console.WriteLine("GetRentalDateTimes call rental_id={0} and dates ({1}, {2}, {3})", dates.rental_id, dates.Rental, dates.Return, dates.LastUpdate);
-                    else
-                        Console.WriteLine("****** GetRentalDateTimes returned out of order ******");
-                    prev_rental_id = dates.rental_id;
+                    sb.Dispose();
                 }
-            };
-            //all requests should be returned in sequence (max rental_id = 16049)
-            for (int n = 0; n < 1000; ++n) {
-                ok = handler.GetRentalDateTimes(n + 1, rdt);
+                Console.WriteLine("Time required: {0} seconds for {1} requests", (DateTime.Now - start).TotalSeconds, count);
+                Console.WriteLine("QueryPaymentMaxMinAvgs sum_max: {0}, sum_min: {1}, sum_avg: {2}", sum_mma.Max, sum_mma.Min, sum_mma.Avg);
+
+                Console.WriteLine("Press ENTER key to test requests server parallel processing, fault tolerance and sequence returning ......");
+                Console.ReadLine();
+                for (long n = 0; n < 16000; ++n)
+                    qT.Enqueue(handler.Async(Consts.idGetRentalDateTimes, n + 1));
+                long prev_rental_id = 0;
+                Console.WriteLine("GetRentalDateTimes:");
+                while (qT.Count > 0)
+                {
+                    sb = qT.Dequeue().Result;
+                    CRentalDateTimes dates = sb.Load<CRentalDateTimes>();
+                    res = sb.Load<int>();
+                    errMsg = sb.Load<string>();
+                    if (res != 0)
+                    {
+                        Console.WriteLine("\terror code: {0}, message: {1}", res, errMsg);
+                        prev_rental_id = 0;
+                    }
+                    else if (dates.LastUpdate.Ticks == 0 && dates.Rental.Ticks == 0 && dates.Return.Ticks == 0)
+                    {
+                        Console.WriteLine("\trental_id: {0} not available", dates.rental_id);
+                        prev_rental_id = 0;
+                    }
+                    else
+                    {
+                        if (0 == prev_rental_id || dates.rental_id == prev_rental_id + 1)
+                        {
+                            //Console.WriteLine("rental_id={0} and dates ({1}, {2}, {3})", dates.rental_id, dates.Rental, dates.Return, dates.LastUpdate);
+                        }
+                        else
+                            Console.WriteLine("\t****** returned out of order ******");
+                        prev_rental_id = dates.rental_id;
+                    }
+                    sb.Dispose();
+                }
             }
-            handler.WaitAll();
+            catch(CSocketError ex)
+            {
+                Console.WriteLine(ex);
+            }
+            catch(Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
             Console.WriteLine("Press a key to shutdown the demo application ......");
             Console.ReadLine();
         }
