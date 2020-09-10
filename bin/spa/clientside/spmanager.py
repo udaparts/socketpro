@@ -280,7 +280,6 @@ class SpManager(object):
                     pool = CMasterPool.CSlavePool(CCachedBaseHandler, pc['DefaultDb'], pc['RecvTimeout'], pc['AutoConn'], pc['ConnTimeout'], svsId)
             else:
                 raise Exception('Unexpected error')
-            pool.QueueAutoMerge = pc['AutoMerge'];
             if 'Queue' in pc:
                 pool.QueueName = pc['Queue'];
             pc['Pool'] =  pool
@@ -309,5 +308,7 @@ class SpManager(object):
                     mcc[threads][j] = SpManager._ToCC(SpManager._sp_config['Hosts'][key])
                     j += 1
             if not pool.StartSocketPoolEx(mcc):
+                pool.QueueAutoMerge = pc['AutoMerge'];
                 raise Exception('There is no connection establised for pool ' + poolKey)
+            pool.QueueAutoMerge = pc['AutoMerge'];
             return pool

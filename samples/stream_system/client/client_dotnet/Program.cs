@@ -8,8 +8,10 @@ using System.Collections.Generic;
 using CMaster = SocketProAdapter.CMasterPool<CWebAsyncHandler, SocketProAdapter.CDataSet>;
 using ss;
 
-class Program {
-    static void Main(string[] args) {
+class Program
+{
+    static void Main(string[] args)
+    {
         Console.WriteLine("Remote middle tier host: ");
         string host = Console.ReadLine();
         Console.WriteLine("Sakila.payment filter: ");
@@ -20,8 +22,10 @@ class Program {
         //CA file is located at the directory ../socketpro/bin
         bool ok = CClientSocket.SSL.SetVerifyLocation("ca.cert.pem");
 #endif
-        using (CMaster master = new CMaster("")) {
-            master.DoSslServerAuthentication += (pool, cs) => {
+        using (CMaster master = new CMaster(""))
+        {
+            master.DoSslServerAuthentication += (pool, cs) =>
+            {
                 int ret;
                 IUcert cert = cs.UCert;
                 string res = cert.Verify(out ret);
@@ -29,7 +33,8 @@ class Program {
             };
             //master.QueueName = "mcqueue";
             ok = master.StartSocketPool(cc, 1);
-            if (!ok) {
+            if (!ok)
+            {
                 Console.WriteLine("No connection to remote middle tier server, and press any key to close the application ......");
                 Console.ReadLine();
                 return;
@@ -148,13 +153,21 @@ class Program {
                     sb.Dispose();
                 }
             }
-            catch(CSocketError ex)
+            catch (AggregateException ex)
+            {
+                foreach (Exception e in ex.InnerExceptions)
+                {
+                    //An exception from server (CServerError), Socket closed after sending a request (CSocketError) or request canceled (CSocketError),
+                    Console.WriteLine(e);
+                }
+            }
+            catch (CSocketError ex)
             {
                 Console.WriteLine(ex);
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
-                Console.WriteLine(ex.Message);
+                Console.WriteLine(ex);
             }
             Console.WriteLine("Press a key to shutdown the demo application ......");
             Console.ReadLine();

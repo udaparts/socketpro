@@ -2695,7 +2695,6 @@ class CJsManager {
         }
         pool.AutoConn = pc.AutoConn;
         pool.QueueName = pc.Queue;
-        pool.AutoMerge = pc.AutoMerge;
         pool.ConnTimeout = pc.ConnTimeout;
         pool.RecvTimeout = pc.RecvTimeout;
         jh[keyPool].Pool = pool;
@@ -2705,6 +2704,7 @@ class CJsManager {
             sessions.push(jcObject.Hosts[key]);
         }
         var ok = pool.Start(sessions, sessions.length);
+        pool.AutoMerge = pc.AutoMerge;
         if (!ok) {
             throw JSON.stringify(pool.Error);
         }

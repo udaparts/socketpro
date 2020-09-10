@@ -187,7 +187,6 @@ public final class SpManager {
                     break;
             }
             pc.Pool.setQueueName(pc.getQueue());
-            pc.Pool.setQueueAutoMerge(pc.getAutoMerge());
             pc.Pool.DoSslServerAuthentication = new CSocketPool.DDoSslServerAuthentication() {
                 @Override
                 public boolean invoke(CSocketPool sender, CClientSocket cs) {
@@ -195,23 +194,11 @@ public final class SpManager {
                 }
             };
             if (!pc.Pool.StartSocketPool(ppCC)) {
+                pc.Pool.setQueueAutoMerge(pc.getAutoMerge());
                 throw new Exception("There is no connection establised for pool " + poolKey);
             }
+            pc.Pool.setQueueAutoMerge(pc.getAutoMerge());
             return pc.Pool;
         }
     }
-    /*
-     @SuppressWarnings("unchecked")
-     public static void main(String[] args
-     ) {
-     try {
-     CSpConfig jc = SetConfig(false, "c:\\cyetest\\socketpro\\src\\njadapter\\sp_config.json");
-     String s = jc.getConfig();
-     CMysql mysql = (CMysql) SeekHandler("masterdb");
-     mysql = null;
-     } catch (Exception err) {
-     System.out.println(err.toString());
-     }
-     }
-     */
 }
