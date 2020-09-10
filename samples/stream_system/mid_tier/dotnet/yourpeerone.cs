@@ -81,8 +81,9 @@ class CYourPeerOne : CCacheBasePeer
         }, (h, vData) =>
         {
             myDates.Rental = (DateTime)vData[0];
-            myDates.Return = (DateTime)vData[0];
-            myDates.LastUpdate = (DateTime)vData[0];
+            if (vData[1] != null && vData[1] is DateTime)
+                myDates.Return = (DateTime)vData[1];
+            myDates.LastUpdate = (DateTime)vData[2];
         });
         //should always be true because slave pool has queue name set for request backup
         System.Diagnostics.Debug.Assert(ok);

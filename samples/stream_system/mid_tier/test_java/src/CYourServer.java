@@ -1,4 +1,3 @@
-
 import SPA.*;
 import SPA.ServerSide.*;
 import SPA.ClientSide.*;
@@ -18,7 +17,7 @@ public class CYourServer extends CSocketProServer {
     public static CSqlMasterPool<CMysql> Master = null;
     public static CSqlMasterPool<CMysql>.CSlavePool Slave = null;
     public static ArrayList<String> FrontCachedTables = new ArrayList<>();
-    
+
     @ServiceAttr(ServiceID = Consts.sidStreamSystem)
     private final CSocketProService<CYourPeerOne> m_SSPeer = new CSocketProService<>(CYourPeerOne.class);
 
@@ -31,6 +30,8 @@ public class CYourServer extends CSocketProServer {
     protected boolean OnSettingServer() {
         Config.setAuthenticationMethod(tagAuthenticationMethod.amOwn);
         SetChatGroups();
+        //results could be returned randomly and not in order
+        m_SSPeer.setReturnRandom(true);
         return true;
     }
 
@@ -40,15 +41,6 @@ public class CYourServer extends CSocketProServer {
         return true;
     }
 
-    @Override
-    public boolean Run(int port, int maxBacklog, boolean v6Supported) {
-        boolean ok = super.Run(port, maxBacklog, v6Supported);
-        if (ok) {
-            m_SSPeer.setReturnRandom(true); //results could be returned randomly and not in order
-        }
-        return ok;
-    }
-
     public static void CreateTestDB() {
         CMysql handler = Master.Seek();
         if (handler != null) {
@@ -56,5 +48,4 @@ public class CYourServer extends CSocketProServer {
             boolean ok = handler.Execute(sql);
         }
     }
-
 }

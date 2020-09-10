@@ -9,9 +9,9 @@ public class Test_java {
     @SuppressWarnings("unchecked")
     public static void main(String[] args) {
         java.util.Scanner in = new java.util.Scanner(System.in);
-        //load settings from some configuration file
         try {
-            CSpConfig sc = SpManager.SetConfig(true, "C:\\cyetest\\socketpro\\samples\\stream_system\\sp_config.json");
+            //load settings from some configuration file
+            CSpConfig sc = SpManager.SetConfig(true, "sp_config.json");
             CYourServer.Master = (CSqlMasterPool<CMysql>) SpManager.GetPool("masterdb");
             CYourServer.Slave = (CSqlMasterPool<CMysql>.CSlavePool) SpManager.GetPool("slavedb0");
             CYourServer.FrontCachedTables.add("sakila.actor");
@@ -47,18 +47,20 @@ public class Test_java {
                 CYourServer.CreateTestDB();
                 System.out.println("Starting middle tier server ......");
                 if (CUQueue.DEFAULT_OS == tagOperationSystem.osWin) {
-                    server.UseSSL("C:\\cyetest\\socketpro\\bin\\intermediate.pfx", "", "mypassword");
+                    server.UseSSL("intermediate.pfx", "", "mypassword");
                 } else {
                     server.UseSSL("intermediate.cert.pem", "intermediate.key.pem", "mypassword");
                 }
                 if (!server.Run(20911)) {
-                    System.out.println("Error happens with error message = " + SPA.ServerSide.CSocketProServer.getErrorMessage());
+                    System.out.println("Error message: " + SPA.ServerSide.CSocketProServer.getErrorMessage());
                 }
+                System.out.println("Press ENTER key to kill the demo ......");
+                in.nextLine();
             }
         } catch (Exception err) {
             System.out.println(err.toString());
+            System.out.println("Press ENTER key to kill the demo ......");
+            in.nextLine();
         }
-        System.out.println("Press any key to shut down the application ......");
-        in.nextLine();
     }
 }

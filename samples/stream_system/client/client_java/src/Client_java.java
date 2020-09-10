@@ -96,6 +96,7 @@ public class Client_java {
                         sum_mma.Max += mma.Max;
                         sum_mma.Min += mma.Min;
                     }
+                    rb.close();
                 }
                 System.out.format("Time required: %d milliseconds for %d requests%n", System.currentTimeMillis() - start, returns);
                 System.out.format("QueryPaymentMaxMinAvgs sum_max: %f, sum_min: %f, sum_avg: %f%n", sum_mma.Max, sum_mma.Min, sum_mma.Avg);
@@ -125,6 +126,7 @@ public class Client_java {
                         }
                     }
                     prev_rental_id = dates.rental_id;
+                    rb.close();
                 }
             } catch (java.util.concurrent.TimeoutException ex) {
                 System.out.println("The request UploadEmployees not completed in 5 seconds");

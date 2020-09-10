@@ -71,6 +71,8 @@ namespace ss
         public DateTime Rental = new DateTime(0);
         public DateTime Return = new DateTime(0);
         public DateTime LastUpdate = new DateTime(0);
+
+        private const ulong ZERO_TICK = 0;
         public void LoadFrom(CUQueue UQueue)
         {
             UQueue.Load(out rental_id).Load(out Rental).Load(out Return).Load(out LastUpdate);
@@ -79,15 +81,18 @@ namespace ss
         public void SaveTo(CUQueue UQueue)
         {
             UQueue.Save(rental_id);
-            if (Rental.Ticks == 0 || Return.Ticks == 0 || LastUpdate.Ticks == 0)
-            {
-                ulong ticks = 0;
-                UQueue.Save(ticks).Save(ticks).Save(ticks);
-            }
+            if (Rental == null || Rental.Ticks == 0)
+                UQueue.Save(ZERO_TICK);
             else
-            {
-                UQueue.Save(Rental).Save(Return).Save(LastUpdate);
-            }
+                UQueue.Save(Rental);
+            if (Return == null || Return.Ticks == 0)
+                UQueue.Save(ZERO_TICK);
+            else
+                UQueue.Save(Return);
+            if (LastUpdate == null || LastUpdate.Ticks == 0)
+                UQueue.Save(ZERO_TICK);
+            else
+                UQueue.Save(LastUpdate);
         }
     };
 }

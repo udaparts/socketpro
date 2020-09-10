@@ -52,7 +52,8 @@ void CYourPeerOne::GetRentalDateTimes(CUQueue& buffer, UINT64 reqIndex) {
         }
     }, [dates](CMysql& h, UDB::CDBVariantArray& vData) {
         dates->Rental = vData[0].ullVal; //date time in high precision format
-        dates->Return = vData[1].ullVal;
+        if (vData[1].vt == VT_DATE)
+            dates->Return = vData[1].ullVal;
         dates->LastUpdate = vData[2].ullVal;
     });
     assert(ok); //should always be true because slave pool has queue name set for request backup
