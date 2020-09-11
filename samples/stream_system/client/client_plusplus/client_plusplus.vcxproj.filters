@@ -56,9 +56,6 @@
     <ClCompile Include="..\..\..\..\include\membuffer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="webasynchandler.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\..\..\include\tablecache.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>

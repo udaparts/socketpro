@@ -161,7 +161,6 @@
     <ClCompile Include="..\..\..\..\include\membuffer.cpp" />
     <ClCompile Include="..\..\..\..\include\tablecache.cpp" />
     <ClCompile Include="client_plusplus.cpp" />
-    <ClCompile Include="webasynchandler.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
