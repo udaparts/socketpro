@@ -15,6 +15,7 @@ class Program
         Console.WriteLine("Remote middle tier host: ");
         string host = Console.ReadLine();
         Console.WriteLine("Sakila.payment filter: ");
+        //for example: payment_id between 1 and 49
         string filter = Console.ReadLine();
         CConnectionContext cc = new CConnectionContext(host, 20911, "SomeUserId", "A_Password_For_SomeUserId", tagEncryptionMethod.TLSv1);
 #if WIN32_64
@@ -61,28 +62,30 @@ class Program
                 var sb = tms.Result;
                 Console.WriteLine("master connections: {0}, slave connections: {1}", sb.Load<uint>(), sb.Load<uint>());
                 sb = tmma.Result;
+                Console.WriteLine("QueryPaymentMaxMinAvgs");
                 int res = sb.Load<int>();
                 string errMsg = sb.Load<string>();
                 if (res != 0)
-                    Console.WriteLine("QueryPaymentMaxMinAvgs error code: {0}, error message: {1}", res, errMsg);
+                    Console.WriteLine("\terror code: {0}, error message: {1}", res, errMsg);
                 else
                 {
                     CMaxMinAvg mma = sb.Load<CMaxMinAvg>();
-                    Console.WriteLine("QueryPaymentMaxMinAvgs max: {0}, min: {1}, avg: {2}", mma.Max, mma.Min, mma.Avg);
+                    Console.WriteLine("\tmax: {0}, min: {1}, avg: {2}", mma.Max, mma.Min, mma.Avg);
                 }
                 if (tue.Wait(5000))
                 {
                     sb = tue.Result;
                     res = sb.Load<int>();
                     errMsg = sb.Load<string>();
+                    Console.WriteLine("UploadEmployees");
                     if (res != 0)
-                        Console.WriteLine("UploadEmployees Error code: {0}, , message: {1}", res, errMsg);
+                        Console.WriteLine("\tError code: {0}, message: {1}", res, errMsg);
                     else
                     {
                         var vId = sb.Load<CInt64Array>();
                         foreach (object id in vId)
                         {
-                            Console.WriteLine("Last id: " + id);
+                            Console.WriteLine("\tLast id: " + id);
                         }
                     }
                 }
@@ -90,7 +93,7 @@ class Program
                 {
                     Console.WriteLine("The request UploadEmployees not completed in 5 seconds");
                 }
-                Console.WriteLine("Press ENTER key to test requests parallel processing and fault tolerance at server side ......");
+                Console.WriteLine("Press ENTER key to test requests server parallel processing ......");
                 Console.ReadLine();
                 CMaxMinAvg sum_mma = new CMaxMinAvg();
                 Queue<Task<CScopeUQueue>> qT = new Queue<Task<CScopeUQueue>>();
@@ -99,13 +102,14 @@ class Program
                     qT.Enqueue(handler.Async(Consts.idQueryMaxMinAvgs, filter));
 
                 int count = qT.Count;
+                Console.WriteLine("QueryPaymentMaxMinAvgs");
                 while (qT.Count > 0)
                 {
                     sb = qT.Dequeue().Result;
                     res = sb.Load<int>();
                     errMsg = sb.Load<string>();
                     if (res != 0)
-                        Console.WriteLine("QueryPaymentMaxMinAvgs error code: {0}, error message: {1}", res, errMsg);
+                        Console.WriteLine("error code: {0}, message: {1}", res, errMsg);
                     else
                     {
                         CMaxMinAvg mma = sb.Load<CMaxMinAvg>();
@@ -115,10 +119,10 @@ class Program
                     }
                     sb.Dispose();
                 }
-                Console.WriteLine("Time required: {0} seconds for {1} requests", (DateTime.Now - start).TotalSeconds, count);
-                Console.WriteLine("QueryPaymentMaxMinAvgs sum_max: {0}, sum_min: {1}, sum_avg: {2}", sum_mma.Max, sum_mma.Min, sum_mma.Avg);
+                Console.WriteLine("\tTime required: {0} seconds for {1} requests", (DateTime.Now - start).TotalSeconds, count);
+                Console.WriteLine("\tsum_max: {0}, sum_min: {1}, sum_avg: {2}", sum_mma.Max, sum_mma.Min, sum_mma.Avg);
 
-                Console.WriteLine("Press ENTER key to test requests server parallel processing, fault tolerance and sequence returning ......");
+                Console.WriteLine("Press ENTER key to test server parallel processing and sequence returning ......");
                 Console.ReadLine();
                 for (long n = 0; n < 16000; ++n)
                     qT.Enqueue(handler.Async(Consts.idGetRentalDateTimes, n + 1));

@@ -5,9 +5,9 @@ import java.sql.Timestamp;
 public class CRentalDateTimes implements IUSerializer {
 
     public long rental_id = 0;
-    public Timestamp Rental = new Timestamp(0);
-    public Timestamp Return = new Timestamp(0);
-    public Timestamp LastUpdate = new Timestamp(0);
+    public Timestamp Rental = null;
+    public Timestamp Return = null;
+    public Timestamp LastUpdate = null;
     private final static long ZERO_TICK = 0;
 
     @Override

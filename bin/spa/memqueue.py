@@ -893,6 +893,9 @@ class CScopeUQueue:
     def Load(self, obj):
         return self._Buffer_.Load(obj)
 
+    def LoadByClass(self, cls):
+        return self._Buffer_.LoadByClass(cls)
+
     def SaveInt(self, n):
         self._Buffer_.SaveInt(n)
         return self

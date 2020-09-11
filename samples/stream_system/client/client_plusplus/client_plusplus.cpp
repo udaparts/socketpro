@@ -13,10 +13,9 @@ int main(int argc, char* argv[]) {
     getline(cin, cc.Host);
     cout << "Sakila.payment filter: \n";
     string temp;
+    //for example: payment_id between 1 and 49
     getline(cin, temp);
     filter = Utilities::ToWide(temp.c_str(), temp.size());
-
-    //cc.Host = "localhost";
     cc.Port = 20911;
     cc.UserId = L"SomeUserId";
     cc.Password = L"A_Password_For_SomeUserId";
@@ -90,13 +89,14 @@ int main(int argc, char* argv[]) {
         wstring errMsg;
         CMaxMinAvg mma;
         fms.get() >> master_connection >> slave_connection;
-        cout << "master connection: " << master_connection << ", slave connection: " << slave_connection << endl;
+        cout << "master connections: " << master_connection << ", slave connections: " << slave_connection << endl;
         fmma.get() >> res >> errMsg >> mma;
+        cout << "QueryPaymentMaxMinAvgs\n";
         if (res) {
-            cout << "QueryPaymentMaxMinAvgs error code: " << res << ", error message: ";
+            cout << "\terror code: " << res << ", error message: ";
             wcout << errMsg.c_str() << endl;
         } else {
-            cout << "QueryPaymentMaxMinAvgs max: " << mma.Max << ", min: " << mma.Min << ", avg: " << mma.Avg << endl;
+            cout << "\tmax: " << mma.Max << ", min: " << mma.Min << ", avg: " << mma.Avg << endl;
         }
         auto status = fue.wait_for(chrono::seconds(5));
         if (status == future_status::timeout) {
@@ -106,40 +106,43 @@ int main(int argc, char* argv[]) {
             wstring errMsg;
             CInt64Array vId;
             fue.get() >> res >> errMsg >> vId;
+            cout << "UploadEmployees\n";
             if (res) {
-                cout << "UploadEmployees Error code: " << res << ", error message: ";
-                wcout << errMsg.c_str() << endl;
+                cout << "\tError code: " << res << ", message: ";
+                wcout << errMsg << endl;
             } else {
                 for (auto id : vId) {
-                    cout << "Last id: " << id << endl;
+                    cout << "\tLast id: " << id << endl;
                 }
             }
         }
-        cout << "Press a key to test requests parallel processing and fault tolerance at server side ......\n";
+        cout << "Press a key to test server parallel processing ......\n";
         ::getchar();
         CQFuture qF;
-        CMaxMinAvg sum_mma;
-        ::memset(&sum_mma, 0, sizeof (sum_mma));
+        CMaxMinAvg s_mma;
+        ::memset(&s_mma, 0, sizeof (s_mma));
+        cout << "QueryPaymentMaxMinAvgs\n";
         auto start = chrono::system_clock::now();
         for (unsigned int n = 0; n < 10000; ++n) {
             qF.push_back(handler->async0(idQueryMaxMinAvgs, filter));
         }
+        size_t count = qF.size();
         while (qF.size()) {
             qF.front().get() >> res >> errMsg >> mma;
             if (res) {
-                cout << "Error code: " << res << ", error message: ";
-                wcout << errMsg.c_str() << endl;
+                cout << "\tError code: " << res << ", message: ";
+                wcout << errMsg << endl;
             } else {
-                sum_mma.Avg += mma.Avg;
-                sum_mma.Max += mma.Max;
-                sum_mma.Min += mma.Min;
+                s_mma.Avg += mma.Avg;
+                s_mma.Max += mma.Max;
+                s_mma.Min += mma.Min;
             }
             qF.pop_front();
         }
         chrono::duration<double> diff = (chrono::system_clock::now() - start);
-        cout << "Time required: " << diff.count() << " seconds" << endl;
-        cout << "QueryPaymentMaxMinAvgs sum_max: " << sum_mma.Max << ", sum_min: " << sum_mma.Min << ", sum_avg: " << sum_mma.Avg << endl;
-        cout << "Press a key to test requests server parallel processing, fault tolerance and sequence returning ......" << endl;
+        cout << "\tTime required: " << diff.count() << " seconds for " << count << " requests\n";
+        cout << "\tsum_max: " << s_mma.Max << ", sum_min: " << s_mma.Min << ", sum_avg: " << s_mma.Avg << endl;
+        cout << "Press a key to test server parallel processing and sequence returning ......\n";
         ::getchar();
         for (SPA::INT64 n = 0; n < 16000; ++n) {
             qF.push_back(handler->async0(idGetRentalDateTimes, n + 1));
@@ -150,7 +153,7 @@ int main(int argc, char* argv[]) {
             CRentalDateTimes dates;
             qF.front().get() >> dates >> res >> errMsg;
             if (res) {
-                cout << "\terror code: " << res << ", error message: ";
+                cout << "\tError code: " << res << ", message: ";
                 wcout << errMsg << endl;
             } else if (dates.Rental == 0 && dates.Return == 0 && dates.LastUpdate == 0) {
                 cout << "\trental_id: " << dates.rental_id << " not available\n";
@@ -158,8 +161,7 @@ int main(int argc, char* argv[]) {
                 UDateTime rental_date(dates.Rental), return_date(dates.Return), laste_update(dates.LastUpdate);
                 if (0 == prev_rental_id || dates.rental_id == prev_rental_id + 1) {
                     //cout << "\trental_id: " << dates.rental_id << " and dates (" << rental_date.ToDBString() << ", " << return_date.ToDBString() << ", " << laste_update.ToDBString() << ")\n";
-                }
-                else
+                } else
                     cout << "\t****** returned out of order ******\n";
             }
             prev_rental_id = dates.rental_id;

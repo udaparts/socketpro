@@ -1,12 +1,11 @@
-
-from sharedstruct import *
-from yourserver import CYourServer
-from yourpeer import CYourPeer
+from shared.sharedstruct import *
+from mid_tier.test_python.yourserver import CYourServer
+from mid_tier.test_python.yourpeer import CYourPeer
 from spa import CTable
 from datetime import datetime
 from spa.clientside.spmanager import SpManager
 
-sc = SpManager.SetConfig(True, 'D:\\cyetest\\socketpro\\samples\\stream_system\\sp_config.json')
+sc = SpManager.SetConfig(True, 'sp_config.json')
 CYourPeer.Master = SpManager.GetPool('masterdb')
 Cache = CYourPeer.Master.Cache
 CYourPeer.Slave = SpManager.GetPool('slavedb0')
@@ -39,7 +38,7 @@ with CYourServer(2) as server:
         CYourServer.CreateTestDB()
 
     if CUQueue.DEFAULT_OS == tagOperationSystem.osWin:
-        server.UseSSL('D:\\cyetest\\socketpro\\bin\\intermediate.pfx', '', 'mypassword')
+        server.UseSSL('intermediate.pfx', '', 'mypassword')
         # or load cert and private key from windows system cert store
         # server.UseSSL('ROOT', 'UDAParts Intermediate CA', '')
     else:
@@ -47,9 +46,8 @@ with CYourServer(2) as server:
 
     # start listening socket with standard TLSv1.x security
     if not server.Run(20911):
-        print("Error happens with error message = " + CYourServer.ErrorMessage)
+        print("Error message: " + CYourServer.ErrorMessage)
 
-    s = input('Press any key to shut down the application ......')
+    s = input('Press any key to shut down the application ......\n')
     CYourPeer.Slave.ShutdownPool()
     CYourPeer.Master.ShutdownPool()
-

@@ -68,9 +68,9 @@ namespace ss
         {
             rental_id = rentaLId;
         }
-        public DateTime Rental = new DateTime(0);
-        public DateTime Return = new DateTime(0);
-        public DateTime LastUpdate = new DateTime(0);
+        public DateTime Rental;
+        public DateTime Return;
+        public DateTime LastUpdate;
 
         private const ulong ZERO_TICK = 0;
         public void LoadFrom(CUQueue UQueue)

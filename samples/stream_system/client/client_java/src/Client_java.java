@@ -9,6 +9,7 @@ public class Client_java {
         System.out.println("Remote middle tier host: ");
         java.util.Scanner in = new java.util.Scanner(System.in);
         String host = in.nextLine();
+        //for example: payment_id between 1 and 49
         System.out.println("Sakila.payment filter: ");
         String filter = in.nextLine();
         CConnectionContext cc = new CConnectionContext(host, 20911, "SomeUserId", "A_Password_For_SomeUserId", tagEncryptionMethod.TLSv1);
@@ -24,8 +25,7 @@ public class Client_java {
                 return (ret.Value == 0);
             };
             //master.setQueueName("mcqueue");
-            boolean ok = master.StartSocketPool(cc, 1);
-            if (!ok) {
+            if (!master.StartSocketPool(cc, 1)) {
                 System.out.println("No connection to remote middle tier server, and press any key to close the demo ......");
                 in.nextLine();
                 return;
@@ -58,23 +58,29 @@ public class Client_java {
                 int res = rb.LoadInt();
                 String errMsg = rb.LoadString();
                 CMaxMinAvg mma = rb.Load(CMaxMinAvg.class);
+                System.out.println("QueryPaymentMaxMinAvgs");
                 if (res != 0) {
-                    System.out.format("QueryPaymentMaxMinAvgs error code: %d, message: %s%n", res, errMsg);
+                    System.out.format("\terror code: %d, message: %s%n", res, errMsg);
                 } else {
-                    System.out.format("QueryPaymentMaxMinAvgs max: %f, min: %f, avg: %f%n", mma.Max, mma.Min, mma.Avg);
+                    System.out.format("\tmax: %f, min: %f, avg: %f%n", mma.Max, mma.Min, mma.Avg);
                 }
-                rb = fue.get(5, java.util.concurrent.TimeUnit.SECONDS);
-                res = rb.LoadInt();
-                errMsg = rb.LoadString();
-                CLongArray vId = rb.Load(CLongArray.class);
-                if (res != 0) {
-                    System.out.format("UploadEmployees Error code: %d, message: %s%n", res, errMsg);
-                } else {
-                    vId.stream().forEach((id) -> {
-                        System.out.println("Last id: " + id);
-                    });
+                try {
+                    rb = fue.get(5, java.util.concurrent.TimeUnit.SECONDS);
+                    res = rb.LoadInt();
+                    errMsg = rb.LoadString();
+                    CLongArray vId = rb.Load(CLongArray.class);
+                    System.out.println("UploadEmployees");
+                    if (res != 0) {
+                        System.out.format("\tError code: %d, message: %s%n", res, errMsg);
+                    } else {
+                        vId.stream().forEach((id) -> {
+                            System.out.println("\tLast id: " + id);
+                        });
+                    }
+                } catch (java.util.concurrent.TimeoutException ex) {
+                    System.out.println("The request UploadEmployees not completed in 5 seconds");
                 }
-                System.out.println("Press ENTER key to test requests parallel processing and fault tolerance at server side ......");
+                System.out.println("Press ENTER key to test server parallel processing ......");
                 in.nextLine();
                 Deque<UFuture<CScopeUQueue>> qF = new ArrayDeque<>();
                 sb.Save(filter);
@@ -83,13 +89,14 @@ public class Client_java {
                 for (int n = 0; n < 10000; ++n) {
                     qF.add(handler.sendRequest(Consts.idQueryMaxMinAvgs, sb));
                 }
+                System.out.println("QueryPaymentMaxMinAvgs");
                 int returns = qF.size();
                 while (qF.size() > 0) {
                     rb = qF.removeFirst().get();
                     res = rb.LoadInt();
                     errMsg = rb.LoadString();
                     if (res != 0) {
-                        System.out.format("QueryPaymentMaxMinAvgs call error code: %d, message: %s%n", res, errMsg);
+                        System.out.format("\tError code: %d, message: %s%n", res, errMsg);
                     } else {
                         mma = rb.Load(CMaxMinAvg.class);
                         sum_mma.Avg += mma.Avg;
@@ -98,9 +105,10 @@ public class Client_java {
                     }
                     rb.close();
                 }
-                System.out.format("Time required: %d milliseconds for %d requests%n", System.currentTimeMillis() - start, returns);
-                System.out.format("QueryPaymentMaxMinAvgs sum_max: %f, sum_min: %f, sum_avg: %f%n", sum_mma.Max, sum_mma.Min, sum_mma.Avg);
-                System.out.println("Press ENTER key to test requests server parallel processing, fault tolerance and sequence returning ......");
+                System.out.format("\tTime required: %d milliseconds for %d requests%n", System.currentTimeMillis() - start, returns);
+                System.out.format("\tsum_max: %f, sum_min: %f, sum_avg: %f%n", sum_mma.Max, sum_mma.Min, sum_mma.Avg);
+
+                System.out.println("Press ENTER key to test server parallel processing and sequence returning ......");
                 in.nextLine();
                 for (long n = 0; n < 16000; ++n) {
                     sb.SetSize(0);
@@ -128,8 +136,6 @@ public class Client_java {
                     prev_rental_id = dates.rental_id;
                     rb.close();
                 }
-            } catch (java.util.concurrent.TimeoutException ex) {
-                System.out.println("The request UploadEmployees not completed in 5 seconds");
             } catch (CServerError | CSocketError ex) {
                 System.out.println(ex);
             } catch (Exception ex) {

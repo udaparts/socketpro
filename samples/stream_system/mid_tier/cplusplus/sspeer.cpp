@@ -99,9 +99,7 @@ void CYourPeerOne::GetCachedTables(const CDBString& defaultDb, unsigned int flag
         return;
     if (UDB::ENABLE_TABLE_UPDATE_MESSAGES == (flags & UDB::ENABLE_TABLE_UPDATE_MESSAGES)) {
         unsigned int chatgroup[] = {UDB::CACHE_UPDATE_CHAT_GROUP_ID, UDB::STREAMING_SQL_CHAT_GROUP_ID};
-        if (!GetPush().Subscribe(chatgroup, 2)) {
-            errMsg = L"Failed in subscribing for table events"; //warning message
-        }
+        GetPush().Subscribe(chatgroup, 2);
     }
     CDBString sql;
     for (auto it = CYourServer::FrontCachedTables.cbegin(), end = CYourServer::FrontCachedTables.cend(); it != end; ++it) {    

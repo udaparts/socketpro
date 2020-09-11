@@ -2,8 +2,8 @@ from spa import CSqlMasterPool as CMaster
 from spa.serverside import CSocketProServer, tagAuthenticationMethod, CSocketProService
 from spa.clientside import CAsyncDBHandler, CMysql
 from spa.udb import DB_CONSTS
-from sharedstruct import *
-from yourpeer import CYourPeer
+from shared.sharedstruct import *
+from mid_tier.test_python.yourpeer import CYourPeer
 
 class CYourServer(CSocketProServer):
     def __init__(self, param=0):
@@ -13,21 +13,17 @@ class CYourServer(CSocketProServer):
     def OnSettingServer(self):
         CYourServer.Config.AuthenticationMethod = tagAuthenticationMethod.amOwn
         self.SetChatGroups()
-        return True
-
-    def OnIsPermitted(self, hSocket, userId, password, nSvsID):
-        print('"Ask for a service %d from user %s with password = %s' % (nSvsID, userId, password))
-        return True  # True -- permitted; False -- denied
-
-    def Run(self, port, maxBacklog=32, v6Supported=False):
         mapIdMethod = {
             idGetMasterSlaveConnectedSessions: 'GetMasterSlaveConnectedSessions',
             DB_CONSTS.idGetCachedTables: ('GetCachedTables', True)  # True -- slow request
         }
         self.YourPeerService = CSocketProService(CYourPeer, sidStreamSystem, mapIdMethod)
-        ok = super(CYourServer, self).Run(port, maxBacklog, v6Supported)
         self.YourPeerService.ReturnRandom = True
-        return ok
+        return True
+
+    def OnIsPermitted(self, hSocket, userId, password, nSvsID):
+        print('"Ask for a service %d from user: %s with password: %s' % (nSvsID, userId, password))
+        return True  # True -- permitted; False -- denied
 
     def SetChatGroups(self):
         CYourServer.PushManager.AddAChatGroup(DB_CONSTS.STREAMING_SQL_CHAT_GROUP_ID, 'Subscribe/publish for front clients')

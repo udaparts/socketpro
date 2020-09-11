@@ -183,10 +183,7 @@ class CYourPeerOne : CCacheBasePeer
         if (CYourServer.FrontCachedTables.Count == 0 || (flags & DB_CONSTS.ENABLE_TABLE_UPDATE_MESSAGES) != DB_CONSTS.ENABLE_TABLE_UPDATE_MESSAGES)
             return errMsg;
         if ((flags & DB_CONSTS.ENABLE_TABLE_UPDATE_MESSAGES) == DB_CONSTS.ENABLE_TABLE_UPDATE_MESSAGES)
-        {
-            if (!Push.Subscribe(DB_CONSTS.CACHE_UPDATE_CHAT_GROUP_ID, DB_CONSTS.STREAMING_SQL_CHAT_GROUP_ID))
-                errMsg = "Failed in subscribing for table events"; //warning message
-        }
+            Push.Subscribe(DB_CONSTS.CACHE_UPDATE_CHAT_GROUP_ID, DB_CONSTS.STREAMING_SQL_CHAT_GROUP_ID);
         string sql = "";
         List<string> v = CYourServer.FrontCachedTables;
         foreach (string s in v)
