@@ -22,7 +22,6 @@ int main(int argc, char* argv[]) {
     CMyConnContext cc;
     cout << "Remote host: \n";
     getline(cin, cc.Host);
-    //cc.Host = "localhost";
     cc.Port = 20901;
     cc.UserId = L"MyUserId";
     cc.Password = L"MyPassword";

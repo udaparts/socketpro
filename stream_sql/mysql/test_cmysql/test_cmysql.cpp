@@ -20,6 +20,7 @@ CSqlFuture TestBatch(shared_ptr<CMyHandler> pMysql, CRowsetArray&ra, CDBVariantA
 
 wstring g_wstr;
 string g_str;
+
 void MakeLargeStrings() {
     while (g_wstr.size() < 128 * 1024) {
         g_wstr += L"广告做得不那么夸张的就不说了，看看这三家，都是正儿八经的公立三甲，附属医院，不是武警，也不是部队，更不是莆田，都在卫生部门直接监管下，照样明目张胆地骗人。";
@@ -44,8 +45,8 @@ int main(int argc, char* argv[]) {
     cc.Password = L"Smash123";
     CMyPool spMysql;
     if (!spMysql.StartSocketPool(cc, 1)) {
-        cout << "Failed in connecting to remote async mysql server\n";
-        cout << "Press any key to close the application ......\n";
+        cout << "No connection to a remote async mysql server\n";
+        cout << "Press any key to kill the demo ......\n";
         ::getchar();
         return 0;
     }
@@ -95,13 +96,12 @@ int main(int argc, char* argv[]) {
         wcout << fP0.get().ToString() << endl;
         wcout << fP1.get().ToString() << endl;
         wcout << fS.get().ToString() << endl;
-        CMyHandler::SQLExeInfo &sei0 = fP2.get();
+        CMyHandler::SQLExeInfo sei0 = fP2.get();
         wcout << sei0.ToString() << endl;
         cout << "There are " << 2 * sei0.oks << " output data returned\n";
-        CMyHandler::SQLExeInfo& sei1 = fP3.get();
+        CMyHandler::SQLExeInfo sei1 = fP3.get();
         wcout << sei1.ToString() << endl;
-        cout << "There are " << pMysql->GetOutputs() * 3 << " output data returned\n";
-    }
+        cout << "There are " << pMysql->GetOutputs() * 3 << " output data returned\n";}
 
     catch(CServerError & ex) {
         wcout << ex.ToString() << endl;
@@ -127,7 +127,7 @@ int main(int argc, char* argv[]) {
         ++index;
     }
     cout << "+++++ End rowsets +++\n";
-    cout << "\nPress any key to close the application ......\n";
+    cout << "\nPress any key to kill the demo ......\n";
     ::getchar();
     return 0;
 }

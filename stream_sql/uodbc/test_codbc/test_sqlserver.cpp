@@ -25,7 +25,6 @@ int main(int argc, char* argv[]) {
     CMyConnContext cc;
     cout << "Remote host: " << endl;
     getline(cin, cc.Host);
-    //cc.Host = "localhost";
     cc.Port = 20901;
     cc.UserId = L"sa";
     cc.Password = L"Smash123";
@@ -42,10 +41,6 @@ int main(int argc, char* argv[]) {
         return 0;
     }
     shared_ptr<CMyHandler> pOdbc = spOdbc.Seek();
-
-    //optionally start a persistent queue at client side for auto failure recovery and once-only delivery
-    //ok = pOdbc->GetSocket()->GetClientQueue().StartQueue("sqlite", 24 * 3600, false); //time-to-live 1 day and true for encryption
-
     CMyHandler::DResult dr = [](CSender& handler, int res, const wstring& errMsg) {
         cout << "res = " << res;
         wcout << L", errMsg: " << errMsg << endl;
