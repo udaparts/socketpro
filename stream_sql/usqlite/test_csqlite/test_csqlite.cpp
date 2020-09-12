@@ -12,7 +12,7 @@ typedef pair<CDBColumnInfoArray, CDBVariantArray> CPColumnRowset;
 typedef vector<CPColumnRowset> CRowsetArray;
 
 vector<CSqlFuture> TestCreateTables(shared_ptr<CSqlite> sqlite);
-CSqlFuture InsertBLOBByPreparedStatement(shared_ptr<CSqlite> sqlite, CRowsetArray &ra);
+CSqlFuture TestBLOBByPreparedStatement(shared_ptr<CSqlite> sqlite, CRowsetArray &ra);
 CSqlFuture TestPreparedStatements(shared_ptr<CSqlite> sqlite, CRowsetArray &ra);
 vector<CSqlFuture> TestBatch(shared_ptr<CSqlite> sqlite, CRowsetArray &ra);
 
@@ -47,12 +47,12 @@ int main(int argc, char* argv[]) {
     auto sqlite = spSqlite.Seek();
     CRowsetArray rowset_array;
     try{
-        //stream all SQL requests with in-line batching
+        //stream all DB and SQL requests with in-line batching
         auto fopen = sqlite->open(u"");
         auto vF = TestCreateTables(sqlite);
         auto fbt = sqlite->beginTrans();
         auto fp0 = TestPreparedStatements(sqlite, rowset_array);
-        auto fp1 = InsertBLOBByPreparedStatement(sqlite, rowset_array);
+        auto fp1 = TestBLOBByPreparedStatement(sqlite, rowset_array);
         auto fet = sqlite->endTrans();
         auto vFb = TestBatch(sqlite, rowset_array);
 
@@ -188,14 +188,14 @@ CSqlFuture TestPreparedStatements(shared_ptr<CSqlite> sqlite, CRowsetArray &ra) 
 }
 
 vector<CSqlFuture> TestCreateTables(shared_ptr<CSqlite> sqlite) {
-    vector<future < CSqlite::SQLExeInfo>> v;
+    vector<future<CSqlite::SQLExeInfo>> v;
     v.push_back(sqlite->execute(u"CREATE TABLE COMPANY(ID INT8 PRIMARY KEY NOT NULL,name CHAR(64)NOT NULL,ADDRESS varCHAR(256)not null,Income float not null)"));
     const char16_t* ct = u"CREATE TABLE EMPLOYEE(EMPLOYEEID INT8 PRIMARY KEY NOT NULL unique,CompanyId INT8 not null,name NCHAR(64)NOT NULL,JoinDate DATETIME not null default(datetime('now')),IMAGE BLOB,DESCRIPTION NTEXT,Salary real,FOREIGN KEY(CompanyId)REFERENCES COMPANY(id))";
     v.push_back(sqlite->execute(ct));
     return v;
 }
 
-CSqlFuture InsertBLOBByPreparedStatement(shared_ptr<CSqlite> sqlite, CRowsetArray &ra) {
+CSqlFuture TestBLOBByPreparedStatement(shared_ptr<CSqlite> sqlite, CRowsetArray &ra) {
     sqlite->Prepare(u"insert or replace into employee(EMPLOYEEID,CompanyId,name,JoinDate,image,DESCRIPTION,Salary)values(?,?,?,?,?,?,?);select * from employee where employeeid=?");
 
     SYSTEMTIME st;
