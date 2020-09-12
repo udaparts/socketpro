@@ -1,10 +1,6 @@
-
-
 #pragma once
 
-#include "../../../include/udb_client.h"
-
-#ifdef WIN32_64
+#ifdef _MSC_VER
 
 #include "targetver.h"
 
@@ -13,3 +9,4 @@
 
 #endif
 
+#include "../../../include/udb_client.h"

@@ -5,18 +5,19 @@ using namespace SPA::ClientSide;
 using namespace SPA::UDB;
 using namespace std;
 
-typedef CAsyncDBHandler<SPA::Mysql::sidMysql> CMyHandler;
-typedef future<CMyHandler::SQLExeInfo> CSqlFuture;
-typedef CSocketPool<CMyHandler> CMyPool;
+typedef CAsyncDBHandler<SPA::Mysql::sidMysql> CSQLHandler;
+typedef future<CSQLHandler::SQLExeInfo> CSqlFuture;
+typedef CSocketPool<CSQLHandler> CMyPool;
 typedef CConnectionContext CMyConnContext;
 typedef pair<CDBColumnInfoArray, CDBVariantArray> CPColumnRowset;
 typedef vector<CPColumnRowset> CRowsetArray;
+typedef shared_ptr<CSQLHandler> PMySQL;
 
-vector<CSqlFuture> TestCreateTables(shared_ptr<CMyHandler> pMysql);
-CSqlFuture TestPreparedStatements(shared_ptr<CMyHandler> pMysql);
-CSqlFuture InsertBLOBByPreparedStatement(shared_ptr<CMyHandler> pMysql);
-CSqlFuture TestStoredProcedure(shared_ptr<CMyHandler> pMysql, CRowsetArray&ra, CDBVariantArray &vPData);
-CSqlFuture TestBatch(shared_ptr<CMyHandler> pMysql, CRowsetArray&ra, CDBVariantArray &vData);
+vector<CSqlFuture> TestCreateTables(PMySQL pMysql);
+CSqlFuture TestPreparedStatements(PMySQL pMysql);
+CSqlFuture TestBLOBByPreparedStatement(PMySQL pMysql);
+CSqlFuture TestStoredProcedure(PMySQL pMysql, CRowsetArray&ra, CDBVariantArray &vPData);
+CSqlFuture TestBatch(PMySQL pMysql, CRowsetArray&ra, CDBVariantArray &vData);
 
 wstring g_wstr;
 string g_str;
@@ -53,7 +54,7 @@ int main(int argc, char* argv[]) {
     auto pMysql = spMysql.Seek();
 
     CRowsetArray ra;
-    CMyHandler::DRows r = [&ra](CMyHandler &handler, CDBVariantArray & vData) {
+    CSQLHandler::DRows r = [&ra](CSQLHandler &handler, CDBVariantArray & vData) {
         //rowset data come here
         assert((vData.size() % handler.GetColumnInfo().size()) == 0);
         CDBVariantArray& va = ra.back().second;
@@ -63,7 +64,7 @@ int main(int argc, char* argv[]) {
             move(vData.begin(), vData.end(), back_inserter(va));
     };
 
-    CMyHandler::DRowsetHeader rh = [&ra](CMyHandler & handler) {
+    CSQLHandler::DRowsetHeader rh = [&ra](CSQLHandler & handler) {
         //rowset header comes here
         auto &vColInfo = handler.GetColumnInfo();
         CPColumnRowset column_rowset_pair;
@@ -80,7 +81,7 @@ int main(int argc, char* argv[]) {
         auto vF = TestCreateTables(pMysql);
         auto fD = pMysql->execute(u"delete from employee;delete from company");
         auto fP0 = TestPreparedStatements(pMysql);
-        auto fP1 = InsertBLOBByPreparedStatement(pMysql);
+        auto fP1 = TestBLOBByPreparedStatement(pMysql);
         auto fS = pMysql->execute(u"SELECT * from company;select * from employee;select curtime()", r, rh);
         CDBVariantArray vPData;
         auto fP2 = TestStoredProcedure(pMysql, ra, vPData);
@@ -96,10 +97,10 @@ int main(int argc, char* argv[]) {
         wcout << fP0.get().ToString() << endl;
         wcout << fP1.get().ToString() << endl;
         wcout << fS.get().ToString() << endl;
-        CMyHandler::SQLExeInfo sei0 = fP2.get();
+        CSQLHandler::SQLExeInfo sei0 = fP2.get();
         wcout << sei0.ToString() << endl;
         cout << "There are " << 2 * sei0.oks << " output data returned\n";
-        CMyHandler::SQLExeInfo sei1 = fP3.get();
+        CSQLHandler::SQLExeInfo sei1 = fP3.get();
         wcout << sei1.ToString() << endl;
         cout << "There are " << pMysql->GetOutputs() * 3 << " output data returned\n";}
 
@@ -132,7 +133,7 @@ int main(int argc, char* argv[]) {
     return 0;
 }
 
-CSqlFuture InsertBLOBByPreparedStatement(shared_ptr<CMyHandler> pMysql) {
+CSqlFuture TestBLOBByPreparedStatement(PMySQL pMysql) {
     pMysql->Prepare(u"insert into employee(CompanyId,name,JoinDate,image,DESCRIPTION,Salary)values(?,?,?,?,?,?)");
 
     SYSTEMTIME st;
@@ -186,7 +187,7 @@ CSqlFuture InsertBLOBByPreparedStatement(shared_ptr<CMyHandler> pMysql) {
     return pMysql->execute(vData);
 }
 
-CSqlFuture TestBatch(shared_ptr<CMyHandler> pMysql, CRowsetArray&ra, CDBVariantArray &vData) {
+CSqlFuture TestBatch(PMySQL pMysql, CRowsetArray&ra, CDBVariantArray &vData) {
     //sql with delimiter '|'
     u16string sql = u"delete from employee;delete from company| \
 		INSERT INTO company(ID,NAME,ADDRESS,Income)VALUES(?,?,?,?)| \
@@ -279,7 +280,7 @@ CSqlFuture TestBatch(shared_ptr<CMyHandler> pMysql, CRowsetArray&ra, CDBVariantA
     //output not important, but they are used for receiving proper types of data on mysql
     vData.push_back(0);
 
-    CMyHandler::DRows r = [&ra](CMyHandler &handler, CDBVariantArray & vData) {
+    CSQLHandler::DRows r = [&ra](CSQLHandler &handler, CDBVariantArray & vData) {
         //rowset data come here
         assert((vData.size() % handler.GetColumnInfo().size()) == 0);
         CDBVariantArray& va = ra.back().second;
@@ -289,7 +290,7 @@ CSqlFuture TestBatch(shared_ptr<CMyHandler> pMysql, CRowsetArray&ra, CDBVariantA
             move(vData.begin(), vData.end(), back_inserter(va));
     };
 
-    CMyHandler::DRowsetHeader rh = [&ra](CMyHandler & handler) {
+    CSQLHandler::DRowsetHeader rh = [&ra](CSQLHandler & handler) {
         //rowset header comes here
         auto &vColInfo = handler.GetColumnInfo();
         CPColumnRowset column_rowset_pair;
@@ -297,19 +298,19 @@ CSqlFuture TestBatch(shared_ptr<CMyHandler> pMysql, CRowsetArray&ra, CDBVariantA
         ra.push_back(column_rowset_pair);
     };
 
-    CMyHandler::DRowsetHeader batchHeader = [](CMyHandler & handler) {
+    CSQLHandler::DRowsetHeader batchHeader = [](CSQLHandler & handler) {
         cout << "Batch header comes here" << endl;
     };
 
     //first, execute delete from employee;delete from company
     //second, three sets of INSERT INTO company(ID,NAME,ADDRESS,Income)VALUES(?,?,?,?)
-    //third, three sets of insert into employee(CompanyId,name,JoinDate,image,DESCRIPTION,Salary)values(?,?,?,?,?,?)
+    //third, three sets of insert into employee values(?,?,?,?,?,?)
     //fourth, SELECT * from company;select * from employee;select curtime()
     //last, three sets of call sp_TestProc(?,?,?)
     return pMysql->executeBatch(tiReadUncommited, sql.c_str(), vData, r, rh, u"|", batchHeader);
 }
 
-CSqlFuture TestPreparedStatements(shared_ptr<CMyHandler> pMysql) {
+CSqlFuture TestPreparedStatements(PMySQL pMysql) {
     pMysql->Prepare(u"INSERT INTO company(ID,NAME,ADDRESS,Income)VALUES(?,?,?,?)");
 
     CDBVariantArray vData;
@@ -343,7 +344,7 @@ CSqlFuture TestPreparedStatements(shared_ptr<CMyHandler> pMysql) {
     return pMysql->execute(vData);
 }
 
-vector<CSqlFuture> TestCreateTables(shared_ptr<CMyHandler> pMysql) {
+vector<CSqlFuture> TestCreateTables(PMySQL pMysql) {
     vector<CSqlFuture> v;
     v.push_back(pMysql->execute(u"Create database if not exists mysqldb character set utf8 collate utf8_general_ci;USE mysqldb"));
     const char16_t *create_table = u"CREATE TABLE IF NOT EXISTS company(ID bigint PRIMARY KEY NOT NULL,name CHAR(64)NOT NULL,ADDRESS varCHAR(256)not null,Income Decimal(21,2)not null)";
@@ -355,9 +356,9 @@ vector<CSqlFuture> TestCreateTables(shared_ptr<CMyHandler> pMysql) {
     return v;
 }
 
-CSqlFuture TestStoredProcedure(shared_ptr<CMyHandler> pMysql, CRowsetArray&ra, CDBVariantArray &vPData) {
+CSqlFuture TestStoredProcedure(PMySQL pMysql, CRowsetArray&ra, CDBVariantArray &vPData) {
     pMysql->Prepare(u"call mysqldb.sp_TestProc(?,?,?)");
-    CMyHandler::DRows r = [&ra](CMyHandler &handler, CDBVariantArray & vData) {
+    CSQLHandler::DRows r = [&ra](CSQLHandler &handler, CDBVariantArray & vData) {
         //rowset data come here
         assert((vData.size() % handler.GetColumnInfo().size()) == 0);
         CDBVariantArray& va = ra.back().second;
@@ -367,7 +368,7 @@ CSqlFuture TestStoredProcedure(shared_ptr<CMyHandler> pMysql, CRowsetArray&ra, C
             move(vData.begin(), vData.end(), back_inserter(va));
     };
 
-    CMyHandler::DRowsetHeader rh = [&ra](CMyHandler & handler) {
+    CSQLHandler::DRowsetHeader rh = [&ra](CSQLHandler & handler) {
         //rowset header comes here
         auto &vColInfo = handler.GetColumnInfo();
         CPColumnRowset column_rowset_pair;
