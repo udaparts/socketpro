@@ -128,9 +128,16 @@ vector<CSqlFuture> TestBatch(shared_ptr<CSqlite> sqlite, CRowsetArray &ra) {
     vParam.push_back(2); //EMPLOYEEID
     vParam.push_back(2); //ID
     vParam.push_back(3); //EMPLOYEEID
+
     //Same as sqlite->BeginTrans();
-    //Select datetime('now');select * from COMPANY where ID=1;select * from COMPANY where ID=2;Select datetime('now');
-    //select * from EMPLOYEE where EMPLOYEEID=2;select * from EMPLOYEE where EMPLOYEEID=3
+    //Select datetime('now');
+    //prepare for select * from COMPANY where ID=?
+    //select * from COMPANY where ID=1;
+    //select * from COMPANY where ID=2;
+    //Select datetime('now');
+    //prepare for select * from EMPLOYEE where EMPLOYEEID=?
+    //select * from EMPLOYEE where EMPLOYEEID=2;
+    //select * from EMPLOYEE where EMPLOYEEID=3
     //ok = sqlite->EndTrans();
     vF.push_back(sqlite->executeBatch(tiReadUncommited, u"Select datetime('now');select * from COMPANY where ID=?;Select datetime('now');select * from EMPLOYEE where EMPLOYEEID=?",
         vParam, [&ra](CSqlite &handler, CDBVariantArray & vData) {

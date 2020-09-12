@@ -106,8 +106,8 @@ namespace SPA {
             : ec(errCode), em(errMsg ? errMsg : L"") {
             }
 
-            int ec;
-            std::wstring em;
+            int ec; //error code, 0 -- success
+            std::wstring em; //error message
 
             virtual std::wstring ToString() {
                 std::wstring s = L"ec: " + std::to_wstring(ec);
