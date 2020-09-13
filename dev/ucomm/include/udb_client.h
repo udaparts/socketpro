@@ -907,10 +907,10 @@ namespace SPA {
             }
 
             struct SQLExeInfo : public ErrInfo {
-                INT64 affected;
-                unsigned int oks;
-                unsigned int fails;
-                CDBVariant lastId;
+                INT64 affected; //the number of records affected
+                unsigned int oks; //successes
+                unsigned int fails; //failures
+                CDBVariant lastId; //last insert id
 
                 SQLExeInfo(int res = 0, const wchar_t* errMsg = nullptr, INT64 aff = 0, unsigned int suc_ones = 0, unsigned int bad_ones = 0, const CDBVariant& id = CDBVariant())
                 : ErrInfo(res, errMsg), affected(aff), oks(suc_ones), fails(bad_ones), lastId(id) {

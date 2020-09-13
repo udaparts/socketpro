@@ -106,8 +106,8 @@ namespace SPA {
             : ec(errCode), em(errMsg ? errMsg : L"") {
             }
 
-            int ec;
-            std::wstring em;
+            int ec; //error code, 0 -- success
+            std::wstring em; //error message
 
             virtual std::wstring ToString() {
                 std::wstring s = L"ec: " + std::to_wstring(ec);
@@ -845,7 +845,7 @@ namespace SPA {
             }
             void SetSvsID(unsigned int serviceId);
             virtual bool SendRequest(unsigned short reqId, const unsigned char *pBuffer, unsigned int size, const DResultHandler& rh, const DDiscarded& discarded = nullptr, const DServerException& serverException = nullptr);
-            bool SendRequest(unsigned short reqId, const DResultHandler& rh, const DDiscarded& discarded = nullptr, const DServerException& se = nullptr);
+            bool SendRequest(unsigned short reqId, const DResultHandler& rh = nullptr, const DDiscarded& discarded = nullptr, const DServerException& se = nullptr);
 
             inline CClientSocket *GetAttachedClientSocket() {
                 return m_pClientSocket;
@@ -1095,6 +1095,13 @@ namespace SPA {
         };
 
         typedef CAsyncServiceHandler* PAsyncServiceHandler;
+
+        template<unsigned int serviceId>
+        class CASHandler : public CAsyncServiceHandler {
+        public:
+            CASHandler(CClientSocket* cs) : CAsyncServiceHandler(serviceId, cs) {
+            }
+        };
 
         template<typename THandler, typename TCS = CClientSocket>
         class CSocketPool {
