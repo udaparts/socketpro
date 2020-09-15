@@ -141,6 +141,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\..\include\aclientw.h" />
+    <ClInclude Include="..\..\..\..\include\aqhandler.h" />
     <ClInclude Include="..\..\..\..\include\membuffer.h" />
     <ClInclude Include="stdafx.h" />
   </ItemGroup>

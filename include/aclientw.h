@@ -1027,13 +1027,11 @@ namespace SPA {
                     m_rh = rh;
                 }
 
-            protected:
-
                 DServerException get_se() {
                     return [this](CAsyncServiceHandler* ash, unsigned short reqId, const wchar_t* errMsg, const char* errWhere, unsigned int errCode) {
                         try {
                             this->m_ex = std::make_exception_ptr(CServerError(errCode, errMsg, errWhere, reqId));
-                        }                        catch (std::future_error&) {
+                        } catch (std::future_error&) {
                             //ignore
                         }
                         this->m_rh.resume();

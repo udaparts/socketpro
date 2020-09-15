@@ -142,6 +142,7 @@
   <ItemGroup>
     <ClInclude Include="..\..\..\..\include\aclientw.h" />
     <ClInclude Include="..\..\..\..\include\membuffer.h" />
+    <ClInclude Include="..\..\..\..\include\streamingfile.h" />
     <ClInclude Include="stdafx.h" />
   </ItemGroup>
   <ItemGroup>
