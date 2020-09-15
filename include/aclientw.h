@@ -1027,6 +1027,7 @@ namespace SPA {
                     m_rh = rh;
                 }
 
+            protected:
                 DServerException get_se() {
                     return [this](CAsyncServiceHandler* ash, unsigned short reqId, const wchar_t* errMsg, const char* errWhere, unsigned int errCode) {
                         try {

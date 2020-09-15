@@ -180,6 +180,78 @@ namespace SPA {
 #else
 #ifdef HAVE_FUTURE
 
+#ifdef HAVE_COROUTINE
+        private:
+
+            struct CAwaiter : public CWaiterBase {
+
+                CAwaiter(CStreamingFile* file, unsigned short reqId, const std::wstring& req_name, CContext &ctx)
+                : CWaiterBase(file, reqId, req_name) {
+                    ctx.Discarded = get_aborted();
+                    ctx.Se = get_se();
+                    ctx.Download = [this](CStreamingFile* file, int res, const std::wstring & errMsg) {
+                        this->m_ei.ec = res;
+                        this->m_ei.em = errMsg;
+                        this->m_rh.resume();
+                    };
+                    CAutoLock al(file->m_csFile);
+                    file->m_vContext.push_back(ctx);
+                    unsigned int filesOpened = file->GetFilesOpened();
+                    if (file->m_MaxDownloading > filesOpened) {
+                        ClientCoreLoader.PostProcessing(file->GetSocket()->GetHandle(), 0, 0);
+                        if (!filesOpened) {
+                            //make sure WaitAll works correctly
+                            file->GetSocket()->DoEcho();
+                        }
+                    }
+                }
+
+                bool await_ready() const noexcept {
+                    return false;
+                }
+
+                ErrInfo await_resume() {
+                    if (m_ex) {
+                        std::rethrow_exception(m_ex);
+                    }
+                    return std::move(m_ei);
+                }
+
+            private:
+                ErrInfo m_ei;
+            };
+
+        public:
+
+            auto wait_upload(const wchar_t* localFile, const wchar_t* remoteFile, DTransferring progress = nullptr, unsigned int flags = SFile::FILE_OPEN_TRUNCACTED) {
+                if (!localFile || !::wcslen(localFile)) {
+                    throw std::invalid_argument("Parameter localFile cannot be empty");
+                }
+                if (!remoteFile || !::wcslen(remoteFile)) {
+                    throw std::invalid_argument("Parameter remoteFile cannot be empty");
+                }
+                CContext context(true, flags);
+                context.Transferring = progress;
+                context.FilePath = remoteFile;
+                context.LocalFile = localFile;
+                return CAwaiter(this, SFile::idUpload, L"Upload", context);
+            }
+
+            auto wait_download(const wchar_t* localFile, const wchar_t* remoteFile, DTransferring progress = nullptr, unsigned int flags = SFile::FILE_OPEN_TRUNCACTED) {
+                if (!localFile || !::wcslen(localFile)) {
+                    throw std::invalid_argument("Parameter localFile cannot be empty");
+                }
+                if (!remoteFile || !::wcslen(remoteFile)) {
+                    throw std::invalid_argument("Parameter remoteFile cannot be empty");
+                }
+                CContext context(false, flags);
+                context.Transferring = progress;
+                context.FilePath = remoteFile;
+                context.LocalFile = localFile;
+                return CAwaiter(this, SFile::idDownload, L"Download", context);
+            }
+#endif
+
             virtual std::future<ErrInfo> upload(const wchar_t *localFile, const wchar_t *remoteFile, DTransferring progress = nullptr, unsigned int flags = SFile::FILE_OPEN_TRUNCACTED) {
                 if (!localFile || !::wcslen(localFile)) {
                     throw std::invalid_argument("Parameter localFile cannot be empty");
