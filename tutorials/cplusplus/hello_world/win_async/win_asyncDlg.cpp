@@ -139,7 +139,7 @@ HCURSOR Cwin_asyncDlg::OnQueryDragIcon() {
 std::future<void> Cwin_asyncDlg::ExecuteTask() {
     auto hw = m_spHw.GetAsyncHandlers()[0];
     try{
-        std::wstring s = co_await hw->async<std::wstring>(idSayHello, L"Jack", L"Smith");
+        std::wstring s = co_await hw->wait<std::wstring>(idSayHello, L"Jack", L"Smith");
         GetDlgItem(IDC_RESULT_EDIT)->SetWindowTextW(s.c_str());
     }
 
@@ -166,8 +166,8 @@ std::future<void> Cwin_asyncDlg::ExecuteTasksInBatch() {
     SetMyStruct(ms);
     try{
         auto fms = hw->async<CMyStruct, CMyStruct>(idEcho, ms);
-        hw->async0(idSleep, (unsigned int) 5000);
-        std::wstring s = co_await hw->async<std::wstring>(idSayHello, L"Hillary", L"Clinton");
+        auto sb = co_await hw->wait0(idSleep, (unsigned int) 5000);
+        std::wstring s = co_await hw->wait<std::wstring>(idSayHello, L"Hillary", L"Clinton");
         //fms definitely contains an instance of returned CMyStruct by this time
         res = fms.get();
         assert(res == ms);

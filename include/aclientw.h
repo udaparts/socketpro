@@ -12,6 +12,12 @@
 #include <future>
 #endif
 
+#if defined(WIN32_64) && _MSC_VER >= 1910
+#define HAVE_COROUTINE 1
+#include <experimental/coroutine>
+typedef std::experimental::coroutine_handle<> CRHandle;
+#endif
+
 #ifdef PHP_ADAPTER_PROJECT
 #define NO_MIDDLE_TIER
 #include <cctype>
@@ -1001,6 +1007,171 @@ namespace SPA {
                 return async<R>(reqId, sb->GetBuffer(), sb->GetSize());
             }
 #endif
+#ifdef HAVE_COROUTINE
+
+            struct CWaiterBase {
+
+                CWaiterBase(CAsyncServiceHandler* ash, unsigned short reqId, const std::wstring &req_name)
+                : m_ash(ash), m_reqId(reqId) {
+                    assert(ash);
+                    if (!req_name.size()) {
+                        throw std::invalid_argument("Method name cannot be empty");
+                    }
+                    if (!reqId) {
+                        throw std::invalid_argument("Request id cannot be zero");
+                    }
+                    m_reqName = req_name;
+                }
+
+                void await_suspend(CRHandle rh) noexcept {
+                    m_rh = rh;
+                }
+
+            protected:
+
+                DServerException get_se() {
+                    return [this](CAsyncServiceHandler* ash, unsigned short reqId, const wchar_t* errMsg, const char* errWhere, unsigned int errCode) {
+                        try {
+                            this->m_ex = std::make_exception_ptr(CServerError(errCode, errMsg, errWhere, reqId));
+                        }                        catch (std::future_error&) {
+                            //ignore
+                        }
+                        this->m_rh.resume();
+                    };
+                }
+
+                DDiscarded get_aborted() {
+                    return [this](CAsyncServiceHandler* h, bool canceled) {
+                        try {
+                            if (canceled) {
+                                this->m_ex = std::make_exception_ptr(CSocketError(REQUEST_CANCELED, (L"Request " + this->m_reqName + L" canceled").c_str(), m_reqId, false));
+                            } else {
+                                CClientSocket* cs = h->GetSocket();
+                                int ec = cs->GetErrorCode();
+                                if (ec) {
+                                    std::string em = cs->GetErrorMsg();
+                                    this->m_ex = std::make_exception_ptr(CSocketError(ec, Utilities::ToWide(em).c_str(), m_reqId, false));
+                                } else {
+                                    this->m_ex = std::make_exception_ptr(CSocketError(SESSION_CLOSED_AFTER, (L"Session closed after sending the request " + m_reqName).c_str(), m_reqId, false));
+                                }
+                            }
+                        } catch (std::future_error&) {
+                            //ignore
+                        }
+                        this->m_rh.resume();
+                    };
+                }
+
+            protected:
+                std::exception_ptr m_ex;
+                CRHandle m_rh;
+                CAsyncServiceHandler* m_ash;
+                unsigned short m_reqId;
+                std::wstring m_reqName;
+            };
+
+            template<typename R>
+            auto wait(unsigned short reqId, const unsigned char* pBuffer, unsigned int size) {
+
+                struct Awaiter : public CWaiterBase {
+
+                    Awaiter(CAsyncServiceHandler* ash, unsigned short reqId, const unsigned char* pBuffer, unsigned int size)
+                    : CWaiterBase(ash, reqId, L"SendRequest"), m_pBuffer(pBuffer), m_size(size) {
+                    }
+
+                    bool await_ready() noexcept {
+                        DResultHandler rh = [this](CAsyncResult & ar) {
+                            try {
+                                ar >> this->m_r;
+                            } catch (std::future_error&) {
+                                //ignore it
+                            } catch (...) {
+                                this->m_ex = std::current_exception();
+                            }
+                            this->m_rh.resume();
+                        };
+                        if (!m_ash->SendRequest(m_reqId, m_pBuffer, m_size, rh, get_aborted(), get_se())) {
+                            m_ash->raise(L"SendRequest", m_reqId);
+                        }
+                        return false;
+                    }
+
+                    R await_resume() {
+                        if (m_ex) {
+                            std::rethrow_exception(m_ex);
+                        }
+                        return std::move(m_r);
+                    }
+
+                private:
+                    const unsigned char* m_pBuffer;
+                    unsigned int m_size;
+                    R m_r;
+                };
+                return Awaiter(this, reqId, pBuffer, size);
+            }
+
+            template<typename R>
+            auto wait(unsigned short reqId) {
+                return wait<R>(reqId, (const unsigned char*) nullptr, (unsigned int) 0);
+            }
+
+            template<typename R, typename ... Ts>
+            auto wait(unsigned short reqId, const Ts& ... args) {
+                CScopeUQueue sb;
+                sb->Save(args ...);
+                return wait<R>(reqId, sb->GetBuffer(), sb->GetSize());
+            }
+
+            auto wait0(unsigned short reqId, const unsigned char* pBuffer, unsigned int size) {
+
+                struct Awaiter : public CWaiterBase {
+
+                    Awaiter(CAsyncServiceHandler* ash, unsigned short reqId, const unsigned char* pBuffer, unsigned int size)
+                    : CWaiterBase(ash, reqId, L"SendRequest"), m_pBuffer(pBuffer), m_size(size) {
+                    }
+
+                    bool await_ready() noexcept {
+                        DResultHandler rh = [this](CAsyncResult & ar) {
+                            try {
+                                this->m_sb->Swap(ar.UQueue);
+                            } catch (std::future_error&) {
+                                //ignore it
+                            }
+                            this->m_rh.resume();
+                        };
+                        if (!m_ash->SendRequest(m_reqId, m_pBuffer, m_size, rh, get_aborted(), get_se())) {
+                            m_ash->raise(L"SendRequest", m_reqId);
+                        }
+                        return false;
+                    }
+
+                    CScopeUQueue await_resume() {
+                        if (m_ex) {
+                            std::rethrow_exception(m_ex);
+                        }
+                        return std::move(m_sb);
+                    }
+
+                private:
+                    const unsigned char* m_pBuffer;
+                    unsigned int m_size;
+                    CScopeUQueue m_sb;
+                };
+                return Awaiter(this, reqId, pBuffer, size);
+            }
+
+            auto wait0(unsigned short reqId) {
+                return wait0(reqId, (const unsigned char*) nullptr, (unsigned int) 0);
+            }
+
+            template<typename ... Ts>
+            auto wait0(unsigned short reqId, const Ts& ... args) {
+                CScopeUQueue sb;
+                sb->Save(args ...);
+                return wait0(reqId, sb->GetBuffer(), sb->GetSize());
+            }
+#endif
 #endif
         private:
             //The two following functions may be public in the future
@@ -1099,6 +1270,7 @@ namespace SPA {
         template<unsigned int serviceId>
         class CASHandler : public CAsyncServiceHandler {
         public:
+
             CASHandler(CClientSocket* cs) : CAsyncServiceHandler(serviceId, cs) {
             }
         };
