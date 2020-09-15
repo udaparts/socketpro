@@ -183,15 +183,15 @@ namespace SPA {
 #ifdef HAVE_COROUTINE
         private:
 
-            struct CAwaiter : public CWaiterBase {
+            struct CAwaiter : public CWaiterBase<ErrInfo> {
 
                 CAwaiter(CStreamingFile* file, unsigned short reqId, const std::wstring& req_name, CContext &ctx)
                 : CWaiterBase(file, reqId, req_name) {
                     ctx.Discarded = get_aborted();
                     ctx.Se = get_se();
                     ctx.Download = [this](CStreamingFile* file, int res, const std::wstring & errMsg) {
-                        this->m_ei.ec = res;
-                        this->m_ei.em = errMsg;
+                        this->m_r.ec = res;
+                        this->m_r.em = errMsg;
                         this->m_rh.resume();
                     };
                     CAutoLock al(file->m_csFile);
@@ -208,13 +208,6 @@ namespace SPA {
 
                 bool await_ready() const noexcept {
                     return false;
-                }
-
-                ErrInfo await_resume() {
-                    if (m_ex) {
-                        std::rethrow_exception(m_ex);
-                    }
-                    return std::move(m_ei);
                 }
 
             private:

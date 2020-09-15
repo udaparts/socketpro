@@ -1008,7 +1008,7 @@ namespace SPA {
             }
 #endif
 #ifdef HAVE_COROUTINE
-
+            template<typename R>
             struct CWaiterBase {
 
                 CWaiterBase(CAsyncServiceHandler* ash, unsigned short reqId, const std::wstring &req_name)
@@ -1025,6 +1025,13 @@ namespace SPA {
 
                 void await_suspend(CRHandle rh) noexcept {
                     m_rh = rh;
+                }
+
+                R await_resume() {
+                    if (m_ex) {
+                        std::rethrow_exception(m_ex);
+                    }
+                    return std::move(m_r);
                 }
 
             protected:
@@ -1062,6 +1069,7 @@ namespace SPA {
                 }
 
             protected:
+                R m_r;
                 std::exception_ptr m_ex;
                 CRHandle m_rh;
                 CAsyncServiceHandler* m_ash;
@@ -1072,7 +1080,7 @@ namespace SPA {
             template<typename R>
             auto wait(unsigned short reqId, const unsigned char* pBuffer, unsigned int size) {
 
-                struct Awaiter : public CWaiterBase {
+                struct Awaiter : public CWaiterBase<R> {
 
                     Awaiter(CAsyncServiceHandler* ash, unsigned short reqId, const unsigned char* pBuffer, unsigned int size)
                     : CWaiterBase(ash, reqId, L"SendRequest"), m_pBuffer(pBuffer), m_size(size) {
@@ -1090,22 +1098,14 @@ namespace SPA {
                             this->m_rh.resume();
                         };
                         if (!m_ash->SendRequest(m_reqId, m_pBuffer, m_size, rh, get_aborted(), get_se())) {
-                            m_ash->raise(L"SendRequest", m_reqId);
+                            m_ash->raise(m_reqName, m_reqId);
                         }
                         return false;
-                    }
-
-                    R await_resume() {
-                        if (m_ex) {
-                            std::rethrow_exception(m_ex);
-                        }
-                        return std::move(m_r);
                     }
 
                 private:
                     const unsigned char* m_pBuffer;
                     unsigned int m_size;
-                    R m_r;
                 };
                 return Awaiter(this, reqId, pBuffer, size);
             }
@@ -1124,7 +1124,7 @@ namespace SPA {
 
             auto wait0(unsigned short reqId, const unsigned char* pBuffer, unsigned int size) {
 
-                struct Awaiter : public CWaiterBase {
+                struct Awaiter : public CWaiterBase<CScopeUQueue> {
 
                     Awaiter(CAsyncServiceHandler* ash, unsigned short reqId, const unsigned char* pBuffer, unsigned int size)
                     : CWaiterBase(ash, reqId, L"SendRequest"), m_pBuffer(pBuffer), m_size(size) {
@@ -1133,29 +1133,21 @@ namespace SPA {
                     bool await_ready() noexcept {
                         DResultHandler rh = [this](CAsyncResult & ar) {
                             try {
-                                this->m_sb->Swap(ar.UQueue);
+                                this->m_r->Swap(ar.UQueue);
                             } catch (std::future_error&) {
                                 //ignore it
                             }
                             this->m_rh.resume();
                         };
                         if (!m_ash->SendRequest(m_reqId, m_pBuffer, m_size, rh, get_aborted(), get_se())) {
-                            m_ash->raise(L"SendRequest", m_reqId);
+                            m_ash->raise(m_reqName, m_reqId);
                         }
                         return false;
-                    }
-
-                    CScopeUQueue await_resume() {
-                        if (m_ex) {
-                            std::rethrow_exception(m_ex);
-                        }
-                        return std::move(m_sb);
                     }
 
                 private:
                     const unsigned char* m_pBuffer;
                     unsigned int m_size;
-                    CScopeUQueue m_sb;
                 };
                 return Awaiter(this, reqId, pBuffer, size);
             }
