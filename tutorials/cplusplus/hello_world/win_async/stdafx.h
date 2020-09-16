@@ -24,6 +24,6 @@
 
 #include <afxcontrolbars.h>     // MFC support for ribbons and control bars
 
+#include <experimental/coroutine>
 #include "../../hello_world/client/HW.h"
 #include "../../uqueue_demo/mystruct.h"
-

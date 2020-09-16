@@ -14,19 +14,22 @@
 
 #ifdef WIN32_64
 #if _MSC_VER >= 1910 //VC++ 2017 or later
+#ifdef _EXPERIMENTAL_RESUMABLE_
 #define HAVE_COROUTINE 1
-#include <experimental/coroutine>
 typedef std::experimental::coroutine_handle<> CRHandle;
+#endif
 #endif
 #else
 #if CLANG_VERSION >= 100001
+#ifdef _GLIBCXX_COROUTINE
 #define HAVE_COROUTINE 1
-#include <coroutine>
 typedef std::coroutine_handle<> CRHandle;
+#endif
 #elif GCC_VERSION >= 100001
+#ifdef _GLIBCXX_COROUTINE
 #define HAVE_COROUTINE 1
-#include <coroutine>
 typedef std::coroutine_handle<> CRHandle;
+#endif
 #else
 #endif
 #endif
