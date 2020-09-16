@@ -12,10 +12,14 @@
 #include <future>
 #endif
 
-#if defined(WIN32_64) && _MSC_VER >= 1910
+#ifdef WIN32_64
+#if _MSC_VER >= 1910 //VC++ 2017 or later
 #define HAVE_COROUTINE 1
 #include <experimental/coroutine>
 typedef std::experimental::coroutine_handle<> CRHandle;
+#endif
+#else
+
 #endif
 
 #ifdef PHP_ADAPTER_PROJECT
@@ -1038,11 +1042,11 @@ namespace SPA {
                 DServerException get_se() {
                     return [this](CAsyncServiceHandler* ash, unsigned short reqId, const wchar_t* errMsg, const char* errWhere, unsigned int errCode) {
                         try {
-                            this->m_ex = std::make_exception_ptr(CServerError(errCode, errMsg, errWhere, reqId));
+                            m_ex = std::make_exception_ptr(CServerError(errCode, errMsg, errWhere, reqId));
                         } catch (std::future_error&) {
                             //ignore
                         }
-                        this->m_rh.resume();
+                        m_rh.resume();
                     };
                 }
 
@@ -1050,31 +1054,31 @@ namespace SPA {
                     return [this](CAsyncServiceHandler* h, bool canceled) {
                         try {
                             if (canceled) {
-                                this->m_ex = std::make_exception_ptr(CSocketError(REQUEST_CANCELED, (L"Request " + this->m_reqName + L" canceled").c_str(), m_reqId, false));
+                                m_ex = std::make_exception_ptr(CSocketError(REQUEST_CANCELED, (L"Request " + m_reqName + L" canceled").c_str(), m_reqId, false));
                             } else {
                                 CClientSocket* cs = h->GetSocket();
                                 int ec = cs->GetErrorCode();
                                 if (ec) {
                                     std::string em = cs->GetErrorMsg();
-                                    this->m_ex = std::make_exception_ptr(CSocketError(ec, Utilities::ToWide(em).c_str(), m_reqId, false));
+                                    m_ex = std::make_exception_ptr(CSocketError(ec, Utilities::ToWide(em).c_str(), m_reqId, false));
                                 } else {
-                                    this->m_ex = std::make_exception_ptr(CSocketError(SESSION_CLOSED_AFTER, (L"Session closed after sending the request " + m_reqName).c_str(), m_reqId, false));
+                                    m_ex = std::make_exception_ptr(CSocketError(SESSION_CLOSED_AFTER, (L"Session closed after sending the request " + m_reqName).c_str(), m_reqId, false));
                                 }
                             }
                         } catch (std::future_error&) {
                             //ignore
                         }
-                        this->m_rh.resume();
+                        m_rh.resume();
                     };
                 }
 
             protected:
                 R m_r;
-                std::exception_ptr m_ex;
                 CRHandle m_rh;
                 CAsyncServiceHandler* m_ash;
                 unsigned short m_reqId;
                 std::wstring m_reqName;
+                std::exception_ptr m_ex;
             };
 
             template<typename R>
@@ -1089,13 +1093,13 @@ namespace SPA {
                     bool await_ready() noexcept {
                         DResultHandler rh = [this](CAsyncResult & ar) {
                             try {
-                                ar >> this->m_r;
+                                ar >> m_r;
                             } catch (std::future_error&) {
                                 //ignore it
                             } catch (...) {
-                                this->m_ex = std::current_exception();
+                                m_ex = std::current_exception();
                             }
-                            this->m_rh.resume();
+                            m_rh.resume();
                         };
                         if (!m_ash->SendRequest(m_reqId, m_pBuffer, m_size, rh, get_aborted(), get_se())) {
                             m_ash->raise(m_reqName, m_reqId);
@@ -1133,11 +1137,11 @@ namespace SPA {
                     bool await_ready() noexcept {
                         DResultHandler rh = [this](CAsyncResult & ar) {
                             try {
-                                this->m_r->Swap(ar.UQueue);
+                                m_r->Swap(ar.UQueue);
                             } catch (std::future_error&) {
                                 //ignore it
                             }
-                            this->m_rh.resume();
+                            m_rh.resume();
                         };
                         if (!m_ash->SendRequest(m_reqId, m_pBuffer, m_size, rh, get_aborted(), get_se())) {
                             m_ash->raise(m_reqName, m_reqId);
@@ -2212,7 +2216,7 @@ namespace SPA {
                     m_pool.DoSslServerAuthentication = [this](CSocketPool<THandler, TCS> *sender, TCS * cs)->bool {
                         if (cs->GetConnectionState() < csConnected)
                             return true;
-                        return this->DoSslServerAuthentication(cs);
+                        return DoSslServerAuthentication(cs);
                     };
                 }
                 int n = 0;

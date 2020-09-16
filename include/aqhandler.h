@@ -273,8 +273,8 @@ namespace SPA {
                     bool await_ready() noexcept {
                         CAsyncQueue* aq = (CAsyncQueue*) m_ash;
                         if (!aq->StartQueueTrans(m_key.c_str(), [this](CAsyncQueue * aq, int errCode) {
-                                this->m_r = errCode;
-                                this->m_rh.resume();
+                                m_r = errCode;
+                                m_rh.resume();
                             }, get_aborted(), get_se())) {
                             aq->raise(m_reqName, m_reqId);
                         }
@@ -298,8 +298,8 @@ namespace SPA {
                     bool await_ready() noexcept {
                         CAsyncQueue* aq = (CAsyncQueue*) m_ash;
                         if (!aq->EndQueueTrans(m_rollback, [this](CAsyncQueue * aq, int errCode) {
-                                this->m_r = errCode;
-                                this->m_rh.resume();
+                                m_r = errCode;
+                                m_rh.resume();
                             }, get_aborted(), get_se())) {
                             aq->raise(m_reqName, m_reqId);
                         }
@@ -323,8 +323,8 @@ namespace SPA {
                     bool await_ready() noexcept {
                         CAsyncQueue* aq = (CAsyncQueue*) m_ash;
                         if (!aq->CloseQueue(m_key.c_str(), [this](CAsyncQueue * aq, int errCode) {
-                                this->m_r = errCode;
-                                this->m_rh.resume();
+                                m_r = errCode;
+                                m_rh.resume();
                             }, m_permanent, get_aborted(), get_se())) {
                             aq->raise(m_reqName, m_reqId);
                         }
@@ -349,9 +349,9 @@ namespace SPA {
                     bool await_ready() noexcept {
                         CAsyncQueue* aq = (CAsyncQueue*) m_ash;
                         if (!aq->FlushQueue(m_key.c_str(), [this](CAsyncQueue * aq, UINT64 messages, UINT64 fileSize) {
-                                this->m_r.messages = messages;
-                                this->m_r.fSize = fileSize;
-                                this->m_rh.resume();
+                                m_r.messages = messages;
+                                m_r.fSize = fileSize;
+                                m_rh.resume();
                             }, m_option, get_aborted(), get_se())) {
                             aq->raise(m_reqName, m_reqId);
                         }
@@ -376,11 +376,11 @@ namespace SPA {
                     bool await_ready() noexcept {
                         CAsyncQueue* aq = (CAsyncQueue*) m_ash;
                         if (!aq->Dequeue(m_key.c_str(), [this](CAsyncQueue * aq, UINT64 messages, UINT64 fileSize, unsigned int msgsDequeued, unsigned int bytes) {
-                                this->m_r.messages = messages;
-                                this->m_r.fSize = fileSize;
-                                this->m_r.DeMessages = msgsDequeued;
-                                this->m_r.DeBytes = bytes;
-                                this->m_rh.resume();
+                                m_r.messages = messages;
+                                m_r.fSize = fileSize;
+                                m_r.DeMessages = msgsDequeued;
+                                m_r.DeBytes = bytes;
+                                m_rh.resume();
                             }, m_timeout, get_aborted(), get_se())) {
                             aq->raise(m_reqName, m_reqId);
                         }
@@ -405,8 +405,8 @@ namespace SPA {
                     bool await_ready() noexcept {
                         CAsyncQueue* aq = (CAsyncQueue*) m_ash;
                         if (!aq->GetKeys([this](CAsyncQueue * aq, std::vector<std::string>& v) {
-                                this->m_r.swap(v);
-                                this->m_rh.resume();
+                                m_r.swap(v);
+                                m_rh.resume();
                             }, get_aborted(), get_se())) {
                             aq->raise(m_reqName, m_reqId);
                         }
@@ -427,8 +427,8 @@ namespace SPA {
                     bool await_ready() noexcept {
                         CAsyncQueue* aq = (CAsyncQueue*) m_ash;
                         if (!aq->EnqueueBatch(m_key.c_str(), m_buffer, m_size, [this](CAsyncQueue * aq, UINT64 index) {
-                                this->m_r = index;
-                                this->m_rh.resume();
+                                m_r = index;
+                                m_rh.resume();
                             }, get_aborted(), get_se())) {
                             aq->raise(m_reqName, m_reqId);
                         }
