@@ -19,7 +19,16 @@
 typedef std::experimental::coroutine_handle<> CRHandle;
 #endif
 #else
-
+#if CLANG_VERSION >= 100001
+#define HAVE_COROUTINE 1
+#include <coroutine>
+typedef std::coroutine_handle<> CRHandle;
+#elif CC_VERSION >= 100001
+#define HAVE_COROUTINE 1
+#include <coroutine>
+typedef std::coroutine_handle<> CRHandle;
+#else
+#endif
 #endif
 
 #ifdef PHP_ADAPTER_PROJECT
