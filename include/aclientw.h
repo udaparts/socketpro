@@ -364,7 +364,7 @@ namespace SPA {
             obj->Set(ctx, NJA::ToStr(isolate, u"Self", 4), Boolean::New(isolate, SelfMessage));
             return obj;
         }
-#endif		
+#endif
 
         struct CConnectionContext {
 
@@ -1040,7 +1040,7 @@ namespace SPA {
                     m_rh = rh;
                 }
 
-                R await_resume() {
+                R await_resume() noexcept {
                     if (m_ex) {
                         std::rethrow_exception(m_ex);
                     }
@@ -1096,22 +1096,22 @@ namespace SPA {
                 struct Awaiter : public CWaiterBase<R> {
 
                     Awaiter(CAsyncServiceHandler* ash, unsigned short reqId, const unsigned char* pBuffer, unsigned int size)
-                    : CWaiterBase(ash, reqId, L"SendRequest"), m_pBuffer(pBuffer), m_size(size) {
+                    : CWaiterBase<R>(ash, reqId, L"SendRequest"), m_pBuffer(pBuffer), m_size(size) {
                     }
 
                     bool await_ready() noexcept {
                         DResultHandler rh = [this](CAsyncResult & ar) {
                             try {
-                                ar >> m_r;
+                                ar >> this->m_r;
                             } catch (std::future_error&) {
                                 //ignore it
                             } catch (...) {
-                                m_ex = std::current_exception();
+                                this->m_ex = std::current_exception();
                             }
-                            m_rh.resume();
+                            this->m_rh.resume();
                         };
-                        if (!m_ash->SendRequest(m_reqId, m_pBuffer, m_size, rh, get_aborted(), get_se())) {
-                            m_ash->raise(m_reqName, m_reqId);
+                        if (!this->m_ash->SendRequest(this->m_reqId, m_pBuffer, m_size, rh, this->get_aborted(), this->get_se())) {
+                            this->m_ash->raise(this->m_reqName, this->m_reqId);
                         }
                         return false;
                     }
@@ -1140,7 +1140,7 @@ namespace SPA {
                 struct Awaiter : public CWaiterBase<CScopeUQueue> {
 
                     Awaiter(CAsyncServiceHandler* ash, unsigned short reqId, const unsigned char* pBuffer, unsigned int size)
-                    : CWaiterBase(ash, reqId, L"SendRequest"), m_pBuffer(pBuffer), m_size(size) {
+                    : CWaiterBase<CScopeUQueue>(ash, reqId, L"SendRequest"), m_pBuffer(pBuffer), m_size(size) {
                     }
 
                     bool await_ready() noexcept {
