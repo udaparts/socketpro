@@ -1040,7 +1040,7 @@ namespace SPA {
                     m_rh = rh;
                 }
 
-                R await_resume() noexcept {
+                R await_resume() {
                     if (m_ex) {
                         std::rethrow_exception(m_ex);
                     }
