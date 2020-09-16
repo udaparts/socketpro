@@ -939,13 +939,13 @@ namespace SPA {
                     }
 
                     bool await_ready() noexcept {
-                        CAsyncDBHandler* db = (CAsyncDBHandler*) m_ash;
+                        CAsyncDBHandler* db = (CAsyncDBHandler*) this->m_ash;
                         if (!db->BeginTrans(m_isolation, [this](CAsyncDBHandler & hDb, int res, const std::wstring & errMsg) {
-                                m_r.ec = res;
-                                m_r.em = errMsg;
-                                m_rh.resume();
-                            }, get_aborted(), get_se())) {
-                            db->raise(m_reqName, m_reqId);
+                            this->m_r.ec = res;
+                            this->m_r.em = errMsg;
+                            this->m_rh.resume();
+                            }, this->get_aborted(), this->get_se())) {
+                            db->raise(this->m_reqName, this->m_reqId);
                         }
                         return false;
                     }
@@ -964,13 +964,13 @@ namespace SPA {
                     }
 
                     bool await_ready() noexcept {
-                        CAsyncDBHandler* db = (CAsyncDBHandler*) m_ash;
+                        CAsyncDBHandler* db = (CAsyncDBHandler*)this->m_ash;
                         if (!db->EndTrans(m_plan, [this](CAsyncDBHandler & hDb, int res, const std::wstring & errMsg) {
-                                m_r.ec = res;
-                                m_r.em = errMsg;
-                                m_rh.resume();
-                            }, get_aborted(), get_se())) {
-                            db->raise(m_reqName, m_reqId);
+                            this->m_r.ec = res;
+                            this->m_r.em = errMsg;
+                            this->m_rh.resume();
+                            }, this->get_aborted(), this->get_se())) {
+                            db->raise(this->m_reqName, this->m_reqId);
                         }
                         return false;
                     }
@@ -989,13 +989,13 @@ namespace SPA {
                     }
 
                     bool await_ready() noexcept {
-                        CAsyncDBHandler* db = (CAsyncDBHandler*) m_ash;
+                        CAsyncDBHandler* db = (CAsyncDBHandler*)this->m_ash;
                         if (!db->Close([this](CAsyncDBHandler & hDb, int res, const std::wstring & errMsg) {
-                                m_r.ec = res;
-                                m_r.em = errMsg;
-                                m_rh.resume();
-                            }, get_aborted(), get_se())) {
-                            db->raise(m_reqName, m_reqId);
+                            this->m_r.ec = res;
+                            this->m_r.em = errMsg;
+                            this->m_rh.resume();
+                            }, this->get_aborted(), this->get_se())) {
+                            db->raise(this->m_reqName, this->m_reqId);
                         }
                         return false;
                     }
@@ -1014,11 +1014,11 @@ namespace SPA {
                     bool await_ready() noexcept {
                         CAsyncDBHandler* db = (CAsyncDBHandler*) m_ash;
                         if (!db->Prepare(m_sql.c_str(), [this](CAsyncDBHandler & hDb, int res, const std::wstring & errMsg) {
-                                m_r.ec = res;
-                                m_r.em = errMsg;
-                                m_rh.resume();
-                            }, m_vParameterInfo, get_aborted(), get_se())) {
-                            db->raise(m_reqName, m_reqId);
+                            this->m_r.ec = res;
+                            this->m_r.em = errMsg;
+                            this->m_rh.resume();
+                            }, m_vParameterInfo, this->get_aborted(), this->get_se())) {
+                            db->raise(this->m_reqName, this->m_reqId);
                         }
                         return false;
                     }
@@ -1038,13 +1038,13 @@ namespace SPA {
                     }
 
                     bool await_ready() noexcept {
-                        CAsyncDBHandler* db = (CAsyncDBHandler*) m_ash;
+                        CAsyncDBHandler* db = (CAsyncDBHandler*)this->m_ash;
                         if (!db->Prepare(m_sql.c_str(), [this](CAsyncDBHandler & hDb, int res, const std::wstring & errMsg) {
-                                m_r.ec = res;
-                                m_r.em = errMsg;
-                                m_rh.resume();
-                            }, m_vParameterInfo, get_aborted(), get_se())) {
-                            db->raise(m_reqName, m_reqId);
+                            this->m_r.ec = res;
+                            this->m_r.em = errMsg;
+                            this->m_rh.resume();
+                            }, m_vParameterInfo, this->get_aborted(), this->get_se())) {
+                            db->raise(this->m_reqName, this->m_reqId);
                         }
                         return false;
                     }
@@ -1066,11 +1066,11 @@ namespace SPA {
                     bool await_ready() noexcept {
                         CAsyncDBHandler* db = (CAsyncDBHandler*) m_ash;
                         if (!db->Open(m_db.c_str(), [this](CAsyncDBHandler & hDb, int res, const std::wstring & errMsg) {
-                                m_r.ec = res;
-                                m_r.em = errMsg;
-                                m_rh.resume();
-                            }, m_flags, get_aborted(), get_se())) {
-                            db->raise(m_reqName, m_reqId);
+                            this->m_r.ec = res;
+                            this->m_r.em = errMsg;
+                            this->m_rh.resume();
+                            }, m_flags, this->get_aborted(), this->get_se())) {
+                            db->raise(this->m_reqName, this->m_reqId);
                         }
                         return false;
                     }
@@ -1090,13 +1090,13 @@ namespace SPA {
                     }
 
                     bool await_ready() noexcept {
-                        CAsyncDBHandler* db = (CAsyncDBHandler*) m_ash;
+                        CAsyncDBHandler* db = (CAsyncDBHandler*)this->m_ash;
                         if (!db->Open(m_db.c_str(), [this](CAsyncDBHandler & hDb, int res, const std::wstring & errMsg) {
-                                m_r.ec = res;
-                                m_r.em = errMsg;
-                                m_rh.resume();
-                            }, m_flags, get_aborted(), get_se())) {
-                            db->raise(m_reqName, m_reqId);
+                            this->m_r.ec = res;
+                            this->m_r.em = errMsg;
+                            this->m_rh.resume();
+                            }, m_flags, this->get_aborted(), this->get_se())) {
+                            db->raise(this->m_reqName, this->m_reqId);
                         }
                         return false;
                     }
@@ -1116,18 +1116,18 @@ namespace SPA {
                     }
 
                     bool await_ready() noexcept {
-                        CAsyncDBHandler* db = (CAsyncDBHandler*) m_ash;
+                        CAsyncDBHandler* db = (CAsyncDBHandler*)this->m_ash;
                         if (!db->Execute(m_vParam, [this](CAsyncDBHandler & dbHandler, int res, const std::wstring & errMsg, INT64 affected, UINT64 fail_ok, CDBVariant & vtId) {
-                                m_r.ec = res;
-                                m_r.em = errMsg;
-                                m_r.affected = affected;
-                                m_r.oks = (unsigned int) (fail_ok & 0xffffffff);
-                                m_r.fails = (unsigned int) (fail_ok >> 32);
-                                m_r.lastId = vtId;
-                                m_rh.resume();
-                            }, m_row, m_h, m_meta, m_lastInsertId, get_aborted(), get_se())) {
-                        db->raise(m_reqName, m_reqId);
-                    }
+                            this->m_r.ec = res;
+                            this->m_r.em = errMsg;
+                            this->m_r.affected = affected;
+                            this->m_r.oks = (unsigned int) (fail_ok & 0xffffffff);
+                            this->m_r.fails = (unsigned int) (fail_ok >> 32);
+                            this->m_r.lastId = vtId;
+                            this->m_rh.resume();
+                            }, m_row, m_h, m_meta, m_lastInsertId, this->get_aborted(), this->get_se())) {
+                            db->raise(this->m_reqName, this->m_reqId);
+                        }
                         return false;
                     }
                 private:
@@ -1149,17 +1149,17 @@ namespace SPA {
                     }
 
                     bool await_ready() noexcept {
-                        CAsyncDBHandler* db = (CAsyncDBHandler*) m_ash;
+                        CAsyncDBHandler* db = (CAsyncDBHandler*) this->m_ash;
                         if (!db->Execute(m_sql.c_str(), [this](CAsyncDBHandler & dbHandler, int res, const std::wstring & errMsg, INT64 affected, UINT64 fail_ok, CDBVariant & vtId) {
-                                m_r.ec = res;
-                                m_r.em = errMsg;
-                                m_r.affected = affected;
-                                m_r.oks = (unsigned int) (fail_ok & 0xffffffff);
-                                m_r.fails = (unsigned int) (fail_ok >> 32);
-                                m_r.lastId = vtId;
-                                m_rh.resume();
-                            }, m_row, m_h, m_meta, m_lastInsertId, get_aborted(), get_se())) {
-                            db->raise(m_reqName, m_reqId);
+                            this->m_r.ec = res;
+                            this->m_r.em = errMsg;
+                            this->m_r.affected = affected;
+                            this->m_r.oks = (unsigned int) (fail_ok & 0xffffffff);
+                            this->m_r.fails = (unsigned int) (fail_ok >> 32);
+                            this->m_r.lastId = vtId;
+                            this->m_rh.resume();
+                            }, m_row, m_h, m_meta, m_lastInsertId, this->get_aborted(), this->get_se())) {
+                            db->raise(this->m_reqName, this->m_reqId);
                         }
                         return false;
                     }
@@ -1182,17 +1182,17 @@ namespace SPA {
                     }
 
                     bool await_ready() noexcept {
-                        CAsyncDBHandler* db = (CAsyncDBHandler*) m_ash;
+                        CAsyncDBHandler* db = (CAsyncDBHandler*) this->m_ash;
                         if (!db->Execute(m_sql.c_str(), [this](CAsyncDBHandler & dbHandler, int res, const std::wstring & errMsg, INT64 affected, UINT64 fail_ok, CDBVariant & vtId) {
-                                m_r.ec = res;
-                                m_r.em = errMsg;
-                                m_r.affected = affected;
-                                m_r.oks = (unsigned int) (fail_ok & 0xffffffff);
-                                m_r.fails = (unsigned int) (fail_ok >> 32);
-                                m_r.lastId = vtId;
-                                m_rh.resume();
-                            }, m_row, m_h, m_meta, m_lastInsertId, get_aborted(), get_se())) {
-                            db->raise(m_reqName, m_reqId);
+                            this->m_r.ec = res;
+                            this->m_r.em = errMsg;
+                            this->m_r.affected = affected;
+                            this->m_r.oks = (unsigned int) (fail_ok & 0xffffffff);
+                            this->m_r.fails = (unsigned int) (fail_ok >> 32);
+                            this->m_r.lastId = vtId;
+                            this->m_rh.resume();
+                            }, m_row, m_h, m_meta, m_lastInsertId, this->get_aborted(), this->get_se())) {
+                            db->raise(this->m_reqName, this->m_reqId);
                         }
                         return false;
                     }
@@ -1220,17 +1220,17 @@ namespace SPA {
                     }
 
                     bool await_ready() noexcept {
-                        CAsyncDBHandler* db = (CAsyncDBHandler*) m_ash;
+                        CAsyncDBHandler* db = (CAsyncDBHandler*) this->m_ash;
                         if (!db->ExecuteBatch(m_isolation, m_sql.c_str(), m_vParam, [this](CAsyncDBHandler & dbHandler, int res, const std::wstring & errMsg, INT64 affected, UINT64 fail_ok, CDBVariant & vtId) {
-                                m_r.ec = res;
-                                m_r.em = errMsg;
-                                m_r.affected = affected;
-                                m_r.oks = (unsigned int) (fail_ok & 0xffffffff);
-                                m_r.fails = (unsigned int) (fail_ok >> 32);
-                                m_r.lastId = vtId;
-                                m_rh.resume();
-                            }, m_row, m_h, m_delimiter.c_str(), m_batchHeader, get_aborted(), m_meta, m_plan, m_vPInfo, m_lastInsertId, get_se())) {
-                            db->raise(m_reqName, m_reqId);
+                            this->m_r.ec = res;
+                            this->m_r.em = errMsg;
+                            this->m_r.affected = affected;
+                            this->m_r.oks = (unsigned int) (fail_ok & 0xffffffff);
+                            this->m_r.fails = (unsigned int) (fail_ok >> 32);
+                            this->m_r.lastId = vtId;
+                            this->m_rh.resume();
+                            }, m_row, m_h, m_delimiter.c_str(), m_batchHeader, this->get_aborted(), m_meta, m_plan, m_vPInfo, m_lastInsertId, this->get_se())) {
+                            db->raise(this->m_reqName, this->m_reqId);
                         }
                         return false;
                     }
@@ -1265,17 +1265,17 @@ namespace SPA {
                     }
 
                     bool await_ready() noexcept {
-                        CAsyncDBHandler* db = (CAsyncDBHandler*) m_ash;
+                        CAsyncDBHandler* db = (CAsyncDBHandler*) this->m_ash;
                         if (!db->ExecuteBatch(m_isolation, m_sql.c_str(), m_vParam, [this](CAsyncDBHandler & dbHandler, int res, const std::wstring & errMsg, INT64 affected, UINT64 fail_ok, CDBVariant & vtId) {
-                                m_r.ec = res;
-                                m_r.em = errMsg;
-                                m_r.affected = affected;
-                                m_r.oks = (unsigned int) (fail_ok & 0xffffffff);
-                                m_r.fails = (unsigned int) (fail_ok >> 32);
-                                m_r.lastId = vtId;
-                                m_rh.resume();
-                            }, m_row, m_h, m_delimiter.c_str(), m_batchHeader, get_aborted(), m_meta, m_plan, m_vPInfo, m_lastInsertId, get_se())) {
-                            db->raise(m_reqName, m_reqId);
+                            this->m_r.ec = res;
+                            this->m_r.em = errMsg;
+                            this->m_r.affected = affected;
+                            this->m_r.oks = (unsigned int) (fail_ok & 0xffffffff);
+                            this->m_r.fails = (unsigned int) (fail_ok >> 32);
+                            this->m_r.lastId = vtId;
+                            this->m_rh.resume();
+                            }, m_row, m_h, m_delimiter.c_str(), m_batchHeader, this->get_aborted(), m_meta, m_plan, m_vPInfo, m_lastInsertId, this->get_se())) {
+                            db->raise(this->m_reqName, this->m_reqId);
                         }
                         return false;
                     }
