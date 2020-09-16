@@ -186,7 +186,7 @@ namespace SPA {
             struct CAwaiter : public CWaiterBase<ErrInfo> {
 
                 CAwaiter(CStreamingFile* file, unsigned short reqId, const std::wstring& req_name, CContext &ctx)
-                : CWaiterBase(file, reqId, req_name) {
+                : CWaiterBase<ErrInfo>(file, reqId, req_name) {
                     ctx.Discarded = get_aborted();
                     ctx.Se = get_se();
                     ctx.Download = [this](CStreamingFile* file, int res, const std::wstring & errMsg) {

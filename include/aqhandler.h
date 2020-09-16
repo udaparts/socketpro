@@ -267,7 +267,7 @@ namespace SPA {
                 struct Awaiter : public CWaiterBase<int> {
 
                     Awaiter(CAsyncQueue* aq, const char* key)
-                    : CWaiterBase(aq, Queue::idStartTrans, L"StartQueueTrans"), m_key(key ? key : "") {
+                    : CWaiterBase<int>(aq, Queue::idStartTrans, L"StartQueueTrans"), m_key(key ? key : "") {
                     }
 
                     bool await_ready() noexcept {
@@ -292,7 +292,7 @@ namespace SPA {
                 struct Awaiter : public CWaiterBase<int> {
 
                     Awaiter(CAsyncQueue* aq, bool rollback)
-                    : CWaiterBase(aq, Queue::idEndTrans, L"EndQueueTrans"), m_rollback(rollback) {
+                    : CWaiterBase<int>(aq, Queue::idEndTrans, L"EndQueueTrans"), m_rollback(rollback) {
                     }
 
                     bool await_ready() noexcept {
@@ -317,7 +317,7 @@ namespace SPA {
                 struct Awaiter : public CWaiterBase<int> {
 
                     Awaiter(CAsyncQueue* aq, const char* key, bool permanent)
-                    : CWaiterBase(aq, Queue::idClose, L"CloseQueue"), m_key(key ? key : ""), m_permanent(permanent) {
+                    : CWaiterBase<int>(aq, Queue::idClose, L"CloseQueue"), m_key(key ? key : ""), m_permanent(permanent) {
                     }
 
                     bool await_ready() noexcept {
@@ -343,7 +343,7 @@ namespace SPA {
                 struct Awaiter : public CWaiterBase<QueueInfo> {
 
                     Awaiter(CAsyncQueue* aq, const char* key, tagOptimistic option)
-                    : CWaiterBase(aq, Queue::idFlush, L"FlushQueue"), m_key(key ? key : ""), m_option(option) {
+                    : CWaiterBase<QueueInfo>(aq, Queue::idFlush, L"FlushQueue"), m_key(key ? key : ""), m_option(option) {
                     }
 
                     bool await_ready() noexcept {
@@ -370,7 +370,7 @@ namespace SPA {
                 struct Awaiter : public CWaiterBase<DeqInfo> {
 
                     Awaiter(CAsyncQueue* aq, const char* key, unsigned int timeout)
-                    : CWaiterBase(aq, Queue::idDequeue, L"Dequeue"), m_key(key ? key : ""), m_timeout(timeout) {
+                    : CWaiterBase<DeqInfo>(aq, Queue::idDequeue, L"Dequeue"), m_key(key ? key : ""), m_timeout(timeout) {
                     }
 
                     bool await_ready() noexcept {
@@ -399,7 +399,7 @@ namespace SPA {
                 struct Awaiter : public CWaiterBase<std::vector<std::string>> {
 
                     Awaiter(CAsyncQueue* aq)
-                    : CWaiterBase(aq, Queue::idGetKeys, L"GetKeys") {
+                    : CWaiterBase<std::vector<std::string>>(aq, Queue::idGetKeys, L"GetKeys") {
                     }
 
                     bool await_ready() noexcept {
@@ -421,7 +421,7 @@ namespace SPA {
                 struct Awaiter : public CWaiterBase<UINT64> {
 
                     Awaiter(CAsyncQueue* aq, const char* key, const unsigned char* buffer, unsigned int size)
-                    : CWaiterBase(aq, Queue::idEnqueueBatch, L"EnqueueBatch"), m_key(key ? key : ""), m_buffer(buffer), m_size(size) {
+                    : CWaiterBase<UINT64>(aq, Queue::idEnqueueBatch, L"EnqueueBatch"), m_key(key ? key : ""), m_buffer(buffer), m_size(size) {
                     }
 
                     bool await_ready() noexcept {

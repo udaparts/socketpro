@@ -935,7 +935,7 @@ namespace SPA {
                 struct CAwaiter : public CWaiterBase<ErrInfo> {
 
                     CAwaiter(CAsyncDBHandler* db, tagTransactionIsolation isolation)
-                    : CWaiterBase(db, idBeginTrans, L"BeginTrans"), m_isolation(isolation) {
+                    : CWaiterBase<ErrInfo>(db, idBeginTrans, L"BeginTrans"), m_isolation(isolation) {
                     }
 
                     bool await_ready() noexcept {
@@ -960,7 +960,7 @@ namespace SPA {
                 struct CAwaiter : public CWaiterBase<ErrInfo> {
 
                     CAwaiter(CAsyncDBHandler* db, tagRollbackPlan plan)
-                    : CWaiterBase(db, idEndTrans, L"EndTrans"), m_plan(plan) {
+                    : CWaiterBase<ErrInfo>(db, idEndTrans, L"EndTrans"), m_plan(plan) {
                     }
 
                     bool await_ready() noexcept {
@@ -985,7 +985,7 @@ namespace SPA {
                 struct CAwaiter : public CWaiterBase<ErrInfo> {
 
                     CAwaiter(CAsyncDBHandler* db)
-                    : CWaiterBase(db, idClose, L"Close") {
+                    : CWaiterBase<ErrInfo>(db, idClose, L"Close") {
                     }
 
                     bool await_ready() noexcept {
@@ -1008,7 +1008,7 @@ namespace SPA {
                 struct CAwaiter : public CWaiterBase<ErrInfo> {
 
                     CAwaiter(CAsyncDBHandler* db, const wchar_t* sql, const CParameterInfoArray& vParameterInfo)
-                    : CWaiterBase(db, idPrepare, L"Prepare"), m_sql(sql ? sql : L""), m_vParameterInfo(vParameterInfo) {
+                    : CWaiterBase<ErrInfo>(db, idPrepare, L"Prepare"), m_sql(sql ? sql : L""), m_vParameterInfo(vParameterInfo) {
                     }
 
                     bool await_ready() noexcept {
@@ -1034,7 +1034,7 @@ namespace SPA {
                 struct CAwaiter : public CWaiterBase<ErrInfo> {
 
                     CAwaiter(CAsyncDBHandler* db, const char16_t* sql, const CParameterInfoArray& vParameterInfo)
-                    : CWaiterBase(db, idPrepare, L"Prepare"), m_sql(sql ? sql : u""), m_vParameterInfo(vParameterInfo) {
+                    : CWaiterBase<ErrInfo>(db, idPrepare, L"Prepare"), m_sql(sql ? sql : u""), m_vParameterInfo(vParameterInfo) {
                     }
 
                     bool await_ready() noexcept {
@@ -1060,7 +1060,7 @@ namespace SPA {
                 struct CAwaiter : public CWaiterBase<ErrInfo> {
 
                     CAwaiter(CAsyncDBHandler* db, const wchar_t* database, unsigned int flags)
-                    : CWaiterBase(db, idOpen, L"Open"), m_db(database ? database : L""), m_flags(flags) {
+                    : CWaiterBase<ErrInfo>(db, idOpen, L"Open"), m_db(database ? database : L""), m_flags(flags) {
                     }
 
                     bool await_ready() noexcept {
@@ -1086,7 +1086,7 @@ namespace SPA {
                 struct CAwaiter : public CWaiterBase<ErrInfo> {
 
                     CAwaiter(CAsyncDBHandler* db, const char16_t* database, unsigned int flags)
-                    : CWaiterBase(db, idOpen, L"Open"), m_db(database ? database : u""), m_flags(flags) {
+                    : CWaiterBase<ErrInfo>(db, idOpen, L"Open"), m_db(database ? database : u""), m_flags(flags) {
                     }
 
                     bool await_ready() noexcept {
@@ -1112,7 +1112,7 @@ namespace SPA {
                 struct CAwaiter : public CWaiterBase<SQLExeInfo> {
 
                     CAwaiter(CAsyncDBHandler* db, CDBVariantArray& vParam, const DRows& row, const DRowsetHeader& rh, bool meta, bool lastInsertId)
-                    : CWaiterBase(db, idExecuteParameters, L"ExecuteParameters"), m_vParam(vParam), m_row(row), m_h(rh), m_meta(meta), m_lastInsertId(lastInsertId) {
+                    : CWaiterBase<SQLExeInfo>(db, idExecuteParameters, L"ExecuteParameters"), m_vParam(vParam), m_row(row), m_h(rh), m_meta(meta), m_lastInsertId(lastInsertId) {
                     }
 
                     bool await_ready() noexcept {
@@ -1145,7 +1145,7 @@ namespace SPA {
                 struct CAwaiter : public CWaiterBase<SQLExeInfo> {
 
                     CAwaiter(CAsyncDBHandler* db, const wchar_t* sql, const DRows& row, const DRowsetHeader& rh, bool meta, bool lastInsertId)
-                    : CWaiterBase(db, idExecute, L"ExecuteSQL"), m_sql(sql ? sql : L""), m_row(row), m_h(rh), m_meta(meta), m_lastInsertId(lastInsertId) {
+                    : CWaiterBase<SQLExeInfo>(db, idExecute, L"ExecuteSQL"), m_sql(sql ? sql : L""), m_row(row), m_h(rh), m_meta(meta), m_lastInsertId(lastInsertId) {
                     }
 
                     bool await_ready() noexcept {
@@ -1178,7 +1178,7 @@ namespace SPA {
                 struct CAwaiter : public CWaiterBase<SQLExeInfo> {
 
                     CAwaiter(CAsyncDBHandler* db, const char16_t* sql, const DRows& row, const DRowsetHeader& rh, bool meta, bool lastInsertId)
-                    : CWaiterBase(db, idExecute, L"ExecuteSQL"), m_sql(sql ? sql : u""), m_row(row), m_h(rh), m_meta(meta), m_lastInsertId(lastInsertId) {
+                    : CWaiterBase<SQLExeInfo>(db, idExecute, L"ExecuteSQL"), m_sql(sql ? sql : u""), m_row(row), m_h(rh), m_meta(meta), m_lastInsertId(lastInsertId) {
                     }
 
                     bool await_ready() noexcept {
@@ -1215,7 +1215,7 @@ namespace SPA {
                     CAwaiter(CAsyncDBHandler* db, tagTransactionIsolation isolation, const wchar_t* sql, CDBVariantArray& vParam,
                             const DRows& row, const DRowsetHeader& rh, const wchar_t* delimiter, const DRowsetHeader& batchHeader,
                             bool meta, tagRollbackPlan plan, const CParameterInfoArray& vPInfo, bool lastInsertId)
-                    : CWaiterBase(db, idExecuteBatch, L"ExecuteBatch"), m_isolation(isolation), m_sql(sql ? sql : L""), m_vParam(vParam), m_row(row), m_h(rh),
+                    : CWaiterBase<SQLExeInfo>(db, idExecuteBatch, L"ExecuteBatch"), m_isolation(isolation), m_sql(sql ? sql : L""), m_vParam(vParam), m_row(row), m_h(rh),
                     m_delimiter(delimiter ? delimiter : L""), m_batchHeader(batchHeader), m_meta(meta), m_plan(plan), m_vPInfo(vPInfo), m_lastInsertId(lastInsertId) {
                     }
 
@@ -1260,7 +1260,7 @@ namespace SPA {
                     CAwaiter(CAsyncDBHandler* db, tagTransactionIsolation isolation, const char16_t* sql, CDBVariantArray& vParam,
                             const DRows& row, const DRowsetHeader& rh, const char16_t* delimiter, const DRowsetHeader& batchHeader,
                             bool meta, tagRollbackPlan plan, const CParameterInfoArray& vPInfo, bool lastInsertId)
-                    : CWaiterBase(db, idExecuteBatch, L"ExecuteBatch"), m_isolation(isolation), m_sql(sql ? sql : u""), m_vParam(vParam), m_row(row), m_h(rh),
+                    : CWaiterBase<SQLExeInfo>(db, idExecuteBatch, L"ExecuteBatch"), m_isolation(isolation), m_sql(sql ? sql : u""), m_vParam(vParam), m_row(row), m_h(rh),
                     m_delimiter(delimiter ? delimiter : u""), m_batchHeader(batchHeader), m_meta(meta), m_plan(plan), m_vPInfo(vPInfo), m_lastInsertId(lastInsertId) {
                     }
 
