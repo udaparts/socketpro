@@ -17,19 +17,19 @@ int main(int argc, char* argv[]) {
     SetMyStruct(ms0);
     try {
         //process requests one by one synchronously
-        std::future<std::wstring> f = hw->async<std::wstring>(idSayHello, L"John", L"Dole");
+        std::future<std::wstring> f = hw->send<std::wstring>(idSayHello, L"John", L"Dole");
         std::wcout << f.get() << std::endl;
-        std::future<CScopeUQueue> fs = hw->async0(idSleep, (unsigned int) 4000);
+        std::future<CScopeUQueue> fs = hw->send0(idSleep, (unsigned int) 4000);
         fs.get();
-        ms = hw->async<CMyStruct>(idEcho, ms0).get();
+        ms = hw->send<CMyStruct>(idEcho, ms0).get();
         assert(ms == ms0);
 
         //asynchronously process multiple requests with in-line batching for best network efficiency
-        auto f0 = hw->async<std::wstring>(idSayHello, L"Jack", L"Smith");
-        auto f1 = hw->async<CMyStruct>(idEcho, ms0);
-        auto f2 = hw->async0(idSleep, (int) 15000);
-        auto f3 = hw->async<std::wstring>(idSayHello, L"Donald", L"Trump");
-        auto f4 = hw->async<std::wstring>(idSayHello, L"Hilary", L"Clinton");
+        auto f0 = hw->send<std::wstring>(idSayHello, L"Jack", L"Smith");
+        auto f1 = hw->send<CMyStruct>(idEcho, ms0);
+        auto f2 = hw->send0(idSleep, (int) 15000);
+        auto f3 = hw->send<std::wstring>(idSayHello, L"Donald", L"Trump");
+        auto f4 = hw->send<std::wstring>(idSayHello, L"Hilary", L"Clinton");
         //hw->GetSocket()->Cancel();
         std::cout << "Waiting results ......\n";
         std::wcout << f0.get() << std::endl;

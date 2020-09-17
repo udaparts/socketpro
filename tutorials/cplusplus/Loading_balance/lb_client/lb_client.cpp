@@ -26,7 +26,7 @@ int main(int argc, char* argv[]) {
     double dPi = 0.0, dStep = 1.0 / nNum / nDivision;
     for (int n = 0; n < nDivision; ++n) {
         double dStart = (double) n / nDivision;
-        vfR.push_back(pi->async0(idComputePi, dStart, dStep, nNum));
+        vfR.push_back(pi->send0(idComputePi, dStart, dStep, nNum));
     }
 
     double res;

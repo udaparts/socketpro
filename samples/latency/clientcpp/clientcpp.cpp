@@ -26,7 +26,7 @@ int main(int argc, char* argv[]) {
     std::cout << "Going to test latency for sync/fast request" << std::endl;
     system_clock::time_point start = system_clock::now();
     for (n = 0; n < TEST_CYCLES; ++n) {
-        res = latency->async<unsigned int, unsigned int>(idEchoInt1, n).get();
+        res = latency->send<unsigned int, unsigned int>(idEchoInt1, n).get();
     }
     system_clock::time_point stop = system_clock::now();
     ns d = std::chrono::duration_cast<ns>(stop - start);
@@ -36,7 +36,7 @@ int main(int argc, char* argv[]) {
     std::cout << "Going to test latency for sync/slow request" << std::endl;
     start = system_clock::now();
     for (n = 0; n < TEST_CYCLES; ++n) {
-        res = latency->async<unsigned int, unsigned int>(idEchoInt2, n).get();
+        res = latency->send<unsigned int, unsigned int>(idEchoInt2, n).get();
     }
     stop = system_clock::now();
     d = std::chrono::duration_cast<ns>(stop - start);
@@ -47,7 +47,7 @@ int main(int argc, char* argv[]) {
         ar >> res;
     };
 
-    std::cout << "Going to test latency for async/fast request" << std::endl;
+    std::cout << "Going to test latency for send/fast request" << std::endl;
     start = system_clock::now();
     for (n = 0; n < TEST_CYCLES; ++n) {
         ok = latency->SendRequest(idEchoInt1, rh, nullptr, nullptr, n);
@@ -55,10 +55,10 @@ int main(int argc, char* argv[]) {
     ok = latency->WaitAll();
     stop = system_clock::now();
     d = std::chrono::duration_cast<ns>(stop - start);
-    std::cout << "Latency for async/fast request in microseconds: " << d.count() / TEST_CYCLES << " ns" << std::endl;
+    std::cout << "Latency for send/fast request in microseconds: " << d.count() / TEST_CYCLES << " ns" << std::endl;
     std::cout << std::endl;
 
-    std::cout << "Going to test latency for async/slow request" << std::endl;
+    std::cout << "Going to test latency for send/slow request" << std::endl;
     start = system_clock::now();
     for (n = 0; n < TEST_CYCLES; ++n) {
         ok = latency->SendRequest(idEchoInt2, rh, nullptr, nullptr, n);
@@ -66,7 +66,7 @@ int main(int argc, char* argv[]) {
     ok = latency->WaitAll();
     stop = system_clock::now();
     d = std::chrono::duration_cast<ns>(stop - start);
-    std::cout << "Latency for async/slow request in microseconds: " << d.count() / TEST_CYCLES << " ns" << std::endl;
+    std::cout << "Latency for send/slow request in microseconds: " << d.count() / TEST_CYCLES << " ns" << std::endl;
 
     std::cout << "Press a key to shutdown the application ......" << std::endl;
     std::getchar();

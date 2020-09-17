@@ -920,7 +920,7 @@ namespace SPA {
 
 #ifdef HAVE_FUTURE
 
-            std::future<CScopeUQueue> async0(unsigned short reqId, const unsigned char *pBuffer, unsigned int size) {
+            std::future<CScopeUQueue> send0(unsigned short reqId, const unsigned char *pBuffer, unsigned int size) {
                 std::shared_ptr<std::promise<CScopeUQueue> > prom(new std::promise<CScopeUQueue>);
                 DDiscarded discarded = get_aborted(prom, L"SendRequest", reqId);
                 DServerException se = get_se(prom);
@@ -939,15 +939,15 @@ namespace SPA {
                 return prom->get_future();
             }
 
-            std::future<CScopeUQueue> async0(unsigned short reqId) {
-                return async0(reqId, (const unsigned char *) nullptr, (unsigned int) 0);
+            std::future<CScopeUQueue> send0(unsigned short reqId) {
+                return send0(reqId, (const unsigned char *) nullptr, (unsigned int) 0);
             }
 
             template<typename ...Ts>
-            std::future<CScopeUQueue> async0(unsigned short reqId, const Ts& ... args) {
+            std::future<CScopeUQueue> send0(unsigned short reqId, const Ts& ... args) {
                 CScopeUQueue sb;
                 sb->Save(args ...);
-                return async0(reqId, sb->GetBuffer(), sb->GetSize());
+                return send0(reqId, sb->GetBuffer(), sb->GetSize());
             }
 
             template<typename R>
@@ -990,7 +990,7 @@ namespace SPA {
             }
 
             template<typename R>
-            std::future<R> async(unsigned short reqId, const unsigned char *pBuffer, unsigned int size) {
+            std::future<R> send(unsigned short reqId, const unsigned char *pBuffer, unsigned int size) {
                 std::shared_ptr<std::promise<R> > prom(new std::promise<R>);
                 DDiscarded discarded = get_aborted(prom, L"SendRequest", reqId);
                 DServerException se = get_se(prom);
@@ -1012,15 +1012,15 @@ namespace SPA {
             }
 
             template<typename R>
-            std::future<R> async(unsigned short reqId) {
-                return async<R>(reqId, (const unsigned char *) nullptr, (unsigned int) 0);
+            std::future<R> send(unsigned short reqId) {
+                return send<R>(reqId, (const unsigned char *) nullptr, (unsigned int) 0);
             }
 
             template<typename R, typename ... Ts>
-            std::future<R> async(unsigned short reqId, const Ts& ... args) {
+            std::future<R> send(unsigned short reqId, const Ts& ... args) {
                 CScopeUQueue sb;
                 sb->Save(args ...);
-                return async<R>(reqId, sb->GetBuffer(), sb->GetSize());
+                return send<R>(reqId, sb->GetBuffer(), sb->GetSize());
             }
 #endif
 #ifdef HAVE_COROUTINE
@@ -1094,7 +1094,7 @@ namespace SPA {
             };
 
             template<typename R>
-            auto wait(unsigned short reqId, const unsigned char* pBuffer, unsigned int size) {
+            auto wait_send(unsigned short reqId, const unsigned char* pBuffer, unsigned int size) {
 
                 struct Awaiter : public CWaiterBase<R> {
 
@@ -1127,18 +1127,18 @@ namespace SPA {
             }
 
             template<typename R>
-            auto wait(unsigned short reqId) {
-                return wait<R>(reqId, (const unsigned char*) nullptr, (unsigned int) 0);
+            auto wait_send(unsigned short reqId) {
+                return wait_send<R>(reqId, (const unsigned char*) nullptr, (unsigned int) 0);
             }
 
             template<typename R, typename ... Ts>
-            auto wait(unsigned short reqId, const Ts& ... args) {
+            auto wait_send(unsigned short reqId, const Ts& ... args) {
                 CScopeUQueue sb;
                 sb->Save(args ...);
-                return wait<R>(reqId, sb->GetBuffer(), sb->GetSize());
+                return wait_send<R>(reqId, sb->GetBuffer(), sb->GetSize());
             }
 
-            auto wait0(unsigned short reqId, const unsigned char* pBuffer, unsigned int size) {
+            auto wait_send0(unsigned short reqId, const unsigned char* pBuffer, unsigned int size) {
 
                 struct Awaiter : public CWaiterBase<CScopeUQueue> {
 
@@ -1168,15 +1168,15 @@ namespace SPA {
                 return Awaiter(this, reqId, pBuffer, size);
             }
 
-            auto wait0(unsigned short reqId) {
-                return wait0(reqId, (const unsigned char*) nullptr, (unsigned int) 0);
+            auto wait_send0(unsigned short reqId) {
+                return wait_send0(reqId, (const unsigned char*) nullptr, (unsigned int) 0);
             }
 
             template<typename ... Ts>
-            auto wait0(unsigned short reqId, const Ts& ... args) {
+            auto wait_send0(unsigned short reqId, const Ts& ... args) {
                 CScopeUQueue sb;
                 sb->Save(args ...);
-                return wait0(reqId, sb->GetBuffer(), sb->GetSize());
+                return wait_send0(reqId, sb->GetBuffer(), sb->GetSize());
             }
 #endif
 #endif

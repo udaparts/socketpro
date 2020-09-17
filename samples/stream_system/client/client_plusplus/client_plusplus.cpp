@@ -80,9 +80,9 @@ int main(int argc, char* argv[]) {
     vData.push_back(st);
 
     try{
-        auto fms = handler->async0(idGetMasterSlaveConnectedSessions);
-        auto fmma = handler->async0(idQueryMaxMinAvgs, filter);
-        auto fue = handler->async0(idUploadEmployees, vData);
+        auto fms = handler->send0(idGetMasterSlaveConnectedSessions);
+        auto fmma = handler->send0(idQueryMaxMinAvgs, filter);
+        auto fue = handler->send0(idUploadEmployees, vData);
 
         unsigned int master_connection, slave_connection;
         int res;
@@ -124,7 +124,7 @@ int main(int argc, char* argv[]) {
         cout << "QueryPaymentMaxMinAvgs\n";
         auto start = chrono::system_clock::now();
         for (unsigned int n = 0; n < 10000; ++n) {
-            qF.push_back(handler->async0(idQueryMaxMinAvgs, filter));
+            qF.push_back(handler->send0(idQueryMaxMinAvgs, filter));
         }
         size_t count = qF.size();
         while (qF.size()) {
@@ -145,7 +145,7 @@ int main(int argc, char* argv[]) {
         cout << "Press a key to test server parallel processing and sequence returning ......\n";
         ::getchar();
         for (SPA::INT64 n = 0; n < 16000; ++n) {
-            qF.push_back(handler->async0(idGetRentalDateTimes, n + 1));
+            qF.push_back(handler->send0(idGetRentalDateTimes, n + 1));
         }
         cout << "GetRentalDateTimes:\n";
         SPA::INT64 prev_rental_id = 0;
