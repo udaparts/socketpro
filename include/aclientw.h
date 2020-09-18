@@ -1132,8 +1132,6 @@ namespace SPA {
                         DResultHandler rh = [this](CAsyncResult & ar) {
                             try {
                                 ar >> this->m_r;
-                            } catch (std::future_error&) {
-                                //ignore it
                             } catch (...) {
                                 this->m_ex = std::current_exception();
                             }
@@ -1166,11 +1164,7 @@ namespace SPA {
                     Awaiter(CAsyncServiceHandler* ash, unsigned short reqId, const unsigned char* pBuffer, unsigned int size)
                     : CWaiterBase<CScopeUQueue>(L"SendRequest", reqId) {
                         DResultHandler rh = [this](CAsyncResult & ar) {
-                            try {
-                                m_r->Swap(ar.UQueue);
-                            } catch (std::future_error&) {
-                                //ignore it
-                            }
+                            m_r->Swap(ar.UQueue);
                             resume();
                         };
                         if (!ash->SendRequest(reqId, pBuffer, size, rh, get_aborted(), get_se())) {
