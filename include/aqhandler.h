@@ -322,7 +322,7 @@ namespace SPA {
                         if (!aq->FlushQueue(key, [this](CAsyncQueue * aq, UINT64 messages, UINT64 fileSize) {
                                 m_r.messages = messages;
                                 m_r.fSize = fileSize;
-                                        resume();
+                                resume();
                             }, option, get_aborted(), get_se())) {
                             aq->raise(L"FlushQueue", Queue::idFlush);
                         }
@@ -340,9 +340,9 @@ namespace SPA {
                         if (!aq->Dequeue(key, [this](CAsyncQueue * aq, UINT64 messages, UINT64 fileSize, unsigned int msgsDequeued, unsigned int bytes) {
                                 m_r.messages = messages;
                                 m_r.fSize = fileSize;
-                                        m_r.DeMessages = msgsDequeued;
-                                        m_r.DeBytes = bytes;
-                                        resume();
+                                m_r.DeMessages = msgsDequeued;
+                                m_r.DeBytes = bytes;
+                                resume();
                             }, timeout, get_aborted(), get_se())) {
                             aq->raise(L"Dequeue", Queue::idDequeue);
                         }
