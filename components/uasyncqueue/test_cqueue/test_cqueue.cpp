@@ -3,7 +3,7 @@
 
 #define TEST_QUEUE_KEY  "queue_name_0"
 
-typedef CSocketPool<CAsyncQueue, CClientSocket> CMyPool;
+typedef CSocketPool<CAsyncQueue> CMyPool;
 
 void TestEnqueue(CMyPool::PHandler &sq);
 void TestDequeue(CMyPool::PHandler &sq);
@@ -36,7 +36,7 @@ int main(int argc, char* argv[]) {
             CAsyncQueue::BatchMessage(idMessage3, *sb, L"Hello", L"World");
             CAsyncQueue::BatchMessage(idMessage4, *sb, true, 234.456, L"MyTestWhatever");
             if (!sq->EnqueueBatch(TEST_QUEUE_KEY, *sb)) {
-                throw CSocketError(CAsyncQueue::SESSION_CLOSED_BEFORE, L"Socket already closed before sending the request EnqueueBatch", Queue::idEnqueueBatch, true);
+                sq->raise(L"EnqueueBatch", Queue::idEnqueueBatch);
             }
         }
         auto feqt = sq->endQueueTrans(false);

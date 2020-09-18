@@ -186,13 +186,13 @@ namespace SPA {
             struct CAwaiter : public CWaiterBase<ErrInfo> {
 
                 CAwaiter(CStreamingFile* file, unsigned short reqId, const std::wstring& req_name, CContext &ctx)
-                : CWaiterBase<ErrInfo>(file, reqId, req_name) {
+                : CWaiterBase<ErrInfo>(req_name, reqId) {
                     ctx.Discarded = get_aborted();
                     ctx.Se = get_se();
                     ctx.Download = [this](CStreamingFile* file, int res, const std::wstring & errMsg) {
                         m_r.ec = res;
                         m_r.em = errMsg;
-                        m_rh.resume();
+                        resume();
                     };
                     CAutoLock al(file->m_csFile);
                     file->m_vContext.push_back(ctx);
@@ -205,13 +205,6 @@ namespace SPA {
                         }
                     }
                 }
-
-                bool await_ready() const noexcept {
-                    return false;
-                }
-
-            private:
-                ErrInfo m_ei;
             };
 
         public:
