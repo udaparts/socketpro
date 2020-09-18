@@ -4,7 +4,9 @@
 #include "../latencydef.h"
 #include "../../../include/aclientw.h"
 
-typedef SPA::ClientSide::CASHandler<sidLatency> CLatencyHandler;
-typedef SPA::ClientSide::CSocketPool<CLatencyHandler, SPA::ClientSide::CClientSocket> CLatencyPool;
+using namespace SPA::ClientSide;
+
+typedef CASHandler<sidLatency> CLatencyHandler;
+typedef CSocketPool<CLatencyHandler> CLatencyPool;
 
 #endif

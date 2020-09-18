@@ -2,16 +2,18 @@
 #include <future>
 #include "clienthandler.h"
 #include <chrono>
-using std::chrono::system_clock;
-typedef std::chrono::nanoseconds ns;
+
+using namespace std;
+using namespace chrono;
+typedef nanoseconds ns;
 
 int main(int argc, char* argv[]) {
     unsigned int res = 0, n = 0;
     const unsigned int TEST_CYCLES = 100000;
 
-    SPA::ClientSide::CConnectionContext cc;
-    std::cout << "Remote host? " << std::endl;
-    std::getline(std::cin, cc.Host);
+    CConnectionContext cc;
+    cout << "Remote host? \n";
+    getline(cin, cc.Host);
     cc.Port = 20901;
     cc.UserId = L"MyUserId";
     cc.Password = L"MyPassword";
@@ -19,56 +21,53 @@ int main(int argc, char* argv[]) {
     CLatencyPool latencyPool;
     bool ok = latencyPool.StartSocketPool(cc, 1);
     if (!ok) {
-        std::cout << "Failed in connecting to remote helloworld server" << std::endl;
+        cout << "No connection to remote server\n";
         return -1;
     }
     auto latency = latencyPool.Seek();
-    std::cout << "Going to test latency for sync/fast request" << std::endl;
+    cout << "Test latency for sync/fast ......\n";
     system_clock::time_point start = system_clock::now();
     for (n = 0; n < TEST_CYCLES; ++n) {
         res = latency->send<unsigned int, unsigned int>(idEchoInt1, n).get();
     }
     system_clock::time_point stop = system_clock::now();
-    ns d = std::chrono::duration_cast<ns>(stop - start);
-    std::cout << "Latency for sync/fast request in microseconds: " << d.count() / TEST_CYCLES << " ns" << std::endl;
-    std::cout << std::endl;
+    ns d = duration_cast<ns>(stop - start);
+    cout << "Latency for sync/fast: " << d.count() / TEST_CYCLES << " ns\n\n";
 
-    std::cout << "Going to test latency for sync/slow request" << std::endl;
+    cout << "Test latency for sync/slow ......\n";
     start = system_clock::now();
     for (n = 0; n < TEST_CYCLES; ++n) {
         res = latency->send<unsigned int, unsigned int>(idEchoInt2, n).get();
     }
     stop = system_clock::now();
-    d = std::chrono::duration_cast<ns>(stop - start);
-    std::cout << "Latency for sync/slow request in microseconds: " << d.count() / TEST_CYCLES << " ns" << std::endl;
-    std::cout << std::endl;
+    d = duration_cast<ns>(stop - start);
+    cout << "Latency for sync/slow: " << d.count() / TEST_CYCLES << " ns\n\n";
 
-    SPA::ClientSide::DResultHandler rh = [&res](SPA::ClientSide::CAsyncResult & ar) {
+    DResultHandler rh = [&res](CAsyncResult & ar) {
         ar >> res;
     };
 
-    std::cout << "Going to test latency for send/fast request" << std::endl;
+    cout << "Test latency for send/fast ......\n";
     start = system_clock::now();
     for (n = 0; n < TEST_CYCLES; ++n) {
         ok = latency->SendRequest(idEchoInt1, rh, nullptr, nullptr, n);
     }
     ok = latency->WaitAll();
     stop = system_clock::now();
-    d = std::chrono::duration_cast<ns>(stop - start);
-    std::cout << "Latency for send/fast request in microseconds: " << d.count() / TEST_CYCLES << " ns" << std::endl;
-    std::cout << std::endl;
+    d = duration_cast<ns>(stop - start);
+    cout << "Latency for send/fast: " << d.count() / TEST_CYCLES << " ns\n\n";
 
-    std::cout << "Going to test latency for send/slow request" << std::endl;
+    cout << "Test latency for send/slow ......\n";
     start = system_clock::now();
     for (n = 0; n < TEST_CYCLES; ++n) {
         ok = latency->SendRequest(idEchoInt2, rh, nullptr, nullptr, n);
     }
     ok = latency->WaitAll();
     stop = system_clock::now();
-    d = std::chrono::duration_cast<ns>(stop - start);
-    std::cout << "Latency for send/slow request in microseconds: " << d.count() / TEST_CYCLES << " ns" << std::endl;
+    d = duration_cast<ns>(stop - start);
+    cout << "Latency for send/slow: " << d.count() / TEST_CYCLES << " ns\n\n";
 
-    std::cout << "Press a key to shutdown the application ......" << std::endl;
-    std::getchar();
+    cout << "Press a key to kill the demo ......\n";
+    getchar();
     return 0;
 }
