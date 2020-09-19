@@ -1119,10 +1119,10 @@ namespace SPA {
                 };
 
                 CWaiterBase(const std::wstring &req_name, unsigned short reqId)
-                : m_wc(new CWaiterContext(req_name, reqId)), m_r(m_wc->m_r), m_ex(m_wc->m_ex){
+                : m_wc(new CWaiterContext(req_name, reqId)), m_r(m_wc->m_r), m_ex(m_wc->m_ex) {
                 }
 
-                CWaiterBase(const CWaiterBase& wb) : m_wc(wb.m_wc), m_r(wb.m_r), m_ex(wb.m_ex) noexcept {
+                CWaiterBase(const CWaiterBase& wb) : m_wc(wb.m_wc), m_r(wb.m_r), m_ex(wb.m_ex) {
                 }
 
                 CWaiterBase(CWaiterBase&& wb) : m_wc(wb.m_wc), m_r(wb.m_r), m_ex(wb.m_ex) {
