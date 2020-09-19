@@ -1028,26 +1028,122 @@ namespace SPA {
             template<typename R>
             struct CWaiterBase {
 
+                struct CWaiterContext {
+                    CWaiterContext(const std::wstring& req_name, unsigned short reqId)
+                        : m_done(false), m_reqId(reqId) {
+                        if (!req_name.size()) {
+                            throw std::invalid_argument("Method name cannot be empty");
+                        }
+                        if (!reqId) {
+                            throw std::invalid_argument("Request id cannot be zero");
+                        }
+                        m_reqName = req_name;
+                    }
+
+                    CWaiterContext(const CWaiterContext& wc) = delete;
+                    CWaiterContext(CWaiterContext&& wc) = delete;
+                    CWaiterContext& operator=(const CWaiterContext& wc) = delete;
+                    CWaiterContext& operator=(CWaiterContext&& wc) = delete;
+
+                    bool await_ready() noexcept {
+                        m_cs.lock();
+                        bool done = m_done;
+                        m_cs.unlock();
+                        return done;
+                    }
+
+                    bool await_suspend(CRHandle rh) noexcept {
+                        m_cs.lock();
+                        if (!m_done) {
+                            m_rh = rh;
+                            m_cs.unlock();
+                            return true;
+                        }
+                        m_cs.unlock();
+                        return false;
+                    }
+
+                    void resume() noexcept {
+                        m_cs.lock();
+                        if (m_done) {
+                            m_cs.unlock();
+                        }
+                        else {
+                            m_done = true;
+                            if (m_rh) {
+                                m_cs.unlock();
+                                m_rh.resume();
+                            }
+                            else {
+                                m_cs.unlock();
+                            }
+                        }
+                    }
+
+                    DServerException get_se() noexcept {
+                        return [this](CAsyncServiceHandler* ash, unsigned short reqId, const wchar_t* errMsg, const char* errWhere, unsigned int errCode) {
+                            m_ex = std::make_exception_ptr(CServerError(errCode, errMsg, errWhere, reqId));
+                            resume();
+                        };
+                    }
+
+                    DDiscarded get_aborted() noexcept {
+                        return [this](CAsyncServiceHandler* h, bool canceled) {
+                            if (canceled) {
+                                m_ex = std::make_exception_ptr(CSocketError(REQUEST_CANCELED, (L"Request " + m_reqName + L" canceled").c_str(), m_reqId, false));
+                            }
+                            else {
+                                CClientSocket* cs = h->GetSocket();
+                                int ec = cs->GetErrorCode();
+                                if (ec) {
+                                    std::string em = cs->GetErrorMsg();
+                                    m_ex = std::make_exception_ptr(CSocketError(ec, Utilities::ToWide(em).c_str(), m_reqId, false));
+                                }
+                                else {
+                                    m_ex = std::make_exception_ptr(CSocketError(SESSION_CLOSED_AFTER, (L"Session closed after sending the request " + m_reqName).c_str(), m_reqId, false));
+                                }
+                            }
+                            resume();
+                        };
+                    }
+
+                    R m_r;
+                    std::exception_ptr m_ex;
+
+                private:
+                    CSpinLock m_cs;
+                    bool m_done; //portected by m_cs
+                    CRHandle m_rh; //portected by m_cs
+                    unsigned short m_reqId;
+                    std::wstring m_reqName;
+                };
+
                 CWaiterBase(const std::wstring &req_name, unsigned short reqId)
-                : m_cs(new SPA::CSpinLock), m_done(false), m_reqId(reqId) {
-                    if (!req_name.size()) {
-                        throw std::invalid_argument("Method name cannot be empty");
+                : m_wc(new CWaiterContext(req_name, reqId)), m_r(m_wc->m_r), m_ex(m_wc->m_ex){
+                }
+
+                CWaiterBase(const CWaiterBase& wb) : m_wc(wb.m_wc), m_r(wb.m_r), m_ex(wb.m_ex) noexcept {
+                }
+
+                CWaiterBase(CWaiterBase&& wb) : m_wc(wb.m_wc), m_r(wb.m_r), m_ex(wb.m_ex) {
+                }
+
+                CWaiterBase& operator=(const CWaiterBase& wb) noexcept {
+                    if (this != &wb) {
+                        m_wc = wb.m_wc;
                     }
-                    if (!reqId) {
-                        throw std::invalid_argument("Request id cannot be zero");
+                    return *this;
+                }
+
+                CWaiterBase& operator=(CWaiterBase&& wb) noexcept {
+                    if (this != &wb) {
+                        m_wc = wb.m_wc; //copy shared_ptr only
                     }
-                    m_reqName = req_name;
+                    return *this;
                 }
 
                 bool await_suspend(CRHandle rh) noexcept {
-                    m_cs->lock();
-                    if (!m_done) {
-                        m_rh = rh;
-                        m_cs->unlock();
-                        return true;
-                    }
-                    m_cs->unlock();
-                    return false;
+                    return m_wc->await_suspend(rh);
                 }
 
                 R await_resume() {
@@ -1058,68 +1154,28 @@ namespace SPA {
                 }
 
                 bool await_ready() noexcept {
-                    m_cs->lock();
-                    bool done = m_done;
-                    m_cs->unlock();
-                    return done;
+                    return m_wc->await_ready();
                 }
 
             protected:
-
-                void resume() {
-                    m_cs->lock();
-                    m_done = true;
-                    if (m_rh) {
-                        m_cs->unlock();
-                        m_rh.resume();
-                    } else {
-                        m_cs->unlock();
-                    }
+                void resume() noexcept {
+                    m_wc->resume();
                 }
 
-                DServerException get_se() {
-                    return [this](CAsyncServiceHandler* ash, unsigned short reqId, const wchar_t* errMsg, const char* errWhere, unsigned int errCode) {
-                        try {
-                            m_ex = std::make_exception_ptr(CServerError(errCode, errMsg, errWhere, reqId));
-                        } catch (std::future_error&) {
-                            //ignore
-                        }
-                        resume();
-                    };
+                DServerException get_se() noexcept {
+                    return m_wc->get_se();
                 }
 
-                DDiscarded get_aborted() {
-                    return [this](CAsyncServiceHandler* h, bool canceled) {
-                        try {
-                            if (canceled) {
-                                m_ex = std::make_exception_ptr(CSocketError(REQUEST_CANCELED, (L"Request " + m_reqName + L" canceled").c_str(), m_reqId, false));
-                            } else {
-                                CClientSocket* cs = h->GetSocket();
-                                int ec = cs->GetErrorCode();
-                                if (ec) {
-                                    std::string em = cs->GetErrorMsg();
-                                    m_ex = std::make_exception_ptr(CSocketError(ec, Utilities::ToWide(em).c_str(), m_reqId, false));
-                                } else {
-                                    m_ex = std::make_exception_ptr(CSocketError(SESSION_CLOSED_AFTER, (L"Session closed after sending the request " + m_reqName).c_str(), m_reqId, false));
-                                }
-                            }
-                        } catch (std::future_error&) {
-                            //ignore
-                        }
-                        resume();
-                    };
+                DDiscarded get_aborted() noexcept {
+                    return m_wc->get_aborted();
                 }
-
-            protected:
-                std::exception_ptr m_ex;
-                R m_r;
 
             private:
-                std::shared_ptr<SPA::CSpinLock> m_cs;
-                bool m_done;
-                CRHandle m_rh;
-                unsigned short m_reqId;
-                std::wstring m_reqName;
+                std::shared_ptr<CWaiterContext> m_wc;
+
+            protected:
+                R &m_r;
+                std::exception_ptr &m_ex;
             };
 
             template<typename R>
