@@ -10,27 +10,24 @@
 
 #ifdef HAVE_FUTURE
 #include <future>
-#endif
-
 #ifdef WIN32_64
-#if _MSC_VER >= 1910 //VC++ 2017 or later
 #ifdef _EXPERIMENTAL_RESUMABLE_
 #define HAVE_COROUTINE 1
-typedef std::experimental::coroutine_handle<> CRHandle;
-#endif
-#endif
-#else
-#if CLANG_VERSION >= 100001
-#ifdef _GLIBCXX_COROUTINE
-#define HAVE_COROUTINE 1
-typedef std::coroutine_handle<> CRHandle;
-#endif
-#elif GCC_VERSION >= 100001
-#ifdef _GLIBCXX_COROUTINE
-#define HAVE_COROUTINE 1
-typedef std::coroutine_handle<> CRHandle;
+namespace SPA {
+    namespace ClientSide {
+        typedef std::experimental::coroutine_handle<> CRHandle;
+    }
+}
 #endif
 #else
+#ifdef _GLIBCXX_COROUTINE
+#define HAVE_COROUTINE 1
+namespace SPA {
+    namespace ClientSide {
+        typedef std::coroutine_handle<> CRHandle;
+    }
+}
+#endif
 #endif
 #endif
 
