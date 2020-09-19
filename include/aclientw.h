@@ -1143,7 +1143,7 @@ namespace SPA {
                     return m_wc->await_suspend(rh);
                 }
 
-                R await_resume() {
+                R&& await_resume() {
                     if (m_ex) {
                         std::rethrow_exception(m_ex);
                     }
