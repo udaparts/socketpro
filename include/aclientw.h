@@ -1334,6 +1334,14 @@ namespace SPA {
 
         typedef CAsyncServiceHandler* PAsyncServiceHandler;
 
+#if defined(PHP_ADAPTER_PROJECT) || defined(NODE_JS_ADAPTER_PROJECT)
+#else
+#ifdef HAVE_FUTURE
+#ifdef HAVE_COROUTINE
+        template<typename R> using CWaiterList = std::initializer_list<CAsyncServiceHandler::CWaiterBase<R>>;
+#endif
+#endif
+#endif
         template<unsigned int serviceId>
         class CASHandler : public CAsyncServiceHandler {
         public:
