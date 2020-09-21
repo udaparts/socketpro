@@ -137,6 +137,7 @@ HCURSOR Cwin_asyncDlg::OnQueryDragIcon() {
 }
 
 std::future<void> Cwin_asyncDlg::ExecuteTask() {
+    HWND hWnd = GetDlgItem(IDC_RESULT_EDIT)->m_hWnd;
     auto hw = m_spHw.GetAsyncHandlers()[0];
     try{
         std::wstring s = co_await hw->wait_send<std::wstring>(idSayHello, L"Jack", L"Smith");
@@ -149,8 +150,10 @@ std::future<void> Cwin_asyncDlg::ExecuteTask() {
     }
 
     catch(CSocketError & err) {
-        GetDlgItem(IDC_RESULT_EDIT)->SetWindowText(err.ToString().c_str());
-        GetDlgItem(IDC_TEST_BUTTON)->EnableWindow(FALSE);
+        if (::IsWindow(hWnd)) { //dialog destroyed?
+            GetDlgItem(IDC_RESULT_EDIT)->SetWindowText(err.ToString().c_str());
+            GetDlgItem(IDC_TEST_BUTTON)->EnableWindow(FALSE);
+        }
     }
 
     catch(std::exception & err) {
@@ -161,6 +164,7 @@ std::future<void> Cwin_asyncDlg::ExecuteTask() {
 
 std::future<void> Cwin_asyncDlg::ExecuteTasksInBatch() {
     CMyStruct res;
+    HWND hWnd = GetDlgItem(IDC_RESULT_EDIT)->m_hWnd;
     auto hw = m_spHw.GetAsyncHandlers()[0];
     CMyStruct ms;
     SetMyStruct(ms);
@@ -180,8 +184,10 @@ std::future<void> Cwin_asyncDlg::ExecuteTasksInBatch() {
     }
 
     catch(CSocketError & err) {
-        GetDlgItem(IDC_RESULT_EDIT)->SetWindowText(err.ToString().c_str());
-        GetDlgItem(IDC_TEST_BUTTON)->EnableWindow(FALSE);
+        if (::IsWindow(hWnd)) { //dialog destroyed?
+            GetDlgItem(IDC_RESULT_EDIT)->SetWindowText(err.ToString().c_str());
+            GetDlgItem(IDC_TEST_BUTTON)->EnableWindow(FALSE);
+        }
     }
 
     catch(std::exception & err) {
