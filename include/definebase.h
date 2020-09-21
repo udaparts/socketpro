@@ -365,13 +365,13 @@ namespace SPA {
 
     template<typename TChar>
     inline size_t GetLen(const TChar *str) {
-        size_t size = 0;
         if (str) {
-            while (*str++) {
-                ++size;
+            const TChar* start = str;
+            for (; *str; ++str) {
             }
+            return str - start;
         }
-        return size;
+        return 0;
     }
 
 #if _MSC_VER < 1900 && defined(WCHAR16)
