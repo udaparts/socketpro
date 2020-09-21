@@ -151,6 +151,15 @@ namespace SPA {
 #include <unistd.h>
 #include <memory>
 
+#ifdef __clang__
+#define CLANG_VERSION (__clang_major__ * 10000 + __clang_minor__ * 100 + __clang_patchlevel__)
+#elif __GNUC__
+#define GCC_VERSION (__GNUC__ * 10000 + __GNUC_MINOR__ * 100 + __GNUC_PATCHLEVEL__)
+#else
+
+#endif
+
+
 #define GetProcAddress dlsym
 #define FreeLibrary dlclose
 
@@ -356,13 +365,13 @@ namespace SPA {
 
     template<typename TChar>
     inline size_t GetLen(const TChar *str) {
-        size_t size = 0;
         if (str) {
-            while (*str++) {
-                ++size;
+            const TChar* start = str;
+            for (; *str; ++str) {
             }
+            return str - start;
         }
-        return size;
+        return 0;
     }
 
 #if _MSC_VER < 1900 && defined(WCHAR16)

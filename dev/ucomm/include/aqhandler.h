@@ -63,7 +63,7 @@ namespace SPA {
             /**
              * Query queue keys opened at server side
              * @param gk A callback for tracking an array of key names
-             * @param discarded A callback for tracking socket closed or request cancelled event
+             * @param discarded A callback for tracking socket closed or request canceled event
              * @param se A callback for tracking an exception from server side
              * @return true for sending the request successfully, and false for failure
              */
@@ -89,7 +89,7 @@ namespace SPA {
              * Start enqueuing message with transaction style. Currently, total size of queued messages must be less than 4 G bytes
              * @param key An ASCII string for identifying a queue at server side
              * @param qt A callback for tracking returning error code, which can be one of QUEUE_OK, QUEUE_TRANS_ALREADY_STARTED, and so on
-             * @param discarded A callback for tracking socket closed or request cancelled event
+             * @param discarded A callback for tracking socket closed or request canceled event
              * @param se A callback for tracking an exception from server side
              * @return true for sending the request successfully, and false for failure
              */
@@ -114,7 +114,7 @@ namespace SPA {
              * End enqueuing messages with transaction style. Currently, total size of queued messages must be less than 4 G bytes
              * @param rollback true for rollback, and false for committing
              * @param qt A callback for tracking returning error code, which can be one of QUEUE_OK, QUEUE_TRANS_NOT_STARTED_YET, and so on
-             * @param discarded A callback for tracking socket closed or request cancelled event
+             * @param discarded A callback for tracking socket closed or request canceled event
              * @param se A callback for tracking an exception from server side
              * @return true for sending the request successfully, and false for failure
              */
@@ -145,7 +145,7 @@ namespace SPA {
              * @param key An ASCII string for identifying a queue at server side
              * @param c A callback for tracking returning error code, which can be one of QUEUE_OK, QUEUE_DEQUEUING, and so on
              * @param permanent true for deleting a queue file, and false for closing a queue file
-             * @param discarded A callback for tracking socket closed or request cancelled event
+             * @param discarded A callback for tracking socket closed or request canceled event
              * @param se A callback for tracking an exception from server side
              * @return true for sending the request successfully, and false for failure
              */
@@ -166,7 +166,7 @@ namespace SPA {
              * @param key An ASCII string for identifying a queue at server side
              * @param f A callback for tracking returning message count and queue file size in bytes
              * @param option One of options, oMemoryCached, oSystemMemoryCached and oDiskCommitted
-             * @param discarded A callback for tracking socket closed or request cancelled event
+             * @param discarded A callback for tracking socket closed or request canceled event
              * @param se A callback for tracking an exception from server side
              * @return true for sending the request successfully, and false for failure
              */
@@ -209,7 +209,7 @@ namespace SPA {
              * @param key An ASCII string for identifying a queue at server side
              * @param d A callback for tracking remaining message count within a server queue file, queue file size in bytes, messages and bytes dequeued within this batch
              * @param timeout A server side time-out number in milliseconds
-             * @param discarded A callback for tracking socket closed or request cancelled event
+             * @param discarded A callback for tracking socket closed or request canceled event
              * @param se A callback for tracking an exception from server side
              * @return true for sending the request successfully, and false for failure
              */
@@ -260,6 +260,150 @@ namespace SPA {
 #if defined(PHP_ADAPTER_PROJECT) || defined(NODE_JS_ADAPTER_PROJECT)
 #else
 #ifdef HAVE_FUTURE
+#ifdef HAVE_COROUTINE
+
+            auto wait_startQueueTrans(const char* key) {
+
+                struct Awaiter : public CWaiterBase<int> {
+
+                    Awaiter(CAsyncQueue* aq, const char* key)
+                    : CWaiterBase<int>(L"StartQueueTrans", Queue::idStartTrans) {
+                        if (!aq->StartQueueTrans(key, [this](CAsyncQueue * aq, int errCode) {
+                                m_r = errCode;
+                                resume();
+                            }, get_aborted(), get_se())) {
+                            aq->raise(L"StartQueueTrans", Queue::idStartTrans);
+                        }
+                    }
+                };
+                return Awaiter(this, key);
+            }
+
+            auto wait_endQueueTrans(bool rollback = false) {
+
+                struct Awaiter : public CWaiterBase<int> {
+
+                    Awaiter(CAsyncQueue* aq, bool rollback)
+                    : CWaiterBase<int>(L"EndQueueTrans", Queue::idEndTrans) {
+                        if (!aq->EndQueueTrans(rollback, [this](CAsyncQueue * aq, int errCode) {
+                                m_r = errCode;
+                                resume();
+                            }, get_aborted(), get_se())) {
+                            aq->raise(L"EndQueueTrans", Queue::idEndTrans);
+                        }
+                    }
+                };
+                return Awaiter(this, rollback);
+            }
+
+            auto wait_closeQueue(const char* key, bool permanent = false) {
+
+                struct Awaiter : public CWaiterBase<int> {
+
+                    Awaiter(CAsyncQueue* aq, const char* key, bool permanent)
+                    : CWaiterBase<int>(L"CloseQueue", Queue::idClose) {
+                        if (!aq->CloseQueue(key, [this](CAsyncQueue * aq, int errCode) {
+                                m_r = errCode;
+                                resume();
+                            }, permanent, get_aborted(), get_se())) {
+                            aq->raise(L"CloseQueue", Queue::idClose);
+                        }
+                    }
+                };
+                return Awaiter(this, key, permanent);
+            }
+
+            auto wait_flushQueue(const char* key, tagOptimistic option = oMemoryCached) {
+
+                struct Awaiter : public CWaiterBase<QueueInfo> {
+
+                    Awaiter(CAsyncQueue* aq, const char* key, tagOptimistic option)
+                    : CWaiterBase<QueueInfo>(L"FlushQueue", Queue::idFlush) {
+                        if (!aq->FlushQueue(key, [this](CAsyncQueue * aq, UINT64 messages, UINT64 fileSize) {
+                                m_r.messages = messages;
+                                m_r.fSize = fileSize;
+                                resume();
+                            }, option, get_aborted(), get_se())) {
+                            aq->raise(L"FlushQueue", Queue::idFlush);
+                        }
+                    }
+                };
+                return Awaiter(this, key, option);
+            }
+
+            auto wait_dequeue(const char* key, unsigned int timeout = 0) {
+
+                struct Awaiter : public CWaiterBase<DeqInfo> {
+
+                    Awaiter(CAsyncQueue* aq, const char* key, unsigned int timeout)
+                    : CWaiterBase<DeqInfo>(L"Dequeue", Queue::idDequeue) {
+                        if (!aq->Dequeue(key, [this](CAsyncQueue * aq, UINT64 messages, UINT64 fileSize, unsigned int msgsDequeued, unsigned int bytes) {
+                                m_r.messages = messages;
+                                m_r.fSize = fileSize;
+                                m_r.DeMessages = msgsDequeued;
+                                m_r.DeBytes = bytes;
+                                resume();
+                            }, timeout, get_aborted(), get_se())) {
+                            aq->raise(L"Dequeue", Queue::idDequeue);
+                        }
+                    }
+                };
+                return Awaiter(this, key, timeout);
+            }
+
+            auto wait_getKeys() {
+
+                struct Awaiter : public CWaiterBase<std::vector < std::string>>
+                {
+
+                    Awaiter(CAsyncQueue * aq)
+                            : CWaiterBase<std::vector < std::string >> (L"GetKeys", Queue::idGetKeys) {
+                        if (!aq->GetKeys([this](CAsyncQueue * aq, std::vector<std::string>& v) {
+                                m_r.swap(v);
+                                resume();
+                            }, get_aborted(), get_se())) {
+                            aq->raise(L"GetKeys", Queue::idGetKeys);
+                        }
+                    }
+                };
+                return Awaiter(this);
+            }
+
+            auto wait_enqueueBatch(const char* key, const unsigned char* buffer, unsigned int size) {
+
+                struct Awaiter : public CWaiterBase<UINT64> {
+
+                    Awaiter(CAsyncQueue* aq, const char* key, const unsigned char* buffer, unsigned int size)
+                    : CWaiterBase<UINT64>(L"EnqueueBatch", Queue::idEnqueueBatch) {
+                        if (!aq->EnqueueBatch(key, buffer, size, [this](CAsyncQueue * aq, UINT64 index) {
+                                m_r = index;
+                                resume();
+                            }, get_aborted(), get_se())) {
+                            aq->raise(L"EnqueueBatch", Queue::idEnqueueBatch);
+                        }
+                    }
+                };
+                return Awaiter(this, key, buffer, size);
+            }
+
+            auto wait_enqueueBatch(const char* key, CUQueue& q) {
+
+                struct Awaiter : public CWaiterBase<UINT64> {
+
+                    Awaiter(CAsyncQueue* aq, const char* key, CUQueue& q)
+                    : CWaiterBase<UINT64>(L"EnqueueBatch", Queue::idEnqueueBatch) {
+                        if (!aq->EnqueueBatch(key, q.GetBuffer(), q.GetSize(), [this](CAsyncQueue * aq, UINT64 index) {
+                                m_r = index;
+                                resume();
+                            }, get_aborted(), get_se())) {
+                            aq->raise(L"EnqueueBatch", Queue::idEnqueueBatch);
+                        }
+                        q.SetSize(0);
+                    }
+                };
+                return Awaiter(this, key, q);
+            }
+#endif
 
             /**
              * Query queue keys opened at server side
