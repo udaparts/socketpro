@@ -16,14 +16,14 @@ namespace win_async
         Task<CScopeUQueue> GetTask()
         {
             HelloWorld hw = m_spHw.AsyncHandlers[0];
-            return hw.Async(hwConst.idSayHelloHelloWorld, "Jack", "Smith");
+            return hw.send(hwConst.idSayHelloHelloWorld, "Jack", "Smith");
         }
 
         Task<CScopeUQueue> GetTasksInBatch()
         {
             HelloWorld hw = m_spHw.AsyncHandlers[0];
             bool ok = hw.SendRequest(hwConst.idSleepHelloWorld, 5000, (ar) => { });
-            Task<CScopeUQueue> task = hw.Async(hwConst.idSayHelloHelloWorld, "Jone", "Don");
+            Task<CScopeUQueue> task = hw.send(hwConst.idSayHelloHelloWorld, "Jone", "Don");
             return task;
         }
 

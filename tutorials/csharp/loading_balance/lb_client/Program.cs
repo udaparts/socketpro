@@ -27,7 +27,7 @@ class Program
             for (int n = 0; n < nDivision; ++n)
             {
                 double dStart = (double)n / nDivision;
-                vtR.Add(pi.Async(piConst.idComputePi, dStart, dStep, nNum));
+                vtR.Add(pi.send(piConst.idComputePi, dStart, dStep, nNum));
             }
 
             foreach (var t in vtR)

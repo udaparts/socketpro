@@ -22,13 +22,13 @@ public class RAdo : CAsyncAdohandler
 
     public DataSet GetDataSet(string sql0, string sql1)
     {
-        Async(radoConst.idGetDataSetRAdo, sql0, sql1).Wait();
+        send(radoConst.idGetDataSetRAdo, sql0, sql1).Wait();
         return AdoSerializer.CurrentDataSet;
     }
 
     public DataTable GetDataTable(string sql)
     {
-        Async(radoConst.idGetDataTableRAdo, sql).Wait();
+        send(radoConst.idGetDataTableRAdo, sql).Wait();
         return AdoSerializer.CurrentDataTable;
     }
 }

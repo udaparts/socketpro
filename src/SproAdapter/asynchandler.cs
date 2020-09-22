@@ -989,7 +989,7 @@ namespace SocketProAdapter
                 return aborted;
             }
 
-            public Task<CScopeUQueue> Async(ushort reqId, byte[] data, uint len)
+            public Task<CScopeUQueue> send(ushort reqId, byte[] data, uint len)
             {
                 //use threadless task only
                 TaskCompletionSource<CScopeUQueue> tcs = new TaskCompletionSource<CScopeUQueue>();
@@ -1005,99 +1005,109 @@ namespace SocketProAdapter
                 return tcs.Task;
             }
 
-            public Task<CScopeUQueue> Async(ushort reqId)
+            public Task<CScopeUQueue> send(ushort reqId)
             {
-                return Async(reqId, (byte[])null, (uint)0);
+                return send(reqId, (byte[])null, (uint)0);
             }
 
-            public Task<CScopeUQueue> Async<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9>(ushort reqId, T0 t0, T1 t1, T2 t2, T3 t3, T4 t4, T5 t5, T6 t6, T7 t7, T8 t8, T9 t9)
+            public Task<CScopeUQueue> send<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9>(ushort reqId, T0 t0, T1 t1, T2 t2, T3 t3, T4 t4, T5 t5, T6 t6, T7 t7, T8 t8, T9 t9)
             {
-                CUQueue su = CScopeUQueue.Lock();
-                su.Save(t0).Save(t1).Save(t2).Save(t3).Save(t4).Save(t5).Save(t6).Save(t7).Save(t8).Save(t9);
-                Task<CScopeUQueue> r = Async(reqId, su.IntenalBuffer, su.GetSize());
-                CScopeUQueue.Unlock(su);
-                return r;
+                using (CScopeUQueue sb = new CScopeUQueue())
+                {
+                    CUQueue b = sb.UQueue;
+                    b.Save(t0).Save(t1).Save(t2).Save(t3).Save(t4).Save(t5).Save(t6).Save(t7).Save(t8).Save(t9);
+                    return send(reqId, b.IntenalBuffer, b.GetSize());
+                }
             }
 
-            public Task<CScopeUQueue> Async<T0, T1, T2, T3, T4, T5, T6, T7, T8>(ushort reqId, T0 t0, T1 t1, T2 t2, T3 t3, T4 t4, T5 t5, T6 t6, T7 t7, T8 t8)
+            public Task<CScopeUQueue> send<T0, T1, T2, T3, T4, T5, T6, T7, T8>(ushort reqId, T0 t0, T1 t1, T2 t2, T3 t3, T4 t4, T5 t5, T6 t6, T7 t7, T8 t8)
             {
-                CUQueue su = CScopeUQueue.Lock();
-                su.Save(t0).Save(t1).Save(t2).Save(t3).Save(t4).Save(t5).Save(t6).Save(t7).Save(t8);
-                Task<CScopeUQueue> r = Async(reqId, su.IntenalBuffer, su.GetSize());
-                CScopeUQueue.Unlock(su);
-                return r;
+                using (CScopeUQueue sb = new CScopeUQueue())
+                {
+                    CUQueue b = sb.UQueue;
+                    b.Save(t0).Save(t1).Save(t2).Save(t3).Save(t4).Save(t5).Save(t6).Save(t7).Save(t8);
+                    return send(reqId, b.IntenalBuffer, b.GetSize());
+                }
             }
 
-            public Task<CScopeUQueue> Async<T0, T1, T2, T3, T4, T5, T6, T7>(ushort reqId, T0 t0, T1 t1, T2 t2, T3 t3, T4 t4, T5 t5, T6 t6, T7 t7)
+            public Task<CScopeUQueue> send<T0, T1, T2, T3, T4, T5, T6, T7>(ushort reqId, T0 t0, T1 t1, T2 t2, T3 t3, T4 t4, T5 t5, T6 t6, T7 t7)
             {
-                CUQueue su = CScopeUQueue.Lock();
-                su.Save(t0).Save(t1).Save(t2).Save(t3).Save(t4).Save(t5).Save(t6).Save(t7);
-                Task<CScopeUQueue> r = Async(reqId, su.IntenalBuffer, su.GetSize());
-                CScopeUQueue.Unlock(su);
-                return r;
+                using (CScopeUQueue sb = new CScopeUQueue())
+                {
+                    CUQueue b = sb.UQueue;
+                    b.Save(t0).Save(t1).Save(t2).Save(t3).Save(t4).Save(t5).Save(t6).Save(t7);
+                    return send(reqId, b.IntenalBuffer, b.GetSize());
+                }
             }
 
-            public Task<CScopeUQueue> Async<T0, T1, T2, T3, T4, T5, T6>(ushort reqId, T0 t0, T1 t1, T2 t2, T3 t3, T4 t4, T5 t5, T6 t6)
+            public Task<CScopeUQueue> send<T0, T1, T2, T3, T4, T5, T6>(ushort reqId, T0 t0, T1 t1, T2 t2, T3 t3, T4 t4, T5 t5, T6 t6)
             {
-                CUQueue su = CScopeUQueue.Lock();
-                su.Save(t0).Save(t1).Save(t2).Save(t3).Save(t4).Save(t5).Save(t6);
-                Task<CScopeUQueue> r = Async(reqId, su.IntenalBuffer, su.GetSize());
-                CScopeUQueue.Unlock(su);
-                return r;
+                using (CScopeUQueue sb = new CScopeUQueue())
+                {
+                    CUQueue b = sb.UQueue;
+                    b.Save(t0).Save(t1).Save(t2).Save(t3).Save(t4).Save(t5).Save(t6);
+                    return send(reqId, b.IntenalBuffer, b.GetSize());
+                }
             }
 
-            public Task<CScopeUQueue> Async<T0, T1, T2, T3, T4, T5>(ushort reqId, T0 t0, T1 t1, T2 t2, T3 t3, T4 t4, T5 t5)
+            public Task<CScopeUQueue> send<T0, T1, T2, T3, T4, T5>(ushort reqId, T0 t0, T1 t1, T2 t2, T3 t3, T4 t4, T5 t5)
             {
-                CUQueue su = CScopeUQueue.Lock();
-                su.Save(t0).Save(t1).Save(t2).Save(t3).Save(t4).Save(t5);
-                Task<CScopeUQueue> r = Async(reqId, su.IntenalBuffer, su.GetSize());
-                CScopeUQueue.Unlock(su);
-                return r;
+                using (CScopeUQueue sb = new CScopeUQueue())
+                {
+                    CUQueue b = sb.UQueue;
+                    b.Save(t0).Save(t1).Save(t2).Save(t3).Save(t4).Save(t5);
+                    return send(reqId, b.IntenalBuffer, b.GetSize());
+                }
             }
 
-            public Task<CScopeUQueue> Async<T0, T1, T2, T3, T4>(ushort reqId, T0 t0, T1 t1, T2 t2, T3 t3, T4 t4)
+            public Task<CScopeUQueue> send<T0, T1, T2, T3, T4>(ushort reqId, T0 t0, T1 t1, T2 t2, T3 t3, T4 t4)
             {
-                CUQueue su = CScopeUQueue.Lock();
-                su.Save(t0).Save(t1).Save(t2).Save(t3).Save(t4);
-                Task<CScopeUQueue> r = Async(reqId, su.IntenalBuffer, su.GetSize());
-                CScopeUQueue.Unlock(su);
-                return r;
+                using (CScopeUQueue sb = new CScopeUQueue())
+                {
+                    CUQueue b = sb.UQueue;
+                    b.Save(t0).Save(t1).Save(t2).Save(t3).Save(t4);
+                    return send(reqId, b.IntenalBuffer, b.GetSize());
+                }
             }
 
-            public Task<CScopeUQueue> Async<T0, T1, T2, T3>(ushort reqId, T0 t0, T1 t1, T2 t2, T3 t3)
+            public Task<CScopeUQueue> send<T0, T1, T2, T3>(ushort reqId, T0 t0, T1 t1, T2 t2, T3 t3)
             {
-                CUQueue su = CScopeUQueue.Lock();
-                su.Save(t0).Save(t1).Save(t2).Save(t3);
-                Task<CScopeUQueue> r = Async(reqId, su.IntenalBuffer, su.GetSize());
-                CScopeUQueue.Unlock(su);
-                return r;
+                using (CScopeUQueue sb = new CScopeUQueue())
+                {
+                    CUQueue b = sb.UQueue;
+                    b.Save(t0).Save(t1).Save(t2).Save(t3);
+                    return send(reqId, b.IntenalBuffer, b.GetSize());
+                }
             }
 
-            public Task<CScopeUQueue> Async<T0, T1, T2>(ushort reqId, T0 t0, T1 t1, T2 t2)
+            public Task<CScopeUQueue> send<T0, T1, T2>(ushort reqId, T0 t0, T1 t1, T2 t2)
             {
-                CUQueue su = CScopeUQueue.Lock();
-                su.Save(t0).Save(t1).Save(t2);
-                Task<CScopeUQueue> r = Async(reqId, su.IntenalBuffer, su.GetSize());
-                CScopeUQueue.Unlock(su);
-                return r;
+                using (CScopeUQueue sb = new CScopeUQueue())
+                {
+                    CUQueue b = sb.UQueue;
+                    b.Save(t0).Save(t1).Save(t2);
+                    return send(reqId, b.IntenalBuffer, b.GetSize());
+                }
             }
 
-            public Task<CScopeUQueue> Async<T0, T1>(ushort reqId, T0 t0, T1 t1)
+            public Task<CScopeUQueue> send<T0, T1>(ushort reqId, T0 t0, T1 t1)
             {
-                CUQueue su = CScopeUQueue.Lock();
-                su.Save(t0).Save(t1);
-                Task<CScopeUQueue> r = Async(reqId, su.IntenalBuffer, su.GetSize());
-                CScopeUQueue.Unlock(su);
-                return r;
+                using (CScopeUQueue sb = new CScopeUQueue())
+                {
+                    CUQueue b = sb.UQueue;
+                    b.Save(t0).Save(t1);
+                    return send(reqId, b.IntenalBuffer, b.GetSize());
+                }
             }
 
-            public Task<CScopeUQueue> Async<T0>(ushort reqId, T0 t0)
+            public Task<CScopeUQueue> send<T0>(ushort reqId, T0 t0)
             {
-                CUQueue su = CScopeUQueue.Lock();
-                su.Save(t0);
-                Task<CScopeUQueue> r = Async(reqId, su.IntenalBuffer, su.GetSize());
-                CScopeUQueue.Unlock(su);
-                return r;
+                using (CScopeUQueue sb = new CScopeUQueue())
+                {
+                    CUQueue b = sb.UQueue;
+                    b.Save(t0);
+                    return send(reqId, b.IntenalBuffer, b.GetSize());
+                }
             }
 #endif
             private CClientSocket m_ClientSocket;

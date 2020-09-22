@@ -5,7 +5,7 @@ public class CMyStruct : IUSerializer
 {
     string NullString = null;
     object ObjectNull = null;
-    DateTime ADateTime = DateTime.UtcNow;
+    DateTime ADateTime = DateTime.Now;
     public double ADouble;
     public bool ABool;
     public string UnicodeString;

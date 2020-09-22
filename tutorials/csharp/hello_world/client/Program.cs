@@ -17,14 +17,14 @@ class Program
                 try
                 {
                     //All seven requests are streamed with in-line batch for the best network efficiency
-                    var t0 = hw.Async(hwConst.idSayHelloHelloWorld, "John", "Dole");
-                    var t1 = hw.Async(hwConst.idSleepHelloWorld, (int)4000);
-                    var t2 = hw.Async(hwConst.idEchoHelloWorld, msOrig);
-                    var t3 = hw.Async(hwConst.idSayHelloHelloWorld, "Jack", "Smith");
-                    var t4 = hw.Async(hwConst.idSayHelloHelloWorld, "Donald", "Trump");
-                    var t5 = hw.Async(hwConst.idSleepHelloWorld, (int)15000);
-                    var t6 = hw.Async(hwConst.idSayHelloHelloWorld, "Hillary", "Clinton");
-                    var t7 = hw.Async(hwConst.idEchoHelloWorld, msOrig);
+                    var t0 = hw.send(hwConst.idSayHelloHelloWorld, "John", "Dole");
+                    var t1 = hw.send(hwConst.idSleepHelloWorld, (int)4000);
+                    var t2 = hw.send(hwConst.idEchoHelloWorld, msOrig);
+                    var t3 = hw.send(hwConst.idSayHelloHelloWorld, "Jack", "Smith");
+                    var t4 = hw.send(hwConst.idSayHelloHelloWorld, "Donald", "Trump");
+                    var t5 = hw.send(hwConst.idSleepHelloWorld, (int)15000);
+                    var t6 = hw.send(hwConst.idSayHelloHelloWorld, "Hillary", "Clinton");
+                    var t7 = hw.send(hwConst.idEchoHelloWorld, msOrig);
 
                     Console.WriteLine(t0.Result.Load<string>());
                     Console.WriteLine("Returned buffer size should be " + t1.Result.UQueue.Size + " because server returns nothing");

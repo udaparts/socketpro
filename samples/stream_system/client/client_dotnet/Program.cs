@@ -56,9 +56,9 @@ class Program
 
             try
             {
-                var tms = handler.Async(Consts.idGetMasterSlaveConnectedSessions);
-                var tmma = handler.Async(Consts.idQueryMaxMinAvgs, filter);
-                var tue = handler.Async(Consts.idUploadEmployees, vData);
+                var tms = handler.send(Consts.idGetMasterSlaveConnectedSessions);
+                var tmma = handler.send(Consts.idQueryMaxMinAvgs, filter);
+                var tue = handler.send(Consts.idUploadEmployees, vData);
                 var sb = tms.Result;
                 Console.WriteLine("master connections: {0}, slave connections: {1}", sb.Load<uint>(), sb.Load<uint>());
                 sb = tmma.Result;
@@ -99,7 +99,7 @@ class Program
                 Queue<Task<CScopeUQueue>> qT = new Queue<Task<CScopeUQueue>>();
                 DateTime start = DateTime.Now;
                 for (uint n = 0; n < 10000; ++n)
-                    qT.Enqueue(handler.Async(Consts.idQueryMaxMinAvgs, filter));
+                    qT.Enqueue(handler.send(Consts.idQueryMaxMinAvgs, filter));
 
                 int count = qT.Count;
                 Console.WriteLine("QueryPaymentMaxMinAvgs");
@@ -125,7 +125,7 @@ class Program
                 Console.WriteLine("Press ENTER key to test server parallel processing and sequence returning ......");
                 Console.ReadLine();
                 for (long n = 0; n < 16000; ++n)
-                    qT.Enqueue(handler.Async(Consts.idGetRentalDateTimes, n + 1));
+                    qT.Enqueue(handler.send(Consts.idGetRentalDateTimes, n + 1));
                 long prev_rental_id = 0;
                 Console.WriteLine("GetRentalDateTimes:");
                 while (qT.Count > 0)
