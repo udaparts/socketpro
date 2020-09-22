@@ -1,14 +1,16 @@
 from msstruct import CMyStruct
-from spa import CUQueue
+from spa import CUQueue, CScopeUQueue
 from decimal import Decimal
 import uuid
 from datetime import datetime
 
-msOriginal = CMyStruct.MakeOne()
-q = CUQueue()
-msOriginal.SaveTo(q)
-ms = CMyStruct()
-ms.LoadFrom(q)
+msOrig = CMyStruct.MakeOne()
+print(msOrig)
+with CScopeUQueue() as sb:
+    sb.Save(msOrig)
+    res = sb.LoadByClass(CMyStruct)
+    print(res)
+
 
 with CUQueue() as q:
     q.Empty()

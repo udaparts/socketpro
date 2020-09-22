@@ -1,10 +1,10 @@
 "use strict";
 
 //loading SocketPro adapter (nja.js + njadapter.node) for nodejs
-var SPA = require('nja.js'); //1
+var SPA = require('nja.js');
 
 //create a memory buffer or queue for data serialization and de-serialization
-var buf = SPA.newBuffer(); //2
+var buf = SPA.newBuffer();
 
 var data = {
 	nullStr: null,
@@ -21,8 +21,8 @@ var data = {
 };
 console.log(data); //source data
 
-//serialize member values into buffer q with a specific order, which must be in agreement with server implementation
-buf.SaveString(data.nullStr); //4 bytes for length  //3
+//serialize member values into buffer buf with a specific order, which must be in agreement with server implementation
+buf.SaveString(data.nullStr); //4 bytes for length
 buf.SaveObject(data.objNull); //2 bytes for data type
 buf.SaveDate(data.aDate); //8 bytes for ulong with accuracy to 1 micro-second
 buf.SaveDouble(data.aDouble); //8 bytes
@@ -36,7 +36,7 @@ buf.SaveObject(data.objArrInt); //2 bytes for data type + 4 bytes for array size
 
 console.log('Bytes in buffer before loading: ' + buf.getSize());
 //de-serialize once result comes from server
-var res = { //4
+var res = {
 	nullStr: buf.LoadString(),
 	objNull: buf.LoadObject(),
 	aDate: buf.LoadDate(),
@@ -53,7 +53,7 @@ console.log(res); //Returned data
 console.log('Bytes in buffer after loading: ' + buf.getSize());
 
 console.log('++++++ use callbacks for saving and loading +++++');
-res = buf.Save(q => { //5
+res = buf.Save(q => {
 	q.SaveString(data.nullStr).SaveObject(data.objNull).SaveDate(data.aDate).SaveDouble(data.aDouble).
 	SaveBool(data.aBool).SaveString(data.unicodeStr).SaveAString(data.asciiStr).SaveObject(data.objBool).
 	SaveObject(data.objString).SaveObject(data.objArrString).SaveObject(data.objArrInt);

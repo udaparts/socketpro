@@ -764,8 +764,8 @@ class CHandler {
     /**
      *  Send a request onto a remote server for processing, and return immediately without blocking
      * @param {short} reqId An unique request id within a service handler
-     * @param {CUQueue or null} buff null or an instance of CUQueue or None
-     * @param {function} A callback for tracking an instance of CUQueue containing an expected result
+     * @param {CUQueue, null or undefined} buff null, undefined or an instance of CUQueue
+     * @param {function} cb A callback for tracking an instance of CUQueue containing an expected result
      * @param {function} discarded A callback for tracking communication channel events, close and cancel
      * @param {function} serverException A callback for tracking an exception from server
      * @returns true if successful, and false if communication channel is not sendable
@@ -779,8 +779,8 @@ class CHandler {
     /**
      *  Send a request onto a remote server for processing, and return immediately without blocking
      * @param {short} reqId An unique request id within a service handler
-     * @param {CUQueue or null} buff null or an instance of CUQueue or None
-     * @param {function} A callback for tracking an instance of CUQueue containing an expected result
+     * @param {CUQueue, null or undefined} buff null, undefined or an instance of CUQueue
+     * @param {function} A cb An optional callback for tracking an instance of CUQueue containing an expected result
      * @param {function} discarded An optional callback for tracking communication channel events, close and cancel
      * @param {function} serverException An optional callback for tracking an exception from server
      * @returns A promise
@@ -2274,7 +2274,7 @@ exports.Cache = {
     }
 };
 
-exports.CHandler = CHandler;
+//exports.CHandler = CHandler;
 
 class CJsManager {
     constructor(jsonConfig) {

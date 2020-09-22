@@ -8,6 +8,19 @@ class CMyStruct(IUSerializer):
         self.ObjectNull = None
         self.ADateTime = datetime.now()
 
+    @staticmethod
+    def MakeOne():
+        ms = CMyStruct()
+        ms.objArrInt = [1, 76890]
+        ms.objArrString = [u'Hello', u'world']
+        ms.ObjBool = True
+        ms.ObjString = u'test'
+        ms.UnicodeString = u'Unicode'
+        ms.ABool = True
+        ms.ADouble = 1234.567
+        ms.AsciiString = 'ASCII'
+        return ms
+
     def __str__(self):
         return str(self.__repr__())
 
@@ -36,16 +49,3 @@ class CMyStruct(IUSerializer):
         q.SaveBool(self.ABool).SaveString(self.UnicodeString).SaveAString(self.AsciiString).SaveObject(self.ObjBool)
         q.SaveObject(self.ObjString).SaveObject(self.objArrString).SaveObject(self.objArrInt)
         return q
-
-    @staticmethod
-    def MakeOne():
-        ms = CMyStruct()
-        ms.objArrInt = [1, 76890]
-        ms.objArrString = [u'Hello', u'world']
-        ms.ObjBool = True
-        ms.ObjString = u'test'
-        ms.UnicodeString = u'Unicode'
-        ms.ABool = True
-        ms.ADouble = 1234.567
-        ms.AsciiString = 'ASCII'
-        return ms
