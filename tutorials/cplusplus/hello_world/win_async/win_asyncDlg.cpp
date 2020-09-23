@@ -140,8 +140,8 @@ std::future<void> Cwin_asyncDlg::ExecuteTask() {
     HWND hWnd = GetDlgItem(IDC_RESULT_EDIT)->m_hWnd;
     auto hw = m_spHw.GetAsyncHandlers()[0];
     try{
-        std::wstring s = co_await hw->wait_send<std::wstring>(idSayHello, L"Jack", L"Smith");
-        GetDlgItem(IDC_RESULT_EDIT)->SetWindowTextW(s.c_str());
+        CStringW s = co_await hw->wait_send<CStringW>(idSayHello, L"Jack", L"Smith");
+        GetDlgItem(IDC_RESULT_EDIT)->SetWindowTextW(s);
     }
 
     catch(CServerError & err) {
@@ -171,11 +171,11 @@ std::future<void> Cwin_asyncDlg::ExecuteTasksInBatch() {
     try{
         auto fms = hw->send<CMyStruct, CMyStruct>(idEcho, ms);
         auto f0 = hw->send0(idSleep, (unsigned int) 5000);
-        std::wstring s = co_await hw->wait_send<std::wstring>(idSayHello, L"Hillary", L"Clinton");
+        CStringW s = co_await hw->wait_send<CStringW>(idSayHello, L"Hillary", L"Clinton");
         //fms definitely contains an instance of returned CMyStruct by this time
         res = fms.get();
         assert(res == ms);
-        GetDlgItem(IDC_RESULT_EDIT)->SetWindowTextW(s.c_str());
+        GetDlgItem(IDC_RESULT_EDIT)->SetWindowTextW(s);
     }
 
     catch(CServerError & err) {

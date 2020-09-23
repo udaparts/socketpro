@@ -1096,24 +1096,26 @@ namespace SPA {
         }
 #endif
 
-#ifdef __ATLSTR_H__
+#ifdef __CSTRINGT_H__
 
         /**
-         * Append an ATL wide string with string length ahead (4 bytes)
-         * @param str An ATL wide string
+         * Append a CString wide string with string length ahead (4 bytes)
+         * @param str A CString wide string
          * @return Reference to this memory buffer
          */
-        CUQueue& operator<<(const ATL::CAtlStringW &str) {
+        template<typename Traits>
+        CUQueue& operator<<(const CStringT<wchar_t, Traits> &str) {
             *this << LPCWSTR(str);
             return *this;
         }
 
         /**
-         * Append an ATL ASCII string with string length ahead (4 bytes)
-         * @param str An ATL ASCII string
+         * Append a CString ASCII string with string length ahead (4 bytes)
+         * @param str A CString ASCII string
          * @return Reference to this memory buffer
          */
-        CUQueue& operator<<(const ATL::CAtlStringA &str) {
+        template<typename Traits>
+        CUQueue& operator<<(const CStringT<char, Traits> &str) {
             unsigned int size = (str.GetString() ? (unsigned int) str.GetLength() : UQUEUE_NULL_LENGTH);
             Push(&size);
             if (size != UQUEUE_NULL_LENGTH && size > 0) {
@@ -1123,11 +1125,12 @@ namespace SPA {
         }
 
         /**
-         * Pop content into ATL wide char string
-         * @param str An instance of ATL wide char string for receiving data
+         * Pop content into CString wide char string
+         * @param str An instance of CString wide char string for receiving data
          * @return Reference to this memory buffer
          */
-        CUQueue& operator>>(ATL::CAtlStringW &str) {
+        template<typename Traits>
+        CUQueue& operator>>(CStringT<wchar_t, Traits> &str) {
             unsigned int size;
             Pop((unsigned char*) &size, sizeof (unsigned int));
             switch (size) {
@@ -1149,11 +1152,12 @@ namespace SPA {
         }
 
         /**
-         * Pop content into ATL ASCII string
-         * @param str An instance of ATL ASCII string for receiving data
+         * Pop content into CString ASCII string
+         * @param str An instance of CString ASCII string for receiving data
          * @return Reference to this memory buffer
          */
-        CUQueue& operator>>(ATL::CAtlStringA &str) {
+        template<typename Traits>
+        CUQueue& operator>>(CStringT<char, Traits> &str) {
             unsigned int size;
             Pop((unsigned char*) &size, sizeof (unsigned int));
             switch (size) {
