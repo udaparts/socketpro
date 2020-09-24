@@ -44,7 +44,7 @@ console.log(data); //Source data
 
 (async () => {
     try {
-        // all f0, f1, f2, f3, and f4 are promises for CUQueue
+        // all f0, f1, f2, f3, f4 and f5 are promises for CUQueue
         // all the following five requests are streamed with in-line batching for best network effiency
         var f0 = hw.sendRequest(idSayHello, SPA.newBuffer().SaveString('Jone').SaveString('Dole'));
         var f1 = hw.sendRequest(idSleep, SPA.newBuffer().SaveUInt(5000));
@@ -71,7 +71,7 @@ console.log(data); //Source data
             console.log('complex object echo buffer size: ' + q.getSize());
         }));
         var f3 = hw.sendRequest(idSayHello, SPA.newBuffer().SaveString('Hillary').SaveString('Clinton'));
-        var f4 = hw.sendRequest(idSayHello, SPA.newBuffer().SaveString('Download').SaveString('Trump'));
+        var f4 = hw.sendRequest(idSayHello, SPA.newBuffer().SaveString('Donald').SaveString('Trump'));
         var f5 = hw.sendRequest(idSayHello, SPA.newBuffer().SaveString('Jack').SaveString('Smith'));
 
         console.log((await f0).LoadString());
