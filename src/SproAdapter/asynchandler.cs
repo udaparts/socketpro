@@ -933,7 +933,7 @@ namespace SocketProAdapter
                 }
                 CClientSocket cs = Socket;
                 int ec = cs.ErrorCode;
-                if (ec == 0)
+                if (ec != 0)
                 {
                     string em = cs.ErrorMsg;
                     throw new CSocketError(ec, em, req_id, true);
@@ -975,7 +975,7 @@ namespace SocketProAdapter
                     {
                         CClientSocket cs = h.Socket;
                         int ec = cs.ErrorCode;
-                        if (ec == 0)
+                        if (ec != 0)
                         {
                             string em = cs.ErrorMsg;
                             tcs.TrySetException(new CSocketError(ec, em, req_id, false));
