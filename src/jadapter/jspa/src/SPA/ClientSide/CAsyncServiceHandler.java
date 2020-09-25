@@ -303,7 +303,8 @@ public class CAsyncServiceHandler implements AutoCloseable {
             @Override
             public void invoke(CAsyncServiceHandler sender, boolean discarded) {
                 if (discarded) {
-                    f.cancel(false);
+                    CSocketError ex = new CSocketError(REQUEST_CANCELED, "Request " + f.getMethodName() + " canceled", f.getReqId(), false);
+                    f.setException(ex);
                 } else {
                     CClientSocket cs = sender.getSocket();
                     int ec = cs.getErrorCode();
