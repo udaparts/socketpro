@@ -16,6 +16,8 @@ var cs = SPA.CS; //CS == Client side
 var p = cs.newPool(sid);
 global.p = p;
 
+//p.QueueName = 'reqbackup';
+
 //create a connection context
 var cc = cs.newCC('localhost', 20901, 'root', 'Smash123');
 
@@ -45,9 +47,9 @@ console.log(data); //Source data
 (async () => {
     try {
         // all f0, f1, f2, f3, f4 and f5 are promises for CUQueue
-        // all the following five requests are streamed with in-line batching for best network effiency
+        // all requests are streamed with in-line batching for best network effiency
         var f0 = hw.sendRequest(idSayHello, SPA.newBuffer().SaveString('Jone').SaveString('Dole'));
-        var f1 = hw.sendRequest(idSleep, SPA.newBuffer().SaveUInt(5000));
+        var f1 = hw.sendRequest(idSleep, SPA.newBuffer().SaveInt(5000));
 
         //serialize and de-serialize a complex structure with a specific order,
         //pay attention to both serialization and de-serialization,
@@ -55,27 +57,20 @@ console.log(data); //Source data
 
         //echo a complex object
         var f2 = hw.sendRequest(idEcho, SPA.newBuffer().Save(q => {
-            //serialize member values into buffer q with a specific order, which must be in agreement with server implementation
-            q.SaveString(data.nullStr); //4 bytes for length
-            q.SaveObject(data.objNull); //2 bytes for data type
-            q.SaveDate(data.aDate); //8 bytes for ulong with accuracy to 1 micro-second
-            q.SaveDouble(data.aDouble); //8 bytes
-            q.SaveBool(data.aBool); //1 byte
-            q.SaveString(data.unicodeStr); //4 bytes for string length + (length * 2) bytes for string data -- UTF16 low-endian
-            q.SaveAString(data.asciiStr); //4 bytes for ASCII string length + length bytes for string data
-            q.SaveObject(data.objBool); //2 bytes for data type + 2 bytes for variant bool
-            q.SaveObject(data.objString); //2 bytes for data type + 4 bytes for string length + (length * 2) bytes for string data -- UTF16-lowendian
-            q.SaveObject(data.objArrString); //2 bytes for data type + 4 bytes for array size + (4 bytes for string length + (length * 2) bytes for string data) * arraysize -- UTF16-lowendian
-            q.SaveObject(data.objArrInt); //2 bytes for data type + 4 bytes for array size + arraysize * 4 bytes for int data
+            q.SaveString(data.nullStr).SaveObject(data.objNull).SaveDate(data.aDate).
+            SaveDouble(data.aDouble).SaveBool(data.aBool).SaveString(data.unicodeStr).
+            SaveAString(data.asciiStr).SaveObject(data.objBool).SaveObject(data.objString).
+            SaveObject(data.objArrString).SaveObject(data.objArrInt);
 
             console.log('complex object echo buffer size: ' + q.getSize());
         }));
         var f3 = hw.sendRequest(idSayHello, SPA.newBuffer().SaveString('Hillary').SaveString('Clinton'));
         var f4 = hw.sendRequest(idSayHello, SPA.newBuffer().SaveString('Donald').SaveString('Trump'));
         var f5 = hw.sendRequest(idSayHello, SPA.newBuffer().SaveString('Jack').SaveString('Smith'));
-
+		//hw.Socket.Cancel();
         console.log((await f0).LoadString());
-        console.log('Sleep returning result size: ' + (await f1).getSize()); //should be zero because server side return nothing
+		//should be zero because server side return nothing
+        console.log('Sleep returning result size: ' + (await f1).getSize());
         var q = await f2;
         //de-serialize once result comes from server
         var d = {
