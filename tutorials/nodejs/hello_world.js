@@ -45,32 +45,41 @@ var data = {
 console.log(data); //Source data
 
 (async () => {
-    try {
-        // all f0, f1, f2, f3, f4 and f5 are promises for CUQueue
-        // all requests are streamed with in-line batching for best network effiency
-        var f0 = hw.sendRequest(idSayHello, SPA.newBuffer().SaveString('Jone').SaveString('Dole'));
-        var f1 = hw.sendRequest(idSleep, SPA.newBuffer().SaveInt(5000));
 
-        //serialize and de-serialize a complex structure with a specific order,
-        //pay attention to both serialization and de-serialization,
-        //which must be in agreement with server implementation
+    // all f0, f1, f2, f3, f4 and f5 are promises for CUQueue
+    // all the following requests are streamed with in-line batching for best network effiency
+    var f0 = hw.sendRequest(idSayHello, SPA.newBuffer().SaveString('Jone').SaveString('Dole'));
+    var f1 = hw.sendRequest(idSleep, SPA.newBuffer().SaveInt(5000));
 
-        //echo a complex object
-        var f2 = hw.sendRequest(idEcho, SPA.newBuffer().Save(q => {
-            q.SaveString(data.nullStr).SaveObject(data.objNull).SaveDate(data.aDate).
+    //serialize and de-serialize a complex structure with a specific order,
+    //pay attention to both serialization and de-serialization,
+    //which must be in agreement with server implementation
+
+    //echo a complex object
+    var f2 = hw.sendRequest(idEcho, SPA.newBuffer().Save(q => {
+        q.SaveString(data.nullStr).SaveObject(data.objNull).SaveDate(data.aDate).
             SaveDouble(data.aDouble).SaveBool(data.aBool).SaveString(data.unicodeStr).
             SaveAString(data.asciiStr).SaveObject(data.objBool).SaveObject(data.objString).
             SaveObject(data.objArrString).SaveObject(data.objArrInt);
-
-            console.log('complex object echo buffer size: ' + q.getSize());
-        }));
-        var f3 = hw.sendRequest(idSayHello, SPA.newBuffer().SaveString('Hillary').SaveString('Clinton'));
-        var f4 = hw.sendRequest(idSayHello, SPA.newBuffer().SaveString('Donald').SaveString('Trump'));
-        var f5 = hw.sendRequest(idSayHello, SPA.newBuffer().SaveString('Jack').SaveString('Smith'));
-		//hw.Socket.Cancel();
+    }));
+    var f3 = hw.sendRequest(idSayHello, SPA.newBuffer().SaveString('Hillary').SaveString('Clinton'));
+    var f4 = hw.sendRequest(idSayHello, SPA.newBuffer().SaveString('Donald').SaveString('Trump'));
+    var f5 = hw.sendRequest(idSayHello, SPA.newBuffer().SaveString('Jack').SaveString('Smith'));
+    //hw.Socket.Cancel();
+    try {
         console.log((await f0).LoadString());
-		//should be zero because server side return nothing
+    }
+    catch (ex) {
+        console.log(ex);
+    }
+    //should be zero because server side return nothing
+    try {
         console.log('Sleep returning result size: ' + (await f1).getSize());
+    }
+    catch (ex) {
+        console.log(ex);
+    }
+    try {
         var q = await f2;
         //de-serialize once result comes from server
         var d = {
@@ -87,10 +96,27 @@ console.log(data); //Source data
             objArrInt: q.LoadObject()
         };
         console.log(d);
-        console.log((await f3).LoadString());
-        console.log((await f4).LoadString());
-        console.log((await f5).LoadString());
-    } catch (err) {
-        console.log(err);
     }
+    catch (ex) {
+        console.log(ex);
+    }
+    try {
+        console.log((await f3).LoadString());
+    }
+    catch (ex) {
+        console.log(ex);
+    }
+    try {
+        console.log((await f4).LoadString());
+    }
+    catch (ex) {
+        console.log(ex);
+    }
+    try {
+        console.log((await f5).LoadString());
+    }
+    catch (ex) {
+        console.log(ex);
+    }
+
 })();
