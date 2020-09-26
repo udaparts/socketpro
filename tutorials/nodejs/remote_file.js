@@ -22,9 +22,6 @@ var file = p.Seek(); //seek an async file handler
     try {
         var p0 = file.download('spfile.test', 'jvm.lib', (pos, fsize) => {
             console.log({ pos: pos, fsize: fsize });
-        }, SPA.File.OpenOption.TRUNCACTED, (res, errMsg) => {
-            console.log('++++ File downloading end ++++');
-            return { res: res, err_msg: errMsg };
         });
         var p1 = file.upload('spfile.test', 'jvm_copy.lib');
         var my_array = await Promise.all([p0, p1]);
