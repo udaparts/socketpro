@@ -72,9 +72,9 @@ console.log(data); //Source data
     catch (ex) {
         console.log(ex);
     }
-    //should be zero because server side return nothing
-    try {
+    try {//should be zero because server side return nothing
         console.log('Sleep returning result size: ' + (await f1).getSize());
+        //console.log((await f1).LoadString());
     }
     catch (ex) {
         console.log(ex);
