@@ -48,9 +48,9 @@ with CSocketPool(CHelloWorld) as sp:
     def cbSayHello(ar):
         print(ar.LoadString())
 
-    ok = hw.SendRequest(hwConst.idSayHelloHelloWorld, CUQueue().SaveString('Jack').SaveString('Smith'), cbSayHello)
+    ok = hw.SendRequest(hwConst.idSayHello, CUQueue().SaveString('Jack').SaveString('Smith'), cbSayHello)
     cs.Push.Publish('We are going to call the method Sleep', (1,2))
-    hw.SendRequest(hwConst.idSleepHelloWorld, CUQueue().SaveUInt(5000), None)
+    hw.SendRequest(hwConst.idSleep, CUQueue().SaveUInt(5000), None)
     print('Input a receiver for receiving my message ......')
     cs.Push.SendUserMessage('A message from ' + cc.UserId, sys.stdin.readline().strip())
     print('Press key ENTER to shutdown the demo application ......')
