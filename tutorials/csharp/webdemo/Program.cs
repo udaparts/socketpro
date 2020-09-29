@@ -25,11 +25,11 @@ public class CMySocketProServer : CSocketProServer
 
     static void Main(string[] args)
     {
-        CMySocketProServer MySocketProServer = new CMySocketProServer();
-        if (!MySocketProServer.Run(20901))
+        CMySocketProServer server = new CMySocketProServer();
+        if (!server.Run(20901))
             Console.WriteLine("Error code = " + CSocketProServer.LastSocketError.ToString());
         Console.WriteLine("Input a line to close the application ......");
         Console.ReadLine();
-        MySocketProServer.StopSocketProServer(); //or MySocketProServer.Dispose();
+        server.StopSocketProServer(); //or MySocketProServer.Dispose();
     }
 }

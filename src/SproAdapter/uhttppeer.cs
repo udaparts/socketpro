@@ -105,51 +105,62 @@ namespace SocketProAdapter
 
             protected virtual void OnPost()
             {
-
+                SetResponseCode(501);
+                SendResult("No support to POST");
             }
 
             protected virtual void OnGet()
             {
-
+                SetResponseCode(501);
+                SendResult("No support to GET");
             }
 
             protected virtual void OnUserRequest()
             {
-
+                SetResponseCode(501);
+                SendResult("No support to " + RequestName);
             }
 
             protected virtual void OnDelete()
             {
-
+                SetResponseCode(501);
+                SendResult("No support to DELETE");
             }
 
             protected virtual void OnPut()
             {
-
+                SetResponseCode(501);
+                SendResult("No support to PUT");
             }
 
             protected virtual void OnHead()
             {
-
+                SetResponseCode(501);
+                SendResult("No support to HEAD");
             }
 
             protected virtual void OnOptions()
             {
-
+                SetResponseCode(501);
+                SendResult("No support to OPTIONS");
             }
 
             protected virtual void OnTrace()
             {
-
+                SetResponseCode(501);
+                SendResult("No support to TRACE");
             }
 
             protected virtual void OnMultiPart()
             {
-
+                SetResponseCode(501);
+                SendResult("No support to MultiPart");
             }
 
             protected virtual void OnConnect()
             {
+                SetResponseCode(501);
+                SendResult("No support to CONNECT");
             }
 
             internal int OnHttpRequestArrive(ushort reqId, uint len)

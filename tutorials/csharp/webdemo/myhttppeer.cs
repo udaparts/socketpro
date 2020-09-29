@@ -57,6 +57,7 @@ public class CMyHttpPeer : CHttpPeerBase
                 SendResult(SayHello(Args[0].ToString(), Args[1].ToString()));
                 break;
             default:
+                SendResult("NO_SUPPORT");
                 break;
         }
     }
@@ -72,5 +73,7 @@ public class CMyHttpPeer : CHttpPeerBase
     private void Sleep(int ms)
     {
         System.Threading.Thread.Sleep(ms);
+        string msg = UID + " called the method sleep";
+        Push.Publish(msg, 2, 3);
     }
 }
