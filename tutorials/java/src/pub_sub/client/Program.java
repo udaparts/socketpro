@@ -56,45 +56,45 @@ public class Program {
             boolean ok = spHw.StartSocketPool(cc, 1);
             HelloWorld hw = spHw.Seek(); //or HelloWorld hw = spHw.Lock();
 
-            CClientSocket ClientSocket = hw.getSocket();
-            ClientSocket.getPush().OnSubscribe = (sender, messageSender, groups) -> {
+            CClientSocket cs = hw.getSocket();
+            cs.getPush().OnSubscribe = (sender, messageSender, groups) -> {
                 System.out.println("Subscribe for " + ToString(groups));
                 System.out.println(ToString(messageSender));
                 System.out.println();
             };
 
-            ClientSocket.getPush().OnUnsubscribe = (sender, messageSender, groups) -> {
+            cs.getPush().OnUnsubscribe = (sender, messageSender, groups) -> {
                 System.out.println("Unsubscribe from " + ToString(groups));
                 System.out.println(ToString(messageSender));
                 System.out.println();
             };
 
-            ClientSocket.getPush().OnPublish = (sender, messageSender, groups, msg) -> {
+            cs.getPush().OnPublish = (sender, messageSender, groups, msg) -> {
                 System.out.println("Publish to " + ToString(groups));
                 System.out.println(ToString(messageSender));
                 System.out.println("message = " + msg);
                 System.out.println();
             };
 
-            ClientSocket.getPush().OnSendUserMessage = (sender, messageSender, msg) -> {
+            cs.getPush().OnSendUserMessage = (sender, messageSender, msg) -> {
                 System.out.println("SendUserMessage");
                 System.out.println(ToString(messageSender));
                 System.out.println("message = " + msg);
                 System.out.println();
             };
 
-            //asynchronously process multiple requests with inline batching for best network efficiency
+            //streaming multiple requests with inline batching for best network efficiency
             ok = hw.SendRequest(hello_world.hwConst.idSayHello, new SPA.CScopeUQueue().Save("Jack").Save("Smith"), (ar) -> {
                 String ret = ar.LoadString();
                 System.out.println(ret);
             });
 
-            ok = ClientSocket.getPush().Publish("We are going to call the method Sleep", 1, 2);
+            ok = cs.getPush().Publish("We are going to call the method Sleep", 1, 2);
             ok = hw.SendRequest(hello_world.hwConst.idSleep, new SPA.CScopeUQueue().Save(5000), null);
 
             System.out.println("Input a receiver for receiving my message ......");
             System.out.println();
-            ok = ClientSocket.getPush().SendUserMessage("A message from " + cc.UserId, scanner.nextLine());
+            ok = cs.getPush().SendUserMessage("A message from " + cc.UserId, scanner.nextLine());
 
             System.out.println("Press key ENTER to shutdown the demo application ......");
             scanner.nextLine();

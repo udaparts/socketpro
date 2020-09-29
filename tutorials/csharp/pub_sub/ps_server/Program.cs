@@ -3,6 +3,10 @@ using SocketProAdapter.ServerSide;
 
 public class CMySocketProServer : CSocketProServer
 {
+    [ServiceAttr(hwConst.sidHelloWorld)]
+    private CSocketProService<HelloWorldPeer> m_HelloWorld = new CSocketProService<HelloWorldPeer>();
+    //One SocketPro server supports any number of services. You can list them here!
+
     protected override bool OnSettingServer()
     {
         //amIntegrated and amMixed not supported yet
@@ -15,9 +19,10 @@ public class CMySocketProServer : CSocketProServer
         return true; //true -- ok; false -- no listening server
     }
 
-    [ServiceAttr(hwConst.sidHelloWorld)]
-    private CSocketProService<HelloWorldPeer> m_HelloWorld = new CSocketProService<HelloWorldPeer>();
-    //One SocketPro server supports any number of services. You can list them here!
+    protected override bool OnIsPermitted(ulong hSocket, string userId, string password, uint nSvsID)
+    {
+        return true; //true -- give permission; false -- connection denied
+    }
 
     static void Main(string[] args)
     {

@@ -4,6 +4,9 @@ import SPA.ServerSide.*;
 
 public class CMySocketProServer extends CSocketProServer {
 
+    @ServiceAttr(ServiceID = hello_world.hwConst.sidHelloWorld)
+    private final CSocketProService<HelloWorldPeer> m_HelloWorld = new CSocketProService<>(HelloWorldPeer.class);
+
     @Override
     protected boolean OnSettingServer() {
         //amIntegrated and amMixed not supported yet
@@ -16,8 +19,10 @@ public class CMySocketProServer extends CSocketProServer {
         return true; //true -- ok; false -- no listening server
     }
 
-    @ServiceAttr(ServiceID = hello_world.hwConst.sidHelloWorld)
-    private final CSocketProService<HelloWorldPeer> m_HelloWorld = new CSocketProService<>(HelloWorldPeer.class);
+    @Override
+    protected boolean OnIsPermitted(long hSocket, String userId, String password, int nSvsID) {
+        return true; //true -- give permission; false -- connection denied
+    }
 
     public static void main(String[] args) {
         try (CMySocketProServer MySocketProServer = new CMySocketProServer()) {

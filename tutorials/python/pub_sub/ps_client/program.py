@@ -4,7 +4,8 @@ from spa.clientside import *
 import sys
 
 print('Input your user id ......')
-cc = CConnectionContext('localhost', 20901, sys.stdin.readline().strip(), 'MyPassword', tagEncryptionMethod.TLSv1)
+cc = CConnectionContext('localhost', 20901, sys.stdin.readline().strip(),\
+                        'MyPassword', tagEncryptionMethod.TLSv1)
 
 if CUQueue.DEFAULT_OS == tagOperationSystem.osWin:
     # for windows platforms, you can use windows system store instead
@@ -18,8 +19,8 @@ with CSocketPool(CHelloWorld) as sp:
 
     def OnCertVerification(sp, cs):
         print(cs.UCert.SessionInfo)
-        print(cs.UCert.Verify())
-        return True
+        (code, res) = cs.UCert.Verify()
+        return code == 0
 
     sp.DoSslServerAuthentication = OnCertVerification
 
@@ -28,16 +29,24 @@ with CSocketPool(CHelloWorld) as sp:
     cs = hw.Socket
 
     def OnSubscribe(cs, sender, groups):
-         print('Enter: groups = ' + str(groups) + ', sender id = ' + sender.UserId + ', ip address = ' + sender.IpAddress + ', port = ' + str(sender.Port) + ', ServiceId = ' + str(sender.ServiceId) + ', SelfMessage = ' + str(sender.SelfMessage))
+         print('Enter: groups = ' + str(groups) + ', sender id = ' + sender.UserId + ', ip address = ' +\
+               sender.IpAddress + ', port = ' + str(sender.Port) + ', ServiceId = ' + str(sender.ServiceId) +\
+               ', SelfMessage = ' + str(sender.SelfMessage))
 
     def OnUnsubscribe(cs, sender, groups):
-         print('Exit: groups = ' + str(groups) + ', sender id = ' + sender.UserId + ', ip address = ' + sender.IpAddress + ', port = ' + str(sender.Port) + ', ServiceId = ' + str(sender.ServiceId) + ', SelfMessage = ' + str(sender.SelfMessage))
+         print('Exit: groups = ' + str(groups) + ', sender id = ' + sender.UserId + ', ip address = ' +\
+               sender.IpAddress + ', port = ' + str(sender.Port) + ', ServiceId = ' + str(sender.ServiceId) +\
+               ', SelfMessage = ' + str(sender.SelfMessage))
 
     def OnPublish(cs, sender, groups, objMsg):
-        print('Publish: groups = ' + str(groups) + ' message = ' + objMsg + ', sender id = ' + sender.UserId + ', ip address = ' + sender.IpAddress + ', port = ' + str(sender.Port) + ', ServiceId = ' + str(sender.ServiceId) + ', SelfMessage = ' + str(sender.SelfMessage))
+        print('Publish: groups = ' + str(groups) + ' message = ' + objMsg + ', sender id = ' + sender.UserId +\
+              ', ip address = ' + sender.IpAddress + ', port = ' + str(sender.Port) + ', ServiceId = ' +\
+              str(sender.ServiceId) + ', SelfMessage = ' + str(sender.SelfMessage))
 
     def OnSendUserMessage(cs, sender, objMsg):
-        print('SendUserMessage: message = ' + objMsg + ', sender id = ' + sender.UserId + ', ip address = ' + sender.IpAddress + ', port = ' + str(sender.Port) + ', ServiceId = ' + str(sender.ServiceId) + ', SelfMessage = ' + str(sender.SelfMessage))
+        print('SendUserMessage: message = ' + objMsg + ', sender id = ' + sender.UserId + ', ip address = ' +\
+              sender.IpAddress + ', port = ' + str(sender.Port) + ', ServiceId = ' + str(sender.ServiceId) +\
+              ', SelfMessage = ' + str(sender.SelfMessage))
 
     cs.Push.OnSubscribe = OnSubscribe
     cs.Push.OnPublish = OnPublish

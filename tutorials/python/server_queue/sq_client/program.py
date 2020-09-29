@@ -2,7 +2,6 @@ import sys
 from spa.clientside import CSocketPool, CConnectionContext, CAsyncQueue, CUQueue, CSocketError, CServerError as Se
 from spa import tagBaseRequestID
 from concurrent.futures import Future as future
-from time import sleep
 
 TEST_QUEUE_KEY = "queue_name_0"
 idMessage0 = tagBaseRequestID.idReservedTwo + 100
@@ -66,11 +65,10 @@ with CSocketPool(CAsyncQueue) as spAq:
     # spAq.QueueName = 'qname'
     print('Remote async queue server host: ')
     cc = CConnectionContext(sys.stdin.readline(), 20901, 'PythonUser', 'TooMuchSecret')
-    ok = spAq.StartSocketPool(cc, 1)
-    aq = spAq.AsyncHandlers[0]
-    if not ok:
-        print('No connection error code = ' + str(aq.Socket.ErrorCode))
+    if not spAq.StartSocketPool(cc, 1):
+        print('No connection error code = ' + str(spAq.Sockets[0].ErrorCode))
         exit(0)
+    aq = spAq.Seek()
     try:
         # Optionally, you can enqueue messages with transaction style
         # by calling the methods StartQueueTrans and EndQueueTrans in pair

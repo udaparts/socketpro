@@ -7,15 +7,20 @@ with CSocketProServer() as server:
         CSocketProServer.PushManager.AddAChatGroup(1, "R&D Department")
         CSocketProServer.PushManager.AddAChatGroup(2, "Sales Department")
         CSocketProServer.PushManager.AddAChatGroup(3, "Management Department")
-        return True
+        return True # True -- ok; False -- no listening server
     server.OnSettingServer = do_configuration
+
+    def OnIsPermitted(hSocket, userId, pwd, svsId):
+        print('Ask for a service ' + str(svsId) + ' from user ' + userId + ' with password = ' + pwd)
+        return True  # True == permitted and False == denied
+    server.OnIsPermitted = OnIsPermitted
 
     # map request ids to their names and speeds so that SocketPro is able to map a request id
     # to its method and use main or worker thread at run time
     mapIdReq = {
-        hwConst.idSayHelloHelloWorld : 'sayHello',
-        hwConst.idSleepHelloWorld : ['sleep', True],  # or ('sleep', True)
-        hwConst.idEchoHelloWorld : 'echo'
+        hwConst.idSayHello : 'sayHello',
+        hwConst.idSleep : ['sleep', True],  # or ('sleep', True)
+        hwConst.idEcho : 'echo'
     }
     server.HelloWorld = CSocketProService(CHelloWorldPeer, hwConst.sidHelloWorld, mapIdReq)
 

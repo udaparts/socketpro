@@ -1,5 +1,6 @@
 from spa.serverside import CUQueue, CClientPeer as Cp,\
     CScopeUQueue as Sb, CSocketProServer as Sps
+from spa import CServerError
 from msstruct import CMyStruct
 import time
 
@@ -11,16 +12,21 @@ class CHelloWorldPeer(Cp):
     def sayHello(self):
         assert(Sps.IsMainThread)
         fName = self.UQueue.LoadString()
+        if not fName or not len(fName):
+            raise CServerError(12345, 'First name cannot be empty!')
+
         lName = self.UQueue.LoadString()
-        # notify a message to groups [2, 3] at server side
-        self.Push.Publish('Say hello from ' + fName + ' ' + lName, (2,3))
+        # notify a message to groups (2, 3) at server side
+        self.Push.Publish('Say hello from ' + fName + ' ' + lName, (2, 3))
         res = u'Hello ' + fName + ' ' + lName
         print(res)
         return Sb().SaveString(res)
 
     def sleep(self):
         assert(not Sps.IsMainThread)
-        ms = self.UQueue.LoadUInt()
+        ms = self.UQueue.LoadInt()
+        if ms < 0:
+            raise CServerError(54321, 'Sleep time cannot be less than zero')
         time.sleep(ms/1000.0)
 
     def echo(self):

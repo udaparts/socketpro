@@ -18,7 +18,7 @@ class CHelloWorldPeer(CClientPeer):
     def sleep(self):
         ms = self.UQueue.LoadInt()
         if ms < 0:
-            raise Se(12346, 'Sleep time cannot be less than 0')
+            raise Se(54321, 'Sleep time cannot be less than zero')
         time.sleep(ms/1000.0)
 
     def echo(self):
