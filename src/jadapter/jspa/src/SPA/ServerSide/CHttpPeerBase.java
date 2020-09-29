@@ -94,43 +94,53 @@ public class CHttpPeerBase extends CSocketPeer {
     }
 
     protected void OnPost() {
-
+        SetResponseCode(501);
+        SendResult("No support to POST");
     }
 
     protected void OnGet() {
-
+        SetResponseCode(501);
+        SendResult("No support to GET");
     }
 
     protected void OnUserRequest() {
-
+        SetResponseCode(501);
+        SendResult("No support to " + getRequestName());
     }
 
     protected void OnDelete() {
-
+        SetResponseCode(501);
+        SendResult("No support to DELETE");
     }
 
     protected void OnPut() {
-
+        SetResponseCode(501);
+        SendResult("No support to PUT");
     }
 
     protected void OnHead() {
-
+        SetResponseCode(501);
+        SendResult("No support to HEAD");
     }
 
     protected void OnOptions() {
-
+        SetResponseCode(501);
+        SendResult("No support to OPTIONS");
     }
 
     protected void OnTrace() {
-
+        SetResponseCode(501);
+        SendResult("No support to TRACE");
     }
 
     protected void OnMultiPart() {
-
+        SetResponseCode(501);
+        SendResult("No support to MultiPart");
     }
 
     protected void OnConnect() {
-
+        SetResponseCode(501);
+        SendResult("No support to GET");
     }
 
     private void Process(short reqId, int len) {
