@@ -58,7 +58,7 @@ def test_dequeue(aq):
     # optionally, add one extra to improve processing concurrency
     # at both client and server sides for better performance and through-output
     if not (aq.Dequeue(TEST_QUEUE_KEY, cbDequeue, 0, aborted, se) and aq.Dequeue(TEST_QUEUE_KEY, cbDequeue, 0, aborted, se)):
-        aq.throw('Dequeue', CAsyncQueue.idDequeue)
+        aq.throw(f)
     return f
 
 with CSocketPool(CAsyncQueue) as spAq:

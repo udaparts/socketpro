@@ -24,8 +24,8 @@ public class CMySocketProServer extends CSocketProServer {
     //One SocketPro server supports any number of services. You can list them here!
 
     public static void main(String[] args) {
-        try (CMySocketProServer MySocketProServer = new CMySocketProServer()) {
-            if (!MySocketProServer.Run(20901)) {
+        try (CMySocketProServer server = new CMySocketProServer()) {
+            if (!server.Run(20901)) {
                 System.out.println("Error code = " + CSocketProServer.getLastSocketError());
             }
             System.out.println("Input a line to close the application ......");

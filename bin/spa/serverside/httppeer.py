@@ -122,34 +122,44 @@ class CHttpPeerBase(CSocketPeer):
         return scl.StartHTTPChunkResponse(self.Handle)
 
     def OnGet(self):
-        pass
+        self.SetResponseCode(501)
+        self.SendResult('No support to GET')
 
     def OnPost(self):
-        pass
+        self.SetResponseCode(501)
+        self.SendResult('No support to POST')
 
     def OnUserRequest(self):
-        pass
+        self.SetResponseCode(501)
+        self.SendResult('No support to ' + self.RequestName)
 
     def OnDelete(self):
-        pass
+        self.SetResponseCode(501)
+        self.SendResult('No support to DELETE')
 
     def OnHead(self):
-        pass
+        self.SetResponseCode(501)
+        self.SendResult('No support to HEAD')
 
     def OnMultiPart(self):
-        pass
+        self.SetResponseCode(501)
+        self.SendResult('No support to MultiPart')
 
     def OnOptions(self):
-        pass
+        self.SetResponseCode(501)
+        self.SendResult('No support to OPTIONS')
 
     def OnPut(self):
-        pass
+        self.SetResponseCode(501)
+        self.SendResult('No support to PUT')
 
     def OnTrace(self):
-        pass
+        self.SetResponseCode(501)
+        self.SendResult('No support to TRACE')
 
     def OnConnect(self):
-        pass
+        self.SetResponseCode(501)
+        self.SendResult('No support to CONNECT')
 
     def _OnHttpRequestArrive(self, hId, len):
         if hId == tagHttpRequestID.idGet:

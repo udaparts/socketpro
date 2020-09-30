@@ -26,11 +26,14 @@ class CMyHttpPeer(CHttpPeerBase):
             self.DownloadFile(self.Path[1:])
         else:
             self.SendResult('test result --- GET ---')
+
     def OnPost(self):
         res = self.SendResult('+++ POST +++ test result')
 
     def Sleep(self, ms):
         time.sleep(float(ms)/1000.0)
+        msg = self.UID + ' called the method Sleep'
+        self.Push.Publish(msg, [2, 3])
 
     def SayHello(self, fName, lName):
         str = u'Say hello from ' + fName + u' ' + lName
@@ -47,4 +50,4 @@ class CMyHttpPeer(CHttpPeerBase):
         elif reqName == 'sayHello':
             self.SendResult(self.SayHello(args[0], args[1]))
         else:
-            self.SendResult('')
+            self.SendResult('NO_SUPPORT')

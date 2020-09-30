@@ -218,16 +218,17 @@ class CStreamingFile(CAsyncServiceHandler):
                                 it.ErrCode = CStreamingFile.SESSION_CLOSED_BEFORE
                                 it.ErrMsg = 'Session already closed before sending the request Upload'
                                 if it.Fut:
-                                    ec = self.Socket.ErrCode
-                                    try:
-                                        if ec:
-                                            it.Fut.set_exception(CSocketError(ec, self.Socket.ErrMsg,
-                                                                           CStreamingFile.idUpload, True))
-                                        else:
-                                            it.Fut.set_exception(CSocketError(CAsyncServiceHandler.SESSION_CLOSED_BEFORE,
-                                                                           it.ErrMsg, CStreamingFile.idUpload, True))
-                                    except Exception as ex:
-                                        pass
+                                    if not it.Fut.done():
+                                        ec = self.Socket.ErrCode
+                                        try:
+                                            if ec:
+                                                it.Fut.set_exception(CSocketError(ec, self.Socket.ErrMsg,
+                                                                               CStreamingFile.idUpload, True))
+                                            else:
+                                                it.Fut.set_exception(CSocketError(CAsyncServiceHandler.SESSION_CLOSED_BEFORE,
+                                                                               it.ErrMsg, CStreamingFile.idUpload, True))
+                                        except Exception as ex:
+                                            pass
                                     it.Se = None
                                     it.Discarded = None
                                 continue
@@ -241,16 +242,17 @@ class CStreamingFile(CAsyncServiceHandler):
                                 it.ErrCode = CStreamingFile.SESSION_CLOSED_BEFORE
                                 it.ErrMsg = 'Session already closed before sending the request Download'
                                 if it.Fut:
-                                    ec = self.Socket.ErrCode
-                                    try:
-                                        if ec:
-                                            it.Fut.set_exception(CSocketError(ec, self.Socket.ErrMsg,
-                                                                           CStreamingFile.idDownload, True))
-                                        else:
-                                            it.Fut.set_exception(CSocketError(CAsyncServiceHandler.SESSION_CLOSED_BEFORE,
-                                                                     it.ErrMsg, CStreamingFile.idDownload, True))
-                                    except Exception as ex:
-                                        pass
+                                    if not it.Fut.done():
+                                        ec = self.Socket.ErrCode
+                                        try:
+                                            if ec:
+                                                it.Fut.set_exception(CSocketError(ec, self.Socket.ErrMsg,
+                                                                               CStreamingFile.idDownload, True))
+                                            else:
+                                                it.Fut.set_exception(CSocketError(CAsyncServiceHandler.SESSION_CLOSED_BEFORE,
+                                                                         it.ErrMsg, CStreamingFile.idDownload, True))
+                                        except Exception as ex:
+                                            pass
                                     it.Se = None
                                     it.Discarded = None
                                 continue
@@ -336,6 +338,7 @@ class CStreamingFile(CAsyncServiceHandler):
         """
         f = future()
         def cb_upload(file, res, errmsg):
+            if f.done(): return
             f.set_result({'ec':res, 'em':errmsg})
         ok = self.Upload(localFile, remoteFile, cb_upload, trans, CStreamingFile.get_aborted(f, 'Upload', CStreamingFile.idUpload), flags, CStreamingFile.get_se(f))
         return f
@@ -385,6 +388,7 @@ class CStreamingFile(CAsyncServiceHandler):
         """
         f = future()
         def cb_download(file, res, errmsg):
+            if f.done(): return
             f.set_result({'ec':res, 'em':errmsg})
         ok = self.Download(localFile,remoteFile, cb_download, trans, CStreamingFile.get_aborted(f, 'Download', CStreamingFile.idDownload), flags, CStreamingFile.get_se(f))
         return f

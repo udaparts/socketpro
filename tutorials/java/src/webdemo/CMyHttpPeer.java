@@ -56,6 +56,7 @@ public class CMyHttpPeer extends SPA.ServerSide.CHttpPeerBase {
                 SendResult(SayHello(getArgs()[0].toString(), getArgs()[1].toString()));
                 break;
             default:
+                SendResult("NO_SUPPORT");
                 break;
         }
     }
@@ -69,6 +70,8 @@ public class CMyHttpPeer extends SPA.ServerSide.CHttpPeerBase {
     private void Sleep(int ms) {
         try {
             Thread.sleep(ms);
+            String msg = getUID() + " called the method Sleep";
+            getPush().Publish(msg, 2, 3);
         } catch (InterruptedException err) {
         }
     }

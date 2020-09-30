@@ -129,9 +129,10 @@ class CAsyncQueue(CAsyncServiceHandler):
     def startQueueTrans(self, key):
         f = future()
         def cb(aq, ec):
+            if f.done(): return
             f.set_result(ec)
         if not self.StartQueueTrans(key, cb, CAsyncQueue.get_aborted(f, 'StartQueueTrans', CAsyncQueue.idStartTrans), CAsyncQueue.get_se(f)):
-            self.throw('StartQueueTrans', CAsyncQueue.idStartTrans)
+            self.throw(f)
         return f
 
     def EndQueueTrans(self, rollback=False, qt=None, discarded=None, se=None):
@@ -163,9 +164,10 @@ class CAsyncQueue(CAsyncServiceHandler):
     def endQueueTrans(self, rollback=False):
         f = future()
         def cb(aq, ec):
+            if f.done(): return
             f.set_result(ec)
         if not self.EndQueueTrans(rollback, cb, CAsyncQueue.get_aborted(f, 'EndQueueTrans', CAsyncQueue.idEndTrans), CAsyncQueue.get_se(f)):
-            self.throw('EndQueueTrans', CAsyncQueue.idEndTrans)
+            self.throw(f)
         return f
 
     def GetKeys(self, gk, discarded=None, se=None):
@@ -194,9 +196,10 @@ class CAsyncQueue(CAsyncServiceHandler):
         """
         f = future()
         def cb(aq, keys):
+            if f.done(): return
             f.set_result(keys)
         if not self.GetKeys(cb, CAsyncQueue.get_aborted(f, 'GetKeys', CAsyncQueue.idGetKeys), CAsyncQueue.get_se(f)):
-            self.throw('Getkeys', CAsyncQueue.idGetKeys)
+            self.throw(f)
         return f
 
     def CloseQueue(self, key, c=None, discarded=None, permanent=False, se=None):
@@ -230,9 +233,10 @@ class CAsyncQueue(CAsyncServiceHandler):
         """
         f = future()
         def cb(aq, ec):
+            if f.done(): return
             f.set_result(ec)
         if not self.CloseQueue(key, cb, CAsyncQueue.get_aborted(f, 'CloseQueue', CAsyncQueue.idClose), permanent, CAsyncQueue.get_se(f)):
-            self.throw('CloseQueue', CAsyncQueue.idClose)
+            self.throw(f)
         return f
 
     def FlushQueue(self, key, f, option=tagOptimistic.oMemoryCached, discarded=None, se=None):
@@ -271,9 +275,10 @@ class CAsyncQueue(CAsyncServiceHandler):
         """
         f = future()
         def cb(aq, message_count, file_size):
+            if f.done(): return
             f.set_result({'messages': message_count, 'fsize': file_size})
         if not self.FlushQueue(key, cb, option, CAsyncQueue.get_aborted(f, 'FlushQueue', CAsyncQueue.idFlush), CAsyncQueue.get_se(f)):
-            self.throw('FlushQueue', CAsyncQueue.idFlush)
+            self.throw(f)
         return f
 
     def Dequeue(self, key, d, timeout=0, discarded=None, se=None):
@@ -312,9 +317,10 @@ class CAsyncQueue(CAsyncServiceHandler):
         """
         f = future()
         def cb(aq, message_count, file_size, deq_msgs, deq_bytes):
+            if f.done(): return
             f.set_result({'messages': message_count, 'fsize': file_size, 'msgsDequeued' : deq_msgs, 'bytes' : deq_bytes})
         if not self.Dequeue(key, cb, timeout, CAsyncQueue.get_aborted(f, 'Dequeue', CAsyncQueue.idDequeue), CAsyncQueue.get_se(f)):
-            self.throw('Dequeue', CAsyncQueue.idDequeue)
+            self.throw(f)
         return f
 
     def OnBaseRequestProcessed(self, reqId):

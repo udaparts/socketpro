@@ -393,9 +393,10 @@ class CAsyncDBHandler(CAsyncServiceHandler):
     def close(self):
         f = future()
         def arh(ah, res, err_msg):
+            if f.done(): return
             f.set_result({'ec':res, 'em':err_msg})
         if not self.Close(arh, CAsyncDBHandler.get_aborted(f, 'Close', DB_CONSTS.idClose), CAsyncDBHandler.get_se(f)):
-            self.throw('Close', DB_CONSTS.idClose)
+            self.throw(f)
         return f
 
     def BeginTrans(self, isolation=tagTransactionIsolation.tiReadCommited, handler=None, discarded=None, se=None):
@@ -432,9 +433,10 @@ class CAsyncDBHandler(CAsyncServiceHandler):
     def beginTrans(self, isolation=tagTransactionIsolation.tiReadCommited):
         f = future()
         def arh(ah, res, err_msg):
+            if f.done(): return
             f.set_result({'ec':res, 'em':err_msg})
         if not self.BeginTrans(isolation, arh, CAsyncDBHandler.get_aborted(f, 'BeginTrans', DB_CONSTS.idBeginTrans), CAsyncDBHandler.get_se(f)):
-            self.throw('BeginTrans', DB_CONSTS.idBeginTrans)
+            self.throw(f)
         return f
 
     def EndTrans(self, plan=tagRollbackPlan.rpDefault, handler=None, discarded=None, se=None):
@@ -472,9 +474,10 @@ class CAsyncDBHandler(CAsyncServiceHandler):
     def endTrans(self, plan=tagRollbackPlan.rpDefault):
         f = future()
         def arh(ah, res, err_msg):
+            if f.done(): return
             f.set_result({'ec':res, 'em':err_msg})
         if not self.EndTrans(plan, arh, CAsyncDBHandler.get_aborted(f, 'EndTrans', DB_CONSTS.idEndTrans), CAsyncDBHandler.get_se(f)):
-            self.throw('EndTrans', DB_CONSTS.idEndTrans)
+            self.throw(f)
         return f
 
     def Open(self, strConnection, handler=None, flags=0, discarded=None, se=None):
@@ -511,9 +514,10 @@ class CAsyncDBHandler(CAsyncServiceHandler):
     def open(self, strConnection, flags=0):
         f = future()
         def arh(ah, res, err_msg):
+            if f.done(): return
             f.set_result({'ec':res, 'em':err_msg})
         if not self.Open(strConnection, arh, flags, CAsyncDBHandler.get_aborted(f, 'Open', DB_CONSTS.idOpen), CAsyncDBHandler.get_se(f)):
-            self.throw('Open', DB_CONSTS.idOpen)
+            self.throw(f)
         return f
 
     def Prepare(self, sql, handler=None, lstParameterInfo=[], discarded=None, se=None):
@@ -549,9 +553,10 @@ class CAsyncDBHandler(CAsyncServiceHandler):
     def prepare(self, sql, lstParameterInfo=[]):
         f = future()
         def arh(ah, res, err_msg):
+            if f.done(): return
             f.set_result({'ec':res, 'em':err_msg})
         if not self.Prepare(sql, arh, lstParameterInfo, CAsyncDBHandler.get_aborted(f, 'Prepare', DB_CONSTS.idPrepare), CAsyncDBHandler.get_se(f)):
-            self.throw('Prepare', DB_CONSTS.idPrepare)
+            self.throw(f)
         return f
 
     def Execute(self, sql_or_array, handler=None, row=None, rh=None, meta=True, lastInsertId=True, discarded=None, se=None):
@@ -572,9 +577,10 @@ class CAsyncDBHandler(CAsyncServiceHandler):
             method_name = 'ExecuteParameters'
         f = future()
         def arh(ah, res, err_msg, affected, fail_ok, last_id):
+            if f.done(): return
             f.set_result({'ec':res, 'em':err_msg, 'affected':affected, 'oks': (fail_ok&0xffffffff), 'fails': (fail_ok>>32), 'lastId': last_id})
         if not self.Execute(sql_or_array, arh, row, rh, meta, lastInsertId, CAsyncDBHandler.get_aborted(f, method_name, reqId), CAsyncDBHandler.get_se(f)):
-            self.throw(method_name, reqId)
+            self.throw(f)
         return f
 
     def ExecuteSql(self, sql, handler=None, row=None, rh=None, meta=True, lastInsertId=True, discarded=None, se=None):
@@ -795,9 +801,10 @@ class CAsyncDBHandler(CAsyncServiceHandler):
     def executeBatch(self, isolation, sql, vParam, row=None, rh=None, delimiter = ';', batchHeader=None, meta=True, plan=tagRollbackPlan.rpDefault, vPInfo=None, lastInsertId=True):
         f = future()
         def arh(ah, res, err_msg, affected, fail_ok, last_id):
+            if f.done(): return
             f.set_result({'ec':res, 'em':err_msg, 'affected':affected, 'oks': (fail_ok&0xffffffff), 'fails': (fail_ok>>32), 'lastId': last_id})
         if not self.ExecuteBatch(isolation, sql, vParam, arh, row, rh, delimiter, batchHeader,
                                  CAsyncDBHandler.get_aborted(f, 'ExecuteBatch', DB_CONSTS.idExecuteBatch),
                                  meta, plan, vPInfo, lastInsertId, CAsyncDBHandler.get_se(f)):
-            self.throw('ExecuteBatch', DB_CONSTS.idExecuteBatch)
+            self.throw(f)
         return f

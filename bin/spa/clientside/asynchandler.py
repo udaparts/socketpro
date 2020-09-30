@@ -91,7 +91,14 @@ class CAsyncServiceHandler(object):
     REQUEST_CANCELED = -1002
 
     def get_aborted(fut, method_name, reqId):
+        if reqId <= 0:
+            raise Exception('Request id must be larger than 0')
+        if not method_name or not len(method_name):
+            raise Exception('Request name cannot be empty')
+        fut.reqName = method_name
+        fut.reqId = reqId
         def cb_aborted(ah, canceled):
+            if fut.done(): return
             try:
                 if canceled:
                     fut.set_exception(CSocketError(CAsyncServiceHandler.REQUEST_CANCELED,
@@ -110,6 +117,7 @@ class CAsyncServiceHandler(object):
 
     def get_se(fut):
         def server_ex(ah, se):  # an exception from remote server
+            if fut.done(): return
             try:
                 fut.set_exception(se)
             except Exception as ex:
@@ -181,13 +189,13 @@ class CAsyncServiceHandler(object):
         h = self._m_ClientSocket_.Handle
         return ccl.SendInterruptRequest(h, options)
 
-    def throw(self, method_name, reqId):
+    def throw(self, f):
         ec = self.Socket.ErrCode
         if ec:
-            raise CSocketError(ec, self.Socket.ErrMsg, reqId, True)
+            raise CSocketError(ec, self.Socket.ErrMsg, f.reqId, True)
         else:
             raise CSocketError(CAsyncServiceHandler.SESSION_CLOSED_BEFORE,
-                          'Session already closed before sending the request ' + method_name, reqId, True)
+                          'Session already closed before sending the request ' + f.reqName, f.reqId, True)
 
     def sendRequest(self, reqId, q):
         """
@@ -198,11 +206,12 @@ class CAsyncServiceHandler(object):
         """
         f = future()
         def arh(ar):  # ar: an instance of CAsyncResult
+            if f.done(): return
             sb = CScopeUQueue()
             sb.UQueue.Swap(ar.UQueue)
             f.set_result(sb)
         if not self.SendRequest(reqId, q, arh, CAsyncServiceHandler.get_aborted(f, 'SendRequest', reqId), CAsyncServiceHandler.get_se(f)):
-            self.throw('SendRequest', reqId)
+            self.throw(f)
         return f
 
     def SendRequest(self, reqId, q, arh, discarded=None, efs=None):
