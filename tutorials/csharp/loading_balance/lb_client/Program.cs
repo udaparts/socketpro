@@ -9,7 +9,7 @@ class Program
     {
         Console.WriteLine("This is a client. Remote router host: ");
         CConnectionContext cc = new CConnectionContext(Console.ReadLine(), 20901, "lb_client", "pwd_lb_client");
-        using (CSocketPool<Pi> spPi = new CSocketPool<Pi>(true)) //true -- automatic reconnecting
+        using (CSocketPool<Pi> spPi = new CSocketPool<Pi>())
         {
             spPi.QueueName = "lbqueue";
             if (!spPi.StartSocketPool(cc, 1))

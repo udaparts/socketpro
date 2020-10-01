@@ -36,18 +36,19 @@ public class CMySocketProServer : CSocketProServer
 
     static void Main(string[] args)
     {
-        using (CMySocketProServer MySocketProServer = new CMySocketProServer())
+        using (CMySocketProServer server = new CMySocketProServer())
         {
             //test certificate and private key files are located at ../SocketProRoot/bin
             //if (System.Environment.OSVersion.Platform == PlatformID.Unix)
-            //    MySocketProServer.UseSSL("intermediate.cert.pem", "intermediate.key.pem", "mypassword");
+            //    server.UseSSL("intermediate.cert.pem", "intermediate.key.pem", "mypassword");
             //else
             //{
-            //    MySocketProServer.UseSSL("intermediate.pfx", "", "mypassword");
-            //    //MySocketProServer.UseSSL("root"/*"my"*/, "UDAParts Intermediate CA", ""); //or load cert and private key from windows system cert store
+            //    server.UseSSL("intermediate.pfx", "", "mypassword");
+            //    //or load cert and private key from windows system cert store
+            //    //server.UseSSL("root"/*"my"*/, "UDAParts Intermediate CA", "");
             //}
 
-            if (!MySocketProServer.Run(20901))
+            if (!server.Run(20901))
                 Console.WriteLine("Error code = " + CSocketProServer.LastSocketError.ToString());
             Console.WriteLine("Input a line to close the application ......");
             Console.ReadLine();
