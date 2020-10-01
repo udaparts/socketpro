@@ -45,27 +45,30 @@ public class Program {
 
     private static void TestEnqueue(CAsyncQueue aq) throws CSocketError {
         System.out.println("Going to enqueue 1024 messages ......");
-        for (int n = 0; n < 1024; ++n) {
-            String str = n + " Object test";
-            short idMessage;
-            switch (n % 3) {
-                case 0:
-                    idMessage = idMessage0;
-                    break;
-                case 1:
-                    idMessage = idMessage1;
-                    break;
-                default:
-                    idMessage = idMessage2;
-                    break;
-            }
-            //try {
-            //   java.lang.Thread.sleep(100);
-            //} catch (Exception ex) {
-            //}
-            //enqueue two unicode strings and one int
-            if (!aq.Enqueue(TEST_QUEUE_KEY, idMessage, new CScopeUQueue().Save("SampleName").Save(str).Save(n))) {
-                aq.raise("Enqueue", CAsyncQueue.idEnqueue);
+        try (CScopeUQueue sb = new CScopeUQueue()) {
+            for (int n = 0; n < 1024; ++n) {
+                String str = n + " Object test";
+                short idMessage;
+                switch (n % 3) {
+                    case 0:
+                        idMessage = idMessage0;
+                        break;
+                    case 1:
+                        idMessage = idMessage1;
+                        break;
+                    default:
+                        idMessage = idMessage2;
+                        break;
+                }
+                //try {
+                //   java.lang.Thread.sleep(100);
+                //} catch (Exception ex) {
+                //}
+                //enqueue two unicode strings and one int
+                if (!aq.Enqueue(TEST_QUEUE_KEY, idMessage, sb.Save("SampleName").Save(str).Save(n))) {
+                    aq.raise("Enqueue", CAsyncQueue.idEnqueue);
+                }
+                sb.getUQueue().setSize(0); //reset content
             }
         }
     }

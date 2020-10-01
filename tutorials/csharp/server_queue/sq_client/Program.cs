@@ -4,15 +4,10 @@ using SocketProAdapter.ClientSide;
 using System.Threading.Tasks;
 class Program
 {
-    static byte[] TEST_QUEUE_KEY;
+    static byte[] TEST_QUEUE_KEY = System.Text.Encoding.UTF8.GetBytes("queue_name_0");
     const ushort idMessage0 = (ushort)tagBaseRequestID.idReservedTwo + 100;
     const ushort idMessage1 = (ushort)tagBaseRequestID.idReservedTwo + 101;
     const ushort idMessage2 = (ushort)tagBaseRequestID.idReservedTwo + 102;
-
-    static Program()
-    {
-        TEST_QUEUE_KEY = System.Text.Encoding.UTF8.GetBytes("queue_name_0");
-    }
 
     static void TestEnqueue(CAsyncQueue aq)
     {

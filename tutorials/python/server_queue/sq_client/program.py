@@ -1,6 +1,7 @@
 import sys
-from spa.clientside import CSocketPool, CConnectionContext, CAsyncQueue, CUQueue, CSocketError, CServerError as Se
-from spa import tagBaseRequestID
+from spa.clientside import CSocketPool, CConnectionContext,\
+    CAsyncQueue, CUQueue, CSocketError, CServerError as Se
+from spa import tagBaseRequestID, CScopeUQueue as Sb
 from concurrent.futures import Future as future
 
 TEST_QUEUE_KEY = "queue_name_0"
@@ -13,20 +14,22 @@ def test_enqueue(aq):
     print('Going to enqueue 1024 messages ......')
     idMessage = 0
     n = 0
-    while n < 1024:
-        s = str(n) + ' Object test'
-        m = n % 3
-        if m == 0:
-            idMessage = idMessage0
-        elif m == 1:
-            idMessage = idMessage1
-        else:
-            idMessage = idMessage2
-        # sleep(0.1)
-        # enqueue two unicode strings and one int
-        if not aq.Enqueue(TEST_QUEUE_KEY, idMessage, CUQueue().SaveString('SampleName').SaveString(s).SaveInt(n)):
-            aq.throw('Enqueue', CAsyncQueue.idEnqueue)
-        n += 1
+    with Sb() as sb:
+        while n < 1024:
+            s = str(n) + ' Object test'
+            m = n % 3
+            if m == 0:
+                idMessage = idMessage0
+            elif m == 1:
+                idMessage = idMessage1
+            else:
+                idMessage = idMessage2
+            # sleep(0.1)
+            # enqueue two unicode strings and one int
+            if not aq.Enqueue(TEST_QUEUE_KEY, idMessage, sb.SaveString('SampleName').SaveString(s).SaveInt(n)):
+                aq.throw('Enqueue', CAsyncQueue.idEnqueue)
+            sb.Size = 0 #reset buffer content
+            n += 1
 
 def test_dequeue(aq):
     def cbResultReturned(idReq, q):

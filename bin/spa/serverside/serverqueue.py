@@ -80,7 +80,9 @@ class CServerQueue(IServerQueue):
         return scl.RemoveQueuedRequestsByTTL(self._m_qHandle_)
 
     def Enqueue(self, reqId, q):
-        if q is None:
+        if isinstance(q, CScopeUQueue):
+            q = q.UQueue
+        elif q is None:
             q = CUQueue()
         bytes = (c_ubyte * q.Size).from_buffer(q._m_bytes_, q._m_position_)
         return scl.Enqueue(self._m_qHandle_, reqId, bytes, q.Size)

@@ -80,7 +80,7 @@ class CAsyncQueue(CAsyncServiceHandler):
         Enqueue a message into a queue file identified by a key
         :param key: An ASCII string for identifying a queue at server side
         :param idMessage: A unsigned short number to identify a message
-        :param q: an instance of SPA.CUQueue containing a message
+        :param q: None or an instance of SPA.CUQueue or SPA.CScopeUQueue containing a message
         :param e: A callback for tracking returning index
         :param discarded A callback for tracking socket close or request cancel event
         :param se A callback for tracking an exception from server
@@ -89,6 +89,8 @@ class CAsyncQueue(CAsyncServiceHandler):
         if not key:
             key = ''
         buffer = CScopeUQueue.Lock().SaveAString(key).SaveUShort(idMessage)
+        if isinstance(q, CScopeUQueue):
+            q = q.UQueue
         if q:
             buffer.Push(q.IntenalBuffer, q.GetSize())
         ok = None
