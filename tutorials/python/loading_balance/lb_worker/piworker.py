@@ -18,5 +18,4 @@ class PiWorker(CAHandler):
             for n in range(0, nNum):
                 dX += dStep
                 ComputeRtn += dd / (1 + dX * dX)
-            q.SetSize(0)
             self.SendRouteeResult(Csb().SaveDouble(ComputeRtn).SaveDouble(dStart))

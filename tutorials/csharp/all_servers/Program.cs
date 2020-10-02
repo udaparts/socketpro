@@ -5,22 +5,14 @@ using System.Runtime.InteropServices;
 
 public class CMySocketProServer : CSocketProServer
 {
-    //SocketPro sqlite server defines, which can be found at ../socketpro/include/sqlite/usqlite_server.h
-    const int ENABLE_GLOBAL_SQLITE_UPDATE_HOOK = 0x1;
-    const int USE_SHARED_CACHE_MODE = 0x2;
-    const int USE_UTF16_ENCODING = 0x4;
     [DllImport("ssqlite")]
     static extern void SetSqliteDBGlobalConnectionString([In] [MarshalAs(UnmanagedType.LPWStr)] string sqliteDbFile);
-
-    [DllImport("ustreamfile")]
-    static extern void SetRootDirectory([In] [MarshalAs(UnmanagedType.LPWStr)] string root);
 
     [ServiceAttr(hwConst.sidHelloWorld)]
     private CSocketProService<HelloWorldPeer> m_HelloWorld = new CSocketProService<HelloWorldPeer>();
 
-    //for db push from ms sql server
-    [ServiceAttr(repConst.sidRAdoRep)]
-    private CSocketProService<DBPushPeer> m_RAdoRep = new CSocketProService<DBPushPeer>();
+    [ServiceAttr(BaseServiceID.sidHTTP)]
+    private CSocketProService<CMyHttpPeer> m_http = new CSocketProService<CMyHttpPeer>();
 
     //Routing requires registering two services in pair
     [ServiceAttr(piConst.sidPi)]
@@ -31,23 +23,25 @@ public class CMySocketProServer : CSocketProServer
     [ServiceAttr(radoConst.sidRAdo)]
     private CSocketProService<RAdoPeer> m_RAdo = new CSocketProService<RAdoPeer>();
 
-    [ServiceAttr(BaseServiceID.sidHTTP)]
-    private CSocketProService<CMyHttpPeer> m_http = new CSocketProService<CMyHttpPeer>();
+    //for db push from ms sql server
+    [ServiceAttr(repConst.sidRAdoRep)]
+    private CSocketProService<DBPushPeer> m_RAdoRep = new CSocketProService<DBPushPeer>();
 
     static void Main(string[] args)
     {
         using (CMySocketProServer server = new CMySocketProServer())
         {
-            //test certificate and private key files are located at ../SocketProRoot/bin
-            //if (System.Environment.OSVersion.Platform == PlatformID.Unix)
-            //    server.UseSSL("intermediate.cert.pem", "intermediate.key.pem", "mypassword");
-            //else
-            //{
-            //    server.UseSSL("intermediate.pfx", "", "mypassword");
-            //    //or load cert and private key from windows system cert store
-            //    //server.UseSSL("root"/*"my"*/, "UDAParts Intermediate CA", "");
-            //}
-
+            //test certificate and private key files are located at ../socketpro/bin
+            /*
+            if (System.Environment.OSVersion.Platform == PlatformID.Unix)
+                server.UseSSL("intermediate.cert.pem", "intermediate.key.pem", "mypassword");
+            else
+            {
+                server.UseSSL("intermediate.pfx", "", "mypassword");
+                //or load cert and private key from windows system cert store
+                //server.UseSSL("root", "UDAParts Intermediate CA", "");
+            }
+            */
             if (!server.Run(20901))
                 Console.WriteLine("Error code = " + CSocketProServer.LastSocketError.ToString());
             Console.WriteLine("Input a line to close the application ......");

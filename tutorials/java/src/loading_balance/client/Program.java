@@ -37,7 +37,7 @@ public class Program {
                 try {
                     CScopeUQueue sb = f.get();
                     dPi += sb.LoadDouble();
-                    //System.out.println("dStart: " + sb.LoadDouble());
+                    System.out.println("dStart: " + sb.LoadDouble());
                 } catch (CSocketError | CServerError ex) {
                     System.out.println(ex);
                 } catch (Exception ex) {

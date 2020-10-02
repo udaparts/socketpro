@@ -34,7 +34,7 @@ class Program
             {
                 CScopeUQueue sb = t.Result;
                 dPi += sb.Load<double>();
-                //Console.WriteLine("dStart: " + sb.Load<double>());
+                Console.WriteLine("dStart: " + sb.Load<double>());
             }
 
             Console.WriteLine("pi: {0}, returns: {1}", dPi, vtR.Count);

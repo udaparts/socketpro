@@ -26,7 +26,7 @@ with CSocketPool(Pi) as spPi:
         for f in vF:
             sb = f.result()
             dPi += sb.LoadDouble()
-            # print('dStart: ' + str(sb.LoadDouble()))
+            print('dStart: ' + str(sb.LoadDouble()))
         print('pi: ' + str(dPi) + ', returns: ' + str(len(vF)))
     else:
         print('No connection to ' + cc.Host)
