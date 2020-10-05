@@ -17,7 +17,7 @@ public class Test_java {
         return v;
     }
 
-    static UFuture<CMysql.SQLExeInfo> InsertBLOBByPreparedStatement(CMysql mysql) throws CSocketError {
+    static UFuture<CMysql.SQLExeInfo> TestBLOBByPreparedStatement(CMysql mysql) throws CSocketError {
         String wstr = "";
         while (wstr.length() < 128 * 1024) {
             wstr += "广告做得不那么夸张的就不说了，看看这三家，都是正儿八经的公立三甲，附属医院，不是武警，也不是部队，更不是莆田，都在卫生部门直接监管下，照样明目张胆地骗人。";
@@ -112,7 +112,7 @@ public class Test_java {
                 UFuture<CMysql.SQLExeInfo> fD = mysql.execute("delete from employee;delete from company");
                 UFuture<ErrInfo> fet = mysql.endTrans();
                 UFuture<CMysql.SQLExeInfo> fP0 = TestPreparedStatements(mysql);
-                UFuture<CMysql.SQLExeInfo> fP1 = InsertBLOBByPreparedStatement(mysql);
+                UFuture<CMysql.SQLExeInfo> fP1 = TestBLOBByPreparedStatement(mysql);
                 UFuture<CMysql.SQLExeInfo> fS = mysql.execute("SELECT * from company;select * from employee;select curtime()", (db, lstData) -> {
                     //rowset data come here
                     int last = ra.size() - 1;
@@ -153,7 +153,7 @@ public class Test_java {
             for (Pair<CDBColumnInfoArray, CDBVariantArray> a : ra) {
                 System.out.format("Statement index = %d", index);
                 if (a.first.size() > 0) {
-                    System.out.format(", rowset with columns = %d, records = %d.", a.first.size(), a.second.size() / a.first.size());
+                    System.out.format(", rowset with columns: %d, records: %d.", a.first.size(), a.second.size() / a.first.size());
                     System.out.println();
                 } else {
                     System.out.println(", no rowset received.");

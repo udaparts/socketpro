@@ -301,12 +301,13 @@ CSqlFuture TestBatch(PMySQL pMysql, CRowsetArray&ra, CDBVariantArray &vData) {
     CSQLHandler::DRowsetHeader batchHeader = [](CSQLHandler & handler) {
         cout << "Batch header comes here" << endl;
     };
-
-    //first, execute delete from employee;delete from company
-    //second, three sets of INSERT INTO company(ID,NAME,ADDRESS,Income)VALUES(?,?,?,?)
-    //third, three sets of insert into employee values(?,?,?,?,?,?)
-    //fourth, SELECT * from company;select * from employee;select curtime()
-    //last, three sets of call sp_TestProc(?,?,?)
+    //first, start manual transaction
+    //second, execute delete from employee;delete from company
+    //third, prepare and three sets of INSERT INTO company(ID,NAME,ADDRESS,Income)VALUES(?,?,?,?)
+    //fourth, prepare and three sets of insert into employee values(?,?,?,?,?,?)
+    //fifth, SELECT * from company;select * from employee;select curtime()
+    //sixth, prepare and three sets of call sp_TestProc(?,?,?)
+    //last, end manual transction
     return pMysql->executeBatch(tiReadUncommited, sql.c_str(), vData, r, rh, u"|", batchHeader);
 }
 

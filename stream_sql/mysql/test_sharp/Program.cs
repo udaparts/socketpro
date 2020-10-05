@@ -5,23 +5,12 @@ using SocketProAdapter.ClientSide;
 using SocketProAdapter.UDB;
 using System.Threading.Tasks;
 
+using KeyValue = System.Collections.Generic.KeyValuePair<SocketProAdapter.UDB.CDBColumnInfoArray, SocketProAdapter.UDB.CDBVariantArray>;
+
 class Program
 {
     static readonly string m_wstr;
     static readonly string m_str;
-    static Program()
-    {
-        m_wstr = ""; //make test data
-        while (m_wstr.Length < 128 * 1024)
-        {
-            m_wstr += "广告做得不那么夸张的就不说了，看看这三家，都是正儿八经的公立三甲，附属医院，不是武警，也不是部队，更不是莆田，都在卫生部门直接监管下，照样明目张胆地骗人。";
-        }
-        m_str = ""; //make test data
-        while (m_str.Length < 256 * 1024)
-        {
-            m_str += "The epic takedown of his opponent on an all-important voting day was extraordinary even by the standards of the 2016 campaign -- and quickly drew a scathing response from Trump.";
-        }
-    }
 
     static void Main(string[] args)
     {
@@ -34,6 +23,7 @@ class Program
 #endif
         using (CSocketPool<CMysql> spMysql = new CSocketPool<CMysql>())
         {
+            //spMysql.QueueName = "qmysql";
             if (!spMysql.StartSocketPool(cc, 1))
             {
                 Console.WriteLine("Failed in connecting to remote async mysql server");
@@ -43,19 +33,19 @@ class Program
             }
             CMysql mysql = spMysql.Seek();
             CDBVariantArray vPData = null, vData = null;
-            List<KeyValuePair<CDBColumnInfoArray, CDBVariantArray>> ra = new List<KeyValuePair<CDBColumnInfoArray, CDBVariantArray>>();
+            List<KeyValue> ra = new List<KeyValue>();
             CMysql.DRows r = (handler, rowData) =>
             {
                 //rowset data come here
                 int last = ra.Count - 1;
-                KeyValuePair<CDBColumnInfoArray, CDBVariantArray> item = ra[last];
+                KeyValue item = ra[last];
                 item.Value.AddRange(rowData);
             };
 
             CMysql.DRowsetHeader rh = (handler) =>
             {
                 //rowset header comes here
-                KeyValuePair<CDBColumnInfoArray, CDBVariantArray> item = new KeyValuePair<CDBColumnInfoArray, CDBVariantArray>(handler.ColumnInfo, new CDBVariantArray());
+                KeyValue item = new KeyValue(handler.ColumnInfo, new CDBVariantArray());
                 ra.Add(item);
             };
             try
@@ -69,7 +59,7 @@ class Program
                 var vT = TestCreateTables(mysql);
                 var tDs = mysql.execute("delete from employee;delete from company");
                 var tP0 = TestPreparedStatements(mysql);
-                var tP1 = InsertBLOBByPreparedStatement(mysql);
+                var tP1 = TestBLOBByPreparedStatement(mysql);
                 var tSs = mysql.execute("SELECT * from company;select * from employee;select curtime()", r, rh);
                 var tStore = TestStoredProcedure(mysql, ra, out vPData);
                 var tB = TestBatch(mysql, ra, out vData);
@@ -111,7 +101,7 @@ class Program
             int index = 0;
             Console.WriteLine();
             Console.WriteLine("+++++ Start rowsets +++");
-            foreach (KeyValuePair<CDBColumnInfoArray, CDBVariantArray> it in ra)
+            foreach (KeyValue it in ra)
             {
                 Console.Write("Statement index = {0}", index);
                 if (it.Key.Count > 0)
@@ -124,6 +114,20 @@ class Program
             Console.WriteLine();
             Console.WriteLine("Press any key to close the application ......");
             Console.Read();
+        }
+    }
+
+    static Program()
+    {
+        m_wstr = ""; //make test data
+        while (m_wstr.Length < 128 * 1024)
+        {
+            m_wstr += "广告做得不那么夸张的就不说了，看看这三家，都是正儿八经的公立三甲，附属医院，不是武警，也不是部队，更不是莆田，都在卫生部门直接监管下，照样明目张胆地骗人。";
+        }
+        m_str = ""; //make test data
+        while (m_str.Length < 256 * 1024)
+        {
+            m_str += "The epic takedown of his opponent on an all-important voting day was extraordinary even by the standards of the 2016 campaign -- and quickly drew a scathing response from Trump.";
         }
     }
 
@@ -169,7 +173,7 @@ class Program
         return mysql.execute(vData);
     }
 
-    static Task<CAsyncDBHandler.SQLExeInfo> TestBatch(CMysql mysql, List<KeyValuePair<CDBColumnInfoArray, CDBVariantArray>> ra, out CDBVariantArray vData)
+    static Task<CAsyncDBHandler.SQLExeInfo> TestBatch(CMysql mysql, List<KeyValue> ra, out CDBVariantArray vData)
     {
         //sql with delimiter '|'
         string sql = @" delete from employee;delete from company|
@@ -239,7 +243,7 @@ class Program
         CMysql.DRowsetHeader rh = (handler) =>
         {
             //rowset header comes here
-            KeyValuePair<CDBColumnInfoArray, CDBVariantArray> item = new KeyValuePair<CDBColumnInfoArray, CDBVariantArray>(handler.ColumnInfo, new CDBVariantArray());
+            KeyValue item = new KeyValue(handler.ColumnInfo, new CDBVariantArray());
             ra.Add(item);
         };
         //first, start a transaction with ReadCommited isolation 
@@ -252,7 +256,7 @@ class Program
         return mysql.executeBatch(tagTransactionIsolation.tiReadCommited, sql, vData, r, rh, "|");
     }
 
-    static Task<CAsyncDBHandler.SQLExeInfo> InsertBLOBByPreparedStatement(CMysql mysql)
+    static Task<CAsyncDBHandler.SQLExeInfo> TestBLOBByPreparedStatement(CMysql mysql)
     {
         mysql.Prepare("insert into employee(CompanyId,name,JoinDate,image,DESCRIPTION,Salary)values(?,?,?,?,?,?)");
         CDBVariantArray vData = new CDBVariantArray();
@@ -291,7 +295,7 @@ class Program
         }
     }
 
-    static Task<CAsyncDBHandler.SQLExeInfo> TestStoredProcedure(CMysql mysql, List<KeyValuePair<CDBColumnInfoArray, CDBVariantArray>> ra, out CDBVariantArray vPData)
+    static Task<CAsyncDBHandler.SQLExeInfo> TestStoredProcedure(CMysql mysql, List<KeyValue> ra, out CDBVariantArray vPData)
     {
         vPData = new CDBVariantArray();
         //first set
@@ -309,13 +313,13 @@ class Program
         {
             //rowset data come here
             int last = ra.Count - 1;
-            KeyValuePair<CDBColumnInfoArray, CDBVariantArray> item = ra[last];
+            KeyValue item = ra[last];
             item.Value.AddRange(rowData);
         };
         CMysql.DRowsetHeader rh = (handler) =>
         {
             //rowset header comes here
-            KeyValuePair<CDBColumnInfoArray, CDBVariantArray> item = new KeyValuePair<CDBColumnInfoArray, CDBVariantArray>(handler.ColumnInfo, new CDBVariantArray());
+            KeyValue item = new KeyValue(handler.ColumnInfo, new CDBVariantArray());
             ra.Add(item);
         };
         return mysql.execute(vPData, r, rh);

@@ -5,6 +5,8 @@ using SocketProAdapter.ClientSide;
 using SocketProAdapter.UDB;
 using System.Threading.Tasks;
 
+using KeyValue = System.Collections.Generic.KeyValuePair<SocketProAdapter.UDB.CDBColumnInfoArray, SocketProAdapter.UDB.CDBVariantArray>;
+
 class Program
 {
     static readonly string m_wstr;
@@ -30,7 +32,7 @@ class Program
         CConnectionContext cc = new CConnectionContext(host, 20901, "usqlite_client", "password_for_usqlite");
         using (CSocketPool<CSqlite> spSqlite = new CSocketPool<CSqlite>())
         {
-            //start a socket pool with 1 thread hosting 1 non-blocking socket
+            //spSqlite.QueueName = "qsqlite";
             if (!spSqlite.StartSocketPool(cc, 1))
             {
                 Console.WriteLine("Failed in connecting to remote async sqlite server");
@@ -40,7 +42,7 @@ class Program
             }
             CSqlite sqlite = spSqlite.Seek();
             //a container for receiving all tables data
-            List<KeyValuePair<CDBColumnInfoArray, CDBVariantArray>> lstRowset = new List<KeyValuePair<CDBColumnInfoArray, CDBVariantArray>>();
+            List<KeyValue> lstRowset = new List<KeyValue>();
             try
             {
                 //stream all DB requests with in-line batching for the best network efficiency
@@ -52,7 +54,7 @@ class Program
                 //test both prepare and query statements
                 var tp0 = TestPreparedStatements(sqlite, lstRowset);
                 //test both prepare and query statements involved with reading and updating BLOB and large text
-                var tp1 = InsertBLOBByPreparedStatement(sqlite, lstRowset);
+                var tp1 = TestBLOBByPreparedStatement(sqlite, lstRowset);
                 var tet = sqlite.endTrans(); //end manual transaction
                 var vB = TestBatch(sqlite, lstRowset);
 
@@ -93,7 +95,7 @@ class Program
             int index = 0;
             Console.WriteLine();
             Console.WriteLine("+++++ Start rowsets +++");
-            foreach (KeyValuePair<CDBColumnInfoArray, CDBVariantArray> it in lstRowset)
+            foreach (KeyValue it in lstRowset)
             {
                 Console.Write("Statement index = {0}", index);
                 if (it.Key.Count > 0)
@@ -109,7 +111,7 @@ class Program
         }
     }
 
-    static Task<CAsyncDBHandler.SQLExeInfo>[] TestBatch(CSqlite sqlite, List<KeyValuePair<CDBColumnInfoArray, CDBVariantArray>> ra)
+    static Task<CAsyncDBHandler.SQLExeInfo>[] TestBatch(CSqlite sqlite, List<KeyValue> ra)
     {
         var v = new Task<CAsyncDBHandler.SQLExeInfo>[2];
         CDBVariantArray vParam = new CDBVariantArray();
@@ -122,12 +124,12 @@ class Program
         {
             //rowset data come here
             int last = ra.Count - 1;
-            KeyValuePair<CDBColumnInfoArray, CDBVariantArray> item = ra[last];
+            KeyValue item = ra[last];
             item.Value.AddRange(rowData);
         }, (handler) =>
         {
             //rowset header meta info comes here
-            KeyValuePair<CDBColumnInfoArray, CDBVariantArray> item = new KeyValuePair<CDBColumnInfoArray, CDBVariantArray>(handler.ColumnInfo, new CDBVariantArray());
+            KeyValue item = new KeyValue(handler.ColumnInfo, new CDBVariantArray());
             ra.Add(item);
         });
         vParam.Clear();
@@ -136,27 +138,31 @@ class Program
         vParam.Add(2); //ID
         vParam.Add(3); //EMPLOYEEID
         //Same as sqlite.BeginTrans();
-        //Select datetime('now');select * from COMPANY where ID=1;select * from COMPANY where ID=2;Select datetime('now');
-        //select * from EMPLOYEE where EMPLOYEEID=2;select * from EMPLOYEE where EMPLOYEEID=3
-        //ok = sqlite.EndTrans();
+        //Select datetime('now');
+        //select * from COMPANY where ID=1;
+        //select * from COMPANY where ID=2;
+        //Select datetime('now');
+        //select * from EMPLOYEE where EMPLOYEEID=2;
+        //select * from EMPLOYEE where EMPLOYEEID=3
+        //ok = sqlite.EndTrans(tagRollbackPlan.rpDefault);
         v[1] = sqlite.executeBatch(tagTransactionIsolation.tiReadCommited,
             "Select datetime('now');select * from COMPANY where ID=?;Select datetime('now');select * from EMPLOYEE where EMPLOYEEID=?",
             vParam, (handler, rowData) =>
             {
                 //rowset data come here
                 int last = ra.Count - 1;
-                KeyValuePair<CDBColumnInfoArray, CDBVariantArray> item = ra[last];
+                KeyValue item = ra[last];
                 item.Value.AddRange(rowData);
             }, (handler) =>
             {
                 //rowset header meta info comes here
-                KeyValuePair<CDBColumnInfoArray, CDBVariantArray> item = new KeyValuePair<CDBColumnInfoArray, CDBVariantArray>(handler.ColumnInfo, new CDBVariantArray());
+                KeyValue item = new KeyValue(handler.ColumnInfo, new CDBVariantArray());
                 ra.Add(item);
             });
         return v;
     }
 
-    static Task<CAsyncDBHandler.SQLExeInfo> TestPreparedStatements(CSqlite sqlite, List<KeyValuePair<CDBColumnInfoArray, CDBVariantArray>> ra)
+    static Task<CAsyncDBHandler.SQLExeInfo> TestPreparedStatements(CSqlite sqlite, List<KeyValue> ra)
     {
         //a complex SQL statement combined with query and insert prepare statements
         sqlite.Prepare("Select datetime('now');INSERT OR REPLACE INTO COMPANY(ID,NAME,ADDRESS,Income)VALUES(?,?,?,?)");
@@ -182,17 +188,17 @@ class Program
         {
             //rowset data come here
             int last = ra.Count - 1;
-            KeyValuePair<CDBColumnInfoArray, CDBVariantArray> item = ra[last];
+            KeyValue item = ra[last];
             item.Value.AddRange(rowData);
         }, (handler) =>
         {
             //rowset header meta info comes here
-            KeyValuePair<CDBColumnInfoArray, CDBVariantArray> item = new KeyValuePair<CDBColumnInfoArray, CDBVariantArray>(handler.ColumnInfo, new CDBVariantArray());
+            KeyValue item = new KeyValue(handler.ColumnInfo, new CDBVariantArray());
             ra.Add(item);
         });
     }
 
-    static Task<CAsyncDBHandler.SQLExeInfo> InsertBLOBByPreparedStatement(CSqlite sqlite, List<KeyValuePair<CDBColumnInfoArray, CDBVariantArray>> ra)
+    static Task<CAsyncDBHandler.SQLExeInfo> TestBLOBByPreparedStatement(CSqlite sqlite, List<KeyValue> ra)
     {
         //a complex SQL statement combined with two insert and query prepare statements
         sqlite.Prepare("insert or replace into employee(EMPLOYEEID,CompanyId,name,JoinDate,image,DESCRIPTION,Salary)values(?,?,?,?,?,?,?);select * from employee where employeeid=?");
@@ -238,12 +244,12 @@ class Program
         {
             //rowset data come here
             int last = ra.Count - 1;
-            KeyValuePair<CDBColumnInfoArray, CDBVariantArray> item = ra[last];
+            KeyValue item = ra[last];
             item.Value.AddRange(rowData);
         }, (handler) =>
         {
             //rowset header meta info comes here
-            KeyValuePair<CDBColumnInfoArray, CDBVariantArray> item = new KeyValuePair<CDBColumnInfoArray, CDBVariantArray>(handler.ColumnInfo, new CDBVariantArray());
+            KeyValue item = new KeyValue(handler.ColumnInfo, new CDBVariantArray());
             ra.Add(item);
         });
     }

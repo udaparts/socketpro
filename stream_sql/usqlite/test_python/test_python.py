@@ -4,7 +4,7 @@
 import sys
 from spa import Pair
 from spa.udb import *
-from spa.clientside import CSocketPool, CConnectionContext, CSqlite, CUQueue, CServerError as Se, CSocketError
+from spa.clientside import CSocketPool, CConnectionContext, CSqlite,CUQueue, CServerError as Se, CSocketError
 import datetime
 
 g_wstr = ''
@@ -16,18 +16,22 @@ while len(g_astr) < 256 * 1024:
     g_astr += 'The epic takedown of his opponent on an all-important voting day was extraordinary even by the standards of the 2016 campaign -- and quickly drew a scathing response from Trump.'
 
 with CSocketPool(CSqlite) as spSqlite:
+    # spSqlite.QueueName = 'qsqlite'
     print('Remote async sqlite server host: ')
     cc = CConnectionContext(sys.stdin.readline(), 20901, 'PythonUser', 'TooMuchSecret')
     ok = spSqlite.StartSocketPool(cc, 1)
     sqlite = spSqlite.AsyncHandlers[0]
     if not ok:
         print('No connection error code = ' + str(sqlite.Socket.ErrorCode))
-        spSqlite.ShutdownPool()
         exit(0)
 
     def TestCreateTables():
-        return [sqlite.execute('CREATE TABLE COMPANY(ID INT8 PRIMARY KEY NOT NULL, name CHAR(64) NOT NULL, ADDRESS varCHAR(256) not null, Income float not null)'),
-                sqlite.execute("CREATE TABLE EMPLOYEE(EMPLOYEEID INT8 PRIMARY KEY NOT NULL unique, CompanyId INT8 not null, name NCHAR(64) NOT NULL, JoinDate DATETIME not null default(datetime('now')), IMAGE BLOB, DESCRIPTION NTEXT, Salary real, FOREIGN KEY(CompanyId) REFERENCES COMPANY(id))")]
+        return [sqlite.execute('CREATE TABLE COMPANY(ID INT8 PRIMARY KEY NOT NULL,name CHAR(64)'
+                    'NOT NULL,ADDRESS varCHAR(256)not null,Income float not null)'),
+                sqlite.execute("CREATE TABLE EMPLOYEE(EMPLOYEEID INT8 PRIMARY KEY NOT NULL unique,"
+                    "CompanyId INT8 not null, name NCHAR(64) NOT NULL, JoinDate DATETIME not null "
+                    "default(datetime('now')),IMAGE BLOB,DESCRIPTION NTEXT,Salary real,FOREIGN KEY"
+                    "(CompanyId) REFERENCES COMPANY(id))")]
 
     ra = []
 
@@ -40,7 +44,8 @@ with CSocketPool(CSqlite) as spSqlite:
         ra.append(Pair(vColInfo, []))
 
     def TestPreparedStatements():
-        sqlite.Prepare("Select datetime('now');INSERT OR REPLACE INTO COMPANY(ID,NAME,ADDRESS,Income)VALUES(?,?,?,?)")
+        sqlite.Prepare("Select datetime('now');INSERT OR REPLACE INTO COMPANY"
+                       "(ID,NAME,ADDRESS,Income)VALUES(?,?,?,?)")
 
         vData = []
         vData.append(1)
@@ -60,8 +65,9 @@ with CSocketPool(CSqlite) as spSqlite:
 
         return sqlite.execute(vData, cbRows, cbRowHeader)
 
-    def InsertBLOBByPreparedStatement():
-        sql = u'insert or replace into employee(EMPLOYEEID,CompanyId,name,JoinDate,image,DESCRIPTION,Salary)values(?,?,?,?,?,?,?);select * from employee where employeeid=?'
+    def TestBLOBByPreparedStatement():
+        sql = u'insert or replace into employee(EMPLOYEEID,CompanyId,name,JoinDate,image,' \
+              u'DESCRIPTION,Salary)values(?,?,?,?,?,?,?);select * from employee where employeeid=?'
         sqlite.Prepare(sql)
         vData = []
         sbBlob = CUQueue()
@@ -107,16 +113,25 @@ with CSocketPool(CSqlite) as spSqlite:
         vParam.append(1)  # ID
         vParam.append(2)  # EMPLOYEEID
         # there is no manual transaction if isolation is tiUnspecified
-        f0 = sqlite.executeBatch(tagTransactionIsolation.tiUnspecified, "Select datetime('now');select * from COMPANY where ID=?;select * from EMPLOYEE where EMPLOYEEID=?", vParam, cbRows, cbRowHeader)
+        f0 = sqlite.executeBatch(tagTransactionIsolation.tiUnspecified, "Select datetime('now');"
+            "select * from COMPANY where ID=?;select * from EMPLOYEE where EMPLOYEEID=?", vParam, cbRows, cbRowHeader)
         vParam = []
         vParam.append(1)  # ID
         vParam.append(2)  # EMPLOYEEID
         vParam.append(2)  # ID
         vParam.append(3)  # EMPLOYEEID
-        # Same as sqlite.BeginTrans()
-        # Select datetime('now');select * from COMPANY where ID=1;select * from COMPANY where ID=2;Select datetime('now');select * from EMPLOYEE where EMPLOYEEID=2;select * from EMPLOYEE where EMPLOYEEID=3
-        # sqlite.EndTrans();
-        f1 = sqlite.executeBatch(tagTransactionIsolation.tiReadCommited, "Select datetime('now');select * from COMPANY where ID=?;Select datetime('now');select * from EMPLOYEE where EMPLOYEEID=?", vParam, cbRows, cbRowHeader)
+        """
+        Same as sqlite.beginTrans();
+        Select datetime('now');
+        select * from COMPANY where ID=1;
+        select * from COMPANY where ID=2;
+        Select datetime('now');
+        select * from EMPLOYEE where EMPLOYEEID=2;
+        select * from EMPLOYEE where EMPLOYEEID=3
+        ok = sqlite.endTrans(tagRollbackPlan.rpDefault);
+        """
+        f1 = sqlite.executeBatch(tagTransactionIsolation.tiReadCommited, "Select datetime('now');select * from COMPANY "
+            "where ID=?;Select datetime('now');select * from EMPLOYEE where EMPLOYEEID=?", vParam, cbRows, cbRowHeader)
         return [f0, f1]
     try:
         # stream all SQL requests with in-line batching for the best network efficiency
@@ -124,7 +139,7 @@ with CSocketPool(CSqlite) as spSqlite:
         vF = TestCreateTables()
         fbt = sqlite.beginTrans(tagTransactionIsolation.tiReadCommited)
         fP0 = TestPreparedStatements()
-        fP1 = InsertBLOBByPreparedStatement()
+        fP1 = TestBLOBByPreparedStatement()
         fet = sqlite.endTrans()
         vTB = TestBatch()
         print('SQL requests streamed, and waiting for results ......')
@@ -148,7 +163,8 @@ with CSocketPool(CSqlite) as spSqlite:
     index = 0
     for a in ra:
         if len(a.first) > 0:
-            print('Statement index = ' + str(index) + ', rowset with columns = ' + str(len(a.first)) + ', records = ' + str(len(a.second)) + '.')
+            print('Statement index: ' + str(index) + ', rowset with columns: ' + str(len(a.first)) +
+                  ', records: ' + str(len(a.second)) + '.')
         else:
             print('Statement index = ' + str(index) + ', no rowset received.')
         index += 1

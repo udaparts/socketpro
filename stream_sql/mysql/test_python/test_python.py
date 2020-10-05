@@ -23,14 +23,19 @@ with CSocketPool(CMysql) as spMysql:
     mysql = spMysql.AsyncHandlers[0]
     if not ok:
         print('No connection error code = ' + str(mysql.Socket.ErrorCode))
-        spMysql.ShutdownPool()
         exit(0)
 
     def TestCreateTables():
         return [mysql.execute('CREATE DATABASE IF NOT EXISTS mysqldb character set utf8 collate utf8_general_ci;USE mysqldb'),
-                mysql.execute('CREATE TABLE IF NOT EXISTS company(ID bigint PRIMARY KEY NOT NULL,name CHAR(64)NOT NULL,ADDRESS varCHAR(256)not null,Income decimal(15,2)not null)'),
-                mysql.execute('CREATE TABLE IF NOT EXISTS employee(EMPLOYEEID bigint AUTO_INCREMENT PRIMARY KEY NOT NULL unique,CompanyId bigint not null,name CHAR(64)NOT NULL,JoinDate DATETIME(6)default null,IMAGE MEDIUMBLOB,DESCRIPTION MEDIUMTEXT,Salary decimal(18,2),FOREIGN KEY(CompanyId)REFERENCES company(id))'),
-                mysql.execute('DROP PROCEDURE IF EXISTS sp_TestProc;CREATE PROCEDURE sp_TestProc(in p_company_id int,inout p_sum_salary decimal(17,2),out p_last_dt datetime)BEGIN select * from employee where companyid>=p_company_id;select sum(salary)+p_sum_salary into p_sum_salary from employee where companyid>=p_company_id;select now() into p_last_dt;END')]
+                mysql.execute('CREATE TABLE IF NOT EXISTS company(ID bigint PRIMARY KEY NOT NULL,name CHAR(64)'
+                              'NOT NULL,ADDRESS varCHAR(256)not null,Income decimal(15,2)not null)'),
+                mysql.execute('CREATE TABLE IF NOT EXISTS employee(EMPLOYEEID bigint AUTO_INCREMENT PRIMARY KEY NOT NULL'
+                    ' unique,CompanyId bigint not null,name CHAR(64)NOT NULL,JoinDate DATETIME(6)default null,IMAGE '
+                    'MEDIUMBLOB,DESCRIPTION MEDIUMTEXT,Salary decimal(18,2),FOREIGN KEY(CompanyId)REFERENCES company(id))'),
+                mysql.execute('DROP PROCEDURE IF EXISTS sp_TestProc;CREATE PROCEDURE sp_TestProc(in p_company_id int,inout '
+                    'p_sum_salary decimal(17,2),out p_last_dt datetime)BEGIN select * from employee where companyid>='
+                    'p_company_id;select sum(salary)+p_sum_salary into p_sum_salary from employee where companyid>='
+                              'p_company_id;select now() into p_last_dt;END')]
 
     def TestPreparedStatements():
         mysql.prepare(u'INSERT INTO company(ID,NAME,ADDRESS,Income)VALUES(?,?,?,?)')
@@ -66,7 +71,9 @@ with CSocketPool(CMysql) as spMysql:
 
     def TestBatch():
         # sql with delimiter '|'
-        sql='delete from employee;delete from company|INSERT INTO company(ID,NAME,ADDRESS,Income)VALUES(?,?,?,?)|insert into employee(CompanyId,name,JoinDate,image,DESCRIPTION,Salary)values(?,?,?,?,?,?)|SELECT * from company;select * from employee;select curtime()|call sp_TestProc(?,?,?)'
+        sql='delete from employee;delete from company|INSERT INTO company(ID,NAME,ADDRESS,Income)VALUES(?,?,?,?)|' \
+            'insert into employee(CompanyId,name,JoinDate,image,DESCRIPTION,Salary)values(?,?,?,?,?,?)|SELECT * from ' \
+            'company;select * from employee;select curtime()|call sp_TestProc(?,?,?)'
         vData = []
         sbBlob = CUQueue()
         vData.append(1)
@@ -114,16 +121,17 @@ with CSocketPool(CMysql) as spMysql:
         vData.append(0)
         vData.append(4.5)
         vData.append(0)
-        # first start a manual transaction with isolation level ReadCommited
+        # first start a manual transaction with isolation level tiReadCommited
         # second, execute delete from employee;delete from company
         # third, prepare and execute three sets of INSERT INTO company(ID,NAME,ADDRESS,Income)VALUES(?,?,?,?)
-        # fourth, prepare and execute three sets of insert into employee(CompanyId,name,JoinDate,image,DESCRIPTION,Salary)values(?,?,?,?,?,?)
+        # fourth, prepare and execute three sets of
+        # insert into employee(CompanyId,name,JoinDate,image,DESCRIPTION,Salary)values(?,?,?,?,?,?)
         # fifth, SELECT * from company;select * from employee;select curtime()
-        # sixth, three sets of call sp_TestProc(?,?,?)
-        # last, commit deletes and inserts if no error happens or rollback if there is an error
+        # sixth, prepare and execute three sets of call sp_TestProc(?,?,?)
+        # last, commit all SQL requests if no error happens or rollback if there is an error
         return mysql.executeBatch(tagTransactionIsolation.tiReadCommited, sql, vData, cbRows, cbRowHeader, '|', cbBatchHeader), vData
 
-    def InsertBLOBByPreparedStatement():
+    def TestBLOBByPreparedStatement():
 
         mysql.prepare(u'insert into employee(CompanyId,name,JoinDate,image,DESCRIPTION,Salary)values(?,?,?,?,?,?)')
 
@@ -174,7 +182,7 @@ with CSocketPool(CMysql) as spMysql:
         vF = TestCreateTables()
         fD = mysql.execute('delete from employee;delete from company')
         fP0 = TestPreparedStatements()
-        fP1 = InsertBLOBByPreparedStatement()
+        fP1 = TestBLOBByPreparedStatement()
         fS = mysql.execute('SELECT * from company;select * from employee;select curtime()', cbRows, cbRowHeader)
         fStore, vPData = TestStoredProcedure()
         fStore1, vData = TestBatch()
@@ -204,7 +212,8 @@ with CSocketPool(CMysql) as spMysql:
     index = 0
     for a in ra:
         if len(a.first) > 0:
-            print('Statement index = ' + str(index) + ', rowset with columns = ' + str(len(a.first)) + ', records = ' + str(len(a.second)) + '.')
+            print('Statement index: ' + str(index) + ', rowset with columns: ' +
+                  str(len(a.first)) + ', records: ' + str(len(a.second)) + '.')
         else:
             print('Statement index = ' + str(index) + ', no rowset received.')
         index += 1
