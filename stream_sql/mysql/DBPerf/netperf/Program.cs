@@ -1,10 +1,14 @@
-﻿
-using System;
+﻿using System;
 using System.Collections.Generic;
-using SocketProAdapter;
 using SocketProAdapter.ClientSide;
 using SocketProAdapter.UDB;
 using System.Data;
+
+#if USE_DATATABLE
+using KeyValue = System.Collections.Generic.KeyValuePair<SocketProAdapter.UDB.CDBColumnInfoArray, System.Data.DataTable>;
+#else
+using KeyValue = System.Collections.Generic.KeyValuePair<SocketProAdapter.UDB.CDBColumnInfoArray, SocketProAdapter.UDB.CDBVariantArray>;
+#endif
 
 class Program
 {
@@ -41,11 +45,7 @@ class Program
             };
             uint obtained = 0;
             bool ok = mysql.Open(dbName, dr);
-#if USE_DATATABLE
-            List<KeyValuePair<CDBColumnInfoArray, DataTable>> ra = new List<KeyValuePair<CDBColumnInfoArray, DataTable>>();
-#else
-            List<KeyValuePair<CDBColumnInfoArray, CDBVariantArray>> ra = new List<KeyValuePair<CDBColumnInfoArray, CDBVariantArray>>();
-#endif
+            List<KeyValue> ra = new List<KeyValue>();
             CAsyncDBHandler.DExecuteResult er = (handler, res, errMsg, affected, fail_ok, id) =>
             {
                 if (res != 0)
@@ -57,11 +57,10 @@ class Program
             {
                 //rowset data come here
                 int last = ra.Count - 1;
+                KeyValue item = ra[last];
 #if USE_DATATABLE
-                KeyValuePair<CDBColumnInfoArray, DataTable> item = ra[last];
                 CAsyncDBHandler.AppendRowDataIntoDataTable(rowData, item.Value);
 #else
-                KeyValuePair<CDBColumnInfoArray, CDBVariantArray> item = ra[last];
                 item.Value.AddRange(rowData);
 #endif
             };
@@ -70,9 +69,9 @@ class Program
                 //rowset header comes here
 #if USE_DATATABLE
                 DataTable dt = CAsyncDBHandler.MakeDataTable(handler.ColumnInfo);
-                KeyValuePair<CDBColumnInfoArray, DataTable> item = new KeyValuePair<CDBColumnInfoArray, DataTable>(handler.ColumnInfo, dt);
+                KeyValue item = new KeyValue(handler.ColumnInfo, dt);
 #else
-                KeyValuePair<CDBColumnInfoArray, CDBVariantArray> item = new KeyValuePair<CDBColumnInfoArray, CDBVariantArray>(handler.ColumnInfo, new CDBVariantArray());
+                KeyValue item = new KeyValue(handler.ColumnInfo, new CDBVariantArray());
 #endif
                 ra.Add(item);
             };
@@ -156,7 +155,6 @@ class Program
             Console.WriteLine("Press any key to close the application ......");
             Console.ReadLine();
         }
-
     }
 }
 

@@ -11,7 +11,15 @@
 #ifdef HAVE_FUTURE
 #include <future>
 #ifdef WIN32_64
-#ifdef _EXPERIMENTAL_RESUMABLE_
+
+#if defined(_COROUTINE_)
+#define HAVE_COROUTINE 2
+namespace SPA {
+    namespace ClientSide {
+        typedef std::coroutine_handle<> CRHandle;
+    }
+}
+#elif defined(_EXPERIMENTAL_RESUMABLE_)
 #define HAVE_COROUTINE 1
 namespace SPA {
     namespace ClientSide {
@@ -21,7 +29,7 @@ namespace SPA {
 #endif
 #else
 #ifdef _GLIBCXX_COROUTINE
-#define HAVE_COROUTINE 1
+#define HAVE_COROUTINE 2
 namespace SPA {
     namespace ClientSide {
         typedef std::coroutine_handle<> CRHandle;
@@ -1020,21 +1028,115 @@ namespace SPA {
                 return send<R>(reqId, sb->GetBuffer(), sb->GetSize());
             }
 #endif
+
 #ifdef HAVE_COROUTINE
 
             template<typename R>
             struct CWaiterBase {
+#if HAVE_COROUTINE > 1
+
+                CWaiterBase(const wchar_t* req_name, unsigned short reqId) : m_done(false), m_reqId(reqId), m_reqName(req_name ? req_name : L"") {
+                    if (!m_reqName.size()) {
+                        throw std::invalid_argument("Method name cannot be empty");
+                    }
+                    if (!reqId) {
+                        throw std::invalid_argument("Request id cannot be zero");
+                    }
+                }
+                CWaiterBase(const CWaiterBase &wb) = delete;
+                CWaiterBase(CWaiterBase &&wb) = delete;
+                CWaiterBase& operator=(const CWaiterBase &wb) = delete;
+                CWaiterBase& operator=(CWaiterBase &&wb) = delete;
+
+                bool await_ready() noexcept {
+                    m_cs.lock();
+                    bool done = m_done;
+                    m_cs.unlock();
+                    return done;
+                }
+
+                bool await_suspend(CRHandle rh) noexcept {
+                    m_cs.lock();
+                    if (!m_done) {
+                        m_rh = rh;
+                        m_cs.unlock();
+                        return true;
+                    }
+                    m_cs.unlock();
+                    return false;
+                }
+
+                R await_resume() {
+                    if (m_ex) {
+                        std::rethrow_exception(m_ex);
+                    }
+                    return std::move(m_r);
+                }
+
+            protected:
+
+                DServerException get_se() noexcept {
+                    return [this](CAsyncServiceHandler* ash, unsigned short reqId, const wchar_t* errMsg, const char* errWhere, unsigned int errCode) {
+                        m_ex = std::make_exception_ptr(CServerError(errCode, errMsg, errWhere, reqId));
+                        resume();
+                    };
+                }
+
+                DDiscarded get_aborted() noexcept {
+                    return [this](CAsyncServiceHandler* h, bool canceled) {
+                        if (canceled) {
+                            m_ex = std::make_exception_ptr(CSocketError(REQUEST_CANCELED, (L"Request " + m_reqName + L" canceled").c_str(), m_reqId, false));
+                        } else {
+                            CClientSocket* cs = h->GetSocket();
+                            int ec = cs->GetErrorCode();
+                            if (ec) {
+                                std::string em = cs->GetErrorMsg();
+                                m_ex = std::make_exception_ptr(CSocketError(ec, Utilities::ToWide(em).c_str(), m_reqId, false));
+                            } else {
+                                m_ex = std::make_exception_ptr(CSocketError(SESSION_CLOSED_AFTER, (L"Session closed after sending the request " + m_reqName).c_str(), m_reqId, false));
+                            }
+                        }
+                        resume();
+                    };
+                }
+
+                void resume() noexcept {
+                    m_cs.lock();
+                    if (m_done) {
+                        m_cs.unlock();
+                    } else {
+                        m_done = true;
+                        if (m_rh) {
+                            m_cs.unlock();
+                            m_rh.resume();
+                        } else {
+                            m_cs.unlock();
+                        }
+                    }
+                }
+
+            protected:
+                R m_r;
+                std::exception_ptr m_ex;
+
+            private:
+                CSpinLock m_cs;
+                bool m_done; //portected by m_cs
+                CRHandle m_rh; //portected by m_cs
+                unsigned short m_reqId;
+                std::wstring m_reqName;
+#else
 
                 struct CWaiterContext {
-                    CWaiterContext(const std::wstring& req_name, unsigned short reqId)
-                        : m_done(false), m_reqId(reqId) {
-                        if (!req_name.size()) {
+
+                    CWaiterContext(const wchar_t *req_name, unsigned short reqId)
+                    : m_done(false), m_reqId(reqId), m_reqName(req_name ? req_name : L"") {
+                        if (!m_reqName.size()) {
                             throw std::invalid_argument("Method name cannot be empty");
                         }
                         if (!reqId) {
                             throw std::invalid_argument("Request id cannot be zero");
                         }
-                        m_reqName = req_name;
                     }
 
                     CWaiterContext(const CWaiterContext& wc) = delete;
@@ -1064,14 +1166,12 @@ namespace SPA {
                         m_cs.lock();
                         if (m_done) {
                             m_cs.unlock();
-                        }
-                        else {
+                        } else {
                             m_done = true;
                             if (m_rh) {
                                 m_cs.unlock();
                                 m_rh.resume();
-                            }
-                            else {
+                            } else {
                                 m_cs.unlock();
                             }
                         }
@@ -1088,15 +1188,13 @@ namespace SPA {
                         return [this](CAsyncServiceHandler* h, bool canceled) {
                             if (canceled) {
                                 m_ex = std::make_exception_ptr(CSocketError(REQUEST_CANCELED, (L"Request " + m_reqName + L" canceled").c_str(), m_reqId, false));
-                            }
-                            else {
+                            } else {
                                 CClientSocket* cs = h->GetSocket();
                                 int ec = cs->GetErrorCode();
                                 if (ec) {
                                     std::string em = cs->GetErrorMsg();
                                     m_ex = std::make_exception_ptr(CSocketError(ec, Utilities::ToWide(em).c_str(), m_reqId, false));
-                                }
-                                else {
+                                } else {
                                     m_ex = std::make_exception_ptr(CSocketError(SESSION_CLOSED_AFTER, (L"Session closed after sending the request " + m_reqName).c_str(), m_reqId, false));
                                 }
                             }
@@ -1115,7 +1213,7 @@ namespace SPA {
                     std::wstring m_reqName;
                 };
 
-                CWaiterBase(const std::wstring &req_name, unsigned short reqId)
+                CWaiterBase(const wchar_t *req_name, unsigned short reqId)
                 : m_wc(new CWaiterContext(req_name, reqId)), m_r(m_wc->m_r), m_ex(m_wc->m_ex) {
                 }
 
@@ -1155,6 +1253,7 @@ namespace SPA {
                 }
 
             protected:
+
                 void resume() noexcept {
                     m_wc->resume();
                 }
@@ -1173,6 +1272,7 @@ namespace SPA {
             protected:
                 R &m_r;
                 std::exception_ptr &m_ex;
+#endif
             };
 
             template<typename R>
@@ -1342,6 +1442,7 @@ namespace SPA {
 #endif
 #endif
 #endif
+
         template<unsigned int serviceId>
         class CASHandler : public CAsyncServiceHandler {
         public:
