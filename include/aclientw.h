@@ -1121,8 +1121,8 @@ namespace SPA {
 
             private:
                 CSpinLock m_cs;
-                bool m_done; //portected by m_cs
-                CRHandle m_rh; //portected by m_cs
+                bool m_done; //protected by m_cs
+                CRHandle m_rh; //protected by m_cs
                 unsigned short m_reqId;
                 std::wstring m_reqName;
 #else
@@ -1207,8 +1207,8 @@ namespace SPA {
 
                 private:
                     CSpinLock m_cs;
-                    bool m_done; //portected by m_cs
-                    CRHandle m_rh; //portected by m_cs
+                    bool m_done; //protected by m_cs
+                    CRHandle m_rh; //protected by m_cs
                     unsigned short m_reqId;
                     std::wstring m_reqName;
                 };
