@@ -788,12 +788,12 @@ class CHandler {
             var ok = this.handler.SendRequest(reqId, buff, (q, id) => {
                 res(q, id);
             }, (canceled, id) => {
-                this.set_aborted(rej, 'SendRequest', reqId, canceled);
+                this.set_aborted(rej, reqId, canceled);
             }, (errMsg, errCode, errWhere, id) => {
                 this.set_exception(rej, errMsg, errCode, errWhere, id);
             });
             if (!ok) {
-                this.raise(rej, 'SendRequest', reqId);
+                this.raise(rej, reqId);
             }
         });
     }
@@ -813,20 +813,19 @@ class CHandler {
     /**
      * set a cancel or communication channel close exception for promise reject
      * @param {reject} rej promise reject function
-     * @param {string} method_name a request method name
      * @param {unsigned short} req_id an unique request id within a service handler
      * @param {boolean} canceled true if the request is canceled, false if communication channel is closed
      */
-    set_aborted(rej, method_name, req_id, canceled) {
+    set_aborted(rej, req_id, canceled) {
         var ret;
         if (canceled) {
-            ret = { ec: -1002, em: 'Request ' + method_name + ' canceled', reqId: req_id, before: false };
+            ret = { ec: -1002, em: 'Request canceled', reqId: req_id, before: false };
         }
         else {
             var error = this.Socket.Error;
             if (!error.ec) {
                 error.ec = -1000;
-                error.em = 'Session closed after sending the request ' + method_name;
+                error.em = 'Session closed after sending the request';
             }
             ret = { ec: error.ec, em: error.em, reqId: req_id, before: false };
         }
@@ -836,16 +835,28 @@ class CHandler {
     /**
      * raise a communication channel close exception for promise reject
      * @param {reject} rej promise reject function
-     * @param {string} method_name a request method name
      * @param {unsigned short} req_id An unique request id within a service handler
      */
-    raise(rej, method_name, req_id) {
+    raise(rej, req_id) {
         var error = this.Socket.Error;
         if (!error.ec) {
             error.ec = -1001;
-            error.em = 'Session already closed before sending the request ' + method_name;
+            error.em = 'Session already closed before sending the request';
         }
         rej({ ec: error.ec, em: error.em, reqId: req_id, before: true });
+    }
+
+    /**
+     * raise a communication channel close exception
+     * @param {unsigned short} req_id An unique request id within a service handler
+     */
+    throw(req_id) {
+        var error = this.Socket.Error;
+        if (!error.ec) {
+            error.ec = -1001;
+            error.em = 'Session already closed before sending the request';
+        }
+        throw { ec: error.ec, em: error.em, reqId: req_id, before: true };
     }
 }
 
@@ -1059,12 +1070,12 @@ class CAsyncQueue extends CHandler {
             var ok = this.handler.GetKeys((vKeys) => {
                 res(vKeys);
             }, (canceled) => {
-                this.set_aborted(rej, 'GetKeys', exports.CS.Queue.ReqIds.idGetKeys, canceled);
+                this.set_aborted(rej, exports.CS.Queue.ReqIds.idGetKeys, canceled);
             }, (errMsg, errCode, errWhere, id) => {
                 this.set_exception(rej, errMsg, errCode, errWhere, id);
             });
             if (!ok) {
-                this.raise(rej, 'GetKeys', exports.CS.Queue.ReqIds.idGetKeys);
+                this.raise(rej, exports.CS.Queue.ReqIds.idGetKeys);
             }
         });
     }
@@ -1082,12 +1093,12 @@ class CAsyncQueue extends CHandler {
             var ok = this.handler.Close(key, (errCode) => {
                 res(errCode);
             }, (canceled) => {
-                this.set_aborted(rej, 'Close', exports.CS.Queue.ReqIds.idClose, canceled);
+                this.set_aborted(rej, exports.CS.Queue.ReqIds.idClose, canceled);
             }, permanent, (errMsg, errCode, errWhere, id) => {
                 this.set_exception(rej, errMsg, errCode, errWhere, id);
             });
             if (!ok) {
-                this.raise(rej, 'Close', exports.CS.Queue.ReqIds.idClose);
+                this.raise(rej, exports.CS.Queue.ReqIds.idClose);
             }
         });
     }
@@ -1104,12 +1115,12 @@ class CAsyncQueue extends CHandler {
             var ok = this.handler.StartTrans(key, (errCode) => {
                 res(errCode);
             }, (canceled) => {
-                this.set_aborted(rej, 'StartTrans', exports.CS.Queue.ReqIds.idStartTrans, canceled);
+                this.set_aborted(rej, exports.CS.Queue.ReqIds.idStartTrans, canceled);
             }, (errMsg, errCode, errWhere, id) => {
                 this.set_exception(rej, errMsg, errCode, errWhere, id);
             });
             if (!ok) {
-                this.raise(rej, 'StartTrans', exports.CS.Queue.ReqIds.idStartTrans);
+                this.raise(rej, exports.CS.Queue.ReqIds.idStartTrans);
             }
         });
     }
@@ -1126,12 +1137,12 @@ class CAsyncQueue extends CHandler {
             var ok = this.handler.EndTrans(rollback, (errCode) => {
                 res(errCode);
             }, (canceled) => {
-                this.set_aborted(rej, 'EndTrans', exports.CS.Queue.ReqIds.idEndTrans, canceled);
+                this.set_aborted(rej, exports.CS.Queue.ReqIds.idEndTrans, canceled);
             }, (errMsg, errCode, errWhere, id) => {
                 this.set_exception(rej, errMsg, errCode, errWhere, id);
             });
             if (!ok) {
-                this.raise(rej, 'EndTrans', exports.CS.Queue.ReqIds.idEndTrans);
+                this.raise(rej, exports.CS.Queue.ReqIds.idEndTrans);
             }
         });
     }
@@ -1149,12 +1160,12 @@ class CAsyncQueue extends CHandler {
             var ok = this.handler.Flush(key, (messages, fileSize) => {
                 res({ msgs: messages, fsize: fileSize });
             }, (canceled) => {
-                this.set_aborted(rej, 'Flush', exports.CS.Queue.ReqIds.idFlush, canceled);
+                this.set_aborted(rej, exports.CS.Queue.ReqIds.idFlush, canceled);
             }, option, (errMsg, errCode, errWhere, id) => {
                 this.set_exception(rej, errMsg, errCode, errWhere, id);
             });
             if (!ok) {
-                this.raise(rej, 'Flush', exports.CS.Queue.ReqIds.idFlush);
+                this.raise(rej, exports.CS.Queue.ReqIds.idFlush);
             }
         });
     }
@@ -1174,12 +1185,12 @@ class CAsyncQueue extends CHandler {
             var ok = this.handler.Enqueue(key, reqId, buff, (index) => {
                 res(index);
             }, (canceled) => {
-                this.set_aborted(rej, 'Enqueue', exports.CS.Queue.ReqIds.idEnqueue, canceled);
+                this.set_aborted(rej, exports.CS.Queue.ReqIds.idEnqueue, canceled);
             }, (errMsg, errCode, errWhere, id) => {
                 this.set_exception(rej, errMsg, errCode, errWhere, id);
             });
             if (!ok) {
-                this.raise(rej, 'Enqueue', exports.CS.Queue.ReqIds.idEnqueue);
+                this.raise(rej, exports.CS.Queue.ReqIds.idEnqueue);
             }
         });
     }
@@ -1200,12 +1211,12 @@ class CAsyncQueue extends CHandler {
             var ok = this.handler.EnqueueBatch(key, (index) => {
                 res(index);
             }, (canceled) => {
-                this.set_aborted(rej, 'EnqueueBatch', exports.CS.Queue.ReqIds.idEnqueueBatch, canceled);
+                this.set_aborted(rej, exports.CS.Queue.ReqIds.idEnqueueBatch, canceled);
             }, (errMsg, errCode, errWhere, id) => {
                 this.set_exception(rej, errMsg, errCode, errWhere, id);
             });
             if (!ok) {
-                this.raise(rej, 'EnqueueBatch', exports.CS.Queue.ReqIds.idEnqueueBatch);
+                this.raise(rej, exports.CS.Queue.ReqIds.idEnqueueBatch);
             }
         });
     }
@@ -1223,12 +1234,12 @@ class CAsyncQueue extends CHandler {
             var ok = this.handler.Dequeue(key, (messages, fileSize, messagesDequeued, bytes) => {
                 res({ msgs: messages, fsize: fileSize, msgsDequeued: messagesDequeued, bytes: bytes });
             }, (canceled) => {
-                this.set_aborted(rej, 'Dequeue', exports.CS.Queue.ReqIds.idDequeue, canceled);
+                this.set_aborted(rej, exports.CS.Queue.ReqIds.idDequeue, canceled);
             }, timeout, (errMsg, errCode, errWhere, id) => {
                 this.set_exception(rej, errMsg, errCode, errWhere, id);
             });
             if (!ok) {
-                this.raise(rej, 'Dequeue', exports.CS.Queue.ReqIds.idDequeue);
+                this.raise(rej, exports.CS.Queue.ReqIds.idDequeue);
             }
         });
     }
@@ -1318,7 +1329,7 @@ class CAsyncFile extends CHandler {
             this.handler.Upload(localFile, remoteFile, (errMsg, errCode, download) => {
                 res({ ec: errCode, em: errMsg });
             }, progress, (canceled, download) => {
-                this.set_aborted(rej, 'Upload', exports.File.ReqIds.idUpload, canceled);
+                this.set_aborted(rej, exports.File.ReqIds.idUpload, canceled);
             }, flags, (errMsg, errCode, errWhere, id) => {
                 this.set_exception(rej, errMsg, errCode, errWhere, id);
             });
@@ -1343,7 +1354,7 @@ class CAsyncFile extends CHandler {
             this.handler.Download(localFile, remoteFile, (errMsg, errCode, download) => {
                 res({ ec: errCode, em: errMsg });
             }, progress, (canceled, download) => {
-                this.set_aborted(rej, 'Download', exports.File.ReqIds.idDownload, canceled);
+                this.set_aborted(rej, exports.File.ReqIds.idDownload, canceled);
             }, flags, (errMsg, errCode, errWhere, id) => {
                 this.set_exception(rej, errMsg, errCode, errWhere, id);
             });
@@ -1497,12 +1508,12 @@ class CDb extends CHandler {
             var ok = this.handler.Close((errCode, errMsg) => {
                 res({ ec: errCode, em: errMsg });
             }, (canceled) => {
-                this.set_aborted(rej, 'Close', exports.DB.ReqIds.idClose, canceled);
+                this.set_aborted(rej, exports.DB.ReqIds.idClose, canceled);
             }, (errMsg, errCode, errWhere, id) => {
                 this.set_exception(rej, errMsg, errCode, errWhere, id);
             });
             if (!ok) {
-                this.raise(rej, 'Close', exports.DB.ReqIds.idClose);
+                this.raise(rej, exports.DB.ReqIds.idClose);
             }
         });
     }
@@ -1521,12 +1532,12 @@ class CDb extends CHandler {
             var ok = this.handler.Prepare(sql, (errCode, errMsg) => {
                 res({ ec: errCode, em: errMsg });
             }, (canceled) => {
-                this.set_aborted(rej, 'Prepare', exports.DB.ReqIds.idPrepare, canceled);
+                this.set_aborted(rej, exports.DB.ReqIds.idPrepare, canceled);
             }, arrP, (errMsg, errCode, errWhere, id) => {
                 this.set_exception(rej, errMsg, errCode, errWhere, id);
             });
             if (!ok) {
-                this.raise(rej, 'Prepare', exports.DB.ReqIds.idPrepare);
+                this.raise(rej, exports.DB.ReqIds.idPrepare);
             }
         });
     }
@@ -1544,12 +1555,12 @@ class CDb extends CHandler {
             var ok = this.handler.BeginTrans(isolation, (errCode, errMsg) => {
                 res({ ec: errCode, em: errMsg });
             }, (canceled) => {
-                this.set_aborted(rej, 'BeginTrans', exports.DB.ReqIds.idBeginTrans, canceled);
+                this.set_aborted(rej, exports.DB.ReqIds.idBeginTrans, canceled);
             }, (errMsg, errCode, errWhere, id) => {
                 this.set_exception(rej, errMsg, errCode, errWhere, id);
             });
             if (!ok) {
-                this.raise(rej, 'BeginTrans', exports.DB.ReqIds.idBeginTrans);
+                this.raise(rej, exports.DB.ReqIds.idBeginTrans);
             }
         });
     }
@@ -1567,12 +1578,12 @@ class CDb extends CHandler {
             var ok = this.handler.EndTrans(rp, (errCode, errMsg) => {
                 res({ ec: errCode, em: errMsg });
             }, (canceled) => {
-                this.set_aborted(rej, 'EndTrans', exports.DB.ReqIds.idEndTrans, canceled);
+                this.set_aborted(rej, exports.DB.ReqIds.idEndTrans, canceled);
             }, (errMsg, errCode, errWhere, id) => {
                 this.set_exception(rej, errMsg, errCode, errWhere, id);
             });
             if (!ok) {
-                this.raise(rej, 'EndTrans', exports.DB.ReqIds.idEndTrans);
+                this.raise(rej, exports.DB.ReqIds.idEndTrans);
             }
         });
     }
@@ -1592,12 +1603,12 @@ class CDb extends CHandler {
             var ok = this.handler.Open(conn, (errCode, errMsg) => {
                 res({ ec: errCode, em: errMsg });
             }, (canceled) => {
-                this.set_aborted(rej, 'Open', exports.DB.ReqIds.idOpen, canceled);
+                this.set_aborted(rej, exports.DB.ReqIds.idOpen, canceled);
             }, flags, (errMsg, errCode, errWhere, id) => {
                 this.set_exception(rej, errMsg, errCode, errWhere, id);
             });
             if (!ok) {
-                this.raise(rej, 'Open', exports.DB.ReqIds.idOpen);
+                this.raise(rej, exports.DB.ReqIds.idOpen);
             }
         });
     }
@@ -1622,12 +1633,12 @@ class CDb extends CHandler {
             var ok = this.handler.Execute(sql_or_arrParam, (errCode, errMsg, affected, fails, oks, id) => {
                 res({ ec: errCode, em: errMsg, aff: affected, oks: oks, fails: fails, lastId: id });
             }, rows, rh, (canceled) => {
-                this.set_aborted(rej, sql ? 'ExecuteSQL' : 'ExecuteParameters', sql ? exports.DB.ReqIds.idExecute : exports.DB.ReqIds.idExecuteParameters, canceled);
+                this.set_aborted(rej, sql ? exports.DB.ReqIds.idExecute : exports.DB.ReqIds.idExecuteParameters, canceled);
             }, meta, (errMsg, errCode, errWhere, id) => {
                 this.set_exception(rej, errMsg, errCode, errWhere, id);
             });
             if (!ok) {
-                this.raise(rej, sql ? 'ExecuteSQL' : 'ExecuteParameters', sql ? exports.DB.ReqIds.idExecute : exports.DB.ReqIds.idExecuteParameters);
+                this.raise(rej, sql ? exports.DB.ReqIds.idExecute : exports.DB.ReqIds.idExecuteParameters);
             }
         });
     }
@@ -1661,12 +1672,12 @@ class CDb extends CHandler {
             var ok = this.handler.ExecuteBatch(isolation, sql, paramBuff, (errCode, errMsg, affected, fails, oks, id) => {
                 res({ ec: errCode, em: errMsg, aff: affected, oks: oks, fails: fails, lastId: id });
             }, rows, rh, batchHeader, (canceled) => {
-                this.set_aborted(rej, 'ExecuteBatch', exports.DB.ReqIds.idExecuteBatch, canceled);
+                this.set_aborted(rej, exports.DB.ReqIds.idExecuteBatch, canceled);
             }, rp, delimiter, arrP, meta, lastInsertId, (errMsg, errCode, errWhere, id) => {
                 this.set_exception(rej, errMsg, errCode, errWhere, id);
             });
             if (!ok) {
-                this.raise(rej, 'ExecuteBatch', exports.DB.ReqIds.idExecuteBatch);
+                this.raise(rej, exports.DB.ReqIds.idExecuteBatch);
             }
         });
     }

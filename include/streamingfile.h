@@ -393,7 +393,7 @@ namespace SPA {
                                     it->ErrMsg = SPA::Utilities::ToWide(cs->GetErrorMsg());
                                 } else {
                                     it->ErrorCode = SESSION_CLOSED_BEFORE;
-                                    it->ErrMsg = L"Session already closed before sending the request Upload";
+                                    it->ErrMsg = L"Session already closed before sending the request";
                                 }
 #if defined(PHP_ADAPTER_PROJECT) || defined(NODE_JS_ADAPTER_PROJECT)
 #else
@@ -424,7 +424,7 @@ namespace SPA {
                                     it->ErrMsg = SPA::Utilities::ToWide(cs->GetErrorMsg());
                                 } else {
                                     it->ErrorCode = SESSION_CLOSED_BEFORE;
-                                    it->ErrMsg = L"Session already closed before sending the request Download";
+                                    it->ErrMsg = L"Session already closed before sending the request";
                                 }
 #if defined(PHP_ADAPTER_PROJECT) || defined(NODE_JS_ADAPTER_PROJECT)
 #else

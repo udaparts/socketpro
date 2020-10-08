@@ -30,7 +30,7 @@ function testEnqueue(sq) {
             default: idMsg = idMessage2; break;
         }
         if (!sq.Enqueue(TEST_QUEUE_KEY, idMsg, buff.SaveString('SampleName').SaveString(str).SaveInt(n))) {
-            sq.throw('Enqueue', cs.Queue.ReqIds.idEnqueue);
+            sq.throw(cs.Queue.ReqIds.idEnqueue);
         }
         //buff will been reset to empty automatically after calling Enqueue with node.js
         //sleep(20);
@@ -62,7 +62,7 @@ function testDequeue(sq) {
     console.log('Going to Dequeue messages ......');
     return new Promise((res, rej) => {
         var aborted = (canceled) => {
-            sq.set_aborted(rej, 'Dequeue', cs.Queue.ReqIds.idDequeue, canceled);
+            sq.set_aborted(rej, cs.Queue.ReqIds.idDequeue, canceled);
         };
         var se = (errMsg, errCode, errWhere, id) => {
             sq.set_exception(rej, errMsg, errCode, errWhere, id);
@@ -83,7 +83,7 @@ function testDequeue(sq) {
         //add an extra Dequeue call for better dequeue performance
         if (!(sq.Dequeue(TEST_QUEUE_KEY, cb, aborted, 0, se) &&
             sq.Dequeue(TEST_QUEUE_KEY, cb, aborted, 0, se))) {
-            sq.raise(rej, 'Dequeue', cs.Queue.ReqIds.idDequeue);
+            sq.raise(rej, cs.Queue.ReqIds.idDequeue);
         }
     });
 }
@@ -94,12 +94,12 @@ function testDequeue(sq) {
         console.log(await testDequeue(sq));
         console.log('Going to call GetKeys and Flush without promises ......');
         if (!sq.GetKeys((keys) => { console.log(keys); })) {
-            sq.throw('GetKeys', cs.Queue.ReqIds.idGetKeys);
+            sq.throw(cs.Queue.ReqIds.idGetKeys);
         }
         if (!sq.Flush(TEST_QUEUE_KEY, (mc, fsize) => {
             console.log({ msgs: mc, fsize: fsize });
         })) {
-            sq.throw('Flush', cs.Queue.ReqIds.idFlush);
+            sq.throw(cs.Queue.ReqIds.idFlush);
         }
         console.log('++++ use getKeys and flush instead of GetKeys and Flush, respectively with Promises ++++');
         console.log(await Promise.all([sq.getKeys(), sq.flush(TEST_QUEUE_KEY)]));
