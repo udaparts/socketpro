@@ -225,7 +225,7 @@ public class CAsyncServiceHandler implements AutoCloseable {
      * @throws CSocketError if communication channel is not sendable
      */
     public UFuture<SPA.CScopeUQueue> sendRequest(short reqId, java.nio.ByteBuffer data, int len) throws CSocketError {
-        UFuture<SPA.CScopeUQueue> f = new UFuture<>("SendRequest", reqId);
+        UFuture<SPA.CScopeUQueue> f = new UFuture<>(reqId);
         if (!SendRequest(reqId, data, len, get_ash(f), get_aborted(f), get_se(f))) {
             raise(f);
         }
@@ -243,7 +243,7 @@ public class CAsyncServiceHandler implements AutoCloseable {
      * @throws CSocketError if communication channel is not sendable
      */
     public UFuture<SPA.CScopeUQueue> sendRequest(short reqId, java.nio.ByteBuffer data) throws CSocketError {
-        UFuture<SPA.CScopeUQueue> f = new UFuture<>("SendRequest", reqId);
+        UFuture<SPA.CScopeUQueue> f = new UFuture<>(reqId);
         if (!SendRequest(reqId, data, get_ash(f), get_aborted(f), get_se(f))) {
             raise(f);
         }
@@ -303,13 +303,13 @@ public class CAsyncServiceHandler implements AutoCloseable {
             @Override
             public void invoke(CAsyncServiceHandler sender, boolean discarded) {
                 if (discarded) {
-                    CSocketError ex = new CSocketError(REQUEST_CANCELED, "Request " + f.getMethodName() + " canceled", f.getReqId(), false);
+                    CSocketError ex = new CSocketError(REQUEST_CANCELED, "Request canceled", f.getReqId(), false);
                     f.setException(ex);
                 } else {
                     CClientSocket cs = sender.getSocket();
                     int ec = cs.getErrorCode();
                     if (cs.getErrorCode() == 0) {
-                        CSocketError ex = new CSocketError(SESSION_CLOSED_AFTER, "Session closed after sending the request " + f.getMethodName(), f.getReqId(), false);
+                        CSocketError ex = new CSocketError(SESSION_CLOSED_AFTER, "Session closed after sending the request", f.getReqId(), false);
                         f.setException(ex);
                     } else {
                         CSocketError ex = new CSocketError(ec, cs.getErrorMsg(), f.getReqId(), false);
@@ -362,7 +362,7 @@ public class CAsyncServiceHandler implements AutoCloseable {
      * @throws CSocketError if communication channel is not sendable
      */
     public UFuture<SPA.CScopeUQueue> sendRequest(final short reqId, byte[] data, int len) throws CSocketError {
-        UFuture<SPA.CScopeUQueue> f = new UFuture<>("SendRequest", reqId);
+        UFuture<SPA.CScopeUQueue> f = new UFuture<>(reqId);
         if (!SendRequest(reqId, data, len, get_ash(f), get_aborted(f), get_se(f))) {
             raise(f);
         }
@@ -379,7 +379,7 @@ public class CAsyncServiceHandler implements AutoCloseable {
         CClientSocket cs = getSocket();
         int ec = cs.getErrorCode();
         if (ec == 0) {
-            throw new CSocketError(SESSION_CLOSED_BEFORE, "Session already closed before sending the request " + f.getMethodName(), f.getReqId(), true);
+            throw new CSocketError(SESSION_CLOSED_BEFORE, "Session already closed before sending the request", f.getReqId(), true);
         } else {
             throw new CSocketError(ec, cs.getErrorMsg(), f.getReqId(), true);
         }
@@ -388,21 +388,17 @@ public class CAsyncServiceHandler implements AutoCloseable {
     /**
      * Throw an exception CSocketError
      *
-     * @param mName A non-empty request method name
      * @param reqId A non-zero unique request id within an async handler
      * @throws CSocketError if communication channel is not sendable
      */
-    public void raise(String mName, short reqId) throws CSocketError {
-        if (mName == null || mName.length() == 0) {
-            throw new IllegalArgumentException("Method name cannot be empty");
-        }
+    public void raise(short reqId) throws CSocketError {
         if (reqId == 0) {
             throw new IllegalArgumentException("Request id cannot be zero");
         }
         CClientSocket cs = getSocket();
         int ec = cs.getErrorCode();
         if (ec == 0) {
-            throw new CSocketError(SESSION_CLOSED_BEFORE, "Session already closed before sending the request " + mName, reqId, true);
+            throw new CSocketError(SESSION_CLOSED_BEFORE, "Session already closed before sending the request", reqId, true);
         } else {
             throw new CSocketError(ec, cs.getErrorMsg(), reqId, true);
         }
@@ -434,7 +430,7 @@ public class CAsyncServiceHandler implements AutoCloseable {
      * @throws CSocketError if communication channel is not sendable
      */
     public UFuture<SPA.CScopeUQueue> sendRequest(short reqId, SPA.CUQueue q) throws CSocketError {
-        UFuture<SPA.CScopeUQueue> f = new UFuture<>("SendRequest", reqId);
+        UFuture<SPA.CScopeUQueue> f = new UFuture<>(reqId);
         if (!SendRequest(reqId, q, get_ash(f), get_aborted(f), get_se(f))) {
             raise(f);
         }
@@ -467,7 +463,7 @@ public class CAsyncServiceHandler implements AutoCloseable {
      * @throws CSocketError if communication channel is not sendable
      */
     public UFuture<SPA.CScopeUQueue> sendRequest(short reqId, SPA.CScopeUQueue q) throws CSocketError {
-        UFuture<SPA.CScopeUQueue> f = new UFuture<>("SendRequest", reqId);
+        UFuture<SPA.CScopeUQueue> f = new UFuture<>(reqId);
         if (!SendRequest(reqId, q, get_ash(f), get_aborted(f), get_se(f))) {
             raise(f);
         }
@@ -496,7 +492,7 @@ public class CAsyncServiceHandler implements AutoCloseable {
      * @throws CSocketError if communication channel is not sendable
      */
     public UFuture<SPA.CScopeUQueue> sendRequest(final short reqId) throws CSocketError {
-        UFuture<SPA.CScopeUQueue> f = new UFuture<>("SendRequest", reqId);
+        UFuture<SPA.CScopeUQueue> f = new UFuture<>(reqId);
         if (!SendRequest(reqId, get_ash(f), get_aborted(f), get_se(f))) {
             raise(f);
         }

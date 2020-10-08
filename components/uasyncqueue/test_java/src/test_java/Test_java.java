@@ -83,7 +83,7 @@ public class Test_java {
             }
             //enqueue two unicode strings and one int
             if (!aq.Enqueue(TEST_QUEUE_KEY, idMessage, new CScopeUQueue().Save("SampleName").Save(str).Save(n))) {
-                aq.raise("Enqueue", CAsyncQueue.idEnqueue);
+                aq.raise(CAsyncQueue.idEnqueue);
             }
         }
     }
@@ -128,7 +128,7 @@ public class Test_java {
         System.out.println("Going to dequeue message ......");
         //optionally, add one extra to improve processing concurrency at both client and server sides for better performance and through-output
         if (!(aq.Dequeue(TEST_QUEUE_KEY, d) && aq.Dequeue(TEST_QUEUE_KEY, d))) {
-            aq.raise("Dequeue", CAsyncQueue.idDequeue);
+            aq.raise(CAsyncQueue.idDequeue);
         }
     }
 }

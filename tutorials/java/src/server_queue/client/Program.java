@@ -66,7 +66,7 @@ public class Program {
                 //}
                 //enqueue two unicode strings and one int
                 if (!aq.Enqueue(TEST_QUEUE_KEY, idMessage, sb.Save("SampleName").Save(str).Save(n))) {
-                    aq.raise("Enqueue", CAsyncQueue.idEnqueue);
+                    aq.raise(CAsyncQueue.idEnqueue);
                 }
                 sb.getUQueue().setSize(0); //reset content
             }
@@ -99,7 +99,7 @@ public class Program {
             return processed;
         };
 
-        UFuture<CAsyncQueue.DeqInfo> f = new UFuture<>("Dequeue", CAsyncQueue.idDequeue);
+        UFuture<CAsyncQueue.DeqInfo> f = new UFuture<>(CAsyncQueue.idDequeue);
         CAsyncQueue.DDiscarded aborted = CAsyncQueue.get_aborted(f);
         CAsyncQueue.DOnExceptionFromServer se = CAsyncQueue.get_se(f);
 

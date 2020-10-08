@@ -327,7 +327,7 @@ public class CStreamingFile extends CAsyncServiceHandler {
                                 it.ErrCode = cs.getErrorCode();
                                 if (it.ErrCode == 0) {
                                     it.ErrCode = SESSION_CLOSED_BEFORE;
-                                    it.ErrMsg = "Session already closed before sending the request Upload";
+                                    it.ErrMsg = "Session already closed before sending the request";
                                 } else {
                                     it.ErrMsg = cs.getErrorMsg();
                                 }
@@ -352,7 +352,7 @@ public class CStreamingFile extends CAsyncServiceHandler {
                                 it.ErrCode = cs.getErrorCode();
                                 if (it.ErrCode == 0) {
                                     it.ErrCode = SESSION_CLOSED_BEFORE;
-                                    it.ErrMsg = "Session already closed before sending the request Download";
+                                    it.ErrMsg = "Session already closed before sending the request";
                                 } else {
                                     it.ErrMsg = cs.getErrorMsg();
                                 }
@@ -866,7 +866,7 @@ public class CStreamingFile extends CAsyncServiceHandler {
         if (remoteFile == null || remoteFile.length() == 0) {
             throw new IllegalArgumentException("remoteFile cannot be empty");
         }
-        final UFuture<ErrInfo> f = new UFuture<>("Download", idDownload);
+        final UFuture<ErrInfo> f = new UFuture<>(idDownload);
         DDownload dl = new DDownload() {
             @Override
             public void invoke(CStreamingFile file, int res, String errMsg) {
@@ -962,7 +962,7 @@ public class CStreamingFile extends CAsyncServiceHandler {
         if (remoteFile == null || remoteFile.length() == 0) {
             throw new IllegalArgumentException("remoteFile cannot be empty");
         }
-        final UFuture<ErrInfo> f = new UFuture<>("Upload", idUpload);
+        final UFuture<ErrInfo> f = new UFuture<>(idUpload);
         DUpload up = new DUpload() {
             @Override
             public void invoke(CStreamingFile file, int res, String errMsg) {

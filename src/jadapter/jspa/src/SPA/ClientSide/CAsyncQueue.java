@@ -361,7 +361,7 @@ public class CAsyncQueue extends CAsyncServiceHandler {
     }
 
     public UFuture<Integer> startQueueTrans(byte[] key) throws CSocketError {
-        final UFuture<Integer> f = new UFuture<>("StartQueueTrans", idStartTrans);
+        final UFuture<Integer> f = new UFuture<>(idStartTrans);
         DQueueTrans qt = new DQueueTrans() {
             @Override
             public void invoke(CAsyncQueue aq, int errCode) {
@@ -466,7 +466,7 @@ public class CAsyncQueue extends CAsyncServiceHandler {
     }
 
     public UFuture<Integer> endQueueTrans(boolean rollback) throws CSocketError {
-        final UFuture<Integer> f = new UFuture<>("EndQueueTrans", idEndTrans);
+        final UFuture<Integer> f = new UFuture<>(idEndTrans);
         DQueueTrans qt = new DQueueTrans() {
             @Override
             public void invoke(CAsyncQueue aq, int errCode) {
@@ -530,7 +530,7 @@ public class CAsyncQueue extends CAsyncServiceHandler {
     }
 
     public UFuture<String[]> getKeys() throws CSocketError {
-        final UFuture<String[]> f = new UFuture<>("GetKeys", idGetKeys);
+        final UFuture<String[]> f = new UFuture<>(idGetKeys);
         DGetKeys gk = new DGetKeys() {
             @Override
             public void invoke(CAsyncQueue aq, String[] vKey) {
@@ -627,7 +627,7 @@ public class CAsyncQueue extends CAsyncServiceHandler {
     }
 
     public UFuture<Integer> closeQueue(byte[] key, boolean permanent) throws CSocketError {
-        final UFuture<Integer> f = new UFuture<>("CloseQueue", idClose);
+        final UFuture<Integer> f = new UFuture<>(idClose);
         DClose c = new DClose() {
             @Override
             public void invoke(CAsyncQueue aq, int errCode) {
@@ -762,7 +762,7 @@ public class CAsyncQueue extends CAsyncServiceHandler {
     }
 
     public UFuture<QueueInfo> flushQueue(byte[] key, tagOptimistic option) throws CSocketError {
-        final UFuture<QueueInfo> f = new UFuture<>("FlushQueue", idFlush);
+        final UFuture<QueueInfo> f = new UFuture<>(idFlush);
         DFlush df = new DFlush() {
             @Override
             public void invoke(CAsyncQueue aq, long messageCount, long fileSize) {
@@ -894,7 +894,7 @@ public class CAsyncQueue extends CAsyncServiceHandler {
     }
 
     public UFuture<DeqInfo> dequeue(byte[] key, int timeout) throws CSocketError {
-        final UFuture<DeqInfo> f = new UFuture<>("Dequeue", idDequeue);
+        final UFuture<DeqInfo> f = new UFuture<>(idDequeue);
         DDequeue d = new DDequeue() {
             @Override
             public void invoke(CAsyncQueue aq, long messageCount, long fileSize, int messages, int bytes) {

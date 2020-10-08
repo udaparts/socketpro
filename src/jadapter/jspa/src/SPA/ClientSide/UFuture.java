@@ -13,7 +13,6 @@ public class UFuture<V> implements Future<V>, IUFExtra, AutoCloseable {
 
     private int m_state = PENDING;
     private V m_v = null;
-    private final String m_mName;
     private final short m_reqId;
     private CAsyncServiceHandler m_handler = null;
     private SPA.CServerError m_se = null;
@@ -22,19 +21,13 @@ public class UFuture<V> implements Future<V>, IUFExtra, AutoCloseable {
     /**
      * Create an instance of UFuture
      *
-     * @param mName A required request method name used for constructing error
-     * message
      * @param reqId A required request id which cannot be zero
      * @param h An optional async service handler.
      */
-    public UFuture(String mName, short reqId, CAsyncServiceHandler h) {
-        if (mName == null || mName.length() == 0) {
-            throw new IllegalArgumentException("Method name cannot be empty");
-        }
+    public UFuture(short reqId, CAsyncServiceHandler h) {
         if (reqId == 0) {
             throw new IllegalArgumentException("Request id cannot be zero");
         }
-        m_mName = mName;
         m_reqId = reqId;
         m_handler = h;
     }
@@ -42,24 +35,13 @@ public class UFuture<V> implements Future<V>, IUFExtra, AutoCloseable {
     /**
      * Create an instance of UFuture
      *
-     * @param mName A required request method name used for constructing error
-     * message
      * @param reqId A required request id which cannot be zero
      */
-    public UFuture(String mName, short reqId) {
-        if (mName == null || mName.length() == 0) {
-            throw new IllegalArgumentException("Method name cannot be empty");
-        }
+    public UFuture(short reqId) {
         if (reqId == 0) {
             throw new IllegalArgumentException("Request id cannot be zero");
         }
-        m_mName = mName;
         m_reqId = reqId;
-    }
-
-    @Override
-    public final String getMethodName() {
-        return m_mName;
     }
 
     @Override
@@ -204,13 +186,13 @@ public class UFuture<V> implements Future<V>, IUFExtra, AutoCloseable {
                                 ce = m_ce;
                             }
                         } else {
-                            ce = new CSocketError(CAsyncServiceHandler.REQUEST_CANCELED, "Request " + m_mName + " canceled", m_reqId, false);
+                            ce = new CSocketError(CAsyncServiceHandler.REQUEST_CANCELED, "Request canceled", m_reqId, false);
                         }
                     } else {
-                        te = new TimeoutException("UFuture timeout");
+                        te = new TimeoutException("Request timeout");
                     }
                 } catch (InterruptedException err) {
-                    ce = new CSocketError(CAsyncServiceHandler.REQUEST_CANCELED, "Request " + m_mName + " interrupted", m_reqId, false);
+                    ce = new CSocketError(CAsyncServiceHandler.REQUEST_CANCELED, "Request interrupted", m_reqId, false);
                 }
             } else if (m_state == COMPLETED) {
                 v = m_v;
@@ -221,7 +203,7 @@ public class UFuture<V> implements Future<V>, IUFExtra, AutoCloseable {
                     ce = m_ce;
                 }
             } else {
-                ce = new CSocketError(CAsyncServiceHandler.REQUEST_CANCELED, "Request " + m_mName + " canceled", m_reqId, false);
+                ce = new CSocketError(CAsyncServiceHandler.REQUEST_CANCELED, "Request canceled", m_reqId, false);
             }
         } finally {
             m_lock.unlock();
@@ -255,10 +237,10 @@ public class UFuture<V> implements Future<V>, IUFExtra, AutoCloseable {
                             ce = m_ce;
                         }
                     } else {
-                        ce = new CSocketError(CAsyncServiceHandler.REQUEST_CANCELED, "Request " + m_mName + " canceled", m_reqId, false);
+                        ce = new CSocketError(CAsyncServiceHandler.REQUEST_CANCELED, "Request canceled", m_reqId, false);
                     }
                 } catch (InterruptedException err) {
-                    ce = new CSocketError(CAsyncServiceHandler.REQUEST_CANCELED, "Request " + m_mName + " interrupted", m_reqId, false);
+                    ce = new CSocketError(CAsyncServiceHandler.REQUEST_CANCELED, "Request interrupted", m_reqId, false);
                 }
             } else if (m_state == COMPLETED) {
                 v = m_v;
@@ -269,7 +251,7 @@ public class UFuture<V> implements Future<V>, IUFExtra, AutoCloseable {
                     ce = m_ce;
                 }
             } else {
-                ce = new CSocketError(CAsyncServiceHandler.REQUEST_CANCELED, "Request " + m_mName + " canceled", m_reqId, false);
+                ce = new CSocketError(CAsyncServiceHandler.REQUEST_CANCELED, "Request canceled", m_reqId, false);
             }
         } finally {
             m_lock.unlock();
