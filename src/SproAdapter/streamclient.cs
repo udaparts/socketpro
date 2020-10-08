@@ -649,7 +649,7 @@ namespace SocketProAdapter.ClientSide
                 tcs.TrySetResult(new ErrInfo(res, em));
             };
             context.Transferring = trans;
-            context.Discarded = get_aborted(tcs, "Download", idDownload);
+            context.Discarded = get_aborted(tcs, idDownload);
             context.FilePath = remoteFile;
             context.LocalFile = localFile;
             context.Se = get_se(tcs);
@@ -683,7 +683,7 @@ namespace SocketProAdapter.ClientSide
                 tcs.TrySetResult(new ErrInfo(res, em));
             };
             context.Transferring = trans;
-            context.Discarded = get_aborted(tcs, "Upload", idUpload);
+            context.Discarded = get_aborted(tcs, idUpload);
             context.FilePath = remoteFile;
             context.LocalFile = localFile;
             context.Se = get_se(tcs);

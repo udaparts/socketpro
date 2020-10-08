@@ -60,7 +60,7 @@ void TestEnqueue(CMyPool::PHandler &sq) {
         //this_thread::sleep_for(chrono::milliseconds(100));
         //enqueue two unicode strings and one int
         if (!sq->Enqueue(TEST_QUEUE_KEY, idMessage, L"SampleName", str, n)) {
-            sq->raise(L"Enqueue", Queue::idEnqueue);
+            sq->raise(Queue::idEnqueue);
         }
     }
 }
@@ -90,7 +90,7 @@ future<CAsyncQueue::DeqInfo> TestDequeue(CMyPool::PHandler &sq) {
         return processed;
     };
     shared_ptr<promise<CAsyncQueue::DeqInfo> > prom(new promise<CAsyncQueue::DeqInfo>);
-    auto aborted = CAsyncQueue::get_aborted(prom, L"Dequeue", Queue::idDequeue);
+    auto aborted = CAsyncQueue::get_aborted(prom, Queue::idDequeue);
     auto se = CAsyncQueue::get_se(prom);
     //prepare a callback for processing returned result of dequeue request
     CAsyncQueue::DDequeue d = [prom, aborted, se](CAsyncQueue *aq, SPA::UINT64 messageCount, SPA::UINT64 fileSize, unsigned int messages, unsigned int bytes) {
@@ -117,7 +117,7 @@ future<CAsyncQueue::DeqInfo> TestDequeue(CMyPool::PHandler &sq) {
     cout << "Going to dequeue message ......" << endl;
     //optionally, add one extra to improve processing concurrency at both client and server sides for better performance and through-output
     if (!(sq->Dequeue(TEST_QUEUE_KEY, d, 0, aborted, se) && sq->Dequeue(TEST_QUEUE_KEY, d, 0, aborted, se))) {
-        sq->raise(L"Dequeue", Queue::idDequeue);
+        sq->raise(Queue::idDequeue);
     }
     return prom->get_future();
 }

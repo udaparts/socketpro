@@ -921,12 +921,8 @@ namespace SocketProAdapter
                 public DOnExceptionFromServer ExceptionFromServer;
             }
 
-            public void raise(string method_name, ushort req_id)
+            public void raise(ushort req_id)
             {
-                if (method_name == null || method_name.Length == 0)
-                {
-                    throw new ArgumentException("Method name cannot be empty");
-                }
                 if (req_id == 0)
                 {
                     throw new ArgumentException("Request id cannot be zero");
@@ -940,7 +936,7 @@ namespace SocketProAdapter
                 }
                 else
                 {
-                    throw new CSocketError(SESSION_CLOSED_BEFORE, "Session already closed before sending the request " + method_name, req_id, true);
+                    throw new CSocketError(SESSION_CLOSED_BEFORE, "Session already closed before sending the request", req_id, true);
                 }
             }
 
@@ -955,12 +951,8 @@ namespace SocketProAdapter
                 return se;
             }
 
-            public static DDiscarded get_aborted<R>(TaskCompletionSource<R> tcs, string method_name, ushort req_id)
+            public static DDiscarded get_aborted<R>(TaskCompletionSource<R> tcs, ushort req_id)
             {
-                if (method_name == null || method_name.Length == 0)
-                {
-                    throw new ArgumentException("Method name cannot be empty");
-                }
                 if (req_id == 0)
                 {
                     throw new ArgumentException("Request id cannot be zero");
@@ -969,7 +961,7 @@ namespace SocketProAdapter
                 {
                     if (canceled)
                     {
-                        tcs.TrySetException(new CSocketError(REQUEST_CANCELED, "Request " + method_name + " canceled", req_id, false));
+                        tcs.TrySetException(new CSocketError(REQUEST_CANCELED, "Request canceled", req_id, false));
                     }
                     else
                     {
@@ -982,7 +974,7 @@ namespace SocketProAdapter
                         }
                         else
                         {
-                            tcs.TrySetException(new CSocketError(SESSION_CLOSED_AFTER, "Session closed after sending the request " + method_name, req_id, false));
+                            tcs.TrySetException(new CSocketError(SESSION_CLOSED_AFTER, "Session closed after sending the request", req_id, false));
                         }
                     }
                 };
@@ -998,9 +990,9 @@ namespace SocketProAdapter
                     CScopeUQueue sb = new CScopeUQueue();
                     sb.UQueue.Swap(ar.UQueue);
                     tcs.TrySetResult(sb);
-                }, get_aborted(tcs, "SendRequest", reqId), get_se(tcs)))
+                }, get_aborted(tcs, reqId), get_se(tcs)))
                 {
-                    raise("SendRequest", reqId);
+                    raise(reqId);
                 }
                 return tcs.Task;
             }

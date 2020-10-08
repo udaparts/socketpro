@@ -635,9 +635,9 @@ namespace SocketProAdapter
                 if (!StartQueueTrans(key, (aq, errCode) =>
                 {
                     tcs.TrySetResult(errCode);
-                }, get_aborted(tcs, "StartQueueTrans", idStartTrans), get_se(tcs)))
+                }, get_aborted(tcs, idStartTrans), get_se(tcs)))
                 {
-                    raise("StartQueueTrans", idStartTrans);
+                    raise(idStartTrans);
                 }
                 return tcs.Task;
             }
@@ -654,9 +654,9 @@ namespace SocketProAdapter
                 if (!CloseQueue(key, (aq, errCode) =>
                 {
                     tcs.TrySetResult(errCode);
-                }, get_aborted(tcs, "CloseQueue", idClose), permanent, get_se(tcs)))
+                }, get_aborted(tcs, idClose), permanent, get_se(tcs)))
                 {
-                    raise("CloseQueue", idClose);
+                    raise(idClose);
                 }
                 return tcs.Task;
             }
@@ -672,9 +672,9 @@ namespace SocketProAdapter
                 if (!EndQueueTrans(rollback, (aq, errCode) =>
                 {
                     tcs.TrySetResult(errCode);
-                }, get_aborted(tcs, "EndQueueTrans", idEndTrans), get_se(tcs)))
+                }, get_aborted(tcs, idEndTrans), get_se(tcs)))
                 {
-                    raise("EndQueueTrans", idEndTrans);
+                    raise(idEndTrans);
                 }
                 return tcs.Task;
             }
@@ -689,9 +689,9 @@ namespace SocketProAdapter
                 if (!GetKeys((aq, keys) =>
                 {
                     tcs.TrySetResult(keys);
-                }, get_aborted(tcs, "GetKeys", idGetKeys), get_se(tcs)))
+                }, get_aborted(tcs, idGetKeys), get_se(tcs)))
                 {
-                    raise("GetKeys", idGetKeys);
+                    raise(idGetKeys);
                 }
                 return tcs.Task;
             }
@@ -708,9 +708,9 @@ namespace SocketProAdapter
                 if (!FlushQueue(key, (aq, messages, fSize) =>
                 {
                     tcs.TrySetResult(new QueueInfo(messages, fSize));
-                }, option, get_aborted(tcs, "FlushQueue", idFlush), get_se(tcs)))
+                }, option, get_aborted(tcs, idFlush), get_se(tcs)))
                 {
-                    raise("FlushQueue", idFlush);
+                    raise(idFlush);
                 }
                 return tcs.Task;
             }
@@ -727,9 +727,9 @@ namespace SocketProAdapter
                 if (!Dequeue(key, (aq, messages, fSize, msg, bytes) =>
                 {
                     tcs.TrySetResult(new DeqInfo(messages, fSize, msg, bytes));
-                }, timeout, get_aborted(tcs, "Dequeue", idDequeue), get_se(tcs)))
+                }, timeout, get_aborted(tcs, idDequeue), get_se(tcs)))
                 {
-                    raise("Dequeue", idDequeue);
+                    raise(idDequeue);
                 }
                 return tcs.Task;
             }
@@ -746,9 +746,9 @@ namespace SocketProAdapter
                 if (!EnqueueBatch(key, q, (aq, index) =>
                 {
                     tcs.TrySetResult(index);
-                }, get_aborted(tcs, "EnqueueBatch", idEnqueueBatch), get_se(tcs)))
+                }, get_aborted(tcs, idEnqueueBatch), get_se(tcs)))
                 {
-                    raise("EnqueueBatch", idEnqueueBatch);
+                    raise(idEnqueueBatch);
                 }
                 return tcs.Task;
             }

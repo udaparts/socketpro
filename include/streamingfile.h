@@ -185,8 +185,8 @@ namespace SPA {
 
             struct CAwaiter : public CWaiterBase<ErrInfo> {
 
-                CAwaiter(CStreamingFile* file, unsigned short reqId, const wchar_t* req_name, CContext &ctx)
-                : CWaiterBase<ErrInfo>(req_name, reqId) {
+                CAwaiter(CStreamingFile* file, unsigned short reqId, CContext &ctx)
+                : CWaiterBase<ErrInfo>(reqId) {
                     ctx.Discarded = get_aborted();
                     ctx.Se = get_se();
                     ctx.Download = [this](CStreamingFile* file, int res, const std::wstring & errMsg) {
@@ -220,7 +220,7 @@ namespace SPA {
                 context.Transferring = progress;
                 context.FilePath = remoteFile;
                 context.LocalFile = localFile;
-                return CAwaiter(this, SFile::idUpload, L"Upload", context);
+                return CAwaiter(this, SFile::idUpload, context);
             }
 
             auto wait_download(const wchar_t* localFile, const wchar_t* remoteFile, DTransferring progress = nullptr, unsigned int flags = SFile::FILE_OPEN_TRUNCACTED) {
@@ -234,7 +234,7 @@ namespace SPA {
                 context.Transferring = progress;
                 context.FilePath = remoteFile;
                 context.LocalFile = localFile;
-                return CAwaiter(this, SFile::idDownload, L"Download", context);
+                return CAwaiter(this, SFile::idDownload, context);
             }
 #endif
 
@@ -256,7 +256,7 @@ namespace SPA {
                     }
                 };
                 context.Transferring = progress;
-                context.Discarded = get_aborted(prom, L"Upload", SFile::idUpload);
+                context.Discarded = get_aborted(prom, SFile::idUpload);
                 context.FilePath = remoteFile;
                 context.LocalFile = localFile;
                 context.Se = get_se(prom);
@@ -291,7 +291,7 @@ namespace SPA {
                     }
                 };
                 context.Transferring = progress;
-                context.Discarded = get_aborted(prom, L"Download", SFile::idDownload);
+                context.Discarded = get_aborted(prom, SFile::idDownload);
                 context.FilePath = remoteFile;
                 context.LocalFile = localFile;
                 context.Se = get_se(prom);

@@ -267,12 +267,12 @@ namespace SPA {
                 struct Awaiter : public CWaiterBase<int> {
 
                     Awaiter(CAsyncQueue* aq, const char* key)
-                    : CWaiterBase<int>(L"StartQueueTrans", Queue::idStartTrans) {
+                    : CWaiterBase<int>(Queue::idStartTrans) {
                         if (!aq->StartQueueTrans(key, [this](CAsyncQueue * aq, int errCode) {
                                 m_r = errCode;
                                 resume();
                             }, get_aborted(), get_se())) {
-                            aq->raise(L"StartQueueTrans", Queue::idStartTrans);
+                            aq->raise(Queue::idStartTrans);
                         }
                     }
                 };
@@ -284,12 +284,12 @@ namespace SPA {
                 struct Awaiter : public CWaiterBase<int> {
 
                     Awaiter(CAsyncQueue* aq, bool rollback)
-                    : CWaiterBase<int>(L"EndQueueTrans", Queue::idEndTrans) {
+                    : CWaiterBase<int>(Queue::idEndTrans) {
                         if (!aq->EndQueueTrans(rollback, [this](CAsyncQueue * aq, int errCode) {
                                 m_r = errCode;
                                 resume();
                             }, get_aborted(), get_se())) {
-                            aq->raise(L"EndQueueTrans", Queue::idEndTrans);
+                            aq->raise(Queue::idEndTrans);
                         }
                     }
                 };
@@ -301,12 +301,12 @@ namespace SPA {
                 struct Awaiter : public CWaiterBase<int> {
 
                     Awaiter(CAsyncQueue* aq, const char* key, bool permanent)
-                    : CWaiterBase<int>(L"CloseQueue", Queue::idClose) {
+                    : CWaiterBase<int>(Queue::idClose) {
                         if (!aq->CloseQueue(key, [this](CAsyncQueue * aq, int errCode) {
                                 m_r = errCode;
                                 resume();
                             }, permanent, get_aborted(), get_se())) {
-                            aq->raise(L"CloseQueue", Queue::idClose);
+                            aq->raise(Queue::idClose);
                         }
                     }
                 };
@@ -318,13 +318,13 @@ namespace SPA {
                 struct Awaiter : public CWaiterBase<QueueInfo> {
 
                     Awaiter(CAsyncQueue* aq, const char* key, tagOptimistic option)
-                    : CWaiterBase<QueueInfo>(L"FlushQueue", Queue::idFlush) {
+                    : CWaiterBase<QueueInfo>(Queue::idFlush) {
                         if (!aq->FlushQueue(key, [this](CAsyncQueue * aq, UINT64 messages, UINT64 fileSize) {
                                 m_r.messages = messages;
                                 m_r.fSize = fileSize;
                                 resume();
                             }, option, get_aborted(), get_se())) {
-                            aq->raise(L"FlushQueue", Queue::idFlush);
+                            aq->raise(Queue::idFlush);
                         }
                     }
                 };
@@ -336,7 +336,7 @@ namespace SPA {
                 struct Awaiter : public CWaiterBase<DeqInfo> {
 
                     Awaiter(CAsyncQueue* aq, const char* key, unsigned int timeout)
-                    : CWaiterBase<DeqInfo>(L"Dequeue", Queue::idDequeue) {
+                    : CWaiterBase<DeqInfo>(Queue::idDequeue) {
                         if (!aq->Dequeue(key, [this](CAsyncQueue * aq, UINT64 messages, UINT64 fileSize, unsigned int msgsDequeued, unsigned int bytes) {
                                 m_r.messages = messages;
                                 m_r.fSize = fileSize;
@@ -344,7 +344,7 @@ namespace SPA {
                                 m_r.DeBytes = bytes;
                                 resume();
                             }, timeout, get_aborted(), get_se())) {
-                            aq->raise(L"Dequeue", Queue::idDequeue);
+                            aq->raise(Queue::idDequeue);
                         }
                     }
                 };
@@ -357,12 +357,12 @@ namespace SPA {
                 {
 
                     Awaiter(CAsyncQueue * aq)
-                            : CWaiterBase<std::vector < std::string >> (L"GetKeys", Queue::idGetKeys) {
+                            : CWaiterBase<std::vector < std::string >> (Queue::idGetKeys) {
                         if (!aq->GetKeys([this](CAsyncQueue * aq, std::vector<std::string>& v) {
                                 m_r.swap(v);
                                 resume();
                             }, get_aborted(), get_se())) {
-                            aq->raise(L"GetKeys", Queue::idGetKeys);
+                            aq->raise(Queue::idGetKeys);
                         }
                     }
                 };
@@ -374,12 +374,12 @@ namespace SPA {
                 struct Awaiter : public CWaiterBase<UINT64> {
 
                     Awaiter(CAsyncQueue* aq, const char* key, const unsigned char* buffer, unsigned int size)
-                    : CWaiterBase<UINT64>(L"EnqueueBatch", Queue::idEnqueueBatch) {
+                    : CWaiterBase<UINT64>(Queue::idEnqueueBatch) {
                         if (!aq->EnqueueBatch(key, buffer, size, [this](CAsyncQueue * aq, UINT64 index) {
                                 m_r = index;
                                 resume();
                             }, get_aborted(), get_se())) {
-                            aq->raise(L"EnqueueBatch", Queue::idEnqueueBatch);
+                            aq->raise(Queue::idEnqueueBatch);
                         }
                     }
                 };
@@ -391,12 +391,12 @@ namespace SPA {
                 struct Awaiter : public CWaiterBase<UINT64> {
 
                     Awaiter(CAsyncQueue* aq, const char* key, CUQueue& q)
-                    : CWaiterBase<UINT64>(L"EnqueueBatch", Queue::idEnqueueBatch) {
+                    : CWaiterBase<UINT64>(Queue::idEnqueueBatch) {
                         if (!aq->EnqueueBatch(key, q.GetBuffer(), q.GetSize(), [this](CAsyncQueue * aq, UINT64 index) {
                                 m_r = index;
                                 resume();
                             }, get_aborted(), get_se())) {
-                            aq->raise(L"EnqueueBatch", Queue::idEnqueueBatch);
+                            aq->raise(Queue::idEnqueueBatch);
                         }
                         q.SetSize(0);
                     }
@@ -415,8 +415,8 @@ namespace SPA {
                 DQueueTrans qt = [prom](CAsyncQueue *aq, int errCode) {
                     prom->set_value(errCode);
                 };
-                if (!StartQueueTrans(key, qt, get_aborted(prom, L"StartQueueTrans", Queue::idStartTrans), get_se(prom))) {
-                    raise(L"StartQueueTrans", Queue::idStartTrans);
+                if (!StartQueueTrans(key, qt, get_aborted(prom, Queue::idStartTrans), get_se(prom))) {
+                    raise(Queue::idStartTrans);
                 }
                 return prom->get_future();
             }
@@ -430,8 +430,8 @@ namespace SPA {
                 DGetKeys gk = [prom](CAsyncQueue *aq, std::vector<std::string> &v) {
                     prom->set_value(std::move(v));
                 };
-                if (!GetKeys(gk, get_aborted(prom, L"GetKeys", Queue::idGetKeys), get_se(prom))) {
-                    raise(L"GetKeys", Queue::idGetKeys);
+                if (!GetKeys(gk, get_aborted(prom, Queue::idGetKeys), get_se(prom))) {
+                    raise(Queue::idGetKeys);
                 }
                 return prom->get_future();
             }
@@ -446,8 +446,8 @@ namespace SPA {
                 DQueueTrans qt = [prom](CAsyncQueue *aq, int errCode) {
                     prom->set_value(errCode);
                 };
-                if (!EndQueueTrans(rollback, qt, get_aborted(prom, L"EndQueueTrans", Queue::idEndTrans), get_se(prom))) {
-                    raise(L"EndQueueTrans", Queue::idEndTrans);
+                if (!EndQueueTrans(rollback, qt, get_aborted(prom, Queue::idEndTrans), get_se(prom))) {
+                    raise(Queue::idEndTrans);
                 }
                 return prom->get_future();
             }
@@ -463,8 +463,8 @@ namespace SPA {
                 DClose c = [prom](CAsyncQueue *aq, int errCode) {
                     prom->set_value(errCode);
                 };
-                if (!CloseQueue(key, c, permanent, get_aborted(prom, L"CloseQueue", Queue::idClose), get_se(prom))) {
-                    raise(L"CloseQueue", Queue::idClose);
+                if (!CloseQueue(key, c, permanent, get_aborted(prom, Queue::idClose), get_se(prom))) {
+                    raise(Queue::idClose);
                 }
                 return prom->get_future();
             }
@@ -480,8 +480,8 @@ namespace SPA {
                 DFlush f = [prom](CAsyncQueue *aq, UINT64 messages, UINT64 fileSize) {
                     prom->set_value(QueueInfo(messages, fileSize));
                 };
-                if (!FlushQueue(key, f, option, get_aborted(prom, L"FlushQueue", Queue::idFlush), get_se(prom))) {
-                    raise(L"FlushQueue", Queue::idFlush);
+                if (!FlushQueue(key, f, option, get_aborted(prom, Queue::idFlush), get_se(prom))) {
+                    raise(Queue::idFlush);
                 }
                 return prom->get_future();
             }
@@ -497,8 +497,8 @@ namespace SPA {
                 DDequeue d = [prom](CAsyncQueue *aq, UINT64 messages, UINT64 fileSize, unsigned int msgsDequeued, unsigned int bytes) {
                     prom->set_value(DeqInfo(messages, fileSize, msgsDequeued, bytes));
                 };
-                if (!Dequeue(key, d, timeout, get_aborted(prom, L"Dequeue", Queue::idDequeue), get_se(prom))) {
-                    raise(L"Dequeue", Queue::idDequeue);
+                if (!Dequeue(key, d, timeout, get_aborted(prom, Queue::idDequeue), get_se(prom))) {
+                    raise(Queue::idDequeue);
                 }
                 return prom->get_future();
             }
@@ -515,8 +515,8 @@ namespace SPA {
                 DEnqueue e = [prom](CAsyncQueue* aq, UINT64 index) {
                     prom->set_value(index);
                 };
-                if (!EnqueueBatch(key, buffer, size, e, get_aborted(prom, L"EnqueueBatch", Queue::idEnqueueBatch), get_se(prom))) {
-                    raise(L"EnqueueBatch", Queue::idEnqueueBatch);
+                if (!EnqueueBatch(key, buffer, size, e, get_aborted(prom, Queue::idEnqueueBatch), get_se(prom))) {
+                    raise(Queue::idEnqueueBatch);
                 }
                 return prom->get_future();
             }

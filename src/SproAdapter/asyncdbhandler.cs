@@ -1742,9 +1742,9 @@ namespace SocketProAdapter
                 if (!Close((db, res, em) =>
                 {
                     tcs.TrySetResult(new ErrInfo(res, em));
-                }, get_aborted(tcs, "Close", DB_CONSTS.idClose), get_se(tcs)))
+                }, get_aborted(tcs, DB_CONSTS.idClose), get_se(tcs)))
                 {
-                    raise("Close", DB_CONSTS.idClose);
+                    raise(DB_CONSTS.idClose);
                 }
                 return tcs.Task;
             }
@@ -1755,9 +1755,9 @@ namespace SocketProAdapter
                 if (!Open(conn, (db, res, em) =>
                 {
                     tcs.TrySetResult(new ErrInfo(res, em));
-                }, flags, get_aborted(tcs, "Open", DB_CONSTS.idOpen), get_se(tcs)))
+                }, flags, get_aborted(tcs, DB_CONSTS.idOpen), get_se(tcs)))
                 {
-                    raise("Open", DB_CONSTS.idOpen);
+                    raise(DB_CONSTS.idOpen);
                 }
                 return tcs.Task;
             }
@@ -1768,9 +1768,9 @@ namespace SocketProAdapter
                 if (!Prepare(sql, (db, res, em) =>
                 {
                     tcs.TrySetResult(new ErrInfo(res, em));
-                }, vParameterInfo, get_aborted(tcs, "Prepare", DB_CONSTS.idPrepare), get_se(tcs)))
+                }, vParameterInfo, get_aborted(tcs, DB_CONSTS.idPrepare), get_se(tcs)))
                 {
-                    raise("Prepare", DB_CONSTS.idPrepare);
+                    raise(DB_CONSTS.idPrepare);
                 }
                 return tcs.Task;
             }
@@ -1781,9 +1781,9 @@ namespace SocketProAdapter
                 if (!BeginTrans(isolation, (db, res, em) =>
                 {
                     tcs.TrySetResult(new ErrInfo(res, em));
-                }, get_aborted(tcs, "BeginTrans", DB_CONSTS.idBeginTrans), get_se(tcs)))
+                }, get_aborted(tcs, DB_CONSTS.idBeginTrans), get_se(tcs)))
                 {
-                    raise("BeginTrans", DB_CONSTS.idBeginTrans);
+                    raise(DB_CONSTS.idBeginTrans);
                 }
                 return tcs.Task;
             }
@@ -1794,9 +1794,9 @@ namespace SocketProAdapter
                 if (!EndTrans(plan, (db, res, em) =>
                 {
                     tcs.TrySetResult(new ErrInfo(res, em));
-                }, get_aborted(tcs, "EndTrans", DB_CONSTS.idEndTrans), get_se(tcs)))
+                }, get_aborted(tcs, DB_CONSTS.idEndTrans), get_se(tcs)))
                 {
-                    raise("EndTrans", DB_CONSTS.idEndTrans);
+                    raise(DB_CONSTS.idEndTrans);
                 }
                 return tcs.Task;
             }
@@ -1809,9 +1809,9 @@ namespace SocketProAdapter
                     uint oks = (uint)(fail_ok & 0xffffffff);
                     uint fails = (uint)(fail_ok >> 32);
                     tcs.TrySetResult(new SQLExeInfo(res, errMsg, affected, oks, fails, vtId));
-                }, row, rh, meta, lastInsertId, get_aborted(tcs, "ExecuteSQL", DB_CONSTS.idExecute), get_se(tcs)))
+                }, row, rh, meta, lastInsertId, get_aborted(tcs, DB_CONSTS.idExecute), get_se(tcs)))
                 {
-                    raise("ExecuteSQL", DB_CONSTS.idExecute);
+                    raise(DB_CONSTS.idExecute);
                 }
                 return tcs.Task;
             }
@@ -1824,9 +1824,9 @@ namespace SocketProAdapter
                     uint oks = (uint)(fail_ok & 0xffffffff);
                     uint fails = (uint)(fail_ok >> 32);
                     tcs.TrySetResult(new SQLExeInfo(res, errMsg, affected, oks, fails, vtId));
-                }, row, rh, meta, lastInsertId, get_aborted(tcs, "ExecuteParameters", DB_CONSTS.idExecuteParameters), get_se(tcs)))
+                }, row, rh, meta, lastInsertId, get_aborted(tcs, DB_CONSTS.idExecuteParameters), get_se(tcs)))
                 {
-                    raise("ExecuteParameters", DB_CONSTS.idExecuteParameters);
+                    raise(DB_CONSTS.idExecuteParameters);
                 }
                 return tcs.Task;
             }
@@ -1839,9 +1839,9 @@ namespace SocketProAdapter
                     uint oks = (uint)(fail_ok & 0xffffffff);
                     uint fails = (uint)(fail_ok >> 32);
                     tcs.TrySetResult(new SQLExeInfo(res, errMsg, affected, oks, fails, vtId));
-                }, row, rh, delimiter, batchHeader, get_aborted(tcs, "ExecuteBatch", DB_CONSTS.idExecuteBatch), meta, plan, vPInfo, lastInsertId, get_se(tcs)))
+                }, row, rh, delimiter, batchHeader, get_aborted(tcs, DB_CONSTS.idExecuteBatch), meta, plan, vPInfo, lastInsertId, get_se(tcs)))
                 {
-                    raise("ExecuteBatch", DB_CONSTS.idExecuteBatch);
+                    raise(DB_CONSTS.idExecuteBatch);
                 }
                 return tcs.Task;
             }

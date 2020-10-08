@@ -36,7 +36,7 @@ int main(int argc, char* argv[]) {
             CAsyncQueue::BatchMessage(idMessage3, *sb, L"Hello", L"World");
             CAsyncQueue::BatchMessage(idMessage4, *sb, true, 234.456, L"MyTestWhatever");
             if (!sq->EnqueueBatch(TEST_QUEUE_KEY, *sb)) {
-                sq->raise(L"EnqueueBatch", Queue::idEnqueueBatch);
+                sq->raise(Queue::idEnqueueBatch);
             }
         }
         auto feqt = sq->endQueueTrans(false);
@@ -105,7 +105,7 @@ void TestEnqueue(CMyPool::PHandler &sq) {
         }
         //enqueue two unicode strings and one int
         if (!sq->Enqueue(TEST_QUEUE_KEY, idMessage, L"SampleName", str, n)) {
-            sq->raise(L"Enqueue", Queue::idEnqueue);
+            sq->raise(Queue::idEnqueue);
         }
     }
 }
@@ -172,6 +172,6 @@ void TestDequeue(CMyPool::PHandler &sq) {
     std::cout << "Going to dequeue message ......" << std::endl;
     //add an extra Dequeue call for better performance
     if (!(sq->Dequeue(TEST_QUEUE_KEY, d) && sq->Dequeue(TEST_QUEUE_KEY, d))) {
-        sq->raise(L"Dequeue", Queue::idDequeue);
+        sq->raise(Queue::idDequeue);
     }
 }

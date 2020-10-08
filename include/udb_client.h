@@ -935,13 +935,13 @@ namespace SPA {
                 struct CAwaiter : public CWaiterBase<ErrInfo> {
 
                     CAwaiter(CAsyncDBHandler* db, tagTransactionIsolation isolation)
-                    : CWaiterBase<ErrInfo>(L"BeginTrans", idBeginTrans) {
+                    : CWaiterBase<ErrInfo>(idBeginTrans) {
                         if (!db->BeginTrans(isolation, [this](CAsyncDBHandler & hDb, int res, const std::wstring & errMsg) {
                                 this->m_r.ec = res;
                                 this->m_r.em = errMsg;
-                                        this->resume();
+                                this->resume();
                             }, this->get_aborted(), this->get_se())) {
-                            db->raise(L"BeginTrans", idBeginTrans);
+                            db->raise(idBeginTrans);
                         }
                     }
                 };
@@ -953,13 +953,13 @@ namespace SPA {
                 struct CAwaiter : public CWaiterBase<ErrInfo> {
 
                     CAwaiter(CAsyncDBHandler* db, tagRollbackPlan plan)
-                    : CWaiterBase<ErrInfo>(L"EndTrans", idEndTrans) {
+                    : CWaiterBase<ErrInfo>(idEndTrans) {
                         if (!db->EndTrans(plan, [this](CAsyncDBHandler & hDb, int res, const std::wstring & errMsg) {
                                 this->m_r.ec = res;
                                 this->m_r.em = errMsg;
-                                        this->resume();
+                                this->resume();
                             }, this->get_aborted(), this->get_se())) {
-                            db->raise(L"EndTrans", idEndTrans);
+                            db->raise(idEndTrans);
                         }
                     }
                 };
@@ -971,13 +971,13 @@ namespace SPA {
                 struct CAwaiter : public CWaiterBase<ErrInfo> {
 
                     CAwaiter(CAsyncDBHandler* db)
-                    : CWaiterBase<ErrInfo>(L"Close", idClose) {
+                    : CWaiterBase<ErrInfo>(idClose) {
                         if (!db->Close([this](CAsyncDBHandler & hDb, int res, const std::wstring & errMsg) {
                                 this->m_r.ec = res;
                                 this->m_r.em = errMsg;
-                                        this->resume();
+                                this->resume();
                             }, this->get_aborted(), this->get_se())) {
-                            db->raise(L"Close", idClose);
+                            db->raise(idClose);
                         }
                     }
                 };
@@ -989,13 +989,13 @@ namespace SPA {
                 struct CAwaiter : public CWaiterBase<ErrInfo> {
 
                     CAwaiter(CAsyncDBHandler* db, const wchar_t* sql, const CParameterInfoArray& vParameterInfo)
-                    : CWaiterBase<ErrInfo>(L"Prepare", idPrepare) {
+                    : CWaiterBase<ErrInfo>(idPrepare) {
                         if (!db->Prepare(sql, [this](CAsyncDBHandler & hDb, int res, const std::wstring & errMsg) {
                                 this->m_r.ec = res;
                                 this->m_r.em = errMsg;
-                                        this->resume();
+                                this->resume();
                             }, vParameterInfo, this->get_aborted(), this->get_se())) {
-                            db->raise(L"Prepare", idPrepare);
+                            db->raise(idPrepare);
                         }
                     }
                 };
@@ -1007,13 +1007,13 @@ namespace SPA {
                 struct CAwaiter : public CWaiterBase<ErrInfo> {
 
                     CAwaiter(CAsyncDBHandler* db, const char16_t* sql, const CParameterInfoArray& vParameterInfo)
-                    : CWaiterBase<ErrInfo>(L"Prepare", idPrepare) {
+                    : CWaiterBase<ErrInfo>(idPrepare) {
                         if (!db->Prepare(sql, [this](CAsyncDBHandler & hDb, int res, const std::wstring & errMsg) {
                                 this->m_r.ec = res;
                                 this->m_r.em = errMsg;
-                                        this->resume();
+                                this->resume();
                             }, vParameterInfo, this->get_aborted(), this->get_se())) {
-                            db->raise(L"Prepare", idPrepare);
+                            db->raise(idPrepare);
                         }
                     }
                 };
@@ -1025,13 +1025,13 @@ namespace SPA {
                 struct CAwaiter : public CWaiterBase<ErrInfo> {
 
                     CAwaiter(CAsyncDBHandler* db, const wchar_t* database, unsigned int flags)
-                    : CWaiterBase<ErrInfo>(L"Open", idOpen) {
+                    : CWaiterBase<ErrInfo>(idOpen) {
                         if (!db->Open(database, [this](CAsyncDBHandler & hDb, int res, const std::wstring & errMsg) {
                                 this->m_r.ec = res;
                                 this->m_r.em = errMsg;
-                                        this->resume();
+                                this->resume();
                             }, flags, this->get_aborted(), this->get_se())) {
-                            db->raise(L"Open", idOpen);
+                            db->raise(idOpen);
                         }
                     }
                 };
@@ -1043,13 +1043,13 @@ namespace SPA {
                 struct CAwaiter : public CWaiterBase<ErrInfo> {
 
                     CAwaiter(CAsyncDBHandler* db, const char16_t* database, unsigned int flags)
-                    : CWaiterBase<ErrInfo>(L"Open", idOpen) {
+                    : CWaiterBase<ErrInfo>(idOpen) {
                         if (!db->Open(database, [this](CAsyncDBHandler & hDb, int res, const std::wstring & errMsg) {
                                 this->m_r.ec = res;
                                 this->m_r.em = errMsg;
-                                        this->resume();
+                                this->resume();
                             }, flags, this->get_aborted(), this->get_se())) {
-                            db->raise(L"Open", idOpen);
+                            db->raise(idOpen);
                         }
                     }
                 };
@@ -1061,7 +1061,7 @@ namespace SPA {
                 struct CAwaiter : public CWaiterBase<SQLExeInfo> {
 
                     CAwaiter(CAsyncDBHandler* db, CDBVariantArray& vParam, const DRows& row, const DRowsetHeader& rh, bool meta, bool lastInsertId)
-                    : CWaiterBase<SQLExeInfo>(L"ExecuteParameters", idExecuteParameters) {
+                    : CWaiterBase<SQLExeInfo>(idExecuteParameters) {
                         if (!db->Execute(vParam, [this](CAsyncDBHandler & dbHandler, int res, const std::wstring & errMsg, INT64 affected, UINT64 fail_ok, CDBVariant & vtId) {
                                 this->m_r.ec = res;
                                 this->m_r.em = errMsg;
@@ -1071,7 +1071,7 @@ namespace SPA {
                                 this->m_r.lastId = vtId;
                                 this->resume();
                             }, row, rh, meta, lastInsertId, this->get_aborted(), this->get_se())) {
-                            db->raise(L"ExecuteParameters", idExecuteParameters);
+                            db->raise(idExecuteParameters);
                         }
                     }
                 };
@@ -1083,7 +1083,7 @@ namespace SPA {
                 struct CAwaiter : public CWaiterBase<SQLExeInfo> {
 
                     CAwaiter(CAsyncDBHandler* db, const wchar_t* sql, const DRows& row, const DRowsetHeader& rh, bool meta, bool lastInsertId)
-                    : CWaiterBase<SQLExeInfo>(L"ExecuteSQL", idExecute) {
+                    : CWaiterBase<SQLExeInfo>(idExecute) {
                         if (!db->Execute(sql, [this](CAsyncDBHandler & dbHandler, int res, const std::wstring & errMsg, INT64 affected, UINT64 fail_ok, CDBVariant & vtId) {
                                 this->m_r.ec = res;
                                 this->m_r.em = errMsg;
@@ -1093,7 +1093,7 @@ namespace SPA {
                                 this->m_r.lastId = vtId;
                                 this->resume();
                             }, row, rh, meta, lastInsertId, this->get_aborted(), this->get_se())) {
-                            db->raise(L"ExecuteSQL", idExecute);
+                            db->raise(idExecute);
                         }
                     }
                 };
@@ -1105,7 +1105,7 @@ namespace SPA {
                 struct CAwaiter : public CWaiterBase<SQLExeInfo> {
 
                     CAwaiter(CAsyncDBHandler* db, const char16_t* sql, const DRows& row, const DRowsetHeader& rh, bool meta, bool lastInsertId)
-                    : CWaiterBase<SQLExeInfo>(L"ExecuteSQL", idExecute) {
+                    : CWaiterBase<SQLExeInfo>(idExecute) {
                         if (!db->Execute(sql, [this](CAsyncDBHandler & dbHandler, int res, const std::wstring & errMsg, INT64 affected, UINT64 fail_ok, CDBVariant & vtId) {
                                 this->m_r.ec = res;
                                 this->m_r.em = errMsg;
@@ -1115,7 +1115,7 @@ namespace SPA {
                                 this->m_r.lastId = vtId;
                                 this->resume();
                             }, row, rh, meta, lastInsertId, this->get_aborted(), this->get_se())) {
-                            db->raise(L"ExecuteSQL", idExecute);
+                            db->raise(idExecute);
                         }
                     }
                 };
@@ -1131,7 +1131,7 @@ namespace SPA {
                     CAwaiter(CAsyncDBHandler* db, tagTransactionIsolation isolation, const wchar_t* sql, CDBVariantArray& vParam,
                             const DRows& row, const DRowsetHeader& rh, const wchar_t* delimiter, const DRowsetHeader& batchHeader,
                             bool meta, tagRollbackPlan plan, const CParameterInfoArray& vPInfo, bool lastInsertId)
-                    : CWaiterBase<SQLExeInfo>(L"ExecuteBatch", idExecuteBatch) {
+                    : CWaiterBase<SQLExeInfo>(idExecuteBatch) {
                         if (!db->ExecuteBatch(isolation, sql, vParam, [this](CAsyncDBHandler & dbHandler, int res, const std::wstring & errMsg, INT64 affected, UINT64 fail_ok, CDBVariant & vtId) {
                                 this->m_r.ec = res;
                                 this->m_r.em = errMsg;
@@ -1141,7 +1141,7 @@ namespace SPA {
                                 this->m_r.lastId = vtId;
                                 this->resume();
                             }, row, rh, delimiter, batchHeader, this->get_aborted(), meta, plan, vPInfo, lastInsertId, this->get_se())) {
-                            db->raise(L"ExecuteBatch", idExecuteBatch);
+                            db->raise(idExecuteBatch);
                         }
                     }
                 };
@@ -1157,7 +1157,7 @@ namespace SPA {
                     CAwaiter(CAsyncDBHandler* db, tagTransactionIsolation isolation, const char16_t* sql, CDBVariantArray& vParam,
                             const DRows& row, const DRowsetHeader& rh, const char16_t* delimiter, const DRowsetHeader& batchHeader,
                             bool meta, tagRollbackPlan plan, const CParameterInfoArray& vPInfo, bool lastInsertId)
-                    : CWaiterBase<SQLExeInfo>(L"ExecuteBatch", idExecuteBatch) {
+                    : CWaiterBase<SQLExeInfo>(idExecuteBatch) {
                         if (!db->ExecuteBatch(isolation, sql, vParam, [this](CAsyncDBHandler & dbHandler, int res, const std::wstring & errMsg, INT64 affected, UINT64 fail_ok, CDBVariant & vtId) {
                                 this->m_r.ec = res;
                                 this->m_r.em = errMsg;
@@ -1167,7 +1167,7 @@ namespace SPA {
                                 this->m_r.lastId = vtId;
                                 this->resume();
                             }, row, rh, delimiter, batchHeader, this->get_aborted(), meta, plan, vPInfo, lastInsertId, this->get_se())) {
-                            db->raise(L"ExecuteBatch", idExecuteBatch);
+                            db->raise(idExecuteBatch);
                         }
                     }
                 };
@@ -1180,8 +1180,8 @@ namespace SPA {
                 DResult d = [prom](CAsyncDBHandler& dbHandler, int res, const std::wstring & errMsg) {
                     prom->set_value(ErrInfo(res, errMsg.c_str()));
                 };
-                if (!BeginTrans(isolation, d, get_aborted(prom, L"BeginTrans", idBeginTrans), get_se(prom))) {
-                    raise(L"BeginTrans", idBeginTrans);
+                if (!BeginTrans(isolation, d, get_aborted(prom, idBeginTrans), get_se(prom))) {
+                    raise(idBeginTrans);
                 }
                 return prom->get_future();
             }
@@ -1191,8 +1191,8 @@ namespace SPA {
                 DResult d = [prom](CAsyncDBHandler& dbHandler, int res, const std::wstring & errMsg) {
                     prom->set_value(ErrInfo(res, errMsg.c_str()));
                 };
-                if (!EndTrans(plan, d, get_aborted(prom, L"EndTrans", idEndTrans), get_se(prom))) {
-                    raise(L"EndTrans", idEndTrans);
+                if (!EndTrans(plan, d, get_aborted(prom, idEndTrans), get_se(prom))) {
+                    raise(idEndTrans);
                 }
                 return prom->get_future();
             }
@@ -1202,8 +1202,8 @@ namespace SPA {
                 DResult d = [prom](CAsyncDBHandler& dbHandler, int res, const std::wstring & errMsg) {
                     prom->set_value(ErrInfo(res, errMsg.c_str()));
                 };
-                if (!Close(d, get_aborted(prom, L"Close", idClose), get_se(prom))) {
-                    raise(L"Close", idClose);
+                if (!Close(d, get_aborted(prom, idClose), get_se(prom))) {
+                    raise(idClose);
                 }
                 return prom->get_future();
             }
@@ -1215,8 +1215,8 @@ namespace SPA {
                     unsigned int fails = (unsigned int) (fail_ok >> 32);
                     prom->set_value(SQLExeInfo(res, errMsg.c_str(), affected, oks, fails, vtId));
                 };
-                if (!Execute(vParam, handler, row, rh, meta, lastInsertId, get_aborted(prom, L"ExecuteParameters", idExecuteParameters), get_se(prom))) {
-                    raise(L"ExecuteParameters", idExecuteParameters);
+                if (!Execute(vParam, handler, row, rh, meta, lastInsertId, get_aborted(prom, idExecuteParameters), get_se(prom))) {
+                    raise(idExecuteParameters);
                 }
                 return prom->get_future();
             }
@@ -1228,8 +1228,8 @@ namespace SPA {
                     unsigned int fails = (unsigned int) (fail_ok >> 32);
                     prom->set_value(SQLExeInfo(res, errMsg.c_str(), affected, oks, fails, vtId));
                 };
-                if (!Execute(sql, handler, row, rh, meta, lastInsertId, get_aborted(prom, L"ExecuteSQL", idExecute), get_se(prom))) {
-                    raise(L"ExecuteSQL", idExecute);
+                if (!Execute(sql, handler, row, rh, meta, lastInsertId, get_aborted(prom, idExecute), get_se(prom))) {
+                    raise(idExecute);
                 }
                 return prom->get_future();
             }
@@ -1239,8 +1239,8 @@ namespace SPA {
                 DResult d = [prom](CAsyncDBHandler& dbHandler, int res, const std::wstring & errMsg) {
                     prom->set_value(ErrInfo(res, errMsg.c_str()));
                 };
-                if (!Prepare(sql, d, vParameterInfo, get_aborted(prom, L"Prepare", idPrepare), get_se(prom))) {
-                    raise(L"Prepare", idPrepare);
+                if (!Prepare(sql, d, vParameterInfo, get_aborted(prom, idPrepare), get_se(prom))) {
+                    raise(idPrepare);
                 }
                 return prom->get_future();
             }
@@ -1250,8 +1250,8 @@ namespace SPA {
                 DResult d = [prom](CAsyncDBHandler& dbHandler, int res, const std::wstring & errMsg) {
                     prom->set_value(ErrInfo(res, errMsg.c_str()));
                 };
-                if (!Open(db, d, flags, get_aborted(prom, L"Open", idOpen), get_se(prom))) {
-                    raise(L"Open", idOpen);
+                if (!Open(db, d, flags, get_aborted(prom, idOpen), get_se(prom))) {
+                    raise(idOpen);
                 }
                 return prom->get_future();
             }
@@ -1265,8 +1265,8 @@ namespace SPA {
                     unsigned int fails = (unsigned int) (fail_ok >> 32);
                     prom->set_value(SQLExeInfo(res, errMsg.c_str(), affected, oks, fails, vtId));
                 };
-                if (!ExecuteBatch(isolation, sql, vParam, handler, row, rh, delimiter, batchHeader, get_aborted(prom, L"ExecuteBatch", idExecuteBatch), meta, plan, vPInfo, lastInsertId, get_se(prom))) {
-                    raise(L"ExecuteBatch", idExecuteBatch);
+                if (!ExecuteBatch(isolation, sql, vParam, handler, row, rh, delimiter, batchHeader, get_aborted(prom, idExecuteBatch), meta, plan, vPInfo, lastInsertId, get_se(prom))) {
+                    raise(idExecuteBatch);
                 }
                 return prom->get_future();
             }
@@ -1280,8 +1280,8 @@ namespace SPA {
                     unsigned int fails = (unsigned int) (fail_ok >> 32);
                     prom->set_value(SQLExeInfo(res, errMsg.c_str(), affected, oks, fails, vtId));
                 };
-                if (!Execute(sql, handler, row, rh, meta, lastInsertId, get_aborted(prom, L"ExecuteSQL", idExecute), get_se(prom))) {
-                    raise(L"ExecuteSQL", idExecute);
+                if (!Execute(sql, handler, row, rh, meta, lastInsertId, get_aborted(prom, idExecute), get_se(prom))) {
+                    raise(idExecute);
                 }
                 return prom->get_future();
             }
@@ -1291,8 +1291,8 @@ namespace SPA {
                 DResult d = [prom](CAsyncDBHandler& dbHandler, int res, const std::wstring & errMsg) {
                     prom->set_value(ErrInfo(res, errMsg.c_str()));
                 };
-                if (!Prepare(sql, d, vParameterInfo, get_aborted(prom, L"Prepare", idPrepare), get_se(prom))) {
-                    raise(L"Prepare", idPrepare);
+                if (!Prepare(sql, d, vParameterInfo, get_aborted(prom, idPrepare), get_se(prom))) {
+                    raise(idPrepare);
                 }
                 return prom->get_future();
             }
@@ -1302,8 +1302,8 @@ namespace SPA {
                 DResult d = [prom](CAsyncDBHandler& dbHandler, int res, const std::wstring & errMsg) {
                     prom->set_value(ErrInfo(res, errMsg.c_str()));
                 };
-                if (!Open(sql, d, flags, get_aborted(prom, L"Open", idOpen), get_se(prom))) {
-                    raise(L"Open", idOpen);
+                if (!Open(sql, d, flags, get_aborted(prom, idOpen), get_se(prom))) {
+                    raise(idOpen);
                 }
                 return prom->get_future();
             }
@@ -1317,8 +1317,8 @@ namespace SPA {
                     unsigned int fails = (unsigned int) (fail_ok >> 32);
                     prom->set_value(SQLExeInfo(res, errMsg.c_str(), affected, oks, fails, vtId));
                 };
-                if (!ExecuteBatch(isolation, sql, vParam, handler, row, rh, delimiter, batchHeader, get_aborted(prom, L"ExecuteBatch", idExecuteBatch), meta, plan, vPInfo, lastInsertId, get_se(prom))) {
-                    raise(L"ExecuteBatch", idExecuteBatch);
+                if (!ExecuteBatch(isolation, sql, vParam, handler, row, rh, delimiter, batchHeader, get_aborted(prom, idExecuteBatch), meta, plan, vPInfo, lastInsertId, get_se(prom))) {
+                    raise(idExecuteBatch);
                 }
                 return prom->get_future();
             }
