@@ -216,7 +216,7 @@ class CStreamingFile(CAsyncServiceHandler):
                             q.SaveString(it.FilePath).SaveUInt(it.Flags).SaveULong(it.FileSize)
                             if not self.SendRequest(CStreamingFile.idUpload, q, None, it.Discarded, it.Se):
                                 it.ErrCode = CStreamingFile.SESSION_CLOSED_BEFORE
-                                it.ErrMsg = 'Session already closed before sending the request Upload'
+                                it.ErrMsg = 'Session already closed before sending the request'
                                 if it.Fut:
                                     if not it.Fut.done():
                                         ec = self.Socket.ErrCode
@@ -240,7 +240,7 @@ class CStreamingFile(CAsyncServiceHandler):
                             q.SaveString(it.LocalFile).SaveString(it.FilePath).SaveUInt(it.Flags).SaveLong(it.InitSize)
                             if not self.SendRequest(CStreamingFile.idDownload, q, None, it.Discarded, it.Se):
                                 it.ErrCode = CStreamingFile.SESSION_CLOSED_BEFORE
-                                it.ErrMsg = 'Session already closed before sending the request Download'
+                                it.ErrMsg = 'Session already closed before sending the request'
                                 if it.Fut:
                                     if not it.Fut.done():
                                         ec = self.Socket.ErrCode
@@ -340,7 +340,7 @@ class CStreamingFile(CAsyncServiceHandler):
         def cb_upload(file, res, errmsg):
             if f.done(): return
             f.set_result({'ec':res, 'em':errmsg})
-        ok = self.Upload(localFile, remoteFile, cb_upload, trans, CStreamingFile.get_aborted(f, 'Upload', CStreamingFile.idUpload), flags, CStreamingFile.get_se(f))
+        ok = self.Upload(localFile, remoteFile, cb_upload, trans, CStreamingFile.get_aborted(f, CStreamingFile.idUpload), flags, CStreamingFile.get_se(f))
         return f
 
     def Download(self, localFile, remoteFile, dl=None, trans=None, discarded=None, flags=FILE_OPEN_TRUNCACTED, se=None):
@@ -390,7 +390,7 @@ class CStreamingFile(CAsyncServiceHandler):
         def cb_download(file, res, errmsg):
             if f.done(): return
             f.set_result({'ec':res, 'em':errmsg})
-        ok = self.Download(localFile,remoteFile, cb_download, trans, CStreamingFile.get_aborted(f, 'Download', CStreamingFile.idDownload), flags, CStreamingFile.get_se(f))
+        ok = self.Download(localFile,remoteFile, cb_download, trans, CStreamingFile.get_aborted(f, CStreamingFile.idDownload), flags, CStreamingFile.get_se(f))
         return f
 
     def OnResultReturned(self, reqId, mc):

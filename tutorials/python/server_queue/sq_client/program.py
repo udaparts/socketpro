@@ -27,7 +27,7 @@ def test_enqueue(aq):
             # sleep(0.1)
             # enqueue two unicode strings and one int
             if not aq.Enqueue(TEST_QUEUE_KEY, idMessage, sb.SaveString('SampleName').SaveString(s).SaveInt(n)):
-                aq.throw('Enqueue', CAsyncQueue.idEnqueue)
+                aq.throw(CAsyncQueue.idEnqueue)
             sb.Size = 0 #reset buffer content
             n += 1
 
@@ -44,7 +44,7 @@ def test_dequeue(aq):
     aq.ResultReturned = cbResultReturned
 
     f = future()
-    aborted = CAsyncQueue.get_aborted(f, 'Dequeue', CAsyncQueue.idDequeue)
+    aborted = CAsyncQueue.get_aborted(f, CAsyncQueue.idDequeue)
     se = CAsyncQueue.get_se(f)
     def cbDequeue(aq, messageCount, fileSize, messages, bytes):
         if bytes:

@@ -90,19 +90,15 @@ class CAsyncServiceHandler(object):
     SESSION_CLOSED_BEFORE = -1001
     REQUEST_CANCELED = -1002
 
-    def get_aborted(fut, method_name, reqId):
+    def get_aborted(fut, reqId):
         if reqId <= 0:
             raise Exception('Request id must be larger than 0')
-        if not method_name or not len(method_name):
-            raise Exception('Request name cannot be empty')
-        fut.reqName = method_name
         fut.reqId = reqId
         def cb_aborted(ah, canceled):
             if fut.done(): return
             try:
                 if canceled:
-                    fut.set_exception(CSocketError(CAsyncServiceHandler.REQUEST_CANCELED,
-                                                   'Request ' + method_name + ' canceled', reqId, False))
+                    fut.set_exception(CSocketError(CAsyncServiceHandler.REQUEST_CANCELED, 'Request canceled', reqId, False))
                 else:
                     cs = ah.Socket
                     ec = cs.ErrCode
@@ -110,7 +106,7 @@ class CAsyncServiceHandler(object):
                         fut.set_exception(CSocketError(ec, cs.ErrMsg, reqId, False))
                     else:
                         fut.set_exception(CSocketError(CAsyncServiceHandler.SESSION_CLOSED_AFTER,
-                                                  'Session closed after sending the request ' + method_name, reqId, False))
+                                                  'Session closed after sending the request', reqId, False))
             except Exception as ex:
                 pass
         return cb_aborted
@@ -190,12 +186,15 @@ class CAsyncServiceHandler(object):
         return ccl.SendInterruptRequest(h, options)
 
     def throw(self, f):
+        reqId = f
+        if isinstance(f, future):
+            reqId = f.reqId
         ec = self.Socket.ErrCode
         if ec:
-            raise CSocketError(ec, self.Socket.ErrMsg, f.reqId, True)
+            raise CSocketError(ec, self.Socket.ErrMsg, reqId, True)
         else:
             raise CSocketError(CAsyncServiceHandler.SESSION_CLOSED_BEFORE,
-                          'Session already closed before sending the request ' + f.reqName, f.reqId, True)
+                          'Session already closed before sending the request', reqId, True)
 
     def sendRequest(self, reqId, q):
         """
@@ -210,7 +209,7 @@ class CAsyncServiceHandler(object):
             sb = CScopeUQueue()
             sb.UQueue.Swap(ar.UQueue)
             f.set_result(sb)
-        if not self.SendRequest(reqId, q, arh, CAsyncServiceHandler.get_aborted(f, 'SendRequest', reqId), CAsyncServiceHandler.get_se(f)):
+        if not self.SendRequest(reqId, q, arh, CAsyncServiceHandler.get_aborted(f, reqId), CAsyncServiceHandler.get_se(f)):
             self.throw(f)
         return f
 

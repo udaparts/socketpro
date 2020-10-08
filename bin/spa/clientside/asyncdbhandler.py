@@ -395,7 +395,7 @@ class CAsyncDBHandler(CAsyncServiceHandler):
         def arh(ah, res, err_msg):
             if f.done(): return
             f.set_result({'ec':res, 'em':err_msg})
-        if not self.Close(arh, CAsyncDBHandler.get_aborted(f, 'Close', DB_CONSTS.idClose), CAsyncDBHandler.get_se(f)):
+        if not self.Close(arh, CAsyncDBHandler.get_aborted(f, DB_CONSTS.idClose), CAsyncDBHandler.get_se(f)):
             self.throw(f)
         return f
 
@@ -435,7 +435,7 @@ class CAsyncDBHandler(CAsyncServiceHandler):
         def arh(ah, res, err_msg):
             if f.done(): return
             f.set_result({'ec':res, 'em':err_msg})
-        if not self.BeginTrans(isolation, arh, CAsyncDBHandler.get_aborted(f, 'BeginTrans', DB_CONSTS.idBeginTrans), CAsyncDBHandler.get_se(f)):
+        if not self.BeginTrans(isolation, arh, CAsyncDBHandler.get_aborted(f, DB_CONSTS.idBeginTrans), CAsyncDBHandler.get_se(f)):
             self.throw(f)
         return f
 
@@ -476,7 +476,7 @@ class CAsyncDBHandler(CAsyncServiceHandler):
         def arh(ah, res, err_msg):
             if f.done(): return
             f.set_result({'ec':res, 'em':err_msg})
-        if not self.EndTrans(plan, arh, CAsyncDBHandler.get_aborted(f, 'EndTrans', DB_CONSTS.idEndTrans), CAsyncDBHandler.get_se(f)):
+        if not self.EndTrans(plan, arh, CAsyncDBHandler.get_aborted(f, DB_CONSTS.idEndTrans), CAsyncDBHandler.get_se(f)):
             self.throw(f)
         return f
 
@@ -516,7 +516,7 @@ class CAsyncDBHandler(CAsyncServiceHandler):
         def arh(ah, res, err_msg):
             if f.done(): return
             f.set_result({'ec':res, 'em':err_msg})
-        if not self.Open(strConnection, arh, flags, CAsyncDBHandler.get_aborted(f, 'Open', DB_CONSTS.idOpen), CAsyncDBHandler.get_se(f)):
+        if not self.Open(strConnection, arh, flags, CAsyncDBHandler.get_aborted(f, DB_CONSTS.idOpen), CAsyncDBHandler.get_se(f)):
             self.throw(f)
         return f
 
@@ -555,7 +555,7 @@ class CAsyncDBHandler(CAsyncServiceHandler):
         def arh(ah, res, err_msg):
             if f.done(): return
             f.set_result({'ec':res, 'em':err_msg})
-        if not self.Prepare(sql, arh, lstParameterInfo, CAsyncDBHandler.get_aborted(f, 'Prepare', DB_CONSTS.idPrepare), CAsyncDBHandler.get_se(f)):
+        if not self.Prepare(sql, arh, lstParameterInfo, CAsyncDBHandler.get_aborted(f, DB_CONSTS.idPrepare), CAsyncDBHandler.get_se(f)):
             self.throw(f)
         return f
 
@@ -567,19 +567,16 @@ class CAsyncDBHandler(CAsyncServiceHandler):
         return self.ExecuteSql(sql_or_array, handler, row, rh, meta, lastInsertId, discarded, se)
 
     def execute(self, sql_or_array, row=None, rh=None, meta=True, lastInsertId=True):
-        method_name = 'ExecuteSql'
         reqId = DB_CONSTS.idExecute;
         if isinstance(sql_or_array, list):
             reqId = DB_CONSTS.idExecuteParameters
-            method_name = 'ExecuteParameters'
         elif isinstance(sql_or_array, tuple):
             reqId = DB_CONSTS.idExecuteParameters
-            method_name = 'ExecuteParameters'
         f = future()
         def arh(ah, res, err_msg, affected, fail_ok, last_id):
             if f.done(): return
             f.set_result({'ec':res, 'em':err_msg, 'affected':affected, 'oks': (fail_ok&0xffffffff), 'fails': (fail_ok>>32), 'lastId': last_id})
-        if not self.Execute(sql_or_array, arh, row, rh, meta, lastInsertId, CAsyncDBHandler.get_aborted(f, method_name, reqId), CAsyncDBHandler.get_se(f)):
+        if not self.Execute(sql_or_array, arh, row, rh, meta, lastInsertId, CAsyncDBHandler.get_aborted(f, reqId), CAsyncDBHandler.get_se(f)):
             self.throw(f)
         return f
 
@@ -804,7 +801,7 @@ class CAsyncDBHandler(CAsyncServiceHandler):
             if f.done(): return
             f.set_result({'ec':res, 'em':err_msg, 'affected':affected, 'oks': (fail_ok&0xffffffff), 'fails': (fail_ok>>32), 'lastId': last_id})
         if not self.ExecuteBatch(isolation, sql, vParam, arh, row, rh, delimiter, batchHeader,
-                                 CAsyncDBHandler.get_aborted(f, 'ExecuteBatch', DB_CONSTS.idExecuteBatch),
+                                 CAsyncDBHandler.get_aborted(f, DB_CONSTS.idExecuteBatch),
                                  meta, plan, vPInfo, lastInsertId, CAsyncDBHandler.get_se(f)):
             self.throw(f)
         return f

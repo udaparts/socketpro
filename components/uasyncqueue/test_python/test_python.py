@@ -25,7 +25,7 @@ def TestEnqueue(aq):
             idMessage = idMessage2
         # enqueue two unicode strings and one int
         if not aq.Enqueue(TEST_QUEUE_KEY, idMessage, CUQueue().SaveString('SampleName').SaveString(s).SaveInt(n)):
-            aq.throw('Enqueue', CAsyncQueue.idEnqueue)
+            aq.throw(CAsyncQueue.idEnqueue)
         n += 1
 
 def TestDequeue(aq):
@@ -50,7 +50,7 @@ def TestDequeue(aq):
     # optionally, add one extra to improve processing concurrency at both client and server sides
     # for better performance and through-output
     if not (aq.Dequeue(TEST_QUEUE_KEY, cbDequeue) and aq.Dequeue(TEST_QUEUE_KEY, cbDequeue)):
-        aq.throw('Dequeue', CAsyncQueue.idDequeue)
+        aq.throw(CAsyncQueue.idDequeue)
 
 with CSocketPool(CAsyncQueue) as spAq:
     print('Remote async queue server host: ')
