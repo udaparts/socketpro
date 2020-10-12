@@ -953,7 +953,7 @@ namespace SPA {
             }
 
             template<typename R>
-            static DDiscarded get_aborted(std::shared_ptr<std::promise<R> > prom, unsigned short req_id) {
+            static DDiscarded get_aborted(const std::shared_ptr<std::promise<R> >& prom, unsigned short req_id) {
                 if (!req_id) {
                     throw std::invalid_argument("Request id cannot be zero");
                 }
@@ -978,7 +978,7 @@ namespace SPA {
             }
 
             template<typename R>
-            static DServerException get_se(std::shared_ptr<std::promise<R> > prom) {
+            static DServerException get_se(const std::shared_ptr<std::promise<R> >& prom) {
                 return [prom](CAsyncServiceHandler *ash, unsigned short reqId, const wchar_t *errMsg, const char* errWhere, unsigned int errCode) {
                     try {
                         prom->set_exception(std::make_exception_ptr(CServerError(errCode, errMsg, errWhere, reqId)));

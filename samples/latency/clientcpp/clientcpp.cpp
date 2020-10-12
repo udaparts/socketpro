@@ -28,7 +28,7 @@ int main(int argc, char* argv[]) {
     cout << "Test latency for sync/fast ......\n";
     system_clock::time_point start = system_clock::now();
     for (n = 0; n < TEST_CYCLES; ++n) {
-        res = latency->send<unsigned int, unsigned int>(idEchoInt1, n).get();
+        res = latency->send<unsigned int>(idEchoInt1, n).get();
     }
     system_clock::time_point stop = system_clock::now();
     ns d = duration_cast<ns>(stop - start);
@@ -37,7 +37,7 @@ int main(int argc, char* argv[]) {
     cout << "Test latency for sync/slow ......\n";
     start = system_clock::now();
     for (n = 0; n < TEST_CYCLES; ++n) {
-        res = latency->send<unsigned int, unsigned int>(idEchoInt2, n).get();
+        res = latency->send<unsigned int>(idEchoInt2, n).get();
     }
     stop = system_clock::now();
     d = duration_cast<ns>(stop - start);
