@@ -19,7 +19,7 @@ int main(int argc, char* argv[]) {
         //process requests one by one synchronously
         std::future<std::wstring> f = hw->send<std::wstring>(idSayHello, L"John", L"Dole");
         std::wcout << f.get() << std::endl;
-        std::future<CScopeUQueue> fs = hw->send0(idSleep, (unsigned int) 4000);
+        std::future<CScopeUQueue> fs = hw->sendRequest(idSleep, (unsigned int) 4000);
         fs.get();
         ms = hw->send<CMyStruct>(idEcho, ms0).get();
         assert(ms == ms0);
@@ -27,7 +27,7 @@ int main(int argc, char* argv[]) {
         //asynchronously process multiple requests with in-line batching for best network efficiency
         auto f0 = hw->send<std::wstring>(idSayHello, L"Jack", L"Smith");
         auto f1 = hw->send<CMyStruct>(idEcho, ms0);
-        auto f2 = hw->send0(idSleep, (int) 15000);
+        auto f2 = hw->sendRequest(idSleep, (int) 15000);
         auto f3 = hw->send<std::wstring>(idSayHello, L"Donald", L"Trump");
         auto f4 = hw->send<std::wstring>(idSayHello, L"Hilary", L"Clinton");
         //hw->GetSocket()->Cancel();

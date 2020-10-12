@@ -18,22 +18,22 @@ class Program
                 try
                 {
                     //process requests one by one synchronously
-                    Task t0 = hw.send(hwConst.idSayHelloHelloWorld, "John", "Dole");
+                    Task t0 = hw.sendRequest(hwConst.idSayHelloHelloWorld, "John", "Dole");
                     Console.WriteLine(t0.Result.Load<string>());
-                    Task t1 = hw.send(hwConst.idSleepHelloWorld, (int)4000);
+                    Task t1 = hw.sendRequest(hwConst.idSleepHelloWorld, (int)4000);
                     Console.WriteLine("Returned buffer size should be " + t1.Result.UQueue.Size + " because server returns nothing");
-                    Task t2 = hw.send(hwConst.idEchoHelloWorld, msOrig);
+                    Task t2 = hw.sendRequest(hwConst.idEchoHelloWorld, msOrig);
                     ms = t2.Result.Load<CMyStruct>();
 
                     //All requests are streamed with in-line batch for the best network efficiency
-                    t0 = hw.send(hwConst.idSayHelloHelloWorld, "John", "Dole");
-                    t1 = hw.send(hwConst.idSleepHelloWorld, (int)4000);
-                    t2 = hw.send(hwConst.idEchoHelloWorld, msOrig);
-                    Task t3 = hw.send(hwConst.idSayHelloHelloWorld, "Jack", "Smith");
-                    Task t4 = hw.send(hwConst.idSayHelloHelloWorld, "Donald", "Trump");
-                    Task t5 = hw.send(hwConst.idSleepHelloWorld, (int)15000);
-                    Task t6 = hw.send(hwConst.idSayHelloHelloWorld, "Hillary", "Clinton");
-                    Task t7 = hw.send(hwConst.idEchoHelloWorld, msOrig);
+                    t0 = hw.sendRequest(hwConst.idSayHelloHelloWorld, "John", "Dole");
+                    t1 = hw.sendRequest(hwConst.idSleepHelloWorld, (int)4000);
+                    t2 = hw.sendRequest(hwConst.idEchoHelloWorld, msOrig);
+                    Task t3 = hw.sendRequest(hwConst.idSayHelloHelloWorld, "Jack", "Smith");
+                    Task t4 = hw.sendRequest(hwConst.idSayHelloHelloWorld, "Donald", "Trump");
+                    Task t5 = hw.sendRequest(hwConst.idSleepHelloWorld, (int)15000);
+                    Task t6 = hw.sendRequest(hwConst.idSayHelloHelloWorld, "Hillary", "Clinton");
+                    Task t7 = hw.sendRequest(hwConst.idEchoHelloWorld, msOrig);
                     //hw.Socket.Cancel();
                     Console.WriteLine(t0.Result.Load<string>());
                     Console.WriteLine("Returned buffer size should be " + t1.Result.UQueue.Size + " because server returns nothing");

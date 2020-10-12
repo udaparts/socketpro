@@ -170,7 +170,7 @@ std::future<void> Cwin_asyncDlg::ExecuteTasksInBatch() {
     SetMyStruct(ms);
     try{
         auto fms = hw->send<CMyStruct, CMyStruct>(idEcho, ms);
-        auto f0 = hw->send0(idSleep, (unsigned int) 5000);
+        auto f0 = hw->sendRequest(idSleep, (unsigned int) 5000);
         CStringW s = co_await hw->wait_send<CStringW>(idSayHello, L"Hillary", L"Clinton");
         //fms definitely contains an instance of returned CMyStruct by this time
         res = fms.get();
