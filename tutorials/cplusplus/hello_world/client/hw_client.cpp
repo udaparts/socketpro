@@ -20,7 +20,7 @@ int main(int argc, char* argv[]) {
         std::future<std::wstring> f = hw->send<std::wstring>(idSayHello, L"John", L"Dole");
         std::wcout << f.get() << std::endl;
         std::future<CScopeUQueue> fs = hw->sendRequest(idSleep, (unsigned int) 4000);
-        fs.get();
+        fs.get(); //fs.get() >> ms; //SPA::CUException
         ms = hw->send<CMyStruct>(idEcho, ms0).get();
         assert(ms == ms0);
 
@@ -42,7 +42,7 @@ int main(int argc, char* argv[]) {
     } catch (CSocketError & ex) {
         std::wcout << ex.ToString() << std::endl;
     } catch (std::exception & ex) {
-        std::wcout << "Some unexpected error: " << ex.what() << std::endl;
+        std::wcout << "Unexpected error: " << ex.what() << std::endl;
     }
 
     std::wcout << L"Press a key to shutdown the demo application ......" << std::endl;
