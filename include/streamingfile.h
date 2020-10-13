@@ -463,7 +463,6 @@ namespace SPA {
                         }
                         m_vContext.pop_front();
                     } else {
-                        assert(it->IsOpen());
                         break;
                     }
                 }
