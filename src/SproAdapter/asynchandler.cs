@@ -82,6 +82,9 @@ namespace SocketProAdapter
             public const int SESSION_CLOSED_BEFORE = -1001;
             public const int REQUEST_CANCELED = -1002;
             public const ulong DEFAULT_INTERRUPT_OPTION = 1;
+            public const string SESSION_CLOSED_AFTER_ERR_MSG = "Session closed after sending the request";
+            public const string SESSION_CLOSED_BEFORE_ERR_MSG = "Session already closed before sending the request";
+            public const string REQUEST_CANCELED_ERR_MSG = "Request canceled";
 
             public delegate void DAsyncResultHandler(CAsyncResult AsyncResult);
             public delegate bool DOnResultReturned(CAsyncServiceHandler sender, ushort reqId, CUQueue qData);
@@ -936,7 +939,7 @@ namespace SocketProAdapter
                 }
                 else
                 {
-                    throw new CSocketError(SESSION_CLOSED_BEFORE, "Session already closed before sending the request", req_id, true);
+                    throw new CSocketError(SESSION_CLOSED_BEFORE, SESSION_CLOSED_BEFORE_ERR_MSG, req_id, true);
                 }
             }
 
@@ -961,7 +964,7 @@ namespace SocketProAdapter
                 {
                     if (canceled)
                     {
-                        tcs.TrySetException(new CSocketError(REQUEST_CANCELED, "Request canceled", req_id, false));
+                        tcs.TrySetException(new CSocketError(REQUEST_CANCELED, REQUEST_CANCELED_ERR_MSG, req_id, false));
                     }
                     else
                     {
@@ -974,7 +977,7 @@ namespace SocketProAdapter
                         }
                         else
                         {
-                            tcs.TrySetException(new CSocketError(SESSION_CLOSED_AFTER, "Session closed after sending the request", req_id, false));
+                            tcs.TrySetException(new CSocketError(SESSION_CLOSED_AFTER, SESSION_CLOSED_AFTER_ERR_MSG, req_id, false));
                         }
                     }
                 };

@@ -91,27 +91,26 @@ namespace SocketProAdapter
             public const int SESSION_CLOSED_BEFORE = -1001;
             public const int REQUEST_CANCELED = -1002;
             public const ulong DEFAULT_INTERRUPT_OPTION = 1;
+            public const string SESSION_CLOSED_AFTER_ERR_MSG = "Session closed after sending the request";
+            public const string SESSION_CLOSED_BEFORE_ERR_MSG = "Session already closed before sending the request";
+            public const string REQUEST_CANCELED_ERR_MSG = "Request canceled";
 
-            public void raise(string method_name, ushort req_id)
+            public void raise(ushort req_id)
             {
-                if (method_name == null || method_name.Length == 0)
-                {
-                    throw new ArgumentException("Method name cannot be empty");
-                }
                 if (req_id == 0)
                 {
                     throw new ArgumentException("Request id cannot be zero");
                 }
                 CClientSocket cs = Socket;
                 int ec = cs.ErrorCode;
-                if (ec == 0)
+                if (ec != 0)
                 {
                     string em = cs.ErrorMsg;
                     throw new CSocketError(ec, em, req_id, true);
                 }
                 else
                 {
-                    throw new CSocketError(SESSION_CLOSED_BEFORE, "Session already closed before sending the request " + method_name, req_id, true);
+                    throw new CSocketError(SESSION_CLOSED_BEFORE, SESSION_CLOSED_BEFORE_ERR_MSG, req_id, true);
                 }
             }
 

@@ -102,14 +102,14 @@
         </member>
         <member name="M:SocketProAdapter.ClientSide.CAsyncDBHandler.Execute(SocketProAdapter.UDB.CDBVariantArray)">
             <summary>
-            Process one or more sets of prepared statements with an array of parameter data asynchronously, and don't expect any data returned
+            Process one or more sets of prepared statements with an array of parameter data, and don't expect any data returned
             </summary>
             <param name="vParam"></param>
             <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
         </member>
         <member name="M:SocketProAdapter.ClientSide.CAsyncDBHandler.Execute(SocketProAdapter.UDB.CDBVariantArray,SocketProAdapter.ClientSide.CAsyncDBHandler.DExecuteResult)">
             <summary>
-            Process one or more sets of prepared statements with an array of parameter data asynchronously, and don't expect any rowsets or outputs returned 
+            Process one or more sets of prepared statements with an array of parameter data, and don't expect any rowsets or outputs returned 
             </summary>
             <param name="vParam">an array of parameter data which will be bounded to previously prepared parameters</param>
             <param name="handler">a callback for tracking final result</param>
@@ -117,7 +117,7 @@
         </member>
         <member name="M:SocketProAdapter.ClientSide.CAsyncDBHandler.Execute(SocketProAdapter.UDB.CDBVariantArray,SocketProAdapter.ClientSide.CAsyncDBHandler.DExecuteResult,SocketProAdapter.ClientSide.CAsyncDBHandler.DRows)">
             <summary>
-            Process one or more sets of prepared statements with an array of parameter data asynchronously, and don't expect any rowsets returned
+            Process one or more sets of prepared statements with an array of parameter data, and don't expect any rowsets returned
             </summary>
             <param name="vParam">an array of parameter data which will be bounded to previously prepared parameters</param>
             <param name="handler">a callback for tracking final result</param>
@@ -126,7 +126,7 @@
         </member>
         <member name="M:SocketProAdapter.ClientSide.CAsyncDBHandler.Execute(SocketProAdapter.UDB.CDBVariantArray,SocketProAdapter.ClientSide.CAsyncDBHandler.DExecuteResult,SocketProAdapter.ClientSide.CAsyncDBHandler.DRows,SocketProAdapter.ClientSide.CAsyncDBHandler.DRowsetHeader)">
             <summary>
-            Process one or more sets of prepared statements with an array of parameter data asynchronously
+            Process one or more sets of prepared statements with an array of parameter data
             </summary>
             <param name="vParam">an array of parameter data which will be bounded to previously prepared parameters</param>
             <param name="handler">a callback for tracking final result</param>
@@ -136,7 +136,7 @@
         </member>
         <member name="M:SocketProAdapter.ClientSide.CAsyncDBHandler.Execute(SocketProAdapter.UDB.CDBVariantArray,SocketProAdapter.ClientSide.CAsyncDBHandler.DExecuteResult,SocketProAdapter.ClientSide.CAsyncDBHandler.DRows,SocketProAdapter.ClientSide.CAsyncDBHandler.DRowsetHeader,System.Boolean)">
             <summary>
-            Process one or more sets of prepared statements with an array of parameter data asynchronously
+            Process one or more sets of prepared statements with an array of parameter data
             </summary>
             <param name="vParam">an array of parameter data which will be bounded to previously prepared parameters</param>
             <param name="handler">a callback for tracking final result</param>
@@ -147,7 +147,7 @@
         </member>
         <member name="M:SocketProAdapter.ClientSide.CAsyncDBHandler.Execute(SocketProAdapter.UDB.CDBVariantArray,SocketProAdapter.ClientSide.CAsyncDBHandler.DExecuteResult,SocketProAdapter.ClientSide.CAsyncDBHandler.DRows,SocketProAdapter.ClientSide.CAsyncDBHandler.DRowsetHeader,System.Boolean,System.Boolean)">
             <summary>
-            Process one or more sets of prepared statements with an array of parameter data asynchronously
+            Process one or more sets of prepared statements with an array of parameter data
             </summary>
             <param name="vParam">an array of parameter data which will be bounded to previously prepared parameters</param>
             <param name="handler">a callback for tracking final result</param>
@@ -159,7 +159,7 @@
         </member>
         <member name="M:SocketProAdapter.ClientSide.CAsyncDBHandler.Execute(SocketProAdapter.UDB.CDBVariantArray,SocketProAdapter.ClientSide.CAsyncDBHandler.DExecuteResult,SocketProAdapter.ClientSide.CAsyncDBHandler.DRows,SocketProAdapter.ClientSide.CAsyncDBHandler.DRowsetHeader,System.Boolean,System.Boolean,SocketProAdapter.ClientSide.CAsyncServiceHandler.DDiscarded)">
             <summary>
-            Process one or more sets of prepared statements with an array of parameter data asynchronously
+            Process one or more sets of prepared statements with an array of parameter data
             </summary>
             <param name="vParam">an array of parameter data which will be bounded to previously prepared parameters</param>
             <param name="handler">a callback for tracking final result</param>
@@ -171,7 +171,7 @@
         </member>
         <member name="M:SocketProAdapter.ClientSide.CAsyncDBHandler.Execute(SocketProAdapter.UDB.CDBVariantArray,SocketProAdapter.ClientSide.CAsyncDBHandler.DExecuteResult,SocketProAdapter.ClientSide.CAsyncDBHandler.DRows,SocketProAdapter.ClientSide.CAsyncDBHandler.DRowsetHeader,System.Boolean,System.Boolean,SocketProAdapter.ClientSide.CAsyncServiceHandler.DDiscarded,SocketProAdapter.ClientSide.CAsyncServiceHandler.DOnExceptionFromServer)">
             <summary>
-            Process one or more sets of prepared statements with an array of parameter data asynchronously
+            Process one or more sets of prepared statements with an array of parameter data
             </summary>
             <param name="vParam">an array of parameter data which will be bounded to previously prepared parameters</param>
             <param name="handler">a callback for tracking final result</param>
@@ -304,7 +304,7 @@
             <param name="batchHeader">a callback for tracking returning batch start error messages</param>
             <param name="discarded">a callback for tracking socket closed or request canceled event</param>
             <param name="meta">a boolean for better or more detailed column meta details such as unique, not null, primary key, and so on, and it defaults to true</param>
-            <param name="plan">a value for computing how included transactions should be rollback, and it defaults to tagRollbackPlan.rpDefault</param>
+            <param name="plan">a value for computing how included transactions should been rollbacked at server side. It defaults to tagRollbackPlan.rpDefault</param>
             <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
         </member>
         <member name="M:SocketProAdapter.ClientSide.CAsyncDBHandler.ExecuteBatch(SocketProAdapter.UDB.tagTransactionIsolation,System.String,SocketProAdapter.UDB.CDBVariantArray,SocketProAdapter.ClientSide.CAsyncDBHandler.DExecuteResult,SocketProAdapter.ClientSide.CAsyncDBHandler.DRows,SocketProAdapter.ClientSide.CAsyncDBHandler.DRowsetHeader,System.String,SocketProAdapter.ClientSide.CAsyncDBHandler.DRowsetHeader,SocketProAdapter.ClientSide.CAsyncServiceHandler.DDiscarded,System.Boolean,SocketProAdapter.UDB.tagRollbackPlan,SocketProAdapter.UDB.CParameterInfo[])">
@@ -321,7 +321,7 @@
             <param name="batchHeader">a callback for tracking returning batch start error messages</param>
             <param name="discarded">a callback for tracking socket closed or request canceled event</param>
             <param name="meta">a boolean for better or more detailed column meta details such as unique, not null, primary key, and so on, and it defaults to true</param>
-            <param name="plan">a value for computing how included transactions should be rollback, and it defaults to tagRollbackPlan.rpDefault</param>
+            <param name="plan">a value for computing how included transactions should been rollbacked at server side. It defaults to tagRollbackPlan.rpDefault</param>
             <param name="vPInfo">a given array of parameter informations which may be empty to some of database management systems, and it defaults to null</param>
             <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
         </member>
@@ -339,7 +339,7 @@
             <param name="batchHeader">a callback for tracking returning batch start error messages</param>
             <param name="discarded">a callback for tracking socket closed or request canceled event</param>
             <param name="meta">a boolean for better or more detailed column meta details such as unique, not null, primary key, and so on, and it defaults to true</param>
-            <param name="plan">a value for computing how included transactions should be rollback, and it defaults to tagRollbackPlan.rpDefault</param>
+            <param name="plan">a value for computing how included transactions should been rollbacked at server side. It defaults to tagRollbackPlan.rpDefault</param>
             <param name="vPInfo">a given array of parameter informations which may be empty to some of database management systems, and it defaults to null</param>
             <param name="lastInsertId">a boolean for last insert record identification number, and it defaults to true</param>
             <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
@@ -358,7 +358,7 @@
             <param name="batchHeader">a callback for tracking returning batch start error messages</param>
             <param name="discarded">a callback for tracking socket closed or request canceled event</param>
             <param name="meta">a boolean for better or more detailed column meta details such as unique, not null, primary key, and so on, and it defaults to true</param>
-            <param name="plan">a value for computing how included transactions should be rollback, and it defaults to tagRollbackPlan.rpDefault</param>
+            <param name="plan">a value for computing how included transactions should been rollbacked at server side. It defaults to tagRollbackPlan.rpDefault</param>
             <param name="vPInfo">a given array of parameter informations which may be empty to some of database management systems, and it defaults to null</param>
             <param name="lastInsertId">a boolean for last insert record identification number, and it defaults to true</param>
             <param name="se">A callback for tracking exception from server</param>
@@ -366,14 +366,14 @@
         </member>
         <member name="M:SocketProAdapter.ClientSide.CAsyncDBHandler.Execute(System.String)">
             <summary>
-            Asynchronously process a complex SQL statement which may be combined with multiple basic SQL statements, and don't expect any data returned
+            Process a complex SQL statement which may be combined with multiple basic SQL statements, and don't expect any data returned
             </summary>
             <param name="sql">a complex SQL statement which may be combined with multiple basic SQL statements</param>
             <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
         </member>
         <member name="M:SocketProAdapter.ClientSide.CAsyncDBHandler.Execute(System.String,SocketProAdapter.ClientSide.CAsyncDBHandler.DExecuteResult)">
             <summary>
-            Asynchronously process a complex SQL statement which may be combined with multiple basic SQL statements, and don't expect any records returned 
+            Process a complex SQL statement which may be combined with multiple basic SQL statements, and don't expect any records returned 
             </summary>
             <param name="sql">a complex SQL statement which may be combined with multiple basic SQL statements</param>
             <param name="handler">a callback for tracking final result</param>
@@ -381,7 +381,7 @@
         </member>
         <member name="M:SocketProAdapter.ClientSide.CAsyncDBHandler.Execute(System.String,SocketProAdapter.ClientSide.CAsyncDBHandler.DExecuteResult,SocketProAdapter.ClientSide.CAsyncDBHandler.DRows)">
             <summary>
-            Process a complex SQL statement which may be combined with multiple basic SQL statements asynchronously
+            Process a complex SQL statement which may be combined with multiple basic SQL statements
             </summary>
             <param name="sql">a complex SQL statement which may be combined with multiple basic SQL statements</param>
             <param name="handler">a callback for tracking final result</param>
@@ -390,7 +390,7 @@
         </member>
         <member name="M:SocketProAdapter.ClientSide.CAsyncDBHandler.Execute(System.String,SocketProAdapter.ClientSide.CAsyncDBHandler.DExecuteResult,SocketProAdapter.ClientSide.CAsyncDBHandler.DRows,SocketProAdapter.ClientSide.CAsyncDBHandler.DRowsetHeader)">
             <summary>
-            Process a complex SQL statement which may be combined with multiple basic SQL statements asynchronously
+            Process a complex SQL statement which may be combined with multiple basic SQL statements
             </summary>
             <param name="sql">a complex SQL statement which may be combined with multiple basic SQL statements</param>
             <param name="handler">a callback for tracking final result</param>
@@ -400,7 +400,7 @@
         </member>
         <member name="M:SocketProAdapter.ClientSide.CAsyncDBHandler.Execute(System.String,SocketProAdapter.ClientSide.CAsyncDBHandler.DExecuteResult,SocketProAdapter.ClientSide.CAsyncDBHandler.DRows,SocketProAdapter.ClientSide.CAsyncDBHandler.DRowsetHeader,System.Boolean)">
             <summary>
-            Process a complex SQL statement which may be combined with multiple basic SQL statements asynchronously
+            Process a complex SQL statement which may be combined with multiple basic SQL statements
             </summary>
             <param name="sql">a complex SQL statement which may be combined with multiple basic SQL statements</param>
             <param name="handler">a callback for tracking final result</param>
@@ -411,7 +411,7 @@
         </member>
         <member name="M:SocketProAdapter.ClientSide.CAsyncDBHandler.Execute(System.String,SocketProAdapter.ClientSide.CAsyncDBHandler.DExecuteResult,SocketProAdapter.ClientSide.CAsyncDBHandler.DRows,SocketProAdapter.ClientSide.CAsyncDBHandler.DRowsetHeader,System.Boolean,System.Boolean)">
             <summary>
-            Process a complex SQL statement which may be combined with multiple basic SQL statements asynchronously
+            Process a complex SQL statement which may be combined with multiple basic SQL statements
             </summary>
             <param name="sql">a complex SQL statement which may be combined with multiple basic SQL statements</param>
             <param name="handler">a callback for tracking final result</param>
@@ -423,7 +423,7 @@
         </member>
         <member name="M:SocketProAdapter.ClientSide.CAsyncDBHandler.Execute(System.String,SocketProAdapter.ClientSide.CAsyncDBHandler.DExecuteResult,SocketProAdapter.ClientSide.CAsyncDBHandler.DRows,SocketProAdapter.ClientSide.CAsyncDBHandler.DRowsetHeader,System.Boolean,System.Boolean,SocketProAdapter.ClientSide.CAsyncServiceHandler.DDiscarded)">
             <summary>
-            Process a complex SQL statement which may be combined with multiple basic SQL statements asynchronously
+            Process a complex SQL statement which may be combined with multiple basic SQL statements
             </summary>
             <param name="sql">a complex SQL statement which may be combined with multiple basic SQL statements</param>
             <param name="handler">a callback for tracking final result</param>
@@ -436,7 +436,7 @@
         </member>
         <member name="M:SocketProAdapter.ClientSide.CAsyncDBHandler.Execute(System.String,SocketProAdapter.ClientSide.CAsyncDBHandler.DExecuteResult,SocketProAdapter.ClientSide.CAsyncDBHandler.DRows,SocketProAdapter.ClientSide.CAsyncDBHandler.DRowsetHeader,System.Boolean,System.Boolean,SocketProAdapter.ClientSide.CAsyncServiceHandler.DDiscarded,SocketProAdapter.ClientSide.CAsyncServiceHandler.DOnExceptionFromServer)">
             <summary>
-            Process a complex SQL statement which may be combined with multiple basic SQL statements asynchronously
+            Process a complex SQL statement which may be combined with multiple basic SQL statements
             </summary>
             <param name="sql">a complex SQL statement which may be combined with multiple basic SQL statements</param>
             <param name="handler">a callback for tracking final result</param>
@@ -449,7 +449,7 @@
         </member>
         <member name="M:SocketProAdapter.ClientSide.CAsyncDBHandler.Open(System.String,SocketProAdapter.ClientSide.CAsyncDBHandler.DResult)">
             <summary>
-            Open a database connection at server side asynchronously
+            Open a database connection at server side
             </summary>
             <param name="strConnection">a database connection string. The database connection string can be an empty string if its server side supports global database connection string</param>
             <param name="handler">a callback for database connecting result</param>
@@ -457,7 +457,7 @@
         </member>
         <member name="M:SocketProAdapter.ClientSide.CAsyncDBHandler.Open(System.String,SocketProAdapter.ClientSide.CAsyncDBHandler.DResult,System.UInt32)">
             <summary>
-            Open a database connection at server side asynchronously
+            Open a database connection at server side
             </summary>
             <param name="strConnection">a database connection string. The database connection string can be an empty string if its server side supports global database connection string</param>
             <param name="handler">a callback for database connecting result</param>
@@ -466,7 +466,7 @@
         </member>
         <member name="M:SocketProAdapter.ClientSide.CAsyncDBHandler.Open(System.String,SocketProAdapter.ClientSide.CAsyncDBHandler.DResult,System.UInt32,SocketProAdapter.ClientSide.CAsyncServiceHandler.DDiscarded)">
             <summary>
-            Open a database connection at server side asynchronously
+            Open a database connection at server side
             </summary>
             <param name="strConnection">a database connection string. The database connection string can be an empty string if its server side supports global database connection string</param>
             <param name="handler">a callback for database connecting result</param>
@@ -476,7 +476,7 @@
         </member>
         <member name="M:SocketProAdapter.ClientSide.CAsyncDBHandler.Open(System.String,SocketProAdapter.ClientSide.CAsyncDBHandler.DResult,System.UInt32,SocketProAdapter.ClientSide.CAsyncServiceHandler.DDiscarded,SocketProAdapter.ClientSide.CAsyncServiceHandler.DOnExceptionFromServer)">
             <summary>
-            Open a database connection at server side asynchronously
+            Open a database connection at server side
             </summary>
             <param name="strConnection">a database connection string. The database connection string can be an empty string if its server side supports global database connection string</param>
             <param name="handler">a callback for database connecting result</param>
@@ -486,14 +486,14 @@
         </member>
         <member name="M:SocketProAdapter.ClientSide.CAsyncDBHandler.Prepare(System.String)">
             <summary>
-            Send a parameterized SQL statement for preparing asynchronously
+            Send a parameterized SQL statement for preparing
             </summary>
             <param name="sql">a parameterized SQL statement</param>
             <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
         </member>
         <member name="M:SocketProAdapter.ClientSide.CAsyncDBHandler.Prepare(System.String,SocketProAdapter.ClientSide.CAsyncDBHandler.DResult)">
             <summary>
-            Send a parameterized SQL statement for preparing asynchronously
+            Send a parameterized SQL statement for preparing
             </summary>
             <param name="sql">a parameterized SQL statement</param>
             <param name="handler">a callback for SQL preparing result</param>
@@ -501,29 +501,29 @@
         </member>
         <member name="M:SocketProAdapter.ClientSide.CAsyncDBHandler.Prepare(System.String,SocketProAdapter.ClientSide.CAsyncDBHandler.DResult,SocketProAdapter.UDB.CParameterInfo[])">
             <summary>
-            Send a parameterized SQL statement for preparing with a given array of parameter informations asynchronously
+            Send a parameterized SQL statement for preparing with a given array of parameter informations
             </summary>
             <param name="sql">a parameterized SQL statement</param>
             <param name="handler">a callback for SQL preparing result</param>
-            <param name="vParameterInfo">a given array of parameter informations</param>
+            <param name="vParameterInfo">an optional given array of parameter informations</param>
             <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
         </member>
         <member name="M:SocketProAdapter.ClientSide.CAsyncDBHandler.Prepare(System.String,SocketProAdapter.ClientSide.CAsyncDBHandler.DResult,SocketProAdapter.UDB.CParameterInfo[],SocketProAdapter.ClientSide.CAsyncServiceHandler.DDiscarded)">
             <summary>
-            Send a parameterized SQL statement for preparing with a given array of parameter informations asynchronously
+            Send a parameterized SQL statement for preparing with a given array of parameter informations
             </summary>
             <param name="sql">a parameterized SQL statement</param>
             <param name="handler">a callback for SQL preparing result</param>
-            <param name="vParameterInfo">a given array of parameter informations</param>
+            <param name="vParameterInfo">an optional given array of parameter informations</param>
             <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
         </member>
         <member name="M:SocketProAdapter.ClientSide.CAsyncDBHandler.Prepare(System.String,SocketProAdapter.ClientSide.CAsyncDBHandler.DResult,SocketProAdapter.UDB.CParameterInfo[],SocketProAdapter.ClientSide.CAsyncServiceHandler.DDiscarded,SocketProAdapter.ClientSide.CAsyncServiceHandler.DOnExceptionFromServer)">
             <summary>
-            Send a parameterized SQL statement for preparing with a given array of parameter informations asynchronously
+            Send a parameterized SQL statement for preparing with a given array of parameter informations
             </summary>
             <param name="sql">a parameterized SQL statement</param>
             <param name="handler">a callback for SQL preparing result</param>
-            <param name="vParameterInfo">a given array of parameter informations</param>
+            <param name="vParameterInfo">an optional given array of parameter informations</param>
             <param name="discarded">a callback for tracking cancel or socket closed event</param>
             <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
         </member>
@@ -537,14 +537,14 @@
             <summary>
             End a manual transaction with a given rollback plan. Note the transaction will be associated with SocketPro client message queue if available to avoid possible transaction lose
             </summary>
-            <param name="plan">a value for computing how included transactions should be rollback at server side. It defaults to tagRollbackPlan.rpDefault</param>
+            <param name="plan">a value for computing how included transactions should been rollbacked at server side. It defaults to tagRollbackPlan.rpDefault</param>
             <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
         </member>
         <member name="M:SocketProAdapter.ClientSide.CAsyncDBHandler.EndTrans(SocketProAdapter.UDB.tagRollbackPlan,SocketProAdapter.ClientSide.CAsyncDBHandler.DResult)">
             <summary>
             End a manual transaction with a given rollback plan. Note the transaction will be associated with SocketPro client message queue if available to avoid possible transaction lose
             </summary>
-            <param name="plan">a value for computing how included transactions should be rollback at server side. It defaults to tagRollbackPlan.rpDefault</param>
+            <param name="plan">a value for computing how included transactions should been rollbacked at server side. It defaults to tagRollbackPlan.rpDefault</param>
             <param name="handler">a callback for tracking its response result</param>
             <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
         </member>
@@ -568,20 +568,20 @@
         </member>
         <member name="M:SocketProAdapter.ClientSide.CAsyncDBHandler.BeginTrans">
             <summary>
-            Start a manual transaction with a given isolation tagTransactionIsolation.tiReadCommited asynchronously. Note the transaction will be associated with SocketPro client message queue if available to avoid possible transaction lose
+            Start a manual transaction with a given isolation tagTransactionIsolation.tiReadCommited. Note the transaction will be associated with SocketPro client message queue if available to avoid possible transaction lose
             </summary>
             <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
         </member>
         <member name="M:SocketProAdapter.ClientSide.CAsyncDBHandler.BeginTrans(SocketProAdapter.UDB.tagTransactionIsolation)">
             <summary>
-            Start a manual transaction with a given isolation asynchronously. Note the transaction will be associated with SocketPro client message queue if available to avoid possible transaction lose
+            Start a manual transaction with a given isolation. Note the transaction will be associated with SocketPro client message queue if available to avoid possible transaction lose
             </summary>
             <param name="isolation">a value for transaction isolation. It defaults to tagTransactionIsolation.tiReadCommited</param>
             <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
         </member>
         <member name="M:SocketProAdapter.ClientSide.CAsyncDBHandler.BeginTrans(SocketProAdapter.UDB.tagTransactionIsolation,SocketProAdapter.ClientSide.CAsyncDBHandler.DResult)">
             <summary>
-            Start a manual transaction with a given isolation asynchronously. Note the transaction will be associated with SocketPro client message queue if available to avoid possible transaction lose
+            Start a manual transaction with a given isolation. Note the transaction will be associated with SocketPro client message queue if available to avoid possible transaction lose
             </summary>
             <param name="isolation">a value for transaction isolation. It defaults to tagTransactionIsolation.tiReadCommited</param>
             <param name="handler">a callback for tracking its response result</param>
@@ -589,7 +589,7 @@
         </member>
         <member name="M:SocketProAdapter.ClientSide.CAsyncDBHandler.BeginTrans(SocketProAdapter.UDB.tagTransactionIsolation,SocketProAdapter.ClientSide.CAsyncDBHandler.DResult,SocketProAdapter.ClientSide.CAsyncServiceHandler.DDiscarded)">
             <summary>
-            Start a manual transaction with a given isolation asynchronously. Note the transaction will be associated with SocketPro client message queue if available to avoid possible transaction lose
+            Start a manual transaction with a given isolation. Note the transaction will be associated with SocketPro client message queue if available to avoid possible transaction lose
             </summary>
             <param name="isolation">a value for transaction isolation. It defaults to tagTransactionIsolation.tiReadCommited</param>
             <param name="handler">a callback for tracking its response result</param>
@@ -598,7 +598,7 @@
         </member>
         <member name="M:SocketProAdapter.ClientSide.CAsyncDBHandler.BeginTrans(SocketProAdapter.UDB.tagTransactionIsolation,SocketProAdapter.ClientSide.CAsyncDBHandler.DResult,SocketProAdapter.ClientSide.CAsyncServiceHandler.DDiscarded,SocketProAdapter.ClientSide.CAsyncServiceHandler.DOnExceptionFromServer)">
             <summary>
-            Start a manual transaction with a given isolation asynchronously. Note the transaction will be associated with SocketPro client message queue if available to avoid possible transaction lose
+            Start a manual transaction with a given isolation. Note the transaction will be associated with SocketPro client message queue if available to avoid possible transaction lose
             </summary>
             <param name="isolation">a value for transaction isolation. It defaults to tagTransactionIsolation.tiReadCommited</param>
             <param name="handler">a callback for tracking its response result</param>
@@ -607,20 +607,20 @@
         </member>
         <member name="M:SocketProAdapter.ClientSide.CAsyncDBHandler.Close">
             <summary>
-            Notify connected remote server to close database connection string asynchronously
+            Notify connected remote server to close database connection string at server side
             </summary>
             <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
         </member>
         <member name="M:SocketProAdapter.ClientSide.CAsyncDBHandler.Close(SocketProAdapter.ClientSide.CAsyncDBHandler.DResult)">
             <summary>
-            Notify connected remote server to close database connection string asynchronously
+            Notify connected remote server to close database connection string at server side
             </summary>
             <param name="handler">a callback for closing result, which should be OK always as long as there is network or queue available </param>
             <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
         </member>
         <member name="M:SocketProAdapter.ClientSide.CAsyncDBHandler.Close(SocketProAdapter.ClientSide.CAsyncDBHandler.DResult,SocketProAdapter.ClientSide.CAsyncServiceHandler.DDiscarded)">
             <summary>
-            Notify connected remote server to close database connection string asynchronously
+            Notify connected remote server to close database connection string at server side
             </summary>
             <param name="handler">a callback for closing result, which should be OK always as long as there is network or queue available </param>
             <param name="discarded">a callback for tracking cancel or socket closed event</param>
@@ -628,7 +628,7 @@
         </member>
         <member name="M:SocketProAdapter.ClientSide.CAsyncDBHandler.Close(SocketProAdapter.ClientSide.CAsyncDBHandler.DResult,SocketProAdapter.ClientSide.CAsyncServiceHandler.DDiscarded,SocketProAdapter.ClientSide.CAsyncServiceHandler.DOnExceptionFromServer)">
             <summary>
-            Notify connected remote server to close database connection string asynchronously
+            Notify connected remote server to close database connection string at server side
             </summary>
             <param name="handler">a callback for closing result, which should be OK always as long as there is network or queue available </param>
             <param name="discarded">a callback for tracking cancel or socket closed event</param>

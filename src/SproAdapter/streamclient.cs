@@ -815,7 +815,7 @@ namespace SocketProAdapter.ClientSide
                             if (it.ErrCode == 0)
                             {
                                 it.ErrCode = SESSION_CLOSED_BEFORE;
-                                it.ErrMsg = "Session already closed before sending the request";
+                                it.ErrMsg = SESSION_CLOSED_BEFORE_ERR_MSG;
                             }
                             else
                             {
@@ -846,7 +846,7 @@ namespace SocketProAdapter.ClientSide
                             if (it.ErrCode == 0)
                             {
                                 it.ErrCode = SESSION_CLOSED_BEFORE;
-                                it.ErrMsg = "Session already closed before sending the request";
+                                it.ErrMsg = SESSION_CLOSED_BEFORE_ERR_MSG;
                             }
                             else
                             {

@@ -675,7 +675,7 @@ namespace SocketProAdapter
 #endif
 
             /// <summary>
-            /// Process one or more sets of prepared statements with an array of parameter data asynchronously, and don't expect any data returned
+            /// Process one or more sets of prepared statements with an array of parameter data, and don't expect any data returned
             /// </summary>
             /// <param name="vParam"></param>
             /// <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
@@ -685,7 +685,7 @@ namespace SocketProAdapter
             }
 
             /// <summary>
-            /// Process one or more sets of prepared statements with an array of parameter data asynchronously, and don't expect any rowsets or outputs returned 
+            /// Process one or more sets of prepared statements with an array of parameter data, and don't expect any rowsets or outputs returned 
             /// </summary>
             /// <param name="vParam">an array of parameter data which will be bounded to previously prepared parameters</param>
             /// <param name="handler">a callback for tracking final result</param>
@@ -696,7 +696,7 @@ namespace SocketProAdapter
             }
 
             /// <summary>
-            /// Process one or more sets of prepared statements with an array of parameter data asynchronously, and don't expect any rowsets returned
+            /// Process one or more sets of prepared statements with an array of parameter data, and don't expect any rowsets returned
             /// </summary>
             /// <param name="vParam">an array of parameter data which will be bounded to previously prepared parameters</param>
             /// <param name="handler">a callback for tracking final result</param>
@@ -708,7 +708,7 @@ namespace SocketProAdapter
             }
 
             /// <summary>
-            /// Process one or more sets of prepared statements with an array of parameter data asynchronously
+            /// Process one or more sets of prepared statements with an array of parameter data
             /// </summary>
             /// <param name="vParam">an array of parameter data which will be bounded to previously prepared parameters</param>
             /// <param name="handler">a callback for tracking final result</param>
@@ -721,7 +721,7 @@ namespace SocketProAdapter
             }
 
             /// <summary>
-            /// Process one or more sets of prepared statements with an array of parameter data asynchronously
+            /// Process one or more sets of prepared statements with an array of parameter data
             /// </summary>
             /// <param name="vParam">an array of parameter data which will be bounded to previously prepared parameters</param>
             /// <param name="handler">a callback for tracking final result</param>
@@ -735,7 +735,7 @@ namespace SocketProAdapter
             }
 
             /// <summary>
-            /// Process one or more sets of prepared statements with an array of parameter data asynchronously
+            /// Process one or more sets of prepared statements with an array of parameter data
             /// </summary>
             /// <param name="vParam">an array of parameter data which will be bounded to previously prepared parameters</param>
             /// <param name="handler">a callback for tracking final result</param>
@@ -750,7 +750,7 @@ namespace SocketProAdapter
             }
 
             /// <summary>
-            /// Process one or more sets of prepared statements with an array of parameter data asynchronously
+            /// Process one or more sets of prepared statements with an array of parameter data
             /// </summary>
             /// <param name="vParam">an array of parameter data which will be bounded to previously prepared parameters</param>
             /// <param name="handler">a callback for tracking final result</param>
@@ -765,7 +765,7 @@ namespace SocketProAdapter
             }
 
             /// <summary>
-            /// Process one or more sets of prepared statements with an array of parameter data asynchronously
+            /// Process one or more sets of prepared statements with an array of parameter data
             /// </summary>
             /// <param name="vParam">an array of parameter data which will be bounded to previously prepared parameters</param>
             /// <param name="handler">a callback for tracking final result</param>
@@ -976,7 +976,7 @@ namespace SocketProAdapter
             /// <param name="batchHeader">a callback for tracking returning batch start error messages</param>
             /// <param name="discarded">a callback for tracking socket closed or request canceled event</param>
             /// <param name="meta">a boolean for better or more detailed column meta details such as unique, not null, primary key, and so on, and it defaults to true</param>
-            /// <param name="plan">a value for computing how included transactions should be rollback, and it defaults to tagRollbackPlan.rpDefault</param>
+            /// <param name="plan">a value for computing how included transactions should been rollbacked at server side. It defaults to tagRollbackPlan.rpDefault</param>
             /// <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
             public bool ExecuteBatch(tagTransactionIsolation isolation, string sql, CDBVariantArray vParam, DExecuteResult handler, DRows row, DRowsetHeader rh, string delimiter, DRowsetHeader batchHeader, DDiscarded discarded, bool meta, tagRollbackPlan plan)
             {
@@ -996,7 +996,7 @@ namespace SocketProAdapter
             /// <param name="batchHeader">a callback for tracking returning batch start error messages</param>
             /// <param name="discarded">a callback for tracking socket closed or request canceled event</param>
             /// <param name="meta">a boolean for better or more detailed column meta details such as unique, not null, primary key, and so on, and it defaults to true</param>
-            /// <param name="plan">a value for computing how included transactions should be rollback, and it defaults to tagRollbackPlan.rpDefault</param>
+            /// <param name="plan">a value for computing how included transactions should been rollbacked at server side. It defaults to tagRollbackPlan.rpDefault</param>
             /// <param name="vPInfo">a given array of parameter informations which may be empty to some of database management systems, and it defaults to null</param>
             /// <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
             public bool ExecuteBatch(tagTransactionIsolation isolation, string sql, CDBVariantArray vParam, DExecuteResult handler, DRows row, DRowsetHeader rh, string delimiter, DRowsetHeader batchHeader, DDiscarded discarded, bool meta, tagRollbackPlan plan, CParameterInfo[] vPInfo)
@@ -1017,7 +1017,7 @@ namespace SocketProAdapter
             /// <param name="batchHeader">a callback for tracking returning batch start error messages</param>
             /// <param name="discarded">a callback for tracking socket closed or request canceled event</param>
             /// <param name="meta">a boolean for better or more detailed column meta details such as unique, not null, primary key, and so on, and it defaults to true</param>
-            /// <param name="plan">a value for computing how included transactions should be rollback, and it defaults to tagRollbackPlan.rpDefault</param>
+            /// <param name="plan">a value for computing how included transactions should been rollbacked at server side. It defaults to tagRollbackPlan.rpDefault</param>
             /// <param name="vPInfo">a given array of parameter informations which may be empty to some of database management systems, and it defaults to null</param>
             /// <param name="lastInsertId">a boolean for last insert record identification number, and it defaults to true</param>
             /// <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
@@ -1039,7 +1039,7 @@ namespace SocketProAdapter
             /// <param name="batchHeader">a callback for tracking returning batch start error messages</param>
             /// <param name="discarded">a callback for tracking socket closed or request canceled event</param>
             /// <param name="meta">a boolean for better or more detailed column meta details such as unique, not null, primary key, and so on, and it defaults to true</param>
-            /// <param name="plan">a value for computing how included transactions should be rollback, and it defaults to tagRollbackPlan.rpDefault</param>
+            /// <param name="plan">a value for computing how included transactions should been rollbacked at server side. It defaults to tagRollbackPlan.rpDefault</param>
             /// <param name="vPInfo">a given array of parameter informations which may be empty to some of database management systems, and it defaults to null</param>
             /// <param name="lastInsertId">a boolean for last insert record identification number, and it defaults to true</param>
             /// <param name="se">A callback for tracking exception from server</param>
@@ -1116,7 +1116,7 @@ namespace SocketProAdapter
 
 
             /// <summary>
-            /// Asynchronously process a complex SQL statement which may be combined with multiple basic SQL statements, and don't expect any data returned
+            /// Process a complex SQL statement which may be combined with multiple basic SQL statements, and don't expect any data returned
             /// </summary>
             /// <param name="sql">a complex SQL statement which may be combined with multiple basic SQL statements</param>
             /// <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
@@ -1126,7 +1126,7 @@ namespace SocketProAdapter
             }
 
             /// <summary>
-            /// Asynchronously process a complex SQL statement which may be combined with multiple basic SQL statements, and don't expect any records returned 
+            /// Process a complex SQL statement which may be combined with multiple basic SQL statements, and don't expect any records returned 
             /// </summary>
             /// <param name="sql">a complex SQL statement which may be combined with multiple basic SQL statements</param>
             /// <param name="handler">a callback for tracking final result</param>
@@ -1137,7 +1137,7 @@ namespace SocketProAdapter
             }
 
             /// <summary>
-            /// Process a complex SQL statement which may be combined with multiple basic SQL statements asynchronously
+            /// Process a complex SQL statement which may be combined with multiple basic SQL statements
             /// </summary>
             /// <param name="sql">a complex SQL statement which may be combined with multiple basic SQL statements</param>
             /// <param name="handler">a callback for tracking final result</param>
@@ -1149,7 +1149,7 @@ namespace SocketProAdapter
             }
 
             /// <summary>
-            /// Process a complex SQL statement which may be combined with multiple basic SQL statements asynchronously
+            /// Process a complex SQL statement which may be combined with multiple basic SQL statements
             /// </summary>
             /// <param name="sql">a complex SQL statement which may be combined with multiple basic SQL statements</param>
             /// <param name="handler">a callback for tracking final result</param>
@@ -1162,7 +1162,7 @@ namespace SocketProAdapter
             }
 
             /// <summary>
-            /// Process a complex SQL statement which may be combined with multiple basic SQL statements asynchronously
+            /// Process a complex SQL statement which may be combined with multiple basic SQL statements
             /// </summary>
             /// <param name="sql">a complex SQL statement which may be combined with multiple basic SQL statements</param>
             /// <param name="handler">a callback for tracking final result</param>
@@ -1176,7 +1176,7 @@ namespace SocketProAdapter
             }
 
             /// <summary>
-            /// Process a complex SQL statement which may be combined with multiple basic SQL statements asynchronously
+            /// Process a complex SQL statement which may be combined with multiple basic SQL statements
             /// </summary>
             /// <param name="sql">a complex SQL statement which may be combined with multiple basic SQL statements</param>
             /// <param name="handler">a callback for tracking final result</param>
@@ -1191,7 +1191,7 @@ namespace SocketProAdapter
             }
 
             /// <summary>
-            /// Process a complex SQL statement which may be combined with multiple basic SQL statements asynchronously
+            /// Process a complex SQL statement which may be combined with multiple basic SQL statements
             /// </summary>
             /// <param name="sql">a complex SQL statement which may be combined with multiple basic SQL statements</param>
             /// <param name="handler">a callback for tracking final result</param>
@@ -1207,7 +1207,7 @@ namespace SocketProAdapter
             }
 
             /// <summary>
-            /// Process a complex SQL statement which may be combined with multiple basic SQL statements asynchronously
+            /// Process a complex SQL statement which may be combined with multiple basic SQL statements
             /// </summary>
             /// <param name="sql">a complex SQL statement which may be combined with multiple basic SQL statements</param>
             /// <param name="handler">a callback for tracking final result</param>
@@ -1273,7 +1273,7 @@ namespace SocketProAdapter
             }
 
             /// <summary>
-            /// Open a database connection at server side asynchronously
+            /// Open a database connection at server side
             /// </summary>
             /// <param name="strConnection">a database connection string. The database connection string can be an empty string if its server side supports global database connection string</param>
             /// <param name="handler">a callback for database connecting result</param>
@@ -1284,7 +1284,7 @@ namespace SocketProAdapter
             }
 
             /// <summary>
-            /// Open a database connection at server side asynchronously
+            /// Open a database connection at server side
             /// </summary>
             /// <param name="strConnection">a database connection string. The database connection string can be an empty string if its server side supports global database connection string</param>
             /// <param name="handler">a callback for database connecting result</param>
@@ -1296,7 +1296,7 @@ namespace SocketProAdapter
             }
 
             /// <summary>
-            /// Open a database connection at server side asynchronously
+            /// Open a database connection at server side
             /// </summary>
             /// <param name="strConnection">a database connection string. The database connection string can be an empty string if its server side supports global database connection string</param>
             /// <param name="handler">a callback for database connecting result</param>
@@ -1309,7 +1309,7 @@ namespace SocketProAdapter
             }
 
             /// <summary>
-            /// Open a database connection at server side asynchronously
+            /// Open a database connection at server side
             /// </summary>
             /// <param name="strConnection">a database connection string. The database connection string can be an empty string if its server side supports global database connection string</param>
             /// <param name="handler">a callback for database connecting result</param>
@@ -1374,7 +1374,7 @@ namespace SocketProAdapter
             }
 
             /// <summary>
-            /// Send a parameterized SQL statement for preparing asynchronously
+            /// Send a parameterized SQL statement for preparing
             /// </summary>
             /// <param name="sql">a parameterized SQL statement</param>
             /// <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
@@ -1384,7 +1384,7 @@ namespace SocketProAdapter
             }
 
             /// <summary>
-            /// Send a parameterized SQL statement for preparing asynchronously
+            /// Send a parameterized SQL statement for preparing
             /// </summary>
             /// <param name="sql">a parameterized SQL statement</param>
             /// <param name="handler">a callback for SQL preparing result</param>
@@ -1395,11 +1395,11 @@ namespace SocketProAdapter
             }
 
             /// <summary>
-            /// Send a parameterized SQL statement for preparing with a given array of parameter informations asynchronously
+            /// Send a parameterized SQL statement for preparing with a given array of parameter informations
             /// </summary>
             /// <param name="sql">a parameterized SQL statement</param>
             /// <param name="handler">a callback for SQL preparing result</param>
-            /// <param name="vParameterInfo">a given array of parameter informations</param>
+            /// <param name="vParameterInfo">an optional given array of parameter informations</param>
             /// <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
             public bool Prepare(string sql, DResult handler, CParameterInfo[] vParameterInfo)
             {
@@ -1407,11 +1407,11 @@ namespace SocketProAdapter
             }
 
             /// <summary>
-            /// Send a parameterized SQL statement for preparing with a given array of parameter informations asynchronously
+            /// Send a parameterized SQL statement for preparing with a given array of parameter informations
             /// </summary>
             /// <param name="sql">a parameterized SQL statement</param>
             /// <param name="handler">a callback for SQL preparing result</param>
-            /// <param name="vParameterInfo">a given array of parameter informations</param>
+            /// <param name="vParameterInfo">an optional given array of parameter informations</param>
             /// <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
             public bool Prepare(string sql, DResult handler, CParameterInfo[] vParameterInfo, DDiscarded discarded)
             {
@@ -1419,11 +1419,11 @@ namespace SocketProAdapter
             }
 
             /// <summary>
-            /// Send a parameterized SQL statement for preparing with a given array of parameter informations asynchronously
+            /// Send a parameterized SQL statement for preparing with a given array of parameter informations
             /// </summary>
             /// <param name="sql">a parameterized SQL statement</param>
             /// <param name="handler">a callback for SQL preparing result</param>
-            /// <param name="vParameterInfo">a given array of parameter informations</param>
+            /// <param name="vParameterInfo">an optional given array of parameter informations</param>
             /// <param name="discarded">a callback for tracking cancel or socket closed event</param>
             /// <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
             public virtual bool Prepare(string sql, DResult handler, CParameterInfo[] vParameterInfo, DDiscarded discarded, DOnExceptionFromServer se)
@@ -1485,7 +1485,7 @@ namespace SocketProAdapter
             /// <summary>
             /// End a manual transaction with a given rollback plan. Note the transaction will be associated with SocketPro client message queue if available to avoid possible transaction lose
             /// </summary>
-            /// <param name="plan">a value for computing how included transactions should be rollback at server side. It defaults to tagRollbackPlan.rpDefault</param>
+            /// <param name="plan">a value for computing how included transactions should been rollbacked at server side. It defaults to tagRollbackPlan.rpDefault</param>
             /// <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
             public bool EndTrans(tagRollbackPlan plan)
             {
@@ -1495,7 +1495,7 @@ namespace SocketProAdapter
             /// <summary>
             /// End a manual transaction with a given rollback plan. Note the transaction will be associated with SocketPro client message queue if available to avoid possible transaction lose
             /// </summary>
-            /// <param name="plan">a value for computing how included transactions should be rollback at server side. It defaults to tagRollbackPlan.rpDefault</param>
+            /// <param name="plan">a value for computing how included transactions should been rollbacked at server side. It defaults to tagRollbackPlan.rpDefault</param>
             /// <param name="handler">a callback for tracking its response result</param>
             /// <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
             public bool EndTrans(tagRollbackPlan plan, DResult handler)
@@ -1559,7 +1559,7 @@ namespace SocketProAdapter
             }
 
             /// <summary>
-            /// Start a manual transaction with a given isolation tagTransactionIsolation.tiReadCommited asynchronously. Note the transaction will be associated with SocketPro client message queue if available to avoid possible transaction lose
+            /// Start a manual transaction with a given isolation tagTransactionIsolation.tiReadCommited. Note the transaction will be associated with SocketPro client message queue if available to avoid possible transaction lose
             /// </summary>
             /// <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
             public bool BeginTrans()
@@ -1568,7 +1568,7 @@ namespace SocketProAdapter
             }
 
             /// <summary>
-            /// Start a manual transaction with a given isolation asynchronously. Note the transaction will be associated with SocketPro client message queue if available to avoid possible transaction lose
+            /// Start a manual transaction with a given isolation. Note the transaction will be associated with SocketPro client message queue if available to avoid possible transaction lose
             /// </summary>
             /// <param name="isolation">a value for transaction isolation. It defaults to tagTransactionIsolation.tiReadCommited</param>
             /// <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
@@ -1578,7 +1578,7 @@ namespace SocketProAdapter
             }
 
             /// <summary>
-            /// Start a manual transaction with a given isolation asynchronously. Note the transaction will be associated with SocketPro client message queue if available to avoid possible transaction lose
+            /// Start a manual transaction with a given isolation. Note the transaction will be associated with SocketPro client message queue if available to avoid possible transaction lose
             /// </summary>
             /// <param name="isolation">a value for transaction isolation. It defaults to tagTransactionIsolation.tiReadCommited</param>
             /// <param name="handler">a callback for tracking its response result</param>
@@ -1589,7 +1589,7 @@ namespace SocketProAdapter
             }
 
             /// <summary>
-            /// Start a manual transaction with a given isolation asynchronously. Note the transaction will be associated with SocketPro client message queue if available to avoid possible transaction lose
+            /// Start a manual transaction with a given isolation. Note the transaction will be associated with SocketPro client message queue if available to avoid possible transaction lose
             /// </summary>
             /// <param name="isolation">a value for transaction isolation. It defaults to tagTransactionIsolation.tiReadCommited</param>
             /// <param name="handler">a callback for tracking its response result</param>
@@ -1601,7 +1601,7 @@ namespace SocketProAdapter
             }
 
             /// <summary>
-            /// Start a manual transaction with a given isolation asynchronously. Note the transaction will be associated with SocketPro client message queue if available to avoid possible transaction lose
+            /// Start a manual transaction with a given isolation. Note the transaction will be associated with SocketPro client message queue if available to avoid possible transaction lose
             /// </summary>
             /// <param name="isolation">a value for transaction isolation. It defaults to tagTransactionIsolation.tiReadCommited</param>
             /// <param name="handler">a callback for tracking its response result</param>
@@ -1651,7 +1651,7 @@ namespace SocketProAdapter
             }
 
             /// <summary>
-            /// Notify connected remote server to close database connection string asynchronously
+            /// Notify connected remote server to close database connection string at server side
             /// </summary>
             /// <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
             public bool Close()
@@ -1660,7 +1660,7 @@ namespace SocketProAdapter
             }
 
             /// <summary>
-            /// Notify connected remote server to close database connection string asynchronously
+            /// Notify connected remote server to close database connection string at server side
             /// </summary>
             /// <param name="handler">a callback for closing result, which should be OK always as long as there is network or queue available </param>
             /// <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
@@ -1670,7 +1670,7 @@ namespace SocketProAdapter
             }
 
             /// <summary>
-            /// Notify connected remote server to close database connection string asynchronously
+            /// Notify connected remote server to close database connection string at server side
             /// </summary>
             /// <param name="handler">a callback for closing result, which should be OK always as long as there is network or queue available </param>
             /// <param name="discarded">a callback for tracking cancel or socket closed event</param>
@@ -1681,7 +1681,7 @@ namespace SocketProAdapter
             }
 
             /// <summary>
-            /// Notify connected remote server to close database connection string asynchronously
+            /// Notify connected remote server to close database connection string at server side
             /// </summary>
             /// <param name="handler">a callback for closing result, which should be OK always as long as there is network or queue available </param>
             /// <param name="discarded">a callback for tracking cancel or socket closed event</param>
@@ -1736,6 +1736,10 @@ namespace SocketProAdapter
             }
 
 #if TASKS_ENABLED
+            /// <summary>
+            /// Notify connected remote server to close database connection string at server side
+            /// </summary>
+            /// <returns>A task for an instance of error information in the future</returns>
             public virtual Task<ErrInfo> close()
             {
                 TaskCompletionSource<ErrInfo> tcs = new TaskCompletionSource<ErrInfo>();
@@ -1749,6 +1753,12 @@ namespace SocketProAdapter
                 return tcs.Task;
             }
 
+            /// <summary>
+            /// Open a database connection at server side
+            /// </summary>
+            /// <param name="conn">a database connection string. The database connection string can be null or an empty string if its server side supports global database connection string</param>
+            /// <param name="flags">a set of flags transferred to server to indicate how to build database connection at server side. It defaults to zero</param>
+            /// <returns>A task for an instance of error information in the future</returns>
             public virtual Task<ErrInfo> open(string conn, uint flags = 0)
             {
                 TaskCompletionSource<ErrInfo> tcs = new TaskCompletionSource<ErrInfo>();
@@ -1762,6 +1772,12 @@ namespace SocketProAdapter
                 return tcs.Task;
             }
 
+            /// <summary>
+            /// Send a parameterized SQL statement for preparing
+            /// </summary>
+            /// <param name="sql">a parameterized SQL statement</param>
+            /// <param name="vParameterInfo">an optional given array of parameter informations</param>
+            /// <returns>A task for an instance of error information in the future</returns>
             public virtual Task<ErrInfo> prepare(string sql, CParameterInfo[] vParameterInfo = null)
             {
                 TaskCompletionSource<ErrInfo> tcs = new TaskCompletionSource<ErrInfo>();
@@ -1775,6 +1791,11 @@ namespace SocketProAdapter
                 return tcs.Task;
             }
 
+            /// <summary>
+            /// Start a manual transaction with a given isolation. Note the transaction will be associated with SocketPro client message queue if available to avoid possible transaction lose
+            /// </summary>
+            /// <param name="isolation">a value for transaction isolation. It defaults to tagTransactionIsolation.tiReadCommited</param>
+            /// <returns>A task for an instance of error information in the future</returns>
             public virtual Task<ErrInfo> beginTrans(tagTransactionIsolation isolation = tagTransactionIsolation.tiReadCommited)
             {
                 TaskCompletionSource<ErrInfo> tcs = new TaskCompletionSource<ErrInfo>();
@@ -1788,6 +1809,11 @@ namespace SocketProAdapter
                 return tcs.Task;
             }
 
+            /// <summary>
+            ///  End a manual transaction with a given rollback plan. Note the transaction will be associated with SocketPro client message queue if available to avoid possible transaction lose
+            /// </summary>
+            /// <param name="plan">a value for computing how included transactions should been rollbacked at server side. It defaults to tagRollbackPlan.rpDefault</param>
+            /// <returns>A task for an instance of error information in the future</returns>
             public virtual Task<ErrInfo> endTrans(tagRollbackPlan plan = tagRollbackPlan.rpDefault)
             {
                 TaskCompletionSource<ErrInfo> tcs = new TaskCompletionSource<ErrInfo>();
@@ -1801,6 +1827,15 @@ namespace SocketProAdapter
                 return tcs.Task;
             }
 
+            /// <summary>
+            /// Process a complex SQL statement which may be combined with multiple basic SQL statements
+            /// </summary>
+            /// <param name="sql">a complex SQL statement which may be combined with multiple basic SQL statements</param>
+            /// <param name="row">a callback for receiving records of data. It defaults to null</param>
+            /// <param name="rh">a callback for tracking row set of header column informations. It defaults to null</param>
+            /// <param name="meta">a boolean value for better or more detailed column meta details such as unique, not null, primary key, and so on. It defaults to true</param>
+            /// <param name="lastInsertId">a boolean value for last insert record identification number. It defaults to true</param>
+            /// <returns>A task for an instance of SQL error information in the future</returns>
             public virtual Task<SQLExeInfo> execute(string sql, DRows row = null, DRowsetHeader rh = null, bool meta = true, bool lastInsertId = true)
             {
                 TaskCompletionSource<SQLExeInfo> tcs = new TaskCompletionSource<SQLExeInfo>();
@@ -1816,6 +1851,15 @@ namespace SocketProAdapter
                 return tcs.Task;
             }
 
+            /// <summary>
+            /// Process one or more sets of prepared statements with an array of parameter data
+            /// </summary>
+            /// <param name="vParam">an array of parameter data which will be bounded to previously prepared parameters</param>
+            /// <param name="row">a callback for receiving records of data. It defaults to null</param>
+            /// <param name="rh">a callback for tracking row set of header column informations. It defaults to null</param>
+            /// <param name="meta">a boolean value for better or more detailed column meta details such as unique, not null, primary key, and so on. It defaults to true</param>
+            /// <param name="lastInsertId">a boolean value for last insert record identification number. It defaults to true</param>
+            /// <returns>A task for an instance of SQL error information in the future</returns>
             public virtual Task<SQLExeInfo> execute(CDBVariantArray vParam, DRows row = null, DRowsetHeader rh = null, bool meta = true, bool lastInsertId = true)
             {
                 TaskCompletionSource<SQLExeInfo> tcs = new TaskCompletionSource<SQLExeInfo>();
@@ -1831,6 +1875,21 @@ namespace SocketProAdapter
                 return tcs.Task;
             }
 
+            /// <summary>
+            /// Execute a batch of SQL statements on one single call
+            /// </summary>
+            /// <param name="isolation">a value for manual transaction isolation. Specifically, there is no manual transaction around the batch SQL statements if it is tiUnspecified</param>
+            /// <param name="sql">a SQL statement having a batch of individual SQL statements</param>
+            /// <param name="vParam">an array of parameter data which will be bounded to previously prepared parameters. The array size can be 0 if the given batch SQL statement doesn't having any prepared statement</param>
+            /// <param name="row">a callback for receiving records of data. It defaults to null</param>
+            /// <param name="rh">a callback for tracking row set of header column informations. It defaults to null</param>
+            /// <param name="delimiter">a case-sensitive delimiter string used for separating the batch SQL statements into individual SQL statements at server side for processing, and it defaults to ";"</param>
+            /// <param name="batchHeader">a callback for tracking returning batch start error messages. It defaults to null</param>
+            /// <param name="meta">a boolean value for better or more detailed column meta details such as unique, not null, primary key, and so on. It defaults to true</param>
+            /// <param name="plan">a value for computing how included transactions should been rollbacked at server side. It defaults to tagRollbackPlan.rpDefault</param>
+            /// <param name="vPInfo">a given array of parameter informations which may be empty to some of database management systems, and it defaults to null</param>
+            /// <param name="lastInsertId">a boolean value for last insert record identification number. It defaults to true</param>
+            /// <returns>A task for an instance of SQL error information in the future</returns>
             public virtual Task<SQLExeInfo> executeBatch(tagTransactionIsolation isolation, string sql, CDBVariantArray vParam = null, DRows row = null, DRowsetHeader rh = null, string delimiter = ";", DRowsetHeader batchHeader = null, bool meta = true, tagRollbackPlan plan = tagRollbackPlan.rpDefault, CParameterInfo[] vPInfo = null, bool lastInsertId = true)
             {
                 TaskCompletionSource<SQLExeInfo> tcs = new TaskCompletionSource<SQLExeInfo>();
