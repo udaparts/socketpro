@@ -7,6 +7,10 @@ public class CAsyncServiceHandler implements AutoCloseable {
     public static final int REQUEST_CANCELED = -1002;
     public static final long DEFAULT_INTERRUPT_OPTION = 1;
 
+    public static final String SESSION_CLOSED_BEFORE_ERR_MSG = "Session already closed before sending the request";
+    public static final String SESSION_CLOSED_AFTER_ERR_MSG = "Session closed after sending the request";
+    public static final String REQUEST_CANCELED_ERR_MSG = "Request canceled";
+
     @Override
     public void close() {
         CleanCallbacks();
@@ -303,13 +307,13 @@ public class CAsyncServiceHandler implements AutoCloseable {
             @Override
             public void invoke(CAsyncServiceHandler sender, boolean discarded) {
                 if (discarded) {
-                    CSocketError ex = new CSocketError(REQUEST_CANCELED, "Request canceled", f.getReqId(), false);
+                    CSocketError ex = new CSocketError(REQUEST_CANCELED, REQUEST_CANCELED_ERR_MSG, f.getReqId(), false);
                     f.setException(ex);
                 } else {
                     CClientSocket cs = sender.getSocket();
                     int ec = cs.getErrorCode();
                     if (cs.getErrorCode() == 0) {
-                        CSocketError ex = new CSocketError(SESSION_CLOSED_AFTER, "Session closed after sending the request", f.getReqId(), false);
+                        CSocketError ex = new CSocketError(SESSION_CLOSED_AFTER, SESSION_CLOSED_AFTER_ERR_MSG, f.getReqId(), false);
                         f.setException(ex);
                     } else {
                         CSocketError ex = new CSocketError(ec, cs.getErrorMsg(), f.getReqId(), false);
@@ -379,7 +383,7 @@ public class CAsyncServiceHandler implements AutoCloseable {
         CClientSocket cs = getSocket();
         int ec = cs.getErrorCode();
         if (ec == 0) {
-            throw new CSocketError(SESSION_CLOSED_BEFORE, "Session already closed before sending the request", f.getReqId(), true);
+            throw new CSocketError(SESSION_CLOSED_BEFORE, SESSION_CLOSED_BEFORE_ERR_MSG, f.getReqId(), true);
         } else {
             throw new CSocketError(ec, cs.getErrorMsg(), f.getReqId(), true);
         }
@@ -398,7 +402,7 @@ public class CAsyncServiceHandler implements AutoCloseable {
         CClientSocket cs = getSocket();
         int ec = cs.getErrorCode();
         if (ec == 0) {
-            throw new CSocketError(SESSION_CLOSED_BEFORE, "Session already closed before sending the request", reqId, true);
+            throw new CSocketError(SESSION_CLOSED_BEFORE, SESSION_CLOSED_BEFORE_ERR_MSG, reqId, true);
         } else {
             throw new CSocketError(ec, cs.getErrorMsg(), reqId, true);
         }
