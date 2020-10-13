@@ -183,10 +183,10 @@ namespace SPA {
 #ifdef HAVE_COROUTINE
         private:
 
-            struct CAwaiter : public CWaiterBase<ErrInfo> {
+            struct Awaiter : public CWaiter<ErrInfo> {
 
-                CAwaiter(CStreamingFile* file, unsigned short reqId, CContext &ctx)
-                : CWaiterBase<ErrInfo>(reqId) {
+                Awaiter(CStreamingFile* file, unsigned short reqId, CContext &ctx)
+                : CWaiter<ErrInfo>(reqId) {
                     ctx.Discarded = get_aborted();
                     ctx.Se = get_se();
                     ctx.Download = [this](CStreamingFile* file, int res, const std::wstring & errMsg) {
@@ -220,7 +220,7 @@ namespace SPA {
                 context.Transferring = progress;
                 context.FilePath = remoteFile;
                 context.LocalFile = localFile;
-                return CAwaiter(this, SFile::idUpload, context);
+                return Awaiter(this, SFile::idUpload, context);
             }
 
             auto wait_download(const wchar_t* localFile, const wchar_t* remoteFile, DTransferring progress = nullptr, unsigned int flags = SFile::FILE_OPEN_TRUNCACTED) {
@@ -234,7 +234,7 @@ namespace SPA {
                 context.Transferring = progress;
                 context.FilePath = remoteFile;
                 context.LocalFile = localFile;
-                return CAwaiter(this, SFile::idDownload, context);
+                return Awaiter(this, SFile::idDownload, context);
             }
 #endif
 
