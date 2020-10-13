@@ -87,7 +87,7 @@ namespace SPA {
 
             /**
              * Start enqueuing message with transaction style. Currently, total size of queued messages must be less than 4 G bytes
-             * @param key An ASCII string for identifying a queue at server side
+             * @param key An ASCII string to identify a queue at server side
              * @param qt A callback for tracking returning error code, which can be one of QUEUE_OK, QUEUE_TRANS_ALREADY_STARTED, and so on
              * @param discarded A callback for tracking socket closed or request canceled event
              * @param se A callback for tracking an exception from server side
@@ -142,7 +142,7 @@ namespace SPA {
 
             /**
              * Try to close or delete a persistent queue opened at server side
-             * @param key An ASCII string for identifying a queue at server side
+             * @param key An ASCII string to identify a queue at server side
              * @param c A callback for tracking returning error code, which can be one of QUEUE_OK, QUEUE_DEQUEUING, and so on
              * @param permanent true for deleting a queue file, and false for closing a queue file
              * @param discarded A callback for tracking socket closed or request canceled event
@@ -162,8 +162,9 @@ namespace SPA {
             }
 
             /**
-             * Flush memory data into either operation system memory or hard disk, and return message count and queue file size in bytes. Note the method only returns message count and queue file size in bytes if the option is oMemoryCached
-             * @param key An ASCII string for identifying a queue at server side
+             * Flush memory data into either operation system memory or hard disk, and return message count and queue file size in bytes.
+             * Note the method only returns message count and queue file size in bytes if the option is oMemoryCached
+             * @param key An ASCII string to identify a queue at server side
              * @param f A callback for tracking returning message count and queue file size in bytes
              * @param option One of options, oMemoryCached, oSystemMemoryCached and oDiskCommitted
              * @param discarded A callback for tracking socket closed or request canceled event
@@ -206,7 +207,7 @@ namespace SPA {
 
             /**
              * Dequeue messages from a persistent message queue file at server side in batch
-             * @param key An ASCII string for identifying a queue at server side
+             * @param key An ASCII string to identify a queue at server side
              * @param d A callback for tracking remaining message count within a server queue file, queue file size in bytes, messages and bytes dequeued within this batch
              * @param timeout A server side time-out number in milliseconds
              * @param discarded A callback for tracking socket closed or request canceled event
@@ -261,7 +262,11 @@ namespace SPA {
 #else
 #ifdef HAVE_FUTURE
 #ifdef HAVE_COROUTINE
-
+            /**
+             * Start enqueuing message with transaction style. Currently, total size of queued messages must be less than 4 G bytes
+             * @param key An ASCII string to identify a queue at server side
+             * @return A waiter for returning error code, which can be one of QUEUE_OK, QUEUE_TRANS_ALREADY_STARTED, and so on
+             */
             auto wait_startQueueTrans(const char* key) {
 
                 struct Awaiter : public CWaiterBase<int> {
@@ -279,6 +284,11 @@ namespace SPA {
                 return Awaiter(this, key);
             }
 
+            /**
+             * End enqueuing messages with transaction style. Currently, total size of queued messages must be less than 4 G bytes
+             * @param rollback true for rollback, and false for committing
+             * @return A waiter for returning error code, which can be one of QUEUE_OK, QUEUE_TRANS_NOT_STARTED_YET, and so on
+             */
             auto wait_endQueueTrans(bool rollback = false) {
 
                 struct Awaiter : public CWaiterBase<int> {
@@ -296,6 +306,12 @@ namespace SPA {
                 return Awaiter(this, rollback);
             }
 
+            /**
+             * Try to close or delete a persistent queue opened at server side
+             * @param key An ASCII string to identify a queue at server side
+             * @param permanent true for deleting a queue file, and false for closing a queue file
+             * @return A future for returning error code, which can be one of QUEUE_OK, QUEUE_DEQUEUING, and so on
+             */
             auto wait_closeQueue(const char* key, bool permanent = false) {
 
                 struct Awaiter : public CWaiterBase<int> {
@@ -313,6 +329,13 @@ namespace SPA {
                 return Awaiter(this, key, permanent);
             }
 
+            /**
+             * Flush memory data into either operation system memory or hard disk, and return message count and queue file size in bytes.
+             * Note the method only returns message count and queue file size in bytes if the option is oMemoryCached
+             * @param key An ASCII string to identify a queue at server side
+             * @param option One of options, oMemoryCached, oSystemMemoryCached and oDiskCommitted
+             * @return A waiter for for returning message count and queue file size in bytes
+             */
             auto wait_flushQueue(const char* key, tagOptimistic option = oMemoryCached) {
 
                 struct Awaiter : public CWaiterBase<QueueInfo> {
@@ -331,6 +354,12 @@ namespace SPA {
                 return Awaiter(this, key, option);
             }
 
+            /**
+             * Dequeue messages from a persistent message queue file at server side in batch
+             * @param key An ASCII string to identify a queue at server side
+             * @param timeout A server side time-out number in milliseconds
+             * @return A waiter for remaining message count within a server queue file, queue file size in bytes, messages and bytes dequeued within this batch
+             */
             auto wait_dequeue(const char* key, unsigned int timeout = 0) {
 
                 struct Awaiter : public CWaiterBase<DeqInfo> {
@@ -351,6 +380,10 @@ namespace SPA {
                 return Awaiter(this, key, timeout);
             }
 
+            /**
+             * Query queue keys opened at server side
+             * @return A waiter for for an array of key names
+             */
             auto wait_getKeys() {
 
                 struct Awaiter : public CWaiterBase<std::vector < std::string>>
@@ -369,6 +402,13 @@ namespace SPA {
                 return Awaiter(this);
             }
 
+            /**
+             * Enqueue a batch of messages in one single shot
+             * @param key An ASCII string to identify a queue at server side
+             * @param buffer A pointer to messages
+             * @param size Buffer size in bytes
+             * @return A waiter for the last message index at a server queue file
+             */
             auto wait_enqueueBatch(const char* key, const unsigned char* buffer, unsigned int size) {
 
                 struct Awaiter : public CWaiterBase<UINT64> {
@@ -386,6 +426,13 @@ namespace SPA {
                 return Awaiter(this, key, buffer, size);
             }
 
+            /**
+             * Enqueue a batch of messages in one single shot
+             * @param key An ASCII string to identify a queue at server side
+             * @param q An instance of CUQueue containing a batch of messages
+             * @return A waiter for the last message index at a server queue file
+             * @remarks Calling the method will automatically set q size to zero if no exception happens
+             */
             auto wait_enqueueBatch(const char* key, CUQueue& q) {
 
                 struct Awaiter : public CWaiterBase<UINT64> {
@@ -406,8 +453,8 @@ namespace SPA {
 #endif
 
             /**
-             * Query queue keys opened at server side
-             * @param key An ASCII string for identifying a queue at server side
+             * Start enqueuing message with transaction style. Currently, total size of queued messages must be less than 4 G bytes
+             * @param key An ASCII string to identify a queue at server side
              * @return A future for returning error code, which can be one of QUEUE_OK, QUEUE_TRANS_ALREADY_STARTED, and so on
              */
             virtual std::future<int> startQueueTrans(const char *key) {
@@ -454,7 +501,7 @@ namespace SPA {
 
             /**
              * Try to close or delete a persistent queue opened at server side
-             * @param key An ASCII string for identifying a queue at server side
+             * @param key An ASCII string to identify a queue at server side
              * @param permanent true for deleting a queue file, and false for closing a queue file
              * @return A future for returning error code, which can be one of QUEUE_OK, QUEUE_DEQUEUING, and so on
              */
@@ -470,8 +517,9 @@ namespace SPA {
             }
 
             /**
-             * Flush memory data into either operation system memory or hard disk, and return message count and queue file size in bytes. Note the method only returns message count and queue file size in bytes if the option is oMemoryCached
-             * @param key An ASCII string for identifying a queue at server side
+             * Flush memory data into either operation system memory or hard disk, and return message count and queue file size in bytes.
+             * Note the method only returns message count and queue file size in bytes if the option is oMemoryCached
+             * @param key An ASCII string to identify a queue at server side
              * @param option One of options, oMemoryCached, oSystemMemoryCached and oDiskCommitted
              * @return A future for for returning message count and queue file size in bytes
              */
@@ -488,7 +536,7 @@ namespace SPA {
 
             /**
              * Dequeue messages from a persistent message queue file at server side in batch
-             * @param key An ASCII string for identifying a queue at server side
+             * @param key An ASCII string to identify a queue at server side
              * @param timeout A server side time-out number in milliseconds
              * @return A future for remaining message count within a server queue file, queue file size in bytes, messages and bytes dequeued within this batch
              */
@@ -505,7 +553,7 @@ namespace SPA {
 
             /**
              * Enqueue a batch of messages in one single shot
-             * @param key An ASCII string for identifying a queue at server side
+             * @param key An ASCII string to identify a queue at server side
              * @param buffer A pointer to messages
              * @param size Buffer size in bytes
              * @return A future for the last message index at a server queue file
@@ -523,7 +571,7 @@ namespace SPA {
 
             /**
              * Enqueue a batch of messages in one single shot
-             * @param key An ASCII string for identifying a queue at server side
+             * @param key An ASCII string to identify a queue at server side
              * @param q An instance of CUQueue containing a batch of messages
              * @return A future for the last message index at a server queue file
              * @remarks Calling the method will automatically set q size to zero if no exception happens
