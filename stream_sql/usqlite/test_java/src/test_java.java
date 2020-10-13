@@ -217,9 +217,9 @@ public class test_java {
 
     static ArrayList<UFuture<CSqlite.SQLExeInfo>> TestCreateTables(CSqlite sqlite) throws CSocketError {
         ArrayList<UFuture<CSqlite.SQLExeInfo>> v = new ArrayList<>();
-        String create_table = "CREATE TABLE COMPANY(ID INT8 PRIMARY KEY NOT NULL,name CHAR(64)NOT NULL,ADDRESS varCHAR(256)not null,Income float not null)";
+        String create_table = "CREATE TABLE IF NOT EXISTS COMPANY(ID INT8 PRIMARY KEY NOT NULL,name CHAR(64)NOT NULL,ADDRESS varCHAR(256)not null,Income float not null)";
         v.add(sqlite.execute(create_table));
-        create_table = "CREATE TABLE EMPLOYEE(EMPLOYEEID INT8 PRIMARY KEY NOT NULL unique,CompanyId INT8 not null,name NCHAR(64)NOT NULL,JoinDate DATETIME not null default(datetime('now')),IMAGE BLOB,DESCRIPTION NTEXT,Salary real,FOREIGN KEY(CompanyId)REFERENCES COMPANY(id))";
+        create_table = "CREATE TABLE IF NOT EXISTS EMPLOYEE(EMPLOYEEID INT8 PRIMARY KEY NOT NULL unique,CompanyId INT8 not null,name NCHAR(64)NOT NULL,JoinDate DATETIME not null default(datetime('now')),IMAGE BLOB,DESCRIPTION NTEXT,Salary real,FOREIGN KEY(CompanyId)REFERENCES COMPANY(id))";
         v.add(sqlite.execute(create_table));
         return v;
     }

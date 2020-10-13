@@ -257,8 +257,8 @@ class Program
     static Task<CAsyncDBHandler.SQLExeInfo>[] TestCreateTables(CSqlite sqlite)
     {
         var v = new Task<CAsyncDBHandler.SQLExeInfo>[2];
-        v[0] = sqlite.execute("CREATE TABLE COMPANY(ID INT8 PRIMARY KEY NOT NULL,name CHAR(64)NOT NULL,ADDRESS varCHAR(256)not null,Income float not null)");
-        v[1] = sqlite.execute("CREATE TABLE EMPLOYEE(EMPLOYEEID INT8 PRIMARY KEY NOT NULL unique,CompanyId INT8 not null,name NCHAR(64)NOT NULL,JoinDate DATETIME not null default(datetime('now')),IMAGE BLOB,DESCRIPTION NTEXT,Salary real,FOREIGN KEY(CompanyId)REFERENCES COMPANY(id))");
+        v[0] = sqlite.execute("CREATE TABLE IF NOT EXISTS COMPANY(ID INT8 PRIMARY KEY NOT NULL,name CHAR(64)NOT NULL,ADDRESS varCHAR(256)not null,Income float not null)");
+        v[1] = sqlite.execute("CREATE TABLE IF NOT EXISTS EMPLOYEE(EMPLOYEEID INT8 PRIMARY KEY NOT NULL unique,CompanyId INT8 not null,name NCHAR(64)NOT NULL,JoinDate DATETIME not null default(datetime('now')),IMAGE BLOB,DESCRIPTION NTEXT,Salary real,FOREIGN KEY(CompanyId)REFERENCES COMPANY(id))");
         return v;
     }
 }
