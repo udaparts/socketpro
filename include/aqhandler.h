@@ -264,10 +264,10 @@ namespace SPA {
 
             auto wait_startQueueTrans(const char* key) {
 
-                struct Awaiter : public CWaiterBase<int> {
+                struct Awaiter : public CWaiter<int> {
 
                     Awaiter(CAsyncQueue* aq, const char* key)
-                    : CWaiterBase<int>(Queue::idStartTrans) {
+                    : CWaiter<int>(Queue::idStartTrans) {
                         if (!aq->StartQueueTrans(key, [this](CAsyncQueue * aq, int errCode) {
                                 m_r = errCode;
                                 resume();
@@ -281,10 +281,10 @@ namespace SPA {
 
             auto wait_endQueueTrans(bool rollback = false) {
 
-                struct Awaiter : public CWaiterBase<int> {
+                struct Awaiter : public CWaiter<int> {
 
                     Awaiter(CAsyncQueue* aq, bool rollback)
-                    : CWaiterBase<int>(Queue::idEndTrans) {
+                    : CWaiter<int>(Queue::idEndTrans) {
                         if (!aq->EndQueueTrans(rollback, [this](CAsyncQueue * aq, int errCode) {
                                 m_r = errCode;
                                 resume();
@@ -298,10 +298,10 @@ namespace SPA {
 
             auto wait_closeQueue(const char* key, bool permanent = false) {
 
-                struct Awaiter : public CWaiterBase<int> {
+                struct Awaiter : public CWaiter<int> {
 
                     Awaiter(CAsyncQueue* aq, const char* key, bool permanent)
-                    : CWaiterBase<int>(Queue::idClose) {
+                    : CWaiter<int>(Queue::idClose) {
                         if (!aq->CloseQueue(key, [this](CAsyncQueue * aq, int errCode) {
                                 m_r = errCode;
                                 resume();
@@ -315,10 +315,10 @@ namespace SPA {
 
             auto wait_flushQueue(const char* key, tagOptimistic option = oMemoryCached) {
 
-                struct Awaiter : public CWaiterBase<QueueInfo> {
+                struct Awaiter : public CWaiter<QueueInfo> {
 
                     Awaiter(CAsyncQueue* aq, const char* key, tagOptimistic option)
-                    : CWaiterBase<QueueInfo>(Queue::idFlush) {
+                    : CWaiter<QueueInfo>(Queue::idFlush) {
                         if (!aq->FlushQueue(key, [this](CAsyncQueue * aq, UINT64 messages, UINT64 fileSize) {
                                 m_r.messages = messages;
                                 m_r.fSize = fileSize;
@@ -333,10 +333,10 @@ namespace SPA {
 
             auto wait_dequeue(const char* key, unsigned int timeout = 0) {
 
-                struct Awaiter : public CWaiterBase<DeqInfo> {
+                struct Awaiter : public CWaiter<DeqInfo> {
 
                     Awaiter(CAsyncQueue* aq, const char* key, unsigned int timeout)
-                    : CWaiterBase<DeqInfo>(Queue::idDequeue) {
+                    : CWaiter<DeqInfo>(Queue::idDequeue) {
                         if (!aq->Dequeue(key, [this](CAsyncQueue * aq, UINT64 messages, UINT64 fileSize, unsigned int msgsDequeued, unsigned int bytes) {
                                 m_r.messages = messages;
                                 m_r.fSize = fileSize;
@@ -353,11 +353,11 @@ namespace SPA {
 
             auto wait_getKeys() {
 
-                struct Awaiter : public CWaiterBase<std::vector < std::string>>
+                struct Awaiter : public CWaiter<std::vector < std::string>>
                 {
 
                     Awaiter(CAsyncQueue * aq)
-                            : CWaiterBase<std::vector < std::string >> (Queue::idGetKeys) {
+                    : CWaiter<std::vector < std::string >> (Queue::idGetKeys) {
                         if (!aq->GetKeys([this](CAsyncQueue * aq, std::vector<std::string>& v) {
                                 m_r.swap(v);
                                 resume();
@@ -371,10 +371,10 @@ namespace SPA {
 
             auto wait_enqueueBatch(const char* key, const unsigned char* buffer, unsigned int size) {
 
-                struct Awaiter : public CWaiterBase<UINT64> {
+                struct Awaiter : public CWaiter<UINT64> {
 
                     Awaiter(CAsyncQueue* aq, const char* key, const unsigned char* buffer, unsigned int size)
-                    : CWaiterBase<UINT64>(Queue::idEnqueueBatch) {
+                    : CWaiter<UINT64>(Queue::idEnqueueBatch) {
                         if (!aq->EnqueueBatch(key, buffer, size, [this](CAsyncQueue * aq, UINT64 index) {
                                 m_r = index;
                                 resume();
@@ -388,10 +388,10 @@ namespace SPA {
 
             auto wait_enqueueBatch(const char* key, CUQueue& q) {
 
-                struct Awaiter : public CWaiterBase<UINT64> {
+                struct Awaiter : public CWaiter<UINT64> {
 
                     Awaiter(CAsyncQueue* aq, const char* key, CUQueue& q)
-                    : CWaiterBase<UINT64>(Queue::idEnqueueBatch) {
+                    : CWaiter<UINT64>(Queue::idEnqueueBatch) {
                         if (!aq->EnqueueBatch(key, q.GetBuffer(), q.GetSize(), [this](CAsyncQueue * aq, UINT64 index) {
                                 m_r = index;
                                 resume();
