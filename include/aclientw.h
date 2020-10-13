@@ -1334,8 +1334,8 @@ namespace SPA {
 #else
 #ifdef HAVE_FUTURE
 #ifdef HAVE_COROUTINE
-        template<typename R> using CWaiterList = std::initializer_list<CAsyncServiceHandler::CWaiterBase<R>>;
         template<typename R> using CWaiter = CAsyncServiceHandler::CWaiterBase<R>;
+        template<typename R> using CWaiterList = std::initializer_list<CWaiter<R>>;
 #endif
 #endif
 #endif
