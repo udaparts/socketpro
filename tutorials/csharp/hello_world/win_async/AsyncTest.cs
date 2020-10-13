@@ -22,7 +22,10 @@ namespace win_async
         Task<CScopeUQueue> GetTasksInBatch()
         {
             HelloWorld hw = m_spHw.AsyncHandlers[0];
-            bool ok = hw.SendRequest(hwConst.idSleepHelloWorld, 5000, (ar) => { });
+            if(!hw.SendRequest(hwConst.idSleepHelloWorld, 5000, (ar) => { }))
+            {
+                hw.raise(hwConst.idSleepHelloWorld);
+            }
             Task<CScopeUQueue> task = hw.sendRequest(hwConst.idSayHelloHelloWorld, "Jone", "Don");
             return task;
         }
@@ -60,10 +63,17 @@ namespace win_async
             {
                 //execute one request asynchronously
                 txtRes.Text = (await GetTask()).Load<string>();
-
                 //execute multiple requests asynchronously in batch
                 txtRes.Text = (await GetTasksInBatch()).Load<string>();
                 btnTest.Enabled = true;
+            }
+            catch(CServerError ex)
+            {
+                txtRes.Text = ex.ToString();
+            }
+            catch(CSocketError ex)
+            {
+                txtRes.Text = ex.ToString();
             }
             catch (Exception err)
             {

@@ -83,12 +83,12 @@ namespace SocketProAdapter
 
         public CUQueue Load<T>(out T data)
         {
-            return m_UQueue.Load(out data);
+            return m_UQueue.Load<T>(out data);
         }
 
         public CUQueue Save<T>(T data)
         {
-            return m_UQueue.Save(data);
+            return m_UQueue.Save<T>(data);
         }
 
         public T Load<T>()

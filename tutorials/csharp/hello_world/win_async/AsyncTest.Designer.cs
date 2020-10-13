@@ -34,9 +34,9 @@
             // 
             // btnTest
             // 
-            this.btnTest.Location = new System.Drawing.Point(34, 31);
+            this.btnTest.Location = new System.Drawing.Point(8, 14);
             this.btnTest.Name = "btnTest";
-            this.btnTest.Size = new System.Drawing.Size(84, 35);
+            this.btnTest.Size = new System.Drawing.Size(71, 19);
             this.btnTest.TabIndex = 0;
             this.btnTest.Text = "Test";
             this.btnTest.UseVisualStyleBackColor = true;
@@ -44,25 +44,25 @@
             // 
             // txtRes
             // 
-            this.txtRes.Location = new System.Drawing.Point(138, 31);
+            this.txtRes.Location = new System.Drawing.Point(85, 14);
             this.txtRes.Name = "txtRes";
-            this.txtRes.Size = new System.Drawing.Size(254, 20);
+            this.txtRes.Size = new System.Drawing.Size(345, 20);
             this.txtRes.TabIndex = 1;
             // 
-            // async
+            // AsyncTest
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(428, 113);
+            this.ClientSize = new System.Drawing.Size(439, 50);
             this.Controls.Add(this.txtRes);
             this.Controls.Add(this.btnTest);
-            this.Name = "async";
+            this.MaximizeBox = false;
+            this.MinimizeBox = false;
+            this.Name = "AsyncTest";
             this.Text = "Async Wait Demo";
             this.Load += new System.EventHandler(this.async_Load);
             this.ResumeLayout(false);
             this.PerformLayout();
-
-            this.FormClosed += AsyncTest_FormClosed;
 
         }
 

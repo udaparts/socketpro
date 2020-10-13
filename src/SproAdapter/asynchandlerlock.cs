@@ -32,8 +32,13 @@ namespace SocketProAdapter
 
             public CUQueue Load<T>(out T receiver)
             {
-                m_UQueue.Load(out receiver);
+                m_UQueue.Load<T>(out receiver);
                 return m_UQueue;
+            }
+
+            public T Load<T>()
+            {
+                return m_UQueue.Load<T>();
             }
 
             public CAsyncServiceHandler AsyncServiceHandler
