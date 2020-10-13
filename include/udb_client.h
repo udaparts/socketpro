@@ -932,10 +932,10 @@ namespace SPA {
 
             auto wait_beginTrans(tagTransactionIsolation isolation = tiReadCommited) {
 
-                struct CAwaiter : public CWaiterBase<ErrInfo> {
+                struct Awaiter : public CWaiter<ErrInfo> {
 
-                    CAwaiter(CAsyncDBHandler* db, tagTransactionIsolation isolation)
-                    : CWaiterBase<ErrInfo>(idBeginTrans) {
+                    Awaiter(CAsyncDBHandler* db, tagTransactionIsolation isolation)
+                    : CWaiter<ErrInfo>(idBeginTrans) {
                         if (!db->BeginTrans(isolation, [this](CAsyncDBHandler & hDb, int res, const std::wstring & errMsg) {
                                 this->m_r.ec = res;
                                 this->m_r.em = errMsg;
@@ -945,15 +945,15 @@ namespace SPA {
                         }
                     }
                 };
-                return CAwaiter(this, isolation);
+                return Awaiter(this, isolation);
             }
 
             auto wait_endTrans(tagRollbackPlan plan = rpDefault) {
 
-                struct CAwaiter : public CWaiterBase<ErrInfo> {
+                struct Awaiter : public CWaiter<ErrInfo> {
 
-                    CAwaiter(CAsyncDBHandler* db, tagRollbackPlan plan)
-                    : CWaiterBase<ErrInfo>(idEndTrans) {
+                    Awaiter(CAsyncDBHandler* db, tagRollbackPlan plan)
+                    : CWaiter<ErrInfo>(idEndTrans) {
                         if (!db->EndTrans(plan, [this](CAsyncDBHandler & hDb, int res, const std::wstring & errMsg) {
                                 this->m_r.ec = res;
                                 this->m_r.em = errMsg;
@@ -963,15 +963,15 @@ namespace SPA {
                         }
                     }
                 };
-                return CAwaiter(this, plan);
+                return Awaiter(this, plan);
             }
 
             auto wait_close() {
 
-                struct CAwaiter : public CWaiterBase<ErrInfo> {
+                struct Awaiter : public CWaiter<ErrInfo> {
 
-                    CAwaiter(CAsyncDBHandler* db)
-                    : CWaiterBase<ErrInfo>(idClose) {
+                    Awaiter(CAsyncDBHandler* db)
+                    : CWaiter<ErrInfo>(idClose) {
                         if (!db->Close([this](CAsyncDBHandler & hDb, int res, const std::wstring & errMsg) {
                                 this->m_r.ec = res;
                                 this->m_r.em = errMsg;
@@ -981,15 +981,15 @@ namespace SPA {
                         }
                     }
                 };
-                return CAwaiter(this);
+                return Awaiter(this);
             }
 
             auto wait_prepare(const wchar_t* sql, const CParameterInfoArray& vParameterInfo = CParameterInfoArray()) {
 
-                struct CAwaiter : public CWaiterBase<ErrInfo> {
+                struct Awaiter : public CWaiter<ErrInfo> {
 
-                    CAwaiter(CAsyncDBHandler* db, const wchar_t* sql, const CParameterInfoArray& vParameterInfo)
-                    : CWaiterBase<ErrInfo>(idPrepare) {
+                    Awaiter(CAsyncDBHandler* db, const wchar_t* sql, const CParameterInfoArray& vParameterInfo)
+                    : CWaiter<ErrInfo>(idPrepare) {
                         if (!db->Prepare(sql, [this](CAsyncDBHandler & hDb, int res, const std::wstring & errMsg) {
                                 this->m_r.ec = res;
                                 this->m_r.em = errMsg;
@@ -999,15 +999,15 @@ namespace SPA {
                         }
                     }
                 };
-                return CAwaiter(this, sql, vParameterInfo);
+                return Awaiter(this, sql, vParameterInfo);
             }
 
             auto wait_prepare(const char16_t* sql, const CParameterInfoArray& vParameterInfo = CParameterInfoArray()) {
 
-                struct CAwaiter : public CWaiterBase<ErrInfo> {
+                struct Awaiter : public CWaiter<ErrInfo> {
 
-                    CAwaiter(CAsyncDBHandler* db, const char16_t* sql, const CParameterInfoArray& vParameterInfo)
-                    : CWaiterBase<ErrInfo>(idPrepare) {
+                    Awaiter(CAsyncDBHandler* db, const char16_t* sql, const CParameterInfoArray& vParameterInfo)
+                    : CWaiter<ErrInfo>(idPrepare) {
                         if (!db->Prepare(sql, [this](CAsyncDBHandler & hDb, int res, const std::wstring & errMsg) {
                                 this->m_r.ec = res;
                                 this->m_r.em = errMsg;
@@ -1017,15 +1017,15 @@ namespace SPA {
                         }
                     }
                 };
-                return CAwaiter(this, sql, vParameterInfo);
+                return Awaiter(this, sql, vParameterInfo);
             }
 
             auto wait_open(const wchar_t* db, unsigned int flags = 0) {
 
-                struct CAwaiter : public CWaiterBase<ErrInfo> {
+                struct Awaiter : public CWaiter<ErrInfo> {
 
-                    CAwaiter(CAsyncDBHandler* db, const wchar_t* database, unsigned int flags)
-                    : CWaiterBase<ErrInfo>(idOpen) {
+                    Awaiter(CAsyncDBHandler* db, const wchar_t* database, unsigned int flags)
+                    : CWaiter<ErrInfo>(idOpen) {
                         if (!db->Open(database, [this](CAsyncDBHandler & hDb, int res, const std::wstring & errMsg) {
                                 this->m_r.ec = res;
                                 this->m_r.em = errMsg;
@@ -1035,15 +1035,15 @@ namespace SPA {
                         }
                     }
                 };
-                return CAwaiter(this, db, flags);
+                return Awaiter(this, db, flags);
             }
 
             auto wait_open(const char16_t* db, unsigned int flags = 0) {
 
-                struct CAwaiter : public CWaiterBase<ErrInfo> {
+                struct Awaiter : public CWaiter<ErrInfo> {
 
-                    CAwaiter(CAsyncDBHandler* db, const char16_t* database, unsigned int flags)
-                    : CWaiterBase<ErrInfo>(idOpen) {
+                    Awaiter(CAsyncDBHandler* db, const char16_t* database, unsigned int flags)
+                    : CWaiter<ErrInfo>(idOpen) {
                         if (!db->Open(database, [this](CAsyncDBHandler & hDb, int res, const std::wstring & errMsg) {
                                 this->m_r.ec = res;
                                 this->m_r.em = errMsg;
@@ -1053,15 +1053,15 @@ namespace SPA {
                         }
                     }
                 };
-                return CAwaiter(this, db, flags);
+                return Awaiter(this, db, flags);
             }
 
             auto wait_execute(CDBVariantArray& vParam, const DRows& row = nullptr, const DRowsetHeader& rh = nullptr, bool meta = true, bool lastInsertId = true) {
 
-                struct CAwaiter : public CWaiterBase<SQLExeInfo> {
+                struct Awaiter : public CWaiter<SQLExeInfo> {
 
-                    CAwaiter(CAsyncDBHandler* db, CDBVariantArray& vParam, const DRows& row, const DRowsetHeader& rh, bool meta, bool lastInsertId)
-                    : CWaiterBase<SQLExeInfo>(idExecuteParameters) {
+                    Awaiter(CAsyncDBHandler* db, CDBVariantArray& vParam, const DRows& row, const DRowsetHeader& rh, bool meta, bool lastInsertId)
+                    : CWaiter<SQLExeInfo>(idExecuteParameters) {
                         if (!db->Execute(vParam, [this](CAsyncDBHandler & dbHandler, int res, const std::wstring & errMsg, INT64 affected, UINT64 fail_ok, CDBVariant & vtId) {
                                 this->m_r.ec = res;
                                 this->m_r.em = errMsg;
@@ -1075,15 +1075,15 @@ namespace SPA {
                         }
                     }
                 };
-                return CAwaiter(this, vParam, row, rh, meta, lastInsertId);
+                return Awaiter(this, vParam, row, rh, meta, lastInsertId);
             }
 
             auto wait_execute(const wchar_t *sql, const DRows& row = nullptr, const DRowsetHeader& rh = nullptr, bool meta = true, bool lastInsertId = true) {
 
-                struct CAwaiter : public CWaiterBase<SQLExeInfo> {
+                struct Awaiter : public CWaiter<SQLExeInfo> {
 
-                    CAwaiter(CAsyncDBHandler* db, const wchar_t* sql, const DRows& row, const DRowsetHeader& rh, bool meta, bool lastInsertId)
-                    : CWaiterBase<SQLExeInfo>(idExecute) {
+                    Awaiter(CAsyncDBHandler* db, const wchar_t* sql, const DRows& row, const DRowsetHeader& rh, bool meta, bool lastInsertId)
+                    : CWaiter<SQLExeInfo>(idExecute) {
                         if (!db->Execute(sql, [this](CAsyncDBHandler & dbHandler, int res, const std::wstring & errMsg, INT64 affected, UINT64 fail_ok, CDBVariant & vtId) {
                                 this->m_r.ec = res;
                                 this->m_r.em = errMsg;
@@ -1097,15 +1097,15 @@ namespace SPA {
                         }
                     }
                 };
-                return CAwaiter(this, sql, row, rh, meta, lastInsertId);
+                return Awaiter(this, sql, row, rh, meta, lastInsertId);
             }
 
             auto wait_execute(const char16_t* sql, const DRows& row = nullptr, const DRowsetHeader& rh = nullptr, bool meta = true, bool lastInsertId = true) {
 
-                struct CAwaiter : public CWaiterBase<SQLExeInfo> {
+                struct Awaiter : public CWaiter<SQLExeInfo> {
 
-                    CAwaiter(CAsyncDBHandler* db, const char16_t* sql, const DRows& row, const DRowsetHeader& rh, bool meta, bool lastInsertId)
-                    : CWaiterBase<SQLExeInfo>(idExecute) {
+                    Awaiter(CAsyncDBHandler* db, const char16_t* sql, const DRows& row, const DRowsetHeader& rh, bool meta, bool lastInsertId)
+                    : CWaiter<SQLExeInfo>(idExecute) {
                         if (!db->Execute(sql, [this](CAsyncDBHandler & dbHandler, int res, const std::wstring & errMsg, INT64 affected, UINT64 fail_ok, CDBVariant & vtId) {
                                 this->m_r.ec = res;
                                 this->m_r.em = errMsg;
@@ -1119,19 +1119,19 @@ namespace SPA {
                         }
                     }
                 };
-                return CAwaiter(this, sql, row, rh, meta, lastInsertId);
+                return Awaiter(this, sql, row, rh, meta, lastInsertId);
             }
 
             auto wait_executeBatch(tagTransactionIsolation isolation, const wchar_t* sql, CDBVariantArray& vParam = CDBVariantArray(),
                     const DRows& row = nullptr, const DRowsetHeader& rh = nullptr, const wchar_t* delimiter = L";", const DRowsetHeader& batchHeader = nullptr,
                     bool meta = true, tagRollbackPlan plan = rpDefault, const CParameterInfoArray& vPInfo = CParameterInfoArray(), bool lastInsertId = true) {
 
-                struct CAwaiter : public CWaiterBase<SQLExeInfo> {
+                struct Awaiter : public CWaiter<SQLExeInfo> {
 
-                    CAwaiter(CAsyncDBHandler* db, tagTransactionIsolation isolation, const wchar_t* sql, CDBVariantArray& vParam,
+                    Awaiter(CAsyncDBHandler* db, tagTransactionIsolation isolation, const wchar_t* sql, CDBVariantArray& vParam,
                             const DRows& row, const DRowsetHeader& rh, const wchar_t* delimiter, const DRowsetHeader& batchHeader,
                             bool meta, tagRollbackPlan plan, const CParameterInfoArray& vPInfo, bool lastInsertId)
-                    : CWaiterBase<SQLExeInfo>(idExecuteBatch) {
+                    : CWaiter<SQLExeInfo>(idExecuteBatch) {
                         if (!db->ExecuteBatch(isolation, sql, vParam, [this](CAsyncDBHandler & dbHandler, int res, const std::wstring & errMsg, INT64 affected, UINT64 fail_ok, CDBVariant & vtId) {
                                 this->m_r.ec = res;
                                 this->m_r.em = errMsg;
@@ -1145,19 +1145,19 @@ namespace SPA {
                         }
                     }
                 };
-                return CAwaiter(this, isolation, sql, vParam, row, rh, delimiter, batchHeader, meta, plan, vPInfo, lastInsertId);
+                return Awaiter(this, isolation, sql, vParam, row, rh, delimiter, batchHeader, meta, plan, vPInfo, lastInsertId);
             }
 
             auto wait_executeBatch(tagTransactionIsolation isolation, const char16_t* sql, CDBVariantArray& vParam = CDBVariantArray(),
                     const DRows& row = nullptr, const DRowsetHeader& rh = nullptr, const char16_t* delimiter = u";", const DRowsetHeader& batchHeader = nullptr,
                     bool meta = true, tagRollbackPlan plan = rpDefault, const CParameterInfoArray& vPInfo = CParameterInfoArray(), bool lastInsertId = true) {
 
-                struct CAwaiter : public CWaiterBase<SQLExeInfo> {
+                struct Awaiter : public CWaiter<SQLExeInfo> {
 
-                    CAwaiter(CAsyncDBHandler* db, tagTransactionIsolation isolation, const char16_t* sql, CDBVariantArray& vParam,
+                    Awaiter(CAsyncDBHandler* db, tagTransactionIsolation isolation, const char16_t* sql, CDBVariantArray& vParam,
                             const DRows& row, const DRowsetHeader& rh, const char16_t* delimiter, const DRowsetHeader& batchHeader,
                             bool meta, tagRollbackPlan plan, const CParameterInfoArray& vPInfo, bool lastInsertId)
-                    : CWaiterBase<SQLExeInfo>(idExecuteBatch) {
+                    : CWaiter<SQLExeInfo>(idExecuteBatch) {
                         if (!db->ExecuteBatch(isolation, sql, vParam, [this](CAsyncDBHandler & dbHandler, int res, const std::wstring & errMsg, INT64 affected, UINT64 fail_ok, CDBVariant & vtId) {
                                 this->m_r.ec = res;
                                 this->m_r.em = errMsg;
@@ -1171,7 +1171,7 @@ namespace SPA {
                         }
                     }
                 };
-                return CAwaiter(this, isolation, sql, vParam, row, rh, delimiter, batchHeader, meta, plan, vPInfo, lastInsertId);
+                return Awaiter(this, isolation, sql, vParam, row, rh, delimiter, batchHeader, meta, plan, vPInfo, lastInsertId);
             }
 #endif
 

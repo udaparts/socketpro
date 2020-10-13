@@ -23,7 +23,7 @@ namespace SPA {
             typedef std::function<void(CAsyncQueue *aq, std::vector<std::string>& v) > DGetKeys;
             typedef std::function<void(CAsyncQueue *aq, UINT64 messageCount, UINT64 fileSize) > DFlush;
             typedef std::function<void(CAsyncQueue *aq, UINT64 indexMessage) > DEnqueue;
-            typedef std::function<void(CAsyncQueue *aq, int errCode) > DClose;
+            typedef DQueueTrans DClose;
             typedef std::function<void(CAsyncQueue *aq, UINT64 messageCount, UINT64 fileSize, unsigned int messagesDequeuedInBatch, unsigned int bytesDequeuedInBatch) > DDequeue;
 
         public:
