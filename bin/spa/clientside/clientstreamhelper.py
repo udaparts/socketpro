@@ -216,7 +216,7 @@ class CStreamingFile(CAsyncServiceHandler):
                             q.SaveString(it.FilePath).SaveUInt(it.Flags).SaveULong(it.FileSize)
                             if not self.SendRequest(CStreamingFile.idUpload, q, None, it.Discarded, it.Se):
                                 it.ErrCode = CStreamingFile.SESSION_CLOSED_BEFORE
-                                it.ErrMsg = CStreamingFile.SESSION_CLOSED_BEFORE_ERRO_MSG
+                                it.ErrMsg = CStreamingFile.SESSION_CLOSED_BEFORE_ERR_MSG
                                 if it.Fut:
                                     if not it.Fut.done():
                                         ec = self.Socket.ErrCode
@@ -240,7 +240,7 @@ class CStreamingFile(CAsyncServiceHandler):
                             q.SaveString(it.LocalFile).SaveString(it.FilePath).SaveUInt(it.Flags).SaveLong(it.InitSize)
                             if not self.SendRequest(CStreamingFile.idDownload, q, None, it.Discarded, it.Se):
                                 it.ErrCode = CStreamingFile.SESSION_CLOSED_BEFORE
-                                it.ErrMsg = CStreamingFile.SESSION_CLOSED_BEFORE_ERRO_MSG
+                                it.ErrMsg = CStreamingFile.SESSION_CLOSED_BEFORE_ERR_MSG
                                 if it.Fut:
                                     if not it.Fut.done():
                                         ec = self.Socket.ErrCode

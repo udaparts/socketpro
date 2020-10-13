@@ -24,9 +24,9 @@ namespace SPA {
         CAsyncServiceHandler::DServerException CAsyncServiceHandler::NULL_SE;
         CAsyncServiceHandler::DDiscarded CAsyncServiceHandler::NULL_ABORTED;
 
-        const wchar_t* const CAsyncServiceHandler::SESSION_CLOSED_BEFORE_ERRO_MSG = L"Session already closed before sending the request";
-        const wchar_t* const CAsyncServiceHandler::SESSION_CLOSED_AFTER_ERRO_MSG = L"Session closed after sending the request";
-        const wchar_t* const CAsyncServiceHandler::REQUEST_CANCELED_ERRO_MSG = L"Request canceled";
+        const wchar_t* const CAsyncServiceHandler::SESSION_CLOSED_BEFORE_ERR_MSG = L"Session already closed before sending the request";
+        const wchar_t* const CAsyncServiceHandler::SESSION_CLOSED_AFTER_ERR_MSG = L"Session closed after sending the request";
+        const wchar_t* const CAsyncServiceHandler::REQUEST_CANCELED_ERR_MSG = L"Request canceled";
 
         bool CAsyncServiceHandler::CRRImpl::Invoke(CAsyncServiceHandler *ash, unsigned short reqId, CUQueue & buff) {
             CSpinAutoLock al(*m_cs);

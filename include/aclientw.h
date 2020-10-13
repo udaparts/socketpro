@@ -766,9 +766,9 @@ namespace SPA {
             const static int SESSION_CLOSED_BEFORE = -1001;
             const static int REQUEST_CANCELED = -1002;
             const static UINT64 DEFAULT_INTERRUPT_OPTION = 1;
-            static const wchar_t* const SESSION_CLOSED_BEFORE_ERRO_MSG;
-            static const wchar_t* const SESSION_CLOSED_AFTER_ERRO_MSG;
-            static const wchar_t* const REQUEST_CANCELED_ERRO_MSG;
+            static const wchar_t* const SESSION_CLOSED_BEFORE_ERR_MSG;
+            static const wchar_t* const SESSION_CLOSED_AFTER_ERR_MSG;
+            static const wchar_t* const REQUEST_CANCELED_ERR_MSG;
 
             virtual ~CAsyncServiceHandler();
 
@@ -919,7 +919,7 @@ namespace SPA {
                     std::string em = cs->GetErrorMsg();
                     throw CSocketError(ec, Utilities::ToWide(em).c_str(), req_id, true);
                 } else {
-                    throw CSocketError(SESSION_CLOSED_BEFORE, SESSION_CLOSED_BEFORE_ERRO_MSG, req_id, true);
+                    throw CSocketError(SESSION_CLOSED_BEFORE, SESSION_CLOSED_BEFORE_ERR_MSG, req_id, true);
                 }
             }
 
@@ -963,7 +963,7 @@ namespace SPA {
                 return [prom, req_id](CAsyncServiceHandler *h, bool canceled) {
                     try {
                         if (canceled) {
-                            prom->set_exception(std::make_exception_ptr(CSocketError(REQUEST_CANCELED, REQUEST_CANCELED_ERRO_MSG, req_id, false)));
+                            prom->set_exception(std::make_exception_ptr(CSocketError(REQUEST_CANCELED, REQUEST_CANCELED_ERR_MSG, req_id, false)));
                         } else {
                             CClientSocket* cs = h->GetSocket();
                             int ec = cs->GetErrorCode();
@@ -971,7 +971,7 @@ namespace SPA {
                                 std::string em = cs->GetErrorMsg();
                                 prom->set_exception(std::make_exception_ptr(CSocketError(ec, Utilities::ToWide(em).c_str(), req_id, false)));
                             } else {
-                                prom->set_exception(std::make_exception_ptr(CSocketError(SESSION_CLOSED_AFTER, SESSION_CLOSED_AFTER_ERRO_MSG, req_id, false)));
+                                prom->set_exception(std::make_exception_ptr(CSocketError(SESSION_CLOSED_AFTER, SESSION_CLOSED_AFTER_ERR_MSG, req_id, false)));
                             }
                         }
                     } catch (std::future_error&) {
@@ -1088,7 +1088,7 @@ namespace SPA {
                     DDiscarded get_aborted() noexcept {
                         return [this](CAsyncServiceHandler* h, bool canceled) {
                             if (canceled) {
-                                m_ex = std::make_exception_ptr(CSocketError(REQUEST_CANCELED, REQUEST_CANCELED_ERRO_MSG, m_reqId, false));
+                                m_ex = std::make_exception_ptr(CSocketError(REQUEST_CANCELED, REQUEST_CANCELED_ERR_MSG, m_reqId, false));
                             } else {
                                 CClientSocket* cs = h->GetSocket();
                                 int ec = cs->GetErrorCode();
@@ -1096,7 +1096,7 @@ namespace SPA {
                                     std::string em = cs->GetErrorMsg();
                                     m_ex = std::make_exception_ptr(CSocketError(ec, Utilities::ToWide(em).c_str(), m_reqId, false));
                                 } else {
-                                    m_ex = std::make_exception_ptr(CSocketError(SESSION_CLOSED_AFTER, SESSION_CLOSED_AFTER_ERRO_MSG, m_reqId, false));
+                                    m_ex = std::make_exception_ptr(CSocketError(SESSION_CLOSED_AFTER, SESSION_CLOSED_AFTER_ERR_MSG, m_reqId, false));
                                 }
                             }
                             resume();
