@@ -89,6 +89,9 @@ class CAsyncServiceHandler(object):
     SESSION_CLOSED_AFTER = -1000
     SESSION_CLOSED_BEFORE = -1001
     REQUEST_CANCELED = -1002
+    SESSION_CLOSED_BEFORE_ERRO_MSG = 'Session already closed before sending the request'
+    SESSION_CLOSED_AFTER_ERRO_MSG = 'Session closed after sending the request'
+    REQUEST_CANCELED_ERRO_MSG = 'Request canceled'
 
     def get_aborted(fut, reqId):
         if reqId <= 0:
@@ -98,7 +101,8 @@ class CAsyncServiceHandler(object):
             if fut.done(): return
             try:
                 if canceled:
-                    fut.set_exception(CSocketError(CAsyncServiceHandler.REQUEST_CANCELED, 'Request canceled', reqId, False))
+                    fut.set_exception(CSocketError(CAsyncServiceHandler.REQUEST_CANCELED,
+                                                   CAsyncServiceHandler.REQUEST_CANCELED_ERRO_MSG, reqId, False))
                 else:
                     cs = ah.Socket
                     ec = cs.ErrCode
@@ -106,7 +110,7 @@ class CAsyncServiceHandler(object):
                         fut.set_exception(CSocketError(ec, cs.ErrMsg, reqId, False))
                     else:
                         fut.set_exception(CSocketError(CAsyncServiceHandler.SESSION_CLOSED_AFTER,
-                                                  'Session closed after sending the request', reqId, False))
+                                                  CAsyncServiceHandler.SESSION_CLOSED_AFTER_ERRO_MSG, reqId, False))
             except Exception as ex:
                 pass
         return cb_aborted
