@@ -188,10 +188,11 @@ namespace SPA {
                 : CWaiter<ErrInfo>(reqId) {
                     ctx.Discarded = get_aborted();
                     ctx.Se = get_se();
-                    ctx.Download = [this](CStreamingFile* file, int res, const std::wstring & errMsg) {
-                        m_r.ec = res;
-                        m_r.em = errMsg;
-                        resume();
+                    auto& wc = m_wc;
+                    ctx.Download = [wc](CStreamingFile* file, int res, const std::wstring & errMsg) {
+                        wc->m_r.ec = res;
+                        wc->m_r.em = errMsg;
+                        wc->resume();
                     };
                     CAutoLock al(file->m_csFile);
                     file->m_vContext.push_back(ctx);

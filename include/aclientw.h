@@ -1148,7 +1148,7 @@ namespace SPA {
 
                 RWaiter(CAsyncServiceHandler* ash, unsigned short reqId, const unsigned char* pBuffer, unsigned int size)
                 : CWaiterBase<R>(reqId) {
-                    auto& wc = m_wc;
+                    auto& wc = this->m_wc;
                     if (!ash->SendRequest(reqId, pBuffer, size, [wc](CAsyncResult & ar) {
                         try {
                             ar >> wc->m_r;

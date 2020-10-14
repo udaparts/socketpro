@@ -1033,7 +1033,7 @@ namespace SPA {
             private:
 
                 DExecuteResult get_rh() {
-                    auto &wc = m_wc;
+                    auto& wc = this->m_wc;
                     return [wc](CAsyncDBHandler& dbHandler, int res, const std::wstring& errMsg, INT64 affected, UINT64 fail_ok, CDBVariant & vtId) {
                         wc->m_r.ec = res;
                         wc->m_r.em = errMsg;

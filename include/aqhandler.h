@@ -289,9 +289,10 @@ namespace SPA {
             private:
 
                 DClose get_rh() {
-                    return [this](CAsyncQueue * aq, int errCode) {
-                        m_r = errCode;
-                        resume();
+                    auto& wc = m_wc;
+                    return [wc](CAsyncQueue * aq, int errCode) {
+                        wc->m_r = errCode;
+                        wc->resume();
                     };
                 }
             };
@@ -328,10 +329,11 @@ namespace SPA {
 
                 InfoWaiter(CAsyncQueue* aq, const char* key, tagOptimistic option)
                 : CWaiter<QueueInfo>(Queue::idFlush) {
-                    if (!aq->FlushQueue(key, [this](CAsyncQueue * aq, UINT64 messages, UINT64 fileSize) {
-                            m_r.messages = messages;
-                            m_r.fSize = fileSize;
-                            resume();
+                    auto& wc = m_wc;
+                    if (!aq->FlushQueue(key, [wc](CAsyncQueue * aq, UINT64 messages, UINT64 fileSize) {
+                            wc->m_r.messages = messages;
+                            wc->m_r.fSize = fileSize;
+                            wc->resume();
                         }, option, get_aborted(), get_se())) {
                         aq->raise(Queue::idFlush);
                     }
@@ -353,12 +355,13 @@ namespace SPA {
 
                 DeqWaiter(CAsyncQueue* aq, const char* key, unsigned int timeout)
                 : CWaiter<DeqInfo>(Queue::idDequeue) {
-                    if (!aq->Dequeue(key, [this](CAsyncQueue * aq, UINT64 messages, UINT64 fileSize, unsigned int msgsDequeued, unsigned int bytes) {
-                            m_r.messages = messages;
-                            m_r.fSize = fileSize;
-                            m_r.DeMessages = msgsDequeued;
-                            m_r.DeBytes = bytes;
-                            resume();
+                    auto& wc = m_wc;
+                    if (!aq->Dequeue(key, [wc](CAsyncQueue * aq, UINT64 messages, UINT64 fileSize, unsigned int msgsDequeued, unsigned int bytes) {
+                            wc->m_r.messages = messages;
+                            wc->m_r.fSize = fileSize;
+                            wc->m_r.DeMessages = msgsDequeued;
+                            wc->m_r.DeBytes = bytes;
+                            wc->resume();
                         }, timeout, get_aborted(), get_se())) {
                         aq->raise(Queue::idDequeue);
                     }
@@ -379,9 +382,10 @@ namespace SPA {
             {
 
                 KeysWaiter(CAsyncQueue * aq) : CWaiter<std::vector < std::string >> (Queue::idGetKeys) {
-                    if (!aq->GetKeys([this](CAsyncQueue * aq, std::vector<std::string>& v) {
-                            m_r.swap(v);
-                            resume();
+                    auto& wc = m_wc;
+                    if (!aq->GetKeys([wc](CAsyncQueue * aq, std::vector<std::string>& v) {
+                            wc->m_r.swap(v);
+                            wc->resume();
                         }, get_aborted(), get_se())) {
                         aq->raise(Queue::idGetKeys);
                     }
@@ -430,9 +434,10 @@ namespace SPA {
             private:
 
                 DEnqueue get_rh() {
-                    return [this](CAsyncQueue * aq, UINT64 index) {
-                        m_r = index;
-                        resume();
+                    auto& wc = m_wc;
+                    return [wc](CAsyncQueue * aq, UINT64 index) {
+                        wc->m_r = index;
+                        wc->resume();
                     };
                 }
             };
