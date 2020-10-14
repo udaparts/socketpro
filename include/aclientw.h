@@ -1076,29 +1076,8 @@ namespace SPA {
                         }
                     }
 
-                    DServerException get_se() noexcept {
-                        return [this](CAsyncServiceHandler* ash, unsigned short reqId, const wchar_t* errMsg, const char* errWhere, unsigned int errCode) {
-                            m_ex = std::make_exception_ptr(CServerError(errCode, errMsg, errWhere, reqId));
-                            resume();
-                        };
-                    }
-
-                    DDiscarded get_aborted() noexcept {
-                        return [this](CAsyncServiceHandler* h, bool canceled) {
-                            if (canceled) {
-                                m_ex = std::make_exception_ptr(CSocketError(REQUEST_CANCELED, REQUEST_CANCELED_ERR_MSG, m_reqId, false));
-                            } else {
-                                CClientSocket* cs = h->GetSocket();
-                                int ec = cs->GetErrorCode();
-                                if (ec) {
-                                    std::string em = cs->GetErrorMsg();
-                                    m_ex = std::make_exception_ptr(CSocketError(ec, Utilities::ToWide(em).c_str(), m_reqId, false));
-                                } else {
-                                    m_ex = std::make_exception_ptr(CSocketError(SESSION_CLOSED_AFTER, SESSION_CLOSED_AFTER_ERR_MSG, m_reqId, false));
-                                }
-                            }
-                            resume();
-                        };
+                    unsigned short get_id() {
+                        return m_reqId;
                     }
 
                     R m_r;
@@ -1112,27 +1091,7 @@ namespace SPA {
                 };
 
                 CWaiterBase(unsigned short reqId)
-                : m_wc(new CWaiterContext(reqId)), m_r(m_wc->m_r), m_ex(m_wc->m_ex) {
-                }
-
-                CWaiterBase(const CWaiterBase& wb) : m_wc(wb.m_wc), m_r(wb.m_r), m_ex(wb.m_ex) {
-                }
-
-                CWaiterBase(CWaiterBase&& wb) : m_wc(wb.m_wc), m_r(wb.m_r), m_ex(wb.m_ex) {
-                }
-
-                CWaiterBase& operator=(const CWaiterBase& wb) noexcept {
-                    if (this != &wb) {
-                        m_wc = wb.m_wc;
-                    }
-                    return *this;
-                }
-
-                CWaiterBase& operator=(CWaiterBase&& wb) noexcept {
-                    if (this != &wb) {
-                        m_wc = wb.m_wc; //copy shared_ptr only
-                    }
-                    return *this;
+                : m_wc(new CWaiterContext(reqId)) {
                 }
 
                 bool await_suspend(CRHandle rh) noexcept {
@@ -1140,10 +1099,10 @@ namespace SPA {
                 }
 
                 R await_resume() {
-                    if (m_ex) {
-                        std::rethrow_exception(m_ex);
+                    if (m_wc->m_ex) {
+                        std::rethrow_exception(m_wc->m_ex);
                     }
-                    return std::move(m_r);
+                    return std::move(m_wc->m_r);
                 }
 
                 bool await_ready() noexcept {
@@ -1152,24 +1111,36 @@ namespace SPA {
 
             protected:
 
-                void resume() noexcept {
-                    m_wc->resume();
-                }
-
                 DServerException get_se() noexcept {
-                    return m_wc->get_se();
+                    auto& wc = m_wc;
+                    return [wc](CAsyncServiceHandler* ash, unsigned short reqId, const wchar_t* errMsg, const char* errWhere, unsigned int errCode) {
+                        wc->m_ex = std::make_exception_ptr(CServerError(errCode, errMsg, errWhere, reqId));
+                        wc->resume();
+                    };
                 }
 
                 DDiscarded get_aborted() noexcept {
-                    return m_wc->get_aborted();
+                    auto& wc = m_wc;
+                    return [wc](CAsyncServiceHandler* h, bool canceled) {
+                        if (canceled) {
+                            wc->m_ex = std::make_exception_ptr(CSocketError(REQUEST_CANCELED, REQUEST_CANCELED_ERR_MSG, wc->get_id(), false));
+                        }
+                        else {
+                            CClientSocket* cs = h->GetSocket();
+                            int ec = cs->GetErrorCode();
+                            if (ec) {
+                                std::string em = cs->GetErrorMsg();
+                                wc->m_ex = std::make_exception_ptr(CSocketError(ec, Utilities::ToWide(em).c_str(), wc->get_id(), false));
+                            }
+                            else {
+                                wc->m_ex = std::make_exception_ptr(CSocketError(SESSION_CLOSED_AFTER, SESSION_CLOSED_AFTER_ERR_MSG, wc->get_id(), false));
+                            }
+                        }
+                        wc->resume();
+                    };
                 }
 
-            //private:
                 std::shared_ptr<CWaiterContext> m_wc;
-
-            protected:
-                R &m_r;
-                std::exception_ptr &m_ex;
             };
 
             template<typename R>
@@ -1177,13 +1148,14 @@ namespace SPA {
 
                 RWaiter(CAsyncServiceHandler* ash, unsigned short reqId, const unsigned char* pBuffer, unsigned int size)
                 : CWaiterBase<R>(reqId) {
-                    if (!ash->SendRequest(reqId, pBuffer, size, [this](CAsyncResult & ar) {
+                    auto& wc = m_wc;
+                    if (!ash->SendRequest(reqId, pBuffer, size, [wc](CAsyncResult & ar) {
                         try {
-                            ar >> this->m_r;
+                            ar >> wc->m_r;
                         } catch (...) {
-                            this->m_ex = std::current_exception();
+                            wc->m_ex = std::current_exception();
                         }
-                        this->resume();
+                        wc->resume();
                     }, this->get_aborted(), this->get_se())) {
                         ash->raise(reqId);
                     }
@@ -1211,9 +1183,10 @@ namespace SPA {
 
                 BWaiter(CAsyncServiceHandler* ash, unsigned short reqId, const unsigned char* pBuffer, unsigned int size)
                 : CWaiterBase<CScopeUQueue>(reqId) {
-                    if (!ash->SendRequest(reqId, pBuffer, size, [this](CAsyncResult & ar) {
-                        m_r->Swap(ar.UQueue);
-                        resume();
+                    auto& wc = m_wc;
+                    if (!ash->SendRequest(reqId, pBuffer, size, [wc](CAsyncResult & ar) {
+                        wc->m_r->Swap(ar.UQueue);
+                        wc->resume();
                     }, get_aborted(), get_se())) {
                         ash->raise(reqId);
                     }
