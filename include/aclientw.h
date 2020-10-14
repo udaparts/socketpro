@@ -929,7 +929,7 @@ namespace SPA {
                 std::shared_ptr<std::promise<CScopeUQueue> > prom(new std::promise<CScopeUQueue>);
                 DDiscarded discarded = get_aborted(prom, reqId);
                 DServerException se = get_se(prom);
-                DResultHandler rh = [prom](CAsyncResult & ar) {
+                if (!SendRequest(reqId, pBuffer, size, [prom](CAsyncResult & ar) {
                     CScopeUQueue sb;
                     sb->Swap(ar.UQueue);
                     try {
@@ -937,8 +937,7 @@ namespace SPA {
                     } catch (std::future_error&) {
                         //ignore it
                     }
-                };
-                if (!SendRequest(reqId, pBuffer, size, rh, discarded, se)) {
+                }, discarded, se)) {
                     raise(reqId);
                 }
                 return prom->get_future();
@@ -996,7 +995,7 @@ namespace SPA {
                 std::shared_ptr<std::promise<R> > prom(new std::promise<R>);
                 DDiscarded discarded = get_aborted(prom, reqId);
                 DServerException se = get_se(prom);
-                DResultHandler rh = [prom](CAsyncResult & ar) {
+                if (!SendRequest(reqId, pBuffer, size, [prom](CAsyncResult & ar) {
                     try {
                         R r;
                         ar >> r;
@@ -1006,8 +1005,7 @@ namespace SPA {
                     } catch (...) {
                         prom->set_exception(std::current_exception());
                     }
-                };
-                if (!SendRequest(reqId, pBuffer, size, rh, discarded, se)) {
+                }, discarded, se)) {
                     raise(reqId);
                 }
                 return prom->get_future();
@@ -1179,15 +1177,14 @@ namespace SPA {
 
                 RWaiter(CAsyncServiceHandler* ash, unsigned short reqId, const unsigned char* pBuffer, unsigned int size)
                 : CWaiterBase<R>(reqId) {
-                    DResultHandler rh = [this](CAsyncResult & ar) {
+                    if (!ash->SendRequest(reqId, pBuffer, size, [this](CAsyncResult & ar) {
                         try {
                             ar >> this->m_r;
                         } catch (...) {
                             this->m_ex = std::current_exception();
                         }
                         this->resume();
-                    };
-                    if (!ash->SendRequest(reqId, pBuffer, size, rh, this->get_aborted(), this->get_se())) {
+                    }, this->get_aborted(), this->get_se())) {
                         ash->raise(reqId);
                     }
                 }
@@ -1214,11 +1211,10 @@ namespace SPA {
 
                 BWaiter(CAsyncServiceHandler* ash, unsigned short reqId, const unsigned char* pBuffer, unsigned int size)
                 : CWaiterBase<CScopeUQueue>(reqId) {
-                    DResultHandler rh = [this](CAsyncResult & ar) {
+                    if (!ash->SendRequest(reqId, pBuffer, size, [this](CAsyncResult & ar) {
                         m_r->Swap(ar.UQueue);
                         resume();
-                    };
-                    if (!ash->SendRequest(reqId, pBuffer, size, rh, get_aborted(), get_se())) {
+                    }, get_aborted(), get_se())) {
                         ash->raise(reqId);
                     }
                 }
@@ -1341,13 +1337,34 @@ namespace SPA {
         template<typename R> using CWaiter = CAsyncServiceHandler::CWaiterBase<R>;
         template<typename R> using CWaiterList = std::initializer_list<CWaiter<R>>;
 #if HAVE_COROUTINE > 1
+
         struct CAwTask {
+
             struct promise_type {
-                CAwTask get_return_object() { return {}; }
-                std::suspend_never initial_suspend() { return {}; }
-                std::suspend_never final_suspend() { return {}; }
-                void return_void() {}
-                void unhandled_exception() {}
+
+                CAwTask get_return_object() {
+                    return
+                    {
+                    };
+                }
+
+                std::suspend_never initial_suspend() {
+                    return
+                    {
+                    };
+                }
+
+                std::suspend_never final_suspend() {
+                    return
+                    {
+                    };
+                }
+
+                void return_void() {
+                }
+
+                void unhandled_exception() {
+                }
             };
         };
 #else

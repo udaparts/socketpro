@@ -262,7 +262,7 @@ namespace SPA {
 #else
 #ifdef HAVE_FUTURE
 #ifdef HAVE_COROUTINE
-            
+
             struct QWaiter : public CWaiter<int> {
 
                 QWaiter(CAsyncQueue* aq, const char* key)
@@ -271,20 +271,23 @@ namespace SPA {
                         aq->raise(Queue::idStartTrans);
                     }
                 }
+
                 QWaiter(CAsyncQueue* aq, bool rollback)
                 : CWaiter<int>(Queue::idEndTrans) {
                     if (!aq->EndQueueTrans(rollback, get_rh(), get_aborted(), get_se())) {
                         aq->raise(Queue::idEndTrans);
                     }
                 }
+
                 QWaiter(CAsyncQueue* aq, const char* key, bool permanent)
                 : CWaiter<int>(Queue::idClose) {
                     if (!aq->CloseQueue(key, get_rh(), permanent, get_aborted(), get_se())) {
                         aq->raise(Queue::idClose);
                     }
                 }
-                
+
             private:
+
                 DClose get_rh() {
                     return [this](CAsyncQueue * aq, int errCode) {
                         m_r = errCode;
@@ -292,8 +295,7 @@ namespace SPA {
                     };
                 }
             };
-            
-            
+
             /**
              * Start enqueuing message with transaction style. Currently, total size of queued messages must be less than 4 G bytes
              * @param key An ASCII string to identify a queue at server side
@@ -321,7 +323,7 @@ namespace SPA {
             QWaiter wait_closeQueue(const char* key, bool permanent = false) {
                 return QWaiter(this, key, permanent);
             }
-            
+
             struct InfoWaiter : public CWaiter<QueueInfo> {
 
                 InfoWaiter(CAsyncQueue* aq, const char* key, tagOptimistic option)
@@ -346,7 +348,7 @@ namespace SPA {
             InfoWaiter wait_flushQueue(const char* key, tagOptimistic option = oMemoryCached) {
                 return InfoWaiter(this, key, option);
             }
-            
+
             struct DeqWaiter : public CWaiter<DeqInfo> {
 
                 DeqWaiter(CAsyncQueue* aq, const char* key, unsigned int timeout)
@@ -372,12 +374,11 @@ namespace SPA {
             DeqWaiter wait_dequeue(const char* key, unsigned int timeout = 0) {
                 return DeqWaiter(this, key, timeout);
             }
-            
+
             struct KeysWaiter : public CWaiter<std::vector < std::string>>
             {
 
-                KeysWaiter(CAsyncQueue * aq)
-                : CWaiter<std::vector < std::string >> (Queue::idGetKeys) {
+                KeysWaiter(CAsyncQueue * aq) : CWaiter<std::vector < std::string >> (Queue::idGetKeys) {
                     if (!aq->GetKeys([this](CAsyncQueue * aq, std::vector<std::string>& v) {
                             m_r.swap(v);
                             resume();
@@ -394,7 +395,7 @@ namespace SPA {
             KeysWaiter wait_getKeys() {
                 return KeysWaiter(this);
             }
-            
+
             struct EnqWaiter : public CWaiter<UINT64> {
 
                 EnqWaiter(CAsyncQueue* aq, const char* key, const unsigned char* buffer, unsigned int size)
@@ -403,7 +404,7 @@ namespace SPA {
                         aq->raise(Queue::idEnqueueBatch);
                     }
                 }
-                
+
                 EnqWaiter(CAsyncQueue* aq, const char* key, CUQueue& q)
                 : CWaiter<UINT64>(Queue::idEnqueueBatch) {
                     if (!aq->EnqueueBatch(key, q.GetBuffer(), q.GetSize(), get_rh(), get_aborted(), get_se())) {
@@ -411,22 +412,23 @@ namespace SPA {
                     }
                     q.SetSize(0);
                 }
-                
+
                 EnqWaiter(CAsyncQueue* aq, const char* key, unsigned short idMsg, const unsigned char* buffer, unsigned int size)
                 : CWaiter<UINT64>(Queue::idEnqueue) {
                     if (!aq->Enqueue(key, idMsg, buffer, size, get_rh(), get_aborted(), get_se())) {
                         aq->raise(Queue::idEnqueueBatch);
                     }
                 }
-                
+
                 EnqWaiter(CAsyncQueue* aq, const char* key, unsigned short idMsg)
                 : CWaiter<UINT64>(Queue::idEnqueue) {
-                    if (!aq->Enqueue(key, idMsg, (const unsigned char*)nullptr, (unsigned int)0, get_rh(), get_aborted(), get_se())) {
+                    if (!aq->Enqueue(key, idMsg, (const unsigned char*) nullptr, (unsigned int) 0, get_rh(), get_aborted(), get_se())) {
                         aq->raise(Queue::idEnqueueBatch);
                     }
                 }
-                
+
             private:
+
                 DEnqueue get_rh() {
                     return [this](CAsyncQueue * aq, UINT64 index) {
                         m_r = index;
