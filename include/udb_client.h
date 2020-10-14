@@ -972,10 +972,11 @@ namespace SPA {
             private:
 
                 DResult get_rh() {
-                    return [this](CAsyncDBHandler& hDb, int res, const std::wstring & errMsg) {
-                        this->m_r.ec = res;
-                        this->m_r.em = errMsg;
-                        this->resume();
+                    auto& wc = m_wc;
+                    return [wc](CAsyncDBHandler& hDb, int res, const std::wstring & errMsg) {
+                        wc->m_r.ec = res;
+                        wc->m_r.em = errMsg;
+                        wc->resume();
                     };
                 }
             };
@@ -1032,14 +1033,15 @@ namespace SPA {
             private:
 
                 DExecuteResult get_rh() {
-                    return [this](CAsyncDBHandler& dbHandler, int res, const std::wstring& errMsg, INT64 affected, UINT64 fail_ok, CDBVariant & vtId) {
-                        this->m_r.ec = res;
-                        this->m_r.em = errMsg;
-                        this->m_r.affected = affected;
-                        this->m_r.oks = (unsigned int) (fail_ok & 0xffffffff);
-                        this->m_r.fails = (unsigned int) (fail_ok >> 32);
-                        this->m_r.lastId = vtId;
-                        this->resume();
+                    auto &wc = m_wc;
+                    return [wc](CAsyncDBHandler& dbHandler, int res, const std::wstring& errMsg, INT64 affected, UINT64 fail_ok, CDBVariant & vtId) {
+                        wc->m_r.ec = res;
+                        wc->m_r.em = errMsg;
+                        wc->m_r.affected = affected;
+                        wc->m_r.oks = (unsigned int) (fail_ok & 0xffffffff);
+                        wc->m_r.fails = (unsigned int) (fail_ok >> 32);
+                        wc->m_r.lastId = vtId;
+                        wc->resume();
                     };
                 }
             };

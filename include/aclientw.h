@@ -1164,7 +1164,7 @@ namespace SPA {
                     return m_wc->get_aborted();
                 }
 
-            private:
+            //private:
                 std::shared_ptr<CWaiterContext> m_wc;
 
             protected:
