@@ -29,8 +29,8 @@ protected:
 
 private:
     //resumable functions in C++
-    std::future<void> ExecuteTask();
-    std::future<void> ExecuteTasksInBatch();
+    CAwTask ExecuteTask();
+    CAwTask ExecuteTasksInBatch();
 
 private:
     CSocketPool<HelloWorld> m_spHw;

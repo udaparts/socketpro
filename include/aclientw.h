@@ -1339,6 +1339,19 @@ namespace SPA {
 #ifdef HAVE_COROUTINE
         template<typename R> using CWaiter = CAsyncServiceHandler::CWaiterBase<R>;
         template<typename R> using CWaiterList = std::initializer_list<CWaiter<R>>;
+#if HAVE_COROUTINE > 1
+        struct CAwTask {
+            struct promise_type {
+                CAwTask get_return_object() { return {}; }
+                std::suspend_never initial_suspend() { return {}; }
+                std::suspend_never final_suspend() { return {}; }
+                void return_void() {}
+                void unhandled_exception() {}
+            };
+        };
+#else
+        typedef std::future<void> CAwTask;
+#endif
 #endif
 #endif
 #endif

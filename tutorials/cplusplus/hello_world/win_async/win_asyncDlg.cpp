@@ -136,7 +136,7 @@ HCURSOR Cwin_asyncDlg::OnQueryDragIcon() {
     return static_cast<HCURSOR>(m_hIcon);
 }
 
-std::future<void> Cwin_asyncDlg::ExecuteTask() {
+CAwTask Cwin_asyncDlg::ExecuteTask() {
     HWND hWnd = GetDlgItem(IDC_RESULT_EDIT)->m_hWnd;
     auto hw = m_spHw.GetAsyncHandlers()[0];
     try{
@@ -162,7 +162,7 @@ std::future<void> Cwin_asyncDlg::ExecuteTask() {
     }
 }
 
-std::future<void> Cwin_asyncDlg::ExecuteTasksInBatch() {
+CAwTask Cwin_asyncDlg::ExecuteTasksInBatch() {
     CMyStruct res;
     HWND hWnd = GetDlgItem(IDC_RESULT_EDIT)->m_hWnd;
     auto hw = m_spHw.GetAsyncHandlers()[0];
