@@ -1175,67 +1175,68 @@ namespace SPA {
             };
 
             template<typename R>
-            auto wait_send(unsigned short reqId, const unsigned char* pBuffer, unsigned int size) {
+            struct RWaiter : public CWaiterBase<R> {
 
-                struct Awaiter : public CWaiterBase<R> {
-
-                    Awaiter(CAsyncServiceHandler* ash, unsigned short reqId, const unsigned char* pBuffer, unsigned int size)
-                    : CWaiterBase<R>(reqId) {
-                        DResultHandler rh = [this](CAsyncResult & ar) {
-                            try {
-                                ar >> this->m_r;
-                            } catch (...) {
-                                this->m_ex = std::current_exception();
-                            }
-                            this->resume();
-                        };
-                        if (!ash->SendRequest(reqId, pBuffer, size, rh, this->get_aborted(), this->get_se())) {
-                            ash->raise(reqId);
+                RWaiter(CAsyncServiceHandler* ash, unsigned short reqId, const unsigned char* pBuffer, unsigned int size)
+                : CWaiterBase<R>(reqId) {
+                    DResultHandler rh = [this](CAsyncResult & ar) {
+                        try {
+                            ar >> this->m_r;
+                        } catch (...) {
+                            this->m_ex = std::current_exception();
                         }
+                        this->resume();
+                    };
+                    if (!ash->SendRequest(reqId, pBuffer, size, rh, this->get_aborted(), this->get_se())) {
+                        ash->raise(reqId);
                     }
-                };
-                return Awaiter(this, reqId, pBuffer, size);
+                }
+            };
+
+            template<typename R>
+            auto wait_send(unsigned short reqId, const unsigned char* pBuffer, unsigned int size) {
+                return RWaiter<R>(this, reqId, pBuffer, size);
             }
 
             template<typename R>
             auto wait_send(unsigned short reqId) {
-                return wait_send<R>(reqId, (const unsigned char*) nullptr, (unsigned int) 0);
+                return RWaiter<R>(this, reqId, (const unsigned char*) nullptr, (unsigned int) 0);
             }
 
             template<typename R, typename ... Ts>
             auto wait_send(unsigned short reqId, const Ts& ... args) {
                 CScopeUQueue sb;
                 sb->Save(args ...);
-                return wait_send<R>(reqId, sb->GetBuffer(), sb->GetSize());
+                return RWaiter<R>(this, reqId, sb->GetBuffer(), sb->GetSize());
             }
 
-            auto wait_sendRequest(unsigned short reqId, const unsigned char* pBuffer, unsigned int size) {
+            struct BWaiter : public CWaiterBase<CScopeUQueue> {
 
-                struct Awaiter : public CWaiterBase<CScopeUQueue> {
-
-                    Awaiter(CAsyncServiceHandler* ash, unsigned short reqId, const unsigned char* pBuffer, unsigned int size)
-                    : CWaiterBase<CScopeUQueue>(reqId) {
-                        DResultHandler rh = [this](CAsyncResult & ar) {
-                            m_r->Swap(ar.UQueue);
-                            resume();
-                        };
-                        if (!ash->SendRequest(reqId, pBuffer, size, rh, get_aborted(), get_se())) {
-                            ash->raise(reqId);
-                        }
+                BWaiter(CAsyncServiceHandler* ash, unsigned short reqId, const unsigned char* pBuffer, unsigned int size)
+                : CWaiterBase<CScopeUQueue>(reqId) {
+                    DResultHandler rh = [this](CAsyncResult & ar) {
+                        m_r->Swap(ar.UQueue);
+                        resume();
+                    };
+                    if (!ash->SendRequest(reqId, pBuffer, size, rh, get_aborted(), get_se())) {
+                        ash->raise(reqId);
                     }
-                };
-                return Awaiter(this, reqId, pBuffer, size);
+                }
+            };
+
+            BWaiter wait_sendRequest(unsigned short reqId, const unsigned char* pBuffer, unsigned int size) {
+                return BWaiter(this, reqId, pBuffer, size);
             }
 
-            auto wait_sendRequest(unsigned short reqId) {
-                return wait_sendRequest(reqId, (const unsigned char*) nullptr, (unsigned int) 0);
+            BWaiter wait_sendRequest(unsigned short reqId) {
+                return BWaiter(this, reqId, (const unsigned char*) nullptr, (unsigned int) 0);
             }
 
             template<typename ... Ts>
-            auto wait_sendRequest(unsigned short reqId, const Ts& ... args) {
+            BWaiter wait_sendRequest(unsigned short reqId, const Ts& ... args) {
                 CScopeUQueue sb;
                 sb->Save(args ...);
-                return wait_sendRequest(reqId, sb->GetBuffer(), sb->GetSize());
+                return BWaiter(this, reqId, sb->GetBuffer(), sb->GetSize());
             }
 #endif
 #endif
