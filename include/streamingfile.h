@@ -181,11 +181,10 @@ namespace SPA {
 #ifdef HAVE_FUTURE
 
 #ifdef HAVE_COROUTINE
-        private:
 
-            struct Awaiter : public CWaiter<ErrInfo> {
+            struct FileWaiter : public CWaiter<ErrInfo> {
 
-                Awaiter(CStreamingFile* file, unsigned short reqId, CContext &ctx)
+                FileWaiter(CStreamingFile* file, unsigned short reqId, CContext &ctx)
                 : CWaiter<ErrInfo>(reqId) {
                     ctx.Discarded = get_aborted();
                     ctx.Se = get_se();
@@ -207,8 +206,6 @@ namespace SPA {
                 }
             };
 
-        public:
-
             auto wait_upload(const wchar_t* localFile, const wchar_t* remoteFile, DTransferring progress = nullptr, unsigned int flags = SFile::FILE_OPEN_TRUNCACTED) {
                 if (!localFile || !::wcslen(localFile)) {
                     throw std::invalid_argument("Parameter localFile cannot be empty");
@@ -220,7 +217,7 @@ namespace SPA {
                 context.Transferring = progress;
                 context.FilePath = remoteFile;
                 context.LocalFile = localFile;
-                return Awaiter(this, SFile::idUpload, context);
+                return FileWaiter(this, SFile::idUpload, context);
             }
 
             auto wait_download(const wchar_t* localFile, const wchar_t* remoteFile, DTransferring progress = nullptr, unsigned int flags = SFile::FILE_OPEN_TRUNCACTED) {
@@ -234,7 +231,7 @@ namespace SPA {
                 context.Transferring = progress;
                 context.FilePath = remoteFile;
                 context.LocalFile = localFile;
-                return Awaiter(this, SFile::idDownload, context);
+                return FileWaiter(this, SFile::idDownload, context);
             }
 #endif
 

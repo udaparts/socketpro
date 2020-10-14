@@ -10,7 +10,7 @@
 #elif defined NODE_JS_ADAPTER_PROJECT
 #define NO_OUTPUT_BINDING
 namespace NJA {
-    Local<Array> ToMeta(Isolate* isolate, const SPA::UDB::CDBColumnInfoArray &v);
+    Local<Array> ToMeta(Isolate* isolate, const SPA::UDB::CDBColumnInfoArray& v);
 }
 #endif
 
@@ -26,7 +26,7 @@ namespace SPA {
         protected:
             //you may use this constructor for extending the class
 
-            CAsyncDBHandler(unsigned int sid, CClientSocket *cs)
+            CAsyncDBHandler(unsigned int sid, CClientSocket* cs)
             : CAsyncServiceHandler(sid, cs),
             m_affected(-1), m_dbErrCode(0), m_lastReqId(0),
             m_indexRowset(0), m_indexProc(0), m_ms(msUnknown), m_flags(0),
@@ -47,7 +47,7 @@ namespace SPA {
 
         public:
 
-            CAsyncDBHandler(CClientSocket *cs)
+            CAsyncDBHandler(CClientSocket* cs)
             : CAsyncServiceHandler(serviceId, cs),
             m_affected(-1), m_dbErrCode(0), m_lastReqId(0),
             m_indexRowset(0), m_indexProc(0), m_ms(msUnknown), m_flags(0),
@@ -77,15 +77,15 @@ namespace SPA {
 
             static const unsigned int SQLStreamServiceId = serviceId;
 
-            typedef std::function<void(CAsyncDBHandler &dbHandler, int res, const std::wstring &errMsg) > DResult;
-            typedef std::function<void(CAsyncDBHandler &dbHandler, int res, const std::wstring &errMsg, INT64 affected, UINT64 fail_ok, CDBVariant &vtId) > DExecuteResult;
+            typedef std::function<void(CAsyncDBHandler& dbHandler, int res, const std::wstring& errMsg) > DResult;
+            typedef std::function<void(CAsyncDBHandler& dbHandler, int res, const std::wstring& errMsg, INT64 affected, UINT64 fail_ok, CDBVariant& vtId) > DExecuteResult;
 
 #if defined(PHP_ADAPTER_PROJECT) || defined(NODE_JS_ADAPTER_PROJECT)
-            typedef std::function<void(CAsyncDBHandler &dbHandler, const unsigned char *start, unsigned int bytes) > DRowsetHeader;
-            typedef std::function<void(CAsyncDBHandler &dbHandler, CUQueue &vData) > DRows;
+            typedef std::function<void(CAsyncDBHandler& dbHandler, const unsigned char* start, unsigned int bytes) > DRowsetHeader;
+            typedef std::function<void(CAsyncDBHandler& dbHandler, CUQueue& vData) > DRows;
 #else
-            typedef std::function<void(CAsyncDBHandler &dbHandler) > DRowsetHeader;
-            typedef std::function<void(CAsyncDBHandler &dbHandler, CDBVariantArray &vData) > DRows;
+            typedef std::function<void(CAsyncDBHandler& dbHandler) > DRowsetHeader;
+            typedef std::function<void(CAsyncDBHandler& dbHandler, CDBVariantArray& vData) > DRows;
 #endif
 
         protected:
@@ -188,7 +188,7 @@ namespace SPA {
 
         private:
 
-            bool Send(CScopeUQueue& sb, bool &firstRow) {
+            bool Send(CScopeUQueue& sb, bool& firstRow) {
                 if (sb->GetSize()) {
                     if (firstRow) {
                         firstRow = false;
@@ -239,13 +239,13 @@ namespace SPA {
                 return true;
             }
 
-            bool SendParametersData(const CDBVariantArray &vParam) {
+            bool SendParametersData(const CDBVariantArray& vParam) {
                 size_t size = vParam.size();
                 if (size) {
                     bool firstRow = true;
                     CScopeUQueue sb;
                     for (size_t n = 0; n < size; ++n) {
-                        const CDBVariant &vt = vParam[n];
+                        const CDBVariant& vt = vParam[n];
                         unsigned short dt = vt.Type();
                         if (dt == VT_BSTR /*UNICODE string*/) {
                             unsigned int len = SysStringLen(vt.bstrVal);
@@ -321,7 +321,7 @@ namespace SPA {
              * @param se a callback for tracking an exception from server
              * @return true if request is successfully sent or queued; and false if request is NOT successfully sent or queued
              */
-            virtual bool ExecuteBatch(tagTransactionIsolation isolation, const wchar_t *sql, CDBVariantArray &vParam = CDBVariantArray(),
+            virtual bool ExecuteBatch(tagTransactionIsolation isolation, const wchar_t* sql, CDBVariantArray& vParam = CDBVariantArray(),
                     const DExecuteResult& handler = nullptr, const DRows& row = nullptr, const DRowsetHeader& rh = nullptr, const wchar_t* delimiter = L";",
                     const DRowsetHeader& batchHeader = nullptr, const DDiscarded& discarded = nullptr, bool meta = true, tagRollbackPlan plan = rpDefault,
                     const CParameterInfoArray& vPInfo = CParameterInfoArray(), bool lastInsertId = true, const DServerException& se = nullptr) {
@@ -390,7 +390,7 @@ namespace SPA {
              * @param se a callback for tracking an exception from server
              * @return true if request is successfully sent or queued; and false if request is NOT successfully sent or queued
              */
-            virtual bool Execute(CDBVariantArray &vParam, const DExecuteResult& handler = nullptr, const DRows& row = nullptr, const DRowsetHeader& rh = nullptr,
+            virtual bool Execute(CDBVariantArray& vParam, const DExecuteResult& handler = nullptr, const DRows& row = nullptr, const DRowsetHeader& rh = nullptr,
                     bool meta = true, bool lastInsertId = true, const DDiscarded& discarded = nullptr, const DServerException& se = nullptr) {
                 bool rowset = (row) ? true : false;
                 meta = (meta && rh);
@@ -494,14 +494,14 @@ namespace SPA {
              * @param se a callback for tracking an exception from server
              * @return true if request is successfully sent or queued; and false if request is NOT successfully sent or queued
              */
-            virtual bool Prepare(const char16_t *sql, const DResult& handler = nullptr, const CParameterInfoArray& vParameterInfo = CParameterInfoArray(), const DDiscarded& discarded = nullptr, const DServerException& se = nullptr) {
+            virtual bool Prepare(const char16_t* sql, const DResult& handler = nullptr, const CParameterInfoArray& vParameterInfo = CParameterInfoArray(), const DDiscarded& discarded = nullptr, const DServerException& se = nullptr) {
                 CScopeUQueue sb;
                 DResultHandler arh = [handler](CAsyncResult & ar) {
                     int res;
                     std::wstring errMsg;
                     unsigned int parameters;
                     ar >> res >> errMsg >> parameters;
-                    CAsyncDBHandler<serviceId> *ash = (CAsyncDBHandler<serviceId>*)ar.AsyncServiceHandler;
+                    CAsyncDBHandler<serviceId>* ash = (CAsyncDBHandler<serviceId>*)ar.AsyncServiceHandler;
                     ash->m_csDB.lock();
                     ash->m_bCallReturn = false;
                     ash->m_lastReqId = idPrepare;
@@ -667,7 +667,7 @@ namespace SPA {
                     int res, ms;
                     std::wstring errMsg;
                     ar >> res >> errMsg >> ms;
-                    CAsyncDBHandler<serviceId> *ash = (CAsyncDBHandler<serviceId>*)ar.AsyncServiceHandler;
+                    CAsyncDBHandler<serviceId>* ash = (CAsyncDBHandler<serviceId>*)ar.AsyncServiceHandler;
                     ash->m_csDB.lock();
                     ash->m_dbErrCode = res;
                     ash->m_lastReqId = idOpen;
@@ -724,7 +724,7 @@ namespace SPA {
                     int res, ms;
                     std::wstring errMsg;
                     ar >> res >> errMsg >> ms;
-                    CAsyncDBHandler<serviceId> *ash = (CAsyncDBHandler<serviceId>*)ar.AsyncServiceHandler;
+                    CAsyncDBHandler<serviceId>* ash = (CAsyncDBHandler<serviceId>*)ar.AsyncServiceHandler;
                     ash->m_csDB.lock();
                     ash->m_dbErrCode = res;
                     ash->m_lastReqId = idOpen;
@@ -762,14 +762,14 @@ namespace SPA {
              * @param se a callback for tracking an exception from server
              * @return true if request is successfully sent or queued; and false if request is NOT successfully sent or queued
              */
-            virtual bool Prepare(const wchar_t *sql, const DResult& handler = nullptr, const CParameterInfoArray& vParameterInfo = CParameterInfoArray(), const DDiscarded& discarded = nullptr, const DServerException& se = nullptr) {
+            virtual bool Prepare(const wchar_t* sql, const DResult& handler = nullptr, const CParameterInfoArray& vParameterInfo = CParameterInfoArray(), const DDiscarded& discarded = nullptr, const DServerException& se = nullptr) {
                 CScopeUQueue sb;
                 DResultHandler arh = [handler](CAsyncResult & ar) {
                     int res;
                     std::wstring errMsg;
                     unsigned int parameters;
                     ar >> res >> errMsg >> parameters;
-                    CAsyncDBHandler<serviceId> *ash = (CAsyncDBHandler<serviceId>*)ar.AsyncServiceHandler;
+                    CAsyncDBHandler<serviceId>* ash = (CAsyncDBHandler<serviceId>*)ar.AsyncServiceHandler;
                     ash->m_csDB.lock();
                     ash->m_bCallReturn = false;
                     ash->m_lastReqId = idPrepare;
@@ -799,7 +799,7 @@ namespace SPA {
                     int res;
                     std::wstring errMsg;
                     ar >> res >> errMsg;
-                    CAsyncDBHandler<serviceId> *ash = (CAsyncDBHandler<serviceId>*)ar.AsyncServiceHandler;
+                    CAsyncDBHandler<serviceId>* ash = (CAsyncDBHandler<serviceId>*)ar.AsyncServiceHandler;
                     ash->m_csDB.lock();
                     ash->m_lastReqId = idClose;
                     ash->m_strConnection.clear();
@@ -829,7 +829,7 @@ namespace SPA {
                     int res, ms;
                     std::wstring errMsg;
                     ar >> res >> errMsg >> ms;
-                    CAsyncDBHandler<serviceId> *ash = (CAsyncDBHandler<serviceId>*)ar.AsyncServiceHandler;
+                    CAsyncDBHandler<serviceId>* ash = (CAsyncDBHandler<serviceId>*)ar.AsyncServiceHandler;
                     ash->m_csDB.lock();
                     if (res == 0) {
                         ash->m_strConnection = errMsg;
@@ -879,7 +879,7 @@ namespace SPA {
                     int res;
                     std::wstring errMsg;
                     ar >> res >> errMsg;
-                    CAsyncDBHandler<serviceId> *ash = (CAsyncDBHandler<serviceId>*)ar.AsyncServiceHandler;
+                    CAsyncDBHandler<serviceId>* ash = (CAsyncDBHandler<serviceId>*)ar.AsyncServiceHandler;
                     ash->m_csDB.lock();
                     ash->m_lastReqId = idEndTrans;
                     ash->m_dbErrCode = res;
@@ -931,6 +931,7 @@ namespace SPA {
 #ifdef HAVE_COROUTINE
 
             struct DbWaiter : public CWaiter<ErrInfo> {
+
                 DbWaiter(CAsyncDBHandler* db, tagTransactionIsolation isolation)
                 : CWaiter<ErrInfo>(idBeginTrans) {
                     if (!db->BeginTrans(isolation, get_rh(), this->get_aborted(), this->get_se())) {
@@ -944,14 +945,14 @@ namespace SPA {
                         db->raise(idEndTrans);
                     }
                 }
-                
+
                 DbWaiter(CAsyncDBHandler* db)
                 : CWaiter<ErrInfo>(idClose) {
                     if (!db->Close(get_rh(), this->get_aborted(), this->get_se())) {
                         db->raise(idClose);
                     }
                 }
-                
+
                 template<typename TChar>
                 DbWaiter(CAsyncDBHandler* db, const TChar* sql, const CParameterInfoArray& vParameterInfo)
                 : CWaiter<ErrInfo>(idPrepare) {
@@ -969,8 +970,9 @@ namespace SPA {
                 }
 
             private:
+
                 DResult get_rh() {
-                    return [this](CAsyncDBHandler & hDb, int res, const std::wstring & errMsg) {
+                    return [this](CAsyncDBHandler& hDb, int res, const std::wstring & errMsg) {
                         this->m_r.ec = res;
                         this->m_r.em = errMsg;
                         this->resume();
@@ -989,7 +991,7 @@ namespace SPA {
             DbWaiter wait_close() {
                 return DbWaiter(this);
             }
-            
+
             template<typename TChar>
             DbWaiter wait_prepare(const TChar* sql, const CParameterInfoArray& vParameterInfo = CParameterInfoArray()) {
                 return DbWaiter(this, sql, vParameterInfo);
@@ -1001,7 +1003,7 @@ namespace SPA {
             }
 
             struct SqlWaiter : public CWaiter<SQLExeInfo> {
-                
+
                 template<typename TChar>
                 SqlWaiter(CAsyncDBHandler* db, const TChar* sql, const DRows& row, const DRowsetHeader& rh, bool meta, bool lastInsertId)
                 : CWaiter<SQLExeInfo>(idExecute) {
@@ -1009,27 +1011,28 @@ namespace SPA {
                         db->raise(idExecute);
                     }
                 }
-                
+
                 SqlWaiter(CAsyncDBHandler* db, CDBVariantArray& vParam, const DRows& row, const DRowsetHeader& rh, bool meta, bool lastInsertId)
                 : CWaiter<SQLExeInfo>(idExecuteParameters) {
                     if (!db->Execute(vParam, get_rh(), row, rh, meta, lastInsertId, this->get_aborted(), this->get_se())) {
                         db->raise(idExecuteParameters);
                     }
                 }
-                
+
                 template<typename TChar>
                 SqlWaiter(CAsyncDBHandler* db, tagTransactionIsolation isolation, const TChar* sql, CDBVariantArray& vParam,
-                            const DRows& row, const DRowsetHeader& rh, const TChar* delimiter, const DRowsetHeader& batchHeader,
-                            bool meta, tagRollbackPlan plan, const CParameterInfoArray& vPInfo, bool lastInsertId)
+                        const DRows& row, const DRowsetHeader& rh, const TChar* delimiter, const DRowsetHeader& batchHeader,
+                        bool meta, tagRollbackPlan plan, const CParameterInfoArray& vPInfo, bool lastInsertId)
                 : CWaiter<SQLExeInfo>(idExecuteBatch) {
                     if (!db->ExecuteBatch(isolation, sql, vParam, get_rh(), row, rh, delimiter, batchHeader, this->get_aborted(), meta, plan, vPInfo, lastInsertId, this->get_se())) {
                         db->raise(idExecuteBatch);
                     }
                 }
-                
+
             private:
+
                 DExecuteResult get_rh() {
-                    return [this](CAsyncDBHandler & dbHandler, int res, const std::wstring & errMsg, INT64 affected, UINT64 fail_ok, CDBVariant & vtId) {
+                    return [this](CAsyncDBHandler& dbHandler, int res, const std::wstring& errMsg, INT64 affected, UINT64 fail_ok, CDBVariant & vtId) {
                         this->m_r.ec = res;
                         this->m_r.em = errMsg;
                         this->m_r.affected = affected;
@@ -1040,22 +1043,22 @@ namespace SPA {
                     };
                 }
             };
-            
+
             SqlWaiter wait_execute(CDBVariantArray& vParam, const DRows& row = nullptr, const DRowsetHeader& rh = nullptr, bool meta = true, bool lastInsertId = true) {
                 return SqlWaiter(this, vParam, row, rh, meta, lastInsertId);
             }
-            
+
             template<typename TChar>
-            SqlWaiter wait_execute(const TChar *sql, const DRows& row = nullptr, const DRowsetHeader& rh = nullptr, bool meta = true, bool lastInsertId = true) {
+            SqlWaiter wait_execute(const TChar* sql, const DRows& row = nullptr, const DRowsetHeader& rh = nullptr, bool meta = true, bool lastInsertId = true) {
                 return SqlWaiter(this, sql, row, rh, meta, lastInsertId);
             }
-            
+
             SqlWaiter wait_executeBatch(tagTransactionIsolation isolation, const wchar_t* sql, CDBVariantArray& vParam = CDBVariantArray(),
                     const DRows& row = nullptr, const DRowsetHeader& rh = nullptr, const wchar_t* delimiter = L";", const DRowsetHeader& batchHeader = nullptr,
                     bool meta = true, tagRollbackPlan plan = rpDefault, const CParameterInfoArray& vPInfo = CParameterInfoArray(), bool lastInsertId = true) {
                 return SqlWaiter(this, isolation, sql, vParam, row, rh, delimiter, batchHeader, meta, plan, vPInfo, lastInsertId);
             }
-            
+
             SqlWaiter wait_executeBatch(tagTransactionIsolation isolation, const char16_t* sql, CDBVariantArray& vParam = CDBVariantArray(),
                     const DRows& row = nullptr, const DRowsetHeader& rh = nullptr, const char16_t* delimiter = u";", const DRowsetHeader& batchHeader = nullptr,
                     bool meta = true, tagRollbackPlan plan = rpDefault, const CParameterInfoArray& vPInfo = CParameterInfoArray(), bool lastInsertId = true) {
@@ -1109,7 +1112,7 @@ namespace SPA {
                 return prom->get_future();
             }
 
-            virtual std::future<SQLExeInfo> execute(const wchar_t *sql, const DRows& row = nullptr, const DRowsetHeader& rh = nullptr, bool meta = true, bool lastInsertId = true) {
+            virtual std::future<SQLExeInfo> execute(const wchar_t* sql, const DRows& row = nullptr, const DRowsetHeader& rh = nullptr, bool meta = true, bool lastInsertId = true) {
                 std::shared_ptr<std::promise<SQLExeInfo> > prom(new std::promise<SQLExeInfo>);
                 DExecuteResult handler = [prom](CAsyncDBHandler& dbHandler, int res, const std::wstring& errMsg, INT64 affected, UINT64 fail_ok, CDBVariant & vtId) {
                     unsigned int oks = (unsigned int) (fail_ok & 0xffffffff);
@@ -1228,8 +1231,8 @@ namespace SPA {
                 }
             }
 
-            virtual void OnMergeTo(CAsyncServiceHandler & to) {
-                CAsyncDBHandler &dbTo = (CAsyncDBHandler&) to;
+            virtual void OnMergeTo(CAsyncServiceHandler& to) {
+                CAsyncDBHandler& dbTo = (CAsyncDBHandler&) to;
                 CAutoLock al0(dbTo.m_csDB);
                 {
                     CAutoLock al1(m_csDB);
@@ -1250,7 +1253,7 @@ namespace SPA {
                 }
             }
 
-            virtual void OnResultReturned(unsigned short reqId, CUQueue &mc) {
+            virtual void OnResultReturned(unsigned short reqId, CUQueue& mc) {
                 switch (reqId) {
                     case idParameterPosition:
                         mc >> m_nParamPos;
@@ -1303,7 +1306,7 @@ namespace SPA {
                             m_Blob.ReallocBuffer(ONE_MEGA_BYTES);
                         }
 #if defined(PHP_ADAPTER_PROJECT) || defined(NODE_JS_ADAPTER_PROJECT)
-                        const unsigned char *start;
+                        const unsigned char* start;
                         unsigned int bytes;
                         m_vData.SetSize(0);
 #else
@@ -1350,7 +1353,7 @@ namespace SPA {
                         auto it = m_mapParameterCall.find(m_indexRowset);
                         if (it != m_mapParameterCall.end()) {
                             //crash? make sure that vParam is valid after calling the method Execute
-                            CDBVariantArray &vParam = *(it->second);
+                            CDBVariantArray& vParam = *(it->second);
                             size_t pos = m_parameters * m_indexProc + (m_nParamPos >> 16);
                             vParam[pos] = vt;
                         }
@@ -1384,7 +1387,7 @@ namespace SPA {
                             }
                             while (mc.GetSize()) {
                                 m_vData.push_back(CDBVariant());
-                                CDBVariant &vt = m_vData.back();
+                                CDBVariant& vt = m_vData.back();
                                 mc >> vt;
                             }
                             if (Utf8ToW) {
@@ -1415,7 +1418,7 @@ namespace SPA {
                             CDBVariant vtOne;
                             while (mc.GetSize()) {
                                 m_vData.push_back(vtOne);
-                                CDBVariant &vt = m_vData.back();
+                                CDBVariant& vt = m_vData.back();
                                 mc >> vt;
                             }
                             assert(mc.GetSize() == 0);
@@ -1480,7 +1483,7 @@ namespace SPA {
                                     if (it != m_mapParameterCall.cend()) {
                                         //crash? make sure that vParam is valid after calling the method Execute
                                         size_t pos;
-                                        CDBVariantArray &vParam = *(it->second);
+                                        CDBVariantArray& vParam = *(it->second);
                                         if (m_lastReqId == idSqlBatchHeader)
                                             pos = m_parameters * m_indexProc + (m_nParamPos & 0xffff) + (m_nParamPos >> 16) - (unsigned int) m_vData.size();
                                         else
@@ -1541,7 +1544,7 @@ namespace SPA {
                         if (mc.GetSize() || m_Blob.GetSize()) {
                             m_Blob.Push(mc.GetBuffer(), mc.GetSize());
                             mc.SetSize(0);
-                            unsigned int *len = (unsigned int*) m_Blob.GetBuffer(sizeof (VARTYPE));
+                            unsigned int* len = (unsigned int*) m_Blob.GetBuffer(sizeof (VARTYPE));
                             if (*len >= BLOB_LENGTH_NOT_AVAILABLE) {
                                 //legth should be reset if BLOB length not available from server side at beginning
                                 *len = (m_Blob.GetSize() - sizeof (VARTYPE) - sizeof (unsigned int));
@@ -1551,7 +1554,7 @@ namespace SPA {
                             m_Blob.SetSize(0);
 #else
                             m_vData.push_back(CDBVariant());
-                            CDBVariant &vt = m_vData.back();
+                            CDBVariant& vt = m_vData.back();
                             m_Blob >> vt;
 #endif
                             assert(m_Blob.GetSize() == 0);
@@ -1565,13 +1568,13 @@ namespace SPA {
 
         private:
 
-            void Process(const DExecuteResult& handler, CAsyncResult & ar, unsigned short reqId, UINT64 index) {
+            void Process(const DExecuteResult& handler, CAsyncResult& ar, unsigned short reqId, UINT64 index) {
                 INT64 affected;
                 UINT64 fail_ok;
                 int res;
                 std::wstring errMsg;
                 CDBVariant vtId;
-                CAsyncDBHandler<serviceId> *ash = (CAsyncDBHandler<serviceId>*)ar.AsyncServiceHandler;
+                CAsyncDBHandler<serviceId>* ash = (CAsyncDBHandler<serviceId>*)ar.AsyncServiceHandler;
                 ar >> affected >> res >> errMsg >> vtId >> fail_ok;
                 {
                     CAutoLock al(m_csDB);
@@ -1661,7 +1664,7 @@ namespace SPA {
 #ifdef NODE_JS_ADAPTER_PROJECT
         public:
 
-            UINT64 BeginTrans(Isolate* isolate, int args, Local<Value> *argv, tagTransactionIsolation isolation) {
+            UINT64 BeginTrans(Isolate* isolate, int args, Local<Value>* argv, tagTransactionIsolation isolation) {
                 bool bad;
                 SPA::UINT64 index = GetCallIndex();
                 DResult result = GetResult(isolate, argv[0], bad);
@@ -1673,7 +1676,7 @@ namespace SPA {
                 return BeginTrans(isolation, result, dd, se) ? index : INVALID_NUMBER;
             }
 
-            UINT64 Close(Isolate* isolate, int args, Local<Value> *argv) {
+            UINT64 Close(Isolate* isolate, int args, Local<Value>* argv) {
                 bool bad;
                 SPA::UINT64 index = GetCallIndex();
                 DResult result = GetResult(isolate, argv[0], bad);
@@ -1685,7 +1688,7 @@ namespace SPA {
                 return Close(result, dd, se) ? index : INVALID_NUMBER;
             }
 
-            UINT64 EndTrans(Isolate* isolate, int args, Local<Value> *argv, tagRollbackPlan plan) {
+            UINT64 EndTrans(Isolate* isolate, int args, Local<Value>* argv, tagRollbackPlan plan) {
                 bool bad;
                 SPA::UINT64 index = GetCallIndex();
                 DResult result = GetResult(isolate, argv[0], bad);
@@ -1697,7 +1700,7 @@ namespace SPA {
                 return EndTrans(plan, result, dd, se) ? index : INVALID_NUMBER;
             }
 
-            UINT64 Execute(Isolate* isolate, int args, Local<Value> *argv, CDBVariantArray &vParam) {
+            UINT64 Execute(Isolate* isolate, int args, Local<Value>* argv, CDBVariantArray& vParam) {
                 bool bad;
                 SPA::UINT64 index = GetCallIndex();
                 DExecuteResult result = GetExecuteResult(isolate, argv[0], bad);
@@ -1715,7 +1718,7 @@ namespace SPA {
                 return Execute(vParam, result, r, rh, meta, true, dd, se) ? index : INVALID_NUMBER;
             }
 
-            UINT64 Execute(Isolate* isolate, int args, Local<Value> *argv, const UTF16 *sql) {
+            UINT64 Execute(Isolate* isolate, int args, Local<Value>* argv, const UTF16* sql) {
                 bool bad;
                 SPA::UINT64 index = GetCallIndex();
                 DExecuteResult result = GetExecuteResult(isolate, argv[0], bad);
@@ -1733,7 +1736,7 @@ namespace SPA {
                 return Execute(sql, result, r, rh, meta, true, dd, se) ? index : INVALID_NUMBER;
             }
 
-            UINT64 ExecuteBatch(Isolate* isolate, int args, Local<Value> *argv, tagTransactionIsolation isolation, const UTF16 *sql, CDBVariantArray &vParam, tagRollbackPlan plan, const UTF16 *delimiter, const CParameterInfoArray& vPInfo) {
+            UINT64 ExecuteBatch(Isolate* isolate, int args, Local<Value>* argv, tagTransactionIsolation isolation, const UTF16* sql, CDBVariantArray& vParam, tagRollbackPlan plan, const UTF16* delimiter, const CParameterInfoArray& vPInfo) {
                 bool bad;
                 SPA::UINT64 index = GetCallIndex();
                 DExecuteResult result = GetExecuteResult(isolate, argv[0], bad);
@@ -1755,7 +1758,7 @@ namespace SPA {
                 return ExecuteBatch(isolation, sql, vParam, result, r, rh, delimiter, bh, dd, meta, plan, vPInfo, lastInsertId, se) ? index : INVALID_NUMBER;
             }
 
-            UINT64 Open(Isolate* isolate, int args, Local<Value> *argv, const UTF16* strConnection, unsigned int flags) {
+            UINT64 Open(Isolate* isolate, int args, Local<Value>* argv, const UTF16* strConnection, unsigned int flags) {
                 bool bad;
                 SPA::UINT64 index = GetCallIndex();
                 DResult result = GetResult(isolate, argv[0], bad);
@@ -1767,7 +1770,7 @@ namespace SPA {
                 return Open(strConnection, result, flags, dd, se) ? index : INVALID_NUMBER;
             }
 
-            UINT64 Prepare(Isolate* isolate, int args, Local<Value> *argv, const UTF16 *sql, const CParameterInfoArray& vParameterInfo) {
+            UINT64 Prepare(Isolate* isolate, int args, Local<Value>* argv, const UTF16* sql, const CParameterInfoArray& vParameterInfo) {
                 bool bad;
                 SPA::UINT64 index = GetCallIndex();
                 DResult result = GetResult(isolate, argv[0], bad);
@@ -1801,14 +1804,14 @@ namespace SPA {
             std::deque<DBCb> m_deqDBCb; //protected by m_csDB;
             uv_async_t m_typeDB; //DB request events
 
-            DRowsetHeader GetBatchHeader(Isolate* isolate, Local<Value> header, bool &bad) {
+            DRowsetHeader GetBatchHeader(Isolate* isolate, Local<Value> header, bool& bad) {
                 bad = false;
                 DRowsetHeader rh;
                 if (header->IsFunction()) {
                     std::shared_ptr<CNJFunc> func(new CNJFunc);
                     func->Reset(isolate, Local<Function>::Cast(header));
                     Backup(func);
-                    rh = [func](CAsyncDBHandler & db, const unsigned char *start, unsigned int bytes) {
+                    rh = [func](CAsyncDBHandler& db, const unsigned char* start, unsigned int bytes) {
                         assert(!bytes);
                         DBCb cb;
                         cb.Type = eBatchHeader;
@@ -1828,7 +1831,7 @@ namespace SPA {
                 return rh;
             }
 
-            bool GetMeta(Isolate* isolate, Local<Value> m, bool &bad) {
+            bool GetMeta(Isolate* isolate, Local<Value> m, bool& bad) {
                 bad = false;
                 if (m->IsBoolean() || m->IsUint32()) {
 #ifdef BOOL_ISOLATE
@@ -1843,14 +1846,14 @@ namespace SPA {
                 return false;
             }
 
-            DRowsetHeader GetRowsetHeader(Isolate* isolate, Local<Value> header, bool &bad) {
+            DRowsetHeader GetRowsetHeader(Isolate* isolate, Local<Value> header, bool& bad) {
                 bad = false;
                 DRowsetHeader rh;
                 if (header->IsFunction()) {
                     std::shared_ptr<CNJFunc> func(new CNJFunc);
                     func->Reset(isolate, Local<Function>::Cast(header));
                     Backup(func);
-                    rh = [func](CAsyncDBHandler & db, const unsigned char *start, unsigned int bytes) {
+                    rh = [func](CAsyncDBHandler& db, const unsigned char* start, unsigned int bytes) {
                         DBCb cb;
                         cb.Type = eRowsetHeader;
                         cb.Func = func;
@@ -1870,19 +1873,19 @@ namespace SPA {
                 return rh;
             }
 
-            DRows GetRows(Isolate* isolate, Local<Value> r, bool &bad) {
+            DRows GetRows(Isolate* isolate, Local<Value> r, bool& bad) {
                 bad = false;
                 DRows rows;
                 if (r->IsFunction()) {
                     std::shared_ptr<CNJFunc> func(new CNJFunc);
                     func->Reset(isolate, Local<Function>::Cast(r));
                     Backup(func);
-                    rows = [func](CAsyncDBHandler &db, CUQueue & vData) {
+                    rows = [func](CAsyncDBHandler& db, CUQueue & vData) {
                         DBCb cb;
                         cb.Type = eRows;
                         cb.Func = func;
                         cb.Buffer = CScopeUQueue::Lock();
-                        CUQueue *p = CScopeUQueue::Lock();
+                        CUQueue* p = CScopeUQueue::Lock();
                         bool proc = db.IsProc();
                         if (proc && db.GetCallReturn()) {
                             *p << db.GetRetValue();
@@ -1907,14 +1910,14 @@ namespace SPA {
                 return rows;
             }
 
-            DExecuteResult GetExecuteResult(Isolate* isolate, Local<Value> er, bool &bad) {
+            DExecuteResult GetExecuteResult(Isolate* isolate, Local<Value> er, bool& bad) {
                 bad = false;
                 DExecuteResult result;
                 if (er->IsFunction()) {
                     std::shared_ptr<CNJFunc> func(new CNJFunc);
                     func->Reset(isolate, Local<Function>::Cast(er));
                     Backup(func);
-                    result = [func](CAsyncDBHandler &db, int errCode, const std::wstring &errMsg, INT64 affected, UINT64 fail_ok, CDBVariant & vtId) {
+                    result = [func](CAsyncDBHandler& db, int errCode, const std::wstring& errMsg, INT64 affected, UINT64 fail_ok, CDBVariant & vtId) {
                         DBCb cb;
                         cb.Type = eExecuteResult;
                         cb.Func = func;
@@ -1933,14 +1936,14 @@ namespace SPA {
                 return result;
             }
 
-            DResult GetResult(Isolate* isolate, Local<Value> res, bool &bad) {
+            DResult GetResult(Isolate* isolate, Local<Value> res, bool& bad) {
                 bad = false;
                 DResult result;
                 if (res->IsFunction()) {
                     std::shared_ptr<CNJFunc> func(new CNJFunc);
                     func->Reset(isolate, Local<Function>::Cast(res));
                     Backup(func);
-                    result = [func](CAsyncDBHandler &db, int errCode, const std::wstring & errMsg) {
+                    result = [func](CAsyncDBHandler& db, int errCode, const std::wstring & errMsg) {
                         DBCb cb;
                         cb.Type = eResult;
                         cb.Func = func;
@@ -1959,14 +1962,14 @@ namespace SPA {
                 return result;
             }
 
-            DDiscarded Get(Isolate* isolate, Local<Value> abort, bool &bad) {
+            DDiscarded Get(Isolate* isolate, Local<Value> abort, bool& bad) {
                 bad = false;
                 DDiscarded dd;
                 if (abort->IsFunction()) {
                     std::shared_ptr<CNJFunc> func(new CNJFunc);
                     func->Reset(isolate, Local<Function>::Cast(abort));
                     Backup(func);
-                    dd = [func](CAsyncServiceHandler *db, bool canceled) {
+                    dd = [func](CAsyncServiceHandler* db, bool canceled) {
                         DBCb cb;
                         cb.Type = eDiscarded;
                         cb.Func = func;
