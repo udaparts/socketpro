@@ -908,16 +908,16 @@ namespace SPA {
 #else
                     std::string s = Utilities::ToUTF8(context.LocalFile.c_str(), context.LocalFile.size());
                     int mode = (O_WRONLY | O_CREAT | O_EXCL);
-                    if ((context.Flags & SFile::FILE_OPEN_TRUNCACTED) == SFile::FILE_OPEN_TRUNCACTED) {
-                        mode |= O_TRUNC;
-                    } else if ((context.Flags & SFile::FILE_OPEN_APPENDED) == SFile::FILE_OPEN_APPENDED) {
-                        mode |= O_APPEND;
-                    }
                     mode_t m = (S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH);
                     context.File = ::open(s.c_str(), mode, m);
                     if (context.File == -1) {
                         existing = true;
                         mode = (O_WRONLY | O_CREAT);
+                        if ((context.Flags & SFile::FILE_OPEN_TRUNCACTED) == SFile::FILE_OPEN_TRUNCACTED) {
+                            mode |= O_TRUNC;
+                        } else if ((context.Flags & SFile::FILE_OPEN_APPENDED) == SFile::FILE_OPEN_APPENDED) {
+                            mode |= O_APPEND;
+                        }
                         context.File = ::open(s.c_str(), mode, m);
                         if (context.File == -1) {
                             context.ErrorCode = SFile::CANNOT_OPEN_LOCAL_FILE_FOR_WRITING;
@@ -929,7 +929,7 @@ namespace SPA {
                     if (existing) {
                         context.InitSize = context.GetFilePos();
                     }
-                    if ((context.Flags & SFile::FILE_OPEN_SHARE_WRITE) == 0) {
+                    if (0 == (context.Flags & SFile::FILE_OPEN_SHARE_WRITE)) {
                         struct flock fl;
                         fl.l_whence = SEEK_SET;
                         fl.l_start = 0;

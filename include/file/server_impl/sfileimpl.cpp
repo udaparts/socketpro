@@ -220,16 +220,16 @@ namespace SPA{
 #else
             std::string s = Utilities::ToUTF8(m_oFilePath.c_str(), m_oFilePath.size());
             int mode = (O_WRONLY | O_CREAT | O_EXCL);
-            if ((flags & FILE_OPEN_TRUNCACTED) == FILE_OPEN_TRUNCACTED) {
-                mode |= O_TRUNC;
-            } else if ((flags & FILE_OPEN_APPENDED) == FILE_OPEN_APPENDED) {
-                mode |= O_APPEND;
-            }
             mode_t m = (S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH);
             m_of = ::open(s.c_str(), mode, m);
             if (m_of == -1) {
                 existing = true;
                 mode = (O_WRONLY | O_CREAT);
+                if ((flags & FILE_OPEN_TRUNCACTED) == FILE_OPEN_TRUNCACTED) {
+                    mode |= O_TRUNC;
+                } else if ((flags & FILE_OPEN_APPENDED) == FILE_OPEN_APPENDED) {
+                    mode |= O_APPEND;
+                }
                 m_of = ::open(s.c_str(), mode, m);
                 if (m_of == -1) {
                     return;
@@ -240,10 +240,7 @@ namespace SPA{
                 if (initSize == -1) {
                     initSize = 0;
                 }
-                if ((flags & FILE_OPEN_TRUNCACTED) == FILE_OPEN_TRUNCACTED) {
-                    auto fail = ::ftruncate(m_of, 0);
-                    assert(!fail);
-                } else if ((flags & FILE_OPEN_APPENDED) == FILE_OPEN_APPENDED) {
+                if ((flags & FILE_OPEN_APPENDED) == FILE_OPEN_APPENDED) {
                     INT64 isize = ::lseek64(m_of, 0, SEEK_END);
                     if (isize && isize > initSize) {
                         isize = ::lseek64(m_of, initSize, SEEK_SET);
@@ -322,16 +319,16 @@ namespace SPA{
 #else
             std::string s = Utilities::ToUTF8(m_oFilePath.c_str(), m_oFilePath.size());
             int mode = (O_WRONLY | O_CREAT | O_EXCL);
-            if ((flags & FILE_OPEN_TRUNCACTED) == FILE_OPEN_TRUNCACTED) {
-                mode |= O_TRUNC;
-            } else if ((flags & FILE_OPEN_APPENDED) == FILE_OPEN_APPENDED) {
-                mode |= O_APPEND;
-            }
             mode_t m = (S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH);
             m_of = ::open(s.c_str(), mode, m);
             if (m_of == -1) {
                 existing = true;
                 mode = (O_WRONLY | O_CREAT);
+                if ((flags & FILE_OPEN_TRUNCACTED) == FILE_OPEN_TRUNCACTED) {
+                    mode |= O_TRUNC;
+                } else if ((flags & FILE_OPEN_APPENDED) == FILE_OPEN_APPENDED) {
+                    mode |= O_APPEND;
+                }
                 m_of = ::open(s.c_str(), mode, m);
                 if (m_of == -1) {
                     res = errno;
@@ -342,10 +339,7 @@ namespace SPA{
             }
             if (existing) {
                 InitSize = 0;
-                if ((flags & FILE_OPEN_TRUNCACTED) == FILE_OPEN_TRUNCACTED) {
-                    auto fail = ::ftruncate(m_of, 0);
-                    assert(!fail);
-                } else if ((flags & FILE_OPEN_APPENDED) == FILE_OPEN_APPENDED) {
+                if ((flags & FILE_OPEN_APPENDED) == FILE_OPEN_APPENDED) {
                     InitSize = ::lseek64(m_of, 0, SEEK_END);
                 }
                 initPos = InitSize;
