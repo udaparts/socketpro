@@ -18,8 +18,8 @@ int main(int argc, char* argv[]) {
     std::getline(std::cin, cc.Host);
     CMyPool spSq;
     if (!spSq.StartSocketPool(cc, 1)) {
-        std::cout << "Failed to connect to remote host for enqueuing" << std::endl;
-        std::cout << "Press a key to complete dequeuing messages from server ......" << std::endl;
+        std::cout << "Failed to remote host for enqueuing\n";
+        std::cout << "Press a key to kill the demo ......\n";
         ::getchar();
         return 1;
     }
@@ -68,7 +68,7 @@ int main(int argc, char* argv[]) {
         std::cout << "]" << std::endl;
 
         std::wcout << fq.get().ToString() << std::endl;
-        std::cout << "CloseQueue/res: " << fc.get() << std::endl;
+        std::cout << "CloseQueue/res: " << fc.get() << "\n";
     }
 
     catch(CServerError & ex) {
@@ -80,15 +80,15 @@ int main(int argc, char* argv[]) {
     }
 
     catch(std::exception & ex) {
-        std::cout << "Some unexpected error: " << ex.what() << std::endl;
+        std::cout << "Unexpected error: " << ex.what() << "\n";
     }
-    std::cout << "Press a key to complete dequeuing messages from server ......" << std::endl;
+    std::cout << "Press a key to kill the demo ......\n";
     ::getchar();
     return 0;
 }
 
 void TestEnqueue(CMyPool::PHandler &sq) {
-    std::cout << "Going to enqueue 1024 messages ......" << std::endl;
+    std::cout << "Going to enqueue 1024 messages ......\n";
     for (int n = 0; n < 1024; ++n) {
         std::wstring str = std::to_wstring((SPA::UINT64)n) + L" Object test";
         unsigned short idMessage;
@@ -126,7 +126,7 @@ void TestDequeue(CMyPool::PHandler &sq) {
                 //parse a dequeued message which should be the same as the above enqueued message (two unicode strings and one int)
                 q >> name >> str >> index;
 
-                std::wcout << L", name=" << name << L", str=" << str << L", index=" << index << std::endl;
+                std::wcout << L", name=" << name << L", str=" << str << L", index=" << index << "\n";
             }
                 processed = true;
                 break;
@@ -161,7 +161,7 @@ void TestDequeue(CMyPool::PHandler &sq) {
                     << ", queue file size=" << fileSize
                     << ", messages dequeued=" << messages
                     << ", message bytes dequeued=" << bytes
-                    << std::endl;
+                    << "\n";
         }
         if (messageCount > 0) {
             //there are more messages left at server queue, we re-send a request to dequeue
@@ -169,7 +169,7 @@ void TestDequeue(CMyPool::PHandler &sq) {
         }
     };
 
-    std::cout << "Going to dequeue message ......" << std::endl;
+    std::cout << "Going to dequeue message ......\n";
     //add an extra Dequeue call for better performance
     if (!(sq->Dequeue(TEST_QUEUE_KEY, d) && sq->Dequeue(TEST_QUEUE_KEY, d))) {
         sq->raise(Queue::idDequeue);

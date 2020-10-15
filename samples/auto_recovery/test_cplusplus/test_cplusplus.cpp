@@ -49,7 +49,7 @@ int main(int argc, char* argv[]) {
         SPA::UDB::CDBVariantArray row;
         CSql::DExecuteResult er = [&dmax, &dmin, &davg, &returned, &row](CSql &h, int res, const std::wstring &errMsg, SPA::INT64 affected, SPA::UINT64 fail_ok, SPA::UDB::CDBVariant lastId) {
             if (res)
-                std::wcout << L"Error code: " << res << L", error message: " << errMsg << std::endl;
+                std::wcout << L"Error code: " << res << L", error message: " << errMsg << "\n";
             else {
                 dmax += row[0].dblVal;
                 dmin += row[1].dblVal;
@@ -64,7 +64,7 @@ int main(int argc, char* argv[]) {
         ok = asql->Execute(sql.c_str(), er, r);
         assert(ok);
         ok = asql->WaitAll();
-        std::cout << "Result: max = " << dmax << ", min = " << dmin << ", avg = " << davg << std::endl;
+        std::cout << "Result: max = " << dmax << ", min = " << dmin << ", avg = " << davg << "\n";
         returned = 0;
         dmax = 0.0;
         dmin = 0.0;
@@ -78,7 +78,7 @@ int main(int argc, char* argv[]) {
         for (auto it = v.begin(), end = v.end(); it != end; ++it) {
             ok = (*it)->WaitAll();
         }
-        std::cout << "Retured = " << returned << ", max = " << dmax << ", min = " << dmin << ", avg = " << davg << std::endl;
+        std::cout << "Retured = " << returned << ", max = " << dmax << ", min = " << dmin << ", avg = " << davg << "\n";
         std::cout << "Press any key to close the demo ......\n";
         ::getchar();
     } while (false);

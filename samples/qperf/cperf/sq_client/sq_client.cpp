@@ -18,17 +18,17 @@ int main(int argc, char* argv[]) {
     cc.Port = 20901;
     cc.UserId = L"root";
     cc.Password = L"Smash123";
-    std::cout << "Tell me the remote server address: " << std::endl;
+    std::cout << "Tell me the remote server address:\n";
     std::getline(std::cin, cc.Host);
     CMyPool spSq;
     if (!spSq.StartSocketPool(cc, 1)) {
-        std::cout << "Failed to connect to remote host for enqueuing" << std::endl;
-        std::cout << "Press a key to shutdown the application ......" << std::endl;
+        std::cout << "Failed to connect to remote host for enqueuing\n";
+        std::cout << "Press a key to shutdown the application ......\n";
         ::getchar();
         return 1;
     }
     int wan = 0;
-    std::cout << "Wide Area Network (yes -- 1 or no -- 0)? " << std::endl;
+    std::cout << "Wide Area Network (yes -- 1 or no -- 0)?\n";
     std::cin >> wan;
     auto sq = spSq.Seek();
 
@@ -71,7 +71,7 @@ int main(int argc, char* argv[]) {
     EnqueueToServer(sq, s10240, wan ? 50000 : 1000000);
     DequeueFromServer(sq);
 
-    std::cout << "Press a key to shutdown the application ......" << std::endl;
+    std::cout << "Press a key to shutdown the application ......\n";
     std::getchar();
     std::getchar();
     return 0;
@@ -81,7 +81,7 @@ void EnqueueToServerBatch(CMyPool::PHandler sq, const std::string &msg, unsigned
     unsigned int n;
     SPA::CScopeUQueue sb;
     system_clock::time_point start = system_clock::now();
-    std::cout << "Going to enqueue " << cycles << " messages ......" << std::endl;
+    std::cout << "Going to enqueue " << cycles << " messages ......\n";
     for (n = 0; n < cycles; ++n) {
         CAsyncQueue::BatchMessage(idMessage, (const unsigned char*) msg.c_str(), (unsigned int) msg.size(), *sb);
         if (sb->GetSize() > batchSize) {
@@ -94,7 +94,7 @@ void EnqueueToServerBatch(CMyPool::PHandler sq, const std::string &msg, unsigned
     sq->WaitAll();
     system_clock::time_point stop = system_clock::now();
     ms d = std::chrono::duration_cast<ms>(stop - start);
-    std::cout << cycles << " messages sent to server and enqueued within " << d.count() << " ms" << std::endl;
+    std::cout << cycles << " messages sent to server and enqueued within " << d.count() << " ms\n";
 }
 
 void EnqueueToServer(CMyPool::PHandler sq, const std::string &msg, unsigned int cycles) {
@@ -107,7 +107,7 @@ void EnqueueToServer(CMyPool::PHandler sq, const std::string &msg, unsigned int 
     sq->WaitAll();
     system_clock::time_point stop = system_clock::now();
     ms d = std::chrono::duration_cast<ms>(stop - start);
-    std::cout << cycles << " messages sent to server and enqueued within " << d.count() << " ms" << std::endl;
+    std::cout << cycles << " messages sent to server and enqueued within " << d.count() << " ms\n";
 }
 
 void DequeueFromServer(CMyPool::PHandler sq) {
@@ -140,7 +140,7 @@ void DequeueFromServer(CMyPool::PHandler sq) {
         return processed;
     };
 
-    std::cout << "Going to dequeue message ......" << std::endl;
+    std::cout << "Going to dequeue message ......\n";
     bool ok = sq->Dequeue(TEST_QUEUE_KEY, d);
     //optionally, add one or two extra to improve processing concurrency at both client and server sides for better performance and through-output
     ok = sq->Dequeue(TEST_QUEUE_KEY, d);
@@ -148,5 +148,5 @@ void DequeueFromServer(CMyPool::PHandler sq) {
     sq->WaitAll();
     system_clock::time_point stop = system_clock::now();
     ms diff = std::chrono::duration_cast<ms>(stop - start);
-    std::cout << messages_dequeued << " messages dequeued from server within " << diff.count() << " ms" << std::endl;
+    std::cout << messages_dequeued << " messages dequeued from server within " << diff.count() << " ms\n";
 }

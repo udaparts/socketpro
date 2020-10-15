@@ -9,7 +9,7 @@ int main(int argc, char* argv[]) {
 
     //spHw.SetQueueName("helloworld"); //optionally start a queue for auto failure recovery
     if (!spHw.StartSocketPool(cc, 1)) {
-        std::wcout << "Failed in connecting to remote helloworld server" << std::endl;
+        std::wcout << "Failed in connecting to remote helloworld server\n";
         return -1;
     }
     auto hw = spHw.Seek();
@@ -34,7 +34,7 @@ int main(int argc, char* argv[]) {
         std::cout << "Waiting results ......\n";
         std::wcout << f0.get() << std::endl;
         std::wcout << "Echo equal: " << (ms == f1.get()) << std::endl;
-        std::wcout << "Sleep returns " << f2.get()->GetSize() << " byte because server side returns nothing" << std::endl;
+        std::wcout << "Sleep returns " << f2.get()->GetSize() << " byte because server side returns nothing\n";
         std::wcout << f3.get() << std::endl;
         std::wcout << f4.get() << std::endl;
     } catch (CServerError & ex) {
@@ -42,10 +42,10 @@ int main(int argc, char* argv[]) {
     } catch (CSocketError & ex) {
         std::wcout << ex.ToString() << std::endl;
     } catch (std::exception & ex) {
-        std::wcout << "Unexpected error: " << ex.what() << std::endl;
+        std::wcout << "Unexpected error: " << ex.what() << "\n";
     }
 
-    std::wcout << L"Press a key to shutdown the demo application ......" << std::endl;
+    std::wcout << L"Press a key to shutdown the demo ......\n";
     ::getchar();
     return 0;
 }

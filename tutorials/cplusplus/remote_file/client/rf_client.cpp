@@ -17,11 +17,11 @@ int main(int argc, char* argv[]) {
     CMyPool spRf;
 #endif
     if (!spRf.StartSocketPool(cc, 1)) {
-        std::cout << "Can not connect to remote server" << std::endl;
+        std::cout << "Can not connect to remote file server\n";
         return -1;
     }
     auto rf = spRf.Seek();
-    std::cout << "Input a remote file to download ......" << std::endl;
+    std::cout << "Input a remote file to download ......\n";
     std::wstring RemoteFile;
     std::getline(std::wcin, RemoteFile);
     std::wstring LocalFile(L"spfile.test");
@@ -49,9 +49,9 @@ int main(int argc, char* argv[]) {
     }
 
     catch(std::exception & ex) {
-        std::cout << "Some unexpected error: " << ex.what() << std::endl;
+        std::cout << "Unexpected error: " << ex.what() << std::endl;
     }
-    std::cout << "Press a key to shutdown the demo application ......" << std::endl;
+    std::cout << "Press a key to kill the demo ......\n";
     ::getchar();
     return 0;
 }

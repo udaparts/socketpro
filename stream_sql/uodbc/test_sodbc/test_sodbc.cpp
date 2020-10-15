@@ -33,8 +33,8 @@ int main(int argc, char* argv[]) {
     CMySocketProServer server;
     if (!server.Run(20901)) {
         int errCode = server.GetErrorCode();
-        std::cout << "Error happens with code = " << errCode << std::endl;
+        std::cout << "Error code: " << errCode << "\n";
     }
-    std::cout << "Press any key to stop the server ......" << std::endl;
+    std::cout << "Press any key to stop the server ......\n";
     ::getchar();
 }

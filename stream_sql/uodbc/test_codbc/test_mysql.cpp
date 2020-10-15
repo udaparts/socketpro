@@ -15,7 +15,7 @@ typedef COdbcBase CSender;
 
 void TestCreateTables(shared_ptr<CMyHandler> pOdbc);
 void TestPreparedStatements(shared_ptr<CMyHandler> pOdbc);
-void InsertBLOBByPreparedStatement(shared_ptr<CMyHandler> pOdbc);
+void TestBLOBByPreparedStatement(shared_ptr<CMyHandler> pOdbc);
 void TestStoredProcedure(shared_ptr<CMyHandler> pOdbc, CRowsetArray&ra, CDBVariantArray &vData, unsigned int &oks);
 void TestBatch(shared_ptr<CMyHandler> pOdbc, CRowsetArray&ra, CDBVariantArray &vData, unsigned int &oks);
 
@@ -69,7 +69,7 @@ int main(int argc, char* argv[]) {
     ok = pOdbc->Execute(u"delete from employee", er);
     ok = pOdbc->Execute(u"delete from company", er);
     TestPreparedStatements(pOdbc);
-    InsertBLOBByPreparedStatement(pOdbc);
+    TestBLOBByPreparedStatement(pOdbc);
     ok = pOdbc->Execute(u"SELECT * from company", er, r, rh);
     ok = pOdbc->Execute(u"select * from employee", er, r, rh);
     ok = pOdbc->Execute(u"select curtime()", er, r, rh);
@@ -115,7 +115,7 @@ int main(int argc, char* argv[]) {
     return 0;
 }
 
-void InsertBLOBByPreparedStatement(shared_ptr<CMyHandler> pOdbc) {
+void TestBLOBByPreparedStatement(shared_ptr<CMyHandler> pOdbc) {
     wstring wstr;
     while (wstr.size() < 128 * 1024) {
         wstr += L"广告做得不那么夸张的就不说了，看看这三家，都是正儿八经的公立三甲，附属医院，不是武警，也不是部队，更不是莆田，都在卫生部门直接监管下，照样明目张胆地骗人。";

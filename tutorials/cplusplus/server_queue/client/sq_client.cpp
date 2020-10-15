@@ -17,8 +17,8 @@ int main(int argc, char* argv[]) {
     CMyPool spSq;
     //spSq.SetQueueName("qname");
     if (!spSq.StartSocketPool(cc, 1)) {
-        cout << "Failed to connect to remote host for enqueuing" << endl;
-        cout << "Press a key to complete dequeuing messages from server ......" << endl;
+        cout << "Failed to connect to remote host for enqueuing\n";
+        cout << "Press a key to kill the demo ......\n";
         ::getchar();
         return 1;
     }
@@ -34,15 +34,15 @@ int main(int argc, char* argv[]) {
         wcout << ex.ToString() << endl;
     }
     catch(exception & ex) {
-        wcout << "Some unexpected error: " << ex.what() << endl;
+        wcout << "Unexpected error: " << ex.what() << endl;
     }
-    cout << "Press a key to complete dequeuing messages from server ......" << endl;
+    cout << "Press a key to kill the demo ......\n";
     ::getchar();
     return 0;
 }
 
 void TestEnqueue(CMyPool::PHandler &sq) {
-    cout << "Going to enqueue 1024 messages ......" << endl;
+    cout << "Going to enqueue 1024 messages ......\n";
     for (int n = 0; n < 1024; ++n) {
         wstring str = to_wstring(n) + L" Object test";
         unsigned short idMessage;
@@ -80,7 +80,7 @@ future<CAsyncQueue::DeqInfo> TestDequeue(CMyPool::PHandler &sq) {
                 //parse a dequeued message which should be the same as the above enqueued message (two unicode strings and one int)
                 q >> name >> str >> index;
 
-                wcout << L", name=" << name << L", str=" << str << L", index=" << index << endl;
+                wcout << L", name=" << name << L", str=" << str << L", index=" << index << "\n";
             }
                 processed = true;
                 break;
@@ -99,7 +99,7 @@ future<CAsyncQueue::DeqInfo> TestDequeue(CMyPool::PHandler &sq) {
                     << ", queue file size=" << fileSize
                     << ", messages dequeued=" << messages
                     << ", message bytes dequeued=" << bytes
-                    << endl;
+                    << "\n";
         }
         if (messageCount > 0) {
             //there are more messages left at server queue, we re-send a request to dequeue
@@ -114,7 +114,7 @@ future<CAsyncQueue::DeqInfo> TestDequeue(CMyPool::PHandler &sq) {
             }
         }
     };
-    cout << "Going to dequeue message ......" << endl;
+    cout << "Going to dequeue message ......\n";
     //optionally, add one extra to improve processing concurrency at both client and server sides for better performance and through-output
     if (!(sq->Dequeue(TEST_QUEUE_KEY, d, 0, aborted, se) && sq->Dequeue(TEST_QUEUE_KEY, d, 0, aborted, se))) {
         sq->raise(Queue::idDequeue);

@@ -88,11 +88,11 @@ int main(int argc, char* argv[]) {
     ok = hw->SendRequest(idSleep, nullptr, nullptr, nullptr, (int) 5000);
 
     std::wstring receiver;
-    std::cout << "Input a receiver for receiving my message ......" << std::endl;
+    std::cout << "Input a receiver for receiving my message ......\n";
     std::getline(std::wcin, receiver);
     message = (L"A message from " + cc.UserId).c_str();
     ok = push.SendUserMessage(message, receiver.c_str());
-    std::cout << "Press a key to shutdown the demo application ......" << std::endl;
+    std::cout << "Press a key to shutdown the demo ......\n";
     ::getchar();
     return 0;
 }
