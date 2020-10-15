@@ -207,7 +207,7 @@ namespace SPA {
                 }
             };
 
-            auto wait_upload(const wchar_t* localFile, const wchar_t* remoteFile, DTransferring progress = nullptr, unsigned int flags = SFile::FILE_OPEN_TRUNCACTED) {
+            FileWaiter wait_upload(const wchar_t* localFile, const wchar_t* remoteFile, DTransferring progress = nullptr, unsigned int flags = SFile::FILE_OPEN_TRUNCACTED) {
                 if (!localFile || !::wcslen(localFile)) {
                     throw std::invalid_argument("Parameter localFile cannot be empty");
                 }
@@ -221,7 +221,7 @@ namespace SPA {
                 return FileWaiter(this, SFile::idUpload, context);
             }
 
-            auto wait_download(const wchar_t* localFile, const wchar_t* remoteFile, DTransferring progress = nullptr, unsigned int flags = SFile::FILE_OPEN_TRUNCACTED) {
+            FileWaiter wait_download(const wchar_t* localFile, const wchar_t* remoteFile, DTransferring progress = nullptr, unsigned int flags = SFile::FILE_OPEN_TRUNCACTED) {
                 if (!localFile || !::wcslen(localFile)) {
                     throw std::invalid_argument("Parameter localFile cannot be empty");
                 }

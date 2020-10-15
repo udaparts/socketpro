@@ -1163,17 +1163,17 @@ namespace SPA {
             };
 
             template<typename R>
-            auto wait_send(unsigned short reqId, const unsigned char* pBuffer, unsigned int size) {
+            RWaiter<R> wait_send(unsigned short reqId, const unsigned char* pBuffer, unsigned int size) {
                 return RWaiter<R>(this, reqId, pBuffer, size);
             }
 
             template<typename R>
-            auto wait_send(unsigned short reqId) {
+            RWaiter<R> wait_send(unsigned short reqId) {
                 return RWaiter<R>(this, reqId, (const unsigned char*) nullptr, (unsigned int) 0);
             }
 
             template<typename R, typename ... Ts>
-            auto wait_send(unsigned short reqId, const Ts& ... args) {
+            RWaiter<R> wait_send(unsigned short reqId, const Ts& ... args) {
                 CScopeUQueue sb;
                 sb->Save(args ...);
                 return RWaiter<R>(this, reqId, sb->GetBuffer(), sb->GetSize());
@@ -1308,6 +1308,8 @@ namespace SPA {
 #ifdef HAVE_FUTURE
 #ifdef HAVE_COROUTINE
         template<typename R> using CWaiter = CAsyncServiceHandler::CWaiterBase<R>;
+        using BWaiter = CAsyncServiceHandler::BWaiter;
+        template<typename R> using RWaiter = CAsyncServiceHandler::RWaiter<R>;
 #if HAVE_COROUTINE > 1
 
         struct CAwTask {
