@@ -11,7 +11,15 @@
 #ifdef HAVE_FUTURE
 #include <future>
 #ifdef WIN32_64
-#ifdef _EXPERIMENTAL_RESUMABLE_
+
+#if defined(_COROUTINE_)
+#define HAVE_COROUTINE 2
+namespace SPA {
+    namespace ClientSide {
+        typedef std::coroutine_handle<> CRHandle;
+    }
+}
+#elif defined(_EXPERIMENTAL_RESUMABLE_)
 #define HAVE_COROUTINE 1
 namespace SPA {
     namespace ClientSide {
@@ -21,7 +29,7 @@ namespace SPA {
 #endif
 #else
 #ifdef _GLIBCXX_COROUTINE
-#define HAVE_COROUTINE 1
+#define HAVE_COROUTINE 2
 namespace SPA {
     namespace ClientSide {
         typedef std::coroutine_handle<> CRHandle;
@@ -758,6 +766,9 @@ namespace SPA {
             const static int SESSION_CLOSED_BEFORE = -1001;
             const static int REQUEST_CANCELED = -1002;
             const static UINT64 DEFAULT_INTERRUPT_OPTION = 1;
+            static const wchar_t* const SESSION_CLOSED_BEFORE_ERR_MSG;
+            static const wchar_t* const SESSION_CLOSED_AFTER_ERR_MSG;
+            static const wchar_t* const REQUEST_CANCELED_ERR_MSG;
 
             virtual ~CAsyncServiceHandler();
 
@@ -898,10 +909,7 @@ namespace SPA {
 #if defined(PHP_ADAPTER_PROJECT) || defined(NODE_JS_ADAPTER_PROJECT)
 #else
 
-            void raise(const std::wstring& method_name, unsigned short req_id) {
-                if (!method_name.size()) {
-                    throw std::invalid_argument("Method name cannot be empty");
-                }
+            void raise(unsigned short req_id) {
                 if (!req_id) {
                     throw std::invalid_argument("Request id cannot be zero");
                 }
@@ -911,17 +919,17 @@ namespace SPA {
                     std::string em = cs->GetErrorMsg();
                     throw CSocketError(ec, Utilities::ToWide(em).c_str(), req_id, true);
                 } else {
-                    throw CSocketError(SESSION_CLOSED_BEFORE, (L"Session already closed before sending the request " + method_name).c_str(), req_id, true);
+                    throw CSocketError(SESSION_CLOSED_BEFORE, SESSION_CLOSED_BEFORE_ERR_MSG, req_id, true);
                 }
             }
 
 #ifdef HAVE_FUTURE
 
-            std::future<CScopeUQueue> send0(unsigned short reqId, const unsigned char *pBuffer, unsigned int size) {
+            std::future<CScopeUQueue> sendRequest(unsigned short reqId, const unsigned char *pBuffer, unsigned int size) {
                 std::shared_ptr<std::promise<CScopeUQueue> > prom(new std::promise<CScopeUQueue>);
-                DDiscarded discarded = get_aborted(prom, L"SendRequest", reqId);
+                DDiscarded discarded = get_aborted(prom, reqId);
                 DServerException se = get_se(prom);
-                DResultHandler rh = [prom](CAsyncResult & ar) {
+                if (!SendRequest(reqId, pBuffer, size, [prom](CAsyncResult & ar) {
                     CScopeUQueue sb;
                     sb->Swap(ar.UQueue);
                     try {
@@ -929,36 +937,32 @@ namespace SPA {
                     } catch (std::future_error&) {
                         //ignore it
                     }
-                };
-                if (!SendRequest(reqId, pBuffer, size, rh, discarded, se)) {
-                    raise(L"SendRequest", reqId);
+                }, discarded, se)) {
+                    raise(reqId);
                 }
                 return prom->get_future();
             }
 
-            std::future<CScopeUQueue> send0(unsigned short reqId) {
-                return send0(reqId, (const unsigned char *) nullptr, (unsigned int) 0);
+            std::future<CScopeUQueue> sendRequest(unsigned short reqId) {
+                return sendRequest(reqId, (const unsigned char *) nullptr, (unsigned int) 0);
             }
 
             template<typename ...Ts>
-            std::future<CScopeUQueue> send0(unsigned short reqId, const Ts& ... args) {
+            std::future<CScopeUQueue> sendRequest(unsigned short reqId, const Ts& ... args) {
                 CScopeUQueue sb;
                 sb->Save(args ...);
-                return send0(reqId, sb->GetBuffer(), sb->GetSize());
+                return sendRequest(reqId, sb->GetBuffer(), sb->GetSize());
             }
 
             template<typename R>
-            static DDiscarded get_aborted(std::shared_ptr<std::promise<R> > prom, const std::wstring& method_name, unsigned short req_id) {
-                if (!method_name.size()) {
-                    throw std::invalid_argument("Method name cannot be empty");
-                }
+            static DDiscarded get_aborted(const std::shared_ptr<std::promise<R> >& prom, unsigned short req_id) {
                 if (!req_id) {
                     throw std::invalid_argument("Request id cannot be zero");
                 }
-                return [prom, req_id, method_name](CAsyncServiceHandler *h, bool canceled) {
+                return [prom, req_id](CAsyncServiceHandler *h, bool canceled) {
                     try {
                         if (canceled) {
-                            prom->set_exception(std::make_exception_ptr(CSocketError(REQUEST_CANCELED, (L"Request " + method_name + L" canceled").c_str(), req_id, false)));
+                            prom->set_exception(std::make_exception_ptr(CSocketError(REQUEST_CANCELED, REQUEST_CANCELED_ERR_MSG, req_id, false)));
                         } else {
                             CClientSocket* cs = h->GetSocket();
                             int ec = cs->GetErrorCode();
@@ -966,7 +970,7 @@ namespace SPA {
                                 std::string em = cs->GetErrorMsg();
                                 prom->set_exception(std::make_exception_ptr(CSocketError(ec, Utilities::ToWide(em).c_str(), req_id, false)));
                             } else {
-                                prom->set_exception(std::make_exception_ptr(CSocketError(SESSION_CLOSED_AFTER, (L"Session closed after sending the request " + method_name).c_str(), req_id, false)));
+                                prom->set_exception(std::make_exception_ptr(CSocketError(SESSION_CLOSED_AFTER, SESSION_CLOSED_AFTER_ERR_MSG, req_id, false)));
                             }
                         }
                     } catch (std::future_error&) {
@@ -976,7 +980,7 @@ namespace SPA {
             }
 
             template<typename R>
-            static DServerException get_se(std::shared_ptr<std::promise<R> > prom) {
+            static DServerException get_se(const std::shared_ptr<std::promise<R> >& prom) {
                 return [prom](CAsyncServiceHandler *ash, unsigned short reqId, const wchar_t *errMsg, const char* errWhere, unsigned int errCode) {
                     try {
                         prom->set_exception(std::make_exception_ptr(CServerError(errCode, errMsg, errWhere, reqId)));
@@ -989,9 +993,9 @@ namespace SPA {
             template<typename R>
             std::future<R> send(unsigned short reqId, const unsigned char *pBuffer, unsigned int size) {
                 std::shared_ptr<std::promise<R> > prom(new std::promise<R>);
-                DDiscarded discarded = get_aborted(prom, L"SendRequest", reqId);
+                DDiscarded discarded = get_aborted(prom, reqId);
                 DServerException se = get_se(prom);
-                DResultHandler rh = [prom](CAsyncResult & ar) {
+                if (!SendRequest(reqId, pBuffer, size, [prom](CAsyncResult & ar) {
                     try {
                         R r;
                         ar >> r;
@@ -1001,9 +1005,8 @@ namespace SPA {
                     } catch (...) {
                         prom->set_exception(std::current_exception());
                     }
-                };
-                if (!SendRequest(reqId, pBuffer, size, rh, discarded, se)) {
-                    raise(L"SendRequest", reqId);
+                }, discarded, se)) {
+                    raise(reqId);
                 }
                 return prom->get_future();
             }
@@ -1020,21 +1023,19 @@ namespace SPA {
                 return send<R>(reqId, sb->GetBuffer(), sb->GetSize());
             }
 #endif
+
 #ifdef HAVE_COROUTINE
 
             template<typename R>
             struct CWaiterBase {
 
                 struct CWaiterContext {
-                    CWaiterContext(const std::wstring& req_name, unsigned short reqId)
-                        : m_done(false), m_reqId(reqId) {
-                        if (!req_name.size()) {
-                            throw std::invalid_argument("Method name cannot be empty");
-                        }
+
+                    CWaiterContext(unsigned short reqId)
+                    : m_done(false), m_reqId(reqId) {
                         if (!reqId) {
                             throw std::invalid_argument("Request id cannot be zero");
                         }
-                        m_reqName = req_name;
                     }
 
                     CWaiterContext(const CWaiterContext& wc) = delete;
@@ -1064,44 +1065,19 @@ namespace SPA {
                         m_cs.lock();
                         if (m_done) {
                             m_cs.unlock();
-                        }
-                        else {
+                        } else {
                             m_done = true;
                             if (m_rh) {
                                 m_cs.unlock();
                                 m_rh.resume();
-                            }
-                            else {
+                            } else {
                                 m_cs.unlock();
                             }
                         }
                     }
 
-                    DServerException get_se() noexcept {
-                        return [this](CAsyncServiceHandler* ash, unsigned short reqId, const wchar_t* errMsg, const char* errWhere, unsigned int errCode) {
-                            m_ex = std::make_exception_ptr(CServerError(errCode, errMsg, errWhere, reqId));
-                            resume();
-                        };
-                    }
-
-                    DDiscarded get_aborted() noexcept {
-                        return [this](CAsyncServiceHandler* h, bool canceled) {
-                            if (canceled) {
-                                m_ex = std::make_exception_ptr(CSocketError(REQUEST_CANCELED, (L"Request " + m_reqName + L" canceled").c_str(), m_reqId, false));
-                            }
-                            else {
-                                CClientSocket* cs = h->GetSocket();
-                                int ec = cs->GetErrorCode();
-                                if (ec) {
-                                    std::string em = cs->GetErrorMsg();
-                                    m_ex = std::make_exception_ptr(CSocketError(ec, Utilities::ToWide(em).c_str(), m_reqId, false));
-                                }
-                                else {
-                                    m_ex = std::make_exception_ptr(CSocketError(SESSION_CLOSED_AFTER, (L"Session closed after sending the request " + m_reqName).c_str(), m_reqId, false));
-                                }
-                            }
-                            resume();
-                        };
+                    unsigned short get_id() {
+                        return m_reqId;
                     }
 
                     R m_r;
@@ -1109,34 +1085,13 @@ namespace SPA {
 
                 private:
                     CSpinLock m_cs;
-                    bool m_done; //portected by m_cs
-                    CRHandle m_rh; //portected by m_cs
+                    bool m_done; //protected by m_cs
+                    CRHandle m_rh; //protected by m_cs
                     unsigned short m_reqId;
-                    std::wstring m_reqName;
                 };
 
-                CWaiterBase(const std::wstring &req_name, unsigned short reqId)
-                : m_wc(new CWaiterContext(req_name, reqId)), m_r(m_wc->m_r), m_ex(m_wc->m_ex) {
-                }
-
-                CWaiterBase(const CWaiterBase& wb) : m_wc(wb.m_wc), m_r(wb.m_r), m_ex(wb.m_ex) {
-                }
-
-                CWaiterBase(CWaiterBase&& wb) : m_wc(wb.m_wc), m_r(wb.m_r), m_ex(wb.m_ex) {
-                }
-
-                CWaiterBase& operator=(const CWaiterBase& wb) noexcept {
-                    if (this != &wb) {
-                        m_wc = wb.m_wc;
-                    }
-                    return *this;
-                }
-
-                CWaiterBase& operator=(CWaiterBase&& wb) noexcept {
-                    if (this != &wb) {
-                        m_wc = wb.m_wc; //copy shared_ptr only
-                    }
-                    return *this;
+                CWaiterBase(unsigned short reqId)
+                : m_wc(new CWaiterContext(reqId)) {
                 }
 
                 bool await_suspend(CRHandle rh) noexcept {
@@ -1144,10 +1099,10 @@ namespace SPA {
                 }
 
                 R await_resume() {
-                    if (m_ex) {
-                        std::rethrow_exception(m_ex);
+                    if (m_wc->m_ex) {
+                        std::rethrow_exception(m_wc->m_ex);
                     }
-                    return std::move(m_r);
+                    return std::move(m_wc->m_r);
                 }
 
                 bool await_ready() noexcept {
@@ -1155,88 +1110,102 @@ namespace SPA {
                 }
 
             protected:
-                void resume() noexcept {
-                    m_wc->resume();
-                }
 
                 DServerException get_se() noexcept {
-                    return m_wc->get_se();
+                    auto& wc = m_wc;
+                    return [wc](CAsyncServiceHandler* ash, unsigned short reqId, const wchar_t* errMsg, const char* errWhere, unsigned int errCode) {
+                        wc->m_ex = std::make_exception_ptr(CServerError(errCode, errMsg, errWhere, reqId));
+                        wc->resume();
+                    };
                 }
 
                 DDiscarded get_aborted() noexcept {
-                    return m_wc->get_aborted();
+                    auto& wc = m_wc;
+                    return [wc](CAsyncServiceHandler* h, bool canceled) {
+                        if (canceled) {
+                            wc->m_ex = std::make_exception_ptr(CSocketError(REQUEST_CANCELED, REQUEST_CANCELED_ERR_MSG, wc->get_id(), false));
+                        }
+                        else {
+                            CClientSocket* cs = h->GetSocket();
+                            int ec = cs->GetErrorCode();
+                            if (ec) {
+                                std::string em = cs->GetErrorMsg();
+                                wc->m_ex = std::make_exception_ptr(CSocketError(ec, Utilities::ToWide(em).c_str(), wc->get_id(), false));
+                            }
+                            else {
+                                wc->m_ex = std::make_exception_ptr(CSocketError(SESSION_CLOSED_AFTER, SESSION_CLOSED_AFTER_ERR_MSG, wc->get_id(), false));
+                            }
+                        }
+                        wc->resume();
+                    };
                 }
 
-            private:
                 std::shared_ptr<CWaiterContext> m_wc;
-
-            protected:
-                R &m_r;
-                std::exception_ptr &m_ex;
             };
 
             template<typename R>
-            auto wait_send(unsigned short reqId, const unsigned char* pBuffer, unsigned int size) {
+            struct RWaiter : public CWaiterBase<R> {
 
-                struct Awaiter : public CWaiterBase<R> {
-
-                    Awaiter(CAsyncServiceHandler* ash, unsigned short reqId, const unsigned char* pBuffer, unsigned int size)
-                    : CWaiterBase<R>(L"SendRequest", reqId) {
-                        DResultHandler rh = [this](CAsyncResult & ar) {
-                            try {
-                                ar >> this->m_r;
-                            } catch (...) {
-                                this->m_ex = std::current_exception();
-                            }
-                            this->resume();
-                        };
-                        if (!ash->SendRequest(reqId, pBuffer, size, rh, this->get_aborted(), this->get_se())) {
-                            ash->raise(L"SendRequest", reqId);
+                RWaiter(CAsyncServiceHandler* ash, unsigned short reqId, const unsigned char* pBuffer, unsigned int size)
+                : CWaiterBase<R>(reqId) {
+                    auto& wc = this->m_wc;
+                    if (!ash->SendRequest(reqId, pBuffer, size, [wc](CAsyncResult & ar) {
+                        try {
+                            ar >> wc->m_r;
+                        } catch (...) {
+                            wc->m_ex = std::current_exception();
                         }
+                        wc->resume();
+                    }, this->get_aborted(), this->get_se())) {
+                        ash->raise(reqId);
                     }
-                };
-                return Awaiter(this, reqId, pBuffer, size);
+                }
+            };
+
+            template<typename R>
+            RWaiter<R> wait_send(unsigned short reqId, const unsigned char* pBuffer, unsigned int size) {
+                return RWaiter<R>(this, reqId, pBuffer, size);
             }
 
             template<typename R>
-            auto wait_send(unsigned short reqId) {
-                return wait_send<R>(reqId, (const unsigned char*) nullptr, (unsigned int) 0);
+            RWaiter<R> wait_send(unsigned short reqId) {
+                return RWaiter<R>(this, reqId, (const unsigned char*) nullptr, (unsigned int) 0);
             }
 
             template<typename R, typename ... Ts>
-            auto wait_send(unsigned short reqId, const Ts& ... args) {
+            RWaiter<R> wait_send(unsigned short reqId, const Ts& ... args) {
                 CScopeUQueue sb;
                 sb->Save(args ...);
-                return wait_send<R>(reqId, sb->GetBuffer(), sb->GetSize());
+                return RWaiter<R>(this, reqId, sb->GetBuffer(), sb->GetSize());
             }
 
-            auto wait_send0(unsigned short reqId, const unsigned char* pBuffer, unsigned int size) {
+            struct BWaiter : public CWaiterBase<CScopeUQueue> {
 
-                struct Awaiter : public CWaiterBase<CScopeUQueue> {
-
-                    Awaiter(CAsyncServiceHandler* ash, unsigned short reqId, const unsigned char* pBuffer, unsigned int size)
-                    : CWaiterBase<CScopeUQueue>(L"SendRequest", reqId) {
-                        DResultHandler rh = [this](CAsyncResult & ar) {
-                            m_r->Swap(ar.UQueue);
-                            resume();
-                        };
-                        if (!ash->SendRequest(reqId, pBuffer, size, rh, get_aborted(), get_se())) {
-                            ash->raise(L"SendRequest", reqId);
-                        }
+                BWaiter(CAsyncServiceHandler* ash, unsigned short reqId, const unsigned char* pBuffer, unsigned int size)
+                : CWaiterBase<CScopeUQueue>(reqId) {
+                    auto& wc = m_wc;
+                    if (!ash->SendRequest(reqId, pBuffer, size, [wc](CAsyncResult & ar) {
+                        wc->m_r->Swap(ar.UQueue);
+                        wc->resume();
+                    }, get_aborted(), get_se())) {
+                        ash->raise(reqId);
                     }
-                };
-                return Awaiter(this, reqId, pBuffer, size);
+                }
+            };
+
+            BWaiter wait_sendRequest(unsigned short reqId, const unsigned char* pBuffer, unsigned int size) {
+                return BWaiter(this, reqId, pBuffer, size);
             }
 
-            auto wait_send0(unsigned short reqId) {
-                return wait_send0(reqId, (const unsigned char*) nullptr, (unsigned int) 0);
+            BWaiter wait_sendRequest(unsigned short reqId) {
+                return BWaiter(this, reqId, (const unsigned char*) nullptr, (unsigned int) 0);
             }
 
             template<typename ... Ts>
-            auto wait_send0(unsigned short reqId, const Ts& ... args) {
+            BWaiter wait_sendRequest(unsigned short reqId, const Ts& ... args) {
                 CScopeUQueue sb;
                 sb->Save(args ...);
-                return wait_send0(reqId, sb->GetBuffer(), sb->GetSize());
+                return BWaiter(this, reqId, sb->GetBuffer(), sb->GetSize());
             }
 #endif
 #endif
@@ -1338,10 +1307,47 @@ namespace SPA {
 #else
 #ifdef HAVE_FUTURE
 #ifdef HAVE_COROUTINE
-        template<typename R> using CWaiterList = std::initializer_list<CAsyncServiceHandler::CWaiterBase<R>>;
+        template<typename R> using CWaiter = CAsyncServiceHandler::CWaiterBase<R>;
+        using BWaiter = CAsyncServiceHandler::BWaiter;
+        template<typename R> using RWaiter = CAsyncServiceHandler::RWaiter<R>;
+#if HAVE_COROUTINE > 1
+
+        struct CAwTask {
+
+            struct promise_type {
+
+                CAwTask get_return_object() {
+                    return
+                    {
+                    };
+                }
+
+                std::suspend_never initial_suspend() {
+                    return
+                    {
+                    };
+                }
+
+                std::suspend_never final_suspend() {
+                    return
+                    {
+                    };
+                }
+
+                void return_void() {
+                }
+
+                void unhandled_exception() {
+                }
+            };
+        };
+#else
+        typedef std::future<void> CAwTask;
 #endif
 #endif
 #endif
+#endif
+
         template<unsigned int serviceId>
         class CASHandler : public CAsyncServiceHandler {
         public:

@@ -1,9 +1,5 @@
-
 #include "odbcimpl.h"
 #include <sstream>
-#ifndef NDEBUG
-#include <iostream>
-#endif
 #include "../async_sqlncli.h"
 #include "../../../include/scloader.h"
 #include <cctype>

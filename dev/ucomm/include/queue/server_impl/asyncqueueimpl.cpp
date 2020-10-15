@@ -1,8 +1,4 @@
-
 #include "asyncqueueimpl.h"
-#ifndef NDEBUG
-#include <iostream>
-#endif
 
 namespace SPA
 {

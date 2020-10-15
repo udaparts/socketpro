@@ -181,18 +181,18 @@ namespace SPA {
 #ifdef HAVE_FUTURE
 
 #ifdef HAVE_COROUTINE
-        private:
 
-            struct CAwaiter : public CWaiterBase<ErrInfo> {
+            struct FileWaiter : public CWaiter<ErrInfo> {
 
-                CAwaiter(CStreamingFile* file, unsigned short reqId, const std::wstring& req_name, CContext &ctx)
-                : CWaiterBase<ErrInfo>(req_name, reqId) {
+                FileWaiter(CStreamingFile* file, unsigned short reqId, CContext &ctx)
+                : CWaiter<ErrInfo>(reqId) {
                     ctx.Discarded = get_aborted();
                     ctx.Se = get_se();
-                    ctx.Download = [this](CStreamingFile* file, int res, const std::wstring & errMsg) {
-                        m_r.ec = res;
-                        m_r.em = errMsg;
-                        resume();
+                    auto& wc = m_wc;
+                    ctx.Download = [wc](CStreamingFile* file, int res, const std::wstring & errMsg) {
+                        wc->m_r.ec = res;
+                        wc->m_r.em = errMsg;
+                        wc->resume();
                     };
                     CAutoLock al(file->m_csFile);
                     file->m_vContext.push_back(ctx);
@@ -207,9 +207,7 @@ namespace SPA {
                 }
             };
 
-        public:
-
-            auto wait_upload(const wchar_t* localFile, const wchar_t* remoteFile, DTransferring progress = nullptr, unsigned int flags = SFile::FILE_OPEN_TRUNCACTED) {
+            FileWaiter wait_upload(const wchar_t* localFile, const wchar_t* remoteFile, DTransferring progress = nullptr, unsigned int flags = SFile::FILE_OPEN_TRUNCACTED) {
                 if (!localFile || !::wcslen(localFile)) {
                     throw std::invalid_argument("Parameter localFile cannot be empty");
                 }
@@ -220,10 +218,10 @@ namespace SPA {
                 context.Transferring = progress;
                 context.FilePath = remoteFile;
                 context.LocalFile = localFile;
-                return CAwaiter(this, SFile::idUpload, L"Upload", context);
+                return FileWaiter(this, SFile::idUpload, context);
             }
 
-            auto wait_download(const wchar_t* localFile, const wchar_t* remoteFile, DTransferring progress = nullptr, unsigned int flags = SFile::FILE_OPEN_TRUNCACTED) {
+            FileWaiter wait_download(const wchar_t* localFile, const wchar_t* remoteFile, DTransferring progress = nullptr, unsigned int flags = SFile::FILE_OPEN_TRUNCACTED) {
                 if (!localFile || !::wcslen(localFile)) {
                     throw std::invalid_argument("Parameter localFile cannot be empty");
                 }
@@ -234,7 +232,7 @@ namespace SPA {
                 context.Transferring = progress;
                 context.FilePath = remoteFile;
                 context.LocalFile = localFile;
-                return CAwaiter(this, SFile::idDownload, L"Download", context);
+                return FileWaiter(this, SFile::idDownload, context);
             }
 #endif
 
@@ -256,7 +254,7 @@ namespace SPA {
                     }
                 };
                 context.Transferring = progress;
-                context.Discarded = get_aborted(prom, L"Upload", SFile::idUpload);
+                context.Discarded = get_aborted(prom, SFile::idUpload);
                 context.FilePath = remoteFile;
                 context.LocalFile = localFile;
                 context.Se = get_se(prom);
@@ -291,7 +289,7 @@ namespace SPA {
                     }
                 };
                 context.Transferring = progress;
-                context.Discarded = get_aborted(prom, L"Download", SFile::idDownload);
+                context.Discarded = get_aborted(prom, SFile::idDownload);
                 context.FilePath = remoteFile;
                 context.LocalFile = localFile;
                 context.Se = get_se(prom);
@@ -393,7 +391,7 @@ namespace SPA {
                                     it->ErrMsg = SPA::Utilities::ToWide(cs->GetErrorMsg());
                                 } else {
                                     it->ErrorCode = SESSION_CLOSED_BEFORE;
-                                    it->ErrMsg = L"Session already closed before sending the request Upload";
+                                    it->ErrMsg = SESSION_CLOSED_BEFORE_ERR_MSG;
                                 }
 #if defined(PHP_ADAPTER_PROJECT) || defined(NODE_JS_ADAPTER_PROJECT)
 #else
@@ -424,7 +422,7 @@ namespace SPA {
                                     it->ErrMsg = SPA::Utilities::ToWide(cs->GetErrorMsg());
                                 } else {
                                     it->ErrorCode = SESSION_CLOSED_BEFORE;
-                                    it->ErrMsg = L"Session already closed before sending the request Download";
+                                    it->ErrMsg = SESSION_CLOSED_BEFORE_ERR_MSG;
                                 }
 #if defined(PHP_ADAPTER_PROJECT) || defined(NODE_JS_ADAPTER_PROJECT)
 #else
@@ -463,7 +461,6 @@ namespace SPA {
                         }
                         m_vContext.pop_front();
                     } else {
-                        assert(it->IsOpen());
                         break;
                     }
                 }
@@ -911,16 +908,16 @@ namespace SPA {
 #else
                     std::string s = Utilities::ToUTF8(context.LocalFile.c_str(), context.LocalFile.size());
                     int mode = (O_WRONLY | O_CREAT | O_EXCL);
-                    if ((context.Flags & SFile::FILE_OPEN_TRUNCACTED) == SFile::FILE_OPEN_TRUNCACTED) {
-                        mode |= O_TRUNC;
-                    } else if ((context.Flags & SFile::FILE_OPEN_APPENDED) == SFile::FILE_OPEN_APPENDED) {
-                        mode |= O_APPEND;
-                    }
                     mode_t m = (S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH);
                     context.File = ::open(s.c_str(), mode, m);
                     if (context.File == -1) {
                         existing = true;
                         mode = (O_WRONLY | O_CREAT);
+                        if ((context.Flags & SFile::FILE_OPEN_TRUNCACTED) == SFile::FILE_OPEN_TRUNCACTED) {
+                            mode |= O_TRUNC;
+                        } else if ((context.Flags & SFile::FILE_OPEN_APPENDED) == SFile::FILE_OPEN_APPENDED) {
+                            mode |= O_APPEND;
+                        }
                         context.File = ::open(s.c_str(), mode, m);
                         if (context.File == -1) {
                             context.ErrorCode = SFile::CANNOT_OPEN_LOCAL_FILE_FOR_WRITING;
@@ -932,7 +929,7 @@ namespace SPA {
                     if (existing) {
                         context.InitSize = context.GetFilePos();
                     }
-                    if ((context.Flags & SFile::FILE_OPEN_SHARE_WRITE) == 0) {
+                    if (0 == (context.Flags & SFile::FILE_OPEN_SHARE_WRITE)) {
                         struct flock fl;
                         fl.l_whence = SEEK_SET;
                         fl.l_start = 0;

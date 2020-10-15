@@ -1,17 +1,16 @@
-
-
 #include "sqliteimpl.h"
+using namespace SPA::ServerSide;
 
-std::shared_ptr<SPA::ServerSide::CSqliteService> g_pSqlite;
+std::shared_ptr<CSqliteService> g_pSqlite;
 
 void WINAPI SetSqliteDBGlobalConnectionString(const wchar_t *dbConnection) {
-    SPA::ServerSide::CSqliteImpl::SetDBGlobalConnectionString(SPA::Utilities::ToUTF16(dbConnection).c_str());
+    CSqliteImpl::SetDBGlobalConnectionString(SPA::Utilities::ToUTF16(dbConnection).c_str());
 }
 
 bool WINAPI InitServerLibrary(int param) {
-    SPA::ServerSide::CSqliteImpl::SetInitialParam((unsigned int) param);
-    g_pSqlite.reset(new SPA::ServerSide::CSqliteService(SPA::Sqlite::sidSqlite, SPA::taNone));
-    if ((param & SPA::ServerSide::Sqlite::USE_SHARED_CACHE_MODE) == SPA::ServerSide::Sqlite::USE_SHARED_CACHE_MODE) {
+    CSqliteImpl::SetInitialParam((unsigned int) param);
+    g_pSqlite.reset(new CSqliteService(SPA::Sqlite::sidSqlite, SPA::taNone));
+    if ((param & Sqlite::USE_SHARED_CACHE_MODE) == Sqlite::USE_SHARED_CACHE_MODE) {
         sqlite3_enable_shared_cache(1);
     }
     return true;

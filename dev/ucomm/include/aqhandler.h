@@ -23,7 +23,7 @@ namespace SPA {
             typedef std::function<void(CAsyncQueue *aq, std::vector<std::string>& v) > DGetKeys;
             typedef std::function<void(CAsyncQueue *aq, UINT64 messageCount, UINT64 fileSize) > DFlush;
             typedef std::function<void(CAsyncQueue *aq, UINT64 indexMessage) > DEnqueue;
-            typedef std::function<void(CAsyncQueue *aq, int errCode) > DClose;
+            typedef DQueueTrans DClose;
             typedef std::function<void(CAsyncQueue *aq, UINT64 messageCount, UINT64 fileSize, unsigned int messagesDequeuedInBatch, unsigned int bytesDequeuedInBatch) > DDequeue;
 
         public:
@@ -87,7 +87,7 @@ namespace SPA {
 
             /**
              * Start enqueuing message with transaction style. Currently, total size of queued messages must be less than 4 G bytes
-             * @param key An ASCII string for identifying a queue at server side
+             * @param key An ASCII string to identify a queue at server side
              * @param qt A callback for tracking returning error code, which can be one of QUEUE_OK, QUEUE_TRANS_ALREADY_STARTED, and so on
              * @param discarded A callback for tracking socket closed or request canceled event
              * @param se A callback for tracking an exception from server side
@@ -142,7 +142,7 @@ namespace SPA {
 
             /**
              * Try to close or delete a persistent queue opened at server side
-             * @param key An ASCII string for identifying a queue at server side
+             * @param key An ASCII string to identify a queue at server side
              * @param c A callback for tracking returning error code, which can be one of QUEUE_OK, QUEUE_DEQUEUING, and so on
              * @param permanent true for deleting a queue file, and false for closing a queue file
              * @param discarded A callback for tracking socket closed or request canceled event
@@ -162,8 +162,9 @@ namespace SPA {
             }
 
             /**
-             * Flush memory data into either operation system memory or hard disk, and return message count and queue file size in bytes. Note the method only returns message count and queue file size in bytes if the option is oMemoryCached
-             * @param key An ASCII string for identifying a queue at server side
+             * Flush memory data into either operation system memory or hard disk, and return message count and queue file size in bytes.
+             * Note the method only returns message count and queue file size in bytes if the option is oMemoryCached
+             * @param key An ASCII string to identify a queue at server side
              * @param f A callback for tracking returning message count and queue file size in bytes
              * @param option One of options, oMemoryCached, oSystemMemoryCached and oDiskCommitted
              * @param discarded A callback for tracking socket closed or request canceled event
@@ -206,7 +207,7 @@ namespace SPA {
 
             /**
              * Dequeue messages from a persistent message queue file at server side in batch
-             * @param key An ASCII string for identifying a queue at server side
+             * @param key An ASCII string to identify a queue at server side
              * @param d A callback for tracking remaining message count within a server queue file, queue file size in bytes, messages and bytes dequeued within this batch
              * @param timeout A server side time-out number in milliseconds
              * @param discarded A callback for tracking socket closed or request canceled event
@@ -262,152 +263,211 @@ namespace SPA {
 #ifdef HAVE_FUTURE
 #ifdef HAVE_COROUTINE
 
-            auto wait_startQueueTrans(const char* key) {
+            struct QWaiter : public CWaiter<int> {
 
-                struct Awaiter : public CWaiterBase<int> {
-
-                    Awaiter(CAsyncQueue* aq, const char* key)
-                    : CWaiterBase<int>(L"StartQueueTrans", Queue::idStartTrans) {
-                        if (!aq->StartQueueTrans(key, [this](CAsyncQueue * aq, int errCode) {
-                                m_r = errCode;
-                                resume();
-                            }, get_aborted(), get_se())) {
-                            aq->raise(L"StartQueueTrans", Queue::idStartTrans);
-                        }
+                QWaiter(CAsyncQueue* aq, const char* key)
+                : CWaiter<int>(Queue::idStartTrans) {
+                    if (!aq->StartQueueTrans(key, get_rh(), get_aborted(), get_se())) {
+                        aq->raise(Queue::idStartTrans);
                     }
-                };
-                return Awaiter(this, key);
+                }
+
+                QWaiter(CAsyncQueue* aq, bool rollback)
+                : CWaiter<int>(Queue::idEndTrans) {
+                    if (!aq->EndQueueTrans(rollback, get_rh(), get_aborted(), get_se())) {
+                        aq->raise(Queue::idEndTrans);
+                    }
+                }
+
+                QWaiter(CAsyncQueue* aq, const char* key, bool permanent)
+                : CWaiter<int>(Queue::idClose) {
+                    if (!aq->CloseQueue(key, get_rh(), permanent, get_aborted(), get_se())) {
+                        aq->raise(Queue::idClose);
+                    }
+                }
+
+            private:
+
+                DClose get_rh() {
+                    auto& wc = m_wc;
+                    return [wc](CAsyncQueue * aq, int errCode) {
+                        wc->m_r = errCode;
+                        wc->resume();
+                    };
+                }
+            };
+
+            /**
+             * Start enqueuing message with transaction style. Currently, total size of queued messages must be less than 4 G bytes
+             * @param key An ASCII string to identify a queue at server side
+             * @return A waiter for returning error code, which can be one of QUEUE_OK, QUEUE_TRANS_ALREADY_STARTED, and so on
+             */
+            QWaiter wait_startQueueTrans(const char* key) {
+                return QWaiter(this, key);
             }
 
-            auto wait_endQueueTrans(bool rollback = false) {
-
-                struct Awaiter : public CWaiterBase<int> {
-
-                    Awaiter(CAsyncQueue* aq, bool rollback)
-                    : CWaiterBase<int>(L"EndQueueTrans", Queue::idEndTrans) {
-                        if (!aq->EndQueueTrans(rollback, [this](CAsyncQueue * aq, int errCode) {
-                                m_r = errCode;
-                                resume();
-                            }, get_aborted(), get_se())) {
-                            aq->raise(L"EndQueueTrans", Queue::idEndTrans);
-                        }
-                    }
-                };
-                return Awaiter(this, rollback);
+            /**
+             * End enqueuing messages with transaction style. Currently, total size of queued messages must be less than 4 G bytes
+             * @param rollback true for rollback, and false for committing
+             * @return A waiter for returning error code, which can be one of QUEUE_OK, QUEUE_TRANS_NOT_STARTED_YET, and so on
+             */
+            QWaiter wait_endQueueTrans(bool rollback = false) {
+                return QWaiter(this, rollback);
             }
 
-            auto wait_closeQueue(const char* key, bool permanent = false) {
-
-                struct Awaiter : public CWaiterBase<int> {
-
-                    Awaiter(CAsyncQueue* aq, const char* key, bool permanent)
-                    : CWaiterBase<int>(L"CloseQueue", Queue::idClose) {
-                        if (!aq->CloseQueue(key, [this](CAsyncQueue * aq, int errCode) {
-                                m_r = errCode;
-                                resume();
-                            }, permanent, get_aborted(), get_se())) {
-                            aq->raise(L"CloseQueue", Queue::idClose);
-                        }
-                    }
-                };
-                return Awaiter(this, key, permanent);
+            /**
+             * Try to close or delete a persistent queue opened at server side
+             * @param key An ASCII string to identify a queue at server side
+             * @param permanent true for deleting a queue file, and false for closing a queue file
+             * @return A future for returning error code, which can be one of QUEUE_OK, QUEUE_DEQUEUING, and so on
+             */
+            QWaiter wait_closeQueue(const char* key, bool permanent = false) {
+                return QWaiter(this, key, permanent);
             }
 
-            auto wait_flushQueue(const char* key, tagOptimistic option = oMemoryCached) {
+            struct InfoWaiter : public CWaiter<QueueInfo> {
 
-                struct Awaiter : public CWaiterBase<QueueInfo> {
-
-                    Awaiter(CAsyncQueue* aq, const char* key, tagOptimistic option)
-                    : CWaiterBase<QueueInfo>(L"FlushQueue", Queue::idFlush) {
-                        if (!aq->FlushQueue(key, [this](CAsyncQueue * aq, UINT64 messages, UINT64 fileSize) {
-                                m_r.messages = messages;
-                                m_r.fSize = fileSize;
-                                resume();
-                            }, option, get_aborted(), get_se())) {
-                            aq->raise(L"FlushQueue", Queue::idFlush);
-                        }
+                InfoWaiter(CAsyncQueue* aq, const char* key, tagOptimistic option)
+                : CWaiter<QueueInfo>(Queue::idFlush) {
+                    auto& wc = m_wc;
+                    if (!aq->FlushQueue(key, [wc](CAsyncQueue * aq, UINT64 messages, UINT64 fileSize) {
+                            wc->m_r.messages = messages;
+                            wc->m_r.fSize = fileSize;
+                            wc->resume();
+                        }, option, get_aborted(), get_se())) {
+                        aq->raise(Queue::idFlush);
                     }
-                };
-                return Awaiter(this, key, option);
+                }
+            };
+
+            /**
+             * Flush memory data into either operation system memory or hard disk, and return message count and queue file size in bytes.
+             * Note the method only returns message count and queue file size in bytes if the option is oMemoryCached
+             * @param key An ASCII string to identify a queue at server side
+             * @param option One of options, oMemoryCached, oSystemMemoryCached and oDiskCommitted
+             * @return A waiter for for returning message count and queue file size in bytes
+             */
+            InfoWaiter wait_flushQueue(const char* key, tagOptimistic option = oMemoryCached) {
+                return InfoWaiter(this, key, option);
             }
 
-            auto wait_dequeue(const char* key, unsigned int timeout = 0) {
+            struct DeqWaiter : public CWaiter<DeqInfo> {
 
-                struct Awaiter : public CWaiterBase<DeqInfo> {
-
-                    Awaiter(CAsyncQueue* aq, const char* key, unsigned int timeout)
-                    : CWaiterBase<DeqInfo>(L"Dequeue", Queue::idDequeue) {
-                        if (!aq->Dequeue(key, [this](CAsyncQueue * aq, UINT64 messages, UINT64 fileSize, unsigned int msgsDequeued, unsigned int bytes) {
-                                m_r.messages = messages;
-                                m_r.fSize = fileSize;
-                                m_r.DeMessages = msgsDequeued;
-                                m_r.DeBytes = bytes;
-                                resume();
-                            }, timeout, get_aborted(), get_se())) {
-                            aq->raise(L"Dequeue", Queue::idDequeue);
-                        }
+                DeqWaiter(CAsyncQueue* aq, const char* key, unsigned int timeout)
+                : CWaiter<DeqInfo>(Queue::idDequeue) {
+                    auto& wc = m_wc;
+                    if (!aq->Dequeue(key, [wc](CAsyncQueue * aq, UINT64 messages, UINT64 fileSize, unsigned int msgsDequeued, unsigned int bytes) {
+                            wc->m_r.messages = messages;
+                            wc->m_r.fSize = fileSize;
+                            wc->m_r.DeMessages = msgsDequeued;
+                            wc->m_r.DeBytes = bytes;
+                            wc->resume();
+                        }, timeout, get_aborted(), get_se())) {
+                        aq->raise(Queue::idDequeue);
                     }
-                };
-                return Awaiter(this, key, timeout);
+                }
+            };
+
+            /**
+             * Dequeue messages from a persistent message queue file at server side in batch
+             * @param key An ASCII string to identify a queue at server side
+             * @param timeout A server side time-out number in milliseconds
+             * @return A waiter for remaining message count within a server queue file, queue file size in bytes, messages and bytes dequeued within this batch
+             */
+            DeqWaiter wait_dequeue(const char* key, unsigned int timeout = 0) {
+                return DeqWaiter(this, key, timeout);
             }
 
-            auto wait_getKeys() {
+            struct KeysWaiter : public CWaiter<std::vector < std::string>>
+            {
 
-                struct Awaiter : public CWaiterBase<std::vector < std::string>>
-                {
-
-                    Awaiter(CAsyncQueue * aq)
-                            : CWaiterBase<std::vector < std::string >> (L"GetKeys", Queue::idGetKeys) {
-                        if (!aq->GetKeys([this](CAsyncQueue * aq, std::vector<std::string>& v) {
-                                m_r.swap(v);
-                                resume();
-                            }, get_aborted(), get_se())) {
-                            aq->raise(L"GetKeys", Queue::idGetKeys);
-                        }
+                KeysWaiter(CAsyncQueue * aq) : CWaiter<std::vector < std::string >> (Queue::idGetKeys) {
+                    auto& wc = m_wc;
+                    if (!aq->GetKeys([wc](CAsyncQueue * aq, std::vector<std::string>& v) {
+                            wc->m_r.swap(v);
+                            wc->resume();
+                        }, get_aborted(), get_se())) {
+                        aq->raise(Queue::idGetKeys);
                     }
-                };
-                return Awaiter(this);
+                }
+            };
+
+            /**
+             * Query queue keys opened at server side
+             * @return A waiter for for an array of key names
+             */
+            KeysWaiter wait_getKeys() {
+                return KeysWaiter(this);
             }
 
-            auto wait_enqueueBatch(const char* key, const unsigned char* buffer, unsigned int size) {
+            struct EnqWaiter : public CWaiter<UINT64> {
 
-                struct Awaiter : public CWaiterBase<UINT64> {
-
-                    Awaiter(CAsyncQueue* aq, const char* key, const unsigned char* buffer, unsigned int size)
-                    : CWaiterBase<UINT64>(L"EnqueueBatch", Queue::idEnqueueBatch) {
-                        if (!aq->EnqueueBatch(key, buffer, size, [this](CAsyncQueue * aq, UINT64 index) {
-                                m_r = index;
-                                resume();
-                            }, get_aborted(), get_se())) {
-                            aq->raise(L"EnqueueBatch", Queue::idEnqueueBatch);
-                        }
+                EnqWaiter(CAsyncQueue* aq, const char* key, const unsigned char* buffer, unsigned int size)
+                : CWaiter<UINT64>(Queue::idEnqueueBatch) {
+                    if (!aq->EnqueueBatch(key, buffer, size, get_rh(), get_aborted(), get_se())) {
+                        aq->raise(Queue::idEnqueueBatch);
                     }
-                };
-                return Awaiter(this, key, buffer, size);
+                }
+
+                EnqWaiter(CAsyncQueue* aq, const char* key, CUQueue& q)
+                : CWaiter<UINT64>(Queue::idEnqueueBatch) {
+                    if (!aq->EnqueueBatch(key, q.GetBuffer(), q.GetSize(), get_rh(), get_aborted(), get_se())) {
+                        aq->raise(Queue::idEnqueueBatch);
+                    }
+                    q.SetSize(0);
+                }
+
+                EnqWaiter(CAsyncQueue* aq, const char* key, unsigned short idMsg, const unsigned char* buffer, unsigned int size)
+                : CWaiter<UINT64>(Queue::idEnqueue) {
+                    if (!aq->Enqueue(key, idMsg, buffer, size, get_rh(), get_aborted(), get_se())) {
+                        aq->raise(Queue::idEnqueueBatch);
+                    }
+                }
+
+                EnqWaiter(CAsyncQueue* aq, const char* key, unsigned short idMsg)
+                : CWaiter<UINT64>(Queue::idEnqueue) {
+                    if (!aq->Enqueue(key, idMsg, (const unsigned char*) nullptr, (unsigned int) 0, get_rh(), get_aborted(), get_se())) {
+                        aq->raise(Queue::idEnqueueBatch);
+                    }
+                }
+
+            private:
+
+                DEnqueue get_rh() {
+                    auto& wc = m_wc;
+                    return [wc](CAsyncQueue * aq, UINT64 index) {
+                        wc->m_r = index;
+                        wc->resume();
+                    };
+                }
+            };
+
+            /**
+             * Enqueue a batch of messages in one single shot
+             * @param key An ASCII string to identify a queue at server side
+             * @param buffer A pointer to messages
+             * @param size Buffer size in bytes
+             * @return A waiter for the last message index at a server queue file
+             */
+            EnqWaiter wait_enqueueBatch(const char* key, const unsigned char* buffer, unsigned int size) {
+                return EnqWaiter(this, key, buffer, size);
             }
 
-            auto wait_enqueueBatch(const char* key, CUQueue& q) {
-
-                struct Awaiter : public CWaiterBase<UINT64> {
-
-                    Awaiter(CAsyncQueue* aq, const char* key, CUQueue& q)
-                    : CWaiterBase<UINT64>(L"EnqueueBatch", Queue::idEnqueueBatch) {
-                        if (!aq->EnqueueBatch(key, q.GetBuffer(), q.GetSize(), [this](CAsyncQueue * aq, UINT64 index) {
-                                m_r = index;
-                                resume();
-                            }, get_aborted(), get_se())) {
-                            aq->raise(L"EnqueueBatch", Queue::idEnqueueBatch);
-                        }
-                        q.SetSize(0);
-                    }
-                };
-                return Awaiter(this, key, q);
+            /**
+             * Enqueue a batch of messages in one single shot
+             * @param key An ASCII string to identify a queue at server side
+             * @param q An instance of CUQueue containing a batch of messages
+             * @return A waiter for the last message index at a server queue file
+             * @remarks Calling the method will automatically set q size to zero if no exception happens
+             */
+            EnqWaiter wait_enqueueBatch(const char* key, CUQueue& q) {
+                return EnqWaiter(this, key, q);
             }
 #endif
 
             /**
-             * Query queue keys opened at server side
-             * @param key An ASCII string for identifying a queue at server side
+             * Start enqueuing message with transaction style. Currently, total size of queued messages must be less than 4 G bytes
+             * @param key An ASCII string to identify a queue at server side
              * @return A future for returning error code, which can be one of QUEUE_OK, QUEUE_TRANS_ALREADY_STARTED, and so on
              */
             virtual std::future<int> startQueueTrans(const char *key) {
@@ -415,8 +475,8 @@ namespace SPA {
                 DQueueTrans qt = [prom](CAsyncQueue *aq, int errCode) {
                     prom->set_value(errCode);
                 };
-                if (!StartQueueTrans(key, qt, get_aborted(prom, L"StartQueueTrans", Queue::idStartTrans), get_se(prom))) {
-                    raise(L"StartQueueTrans", Queue::idStartTrans);
+                if (!StartQueueTrans(key, qt, get_aborted(prom, Queue::idStartTrans), get_se(prom))) {
+                    raise(Queue::idStartTrans);
                 }
                 return prom->get_future();
             }
@@ -430,8 +490,8 @@ namespace SPA {
                 DGetKeys gk = [prom](CAsyncQueue *aq, std::vector<std::string> &v) {
                     prom->set_value(std::move(v));
                 };
-                if (!GetKeys(gk, get_aborted(prom, L"GetKeys", Queue::idGetKeys), get_se(prom))) {
-                    raise(L"GetKeys", Queue::idGetKeys);
+                if (!GetKeys(gk, get_aborted(prom, Queue::idGetKeys), get_se(prom))) {
+                    raise(Queue::idGetKeys);
                 }
                 return prom->get_future();
             }
@@ -446,15 +506,15 @@ namespace SPA {
                 DQueueTrans qt = [prom](CAsyncQueue *aq, int errCode) {
                     prom->set_value(errCode);
                 };
-                if (!EndQueueTrans(rollback, qt, get_aborted(prom, L"EndQueueTrans", Queue::idEndTrans), get_se(prom))) {
-                    raise(L"EndQueueTrans", Queue::idEndTrans);
+                if (!EndQueueTrans(rollback, qt, get_aborted(prom, Queue::idEndTrans), get_se(prom))) {
+                    raise(Queue::idEndTrans);
                 }
                 return prom->get_future();
             }
 
             /**
              * Try to close or delete a persistent queue opened at server side
-             * @param key An ASCII string for identifying a queue at server side
+             * @param key An ASCII string to identify a queue at server side
              * @param permanent true for deleting a queue file, and false for closing a queue file
              * @return A future for returning error code, which can be one of QUEUE_OK, QUEUE_DEQUEUING, and so on
              */
@@ -463,15 +523,16 @@ namespace SPA {
                 DClose c = [prom](CAsyncQueue *aq, int errCode) {
                     prom->set_value(errCode);
                 };
-                if (!CloseQueue(key, c, permanent, get_aborted(prom, L"CloseQueue", Queue::idClose), get_se(prom))) {
-                    raise(L"CloseQueue", Queue::idClose);
+                if (!CloseQueue(key, c, permanent, get_aborted(prom, Queue::idClose), get_se(prom))) {
+                    raise(Queue::idClose);
                 }
                 return prom->get_future();
             }
 
             /**
-             * Flush memory data into either operation system memory or hard disk, and return message count and queue file size in bytes. Note the method only returns message count and queue file size in bytes if the option is oMemoryCached
-             * @param key An ASCII string for identifying a queue at server side
+             * Flush memory data into either operation system memory or hard disk, and return message count and queue file size in bytes.
+             * Note the method only returns message count and queue file size in bytes if the option is oMemoryCached
+             * @param key An ASCII string to identify a queue at server side
              * @param option One of options, oMemoryCached, oSystemMemoryCached and oDiskCommitted
              * @return A future for for returning message count and queue file size in bytes
              */
@@ -480,15 +541,15 @@ namespace SPA {
                 DFlush f = [prom](CAsyncQueue *aq, UINT64 messages, UINT64 fileSize) {
                     prom->set_value(QueueInfo(messages, fileSize));
                 };
-                if (!FlushQueue(key, f, option, get_aborted(prom, L"FlushQueue", Queue::idFlush), get_se(prom))) {
-                    raise(L"FlushQueue", Queue::idFlush);
+                if (!FlushQueue(key, f, option, get_aborted(prom, Queue::idFlush), get_se(prom))) {
+                    raise(Queue::idFlush);
                 }
                 return prom->get_future();
             }
 
             /**
              * Dequeue messages from a persistent message queue file at server side in batch
-             * @param key An ASCII string for identifying a queue at server side
+             * @param key An ASCII string to identify a queue at server side
              * @param timeout A server side time-out number in milliseconds
              * @return A future for remaining message count within a server queue file, queue file size in bytes, messages and bytes dequeued within this batch
              */
@@ -497,15 +558,15 @@ namespace SPA {
                 DDequeue d = [prom](CAsyncQueue *aq, UINT64 messages, UINT64 fileSize, unsigned int msgsDequeued, unsigned int bytes) {
                     prom->set_value(DeqInfo(messages, fileSize, msgsDequeued, bytes));
                 };
-                if (!Dequeue(key, d, timeout, get_aborted(prom, L"Dequeue", Queue::idDequeue), get_se(prom))) {
-                    raise(L"Dequeue", Queue::idDequeue);
+                if (!Dequeue(key, d, timeout, get_aborted(prom, Queue::idDequeue), get_se(prom))) {
+                    raise(Queue::idDequeue);
                 }
                 return prom->get_future();
             }
 
             /**
              * Enqueue a batch of messages in one single shot
-             * @param key An ASCII string for identifying a queue at server side
+             * @param key An ASCII string to identify a queue at server side
              * @param buffer A pointer to messages
              * @param size Buffer size in bytes
              * @return A future for the last message index at a server queue file
@@ -515,15 +576,15 @@ namespace SPA {
                 DEnqueue e = [prom](CAsyncQueue* aq, UINT64 index) {
                     prom->set_value(index);
                 };
-                if (!EnqueueBatch(key, buffer, size, e, get_aborted(prom, L"EnqueueBatch", Queue::idEnqueueBatch), get_se(prom))) {
-                    raise(L"EnqueueBatch", Queue::idEnqueueBatch);
+                if (!EnqueueBatch(key, buffer, size, e, get_aborted(prom, Queue::idEnqueueBatch), get_se(prom))) {
+                    raise(Queue::idEnqueueBatch);
                 }
                 return prom->get_future();
             }
 
             /**
              * Enqueue a batch of messages in one single shot
-             * @param key An ASCII string for identifying a queue at server side
+             * @param key An ASCII string to identify a queue at server side
              * @param q An instance of CUQueue containing a batch of messages
              * @return A future for the last message index at a server queue file
              * @remarks Calling the method will automatically set q size to zero if no exception happens
