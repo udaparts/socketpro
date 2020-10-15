@@ -53,9 +53,9 @@ int main(int argc, char* argv[]) {
 
     if (!Server.Run(20901)) {
         int errCode = Server.GetErrorCode();
-        std::cout << "Error happens with code = " << errCode << std::endl;
+        std::cout << "Error happens with code = " << errCode << "\n";
     }
-    std::cout << "Press any key to stop the server ......" << std::endl;
+    std::cout << "Press any key to stop the server ......\n";
     ::getchar();
     return 0;
 }

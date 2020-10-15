@@ -19,12 +19,12 @@ int main(int argc, char* argv[]) {
     //load socketpro async queue server library located at the directory ../socketpro/bin
     HINSTANCE h = CSocketProServer::DllManager::AddALibrary("uasyncqueue", param);
     if (!h)
-        std::cout << "Cannot load async persistent queue library" << std::endl;
+        std::cout << "Cannot load async persistent queue library\n";
     else if (!MySocketProServer.Run(20901)) {
         int errCode = MySocketProServer.GetErrorCode();
-        std::cout << "Error happens with code = " << errCode << std::endl;
+        std::cout << "Error code: " << errCode << "\n";
     }
-    std::cout << "Press any key to stop the server ......" << std::endl;
+    std::cout << "Press any key to stop the server ......\n";
     ::getchar();
     return 0;
 }

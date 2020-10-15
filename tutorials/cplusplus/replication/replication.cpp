@@ -36,7 +36,7 @@ int main(int argc, char* argv[]) {
     SetMyStruct(ms);
     ok = Replication.Send(idEcho, ms);
 
-    std::cout << "Press a key to shutdown the demo application ......" << std::endl;
+    std::cout << "Press a key to shutdown the demo ......\n";
     ::getchar();
     return 0;
 }

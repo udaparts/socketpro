@@ -18,7 +18,7 @@ int main(int argc, char* argv[]) {
     CMyPool spRf;
 #endif
     if (!spRf.StartSocketPool(cc, 1)) {
-        std::cout << "Can not connect to remote server with error code: " << spRf.GetSockets()[0]->GetErrorCode() << std::endl;
+        std::cout << "Can not connect to remote server with error code: " << spRf.GetSockets()[0]->GetErrorCode() << "\n";
         return -1;
     }
     auto rf = spRf.Seek();
@@ -29,7 +29,7 @@ int main(int argc, char* argv[]) {
     try{
         //downloading test
         std::future<ErrInfo> fd0 = rf->download(LocalFile.c_str(), RemoteFile.c_str(), [](CStreamingFile* file, SPA::UINT64 downloaded) {
-            std::cout << "Downloading rate: " << (downloaded * 100) / file->GetFileSize() << "%" << std::endl;
+            std::cout << "Downloading rate: " << (downloaded * 100) / file->GetFileSize() << "%\n";
         });
 
         LocalFile = L"spfile2.test";
@@ -52,7 +52,7 @@ int main(int argc, char* argv[]) {
         LocalFile = L"spfile1.test";
         RemoteFile = L"jvm_copy.lib";
         std::future<ErrInfo> fu0 = rf->upload(LocalFile.c_str(), RemoteFile.c_str(), [](CStreamingFile* file, SPA::UINT64 uploaded) {
-            std::cout << "Uploading rate: " << (uploaded * 100) / file->GetFileSize() << "%" << std::endl;
+            std::cout << "Uploading rate: " << (uploaded * 100) / file->GetFileSize() << "%\n";
         });
 
         LocalFile = L"spfile2.test";
@@ -93,10 +93,10 @@ int main(int argc, char* argv[]) {
     }
 
     catch(std::exception & ex) {
-        std::cout << "Some unexpected error: " << ex.what() << std::endl;
+        std::cout << "Unexpected error: " << ex.what() << "\n";
     }
 
-    std::cout << "Press a key to shutdown the demo application ......" << std::endl;
+    std::cout << "Press a key to shutdown the demo ......\n";
     ::getchar();
     return 0;
 }
