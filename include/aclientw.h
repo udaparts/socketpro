@@ -927,8 +927,6 @@ namespace SPA {
 
             std::future<CScopeUQueue> sendRequest(unsigned short reqId, const unsigned char *pBuffer, unsigned int size) {
                 std::shared_ptr<std::promise<CScopeUQueue> > prom(new std::promise<CScopeUQueue>);
-                DDiscarded discarded = get_aborted(prom, reqId);
-                DServerException se = get_se(prom);
                 if (!SendRequest(reqId, pBuffer, size, [prom](CAsyncResult & ar) {
                     CScopeUQueue sb;
                     sb->Swap(ar.UQueue);
@@ -937,7 +935,7 @@ namespace SPA {
                     } catch (std::future_error&) {
                         //ignore it
                     }
-                }, discarded, se)) {
+                }, get_aborted(prom, reqId), get_se(prom))) {
                     raise(reqId);
                 }
                 return prom->get_future();
@@ -993,8 +991,6 @@ namespace SPA {
             template<typename R>
             std::future<R> send(unsigned short reqId, const unsigned char *pBuffer, unsigned int size) {
                 std::shared_ptr<std::promise<R> > prom(new std::promise<R>);
-                DDiscarded discarded = get_aborted(prom, reqId);
-                DServerException se = get_se(prom);
                 if (!SendRequest(reqId, pBuffer, size, [prom](CAsyncResult & ar) {
                     try {
                         R r;
@@ -1005,7 +1001,7 @@ namespace SPA {
                     } catch (...) {
                         prom->set_exception(std::current_exception());
                     }
-                }, discarded, se)) {
+                }, get_aborted(prom, reqId), get_se(prom))) {
                     raise(reqId);
                 }
                 return prom->get_future();
