@@ -194,26 +194,12 @@ namespace SPA {
                         wc->m_r.em = errMsg;
                         wc->resume();
                     };
-                    CAutoLock al(file->m_csFile);
-                    file->m_vContext.push_back(ctx);
-                    unsigned int filesOpened = file->GetFilesOpened();
-                    if (file->m_MaxDownloading > filesOpened) {
-                        ClientCoreLoader.PostProcessing(file->GetSocket()->GetHandle(), 0, 0);
-                        if (!filesOpened) {
-                            //make sure WaitAll works correctly
-                            file->GetSocket()->DoEcho();
-                        }
-                    }
+                    file->PostProcess(ctx);
                 }
             };
 
-            virtual FileWaiter wait_upload(const wchar_t* localFile, const wchar_t* remoteFile, DTransferring progress = nullptr, unsigned int flags = SFile::FILE_OPEN_TRUNCACTED) {
-                if (!localFile || !::wcslen(localFile)) {
-                    throw std::invalid_argument("Parameter localFile cannot be empty");
-                }
-                if (!remoteFile || !::wcslen(remoteFile)) {
-                    throw std::invalid_argument("Parameter remoteFile cannot be empty");
-                }
+            virtual FileWaiter wait_upload(const wchar_t* localFile, const wchar_t* remoteFile, const DTransferring& progress = nullptr, unsigned int flags = SFile::FILE_OPEN_TRUNCACTED) {
+                EnsureFiles(localFile, remoteFile);
                 CContext context(true, flags);
                 context.Transferring = progress;
                 context.FilePath = remoteFile;
@@ -221,13 +207,8 @@ namespace SPA {
                 return FileWaiter(this, SFile::idUpload, context);
             }
 
-            virtual FileWaiter wait_download(const wchar_t* localFile, const wchar_t* remoteFile, DTransferring progress = nullptr, unsigned int flags = SFile::FILE_OPEN_TRUNCACTED) {
-                if (!localFile || !::wcslen(localFile)) {
-                    throw std::invalid_argument("Parameter localFile cannot be empty");
-                }
-                if (!remoteFile || !::wcslen(remoteFile)) {
-                    throw std::invalid_argument("Parameter remoteFile cannot be empty");
-                }
+            virtual FileWaiter wait_download(const wchar_t* localFile, const wchar_t* remoteFile, const DTransferring& progress = nullptr, unsigned int flags = SFile::FILE_OPEN_TRUNCACTED) {
+                EnsureFiles(localFile, remoteFile);
                 CContext context(false, flags);
                 context.Transferring = progress;
                 context.FilePath = remoteFile;
@@ -236,13 +217,8 @@ namespace SPA {
             }
 #endif
 
-            virtual std::future<ErrInfo> upload(const wchar_t *localFile, const wchar_t *remoteFile, DTransferring progress = nullptr, unsigned int flags = SFile::FILE_OPEN_TRUNCACTED) {
-                if (!localFile || !::wcslen(localFile)) {
-                    throw std::invalid_argument("Parameter localFile cannot be empty");
-                }
-                if (!remoteFile || !::wcslen(remoteFile)) {
-                    throw std::invalid_argument("Parameter remoteFile cannot be empty");
-                }
+            virtual std::future<ErrInfo> upload(const wchar_t *localFile, const wchar_t *remoteFile, const DTransferring& progress = nullptr, unsigned int flags = SFile::FILE_OPEN_TRUNCACTED) {
+                EnsureFiles(localFile, remoteFile);
                 CContext context(true, flags);
                 std::shared_ptr<std::promise<ErrInfo> > prom(new std::promise<ErrInfo>);
                 context.Download = get_rh(prom);
@@ -252,25 +228,12 @@ namespace SPA {
                 context.LocalFile = localFile;
                 context.Se = get_se(prom);
                 context.Promise = prom;
-                CAutoLock al(m_csFile);
-                m_vContext.push_back(context);
-                unsigned int filesOpened = GetFilesOpened();
-                if (m_MaxDownloading > filesOpened) {
-                    ClientCoreLoader.PostProcessing(GetSocket()->GetHandle(), 0, 0);
-                    if (!filesOpened) {
-                        GetSocket()->DoEcho(); //make sure WaitAll works correctly
-                    }
-                }
+                PostProcess(context);
                 return prom->get_future();
             }
 
-            virtual std::future<ErrInfo> download(const wchar_t *localFile, const wchar_t *remoteFile, DTransferring progress = nullptr, unsigned int flags = SFile::FILE_OPEN_TRUNCACTED) {
-                if (!localFile || !::wcslen(localFile)) {
-                    throw std::invalid_argument("Parameter localFile cannot be empty");
-                }
-                if (!remoteFile || !::wcslen(remoteFile)) {
-                    throw std::invalid_argument("Parameter remoteFile cannot be empty");
-                }
+            virtual std::future<ErrInfo> download(const wchar_t *localFile, const wchar_t *remoteFile, const DTransferring& progress = nullptr, unsigned int flags = SFile::FILE_OPEN_TRUNCACTED) {
+                EnsureFiles(localFile, remoteFile);
                 CContext context(false, flags);
                 std::shared_ptr<std::promise<ErrInfo> > prom(new std::promise<ErrInfo>);
                 context.Download = get_rh(prom);
@@ -280,26 +243,17 @@ namespace SPA {
                 context.LocalFile = localFile;
                 context.Se = get_se(prom);
                 context.Promise = prom;
-                CAutoLock al(m_csFile);
-                m_vContext.push_back(context);
-                unsigned int filesOpened = GetFilesOpened();
-                if (m_MaxDownloading > filesOpened) {
-                    ClientCoreLoader.PostProcessing(GetSocket()->GetHandle(), 0, 0);
-                    if (!filesOpened) {
-                        GetSocket()->DoEcho(); //make sure WaitAll works correctly
-                    }
-                }
+                PostProcess(context);
                 return prom->get_future();
             }
 #endif
         private:
+
             static DDownload get_rh(std::shared_ptr<std::promise<ErrInfo> >& prom) {
-                return [prom](CStreamingFile* file, int res, const std::wstring& errMsg) {
-                    ErrInfo ei(res, errMsg.c_str());
+                return [prom](CStreamingFile* file, int res, const std::wstring & errMsg) {
                     try {
-                        prom->set_value(ei);
-                    }
-                    catch (std::future_error&) {
+                        prom->set_value(ErrInfo(res, errMsg.c_str()));
+                    } catch (std::future_error&) {
                         //ignore
                     }
                 };
@@ -308,13 +262,8 @@ namespace SPA {
         public:
 #endif
 
-            virtual bool Upload(const wchar_t *localFile, const wchar_t *remoteFile, DUpload up = nullptr, DTransferring progress = nullptr, DDiscarded aborted = nullptr, unsigned int flags = SFile::FILE_OPEN_TRUNCACTED, const DServerException& se = nullptr) {
-                if (!localFile || !::wcslen(localFile)) {
-                    return false;
-                }
-                if (!remoteFile || !::wcslen(remoteFile)) {
-                    return false;
-                }
+            virtual bool Upload(const wchar_t *localFile, const wchar_t *remoteFile, const DUpload& up = nullptr, const DTransferring& progress = nullptr, const DDiscarded& aborted = nullptr, unsigned int flags = SFile::FILE_OPEN_TRUNCACTED, const DServerException& se = nullptr) {
+                EnsureFiles(localFile, remoteFile);
                 CContext context(true, flags);
                 context.Download = up;
                 context.Transferring = progress;
@@ -322,25 +271,12 @@ namespace SPA {
                 context.FilePath = remoteFile;
                 context.LocalFile = localFile;
                 context.Se = se;
-                CAutoLock al(m_csFile);
-                m_vContext.push_back(context);
-                unsigned int filesOpened = GetFilesOpened();
-                if (m_MaxDownloading > filesOpened) {
-                    ClientCoreLoader.PostProcessing(GetSocket()->GetHandle(), 0, 0);
-                    if (!filesOpened) {
-                        GetSocket()->DoEcho(); //make sure WaitAll works correctly
-                    }
-                }
+                PostProcess(context);
                 return true;
             }
 
-            virtual bool Download(const wchar_t *localFile, const wchar_t *remoteFile, DDownload dl = nullptr, DTransferring progress = nullptr, DDiscarded aborted = nullptr, unsigned int flags = SFile::FILE_OPEN_TRUNCACTED, const DServerException& se = nullptr) {
-                if (!localFile || !::wcslen(localFile)) {
-                    return false;
-                }
-                if (!remoteFile || !::wcslen(remoteFile)) {
-                    return false;
-                }
+            virtual bool Download(const wchar_t *localFile, const wchar_t *remoteFile, const DDownload& dl = nullptr, const DTransferring& progress = nullptr, const DDiscarded& aborted = nullptr, unsigned int flags = SFile::FILE_OPEN_TRUNCACTED, const DServerException& se = nullptr) {
+                EnsureFiles(localFile, remoteFile);
                 CContext context(false, flags);
                 context.Download = dl;
                 context.Transferring = progress;
@@ -348,15 +284,7 @@ namespace SPA {
                 context.FilePath = remoteFile;
                 context.LocalFile = localFile;
                 context.Se = se;
-                CAutoLock al(m_csFile);
-                m_vContext.push_back(context);
-                unsigned int filesOpened = GetFilesOpened();
-                if (m_MaxDownloading > filesOpened) {
-                    ClientCoreLoader.PostProcessing(GetSocket()->GetHandle(), 0, 0);
-                    if (!filesOpened) {
-                        GetSocket()->DoEcho(); //make sure WaitAll works correctly
-                    }
-                }
+                PostProcess(context);
                 return true;
             }
 
@@ -806,6 +734,27 @@ namespace SPA {
             }
 
         private:
+
+            void PostProcess(CContext &context) {
+                CAutoLock al(m_csFile);
+                m_vContext.push_back(std::move(context));
+                unsigned int filesOpened = GetFilesOpened();
+                if (m_MaxDownloading > filesOpened) {
+                    ClientCoreLoader.PostProcessing(GetSocket()->GetHandle(), 0, 0);
+                    if (!filesOpened) {
+                        GetSocket()->DoEcho(); //make sure WaitAll works correctly
+                    }
+                }
+            }
+
+            void EnsureFiles(const wchar_t* localFile, const wchar_t* remoteFile) {
+                if (!localFile || !::wcslen(localFile)) {
+                    throw std::invalid_argument("Parameter localFile cannot be empty");
+                }
+                if (!remoteFile || !::wcslen(remoteFile)) {
+                    throw std::invalid_argument("Parameter remoteFile cannot be empty");
+                }
+            }
 
             unsigned int GetFilesOpened() {
                 unsigned int opened = 0;
