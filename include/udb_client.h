@@ -1068,97 +1068,67 @@ namespace SPA {
             }
 #endif
 
-            virtual std::future<ErrInfo> beginTrans(tagTransactionIsolation isolation = tiReadCommited) {
+            std::future<ErrInfo> beginTrans(tagTransactionIsolation isolation = tiReadCommited) {
                 std::shared_ptr<std::promise<ErrInfo> > prom(new std::promise<ErrInfo>);
-                DResult d = [prom](CAsyncDBHandler& dbHandler, int res, const std::wstring & errMsg) {
-                    prom->set_value(ErrInfo(res, errMsg.c_str()));
-                };
-                if (!BeginTrans(isolation, d, get_aborted(prom, idBeginTrans), get_se(prom))) {
+                if (!BeginTrans(isolation, get_d(prom), get_aborted(prom, idBeginTrans), get_se(prom))) {
                     raise(idBeginTrans);
                 }
                 return prom->get_future();
             }
 
-            virtual std::future<ErrInfo> endTrans(tagRollbackPlan plan = rpDefault) {
+            std::future<ErrInfo> endTrans(tagRollbackPlan plan = rpDefault) {
                 std::shared_ptr<std::promise<ErrInfo> > prom(new std::promise<ErrInfo>);
-                DResult d = [prom](CAsyncDBHandler& dbHandler, int res, const std::wstring & errMsg) {
-                    prom->set_value(ErrInfo(res, errMsg.c_str()));
-                };
-                if (!EndTrans(plan, d, get_aborted(prom, idEndTrans), get_se(prom))) {
+                if (!EndTrans(plan, get_d(prom), get_aborted(prom, idEndTrans), get_se(prom))) {
                     raise(idEndTrans);
                 }
                 return prom->get_future();
             }
 
-            virtual std::future<ErrInfo> close() {
+            std::future<ErrInfo> close() {
                 std::shared_ptr<std::promise<ErrInfo> > prom(new std::promise<ErrInfo>);
-                DResult d = [prom](CAsyncDBHandler& dbHandler, int res, const std::wstring & errMsg) {
-                    prom->set_value(ErrInfo(res, errMsg.c_str()));
-                };
-                if (!Close(d, get_aborted(prom, idClose), get_se(prom))) {
+                if (!Close(get_d(prom), get_aborted(prom, idClose), get_se(prom))) {
                     raise(idClose);
                 }
                 return prom->get_future();
             }
 
-            virtual std::future<SQLExeInfo> execute(CDBVariantArray& vParam, const DRows& row = nullptr, const DRowsetHeader& rh = nullptr, bool meta = true, bool lastInsertId = true) {
+            std::future<SQLExeInfo> execute(CDBVariantArray& vParam, const DRows& row = nullptr, const DRowsetHeader& rh = nullptr, bool meta = true, bool lastInsertId = true) {
                 std::shared_ptr<std::promise<SQLExeInfo> > prom(new std::promise<SQLExeInfo>);
-                DExecuteResult handler = [prom](CAsyncDBHandler& dbHandler, int res, const std::wstring& errMsg, INT64 affected, UINT64 fail_ok, CDBVariant & vtId) {
-                    unsigned int oks = (unsigned int) (fail_ok & 0xffffffff);
-                    unsigned int fails = (unsigned int) (fail_ok >> 32);
-                    prom->set_value(SQLExeInfo(res, errMsg.c_str(), affected, oks, fails, vtId));
-                };
-                if (!Execute(vParam, handler, row, rh, meta, lastInsertId, get_aborted(prom, idExecuteParameters), get_se(prom))) {
+                if (!Execute(vParam, get_er(prom), row, rh, meta, lastInsertId, get_aborted(prom, idExecuteParameters), get_se(prom))) {
                     raise(idExecuteParameters);
                 }
                 return prom->get_future();
             }
 
-            virtual std::future<SQLExeInfo> execute(const wchar_t* sql, const DRows& row = nullptr, const DRowsetHeader& rh = nullptr, bool meta = true, bool lastInsertId = true) {
+            std::future<SQLExeInfo> execute(const wchar_t* sql, const DRows& row = nullptr, const DRowsetHeader& rh = nullptr, bool meta = true, bool lastInsertId = true) {
                 std::shared_ptr<std::promise<SQLExeInfo> > prom(new std::promise<SQLExeInfo>);
-                DExecuteResult handler = [prom](CAsyncDBHandler& dbHandler, int res, const std::wstring& errMsg, INT64 affected, UINT64 fail_ok, CDBVariant & vtId) {
-                    unsigned int oks = (unsigned int) (fail_ok & 0xffffffff);
-                    unsigned int fails = (unsigned int) (fail_ok >> 32);
-                    prom->set_value(SQLExeInfo(res, errMsg.c_str(), affected, oks, fails, vtId));
-                };
-                if (!Execute(sql, handler, row, rh, meta, lastInsertId, get_aborted(prom, idExecute), get_se(prom))) {
+                if (!Execute(sql, get_er(prom), row, rh, meta, lastInsertId, get_aborted(prom, idExecute), get_se(prom))) {
                     raise(idExecute);
                 }
                 return prom->get_future();
             }
 
-            virtual std::future<ErrInfo> prepare(const wchar_t* sql, const CParameterInfoArray& vParameterInfo = CParameterInfoArray()) {
+            std::future<ErrInfo> prepare(const wchar_t* sql, const CParameterInfoArray& vParameterInfo = CParameterInfoArray()) {
                 std::shared_ptr<std::promise<ErrInfo> > prom(new std::promise<ErrInfo>);
-                DResult d = [prom](CAsyncDBHandler& dbHandler, int res, const std::wstring & errMsg) {
-                    prom->set_value(ErrInfo(res, errMsg.c_str()));
-                };
-                if (!Prepare(sql, d, vParameterInfo, get_aborted(prom, idPrepare), get_se(prom))) {
+                if (!Prepare(sql, get_d(prom), vParameterInfo, get_aborted(prom, idPrepare), get_se(prom))) {
                     raise(idPrepare);
                 }
                 return prom->get_future();
             }
 
-            virtual std::future<ErrInfo> open(const wchar_t* db, unsigned int flags = 0) {
+            std::future<ErrInfo> open(const wchar_t* db, unsigned int flags = 0) {
                 std::shared_ptr<std::promise<ErrInfo> > prom(new std::promise<ErrInfo>);
-                DResult d = [prom](CAsyncDBHandler& dbHandler, int res, const std::wstring & errMsg) {
-                    prom->set_value(ErrInfo(res, errMsg.c_str()));
-                };
-                if (!Open(db, d, flags, get_aborted(prom, idOpen), get_se(prom))) {
+                if (!Open(db, get_d(prom), flags, get_aborted(prom, idOpen), get_se(prom))) {
                     raise(idOpen);
                 }
                 return prom->get_future();
             }
 
-            virtual std::future<SQLExeInfo> executeBatch(tagTransactionIsolation isolation, const wchar_t* sql, CDBVariantArray& vParam = CDBVariantArray(),
+            std::future<SQLExeInfo> executeBatch(tagTransactionIsolation isolation, const wchar_t* sql, CDBVariantArray& vParam = CDBVariantArray(),
                     const DRows& row = nullptr, const DRowsetHeader& rh = nullptr, const wchar_t* delimiter = L";", const DRowsetHeader& batchHeader = nullptr,
                     bool meta = true, tagRollbackPlan plan = rpDefault, const CParameterInfoArray& vPInfo = CParameterInfoArray(), bool lastInsertId = true) {
                 std::shared_ptr<std::promise<SQLExeInfo> > prom(new std::promise<SQLExeInfo>);
-                DExecuteResult handler = [prom](CAsyncDBHandler& dbHandler, int res, const std::wstring& errMsg, INT64 affected, UINT64 fail_ok, CDBVariant & vtId) {
-                    unsigned int oks = (unsigned int) (fail_ok & 0xffffffff);
-                    unsigned int fails = (unsigned int) (fail_ok >> 32);
-                    prom->set_value(SQLExeInfo(res, errMsg.c_str(), affected, oks, fails, vtId));
-                };
-                if (!ExecuteBatch(isolation, sql, vParam, handler, row, rh, delimiter, batchHeader, get_aborted(prom, idExecuteBatch), meta, plan, vPInfo, lastInsertId, get_se(prom))) {
+                if (!ExecuteBatch(isolation, sql, vParam, get_er(prom), row, rh, delimiter, batchHeader, get_aborted(prom, idExecuteBatch), meta, plan, vPInfo, lastInsertId, get_se(prom))) {
                     raise(idExecuteBatch);
                 }
                 return prom->get_future();
@@ -1166,56 +1136,55 @@ namespace SPA {
 
 #ifdef NATIVE_UTF16_SUPPORTED
 
-            virtual std::future<SQLExeInfo> execute(const char16_t* sql, const DRows& row = nullptr, const DRowsetHeader& rh = nullptr, bool meta = true, bool lastInsertId = true) {
+            std::future<SQLExeInfo> execute(const char16_t* sql, const DRows& row = nullptr, const DRowsetHeader& rh = nullptr, bool meta = true, bool lastInsertId = true) {
                 std::shared_ptr<std::promise<SQLExeInfo> > prom(new std::promise<SQLExeInfo>);
-                DExecuteResult handler = [prom](CAsyncDBHandler& dbHandler, int res, const std::wstring& errMsg, INT64 affected, UINT64 fail_ok, CDBVariant & vtId) {
-                    unsigned int oks = (unsigned int) (fail_ok & 0xffffffff);
-                    unsigned int fails = (unsigned int) (fail_ok >> 32);
-                    prom->set_value(SQLExeInfo(res, errMsg.c_str(), affected, oks, fails, vtId));
-                };
-                if (!Execute(sql, handler, row, rh, meta, lastInsertId, get_aborted(prom, idExecute), get_se(prom))) {
+                if (!Execute(sql, get_er(prom), row, rh, meta, lastInsertId, get_aborted(prom, idExecute), get_se(prom))) {
                     raise(idExecute);
                 }
                 return prom->get_future();
             }
 
-            virtual std::future<ErrInfo> prepare(const char16_t* sql, const CParameterInfoArray& vParameterInfo = CParameterInfoArray()) {
+            std::future<ErrInfo> prepare(const char16_t* sql, const CParameterInfoArray& vParameterInfo = CParameterInfoArray()) {
                 std::shared_ptr<std::promise<ErrInfo> > prom(new std::promise<ErrInfo>);
-                DResult d = [prom](CAsyncDBHandler& dbHandler, int res, const std::wstring & errMsg) {
-                    prom->set_value(ErrInfo(res, errMsg.c_str()));
-                };
-                if (!Prepare(sql, d, vParameterInfo, get_aborted(prom, idPrepare), get_se(prom))) {
+                if (!Prepare(sql, get_d(prom), vParameterInfo, get_aborted(prom, idPrepare), get_se(prom))) {
                     raise(idPrepare);
                 }
                 return prom->get_future();
             }
 
-            virtual std::future<ErrInfo> open(const char16_t* sql, unsigned int flags = 0) {
+            std::future<ErrInfo> open(const char16_t* sql, unsigned int flags = 0) {
                 std::shared_ptr<std::promise<ErrInfo> > prom(new std::promise<ErrInfo>);
-                DResult d = [prom](CAsyncDBHandler& dbHandler, int res, const std::wstring & errMsg) {
-                    prom->set_value(ErrInfo(res, errMsg.c_str()));
-                };
-                if (!Open(sql, d, flags, get_aborted(prom, idOpen), get_se(prom))) {
+                if (!Open(sql, get_d(prom), flags, get_aborted(prom, idOpen), get_se(prom))) {
                     raise(idOpen);
                 }
                 return prom->get_future();
             }
 
-            virtual std::future<SQLExeInfo> executeBatch(tagTransactionIsolation isolation, const char16_t* sql, CDBVariantArray& vParam = CDBVariantArray(),
+            std::future<SQLExeInfo> executeBatch(tagTransactionIsolation isolation, const char16_t* sql, CDBVariantArray& vParam = CDBVariantArray(),
                     const DRows& row = nullptr, const DRowsetHeader& rh = nullptr, const char16_t* delimiter = u";", const DRowsetHeader& batchHeader = nullptr,
                     bool meta = true, tagRollbackPlan plan = rpDefault, const CParameterInfoArray& vPInfo = CParameterInfoArray(), bool lastInsertId = true) {
                 std::shared_ptr<std::promise<SQLExeInfo> > prom(new std::promise<SQLExeInfo>);
-                DExecuteResult handler = [prom](CAsyncDBHandler& dbHandler, int res, const std::wstring& errMsg, INT64 affected, UINT64 fail_ok, CDBVariant & vtId) {
-                    unsigned int oks = (unsigned int) (fail_ok & 0xffffffff);
-                    unsigned int fails = (unsigned int) (fail_ok >> 32);
-                    prom->set_value(SQLExeInfo(res, errMsg.c_str(), affected, oks, fails, vtId));
-                };
-                if (!ExecuteBatch(isolation, sql, vParam, handler, row, rh, delimiter, batchHeader, get_aborted(prom, idExecuteBatch), meta, plan, vPInfo, lastInsertId, get_se(prom))) {
+                if (!ExecuteBatch(isolation, sql, vParam, get_er(prom), row, rh, delimiter, batchHeader, get_aborted(prom, idExecuteBatch), meta, plan, vPInfo, lastInsertId, get_se(prom))) {
                     raise(idExecuteBatch);
                 }
                 return prom->get_future();
             }
 #endif
+        protected:
+            static DExecuteResult get_er(std::shared_ptr<std::promise<SQLExeInfo> >& prom) {
+                return [prom](CAsyncDBHandler& dbHandler, int res, const std::wstring& errMsg, INT64 affected, UINT64 fail_ok, CDBVariant& vtId) {
+                    unsigned int oks = (unsigned int)(fail_ok & 0xffffffff);
+                    unsigned int fails = (unsigned int)(fail_ok >> 32);
+                    prom->set_value(SQLExeInfo(res, errMsg.c_str(), affected, oks, fails, vtId));
+                };
+            }
+
+        private:
+            static DResult get_d(std::shared_ptr<std::promise<ErrInfo> >& prom) {
+                return [prom](CAsyncDBHandler& dbHandler, int res, const std::wstring& errMsg) {
+                    prom->set_value(ErrInfo(res, errMsg.c_str()));
+                };
+            }
 #endif
 #endif
         protected:

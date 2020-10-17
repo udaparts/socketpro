@@ -470,12 +470,9 @@ namespace SPA {
              * @param key An ASCII string to identify a queue at server side
              * @return A future for returning error code, which can be one of QUEUE_OK, QUEUE_TRANS_ALREADY_STARTED, and so on
              */
-            virtual std::future<int> startQueueTrans(const char *key) {
+            std::future<int> startQueueTrans(const char *key) {
                 std::shared_ptr<std::promise<int> > prom(new std::promise<int>);
-                DQueueTrans qt = [prom](CAsyncQueue *aq, int errCode) {
-                    prom->set_value(errCode);
-                };
-                if (!StartQueueTrans(key, qt, get_aborted(prom, Queue::idStartTrans), get_se(prom))) {
+                if (!StartQueueTrans(key, get_ec(prom), get_aborted(prom, Queue::idStartTrans), get_se(prom))) {
                     raise(Queue::idStartTrans);
                 }
                 return prom->get_future();
@@ -485,12 +482,11 @@ namespace SPA {
              * Query queue keys opened at server side
              * @return A future for for an array of key names
              */
-            virtual std::future<std::vector<std::string>> getKeys() {
+            std::future<std::vector<std::string>> getKeys() {
                 std::shared_ptr<std::promise<std::vector < std::string>> > prom(new std::promise<std::vector < std::string>>);
-                DGetKeys gk = [prom](CAsyncQueue *aq, std::vector<std::string> &v) {
-                    prom->set_value(std::move(v));
-                };
-                if (!GetKeys(gk, get_aborted(prom, Queue::idGetKeys), get_se(prom))) {
+                if (!GetKeys([prom](CAsyncQueue* aq, std::vector<std::string>& v) {
+                        prom->set_value(std::move(v));
+                    }, get_aborted(prom, Queue::idGetKeys), get_se(prom))) {
                     raise(Queue::idGetKeys);
                 }
                 return prom->get_future();
@@ -501,12 +497,9 @@ namespace SPA {
              * @param rollback true for rollback, and false for committing
              * @return A future for returning error code, which can be one of QUEUE_OK, QUEUE_TRANS_NOT_STARTED_YET, and so on
              */
-            virtual std::future<int> endQueueTrans(bool rollback = false) {
+            std::future<int> endQueueTrans(bool rollback = false) {
                 std::shared_ptr<std::promise<int> > prom(new std::promise<int>);
-                DQueueTrans qt = [prom](CAsyncQueue *aq, int errCode) {
-                    prom->set_value(errCode);
-                };
-                if (!EndQueueTrans(rollback, qt, get_aborted(prom, Queue::idEndTrans), get_se(prom))) {
+                if (!EndQueueTrans(rollback, get_ec(prom), get_aborted(prom, Queue::idEndTrans), get_se(prom))) {
                     raise(Queue::idEndTrans);
                 }
                 return prom->get_future();
@@ -518,12 +511,9 @@ namespace SPA {
              * @param permanent true for deleting a queue file, and false for closing a queue file
              * @return A future for returning error code, which can be one of QUEUE_OK, QUEUE_DEQUEUING, and so on
              */
-            virtual std::future<int> closeQueue(const char *key, bool permanent = false) {
+            std::future<int> closeQueue(const char *key, bool permanent = false) {
                 std::shared_ptr<std::promise<int> > prom(new std::promise<int>);
-                DClose c = [prom](CAsyncQueue *aq, int errCode) {
-                    prom->set_value(errCode);
-                };
-                if (!CloseQueue(key, c, permanent, get_aborted(prom, Queue::idClose), get_se(prom))) {
+                if (!CloseQueue(key, get_ec(prom), permanent, get_aborted(prom, Queue::idClose), get_se(prom))) {
                     raise(Queue::idClose);
                 }
                 return prom->get_future();
@@ -536,12 +526,11 @@ namespace SPA {
              * @param option One of options, oMemoryCached, oSystemMemoryCached and oDiskCommitted
              * @return A future for for returning message count and queue file size in bytes
              */
-            virtual std::future<QueueInfo> flushQueue(const char *key, tagOptimistic option = oMemoryCached) {
+            std::future<QueueInfo> flushQueue(const char *key, tagOptimistic option = oMemoryCached) {
                 std::shared_ptr<std::promise<QueueInfo> > prom(new std::promise<QueueInfo>);
-                DFlush f = [prom](CAsyncQueue *aq, UINT64 messages, UINT64 fileSize) {
-                    prom->set_value(QueueInfo(messages, fileSize));
-                };
-                if (!FlushQueue(key, f, option, get_aborted(prom, Queue::idFlush), get_se(prom))) {
+                if (!FlushQueue(key, [prom](CAsyncQueue* aq, UINT64 messages, UINT64 fileSize) {
+                        prom->set_value(QueueInfo(messages, fileSize));
+                    }, option, get_aborted(prom, Queue::idFlush), get_se(prom))) {
                     raise(Queue::idFlush);
                 }
                 return prom->get_future();
@@ -553,12 +542,11 @@ namespace SPA {
              * @param timeout A server side time-out number in milliseconds
              * @return A future for remaining message count within a server queue file, queue file size in bytes, messages and bytes dequeued within this batch
              */
-            virtual std::future<DeqInfo> dequeue(const char *key, unsigned int timeout = 0) {
+            std::future<DeqInfo> dequeue(const char *key, unsigned int timeout = 0) {
                 std::shared_ptr<std::promise<DeqInfo> > prom(new std::promise<DeqInfo>);
-                DDequeue d = [prom](CAsyncQueue *aq, UINT64 messages, UINT64 fileSize, unsigned int msgsDequeued, unsigned int bytes) {
-                    prom->set_value(DeqInfo(messages, fileSize, msgsDequeued, bytes));
-                };
-                if (!Dequeue(key, d, timeout, get_aborted(prom, Queue::idDequeue), get_se(prom))) {
+                if (!Dequeue(key, [prom](CAsyncQueue* aq, UINT64 messages, UINT64 fileSize, unsigned int msgsDequeued, unsigned int bytes) {
+                        prom->set_value(DeqInfo(messages, fileSize, msgsDequeued, bytes));
+                    }, timeout, get_aborted(prom, Queue::idDequeue), get_se(prom))) {
                     raise(Queue::idDequeue);
                 }
                 return prom->get_future();
@@ -571,12 +559,11 @@ namespace SPA {
              * @param size Buffer size in bytes
              * @return A future for the last message index at a server queue file
              */
-            virtual std::future<UINT64> enqueueBatch(const char* key, const unsigned char* buffer, unsigned int size) {
+            std::future<UINT64> enqueueBatch(const char* key, const unsigned char* buffer, unsigned int size) {
                 std::shared_ptr<std::promise<UINT64> > prom(new std::promise<UINT64>);
-                DEnqueue e = [prom](CAsyncQueue* aq, UINT64 index) {
-                    prom->set_value(index);
-                };
-                if (!EnqueueBatch(key, buffer, size, e, get_aborted(prom, Queue::idEnqueueBatch), get_se(prom))) {
+                if (!EnqueueBatch(key, buffer, size, [prom](CAsyncQueue* aq, UINT64 index) {
+                        prom->set_value(index);
+                    }, get_aborted(prom, Queue::idEnqueueBatch), get_se(prom))) {
                     raise(Queue::idEnqueueBatch);
                 }
                 return prom->get_future();
@@ -593,6 +580,13 @@ namespace SPA {
                 std::future<UINT64> f = enqueueBatch(key, q.GetBuffer(), q.GetSize());
                 q.SetSize(0);
                 return f;
+            }
+
+        private:
+            static DClose get_ec(std::shared_ptr<std::promise<int> >& prom) {
+                return [prom](CAsyncQueue* aq, int errCode) {
+                    prom->set_value(errCode);
+                };
             }
 #endif
 #endif

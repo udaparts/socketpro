@@ -207,7 +207,7 @@ namespace SPA {
                 }
             };
 
-            FileWaiter wait_upload(const wchar_t* localFile, const wchar_t* remoteFile, DTransferring progress = nullptr, unsigned int flags = SFile::FILE_OPEN_TRUNCACTED) {
+            virtual FileWaiter wait_upload(const wchar_t* localFile, const wchar_t* remoteFile, DTransferring progress = nullptr, unsigned int flags = SFile::FILE_OPEN_TRUNCACTED) {
                 if (!localFile || !::wcslen(localFile)) {
                     throw std::invalid_argument("Parameter localFile cannot be empty");
                 }
@@ -221,7 +221,7 @@ namespace SPA {
                 return FileWaiter(this, SFile::idUpload, context);
             }
 
-            FileWaiter wait_download(const wchar_t* localFile, const wchar_t* remoteFile, DTransferring progress = nullptr, unsigned int flags = SFile::FILE_OPEN_TRUNCACTED) {
+            virtual FileWaiter wait_download(const wchar_t* localFile, const wchar_t* remoteFile, DTransferring progress = nullptr, unsigned int flags = SFile::FILE_OPEN_TRUNCACTED) {
                 if (!localFile || !::wcslen(localFile)) {
                     throw std::invalid_argument("Parameter localFile cannot be empty");
                 }
@@ -245,14 +245,7 @@ namespace SPA {
                 }
                 CContext context(true, flags);
                 std::shared_ptr<std::promise<ErrInfo> > prom(new std::promise<ErrInfo>);
-                context.Download = [prom](CStreamingFile *file, int res, const std::wstring & errMsg) {
-                    ErrInfo ei(res, errMsg.c_str());
-                    try {
-                        prom->set_value(ei);
-                    } catch (std::future_error&) {
-                        //ignore
-                    }
-                };
+                context.Download = get_rh(prom);
                 context.Transferring = progress;
                 context.Discarded = get_aborted(prom, SFile::idUpload);
                 context.FilePath = remoteFile;
@@ -280,14 +273,7 @@ namespace SPA {
                 }
                 CContext context(false, flags);
                 std::shared_ptr<std::promise<ErrInfo> > prom(new std::promise<ErrInfo>);
-                context.Download = [prom](CStreamingFile *file, int res, const std::wstring & errMsg) {
-                    ErrInfo ei(res, errMsg.c_str());
-                    try {
-                        prom->set_value(ei);
-                    } catch (std::future_error&) {
-                        //ignore
-                    }
-                };
+                context.Download = get_rh(prom);
                 context.Transferring = progress;
                 context.Discarded = get_aborted(prom, SFile::idDownload);
                 context.FilePath = remoteFile;
@@ -306,6 +292,20 @@ namespace SPA {
                 return prom->get_future();
             }
 #endif
+        private:
+            static DDownload get_rh(std::shared_ptr<std::promise<ErrInfo> >& prom) {
+                return [prom](CStreamingFile* file, int res, const std::wstring& errMsg) {
+                    ErrInfo ei(res, errMsg.c_str());
+                    try {
+                        prom->set_value(ei);
+                    }
+                    catch (std::future_error&) {
+                        //ignore
+                    }
+                };
+            }
+
+        public:
 #endif
 
             virtual bool Upload(const wchar_t *localFile, const wchar_t *remoteFile, DUpload up = nullptr, DTransferring progress = nullptr, DDiscarded aborted = nullptr, unsigned int flags = SFile::FILE_OPEN_TRUNCACTED, const DServerException& se = nullptr) {
