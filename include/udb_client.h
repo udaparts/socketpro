@@ -1171,7 +1171,7 @@ namespace SPA {
             }
 #endif
         protected:
-            static DExecuteResult get_er(std::shared_ptr<std::promise<SQLExeInfo> >& prom) {
+            static DExecuteResult get_er(const std::shared_ptr<std::promise<SQLExeInfo> >& prom) {
                 return [prom](CAsyncDBHandler& dbHandler, int res, const std::wstring& errMsg, INT64 affected, UINT64 fail_ok, CDBVariant& vtId) {
                     unsigned int oks = (unsigned int)(fail_ok & 0xffffffff);
                     unsigned int fails = (unsigned int)(fail_ok >> 32);
@@ -1180,7 +1180,7 @@ namespace SPA {
             }
 
         private:
-            static DResult get_d(std::shared_ptr<std::promise<ErrInfo> >& prom) {
+            static DResult get_d(const std::shared_ptr<std::promise<ErrInfo> >& prom) {
                 return [prom](CAsyncDBHandler& dbHandler, int res, const std::wstring& errMsg) {
                     prom->set_value(ErrInfo(res, errMsg.c_str()));
                 };

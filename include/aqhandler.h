@@ -583,7 +583,7 @@ namespace SPA {
             }
 
         private:
-            static DClose get_ec(std::shared_ptr<std::promise<int> >& prom) {
+            static DClose get_ec(const std::shared_ptr<std::promise<int> >& prom) {
                 return [prom](CAsyncQueue* aq, int errCode) {
                     prom->set_value(errCode);
                 };

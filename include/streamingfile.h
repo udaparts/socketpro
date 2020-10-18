@@ -238,7 +238,7 @@ namespace SPA {
                 }
             }
 
-            static DDownload get_rh(std::shared_ptr<std::promise<ErrInfo> >& prom) {
+            static DDownload get_rh(const std::shared_ptr<std::promise<ErrInfo> >& prom) {
                 return [prom](CStreamingFile* file, int res, const std::wstring & errMsg) {
                     try {
                         prom->set_value(ErrInfo(res, errMsg.c_str()));
