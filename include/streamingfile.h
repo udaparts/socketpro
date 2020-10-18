@@ -16,13 +16,13 @@ namespace SPA {
 
         class CStreamingFile : public CAsyncServiceHandler {
         public:
-            typedef std::function<void(CStreamingFile *file, int res, const std::wstring &errMsg) > DDownload;
-            typedef std::function<void(CStreamingFile *file, UINT64 transferred) > DTransferring;
+            typedef std::function<void(CStreamingFile* file, int res, const std::wstring& errMsg) > DDownload;
+            typedef std::function<void(CStreamingFile* file, UINT64 transferred) > DTransferring;
             typedef DDownload DUpload;
 
             static const unsigned int MAX_FILES_STREAMED = 32;
 
-            CStreamingFile(CClientSocket * cs) : CAsyncServiceHandler(SFile::sidFile, cs), m_MaxDownloading(1) {
+            CStreamingFile(CClientSocket* cs) : CAsyncServiceHandler(SFile::sidFile, cs), m_MaxDownloading(1) {
             }
 
             ~CStreamingFile() {
@@ -32,7 +32,7 @@ namespace SPA {
         protected:
             //You may use the protected constructor when extending this class
 
-            CStreamingFile(unsigned int sid, CClientSocket * cs) : CAsyncServiceHandler(sid, cs) {
+            CStreamingFile(unsigned int sid, CClientSocket* cs) : CAsyncServiceHandler(sid, cs) {
             }
 
         private:
@@ -157,7 +157,7 @@ namespace SPA {
                 size_t canceled = 0;
                 CAutoLock al(m_csFile);
                 while (m_vContext.size()) {
-                    auto &back = m_vContext.back();
+                    auto& back = m_vContext.back();
                     if (back.IsOpen()) {
                         //Send an interrupt request onto server to shut down downloading as earlier as possible
                         Interrupt(DEFAULT_INTERRUPT_OPTION);
@@ -184,70 +184,59 @@ namespace SPA {
 
             struct FileWaiter : public CWaiter<ErrInfo> {
 
-                FileWaiter(CStreamingFile* file, unsigned short reqId, CContext &ctx)
+                FileWaiter(CStreamingFile* file, unsigned short reqId, const wchar_t* localFile, const wchar_t* remoteFile, const DTransferring& progress, CContext& ctx)
                 : CWaiter<ErrInfo>(reqId) {
-                    ctx.Discarded = get_aborted();
-                    ctx.Se = get_se();
                     auto& wc = m_wc;
-                    ctx.Download = [wc](CStreamingFile* file, int res, const std::wstring & errMsg) {
-                        wc->m_r.ec = res;
-                        wc->m_r.em = errMsg;
-                        wc->resume();
-                    };
-                    file->PostProcess(ctx);
+                    file->PostProcess(ctx, localFile, remoteFile, [wc](CStreamingFile* file, int res, const std::wstring & errMsg) {
+                            wc->m_r.ec = res;
+                            wc->m_r.em = errMsg;
+                            wc->resume();
+                        }, progress, get_aborted(), get_se()
+                    );
                 }
             };
 
-            virtual FileWaiter wait_upload(const wchar_t* localFile, const wchar_t* remoteFile, const DTransferring& progress = nullptr, unsigned int flags = SFile::FILE_OPEN_TRUNCACTED) {
+            FileWaiter wait_upload(const wchar_t* localFile, const wchar_t* remoteFile, const DTransferring& progress = nullptr, unsigned int flags = SFile::FILE_OPEN_TRUNCACTED) {
                 EnsureFiles(localFile, remoteFile);
                 CContext context(true, flags);
-                context.Transferring = progress;
-                context.FilePath = remoteFile;
-                context.LocalFile = localFile;
-                return FileWaiter(this, SFile::idUpload, context);
+                return FileWaiter(this, SFile::idUpload, localFile, remoteFile, progress, context);
             }
 
-            virtual FileWaiter wait_download(const wchar_t* localFile, const wchar_t* remoteFile, const DTransferring& progress = nullptr, unsigned int flags = SFile::FILE_OPEN_TRUNCACTED) {
+            FileWaiter wait_download(const wchar_t* localFile, const wchar_t* remoteFile, const DTransferring& progress = nullptr, unsigned int flags = SFile::FILE_OPEN_TRUNCACTED) {
                 EnsureFiles(localFile, remoteFile);
                 CContext context(false, flags);
-                context.Transferring = progress;
-                context.FilePath = remoteFile;
-                context.LocalFile = localFile;
-                return FileWaiter(this, SFile::idDownload, context);
+                return FileWaiter(this, SFile::idDownload, localFile, remoteFile, progress, context);
             }
 #endif
 
-            virtual std::future<ErrInfo> upload(const wchar_t *localFile, const wchar_t *remoteFile, const DTransferring& progress = nullptr, unsigned int flags = SFile::FILE_OPEN_TRUNCACTED) {
+            std::future<ErrInfo> upload(const wchar_t* localFile, const wchar_t* remoteFile, const DTransferring& progress = nullptr, unsigned int flags = SFile::FILE_OPEN_TRUNCACTED) {
                 EnsureFiles(localFile, remoteFile);
                 CContext context(true, flags);
                 std::shared_ptr<std::promise<ErrInfo> > prom(new std::promise<ErrInfo>);
-                context.Download = get_rh(prom);
-                context.Transferring = progress;
-                context.Discarded = get_aborted(prom, SFile::idUpload);
-                context.FilePath = remoteFile;
-                context.LocalFile = localFile;
-                context.Se = get_se(prom);
                 context.Promise = prom;
-                PostProcess(context);
+                PostProcess(context, localFile, remoteFile, get_rh(prom), progress, get_aborted(prom, SFile::idUpload), get_se(prom));
                 return prom->get_future();
             }
 
-            virtual std::future<ErrInfo> download(const wchar_t *localFile, const wchar_t *remoteFile, const DTransferring& progress = nullptr, unsigned int flags = SFile::FILE_OPEN_TRUNCACTED) {
+            std::future<ErrInfo> download(const wchar_t* localFile, const wchar_t* remoteFile, const DTransferring& progress = nullptr, unsigned int flags = SFile::FILE_OPEN_TRUNCACTED) {
                 EnsureFiles(localFile, remoteFile);
                 CContext context(false, flags);
                 std::shared_ptr<std::promise<ErrInfo> > prom(new std::promise<ErrInfo>);
-                context.Download = get_rh(prom);
-                context.Transferring = progress;
-                context.Discarded = get_aborted(prom, SFile::idDownload);
-                context.FilePath = remoteFile;
-                context.LocalFile = localFile;
-                context.Se = get_se(prom);
                 context.Promise = prom;
-                PostProcess(context);
+                PostProcess(context, localFile, remoteFile, get_rh(prom), progress, get_aborted(prom, SFile::idDownload), get_se(prom));
                 return prom->get_future();
             }
 #endif
         private:
+
+            void EnsureFiles(const wchar_t* localFile, const wchar_t* remoteFile) {
+                if (!localFile || !::wcslen(localFile)) {
+                    throw std::invalid_argument("Parameter localFile cannot be empty");
+                }
+                if (!remoteFile || !::wcslen(remoteFile)) {
+                    throw std::invalid_argument("Parameter remoteFile cannot be empty");
+                }
+            }
 
             static DDownload get_rh(std::shared_ptr<std::promise<ErrInfo> >& prom) {
                 return [prom](CStreamingFile* file, int res, const std::wstring & errMsg) {
@@ -262,29 +251,21 @@ namespace SPA {
         public:
 #endif
 
-            virtual bool Upload(const wchar_t *localFile, const wchar_t *remoteFile, const DUpload& up = nullptr, const DTransferring& progress = nullptr, const DDiscarded& aborted = nullptr, unsigned int flags = SFile::FILE_OPEN_TRUNCACTED, const DServerException& se = nullptr) {
-                EnsureFiles(localFile, remoteFile);
+            bool Upload(const wchar_t* localFile, const wchar_t* remoteFile, const DUpload& up = nullptr, const DTransferring& progress = nullptr, const DDiscarded& aborted = nullptr, unsigned int flags = SFile::FILE_OPEN_TRUNCACTED, const DServerException& se = nullptr) {
+                if (!OkFiles(localFile, remoteFile)) {
+                    return false;
+                }
                 CContext context(true, flags);
-                context.Download = up;
-                context.Transferring = progress;
-                context.Discarded = aborted;
-                context.FilePath = remoteFile;
-                context.LocalFile = localFile;
-                context.Se = se;
-                PostProcess(context);
+                PostProcess(context, localFile, remoteFile, up, progress, aborted, se);
                 return true;
             }
 
-            virtual bool Download(const wchar_t *localFile, const wchar_t *remoteFile, const DDownload& dl = nullptr, const DTransferring& progress = nullptr, const DDiscarded& aborted = nullptr, unsigned int flags = SFile::FILE_OPEN_TRUNCACTED, const DServerException& se = nullptr) {
-                EnsureFiles(localFile, remoteFile);
+            bool Download(const wchar_t* localFile, const wchar_t* remoteFile, const DDownload& dl = nullptr, const DTransferring& progress = nullptr, const DDiscarded& aborted = nullptr, unsigned int flags = SFile::FILE_OPEN_TRUNCACTED, const DServerException& se = nullptr) {
+                if (!OkFiles(localFile, remoteFile)) {
+                    return false;
+                }
                 CContext context(false, flags);
-                context.Download = dl;
-                context.Transferring = progress;
-                context.Discarded = aborted;
-                context.FilePath = remoteFile;
-                context.LocalFile = localFile;
-                context.Se = se;
-                PostProcess(context);
+                PostProcess(context, localFile, remoteFile, dl, progress, aborted, se);
                 return true;
             }
 
@@ -312,7 +293,7 @@ namespace SPA {
                         OpenLocalRead(*it);
                         if (!it->HasError()) {
                             if (!SendRequest(SFile::idUpload, NULL_RH, it->Discarded, it->Se, it->FilePath, it->Flags, it->FileSize)) {
-                                CClientSocket *cs = GetSocket();
+                                CClientSocket* cs = GetSocket();
                                 int ec = cs->GetErrorCode();
                                 if (ec) {
                                     it->ErrorCode = ec;
@@ -343,7 +324,7 @@ namespace SPA {
                         OpenLocalWrite(*it);
                         if (!it->HasError()) {
                             if (!SendRequest(SFile::idDownload, NULL_RH, it->Discarded, it->Se, it->LocalFile, it->FilePath, it->Flags, it->InitSize)) {
-                                CClientSocket *cs = GetSocket();
+                                CClientSocket* cs = GetSocket();
                                 int ec = cs->GetErrorCode();
                                 if (ec) {
                                     it->ErrorCode = ec;
@@ -394,8 +375,8 @@ namespace SPA {
                 }
             }
 
-            virtual void OnMergeTo(CAsyncServiceHandler & to) {
-                CStreamingFile &fTo = (CStreamingFile &) to;
+            virtual void OnMergeTo(CAsyncServiceHandler& to) {
+                CStreamingFile& fTo = (CStreamingFile&) to;
                 CAutoLock al0(fTo.m_csFile);
                 size_t count = fTo.m_vContext.size();
                 std::deque<CContext>::iterator pos = fTo.m_vContext.end();
@@ -421,7 +402,7 @@ namespace SPA {
                 }
             }
 
-            virtual void OnResultReturned(unsigned short reqId, CUQueue &mc) {
+            virtual void OnResultReturned(unsigned short reqId, CUQueue& mc) {
                 switch (reqId) {
                     case SFile::idDownload:
                     {
@@ -432,7 +413,7 @@ namespace SPA {
                         {
                             CAutoLock al(m_csFile);
                             if (m_vContext.size()) {
-                                CContext &context = m_vContext.front();
+                                CContext& context = m_vContext.front();
                                 dl = context.Download;
                                 context.ErrorCode = res;
                                 context.ErrMsg = errMsg;
@@ -444,7 +425,7 @@ namespace SPA {
                         {
                             CAutoLock al(m_csFile);
                             if (m_vContext.size()) {
-                                CContext &context = m_vContext.front();
+                                CContext& context = m_vContext.front();
                                 CloseFile(context);
                                 m_vContext.pop_front();
                             }
@@ -468,7 +449,7 @@ namespace SPA {
                             context.InitSize = initSize;
                             m_vContext.push_back(context);
                         }
-                        CContext &context = m_vContext.front();
+                        CContext& context = m_vContext.front();
                         assert(context.LocalFile == localFile);
                         assert(context.FilePath == remoteFile);
                         assert(context.Flags == flags);
@@ -500,7 +481,7 @@ namespace SPA {
                         {
                             CAutoLock al(m_csFile);
                             if (m_vContext.size()) {
-                                CContext &context = m_vContext.front();
+                                CContext& context = m_vContext.front();
                                 assert(!context.Uploading);
                                 progress = context.Transferring;
 #ifdef WIN32_64
@@ -533,7 +514,7 @@ namespace SPA {
                         if (res || errMsg.size()) {
                             CAutoLock al(m_csFile);
                             if (m_vContext.size()) {
-                                CContext &context = m_vContext.front();
+                                CContext& context = m_vContext.front();
                                 mc >> context.InitSize;
                                 ctx = m_vContext.front();
                                 ctx.ErrMsg = errMsg;
@@ -546,7 +527,7 @@ namespace SPA {
                                 bool ok;
                                 DResultHandler rh;
                                 DServerException se = nullptr;
-                                CContext &context = m_vContext.front();
+                                CContext& context = m_vContext.front();
                                 mc >> context.InitSize;
                                 CScopeUQueue sb(MY_OPERATION_SYSTEM, IsBigEndian(), SFile::STREAM_CHUNK_SIZE);
                                 context.QueueOk = GetSocket()->GetClientQueue().StartJob();
@@ -636,7 +617,7 @@ namespace SPA {
                         {
                             CAutoLock al(m_csFile);
                             if (m_vContext.size()) {
-                                CContext &context = m_vContext.front();
+                                CContext& context = m_vContext.front();
                                 assert(context.Uploading);
                                 progress = context.Transferring;
                                 if (uploaded < 0 || res || errMsg.size()) {
@@ -700,7 +681,7 @@ namespace SPA {
                         {
                             CAutoLock al(m_csFile);
                             if (m_vContext.size()) {
-                                CContext &context = m_vContext.front();
+                                CContext& context = m_vContext.front();
                                 if (context.IsOpen()) {
                                     assert(context.Uploading);
                                     upl = context.Download;
@@ -717,7 +698,7 @@ namespace SPA {
                         {
                             CAutoLock al(m_csFile);
                             if (m_vContext.size()) {
-                                CContext &context = m_vContext.front();
+                                CContext& context = m_vContext.front();
                                 if (context.IsOpen()) {
                                     CloseFile(context);
                                     m_vContext.pop_front();
@@ -735,7 +716,13 @@ namespace SPA {
 
         private:
 
-            void PostProcess(CContext &context) {
+            void PostProcess(CContext& context, const wchar_t* localFile, const wchar_t* remoteFile, const DDownload& dl, const DTransferring& progress, const DDiscarded& aborted, const DServerException& se) {
+                context.LocalFile = localFile;
+                context.FilePath = remoteFile;
+                context.Download = dl;
+                context.Transferring = progress;
+                context.Discarded = aborted;
+                context.Se = se;
                 CAutoLock al(m_csFile);
                 m_vContext.push_back(std::move(context));
                 unsigned int filesOpened = GetFilesOpened();
@@ -747,13 +734,14 @@ namespace SPA {
                 }
             }
 
-            void EnsureFiles(const wchar_t* localFile, const wchar_t* remoteFile) {
+            bool OkFiles(const wchar_t * localFile, const wchar_t* remoteFile) {
                 if (!localFile || !::wcslen(localFile)) {
-                    throw std::invalid_argument("Parameter localFile cannot be empty");
+                    return false;
                 }
                 if (!remoteFile || !::wcslen(remoteFile)) {
-                    throw std::invalid_argument("Parameter remoteFile cannot be empty");
+                    return false;
                 }
+                return true;
             }
 
             unsigned int GetFilesOpened() {
