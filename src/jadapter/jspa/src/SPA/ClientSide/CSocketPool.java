@@ -725,8 +725,10 @@ public class CSocketPool<THandler extends CAsyncServiceHandler> implements AutoC
                 if (h == null) {
                     h = m_dicSocketHandler.get(cs);
                 } else {
-                    int cs_coriq = cs.getCountOfRequestsInQueue();
-                    int h_coriq = h.getSocket().getCountOfRequestsInQueue();
+                    IClientQueue cq = cs.getClientQueue();
+                    long cs_coriq = cq.getAvailable() ? cq.getMessageCount() : cs.getCountOfRequestsInQueue();
+                    cq = h.getSocket().getClientQueue();
+                    long h_coriq = cq.getAvailable() ? cq.getMessageCount() : h.getSocket().getCountOfRequestsInQueue();
                     if (cs_coriq < h_coriq) {
                         h = m_dicSocketHandler.get(cs);
                     } else if (cs_coriq == h_coriq && cs.getBytesSent() < h.getSocket().getBytesSent()) {

@@ -193,10 +193,7 @@ public final class SpManager {
                     return m_sc.Verify(cs);
                 }
             };
-            if (!pc.Pool.StartSocketPool(ppCC)) {
-                pc.Pool.setQueueAutoMerge(pc.getAutoMerge());
-                throw new Exception("There is no connection establised for pool " + poolKey);
-            }
+            pc.Pool.StartSocketPool(ppCC);
             pc.Pool.setQueueAutoMerge(pc.getAutoMerge());
             return pc.Pool;
         }
