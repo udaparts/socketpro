@@ -5,7 +5,7 @@ namespace web_two {
         public static CDataSet Cache;
         public static CSqlMasterPool<CMysql, CDataSet> Master;
         public static CSqlMasterPool<CMysql, CDataSet>.CSlavePool Slave;
-        //public static CSqlMasterPool<CMysql, CDataSet>.CSlavePool Master_No_Backup;
+        public static CSqlMasterPool<CMysql, CDataSet>.CSlavePool Master_No_Backup;
         protected void Application_Start(object sender, System.EventArgs e) {
             //suppose sp_config.json inside C:\Program Files\IIS Express
             //CSpConfig config = SpManager.SetConfig(false, @"D:\cyetest\socketpro\samples\web_two\web_two\sp_config.json");
@@ -21,7 +21,7 @@ namespace web_two {
             }
             Cache = Master.Cache;
             Slave = SpManager.GetPool("slavedb0") as CSqlMasterPool<CMysql, CDataSet>.CSlavePool;
-            //Master_No_Backup = SpManager.GetPool("db_no_backup") as CSqlMasterPool<CMysql, CDataSet>.CSlavePool;
+            Master_No_Backup = SpManager.GetPool("db_no_backup") as CSqlMasterPool<CMysql, CDataSet>.CSlavePool;
         }
     }
 }

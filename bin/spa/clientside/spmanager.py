@@ -307,8 +307,6 @@ class SpManager(object):
                 for key in pc['Hosts']:
                     mcc[threads][j] = SpManager._ToCC(SpManager._sp_config['Hosts'][key])
                     j += 1
-            if not pool.StartSocketPoolEx(mcc):
-                pool.QueueAutoMerge = pc['AutoMerge'];
-                raise Exception('There is no connection establised for pool ' + poolKey)
+            pool.StartSocketPoolEx(mcc)
             pool.QueueAutoMerge = pc['AutoMerge'];
             return pool

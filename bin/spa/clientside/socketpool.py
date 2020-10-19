@@ -302,8 +302,18 @@ class CSocketPool(object):
                 if h is None:
                     h = self._m_dicSocketHandler_[cs]
                 else:
-                    cs_coriq = cs.CountOfRequestsInQueue
-                    h_coriq = h.Socket.CountOfRequestsInQueue
+                    cs_coriq = 0
+                    cq = cs.ClientQueue
+                    if cq.Available:
+                        cs_coriq = cq.MessageCount
+                    else:
+                        cs_coriq = cs.CountOfRequestsInQueue
+                    h_coriq = 0
+                    cq = h.Socket.ClientQueue
+                    if cq.Available:
+                        h_coriq = cq.MessageCount
+                    else:
+                        h_coriq = h.Socket.CountOfRequestsInQueue
                     if cs_coriq < h_coriq:
                         h = self._m_dicSocketHandler_[cs]
                     elif cs_coriq == h_coriq and cs.BytesSent < h.Socket.BytesSent:

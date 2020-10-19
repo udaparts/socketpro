@@ -256,8 +256,10 @@ namespace SocketProAdapter
                             h = m_dicSocketHandler[cs];
                         else
                         {
-                            uint cs_coriq = cs.CountOfRequestsInQueue;
-                            uint h_coriq = h.AttachedClientSocket.CountOfRequestsInQueue;
+                            IClientQueue cq = h.AttachedClientSocket.ClientQueue;
+                            ulong cs_coriq = cq.Available ? cq.MessageCount : cs.CountOfRequestsInQueue;
+                            cq = h.AttachedClientSocket.ClientQueue;
+                            ulong h_coriq = cq.Available ? cq.MessageCount : h.AttachedClientSocket.CountOfRequestsInQueue;
                             if (cs_coriq < h_coriq)
                                 h = m_dicSocketHandler[cs];
                             else if (cs_coriq == h_coriq && cs.BytesSent < h.AttachedClientSocket.BytesSent)

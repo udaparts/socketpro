@@ -2498,9 +2498,6 @@ class CJsManager {
         }
         var ok = pool.Start(sessions, sessions.length);
         pool.AutoMerge = pc.AutoMerge;
-        if (!ok) {
-            throw JSON.stringify(pool.Error);
-        }
         return pool;
     }
     GetHandler(keyPool) {

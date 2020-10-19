@@ -601,10 +601,7 @@ namespace SocketProAdapter.ClientSide {
                         ppCC[i, j] = sc.m_Hosts[pc.m_Hosts[j]];
                     }
                 }
-                if (!pool.StartSocketPool(ppCC)) {
-                    pool.QueueAutoMerge = pc.AutoMerge;
-                    throw new Exception("There is no connection establised for pool " + poolKey);
-                }
+                pool.StartSocketPool(ppCC);
                 pool.QueueAutoMerge = pc.AutoMerge;
                 return pool;
             }

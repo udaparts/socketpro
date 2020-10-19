@@ -1466,8 +1466,12 @@ namespace SPA {
                     if (!h)
                         h = it->second;
                     else {
-                        unsigned int count0 = h->GetSocket()->GetCountOfRequestsInQueue();
-                        unsigned int count1 = it->first->GetCountOfRequestsInQueue();
+                        CClientSocket* cs = h->GetSocket();
+                        IClientQueue& cq0 = cs->GetClientQueue();
+                        UINT64 count0 = cq0.IsAvailable() ? cq0.GetMessageCount() : cs->GetCountOfRequestsInQueue();
+                        cs = it->first.get();
+                        IClientQueue& cq1 = cs->GetClientQueue();
+                        UINT64 count1 = cq1.IsAvailable() ? cq1.GetMessageCount() : cs->GetCountOfRequestsInQueue();
                         if (count0 > count1)
                             h = it->second;
                         else if (count0 == count1) {
