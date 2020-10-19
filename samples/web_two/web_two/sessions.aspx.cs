@@ -7,7 +7,7 @@ namespace web_two
         {
             txtMasterConnections.Text = Global.Master.ConnectedSockets.ToString();
             txtSlaveConnections.Text = Global.Slave.ConnectedSockets.ToString();
-            if (!IsPostBack)
+            if (!IsPostBack || lstTables.Items.Count == 0)
             {
                 List<KeyValuePair<string, string>> vP = Global.Cache.DBTablePair;
                 List<string> list = new List<string>();
@@ -15,14 +15,17 @@ namespace web_two
                 {
                     list.Add(p.Key + '.' + p.Value);
                 }
-                lstTables.DataSource = list; lstTables.DataBind();
+                lstTables.DataSource = list;
+                lstTables.DataBind();
                 if (list.Count > 0) BindSelectedTable2GridView((lstTables.SelectedIndex = 0));
             }
         }
+
         protected void lstTables_SelectedIndexChanged(object sender, System.EventArgs e)
         {
             BindSelectedTable2GridView(lstTables.SelectedIndex);
         }
+
         private void BindSelectedTable2GridView(int index)
         {
             string[] v = lstTables.Items[index].Text.Split('.');
@@ -33,7 +36,8 @@ namespace web_two
             foreach (System.Data.DataColumn dc in dt.Columns)
             {
                 var bf = new System.Web.UI.WebControls.BoundField();
-                bf.DataField = dc.ColumnName; bf.HeaderText = dc.ColumnName;
+                bf.DataField = dc.ColumnName;
+                bf.HeaderText = dc.ColumnName;
                 gvTable.Columns.Add(bf);
             }
             gvTable.DataBind();
