@@ -13,19 +13,6 @@
 namespace SPA
 {
     namespace ServerSide{
-#ifndef NATIVE_UTF16_SUPPORTED
-        const UTF16 * CMysqlImpl::NO_DB_OPENED_YET = L"No mysql database opened yet";
-        const UTF16 * CMysqlImpl::BAD_END_TRANSTACTION_PLAN = L"Bad end transaction plan";
-        const UTF16 * CMysqlImpl::NO_PARAMETER_SPECIFIED = L"No parameter specified";
-        const UTF16 * CMysqlImpl::BAD_PARAMETER_DATA_ARRAY_SIZE = L"Bad parameter data array length";
-        const UTF16 * CMysqlImpl::BAD_PARAMETER_COLUMN_SIZE = L"Bad parameter column size";
-        const UTF16 * CMysqlImpl::DATA_TYPE_NOT_SUPPORTED = L"Data type not supported";
-        const UTF16 * CMysqlImpl::NO_DB_NAME_SPECIFIED = L"No mysql database name specified";
-        const UTF16 * CMysqlImpl::MYSQL_LIBRARY_NOT_INITIALIZED = L"Mysql library not initialized";
-        const UTF16 * CMysqlImpl::BAD_MANUAL_TRANSACTION_STATE = L"Bad manual transaction state";
-        const UTF16 * CMysqlImpl::UNABLE_TO_SWITCH_TO_DATABASE = L"Unable to switch to database ";
-        const UTF16 * CMysqlImpl::SERVICE_COMMAND_ERROR = L"Service command error";
-#else
         const UTF16 * CMysqlImpl::NO_DB_OPENED_YET = u"No mysql database opened yet";
         const UTF16 * CMysqlImpl::BAD_END_TRANSTACTION_PLAN = u"Bad end transaction plan";
         const UTF16 * CMysqlImpl::NO_PARAMETER_SPECIFIED = u"No parameter specified";
@@ -37,7 +24,7 @@ namespace SPA
         const UTF16 * CMysqlImpl::BAD_MANUAL_TRANSACTION_STATE = u"Bad manual transaction state";
         const UTF16 * CMysqlImpl::UNABLE_TO_SWITCH_TO_DATABASE = u"Unable to switch to database ";
         const UTF16 * CMysqlImpl::SERVICE_COMMAND_ERROR = u"Service command error";
-#endif
+
         st_command_service_cbs CMysqlImpl::m_sql_cbs =
         {
             CMysqlImpl::sql_start_result_metadata,
@@ -199,11 +186,7 @@ namespace SPA
             switch (f->type) {
                 case MYSQL_TYPE_BIT:
                     info.ColumnSize = f->length;
-#ifndef NATIVE_UTF16_SUPPORTED
-                    info.DeclaredType = L"BIT";
-#else
                     info.DeclaredType = u"BIT";
-#endif
                     info.Flags |= CDBColumnInfo::FLAG_IS_BIT;
                     if (f->length == 1)
                         info.DataType = VT_BOOL;
@@ -223,20 +206,12 @@ namespace SPA
                     info.ColumnSize = f->length;
                     if (f->charsetnr == IS_BINARY) {
                         if (impl->m_meta) {
-#ifndef NATIVE_UTF16_SUPPORTED
-                            info.DeclaredType = L"LONG_BLOB";
-#else
                             info.DeclaredType = u"LONG_BLOB";
-#endif
                         }
                         info.DataType = (VT_UI1 | VT_ARRAY); //binary
                     } else {
                         if (impl->m_meta) {
-#ifndef NATIVE_UTF16_SUPPORTED
-                            info.DeclaredType = L"LONG_TEXT";
-#else
                             info.DeclaredType = u"LONG_TEXT";
-#endif
                         }
                         info.DataType = (VT_I1 | VT_ARRAY); //text
                     }
@@ -246,58 +221,26 @@ namespace SPA
                     if (f->charsetnr == IS_BINARY) {
                         if (impl->m_meta) {
                             if (f->length == MYSQL_TINYBLOB) {
-#ifndef NATIVE_UTF16_SUPPORTED
-                                info.DeclaredType = L"TINY_BLOB";
-#else
                                 info.DeclaredType = u"TINY_BLOB";
-#endif
                             } else if (f->length == MYSQL_MIDBLOB) {
-#ifndef NATIVE_UTF16_SUPPORTED
-                                info.DeclaredType = L"MEDIUM_BLOB";
-#else
                                 info.DeclaredType = u"MEDIUM_BLOB";
-#endif
                             } else if (f->length == MYSQL_BLOB) {
-#ifndef NATIVE_UTF16_SUPPORTED
-                                info.DeclaredType = L"BLOB";
-#else
                                 info.DeclaredType = u"BLOB";
-#endif
                             } else {
-#ifndef NATIVE_UTF16_SUPPORTED
-                                info.DeclaredType = L"LONG_BLOB";
-#else
                                 info.DeclaredType = u"LONG_BLOB";
-#endif
                             }
                         }
                         info.DataType = (VT_UI1 | VT_ARRAY); //binary
                     } else {
                         if (impl->m_meta) {
                             if (f->length == MYSQL_TINYBLOB) {
-#ifndef NATIVE_UTF16_SUPPORTED
-                                info.DeclaredType = L"TINY_TEXT";
-#else
                                 info.DeclaredType = u"TINY_TEXT";
-#endif
                             } else if (f->length == MYSQL_MIDBLOB) {
-#ifndef NATIVE_UTF16_SUPPORTED
-                                info.DeclaredType = L"MEDIUM_TEXT";
-#else
                                 info.DeclaredType = u"MEDIUM_TEXT";
-#endif
                             } else if (f->length == MYSQL_BLOB) {
-#ifndef NATIVE_UTF16_SUPPORTED
-                                info.DeclaredType = L"TEXT";
-#else
                                 info.DeclaredType = u"TEXT";
-#endif
                             } else {
-#ifndef NATIVE_UTF16_SUPPORTED
-                                info.DeclaredType = L"LONG_TEXT";
-#else
                                 info.DeclaredType = u"LONG_TEXT";
-#endif
                             }
                         }
                         info.DataType = (VT_I1 | VT_ARRAY); //text
@@ -307,83 +250,51 @@ namespace SPA
                     info.ColumnSize = f->length;
                     if (f->charsetnr == IS_BINARY) {
                         if (impl->m_meta) {
-#ifndef NATIVE_UTF16_SUPPORTED
-                            info.DeclaredType = L"MEDIUM_BLOB";
-#else
                             info.DeclaredType = u"MEDIUM_BLOB";
-#endif
                         }
                         info.DataType = (VT_UI1 | VT_ARRAY); //binary
                     } else {
                         if (impl->m_meta) {
-#ifndef NATIVE_UTF16_SUPPORTED
-                            info.DeclaredType = L"MEDIUM_TEXT";
-#else
                             info.DeclaredType = u"MEDIUM_TEXT";
-#endif
                         }
                         info.DataType = (VT_I1 | VT_ARRAY); //text
                     }
                     break;
                 case MYSQL_TYPE_DATE:
                     if (impl->m_meta) {
-#ifndef NATIVE_UTF16_SUPPORTED
-                        info.DeclaredType = L"DATE";
-#else
                         info.DeclaredType = u"DATE";
-#endif
                     }
                     info.DataType = VT_DATE;
                     break;
                 case MYSQL_TYPE_NULL:
                     if (impl->m_meta) {
-#ifndef NATIVE_UTF16_SUPPORTED
-                        info.DeclaredType = L"NULL";
-#else
                         info.DeclaredType = u"NULL";
-#endif
                     }
                     info.DataType = VT_NULL;
                     break;
                 case MYSQL_TYPE_NEWDATE:
                     if (impl->m_meta) {
-#ifndef NATIVE_UTF16_SUPPORTED
-                        info.DeclaredType = L"NEWDATE";
-#else
                         info.DeclaredType = u"NEWDATE";
-#endif
                     }
                     info.DataType = VT_DATE;
                     break;
                 case MYSQL_TYPE_SET:
                     info.ColumnSize = f->length;
                     if (impl->m_meta) {
-#ifndef NATIVE_UTF16_SUPPORTED
-                        info.DeclaredType = L"SET";
-#else
                         info.DeclaredType = u"SET";
-#endif
                     }
                     info.DataType = (VT_I1 | VT_ARRAY); //string
                     break;
                 case MYSQL_TYPE_DATETIME:
                     if (impl->m_meta) {
-#ifndef NATIVE_UTF16_SUPPORTED
-                        info.DeclaredType = L"DATETIME";
-#else
                         info.DeclaredType = u"DATETIME";
-#endif
                     }
                     info.Scale = (unsigned char) f->decimals;
                     info.DataType = VT_DATE;
                     break;
                 case MYSQL_TYPE_NEWDECIMAL:
                     if (impl->m_meta) {
-#ifndef NATIVE_UTF16_SUPPORTED
-                        info.DeclaredType = L"NEWDECIMAL";
-#else
                         info.DeclaredType = u"NEWDECIMAL";
-#endif
                     }
                     info.DataType = VT_DECIMAL;
                     info.Scale = (unsigned char) f->decimals;
@@ -391,11 +302,7 @@ namespace SPA
                     break;
                 case MYSQL_TYPE_DECIMAL:
                     if (impl->m_meta) {
-#ifndef NATIVE_UTF16_SUPPORTED
-                        info.DeclaredType = L"DECIMAL";
-#else
                         info.DeclaredType = u"DECIMAL";
-#endif
                     }
                     info.DataType = VT_DECIMAL;
                     info.Scale = (unsigned char) f->decimals;
@@ -403,53 +310,33 @@ namespace SPA
                     break;
                 case MYSQL_TYPE_DOUBLE:
                     if (impl->m_meta) {
-#ifndef NATIVE_UTF16_SUPPORTED
-                        info.DeclaredType = L"DOUBLE";
-#else
                         info.DeclaredType = u"DOUBLE";
-#endif
                     }
                     info.DataType = VT_R8;
                     break;
                 case MYSQL_TYPE_ENUM:
                     info.ColumnSize = f->length;
                     if (impl->m_meta) {
-#ifndef NATIVE_UTF16_SUPPORTED
-                        info.DeclaredType = L"ENUM";
-#else
                         info.DeclaredType = u"ENUM";
-#endif
                     }
                     info.DataType = (VT_I1 | VT_ARRAY); //string
                     break;
                 case MYSQL_TYPE_FLOAT:
                     if (impl->m_meta) {
-#ifndef NATIVE_UTF16_SUPPORTED
-                        info.DeclaredType = L"FLOAT";
-#else
                         info.DeclaredType = u"FLOAT";
-#endif
                     }
                     info.DataType = VT_R4;
                     break;
                 case MYSQL_TYPE_GEOMETRY:
                     info.ColumnSize = f->length;
                     if (impl->m_meta) {
-#ifndef NATIVE_UTF16_SUPPORTED
-                        info.DeclaredType = L"GEOMETRY";
-#else
                         info.DeclaredType = u"GEOMETRY";
-#endif
                     }
                     info.DataType = (VT_UI1 | VT_ARRAY); //binary array
                     break;
                 case MYSQL_TYPE_INT24:
                     if (impl->m_meta) {
-#ifndef NATIVE_UTF16_SUPPORTED
-                        info.DeclaredType = L"INT24";
-#else
                         info.DeclaredType = u"INT24";
-#endif
                     }
                     if ((f->flags & UNSIGNED_FLAG) == UNSIGNED_FLAG)
                         info.DataType = VT_UI4;
@@ -458,11 +345,7 @@ namespace SPA
                     break;
                 case MYSQL_TYPE_LONG:
                     if (impl->m_meta) {
-#ifndef NATIVE_UTF16_SUPPORTED
-                        info.DeclaredType = L"INT";
-#else
                         info.DeclaredType = u"INT";
-#endif
                     }
                     if ((f->flags & UNSIGNED_FLAG) == UNSIGNED_FLAG)
                         info.DataType = VT_UI4;
@@ -471,11 +354,7 @@ namespace SPA
                     break;
                 case MYSQL_TYPE_LONGLONG:
                     if (impl->m_meta) {
-#ifndef NATIVE_UTF16_SUPPORTED
-                        info.DeclaredType = L"BIGINT";
-#else
                         info.DeclaredType = u"BIGINT";
-#endif
                     }
                     if ((f->flags & UNSIGNED_FLAG) == UNSIGNED_FLAG)
                         info.DataType = VT_UI8;
@@ -484,11 +363,7 @@ namespace SPA
                     break;
                 case MYSQL_TYPE_SHORT:
                     if (impl->m_meta) {
-#ifndef NATIVE_UTF16_SUPPORTED
-                        info.DeclaredType = L"SHORT";
-#else
                         info.DeclaredType = u"SHORT";
-#endif
                     }
                     if ((f->flags & UNSIGNED_FLAG) == UNSIGNED_FLAG)
                         info.DataType = VT_UI2;
@@ -498,39 +373,23 @@ namespace SPA
                 case MYSQL_TYPE_STRING:
                     if ((f->flags & ENUM_FLAG) == ENUM_FLAG) {
                         if (impl->m_meta) {
-#ifndef NATIVE_UTF16_SUPPORTED
-                            info.DeclaredType = L"ENUM";
-#else
                             info.DeclaredType = u"ENUM";
-#endif
                         }
                         info.DataType = (VT_I1 | VT_ARRAY); //string
                     } else if ((f->flags & SET_FLAG) == SET_FLAG) {
                         if (impl->m_meta) {
-#ifndef NATIVE_UTF16_SUPPORTED
-                            info.DeclaredType = L"SET";
-#else
                             info.DeclaredType = u"SET";
-#endif
                         }
                         info.DataType = (VT_I1 | VT_ARRAY); //string
                     } else {
                         if (f->charsetnr == IS_BINARY) {
                             if (impl->m_meta) {
-#ifndef NATIVE_UTF16_SUPPORTED
-                                info.DeclaredType = L"BINARY";
-#else
                                 info.DeclaredType = u"BINARY";
-#endif
                             }
                             info.DataType = (VT_UI1 | VT_ARRAY);
                         } else {
                             if (impl->m_meta) {
-#ifndef NATIVE_UTF16_SUPPORTED
-                                info.DeclaredType = L"CHAR";
-#else
                                 info.DeclaredType = u"CHAR";
-#endif
                             }
                             info.DataType = (VT_I1 | VT_ARRAY); //string
                         }
@@ -539,33 +398,21 @@ namespace SPA
                     break;
                 case MYSQL_TYPE_TIME:
                     if (impl->m_meta) {
-#ifndef NATIVE_UTF16_SUPPORTED
-                        info.DeclaredType = L"TIME";
-#else
                         info.DeclaredType = u"TIME";
-#endif
                     }
                     info.Scale = (unsigned char) f->decimals;
                     info.DataType = VT_DATE;
                     break;
                 case MYSQL_TYPE_TIMESTAMP:
                     if (impl->m_meta) {
-#ifndef NATIVE_UTF16_SUPPORTED
-                        info.DeclaredType = L"TIMESTAMP";
-#else
                         info.DeclaredType = u"TIMESTAMP";
-#endif
                     }
                     info.Scale = (unsigned char) f->decimals;
                     info.DataType = VT_DATE;
                     break;
                 case MYSQL_TYPE_TINY:
                     if (impl->m_meta) {
-#ifndef NATIVE_UTF16_SUPPORTED
-                        info.DeclaredType = L"TINY";
-#else
                         info.DeclaredType = u"TINY";
-#endif
                     }
                     if ((f->flags & UNSIGNED_FLAG) == UNSIGNED_FLAG)
                         info.DataType = VT_UI1;
@@ -577,11 +424,7 @@ namespace SPA
                     if (!info.ColumnSize)
                         info.ColumnSize = (~0);
                     if (impl->m_meta) {
-#ifndef NATIVE_UTF16_SUPPORTED
-                        info.DeclaredType = L"JSON";
-#else
                         info.DeclaredType = u"JSON";
-#endif
                     }
                     info.DataType = (VT_I1 | VT_ARRAY); //string
                     break;
@@ -589,20 +432,12 @@ namespace SPA
                     info.ColumnSize = f->length;
                     if (f->charsetnr == IS_BINARY) {
                         if (impl->m_meta) {
-#ifndef NATIVE_UTF16_SUPPORTED
-                            info.DeclaredType = L"TINY_BLOB";
-#else
                             info.DeclaredType = u"TINY_BLOB";
-#endif
                         }
                         info.DataType = (VT_UI1 | VT_ARRAY); //binary
                     } else {
                         if (impl->m_meta) {
-#ifndef NATIVE_UTF16_SUPPORTED
-                            info.DeclaredType = L"TINY_TEXT";
-#else
                             info.DeclaredType = u"TINY_TEXT";
-#endif
                         }
                         info.DataType = (VT_I1 | VT_ARRAY); //text
                     }
@@ -612,59 +447,35 @@ namespace SPA
                     info.ColumnSize = f->length / 3;
                     if (f->charsetnr == IS_BINARY) {
                         if (impl->m_meta) {
-#ifndef NATIVE_UTF16_SUPPORTED
-                            info.DeclaredType = L"VARBINARY";
-#else
                             info.DeclaredType = u"VARBINARY";
-#endif
                         }
                         info.DataType = (VT_UI1 | VT_ARRAY);
                     } else {
                         if (impl->m_meta) {
-#ifndef NATIVE_UTF16_SUPPORTED
-                            info.DeclaredType = L"VARCHAR";
-#else
                             info.DeclaredType = u"VARCHAR";
-#endif
                         }
                         info.DataType = (VT_I1 | VT_ARRAY); //string
                     }
                     break;
                 case MYSQL_TYPE_YEAR:
                     if (impl->m_meta) {
-#ifndef NATIVE_UTF16_SUPPORTED
-                        info.DeclaredType = L"YEAR";
-#else
                         info.DeclaredType = u"YEAR";
-#endif
                     }
                     info.DataType = VT_I2;
                     break;
                 default:
                     info.ColumnSize = f->length;
                     if (impl->m_meta) {
-#ifndef NATIVE_UTF16_SUPPORTED
-                        info.DeclaredType = L"?-unknown-?";
-#else
                         info.DeclaredType = u"?-unknown-?";
-#endif
                     }
                     if (f->charsetnr == IS_BINARY) {
                         if (impl->m_meta) {
-#ifndef NATIVE_UTF16_SUPPORTED
-                            info.DeclaredType = L"VARBINARY";
-#else
                             info.DeclaredType = u"VARBINARY";
-#endif
                         }
                         info.DataType = (VT_UI1 | VT_ARRAY);
                     } else {
                         if (impl->m_meta) {
-#ifndef NATIVE_UTF16_SUPPORTED
-                            info.DeclaredType = L"VARCHAR";
-#else
                             info.DeclaredType = u"VARCHAR";
-#endif
                         }
                         info.DataType = (VT_I1 | VT_ARRAY); //string
                     }
@@ -672,11 +483,7 @@ namespace SPA
             }
 
             if (impl->m_cmd == COM_STMT_PREPARE) {
-#ifndef NATIVE_UTF16_SUPPORTED
-                if (info.DisplayName == L"?") {
-#else
                 if (info.DisplayName == u"?") {
-#endif
                     impl->m_stmt.parameters += 1;
                 }
             }
@@ -981,7 +788,8 @@ namespace SPA
             return error;
         }
 
-        static const dec1 powers10[DIG_PER_DEC1 + 1] = {1, 10, 100, 1000, 10000, 100000, 1000000, 10000000, 100000000, 1000000000};
+        static const dec1 powers10[DIG_PER_DEC1 + 1] =
+        {1, 10, 100, 1000, 10000, 100000, 1000000, 10000000, 100000000, 1000000000};
 
         void CMysqlImpl::ToDecimal(unsigned char precision, const decimal_t &src, DECIMAL & dec) {
             int int_part = ROUND_UP(src.intg);
@@ -1012,7 +820,8 @@ namespace SPA
                 }
                 return;
             }
-            char str[64] = {0};
+            char str[64] =
+            {0};
             int len = sizeof (str);
             decimal2string(&src, str, &len, 0, 0, 0);
             if (::strlen(str) > 19) {
@@ -1092,11 +901,7 @@ namespace SPA
                 return 0;
             CUQueue &q = impl->m_qSend;
             const CDBColumnInfo &info = impl->m_vColInfo[impl->m_ColIndex];
-#ifndef NATIVE_UTF16_SUPPORTED
-            if (info.DeclaredType == L"BIT") {
-#else
             if (info.DeclaredType == u"BIT") {
-#endif
                 q << info.DataType;
                 if (info.DataType == VT_BOOL) {
                     VARIANT_BOOL b = (*value ? VARIANT_TRUE : VARIANT_FALSE);
@@ -1246,16 +1051,12 @@ namespace SPA
         }
 
         void CMysqlImpl::SetPublishDBEvent(CMysqlImpl & impl) {
-#ifndef NATIVE_UTF16_SUPPORTED
-            std::wstring wsql = L"CREATE FUNCTION PublishDBEvent RETURNS INTEGER SONAME 'smysql.dll'";
+#ifdef WIN32_64
+            CDBString wsql = u"CREATE FUNCTION PublishDBEvent RETURNS INTEGER SONAME 'smysql.dll'";
 #else
             CDBString wsql = u"CREATE FUNCTION PublishDBEvent RETURNS INTEGER SONAME 'libsmysql.so'";
 #endif
-#ifndef NATIVE_UTF16_SUPPORTED
-            if (!impl.m_pMysql && !impl.OpenSession(L"root", "localhost"))
-#else
             if (!impl.m_pMysql && !impl.OpenSession(u"root", "localhost"))
-#endif
                 return;
             impl.m_NoSending = true;
             int res = 0;
@@ -1277,38 +1078,22 @@ namespace SPA
             UINT64 fail_ok;
             impl.m_NoSending = true;
             CDBString errMsg;
-#ifndef NATIVE_UTF16_SUPPORTED
-            if (!impl.m_pMysql && !impl.OpenSession(L"root", "localhost"))
-#else
             if (!impl.m_pMysql && !impl.OpenSession(u"root", "localhost"))
-#endif
                 return;
-#ifndef NATIVE_UTF16_SUPPORTED
-            std::wstring wsql = L"USE sp_streaming_db;CREATE TABLE IF NOT EXISTS service(id INT UNSIGNED PRIMARY KEY NOT NULL,library VARCHAR(2048)NOT NULL,param INT NULL,description VARCHAR(2048)NULL)";
-#else
             CDBString wsql = u"USE sp_streaming_db;CREATE TABLE IF NOT EXISTS service(id INT UNSIGNED PRIMARY KEY NOT NULL,library VARCHAR(2048)NOT NULL,param INT NULL,description VARCHAR(2048)NULL)";
-#endif
             impl.Execute(wsql, true, true, false, 0, affected, res, errMsg, vtId, fail_ok);
             if (res) {
                 CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Creating the table service failed(errCode=%d; errMsg=%s)", res, Utilities::ToUTF8(errMsg).c_str());
                 return;
             }
-#ifndef NATIVE_UTF16_SUPPORTED
-            wsql = L"CREATE TABLE IF NOT EXISTS permission(svsid INT UNSIGNED NOT NULL,user VARCHAR(32)NOT NULL,PRIMARY KEY(svsid,user),FOREIGN KEY(svsid)REFERENCES service(id)ON DELETE CASCADE ON UPDATE CASCADE)";
-#else
             wsql = u"CREATE TABLE IF NOT EXISTS permission(svsid INT UNSIGNED NOT NULL,user VARCHAR(32)NOT NULL,PRIMARY KEY(svsid,user),FOREIGN KEY(svsid)REFERENCES service(id)ON DELETE CASCADE ON UPDATE CASCADE)";
-#endif
             impl.Execute(wsql, true, true, false, 0, affected, res, errMsg, vtId, fail_ok);
             if (res) {
                 CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Creating the table permission failed(errCode=%d; errMsg=%s)", res, Utilities::ToUTF8(errMsg).c_str());
                 return;
             }
             std::vector<CService> vService;
-#ifndef NATIVE_UTF16_SUPPORTED
-            wsql = L"select id,library,param,description from service";
-#else
             wsql = u"select id,library,param,description from service";
-#endif
             impl.Execute(wsql, true, true, false, 0, affected, res, errMsg, vtId, fail_ok);
             SPA::UDB::CDBVariant vtLib, vtParam, vtDesc;
             while (impl.m_qSend.GetSize() && !res) {
@@ -1337,15 +1122,9 @@ namespace SPA
                 return (svs.ServiceId == SPA::Mysql::sidMysql);
             });
             if (it == vService.end()) {
-#ifndef NATIVE_UTF16_SUPPORTED
-                wsql = L"INSERT INTO service VALUES(" + std::to_wstring((UINT64) Mysql::sidMysql) +
-                        L",'smysql.dll'" +
-                        L",0,'Continous SQL streaming processing service')";
-#else
                 wsql = u"INSERT INTO service VALUES(" + CDBString(Utilities::ToUTF16(std::to_wstring((UINT64) Mysql::sidMysql))) +
                         u",'libsmysql.so'" +
                         u",0,'Continous SQL streaming processing service')";
-#endif
                 impl.Execute(wsql, true, true, false, 0, affected, res, errMsg, vtId, fail_ok);
                 if (res) {
                     CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Inserting the table service failed(errCode=%d; errMsg=%s)", res, Utilities::ToUTF8(errMsg).c_str());
@@ -1356,15 +1135,9 @@ namespace SPA
                 return (svs.ServiceId == (unsigned int) SPA::sidHTTP);
             });
             if (it == vService.end()) {
-#ifndef NATIVE_UTF16_SUPPORTED
-                wsql = L"INSERT INTO service VALUES(" + std::to_wstring((UINT64) SPA::sidHTTP) +
-                        L",'uservercore.dll'" +
-                        L",0,'HTTP/Websocket processing service')";
-#else
                 wsql = u"INSERT INTO service VALUES(" + CDBString(Utilities::ToUTF16(std::to_wstring((UINT64) SPA::sidHTTP))) +
                         u",'libuservercore.so'" +
                         u",0,'HTTP/Websocket processing service')";
-#endif
                 impl.Execute(wsql, true, true, false, 0, affected, res, errMsg, vtId, fail_ok);
                 if (res) {
                     CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Inserting the table service failed(errCode=%d; errMsg=%s)", res, Utilities::ToUTF8(errMsg).c_str());
@@ -1394,13 +1167,8 @@ namespace SPA
                         return (svs.ServiceId == svsId);
                     });
                     if (it == vService.end()) {
-#ifndef NATIVE_UTF16_SUPPORTED
-                        wsql = L"INSERT INTO service(id,library,param,description)VALUES(" + std::to_wstring((UINT64) svsId) + L",'" +
-                                Utilities::ToWide(p->c_str(), p->size()) + L"'," + std::to_wstring((INT64) param) + L",'')";
-#else
                         wsql = u"INSERT INTO service(id,library,param,description)VALUES(" + CDBString(Utilities::ToUTF16(std::to_wstring((UINT64) svsId))) + u",'" +
                                 CDBString(Utilities::ToUTF16(p->c_str(), p->size())) + u"'," + CDBString(Utilities::ToUTF16(std::to_wstring((INT64) param))) + u",'')";
-#endif
                         impl.Execute(wsql, true, true, false, 0, affected, res, errMsg, vtId, fail_ok);
                         if (res) {
                             CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Inserting the table service failed(errCode=%d; errMsg=%s)", res, Utilities::ToUTF8(errMsg).c_str());
@@ -1412,17 +1180,9 @@ namespace SPA
 
         std::unordered_map<std::string, std::string> CMysqlImpl::ConfigStreamingDB(CMysqlImpl & impl) {
             std::unordered_map<std::string, std::string> map;
-#ifndef NATIVE_UTF16_SUPPORTED
-            if (!impl.m_pMysql && !impl.OpenSession(L"root", "localhost"))
-#else
             if (!impl.m_pMysql && !impl.OpenSession(u"root", "localhost"))
-#endif
                 return map;
-#ifndef NATIVE_UTF16_SUPPORTED
-            std::wstring wsql = L"Create database if not exists sp_streaming_db character set utf8 collate utf8_general_ci;USE sp_streaming_db";
-#else
             CDBString wsql = u"Create database if not exists sp_streaming_db character set utf8 collate utf8_general_ci;USE sp_streaming_db";
-#endif
             int res = 0;
             INT64 affected;
             SPA::UDB::CDBVariant vtId;
@@ -1434,21 +1194,13 @@ namespace SPA
                 CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Configuring streaming DB failed(errCode=%d; errMsg=%s)", res, Utilities::ToUTF8(errMsg).c_str());
                 return map;
             }
-#ifndef NATIVE_UTF16_SUPPORTED
-            wsql = L"CREATE TABLE IF NOT EXISTS config(mykey varchar(32)PRIMARY KEY NOT NULL,value text not null)";
-#else
             wsql = u"CREATE TABLE IF NOT EXISTS config(mykey varchar(32)PRIMARY KEY NOT NULL,value text not null)";
-#endif
             impl.Execute(wsql, true, true, false, 0, affected, res, errMsg, vtId, fail_ok);
             if (res) {
                 CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Configuring streaming DB failed(errCode=%d; errMsg=%s)", res, Utilities::ToUTF8(errMsg).c_str());
                 return map;
             }
-#ifndef NATIVE_UTF16_SUPPORTED
-            wsql = L"select mykey,value from config";
-#else
             wsql = u"select mykey,value from config";
-#endif
             impl.Execute(wsql, true, true, false, 0, affected, res, errMsg, vtId, fail_ok);
             if (res) {
                 CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Configuring streaming DB failed(errCode=%d; errMsg=%s)", res, Utilities::ToUTF8(errMsg).c_str());
@@ -1468,11 +1220,7 @@ namespace SPA
             for (auto it = config.begin(), end = config.end(); it != end; ++it) {
                 auto found = map.find(it->first);
                 if (found == map.end()) {
-#ifndef NATIVE_UTF16_SUPPORTED
-                    wsql = L"insert into config values('" + Utilities::ToWide(it->first) + L"','" + Utilities::ToWide(it->second) + L"')";
-#else
                     wsql = u"insert into config values('" + CDBString(Utilities::ToUTF16(it->first)) + u"','" + CDBString(Utilities::ToUTF16(it->second)) + u"')";
-#endif
                     impl.Execute(wsql, true, true, false, 0, affected, res, errMsg, vtId, fail_ok);
                     map[it->first] = it->second;
                 }
@@ -1482,29 +1230,16 @@ namespace SPA
 
         bool CMysqlImpl::Authenticate(const std::wstring &userName, const wchar_t *password, const std::string &ip, unsigned int svsId) {
             std::unique_ptr<CMysqlImpl> impl(new CMysqlImpl);
-#ifndef NATIVE_UTF16_SUPPORTED
-            if (!impl->OpenSession(L"root", "localhost")) {
-#else
             if (!impl->OpenSession(u"root", "localhost")) {
-#endif
                 CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Authentication failed as root account not available");
                 return false;
             }
-#ifndef NATIVE_UTF16_SUPPORTED
-            std::wstring host = L"localhost";
-            if (ip != "localhost")
-                host = L"%";
-            std::string user = Utilities::ToUTF8(userName);
-            std::wstring wsql(L"select authentication_string from mysql.user where password_expired='N' and account_locked='N' and user='");
-            wsql += (userName + L"' and host='" + host + L"'");
-#else
             CDBString host = u"localhost";
             if (ip != "localhost")
                 host = u"%";
             std::string user = Utilities::ToUTF8(userName);
             CDBString wsql(u"select authentication_string from mysql.user where password_expired='N' and account_locked='N' and user='");
             wsql += (CDBString(Utilities::ToUTF16(userName)) + u"' and host='" + host + u"'");
-#endif
             int res = 0;
             INT64 affected;
             SPA::UDB::CDBVariant vtId;
@@ -1528,11 +1263,7 @@ namespace SPA
             }
             if (svsId == SPA::Mysql::sidMysql)
                 return true;
-#ifndef NATIVE_UTF16_SUPPORTED
-            wsql = L"SELECT user from sp_streaming_db.permission where svsid=" + std::to_wstring((UINT64) svsId) + L" AND user='" + userName + L"'";
-#else
             wsql = u"SELECT user from sp_streaming_db.permission where svsid=" + CDBString(Utilities::ToUTF16(std::to_string((UINT64) svsId))) + u" AND user='" + CDBString(Utilities::ToUTF16(userName)) + u"'";
-#endif
             impl->Execute(wsql, true, true, false, 0, affected, res, errMsg, vtId, fail_ok);
             if (res) {
                 std::string user = Utilities::ToUTF8(userName.c_str(), userName.size());

@@ -7,7 +7,8 @@ namespace web_two {
         public static CSqlMasterPool<CMysql, CDataSet>.CSlavePool Slave;
         //public static CSqlMasterPool<CMysql, CDataSet>.CSlavePool Master_No_Backup;
         protected void Application_Start(object sender, System.EventArgs e) {
-            //CSpConfig config = SpManager.SetConfig(false, @"D:\mydev\socketpro\samples\web_two\web_two\sp_config.json");
+            //suppose sp_config.json inside C:\Program Files\IIS Express
+            //CSpConfig config = SpManager.SetConfig(false, @"D:\cyetest\socketpro\samples\web_two\web_two\sp_config.json");
             Master = SpManager.GetPool("masterdb") as CSqlMasterPool<CMysql, CDataSet>;
             CMysql handler = Master.Seek();
             if (handler != null) { //create a test database
