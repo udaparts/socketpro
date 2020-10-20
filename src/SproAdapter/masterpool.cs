@@ -74,10 +74,10 @@ namespace SocketProAdapter
                 if (handler == AsyncHandlers[0])
                 {
                     m_hander = handler;
-                    handler.AttachedClientSocket.Push.OnPublish += new ClientSide.DOnPublish(Push_OnPublish);
+                    handler.Socket.Push.OnPublish += new ClientSide.DOnPublish(Push_OnPublish);
                 }
             }
-            else if (spe == ClientSide.tagSocketPoolEvent.speConnected && handler.AttachedClientSocket.ErrorCode == 0)
+            else if (spe == ClientSide.tagSocketPoolEvent.speConnected && handler.Socket.ErrorCode == 0)
             {
                 if (handler == AsyncHandlers[0])
                 {
@@ -213,11 +213,11 @@ namespace SocketProAdapter
             bool ok = m_hander.GetCachedTables(DefaultDBName, (res, errMsg) =>
             {
                 uint port;
-                string ip = m_hander.AttachedClientSocket.GetPeerName(out port);
+                string ip = m_hander.Socket.GetPeerName(out port);
                 ip += ":";
                 ip += port;
                 m_cache.Set(ip, m_hander.DBManagementSystem);
-                m_cache.DBServerName = m_hander.AttachedClientSocket.ConnectionContext.Host;
+                m_cache.DBServerName = m_hander.Socket.ConnectionContext.Host;
                 if (res == 0)
                 {
                     m_MasterCache.Swap(m_cache); //exchange between master Cache and this m_cache

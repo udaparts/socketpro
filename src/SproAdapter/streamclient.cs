@@ -98,10 +98,10 @@ namespace SocketProAdapter.ClientSide
                 }
                 else if (res == null)
                     res = "";
-                if (!ok && !m_ash.AttachedClientSocket.Sendable)
+                if (!ok && !m_ash.Socket.Sendable)
                 {
                     m_s = null;
-                    return m_ash.AttachedClientSocket.ErrorMsg;
+                    return m_ash.Socket.ErrorMsg;
                 }
                 if (Progress != null)
                     Progress.Invoke(this, (ulong)m_s.Position);
@@ -117,7 +117,7 @@ namespace SocketProAdapter.ClientSide
                 }))
                 {
                     m_s = null;
-                    return m_ash.AttachedClientSocket.ErrorMsg;
+                    return m_ash.Socket.ErrorMsg;
                 }
             }
             return res;
@@ -127,7 +127,7 @@ namespace SocketProAdapter.ClientSide
         private Stream m_s; //protected by m_cs
         private ulong SendDataFromClientToServer()
         {
-            if (m_ash.AttachedClientSocket.BytesInSendingBuffer > CStreamSerializationHelper.STREAM_CHUNK_SIZE)
+            if (m_ash.Socket.BytesInSendingBuffer > CStreamSerializationHelper.STREAM_CHUNK_SIZE)
                 return 0;
             ulong send = 0;
             using (CScopeUQueue su = new CScopeUQueue())
@@ -150,7 +150,7 @@ namespace SocketProAdapter.ClientSide
                         break;
                     }
                     send += read;
-                    if (m_ash.AttachedClientSocket.BytesInSendingBuffer > 10 * CStreamSerializationHelper.STREAM_CHUNK_SIZE)
+                    if (m_ash.Socket.BytesInSendingBuffer > 10 * CStreamSerializationHelper.STREAM_CHUNK_SIZE)
                         break;
                     read = CStreamSerializationHelper.Read(m_s, su.UQueue);
                     if (read == 0)
@@ -195,8 +195,8 @@ namespace SocketProAdapter.ClientSide
             }) && m_ash.WaitAll());
             if (res != null && res.Length > 0)
                 return res;
-            if (!ok && !m_ash.AttachedClientSocket.Sendable)
-                return m_ash.AttachedClientSocket.ErrorMsg;
+            if (!ok && !m_ash.Socket.Sendable)
+                return m_ash.Socket.ErrorMsg;
             lock (m_cs)
             {
                 if (m_s != null)
@@ -217,8 +217,8 @@ namespace SocketProAdapter.ClientSide
                     }))
                     {
                         m_s = null;
-                        if (!m_ash.AttachedClientSocket.Sendable)
-                            return m_ash.AttachedClientSocket.ErrorMsg;
+                        if (!m_ash.Socket.Sendable)
+                            return m_ash.Socket.ErrorMsg;
                     }
                 }
             }
@@ -575,8 +575,8 @@ namespace SocketProAdapter.ClientSide
                 }
                 if (count == 0 && fTo.m_vContext.Count > 0)
                 {
-                    ClientCoreLoader.PostProcessing(fTo.AttachedClientSocket.Handle, 0, 0);
-                    fTo.AttachedClientSocket.DoEcho(); //make sure WaitAll works correctly
+                    ClientCoreLoader.PostProcessing(fTo.Socket.Handle, 0, 0);
+                    fTo.Socket.DoEcho(); //make sure WaitAll works correctly
                 }
             }
         }
@@ -625,10 +625,10 @@ namespace SocketProAdapter.ClientSide
                 uint filesOpened = GetFilesOpened();
                 if (m_MaxDownloading > filesOpened)
                 {
-                    ClientCoreLoader.PostProcessing(AttachedClientSocket.Handle, 0, 0);
+                    ClientCoreLoader.PostProcessing(Socket.Handle, 0, 0);
                     if (filesOpened == 0)
                     {
-                        AttachedClientSocket.DoEcho(); //make sure WaitAll works correctly
+                        Socket.DoEcho(); //make sure WaitAll works correctly
                     }
                 }
             }
@@ -660,10 +660,10 @@ namespace SocketProAdapter.ClientSide
                 uint filesOpened = GetFilesOpened();
                 if (m_MaxDownloading > filesOpened)
                 {
-                    ClientCoreLoader.PostProcessing(AttachedClientSocket.Handle, 0, 0);
+                    ClientCoreLoader.PostProcessing(Socket.Handle, 0, 0);
                     if (filesOpened == 0)
                     {
-                        AttachedClientSocket.DoEcho(); //make sure WaitAll works correctly
+                        Socket.DoEcho(); //make sure WaitAll works correctly
                     }
                 }
             }
@@ -694,10 +694,10 @@ namespace SocketProAdapter.ClientSide
                 uint filesOpened = GetFilesOpened();
                 if (m_MaxDownloading > filesOpened)
                 {
-                    ClientCoreLoader.PostProcessing(AttachedClientSocket.Handle, 0, 0);
+                    ClientCoreLoader.PostProcessing(Socket.Handle, 0, 0);
                     if (filesOpened == 0)
                     {
-                        AttachedClientSocket.DoEcho(); //make sure WaitAll works correctly
+                        Socket.DoEcho(); //make sure WaitAll works correctly
                     }
                 }
             }
@@ -766,10 +766,10 @@ namespace SocketProAdapter.ClientSide
                 uint filesOpened = GetFilesOpened();
                 if (m_MaxDownloading > filesOpened)
                 {
-                    ClientCoreLoader.PostProcessing(AttachedClientSocket.Handle, 0, 0);
+                    ClientCoreLoader.PostProcessing(Socket.Handle, 0, 0);
                     if (filesOpened == 0)
                     {
-                        AttachedClientSocket.DoEcho(); //make sure WaitAll works correctly
+                        Socket.DoEcho(); //make sure WaitAll works correctly
                     }
                 }
             }
@@ -1048,7 +1048,7 @@ namespace SocketProAdapter.ClientSide
                         }
                         else
                         {
-                            CClientSocket cs = AttachedClientSocket;
+                            CClientSocket cs = Socket;
                             lock (m_csFile)
                             {
                                 if (m_vContext.Count > 0)
@@ -1103,7 +1103,7 @@ namespace SocketProAdapter.ClientSide
                                                 SendRequest(idUploadCompleted, rh, context.Discarded, se);
                                                 if (context.QueueOk)
                                                 {
-                                                    AttachedClientSocket.ClientQueue.EndJob();
+                                                    Socket.ClientQueue.EndJob();
                                                 }
                                             }
                                         }
@@ -1134,7 +1134,7 @@ namespace SocketProAdapter.ClientSide
                             }
                             if (context.QueueOk)
                             {
-                                AttachedClientSocket.ClientQueue.AbortJob();
+                                Socket.ClientQueue.AbortJob();
                             }
                             OnPostProcessing(0, 0);
                         }

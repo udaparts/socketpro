@@ -112,7 +112,7 @@ class CYourPeerOne : CCacheBasePeer
             ret = SendResultIndex(reqIndex, Consts.idUploadEmployees, (int)-2, "No connection to a master database", vId);
             return;
         }
-        CClientSocket cs = handler.AttachedClientSocket;
+        CClientSocket cs = handler.Socket;
         do
         {
             if (!handler.BeginTrans() || !handler.Prepare("INSERT INTO mysample.EMPLOYEE(CompanyId,Name,JoinDate)VALUES(?,?,?)"))

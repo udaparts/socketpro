@@ -364,7 +364,7 @@ namespace SocketProAdapter
                     {
                         if (p.Value.Discarded != null)
                         {
-                            p.Value.Discarded.Invoke(this, AttachedClientSocket.CurrentRequestID == (ushort)tagBaseRequestID.idCancel);
+                            p.Value.Discarded.Invoke(this, Socket.CurrentRequestID == (ushort)tagBaseRequestID.idCancel);
                         }
                     }
                     m_kvBatching.Clear();
@@ -372,7 +372,7 @@ namespace SocketProAdapter
                     {
                         if (p.Value.Discarded != null)
                         {
-                            p.Value.Discarded.Invoke(this, AttachedClientSocket.CurrentRequestID == (ushort)tagBaseRequestID.idCancel);
+                            p.Value.Discarded.Invoke(this, Socket.CurrentRequestID == (ushort)tagBaseRequestID.idCancel);
                         }
                     }
                     m_kvCallback.Clear();
@@ -2100,6 +2100,7 @@ namespace SocketProAdapter
                 return true;
             }
 
+            [ObsoleteAttribute("This property is obsolete. Use Socket instead.", false)]
             public CClientSocket AttachedClientSocket
             {
                 get

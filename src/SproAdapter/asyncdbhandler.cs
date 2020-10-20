@@ -786,7 +786,7 @@ namespace SocketProAdapter
                 {
                     if (vParam != null && vParam.Count > 0)
                     {
-                        queueOk = AttachedClientSocket.ClientQueue.StartJob();
+                        queueOk = Socket.ClientQueue.StartJob();
                         if (!SendParametersData(vParam))
                         {
                             lock (m_csDB)
@@ -823,7 +823,7 @@ namespace SocketProAdapter
                         return false;
                     }
                     if (queueOk)
-                        AttachedClientSocket.ClientQueue.EndJob();
+                        Socket.ClientQueue.EndJob();
                     return true;
                 }
             }
@@ -1061,7 +1061,7 @@ namespace SocketProAdapter
                     {
                         if (vParam != null && vParam.Count > 0)
                         {
-                            queueOk = AttachedClientSocket.ClientQueue.StartJob();
+                            queueOk = Socket.ClientQueue.StartJob();
                             if (!SendParametersData(vParam))
                             {
                                 lock (m_csDB)
@@ -1107,7 +1107,7 @@ namespace SocketProAdapter
                             return false;
                         }
                         if (queueOk)
-                            AttachedClientSocket.ClientQueue.EndJob();
+                            Socket.ClientQueue.EndJob();
                         return true;
                     }
                 }
@@ -1549,7 +1549,7 @@ namespace SocketProAdapter
                         if (m_queueOk)
                         {
                             //associate end transaction with underlying client persistent message queue
-                            AttachedClientSocket.ClientQueue.EndJob();
+                            Socket.ClientQueue.EndJob();
                             m_queueOk = false;
                         }
                         return true;
@@ -1623,7 +1623,7 @@ namespace SocketProAdapter
                         flags = m_flags;
                     }
                     //associate begin transaction with underlying client persistent message queue
-                    m_queueOk = AttachedClientSocket.ClientQueue.StartJob();
+                    m_queueOk = Socket.ClientQueue.StartJob();
                     return SendRequest(DB_CONSTS.idBeginTrans, (int)isolation, connection, flags, (ar) =>
                     {
                         int res, ms;

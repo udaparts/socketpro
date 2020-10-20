@@ -70,7 +70,7 @@ namespace SocketProAdapter.ClientSide
         private CAdoSerializationHelper m_AdoSerializer;
         private bool EndDataSet(DataSet ds, bool needRelations)
         {
-            if (AttachedClientSocket == null)
+            if (Socket == null)
                 throw new InvalidOperationException("The asynchronous handler must be attached to an instance of CClientSocket first!");
             if (ds == null)
                 throw new ArgumentNullException("Must pass in a valid dataset object!");
@@ -106,7 +106,7 @@ namespace SocketProAdapter.ClientSide
         public virtual bool Send(DataSet ds, bool needRelations, uint batchSize)
         {
             bool b = false;
-            if (AttachedClientSocket == null)
+            if (Socket == null)
                 throw new InvalidOperationException("The asynchronous handler must be attached to an instance of CClientSocket first!");
             if (ds == null)
                 throw new ArgumentNullException("Must pass in an valid DataSet object!");
@@ -155,7 +155,7 @@ namespace SocketProAdapter.ClientSide
         public virtual bool Send(DataTable dt, uint batchSize)
         {
             bool bSuc = false;
-            if (AttachedClientSocket == null)
+            if (Socket == null)
                 throw new InvalidOperationException("The asynchronous handler must be attached to an instance of CClientSocket first!");
             if (dt == null)
                 throw new ArgumentNullException("Must pass in a valid data table object!");
@@ -194,13 +194,13 @@ namespace SocketProAdapter.ClientSide
                                 AdoUQueue.SetSize(0);
                                 if (!bSuc)
                                     break;
-                                if (AttachedClientSocket.BytesBatched > 2 * batchSize)
+                                if (Socket.BytesBatched > 2 * batchSize)
                                 {
                                     //if we find too much are stored in batch queue, we send them and start a new batching
                                     CommitBatching(true);
                                     StartBatching();
                                 }
-                                uint nBytesInSendBuffer = AttachedClientSocket.BytesInSendingBuffer;
+                                uint nBytesInSendBuffer = Socket.BytesInSendingBuffer;
                                 if (nBytesInSendBuffer > 6 * CAdoSerializationHelper.DEFAULT_BATCH_SIZE) //60k
                                 {
                                     CommitBatching(true);
@@ -247,7 +247,7 @@ namespace SocketProAdapter.ClientSide
             bool bSuc = false;
             if (dr == null)
                 throw new ArgumentNullException("Must pass in a valid data reader interface!");
-            if (AttachedClientSocket == null)
+            if (Socket == null)
                 throw new InvalidOperationException("The asynchronous handler must be attached to an instance of CClientSocket first!");
             bool rr = RouteeRequest;
             bool bBatching = Batching;
@@ -284,13 +284,13 @@ namespace SocketProAdapter.ClientSide
                                 AdoUQueue.SetSize(0);
                                 if (!bSuc)
                                     break;
-                                if (AttachedClientSocket.BytesBatched > 2 * batchSize)
+                                if (Socket.BytesBatched > 2 * batchSize)
                                 {
                                     //if we find too much are stored in batch queue, we send them and start a new batching
                                     CommitBatching(true);
                                     StartBatching();
                                 }
-                                if (AttachedClientSocket.BytesInSendingBuffer > 60 * 1024)
+                                if (Socket.BytesInSendingBuffer > 60 * 1024)
                                 {
                                     CommitBatching(true);
                                     //if we find there are too much data in sending buffer, we wait until all of data are sent and processed.

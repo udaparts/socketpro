@@ -153,8 +153,8 @@ namespace SocketProAdapter.ClientSide
                         handler.CleanCallbacks();
                         break;
                     case tagSocketPoolEvent.speConnecting:
-                        if (handler.AttachedClientSocket.ConnectionContext.Port == ushort.MaxValue)
-                            handler.AttachedClientSocket.ConnectingTimeout = 500;
+                        if (handler.Socket.ConnectionContext.Port == ushort.MaxValue)
+                            handler.Socket.ConnectingTimeout = 500;
                         break;
                     default:
                         break;
@@ -174,7 +174,7 @@ namespace SocketProAdapter.ClientSide
             THandler[] targetHandlers = TargetHandlers;
             foreach (THandler h in targetHandlers)
             {
-                ok = h.AttachedClientSocket.DoEcho();
+                ok = h.Socket.DoEcho();
             }
         }
 
@@ -314,7 +314,7 @@ namespace SocketProAdapter.ClientSide
                 THandler src = SourceHandler;
                 if (src == null)
                     return null;
-                return src.AttachedClientSocket.ClientQueue;
+                return src.Socket.ClientQueue;
             }
         }
 
@@ -329,7 +329,7 @@ namespace SocketProAdapter.ClientSide
                 IClientQueue[] tq = new IClientQueue[handlers.Length];
                 foreach (THandler h in handlers)
                 {
-                    tq[n] = h.AttachedClientSocket.ClientQueue;
+                    tq[n] = h.Socket.ClientQueue;
                     ++n;
                 }
                 return tq;
@@ -425,7 +425,7 @@ namespace SocketProAdapter.ClientSide
             THandler src = SourceHandler;
             if (src == null)
                 return false;
-            IClientQueue cq = src.AttachedClientSocket.ClientQueue;
+            IClientQueue cq = src.Socket.ClientQueue;
             if (!cq.Available)
                 return false;
             bool ok = src.SendRequest(reqId, data, len, ash);

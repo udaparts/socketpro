@@ -762,7 +762,7 @@ namespace SocketProAdapter
             /// <returns>true for sending the request successfully, and false for failure</returns>
             public bool StartQueueTrans(byte[] key, DQueueTrans qt, DDiscarded discarded, DOnExceptionFromServer se)
             {
-                IClientQueue cq = AttachedClientSocket.ClientQueue;
+                IClientQueue cq = Socket.ClientQueue;
                 if (cq.Available)
                     cq.StartJob();
                 using (CScopeUQueue sq = new CScopeUQueue())
@@ -849,7 +849,7 @@ namespace SocketProAdapter
                         ar.UQueue.SetSize(0);
                     }
                 }, discarded, se);
-                IClientQueue cq = AttachedClientSocket.ClientQueue;
+                IClientQueue cq = Socket.ClientQueue;
                 if (cq.Available)
                 {
                     if (rollback)

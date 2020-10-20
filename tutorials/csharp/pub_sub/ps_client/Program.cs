@@ -56,7 +56,7 @@ class Program
             bool ok = spHw.StartSocketPool(cc, 1);
             HelloWorld hw = spHw.Seek(); //or HelloWorld hw = spHw.Lock();
 
-            CClientSocket ClientSocket = hw.AttachedClientSocket;
+            CClientSocket ClientSocket = hw.Socket;
             ClientSocket.Push.OnSubscribe += (cs, messageSender, groups) =>
             {
                 Console.WriteLine("Subscribe for " + ToString(groups));

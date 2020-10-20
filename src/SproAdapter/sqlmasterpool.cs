@@ -75,10 +75,10 @@ namespace SocketProAdapter
                 if (handler == AsyncHandlers[0])
                 {
                     m_hander = handler;
-                    handler.AttachedClientSocket.Push.OnPublish += new ClientSide.DOnPublish(Push_OnPublish);
+                    handler.Socket.Push.OnPublish += new ClientSide.DOnPublish(Push_OnPublish);
                 }
             }
-            else if (spe == ClientSide.tagSocketPoolEvent.speConnected && handler.AttachedClientSocket.ErrorCode == 0)
+            else if (spe == ClientSide.tagSocketPoolEvent.speConnected && handler.Socket.ErrorCode == 0)
             {
                 if (handler == AsyncHandlers[0])
                 {
@@ -214,10 +214,10 @@ namespace SocketProAdapter
                 m_cache.Updater = "";
                 m_cache.Empty();
                 uint port;
-                string ip = h.AttachedClientSocket.GetPeerName(out port);
+                string ip = h.Socket.GetPeerName(out port);
                 ip += ":";
                 ip += port;
-                m_cache.DBServerName = h.AttachedClientSocket.ConnectionContext.Host;
+                m_cache.DBServerName = h.Socket.ConnectionContext.Host;
                 m_cache.Set(ip, h.DBManagementSystem);
             }, UDB.DB_CONSTS.ENABLE_TABLE_UPDATE_MESSAGES);
             //bring all cached table data into m_cache first for initial cache, and exchange it with Cache if there is no error

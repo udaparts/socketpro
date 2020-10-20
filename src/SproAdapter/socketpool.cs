@@ -256,13 +256,13 @@ namespace SocketProAdapter
                             h = m_dicSocketHandler[cs];
                         else
                         {
-                            IClientQueue cq = h.AttachedClientSocket.ClientQueue;
+                            IClientQueue cq = h.Socket.ClientQueue;
                             ulong cs_coriq = cq.Available ? cq.MessageCount : cs.CountOfRequestsInQueue;
-                            cq = h.AttachedClientSocket.ClientQueue;
-                            ulong h_coriq = cq.Available ? cq.MessageCount : h.AttachedClientSocket.CountOfRequestsInQueue;
+                            cq = h.Socket.ClientQueue;
+                            ulong h_coriq = cq.Available ? cq.MessageCount : h.Socket.CountOfRequestsInQueue;
                             if (cs_coriq < h_coriq)
                                 h = m_dicSocketHandler[cs];
-                            else if (cs_coriq == h_coriq && cs.BytesSent < h.AttachedClientSocket.BytesSent)
+                            else if (cs_coriq == h_coriq && cs.BytesSent < h.Socket.BytesSent)
                                 h = m_dicSocketHandler[cs];
                         }
                     }
@@ -286,7 +286,7 @@ namespace SocketProAdapter
                             continue;
                         if (h == null)
                             h = m_dicSocketHandler[cs];
-                        else if ((cq.MessageCount < h.AttachedClientSocket.ClientQueue.MessageCount) || (cs.Connected && !h.AttachedClientSocket.Connected))
+                        else if ((cq.MessageCount < h.Socket.ClientQueue.MessageCount) || (cs.Connected && !h.Socket.Connected))
                             h = m_dicSocketHandler[cs];
                     }
                 }
@@ -355,7 +355,7 @@ namespace SocketProAdapter
             {
                 if (handler == null)
                     return;
-                Unlock(handler.AttachedClientSocket);
+                Unlock(handler.Socket);
             }
 
             /// <summary>
@@ -824,7 +824,7 @@ namespace SocketProAdapter
                         {
                             lock (m_cs)
                             {
-                                m_dicSocketHandler.Remove(handler.AttachedClientSocket);
+                                m_dicSocketHandler.Remove(handler.Socket);
                             }
                         }
                         break;
@@ -833,7 +833,7 @@ namespace SocketProAdapter
                     case tagSocketPoolEvent.speConnected:
                         if (ClientCoreLoader.IsOpened(h) != 0)
                         {
-                            CClientSocket cs = handler.AttachedClientSocket;
+                            CClientSocket cs = handler.Socket;
                             if (DoSslServerAuthentication != null && cs.EncryptionMethod == tagEncryptionMethod.TLSv1 && !DoSslServerAuthentication.Invoke(this, cs))
                                 return; //don't set password or call SwitchTo in case failure of ssl server authentication on certificate from server
                             ClientCoreLoader.SetSockOpt(h, tagSocketOption.soRcvBuf, 116800, tagSocketLevel.slSocket);
@@ -852,7 +852,7 @@ namespace SocketProAdapter
                     case tagSocketPoolEvent.speQueueMergedFrom:
                         m_pHFrom = MapToHandler(h);
 #if DEBUG
-                        IClientQueue cq = m_pHFrom.AttachedClientSocket.ClientQueue;
+                        IClientQueue cq = m_pHFrom.Socket.ClientQueue;
                         uint remaining = (uint)m_pHFrom.RequestsQueued;
                         if (cq.MessageCount != remaining)
                         {
@@ -879,7 +879,7 @@ namespace SocketProAdapter
                 }
                 OnSocketPoolEvent(spe, handler);
                 if (spe == tagSocketPoolEvent.speConnected && ClientCoreLoader.IsOpened(h) != 0)
-                    SetQueue(handler.AttachedClientSocket);
+                    SetQueue(handler.Socket);
             }
 
             private void CleanUp()

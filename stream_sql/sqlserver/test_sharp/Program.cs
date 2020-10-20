@@ -434,7 +434,7 @@ class Program {
             CSqlServer sql = spSql.Seek();
 
             //track all DML (DELETE, INSERT and UPDATE) events
-            sql.AttachedClientSocket.Push.OnPublish += (sender, messageSender, group, msg) => {
+            sql.Socket.Push.OnPublish += (sender, messageSender, group, msg) => {
                 if (group[0] == DB_CONSTS.STREAMING_SQL_CHAT_GROUP_ID) {
                     object[] vMsg = (object[])msg;
                     tagUpdateEvent ue = (tagUpdateEvent)(int)(vMsg[0]);
