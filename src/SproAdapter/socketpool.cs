@@ -279,11 +279,8 @@ namespace SocketProAdapter
                 THandler h = null;
                 lock (m_cs)
                 {
-                    bool automerge = (ClientCoreLoader.GetQueueAutoMergeByPool(m_nPoolId) > 0);
                     foreach (CClientSocket cs in m_dicSocketHandler.Keys)
                     {
-                        if (automerge && cs.ConnectionState < tagConnectionState.csSwitched)
-                            continue;
                         IClientQueue cq = cs.ClientQueue;
                         if (!cq.Available || cq.JobSize > 0/*queue is in transaction at this time*/)
                             continue;

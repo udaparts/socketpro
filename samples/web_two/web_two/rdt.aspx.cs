@@ -28,7 +28,7 @@ namespace web_two
             string s = "", sql = "SELECT rental_id,rental_date,return_date,last_update FROM rental where rental_id=" + txtRentalId.Text;
             TaskCompletionSource<string> tcs = new TaskCompletionSource<string>();
             var handler = Global.Slave.SeekByQueue();
-            if (handler == null)
+            if (!handler.Socket.Connected)
             {
                 tcs.SetResult("No connection to anyone of slave databases");
                 return tcs.Task;

@@ -1497,10 +1497,7 @@ namespace SPA {
             virtual PHandler SeekByQueue() {
                 PHandler h;
                 CAutoLock al(m_cs);
-                bool automerge = ClientCoreLoader.GetQueueAutoMergeByPool(m_nPoolId);
                 for (auto it = m_mapSocketHandler.begin(), end = m_mapSocketHandler.end(); it != end; ++it) {
-                    if (automerge && it->first->GetConnectionState() < csSwitched)
-                        continue;
                     IClientQueue &cq = it->first->GetClientQueue();
                     if (!cq.IsAvailable() || cq.GetJobSize()/*queue is in transaction at this time*/)
                         continue;

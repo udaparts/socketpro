@@ -331,10 +331,7 @@ class CSocketPool(object):
         h = None
         if queueName is None or len(queueName) == 0:
             with self._lock_:
-                merge = ccl.GetQueueAutoMergeByPool(self._PoolId_)
                 for cs in self._m_dicSocketHandler_.keys():
-                    if merge and cs.ConnectionState < tagConnectionState.csSwitched:
-                        continue
                     cq = cs.ClientQueue
                     if not cq.Available:
                         continue
