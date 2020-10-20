@@ -750,11 +750,7 @@ public class CSocketPool<THandler extends CAsyncServiceHandler> implements AutoC
     public final THandler SeekByQueue() {
         THandler h = null;
         synchronized (m_cs) {
-            boolean automerge = ClientCoreLoader.GetQueueAutoMergeByPool(m_nPoolId);
             for (CClientSocket cs : m_dicSocketHandler.keySet()) {
-                if (automerge && cs.getConnectionState().getValue() < tagConnectionState.csSwitched.getValue()) {
-                    continue;
-                }
                 IClientQueue cq = cs.getClientQueue();
                 if (!cq.getAvailable() || cq.getJobSize() > 0/*queue is in transaction at this time*/) {
                     continue;
