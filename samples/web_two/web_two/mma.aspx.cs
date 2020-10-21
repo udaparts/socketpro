@@ -22,7 +22,8 @@ namespace web_two
                 txtResults.Text = "All slaves are inaccessible at this time now";
                 return;
             }
-            var task = handler.execute(sql, (h, vData) => {
+            var task = handler.execute(sql, (h, vData) =>
+            {
                 txtResults.Text = string.Format("Max={0}, Min={1}, Avg={2}", vData[0], vData[1], vData[2]);
             });
             if (!task.Wait(5000))
@@ -32,7 +33,7 @@ namespace web_two
             }
             var res = task.Result;
             if (res.ec != 0)
-                txtResults.Text = res.em;
+                txtResults.Text = res.em; //error message
         }
     }
 }

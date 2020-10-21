@@ -14,33 +14,19 @@ namespace web_two
         }
         private async Task ExecuteSql()
         {
-            try
-            {
-                txtResult.Text = await DoSql();
-            }
-            catch (System.Exception err)
-            {
-                txtResult.Text = err.Message;
-            }
-        }
-        private Task<string> DoSql()
-        {
-            string s = "", sql = "SELECT rental_id,rental_date,return_date,last_update FROM rental where rental_id=" + txtRentalId.Text;
-            TaskCompletionSource<string> tcs = new TaskCompletionSource<string>();
+            string sql = "SELECT rental_id,rental_date,return_date,last_update FROM rental where rental_id=" + txtRentalId.Text;
             var handler = Global.Slave.SeekByQueue();
             if (!handler.Socket.Connected)
             {
-                tcs.SetResult("No connection to anyone of slave databases");
-                return tcs.Task;
+                txtResult.Text = "No connection to anyone of slave databases";
+                return;
             }
-            bool ok = handler.Execute(sql, (h, res, errMsg, affected, fail_ok, vtId) =>
+            var res = await handler.execute(sql, (h, v) =>
             {
-                tcs.SetResult((res != 0) ? errMsg : s);
-            }, (h, vData) =>
-            {
-                s = string.Format("rental_id={0}, rental={1}, return={2}, lastupdate={3}", vData[0], vData[1], vData[2], vData[3]);
+                txtResult.Text = string.Format("rental_id={0}, rental={1}, return={2}, lastupdate={3}", v[0], v[1], v[2], v[3]);
             });
-            return tcs.Task;
+            if (res.ec != 0)
+                txtResult.Text = res.em; //error message
         }
     }
 }
