@@ -927,8 +927,6 @@ namespace SPA {
 
             std::future<CScopeUQueue> sendRequest(unsigned short reqId, const unsigned char *pBuffer, unsigned int size) {
                 std::shared_ptr<std::promise<CScopeUQueue> > prom(new std::promise<CScopeUQueue>);
-                DDiscarded discarded = get_aborted(prom, reqId);
-                DServerException se = get_se(prom);
                 if (!SendRequest(reqId, pBuffer, size, [prom](CAsyncResult & ar) {
                     CScopeUQueue sb;
                     sb->Swap(ar.UQueue);
@@ -937,7 +935,7 @@ namespace SPA {
                     } catch (std::future_error&) {
                         //ignore it
                     }
-                }, discarded, se)) {
+                }, get_aborted(prom, reqId), get_se(prom))) {
                     raise(reqId);
                 }
                 return prom->get_future();
@@ -993,8 +991,6 @@ namespace SPA {
             template<typename R>
             std::future<R> send(unsigned short reqId, const unsigned char *pBuffer, unsigned int size) {
                 std::shared_ptr<std::promise<R> > prom(new std::promise<R>);
-                DDiscarded discarded = get_aborted(prom, reqId);
-                DServerException se = get_se(prom);
                 if (!SendRequest(reqId, pBuffer, size, [prom](CAsyncResult & ar) {
                     try {
                         R r;
@@ -1005,7 +1001,7 @@ namespace SPA {
                     } catch (...) {
                         prom->set_exception(std::current_exception());
                     }
-                }, discarded, se)) {
+                }, get_aborted(prom, reqId), get_se(prom))) {
                     raise(reqId);
                 }
                 return prom->get_future();
@@ -1470,8 +1466,12 @@ namespace SPA {
                     if (!h)
                         h = it->second;
                     else {
-                        unsigned int count0 = h->GetSocket()->GetCountOfRequestsInQueue();
-                        unsigned int count1 = it->first->GetCountOfRequestsInQueue();
+                        CClientSocket* cs = h->GetSocket();
+                        IClientQueue& cq0 = cs->GetClientQueue();
+                        UINT64 count0 = cq0.IsAvailable() ? cq0.GetMessageCount() : cs->GetCountOfRequestsInQueue();
+                        cs = it->first.get();
+                        IClientQueue& cq1 = cs->GetClientQueue();
+                        UINT64 count1 = cq1.IsAvailable() ? cq1.GetMessageCount() : cs->GetCountOfRequestsInQueue();
                         if (count0 > count1)
                             h = it->second;
                         else if (count0 == count1) {
@@ -1497,10 +1497,7 @@ namespace SPA {
             virtual PHandler SeekByQueue() {
                 PHandler h;
                 CAutoLock al(m_cs);
-                bool automerge = ClientCoreLoader.GetQueueAutoMergeByPool(m_nPoolId);
                 for (auto it = m_mapSocketHandler.begin(), end = m_mapSocketHandler.end(); it != end; ++it) {
-                    if (automerge && it->first->GetConnectionState() < csSwitched)
-                        continue;
                     IClientQueue &cq = it->first->GetClientQueue();
                     if (!cq.IsAvailable() || cq.GetJobSize()/*queue is in transaction at this time*/)
                         continue;

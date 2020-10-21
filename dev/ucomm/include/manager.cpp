@@ -78,9 +78,11 @@ namespace SPA
             }
             CPoolConfig *pc = it->second;
             em = pc->StartPool(m_bMidTier, Hosts);
+#if 0
             if (em.size()) {
                 throw std::runtime_error(em.c_str());
             }
+#endif
             if (pSvsId) {
                 *pSvsId = pc->SvsId;
             }

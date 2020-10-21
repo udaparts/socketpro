@@ -42,3 +42,6 @@ valgrind --tool=callgrind ./(Your binary)
 It will generate a file called callgrind.out.x. You can then use kcachegrind tool to read this file. It will give you a graphical analysis of things with results like which lines cost how much.
 
 
+cmake .. -G "Visual Studio 15 2017 Win64" -DDOWNLOAD_BOOST=1 -DWITH_BOOST=./
+
+cmake .. -G "Visual Studio 12 2013 Win64" -DDOWNLOAD_BOOST=1 -DWITH_BOOST=./
