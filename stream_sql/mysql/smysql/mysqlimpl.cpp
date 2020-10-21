@@ -77,6 +77,7 @@ namespace SPA
 
         void CMysqlImpl::OnReleaseSource(bool bClosing, unsigned int info) {
             CleanDBObjects();
+            m_vParam.clear();
         }
 
         void CMysqlImpl::ResetMemories() {
@@ -1367,7 +1368,6 @@ namespace SPA
         void CMysqlImpl::CleanDBObjects() {
             CloseStmt();
             m_pMysql.reset();
-            m_vParam.clear();
             ResetMemories();
             m_bManual = false;
             m_ti = tiUnspecified;
