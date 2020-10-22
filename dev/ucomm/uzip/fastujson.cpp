@@ -31,6 +31,21 @@ namespace SPA {
 #endif
     }
 
+#ifndef WIN32_64
+
+    UJsonValue MakeJsonValue(const char16_t *str, UMemoryPoolAllocator &allocator) {
+        if (!str)
+            str = u"";
+#if defined(__ANDROID__) || defined(ANDROID)
+        return MakeJsonValue(Utilities::ToUTF8(str, ::wcslen(str)).c_str(), allocator);
+#else
+        CScopeUQueue su;
+        Utilities::ToUTF8(str, GetLen(str), *su);
+        return MakeJsonValue((const char*) su->GetBuffer(), allocator);
+#endif
+    }
+#endif
+
     UJsonValue MakeJsonValue(const UVariant &vtData, UMemoryPoolAllocator &allocator) {
         UJsonValue jv;
         VARTYPE vt = vtData.vt;
@@ -68,7 +83,14 @@ namespace SPA {
             case VT_R8:
                 return MakeJsonValue(vtData.dblVal);
             case VT_BSTR:
+#ifdef WIN32_64
                 return MakeJsonValue(vtData.bstrVal, allocator);
+#else
+            {
+                const char16_t *s = (const char16_t *) vtData.bstrVal;
+                return MakeJsonValue(s, allocator);
+            }
+#endif
             case VT_DATE:
             {
                 char str[32] = {0};
@@ -184,9 +206,16 @@ namespace SPA {
                         {
                             jv.SetArray();
                             const BSTR *p = (const BSTR *) pBuffer;
+#ifdef WIN32_64
                             for (unsigned int n = 0; n < size; ++n) {
                                 jv.PushBack(MakeJsonValue(p[n], allocator), allocator);
                             }
+#else
+                            for (unsigned int n = 0; n < size; ++n) {
+                                const char16_t *s = p[n];
+                                jv.PushBack(MakeJsonValue(s, allocator), allocator);
+                            }
+#endif
                         }
                             break;
                         case VT_VARIANT:
