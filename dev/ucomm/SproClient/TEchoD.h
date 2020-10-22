@@ -22,15 +22,15 @@ public:
 public:
 
     MyStruct EchoMyStruct(const MyStruct &my) {
-        return async<MyStruct>(idEchoMyStructCEchoSys, my).get();
+        return send<MyStruct>(idEchoMyStructCEchoSys, my).get();
     }
 
     CUQueue EchoUQueue(const CUQueue &q) {
-        return async<CUQueue>(idEchoUQueueCEchoSys, q).get();
+        return send<CUQueue>(idEchoUQueueCEchoSys, q).get();
     }
 
     UVariant EchoComplex0(double d, const wchar_t* s, const UVariant &simpleObj, bool b, /*out*/std::wstring &sOut) {
-        auto sb = async0(idEchoComplex0CEchoSys, d, s, simpleObj, b).get();
+        auto sb = sendRequest(idEchoComplex0CEchoSys, d, s, simpleObj, b).get();
         sb >> sOut;
         return sb->Load<UVariant>();
     }
@@ -46,7 +46,7 @@ public:
 public:
 
     std::string DoMyEcho0(const char *str) {
-        return async<std::string>(idREcho0, str).get();
+        return send<std::string>(idREcho0, str).get();
     }
 
 protected:
@@ -86,7 +86,7 @@ public:
     }
 
     std::string DoMyEcho1(const char *str) {
-        return async<std::string>(idREcho1, str).get();
+        return send<std::string>(idREcho1, str).get();
     }
 
 protected:

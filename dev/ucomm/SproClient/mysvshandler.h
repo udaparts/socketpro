@@ -99,7 +99,7 @@ public:
 public:
 
     void Sleep(unsigned int time) {
-        async0(idSleep, time).get();
+        sendRequest(idSleep, time).get();
     }
 
     void DodequeueAsync(unsigned int messageCount) {
@@ -107,11 +107,11 @@ public:
     }
 
     std::wstring BadRequest(unsigned int n, const wchar_t* input) {
-        return async<std::wstring>(idBadRequest, n, input).get();
+        return send<std::wstring>(idBadRequest, n, input).get();
     }
 
     bool OpenDb(const char *connString) {
-        return async<bool>(idOpenDb, connString).get();
+        return send<bool>(idOpenDb, connString).get();
     }
 
     bool OpenDbAsync(const char *connString) {
@@ -119,11 +119,11 @@ public:
     }
 
     std::string Echo(const char *input) {
-        return async<std::string>(idEcho, input).get();
+        return send<std::string>(idEcho, input).get();
     }
 
     SPA::CUQueue DoRequest0(char aChar, wchar_t aWChar, const char *str, const wchar_t *wstr, unsigned short us, double d, bool b, SPA::UDateTime dt) {
-        return async<SPA::CUQueue>(idDoRequest0, aChar, aWChar, str, wstr, us, d, b, dt).get();
+        return send<SPA::CUQueue>(idDoRequest0, aChar, aWChar, str, wstr, us, d, b, dt).get();
     }
 
 private:
