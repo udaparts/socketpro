@@ -1,4 +1,4 @@
-24.	SocketPro Version 6.3.1.2-7
+24.	SocketPro Version 6.3.1.2-8
 	(a) Add support to char16_t and slightly improve performance of nodejs adapter or C/C++ application on linux
 	(b) Recompile all libraries after adding support of char16_t
 	(c) C++ Samples and tutorials updated because of the above change (a)
@@ -8,6 +8,7 @@
 	(g) Fix the method Cancel bugs with secure socket and message queue
 	(h) Implement future, promise and task for various requests and samples
 	(i) Fix a server routing error related with client message queue enabled
+	(j) Fix a crash within libuservercore.so when publishing a message from web browsers
 
 24.	SocketPro Version 6.3.1.1
 	(a) Core libraries are added with a new feature Interrupt, which could be used to interrupt a looping processing at the other end
