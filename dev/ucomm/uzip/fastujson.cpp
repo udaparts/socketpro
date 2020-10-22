@@ -1,8 +1,6 @@
-
 #include "../core_shared/pinc/fastujson.h"
 #include <boost/uuid/uuid_io.hpp>
 #include <boost/lexical_cast.hpp>
-
 
 #ifdef	___U_VARIANT_TO_RAPID_JSON___H___
 
@@ -15,8 +13,7 @@ size_t rapidjson::CrtAllocator::_allocatedSize = 0;
 namespace SPA {
 
     UJsonValue MakeJsonValue(const char *str, UMemoryPoolAllocator &allocator) {
-        UJsonValue jv(str, allocator);
-        return jv;
+        return UJsonValue(str, allocator);
     }
 
     UJsonValue MakeJsonValue(const wchar_t *str, UMemoryPoolAllocator &allocator) {
