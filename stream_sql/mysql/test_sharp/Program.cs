@@ -196,9 +196,9 @@ class Program
             vData.Add(sbBlob.UQueue.GetBuffer());
             vData.Add(m_wstr);
             vData.Add(254000.26);
-            vData.Add(1);
-            vData.Add(1.4);
-            vData.Add(0);
+            vData.Add(1); //input
+            vData.Add(1.4); //input-output
+            vData.Add(0); //output
 
             //second set
             vData.Add(2);
@@ -213,9 +213,9 @@ class Program
             vData.Add(sbBlob.UQueue.GetBuffer());
             vData.Add(m_str);
             vData.Add(20254000.85);
-            vData.Add(2);
-            vData.Add(2.5);
-            vData.Add(0);
+            vData.Add(2); //input
+            vData.Add(2.5); //input-output
+            vData.Add(0); //output
 
             //third set
             vData.Add(3);
@@ -229,9 +229,9 @@ class Program
             vData.Add(sbBlob.UQueue.GetBuffer());
             vData.Add(m_wstr);
             vData.Add(6254000.55);
-            vData.Add(0);
-            vData.Add(4.5);
-            vData.Add(0);
+            vData.Add(0); //input
+            vData.Add(4.5); //input-output
+            vData.Add(0); //output
         }
         CMysql.DRows r = (handler, rowData) =>
         {
@@ -248,10 +248,12 @@ class Program
         };
         //first, start a transaction with ReadCommited isolation 
         //second, execute delete from employee;delete from company
-        //third, prepare and execute three sets of INSERT INTO company(ID,NAME,ADDRESS,Income)VALUES(?,?,?,?)
-        //fourth, prepare and execute three sets of insert into employee(CompanyId,name,JoinDate,image,DESCRIPTION,Salary)values(?,?,?,?,?,?)
+        //third, prepare and execute three sets of
+        //       INSERT INTO company(ID,NAME,ADDRESS,Income)VALUES(?,?,?,?)
+        //fourth, prepare and execute three sets of 
+        //insert into employee(CompanyId,name,JoinDate,image,DESCRIPTION,Salary)values(?,?,?,?,?,?)
         //fifth, SELECT * from company;select * from employee;select curtime()
-        //sixth, three sets of call sp_TestProc(?,?,?)
+        //sixth, prepare and three sets of call sp_TestProc(?,?,?)
         //last, commit transaction if there is no error, and rollback if there is one or more errors
         return mysql.executeBatch(tagTransactionIsolation.tiReadCommited, sql, vData, r, rh, "|");
     }
@@ -299,14 +301,16 @@ class Program
     {
         vPData = new CDBVariantArray();
         //first set
-        vPData.Add(1);
-        vPData.Add(1.4);
-        vPData.Add(0);
+        vPData.Add(1); //input
+        vPData.Add(1.4); //input-output
+        //output not important and it's used for receiving a proper data from MySQL
+        vPData.Add(0); //output
 
         //second set
-        vPData.Add(2);
-        vPData.Add(2.5);
-        vPData.Add(0);
+        vPData.Add(2); //input
+        vPData.Add(2.5); //input-output
+        //output not important and it's used for receiving a proper data from MySQL
+        vPData.Add(0); //output
 
         mysql.Prepare("call sp_TestProc(?, ?, ?)");
         CMysql.DRows r = (handler, rowData) =>

@@ -20,7 +20,7 @@ public class Test_java {
     static UFuture<CMysql.SQLExeInfo> TestBLOBByPreparedStatement(CMysql mysql) throws CSocketError {
         String wstr = "";
         while (wstr.length() < 128 * 1024) {
-            wstr += "广告做得不那么夸张的就不说了，看看这三家，都是正儿八经的公立三甲，附属医院，不是武警，也不是部队，更不是莆田，都在卫生部门直接监管下，照样明目张胆地骗人。";
+            wstr += "广告�?�得�?那么夸张的就�?说了，看看这三家，都是正儿八�?的公立三甲，附属医院，�?是武警，也�?是部队，更�?是莆田，都在�?�生部门直接监管下，照样明目张胆地骗人。";
         }
         String str = "";
         while (str.length() < 256 * 1024) {
@@ -103,7 +103,7 @@ public class Test_java {
                 in.nextLine();
                 return;
             }
-            final java.util.ArrayList<Pair<CDBColumnInfoArray, CDBVariantArray>> ra = new java.util.ArrayList<>();
+            final ArrayList<Pair<CDBColumnInfoArray, CDBVariantArray>> ra = new ArrayList<>();
             CMysql mysql = spMysql.getAsyncHandlers()[0];
             try {
                 UFuture<ErrInfo> fOpen = mysql.open("");
@@ -144,6 +144,7 @@ public class Test_java {
                 System.out.println(fS.get());
                 System.out.println(fStore.get());
                 System.out.println(fB.get());
+                System.out.println("");
             } catch (CSocketError | CServerError ex) {
                 System.out.println(ex);
             }
@@ -167,7 +168,7 @@ public class Test_java {
         }
     }
 
-    static UFuture<CMysql.SQLExeInfo> TestBatch(CMysql mysql, java.util.ArrayList<Pair<CDBColumnInfoArray, CDBVariantArray>> ra, CDBVariantArray vData) throws CSocketError {
+    static UFuture<CMysql.SQLExeInfo> TestBatch(CMysql mysql, ArrayList<Pair<CDBColumnInfoArray, CDBVariantArray>> ra, CDBVariantArray vData) throws CSocketError {
         //sql with delimiter '|'
         String sql = "delete from employee;delete from company|"
                 + "INSERT INTO company(ID,NAME,ADDRESS,Income)VALUES(?,?,?,?)|"
@@ -176,7 +177,7 @@ public class Test_java {
                 + "call sp_TestProc(?,?,?)";
         String wstr = "";
         while (wstr.length() < 128 * 1024) {
-            wstr += "广告做得不那么夸张的就不说了，看看这三家，都是正儿八经的公立三甲，附属医院，不是武警，也不是部队，更不是莆田，都在卫生部门直接监管下，照样明目张胆地骗人。";
+            wstr += "广告�?�得�?那么夸张的就�?说了，看看这三家，都是正儿八�?的公立三甲，附属医院，�?是武警，也�?是部队，更�?是莆田，都在�?�生部门直接监管下，照样明目张胆地骗人。";
         }
         String str = "";
         while (str.length() < 256 * 1024) {
@@ -262,7 +263,7 @@ public class Test_java {
         }
     }
 
-    static UFuture<CMysql.SQLExeInfo> TestStoredProcedure(CMysql mysql, final java.util.ArrayList<Pair<CDBColumnInfoArray, CDBVariantArray>> ra, CDBVariantArray vPData) throws CSocketError {
+    static UFuture<CMysql.SQLExeInfo> TestStoredProcedure(CMysql mysql, final ArrayList<Pair<CDBColumnInfoArray, CDBVariantArray>> ra, CDBVariantArray vPData) throws CSocketError {
         mysql.Prepare("call sp_TestProc(?,?,?)");
         //first set
         vPData.add(1);

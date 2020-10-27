@@ -30,7 +30,7 @@ with CSocketPool(CMysql) as spMysql:
                 mysql.execute('CREATE TABLE IF NOT EXISTS company(ID bigint PRIMARY KEY NOT NULL,name CHAR(64)'
                               'NOT NULL,ADDRESS varCHAR(256)not null,Income decimal(15,2)not null)'),
                 mysql.execute('CREATE TABLE IF NOT EXISTS employee(EMPLOYEEID bigint AUTO_INCREMENT PRIMARY KEY NOT NULL'
-                    ' unique,CompanyId bigint not null,name CHAR(64)NOT NULL,JoinDate DATETIME(6)default null,IMAGE '
+                    ',CompanyId bigint not null,name CHAR(64)NOT NULL,JoinDate DATETIME(6)default null,IMAGE '
                     'MEDIUMBLOB,DESCRIPTION MEDIUMTEXT,Salary decimal(18,2),FOREIGN KEY(CompanyId)REFERENCES company(id))'),
                 mysql.execute('DROP PROCEDURE IF EXISTS sp_TestProc;CREATE PROCEDURE sp_TestProc(in p_company_id int,inout '
                     'p_sum_salary decimal(17,2),out p_last_dt datetime)BEGIN select * from employee where companyid>='
@@ -71,9 +71,11 @@ with CSocketPool(CMysql) as spMysql:
 
     def TestBatch():
         # sql with delimiter '|'
-        sql='delete from employee;delete from company|INSERT INTO company(ID,NAME,ADDRESS,Income)VALUES(?,?,?,?)|' \
-            'insert into employee(CompanyId,name,JoinDate,image,DESCRIPTION,Salary)values(?,?,?,?,?,?)|SELECT * from ' \
-            'company;select * from employee;select curtime()|call sp_TestProc(?,?,?)'
+        sql='delete from employee;delete from company|' \
+            'INSERT INTO company(ID,NAME,ADDRESS,Income)VALUES(?,?,?,?)|insert into employee' \
+            '(CompanyId,name,JoinDate,image,DESCRIPTION,Salary)values(?,?,?,?,?,?)|' \
+            'SELECT * from company;select * from employee;select curtime()|' \
+            'call sp_TestProc(?,?,?)'
         vData = []
         sbBlob = CUQueue()
         vData.append(1)
@@ -123,13 +125,15 @@ with CSocketPool(CMysql) as spMysql:
         vData.append(0)
         # first start a manual transaction with isolation level tiReadCommited
         # second, execute delete from employee;delete from company
-        # third, prepare and execute three sets of INSERT INTO company(ID,NAME,ADDRESS,Income)VALUES(?,?,?,?)
-        # fourth, prepare and execute three sets of
-        # insert into employee(CompanyId,name,JoinDate,image,DESCRIPTION,Salary)values(?,?,?,?,?,?)
+        # third, prepare and execute three sets of
+        #       INSERT INTO company(ID,NAME,ADDRESS,Income)VALUES(?,?,?,?)
+        # fourth, prepare and execute three sets of insert into employee
+        #       (CompanyId,name,JoinDate,image,DESCRIPTION,Salary)values(?,?,?,?,?,?)
         # fifth, SELECT * from company;select * from employee;select curtime()
         # sixth, prepare and execute three sets of call sp_TestProc(?,?,?)
-        # last, commit all SQL requests if no error happens or rollback if there is an error
-        return mysql.executeBatch(tagTransactionIsolation.tiReadCommited, sql, vData, cbRows, cbRowHeader, '|', cbBatchHeader), vData
+        # last, commit all if no error happens or rollback if there is an error
+        return mysql.executeBatch(tagTransactionIsolation.tiReadCommited, sql, vData, cbRows,
+                                  cbRowHeader, '|', cbBatchHeader), vData
 
     def TestBLOBByPreparedStatement():
 
@@ -167,17 +171,20 @@ with CSocketPool(CMysql) as spMysql:
         vData.append(6254000.0)
         return mysql.execute(vData)
 
-    def TestStoredProcedure():
-        # two sets (2 * 3) of parameter data
-        # 1st set -- 1, 0, 0
-        # 2nd set -- 2, 0, 0
-        vData = [1, 1.5, 0, 2, 1.8, 0]
 
-        mysql.prepare('call sp_TestProc(?,?,?)')
-        # send multiple sets of parameter data in one shot
-        return mysql.execute(vData, cbRows, cbRowHeader), vData
     try:
         # stream all SQL requests with in-line batching for the best network efficiency
+        def TestStoredProcedure():
+            # two sets (2 * 3) of parameter data
+            # 1st set -- 1, 0, 0
+            # 2nd set -- 2, 0, 0
+            vData = [1, 1.5, 0, 2, 1.8, 0]
+
+            mysql.prepare('call sp_TestProc(?,?,?)')
+            # send multiple sets of parameter data in one shot
+            return mysql.execute(vData, cbRows, cbRowHeader), vData
+
+
         fOpen = mysql.open(u'')
         vF = TestCreateTables()
         fD = mysql.execute('delete from employee;delete from company')
@@ -201,13 +208,14 @@ with CSocketPool(CMysql) as spMysql:
         print(fStore1.result())
         # print('vPData: ' + str(vData))
         print('There are ' + str(mysql.Outputs * 3) + ' output data returned')
-        print('')  # put debug point here and see what happens to ra and vData
+        print('')  # put debug point here and see what happens to ra, vData and vPData
     except Se as ex:  # an exception from remote server
         print(ex)
     except CSocketError as ex:  # a communication error
         print(ex)
     except Exception as ex:
-        print('Unexpected error: ' + str(ex))  # invalid parameter, bad de-serialization, and so on
+        # invalid parameter, bad de-serialization, and so on
+        print('Unexpected error: ' + str(ex))
     print('+++++ Start rowsets +++')
     index = 0
     for a in ra:
