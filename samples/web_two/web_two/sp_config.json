@@ -1,6 +1,12 @@
 ﻿{
   "WorkingDir": "c:\\ProgramData\\webdir",
   "Hosts": {
+    "all_servers": {
+      "Host": "windesk",
+      "Port": 20901,
+      "UserId": "SomeUserId",
+      "Password": "MySecretString"
+    },
     "db_master": {
       "Host": "windesk",
       "Port": 20902,
@@ -11,13 +17,13 @@
       "V6": false
     },
     "db_slave_0": {
-      "Host": "192.168.2.172",
+      "Host": "192.168.85.133",
       "Port": 20902,
       "UserId": "root",
       "Password": "Smash123"
     },
     "db_slave_remote": {
-      "Host": "192.168.85.1",
+      "Host": "debian",
       "Port": 20902,
       "UserId": "root",
       "Password": "Smash123",
@@ -25,6 +31,30 @@
     }
   },
   "Pools": {
+    "my_hello_world": {
+      "SvsId": 268435457,
+      "Hosts": [
+        "all_servers",
+        "all_servers"
+      ],
+      "Queue": "hw_cq"
+    },
+    "my_file": {
+      "SvsId": 259,
+      "Hosts": [
+        "all_servers",
+        "all_servers"
+      ],
+      "Queue": "f_cq"
+    },
+    "my_queue": {
+      "SvsId": 257,
+      "Hosts": [
+        "db_master",
+        "db_master"
+      ],
+	  "Queue": "q_cq"
+    },
     "masterdb": {
       "SvsId": 2147483633,
       "Hosts": [
@@ -47,7 +77,7 @@
           "Queue": "sdb",
           "AutoMerge": true,
           "RecvTimeout": 60000,
-          "Threads": 2
+          "Threads": 1
         },
         "db_no_backup": {
           "Hosts": [
