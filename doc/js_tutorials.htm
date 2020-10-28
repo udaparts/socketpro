@@ -1,0 +1,84 @@
+﻿<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="utf-8" />
+    <title>SocketPro tutorials for Node.js</title>
+    <style>
+        ol, ul {border-left: 0px solid white;}
+        table {border-left: 20px solid white;border-right: 10px solid white;}
+        table th, td {border:1px solid black;}
+        p {border-left: 20px solid white; }
+        h2 {border-left: 40px solid white; }
+        table th {font-size: large;}
+    </style>
+</head>
+<body>
+<h2>SocketPro tutorials for Node.js <i>LTS (8.x.y, 10.x.y, 12.x.y or later)</i></h2>
+<table>
+<tr>
+<th>Short discription</th>
+<th>Key points</th>
+</tr>
+<tr>
+<td><a href="js_buffer.htm" title="SocketPro Request Parameters Packing and Result Unpacking">SocketPro Request Parameters Packing and Result Unpacking</a></td>
+<td><ol><li>Utility class <i>CUQueue</i></li>
+    <li>Serialization and de-serialization of primitive types, <i>UUID</i> and <i>Date</i></li><li>Serialization and de-serialization of string types (strings for unicode and ASCII)</li>
+    <li>Serialization and de-serialization of Object</li><li>Serialization and de-serialization of complex structures</li></ol>
+</td>
+</tr>
+<tr>
+<td><a href="js_hw.htm" title="SocketPro Client Server Application Development">SocketPro Client Server Application Development</a></td>
+<td><ol><li>Start one or more socket pools</li><li>Decoding function <i>sendRequest</i> within client service handler</li>
+    <li>Requests streaming with inline batching for the best network efficiency</li><li>Error handling within SocketPro framework at client side</li>
+    <li>Client message queue for request backup, fault tolerance and failure auto recovery</li></ol>
+</td>
+</tr>
+<tr>
+<td><a href="js_push.htm" title="SocketPro Secure Communication and Publish/Subscribe Messaging">SocketPro Secure Communication and Publish/Subscribe Messaging</a></td>
+<td><ol><li>Enabling secure communication with industrial standard TLSv1.x at client side</li>
+    <li>Tracking messages published from other clients or server at client side</li>
+    <li>Publishing messages onto one or more topics or sending messages to a specific client from client side</li>
+    </ol>
+</td>
+</tr>
+<tr>
+<td><a href="js_serverqueue.htm" title="SocketPro Server Persistent Message Queue">SocketPro Server Persistent Message Queue</a></td>
+<td><ol><li>Enqueuing a set of different messages onto a server persistent message queue file</li>
+    <li>Dequeuing messages recursively with better concurrency and performance from a server persistent message queue file in batch</li>
+    <li>How to implement promise for dequeuing all messages recursively with better concurrency and performance between client and server sides</li>
+    <li>How to use a client queue for eliminating potential message losses with SocketPro</li>
+    </ol>
+</td>
+</tr>
+<tr>
+<td><a href="js_router.htm" title="SocketPro Server Routing Communication Pattern and Microservices">SocketPro Server Routing Communication Pattern and Microservices</a></td>
+<td><ol><li>Computing π value with numerical integration by sending an array of requests onto a SocketPro server</li>
+        <li>Collecting results returned from worker clients</li>
+    </ol>
+</td>
+</tr>
+<tr>
+<td><a href="js_sqlite.htm" title="SQL Requests Streaming For SQLite">SQL Requests Streaming For SQLite</a></td>
+<td><ol><li>Two basic structures, <i>ErrInfo</i> and <i>SQLExeInfo</i> for various database requests</li>
+        <li>Basic database requests, <i>open</i>, <i>closeDb</i>, <i>beginTrans</i>, <i>endTrans</i>, <i>prepare</i>, <i>execute</i> and <i>executeBatch</i></li>
+        <li>Executing SQL statements without returning records</li>
+        <li>Preparing statements and executing SQL with array of parameters</li>
+        <li>Preparing statements and executing SQL with array of parameters related with BLOBs and long texts</li>
+        <li>Executing SQL statements with returning records and column meta information</li>
+    </ol>
+</td>
+</tr>
+<tr>
+<td><a href="js_mysql.htm" title="SQL Requests Streaming For MySQL/Mariadb">SQL Requests Streaming For MySQL/Mariadb</a></td>
+<td><ol><li>Executing SQL statements without returning records</li>
+        <li>Preparing statements and executing SQL with array of parameters</li>
+        <li>Preparing statements and executing SQL with array of parameters related with BLOBs and long texts</li>
+        <li>Executing SQL statements with returning records and column meta information</li>
+        <li>Executing stored procedure with returning rowsets and various types (IN, INOUT and OUT) of procedure parameters</li>
+        <li>Setting and configuring SocketPro MySQL 8, Mariadb and old MySQL server plugins</li>
+    </ol>
+</td>
+</tr>
+</table>
+</body>
+</html>

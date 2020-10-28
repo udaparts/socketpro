@@ -1,0 +1,178 @@
+﻿<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="utf-8" />
+    <title>SocketPro Secure Communication and Publish/Subscribe Messaging</title>
+    <link rel="stylesheet" type="text/css" href="codepretty/sons-of-obsidian.css">
+    <script type="text/javascript" src="codepretty/prettify.js"></script>
+</head>
+<body onload="PR.prettyPrint()">
+
+<h1 style="text-align: center;">SocketPro Secure Communication and Publish/Subscribe Messaging</h1>
+
+<p>We talked about client side development at <a href="js_hw.htm", title="SocketPro Client Server Application Development">the previous article</a>.
+It tells you that node.js script is able to access a middle tier based on client/server communnication pattern, which is created from anyone of development languages, C/C++, .NET, java and pyhton at this time.
+As planned, most of this paper will focus on publish/subscribe messaging and SocketPro secure communication between client and server.</p>
+<hr />
+<table style="width:100%;">
+<tr>
+<td style="width:30%;">
+<?prettify linenums=1?>
+<pre class="prettyprint">
+//../socketpro/tutorials/nodejs/pub_sub.js
+'use strict';
+//loading SocketPro adapter (nja.js + njadapter.node) for nodejs
+var SPA = require('nja.js');
+const sid = SPA.SID.sidReserved + 1; //hello world service id
+
+//hello world service supports the following three requests
+const idSayHello = SPA.BaseID.idReservedTwo + 1;
+const idSleep = idSayHello + 1;
+const idEcho = idSleep + 1;
+
+var cs = SPA.CS;
+//'root' on windows for server certificate authentication
+cs.TLS.CA = 'ca.cert.pem'; //linux, ignored on windows
+
+//create a socket pool object
+var p = cs.newPool(sid);
+global.p = p;
+
+//track various message events if neccessary
+p.Push = function () {
+    process.stdout.write('Online Message Push: ');
+    console.log(arguments);
+};
+
+//create a secure connection context
+//0 = NoEncryption or 1 = TLSv1.x
+var cc = cs.newCC('localhost', 20901, 'root', 'Smash123', 1);
+
+//start a socket pool having one session to a remote server
+if (!p.Start(cc, 1)) {
+    console.log(p.Error);
+    return;
+}
+var hw = p.Seek(); //seek an async hello world handler
+var messenger = hw.Socket.Push; //get an associated messenger
+
+//prepare a real complex structure for a remote request
+var data = {
+    nullStr: null, objNull: null, aDate: new Date(), aDouble: 1234.567, aBool: true,
+    unicodeStr: 'Unicode', asciiStr: 'ASCII', objBool: true, objString: 'test',
+    objArrString: ['Hello', 'world'], objArrInt: [1, 76890]
+};
+console.log(data); //Source data
+
+(async () => {
+    try {
+        // all f0, f1, f2, f3, f4 and f5 are promises for CUQueue
+        // streaming requests with in-line batching for best network effiency
+        var f0 = hw.sendRequest(idSayHello, SPA.newBuffer().SaveString('Mary').SaveString('Smith'));
+        var f1 = hw.sendRequest(idSleep, SPA.newBuffer().SaveInt(5000));
+
+        //serialize and de-serialize a complex structure with a specific order,
+        //pay attention to both serialization and de-serialization,
+        //which must be in agreement with server implementation
+
+        //echo a complex object
+        var f2 = hw.sendRequest(idEcho, SPA.newBuffer().Save(buff => {
+            buff.SaveString(data.nullStr).SaveObject(data.objNull).SaveDate(data.aDate);
+            buff.SaveDouble(data.aDouble).SaveBool(data.aBool).SaveString(data.unicodeStr);
+            buff.SaveAString(data.asciiStr).SaveObject(data.objBool).SaveObject(data.objString);
+            buff.SaveObject(data.objArrString).SaveObject(data.objArrInt);
+
+            console.log('complex object echo buffer size: ' + buff.getSize());
+        }));
+        var f3 = hw.sendRequest(idSayHello, SPA.newBuffer().SaveString('Hillary').SaveString('Clinton'));
+        var f4 = hw.sendRequest(idSayHello, SPA.newBuffer().SaveString('Donald').SaveString('Trump'));
+        var f5 = hw.sendRequest(idSayHello, SPA.newBuffer().SaveString('Jack').SaveString('Smith'));
+
+        //messenger.Subscribe([1, 2, 3]);
+
+        //send a message to a user
+        var ok = messenger.SendUserMessage('some_user_id', 'A test message from node.js');
+
+        //send a message to three groups of connected clients
+        ok = messenger.Publish('A test publish message from node.js', [1, 3, 7]);
+
+        console.log((await f0).LoadString());
+        //should be zero because server side return nothing
+        console.log('Sleep returning result size: ' + (await f1).getSize());
+        var buff = await f2;
+        //de-serialize once result comes from server
+        var d = {
+            nullStr: buff.LoadString(),
+            objNull: buff.LoadObject(),
+            aDate: buff.LoadDate(),
+            aDouble: buff.LoadDouble(),
+            aBool: buff.LoadBool(),
+            unicodeStr: buff.LoadString(),
+            asciiStr: buff.LoadAString(),
+            objBool: buff.LoadObject(),
+            objString: buff.LoadObject(),
+            objArrString: buff.LoadObject(),
+            objArrInt: buff.LoadObject()
+        };
+        console.log(d);
+        console.log((await f3).LoadString());
+        console.log((await f4).LoadString());
+        console.log((await f5).LoadString());
+
+        //messenger.Unsubscribe();
+    } catch (err) {
+        console.log(err);
+    }
+})();
+</pre>
+</td>
+<td>
+<p>The left code snippet comes from the file ../socketpro/tutorials/nodejs/pub_sub.js, which is the updated version of ../socketpro/tutorials/nodejs/hello_world.js.
+Therefore, you may be forced to refer to the <a href="js_hw.htm" title="SocketPro client server application development">previous article</a>, while studying the left code snippet.
+</p>
+
+<p>First of all, it is ensured that the public root certificate <i>ca.cert.pem</i> is set correctly as shown at line 14 on non-windows platforms.
+SocketPro node.js adapter will use it to verify a certificate transferred from server and make sure the server certificate has a correct chain at client side.
+This line of code is ignored on windows because the root certificate is already loaded into <i>Trusted Root Certification Authorities</i> by the tool mmc (Microsoft Management Console).
+</p>
+<p>
+Second, it is mandatory to create a secure connection context as shown at line 28 before starting a pool of sockets at line 31.
+When the last input is 1 at line 28, SocketPro node.js adapter knows that all sockets in a pool should be secure based on industrial standard TLSv1.x protocol.
+</p>
+
+<p>As you can see, it is really simple to enable secure communication from a node.js client through SocketPro adapter.</p>
+
+<p>SocketPro has a built-in support to Subscribe/Publish communnication pattern. It is easy to enable a node.js client to talk with other clients through a SocketPro server in middle.
+These clients may be created from java, .NET application, C/C++, python, node.js, PHP script or web browser at this time.
+To track all messages from other clients, you can set the property <i>Push</i> of a socket pool object with a callback, as shown at line 21 through 24.
+When a message comes, you can see it bucase of code at line 23.
+</p>
+
+<p>You can also send a message onto other clients from a node.js script.
+To do so, get a reference to a messenger as shown at line 36 first.
+Afterwards, it may be required to subscribe for topics or chat groups from this node.js script, as shown at line 70.
+However, we don't do it here because a SocketPro server already subscribes topics for coming messages to represent this node.js client automatically at server side whenever a client asks for the hello world service.
+</p>
+<p>You can send a message to a specific use according to a given user id as shown at line 73.
+Also, you can publish messages onto one or more topics so that all clients subscribing these topics can see these messages, as shown at line 76.</p>
+<p>At last, you can unsubscribe topics too, as shown at line 101. Further, SocketPro server is also able to unsubscribe topics for a client.
+When a socket is closed, unsubscribing topics will always happen automatically.
+</p>
+</td>
+</tr>
+</table>
+Code snippet 1: Subscribe/publish messaging and secure communication between node.js client and server
+<hr />
+<p>We are going to test the node.js script now.</p>
+First, start one of these secure hello world servers (<a href="cpp_push.htm" title="SocketPro Secure Communication and Publish/Subscribe Messaging">C/C++</a>, <a href="cs_push.htm" title="SocketPro Secure Communication and Publish/Subscribe Messaging">C#/.NET</a>, <a href="java_push.htm" title="SocketPro Secure Communication and Publish/Subscribe Messaging">Java</a> and <a href="py_push.htm" title="SocketPro Secure Communication and Publish/Subscribe Messaging">Python</a>) with subscribe/publish messaging enabled.
+Afterwards, run two or more instances of the instances of the node.js script for experiments.
+<hr />
+Summarily, this short articles tells you the following how-tos for .node.js developments through SocketPro.
+<ol>
+<li>How to enable secure communication at client side and authenticate server certificates before sending passwords</li>
+<li>How to track expected messages from other clients at client side</li>
+<li>How to publish messages or send messages to specific clients</li>
+</ol>
+<hr />
+</body>
+</html>

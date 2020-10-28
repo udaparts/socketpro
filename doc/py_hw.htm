@@ -1,0 +1,408 @@
+﻿<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="utf-8" />
+    <title>SocketPro Client Server Application Development</title>
+    <link rel="stylesheet" type="text/css" href="codepretty/sons-of-obsidian.css">
+    <script type="text/javascript" src="codepretty/prettify.js"></script>
+</head>
+<body onload="PR.prettyPrint()">
+<h1 style="text-align: center;">SocketPro client server application development</h1>
+<p>
+This is our second example for developing a client server application with SocketPro.
+Its original project could be found at the directory ../socketpro/tutorials/python/hello_world/client.
+Because the sample involves echoing a complex struture between client and server,
+you may need to refer to <a title="SocketPro Request Parameters Packing and Result Unpacking" href="py_buffer.htm">the first sample</a>.
+In addition, we need the pre-distributed server application <a href="get_started.htm" title="Get Started With SocketPro">all_servers</a> for testing.
+</p>
+<hr />
+
+<table style="width:100%;">
+<tr>
+<td style="width:30%;">
+<?prettify linenums=1?>
+<pre class="prettyprint">
+//../socketpro/tutorials/python/hello_world/client/asynchelloworld.py
+from spa import CScopeUQueue as Sb
+from spa.clientside import CAsyncServiceHandler as CAHandler
+from consts import hwConst
+from msstruct import CMyStruct
+
+
+class CHelloWorld(CAHandler):
+    def __init__(self):
+        super(CHelloWorld, self).__init__(hwConst.sidHelloWorld)
+
+    def say_hello(self, fName, lName):
+        buffer = Sb()
+        buffer.SaveString(fName).SaveString(lName)
+        future = self.sendRequest(hwConst.idSayHello, buffer)
+        sb = future.result()
+        return sb.LoadString()
+
+    def sleep(self, ms):
+        sb = self.sendRequest(hwConst.idSleep, Sb().SaveInt(ms)).result()
+
+    def echo(self, ms):
+        return self.sendRequest(hwConst.idEcho, Sb().Save(ms)).result().Load(CMyStruct())
+</pre>
+</td>
+<td>
+<p>First of all, Python client needs a service handler at client side, which usually extends its base class CAsyncServiceHandler as shown at the left code snippet 1.
+The class has three synchronous requests (say_hello, sleep and echo) implemented.
+The three requests indeed share many similarities although they have different input signatures.
+</p>
+<p><i>say_hello</i>: Let us dig into this method. First, we create an instance of CScopeUQueue at line 13.
+Afterwards, pack two variables, <i>fName</i> and <i>lName</i> at line 14.
+Next, we call the method <i>sendRequest</i> with a request id <i>hwConst.idSayHello</i> and memory buffer <i>buffer</i> at line 15, and get a future back immediately.
+Finally, we wait the future for a new result <i>sb</i> from server at line 16 by calling the method <i>result</i>. At end, we load a server responsed string and return it at line 17.</p>
+<p><i>sleep</i>: The method is basically the same as the method <i>say_hello</i>, although this method has only one line code with different input signature.
+It involves creating an instance of CScopeUQueue (Sb()), packing an integer (SaveInt(ms)),
+sending the request (sendRequest), obtaining a hidden future immediately,
+and calling its method (result) to wait until a server responses a result which is saved into a new instance of CScopeUQueue (sb).
+The buffer <i>sb</i> should be empty because a server returns nothing.
+</p>
+<p><i>echo</i>: The method is also the same as the methods <i>say_hello</i> and <i>sleep</i>. It just echos a complex structure as described at the <a title="SocketPro Request Parameters Packing and Result Unpacking" href="py_buffer.htm">previous article</a> at line 23.
+There is a hidden instance of CScopeUQueue for buffer between the methods <i>result</i> and <i>Load</i>. We load a new instance of <i>CMyStruct</i> from the hidden buffer and return it.
+</p>
+<p>It is noted that the method <i>sendRequest</i> is an asynchronous request which returns a future for a result in buffer from a server without blocking at all.
+Afterwards, we call the future method <i>result</i> to wait and convert an asynchronous request into a synchronous one easily.
+By default, all of SocketPro client requests are asynchronous. However, we can easily convert all of them into synchronous ones if required, as shown in the left code snippet 1.</p>
+</td>
+</tr>
+</table>
+<h4>Code snippet 1: Class CHelloWorld and its three synchronous requests</h4>
+<hr />
+<table style="width:100%;">
+<tr>
+<td style="width:30%;">
+<?prettify linenums=1?>
+<pre class="prettyprint">
+//../socketpro/tutorials/python/hello_world/client/program.py
+from hello_world.client.asynchelloworld import CHelloWorld
+from spa import CScopeUQueue as Sb, CServerError
+from spa.clientside import CSocketPool, CConnectionContext, CSocketError
+from consts import hwConst
+from msstruct import CMyStruct
+import sys
+
+with CSocketPool(CHelloWorld) as sp:
+    cc = CConnectionContext('localhost', 20901, 'PythonUser', 'TooMuchSecret')
+    # sp.QueueName = 'pqueue'  # turn on client message queue for backing up requests
+    if not sp.StartSocketPool(cc, 1):
+        print('Cannot connect to server with error message: ' + sp.Sockets[0].ErrMsg)
+    else:
+        hw = sp.Seek()
+        ms = CMyStruct.MakeOne()  # make a complex structure
+        print(ms)
+        # process requests one by one synchronously -- three round trips
+        try:
+            print(hw.say_hello(u'Jack', u'Smith'))
+            hw.sleep(4000)
+            print(hw.echo(ms))
+        except CServerError as ex:  # an exception from remote server
+            print(ex)
+        except CSocketError as ex:  # a communication error
+            print(ex)
+        except Exception as ex:
+            # invalid parameter, bad de-serialization, and so on
+            print('Unexpected error: ' + str(ex))
+
+        print('')
+        print('Send requests with inline batching for better network efficiency with fewer trips')
+        try:
+            fut0 = hw.sendRequest(hwConst.idSayHello, Sb().SaveString('Hilary').SaveString('Clinton'))
+            fut1 = hw.sendRequest(hwConst.idSleep, Sb().SaveUInt(15000))
+            fut2 = hw.sendRequest(hwConst.idSayHello, Sb().SaveString('Donald').SaveString('Trump'))
+            fut3 = hw.sendRequest(hwConst.idSayHello, Sb().SaveString('Jack').SaveString('Smith'))
+            # save a complex object that has interface IUSerializer implemented
+            fut4 = hw.sendRequest(hwConst.idEcho, Sb().Save(ms))
+            # hw.Socket.Cancel()
+            print('All requests are sent to server for processing ......')
+
+            print(fut0.result().LoadString())
+            print('Buffer size: ' + str(fut1.result().Size))  # sleep returns an empty buffer
+            # bad_operation = fut1.result().LoadString()
+            print(fut2.result().LoadString())
+            print(fut3.result().LoadString())
+            # load a complex object that has interface IUSerializer implemented
+            print(fut4.result().Load(CMyStruct()))
+        except CServerError as ex:  # an exception from remote server
+            print(ex)
+        except CSocketError as ex:  # a communication error
+            print(ex)
+        except Exception as ex:
+            # invalid parameter, bad de-serialization, and so on
+            print('Unexpected error: ' + str(ex))
+
+    print('Press ENTER key to shutdown the demo application ......')
+    line = sys.stdin.readline()
+</pre>
+</td>
+<td>
+    <h3>Key points from top to bottom for code snippet 1:</h3>
+    <ul>
+        <li>
+        Three fake synchronous requests:
+        <hr />
+        <ol>
+            <li>Start a pool of sockets at line 12, which has one thread hosting one non-blocking socket for communication between client and server.
+            In reality, one worker thread is enough under most cases, but you may like to use multiple sockets per thread for processing at server side with better concurency.
+            We use one socket here for this demo sample. By default, the pool of sockets can be auto reconnected if servers shut down and restart.</li>
+            <li>Find an async handler from the above pool spHw at line 15. SocketPro perfers sharing a pool of connected sockets from your different threads.
+            As you can see from here, you need to find one of sockets from the pool at run time, which should have least requests queued. You can step into the method within your debugger.
+            Also, it is noted that the method Seek is thread-safe. Keep in mind that SocketPro favors sharing a session among your multiple threads!</li>
+            <li>Prepare a complex structure at line 16 for coming tests as explained at the <a title="SocketPro Request Parameters Packing and Result Unpacking" href="java_buffer.htm">previous example</a>. This sample method ensures that you are confident to use SocketPro for transferrig any complex structures between client and server.</li>
+            <li>First, send a request <i>say_hello</i> at line 20, which is synchronous request as described at the above code snippet 1.</li>
+            <li>Next, we send a new request <i>sleep</i> at line 21, which is also synchronous request as described at the above code snippet 1.</li>
+            <li>Next, we echo a <a title="SocketPro Request Parameters Packing and Result Unpacking" href="java_buffer.htm">complicated structure</a> (ms) between client and server at line 22, which is synchronous request as described at the above code snippet 1 too.
+            It involves both packing and unpacking the structure at both client and server sides</li>
+        </ol>
+        <p>
+        Each of the above three requests requires one network round trip. Therefore, there are three round-trips required.
+        However, SocketPro is designed to support streaming calls asynchrouosly with in-line batching for the best network efficiency.
+        We recommend the following approach, if it is proper and there are two or more requests involved.</p>
+        </li>
+        <li>
+        Stream multiple requests with in-line batching for the best network efficiency by reducing the number of network round trips:
+        <hr />
+        <ol>
+            <li>We could send five requests from line 34 through 39, and get five futures returned (fut0, fut1, fut2, fut3 and fut4) back immediately.
+            The five calls are extremely fast because they are not waiting for server returning results at all. Further,
+            SocketPro at <a href="get_started.htm" title="Get Started With SocketPro">client core</a> library (usocket) will batch five request buffers internally for you, and send them with as fewer packets as possible at the run time for the best network efficiency.</li>
+            <li>Beginning at line 43, we call the future method <i>result</i> to get five instances of CScopeUQueue for the five expected results from server from line 43 through 49.
+            Similarly, SocketPro <a href="get_started.htm" title="Get Started With SocketPro">server core</a> library (uservercore) will silently do in-line batching returning results on the fly and reduce the network packets as many as possible at server side too.</li>
+        </ol>
+        <p>This simple sample just demos streaming five requests. In fact, you can stream many requests as you want, just like client requests and server results water flows in circuit endlessly and concuurently.
+        Although we stream many requests as you like, all results are returned from server always in sequence (first-request-first-returned).</p>
+        <p>
+        Imagine you need to send many SQL requests from a client at New York to a server at Los Angeles for processing with one socket connection.
+        Saving network round trips could significantly speed up your application if your application performance is dominated by network.</p>
+        </li>
+        <li>Deal with errors at client side within SocketPro:
+        <hr />
+        A client application may catch one of the following three errors as shown at line 23 through 29 or 50 through 55.
+        <ol>
+        <li><i>CServerError</i>: Server side throws an exception, and the client catch it.
+            The exception contains an error code, an error message, code location where the exception happens at server side, and a request id.</li>
+        <li><i>CSocketError</i>: A communication error happening at client side. The exception contains an error code, an error message and a request id.
+        Besides, the exception contains a boolean member before. If it is true, SocketPro finds that communication channel is already closed before sending the request.
+        Otherwise, the exception is caught becase either communication channel is closed or canceled after sending the request.
+        </li>
+        <li><i>Exception</i>: This exception happens because of programming errors. Examples are bad data de-serialization/serialization, invalid arguments, and so on.
+        </li>
+        </ol>
+        </li>
+     </ul>
+    </td>
+</tr>
+</table>
+<h4>Code snippet 2: Hello world -- a client-server example with synchronous requests and requests streaming for the best network efficiency</h4>
+<hr />
+Now, let's dig into the method <i>sendRequest</i> which is located inside the class <i>CAsyncServiceHandler</i> at the file ../socketpro/src/jadapter/jspa/src/SPA/ClientSide/CAsyncServiceHandler.java.
+<table style="width:100%;">
+<tr>
+<td style="width:30%;">
+<?prettify linenums=1?>
+<pre class="prettyprint">
+//../socketpro/bin/spa/clientside/asynchandler.py
+def sendRequest(self, reqId, q):
+    """
+    Send a request onto a remote server for processing, and return a future immediately without blocking
+    :param reqId: An unique request id within a service handler
+    :param q: An instance of CScopeUQueue or CUQueue or None
+    :return: A future for an instance of CScopeUQueue containing an expected result
+    """
+    f = future()
+    def arh(ar):  # ar: an instance of CAsyncResult
+        if f.done(): return
+        sb = CScopeUQueue()
+        sb.UQueue.Swap(ar.UQueue)
+        f.set_result(sb)
+    if not self.SendRequest(reqId, q, arh, CAsyncServiceHandler.get_aborted(f, reqId), CAsyncServiceHandler.get_se(f)):
+        self.throw(reqId)
+    return f
+</pre>
+    </td>
+    <td>
+    <h3>Key points are SendRequest and three callback for the method <i>sendRequest</i> within the left code snippet 3:</h3>
+    <ol>
+    <li>First of all, create an instance of future <i>f</i> at line 9.</li>
+    <li>
+    Next, we prepare a callback <i>arh</i> at line 10 through 14.
+    Inside the callback, we create an instance <i>sb</i> of CScopeUQueue at line 12.
+    Afterwards, we move the server responsed result inside the variable <i>ar.UQueue</i> into the instance <i>sb</i> without copying.
+    At end, we set the instance <i>sb</i> into the future <i>f</i> at line 14 so that a caller is able to get the instance <i>sb</i> by calling the future method <i>result</i> as shown at the above code snippet 1.
+    </li>
+    <li>The second callback is used to monitor socket closed or request canceled event by calling the class <i>CAsyncServiceHandler</i> static method <i>get_aborted</i> as shown at line 15. 
+    We will discuss the static method with details at the below code snippet 4.
+    </li>
+    <li>The third callback is used to catch an exception from server. We create such a callback by calling the class <i>CAsyncServiceHandler</i> static method <i>get_se</i> as shown at line 15.
+    We will discuss it at the below code with details at the below code snippet 5.
+    </li>
+    <li>
+    After preparing the above three callbacks, we call a new method <i>SendRequest</i> with an array of bytes in variable <i>q</i> at line 14.
+    In case the call fails because a session is already closed, we could throw a <i>CSocketError</i> exception by calling the method <i>throw</i> at line 16, which will be discussed at the following code snippet 6.
+    </li>
+    <li>At last, return a future <i>f</i> at line 16 if the method <i>SendRequest</i> returns successfully.</li>
+    </ol>
+    </td>
+</tr>
+</table>
+<h4>Code snippet 3: Decode of the method <i>sendRequest</i></h4>
+<hr />
+<table style="width:100%;">
+    <tr>
+        <td style="width:30%;">
+<?prettify linenums=1?>
+<pre class="prettyprint">
+//../socketpro/bin/spa/clientside/asynchandler.py
+def get_aborted(fut, reqId):
+    def cb_aborted(ah, canceled):
+        if fut.done(): return
+        try:
+            if canceled:
+                fut.set_exception(CSocketError(CAsyncServiceHandler.REQUEST_CANCELED,
+                    'Request canceled', reqId, False))
+            else:
+                cs = ah.Socket
+                ec = cs.ErrCode
+                if ec:
+                    fut.set_exception(CSocketError(ec, cs.ErrMsg, reqId, False))
+                else:
+                    fut.set_exception(CSocketError(CAsyncServiceHandler.SESSION_CLOSED_AFTER,
+                        'Session closed after sending the request', reqId, False))
+        except Exception as ex:
+            pass
+    return cb_aborted
+</pre>
+</td>
+<td>
+The left code snippet 4 shows what the static method get_aborted is.
+As its name implies, it is designed for monitoring two events, request canceled and session closed events.
+<ol>
+    <li>
+        SocketPro has a feature named as Cancel. Calling it will leads to request cancel exception.
+        You can test the feature by uncommenting line 40 within the above code snippet 2. Doing so will lead to execute the code at lines 7 and 8 of this code snippet 4.
+    </li>
+    <li>
+        We use the code line 10 through 16 to set a CSocketError exception.
+        First, if session is not closed gracefully (ec != 0), we use socket system error message at line 13.
+        Otherwise, we construct an error message with a given request name at lines 15 and 16.
+    </li>
+    <li>
+        It is noted that the two events ALWAYS happens with a pool worker thread.
+        Also, it always happens after sending a request.
+        Therefore, the last input parameter will be false when initializing an instance of CSocketError, as shown at lines 8, 13 and 16.
+    </li>
+    <li>The method returns a callback at line 19.</li>
+</ol>
+</td>
+</tr>
+</table>
+<h4>Code snippet 4: Decode of the static method <i>get_aborted</i></h4>
+<hr />
+<table style="width:100%;">
+    <tr>
+        <td style="width:30%;">
+<?prettify linenums=1?>
+<pre class="prettyprint">
+//../socketpro/bin/spa/clientside/asynchandler.py
+def get_se(fut):
+    def server_ex(ah, se):  # an exception from remote server
+        if fut.done(): return
+        try:
+            fut.set_exception(se)
+        except Exception as ex:
+            pass
+    return server_ex
+</pre>
+        </td>
+        <td>
+        <p>The left code snippet is very simple. It returns a callback at line 9.
+        Once an exception <i>se</i> comes from a server, we set it to the future <i>fut</i> at line 5.</p>
+        <p>It is noted that the callback is always called from a pool worker thread.
+        Its error information originates from server side, which includes error code, error message, server implementation file location where an exception raises, and request id.</p>
+        </td>
+    </tr>
+</table>
+<h4>Code snippet 5: Decode of the static method <i>get_se</i></h4>
+<hr />
+<table style="width:100%;">
+    <tr>
+        <td style="width:30%;">
+<?prettify linenums=1?>
+<pre class="prettyprint">
+//../socketpro/bin/spa/clientside/asynchandler.py
+def throw(self, f):
+    reqId = f
+    if isinstance(f, future):
+        reqId = f.reqId
+    ec = self.Socket.ErrCode
+    if ec:
+        raise CSocketError(ec, self.Socket.ErrMsg, reqId, True)
+    else:
+        raise CSocketError(CAsyncServiceHandler.SESSION_CLOSED_BEFORE,
+                        'Session already closed before sending the request', reqId, True)
+</pre>
+        </td>
+        <td>
+        <p>Under many cases, a session is already closed before sending a request. The left code snippet 6 shows the implementation of the method <i>throw</i>.
+        If it is this situation, we call the left method <i>throw</i> to raise an exception immediately as shown at line 16 in the above code snippet 3.</p>
+        <p>
+        Again, we need to check if a session is closed gracefully. If it does, we use the code lines 10 and 11 to raise it directly as it happens from a calling thread.
+        If a session is not closed gracefully (ec != 0), we use socket system error message instead at line 8.</p>
+        <p>
+        It is noted that the exception indicates session is already closed before sending a request. Therefore, the last input parameter is True as shown at lines 8 and 11.</p>
+        </td>
+    </tr>
+</table>
+<h4>Code snippet 6: Decode of the method <i>throw</i></h4>
+<hr />
+<h4>SendRequest vs sendRequest within CAsyncServiceHandler</h4>
+<p>SocketPro Python adapter comes the two methods to send any types of requests from a client to server for asynchronous processing in streaming style.
+The fist one <i>SendRequest</i> is the basis for the other method <i>sendRequest</i>. The method <i>sendRequest</i> always calls the basis method <i>SendRequest</i> inside.
+To use the method <i>SendRequest</i>, you may have to provide its required three callbacks with more coding as shown at the above code snippet 3.
+The second method <i>sendRequest</i> has already wrapped the three required callbacks so that you can use Python modern try-except style and less code to deal with returned results and errors easily.
+This abstraction has a little price in performance, and reduces coding flexibility under some situations. The basis method <i>SendRequest</i> delivers better speed plus better flexibility.
+Therefore, it is not surprised that we use the basis method <i>SendRequest</i> directly under some situations.
+</p>
+<p>In regards to the method <i>sendRequest</i>, the method always returns a future immediately without any blocking as shown at this example.
+Keep in mind that all SocketPro adapters well support on modern language development features such as anonymous function, closure, Lambda expression, async/await, future, promise, yield and so on.
+</p>
+<p>In addition to the base handler class <i>CAsyncServiceHandler</i>, SocketPro Python adapter comes with other handler classes derived from this base handler class.
+These sub-class handlers have their own requests defined at client side. All of their requests have two sets of functions exactly like <i>SendRequest</i> and <i>sendRequest</i> here.
+</p>
+<hr />
+We are going to test the above three types of exceptions, <i>CServerError</i>, <i>CSocketError</i> and <i>Exceptions</i>.
+<ol>
+<li>
+    <i>CServerError</i> exception: Go back to the line 20 of the above code snippet 2, modify the first input to an empty string, and you will see an exception from server after running the script against the pre_compiled application <a href="get_started.htm" title="Get Started With SocketPro">all_servers</a> inside the sub-directory ../socketpro/bin/win/x64 or x86 for windows, or ../socketpro/bin/linux.
+    Alternatively, you can get an server exception by setting the input int to a negative value at line 21.
+</li>
+<li>
+    <i>CSocketError</i> exception: Run the script against the sample server application <i>all_servers</i> to get the first return result like "Hello John Dole!". You can get such an exception after brutally shutting down <a href="get_started.htm" title="Get Started With SocketPro">all_servers</a>.
+    Alternatively, you can get such an exception by uncommenting the line 40.
+</li>
+<li>
+    <i>Exception</i> exception: Use the code at line 45 to replace the normal code at line 44. The replacement will lead to de-serilization exception <i>Exception</i> at client side because the request <i>idSleep</i> returns nothing.
+</li>
+</ol>
+<hr />
+<p>At last, we like to talk about client message queue. When developing real enterprise applications, we have to consider application fault tolerance and auto recovery.
+SocketPro has a built-in feature implemented with such a client message queue. A client message queue is a local file.
+When sending requests, SocketPro will automatically backup these requests into the local file. In case a remote server is down or not accessible because of any types of reasons, SocketPro is capable to re-sent these requests from the client queue file automatically when the remote server is restarted.
+It is noted that a client session is associated with one client message queue only.</p>
+<p>Let's test the client queue feature. Go back to the previous code snippet 2 and uncomment the code at line 11.
+After running the script, brutally shut down its server application <a href="get_started.htm" title="Get Started With SocketPro">all_servers</a> before the application is completed.
+You will find the client application stops and there is no <i>CSocketError</i> exception as previous tests.
+However, the client application will continue if we re-run the server application <a href="get_started.htm" title="Get Started With SocketPro">all_servers</a>. It is noted that there will be no missing results.
+Although a socket is closed, SocketPro thinks that a session is still connected if a client message queue is associated.
+Briefly speaking, when a server is restarted, the client socket will be automatically reconnected to server, and keep on sending requests from the associated client queue file.</p>
+Client queue prevents client requests from losing, improves apllication's fault-tolerance, and make server application maintenance easier and even your development simpler because it enables failures auto-recovery and reduces many errors.
+<hr />
+Summarily, SocketPro is a full asynchronus communication framework. Its requests streaming feature is such a powerful feature to help high performance distributed application development in no time. As a developer, keep in mind that streaming requests are truly preferred whenever possible and if you have multiple requests at client side.
+As we echo a complex structure in this sample, it is just a simple task to develop a client server application. SocketPro requests are asynchronous by default, but it is truly simple to convert them into synchronous ones. In addition, SocketPro is capable to back up requests automatically by client message queue for failures auto-recovery, and reduces many tough issues.
+<hr />
+</body>
+</html>

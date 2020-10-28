@@ -1,0 +1,193 @@
+﻿<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <title>Get Started With SocketPro</title>
+    <style type="text/css">
+        .bbw
+        {
+            color: #0000FF;
+            font-style: italic;
+            font-weight: bold;
+        }
+        .style1
+        {
+            height: 23px;
+        }
+        .style2
+        {
+            width: 149px;
+        }
+        .style3
+        {
+            text-align: center;
+        }
+        .style4
+        {
+            height: 23px;
+            width: 149px;
+        }
+        .style5
+        {
+            text-align: left;
+        }
+        table, th, td {
+          border: 1px solid black;
+        }
+    </style>
+</head>
+<body>
+<h1 style="text-align: center;">Get Started With SocketPro</h1>
+<hr />
+<p>In addition to samples and tutorial, SocketPro comes with a number pre-compiled of components. We use these components to help you learn SocketPro quickly. 
+    First, copy these pre-compiled of components into system library directories.</p>
+    <ul>
+        <li><b>Windows</b>:
+            <ol>
+                <li>Copy all library files at ../socketpro/bin/win/x64 into window system directory
+                    c:\windows\System32. Also, copy all library files at ../socketpro/bin/win/x86 into window system directory c:\windows\SysWOW64.</li>
+                <li>Copy <span class="bbw">sakila.db</span> from ../socketpro/bin into both directories ../socketpro/bin/win/x64 and ../socketpro/bin/win/x86.</li>
+                <li>Copy ../socketpro/bin/free_services/file/win64/ustreamfile.dll and ../socketpro/bin/free_services/file/x86/ustreamfile.dll into window system directories c:\windows\System32 and c:\windows\SysWOW64, respectively.</li>
+                <li>Copy ../socketpro/bin/free_services/mm_middle/win64/smysql.dll and ../socketpro/bin/free_services/mm_middle/x86/smysql.dll into window system directories c:\windows\System32 and c:\windows\SysWOW64, respectively.</li>
+                <li>Copy ../socketpro/bin/free_services/queue/win64/uasyncqueue.dll and ../socketpro/bin/free_services/queue/x86/uasyncqueue.dll into window system directories c:\windows\System32 and c:\windows\SysWOW64, respectively.</li>
+                <li>Copy ../socketpro/bin/free_services/sqlite/win64/ssqlite.dll and ../socketpro/bin/free_services/sqlite/x86/ssqlite.dll into window system directories c:\windows\System32 and c:\windows\SysWOW64, respectively.</li>
+            </ol>
+        </li>
+        <li><b>Linux</b> (for example, buntu):
+            <ol>
+                <li>Copy all shared libaries *.so at the directory ../socketpro/bin/linux into the directory /usr/lib.</li>
+                <li>Copy <span class="bbw">sakila.db</span> from ../socketpro/bin into directory ../socketpro/bin/linux.</li>
+                <li>Copy ../socketpro/bin/free_services/file/libustreamfile.so into the directory /usr/lib.</li>
+                <li>Copy ../socketpro/bin/free_services/mm_middle/libsmysql.so into the directory /usr/lib.</li>
+                <li>Copy ../socketpro/bin/free_services/queue/libuasyncqueue.so into the directory /usr/lib.</li>
+                <li>Copy ../socketpro/bin/free_services/sqlite/libssqlite.so into the directory /usr/lib.</li>
+            </ol>
+        </li>
+    </ul>
+    <hr />
+    <p>There is a pre-compile executable <span class="bbw">all_servers</span>, which is located at ../socketpro/bin/linux (linux), ../socketpro/bin/win/x64 (win 64-bit), or ../socketpro/bin/win/x86 (win 32-bit). It is a non-secure server application supporting many services.
+    It is running on listening port 20901. Many of samples and tuturials are against it. It is given here for your experiment.</p>
+
+    <p>The file <span class="bbw">sakila.db</span> is a sample SQLite database, which is ported from famous MySQL/Mariadb database sakila.</p>
+    <hr />
+    <p>Here is detailed description for each of the above libraries:</p>
+    <table style="width:100%;">
+        <tr>
+            <td style="width:12%;" rowspan="2"> Short discription</td>
+            <td colspan="2" class="style3">
+                Operation system</td>
+            <td rowspan="2" style="width:70%;" class="style5">
+                Detailed discription</td>
+        </tr>
+        <tr>
+            <td class="style2">
+                Linux</td>
+            <td>
+                Windows</td>
+        </tr>
+        <tr>
+            <td class="style1">
+                client core</td>
+            <td class="style4">
+                libusocket.so</td>
+            <td class="style1">
+                usocket.dll</td>
+            <td class="style1">
+                A core shared library running with a client application</td>
+        </tr>
+        <tr>
+            <td>
+                server core</td>
+            <td class="style2">
+                libuservercore.so</td>
+            <td>
+                uservercore.dll</td>
+            <td>
+                A core shared library running with a server application</td>
+        </tr>
+        <tr>
+            <td class="style1">
+                JNI client</td>
+            <td class="style4">
+                libjuclient.so</td>
+            <td class="style1">
+                juclient.dll</td>
+            <td class="style1">
+                A JNI shared library running with a client java application, which belongs 
+                to java adapter</td>
+        </tr>
+        <tr>
+            <td>
+                JNI server</td>
+            <td class="style2">
+                libjuserver.so</td>
+            <td>
+                juserver.dll</td>
+            <td>
+                A JNI shared library running with a server java application, which belongs 
+                to java adapter</td>
+        </tr>
+        <tr>
+            <td class="style1">
+                ODBC plugin</td>
+            <td class="style4">
+                libsodbc.so</td>
+            <td class="style1">
+                sodbc.dll</td>
+            <td class="style1">
+                A SocketPro server side plugin for database through ODBC technology</td>
+        </tr>
+        <tr>
+            <td>
+                Remote file plugin</td>
+            <td class="style2">
+                libustreamfile.so</td>
+            <td>
+                ustreamfile.dll</td>
+            <td>
+                A SocketPro server side plugin for exhanging files between client and server</td>
+        </tr>
+        <tr>
+            <td>
+                MySQL/Mariadb
+                middle plugin</td>
+            <td class="style2">
+                libsmysql.so</td>
+            <td>
+                smysql.dll</td>
+            <td>
+                A SocketPro server side plugin for SQL streaming processing against MySQL or 
+                Mariadb databases</td>
+        </tr>
+        <tr>
+            <td>
+                Queue plugin</td>
+            <td class="style2">
+                libuasyncqueue.so</td>
+            <td>
+                uasyncqueue.dll</td>
+            <td>
+                A SocketPro server side plugin for persistent message queue </td>
+        </tr>
+        <tr>
+            <td class="style1">
+                SQLite plugin</td>
+            <td class="style4">
+                libssqlite.dll</td>
+            <td class="style1">
+                ssqlite.dll</td>
+            <td class="style1">
+                A SocketPro server side plugin for SQLite database</td>
+        </tr>
+    </table>
+    <br />
+    When <span class="bbw">all_servers</span> starts, it will try to load server core and all the server plugins. On Linux variants, openssl version 1.1.0 or later is required.
+    Also, copy uloader.js &amp; uwebsocket.js at ../socketpro/bin/js and /earthcity.jpg &amp; ws0.htm at ../socketpro/tutorials/webtests into the directory
+    where this application <span class="bbw">all_servers</span> is located. We will test SocketPro <a href="cpp_web.htm" title="SocketPro WebSocket for Client/server and Subscribe/publish Messaging on Browsers">client/server and subscribe/publish messaging on web browsers</a> through websocket technology.
+    <hr />
+    <b>node.js: </b>If you like to play SocketPro with <span class="bbw">node.js</span>, you need to copy ../socketpro/bin/js/nja.js into C:\Program Files\nodejs\lib\node for windows.
+    Also, copy ../socketpro/bin/js/node-vx.y.z/x64/njadapter.node into C:\Program Files\nodejs\lib\node.
+    <hr />
+    <b>python: </b>At last if you like to experiment SocketPro with <span class="bbw">python</span>, simply copy the whole directory ../socketpro/bin/spa into python library directory (for example, ../python364/Lib).
+    <hr />
+</body>
+</html>

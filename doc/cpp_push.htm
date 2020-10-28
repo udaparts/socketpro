@@ -1,0 +1,373 @@
+﻿<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="utf-8" />
+    <title>SocketPro Secure Communication and Publish/Subscribe Messaging</title>
+    <link rel="stylesheet" type="text/css" href="codepretty/sons-of-obsidian.css">
+    <script type="text/javascript" src="codepretty/prettify.js"></script>
+</head>
+<body onload="PR.prettyPrint()">
+
+<h1 style="text-align: center;">SocketPro Secure Communication and Publish/Subscribe Messaging</h1>
+
+<p>We talked about client side development at <a href="cpp_hw.htm", title="SocketPro Client Server Application Development">the previous article</a>.
+Now, we are going to describe SocektPro server side development here.
+Most of this paper will focus on publish/subscribe messaging and SocketPro secure communication between client and server.</p>
+
+<p>Let's start with server side. The sample server project is located at ../socketpro/tutorials/cplusplus/pub_sub/server.</p>
+<hr />
+<table style="width:100%;">
+<tr>
+<td style="width:30%;">
+<?prettify linenums=1?>
+<pre class="prettyprint">
+int main(int argc, char* argv[]) {
+    CMySocketProServer Server;
+
+    //test cert and private key files are located at ../SocketProRoot/bin
+#ifdef WIN32_64 //windows platforms
+    Server.UseSSL("intermediate.pfx", "", "mypassword");
+    //or load cert and private key from windows system cert store
+    //MySocketProServer.UseSSL("root", "UDAParts Intermediate CA", "");
+#else //non-windows platforms
+    Server.UseSSL("intermediate.cert.pem", "intermediate.key.pem",
+        "mypassword");
+#endif
+
+    if (!Server.Run(20901)) {
+        int errCode = Server.GetErrorCode();
+        std::cout << "Error happens with code = " << errCode << std::endl;
+    }
+    std::cout << "Press any key to stop the server ......" << std::endl;
+    ::getchar();
+    return 0;
+}
+</pre>
+</td>
+<td>
+It is very simple to start a server as shown at the left code snippet 1.
+<p>At first, we tell SocketPro that we are going to start a secure socket at line 5 through 12.
+UDAParts already prepares test certificates and a private key for your experiment convenience as commented.
+SocketPro server will be non-secure if the piece of code doesn't exist.
+</p>
+
+<p>This sample server is running on the listening port 20901, as shown at line 14.</p>
+</td>
+</tr>
+</table>
+Code snippet 1: Start a secure socket server at port 20901
+<hr />
+<table style="width:100%;">
+<tr>
+<td style="width:30%;">
+<?prettify linenums=1?>
+<pre class="prettyprint">
+class CMySocketProServer : public CSocketProServer {
+
+protected:
+    virtual bool OnSettingServer(unsigned int listeningPort,
+        unsigned int maxBacklog, bool v6) {
+        //amIntegrated and amMixed not supported yet
+        CSocketProServer::Config::SetAuthenticationMethod(amOwn);
+
+        //add service(s) into SocketPro server
+        AddService();
+
+        //create four chat groups
+        PushManager::AddAChatGroup(1, L"R&D Department");
+        PushManager::AddAChatGroup(2, L"Sales Department");
+        PushManager::AddAChatGroup(3, L"Management Department");
+        PushManager::AddAChatGroup(7, L"HR Department");
+
+        return true; //true -- ok; false -- no listening server
+    }
+
+    virtual bool OnIsPermitted(USocket_Server_Handle h, const wchar_t* userId,
+        const wchar_t* password, unsigned int serviceId) {
+        std::wcout << L"Ask for a service " << serviceId << L" from user " <<
+        userId << L" with password = " << password << std::endl;
+
+        //true -- session permitted; and false -- connection denied and closed
+        return true;
+    }
+
+private:
+    //One server supports any number of services
+    CSocketProService&lt;HelloWorldPeer&gt; m_HelloWorld;
+
+private:
+    void AddService() {
+        //No COM -- taNone; STA COM -- taApartment; and Free COM -- taFree
+        bool ok = m_HelloWorld.AddMe(sidHelloWorld, taNone);
+        ok = m_HelloWorld.AddSlowRequest(idSleep);
+    }
+};
+</pre>
+</td>
+<td>
+The left code shippet 2 shows four things, server configuration, authentication, service registration and publish/subscribe messaging configuratin.
+<p>The virtual function OnSettingServer is requied for you to implement.
+It is mandatory that all the above four things are set right before actually starting a listening socket.
+First, we set an authentication method at line 7. You could configure others as defined at class CSocketProServer::Config, QueueManager, PushManager and Router.
+However, default settings are just fine under most situations.</p>
+<p>Next, we need to register a server at line 10. In fact, you can register services as many as you want.
+To register a service, just call method AddMe as shown at line 37 with a required unique service id for each of services.
+The second input is usually ignorable, which it is related to windows COM objects.
+Specifically, we need to tell SocketPro server what requests are slow by request id and require long time to process at server side.
+For this simple hello world service, we have only one slow request Sleep.
+Therefore, we tell it to the server at line 38 by calling the method AddSlowRequest</p>
+<p>This sample demonstrates publish/subscribe messaging. Therefore, we set four topics or chat groups through CSocketProServer::PushManager methods, as shown at line 13 through 16.
+A client can subscribe zero, one or multiple topics.
+Anyone of clients is capable to send a message onto other clients with server in middle, according to its zero, one or more topics (or groups).
+A sample will be given at the code snippet 3.</p>
+<p>At last, we are going to talk about server authentication.
+To authenticate a client on user id and password from the client, we have to override the function OnIsPermitted as shown at line 21 through 28.
+If the method returns true, a client permission is given. Otherwise, the client is denied and its session is closed immediately.
+It is noted that the password will be cleaned from server right after the virtual function is called.</p>
+</td>
+</tr>
+</table>
+Code snippet 2: Register a microservice and create topics for publish/subscribe messaging
+<hr />
+
+<table style="width:100%;">
+<tr>
+<td style="width:30%;">
+<?prettify linenums=1?>
+<pre class="prettyprint">
+#include &lt;thread&gt;
+#include &lt;chrono&gt;
+
+#ifndef ___SOCKETPRO_SERVICES_IMPL_HWIMPL_H__
+#define ___SOCKETPRO_SERVICES_IMPL_HWIMPL_H__
+
+using namespace SPA;
+using namespace SPA::ServerSide;
+
+//including all of defines, service id(s) and request id(s)
+#include "../HW_i.h"
+
+class HelloWorldPeer : public CClientPeer {
+private:
+
+    void SayHello(const std::wstring &firstName, const std::wstring &lastName,
+        /*out*/std::wstring &SayHelloRtn) {
+        if (!firstName.size()) {
+            throw CUException("First name are required and cannot be empty",
+                __FILE__, __LINE__, "HelloWorldPeer::SayHello", 645321);
+        }
+        assert(CSocketProServer::IsMainThread());
+        SayHelloRtn = L"Hello " + firstName + L" " + lastName;
+        std::wstring msg = L"Say hello from " + firstName + L" " + lastName;
+        UVariant vtMessage(msg.c_str());
+        //notify a message to groups [2, 3] at server side
+        unsigned int groups[] = {2, 3};
+        GetPush().Publish(vtMessage, groups, 2);
+    }
+
+    void Sleep(int ms) {
+        assert(!CSocketProServer::IsMainThread());
+        if (ms < 0) {
+            throw CUException("Parameter ms cannot be less than 0", __FILE__,
+                __LINE__, "HelloWorldPeer::Sleep", 123456);
+        }
+        std::this_thread::sleep_for(std::chrono::milliseconds(ms));
+    }
+
+    void Echo(const CMyStruct &ms, /*out*/CMyStruct &msOut) {
+        msOut = ms;
+    }
+
+protected:
+
+    virtual void OnSwitchFrom(unsigned int oldServiceId) {
+        //subscribe for chat groups 1 and 3 at server side
+        unsigned int chat_groups[] = {1, 3};
+        GetPush().Subscribe(chat_groups, 2);
+    }
+
+    // ......
+
+    virtual void OnFastRequestArrive(unsigned short reqId, unsigned int len) {
+        BEGIN_SWITCH(reqId)
+        M_I2_R1(idSayHello, SayHello, std::wstring, std::wstring, std::wstring)
+        M_I1_R1(idEcho, Echo, CMyStruct, CMyStruct)
+        END_SWITCH
+    }
+
+    virtual int OnSlowRequestArrive(unsigned short reqId, unsigned int len) {
+        BEGIN_SWITCH(reqId)
+        M_I1_R0(idSleep, Sleep, int)
+        END_SWITCH
+        return 0;
+    }
+};
+</pre>
+</td>
+<td>
+The left snippet 3 shows how server side processes three requests (SayHello, Sleep and Echo) within hello world micro service. One instance of HelloWorldPeer corresponds to one client.
+<p>The virtual function OnSwitchFrom will be called right after a session is permitted at line 27 of the above snippet 2.
+The parameter oldServiceId will be 256 (SPA::tagServiceID::sidStartup).
+We can subscribe zero, one or more topics or groups as shown at line 49 at server side. You can do so too at client side.
+Doing so indicates the client is interested in all messages belonging to topics 1 and 3.</p>
+<p>Remembering the code at line 38 of the above snippet 2, we told SocketPro server that the method Sleep is slow and will take a long time to process.
+SocketPro server core library uservercore will create or reuse a worker thread, and automatically dispatch such a slow request onto the worker thread according to its id.
+It is noted that you are not required to deal with worker threads at all. After dispatching, the virtual function OnSlowRequestArrive is called. We process the request at line 31 through 38.
+As hinted at line 32, all slow requests will be processed from worker threads instead of one of main threads.
+At server side, you can raise an exception at lines 34 and 35, which will be caught at client side.
+</p>
+<p>All of non slow requsts are considered to be fast ones such as SayHello and Echo. When a fast request comes, the virtual function will be called OnFastRequestArrive.
+The method Echo is simple as shown at line 40 through 42. Please refer to the <a href="cpp_buffer.htm" title="SocketPro Request Parameters Packing and Result Unpacking">previous article</a> for serialization and de-serialization of complex structure.
+Pay attention to the code at line 28 inside the method SayHello, which publishes a message onto groups or topics 2 and 3.
+Again, you can do so at client side as shown at the below code snippet 4.</p>
+<p>BEGIN_SWITCH, END_SWITCH and M_Ix_Ry are macros for better clarity of codes. Specifically, x and y represents the number of inputs and outputs, respectively.
+Take the method SayHello as an example at line 56. Its x and y are 2 and 1, respectively.
+</p>
+<p>It is pointed out that you can use PushManager to publish a message or send a message to a specific client by user id at server side, referring to the class SPA::ServerSide::CSocketProServer::PushManager.</p>
+<p>At last, it is noted that the number of main threads is one by default. The max number of main threads will not be more than the number of server processors at server side.
+Our experiments show that one main thread is enough if your server doesn't use secure communication or inline compression/de-compression (zip).
+The number of worker threads are dynamically created if neccessary. They are automatically destroyed too if they are idle for more than 60 seconds by default.</p>
+</td>
+</tr>
+</table>
+Code snippet 3: Hello world service implementation at server side
+<hr />
+<table style="width:100%;">
+<tr>
+<td style="width:30%;">
+<?prettify linenums=1?>
+<pre class="prettyprint">
+#include "stdafx.h"
+#include "HW.h"
+
+using namespace std;
+
+wstring ToString(const CMessageSender& ms) {
+    SPA::CScopeUQueue sb;
+    wstring msg(L"sender attributes = (ip = ");
+    SPA::Utilities::ToWide(ms.IpAddress, strlen(ms.IpAddress), *sb);
+    msg += (const wchar_t*) sb->GetBuffer();
+    msg += L", port = ";
+    msg += to_wstring((SPA::UINT64)ms.Port);
+    msg += L", self = ";
+    msg += ms.SelfMessage ? L"true" : L"false";
+    msg += L", service id = ";
+    msg += to_wstring((SPA::UINT64)ms.ServiceId);
+    msg += L", userid = ";
+    msg += ms.UserId;
+    msg += L")";
+    return msg;
+}
+
+int main(int argc, char* argv[]) {
+    CConnectionContext cc;
+    cc.Host = "127.0.0.1";
+    cc.Port = 20901;
+
+    cout << "Input this user id ......" << endl;
+    getline(wcin, cc.UserId);
+
+    cc.Password = L"MyPassword";
+    typedef CSocketPool&lt;HelloWorld&gt; CMyPool;
+    CMyPool spHw;
+
+    cc.EncrytionMethod = TLSv1;
+#ifdef WIN32_64
+    //for windows platforms, you can just use windows system store instead
+    //assuming ca.cert.pem at root, my, my@currentuser or root@localmachine
+#else
+    //CA cert is located at the directory ../SocketProRoot/bin
+    CClientSocket::SSL::SetVerifyLocation("ca.cert.pem"); //linux
+#endif
+    spHw.DoSslServerAuthentication=[](CMyPool*sender,CClientSocket*cs)->bool{
+        int errCode;
+        IUcert *cert = cs->GetUCert();
+        cout << cert->SessionInfo << endl;
+
+        const char* res = cert->Verify(&errCode);
+
+        //do ssl server certificate authentication here
+
+        //true -- user id and password will be sent to server
+        return (errCode == 0);
+    };
+
+    bool ok = spHw.StartSocketPool(cc, 1);
+    auto hw = spHw.Seek(); //or auto hw = spHw.Lock();
+
+    CClientSocket::CPushImpl &push = hw->GetSocket()->GetPush();
+    push.OnPublish = [](CClientSocket *cs, const CMessageSender&sender, const
+    unsigned int *groups, unsigned int count, const SPA::UVariant &message) {
+        wcout << endl << L"A message (message) from " <<
+            ToString(sender) << L" to groups ";
+        cout << ToString(groups, count) << endl;
+    };
+
+    push.OnSubscribe = [](CClientSocket *cs, const CMessageSender &sender,
+        const unsigned int *groups, unsigned int count) {
+        wcout << endl << ToString(sender);
+        cout <<" has just joined groups "<< ToString(groups,count)<< endl;
+    };
+
+    push.OnUnsubscribe = [](CClientSocket *cs, const CMessageSender &sender,
+        const unsigned int *groups, unsigned int count) {
+        wcout << endl << ToString(sender);
+        cout <<" has just left from groups "<< ToString(groups,count)<< endl;
+    };
+
+    push.OnSendUserMessage =[](CClientSocket*cs,const CMessageSender&sender,
+        const SPA::UVariant & message) {
+        wcout << endl << L"A message (message) from " <<
+        ToString(sender) << endl;
+    };
+
+    ok = hw->SendRequest(idSayHello, [](CAsyncResult &ar) {
+        wcout << ar.Load&lt;std::wstring&gt;() << endl;
+    }, nullptr, nullptr, L"Jack", L"Smith");
+
+    SPA::UVariant message(L"We are going to call the method Sleep");
+    unsigned int chat_ids[] = {1, 2};
+    ok = push.Publish(message, chat_ids, 2);
+    ok = hw->SendRequest(idSleep, nullptr, nullptr, nullptr, (int) 5000);
+
+    wstring receiver;
+    cout << "Input a receiver for receiving my message ......" << endl;
+    getline(wcin, receiver);
+    message = (L"A message from " + cc.UserId).c_str();
+    ok = push.SendUserMessage(message, receiver.c_str());
+    cout << "Press a key to shutdown the demo ......" << endl;
+    ::getchar();
+    return 0;
+}
+</pre>
+</td>
+<td>
+It is time to focus the client side development as shown at the left code snippet 4. The sample project is at the directory ../socketpro/tutorials/cplusplus/pub_sub/client.
+<p>To enable secure communication at client side, you have to make sure connection context EncrytionMethod is set to SPA::TLSv1 as shown at line 35. Next, set certificate verification to a file as shown at line 41 for Linux.
+On windows, you can put a root certificate into windows system store by mmc. At last, set a callback for authenticating certificates from servers, as shown at line 43 through 54. You can verify certificate chain as shown at line 48.
+At last, client user id and password will be sent to server if the callback returns true. Otherwise, client user id and password will not be sent.</p>
+<p>Codes at line 59 through 77 are for tracking messages from chat groups or topics.
+Further, codes at line 79 through 83 are used for monitoring messages specifically for this client from other clients or server by calling the method SendUserMessage.</p>
+<p>As an example, we can send a message to one or more groups or topics at line 91 from client side. In addition, we can also send messages to a client by its user id, as shown at line 98.</p>
+<p>We can also do subscribe and unsubscribe from client side. Please refer to the class SPA::ClientSide::CClientSocket::CPushImpl.</p>
+<p>Now you can start the secure server, and run two or more instances of the client application for experiments.</p>
+</td>
+</tr>
+</table>
+Code snippet 4: Client side secure communication and messaging
+<hr />
+Summarily, this short paper focuses the following topics:
+<ol>
+<li>How to start a SocketPro server</li>
+<li>How to make a SocketPro server secure</li>
+<li>How to register a service and set slow rewuests at server side</li>
+<li>How to manage subscribe/publish messaging at server side</li>
+<li>How to authenticate a client from given user id and password</li>
+<li>How to subscribe topics or groups, or publish messages at server side</li>
+<li>How to enable secure communication at client side and authenticate server certificates before sending passwords</li>
+<li>How to track expected messages from other clients at client side</li>
+<li>How to publish messages or send messages to a specific client</li>
+</ol>
+<hr />
+</body>
+</html>

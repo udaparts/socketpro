@@ -1,0 +1,310 @@
+﻿<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="utf-8" />
+    <title>Fundamentals about SocketPro Communication Framework</title>
+    <style>
+        ol, ul {border-left: 20px solid white;}
+        table {border-left: 20px solid white;border-right: 10px solid white;}
+        table th, td {border:1px solid black;}
+        p {border-left: 20px solid white; }
+    </style>
+   
+</head>
+<body>
+<h2 style="text-align: center;">Fundamentals about SocketPro Communication Framework</h2>
+<hr />
+<h3>1. Version history</h3>
+<p>The table below records major changes to this document.</p>
+<table frame="border">
+<tr>
+    <th>Date</th>
+    <th>Comment</th>
+</tr>
+<tr>
+    <td>2016-12-14</td>
+    <td>Initial</td>
+</tr>
+<tr>
+    <td rowspan="3">2020-10-10</td>
+    <td>Update for SocketPro version 6 or later</td>
+</tr>
+<tr>
+    <td>Remove details and use tutorials to explain features</td>
+</tr>
+<tr>
+    <td>Update figure pictures</td>
+</tr>
+</table>
+<h3>2. Audiences</h3>
+<p><b>2.1 Basic knowledge requirements</b></p>
+<p>Audiences are not expected to be professionals to the below terminologies, but it is expected that all of audiences should have general knowledge about them:</p>
+<ol>
+    <li>TCP/IP protocol and full-duplex network</li>
+    <li>Socket, latency, throughput and network bandwidth</li>
+    <li>Asynchronous (non-blocking) and synchronous (blocking) communication</li>
+    <li>TLSv1.x encryption, decryption and server authentication as well as security</li>
+    <li>HTTP and web socket protocols</li>
+    <li>Inline compression and decompression</li>
+    <li>Client and server communication architecture and micro-services as well as front, middle and backend tiers</li>
+    <li>Persistent message queue communication architecture</li>
+    <li>Online Subscribe/publish messaging, topic and chat group</li>
+    <li>Request load balancing and routing</li>
+    <li>C API functions, interfaces and software framework</li>
+    <li>Development language adapters and cross-language/platform compatiblity</li>
+    <li>Real-time updatable cache</li>
+    <li>Callback, anonymous function, delegate, lambda expression, event, closure, future, promise and async/await</li>
+    <li>Data serialization and de-serialization</li>
+    <li>Fault-tolerance, auto-recovery, high availability and manageability</li>
+    <li>Memory pool and socket pool</li>
+    <li>Performance and scalability</li>
+</ol>
+<p><b>2.2 Audiences</b></p>
+<ol>
+<li>Software development manager</li>
+<li>Software architect</li>
+<li>Software developer</li>
+</ol>
+<h3>3. Introduction and objectives of SocketPro Communication Framework</h3>
+<p>A real software application may consist of multiple software parts running on multiple computers or devices with different operation systems or platforms under most situations.
+These parts may be developed from a variety of development languages such as Java, python, .NET, C/C++, JavaScript, PHP, and so on.
+A software architect or manager has to consider many aspects such as development simplicity, interoperation among different software parts, rich feature, security, performance, scalability and maintenance as well as human resources and skill sets.
+After many trials and failures for a long time, UDParts has finally created a powerful communication framework on non-block TCP/IP socket, which is named as SocketPro.
+The SocketPro framework provides a complete solution to an enterprise application with many these aspects or requirements well considered and designed ahead.
+</p>
+<p>SocketPro is created with the following goals in mind:</p>
+<ol>
+<li>Acceptable development simplicity</li>
+<li>Great interoperation among a variety of development languages on different platforms</li>
+<li>Superior performance, scalability and maintenance</li>
+<li>Taking advantages of full-duplex network concurrency transferring by use of non-blocking TCP/IP socket</li>
+<li>Industrial standard TLSv1.x protocols for secure communication</li>
+<li>Streaming requests and results with in-line data batching for the best network efficiency</li>
+<li>Rich features and one complete solution supporting multiple communication patterns such as client/server, subscribe/publish messaging, asynchronous message queue, and load balancing/routing</li>
+<li>Anonymous function, delegate, lambda expression, event, closure, future, promise and async/await well supported on adapters</li>
+<li>Inline compression and decompression</li>
+<li>Great fault tolerance, no message/request loss and connection auto recovery</li>
+<li>Guaranteed thread safety for core components and adapters</li>
+<li>SocketPro server side plugins</li>
+</ol>
+<h3>4. SocketPro request/result streaming transferring pattern</h3>
+<p>SocketPro framework is created on non-blocking TCP/IP socket to support data transferring between two end points for the best network efficiency and concurrency with continuous inline data batching at both client and server sides concurrently.
+To help you understand request/result streaming transferring pattern more clearly, please pay close attention to the below Figure 1 with careful analyses.</p>
+
+<p><img alt="Single-request and requests-streaming communication patterns" title="Single-request and requests-streaming communication patterns" src="images/data_transferring_pattern.png" /></p>
+<p><i>Figure 1: Single-request and requests-streaming communication patterns on one socket session</i></p>
+<p><b>4.1 Single-request communication pattern</b></p>
+<p>The left side in Figure 1 shows a typical data movement pattern between client and server on a single session, no matter its socket is blocking or non-blocking.
+A client sends a request for one result back from a connected server.
+A client is capable to send a new request ONLY AFTER current request is processed at server and the client obtains its server result.
+In other words, the key sign of this pattern is that a client cannot send a new request before obtaining a previous request response from server through one single socket session. 
+This pattern may support one request for multiple responses under extremely rare situations.
+However, a client still has no way to keep on sending requests without waiting for previous results.
+Today, most of distributed application systems make use of this communication pattern inside.
+</p>
+<p>The left pattern is very popular with a number of advantages:</p>
+<ul>
+<li>Easy to get started, learn and write code</li>
+<li>Many sample frameworks available for free</li>
+<li>Good for applications running on local area networks (LAN), which do not require high performance and scalability</li>
+<li>Simple in coding logic and better code readability</li>
+<li>Easy in debugging and fast development</li>
+</ul>
+<p>The left pattern also has a few key flaws which may significantly degrade your software quality and limit application scope:</p>
+<ul>
+<li>Low network efficiency and much portion of network bandwidth wasted inherently because a client can send one single request for one single response only</li>
+<li>Very poor performance and scalability on wide area netowrks (WAN) having higher latencies and lower bandwidths</li>
+<li>Developers forced to use worker threads for multiple sessions and deal with various thread-related side effects</li>
+<li>Lack in features</li>
+</ul>
+<p>In short, the single-request communication pattern is great for many applications that don't have high requirements for rich features, high performance and scalability but fast and easy development.</p>
+<p><b>4.2 requests-streaming communication patterns</b></p>
+<p>The right side in Figure 1 shows typical data transferring between SocketPro client and server on a single socket session.
+SocketPro always uses non-blocking sockets without an exception. Therefore, all requests are always asynchronous by default without an exception.
+However, you can always convert all asynchronous requests into synchronous ones easily from your code at your will.</p>
+<p>A client is capable to continously send any number of requests onto its connected server to process without waiting for responsess of its previous requests at all.
+This is a huge difference to the left side single-request communication pattern.
+Within SocketPro, a client can always send a new request even before one or any number of previous requests are still being on the way to its connected server.
+If there are many requests involved, all request sending, server processing, server responsing and client result processing can happen simultaneously and concurrently.
+Further, SocketPro actually merges requests and results silently at both client and server sides with an in-line batching algorithm for the best network efficiency.
+It is noted that TCP Nagle's algorithm is disabled within SocketPro by default.
+Our internal experiments confirms that the inline batching algorithm works great for both WAN and LAN having bandwidths less than 500 Mbps.
+It makes most of network data packets as full as possible so that required packets or round-trips are significantly reduced.
+SocketPro inline batching algorithm still works well on LAN with high bandwidths if computers have higher CPU power.
+</p>
+<p>In other words, SocketPro supports requests streaming and responses streaming with inline batching for the best network efficiency, which inherently leads to significant performance boost.
+Under many cases, performance can be improved up to hundreds of times on WAN. Our performance studies show that the performance improvements would usually be about half to three times on LAN with high network bandwidths.</p>
+<p>SocketPro have already integrated multiple communication patterns, such as client/server, subscribe/publish messaging, asynchronous message queue and load balancing/routing, into one framework.
+We have not found anyone of the single-request communication pattern frameworks that support so many communication patterns yet.
+In other words, SocketPro is rich in features and highly reusable.
+</p>
+<p>UDAParts thinks that SocketPro core libraries are considerably complicated internally, but your codes are not at all because you are not required to understand their internal details.
+SocketPro core components are thread-safe. SocketPro manages threads itself so that you will hardly meet threads related issues under most cases. 
+</p>
+
+<h3>5. SocketPro communication framework architecture</h3>
+<p>Similar to all other communication frameworks, SocketPro is designed with its own design goals as shown in the below Figure 2.
+SocketPro framework has one client core library (usocket) and one server core library (uservercore).
+Both of them, which export a number of operation system C functions, are written by use of C/C++ for the best performance.
+You can find these C functions at the files uclient.h and userver.h, respectively.
+Currently, both core libraries are available for window ce, window and various Linux variant platforms.
+It is noted that all of SocketPro features are implemented within the two client and server core libraries.</p>
+<p><img alt="SocketPro communication framework architecture on one socket connection" title="SocketPro communication framework architecture on one socket connection" src="images/sp_architecture.png" /></p>
+<p><i>Figure 2: SocketPro communication framework architecture on one socket connection</i></p>
+<p>Since these system C functions are not friendly to use, UDAParts has already created an adapter for each of development languages to make you development easier.
+Therefore, typically your client and server codes will directly communicate only with one of adapters in middle at both client and server side.
+Note that your client and server could use different adapters, which are all compatible across both development languages and operation systems.
+As shown in the Figure 2, UDAParts has already created seven and four adapters for client and server side developments, respectively at this time.
+SocketPro framework will be gradually added with new adapters with the same rules in the future.
+</p>
+<p>At last. it is noted that adapters in the Figure 2 are compatible between client and server sides.
+For example, you can easily let node.js code directly communicate with any codes of four languages, C/C++, .NET, Java and Python at server side.
+Your enterprise application may be developed with different languages due to available human resources and skill sets.
+Sometimes, you may want these language advantages and avoid their shortcomings.
+SocketPro communication framework well meets these requirements and hopes.
+</p>
+<p><b>5.1 Client core library (usocket)</b></p>
+<p>As described at the above section, all of basic features of one socket connection are implemented within the SocketPro client core library (usocket.dll for windows and libusocket.so for Linux platforms) as shown in the below Figure 3.
+One single socket connection always supports subscribe/publish messaging and two sets <i>base</i> and <i>user</i> of requests at client side.</p>
+<p><img alt="SocketPro client core built-in features on one socket connection" title="SocketPro client core built-in features on one socket connection" src="images/usocket.png" /></p>
+<p><i>Figure 3: SocketPro client core built-in features on one socket connection</i></p>
+<p><b>5.1.1 Base and user-defined request identification numbers</b></p>
+<p>Each of requests is labeled by an unique identification number called as request id.
+When a client sends a request to a remote server, the server side is able to properly unpack the request signatures according to an obtained request id because each of requests has its own input/output signature of parameters.
+SocketPro has already defined a set of request ids for a set of base and built-in requests, which are less than a pre-defined constant <i>idReservedTwo (0x2001)</i> at the file ../socketpro/include/ucomm.h.
+</p>
+<p>On the other hand, all of user defined request ids are required to be no less than the constant <i>idReservedTwo</i> in value.</p>
+<p><b>5.1.2 Subscribe/publish messageing</b></p>
+<p>SocketPro client core has a built-in feature for you to quickly and conveniently use subscribe/publish pattern for exchanging various messages among clients and their connected server.
+People may call the pattern as internet chatting, online messaging notification and online message bus as well as others.
+It is noted that SocketPro may use these terms interchangeably.
+A client can use the feature to send (publish) any messages onto one or different chat groups (topics) of connected clients through SocketPro server in middle.
+In addition, a client is able to specifically notify a message to another client identified by a receiver client login user id.
+It is noted that a client socket always supports subscribe/publish messageing and pre-defined base requests.
+</p>
+<p><b>5.1.3 Inline compression and decompression</b></p>
+<p>This is an optional feature. It is not turned on by default.
+Usually, compression is very CPU extensive. Therefore, it is not recommended for LANs in general because LANs usually have very good bandwidths.
+However, you may use the SocketPro convenient feature to reduce data transferring size for better performance if your system has to support WANs or wireless LANs because they are usually poor in bandwith today.
+SocketPro supports two compression levels, best speed and best compression.
+The first one is focused on compression speed with less CPU cost and compression rate, but the second one is focused on better compression rate with much lower compression speed and higher CPU cost.
+By default, SocketPro uses best compression level if inline compression and decompression is turned on.
+</p>
+<p><b>5.1.4 Secured by TLSv1.x</b></p>
+<p>By default, SocketPro communication is not secure because it uses plain TCP protocol.
+To secure it, it is a must to turn on the feature. SocketPro uses industrial standard TLS for secure communication.
+It supports TLS version from 1.0 through 1.3 at this time. SocketPro doesn't support old SSL protocls any more.
+</p>
+<p><b>5.1.5 Client queue for inline requests backup, fault-tolerance and auto-recovery</b></p>
+<p>Typically, it is a challenge to improve enterprise application stability and maintenance with better fault-tolerance and auto-recovery.
+Unlike other frameworks, SocketPro client core implements an unique feature, <i>client queue</i>, to easily and significantly improve application stability and maintenance with excellent fault-tolerance and auto-recovery.
+Its idea is very simple. Basically, client core is capable to automatically back up all requests into a local message queue file before sending them onto server.
+When client, server or network is down for maintenance, crash, or any other reasons, all requests saved in a local message queue file can be resent to server when the system is recovery.
+The feature is really joyful if the feauture is turned on. It solves a considerable number of tough but typical issues, and improves application stability, maintenance and error handling.
+The feature is optional and not turned on by default. Each of socket connections has one associated local message queue file at most.
+Occasionally, you may encrypt requests backed up for better security as shown in the Figure 3. By default, requests backed up are not encrypted.
+</p>
+<p><b>5.1.6 SocketPro client socket pool for parallel communication</b></p>
+<p>So far we have just elaborated client data transferring fundamentals, which is focused on one non-blocking socket only.
+In fact, client core library provides socket pool feature to help you create any number of pools of non-blocking sockets.
+A client is always required to obtain a socket from a socket pool before sending any request.
+A socket pool is made of one or more worker threads, and each of them hosts one or more non-blocking sockets as shown in the following Figure 4.</p>
+<p><img alt="A socket pool having three worker threads and six non-blocking sockets for parallel communication" title="A socket pool having three worker threads and six non-blocking sockets for parallel communication" src="images/socket_pool.png" /></p>
+<p><i>Figure 4: A socket pool having three worker threads and six non-blocking sockets for parallel communication</i></p>
+<p>SocketPool is designed for transferring data from a client to one or more SocketPro servers for parallel processing.
+ Under particular cases that a client may have to process returning results with expensive CPU costs, the client should start a pool with multiple threads.
+ For example, a high performance web server application has to deliver a considerable large record set of data onto browsers from backend database table, which may require high CPU costs concurrently on multiple cores to process encrypted binary results as fast as possible from a SocketPro server.
+ However, one worker thread would be enough under most situations that processing response results at client side does not require much CPU cost at all.
+</p>
+<p>A client application is able to create socket pools as many as you want. Usually, each of pools has one thread enough but multiple sockets.
+SocketPro favors sharing a pool of connected sockets from user's different threads.
+Socket pool is thread-safe. Each of its socket connections is also thread-safe.
+</p>
+<p>It is also easy to turn on client queue as shown at the previous Figure 3 for a pool of socket connections.
+Further, you can make these client queues are mergeable if proper.
+For example, let us consider a pool of socket coonections to different slave databases.
+A client sends an arry of SQL query requests onto one of slave databases. However, the connection is broken because of anyone of reasons.
+Under such a scenario, SocketPro pool is able to automatically and silently merge this socket connection backed-up SQL queries to another socket connection for processing.
+As you can see, this feature can improve fault tolerance and auto failure recovery.
+</p>
+<p><b>5.1.7 WaitAll, future and await for converting asynchronous requests into synchronous ones</b></p>
+<p>All of sockets are always running with non-blocking communication style so that all of requests are always executed asynchronously.
+However, most of software developers are not used to write asynchronous codes although some development languages and libraries are gradually starting to support async programming.
+Additionally, asynchronous codes are still more complex to read, even though we have closure, lambda expression and anonymous delegate for help.
+To reduce the complexity of async programming, SocketPro client core library provides one particular function <i>WaitAll</i> to convert asynchronous requests into synchronous one from your code so that your code complexity may be reduced for better readability.
+</p>
+<p>In additon to the method <i>WaitAll</i>, you can use future and await (if available from a programming language) at an adapter level as shown at the above Figure 2.
+Under most cases, it is NOT preferred to the method <i>WaitAll</i> because this method is based on the event that all requests are processed and returned from server.
+On the other hand, the future and await are based on the event that each of requests is finished. This is preferred under most situations.
+</p>
+<p><b>5.2 Server core library (uservercore)</b></p>
+<p>It is time to focus discussing key features supported at server side, which are implemented within server core library uservercore.
+Similar to client side, server core library also uses in-line continuous data batching algorithm on non-blocking sockets to silently pack real-time stream processing results for the best network efficiency.
+Server core built-in features are shown in the below Figure 5.</p>
+<p><img alt="SocketPro server core built-in features" title="SocketPro server core built-in features" src="images/uservercore.png" /></p>
+<p><i>Figure 5: SocketPro server core built-in features</i></p>
+<p><b>5.2.1 One listening port, two built-in services, and many use-defined services</b></p>
+<p>SocketPro server core uses one listening socket or one port to support unlimited number of services such as HTTP/websocket, file, database access, server side persistent message queue and other user defined services.
+Each of them processes a group of requests from clients. There are two built-in services, HTTP/websocket and subscribe/publish messaging.
+Like client core, it is noted that all services supports subscribe/publish messaging at server side.
+Similer to client core library, SocketPro server core library also support two sets <i>base</i> and <i>user</i> of requests.</p>
+<p>A connected client is able to send or publish messages at either client or server side. A socketPro server itself is also able to send or publish messages onto connected clients.
+These server messages are not associated with anyone of source clients.</p>
+<p><b>5.2.2 SocketPro routing for load balancing</b></p>
+<p>
+In addition, SocketPro server core has a built-in feature <i>Routing</i> implemented for load balancing as shown in the Figure 5.
+SocketPro server is able to route all or a portion of client requests onto a set of new clients to process, which are called as client workers.
+This feature is an optional and cheaper way to increase enterprise application scalability.
+Its advantage is to avoid opening new income ports and makes system administration easier.</p>
+<p><b>5.2.3 SocketPro secured server by TLSv1.x</b></p>
+<p>
+Like client core, server core also supports industrial standard TLSv1.x for secure communication at server side. It is superiorly easy to turn on TLSv1.x by one line of code at server side.
+</p>
+<p><b>5.2.4 Inline compression and decompression</b></p>
+<p>Like client core library, server core library supports this optional feature, inline compression and decompression. However, it is not turned on at server side either by default.
+The feature shouldn't be employed on LANs because they usually have high bandwidth.
+It is noted that server inline compression and decompression can be enabled from a client by calling client APIs.
+Don't trun on the feature at server side, but let a client enable it if neccessary.
+</p>
+<p><b>5.2.5 Sharable persistent message queue at server side</b></p>
+<p>SocketPro has implemented server side persistent message queue as a built-in feature to enable involved parties don't have to interact at the same time with asynchronous communication pattern.
+A SocketPro server is able to open persistent message queues as many as you want. Each of them is sharable by multiple producers and consumers at the same time.
+Enqueuing and dequeuing messages can happen at the same time concurrently by multiple producers and consumers.
+SocketPro message queue is superiorly fast, and very simple for development, reuse and maintenance.
+Further, SocketPro completely kills message losses with help of client (or producer) side queue as discussed at the previous Section 5.1.5.
+</p>
+<p><b>5.2.6 SocketPro server plugins</b></p>
+<p>SocketPro framework has already come a number of highly reusable dynamic shared libraries which can be directly plugged into a server from your code.
+They are written from C/C++ for the best performance with the lowest dependency.
+These plugins help you learn at client side and improve software modularity.
+They are good samples and you can be free to extend them for your business requirements.</p>
+<p><b>5.3 Replication of one persistent queue to others</b></p>
+<p>As described at the above two sections 5.1.5 and 5.2.5, both SocketPro client and server sides have persistent message queue implemented.
+SocketPro client queue is used for requests backup so that a request can be resent to server in case there is any error such as network failure, server application shutdown and power-off.
+SocketPro server queue, like other typical queues, provides an asynchronous communication between providers and consumers which do not need to interact with message queue at the same time.
+Further, SocketPro is also able to replicate one queue of messages into others at both client and server sides, as shown in the below Figure 6.</p>
+<p><img alt="One source queue of messages replicated into three target queues with transaction style" title="One source queue of messages replicated into three target queues with transaction style" src="images/replication.png" /></p>
+<p><i>Figure 6: One source queue of messages replicated into three target queues with transaction style</i></p>
+<p>It is noted that SocketPro queue replication ensures consistency among target queues in accordance with the overall ACID (atomicity, consistency, isolation, durability) properties.
+SocketPro queue replication could be used to improve scalability, accessibility and availability of enterprise applications by enlarging data redundancy across different computers.
+</p>
+<p><b>5.4 Protected password</b></p>
+<p>A client must always send its user id and password before sending any other requests. SocketPro always clean password string as soon as possible inside both client and server core libraries.
+Further, SocketPro does special treatment to clean memory traces of password as soon as possible for better security.</p>
+<h3>6. Real-time updateable cache</h3>
+<p>SocketPro both client and server core libraries have built-in feature <i>subscribe/publish messaging</i> as shown at the Sections 5.1.2 and 5.2.1, respectively.
+SocketPro framework has already taken adavantage of this feature, and implemented real-time updateable caches running on different tiers within all of adapters except JavaScript adapter as shown in the previous Figure 2.</p>
+<p>Let us consider the following Figure 7 with master database events from insert, update and delete triggers.</p>
+<p><img alt="SocketPro real-time updateable cache" title="SocketPro real-time updateable cache" src="images/master-db-events.png" /></p>
+<p><i>Figure 7: SocketPro real-time updateable cache everywhere</i></p>
+<p>By this time, SocketPro has come with a number of SQL streaming plugins implemented for SQLite, MySQL/Mariadb and MS SQLServer databases. All of them support real-time updateable cache by use of three table triggers, <i>delete</i>, <i>insert</i> and <i>update</i>.
+Whenever one of triggers happens, SocketPro pushes a proper message containing its record data or keys onto SocketPro client or server middle tiers in real time.
+A SocketPro middle tier is able to keep on pushing the message onto its connected clients when the middle tier obtains a message originated from a source database table.</p>
+<p>SocketPro cache is a data store in memory managed by an adapter.
+Requests can be served directly from a cache to increase respone by saving avoidable network round trips, SocketPro server processings and database backend SQL processings.
+As you can see, SocketPro cache could significantly enlarge throughput and reduce latency.</p>
+<p>All caches within adapters support a number of very basic operations such as simple logic operations (=, <>, >, >=, <, <=, is null), in/not in, between, order and append/union to find expected number of records.
+It is noted that all SocketPro caches are real-time updateable and thread-safe. Therefore, they are safely sharable from different threads.</p>
+<hr />
+</body>
+</html>

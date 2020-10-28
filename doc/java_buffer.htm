@@ -1,0 +1,225 @@
+﻿<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="utf-8" />
+    <title>SocketPro Request Parameters Packing and Result Unpacking</title>
+    <link rel="stylesheet" type="text/css" href="codepretty/sons-of-obsidian.css">
+    <script type="text/javascript" src="codepretty/prettify.js"></script>
+</head>
+<body onload="PR.prettyPrint()">
+<h1>SocketPro Request Parameters Packing and Result Unpacking</h1>
+<p>This is the first example to explain SocketPro utility classes, <i>SPA.CUQueue</i> and <i>SPA.CScopeUQueue</i>, for data serialization and de-serialization.
+It is recommended for you to have a glance at <a href="all_langs.htm" title="CUQueue and Comaptibility among Different Development Languages">this article</a> before reading this article.
+This sample project is located at the directory ../socketpro/tutorials/java/uqueue_demo. Also, make sure that you have already distributed client core library usocket into system directory as discribed at <a href="get_started.htm" title="Get Started With SocketPro">this short article</a>.</p>
+<p>It is focused on serializing and de-serializing a complex structure. The sample code will be used by successive examples.</p>
+<table style="width:100%;">
+<tr>
+<td style="width:30%;">
+<?prettify linenums=1?>
+<pre class="prettyprint">
+//../socketpro/src/jadapter/jspa/src/SPA/ClientSide/ClientCoreLoader.java
+static native boolean SendRequest(long h, short reqId, java.nio.ByteBuffer
+    buffer, int len, int offset);
+
+//../socketpro/src/jadapter/jspa/src/SPA/ClientSide/CClientSocket.java
+private static void OnRequestProcessed(long h, short reqId, int len, Object
+    bytes, byte os, boolean endian) {
+    //......
+}
+
+public interface IUSerializer {
+    public CUQueue LoadFrom(CUQueue UQueue);
+    public CUQueue SaveTo(CUQueue UQueue);
+}
+</pre>
+</td>
+<td>
+<p>
+SocketPro client core library exports one function SendRequest at lines 2 and 3 of the left code snippet 1.
+Basically, it sends an array of bytes (buffer, len) for each request (reqId) to a connected server for processing through a socket (h).
+When a result comes from the server, the function OnRequestProcessed at line 6 through 9 will be called to get an array of bytes (bytes) back, and unpack the array bytes into expected data.
+Therefore, SocketPro is required to provide a utility class for packing request input parameters and unpacking results from server returning bytes.
+The class is named as <i>CUQueue</i> at file ../socketpro/src/jadapter/jspa/src/SPA/CUQueue.java.
+</p>
+<p>
+The class <i>CUQueue</i> is already implemented for serializing and de-serializing primitive data (byte, short, int, float, long, double and so on),
+<i>Date</i>, common strings (String and ASCII string by byte array) and Object for java.
+However, <i>CUQueue</i> doesn't know how to deal with a complex structure data. Therefore, you must implement the pre-defined interface IUSerializer as shown at line 11 through 14. The sample is just designed to guide you for this purpose.
+</p>
+<p>
+This sample structure is complex. Please use your debugger and step through codes for details.
+Once you know how <i>CScopeUQueue</i> and <i>CUQueue</i> work, you can understand SocketPro's interoperability among different development languages.
+</p>
+</td>
+</tr>
+</table>
+Code snippet 1: SendRequest, OnRequestProcessed and interface IUSerializer for complex data serialization and de-serialization
+<hr />
+<table style="width:100%;">
+<tr>
+<td style="width:30%;">
+<?prettify linenums=1?>
+<pre class="prettyprint">
+import SPA.CUQueue;
+
+public class CMyStruct implements SPA.IUSerializer {
+
+    private String NullString = null;
+    private Object ObjectNull = null;
+    private java.util.Date ADateTime = java.util.Calendar.getInstance().getTime();
+    public double ADouble;
+    public boolean ABool;
+    public String UnicodeString;
+    public byte[] AsciiString;
+    public Object ObjBool = true;
+    public Object ObjString;
+    public Object objArrString;
+    public Object objArrInt;
+
+    @Override
+    public int hashCode() {
+        return super.hashCode();
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        CMyStruct ms;
+        if (obj == null) {
+            return false;
+        }
+        if (obj == this) {
+            return true;
+        }
+        if (obj instanceof CMyStruct) {
+            ms = (CMyStruct) obj;
+        } else {
+            return false;
+        }
+        return ADateTime.equals(ms.ADateTime)
+                && ADouble == ms.ADouble
+                && ABool == ms.ABool
+                && UnicodeString.equals(ms.UnicodeString)
+                && java.util.Arrays.equals(this.AsciiString, ms.AsciiString)
+                && (boolean) ObjBool == (boolean) ms.ObjBool
+                && ((String) ObjString).equals(ms.ObjString)
+                && java.util.Arrays.equals((String[])objArrString,(String[])ms.objArrString)
+                && java.util.Arrays.equals((int[]) objArrInt, (int[]) ms.objArrInt);
+    }
+
+    public static CMyStruct MakeOne() {
+        CMyStruct msOriginal = new CMyStruct();
+        int[] arrInt = {1, 76890};
+        msOriginal.objArrInt = arrInt;
+        String[] arrString = {"Hello", "world"};
+        msOriginal.objArrString = arrString;
+        msOriginal.ObjBool = true;
+        msOriginal.ObjString = "test";
+        msOriginal.UnicodeString = "Unicode";
+        msOriginal.ABool = true;
+        msOriginal.ADouble = 1234.567;
+        String s = "ASCII";
+        msOriginal.AsciiString = s.getBytes(java.nio.charset.Charset.forName("US-ASCII"));
+        return msOriginal;
+    }
+
+    @Override
+    public CUQueue SaveTo(CUQueue UQueue) {
+        return UQueue.Save(NullString)  //4 bytes for length
+            .Save(ObjectNull)           //2 bytes for data type
+            .Save(ADateTime) //8 bytes for long with accuracy to one micro-second
+            .Save(ADouble)   //8 bytes
+            .Save(ABool)     //1 byte
+            .Save(UnicodeString) //4 bytes for string length + (length * 2) bytes
+                                 //for string data--UTF16-lowendian
+            .Save(AsciiString)   //4 bytes for ASCII string length + length bytes
+                                 //for string data
+            .Save(ObjBool)       //2 bytes for data type+2 bytes for variant bool
+            .Save(ObjString)     //2 bytes for data type+4 bytes for string length +
+                                 //(length * 2) bytes for string data --UTF16-lowendian
+            .Save(objArrString)  //2 bytes for data type+4 bytes for array size + (4 bytes
+                                 //for string length + (length * 2) bytes for string data) *
+                                 //arraysize --UTF16-lowendian
+            .Save(objArrInt)     //2 bytes for data type + 4 bytes for array size +
+                                 //arraysize * 4 bytes for int data
+            ;
+    }
+
+    @Override
+    public CUQueue LoadFrom(CUQueue UQueue) {
+        NullString = UQueue.LoadString();
+        ObjectNull = UQueue.LoadObject();
+        ADateTime = UQueue.LoadDate();
+        ADouble = UQueue.LoadDouble();
+        ABool = UQueue.LoadBoolean();
+        UnicodeString = UQueue.LoadString();
+        AsciiString = UQueue.LoadBytes();
+        ObjBool = UQueue.LoadObject();
+        ObjString = UQueue.LoadObject();
+        objArrString = UQueue.LoadObject();
+        objArrInt = UQueue.LoadObject();
+        return UQueue;
+    }
+}
+</pre>
+</td>
+<td>
+    <p>The structure <i>CMyStruct</i> at left code snippet 2 has a number of different types of members at line 5 through 15.
+    They are a unicode String (String NullString), an Object (Object ObjectNull), a datetime (java.util.Date ADateTime),
+    a double (double ADouble), a boolean (boolean ABool), a unicode String (String UnicodeString), an ASCII string (byte[] AsciiString),
+    an <i>ObjectBool</i>, an <i>ObjectString</i>, an <i>objArrayString</i> and an <i>objArrInt</i>. The last four members are Objects.
+    These members cover different basic types of data which are already supported by the utility class <i>CUQueue</i>.</p>
+    <p>However, SocketPro doesn't know how to pack the complex structure into a <i>CUQueue</i> buffer automatically. Also, it has no knowledge about unpacking it from a <i>CUQueue</i> buffer either.
+    With .NET development, it is required that you need to implement the interface IUserializer as shown at line 3 for the sample structure <i>CMyStruct</i>.
+    They are actually implemented at line 63 through 99.
+    </p>
+    <p><b>SaveTo</b>: We pack the structure's members into a <i>CUQueue</i> instance. Please use your debugger to step through each of the method Save at line 66 through 80.
+    You will see serializations are in agreement with comments.</p>
+    <p><b>LoadFrom</b>: We unpack a structure from an instance of <i>CUQueue</i>. Please use your debugger to step through each of the method Load at line 87 through 97.
+    After comparing with the previous packing, the unpacking is exactly a reverse of packing with the exact sequeuence.
+    As you can see, the two methods, <i>LoadFrom</i> and <i>SaveTo</i> are required by SocketPro adapter for Java development.
+    The structure is complex, but their implementation are not difficult at all.</p>
+    <p>By this time, you can imagine how to implement complex structure serialization and de-serialization within other development languages other than Java,
+    which leads to interoperability among different development environments.
+    SocketPro favors an enterprise application system developed from an avariety of development languages so that you can easily take advantage of each of their own adavantages, and avoid their flaws.</p>
+</td>
+</tr>
+</table>
+Code snippet 2: A complex structure definition and its servrialization/de-servrialization implementation
+<hr />
+<table style="width:100%;">
+<tr>
+<td style="width:25%;">
+<?prettify linenums=1?>
+<pre class="prettyprint">
+public class Program {
+
+    public static void main(String[] args) {
+        CMyStruct ms = CMyStruct.MakeOne();
+        try (SPA.CScopeUQueue sb = new SPA.CScopeUQueue()) {
+            sb.Save(ms);
+            System.out.println("Before loading size: " + sb.getUQueue().GetSize());
+            CMyStruct res = sb.Load(CMyStruct.class);
+            System.out.println("After loading size: " + sb.getUQueue().GetSize());
+            boolean equal = res.equals(ms);
+            System.out.println("equal: " + equal);
+        }
+    }
+}
+</pre>
+</td>
+<td>
+<p>The sample application is simple as you can see from the left code snippet 3. First, prepare a complex structure data <i>ms</i> at line 4.</p>
+<p>Next, create a <i>sb</i>, an instance of <i>CScopeUQueue</i> at line 5, which contains an instance of <i>CQueue</i> inside by calling the method <i>CScopeUQueue.Lock</i> silently.</p>
+<p>
+Next, we pack the structure into the variable <i>sb</i> at line 6.
+Next, we unpack a new structure <i>res</i> from the memory buffer <i>sb</i> at line 8.
+At the memment, you can use your debugger to make sure both structures <i>res</i> and <i>ms</i> are equal to each other.
+</p>
+<p>At end the instance of <i>CQueue</i> inside the variable <i>sb</i> will be released back into a memory pool for reuse by calling the method <i>CScopeUQueue.Unlock</i> silently, when the variable <i>sb</i> is disposed at line 12.</p>
+</td>
+</tr>
+</table>
+Code snippet 3: Demonstration of serialization and de-serialization of a complex structure
+<hr />
+</body>
+</html>

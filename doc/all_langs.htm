@@ -1,0 +1,234 @@
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="UTF-8">
+    <meta name="description" content="SocketPro memory buffer">
+    <meta name="keywords" content="C/C++, .NET, Java, Javascript, Nodejs, Python and PHP">
+    <title>CUQueue and Comaptibility among Different Development Languages</title>
+    <style>
+        ol {border-left: 20px solid white;}
+        table {border-left: 20px solid white;border-right: 10px solid white;}
+        table th, td {border:1px solid black;}
+        p {border-left: 20px solid white; }
+    </style>
+</head>
+<body>
+<h2 style="text-align: center;">CUQueue and Compatibility among Different Development Languages</h2>
+<hr />
+<h3>1.  Introduction</h3>
+<p>SocketPro development requires converting different types of data into an array of bytes at adapter level for all supported development languages.
+The conversion is not difficult at all, but it is considerably tedious.
+In order to ease SocketPro development, SocketPro provides a helper class <i>CUQueue</i> within each adapter of languages to efficiently pack various types of data compatibly into bytes.
+Later, you can effortlessly unpack requests or returned results in binary format back into original types of data compatibly at both server and client sides.</p>
+
+<h3>2.  Samples for C/C++, C/C++, .NET, Java, Nodejs, Python and PHP</h3>
+<p>See the following samples for each of development languages:</p>
+<ol>
+    <li><a href="cpp_buffer.htm" title="SocketPro Request Parameters Packing and Result Unpacking">C/C++</a></li>
+    <li><a href="cs_buffer.htm" title="SocketPro Request Parameters Packing and Result Unpacking">.NET</a></li>
+    <li><a href="java_buffer.htm" title="SocketPro Request Parameters Packing and Result Unpacking">Java</a></li>
+    <li><a href="py_buffer.htm" title="SocketPro Request Parameters Packing and Result Unpacking">Python</a></li>
+    <li><a href="js_buffer.htm" title="SocketPro Request Parameters Packing and Result Unpacking">Node.js</a></li>
+    <li>PHP</li>
+</ol>
+
+<h3>3.  Key design considerations on the utility class <i>CUQueue</i></h3>
+<p>The class <i>CUQueue</i> is designed with a set of key considerations:</p>
+<ol>
+    <li><i><b>Easy to use</b></i>: A software developer is never required to manage internal memory buffer directly.</li>
+    <li><i><b>Memory auto-management</b></i>: Whenever saving, pushing or inserting a data into an instance of the utility class <i>CUQueue</i>, it will automatically increase internal memory size if necessary.</li>
+    <li><i><b>High efficiency</b></i>: The class <i>CUQueue</i> is capable to reduce allocating and de-allocating memories as much as possible, which significantly improves application performance and memory page faults.</li>
+    <li><i><b>Great compatibility among different development languages such as Python, Java, Node.js, .NET, C/C++ and PHP</b></i>: Compatibility is guaranteed across different development languages and platforms.</li>
+</ol>
+<h3>4.  Compatibility among different development languages</h3>
+<p>SocketPro favors developments across different languages and platforms.
+For example, you can even develop a node.js client application which directly accesses Python codes without requiring any other middle components.
+To achieve compatibility, the class <i>CUQueue</i> is written in mind of compatibility among different development languages for a set of basic data types.
+Here is the table for compatibility among six major development languages, Python, Node.js, Java, C#, VB.NET, C/C++ and PHP.</p>
+<table style="width:100%;">
+<tr>
+<th rowspan="2">Data Type</th>
+<th>Size</th>
+<th rowspan="2">Java</th>
+<th rowspan="2">.NET</th>
+<th rowspan="2">C/C++</th>
+<th colspan="3">Script Languages</th>
+</tr>
+<tr>
+<th>(byte)</th>
+<th>Python</th>
+<th>Node.js</th>
+<th>PHP</th>
+</tr>
+<tr>
+<td>unsigned byte</td>
+<td>1</td>
+<td>byte</td>
+<td>byte</td>
+<td>unsigned char</td>
+<td colspan="3">Save/LoadByte</td>
+</tr>
+<tr>
+<td>signed byte</td>
+<td>1</td>
+<td>byte</td>
+<td>sbyte</td>
+<td>signed char</td>
+<td colspan="3">Save/LoadAChar</td>
+</tr>
+<tr>
+<td>bool</td>
+<td>1</td>
+<td>boolean</td>
+<td>bool</td>
+<td>bool</td>
+<td colspan="3">Save/LoadBool</td>
+</tr>
+<tr>
+<td>short</td>
+<td>2</td>
+<td>short</td>
+<td>short</td>
+<td>short</td>
+<td colspan="3">Save/LoadShort</td>
+</tr>
+<tr>
+<td>wide char</td>
+<td>2</td>
+<td>char</td>
+<td>char</td>
+<td>char16_t</td>
+<td colspan="3">Save/LoadChar</td>
+</tr>
+<tr>
+<td>unsigned short</td>
+<td>2</td>
+<td>short</td>
+<td>ushort</td>
+<td>unsigned short</td>
+<td colspan="3">Save/LoadUShort</td>
+</tr>
+<tr>
+<td>int</td>
+<td>4</td>
+<td>int</td>
+<td>int</td>
+<td>int</td>
+<td colspan="3">Save/LoadInt</td>
+</tr>
+<tr>
+<td>unsigned int</td>
+<td>4</td>
+<td>int</td>
+<td>uint</td>
+<td>unsigned int</td>
+<td colspan="3">Save/LoadUInt</td>
+</tr>
+<tr>
+<td>float</td>
+<td>4</td>
+<td>float</td>
+<td>float</td>
+<td>float</td>
+<td colspan="3">Save/LoadFloat</td>
+</tr>
+<tr>
+<td>double</td>
+<td>8</td>
+<td>double</td>
+<td>double</td>
+<td>double</td>
+<td colspan="3">Save/LoadDouble</td>
+</tr>
+<tr>
+<td>long long</td>
+<td>8</td>
+<td>long</td>
+<td>long</td>
+<td>long long</td>
+<td colspan="3">Save/LoadLong</td>
+</tr>
+<tr>
+<td>unsigned long long</td>
+<td>8</td>
+<td>long</td>
+<td>ulong</td>
+<td>unsigned long long</td>
+<td colspan="3">Save/LoadULong</td>
+</tr>
+<tr>
+<td>Date time*</td>
+<td>8</td>
+<td>java.util.Date/Timestamp</td>
+<td>DateTime</td>
+<td>UDateTime (unsigned long long)</td>
+<td colspan="3">Save/LoadDate</td>
+</tr>
+<tr>
+<td>decimal</td>
+<td>16</td>
+<td>java.math.BigDecimal</td>
+<td>decimal</td>
+<td>DECIMAL</td>
+<td colspan="3">Save/LoadDecimal</td>
+</tr>
+<tr>
+<td>GUID</td>
+<td>16</td>
+<td>java.util.UUID</td>
+<td>Guid</td>
+<td>GUID</td>
+<td colspan="3">Save/LoadUUID</td>
+</tr>
+<tr>
+<td>ASCII string**</td>
+<td></td>
+<td>byte[]</td>
+<td>byte[] or sbyte[]</td>
+<td>std::string & others</td>
+<td colspan="3">Save/LoadAString</td>
+</tr>
+<tr>
+<td>wide string**</td>
+<td></td>
+<td>String</td>
+<td>string</td>
+<td>std::u16string, std::wstring & others</td>
+<td colspan="3">Save/LoadString</td>
+</tr>
+<tr>
+<td>Object***</td>
+<td></td>
+<td>Object</td>
+<td>object</td>
+<td>CComVariant</td>
+<td colspan="3">Save/LoadObject</td>
+</tr>
+<tr>
+<td>Structure****</td>
+<td></td>
+<td>IUserializer</td>
+<td>IUserializer</td>
+<td><< & >> operators</td>
+<td colspan="3">Save/Load</td>
+</tr>
+</table>
+<p>*: SocketPro uses a unsigned long integer (8 bytes) to represent date time across different platforms and languages.
+Date time can be accurate to one microsecond.</p>
+<p>**: A null string length will be 0xffffffff for both ASCII and Unicode string. When a string is saved into an instance of <i>CUQueue</i>, an unsigned int for its length in bytes will be saved before its actual content is saved.
+In regards to an unicode string, its length will be equal to 2 * the number of characters. On Linux or unix platforms, a wide char string must be converted into UTF16 low-endian string at first if one wide char has four bytes.
+</p>
+<p>***: To pack an Object into an instance of <i>CUQueue</i>, it is a must to save a data type in unsigned short (2 bytes) before saving its actual type data.
+When unpacking an Object from an instance of <i>CUQueue</i>, we unpack the data type in unsigned short first before unpacking a data indicated by its data type.
+</p>
+<p>****: See the examples at the above Section 2.
+</p>
+<h3>5.  Use the class <i>CScopeUQueue</i> whenever proper</h3>
+<p>When sending a request or result to the other end, it always requires to create and destroy an instance of <i>CUQueue</i>, which leads to allocating and de-allocating memories.
+To reduce memory allocations, SocketPro adapters (C/C++, Java, .NET and Python) also provide a new utitility class <i>CScopeUQueue</i>. Under most cases, we use <i>CScopeUQueue</i> instead of <i>CUQueue</i>.
+When creating an instance of <i>CScopeUQueue</i>, it will automatically lock an instance of <i>CUQueue</i> from a <i>CUQueue</i> pool internally.
+Later, the internal <i>CUQueue</i> will be recycled into the <i>CUQueue</i> pool for reuse at the future when destroying or disposing the instance of <i>CScopeUQueue</i>.
+SocketPro adapters use this way to further reduce repeated memory allocation.
+</p>
+<hr />
+</body>
+</html>

@@ -1,0 +1,391 @@
+﻿<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="utf-8" />
+    <title>SocketPro Client Server Application Development</title>
+    <link rel="stylesheet" type="text/css" href="codepretty/sons-of-obsidian.css">
+    <script type="text/javascript" src="codepretty/prettify.js"></script>
+</head>
+<body onload="PR.prettyPrint()">
+<h1 style="text-align: center;">SocketPro client server application development</h1>
+<p>
+This is our second example for developing a client server application with SocketPro.
+Its original project could be found at the directory ../socketpro/tutorials/csharp/hello_world/client.
+Because the sample involves echoing a complex struture between client and server,
+you may need to refer to <a title="SocketPro Request Parameters Packing and Result Unpacking" href="cs_buffer.htm">the first sample</a>.
+In addition, we need the pre-distributed server application <a href="get_started.htm" title="Get Started With SocketPro">all_servers</a> for testing.
+</p>
+<hr />
+<table style="width:100%;">
+<tr>
+<td style="width:30%;">
+<?prettify linenums=1?>
+<pre class="prettyprint">
+using System;
+using SocketProAdapter.ClientSide;
+using Task = System.Threading.Tasks.Task&lt;SocketProAdapter.CScopeUQueue&gt;;
+class Program
+{
+static void Main(string[] args)
+{
+    CConnectionContext cc = new CConnectionContext("localhost",
+            20901, "hwClientUserId", "password4hwClient");
+    using (CSocketPool&lt;HelloWorld&gt; spHw = new CSocketPool&lt;HelloWorld&gt;())
+    {
+        //optionally start a persistent queue at client side to
+        //ensure auto failure recovery and once-only delivery
+        //spHw.QueueName = "helloworld";
+        CMyStruct ms, msOrig = CMyStruct.MakeOne();
+        if (spHw.StartSocketPool(cc, 1))
+        {
+            HelloWorld hw = spHw.Seek();
+            try
+            {
+                //process requests one by one synchronously
+                Task t0 = hw.sendRequest(hwConst.idSayHelloHelloWorld, "John", "Dole");
+                Console.WriteLine(t0.Result.Load&lt;string&gt;());
+                Task t1 = hw.sendRequest(hwConst.idSleepHelloWorld, (int)4000);
+                //Console.WriteLine(t1.Result.Load&lt;string&gt;()); //Exception
+                Console.WriteLine("Returned buffer size should be " +
+                    t1.Result.UQueue.Size + " because server returns nothing");
+                Task t2 = hw.sendRequest(hwConst.idEchoHelloWorld, msOrig);
+                ms = t2.Result.Load&lt;CMyStruct&gt;();
+
+                //All requests streamed with in-line batch for the best network efficiency
+                Task t0 = hw.sendRequest(hwConst.idSayHelloHelloWorld, "John", "Dole");
+                Task t1 = hw.sendRequest(hwConst.idSleepHelloWorld, (int)4000);
+                Task t2 = hw.sendRequest(hwConst.idEchoHelloWorld, msOrig);
+                Task t3 = hw.sendRequest(hwConst.idSayHelloHelloWorld, "Jack", "Smith");
+                Task t4 = hw.sendRequest(hwConst.idSayHelloHelloWorld, "Donald", "Trump");
+                Task t5 = hw.sendRequest(hwConst.idSleepHelloWorld, (int)15000);
+                Task t6 = hw.sendRequest(hwConst.idSayHelloHelloWorld, "Hillary", "Clinton");
+                Task t7 = hw.sendRequest(hwConst.idEchoHelloWorld, msOrig);
+                //hw.Socket.Cancel();
+                Console.WriteLine(t0.Result.Load&lt;string&gt;());
+                Console.WriteLine("Returned buffer size should be " +
+                    t1.Result.UQueue.Size + " because server returns nothing");
+                ms = t2.Result.Load&lt;CMyStruct&gt;();
+                Console.WriteLine(t3.Result.Load&lt;string&gt;());
+                Console.WriteLine(t4.Result.Load&lt;string&gt;());
+                Console.WriteLine("Returned buffer size should be " +
+                    t5.Result.UQueue.Size + " because server returns nothing");
+                Console.WriteLine(t6.Result.Load&lt;string&gt;());
+                ms = t7.Result.Load&lt;CMyStruct&gt;();
+            }
+            catch (AggregateException ex)
+            {
+                foreach (Exception e in ex.InnerExceptions)
+                {
+                    //An exception from server (CServerError), Socket closed
+                    //after sending a request (CSocketError) or canceled (CSocketError),
+                    Console.WriteLine(e);
+                }
+            }
+            catch (CSocketError ex)
+            {
+                //Socket is already closed before sending a request
+                Console.WriteLine(ex);
+            }
+            catch (Exception ex)
+            {
+                //bad operations such as invalid arguments,
+                //bad operations and de-serialization errors, and so on
+                Console.WriteLine(ex);
+            }
+        }
+        else
+        {
+            Console.WriteLine("No connection to server with error message: " +
+                spHw.Sockets[0].ErrorMsg);
+        }
+        Console.WriteLine("Press ENTER key to kill the demo ......");
+        Console.ReadLine();
+    }
+}
+}
+</pre>
+</td>
+<td>
+    <h3>Key points from top to bottom for code snippet 1:</h3>
+    <ul>
+        <li>
+        Three fake synchronous requests:
+        <hr />
+        <ol>
+            <li>Start a pool of sockets at line 16, which has one thread hosting one non-blocking socket for communication between client and server.
+            In reality, one worker thread is enough under most cases, but you may like to use multiple sockets per thread for processing at server side with better concurency.
+            We use one socket here for this demo sample. By default, the pool of sockets can be auto reconnected if servers shut down and restart.</li>
+            <li>Find an async handler from the above pool spHw at line 18. SocketPro perfers sharing a pool of connected sockets from your different threads.
+            As you can see from here, you need to find one of sockets from the pool at run time, which should have least requests queued. You can step into the method within your debugger.
+            Also, it is noted that the method Seek is thread-safe. Keep in mind that SocketPro favors sharing a session among your multiple threads!</li>
+            <li>Prepare a complex structure at line 15 for coming tests as explained at the <a title="SocketPro Request Parameters Packing and Result Unpacking" href="cs_buffer.htm">previous example</a>. This sample method ensures that you are confident to use SocketPro for transferrig any complex structures between client and server.</li>
+            <li>Send a request <i>sendRequest</i> identified by an unique request id (idSayHelloHelloWorld) at line 22, which immediately returns a <i>Task</i> as defined at line 3 for a string from server.
+            The method <i>sendRequest</i> is a generic function which packs the two strings ("John" and "Dole") into a buffer, and afterwards send the buffer to a connected server for processing.
+            We use the <i>Task</i> property <i>Result</i> to wait until the server returns a string at line 23.</li>
+            <li>Next, we send a new request <i>sleep</i> (idSleepHelloWorld) by calling an another generic function <i>sendRequest</i> at line 24, and immediately wait until the server returns by calling the <i>Task</i> property <i>Result</i> at line 26.
+            Here, the second input is an int value for a delay time at server side.</li>
+            <li>Again, we echo a <a title="SocketPro Request Parameters Packing and Result Unpacking" href="cs_buffer.htm">complicated structure</a> (msOrig) from client to server at line 27, and wait by a returned <i>Task</i> property <i>Result</i> until the server returns the structure back to the client.
+            It involves both packing and unpacking the structure at both client and server sides</li>
+        </ol>
+        <p>
+        Each of the above three requests requires one network round trip. Therefore, there are three round-trips required. By default, all SocketPro requests are asynchronous.
+        We could use the <i>Task</i> property <i>Result</i> to convert an asynchrouos request into a synchrouos one easily.
+        However, SocketPro is designed to support streaming calls asynchrouosly with in-line batching for the best network efficiency.
+        We recommend the following approach, if it is proper and there are two or more requests involved.</p>
+        </li>
+        <li>
+        Stream multiple requests with in-line batching for the best network efficiency by reducing the number of network round trips:
+        <hr />
+        <ol>
+            <li>We could send eight requests from line 31 through 38, and get eight <i>Task</i>s returned (f0, f1, f2, ......, and f7) back.
+            The eight calls are extremely fast because they are not waiting for server returning results at all. Further,
+            SocketPro at <a href="get_started.htm" title="Get Started With SocketPro">client core</a> library (usocket) will batch eight request buffers internally for you, and send them with as fewer packets as possible at the run time for the best network efficiency.</li>
+            <li>Beginning at line 40, we call the <i>Task</i> property <i>Result</i> eight times for the eight expected results from server from line 40 through 49.
+            Similarly, SocketPro <a href="get_started.htm" title="Get Started With SocketPro">server core</a> library (uservercore) will silently do in-line batching returning results on the fly and reduce the network packets as many as possible at server side too.</li>
+        </ol>
+        <p>This simple sample just demos streaming eight requests. In fact, you can stream many requests as you want, just like client requests and server results water flows in circuit endlessly and concuurently.
+        Although we stream many requests as you like, all results are returned from server always in sequence (first-request-first-returned).</p>
+        <p>
+        Imagine you need to send many SQL requests from a client at New York to a server at Los Angeles for processing with one socket connection.
+        Saving network round trips could significantly speed up your application if your application performance is dominated by network.</p>
+        </li>
+        <li>Deal with errors at client side within SocketPro:
+        <hr />
+        A client application may catch one of the following four errors at line 51 through 70.
+        <ol>
+        <li><i>SocketProAdapter.CServerError</i>: Server side throws an exception, and the client catch it.
+            The exception contains an error code, an error message, code location where the exception happens at server side, and a request id.</li>
+        <li><i>SocketProAdapter.ClientSide.CSocketError</i>: A communication error happening at client side. The exception contains an error code, an error message and a request id.
+        Besides, the exception contains a boolean member before. If it is true, SocketPro finds that communication channel is already closed before sending the request.
+        Otherwise, the exception is caught becase either communication channel is closed or canceled after sending the request.
+        </li>
+        <li><i>Exception</i>: This exception happens because of programming errors. Examples are bad data de-serialization/serialization, invalid arguments, and so on.
+        </li>
+        </ol>
+        </li>
+     </ul>
+    </td>
+</tr>
+</table>
+<h4>Code snippet 1: Hello world -- a client-server example with Tasks and streaming requests</h4>
+<hr />
+Now, let's dig into the method <i>sendRequest</i> which is located inside the class <i>CAsyncServiceHandler</i> at the file ../socketpro/src/SproAdapter/asynchandler.cs.
+<table style="width:100%;">
+<tr>
+    <td style="width:30%;">
+<?prettify linenums=1?>
+<pre class="prettyprint">
+public Task&lt;CScopeUQueue&gt; sendRequest(ushort reqId, byte[] data, uint len)
+{
+    //use threadless task only
+    TaskCompletionSource&lt;CScopeUQueue&gt; tcs = new TaskCompletionSource&lt;CScopeUQueue&gt;();
+    if (!SendRequest(reqId, data, len, (ar) =>
+    {
+        CScopeUQueue sb = new CScopeUQueue();
+        sb.UQueue.Swap(ar.UQueue);
+        tcs.TrySetResult(sb);
+    }, get_aborted(tcs, reqId), get_se(tcs)))
+    {
+        raise(reqId);
+    }
+    return tcs.Task;
+}
+</pre>
+    </td>
+    <td>
+    <h3>Key points are SendRequest and three callback for generic function <i>sendRequest</i> within code snippet 2:</h3>
+    <ol>
+    <li>First of all, start a <i>TaskCompletionSource</i> at line 4.</li>
+    <li>
+    Three callbacks or delgates, <i>DDiscarded</i>, <i>DOnServerException</i> and <i>DAsyncResultHandler</i>, are created from a calling thread, but they are ALWAYS raised from a pool worker thread.
+    First, we could use a static method <i>get_aborted</i>, as shown at the below code snippet 3, to create DDiscarded callback.
+    It will be used to monitor either request <i>cancel</i> or communication channel close event.
+    Next, we use a static method get_se to create a DServerException callback, as shown at the following code snippet 4, for tracking an exception from server side.
+    Third, we create a inline callback or lambda expression to monitor a server result at line 5 through 10. When a server result comes, it will be stored within the variable <i>ar</i>.
+    Inside the callback, initialize an instance of <i>CScopeUQueue</i> at line 7, and move server result from <i>ar.UQueue</i> into <i>sb.UQueue</i> without copying at line 8 before setting result into <i>tcs</i> at line 9
+    </li>
+    <li>
+    After preparing the above three callbacks, we call a new method <i>SendRequest</i> with an array of bytes (data, len) at line 5.
+    In case the call fails because a session is already closed, we could throw a <i>SocketProAdapter.ClientSide.CSocketError</i> exception by calling the method <i>raise</i> at line 12.
+    </li>
+    <li>At last, return a <i>Task</i> at line 14 if the method <i>SendRequest</i> returns successfully. A caller cannot see an instance of <i>TaskCompletionSource</i> from outside, but a <i>Task</i> just for returning result or exception.</li>
+    </ol>
+    </td>
+</tr>
+</table>
+<h4>Code snippet 2: Generic function <i>sendRequest</i> implementation</h4>
+<hr />
+<table style="width:100%;">
+    <tr>
+        <td style="width:30%;">
+<?prettify linenums=1?>
+<pre class="prettyprint">
+public static DDiscarded get_aborted&lt;R&gt;(TaskCompletionSource&lt;R&gt; tcs, ushort req_id)
+{
+    if (req_id == 0)
+    {
+        throw new ArgumentException("Request id cannot be zero");
+    }
+    DDiscarded aborted = (h, canceled) =>
+    {
+        if (canceled)
+        {
+            tcs.TrySetException(new CSocketError(REQUEST_CANCELED, "Request canceled",
+                req_id, false));
+        }
+        else
+        {
+            CClientSocket cs = h.Socket;
+            int ec = cs.ErrorCode;
+            if (ec != 0)
+            {
+                string em = cs.ErrorMsg;
+                tcs.TrySetException(new CSocketError(ec, em, req_id, false));
+            }
+            else
+            {
+                tcs.TrySetException(new CSocketError(SESSION_CLOSED_AFTER,
+                    "Session closed after sending the request", req_id, false));
+            }
+        }
+    };
+    return aborted;
+}
+</pre>
+        </td>
+        <td>
+        The left code snippet 3 shows how to generate a DDiscarded callback.
+        As its name implies, it is designed for monitoring two events, request canceled and session closed events.
+        <ol>
+            <li>
+                SocketPro has a feature named as Cancel. Calling it will leads to request cancel exception.
+                You can test the feature by uncommenting line 39 within the above code snippet 1. Doing so will lead to execute the code at lines 15 and 16.
+            </li>
+            <li>
+                We use the code line 18 through 27 to set a CSocketError exception.
+                First, if session is not closed gracefully (ec != 0), we use socket system error message at lines 20 and 21.
+                Otherwise, we construct an error message with a given request name at lines 25 and 26.
+            </li>
+            <li>
+                It is noted that the two events ALWAYS happens with a pool worker thread.
+                Also, it always happens after sending a request.
+                Therefore, the last input parameter will be false when initializing an instance of CSocketError, as shown at lines 12, 21 and 26.
+            </li>
+            <li>The method returns a lambda expression at line 30.</li>
+        </ol>
+        </td>
+    </tr>
+</table>
+<h4>Code snippet 3: Generate a DDiscarded callback for tracking request cancel and communication close events</h4>
+<hr />
+<table style="width:100%;">
+    <tr>
+        <td style="width:30%;">
+<?prettify linenums=1?>
+<pre class="prettyprint">
+public static DOnExceptionFromServer get_se&lt;R&gt;(TaskCompletionSource&lt;R&gt; tcs)
+{
+    DOnExceptionFromServer se = (sender, rid, errMessage, errWhere, errCode) =>
+    {
+        tcs.TrySetException(new CServerError(errCode, errMessage, errWhere, rid));
+    };
+    return se;
+}
+</pre>
+        </td>
+        <td>
+        <p>The left code snippet is very simple. It returns a lambda expression at line 7.
+        Further, it constructs an instance of CServerError and sets it to <i>tcs</i> at line 5.</p>
+        <p>It is noted that the callback is always called from a pool worker thread.
+        Its error information originates from server side, which includes error code, error message, server implementation file location where an exception raises, and request id.</p>
+        </td>
+    </tr>
+</table>
+<h4>Code snippet 4: Generate a DOnExceptionFromServer callback for tracking an exception from a remote SocketPro server</h4>
+<hr />
+<table style="width:100%;">
+    <tr>
+        <td style="width:30%;">
+<?prettify linenums=1?>
+<pre class="prettyprint">
+public void raise(ushort req_id)
+{
+    if (req_id == 0)
+    {
+        throw new ArgumentException("Request id cannot be zero");
+    }
+    CClientSocket cs = Socket;
+    int ec = cs.ErrorCode;
+    if (ec != 0)
+    {
+        string em = cs.ErrorMsg;
+        throw new CSocketError(ec, em, req_id, true);
+    }
+    else
+    {
+        throw new CSocketError(SESSION_CLOSED_BEFORE,
+            "Session already closed before sending the request", req_id, true);
+    }
+}
+</pre>
+        </td>
+        <td>
+        <p>Under many cases, a session is already closed before sending a request. The left code snippet 5 shows the implementation of the method <i>raise</i>.
+        If it is this situation, we call the left method <i>raise</i> to throw an exception immediately as shown at line 12 in the above code snippet 2.</p>
+        <p>
+        Again, we need to check if a session is closed gracefully. If it does, we use the code lines 16 and 17 to throw it directly as it happens from a calling thread.
+        If a session is not closed gracefully (ec != 0), we use socket system error message instead at lines 11 and 12.</p>
+        <p>
+        It is noted that the exception indicates session is already closed before sending a request. Therefore, the last input parameter is true as shown at lines 12 and 17.</p>
+        </td>
+    </tr>
+</table>
+<h4>Code snippet 5: Throw an exception from calling thread when finding a communication channel is aready closed</h4>
+<hr />
+<h4>SendRequest vs send within CAsyncServiceHandler</h4>
+<p>SocketPro .NET adapter comes the two methods to send any types of requests from a client to server for asynchronous processing in streaming style.
+The fist one <i>SendRequest</i> is the basis for the other method <i>sendRequest</i>. The method <i>sendRequest</i> always calls the basis method <i>SendRequest</i> inside.
+To use the method <i>SendRequest</i>, you may have to provide its required three callbacks with more coding as shown at the above code snippet 2.
+The second method <i>sendRequest</i> has already wrapped the three required callbacks so that you can use .NET modern try-catch style and less code to deal with returned results and errors easily.
+This abstraction has a little price in performance, and reduces coding flexibility under some situations. The basis method <i>SendRequest</i> delivers better speed plus better flexibility.
+Therefore, it is not surprised that we use the basis method <i>SendRequest</i> directly under some situations.
+</p>
+<p>In regards to the method <i>sendRequest</i>, the method always returns a task immediately without any blocking as shown at this example. You can easily use .NET async and await features.
+Keep in mind that all SocketPro adapters well support on modern language development features such as anonymous function, closure, Lambda expression, async/await, future, promise, yield and so on.
+</p>
+<p>In addition to the base handler class <i>CAsyncServiceHandler</i>, SocketPro .NET adapter comes with other handler classes derived from this base handler class.
+These sub-class handlers have their own requests defined at client side. All of their requests have two sets of functions exactly like <i>SendRequest</i> and <i>sendRequest</i> here.
+</p>
+<hr />
+We are going to test the above three types of exceptions, <i>CServerError</i>, <i>CSocketError</i> and <i>Exceptions</i>.
+<ol>
+<li>
+    <i>CServerError</i> exception: Go back to the line 22 of the above code snippet 1, modify the second input to an empty string, and compile the code, you will see an exception from server after running the application against pre_compiled application <a href="get_started.htm" title="Get Started With SocketPro">all_servers</a> inside the sub-directory ../socketpro/bin/win/x64 or x86 for windows, or ../socketpro/bin/linux.
+    Alternatively, you can get an server exception by setting the second input int to a negative value at line 24.
+</li>
+<li>
+    <i>CSocketError</i> exception: Run the application against the sample server application all_servers to get the first return result like "Hello John Dole!". You can get such an exception after brutally shutting down <a href="get_started.htm" title="Get Started With SocketPro">all_servers</a>.
+    Alternatively, you can get such an exception by uncommenting the line 40.
+</li>
+<li>
+    <i>Exception</i> exception: Use the code at line 25 to replace the normal code at lines 26 and 27. The replacement will lead to de-serilization exception <i>Exception</i> at client side because the request <i>idSleepHelloWold</i> returns nothing.
+</li>
+</ol>
+<hr />
+<p>At last, we like to talk about client message queue. When developing real enterprise applications, we have to consider application fault tolerance and auto recovery.
+SocketPro has a built-in feature implemented with such a client message queue. A client message queue is a local file.
+When sending requests, SocketPro will automatically backup these requests into the local file. In case a remote server is down or not accessible because of any types of reasons, SocketPro is capable to re-sent these requests from the client queue file automatically when the remote server is restarted.
+It is noted that a client session is associated with one client message queue only.</p>
+<p>Let's test the client queue feature. Go back to the previous code snippet 1 and uncomment the code at line 14.
+After compiling and running the application, brutally shut down its server application <a href="get_started.htm" title="Get Started With SocketPro">all_servers</a> before the application is completed.
+You will find the client application stops and there is no <i>CSocketError</i> exception as previous tests.
+However, the client application will continue if we re-run the server application <a href="get_started.htm" title="Get Started With SocketPro">all_servers</a>. It is noted that there will be no missing results.
+Although a socket is closed, SocketPro thinks that a session is still connected if a client message queue is associated.
+Briefly speaking, when a server is restarted, the client socket will be automatically reconnected to server, and keep on sending requests from the associated client queue file.</p>
+Client message queue prevents client requests from losing, improves apllication's fault-tolerance, and make server application maintenance easier and even your development simpler because it enables failures auto-recovery and reduces many errors.
+<hr />
+Summarily, SocketPro is a full asynchronus communication framework. Its requests streaming feature is such a powerful feature to help high performance distributed application development in no time. As a developer, keep in mind that streaming requests are truly preferred whenever possible and if you have multiple requests at client side.
+As we echo a complex structure in this sample, it is just a simple task to develop a client server application. SocketPro requests are asynchronous by default, but it is truly simple to convert them into synchronous ones. In addition, SocketPro is capable to back up requests automatically by client message queue for failures auto-recovery, and reduces many tough issues.
+<hr />
+</body>
+</html>

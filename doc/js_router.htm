@@ -1,0 +1,125 @@
+﻿<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="utf-8" />
+    <title>SocketPro Server Routing Communication Pattern and Microservices</title>
+    <link rel="stylesheet" type="text/css" href="codepretty/sons-of-obsidian.css">
+    <script type="text/javascript" src="codepretty/prettify.js"></script>
+</head>
+<body onload="PR.prettyPrint()">
+<h1 style="text-align: center;">SocketPro Server Routing Communication Pattern and Microservices</h1>
+<hr />
+<p>SocketPro secured asynchronous communication framework is written from scratch with continuous in-line request/result batching, real-time stream sending/processing, asynchronous data transferring and parallel computation in mind.
+So far We have introduced a set of short articles with sample projects to demonstrated tradition <a href="js_hw.htm" title="SocketPro Client Server Application Development">client/server communication pattern</a> and
+<a title="SocketPro Secure Communication and Publish/Subscribe Messaging" href="js_push.htm">subscribe/publish messaging</a> with secure communication.
+The two demo projects are created for desktop or middle server applications development.
+Next, <a href="cpp_web.htm" title="SocketPro WebSocket for Client/server and Subscribe/publish Messaging on Browsers">C/C++</a>, <a href="java_web.htm" title="SocketPro WebSocket for Client/server and Subscribe/publish Messaging on Browsers">Java</a>, <a href="cs_web.htm" title="SocketPro WebSocket for Client/server and Subscribe/publish Messaging on Browsers">.NET</a>, and <a href="py_web.htm" title="SocketPro WebSocket for Client/server and Subscribe/publish Messaging on Browsers">Python</a> examples are created to show you that SocketPro also supports both client/server and subscribe/publish messaging patterns on web browsers with help of websocket.</p>
+
+<p>In additon to the two communication patterns, SocketPro have built-in message queues implemented for both client and server sides.
+Its <a href="js_hw.htm" title="SocketPro Client Server Application Development">client message queue</a> can be easily used for fail auto-recovery to improve enterprise application fault-tolerance, reliability and maintenance as well as middle tier availability.
+Its server queue, as shown at <a href="js_serverqueue.htm" title="SocketPro Server Persistent Message Queue">this artcle</a>, supports that producers and consumers interact at the different time with asynchronous communication pattern.
+As shown in <a href="js_serverqueue.htm" title="SocketPro Server Persistent Message Queue">the sample project</a>, messages will NEVER be lost if client queue is enabled at producer side.
+</p>
+
+<p>SocketPro server is also capable to function like a router which is about to be demonstrated with this article. Requests from a number of clients can be sent to a SocketPro server, which acts like a router and routes all of these requests onto a new array of clients for processing.
+When these original requests are processed and their corresponding results are sent back to the SocketPro server, the server will correctly route these results back to their original clients as expected. In fact, the server can be considered to be a load balancer too.
+</p>
+<hr />
+<table style="width:100%;">
+<tr>
+<td style="width:25%;">
+<?prettify linenums=1?>
+<pre class="prettyprint">
+'use strict';
+
+//loading SocketPro adapter (nja.js + njadapter.node) for nodejs
+var SPA = require('nja.js');
+
+const sidPi = SPA.SID.sidReserved + 5;
+const idComputePi = SPA.BaseID.idReservedTwo + 1;
+
+var cs = SPA.CS; //CS == Client side
+
+var p = cs.newPool(sidPi);
+global.p = p;
+
+p.QueueName = 'lbqname';
+
+if (!p.Start(cs.newCC('localhost', 20901, 'lb_client', 'pwd_lb_client'), 1)) {
+    console.log(p.Error);
+    return;
+}
+var pi = p.SeekByQueue();
+
+(async () => {
+    const nDivision = 1000, nNum = 10000000;
+    var dStep = 1.0 / nNum / nDivision, dPi = 0.0;
+    var sb = SPA.newBuffer();
+    var vP = [];
+    for (var n = 0; n < nDivision; ++n) {
+        var dStart = 1.0 * n / nDivision;
+        vP.push(pi.sendRequest(idComputePi, sb.SaveDouble(dStart).SaveDouble(dStep).SaveInt(nNum)));
+    }
+    for (var n = 0; n < vP.length; ++n) {
+        var buff = await vP[n];
+        var res = buff.LoadDouble(), dStart = buff.LoadDouble();
+        dPi += res;
+        console.log('dStart: ' + dStart + ', res: ' + res + ', pi: ' + dPi);
+    }
+    console.log('Final pi: ' + dPi);
+})();
+/*
+(async () => {
+    var index = 0;
+    const nDivision = 1000, nNum = 10000000;
+    var dStep = 1.0 / nNum / nDivision, dPi = 0.0;
+    var sb = SPA.newBuffer();
+    for (var n = 0; n < nDivision; ++n) {
+        var dStart = 1.0 * n / nDivision;
+        pi.SendRequest(idComputePi, sb.SaveDouble(dStart).SaveDouble(dStep).SaveInt(nNum), (buff, reqId) => {
+            var res = buff.LoadDouble();
+            dPi += res;
+            console.log('dStart: ' + buff.LoadDouble() + ', res: ' + res + ', pi: ' + dPi);
+            ++index;
+            if (index == nDivision) console.log('Final pi: ' + dPi);
+        });
+    }
+})();
+*/
+</pre>
+</td>
+<td>
+<p>First of all, the left code snippet comes from the file ../socketpro/tutorials/nodejs/lb_client.js.</p>
+<hr />
+<p>We are going to compute the value of π using the numerical integration below. </p>
+<img src="images/pi_value.jpg" alt="" />
+<br />
+Figure 1: Compute π value by use of numerical integration
+<p>We can use trapezoidal integration to solve the integral. The basic idea is to fill the area under a curve with a series of tiny
+rectangles. As the width of a rectangle approaches 0, the sum of the areas of these rectangles approaches the real value of π. To
+accurately achieve the value, we must divide the integral area with rectangles as small as possible. Therefore, we are
+going to divide the whole integration into a set of sections and send them onto different working machines (clients/workers) with a
+SocketPro server as a router. These workers actually finish CPU-extensive numerical integration in parallel. The sending
+machine (client) will collect the integral values of these sections from these workers, and then add them to get the π value.</p>
+<p>We are going to ignore trivial lines of codes within the left code snippet 1. First, look at the code line 14.
+We enable client queue to improve fault tolerance due to any errors related with router (or SocketPro server) or workers.
+At code line 20, we get a π handler <i>pi</i> by calling the method <i>SeekByQueue</i>.</p>
+<p>Next, we divide the whole integration into 1000 divisions, and each of these divisions will again be divided at worker sides into 10,000,000 tiny parts as shown at line 23.
+Next, we send 1000 requests onto a remote server as shown at line 29, and put 1000 promises into a list <i>vP</i>.</p>
+<p>At end, we collect all expected results and sum them together at line 34. As you can see, the code does not seem complex at all at client side.</p>
+<p>Instead of the method <i>sendRequest</i> at line 29 for promises,
+you can use the method <i>SendRequest</i> with a lambda expression callback for its last input at line 47. Both implementations will get the same π value correctly.</p>
+</td>
+</tr>
+</table>
+Code snippet 1: A client demo sample for computing π value with numerical integration.
+<hr />
+<h2>Fault-tolerance and auto-recovery tests</h2>
+<p>After running this node.js script against the <a href="get_started.htm" title="Get Started With SocketPro">all_servers</a> and one of <a href="cpp_router.htm" title="SocketPro Server Routing Communication Pattern and Microservices">C/C++</a>, <a href="java_router.htm" title="SocketPro Server Routing Communication Pattern and Microservices">Java</a>, <a href="cs_router.htm" title="SocketPro Server Routing Communication Pattern and Microservices">.NET</a> and <a href="py_router.htm" title="SocketPro Server Routing Communication Pattern and Microservices">Python</a> load balancing workers,
+You will find that expected results come from workers with somewhat randomness, but the final π value is correct as expected.
+Further, we can use the code at line 33 or 50 of the above code snippet 1 to sort these results with an index <i>dStart</i> and remove the randomness. The randomness is caused by worker side parallel computation without any guarantee of sequencing.</p>
+<p>During computation, you can brutally kill and restart the server <a href="get_started.htm" title="Get Started With SocketPro">all_servers</a>, load balancing worker or both repeatedly.
+You will find the final π value is still correct. By this time, you can see SocketPro client message queue is a key fetaure to fault-tolerance and auto-recovery!</p>
+<hr />
+</body>
+</html>

@@ -1,0 +1,215 @@
+﻿<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="utf-8" />
+    <title>SocketPro Request Parameters Packing and Result Unpacking</title>
+    <link rel="stylesheet" type="text/css" href="codepretty/sons-of-obsidian.css">
+    <script type="text/javascript" src="codepretty/prettify.js"></script>
+</head>
+<body onload="PR.prettyPrint()">
+<h1>SocketPro Request Parameters Packing and Result Unpacking</h1>
+<p>This is the first example to explain SocketPro utility classes, <i>SocketProAdapter.CUQueue</i> and <i>SocketProAdapter.CScopeUQueue</i>, for data serialization and de-serialization.
+It is recommended for you to have a glance at <a href="all_langs.htm" title="CUQueue and Comaptibility among Different Development Languages">this article</a> before reading this article.
+This sample project is located at the directory ../socketpro/tutorials/csharp/uqueue_demo. Also, make sure that you have already distributed client core library usocket into system directory as discribed at <a href="get_started.htm" title="Get Started With SocketPro">this short article</a>.</p>
+<p>It is focused on serializing and de-serializing a complex structure. The sample code will be used by successive examples.</p>
+<table style="width:100%;">
+<tr>
+<td style="width:30%;">
+<?prettify linenums=1?>
+<pre class="prettyprint">
+//see them at file ../socketpro/src/SproAdapter/clientinterop.cs
+[DllImport(CLIENT_CORE_DLL)]
+[return: MarshalAs(UnmanagedType.I1)]
+internal static unsafe extern byte SendRequest(IntPtr h, ushort reqId, byte* buffer, uint len);
+
+[DllImport(CLIENT_CORE_DLL)]
+internal static extern IntPtr GetResultBuffer(IntPtr h);
+
+//see it at file ../socketpro/src/SproAdapter/asynchandler.cs
+public bool SendRequest&lt;T0, T1&gt;(ushort reqId, T0 t0, T1 t1, DAsyncResultHandler ash) {
+    CUQueue su = CScopeUQueue.Lock();
+    su.Save(t0).Save(t1);
+    bool ok = SendRequest(reqId, su, ash);
+    CScopeUQueue.Unlock(su);
+    return ok;
+}
+
+//../socketpro/src/SproAdapter/uqueue.cs
+public interface IUSerializer {
+    void LoadFrom(CUQueue UQueue);
+    void SaveTo(CUQueue UQueue);
+}
+</pre>
+</td>
+<td>
+<p>
+SocketPro client core library exports one function SendRequest at line 4 of the left code snippet 1.
+Basically, it sends an array of bytes (buffer, len) for each request (reqId) to a connected server for processing through a socket (h).
+When a result comes from the server, we could use the function at line 7 to get an array of bytes back, and unpack the array bytes into expected data.
+Therefore, SocketPro is required to provide a utility class for packing request input parameters and unpacking results from server returning bytes.
+The class is named as <i>CUQueue</i> at file ../socketpro/src/SproAdapter/uqueue.cs.
+</p>
+<p>
+Let's look a sample generic function at line 10 through 16 from the file ../socketpro/src/SproAdapter/asynchandler.cs, but ignore the callback <i>ash</i> at the moment.
+First, we get an instance <i>su</i> of <i>CScopeUQueue</i> at line 11 from a memory pool silently through the static method <i>CScopeUQueue.Lock</i>.
+Next, we pack the two inputs <i>t0</i> and <i>t1</i>. After packing them, we call the method <i>SendRequest</i> to send an array of bytes inside the variable <i>su</i> onto a remote server for processing.
+At end, the method returns after unlocking the instance <i>su</i> at line 14 and putting it back into a memory pool for reuse in the future.
+</p>
+<p>
+The class <i>CUQueue</i> is already implemented for serializing and de-serializing primitive data (byte, sbyte, short, int, float, double and so on),
+<i>DateTime</i>, common strings (string and ASCII string by byte array) and object for dotnet.
+However, <i>CUQueue</i> doesn't know how to deal with a complex structure data. Therefore, you must implement the pre-defined interface IUSerializer as shown at line 19 through 20. The sample is just designed to guide you for this purpose.
+</p>
+<p>
+This sample structure is complex. Please use your debugger and step through codes for details.
+Once you know how <i>CScopeUQueue</i> and <i>CUQueue</i> work, you can understand SocketPro's interoperability among different development languages.
+</p>
+</td>
+</tr>
+</table>
+Code snippet 1: A sample for packing request parameters into an array of bytes at client side before sending the array onto a remote server
+<hr />
+<table style="width:100%;">
+<tr>
+<td style="width:30%;">
+<?prettify linenums=1?>
+<pre class="prettyprint">
+using System;
+using SocketProAdapter;
+
+public class CMyStruct : IUSerializer {
+    string NullString = null;
+    object ObjectNull = null;
+    DateTime ADateTime = DateTime.Now;
+    public double ADouble;
+    public bool ABool;
+    public string UnicodeString;
+    public byte[] AsciiString;
+    public object ObjBool = true;
+    public object ObjString;
+    public object objArrString;
+    public object objArrInt;
+
+    public static CMyStruct MakeOne()
+    {
+        CMyStruct msOriginal = new CMyStruct();
+        int[] arrInt = { 1, 76890 };
+        msOriginal.objArrInt = arrInt;
+        string[] arrString = { "Hello", "world" };
+        msOriginal.objArrString = arrString;
+        msOriginal.ObjBool = true;
+        msOriginal.ObjString = "test";
+        msOriginal.UnicodeString = "Unicode";
+        msOriginal.ABool = true;
+        msOriginal.ADouble = 1234.567;
+        msOriginal.AsciiString = System.Text.ASCIIEncoding.ASCII.GetBytes("ASCII");
+        return msOriginal;
+    }
+
+    //make sure both serialization and de-serialization match against each other.
+    public void LoadFrom(CUQueue UQueue)
+    {
+        UQueue.Load(out NullString)
+            .Load(out ObjectNull)
+            .Load(out ADateTime)
+            .Load(out ADouble)
+            .Load(out ABool)
+            .Load(out UnicodeString) //UTF16-lowendian
+            .Load(out AsciiString)
+            .Load(out ObjBool)
+            .Load(out ObjString) //UTF16-lowendian
+            .Load(out objArrString) //UTF16-lowendian
+            .Load(out objArrInt)
+            ;
+    }
+
+    //make sure both serialization and de-serialization match against each other.
+    public void SaveTo(CUQueue UQueue)
+    {
+        UQueue.Save(NullString) //4 bytes for length
+            .Save(ObjectNull)   //2 bytes for data type
+            .Save(ADateTime) //8 bytes for ulong with accuracy to 1 micro-second
+            .Save(ADouble)   //8 bytes
+            .Save(ABool)     //1 byte
+            .Save(UnicodeString) //4 bytes for string length + (length * 2) bytes
+                                 //for string data -- UTF16-lowendian
+            .Save(AsciiString)   //4 bytes for ASCII string length + length bytes
+                                 //for string data
+            .Save(ObjBool)   //2 bytes for data type + 2 bytes for variant bool
+            .Save(ObjString) //2 bytes for data type + 4 bytes for string length +
+                             //(length * 2) bytes for string data --UTF16-lowendian
+            .Save(objArrString) // 2 bytes for data type + 4 bytes for array size +
+                                // (4 bytes for string length + (length * 2) bytes
+                                // for string data) * arraysize --UTF16-lowendian
+            .Save(objArrInt) //2 bytes for data type + 4 bytes for array size +
+                             //arraysize * 4 bytes for int data
+            ;
+    }
+}
+</pre>
+</td>
+<td>
+    <p>The structure <i>CMyStruct</i> at left code snippet 2 has a number of different types of members at line 5 through 15.
+    They are a unicode string (NullString), an object (object ObjectNull), a datetime (DateTime ADateTime),
+    a double (double ADouble), a bool (bool ABool), a unicode string (string UnicodeString), an ASCII string (byte[] AsciiString),
+    an <i>ObjectBool</i>, an <i>ObjectString</i>, an <i>objArrayString</i> and an <i>objArrInt</i>. The last four members are objects.
+    These members cover different basic types of data which are already supported by the utility class <i>CUQueue</i>.</p>
+    <p>However, SocketPro doesn't know how to pack the complex structure into a <i>CUQueue</i> buffer automatically. Also, it has no knowledge about unpacking it from a <i>CUQueue</i> buffer either.
+    With .NET development, it is required that you need to implement the interface IUserializer as shown at line 4 for the sample structure <i>CMyStruct</i>.
+    They are actually implemented at line 34 through 71.
+    </p>
+    <p><b>SaveTo</b>: We pack the structure's members into a <i>CUQueue</i> instance. Please use your debugger to step through each of the method Save at line 53 through 68.
+    You will see serializations are in agreement with comments.</p>
+    <p><b>LoadFrom</b>: We unpack a structure from an instance of <i>CUQueue</i>. Please use your debugger to step through each of the method Load at line 36 through 46.
+    After comparing with the previous packing, the unpacking is exactly a reverse of packing with the exact sequeuence.
+    As you can see, the two methods, <i>LoadFrom</i> and <i>SaveTo</i> are required by SocketPro adapter for .NET development.
+    The structure is complex, but their implementation are not difficult at all.</p>
+    <p>By this time, you can imagine how to implement complex structure serialization and de-serialization within other development languages other than .NET,
+    which leads to interoperability among different development environments.
+    SocketPro favors an enterprise application system developed from an avariety of development languages so that you can easily take advantage of each of their own adavantages, and avoid their flaws.</p>
+</td>
+</tr>
+</table>
+Code snippet 2: A complex structure definition and its servrialization/de-servrialization implementation
+<hr />
+<table style="width:100%;">
+<tr>
+<td style="width:25%;">
+<?prettify linenums=1?>
+<pre class="prettyprint">
+using SocketProAdapter;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        using (CScopeUQueue sb = new CScopeUQueue())
+        {
+            CMyStruct msOrig = CMyStruct.MakeOne();
+            sb.Save(msOrig);
+            CMyStruct ms = sb.Load&lt;CMyStruct&gt;();
+            System.Diagnostics.Debug.Assert(sb.UQueue.GetSize() == 0);
+
+            //check if both msOrig and ms are equal in value.
+        }
+    }
+}
+</pre>
+</td>
+<td>
+<p>The sample application is simple as you can see from the left code snippet 3.</p>
+<p>First, start <i>sb</i>, an instance of <i>CScopeUQueue</i> at line 7, which contains an instance of <i>CQueue</i> inside by calling the method <i>CScopeUQueue.Lock</i> as shown at line 11 of the above code snippet 1.</p>
+<p>
+Afterwards, prepare a structure at line 9.
+Next, we pack the structure into the variable <i>sb</i> at line 10.
+Next, we unpack a new structure <i>ms</i> back from the memory buffer <i>sb</i> at line 11.
+At the memment, you can use your debugger to make sure both structures <i>msOrig</i> and <i>ms</i> are equal to each other.
+</p>
+<p>At end the instance of <i>CQueue</i> inside the variable <i>sb</i> will be released back into a memory pool for reuse by calling the method <i>CScopeUQueue.Unlock</i> as shown at line 14 of the above code snippet 1, when the variable <i>sb</i> is disposed at line 15.</p>
+</td>
+</tr>
+</table>
+Code snippet 3: Demonstration of serialization and de-serialization of a complex structure
+<hr />
+</body>
+</html>

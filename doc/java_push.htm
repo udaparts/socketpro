@@ -1,0 +1,361 @@
+﻿<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="utf-8" />
+    <title>SocketPro Secure Communication and Publish/Subscribe Messaging</title>
+    <link rel="stylesheet" type="text/css" href="codepretty/sons-of-obsidian.css">
+    <script type="text/javascript" src="codepretty/prettify.js"></script>
+</head>
+<body onload="PR.prettyPrint()">
+
+<h1 style="text-align: center;">SocketPro Secure Communication and Publish/Subscribe Messaging</h1>
+
+<p>We talked about client side development at <a href="java_hw.htm", title="SocketPro Client Server Application Development">the previous article</a>.
+Now, we are going to describe SocektPro server side development here.
+Most of this paper will focus on publish/subscribe messaging and SocketPro secure communication between client and server.</p>
+
+<p>Let's start with server side. The sample server project is located at ../socketpro/tutorials/java/src/pub_sub/ps_server.</p>
+<hr />
+<table style="width:100%;">
+<tr>
+<td style="width:30%;">
+<?prettify linenums=1?>
+<pre class="prettyprint">
+//../socketpro/tutorials/java/src/pub_sub/server/CMySocketProServer.java
+public static void main(String[] args) {
+    try (CMySocketProServer MySocketProServer = new CMySocketProServer()) {
+
+        //test certificate and private key files are located at ../SocketProRoot/bin
+        if (SPA.CUQueue.DEFAULT_OS == SPA.tagOperationSystem.osWin) {
+            MySocketProServer.UseSSL("intermediate.pfx", "", "mypassword");
+            //or load cert and private key from windows system cert store
+            //MySocketProServer.UseSSL("root"/*"my"*/, "UDAParts Intermediate CA", "");
+        } else {
+            MySocketProServer.UseSSL("intermediate.cert.pem", "intermediate.key.pem", "mypassword");
+        }
+
+        if (!MySocketProServer.Run(20901)) {
+            System.out.println("Error code = " + CSocketProServer.getLastSocketError());
+        }
+        System.out.println("Input a line to close the application ......");
+        new java.util.Scanner(System.in).nextLine();
+    }
+}
+</pre>
+</td>
+<td>
+It is very simple to start a server as shown at the left code snippet 1.
+<p>At first, we tell SocketPro that we are going to start a secure socket at line 6 through 12.
+UDAParts already prepares test certificates and a private key for your experiment convenience as commented.
+SocketPro server will be non-secure if the piece of code doesn't exist.
+</p>
+
+<p>This sample server is running on the listening port 20901, as shown at line 14.</p>
+</td>
+</tr>
+</table>
+Code snippet 1: Start a secure socket server at port 20901
+<hr />
+<table style="width:100%;">
+<tr>
+<td style="width:30%;">
+<?prettify linenums=1?>
+<pre class="prettyprint">
+//../socketpro/tutorials/java/src/pub_sub/server/CMySocketProServer.java
+import SPA.ServerSide.*;
+
+public class CMySocketProServer extends CSocketProServer {
+
+    @ServiceAttr(ServiceID = hello_world.hwConst.sidHelloWorld)
+    private final CSocketProService&lt;HelloWorldPeer&gt; m_HelloWorld = new CSocketProService&lt;&gt;(HelloWorldPeer.class);
+    //list any number of services here
+
+    @Override
+    protected boolean OnSettingServer() {
+        //amIntegrated and amMixed not supported yet
+        Config.setAuthenticationMethod(tagAuthenticationMethod.amOwn);
+
+        PushManager.AddAChatGroup(1, "R&D Department");
+        PushManager.AddAChatGroup(2, "Sales Department");
+        PushManager.AddAChatGroup(3, "Management Department");
+
+        return true; //true -- ok; false -- no listening server
+    }
+    
+    @Override
+    protected boolean OnIsPermitted(long hSocket, String userId, String password, int nSvsID) {
+        return true; //true -- give permission; false -- connection denied
+    }
+
+    public static void main(String[] args) {
+        //......
+    }
+}
+</pre>
+</td>
+<td>
+<p>The left code snippet 2 is really simple too.</p>
+<p>First, pay attention to the line 6. An annotation <i>ServiceAttr</i> is set for a service id <i>ServiceID = hello_world.hwConst.sidHelloWorld</i>.
+Afterwards, we initialize a private member <i>m_HelloWorld</i> for a hello world service at line 7.
+As commented, we can set up any number of services here. Each of them must have an attribute defined with a unique service id.
+</p>
+<p>The virtual method <i>OnSettingServer</i> at line 11 will be called, when we start a listening socket at line 14 of the above code snippet 1.
+Inside the function, we set authentication method at line 13. Afterwards, we create three topics or chat groups at line 15 through 17 because this sample is going to demonstrate publish/subscribe messaging.
+A client can subscribe zero, one or multiple topics.
+However, anyone of clients is capable to send a message onto other clients with server in middle, according to their zero, one or more topics (or groups) subscribed. A sample will be given at the below code snippet 3.
+At end, we return true at line 19. As commented, there is a listenting socket for accepting coming client sessions if the method returns true.
+Otherwise, there is no listening socket at all. Further, the hello world service is registerred into SocketPro server to be ready for functioning.
+</p>
+<p>When a client will ask for a service indicated by the variable <i>nSvsId</i> after establishing a socket connection,
+the virtual method <i>OnIsPermitted</i> at line 23 will be called by SocketPro server.
+Inside the method, we do authentication from given user id <i>userId</i> and its password <i>password</i>.
+If the method returns true, a permision is given. Otherwise, socket connection is closed immediately for autentication failure.
+It is noted that the password will be cleaned away from server right after the virtual function is called.
+</p>
+</td>
+</tr>
+</table>
+Code snippet 2: Register a microservice and create topics for publish/subscribe messaging
+<hr />
+
+<table style="width:100%;">
+<tr>
+<td style="width:30%;">
+<?prettify linenums=1?>
+<pre class="prettyprint">
+//../socketpro/tutorials/java/src/pub_sub/server/HelloWorldPeer.java
+import SPA.CServerError;
+import SPA.ServerSide.*;
+import hello_world.hwConst;
+import uqueue_demo.CMyStruct;
+
+public class HelloWorldPeer extends CClientPeer {
+
+    public static String ToString(int[] groups) {
+        //......
+    }
+
+    @Override
+    protected void OnSwitchFrom(int oldServiceId) {
+        getPush().Subscribe(1, 3);
+    }
+
+    //......
+
+    @RequestAttr(RequestID = hwConst.idSayHello)
+    private String SayHello(String firstName, String lastName) throws CServerError {
+        if (firstName == null || firstName.length() == 0) {
+            throw new SPA.CServerError(62345, "First name cannot be empty");
+        }
+        //processed within main thread
+        assert (CSocketProServer.getIsMainThread());
+
+        //notify a message to groups [2, 3] at server side
+        getPush().Publish("Say hello from " + firstName + " " + lastName, 2, 3);
+
+        String res = "Hello " + firstName + " " + lastName;
+        System.out.println(res);
+        return res;
+    }
+
+    @RequestAttr(RequestID = hwConst.idSleep, SlowRequest = true) //true -- slow request
+    private void Sleep(int ms) throws CServerError {
+        if (ms < 0) {
+            throw new SPA.CServerError(12345, "ms cannot be negative");
+        }
+        //processed within a worker thread
+        assert (!CSocketProServer.getIsMainThread());
+        try {
+            Thread.sleep(ms);
+        } catch (InterruptedException err) {
+        }
+    }
+
+    @RequestAttr(RequestID = hwConst.idEcho)
+    private CMyStruct Echo(CMyStruct ms) {
+        return ms;
+    }
+}
+</pre>
+</td>
+<td>
+The left snippet 3 shows how server side processes three requests (SayHello, Sleep and Echo) within hello world micro service. One instance of HelloWorldPeer corresponds to one client.
+<p>The virtual function OnSwitchFrom will be called right after a session is permitted at the line 24 of the above snippet 2.
+The parameter oldServiceId will be 256 (SPA.BaseServiceID.sidStartup).
+We can subscribe zero, one or more topics or groups as shown at line 15 at server side. You can do so too at client side.
+Doing so indicates the client is interested in all messages belonging to topics 1 and 3.</p>
+<p><i>SayHello</i>: The method <i>SayHello</i> has an annotation <i>RequestAttr</i> with a request id <i>RequestID = hwConst.idSayHello</i>, as shown at line 20.
+Inside the method, it may throw an exception of SPA.CServerError at line 23 if the first name <i>firstName</i> is an empty string.
+Also, we publish a message to all clients subscribed for topics 2 and 3 at line 29.
+At end, the method returns a string <i>res</i> to its connected client. It is noted that this method is processed within one of main threads.
+A SocketPro server has one or more threads to process all fast requests which take less time to process.
+The max number of main threads cannot be over the number of server machine processors.
+</p>
+<p><i>Sleep</i>: The method has an annotation defined at line 36 too.
+Further, the annotation takes a second input <i>true</i>, which tells SocketPro server that this method requires a long time to process within a worker thread instead of a main thread.
+When a SocketPro server meets such a slow request, it will either create a thread or reuse a thread from a thread pool at run time before dispatching the request onto it for processing.
+SocketPro server totally manages worker threads for you. However, you are required to tell server what requests are slow as shown at line 36.
+When such a request is completed, the worker thread will be recycled into a hidden pool for reuse in the future.
+Also, the method throws a new server exception at line 39 if the input <i>ms</i> is less than 0. The method <i>Sleep</i> returns nothing.
+</p>
+
+<p><i>Echo</i>: The method is simple as it just returns the input <i>ms</i> back to a client at line 51.
+Please refer to the <a href="java_buffer.htm" title="SocketPro Request Parameters Packing and Result Unpacking">previous article</a> for serialization and de-serialization of complex structure.
+Also, the method is fast and will be processed within one of main threads, because the second input of its atribute at line 49 is false by default.</p>
+
+<p>It is pointed out that you can use SPA.ServerSide.CSocketProServer.PushManager to publish a message or send a message to a specific client by user id at server side too.</p>
+<p>At last, it is noted that the number of main threads is one by default. The max number of main threads will not be more than the number of server processors at server side.
+Our experiments show that one main thread is enough if your server doesn't use secure communication or inline compression/de-compression (zip).
+The number of worker threads are dynamically created if neccessary. They are automatically destroyed too if they are idle for more than 60 seconds by default.</p>
+
+<p>Additionally, SocketPro java adapter automatically registers a service and properly set its requests according to a given service annotation at line 6 of the above code snippet 2 and request annotations at lines 20, 36 and 49 of this snippet by use of java reflection.
+Registering services and setting requests happens right after the virtual method OnSettingServer at line 11 of the above code snippet 2 is called. It also happens right before a listening socket is started.
+</p>
+</td>
+</tr>
+</table>
+Code snippet 3: Hello world service implementation at server side
+<hr />
+<table style="width:100%;">
+<tr>
+<td style="width:30%;">
+<?prettify linenums=1?>
+<pre class="prettyprint">
+//../socketpro/tutorials/java/src/pub_sub/client/Program.java
+import hello_world.client.HelloWorld;
+import SPA.ClientSide.*;
+import SPA.tagOperationSystem;
+
+public class Program {
+
+    private static String ToString(CMessageSender ms) {
+        return String.format("Sender attributes = (ip = %s, port = %d, self = %b, service id = %d,\
+            userid = %s)", ms.IpAddress, ms.Port, ms.SelfMessage, ms.SvsID, ms.UserId);
+    }
+
+    private static String ToString(int[] groups) {
+        String s = "[";
+        if (groups != null) {
+            int n = 0;
+            for (int id : groups) {
+                if (n != 0) {
+                    s += ", ";
+                }
+                s += id;
+                ++n;
+            }
+        }
+        s += "]";
+        return s;
+    }
+
+    public static void main(String[] args) {
+        java.util.Scanner scanner = new java.util.Scanner(System.in);
+        System.out.println("Input your user id ......");
+        CConnectionContext cc = new CConnectionContext("localhost", 20901, scanner.nextLine(),
+            "MyPassword", SPA.tagEncryptionMethod.TLSv1);
+
+        if (SPA.CUQueue.DEFAULT_OS != tagOperationSystem.osWin) {
+            //CA file is located at the directory ../SocketProRoot/bin
+            CClientSocket.SSL.SetVerifyLocation("ca.cert.pem"); //linux
+        } else {
+            //for windows platforms, you can use windows system store instead
+            //"ca.cert.pem" already loaded into "root", "my@currentuser", "root@localmachine"
+        }
+        try (CSocketPool&lt;HelloWorld&gt; spHw = new CSocketPool&lt;&gt;(HelloWorld.class))
+        {
+            spHw.DoSslServerAuthentication = (sender, cs) -> {
+                SPA.RefObject&lt;Integer&gt; errCode = new SPA.RefObject<>(0);
+                IUcert cert = cs.getUCert();
+                System.out.println(cert.SessionInfo);
+                String res = cert.Verify(errCode);
+
+                //do ssl server certificate authentication here
+                
+                //true -- user id and password will be sent to server
+                return (errCode.Value == 0);
+            };
+
+            //error handling ignored for code clarity
+            boolean ok = spHw.StartSocketPool(cc, 1);
+            HelloWorld hw = spHw.Seek(); //or HelloWorld hw = spHw.Lock();
+
+            CClientSocket cs = hw.getSocket();
+            cs.getPush().OnSubscribe = (sender, messageSender, groups) -> {
+                System.out.println("Subscribe for " + ToString(groups));
+                System.out.println(ToString(messageSender));
+                System.out.println();
+            };
+
+            cs.getPush().OnUnsubscribe = (sender, messageSender, groups) -> {
+                System.out.println("Unsubscribe from " + ToString(groups));
+                System.out.println(ToString(messageSender));
+                System.out.println();
+            };
+
+            cs.getPush().OnPublish = (sender, messageSender, groups, msg) -> {
+                System.out.println("Publish to " + ToString(groups));
+                System.out.println(ToString(messageSender));
+                System.out.println("message = " + msg);
+                System.out.println();
+            };
+
+            cs.getPush().OnSendUserMessage = (sender, messageSender, msg) -> {
+                System.out.println("SendUserMessage");
+                System.out.println(ToString(messageSender));
+                System.out.println("message = " + msg);
+                System.out.println();
+            };
+
+            //streaming multiple requests with inline batching for best network efficiency
+            ok = hw.SendRequest(hello_world.hwConst.idSayHello,
+                new SPA.CScopeUQueue().Save("Jack").Save("Smith"), (ar) -> {
+                String ret = ar.LoadString();
+                System.out.println(ret);
+            });
+
+            ok = cs.getPush().Publish("We are going to call the method Sleep", 1, 2);
+            ok = hw.SendRequest(hello_world.hwConst.idSleep, new SPA.CScopeUQueue().Save(5000), null);
+
+            System.out.println("Input a receiver for receiving my message ......");
+            System.out.println();
+            ok = cs.getPush().SendUserMessage("A message from " + cc.UserId, scanner.nextLine());
+
+            System.out.println("Press key ENTER to shutdown the demo application ......");
+            scanner.nextLine();
+        }
+    }
+}
+</pre>
+</td>
+<td>
+It is time to focus the client side development as shown at the left code snippet 4. The sample project is at the directory ../socketpro/tutorials/java/src/pub_sub/client.
+<p>To enable secure communication at client side, you have to make sure connection context EncrytionMethod is set to SPA.tagEncryptionMethod.TLSv1 as shown at line 33.
+Next, set certificate verification to a file as shown at line 37 for Linux.
+On windows, you can put a root certificate into windows system store by mmc. At last, set a callback for authenticating certificates from servers, as shown at line 44 through 54. You can verify certificate chain as shown at line 48.
+At last, client user id and password will be sent to server if the callback returns true. Otherwise, client user id and password will not be sent.</p>
+<p>Codes at line 61 through 78 are for tracking messages from chat groups or topics.
+Further, codes at line 80 through 85 are used for monitoring messages specifically for this client from other clients or server by calling the method SendUserMessage.</p>
+<p>As an example, we can send a message to one or more groups or topics at line 94 from client side. In addition, we can also send messages to a client by its user id, as shown at line 99.</p>
+<p>We can also do subscribe and unsubscribe from client side. Please refer to the member SPA.ClientSide.CClientSocket.getPush() for details.</p>
+<p>Now you can start the secure server, and run two or more instances of the client application for experiments.</p>
+</td>
+</tr>
+</table>
+Code snippet 4: Client side secure communication and messaging
+<hr />
+Summarily, this short paper focuses the following topics:
+<ol>
+<li>How to start a SocketPro server</li>
+<li>How to make a SocketPro server secure</li>
+<li>How to register a service and set slow rewuests at server side</li>
+<li>How to manage subscribe/publish messaging at server side</li>
+<li>How to authenticate a client from given user id and password</li>
+<li>How to subscribe topics or groups, or publish messages at server side</li>
+<li>How to enable secure communication at client side and authenticate server certificates before sending passwords</li>
+<li>How to track expected messages from other clients at client side</li>
+<li>How to publish messages or send messages to a specific client</li>
+</ol>
+<hr />
+</body>
+</html>

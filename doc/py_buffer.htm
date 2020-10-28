@@ -1,0 +1,177 @@
+﻿<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="utf-8" />
+    <title>SocketPro Request Parameters Packing and Result Unpacking</title>
+    <link rel="stylesheet" type="text/css" href="codepretty/sons-of-obsidian.css">
+    <script type="text/javascript" src="codepretty/prettify.js"></script>
+</head>
+<body onload="PR.prettyPrint()">
+<h1>SocketPro Request Parameters Packing and Result Unpacking</h1>
+<p>This is the first example to explain SocketPro utility classe, <i>CUQueue</i> and <i>CScopeUQueue</i>, for data serialization and de-serialization.
+It is recommended for you to have a glance at <a href="all_langs.htm" title="CUQueue and Comaptibility among Different Development Languages">this article</a> before reading this article.
+This sample code is located at the files ../socketpro/tutorials/python/msstruct.py and ../socketpro/tutorials/python/uqueue_demo/program.py.
+Also, make sure that you have already distributed client core library usocket into system directory as discribed at <a href="get_started.htm" title="Get Started With SocketPro">this short article</a>.</p>
+<p>It is focused on serializing and de-serializing a complex structure. The sample code will be used by successive examples.</p>
+<table style="width:100%;">
+<tr>
+<td style="width:30%;">
+<?prettify linenums=1?>
+<pre class="prettyprint">
+# ../socketpro/bin/spa/clientside/ccoreloader.py
+from ctypes import *
+
+# ......
+
+# bool WINAPI SendRequest(USocket_Client_Handle h, unsigned short reqId,
+# const unsigned char *buffer, unsigned int len);
+SendRequest = _ucsLib_.SendRequest
+SendRequest.argtypes = [USocket_Client_Handle, c_ushort, POINTER(c_ubyte), c_uint]
+SendRequest.restype = c_bool
+
+# unsigned int WINAPI RetrieveResult(USocket_Client_Handle h,
+# unsigned char *buffer, unsigned int size);
+RetrieveResult = _ucsLib_.RetrieveResult
+RetrieveResult.argtypes = [USocket_Client_Handle, POINTER(c_char), c_int]
+RetrieveResult.restype = c_uint
+
+# ../socketpro/bin/spa/__init__.py
+class IUSerializer(object):
+    @abstractmethod
+    def LoadFrom(self, q):  # q is CUQueue or CScopeUQueue
+        raise NotImplementedError("Please implement this method")
+
+    @abstractmethod
+    def SaveTo(self, q):  # q is CUQueue or CScopeUQueue
+        raise NotImplementedError("Please implement this method")
+</pre>
+</td>
+<td>
+<p>
+SocketPro <a href="get_started.htm" title="Get Started With SocketPro">client core</a> library exports one function SendRequest at line 6 through 10 of the left code snippet 1.
+Basically, it sends an array of bytes (buffer, len) for each request (reqId) to a connected server for processing through an underlying socket.
+When a result comes from the server, we could use a callback somewhere to moniter an array of bytes (buffer, len) back from server, and unpack the array bytes into expected data as shown at line 12 through 16.
+Therefore, SocketPro is required to provide a utility class <i>CUQueue</i> within SocketPro python adapter for packing request input parameters and unpacking results from server returning bytes.
+</p>
+<p>The utility class <i>CUQueue</i> is implemented at the file ../socketpro/bin/spa/memqueue.py, which supports packing and unpack basic data types like bool, char, short, int, unicode string, ASCII string, datetime, object, and so on.
+However, it doesn't know how to deal with a complex structure data. Therefore, you must implement the pre-defined interface IUSerializer as shown at line 19 through 26. The sample is just designed to guide you for this purpose.
+</p>
+<p>To avoid allocating or deallocating memories repeatedly, SocketPro python adapter comes with a class <i>CScopeUQueue</i> within the file ../socketpro/bin/spa/memqueue.py. It is noted that every instance of <i>CScopeUQueue</i> will internally have an instance of <i>CUQueue</i> by default. Therefore, we use <i>CScopeUQueue</i> instead of <i>CUQueue</i> under most of cases for this purpose.</p>
+</td>
+</tr>
+</table>
+Code snippet 1: Utility classes <i>CUQueue</i> and <i>CScopeUQueue</i> for packing request inputs and unpacking outputs from server result
+<hr />
+<table style="width:100%;">
+<tr>
+<td style="width:30%;">
+<?prettify linenums=1?>
+<pre class="prettyprint">
+class CMyStruct(IUSerializer):
+    def __init__(self):
+        self.NullString = None
+        self.ObjectNull = None
+        self.ADateTime = datetime.now()
+
+    @staticmethod
+    def MakeOne():
+        ms = CMyStruct()
+        ms.ADouble = 1234.567
+        ms.ABool = True
+        ms.UnicodeString = u'Unicode'
+        ms.AsciiString = 'ASCII'
+        ms.ObjBool = True
+        ms.ObjString = u'test'
+        ms.objArrString = [u'Hello', u'world']
+        ms.objArrInt = [1, 76890]
+        return ms
+
+    # ......
+
+    def LoadFrom(self, q):
+        self.NullString = q.LoadString()
+        self.ObjectNull = q.LoadObject()
+        self.ADateTime = q.LoadDate()
+        self.ADouble = q.LoadDouble()
+        self.ABool = q.LoadBool()
+        self.UnicodeString = q.LoadString()
+        self.AsciiString = q.LoadAString()
+        self.ObjBool = q.LoadObject()
+        self.ObjString = q.LoadObject()
+        self.objArrString = q.LoadObject()
+        self.objArrInt = q.LoadObject()
+        return q
+
+    def SaveTo(self, q):
+        q.SaveString(self.NullString).SaveObject(self.ObjectNull)
+        q.SaveDate(self.ADateTime).SaveDouble(self.ADouble)
+        q.SaveBool(self.ABool).SaveString(self.UnicodeString);
+        q.SaveAString(self.AsciiString).SaveObject(self.ObjBool)
+        q.SaveObject(self.ObjString).SaveObject(self.objArrString)
+        q.SaveObject(self.objArrInt)
+        return q
+</pre>
+</td>
+<td><p>The structure <i>CMyStruct</i> at left code snippet 2 consists of a number of different types of members at line 2 through 17.
+    They are a null string (NullString), a null (ObjectNull), a datetime (ADateTime), a double (ADouble), a bool (ABool), a unicode string (unicodeString), an ASCII string (asciiString),
+    an <i>ObjBool</i>, an <i>ObjString</i>, an <i>objArrayString</i> and an <i>objArrInt</i>.
+    Further, the class <i>CMyStruct</i> is extended with the interface <i>IUSerializer</i> as defined at the previous code snippet 1.
+    </p>
+    <p>The class <i>CMyStruct</i> is located at the file ../socketpro/tutorials/python/msstruct.py with detailed comments. There are two required methods, <i>SaveTo</i> and <i>LoadFrom</i>, which must be implemneted at line 36 through 43 and line 22 through 34, respectively.
+    There are three requirements here. First, the methods SaveXXX and LoadXXX must be called in pair. Second, the call sequence must exactly be the same inside <i>SaveTo</i> and <i>LoadFrom</i>. Last, the implementation here must be in agreement with server implementation from C/C++, Java, .NET or python language.
+    </p>
+    <p>Keep in mind that SocketPro favors enterprise application development with different development languages so that you can take advantages of them and avoid their flaws. In reality, it is easy for developers to do so with the three requirements. In case you do make mistakes, SocketPro adapters are able to find these mistakes for you at run time by exceptions.</p>
+</td>
+</tr>
+</table>
+Code snippet 2: A complex structure definition and its serialization/de-serialization
+<hr />
+<table style="width:100%;">
+<tr>
+<td style="width:25%;">
+<?prettify linenums=1?>
+<pre class="prettyprint">
+from msstruct import CMyStruct
+from spa import CUQueue, CScopeUQueue
+from decimal import Decimal
+import uuid
+from datetime import datetime
+
+msOrig = CMyStruct.MakeOne()
+print(msOrig)
+with CScopeUQueue() as sb:
+    sb.Save(msOrig)
+    res = sb.LoadByClass(CMyStruct)
+    print(res)
+
+
+with CUQueue() as q:
+    q.Empty()
+    q.SaveInt(123).SaveInt(-1)
+    n = q.LoadInt()
+    assert(n == 123)
+    n = q.LoadInt()
+    assert(n == -1)
+    assert(q.Size == 0)
+
+    # .....
+
+</pre>
+</td>
+<td>
+<p>The left code snippet 3 comes from the file ../socketpro/tutorials/python/uqueue_demo/program.py.</p>
+<p>First, we make a complex structure at line 7.
+Next, create an instance of <i>CScopeUQueue</i> at line 9.
+Next, we pack the complex structure <i>msOrig</i> into the variable <i>sb</i> at line 10. It is note that SocketPro adapter is able to detect that the <i>msOrig</i> is a complex structure implemented with the pre-defined interface <i>IUSerializer</i> at run time.
+As expected, SocketPro adapter knows how to deal with packing and unpacking the complex structure.
+</p>
+<p>At end, we use the method <i>LoadByClass</i> to unpack such a complex structure <i>res</i> from the memory buffer <i>sb</i> at line 11. You can verify if the two variables <i>msOrig</i> and <i>res</i> are equal from prints at lines 8 and 12.</p>
+<p>When the variable <i>sb</i> goes out of its scope, it is destroyed but its internal instance <i>CUQueue</i> will be recycled into a memory pool for reuse in the future to avoid memory allocating and deallocating repeatedly.</p>
+<p>We keep other codes here for you to study the class <i>CUQueue</i> further.</p>
+</td>
+</tr>
+</table>
+Code snippet 3: Demonstration of serialization and de-serialization of a complex structure
+<hr />
+</body>
+</html>

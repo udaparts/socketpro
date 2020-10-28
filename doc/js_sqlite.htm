@@ -1,0 +1,364 @@
+﻿<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="utf-8" />
+    <title>SQL Requests Streaming For SQLite</title>
+    <link rel="stylesheet" type="text/css" href="codepretty/sons-of-obsidian.css">
+    <script type="text/javascript" src="codepretty/prettify.js"></script>
+</head>
+<body onload="PR.prettyPrint()">
+<h1 style="text-align: center;">SQL Requests Streaming For SQLite</h1>
+<hr />
+<p>Most of client server database systems only support synchronous communication between client and backend database 
+by use of blocking socket and some chatty protocol, which require a client or server to wait for an acknowledgement before sending a new chunk of data.
+The wait time, which is also called as latency, could be starting from a few tenths for a local area network (LAN) to hundreds of milliseconds for a wide area network (WAN).
+Large wait times can significantly degrade the quality of an application.</p>
+<p>As the previous example of <a href="js_serverqueue.htm" title="SocketPro Server Persistent Message Queue">server queue plugin</a>, we also create a set of SocketPro database plugins to accelerate accessing databases with 
+continuous inline request/result batching and real-time stream processing capabilities by use of asynchronous data transferring and parallel computation for the best network efficiency.
+For reduction of learning complexity, we use SQLite database as the first database sample for the first article, and MySQL as the second database sample for <a href="js_mysql.htm" title="SQL Requests Streaming For MySQL/Mariadb">the second article</a>.</p>
+
+<table style="width:100%;">
+<tr>
+<td style="width:30%;">
+<?prettify linenums=1?>
+<pre class="prettyprint">
+# class CDb at file ../socketpro/bin/js/nja.js
+open(conn, flags = 0) {
+    // ......
+    return new Promise((res, rej) => {
+        var ok = this.handler.Open(conn, (errCode, errMsg) => {
+            var ErrInfo = { ec: errCode, em: errMsg };
+            res(ErrInfo);
+        }, ......);
+        // ......
+    });
+}
+
+execute(sql_or_arrParam, rows = null, rh = null, meta = true) {
+    // ......
+    return new Promise((res, rej) => {
+        var ok = this.handler.Execute(sql_or_arrParam, (errCode, errMsg, affected, fails, oks, id) => {
+            var SQLExeInfo ={ec: errCode, em:errMsg, aff:affected, oks: oks, fails: fails, lastId: id};
+            res(SQLExeInfo);
+        }, ......);
+        // ......
+    });
+}
+</pre>
+</td>
+<td>
+<p>The left code snippet 1 lists the two basic structures for various database request returning results.</p>
+<p>The first one, <i>ErrInfo</i> at line 6, is used for returning results of database requests, <i>open</i>, <i>close</i>, <i>prepare</i>, <i>beginTrans</i> and <i>endTrans</i> inside the class <i>CDb</i> at the file ../socketpro/bin/js/nja.js.
+It is easily understandable to you, because they are returned just with two data, an error code <i>ec</i> and its correspoding message <i>em</i>.</p>
+<p>The second one, <i>SQLExeInfo</i> at line 17, is designed for returning results of various SQL statements, <i>execute</i> and <i>executeBatch</i>.
+In addtion to an error code and its correspoding message, executing a SQL statement could return the number of records affected and last insert identification number,
+which correspond to the two members <i>aff</i> and <i>lastId</i> of the structure <i>SQLExeInfo</i>, respectively.
+SocketPro database plugins support executing a complex SQL statement which consists of multiple basic SQL statements.
+Executing a complex SQL statement could generate multiple results of multiple basic SQL statements. SocketPro database plugins will count their successful ones and failure ones, and return them to client.
+Therefore, there are two members <i>oks</i> and <i>fails</i> within the structure for successes and failures, respectively.
+However, no matter how many failures happens with a batch of complex SQL statements, SocketPro database plugins always return one error code and its message of the first basic SQL statement only.
+</p>
+</td>
+</tr>
+</table>
+Code snippet 1: Two basic structures <i>ErrInfo</i> and <i>SQLExeInfo</i> for various database request returning results
+<hr />
+
+<table style="width:100%;">
+<tr>
+<td style="width:30%;">
+<?prettify linenums=1?>
+<pre class="prettyprint">
+'use strict';
+
+//loading SocketPro adapter (nja.js + njadapter.node) for nodejs
+var SPA = require('nja.js');
+var cs = SPA.CS; //CS == Client side
+
+//create a socket pool object
+var p = cs.newPool(SPA.SID.sidSqlite); //or sidOdbc, sidMysql
+global.p = p;
+p.QueueName = 'qsqlite';
+if (!p.Start(cs.newCC('localhost', 20901, 'root', 'Smash123'), 1)) {
+    console.log(p.Error);
+    return;
+}
+var db = p.Seek(); //seek an async DB handler
+
+//make long strings for testing long text and blob objects
+var g_wstr = '';
+// ......
+
+var g_str = '';
+// ......
+
+function TestCreateTables(db) {
+    // ......
+}
+
+function TestPreparedStatements(db) {
+    // ......
+}
+
+function TestBLOBByPreparedStatement(db) {
+    // ......
+}
+
+function TestBatch(db) {
+    // ......
+}
+
+(async () => {
+    try {
+        var res = await db.open('usqlite.db');
+        console.log(res);
+        if (res.ec) {
+            return;
+        }
+        var vTables = TestCreateTables(db);
+        var pe = [db.execute('delete from employee;delete from company')];
+        var vPs = TestPreparedStatements(db);
+        var vBlob = TestBLOBByPreparedStatement(db);
+        var pB = TestBatch(db);
+        console.log(await Promise.all(vTables.concat(pe, vPs, vBlob, pB)));
+    } catch (ex) {
+        console.log(ex);
+    }
+})();
+</pre>
+</td>
+<td><p>Let us look at database client side code as shown at the left code snippet 2.
+The sample code snippet comes from the file sqlite_streaming.js at directory ../socketpro/stream_sql/usqlite.</p>
+<p>First of all, we ignore boilerplate code lines between 1 and 39 as already discussed in previous samples.</p>
+<p>Next, we open a sqlite database <i>usqlite.db</i> at line 42 at server side. Here, the input can be an empty string if SocketPro sqlite plugin is set with a default database at server side.
+</p>
+<p>Next, we create an array of tables for the coming testings as shown at line 47.
+Because we may create multiple tables with multiple DB definition statements, the function <i>TestCreateTables</i> will immediately return an array of promises <i>vTables</i> for the corresponding number of structures <i>SQLExeInfo</i> without waiting for expected results.</p>
+<p>Next, empty the two tables <i>employee</i> and <i>company</i> by calling the method <i>execute</i> at line 48 without waiting for its expected result from server.</p>
+<p>Next, we use prepare statements to insert and query records at lines 49 and 50. The prepare statements are involved with inserting and retrieving large BLOB and text objects at fast speed but lowest memory foot print.
+We will discuss them with details later. As expected, they will immediately return promises in array for <i>SQLExeInfo</i> structures without waiting for server responses.</p>
+<p>Next, we will test executing requests batch at line 51. We will discuss it with details later</p>
+<p>It is noted that all of requests between lines 47 and 51 are streamed with in-line batching for the best network efficiency. This is the style of SocketPro!
+As previous examples demonstrate, SocketPro always favors streaming requests with in-line batching whenever possible and there are multiple requests involved.</p>
+<p>At end, we wait all promises and show all of returned results at line 52.
+It is noted that all returning results are sent from server to client with streaming and in-line batching too for the best network efficiency.</p>
+</td>
+</tr>
+</table>
+Code snippet 2: Main console unit test code for DB and SQL requests streaming against SQLite server plugin
+<hr />
+<table style="width:100%;">
+<tr>
+<td style="width:30%;">
+<?prettify linenums=1?>
+<pre class="prettyprint">
+function TestCreateTables(db) {
+    console.log('++++ test creating two tables ++++');
+    var pe0 = db.execute('CREATE TABLE IF NOT EXISTS COMPANY(ID INT8 PRIMARY KEY NOT NULL,name CHAR(64)' +
+        'NOT NULL, ADDRESS varCHAR(256)not null, Income float not null)');
+    var pe1 = db.execute("CREATE TABLE IF NOT EXISTS EMPLOYEE(EMPLOYEEID INT8 PRIMARY KEY NOT NULL unique," +
+        "CompanyId INT8 not null,name NCHAR(64)NOT NULL,JoinDate DATETIME not null default(datetime" +
+        "('now')),IMAGE BLOB,DESCRIPTION NTEXT,Salary real,FOREIGN KEY(CompanyId)REFERENCES COMPANY(id))");
+    return [pe0, pe1];
+}
+</pre>
+</td>
+<td>
+<p>The left code snippet 3 shows how to use the method <i>execute</i> for creating tables with two basic DB definition statements.
+The method <i>TestCreateTables</i> simply returns two promises in array at line 8 for two <i>SQLExeInfo</i> structures without waiting for server response at all.</p>
+</td>
+</tr>
+</table>
+Code snippet 3: Create tables with basic DB definition statements
+<hr />
+<table style="width:100%;">
+<tr>
+<td style="width:30%;">
+<?prettify linenums=1?>
+<pre class="prettyprint">
+function TestPreparedStatements(db) {
+    console.log('++++ test prepare statements ++++');
+    var pp = db.prepare("Select datetime('now');" +
+        "INSERT OR REPLACE INTO COMPANY(ID,NAME,ADDRESS,Income)VALUES(?,?,?,?)");
+    //set an array of parameter data
+    var vParam = [1, 'Google Inc.', '1600 Amphitheatre Parkway, Mountain View, CA 94043, USA', 66000000000.15,
+        2, 'Microsoft Inc.', '700 Bellevue Way NE- 22nd Floor, Bellevue, WA 98804, USA', 93600000000.12,
+        3, 'Apple Inc.', '1 Infinite Loop, Cupertino, CA 95014, USA', 234000000000.14]; //3rd set
+    var pe = db.execute(vParam, (data, proc, cols) => {
+        console.log({ data: data, proc: proc, cols: cols });
+    }, (meta) => {
+        console.log(meta);
+    });
+    return [pp, pe];
+}
+</pre>
+</td>
+<td>
+<p>In comparison to the above snippet 3, the left code snippet 4 is a little more complicated.
+First, this snippet involves sending a prepare SQL statement at lines 3 and 4.
+Afterwards, we prepare an array of sample data between line 6 and 8.
+At end, we send the array of data at line 9 with two callbacks, and return a promise for <i>SQLExeInfo</i> immediately.</p>
+<p>It is noted that the sample preparing SQL statement consists of one simple query and one insert statement at line 3 and 4, respectively.
+When the function <i>TestPreparedStatements</i> is called, a client will expect three sets of records returned and three records inserted into the table COMPANY.
+The sample is designed for demonstrating the power of SocketPro SQL-stream technology.
+In reality, you probably don't prepare a combined SQL statement having multiple basic SQL statements.
+If you use a parameterized statement, you are required to send a prepare request first.
+After obtaining an array of data as shown in the left code snippet 4, you can send multiple sets of parameter data for processing from client to server in one single shot at the end.
+If you have a large amount of data, you could call the method <i>execute</i> repeatedly without needing to prepare a statement again.</p>
+<p>Next, we need more details for how to handle returning record sets.
+The method <i>execute</i> has two callbacks or Lambda expressions at line 9 for the second and third input parameters except the first input for parameter data array.
+Whenever a record set is coming, the second callback at line 11 through 13 will be automatically called at first by DB client handler <i>CDb</i> for record set column meta information.
+If actual records are available, the first callback at line 9 through 11 will be called and you can obtain its returned record data in array at line 10.
+If we take the left code snippet 4 as a sample, both the first and second callbacks will be called three times due to the simple SQL query (<i>Select datetime('now')</i>).
+However, it is expected that the times of calling the first callback is dependent on both the number of records and the size of one record for other queries.
+</p>
+<p>In reality, the second callback for meta info is ignorable because we know meta information ahead. Therefore, the method <i>execute</i> coud just take two inputs.
+Further, it may requires just one input, as shown at the previous code snippet 3, if we don't care for record data either.</p>
+</td>
+</tr>
+</table>
+Code snippet 4: Use parameterized statement for inserting and retrieving records in batch
+<hr />
+<table style="width:100%;">
+<tr>
+<td style="width:30%;">
+<?prettify linenums=1?>
+<pre class="prettyprint">
+function TestBLOBByPreparedStatement(db) {
+    console.log('**** test prepare statements with long texts and blobs ****');
+    var pp = db.prepare("insert or replace into employee(EMPLOYEEID,CompanyId,name,JoinDate,image," +
+        "DESCRIPTION,Salary)values(?,?,?,?,?,?,?);SELECT * FROM employee WHERE EMPLOYEEID=?");
+    var buff = SPA.newBuffer();
+    var blob = SPA.newBuffer();
+
+    blob.SaveString(g_wstr);
+    //1st set
+    //blob.PopBytes() -- convert all data inside blob memory into an array of bytes
+    buff.SaveObject(1).SaveObject(1).SaveObject('Ted Cruz').SaveObject(new Date()).
+        SaveObject(blob.PopBytes()).SaveObject(g_wstr).SaveObject(254000.15).SaveObject(1);
+
+    blob.SaveAString(g_str);
+    //2nd set
+    buff.SaveObject(2).SaveObject(1).SaveObject('Donald Trump').SaveObject(new Date()).
+        SaveObject(blob.PopBytes()).SaveObject(g_str).SaveObject(20254000.35).SaveObject(2);
+
+    blob.SaveAString(g_str).SaveString(g_wstr);
+    //3rd set
+    buff.SaveObject(3).SaveObject(2).SaveObject('Hillary Clinton').SaveObject(new Date()).
+        SaveObject(blob.PopBytes()).SaveObject(g_wstr).SaveObject(6254000.42).SaveObject(3);
+    var pe = db.execute(buff, (data, proc, cols) => {
+        //console.log({ data: data, proc: proc, cols: cols });
+    }, (meta) => {
+        //console.log(meta);
+    });
+    return [pp, pe];
+}
+</pre>
+</td>
+<td>
+<p>Now, you can see SocketPro SQL-stream technology provides all required features for accessing a backend database.
+Further, we are going to use the sample for how to handle large binary and text objects within SocketPro streaming technology.
+Usually, it is difficult to access large objects inside databases efficiently.
+However, it is truly very simple with SocketPro SQL-stream technology for both development and efficiency, as shown at the left code snippet 5.</p>
+
+<p>After looking through the code within the snippet 5,
+you would find that this code snippet is really similar to one in the previous code snippet 4 although this code snippet is longer.
+Therefore, this approach is really a good thing for a software developer to reuse SocketPro SQL streaming technology for dealing all types of database table fields in the same coding style for easy development.</p>
+
+<p>SocketPro always divides a large binary or text object into chunks first at both client and server sides.
+Afterwards, SocketPro sends these smaller chunks to the other side.
+At the end, SocketPro will reconstruct the original large binary or text object from collected smaller chunks.
+This happens silently at run time for reduction of memory foot print.</p>
+<p>It is noted that this snippet is somewhat different from the above code snippet 4 in two aspects.
+Here, the first of input is a <i>CUQueue</i> buffer object <i>buff</i> instead of an array of parameter data at the snippet 4 for the method <i>execute</i>.
+Second, we serialize all parameter data into the buffer <i>buff</i> at line 11 through 22 before sending them to SocketPro sqlite server plugin.
+</p>
+</td>
+</tr>
+</table>
+Code snippet 5: Use parameterized statement for inserting and retrieving records with BLOBs and long texts in batch
+<hr />
+<table style="width:100%;">
+<tr>
+<td style="width:30%;">
+<?prettify linenums=1?>
+<pre class="prettyprint">
+function TestBatch(db) {
+    console.log('&&&& Test a big batch of statements with manual transaction &&&&');
+    var sql = "delete from employee;delete from company|INSERT INTO company(ID,NAME,ADDRESS,Income)VALUES" +
+        "(?,?,?,?)|insert into employee values(?,?,?,?,?,?,?)|SELECT * from company;select employeeid," +
+        "companyid,name,joindate,salary from employee;Select datetime('now')";
+    var buff = SPA.newBuffer();
+    var blob = SPA.newBuffer();
+
+    //1st set
+    //INSERT INTO company(ID,NAME,ADDRESS,Income)VALUES(?,?,?,?)
+    buff.SaveObject(1).SaveObject('Google Inc.').
+        SaveObject('1600 Amphitheatre Parkway, Mountain View, CA 94043, USA').SaveObject(66000000000.15);
+    //insert into employee(employeeid,CompanyId,name,JoinDate,image,DESCRIPTION,Salary)values(?,?,?,?,?,?,?)
+    buff.SaveObject(1).SaveObject(1); //Google company id
+    blob.SaveString(g_wstr); //UNICODE string
+    buff.SaveObject('Ted Cruz').SaveObject(new Date()).
+        SaveObject(blob.PopBytes()).SaveObject(g_wstr).SaveObject(254000.15);
+
+    //2nd set
+    buff.SaveObject(2).SaveObject('Microsoft Inc.').
+        SaveObject('700 Bellevue Way NE- 22nd Floor, Bellevue, WA 98804, USA').SaveObject(93600000000.12);
+    buff.SaveObject(2).SaveObject(1); //Google company id
+    blob.SaveAString(g_str); //ASCII string
+    buff.SaveObject('Donald Trump').SaveObject(new Date()).
+        SaveObject(blob.PopBytes()).SaveObject(g_str, 'a').SaveObject(20254000.32);
+
+    //3rd set
+    buff.SaveObject(3).SaveObject('Apple Inc.').
+        SaveObject('1 Infinite Loop, Cupertino, CA 95014, USA').SaveObject(234000000000.14);
+    buff.SaveObject(3).SaveObject(2); //Microsoft company id
+    blob.SaveAString(g_str).SaveString(g_wstr);
+    buff.SaveObject('Hillary Clinton').SaveObject(new Date()).
+        SaveObject(blob.PopBytes()).SaveObject(g_wstr).SaveObject(6254000.15);
+    //first, start a manual transaction
+    //second, execute delete from employee;delete from company
+    //third, prepare a sql statement for insert into company
+    //fourth, execute three sets of INSERT INTO company(ID,NAME,ADDRESS,Income)VALUES(?,?,?,?)
+    //fifth, prepare a sql statement for insert into employee
+    //sixth, execute three sets of insert into employee values(?,?,?,?,?,?,?)
+    //seventh, SELECT * from company;select employeeid,companyid,name,joindate,salary from employee;
+    //      Select datetime('now')
+    //last, end manual transaction
+    var peb = db.executeBatch(SPA.DB.TransIsolation.ReadCommited, sql, buff, (data, proc, cols) => {
+        console.log({ data: data, proc: proc, cols: cols });
+    }, (meta) => {
+        //console.log(meta);
+    }, '|', () => {
+        console.log('----- Batch header comes -----');
+    });
+    return [peb];
+}
+</pre>
+</td>
+<td>
+<p>SocketPro also provides a special method to group all DB and SQL requests such as <i>prepare</i>, <i>beginTrans</i>, <i>endTrans</i> and <i>execute</i> into a large batch request as shown at the left code snippet 6.
+</p>
+<p>We can also group a bunch of DB and SQL requests with the first input other than <i>SPA.DB.TransIsolation.tiUnspecified</i> as shown at lines 43 through 49, although the sample prepare statement does not have to require a manual transaction here.
+As commented inside the code snippet here, it involves these methods <i>beginTrans</i>/<i>endTrans</i>, <i>prepare</i>, <i>execute</i>, and so on.
+</p>
+<p>The method <i>executeBatch</i> has a number of adantages such as better performance, cleaner codes and better integration with SocketPro client queue.</p>
+</td>
+</tr>
+</table>
+Code snippet 6: Execute different SQL requests in batch with manual transaction
+<hr />
+<p>At end, SocketPro SQLite server plugin is written from C/C++. Its project is located at the directory ../socketpro/stream_sql/usqlite/ssqlite,
+but implementation files are located at the directory ../socketpro/include/sqlite/server_impl.
+Like <a href="js_serverqueue.htm" title="SocketPro Server Persistent Message Queue">the previous SocketPro server plugin</a>, the SocketPro SQLite server plugin is not complicate at all.
+In fact, it is small, simple and understandable to a middle level of C++ software engineer. The SQLite plugin is free to the public individuals for you to study and experiment.
+However, it is noted that it is not free to companies or enterprises for commercial purposes.
+</p>
+<hr />
+<h3>Test SQLite server plugin</h3>
+To test the SQLite server plugin, run the sample server application <a href="get_started.htm" title="Get Started With SocketPro">all_servers</a> first.
+Afterwards, execute this script.
+Further, you can uncomment the code at line 10 of the above code snippet 2 to enable client queue for better fault tolerance and auto recovery.
+<hr />
+</body>
+</html>

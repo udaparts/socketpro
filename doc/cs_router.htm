@@ -1,0 +1,328 @@
+﻿<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="utf-8" />
+    <title>SocketPro Server Routing Communication Pattern and Microservices</title>
+    <link rel="stylesheet" type="text/css" href="codepretty/sons-of-obsidian.css">
+    <script type="text/javascript" src="codepretty/prettify.js"></script>
+</head>
+<body onload="PR.prettyPrint()">
+<h1 style="text-align: center;">SocketPro Server Routing Communication Pattern and Microservices</h1>
+<hr />
+<p>SocketPro secured asynchronous communication framework is written from scratch with continuous in-line request/result batching, real-time stream sending/processing, asynchronous data transferring and parallel computation in mind.
+So far We have introduced a set of short articles with sample projects to demonstrated tradition <a href="cs_hw.htm" title="SocketPro Client Server Application Development">client/server communication pattern</a> and
+<a title="SocketPro Secure Communication and Publish/Subscribe Messaging" href="cs_push.htm">subscribe/publish messaging</a> with secure communication.
+The two demo projects are created for desktop or middle server applications development.
+Next, <a href="cs_web.htm" title="SocketPro WebSocket for Client/server and Subscribe/publish Messaging on Browsers">this sample</a> is created to show you that SocketPro also supports both client/server and subscribe/publish messaging patterns on web browsers with help of websocket.</p>
+
+<p>In additon to the two communication patterns, SocketPro have built-in message queues implemented for both client and server sides.
+Its <a href="cs_hw.htm" title="SocketPro Client Server Application Development">client message queue</a> can be easily used for fail auto-recovery to improve enterprise application fault-tolerance, reliability and maintenance as well as middle tier availability.
+Its server queue, as shown at <a href="cs_serverqueue.htm" title="SocketPro Server Persistent Message Queue">this artcle</a>, supports that producers and consumers interact at the different time with asynchronous communication pattern.
+As shown in <a href="cs_serverqueue.htm" title="SocketPro Server Persistent Message Queue">the sample project</a>, messages will NEVER be lost if client queue is enabled at producer side.
+</p>
+
+<p>SocketPro server is also capable to function like a router which is about to be demonstrated with this article. Requests from a number of clients can be sent to a SocketPro server, which acts like a router and routes all of these requests onto a new array of clients for processing.
+When these original requests are processed and their corresponding results are sent back to the SocketPro server, the server will correctly route these results back to their original clients as expected. In fact, the server can be considered to be a load balancer too.
+In addition, we will talk about <a href="get_started.htm" title="Get Started With SocketPro">all_servers</a>, which have been used as a common test server to provide many microservices for many samples.</p>
+<hr />
+<table style="width:100%;">
+<tr>
+<td style="width:25%;">
+<?prettify linenums=1?>
+<pre class="prettyprint">
+using System;
+using SocketProAdapter;
+using SocketProAdapter.ClientSide;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+class Program
+{
+    static void Main(string[] args)
+    {
+        Console.WriteLine("This is a client. Remote router host: ");
+        CConnectionContext cc = new CConnectionContext(Console.ReadLine(),
+            20901, "lb_client", "pwd_lb_client");
+        using (CSocketPool&lt;Pi&gt; spPi = new CSocketPool&lt;Pi&gt;())
+        {
+            spPi.QueueName = "lbqueue";
+            if (!spPi.StartSocketPool(cc, 1))
+            {
+                Console.WriteLine("No connection to " + cc.Host);
+                Console.WriteLine("Press ENTER key to kill the demo ......");
+                Console.ReadLine();
+                return;
+            }
+            Pi pi = spPi.SeekByQueue();
+
+            int nDivision = 1000, nNum = 10000000;
+            double dPi = 0, dStep = 1.0 / nNum / nDivision;
+            List&lt;Task&lt;CScopeUQueue&gt;&gt; vtR = new List&lt;Task&lt;CScopeUQueue&gt;&gt;();
+            for (int n = 0; n < nDivision; ++n)
+            {
+                double dStart = (double)n / nDivision;
+                vtR.Add(pi.sendRequest(piConst.idComputePi, dStart, dStep, nNum));
+            }
+
+            foreach (var t in vtR)
+            {
+                CScopeUQueue sb = t.Result;
+                dPi += sb.Load&lt;double&gt;();
+                Console.WriteLine("dStart: " + sb.Load&lt;double&gt;());
+            }
+
+            Console.WriteLine("pi: {0}, returns: {1}", dPi, vtR.Count);
+            Console.WriteLine("Press ENTER key to kill the demo ......");
+            Console.ReadLine();
+        }
+    }
+}
+</pre>
+</td>
+<td>
+<p>First of all, the left code snippet comes from the file ../socketpro/tutorials/csharp/loading_balance/lb_client/Program.cs.</p>
+<hr />
+<p>We are going to compute the value of π using the numerical integration below. </p>
+<img src="images/pi_value.jpg" alt="" />
+<br />
+Figure 1: Compute π value by use of numerical integration
+<p>We can use trapezoidal integration to solve the integral. The basic idea is to fill the area under a curve with a series of tiny
+rectangles. As the width of a rectangle approaches 0, the sum of the areas of these rectangles approaches the real value of π. To
+accurately achieve the value, we must divide the integral area with rectangles as small as possible. Therefore, we are
+going to divide the whole integration into a set of sections and send them onto different working machines (clients/workers) with a
+SocketPro server as a router. These workers actually finish CPU-extensive numerical integration in parallel. The sending
+machine (client) will collect the integral values of these sections from these workers, and then add them to get the π value.</p>
+<p>We are going to ignore trivial lines of codes within the left code snippet 1. First, look at the code line 15.
+We enable client queue to improve fault tolerance due to any errors related with router (or SocketPro server) or workers.
+At code line 23, we get a π handler by calling the method <i>SeekByQueue</i>. You can find its implementation at the file ../socketpro/src/SproAdapter/socketpool.cs.</p>
+<p>Next, we divide the whole integration into 1000 divisions, and each of these divisions will again be divided at worker sides into 10,000,000 tiny parts as shown at line 25.
+Next, we send 1000 requests onto a remote server as shown at line 31, and put 1000 futures into a generic list <i>vtR</i>.</p>
+<p>At end, we collect all expected results and sum them together at line 37. As you can see, the code does not seem complex at all at client side.
+Let us move to server or router side development.</p>
+</td>
+</tr>
+</table>
+Code snippet 1: A client demo sample for computing π value with numerical integration.
+<hr />
+<table style="width:100%;">
+<tr>
+<td style="width:25%;">
+<?prettify linenums=1?>
+<pre class="prettyprint">
+//../socketpro/tutorials/charp/all_servers/Program.cs
+using System;
+using SocketProAdapter;
+using SocketProAdapter.ServerSide;
+using System.Runtime.InteropServices;
+
+public class CMySocketProServer : CSocketProServer
+{
+    [DllImport("ssqlite")]
+    static extern void SetSqliteDBGlobalConnectionString([In] [MarshalAs(UnmanagedType.LPWStr)] string sqliteDbFile);
+
+    [ServiceAttr(hwConst.sidHelloWorld)]
+    private CSocketProService&lt;HelloWorldPeer&gt; m_HelloWorld = new CSocketProService&lt;HelloWorldPeer&gt;();
+
+    [ServiceAttr(BaseServiceID.sidHTTP)]
+    private CSocketProService&lt;CMyHttpPeer&gt; m_http = new CSocketProService&lt;CMyHttpPeer&gt;();
+
+    //Routing requires registering two services in pair
+    [ServiceAttr(piConst.sidPi)]
+    private CSocketProService&lt;CClientPeer&gt; m_Pi = new CSocketProService&lt;CClientPeer&gt;();
+    [ServiceAttr(piConst.sidPiWorker)]
+    private CSocketProService&lt;CClientPeer&gt; m_PiWorker = new CSocketProService&lt;CClientPeer&gt;();
+
+    [ServiceAttr(radoConst.sidRAdo)]
+    private CSocketProService&lt;RAdoPeer&gt; m_RAdo = new CSocketProService&lt;RAdoPeer&gt;();
+
+    //for db push from ms sql server
+    [ServiceAttr(repConst.sidRAdoRep)]
+    private CSocketProService&lt;DBPushPeer&gt; m_RAdoRep = new CSocketProService&lt;DBPushPeer&gt;();
+
+    static void Main(string[] args)
+    {
+        using (CMySocketProServer server = new CMySocketProServer())
+        {
+            //test certificate and private key files are located at ../socketpro/bin
+            /*
+            if (System.Environment.OSVersion.Platform == PlatformID.Unix)
+                server.UseSSL("intermediate.cert.pem", "intermediate.key.pem", "mypassword");
+            else
+            {
+                server.UseSSL("intermediate.pfx", "", "mypassword");
+                //or load cert and private key from windows system cert store
+                //server.UseSSL("root", "UDAParts Intermediate CA", "");
+            }
+            */
+            if (!server.Run(20901))
+                Console.WriteLine("Error code = " + CSocketProServer.LastSocketError.ToString());
+            Console.WriteLine("Input a line to close the application ......");
+            Console.ReadLine();
+        }
+    }
+
+    protected override bool OnSettingServer()
+    {
+        //amIntegrated and amMixed not supported yet
+        Config.AuthenticationMethod = tagAuthenticationMethod.amOwn;
+
+        PushManager.AddAChatGroup(1, "R&D Department");
+        PushManager.AddAChatGroup(2, "Sales Department");
+        PushManager.AddAChatGroup(3, "Management Department");
+        PushManager.AddAChatGroup(7, "HR Department");
+        PushManager.AddAChatGroup(SocketProAdapter.UDB.DB_CONSTS.CACHE_UPDATE_CHAT_GROUP_ID, "Subscribe/publish for front clients");
+
+        //load socketpro async sqlite library located at the directory ../bin/free_services/sqlite
+        IntPtr p = CSocketProServer.DllManager.AddALibrary("ssqlite");
+        if (p.ToInt64() != 0) 
+        {
+            //monitoring sakila.db table events (DELETE, INSERT and UPDATE) for tables actor, language, category, country and film_actor
+SetSqliteDBGlobalConnectionString("usqlite.db+sakila.db.actor;sakila.db.language;sakila.db.category;sakila.db.country;sakila.db.film_actor");
+        }
+        //load socketPro asynchronous persistent message queue library at the directory ../bin/free_services/queue
+        p = CSocketProServer.DllManager.AddALibrary("uasyncqueue", 24 * 1024); //24 * 1024 batch dequeuing size in bytes
+
+        //load socketPro file streaming library at the directory ../bin/free_services/file
+        p = CSocketProServer.DllManager.AddALibrary("ustreamfile");
+
+        //load MySQL/MariaDB socketPro server plugin library at the directory ../bin/free_services/mm_middle
+        p = CSocketProServer.DllManager.AddALibrary("smysql");
+
+        //load ODBC socketPro server plugin library at the directory ../bin/win or ../bin/linux
+        p = CSocketProServer.DllManager.AddALibrary("sodbc");
+
+        bool ok = CSocketProServer.Router.SetRouting(piConst.sidPi, piConst.sidPiWorker);
+
+        return true; //true -- ok; false -- no listening server
+    }
+
+    protected override bool OnIsPermitted(ulong hSocket, string userId, string password, uint nSvsID)
+    {
+        Console.WriteLine("Ask for a service " + nSvsID + " from user " + userId + " with password = " + password);
+        return true;
+    }
+
+    protected override void OnClose(ulong hSocket, int nError)
+    {
+        // ......
+    }
+}
+</pre>
+</td>
+<td>
+<p>The left code snippet 2 shows implementation of microservices and how to enable SocketPro built-in feature routing. The code comes from the file ../socketpro/tutorial/csharp/all_servers/Programs.cs.</p>
+<hr />
+<h3>Micro services</h3>
+<p>A SocketPro server can support any number of services. As shown at the code snippet 2 of <a title="SocketPro Secure Communication and Publish/Subscribe Messaging" href="cs_push.htm">the previous article</a>, we register and set hello world service at lines 12 and 13.
+Next, we register and set HTTP/websocket service at lines 15 and 16 as shown at the code snippet 2 of <a href="cs_web.htm" title="SocketPro WebSocket for Client/server and Subscribe/publish Messaging on Browsers">this article for web browser developments</a>.
+
+</p>
+<hr />
+<h3>SocketPro Built-in Feature Routing</h3>
+<p>Also, we simply register the two srvices, sidPi and sidPiWorker, at line 19 through 22.
+Afterwards, we can call the method <i>SetRouting</i> at line 83 to enable the built-in feature routing so that this demo server also function as a load balancer inside the virtual function <i>OnSettingServer</i>.
+So far we have registered four services with one particular feature for server load balancing.</p>
+<hr />
+<h3>Loading SocketPro server plugins</h3>
+<p>At this time, you can only use C/C++ to write server plugins as shown at <a href="cpp_serverqueue.htm" title="SocketPro Server Persistent Message Queue">the code snippet 4 of the previous article</a>.
+The five server plugins can be loaded into a server for reuse, as shown at line 65 through 81 of the left code snippet 2.
+The five plugins are described with more details at <a href="get_started.htm" title="Get Started With SocketPro">this article</a> before.
+The left code snippet supports eleven micro services totally.
+</p>
+<p>It is noted that SocketPro comes with a number of pre-compiled plugins for you to experiment and learn. They are not completely ready for resue within your commercial applications yet.
+However, they are good examples and reusable as development basis for your commercial or enterprise applications.</p>
+</td>
+</tr>
+</table>
+Code snippet 2: SocketPro router server and mircoservices implementation
+<hr />
+<table style="width:100%;">
+<tr>
+<td style="width:25%;">
+<?prettify linenums=1?>
+<pre class="prettyprint">
+//.../socketpro/tutorials/csharp/loading_balance/lb_worker/piworker.cs
+using SocketProAdapter;
+using SocketProAdapter.ClientSide;
+
+public class PiWorker : CAsyncServiceHandler
+{
+	public PiWorker() : base(piConst.sidPiWorker)
+	{
+	}
+
+    protected override void OnResultReturned(ushort sRequestId, CUQueue UQueue)
+    {
+        if (RouteeRequest)
+        {
+            switch (sRequestId)
+            {
+                case piConst.idComputePi:
+                    {
+                        double dStart;
+                        double dStep;
+                        int nNum;
+                        UQueue.Load(out dStart).Load(out dStep).Load(out nNum);
+                        double dX = dStart + dStep / 2;
+                        double dd = dStep * 4.0;
+                        double ComputeRtn = 0.0;
+                        for (int n = 0; n < nNum; n++)
+                        {
+                            dX += dStep;
+                            ComputeRtn += dd / (1 + dX * dX);
+                        }
+                        SendRouteeResult(ComputeRtn, dStart);
+                    } 
+                    break;
+                default:
+                    break;
+            }
+        }
+    }
+}
+
+//.../socketpro/tutorials/csharp/loading_balance/lb_worker/Program.cs
+using System;
+using SocketProAdapter.ClientSide;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        Console.WriteLine("This is worker client. Remote router host: ");
+        CConnectionContext cc = new CConnectionContext(Console.ReadLine(),
+            20901, "lb_worker", "pwdForlb_worker");
+        using (CSocketPool&lt;PiWorker&gt; spPi = new CSocketPool&lt;PiWorker&gt;())
+        {
+            spPi.StartSocketPool(cc, 1, (uint)Environment.ProcessorCount);
+            Console.WriteLine("Press key ENTER to shutdown the demo application ......");
+            Console.ReadLine();
+        }
+    }
+}
+</pre>
+</td>
+<td>
+<p>After having looked at client and server sides, it is time to move to worker side.
+The left code snippet 3 comes with the files piworker.cs and Program.cs of the directory .../socketpro/tutorials/csharp/loading_balance/lb_worker/.</p>
+<p>At worker side, the virtual function <i>OnResultReturned</i> will be called when a connected worker receives a request routed from a SocketPro server.
+Inside the virtual function, we need to check at line 13 if a request is indeed one routed from a SocketPro server, which is originated from a client.
+After computation from line 22 through 30, we send a result <i>ComputeRtn</i> with an index <i>dStart</i> at line 31 back to its original client through the middle server.
+It is noted that the de-serialization at line 22 is mirroring to the serialization at line 31 of the above code snippet 1.</p>
+<p>Finally, let us look at line 54. Here, we start a socket pool with the number of threads equal to the number of processors. Each of threads hosts one socket only.
+Previously, we have just used one thread only all times.
+However, here we use multiple threads for a socket pool because these requests are CPU extensive and we need multiple processors to process them in parallel.</p>
+</td>
+</tr>
+</table>
+Code snippet 3: A sample routing worker side implementation
+<hr />
+<h2>Fault-tolerance and auto-recovery tests</h2>
+<p>Compile projects at the directories ../socketpro/tutorials/csharp/loading_balance/lb_worker and ../socketpro/tutorials/csharp/Loading_balance/lb_client to generate lb_worker and lb_client executables, respectively.
+After running the <a href="get_started.htm" title="Get Started With SocketPro">all_servers</a> and lb_worker, run the excutable lb_client for outputs.
+You will find that expected results come from workers with somewhat randomness, but the final π value is correct as expected.
+Further, we can use the code at line 38 of the above code snippet 1 to sort these results with an index <i>dStart</i> and remove the randomness. The randomness is caused by worker side parallel computation without any guarantee of sequencing.</p>
+<p>During computation, you can brutally kill and restart the server <a href="get_started.htm" title="Get Started With SocketPro">all_servers</a>, worker lb_worker or both repeatedly.
+You will find the final π value is still correct. By this time, you can see SocketPro client message queue is a key fetaure to fault-tolerance and auto-recovery!</p>
+<hr />
+</body>
+</html>

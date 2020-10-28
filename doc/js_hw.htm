@@ -1,0 +1,396 @@
+﻿<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="utf-8" />
+    <title>SocketPro Client Server Application Development</title>
+    <link rel="stylesheet" type="text/css" href="codepretty/sons-of-obsidian.css">
+    <script type="text/javascript" src="codepretty/prettify.js"></script>
+</head>
+<body onload="PR.prettyPrint()">
+<h1 style="text-align: center;">SocketPro client server application development</h1>
+<p>
+This is our second example for developing a client server application with SocketPro.
+Because the sample involves echoing a complex struture between client and server,
+you may need to refer to <a title="SocketPro Request Parameters Packing and Result Unpacking" href="js_buffer.htm">the first sample</a>.
+In addition, we need the pre-distributed server application <a href="get_started.htm" title="Get Started With SocketPro">all_servers</a> for testing.
+</p>
+<hr />
+
+<table style="width:100%;">
+<tr>
+<td style="width:30%;">
+<?prettify linenums=1?>
+<pre class="prettyprint">
+//../socketpro/tutorials/nodejs/hello_world.js
+'use strict';
+
+//loading SocketPro adapter (nja.js + njadapter.node) for nodejs
+var SPA = require('nja.js');
+
+const sid = SPA.SID.sidReserved + 1; //hello world service id
+
+//hello world service supports the following three requests
+const idSayHello = SPA.BaseID.idReservedTwo + 1;
+const idSleep = idSayHello + 1;
+const idEcho = idSleep + 1;
+
+var cs = SPA.CS; //CS == Client side
+
+//create a global socket pool object
+var p = cs.newPool(sid);
+global.p = p;
+
+//p.QueueName = 'reqbackup';
+
+//create a connection context
+var cc = cs.newCC('localhost', 20901, 'root', 'Smash123');
+
+//start a socket pool having one session to a remote server
+if (!p.Start(cc, 1)) {
+    console.log(p.Error);
+    return;
+}
+var hw = p.Seek(); //seek an async hello world handler
+
+//prepare a real complex structure for a remote request
+var data = {
+    nullStr: null,
+    objNull: null,
+    aDate: new Date(),
+    aDouble: 1234.567,
+    aBool: true,
+    unicodeStr: 'Unicode',
+    asciiStr: 'ASCII',
+    objBool: true,
+    objString: 'test',
+    objArrString: ['Hello', 'world'],
+    objArrInt: [1, 76890]
+};
+console.log(data); //Source data
+
+(async () => {
+
+// all f0, f1, f2, f3, f4 and f5 are promises for CUQueue
+// all the following requests are streamed with in-line batching for best network effiency
+var f0 = hw.sendRequest(idSayHello, SPA.newBuffer().SaveString('Jone').SaveString('Dole'));
+var f1 = hw.sendRequest(idSleep, SPA.newBuffer().SaveInt(5000));
+
+//serialize and de-serialize a complex structure with a specific order,
+//pay attention to both serialization and de-serialization,
+//which must be in agreement with server implementation
+
+//echo a complex object
+var f2 = hw.sendRequest(idEcho, SPA.newBuffer().Save(q => {
+    q.SaveString(data.nullStr).SaveObject(data.objNull).SaveDate(data.aDate).
+    SaveDouble(data.aDouble).SaveBool(data.aBool).SaveString(data.unicodeStr).
+    SaveAString(data.asciiStr).SaveObject(data.objBool).SaveObject(data.objString).
+    SaveObject(data.objArrString).SaveObject(data.objArrInt);
+}));
+var f3 = hw.sendRequest(idSayHello, SPA.newBuffer().SaveString('Hillary').SaveString('Clinton'));
+var f4 = hw.sendRequest(idSayHello, SPA.newBuffer().SaveString('Donald').SaveString('Trump'));
+var f5 = hw.sendRequest(idSayHello, SPA.newBuffer().SaveString('Jack').SaveString('Smith'));
+//hw.Socket.Cancel();
+try {
+    console.log((await f0).LoadString());
+}
+catch (ex) {
+    console.log(ex);
+}
+try { //should be zero because server side return nothing
+    console.log('Sleep returning result size: ' + (await f1).getSize());
+    //console.log((await f1).LoadString());
+}
+catch (ex) {
+    console.log(ex);
+}
+try {
+    var q = await f2;
+    //de-serialize once result comes from server
+    var d = {
+        nullStr: q.LoadString(),
+        objNull: q.LoadObject(),
+        aDate: q.LoadDate(),
+        aDouble: q.LoadDouble(),
+        aBool: q.LoadBool(),
+        unicodeStr: q.LoadString(),
+        asciiStr: q.LoadAString(),
+        objBool: q.LoadObject(),
+        objString: q.LoadObject(),
+        objArrString: q.LoadObject(),
+        objArrInt: q.LoadObject()
+    };
+    console.log(d);
+}
+catch (ex) {
+    console.log(ex);
+}
+try {
+    console.log((await f3).LoadString());
+}
+catch (ex) {
+    console.log(ex);
+}
+try {
+    console.log((await f4).LoadString());
+}
+catch (ex) {
+    console.log(ex);
+}
+try {
+    console.log((await f5).LoadString());
+}
+catch (ex) {
+    console.log(ex);
+}
+
+})();
+</pre>
+</td>
+<td>
+<p>The left code snippet 1 comes from the file ../socketpro/tutorials/nodejs/hello_world.js.</p>
+<p>First of all, it is required to load SocketPro Adapter (SPA) for node.js at line 5.
+The adapter consists two file nja.js located at the directory ../socketpro/bin/js and ../socketpro/bin/js/node-vX.Y.Z.</p>
+<p>Each of service has an unique identification number <i>sid</i> as shown at line 7, which must be larger than <i>SPA.SID.sidReserved</i>.
+A client will use the <i>sid</i> to point to a service provided by a remote SocketPro server, which can be created from C/C++, Java, .NET or Python at this time.
+Each of services may have zero, one or more requests implemented.
+Each of these requests (<i>idSayHello, idSleep and idEcho</i>) must have an unique identification number (unsigned short) within a service, as shown at line 10 through 12.
+All request identification number must be larger than <i>SPA.BaseID.idReservedTwo</i>.
+When a client sends a request, its connected server will use the request id to parse incoming input data and return expected result back to client after processing.</p>
+
+<p>Next, we create a socket pool <i>p</i> with a given service id <i>sid</i> at line 17. Afterwards, we prepare a connection context <i>cc</i> at line 23.
+Next, we start the socket pool <i>p</i> at line 26, which has one thread hosting one non-blocking socket for communication between client and server.
+In reality, one worker thread is enough under most cases, but you may like to use multiple sockets per thread for processing at server side with better concurency.
+We use one socket here for this demo sample. By default, the pool of sockets can be auto reconnected if servers shut down and restart.
+</p>
+
+<p>Next, find an async handler <i>hw</i> from the above pool <i>p</i> at line 30.
+SocketPro perfers sharing a pool of connected sockets.
+As you can see from here, you need to find one of sockets from the pool at run time, which should have least requests queued.</p>
+
+<p>Once we get such a handler <i>hw</i>, we can keep on sending all six different types of requests in streaming style to get six promises back immediately without waiting for server results at all, as shown at line 52 through 68.
+SocketPro <a href="get_started.htm" title="Get Started With SocketPro">client core</a> library (usocket) will batch six request buffers silently for you, and send them with as fewer packets as possible at the run time for the best network efficiency.
+</p>
+<p>Beginning at line 70, we can use await operator to get six instances of CUQueue for the six expected results from server from line 71 through 117.
+Similarly, SocketPro <a href="get_started.htm" title="Get Started With SocketPro">server core</a> library (uservercore) will silently do in-line batching returning results on the fly and reduce the network packets as many as possible at server side too.</p>
+
+<p>When using await operator for expected CUQueue instance, it is required to catch one of three possible exceptions, server created exceptions, communnication channel or socket errors, and de-serialization exceptions as well as other errors.</p>
+
+<p>To understand the codes at line 61 through 64 and line 87 through 97 for echoing a complex structure, please refer to the <a title="SocketPro Request Parameters Packing and Result Unpacking" href="js_buffer.htm">previous sample</a>.</p>
+</td>
+</tr>
+</table>
+<h4>Code snippet 1: A simple Node.js client/server example</h4>
+<hr />
+<table style="width:100%;">
+<tr>
+<td style="width:30%;">
+<?prettify linenums=1?>
+<pre class="prettyprint">
+//class CHandler @../socketpro/bin/js/nja.js
+/**
+* Send a request onto a remote server for processing, and return immediately without blocking
+* @param {unsigned short} reqId An unique request id within a service handler
+* @param {CUQueue, null or undefined} buff null, undefined or an instance of CUQueue
+* @returns A promise for an instance of CUQueue
+* @throws A server, socket close or request canceled exception
+*/
+sendRequest(reqId, buff) {
+    return new Promise((res, rej) => {
+        var ok = this.handler.SendRequest(reqId, buff, (q, id) => {
+            res(q, id);
+        }, (canceled, id) => {
+            this.set_aborted(rej, reqId, canceled);
+        }, (errMsg, errCode, errWhere, id) => {
+            this.set_exception(rej, errMsg, errCode, errWhere, id);
+        });
+        if (!ok) {
+            this.raise(rej, reqId);
+        }
+    });
+}
+</pre>
+</td>
+<td>
+    <p>Let us dig into the method <i>sendRequest</i> as defined at the left code snippet 2. The method returns a promise at line 10.
+    Inside the promise, we call the method <i>SendRequest</i>, which takes a request id <i>reqId</i>, an input buffer <i>buff</i> for request data, and three lambda expressions at line 11, 13 and 15.
+    </p>
+    <p>We set an instance <i>q</i> of CUQueue from server returning result and a request id <i>id</i> at line 12 within the first lambda expression, if node.js client detects its result from server.
+    The second lambda expression at line 13 through 15 will be called if the underlying socket is closed or a request is canceled by calling the method <i>Cancel</i> at line 69 of the above snippet 1.
+    If this happens, we raise an exception at line 14 by calling the method <i>set_aborted</i>.
+    If a remote server responses an exception, the third lambda expression at line 15 through 16 will be called.
+    If this situation happens, we raise a server exception by calling the method <i>set_exception</i>.
+    Occasionally, the method <i>SendRequest</i> returns false and finds that the underlying socket is already closed.
+    Under such a condition, we also raise an exception by calling the method <i>raise</i> as shown at line 19.
+    </p>
+    <p>In short, you can rely on a returned promise to deal with all types of errors or exceptions.
+    We will descuss the three types of errors such as <i>set_aborted</i>, <i>set_exception</i> and <i>raise</i> within coming code snippets</p>
+    The three methods take reject <i>rej</i> as first input as required.
+    In addition, they are reused by many other methods returning promises within the file ../socketpro/bin/js/nja.js
+    </td>
+</tr>
+</table>
+<h4>Code snippet 2: Decode of the method <i>sendRequest</i></h4>
+<hr />
+<table style="width:100%;">
+    <tr>
+        <td style="width:30%;">
+<?prettify linenums=1?>
+<pre class="prettyprint">
+//class CHandler @../socketpro/bin/js/nja.js
+
+/**
+* set a cancel or communication channel close exception for promise reject
+* @param {reject} rej promise reject function
+* @param {unsigned short} req_id an unique request id within a service handler
+* @param {boolean} canceled true if the request is canceled, false if communication channel is closed
+*/
+set_aborted(rej, req_id, canceled) {
+    var ret;
+    if (canceled) {
+        ret = { ec: -1002, em: 'Request canceled', reqId: req_id, before: false };
+    }
+    else {
+        var error = this.Socket.Error;
+        if (!error.ec) {
+            error.ec = -1000;
+            error.em = 'Session closed after sending the request';
+        }
+        ret = { ec: error.ec, em: error.em, reqId: req_id, before: false };
+    }
+    rej(ret);
+}
+</pre>
+</td>
+<td>
+The left code snippet 3 decodes the method <i>set_aborted</i>.
+As its name implies, it is designed for monitoring two events, request canceled and session closed events.
+<ol>
+    <li>
+        SocketPro has a feature named as <i>Cancel</i>. Calling the method will leads to request cancel exception.
+        You can test the feature by uncommenting line 69 within the previous code snippet 1. Doing so will lead to execute the code at line 12 before setting a reject at line 22.
+    </li>
+    <li>
+        We use the code line 15 through 20 to set a session close exception.
+        First, if session is closed gracefully, we set error information at lines 17 and 18.
+        Otherwise, we directly use the socket system error <i>this.Socket.Error</i> at line 15, before setting a reject at line 22..
+    </li>
+    <li>
+        The error always happens after sending a request.
+        Therefore, the last member <i>before</i> will be false as shown at line 20.
+    </li>
+</ol>
+</td>
+</tr>
+</table>
+<h4>Code snippet 3: Decode of the method <i>set_aborted</i></h4>
+<hr />
+<table style="width:100%;">
+    <tr>
+        <td style="width:30%;">
+<?prettify linenums=1?>
+<pre class="prettyprint">
+//class CHandler @../socketpro/bin/js/nja.js
+/**
+* set a server exception for promise reject
+* @param {reject} rej promise reject function
+* @param {string} errMsg an error message
+* @param {int} errCode an error code
+* @param {string} errWhere location where exception happens at server side
+* @param {unsigned short} id an unique request id within a service handler
+*/
+set_exception(rej, errMsg, errCode, errWhere, id) {
+    rej({ ec: errCode, em: errMsg, where: errWhere, reqId: id });
+}
+</pre>
+    </td>
+    <td>
+    <p>The left code snippet 4 is very simple. It sets a reject <i>rej</i> at line 11 with a structure describing an error information from server.
+    The error informatin consists of an error code, its error message, location where the error happens at server side, and request id <i>id</i>.
+    </p>
+    </td>
+</tr>
+</table>
+<h4>Code snippet 4: Decode of the method <i>set_exception</i></h4>
+<hr />
+<table style="width:100%;">
+    <tr>
+        <td style="width:30%;">
+<?prettify linenums=1?>
+<pre class="prettyprint">
+//class CHandler @../socketpro/bin/js/nja.js
+
+/**
+* raise a communication channel close exception for promise reject
+* @param {reject} rej promise reject function
+* @param {unsigned short} req_id An unique request id within a service handler
+*/
+raise(rej, req_id) {
+    var error = this.Socket.Error;
+    if (!error.ec) {
+        error.ec = -1001;
+        error.em = 'Session already closed before sending the request';
+    }
+    rej({ ec: error.ec, em: error.em, reqId: req_id, before: true });
+}
+</pre>
+        </td>
+        <td>
+        <p>Under many cases, a session is already closed before sending a request. The left code snippet 5 shows the implementation of the method <i>raise</i>.
+        If it is this situation, we call the left method raise to throw an exception immediately as shown at line 19 in the above code snippet 2.</p>
+        <p>
+        Again, we need to check if a session is closed gracefully. If it does, we use the code lines 11 and 12 to set error information <i>error</i> with a given request name <i>method_name</i>.
+        Otherwise, we use socket system error message <i>this.Socket.Error</i> directly.</p>
+        <p>
+        It is noted that the exception indicates session is already closed before sending a request. Therefore, the last member <i>before</i> is true as shown at line 14.</p>
+        </td>
+    </tr>
+</table>
+<h4>Code snippet 5: Decode of the method <i>raise</i></h4>
+<hr />
+<h4>SendRequest vs sendRequest within CHandler</h4>
+<p>SocketPro node.js adapter comes the two methods to send any types of requests from a client to server for asynchronous processing in streaming style.
+The fist one <i>SendRequest</i> is the basis for the other method <i>sendRequest</i>. The method <i>sendRequest</i> always calls the basis method <i>SendRequest</i> inside.
+To use the method <i>SendRequest</i>, you may have to provide its required three callbacks with more coding as shown at the above code snippet 2.
+The second method <i>sendRequest</i> has already wrapped the three required callbacks so that you can use Javascript modern try-catch style and less code to deal with returned results and errors easily.
+This abstraction has a little price in performance, and reduces coding flexibility under some situations. The basis method <i>SendRequest</i> delivers better speed plus better flexibility.
+Therefore, it is not surprised that we use the basis method <i>SendRequest</i> directly under some situations.
+</p>
+<p>In regards to the method <i>sendRequest</i>, the method always returns a promise immediately without any blocking as shown at this example. You can easily use node.js async and await features.
+Keep in mind that all SocketPro adapters well support on modern language development features such as anonymous function, closure, Lambda expression, async/await, future, promise, yield and so on.
+</p>
+<p>In addition to the base handler class <i>CHandler</i>, SocketPro node.js adapter comes with other handler classes derived from this base handler class.
+These sub-class handlers have their own requests defined at client side. All of their requests have two sets of functions exactly like <i>SendRequest</i> and <i>sendRequest</i> here.
+</p>
+<hr />
+We are going to test these types of exceptions.
+<ol>
+<li>
+    <i>Server exception</i>: Go back to the line 52 of the above code snippet 2, modify the first input <i>'Jone'</i> to an empty string, you will see an exception from server after running the script against pre_compiled application <a href="get_started.htm" title="Get Started With SocketPro">all_servers</a> inside the sub-directory ../socketpro/bin/win/x64 or x86 for windows, or ../socketpro/bin/linux.
+    Alternatively, you can get an server exception by setting the input int <i>5000</i> to a negative value at line 53.
+</li>
+<li>
+    <i>Socket exception</i>: Run the script against the sample server application <a href="get_started.htm" title="Get Started With SocketPro">all_servers</a> to get the first return result like "Hello John Dole!". You can get such an exception after brutally shutting down the <a href="get_started.htm" title="Get Started With SocketPro">all_servers</a>.
+    Alternatively, you can get such an exception by uncommenting the line 69.
+</li>
+<li>
+    <i>Other exception</i>: Use the code at line 78 to replace the normal code at line 77. The replacement will lead to de-serilization exception <i>Exception</i> at client side because the request <i>idSleep</i> returns nothing.
+</li>
+</ol>
+<hr />
+<p>At last, we like to talk about client message queue. When developing real enterprise applications, we have to consider application fault tolerance and auto recovery.
+SocketPro has a built-in feature implemented with such a client message queue. A client message queue is a local file.
+When sending requests, SocketPro will automatically backup these requests into the local file. In case a remote server is down or not accessible because of any types of reasons, SocketPro is capable to re-sent these requests from the client queue file automatically when the remote server is restarted.
+It is noted that a client session is associated with one client message queue only.</p>
+<p>Let's test the client queue feature. Go back to the previous code snippet 1 and uncomment the code at line 20.
+After running the sample script, brutally shut down its server application <a href="get_started.htm" title="Get Started With SocketPro">all_servers</a> before the application is completed.
+You will find the client application stops and there is no socket exception as previous tests.
+However, the client application will continue if we re-run the server application <a href="get_started.htm" title="Get Started With SocketPro">all_servers</a>. It is noted that there will be no missing results.
+Although a socket is closed, SocketPro thinks that a session is still connected if a client message queue is associated.
+Briefly speaking, when a server is restarted, the client socket will be automatically reconnected to server, and keep on sending requests from the associated client queue file.</p>
+Client queue prevents client requests from losing, improves apllication's fault-tolerance, and make server application maintenance easier and even your development simpler because it enables failures auto-recovery and reduces many errors.
+<hr />
+Summarily, SocketPro is a full asynchronus communication framework. Its requests streaming feature is such a powerful feature to help high performance distributed application development in no time. As a developer, keep in mind that streaming requests are truly preferred whenever possible and if you have multiple requests at client side.
+As we can easily echo a complex structure in this sample, it is just a simple task to develop a client server application. SocketPro requests are asynchronous by nature with in-line batching for the best network efficiency. In addition, SocketPro is capable to back up requests automatically by client message queue for failures auto-recovery, and reduces many tough issues.
+<hr />
+</body>
+</html>

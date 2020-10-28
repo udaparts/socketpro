@@ -1,0 +1,195 @@
+﻿<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="utf-8" />
+    <title>SocketPro Request Parameters Packing and Result Unpacking</title>
+    <link rel="stylesheet" type="text/css" href="codepretty/sons-of-obsidian.css">
+    <script type="text/javascript" src="codepretty/prettify.js"></script>
+</head>
+<body onload="PR.prettyPrint()">
+<h1>SocketPro Request Parameters Packing and Result Unpacking</h1>
+<p>This is the first example to explain SocketPro utility classe, <i>CUQueue</i> inside nodejs C/C++ plugin njadapter.node , for data serialization and de-serialization.
+It is recommended for you to have a glance at <a href="all_langs.htm" title="CUQueue and Comaptibility among Different Development Languages">this article</a> before reading this article.
+This sample code is located at the file ../socketpro/tutorials/nodejs/uqueue_demo.js. Also, make sure that you have already distributed client core library usocket into system directory as discribed at <a href="get_started.htm" title="Get Started With SocketPro">this short article</a>.</p>
+<p>It is focused on serializing and de-serializing a complex structure. The sample code will be used by successive examples.</p>
+<table style="width:100%;">
+<tr>
+<td style="width:30%;">
+<?prettify linenums=1?>
+<pre class="prettyprint">
+//see them at file ../socketpro/bin/js/nja.js
+//class CHandler.SendRequest
+/**
+* Send a request onto a remote server for processing, and return immediately without blocking
+* @param {short} reqId An unique request id within a service handler
+* @param {CUQueue, null, undefined} buff null, undefined or an instance of CUQueue
+* @param {function} cb A callback for tracking an instance of CUQueue containing an expected result
+* @param {function} discarded A callback for tracking communication channel events, close and cancel
+* @param {function} serverException A callback for tracking an exception from server
+* @returns true if successful, and false if communication channel is not sendable
+*/
+SendRequest(reqId, buff, cb, discarded = null, serverException = null) {
+    return this.handler.SendRequest(reqId, buff, cb, discarded, serverException);
+}
+
+exports.newBuffer = function (initSize = 4096, blockSize = 4096) {
+    return new SPA.CUQueue(initSize, blockSize);
+};
+</pre>
+</td>
+<td>
+<p>
+SocketPro client core library exports one function SendRequest at line 13 of the left code snippet 1.
+Basically, it sends an array of bytes inside a buffer (buff) for each request (reqId) at line 12 to a connected server for processing through an underlying socket.
+When a result comes from the server, we could use a callback (cb) at line 12 to moniter an array of bytes back from server, and unpack the array bytes in a buffer into expected data.
+Therefore, SocketPro is required to provide a utility class <i>CUQueue</i> inside nodejs C/C++ plugin njadapter.node for packing request input parameters and unpacking results from returning bytes.
+</p>
+<p>To get such an instance of <i>CUQueue</i>, call the method newBuffer as shown at line 16 through 18.
+SocketPro nodejs adapter will extensively use it for packing request inputs and unpacking outputs from server result.</p>
+</td>
+</tr>
+</table>
+Code snippet 1: Utility class <i>CUQueue</i> for packing request inputs and unpacking outputs from server result
+<hr />
+<table style="width:100%;">
+<tr>
+<td style="width:30%;">
+<?prettify linenums=1?>
+<pre class="prettyprint">
+//loading SocketPro adapter (nja.js + njadapter.node) for nodejs
+var SPA = require('nja.js');
+
+//create a memory buffer or queue for data serialization and de-serialization
+var buf = SPA.newBuffer();
+
+var data = {
+	nullStr: null,
+	objNull: null,
+	aDate: new Date(),
+	aDouble: 1234.567,
+	aBool: true,
+	unicodeStr: 'Unicode',
+	asciiStr: 'ASCII',
+	objBool: true,
+	objString: 'test',
+	objArrString: ['Hello', 'world'],
+	objArrInt: [1, 76890]
+};
+console.log(data); //source data
+</pre>
+</td>
+<td><p>UDAParts provides a <a href="get_started.htm" title="Get Started With SocketPro">client core</a> library.
+    It exports a set of C functions, which are wrapped into njadapter.node specifically for node.js.
+    Therefore, we use the call at line 2 of the left code snippet 2 to directly load nja.js (../socketpro/bin/js/nja.js) which further loads njadapter.node and <a href="get_started.htm" title="Get Started With SocketPro">client core</a> into node.js environment.
+    As commented at line 1, we call the combination (nja.js and njadapter.node) as SocektPro adapter for node.js.
+    </p>
+
+    <p>As an example, we use the code at line 5 to initialize an instance of <i>CUQueue</i>. Afterwards, we can use it for packing and unpacking various types of data.</p>
+
+    <p>The structure <i>data</i> at left code snippet 2 consists of a number of different types of members at line 7 through 19.
+    They are a null string (nullString), a null (objNull), a datetime (aDate), a double (aDouble), a bool (aBool), a unicode string (unicodeString), an ASCII string (asciiString),
+    an <i>objBool</i>, an <i>objString</i>, an <i>objArrayString</i> and an <i>objArrInt</i>.
+    These members cover different basic types of data which are already supported by the utility class <i>CUQueue</i>.
+    However, SocketPro doesn't know how to pack the complex structure into a <i>CUQueue</i> buffer automatically. Also, it has no knowledge about unpacking it from a <i>CUQueue</i> buffer either.
+    With node.js development, it is required that you maually pack and upack complex structures as shown in the coming code snippets.
+    </p>
+</td>
+</tr>
+</table>
+Code snippet 2: A complex structure definition and SocektPro adapter for node.js
+<hr />
+<table style="width:100%;">
+<tr>
+<td style="width:25%;">
+<?prettify linenums=1?>
+<pre class="prettyprint">
+//serialize member values into buffer buf with a specific order, which must be in agreement with server implementation
+buf.SaveString(data.nullStr); //4 bytes for length
+buf.SaveObject(data.objNull); //2 bytes for data type
+buf.SaveDate(data.aDate);     //8 bytes for ulong with accuracy to 1 micro-second
+buf.SaveDouble(data.aDouble); //8 bytes
+buf.SaveBool(data.aBool);     //1 byte
+buf.SaveString(data.unicodeStr); //4 bytes for string length + (length * 2) bytes for string data -- UTF16 low-endian
+buf.SaveAString(data.asciiStr);  //4 bytes for ASCII string length + length bytes for string data
+buf.SaveObject(data.objBool);    //2 bytes for data type + 2 bytes for variant bool
+buf.SaveObject(data.objString); //2 bytes for data type + 4 bytes for string length + (length * 2) bytes
+                                //for string data -- UTF16-lowendian
+buf.SaveObject(data.objArrString); //2 bytes for data type + 4 bytes for array size + (4 bytes for string length +
+                                   //(length * 2) bytes for string data) * arraysize -- UTF16-lowendian
+buf.SaveObject(data.objArrInt);    //2 bytes for data type + 4 bytes for array size + arraysize * 4 bytes for int data
+
+console.log('Bytes in buffer before loading: ' + buf.getSize());
+//de-serialize once result comes from server
+var res = {
+	nullStr: buf.LoadString(),
+	objNull: buf.LoadObject(),
+	aDate: buf.LoadDate(),
+	aDouble: buf.LoadDouble(),
+	aBool: buf.LoadBool(),
+	unicodeStr: buf.LoadString(),
+	asciiStr: buf.LoadAString(),
+	objBool: buf.LoadObject(),
+	objString: buf.LoadObject(),
+	objArrString: buf.LoadObject(),
+	objArrInt: buf.LoadObject()
+};
+console.log(res); //Returned data
+console.log('Bytes in buffer after loading: ' + buf.getSize());
+</pre>
+</td>
+<td>
+<p>To pack or serialize a complex structure, see the code at line 2 through 14 of the left code snippet 3. Pay attention to their comments at thir right side.</p>
+<p>To unpack or deserialize a complex structure from an instance of buffer <i>CUQueue</i>, see the code at line 18 through 30.
+It is noted that calling the methods SaveXXX and LoadXXX must be in pair and exactly same order.
+Also, packing and unpacking must be in agreement with a server implementation which may be realized with C/C++, .NET, Java or Python.</p>
+<p>For experiment, we show data structure at line 31. At end, buffer size will be zero after unpacking at line 32.</p>
+</td>
+</tr>
+</table>
+Code snippet 3: Demonstration of serialization and de-serialization of a complex structure
+<hr />
+<table style="width:100%;">
+<tr>
+<td style="width:25%;">
+<?prettify linenums=1?>
+<pre class="prettyprint">
+console.log('++++++ use callbacks for saving and loading +++++');
+res = buf.Save(q => {
+	q.SaveString(data.nullStr).SaveObject(data.objNull).SaveDate(data.aDate).SaveDouble(data.aDouble).
+	SaveBool(data.aBool).SaveString(data.unicodeStr).SaveAString(data.asciiStr).SaveObject(data.objBool).
+	SaveObject(data.objString).SaveObject(data.objArrString).SaveObject(data.objArrInt);
+}).Load(q => {
+	console.log('Bytes in buffer before loading: ' + q.getSize());
+	var d = {
+		nullStr: q.LoadString(),
+		objNull: q.LoadObject(),
+		aDate: q.LoadDate(),
+		aDouble: q.LoadDouble(),
+		aBool: q.LoadBool(),
+		unicodeStr: q.LoadString(),
+		asciiStr: q.LoadAString(),
+		objBool: q.LoadObject(),
+		objString: q.LoadObject(),
+		objArrString: q.LoadObject(),
+		objArrInt: q.LoadObject()
+	};
+	console.log('Bytes in buffer after loading: ' + q.getSize());
+	return d;
+}
+);
+console.log(res);
+</pre>
+</td>
+<td>
+<p>
+We could do packing and unpacking again with the methods <i>Save</i> and <i>Load</i> as shown at the left code snippet 4. The two methods <i>Save</i> and <i>Load</i> within <i>CUQueue</i> requires a callback.
+Also, it is noted that you can pack multiple data into memory buffer within one statement as shown at line 3 through 5.
+</p>
+<p>At this time, you could understand the code at line 13 of the previous code snippet 1 better.</p>
+</td>
+</tr>
+</table>
+Code snippet 4: Demonstration of serialization and de-serialization of a complex structure with callbacks
+<hr />
+</body>
+</html>

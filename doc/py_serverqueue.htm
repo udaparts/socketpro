@@ -1,0 +1,214 @@
+﻿<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="utf-8" />
+    <title>SocketPro Server Persistent Message Queue</title>
+    <link rel="stylesheet" type="text/css" href="codepretty/sons-of-obsidian.css">
+    <script type="text/javascript" src="codepretty/prettify.js"></script>
+</head>
+<body onload="PR.prettyPrint()">
+<h1 style="text-align: center;">SocketPro Server Persistent Message Queue</h1>
+<p>In previous articles, we have demonstrated SocketPro <a href="py_hw.htm" title="SocketPro client server application development">client/server application development</a> and <a href="py_push.htm" title="SocketPro Secure Communication and Publish/Subscribe Messaging">subscribe/publish messaging as well as secure communication with industrial standard TLSv1.x protocols</a>.
+The two sample projects actually demo the two communication patterns: (1) traditional communication between client and server, and (2) subscribe/publish messaging among connected clients and server.
+Further, SocketPro extends the two communication patterns onto web browsers by use of websocket technology, as shown in <a href="py_web.htm" title="SocketPro WebSocket for Client/server and Subscribe/publish Messaging on Browsers">this article</a>.</p>
+<p>We'll use this article to demonstrate SocketPro server side persistent message queue, which enables that involved parties don't have to interact at the same time with asynchronous communication pattern.
+Today, there are many persistent message queue implementations available. Many of them are complicated for reuse or development. In addition, many of them cannot prevent message losses even with lots of your efforts.
+However, SocketPro message queue is superiorly fast, and very simple for development, reuse and maintenance. Further, it completely kills message losses with help of SocketPro built-in client (or producer) side queue as shown in <a href="py_hw.htm" title="SocketPro client server application development">the previous article</a>.
+</p>
+<table style="width:100%;">
+<tr>
+<td style="width:25%;">
+<?prettify linenums=1?>
+<pre class="prettyprint">
+import sys
+from spa.clientside import CSocketPool, CConnectionContext,\
+    CAsyncQueue, CUQueue, CSocketError, CServerError as Se
+from spa import tagBaseRequestID, CScopeUQueue as Sb
+from concurrent.futures import Future as future
+
+TEST_QUEUE_KEY = "queue_name_0"
+
+# ......
+
+
+def test_enqueue(aq):
+    # ......
+
+def test_dequeue(aq):
+    # ......
+
+with CSocketPool(CAsyncQueue) as spAq:
+    # spAq.QueueName = 'qname'
+    print('Remote async queue server host: ')
+    cc = CConnectionContext(sys.stdin.readline(), 20901, 'PythonUser', 'TooMuchSecret')
+    if not spAq.StartSocketPool(cc, 1):
+        print('No connection error code = ' + str(spAq.Sockets[0].ErrorCode))
+        exit(0)
+    aq = spAq.Seek()
+    try:
+        # Optionally, you can enqueue messages with transaction style
+        # by calling the methods StartQueueTrans and EndQueueTrans in pair
+        # aq.startQueueTrans(TEST_QUEUE_KEY)
+        test_enqueue(aq)
+        # aq.endQueueTrans()
+        print(test_dequeue(aq).result())
+    except Se as ex:  # an exception from remote server
+        print(ex)
+    except CSocketError as ex:  # a communication error
+        print(ex)
+    except Exception as ex:
+        print('Unexpected error: ' + str(ex))  # invalid parameter, bad de-serialization, and so on
+    print('Press any key to close the application ......')
+    sys.stdin.readline()
+
+</pre>
+</td>
+<td>
+<p>The client server queue sample code can be found at the file ../socketpro/tutorials/python/server_queue/sq_client/program.py.
+Its main testing code is so simple as shown at the left code snippet 1.</p>
+<p>We are going to test enqueuing a number of messages onto a remote SocketPro server queue file at line 30.
+Afterwards, we are also going to dequeue these messages back from the remote SocketPro server queue file at line 32.</p>
+<p>Now, let's study the two test functions <i>test_enqueue</i> and <i>test_dequeue</i> as declared at lines 12 and 15, respectively.</p>
+</td>
+</tr>
+</table>
+Code snippet 1: Console main for enqueue and dequeue testing at client side
+<hr />
+<table style="width:100%;">
+<tr>
+<td style="width:25%;">
+<?prettify linenums=1?>
+<pre class="prettyprint">
+def test_enqueue(aq):
+    print('Going to enqueue 1024 messages ......')
+    idMessage = 0
+    n = 0
+    with Sb() as sb:
+        while n < 1024:
+            s = str(n) + ' Object test'
+            m = n % 3
+            if m == 0:
+                idMessage = idMessage0
+            elif m == 1:
+                idMessage = idMessage1
+            else:
+                idMessage = idMessage2
+            # sleep(0.1)
+            # enqueue two unicode strings and one int
+            if not aq.Enqueue(TEST_QUEUE_KEY, idMessage, sb.SaveString('SampleName').SaveString(s).SaveInt(n)):
+                aq.throw(CAsyncQueue.idEnqueue)
+            sb.Size = 0 # reset buffer content
+            n += 1
+</pre>
+</td>
+<td>
+<p>The left code snippet 2 shows the implementation of the test enqueue function <i>test_enqueue</i>. Simply speaking, we are going to enqueue 1024 arbitrary messages.
+Each of these messages comes with an indentification number <i>idMessage</i> and two unicode strings as well as one integer <i>n</i> as shown at line 17.
+</p>
+<p>Here, the message id <i>idMessage</i> is the same as request id. Later, we use it to identify a message and parse the message when dequeuing.</p>
+<p>Additionally, we throw a <i>CSocketError</i> exception by calling the method <i>throw</i> at line 18 if the session or communication channel is closed.</p>
+<p>At last, a client is able to open a queue file at remote server by a queue key <i>TEST_QUEUE_KEY</i> as defined at line 7 of the above code snippet 1.
+When enqueuing a message, we need to specify a queue by this key as shown at line 17 of the left code snippet 2.</p>
+</td>
+</tr>
+</table>
+Code snippet 2: Enqueue a set of messages onto a remote server persistent queue file
+<hr />
+
+<table style="width:100%;">
+<tr>
+<td style="width:30%;">
+<?prettify linenums=1?>
+<pre class="prettyprint">
+def test_dequeue(aq):
+    def cbResultReturned(idReq, q):
+        if idReq == idMessage0 or idReq == idMessage1 or idReq == idMessage2:
+            # parse a dequeued message which should be the same as
+            # the above enqueued message (two unicode strings and one int)
+            s = 'message id=' + str(idReq) + ', name=' + q.LoadString() + \
+                ', str=' + q.LoadString() + ', index=' + str(q.LoadInt())
+            print(s)
+            return True
+        return False  # not processed
+    aq.ResultReturned = cbResultReturned
+
+    f = future()
+    aborted = CAsyncQueue.get_aborted(f, CAsyncQueue.idDequeue)
+    se = CAsyncQueue.get_se(f)
+    def cbDequeue(aq, messageCount, fileSize, messages, bytes):
+        if bytes:
+            s = 'Total message count=' + str(messageCount) + ', queue file size=' + \
+                str(fileSize) + ', messages dequeued=' + str(messages) + ', bytes dequeued=' + str(bytes)
+            print(s)
+        if messageCount > 0:
+            # there are more messages left at server queue, we re-send a request to dequeue
+            aq.Dequeue(TEST_QUEUE_KEY, aq.LastDequeueCallback, 0, aborted, se)
+        elif not f.done():
+            f.set_result({'messages': messageCount, 'fsize': fileSize, 'msgsDequeued': messages, 'bytes': bytes})
+
+    print('Going to dequeue messages ......')
+    # optionally, add one extra to improve processing concurrency
+    # at both client and server sides for better performance and through-output
+    if not (aq.Dequeue(TEST_QUEUE_KEY, cbDequeue, 0, aborted, se) and aq.Dequeue(TEST_QUEUE_KEY, cbDequeue, 0, aborted, se)):
+        aq.throw(f)
+    return f
+</pre>
+</td>
+<td>
+<p>We are going to investigate the test dequeue function <i>test_dequeue</i>as shown at the left side code snippet 3.
+After understanding the piece of code, you will know how to get a future within SocketPro for all situations because this piece code is consdered to be the most complex.</p>
+<p>First, find the original implementation of the method <i>CAsyncQueue.dequeue</i> at the file ../socketpro/bin/spa/clientside/asyncqueue.py.
+Its implementation is very simple as implemetations of other functions returning futures. However, the original implementation of the method <i>dequeue</i> is designed to dequeue one batch of messages only.
+This implementation at the snippet 3 is more powerful, which dequeues all messages recursively with more concurrency and better dequeuing performance between client and server sides.</p>
+<p>
+First of all, we set a callback at line 2 through 11 for parsing messages dequeued from a server queue file. The callback is required to return True or False.
+If it returns True, SocketPro adapter knows that the result is proccessed. Otherwise, SocketPro adapter will keep the returning result in the buffer <i>q</i> for possible further processing at client side.
+We parse a dequeued message at lines 6 and 7. It is noted that the data types and parsing orders here must be the same as types and orders at line 17 of the previous code snippet 2.
+</p>
+<p>
+To get a future for an expected result, first create an instance of future <i>f</i> as shown at line 13.
+Afterwards, we prepare a callback <i>aborted</i> at line 14 for tracking request aborted event because of either session closed or request canceled.
+Next, we prepare a new callback <i>se</i> at line 15 for monitoring an exception from server.
+The two callbacks are already talked with details at <a href="py_hw.htm" title="SocketPro Client Server Application Development">the previous article</a>.</p>
+<p>
+Next, we prepare a new callback <i>cbDequeue</i> at line 16 through 25 to handle returned results of dequeue request itself.
+If there are more messages remaining <i>messageCount</i> at server queue file, we keep on sending a new request <i>Dequeue</i> recursively at line 23 until the remaining messages <i>messageCount</i> reach zero.
+Otherwise, we set a new <i>{'messages': messageCount, ...... }</i> value at line 25.
+</p>
+<p>
+At last, we send two Dequeue requests at line 30 with the above three prepared callbacks. Further, keep in mind that messages are dequeued in batch.
+To improve dequeuing speed, we call the request <i>Dequeue</i> two times or more for better throughput so that parsing at client side at lines 6 and 7, dequeuing at server side and data transferring cross network can happen concurrently.
+In case a session or communication channel is closed, we raise a <i>CSocketError</i> exception by calling the method <i>throw</i> at line 31.
+</p>
+<p>Finally, we return a future <i>f</i> at line 32 so that a caller is able to wait for an expected data structure from server.</p>
+</td>
+</tr>
+</table>
+Code snippet 3: Dequeue all messages from a server persistent message queue file
+<hr />
+<p>It is neccessary to point out that a SocketPro server queue file is sharable by multiple consumers. 
+Multiple message producers are able to send messages concurrently into different server queue files at the same time. A server queue is also capable to be consumed or dequeued by different consumers at the same time.</p>
+<p>When a message is enqueued from a producer, SocketPro server queue is able to notify all connected consumers so that all connected consumers have a chance to dequeue the message.
+Please refer to the memeber <i>MessageQueued</i> of the class CAsyncQueue.
+When you set a callback at a consumer side, the consumer will be notified if a message is enqueued. Therefore, a consumer doesn't have to poll messages at an interval at all.</p>
+<p>This client side demo is very simple. You may refer to its unit test codes at the file ../socketpro/components/uasyncqueue/test_python/test_python.py for further studies.</p>
+<hr />
+<p>It is noted that SocketPro server side persistent message queue is one of free pre-compiled plugins for you to experiment as shown in <a href="get_started.htm" title="Get Started With SocketPro">this article</a>.
+When running the test server application <b>all_servers</b>, the queue plugin will be loaded as long as you distribute it to system directory properly.
+A server plugin is a dynamic shared library written from C/C++ at this time. If you are good at C/C++, refer to <a href="cpp_serverqueue.htm" title="SocketPro Server Persistent Message Queue">this article</a> for details.
+</p>
+<hr />
+<h2>No Message Loss Tests</h2>
+<p>Before ending the short article, let's prove SocketPro is capable to prevent message losses easily by use of <a href="py_hw.htm" title="SocketPro client server application development">SocketPro client queue</a>.</p>
+<p>First, go back to code snippet 1 and uncomment the code at line 19.
+Doing so enables SocketPro client (or producer) queue, which will silently back up all requests or messages into a queue file at the speed as fast as possible before sending them to server.
+In case network or server down, a client or producer is capable to resend them from its side queue file automatically when network or server is restarted.
+Messages or requests will not be lost at all even if a client application is crashed.
+</p>
+<p>Next, go to the code snippet 2 and uncomment the code at line 15. The code makes enqueuing slow so that you can start and kill the test server <a href="get_started.htm" title="Get Started With SocketPro">all_servers</a> repeatedly.
+The code is not neccessary for a real application. It is given here for making tests possible. Otherwise, you have no chance for the test because of its superiorly fast enqueuing and dequeuing.</p>
+<p>Start the test <b>all_servers</b> and this console application. You can repeatedly start and kill the demo <b>all_servers</b> during enqueuing.
+The final dequeued outputs will be the same and correct as expected. One line of code kills message losses with SocketPro!</p>
+<hr />
+</body>
+</html>

@@ -1,0 +1,296 @@
+﻿<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="utf-8" />
+    <title>SocketPro WebSocket for Client/server and Subscribe/publish Messaging on Browsers</title>
+    <link rel="stylesheet" type="text/css" href="codepretty/sons-of-obsidian.css">
+    <script type="text/javascript" src="codepretty/prettify.js"></script>
+</head>
+<body onload="PR.prettyPrint()">
+
+<h1 style="text-align: center;">SocketPro WebSocket for Client/server and Subscribe/publish Messaging on Browsers</h1>
+
+The previous two articles <a href="py_hw.htm" title="SocketPro Client Server Application Development">here</a> and 
+<a href="py_push.htm" title="SocketPro Secure Communication and Publish/Subscribe Messaging">here</a> shows SocketPro client/server and subscribe/publish messaging communnication patterns.
+SocketPro also fully supports client/server and subscribe/publish messaging on all browsers through SocketPro JavaScript adapter and websocket technology. 
+It is noted that all requests are asynchronous. Further, you can also stream JavaScript requests for the best network efficiency as we have done in the <a href="py_hw.htm" title="SocketPro Client Server Application Development">previous article</a>.
+It is remembered that SocketPro server always favors requests streaming for not only desktop/server applications but also web browser JavaScripts.
+<hr />
+<table style="width:100%;">
+<tr>
+<td style="width:30%;">
+<?prettify linenums=1?>
+<pre class="prettyprint">
+&lt;script type="text/javascript"&gt;
+function getBrowserName() {
+    var agent = navigator.userAgent;
+    if (agent.indexOf("Opera") != -1 || agent.indexOf(" OPR/") != -1)
+        return 'Opera';
+    else if (agent.indexOf("MSIE") != -1 || agent.indexOf("Trident") != -1)
+        return 'MSIE';
+    else if (agent.indexOf(" Edg/") != -1)
+        return 'Edge';
+    else if (agent.indexOf("Chrome") != -1)
+        return 'Chrome';
+    else if (agent.indexOf("Safari") != -1)
+        return 'Safari';
+    else if (agent.indexOf("Firefox") != -1)
+        return 'FireFox';
+    else
+       return 'Browser';
+}
+
+//an optional global function to track the event 
+//that SocketPro adapter for JavaScript is just loaded.
+function onUHTTPLoaded() {
+    btnReconnect_onclick();
+}
+
+var ws, push;
+function btnReconnect_onclick() {
+    if (ws && ws.isOpen()) return;
+    ws = UHTTP.connect(getBrowserName(), 'MyPassword', () => {
+        document.getElementById('btnSayHello').disabled = "";
+        document.getElementById('btnSleep').disabled = "";
+        document.getElementById('btnPublish').disabled = "";
+        document.getElementById('btnSendUserMessage').disabled = "";
+    }, () => {
+        document.getElementById('btnSayHello').disabled = "disabled";
+        document.getElementById('btnSleep').disabled = "disabled";
+        document.getElementById('btnPublish').disabled = "disabled";
+        document.getElementById('btnSendUserMessage').disabled = "disabled";
+	});
+    push = ws.push;
+    push.onMessage = (msg) => {
+        document.getElementById('txtMessage').value = JSON.stringify(msg);
+    };
+}
+function btnClose_onclick() {
+    ws.close();
+}
+function btnSleep_onclick() {
+    ws.sendRequest('sleep', 2000, (res) => {
+        res = JSON.stringify(res);
+        alert(res);
+    });
+}
+function btnSayHello_onclick() {
+    ws.sendRequest('sayHello', 'Jack', 'Smith', (res) => {
+        res = JSON.stringify(res);
+        alert(res);
+    });
+}	
+function btnPublish_onclick() {
+    push.speak(document.getElementById('txtMessage').value, [1,2,7]);
+}
+function btnSendUserMessage_onclick() {
+    push.sendUserMessage(document.getElementById('txtMessage').value,
+    document.getElementById('txtReceiver').value);
+}
+&lt;/script&gt;
+</pre>
+</td>
+<td>
+<p>The left code snippet 1 can be found at the file ../socketpro/tutorials/webtests/ws0.htm.
+First, there is an optional global function onUHTTPLoaded used for tracking SocketPro JavaScript adapter loading event, as shown at line 22 through 24.
+We start to build a websocket session to a SocketPro server inside, right after adapeter is loaded, by calling a connect button click function btnReconnect_onclick.
+</p>
+<p>
+There is a global object named as UHTTP created after SocketPro JavaScript adapter is loaded.
+We use it to build a websocket session by calling its method <b>connect</b> as shown at lines 29 through 39.
+The method requires the first two inputs, user id and password.
+The first lambda expression is used for tracking websocket connected event. The second one is for tracking websocket closed event.
+We could automatically enable or disable buttons as shown at line 30 through 38.
+The method has one more optional input for a channel string or url sub directory. At end, the method returns a SocektPro websocket object ws.
+</p>
+<p>
+A SocektPro websocket object exposes a number of methods such as <b>close</b>, <b>isOpen</b> and <b>sendRequest</b> as well as one property push object as shown at line 40.
+Here, the object push is an messenger as described at <a href="py_push.htm" title="SocketPro Secure Communication and Publish/Subscribe Messaging">the previous article</a>.
+We can use it for tracking various messages from other clients as shown at line 41 through 43.
+Certainly, we can use it to publish messages as shown at line 60 through 62.
+The messenger push also supports sending a message to a specific client by user id as shown at line 63 through 66.
+The first input of the method sendUserMessage is a message, and the second input is a user id.
+It is noted that web browser messenger is fully integrated with other non web browser messengers.
+</p>
+<p>
+The most important method of SocektPro websocket object is <b>sendRequest</b>. The method requires that the first input must be a method name as shown at lines 49 and 55.
+Further, its last input of the method must be a callback for tracking its result from the connected remote SocektPro server.
+The method <b>sendRequest</b> can additionally have zero, one or any numbers of inputs between the first and last inputs.
+Remebering <a href="py_hw.htm" title="SocketPro Client Server Application Development">the first client/server example</a>, we implement the two methods <b>sayHello</b> and <b>sleep</b> here for browsers.
+</p>
+<p>At last, we need to load SocketPro JavaScript adapter right before HTML body ending by this JavaScript code: &lt;script type="text/javascript" src = "uloader.js"&gt;&lt;/script&gt;</p>
+</td>
+</tr>
+</table>
+Code snippet 1: A sample JavaScript code for sending requests and publish/subscribe messaging on browsers
+<hr />
+<table style="width:100%;">
+<tr>
+<td style="width:35%;">
+<img src="images/webdemo.jpg" alt="" />
+</td>
+<td>
+<p>We are going to do tests and like to get the left picture for a browser.
+Before testing, you need to copy prepared files <b>earthcity.jpg</b> and <b>ws0.htm</b> from the directory ../socketpro/tutorials/webtests into the directory ../socketpro/bin/win/x64(or x86) for windows or ../socketpro/bin/linux for Linux.
+You must also copy the two files <b>uloader.js</b> and <b>uwebsocket.js</b> from the directory ../socketpro/bin/js into the directory ../socketpro/bin/win/x64(or x86) for windows or ../socketpro/bin/linux for Linux.
+Afterwards, run <a href="get_started.htm" title="Get Started With SocketPro">the pre-compiled all_servers server application</a> so that the application is able to access the four files.</p>
+<p>You will get the left picture after running a browser with url http://localhost:20901/ws0.htm. Further, press the key F12 for browser built-in debug tool.</p>
+
+<p>Let's look at UHTTP object. In addtion to the method <b>connect</b> as described before, it exposes the three more methods <b>count</b>, <b>host</b> and <b>version</b>.
+The method <b>count</b> is used for querying the number of websocket sessions. The method <b>host</b> is for checking the connected SocketPro server ip address.
+The method <b>version</b> is for checking the adapter version. All the three methods require no input. The object UHTTP exposes the other two properties, but you can just ignore them.</p>
+
+<p>Let's look at the push object. In addition to the above two methods <b>speak</b> and <b>sendUserMessage</b>, it has methods <b>enter</b> and <b>exit</b> for subscribe and unsubscribe, respectively.
+The first method <b>enter</b> requires an input for an arry of integers indicating topics or chat groups. The second one doesn't require an input. Next, its property onMessage is a callback for tracking messages from other clients as described before.
+At last, the method <b>ws</b> is used to obtain the push object's creator. All the four methods <b>speak</b>, <b>sendUserMessage</b>, <b>enter</b> and <b>exit</b> can be given an optional callbacks at last for tracking their returning results.
+</p>
+
+<p>SocketPro websocket object <b>ws</b> is an asynchronous handler for web browsers. It supports streaming requests by calling the method <b>sendRequest</b> continuosly if you have multiple requests available.
+In addition, you can maually batch a number of requests by doing somethig like: ws.beginBatching(); ws.sendRequest(....); ws.sendRequest(....); ......; ws.sendRequest(....); ws.commit(); .
+Here, the methods <b>beginBatching</b> and <b>commit</b> are given for maual batching.
+Occasionally, you may like to abort a manual batch by calling the method <b>rollback</b> instead of <b>commit</b>.
+Sometimes, you can may want to use the method <b>isBatching</b> to check if there is a manual batch now, or query the number of batched requests by calling the method <b>getBatchSize</b>.</p>
+
+<p>SocketPro websocket object alway transfers requests and results with JSON strings back and forth. You can use the method <b>msg</b> to get the last one. Each of requests will have a call index associated.
+To get the last call index, call the method <b>callIndex</b>. You can use the method <b>count</b> to find the number of requests queued to be processed and returned from server.
+Further, you can cancel requests queued previously by calling the method <b>cancel</b>.
+You can use the methods <b>channel</b>, <b>pingTime</b>, <b>timeout</b>, <b>userId</b> and <b>script</b> to get url sub directory, ping time, request timeout, user id and internal websocket, respectively.</p>
+
+<p>Except the method <b>sendRequest</b>, all SocketPro websocket object methods don't require an input argument at all. The method <b>commit</b> may take an optional boolean input.
+If it is true, SocketPro will send results back to web browser in batch.</p>
+
+<p>At last, you may like to turn on or off debugging at your will. To do so, go to the end of the above uloader.js (<b>}('spadapter.js', 1);</b>) and flip the second parameter between 0 or 1. You can see its action by turning on web browser built-in debugger.
+If you like to see more insides at browser sides, you can use uwebsocket_debug.js at the directory ../socketpro/bin/js to replace uwebsocket.js.</p>
+</td>
+</tr>
+</table>
+Figure 1: A sample output on a browser
+<hr />
+<table style="width:100%;">
+<tr>
+<td style="width:25%;">
+<?prettify linenums=1?>
+<pre class="prettyprint">
+
+from webdemo.myhttppeer import CMyHttpPeer
+from pub_sub.ps_server.hwpeer import CHelloWorldPeer
+from spa.serverside import *
+from consts import hwConst
+import sys
+
+with CSocketProServer() as server:
+    def do_configuration():
+        CSocketProServer.PushManager.AddAChatGroup(1, "R&D Department")
+        CSocketProServer.PushManager.AddAChatGroup(2, "Sales Department")
+        CSocketProServer.PushManager.AddAChatGroup(3, "Management Department")
+        CSocketProServer.PushManager.AddAChatGroup(7, "HR Department")
+        return True
+    server.OnSettingServer = do_configuration
+
+    # map request ids to their names and speeds so that SocketPro is able to map a request id
+    # to its method and use main or worker thread at run time
+    mapIdReq = {
+        hwConst.idSayHello: 'sayHello',
+        hwConst.idSleep: ['sleep', True],  # or ('sleep', True)
+        hwConst.idEcho: 'echo'
+    }
+    server.HelloWorld = CSocketProService(CHelloWorldPeer, hwConst.sidHelloWorld, mapIdReq)
+
+    #HTTP/WebSocket service
+    server.HttpSvs = CSocketProService(CMyHttpPeer, BaseServiceID.sidHTTP, None)
+
+    ok = server.Run(20901)
+    if not ok:
+        print('Error message = ' + CSocketProServer.ErrorMessage)
+    print('Read a line to shutdown the application ......')
+    line = sys.stdin.readline()
+</pre>
+</td>
+<td>
+<p>Let's look at the left code snippet 2 for a server supporting http and webscoket services, which comes from the file ../socketpro/tutorials/python/webdemo/program.py. First, we start a listening socket server at line 29.
+Unlike <a href="py_push.htm", title="SocketPro Secure Communication and Publish/Subscribe Messaging">the previous article</a>, this simple server is non-secure for test simplicity.</p>
+<p>In addition to <a href="py_push.htm", title="SocketPro Secure Communication and Publish/Subscribe Messaging">hello world service</a> at line 19 through 24,
+we register the new HTTP/websocket service at line 24. It is noted that all of HTTP/websocket requests will be processed within worker threads.
+All others within hello world service are ignored now as they are the same as described within <a href="py_push.htm", title="SocketPro Secure Communication and Publish/Subscribe Messaging">the previous article</a>.
+</p>
+</td>
+</tr>
+</table>
+Code snippet 2: Start a HTTP service with WebSocket supported
+<hr />
+<table style="width:100%;">
+<tr>
+<td style="width:30%;">
+<?prettify linenums=1?>
+<pre class="prettyprint">
+from spa.serverside.httppeer import CHttpPeerBase
+import time
+
+
+class CMyHttpPeer(CHttpPeerBase):
+    
+    # ......
+
+    def DoAuthentication(self, userId, password):
+        self.Push.Subscribe([1, 2, 7])
+        print('User id = ', userId, ', password = ', password)
+        return True
+
+    def OnGet(self):
+        dot = self.Path.rfind('.')
+        if dot != 1:
+            self.DownloadFile(self.Path[1:])
+        else:
+            self.SendResult('test result --- GET ---')
+
+    def OnPost(self):
+        res = self.SendResult('+++ POST +++ test result')
+
+    def Sleep(self, ms):
+        time.sleep(float(ms)/1000.0)
+        msg = self.UID + ' called the method Sleep'
+        self.Push.Publish(msg, [2, 3])
+
+    def SayHello(self, fName, lName):
+        str = u'Say hello from ' + fName + u' ' + lName
+        self.Push.Publish(str, [2,3])
+        return u'Hello ' + fName + u' ' + lName
+
+    def OnUserRequest(self):
+        reqName = self.RequestName
+        args = self.Args
+        if reqName == 'sleep':
+            ms = int(self.Args[0])
+            self.Sleep(ms)
+            self.SendResult('')
+        elif reqName == 'sayHello':
+            self.SendResult(self.SayHello(args[0], args[1]))
+        else:
+            self.SendResult('NO_SUPPORT')
+</pre>
+</td>
+<td>
+<p>Although we use the pre-compiled <a href="get_started.htm", title="Get Started With SocketPro">all_servers</a> for testing, its server implementation is actually located at the file ../socketpro/tutorials/python/webdemo/myhttppeer.py.</p>
+<hr />
+<p>First, this HTTP/websocket service only supports two HTTP methods <i>GET</i> and <i>POST</i> as shown at lines 14 and 21 of the left code snippet 3, respectively.</p>
+<p>When a client sends HTTP method GET, the server will return a string at line 19 or download a file at line 16.
+The inside picture of the above Figure 1 actually comes from this code at line 17.</p>
+<p>Now, look at code line 34 through 44. It is related with UserRequest which is not a HTTP method but is SocketPro JavaScript adapter method.
+Recall the method names sayHello and sleep at the above code snippet 1. At server side, we can find a request name at line 35 by the property <b>RequestName</b>.
+Further, we can get input arguments by the property <i>Args</i>, which are originated from <b>sendRequest</b> at the above code snippet 1.
+Once having the two pieces of data, we could route requests onto different methods to complete processing as shown at lines 39 and 42. 
+</p>
+<p>In regards to the method <i>SayHello</i> at line 29 through 32, we returns a string. Also, we publish a message to two topics or groups 2 and 3 at line 31.</p>
+<p>In regards to the method Sleep at line 24 through 27, we returns nothing. Also, we publish a message to two topics or grouups 2 and 3 at line 27.</p>
+<p>Remember the method <b>connect</b> of UHTTP object at the code snippet 1, we pass user id and password to server side for HTTP/websocket authentication.
+They are required before sending any other requests. This is completed with the virtual function DoAuthentication at code line 9 through 12.
+Here, we permit a websocket session because it returns True.
+Additionally, we subscribe for three topics, 1, 2 and 7 at line 10. You can do so at web browser sides too by calling the method <b>push.enter</b>.
+</p>
+</td>
+</tr>
+</table>
+Code snippet 3: A sample HTTP/WebSocekt service implementation
+<hr />
+</body>
+</html>

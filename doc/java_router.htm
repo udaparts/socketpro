@@ -1,0 +1,316 @@
+﻿<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="utf-8" />
+    <title>SocketPro Server Routing Communication Pattern and Microservices</title>
+    <link rel="stylesheet" type="text/css" href="codepretty/sons-of-obsidian.css">
+    <script type="text/javascript" src="codepretty/prettify.js"></script>
+</head>
+<body onload="PR.prettyPrint()">
+<h1 style="text-align: center;">SocketPro Server Routing Communication Pattern and Microservices</h1>
+<hr />
+<p>SocketPro secured asynchronous communication framework is written from scratch with continuous in-line request/result batching, real-time stream sending/processing, asynchronous data transferring and parallel computation in mind.
+So far We have introduced a set of short articles with sample projects to demonstrated tradition <a href="java_hw.htm" title="SocketPro Client Server Application Development">client/server communication pattern</a> and
+<a title="SocketPro Secure Communication and Publish/Subscribe Messaging" href="java_push.htm">subscribe/publish messaging</a> with secure communication.
+The two demo projects are created for desktop or middle server applications development.
+Next, <a href="java_web.htm" title="SocketPro WebSocket for Client/server and Subscribe/publish Messaging on Browsers">this sample</a> is created to show you that SocketPro also supports both client/server and subscribe/publish messaging patterns on web browsers with help of websocket.</p>
+
+<p>In additon to the two communication patterns, SocketPro have built-in message queues implemented for both client and server sides.
+Its <a href="java_hw.htm" title="SocketPro Client Server Application Development">client message queue</a> can be easily used for fail auto-recovery to improve enterprise application fault-tolerance, reliability and maintenance as well as middle tier availability.
+Its server queue, as shown at <a href="java_serverqueue.htm" title="SocketPro Server Persistent Message Queue">this artcle</a>, supports that producers and consumers interact at the different time with asynchronous communication pattern.
+As shown in <a href="java_serverqueue.htm" title="SocketPro Server Persistent Message Queue">the sample project</a>, messages will NEVER be lost if client queue is enabled at producer side.
+</p>
+
+<p>SocketPro server is also capable to function like a router which is about to be demonstrated with this article. Requests from a number of clients can be sent to a SocketPro server, which acts like a router and routes all of these requests onto a new array of clients for processing.
+When these original requests are processed and their corresponding results are sent back to the SocketPro server, the server will correctly route these results back to their original clients as expected. In fact, the server can be considered to be a load balancer too.
+In addition, we will talk about <a href="get_started.htm" title="Get Started With SocketPro">all_servers</a>, which have been used as a common test server to provide many microservices for many samples.</p>
+<hr />
+<table style="width:100%;">
+<tr>
+<td style="width:25%;">
+<?prettify linenums=1?>
+<pre class="prettyprint">
+import SPA.*;
+import SPA.ClientSide.*;
+import loading_balance.piConst;
+import java.util.*;
+
+public class Program {
+
+    public static void main(String[] args) {
+        System.out.println("Client: load balancer address:");
+        CConnectionContext cc = new CConnectionContext(new Scanner(System.in).nextLine(),
+            20901, "lb_client", "pwd_lb_client");
+        try (CSocketPool&lt;Pi&gt; spPi = new CSocketPool&lt;&gt;(Pi.class))
+        {
+            spPi.setQueueName("lbqname");
+            if (!spPi.StartSocketPool(cc, 1)) {
+                System.out.println("No connection to " + cc.Host);
+                System.out.println("Press ENTER key to kill the demo ......");
+                return;
+            }
+            Pi pi = spPi.SeekByQueue();
+            int nDivision = 1000, nNum = 10000000;
+            double dStart, dPi = 0, dStep = 1.0 / nNum / nDivision;
+            List&lt;UFuture&lt;CScopeUQueue&gt;&gt; list = new ArrayList&lt;&gt;();
+            try (CScopeUQueue sb = new CScopeUQueue()) {
+                try {
+                    for (int n = 0; n < nDivision; ++n) {
+                        dStart = (double) n / nDivision;
+  list.add(pi.sendRequest(piConst.idComputePi, sb.Save(dStart).Save(dStep).Save(nNum)));
+                        sb.getUQueue().SetSize(0); //reset buffer
+                    }
+                } catch (CSocketError ex) {
+                    System.out.println(ex);
+                }
+            }
+            for (UFuture&lt;CScopeUQueue&gt; f : list) {
+                try {
+                    CScopeUQueue sb = f.get();
+                    dPi += sb.LoadDouble();
+                    System.out.println("dStart: " + sb.LoadDouble());
+                } catch (CSocketError | CServerError ex) {
+                    System.out.println(ex);
+                } catch (Exception ex) {
+                    //bad parameter, CUQueue de-serilization exception
+                    System.out.println("Unexpected: " + ex.getMessage());
+                }
+            }
+            System.out.println("pi: " + dPi + ", returns: " + list.size());
+            System.out.println("Press ENTER key to kill the demo ......");
+            new Scanner(System.in).nextLine();
+        }
+    }
+}
+</pre>
+</td>
+<td>
+<p>First of all, the left code snippet comes from the file ../socketpro/tutorials/java/src/loading_balance/client/Program.java.</p>
+<hr />
+<p>We are going to compute the value of π using the numerical integration below. </p>
+<img src="images/pi_value.jpg" alt="" />
+<br />
+Figure 1: Compute π value by use of numerical integration
+<p>We can use trapezoidal integration to solve the integral. The basic idea is to fill the area under a curve with a series of tiny
+rectangles. As the width of a rectangle approaches 0, the sum of the areas of these rectangles approaches the real value of π. To
+accurately achieve the value, we must divide the integral area with rectangles as small as possible. Therefore, we are
+going to divide the whole integration into a set of sections and send them onto different working machines (clients/workers) with a
+SocketPro server as a router. These workers actually finish CPU-extensive numerical integration in parallel. The sending
+machine (client) will collect the integral values of these sections from these workers, and then add them to get the π value.</p>
+<p>We are going to ignore trivial lines of codes within the left code snippet 1. First, look at the code line 14.
+We enable client queue to improve fault tolerance due to any errors related with router (or SocketPro server) or workers.
+At code line 20, we get a π handler by calling the method <i>SeekByQueue</i>. You can find its implementation at the file ../socketpro/src/jadapter/jspa/src/SPA/ClientSide/CSocketPool.java.</p>
+<p>Next, we divide the whole integration into 1000 divisions, and each of these divisions will again be divided at worker sides into 10,000,000 tiny parts as shown at line 21.
+Next, we send 1000 requests onto a remote server as shown at line 28, and put 1000 futures into a generic list <i>list</i>.</p>
+<p>At end, we collect all expected results and sum them together at line 38. As you can see, the code does not seem complex at all at client side.
+Let us move to server or router side development.</p>
+</td>
+</tr>
+</table>
+Code snippet 1: A client demo sample for computing π value with numerical integration.
+<hr />
+<table style="width:100%;">
+<tr>
+<td style="width:25%;">
+<?prettify linenums=1?>
+<pre class="prettyprint">
+//../socketpro/tutorials/java/src/all_servers/CMySocketProServer.java
+import SPA.ServerSide.*;
+import pub_sub.server.HelloWorldPeer;
+import loading_balance.piConst;
+
+import webdemo.CMyHttpPeer;
+
+public class CMySocketProServer extends CSocketProServer {
+
+    @Override
+    protected boolean OnIsPermitted(long hSocket, String userId, String password, int nSvsID) {
+        System.out.println("Ask for a service " + nSvsID +
+                " from user " + userId + " with password = " + password);
+        return true;
+    }
+
+    @ServiceAttr(ServiceID = hello_world.hwConst.sidHelloWorld)
+    private final CSocketProService&lt;HelloWorldPeer&gt; m_HelloWorld = new CSocketProService&lt;&gt;(HelloWorldPeer.class);
+
+    @ServiceAttr(ServiceID = SPA.BaseServiceID.sidHTTP)
+    private final CSocketProService&lt;CMyHttpPeer&gt; m_http = new CSocketProService&lt;&gt;(CMyHttpPeer.class);
+
+    //Routing requires registering two services in pair
+    @ServiceAttr(ServiceID = piConst.sidPi)
+    private final CSocketProService&lt;CClientPeer&gt; m_Pi = new CSocketProService&lt;&gt;(CClientPeer.class);
+    @ServiceAttr(ServiceID = piConst.sidPiWorker)
+    private final CSocketProService&lt;CClientPeer&gt; m_PiWorker = new CSocketProService&lt;&gt;(CClientPeer.class);
+
+    @Override
+    protected boolean OnSettingServer() {
+        //amIntegrated and amMixed not supported yet
+        Config.setAuthenticationMethod(tagAuthenticationMethod.amOwn);
+
+        PushManager.AddAChatGroup(1, "R&D Department");
+        PushManager.AddAChatGroup(2, "Sales Department");
+        PushManager.AddAChatGroup(3, "Management Department");
+        PushManager.AddAChatGroup(7, "HR Department");
+        PushManager.AddAChatGroup(SPA.UDB.DB_CONSTS.CACHE_UPDATE_CHAT_GROUP_ID,
+                "Subscribe/publish for front clients");
+
+        //true -- ok; false -- no listening server
+        return CSocketProServer.Router.SetRouting(piConst.sidPi, piConst.sidPiWorker);
+    }
+
+    public static void main(String[] args) {
+        try (CMySocketProServer server = new CMySocketProServer()) {
+            //load async sqlite library located at the directory ../bin/free_services/sqlite
+            long handle = CSocketProServer.DllManager.AddALibrary("ssqlite");
+            if (handle != 0) {
+                //monitoring sakila.db table events (DELETE, INSERT and UPDATE)
+                //for tables actor, language, category, country and film_actor
+                Sqlite.SetSqliteDBGlobalConnectionString("usqlite.db+sakila.db.actor;"
+                    + "sakila.db.language;sakila.db.category;sakila.db.country;sakila.db.film_actor");
+            }
+            //load async persistent message queue library at the directory ../bin/free_services/queue
+            //24 * 1024 batch dequeuing size in bytes
+            handle = CSocketProServer.DllManager.AddALibrary("uasyncqueue", 24 * 1024);
+
+            //load file streaming library at the directory ../bin/free_services/file
+            handle = CSocketProServer.DllManager.AddALibrary("ustreamfile");
+
+            //load MySQL/MariaDB server plugin library at the directory ../bin/free_services/mm_middle
+            handle = CSocketProServer.DllManager.AddALibrary("smysql");
+
+            //load ODBC socketPro server plugin library at the directory ../bin/win or ../bin/linux
+            handle = CSocketProServer.DllManager.AddALibrary("sodbc");
+
+            //test certificate and private key files are located at ../socketpro/bin
+            //if (SPA.CUQueue.DEFAULT_OS == SPA.tagOperationSystem.osWin) {
+            //    server.UseSSL("intermediate.pfx", "", "mypassword");
+            //    //or load cert and private key from windows system cert store
+            //    //server.UseSSL("root"/*"my"*/, "UDAParts Intermediate CA", "");
+            //} else {
+            //    server.UseSSL("intermediate.cert.pem", "intermediate.key.pem", "mypassword");
+            //}
+            if (!server.Run(20901)) {
+                System.out.println("Error code = " + CSocketProServer.getLastSocketError());
+            }
+            System.out.println("Input a line to close the application ......");
+            new java.util.Scanner(System.in).nextLine();
+        }
+    }
+}
+</pre>
+</td>
+<td>
+<p>The left code snippet 2 shows implementation of microservices and how to enable SocketPro built-in feature routing. The code comes from the file ../socketpro/tutorial/java/src/all_servers/CMySocketProServer.java.</p>
+<hr />
+<h3>Micro services</h3>
+<p>A SocketPro server can support any number of services. As shown at the code snippet 2 of <a title="SocketPro Secure Communication and Publish/Subscribe Messaging" href="java_push.htm">the previous article</a>, we register and set hello world service at lines 17 and 18.
+Next, we register and set HTTP/websocket service at lines 20 and 21 as shown at the code snippet 2 of <a href="java_web.htm" title="SocketPro WebSocket for Client/server and Subscribe/publish Messaging on Browsers">this article for web browser developments</a>.
+
+</p>
+<hr />
+<h3>SocketPro Built-in Feature Routing</h3>
+<p>Also, we simply register the two srvices, sidPi and sidPiWorker, at line 24 through 27.
+Afterwards, we can call the method <i>SetRouting</i> at line 42 to enable the built-in feature routing so that this demo server also function as a load balancer inside the virtual function <i>OnSettingServer</i>.
+So far we have registered four services with one particular feature for server load balancing.</p>
+<hr />
+<h3>Loading SocketPro server plugins</h3>
+<p>At this time, you can only use C/C++ to write server plugins as shown at <a href="cpp_serverqueue.htm" title="SocketPro Server Persistent Message Queue">the code snippet 4 of the previous article</a>.
+The five server plugins can be loaded into a server for reuse, as shown at line 48 through 66 of the left code snippet 2.
+The five plugins are described with more details at <a href="get_started.htm" title="Get Started With SocketPro">this article</a> before.
+The left code snippet supports nine micro services totally.
+</p>
+<p>It is noted that SocketPro comes with a number of pre-compiled plugins for you to experiment and learn. They are not completely ready for resue within your commercial applications yet.
+However, they are good examples and reusable as development basis for your commercial or enterprise applications.</p>
+</td>
+</tr>
+</table>
+Code snippet 2: SocketPro router server and mircoservices implementation
+<hr />
+<table style="width:100%;">
+<tr>
+<td style="width:25%;">
+<?prettify linenums=1?>
+<pre class="prettyprint">
+//.../socketpro/tutorials/java/src/loading_balance/lb_worker/PiWorker.java
+import loading_balance.piConst;
+import SPA.*;
+import SPA.ClientSide.CAsyncServiceHandler;
+
+public class PiWorker extends CAsyncServiceHandler {
+
+    public PiWorker() {
+        super(loading_balance.piConst.sidPiWorker);
+    }
+
+    @Override
+    protected void OnResultReturned(short sRequestId, CUQueue UQueue) {
+        if (getRouteeRequest()) {
+            switch (sRequestId) {
+                case piConst.idComputePi: {
+                    double dStart = UQueue.LoadDouble();
+                    double dStep = UQueue.LoadDouble();
+                    int nNum = UQueue.LoadInt();
+                    double dX = dStart + dStep / 2;
+                    double dd = dStep * 4.0;
+                    double ComputeRtn = 0.0;
+                    for (int n = 0; n < nNum; n++) {
+                        dX += dStep;
+                        ComputeRtn += dd / (1 + dX * dX);
+                    }
+                    try (CScopeUQueue sb = new CScopeUQueue()) {
+                        SendRouteeResult(sb.Save(ComputeRtn).Save(dStart));
+                    }
+                }
+                break;
+                default:
+                    break;
+            }
+        }
+    }
+}
+
+//.../socketpro/tutorials/java/src/loading_balance/lb_worker/Program.java
+import SPA.ClientSide.*;
+
+public class Program {
+
+    public static void main(String[] args) {
+        System.out.println("Worker: load balancer address:");
+        CConnectionContext cc = new CConnectionContext(new java.util.Scanner(System.in).nextLine(),
+            20901, "lb_worker", "pwdForlb_worker");
+        try (CSocketPool&lt;PiWorker&gt; spPi = new CSocketPool&lt;&gt;(PiWorker.class))
+        {
+            if (!spPi.StartSocketPool(cc, 1, Runtime.getRuntime().availableProcessors())) {
+                System.out.println("No connection at starting time ......");
+            }
+            System.out.println("Press key ENTER to shut down the application ......");
+            String s = new java.util.Scanner(System.in).nextLine();
+        }
+    }
+}
+</pre>
+</td>
+<td>
+<p>After having looked at client and server sides, it is time to move to worker side.
+The left code snippet 3 comes with the files PiWorker.java and Program.java of the directory .../socketpro/tutorials/java/src/loading_balance/worker/.</p>
+<p>At worker side, the virtual function <i>OnResultReturned</i> will be called when a connected worker receives a request routed from a SocketPro server.
+Inside the virtual function, we need to check at line 14 if a request is indeed one routed from a SocketPro server, which is originated from a client.
+After computation from line 20 through 26, we send a result <i>ComputeRtn</i> with an index <i>dStart</i> at line 28 back to its original client through the middle server.
+It is noted that the de-serialization at line 17 through 19 is mirroring to the serialization at line 28 of the above code snippet 1.</p>
+<p>Finally, let us look at line 50. Here, we start a socket pool with the number of threads equal to the number of processors. Each of threads hosts one socket only.
+Previously, we have just used one thread only all times.
+However, here we use multiple threads for a socket pool because these requests are CPU extensive and we need multiple processors to process them in parallel.</p>
+</td>
+</tr>
+</table>
+Code snippet 3: A sample routing worker side implementation
+<hr />
+<h2>Fault-tolerance and auto-recovery tests</h2>
+<p>After running the <a href="get_started.htm" title="Get Started With SocketPro">all_servers</a> and lb_workers, run the Program.java at directories ../socketpro/tutorials/java/src/loading_balance/worker and ../socketpro/tutorials/csharp/Loading_balance/client, respectively.
+You will find that expected results come from workers with somewhat randomness, but the final π value is correct as expected.
+Further, we can use the code at line 39 of the above code snippet 1 to sort these results with an index <i>dStart</i> and remove the randomness. The randomness is caused by worker side parallel computation without any guarantee of sequencing.</p>
+<p>During computation, you can brutally kill and restart the server <a href="get_started.htm" title="Get Started With SocketPro">all_servers</a>, worker lb_workers or both repeatedly.
+You will find the final π value is still correct. By this time, you can see SocketPro client message queue is a key fetaure to fault-tolerance and auto-recovery!</p>
+<hr />
+</body>
+</html>

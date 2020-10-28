@@ -1,0 +1,394 @@
+﻿<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="utf-8" />
+    <title>SQL Requests Streaming For MySQL/MariaDB</title>
+    <link rel="stylesheet" type="text/css" href="codepretty/sons-of-obsidian.css">
+    <script type="text/javascript" src="codepretty/prettify.js"></script>
+</head>
+<body onload="PR.prettyPrint()">
+<h1 style="text-align: center;">SQL Requests Streaming For MySQL/MariaDB</h1>
+<hr />
+<p>The <a href="cs_sqlite.htm" title="SQL Requests Streaming For SQLite">previous article</a> has dicussed SocketPro SQL requests streaming for SQLite.
+In fact, SocketPro has already come with a number of plugins to support SQL requests streaming processing for various other databases such as MySQL and MariaDB as well as all databases supporting ODBC protocol.
+All of them shares the same set of API functions that are created with continuous in-line request/result batching, real-time stream sending/processing, asynchronous data transferring and parallel computation in mind.</p>
+
+<p>This is the second article to demonstrate SocketPro SQL requests streaming technology for MySQL and MariaDB.
+First, we will talk about store procedure. Afterwards, we spend most of the article on setting MySQL/MariaDB server plugins across different versions.</p>
+
+<p>This unit test code comes from the file ../socketpro/stream_sql/mysql/test_sharp/Program.cs.</p>
+<hr />
+<table style="width:100%;">
+<tr>
+<td style="width:30%;">
+<?prettify linenums=1?>
+<pre class="prettyprint">
+static void Main(string[] args)
+{
+    Console.WriteLine("Remote host: ");
+    string host = Console.ReadLine();
+#if FOR_MIDDLE_SERVER
+    CConnectionContext cc = new CConnectionContext(host, 20901, "root", "Smash123");
+#else
+    CConnectionContext cc = new CConnectionContext(host, 20902, "root", "Smash123");
+#endif
+    using (CSocketPool&lt;CMysql&gt; spMysql = new CSocketPool&lt;CMysql&gt;())
+    {
+        //spMysql.QueueName = "qmysql";
+        if (!spMysql.StartSocketPool(cc, 1))
+        {
+            Console.WriteLine("Failed in connecting to remote async mysql server");
+            Console.WriteLine("Press any key to close the application ......");
+            Console.Read();
+            return;
+        }
+        CMysql mysql = spMysql.Seek();
+        CDBVariantArray vPData = null, vData = null;
+        List&lt;KeyValue&gt; ra = new List&lt;KeyValue&gt;();
+        CMysql.DRows r = (handler, rowData) =>
+        {
+            //rowset data come here
+            int last = ra.Count - 1;
+            KeyValue item = ra[last];
+            item.Value.AddRange(rowData);
+        };
+
+        CMysql.DRowsetHeader rh = (handler) =>
+        {
+            //rowset header comes here
+            KeyValue item = new KeyValue(handler.ColumnInfo, new CDBVariantArray());
+            ra.Add(item);
+        };
+        try
+        {
+            //stream all requests with in-line batching for the best network efficiency
+#if FOR_MIDDLE_SERVER
+            var tOpen = mysql.open("user=root;pwd=Smash123;db=mysqldb");
+#else
+            var tOpen = mysql.open("");
+#endif
+            var vT = TestCreateTables(mysql);
+            var tDs = mysql.execute("delete from employee;delete from company");
+            var tP0 = TestPreparedStatements(mysql);
+            var tP1 = TestBLOBByPreparedStatement(mysql);
+            var tSs = mysql.execute("SELECT * from company;select * from employee;select curtime()", r, rh);
+            var tStore = TestStoredProcedure(mysql, ra, out vPData);
+            var tB = TestBatch(mysql, ra, out vData);
+            Console.WriteLine();
+
+            Console.WriteLine("All SQL requests are streamed, and waiting results in order ......");
+            Console.WriteLine(tOpen.Result);
+            foreach (var t in vT)
+            {
+                Console.WriteLine(t.Result);
+            }
+            Console.WriteLine(tDs.Result);
+            Console.WriteLine(tP0.Result);
+            Console.WriteLine(tP1.Result);
+            Console.WriteLine(tSs.Result);
+            Console.WriteLine(tStore.Result);
+            Console.WriteLine("There are {0} output data returned", 2 * 2);
+            Console.WriteLine(tB.Result);
+            Console.WriteLine("There are {0} output data returned", 2 * 3);
+        }
+        catch (AggregateException ex)
+        {
+            foreach (Exception e in ex.InnerExceptions)
+            {
+                //An exception from server (CServerError), Socket closed after sending a request
+                //(CSocketError) or request canceled (CSocketError),
+                Console.WriteLine(e);
+            }
+        }
+        catch (CSocketError ex)
+        {
+            //Socket is already closed before sending a request
+            Console.WriteLine(ex);
+        }
+        catch (Exception ex)
+        {
+            //bad operations such as invalid arguments, bad operations 
+            // and de-serialization errors, and so on
+            Console.WriteLine(ex);
+        }
+        int index = 0;
+        Console.WriteLine();
+        Console.WriteLine("+++++ Start rowsets +++");
+        foreach (KeyValue it in ra)
+        {
+            Console.Write("Statement index = {0}", index);
+            if (it.Key.Count > 0)
+                Console.WriteLine(", rowset with columns: = {0}, records = {1}.", 
+                    it.Key.Count, it.Value.Count / it.Key.Count);
+            else
+                Console.WriteLine(", no rowset received.");
+            ++index;
+        }
+        Console.WriteLine("+++++ End rowsets +++");
+        Console.WriteLine();
+        Console.WriteLine("Press any key to close the application ......");
+        Console.Read();
+    }
+}
+</pre>
+</td>
+<td>
+<p>First, you will find the left code snippet 1 is in general the same as the code snippet 2 within the <a href="cs_sqlite.htm" title="SQL Requests Streaming For SQLite">first SQL requests streaming article</a>, because SocketPro defines a set of API functions at client side for all database management systems.
+However, there is a new unit test method <i>TestStoredProcedure</i> defined at line 50.
+Further, the unit test method <i>TestBatch</i> has an extra parameter <i>vData</i> at line 51 to receive output parameter data from MySQL/MariaDB by executing some stored procedure, in comparison to the line 52 of the code snippet 2 of the <a href="cs_sqlite.htm" title="SQL Requests Streaming For SQLite">previous article</a>.
+</p>
+<p>Here, we like to use this article to show you how to deal with stored procedure within SocketPro. We ignore others that had already been detailed at the <a href="cs_sqlite.htm" title="SQL Requests Streaming For SQLite">previous article</a>.</p>
+<p>First, we call the method <i>TestStoredProcedure</i> at line 50.
+The method returns a task object for a <i>SQLExeInfo</i> structure and an array of parameters <i>vPData</i> from MySQL database backend in the future.
+Similarly, executing the method <i>TestBatch</i> at line 51 will return a new task object for a <i>SQLExeInfo</i> structure and a new array of parameters <i>vData</i> from MySQL database backend in the future.
+</p>
+<p>Keep in mind that all SQL requests and sub requests inside unit test functions (<i>TestCreateTables</i>, <i>TestPreparedStatements</i>, <i>TestBLOBByPreparedStatement</i>, <i>TestStoredProcedure</i> and <i>TestBatch</i>) from line 40 through 51 will be streamed within inline batching for the best network efficiency at client side.
+All of them are immediately returned with task objects without waiting for responses from backend database. Further, it is expected that all returned results will be streamed at server side with inline batching too.
+Finally, we are waiting all expected task results from line 55 though 66.</p>
+<p>
+At last, we show all collected rowsets from line 92 through 101.
+</p>
+<p>We are going to discuss the unit test functions <i>TestStoredProcedure</i> and <i>TestBatch</i> with details using the below code snippets 2 and 3, respectively.</p>
+</td>
+</tr>
+</table>
+Code snippet 1: Main unit test code for MySQL and MariaDB
+<hr />
+<table style="width:100%;">
+<tr>
+<td style="width:30%;">
+<?prettify linenums=1?>
+<pre class="prettyprint">
+static Task&lt;CAsyncDBHandler.SQLExeInfo&gt; TestStoredProcedure(CMysql mysql, List&lt;KeyValue&gt; ra, out CDBVariantArray vPData)
+{
+    vPData = new CDBVariantArray();
+    //first set
+    vPData.Add(1); //input
+    vPData.Add(1.4); //input-output
+    //output not important and it's used for receiving a proper data from MySQL
+    vPData.Add(0); //output
+
+    //second set
+    vPData.Add(2); //input
+    vPData.Add(2.5); //input-output
+    //output not important and it's used for receiving a proper data from MySQL
+    vPData.Add(0); //output
+
+    mysql.Prepare("call sp_TestProc(?, ?, ?)");
+    CMysql.DRows r = (handler, rowData) =>
+    {
+        //rowset data come here
+        int last = ra.Count - 1;
+        KeyValue item = ra[last];
+        item.Value.AddRange(rowData);
+    };
+    CMysql.DRowsetHeader rh = (handler) =>
+    {
+        //rowset header comes here
+        KeyValue item = new KeyValue(handler.ColumnInfo, new CDBVariantArray());
+        ra.Add(item);
+    };
+    return mysql.execute(vPData, r, rh);
+}
+</pre>
+</td>
+<td>
+<p>First of all, the prepared stored procedure at line 16 of the left code snippet 2 has three parameters.
+The first parameter is an input. The second one is an input-output. The last one is an output.
+This stored procedure represents all types of parameters which a stored procedure can possibly have. </p>
+<p>Next, we prepare two sets of parameter data from line 3 through 14.
+It is noted that output data at lines 8 and 14 are not important.
+These output data are used to receive data from backend MySQL database in the future. Also, the input-output parameter data at lines 6 and 12 will be reset to new data from MySQL/MariaDB in the future.</p>
+<p>Inside this unit test function, we also prepare two callbacks <i>r</i> and <i>rh</i> at lines 17 and 24, respectively.
+They are going to be used for dealing with record data and column meta information as described at the <a href="cs_sqlite.htm" title="SQL Requests Streaming For SQLite">previous article</a>.</p>
+<p>At end, we execute stored procedure with multiple sets of parameters in one shot at line 30, which will return mutiple rowsets and parameter output data.
+After comparing this unit test funtion with the unit test function <i>TestPreparedStatements</i> described at the <a href="cs_sqlite.htm" title="SQL Requests Streaming For SQLite">previous article</a>, 
+you will find that both are nearly the same without huge difference at all.
+</p>
+<p>When running the unit test code, you can debug for returning output data at line 65 of the above code snippet 1 by setting a break point.</p>
+</td>
+</tr>
+</table>
+Code snippet 2: Call a stored procedure with rowset, input, input/output and out parameters
+<hr />
+<table style="width:100%;">
+<tr>
+<td style="width:30%;">
+<?prettify linenums=1?>
+<pre class="prettyprint">
+static Task&lt;CAsyncDBHandler.SQLExeInfo&gt; TestBatch(CMysql mysql, List&lt;KeyValue&gt; ra,
+                                                            out CDBVariantArray vData) {
+    //sql with delimiter '|'
+    string sql = @" delete from employee;delete from company|
+        INSERT INTO company(ID,NAME,ADDRESS,Income)VALUES(?,?,?,?)|
+        insert into employee(CompanyId,name,JoinDate,image,DESCRIPTION,Salary)values(?,?,?,?,?,?)|
+        SELECT * from company;select * from employee;select curtime()|
+        call sp_TestProc(?,?,?)";
+    vData = new CDBVariantArray();
+    using (CScopeUQueue sbBlob = new CScopeUQueue())
+    {
+        //first set
+        vData.Add(1);
+        vData.Add("Google Inc.");
+        vData.Add("1600 Amphitheatre Parkway, Mountain View, CA 94043, USA");
+        vData.Add(66000000000.15);
+        vData.Add(1); //google company id
+        vData.Add("Ted Cruz");
+        vData.Add(DateTime.Now);
+        sbBlob.Save(m_wstr);
+        vData.Add(sbBlob.UQueue.GetBuffer());
+        vData.Add(m_wstr);
+        vData.Add(254000.26);
+        vData.Add(1); //input
+        vData.Add(1.4); //input-output
+        vData.Add(0); //output
+
+        //second set
+        vData.Add(2);
+        vData.Add("Microsoft Inc.");
+        vData.Add("700 Bellevue Way NE- 22nd Floor, Bellevue, WA 98804, USA");
+        vData.Add(93600000000.37);
+        vData.Add(1); //google company id
+        vData.Add("Donald Trump");
+        vData.Add(DateTime.Now);
+        sbBlob.UQueue.SetSize(0);
+        sbBlob.Save(m_str);
+        vData.Add(sbBlob.UQueue.GetBuffer());
+        vData.Add(m_str);
+        vData.Add(20254000.85);
+        vData.Add(2); //input
+        vData.Add(2.5); //input-output
+        vData.Add(0); //output
+
+        //third set
+        vData.Add(3);
+        vData.Add("Apple Inc.");
+        vData.Add("1 Infinite Loop, Cupertino, CA 95014, USA");
+        vData.Add(234000000000.09);
+        vData.Add(2); //Microsoft company id
+        vData.Add("Hillary Clinton");
+        vData.Add(DateTime.Now);
+        sbBlob.Save(m_wstr);
+        vData.Add(sbBlob.UQueue.GetBuffer());
+        vData.Add(m_wstr);
+        vData.Add(6254000.55);
+        vData.Add(0); //input
+        vData.Add(4.5); //input-output
+        vData.Add(0); //output
+    }
+    CMysql.DRows r = (handler, rowData) =>
+    {
+        //rowset data come here
+        int last = ra.Count - 1;
+        KeyValuePair&lt;CDBColumnInfoArray, CDBVariantArray&gt; item = ra[last];
+        item.Value.AddRange(rowData);
+    };
+    CMysql.DRowsetHeader rh = (handler) =>
+    {
+        //rowset header comes here
+        KeyValue item = new KeyValue(handler.ColumnInfo, new CDBVariantArray());
+        ra.Add(item);
+    };
+    //first, start a transaction with ReadCommited isolation 
+    //second, execute delete from employee;delete from company
+    //third, prepare and execute three sets of
+    //       INSERT INTO company(ID,NAME,ADDRESS,Income)VALUES(?,?,?,?)
+    //fourth, prepare and execute three sets of 
+    //insert into employee(CompanyId,name,JoinDate,image,DESCRIPTION,Salary)values(?,?,?,?,?,?)
+    //fifth, SELECT * from company;select * from employee;select curtime()
+    //sixth, prepare and three sets of call sp_TestProc(?,?,?)
+    //last, commit transaction if there is no error, and rollback if there is one or more errors
+    return mysql.executeBatch(tagTransactionIsolation.tiReadCommited, sql, vData, r, rh, "|");
+}
+</pre>
+</td>
+<td>
+<p>The left code snippet 3 is nearly the same at the code snippet 6 within the <a href="cs_sqlite.htm" title="SQL Requests Streaming For SQLite">previous article</a>, although this one has more lines of codes with BLOBs and long texts transferred back and forth between client and server.
+It is noted that SocketPro server plugins support user-defined delimiters which can be one single character or a string. Here, it is a character, vertical bar, as commented at line 3.
+</p>
+<p>We intentionally use a complex test case to show you the power of SocketPro SQL requests streaming technology. In fact, the unit test code here is not complicate at all, but its test case is considerably challenging to you if you use other DB accessing APIs because the test case is involved with transferring large BLOBs and long texts back and forth.</p>
+<p>When running the unit test code, you can debug for returning output data at line 67 of the above code snippet 1 by setting a break point.</p>
+</td>
+</tr>
+</table>
+Code snippet 3: Call executeBatch against a MySQL/MariaDB database with user defined delimilter and stored procedure as well as input, input/output and output parameters in batch
+<hr />
+
+<p>We are going to install database plugins within MySQL version 8 or later, MySQL version 5.7 or earlier, and MariaDB.
+However, it is a must that you have already distributed other components as described at <a href="get_started.htm" title="Get Started With SocketPro">this article</a>.</p>
+
+<ul>
+<li>Install sample database <i>sakila</i>
+<p>If your MySQL/MariaDB doesn’t have sakila database installed, you can get it from a site by searching github and sakila.
+You will find many sites having SQL scripts for installing the famous sample database <i>sakila</i>.
+As an example, <a href="https://github.com/ivanceras/sakila" title="GitHub - ivanceras/sakila: Sakila sample database for each database platform">this site</a> may work for you.
+</p>
+</li>
+<li>Copying SocketPro MySQL/MariaDB DB plugin into database plugin dirtectory and installing the plugin
+    <ol>
+        <li>Finding MySQL/MariaDB database plugin directory by executing statement <i>show variables where variable_name='plugin_dir'</i></li>
+        <li>Copying MySQL/MariaDB plugin into database plugin directory and installing the plugin
+            <ul>
+                <li><b>Windows</b>: Copy smysql.dll at ../socketpro/bin/free_services/(mysql8_0_11|mysql5_7_22|mariadb)/win64 or win86 into the above found database plugin directory. Afterwards, execute the statement <i>INSTALL PLUGIN UDAParts_SQL_Streaming SONAME 'smysql.dll'</i>.</li>
+                <li><b>Linux</b>: Copy libsmysql.so at ../socketpro/bin/free_services/(mysql8_0_11|mysql5_7_22|mariadb)/ into the above found database plugin directory. Afterwards, execute the statement <i>INSTALL PLUGIN UDAParts_SQL_Streaming SONAME 'libsmysql.so'</i>.</li>
+            </ul>
+            <p>Make sure there is no error output before continuing to the next step. The directories, <i>mysql8_0_11</i>, <i>mysql5_7_22</i> and <i>mariadb</i>, contain one DB plugin for MySQL 8 or later, MySQL 5.7 or earlier, and MariaDB, respectively. Don't make a mistake here.</p>
+        </li>
+    </ol>
+</li>
+
+<li>Configuring SocketPro MySQL/MariaDB DB plugin
+<ol>
+    <li>If you use MySQL <b>8.0.11 or later</b>, you can see a new database created with the name <i>sp_streaming_db</i> as shown in the below Figure 1.
+    <p />
+    <img alt="SocketPro SQL-streaming configuration database sp_streaming_db and table config" src="images/mysql_sp_streaming_config.png" />
+    <p><i>Figure 1: SocketPro SQL-streaming configuration database sp_streaming_db and table config</i></p>
+    <p>The configuration database has three simple tables, <i>config</i>, <i>service</i> and <i>permission</i> as shown in the above Figure 1. 
+    It is expected that SocketPro MySQL SQL-streaming plugin supports industrial security standard TLSv1.x to secure communication between client and server.
+    By default, a SocketPro client can use either IP v4 or v6 to access MySQL database at port number 20902.
+    Pay attention to the record <i>cached_tables</i>. If you set its value properly, all connected SocketPro clients can see data changes within these tables (for example, table actor, country, category and language within database sakila) in real time.
+    Referring to the .NET sample test_cache at directory ../socketpro/stream_sql/mysql, you can use the real-time cache feature to improve your middle tier performance and scalability by reducing data trips between middle tier and database.</p>
+    <p>One SocketPro server is capable of supporting many services at the same time by use of one TCP listening port.
+    If you like, you can enable websocket from SocketPro MySQL SQL-streaming plugin by setting value to '1' for the record <i>enable_http_websocket</i>.
+    Further, you can also embed other services by setting value properly of record services as shown in the above Figure 1.
+    Once changing any one or more values within the table <i>config</i>, you should restart MySQL.
+    Otherwise, the changes will not function correctly.</p>
+    <p>In regards to the table <i>permission</i>, SocketPro MySQL SQL-streaming technology uses its records to authenticate clients for embedded services as shown in the following Figure 2.
+    MySQL SQL-streaming plugin uses the two tables <i>mysql.user</i> and <i>sp_streaming_db.permission</i> to authenticate all clients for all services.
+    However, its SQL-streaming service does not use records within the table <i>sp_streaming_db.permission</i> for authentication.</p>
+    <p />
+    <img alt="Three users (root, user_one and user_two) allowed for SocketPro asynchronous persistent message queue service (service id=257)" src="images/mysql_permission.png" />
+    <p><i>Figure 2: Three users (root, user_one and user_two) allowed for SocketPro asynchronous persistent message queue service (service id=257)</i></p>
+    <p>Under most cases, you are not required to touch the table <i>service</i>.</p>
+    </li>
+    <li>If you use MySQL <b>5.7 or earlier</b>, or MariaDB, follow the following steps to do configurations:
+        <p>First, copy the file <i>sp_streaming_db_config.txt</i> inside the directory ../socketpro/stream_sql/mariadb into MySQL or MariaDB data directory, which can be found by executing statement <i>show variables where variable_name='datadir'</i>.
+        It is noted that the entries within the above Figure 1 are the same as ones within the file <i>sp_streaming_db_config.txt</i>. The both configurations are exactly the same.</p> 
+        <p>Afterwards, restart MySQL or MariaDB.</p>
+        <p>Next, register a user defined function <i>SetSQLStreamingPlugin</i> by executing the statement <i>CREATE FUNCTION SetSQLStreamingPlugin RETURNS INTEGER SONAME 'libsmysql.so'</i> and <i>CREATE FUNCTION SetSQLStreamingPlugin RETURNS INTEGER SONAME 'smysql.dll'</i>, respectively on Linux and Windows platforms.</p>
+        <p>At last, call the user defined function <i>SetSQLStreamingPlugin</i> by executing a statement like <i>select SetSQLStreamingPlugin('uid=root;pwd=Smash123')</i>. Here, the parameters <i>uid</i> and <i>pwd</i> represent user id and password, respectively.</p>
+    </li>
+</ol>
+    If the above configurations are completed correctly without any error, these SocketPro DB server plugins will support both SQL requests streaming processing and real-time updateable cache.
+</li>
+</ul>
+<hr />
+<p>By this time, you can compile the sample unit test code and run against a MySQL or MariaDB database.
+Further, set break points at lines 65 and 67 of the above snippet 1 to see the changes in variables <i>vPData</i>, <i>vData</i>, <i>ra</i> and various task objects as well as console outputs.
+At end, SocketPro MySQL/MariaDB DB plugins are written from C/C++.
+Their projects are located at the directories ../socketpro/stream_sql/mysql/smysql and ../socketpro/stream_sql/mariadb/smysql.
+Like SocketPro SQLite plugin, the MySQL/MariaDB plugins are not complicate at all in implementation.
+In fact, they are small, simple and understandable to a middle or senior level of C++ software engineer.</p>
+
+<p>In addition, there is a plugin log file <i>streaming_db.log</i> inside MySQL or MariaDB data directory. For example, it is located at the directory C:\ProgramData\MySQL\MySQL Server 8.0\Data for MySQL 8 on windows platforms.
+If you meet an issue like connection, you can check the log file <i>streaming_db.log</i> for help. If you can understand C/C++ code, you can quickly and accurately find the cause of a connection issue by looking at a line code of cpp file from the log file.
+</p>
+
+<p>
+These MySQL/MariaDB plugins are free to the public individuals for you to study and experiment.
+It is noted that they are not free to companies or enterprises for commercial usages.
+However, these plugins can be easily modified to meet the needs of enterprise applications.
+</p>
+<hr />
+</body>
+</html>

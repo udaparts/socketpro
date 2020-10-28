@@ -1,0 +1,388 @@
+﻿<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="utf-8" />
+    <title>SQL Requests Streaming For SQLite</title>
+    <link rel="stylesheet" type="text/css" href="codepretty/sons-of-obsidian.css">
+    <script type="text/javascript" src="codepretty/prettify.js"></script>
+</head>
+<body onload="PR.prettyPrint()">
+<h1 style="text-align: center;">SQL Requests Streaming For SQLite</h1>
+<hr />
+<p>Most of client server database systems only support synchronous communication between client and backend database 
+by use of blocking socket and some chatty protocol, which require a client or server to wait for an acknowledgement before sending a new chunk of data.
+The wait time, which is also called as latency, could be starting from a few tenths for a local area network (LAN) to hundreds of milliseconds for a wide area network (WAN).
+Large wait times can significantly degrade the quality of an application.</p>
+<p>As the previous example of <a href="py_serverqueue.htm" title="SocketPro Server Persistent Message Queue">server queue plugin</a>, we also create a set of SocketPro database plugins to accelerate accessing databases with 
+continuous inline request/result batching and real-time stream processing capabilities by use of asynchronous data transferring and parallel computation for the best network efficiency.
+For reduction of learning complexity, we use SQLite database as the first database sample for the first article, and MySQL as the second database sample for <a href="py_mysql.htm" title="SQL Requests Streaming For MySQL/Mariadb">the second article</a>.</p>
+
+<table style="width:100%;">
+<tr>
+<td style="width:30%;">
+<?prettify linenums=1?>
+<pre class="prettyprint">
+# ../socketpro/bin/spa/clientside/asyncdbhandler.py
+def open(self, strConnection, flags=0):
+    f = future()
+    def arh(ah, res, err_msg):
+        if f.done(): return
+        f.set_result({'ec':res, 'em':err_msg})  # ErrInfo = {'ec':res, 'em':err_msg}
+    if not self.Open(strConnection, arh, flags, ......):
+        self.throw(f)
+    return f
+
+def execute(self, sql_or_array, row=None, rh=None, meta=True, lastInsertId=True):
+    
+    # ......
+
+    f = future()
+    def arh(ah, res, err_msg, affected, fail_ok, last_id):
+        if f.done(): return
+        # SQLExeInfo = {'ec':res, 'em':err_msg, 'affected':affected, 'oks': (fail_ok&0xffffffff),
+        #       'fails': (fail_ok>>32), 'lastId': last_id}
+        f.set_result({'ec':res, 'em':err_msg, 'affected':affected, 'oks': (fail_ok&0xffffffff),
+                'fails': (fail_ok>>32), 'lastId': last_id})
+    if not self.Execute(sql_or_array, arh, row, rh, meta, lastInsertId, ......):
+        self.throw(f)
+    return f
+</pre>
+</td>
+<td>
+<p>The left code snippet 1 lists the two basic structures for various database request returning results.</p>
+<p>The first one, <i>ErrInfo</i> at line 6, is used for returning results of database requests, <i>open</i>, <i>close</i>, <i>prepare</i>, <i>beginTrans</i> and <i>endTrans</i>.
+It is easily understandable to you, because they are returned just with two data, an error code <i>ec</i> and its correspoding message <i>em</i>.</p>
+<p>The second one, <i>SQLExeInfo</i> at line 18, is designed for returning results of various SQL statements, <i>execute</i> and <i>executeBatch</i>.
+In addtion to an error code and its correspoding message, executing a SQL statement could return the number of records affected and last insert identification number,
+which correspond to the two members <i>affected</i> and <i>lastId</i> of the structure <i>SQLExeInfo</i>, respectively.
+SocketPro database plugins support executing a complex SQL statement which consists of multiple basic SQL statements.
+Executing a complex SQL statement could generate multiple results of multiple basic SQL statements. SocketPro database plugins will count their successful ones and failure ones, and return them to client.
+Therefore, there are two members <i>oks</i> and <i>fails</i> within the structure for successes and failures, respectively.
+However, no matter how many failures happens with a batch of complex SQL statements, SocketPro database plugins always return one error code and its message of the first basic SQL statement only.
+</p>
+</td>
+</tr>
+</table>
+Code snippet 1: Two basic structures <i>ErrInfo</i> and <i>SQLExeInfo</i> for various database request returning results
+<hr />
+
+<table style="width:100%;">
+<tr>
+<td style="width:30%;">
+<?prettify linenums=1?>
+<pre class="prettyprint">
+import sys
+from spa import Pair
+from spa.udb import *
+from spa.clientside import CSocketPool, CConnectionContext,\
+    CSqlite,CUQueue, CServerError as Se, CSocketError
+import datetime
+
+g_wstr = ''
+# ......
+g_astr = ''
+# ......
+
+with CSocketPool(CSqlite) as spSqlite:
+    # spSqlite.QueueName = 'qsqlite'
+    print('Remote async sqlite server host: ')
+    cc = CConnectionContext(sys.stdin.readline(), 20901, 'PythonUser', 'TooMuchSecret')
+    ok = spSqlite.StartSocketPool(cc, 1)
+    sqlite = spSqlite.AsyncHandlers[0]
+    if not ok:
+        print('No connection error code = ' + str(sqlite.Socket.ErrorCode))
+        exit(0)
+
+    def TestCreateTables():
+        # ......
+
+    ra = []
+
+    def cbRows(db, lstData):
+        back = len(ra) - 1
+        ra[back].second.append(lstData)
+
+    def cbRowHeader(db):
+        vColInfo = db.ColumnInfo
+        ra.append(Pair(vColInfo, []))
+
+    def TestPreparedStatements():
+        # ......
+
+    def TestBLOBByPreparedStatement():
+        # ......
+
+    def TestBatch():
+        # ......
+
+    try:
+        # stream all SQL requests with in-line batching for the best network efficiency
+        fOpen = sqlite.open(u'')
+        vF = TestCreateTables()
+        fbt = sqlite.beginTrans(tagTransactionIsolation.tiReadCommited)
+        fP0 = TestPreparedStatements()
+        fP1 = TestBLOBByPreparedStatement()
+        fet = sqlite.endTrans()
+        vTB = TestBatch()
+        print('SQL requests streamed, and waiting for results ......')
+        print(fOpen.result())
+        for f in vF:
+            print(f.result())
+        print(fbt.result())
+        print(fP0.result())
+        print(fP1.result())
+        print(fet.result())
+        for f in vTB:
+            print(f.result())
+    except Se as ex:  # an exception from remote server
+        print(ex)
+    except CSocketError as ex:  # a communication error
+        print(ex)
+    except Exception as ex:
+        # invalid parameter, bad de-serialization, and so on
+        print('Unexpected error: ' + str(ex))
+    print('')
+    print('+++++ Start rowsets +++')
+    index = 0
+    for a in ra:
+        if len(a.first) > 0:
+            print('Statement index: ' + str(index) + ', rowset with columns: ' + str(len(a.first)) +
+                  ', records: ' + str(len(a.second)) + '.')
+        else:
+            print('Statement index = ' + str(index) + ', no rowset received.')
+        index += 1
+    print('+++++ End rowsets +++')
+    print('')
+    print('Press any key to close the application ......')
+    sys.stdin.readline()
+</pre>
+</td>
+<td><p>Let us look at database client side code as shown at the left code snippet 2.
+The sample code snippet comes from the file test_python.py at directory ../socketpro/stream_sql/usqlite/test_python.</p>
+<p>First of all, we ignore boilerplate code lines between 16 and 44 as shown in many previous samples.</p>
+<p>Next, we open a database at line 47 with an empty string for a default database set at server side.
+The call immediately returns a task <i>fOpen</i> for a DB request structure <i>ErrInfo</i> as described at the previous code snippet 1.
+The default database is usqlite.db at the line 68 of the code snippet 2 of <a href="py_router.htm" title="SocketPro Server Routing Communication Pattern and Microservices">this previous article</a>.</p>
+<p>Next, we create an array of tables for the coming testings as shown at line 48.
+Because we may create multiple tables with multiple DB definition statements, the function <i>TestCreateTables</i> will immediately return an array of futures <i>vF</i> for the corresponding number of structures <i>SQLExeInfo</i> without waiting for expected results.</p>
+<p>Next, start a manual transaction at line 49. As expected, it immediately returns with a future <i>fbt</i> without waiting for its expected result from server.</p>
+<p>Next, we use prepare statements to insert and query records at lines 50 and 51. The prepare statements are involved with inserting and retrieving large BLOB and text objects at fast speed but lowest memory foot print.
+We will discuss them with details later. As expected, they will immediately return two tasks <i>fP0</i> and <i>fP1</i> for two <i>SQLExeInfo</i> structures without waiting for server responses.</p>
+<p>At line 52, we end manual transaction which immediately returns a task <i>fet</i> for an <i>ErrInfo</i> structure.</p>
+<p>Next, we will test executing requests batch at line 53. We will discuss it with details later</p>
+<p>It is noted that all of requests between lines 47 and 53 are streamed with in-line batching for the best network efficiency. This is the style of SocketPro!
+As previous examples demonstrate, SocketPro always favors streaming requests with in-line batching whenever possible and there are multiple requests involved.</p>
+<p>At end, we wait by calling the future method <i>result</i>, and show all of returned results from line 55 through 63.
+It is noted that all returning results are sent from server to client with streaming and in-line batching too for the best network efficiency.</p>
+<p>Finally, we show all collected rowsets at line 74 through 80.</p>
+</td>
+</tr>
+</table>
+Code snippet 2: Main console unit test code for DB and SQL requests streaming against SQLite server plugin
+<hr />
+<table style="width:100%;">
+<tr>
+<td style="width:30%;">
+<?prettify linenums=1?>
+<pre class="prettyprint">
+def TestCreateTables():
+    return [sqlite.execute('CREATE TABLE COMPANY(ID INT8 PRIMARY KEY NOT NULL,name CHAR(64)'
+                'NOT NULL,ADDRESS varCHAR(256)not null,Income float not null)'),
+            sqlite.execute("CREATE TABLE EMPLOYEE(EMPLOYEEID INT8 PRIMARY KEY NOT NULL unique,"
+                "CompanyId INT8 not null, name NCHAR(64) NOT NULL, JoinDate DATETIME not null "
+                "default(datetime('now')),IMAGE BLOB,DESCRIPTION NTEXT,Salary real,FOREIGN KEY"
+                "(CompanyId) REFERENCES COMPANY(id))")]
+</pre>
+</td>
+<td>
+<p>The left code snippet 3 shows how to use the method <i>execute</i> for creating tables with two basic DB definition statements.
+The method <i>TestCreateTables</i> simply returns two futures at line 2 through 7 for two <i>SQLExeInfo</i> structures without waiting for server response at all.</p>
+</td>
+</tr>
+</table>
+Code snippet 3: Create tables with basic DB definition statements
+<hr />
+<table style="width:100%;">
+<tr>
+<td style="width:30%;">
+<?prettify linenums=1?>
+<pre class="prettyprint">
+def TestPreparedStatements():
+    sqlite.Prepare("Select datetime('now');INSERT OR REPLACE INTO COMPANY"
+                    "(ID,NAME,ADDRESS,Income)VALUES(?,?,?,?)")
+
+    vData = []
+    vData.append(1)
+    vData.append("Google Inc.")
+    vData.append("1600 Amphitheatre Parkway, Mountain View, CA 94043, USA")
+    vData.append(66000000000.0)
+
+    vData.append(2)
+    vData.append("Microsoft Inc.")
+    vData.append("700 Bellevue Way NE- 22nd Floor, Bellevue, WA 98804, USA")
+    vData.append(93600000000.0)
+
+    vData.append(3)
+    vData.append("Apple Inc.")
+    vData.append("1 Infinite Loop, Cupertino, CA 95014, USA")
+    vData.append(234000000000.0)
+
+    return sqlite.execute(vData, cbRows, cbRowHeader)
+</pre>
+</td>
+<td>
+<p>In comparison to the above snippet 3, the left code snippet 4 is a little more complicated.
+First, this snippet involves sending a prepare SQL statement at lines 2 and 3.
+Afterwards, we prepare an array of sample data between line 5 and 19.
+At end, we send the array of data at line 21 with two callbacks <i>cbRows</i> and <i>cbRowHeader</i>, and return a future for <i>SQLExeInfo</i> immediately.</p>
+<p>It is noted that the sample preparing SQL statement consists of one simple query and one insert statement at line 2 and 3, respectively.
+When the function <i>TestPreparedStatements</i> is called, a client will expect three sets of records returned and three records inserted into the table COMPANY.
+The sample is designed for demonstrating the power of SocketPro SQL-stream technology.
+In reality, you probably don't prepare a combined SQL statement having multiple basic SQL statements.
+If you use a parameterized statement, you are required to send a prepare request first.
+After obtaining an array of data as shown in the left code snippet 4, you can send multiple sets of parameter data for processing from client to server in one single shot at the end.
+If you have a large amount of data, you could call the method <i>execute</i> repeatedly without needing to prepare a statement again.</p>
+<p>Next, we need more details for how to handle returning record sets.
+The method <i>execute</i> has two callbacks or Lambda expressions at line 21 for the second and third input parameters except the first input for parameter data array.
+Whenever a record set is coming, the second callback <i>cbRowHeader</i> will be automatically called at first by SQLite client handler <i>CSqlite</i> for record set column meta information.
+If actual records are available, the first callback <i>cbRows</i> will be called and you can populate data into a container <i>ra</i> at line 26 of the above code snippet 2.
+If we take the left code snippet 4 as a sample, both the first and second callbacks will be called three times due to the simple SQL query (<i>Select datetime('now')</i>).
+However, it is expected that the times of calling the first callback is dependent on both the number of records and the size of one record for other queries.
+</p>
+<p>In reality, the second callback for meta info is ignorable because we know meta information ahead. Therefore, the method <i>execute</i> coud just take two inputs.
+Further, it may requires just one input, as shown at the previous code snippet 3, if we don't care for record data.</p>
+</td>
+</tr>
+</table>
+Code snippet 4: Use parameterized statement for inserting and retrieving records in batch
+<hr />
+<table style="width:100%;">
+<tr>
+<td style="width:30%;">
+<?prettify linenums=1?>
+<pre class="prettyprint">
+def TestBLOBByPreparedStatement():
+    sql = u'insert or replace into employee(EMPLOYEEID,CompanyId,name,JoinDate,image,' \
+            u'DESCRIPTION,Salary)values(?,?,?,?,?,?,?);select * from employee where employeeid=?'
+    sqlite.Prepare(sql)
+    vData = []
+    sbBlob = CUQueue()
+
+    # first set of data
+    vData.append(1)
+    vData.append(1)  # google company id
+    vData.append("Ted Cruz")
+    vData.append(datetime.datetime.now())
+    sbBlob.SaveString(g_wstr)
+    vData.append(sbBlob.GetBuffer())
+    vData.append(g_wstr)
+    vData.append(254000.0)
+    vData.append(1)
+
+    # second set of data
+    vData.append(2)
+    vData.append(1)  # google company id
+    vData.append("Donald Trump")
+    vData.append(datetime.datetime.now())
+    sbBlob.SetSize(0)
+    sbBlob.SaveAString(g_astr)
+    vData.append(sbBlob.GetBuffer())
+    vData.append(g_astr)
+    vData.append(20254000.0)
+    vData.append(2)
+
+    # third set of data
+    vData.append(3)
+    vData.append(2)  # Microsoft company id
+    vData.append("Hillary Clinton")
+    vData.append(datetime.datetime.now())
+    sbBlob.SaveString(g_wstr)
+    vData.append(sbBlob.GetBuffer())
+    vData.append(g_wstr)
+    vData.append(6254000.0)
+    vData.append(3)
+
+    return sqlite.execute(vData, cbRows, cbRowHeader)
+</pre>
+</td>
+<td>
+<p>Now, you can see SocketPro SQL-stream technology provides all required features for accessing a backend database.
+Further, we are going to use the sample for how to handle large binary and text objects within SocketPro streaming technology.
+Usually, it is difficult to access large objects inside databases efficiently.
+However, it is truly very simple with SocketPro SQL-stream technology for both development and efficiency, as shown at the left code snippet 5.</p>
+
+<p>After looking through the code within the snippet 5,
+you would find that this code snippet is really the same as one in the previous code snippet 4 although this code snippet is longer.
+Therefore, this approach is really a good thing for a software developer to reuse SocketPro SQL streaming technology for dealing all types of database table fields in the same coding style for easy development.</p>
+
+<p>SocketPro always divides a large binary or text object into chunks first at both client and server sides.
+Afterwards, SocketPro sends these smaller chunks to the other side.
+At the end, SocketPro will reconstruct the original large binary or text object from collected smaller chunks.
+This happens silently at run time for reduction of memory foot print.</p>
+</td>
+</tr>
+</table>
+Code snippet 5: Use parameterized statement for inserting and retrieving records with BLOBs and long texts in batch
+<hr />
+<table style="width:100%;">
+<tr>
+<td style="width:30%;">
+<?prettify linenums=1?>
+<pre class="prettyprint">
+def TestBatch():
+    vParam = []
+    vParam.append(1)  # ID
+    vParam.append(2)  # EMPLOYEEID
+    # there is no manual transaction if isolation is tiUnspecified
+    f0 = sqlite.executeBatch(tagTransactionIsolation.tiUnspecified, "Select datetime('now');"
+        "select * from COMPANY where ID=?;select * from EMPLOYEE where EMPLOYEEID=?", vParam, cbRows, cbRowHeader)
+    vParam = []
+    vParam.append(1)  # ID
+    vParam.append(2)  # EMPLOYEEID
+    vParam.append(2)  # ID
+    vParam.append(3)  # EMPLOYEEID
+    """
+    Same as sqlite.beginTrans();
+    Select datetime('now');
+    select * from COMPANY where ID=1;
+    select * from COMPANY where ID=2;
+    Select datetime('now');
+    select * from EMPLOYEE where EMPLOYEEID=2;
+    select * from EMPLOYEE where EMPLOYEEID=3
+    ok = sqlite.endTrans(tagRollbackPlan.rpDefault);
+    """
+    f1 = sqlite.executeBatch(tagTransactionIsolation.tiReadCommited, "Select datetime('now');select * from COMPANY "
+        "where ID=?;Select datetime('now');select * from EMPLOYEE where EMPLOYEEID=?", vParam, cbRows, cbRowHeader)
+    return [f0, f1]
+</pre>
+</td>
+<td>
+<p>SocketPro also provides a special method to group all DB and SQL requests such as <i>prepare</i>, <i>beginTrans</i>, <i>endTrans</i> and <i>execute</i> into a large batch request as shown at the left code snippet 6.
+</p>
+<p>Inside the method <i>TestBatch</i>, we call the method <i>executeBatch</i> at lines 6 and 7 with the first input as <i>tiUnspecified</i>.
+The batch is excuted with querying three sets of records with executing one prepare statement at server side because there is an arry of input parameter data.
+If the thir input parameter is empty, the method <i>executeBatch</i> would be the same as the method <i>execute</i>.
+</p>
+<p>We can also group a bunch of DB and SQL requests with the first input other than <i>tiUnspecified</i> as shown at lines 23 through 24, although the sample prepare statement does not have to require a manual transaction here.
+As commented inside the code snippet here, it involves these methods <i>beginTrans</i>/<i>endTrans</i>, <i>prepare</i>, <i>execute</i>, and so on.
+</p>
+<p>The method <i>executeBatch</i> has a number of adantages such as better performance, cleaner codes and better integration with SocketPro client queue.</p>
+</td>
+</tr>
+</table>
+Code snippet 6: Execute different SQL requests in batch with or without manual transaction
+<hr />
+<p>At end, SocketPro SQLite server plugin is written from C/C++. Its project is located at the directory ../socketpro/stream_sql/usqlite/ssqlite,
+but implementation files are located at the directory ../socketpro/include/sqlite/server_impl.
+Like <a href="py_serverqueue.htm" title="SocketPro Server Persistent Message Queue">the previous SocketPro server plugin</a>, the SocketPro SQLite server plugin is not complicate at all.
+In fact, it is small, simple and understandable to a middle level of C++ software engineer. The SQLite plugin is free to the public individuals for you to study and experiment.
+However, it is noted that it is not free to companies or enterprises for commercial purposes.
+</p>
+<hr />
+<h3>Test SQLite server plugin</h3>
+To test the SQLite server plugin, run the sample server application <a href="get_started.htm" title="Get Started With SocketPro">all_servers</a> first.
+Afterwards, execute this script.
+Further, you can uncomment the code at line 14 of the above code snippet 2 to enable client queue for better fault tolerance and auto recovery.
+<hr />
+</body>
+</html>

@@ -1,0 +1,323 @@
+﻿<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="utf-8" />
+    <title>SocketPro Secure Communication and Publish/Subscribe Messaging</title>
+    <link rel="stylesheet" type="text/css" href="codepretty/sons-of-obsidian.css">
+    <script type="text/javascript" src="codepretty/prettify.js"></script>
+</head>
+<body onload="PR.prettyPrint()">
+
+<h1 style="text-align: center;">SocketPro Secure Communication and Publish/Subscribe Messaging</h1>
+
+<p>We talked about client side development at <a href="py_hw.htm", title="SocketPro Client Server Application Development">the previous article</a>.
+Now, we are going to describe SocektPro server side development here.
+Most of this paper will focus on publish/subscribe messaging and SocketPro secure communication between client and server.</p>
+
+<p>Let's start with server side. The sample server project is located at ../socketpro/tutorials/java/src/pub_sub/ps_server.</p>
+<hr />
+<table style="width:100%;">
+<tr>
+<td style="width:30%;">
+<?prettify linenums=1?>
+<pre class="prettyprint">
+//../socketpro/tutorials/python/pub_sub/ps_server/program.py
+from pub_sub.ps_server.hwpeer import CHelloWorldPeer
+from spa.serverside import *
+from consts import hwConst
+
+with CSocketProServer() as server:
+
+    # ......
+
+    # test certificate and private key files are located at the directory ..\SocketProRoot\bin
+    if CUQueue.DEFAULT_OS == tagOperationSystem.osWin:
+        server.UseSSL("intermediate.pfx", "", "mypassword")
+
+        # or load cert and private key from windows system cert store
+        # server.UseSSL("root", "UDAParts Intermediate CA", "") # "my"
+    else:
+        server.UseSSL("intermediate.cert.pem", "intermediate.key.pem", "mypassword")
+
+    if not server.Run(20901):
+        print('Error message = ' + CSocketProServer.ErrorMessage)
+    print('Read a line to shutdown the application ......')
+    line = sys.stdin.readline()
+</pre>
+</td>
+<td>
+It is very simple to start a server as shown at the left code snippet 1.
+<p>At first, we tell SocketPro that we are going to start a secure socket at line 11 through 17.
+UDAParts already prepares test certificates and a private key for your experiment convenience as commented.
+SocketPro server will be non-secure if the piece of code doesn't exist.
+</p>
+
+<p>This sample server is running on the listening port 20901, as shown at line 19.</p>
+</td>
+</tr>
+</table>
+Code snippet 1: Start a secure socket server at port 20901
+<hr />
+<table style="width:100%;">
+<tr>
+<td style="width:30%;">
+<?prettify linenums=1?>
+<pre class="prettyprint">
+//../socketpro/tutorials/python/pub_sub/ps_server/program.py
+from pub_sub.ps_server.hwpeer import CHelloWorldPeer
+from spa.serverside import *
+from consts import hwConst
+
+with CSocketProServer() as server:
+    def do_configuration():
+        CSocketProServer.PushManager.AddAChatGroup(1, "R&D Department")
+        CSocketProServer.PushManager.AddAChatGroup(2, "Sales Department")
+        CSocketProServer.PushManager.AddAChatGroup(3, "Management Department")
+        return True # True -- ok; False -- no listening server
+    server.OnSettingServer = do_configuration
+
+    def OnIsPermitted(hSocket, userId, pwd, svsId):
+        print('Ask for a service ' + str(svsId) + ' from user ' + userId + ' with password = ' + pwd)
+        return True  # True == permitted and False == denied
+    server.OnIsPermitted = OnIsPermitted
+
+    # map request ids to their names and speeds so that SocketPro is able to map a request id
+    # to its method and use main or worker thread at run time
+    mapIdReq = {
+        hwConst.idSayHello : 'sayHello',
+        hwConst.idSleep : ['sleep', True],  # or ('sleep', True)
+        hwConst.idEcho : 'echo'
+    }
+    server.HelloWorld = CSocketProService(CHelloWorldPeer, hwConst.sidHelloWorld, mapIdReq)
+
+    # test certificate and private key files are located at the directory ..\SocketProRoot\bin
+    if CUQueue.DEFAULT_OS == tagOperationSystem.osWin:
+        server.UseSSL("intermediate.pfx", "", "mypassword")
+
+        # or load cert and private key from windows system cert store
+        # server.UseSSL("root", "UDAParts Intermediate CA", "") # "my"
+    else:
+        server.UseSSL("intermediate.cert.pem", "intermediate.key.pem", "mypassword")
+
+    if not server.Run(20901):
+        print('Error message = ' + CSocketProServer.ErrorMessage)
+    print('Read a line to shutdown the application ......')
+    line = sys.stdin.readline()
+</pre>
+</td>
+<td>
+<p>The left code snippet 2 is really simple too.</p>
+<p>First, pay attention to the line 21 through 26.
+For each of services supported, it is required to prepare a map (request id --> method) as shown at line 21 through 25.
+It is noted that the method <i>sleep</i> is a slow request (['sleep', True]) at line 23, which will take a long time to process.
+For this reason, SocketPro server will use a worker thread to execute the request.
+The other two method are fast ones, and they will be proccessed within one of main threads.
+After preparing the map, we register the hello world service at line 26 with a given service id <i>hwConst.sidHelloWorld</i> and tell SocketPro server what requests are slow ones.
+Here, the server just registers and sets one service. However, we can set up any number of services as needed.
+</p>
+<p>The virtual method <i>OnSettingServer</i> at line 12 will be called, when we start a listening socket at line 37.
+Inside the function, we create three topics or chat groups at line 8 through 9 because this sample is going to demonstrate publish/subscribe messaging.
+A client can subscribe zero, one or multiple topics.
+However, anyone of clients is capable to send a message onto other clients with server in middle, according to their zero, one or more topics (or groups) subscribed. A sample will be given at the below code snippet 3.
+At end, we return true at line 11. As commented, there is a listenting socket for accepting coming client sessions if the method returns true.
+Otherwise, there is no listening socket at all. Further, the hello world service is registerred into SocketPro server to be ready for functioning.
+</p>
+<p>When a client will ask for a service indicated by the variable <i>svsId</i> after establishing a socket connection,
+the virtual method <i>OnIsPermitted</i> at line 17 will be called by SocketPro server.
+Inside the method, we do authentication from given user id <i>userId</i> and its password <i>pwd</i>.
+If the method returns True, a permision is given. Otherwise, socket connection is closed immediately for autentication failure.
+It is noted that the password will be cleaned away from server right after the virtual function is called.
+</p>
+</td>
+</tr>
+</table>
+Code snippet 2: Register a microservice and create topics for publish/subscribe messaging
+<hr />
+
+<table style="width:100%;">
+<tr>
+<td style="width:30%;">
+<?prettify linenums=1?>
+<pre class="prettyprint">
+//../socketpro/tutorials/python/pub_sub/ps_server/hwpeer.py
+from spa.serverside import CUQueue, CClientPeer as Cp,\
+    CScopeUQueue as Sb, CSocketProServer as Sps
+from spa import CServerError
+from msstruct import CMyStruct
+import time
+
+
+class CHelloWorldPeer(Cp):
+    def OnSwitchFrom(self, old_service_id):
+        self.Push.Subscribe((1, 3))
+
+    def sayHello(self):
+        assert(Sps.IsMainThread)
+        fName = self.UQueue.LoadString()
+        if not fName or not len(fName):
+            raise CServerError(12345, 'First name cannot be empty')
+
+        lName = self.UQueue.LoadString()
+        # notify a message to groups [2, 3] at server side
+        self.Push.Publish('Say hello from ' + fName + ' ' + lName, (2,3))
+        res = u'Hello ' + fName + ' ' + lName
+        print(res)
+        return Sb().SaveString(res)
+
+    def sleep(self):
+        assert(not Sps.IsMainThread)
+        ms = self.UQueue.LoadInt()
+        if ms < 0:
+            raise CServerError(54321, 'Sleep time cannot be less than zero')
+        time.sleep(ms/1000.0)
+
+    def echo(self):
+        assert(Sps.IsMainThread)
+        ms = CMyStruct()
+        ms.LoadFrom(self.UQueue)
+        return ms.SaveTo(Sb())
+
+    # ......
+
+</pre>
+</td>
+<td>
+The left snippet 3 shows how server side processes three requests (sayHello, sleep and echo) within hello world micro service. One instance of CHelloWorldPeer corresponds to one client.
+<p>The virtual function OnSwitchFrom will be called right after a session is permitted at the line 16 of the above snippet 2.
+The parameter oldServiceId will be 256 (spa.BaseServiceID.sidStartup).
+We can subscribe zero, one or more topics or groups as shown at line 11 at server side. You can do so too at client side.
+Doing so indicates the client is interested in all messages belonging to topics 1 and 3.</p>
+
+<p><i>sayHello</i>: Inside the method, it may throw an exception of <i>spa.CServerError</i> at line 17 if the first name <i>fName</i> is an empty string.
+Also, we publish a message to all clients subscribed for topics 2 and 3 at line 21.
+At end, the method returns a string <i>res</i> at line 23 to its connected client after saving it to an instance of <i>spa.CScopeUQueue</i> (Sb().SaveString(res)).
+It is noted that this method is processed within one of main threads.
+A SocketPro server has one or more threads to process all fast requests which take less time to process.
+The max number of main threads cannot be over the number of server machine processors.
+</p>
+<p><i>sleep</i>: The method is a slow one as indicated at line 23 of the above snippet 2.
+When a SocketPro server meets such a slow request, it will either create a thread or reuse a thread from a thread pool at run time before dispatching the request onto it for processing.
+SocketPro server totally manages worker threads for you. However, you are required to tell server what requests are slow as shown at line 23 of the above snippet 2.
+When such a request is completed, the worker thread will be recycled into a hidden pool for reuse in the future.
+Also, the method throws a new server exception at line 30 of this snippet if the input <i>ms</i> is less than 0. The method <i>Sleep</i> returns nothing.
+</p>
+
+<p><i>echo</i>: The method is simple as it just returns the input <i>ms</i> back to a client at line 51.
+Please refer to the <a href="py_buffer.htm" title="SocketPro Request Parameters Packing and Result Unpacking">previous article</a> for serialization and de-serialization of complex structure.
+Also, the method is fast and will be processed within one of main threads as indicated at line 24 of the above snippet 2.</p>
+
+<p>It is pointed out that you can use spa.serverside.CSocketProServer.PushManager to publish a message or send a message to a specific client by user id at server side too.</p>
+<p>At last, it is noted that the number of main threads is one by default. The max number of main threads will not be more than the number of server processors at server side.
+Our experiments show that one main thread is enough if your server doesn't use secure communication or inline compression/de-compression (zip).
+The number of worker threads are dynamically created if neccessary. They are automatically destroyed too if they are idle for more than 60 seconds by default.</p>
+</td>
+</tr>
+</table>
+Code snippet 3: Hello world service implementation at server side
+<hr />
+<table style="width:100%;">
+<tr>
+<td style="width:30%;">
+<?prettify linenums=1?>
+<pre class="prettyprint">
+//../socketpro/tutorials/python/pub_sub/ps_client/program.py
+from hello_world.client.asynchelloworld import CHelloWorld
+from consts import hwConst
+from spa.clientside import *
+import sys
+
+print('Input your user id ......')
+cc = CConnectionContext('localhost', 20901, sys.stdin.readline().strip(),\
+                        'MyPassword', tagEncryptionMethod.TLSv1)
+
+if CUQueue.DEFAULT_OS == tagOperationSystem.osWin:
+    # for windows platforms, you can use windows system store instead
+    # 'ca.cert.pem' stored at "root", "my@currentuser", or "root@localmachine"
+    pass
+else:
+    # CA file is located at the directory ../SocketProRoot/bin
+    CClientSocket.SSL.SetVerifyLocation('ca.cert.pem')  # linux
+
+with CSocketPool(CHelloWorld) as sp:
+
+    def OnCertVerification(sp, cs):
+        print(cs.UCert.SessionInfo)
+        (code, res) = cs.UCert.Verify()
+        return code == 0
+
+    sp.DoSslServerAuthentication = OnCertVerification
+
+    ok = sp.StartSocketPool(cc, 1)
+    hw = sp.Seek()
+    cs = hw.Socket
+
+    def OnSubscribe(cs, sender, groups):
+         print('Enter: groups = ' + str(groups) + ', sender id = ' + sender.UserId + ', ip address = ' +\
+               sender.IpAddress + ', port = ' + str(sender.Port) + ', ServiceId = ' + str(sender.ServiceId) +\
+               ', SelfMessage = ' + str(sender.SelfMessage))
+
+    def OnUnsubscribe(cs, sender, groups):
+         print('Exit: groups = ' + str(groups) + ', sender id = ' + sender.UserId + ', ip address = ' +\
+               sender.IpAddress + ', port = ' + str(sender.Port) + ', ServiceId = ' + str(sender.ServiceId) +\
+               ', SelfMessage = ' + str(sender.SelfMessage))
+
+    def OnPublish(cs, sender, groups, objMsg):
+        print('Publish: groups = ' + str(groups) + ' message = ' + objMsg + ', sender id = ' + sender.UserId +\
+              ', ip address = ' + sender.IpAddress + ', port = ' + str(sender.Port) + ', ServiceId = ' +\
+              str(sender.ServiceId) + ', SelfMessage = ' + str(sender.SelfMessage))
+
+    def OnSendUserMessage(cs, sender, objMsg):
+        print('SendUserMessage: message = ' + objMsg + ', sender id = ' + sender.UserId + ', ip address = ' +\
+              sender.IpAddress + ', port = ' + str(sender.Port) + ', ServiceId = ' + str(sender.ServiceId) +\
+              ', SelfMessage = ' + str(sender.SelfMessage))
+
+    cs.Push.OnSubscribe = OnSubscribe
+    cs.Push.OnPublish = OnPublish
+    cs.Push.OnSendUserMessage = OnSendUserMessage
+    cs.Push.OnUnsubscribe = OnUnsubscribe
+
+    # asynchronously process all three requests with inline batching for best network efficiency
+    def cbSayHello(ar):
+        print(ar.LoadString())
+
+    ok = hw.SendRequest(hwConst.idSayHello, CUQueue().SaveString('Jack').SaveString('Smith'), cbSayHello)
+    cs.Push.Publish('We are going to call the method Sleep', (1,2))
+    hw.SendRequest(hwConst.idSleep, CUQueue().SaveUInt(5000), None)
+    print('Input a receiver for receiving my message ......')
+    cs.Push.SendUserMessage('A message from ' + cc.UserId, sys.stdin.readline().strip())
+    print('Press key ENTER to shutdown the demo application ......')
+    sys.stdin.readline()
+
+</pre>
+</td>
+<td>
+It is time to focus the client side development as shown at the left code snippet 4. The sample project is at the directory ../socketpro/tutorials/python/pub_sub/ps_client/.
+<p>To enable secure communication at client side, you have to make sure connection context EncrytionMethod is set to tagEncryptionMethod.TLSv1 as shown at line 9.
+Next, set certificate verification to a file as shown at line 17 for Linux.
+On windows, you can put a root certificate into windows system store by mmc. At last, set a callback for authenticating certificates from servers, as shown at line 21 through 26. You can verify certificate chain as shown at line 23.
+At last, client user id and password will be sent to server if the callback returns True. Otherwise, client user id and password will not be sent.</p>
+<p>Codes at line 32 through 45 are for tracking messages from chat groups or topics.
+Further, codes at line 47 through 50 are used for monitoring messages specifically for this client from other clients or server by calling the method SendUserMessage.</p>
+<p>As an example, we can send a message to one or more groups or topics at line 62 from client side. In addition, we can also send messages to a client by its user id, as shown at line 65.</p>
+<p>We can also do subscribe and unsubscribe from client side. Please refer to the member spa.clientside.CClientSocket.Push for details.</p>
+<p>Now you can start the secure server, and run two or more instances of the client application for experiments.</p>
+</td>
+</tr>
+</table>
+Code snippet 4: Client side secure communication and messaging
+<hr />
+Summarily, this short paper focuses the following topics:
+<ol>
+<li>How to start a SocketPro server</li>
+<li>How to make a SocketPro server secure</li>
+<li>How to register a service and set slow rewuests at server side</li>
+<li>How to manage subscribe/publish messaging at server side</li>
+<li>How to authenticate a client from given user id and password</li>
+<li>How to subscribe topics or groups, or publish messages at server side</li>
+<li>How to enable secure communication at client side and authenticate server certificates before sending passwords</li>
+<li>How to track expected messages from other clients at client side</li>
+<li>How to publish messages or send messages to a specific client</li>
+</ol>
+<hr />
+</body>
+</html>

@@ -1,0 +1,301 @@
+﻿<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="utf-8" />
+    <title>SocketPro Request Parameters Packing and Result Unpacking</title>
+    <link rel="stylesheet" type="text/css" href="codepretty/sons-of-obsidian.css">
+    <script type="text/javascript" src="codepretty/prettify.js"></script>
+</head>
+<body onload="PR.prettyPrint()">
+<h1>SocketPro Request Parameters Packing and Result Unpacking</h1>
+<p>This is the first example to explain SocketPro utility classes, <i>SPA::CUQueue</i> and <i>SPA::CScopeUQueue</i>, for data serialization and de-serialization.
+It is recommended for you to have a glance at <a href="all_langs.htm" title="CUQueue and Comaptibility among Different Development Languages">this article</a> before reading this article.
+This sample project is located at the directory ../socketpro/tutorials/cplusplus/uqueue_demo. Also, make sure that you have already distributed client core library usocket into system directory as discribed at <a href="get_started.htm" title="Get Started With SocketPro">this short article</a>.</p>
+<p>It is focused on serializing and de-serializing a complex structure. The sample code will be used by successive examples.</p>
+<table style="width:100%;">
+<tr>
+<td style="width:30%;">
+<?prettify linenums=1?>
+<pre class="prettyprint">
+//see them at file ..socketpro/include/uclient.h
+bool WINAPI SendRequest(USocket_Client_Handle h, unsigned short reqId,
+    const unsigned char *pBuffer, unsigned int len);
+unsigned int WINAPI RetrieveResult(USocket_Client_Handle h,
+    unsigned char *pBuffer, unsigned int size);
+const unsigned char* WINAPI GetResultBuffer(USocket_Client_Handle h);
+
+//see it at file ..socketpro/include/aclientw.h
+template&lt;typename ...Ts&gt;
+bool SendRequest(unsigned short reqId, const DResultHandler& rh, const DDiscarded&
+    discarded, const DServerException& se, const Ts& ...t) {
+    CScopeUQueue sb;
+    sb->Save(t ...);
+    return SendRequest(reqId, sb->GetBuffer(), sb->GetSize(), rh, discarded, se);
+}
+</pre>
+</td>
+<td>
+<p>
+SocketPro client core library exports one function SendRequest at lines 2 and 3 of the left code snippet 1.
+Basically, it sends an array of bytes (pBuffer, len) for each request (reqId) to a connected server for processing through a socket (h).
+When a result comes from the server, we could use the function at line either 4 or 6 to get an array of bytes back, and unpack the array bytes into expected data.
+Therefore, SocketPro is required to provide a utility class for packing request input parameters and unpacking results from returning bytes.
+The class is named as CUQueue at files ../socketpro/include/membuffer.h and membuffer.cpp.
+</p>
+<p>
+Let's look a sample template function SendRequest at line 9 through 15 from the file ..socketpro/include/aclientw.h, but ignore the other three callbacks, rh, discarded and se at the moment.
+First, we create an instance (sb) of <i>CScopeUQueue</i> at line 12, which leads to get an instance of <i>CUQueue</i> from a memory pool silently through <i>CScopeUQueue</i> constructor.
+At end, when the variable sb is destroyed after line 15 after sending the array of bytes onto server at line 14, the inner <i>CUQueue</i> instance will be put back into a memory pool for reuse in the future.
+The class <i>CScopeUQueue</i> has the operator << overloaded for packing inputs into sb or its inner <i>CUQueue</i> instance.
+As you may expect, class <i>CScopeUQueue</i> has the operator >> overloaded too for upacking data from its inner <i>CUQueue</i> instance.
+</p>
+<p>
+The class <i>CUQueue</i> is already implemented for serializing and de-serializing primitive data (unsigned char, char, short, int, float, double and so on),
+datetime, common strings (const char*, const wchar_t*, const char16_t*, std::string and std::wstring), vector for primitive types, and VARIANT as well as windows ATL string and BSTR types.
+However, <i>CUQueue</i> doesn't know how to deal with your complex structure data. Therefore, you must get both operators << and >> implemented. The sample is just designed to guide you for this purpose.
+</p>
+<p>
+This sample structure is complex. Please use your debugger and step through codes for details.
+Once you know how <i>CScopeUQueue</i> and <i>CUQueue</i> work, you can understand SocketPro's interoperability among different development languages.
+</p>
+</td>
+</tr>
+</table>
+Code snippet 1: A sample for packing request parameters into an array of bytes at client side before sending the array onto a remote server
+<hr />
+<table style="width:100%;">
+<tr>
+<td style="width:30%;">
+<?prettify linenums=1?>
+<pre class="prettyprint">
+#include "../../../include/membuffer.h"
+
+#ifndef MY_STRUCT_DEMO_H
+#define MY_STRUCT_DEMO_H
+
+class CMyStruct {
+public:
+
+    CMyStruct()
+    : NullString(nullptr),
+    ADouble(0.0),
+    ABool(false) {
+        SYSTEMTIME st;
+#ifdef WIN32_64
+        ::GetLocalTime(&st);
+#else
+        ::gettimeofday(&st, nullptr);
+#endif
+        ADateTime = st;
+    }
+
+public:
+    void SaveTo(SPA::CUQueue &q) const {
+        q << NullString //4 bytes for length
+        << ObjectNull   //2 bytes for data type, VT_NULL
+        << ADateTime    //8 bytes for unsigned 
+                        //__int64 with accuracy to 1 micro-second
+        << ADouble      //8 bytes
+        << ABool        //1 byte
+        << UnicodeString //4 bytes for string len + (len * 2) 
+                         //bytes for string data -- UTF16-lowendian
+        << AsciiString  //4 bytes for ASCII string length + length
+                        //bytes for string data
+        << ObjBool    //2 bytes for data type + 2 bytes for variant bool
+        << ObjString  //2 bytes for data type + 4 bytes for string len+
+                      //(len * 2) bytes for string data--UTF16-lowendian
+        << objArrString //2 bytes for data type + 4 bytes for array size+
+                        //(4 bytes for string len + (len * 2) bytes for
+                        //string data) * arraysize -- UTF16-lowendian
+        << objArrInt //2 bytes for data type + 4 bytes for array size +
+                     //arraysize * 4 bytes for int data
+        ;
+    }
+
+    void LoadFrom(SPA::CUQueue &q) {
+        unsigned int NullStringLen;
+        q >> NullStringLen
+            >> ObjectNull
+            >> ADateTime
+            >> ADouble
+            >> ABool
+            >> UnicodeString //UTF16-lowendian
+            >> AsciiString
+            >> ObjBool
+            >> ObjString //UTF16-lowendian
+            >> objArrString //UTF16-lowendian
+            >> objArrInt
+            ;
+        assert(NullStringLen == SPA::UQUEUE_NULL_LENGTH);
+        NullString = nullptr;
+    }
+
+public:
+
+    bool operator==(const CMyStruct &ms) {
+        return NullString == ms.NullString &&
+            ObjectNull == ms.ObjectNull &&
+            ADouble == ms.ADouble &&
+            ABool == ms.ABool &&
+            UnicodeString == ms.UnicodeString &&
+            AsciiString == ms.AsciiString &&
+            ADateTime == ms.ADateTime &&
+            ObjBool == ms.ObjBool &&
+            ObjString == ms.ObjString &&
+            SPA::IsEqual(objArrString, ms.objArrString) &&
+            SPA::IsEqual(objArrInt, ms.objArrInt)
+            ;
+    }
+
+private:
+    wchar_t *NullString;
+    SPA::UVariant ObjectNull;
+
+public:
+    SPA::UDateTime ADateTime;
+    double ADouble;
+    bool ABool;
+    std::wstring UnicodeString;
+    std::string AsciiString;
+    SPA::UVariant ObjBool;
+    SPA::UVariant ObjString;
+    SPA::UVariant objArrString;
+    SPA::UVariant objArrInt;
+};
+
+SPA::CUQueue& operator<<(SPA::CUQueue &mc, const CMyStruct &ms);
+SPA::CUQueue& operator>>(SPA::CUQueue &mc, CMyStruct &ms);
+
+void SetMyStruct(CMyStruct &ms);
+
+#endif
+</pre>
+</td>
+<td>
+    <p>The structure at left code snippet 2 has a number of different types of members at line 81 through 93.
+    They are a unicode string (NullString), ObjectNull (SPA::UVariant, VARIANT or CComVariant), a datetime (SPA::UDateTime ADateTime),
+    a double (ADouble), a bool (ABool), a unicode string (std::wstring UnicodeString), an ASCII string (std::string AsciiString),
+    an ObjectBool, an ObjectString, objArrayString and objArrInt. The last four members are SPA::UVariant, VARIANT or CComVariant.
+    These members cover different types of data that are already supported by the utility class CUQueue.</p>
+    <p>SocketPro doesn't know how to pack the structure into a CUQueue buffer. Also, it has no knowledge about unpacking it from a CUQueue buffer.
+    With C/C++ development, it is required that you need to override the two operators, << and >>, as declared at lines 96 and 97.
+    They are actually implemented in the below code snippet 3 at line 3 through 11, which will call the structure member functions
+    SaveTo (line 23 through 43) and LoadFrom (line 45 through 61).
+    </p>
+    <p><b>SaveTo</b>: We pack the structure's members into a <i>CUQueue</i> instance. Please use your debugger to step each of operators (<<).
+    You will see serializations are in agreement with comments.</p>
+    <p><b>LoadFrom</b>: We unpack a structure from an instance of <i>CUQueue</i>. Please use your debugger to step each of operators (>>).
+    After comparing with the previous pack, the unpacking is exactly a reverse of packing with the exact sequeuence.
+    As you can see, operators << and >> are usually overrided in pair.
+    The structure is complex, but their implementation are not difficult at all.</p>
+    <p>By this time, you can imagine how to implement complex structure serialization and de-serialization within other development languages other than C/C++,
+    which leads to interoperability among different development environments.
+    SocketPro favors an enterprise application system developed from an avariety of development languages so that you can easily take advantage of each of their own adavantages, and avoid their flaws.</p>
+    <p>At last, widnows C/C++ developers are familiar with the structure VARIANT and CComVariant.
+    They are already ported into Linux by UDAParts for your development convenience with a limited number of required functions.
+    This makes your code running on both windows and Linux as well as other unix platforms.</p>
+</td>
+</tr>
+</table>
+Code snippet 2: A complex structure definition and its serialization/de-serialization
+<hr />
+<table style="width:100%;">
+<tr>
+<td style="width:25%;">
+<?prettify linenums=1?>
+<pre class="prettyprint">
+#include "mystruct.h"
+
+SPA::CUQueue& operator << (SPA::CUQueue &mc, const CMyStruct &ms) {
+    ms.SaveTo(mc);
+    return mc;
+}
+
+SPA::CUQueue& operator>>(SPA::CUQueue &mc, CMyStruct &ms) {
+    ms.LoadFrom(mc);
+    return mc;
+}
+
+void SetMyStruct(CMyStruct &ms) {
+    ms.ObjBool = true;
+    ms.UnicodeString = L"Unicode";
+    ms.ABool = true;
+    ms.ADouble = 1234.567;
+    ms.AsciiString = "ASCII";
+    ms.ObjString = L"test";
+    {
+        int *data;
+        SAFEARRAYBOUND sab[1] = {2, 0};
+        ms.objArrInt.vt = (VT_ARRAY | VT_INT);
+        ms.objArrInt.parray = ::SafeArrayCreate(VT_INT, 1, sab);
+        ::SafeArrayAccessData(ms.objArrInt.parray, (void**) &data);
+        data[0] = 1;
+        data[1] = 76890;
+        ::SafeArrayUnaccessData(ms.objArrInt.parray);
+    }
+    {
+        BSTR *data;
+        SAFEARRAYBOUND sab[1] = {2, 0};
+        ms.objArrString.vt = (VT_ARRAY | VT_BSTR);
+        ms.objArrString.parray = ::SafeArrayCreate(VT_BSTR, 1, sab);
+        ::SafeArrayAccessData(ms.objArrString.parray, (void**) &data);
+        data[0] = ::SysAllocString(L"Hello");
+        data[1] = ::SysAllocString(L"world");
+        ::SafeArrayUnaccessData(ms.objArrString.parray);
+    }
+}
+</pre>
+</td>
+<td>
+<p>First, the code at line 3 through 11 is implementation of serialization and de-serialization of the complex structure as described before.</p>
+<p>Second, there is a function named as SetMyStruct, which will be reused by successive examples. As a non-windows developer,
+you may be not familiar with a number of VARIANT-related methods such as SafeArrayCreate, SafeArrayAccessData, and SafeArrayUnaccessData as well as others.
+As said in the above, they are already ported for you to reuse them.</p>
+</td>
+</tr>
+</table>
+Code snippet 3: Serialization and de-Serialization implementation of a complex structure as well as VARIANT-related methods
+<hr />
+
+<table style="width:100%;">
+<tr>
+<td style="width:25%;">
+<?prettify linenums=1?>
+<pre class="prettyprint">
+#include "stdafx.h"
+#include &lt;iostream&gt;
+#include "mystruct.h"
+
+int main(int argc, char* argv[]) {
+    SPA::CScopeUQueue sb;
+    CMyStruct msOriginal;
+    SetMyStruct(msOriginal);
+
+    sb << msOriginal;
+    CMyStruct ms;
+    sb >> ms;
+
+    assert(sb->GetSize() == 0);
+    bool equal = (ms == msOriginal);
+    assert(equal);
+    std::cout << "Bytes in buffer: " << sb->GetSize() << std::endl;
+    std::cout << (equal ? "Equal" : "Not equal") << std::endl;
+    std::cout << "Press a key to kill the demo ......" << std::endl;
+    ::getchar();
+    return 0;
+}
+</pre>
+</td>
+<td>
+<p>The sample application of <i>CScopeUQueue</i> and <i>CUQueue</i> is simple as you can see from the left code snippet 4.</p>
+<p>First, start sb, an instance of <i>CScopeUQueue</i> at line 6, which contains an instance of <i>CUQueue</i> inside. Afterwards, prepare a structure at line 8.
+Next, we pack the structure into the variable sb at line 10. Next, we unpack a new structure ms from the memory buffer sb.
+At last, we make sure both structures msOriginal and ms are equal to each other.
+</p>
+</td>
+</tr>
+</table>
+Code snippet 4: Demonstration of serialization and de-serialization of a complex structure
+<hr />
+</body>
+</html>

@@ -1,0 +1,367 @@
+﻿<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="utf-8" />
+    <title>SocketPro Client Server Application Development</title>
+    <link rel="stylesheet" type="text/css" href="codepretty/sons-of-obsidian.css">
+    <script type="text/javascript" src="codepretty/prettify.js"></script>
+</head>
+<body onload="PR.prettyPrint()">
+<h1 style="text-align: center;">SocketPro client server application development</h1>
+<p>
+This is our second example for developing a client server application with SocketPro.
+Its original project could be found at the directory ../socketpro/tutorials/cplusplus/hello_world/client.
+Because the sample involves echoing a complex struture between client and server,
+you may need to refer to <a title="SocketPro Request Parameters Packing and Result Unpacking" href="cpp_buffer.htm">the first sample</a>.
+In addition, we need the pre-distributed server application <a href="get_started.htm" title="Get Started With SocketPro">all_servers</a> for testing.
+</p>
+<hr />
+<table style="width:100%;">
+<tr>
+<td style="width:30%;">
+<?prettify linenums=1?>
+<pre class="prettyprint">
+#include "stdafx.h"
+#include "HW.h"
+#include "../../uqueue_demo/mystruct.h"
+using namespace std;
+
+int main(int argc, char* argv[]) {
+    typedef CSocketPool&lt;HelloWorld&gt; CMyPool;
+    CMyPool spHw;
+    CConnectionContext cc("localhost", 20901, L"MyUserId", L"MyPassword");
+    //optinally, use a client queue for auto failure recovery
+    //spHw.SetQueueName("hw_backup");
+    if (!spHw.StartSocketPool(cc, 1)) {
+        wcout << "Failed in connecting to helloworld server" << endl;
+        return -1;
+    }
+    auto hw = spHw.Seek();
+    CMyStruct ms0, ms;
+    SetMyStruct(ms0);
+    try {
+        //process three requests one by one synchronously
+        future&lt;wstring&gt; f = hw->send&lt;wstring&gt;(idSayHello, L"John", L"Dole");
+        wcout << f.get() << endl;
+        future&lt;SPA::CScopeUQueue&gt; fs = hw->sendRequest(idSleep, (int) 4000);
+        fs.get(); //fs.get() >> ms; //SPA::CUException
+        ms = hw->send&lt;CMyStruct&gt;(idEcho, ms0).get();
+        assert(ms == ms0);
+
+        //asynchronously stream multiple requests with in-line
+        //batching for best network efficiency
+        auto f0 = hw->send&lt;wstring&gt;(idSayHello, L"Jack", L"Smith");
+        auto f1 = hw->send&lt;CMyStruct&gt;(idEcho, ms0);
+        auto f2 = hw->sendRequest(idSleep, (int) 15000);
+        auto f3 = hw->send&lt;wstring&gt;(idSayHello, L"Donald", L"Trump");
+        auto f4 = hw->send&lt;wstring&gt;(idSayHello, L"Hilary", L"Clinton");
+        //hw->GetSocket()->Cancel();
+        cout << "Waiting results ......\n";
+        wcout << f0.get() << endl;
+        wcout << "Echo equal: " << (ms == f1.get()) << endl;
+        wcout << "Sleep returns " << f2.get()->GetSize() <<
+            " byte because server side returns nothing" << endl;
+        wcout << f3.get() << endl;
+        wcout << f4.get() << endl;
+    } catch (CServerError & ex) {
+        wcout << ex.ToString() << endl;
+    } catch (CSocketError & ex) {
+        wcout << ex.ToString() << endl;
+    } catch (exception & ex) {
+        wcout << "Unexpected error: " << ex.what() << endl;
+    }
+
+    wcout << L"Press a key to shutdown the demo ......" << endl;
+    ::getchar();
+    return 0;
+}
+</pre>
+</td>
+<td>
+    <h3>Key points from top to bottom for code snippet 1:</h3>
+    <ul>
+        <li>
+        Three fake synchronous requests:
+        <hr />
+        <ol>
+            <li>Start a pool of sockets at line 12, which has one thread hosting one non-blocking socket for communication between client and server.
+            In reality, one worker thread is enough under most cases, but you may like to use multiple sockets per thread for processing at server side with better concurency.
+            We use one socket here for this demo sample. By default, the pool of sockets can be auto reconnected if servers shut down and restart.</li>
+            <li>Find an async handler from the above pool spHw at line 16. SocketPro perfers sharing a pool of connected sockets from your different threads.
+            As you can see from here, you need to find one of sockets from the pool at run time, which should have least requests queued. You can step into the method within your debugger.
+            Also, it is noted that the method Seek is thread-safe. Keep in mind that SocketPro favors sharing a session among your multiple threads!</li>
+            <li>Prepare a complex structure at line 18 for coming tests as explained at the previous example. This sample method ensures that you are confident to use SocketPro for transferrig any complex structures between client and server.</li>
+            <li>Send a request (<i>send</i>) identified by an unique request id (idSayHello) at line 21, which will immediately return a future for a string from server.
+            The method <i>send</i> is a template function which packs the two strings ("John" and "Dole") into a buffer, and afterwards send the buffer to a connected server for processing.
+            We use the future method <i>get</i> to wait until the server returns a string at line 22.</li>
+            <li>Next, we send a new request <i>sleep</i> (idSleep) by calling the other tempalte function sendRequest at line 23, and immediately wait until the server returns by calling the future method <i>get</i> at line 24.
+            Here, a buffer just contains an int value for a delay time at server side</li>
+            <li>Again, we echo a <a title="SocketPro Request Parameters Packing and Result Unpacking" href="cpp_buffer.htm">complicated structure</a> (ms0) from client to server at line 25, and wait until the server returns the structure back to the client.
+            It involves both packing and unpacking the structure at both client and server sides</li>
+        </ol>
+        <p>Each of the above three requests requires one network round trip. Therefore, there are three round-trips required. By default, all SocketPro requests are asynchronous.
+        We could use the future method <i>get</i> to convert an asynchrouos request into a synchrouos one easily.
+        However, SocketPro is designed to support streaming calls asynchrouosly with in-line batching for the best network efficiency.
+        We recommend the following approach, if it is proper and there are two or more requests involved.</p>
+        <p>
+        It is worthing to describing the difference between the two methods <i>send</i> and <i>sendRequest</i>.
+        The former method directly de-serializes a buffer (server returned result) into a specified data type like an int, a string, a complex structure, and so on.
+        The latter one will just returns a buffer (SPA::CScopeUQueue), which can be used to unpack all data from by calling operator >>.</p>
+        </li>
+        <li>
+        Stream multiple requests with in-line batching for the best network efficiency by reducing the number of network round trips:
+        <hr />
+        <ol>
+            <li>We could send five requests from line 30 through 34, and get five futures returned (f0, f1, f2, f3, and f4) back.
+            The five calls are extremely fast because they are not waiting for server returning results at all. Further,
+            SocketPro at client core library (usocket) will batch five request buffers internally for you, and send them with as fewer packets as possible at the run time for the best network efficiency.</li>
+            <li>After line 36, we call the future method <i>get</i> five times for the five expected results from server from line 37 through 42.
+            Similarly, SocketPro server core library (uservercore) will silently do in-line batching returning results on the fly and reduce the network packets as many as possible at server side too.</li>
+        </ol>
+        <p>This simple sample just demos streaming five requests. In fact, you can stream many requests as you want, just like client requests and server results water flows in circuit endlessly and concuurently.
+        Although we stream many requests as you like, all results are returned from server always in sequence (first-request-first-returned).</p>
+        <p>Imagine you need to send many SQL requests from a client at New York to a server at Los Angeles for processing with one socket connection.
+        Saving network round trips could significantly speed up your application if your application performance is dominated by network.</p>
+        </li>
+        <li>Deal with errors at client side within SocketPro:
+        <hr />
+        A client application may catch one of the following four errors at line 43 through 49.
+        <ol>
+        <li>SPA::CServerError: Server side throws an exception, and the client catch it.
+            The exception contains an error code, an error message, code location where the exception happens at server side, and a request id.</li>
+        <li>SPA::Client::CSocketError: A communication error happening at client side. The exception contains an error code, an error message and a request id.
+        Besides, the exception contains a boolean member before. If it is true, SocketPro finds that communication channel is already closed before sending the request.
+        Otherwise, the exception is caught becase either communication channel is closed or canceled after sending the request.
+        </li>
+        <li>std::exception: This exception happens because of your programming errors. Examples are bad data de-serialization/serialization, invalid arguments, and so on.
+        If the exception is indeed due to bad data de-serialization/serialization, the exception is actually an instance of SPA::CUException in C/C++ world.
+        This particular exception also tells you the error location of a cpp file at client side.</li>
+        </ol>
+        </li>
+     </ul>
+    </td>
+</tr>
+</table>
+<h4>Code snippet 1: Hello world -- a client-server example with promise/future and streaming requests</h4>
+<hr />
+Now, let's dig into the method <i>send</i> which is located inside the class CAsyncServiceHandler at the file ../socketpro/include/aclientw.h.
+<table style="width:100%;">
+<tr>
+    <td style="width:30%;">
+<?prettify linenums=1?>
+<pre class="prettyprint">
+template&lt;typename R&gt;
+std::future&lt;R&gt; send(unsigned short reqId,
+    const unsigned char *buffer, unsigned int size) {
+    std::shared_ptr&lt;std::promise&lt;R&gt; &gt; prom(new std::promise&lt;R&gt;);
+    DDiscarded discarded = get_aborted(prom, reqId);
+    DServerException se = get_se(prom);
+    DResultHandler rh = [prom](CAsyncResult & ar) {
+        try {
+            R r;
+            ar >> r;
+            prom->set_value(std::move(r));
+        } catch (std::future_error&) {
+            //ignore it
+        } catch (...) {
+            prom->set_exception(std::current_exception());
+        }
+    };
+    if (!SendRequest(reqId, buffer, size, rh, discarded, se)) {
+        raise(reqId);
+    }
+    return prom->get_future();
+}
+</pre>
+    </td>
+    <td>
+    <h3>Key points are three callback and SendRequest for template function <i>send</i> within code snippet 2:</h3>
+    <ol>
+    <li>First of all, start a promise at line 4.</li>
+    <li>
+    Three callbacks, DDiscarded, DServerException and DResultHandler, are created from a calling thread, but they are ALWAYS raised from a pool worker thread.
+    First, we could use a static method <i>get_aborted</i>, as shown at the below code snippet 3, to create DDiscarded callback.
+    It will be used to monitor either request cancel or communication channel close event.
+    Next, we use a static method <i>get_se</i> to create a DServerException callback, as shown at the following code snippet 4, for tracking an exception from server side.
+    Third, we create a callback to monitor a server result at line 7 through 17. When a server result comes, it will be stored within the variable <i>ar</i>.
+    Afterwards, we unpack a data <i>r</i> from the variable <i>ar</i> at line 10. At end, set the value into the promise at line 11.
+    </li>
+    <li>
+    After preparing the above three callbacks, we call a new method <i>SendRequest</i> for a request with the three callbacks as inputs at line 18.
+    In case the call fails because a session is already closed, we could throw a CSocketError exception by calling the method <i>raise</i> at line 19.
+    </li>
+    <li>At last, return a future at line 21 if the above method <i>SendRequest</i> returns successfully. A caller cannot see a promise from outside, but a future just for returning result or exception.</li>
+    </ol>
+    </td>
+</tr>
+</table>
+<h4>Code snippet 2: Template function <i>send</i> implementation</h4>
+<hr />
+<table style="width:100%;">
+    <tr>
+        <td style="width:30%;">
+<?prettify linenums=1?>
+<pre class="prettyprint">
+template&lt;typename R&gt;
+static DDiscarded get_aborted(std::shared_ptr&lt;std::promise&lt;R&gt; &gt; prom,
+    unsigned short req_id) {
+    if (!req_id) {
+        throw std::invalid_argument("Request id cannot be zero");
+    }
+    return [prom, req_id](CAsyncServiceHandler *h, bool canceled) {
+        try {
+            if (canceled) {
+                prom->set_exception(std::make_exception_ptr(CSocketError(REQUEST_CANCELED,
+                    L"Request canceled", req_id, false)));
+            } else {
+                CClientSocket* cs = h->GetSocket();
+                int ec = cs->GetErrorCode();
+                if (ec) {
+                    std::string em = cs->GetErrorMsg();
+                    prom->set_exception(std::make_exception_ptr(
+                    CSocketError(ec, Utilities::ToWide(em).c_str(), req_id, false)));
+                } else { //session closed gracefully
+                    prom->set_exception(
+                    std::make_exception_ptr(CSocketError(SESSION_CLOSED_AFTER,
+                        L"Session closed after sending the request", req_id, false)));
+                }
+            }
+        } catch (std::future_error&) {
+            //ignore
+        }
+    };
+}
+</pre>
+        </td>
+        <td>
+        The left code snippet 3 shows how to generate a DDiscarded callback.
+        As its name implies, it is designed for monitoring two events, request canceled and session closed events.
+        <ol>
+            <li>
+                SocketPro has a feature named as Cancel. Calling it will leads to request cancel exception.
+                You can test the feature by uncommenting line 35 within the above code snippet 1. Doing so will lead to execute the code at lines 10 and 11.
+            </li>
+            <li>
+                We use the code line 15 through 23 to set a CSocketError exception.
+                First, if session is not closed gracefully (ec != 0), we use socket system error message at line 16 through 18.
+                Otherwise, we construct an error message at line 20 through 22.
+            </li>
+            <li>
+                It is noted that the two events ALWAYS happens with a pool worker thread.
+                Also, it always happens after sending a request.
+                Therefore, the last input parameter will be false when initializing an instance of CSocketError, as shown at lines 11, 18 and 22.
+            </li>
+            <li>The method returns a lambda expression at line 7.</li>
+        </ol>
+        </td>
+    </tr>
+</table>
+<h4>Code snippet 3: Generate a DDiscarded callback for tracking request cancel and communication close events</h4>
+<hr />
+<table style="width:100%;">
+    <tr>
+        <td style="width:30%;">
+<?prettify linenums=1?>
+<pre class="prettyprint">
+template&lt;typename R&gt;
+static DServerException get_se(std::shared_ptr&lt;std::promise&lt;R&gt; &gt; prom) {
+    return [prom](CAsyncServiceHandler *ash, unsigned short reqId,
+        const wchar_t *errMsg, const char* errWhere, unsigned int errCode) {
+        try {
+            prom->set_exception(std::make_exception_ptr(
+            CServerError(errCode, errMsg, errWhere, reqId)));
+        } catch (std::future_error&) {
+            //ignore
+        }
+    };
+}
+</pre>
+</td>
+<td>
+<p>The left code snippet is very simple. It returns a lambda expression at line 3.
+Further, it constructs an instance of CServerError at line 7, and sets it into promise at line 6.</p>
+<p>It is noted that the callback is always called from a pool worker thread.
+Its error information originates from server side, which includes error code, error message, cpp file location where an exception raises, and request id.</p>
+</td>
+</tr>
+</table>
+<h4>Code snippet 4: Generate a DServerException callback for tracking an exception from a remote SocketPro server</h4>
+<hr />
+<table style="width:100%;">
+    <tr>
+        <td style="width:30%;">
+<?prettify linenums=1?>
+<pre class="prettyprint">
+void raise(unsigned short req_id) {
+    if (!req_id) {
+        throw std::invalid_argument("Request id cannot be zero");
+    }
+    CClientSocket *cs = GetSocket();
+    int ec = cs->GetErrorCode();
+    if (ec) {
+        std::string em = cs->GetErrorMsg();
+        throw CSocketError(ec, Utilities::ToWide(em).c_str(), req_id, true);
+    } else {
+        throw CSocketError(SESSION_CLOSED_BEFORE,
+            L"Session already closed before sending the request", req_id, true);
+    }
+}
+</pre>
+</td>
+<td>
+<p>Under many cases, a session is already closed before sending a request.
+If it is this situation, we call the left method <i>raise</i> to throw an exception immediately as shown at line 19 in the above code snippet 2.</p>
+<p>Again, we need to check if a session is closed gracefully. If it does, we use the code lines 11 and 12 to throw it directly as it happens from a calling thread.
+If a session is not closed gracefully (ec != 0), we use socket system error message at lines 8 and 9 instead.</p>
+<p>It is noted that the exception indicates session is already closed before sending a request. Therefore, the last input parameter is true as shown at lines 9 and 12 of the left code snippet 5.</p>
+</td>
+</tr>
+</table>
+<h4>Code snippet 5: Throw an exception from calling thread when finding a communication channel is aready closed</h4>
+<hr />
+<h4>SendRequest vs send vs wait_send within CAsyncServiceHandler</h4>
+<p>SocketPro C++ adapter comes the three methods to send any types of requests from a client to server for asynchronous processing in streaming style.
+The fist one <i>SendRequest</i> is the basis for the other two methods, <i>send</i> and <i>wait_send</i>. The last two methods always call the basis method <i>SendRequest</i> inside.
+To use the method <i>SendRequest</i>, you may have to provide its required three callbacks with more coding as shown at the above code snippet 2.
+The later two methods have already wrapped the three required callbacks so that you can use C++ modern try-catch style and less code to deal with returned results and errors easily.
+This abstraction has a little price in performance, and reduces coding flexibility under some situations. The basis method <i>SendRequest</i> delivers the fastest speed among them plus better flexibility.
+Therefore, our SocketPro node.js and PHP adapters always use the method <i>SendRequest</i> instead of the other two methods, <i>send</i> and <i>wait_send</i>.</p>
+<p>In regards to the methods <i>send</i> and <i>wait_send</i>, the first method always returns a future immediately. The second one always returns a coroutine awaitable object instead of a future immediately.
+Keep in mind that all SocketPro adapters well support on modern language development features such as anonymous function, closure, Lambda expression, async/await, future, promise, yield and so on.
+</p>
+<p>In addition to the base handler class <i>CAsyncServiceHandler</i>, SocketPro C++ adapter comes with other handler classes derived from this base handler class.
+These sub-class handlers have their own requests defined at client side. All of their requests have three sets of functions exactly like <i>SendRequest</i>, <i>send</i> and <i>wait_send</i> here.
+</p>
+<hr />
+We are going to test the above three types of exceptions, CServerError, CSocketError and std::exception.
+<ol>
+<li>
+    CServerError exception: Go back to the line 21 of the above code snippet 1, modify the second input to an empty string, and compile the code, you will see an exception from server after running the application against pre_compiled application <a href="get_started.htm" title="Get Started With SocketPro">all_servers</a> inside the sub-directory ../socketpro/bin/win/x64 or x86 for windows, or ../socketpro/bin/linux.
+    Alternatively, you can get an server exception by setting the second input int to a negative value at line 23.
+</li>
+<li>
+    CSocketError exception: Run the application against the sample server application all_servers to get the first return result like "Hello John Dole!". You can get such an exception after brutally shutting down <a href="get_started.htm" title="Get Started With SocketPro">all_servers</a>.
+    Alternatively, you can get such an exception by uncommenting the line 35.
+</li>
+<li>
+    std::exception exception: Use the code (fs.get() >> ms;) to replace the normal code (fs.get();) at line 24. The replacement will lead to de-serilization exception (SPA::CUException) at client side because the request Sleep returns nothing.
+</li>
+</ol>
+<hr />
+<p>At last, we like to talk about client message queue. When developing real enterprise applications, we have to consider application fault-tolerance and recovery.
+SocketPro has a built-in feature implemented with such a client message queue. A client message queue is a local file.
+When sending requests, SocketPro will automatically backup these requests into the local file. In case a remote server is down because of any types of reasons, SocketPro is capable to re-sent these requests from the client queue file automatically when the remote server is restarted.
+It is noted that a client session is associated with one client message queue only.</p>
+<p>Let's test the client queue feature. Go back to the previous code snippet 1 and uncomment the code at line 11.
+After compiling and running the application, brutally shut down its server application <a href="get_started.htm" title="Get Started With SocketPro">all_servers</a> before the application is completed.
+You will find the client application stops and there is no CSocketError exception as previous tests.
+However, the client application will continue if we re-run the server application <a href="get_started.htm" title="Get Started With SocketPro">all_servers</a>. It is noted that there will be no missing results.
+Although a socket is closed, SocketPro thinks that a session is still connected if a client message queue is associated.
+Briefly speaking, when a server is restarted, the client socket will be automatically reconnected to server, and keep on sending requests from the associated client queue file.</p>
+Client message queue prevents client requests from losing, improves apllication's fault-tolerance, and make server application maintenance easier and even your development simpler because it enables failures auto-recovery and reduces many errors.
+<hr />
+Summarily, SocketPro is a full asynchronus communication framework. Its requests streaming feature is such a powerful feature to help high performance distributed application development in no time. As a developer, keep in mind that streaming requests are truly preferred whenever possible and if you have multiple requests at client side.
+As we echo a complex structure in this sample, it is just a simple task to develop a client server application. SocketPro requests are asynchronous by default, but it is truly simple to convert them into synchronous ones. In addition, SocketPro is capable to back up requests automatically by client message queue for failures auto-recovery, and reduces many tough issues.
+<hr />
+</body>
+</html>
