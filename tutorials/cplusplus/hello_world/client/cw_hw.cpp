@@ -8,7 +8,7 @@ static_assert(false, "No co_await support");
 #include <iostream>
 #include <deque>
 #include "../../uqueue_demo/mystruct.h"
-#include "../../socketpro/tutorials/cplusplus/hello_world/client/HW.h"
+#include "HW.h"
 
 using namespace std;
 using namespace SPA;
