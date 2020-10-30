@@ -93,12 +93,12 @@ CAwTask MyTest(CMyPool::PHandler& sq) {
         cout << "[";
         for (auto& s : v) {
             if (index) {
-                cout << "," << endl;
+                cout << ",\n";
             }
             cout << s;
             ++index;
         }
-        cout << "]" << endl;
+        cout << "]\n";
     }
     catch (CServerError& ex) {
         wcout << ex.ToString() << "\n";
