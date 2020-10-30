@@ -90,15 +90,15 @@ CAwTask MyTest(CMyPool::PHandler& sq) {
         wcout << (co_await wfq).ToString() << "\n";
         auto v = co_await sq->wait_getKeys();
         int index = 0;
-        std::cout << "[";
+        cout << "[";
         for (auto& s : v) {
             if (index) {
-                std::cout << "," << std::endl;
+                cout << "," << endl;
             }
-            std::cout << s;
+            cout << s;
             ++index;
         }
-        std::cout << "]" << std::endl;
+        cout << "]" << endl;
     }
     catch (CServerError& ex) {
         wcout << ex.ToString() << "\n";
@@ -106,7 +106,7 @@ CAwTask MyTest(CMyPool::PHandler& sq) {
     catch (CSocketError& ex) {
         wcout << ex.ToString() << "\n";
     }
-    catch (std::exception& ex) {
+    catch (exception& ex) {
         wcout << "Unexpected error: " << ex.what() << "\n";
     }
 }

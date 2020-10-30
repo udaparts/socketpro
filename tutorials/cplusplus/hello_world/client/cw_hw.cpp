@@ -53,7 +53,7 @@ CAwTask MyTest(CMyPool::PHandler& hw) {
     catch (CSocketError& ex) {
         wcout << ex.ToString() << "\n";
     }
-    catch (std::exception& ex) {
+    catch (exception& ex) {
         wcout << "Unexpected error: " << ex.what() << "\n";
     }
 }
@@ -68,7 +68,7 @@ int main(int argc, char* argv[]) {
     CConnectionContext cc("localhost", 20901, L"MyUserId", L"MyPassword");
     //spHw.SetQueueName("qhw");
     if (!spHw.StartSocketPool(cc, 1)) {
-        std::wcout << "No connection to remote helloworld server\n";
+        wcout << "No connection to remote helloworld server\n";
     }
     else {
         auto hw = spHw.Seek();
@@ -76,7 +76,7 @@ int main(int argc, char* argv[]) {
         MyTest(hw);
     }
 
-    std::wcout << L"Press a key to kill the demo ......\n";
+    wcout << L"Press a key to kill the demo ......\n";
     ::getchar();
     return 0;
 }
