@@ -56,7 +56,7 @@ public:
 
 public:
 
-    bool operator==(const CMyStruct &ms) {
+    bool operator==(const CMyStruct &ms) const {
         return NullString == ms.NullString &&
                 ObjectNull == ms.ObjectNull &&
                 ADouble == ms.ADouble &&
