@@ -261,6 +261,11 @@ CAwTask MyTest(PSqlite& sqlite, CRowsetArray& rowset_array) {
     cout << "+++++ End rowsets +++\n\n";
 }
 
+//compile options
+//Visual C++ 2017 & 2019 16.8.0 before -- /await
+//Visual C++ 2019 16.8.0 preview 3.1 or later -- /std:c++latest
+//GCC 10.0.1 or later -- -std=c++20 -fcoroutines -ldl -pthread
+
 int main(int argc, char* argv[]) {
     MakeLargeStrings();
     CConnectionContext cc;
