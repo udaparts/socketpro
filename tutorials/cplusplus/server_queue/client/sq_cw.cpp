@@ -39,7 +39,7 @@ struct Awaiter : public CWaiter<CAsyncQueue::DeqInfo> {
                 //there are more messages left at server queue, we re-send a request to dequeue
                 aq->Dequeue(TEST_QUEUE_KEY, aq->GetLastDequeueCallback(), 0, aborted, se);
             }
-            else {
+            else if (!wc->await_ready()) {
                 wc->m_r.messages = messageCount;
                 wc->m_r.fSize = fileSize;
                 wc->m_r.DeMessages = messages;
@@ -110,6 +110,11 @@ CAwTask MyTest(CMyPool::PHandler& sq) {
         wcout << "Unexpected error: " << ex.what() << "\n";
     }
 }
+
+//compile options
+//Visual C++ 2017 & 2019 16.8.0 before -- /await
+//Visual C++ 2019 16.8.0 preview 3.1 or later -- /std:c++latest
+//GCC 10.0.1 or later -- -std=c++20 -fcoroutines -ldl -pthread
 
 int main(int argc, char* argv[]) {
 
