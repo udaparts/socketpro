@@ -24,6 +24,12 @@
 
 #include <afxcontrolbars.h>     // MFC support for ribbons and control bars
 
+#if __has_include(<coroutine>)
+#include <coroutine>
+#elif __has_include(<experimental/coroutine>)
 #include <experimental/coroutine>
+#else
+static_assert(false, "No co_await support");
+#endif
 #include "../../hello_world/client/HW.h"
 #include "../../uqueue_demo/mystruct.h"
