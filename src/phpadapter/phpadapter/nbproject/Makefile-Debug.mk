@@ -76,13 +76,11 @@ FFLAGS=
 ASFLAGS=
 
 # Link Libraries and Options
-LDLIBSOPTIONS=/usr/lib/libphpcpp.a -lpthread -ldl -lusocket
+LDLIBSOPTIONS=-lpthread -ldl -lusocket -lphpcpp
 
 # Build Targets
 .build-conf: ${BUILD_SUBPROJECTS}
 	"${MAKE}"  -f nbproject/Makefile-${CND_CONF}.mk ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/libphpadapter.${CND_DLIB_EXT}
-
-${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/libphpadapter.${CND_DLIB_EXT}: /usr/lib/libphpcpp.a
 
 ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/libphpadapter.${CND_DLIB_EXT}: ${OBJECTFILES}
 	${MKDIR} -p ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}
@@ -219,7 +217,6 @@ ${OBJECTDIR}/stdafx.o: stdafx.cpp
 # Clean Targets
 .clean-conf: ${CLEAN_SUBPROJECTS}
 	${RM} -r ${CND_BUILDDIR}/${CND_CONF}
-	${RM} ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/libphpadapter.${CND_DLIB_EXT}
 
 # Subprojects
 .clean-subprojects:

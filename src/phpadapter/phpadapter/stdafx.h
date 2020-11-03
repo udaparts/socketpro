@@ -22,7 +22,12 @@
 
 #include <mutex>
 #include <condition_variable>
+
+#ifdef WIN32_64
 #include "PHP-CPP/phpcpp.h"
+#else
+#include <phpcpp.h>
+#endif
 
 #ifdef WIN32_64
 
