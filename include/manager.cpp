@@ -491,7 +491,7 @@ namespace SPA
                 }
             }
             if (doc.HasMember("KeysAllowed") && doc["KeysAllowed"].IsArray()) {
-                auto arr = doc["KeysAllowed"].GetArray();
+                const auto& arr = doc["KeysAllowed"].GetArray();
                 for (auto it = arr.Begin(), end = arr.End(); it != end; ++it) {
                     if (!it->IsString()) {
                         continue;
@@ -507,9 +507,9 @@ namespace SPA
                 CPoolConfig::KeysAllowed.clear();
             }
             if (doc.HasMember("Hosts") && doc["Hosts"].IsObject()) {
-                auto arr = doc["Hosts"].GetObject();
+                const auto &arr = doc["Hosts"].GetObject();
                 for (auto it = arr.MemberBegin(), end = arr.MemberEnd(); it != end; ++it) {
-                    std::string key = it->name.GetString();
+                    const char *key = it->name.GetString();
                     const auto &cc = it->value;
                     if (!cc.IsObject()) {
                         continue;
@@ -518,9 +518,9 @@ namespace SPA
                 }
             }
             if (doc.HasMember("Pools") && doc["Pools"].IsObject()) {
-                auto arr = doc["Pools"].GetObject();
+                const auto &arr = doc["Pools"].GetObject();
                 for (auto it = arr.MemberBegin(), end = arr.MemberEnd(); it != end; ++it) {
-                    std::string key = it->name.GetString();
+                    const char *key = it->name.GetString();
                     const auto &cc = it->value;
                     if (!cc.IsObject()) {
                         continue;

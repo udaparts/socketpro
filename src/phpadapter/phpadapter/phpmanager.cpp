@@ -446,15 +446,15 @@ namespace PA
                 }
                 SPA::ClientSide::CClientSocket::SSL::SetVerifyLocation(Manager.CertStore.c_str());
                 if (doc.HasMember(KEY_HOSTS) && doc[KEY_HOSTS].IsArray()) {
-                    auto arr = doc[KEY_HOSTS].GetArray();
-                    for (auto& entry : arr) {
+                    const auto& arr = doc[KEY_HOSTS].GetArray();
+                    for (const auto& entry : arr) {
                         if (!entry.IsObject()) {
                             continue;
                         }
-                        auto objHost = entry.GetObject();
+                        const auto& objHost = entry.GetObject();
                         for (auto it = objHost.MemberBegin(), end = objHost.MemberEnd(); it != end; ++it) {
-                            std::string key = it->name.GetString();
-                            auto& cc = it->value;
+                            const char* key = it->name.GetString();
+                            const auto& cc = it->value;
                             if (!cc.IsObject()) {
                                 continue;
                             }
@@ -490,15 +490,15 @@ namespace PA
                     }
                 }
                 if (doc.HasMember(KEY_POOLS) && doc[KEY_POOLS].IsArray()) {
-                    auto arr = doc[KEY_POOLS].GetArray();
-                    for (auto& entry : arr) {
+                    const auto& arr = doc[KEY_POOLS].GetArray();
+                    for (const auto& entry : arr) {
                         if (!entry.IsObject()) {
                             continue;
                         }
-                        auto objPool = entry.GetObject();
+                        const auto& objPool = entry.GetObject();
                         for (auto it = objPool.MemberBegin(), end = objPool.MemberEnd(); it != end; ++it) {
-                            std::string key = it->name.GetString();
-                            auto& ccMain = it->value;
+                            const char* key = it->name.GetString();
+                            const auto& ccMain = it->value;
                             if (!ccMain.IsObject()) {
                                 continue;
                             }
@@ -538,15 +538,15 @@ namespace PA
                                 psc.AutoMerge = ccMain[KEY_AUTO_MERGE].GetBool();
                             }
                             if (psc.DefaultDb.size() && ccMain.HasMember(KEY_SLAVES) && ccMain[KEY_SLAVES].IsArray()) {
-                                auto vSlave = ccMain[KEY_SLAVES].GetArray();
-                                for (auto& entry : vSlave) {
+                                const auto& vSlave = ccMain[KEY_SLAVES].GetArray();
+                                for (const auto& entry : vSlave) {
                                     if (!entry.IsObject()) {
                                         continue;
                                     }
-                                    auto objSlave = entry.GetObject();
+                                    const auto& objSlave = entry.GetObject();
                                     for (auto it = objSlave.MemberBegin(), end = objSlave.MemberEnd(); it != end; ++it) {
-                                        std::string skey = it->name.GetString();
-                                        auto& cc = it->value;
+                                        const char* skey = it->name.GetString();
+                                        const auto& cc = it->value;
                                         if (!cc.IsObject()) {
                                             continue;
                                         }
