@@ -434,8 +434,8 @@ namespace PA
                     }
                 }
                 if (doc.HasMember(KEY_KEYS_ALLOWED) && doc[KEY_KEYS_ALLOWED].IsArray()) {
-                    auto arr = doc[KEY_KEYS_ALLOWED].GetArray();
-                    for (auto &v : arr) {
+                    const auto& arr = doc[KEY_KEYS_ALLOWED].GetArray();
+                    for (const auto& v : arr) {
                         if (!v.IsString()) {
                             continue;
                         }
@@ -449,7 +449,7 @@ namespace PA
                     const auto& arr = doc[KEY_HOSTS].GetObject();
                     for (auto it = arr.MemberBegin(), end = arr.MemberEnd(); it != end; ++it) {
                         const char* key = it->name.GetString();
-                        const auto &cc = it->value;
+                        const auto& cc = it->value;
                         if (!cc.IsObject()) {
                             continue;
                         }
@@ -486,7 +486,7 @@ namespace PA
                     const auto& arr = doc[KEY_POOLS].GetObject();
                     for (auto it = arr.MemberBegin(), end = arr.MemberEnd(); it != end; ++it) {
                         const char* key = it->name.GetString();
-                        const auto &ccMain = it->value;
+                        const auto& ccMain = it->value;
                         if (!ccMain.IsObject()) {
                             continue;
                         }
@@ -575,7 +575,7 @@ namespace PA
                         }
                         if (ccMain.HasMember(KEY_HOSTS) && ccMain[KEY_HOSTS].IsArray()) {
                             const auto& vH = ccMain[KEY_HOSTS].GetArray();
-                            for (const auto &h : vH) {
+                            for (const auto& h : vH) {
                                 psc.Hosts.push_back(h.GetString());
                                 Trim(psc.Hosts.back());
                             }
