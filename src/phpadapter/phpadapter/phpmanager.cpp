@@ -441,7 +441,7 @@ namespace PA
                         }
                         std::string s = v.GetString();
                         std::transform(s.begin(), s.end(), s.begin(), ::tolower);
-                        Manager.m_vKeyAllowed.push_back(s);
+                        Manager.m_vKeyAllowed.push_back(std::move(s));
                     }
                 }
                 SPA::ClientSide::CClientSocket::SSL::SetVerifyLocation(Manager.CertStore.c_str());
