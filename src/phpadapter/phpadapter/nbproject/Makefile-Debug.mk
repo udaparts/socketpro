@@ -76,7 +76,7 @@ FFLAGS=
 ASFLAGS=
 
 # Link Libraries and Options
-LDLIBSOPTIONS=-lpthread -ldl -lusocket -lphpcpp
+LDLIBSOPTIONS=-lphpcpp -lpthread -ldl -lusocket
 
 # Build Targets
 .build-conf: ${BUILD_SUBPROJECTS}
@@ -217,6 +217,7 @@ ${OBJECTDIR}/stdafx.o: stdafx.cpp
 # Clean Targets
 .clean-conf: ${CLEAN_SUBPROJECTS}
 	${RM} -r ${CND_BUILDDIR}/${CND_CONF}
+	${RM} ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/libphpadapter.${CND_DLIB_EXT}
 
 # Subprojects
 .clean-subprojects:
