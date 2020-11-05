@@ -434,8 +434,8 @@ namespace PA
                     }
                 }
                 if (doc.HasMember(KEY_KEYS_ALLOWED) && doc[KEY_KEYS_ALLOWED].IsArray()) {
-                    auto arr = doc[KEY_KEYS_ALLOWED].GetArray();
-                    for (auto &v : arr) {
+                    const auto& arr = doc[KEY_KEYS_ALLOWED].GetArray();
+                    for (const auto &v : arr) {
                         if (!v.IsString()) {
                             continue;
                         }
@@ -473,6 +473,7 @@ namespace PA
                             }
                             if (cc.HasMember(KEY_PASSWORD) && cc[KEY_PASSWORD].IsString()) {
                                 std::string s = cc[KEY_PASSWORD].GetString();
+                                Trim(s);
                                 ctx.Password = SPA::Utilities::ToWide(s);
                             }
                             if (cc.HasMember(KEY_ENCRYPTION_METHOD) && cc[KEY_ENCRYPTION_METHOD].IsUint()) {
@@ -581,7 +582,7 @@ namespace PA
                                             ps.AutoMerge = cc[KEY_AUTO_MERGE].GetBool();
                                         }
                                         if (cc.HasMember(KEY_HOSTS) && cc[KEY_HOSTS].IsArray()) {
-                                            auto vH = cc[KEY_HOSTS].GetArray();
+                                            const auto& vH = cc[KEY_HOSTS].GetArray();
                                             for (auto& h : vH) {
                                                 ps.Hosts.push_back(h.GetString());
                                                 Trim(ps.Hosts.back());
@@ -593,8 +594,8 @@ namespace PA
                                 }
                             }
                             if (ccMain.HasMember(KEY_HOSTS) && ccMain[KEY_HOSTS].IsArray()) {
-                                auto vH = ccMain[KEY_HOSTS].GetArray();
-                                for (auto& h : vH) {
+                                const auto& vH = ccMain[KEY_HOSTS].GetArray();
+                                for (const auto& h : vH) {
                                     psc.Hosts.push_back(h.GetString());
                                     Trim(psc.Hosts.back());
                                 }

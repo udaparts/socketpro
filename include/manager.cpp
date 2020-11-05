@@ -161,22 +161,23 @@ namespace SPA
                 pc.AutoMerge = pool["AutoMerge"].GetBool();
             }
             if (pool.HasMember("Hosts") && pool["Hosts"].IsArray()) {
-                auto vH = pool["Hosts"].GetArray();
+                const auto& vH = pool["Hosts"].GetArray();
                 for (auto it = vH.Begin(), end = vH.End(); it != end; ++it) {
                     if (!it->IsString()) {
                         continue;
                     }
                     std::string s = it->GetString();
+                    Trim(s);
                     if (s.size()) {
-                        pc.Hosts.push_back(s);
+                        pc.Hosts.push_back(std::move(s));
                     }
                 }
             }
             if (pc.PoolType == Master) {
                 if (pool.HasMember("Slaves") && pool["Slaves"].IsObject()) {
-                    auto vSlave = pool["Slaves"].GetObject();
+                    const auto& vSlave = pool["Slaves"].GetObject();
                     for (auto it = vSlave.MemberBegin(), end = vSlave.MemberEnd(); it != end; ++it) {
-                        std::string skey = it->name.GetString();
+                        const char* skey = it->name.GetString();
                         const auto& cc = it->value;
                         if (!cc.IsObject()) {
                             continue;
@@ -500,7 +501,7 @@ namespace SPA
                     Trim(s);
                     if (s.size()) {
                         std::transform(s.begin(), s.end(), s.begin(), ::tolower);
-                        CPoolConfig::KeysAllowed.push_back(s);
+                        CPoolConfig::KeysAllowed.push_back(std::move(s));
                     }
                 }
             } else {
