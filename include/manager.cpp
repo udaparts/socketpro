@@ -166,11 +166,7 @@ namespace SPA
                     if (!it->IsString()) {
                         continue;
                     }
-                    std::string s = it->GetString();
-                    Trim(s);
-                    if (s.size()) {
-                        pc.Hosts.push_back(std::move(s));
-                    }
+                    pc.Hosts.push_back(it->GetString());
                 }
             }
             if (pc.PoolType == Master) {

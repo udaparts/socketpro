@@ -367,6 +367,77 @@ namespace PA
         cs.add(manager);
     }
 
+    CConnectionContext CPhpManager::GetCC(const rapidjson::Value & cc) {
+        CConnectionContext ctx;
+        if (cc.HasMember(KEY_HOST) && cc[KEY_HOST].IsString()) {
+            ctx.Host = cc[KEY_HOST].GetString();
+            Trim(ctx.Host);
+        }
+        if (cc.HasMember(KEY_PORT) && cc[KEY_PORT].IsUint()) {
+            ctx.Port = cc[KEY_PORT].GetUint();
+        }
+        if (cc.HasMember(KEY_USER_ID) && cc[KEY_USER_ID].IsString()) {
+            std::string s = cc[KEY_USER_ID].GetString();
+            Trim(s);
+            ctx.UserId = SPA::Utilities::ToWide(s);
+        }
+        if (cc.HasMember(KEY_PASSWORD) && cc[KEY_PASSWORD].IsString()) {
+            std::string s = cc[KEY_PASSWORD].GetString();
+            Trim(s);
+            ctx.Password = SPA::Utilities::ToWide(s);
+        }
+        if (cc.HasMember(KEY_ENCRYPTION_METHOD) && cc[KEY_ENCRYPTION_METHOD].IsUint()) {
+            ctx.EncrytionMethod = cc[KEY_ENCRYPTION_METHOD].GetUint() ? SPA::TLSv1 : SPA::NoEncryption;
+        }
+        if (cc.HasMember(KEY_ZIP)) {
+            ctx.Zip = cc[KEY_ZIP].GetBool();
+        }
+        if (cc.HasMember(KEY_V6)) {
+            ctx.Zip = cc[KEY_V6].GetBool();
+        }
+        return ctx;
+    }
+
+    CPoolStartContext CPhpManager::GetPool(const rapidjson::Value & vPool) {
+        CPoolStartContext psc;
+        if (vPool.HasMember(KEY_QUEUE_NAME) && vPool[KEY_QUEUE_NAME].IsString()) {
+            psc.Queue = vPool[KEY_QUEUE_NAME].GetString();
+            Trim(psc.Queue);
+#ifdef WIN32_64
+            std::transform(psc.Queue.begin(), psc.Queue.end(), psc.Queue.begin(), ::tolower);
+#endif
+        }
+        if (vPool.HasMember(KEY_DEFAULT_DB) && vPool[KEY_DEFAULT_DB].IsString()) {
+            psc.DefaultDb = vPool[KEY_DEFAULT_DB].GetString();
+            Trim(psc.DefaultDb);
+        }
+        if (vPool.HasMember(KEY_SVS_ID) && vPool[KEY_SVS_ID].IsUint()) {
+            psc.SvsId = vPool[KEY_SVS_ID].GetUint();
+        }
+        if (vPool.HasMember(KEY_THREADS) && vPool[KEY_THREADS].IsUint()) {
+            psc.Threads = vPool[KEY_THREADS].GetUint();
+        }
+        if (vPool.HasMember(KEY_RECV_TIMEOUT) && vPool[KEY_RECV_TIMEOUT].IsUint()) {
+            psc.RecvTimeout = vPool[KEY_RECV_TIMEOUT].GetUint();
+        }
+        if (vPool.HasMember(KEY_CONN_TIMEOUT) && vPool[KEY_CONN_TIMEOUT].IsUint()) {
+            psc.ConnTimeout = vPool[KEY_CONN_TIMEOUT].GetUint();
+        }
+        if (vPool.HasMember(KEY_AUTO_CONN) && vPool[KEY_AUTO_CONN].IsBool()) {
+            psc.AutoConn = vPool[KEY_AUTO_CONN].GetBool();
+        }
+        if (vPool.HasMember(KEY_AUTO_MERGE) && vPool[KEY_AUTO_MERGE].IsBool()) {
+            psc.AutoMerge = vPool[KEY_AUTO_MERGE].GetBool();
+        }
+        if (vPool.HasMember(KEY_HOSTS) && vPool[KEY_HOSTS].IsArray()) {
+            const auto& vH = vPool[KEY_HOSTS].GetArray();
+            for (const auto& h : vH) {
+                psc.Hosts.push_back(h.GetString());
+            }
+        }
+        return psc;
+    }
+
     Php::Value CPhpManager::Parse() {
         rapidjson::Document doc;
         doc.SetObject();
@@ -440,6 +511,7 @@ namespace PA
                             continue;
                         }
                         std::string s = v.GetString();
+                        Trim(s);
                         std::transform(s.begin(), s.end(), s.begin(), ::tolower);
                         Manager.m_vKeyAllowed.push_back(s);
                     }
@@ -453,33 +525,7 @@ namespace PA
                         if (!cc.IsObject()) {
                             continue;
                         }
-                        CConnectionContext ctx;
-                        if (cc.HasMember(KEY_HOST) && cc[KEY_HOST].IsString()) {
-                            ctx.Host = cc[KEY_HOST].GetString();
-                            Trim(ctx.Host);
-                        }
-                        if (cc.HasMember(KEY_PORT) && cc[KEY_PORT].IsUint()) {
-                            ctx.Port = cc[KEY_PORT].GetUint();
-                        }
-                        if (cc.HasMember(KEY_USER_ID) && cc[KEY_USER_ID].IsString()) {
-                            std::string s = cc[KEY_USER_ID].GetString();
-                            Trim(s);
-                            ctx.UserId = SPA::Utilities::ToWide(s);
-                        }
-                        if (cc.HasMember(KEY_PASSWORD) && cc[KEY_PASSWORD].IsString()) {
-                            std::string s = cc[KEY_PASSWORD].GetString();
-                            ctx.Password = SPA::Utilities::ToWide(s);
-                        }
-                        if (cc.HasMember(KEY_ENCRYPTION_METHOD) && cc[KEY_ENCRYPTION_METHOD].IsUint()) {
-                            ctx.EncrytionMethod = cc[KEY_ENCRYPTION_METHOD].GetUint() ? SPA::TLSv1 : SPA::NoEncryption;
-                        }
-                        if (cc.HasMember(KEY_ZIP)) {
-                            ctx.Zip = cc[KEY_ZIP].GetBool();
-                        }
-                        if (cc.HasMember(KEY_V6)) {
-                            ctx.Zip = cc[KEY_V6].GetBool();
-                        }
-                        Manager.Hosts[key] = ctx;
+                        Manager.Hosts[key] = GetCC(cc);
                     }
                 }
                 if (doc.HasMember(KEY_POOLS) && doc[KEY_POOLS].IsObject()) {
@@ -490,40 +536,11 @@ namespace PA
                         if (!ccMain.IsObject()) {
                             continue;
                         }
-                        CPoolStartContext psc;
-                        if (ccMain.HasMember(KEY_QUEUE_NAME) && ccMain[KEY_QUEUE_NAME].IsString()) {
-                            psc.Queue = ccMain[KEY_QUEUE_NAME].GetString();
-                            Trim(psc.Queue);
-#ifdef WIN32_64
-                            std::transform(psc.Queue.begin(), psc.Queue.end(), psc.Queue.begin(), ::tolower);
-#endif
-                        }
-                        if (ccMain.HasMember(KEY_DEFAULT_DB) && ccMain[KEY_DEFAULT_DB].IsString()) {
-                            psc.DefaultDb = ccMain[KEY_DEFAULT_DB].GetString();
-                            Trim(psc.DefaultDb);
-                        }
+                        CPoolStartContext psc = GetPool(ccMain);
                         if (psc.DefaultDb.size()) {
                             psc.PoolType = Master;
                         } else {
                             psc.PoolType = Regular;
-                        }
-                        if (ccMain.HasMember(KEY_SVS_ID) && ccMain[KEY_SVS_ID].IsUint()) {
-                            psc.SvsId = ccMain[KEY_SVS_ID].GetUint();
-                        }
-                        if (ccMain.HasMember(KEY_THREADS) && ccMain[KEY_THREADS].IsUint()) {
-                            psc.Threads = ccMain[KEY_THREADS].GetUint();
-                        }
-                        if (ccMain.HasMember(KEY_RECV_TIMEOUT) && ccMain[KEY_RECV_TIMEOUT].IsUint()) {
-                            psc.RecvTimeout = ccMain[KEY_RECV_TIMEOUT].GetUint();
-                        }
-                        if (ccMain.HasMember(KEY_CONN_TIMEOUT) && ccMain[KEY_CONN_TIMEOUT].IsUint()) {
-                            psc.ConnTimeout = ccMain[KEY_CONN_TIMEOUT].GetUint();
-                        }
-                        if (ccMain.HasMember(KEY_AUTO_CONN) && ccMain[KEY_AUTO_CONN].IsBool()) {
-                            psc.AutoConn = ccMain[KEY_AUTO_CONN].GetBool();
-                        }
-                        if (ccMain.HasMember(KEY_AUTO_MERGE) && ccMain[KEY_AUTO_MERGE].IsBool()) {
-                            psc.AutoMerge = ccMain[KEY_AUTO_MERGE].GetBool();
                         }
                         if (psc.DefaultDb.size() && ccMain.HasMember(KEY_SLAVES) && ccMain[KEY_SLAVES].IsObject()) {
                             const auto& vSlave = ccMain[KEY_SLAVES].GetObject();
@@ -533,51 +550,13 @@ namespace PA
                                 if (!cc.IsObject()) {
                                     continue;
                                 }
-                                CPoolStartContext ps;
+                                CPoolStartContext ps = GetPool(cc);
                                 ps.SvsId = psc.SvsId;
-                                ps.DefaultDb = psc.DefaultDb;
+                                if (!ps.DefaultDb.size()) {
+                                    ps.DefaultDb = psc.DefaultDb;
+                                }
                                 ps.PoolType = Slave;
-                                if (cc.HasMember(KEY_QUEUE_NAME) && cc[KEY_QUEUE_NAME].IsString()) {
-                                    ps.Queue = cc[KEY_QUEUE_NAME].GetString();
-                                    Trim(ps.Queue);
-#ifdef WIN32_64
-                                    std::transform(ps.Queue.begin(), ps.Queue.end(), ps.Queue.begin(), ::tolower);
-#endif
-                                }
-                                if (cc.HasMember(KEY_DEFAULT_DB) && cc[KEY_DEFAULT_DB].IsString()) {
-                                    ps.DefaultDb = cc[KEY_DEFAULT_DB].GetString();
-                                    Trim(ps.DefaultDb);
-                                }
-                                if (cc.HasMember(KEY_THREADS) && cc[KEY_THREADS].IsUint()) {
-                                    ps.Threads = cc[KEY_THREADS].GetUint();
-                                }
-                                if (cc.HasMember(KEY_RECV_TIMEOUT) && cc[KEY_RECV_TIMEOUT].IsUint()) {
-                                    ps.RecvTimeout = cc[KEY_RECV_TIMEOUT].GetUint();
-                                }
-                                if (cc.HasMember(KEY_CONN_TIMEOUT) && cc[KEY_CONN_TIMEOUT].IsUint()) {
-                                    ps.ConnTimeout = cc[KEY_CONN_TIMEOUT].GetUint();
-                                }
-                                if (cc.HasMember(KEY_AUTO_CONN) && cc[KEY_AUTO_CONN].IsBool()) {
-                                    ps.AutoConn = cc[KEY_AUTO_CONN].GetBool();
-                                }
-                                if (cc.HasMember(KEY_AUTO_MERGE) && cc[KEY_AUTO_MERGE].IsBool()) {
-                                    ps.AutoMerge = cc[KEY_AUTO_MERGE].GetBool();
-                                }
-                                if (cc.HasMember(KEY_HOSTS) && cc[KEY_HOSTS].IsArray()) {
-                                    const auto& vH = cc[KEY_HOSTS].GetArray();
-                                    for (const auto &h : vH) {
-                                        ps.Hosts.push_back(h.GetString());
-                                        Trim(ps.Hosts.back());
-                                    }
-                                }
                                 psc.Slaves[skey] = ps;
-                            }
-                        }
-                        if (ccMain.HasMember(KEY_HOSTS) && ccMain[KEY_HOSTS].IsArray()) {
-                            const auto& vH = ccMain[KEY_HOSTS].GetArray();
-                            for (const auto& h : vH) {
-                                psc.Hosts.push_back(h.GetString());
-                                Trim(psc.Hosts.back());
                             }
                         }
                         Manager.Pools[key] = psc;
