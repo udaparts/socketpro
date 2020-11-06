@@ -23,7 +23,7 @@ namespace PA
     }
 
     Php::Value CPhpQueue::CloseQueue(Php::Parameters & params) {
-        unsigned int timeout;
+        unsigned int timeout = (~0);
         std::string key = GetKey(params[0]);
         std::shared_ptr<int> pErrCode;
         CAsyncQueue::DQueueTrans qt;
@@ -52,7 +52,7 @@ namespace PA
     }
 
     Php::Value CPhpQueue::EnqueueBatch(Php::Parameters & params) {
-        unsigned int timeout;
+        unsigned int timeout = (~0);
         if (!m_pBuff->GetBuffer()->GetSize()) {
             throw Php::Exception("No message batched yet");
         }
@@ -247,7 +247,7 @@ namespace PA
     }
 
     Php::Value CPhpQueue::StartQueueTrans(Php::Parameters & params) {
-        unsigned int timeout;
+        unsigned int timeout = (~0);
         std::string key = GetKey(params[0]);
         std::shared_ptr<int> pErrCode;
         CAsyncQueue::DQueueTrans qt;
@@ -312,7 +312,7 @@ namespace PA
     }
 
     Php::Value CPhpQueue::EndQueueTrans(Php::Parameters & params) {
-        unsigned int timeout;
+        unsigned int timeout = (~0);
         bool rollback = params[0].boolValue();
         std::shared_ptr<int> pErrCode;
         CAsyncQueue::DQueueTrans qt;
@@ -459,7 +459,7 @@ namespace PA
         } else if (!q.isNull()) {
             throw Php::Exception("An instance of CUQueue or null required for Enqueue");
         }
-        unsigned int timeout;
+        unsigned int timeout = (~0);
         std::shared_ptr<SPA::INT64> pF;
         CAsyncQueue::DEnqueue f;
         size_t args = params.size();

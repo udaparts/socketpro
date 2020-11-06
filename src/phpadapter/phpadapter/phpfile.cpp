@@ -131,7 +131,7 @@ namespace PA
     }
 
     Php::Value CPhpFile::Download(Php::Parameters & params) {
-        unsigned int timeout;
+        unsigned int timeout = (~0);
         std::wstring local, remote;
         MapFilePaths(params[0], params[1], local, remote);
         size_t args = params.size();
@@ -166,7 +166,7 @@ namespace PA
     }
 
     Php::Value CPhpFile::Upload(Php::Parameters & params) {
-        unsigned int timeout;
+        unsigned int timeout = (~0);
         std::wstring local, remote;
         MapFilePaths(params[0], params[1], local, remote);
         size_t args = params.size();

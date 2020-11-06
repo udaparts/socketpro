@@ -164,7 +164,7 @@ namespace PA
     }
 
     Php::Value CPhpDb::Open(Php::Parameters & params) {
-        unsigned int timeout;
+        unsigned int timeout = (~0);
         std::string aconn = params[0].stringValue();
         Trim(aconn);
         SPA::CDBString conn = SPA::Utilities::ToUTF16(aconn);
@@ -325,7 +325,7 @@ namespace PA
     }
 
     Php::Value CPhpDb::Execute(Php::Parameters & params) {
-        unsigned int timeout;
+        unsigned int timeout = (~0);
         SPA::UDB::CDBVariantArray vParam;
         SPA::CDBString sql;
         if (params[0].isString()) {
@@ -401,7 +401,7 @@ namespace PA
     }
 
     Php::Value CPhpDb::ExecuteBatch(Php::Parameters & params) {
-        unsigned int timeout;
+        unsigned int timeout = (~0);
         int64_t iso = params[0].numericValue();
         if (iso < SPA::UDB::tiUnspecified || iso > SPA::UDB::tiIsolated) {
             throw Php::Exception("Bad transaction isolation value");
@@ -535,7 +535,7 @@ namespace PA
     }
 
     Php::Value CPhpDb::Prepare(Php::Parameters & params) {
-        unsigned int timeout;
+        unsigned int timeout = (~0);
         std::string asql = params[0].stringValue();
         Trim(asql);
         if (!asql.size()) {
@@ -618,7 +618,7 @@ namespace PA
     }
 
     Php::Value CPhpDb::Close(Php::Parameters & params) {
-        unsigned int timeout;
+        unsigned int timeout = (~0);
         CQPointer pV;
         CDBHandler::DResult Dr;
         size_t args = params.size();
@@ -642,7 +642,7 @@ namespace PA
     }
 
     Php::Value CPhpDb::BeginTrans(Php::Parameters & params) {
-        unsigned int timeout;
+        unsigned int timeout = (~0);
         SPA::UDB::tagTransactionIsolation ti = SPA::UDB::tiReadCommited;
         size_t args = params.size();
         if (args > 0) {
@@ -674,7 +674,7 @@ namespace PA
     }
 
     Php::Value CPhpDb::EndTrans(Php::Parameters & params) {
-        unsigned int timeout;
+        unsigned int timeout = (~0);
         SPA::UDB::tagRollbackPlan p = SPA::UDB::rpDefault;
         size_t args = params.size();
         if (args > 0) {
