@@ -7,9 +7,8 @@
 #include "njsqlite.h"
 
 
-namespace SPA
-{
-    namespace ClientSide{
+namespace SPA {
+    namespace ClientSide {
 
         using namespace NJA;
 
@@ -188,7 +187,7 @@ namespace SPA
     }
 }
 
-namespace NJA{
+namespace NJA {
 
     int time_offset(time_t utcTime) {
 #ifndef WIN32_64
@@ -1224,7 +1223,7 @@ namespace NJA{
                 auto v = pi->Get(ToStr(isolate, u"Direction", 9));
                 if (v->IsInt32()) {
                     int d = v->Int32Value(isolate->GetCurrentContext()).ToChecked();
-                    if (d < (int)tagParameterDirection::pdInput || d > (int)tagParameterDirection::pdReturnValue) {
+                    if (d < (int) tagParameterDirection::pdInput || d > (int) tagParameterDirection::pdReturnValue) {
                         ThrowException(isolate, "Bad parameter direction value found");
                         return false;
                     }
@@ -1295,8 +1294,7 @@ namespace NJA{
     }
 
     Local<Array> ToMeta(Isolate* isolate, const CDBColumnInfoArray & v) {
-        Local<Value> vN[] =
-        {
+        Local<Value> vN[] ={
             ToStr(isolate, u"DBPath", 6),
             ToStr(isolate, u"TablePath", 9),
             ToStr(isolate, u"DisplayName", 11),
@@ -1331,8 +1329,7 @@ namespace NJA{
     }
 
     Local<Array> ToMeta(Isolate* isolate, const SPA::CKeyMap & mapkey) {
-        Local<Value> vN[] =
-        {
+        Local<Value> vN[] ={
             ToStr(isolate, u"DBPath", 6),
             ToStr(isolate, u"TablePath", 9),
             ToStr(isolate, u"DisplayName", 11),

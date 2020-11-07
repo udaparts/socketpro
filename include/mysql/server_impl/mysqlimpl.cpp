@@ -566,7 +566,7 @@ namespace SPA
         }
 
         void CMysqlImpl::Open(const CDBString &strConnection, unsigned int flags, int &res, CDBString &errMsg, int &ms) {
-            ms = (int)tagManagementSystem::msMysql;
+            ms = (int) tagManagementSystem::msMysql;
             if ((flags & ENABLE_TABLE_UPDATE_MESSAGES) == ENABLE_TABLE_UPDATE_MESSAGES) {
                 m_EnableMessages = GetPush().Subscribe(&STREAMING_SQL_CHAT_GROUP_ID, 1);
             }
@@ -722,7 +722,7 @@ namespace SPA
 
         void CMysqlImpl::OnBaseRequestArrive(unsigned short requestId) {
             switch (requestId) {
-                case (unsigned short)tagBaseRequestID::idCancel:
+                case (unsigned short) tagBaseRequestID::idCancel:
 #ifndef NDEBUG
                     std::cout << "Cancel called" << std::endl;
 #endif
@@ -744,7 +744,7 @@ namespace SPA
         }
 
         void CMysqlImpl::BeginTrans(int isolation, const CDBString &dbConn, unsigned int flags, int &res, CDBString &errMsg, int &ms) {
-            ms = (int)tagManagementSystem::msMysql;
+            ms = (int) tagManagementSystem::msMysql;
             if (m_bManual) {
                 errMsg = BAD_MANUAL_TRANSACTION_STATE;
                 res = SPA::Mysql::ER_BAD_MANUAL_TRANSACTION_STATE;
@@ -809,7 +809,7 @@ namespace SPA
                 res = SPA::Mysql::ER_BAD_MANUAL_TRANSACTION_STATE;
                 return;
             }
-            if (plan < 0 || plan > (int)tagRollbackPlan::rpRollbackAlways) {
+            if (plan < 0 || plan > (int) tagRollbackPlan::rpRollbackAlways) {
                 res = SPA::Mysql::ER_BAD_END_TRANSTACTION_PLAN;
                 errMsg = BAD_END_TRANSTACTION_PLAN;
                 return;
@@ -2428,7 +2428,7 @@ namespace SPA
                 errMsg = NO_DB_OPENED_YET;
                 fail_ok = vSql.size();
                 fail_ok <<= 32;
-                SendResult(idSqlBatchHeader, res, errMsg, (int)tagManagementSystem::msMysql, (unsigned int) parameters, callIndex);
+                SendResult(idSqlBatchHeader, res, errMsg, (int) tagManagementSystem::msMysql, (unsigned int) parameters, callIndex);
                 return;
             }
             size_t rows = 0;
@@ -2439,7 +2439,7 @@ namespace SPA
                     m_fails += vSql.size();
                     fail_ok = vSql.size();
                     fail_ok <<= 32;
-                    SendResult(idSqlBatchHeader, res, errMsg, (int)tagManagementSystem::msMysql, (unsigned int) parameters, callIndex);
+                    SendResult(idSqlBatchHeader, res, errMsg, (int) tagManagementSystem::msMysql, (unsigned int) parameters, callIndex);
                     return;
                 }
                 if ((m_vParam.size() % (unsigned short) parameters)) {
@@ -2448,25 +2448,25 @@ namespace SPA
                     m_fails += vSql.size();
                     fail_ok = vSql.size();
                     fail_ok <<= 32;
-                    SendResult(idSqlBatchHeader, res, errMsg, (int)tagManagementSystem::msMysql, (unsigned int) parameters, callIndex);
+                    SendResult(idSqlBatchHeader, res, errMsg, (int) tagManagementSystem::msMysql, (unsigned int) parameters, callIndex);
                     return;
                 }
                 rows = m_vParam.size() / parameters;
             }
-            if (isolation != (int)tagTransactionIsolation::tiUnspecified) {
+            if (isolation != (int) tagTransactionIsolation::tiUnspecified) {
                 int ms;
                 BeginTrans(isolation, dbConn, flags, res, errMsg, ms);
                 if (res) {
                     m_fails += vSql.size();
                     fail_ok = vSql.size();
                     fail_ok <<= 32;
-                    SendResult(idSqlBatchHeader, res, errMsg, (int)tagManagementSystem::msMysql, (unsigned int) parameters, callIndex);
+                    SendResult(idSqlBatchHeader, res, errMsg, (int) tagManagementSystem::msMysql, (unsigned int) parameters, callIndex);
                     return;
                 }
             } else {
                 errMsg = dbConn;
             }
-            SendResult(idSqlBatchHeader, res, errMsg, (int)tagManagementSystem::msMysql, (unsigned int) parameters, callIndex);
+            SendResult(idSqlBatchHeader, res, errMsg, (int) tagManagementSystem::msMysql, (unsigned int) parameters, callIndex);
             errMsg.clear();
             CDBVariantArray vAll;
             m_vParam.swap(vAll);
@@ -2511,12 +2511,12 @@ namespace SPA
                     res = r;
                     errMsg = err;
                 }
-                if (r && isolation != (int)tagTransactionIsolation::tiUnspecified && plan == (int)tagRollbackPlan::rpDefault)
+                if (r && isolation != (int) tagTransactionIsolation::tiUnspecified && plan == (int) tagRollbackPlan::rpDefault)
                     break;
                 affected += aff;
                 fail_ok += fo;
             }
-            if (isolation != (int)tagTransactionIsolation::tiUnspecified) {
+            if (isolation != (int) tagTransactionIsolation::tiUnspecified) {
                 EndTrans(plan, r, err);
                 if (r && !res) {
                     res = r;

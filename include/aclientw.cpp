@@ -325,7 +325,7 @@ namespace SPA {
         }
 
         void CAsyncServiceHandler::OnRR(unsigned short reqId, CUQueue & mc) {
-            if ((unsigned short)tagBaseRequestID::idInterrupt == reqId) {
+            if ((unsigned short) tagBaseRequestID::idInterrupt == reqId) {
                 UINT64 options;
                 mc >> options;
                 OnInterrupted(options);
@@ -376,7 +376,7 @@ namespace SPA {
             PRR_PAIR *pp = (PRR_PAIR*) vBatching.GetBuffer();
             for (unsigned int it = 0; it < count; ++it) {
                 if (pp[it]->second->Discarded) {
-                    pp[it]->second->Discarded(this, GetSocket()->GetCurrentRequestID() == (unsigned short)tagBaseRequestID::idCancel);
+                    pp[it]->second->Discarded(this, GetSocket()->GetCurrentRequestID() == (unsigned short) tagBaseRequestID::idCancel);
                 }
             }
             CleanQueue(vBatching);
@@ -384,7 +384,7 @@ namespace SPA {
             pp = (PRR_PAIR*) vCallback.GetBuffer();
             for (unsigned int it = 0; it < count; ++it) {
                 if (pp[it]->second->Discarded) {
-                    pp[it]->second->Discarded(this, GetSocket()->GetCurrentRequestID() == (unsigned short)tagBaseRequestID::idCancel);
+                    pp[it]->second->Discarded(this, GetSocket()->GetCurrentRequestID() == (unsigned short) tagBaseRequestID::idCancel);
                 }
             }
             CleanQueue(vCallback);
@@ -435,7 +435,7 @@ namespace SPA {
 
         CClientSocket::CClientSocket()
         : m_hSocket((USocket_Client_Handle) nullptr), m_pHandler(nullptr), m_bRandom(false), m_endian(false),
-        m_os(MY_OPERATION_SYSTEM), m_nCurrSvsId((unsigned int)tagServiceID::sidStartup), m_routing(false),
+        m_os(MY_OPERATION_SYSTEM), m_nCurrSvsId((unsigned int) tagServiceID::sidStartup), m_routing(false),
         SocketClosed(m_implClosed), HandShakeCompleted(m_implHSC), SocketConnected(m_implConnected),
         ExceptionFromServer(m_implEFS)
 #ifdef ENABLE_SOCKET_REQUEST_AND_ALL_EVENTS
@@ -1110,7 +1110,7 @@ namespace SPA {
 #ifdef NODE_JS_ADAPTER_PROJECT
             do {
                 VARTYPE vt = (VT_ARRAY | VT_UI4);
-                unsigned short reqId = (unsigned short)tagChatRequestID::idEnter;
+                unsigned short reqId = (unsigned short) tagChatRequestID::idEnter;
                 NJA::NJSocketPool *pool = (NJA::NJSocketPool *)p->m_asyncType->data;
                 if (!pool)
                     break;
@@ -1139,7 +1139,7 @@ namespace SPA {
 #ifdef NODE_JS_ADAPTER_PROJECT
             do {
                 VARTYPE vt = (VT_ARRAY | VT_UI4);
-                unsigned short reqId = (unsigned short)tagChatRequestID::idExit;
+                unsigned short reqId = (unsigned short) tagChatRequestID::idExit;
                 NJA::NJSocketPool *pool = (NJA::NJSocketPool *)p->m_asyncType->data;
                 if (!pool)
                     break;
@@ -1172,7 +1172,7 @@ namespace SPA {
 #ifdef NODE_JS_ADAPTER_PROJECT
             do {
                 VARTYPE vt = (VT_ARRAY | VT_UI4);
-                unsigned short reqId = (unsigned short)tagChatRequestID::idSpeak;
+                unsigned short reqId = (unsigned short) tagChatRequestID::idSpeak;
                 NJA::NJSocketPool *pool = (NJA::NJSocketPool *)p->m_asyncType->data;
                 if (!pool)
                     break;
@@ -1202,7 +1202,7 @@ namespace SPA {
 #ifdef NODE_JS_ADAPTER_PROJECT
             do {
                 VARTYPE vt = (VT_ARRAY | VT_UI4);
-                unsigned short reqId = (unsigned short)tagChatRequestID::idSpeakEx;
+                unsigned short reqId = (unsigned short) tagChatRequestID::idSpeakEx;
                 NJA::NJSocketPool *pool = (NJA::NJSocketPool *)p->m_asyncType->data;
                 if (!pool)
                     break;
@@ -1235,7 +1235,7 @@ namespace SPA {
             p->OnSendUserMessage(sender, vtMessage);
 #ifdef NODE_JS_ADAPTER_PROJECT
             do {
-                unsigned short reqId = (unsigned short)tagChatRequestID::idSendUserMessage;
+                unsigned short reqId = (unsigned short) tagChatRequestID::idSendUserMessage;
                 NJA::NJSocketPool *pool = (NJA::NJSocketPool *)p->m_asyncType->data;
                 if (!pool)
                     break;
@@ -1263,7 +1263,7 @@ namespace SPA {
             p->OnSendUserMessageEx(sender, pMessage, size);
 #ifdef NODE_JS_ADAPTER_PROJECT
             do {
-                unsigned short reqId = (unsigned short)tagChatRequestID::idSendUserMessageEx;
+                unsigned short reqId = (unsigned short) tagChatRequestID::idSendUserMessageEx;
                 NJA::NJSocketPool *pool = (NJA::NJSocketPool *)p->m_asyncType->data;
                 if (!pool)
                     break;
@@ -1328,7 +1328,7 @@ namespace SPA {
             CClientSocket *p = Seek(handler);
             if (!p)
                 return;
-            if (requestId == (unsigned short)tagBaseRequestID::idSwitchTo) {
+            if (requestId == (unsigned short) tagBaseRequestID::idSwitchTo) {
                 p->m_bRandom = ClientCoreLoader.IsRandom(handler);
                 p->m_os = ClientCoreLoader.GetPeerOs(handler, &p->m_endian);
                 p->m_nCurrSvsId = ClientCoreLoader.GetCurrentServiceId(handler);
@@ -1340,7 +1340,7 @@ namespace SPA {
             if (ash) {
                 ash->m_brpImpl.Invoke(ash, requestId);
                 ash->OnBaseRequestprocessed(requestId);
-                if (requestId == (unsigned short)tagBaseRequestID::idCancel)
+                if (requestId == (unsigned short) tagBaseRequestID::idCancel)
                     ash->CleanCallbacks();
             }
 #ifdef ENABLE_SOCKET_REQUEST_AND_ALL_EVENTS

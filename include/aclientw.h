@@ -928,14 +928,14 @@ namespace SPA {
             std::future<CScopeUQueue> sendRequest(unsigned short reqId, const unsigned char *pBuffer, unsigned int size) {
                 std::shared_ptr<std::promise<CScopeUQueue> > prom(new std::promise<CScopeUQueue>);
                 if (!SendRequest(reqId, pBuffer, size, [prom](CAsyncResult & ar) {
-                    CScopeUQueue sb;
-                    sb->Swap(ar.UQueue);
-                    try {
-                        prom->set_value(std::move(sb));
-                    } catch (std::future_error&) {
-                        //ignore it
-                    }
-                }, get_aborted(prom, reqId), get_se(prom))) {
+                        CScopeUQueue sb;
+                        sb->Swap(ar.UQueue);
+                        try {
+                            prom->set_value(std::move(sb));
+                        } catch (std::future_error&) {
+                            //ignore it
+                        }
+                    }, get_aborted(prom, reqId), get_se(prom))) {
                     raise(reqId);
                 }
                 return prom->get_future();
@@ -992,16 +992,16 @@ namespace SPA {
             std::future<R> send(unsigned short reqId, const unsigned char *pBuffer, unsigned int size) {
                 std::shared_ptr<std::promise<R> > prom(new std::promise<R>);
                 if (!SendRequest(reqId, pBuffer, size, [prom](CAsyncResult & ar) {
-                    try {
-                        R r;
-                        ar >> r;
-                        prom->set_value(std::move(r));
-                    } catch (std::future_error&) {
-                        //ignore it
-                    } catch (...) {
-                        prom->set_exception(std::current_exception());
-                    }
-                }, get_aborted(prom, reqId), get_se(prom))) {
+                        try {
+                            R r;
+                            ar >> r;
+                            prom->set_value(std::move(r));
+                        } catch (std::future_error&) {
+                            //ignore it
+                        } catch (...) {
+                            prom->set_exception(std::current_exception());
+                        }
+                    }, get_aborted(prom, reqId), get_se(prom))) {
                     raise(reqId);
                 }
                 return prom->get_future();
@@ -1120,15 +1120,13 @@ namespace SPA {
                     return [wc](CAsyncServiceHandler* h, bool canceled) {
                         if (canceled) {
                             wc->m_ex = std::make_exception_ptr(CSocketError(REQUEST_CANCELED, REQUEST_CANCELED_ERR_MSG, wc->get_id(), false));
-                        }
-                        else {
+                        } else {
                             CClientSocket* cs = h->GetSocket();
                             int ec = cs->GetErrorCode();
                             if (ec) {
                                 std::string em = cs->GetErrorMsg();
                                 wc->m_ex = std::make_exception_ptr(CSocketError(ec, Utilities::ToWide(em).c_str(), wc->get_id(), false));
-                            }
-                            else {
+                            } else {
                                 wc->m_ex = std::make_exception_ptr(CSocketError(SESSION_CLOSED_AFTER, SESSION_CLOSED_AFTER_ERR_MSG, wc->get_id(), false));
                             }
                         }
@@ -1146,13 +1144,13 @@ namespace SPA {
                 : CWaiterBase<R>(reqId) {
                     auto& wc = this->m_wc;
                     if (!ash->SendRequest(reqId, pBuffer, size, [wc](CAsyncResult & ar) {
-                        try {
-                            ar >> wc->m_r;
-                        } catch (...) {
-                            wc->m_ex = std::current_exception();
-                        }
-                        wc->resume();
-                    }, this->get_aborted(), this->get_se())) {
+                            try {
+                                ar >> wc->m_r;
+                            } catch (...) {
+                                wc->m_ex = std::current_exception();
+                            }
+                            wc->resume();
+                        }, this->get_aborted(), this->get_se())) {
                         ash->raise(reqId);
                     }
                 }
@@ -1181,9 +1179,9 @@ namespace SPA {
                 : CWaiterBase<CScopeUQueue>(reqId) {
                     auto& wc = m_wc;
                     if (!ash->SendRequest(reqId, pBuffer, size, [wc](CAsyncResult & ar) {
-                        wc->m_r->Swap(ar.UQueue);
-                        wc->resume();
-                    }, get_aborted(), get_se())) {
+                            wc->m_r->Swap(ar.UQueue);
+                            wc->resume();
+                        }, get_aborted(), get_se())) {
                         ash->raise(reqId);
                     }
                 }

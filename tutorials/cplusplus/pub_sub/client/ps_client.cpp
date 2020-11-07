@@ -78,9 +78,9 @@ int main(int argc, char* argv[]) {
     unsigned int chat_ids[] = {1, 2};
 
     //asynchronously process multiple requests with inline batching for best network efficiency
-    ok = hw->SendRequest(idSayHello, [](CAsyncResult& ar) {
-            std::wcout << ar.Load<std::wstring>() << std::endl;
-        }, nullptr, nullptr, L"Jack", L"Smith");
+    ok = hw->SendRequest(idSayHello, [](CAsyncResult & ar) {
+        std::wcout << ar.Load<std::wstring>() << std::endl;
+    }, nullptr, nullptr, L"Jack", L"Smith");
 
     SPA::UVariant message(L"We are going to call the method Sleep");
     ok = push.Publish(message, chat_ids, 2);

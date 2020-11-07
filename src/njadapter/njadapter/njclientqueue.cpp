@@ -260,7 +260,7 @@ namespace NJA {
     void NJClientQueue::getQueueStatus(const FunctionCallbackInfo<Value>& args) {
         Isolate* isolate = args.GetIsolate();
         NJClientQueue* obj = ObjectWrap::Unwrap<NJClientQueue>(args.Holder());
-        args.GetReturnValue().Set(Int32::New(isolate, (int)obj->m_cq->GetQueueOpenStatus()));
+        args.GetReturnValue().Set(Int32::New(isolate, (int) obj->m_cq->GetQueueOpenStatus()));
     }
 
     void NJClientQueue::Reset(const FunctionCallbackInfo<Value>& args) {
@@ -305,7 +305,7 @@ namespace NJA {
     void NJClientQueue::getOptimistic(const FunctionCallbackInfo<Value>& args) {
         Isolate* isolate = args.GetIsolate();
         NJClientQueue* obj = ObjectWrap::Unwrap<NJClientQueue>(args.Holder());
-        args.GetReturnValue().Set(Int32::New(isolate, (int)obj->m_cq->GetOptimistic()));
+        args.GetReturnValue().Set(Int32::New(isolate, (int) obj->m_cq->GetOptimistic()));
     }
 
     void NJClientQueue::setOptimistic(const FunctionCallbackInfo<Value>& args) {
@@ -317,12 +317,12 @@ namespace NJA {
             return;
         }
         int n = p->Int32Value(isolate->GetCurrentContext()).ToChecked();
-        if (n < (int)SPA::tagOptimistic::oMemoryCached || n >(int)SPA::tagOptimistic::oDiskCommitted) {
+        if (n < (int) SPA::tagOptimistic::oMemoryCached || n > (int) SPA::tagOptimistic::oDiskCommitted) {
             ThrowException(isolate, "A valid value expected for optimistic value");
             return;
         }
         obj->m_cq->SetOptimistic((tagOptimistic) n);
-        args.GetReturnValue().Set(Int32::New(isolate, (int)obj->m_cq->GetOptimistic()));
+        args.GetReturnValue().Set(Int32::New(isolate, (int) obj->m_cq->GetOptimistic()));
     }
 
     //Followings not implemented because you will not use them

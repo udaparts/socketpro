@@ -42,7 +42,7 @@ namespace SPA
 
         void CAsyncQueueImpl::OnBaseRequestArrive(unsigned short requestId) {
             switch (requestId) {
-                case (unsigned short)tagBaseRequestID::idCancel:
+                case (unsigned short) tagBaseRequestID::idCancel:
 #ifndef NDEBUG
                     std::cout << "Cancel called" << std::endl;
 #endif
@@ -115,7 +115,7 @@ namespace SPA
                 {
                     unsigned int len = *((unsigned int*) m_UQueue.GetBuffer());
                     int option = *((int*) m_UQueue.GetBuffer(sizeof (unsigned int) +len));
-                    if (option == (int)tagOptimistic::oMemoryCached) {
+                    if (option == (int) tagOptimistic::oMemoryCached) {
                         //if option is oMemoryCached, we directly flush within main thread to avoid expensive thread context switch
                         std::string key;
                         m_UQueue >> key >> option;

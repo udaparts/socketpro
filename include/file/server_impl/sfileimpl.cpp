@@ -32,7 +32,7 @@ namespace SPA{
 
         void CSFileImpl::OnBaseRequestArrive(unsigned short reqId) {
             switch (reqId) {
-                case (unsigned short)tagBaseRequestID::idCancel:
+                case (unsigned short) tagBaseRequestID::idCancel:
                     CleanOF();
                     break;
                 default:

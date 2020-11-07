@@ -46,13 +46,13 @@ unsigned int CDBUpdateImpl::SetSocketProConnectionString(const wchar_t *connecti
             };
             m_pPool->SocketPoolEvent = [this](SPA::ClientSide::CSocketPool<CAsyncDBUpdate> *sender, SPA::ClientSide::tagSocketPoolEvent spe, CAsyncDBUpdate * handler) {
                 switch (spe) {
-                    case SPA::ClientSide::speUSocketCreated:
+                    case SPA::ClientSide::tagSocketPoolEvent::speUSocketCreated:
                         if (handler) {
                             size_t pos = sender->GetSocketHandlerMap().size() - 1;
                             handler->SetSvsID(m_vCC[pos].second);
                         }
                         break;
-                    case SPA::ClientSide::speConnected:
+                    case SPA::ClientSide::tagSocketPoolEvent::speConnected:
                         if (handler) {
                             size_t pos = 0;
                             auto map = sender->GetSocketHandlerMap();
@@ -60,7 +60,7 @@ unsigned int CDBUpdateImpl::SetSocketProConnectionString(const wchar_t *connecti
                                 if (it->second.get() == handler) {
                                     int zip = m_vZip[pos];
                                     if (zip) {
-                                        handler->GetSocket()->SetZipLevel(SPA::zlBestSpeed);
+                                        handler->GetSocket()->SetZipLevel(SPA::tagZipLevel::zlBestSpeed);
                                     }
                                     break;
                                 }
@@ -129,7 +129,7 @@ void CDBUpdateImpl::Parse(const wchar_t *s) {
             service_id = (unsigned int) std::atoi(SPA::Utilities::ToUTF8(right.c_str()).c_str());
         else if (left == L"cert" || left == L"certificate") {
             if (right.size()) {
-                cc.EncrytionMethod = SPA::TLSv1;
+                cc.EncrytionMethod = SPA::tagEncryptionMethod::TLSv1;
                 m_cert = SPA::Utilities::ToUTF8(right.c_str());
             }
         } else if (left == L"zip") {

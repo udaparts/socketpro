@@ -484,7 +484,7 @@ namespace SPA {
              */
             std::future<std::vector<std::string>> getKeys() {
                 std::shared_ptr<std::promise<std::vector < std::string>> > prom(new std::promise<std::vector < std::string>>);
-                if (!GetKeys([prom](CAsyncQueue* aq, std::vector<std::string>& v) {
+                if (!GetKeys([prom](CAsyncQueue * aq, std::vector<std::string>& v) {
                         prom->set_value(std::move(v));
                     }, get_aborted(prom, Queue::idGetKeys), get_se(prom))) {
                     raise(Queue::idGetKeys);
@@ -528,7 +528,7 @@ namespace SPA {
              */
             std::future<QueueInfo> flushQueue(const char *key, tagOptimistic option = tagOptimistic::oMemoryCached) {
                 std::shared_ptr<std::promise<QueueInfo> > prom(new std::promise<QueueInfo>);
-                if (!FlushQueue(key, [prom](CAsyncQueue* aq, UINT64 messages, UINT64 fileSize) {
+                if (!FlushQueue(key, [prom](CAsyncQueue * aq, UINT64 messages, UINT64 fileSize) {
                         prom->set_value(QueueInfo(messages, fileSize));
                     }, option, get_aborted(prom, Queue::idFlush), get_se(prom))) {
                     raise(Queue::idFlush);
@@ -544,7 +544,7 @@ namespace SPA {
              */
             std::future<DeqInfo> dequeue(const char *key, unsigned int timeout = 0) {
                 std::shared_ptr<std::promise<DeqInfo> > prom(new std::promise<DeqInfo>);
-                if (!Dequeue(key, [prom](CAsyncQueue* aq, UINT64 messages, UINT64 fileSize, unsigned int msgsDequeued, unsigned int bytes) {
+                if (!Dequeue(key, [prom](CAsyncQueue * aq, UINT64 messages, UINT64 fileSize, unsigned int msgsDequeued, unsigned int bytes) {
                         prom->set_value(DeqInfo(messages, fileSize, msgsDequeued, bytes));
                     }, timeout, get_aborted(prom, Queue::idDequeue), get_se(prom))) {
                     raise(Queue::idDequeue);
@@ -561,7 +561,7 @@ namespace SPA {
              */
             std::future<UINT64> enqueueBatch(const char* key, const unsigned char* buffer, unsigned int size) {
                 std::shared_ptr<std::promise<UINT64> > prom(new std::promise<UINT64>);
-                if (!EnqueueBatch(key, buffer, size, [prom](CAsyncQueue* aq, UINT64 index) {
+                if (!EnqueueBatch(key, buffer, size, [prom](CAsyncQueue * aq, UINT64 index) {
                         prom->set_value(index);
                     }, get_aborted(prom, Queue::idEnqueueBatch), get_se(prom))) {
                     raise(Queue::idEnqueueBatch);
@@ -583,6 +583,7 @@ namespace SPA {
             }
 
         private:
+
             static DClose get_ec(const std::shared_ptr<std::promise<int> >& prom) {
                 return [prom](CAsyncQueue* aq, int errCode) {
                     prom->set_value(errCode);
@@ -704,7 +705,7 @@ namespace SPA {
 
             virtual void OnBaseRequestprocessed(unsigned short reqId) {
                 switch (reqId) {
-                    case (unsigned short)tagBaseRequestID::idMessageQueued:
+                    case (unsigned short) tagBaseRequestID::idMessageQueued:
                     {
                         m_csQ.lock();
                         auto key = m_keyDequeue;

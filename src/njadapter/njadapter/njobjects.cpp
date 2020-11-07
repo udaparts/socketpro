@@ -281,11 +281,11 @@ namespace NJA {
             if (args[0]->IsUint32()) {
                 svsId = args[0]->Uint32Value(isolate->GetCurrentContext()).ToChecked();
             }
-            if (svsId < (unsigned int)tagServiceID::sidChat || (svsId > (unsigned int)tagServiceID::sidODBC && svsId <= (unsigned int)tagServiceID::sidReserved)) {
+            if (svsId < (unsigned int) tagServiceID::sidChat || (svsId > (unsigned int) tagServiceID::sidODBC && svsId <= (unsigned int) tagServiceID::sidReserved)) {
                 ThrowException(isolate, "A valid unsigned int required for service id");
                 return;
             }
-            if (svsId == (unsigned int)tagServiceID::sidHTTP) {
+            if (svsId == (unsigned int) tagServiceID::sidHTTP) {
                 ThrowException(isolate, "No support to HTTP/websocket at client side");
                 return;
             }
@@ -313,10 +313,10 @@ namespace NJA {
             }
             if (db.size() || slave) {
                 switch (svsId) {
-                    case (unsigned int)tagServiceID::sidFile:
+                    case (unsigned int) tagServiceID::sidFile:
                         ThrowException(isolate, "File streaming doesn't support master-slave pool");
                         return;
-                    case (unsigned int)tagServiceID::sidChat:
+                    case (unsigned int) tagServiceID::sidChat:
                         ThrowException(isolate, "Persistent queue doesn't support master-slave pool");
                         return;
                     default:
@@ -350,7 +350,7 @@ namespace NJA {
                 const PoolEvent &pe = obj->m_deqPoolEvent.front();
                 if (!obj->m_evPool.IsEmpty()) {
                     Local<Value> argv[2];
-                    argv[0] = Int32::New(isolate, (int)pe.Spe);
+                    argv[0] = Int32::New(isolate, (int) pe.Spe);
                     auto handler = pe.Handler;
                     if (handler) {
                         unsigned int svsId = handler->GetSvsID();
@@ -1131,11 +1131,11 @@ namespace NJA {
             ThrowException(isolate, "An integer for encryption method expected");
             return false;
         }
-        if (em > (int)tagEncryptionMethod::TLSv1) {
+        if (em > (int) tagEncryptionMethod::TLSv1) {
             ThrowException(isolate, "Invalid encryption method");
             return false;
         }
-        cc.EncrytionMethod = (tagEncryptionMethod)em;
+        cc.EncrytionMethod = (tagEncryptionMethod) em;
 
         v = obj->Get(ToStr(isolate, u"Zip", 3));
         if (v->IsBoolean() || v->IsUint32()) {

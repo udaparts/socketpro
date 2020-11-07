@@ -568,7 +568,7 @@ namespace SPA
             if (p) {
                 CUQueue &mc = p->m_UQueue;
                 mc.SetSize(0);
-                if (ServiceId != (unsigned int)tagServiceID::sidHTTP) {
+                if (ServiceId != (unsigned int) tagServiceID::sidHTTP) {
                     bool endian;
                     tagOperationSystem os = ServerCoreLoader.GetPeerOs(hSocket, &endian);
                     mc.SetOS(os);
@@ -585,9 +585,9 @@ namespace SPA
                         mc.SetSize(len);
                     }
                 }
-                if (ServiceId == (unsigned int)tagServiceID::sidHTTP) {
+                if (ServiceId == (unsigned int) tagServiceID::sidHTTP) {
                     CHttpPeerBase *pHttpPerr = (CHttpPeerBase*) p;
-                    if (usRequestID == (unsigned short)tagHttpRequestID::idUserRequest) {
+                    if (usRequestID == (unsigned short) tagHttpRequestID::idUserRequest) {
                         unsigned int count;
                         mc >> pHttpPerr->m_WebRequestName;
                         mc >> count;
@@ -600,7 +600,7 @@ namespace SPA
                         pHttpPerr->m_vArg.clear();
                     }
                     p->OnRequestArrive(usRequestID, len);
-                } else if (usRequestID == (unsigned short)SPA::tagBaseRequestID::idInterrupt) {
+                } else if (usRequestID == (unsigned short) SPA::tagBaseRequestID::idInterrupt) {
                     UINT64 options;
                     mc >> options;
                     CClientPeer *cp = (CClientPeer*) p;
@@ -644,14 +644,14 @@ namespace SPA
                 m_nMainThreads = CSocketProServer::Config::GetMainThreads();
             }
             assert(ServerCoreLoader.IsMainThread());
-            if (oldServiceId != (unsigned int)tagServiceID::sidStartup && (p = SeekService(oldServiceId)) != nullptr) {
+            if (oldServiceId != (unsigned int) tagServiceID::sidStartup && (p = SeekService(oldServiceId)) != nullptr) {
                 ((CBaseService*) p)->ReleasePeer(hSocket, false, newServiceId);
             }
             p = SeekService(newServiceId);
             if (p) {
                 CSocketPeer *pPeer = ((CBaseService*) p)->CreatePeer(hSocket, newServiceId);
                 pPeer->m_bRandom = p->GetReturnRandom();
-                if (newServiceId == (unsigned int)tagServiceID::sidHTTP) {
+                if (newServiceId == (unsigned int) tagServiceID::sidHTTP) {
                     CHttpPeerBase *pCHttpPeer = (CHttpPeerBase*) pPeer;
                     pCHttpPeer->m_PushImpl.m_hSocket = hSocket;
                     pCHttpPeer->m_bHttpOk = false;
@@ -716,7 +716,7 @@ namespace SPA
                 return;
             CSocketPeer *p = pService->Seek(hSocket);
             if (p) {
-                if (usRequestID == (unsigned short)tagBaseRequestID::idPing) {
+                if (usRequestID == (unsigned short) tagBaseRequestID::idPing) {
                     if (p->m_UQueue.GetSize() == 0 && p->m_UQueue.GetMaxSize() > 4 * DEFAULT_INITIAL_MEMORY_BUFFER_SIZE) {
                         p->m_UQueue.ReallocBuffer(DEFAULT_INITIAL_MEMORY_BUFFER_SIZE);
                     }
@@ -776,7 +776,7 @@ namespace SPA
             if (p) {
                 CUQueue &mc = p->m_UQueue;
                 mc.SetSize(0);
-                if (ServiceId != (unsigned int)tagServiceID::sidHTTP) {
+                if (ServiceId != (unsigned int) tagServiceID::sidHTTP) {
                     bool endian;
                     tagOperationSystem os = ServerCoreLoader.GetPeerOs(handler, &endian);
                     mc.SetEndian(endian);
@@ -792,7 +792,7 @@ namespace SPA
                 }
 
                 switch (chatRequestID) {
-					case tagChatRequestID::idEnter:
+                    case tagChatRequestID::idEnter:
                     {
                         unsigned short vt;
                         mc >> vt;
@@ -837,7 +837,7 @@ namespace SPA
                         std::wstring userId;
                         mc >> userId;
                         len = mc.GetSize();
-                        assert(ServiceId != (unsigned int)tagServiceID::sidHTTP);
+                        assert(ServiceId != (unsigned int) tagServiceID::sidHTTP);
                         ((CClientPeer*) p)->OnSendUserMessageEx(userId.c_str(), mc.GetBuffer(), len);
                     }
                         break;
@@ -849,7 +849,7 @@ namespace SPA
                         const unsigned char *msg = mc.GetBuffer();
                         const unsigned int *pGroup = (const unsigned int *) mc.GetBuffer(size);
                         len = (mc.GetSize() - size) / sizeof (unsigned int);
-                        assert(ServiceId != (unsigned int)tagServiceID::sidHTTP);
+                        assert(ServiceId != (unsigned int) tagServiceID::sidHTTP);
                         ((CClientPeer*) p)->OnPublishEx(pGroup, len, msg, size);
                     }
                         break;

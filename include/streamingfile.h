@@ -116,7 +116,7 @@ namespace SPA {
                     }
                     if (it->Discarded) {
                         try {
-                            it->Discarded(this, GetSocket()->GetCurrentRequestID() == (unsigned short)tagBaseRequestID::idCancel);
+                            it->Discarded(this, GetSocket()->GetCurrentRequestID() == (unsigned short) tagBaseRequestID::idCancel);
                         } catch (...) {
                         }
                     }
@@ -188,11 +188,11 @@ namespace SPA {
                 : CWaiter<ErrInfo>(reqId) {
                     auto& wc = m_wc;
                     file->PostProcess(ctx, localFile, remoteFile, [wc](CStreamingFile* file, int res, const std::wstring & errMsg) {
-                            wc->m_r.ec = res;
-                            wc->m_r.em = errMsg;
-                            wc->resume();
-                        }, progress, get_aborted(), get_se()
-                    );
+                        wc->m_r.ec = res;
+                        wc->m_r.em = errMsg;
+                                wc->resume();
+                    }, progress, get_aborted(), get_se()
+                            );
                 }
             };
 

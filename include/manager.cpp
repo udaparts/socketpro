@@ -259,8 +259,8 @@ namespace SPA
                     case SPA::Odbc::sidOdbc:
                         break;
                     default:
-                        if (pc.SvsId <= (unsigned int)tagServiceID::sidReserved) {
-                            m_errMsg = "Service id must be larger than " + std::to_string((unsigned int)tagServiceID::sidReserved);
+                        if (pc.SvsId <= (unsigned int) tagServiceID::sidReserved) {
+                            m_errMsg = "Service id must be larger than " + std::to_string((unsigned int) tagServiceID::sidReserved);
                             return;
                         }
                         break;
@@ -413,12 +413,12 @@ namespace SPA
                         obj.AddMember("ConnTimeout", psc.RecvTimeout, allocator);
                         Value s(psc.DefaultDb.c_str(), (SizeType) psc.DefaultDb.size(), allocator);
                         obj.AddMember("DefaultDb", s, allocator);
-                        obj.AddMember("PoolType", (int)psc.PoolType, allocator);
+                        obj.AddMember("PoolType", (int) psc.PoolType, allocator);
                         vS.AddMember(key, obj, allocator);
                     }
                     objMain.AddMember("Slaves", vS, allocator);
                 }
-                objMain.AddMember("PoolType", (int)pscMain.PoolType, allocator);
+                objMain.AddMember("PoolType", (int) pscMain.PoolType, allocator);
                 vP.AddMember(key, objMain, allocator);
             }
             doc.AddMember("Pools", vP, allocator);

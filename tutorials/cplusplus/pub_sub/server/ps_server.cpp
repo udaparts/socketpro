@@ -1,7 +1,8 @@
 #include "stdafx.h"
 #include "HWImpl.h"
 
-class CMySocketProServer : public CSocketProServer {
+class CMySocketProServer : public CSocketProServer
+{
 
 protected:
     virtual bool OnSettingServer(unsigned int listeningPort, unsigned int maxBacklog, bool v6) {

@@ -254,18 +254,18 @@ CStreamingServer::CStreamingServer(int nParam) : CSocketProServer(nParam) {
 bool CHttpPeer::DoAuthentication(const wchar_t *userId, const wchar_t *password) {
     if (GetTransport() != tagTransport::tWebSocket)
         return true;
-    return CMysqlImpl::DoSQLAuthentication(GetSocketHandle(), userId, password, (unsigned int)SPA::tagServiceID::sidHTTP, DEFAULT_LOCAL_CONNECTION_STRING);
+    return CMysqlImpl::DoSQLAuthentication(GetSocketHandle(), userId, password, (unsigned int) SPA::tagServiceID::sidHTTP, DEFAULT_LOCAL_CONNECTION_STRING);
 }
 
 void CHttpPeer::OnFastRequestArrive(unsigned short requestId, unsigned int len) {
     switch (requestId) {
-        case (unsigned short)tagHttpRequestID::idDelete:
-        case (unsigned short)tagHttpRequestID::idPut:
-        case (unsigned short)tagHttpRequestID::idTrace:
-        case (unsigned short)tagHttpRequestID::idOptions:
-        case (unsigned short)tagHttpRequestID::idHead:
-        case (unsigned short)tagHttpRequestID::idMultiPart:
-        case (unsigned short)tagHttpRequestID::idConnect:
+        case (unsigned short) tagHttpRequestID::idDelete:
+        case (unsigned short) tagHttpRequestID::idPut:
+        case (unsigned short) tagHttpRequestID::idTrace:
+        case (unsigned short) tagHttpRequestID::idOptions:
+        case (unsigned short) tagHttpRequestID::idHead:
+        case (unsigned short) tagHttpRequestID::idMultiPart:
+        case (unsigned short) tagHttpRequestID::idConnect:
             SetResponseCode(501);
             SendResult("Server doesn't support DELETE, PUT, TRACE, OPTIONS, HEAD, CONNECT and POST with multipart");
             break;
@@ -278,7 +278,7 @@ void CHttpPeer::OnFastRequestArrive(unsigned short requestId, unsigned int len) 
 
 int CHttpPeer::OnSlowRequestArrive(unsigned short requestId, unsigned int len) {
     switch (requestId) {
-        case (unsigned short)tagHttpRequestID::idGet:
+        case (unsigned short) tagHttpRequestID::idGet:
         {
             const char *path = GetPath();
             if (::strstr(path, "."))
@@ -287,10 +287,10 @@ int CHttpPeer::OnSlowRequestArrive(unsigned short requestId, unsigned int len) {
                 SendResult("Unsupported GET request");
         }
             break;
-        case (unsigned short)tagHttpRequestID::idPost:
+        case (unsigned short) tagHttpRequestID::idPost:
             SendResult("Unsupported POST request");
             break;
-        case (unsigned short)tagHttpRequestID::idUserRequest:
+        case (unsigned short) tagHttpRequestID::idUserRequest:
         {
             const std::string &RequestName = GetUserRequestName();
             if (RequestName == "subscribeTableEvents") {
@@ -311,7 +311,7 @@ int CHttpPeer::OnSlowRequestArrive(unsigned short requestId, unsigned int len) {
 
 bool CStreamingServer::OnIsPermitted(USocket_Server_Handle h, const wchar_t* userId, const wchar_t *password, unsigned int serviceId) {
     switch (serviceId) {
-        case (unsigned int)SPA::tagServiceID::sidHTTP:
+        case (unsigned int) SPA::tagServiceID::sidHTTP:
             break;
         default:
             return CMysqlImpl::DoSQLAuthentication(h, userId, password, serviceId, DEFAULT_LOCAL_CONNECTION_STRING);
@@ -380,16 +380,16 @@ bool CStreamingServer::AddService() {
         return false;
     if (!CSetGlobals::Globals.enable_http_websocket)
         return true;
-    ok = m_myHttp.AddMe((unsigned int)SPA::tagServiceID::sidHTTP);
+    ok = m_myHttp.AddMe((unsigned int) SPA::tagServiceID::sidHTTP);
     if (!ok)
         return false;
-    ok = m_myHttp.AddSlowRequest((unsigned short)tagHttpRequestID::idGet);
+    ok = m_myHttp.AddSlowRequest((unsigned short) tagHttpRequestID::idGet);
     if (!ok)
         return false;
-    ok = m_myHttp.AddSlowRequest((unsigned short)tagHttpRequestID::idPost);
+    ok = m_myHttp.AddSlowRequest((unsigned short) tagHttpRequestID::idPost);
     if (!ok)
         return false;
-    ok = m_myHttp.AddSlowRequest((unsigned short)tagHttpRequestID::idUserRequest);
+    ok = m_myHttp.AddSlowRequest((unsigned short) tagHttpRequestID::idUserRequest);
     if (!ok)
         return false;
     return true;

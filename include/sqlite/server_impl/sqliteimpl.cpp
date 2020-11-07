@@ -412,7 +412,7 @@ namespace SPA
 
         void CSqliteImpl::OnBaseRequestArrive(unsigned short requestId) {
             switch (requestId) {
-                case (unsigned short)tagBaseRequestID::idCancel:
+                case (unsigned short) tagBaseRequestID::idCancel:
 #ifndef NDEBUG
                     std::cout << "Cancel called" << std::endl;
 #endif
@@ -881,7 +881,7 @@ namespace SPA
                 errMsg = NO_DB_OPENED_YET;
                 fail_ok = vSql.size();
                 fail_ok <<= 32;
-                SendResult(idSqlBatchHeader, res, errMsg, (int)tagManagementSystem::msSqlite, (unsigned int) parameters, callIndex);
+                SendResult(idSqlBatchHeader, res, errMsg, (int) tagManagementSystem::msSqlite, (unsigned int) parameters, callIndex);
                 return;
             }
             if (parameters) {
@@ -891,7 +891,7 @@ namespace SPA
                     m_fails += vSql.size();
                     fail_ok = vSql.size();
                     fail_ok <<= 32;
-                    SendResult(idSqlBatchHeader, res, errMsg, (int)tagManagementSystem::msSqlite, (unsigned int) parameters, callIndex);
+                    SendResult(idSqlBatchHeader, res, errMsg, (int) tagManagementSystem::msSqlite, (unsigned int) parameters, callIndex);
                     return;
                 }
                 if ((m_vParam.size() % parameters)) {
@@ -900,19 +900,19 @@ namespace SPA
                     m_fails += vSql.size();
                     fail_ok = vSql.size();
                     fail_ok <<= 32;
-                    SendResult(idSqlBatchHeader, res, errMsg, (int)tagManagementSystem::msSqlite, (unsigned int) parameters, callIndex);
+                    SendResult(idSqlBatchHeader, res, errMsg, (int) tagManagementSystem::msSqlite, (unsigned int) parameters, callIndex);
                     return;
                 }
                 rows = m_vParam.size() / parameters;
             }
-            if (isolation != (int)tagTransactionIsolation::tiUnspecified) {
+            if (isolation != (int) tagTransactionIsolation::tiUnspecified) {
                 int ms;
                 BeginTrans(isolation, dbConn, flags, res, errMsg, ms);
                 if (res) {
                     m_fails += vSql.size();
                     fail_ok = vSql.size();
                     fail_ok <<= 32;
-                    SendResult(idSqlBatchHeader, res, errMsg, (int)tagManagementSystem::msSqlite, (unsigned int) parameters, callIndex);
+                    SendResult(idSqlBatchHeader, res, errMsg, (int) tagManagementSystem::msSqlite, (unsigned int) parameters, callIndex);
                     return;
                 } else if (IsCanceled() || !IsOpened())
                     return;
@@ -926,7 +926,7 @@ namespace SPA
                     m_csPeer.unlock();
                 }
             }
-            unsigned int ret = SendResult(idSqlBatchHeader, res, errMsg, (int)tagManagementSystem::msSqlite, (unsigned int) parameters, callIndex);
+            unsigned int ret = SendResult(idSqlBatchHeader, res, errMsg, (int) tagManagementSystem::msSqlite, (unsigned int) parameters, callIndex);
             if (ret == REQUEST_CANCELED || ret == SOCKET_NOT_FOUND) {
                 return;
             }
@@ -971,14 +971,14 @@ namespace SPA
                 }
                 if (lastInsertId && id.llVal)
                     vtId = id;
-                if (r && isolation != (int)tagTransactionIsolation::tiUnspecified && plan == (int)tagRollbackPlan::rpDefault)
+                if (r && isolation != (int) tagTransactionIsolation::tiUnspecified && plan == (int) tagRollbackPlan::rpDefault)
                     break;
                 if (IsCanceled() || !IsOpened())
                     return;
                 affected += aff;
                 fail_ok += fo;
             }
-            if (isolation != (int)tagTransactionIsolation::tiUnspecified) {
+            if (isolation != (int) tagTransactionIsolation::tiUnspecified) {
                 EndTrans(plan, r, err);
                 if (r && !res) {
                     res = r;
@@ -1354,7 +1354,7 @@ namespace SPA
         }
 
         void CSqliteImpl::BeginTrans(int isolation, const CDBString &dbConn, unsigned int flags, int &res, CDBString &errMsg, int &ms) {
-            ms = (int)tagManagementSystem::msSqlite;
+            ms = (int) tagManagementSystem::msSqlite;
             if (!m_pSqlite) {
                 CDBString s = dbConn;
 #ifdef WIN32_64
@@ -1416,7 +1416,7 @@ namespace SPA
                 errMsg = NO_DB_OPENED_YET;
                 return;
             }
-            if (plan < 0 || plan > (int)tagRollbackPlan::rpRollbackAlways) {
+            if (plan < 0 || plan > (int) tagRollbackPlan::rpRollbackAlways) {
                 res = SPA::Sqlite::SQLITE_BAD_END_TRANSTACTION_PLAN;
                 errMsg = BAD_END_TRANSTACTION_PLAN;
                 return;
@@ -1522,7 +1522,7 @@ namespace SPA
         }
 
         void CSqliteImpl::Open(const CDBString &strConn, unsigned int flags, int &res, CDBString &errMsg, int &ms) {
-            ms = (int)tagManagementSystem::msSqlite;
+            ms = (int) tagManagementSystem::msSqlite;
             m_vPreparedStatements.clear();
             m_pSqlite.reset();
             ResetMemories();

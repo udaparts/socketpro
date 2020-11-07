@@ -101,7 +101,7 @@ namespace NJA {
             auto p0 = args[0];
             if (p0->IsInt32()) {
                 int n = p0->Int32Value(isolate->GetCurrentContext()).ToChecked();
-                if (n < 0 || n >(int)tagTransactionIsolation::tiIsolated) {
+                if (n < 0 || n > (int) tagTransactionIsolation::tiIsolated) {
                     ThrowException(isolate, "Bad transaction isolation value");
                     return;
                 }
@@ -126,7 +126,7 @@ namespace NJA {
             auto p0 = args[0];
             if (p0->IsInt32()) {
                 int n = p0->Int32Value(isolate->GetCurrentContext()).ToChecked();
-                if (n < 0 || n > (int)tagRollbackPlan::rpRollbackAlways) {
+                if (n < 0 || n > (int) tagRollbackPlan::rpRollbackAlways) {
                     ThrowException(isolate, "Bad rollback plan value");
                     return;
                 }
@@ -201,7 +201,7 @@ namespace NJA {
                 return;
             }
             int n = p->Int32Value(isolate->GetCurrentContext()).ToChecked();
-            if (n < (int)tagTransactionIsolation::tiUnspecified || n >(int)tagTransactionIsolation::tiIsolated) {
+            if (n < (int) tagTransactionIsolation::tiUnspecified || n > (int) tagTransactionIsolation::tiIsolated) {
                 ThrowException(isolate, "A bad transaction isolation value");
                 return;
             }
@@ -253,7 +253,7 @@ namespace NJA {
             p = args[8];
             if (p->IsInt32()) {
                 n = p->Int32Value(isolate->GetCurrentContext()).ToChecked();
-                if (n < (int)tagRollbackPlan::rpDefault || n > (int)tagRollbackPlan::rpRollbackAlways) {
+                if (n < (int) tagRollbackPlan::rpDefault || n > (int) tagRollbackPlan::rpRollbackAlways) {
                     ThrowException(isolate, "A bad rollback plan found");
                     return;
                 }
@@ -340,7 +340,7 @@ namespace NJA {
         Isolate* isolate = args.GetIsolate();
         NJSqlite* obj = ObjectWrap::Unwrap<NJSqlite>(args.Holder());
         if (obj->IsValid(isolate)) {
-            args.GetReturnValue().Set(Int32::New(isolate, (int)obj->m_db->GetDBManagementSystem()));
+            args.GetReturnValue().Set(Int32::New(isolate, (int) obj->m_db->GetDBManagementSystem()));
         }
     }
 

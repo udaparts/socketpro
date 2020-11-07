@@ -27,12 +27,15 @@ int main(int argc, char* argv[]) {
         TestEnqueue(sq);
         wcout << TestDequeue(sq).get().ToString() << endl;
     }
+
     catch(CServerError & ex) {
         wcout << ex.ToString() << endl;
     }
+
     catch(CSocketError & ex) {
         wcout << ex.ToString() << endl;
     }
+
     catch(exception & ex) {
         wcout << "Unexpected error: " << ex.what() << endl;
     }
@@ -75,7 +78,8 @@ future<CAsyncQueue::DeqInfo> TestDequeue(CMyPool::PHandler &sq) {
             case idMessage2:
                 cout << "message id=" << idReq;
             {
-                wstring name, str; int index;
+                wstring name, str;
+                int index;
 
                 //parse a dequeued message which should be the same as the above enqueued message (two unicode strings and one int)
                 q >> name >> str >> index;

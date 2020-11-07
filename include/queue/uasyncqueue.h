@@ -7,10 +7,10 @@
 namespace SPA {
     namespace Queue {
         //use built-in chat service id
-        static const unsigned int sidQueue = (unsigned int)tagServiceID::sidChat;
+        static const unsigned int sidQueue = (unsigned int) tagServiceID::sidChat;
 
         //queue-related request ids
-        static const unsigned short idEnqueue = (unsigned short)tagBaseRequestID::idReservedTwo + 1;
+        static const unsigned short idEnqueue = (unsigned short) tagBaseRequestID::idReservedTwo + 1;
         static const unsigned short idDequeue = idEnqueue + 1;
         static const unsigned short idStartTrans = idEnqueue + 2;
         static const unsigned short idEndTrans = idEnqueue + 3;

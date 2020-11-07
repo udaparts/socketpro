@@ -317,8 +317,8 @@ namespace SPA {
      */
     static inline unsigned char GetWCharSize(tagOperationSystem os) {
         switch (os) {
-		    case tagOperationSystem::osWin:
-		    case tagOperationSystem::osWinCE:
+            case tagOperationSystem::osWin:
+            case tagOperationSystem::osWinCE:
                 return 2;
                 break;
             default:

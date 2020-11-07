@@ -272,7 +272,7 @@ namespace SPA
 
         void COdbcImpl::OnBaseRequestArrive(unsigned short requestId) {
             switch (requestId) {
-                case (unsigned short)tagBaseRequestID::idCancel:
+                case (unsigned short) tagBaseRequestID::idCancel:
 #ifndef NDEBUG
                     std::cout << "Cancel called" << std::endl;
 #endif
@@ -427,7 +427,7 @@ namespace SPA
                     }
                 } while (false);
             }
-            ms = (int)m_msDriver;
+            ms = (int) m_msDriver;
             if (m_pOdbc) {
                 SQLGetFunctions(m_pOdbc.get(), SQL_API_SQLPRIMARYKEYS, &m_bPrimaryKeys);
                 SQLGetFunctions(m_pOdbc.get(), SQL_API_SQLPROCEDURECOLUMNS, &m_bProcedureColumns);
@@ -443,8 +443,8 @@ namespace SPA
         }
 
         void COdbcImpl::BeginTrans(int isolation, const CDBString &dbConn, unsigned int flags, int &res, CDBString &errMsg, int &ms) {
-            ms = (int)tagManagementSystem::msODBC;
-            if (m_ti != tagTransactionIsolation::tiUnspecified || isolation == (int)tagTransactionIsolation::tiUnspecified) {
+            ms = (int) tagManagementSystem::msODBC;
+            if (m_ti != tagTransactionIsolation::tiUnspecified || isolation == (int) tagTransactionIsolation::tiUnspecified) {
                 errMsg = BAD_MANUAL_TRANSACTION_STATE;
                 res = Odbc::ER_BAD_MANUAL_TRANSACTION_STATE;
                 return;
@@ -455,7 +455,7 @@ namespace SPA
                     return;
                 }
             }
-            ms = (int)m_msDriver;
+            ms = (int) m_msDriver;
             SQLINTEGER attr;
             switch ((tagTransactionIsolation) isolation) {
                 case tagTransactionIsolation::tiReadUncommited:
@@ -502,7 +502,7 @@ namespace SPA
                 res = Odbc::ER_BAD_MANUAL_TRANSACTION_STATE;
                 return;
             }
-            if (plan < 0 || plan > (int)tagRollbackPlan::rpRollbackAlways) {
+            if (plan < 0 || plan > (int) tagRollbackPlan::rpRollbackAlways) {
                 res = Odbc::ER_BAD_END_TRANSTACTION_PLAN;
                 errMsg = BAD_END_TRANSTACTION_PLAN;
                 return;
@@ -668,7 +668,8 @@ namespace SPA
             m_vBindInfo.clear();
             bool hasBlob = false;
             bool hasVariant = false;
-            SQLCHAR colname[256] = {0}; // column name
+            SQLCHAR colname[256] =
+            {0}; // column name
             m_nRecordSize = 0;
             SQLSMALLINT colnamelen = 0; // length of column name
             SQLSMALLINT nullable = 0; // whether column can have NULL value
@@ -4014,7 +4015,7 @@ namespace SPA
                         if (info.DataType == VT_VARIANT) {
                             sql_type = SQL_SS_VARIANT;
                         } else if (info.DataType == VT_XML) {
-                            if (m_msDriver == msDB2)
+                            if (m_msDriver == tagManagementSystem::msDB2)
                                 sql_type = SQL_XML;
                             else
                                 sql_type = SQL_SS_XML;
@@ -4327,7 +4328,7 @@ namespace SPA
                 errMsg = NO_DB_OPENED_YET;
                 fail_ok = vSql.size();
                 fail_ok <<= 32;
-                SendResult(idSqlBatchHeader, res, errMsg, (int)tagManagementSystem::msODBC, (unsigned int) parameters, callIndex);
+                SendResult(idSqlBatchHeader, res, errMsg, (int) tagManagementSystem::msODBC, (unsigned int) parameters, callIndex);
                 return;
             }
             size_t rows = 0;
@@ -4338,7 +4339,7 @@ namespace SPA
                     m_fails += vSql.size();
                     fail_ok = vSql.size();
                     fail_ok <<= 32;
-                    SendResult(idSqlBatchHeader, res, errMsg, (int)tagManagementSystem::msODBC, (unsigned int) parameters, callIndex);
+                    SendResult(idSqlBatchHeader, res, errMsg, (int) tagManagementSystem::msODBC, (unsigned int) parameters, callIndex);
                     return;
                 }
                 if ((m_vParam.size() % (unsigned short) parameters)) {
@@ -4347,7 +4348,7 @@ namespace SPA
                     m_fails += vSql.size();
                     fail_ok = vSql.size();
                     fail_ok <<= 32;
-                    SendResult(idSqlBatchHeader, res, errMsg, (int)tagManagementSystem::msODBC, (unsigned int) parameters, callIndex);
+                    SendResult(idSqlBatchHeader, res, errMsg, (int) tagManagementSystem::msODBC, (unsigned int) parameters, callIndex);
                     return;
                 }
                 rows = m_vParam.size() / parameters;
@@ -4357,18 +4358,18 @@ namespace SPA
                     m_fails += vSql.size();
                     fail_ok = vSql.size();
                     fail_ok <<= 32;
-                    SendResult(idSqlBatchHeader, res, errMsg, (int)tagManagementSystem::msODBC, (unsigned int) parameters, callIndex);
+                    SendResult(idSqlBatchHeader, res, errMsg, (int) tagManagementSystem::msODBC, (unsigned int) parameters, callIndex);
                     return;
                 }
             }
-            if (isolation != (int)tagTransactionIsolation::tiUnspecified) {
+            if (isolation != (int) tagTransactionIsolation::tiUnspecified) {
                 int ms;
                 BeginTrans(isolation, dbConn, flags, res, errMsg, ms);
                 if (res) {
                     m_fails += vSql.size();
                     fail_ok = vSql.size();
                     fail_ok <<= 32;
-                    SendResult(idSqlBatchHeader, res, errMsg, (int)tagManagementSystem::msODBC, (unsigned int) parameters, callIndex);
+                    SendResult(idSqlBatchHeader, res, errMsg, (int) tagManagementSystem::msODBC, (unsigned int) parameters, callIndex);
                     return;
                 } else if (IsCanceled() || !IsOpened())
                     return;
@@ -4379,7 +4380,7 @@ namespace SPA
                     errMsg = ODBC_GLOBAL_CONNECTION_STRING;
                 }
             }
-            unsigned int ret = SendResult(idSqlBatchHeader, res, errMsg, (int)tagManagementSystem::msODBC, (unsigned int) parameters, callIndex);
+            unsigned int ret = SendResult(idSqlBatchHeader, res, errMsg, (int) tagManagementSystem::msODBC, (unsigned int) parameters, callIndex);
             if (ret == REQUEST_CANCELED || ret == SOCKET_NOT_FOUND) {
                 return;
             }
@@ -4429,12 +4430,12 @@ namespace SPA
                     res = r;
                     errMsg = err;
                 }
-                if (r && isolation != (int)tagTransactionIsolation::tiUnspecified && plan == (int)tagRollbackPlan::rpDefault)
+                if (r && isolation != (int) tagTransactionIsolation::tiUnspecified && plan == (int) tagRollbackPlan::rpDefault)
                     break;
                 affected += aff;
                 fail_ok += fo;
             }
-            if (isolation != (int)tagTransactionIsolation::tiUnspecified) {
+            if (isolation != (int) tagTransactionIsolation::tiUnspecified) {
                 EndTrans(plan, r, err);
                 if (r && !res) {
                     res = r;

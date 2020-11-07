@@ -131,9 +131,9 @@ namespace NJA {
     void NJQueue::getOS(const FunctionCallbackInfo<Value>& args) {
         NJQueue* obj = ObjectWrap::Unwrap<NJQueue>(args.Holder());
         if (obj->m_Buffer)
-            args.GetReturnValue().Set(Int32::New(args.GetIsolate(), (int)obj->m_Buffer->GetOS()));
+            args.GetReturnValue().Set(Int32::New(args.GetIsolate(), (int) obj->m_Buffer->GetOS()));
         else
-            args.GetReturnValue().Set(Int32::New(args.GetIsolate(), (int)SPA::GetOS()));
+            args.GetReturnValue().Set(Int32::New(args.GetIsolate(), (int) SPA::GetOS()));
     }
 
     void NJQueue::Discard(const FunctionCallbackInfo<Value>& args) {

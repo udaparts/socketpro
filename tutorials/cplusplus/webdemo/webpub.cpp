@@ -35,10 +35,10 @@ private:
         //Copy all files inside directories ../socketpro/bin/js and
         //../socketpro/tutorials/webtests into the directory
         //where the application is located
-        ok = m_myHttp.AddMe((unsigned int)tagServiceID::sidHTTP);
-        ok = m_myHttp.AddSlowRequest((unsigned short)tagHttpRequestID::idGet);
-        ok = m_myHttp.AddSlowRequest((unsigned short)tagHttpRequestID::idPost);
-        ok = m_myHttp.AddSlowRequest((unsigned short)tagHttpRequestID::idUserRequest);
+        ok = m_myHttp.AddMe((unsigned int) tagServiceID::sidHTTP);
+        ok = m_myHttp.AddSlowRequest((unsigned short) tagHttpRequestID::idGet);
+        ok = m_myHttp.AddSlowRequest((unsigned short) tagHttpRequestID::idPost);
+        ok = m_myHttp.AddSlowRequest((unsigned short) tagHttpRequestID::idUserRequest);
     }
 };
 

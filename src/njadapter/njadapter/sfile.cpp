@@ -2,8 +2,7 @@
 #include "stdafx.h"
 #include "njfile.h"
 
-namespace NJA
-{
+namespace NJA {
 
     CSFile::CSFile(CClientSocket * cs) : CStreamingFile(cs) {
         SetLoop();

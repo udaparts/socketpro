@@ -29,7 +29,7 @@ namespace SPA {
             CAsyncDBHandler(unsigned int sid, CClientSocket* cs)
             : CAsyncServiceHandler(sid, cs),
             m_affected(-1), m_dbErrCode(0), m_lastReqId(0),
-            m_indexRowset(0), m_indexProc(0), m_ms(msUnknown), m_flags(0),
+            m_indexRowset(0), m_indexProc(0), m_ms(tagManagementSystem::msUnknown), m_flags(0),
             m_parameters(0), m_outputs(0), m_bCallReturn(false), m_queueOk(false), m_nParamPos(0) {
 #ifdef NODE_JS_ADAPTER_PROJECT
                 ::memset(&m_typeDB, 0, sizeof (m_typeDB));
@@ -1171,17 +1171,19 @@ namespace SPA {
             }
 #endif
         protected:
+
             static DExecuteResult get_er(const std::shared_ptr<std::promise<SQLExeInfo> >& prom) {
-                return [prom](CAsyncDBHandler& dbHandler, int res, const std::wstring& errMsg, INT64 affected, UINT64 fail_ok, CDBVariant& vtId) {
-                    unsigned int oks = (unsigned int)(fail_ok & 0xffffffff);
-                    unsigned int fails = (unsigned int)(fail_ok >> 32);
+                return [prom](CAsyncDBHandler& dbHandler, int res, const std::wstring& errMsg, INT64 affected, UINT64 fail_ok, CDBVariant & vtId) {
+                    unsigned int oks = (unsigned int) (fail_ok & 0xffffffff);
+                    unsigned int fails = (unsigned int) (fail_ok >> 32);
                     prom->set_value(SQLExeInfo(res, errMsg.c_str(), affected, oks, fails, vtId));
                 };
             }
 
         private:
+
             static DResult get_d(const std::shared_ptr<std::promise<ErrInfo> >& prom) {
-                return [prom](CAsyncDBHandler& dbHandler, int res, const std::wstring& errMsg) {
+                return [prom](CAsyncDBHandler& dbHandler, int res, const std::wstring & errMsg) {
                     prom->set_value(ErrInfo(res, errMsg.c_str()));
                 };
             }

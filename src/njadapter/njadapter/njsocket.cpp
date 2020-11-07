@@ -146,7 +146,7 @@ namespace NJA {
             auto p = args[0];
             if (p->IsInt32()) {
                 SPA::INT64 data = p->IntegerValue(isolate->GetCurrentContext()).ToChecked();
-                if (data < 0 || data > (int)SPA::tagShutdownType::stBoth) {
+                if (data < 0 || data > (int) SPA::tagShutdownType::stBoth) {
                     ThrowException(isolate, INTEGER_EXPECTED);
                     return;
                 }
@@ -193,7 +193,7 @@ namespace NJA {
             auto p = args[0];
             if (p->IsInt32()) {
                 SPA::UINT64 data = p->IntegerValue(isolate->GetCurrentContext()).ToChecked();
-                if (data < 0 || data > (int)tagZipLevel::zlBestCompression) {
+                if (data < 0 || data > (int) tagZipLevel::zlBestCompression) {
                     ThrowException(isolate, "Bad zip level value");
                     return;
                 }
@@ -203,7 +203,7 @@ namespace NJA {
                 return;
             }
             obj->m_socket->SetZipLevel(zip);
-            args.GetReturnValue().Set(Int32::New(isolate, (int)obj->m_socket->GetZipLevel()));
+            args.GetReturnValue().Set(Int32::New(isolate, (int) obj->m_socket->GetZipLevel()));
         }
     }
 
@@ -211,7 +211,7 @@ namespace NJA {
         Isolate* isolate = args.GetIsolate();
         NJSocket* obj = ObjectWrap::Unwrap<NJSocket>(args.Holder());
         if (obj->IsValid(isolate)) {
-            args.GetReturnValue().Set(Int32::New(isolate, (int)obj->m_socket->GetZipLevel()));
+            args.GetReturnValue().Set(Int32::New(isolate, (int) obj->m_socket->GetZipLevel()));
         }
     }
 
@@ -334,7 +334,7 @@ namespace NJA {
         Isolate* isolate = args.GetIsolate();
         NJSocket* obj = ObjectWrap::Unwrap<NJSocket>(args.Holder());
         if (obj->IsValid(isolate)) {
-            args.GetReturnValue().Set(Int32::New(isolate, (int)obj->m_socket->GetConnectionState()));
+            args.GetReturnValue().Set(Int32::New(isolate, (int) obj->m_socket->GetConnectionState()));
         }
     }
 
@@ -348,7 +348,7 @@ namespace NJA {
                 return;
             }
             unsigned int reqId = p->Uint32Value(isolate->GetCurrentContext()).ToChecked();
-            if (reqId > 0xffff || reqId <= (unsigned short)SPA::tagBaseRequestID::idReservedTwo) {
+            if (reqId > 0xffff || reqId <= (unsigned short) SPA::tagBaseRequestID::idReservedTwo) {
                 ThrowException(isolate, "An unsigned short request id expected");
                 return;
             }
@@ -409,7 +409,7 @@ namespace NJA {
         Isolate* isolate = args.GetIsolate();
         NJSocket* obj = ObjectWrap::Unwrap<NJSocket>(args.Holder());
         if (obj->IsValid(isolate)) {
-            args.GetReturnValue().Set(Int32::New(isolate, (int)obj->m_socket->GetEncryptionMethod()));
+            args.GetReturnValue().Set(Int32::New(isolate, (int) obj->m_socket->GetEncryptionMethod()));
         }
     }
 
@@ -449,7 +449,7 @@ namespace NJA {
             objCC->Set(ctx, ToStr(isolate, u"User", 4), ToStr(isolate, s.c_str(), s.size()));
 #endif
             objCC->Set(ctx, ToStr(isolate, u"Pwd", 3), Null(isolate)); //no password returned
-            objCC->Set(ctx, ToStr(isolate, u"EM", 2), Number::New(isolate, (int)cc.EncrytionMethod));
+            objCC->Set(ctx, ToStr(isolate, u"EM", 2), Number::New(isolate, (int) cc.EncrytionMethod));
             objCC->Set(ctx, ToStr(isolate, u"Zip", 3), Boolean::New(isolate, cc.Zip));
             objCC->Set(ctx, ToStr(isolate, u"V6", 2), Boolean::New(isolate, cc.V6));
             objCC->Set(ctx, ToStr(isolate, u"AnyData", 7), From(isolate, cc.AnyData));
@@ -531,7 +531,7 @@ namespace NJA {
         Isolate* isolate = args.GetIsolate();
         NJSocket* obj = ObjectWrap::Unwrap<NJSocket>(args.Holder());
         if (obj->IsValid(isolate)) {
-            args.GetReturnValue().Set(Int32::New(isolate, (int)obj->m_socket->GetPeerOs()));
+            args.GetReturnValue().Set(Int32::New(isolate, (int) obj->m_socket->GetPeerOs()));
         }
     }
 
@@ -584,7 +584,7 @@ namespace NJA {
         Isolate* isolate = args.GetIsolate();
         NJSocket* obj = ObjectWrap::Unwrap<NJSocket>(args.Holder());
         if (obj->IsValid(isolate)) {
-            int zl = (int)tagZipLevel::zlDefault;
+            int zl = (int) tagZipLevel::zlDefault;
             auto p = args[0];
             if (p->IsInt32()) {
                 zl = p->Int32Value(isolate->GetCurrentContext()).ToChecked();
@@ -592,11 +592,11 @@ namespace NJA {
                 ThrowException(isolate, INTEGER_EXPECTED);
                 return;
             }
-            if (zl > (int)tagZipLevel::zlBestCompression) {
+            if (zl > (int) tagZipLevel::zlBestCompression) {
                 ThrowException(isolate, "Bad zip level value");
                 return;
             }
-            args.GetReturnValue().Set(Boolean::New(isolate, obj->m_socket->SetZipLevelAtSvr((tagZipLevel)zl)));
+            args.GetReturnValue().Set(Boolean::New(isolate, obj->m_socket->SetZipLevelAtSvr((tagZipLevel) zl)));
         }
     }
 }
