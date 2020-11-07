@@ -68,13 +68,13 @@ namespace PA
         table.method<&CPhpTable::__construct>(PHP_CONSTRUCT, Php::Private);
 
         //SPA::CTable::Operator
-        table.property("equal", (int)SPA::CTable::Operator::equal, Php::Const);
-        table.property("great", (int)SPA::CTable::Operator::great, Php::Const);
-        table.property("less", (int)SPA::CTable::Operator::less, Php::Const);
-        table.property("great_equal", (int)SPA::CTable::Operator::great_equal, Php::Const);
-        table.property("less_equal", (int)SPA::CTable::Operator::less_equal, Php::Const);
-        table.property("not_equal", (int)SPA::CTable::Operator::not_equal, Php::Const);
-        table.property("is_null", (int)SPA::CTable::Operator::is_null, Php::Const);
+        table.property("equal", (int) SPA::CTable::Operator::equal, Php::Const);
+        table.property("great", (int) SPA::CTable::Operator::great, Php::Const);
+        table.property("less", (int) SPA::CTable::Operator::less, Php::Const);
+        table.property("great_equal", (int) SPA::CTable::Operator::great_equal, Php::Const);
+        table.property("less_equal", (int) SPA::CTable::Operator::less_equal, Php::Const);
+        table.property("not_equal", (int) SPA::CTable::Operator::not_equal, Php::Const);
+        table.property("is_null", (int) SPA::CTable::Operator::is_null, Php::Const);
 
         table.method<&CPhpTable::Find>("Find",{
             Php::ByVal(PHP_ORDINAL, Php::Type::Numeric),
@@ -203,7 +203,7 @@ namespace PA
         bool copyData = false;
         unsigned int ordinal = (unsigned int) params[0].numericValue();
         int64_t n = params[1].numericValue();
-        if (n < (int)SPA::CTable::Operator::equal || n > (int)SPA::CTable::Operator::is_null) {
+        if (n < (int) SPA::CTable::Operator::equal || n > (int) SPA::CTable::Operator::is_null) {
             throw Php::Exception("Bad operation value");
         }
         SPA::CTable::Operator op = (SPA::CTable::Operator)n;

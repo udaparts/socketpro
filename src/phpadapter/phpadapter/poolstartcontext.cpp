@@ -16,15 +16,15 @@ namespace PA
     void CPoolStartContext::Clean() {
         if (PhpHandler) {
             switch (SvsId) {
-            case (unsigned int)SPA::tagServiceID::sidODBC:
+                case (unsigned int) SPA::tagServiceID::sidODBC:
                 case SPA::Sqlite::sidSqlite:
                 case SPA::Mysql::sidMysql:
                     delete PhpDb;
                     break;
-                case (unsigned int)SPA::tagServiceID::sidChat:
+                case (unsigned int) SPA::tagServiceID::sidChat:
                     delete PhpQueue;
                     break;
-                case (unsigned int)SPA::tagServiceID::sidFile:
+                case (unsigned int) SPA::tagServiceID::sidFile:
                     delete PhpFile;
                     break;
                 default:
@@ -85,7 +85,7 @@ namespace PA
         assert(!PhpHandler);
         std::wstring dfltDb = SPA::Utilities::ToWide(DefaultDb);
         switch (SvsId) {
-            case (unsigned int)SPA::tagServiceID::sidODBC:
+            case (unsigned int) SPA::tagServiceID::sidODBC:
             case SPA::Sqlite::sidSqlite:
             case SPA::Mysql::sidMysql:
                 switch (PoolType) {
@@ -118,7 +118,7 @@ namespace PA
                 };
 #endif
                 break;
-            case (unsigned int)SPA::tagServiceID::sidChat:
+            case (unsigned int) SPA::tagServiceID::sidChat:
                 PhpQueue = new CPhpQueuePool(AutoConn, RecvTimeout, ConnTimeout, SvsId);
                 PhpQueue->DoSslServerAuthentication = [this](CPhpQueuePool *pool, CClientSocket * cs)->bool {
                     return this->DoSSLAuth(cs);
@@ -132,7 +132,7 @@ namespace PA
                     PhpQueue->SetQueueName(Queue.c_str());
                 }
                 break;
-            case (unsigned int)SPA::tagServiceID::sidFile:
+            case (unsigned int) SPA::tagServiceID::sidFile:
                 PhpFile = new CPhpFilePool(AutoConn, RecvTimeout, ConnTimeout, SvsId);
                 PhpFile->DoSslServerAuthentication = [this](CPhpFilePool *pool, CClientSocket * cs)->bool {
                     return this->DoSSLAuth(cs);

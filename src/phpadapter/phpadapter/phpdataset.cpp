@@ -159,7 +159,7 @@ namespace PA
         std::wstring tableName = SPA::Utilities::ToWide(params[1].stringValue());
         unsigned int ordinal = (unsigned int) params[2].numericValue();
         int64_t n = params[3].numericValue();
-        if (n < (int)SPA::CTable::Operator::equal || n > (int)SPA::CTable::Operator::is_null) {
+        if (n < (int) SPA::CTable::Operator::equal || n > (int) SPA::CTable::Operator::is_null) {
             throw Php::Exception("Bad operation value");
         }
         SPA::CTable::Operator op = (SPA::CTable::Operator)n;
@@ -363,7 +363,7 @@ namespace PA
         } else if (name == "DataCaseSensitive") {
             return m_ds.GetDataCaseSensitive();
         } else if (name == "DBMS" || name == "DBManagementSystem") {
-            return (int)m_ds.GetDBManagementSystem();
+            return (int) m_ds.GetDBManagementSystem();
         } else if (name == "DBNameCaseSensitive") {
             return m_ds.GetDBNameCaseSensitive();
         } else if (name == "DBIp" || name == "DBServerIp") {

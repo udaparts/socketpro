@@ -43,7 +43,7 @@ namespace PA
                     return obj;
                 }
                 break;
-                */
+                 */
             case SPA::SFile::sidFile:
             {
                 auto handler = m_qName.size() ? File->SeekByQueue() : File->Seek();
@@ -171,10 +171,10 @@ namespace PA
                 case SPA::Sqlite::sidSqlite:
                     ss = Db->GetSockets();
                     break;
-                case (unsigned int)SPA::tagServiceID::sidChat:
+                case (unsigned int) SPA::tagServiceID::sidChat:
                     ss = Queue->GetSockets();
                     break;
-                case (unsigned int)SPA::tagServiceID::sidFile:
+                case (unsigned int) SPA::tagServiceID::sidFile:
                     ss = File->GetSockets();
                     break;
                 default:
@@ -235,8 +235,8 @@ namespace PA
                     return cache;
                 }
                     break;
-                case (unsigned int)SPA::tagServiceID::sidFile:
-                case (unsigned int)SPA::tagServiceID::sidChat:
+                case (unsigned int) SPA::tagServiceID::sidFile:
+                case (unsigned int) SPA::tagServiceID::sidChat:
                     assert(false); //shouldn't come here
                     break;
                 default:
@@ -257,9 +257,9 @@ namespace PA
         pool.property("DEFAULT_CONN_TIMEOUT", (int64_t) SPA::ClientSide::DEFAULT_CONN_TIMEOUT, Php::Const);
 
         //tagPoolType
-        pool.property("Regular", (int)tagPoolType::Regular, Php::Const);
-        pool.property("Slave", (int)tagPoolType::Slave, Php::Const);
-        pool.property("Master", (int)tagPoolType::Master, Php::Const);
+        pool.property("Regular", (int) tagPoolType::Regular, Php::Const);
+        pool.property("Slave", (int) tagPoolType::Slave, Php::Const);
+        pool.property("Master", (int) tagPoolType::Master, Php::Const);
 
         pool.method<&CPhpSocketPool::__construct>(PHP_CONSTRUCT, Php::Private);
         pool.method<&CPhpSocketPool::Lock>("Lock",{

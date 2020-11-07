@@ -227,7 +227,7 @@ namespace PA
         if (args > 3) {
             if (params[3].isNumeric()) {
                 int64_t o = params[3].numericValue();
-                if (o < 0 || o > (int)SPA::tagOptimistic::oDiskCommitted) {
+                if (o < 0 || o > (int) SPA::tagOptimistic::oDiskCommitted) {
                     throw Php::Exception("Bad value for memory queue flush status");
                 }
                 option = (SPA::tagOptimistic)o;
@@ -445,7 +445,7 @@ namespace PA
     Php::Value CPhpQueue::Enqueue(Php::Parameters & params) {
         std::string key = GetKey(params[0]);
         int64_t idMsg = params[1].numericValue();
-        if (idMsg <= (unsigned int)SPA::tagBaseRequestID::idReservedTwo || idMsg > 0xffff) {
+        if (idMsg <= (unsigned int) SPA::tagBaseRequestID::idReservedTwo || idMsg > 0xffff) {
             throw Php::Exception("Bad message request Id");
         }
         unsigned int bytes = 0;
@@ -484,7 +484,7 @@ namespace PA
 
     void CPhpQueue::BatchMessage(Php::Parameters & params) {
         int64_t idMsg = params[0].numericValue();
-        if (idMsg <= (unsigned short)SPA::tagBaseRequestID::idReservedTwo || idMsg > 0xffff) {
+        if (idMsg <= (unsigned short) SPA::tagBaseRequestID::idReservedTwo || idMsg > 0xffff) {
             throw Php::Exception("Bad message request Id");
         }
         m_pBuff->EnsureBuffer();
