@@ -5,7 +5,7 @@ using std::chrono::system_clock;
 typedef std::chrono::milliseconds ms;
 
 #define TEST_QUEUE_KEY "qperf"
-static const unsigned short idMessage = idReservedTwo + 128;
+static const unsigned short idMessage = (unsigned short)tagBaseRequestID::idReservedTwo + 128;
 
 typedef CSocketPool<CAsyncQueue, CClientSocket> CMyPool;
 

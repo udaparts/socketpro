@@ -15,7 +15,7 @@ bool CYourServer::OnIsPermitted(USocket_Server_Handle h, const wchar_t* userId, 
 
 bool CYourServer::OnSettingServer(unsigned int listeningPort, unsigned int maxBacklog, bool v6) {
     //amIntegrated and amMixed not supported yet
-    CSocketProServer::Config::SetAuthenticationMethod(amOwn);
+    CSocketProServer::Config::SetAuthenticationMethod(tagAuthenticationMethod::amOwn);
 
     SetChatGroups();
 

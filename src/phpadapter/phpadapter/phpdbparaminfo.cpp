@@ -12,7 +12,7 @@ namespace PA
 
     void CPhpDBParamInfo::__construct(Php::Parameters & params) {
         int64_t n = params[0].numericValue();
-        if (n < SPA::UDB::pdInput || n > SPA::UDB::pdReturnValue) {
+        if (n < (int)SPA::UDB::tagParameterDirection::pdInput || n >(int)SPA::UDB::tagParameterDirection::pdReturnValue) {
             throw Php::Exception("Bad parameter direction value");
         }
         m_pi.Direction = (SPA::UDB::tagParameterDirection)n;
@@ -104,11 +104,11 @@ namespace PA
         reg.property("VT_XML", SPA::VT_XML, Php::Const);
 
         //tagParameterDirection
-        reg.property("pdUnknown", SPA::UDB::pdUnknown, Php::Const);
-        reg.property("pdInput", SPA::UDB::pdInput, Php::Const);
-        reg.property("pdOutput", SPA::UDB::pdOutput, Php::Const);
-        reg.property("pdInputOutput", SPA::UDB::pdInputOutput, Php::Const);
-        reg.property("pdReturnValue", SPA::UDB::pdReturnValue, Php::Const);
+        reg.property("pdUnknown", (int)SPA::UDB::tagParameterDirection::pdUnknown, Php::Const);
+        reg.property("pdInput", (int)SPA::UDB::tagParameterDirection::pdInput, Php::Const);
+        reg.property("pdOutput", (int)SPA::UDB::tagParameterDirection::pdOutput, Php::Const);
+        reg.property("pdInputOutput", (int)SPA::UDB::tagParameterDirection::pdInputOutput, Php::Const);
+        reg.property("pdReturnValue", (int)SPA::UDB::tagParameterDirection::pdReturnValue, Php::Const);
 
         reg.method<&CPhpDBParamInfo::__construct>(PHP_CONSTRUCT,{
             Php::ByVal("direction", Php::Type::Numeric),
@@ -123,7 +123,7 @@ namespace PA
 
     Php::Value CPhpDBParamInfo::__get(const Php::Value & name) {
         if (name == "Direction") {
-            return m_pi.Direction;
+            return (int)m_pi.Direction;
         } else if (name == PHP_DATATYPE) {
             return m_pi.DataType;
         } else if (name == PHP_COLUMN_SIZE) {

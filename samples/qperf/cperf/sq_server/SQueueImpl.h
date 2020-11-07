@@ -7,7 +7,7 @@ protected:
 
     virtual bool OnSettingServer(unsigned int listeningPort, unsigned int maxBacklog, bool v6) {
         //amIntegrated and amMixed not supported yet
-        Config::SetAuthenticationMethod(amOwn);
+        Config::SetAuthenticationMethod(tagAuthenticationMethod::amOwn);
         return true;
     }
 };

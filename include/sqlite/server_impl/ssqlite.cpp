@@ -9,7 +9,7 @@ void WINAPI SetSqliteDBGlobalConnectionString(const wchar_t *dbConnection) {
 
 bool WINAPI InitServerLibrary(int param) {
     CSqliteImpl::SetInitialParam((unsigned int) param);
-    g_pSqlite.reset(new CSqliteService(SPA::Sqlite::sidSqlite, SPA::taNone));
+    g_pSqlite.reset(new CSqliteService(SPA::Sqlite::sidSqlite, SPA::tagThreadApartment::taNone));
     if ((param & Sqlite::USE_SHARED_CACHE_MODE) == Sqlite::USE_SHARED_CACHE_MODE) {
         sqlite3_enable_shared_cache(1);
     }

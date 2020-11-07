@@ -86,9 +86,9 @@ namespace NJA {
         Release();
     }
 
-    void NJSocketPool::SendPoolEvent(tagSocketPoolEvent spe, SPA::ClientSide::PAsyncServiceHandler handler) {
+    void NJSocketPool::SendPoolEvent(tagSocketPoolEvent spe, PAsyncServiceHandler handler) {
         switch (spe) {
-            case SPA::ClientSide::speUSocketCreated:
+            case tagSocketPoolEvent::speUSocketCreated:
                 handler->GetSocket()->m_asyncType = &m_csType;
                 break;
             default:
@@ -281,11 +281,11 @@ namespace NJA {
             if (args[0]->IsUint32()) {
                 svsId = args[0]->Uint32Value(isolate->GetCurrentContext()).ToChecked();
             }
-            if (svsId < SPA::sidChat || (svsId > SPA::sidODBC && svsId <= SPA::sidReserved)) {
+            if (svsId < (unsigned int)tagServiceID::sidChat || (svsId > (unsigned int)tagServiceID::sidODBC && svsId <= (unsigned int)tagServiceID::sidReserved)) {
                 ThrowException(isolate, "A valid unsigned int required for service id");
                 return;
             }
-            if (svsId == sidHTTP) {
+            if (svsId == (unsigned int)tagServiceID::sidHTTP) {
                 ThrowException(isolate, "No support to HTTP/websocket at client side");
                 return;
             }
@@ -313,10 +313,10 @@ namespace NJA {
             }
             if (db.size() || slave) {
                 switch (svsId) {
-                    case sidFile:
+                    case (unsigned int)tagServiceID::sidFile:
                         ThrowException(isolate, "File streaming doesn't support master-slave pool");
                         return;
-                    case sidChat:
+                    case (unsigned int)tagServiceID::sidChat:
                         ThrowException(isolate, "Persistent queue doesn't support master-slave pool");
                         return;
                     default:
@@ -350,7 +350,7 @@ namespace NJA {
                 const PoolEvent &pe = obj->m_deqPoolEvent.front();
                 if (!obj->m_evPool.IsEmpty()) {
                     Local<Value> argv[2];
-                    argv[0] = Int32::New(isolate, pe.Spe);
+                    argv[0] = Int32::New(isolate, (int)pe.Spe);
                     auto handler = pe.Handler;
                     if (handler) {
                         unsigned int svsId = handler->GetSvsID();
@@ -422,7 +422,7 @@ namespace NJA {
                 if (ash) {
                     sid = ash->GetSvsID();
                     switch (se.Se) {
-                        case seChatEnter:
+                        case tagSocketEvent::seChatEnter:
                             if (!obj->m_push.IsEmpty()) {
                                 Local<String> jsName = ToStr(isolate, u"Subscribe", 9);
                                 auto sender = ToMessageSender(isolate, *se.QData);
@@ -435,7 +435,7 @@ namespace NJA {
                                 cb->Call(isolate->GetCurrentContext(), Null(isolate), 4, argv);
                             }
                             break;
-                        case seChatExit:
+                        case tagSocketEvent::seChatExit:
                             if (!obj->m_push.IsEmpty()) {
                                 Local<String> jsName = ToStr(isolate, u"Unsubscribe", 11);
                                 auto sender = ToMessageSender(isolate, *se.QData);
@@ -448,7 +448,7 @@ namespace NJA {
                                 cb->Call(isolate->GetCurrentContext(), Null(isolate), 4, argv);
                             }
                             break;
-                        case sePublish:
+                        case tagSocketEvent::sePublish:
                             if (!obj->m_push.IsEmpty()) {
                                 Local<String> jsName = ToStr(isolate, u"Publish", 7);
                                 auto sender = ToMessageSender(isolate, *se.QData);
@@ -464,7 +464,7 @@ namespace NJA {
                                 cb->Call(isolate->GetCurrentContext(), Null(isolate), 5, argv);
                             }
                             break;
-                        case sePublishEx:
+                        case tagSocketEvent::sePublishEx:
                             if (!obj->m_push.IsEmpty()) {
                                 Local<String> jsName = ToStr(isolate, u"PublishEx", 9);
                                 auto sender = ToMessageSender(isolate, *se.QData);
@@ -479,7 +479,7 @@ namespace NJA {
                                 cb->Call(isolate->GetCurrentContext(), Null(isolate), 5, argv);
                             }
                             break;
-                        case sePostUserMessage:
+                        case tagSocketEvent::sePostUserMessage:
                             if (!obj->m_push.IsEmpty()) {
                                 Local<String> jsName = ToStr(isolate, u"SendMessage", 11);
                                 auto sender = ToMessageSender(isolate, *se.QData);
@@ -492,7 +492,7 @@ namespace NJA {
                                 cb->Call(isolate->GetCurrentContext(), Null(isolate), 4, argv);
                             }
                             break;
-                        case sePostUserMessageEx:
+                        case tagSocketEvent::sePostUserMessageEx:
                             if (!obj->m_push.IsEmpty()) {
                                 Local<String> jsName = ToStr(isolate, u"SendMessageEx", 13);
                                 auto sender = ToMessageSender(isolate, *se.QData);
@@ -504,7 +504,7 @@ namespace NJA {
                                 cb->Call(isolate->GetCurrentContext(), Null(isolate), 4, argv);
                             }
                             break;
-                        case seAllProcessed:
+                        case tagSocketEvent::seAllProcessed:
                             run_micro = true;
                             if (ash && !ash->GetSocket()->GetCountOfRequestsInQueue()) {
                                 ash->CleanFuncBackups();
@@ -515,14 +515,14 @@ namespace NJA {
                                 cb->Call(isolate->GetCurrentContext(), Null(isolate), 2, argv);
                             }
                             break;
-                        case seBaseRequestProcessed:
+                        case tagSocketEvent::seBaseRequestProcessed:
                             if (!obj->m_brp.IsEmpty()) {
                                 Local<Value> argv[] = {njAsh, jsReqId};
                                 Local<Function> cb = Local<Function>::New(isolate, obj->m_brp);
                                 cb->Call(isolate->GetCurrentContext(), Null(isolate), 2, argv);
                             }
                             break;
-                        case seResultReturned:
+                        case tagSocketEvent::seResultReturned:
                             if (!obj->m_rr.IsEmpty()) {
                                 Local<Function> cb = Local<Function>::New(isolate, obj->m_rr);
                                 Local<Value> argv[3];
@@ -541,7 +541,7 @@ namespace NJA {
                                 objQueue->Release();
                             }
                             break;
-                        case seServerException:
+                        case tagSocketEvent::seServerException:
                             if (!obj->m_se.IsEmpty()) {
                                 SPA::CDBString errMsg;
                                 std::string errWhere;
@@ -1131,11 +1131,11 @@ namespace NJA {
             ThrowException(isolate, "An integer for encryption method expected");
             return false;
         }
-        if (em > TLSv1) {
+        if (em > (int)tagEncryptionMethod::TLSv1) {
             ThrowException(isolate, "Invalid encryption method");
             return false;
         }
-        cc.EncrytionMethod = (SPA::tagEncryptionMethod)em;
+        cc.EncrytionMethod = (tagEncryptionMethod)em;
 
         v = obj->Get(ToStr(isolate, u"Zip", 3));
         if (v->IsBoolean() || v->IsUint32()) {

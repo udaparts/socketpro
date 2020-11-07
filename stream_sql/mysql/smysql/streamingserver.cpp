@@ -274,24 +274,24 @@ CStreamingServer::CStreamingServer(int nParam)
 }
 
 bool CHttpPeer::DoAuthentication(const wchar_t *userId, const wchar_t *password) {
-    if (GetTransport() != SPA::ServerSide::tWebSocket)
+    if (GetTransport() != SPA::ServerSide::tagTransport::tWebSocket)
         return true;
     unsigned int port = 0;
     std::string ip = this->GetPeerName(&port);
     if (ip == "127.0.0.1" || ip == "::ffff:127.0.0.1" || ip == "::1")
         ip = "localhost";
-    return SPA::ServerSide::CMysqlImpl::Authenticate(userId, password, ip, SPA::sidHTTP);
+    return SPA::ServerSide::CMysqlImpl::Authenticate(userId, password, ip, (unsigned int)SPA::tagServiceID::sidHTTP);
 }
 
 void CHttpPeer::OnFastRequestArrive(unsigned short requestId, unsigned int len) {
     switch (requestId) {
-        case SPA::ServerSide::idDelete:
-        case SPA::ServerSide::idPut:
-        case SPA::ServerSide::idTrace:
-        case SPA::ServerSide::idOptions:
-        case SPA::ServerSide::idHead:
-        case SPA::ServerSide::idMultiPart:
-        case SPA::ServerSide::idConnect:
+        case (unsigned short)SPA::ServerSide::tagHttpRequestID::idDelete:
+        case (unsigned short)SPA::ServerSide::tagHttpRequestID::idPut:
+        case (unsigned short)SPA::ServerSide::tagHttpRequestID::idTrace:
+        case (unsigned short)SPA::ServerSide::tagHttpRequestID::idOptions:
+        case (unsigned short)SPA::ServerSide::tagHttpRequestID::idHead:
+        case (unsigned short)SPA::ServerSide::tagHttpRequestID::idMultiPart:
+        case (unsigned short)SPA::ServerSide::tagHttpRequestID::idConnect:
             SetResponseCode(501);
             SendResult("Server doesn't support DELETE, PUT, TRACE, OPTIONS, HEAD, CONNECT and POST with multipart");
             break;
@@ -304,7 +304,7 @@ void CHttpPeer::OnFastRequestArrive(unsigned short requestId, unsigned int len) 
 
 int CHttpPeer::OnSlowRequestArrive(unsigned short requestId, unsigned int len) {
     switch (requestId) {
-        case SPA::ServerSide::idGet:
+        case (unsigned short)SPA::ServerSide::tagHttpRequestID::idGet:
         {
             const char *path = GetPath();
             if (::strstr(path, "."))
@@ -313,10 +313,10 @@ int CHttpPeer::OnSlowRequestArrive(unsigned short requestId, unsigned int len) {
                 SendResult("Unsupported GET request");
         }
             break;
-        case SPA::ServerSide::idPost:
+        case (unsigned short)SPA::ServerSide::tagHttpRequestID::idPost:
             SendResult("Unsupported POST request");
             break;
-        case SPA::ServerSide::idUserRequest:
+        case (unsigned short)SPA::ServerSide::tagHttpRequestID::idUserRequest:
         {
             const std::string &RequestName = GetUserRequestName();
             if (RequestName == "subscribeTableEvents") {
@@ -343,7 +343,7 @@ bool CStreamingServer::OnIsPermitted(USocket_Server_Handle h, const wchar_t* use
     if (ip == "127.0.0.1" || ip == "::ffff:127.0.0.1" || ip == "::1")
         ip = "localhost";
     switch (serviceId) {
-        case SPA::sidHTTP:
+        case (unsigned int)SPA::tagServiceID::sidHTTP:
             break;
         default:
             return SPA::ServerSide::CMysqlImpl::Authenticate(userId, password, ip, serviceId);
@@ -358,7 +358,7 @@ void CStreamingServer::OnIdle(SPA::INT64 milliseconds) {
 
 bool CStreamingServer::OnSettingServer(unsigned int listeningPort, unsigned int maxBacklog, bool v6) {
     //amIntegrated and amMixed not supported yet
-    CSocketProServer::Config::SetAuthenticationMethod(SPA::ServerSide::amOwn);
+    CSocketProServer::Config::SetAuthenticationMethod(SPA::ServerSide::tagAuthenticationMethod::amOwn);
 
     //register streaming sql database events
     PushManager::AddAChatGroup(SPA::UDB::STREAMING_SQL_CHAT_GROUP_ID, L"Streaming SQL Database Events");
@@ -368,7 +368,7 @@ bool CStreamingServer::OnSettingServer(unsigned int listeningPort, unsigned int 
 }
 
 bool CStreamingServer::AddService() {
-    bool ok = m_MySql.AddMe(SPA::Mysql::sidMysql, SPA::taNone);
+    bool ok = m_MySql.AddMe(SPA::Mysql::sidMysql, SPA::tagThreadApartment::taNone);
     if (!ok)
         return false;
     ok = m_MySql.AddSlowRequest(SPA::UDB::idOpen);
@@ -397,16 +397,16 @@ bool CStreamingServer::AddService() {
         return false;
     if (!CSetGlobals::Globals.enable_http_websocket)
         return true;
-    ok = m_myHttp.AddMe(SPA::sidHTTP);
+    ok = m_myHttp.AddMe((unsigned int)SPA::tagServiceID::sidHTTP);
     if (!ok)
         return false;
-    ok = m_myHttp.AddSlowRequest(SPA::ServerSide::idGet);
+    ok = m_myHttp.AddSlowRequest((unsigned short)SPA::ServerSide::tagHttpRequestID::idGet);
     if (!ok)
         return false;
-    ok = m_myHttp.AddSlowRequest(SPA::ServerSide::idPost);
+    ok = m_myHttp.AddSlowRequest((unsigned short)SPA::ServerSide::tagHttpRequestID::idPost);
     if (!ok)
         return false;
-    ok = m_myHttp.AddSlowRequest(SPA::ServerSide::idUserRequest);
+    ok = m_myHttp.AddSlowRequest((unsigned short)SPA::ServerSide::tagHttpRequestID::idUserRequest);
     if (!ok)
         return false;
     return true;

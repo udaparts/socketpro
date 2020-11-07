@@ -50,7 +50,7 @@ namespace SPA {
             CAsyncDBHandler(CClientSocket* cs)
             : CAsyncServiceHandler(serviceId, cs),
             m_affected(-1), m_dbErrCode(0), m_lastReqId(0),
-            m_indexRowset(0), m_indexProc(0), m_ms(msUnknown), m_flags(0),
+            m_indexRowset(0), m_indexProc(0), m_ms(tagManagementSystem::msUnknown), m_flags(0),
             m_parameters(0), m_outputs(0), m_bCallReturn(false), m_queueOk(false), m_nParamPos(0) {
 #ifdef NODE_JS_ADAPTER_PROJECT
                 ::memset(&m_typeDB, 0, sizeof (m_typeDB));
@@ -323,7 +323,7 @@ namespace SPA {
              */
             virtual bool ExecuteBatch(tagTransactionIsolation isolation, const wchar_t* sql, CDBVariantArray& vParam = CDBVariantArray(),
                     const DExecuteResult& handler = nullptr, const DRows& row = nullptr, const DRowsetHeader& rh = nullptr, const wchar_t* delimiter = L";",
-                    const DRowsetHeader& batchHeader = nullptr, const DDiscarded& discarded = nullptr, bool meta = true, tagRollbackPlan plan = rpDefault,
+                    const DRowsetHeader& batchHeader = nullptr, const DDiscarded& discarded = nullptr, bool meta = true, tagRollbackPlan plan = tagRollbackPlan::rpDefault,
                     const CParameterInfoArray& vPInfo = CParameterInfoArray(), bool lastInsertId = true, const DServerException& se = nullptr) {
                 bool rowset = (row) ? true : false;
                 meta = (meta && rh);
@@ -539,7 +539,7 @@ namespace SPA {
              */
             virtual bool ExecuteBatch(tagTransactionIsolation isolation, const char16_t* sql, CDBVariantArray& vParam = CDBVariantArray(),
                     const DExecuteResult& handler = nullptr, const DRows& row = nullptr, const DRowsetHeader& rh = nullptr, const char16_t* delimiter = u";",
-                    const DRowsetHeader& batchHeader = nullptr, const DDiscarded& discarded = nullptr, bool meta = true, tagRollbackPlan plan = rpDefault,
+                    const DRowsetHeader& batchHeader = nullptr, const DDiscarded& discarded = nullptr, bool meta = true, tagRollbackPlan plan = tagRollbackPlan::rpDefault,
                     const CParameterInfoArray& vPInfo = CParameterInfoArray(), bool lastInsertId = true, const DServerException& se = nullptr) {
                 bool rowset = (row) ? true : false;
                 meta = (meta && rh);
@@ -821,7 +821,7 @@ namespace SPA {
              * @param se a callback for tracking an exception from server
              * @return true if request is successfully sent or queued; and false if request is NOT successfully sent or queued
              */
-            virtual bool BeginTrans(tagTransactionIsolation isolation = tiReadCommited, const DResult& handler = nullptr, const DDiscarded& discarded = nullptr, const DServerException& se = nullptr) {
+            virtual bool BeginTrans(tagTransactionIsolation isolation = tagTransactionIsolation::tiReadCommited, const DResult& handler = nullptr, const DDiscarded& discarded = nullptr, const DServerException& se = nullptr) {
                 unsigned int flags;
                 std::wstring connection;
                 CScopeUQueue sb;
@@ -872,7 +872,7 @@ namespace SPA {
              * @param se a callback for tracking an exception from server
              * @return true if request is successfully sent or queued; and false if request is NOT successfully sent or queued
              */
-            virtual bool EndTrans(tagRollbackPlan plan = rpDefault, const DResult& handler = nullptr, const DDiscarded& discarded = nullptr, const DServerException& se = nullptr) {
+            virtual bool EndTrans(tagRollbackPlan plan = tagRollbackPlan::rpDefault, const DResult& handler = nullptr, const DDiscarded& discarded = nullptr, const DServerException& se = nullptr) {
                 CScopeUQueue sb;
                 sb << (int) plan;
                 DResultHandler arh = [handler](CAsyncResult & ar) {
@@ -981,11 +981,11 @@ namespace SPA {
                 }
             };
 
-            DbWaiter wait_beginTrans(tagTransactionIsolation isolation = tiReadCommited) {
+            DbWaiter wait_beginTrans(tagTransactionIsolation isolation = tagTransactionIsolation::tiReadCommited) {
                 return DbWaiter(this, isolation);
             }
 
-            DbWaiter wait_endTrans(tagRollbackPlan plan = rpDefault) {
+            DbWaiter wait_endTrans(tagRollbackPlan plan = tagRollbackPlan::rpDefault) {
                 return DbWaiter(this, plan);
             }
 
@@ -1057,18 +1057,18 @@ namespace SPA {
 
             SqlWaiter wait_executeBatch(tagTransactionIsolation isolation, const wchar_t* sql, CDBVariantArray& vParam = CDBVariantArray(),
                     const DRows& row = nullptr, const DRowsetHeader& rh = nullptr, const wchar_t* delimiter = L";", const DRowsetHeader& batchHeader = nullptr,
-                    bool meta = true, tagRollbackPlan plan = rpDefault, const CParameterInfoArray& vPInfo = CParameterInfoArray(), bool lastInsertId = true) {
+                    bool meta = true, tagRollbackPlan plan = tagRollbackPlan::rpDefault, const CParameterInfoArray& vPInfo = CParameterInfoArray(), bool lastInsertId = true) {
                 return SqlWaiter(this, isolation, sql, vParam, row, rh, delimiter, batchHeader, meta, plan, vPInfo, lastInsertId);
             }
 
             SqlWaiter wait_executeBatch(tagTransactionIsolation isolation, const char16_t* sql, CDBVariantArray& vParam = CDBVariantArray(),
                     const DRows& row = nullptr, const DRowsetHeader& rh = nullptr, const char16_t* delimiter = u";", const DRowsetHeader& batchHeader = nullptr,
-                    bool meta = true, tagRollbackPlan plan = rpDefault, const CParameterInfoArray& vPInfo = CParameterInfoArray(), bool lastInsertId = true) {
+                    bool meta = true, tagRollbackPlan plan = tagRollbackPlan::rpDefault, const CParameterInfoArray& vPInfo = CParameterInfoArray(), bool lastInsertId = true) {
                 return SqlWaiter(this, isolation, sql, vParam, row, rh, delimiter, batchHeader, meta, plan, vPInfo, lastInsertId);
             }
 #endif
 
-            std::future<ErrInfo> beginTrans(tagTransactionIsolation isolation = tiReadCommited) {
+            std::future<ErrInfo> beginTrans(tagTransactionIsolation isolation = tagTransactionIsolation::tiReadCommited) {
                 std::shared_ptr<std::promise<ErrInfo> > prom(new std::promise<ErrInfo>);
                 if (!BeginTrans(isolation, get_d(prom), get_aborted(prom, idBeginTrans), get_se(prom))) {
                     raise(idBeginTrans);
@@ -1076,7 +1076,7 @@ namespace SPA {
                 return prom->get_future();
             }
 
-            std::future<ErrInfo> endTrans(tagRollbackPlan plan = rpDefault) {
+            std::future<ErrInfo> endTrans(tagRollbackPlan plan = tagRollbackPlan::rpDefault) {
                 std::shared_ptr<std::promise<ErrInfo> > prom(new std::promise<ErrInfo>);
                 if (!EndTrans(plan, get_d(prom), get_aborted(prom, idEndTrans), get_se(prom))) {
                     raise(idEndTrans);
@@ -1126,7 +1126,7 @@ namespace SPA {
 
             std::future<SQLExeInfo> executeBatch(tagTransactionIsolation isolation, const wchar_t* sql, CDBVariantArray& vParam = CDBVariantArray(),
                     const DRows& row = nullptr, const DRowsetHeader& rh = nullptr, const wchar_t* delimiter = L";", const DRowsetHeader& batchHeader = nullptr,
-                    bool meta = true, tagRollbackPlan plan = rpDefault, const CParameterInfoArray& vPInfo = CParameterInfoArray(), bool lastInsertId = true) {
+                    bool meta = true, tagRollbackPlan plan = tagRollbackPlan::rpDefault, const CParameterInfoArray& vPInfo = CParameterInfoArray(), bool lastInsertId = true) {
                 std::shared_ptr<std::promise<SQLExeInfo> > prom(new std::promise<SQLExeInfo>);
                 if (!ExecuteBatch(isolation, sql, vParam, get_er(prom), row, rh, delimiter, batchHeader, get_aborted(prom, idExecuteBatch), meta, plan, vPInfo, lastInsertId, get_se(prom))) {
                     raise(idExecuteBatch);
@@ -1162,7 +1162,7 @@ namespace SPA {
 
             std::future<SQLExeInfo> executeBatch(tagTransactionIsolation isolation, const char16_t* sql, CDBVariantArray& vParam = CDBVariantArray(),
                     const DRows& row = nullptr, const DRowsetHeader& rh = nullptr, const char16_t* delimiter = u";", const DRowsetHeader& batchHeader = nullptr,
-                    bool meta = true, tagRollbackPlan plan = rpDefault, const CParameterInfoArray& vPInfo = CParameterInfoArray(), bool lastInsertId = true) {
+                    bool meta = true, tagRollbackPlan plan = tagRollbackPlan::rpDefault, const CParameterInfoArray& vPInfo = CParameterInfoArray(), bool lastInsertId = true) {
                 std::shared_ptr<std::promise<SQLExeInfo> > prom(new std::promise<SQLExeInfo>);
                 if (!ExecuteBatch(isolation, sql, vParam, get_er(prom), row, rh, delimiter, batchHeader, get_aborted(prom, idExecuteBatch), meta, plan, vPInfo, lastInsertId, get_se(prom))) {
                     raise(idExecuteBatch);
@@ -1755,7 +1755,7 @@ namespace SPA {
 
         protected:
 
-            enum tagDBEvent {
+            enum class tagDBEvent {
                 eResult = 0,
                 eExecuteResult,
                 eRowsetHeader,
@@ -1785,7 +1785,7 @@ namespace SPA {
                     rh = [func](CAsyncDBHandler& db, const unsigned char* start, unsigned int bytes) {
                         assert(!bytes);
                         DBCb cb;
-                        cb.Type = eBatchHeader;
+                        cb.Type = tagDBEvent::eBatchHeader;
                         cb.Func = func;
                         cb.Buffer = CScopeUQueue::Lock();
                         PAsyncDBHandler ash = &db;
@@ -1826,7 +1826,7 @@ namespace SPA {
                     Backup(func);
                     rh = [func](CAsyncDBHandler& db, const unsigned char* start, unsigned int bytes) {
                         DBCb cb;
-                        cb.Type = eRowsetHeader;
+                        cb.Type = tagDBEvent::eRowsetHeader;
                         cb.Func = func;
                         cb.Buffer = CScopeUQueue::Lock();
                         PAsyncDBHandler ash = &db;
@@ -1853,7 +1853,7 @@ namespace SPA {
                     Backup(func);
                     rows = [func](CAsyncDBHandler& db, CUQueue & vData) {
                         DBCb cb;
-                        cb.Type = eRows;
+                        cb.Type = tagDBEvent::eRows;
                         cb.Func = func;
                         cb.Buffer = CScopeUQueue::Lock();
                         CUQueue* p = CScopeUQueue::Lock();
@@ -1890,7 +1890,7 @@ namespace SPA {
                     Backup(func);
                     result = [func](CAsyncDBHandler& db, int errCode, const std::wstring& errMsg, INT64 affected, UINT64 fail_ok, CDBVariant & vtId) {
                         DBCb cb;
-                        cb.Type = eExecuteResult;
+                        cb.Type = tagDBEvent::eExecuteResult;
                         cb.Func = func;
                         cb.Buffer = CScopeUQueue::Lock();
                         PAsyncDBHandler ash = &db;
@@ -1916,7 +1916,7 @@ namespace SPA {
                     Backup(func);
                     result = [func](CAsyncDBHandler& db, int errCode, const std::wstring & errMsg) {
                         DBCb cb;
-                        cb.Type = eResult;
+                        cb.Type = tagDBEvent::eResult;
                         cb.Func = func;
                         cb.Buffer = CScopeUQueue::Lock();
                         PAsyncDBHandler ash = &db;
@@ -1942,7 +1942,7 @@ namespace SPA {
                     Backup(func);
                     dd = [func](CAsyncServiceHandler* db, bool canceled) {
                         DBCb cb;
-                        cb.Type = eDiscarded;
+                        cb.Type = tagDBEvent::eDiscarded;
                         cb.Func = func;
                         cb.Buffer = CScopeUQueue::Lock();
                         PAsyncDBHandler ash = (PAsyncDBHandler) db;
@@ -1968,7 +1968,7 @@ namespace SPA {
                     Backup(func);
                     dSe = [func](CAsyncServiceHandler* db, unsigned short requestId, const wchar_t* errMessage, const char* errWhere, unsigned int errCode) {
                         DBCb cb;
-                        cb.Type = eException;
+                        cb.Type = tagDBEvent::eException;
                         cb.Func = func;
                         cb.Buffer = CScopeUQueue::Lock();
                         PAsyncDBHandler ash = (PAsyncDBHandler) db;

@@ -5,7 +5,7 @@
 
 namespace SPA {
     namespace Sqlite {
-        static const unsigned int sidSqlite = (unsigned int) sidReserved + 0x6FFFFFF0; //asynchronous sqlite service id
+        static const unsigned int sidSqlite = (unsigned int)tagServiceID::sidReserved + 0x6FFFFFF0; //asynchronous sqlite service id
 
         //A flag used with the method CAsyncDBHandler.Open for automatically attaching the opening database onto current session
         static const unsigned int DATABASE_AUTO_ATTACHED = 0x40000000;

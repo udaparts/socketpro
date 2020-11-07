@@ -2,9 +2,9 @@
 #define ___SOCKETPRO_DEFINES_PI_I_H__
 
 //defines for service Pi
-#define sidPi	(SPA::sidReserved + 5)
+#define sidPi	((unsigned int)SPA::tagServiceID::sidReserved + 5)
 #define sidPiWorker (sidPi + 1)
 
-#define idComputePi	(SPA::idReservedTwo + 1)
+#define idComputePi	((unsigned short)SPA::tagBaseRequestID::idReservedTwo + 1)
 
 #endif

@@ -8,7 +8,7 @@ class CMySocketProServer : public CSocketProServer
 protected:
     virtual bool OnSettingServer(unsigned int listeningPort, unsigned int maxBacklog, bool v6) {
         //amIntegrated and amMixed not supported yet
-        Config::SetAuthenticationMethod(amOwn);
+        Config::SetAuthenticationMethod(tagAuthenticationMethod::amOwn);
 
         //add service(s) into SocketPro server
         AddServices();
@@ -35,10 +35,10 @@ private:
         //Copy all files inside directories ../socketpro/bin/js and
         //../socketpro/tutorials/webtests into the directory
         //where the application is located
-        ok = m_myHttp.AddMe(SPA::sidHTTP);
-        ok = m_myHttp.AddSlowRequest(SPA::ServerSide::idGet);
-        ok = m_myHttp.AddSlowRequest(SPA::ServerSide::idPost);
-        ok = m_myHttp.AddSlowRequest(SPA::ServerSide::idUserRequest);
+        ok = m_myHttp.AddMe((unsigned int)tagServiceID::sidHTTP);
+        ok = m_myHttp.AddSlowRequest((unsigned short)tagHttpRequestID::idGet);
+        ok = m_myHttp.AddSlowRequest((unsigned short)tagHttpRequestID::idPost);
+        ok = m_myHttp.AddSlowRequest((unsigned short)tagHttpRequestID::idUserRequest);
     }
 };
 

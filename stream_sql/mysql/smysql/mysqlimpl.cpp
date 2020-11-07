@@ -49,7 +49,7 @@ namespace SPA
         };
 
         CMysqlImpl::CMysqlImpl()
-        : m_EnableMessages(false), m_oks(0), m_fails(0), m_ti(tiUnspecified),
+        : m_EnableMessages(false), m_oks(0), m_fails(0), m_ti(tagTransactionIsolation::tiUnspecified),
         m_bManual(false), m_qSend(*m_sb), m_NoSending(false), m_sql_errno(0),
         m_sql_resultcs(nullptr), m_ColIndex(0), m_sql_flags(0), m_affected_rows(0),
         m_last_insert_id(0), m_server_status(0), m_statement_warn_count(0), m_indexCall(0),
@@ -67,7 +67,7 @@ namespace SPA
         }
 
         void CALLBACK CMysqlImpl::OnThreadEvent(SPA::ServerSide::tagThreadEvent te) {
-            if (te == SPA::ServerSide::teStarted) {
+            if (te == SPA::ServerSide::tagThreadEvent::teStarted) {
                 int fail = srv_session_init_thread(CSetGlobals::Globals.Plugin);
                 assert(!fail);
             } else {
@@ -90,7 +90,7 @@ namespace SPA
         void CMysqlImpl::OnSwitchFrom(unsigned int nOldServiceId) {
             m_oks = 0;
             m_fails = 0;
-            m_ti = tiUnspecified;
+            m_ti = tagTransactionIsolation::tiUnspecified;
             m_bManual = false;
         }
 
@@ -1133,10 +1133,10 @@ namespace SPA
             }
 
             it = std::find_if(vService.begin(), vService.end(), [](const CService & svs)->bool {
-                return (svs.ServiceId == (unsigned int) SPA::sidHTTP);
+                return (svs.ServiceId == (unsigned int) SPA::tagServiceID::sidHTTP);
             });
             if (it == vService.end()) {
-                wsql = u"INSERT INTO service VALUES(" + CDBString(Utilities::ToUTF16(std::to_wstring((UINT64) SPA::sidHTTP))) +
+                wsql = u"INSERT INTO service VALUES(" + CDBString(Utilities::ToUTF16(std::to_wstring((UINT64) SPA::tagServiceID::sidHTTP))) +
                         u",'libuservercore.so'" +
                         u",0,'HTTP/Websocket processing service')";
                 impl.Execute(wsql, true, true, false, 0, affected, res, errMsg, vtId, fail_ok);
@@ -1305,7 +1305,7 @@ namespace SPA
             m_indexCall = 0;
             unsigned int port;
             res = 0;
-            ms = msMysql;
+            ms = (int)tagManagementSystem::msMysql;
             m_EnableMessages = false;
             CleanDBObjects();
             std::string ip = GetPeerName(&port);
@@ -1370,12 +1370,12 @@ namespace SPA
             m_pMysql.reset();
             ResetMemories();
             m_bManual = false;
-            m_ti = tiUnspecified;
+            m_ti = tagTransactionIsolation::tiUnspecified;
         }
 
         void CMysqlImpl::OnBaseRequestArrive(unsigned short requestId) {
             switch (requestId) {
-                case idCancel:
+                case (unsigned short)tagBaseRequestID::idCancel:
 #ifndef NDEBUG
                     std::cout << "Cancel called" << std::endl;
 #endif
@@ -1385,7 +1385,7 @@ namespace SPA
                     if (m_pMysql) {
                         srv_session_attach(m_pMysql.get(), nullptr);
                     }
-                    EndTrans((int) rpRollbackAlways, res, errMsg);
+                    EndTrans((int)tagRollbackPlan::rpRollbackAlways, res, errMsg);
                     if (m_pMysql) {
                         srv_session_detach(m_pMysql.get());
                     }
@@ -1397,7 +1397,7 @@ namespace SPA
         }
 
         void CMysqlImpl::BeginTrans(int isolation, const CDBString &dbConn, unsigned int flags, int &res, CDBString &errMsg, int &ms) {
-            ms = msMysql;
+            ms = (int)tagManagementSystem::msMysql;
             m_indexCall = 0;
             if (m_bManual) {
                 errMsg = BAD_MANUAL_TRANSACTION_STATE;
@@ -1413,16 +1413,16 @@ namespace SPA
             std::string sql;
             if ((int) m_ti != isolation) {
                 switch ((tagTransactionIsolation) isolation) {
-                    case tiReadUncommited:
+                    case tagTransactionIsolation::tiReadUncommited:
                         sql = "SET SESSION TRANSACTION ISOLATION LEVEL READ UNCOMMITTED";
                         break;
-                    case tiRepeatableRead:
+                    case tagTransactionIsolation::tiRepeatableRead:
                         sql = "SET SESSION TRANSACTION ISOLATION LEVEL REPEATABLE READ";
                         break;
-                    case tiReadCommited:
+                    case tagTransactionIsolation::tiReadCommited:
                         sql = "SET SESSION TRANSACTION ISOLATION LEVEL READ COMMITTED";
                         break;
-                    case tiSerializable:
+                    case tagTransactionIsolation::tiSerializable:
                         sql = "SET SESSION TRANSACTION ISOLATION LEVEL SERIALIZABLE";
                         break;
                     default:
@@ -1464,7 +1464,7 @@ namespace SPA
                 res = SPA::Mysql::ER_BAD_MANUAL_TRANSACTION_STATE;
                 return;
             }
-            if (plan < 0 || plan > rpRollbackAlways) {
+            if (plan < 0 || plan > (int)tagRollbackPlan::rpRollbackAlways) {
                 res = SPA::Mysql::ER_BAD_END_TRANSTACTION_PLAN;
                 errMsg = BAD_END_TRANSTACTION_PLAN;
                 return;
@@ -1477,22 +1477,22 @@ namespace SPA
             bool rollback = false;
             tagRollbackPlan rp = (tagRollbackPlan) plan;
             switch (rp) {
-                case rpRollbackErrorAny:
+                case tagRollbackPlan::rpRollbackErrorAny:
                     rollback = m_fails ? true : false;
                     break;
-                case rpRollbackErrorLess:
+                case tagRollbackPlan::rpRollbackErrorLess:
                     rollback = (m_fails < m_oks && m_fails) ? true : false;
                     break;
-                case rpRollbackErrorEqual:
+                case tagRollbackPlan::rpRollbackErrorEqual:
                     rollback = (m_fails >= m_oks) ? true : false;
                     break;
-                case rpRollbackErrorMore:
+                case tagRollbackPlan::rpRollbackErrorMore:
                     rollback = (m_fails > m_oks) ? true : false;
                     break;
-                case rpRollbackErrorAll:
+                case tagRollbackPlan::rpRollbackErrorAll:
                     rollback = (m_oks) ? false : true;
                     break;
-                case rpRollbackAlways:
+                case tagRollbackPlan::rpRollbackAlways:
                     rollback = true;
                     break;
                 default:
@@ -1929,7 +1929,7 @@ namespace SPA
                 errMsg = NO_DB_OPENED_YET;
                 fail_ok = vSql.size();
                 fail_ok <<= 32;
-                SendResult(idSqlBatchHeader, res, errMsg, (int) msMysql, (unsigned int) parameters, callIndex);
+                SendResult(idSqlBatchHeader, res, errMsg, (int)tagManagementSystem::msMysql, (unsigned int) parameters, callIndex);
                 return;
             }
             size_t rows = 0;
@@ -1940,7 +1940,7 @@ namespace SPA
                     m_fails += vSql.size();
                     fail_ok = vSql.size();
                     fail_ok <<= 32;
-                    SendResult(idSqlBatchHeader, res, errMsg, (int) msMysql, (unsigned int) parameters, callIndex);
+                    SendResult(idSqlBatchHeader, res, errMsg, (int)tagManagementSystem::msMysql, (unsigned int) parameters, callIndex);
                     return;
                 }
                 if ((m_vParam.size() % (unsigned short) parameters)) {
@@ -1949,26 +1949,26 @@ namespace SPA
                     m_fails += vSql.size();
                     fail_ok = vSql.size();
                     fail_ok <<= 32;
-                    SendResult(idSqlBatchHeader, res, errMsg, (int) msMysql, (unsigned int) parameters, callIndex);
+                    SendResult(idSqlBatchHeader, res, errMsg, (int)tagManagementSystem::msMysql, (unsigned int) parameters, callIndex);
                     return;
                 }
                 rows = m_vParam.size() / parameters;
             }
-            if (isolation != (int) tiUnspecified) {
+            if (isolation != (int)tagTransactionIsolation::tiUnspecified) {
                 int ms;
                 BeginTrans(isolation, dbConn, flags, res, errMsg, ms);
                 if (res) {
                     m_fails += vSql.size();
                     fail_ok = vSql.size();
                     fail_ok <<= 32;
-                    SendResult(idSqlBatchHeader, res, errMsg, (int) msMysql, (unsigned int) parameters, callIndex);
+                    SendResult(idSqlBatchHeader, res, errMsg, (int)tagManagementSystem::msMysql, (unsigned int) parameters, callIndex);
                     return;
                 }
             } else {
                 LEX_CSTRING db_name = srv_session_info_get_current_db(m_pMysql.get());
                 errMsg = Utilities::ToUTF16(db_name.str, db_name.length);
             }
-            SendResult(idSqlBatchHeader, res, errMsg, (int) msMysql, (unsigned int) parameters, callIndex);
+            SendResult(idSqlBatchHeader, res, errMsg, (int)tagManagementSystem::msMysql, (unsigned int) parameters, callIndex);
             errMsg.clear();
             CDBVariantArray vAll;
             m_vParam.swap(vAll);
@@ -2009,12 +2009,12 @@ namespace SPA
                     res = r;
                     errMsg = err;
                 }
-                if (r && isolation != (int) tiUnspecified && plan == (int) rpDefault)
+                if (r && isolation != (int)tagTransactionIsolation::tiUnspecified && plan == (int)tagRollbackPlan::rpDefault)
                     break;
                 affected += aff;
                 fail_ok += fo;
             }
-            if (isolation != (int) tiUnspecified) {
+            if (isolation != (int)tagTransactionIsolation::tiUnspecified) {
                 EndTrans(plan, r, err);
                 if (r && !res) {
                     res = r;

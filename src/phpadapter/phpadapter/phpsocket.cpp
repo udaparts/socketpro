@@ -38,7 +38,7 @@ namespace PA
         } else if (name == "Connected") {
             return m_cs->IsConnected();
         } else if (name == "ConnState" || name == "ConnectionState") {
-            return m_cs->GetConnectionState();
+            return (int)m_cs->GetConnectionState();
         } else if (name == "Sendable") {
             return m_cs->Sendable();
         } else if (name == "Peer") {
@@ -48,7 +48,7 @@ namespace PA
             SPA::tagOperationSystem os = m_cs->GetPeerOs(&endian);
             Php::Value v;
             v.set("PeerName", s);
-            v.set("OS", os);
+            v.set("OS", (int)os);
             v.set("Port", (int64_t) port);
             v.set("Endian", endian);
             return v;
@@ -59,7 +59,7 @@ namespace PA
         } else if (name == "BytesInRecvBuffer" || name == "BytesInReceivingBuffer") {
             return (int64_t) m_cs->GetBytesInReceivingBuffer();
         } else if (name == "EM" || name == "EncryptionMethod") {
-            return m_cs->GetEncryptionMethod();
+            return (int)m_cs->GetEncryptionMethod();
         } else if (name == "RequestsInQueue" || name == "CountOfRequestsInQueue") {
             return (int64_t) m_cs->GetCountOfRequestsInQueue();
         } else if (name == "Cert" || name == "UCert") {
@@ -76,7 +76,7 @@ namespace PA
         } else if (name == "Zip") {
             return m_cs->GetZip();
         } else if (name == "ZipLevel") {
-            return m_cs->GetZipLevel();
+            return (int)m_cs->GetZipLevel();
         } else if (name == "Random") {
             return m_cs->IsRandom();
         } else if (name == "Routing") {
@@ -106,7 +106,7 @@ namespace PA
             m_cs->SetZip(value.boolValue());
         } else if (name == "ZipLevel") {
             auto zl = value.numericValue();
-            if (zl < 0 || zl > SPA::zlBestCompression) {
+            if (zl < 0 || zl > (int)SPA::tagZipLevel::zlBestCompression) {
                 throw Php::Exception("Bad compression value");
             }
             m_cs->SetZipLevel((SPA::tagZipLevel)zl);
@@ -138,9 +138,9 @@ namespace PA
         Php::Class<CPhpSocket> socket(PHP_SOCKET);
 
         //tagZipLevel
-        socket.property("zlDefault", SPA::zlDefault, Php::Const);
-        socket.property("zlBestSpeed", SPA::zlBestSpeed, Php::Const);
-        socket.property("zlBestCompression", SPA::zlBestCompression, Php::Const);
+        socket.property("zlDefault", (int)SPA::tagZipLevel::zlDefault, Php::Const);
+        socket.property("zlBestSpeed", (int)SPA::tagZipLevel::zlBestSpeed, Php::Const);
+        socket.property("zlBestCompression", (int)SPA::tagZipLevel::zlBestCompression, Php::Const);
 
         socket.method<&CPhpSocket::__construct>(PHP_CONSTRUCT, Php::Private);
         socket.method<&CPhpSocket::DoEcho>("DoEcho");
@@ -167,7 +167,7 @@ namespace PA
 
     Php::Value CPhpSocket::SetZipLevelAtSvr(Php::Parameters & params) {
         auto zl = params[0].numericValue();
-        if (zl < 0 || zl > SPA::zlBestCompression) {
+        if (zl < 0 || zl > (int)SPA::tagZipLevel::zlBestCompression) {
             throw Php::Exception("Bad compression value");
         }
         return m_cs->SetZipLevelAtSvr((SPA::tagZipLevel)zl);

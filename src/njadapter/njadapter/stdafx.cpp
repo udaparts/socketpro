@@ -27,7 +27,7 @@ namespace SPA
                     rh = [this, func](CAsyncResult & ar) {
                         ReqCb cb;
                         cb.ReqId = ar.RequestId;
-                        cb.Type = eResult;
+                        cb.Type = tagEvent::eResult;
                         cb.Func = func;
                         PAsyncServiceHandler h = ar.AsyncServiceHandler;
                         cb.Buffer = CScopeUQueue::Lock(ar.UQueue.GetOS(), ar.UQueue.GetEndian());
@@ -53,7 +53,7 @@ namespace SPA
                     dd = [this, func, reqId](CAsyncServiceHandler *ash, bool canceled) {
                         ReqCb cb;
                         cb.ReqId = reqId;
-                        cb.Type = eDiscarded;
+                        cb.Type = tagEvent::eDiscarded;
                         cb.Func = func;
                         PAsyncServiceHandler h = ash;
                         cb.Buffer = CScopeUQueue::Lock();
@@ -77,7 +77,7 @@ namespace SPA
                     se = [this, func](CAsyncServiceHandler *ash, unsigned short reqId, const wchar_t *errMsg, const char *errWhere, unsigned int errCode) {
                         ReqCb cb;
                         cb.ReqId = reqId;
-                        cb.Type = eException;
+                        cb.Type = tagEvent::eException;
                         cb.Func = func;
                         PAsyncServiceHandler h = ash;
                         cb.Buffer = CScopeUQueue::Lock();
@@ -120,7 +120,7 @@ namespace SPA
                     if (cb.Func)
                         func = Local<Function>::New(isolate, *cb.Func);
                     switch (cb.Type) {
-                        case eResult:
+                        case tagEvent::eResult:
                         {
                             Local<Object> q = NJQueue::New(isolate, cb.Buffer);
                             if (!func.IsEmpty()) {
@@ -129,7 +129,7 @@ namespace SPA
                             }
                         }
                             break;
-                        case eDiscarded:
+                        case tagEvent::eDiscarded:
                         {
                             bool canceled;
                             *cb.Buffer >> canceled;
@@ -142,7 +142,7 @@ namespace SPA
                             }
                         }
                             break;
-                        case eException:
+                        case tagEvent::eException:
                             if (!func.IsEmpty()) {
                                 SPA::CDBString errMsg;
                                 std::string errWhere;
@@ -532,44 +532,44 @@ namespace NJA{
                 vt.vt = VT_CLSID;
             }
         } else if (v->IsArray()) {
-            tagDataType dt = dtUnknown;
+            tagDataType dt = tagDataType::dtUnknown;
             Local<Array> jsArr = Local<Array>::Cast(v);
             unsigned int count = jsArr->Length();
             for (unsigned int n = 0; n < count; ++n) {
                 auto d = jsArr->Get(n);
                 if (d->IsBoolean()) {
-                    if (dt && dt != dtBool) {
+                    if (dt != tagDataType::dtUnknown && dt != tagDataType::dtBool) {
                         return false;
                     } else
-                        dt = dtBool;
+                        dt = tagDataType::dtBool;
                 } else if (d->IsDate()) {
-                    if (dt && dt != dtDate) {
+                    if (dt != tagDataType::dtUnknown && dt != tagDataType::dtDate) {
                         return false;
                     } else
-                        dt = dtDate;
+                        dt = tagDataType::dtDate;
                 } else if (d->IsString()) {
-                    if (dt && dt != dtString) {
+                    if (dt != tagDataType::dtUnknown && dt != tagDataType::dtString) {
                         return false;
                     } else
-                        dt = dtString;
+                        dt = tagDataType::dtString;
 #ifdef HAS_BIGINT
                 } else if (d->IsBigInt() || id == "l" || id == "long") {
-                    if (dt && dt != dtInt64) {
+                    if (dt != tagDataType::dtUnknown && dt != tagDataType::dtInt64) {
                         return false;
                     } else
-                        dt = dtInt64;
+                        dt = tagDataType::dtInt64;
 #endif
                 } else if (d->IsInt32() || id == "i" || id == "int") {
-                    if (dt && dt != dtInt32)
+                    if (dt != tagDataType::dtUnknown && dt != tagDataType::dtInt32)
                         return false;
                     else {
-                        dt = dtInt32;
+                        dt = tagDataType::dtInt32;
                     }
                 } else if (d->IsNumber()) {
-                    if (dt && dt != dtDouble)
+                    if (dt != tagDataType::dtUnknown && dt != tagDataType::dtDouble)
                         return false;
                     else {
-                        dt = dtDouble;
+                        dt = tagDataType::dtDouble;
                     }
                 } else {
                     return false;
@@ -577,24 +577,24 @@ namespace NJA{
             }
             VARTYPE vtType;
             switch (dt) {
-                case dtString:
+                case tagDataType::dtString:
                     vtType = VT_BSTR;
                     break;
-                case dtBool:
+                case tagDataType::dtBool:
                     vtType = VT_BOOL;
                     break;
-                case dtDate:
+                case tagDataType::dtDate:
                     vtType = VT_DATE;
                     break;
 #ifdef HAS_BIGINT
-                case dtInt64:
+                case tagDataType::dtInt64:
                     vtType = VT_I8;
                     break;
 #endif
-                case dtInt32:
+                case tagDataType::dtInt32:
                     vtType = VT_I4;
                     break;
-                case dtDouble:
+                case tagDataType::dtDouble:
                     vtType = VT_R8;
                     break;
                 default:
@@ -1119,43 +1119,43 @@ namespace NJA{
             ToArray(p, len, v);
         } else if (data->IsArray()) {
             bool ok = true;
-            tagDataType dt = dtUnknown;
+            tagDataType dt = tagDataType::dtUnknown;
             Local<Array> jsArr = Local<Array>::Cast(data);
             unsigned int count = jsArr->Length();
             for (unsigned int n = 0; n < count && ok; ++n) {
                 auto d = jsArr->Get(n);
                 if (d->IsBoolean()) {
-                    if (dt && dt != dtBool)
+                    if (dt != tagDataType::dtUnknown && dt != tagDataType::dtBool)
                         ok = false;
                     else
-                        dt = dtBool;
+                        dt = tagDataType::dtBool;
                 } else if (d->IsDate()) {
-                    if (dt && dt != dtDate)
+                    if (dt != tagDataType::dtUnknown && dt != tagDataType::dtDate)
                         ok = false;
                     else
-                        dt = dtDate;
+                        dt = tagDataType::dtDate;
                 } else if (d->IsString()) {
-                    if (dt && dt != dtString)
+                    if (dt != tagDataType::dtUnknown && dt != tagDataType::dtString)
                         ok = false;
                     else
-                        dt = dtString;
+                        dt = tagDataType::dtString;
 #ifdef HAS_BIGINT
                 } else if (d->IsBigInt()) {
-                    if (dt && dt != dtInt64)
+                    if (dt != tagDataType::dtUnknown && dt != tagDataType::dtInt64)
                         ok = false;
                     else
-                        dt = dtInt64;
+                        dt = tagDataType::dtInt64;
 #endif
                 } else if (d->IsInt32()) {
-                    if (dt && dt != dtInt32)
+                    if (dt != tagDataType::dtUnknown && dt != tagDataType::dtInt32)
                         ok = false;
                     else
-                        dt = dtInt32;
+                        dt = tagDataType::dtInt32;
                 } else if (d->IsNumber()) {
-                    if (dt && dt != dtDouble)
+                    if (dt != tagDataType::dtUnknown && dt != tagDataType::dtDouble)
                         ok = false;
                     else
-                        dt = dtDouble;
+                        dt = tagDataType::dtDouble;
                 } else {
                     ok = false;
                 }
@@ -1167,17 +1167,17 @@ namespace NJA{
             for (unsigned int n = 0; n < count; ++n) {
                 auto d = jsArr->Get(n);
                 switch (dt) {
-                    case NJA::dtString:
+                    case tagDataType::dtString:
                         v.push_back(ToStr(isolate, d).c_str());
                         break;
-                    case NJA::dtBool:
+                    case tagDataType::dtBool:
 #ifdef BOOL_ISOLATE
                         v.push_back(d->BooleanValue(isolate));
 #else
                         v.push_back(d->BooleanValue(isolate->GetCurrentContext()).ToChecked());
 #endif
                         break;
-                    case NJA::dtDate:
+                    case tagDataType::dtDate:
                     {
                         CDBVariant vt;
                         vt.ullVal = ToDate(isolate, d);
@@ -1186,14 +1186,14 @@ namespace NJA{
                     }
                         break;
 #ifdef HAS_BIGINT
-                    case NJA::dtInt64:
+                    case tagDataType::dtInt64:
                         v.push_back(d->IntegerValue(isolate->GetCurrentContext()).ToChecked());
                         break;
 #endif
-                    case NJA::dtInt32:
+                    case tagDataType::dtInt32:
                         v.push_back(d->Int32Value(isolate->GetCurrentContext()).ToChecked());
                         break;
-                    case NJA::dtDouble:
+                    case tagDataType::dtDouble:
                         v.push_back(d->NumberValue(isolate->GetCurrentContext()).ToChecked());
                         break;
                     default:
@@ -1224,7 +1224,7 @@ namespace NJA{
                 auto v = pi->Get(ToStr(isolate, u"Direction", 9));
                 if (v->IsInt32()) {
                     int d = v->Int32Value(isolate->GetCurrentContext()).ToChecked();
-                    if (d < pdInput || d > pdReturnValue) {
+                    if (d < (int)tagParameterDirection::pdInput || d > (int)tagParameterDirection::pdReturnValue) {
                         ThrowException(isolate, "Bad parameter direction value found");
                         return false;
                     }

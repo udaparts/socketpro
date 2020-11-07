@@ -94,7 +94,7 @@ void CYourPeerOne::QueryPaymentMaxMinAvgs(CUQueue& buffer, UINT64 reqIndex) {
 
 void CYourPeerOne::GetCachedTables(const CDBString& defaultDb, unsigned int flags, UINT64 index, int& dbMS, int& res, wstring& errMsg) {
     res = 0;
-    dbMS = (int) UDB::msUnknown;
+    dbMS = (int) UDB::tagManagementSystem::msUnknown;
     if (!CYourServer::FrontCachedTables.size() || UDB::ENABLE_TABLE_UPDATE_MESSAGES != (flags & UDB::ENABLE_TABLE_UPDATE_MESSAGES))
         return;
     if (UDB::ENABLE_TABLE_UPDATE_MESSAGES == (flags & UDB::ENABLE_TABLE_UPDATE_MESSAGES)) {
@@ -195,7 +195,7 @@ void CYourPeerOne::UploadEmployees(CUQueue& buffer, UINT64 reqIndex) {
         }
         if (!ok) break;
         auto peer_handle = GetSocketHandle();
-        if (!handler->EndTrans(UDB::rpRollbackErrorAll, [reqIndex, peer_handle, pError, pId, this](CMysql & h, int r, const wstring& err) {
+        if (!handler->EndTrans(UDB::tagRollbackPlan::rpRollbackErrorAll, [reqIndex, peer_handle, pError, pId, this](CMysql & h, int r, const wstring& err) {
                 //send result if front socket is not closed yet
                 if (peer_handle == this->GetSocketHandle()) {
                     if (r) {

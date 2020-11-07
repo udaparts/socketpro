@@ -34,7 +34,7 @@ namespace NJA {
 
     private:
 
-        enum tagQueueEvent {
+        enum class tagQueueEvent {
             qeGetKeys = 0,
             qeEnqueue,
             qeStartQueueTrans,

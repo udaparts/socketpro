@@ -10,21 +10,21 @@ namespace PA
             : SvsId(0), Threads(1), AutoConn(true), AutoMerge(false),
             RecvTimeout(SPA::ClientSide::DEFAULT_RECV_TIMEOUT),
             ConnTimeout(SPA::ClientSide::DEFAULT_CONN_TIMEOUT),
-            PhpHandler(nullptr), PoolType(Regular), m_errCode(0) {
+            PhpHandler(nullptr), PoolType(tagPoolType::Regular), m_errCode(0) {
     }
 
     void CPoolStartContext::Clean() {
         if (PhpHandler) {
             switch (SvsId) {
-                case SPA::sidODBC:
+            case (unsigned int)SPA::tagServiceID::sidODBC:
                 case SPA::Sqlite::sidSqlite:
                 case SPA::Mysql::sidMysql:
                     delete PhpDb;
                     break;
-                case SPA::sidChat:
+                case (unsigned int)SPA::tagServiceID::sidChat:
                     delete PhpQueue;
                     break;
-                case SPA::sidFile:
+                case (unsigned int)SPA::tagServiceID::sidFile:
                     delete PhpFile;
                     break;
                 default:
@@ -85,19 +85,19 @@ namespace PA
         assert(!PhpHandler);
         std::wstring dfltDb = SPA::Utilities::ToWide(DefaultDb);
         switch (SvsId) {
-            case SPA::sidODBC:
+            case (unsigned int)SPA::tagServiceID::sidODBC:
             case SPA::Sqlite::sidSqlite:
             case SPA::Mysql::sidMysql:
                 switch (PoolType) {
-                    case PA::Regular:
+                    case PA::tagPoolType::Regular:
                         PhpDb = new CPhpDbPool(AutoConn, RecvTimeout, ConnTimeout, SvsId);
                         break;
-                    case PA::Slave:
+                    case PA::tagPoolType::Slave:
                         PhpDb = new CSQLMaster::CSlavePool(dfltDb.c_str(), RecvTimeout, SvsId);
                         PhpDb->SetConnTimeout(ConnTimeout);
                         PhpDb->SetAutoConn(AutoConn);
                         break;
-                    case PA::Master:
+                    case PA::tagPoolType::Master:
                         PhpDb = new CSQLMaster(dfltDb.c_str(), RecvTimeout, SvsId);
                         PhpDb->SetConnTimeout(ConnTimeout);
                         PhpDb->SetAutoConn(AutoConn);
@@ -118,7 +118,7 @@ namespace PA
                 };
 #endif
                 break;
-            case SPA::sidChat:
+            case (unsigned int)SPA::tagServiceID::sidChat:
                 PhpQueue = new CPhpQueuePool(AutoConn, RecvTimeout, ConnTimeout, SvsId);
                 PhpQueue->DoSslServerAuthentication = [this](CPhpQueuePool *pool, CClientSocket * cs)->bool {
                     return this->DoSSLAuth(cs);
@@ -132,7 +132,7 @@ namespace PA
                     PhpQueue->SetQueueName(Queue.c_str());
                 }
                 break;
-            case SPA::sidFile:
+            case (unsigned int)SPA::tagServiceID::sidFile:
                 PhpFile = new CPhpFilePool(AutoConn, RecvTimeout, ConnTimeout, SvsId);
                 PhpFile->DoSslServerAuthentication = [this](CPhpFilePool *pool, CClientSocket * cs)->bool {
                     return this->DoSSLAuth(cs);
@@ -148,15 +148,15 @@ namespace PA
                 break;
             default:
                 switch (PoolType) {
-                    case PA::Regular:
+                    case PA::tagPoolType::Regular:
                         PhpHandler = new CPhpPool(AutoConn, RecvTimeout, ConnTimeout, SvsId);
                         break;
-                    case PA::Slave:
+                    case PA::tagPoolType::Slave:
                         PhpHandler = new CMasterPool::CSlavePool(dfltDb.c_str(), RecvTimeout, SvsId);
                         PhpHandler->SetConnTimeout(ConnTimeout);
                         PhpHandler->SetAutoConn(AutoConn);
                         break;
-                    case PA::Master:
+                    case PA::tagPoolType::Master:
                         PhpHandler = new CMasterPool(dfltDb.c_str(), RecvTimeout, SvsId);
                         PhpHandler->SetConnTimeout(ConnTimeout);
                         PhpHandler->SetAutoConn(AutoConn);

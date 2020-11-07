@@ -6,7 +6,7 @@ class CMySocketProServer : public CSocketProServer {
 protected:
     virtual bool OnSettingServer(unsigned int listeningPort, unsigned int maxBacklog, bool v6) {
         //amIntegrated and amMixed not supported yet
-        Config::SetAuthenticationMethod(amOwn);
+        Config::SetAuthenticationMethod(tagAuthenticationMethod::amOwn);
 
         //add service(s) into SocketPro server
         AddService();
@@ -34,7 +34,7 @@ private:
 private:
     void AddService() {
         //No COM -- taNone; STA COM -- taApartment; and Free COM -- taFree
-        bool ok = m_HelloWorld.AddMe(sidHelloWorld, taNone);
+        bool ok = m_HelloWorld.AddMe(sidHelloWorld, tagThreadApartment::taNone);
         ok = m_HelloWorld.AddSlowRequest(idSleep);
     }
 };

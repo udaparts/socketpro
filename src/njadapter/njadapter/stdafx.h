@@ -45,7 +45,7 @@ namespace NJA {
     using namespace SPA::ClientSide;
     using namespace SPA::UDB;
 
-    enum tagDataType {
+    enum class tagDataType {
         dtUnknown = 0,
         dtString = 1,
         dtBool = 2,

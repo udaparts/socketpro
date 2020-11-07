@@ -77,7 +77,7 @@ namespace SPA {
     int CTable::FindNull(unsigned int ordinal, CTable &tbl, bool copyData) const {
         VARIANT vt;
         ::memset(&vt, 0, sizeof (vt));
-        return Find(ordinal, CTable::is_null, vt, tbl, copyData);
+        return Find(ordinal, CTable::Operator::is_null, vt, tbl, copyData);
     }
 
     int CTable::In(unsigned int ordinal, const UDB::CDBVariantArray &vArray, CTable &tbl, bool copyData) const {
@@ -166,13 +166,13 @@ namespace SPA {
         tbl.m_bFieldNameCaseSensitive = m_bFieldNameCaseSensitive;
         if (ordinal >= first.size())
             return BAD_ORDINAL;
-        if (vt.vt <= VT_NULL && op != is_null)
+        if (vt.vt <= VT_NULL && op != Operator::is_null)
             return COMPARISON_NOT_SUPPORTED;
         VARTYPE type = first[ordinal].DataType;
         if (type == (VT_I1 | VT_ARRAY))
             type = VT_BSTR; //Table string is always unicode string
         CComVariant v;
-        if (op != is_null) {
+        if (op != Operator::is_null) {
             HRESULT hr = ChangeType(vt, type, v);
             if (S_OK != hr)
                 return hr;
@@ -182,29 +182,29 @@ namespace SPA {
         for (size_t r = 0; r < rows; ++r) {
             bool ok;
             CPRow prow = second[r];
-            if (op == is_null) {
+            if (op == Operator::is_null) {
                 VARTYPE d = prow->at(ordinal).vt;
                 ok = (d == VT_NULL || d == VT_EMPTY);
             } else {
                 int res;
                 const VARIANT &v0 = prow->at(ordinal);
                 switch (op) {
-                    case equal:
+                    case Operator::equal:
                         res = eq(v0, v);
                         break;
-                    case not_equal:
+                    case Operator::not_equal:
                         res = neq(v0, v);
                         break;
-                    case great:
+                    case Operator::great:
                         res = gt(v0, v);
                         break;
-                    case great_equal:
+                    case Operator::great_equal:
                         res = ge(v0, v);
                         break;
-                    case less:
+                    case Operator::less:
                         res = lt(v0, v);
                         break;
-                    case less_equal:
+                    case Operator::less_equal:
                         res = le(v0, v);
                         break;
                     default:
@@ -701,7 +701,7 @@ namespace SPA {
     }
 
     CDataSet::CDataSet()
-    : m_ms(UDB::msUnknown),
+    : m_ms(UDB::tagManagementSystem::msUnknown),
     m_bDBNameCaseSensitive(false),
     m_bTableNameCaseSensitive(false),
     m_bFieldNameCaseSensitive(false),
@@ -1168,7 +1168,7 @@ namespace SPA {
     int CDataSet::FindNull(const UTF16 *dbName, const UTF16 *tblName, unsigned int ordinal, CTable & tbl) {
         VARIANT vt;
         ::memset(&vt, 0, sizeof (vt));
-        return Find(dbName, tblName, ordinal, CTable::is_null, vt, tbl);
+        return Find(dbName, tblName, ordinal, CTable::Operator::is_null, vt, tbl);
     }
 
     bool CDataSet::Is(const CTable &tbl, const UTF16 *dbName, const UTF16 * tblName) {

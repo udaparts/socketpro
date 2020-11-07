@@ -97,11 +97,11 @@ namespace NJA {
         Isolate* isolate = args.GetIsolate();
         NJSqlite* obj = ObjectWrap::Unwrap<NJSqlite>(args.Holder());
         if (obj->IsValid(isolate)) {
-            tagTransactionIsolation isolation = tiReadCommited;
+            tagTransactionIsolation isolation = tagTransactionIsolation::tiReadCommited;
             auto p0 = args[0];
             if (p0->IsInt32()) {
                 int n = p0->Int32Value(isolate->GetCurrentContext()).ToChecked();
-                if (n < 0 || n > tiIsolated) {
+                if (n < 0 || n >(int)tagTransactionIsolation::tiIsolated) {
                     ThrowException(isolate, "Bad transaction isolation value");
                     return;
                 }
@@ -122,11 +122,11 @@ namespace NJA {
         Isolate* isolate = args.GetIsolate();
         NJSqlite* obj = ObjectWrap::Unwrap<NJSqlite>(args.Holder());
         if (obj->IsValid(isolate)) {
-            tagRollbackPlan plan = rpDefault;
+            tagRollbackPlan plan = tagRollbackPlan::rpDefault;
             auto p0 = args[0];
             if (p0->IsInt32()) {
                 int n = p0->Int32Value(isolate->GetCurrentContext()).ToChecked();
-                if (n < 0 || n > rpRollbackAlways) {
+                if (n < 0 || n > (int)tagRollbackPlan::rpRollbackAlways) {
                     ThrowException(isolate, "Bad rollback plan value");
                     return;
                 }
@@ -201,7 +201,7 @@ namespace NJA {
                 return;
             }
             int n = p->Int32Value(isolate->GetCurrentContext()).ToChecked();
-            if (n < tiUnspecified || n > tiIsolated) {
+            if (n < (int)tagTransactionIsolation::tiUnspecified || n >(int)tagTransactionIsolation::tiIsolated) {
                 ThrowException(isolate, "A bad transaction isolation value");
                 return;
             }
@@ -249,11 +249,11 @@ namespace NJA {
                 return;
             }
             Local<Value> argv[] = {args[3], args[4], args[5], args[6], args[7], args[11], args[12], args[13]};
-            tagRollbackPlan rp = rpDefault;
+            tagRollbackPlan rp = tagRollbackPlan::rpDefault;
             p = args[8];
             if (p->IsInt32()) {
                 n = p->Int32Value(isolate->GetCurrentContext()).ToChecked();
-                if (n < rpDefault || n > rpRollbackAlways) {
+                if (n < (int)tagRollbackPlan::rpDefault || n > (int)tagRollbackPlan::rpRollbackAlways) {
                     ThrowException(isolate, "A bad rollback plan found");
                     return;
                 }
@@ -340,7 +340,7 @@ namespace NJA {
         Isolate* isolate = args.GetIsolate();
         NJSqlite* obj = ObjectWrap::Unwrap<NJSqlite>(args.Holder());
         if (obj->IsValid(isolate)) {
-            args.GetReturnValue().Set(Int32::New(isolate, obj->m_db->GetDBManagementSystem()));
+            args.GetReturnValue().Set(Int32::New(isolate, (int)obj->m_db->GetDBManagementSystem()));
         }
     }
 

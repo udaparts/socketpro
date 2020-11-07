@@ -22,7 +22,7 @@ namespace NJA {
 
     private:
 
-        enum tagFileEvent {
+        enum class tagFileEvent {
             feExchange = 0,
             feTrans,
             feDiscarded,

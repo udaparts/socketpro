@@ -112,7 +112,7 @@ namespace PA
             sb << reqId;
             sb->Push(q.GetBuffer(), q.GetSize());
             PACallback cb;
-            cb.CallbackType = ctDequeueResult;
+            cb.CallbackType = enumCallbackType::ctDequeueResult;
             cb.Res = sb.Detach();
             cb.CallBack = callback;
             std::unique_lock<std::mutex> lk(this->m_mPhp);
@@ -157,7 +157,7 @@ namespace PA
         if (!ok) {
             tagRequestReturnStatus rrs = GetRRS();
             switch (rrs) {
-                case rrsCanceled:
+                case tagRequestReturnStatus::rrsCanceled:
                     throw Php::Exception(PHP_REQUEST_CANCELED);
                 default:
                     throw Php::Exception(PA::PHP_SOCKET_CLOSED + m_aq->GetSocket()->GetErrorMsg());
@@ -211,7 +211,7 @@ namespace PA
                 SPA::CScopeUQueue sb;
                 sb << (unsigned short) SPA::Queue::idFlush << messages << fileSize;
                 PACallback cb;
-                cb.CallbackType = ctQueueFlush;
+                cb.CallbackType = enumCallbackType::ctQueueFlush;
                 cb.Res = sb.Detach();
                 cb.CallBack = callback;
                 std::unique_lock<std::mutex> lk(this->m_mPhp);
@@ -223,11 +223,11 @@ namespace PA
             phpCanceled = params[2];
         }
         auto discarded = SetAbortCallback(phpCanceled, SPA::Queue::idFlush, sync);
-        SPA::tagOptimistic option = SPA::oMemoryCached;
+        SPA::tagOptimistic option = SPA::tagOptimistic::oMemoryCached;
         if (args > 3) {
             if (params[3].isNumeric()) {
                 int64_t o = params[3].numericValue();
-                if (o < 0 || o > SPA::oDiskCommitted) {
+                if (o < 0 || o > (int)SPA::tagOptimistic::oDiskCommitted) {
                     throw Php::Exception("Bad value for memory queue flush status");
                 }
                 option = (SPA::tagOptimistic)o;
@@ -301,7 +301,7 @@ namespace PA
                 SPA::CScopeUQueue sb;
                 sb << reqId << errCode;
                 PACallback cb;
-                cb.CallbackType = ctQueueTrans;
+                cb.CallbackType = enumCallbackType::ctQueueTrans;
                 cb.Res = sb.Detach();
                 cb.CallBack = callback;
                 std::unique_lock<std::mutex> lk(this->m_mPhp);
@@ -369,7 +369,7 @@ namespace PA
                     sb << s;
                 }
                 PACallback cb;
-                cb.CallbackType = ctQueueGetKeys;
+                cb.CallbackType = enumCallbackType::ctQueueGetKeys;
                 cb.Res = sb.Detach();
                 cb.CallBack = callback;
                 std::unique_lock<std::mutex> lk(this->m_mPhp);
@@ -423,7 +423,7 @@ namespace PA
                 SPA::CScopeUQueue sb;
                 sb << reqId << index;
                 PACallback cb;
-                cb.CallbackType = ctEnqueueRes;
+                cb.CallbackType = enumCallbackType::ctEnqueueRes;
                 cb.Res = sb.Detach();
                 cb.CallBack = callback;
                 std::unique_lock<std::mutex> lk(this->m_mPhp);
@@ -445,7 +445,7 @@ namespace PA
     Php::Value CPhpQueue::Enqueue(Php::Parameters & params) {
         std::string key = GetKey(params[0]);
         int64_t idMsg = params[1].numericValue();
-        if (idMsg <= SPA::idReservedTwo || idMsg > 0xffff) {
+        if (idMsg <= (unsigned int)SPA::tagBaseRequestID::idReservedTwo || idMsg > 0xffff) {
             throw Php::Exception("Bad message request Id");
         }
         unsigned int bytes = 0;
@@ -484,7 +484,7 @@ namespace PA
 
     void CPhpQueue::BatchMessage(Php::Parameters & params) {
         int64_t idMsg = params[0].numericValue();
-        if (idMsg <= SPA::idReservedTwo || idMsg > 0xffff) {
+        if (idMsg <= (unsigned short)SPA::tagBaseRequestID::idReservedTwo || idMsg > 0xffff) {
             throw Php::Exception("Bad message request Id");
         }
         m_pBuff->EnsureBuffer();
@@ -576,24 +576,24 @@ namespace PA
         unsigned short reqId;
         auto &callback = *cb.CallBack;
         switch (cb.CallbackType) {
-            case ctQueueTrans:
+            case enumCallbackType::ctQueueTrans:
             {
                 int errCode;
                 *cb.Res >> reqId >> errCode;
                 callback(errCode, reqId);
             }
                 break;
-            case ctEnqueueRes:
+            case enumCallbackType::ctEnqueueRes:
             {
                 SPA::INT64 index;
                 *cb.Res >> reqId >> index;
                 callback(index, reqId);
             }
                 break;
-            case ctQueueFlush:
+            case enumCallbackType::ctQueueFlush:
                 *cb.Res >> reqId;
                 callback(ToFlushValue(cb.Res), reqId);
-            case ctQueueGetKeys:
+            case enumCallbackType::ctQueueGetKeys:
             {
                 std::vector<std::string> v;
                 *cb.Res >> reqId;
@@ -605,11 +605,11 @@ namespace PA
                 callback(v, reqId);
             }
                 break;
-            case ctDequeue:
+            case enumCallbackType::ctDequeue:
                 *cb.Res >> reqId;
                 callback(ToDeqValue(cb.Res), reqId);
                 break;
-            case ctDequeueResult:
+            case enumCallbackType::ctDequeueResult:
             {
                 *cb.Res >> reqId;
                 Php::Object buff((SPA_NS + PHP_BUFFER).c_str(), new CPhpBuffer(cb.Res));

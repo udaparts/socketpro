@@ -28,7 +28,7 @@ namespace NJA
                 dd = [func, download](CStreamingFile *file, int res, const std::wstring & errMsg) {
                     FileCb fcb;
                     fcb.Download = download;
-                    fcb.EventType = feExchange;
+                    fcb.EventType = tagFileEvent::feExchange;
                     fcb.Func = func;
                     fcb.Buffer = CScopeUQueue::Lock();
                     PSFile f = (PSFile) file;
@@ -51,7 +51,7 @@ namespace NJA
                 trans = [func, download](CStreamingFile *file, SPA::UINT64 transferred) {
                     FileCb fcb;
                     fcb.Download = download;
-                    fcb.EventType = feTrans;
+                    fcb.EventType = tagFileEvent::feTrans;
                     fcb.Func = func;
                     fcb.Buffer = CScopeUQueue::Lock();
                     PSFile f = (PSFile) file;
@@ -74,7 +74,7 @@ namespace NJA
                 aborted = [func, download](CAsyncServiceHandler *file, bool canceled) {
                     FileCb fcb;
                     fcb.Download = download;
-                    fcb.EventType = feDiscarded;
+                    fcb.EventType = tagFileEvent::feDiscarded;
                     fcb.Func = func;
                     fcb.Buffer = CScopeUQueue::Lock();
                     PSFile f = (PSFile) file;
@@ -97,7 +97,7 @@ namespace NJA
                 se = [func, download](CAsyncServiceHandler* file, unsigned short requestId, const wchar_t* errMessage, const char* errWhere, unsigned int errCode) {
                     FileCb fcb;
                     fcb.Download = download;
-                    fcb.EventType = feException;
+                    fcb.EventType = tagFileEvent::feException;
                     fcb.Func = func;
                     fcb.Buffer = CScopeUQueue::Lock();
                     PSFile f = (PSFile) file;
@@ -136,7 +136,7 @@ namespace NJA
                 //Local<Object> njFile = NJFile::New(isolate, processor, true);
                 Local<v8::Boolean> download = v8::Boolean::New(isolate, cb.Download);
                 switch (cb.EventType) {
-                    case feExchange:
+                    case tagFileEvent::feExchange:
                     {
                         int res;
                         SPA::CDBString errMsg;
@@ -147,7 +147,7 @@ namespace NJA
                         func->Call(isolate->GetCurrentContext(), Null(isolate), 3, argv);
                     }
                         break;
-                    case feTrans:
+                    case tagFileEvent::feTrans:
                     {
                         SPA::UINT64 pos, size;
                         *cb.Buffer >> pos >> size;
@@ -156,7 +156,7 @@ namespace NJA
                         func->Call(isolate->GetCurrentContext(), Null(isolate), 3, argv);
                     }
                         break;
-                    case feDiscarded:
+                    case tagFileEvent::feDiscarded:
                     {
                         bool canceled;
                         *cb.Buffer >> canceled;
@@ -165,7 +165,7 @@ namespace NJA
                         func->Call(isolate->GetCurrentContext(), Null(isolate), 2, argv);
                     }
                         break;
-                    case feException:
+                    case tagFileEvent::feException:
                         if (!func.IsEmpty()) {
                             unsigned short reqId;
                             SPA::CDBString errMsg;

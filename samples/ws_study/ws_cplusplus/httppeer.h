@@ -25,13 +25,13 @@ protected:
 
     void OnFastRequestArrive(unsigned short requestId, unsigned int len) {
         switch (requestId) {
-            case SPA::ServerSide::idDelete:
-            case SPA::ServerSide::idPut:
-            case SPA::ServerSide::idTrace:
-            case SPA::ServerSide::idOptions:
-            case SPA::ServerSide::idHead:
-            case SPA::ServerSide::idMultiPart:
-            case SPA::ServerSide::idConnect:
+            case (unsigned short)tagHttpRequestID::idDelete:
+            case (unsigned short)tagHttpRequestID::idPut:
+            case (unsigned short)tagHttpRequestID::idTrace:
+            case (unsigned short)tagHttpRequestID::idOptions:
+            case (unsigned short)tagHttpRequestID::idHead:
+            case (unsigned short)tagHttpRequestID::idMultiPart:
+            case (unsigned short)tagHttpRequestID::idConnect:
                 SetResponseCode(501);
                 SendResult("ps_server doesn't support DELETE, PUT, TRACE, OPTIONS, HEAD, CONNECT and POST with multipart");
                 break;
@@ -47,16 +47,16 @@ protected:
         const std::string &RequestName = GetUserRequestName();
         const std::vector<SPA::UVariant> &args = GetArgs();
         switch (requestId) {
-            case SPA::ServerSide::idGet:
+            case (unsigned short)tagHttpRequestID::idGet:
                 if (::strstr(path, "."))
                     DownloadFile(path + 1);
                 else
                     SendResult("test result --- GET ---");
                 break;
-            case SPA::ServerSide::idPost:
+            case (unsigned short)tagHttpRequestID::idPost:
                 SendResult("+++ POST +++ test result");
                 break;
-            case SPA::ServerSide::idUserRequest:
+            case (unsigned short)tagHttpRequestID::idUserRequest:
                 if (RequestName == "sayHello")
 #ifdef WIN32_64
                     SendResult(SayHello(args[0].bstrVal, args[1].bstrVal).c_str());

@@ -154,7 +154,7 @@ namespace SPA{
             sql += (strDB + u"_");
             sql += (strTable + u"_");
             switch (eventType) {
-                case SPA::UDB::ueDelete:
+                case tagUpdateEvent::ueDelete:
                     sql += u"DELETE AFTER DELETE ON `";
                     for (auto it = vPriKey.begin(), end = vPriKey.end(); it != end; ++it) {
                         if (it->Pri) {
@@ -165,7 +165,7 @@ namespace SPA{
                         pKey = &vDelKey;
                     }
                     break;
-                case SPA::UDB::ueInsert:
+                case tagUpdateEvent::ueInsert:
                     sql += u"INSERT AFTER INSERT ON `";
                     break;
                 default: //update
@@ -182,10 +182,10 @@ namespace SPA{
             sql += u"'";
             for (auto it = pKey->begin(), end = pKey->end(); it != end; ++it) {
                 switch (eventType) {
-                    case SPA::UDB::ueDelete:
+                    case tagUpdateEvent::ueDelete:
                         sql += u",old.`";
                         break;
-                    case SPA::UDB::ueInsert:
+                    case tagUpdateEvent::ueInsert:
                         sql += u",new.`";
                         break;
                     default: //update
@@ -193,7 +193,7 @@ namespace SPA{
                         break;
                 }
                 sql += (it->ColumnName + u"`");
-                if (eventType == SPA::UDB::ueUpdate) {
+                if (eventType == tagUpdateEvent::ueUpdate) {
                     sql += u",new.`";
                     sql += (it->ColumnName + u"`");
                 }
@@ -265,21 +265,21 @@ namespace SPA{
             Execute(sql, true, true, false, 0, affected, res, errMsg, vtId, fail_ok);
 
             if (!bInsert) {
-                sql = GetCreateTriggerSQL(wSchema.c_str(), wTable.c_str(), vKey, SPA::UDB::ueInsert);
+                sql = GetCreateTriggerSQL(wSchema.c_str(), wTable.c_str(), vKey, tagUpdateEvent::ueInsert);
                 Execute(sql, true, true, false, 0, affected, res, errMsg, vtId, fail_ok);
                 if (res) {
                     CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Unable to create insert trigger for the table %s.%s(errCode=%d; errMsg=%s)", schema.c_str(), table.c_str(), res, Utilities::ToUTF8(errMsg).c_str());
                 }
             }
             if (!bDelete) {
-                sql = GetCreateTriggerSQL(wSchema.c_str(), wTable.c_str(), vKey, SPA::UDB::ueDelete);
+                sql = GetCreateTriggerSQL(wSchema.c_str(), wTable.c_str(), vKey, tagUpdateEvent::ueDelete);
                 Execute(sql, true, true, false, 0, affected, res, errMsg, vtId, fail_ok);
                 if (res) {
                     CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Unable to create delete trigger for the table %s.%s(errCode=%d; errMsg=%s)", schema.c_str(), table.c_str(), res, Utilities::ToUTF8(errMsg).c_str());
                 }
             }
             if (!bUpdate) {
-                sql = GetCreateTriggerSQL(wSchema.c_str(), wTable.c_str(), vKey, SPA::UDB::ueUpdate);
+                sql = GetCreateTriggerSQL(wSchema.c_str(), wTable.c_str(), vKey, tagUpdateEvent::ueUpdate);
                 Execute(sql, true, true, false, 0, affected, res, errMsg, vtId, fail_ok);
                 if (res) {
                     CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Unable to create update trigger for the table %s.%s(errCode=%d; errMsg=%s)", schema.c_str(), table.c_str(), res, Utilities::ToUTF8(errMsg).c_str());

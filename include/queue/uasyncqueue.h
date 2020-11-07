@@ -7,20 +7,20 @@
 namespace SPA {
     namespace Queue {
         //use built-in chat service id
-        static const unsigned int sidQueue = sidChat;
+        static const unsigned int sidQueue = (unsigned int)tagServiceID::sidChat;
 
         //queue-related request ids
-        static const unsigned short idEnqueue = idReservedTwo + 1;
-        static const unsigned short idDequeue = idReservedTwo + 2;
-        static const unsigned short idStartTrans = idReservedTwo + 3;
-        static const unsigned short idEndTrans = idReservedTwo + 4;
-        static const unsigned short idFlush = idReservedTwo + 5;
-        static const unsigned short idClose = idReservedTwo + 6;
-        static const unsigned short idGetKeys = idReservedTwo + 7;
-        static const unsigned short idEnqueueBatch = idReservedTwo + 8;
+        static const unsigned short idEnqueue = (unsigned short)tagBaseRequestID::idReservedTwo + 1;
+        static const unsigned short idDequeue = idEnqueue + 1;
+        static const unsigned short idStartTrans = idEnqueue + 2;
+        static const unsigned short idEndTrans = idEnqueue + 3;
+        static const unsigned short idFlush = idEnqueue + 4;
+        static const unsigned short idClose = idEnqueue + 5;
+        static const unsigned short idGetKeys = idEnqueue + 6;
+        static const unsigned short idEnqueueBatch = idEnqueue + 7;
 
         //this id is designed for notifying dequeue batch size from server to client
-        static const unsigned short idBatchSizeNotified = idReservedTwo + 20;
+        static const unsigned short idBatchSizeNotified = idEnqueue + 19;
 
         //error code
         static const int QUEUE_OK = 0;

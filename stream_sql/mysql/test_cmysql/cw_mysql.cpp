@@ -318,7 +318,7 @@ Aw TestBatch(PMySQL pMysql, CRowsetArray&ra, CDBVariantArray &vData) {
     //fifth, SELECT * from company;select * from employee;select curtime()
     //sixth, prepare and three sets of call sp_TestProc(?,?,?)
     //last, end manual transction
-    return pMysql->wait_executeBatch(tiReadUncommited, sql.c_str(), vData, r, rh, u"|", batchHeader);
+    return pMysql->wait_executeBatch(tagTransactionIsolation::tiReadUncommited, sql.c_str(), vData, r, rh, u"|", batchHeader);
 }
 
 Aw TestPreparedStatements(PMySQL pMysql) {

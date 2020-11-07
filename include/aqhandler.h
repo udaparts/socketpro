@@ -171,7 +171,7 @@ namespace SPA {
              * @param se A callback for tracking an exception from server side
              * @return true for sending the request successfully, and false for failure
              */
-            virtual bool FlushQueue(const char *key, const DFlush& f, tagOptimistic option = oMemoryCached, const DDiscarded& discarded = nullptr, const DServerException& se = nullptr) {
+            virtual bool FlushQueue(const char *key, const DFlush& f, tagOptimistic option = tagOptimistic::oMemoryCached, const DDiscarded& discarded = nullptr, const DServerException& se = nullptr) {
                 DResultHandler rh;
                 if (f) {
                     rh = [f](CAsyncResult & ar) {
@@ -347,7 +347,7 @@ namespace SPA {
              * @param option One of options, oMemoryCached, oSystemMemoryCached and oDiskCommitted
              * @return A waiter for for returning message count and queue file size in bytes
              */
-            InfoWaiter wait_flushQueue(const char* key, tagOptimistic option = oMemoryCached) {
+            InfoWaiter wait_flushQueue(const char* key, tagOptimistic option = tagOptimistic::oMemoryCached) {
                 return InfoWaiter(this, key, option);
             }
 
@@ -526,7 +526,7 @@ namespace SPA {
              * @param option One of options, oMemoryCached, oSystemMemoryCached and oDiskCommitted
              * @return A future for for returning message count and queue file size in bytes
              */
-            std::future<QueueInfo> flushQueue(const char *key, tagOptimistic option = oMemoryCached) {
+            std::future<QueueInfo> flushQueue(const char *key, tagOptimistic option = tagOptimistic::oMemoryCached) {
                 std::shared_ptr<std::promise<QueueInfo> > prom(new std::promise<QueueInfo>);
                 if (!FlushQueue(key, [prom](CAsyncQueue* aq, UINT64 messages, UINT64 fileSize) {
                         prom->set_value(QueueInfo(messages, fileSize));
@@ -704,7 +704,7 @@ namespace SPA {
 
             virtual void OnBaseRequestprocessed(unsigned short reqId) {
                 switch (reqId) {
-                    case SPA::idMessageQueued:
+                    case (unsigned short)tagBaseRequestID::idMessageQueued:
                     {
                         m_csQ.lock();
                         auto key = m_keyDequeue;

@@ -8,7 +8,7 @@
 std::shared_ptr<CSocketProService<HelloWorldPeer> > g_pHelloWorld;
 
 bool WINAPI InitServerLibrary(int param) {
-    g_pHelloWorld.reset(new CSocketProService<HelloWorldPeer>(sidHelloWorld, SPA::taNone));
+    g_pHelloWorld.reset(new CSocketProService<HelloWorldPeer>(sidHelloWorld, SPA::tagThreadApartment::taNone));
     return true;
 }
 
@@ -43,6 +43,6 @@ unsigned short WINAPI GetNumOfSlowRequests(unsigned int serviceId) {
 
 unsigned short WINAPI GetOneSlowRequestID(unsigned int serviceId, unsigned short index) {
     if (serviceId == sidHelloWorld && index == 0)
-        return idSleepHelloWorld; //the service has one slow request -- idSleepHelloWorld
+        return idSleep; //the service has one slow request -- idSleepHelloWorld
     return 0;
 }

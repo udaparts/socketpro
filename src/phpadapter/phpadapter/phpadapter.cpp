@@ -23,7 +23,7 @@ extern "C" {
         static Php::Extension extSpaPhp("spaphp", "1.0.0.1");
         Php::Namespace SPA("SPA");
 
-        SPA.add(Php::Constant("OperationSystem", SPA::GetOS()));
+        SPA.add(Php::Constant("OperationSystem", (int)SPA::GetOS()));
         SPA.add(Php::Constant("Endian", SPA::IsBigEndian()));
 
         PA::CPhpTable::RegisterInto(SPA);

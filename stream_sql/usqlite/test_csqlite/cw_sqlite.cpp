@@ -147,7 +147,7 @@ deque<CSqlite::SqlWaiter> TestBatch(PSqlite& sqlite, CRowsetArray& ra) {
     vParam.push_back(1); //ID
     vParam.push_back(2); //EMPLOYEEID
     //there is no manual transaction if isolation is tiUnspecified
-    CSqlite::SqlWaiter w0 = sqlite->wait_executeBatch(tiUnspecified, u"Select datetime('now');select * from COMPANY where ID=?;select * from EMPLOYEE where EMPLOYEEID=?",
+    CSqlite::SqlWaiter w0 = sqlite->wait_executeBatch(tagTransactionIsolation::tiUnspecified, u"Select datetime('now');select * from COMPANY where ID=?;select * from EMPLOYEE where EMPLOYEEID=?",
         vParam, [&ra](CSqlite& handler, CDBVariantArray& vData) {
             //rowset data come here
             assert((vData.size() % handler.GetColumnInfo().size()) == 0);
@@ -181,7 +181,7 @@ deque<CSqlite::SqlWaiter> TestBatch(PSqlite& sqlite, CRowsetArray& ra) {
     //select * from EMPLOYEE where EMPLOYEEID=2;
     //select * from EMPLOYEE where EMPLOYEEID=3
     //ok = sqlite->EndTrans();
-    CSqlite::SqlWaiter w1 = sqlite->wait_executeBatch(tiReadCommited, u"Select datetime('now');select * from COMPANY where ID=?;Select datetime('now');select * from EMPLOYEE where EMPLOYEEID=?",
+    CSqlite::SqlWaiter w1 = sqlite->wait_executeBatch(tagTransactionIsolation::tiReadCommited, u"Select datetime('now');select * from COMPANY where ID=?;Select datetime('now');select * from EMPLOYEE where EMPLOYEEID=?",
         vParam, [&ra](CSqlite& handler, CDBVariantArray& vData) {
             //rowset data come here
             assert((vData.size() % handler.GetColumnInfo().size()) == 0);

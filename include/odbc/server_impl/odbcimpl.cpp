@@ -189,10 +189,10 @@ namespace SPA
         }
 
         COdbcImpl::COdbcImpl()
-        : m_oks(0), m_fails(0), m_ti(tiUnspecified), m_global(true),
+        : m_oks(0), m_fails(0), m_ti(tagTransactionIsolation::tiUnspecified), m_global(true),
         m_Blob(*m_sb), m_parameters(0), m_bCall(false), m_bReturn(false),
         m_outputs(0), m_nRecordSize(0), m_pNoSending(nullptr),
-        m_msDriver(msODBC), m_EnableMessages(false),
+        m_msDriver(tagManagementSystem::msODBC), m_EnableMessages(false),
         m_bPrimaryKeys(SQL_FALSE), m_bProcedureColumns(SQL_FALSE) {
         }
 
@@ -215,7 +215,7 @@ namespace SPA
         void COdbcImpl::OnSwitchFrom(unsigned int nOldServiceId) {
             m_oks = 0;
             m_fails = 0;
-            m_ti = tiUnspecified;
+            m_ti = tagTransactionIsolation::tiUnspecified;
             CAutoLock al(m_csPeer);
             SQLHDBC hdbc = m_mapConnection[GetSocketHandle()];
             if (hdbc) {
@@ -272,7 +272,7 @@ namespace SPA
 
         void COdbcImpl::OnBaseRequestArrive(unsigned short requestId) {
             switch (requestId) {
-                case idCancel:
+                case (unsigned short)tagBaseRequestID::idCancel:
 #ifndef NDEBUG
                     std::cout << "Cancel called" << std::endl;
 #endif
@@ -280,10 +280,10 @@ namespace SPA
                         std::shared_ptr<void> pExcuting = m_pExcuting;
                         if (pExcuting)
                             SQLCancel(pExcuting.get());
-                        if (m_ti == tiUnspecified)
+                        if (m_ti == tagTransactionIsolation::tiUnspecified)
                             break;
                         SQLEndTran(SQL_HANDLE_DBC, m_pOdbc.get(), SQL_ROLLBACK);
-                        m_ti = tiUnspecified;
+                        m_ti = tagTransactionIsolation::tiUnspecified;
                     } while (false);
                     break;
                 default:
@@ -297,7 +297,7 @@ namespace SPA
             m_pOdbc.reset();
             m_vParam.clear();
             ResetMemories();
-            m_msDriver = msODBC;
+            m_msDriver = tagManagementSystem::msODBC;
             m_EnableMessages = false;
             m_bPrimaryKeys = SQL_FALSE;
             m_bProcedureColumns = SQL_FALSE;
@@ -427,7 +427,7 @@ namespace SPA
                     }
                 } while (false);
             }
-            ms = m_msDriver;
+            ms = (int)m_msDriver;
             if (m_pOdbc) {
                 SQLGetFunctions(m_pOdbc.get(), SQL_API_SQLPRIMARYKEYS, &m_bPrimaryKeys);
                 SQLGetFunctions(m_pOdbc.get(), SQL_API_SQLPROCEDURECOLUMNS, &m_bProcedureColumns);
@@ -443,8 +443,8 @@ namespace SPA
         }
 
         void COdbcImpl::BeginTrans(int isolation, const CDBString &dbConn, unsigned int flags, int &res, CDBString &errMsg, int &ms) {
-            ms = msODBC;
-            if (m_ti != tiUnspecified || isolation == (int) tiUnspecified) {
+            ms = (int)tagManagementSystem::msODBC;
+            if (m_ti != tagTransactionIsolation::tiUnspecified || isolation == (int)tagTransactionIsolation::tiUnspecified) {
                 errMsg = BAD_MANUAL_TRANSACTION_STATE;
                 res = Odbc::ER_BAD_MANUAL_TRANSACTION_STATE;
                 return;
@@ -455,19 +455,19 @@ namespace SPA
                     return;
                 }
             }
-            ms = m_msDriver;
+            ms = (int)m_msDriver;
             SQLINTEGER attr;
             switch ((tagTransactionIsolation) isolation) {
-                case tiReadUncommited:
+                case tagTransactionIsolation::tiReadUncommited:
                     attr = SQL_TXN_READ_UNCOMMITTED;
                     break;
-                case tiRepeatableRead:
+                case tagTransactionIsolation::tiRepeatableRead:
                     attr = SQL_TXN_REPEATABLE_READ;
                     break;
-                case tiReadCommited:
+                case tagTransactionIsolation::tiReadCommited:
                     attr = SQL_TXN_READ_COMMITTED;
                     break;
-                case tiSerializable:
+                case tagTransactionIsolation::tiSerializable:
                     attr = SQL_TXN_SERIALIZABLE;
                     break;
                 default:
@@ -497,12 +497,12 @@ namespace SPA
         }
 
         void COdbcImpl::EndTrans(int plan, int &res, CDBString & errMsg) {
-            if (m_ti == tiUnspecified) {
+            if (m_ti == tagTransactionIsolation::tiUnspecified) {
                 errMsg = BAD_MANUAL_TRANSACTION_STATE;
                 res = Odbc::ER_BAD_MANUAL_TRANSACTION_STATE;
                 return;
             }
-            if (plan < 0 || plan > rpRollbackAlways) {
+            if (plan < 0 || plan > (int)tagRollbackPlan::rpRollbackAlways) {
                 res = Odbc::ER_BAD_END_TRANSTACTION_PLAN;
                 errMsg = BAD_END_TRANSTACTION_PLAN;
                 return;
@@ -515,22 +515,22 @@ namespace SPA
             bool rollback = false;
             tagRollbackPlan rp = (tagRollbackPlan) plan;
             switch (rp) {
-                case rpRollbackErrorAny:
+                case tagRollbackPlan::rpRollbackErrorAny:
                     rollback = m_fails ? true : false;
                     break;
-                case rpRollbackErrorLess:
+                case tagRollbackPlan::rpRollbackErrorLess:
                     rollback = (m_fails < m_oks && m_fails) ? true : false;
                     break;
-                case rpRollbackErrorEqual:
+                case tagRollbackPlan::rpRollbackErrorEqual:
                     rollback = (m_fails >= m_oks) ? true : false;
                     break;
-                case rpRollbackErrorMore:
+                case tagRollbackPlan::rpRollbackErrorMore:
                     rollback = (m_fails > m_oks) ? true : false;
                     break;
-                case rpRollbackErrorAll:
+                case tagRollbackPlan::rpRollbackErrorAll:
                     rollback = (m_oks) ? false : true;
                     break;
-                case rpRollbackAlways:
+                case tagRollbackPlan::rpRollbackAlways:
                     rollback = true;
                     break;
                 default:
@@ -543,7 +543,7 @@ namespace SPA
                 GetErrMsg(SQL_HANDLE_DBC, m_pOdbc.get(), errMsg);
             } else {
                 res = SQL_SUCCESS;
-                m_ti = tiUnspecified;
+                m_ti = tagTransactionIsolation::tiUnspecified;
                 m_fails = 0;
                 m_oks = 0;
             }
@@ -677,7 +677,7 @@ namespace SPA
             SQLSMALLINT decimaldigits = 0; // no of digits if column is numeric
             SQLLEN displaysize = 0; // drivers column display size
             CDBColumnInfoArray vCols((size_t) columns);
-            bool bPostgres = (m_msDriver == msPostgreSQL);
+            bool bPostgres = (m_msDriver == tagManagementSystem::msPostgreSQL);
             for (SQLSMALLINT n = 0; n < columns; ++n) {
                 CDBColumnInfo &info = vCols[n];
                 SQLRETURN retcode = SQLDescribeCol(hstmt, (SQLUSMALLINT) (n + 1), colname, sizeof (colname) / sizeof (SQLCHAR), &colnamelen, &coltype, &collen, &decimaldigits, &nullable);
@@ -889,7 +889,7 @@ namespace SPA
                     primary_key_set = true;
                 } else if (!primary_key_set) {
                     switch (m_msDriver) {
-                        case msMsSQL:
+                        case tagManagementSystem::msMsSQL:
                             retcode = SQLColAttribute(hstmt, (SQLUSMALLINT) (n + 1), SQL_CA_SS_COLUMN_KEY, nullptr, 0, nullptr, &displaysize);
                             if (displaysize) {
                                 info.Flags |= CDBColumnInfo::FLAG_PRIMARY_KEY;
@@ -1031,27 +1031,27 @@ namespace SPA
                 std::transform(m_dbms.begin(), m_dbms.end(), m_dbms.begin(), ::tolower); //microsoft sql server, oracle, mysql
 #if defined(WIN32_64) && _MSC_VER < 1900
                 if (m_dbms == L"microsoft sql server") {
-                    m_msDriver = msMsSQL;
+                    m_msDriver = tagManagementSystem::msMsSQL;
                 } else if (m_dbms == L"mysql") {
-                    m_msDriver = msMysql;
+                    m_msDriver = tagManagementSystem::msMysql;
                 } else if (m_dbms == L"oracle") {
-                    m_msDriver = msOracle;
+                    m_msDriver = tagManagementSystem::msOracle;
                 } else if (m_dbms.find(L"db2") != std::wstring::npos) {
-                    m_msDriver = msDB2;
+                    m_msDriver = tagManagementSystem::msDB2;
                 } else if (m_dbms.find(L"postgre") == 0) {
-                    m_msDriver = msPostgreSQL;
+                    m_msDriver = tagManagementSystem::msPostgreSQL;
                 }
 #else
                 if (m_dbms == u"microsoft sql server") {
-                    m_msDriver = msMsSQL;
+                    m_msDriver = tagManagementSystem::msMsSQL;
                 } else if (m_dbms == u"mysql") {
-                    m_msDriver = msMysql;
+                    m_msDriver = tagManagementSystem::msMysql;
                 } else if (m_dbms == u"oracle") {
-                    m_msDriver = msOracle;
+                    m_msDriver = tagManagementSystem::msOracle;
                 } else if (m_dbms.find(u"db2") != CDBString::npos) {
-                    m_msDriver = msDB2;
+                    m_msDriver = tagManagementSystem::msDB2;
                 } else if (m_dbms.find(u"postgre") == 0) {
-                    m_msDriver = msPostgreSQL;
+                    m_msDriver = tagManagementSystem::msPostgreSQL;
                 }
 #endif
             } else {
@@ -2712,7 +2712,7 @@ namespace SPA
             CDBString sql = wsql;
             if (m_EnableMessages && !sql.size()) {
                 switch (m_msDriver) {
-                    case msMsSQL:
+                    case tagManagementSystem::msMsSQL:
                         sql = GenerateMsSqlForCachedTables();
                         break;
                     default:
@@ -2739,7 +2739,7 @@ namespace SPA
                 m_pExcuting = pStmt;
                 if (meta) {
                     switch (m_msDriver) {
-                        case msMsSQL:
+                        case tagManagementSystem::msMsSQL:
                             retcode = SQLSetStmtAttr(hstmt, SQL_SOPT_SS_HIDDEN_COLUMNS, (SQLPOINTER) SQL_HC_ON, 0);
                             break;
                         default:
@@ -2867,16 +2867,16 @@ namespace SPA
                 unsigned int pos = (unsigned int) (r * cols);
                 CDBVariant &vt = vData[pos];
                 if (vt == vtIN) {
-                    if (vPD[k] == pdUnknown)
+                    if (vPD[k] == tagParameterDirection::pdUnknown)
                         continue;
                 } else if (vt == vtOUT) {
-                    if (vPD[k] == pdUnknown)
+                    if (vPD[k] == tagParameterDirection::pdUnknown)
                         continue;
-                    pi.Direction = pdOutput;
+                    pi.Direction = tagParameterDirection::pdOutput;
                 } else if (vt == vtINOUT) {
-                    if (vPD[k] == pdUnknown)
+                    if (vPD[k] == tagParameterDirection::pdUnknown)
                         continue;
-                    pi.Direction = pdInputOutput;
+                    pi.Direction = tagParameterDirection::pdInputOutput;
                 } else {
                     assert(false); //shouldn't come here
                 }
@@ -3043,21 +3043,21 @@ namespace SPA
                 CDBVariant &vt = vData[pos];
                 switch (vt.iVal) {
                     case SQL_PARAM_INPUT:
-                        if (vPD[k] == pdUnknown)
+                        if (vPD[k] == tagParameterDirection::pdUnknown)
                             continue;
                         break;
                     case SQL_PARAM_INPUT_OUTPUT:
-                        if (vPD[k] == pdUnknown)
+                        if (vPD[k] == tagParameterDirection::pdUnknown)
                             continue;
-                        pi.Direction = pdInputOutput;
+                        pi.Direction = tagParameterDirection::pdInputOutput;
                         break;
                     case SQL_PARAM_OUTPUT:
-                        if (vPD[k] == pdUnknown)
+                        if (vPD[k] == tagParameterDirection::pdUnknown)
                             continue;
-                        pi.Direction = pdOutput;
+                        pi.Direction = tagParameterDirection::pdOutput;
                         break;
                     case SQL_RETURN_VALUE:
-                        pi.Direction = pdReturnValue;
+                        pi.Direction = tagParameterDirection::pdReturnValue;
                         if (!m_bReturn) {
                             --k;
                             continue;
@@ -3235,10 +3235,10 @@ namespace SPA
                         m_vPD = GetCallDirections(m_sqlPrepare);
                         if (m_bReturn) {
                             //{?=CALL .....}
-                            m_vPD.insert(m_vPD.begin(), pdInput);
+                            m_vPD.insert(m_vPD.begin(), tagParameterDirection::pdInput);
                         }
                         switch (m_msDriver) {
-                            case msOracle:
+                            case tagManagementSystem::msOracle:
                                 SetOracleCallParams(m_vPD, res, errMsg);
                                 break;
                             default:
@@ -3259,7 +3259,7 @@ namespace SPA
                 }
                 for (auto it = m_vPInfo.begin(), end = m_vPInfo.end(); it != end; ++it) {
                     if (m_bReturn && it == m_vPInfo.begin()) {
-                        it->Direction = pdReturnValue;
+                        it->Direction = tagParameterDirection::pdReturnValue;
                     }
                     switch (it->DataType) {
                         case VT_I1:
@@ -3290,13 +3290,13 @@ namespace SPA
                             break;
                     }
                     switch (it->Direction) {
-                        case pdUnknown:
+                        case tagParameterDirection::pdUnknown:
                             res = Odbc::ER_BAD_PARAMETER_DIRECTION_TYPE;
                             errMsg = BAD_PARAMETER_DIRECTION_TYPE;
                             break;
-                        case pdInput:
+                        case tagParameterDirection::pdInput:
                             break;
-                        case pdInputOutput:
+                        case tagParameterDirection::pdInputOutput:
                             ++m_outputs;
                             break;
                         default:
@@ -3361,7 +3361,7 @@ namespace SPA
                                 info.DataType = vt;
                             {
                                 CDBVariant &d = m_vParam[r * (unsigned short) m_parameters + (unsigned short) col];
-                                if (d.VtExt == vteGuid && d.parray->rgsabound->cElements == sizeof (GUID)) {
+                                if (d.VtExt == tagVTExt::vteGuid && d.parray->rgsabound->cElements == sizeof (GUID)) {
                                     info.DataType = VT_CLSID;
                                 }
                             }
@@ -3383,9 +3383,9 @@ namespace SPA
             for (SQLSMALLINT col = 0; col < m_parameters; ++col) {
                 CParameterInfo &info = m_vPInfo[col];
                 switch (info.Direction) {
-                    case UDB::pdOutput:
-                    case UDB::pdReturnValue:
-                    case UDB::pdInputOutput:
+                    case tagParameterDirection::pdOutput:
+                    case tagParameterDirection::pdReturnValue:
+                    case tagParameterDirection::pdInputOutput:
                         switch (info.DataType) {
                             case VT_CLSID:
                                 info.ColumnSize = sizeof (GUID);
@@ -3453,7 +3453,7 @@ namespace SPA
             const unsigned char *start = m_Blob.GetBuffer();
             for (SQLSMALLINT n = 0; n < m_parameters; ++n) {
                 CParameterInfo &info = m_vPInfo[n];
-                if (info.Direction == UDB::pdInput)
+                if (info.Direction == tagParameterDirection::pdInput)
                     continue;
                 CDBColumnInfo colInfo;
                 colInfo.DataType = info.DataType;
@@ -3599,16 +3599,16 @@ namespace SPA
                 SQLSMALLINT InputOutputType = SQL_PARAM_TYPE_UNKNOWN;
                 CParameterInfo &info = m_vPInfo[col];
                 switch (info.Direction) {
-                    case UDB::pdInput:
+                    case tagParameterDirection::pdInput:
                         InputOutputType = SQL_PARAM_INPUT;
                         break;
-                    case UDB::pdOutput:
+                    case tagParameterDirection::pdOutput:
                         InputOutputType = SQL_PARAM_OUTPUT;
                         break;
-                    case UDB::pdReturnValue:
+                    case tagParameterDirection::pdReturnValue:
                         InputOutputType = SQL_PARAM_OUTPUT;
                         break;
-                    case UDB::pdInputOutput:
+                    case tagParameterDirection::pdInputOutput:
                         InputOutputType = SQL_PARAM_INPUT_OUTPUT;
                         break;
                     default:
@@ -3742,7 +3742,7 @@ namespace SPA
                                     output_pos += (unsigned int) BufferLength;
                                     break;
                                 case VT_XML:
-                                    if (m_msDriver == msDB2)
+                                    if (m_msDriver == tagManagementSystem::msDB2)
                                         sql_type = SQL_XML;
                                     else
                                         sql_type = SQL_SS_XML;
@@ -3847,7 +3847,7 @@ namespace SPA
                                     break;
                                 case VT_XML:
                                     c_type = SQL_C_WCHAR;
-                                    if (m_msDriver == msDB2)
+                                    if (m_msDriver == tagManagementSystem::msDB2)
                                         sql_type = SQL_XML;
                                     else
                                         sql_type = SQL_SS_XML;
@@ -3974,7 +3974,7 @@ namespace SPA
                         if (info.DataType == VT_VARIANT) {
                             sql_type = SQL_SS_VARIANT;
                         } else if (info.DataType == VT_XML) {
-                            if (m_msDriver == msDB2)
+                            if (m_msDriver == tagManagementSystem::msDB2)
                                 sql_type = SQL_XML;
                             else
                                 sql_type = SQL_SS_XML;
@@ -4248,7 +4248,7 @@ namespace SPA
                 }
                 if (balanced) {
                     if (c == coma) {
-                        vPD.push_back(quest ? pdInput : pdUnknown);
+                        vPD.push_back(quest ? tagParameterDirection::pdInput : tagParameterDirection::pdUnknown);
                         quest = false;
                     } else if (c == question) {
                         quest = true;
@@ -4256,7 +4256,7 @@ namespace SPA
                 }
             }
             if (not_empty) {
-                vPD.push_back(quest ? pdInput : pdUnknown);
+                vPD.push_back(quest ? tagParameterDirection::pdInput : tagParameterDirection::pdUnknown);
             }
             return vPD;
         }
@@ -4327,7 +4327,7 @@ namespace SPA
                 errMsg = NO_DB_OPENED_YET;
                 fail_ok = vSql.size();
                 fail_ok <<= 32;
-                SendResult(idSqlBatchHeader, res, errMsg, (int) msODBC, (unsigned int) parameters, callIndex);
+                SendResult(idSqlBatchHeader, res, errMsg, (int)tagManagementSystem::msODBC, (unsigned int) parameters, callIndex);
                 return;
             }
             size_t rows = 0;
@@ -4338,7 +4338,7 @@ namespace SPA
                     m_fails += vSql.size();
                     fail_ok = vSql.size();
                     fail_ok <<= 32;
-                    SendResult(idSqlBatchHeader, res, errMsg, (int) msODBC, (unsigned int) parameters, callIndex);
+                    SendResult(idSqlBatchHeader, res, errMsg, (int)tagManagementSystem::msODBC, (unsigned int) parameters, callIndex);
                     return;
                 }
                 if ((m_vParam.size() % (unsigned short) parameters)) {
@@ -4347,7 +4347,7 @@ namespace SPA
                     m_fails += vSql.size();
                     fail_ok = vSql.size();
                     fail_ok <<= 32;
-                    SendResult(idSqlBatchHeader, res, errMsg, (int) msODBC, (unsigned int) parameters, callIndex);
+                    SendResult(idSqlBatchHeader, res, errMsg, (int)tagManagementSystem::msODBC, (unsigned int) parameters, callIndex);
                     return;
                 }
                 rows = m_vParam.size() / parameters;
@@ -4357,18 +4357,18 @@ namespace SPA
                     m_fails += vSql.size();
                     fail_ok = vSql.size();
                     fail_ok <<= 32;
-                    SendResult(idSqlBatchHeader, res, errMsg, (int) msODBC, (unsigned int) parameters, callIndex);
+                    SendResult(idSqlBatchHeader, res, errMsg, (int)tagManagementSystem::msODBC, (unsigned int) parameters, callIndex);
                     return;
                 }
             }
-            if (isolation != (int) tiUnspecified) {
+            if (isolation != (int)tagTransactionIsolation::tiUnspecified) {
                 int ms;
                 BeginTrans(isolation, dbConn, flags, res, errMsg, ms);
                 if (res) {
                     m_fails += vSql.size();
                     fail_ok = vSql.size();
                     fail_ok <<= 32;
-                    SendResult(idSqlBatchHeader, res, errMsg, (int) msODBC, (unsigned int) parameters, callIndex);
+                    SendResult(idSqlBatchHeader, res, errMsg, (int)tagManagementSystem::msODBC, (unsigned int) parameters, callIndex);
                     return;
                 } else if (IsCanceled() || !IsOpened())
                     return;
@@ -4379,7 +4379,7 @@ namespace SPA
                     errMsg = ODBC_GLOBAL_CONNECTION_STRING;
                 }
             }
-            unsigned int ret = SendResult(idSqlBatchHeader, res, errMsg, (int) msODBC, (unsigned int) parameters, callIndex);
+            unsigned int ret = SendResult(idSqlBatchHeader, res, errMsg, (int)tagManagementSystem::msODBC, (unsigned int) parameters, callIndex);
             if (ret == REQUEST_CANCELED || ret == SOCKET_NOT_FOUND) {
                 return;
             }
@@ -4429,12 +4429,12 @@ namespace SPA
                     res = r;
                     errMsg = err;
                 }
-                if (r && isolation != (int) tiUnspecified && plan == (int) rpDefault)
+                if (r && isolation != (int)tagTransactionIsolation::tiUnspecified && plan == (int)tagRollbackPlan::rpDefault)
                     break;
                 affected += aff;
                 fail_ok += fo;
             }
-            if (isolation != (int) tiUnspecified) {
+            if (isolation != (int)tagTransactionIsolation::tiUnspecified) {
                 EndTrans(plan, r, err);
                 if (r && !res) {
                     res = r;
@@ -4508,7 +4508,7 @@ namespace SPA
                         SQLRETURN retcode;
                         if (meta) {
                             switch (m_msDriver) {
-                                case msMsSQL:
+                                case tagManagementSystem::msMsSQL:
                                     retcode = SQLSetStmtAttr(m_pPrepare.get(), SQL_SOPT_SS_HIDDEN_COLUMNS, (SQLPOINTER) SQL_HC_ON, 0);
                                     break;
                                 default:

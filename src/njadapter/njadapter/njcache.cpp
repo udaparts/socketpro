@@ -133,7 +133,7 @@ namespace NJA {
         Isolate* isolate = args.GetIsolate();
         NJCache* obj = ObjectWrap::Unwrap<NJCache>(args.Holder());
         if (obj->IsValid(isolate)) {
-            args.GetReturnValue().Set(Int32::New(isolate, obj->m_ds->GetDBManagementSystem()));
+            args.GetReturnValue().Set(Int32::New(isolate, (int)obj->m_ds->GetDBManagementSystem()));
         }
     }
 
@@ -355,7 +355,7 @@ namespace NJA {
                     return;
                 }
                 unsigned int data = p3->Uint32Value(isolate->GetCurrentContext()).ToChecked();
-                if (data > SPA::CTable::is_null) {
+                if (data > (unsigned int)CTable::Operator::is_null) {
                     ThrowException(isolate, NJTable::BAD_OPERATION);
                     return;
                 }

@@ -28,7 +28,7 @@ namespace NJA {
             Backup(func);
             dd = [func](CAsyncServiceHandler *aq, bool canceled) {
                 QueueCb qcb;
-                qcb.EventType = qeDiscarded;
+                qcb.EventType = tagQueueEvent::qeDiscarded;
                 qcb.Func = func;
                 qcb.Buffer = CScopeUQueue::Lock();
                 PAQueue ash = (PAQueue) aq;
@@ -54,7 +54,7 @@ namespace NJA {
             Backup(func);
             dSe = [func](CAsyncServiceHandler* aq, unsigned short requestId, const wchar_t* errMessage, const char* errWhere, unsigned int errCode) {
                 QueueCb qcb;
-                qcb.EventType = qeException;
+                qcb.EventType = tagQueueEvent::qeException;
                 qcb.Func = func;
                 qcb.Buffer = CScopeUQueue::Lock();
                 PAQueue ash = (PAQueue) aq;
@@ -89,7 +89,7 @@ namespace NJA {
                 assert(processor);
                 Local<Function> func = Local<Function>::New(isolate, *cb.Func);
                 switch (cb.EventType) {
-                    case qeException:
+                    case tagQueueEvent::qeException:
                         if (!func.IsEmpty()) {
                             unsigned short reqId;
                             SPA::CDBString errMsg;
@@ -104,7 +104,7 @@ namespace NJA {
                             func->Call(isolate->GetCurrentContext(), Null(isolate), 4, argv);
                         }
                         break;
-                    case qeDiscarded:
+                    case tagQueueEvent::qeDiscarded:
                     {
                         bool canceled;
                         *cb.Buffer >> canceled;
@@ -113,7 +113,7 @@ namespace NJA {
                         func->Call(ctx, Null(isolate), 1, argv);
                     }
                         break;
-                    case qeGetKeys:
+                    case tagQueueEvent::qeGetKeys:
                     {
                         unsigned int size;
                         *cb.Buffer >> size;
@@ -131,8 +131,8 @@ namespace NJA {
                         func->Call(ctx, Null(isolate), 1, argv);
                     }
                         break;
-                    case qeEnqueueBatch:
-                    case qeEnqueue:
+                    case tagQueueEvent::qeEnqueueBatch:
+                    case tagQueueEvent::qeEnqueue:
                     {
                         SPA::UINT64 indexMessage;
                         *cb.Buffer >> indexMessage;
@@ -142,9 +142,9 @@ namespace NJA {
                         func->Call(ctx, Null(isolate), 1, argv);
                     }
                         break;
-                    case qeCloseQueue:
-                    case qeEndQueueTrans:
-                    case qeStartQueueTrans:
+                    case tagQueueEvent::qeCloseQueue:
+                    case tagQueueEvent::qeEndQueueTrans:
+                    case tagQueueEvent::qeStartQueueTrans:
                     {
                         int errCode;
                         *cb.Buffer >> errCode;
@@ -154,7 +154,7 @@ namespace NJA {
                         func->Call(ctx, Null(isolate), 1, argv);
                     }
                         break;
-                    case qeFlushQueue:
+                    case tagQueueEvent::qeFlushQueue:
                     {
                         SPA::UINT64 messageCount, fileSize;
                         *cb.Buffer >> messageCount >> fileSize;
@@ -166,7 +166,7 @@ namespace NJA {
                         func->Call(ctx, Null(isolate), 2, argv);
                     }
                         break;
-                    case qeDequeue:
+                    case tagQueueEvent::qeDequeue:
                     {
                         SPA::UINT64 messageCount, fileSize;
                         unsigned int messagesDequeuedInBatch, bytesDequeuedInBatch;
@@ -180,7 +180,7 @@ namespace NJA {
                         func->Call(ctx, Null(isolate), 4, argv);
                     }
                         break;
-                    case qeResultReturned:
+                    case tagQueueEvent::qeResultReturned:
                     {
                         unsigned short reqId;
                         *cb.Buffer >> reqId;
@@ -221,7 +221,7 @@ namespace NJA {
             CAutoLock al(m_csJQ);
             if (m_rr) {
                 QueueCb qcb;
-                qcb.EventType = qeResultReturned;
+                qcb.EventType = tagQueueEvent::qeResultReturned;
                 qcb.Buffer = CScopeUQueue::Lock();
                 PAQueue ash = this;
                 *qcb.Buffer << ash << reqId;
@@ -249,7 +249,7 @@ namespace NJA {
                 Backup(func);
                 gk = [func](CAsyncQueue *aq, std::vector<std::string>& v) {
                     QueueCb qcb;
-                    qcb.EventType = qeGetKeys;
+                    qcb.EventType = tagQueueEvent::qeGetKeys;
                     qcb.Func = func;
                     qcb.Buffer = CScopeUQueue::Lock();
                     PAQueue ash = (PAQueue) aq;
@@ -294,7 +294,7 @@ namespace NJA {
                 Backup(func);
                 qt = [func](CAsyncQueue *aq, int errCode) {
                     QueueCb qcb;
-                    qcb.EventType = qeStartQueueTrans;
+                    qcb.EventType = tagQueueEvent::qeStartQueueTrans;
                     qcb.Func = func;
                     qcb.Buffer = CScopeUQueue::Lock();
                     PAQueue ash = (PAQueue) aq;
@@ -336,7 +336,7 @@ namespace NJA {
                 Backup(func);
                 qt = [func](CAsyncQueue *aq, int errCode) {
                     QueueCb qcb;
-                    qcb.EventType = qeEndQueueTrans;
+                    qcb.EventType = tagQueueEvent::qeEndQueueTrans;
                     qcb.Func = func;
                     qcb.Buffer = CScopeUQueue::Lock();
                     PAQueue ash = (PAQueue) aq;
@@ -378,7 +378,7 @@ namespace NJA {
                 Backup(func);
                 c = [func](CAsyncQueue *aq, int errCode) {
                     QueueCb qcb;
-                    qcb.EventType = qeCloseQueue;
+                    qcb.EventType = tagQueueEvent::qeCloseQueue;
                     qcb.Func = func;
                     qcb.Buffer = CScopeUQueue::Lock();
                     PAQueue ash = (PAQueue) aq;
@@ -420,7 +420,7 @@ namespace NJA {
                 Backup(func);
                 f = [func](CAsyncQueue *aq, SPA::UINT64 messageCount, SPA::UINT64 fileSize) {
                     QueueCb qcb;
-                    qcb.EventType = qeFlushQueue;
+                    qcb.EventType = tagQueueEvent::qeFlushQueue;
                     qcb.Func = func;
                     qcb.Buffer = CScopeUQueue::Lock();
                     PAQueue ash = (PAQueue) aq;
@@ -462,7 +462,7 @@ namespace NJA {
                 Backup(func);
                 d = [func](CAsyncQueue *aq, SPA::UINT64 messageCount, SPA::UINT64 fileSize, unsigned int messagesDequeuedInBatch, unsigned int bytesDequeuedInBatch) {
                     QueueCb qcb;
-                    qcb.EventType = qeDequeue;
+                    qcb.EventType = tagQueueEvent::qeDequeue;
                     qcb.Func = func;
                     qcb.Buffer = CScopeUQueue::Lock();
                     PAQueue ash = (PAQueue) aq;
@@ -508,7 +508,7 @@ namespace NJA {
                 Backup(func);
                 e = [func](CAsyncQueue *aq, SPA::UINT64 indexMessage) {
                     QueueCb qcb;
-                    qcb.EventType = qeEnqueue;
+                    qcb.EventType = tagQueueEvent::qeEnqueue;
                     qcb.Func = func;
                     qcb.Buffer = CScopeUQueue::Lock();
                     PAQueue ash = (PAQueue) aq;
@@ -550,7 +550,7 @@ namespace NJA {
                 Backup(func);
                 e = [func](CAsyncQueue *aq, SPA::UINT64 indexMessage) {
                     QueueCb qcb;
-                    qcb.EventType = qeEnqueueBatch;
+                    qcb.EventType = tagQueueEvent::qeEnqueueBatch;
                     qcb.Func = func;
                     qcb.Buffer = CScopeUQueue::Lock();
                     PAQueue ash = (PAQueue) aq;

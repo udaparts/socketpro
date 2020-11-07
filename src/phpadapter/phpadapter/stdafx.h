@@ -76,7 +76,7 @@ namespace PA {
 
     using SPA::Utilities::Trim;
 
-    enum tagPoolType {
+    enum class tagPoolType {
         Regular = 0,
         Slave = 1,
         Master = 2

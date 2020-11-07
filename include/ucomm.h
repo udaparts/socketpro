@@ -7,7 +7,7 @@
 
 namespace SPA {
 
-    enum tagBaseRequestID {
+    enum class tagBaseRequestID : unsigned short {
         idUnknown = 0,
         idSwitchTo = 1,
         idRouteeChanged = (idSwitchTo + 1),
@@ -42,7 +42,7 @@ namespace SPA {
         idReservedTwo = 0x2001
     };
 
-    enum tagChatRequestID {
+    enum class tagChatRequestID : unsigned short {
         idEnter = 65,
         idSpeak = 66,
         idSpeakEx = 67,
@@ -51,7 +51,7 @@ namespace SPA {
         idSendUserMessageEx = 70,
     };
 
-    enum tagServiceID {
+    enum class tagServiceID : unsigned int {
         sidReserved1 = 1,
         sidStartup = 0x100,
         sidChat = (sidStartup + 1),
@@ -61,18 +61,18 @@ namespace SPA {
         sidReserved = 0x10000000
     };
 
-    enum tagEncryptionMethod {
+    enum class tagEncryptionMethod {
         NoEncryption = 0,
         TLSv1 = 1,
     };
 
-    enum tagShutdownType {
+    enum class tagShutdownType {
         stReceive = 0,
         stSend = 1,
         stBoth = 2
     };
 
-    enum tagQueueStatus {
+    enum class tagQueueStatus {
         //everything is fine
         qsNormal = 0,
 
@@ -100,7 +100,7 @@ namespace SPA {
         qsDuplicateName = 8,
     };
 
-    enum tagOptimistic {
+    enum class tagOptimistic {
         oMemoryCached = 0,
         oSystemMemoryCached = 1,
         oDiskCommitted = 2

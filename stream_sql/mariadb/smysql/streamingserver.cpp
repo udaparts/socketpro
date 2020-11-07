@@ -252,20 +252,20 @@ CStreamingServer::CStreamingServer(int nParam) : CSocketProServer(nParam) {
 }
 
 bool CHttpPeer::DoAuthentication(const wchar_t *userId, const wchar_t *password) {
-    if (GetTransport() != tWebSocket)
+    if (GetTransport() != tagTransport::tWebSocket)
         return true;
-    return CMysqlImpl::DoSQLAuthentication(GetSocketHandle(), userId, password, SPA::sidHTTP, DEFAULT_LOCAL_CONNECTION_STRING);
+    return CMysqlImpl::DoSQLAuthentication(GetSocketHandle(), userId, password, (unsigned int)SPA::tagServiceID::sidHTTP, DEFAULT_LOCAL_CONNECTION_STRING);
 }
 
 void CHttpPeer::OnFastRequestArrive(unsigned short requestId, unsigned int len) {
     switch (requestId) {
-        case idDelete:
-        case idPut:
-        case idTrace:
-        case idOptions:
-        case idHead:
-        case idMultiPart:
-        case idConnect:
+        case (unsigned short)tagHttpRequestID::idDelete:
+        case (unsigned short)tagHttpRequestID::idPut:
+        case (unsigned short)tagHttpRequestID::idTrace:
+        case (unsigned short)tagHttpRequestID::idOptions:
+        case (unsigned short)tagHttpRequestID::idHead:
+        case (unsigned short)tagHttpRequestID::idMultiPart:
+        case (unsigned short)tagHttpRequestID::idConnect:
             SetResponseCode(501);
             SendResult("Server doesn't support DELETE, PUT, TRACE, OPTIONS, HEAD, CONNECT and POST with multipart");
             break;
@@ -278,7 +278,7 @@ void CHttpPeer::OnFastRequestArrive(unsigned short requestId, unsigned int len) 
 
 int CHttpPeer::OnSlowRequestArrive(unsigned short requestId, unsigned int len) {
     switch (requestId) {
-        case idGet:
+        case (unsigned short)tagHttpRequestID::idGet:
         {
             const char *path = GetPath();
             if (::strstr(path, "."))
@@ -287,10 +287,10 @@ int CHttpPeer::OnSlowRequestArrive(unsigned short requestId, unsigned int len) {
                 SendResult("Unsupported GET request");
         }
             break;
-        case idPost:
+        case (unsigned short)tagHttpRequestID::idPost:
             SendResult("Unsupported POST request");
             break;
-        case idUserRequest:
+        case (unsigned short)tagHttpRequestID::idUserRequest:
         {
             const std::string &RequestName = GetUserRequestName();
             if (RequestName == "subscribeTableEvents") {
@@ -311,7 +311,7 @@ int CHttpPeer::OnSlowRequestArrive(unsigned short requestId, unsigned int len) {
 
 bool CStreamingServer::OnIsPermitted(USocket_Server_Handle h, const wchar_t* userId, const wchar_t *password, unsigned int serviceId) {
     switch (serviceId) {
-        case SPA::sidHTTP:
+        case (unsigned int)SPA::tagServiceID::sidHTTP:
             break;
         default:
             return CMysqlImpl::DoSQLAuthentication(h, userId, password, serviceId, DEFAULT_LOCAL_CONNECTION_STRING);
@@ -339,7 +339,7 @@ void CStreamingServer::OnIdle(SPA::INT64 milliseconds) {
 
 bool CStreamingServer::OnSettingServer(unsigned int listeningPort, unsigned int maxBacklog, bool v6) {
     //amIntegrated and amMixed not supported yet
-    CSocketProServer::Config::SetAuthenticationMethod(amOwn);
+    CSocketProServer::Config::SetAuthenticationMethod(tagAuthenticationMethod::amOwn);
 
     //register streaming sql database events
     PushManager::AddAChatGroup(SPA::UDB::STREAMING_SQL_CHAT_GROUP_ID, L"Streaming SQL Database Events");
@@ -351,7 +351,7 @@ bool CStreamingServer::OnSettingServer(unsigned int listeningPort, unsigned int 
 }
 
 bool CStreamingServer::AddService() {
-    bool ok = m_MySql.AddMe(SPA::Mysql::sidMysql, SPA::taNone);
+    bool ok = m_MySql.AddMe(SPA::Mysql::sidMysql, SPA::tagThreadApartment::taNone);
     if (!ok)
         return false;
     ok = m_MySql.AddSlowRequest(SPA::UDB::idOpen);
@@ -380,16 +380,16 @@ bool CStreamingServer::AddService() {
         return false;
     if (!CSetGlobals::Globals.enable_http_websocket)
         return true;
-    ok = m_myHttp.AddMe(SPA::sidHTTP);
+    ok = m_myHttp.AddMe((unsigned int)SPA::tagServiceID::sidHTTP);
     if (!ok)
         return false;
-    ok = m_myHttp.AddSlowRequest(idGet);
+    ok = m_myHttp.AddSlowRequest((unsigned short)tagHttpRequestID::idGet);
     if (!ok)
         return false;
-    ok = m_myHttp.AddSlowRequest(idPost);
+    ok = m_myHttp.AddSlowRequest((unsigned short)tagHttpRequestID::idPost);
     if (!ok)
         return false;
-    ok = m_myHttp.AddSlowRequest(idUserRequest);
+    ok = m_myHttp.AddSlowRequest((unsigned short)tagHttpRequestID::idUserRequest);
     if (!ok)
         return false;
     return true;

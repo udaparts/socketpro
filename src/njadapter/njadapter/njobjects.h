@@ -16,7 +16,7 @@ namespace NJA {
 
     typedef SPA::ClientSide::CCachedBaseHandler<0> CAsyncHandler;
 
-    enum tagSocketEvent {
+    enum class tagSocketEvent {
         seAllProcessed = 0,
         seResultReturned,
         seBaseRequestProcessed,

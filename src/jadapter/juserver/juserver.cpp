@@ -1543,10 +1543,10 @@ bool CALLBACK OnHttpAuthentication(USocket_Server_Handle h, const wchar_t *userI
 
 void CALLBACK OnThreadEvent(SPA::ServerSide::tagThreadEvent te) {
     switch (te) {
-        case SPA::ServerSide::teStarted:
+        case SPA::ServerSide::tagThreadEvent::teStarted:
             SetCurrentThreadAsDaemon();
             break;
-        case SPA::ServerSide::teKilling:
+        case SPA::ServerSide::tagThreadEvent::teKilling:
             RemoveCurrentThreadAsDaemon();
             break;
         default:

@@ -42,41 +42,41 @@ namespace PA
         handler.property("idParameterPosition", SPA::UDB::idParameterPosition, Php::Const);
 
         //tagManagementSystem
-        handler.property("Unknown", SPA::UDB::msUnknown, Php::Const);
-        handler.property("Sqlite", SPA::UDB::msSqlite, Php::Const);
-        handler.property("Mysql", SPA::UDB::msMysql, Php::Const);
-        handler.property("ODBC", SPA::UDB::msODBC, Php::Const);
-        handler.property("MsSQL", SPA::UDB::msMsSQL, Php::Const);
-        handler.property("Oracle", SPA::UDB::msOracle, Php::Const);
-        handler.property("DB2", SPA::UDB::msDB2, Php::Const);
-        handler.property("PostgreSQL", SPA::UDB::msPostgreSQL, Php::Const);
-        handler.property("MongoDB", SPA::UDB::msMongoDB, Php::Const);
+        handler.property("Unknown", (int)SPA::UDB::tagManagementSystem::msUnknown, Php::Const);
+        handler.property("Sqlite", (int)SPA::UDB::tagManagementSystem::msSqlite, Php::Const);
+        handler.property("Mysql", (int)SPA::UDB::tagManagementSystem::msMysql, Php::Const);
+        handler.property("ODBC", (int)SPA::UDB::tagManagementSystem::msODBC, Php::Const);
+        handler.property("MsSQL", (int)SPA::UDB::tagManagementSystem::msMsSQL, Php::Const);
+        handler.property("Oracle", (int)SPA::UDB::tagManagementSystem::msOracle, Php::Const);
+        handler.property("DB2", (int)SPA::UDB::tagManagementSystem::msDB2, Php::Const);
+        handler.property("PostgreSQL", (int)SPA::UDB::tagManagementSystem::msPostgreSQL, Php::Const);
+        handler.property("MongoDB", (int)SPA::UDB::tagManagementSystem::msMongoDB, Php::Const);
 
         //tagTransactionIsolation
-        handler.property("tiUnspecified", SPA::UDB::tiUnspecified, Php::Const);
-        handler.property("tiChaos", SPA::UDB::tiChaos, Php::Const);
-        handler.property("tiReadUncommited", SPA::UDB::tiReadUncommited, Php::Const);
-        handler.property("tiBrowse", SPA::UDB::tiBrowse, Php::Const);
-        handler.property("tiCursorStability", SPA::UDB::tiCursorStability, Php::Const);
-        handler.property("tiReadCommited", SPA::UDB::tiReadCommited, Php::Const);
-        handler.property("tiRepeatableRead", SPA::UDB::tiRepeatableRead, Php::Const);
-        handler.property("tiSerializable", SPA::UDB::tiSerializable, Php::Const);
-        handler.property("tiIsolated", SPA::UDB::tiIsolated, Php::Const);
+        handler.property("tiUnspecified", (int)SPA::UDB::tagTransactionIsolation::tiUnspecified, Php::Const);
+        handler.property("tiChaos", (int)SPA::UDB::tagTransactionIsolation::tiChaos, Php::Const);
+        handler.property("tiReadUncommited", (int)SPA::UDB::tagTransactionIsolation::tiReadUncommited, Php::Const);
+        handler.property("tiBrowse", (int)SPA::UDB::tagTransactionIsolation::tiBrowse, Php::Const);
+        handler.property("tiCursorStability", (int)SPA::UDB::tagTransactionIsolation::tiCursorStability, Php::Const);
+        handler.property("tiReadCommited", (int)SPA::UDB::tagTransactionIsolation::tiReadCommited, Php::Const);
+        handler.property("tiRepeatableRead", (int)SPA::UDB::tagTransactionIsolation::tiRepeatableRead, Php::Const);
+        handler.property("tiSerializable", (int)SPA::UDB::tagTransactionIsolation::tiSerializable, Php::Const);
+        handler.property("tiIsolated", (int)SPA::UDB::tagTransactionIsolation::tiIsolated, Php::Const);
 
         //tagRollbackPlan
-        handler.property("rpDefault", SPA::UDB::rpDefault, Php::Const);
-        handler.property("rpRollbackErrorAny", SPA::UDB::rpRollbackErrorAny, Php::Const);
-        handler.property("rpRollbackErrorLess", SPA::UDB::rpRollbackErrorLess, Php::Const);
-        handler.property("rpRollbackErrorEqual", SPA::UDB::rpRollbackErrorEqual, Php::Const);
-        handler.property("rpRollbackErrorMore", SPA::UDB::rpRollbackErrorMore, Php::Const);
-        handler.property("rpRollbackErrorAll", SPA::UDB::rpRollbackErrorAll, Php::Const);
-        handler.property("rpRollbackAlways", SPA::UDB::rpRollbackAlways, Php::Const);
+        handler.property("rpDefault", (int)SPA::UDB::tagRollbackPlan::rpDefault, Php::Const);
+        handler.property("rpRollbackErrorAny", (int)SPA::UDB::tagRollbackPlan::rpRollbackErrorAny, Php::Const);
+        handler.property("rpRollbackErrorLess", (int)SPA::UDB::tagRollbackPlan::rpRollbackErrorLess, Php::Const);
+        handler.property("rpRollbackErrorEqual", (int)SPA::UDB::tagRollbackPlan::rpRollbackErrorEqual, Php::Const);
+        handler.property("rpRollbackErrorMore", (int)SPA::UDB::tagRollbackPlan::rpRollbackErrorMore, Php::Const);
+        handler.property("rpRollbackErrorAll", (int)SPA::UDB::tagRollbackPlan::rpRollbackErrorAll, Php::Const);
+        handler.property("rpRollbackAlways", (int)SPA::UDB::tagRollbackPlan::rpRollbackAlways, Php::Const);
 
         //tagUpdateEvent
-        handler.property("ueUnknown", SPA::UDB::ueUnknown, Php::Const);
-        handler.property("ueInsert", SPA::UDB::ueInsert, Php::Const);
-        handler.property("ueUpdate", SPA::UDB::ueUpdate, Php::Const);
-        handler.property("ueDelete", SPA::UDB::ueDelete, Php::Const);
+        handler.property("ueUnknown", (int)SPA::UDB::tagUpdateEvent::ueUnknown, Php::Const);
+        handler.property("ueInsert", (int)SPA::UDB::tagUpdateEvent::ueInsert, Php::Const);
+        handler.property("ueUpdate", (int)SPA::UDB::tagUpdateEvent::ueUpdate, Php::Const);
+        handler.property("ueDelete", (int)SPA::UDB::tagUpdateEvent::ueDelete, Php::Const);
 
         //DB Column info tags
         handler.property("NOT_NULL", (int64_t) SPA::UDB::CDBColumnInfo::FLAG_NOT_NULL, Php::Const);
@@ -121,10 +121,10 @@ namespace PA
         Php::Value v;
         Php::Value &callback = *cb.CallBack;
         switch (cb.CallbackType) {
-            case ctDbExeRes:
+            case enumCallbackType::ctDbExeRes:
                 v = ToPhpValueEx(cb.Res);
                 break;
-            case ctDbR:
+            case enumCallbackType::ctDbR:
             {
                 bool proc;
                 int cols;
@@ -139,10 +139,10 @@ namespace PA
                 callback(vData, proc, cols);
             }
                 break;
-            case ctDbRes:
+            case enumCallbackType::ctDbRes:
                 v = ToPhpValue(cb.Res);
                 break;
-            case ctDbRH:
+            case enumCallbackType::ctDbRH:
             {
                 int index = 0;
                 v = Php::Array(); //convert to array
@@ -158,7 +158,7 @@ namespace PA
                 assert(false);
                 break;
         }
-        if (cb.CallbackType != ctDbR) {
+        if (cb.CallbackType != enumCallbackType::ctDbR) {
             callback(v);
         }
     }
@@ -266,7 +266,7 @@ namespace PA
                 SPA::CScopeUQueue sb;
                 sb << res << em << affected << fails << oks << vtId;
                 PACallback cb;
-                cb.CallbackType = ctDbExeRes;
+                cb.CallbackType = enumCallbackType::ctDbExeRes;
                 cb.Res = sb.Detach();
                 cb.CallBack = callback;
                 std::unique_lock<std::mutex> lk(this->m_mPhp);
@@ -293,7 +293,7 @@ namespace PA
                 sb << (int) db.GetColumnInfo().size();
                 vData.SetSize(0);
                 PACallback cb;
-                cb.CallbackType = ctDbR;
+                cb.CallbackType = enumCallbackType::ctDbR;
                 cb.Res = sb.Detach();
                 cb.CallBack = callback;
                 std::unique_lock<std::mutex> lk(this->m_mPhp);
@@ -314,7 +314,7 @@ namespace PA
                 SPA::CScopeUQueue sb;
                 sb->Push(start, bytes);
                 PACallback cb;
-                cb.CallbackType = ctDbRH;
+                cb.CallbackType = enumCallbackType::ctDbRH;
                 cb.Res = sb.Detach();
                 cb.CallBack = callback;
                 std::unique_lock<std::mutex> lk(this->m_mPhp);
@@ -403,7 +403,7 @@ namespace PA
     Php::Value CPhpDb::ExecuteBatch(Php::Parameters & params) {
         unsigned int timeout = (~0);
         int64_t iso = params[0].numericValue();
-        if (iso < SPA::UDB::tiUnspecified || iso > SPA::UDB::tiIsolated) {
+        if (iso < (int)SPA::UDB::tagTransactionIsolation::tiUnspecified || iso > (int)SPA::UDB::tagTransactionIsolation::tiIsolated) {
             throw Php::Exception("Bad transaction isolation value");
         }
         SPA::UDB::tagTransactionIsolation ti = (SPA::UDB::tagTransactionIsolation)iso;
@@ -468,11 +468,11 @@ namespace PA
                 throw Php::Exception("A boolean required for ExecuteBatch meta");
             }
         }
-        SPA::UDB::tagRollbackPlan plan = SPA::UDB::rpDefault;
+        SPA::UDB::tagRollbackPlan plan = SPA::UDB::tagRollbackPlan::rpDefault;
         if (args > 10) {
             if (params[10].isNumeric()) {
                 int64_t p = params[10].numericValue();
-                if (p < SPA::UDB::rpDefault || p > SPA::UDB::rpRollbackAlways) {
+                if (p < (int)SPA::UDB::tagRollbackPlan::rpDefault || p > (int)SPA::UDB::tagRollbackPlan::rpRollbackAlways) {
                     throw Php::Exception("Bad rollback plan value");
                 }
                 plan = (SPA::UDB::tagRollbackPlan)p;
@@ -607,7 +607,7 @@ namespace PA
                 SPA::CScopeUQueue sb;
                 sb << res << em;
                 PACallback cb;
-                cb.CallbackType = ctDbRes;
+                cb.CallbackType = enumCallbackType::ctDbRes;
                 cb.Res = sb.Detach();
                 cb.CallBack = callback;
                 std::unique_lock<std::mutex> lk(this->m_mPhp);
@@ -643,11 +643,11 @@ namespace PA
 
     Php::Value CPhpDb::BeginTrans(Php::Parameters & params) {
         unsigned int timeout = (~0);
-        SPA::UDB::tagTransactionIsolation ti = SPA::UDB::tiReadCommited;
+        SPA::UDB::tagTransactionIsolation ti = SPA::UDB::tagTransactionIsolation::tiReadCommited;
         size_t args = params.size();
         if (args > 0) {
             int64_t iso = params[0].numericValue();
-            if (iso < SPA::UDB::tiUnspecified || iso > SPA::UDB::tiIsolated) {
+            if (iso < (int)SPA::UDB::tagTransactionIsolation::tiUnspecified || iso > (int)SPA::UDB::tagTransactionIsolation::tiIsolated) {
                 throw Php::Exception("Bad transaction isolation value");
             }
             ti = (SPA::UDB::tagTransactionIsolation)iso;
@@ -675,11 +675,11 @@ namespace PA
 
     Php::Value CPhpDb::EndTrans(Php::Parameters & params) {
         unsigned int timeout = (~0);
-        SPA::UDB::tagRollbackPlan p = SPA::UDB::rpDefault;
+        SPA::UDB::tagRollbackPlan p = SPA::UDB::tagRollbackPlan::rpDefault;
         size_t args = params.size();
         if (args > 0) {
             int64_t plan = params[0].numericValue();
-            if (plan < SPA::UDB::rpDefault || plan > SPA::UDB::rpRollbackAlways) {
+            if (plan < (int)SPA::UDB::tagRollbackPlan::rpDefault || plan > (int)SPA::UDB::tagRollbackPlan::rpRollbackAlways) {
                 throw Php::Exception("Bad rollback plan value");
             }
             p = (SPA::UDB::tagRollbackPlan)plan;
@@ -715,7 +715,7 @@ namespace PA
         } else if (name == "LastAffected") {
             return m_db->GetLastAffected();
         } else if (name == "DBMS" || name == "DBManagementSystem") {
-            return m_db->GetDBManagementSystem();
+            return (int)m_db->GetDBManagementSystem();
         } else if (name == "Error" || name == "DBError" || name == "LastDBError") {
             Php::Value dbErr;
             dbErr.set(PHP_ERR_CODE, m_db->GetLastDBErrorCode());

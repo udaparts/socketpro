@@ -308,7 +308,7 @@ CSqlFuture TestBatch(PMySQL pMysql, CRowsetArray&ra, CDBVariantArray &vData) {
     //fifth, SELECT * from company;select * from employee;select curtime()
     //sixth, prepare and three sets of call sp_TestProc(?,?,?)
     //last, end manual transction
-    return pMysql->executeBatch(tiReadUncommited, sql.c_str(), vData, r, rh, u"|", batchHeader);
+    return pMysql->executeBatch(tagTransactionIsolation::tiReadUncommited, sql.c_str(), vData, r, rh, u"|", batchHeader);
 }
 
 CSqlFuture TestPreparedStatements(PMySQL pMysql) {

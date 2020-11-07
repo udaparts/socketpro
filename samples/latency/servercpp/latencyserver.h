@@ -15,7 +15,7 @@ private:
 protected:
 
     virtual bool OnSettingServer(unsigned int listeningPort, unsigned int maxBacklog, bool v6) {
-        CSocketProServer::Config::SetAuthenticationMethod(SPA::ServerSide::amOwn);
+        CSocketProServer::Config::SetAuthenticationMethod(SPA::ServerSide::tagAuthenticationMethod::amOwn);
         AddService();
         return true; //true -- ok; false -- no listening server
     }
@@ -27,7 +27,7 @@ protected:
 private:
 
     void AddService() {
-        bool ok = m_latency.AddMe(sidLatency, SPA::taNone);
+        bool ok = m_latency.AddMe(sidLatency, SPA::tagThreadApartment::taNone);
         ok = m_latency.AddSlowRequest(idEchoInt2);
     }
 };

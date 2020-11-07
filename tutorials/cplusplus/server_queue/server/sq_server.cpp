@@ -6,7 +6,7 @@ class CMySocketProServer : public CSocketProServer
 protected:
     virtual bool OnSettingServer(unsigned int listeningPort, unsigned int maxBacklog, bool v6) {
         //amIntegrated and amMixed not supported yet
-        Config::SetAuthenticationMethod(amOwn);
+        Config::SetAuthenticationMethod(tagAuthenticationMethod::amOwn);
 
         //load socketpro async queue server libraries located at the directory ../socketpro/bin
         HINSTANCE h = DllManager::AddALibrary("uasyncqueue", 16 * 1024); //16 * 1024 batch dequeuing size in bytes

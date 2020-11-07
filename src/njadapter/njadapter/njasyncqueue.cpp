@@ -243,7 +243,7 @@ namespace NJA {
                 ThrowException(isolate, "Integer value expected for flush option");
                 return;
             }
-            if (option < 0 || option > SPA::oDiskCommitted) {
+            if (option < 0 || option > (int)SPA::tagOptimistic::oDiskCommitted) {
                 ThrowException(isolate, "Bad option value");
                 return;
             }
@@ -333,7 +333,7 @@ namespace NJA {
                 return;
             }
             unsigned int reqId = p0->Uint32Value(isolate->GetCurrentContext()).ToChecked();
-            if (reqId > 0xffff || reqId <= SPA::tagBaseRequestID::idReservedTwo) {
+            if (reqId > 0xffff || reqId <= (unsigned short)SPA::tagBaseRequestID::idReservedTwo) {
                 ThrowException(isolate, "A valid unsigned short request id expected");
                 return;
             }

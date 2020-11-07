@@ -10,7 +10,7 @@ void WINAPI SetMysqlDBGlobalConnectionString(const wchar_t *dbConnection, bool r
 bool WINAPI InitServerLibrary(int param) {
     SPA::ServerSide::CMysqlImpl::m_nParam = 0;
     SPA::ServerSide::CMysqlImpl::InitMySql();
-    g_pMysql.reset(new SPA::ServerSide::CMysqlService(SPA::Mysql::sidMysql, SPA::taNone));
+    g_pMysql.reset(new SPA::ServerSide::CMysqlService(SPA::Mysql::sidMysql, SPA::tagThreadApartment::taNone));
     return true;
 }
 

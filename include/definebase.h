@@ -50,7 +50,7 @@ namespace SPA {
     /**
      * Defines for supported compression options
      */
-    typedef enum tagZipLevel {
+    typedef enum class tagZipLevel {
         zlDefault = 0,
         zlBestSpeed = 1,
         zlBestCompression = 2
@@ -59,7 +59,7 @@ namespace SPA {
     /**
      * 
      */
-    enum tagSocketOption {
+    enum class tagSocketOption {
         soTcpNoDelay = 1,
         soReuseAddr = 4,
         soKeepAlive = 8,
@@ -70,7 +70,7 @@ namespace SPA {
     /**
      * 
      */
-    enum tagSocketLevel {
+    enum class tagSocketLevel {
         slTcp = 6,
         slSocket = 0xFFFF,
     };
@@ -78,7 +78,7 @@ namespace SPA {
     /**
      * Defines for supported operation systems
      */
-    enum tagOperationSystem {
+    enum class tagOperationSystem {
         osWin = 0,
         osApple = 1,
         osMac = osApple,
@@ -93,7 +93,7 @@ namespace SPA {
     /**
      * Defines for MS COM object thread apartments for window platforms only
      */
-    enum tagThreadApartment {
+    enum class tagThreadApartment {
         /// no COM apartment involved
         taNone = 0,
 
@@ -266,23 +266,23 @@ namespace SPA {
      * Query operation system
      * @return The operation system
      */
-    static inline tagOperationSystem GetOS() {
+    static constexpr tagOperationSystem GetOS() {
 #if defined(__ANDROID__) || defined(ANDROID)
-        return osAndroid;
+        return tagOperationSystem::osAndroid;
 #elif defined(linux) || defined(__linux) || defined(__linux__) || defined(__GNU__) || defined(__GLIBC__)
-        return osLinux;
+        return tagOperationSystem::osLinux;
 #elif defined(__FreeBSD__) || defined(__NetBSD__) || defined(__OpenBSD__) || defined(__DragonFly__)
-        return osBSD;
+        return tagOperationSystem::osBSD;
 #elif defined(_WIN32) || defined(__WIN32__) || defined(WIN32)
-        return osWin;
+        return tagOperationSystem::osWin;
 #elif defined(UNDER_CE) || defined(_WIN32_WCE) || defined(WIN32_WCE) || defined(WINCE)
-        return osWinCE;
+        return tagOperationSystem::osWinCE;
 #elif defined(_WIN64) || defined(WIN64)
-        return osWin;
+        return tagOperationSystem::osWin;
 #elif defined(macintosh) || defined(__APPLE__) || defined(__APPLE_CC__)
-        return osApple;
+        return tagOperationSystem::osApple;
 #else
-        return osUnknown;
+        return tagOperationSystem::osUnknown;
 #endif
     }
 
@@ -290,7 +290,7 @@ namespace SPA {
      * Check if current operation system is big endian
      * @return True for big endian and false for little endian
      */
-    static bool IsBigEndian() {
+    static constexpr bool IsBigEndian() {
 #if defined(_WIN32) || defined(__WIN32__) || defined(WIN32)
         return false;
 #elif defined(UNDER_CE) || defined(_WIN32_WCE) || defined(WIN32_WCE)
@@ -317,8 +317,8 @@ namespace SPA {
      */
     static inline unsigned char GetWCharSize(tagOperationSystem os) {
         switch (os) {
-            case osWin:
-            case osWinCE:
+		    case tagOperationSystem::osWin:
+		    case tagOperationSystem::osWinCE:
                 return 2;
                 break;
             default:
@@ -334,8 +334,8 @@ namespace SPA {
      */
     static inline bool IsWinOs(tagOperationSystem os) {
         switch (os) {
-            case osWin:
-            case osWinCE:
+            case tagOperationSystem::osWin:
+            case tagOperationSystem::osWinCE:
                 return true;
                 break;
             default:

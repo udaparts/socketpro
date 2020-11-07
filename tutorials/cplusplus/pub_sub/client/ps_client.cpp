@@ -27,7 +27,7 @@ int main(int argc, char* argv[]) {
     std::getline(std::wcin, cc.UserId);
 
     cc.Password = L"MyPassword";
-    cc.EncrytionMethod = TLSv1;
+    cc.EncrytionMethod = tagEncryptionMethod::TLSv1;
 
 #ifdef WIN32_64
     //for windows platforms, you can also use windows system store instead

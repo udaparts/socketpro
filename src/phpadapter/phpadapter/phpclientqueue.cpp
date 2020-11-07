@@ -19,7 +19,7 @@ namespace PA
                 throw Php::Exception("An integer value expected for message storing flush option");
             }
             auto data = value.numericValue();
-            if (data < SPA::oMemoryCached || data > SPA::oDiskCommitted) {
+            if (data < (int)SPA::tagOptimistic::oMemoryCached || data > (int)SPA::tagOptimistic::oDiskCommitted) {
                 throw Php::Exception("Bad value expected for message storing flush option");
             }
             m_cq.SetOptimistic((SPA::tagOptimistic)data);
@@ -44,7 +44,7 @@ namespace PA
         } else if (name == "QueueName") {
             return m_cq.GetQueueName();
         } else if (name == "QueueStatus") {
-            return m_cq.GetQueueOpenStatus();
+            return (int)m_cq.GetQueueOpenStatus();
         } else if (name == "Secure") {
             return m_cq.IsSecure();
         } else if (name == "TTL") {
@@ -52,7 +52,7 @@ namespace PA
         } else if (name == "MessagesInDequeuing") {
             return (int64_t) m_cq.GetMessagesInDequeuing();
         } else if (name == "Optimistic") {
-            return m_cq.GetOptimistic();
+            return (int)m_cq.GetOptimistic();
         } else if (name == "LastMessageTime") {
             Php::Object datetime("DateTime", "2013-01-01");
             auto mytime = SPA::ClientSide::ClientCoreLoader.GetLastQueueMessageTime(m_cq.GetHandle());
@@ -75,20 +75,20 @@ namespace PA
         Php::Class<CPhpClientQueue> cq(PHP_CLIENTQUEUE);
 
         //tagOptimistic
-        cq.property("MemoryCached", SPA::oMemoryCached, Php::Const);
-        cq.property("SystemMemoryCached", SPA::oSystemMemoryCached, Php::Const);
-        cq.property("DiskCommitted", SPA::oDiskCommitted, Php::Const);
+        cq.property("MemoryCached", (int)SPA::tagOptimistic::oMemoryCached, Php::Const);
+        cq.property("SystemMemoryCached", (int)SPA::tagOptimistic::oSystemMemoryCached, Php::Const);
+        cq.property("DiskCommitted", (int)SPA::tagOptimistic::oDiskCommitted, Php::Const);
 
         //tagQueueStatus
-        cq.property("qsNormal", SPA::qsNormal, Php::Const);
-        cq.property("qsMergeComplete", SPA::qsMergeComplete, Php::Const);
-        cq.property("qsMergePushing", SPA::qsMergePushing, Php::Const);
-        cq.property("qsMergeIncomplete", SPA::qsMergeIncomplete, Php::Const);
-        cq.property("qsJobIncomplete", SPA::qsJobIncomplete, Php::Const);
-        cq.property("qsCrash", SPA::qsCrash, Php::Const);
-        cq.property("qsFileError", SPA::qsFileError, Php::Const);
-        cq.property("qsBadPassword", SPA::qsBadPassword, Php::Const);
-        cq.property("qsDuplicateName", SPA::qsDuplicateName, Php::Const);
+        cq.property("qsNormal", (int)SPA::tagQueueStatus::qsNormal, Php::Const);
+        cq.property("qsMergeComplete", (int)SPA::tagQueueStatus::qsMergeComplete, Php::Const);
+        cq.property("qsMergePushing", (int)SPA::tagQueueStatus::qsMergePushing, Php::Const);
+        cq.property("qsMergeIncomplete", (int)SPA::tagQueueStatus::qsMergeIncomplete, Php::Const);
+        cq.property("qsJobIncomplete", (int)SPA::tagQueueStatus::qsJobIncomplete, Php::Const);
+        cq.property("qsCrash", (int)SPA::tagQueueStatus::qsCrash, Php::Const);
+        cq.property("qsFileError", (int)SPA::tagQueueStatus::qsFileError, Php::Const);
+        cq.property("qsBadPassword", (int)SPA::tagQueueStatus::qsBadPassword, Php::Const);
+        cq.property("qsDuplicateName", (int)SPA::tagQueueStatus::qsDuplicateName, Php::Const);
 
         cq.method<&CPhpClientQueue::__construct>(PHP_CONSTRUCT, Php::Private);
         cq.method<&CPhpClientQueue::AbortJob>("AbortJob");

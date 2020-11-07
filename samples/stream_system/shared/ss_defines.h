@@ -7,12 +7,12 @@
 #define ___SOCKETPRO_DEFINES_STREAM_SYSTEM_I_H__
 
 //#defines for stream system
-static const unsigned int sidStreamSystem = (SPA::sidReserved + 1210);
+static const unsigned int sidStreamSystem = ((unsigned int) SPA::tagServiceID::sidReserved + 1210);
 
-static const unsigned short idQueryMaxMinAvgs = SPA::idReservedTwo + 1;
-static const unsigned short idGetMasterSlaveConnectedSessions = SPA::idReservedTwo + 2;
-static const unsigned short idUploadEmployees = SPA::idReservedTwo + 3;
-static const unsigned short idGetRentalDateTimes = SPA::idReservedTwo + 4;
+static const unsigned short idQueryMaxMinAvgs = (unsigned short) SPA::tagBaseRequestID::idReservedTwo + 1;
+static const unsigned short idGetMasterSlaveConnectedSessions = idQueryMaxMinAvgs + 1;
+static const unsigned short idUploadEmployees = idQueryMaxMinAvgs + 2;
+static const unsigned short idGetRentalDateTimes = idQueryMaxMinAvgs + 3;
 
 struct CMaxMinAvg {
 

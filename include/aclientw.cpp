@@ -325,7 +325,7 @@ namespace SPA {
         }
 
         void CAsyncServiceHandler::OnRR(unsigned short reqId, CUQueue & mc) {
-            if (SPA::idInterrupt == reqId) {
+            if ((unsigned short)tagBaseRequestID::idInterrupt == reqId) {
                 UINT64 options;
                 mc >> options;
                 OnInterrupted(options);
@@ -376,7 +376,7 @@ namespace SPA {
             PRR_PAIR *pp = (PRR_PAIR*) vBatching.GetBuffer();
             for (unsigned int it = 0; it < count; ++it) {
                 if (pp[it]->second->Discarded) {
-                    pp[it]->second->Discarded(this, GetSocket()->GetCurrentRequestID() == idCancel);
+                    pp[it]->second->Discarded(this, GetSocket()->GetCurrentRequestID() == (unsigned short)tagBaseRequestID::idCancel);
                 }
             }
             CleanQueue(vBatching);
@@ -384,7 +384,7 @@ namespace SPA {
             pp = (PRR_PAIR*) vCallback.GetBuffer();
             for (unsigned int it = 0; it < count; ++it) {
                 if (pp[it]->second->Discarded) {
-                    pp[it]->second->Discarded(this, GetSocket()->GetCurrentRequestID() == idCancel);
+                    pp[it]->second->Discarded(this, GetSocket()->GetCurrentRequestID() == (unsigned short)tagBaseRequestID::idCancel);
                 }
             }
             CleanQueue(vCallback);
@@ -435,7 +435,7 @@ namespace SPA {
 
         CClientSocket::CClientSocket()
         : m_hSocket((USocket_Client_Handle) nullptr), m_pHandler(nullptr), m_bRandom(false), m_endian(false),
-        m_os(MY_OPERATION_SYSTEM), m_nCurrSvsId(sidStartup), m_routing(false),
+        m_os(MY_OPERATION_SYSTEM), m_nCurrSvsId((unsigned int)tagServiceID::sidStartup), m_routing(false),
         SocketClosed(m_implClosed), HandShakeCompleted(m_implHSC), SocketConnected(m_implConnected),
         ExceptionFromServer(m_implEFS)
 #ifdef ENABLE_SOCKET_REQUEST_AND_ALL_EVENTS
@@ -787,13 +787,13 @@ namespace SPA {
             unsigned int n;
             if (IsAvailable())
                 return false;
-            if (GetQueueOpenStatus() != SPA::qsMergePushing)
+            if (GetQueueOpenStatus() != SPA::tagQueueStatus::qsMergePushing)
                 return true;
             if (!handles || !count)
                 return true; //don't do anything in case there is no target queue available
             std::vector<USocket_Client_Handle> vHandles;
             for (n = 0; n < count; ++n) {
-                if (ClientCoreLoader.GetClientQueueStatus(handles[n]) != qsMergeComplete)
+                if (ClientCoreLoader.GetClientQueueStatus(handles[n]) != tagQueueStatus::qsMergeComplete)
                     vHandles.push_back(handles[n]);
             }
             count = (unsigned int) vHandles.size();
@@ -1093,7 +1093,7 @@ namespace SPA {
                 *q2 << ash << requestId;
                 q2->Push(q.GetBuffer(), q.GetSize());
                 se.QData = q2;
-                se.Se = NJA::seResultReturned;
+                se.Se = NJA::tagSocketEvent::seResultReturned;
                 pool->m_deqSocketEvent.push_back(se);
                 int fail = uv_async_send(p->m_asyncType);
                 assert(!fail);
@@ -1110,7 +1110,7 @@ namespace SPA {
 #ifdef NODE_JS_ADAPTER_PROJECT
             do {
                 VARTYPE vt = (VT_ARRAY | VT_UI4);
-                unsigned short reqId = idEnter;
+                unsigned short reqId = (unsigned short)tagChatRequestID::idEnter;
                 NJA::NJSocketPool *pool = (NJA::NJSocketPool *)p->m_asyncType->data;
                 if (!pool)
                     break;
@@ -1122,7 +1122,7 @@ namespace SPA {
                 q->Push((const unsigned char*) pGroup, count * sizeof (unsigned int));
                 NJA::SocketEvent se;
                 se.QData = q;
-                se.Se = NJA::seChatEnter;
+                se.Se = NJA::tagSocketEvent::seChatEnter;
                 pool->m_deqSocketEvent.push_back(se);
                 int fail = uv_async_send(p->m_asyncType);
                 assert(!fail);
@@ -1139,7 +1139,7 @@ namespace SPA {
 #ifdef NODE_JS_ADAPTER_PROJECT
             do {
                 VARTYPE vt = (VT_ARRAY | VT_UI4);
-                unsigned short reqId = idExit;
+                unsigned short reqId = (unsigned short)tagChatRequestID::idExit;
                 NJA::NJSocketPool *pool = (NJA::NJSocketPool *)p->m_asyncType->data;
                 if (!pool)
                     break;
@@ -1151,7 +1151,7 @@ namespace SPA {
                 q->Push((const unsigned char*) pGroup, count * sizeof (unsigned int));
                 NJA::SocketEvent se;
                 se.QData = q;
-                se.Se = NJA::seChatExit;
+                se.Se = NJA::tagSocketEvent::seChatExit;
                 pool->m_deqSocketEvent.push_back(se);
                 int fail = uv_async_send(p->m_asyncType);
                 assert(!fail);
@@ -1172,7 +1172,7 @@ namespace SPA {
 #ifdef NODE_JS_ADAPTER_PROJECT
             do {
                 VARTYPE vt = (VT_ARRAY | VT_UI4);
-                unsigned short reqId = idSpeak;
+                unsigned short reqId = (unsigned short)tagChatRequestID::idSpeak;
                 NJA::NJSocketPool *pool = (NJA::NJSocketPool *)p->m_asyncType->data;
                 if (!pool)
                     break;
@@ -1185,7 +1185,7 @@ namespace SPA {
                 q->Push(pMessage, size);
                 NJA::SocketEvent se;
                 se.QData = q;
-                se.Se = NJA::sePublish;
+                se.Se = NJA::tagSocketEvent::sePublish;
                 pool->m_deqSocketEvent.push_back(se);
                 int fail = uv_async_send(p->m_asyncType);
                 assert(!fail);
@@ -1202,7 +1202,7 @@ namespace SPA {
 #ifdef NODE_JS_ADAPTER_PROJECT
             do {
                 VARTYPE vt = (VT_ARRAY | VT_UI4);
-                unsigned short reqId = idSpeakEx;
+                unsigned short reqId = (unsigned short)tagChatRequestID::idSpeakEx;
                 NJA::NJSocketPool *pool = (NJA::NJSocketPool *)p->m_asyncType->data;
                 if (!pool)
                     break;
@@ -1215,7 +1215,7 @@ namespace SPA {
                 q->Push(pMessage, size);
                 NJA::SocketEvent se;
                 se.QData = q;
-                se.Se = NJA::sePublishEx;
+                se.Se = NJA::tagSocketEvent::sePublishEx;
                 pool->m_deqSocketEvent.push_back(se);
                 int fail = uv_async_send(p->m_asyncType);
                 assert(!fail);
@@ -1235,7 +1235,7 @@ namespace SPA {
             p->OnSendUserMessage(sender, vtMessage);
 #ifdef NODE_JS_ADAPTER_PROJECT
             do {
-                unsigned short reqId = idSendUserMessage;
+                unsigned short reqId = (unsigned short)tagChatRequestID::idSendUserMessage;
                 NJA::NJSocketPool *pool = (NJA::NJSocketPool *)p->m_asyncType->data;
                 if (!pool)
                     break;
@@ -1247,7 +1247,7 @@ namespace SPA {
                 q->Push(pMessage, size);
                 NJA::SocketEvent se;
                 se.QData = q;
-                se.Se = NJA::sePostUserMessage;
+                se.Se = NJA::tagSocketEvent::sePostUserMessage;
                 pool->m_deqSocketEvent.push_back(se);
                 int fail = uv_async_send(p->m_asyncType);
                 assert(!fail);
@@ -1263,7 +1263,7 @@ namespace SPA {
             p->OnSendUserMessageEx(sender, pMessage, size);
 #ifdef NODE_JS_ADAPTER_PROJECT
             do {
-                unsigned short reqId = idSendUserMessageEx;
+                unsigned short reqId = (unsigned short)tagChatRequestID::idSendUserMessageEx;
                 NJA::NJSocketPool *pool = (NJA::NJSocketPool *)p->m_asyncType->data;
                 if (!pool)
                     break;
@@ -1275,7 +1275,7 @@ namespace SPA {
                 *q << p->GetCurrentHandler() << reqId << sender;
                 q->Push(pMessage, size);
                 se.QData = q;
-                se.Se = NJA::sePostUserMessageEx;
+                se.Se = NJA::tagSocketEvent::sePostUserMessageEx;
                 pool->m_deqSocketEvent.push_back(se);
                 int fail = uv_async_send(p->m_asyncType);
                 assert(!fail);
@@ -1316,7 +1316,7 @@ namespace SPA {
             CUQueue *q = CScopeUQueue::Lock();
             *q << ash << lastRequestId;
             se.QData = q;
-            se.Se = NJA::seAllProcessed;
+            se.Se = NJA::tagSocketEvent::seAllProcessed;
             CAutoLock al(pool->m_cs);
             pool->m_deqSocketEvent.push_back(se);
             int fail = uv_async_send(p->m_asyncType);
@@ -1328,7 +1328,7 @@ namespace SPA {
             CClientSocket *p = Seek(handler);
             if (!p)
                 return;
-            if (requestId == SPA::idSwitchTo) {
+            if (requestId == (unsigned short)tagBaseRequestID::idSwitchTo) {
                 p->m_bRandom = ClientCoreLoader.IsRandom(handler);
                 p->m_os = ClientCoreLoader.GetPeerOs(handler, &p->m_endian);
                 p->m_nCurrSvsId = ClientCoreLoader.GetCurrentServiceId(handler);
@@ -1340,7 +1340,7 @@ namespace SPA {
             if (ash) {
                 ash->m_brpImpl.Invoke(ash, requestId);
                 ash->OnBaseRequestprocessed(requestId);
-                if (requestId == SPA::idCancel)
+                if (requestId == (unsigned short)tagBaseRequestID::idCancel)
                     ash->CleanCallbacks();
             }
 #ifdef ENABLE_SOCKET_REQUEST_AND_ALL_EVENTS
@@ -1358,7 +1358,7 @@ namespace SPA {
             CUQueue *q = CScopeUQueue::Lock();
             *q << ash << requestId;
             se.QData = q;
-            se.Se = NJA::seBaseRequestProcessed;
+            se.Se = NJA::tagSocketEvent::seBaseRequestProcessed;
             pool->m_deqSocketEvent.push_back(se);
             int fail = uv_async_send(p->m_asyncType);
             assert(!fail);
@@ -1387,7 +1387,7 @@ namespace SPA {
             CUQueue *q = CScopeUQueue::Lock();
             *q << ash << requestId << errMessage << errWhere << errCode;
             se.QData = q;
-            se.Se = NJA::seServerException;
+            se.Se = NJA::tagSocketEvent::seServerException;
             pool->m_deqSocketEvent.push_back(se);
             int fail = uv_async_send(p->m_asyncType);
             assert(!fail);

@@ -31,7 +31,7 @@ bool WINAPI InitServerLibrary(int param) {
     if (g_pathRoot.back() != L'/')
         g_pathRoot += L'/';
 #endif
-    g_pFile.reset(new SPA::ServerSide::CSFileService(SPA::SFile::sidFile, SPA::taNone));
+    g_pFile.reset(new SPA::ServerSide::CSFileService(SPA::SFile::sidFile, SPA::tagThreadApartment::taNone));
     return true;
 }
 

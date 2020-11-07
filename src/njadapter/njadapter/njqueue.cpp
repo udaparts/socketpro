@@ -131,9 +131,9 @@ namespace NJA {
     void NJQueue::getOS(const FunctionCallbackInfo<Value>& args) {
         NJQueue* obj = ObjectWrap::Unwrap<NJQueue>(args.Holder());
         if (obj->m_Buffer)
-            args.GetReturnValue().Set(Int32::New(args.GetIsolate(), obj->m_Buffer->GetOS()));
+            args.GetReturnValue().Set(Int32::New(args.GetIsolate(), (int)obj->m_Buffer->GetOS()));
         else
-            args.GetReturnValue().Set(Int32::New(args.GetIsolate(), SPA::GetOS()));
+            args.GetReturnValue().Set(Int32::New(args.GetIsolate(), (int)SPA::GetOS()));
     }
 
     void NJQueue::Discard(const FunctionCallbackInfo<Value>& args) {
@@ -1005,17 +1005,17 @@ namespace NJA {
             args.GetReturnValue().Set(args.Holder());
         } else if (p0->IsArray()) {
             SPA::CScopeUQueue sb;
-            tagDataType dt = dtUnknown;
+            tagDataType dt = tagDataType::dtUnknown;
             Local<Array> jsArr = Local<Array>::Cast(p0);
             unsigned int count = jsArr->Length();
             for (unsigned int n = 0; n < count; ++n) {
                 auto d = jsArr->Get(n);
                 if (d->IsBoolean()) {
-                    if (dt && dt != dtBool) {
+                    if (dt != tagDataType::dtUnknown && dt != tagDataType::dtBool) {
                         ThrowException(isolate, UNSUPPORTED_ARRAY_TYPE);
                         return;
                     } else {
-                        dt = dtBool;
+                        dt = tagDataType::dtBool;
                     }
 #ifdef BOOL_ISOLATE
                     VARIANT_BOOL b = d->BooleanValue(isolate) ? VARIANT_TRUE : VARIANT_FALSE;
@@ -1024,42 +1024,42 @@ namespace NJA {
 #endif
                     sb << b;
                 } else if (d->IsDate()) {
-                    if (dt && dt != dtDate) {
+                    if (dt != tagDataType::dtUnknown && dt != tagDataType::dtDate) {
                         ThrowException(isolate, UNSUPPORTED_ARRAY_TYPE);
                         return;
                     } else
-                        dt = dtDate;
+                        dt = tagDataType::dtDate;
                     SPA::UINT64 time = ToDate(isolate, d);
                     sb << time;
 #ifdef HAS_BIGINT
                 } else if (d->IsBigInt() || id == "l" || id == "long") {
-                    if (dt && dt != dtInt64) {
+                    if (dt != tagDataType::dtUnknown && dt != tagDataType::dtInt64) {
                         ThrowException(isolate, UNSUPPORTED_ARRAY_TYPE);
                         return;
                     } else
-                        dt = dtInt64;
+                        dt = tagDataType::dtInt64;
                     sb << d->IntegerValue(isolate->GetCurrentContext()).ToChecked();
 #endif
                 } else if (d->IsInt32() || id == "i" || id == "int") {
-                    if (dt && dt != dtInt32) {
+                    if (dt != tagDataType::dtUnknown && dt != tagDataType::dtInt32) {
                         ThrowException(isolate, UNSUPPORTED_ARRAY_TYPE);
                         return;
                     } else
-                        dt = dtInt32;
+                        dt = tagDataType::dtInt32;
                     sb << d->Int32Value(isolate->GetCurrentContext()).ToChecked();
                 } else if (d->IsNumber()) {
-                    if (dt && dt != dtDouble) {
+                    if (dt != tagDataType::dtUnknown && dt != tagDataType::dtDouble) {
                         ThrowException(isolate, UNSUPPORTED_ARRAY_TYPE);
                         return;
                     } else
-                        dt = dtDouble;
+                        dt = tagDataType::dtDouble;
                     sb << d->NumberValue(isolate->GetCurrentContext()).ToChecked();
                 } else if (d->IsString()) {
-                    if (dt && dt != dtString) {
+                    if (dt != tagDataType::dtUnknown && dt != tagDataType::dtString) {
                         ThrowException(isolate, UNSUPPORTED_ARRAY_TYPE);
                         return;
                     } else
-                        dt = dtString;
+                        dt = tagDataType::dtString;
 #if NODE_MODULE_VERSION < 57
                     String::Value str(d);
 #else
@@ -1076,24 +1076,24 @@ namespace NJA {
             }
             VARTYPE vtType = VT_ARRAY;
             switch (dt) {
-                case dtString:
+                case tagDataType::dtString:
                     vtType |= VT_BSTR;
                     break;
-                case dtBool:
+                case tagDataType::dtBool:
                     vtType |= VT_BOOL;
                     break;
-                case dtDate:
+                case tagDataType::dtDate:
                     vtType |= VT_DATE;
                     break;
 #ifdef HAS_BIGINT
-                case dtInt64:
+                case tagDataType::dtInt64:
                     vtType |= VT_I8;
                     break;
 #endif
-                case dtInt32:
+                case tagDataType::dtInt32:
                     vtType |= VT_I4;
                     break;
-                case dtDouble:
+                case tagDataType::dtDouble:
                     vtType |= VT_R8;
                     break;
                 default:

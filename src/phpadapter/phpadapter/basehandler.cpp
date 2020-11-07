@@ -36,17 +36,17 @@ namespace PA
         } else if (!phpCanceled.isCallable()) {
             throw Php::Exception("A callback required for request aborting event");
         }
-        m_rrs = rrsOk;
+        m_rrs = tagRequestReturnStatus::rrsOk;
         CPVPointer callback;
         if (phpCanceled.isCallable()) {
             callback.reset(new Php::Value(phpCanceled));
         }
         SPA::ClientSide::CAsyncServiceHandler::DDiscarded discarded = [reqId, sync, callback, this](SPA::ClientSide::CAsyncServiceHandler *ash, bool canceled) {
-            this->m_rrs = canceled ? rrsCanceled : rrsClosed;
+            this->m_rrs = canceled ? tagRequestReturnStatus::rrsCanceled : tagRequestReturnStatus::rrsClosed;
             if (callback) {
                 SPA::CScopeUQueue sb;
                 PACallback cb;
-                cb.CallbackType = ctDiscarded;
+                cb.CallbackType = enumCallbackType::ctDiscarded;
                 sb << reqId << canceled;
                 cb.Res = sb.Detach();
                 cb.CallBack = callback;
@@ -70,16 +70,16 @@ namespace PA
         auto status = m_cvPhp.wait_for(lk, std::chrono::milliseconds(timeout));
         PopCallbacks();
         if (status == std::cv_status::timeout) {
-            m_rrs = rrsTimeout;
+            m_rrs = tagRequestReturnStatus::rrsTimeout;
         }
         switch (m_rrs) {
-            case rrsServerException:
+            case tagRequestReturnStatus::rrsServerException:
                 throw Php::Exception(PHP_SERVER_EXCEPTION);
-            case rrsCanceled:
+            case tagRequestReturnStatus::rrsCanceled:
                 throw Php::Exception(PHP_REQUEST_CANCELED);
-            case rrsClosed:
+            case tagRequestReturnStatus::rrsClosed:
                 throw Php::Exception(PA::PHP_SOCKET_CLOSED + m_h->GetSocket()->GetErrorMsg());
-            case rrsTimeout:
+            case tagRequestReturnStatus::rrsTimeout:
                 throw Php::Exception(PHP_REQUEST_TIMEOUT);
             default:
                 break;
@@ -92,7 +92,7 @@ namespace PA
 
     Php::Value CPhpBaseHandler::SendRequest(Php::Parameters & params) {
         int64_t id = params[0].numericValue();
-        if (id <= SPA::idReservedTwo || id > 0xffff) {
+        if (id <= (unsigned short)SPA::tagBaseRequestID::idReservedTwo || id > 0xffff) {
             throw Php::Exception("Bad request id");
         }
         unsigned short reqId = (unsigned short) id;
@@ -130,7 +130,7 @@ namespace PA
                     sb->Push(ar.UQueue.GetBuffer(), ar.UQueue.GetSize());
                     ar.UQueue.SetSize(0);
                     PACallback cb;
-                    cb.CallbackType = ctSendRequest;
+                    cb.CallbackType = enumCallbackType::ctSendRequest;
                     cb.Res = sb.Detach();
                     cb.CallBack = callback;
                     std::unique_lock<std::mutex> lk(this->m_mPhp);
@@ -158,12 +158,12 @@ namespace PA
             callbackEx.reset(new Php::Value(phpEx));
         }
         SPA::ClientSide::CAsyncServiceHandler::DServerException se = [callbackEx, sync, this](SPA::ClientSide::CAsyncServiceHandler *ash, unsigned short reqId, const wchar_t *errMsg, const char *errWhere, unsigned int errCode) {
-            this->m_rrs = rrsServerException;
+            this->m_rrs = tagRequestReturnStatus::rrsServerException;
             if (callbackEx) {
                 SPA::CScopeUQueue sb;
                 sb << reqId << errMsg << errWhere << errCode;
                 PACallback cb;
-                cb.CallbackType = ctServerException;
+                cb.CallbackType = enumCallbackType::ctServerException;
                 cb.Res = sb.Detach();
                 cb.CallBack = callbackEx;
                 std::unique_lock<std::mutex> lk(this->m_mPhp);
@@ -207,7 +207,7 @@ namespace PA
             auto &callback = *cb.CallBack;
             unsigned short reqId;
             switch (cb.CallbackType) {
-                case ctSendRequest:
+                case enumCallbackType::ctSendRequest:
                 {
                     CPhpBuffer *buff = new CPhpBuffer;
                     *cb.Res >> reqId;
@@ -217,7 +217,7 @@ namespace PA
                     cb.Res = nullptr;
                 }
                     break;
-                case ctDiscarded:
+                case enumCallbackType::ctDiscarded:
                 {
                     bool canceled;
                     *cb.Res >> reqId >> canceled;
@@ -225,7 +225,7 @@ namespace PA
                     callback(canceled, reqId);
                 }
                     break;
-                case ctServerException:
+                case enumCallbackType::ctServerException:
                 {
                     std::wstring errMsg;
                     std::string errWhere;

@@ -35,7 +35,7 @@ namespace SPA {
 
             virtual void OnSocketPoolEvent(ClientSide::tagSocketPoolEvent spe, const std::shared_ptr<THandler> &asyncSQL) {
                 switch (spe) {
-                    case SPA::ClientSide::speConnected:
+                    case ClientSide::tagSocketPoolEvent::speConnected:
                         if (asyncSQL->GetSocket()->GetErrorCode() != 0)
                             break;
                         asyncSQL->Utf8ToW(true);
@@ -52,7 +52,7 @@ namespace SPA {
 
         virtual void OnSocketPoolEvent(ClientSide::tagSocketPoolEvent spe, const std::shared_ptr<THandler> &asyncSQL) {
             switch (spe) {
-                case ClientSide::speConnected:
+                case ClientSide::tagSocketPoolEvent::speConnected:
                     if (asyncSQL->GetSocket()->GetErrorCode() != 0)
                         break;
                     //use the first socket session for table events only, update, delete and insert
@@ -100,18 +100,18 @@ namespace SPA {
                             CDBString dbName = this->ToUTF16(vData[3]);
                             CDBString tblName = this->ToUTF16(vData[4]);
                             switch (eventType) {
-                                case UDB::ueInsert:
+                                case UDB::tagUpdateEvent::ueInsert:
                                     res = this->Cache.AddRows(dbName.c_str(), tblName.c_str(), vData + 5, vtMsg.parray->rgsabound->cElements - 5);
                                     assert(res != CDataSet::INVALID_VALUE);
                                     break;
-                                case UDB::ueUpdate:
+                                case UDB::tagUpdateEvent::ueUpdate:
                                 {
                                     unsigned int count = vtMsg.parray->rgsabound->cElements - 5;
                                     res = this->Cache.UpdateARow(dbName.c_str(), tblName.c_str(), vData + 5, count);
                                     assert(res != CDataSet::INVALID_VALUE);
                                 }
                                     break;
-                                case UDB::ueDelete:
+                                case UDB::tagUpdateEvent::ueDelete:
                                 {
                                     unsigned int keys = vtMsg.parray->rgsabound->cElements - 5;
                                     //there must be one or two key columns. For other cases, you must implement them

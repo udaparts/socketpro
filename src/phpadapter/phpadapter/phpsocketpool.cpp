@@ -171,10 +171,10 @@ namespace PA
                 case SPA::Sqlite::sidSqlite:
                     ss = Db->GetSockets();
                     break;
-                case SPA::sidChat:
+                case (unsigned int)SPA::tagServiceID::sidChat:
                     ss = Queue->GetSockets();
                     break;
-                case SPA::sidFile:
+                case (unsigned int)SPA::tagServiceID::sidFile:
                     ss = File->GetSockets();
                     break;
                 default:
@@ -222,7 +222,7 @@ namespace PA
         } else if (name == "Started") {
             return Handler->IsStarted();
         } else if (name == "Cache") {
-            if (m_pt != Master) {
+            if (m_pt != tagPoolType::Master) {
                 throw Php::Exception("Non-master pool doesn't have cache");
             }
             switch (m_nSvsId) {
@@ -235,8 +235,8 @@ namespace PA
                     return cache;
                 }
                     break;
-                case SPA::sidFile:
-                case SPA::sidChat:
+                case (unsigned int)SPA::tagServiceID::sidFile:
+                case (unsigned int)SPA::tagServiceID::sidChat:
                     assert(false); //shouldn't come here
                     break;
                 default:
@@ -257,9 +257,9 @@ namespace PA
         pool.property("DEFAULT_CONN_TIMEOUT", (int64_t) SPA::ClientSide::DEFAULT_CONN_TIMEOUT, Php::Const);
 
         //tagPoolType
-        pool.property("Regular", Regular, Php::Const);
-        pool.property("Slave", Slave, Php::Const);
-        pool.property("Master", Master, Php::Const);
+        pool.property("Regular", (int)tagPoolType::Regular, Php::Const);
+        pool.property("Slave", (int)tagPoolType::Slave, Php::Const);
+        pool.property("Master", (int)tagPoolType::Master, Php::Const);
 
         pool.method<&CPhpSocketPool::__construct>(PHP_CONSTRUCT, Php::Private);
         pool.method<&CPhpSocketPool::Lock>("Lock",{

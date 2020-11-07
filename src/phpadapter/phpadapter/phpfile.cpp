@@ -47,7 +47,7 @@ namespace PA
 
     void CPhpFile::PopTopCallbacks(PACallback & cb) {
         switch (cb.CallbackType) {
-            case ctFile:
+            case enumCallbackType::ctFile:
             {
                 unsigned short reqId;
                 *cb.Res >> reqId;
@@ -97,7 +97,7 @@ namespace PA
                     SPA::CScopeUQueue sb;
                     sb << reqId << res << em;
                     PACallback cb;
-                    cb.CallbackType = ctFile;
+                    cb.CallbackType = enumCallbackType::ctFile;
                     cb.Res = sb.Detach();
                     cb.CallBack = callback;
                     std::unique_lock<std::mutex> lk(this->m_mPhp);

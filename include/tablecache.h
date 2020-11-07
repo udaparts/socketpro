@@ -20,7 +20,7 @@ namespace SPA {
     class CTable : protected CPColumnRowset {
     public:
 
-        enum Operator {
+        enum class Operator {
             equal = 0,
             great,
             less,

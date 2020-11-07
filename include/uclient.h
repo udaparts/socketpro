@@ -8,7 +8,7 @@ namespace SPA {
         static const unsigned int DEFAULT_RECV_TIMEOUT = 30000;
         static const unsigned int DEFAULT_CONN_TIMEOUT = 30000;
 
-        enum tagConnectionState {
+        enum class tagConnectionState {
             csClosed = 0,
             csConnecting,
             csSslShaking,
@@ -25,7 +25,7 @@ namespace SPA {
             bool SelfMessage;
         };
 
-        enum tagSocketPoolEvent {
+        enum class tagSocketPoolEvent {
             speUnknown = -1,
             speStarted = 0,
             speCreatingThread,
@@ -95,7 +95,7 @@ extern "C" {
 
     typedef void(CALLBACK *PSocketPoolCallback) (unsigned int, SPA::ClientSide::tagSocketPoolEvent, USocket_Client_Handle);
 
-    unsigned int WINAPI CreateSocketPool(PSocketPoolCallback spc, unsigned int maxSocketsPerThread, unsigned int maxThreads = 0, bool bAvg = true, SPA::tagThreadApartment ta = SPA::taNone);
+    unsigned int WINAPI CreateSocketPool(PSocketPoolCallback spc, unsigned int maxSocketsPerThread, unsigned int maxThreads = 0, bool bAvg = true, SPA::tagThreadApartment ta = SPA::tagThreadApartment::taNone);
 
     //If successful, the method returns true. Note the method will return false if the pool has one or more sockets which are not released
     bool WINAPI DestroySocketPool(unsigned int poolId);

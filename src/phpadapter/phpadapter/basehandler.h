@@ -6,7 +6,7 @@
 
 namespace PA {
 
-    enum enumCallbackType {
+    enum class enumCallbackType {
         ctSendRequest = 0,
         ctDiscarded,
         ctServerException,
@@ -29,7 +29,7 @@ namespace PA {
         SPA::CUQueue *Res;
     };
 
-    enum tagRequestReturnStatus {
+    enum class tagRequestReturnStatus {
         rrsServerException = -3,
         rrsCanceled = -2,
         rrsTimeout = -1,

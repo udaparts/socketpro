@@ -1076,7 +1076,7 @@ namespace PA
             m_pBuffer->SetSize((unsigned int) size);
         } else if (name == "OS") {
             auto os = value.numericValue();
-            if (os < SPA::osWin || os > SPA::osWinPhone) {
+            if (os < (int)SPA::tagOperationSystem::osWin || os > (int)SPA::tagOperationSystem::osWinPhone) {
                 throw Php::Exception("Bad operation system value");
             }
             m_pBuffer->SetOS((SPA::tagOperationSystem)os);

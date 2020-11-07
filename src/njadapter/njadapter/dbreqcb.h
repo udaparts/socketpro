@@ -95,13 +95,13 @@ namespace SPA {
                     if (cb.Func)
                         func = Local<Function>::New(isolate, *cb.Func);
                     switch (cb.Type) {
-                        case eBatchHeader:
+                        case tagDBEvent::eBatchHeader:
                         {
                             assert(!cb.Buffer->GetSize());
                             func->Call(ctx, Null(isolate), 0, nullptr);
                         }
                             break;
-                        case eRows:
+                        case tagDBEvent::eRows:
                             if (!func.IsEmpty()) {
                                 bool bProc;
                                 int cols;
@@ -124,7 +124,7 @@ namespace SPA {
                                 func->Call(ctx, Null(isolate), 3, argv);
                             }
                             break;
-                        case eExecuteResult:
+                        case tagDBEvent::eExecuteResult:
                             if (!func.IsEmpty()) {
                                 int res;
                                 SPA::CDBString errMsg;
@@ -143,7 +143,7 @@ namespace SPA {
                                 func->Call(ctx, Null(isolate), 6, argv);
                             }
                             break;
-                        case eResult:
+                        case tagDBEvent::eResult:
                             if (!func.IsEmpty()) {
                                 int res;
                                 SPA::CDBString errMsg;
@@ -155,7 +155,7 @@ namespace SPA {
                                 func->Call(ctx, Null(isolate), 2, argv);
                             }
                             break;
-                        case eRowsetHeader:
+                        case tagDBEvent::eRowsetHeader:
                             if (!func.IsEmpty()) {
                                 Local<Array> jsMeta = ToMeta(isolate, *cb.Buffer);
                                 assert(!cb.Buffer->GetSize());
@@ -163,7 +163,7 @@ namespace SPA {
                                 func->Call(ctx, Null(isolate), 1, argv);
                             }
                             break;
-                        case eDiscarded:
+                        case tagDBEvent::eDiscarded:
                             if (!func.IsEmpty()) {
                                 bool canceled;
                                 *cb.Buffer >> canceled;
@@ -173,7 +173,7 @@ namespace SPA {
                                 func->Call(ctx, Null(isolate), 1, argv);
                             }
                             break;
-                        case eException:
+                        case tagDBEvent::eException:
                             if (!func.IsEmpty()) {
                                 unsigned short reqId;
                                 SPA::CDBString errMsg;

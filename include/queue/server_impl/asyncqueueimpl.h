@@ -38,9 +38,9 @@ namespace SPA {
 
                 void Flush(tagOptimistic option, UINT64 &messageCount, UINT64 &fileSize) {
                     SPA::CAutoLock al(m_cs);
-                    if (option != oMemoryCached) {
-                        m_q.SetOptimistic((tagOptimistic) option);
-                        m_q.SetOptimistic(oMemoryCached);
+                    if (option != tagOptimistic::oMemoryCached) {
+                        m_q.SetOptimistic(option);
+                        m_q.SetOptimistic(tagOptimistic::oMemoryCached);
                     }
                     messageCount = m_q.GetMessageCount();
                     fileSize = m_q.GetQueueSize();

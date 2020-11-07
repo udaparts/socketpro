@@ -109,7 +109,7 @@ namespace SPA
                 ctx.Password = SPA::Utilities::ToWide(s);
             }
             if (cc.HasMember("EncrytionMethod") && cc["EncrytionMethod"].IsUint()) {
-                ctx.EncrytionMethod = cc["EncrytionMethod"].GetUint() ? SPA::TLSv1 : SPA::NoEncryption;
+                ctx.EncrytionMethod = cc["EncrytionMethod"].GetUint() ? SPA::tagEncryptionMethod::TLSv1 : SPA::tagEncryptionMethod::NoEncryption;
             }
             if (cc.HasMember("Zip")) {
                 ctx.Zip = cc["Zip"].GetBool();
@@ -135,12 +135,12 @@ namespace SPA
             }
             if (main) {
                 if (pc.DefaultDb.size()) {
-                    pc.PoolType = Master;
+                    pc.PoolType = tagPoolType::Master;
                 } else {
-                    pc.PoolType = Regular;
+                    pc.PoolType = tagPoolType::Regular;
                 }
             } else {
-                pc.PoolType = Slave;
+                pc.PoolType = tagPoolType::Slave;
             }
             if (pool.HasMember("SvsId") && pool["SvsId"].IsUint()) {
                 pc.SvsId = pool["SvsId"].GetUint();
@@ -169,7 +169,7 @@ namespace SPA
                     pc.Hosts.push_back(it->GetString());
                 }
             }
-            if (pc.PoolType == Master) {
+            if (pc.PoolType == tagPoolType::Master) {
                 if (pool.HasMember("Slaves") && pool["Slaves"].IsObject()) {
                     const auto& vSlave = pool["Slaves"].GetObject();
                     for (auto it = vSlave.MemberBegin(), end = vSlave.MemberEnd(); it != end; ++it) {
@@ -243,13 +243,13 @@ namespace SPA
                 CPoolConfig &pc = it->second;
                 switch (pc.SvsId) {
                     case SPA::SFile::sidFile:
-                        if (pc.PoolType != Regular) {
+                        if (pc.PoolType != tagPoolType::Regular) {
                             m_errMsg = "Remote file service has not support to either master or slave pool";
                             return;
                         }
                         break;
                     case SPA::Queue::sidQueue:
-                        if (pc.PoolType != Regular) {
+                        if (pc.PoolType != tagPoolType::Regular) {
                             m_errMsg = "Server persistent queue service has not support to either master or slave pool";
                             return;
                         }
@@ -259,8 +259,8 @@ namespace SPA
                     case SPA::Odbc::sidOdbc:
                         break;
                     default:
-                        if (pc.SvsId <= sidReserved) {
-                            m_errMsg = "Service id must be larger than " + std::to_string((UINT64) sidReserved);
+                        if (pc.SvsId <= (unsigned int)tagServiceID::sidReserved) {
+                            m_errMsg = "Service id must be larger than " + std::to_string((unsigned int)tagServiceID::sidReserved);
                             return;
                         }
                         break;
@@ -413,12 +413,12 @@ namespace SPA
                         obj.AddMember("ConnTimeout", psc.RecvTimeout, allocator);
                         Value s(psc.DefaultDb.c_str(), (SizeType) psc.DefaultDb.size(), allocator);
                         obj.AddMember("DefaultDb", s, allocator);
-                        obj.AddMember("PoolType", psc.PoolType, allocator);
+                        obj.AddMember("PoolType", (int)psc.PoolType, allocator);
                         vS.AddMember(key, obj, allocator);
                     }
                     objMain.AddMember("Slaves", vS, allocator);
                 }
-                objMain.AddMember("PoolType", pscMain.PoolType, allocator);
+                objMain.AddMember("PoolType", (int)pscMain.PoolType, allocator);
                 vP.AddMember(key, objMain, allocator);
             }
             doc.AddMember("Pools", vP, allocator);

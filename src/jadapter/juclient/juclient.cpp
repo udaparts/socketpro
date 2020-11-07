@@ -510,21 +510,21 @@ void CALLBACK SPC(unsigned int pid, SPA::ClientSide::tagSocketPoolEvent spe, USo
     }
     jint es = g_vmClient->GetEnv((void **) &env, JNI_VERSION_1_6);
     switch (spe) {
-        case SPA::ClientSide::speThreadCreated:
+        case SPA::ClientSide::tagSocketPoolEvent::speThreadCreated:
             SetPoolThreadAsDaemon(pid);
             es = g_vmClient->GetEnv((void **) &env, JNI_VERSION_1_6);
             if (spc)
                 DoCallback(env, spc, pid, spe, h);
             assert(JNI_OK == es);
             break;
-        case SPA::ClientSide::speKillingThread:
+        case SPA::ClientSide::tagSocketPoolEvent::speKillingThread:
             es = g_vmClient->GetEnv((void **) &env, JNI_VERSION_1_6);
             assert(JNI_OK == es);
             if (spc)
                 DoCallback(env, spc, pid, spe, h);
             RemovePoolThreadAsDaemon(pid);
             break;
-        case SPA::ClientSide::speStarted:
+        case SPA::ClientSide::tagSocketPoolEvent::speStarted:
             assert(!spc);
             assert(g_currObj);
             assert(env);
@@ -537,7 +537,7 @@ void CALLBACK SPC(unsigned int pid, SPA::ClientSide::tagSocketPoolEvent spe, USo
             if (spc)
                 DoCallback(env, spc, pid, spe, h);
             break;
-        case SPA::ClientSide::speShutdown:
+        case SPA::ClientSide::tagSocketPoolEvent::speShutdown:
         {
             assert(env);
             assert(spc);

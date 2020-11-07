@@ -276,7 +276,7 @@ namespace NJA {
                 return;
             }
             unsigned int data = p1->Uint32Value(isolate->GetCurrentContext()).ToChecked();
-            if (data > SPA::CTable::is_null) {
+            if (data > (unsigned int)CTable::Operator::is_null) {
                 NJA::ThrowException(isolate, BAD_OPERATION);
                 return;
             }
