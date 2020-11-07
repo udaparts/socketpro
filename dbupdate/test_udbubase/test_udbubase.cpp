@@ -23,7 +23,7 @@ int main(int argc, char* argv[])
 
 	unsigned int group[2] = {1, 2};
 	//receiver will obtain the following string like "1/rental_id=12@localhost.mysql.sakila.rental"
-	SPA::UINT64 ret = NotifySocketProDatabaseEvent(group, sizeof(group)/sizeof(unsigned int), SPA::UDB::ueUpdate, L"rental_id=12@localhost.mysql.sakila.rental", index, sizeof(index)/sizeof(unsigned int));
+	SPA::UINT64 ret = NotifySocketProDatabaseEvent(group, sizeof(group)/sizeof(unsigned int), SPA::UDB::tagUpdateEvent::ueUpdate, L"rental_id=12@localhost.mysql.sakila.rental", index, sizeof(index)/sizeof(unsigned int));
 	
 	//all sockets will be closed if connection string is null or empty
 	count = SetSocketProConnectionString(nullptr);
