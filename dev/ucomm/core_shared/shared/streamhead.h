@@ -43,13 +43,13 @@ namespace SPA {
     struct U_MODULE_HIDDEN CSwitchInfo {
 
         CSwitchInfo()
-        : ServiceId(SPA::sidStartup),
+        : ServiceId((unsigned int)SPA::tagServiceID::sidStartup),
         MajorVersion(6),
         MinorVersion(0),
         SockMajorVersion(1),
         SockMinorVersion(8),
         Param0(0),
-        Param1(SPA::GetOS()),
+        Param1((unsigned int)SPA::GetOS()),
         Param2(0),
         SwitchTime(0) {
         }

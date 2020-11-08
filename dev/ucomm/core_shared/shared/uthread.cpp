@@ -52,9 +52,9 @@ namespace SPA
 #elif defined(WIN32_64)
         bool ok = false;
         CCrashHandler::SetThreadExceptionHandlers();
-        if (m_ta == taFree)
+        if (m_ta == tagThreadApartment::taFree)
             ok = (CoInitializeEx(nullptr, COINIT_MULTITHREADED) == S_OK);
-        else if (m_ta == taApartment)
+        else if (m_ta == tagThreadApartment::taApartment)
             ok = (::CoInitialize(nullptr) == S_OK);
 #else
 

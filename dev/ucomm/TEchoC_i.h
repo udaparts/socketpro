@@ -2,9 +2,9 @@
 #define ___SOCKETPRO_DEFINES_TECHOC_I_H__
 
 //defines for service CEchoObject
-#define sidCEchoObject	(SPA::sidReserved + 2)
+#define sidCEchoObject	((unsigned int)SPA::tagServiceID::sidReserved + 2)
 
-#define idEchoEmptyCEchoObject	(SPA::idReservedTwo + 1)
+#define idEchoEmptyCEchoObject	((unsigned short)SPA::tagBaseRequestID::idReservedTwo + 1)
 #define idEchoBoolCEchoObject	(idEchoEmptyCEchoObject + 1)
 #define idEchoInt8CEchoObject	(idEchoBoolCEchoObject + 1)
 #define idEchoUInt8CEchoObject	(idEchoInt8CEchoObject + 1)

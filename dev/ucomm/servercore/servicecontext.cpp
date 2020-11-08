@@ -11,7 +11,7 @@
 #include "servicecontext.h"
 
 CServiceContext::CServiceContext(unsigned int nServiceId, const CSvsContext &sc)
-: m_nServiceId(nServiceId), m_sc(sc), m_bRandom(false), m_nRoutingSvsId(0), m_ra(SPA::ServerSide::raDefault), m_bRegisterred(false) {
+: m_nServiceId(nServiceId), m_sc(sc), m_bRandom(false), m_nRoutingSvsId(0), m_ra(SPA::ServerSide::tagRoutingAlgorithm::raDefault), m_bRegisterred(false) {
 
 }
 
@@ -241,20 +241,15 @@ SPA::UINT64 CServiceContext::GetBestRouteeByFirst(unsigned int &routeeSize) {
 
 SPA::UINT64 CServiceContext::GetBestRoutee(unsigned int &routeeSize) {
     switch (m_ra) {
-        case SPA::ServerSide::raDefault:
+		case SPA::ServerSide::tagRoutingAlgorithm::raDefault:
             return GetBestRouteeByDefault(routeeSize);
             break;
-        case SPA::ServerSide::raRandom:
+		case SPA::ServerSide::tagRoutingAlgorithm::raRandom:
             return GetBestRouteeByRandom(routeeSize);
             break;
-        case SPA::ServerSide::raAverage:
+		case SPA::ServerSide::tagRoutingAlgorithm::raAverage:
             return GetBestRouteeByAverage(routeeSize);
             break;
-            /*
-                case SPA::ServerSide::raFirst:
-                    return GetBestRouteeByFirst(routeeSize);
-                    break;
-             */
         default:
             break;
     }
@@ -280,7 +275,7 @@ void CServiceContext::NotifyRouteeChanged(unsigned int count) {
     SPA::CUQueue &q = *su;
     SPA::CStreamHeader sh;
     sh.Size = sizeof (count);
-    sh.RequestId = SPA::idRouteeChanged;
+    sh.RequestId = (unsigned short)SPA::tagBaseRequestID::idRouteeChanged;
     q << sh << count;
     CAutoLock al(m_mutex);
     std::vector<CServerSession*>::iterator it, end = m_vRoutee.end();

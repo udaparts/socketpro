@@ -145,8 +145,8 @@ namespace SPA {
             if (pos != std::string::npos)
                 name = name.substr(pos + 1);
             switch (os) {
-                case SPA::osWin:
-                case SPA::osWinCE:
+				case SPA::tagOperationSystem::osWin:
+                case SPA::tagOperationSystem::osWinCE:
                     std::transform(name.begin(), name.end(), name.begin(), ::tolower);
                     break;
                 default:
@@ -194,14 +194,14 @@ namespace SPA {
             aOs.SetArray();
             tagOperationSystem os = GetOS();
             switch (os) {
-                case osWin:
+                case tagOperationSystem::osWin:
                     aOs.PushBack("win", docRes.GetAllocator());
                     aOs.PushBack("apple", docRes.GetAllocator());
                     break;
-                case osApple:
+                case tagOperationSystem::osApple:
                     aOs.PushBack("apple", docRes.GetAllocator());
                     break;
-                case osUnix:
+                case tagOperationSystem::osUnix:
                     aOs.PushBack("unix", docRes.GetAllocator());
                     aOs.PushBack("apple", docRes.GetAllocator());
                     break;

@@ -351,53 +351,53 @@ namespace UHTTP {
 
         static const char* ParseHttpMethod(const char *method, unsigned len, tagParseStatus &ps, SPA::ServerSide::tagHttpMethod &hm) {
             const char *end;
-            hm = SPA::ServerSide::hmUnknown;
+            hm = SPA::ServerSide::tagHttpMethod::hmUnknown;
             do {
                 end = MatchMethod(method, len, "GET ", 4, ps);
                 if (ps == psMethod) {
-                    hm = SPA::ServerSide::hmGet;
+                    hm = SPA::ServerSide::tagHttpMethod::hmGet;
                     break;
                 } else if (ps == psInitial)
                     break;
 
                 end = MatchMethod(method, len, "POST ", 5, ps);
                 if (ps == psMethod) {
-                    hm = SPA::ServerSide::hmPost;
+                    hm = SPA::ServerSide::tagHttpMethod::hmPost;
                     break;
                 } else if (ps == psInitial)
                     break;
 
                 end = MatchMethod(method, len, "HEAD ", 5, ps);
                 if (ps == psMethod) {
-                    hm = SPA::ServerSide::hmHead;
+                    hm = SPA::ServerSide::tagHttpMethod::hmHead;
                     break;
                 } else if (ps == psInitial)
                     break;
 
                 end = MatchMethod(method, len, "TRACE ", 6, ps);
                 if (ps == psMethod) {
-                    hm = SPA::ServerSide::hmTrace;
+                    hm = SPA::ServerSide::tagHttpMethod::hmTrace;
                     break;
                 } else if (ps == psInitial)
                     break;
 
                 end = MatchMethod(method, len, "OPTIONS ", 8, ps);
                 if (ps == psMethod) {
-                    hm = SPA::ServerSide::hmOptions;
+                    hm = SPA::ServerSide::tagHttpMethod::hmOptions;
                     break;
                 } else if (ps == psInitial)
                     break;
 
                 end = MatchMethod(method, len, "PUT ", 4, ps);
                 if (ps == psMethod) {
-                    hm = SPA::ServerSide::hmPut;
+                    hm = SPA::ServerSide::tagHttpMethod::hmPut;
                     break;
                 } else if (ps == psInitial)
                     break;
 
                 end = MatchMethod(method, len, "DELETE ", 7, ps);
                 if (ps == psMethod) {
-                    hm = SPA::ServerSide::hmDelete;
+                    hm = SPA::ServerSide::tagHttpMethod::hmDelete;
                     break;
                 } else if (ps == psInitial)
                     break;
@@ -510,25 +510,25 @@ namespace UHTTP {
                     hv->Value.Start += (offset + 9 + bQuote);
                     hv->Value.Length = (unsigned int) (be - b) - 9 - bQuote;
                     if (memcmp(v.data(), "multipart/mixed", 15) == 0)
-                        CM = SPA::ServerSide::cmMixed;
+                        CM = SPA::ServerSide::tagContentMultiplax::cmMixed;
                     else if (memcmp(v.data(), "multipart/digest", 16) == 0)
-                        CM = SPA::ServerSide::cmDigest;
+                        CM = SPA::ServerSide::tagContentMultiplax::cmDigest;
                     else if (memcmp(v.data(), "multipart/form-data", 19) == 0)
-                        CM = SPA::ServerSide::cmFormData;
+                        CM = SPA::ServerSide::tagContentMultiplax::cmFormData;
                     else if (memcmp(v.data(), "multipart/alternative", 20) == 0)
-                        CM = SPA::ServerSide::cmAlternative;
+                        CM = SPA::ServerSide::tagContentMultiplax::cmAlternative;
                     else if (memcmp(v.data(), "multipart/parallel", 18) == 0)
-                        CM = SPA::ServerSide::cmParallel;
+                        CM = SPA::ServerSide::tagContentMultiplax::cmParallel;
                     else if (memcmp(v.data(), "multipart/byteranges", 20) == 0)
-                        CM = SPA::ServerSide::cmByteRanges;
+                        CM = SPA::ServerSide::tagContentMultiplax::cmByteRanges;
                     else if (memcmp(v.data(), "multipart/report", 16) == 0)
-                        CM = SPA::ServerSide::cmReport;
+                        CM = SPA::ServerSide::tagContentMultiplax::cmReport;
                     else if (memcmp(v.data(), "multipart/signed", 16) == 0)
-                        CM = SPA::ServerSide::cmSigned;
+                        CM = SPA::ServerSide::tagContentMultiplax::cmSigned;
                     else if (memcmp(v.data(), "multipart/related", 17) == 0)
-                        CM = SPA::ServerSide::cmRelated;
+                        CM = SPA::ServerSide::tagContentMultiplax::cmRelated;
                     else if (memcmp(v.data(), "multipart/encrypted", 19) == 0)
-                        CM = SPA::ServerSide::cmEncrypted;
+                        CM = SPA::ServerSide::tagContentMultiplax::cmEncrypted;
                     else {
 
                     }
@@ -537,15 +537,15 @@ namespace UHTTP {
             {
                 if (iequals(TRANSFER_ENCODING.c_str(), c, len)) {
                     if (iequals(hv->Value.Start, "chunked"))
-                        TE = SPA::ServerSide::teChunked;
+                        TE = SPA::ServerSide::tagTransferEncoding::teChunked;
                     else if (iequals(hv->Value.Start, "gzip"))
-                        TE = SPA::ServerSide::teGZip;
+                        TE = SPA::ServerSide::tagTransferEncoding::teGZip;
                     else if (iequals(hv->Value.Start, "compress"))
-                        TE = SPA::ServerSide::teCompress;
+                        TE = SPA::ServerSide::tagTransferEncoding::teCompress;
                     else if (iequals(hv->Value.Start, "deflate"))
-                        TE = SPA::ServerSide::teDeflate;
+                        TE = SPA::ServerSide::tagTransferEncoding::teDeflate;
                     else if (iequals(hv->Value.Start, "identity"))
-                        TE = SPA::ServerSide::teIdentity;
+                        TE = SPA::ServerSide::tagTransferEncoding::teIdentity;
                 }
             }
         }
@@ -553,12 +553,12 @@ namespace UHTTP {
     public:
 
         CRequestContext()
-        : Method(SPA::ServerSide::hmUnknown),
+        : Method(SPA::ServerSide::tagHttpMethod::hmUnknown),
         Version(0),
         Content(nullptr),
         ContentLen(CONTENT_LEN_UNKNOWN),
-        TE(SPA::ServerSide::teUnknown),
-        CM(SPA::ServerSide::cmUnknown) {
+        TE(SPA::ServerSide::tagTransferEncoding::teUnknown),
+        CM(SPA::ServerSide::tagContentMultiplax::cmUnknown) {
             ::memset(&Url, 0, sizeof (Url));
             ::memset(&Params, 0, sizeof (Params));
         }
@@ -625,14 +625,14 @@ namespace UHTTP {
          */
         inline void Initialize() {
             CSubHeaderValue::Initialize();
-            Method = SPA::ServerSide::hmUnknown;
+            Method = SPA::ServerSide::tagHttpMethod::hmUnknown;
             ::memset(&Url, 0, sizeof (Url));
             ::memset(&Params, 0, sizeof (Params));
             Version = 0;
             Content = nullptr;
             ContentLen = CONTENT_LEN_UNKNOWN;
-            TE = SPA::ServerSide::teUnknown;
-            CM = SPA::ServerSide::cmUnknown;
+            TE = SPA::ServerSide::tagTransferEncoding::teUnknown;
+            CM = SPA::ServerSide::tagContentMultiplax::cmUnknown;
         }
 
         inline const CHeaderValue* SeekHeaderValue(const char *header) const {
@@ -651,7 +651,7 @@ namespace UHTTP {
         inline const CHeaderValue* SeekMultipart() const {
             unsigned int n;
             unsigned int size;
-            if (CM == SPA::ServerSide::cmUnknown)
+            if (CM == SPA::ServerSide::tagContentMultiplax::cmUnknown)
                 return nullptr;
             const CHeaderValue *p = GetHeaderValue(size);
             for (n = 0; n < size; ++n, ++p) {

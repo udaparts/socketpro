@@ -2,11 +2,11 @@
 #define ___SOCKETPRO_DEFINES_TECHOD_I_H__
 
 //defines for service CEchoSys
-const unsigned int sidCEchoSys = (SPA::sidReserved + 3);
-const unsigned int sidRouteSvs0 = (SPA::sidReserved + 120);
+const unsigned int sidCEchoSys = ((unsigned int)SPA::tagServiceID::sidReserved + 3);
+const unsigned int sidRouteSvs0 = ((unsigned int)SPA::tagServiceID::sidReserved + 120);
 const unsigned int sidRouteSvs1 = (sidRouteSvs0 + 1);
 
-const unsigned short idEchoMyStructCEchoSys = (SPA::idReservedTwo + 1);
+const unsigned short idEchoMyStructCEchoSys = ((unsigned short)SPA::tagBaseRequestID::idReservedTwo + 1);
 const unsigned short idEchoUQueueCEchoSys = (idEchoMyStructCEchoSys + 1);
 const unsigned short idEchoComplex0CEchoSys = (idEchoUQueueCEchoSys + 1);
 

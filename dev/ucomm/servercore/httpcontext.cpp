@@ -234,7 +234,7 @@ namespace UHTTP {
     m_bWebSocket(false),
     m_HttpRequestType(hrtCustomer),
     m_pt(60000),
-    m_transport(SPA::ServerSide::tUnknown),
+    m_transport(SPA::ServerSide::tagTransport::tUnknown),
     m_pWebRequestProcessor(nullptr),
     m_pWebResponseProcessor(nullptr) {
 
@@ -514,9 +514,9 @@ namespace UHTTP {
         delete m_pWebResponseProcessor;
         if (IsWebSocket())
             m_pWebResponseProcessor = new CWebSocketResponseProcessor((CWebSocketRequestProcessor*) m_pWebRequestProcessor);
-        else if (m_RequestContext.Method == SPA::ServerSide::hmGet)
+        else if (m_RequestContext.Method == SPA::ServerSide::tagHttpMethod::hmGet)
             m_pWebResponseProcessor = new CJavaScriptResponseProcessor((CJavaScriptRequestProcessor*) m_pWebRequestProcessor);
-        else if (m_RequestContext.Method == SPA::ServerSide::hmPost)
+        else if (m_RequestContext.Method == SPA::ServerSide::tagHttpMethod::hmPost)
             m_pWebResponseProcessor = new CAjaxResponseProcessor((CAjaxRequestProcessor*) m_pWebRequestProcessor);
         else {
             assert(false);
@@ -525,7 +525,7 @@ namespace UHTTP {
     }
 
     void CHttpContext::SetContent(const unsigned char *data, unsigned int len) {
-        assert(IsSpRequest() || GetMethod() == SPA::ServerSide::hmPost);
+        assert(IsSpRequest() || GetMethod() == SPA::ServerSide::tagHttpMethod::hmPost);
         ((CAjaxRequestProcessor*) m_pWebRequestProcessor)->SetContent(data, len);
     }
 
@@ -705,7 +705,7 @@ namespace UHTTP {
         const char *sc;
         if (chunked_data == nullptr || len == 0)
             throw CUExCode("No data available for parsing chunked content", MB_BAD_OPERATION);
-        if (m_RequestContext.TE != SPA::ServerSide::teChunked || chunked_data == nullptr || len == 0)
+        if (m_RequestContext.TE != SPA::ServerSide::tagTransferEncoding::teChunked || chunked_data == nullptr || len == 0)
             throw CUExCode("No http chunked found in request", MB_BAD_OPERATION);
         if (m_pChunkedContext == nullptr) {
             m_pChunkedContext = LockChunkedContext();
@@ -812,7 +812,7 @@ namespace UHTTP {
         const char *end = nullptr;
         if (subdata == nullptr || len == 0)
             throw CUExCode("No data available for parsing multipart content", MB_BAD_OPERATION);
-        if (m_RequestContext.CM == SPA::ServerSide::cmUnknown || subdata == nullptr || len == 0)
+        if (m_RequestContext.CM == SPA::ServerSide::tagContentMultiplax::cmUnknown || subdata == nullptr || len == 0)
             throw CUExCode("No http multipart found in request", MB_BAD_OPERATION);
         if (m_pMultiplaxContext == nullptr) {
             m_pMultiplaxContext = LockMultiplaxContext();
@@ -1053,7 +1053,7 @@ namespace UHTTP {
             return (m_pWebSocketMsg->ParseStatus >= UHTTP::psComplete);
         UHTTP::tagParseStatus ps = GetPS();
         SPA::ServerSide::tagHttpMethod hm = GetMethod();
-        if (hm == SPA::ServerSide::hmPost)
+        if (hm == SPA::ServerSide::tagHttpMethod::hmPost)
             return (ps >= UHTTP::psBlock);
         return (ps >= UHTTP::psHeaders);
     }
@@ -1103,7 +1103,7 @@ namespace UHTTP {
         str += len;
         m_RequestContext.Content = str;
         switch (m_RequestContext.Method) {
-            case SPA::ServerSide::hmGet:
+            case SPA::ServerSide::tagHttpMethod::hmGet:
                 m_RequestContext.ParseStatus = psComplete;
                 if (iequals(JS_SP_ADAPTER.c_str(), m_RequestContext.Url.Start)) {
                     m_HttpRequestType = hrtDownloadAdapter;
@@ -1111,26 +1111,26 @@ namespace UHTTP {
                     m_HttpRequestType = hrtDownloadLoader;
                 } else if (IsSpRequest()) {
                     m_HttpRequestType = hrtJsRequest;
-                    m_transport = SPA::ServerSide::tScript;
+                    m_transport = SPA::ServerSide::tagTransport::tScript;
                     AddResponseHeader(CONTENT_TYPE.c_str(), "application/x-javascript");
                     delete m_pWebRequestProcessor;
                     m_pWebRequestProcessor = new CJavaScriptRequestProcessor(this);
                 }
                 break;
-            case SPA::ServerSide::hmHead:
-            case SPA::ServerSide::hmPut:
-            case SPA::ServerSide::hmDelete:
-            case SPA::ServerSide::hmTrace:
+            case SPA::ServerSide::tagHttpMethod::hmHead:
+            case SPA::ServerSide::tagHttpMethod::hmPut:
+            case SPA::ServerSide::tagHttpMethod::hmDelete:
+            case SPA::ServerSide::tagHttpMethod::hmTrace:
                 m_RequestContext.ParseStatus = psComplete;
                 /*
-                                                if (::strlen(str)) //Don't forget HTTP Pipe line 
-                                                        SetResponseCode(409); //Conflict these methods should not contain any content data
+                if (::strlen(str)) //Don't forget HTTP Pipe line 
+					SetResponseCode(409); //Conflict these methods should not contain any content data
                  */
                 break;
             default:
                 if (IsSpRequest()) {
                     m_HttpRequestType = hrtJsRequest;
-                    m_transport = SPA::ServerSide::tAjax;
+                    m_transport = SPA::ServerSide::tagTransport::tAjax;
                     AddResponseHeader(CONTENT_TYPE.c_str(), "application/json; charset=utf-8");
                     delete m_pWebRequestProcessor;
                     m_pWebRequestProcessor = new CAjaxRequestProcessor(this);
@@ -1148,15 +1148,15 @@ namespace UHTTP {
                     } else if (len)
                         m_RequestContext.ParseStatus = psPartialContent;
                 } else {
-                    if (m_RequestContext.Method == SPA::ServerSide::hmPut ||
-                            m_RequestContext.Method == SPA::ServerSide::hmOptions ||
-                            (m_RequestContext.Method == SPA::ServerSide::hmPost && m_RequestContext.CM == SPA::ServerSide::cmUnknown && m_RequestContext.TE == SPA::ServerSide::teUnknown))
+                    if (m_RequestContext.Method == SPA::ServerSide::tagHttpMethod::hmPut ||
+                            m_RequestContext.Method == SPA::ServerSide::tagHttpMethod::hmOptions ||
+                            (m_RequestContext.Method == SPA::ServerSide::tagHttpMethod::hmPost && m_RequestContext.CM == SPA::ServerSide::tagContentMultiplax::cmUnknown && m_RequestContext.TE == SPA::ServerSide::tagTransferEncoding::teUnknown))
                         SetResponseCode(411); // Length Required
                 }
                 break;
         }
 
-        if (m_RequestContext.Method == SPA::ServerSide::hmGet) {
+        if (m_RequestContext.Method == SPA::ServerSide::tagHttpMethod::hmGet) {
             do {
                 const CHeaderValue *pWebKeyheader = SeekRequestHeader("Sec-WebSocket-Key");
                 if (pWebKeyheader == nullptr)
@@ -1167,7 +1167,7 @@ namespace UHTTP {
                 const CHeaderValue *pProtocol = SeekRequestHeader("Sec-WebSocket-Protocol");
                 m_bWebSocket = true;
                 SetResponseCode(101);
-                m_transport = SPA::ServerSide::tWebSocket;
+                m_transport = SPA::ServerSide::tagTransport::tWebSocket;
                 m_mapResponse["Upgrade"] = "websocket";
                 if (IsKeepAlive())
                     m_mapResponse[Connection] = "Upgrade, keep-alive";
@@ -1336,7 +1336,7 @@ namespace UHTTP {
                     }
                     break;
                 case srDoBatch:
-                    if (!IsWebSocket() && m_RequestContext.Method == SPA::ServerSide::hmGet) {
+                    if (!IsWebSocket() && m_RequestContext.Method == SPA::ServerSide::tagHttpMethod::hmGet) {
                         ProcessRequestBatch(UReq, Response);
                     }
                     break;
@@ -1368,10 +1368,10 @@ namespace UHTTP {
                     break;
             }
         }
-        if (!IsWebSocket() && m_RequestContext.Method == SPA::ServerSide::hmGet)
+        if (!IsWebSocket() && m_RequestContext.Method == SPA::ServerSide::tagHttpMethod::hmGet)
             Response.Push(HTTP_JS_CALLBACK_HEAD.c_str(), (unsigned int) HTTP_JS_CALLBACK_HEAD.size());
         docRes.Accept(writer);
-        if (!IsWebSocket() && m_RequestContext.Method == SPA::ServerSide::hmGet)
+        if (!IsWebSocket() && m_RequestContext.Method == SPA::ServerSide::tagHttpMethod::hmGet)
             Response.Push(HTTP_JS_CALLBACK_END.c_str(), (unsigned int) HTTP_JS_CALLBACK_END.size());
     }
 
@@ -1522,7 +1522,7 @@ namespace UHTTP {
     }
 
     const char* CHttpContext::GetUJSData() const {
-        if (m_RequestContext.Method == SPA::ServerSide::hmGet && m_RequestContext.Params.Start) {
+        if (m_RequestContext.Method == SPA::ServerSide::tagHttpMethod::hmGet && m_RequestContext.Params.Start) {
             const char *s = ::strstr(m_RequestContext.Params.Start, UJS_DATA.c_str());
             if (s != nullptr) {
                 return (s + UJS_DATA.size());
@@ -1533,11 +1533,11 @@ namespace UHTTP {
 
     bool CHttpContext::IsSpRequest() const {
         switch (m_RequestContext.Method) {
-            case SPA::ServerSide::hmGet:
+            case SPA::ServerSide::tagHttpMethod::hmGet:
                 if (m_RequestContext.Params.Start)
                     return (::strstr(m_RequestContext.Params.Start, UJS_DATA.c_str()) != nullptr);
                 break;
-            case SPA::ServerSide::hmPost:
+            case SPA::ServerSide::tagHttpMethod::hmPost:
                 return (m_RequestContext.SeekHeaderValue(UHTTP_REQUEST.c_str()) != nullptr);
                 break;
             default:
@@ -1681,7 +1681,7 @@ namespace UHTTP {
             p->m_ResponseCode = 200;
             p->m_HttpRequestType = hrtCustomer;
             p->m_pt = 60000;
-            p->m_transport = SPA::ServerSide::tUnknown;
+            p->m_transport = SPA::ServerSide::tagTransport::tUnknown;
             return p;
         }
         p = new CHttpContext;

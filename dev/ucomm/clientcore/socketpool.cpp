@@ -26,7 +26,7 @@ CSocketPool::CSocketPool(PSocketPoolCallback spc, unsigned int maxSocketsPerThre
     m_poolId = ++m_nPoolId;
     g_mutex.unlock();
     if (m_spc) {
-        m_spc(m_poolId, SPA::ClientSide::speStarted, nullptr);
+        m_spc(m_poolId, SPA::ClientSide::tagSocketPoolEvent::speStarted, nullptr);
     }
     while (threads) {
         AddOneThread();
@@ -54,12 +54,12 @@ CSocketPool::~CSocketPool() {
         }
     }
     if (m_spc)
-        m_spc(m_poolId, SPA::ClientSide::speShutdown, nullptr);
+        m_spc(m_poolId, SPA::ClientSide::tagSocketPoolEvent::speShutdown, nullptr);
 }
 
 bool CSocketPool::AddOneThread() {
     if (m_spc) {
-        m_spc(m_poolId, SPA::ClientSide::speCreatingThread, nullptr);
+        m_spc(m_poolId, SPA::ClientSide::tagSocketPoolEvent::speCreatingThread, nullptr);
     }
     CClientThreadPtr p(new CClientThread(m_spc, m_SocketsPerThread, this, m_ta));
     bool b = p->Start();
@@ -161,13 +161,13 @@ void CSocketPool::OnCloseInternal(CClientSession *session) {
         PSocketPoolCallback spc = m_spc;
         //make sure the two callacks are called in sequence within multi-thread environment which simplifies adapter merge implementation
         if (spc) {
-            spc(m_poolId, SPA::ClientSide::speQueueMergedFrom, session);
+            spc(m_poolId, SPA::ClientSide::tagSocketPoolEvent::speQueueMergedFrom, session);
         }
         USocket_Client_Handle h = found;
         bool ok = PushQueueTo(session, &h, 1);
         assert(ok);
         if (spc) {
-            spc(m_poolId, SPA::ClientSide::speQueueMergedTo, found);
+            spc(m_poolId, SPA::ClientSide::tagSocketPoolEvent::speQueueMergedTo, found);
         }
     }
 }

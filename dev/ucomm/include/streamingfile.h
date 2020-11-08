@@ -32,7 +32,7 @@ namespace SPA {
         protected:
             //You may use the protected constructor when extending this class
 
-            CStreamingFile(unsigned int sid, CClientSocket* cs) : CAsyncServiceHandler(sid, cs) {
+            CStreamingFile(unsigned int sid, CClientSocket* cs) : CAsyncServiceHandler(sid, cs), m_MaxDownloading(1) {
             }
 
         private:
@@ -116,7 +116,7 @@ namespace SPA {
                     }
                     if (it->Discarded) {
                         try {
-                            it->Discarded(this, GetSocket()->GetCurrentRequestID() == idCancel);
+                            it->Discarded(this, GetSocket()->GetCurrentRequestID() == (unsigned short) tagBaseRequestID::idCancel);
                         } catch (...) {
                         }
                     }
@@ -188,11 +188,11 @@ namespace SPA {
                 : CWaiter<ErrInfo>(reqId) {
                     auto& wc = m_wc;
                     file->PostProcess(ctx, localFile, remoteFile, [wc](CStreamingFile* file, int res, const std::wstring & errMsg) {
-                            wc->m_r.ec = res;
-                            wc->m_r.em = errMsg;
-                            wc->resume();
-                        }, progress, get_aborted(), get_se()
-                    );
+                        wc->m_r.ec = res;
+                        wc->m_r.em = errMsg;
+                                wc->resume();
+                    }, progress, get_aborted(), get_se()
+                            );
                 }
             };
 
@@ -558,7 +558,7 @@ namespace SPA {
                                         break;
                                     } else if (queue_enabled) {
                                         //save file into client message queue
-                                    } else if (GetSocket()->GetBytesInSendingBuffer() > 40 * SFile::STREAM_CHUNK_SIZE || GetSocket()->GetConnectionState() < csConnected) {
+                                    } else if (GetSocket()->GetBytesInSendingBuffer() > 40 * SFile::STREAM_CHUNK_SIZE || GetSocket()->GetConnectionState() < tagConnectionState::csConnected) {
                                         break;
                                     }
                                 }

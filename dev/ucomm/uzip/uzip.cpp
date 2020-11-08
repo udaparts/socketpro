@@ -46,19 +46,19 @@ namespace SPA {
     int MapSockOption(tagSocketOption so) {
         int data = (int) so;
         switch (so) {
-            case soTcpNoDelay:
+			case tagSocketOption::soTcpNoDelay:
                 data = TCP_NODELAY;
                 break;
-            case soReuseAddr:
+            case tagSocketOption::soReuseAddr:
                 data = SO_REUSEADDR;
                 break;
-            case soKeepAlive:
+            case tagSocketOption::soKeepAlive:
                 data = SO_KEEPALIVE;
                 break;
-            case soSndBuf:
+            case tagSocketOption::soSndBuf:
                 data = SO_SNDBUF;
                 break;
-            case soRcvBuf:
+            case tagSocketOption::soRcvBuf:
                 data = SO_RCVBUF;
                 break;
             default:
@@ -70,10 +70,10 @@ namespace SPA {
     int MapSockLevel(tagSocketLevel sl) {
         int data = (int) sl;
         switch (sl) {
-            case slTcp:
+			case tagSocketLevel::slTcp:
                 data = IPPROTO_TCP;
                 break;
-            case slSocket:
+            case tagSocketLevel::slSocket:
                 data = SOL_SOCKET;
                 break;
             default:
@@ -148,13 +148,13 @@ namespace SPA {
         if (pDestination == nullptr || ulDesSize == 0)
             return false;
         switch (zl) {
-            case zlBestSpeed:
+			case tagZipLevel::zlBestSpeed:
             {
                 ulDesSize = (unsigned int) LZ4_uncompress_unknownOutputSize((const char*) pSource, (char *) pDestination, (int) ulSrcSize, (int) ulDesSize);
                 bSuc = ((int) ulDesSize >= 0) ? true : false;
             }
                 break;
-            case zlDefault:
+			case tagZipLevel::zlDefault:
             {
                 int err;
                 if (!m_bInflateInit) {
@@ -212,7 +212,7 @@ namespace SPA {
             return false;
 
         switch (zl) {
-            case zlBestSpeed:
+			case tagZipLevel::zlBestSpeed:
             {
                 if ((int) ulDesSize < LZ4_compressBound((int) ulSrcSize))
                     return false;
@@ -220,7 +220,7 @@ namespace SPA {
                 bSuc = (ulDesSize > 0) ? true : false;
             }
                 break;
-            case zlDefault:
+            case tagZipLevel::zlDefault:
             {
                 int err;
                 unsigned long ul = (unsigned long) (1.1 * ulSrcSize) + 15;

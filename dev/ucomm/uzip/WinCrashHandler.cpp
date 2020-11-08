@@ -164,7 +164,7 @@ void CCrashHandler::CreateMiniDump(EXCEPTION_POINTERS* pExcPtrs) {
     {
         MQ_FILE::CAutoLock al(MQ_FILE::g_csQFile);
         for (auto it = MQ_FILE::g_vQFile.begin(), end = MQ_FILE::g_vQFile.end(); it != end; ++it) {
-            (*it)->SetOptimistic(SPA::oSystemMemoryCached);
+            (*it)->SetOptimistic(SPA::tagOptimistic::oSystemMemoryCached);
         }
         for (auto it = MQ_FILE::g_vQLastIndex.begin(), end = MQ_FILE::g_vQLastIndex.end(); it != end; ++it) {
             (*it)->FinalSave();

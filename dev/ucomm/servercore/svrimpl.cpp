@@ -103,13 +103,13 @@ void WINAPI RegisterMe(unsigned int svsId, SPA::UINT64 secretNumber) {
     if (!svs)
         return;
     switch (svsId) {
-        case SPA::sidChat:
+        case (unsigned int)SPA::tagServiceID::sidChat:
             svs->m_bRegisterred = (0x5f00240039078012 == secretNumber);
             break;
-        case SPA::sidODBC:
+        case (unsigned int)SPA::tagServiceID::sidODBC:
             svs->m_bRegisterred = (0x3f002501780560AF == secretNumber);
             break;
-        case SPA::sidFile:
+        case (unsigned int)SPA::tagServiceID::sidFile:
             svs->m_bRegisterred = (0x4f00990088000077 == secretNumber);
             break;
         case SPA::Sqlite::sidSqlite:
@@ -227,7 +227,7 @@ bool WINAPI SpeakEx(USocket_Server_Handle h, const unsigned char *message, unsig
 
 bool WINAPI MakeRequest(USocket_Server_Handle handler, unsigned short requestId, const unsigned char *request, unsigned int size) {
     unsigned int index;
-    if (requestId <= SPA::idReservedTwo)
+    if (requestId <= (unsigned short)SPA::tagBaseRequestID::idReservedTwo)
         return false;
     CServerSession *pSession = GetSvrSession(handler, index);
     if (index != 0 && index == pSession->GetConnIndex())
@@ -319,7 +319,7 @@ SPA::UINT64 WINAPI GetBytesSent(USocket_Server_Handle h) {
 
 unsigned int WINAPI SendReturnDataIndex(USocket_Server_Handle h, SPA::UINT64 indexCall, unsigned short usReqId, unsigned int ulBufferSize, const unsigned char *pBuffer) {
     unsigned int index;
-    if (usReqId <= SPA::idReservedTwo)
+    if (usReqId <= (unsigned short)SPA::tagBaseRequestID::idReservedTwo)
         return RESULT_SENDING_FAILED;
     CServerSession *pSession = GetSvrSession(h, index);
     if (index == 0 || index != pSession->GetConnIndex())
@@ -343,7 +343,7 @@ unsigned int WINAPI SendReturnDataIndex(USocket_Server_Handle h, SPA::UINT64 ind
 
 unsigned int WINAPI SendReturnData(USocket_Server_Handle h, unsigned short usReqId, unsigned int ulBufferSize, const unsigned char *pBuffer) {
     unsigned int index;
-    if (usReqId <= SPA::idReservedTwo)
+    if (usReqId <= (unsigned short)SPA::tagBaseRequestID::idReservedTwo)
         return RESULT_SENDING_FAILED;
     CServerSession *pSession = GetSvrSession(h, index);
     if (index == 0 || index != pSession->GetConnIndex())
@@ -370,7 +370,7 @@ unsigned int WINAPI GetSvsID(USocket_Server_Handle h) {
     CServerSession *pSession = GetSvrSession(h, index);
     if (index != 0 && index == pSession->GetConnIndex())
         return pSession->GetSvsID();
-    return SPA::sidStartup;
+    return (unsigned int)SPA::tagServiceID::sidStartup;
 }
 
 int WINAPI GetServerSocketErrorCode(USocket_Server_Handle h) {
@@ -589,7 +589,7 @@ bool WINAPI SetZip(USocket_Server_Handle h, bool bZip) {
     CServerSession *pSession = GetSvrSession(h, index);
     if (index != 0 && index == pSession->GetConnIndex()) {
         unsigned int id = pSession->GetSvsID();
-        if (SPA::sidStartup == id || SPA::sidHTTP == id)
+        if ((unsigned int)SPA::tagServiceID::sidStartup == id || (unsigned int)SPA::tagServiceID::sidHTTP == id)
             return false;
         pSession->SetZip(bZip);
         return true;
@@ -617,7 +617,7 @@ SPA::tagZipLevel WINAPI GetZipLevel(USocket_Server_Handle h) {
     CServerSession *pSession = GetSvrSession(h, index);
     if (index != 0 && index == pSession->GetConnIndex())
         return pSession->GetZipLevel();
-    return SPA::zlDefault;
+    return SPA::tagZipLevel::zlDefault;
 }
 
 unsigned int WINAPI GetServerSocketErrorMessage(USocket_Server_Handle h, char *str, unsigned int bufferLen) {
@@ -685,7 +685,7 @@ SPA::ServerSide::tagHttpMethod WINAPI GetHTTPMethod(USocket_Server_Handle h) {
     unsigned int index;
     CServerSession *pSession = GetSvrSession(h, index);
     if (index == 0 || index != pSession->GetConnIndex())
-        return SPA::ServerSide::hmUnknown;
+        return SPA::ServerSide::tagHttpMethod::hmUnknown;
     return pSession->GetHTTPMethod();
 }
 
@@ -749,7 +749,7 @@ SPA::ServerSide::tagTransport WINAPI GetHTTPTransport(USocket_Server_Handle h) {
     unsigned int index;
     CServerSession *pSession = GetSvrSession(h, index);
     if (index == 0 || index != pSession->GetConnIndex())
-        return SPA::ServerSide::tUnknown;
+        return SPA::ServerSide::tagTransport::tUnknown;
     return pSession->GetHTTPTransport();
 }
 
@@ -757,7 +757,7 @@ SPA::ServerSide::tagTransferEncoding WINAPI GetHTTPTransferEncoding(USocket_Serv
     unsigned int index;
     CServerSession *pSession = GetSvrSession(h, index);
     if (index == 0 || index != pSession->GetConnIndex())
-        return SPA::ServerSide::teUnknown;
+        return SPA::ServerSide::tagTransferEncoding::teUnknown;
     return pSession->GetHTTPTransferEncoding();
 }
 
@@ -765,7 +765,7 @@ SPA::ServerSide::tagContentMultiplax WINAPI GetHTTPContentMultiplax(USocket_Serv
     unsigned int index;
     CServerSession *pSession = GetSvrSession(h, index);
     if (index == 0 || index != pSession->GetConnIndex())
-        return SPA::ServerSide::cmUnknown;
+        return SPA::ServerSide::tagContentMultiplax::cmUnknown;
     return pSession->GetHTTPContentMultiplax();
 }
 
@@ -814,7 +814,7 @@ unsigned int WINAPI SendHTTPReturnDataA(USocket_Server_Handle h, const char *str
     CServerSession *pSession = GetSvrSession(h, index);
     if (index == 0 || index != pSession->GetConnIndex())
         return SOCKET_NOT_FOUND;
-    if (SPA::sidHTTP != pSession->GetSvsID())
+    if ((unsigned int)SPA::tagServiceID::sidHTTP != pSession->GetSvsID())
         return BAD_OPERATION;
     bool bMainThread = ::IsMainThread();
     if (g_pServer->m_bStopped) {
@@ -851,7 +851,7 @@ unsigned int WINAPI HTTPCallbackA(USocket_Server_Handle h, const char *name, con
     CServerSession *pSession = GetSvrSession(h, index);
     if (index == 0 || index != pSession->GetConnIndex())
         return SOCKET_NOT_FOUND;
-    if (SPA::sidHTTP != pSession->GetSvsID())
+    if ((unsigned int)SPA::tagServiceID::sidHTTP != pSession->GetSvsID())
         return BAD_OPERATION;
     if (g_pServer->m_bStopped) {
         return SOCKET_NOT_FOUND;

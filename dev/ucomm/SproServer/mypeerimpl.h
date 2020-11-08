@@ -23,7 +23,7 @@ protected:
         GetPush().Publish(vt, groups, 3);
 
         SetZip(true);
-        SetZipLevel(SPA::zlBestSpeed);
+        SetZipLevel(SPA::tagZipLevel::zlBestSpeed);
 
         m_dbIndex = 0;
         m_nCalls = 0;
@@ -89,9 +89,9 @@ protected:
 
     void OnBaseRequestArrive(unsigned short requestId) {
         switch (requestId) {
-            case SPA::idStartJob:
+			case (unsigned short)SPA::tagBaseRequestID::idStartJob:
                 break;
-            case SPA::idEndJob:
+            case (unsigned short)SPA::tagBaseRequestID::idEndJob:
                 break;
             default:
                 break;

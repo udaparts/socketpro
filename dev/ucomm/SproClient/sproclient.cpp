@@ -31,7 +31,7 @@ int main(int argc, char* argv[]) {
     std::getline(std::cin, cc.Host);
     cc.Port = 20901;
     cc.Zip = false;
-    cc.EncrytionMethod = SPA::TLSv1;
+    cc.EncrytionMethod = SPA::tagEncryptionMethod::TLSv1;
 
     SPA::ClientSide::CClientSocket::SSL::SetCertificateVerifyCallback(CVCallback);
 
@@ -129,17 +129,17 @@ void TestTOne(const SPA::ClientSide::CConnectionContext &cc) {
         }
     }
 #else
-    SPA::ClientSide::CSocketPool<CTOne> sp(true);
+    CSocketPool<CTOne> sp(true);
     bool b = sp.StartSocketPool(cc, 1, 1);
     auto p = sp.Lock();
     if (!p) {
         std::cout << "No socket connection for TOne service" << std::endl;
         return;
     }
-    b = p->GetAttachedClientSocket()->GetClientQueue().StartQueue("tonequeue", 24 * 3600, cc.EncrytionMethod != NoEncryption);
+    b = p->GetAttachedClientSocket()->GetClientQueue().StartQueue("tonequeue", 24 * 3600, cc.EncrytionMethod != tagEncryptionMethod::NoEncryption);
     if (!b) {
-        SPA::tagQueueStatus qs = p->GetAttachedClientSocket()->GetClientQueue().GetQueueOpenStatus();
-        qs = qsNormal;
+        tagQueueStatus qs = p->GetAttachedClientSocket()->GetClientQueue().GetQueueOpenStatus();
+        qs = tagQueueStatus::qsNormal;
     }
     for (int n = 0; n < 10; ++n) {
         b = p->SendRequest(idQueryCountCTOne, [](SPA::ClientSide::CAsyncResult & ar) {
@@ -178,7 +178,7 @@ void TestQueue(const SPA::ClientSide::CConnectionContext &cc) {
 
     sp.SocketPoolEvent = [](CMySocketPool *sp, tagSocketPoolEvent spe, CMyServiceHandler * handler) {
         switch (spe) {
-            case SPA::ClientSide::speSocketClosed:
+            case tagSocketPoolEvent::speSocketClosed:
                 std::cout << "Socket closed with error message: " << handler->GetAttachedClientSocket()->GetErrorMsg();
                 std::cout << ", error code: " << handler->GetAttachedClientSocket()->GetErrorCode() << std::endl;
                 break;
@@ -198,7 +198,7 @@ void TestQueue(const SPA::ClientSide::CConnectionContext &cc) {
         return;
     }
     IClientQueue &cq = p->GetAttachedClientSocket()->GetClientQueue();
-    b = cq.StartQueue(qName.c_str(), 30 * 24 * 3600, cc.EncrytionMethod != NoEncryption);
+    b = cq.StartQueue(qName.c_str(), 30 * 24 * 3600, cc.EncrytionMethod != tagEncryptionMethod::NoEncryption);
     if (b) {
         auto found = sp.SeekByQueue(qName);
         assert(found);
@@ -307,7 +307,7 @@ void TestAutoConnecting(const SPA::ClientSide::CConnectionContext & cc) {
         return;
     }
 
-    b = p->GetAttachedClientSocket()->GetClientQueue().StartQueue("echosys", 30 * 24 * 3600, cc.EncrytionMethod != NoEncryption);
+    b = p->GetAttachedClientSocket()->GetClientQueue().StartQueue("echosys", 30 * 24 * 3600, cc.EncrytionMethod != tagEncryptionMethod::NoEncryption);
     if (b) {
         auto found = sp.SeekByQueue("echosys");
         assert(found);
@@ -829,7 +829,7 @@ void TestRoute0(const SPA::ClientSide::CConnectionContext & cc) {
     std::cin >> qName;
 
     //could lead a dead lock at server side if server main threads is larger than 1
-    b = p->GetAttachedClientSocket()->GetClientQueue().StartQueue(qName.c_str(), 30 * 24 * 3600, cc.EncrytionMethod != NoEncryption);
+    b = p->GetAttachedClientSocket()->GetClientQueue().StartQueue(qName.c_str(), 30 * 24 * 3600, cc.EncrytionMethod != tagEncryptionMethod::NoEncryption);
     if (b) {
         auto found = sp.SeekByQueue(qName);
         assert(found);
@@ -869,7 +869,7 @@ void TestRoute1(const SPA::ClientSide::CConnectionContext & cc) {
     std::cin >> qName;
 
     //could lead a dead lock at server side if server main threads is larger than 1
-    b = p->GetAttachedClientSocket()->GetClientQueue().StartQueue(qName.c_str(), 30 * 24 * 3600, cc.EncrytionMethod != NoEncryption);
+    b = p->GetAttachedClientSocket()->GetClientQueue().StartQueue(qName.c_str(), 30 * 24 * 3600, cc.EncrytionMethod != tagEncryptionMethod::NoEncryption);
     if (b) {
         auto found = sp.SeekByQueue(qName);
         assert(found);

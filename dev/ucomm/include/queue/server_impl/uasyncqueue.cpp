@@ -15,7 +15,7 @@ bool WINAPI InitServerLibrary(int param) {
         batchSize = MIN_DEQUEUE_BATCH_SIZE;
     }
     CAsyncQueueImpl::m_nBatchSize = batchSize;
-    g_pAsyncQueue.reset(new CSocketProService<CAsyncQueueImpl>(SPA::Queue::sidQueue, SPA::taNone));
+    g_pAsyncQueue.reset(new CSocketProService<CAsyncQueueImpl>(SPA::Queue::sidQueue, SPA::tagThreadApartment::taNone));
     return true;
 }
 

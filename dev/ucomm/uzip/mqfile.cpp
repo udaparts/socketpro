@@ -293,7 +293,7 @@ namespace MQ_FILE {
     m_bShared(shared),
     m_nMinIndex(0),
     m_LastTime(0),
-    m_qs(SPA::qsNormal),
+    m_qs(SPA::tagQueueStatus::qsNormal),
     m_bEnd(false),
     m_nFileSize(0) {
         char str[2048 + 1] = {0};
@@ -382,7 +382,7 @@ namespace MQ_FILE {
 
     void CMqFile::SetOptimistic(SPA::tagOptimistic bOptimistic) {
         CAutoLock al(m_cs);
-        if (bOptimistic && !m_bCrashSafe && m_hFile && m_qTransPos == INVALID_NUMBER) {
+        if (bOptimistic != SPA::tagOptimistic::oMemoryCached && m_bCrashSafe == SPA::tagOptimistic::oMemoryCached && m_hFile && m_qTransPos == INVALID_NUMBER) {
             fflush(m_hFile);
         }
         m_bCrashSafe = bOptimistic;
@@ -441,7 +441,7 @@ namespace MQ_FILE {
         int err = errno;
 #endif
         if (m_hFile == nullptr)
-            m_qs = SPA::qsFileError;
+            m_qs = SPA::tagQueueStatus::qsFileError;
         else {
 #if defined(WINCE) || defined(__ANDROID__) || defined(ANDROID)
             ::fseek(m_hFile, 0, SEEK_END);
@@ -533,7 +533,7 @@ namespace MQ_FILE {
             qii.MinIndex |= CQueueInitialInfo::QUEUE_SHARED_INDEX;
         }
         qii.Secure = m_bSecure;
-        qii.CrashSafe = m_bCrashSafe;
+        qii.CrashSafe = (unsigned char)m_bCrashSafe;
         return qii;
     }
 
@@ -574,7 +574,7 @@ namespace MQ_FILE {
 #elif defined(WIN32_64)
         BOOL ok = FALSE;
         res = ::_fflush_nolock(file);
-        if (res == 0 && m_bCrashSafe == SPA::oDiskCommitted)
+        if (res == 0 && m_bCrashSafe == SPA::tagOptimistic::oDiskCommitted)
             ok = ::FlushFileBuffers((HANDLE) _get_osfhandle(GetFileDescriptor()));
 #else
         int ok = 0;
@@ -672,10 +672,10 @@ namespace MQ_FILE {
             read = fread(&mdh, 1, sizeof (mdh), m_hFile);
             assert(read == sizeof (mdh));
             switch (mdh.RequestId) {
-                case SPA::idStartMerge:
+				case (unsigned short)SPA::tagBaseRequestID::idStartMerge:
                     if (mdh.MessageIndex) {
                         MergePos = pos;
-                        m_qs = SPA::qsMergeComplete;
+                        m_qs = SPA::tagQueueStatus::qsMergeComplete;
                         merge = 1;
                         MergeCount = 1;
                         SPA::INT64 offset = -((SPA::INT64)sizeof (mdh));
@@ -685,7 +685,7 @@ namespace MQ_FILE {
                         ++m_msgCount;
                     }
                     break;
-                case SPA::idEndMerge:
+                case (unsigned short)SPA::tagBaseRequestID::idEndMerge:
                     if (mdh.MessageIndex) {
                         SPA::INT64 offset = -((SPA::INT64)sizeof (mdh));
                         SetFilePointer(offset, SEEK_CUR);
@@ -747,7 +747,7 @@ namespace MQ_FILE {
                 } else {
                     ++range_num;
                 }
-                if (mdh.RequestId == SPA::idStartJob) {
+                if (mdh.RequestId == (unsigned short)SPA::tagBaseRequestID::idStartJob) {
 #ifndef NDEBUG
                     if (balance) {
                         std::cout << "==== Bad balance/SPA::idStartJob: " << balance << " @" << __FUNCTION__ << " @line " << __LINE__ << std::endl;
@@ -756,7 +756,7 @@ namespace MQ_FILE {
                     m_qTransPos = pos - sizeof (mdh);
                     ++m_msgTransCount;
                     balance = 1;
-                } else if (mdh.RequestId == SPA::idEndJob) {
+                } else if (mdh.RequestId == (unsigned short)SPA::tagBaseRequestID::idEndJob) {
 #ifndef NDEBUG
                     if (balance != 1) {
                         std::cout << "==== Bad balance/SPA::idEndJob: " << balance << " @" << __FUNCTION__ << " @line " << __LINE__ << std::endl;
@@ -804,9 +804,9 @@ namespace MQ_FILE {
                 assert(m_msgCount >= MergeCount);
                 m_msgCount -= MergeCount;
                 m_nInternalIndex -= MergeCount;
-                m_qs = SPA::qsMergeIncomplete;
+                m_qs = SPA::tagQueueStatus::qsMergeIncomplete;
             } else {
-                m_qs = SPA::qsMergePushing;
+                m_qs = SPA::tagQueueStatus::qsMergePushing;
             }
         } else if (m_qTransPos != INVALID_NUMBER) {
             assert(balance == 1);
@@ -817,14 +817,14 @@ namespace MQ_FILE {
             m_nInternalIndex -= m_msgTransCount;
             m_msgCount -= m_msgTransCount;
             m_msgTransCount = 0;
-            m_qs = SPA::qsJobIncomplete;
+            m_qs = SPA::tagQueueStatus::qsJobIncomplete;
         } else if (incomplete) {
             assert(pos >= sizeof (mdh));
             Truncate(pos);
-            m_qs = SPA::qsCrash;
+            m_qs = SPA::tagQueueStatus::qsCrash;
         } else if (pos < m_nFileSize) {
             Truncate(pos);
-            m_qs = SPA::qsCrash;
+            m_qs = SPA::tagQueueStatus::qsCrash;
         } else if (m_msgCount == 0 && m_nFileSize >= FILE_SIZE_TRUNCATED) {
             assert(balance == 0);
             assert(m_msgTransCount == 0);
@@ -958,7 +958,7 @@ namespace MQ_FILE {
         }
         assert(m_msgCount >= cancels);
         m_msgCount -= cancels;
-        if (m_bCrashSafe && cancels)
+        if (m_bCrashSafe != SPA::tagOptimistic::oMemoryCached && cancels)
             fflush(m_hFile);
         if (m_msgCount == 0 && m_nFileSize > FILE_SIZE_TRUNCATED) {
             assert(m_qOut.GetSize() == 0);
@@ -1038,7 +1038,7 @@ namespace MQ_FILE {
         }
         assert(m_msgCount >= cancels);
         m_msgCount -= cancels;
-        if (m_bCrashSafe && cancels)
+        if (m_bCrashSafe != SPA::tagOptimistic::oMemoryCached && cancels)
             fflush(m_hFile);
         if (m_msgCount == 0 && m_nFileSize > FILE_SIZE_TRUNCATED) {
             assert(m_qOut.GetSize() == 0);
@@ -1064,11 +1064,11 @@ namespace MQ_FILE {
         for (start = vTargetRequest.begin(); start != end; ++start) {
             unsigned short reqId = *start;
             switch (reqId) {
-                case SPA::idStartJob:
+				case (unsigned short)SPA::tagBaseRequestID::idStartJob:
                     ++balance;
                     vStartEnd.push_back(reqId);
                     break;
-                case SPA::idEndJob:
+                case (unsigned short)SPA::tagBaseRequestID::idEndJob:
                     --balance;
                     vStartEnd.push_back(reqId);
                     break;
@@ -1079,10 +1079,10 @@ namespace MQ_FILE {
 
         while (balance != 0) {
             if (balance > 0) {
-                start = std::find(vStartEnd.begin(), vStartEnd.end(), SPA::idStartJob);
+                start = std::find(vStartEnd.begin(), vStartEnd.end(), (unsigned short)SPA::tagBaseRequestID::idStartJob);
                 --balance;
             } else {
-                start = std::find(vStartEnd.begin(), vStartEnd.end(), SPA::idEndJob);
+                start = std::find(vStartEnd.begin(), vStartEnd.end(), (unsigned short)SPA::tagBaseRequestID::idEndJob);
                 ++balance;
             }
             vStartEnd.erase(start);
@@ -1137,20 +1137,20 @@ namespace MQ_FILE {
             assert(mdh.MessageIndex < QAttr::RANGE_DEQUEUED_END);
             if (mdh.MessageIndex) {
                 switch (sh->RequestId) {
-                    case SPA::idStartJob:
+                    case (unsigned short)SPA::tagBaseRequestID::idStartJob:
                         middle = 0;
                         hasStart = true;
                         startPos = pos;
                         startIndex = mdh.MessageIndex;
                         break;
-                    case SPA::idEndJob:
+                    case (unsigned short)SPA::tagBaseRequestID::idEndJob:
                         if (middle || vStartEnd.size() == 0) {
                             middle = 0;
                             //leave idStartJob and idEndJob as they are
                             break;
                         } else if (vStartEnd.size() > 0) {
-                            vStartEnd.erase(std::find(vStartEnd.begin(), vStartEnd.end(), SPA::idEndJob));
-                            vStartEnd.erase(std::find(vStartEnd.begin(), vStartEnd.end(), SPA::idStartJob));
+                            vStartEnd.erase(std::find(vStartEnd.begin(), vStartEnd.end(), (unsigned short)SPA::tagBaseRequestID::idEndJob));
+                            vStartEnd.erase(std::find(vStartEnd.begin(), vStartEnd.end(), (unsigned short)SPA::tagBaseRequestID::idStartJob));
                             //let the below block to set message index = 0
                         }
                     default:
@@ -1167,14 +1167,14 @@ namespace MQ_FILE {
                             size_t res = fwrite(&mdh, sizeof (mdh), 1, m_hFile);
                             assert(res == 1);
 
-                            if (sh->RequestId == SPA::idEndJob && hasStart) {
+                            if (sh->RequestId == (unsigned short)SPA::tagBaseRequestID::idEndJob && hasStart) {
                                 hasStart = false;
                                 ++index;
                                 RemoveMsgIndex(startPos, startIndex);
-                                vTargetRequest.erase(std::find(vTargetRequest.begin(), vTargetRequest.end(), SPA::idStartJob));
+                                vTargetRequest.erase(std::find(vTargetRequest.begin(), vTargetRequest.end(), (unsigned short)SPA::tagBaseRequestID::idStartJob));
                                 ok = SetFilePointer(startPos, SEEK_SET);
                                 assert(ok);
-                                sh->RequestId = SPA::idStartJob;
+                                sh->RequestId = (unsigned short)SPA::tagBaseRequestID::idStartJob;
                                 res = fwrite(&mdh, sizeof (mdh), 1, m_hFile);
                                 assert(res == 1);
                                 ok = SetFilePointer(pos + sizeof (mdh), SEEK_SET);
@@ -1204,7 +1204,7 @@ namespace MQ_FILE {
             }
         }
         assert(index <= m_msgCount);
-        if (m_bCrashSafe && index)
+        if (m_bCrashSafe != SPA::tagOptimistic::oMemoryCached && index)
             fflush(m_hFile);
         if (m_msgCount == 0 && m_nFileSize > FILE_SIZE_TRUNCATED) {
             assert(m_qOut.GetSize() == 0);
@@ -1265,7 +1265,7 @@ namespace MQ_FILE {
             std::cout << "---- DoConfirmDequeue: bad job confirm balance " << m_nJobBalanceConfirm << std::endl;
         }
 #endif
-        if ((m_bCrashSafe || m_msgCount == 0) && flush)
+        if ((m_bCrashSafe != SPA::tagOptimistic::oMemoryCached || m_msgCount == 0) && flush)
             fflush(m_hFile);
         if (m_msgCount == 0 && m_nFileSize > FILE_SIZE_TRUNCATED) {
             assert(m_qOut.GetSize() == 0);
@@ -1287,7 +1287,7 @@ namespace MQ_FILE {
             std::cout << "---- DoConfirmDequeue: bad job confirm balance " << m_nJobBalanceConfirm << std::endl;
         }
 #endif
-        if ((m_bCrashSafe || m_msgCount == 0) && flush)
+        if ((m_bCrashSafe != SPA::tagOptimistic::oMemoryCached || m_msgCount == 0) && flush)
             fflush(m_hFile);
         if (m_msgCount == 0 && m_nFileSize > FILE_SIZE_TRUNCATED) {
             assert(m_qOut.GetSize() == 0);
@@ -1348,8 +1348,8 @@ namespace MQ_FILE {
         const CDequeueConfirmInfo *dciPrev = nullptr;
         for (unsigned int n = 0; n < count; ++n) {
             const CDequeueConfirmInfo *dci = start + n;
-            assert(dci->RequestId != SPA::idStartJob);
-            assert(dci->RequestId != SPA::idEndJob);
+            assert(dci->RequestId != (unsigned short)SPA::tagBaseRequestID::idStartJob);
+            assert(dci->RequestId != (unsigned short)SPA::tagBaseRequestID::idEndJob);
             if (dci->Fail) {
                 if (continues > 3) {
                     //find beginning one
@@ -1517,7 +1517,7 @@ namespace MQ_FILE {
             std::cout << "---- ConfirmDequeueJob: bad job confirm balance " << m_nJobBalanceConfirm << std::endl;
         }
 #endif
-        if ((m_bCrashSafe || m_msgCount == 0) && flush)
+        if ((m_bCrashSafe != SPA::tagOptimistic::oMemoryCached || m_msgCount == 0) && flush)
             fflush(m_hFile);
         if (m_msgCount == 0 && m_nFileSize > FILE_SIZE_TRUNCATED) {
             assert(m_qOut.GetSize() == 0);
@@ -1579,10 +1579,10 @@ namespace MQ_FILE {
                     std::cout << "---- ConfirmDequeue: mdh.MessageIndex = " << mdh.MessageIndex << ", qa[n].MessageIndex = " << qa[n].MessageIndex << std::endl;
                 }
                 switch (mdh.RequestId) {
-                    case SPA::idStartJob:
+                    case (unsigned short)SPA::tagBaseRequestID::idStartJob:
                         ++m_nJobBalanceConfirm;
                         break;
-                    case SPA::idEndJob:
+                    case (unsigned short)SPA::tagBaseRequestID::idEndJob:
                         --m_nJobBalanceConfirm;
                         break;
                     default:
@@ -1604,7 +1604,7 @@ namespace MQ_FILE {
             std::cout << "---- ConfirmDequeue: bad job confirm balance " << m_nJobBalanceConfirm << std::endl;
         }
 #endif
-        if ((m_bCrashSafe || m_msgCount == 0) && flush)
+        if ((m_bCrashSafe != SPA::tagOptimistic::oMemoryCached || m_msgCount == 0) && flush)
             fflush(m_hFile);
         if (m_msgCount == 0 && m_nFileSize > FILE_SIZE_TRUNCATED) {
             assert(m_qOut.GetSize() == 0);
@@ -1661,10 +1661,10 @@ namespace MQ_FILE {
                 std::cout << "---- ConfirmDequeueInternal: mdh.MessageIndex = " << mdh.MessageIndex << ", index = " << index << std::endl;
             }
             switch (mdh.RequestId) {
-                case SPA::idStartJob:
+                case (unsigned short)SPA::tagBaseRequestID::idStartJob:
                     ++m_nJobBalanceConfirm;
                     break;
-                case SPA::idEndJob:
+                case (unsigned short)SPA::tagBaseRequestID::idEndJob:
                     --m_nJobBalanceConfirm;
                     break;
                 default:
@@ -1687,7 +1687,7 @@ namespace MQ_FILE {
             std::cout << "---- ConfirmDequeueInternal: bad job confirm balance " << m_nJobBalanceConfirm << std::endl;
         }
 #endif
-        if ((m_bCrashSafe || m_msgCount == 0) && flush)
+        if ((m_bCrashSafe != SPA::tagOptimistic::oMemoryCached || m_msgCount == 0) && flush)
             fflush(m_hFile);
         if (m_msgCount == 0 && m_nFileSize > FILE_SIZE_TRUNCATED) {
             assert(m_qOut.GetSize() == 0);
@@ -1986,8 +1986,8 @@ namespace MQ_FILE {
                     assert(read == 1);
                     SPA::CStreamHeader *sh = (SPA::CStreamHeader *)qRequests.GetBuffer(qRequests.GetSize());
                     switch (sh->RequestId) {
-                        case SPA::idStartJob:
-                        case SPA::idEndJob:
+                        case (unsigned short)SPA::tagBaseRequestID::idStartJob:
+                        case (unsigned short)SPA::tagBaseRequestID::idEndJob:
                             assert(attri.MessageIndex < QAttr::RANGE_DEQUEUED_END);
                             m_qTransIndex << attri.MessageIndex;
                             break;
@@ -1995,9 +1995,9 @@ namespace MQ_FILE {
                             break;
                     }
 #ifndef NDEBUG
-                    if (sh->RequestId == SPA::idStartJob) {
+                    if (sh->RequestId == (unsigned short)SPA::tagBaseRequestID::idStartJob) {
                         ++m_nJobBalanceDequeue;
-                    } else if (sh->RequestId == SPA::idEndJob) {
+                    } else if (sh->RequestId == (unsigned short)SPA::tagBaseRequestID::idEndJob) {
                         --m_nJobBalanceDequeue;
                     }
                     if (m_nJobBalanceDequeue > 1 || m_nJobBalanceDequeue < 0) {
@@ -2138,8 +2138,8 @@ namespace MQ_FILE {
 
                     SPA::CStreamHeader *sh = (SPA::CStreamHeader *)qRequests.GetBuffer(qRequests.GetSize());
                     switch (sh->RequestId) {
-                        case SPA::idStartJob:
-                        case SPA::idEndJob:
+                        case (unsigned short)SPA::tagBaseRequestID::idStartJob:
+                        case (unsigned short)SPA::tagBaseRequestID::idEndJob:
                             assert(attri.MessageIndex < QAttr::RANGE_DEQUEUED_END);
                             m_qTransIndex << attri.MessageIndex;
                             break;
@@ -2147,9 +2147,9 @@ namespace MQ_FILE {
                             break;
                     }
 #ifndef NDEBUG
-                    if (sh->RequestId == SPA::idStartJob) {
+                    if (sh->RequestId == (unsigned short)SPA::tagBaseRequestID::idStartJob) {
                         ++m_nJobBalanceDequeue;
-                    } else if (sh->RequestId == SPA::idEndJob) {
+                    } else if (sh->RequestId == (unsigned short)SPA::tagBaseRequestID::idEndJob) {
                         --m_nJobBalanceDequeue;
                     }
                     if (m_nJobBalanceDequeue > 1 || m_nJobBalanceDequeue < 0) {
@@ -2232,17 +2232,17 @@ namespace MQ_FILE {
                     assert(read == 1);
                     SPA::CStreamHeader *sh = (SPA::CStreamHeader *)q.GetBuffer();
                     switch (sh->RequestId) {
-                        case SPA::idStartJob:
-                        case SPA::idEndJob:
+                        case (unsigned short)SPA::tagBaseRequestID::idStartJob:
+                        case (unsigned short)SPA::tagBaseRequestID::idEndJob:
                             m_qTransIndex << mqIndex;
                             break;
                         default:
                             break;
                     }
 #ifndef NDEBUG
-                    if (sh->RequestId == SPA::idStartJob) {
+                    if (sh->RequestId == (unsigned short)SPA::tagBaseRequestID::idStartJob) {
                         ++m_nJobBalanceDequeue;
-                    } else if (sh->RequestId == SPA::idEndJob) {
+                    } else if (sh->RequestId == (unsigned short)SPA::tagBaseRequestID::idEndJob) {
                         --m_nJobBalanceDequeue;
                     }
                     if (m_nJobBalanceDequeue > 1 || m_nJobBalanceDequeue < 0) {
@@ -2358,9 +2358,9 @@ namespace MQ_FILE {
             len -= sizeof (SPA::CStreamHeader);
             pBuffer += sizeof (SPA::CStreamHeader);
 #ifndef NDEBUG
-            if (pStreamHeader->RequestId == SPA::idStartJob) {
+            if (pStreamHeader->RequestId == (unsigned short)SPA::tagBaseRequestID::idStartJob) {
                 ++m_nJobBalanceEnqueue;
-            } else if (pStreamHeader->RequestId == SPA::idEndJob) {
+            } else if (pStreamHeader->RequestId == (unsigned short)SPA::tagBaseRequestID::idEndJob) {
                 --m_nJobBalanceEnqueue;
             }
             if (m_nJobBalanceEnqueue > 1 || m_nJobBalanceEnqueue < 0) {
@@ -2409,7 +2409,7 @@ namespace MQ_FILE {
 
             vIndex.push_back(m_nInternalIndex);
         }
-        if (m_bCrashSafe && qRequests.GetSize() >= sizeof (SPA::CStreamHeader))
+        if (m_bCrashSafe != SPA::tagOptimistic::oMemoryCached && qRequests.GetSize() >= sizeof (SPA::CStreamHeader))
             fflush(m_hFile);
         assert(!len);
         return vIndex;
@@ -2440,13 +2440,13 @@ namespace MQ_FILE {
 
     SPA::UINT64 CMqFile::StartJob() {
         SPA::CStreamHeader sh;
-        sh.RequestId = SPA::idStartJob;
+        sh.RequestId = (unsigned short)SPA::tagBaseRequestID::idStartJob;
         return Enqueue(sh, (const unsigned char*) nullptr, 0);
     }
 
     SPA::UINT64 CMqFile::EndJob() {
         SPA::CStreamHeader sh;
-        sh.RequestId = SPA::idEndJob;
+        sh.RequestId = (unsigned short)SPA::tagBaseRequestID::idEndJob;
         return Enqueue(sh, (const unsigned char*) nullptr, 0);
     }
 
@@ -2501,7 +2501,7 @@ namespace MQ_FILE {
             return INVALID_NUMBER;
 
         //for queue trans/commit
-        if (sh.RequestId == SPA::idStartJob) {
+        if (sh.RequestId == (unsigned short)SPA::tagBaseRequestID::idStartJob) {
             if (m_qTransPos != INVALID_NUMBER) {
                 return INVALID_NUMBER;
             }
@@ -2511,7 +2511,7 @@ namespace MQ_FILE {
             m_qTransPos = m_nFileSize;
             assert(m_msgTransCount == 0);
             ++m_msgTransCount;
-        } else if (sh.RequestId == SPA::idEndJob) {
+        } else if (sh.RequestId == (unsigned short)SPA::tagBaseRequestID::idEndJob) {
             if (m_qTransPos == INVALID_NUMBER) {
                 return INVALID_NUMBER;
             }
@@ -2553,11 +2553,11 @@ namespace MQ_FILE {
             m_cv.notify_all();
         }
 
-        if (sh.RequestId == SPA::idEndJob) {
+        if (sh.RequestId == (unsigned short)SPA::tagBaseRequestID::idEndJob) {
             m_qTransPos = INVALID_NUMBER;
             m_msgTransCount = 0;
         }
-        if (m_qTransPos == INVALID_NUMBER && m_bCrashSafe)
+        if (m_qTransPos == INVALID_NUMBER && m_bCrashSafe != SPA::tagOptimistic::oMemoryCached)
             fflush(m_hFile);
         return m_nInternalIndex;
     }
@@ -2582,7 +2582,7 @@ namespace MQ_FILE {
         for (n = 0; n < count; ++n) {
             qFile = qFiles[n];
             if (qFile && qFile->IsAvailable()) {
-                qFile->SetOptimistic(SPA::oSystemMemoryCached);
+                qFile->SetOptimistic(SPA::tagOptimistic::oSystemMemoryCached);
                 continue;
             }
             return false;
@@ -2612,7 +2612,7 @@ namespace MQ_FILE {
             m_qOut.ReallocBuffer(m_qOut.GetMaxSize() + increase);
         }
 
-        sh.RequestId = SPA::idStartMerge;
+        sh.RequestId = (unsigned short)SPA::tagBaseRequestID::idStartMerge;
         for (n = 0; n < count; ++n) {
             qFile = qFiles[n];
             do {
@@ -2636,7 +2636,7 @@ namespace MQ_FILE {
             merge << attr;
         }
 
-        sh.RequestId = SPA::idEndMerge;
+        sh.RequestId = (unsigned short)SPA::tagBaseRequestID::idEndMerge;
         indexMerge = EnqueueInternal(sh, nullptr, 0);
 
         std::vector<unsigned int> vSize = DoBatchDequeueInternal(al, qAttr, qRequests, BATCH_DEQUEUE_SIZE, 0);
@@ -2657,11 +2657,11 @@ namespace MQ_FILE {
                         unsigned short reqId;
                         if (sh.RequestId == 500) {
                             reqId = sh.RequestId;
-                        } else if (sh.RequestId == SPA::idStartJob) {
+                        } else if (sh.RequestId == (unsigned short)SPA::tagBaseRequestID::idStartJob) {
                             reqId = sh.RequestId;
-                        } else if (sh.RequestId == SPA::idEndJob) {
+                        } else if (sh.RequestId == (unsigned short)SPA::tagBaseRequestID::idEndJob) {
                             reqId = sh.RequestId;
-                        } else if (sh.RequestId == SPA::idEndMerge) {
+                        } else if (sh.RequestId == (unsigned short)SPA::tagBaseRequestID::idEndMerge) {
                             reqId = sh.RequestId;
                         } else {
                             assert(false);
@@ -2757,7 +2757,7 @@ namespace MQ_FILE {
 
         std::wstring pwd(password);
         if (pwd.size() == 0) {
-            StopQueue(SPA::qsBadPassword);
+            StopQueue(SPA::tagQueueStatus::qsBadPassword);
             return;
         }
 
@@ -2782,7 +2782,7 @@ namespace MQ_FILE {
         if (pLastIndex && GetMessageCount()) {
             QAttr qa = pLastIndex->Seek(GetMQInitInfo().Qs);
             if (!(test == qa)) {
-                StopQueue(m_qs = SPA::qsBadPassword);
+                StopQueue(m_qs = SPA::tagQueueStatus::qsBadPassword);
             }
         } else if (pLastIndex && GetMessageCount() == 0 && IsAvailable()) {
             pLastIndex->Set(GetMQInitInfo().Qs, test);
@@ -2859,7 +2859,7 @@ namespace MQ_FILE {
     }
 
     CQLastIndex::CQLastIndex(const char *fileName, bool client)
-    : m_nCrash(0), m_fileName(fileName), m_bDirty(false), m_hFile(nullptr), m_stop(0), m_qs(SPA::qsNormal), m_CheckSum(0) {
+    : m_nCrash(0), m_fileName(fileName), m_bDirty(false), m_hFile(nullptr), m_stop(0), m_qs(SPA::tagQueueStatus::qsNormal), m_CheckSum(0) {
         if (client)
             m_fileName += "_c.qdx";
         else

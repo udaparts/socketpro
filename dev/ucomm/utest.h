@@ -1,8 +1,8 @@
 #ifndef	__UMB_TEST_INCLUDE_HEADER__
 #define __UMB_TEST_INCLUDE_HEADER__
 
-#define sidTestService 	(SPA::sidReserved + 20)
-#define idSleep			(SPA::idReservedTwo + 1)
+#define sidTestService 	((unsigned int)SPA::tagServiceID::sidReserved + 20)
+#define idSleep			((unsigned short)SPA::tagBaseRequestID::idReservedTwo + 1)
 #define idEcho			(idSleep + 1)
 #define idOpenDb		(idEcho + 1)
 #define idBadRequest	(idOpenDb + 1)

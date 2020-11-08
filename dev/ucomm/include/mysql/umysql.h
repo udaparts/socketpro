@@ -6,7 +6,7 @@
 
 namespace SPA {
     namespace Mysql {
-        static const unsigned int sidMysql = (unsigned int) sidReserved + 0x6FFFFFF1; //asynchronous MySQL/MariaDB service id
+        static const unsigned int sidMysql = (unsigned int) tagServiceID::sidReserved + 0x6FFFFFF1; //asynchronous MySQL/MariaDB service id
 
         //error codes from async MySQL/MariaDB server library
         static const int ER_NO_DB_OPENED_YET = 1981;

@@ -378,13 +378,13 @@ namespace SPA {
 
             CConnectionContext()
             : Port(0),
-            EncrytionMethod(NoEncryption),
+            EncrytionMethod(tagEncryptionMethod::NoEncryption),
             V6(false),
             Zip(false) {
 
             }
 
-            CConnectionContext(const char *addr, unsigned short port, const wchar_t *userId, const wchar_t *pwd, tagEncryptionMethod em = NoEncryption, bool v6 = false, bool zip = false)
+            CConnectionContext(const char *addr, unsigned short port, const wchar_t *userId, const wchar_t *pwd, tagEncryptionMethod em = tagEncryptionMethod::NoEncryption, bool v6 = false, bool zip = false)
             : Host(addr ? addr : ""),
             Port(port),
             UserId(userId ? userId : L""),
@@ -583,7 +583,7 @@ namespace SPA {
             };
 
             void Close() const;
-            void Shutdown(tagShutdownType st = stBoth) const;
+            void Shutdown(tagShutdownType st = tagShutdownType::stBoth) const;
             bool operator==(const CClientSocket &cs) const;
             void SetZip(bool zip) const;
             bool GetZip() const;
@@ -648,8 +648,8 @@ namespace SPA {
             tagOperationSystem GetPeerOs(bool *endian = nullptr) const;
 
             bool DoEcho() const;
-            bool SetSockOpt(tagSocketOption optName, int optValue, tagSocketLevel level = slSocket) const;
-            bool SetSockOptAtSvr(tagSocketOption optName, int optValue, tagSocketLevel level = slSocket) const;
+            bool SetSockOpt(tagSocketOption optName, int optValue, tagSocketLevel level = tagSocketLevel::slSocket) const;
+            bool SetSockOptAtSvr(tagSocketOption optName, int optValue, tagSocketLevel level = tagSocketLevel::slSocket) const;
             bool TurnOnZipAtSvr(bool enableZip) const;
             bool SetZipLevelAtSvr(SPA::tagZipLevel zipLevel) const;
             std::string GetPeerName(unsigned int *port) const;
@@ -928,14 +928,14 @@ namespace SPA {
             std::future<CScopeUQueue> sendRequest(unsigned short reqId, const unsigned char *pBuffer, unsigned int size) {
                 std::shared_ptr<std::promise<CScopeUQueue> > prom(new std::promise<CScopeUQueue>);
                 if (!SendRequest(reqId, pBuffer, size, [prom](CAsyncResult & ar) {
-                    CScopeUQueue sb;
-                    sb->Swap(ar.UQueue);
-                    try {
-                        prom->set_value(std::move(sb));
-                    } catch (std::future_error&) {
-                        //ignore it
-                    }
-                }, get_aborted(prom, reqId), get_se(prom))) {
+                        CScopeUQueue sb;
+                        sb->Swap(ar.UQueue);
+                        try {
+                            prom->set_value(std::move(sb));
+                        } catch (std::future_error&) {
+                            //ignore it
+                        }
+                    }, get_aborted(prom, reqId), get_se(prom))) {
                     raise(reqId);
                 }
                 return prom->get_future();
@@ -992,16 +992,16 @@ namespace SPA {
             std::future<R> send(unsigned short reqId, const unsigned char *pBuffer, unsigned int size) {
                 std::shared_ptr<std::promise<R> > prom(new std::promise<R>);
                 if (!SendRequest(reqId, pBuffer, size, [prom](CAsyncResult & ar) {
-                    try {
-                        R r;
-                        ar >> r;
-                        prom->set_value(std::move(r));
-                    } catch (std::future_error&) {
-                        //ignore it
-                    } catch (...) {
-                        prom->set_exception(std::current_exception());
-                    }
-                }, get_aborted(prom, reqId), get_se(prom))) {
+                        try {
+                            R r;
+                            ar >> r;
+                            prom->set_value(std::move(r));
+                        } catch (std::future_error&) {
+                            //ignore it
+                        } catch (...) {
+                            prom->set_exception(std::current_exception());
+                        }
+                    }, get_aborted(prom, reqId), get_se(prom))) {
                     raise(reqId);
                 }
                 return prom->get_future();
@@ -1120,15 +1120,13 @@ namespace SPA {
                     return [wc](CAsyncServiceHandler* h, bool canceled) {
                         if (canceled) {
                             wc->m_ex = std::make_exception_ptr(CSocketError(REQUEST_CANCELED, REQUEST_CANCELED_ERR_MSG, wc->get_id(), false));
-                        }
-                        else {
+                        } else {
                             CClientSocket* cs = h->GetSocket();
                             int ec = cs->GetErrorCode();
                             if (ec) {
                                 std::string em = cs->GetErrorMsg();
                                 wc->m_ex = std::make_exception_ptr(CSocketError(ec, Utilities::ToWide(em).c_str(), wc->get_id(), false));
-                            }
-                            else {
+                            } else {
                                 wc->m_ex = std::make_exception_ptr(CSocketError(SESSION_CLOSED_AFTER, SESSION_CLOSED_AFTER_ERR_MSG, wc->get_id(), false));
                             }
                         }
@@ -1146,13 +1144,13 @@ namespace SPA {
                 : CWaiterBase<R>(reqId) {
                     auto& wc = this->m_wc;
                     if (!ash->SendRequest(reqId, pBuffer, size, [wc](CAsyncResult & ar) {
-                        try {
-                            ar >> wc->m_r;
-                        } catch (...) {
-                            wc->m_ex = std::current_exception();
-                        }
-                        wc->resume();
-                    }, this->get_aborted(), this->get_se())) {
+                            try {
+                                ar >> wc->m_r;
+                            } catch (...) {
+                                wc->m_ex = std::current_exception();
+                            }
+                            wc->resume();
+                        }, this->get_aborted(), this->get_se())) {
                         ash->raise(reqId);
                     }
                 }
@@ -1181,9 +1179,9 @@ namespace SPA {
                 : CWaiterBase<CScopeUQueue>(reqId) {
                     auto& wc = m_wc;
                     if (!ash->SendRequest(reqId, pBuffer, size, [wc](CAsyncResult & ar) {
-                        wc->m_r->Swap(ar.UQueue);
-                        wc->resume();
-                    }, get_aborted(), get_se())) {
+                            wc->m_r->Swap(ar.UQueue);
+                            wc->resume();
+                        }, get_aborted(), get_se())) {
                         ash->raise(reqId);
                     }
                 }
@@ -1251,7 +1249,7 @@ namespace SPA {
 
         private:
 
-            enum tagEvent {
+            enum class tagEvent {
                 eResult = 0,
                 eDiscarded,
                 eException
@@ -1461,7 +1459,7 @@ namespace SPA {
                 PHandler h;
                 CAutoLock al(m_cs);
                 for (auto it = m_mapSocketHandler.begin(), end = m_mapSocketHandler.end(); it != end; ++it) {
-                    if (it->first->GetConnectionState() < csSwitched)
+                    if (it->first->GetConnectionState() < tagConnectionState::csSwitched)
                         continue;
                     if (!h)
                         h = it->second;
@@ -1637,7 +1635,7 @@ namespace SPA {
                 return (count > 0);
             }
 
-            virtual bool StartSocketPool(CConnectionContext **ppCCs, unsigned int socketsPerThread, unsigned int threads, bool avg = true, tagThreadApartment ta = taNone) {
+            virtual bool StartSocketPool(CConnectionContext **ppCCs, unsigned int socketsPerThread, unsigned int threads, bool avg = true, tagThreadApartment ta = tagThreadApartment::taNone) {
                 assert(ppCCs != nullptr);
                 assert(*ppCCs != nullptr);
                 assert(socketsPerThread != 0);
@@ -1649,7 +1647,7 @@ namespace SPA {
                 return PostProcess(ppCCs);
             }
 
-            bool StartSocketPool(const CConnectionContext &cc, unsigned int socketsPerThread, unsigned int threads = 1, bool avg = true, tagThreadApartment ta = taNone) {
+            bool StartSocketPool(const CConnectionContext &cc, unsigned int socketsPerThread, unsigned int threads = 1, bool avg = true, tagThreadApartment ta = tagThreadApartment::taNone) {
                 unsigned int n;
                 assert(socketsPerThread > 0);
                 if (!StartSocketPool(socketsPerThread, threads, avg, ta))
@@ -1822,7 +1820,7 @@ namespace SPA {
                 std::string s = qname;
                 for (auto it = m_mapSocketHandler.begin(), end = m_mapSocketHandler.end(); it != end; ++it) {
                     IClientQueue &cq = it->first->GetClientQueue();
-                    bool ok = cq.StartQueue((s + std::to_string(index)).c_str(), DEFAULT_QUEUE_TIME_TO_LIVE, it->first->GetEncryptionMethod() != NoEncryption);
+                    bool ok = cq.StartQueue((s + std::to_string(index)).c_str(), DEFAULT_QUEUE_TIME_TO_LIVE, it->first->GetEncryptionMethod() != tagEncryptionMethod::NoEncryption);
                     assert(ok);
                     ++index;
                 }
@@ -1833,7 +1831,7 @@ namespace SPA {
                 IClientQueue &cq = socket->GetClientQueue();
                 if (m_qName.size()) {
                     if (!cq.IsAvailable()) {
-                        cq.StartQueue((m_qName + std::to_string(index)).c_str(), DEFAULT_QUEUE_TIME_TO_LIVE, socket->GetEncryptionMethod() != NoEncryption);
+                        cq.StartQueue((m_qName + std::to_string(index)).c_str(), DEFAULT_QUEUE_TIME_TO_LIVE, socket->GetEncryptionMethod() != tagEncryptionMethod::NoEncryption);
                     }
                 }
             }
@@ -1864,7 +1862,7 @@ namespace SPA {
                         m_cs.unlock();
                         ok = (ClientCoreLoader.Connect(h, cs->m_cc.Host.c_str(), cs->m_cc.Port, true, cs->m_cc.V6) &&
                                 ClientCoreLoader.WaitAll(h, (~0)) &&
-                                ClientCoreLoader.GetConnectionState(h) > csConnected);
+                                ClientCoreLoader.GetConnectionState(h) > tagConnectionState::csConnected);
                         m_cs.lock();
                         if (poolId != m_nPoolId || size != m_mapSocketHandler.size()) {
                             //stop here under extremely cases that other threads have just done something 
@@ -1881,7 +1879,7 @@ namespace SPA {
                 return (count > 0);
             }
 
-            bool StartSocketPool(unsigned int socketsPerThread, unsigned int threads, bool avg = true, tagThreadApartment ta = taNone) {
+            bool StartSocketPool(unsigned int socketsPerThread, unsigned int threads, bool avg = true, tagThreadApartment ta = tagThreadApartment::taNone) {
                 if (IsStarted())
                     return true;
                 unsigned int poolId = ClientCoreLoader.CreateSocketPool(&CSocketPool::SPE, socketsPerThread, threads, avg, ta);
@@ -1931,24 +1929,24 @@ namespace SPA {
                 return nullptr;
             }
 
-            static void CALLBACK SPE(unsigned int poolId, SPA::ClientSide::tagSocketPoolEvent spe, USocket_Client_Handle h) {
+            static void CALLBACK SPE(unsigned int poolId, tagSocketPoolEvent spe, USocket_Client_Handle h) {
                 PClientSocket pcs;
                 unsigned int index = 0;
                 CSocketPool *sp = Seek(poolId);
                 switch (spe) {
-                    case speTimer:
+                    case tagSocketPoolEvent::speTimer:
                         if ((CScopeUQueue::GetMemoryConsumed() / 1024) > SHARED_BUFFER_CLEAN_SIZE) {
                             CScopeUQueue::DestroyUQueuePool();
                         }
                         break;
-                    case speShutdown:
+                    case tagSocketPoolEvent::speShutdown:
                         if (sp) {
                             CAutoLock al(sp->m_cs);
                             sp->m_mapSocketHandler.clear();
                             sp->m_nPoolId = 0;
                         }
                         break;
-                    case speStarted:
+                    case tagSocketPoolEvent::speStarted:
                     {
                         CAutoLock al(g_csSpPool);
                         for (auto it = m_vPool.rbegin(), end = m_vPool.rend(); it != end; ++it) {
@@ -1960,7 +1958,7 @@ namespace SPA {
                         sp->m_nPoolId = poolId;
                     }
                         break;
-                    case speUSocketCreated:
+                    case tagSocketPoolEvent::speUSocketCreated:
                         if (sp) {
                             PClientSocket clientSocket = CSocketPool<THandler, TCS>::CreateEmptySocket();
                             Set(clientSocket, h);
@@ -1974,7 +1972,7 @@ namespace SPA {
                             sp->m_mapSocketHandler[clientSocket] = handler;
                         }
                         break;
-                    case speUSocketKilled:
+                    case tagSocketPoolEvent::speUSocketKilled:
                         if (sp) {
                             CAutoLock al(sp->m_cs);
                             for (auto it = sp->m_mapSocketHandler.begin(), end = sp->m_mapSocketHandler.end(); it != end; ++it) {
@@ -1985,29 +1983,29 @@ namespace SPA {
                             }
                         }
                         break;
-                    case speConnected:
+                    case tagSocketPoolEvent::speConnected:
                         if (sp && ClientCoreLoader.IsOpened(h)) {
-                            ClientCoreLoader.SetSockOpt(h, soRcvBuf, 116800, slSocket);
-                            ClientCoreLoader.SetSockOpt(h, soSndBuf, 116800, slSocket);
+                            ClientCoreLoader.SetSockOpt(h, tagSocketOption::soRcvBuf, 116800, tagSocketLevel::slSocket);
+                            ClientCoreLoader.SetSockOpt(h, tagSocketOption::soSndBuf, 116800, tagSocketLevel::slSocket);
                             pcs = sp->MapToSocket(h, index);
                             if (sp->DoSslServerAuthentication) {
-                                if (ClientCoreLoader.GetEncryptionMethod(h) == TLSv1 && !sp->DoSslServerAuthentication(sp, pcs.get()))
+                                if (ClientCoreLoader.GetEncryptionMethod(h) == tagEncryptionMethod::TLSv1 && !sp->DoSslServerAuthentication(sp, pcs.get()))
                                     return;
                             }
                             ClientCoreLoader.SetPassword(h, pcs->m_cc.Password.c_str());
                             bool ok = ClientCoreLoader.StartBatching(h);
                             ok = ClientCoreLoader.SwitchTo(h, sp->MapToHandler(h)->GetSvsID());
                             ok = ClientCoreLoader.TurnOnZipAtSvr(h, pcs->m_cc.Zip);
-                            ok = ClientCoreLoader.SetSockOptAtSvr(h, soRcvBuf, 116800, slSocket);
-                            ok = ClientCoreLoader.SetSockOptAtSvr(h, soSndBuf, 116800, slSocket);
+                            ok = ClientCoreLoader.SetSockOptAtSvr(h, tagSocketOption::soRcvBuf, 116800, tagSocketLevel::slSocket);
+                            ok = ClientCoreLoader.SetSockOptAtSvr(h, tagSocketOption::soSndBuf, 116800, tagSocketLevel::slSocket);
                             ok = ClientCoreLoader.CommitBatching(h, false);
                         }
                         break;
-                    case speQueueMergedFrom:
+                    case tagSocketPoolEvent::speQueueMergedFrom:
                         assert(sp);
                         sp->m_pHFrom = sp->MapToHandler(h);
                         break;
-                    case speQueueMergedTo:
+                    case tagSocketPoolEvent::speQueueMergedTo:
                         assert(sp);
                     {
                         PHandler to = sp->MapToHandler(h);
@@ -2023,7 +2021,7 @@ namespace SPA {
                 const PHandler &handler = sp->MapToHandler(h);
                 sp->m_implSPE.Invoke(sp, spe, handler.get());
                 sp->OnSocketPoolEvent(spe, handler);
-                if (spe == speConnected && ClientCoreLoader.IsOpened(h)) {
+                if (spe == tagSocketPoolEvent::speConnected && ClientCoreLoader.IsOpened(h)) {
                     sp->SetQueue(pcs, index);
                 }
             }
@@ -2223,7 +2221,7 @@ namespace SPA {
                 return Send(reqId, sb->GetBuffer(), sb->GetSize());
             }
 
-            virtual bool Start(const CMapQNameConn &mapConnQueue, const char *rootQueueName = nullptr, tagThreadApartment ta = taNone) {
+            virtual bool Start(const CMapQNameConn &mapConnQueue, const char *rootQueueName = nullptr, tagThreadApartment ta = tagThreadApartment::taNone) {
                 const wchar_t *rootUID = L"SOCKETPRO_UREPLICATION_ROOT_DUMMY_NAME";
                 m_mapQNameConn.clear();
                 m_pool.ShutdownPool();
@@ -2245,7 +2243,7 @@ namespace SPA {
                 ppCCs[0] = new CConnectionContext[all];
                 for (auto it = m_mapQNameConn.cbegin(), end = m_mapQNameConn.cend(); it != end; ++it, ++n) {
                     ppCCs[0][n] = it->second;
-                    if (!secure && it->second.EncrytionMethod == TLSv1)
+                    if (!secure && it->second.EncrytionMethod == tagEncryptionMethod::TLSv1)
                         secure = true;
                     vDbFullName.push_back(m_rs.QueueDir + it->first);
                 }
@@ -2255,7 +2253,7 @@ namespace SPA {
                     last.Port = (~0);
                     last.UserId = rootUID;
                     last.Password = L"";
-                    last.EncrytionMethod = secure ? TLSv1 : NoEncryption;
+                    last.EncrytionMethod = secure ? tagEncryptionMethod::TLSv1 : tagEncryptionMethod::NoEncryption;
                     ppCCs[0][n] = last;
                     if (rootQueueName == nullptr || ::strlen(rootQueueName) == 0)
                         vDbFullName.push_back(m_rs.QueueDir + "urproot");
@@ -2297,7 +2295,7 @@ namespace SPA {
             void EndProcess(const std::vector<std::string>& vDbFullName, bool secure, PCConnectionContext *ppCCs, tagThreadApartment ta, const wchar_t *rootUID) {
                 if (secure) {
                     m_pool.DoSslServerAuthentication = [this](CSocketPool<THandler, TCS> *sender, TCS * cs)->bool {
-                        if (cs->GetConnectionState() < csConnected)
+                        if (cs->GetConnectionState() < tagConnectionState::csConnected)
                             return true;
                         return DoSslServerAuthentication(cs);
                     };

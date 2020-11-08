@@ -13,7 +13,7 @@
 namespace SPA {
     namespace ServerSide {
 
-        enum tagAuthenticationMethod {
+        enum class tagAuthenticationMethod {
             amOwn = 0,
             amMixed = (amOwn + 1),
             amIntegrated = (amMixed + 1),
@@ -23,7 +23,7 @@ namespace SPA {
         /**
          * 
          */
-        enum tagHttpMethod {
+        enum class tagHttpMethod {
             hmUnknown = 0,
             hmGet = 1,
             hmPost = 2,
@@ -38,7 +38,7 @@ namespace SPA {
         /**
          * 
          */
-        enum tagTransport {
+        enum class tagTransport {
             tUnknown = -1,
             tWebSocket = 0,
             tFlash = 1,
@@ -49,7 +49,7 @@ namespace SPA {
         /**
          * 
          */
-        enum tagTransferEncoding {
+        enum class tagTransferEncoding {
             teUnknown = 0,
             teChunked = 1,
             teCompress = 2,
@@ -61,7 +61,7 @@ namespace SPA {
         /**
          * 
          */
-        enum tagContentMultiplax {
+        enum class tagContentMultiplax {
             cmUnknown = 0,
             cmMixed = 1,
             cmAlternative = 2,
@@ -83,7 +83,7 @@ namespace SPA {
             const char *Value;
         };
 
-        enum tagHttpRequestID {
+        enum class tagHttpRequestID : unsigned short {
             idGet = 129,
             idPost = 130,
             idHead = 131,
@@ -96,13 +96,13 @@ namespace SPA {
             idUserRequest = 138, //SocketPro HTTP User Request
         };
 
-        enum tagRoutingAlgorithm {
+        enum class tagRoutingAlgorithm {
             raDefault = 0,
             raRandom,
             raAverage,
         };
 
-        enum tagThreadEvent {
+        enum class tagThreadEvent {
             teStarted = 0,
             teKilling = 1
         };

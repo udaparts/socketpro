@@ -74,13 +74,13 @@ bool CServerThread::IsAliveSafe() {
 
 void CServerThread::OnThreadStarted() {
     for (auto it = g_vThreadEvent.begin(), end = g_vThreadEvent.end(); it != end; ++it) {
-        (*it)(SPA::ServerSide::teStarted);
+        (*it)(SPA::ServerSide::tagThreadEvent::teStarted);
     }
 }
 
 void CServerThread::OnThreadEnded() {
     for (auto it = g_vThreadEvent.begin(), end = g_vThreadEvent.end(); it != end; ++it) {
-        (*it)(SPA::ServerSide::teKilling);
+        (*it)(SPA::ServerSide::tagThreadEvent::teKilling);
     }
 }
 

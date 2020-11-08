@@ -163,7 +163,7 @@ namespace UHTTP {
                 Connection::CConnectionContext::SharedPtr cc(new Connection::CConnectionContext);
                 cc->UserId = ur.GetUserIdW();
                 cc->Pt = GetPt();
-                cc->IsGet = (pHC->GetMethod() == SPA::ServerSide::hmGet);
+                cc->IsGet = (pHC->GetMethod() == SPA::ServerSide::tagHttpMethod::hmGet);
                 const char *p = pHC->GetUserAgent();
                 cc->IsOpera = (p && ::strstr(p, "Opera/"));
                 Connection::CConnectionContext::AddConnectionContext(id, cc);
@@ -268,7 +268,7 @@ namespace UHTTP {
 
     CJavaScriptResponseProcessor::CJavaScriptResponseProcessor(CJavaScriptRequestProcessor *pJavaScriptRequestProcessor)
     : CWebResponseProcessor(pJavaScriptRequestProcessor) {
-        assert(pJavaScriptRequestProcessor->GetHttpContext()->GetTransport() == SPA::ServerSide::tScript);
+        assert(pJavaScriptRequestProcessor->GetHttpContext()->GetTransport() == SPA::ServerSide::tagTransport::tScript);
     }
 
     void CJavaScriptResponseProcessor::SetResponse(SPA::UJsonDocument &docRes, SPA::CUQueue &Response) {
@@ -310,7 +310,7 @@ namespace UHTTP {
 
     CAjaxResponseProcessor::CAjaxResponseProcessor(CAjaxRequestProcessor *pAjaxRequestProcessor)
     : CWebResponseProcessor(pAjaxRequestProcessor) {
-        assert(pAjaxRequestProcessor->GetHttpContext()->GetTransport() == SPA::ServerSide::tAjax);
+        assert(pAjaxRequestProcessor->GetHttpContext()->GetTransport() == SPA::ServerSide::tagTransport::tAjax);
     }
 
     void CAjaxResponseProcessor::SetResponse(SPA::UJsonDocument &docRes, SPA::CUQueue &Response) {
@@ -354,7 +354,7 @@ namespace UHTTP {
 
     CWebSocketResponseProcessor::CWebSocketResponseProcessor(CWebSocketRequestProcessor *pWebSocketRequestProcessor)
     : CWebResponseProcessor(pWebSocketRequestProcessor) {
-        assert(pWebSocketRequestProcessor->GetHttpContext()->GetTransport() == SPA::ServerSide::tWebSocket);
+        assert(pWebSocketRequestProcessor->GetHttpContext()->GetTransport() == SPA::ServerSide::tagTransport::tWebSocket);
     }
 
     void CWebSocketResponseProcessor::WriteEnd(SPA::UJsonDocument &docRes, SPA::CUQueue &Response) {

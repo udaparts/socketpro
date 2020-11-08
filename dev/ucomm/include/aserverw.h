@@ -106,7 +106,7 @@ namespace SPA {
             };
 
             struct Router {
-                static bool SetRouting(unsigned int serviceId0, unsigned int serviceId1, tagRoutingAlgorithm ra0 = raDefault, tagRoutingAlgorithm ra1 = raDefault);
+                static bool SetRouting(unsigned int serviceId0, unsigned int serviceId1, tagRoutingAlgorithm ra0 = tagRoutingAlgorithm::raDefault, tagRoutingAlgorithm ra1 = tagRoutingAlgorithm::raDefault);
                 static unsigned int CheckRouting(unsigned int serviceId);
             };
 
@@ -580,11 +580,11 @@ namespace SPA {
             static U_MODULE_HIDDEN unsigned int m_nMainThreads;
 
         public:
-            CBaseService(unsigned int svsId = 0, tagThreadApartment ta = taNone);
+            CBaseService(unsigned int svsId = 0, tagThreadApartment ta = tagThreadApartment::taNone);
             virtual ~CBaseService();
 
         public:
-            virtual bool AddMe(unsigned int nServiceId, tagThreadApartment ta = taNone);
+            virtual bool AddMe(unsigned int nServiceId, tagThreadApartment ta = tagThreadApartment::taNone);
             void RemoveMe();
             unsigned int GetSvsID() const;
             unsigned int GetCountOfSlowRequests() const;
@@ -662,7 +662,7 @@ namespace SPA {
         class CSocketProService : public CBaseService {
         public:
 
-            CSocketProService(unsigned int svsId = 0, tagThreadApartment ta = taNone)
+            CSocketProService(unsigned int svsId = 0, tagThreadApartment ta = tagThreadApartment::taNone)
             : CBaseService(svsId, ta) {
             }
 

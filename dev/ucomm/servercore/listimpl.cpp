@@ -21,7 +21,7 @@ extern bool g_bRegistered;
 
 CServerSession *GetSvrSession(USocket_Server_Handle h, unsigned int &index);
 
-std::string g_strVersion("6.3.1.8");
+std::string g_strVersion("6.3.1.9");
 
 const char* WINAPI GetUServerSocketVersion() {
     return g_strVersion.c_str();
@@ -156,7 +156,7 @@ bool WINAPI GetReturnRandom(unsigned int serviceId) {
 
 void WINAPI SetReturnRandom(unsigned int serviceId, bool random) {
     //CAutoLock al(g_mutex);
-    if (g_pServer == nullptr || serviceId <= SPA::sidReserved || IsRunning())
+    if (g_pServer == nullptr || serviceId <= (unsigned int)SPA::tagServiceID::sidReserved || IsRunning())
         return;
     CServiceContext *svs = g_pServer->SeekServiceContext(serviceId);
     if (svs == nullptr) {
@@ -336,7 +336,7 @@ void WINAPI SetDefaultEncryptionMethod(SPA::tagEncryptionMethod em) {
 SPA::tagEncryptionMethod WINAPI GetDefaultEncryptionMethod() {
     //CAutoLock al(g_mutex);
     if (g_pServer == nullptr || !g_pServer->IsRunning())
-        return SPA::NoEncryption;
+        return SPA::tagEncryptionMethod::NoEncryption;
     return g_pServer->GetEncryptionMethod();
 }
 
@@ -357,7 +357,7 @@ void WINAPI SetAuthenticationMethod(SPA::ServerSide::tagAuthenticationMethod am)
 SPA::ServerSide::tagAuthenticationMethod WINAPI GetAuthenticationMethod() {
     //CAutoLock al(g_mutex);
     if (g_pServer == nullptr)
-        return SPA::ServerSide::amOwn;
+        return SPA::ServerSide::tagAuthenticationMethod::amOwn;
     return g_pServer->GetAuthenticationMethod();
 }
 
@@ -722,7 +722,7 @@ SPA::UINT64 WINAPI Dequeue(unsigned int qHandle, USocket_Server_Handle h, unsign
     CServerSession *pSession = GetSvrSession(h, index);
     if (index == 0 || index != pSession->GetConnIndex())
         return SOCKET_NOT_FOUND;
-    if (SPA::sidHTTP == pSession->GetSvsID() || SPA::sidStartup == pSession->GetSvsID())
+    if ((unsigned int)SPA::tagServiceID::sidHTTP == pSession->GetSvsID() || (unsigned int)SPA::tagServiceID::sidStartup == pSession->GetSvsID())
         return BAD_OPERATION;
     bool bMainThread = ::IsMainThread();
     while (!bMainThread && pSession->GetSndBytesInQueueInternal() > 60 * IO_BUFFER_SIZE) {
@@ -743,7 +743,7 @@ SPA::UINT64 WINAPI Dequeue2(unsigned int qHandle, USocket_Server_Handle h, unsig
     CServerSession *pSession = GetSvrSession(h, index);
     if (index == 0 || index != pSession->GetConnIndex())
         return SOCKET_NOT_FOUND;
-    if (SPA::sidHTTP == pSession->GetSvsID() || SPA::sidStartup == pSession->GetSvsID())
+    if ((unsigned int)SPA::tagServiceID::sidHTTP == pSession->GetSvsID() || (unsigned int)SPA::tagServiceID::sidStartup == pSession->GetSvsID())
         return BAD_OPERATION;
     bool bMainThread = ::IsMainThread();
     while (!bMainThread && pSession->GetSndBytesInQueueInternal() > 60 * IO_BUFFER_SIZE) {
@@ -829,7 +829,7 @@ SPA::UINT64 WINAPI GetQueueLastIndex(unsigned int qHandle) {
 SPA::tagOptimistic WINAPI GetOptimistic(unsigned int qHandle) {
     //CAutoLock al(g_mutex);
     if (g_pServer == nullptr)
-        return SPA::oSystemMemoryCached;
+        return SPA::tagOptimistic::oSystemMemoryCached;
     return g_pServer->GetOptimistic(qHandle);
 }
 
@@ -914,7 +914,7 @@ unsigned int WINAPI GetAlphaRequestIds(unsigned int serviceId, unsigned short *r
 
 SPA::tagQueueStatus WINAPI GetServerQueueStatus(unsigned int qHandle) {
     if (g_pServer == nullptr)
-        return SPA::qsNormal;
+        return SPA::tagQueueStatus::qsNormal;
     return g_pServer->GetServerQueueStatus(qHandle);
 }
 

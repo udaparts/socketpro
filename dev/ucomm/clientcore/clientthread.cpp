@@ -166,13 +166,13 @@ void CClientThread::OnThreadStarted() {
 #else
 #endif
     if (m_spc) {
-        m_spc(GetPool()->GetPoolId(), SPA::ClientSide::speThreadCreated, nullptr);
+        m_spc(GetPool()->GetPoolId(), SPA::ClientSide::tagSocketPoolEvent::speThreadCreated, nullptr);
     }
 }
 
 void CClientThread::OnThreadEnded() {
     if (m_spc) {
-        m_spc(GetPool()->GetPoolId(), SPA::ClientSide::speKillingThread, nullptr);
+        m_spc(GetPool()->GetPoolId(), SPA::ClientSide::tagSocketPoolEvent::speKillingThread, nullptr);
     }
 #ifdef WIN32_64
 	UTHREAD_ID dwId = ::GetCurrentThreadId();
@@ -211,7 +211,7 @@ unsigned int CClientThread::GetCountOfSessions() {
 bool CClientThread::Kill() {
     bool ok = CUCommThread::Kill();
     if (m_spc) {
-        m_spc(m_pSocketPool->GetPoolId(), SPA::ClientSide::speThreadKilled, nullptr);
+        m_spc(m_pSocketPool->GetPoolId(), SPA::ClientSide::tagSocketPoolEvent::speThreadKilled, nullptr);
     }
     return ok;
 }
@@ -348,13 +348,13 @@ CClientSessionPtr CClientThread::Lock() {
     //CAutoLock al(m_mutex);
     std::sort(m_mapClientSession.begin(), m_mapClientSession.end(), SortUnlocked);
     for (CMapClientSession::iterator it = m_mapClientSession.begin(), end = m_mapClientSession.end(); it != end; ++it) {
-        if (it->first->GetConnectionState() >= SPA::ClientSide::csSwitched) {
+        if (it->first->GetConnectionState() >= SPA::ClientSide::tagConnectionState::csSwitched) {
             m_ml.lock();
             if (!it->second.Locked) {
                 it->second.Locked = true;
                 m_ml.unlock();
                 if (m_spc) {
-                    m_spc(m_pSocketPool->GetPoolId(), SPA::ClientSide::speLocked, it->first.get());
+                    m_spc(m_pSocketPool->GetPoolId(), SPA::ClientSide::tagSocketPoolEvent::speLocked, it->first.get());
                 }
                 return it->first;
             } else {
@@ -396,7 +396,7 @@ CClientSession* CClientThread::SeekSmallQueue(CClientSession* session) {
     CClientSession *p = nullptr;
     for (CMapClientSession::iterator it = m_mapClientSession.begin(), end = m_mapClientSession.end(); it != end; ++it) {
         CClientSession *s = it->first.get();
-        if (s == session || s->GetConnectionState() < SPA::ClientSide::csSwitched)
+        if (s == session || s->GetConnectionState() < SPA::ClientSide::tagConnectionState::csSwitched)
             continue;
         if (s->m_hn == session->m_hn)
             continue;
@@ -436,7 +436,7 @@ bool CClientThread::Unlock(USocket_Client_Handle p) {
             m_ml.unlock();
             m_pSocketPool->Notify();
             if (m_spc) {
-                m_spc(m_pSocketPool->GetPoolId(), SPA::ClientSide::speUnlocked, it->first.get());
+                m_spc(m_pSocketPool->GetPoolId(), SPA::ClientSide::tagSocketPoolEvent::speUnlocked, it->first.get());
             }
             return true;
         }

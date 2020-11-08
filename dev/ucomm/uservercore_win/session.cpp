@@ -101,25 +101,25 @@ void CServerRegistration::SetOSs() {
 void CServerRegistration::AddCall(unsigned int svsId, SPA::tagOperationSystem os, bool queue, bool endian) {
     if (!g_bRegistered || !m_bTimeok) {
         ++m_nCheapCall;
-    } else if (svsId != SPA::sidHTTP) {
+    } else if (svsId != (unsigned int)SPA::tagServiceID::sidHTTP) {
         switch (os) {
-            case SPA::osWin:
+			case SPA::tagOperationSystem::osWin:
                 if (!m_bWin)
                     ++m_nCheapCall;
                 break;
-            case SPA::osApple:
+            case SPA::tagOperationSystem::osApple:
                 if (!m_bApple)
                     ++m_nCheapCall;
                 break;
-            case SPA::osUnix:
+            case SPA::tagOperationSystem::osUnix:
                 if (!m_bUnix)
                     ++m_nCheapCall;
                 break;
-            case SPA::osWinCE:
+            case SPA::tagOperationSystem::osWinCE:
                 if (!m_bWinCe)
                     ++m_nCheapCall;
                 break;
-            case SPA::osAndroid:
+            case SPA::tagOperationSystem::osAndroid:
                 if (!m_bAndroid)
                     ++m_nCheapCall;
                 break;
@@ -168,14 +168,14 @@ m_nJobRequest(0),
 m_nJobConfirm(0),
 #endif
 m_pSocket(nullptr),
-ServiceId(SPA::sidStartup),
+ServiceId((unsigned int)SPA::tagServiceID::sidStartup),
 m_pUThread(nullptr),
 m_ReadBuffer(GetIoBuffer()),
 m_bRBLocked(false),
 m_WriteBuffer(GetIoBuffer()),
 m_bWBLocked(0),
 m_bZip(g_pServer->m_bZip),
-m_zl(SPA::zlDefault),
+m_zl(SPA::tagZipLevel::zlDefault),
 m_pQBatch(nullptr),
 m_bCanceled(false),
 m_bDropSlowRequest(false),
@@ -254,7 +254,7 @@ void CServerSession::Initialize() {
     m_ServerInfo = g_pServer->m_ServerInfo;
     m_pUThread = nullptr;
     m_bZip = g_pServer->m_bZip;
-    m_zl = SPA::zlDefault;
+    m_zl = SPA::tagZipLevel::zlDefault;
     SPA::CScopeUQueue::Unlock(m_pQBatch);
     m_pQBatch = nullptr;
     m_bDropSlowRequest = false;
@@ -445,9 +445,9 @@ bool CServerSession::GetSockAddr(unsigned int *sockPort, char *strIPAddrBuffer, 
 }
 
 bool CServerSession::SetServerInfoInternal(SPA::CSwitchInfo *pServerInfo) {
-    if (pServerInfo && ServiceId != SPA::sidStartup) {
+    if (pServerInfo && ServiceId != (unsigned int)SPA::tagServiceID::sidStartup) {
         m_ServerInfo.Param2 = g_pServer->m_ulPingInterval / 1000;
-        m_ServerInfo.Param2 += g_pServer->m_am * 0x10000;
+        m_ServerInfo.Param2 += (unsigned int)g_pServer->m_am * 0x10000;
         m_ServerInfo.SockMinorVersion |= (m_pServiceContext->GetRandom() ? RETURN_RESULT_RANDOM : 0);
         m_ServerInfo.SockMinorVersion |= (m_pServiceContext->GetRoutingSvsId() ? (IS_ROUTING_PARTNER | RETURN_RESULT_RANDOM) : 0);
         {
@@ -478,7 +478,7 @@ bool CServerSession::Enter(const unsigned int *pChatGroupId, unsigned int nCount
     sb << vt;
     sb << nCount;
     sb->Push((const unsigned char*) pChatGroupId, nCount * sizeof (unsigned int));
-    return FakeAClientRequest(SPA::idEnter, sb->GetBuffer(), sb->GetSize());
+    return FakeAClientRequest((unsigned short)SPA::tagChatRequestID::idEnter, sb->GetBuffer(), sb->GetSize());
 }
 
 void CServerSession::ShrinkMemory() {
@@ -487,7 +487,7 @@ void CServerSession::ShrinkMemory() {
         m_qRead.ReallocBuffer(MEMOREY_QUEUE_HEADER_REST_SIZE);
     if (m_qWrite.GetSize() == 0 && m_qWrite.GetMaxSize() > MEMOREY_QUEUE_HEADER_REST_SIZE)
         m_qWrite.ReallocBuffer(MEMOREY_QUEUE_HEADER_REST_SIZE);
-    if (ServiceId == SPA::sidHTTP && m_pHttpContext && m_pHttpContext->IsWebSocket()) {
+    if (ServiceId == (unsigned int)SPA::tagServiceID::sidHTTP && m_pHttpContext && m_pHttpContext->IsWebSocket()) {
         UHTTP::CWebSocketMsg *p = m_pHttpContext->GetWebSocketMsg();
         if (p && p->Content.GetSize() == 0 && p->Content.GetMaxSize() > MEMOREY_QUEUE_HEADER_REST_SIZE / 2)
             p->Content.ReallocBuffer(MEMOREY_QUEUE_HEADER_REST_SIZE / 2);
@@ -497,7 +497,7 @@ void CServerSession::ShrinkMemory() {
 }
 
 void CServerSession::Exit() {
-    FakeAClientRequest(SPA::idExit, nullptr, 0);
+    FakeAClientRequest((unsigned short)SPA::tagChatRequestID::idExit, nullptr, 0);
 }
 
 void CServerSession::Exit(const unsigned int *pChatGroupId, unsigned int nCount) {
@@ -507,7 +507,7 @@ void CServerSession::Exit(const unsigned int *pChatGroupId, unsigned int nCount)
     if (nCount > 0) {
         sb->Push((const unsigned char*) pChatGroupId, nCount * sizeof (unsigned int));
     }
-    FakeAClientRequest(SPA::idExit, sb->GetBuffer(), sb->GetSize());
+    FakeAClientRequest((unsigned short)SPA::tagChatRequestID::idExit, sb->GetBuffer(), sb->GetSize());
 }
 
 bool CServerSession::Speak(const unsigned char *message, unsigned int size, const unsigned int *pChatGroupId, unsigned int nCount) {
@@ -521,7 +521,7 @@ bool CServerSession::Speak(const unsigned char *message, unsigned int size, cons
     sb << nCount;
     sb->Push((const unsigned char*) pChatGroupId, sizeof (unsigned int) * nCount);
     sb->Push(message, size);
-    return FakeAClientRequest(SPA::idSpeak, sb->GetBuffer(), sb->GetSize());
+    return FakeAClientRequest((unsigned short)SPA::tagChatRequestID::idSpeak, sb->GetBuffer(), sb->GetSize());
 }
 
 bool CServerSession::SpeakEx(const unsigned char *message, unsigned int size, const unsigned int *pChatGroupId, unsigned int nCount) {
@@ -533,7 +533,7 @@ bool CServerSession::SpeakEx(const unsigned char *message, unsigned int size, co
     sb << size;
     sb->Push(message, size);
     sb->Push((const unsigned char*) pChatGroupId, nCount * sizeof (unsigned int));
-    return FakeAClientRequest(SPA::idSpeakEx, sb->GetBuffer(), sb->GetSize());
+    return FakeAClientRequest((unsigned short)SPA::tagChatRequestID::idSpeakEx, sb->GetBuffer(), sb->GetSize());
 }
 
 bool CServerSession::SendUserMessage(const wchar_t *userId, const unsigned char *message, unsigned int size) {
@@ -542,7 +542,7 @@ bool CServerSession::SendUserMessage(const wchar_t *userId, const unsigned char 
     SPA::CScopeUQueue sb;
     sb << userId;
     sb->Push(message, size);
-    return FakeAClientRequest(SPA::idSendUserMessage, sb->GetBuffer(), sb->GetSize());
+    return FakeAClientRequest((unsigned short)SPA::tagChatRequestID::idSendUserMessage, sb->GetBuffer(), sb->GetSize());
 }
 
 bool CServerSession::SendUserMessageEx(const wchar_t *userId, const unsigned char *message, unsigned int size) {
@@ -551,7 +551,7 @@ bool CServerSession::SendUserMessageEx(const wchar_t *userId, const unsigned cha
     SPA::CScopeUQueue sb;
     sb << userId;
     sb->Push(message, size);
-    return FakeAClientRequest(SPA::idSendUserMessageEx, sb->GetBuffer(), sb->GetSize());
+    return FakeAClientRequest((unsigned short)SPA::tagChatRequestID::idSendUserMessageEx, sb->GetBuffer(), sb->GetSize());
 }
 
 int CServerSession::ExecuteSlowRequestFromThreadPool(unsigned short sReqId) {
@@ -587,9 +587,9 @@ bool CServerSession::IsCanceled() {
 bool CServerSession::IsCanceledInternally() {
     unsigned int pos = 0;
     unsigned int lenAll = m_qRead.GetSize();
-    unsigned int total = (m_ReqInfo.RequestId == SPA::idCancel || m_ReqInfo.RequestId == SPA::idInterrupt) ? 1 : 0;
-    bool interrupted = (m_ReqInfo.RequestId == SPA::idInterrupt);
-    bool cancel_header = (m_ReqInfo.RequestId == SPA::idCancel);
+    unsigned int total = (m_ReqInfo.RequestId == (unsigned short)SPA::tagBaseRequestID::idCancel || m_ReqInfo.RequestId == (unsigned short)SPA::tagBaseRequestID::idInterrupt) ? 1 : 0;
+    bool interrupted = (m_ReqInfo.RequestId == (unsigned short)SPA::tagBaseRequestID::idInterrupt);
+    bool cancel_header = (m_ReqInfo.RequestId == (unsigned short)SPA::tagBaseRequestID::idCancel);
     if (!total) {
         SPA::CStreamHeader *p = &m_ReqInfo;
         while (lenAll > p->Size) {
@@ -601,12 +601,12 @@ bool CServerSession::IsCanceledInternally() {
             p = (SPA::CStreamHeader*)m_qRead.GetBuffer(pos);
             bool stopped = false;
             switch (p->RequestId) {
-                case SPA::idDequeueConfirmed:
-                case SPA::idDequeueBatchConfirmed:
-                case SPA::idRoutingData:
-                case SPA::idStartBatching:
-                case SPA::idCommitBatching:
-                case SPA::idStopQueue:
+				case (unsigned short)SPA::tagBaseRequestID::idDequeueConfirmed:
+                case (unsigned short)SPA::tagBaseRequestID::idDequeueBatchConfirmed:
+                case (unsigned short)SPA::tagBaseRequestID::idRoutingData:
+                case (unsigned short)SPA::tagBaseRequestID::idStartBatching:
+                case (unsigned short)SPA::tagBaseRequestID::idCommitBatching:
+                case (unsigned short)SPA::tagBaseRequestID::idStopQueue:
                     stopped = true;
                 default:
                     break;
@@ -614,10 +614,10 @@ bool CServerSession::IsCanceledInternally() {
             if (stopped) {
                 break;
             }
-            if (p->RequestId == SPA::idCancel) {
+            if (p->RequestId == (unsigned short)SPA::tagBaseRequestID::idCancel) {
                 total = 1;
                 break;
-            } else if (p->RequestId == SPA::idInterrupt) {
+            } else if (p->RequestId == (unsigned short)SPA::tagBaseRequestID::idInterrupt) {
                 total = 1;
                 interrupted = true;
                 m_InterruptOptions = *((SPA::UINT64*)m_qRead.GetBuffer(pos + sizeof (SPA::CStreamHeader)));
@@ -635,7 +635,7 @@ bool CServerSession::IsCanceledInternally() {
             if (pos) {
                 SPA::CStreamHeader sh;
                 m_qRead.Pop((unsigned char*) &sh, sizeof (sh), pos);
-                assert(sh.RequestId == SPA::idInterrupt);
+                assert(sh.RequestId == (unsigned short)SPA::tagBaseRequestID::idInterrupt);
                 assert(sh.Size == sizeof (m_InterruptOptions));
                 m_qRead.Pop((unsigned char*) &m_InterruptOptions, sizeof (m_InterruptOptions), pos);
                 m_qRead.Insert((const unsigned char*) &m_InterruptOptions, sizeof (m_InterruptOptions), m_ReqInfo.Size);
@@ -677,7 +677,7 @@ SPA::UINT64 CServerSession::GetInterruptOptions() {
 
 unsigned int CServerSession::NotifyInterrupt(SPA::UINT64 options) {
     SPA::CStreamHeader reqInfo;
-    reqInfo.RequestId = SPA::idInterrupt;
+    reqInfo.RequestId = (unsigned short)SPA::tagBaseRequestID::idInterrupt;
     reqInfo.Size = sizeof (options);
     CAutoLock sl(m_mutex);
     if (m_cs < csConnected || g_pServer->m_bStopped) {
@@ -699,7 +699,7 @@ bool CServerSession::FakeAClientRequest(unsigned short reqId, const unsigned cha
     if (nBufferSize > 0)
         sb->Push(pBuffer, nBufferSize);
     CAutoLock sl(m_mutex);
-    if (ServiceId == SPA::sidHTTP && m_ccb.Id.size() == 0) {
+    if (ServiceId == (unsigned int)SPA::tagServiceID::sidHTTP && m_ccb.Id.size() == 0) {
         if (m_pHttpContext == nullptr)
             return false;
         UHTTP::CWebRequestProcessor *p = m_pHttpContext->GetWebRequestProcessor();
@@ -708,7 +708,7 @@ bool CServerSession::FakeAClientRequest(unsigned short reqId, const unsigned cha
         if (p->GetUHttpRequest().SpRequest != UHTTP::srSwitchTo)
             return false;
     }
-    if (ServiceId == SPA::sidHTTP || m_pHttpContext)
+    if (ServiceId == (unsigned int)SPA::tagServiceID::sidHTTP || m_pHttpContext)
         ++m_nHttpCallCount;
     assert(m_qRead.GetSize() >= m_ReqInfo.Size);
     m_qRead.Insert(sb->GetBuffer(), sb->GetSize(), m_ReqInfo.Size);
@@ -761,11 +761,11 @@ bool CServerSession::CommitBatchingInternal() {
         if (m_bZip) {
             if (m_pSspi) {
                 SPA::CScopeUQueue sb;
-                if (m_pQBatch->GetSize() && CompressResultTo(IsOld(), SPA::idBatchZipped, m_zl, m_pQBatch->GetBuffer(), m_pQBatch->GetSize(), *sb)) {
+                if (m_pQBatch->GetSize() && CompressResultTo(IsOld(), (unsigned short)SPA::tagBaseRequestID::idBatchZipped, m_zl, m_pQBatch->GetBuffer(), m_pQBatch->GetSize(), *sb)) {
                     Write(sb->GetBuffer(), sb->GetSize());
                 }
             } else {
-                if (m_pQBatch->GetSize() && CompressResultTo(IsOld(), SPA::idBatchZipped, m_zl, m_pQBatch->GetBuffer(), m_pQBatch->GetSize(), m_qWrite)) {
+                if (m_pQBatch->GetSize() && CompressResultTo(IsOld(), (unsigned short)SPA::tagBaseRequestID::idBatchZipped, m_zl, m_pQBatch->GetBuffer(), m_pQBatch->GetSize(), m_qWrite)) {
                     Write(nullptr, 0);
                 }
             }
@@ -876,7 +876,7 @@ void CServerSession::Start() {
         m_cs = csConnected;
     }
     m_bCanceled = false;
-    ServiceId = SPA::sidStartup;
+    ServiceId = (unsigned int)SPA::tagServiceID::sidStartup;
     Read();
 }
 
@@ -978,29 +978,29 @@ void CServerSession::Close() {
 
 bool CServerSession::IsRoutable(unsigned short reqId) {
     switch (reqId) {
-        case SPA::idUnknown:
-        case SPA::idSwitchTo:
-        case SPA::idRouteeChanged:
-        case SPA::idEncrypted:
-        case SPA::idBatchZipped:
-        case SPA::idCancel:
-        case SPA::idGetSockOptAtSvr:
-        case SPA::idSetSockOptAtSvr:
-        case SPA::idDoEcho:
-        case SPA::idPing:
-        case SPA::idTurnOnZipAtSvr:
-        case SPA::idSetZipLevelAtSvr:
-        case SPA::idHttpClose:
-        case SPA::idEnter:
-        case SPA::idSpeak:
-        case SPA::idSpeakEx:
-        case SPA::idSendUserMessage:
-        case SPA::idSendUserMessageEx:
-        case SPA::idExit:
-        case SPA::idStartQueue:
-        case SPA::idStopQueue:
-        case SPA::idDequeueBatchConfirmed:
-        case SPA::idInterrupt:
+		case (unsigned short)SPA::tagBaseRequestID::idUnknown:
+        case (unsigned short)SPA::tagBaseRequestID::idSwitchTo:
+        case (unsigned short)SPA::tagBaseRequestID::idRouteeChanged:
+        case (unsigned short)SPA::tagBaseRequestID::idEncrypted:
+        case (unsigned short)SPA::tagBaseRequestID::idBatchZipped:
+        case (unsigned short)SPA::tagBaseRequestID::idCancel:
+        case (unsigned short)SPA::tagBaseRequestID::idGetSockOptAtSvr:
+        case (unsigned short)SPA::tagBaseRequestID::idSetSockOptAtSvr:
+        case (unsigned short)SPA::tagBaseRequestID::idDoEcho:
+        case (unsigned short)SPA::tagBaseRequestID::idPing:
+        case (unsigned short)SPA::tagBaseRequestID::idTurnOnZipAtSvr:
+        case (unsigned short)SPA::tagBaseRequestID::idSetZipLevelAtSvr:
+        case (unsigned short)SPA::tagBaseRequestID::idHttpClose:
+        case (unsigned short)SPA::tagChatRequestID::idEnter:
+        case (unsigned short)SPA::tagChatRequestID::idSpeak:
+        case (unsigned short)SPA::tagChatRequestID::idSpeakEx:
+        case (unsigned short)SPA::tagChatRequestID::idSendUserMessage:
+        case (unsigned short)SPA::tagChatRequestID::idSendUserMessageEx:
+        case (unsigned short)SPA::tagChatRequestID::idExit:
+        case (unsigned short)SPA::tagBaseRequestID::idStartQueue:
+        case (unsigned short)SPA::tagBaseRequestID::idStopQueue:
+        case (unsigned short)SPA::tagBaseRequestID::idDequeueBatchConfirmed:
+        case (unsigned short)SPA::tagBaseRequestID::idInterrupt:
             return false;
             break;
         default:
@@ -1011,12 +1011,12 @@ bool CServerSession::IsRoutable(unsigned short reqId) {
 
 void CServerSession::EnableClientDequeue(bool enable) {
     SPA::CStreamHeader sh;
-    sh.RequestId = SPA::idEnableClientDequeue;
+    sh.RequestId = (unsigned short)SPA::tagBaseRequestID::idEnableClientDequeue;
     sh.Size = 1;
     SPA::CScopeUQueue sb;
     sb << sh << enable;
     CAutoLock sl(m_mutex);
-    if (ServiceId == SPA::sidHTTP || ServiceId == SPA::sidStartup)
+    if (ServiceId == (unsigned int)SPA::tagServiceID::sidHTTP || ServiceId == (unsigned int)SPA::tagServiceID::sidStartup)
         return;
     Write(sb->GetBuffer(), sb->GetSize());
 }
@@ -1032,7 +1032,7 @@ bool CServerSession::GetZip() {
 }
 
 void CServerSession::SetZipLevel(SPA::tagZipLevel zl) {
-    if (zl != SPA::zlBestSpeed && zl != SPA::zlDefault)
+    if (zl != SPA::tagZipLevel::zlBestSpeed && zl != SPA::tagZipLevel::zlDefault)
         return;
     CAutoLock sl(m_mutex);
     m_zl = zl;
@@ -1073,7 +1073,7 @@ unsigned int CServerSession::CompressResultTo(bool old, unsigned short reqId, SP
     sh.Size = size;
     q << sh;
     switch (zl) {
-        case SPA::zlDefault:
+        case SPA::tagZipLevel::zlDefault:
             if (size > ZLIB_COMPRESS_MIN_SIZE) {
                 zSize = (unsigned int) (1.1 * size + 16);
                 if (q.GetTailSize() < zSize) {
@@ -1097,7 +1097,7 @@ unsigned int CServerSession::CompressResultTo(bool old, unsigned short reqId, SP
                 q.Push(buffer, size);
             }
             break;
-        case SPA::zlBestSpeed:
+        case SPA::tagZipLevel::zlBestSpeed:
             if (size > FAST_COMPRESS_MIN_SIZE) {
                 zSize = (unsigned int) (size + 420);
                 if (q.GetTailSize() < zSize) {
@@ -1146,7 +1146,7 @@ unsigned int CServerSession::SendExceptionResult(const char* errMessage, const c
 }
 
 unsigned int CServerSession::SendExceptionResultInternal(const wchar_t* errMessage, const char* errWhere, unsigned short requestId, unsigned int errCode) {
-    if (ServiceId == SPA::sidHTTP) {
+    if (ServiceId == (unsigned int)SPA::tagServiceID::sidHTTP) {
         UHTTP::CWebResponseProcessor *pWebResponseProcessor = nullptr;
         if (m_pHttpContext)
             pWebResponseProcessor = m_pHttpContext->GetWebResponseProcessor();
@@ -1172,13 +1172,13 @@ unsigned int CServerSession::SendExceptionResultInternal(const wchar_t* errMessa
     SPA::CScopeUQueue sb;
     sb->Push((const unsigned char*) &requestId, sizeof (requestId));
     sb << errMessage << errCode << errWhere;
-    return SendReturnDataInternal(SPA::idServerException, sb->GetBuffer(), sb->GetSize());
+    return SendReturnDataInternal((unsigned short)SPA::tagBaseRequestID::idServerException, sb->GetBuffer(), sb->GetSize());
 }
 
 unsigned int CServerSession::SendExceptionResult(const wchar_t* errMessage, const char* errWhere, unsigned short requestId, unsigned int errCode) {
     {
         CAutoLock sl(m_mutex);
-        if (ServiceId == SPA::sidHTTP) {
+        if (ServiceId == (unsigned int)SPA::tagServiceID::sidHTTP) {
             UHTTP::CWebResponseProcessor *pWebResponseProcessor = nullptr;
             if (m_pHttpContext)
                 pWebResponseProcessor = m_pHttpContext->GetWebResponseProcessor();
@@ -1205,13 +1205,13 @@ unsigned int CServerSession::SendExceptionResult(const wchar_t* errMessage, cons
     SPA::CScopeUQueue sb;
     sb->Push((const unsigned char*) &requestId, sizeof (requestId));
     sb << errMessage << errCode << errWhere;
-    return SendReturnData(SPA::idServerException, sb->GetBuffer(), sb->GetSize());
+    return SendReturnData((unsigned short)SPA::tagBaseRequestID::idServerException, sb->GetBuffer(), sb->GetSize());
 }
 
 unsigned int CServerSession::SendExceptionResultIndex(SPA::UINT64 indexCall, const wchar_t* errMessage, const char* errWhere, unsigned short requestId, unsigned int errCode) {
     {
         CAutoLock sl(m_mutex);
-        if (ServiceId == SPA::sidHTTP) {
+        if (ServiceId == (unsigned int)SPA::tagServiceID::sidHTTP) {
             UHTTP::CWebResponseProcessor *pWebResponseProcessor = nullptr;
             if (m_pHttpContext)
                 pWebResponseProcessor = m_pHttpContext->GetWebResponseProcessor();
@@ -1238,7 +1238,7 @@ unsigned int CServerSession::SendExceptionResultIndex(SPA::UINT64 indexCall, con
     SPA::CScopeUQueue sb;
     sb->Push((const unsigned char*) &requestId, sizeof (requestId));
     sb << errMessage << errCode << errWhere;
-    return SendReturnDataIndex(indexCall, SPA::idServerException, sb->GetBuffer(), sb->GetSize());
+    return SendReturnDataIndex(indexCall, (unsigned short)SPA::tagBaseRequestID::idServerException, sb->GetBuffer(), sb->GetSize());
 }
 
 void CServerSession::CloseInternal() {
@@ -1258,13 +1258,13 @@ void CServerSession::CloseInternal() {
     m_cs = csClosing;
     bool notify = m_ccb.ChatGroups.size() > 0;
     if (notify) {
-        if (ServiceId != SPA::sidHTTP || (m_pHttpContext && m_pHttpContext->IsWebSocket())) {
+        if (ServiceId != (unsigned int)SPA::tagServiceID::sidHTTP || (m_pHttpContext && m_pHttpContext->IsWebSocket())) {
             {
                 CRAutoLock ral(m_mutex, m_bChatting);
                 g_pServer->Exit(this, m_ccb.ChatGroups.data(), (unsigned int) m_ccb.ChatGroups.size());
             }
             m_ccb.ChatGroups.clear();
-        } else if (ServiceId == SPA::sidHTTP) {
+        } else if (ServiceId == (unsigned int)SPA::tagServiceID::sidHTTP) {
             Connection::CConnectionContext::SharedPtr sp = Connection::CConnectionContext::SeekConnectionContext(m_ccb.Id.c_str());
             if (sp && !sp->IsGet && sp->IsOpera) {
                 //Opera AJAX has problem in keep-alive
@@ -1488,11 +1488,11 @@ std::string CServerSession::GetErrorMessage() {
 }
 
 unsigned int CServerSession::SendReturnDataInternal(unsigned short usReqId, const unsigned char *pBuffer, unsigned int ulBufferSize) {
-    if (ServiceId == SPA::sidHTTP) {
+    if (ServiceId == (unsigned int)SPA::tagServiceID::sidHTTP) {
         g_pServer->m_IoService.post(boost::bind(&CServerSession::ProcessWithLock, this));
         return BAD_OPERATION;
     }
-    if (usReqId != SPA::idSwitchTo) {
+    if (usReqId != (unsigned short)SPA::tagBaseRequestID::idSwitchTo) {
         if (usReqId == m_ReqInfo.RequestId) {
             if (m_pServiceContext && m_pServiceContext->GetRandom()) {
                 return SendReturnDataIndexInternal(m_indexCall, usReqId, pBuffer, ulBufferSize);
@@ -1504,7 +1504,7 @@ unsigned int CServerSession::SendReturnDataInternal(unsigned short usReqId, cons
         ulBufferSize = 0;
     if (m_cs < csConnected || g_pServer->m_bStopped)
         return SOCKET_NOT_FOUND;
-    if (usReqId != SPA::idCancel && m_bCanceled)
+    if (usReqId != (unsigned short)SPA::tagBaseRequestID::idCancel && m_bCanceled)
         return REQUEST_CANCELED;
     if (m_pQBatch) {
         SPA::CStreamHeader sh;
@@ -1577,7 +1577,7 @@ void CServerSession::PutOntoWireInternal() {
         auto it = m_mapIndex.begin();
         std::shared_ptr<CResIndexImpl> ri = it->second;
         unsigned short reqId = ri->GetReqId();
-        if ((reqId == SPA::idStartJob || reqId == SPA::idEndJob) && !::IsMainThread()) {
+        if ((reqId == (unsigned short)SPA::tagBaseRequestID::idStartJob || reqId == (unsigned short)SPA::tagBaseRequestID::idEndJob) && !::IsMainThread()) {
             g_pServer->m_IoService.post(boost::bind(&CServerSession::PutOntoWire, this));
             break;
         }
@@ -1617,9 +1617,9 @@ SPA::CCertificateImpl* CServerSession::GetUCert() {
 
 bool CServerSession::IsBuiltinAllowed(unsigned int sid) {
     switch (sid) {
-        case SPA::sidChat:
-        case SPA::sidODBC:
-        case SPA::sidFile:
+        case (unsigned int)SPA::tagServiceID::sidChat:
+        case (unsigned int)SPA::tagServiceID::sidODBC:
+        case (unsigned int)SPA::tagServiceID::sidFile:
         case SPA::Sqlite::sidSqlite:
         case SPA::Mysql::sidMysql:
             return true;
@@ -1636,7 +1636,7 @@ unsigned int CServerSession::RetrieveRequestBufferInternally(unsigned char *pBuf
         if (ulBufferSize > m_ReqInfo.Size) {
             ulBufferSize = m_ReqInfo.Size;
         }
-        if (m_ReqInfo.RequestId == SPA::idSwitchTo) {
+        if (m_ReqInfo.RequestId == (unsigned short)SPA::tagBaseRequestID::idSwitchTo) {
             bPeek = false;
             unsigned char *pHead = (unsigned char*) m_qRead.GetBuffer();
             ulGet = m_qRead.Pop((unsigned char*) pBuffer, ulBufferSize);
@@ -1664,7 +1664,7 @@ unsigned int CServerSession::QueryRequestsQueued() {
 }
 
 unsigned int CServerSession::QueryRequestsQueuedInternally() {
-    if (ServiceId == SPA::sidStartup)
+    if (ServiceId == (unsigned int)SPA::tagServiceID::sidStartup)
         return 1;
     if (m_pHttpContext && m_pHttpContext->GetPS() != UHTTP::psComplete)
         return 1;
@@ -1703,7 +1703,7 @@ void CServerSession::OnNonBaseRequestArrive() {
         if (p != nullptr) {
             p(index, reqId, size);
         }
-        if (reqId != SPA::idInterrupt) {
+        if (reqId != (unsigned short)SPA::tagBaseRequestID::idInterrupt) {
             if (m_pServiceContext->IsSlowRequest(m_ReqInfo.RequestId)) {
                 if (m_bDropSlowRequest) {
                     return;
@@ -1720,7 +1720,7 @@ void CServerSession::OnNonBaseRequestArrive() {
         }
     }
 
-    //reqId == SPA::idInterrupt
+    //reqId == (unsigned short)SPA::tagBaseRequestID::idInterrupt
     if (m_ReqInfo.Size) {
         m_qRead.Pop(m_ReqInfo.Size);
         m_ReqInfo.Size = 0;
@@ -1730,8 +1730,8 @@ void CServerSession::OnNonBaseRequestArrive() {
 
 void CServerSession::OnBaseRequestArrive() {
     switch (m_ReqInfo.RequestId) {
-        case SPA::idDequeueBatchConfirmed:
-        case SPA::idDequeueConfirmed:
+        case (unsigned short)SPA::tagBaseRequestID::idDequeueBatchConfirmed:
+        case (unsigned short)SPA::tagBaseRequestID::idDequeueConfirmed:
         {
             unsigned int removed = 0;
             unsigned int qHandle;
@@ -1745,7 +1745,7 @@ void CServerSession::OnBaseRequestArrive() {
             m_ReqInfo.Size -= sizeof (MQ_FILE::CDequeueConfirmInfo);
             CQueueMap::iterator it = m_mapDequeue.find(qHandle);
             while (m_ReqInfo.Size >= sizeof (MQ_FILE::CDequeueConfirmInfo)) {
-                assert(m_ReqInfo.RequestId == SPA::idDequeueBatchConfirmed);
+                assert(m_ReqInfo.RequestId == (unsigned short)SPA::tagBaseRequestID::idDequeueBatchConfirmed);
                 CVQAttr &vQA = it->second.first;
                 vQA.push_back(m_qa);
                 m_qRead >> dci;
@@ -1758,7 +1758,7 @@ void CServerSession::OnBaseRequestArrive() {
             }
             assert(m_ReqInfo.Size == 0);
             switch (reqId) {
-                case SPA::idStartJob:
+                case (unsigned short)SPA::tagBaseRequestID::idStartJob:
 #ifndef NDEBUG
                     ++m_nJobConfirm;
 #endif
@@ -1782,7 +1782,7 @@ void CServerSession::OnBaseRequestArrive() {
                     m_bConfirmFail = dci.Fail;
                     m_bConfirmTrans = true;
                     break;
-                case SPA::idEndJob:
+                case (unsigned short)SPA::tagBaseRequestID::idEndJob:
 #ifndef NDEBUG
                     --m_nJobConfirm;
 #endif
@@ -1865,40 +1865,40 @@ void CServerSession::OnBaseRequestArrive() {
             return; //don't enable the callback OnBaseRequestCame for the request
         }
             break;
-        case SPA::idStartBatching:
+        case (unsigned short)SPA::tagBaseRequestID::idStartBatching:
         {
             StartBatchingInternal();
             if (m_ClientQFile.Qs.qs.Header != 0 || m_ClientQFile.Qs.qs.Mid != 0 || m_ClientQFile.Qs.qs.End != 0)
-                SendReturnDataInternal(SPA::idStartBatching, nullptr, 0);
+                SendReturnDataInternal((unsigned short)SPA::tagBaseRequestID::idStartBatching, nullptr, 0);
         }
             break;
-        case SPA::idCommitBatching:
+        case (unsigned short)SPA::tagBaseRequestID::idCommitBatching:
         {
             if (m_ClientQFile.Qs.qs.Header != 0 || m_ClientQFile.Qs.qs.Mid != 0 || m_ClientQFile.Qs.qs.End != 0)
-                SendReturnDataInternal(SPA::idCommitBatching, nullptr, 0);
+                SendReturnDataInternal((unsigned short)SPA::tagBaseRequestID::idCommitBatching, nullptr, 0);
             CommitBatchingInternal();
         }
             break;
-        case SPA::idSetZipLevelAtSvr:
+        case (unsigned short)SPA::tagBaseRequestID::idSetZipLevelAtSvr:
             assert(sizeof (int) == m_ReqInfo.Size);
         {
             int zl;
             m_qRead >> zl;
             m_ReqInfo.Size -= sizeof (zl);
             m_zl = (SPA::tagZipLevel)zl;
-            SendReturnDataInternal(SPA::idSetZipLevelAtSvr, (const unsigned char*) &zl, sizeof (zl));
+            SendReturnDataInternal((unsigned short)SPA::tagBaseRequestID::idSetZipLevelAtSvr, (const unsigned char*) &zl, sizeof (zl));
         }
             break;
-        case SPA::idTurnOnZipAtSvr:
+        case (unsigned short)SPA::tagBaseRequestID::idTurnOnZipAtSvr:
             assert(sizeof (bool) == m_ReqInfo.Size);
         {
             m_qRead >> m_bZip;
             m_ReqInfo.Size -= sizeof (m_bZip);
             bool zip = m_bZip;
-            SendReturnDataInternal(SPA::idTurnOnZipAtSvr, (const unsigned char*) &zip, sizeof (zip));
+            SendReturnDataInternal((unsigned short)SPA::tagBaseRequestID::idTurnOnZipAtSvr, (const unsigned char*) &zip, sizeof (zip));
         }
             break;
-        case SPA::idSetSockOptAtSvr:
+        case (unsigned short)SPA::tagBaseRequestID::idSetSockOptAtSvr:
             assert(3 * sizeof (int) == m_ReqInfo.Size);
         {
             int optName;
@@ -1910,10 +1910,10 @@ void CServerSession::OnBaseRequestArrive() {
             level = SPA::MapSockLevel((SPA::tagSocketLevel)level);
             m_ReqInfo.Size = 0;
             hr = ::setsockopt(GetSocket().native_handle(), level, optName, (const char*) &optValue, sizeof (optValue));
-            SendReturnDataInternal(SPA::idSetSockOptAtSvr, (const unsigned char*) &hr, sizeof (hr));
+            SendReturnDataInternal((unsigned short)SPA::tagBaseRequestID::idSetSockOptAtSvr, (const unsigned char*) &hr, sizeof (hr));
         }
             break;
-        case SPA::idGetSockOptAtSvr:
+        case (unsigned short)SPA::tagBaseRequestID::idGetSockOptAtSvr:
             assert(2 * sizeof (int) == m_ReqInfo.Size);
         {
             int optName;
@@ -1927,10 +1927,10 @@ void CServerSession::OnBaseRequestArrive() {
             m_qRead >> optName >> level;
             m_ReqInfo.Size = 0;
             ::getsockopt(GetSocket().native_handle(), level, optName, (char*) &optValue, &len);
-            SendReturnDataInternal(SPA::idGetSockOptAtSvr, (const unsigned char*) &optValue, sizeof (optValue));
+            SendReturnDataInternal((unsigned short)SPA::tagBaseRequestID::idGetSockOptAtSvr, (const unsigned char*) &optValue, sizeof (optValue));
         }
             break;
-        case SPA::idStopQueue:
+        case (unsigned short)SPA::tagBaseRequestID::idStopQueue:
             assert(m_ReqInfo.Size >= sizeof (m_ClientQFile));
             m_qRead >> m_ClientQFile;
             m_pQLastIndex->Remove(m_ClientQFile.Qs);
@@ -1938,7 +1938,7 @@ void CServerSession::OnBaseRequestArrive() {
             ::memset(&m_ClientQFile, 0, sizeof (m_ClientQFile));
             m_bDequeueTrans = false;
             break;
-        case SPA::idStartQueue:
+        case (unsigned short)SPA::tagBaseRequestID::idStartQueue:
             assert(m_ReqInfo.Size >= sizeof (m_ClientQFile));
             m_qRead >> m_ClientQFile;
             if ((m_ClientQFile.MinIndex & MQ_FILE::CQueueInitialInfo::QUEUE_SHARED_INDEX) == MQ_FILE::CQueueInitialInfo::QUEUE_SHARED_INDEX) {
@@ -1949,31 +1949,31 @@ void CServerSession::OnBaseRequestArrive() {
             m_ReqInfo.Size = 0;
             m_bDequeueTrans = false;
             break;
-        case SPA::idEndJob:
+        case (unsigned short)SPA::tagBaseRequestID::idEndJob:
 #ifndef NDEBUG
             --m_nJobRequest;
             if (!m_bDequeueTrans) {
-                std::cout << "Bad m_bDequeueTrans/SPA::idEndJob: " << m_bDequeueTrans << ", " << __FUNCTION__ << " @line: " << __LINE__ << std::endl;
+                std::cout << "Bad m_bDequeueTrans/(unsigned short)SPA::tagBaseRequestID::idEndJob: " << m_bDequeueTrans << ", " << __FUNCTION__ << " @line: " << __LINE__ << std::endl;
             }
 #endif
             m_bDequeueTrans = false;
             break;
-        case SPA::idStartJob:
+        case (unsigned short)SPA::tagBaseRequestID::idStartJob:
 #ifndef NDEBUG
             ++m_nJobRequest;
             if (m_bDequeueTrans) {
-                std::cout << "Bad m_bDequeueTrans/SPA::idStartJob: " << m_bDequeueTrans << ", " << __FUNCTION__ << " @line: " << __LINE__ << std::endl;
+                std::cout << "Bad m_bDequeueTrans/(unsigned short)SPA::tagBaseRequestID::idStartJob: " << m_bDequeueTrans << ", " << __FUNCTION__ << " @line: " << __LINE__ << std::endl;
             }
 #endif
             //this assert will not work as expected when a client calls the method Cancel
             //assert(!m_bDequeueTrans);
             m_bDequeueTrans = true;
             break;
-        case SPA::idCancel:
+        case (unsigned short)SPA::tagBaseRequestID::idCancel:
         {
             AbortBatchingInternal();
         }
-            //case SPA::idDoEcho:
+            //case (unsigned short)SPA::tagBaseRequestID::idDoEcho:
         default:
         {
             SPA::CScopeUQueue sb;
@@ -2022,7 +2022,7 @@ void CServerSession::OnSwitchTo(unsigned int OldServiceId, unsigned int NewServi
         CRAutoLock ral(m_mutex, m_bChatting);
         p(index, OldServiceId, NewServiceId);
     }
-    if (NewServiceId != SPA::sidHTTP) {
+    if (NewServiceId != (unsigned int)SPA::tagServiceID::sidHTTP) {
         unsigned int errCode = g_bRegistered ? ERROR_NO_ERROR : ERROR_EVALUATION;
         if (errCode == ERROR_EVALUATION) {
             if (m_pServiceContext->m_bRegisterred)
@@ -2031,12 +2031,12 @@ void CServerSession::OnSwitchTo(unsigned int OldServiceId, unsigned int NewServi
         SPA::CScopeUQueue sb;
         sb << errCode;
         sb << m_ServerInfo;
-        SendReturnDataInternal(SPA::idSwitchTo, sb->GetBuffer(), sb->GetSize());
+        SendReturnDataInternal((unsigned short)SPA::tagBaseRequestID::idSwitchTo, sb->GetBuffer(), sb->GetSize());
     }
 }
 
 void CServerSession::OnRA() {
-    if (m_ReqInfo.RequestId == SPA::idSwitchTo) {
+    if (m_ReqInfo.RequestId == (unsigned short)SPA::tagBaseRequestID::idSwitchTo) {
         SPA::CScopeUQueue sb(m_ReqInfo.GetOS(), m_ReqInfo.IsBigEndian());
         if (sb->GetMaxSize() < m_ReqInfo.Size)
             sb->ReallocBuffer(m_ReqInfo.Size + 16);
@@ -2071,9 +2071,9 @@ void CServerSession::OnRA() {
         unsigned int oldServiceId = ServiceId;
         unsigned int svsId = m_ClientInfo.ServiceId;
         bool ok = true;
-        if (svsId == SPA::sidStartup) {
+        if (svsId == (unsigned int)SPA::tagServiceID::sidStartup) {
             OnSwitchTo(oldServiceId, svsId);
-        } else if ((g_pServer->GetSharedAM() && ServiceId != SPA::sidStartup) || DoAuthentication(svsId)) {
+        } else if ((g_pServer->GetSharedAM() && ServiceId != (unsigned int)SPA::tagServiceID::sidStartup) || DoAuthentication(svsId)) {
             OnSwitchTo(oldServiceId, svsId);
         } else {
             ok = false;
@@ -2087,7 +2087,7 @@ void CServerSession::OnRA() {
         }
         return;
     }
-    if (ServiceId == SPA::sidStartup) {
+    if (ServiceId == (unsigned int)SPA::tagServiceID::sidStartup) {
         PostCloseInternal(ERROR_NOT_SWITCHED_YET);
         return;
     }
@@ -2096,11 +2096,11 @@ void CServerSession::OnRA() {
         UHTTP::CWebResponseProcessor *pWebResponseProcessor = m_pHttpContext->GetWebResponseProcessor();
         if (pWebRequestProcessor != nullptr) {
             switch (m_ReqInfo.RequestId) {
-                case SPA::idEnter:
-                case SPA::idExit:
-                case SPA::idSendUserMessage:
-                case SPA::idSpeak:
-                case SPA::ServerSide::idUserRequest:
+                case (unsigned short)SPA::tagChatRequestID::idEnter:
+                case (unsigned short)SPA::tagChatRequestID::idExit:
+                case (unsigned short)SPA::tagChatRequestID::idSendUserMessage:
+                case (unsigned short)SPA::tagChatRequestID::idSpeak:
+				case (unsigned short)SPA::ServerSide::tagHttpRequestID::idUserRequest:
                     assert(m_ReqInfo.Size >= (sizeof (SPA::INT64) + sizeof (UHTTP::tagSpError)));
                     m_qRead >> pWebRequestProcessor->m_CurrentIndex;
                     m_qRead >> pWebRequestProcessor->m_CurrentErrCode;
@@ -2123,11 +2123,11 @@ void CServerSession::OnRA() {
     }
     if (!m_pServiceContext) return;
     switch (m_ReqInfo.RequestId) {
-        case SPA::idEndMerge:
-        case SPA::idStartMerge:
+        case (unsigned short)SPA::tagBaseRequestID::idEndMerge:
+        case (unsigned short)SPA::tagBaseRequestID::idStartMerge:
             assert(false);
             break;
-        case SPA::idStartJob:
+        case (unsigned short)SPA::tagBaseRequestID::idStartJob:
             if (m_pServiceContext->GetRandom()) {
                 m_mapIndex[m_indexCall] = std::shared_ptr<CResIndexImpl>(new CResIndexImpl(m_ReqInfo.RequestId, this, m_qa), [](CResIndexImpl * p) {
                     if (p) delete p;
@@ -2140,7 +2140,7 @@ void CServerSession::OnRA() {
                 NotifyDequeued();
             }
             break;
-        case SPA::idEndJob:
+        case (unsigned short)SPA::tagBaseRequestID::idEndJob:
             if (m_pServiceContext->GetRandom()) {
                 m_mapIndex[m_indexCall] = std::shared_ptr<CResIndexImpl>(new CResIndexImpl(m_ReqInfo.RequestId, this, m_qa), [](CResIndexImpl * p) {
                     if (p) delete p;
@@ -2153,24 +2153,24 @@ void CServerSession::OnRA() {
                 NotifyDequeued();
             }
             break;
-        case SPA::idDequeueConfirmed:
-        case SPA::idDequeueBatchConfirmed:
-        case SPA::idStartQueue:
-        case SPA::idStopQueue:
-        case SPA::idCancel:
-        case SPA::idCommitBatching:
-        case SPA::idStartBatching:
+        case (unsigned short)SPA::tagBaseRequestID::idDequeueConfirmed:
+        case (unsigned short)SPA::tagBaseRequestID::idDequeueBatchConfirmed:
+        case (unsigned short)SPA::tagBaseRequestID::idStartQueue:
+        case (unsigned short)SPA::tagBaseRequestID::idStopQueue:
+        case (unsigned short)SPA::tagBaseRequestID::idCancel:
+        case (unsigned short)SPA::tagBaseRequestID::idCommitBatching:
+        case (unsigned short)SPA::tagBaseRequestID::idStartBatching:
             OnBaseRequestArrive();
             break;
-        case SPA::idTurnOnZipAtSvr:
-        case SPA::idRouteeChanged:
-        case SPA::idEncrypted:
-        case SPA::idBatchZipped:
-        case SPA::idGetSockOptAtSvr:
-        case SPA::idSetSockOptAtSvr:
-        case SPA::idDoEcho:
-        case SPA::idPing:
-        case SPA::idSetZipLevelAtSvr:
+        case (unsigned short)SPA::tagBaseRequestID::idTurnOnZipAtSvr:
+        case (unsigned short)SPA::tagBaseRequestID::idRouteeChanged:
+        case (unsigned short)SPA::tagBaseRequestID::idEncrypted:
+        case (unsigned short)SPA::tagBaseRequestID::idBatchZipped:
+        case (unsigned short)SPA::tagBaseRequestID::idGetSockOptAtSvr:
+        case (unsigned short)SPA::tagBaseRequestID::idSetSockOptAtSvr:
+        case (unsigned short)SPA::tagBaseRequestID::idDoEcho:
+        case (unsigned short)SPA::tagBaseRequestID::idPing:
+        case (unsigned short)SPA::tagBaseRequestID::idSetZipLevelAtSvr:
             if (m_pServiceContext->GetRandom()) {
                 if (m_ReqInfo.GetQueued()) {
                     m_mapIndex[m_indexCall] = std::shared_ptr<CResIndexImpl>(new CResIndexImpl(m_ReqInfo.RequestId, this, m_qa), [](CResIndexImpl * p) {
@@ -2184,10 +2184,10 @@ void CServerSession::OnRA() {
             }
             OnBaseRequestArrive();
             break;
-        case SPA::idEnter:
-        case SPA::idSpeakEx:
-        case SPA::idSendUserMessageEx:
-        case SPA::idExit:
+        case (unsigned short)SPA::tagChatRequestID::idEnter:
+        case (unsigned short)SPA::tagChatRequestID::idSpeakEx:
+        case (unsigned short)SPA::tagChatRequestID::idSendUserMessageEx:
+        case (unsigned short)SPA::tagChatRequestID::idExit:
         {
             POnChatRequestComing p = m_ccb.SvsContext.m_OnChatRequestComing;
             if (p) {
@@ -2200,8 +2200,8 @@ void CServerSession::OnRA() {
         }
             OnChatRequestArrive();
             break;
-        case SPA::idSendUserMessage:
-        case SPA::idSpeak:
+        case (unsigned short)SPA::tagChatRequestID::idSendUserMessage:
+        case (unsigned short)SPA::tagChatRequestID::idSpeak:
         {
             POnChatRequestComing p = m_ccb.SvsContext.m_OnChatRequestComing;
             if (p) {
@@ -2274,7 +2274,7 @@ void CServerSession::OnChatVariantRequestArrive() {
     }
     SPA::UVariant vtMsg;
     switch (m_ReqInfo.RequestId) {
-        case SPA::idSpeak:
+		case (unsigned short)SPA::tagChatRequestID::idSpeak:
         {
             unsigned short vt = 0;
             unsigned int nCount = 0;
@@ -2294,7 +2294,7 @@ void CServerSession::OnChatVariantRequestArrive() {
                 CRAutoLock ral(m_mutex, m_bChatting);
                 g_pServer->Speak(this, vGroup.data(), (unsigned int) vGroup.size(), vtMsg);
                 if (crp) {
-                    crp(index, SPA::idSpeak);
+                    crp(index, SPA::tagChatRequestID::idSpeak);
                 }
             }
             sb->SetSize(0);
@@ -2305,7 +2305,7 @@ void CServerSession::OnChatVariantRequestArrive() {
             if (nCount > 0)
                 sb->Push((const unsigned char*) vFinal.data(), nCount * sizeof (unsigned int));
 
-            if (ServiceId == SPA::sidHTTP) {
+            if (ServiceId == (unsigned int)SPA::tagServiceID::sidHTTP) {
                 UHTTP::CWebResponseProcessor *pWebResponseProcessor = nullptr;
                 if (m_pHttpContext)
                     pWebResponseProcessor = m_pHttpContext->GetWebResponseProcessor();
@@ -2322,11 +2322,11 @@ void CServerSession::OnChatVariantRequestArrive() {
                     Connection::CConnectionContext::Speak(m_ccb.Id, vtMsg, vFinal.data(), nCount);
                 }
             } else {
-                BounceBackMessage(SPA::idSpeak, sb->GetBuffer(), sb->GetSize());
+                BounceBackMessage((unsigned short)SPA::tagChatRequestID::idSpeak, sb->GetBuffer(), sb->GetSize());
             }
         }
             break;
-        case SPA::idSendUserMessage:
+        case (unsigned short)SPA::tagChatRequestID::idSendUserMessage:
         {
             std::wstring userId;
             sb >> userId;
@@ -2336,13 +2336,13 @@ void CServerSession::OnChatVariantRequestArrive() {
                 CRAutoLock ral(m_mutex, m_bChatting);
                 g_pServer->SendUserMessage(this, userId.c_str(), vtMsg);
                 if (crp) {
-                    crp(index, SPA::idSendUserMessage);
+                    crp(index, SPA::tagChatRequestID::idSendUserMessage);
                 }
             }
             assert(sb->GetSize() == 0);
             sb->SetSize(0);
             sb << vtMsg;
-            if (ServiceId == SPA::sidHTTP) {
+            if (ServiceId == (unsigned int)SPA::tagServiceID::sidHTTP) {
                 UHTTP::CWebResponseProcessor *pWebResponseProcessor = nullptr;
                 if (m_pHttpContext)
                     pWebResponseProcessor = m_pHttpContext->GetWebResponseProcessor();
@@ -2359,7 +2359,7 @@ void CServerSession::OnChatVariantRequestArrive() {
                     Connection::CConnectionContext::SendUserMessage(m_ccb.Id, vtMsg, userId.c_str(), m_ccb.ChatGroups.data(), (unsigned int) m_ccb.ChatGroups.size());
                 }
             } else {
-                BounceBackMessage(SPA::idSendUserMessage, sb->GetBuffer(), sb->GetSize());
+                BounceBackMessage((unsigned short)SPA::tagChatRequestID::idSendUserMessage, sb->GetBuffer(), sb->GetSize());
             }
         }
             break;
@@ -2393,7 +2393,7 @@ void CServerSession::OnChatRequestArrive() {
         }
     }
     switch (m_ReqInfo.RequestId) {
-        case SPA::idEnter:
+        case (unsigned short)SPA::tagChatRequestID::idEnter:
         {
             unsigned int n;
             unsigned short vt;
@@ -2420,7 +2420,7 @@ void CServerSession::OnChatRequestArrive() {
                 CRAutoLock ral(m_mutex, m_bChatting);
                 g_pServer->Enter(this, vNew.data(), nCount);
                 if (crp) {
-                    crp(index, SPA::idEnter);
+                    crp(index, SPA::tagChatRequestID::idEnter);
                 }
             }
             for (n = 0; n < nCount; ++n) {
@@ -2433,7 +2433,7 @@ void CServerSession::OnChatRequestArrive() {
             sb->SetSize(0);
             nCount = (unsigned int) vNew.size();
             sb->Push((const unsigned char*) vNew.data(), nCount * sizeof (unsigned int));
-            if (ServiceId == SPA::sidHTTP) {
+            if (ServiceId == (unsigned int)SPA::tagServiceID::sidHTTP) {
                 UHTTP::CWebResponseProcessor *pWebResponseProcessor = nullptr;
                 if (m_pHttpContext)
                     pWebResponseProcessor = m_pHttpContext->GetWebResponseProcessor();
@@ -2449,10 +2449,10 @@ void CServerSession::OnChatRequestArrive() {
                 } else
                     Connection::CConnectionContext::Enter(m_ccb.Id, vNew.data(), nCount);
             } else
-                BounceBackMessage(SPA::idEnter, sb->GetBuffer(), sb->GetSize());
+                BounceBackMessage((unsigned short)SPA::tagChatRequestID::idEnter, sb->GetBuffer(), sb->GetSize());
         }
             break;
-        case SPA::idSpeakEx:
+        case (unsigned short)SPA::tagChatRequestID::idSpeakEx:
             assert(sb->GetSize() >= sizeof (unsigned int));
         {
             unsigned int size;
@@ -2470,7 +2470,7 @@ void CServerSession::OnChatRequestArrive() {
                 CRAutoLock ral(m_mutex, m_bChatting);
                 g_pServer->SpeakEx(this, sb->GetBuffer(), size, vGroup.data(), (unsigned int) vGroup.size());
                 if (crp) {
-                    crp(index, SPA::idSpeakEx);
+                    crp(index, SPA::tagChatRequestID::idSpeakEx);
                 }
             }
             Connection::CConnectionContextBase::ChatGroupsAnd(m_ccb.ChatGroups.data(), (unsigned int) m_ccb.ChatGroups.size(), vGroup.data(), (unsigned int) vGroup.size(), vFinal);
@@ -2478,10 +2478,10 @@ void CServerSession::OnChatRequestArrive() {
             nCount = (unsigned int) vFinal.size();
             if (nCount > 0)
                 sb->Push((const unsigned char*) vFinal.data(), nCount * sizeof (unsigned int));
-            BounceBackMessage(SPA::idSpeakEx, sb->GetBuffer(), sb->GetSize());
+            BounceBackMessage((unsigned short)SPA::tagChatRequestID::idSpeakEx, sb->GetBuffer(), sb->GetSize());
         }
             break;
-        case SPA::idSendUserMessageEx:
+        case (unsigned short)SPA::tagChatRequestID::idSendUserMessageEx:
             assert(sb->GetSize() >= sizeof (unsigned int));
         {
             std::wstring userId;
@@ -2491,13 +2491,13 @@ void CServerSession::OnChatRequestArrive() {
                 CRAutoLock ral(m_mutex, m_bChatting);
                 g_pServer->SendUserMessage(this, userId.c_str(), sb->GetBuffer(), sb->GetSize());
                 if (crp) {
-                    crp(index, SPA::idSendUserMessageEx);
+                    crp(index, SPA::tagChatRequestID::idSendUserMessageEx);
                 }
             }
-            BounceBackMessage(SPA::idSendUserMessageEx, sb->GetBuffer(), sb->GetSize());
+            BounceBackMessage((unsigned short)SPA::tagChatRequestID::idSendUserMessageEx, sb->GetBuffer(), sb->GetSize());
         }
             break;
-        case SPA::idExit:
+        case (unsigned short)SPA::tagChatRequestID::idExit:
         {
             std::vector<unsigned int> v0;
             if (sb->GetSize() == 0) {
@@ -2523,13 +2523,13 @@ void CServerSession::OnChatRequestArrive() {
                     CRAutoLock ral(m_mutex, m_bChatting);
                     g_pServer->Exit(this, v0.data(), nCount);
                     if (crp) {
-                        crp(index, SPA::idExit);
+                        crp(index, SPA::tagChatRequestID::idExit);
                     }
                 }
                 sb->Push((const unsigned char*) v0.data(), sizeof (unsigned int) *nCount);
             }
             if (m_cs >= csConnected) {
-                if (ServiceId == SPA::sidHTTP) {
+                if (ServiceId == (unsigned int)SPA::tagServiceID::sidHTTP) {
                     UHTTP::CWebResponseProcessor *pWebResponseProcessor = nullptr;
                     if (m_pHttpContext)
                         pWebResponseProcessor = m_pHttpContext->GetWebResponseProcessor();
@@ -2549,7 +2549,7 @@ void CServerSession::OnChatRequestArrive() {
                         }
                     }
                 } else
-                    BounceBackMessage(SPA::idExit, sb->GetBuffer(), sb->GetSize());
+                    BounceBackMessage((unsigned short)SPA::tagChatRequestID::idExit, sb->GetBuffer(), sb->GetSize());
             }
         }
             break;
@@ -2658,7 +2658,7 @@ bool CServerSession::PreocessWebRequest(SPA::CUQueue &q) {
             if (p) {
                 USocket_Server_Handle index = MakeHandlerInternal();
                 CRAutoLock ral(m_mutex, m_bChatting);
-                p(index, SPA::idPing);
+                p(index, (unsigned short)SPA::tagBaseRequestID::idPing);
             }
         }
 
@@ -2753,7 +2753,7 @@ bool CServerSession::ProcessAjaxRequest() {
         {
             SPA::CStreamHeader reqInfo;
             reqInfo.MakeFake();
-            reqInfo.RequestId = SPA::idExit;
+            reqInfo.RequestId = (unsigned short)SPA::tagChatRequestID::idExit;
             m_qRead << reqInfo;
             ++m_nHttpCallCount;
             b = true;
@@ -2783,7 +2783,7 @@ bool CServerSession::ProcessJavaScriptRequest() {
         case UHTTP::srClose:
         {
             SPA::CStreamHeader reqInfo;
-            reqInfo.RequestId = SPA::idExit;
+            reqInfo.RequestId = (unsigned short)SPA::tagChatRequestID::idExit;
             reqInfo.MakeFake();
             m_qRead << reqInfo;
             ++m_nHttpCallCount;
@@ -2831,18 +2831,18 @@ bool CServerSession::ProcessHttpRequest() {
             m_qRead.Pop(parsed);
             m_qRead.SetHeadPosition();
             m_qRead.SetNull();
-            if (ServiceId == SPA::sidStartup) {
+            if (ServiceId == (unsigned int)SPA::tagServiceID::sidStartup) {
                 SPA::CScopeUQueue sb;
                 SPA::CSwitchInfo SwitchInfo;
                 ::memset(&SwitchInfo, 0, sizeof (SwitchInfo));
-                SwitchInfo.ServiceId = SPA::sidHTTP;
+                SwitchInfo.ServiceId = (unsigned int)SPA::tagServiceID::sidHTTP;
                 SwitchInfo.MajorVersion = 2;
                 sb << SwitchInfo;
                 sb << m_ccb.UserId;
                 sb << m_ccb.Password;
                 {
                     CRAutoLock ral(m_mutex, m_bChatting);
-                    FakeAClientRequest(SPA::idSwitchTo, sb->GetBuffer(), sb->GetSize());
+                    FakeAClientRequest((unsigned short)SPA::tagBaseRequestID::idSwitchTo, sb->GetBuffer(), sb->GetSize());
                 }
                 if (m_pHttpContext->IsWebSocket()) {
                     if (m_pSspi) {
@@ -2859,7 +2859,7 @@ bool CServerSession::ProcessHttpRequest() {
                 }
                 return true;
             }
-        } else if ((ps == UHTTP::psFailed && ServiceId == SPA::sidHTTP) || (ps >= UHTTP::psMethod && m_pHttpContext->GetResponseCode() >= 400)) {
+        } else if ((ps == UHTTP::psFailed && ServiceId == (unsigned int)SPA::tagServiceID::sidHTTP) || (ps >= UHTTP::psMethod && m_pHttpContext->GetResponseCode() >= 400)) {
             PostCloseInternal(0);
             return false;
         } else
@@ -2880,7 +2880,7 @@ bool CServerSession::ProcessHttpRequest() {
 
     SPA::ServerSide::tagHttpMethod hm = m_pHttpContext->GetMethod();
     switch (hm) {
-        case SPA::ServerSide::hmGet:
+		case SPA::ServerSide::tagHttpMethod::hmGet:
         {
             assert(m_qRead.GetSize() == 0);
             m_pHttpContext->SetPostPS();
@@ -2920,15 +2920,15 @@ bool CServerSession::ProcessHttpRequest() {
             } else { //Non-SocketPro JavaScript request
                 assert(m_qRead.GetSize() == 0);
                 SPA::CStreamHeader reqInfo;
-                reqInfo.RequestId = SPA::ServerSide::idGet;
+                reqInfo.RequestId = (unsigned short)SPA::ServerSide::tagHttpRequestID::idGet;
                 m_qRead.Insert((const unsigned char*) &reqInfo, sizeof (reqInfo), m_ReqInfo.Size);
                 ++m_nHttpCallCount;
                 return true;
             }
         }
             break;
-        case SPA::ServerSide::hmPost:
-            if (m_pHttpContext->GetCM() != SPA::ServerSide::cmUnknown || m_pHttpContext->GetTE() != SPA::ServerSide::teUnknown) {
+		case SPA::ServerSide::tagHttpMethod::hmPost:
+            if (m_pHttpContext->GetCM() != SPA::ServerSide::tagContentMultiplax::cmUnknown || m_pHttpContext->GetTE() != SPA::ServerSide::tagTransferEncoding::teUnknown) {
                 m_pHttpContext->SetResponseCode(501); //Not Implemented
                 m_pHttpContext->AddResponseHeader(UHTTP::CHttpContext::Connection.c_str(), UHTTP::CHttpContext::SP_CONNECTION_CLOSE.c_str());
                 if (m_pSspi) {
@@ -2950,7 +2950,7 @@ bool CServerSession::ProcessHttpRequest() {
                     } else //Non-SocketPro JavaScript request
                     {
                         SPA::CStreamHeader reqInfo;
-                        reqInfo.RequestId = SPA::ServerSide::idPost;
+                        reqInfo.RequestId = (unsigned short)SPA::ServerSide::tagHttpRequestID::idPost;
                         reqInfo.Size = (unsigned int) m_pHttpContext->GetContentLength();
                         m_qRead.Insert((const unsigned char*) &reqInfo, sizeof (reqInfo), m_ReqInfo.Size);
                         ++m_nHttpCallCount;
@@ -2960,17 +2960,17 @@ bool CServerSession::ProcessHttpRequest() {
                 }
             }
             break;
-        case SPA::ServerSide::hmPut:
-        case SPA::ServerSide::hmOptions:
+        case SPA::ServerSide::tagHttpMethod::hmPut:
+        case SPA::ServerSide::tagHttpMethod::hmOptions:
             if (m_pHttpContext->GetContentLength() != UHTTP::CONTENT_LEN_UNKNOWN) {
                 SPA::CStreamHeader reqInfo;
                 reqInfo.Size = (unsigned int) m_pHttpContext->GetContentLength();
                 switch (hm) {
-                    case SPA::ServerSide::hmPut:
-                        reqInfo.RequestId = SPA::ServerSide::idPut;
+                    case SPA::ServerSide::tagHttpMethod::hmPut:
+                        reqInfo.RequestId = (unsigned short)SPA::ServerSide::tagHttpRequestID::idPut;
                         break;
-                    case SPA::ServerSide::hmOptions:
-                        reqInfo.RequestId = SPA::ServerSide::idOptions;
+                    case SPA::ServerSide::tagHttpMethod::hmOptions:
+                        reqInfo.RequestId = (unsigned short)SPA::ServerSide::tagHttpRequestID::idOptions;
                         break;
                 }
                 m_qRead.Insert((const unsigned char*) &reqInfo, sizeof (reqInfo), m_ReqInfo.Size);
@@ -2989,20 +2989,20 @@ bool CServerSession::ProcessHttpRequest() {
                 return false;
             }
             break;
-        case SPA::ServerSide::hmHead:
-        case SPA::ServerSide::hmDelete:
-        case SPA::ServerSide::hmTrace:
+        case SPA::ServerSide::tagHttpMethod::hmHead:
+        case SPA::ServerSide::tagHttpMethod::hmDelete:
+        case SPA::ServerSide::tagHttpMethod::hmTrace:
             if (m_pHttpContext->GetContentLength() == UHTTP::CONTENT_LEN_UNKNOWN || m_pHttpContext->GetContentLength() == 0) {
                 SPA::CStreamHeader reqInfo;
                 switch (hm) {
-                    case SPA::ServerSide::hmHead:
-                        reqInfo.RequestId = SPA::ServerSide::idHead;
+                    case SPA::ServerSide::tagHttpMethod::hmHead:
+                        reqInfo.RequestId = (unsigned short)SPA::ServerSide::tagHttpRequestID::idHead;
                         break;
-                    case SPA::ServerSide::hmDelete:
-                        reqInfo.RequestId = SPA::ServerSide::idDelete;
+                    case SPA::ServerSide::tagHttpMethod::hmDelete:
+                        reqInfo.RequestId = (unsigned short)SPA::ServerSide::tagHttpRequestID::idDelete;
                         break;
-                    case SPA::ServerSide::hmTrace:
-                        reqInfo.RequestId = SPA::ServerSide::idTrace;
+                    case SPA::ServerSide::tagHttpMethod::hmTrace:
+                        reqInfo.RequestId = (unsigned short)SPA::ServerSide::tagHttpRequestID::idTrace;
                         break;
                 }
                 m_qRead.Insert((const unsigned char*) &reqInfo, sizeof (reqInfo), m_ReqInfo.Size);
@@ -3032,12 +3032,12 @@ bool CServerSession::Decompress() {
     bool defaultZipped = m_ReqInfo.IsDefaultZipped(false/*IsOld()*/);
     bool fastZip = m_ReqInfo.IsFastZipped(false/*IsOld()*/);
 
-    if (m_ReqInfo.RequestId == SPA::idBatchZipped) {
+    if (m_ReqInfo.RequestId == (unsigned short)SPA::tagBaseRequestID::idBatchZipped) {
         if (defaultZipped || fastZip) {
             SPA::CScopeUQueue sb;
             unsigned short ratio = m_ReqInfo.GetZipRatio();
             assert(ratio > 0);
-            res = DecompressRequestTo(ratio, defaultZipped ? SPA::zlDefault : SPA::zlBestSpeed, m_qRead.GetBuffer(), m_ReqInfo.Size, *sb);
+            res = DecompressRequestTo(ratio, defaultZipped ? SPA::tagZipLevel::zlDefault : SPA::tagZipLevel::zlBestSpeed, m_qRead.GetBuffer(), m_ReqInfo.Size, *sb);
             assert(res > 0);
             m_qRead.Replace(0, m_ReqInfo.Size, sb->GetBuffer(), res);
         }
@@ -3047,7 +3047,7 @@ bool CServerSession::Decompress() {
     } else if (defaultZipped || fastZip) {
         SPA::CScopeUQueue sb;
         unsigned short ratio = m_ReqInfo.GetZipRatio();
-        res = DecompressRequestTo(ratio, defaultZipped ? SPA::zlDefault : SPA::zlBestSpeed, m_qRead.GetBuffer(), m_ReqInfo.Size, *sb);
+        res = DecompressRequestTo(ratio, defaultZipped ? SPA::tagZipLevel::zlDefault : SPA::tagZipLevel::zlBestSpeed, m_qRead.GetBuffer(), m_ReqInfo.Size, *sb);
         assert(res > 0);
         m_qRead.Replace(0, m_ReqInfo.Size, sb->GetBuffer(), res);
         m_ReqInfo.Size = res;
@@ -3057,7 +3057,7 @@ bool CServerSession::Decompress() {
 
 void CServerSession::NotifyDequeued() {
     SPA::CStreamHeader sh;
-    sh.RequestId = SPA::idDequeueConfirmed;
+    sh.RequestId = (unsigned short)SPA::tagBaseRequestID::idDequeueConfirmed;
     MQ_FILE::CDequeueConfirmInfo dci(m_qa, m_bFail, m_ReqInfo.RequestId);
     sh.Size = sizeof (dci);
     Write(sh, (const unsigned char*) &dci, sizeof (dci));
@@ -3073,7 +3073,7 @@ void CServerSession::NotifyFailRoutes(SPA::UINT64 receiver, CServiceContext *pSe
     SPA::CScopeUQueue sb, sbOk, sbFail;
     SPA::CUQueue &q = *sb;
     SPA::CStreamHeader sh;
-    sh.RequestId = SPA::idDequeueConfirmed;
+    sh.RequestId = (unsigned short)SPA::tagBaseRequestID::idDequeueConfirmed;
     sh.Size = sizeof (MQ_FILE::CDequeueConfirmInfo);
     {
         CAutoLock al(m_mutexRouteRequestId);
@@ -3147,7 +3147,7 @@ bool CServerSession::RemoveARouteMap(RouteMap &rm) {
 bool CServerSession::Route() {
     unsigned int index;
     unsigned int routeeSize = 0;
-    if (m_ReqInfo.RequestId == SPA::idRoutingData) {
+    if (m_ReqInfo.RequestId == (unsigned short)SPA::tagBaseRequestID::idRoutingData) {
         unsigned short reqId;
         assert(!m_ReqInfo.GetQueued());
         SPA::UINT64 handle = *((SPA::UINT64*)m_qRead.GetBuffer(sizeof (reqId)));
@@ -3162,7 +3162,7 @@ bool CServerSession::Route() {
             m_ReqInfo.RequestId = 0;
             m_ReqInfo.Size = 0;
             SPA::CStreamHeader sh;
-            sh.RequestId = SPA::idRoutePeerUnavailable;
+            sh.RequestId = (unsigned short)SPA::tagBaseRequestID::idRoutePeerUnavailable;
             sh.Size = sizeof (handle);
             Write(sh, (const unsigned char*) &handle, sizeof (handle));
             return true;
@@ -3196,7 +3196,7 @@ bool CServerSession::Route() {
                 rm.RequestId = reqId;
                 if (RemoveARouteMap(rm)) {
                     SPA::CStreamHeader sh;
-                    sh.RequestId = SPA::idDequeueConfirmed;
+                    sh.RequestId = (unsigned short)SPA::tagBaseRequestID::idDequeueConfirmed;
                     sh.Size = sizeof (MQ_FILE::CDequeueConfirmInfo);
                     MQ_FILE::CDequeueConfirmInfo dci(rm.Qa, false, rm.RequestId);
                     q << sh << dci;
@@ -3234,10 +3234,10 @@ bool CServerSession::Route() {
         m_qRead.Pop(m_ReqInfo.Size);
         m_ReqInfo.Size = 0;
 
-        if (m_ReqInfo.RequestId == SPA::idEndJob) {
+        if (m_ReqInfo.RequestId == (unsigned short)SPA::tagBaseRequestID::idEndJob) {
 #ifndef NDEBUG
             if (!m_bDequeueTrans) {
-                std::cout << "Bad m_bDequeueTrans/SPA::idEndJob: " << m_bDequeueTrans << ", " << __FUNCTION__ << " @line: " << __LINE__ << std::endl;
+                std::cout << "Bad m_bDequeueTrans/(unsigned short)SPA::tagBaseRequestID::idEndJob: " << m_bDequeueTrans << ", " << __FUNCTION__ << " @line: " << __LINE__ << std::endl;
             }
 #endif
             m_bDequeueTrans = false;
@@ -3277,7 +3277,7 @@ bool CServerSession::Route() {
             m_qRouteRequestId << rm;
         }
 
-        sh.RequestId = SPA::idRoutingData;
+        sh.RequestId = (unsigned short)SPA::tagBaseRequestID::idRoutingData;
         sh.Size = m_ReqInfo.Size + sizeof (m_ReqInfo) + sizeof (h);
 
         q << sh << h << m_ReqInfo;
@@ -3290,27 +3290,27 @@ bool CServerSession::Route() {
         }
         receiver->IncreaseRoutingRequestCount();
         switch (m_ReqInfo.RequestId) {
-            case SPA::idStartJob:
+            case (unsigned short)SPA::tagBaseRequestID::idStartJob:
 #ifndef NDEBUG
                 if (m_bDequeueTrans) {
-                    std::cout << "Bad m_bDequeueTrans/SPA::idStartJob: " << m_bDequeueTrans << ", " << __FUNCTION__ << " @line: " << __LINE__ << std::endl;
+                    std::cout << "Bad m_bDequeueTrans/(unsigned short)SPA::tagBaseRequestID::idStartJob: " << m_bDequeueTrans << ", " << __FUNCTION__ << " @line: " << __LINE__ << std::endl;
                 }
 #endif
                 m_bDequeueTrans = true;
                 break;
-            case SPA::idEndJob:
+            case (unsigned short)SPA::tagBaseRequestID::idEndJob:
 #ifndef NDEBUG
                 if (!m_bDequeueTrans) {
-                    std::cout << "Bad m_bDequeueTrans/SPA::idEndJob: " << m_bDequeueTrans << ", " << __FUNCTION__ << " @line: " << __LINE__ << std::endl;
+                    std::cout << "Bad m_bDequeueTrans/(unsigned short)SPA::tagBaseRequestID::idEndJob: " << m_bDequeueTrans << ", " << __FUNCTION__ << " @line: " << __LINE__ << std::endl;
                 }
 #endif
                 m_bDequeueTrans = false;
                 break;
-            case SPA::idStartBatching:
+            case (unsigned short)SPA::tagBaseRequestID::idStartBatching:
                 assert(!m_bRouteBatching);
                 m_bRouteBatching = true;
                 break;
-            case SPA::idCommitBatching:
+            case (unsigned short)SPA::tagBaseRequestID::idCommitBatching:
                 assert(m_bRouteBatching);
                 m_bRouteBatching = false;
                 break;
@@ -3335,7 +3335,7 @@ bool CServerSession::Process() {
         return false;
     }
     bool bOk = false;
-    if (ServiceId == SPA::sidStartup) {
+    if (ServiceId == (unsigned int)SPA::tagServiceID::sidStartup) {
         m_qRead.SetNull();
         UHTTP::CHttpContext *p = UHTTP::CHttpContext::Lock();
         const char *end = p->ParseHeaders((const char*) m_qRead.GetBuffer(), true);
@@ -3346,7 +3346,7 @@ bool CServerSession::Process() {
                 return false;
             }
         }
-    } else if (ServiceId == SPA::sidHTTP) {
+    } else if (ServiceId == (unsigned int)SPA::tagServiceID::sidHTTP) {
         if (m_nHttpCallCount == 0) {
             if (!ProcessHttpRequest()) {
                 return false;
@@ -3360,7 +3360,7 @@ bool CServerSession::Process() {
         return bOk;
     }
     while (true) {
-        if (ServiceId == SPA::sidHTTP && m_nHttpCallCount == 0) {
+        if (ServiceId == (unsigned int)SPA::tagServiceID::sidHTTP && m_nHttpCallCount == 0) {
             if (m_qWrite.GetSize() < IO_BUFFER_SIZE && m_qRead.GetSize() >= sizeof (m_ReqInfo)) //this check reduces CPU and avoid extra buffer for m_qWrite
             {
                 g_pServer->m_IoService.post(boost::bind(&CServerSession::ProcessWithLock, this));
@@ -3370,7 +3370,7 @@ bool CServerSession::Process() {
 
         if (m_ReqInfo.RequestId == 0 && m_qRead.GetSize() >= sizeof (m_ReqInfo)) {
             m_qRead >> m_ReqInfo;
-            if (ServiceId != SPA::sidHTTP && m_ReqInfo.RequestId != SPA::idSwitchTo) {
+            if (ServiceId != (unsigned int)SPA::tagServiceID::sidHTTP && m_ReqInfo.RequestId != (unsigned short)SPA::tagBaseRequestID::idSwitchTo) {
                 m_qRead.SetEndian(m_ReqInfo.IsBigEndian());
                 m_qRead.SetOS(m_ReqInfo.GetOS());
             }
@@ -3383,7 +3383,7 @@ bool CServerSession::Process() {
             return bOk;
         }
 
-        if (m_ReqInfo.RequestId > SPA::idSwitchTo && m_pServiceContext && !m_pServiceContext->m_bRegisterred) {
+        if (m_ReqInfo.RequestId > (unsigned short)SPA::tagBaseRequestID::idSwitchTo && m_pServiceContext && !m_pServiceContext->m_bRegisterred) {
             CServer::m_reg.AddCall(ServiceId, m_ReqInfo.GetOS(), m_ReqInfo.GetQueued(), m_ReqInfo.IsBigEndian());
         }
         if (m_pRoutingServiceContext != nullptr && IsRoutable(m_ReqInfo.RequestId) && m_pServiceContext && (!m_pServiceContext->IsAlpah(m_ReqInfo.RequestId))) {
@@ -3426,9 +3426,9 @@ bool CServerSession::Process() {
 #ifndef NDEBUG
                 std::cout << "++++ ReqId = " << m_ReqInfo.RequestId << ", len = " << m_ReqInfo.Size << ", msg index = " << m_qa.MessageIndex << ", pos = " << m_qa.MessagePos;
                 std::cout << ", seek msg index = " << seek.MessageIndex << ", seek pos = " << seek.MessagePos << std::endl;
-                if (m_ReqInfo.RequestId == SPA::idStartJob) {
+                if (m_ReqInfo.RequestId == (unsigned short)SPA::tagBaseRequestID::idStartJob) {
                     ++m_nJobRequest;
-                } else if (m_ReqInfo.RequestId == SPA::idEndJob) {
+                } else if (m_ReqInfo.RequestId == (unsigned short)SPA::tagBaseRequestID::idEndJob) {
                     --m_nJobRequest;
                 }
 #endif
@@ -3447,15 +3447,15 @@ bool CServerSession::Process() {
         }
         m_indexCall = ++g_pServer->m_nRequestCount;
 
-        if (m_ReqInfo.RequestId == SPA::idSwitchTo && m_ReqInfo.Size > ((MAX_USERID_CHARS + MAX_PASSWORD_CHARS) * sizeof (SPA::UTF16) + 2 * sizeof (unsigned int) + sizeof (m_ClientInfo))) //2*(510) + 2*sizeof(unsigned short) + sizeof(m_ClientInfo)
+        if (m_ReqInfo.RequestId == (unsigned short)SPA::tagBaseRequestID::idSwitchTo && m_ReqInfo.Size > ((MAX_USERID_CHARS + MAX_PASSWORD_CHARS) * sizeof (SPA::UTF16) + 2 * sizeof (unsigned int) + sizeof (m_ClientInfo))) //2*(510) + 2*sizeof(unsigned short) + sizeof(m_ClientInfo)
         {
             PostCloseInternal(ERROR_BAD_REQUEST);
             bOk = false;
             break;
         }
 
-        if (ServiceId == SPA::sidStartup && (m_ReqInfo.Size > 1460 || m_ReqInfo.RequestId != SPA::idSwitchTo || m_ReqInfo.Size < (2 * sizeof (unsigned int) + sizeof (m_ClientInfo)))) {
-            //std::cout << "ServiceId == SPA::sidStartup && m_ReqInfo.Size = " << m_ReqInfo.Size << ", id = " << m_ReqInfo.RequestId << std::endl;
+        if (ServiceId == (unsigned int)SPA::tagServiceID::sidStartup && (m_ReqInfo.Size > 1460 || m_ReqInfo.RequestId != (unsigned short)SPA::tagBaseRequestID::idSwitchTo || m_ReqInfo.Size < (2 * sizeof (unsigned int) + sizeof (m_ClientInfo)))) {
+            //std::cout << "ServiceId == (unsigned int)SPA::tagServiceID::sidStartup && m_ReqInfo.Size = " << m_ReqInfo.Size << ", id = " << m_ReqInfo.RequestId << std::endl;
             PostCloseInternal(ERROR_BAD_REQUEST);
             bOk = false;
             break;
@@ -3493,7 +3493,7 @@ bool CServerSession::Process() {
             SendExceptionResultInternal(L"Unknown exception caught", "Inside request processing loop", m_ReqInfo.RequestId, MB_UNKNOWN_EXCEPTION);
         }
 
-        if (ServiceId == SPA::sidHTTP) {
+        if (ServiceId == (unsigned int)SPA::tagServiceID::sidHTTP) {
             --m_nHttpCallCount;
         }
 
@@ -3503,11 +3503,11 @@ bool CServerSession::Process() {
         }
         if (!g_pServer->m_bStopped && !m_bCanceled && m_ReqInfo.GetQueued()) {
             if (m_pRoutingServiceContext) {
-                if (!m_bFail && !m_bDequeueTrans && m_ReqInfo.RequestId > SPA::idReservedTwo) {
+                if (!m_bFail && !m_bDequeueTrans && m_ReqInfo.RequestId > (unsigned short)SPA::tagBaseRequestID::idReservedTwo) {
                     m_pQLastIndex->Set(m_ClientQFile.Qs, m_qa);
                 }
             }
-            if (m_ReqInfo.RequestId == SPA::idEndJob || m_qWrite.GetSize() >= 1460) {
+            if (m_ReqInfo.RequestId == (unsigned short)SPA::tagBaseRequestID::idEndJob || m_qWrite.GetSize() >= 1460) {
                 Write(nullptr, 0);
             }
         }
@@ -3631,7 +3631,7 @@ void CServerSession::OnReadCompleted(const CErrorCode& Error, size_t nLen) {
         m_qRead.SetNull();
 
         //clean password into memory
-        if (ServiceId == SPA::sidStartup || (ServiceId == SPA::sidHTTP && m_ccb.Id.empty())) {
+        if (ServiceId == (unsigned int)SPA::tagServiceID::sidStartup || (ServiceId == (unsigned int)SPA::tagServiceID::sidHTTP && m_ccb.Id.empty())) {
             ::memset(m_ReadBuffer, 0, IO_BUFFER_SIZE);
         }
         m_bRBLocked = false;
@@ -3667,7 +3667,7 @@ void CServerSession::OnWriteCompleted(const CErrorCode& Error, size_t bytes_tran
     if (len > 5 * IO_BUFFER_SIZE && len < 7 * IO_BUFFER_SIZE) {
         m_cv.notify_all();
     }
-    if (ServiceId == SPA::sidHTTP) {
+    if (ServiceId == (unsigned int)SPA::tagServiceID::sidHTTP) {
         do {
             if (m_pHttpContext == nullptr) {
                 if (m_qRead.GetSize()) {
@@ -3745,7 +3745,7 @@ unsigned int CServerSession::GetHTTPCurrentMultiplaxHeaders(SPA::ServerSide::CHt
     if (HeaderValue == nullptr || count == 0)
         return 0;
     CAutoLock sl(m_mutex);
-    if (!m_pHttpContext || m_pHttpContext->GetCM() == SPA::ServerSide::cmUnknown)
+    if (!m_pHttpContext || m_pHttpContext->GetCM() == SPA::ServerSide::tagContentMultiplax::cmUnknown)
         return 0;
     unsigned int n, size = 0;
     const UHTTP::CHeaderValue *pHV = m_pHttpContext->GetMultiplaxContext()->GetHeaderValue(size);
@@ -3782,9 +3782,9 @@ SPA::UINT64 CServerSession::GetHTTPContentLength() {
     CAutoLock sl(m_mutex);
     if (!m_pHttpContext)
         return 0;
-    if (m_pHttpContext->GetMethod() != SPA::ServerSide::hmPost)
+    if (m_pHttpContext->GetMethod() != SPA::ServerSide::tagHttpMethod::hmPost)
         return 0;
-    if (m_pHttpContext->GetTE() != SPA::ServerSide::teUnknown || m_pHttpContext->GetCM() != SPA::ServerSide::cmUnknown)
+    if (m_pHttpContext->GetTE() != SPA::ServerSide::tagTransferEncoding::teUnknown || m_pHttpContext->GetCM() != SPA::ServerSide::tagContentMultiplax::cmUnknown)
         return 0;
     return m_pHttpContext->GetContentLength();
 }
@@ -3800,7 +3800,7 @@ bool CServerSession::DownloadFile(const char *filePath) {
     CAutoLock sl(m_mutex);
     if (!m_pHttpContext)
         return false;
-    if (m_pHttpContext->GetMethod() != SPA::ServerSide::hmGet)
+    if (m_pHttpContext->GetMethod() != SPA::ServerSide::tagHttpMethod::hmGet)
         return false;
     if (m_pHttpContext->GetPS() != UHTTP::psComplete)
         return false;
@@ -3824,7 +3824,7 @@ bool CServerSession::DownloadFile(const char *filePath) {
 SPA::ServerSide::tagHttpMethod CServerSession::GetHTTPMethod() {
     CAutoLock sl(m_mutex);
     if (!m_pHttpContext)
-        return SPA::ServerSide::hmUnknown;
+        return SPA::ServerSide::tagHttpMethod::hmUnknown;
     return m_pHttpContext->GetMethod();
 }
 
@@ -3844,7 +3844,7 @@ bool CServerSession::IsWebSocket() {
 
 unsigned int CServerSession::StartChunkResponse() {
     CAutoLock sl(m_mutex);
-    if (ServiceId != SPA::sidHTTP || !m_pHttpContext)
+    if (ServiceId != (unsigned int)SPA::tagServiceID::sidHTTP || !m_pHttpContext)
         return BAD_OPERATION;
     if (m_pHttpContext->IsWebSocket() || m_pHttpContext->IsSpRequest())
         return BAD_OPERATION;
@@ -3874,7 +3874,7 @@ unsigned int CServerSession::SendChunk(const unsigned char *buffer, unsigned int
     if (!len)
         return 0;
     CAutoLock sl(m_mutex);
-    if (ServiceId != SPA::sidHTTP || !m_pHttpContext)
+    if (ServiceId != (unsigned int)SPA::tagServiceID::sidHTTP || !m_pHttpContext)
         return BAD_OPERATION;
     if (m_pHttpContext->IsWebSocket() || m_pHttpContext->IsSpRequest())
         return BAD_OPERATION;
@@ -3904,7 +3904,7 @@ unsigned int CServerSession::EndChunkResponse(const unsigned char *buffer, unsig
     if (!buffer)
         len = 0;
     CAutoLock sl(m_mutex);
-    if (ServiceId != SPA::sidHTTP || !m_pHttpContext)
+    if (ServiceId != (unsigned int)SPA::tagServiceID::sidHTTP || !m_pHttpContext)
         return BAD_OPERATION;
     if (m_pHttpContext->IsWebSocket() || m_pHttpContext->IsSpRequest())
         return BAD_OPERATION;
@@ -3972,14 +3972,14 @@ const char* CServerSession::GetHTTPHost() {
 SPA::ServerSide::tagTransport CServerSession::GetHTTPTransport() {
     CAutoLock sl(m_mutex);
     if (!m_pHttpContext)
-        return SPA::ServerSide::tUnknown;
+        return SPA::ServerSide::tagTransport::tUnknown;
     return m_pHttpContext->GetTransport();
 }
 
 SPA::ServerSide::tagTransferEncoding CServerSession::GetHTTPTransferEncoding() {
     CAutoLock sl(m_mutex);
     if (!m_pHttpContext)
-        return SPA::ServerSide::teUnknown;
+        return SPA::ServerSide::tagTransferEncoding::teUnknown;
     return m_pHttpContext->GetTE();
 
 }
@@ -3987,7 +3987,7 @@ SPA::ServerSide::tagTransferEncoding CServerSession::GetHTTPTransferEncoding() {
 SPA::ServerSide::tagContentMultiplax CServerSession::GetHTTPContentMultiplax() {
     CAutoLock sl(m_mutex);
     if (!m_pHttpContext)
-        return SPA::ServerSide::cmUnknown;
+        return SPA::ServerSide::tagContentMultiplax::cmUnknown;
     return m_pHttpContext->GetCM();
 }
 
@@ -4013,7 +4013,7 @@ bool CServerSession::SetHTTPResponseHeader(const char *uft8Header, const char *u
 unsigned int CServerSession::HTTPCallbackA(const char *name, const char *str, unsigned int chars) {
     unsigned int res = 0;
     CAutoLock sl(m_mutex);
-    if (ServiceId != SPA::sidHTTP)
+    if (ServiceId != (unsigned int)SPA::tagServiceID::sidHTTP)
         return BAD_OPERATION;
     if (m_pHttpContext && !m_pHttpContext->IsWebSocket()) {
         if (!m_pHttpContext->IsSpRequest())
@@ -4047,9 +4047,9 @@ unsigned int CServerSession::SendHTTPReturnDataA(const char *str, unsigned int c
     } else if (chars == (~0))
         chars = (unsigned int) ::strlen(str);
     CAutoLock sl(m_mutex);
-    if (ServiceId != SPA::sidHTTP)
+    if (ServiceId != (unsigned int)SPA::tagServiceID::sidHTTP)
         return BAD_OPERATION;
-    if (m_ReqInfo.RequestId > SPA::idReservedTwo) {
+    if (m_ReqInfo.RequestId > (unsigned short)SPA::tagBaseRequestID::idReservedTwo) {
         if (!m_pHttpContext || !m_pHttpContext->IsWebSocket())
             res = Connection::CConnectionContext::SendResult(m_ccb.Id, m_ReqInfo.RequestId, str, chars, (const char*) nullptr);
         else if (m_pHttpContext && m_pHttpContext->IsWebSocket()) {

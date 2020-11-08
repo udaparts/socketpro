@@ -13,7 +13,7 @@
 namespace SPA {
     namespace ClientSide {
 
-        enum tagPoolType {
+        enum class tagPoolType {
             Regular = 0,
             Slave = 1,
             Master = 2
@@ -31,7 +31,7 @@ namespace SPA {
             CPoolConfig()
             : SvsId(0), Threads(1), AutoConn(true), AutoMerge(false),
             RecvTimeout(DEFAULT_RECV_TIMEOUT), ConnTimeout(DEFAULT_CONN_TIMEOUT),
-            PoolType(Regular), m_errCode(0) {
+            PoolType(tagPoolType::Regular), m_errCode(0) {
             }
             unsigned int SvsId;
             std::vector<std::string> Hosts;
@@ -91,7 +91,7 @@ namespace SPA {
                     {
                         CSqlitePool *db;
                         switch (PoolType) {
-                            case Master:
+                            case tagPoolType::Master:
                                 if (midTier) {
                                     db = new CSQLMasterPool<true, CSqlitePool::Handler>(dfltDb.c_str(), RecvTimeout);
                                 } else {
@@ -100,7 +100,7 @@ namespace SPA {
                                 db->SetAutoConn(AutoConn);
                                 db->SetConnTimeout(ConnTimeout);
                                 break;
-                            case Slave:
+                            case tagPoolType::Slave:
                                 if (midTier) {
                                     db = new CSQLMasterPool<true, CSqlitePool::Handler>::CSlavePool(dfltDb.c_str(), RecvTimeout);
                                 } else {
@@ -137,7 +137,7 @@ namespace SPA {
                     {
                         CMysqlPool *db;
                         switch (PoolType) {
-                            case Master:
+                            case tagPoolType::Master:
                                 if (midTier) {
                                     db = new CSQLMasterPool<true, CMysqlPool::Handler>(dfltDb.c_str(), RecvTimeout);
                                 } else {
@@ -146,7 +146,7 @@ namespace SPA {
                                 db->SetAutoConn(AutoConn);
                                 db->SetConnTimeout(ConnTimeout);
                                 break;
-                            case Slave:
+                            case tagPoolType::Slave:
                                 if (midTier) {
                                     db = new CSQLMasterPool<true, CMysqlPool::Handler>::CSlavePool(dfltDb.c_str(), RecvTimeout);
                                 } else {
@@ -183,7 +183,7 @@ namespace SPA {
                     {
                         COdbcPool *db;
                         switch (PoolType) {
-                            case Master:
+                            case tagPoolType::Master:
                                 if (midTier) {
                                     db = new CSQLMasterPool<true, COdbcPool::Handler>(dfltDb.c_str(), RecvTimeout);
                                 } else {
@@ -192,7 +192,7 @@ namespace SPA {
                                 db->SetAutoConn(AutoConn);
                                 db->SetConnTimeout(ConnTimeout);
                                 break;
-                            case Slave:
+                            case tagPoolType::Slave:
                                 if (midTier) {
                                     db = new CSQLMasterPool<true, COdbcPool::Handler>::CSlavePool(dfltDb.c_str(), RecvTimeout);
                                 } else {
@@ -275,7 +275,7 @@ namespace SPA {
                     {
                         CMyPool *db;
                         switch (PoolType) {
-                            case Master:
+                            case tagPoolType::Master:
                                 if (midTier) {
                                     db = new CMasterPool<true, CMyPool::Handler>(dfltDb.c_str(), RecvTimeout, SvsId);
                                 } else {
@@ -284,7 +284,7 @@ namespace SPA {
                                 db->SetAutoConn(AutoConn);
                                 db->SetConnTimeout(ConnTimeout);
                                 break;
-                            case Slave:
+                            case tagPoolType::Slave:
                                 if (midTier) {
                                     db = new CMasterPool<true, CMyPool::Handler>::CSlavePool(dfltDb.c_str(), RecvTimeout, SvsId);
                                 } else {

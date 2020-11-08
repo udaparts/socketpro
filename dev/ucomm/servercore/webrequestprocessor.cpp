@@ -308,15 +308,15 @@ namespace UHTTP {
         SPA::CStreamHeader reqInfo;
         switch (ur.SpRequest) {
             case srPing:
-                reqInfo.RequestId = SPA::idPing;
+                reqInfo.RequestId = (unsigned short)SPA::tagBaseRequestID::idPing;
                 break;
             case srExit:
                 q << ur.CallIndex;
                 q << ur.ErrCode;
-                reqInfo.RequestId = SPA::idExit;
+                reqInfo.RequestId = (unsigned short)SPA::tagChatRequestID::idExit;
                 break;
             case srEnter:
-                reqInfo.RequestId = SPA::idEnter;
+                reqInfo.RequestId = (unsigned short)SPA::tagChatRequestID::idEnter;
                 MakeForEnter(ur, q);
             {
                 SPA::CScopeUQueue su;
@@ -326,7 +326,7 @@ namespace UHTTP {
             }
                 break;
             case srSpeak:
-                reqInfo.RequestId = SPA::idSpeak;
+                reqInfo.RequestId = (unsigned short)SPA::tagChatRequestID::idSpeak;
                 MakeForSpeak(ur, q);
             {
                 SPA::CScopeUQueue su;
@@ -336,7 +336,7 @@ namespace UHTTP {
             }
                 break;
             case srSendUserMessage:
-                reqInfo.RequestId = SPA::idSendUserMessage;
+                reqInfo.RequestId = (unsigned short)SPA::tagChatRequestID::idSendUserMessage;
                 MakeForSendUserMessage(ur, q);
             {
                 SPA::CScopeUQueue su;
@@ -346,10 +346,10 @@ namespace UHTTP {
             }
                 break;
             case srSwitchTo:
-                reqInfo.RequestId = SPA::idSwitchTo;
+                reqInfo.RequestId = (unsigned short)SPA::tagBaseRequestID::idSwitchTo;
                 break;
             case srRequest:
-                reqInfo.RequestId = SPA::ServerSide::idUserRequest;
+                reqInfo.RequestId = (unsigned short)SPA::ServerSide::tagHttpRequestID::idUserRequest;
                 MakeForDoRequest(ur, q);
             {
                 SPA::CScopeUQueue su;
@@ -359,7 +359,7 @@ namespace UHTTP {
             }
                 break;
             case srClose:
-                reqInfo.RequestId = SPA::idHttpClose;
+                reqInfo.RequestId = (unsigned short)SPA::tagBaseRequestID::idHttpClose;
                 break;
             default:
                 assert(false);
@@ -489,7 +489,7 @@ namespace UHTTP {
     CJavaScriptRequestProcessor::CJavaScriptRequestProcessor(CHttpContext *pHttpContext)
     : CWebRequestProcessor(pHttpContext) {
         assert(pHttpContext);
-        assert(pHttpContext->GetTransport() == SPA::ServerSide::tScript);
+        assert(pHttpContext->GetTransport() == SPA::ServerSide::tagTransport::tScript);
     }
 
     const UHttpRequest& CJavaScriptRequestProcessor::Parse() {
@@ -512,7 +512,7 @@ namespace UHTTP {
     CAjaxRequestProcessor::CAjaxRequestProcessor(CHttpContext *pHttpContext)
     : CWebRequestProcessor(pHttpContext) {
         assert(pHttpContext);
-        assert(pHttpContext->GetTransport() == SPA::ServerSide::tAjax);
+        assert(pHttpContext->GetTransport() == SPA::ServerSide::tagTransport::tAjax);
     }
 
     const UHttpRequest& CAjaxRequestProcessor::Parse() {

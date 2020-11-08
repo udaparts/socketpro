@@ -4,7 +4,7 @@
 extern SPA::CUCriticalSection g_mutex;
 
 class CHttpPeer : public SPA::ServerSide::CHttpPeerBase {
-    static const unsigned short MY_MAKE_REQUEST_ID = SPA::idReservedTwo + 1;
+    static const unsigned short MY_MAKE_REQUEST_ID = (unsigned short)SPA::tagBaseRequestID::idReservedTwo + 1;
 
 protected:
 
@@ -75,11 +75,11 @@ protected:
                 assert(true);
                 MyMakeRequest();
                 break;
-            case SPA::ServerSide::idDelete:
-            case SPA::ServerSide::idPut:
-            case SPA::ServerSide::idTrace:
-            case SPA::ServerSide::idOptions:
-            case SPA::ServerSide::idHead:
+			case (unsigned short)SPA::ServerSide::tagHttpRequestID::idDelete:
+            case (unsigned short)SPA::ServerSide::tagHttpRequestID::idPut:
+            case (unsigned short)SPA::ServerSide::tagHttpRequestID::idTrace:
+            case (unsigned short)SPA::ServerSide::tagHttpRequestID::idOptions:
+            case (unsigned short)SPA::ServerSide::tagHttpRequestID::idHead:
             {
                 unsigned int res = SendResult("");
                 res = 0;
@@ -97,7 +97,7 @@ protected:
         bool fake = IsFakeRequest();
         assert(!fake);
         switch (requestId) {
-            case SPA::ServerSide::idGet:
+            case (unsigned short)SPA::ServerSide::tagHttpRequestID::idGet:
             {
                 const char *path = GetPath();
                 if (chunkedTest == path) {
@@ -119,7 +119,7 @@ protected:
                 }
             }
                 break;
-            case SPA::ServerSide::idPost:
+            case (unsigned short)SPA::ServerSide::tagHttpRequestID::idPost:
             {
                 const char *path = GetPath();
                 const std::string &RequestName = GetUserRequestName();
@@ -128,7 +128,7 @@ protected:
                 res = 0;
             }
                 break;
-            case SPA::ServerSide::idUserRequest:
+            case (unsigned short)SPA::ServerSide::tagHttpRequestID::idUserRequest:
             {
                 const std::string &RequestName = GetUserRequestName();
                 const std::vector<SPA::UVariant> &args = GetArgs();

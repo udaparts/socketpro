@@ -38,7 +38,7 @@ public:
             if (!ok)
                 break;
 
-            ok = m_CEchoBasic.AddMe(sidCEchoBasic, taNone);
+            ok = m_CEchoBasic.AddMe(sidCEchoBasic, tagThreadApartment::taNone);
             if (!ok)
                 break;
 
@@ -67,23 +67,23 @@ public:
             ok = m_myService.AddSlowRequest(idDequeue);
             if (!ok)
                 break;
-            ok = m_myHttp.AddMe(SPA::sidHTTP);
+            ok = m_myHttp.AddMe((unsigned int)SPA::tagServiceID::sidHTTP);
             if (!ok)
                 break;
-            ok = m_myHttp.AddSlowRequest(SPA::ServerSide::idGet);
+            ok = m_myHttp.AddSlowRequest((unsigned short)SPA::ServerSide::tagHttpRequestID::idGet);
             if (!ok)
                 break;
-            ok = m_myHttp.AddSlowRequest(SPA::ServerSide::idPost);
+            ok = m_myHttp.AddSlowRequest((unsigned short)SPA::ServerSide::tagHttpRequestID::idPost);
             if (!ok)
                 break;
-            ok = m_myHttp.AddSlowRequest(SPA::ServerSide::idMultiPart);
+            ok = m_myHttp.AddSlowRequest((unsigned short)SPA::ServerSide::tagHttpRequestID::idMultiPart);
             if (!ok)
                 break;
-            ok = m_myHttp.AddSlowRequest(SPA::ServerSide::idUserRequest);
+            ok = m_myHttp.AddSlowRequest((unsigned short)SPA::ServerSide::tagHttpRequestID::idUserRequest);
             if (!ok)
                 break;
 
-            ok = m_Push.AddMe(SPA::sidChat);
+            ok = m_Push.AddMe((unsigned int)SPA::tagServiceID::sidChat);
             if (!ok)
                 break;
         } while (false);

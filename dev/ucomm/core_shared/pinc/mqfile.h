@@ -215,7 +215,7 @@ namespace MQ_FILE {
 
         unsigned int PeekRequests(SPA::CQueuedRequestInfo *qri, unsigned int count);
 
-        void StopQueue(SPA::tagQueueStatus = SPA::qsNormal);
+        void StopQueue(SPA::tagQueueStatus = SPA::tagQueueStatus::qsNormal);
 
         SPA::tagQueueStatus GetQueueOpenStatus() const;
 

@@ -24,7 +24,7 @@ inline CClientSession *MapHandleToClientSession(USocket_Client_Handle h) {
     return (CClientSession*) h;
 }
 
-std::string g_strVersion("6.3.1.8");
+std::string g_strVersion("6.3.1.9");
 
 const char* WINAPI GetUClientSocketVersion() {
     return g_strVersion.c_str();
@@ -78,7 +78,7 @@ SPA::tagEncryptionMethod WINAPI GetEncryptionMethod(USocket_Client_Handle h) {
     CClientSession *p = MapHandleToClientSession(h);
     if (p)
         return p->GetEncryptionMethod();
-    return SPA::NoEncryption;
+    return SPA::tagEncryptionMethod::NoEncryption;
 }
 
 int WINAPI GetErrorCode(USocket_Client_Handle h) {
@@ -271,7 +271,7 @@ unsigned int WINAPI GetCurrentServiceId(USocket_Client_Handle h) {
     CClientSession *p = MapHandleToClientSession(h);
     if (p)
         return p->GetCurrentServiceId();
-    return SPA::sidStartup;
+    return (unsigned int)SPA::tagServiceID::sidStartup;
 }
 
 void WINAPI SetClientInfo(USocket_Client_Handle h, SPA::CSwitchInfo si) {
@@ -382,7 +382,7 @@ SPA::tagZipLevel WINAPI GetZipLevel(USocket_Client_Handle h) {
     CClientSession *p = MapHandleToClientSession(h);
     if (p)
         return p->GetZipLevel();
-    return SPA::zlDefault;
+    return SPA::tagZipLevel::zlDefault;
 }
 
 bool WINAPI StartQueue(USocket_Client_Handle h, const char *qName, bool secure, bool dequeueShared, unsigned int ttl) {
@@ -674,7 +674,7 @@ SPA::tagOptimistic WINAPI GetOptimistic(USocket_Client_Handle h) {
     CClientSession *cs = MapHandleToClientSession(h);
     if (cs)
         return cs->GetOptimistic();
-    return SPA::oSystemMemoryCached;
+    return SPA::tagOptimistic::oSystemMemoryCached;
 }
 
 const unsigned char* WINAPI GetResultBuffer(USocket_Client_Handle h) {
@@ -965,7 +965,7 @@ SPA::UINT64 WINAPI GetLastQueueMessageTime(USocket_Client_Handle h) {
 SPA::ClientSide::tagConnectionState WINAPI GetConnectionState(USocket_Client_Handle h) {
     CClientSession *cs = MapHandleToClientSession(h);
     if (!cs)
-        return SPA::ClientSide::csClosed;
+        return SPA::ClientSide::tagConnectionState::csClosed;
     return cs->GetConnectionState();
 }
 
@@ -1007,10 +1007,10 @@ SPA::UINT64 WINAPI RemoveQueuedRequestsByTTL(USocket_Client_Handle h) {
 SPA::tagQueueStatus WINAPI GetClientQueueStatus(USocket_Client_Handle h) {
     CClientSession *cs = MapHandleToClientSession(h);
     if (!cs)
-        return SPA::qsNormal;
+        return SPA::tagQueueStatus::qsNormal;
     MQ_FILE::CFilePtr q = cs->GetQueue();
     if (!q)
-        return SPA::qsNormal;
+        return SPA::tagQueueStatus::qsNormal;
     return q->GetQueueOpenStatus();
 }
 
