@@ -42,41 +42,41 @@ namespace PA
         handler.property("idParameterPosition", SPA::UDB::idParameterPosition, Php::Const);
 
         //tagManagementSystem
-        handler.property("Unknown", (int)SPA::UDB::tagManagementSystem::msUnknown, Php::Const);
-        handler.property("Sqlite", (int)SPA::UDB::tagManagementSystem::msSqlite, Php::Const);
-        handler.property("Mysql", (int)SPA::UDB::tagManagementSystem::msMysql, Php::Const);
-        handler.property("ODBC", (int)SPA::UDB::tagManagementSystem::msODBC, Php::Const);
-        handler.property("MsSQL", (int)SPA::UDB::tagManagementSystem::msMsSQL, Php::Const);
-        handler.property("Oracle", (int)SPA::UDB::tagManagementSystem::msOracle, Php::Const);
-        handler.property("DB2", (int)SPA::UDB::tagManagementSystem::msDB2, Php::Const);
-        handler.property("PostgreSQL", (int)SPA::UDB::tagManagementSystem::msPostgreSQL, Php::Const);
-        handler.property("MongoDB", (int)SPA::UDB::tagManagementSystem::msMongoDB, Php::Const);
+        handler.property("Unknown", (int) SPA::UDB::tagManagementSystem::msUnknown, Php::Const);
+        handler.property("Sqlite", (int) SPA::UDB::tagManagementSystem::msSqlite, Php::Const);
+        handler.property("Mysql", (int) SPA::UDB::tagManagementSystem::msMysql, Php::Const);
+        handler.property("ODBC", (int) SPA::UDB::tagManagementSystem::msODBC, Php::Const);
+        handler.property("MsSQL", (int) SPA::UDB::tagManagementSystem::msMsSQL, Php::Const);
+        handler.property("Oracle", (int) SPA::UDB::tagManagementSystem::msOracle, Php::Const);
+        handler.property("DB2", (int) SPA::UDB::tagManagementSystem::msDB2, Php::Const);
+        handler.property("PostgreSQL", (int) SPA::UDB::tagManagementSystem::msPostgreSQL, Php::Const);
+        handler.property("MongoDB", (int) SPA::UDB::tagManagementSystem::msMongoDB, Php::Const);
 
         //tagTransactionIsolation
-        handler.property("tiUnspecified", (int)SPA::UDB::tagTransactionIsolation::tiUnspecified, Php::Const);
-        handler.property("tiChaos", (int)SPA::UDB::tagTransactionIsolation::tiChaos, Php::Const);
-        handler.property("tiReadUncommited", (int)SPA::UDB::tagTransactionIsolation::tiReadUncommited, Php::Const);
-        handler.property("tiBrowse", (int)SPA::UDB::tagTransactionIsolation::tiBrowse, Php::Const);
-        handler.property("tiCursorStability", (int)SPA::UDB::tagTransactionIsolation::tiCursorStability, Php::Const);
-        handler.property("tiReadCommited", (int)SPA::UDB::tagTransactionIsolation::tiReadCommited, Php::Const);
-        handler.property("tiRepeatableRead", (int)SPA::UDB::tagTransactionIsolation::tiRepeatableRead, Php::Const);
-        handler.property("tiSerializable", (int)SPA::UDB::tagTransactionIsolation::tiSerializable, Php::Const);
-        handler.property("tiIsolated", (int)SPA::UDB::tagTransactionIsolation::tiIsolated, Php::Const);
+        handler.property("tiUnspecified", (int) SPA::UDB::tagTransactionIsolation::tiUnspecified, Php::Const);
+        handler.property("tiChaos", (int) SPA::UDB::tagTransactionIsolation::tiChaos, Php::Const);
+        handler.property("tiReadUncommited", (int) SPA::UDB::tagTransactionIsolation::tiReadUncommited, Php::Const);
+        handler.property("tiBrowse", (int) SPA::UDB::tagTransactionIsolation::tiBrowse, Php::Const);
+        handler.property("tiCursorStability", (int) SPA::UDB::tagTransactionIsolation::tiCursorStability, Php::Const);
+        handler.property("tiReadCommited", (int) SPA::UDB::tagTransactionIsolation::tiReadCommited, Php::Const);
+        handler.property("tiRepeatableRead", (int) SPA::UDB::tagTransactionIsolation::tiRepeatableRead, Php::Const);
+        handler.property("tiSerializable", (int) SPA::UDB::tagTransactionIsolation::tiSerializable, Php::Const);
+        handler.property("tiIsolated", (int) SPA::UDB::tagTransactionIsolation::tiIsolated, Php::Const);
 
         //tagRollbackPlan
-        handler.property("rpDefault", (int)SPA::UDB::tagRollbackPlan::rpDefault, Php::Const);
-        handler.property("rpRollbackErrorAny", (int)SPA::UDB::tagRollbackPlan::rpRollbackErrorAny, Php::Const);
-        handler.property("rpRollbackErrorLess", (int)SPA::UDB::tagRollbackPlan::rpRollbackErrorLess, Php::Const);
-        handler.property("rpRollbackErrorEqual", (int)SPA::UDB::tagRollbackPlan::rpRollbackErrorEqual, Php::Const);
-        handler.property("rpRollbackErrorMore", (int)SPA::UDB::tagRollbackPlan::rpRollbackErrorMore, Php::Const);
-        handler.property("rpRollbackErrorAll", (int)SPA::UDB::tagRollbackPlan::rpRollbackErrorAll, Php::Const);
-        handler.property("rpRollbackAlways", (int)SPA::UDB::tagRollbackPlan::rpRollbackAlways, Php::Const);
+        handler.property("rpDefault", (int) SPA::UDB::tagRollbackPlan::rpDefault, Php::Const);
+        handler.property("rpRollbackErrorAny", (int) SPA::UDB::tagRollbackPlan::rpRollbackErrorAny, Php::Const);
+        handler.property("rpRollbackErrorLess", (int) SPA::UDB::tagRollbackPlan::rpRollbackErrorLess, Php::Const);
+        handler.property("rpRollbackErrorEqual", (int) SPA::UDB::tagRollbackPlan::rpRollbackErrorEqual, Php::Const);
+        handler.property("rpRollbackErrorMore", (int) SPA::UDB::tagRollbackPlan::rpRollbackErrorMore, Php::Const);
+        handler.property("rpRollbackErrorAll", (int) SPA::UDB::tagRollbackPlan::rpRollbackErrorAll, Php::Const);
+        handler.property("rpRollbackAlways", (int) SPA::UDB::tagRollbackPlan::rpRollbackAlways, Php::Const);
 
         //tagUpdateEvent
-        handler.property("ueUnknown", (int)SPA::UDB::tagUpdateEvent::ueUnknown, Php::Const);
-        handler.property("ueInsert", (int)SPA::UDB::tagUpdateEvent::ueInsert, Php::Const);
-        handler.property("ueUpdate", (int)SPA::UDB::tagUpdateEvent::ueUpdate, Php::Const);
-        handler.property("ueDelete", (int)SPA::UDB::tagUpdateEvent::ueDelete, Php::Const);
+        handler.property("ueUnknown", (int) SPA::UDB::tagUpdateEvent::ueUnknown, Php::Const);
+        handler.property("ueInsert", (int) SPA::UDB::tagUpdateEvent::ueInsert, Php::Const);
+        handler.property("ueUpdate", (int) SPA::UDB::tagUpdateEvent::ueUpdate, Php::Const);
+        handler.property("ueDelete", (int) SPA::UDB::tagUpdateEvent::ueDelete, Php::Const);
 
         //DB Column info tags
         handler.property("NOT_NULL", (int64_t) SPA::UDB::CDBColumnInfo::FLAG_NOT_NULL, Php::Const);
@@ -403,7 +403,7 @@ namespace PA
     Php::Value CPhpDb::ExecuteBatch(Php::Parameters & params) {
         unsigned int timeout = (~0);
         int64_t iso = params[0].numericValue();
-        if (iso < (int)SPA::UDB::tagTransactionIsolation::tiUnspecified || iso > (int)SPA::UDB::tagTransactionIsolation::tiIsolated) {
+        if (iso < (int) SPA::UDB::tagTransactionIsolation::tiUnspecified || iso > (int) SPA::UDB::tagTransactionIsolation::tiIsolated) {
             throw Php::Exception("Bad transaction isolation value");
         }
         SPA::UDB::tagTransactionIsolation ti = (SPA::UDB::tagTransactionIsolation)iso;
@@ -440,8 +440,7 @@ namespace PA
                     throw Php::Exception("Delimiter string cannot be empty");
                 }
                 delimiter = SPA::Utilities::ToUTF16(s);
-            }
-            else if (!params[6].isNull()) {
+            } else if (!params[6].isNull()) {
                 throw Php::Exception("A string required for delimiter");
             }
         }
@@ -460,11 +459,9 @@ namespace PA
         if (args > 9) {
             if (params[9].isBool()) {
                 meta = params[9].boolValue();
-            }
-            else if (params[9].isNumeric()) {
+            } else if (params[9].isNumeric()) {
                 meta = (params[9].numericValue() != 0);
-            }
-            else if (!params[9].isNull()) {
+            } else if (!params[9].isNull()) {
                 throw Php::Exception("A boolean required for ExecuteBatch meta");
             }
         }
@@ -472,7 +469,7 @@ namespace PA
         if (args > 10) {
             if (params[10].isNumeric()) {
                 int64_t p = params[10].numericValue();
-                if (p < (int)SPA::UDB::tagRollbackPlan::rpDefault || p > (int)SPA::UDB::tagRollbackPlan::rpRollbackAlways) {
+                if (p < (int) SPA::UDB::tagRollbackPlan::rpDefault || p > (int) SPA::UDB::tagRollbackPlan::rpRollbackAlways) {
                     throw Php::Exception("Bad rollback plan value");
                 }
                 plan = (SPA::UDB::tagRollbackPlan)p;
@@ -493,11 +490,9 @@ namespace PA
         if (args > 12) {
             if (params[12].isBool()) {
                 lastInsertId = params[12].boolValue();
-            }
-            else if (params[12].isNumeric()) {
+            } else if (params[12].isNumeric()) {
                 lastInsertId = (params[12].numericValue() != 0);
-            }
-            else if (!params[12].isNull()) {
+            } else if (!params[12].isNull()) {
                 throw Php::Exception("A boolean required for ExecuteBatch lastInsertId");
             }
         }
@@ -647,7 +642,7 @@ namespace PA
         size_t args = params.size();
         if (args > 0) {
             int64_t iso = params[0].numericValue();
-            if (iso < (int)SPA::UDB::tagTransactionIsolation::tiUnspecified || iso > (int)SPA::UDB::tagTransactionIsolation::tiIsolated) {
+            if (iso < (int) SPA::UDB::tagTransactionIsolation::tiUnspecified || iso > (int) SPA::UDB::tagTransactionIsolation::tiIsolated) {
                 throw Php::Exception("Bad transaction isolation value");
             }
             ti = (SPA::UDB::tagTransactionIsolation)iso;
@@ -679,7 +674,7 @@ namespace PA
         size_t args = params.size();
         if (args > 0) {
             int64_t plan = params[0].numericValue();
-            if (plan < (int)SPA::UDB::tagRollbackPlan::rpDefault || plan > (int)SPA::UDB::tagRollbackPlan::rpRollbackAlways) {
+            if (plan < (int) SPA::UDB::tagRollbackPlan::rpDefault || plan > (int) SPA::UDB::tagRollbackPlan::rpRollbackAlways) {
                 throw Php::Exception("Bad rollback plan value");
             }
             p = (SPA::UDB::tagRollbackPlan)plan;
@@ -715,7 +710,7 @@ namespace PA
         } else if (name == "LastAffected") {
             return m_db->GetLastAffected();
         } else if (name == "DBMS" || name == "DBManagementSystem") {
-            return (int)m_db->GetDBManagementSystem();
+            return (int) m_db->GetDBManagementSystem();
         } else if (name == "Error" || name == "DBError" || name == "LastDBError") {
             Php::Value dbErr;
             dbErr.set(PHP_ERR_CODE, m_db->GetLastDBErrorCode());

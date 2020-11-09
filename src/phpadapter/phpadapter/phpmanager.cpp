@@ -79,24 +79,24 @@ namespace PA
                 return;
             }
             switch (psc.SvsId) {
-                case (unsigned int)SPA::tagServiceID::sidChat:
+                case (unsigned int) SPA::tagServiceID::sidChat:
                     if (psc.DefaultDb.size() || psc.Slaves.size()) {
                         m_errMsg = "Server queue service does not support master or slave pool";
                         return;
                     }
                     break;
-                case (unsigned int)SPA::tagServiceID::sidFile:
+                case (unsigned int) SPA::tagServiceID::sidFile:
                     if (psc.DefaultDb.size() || psc.Slaves.size()) {
                         m_errMsg = "Remote file service does not support master or slave pool";
                         return;
                     }
                     break;
-                case (unsigned int)SPA::tagServiceID::sidODBC:
+                case (unsigned int) SPA::tagServiceID::sidODBC:
                 case SPA::Mysql::sidMysql:
                 case SPA::Sqlite::sidSqlite:
                     break;
                 default:
-                    if (psc.SvsId <= (unsigned int)SPA::tagServiceID::sidReserved) {
+                    if (psc.SvsId <= (unsigned int) SPA::tagServiceID::sidReserved) {
                         m_errMsg = "Bad Service identification number found";
                         return;
                     }
@@ -287,12 +287,12 @@ namespace PA
                     obj.AddMember(KEY_CONN_TIMEOUT, psc.RecvTimeout, allocator);
                     s.SetString(psc.DefaultDb.c_str(), (rapidjson::SizeType)psc.DefaultDb.size(), allocator);
                     obj.AddMember(KEY_DEFAULT_DB, s, allocator);
-                    obj.AddMember(KEY_POOL_TYPE, (int)psc.PoolType, allocator);
+                    obj.AddMember(KEY_POOL_TYPE, (int) psc.PoolType, allocator);
                     vS.AddMember(key, obj, allocator);
                 }
                 objMain.AddMember(KEY_SLAVES, vS, allocator);
             }
-            objMain.AddMember(KEY_POOL_TYPE, (int)pscMain.PoolType, allocator);
+            objMain.AddMember(KEY_POOL_TYPE, (int) pscMain.PoolType, allocator);
             vP.AddMember(key, objMain, allocator);
         }
         doc.AddMember(KEY_POOLS, vP, allocator);
@@ -603,7 +603,7 @@ namespace PA
         for (auto &p : Pools) {
             CPoolStartContext &psc = p.second;
             psc.AutoConn = true; //set autoconn to true for now
-            if (psc.SvsId == (unsigned int)SPA::tagServiceID::sidChat || psc.SvsId == (unsigned int)SPA::tagServiceID::sidFile) {
+            if (psc.SvsId == (unsigned int) SPA::tagServiceID::sidChat || psc.SvsId == (unsigned int) SPA::tagServiceID::sidFile) {
                 //don't support master/slave at all
                 psc.Slaves.clear();
                 psc.DefaultDb.clear();
