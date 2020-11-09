@@ -87,14 +87,14 @@ m_bZip(false),
 m_nRequestCount(0),
 m_nRequestCountLast(0),
 m_ulTimerElapse(DefaultTimerElapse),
-m_EncryptionMethod(SPA::NoEncryption),
+m_EncryptionMethod(SPA::tagEncryptionMethod::NoEncryption),
 m_ulMinSwitchTime(DefaultMinSwitchTime),
 m_ulRecycleGlobalMemoryInterval(DefaultRecycleGlobalMemoryInterval),
 m_ulPingInterval(DefaultPingInterval),
 m_ulSMInterval(DefaultSMInterval),
 m_ulMaxConnectionsPerClient(DefaultMaxConnectionsPerClient),
 m_ulMaxThreadIdleTimeBeforeSuicide(DefaultMaxThreadIdleTimeBeforeSuicide),
-m_am(SPA::ServerSide::amOwn),
+m_am(SPA::ServerSide::tagAuthenticationMethod::amOwn),
 m_bSharedAM(false),
 m_pOnAccept(nullptr),
 m_nConnIndex(0),
@@ -290,9 +290,9 @@ std::vector<CServiceContext*>::iterator CServer::SeekSC(unsigned int nServiceId)
 }
 
 bool CServer::SetRouting(unsigned int serviceId0, SPA::ServerSide::tagRoutingAlgorithm ra0, unsigned int serviceId1, SPA::ServerSide::tagRoutingAlgorithm ra1) {
-    if (serviceId0 <= SPA::sidHTTP)
+    if (serviceId0 <= (unsigned int) SPA::tagServiceID::sidHTTP)
         return false;
-    if (serviceId1 <= SPA::sidHTTP)
+    if (serviceId1 <= (unsigned int) SPA::tagServiceID::sidHTTP)
         return false;
     if (serviceId0 == serviceId1)
         return false;
@@ -351,7 +351,7 @@ void CServer::RemoveASvsContext(unsigned int nServiceId) {
 }
 
 bool CServer::AddSlowRequest(unsigned int nServiceId, unsigned short sReqId) {
-    if (sReqId <= SPA::idSendUserMessageEx)
+    if (sReqId <= (unsigned short) SPA::tagChatRequestID::idSendUserMessageEx)
         return false;
     CAutoLock sl(m_mutexSC);
     std::vector<CServiceContext*>::iterator it = SeekSC(nServiceId);
@@ -361,7 +361,7 @@ bool CServer::AddSlowRequest(unsigned int nServiceId, unsigned short sReqId) {
 }
 
 bool CServer::AddAlphaRequest(unsigned int serviceId, unsigned short reqId) {
-    if (reqId <= SPA::idStopQueue)
+    if (reqId <= (unsigned short) SPA::tagBaseRequestID::idStopQueue)
         return false;
     CAutoLock sl(m_mutexSC);
     std::vector<CServiceContext*>::iterator it = SeekSC(serviceId);
@@ -496,11 +496,11 @@ bool CServer::RemoveALibrary(HINSTANCE hLib) {
 }
 
 bool CServer::AddSvsContext(unsigned int nServiceId, CSvsContext SvsContext) {
-    if (nServiceId != SPA::sidChat &&
-            nServiceId != SPA::sidHTTP &&
-            nServiceId != SPA::sidFile &&
-            nServiceId != SPA::sidODBC &&
-            nServiceId < SPA::sidReserved)
+    if (nServiceId != (unsigned int) SPA::tagServiceID::sidChat &&
+            nServiceId != (unsigned int) SPA::tagServiceID::sidHTTP &&
+            nServiceId != (unsigned int) SPA::tagServiceID::sidFile &&
+            nServiceId != (unsigned int) SPA::tagServiceID::sidODBC &&
+            nServiceId < (unsigned int) SPA::tagServiceID::sidReserved)
         return false;
     CAutoLock sl(m_mutexSC);
     std::vector<CServiceContext*>::iterator it = SeekSC(nServiceId);
@@ -577,7 +577,7 @@ unsigned int CServer::GetServices(unsigned int *pServiceId, unsigned int count) 
 void CServer::PutThreadBackIntoPool(CServerThread *pThread) {
     if (pThread == nullptr)
         return;
-    if (pThread->GetThreadApartment() == SPA::taApartment) {
+    if (pThread->GetThreadApartment() == SPA::tagThreadApartment::taNone) {
         delete pThread;
         return;
     }
@@ -605,7 +605,7 @@ void CServer::RemoveThread(CServerThread *pThread) {
 
 CServerThread *CServer::GetOneThread(SPA::tagThreadApartment ta) {
     CServerThread *p = nullptr;
-    if (ta != SPA::taApartment) {
+    if (ta != SPA::tagThreadApartment::taNone) {
         int n, size;
         SPA::CSpinAutoLock sl(m_mTP);
         size = (int) m_vThreadPool.size();
@@ -763,7 +763,7 @@ void CServer::StartSubThread() {
         m_vMainThread.push_back(pthread_self());
     }
     for (auto it = g_vThreadEvent.begin(), end = g_vThreadEvent.end(); it != end; ++it) {
-        (*it)(SPA::ServerSide::teStarted);
+        (*it)(SPA::ServerSide::tagThreadEvent::teStarted);
     }
     try{
         m_IoService.run(m_ec);
@@ -793,7 +793,7 @@ void CServer::StartSubThread() {
         //#endif
     }
     for (auto it = g_vThreadEvent.begin(), end = g_vThreadEvent.end(); it != end; ++it) {
-        (*it)(SPA::ServerSide::teKilling);
+        (*it)(SPA::ServerSide::tagThreadEvent::teKilling);
     }
 #ifdef WIN32_64
     if (bCOM)
@@ -818,7 +818,7 @@ void CServer::StartIOPumpInternal() {
 
 #endif
     for (auto it = g_vThreadEvent.begin(), end = g_vThreadEvent.end(); it != end; ++it) {
-        (*it)(SPA::ServerSide::teStarted);
+        (*it)(SPA::ServerSide::tagThreadEvent::teStarted);
     }
     {
         CAutoLock al(m_mutex);
@@ -893,7 +893,7 @@ void CServer::StartIOPumpInternal() {
     catch(...) {
     }
     for (auto it = g_vThreadEvent.begin(), end = g_vThreadEvent.end(); it != end; ++it) {
-        (*it)(SPA::ServerSide::teKilling);
+        (*it)(SPA::ServerSide::tagThreadEvent::teKilling);
     }
     g_vThreadEvent.clear();
 #ifdef WIN32_64
@@ -931,7 +931,7 @@ void CServer::HandleSlowSwitchInternal(SPA::UINT64 tNow, std::vector<CServerSess
         if (p->GetLatestTime() + m_ulMinSwitchTime < tNow) {
             unsigned int sid = p->GetSvsID();
             switch (sid) {
-                case SPA::sidStartup:
+                case (unsigned int) SPA::tagServiceID::sidStartup:
                     p->PostClose(0); //????? set timeout
                     break;
                 default:
@@ -959,13 +959,13 @@ void CServer::HandleServerPingInternal(SPA::UINT64 tNow, std::vector<CServerSess
             }
             unsigned int sid = p->GetSvsID();
             switch (sid) {
-                case SPA::sidStartup:
+                case (unsigned int) SPA::tagServiceID::sidStartup:
                     break;
-                case SPA::sidHTTP:
+                case (unsigned int) SPA::tagServiceID::sidHTTP:
                     p->PostClose(0); //????? set timeout
                     break;
                 default:
-                    p->SendReturnDataInternal(SPA::idPing, nullptr, 0);
+                    p->SendReturnDataInternal((unsigned short) SPA::tagBaseRequestID::idPing, nullptr, 0);
                     break;
             }
         }
@@ -982,7 +982,7 @@ void CServer::OnTimerSM(const CErrorCode& Error) {
             CServerSession *p = aSession[n];
             unsigned int sid = p->GetSvsID();
             switch (sid) {
-                case SPA::sidStartup:
+                case (unsigned int) SPA::tagServiceID::sidStartup:
                     break;
                 default:
                     //p->ShrinkMemory(); //may deadlock
@@ -1128,7 +1128,7 @@ void CServer::PostSproMessage(SPA::CUThreadMessage message) {
 
 bool CServer::IsSsl() {
     switch (m_EncryptionMethod) {
-        case SPA::TLSv1:
+        case SPA::tagEncryptionMethod::TLSv1:
             return true;
             break;
         default:
@@ -1467,7 +1467,7 @@ bool CServer::Enter(CServerSession *pSession, const unsigned int *pChatGroupId, 
         p->m_mutex.unlock();
         unsigned int count = (unsigned int) vChatGroup.size();
         if (count > 0) {
-            if (p->GetSvsID() == SPA::sidHTTP) {
+            if (p->GetSvsID() == (unsigned int) SPA::tagServiceID::sidHTTP) {
                 CAutoLock al(p->m_mutex);
                 if (p->m_pHttpContext) {
                     UHTTP::CWebResponseProcessor *pWebResponseProcessor = p->m_pHttpContext->GetWebResponseProcessor();
@@ -1483,7 +1483,7 @@ bool CServer::Enter(CServerSession *pSession, const unsigned int *pChatGroupId, 
                     }
                 }
             } else
-                p->SendChatResult(ipAddrSender.c_str(), portSender, strUserID, ServiceId, SPA::idEnter, (const unsigned char*) vChatGroup.data(), count * sizeof (unsigned int));
+                p->SendChatResult(ipAddrSender.c_str(), portSender, strUserID, ServiceId, (unsigned short) SPA::tagChatRequestID::idEnter, (const unsigned char*) vChatGroup.data(), count * sizeof (unsigned int));
         }
     }
     return true;
@@ -1512,7 +1512,7 @@ void CServer::Exit(CServerSession *pSession, const unsigned int *pChatGroupId, u
         p->m_mutex.unlock();
         unsigned int count = (unsigned int) vChatGroup.size();
         if (count > 0) {
-            if (p->GetSvsID() == SPA::sidHTTP) {
+            if (p->GetSvsID() == (unsigned int) SPA::tagServiceID::sidHTTP) {
                 CAutoLock al(p->m_mutex);
                 if (p->m_pHttpContext) {
                     UHTTP::CWebResponseProcessor *pWebResponseProcessor = p->m_pHttpContext->GetWebResponseProcessor();
@@ -1528,7 +1528,7 @@ void CServer::Exit(CServerSession *pSession, const unsigned int *pChatGroupId, u
                     }
                 }
             } else
-                p->SendChatResult(ipAddrSender.c_str(), portSender, strUserID, ServiceId, SPA::idExit, (const unsigned char*) vChatGroup.data(), count * sizeof (unsigned int));
+                p->SendChatResult(ipAddrSender.c_str(), portSender, strUserID, ServiceId, (unsigned short) SPA::tagChatRequestID::idExit, (const unsigned char*) vChatGroup.data(), count * sizeof (unsigned int));
         }
     }
 }
@@ -1548,7 +1548,7 @@ bool CServer::Speak(const unsigned int *pChatGroupId, unsigned int nCount, const
         p->m_mutex.unlock();
         unsigned int count = (unsigned int) vChatGroup.size();
         if (count > 0) {
-            if (p->GetSvsID() == SPA::sidHTTP) {
+            if (p->GetSvsID() == (unsigned int) SPA::tagServiceID::sidHTTP) {
                 CAutoLock al(p->m_mutex);
                 if (p->m_pHttpContext) {
                     UHTTP::CWebResponseProcessor *pWebResponseProcessor = p->m_pHttpContext->GetWebResponseProcessor();
@@ -1567,7 +1567,7 @@ bool CServer::Speak(const unsigned int *pChatGroupId, unsigned int nCount, const
                 sb << vtMsg;
                 sb << count;
                 sb->Push((const unsigned char*) vChatGroup.data(), sizeof (unsigned int) *count);
-                p->SendChatResult("", 0, L"", 0, SPA::idSpeak, sb->GetBuffer(), sb->GetSize());
+                p->SendChatResult("", 0, L"", 0, (unsigned short) SPA::tagChatRequestID::idSpeak, sb->GetBuffer(), sb->GetSize());
                 sb->SetSize(0);
             }
         }
@@ -1599,7 +1599,7 @@ bool CServer::Speak(CServerSession *pSession, const unsigned int *pChatGroupId, 
         p->m_mutex.unlock();
         unsigned int count = (unsigned int) vChatGroup.size();
         if (count > 0) {
-            if (p->GetSvsID() == SPA::sidHTTP) {
+            if (p->GetSvsID() == (unsigned int) SPA::tagServiceID::sidHTTP) {
                 CAutoLock al(p->m_mutex);
                 if (p->m_pHttpContext) {
                     UHTTP::CWebResponseProcessor *pWebResponseProcessor = p->m_pHttpContext->GetWebResponseProcessor();
@@ -1618,7 +1618,7 @@ bool CServer::Speak(CServerSession *pSession, const unsigned int *pChatGroupId, 
                 sb << vtMsg;
                 sb << count;
                 sb->Push((const unsigned char*) vChatGroup.data(), sizeof (unsigned int) *count);
-                p->SendChatResult(ipAddrSender.c_str(), portSender, strUserID, ServiceId, SPA::idSpeak, sb->GetBuffer(), sb->GetSize());
+                p->SendChatResult(ipAddrSender.c_str(), portSender, strUserID, ServiceId, (unsigned short) SPA::tagChatRequestID::idSpeak, sb->GetBuffer(), sb->GetSize());
                 sb->SetSize(0);
             }
         }
@@ -1639,7 +1639,7 @@ bool CServer::SpeakEx(CServerSession *pSession, const unsigned char *message, un
     size_t n, size = m_aSession.size();
     for (n = 0; n < size; ++n) {
         CServerSession *p = m_aSession[n];
-        if (p == pSession || p->GetSvsID() == SPA::sidHTTP)
+        if (p == pSession || p->GetSvsID() == (unsigned int) SPA::tagServiceID::sidHTTP)
             continue;
         p->m_mutex.lock();
         Connection::CConnectionContextBase::ChatGroupsAnd(pChatGroupId, nCount, p->m_ccb.ChatGroups.data(), (unsigned int) p->m_ccb.ChatGroups.size(), vChatGroup);
@@ -1650,7 +1650,7 @@ bool CServer::SpeakEx(CServerSession *pSession, const unsigned char *message, un
             if (len)
                 sb->Push(message, len);
             sb->Push((const unsigned char*) vChatGroup.data(), sizeof (unsigned int) *count);
-            p->SendChatResult(ipAddrSender.c_str(), portSender, strUserID, ServiceId, SPA::idSpeakEx, sb->GetBuffer(), sb->GetSize());
+            p->SendChatResult(ipAddrSender.c_str(), portSender, strUserID, ServiceId, (unsigned short) SPA::tagChatRequestID::idSpeakEx, sb->GetBuffer(), sb->GetSize());
             sb->SetSize(0);
         }
     }
@@ -1685,7 +1685,7 @@ bool CServer::SendUserMessage(CServerSession *pSession, const wchar_t *userId, c
         if (wcscasecmp(strMe, userId) == 0)
 #endif
         {
-            if (p->GetSvsID() == SPA::sidHTTP) {
+            if (p->GetSvsID() == (unsigned int) SPA::tagServiceID::sidHTTP) {
                 CAutoLock al(p->m_mutex);
                 if (p->m_pHttpContext) {
                     UHTTP::CWebResponseProcessor *pWebResponseProcessor = p->m_pHttpContext->GetWebResponseProcessor();
@@ -1701,7 +1701,7 @@ bool CServer::SendUserMessage(CServerSession *pSession, const wchar_t *userId, c
                     }
                 }
             } else
-                p->SendChatResult(ipAddrSender.c_str(), portSender, strUserID, ServiceId, SPA::idSendUserMessage, us->GetBuffer(), us->GetSize());
+                p->SendChatResult(ipAddrSender.c_str(), portSender, strUserID, ServiceId, (unsigned short) SPA::tagChatRequestID::idSendUserMessage, us->GetBuffer(), us->GetSize());
         }
     }
     return true;
@@ -1725,7 +1725,7 @@ bool CServer::SendUserMessage(const wchar_t *userId, const SPA::UVariant &vtMess
         if (wcscasecmp(strMe, userId) == 0)
 #endif
         {
-            if (p->GetSvsID() == SPA::sidHTTP) {
+            if (p->GetSvsID() == (unsigned int) SPA::tagServiceID::sidHTTP) {
                 CAutoLock al(p->m_mutex);
                 if (p->m_pHttpContext) {
                     UHTTP::CWebResponseProcessor *pWebResponseProcessor = p->m_pHttpContext->GetWebResponseProcessor();
@@ -1741,7 +1741,7 @@ bool CServer::SendUserMessage(const wchar_t *userId, const SPA::UVariant &vtMess
                     }
                 }
             } else {
-                p->SendChatResult("", 0, L"", 0, SPA::idSendUserMessage, us->GetBuffer(), us->GetSize());
+                p->SendChatResult("", 0, L"", 0, (unsigned short) SPA::tagChatRequestID::idSendUserMessage, us->GetBuffer(), us->GetSize());
             }
         }
     }
@@ -1759,7 +1759,7 @@ bool CServer::SendUserMessage(CServerSession *pSession, const wchar_t *userId, c
     size_t n, size = m_aSession.size();
     for (n = 0; n < size; ++n) {
         CServerSession *p = m_aSession[n];
-        if (p == pSession || p->GetSvsID() == SPA::sidHTTP)
+        if (p == pSession || p->GetSvsID() == (unsigned int) SPA::tagServiceID::sidHTTP)
             continue;
         p->GetUID(strMe, sizeof (strMe) / sizeof (wchar_t));
 #ifdef WIN32_64
@@ -1768,7 +1768,7 @@ bool CServer::SendUserMessage(CServerSession *pSession, const wchar_t *userId, c
         if (wcscasecmp(strMe, userId) == 0)
 #endif
         {
-            p->SendChatResult(ipAddrSender.c_str(), portSender, strUserID, ServiceId, SPA::idSendUserMessageEx, message, len);
+            p->SendChatResult(ipAddrSender.c_str(), portSender, strUserID, ServiceId, (unsigned short) SPA::tagChatRequestID::idSendUserMessageEx, message, len);
         }
     }
     return true;
@@ -1871,16 +1871,16 @@ unsigned int CServer::StartQueue(const char *qFileName, bool dequeueShared, unsi
 #endif
         SPA::Utilities::ToWide(id.c_str(), id.size(), *suId);
         SPA::Utilities::ToWide(pwd.c_str(), pwd.size(), *suPwd);
-        q = std::shared_ptr<MQ_FILE::CMqFile > (new MQ_FILE::CMqFileEx(fn.c_str(), ttl, SPA::oSystemMemoryCached,
+        q = std::shared_ptr<MQ_FILE::CMqFile > (new MQ_FILE::CMqFileEx(fn.c_str(), ttl, SPA::tagOptimistic::oSystemMemoryCached,
                 (const wchar_t*) suId->GetBuffer(),
                 (const wchar_t*) suPwd->GetBuffer(), CServerSession::m_pQLastIndex.get(), false, dequeueShared));
 
     } else {
-        q = std::shared_ptr<MQ_FILE::CMqFile > (new MQ_FILE::CMqFile(fn.c_str(), ttl, SPA::oSystemMemoryCached, false, false, dequeueShared));
+        q = std::shared_ptr<MQ_FILE::CMqFile > (new MQ_FILE::CMqFile(fn.c_str(), ttl, SPA::tagOptimistic::oSystemMemoryCached, false, false, dequeueShared));
     }
 
     if (q)
-        q->SetOptimistic(SPA::oMemoryCached);
+        q->SetOptimistic(SPA::tagOptimistic::oMemoryCached);
 
     if (!q->IsAvailable())
         return INVALID_QUEUE_HANDLE;
@@ -1969,7 +1969,7 @@ SPA::UINT64 CServer::BatchEnqueue(unsigned int qHandle, unsigned int count, cons
         CMapQNotified::iterator mi = m_mapQNotified.find(qHandle);
         if (mi != m_mapQNotified.end()) {
             SPA::CStreamHeader sh;
-            sh.RequestId = SPA::idMessageQueued;
+            sh.RequestId = (unsigned short) SPA::tagBaseRequestID::idMessageQueued;
             std::vector<CSNotified> &v = mi->second;
             std::vector<CSNotified>::iterator s, end = v.end();
             for (s = v.begin(); s != end; ++s) {
@@ -1989,7 +1989,7 @@ SPA::UINT64 CServer::BatchEnqueue(unsigned int qHandle, unsigned int count, cons
 
 SPA::UINT64 CServer::Enqueue(unsigned int qHandle, unsigned short reqId, const unsigned char *buffer, unsigned int size) {
     SPA::UINT64 qIndex = 0;
-    if (reqId < SPA::idReservedTwo)
+    if (reqId < (unsigned short) SPA::tagBaseRequestID::idReservedTwo)
         return qIndex;
     SPA::CStreamHeader ReqInfo;
     if (!buffer)
@@ -2017,7 +2017,7 @@ SPA::UINT64 CServer::Enqueue(unsigned int qHandle, unsigned short reqId, const u
         CMapQNotified::iterator mi = m_mapQNotified.find(qHandle);
         if (mi != m_mapQNotified.end()) {
             SPA::CStreamHeader sh;
-            sh.RequestId = SPA::idMessageQueued;
+            sh.RequestId = (unsigned short) SPA::tagBaseRequestID::idMessageQueued;
             std::vector<CSNotified> &v = mi->second;
             std::vector<CSNotified>::iterator s, end = v.end();
             for (s = v.begin(); s != end; ++s) {
@@ -2082,7 +2082,7 @@ bool CServer::SpeakEx(const unsigned char *message, unsigned int len, const unsi
     size_t n, size = m_aSession.size();
     for (n = 0; n < size; ++n) {
         CServerSession *p = m_aSession[n];
-        if (p->GetSvsID() == SPA::sidHTTP)
+        if (p->GetSvsID() == (unsigned int) SPA::tagServiceID::sidHTTP)
             continue;
         p->m_mutex.lock();
         Connection::CConnectionContextBase::ChatGroupsAnd(pChatGroupId, nCount, p->m_ccb.ChatGroups.data(), (unsigned int) p->m_ccb.ChatGroups.size(), vChatGroup);
@@ -2093,7 +2093,7 @@ bool CServer::SpeakEx(const unsigned char *message, unsigned int len, const unsi
             if (len)
                 sb->Push(message, len);
             sb->Push((const unsigned char*) vChatGroup.data(), sizeof (unsigned int) *count);
-            p->SendChatResult("", 0, L"", 0, SPA::idSpeakEx, sb->GetBuffer(), sb->GetSize());
+            p->SendChatResult("", 0, L"", 0, (unsigned short) SPA::tagChatRequestID::idSpeakEx, sb->GetBuffer(), sb->GetSize());
             sb->SetSize(0);
         }
     }
@@ -2106,7 +2106,7 @@ bool CServer::SendUserMessage(const wchar_t *userId, const unsigned char *messag
     size_t n, size = m_aSession.size();
     for (n = 0; n < size; ++n) {
         CServerSession *p = m_aSession[n];
-        if (p->GetSvsID() == SPA::sidHTTP)
+        if (p->GetSvsID() == (unsigned int) SPA::tagServiceID::sidHTTP)
             continue;
         p->GetUID(strMe, sizeof (strMe) / sizeof (wchar_t));
 #ifdef WIN32_64
@@ -2115,7 +2115,7 @@ bool CServer::SendUserMessage(const wchar_t *userId, const unsigned char *messag
         if (wcscasecmp(strMe, userId) == 0)
 #endif
         {
-            p->SendChatResult("", 0, L"", 0, SPA::idSendUserMessageEx, message, len);
+            p->SendChatResult("", 0, L"", 0, (unsigned short) SPA::tagChatRequestID::idSendUserMessageEx, message, len);
         }
     }
     return true;
@@ -2156,7 +2156,7 @@ SPA::UINT64 CServer::Dequeue(unsigned int qHandle, USocket_Server_Handle h, unsi
             if (pSession->m_mapDequeue.find(qHandle) == pSession->m_mapDequeue.end()) {
                 SPA::CStreamHeader sh;
                 buffer << qii;
-                sh.RequestId = SPA::idStartQueue;
+                sh.RequestId = (unsigned short) SPA::tagBaseRequestID::idStartQueue;
                 sh.Size = buffer.GetSize();
                 buffer.Insert((const unsigned char*) &sh, sizeof (sh));
                 pSession->Write(buffer.GetBuffer(), buffer.GetSize());
@@ -2276,7 +2276,7 @@ SPA::UINT64 CServer::Dequeue2(unsigned int qHandle, USocket_Server_Handle h, uns
             if (pSession->m_mapDequeue.find(qHandle) == pSession->m_mapDequeue.end()) {
                 SPA::CStreamHeader sh;
                 buffer << qii;
-                sh.RequestId = SPA::idStartQueue;
+                sh.RequestId = (unsigned short) SPA::tagBaseRequestID::idStartQueue;
                 sh.Size = buffer.GetSize();
                 buffer.Insert((const unsigned char*) &sh, sizeof (sh));
                 pSession->Write(buffer.GetBuffer(), buffer.GetSize());
@@ -2455,7 +2455,7 @@ bool CServer::EndJob(unsigned int qHandle) {
         CMapQNotified::iterator mi = m_mapQNotified.find(qHandle);
         if (mi != m_mapQNotified.end()) {
             SPA::CStreamHeader sh;
-            sh.RequestId = SPA::idMessageQueued;
+            sh.RequestId = (unsigned short) SPA::tagBaseRequestID::idMessageQueued;
             std::vector<CSNotified> &v = mi->second;
             std::vector<CSNotified>::iterator s, end = v.end();
             for (s = v.begin(); s != end; ++s) {
@@ -2504,7 +2504,7 @@ SPA::tagOptimistic CServer::GetOptimistic(unsigned int qHandle) {
     CAutoLock sl(m_mQ);
     CMapQueue::iterator it = m_mapQueue.find(qHandle);
     if (it == m_mapQueue.end())
-        return SPA::oSystemMemoryCached;
+        return SPA::tagOptimistic::oSystemMemoryCached;
     return it->second->IsOptimistic();
 }
 
@@ -2520,7 +2520,7 @@ SPA::tagQueueStatus CServer::GetServerQueueStatus(unsigned int qHandle) {
     CAutoLock sl(m_mQ);
     CMapQueue::iterator it = m_mapQueue.find(qHandle);
     if (it == m_mapQueue.end())
-        return SPA::qsNormal;
+        return SPA::tagQueueStatus::qsNormal;
     return it->second->GetQueueOpenStatus();
 }
 

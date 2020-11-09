@@ -1,7 +1,8 @@
 
 #include "multipartgrammar.h"
 
-namespace UHTTP {
+namespace UHTTP
+{
 
 #ifdef USE_SPIRIT_CLSSICAL_FOR_MULTIPART
 
@@ -38,7 +39,7 @@ namespace UHTTP {
         return true;
     }
 
-    const char* ParseMultipartHeader(const char *subdata, unsigned int len, const char *boundary, CMultiplaxContext &sub) {
+    const char* ParseMultipartHeader(const char *subdata, unsigned int len, const char *boundary, CMultiplaxContext & sub) {
         if (!subdata || !boundary || !len)
             return subdata;
         parse_info<> pi;

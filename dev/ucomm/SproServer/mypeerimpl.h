@@ -89,9 +89,9 @@ protected:
 
     void OnBaseRequestArrive(unsigned short requestId) {
         switch (requestId) {
-			case (unsigned short)SPA::tagBaseRequestID::idStartJob:
+            case (unsigned short) SPA::tagBaseRequestID::idStartJob:
                 break;
-            case (unsigned short)SPA::tagBaseRequestID::idEndJob:
+            case (unsigned short) SPA::tagBaseRequestID::idEndJob:
                 break;
             default:
                 break;

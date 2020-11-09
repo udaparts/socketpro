@@ -145,7 +145,7 @@ namespace SPA {
             if (pos != std::string::npos)
                 name = name.substr(pos + 1);
             switch (os) {
-				case SPA::tagOperationSystem::osWin:
+                case SPA::tagOperationSystem::osWin:
                 case SPA::tagOperationSystem::osWinCE:
                     std::transform(name.begin(), name.end(), name.begin(), ::tolower);
                     break;

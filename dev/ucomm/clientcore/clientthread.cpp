@@ -159,10 +159,10 @@ CClientThread::~CClientThread() {
 
 void CClientThread::OnThreadStarted() {
 #ifdef WIN32_64
-	UTHREAD_ID dwId = ::GetCurrentThreadId();
-	g_mutex.lock();
-	CCrashHandler::MAIN_THREADS.push_back(dwId);
-	g_mutex.unlock();
+    UTHREAD_ID dwId = ::GetCurrentThreadId();
+    g_mutex.lock();
+    CCrashHandler::MAIN_THREADS.push_back(dwId);
+    g_mutex.unlock();
 #else
 #endif
     if (m_spc) {
@@ -175,11 +175,11 @@ void CClientThread::OnThreadEnded() {
         m_spc(GetPool()->GetPoolId(), SPA::ClientSide::tagSocketPoolEvent::speKillingThread, nullptr);
     }
 #ifdef WIN32_64
-	UTHREAD_ID dwId = ::GetCurrentThreadId();
-	g_mutex.lock();
-	auto it = std::find(CCrashHandler::MAIN_THREADS.cbegin(), CCrashHandler::MAIN_THREADS.cend(), dwId);
-	CCrashHandler::MAIN_THREADS.erase(it);
-	g_mutex.unlock();
+    UTHREAD_ID dwId = ::GetCurrentThreadId();
+    g_mutex.lock();
+    auto it = std::find(CCrashHandler::MAIN_THREADS.cbegin(), CCrashHandler::MAIN_THREADS.cend(), dwId);
+    CCrashHandler::MAIN_THREADS.erase(it);
+    g_mutex.unlock();
 #else
 #endif
 }

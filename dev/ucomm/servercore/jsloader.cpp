@@ -1,7 +1,8 @@
 #include "jsloader.h"
 #include <fstream>
 
-namespace UHTTP {
+namespace UHTTP
+{
 
     SPA::CUQueue CUJsLoader::m_qAjax;
     SPA::CUQueue CUJsLoader::m_qWs;
@@ -17,7 +18,7 @@ namespace UHTTP {
     }
 
     CUJsLoader::CUJsLoader(const char *UserAgent, const char *BrowserInfo, const char *host, bool bCrossDomain, bool secure)
-    : m_bCrossDomain(bCrossDomain) {
+            : m_bCrossDomain(bCrossDomain) {
         ProcessWBInfo(BrowserInfo);
         if (!m_bJson)
             m_jsCode->Push(m_qJson.GetBuffer(), m_qJson.GetSize());
@@ -107,7 +108,7 @@ namespace UHTTP {
             m_dFlashVersion = 0.0;
     }
 
-    void CUJsLoader::LoadFile(const char *jsFileName, SPA::CUQueue &qBuffer) {
+    void CUJsLoader::LoadFile(const char *jsFileName, SPA::CUQueue & qBuffer) {
         unsigned int length;
         qBuffer.SetSize(0);
         std::ifstream file(jsFileName, std::ios::binary);

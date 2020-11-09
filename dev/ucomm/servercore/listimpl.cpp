@@ -110,7 +110,7 @@ void WINAPI RemoveASvsContext(unsigned int nServiceId) {
 
 bool WINAPI AddSvsContext(unsigned int nServiceId, CSvsContext SvsContext) {
 #ifndef WIN32_64
-    SvsContext.m_ta = SPA::taNone;
+    SvsContext.m_ta = SPA::tagThreadApartment::taNone;
 #endif
     //CAutoLock al(g_mutex);
     if (g_pServer == nullptr || IsRunning())
@@ -156,7 +156,7 @@ bool WINAPI GetReturnRandom(unsigned int serviceId) {
 
 void WINAPI SetReturnRandom(unsigned int serviceId, bool random) {
     //CAutoLock al(g_mutex);
-    if (g_pServer == nullptr || serviceId <= (unsigned int)SPA::tagServiceID::sidReserved || IsRunning())
+    if (g_pServer == nullptr || serviceId <= (unsigned int) SPA::tagServiceID::sidReserved || IsRunning())
         return;
     CServiceContext *svs = g_pServer->SeekServiceContext(serviceId);
     if (svs == nullptr) {
@@ -722,7 +722,7 @@ SPA::UINT64 WINAPI Dequeue(unsigned int qHandle, USocket_Server_Handle h, unsign
     CServerSession *pSession = GetSvrSession(h, index);
     if (index == 0 || index != pSession->GetConnIndex())
         return SOCKET_NOT_FOUND;
-    if ((unsigned int)SPA::tagServiceID::sidHTTP == pSession->GetSvsID() || (unsigned int)SPA::tagServiceID::sidStartup == pSession->GetSvsID())
+    if ((unsigned int) SPA::tagServiceID::sidHTTP == pSession->GetSvsID() || (unsigned int) SPA::tagServiceID::sidStartup == pSession->GetSvsID())
         return BAD_OPERATION;
     bool bMainThread = ::IsMainThread();
     while (!bMainThread && pSession->GetSndBytesInQueueInternal() > 60 * IO_BUFFER_SIZE) {
@@ -743,7 +743,7 @@ SPA::UINT64 WINAPI Dequeue2(unsigned int qHandle, USocket_Server_Handle h, unsig
     CServerSession *pSession = GetSvrSession(h, index);
     if (index == 0 || index != pSession->GetConnIndex())
         return SOCKET_NOT_FOUND;
-    if ((unsigned int)SPA::tagServiceID::sidHTTP == pSession->GetSvsID() || (unsigned int)SPA::tagServiceID::sidStartup == pSession->GetSvsID())
+    if ((unsigned int) SPA::tagServiceID::sidHTTP == pSession->GetSvsID() || (unsigned int) SPA::tagServiceID::sidStartup == pSession->GetSvsID())
         return BAD_OPERATION;
     bool bMainThread = ::IsMainThread();
     while (!bMainThread && pSession->GetSndBytesInQueueInternal() > 60 * IO_BUFFER_SIZE) {

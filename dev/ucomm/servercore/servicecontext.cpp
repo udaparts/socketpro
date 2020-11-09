@@ -241,13 +241,13 @@ SPA::UINT64 CServiceContext::GetBestRouteeByFirst(unsigned int &routeeSize) {
 
 SPA::UINT64 CServiceContext::GetBestRoutee(unsigned int &routeeSize) {
     switch (m_ra) {
-		case SPA::ServerSide::tagRoutingAlgorithm::raDefault:
+        case SPA::ServerSide::tagRoutingAlgorithm::raDefault:
             return GetBestRouteeByDefault(routeeSize);
             break;
-		case SPA::ServerSide::tagRoutingAlgorithm::raRandom:
+        case SPA::ServerSide::tagRoutingAlgorithm::raRandom:
             return GetBestRouteeByRandom(routeeSize);
             break;
-		case SPA::ServerSide::tagRoutingAlgorithm::raAverage:
+        case SPA::ServerSide::tagRoutingAlgorithm::raAverage:
             return GetBestRouteeByAverage(routeeSize);
             break;
         default:
@@ -275,7 +275,7 @@ void CServiceContext::NotifyRouteeChanged(unsigned int count) {
     SPA::CUQueue &q = *su;
     SPA::CStreamHeader sh;
     sh.Size = sizeof (count);
-    sh.RequestId = (unsigned short)SPA::tagBaseRequestID::idRouteeChanged;
+    sh.RequestId = (unsigned short) SPA::tagBaseRequestID::idRouteeChanged;
     q << sh << count;
     CAutoLock al(m_mutex);
     std::vector<CServerSession*>::iterator it, end = m_vRoutee.end();

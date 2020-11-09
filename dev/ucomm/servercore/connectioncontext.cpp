@@ -2,16 +2,17 @@
 #include "httpcontext.h"
 #include "webresponseProcessor.h"
 
-namespace Connection {
+namespace Connection
+{
 
     boost::unordered_map<std::string, CConnectionContext::SharedPtr> CConnectionContext::m_mapCC;
     SPA::CUCriticalSection CConnectionContext::m_cs;
 
     CConnectionContextBase::CConnectionContextBase()
-    : m_ulRead(0),
-    m_ulSent(0),
-    m_bBatching(false),
-    Pt(60000), IsOpera(false), IsGet(false) {
+            : m_ulRead(0),
+            m_ulSent(0),
+            m_bBatching(false),
+            Pt(60000), IsOpera(false), IsGet(false) {
         ::memset(&SvsContext, 0, sizeof (CSvsContext));
     }
 
@@ -100,7 +101,7 @@ namespace Connection {
         return it->second;
     }
 
-    void CConnectionContext::ToString(SPA::UJsonValue &jv, unsigned int approSize, SPA::CUQueue &q) {
+    void CConnectionContext::ToString(SPA::UJsonValue &jv, unsigned int approSize, SPA::CUQueue & q) {
         if (approSize > q.GetTailSize())
             q.ReallocBuffer(q.GetMaxSize() + approSize - q.GetTailSize());
         SPA::UJsonWriter writer(q);

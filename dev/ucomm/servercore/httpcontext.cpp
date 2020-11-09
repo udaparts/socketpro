@@ -14,7 +14,8 @@
 #include "connectioncontext.h"
 #include "../core_shared/pinc/getsysid.h"
 
-namespace UHTTP {
+namespace UHTTP
+{
 
     std::map<int, std::string> CHttpContext::ErrorCodeMap;
 
@@ -226,17 +227,17 @@ namespace UHTTP {
     }
 
     CHttpContext::CHttpContext()
-    : m_RequestHeaders(*suRequestHeaders),
-    m_ResponseCode(200),
-    m_pMultiplaxContext(nullptr),
-    m_pChunkedContext(nullptr),
-    m_pWebSocketMsg(nullptr),
-    m_bWebSocket(false),
-    m_HttpRequestType(hrtCustomer),
-    m_pt(60000),
-    m_transport(SPA::ServerSide::tagTransport::tUnknown),
-    m_pWebRequestProcessor(nullptr),
-    m_pWebResponseProcessor(nullptr) {
+            : m_RequestHeaders(*suRequestHeaders),
+            m_ResponseCode(200),
+            m_pMultiplaxContext(nullptr),
+            m_pChunkedContext(nullptr),
+            m_pWebSocketMsg(nullptr),
+            m_bWebSocket(false),
+            m_HttpRequestType(hrtCustomer),
+            m_pt(60000),
+            m_transport(SPA::ServerSide::tagTransport::tUnknown),
+            m_pWebRequestProcessor(nullptr),
+            m_pWebResponseProcessor(nullptr) {
 
     }
 
@@ -262,7 +263,7 @@ namespace UHTTP {
         m_ResponseCode = errCode;
     }
 
-    bool CHttpContext::StartChunkedResponse(SPA::CUQueue &RecvBuffer) {
+    bool CHttpContext::StartChunkedResponse(SPA::CUQueue & RecvBuffer) {
         AddResponseHeader(UHTTP::TRANSFER_ENCODING.c_str(), UHTTP::CHUNKED.c_str());
         GetResponeHeaders(RecvBuffer);
         RecvBuffer.Push("\r\n", 2);
@@ -272,7 +273,7 @@ namespace UHTTP {
         return true;
     }
 
-    bool CHttpContext::SendChunkedData(const unsigned char *buffer, unsigned int len, SPA::CUQueue &RecvBuffer) {
+    bool CHttpContext::SendChunkedData(const unsigned char *buffer, unsigned int len, SPA::CUQueue & RecvBuffer) {
         if (buffer == nullptr)
             len = 0;
         assert(m_HttpResponse.Chunked); //
@@ -342,7 +343,7 @@ namespace UHTTP {
         }
     }
 
-    void CHttpContext::SetDate(SPA::CUQueue &mq) {
+    void CHttpContext::SetDate(SPA::CUQueue & mq) {
         using namespace boost::posix_time;
         using namespace boost::gregorian;
         using namespace boost::filesystem;
@@ -354,9 +355,9 @@ namespace UHTTP {
         unsigned int month = d.month();
         unsigned int day = d.day();
         unsigned int dayOfWeek = d.day_of_week();
-        unsigned int hour = (unsigned int)td.hours();
-        unsigned int minute = (unsigned int)td.minutes();
-        unsigned int second = (unsigned int)td.seconds();
+        unsigned int hour = (unsigned int) td.hours();
+        unsigned int minute = (unsigned int) td.minutes();
+        unsigned int second = (unsigned int) td.seconds();
         const char *strWeekday;
         switch (dayOfWeek) {
             case 0:
@@ -438,7 +439,7 @@ namespace UHTTP {
         return str;
     }
 
-    void CHttpContext::GetResponeHeaders(SPA::CUQueue &mq) {
+    void CHttpContext::GetResponeHeaders(SPA::CUQueue & mq) {
         const char *str;
         CEcPointer p = ErrorCodeMap.find(m_ResponseCode);
         if (p != ErrorCodeMap.end())
@@ -496,7 +497,7 @@ namespace UHTTP {
         return m_RequestContext.CM;
     }
 
-    const HttpResponse& CHttpContext::GetResponseProgress() const {
+    const HttpResponse & CHttpContext::GetResponseProgress() const {
         return m_HttpResponse;
     }
 
@@ -504,11 +505,11 @@ namespace UHTTP {
         return m_RequestContext.ContentLen;
     }
 
-    const StringMapA& CHttpContext::GetResponseHeaderMap() const {
+    const StringMapA & CHttpContext::GetResponseHeaderMap() const {
         return m_mapResponse;
     }
 
-    const UHttpRequest& CHttpContext::ParseWebRequest() {
+    const UHttpRequest & CHttpContext::ParseWebRequest() {
         assert(IsSpRequest() || IsWebSocket());
         const UHttpRequest &ur = m_pWebRequestProcessor->Parse();
         delete m_pWebResponseProcessor;
@@ -555,7 +556,7 @@ namespace UHTTP {
         return PrepareResponse(jBuffer->GetBuffer(), jBuffer->GetSize(), qResponse, fp);
     }
 
-    void CHttpContext::PrepareBatchWSResponseMessage(const UHttpRequest &ur, tagWSOpCode oc, SPA::CUQueue &qResponse) {
+    void CHttpContext::PrepareBatchWSResponseMessage(const UHttpRequest &ur, tagWSOpCode oc, SPA::CUQueue & qResponse) {
         const SPA::UJsonValue &args = *(ur.Args);
         bool b = args[(unsigned int) 0].GetBool();
         const SPA::UJsonValue &objs = args[1];
@@ -569,7 +570,7 @@ namespace UHTTP {
         }
     }
 
-    void CHttpContext::PrepareWSResponseMessage(const unsigned char *buffer, unsigned int len, tagWSOpCode oc, SPA::CUQueue &qResponse) {
+    void CHttpContext::PrepareWSResponseMessage(const unsigned char *buffer, unsigned int len, tagWSOpCode oc, SPA::CUQueue & qResponse) {
         if (buffer == nullptr)
             len = 0;
 
@@ -897,7 +898,7 @@ namespace UHTTP {
         return stop;
     }
 
-    bool CHttpContext::DownloadFile(SPA::CUQueue &RecvBuffer) {
+    bool CHttpContext::DownloadFile(SPA::CUQueue & RecvBuffer) {
         if (m_HttpResponse.Status != hrsDownloadingFile || !m_file.is_open() || m_file.fail())
             return false;
         CHttpDownFileBuffer FileBuffer;
@@ -938,7 +939,7 @@ namespace UHTTP {
         return iequals(it->second.c_str(), "chunked");
     }
 
-    bool CHttpContext::StartDownloadFile(const char *file, SPA::CUQueue &RecvBuffer) {
+    bool CHttpContext::StartDownloadFile(const char *file, SPA::CUQueue & RecvBuffer) {
         if (m_HttpResponse.Status != hrsInitial)
             return false;
         if (m_file.is_open())
@@ -1044,7 +1045,7 @@ namespace UHTTP {
         return m_transport;
     }
 
-    CWebRequestProcessor* CHttpContext::GetWebRequestProcessor() const {
+    CWebRequestProcessor * CHttpContext::GetWebRequestProcessor() const {
         return m_pWebRequestProcessor;
     }
 
@@ -1124,7 +1125,7 @@ namespace UHTTP {
                 m_RequestContext.ParseStatus = psComplete;
                 /*
                 if (::strlen(str)) //Don't forget HTTP Pipe line 
-					SetResponseCode(409); //Conflict these methods should not contain any content data
+                                        SetResponseCode(409); //Conflict these methods should not contain any content data
                  */
                 break;
             default:
@@ -1219,7 +1220,7 @@ namespace UHTTP {
         m_pt = pt;
     }
 
-    std::string CHttpContext::GenerateId(const UHttpRequest &UReq) {
+    std::string CHttpContext::GenerateId(const UHttpRequest & UReq) {
         assert(UReq.SpRequest == srSwitchTo);
         boost::uuids::random_generator rgen;
         boost::uuids::uuid u = rgen();
@@ -1232,7 +1233,7 @@ namespace UHTTP {
         return out;
     }
 
-    void CHttpContext::ProcessRequestBatch(const UHttpRequest &UReq, SPA::CUQueue &Response) {
+    void CHttpContext::ProcessRequestBatch(const UHttpRequest &UReq, SPA::CUQueue & Response) {
         SPA::UJsonValue &args = *((SPA::UJsonValue *)UReq.Args);
         bool b = args[(unsigned int) 0].GetBool();
         SPA::UJsonValue &objs = args[1];
@@ -1244,7 +1245,7 @@ namespace UHTTP {
         }
     }
 
-    void CHttpContext::ProcessSpRequest(const UHttpRequest &UReq, SPA::UJsonDocument::AllocatorType &at, rapidjson::Value &res) {
+    void CHttpContext::ProcessSpRequest(const UHttpRequest &UReq, SPA::UJsonDocument::AllocatorType &at, rapidjson::Value & res) {
         std::string id = UReq.Id;
         res.SetObject();
         res.AddMember(CHttpContext::SP_REQUEST_CI.c_str(), UReq.CallIndex, at);
@@ -1299,7 +1300,7 @@ namespace UHTTP {
             m_pt = 50 * 1000;
     }
 
-    void CHttpContext::ProcessSpRequest(const UHttpRequest &UReq, SPA::CUQueue &Response) {
+    void CHttpContext::ProcessSpRequest(const UHttpRequest &UReq, SPA::CUQueue & Response) {
         std::string id;
         tagSpError rc = UReq.ErrCode;
         Connection::CConnectionContext::SharedPtr pCC = Connection::CConnectionContext::SeekConnectionContext(UReq.Id);
@@ -1375,7 +1376,7 @@ namespace UHTTP {
             Response.Push(HTTP_JS_CALLBACK_END.c_str(), (unsigned int) HTTP_JS_CALLBACK_END.size());
     }
 
-    UHttpRequest CHttpContext::ParseSPRequest(const SPA::UJsonValue &doc) {
+    UHttpRequest CHttpContext::ParseSPRequest(const SPA::UJsonValue & doc) {
         UHttpRequest UReq;
         UReq.SpRequest = srUnknown;
         rapidjson::SizeType size = doc.MemberSize();
@@ -1477,7 +1478,7 @@ namespace UHTTP {
         return true;
     }
 
-    const CHeaderValue* CHttpContext::SeekHeader(const std::string &header) const {
+    const CHeaderValue * CHttpContext::SeekHeader(const std::string & header) const {
         unsigned int n;
         unsigned int size;
         const CHeaderValue *p = m_RequestContext.GetHeaderValue(size);
@@ -1488,15 +1489,15 @@ namespace UHTTP {
         return nullptr;
     }
 
-    CMultiplaxContext* CHttpContext::GetMultiplaxContext() const {
+    CMultiplaxContext * CHttpContext::GetMultiplaxContext() const {
         return m_pMultiplaxContext;
     }
 
-    CChunkedContext* CHttpContext::GetChunkedContext() const {
+    CChunkedContext * CHttpContext::GetChunkedContext() const {
         return m_pChunkedContext;
     }
 
-    CWebSocketMsg* CHttpContext::GetWebSocketMsg() const {
+    CWebSocketMsg * CHttpContext::GetWebSocketMsg() const {
         return m_pWebSocketMsg;
     }
 
@@ -1553,15 +1554,15 @@ namespace UHTTP {
         return boost::ifind_first(it->second, SP_CONNECTION_KEEP_ALIVE);
     }
 
-    const CHeaderValue* CHttpContext::GetRequestHeaders(unsigned int &count) const {
+    const CHeaderValue * CHttpContext::GetRequestHeaders(unsigned int &count) const {
         return m_RequestContext.GetHeaderValue(count);
     }
 
-    const CHeaderValue* CHttpContext::SeekMultipart() const {
+    const CHeaderValue * CHttpContext::SeekMultipart() const {
         return m_RequestContext.SeekMultipart();
     }
 
-    const CHeaderValue* CHttpContext::SeekRequestHeader(const char *header) const {
+    const CHeaderValue * CHttpContext::SeekRequestHeader(const char *header) const {
         return m_RequestContext.SeekHeaderValue(header);
     }
 
@@ -1569,7 +1570,7 @@ namespace UHTTP {
         return m_RequestContext.Method;
     }
 
-    const CHttpUnit& CHttpContext::GetUrl() const {
+    const CHttpUnit & CHttpContext::GetUrl() const {
         return m_RequestContext.Url;
     }
 
@@ -1577,11 +1578,11 @@ namespace UHTTP {
         return m_bWebSocket;
     }
 
-    const CHttpUnit& CHttpContext::GetParams() const {
+    const CHttpUnit & CHttpContext::GetParams() const {
         return m_RequestContext.Params;
     }
 
-    CWebResponseProcessor* CHttpContext::GetWebResponseProcessor() const {
+    CWebResponseProcessor * CHttpContext::GetWebResponseProcessor() const {
         return m_pWebResponseProcessor;
     }
 
@@ -1589,7 +1590,7 @@ namespace UHTTP {
         return m_RequestContext.Version;
     }
 
-    CWebSocketMsg* CHttpContext::LockWebSocketMsg() {
+    CWebSocketMsg * CHttpContext::LockWebSocketMsg() {
         CWebSocketMsg *p;
         m_cs.lock();
         if (m_vWSM.size()) {
@@ -1605,7 +1606,7 @@ namespace UHTTP {
         return p;
     }
 
-    void CHttpContext::UnlockWebSocketMsg(CWebSocketMsg *p) {
+    void CHttpContext::UnlockWebSocketMsg(CWebSocketMsg * p) {
         if (!p)
             return;
         m_cs.lock();
@@ -1615,7 +1616,7 @@ namespace UHTTP {
         m_cs.unlock();
     }
 
-    CChunkedContext* CHttpContext::LockChunkedContext() {
+    CChunkedContext * CHttpContext::LockChunkedContext() {
         CChunkedContext *p;
         m_cs.lock();
         if (m_vCC.size()) {
@@ -1631,7 +1632,7 @@ namespace UHTTP {
         return p;
     }
 
-    void CHttpContext::UnlockChunkedContext(CChunkedContext *p) {
+    void CHttpContext::UnlockChunkedContext(CChunkedContext * p) {
         if (!p)
             return;
         m_cs.lock();
@@ -1639,7 +1640,7 @@ namespace UHTTP {
         m_cs.unlock();
     }
 
-    CMultiplaxContext* CHttpContext::LockMultiplaxContext() {
+    CMultiplaxContext * CHttpContext::LockMultiplaxContext() {
         CMultiplaxContext *p;
         m_cs.lock();
         if (m_vMC.size()) {
@@ -1655,7 +1656,7 @@ namespace UHTTP {
         return p;
     }
 
-    void CHttpContext::UnlockMultiplaxContext(CMultiplaxContext *p) {
+    void CHttpContext::UnlockMultiplaxContext(CMultiplaxContext * p) {
         if (!p)
             return;
         m_cs.lock();
@@ -1663,7 +1664,7 @@ namespace UHTTP {
         m_cs.unlock();
     }
 
-    CHttpContext* CHttpContext::Lock() {
+    CHttpContext * CHttpContext::Lock() {
         CHttpContext *p;
         m_cs.lock();
         if (m_vHC.size()) {
@@ -1688,7 +1689,7 @@ namespace UHTTP {
         return p;
     }
 
-    void CHttpContext::Unlock(CHttpContext *p) {
+    void CHttpContext::Unlock(CHttpContext * p) {
         if (!p)
             return;
         if (p->m_file.is_open())

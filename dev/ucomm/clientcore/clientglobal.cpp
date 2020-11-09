@@ -44,7 +44,7 @@ unsigned int WINAPI GetNumberOfSocketPools() {
 
 unsigned int WINAPI CreateSocketPool(PSocketPoolCallback spc, unsigned int maxSocketsPerThread, unsigned int maxThreads, bool bAvg, SPA::tagThreadApartment ta) {
 #ifndef WIN32_64
-    ta = SPA::taNone;
+    ta = SPA::tagThreadApartment::taNone;
 #endif
     if (maxSocketsPerThread == 0)
         maxSocketsPerThread = GetDefaultSocketsPerThread();

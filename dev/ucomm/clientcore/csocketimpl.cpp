@@ -271,7 +271,7 @@ unsigned int WINAPI GetCurrentServiceId(USocket_Client_Handle h) {
     CClientSession *p = MapHandleToClientSession(h);
     if (p)
         return p->GetCurrentServiceId();
-    return (unsigned int)SPA::tagServiceID::sidStartup;
+    return (unsigned int) SPA::tagServiceID::sidStartup;
 }
 
 void WINAPI SetClientInfo(USocket_Client_Handle h, SPA::CSwitchInfo si) {

@@ -41,7 +41,7 @@ bool CResIndexImpl::IsAllCollected(bool *partial) const {
         *partial = (m_deq.size() > 0);
     if (!m_pQ)
         return false;
-    return (m_pQ->GetSize() || m_uReqId == (unsigned short)SPA::tagBaseRequestID::idStartJob || m_uReqId == (unsigned short)SPA::tagBaseRequestID::idEndJob);
+    return (m_pQ->GetSize() || m_uReqId == (unsigned short) SPA::tagBaseRequestID::idStartJob || m_uReqId == (unsigned short) SPA::tagBaseRequestID::idEndJob);
 }
 
 unsigned int CResIndexImpl::SendReturnData(unsigned short usReqId, const unsigned char *pBuffer, unsigned int size) {
@@ -50,10 +50,10 @@ unsigned int CResIndexImpl::SendReturnData(unsigned short usReqId, const unsigne
         size = 0;
     if (session->m_cs < csConnected || g_pServer->m_bStopped)
         return SOCKET_NOT_FOUND;
-    if (usReqId != (unsigned short)SPA::tagBaseRequestID::idCancel && session->m_bCanceled)
+    if (usReqId != (unsigned short) SPA::tagBaseRequestID::idCancel && session->m_bCanceled)
         return REQUEST_CANCELED;
     SPA::CUQueue *q;
-    if (usReqId == (unsigned short)SPA::tagBaseRequestID::idServerException)
+    if (usReqId == (unsigned short) SPA::tagBaseRequestID::idServerException)
         q = m_pQ;
     else if (usReqId == m_uReqId)
         q = m_pQ;
@@ -70,10 +70,10 @@ unsigned int CResIndexImpl::SendReturnData(unsigned short usReqId, const unsigne
         *q << sh;
         q->Push(pBuffer, size);
     }
-    if ((usReqId == m_uReqId || usReqId == (unsigned short)SPA::tagBaseRequestID::idServerException) && m_qa.IsValid()) {
-        sh.RequestId = (unsigned short)SPA::tagBaseRequestID::idDequeueConfirmed;
+    if ((usReqId == m_uReqId || usReqId == (unsigned short) SPA::tagBaseRequestID::idServerException) && m_qa.IsValid()) {
+        sh.RequestId = (unsigned short) SPA::tagBaseRequestID::idDequeueConfirmed;
 #ifndef NDEBUG
-        if (usReqId == (unsigned short)SPA::tagBaseRequestID::idServerException) {
+        if (usReqId == (unsigned short) SPA::tagBaseRequestID::idServerException) {
             unsigned short *p = (unsigned short*) pBuffer;
             if (*p != m_uReqId) {
                 assert(false);
@@ -123,7 +123,7 @@ SPA::UINT64 CResIndexImpl::SendAll() {
             return res;
     }
     if (m_pQ) {
-        if (m_uReqId == (unsigned short)SPA::tagBaseRequestID::idStartJob) {
+        if (m_uReqId == (unsigned short) SPA::tagBaseRequestID::idStartJob) {
 #ifndef NDEBUG
             ++session->m_nJobRequest;
             if (session->m_bDequeueTrans) {
@@ -133,7 +133,7 @@ SPA::UINT64 CResIndexImpl::SendAll() {
             session->m_bDequeueTrans = true;
             assert(m_qa.IsValid());
             SPA::CStreamHeader sh;
-            sh.RequestId = (unsigned short)SPA::tagBaseRequestID::idDequeueConfirmed;
+            sh.RequestId = (unsigned short) SPA::tagBaseRequestID::idDequeueConfirmed;
             MQ_FILE::CDequeueConfirmInfo dci(m_qa, session->m_bFail, m_uReqId);
             sh.Size = sizeof (dci);
             *m_pQ << sh << dci;
@@ -143,7 +143,7 @@ SPA::UINT64 CResIndexImpl::SendAll() {
                 CRAutoLock ral(session->m_mutex, session->m_bChatting);
                 p(index, m_uReqId);
             }
-        } else if (m_uReqId == (unsigned short)SPA::tagBaseRequestID::idEndJob) {
+        } else if (m_uReqId == (unsigned short) SPA::tagBaseRequestID::idEndJob) {
 #ifndef NDEBUG
             --session->m_nJobRequest;
             if (!session->m_bDequeueTrans) {
@@ -153,7 +153,7 @@ SPA::UINT64 CResIndexImpl::SendAll() {
             session->m_bDequeueTrans = false;
             assert(m_qa.IsValid());
             SPA::CStreamHeader sh;
-            sh.RequestId = (unsigned short)SPA::tagBaseRequestID::idDequeueConfirmed;
+            sh.RequestId = (unsigned short) SPA::tagBaseRequestID::idDequeueConfirmed;
             MQ_FILE::CDequeueConfirmInfo dci(m_qa, session->m_bFail, m_uReqId);
             sh.Size = sizeof (dci);
             *m_pQ << sh << dci;
@@ -190,9 +190,9 @@ bool IsTooMany(const CMapIndex &mi) {
                 return true;
         }
         unsigned short id = it->second->GetReqId();
-        if (id == (unsigned short)SPA::tagBaseRequestID::idStartJob) {
+        if (id == (unsigned short) SPA::tagBaseRequestID::idStartJob) {
             ++balance;
-        } else if (id == (unsigned short)SPA::tagBaseRequestID::idEndJob) {
+        } else if (id == (unsigned short) SPA::tagBaseRequestID::idEndJob) {
             sb = true;
             --balance;
             if (mi.size() > TO_MANY_QUEUED)

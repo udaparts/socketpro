@@ -77,10 +77,10 @@ protected:
 
     virtual void OnBaseRequestProcessed(unsigned short requestId) {
         switch (requestId) {
-			case (unsigned short) SPA::tagBaseRequestID::idStartJob:
+            case (unsigned short) SPA::tagBaseRequestID::idStartJob:
                 std::cout << "Start server dequeue trans" << std::endl;
                 break;
-			case (unsigned short) SPA::tagBaseRequestID::idEndJob:
+            case (unsigned short) SPA::tagBaseRequestID::idEndJob:
                 std::cout << "Commit server dequeue trans" << std::endl;
                 break;
             default:

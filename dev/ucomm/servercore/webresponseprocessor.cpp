@@ -7,7 +7,8 @@
 #include <boost/uuid/uuid_io.hpp>
 #include "../core_shared/pinc/base64.h"
 
-namespace UHTTP {
+namespace UHTTP
+{
 
     std::string CWebResponseProcessor::HTTP_RESPONSE_METHOD = "method";
     std::string CWebResponseProcessor::HTTP_RESPONSE_MSG = "msg";
@@ -17,8 +18,8 @@ namespace UHTTP {
     std::string CWebResponseProcessor::HTTP_RESPONSE_SERVICE_ID = "serviceId";
     std::string CWebResponseProcessor::HTTP_RESPONSE_REQUEST_ID = "reqId";
 
-    CWebResponseProcessor::CWebResponseProcessor(CWebRequestProcessor *pWebRequestProcessor)
-    : m_pWebRequestProcessor(pWebRequestProcessor) {
+    CWebResponseProcessor::CWebResponseProcessor(CWebRequestProcessor * pWebRequestProcessor)
+            : m_pWebRequestProcessor(pWebRequestProcessor) {
         assert(pWebRequestProcessor != nullptr);
         const UHttpRequest &ur = pWebRequestProcessor->GetUHttpRequest();
         m_nReqCount = ur.GetReqCount();
@@ -35,11 +36,11 @@ namespace UHTTP {
 
     }
 
-    CWebRequestProcessor* CWebResponseProcessor::GetRequestProcessor() const {
+    CWebRequestProcessor * CWebResponseProcessor::GetRequestProcessor() const {
         return m_pWebRequestProcessor;
     }
 
-    unsigned int CWebResponseProcessor::BounceBackEnter(unsigned int *pGroups, unsigned int count, SPA::CUQueue &Response) {
+    unsigned int CWebResponseProcessor::BounceBackEnter(unsigned int *pGroups, unsigned int count, SPA::CUQueue & Response) {
         assert(m_pWebRequestProcessor->m_CurrentErrCode == seOk);
         SPA::UJsonDocument docRes;
         docRes.SetObject();
@@ -52,7 +53,7 @@ namespace UHTTP {
         return (Response.GetSize() - start);
     }
 
-    unsigned int CWebResponseProcessor::BounceBackExit(unsigned int *pGroups, unsigned int count, SPA::CUQueue &Response) {
+    unsigned int CWebResponseProcessor::BounceBackExit(unsigned int *pGroups, unsigned int count, SPA::CUQueue & Response) {
         assert(m_pWebRequestProcessor->m_CurrentErrCode == seOk);
         SPA::UJsonDocument docRes;
         docRes.SetObject();
@@ -64,7 +65,7 @@ namespace UHTTP {
         return (Response.GetSize() - start);
     }
 
-    unsigned int CWebResponseProcessor::BounceBackSpeak(unsigned int *pGroups, unsigned int count, SPA::CUQueue &Response) {
+    unsigned int CWebResponseProcessor::BounceBackSpeak(unsigned int *pGroups, unsigned int count, SPA::CUQueue & Response) {
         assert(m_pWebRequestProcessor->m_CurrentErrCode == seOk);
         SPA::UJsonDocument docRes;
         docRes.SetObject();
@@ -76,7 +77,7 @@ namespace UHTTP {
         return (Response.GetSize() - start);
     }
 
-    unsigned int CWebResponseProcessor::BounceBackSendUserMessage(SPA::CUQueue &Response) {
+    unsigned int CWebResponseProcessor::BounceBackSendUserMessage(SPA::CUQueue & Response) {
         assert(m_pWebRequestProcessor->m_CurrentErrCode == seOk);
         SPA::UJsonDocument docRes;
         docRes.SetObject();
@@ -87,7 +88,7 @@ namespace UHTTP {
         return (Response.GetSize() - start);
     }
 
-    unsigned int CWebResponseProcessor::ProcessUserRequest(const char *res, SPA::CUQueue &Response) {
+    unsigned int CWebResponseProcessor::ProcessUserRequest(const char *res, SPA::CUQueue & Response) {
         unsigned int len;
         assert(m_pWebRequestProcessor->m_CurrentIndex > 0);
         assert(m_pWebRequestProcessor->m_CurrentErrCode == seOk);
@@ -108,7 +109,7 @@ namespace UHTTP {
         return (Response.GetSize() - start);
     }
 
-    void CWebResponseProcessor::ProcessPing(SPA::CUQueue &Response) {
+    void CWebResponseProcessor::ProcessPing(SPA::CUQueue & Response) {
         SPA::UJsonDocument docRes;
         docRes.SetObject();
         SetOwnBaseResponseInfo(docRes);
@@ -140,7 +141,7 @@ namespace UHTTP {
         }
     }
 
-    std::string CWebResponseProcessor::ProcessHttpSwitch(bool AuthOk, const char *ipAddr, unsigned short port, SPA::CUQueue &Response) {
+    std::string CWebResponseProcessor::ProcessHttpSwitch(bool AuthOk, const char *ipAddr, unsigned short port, SPA::CUQueue & Response) {
         const UHttpRequest &ur = m_pWebRequestProcessor->GetUHttpRequest();
         CHttpContext *pHC = m_pWebRequestProcessor->GetHttpContext();
         std::string id = GenerateId(ur);
@@ -178,7 +179,7 @@ namespace UHTTP {
         return id;
     }
 
-    std::string CWebResponseProcessor::GenerateId(const UHttpRequest &ur) {
+    std::string CWebResponseProcessor::GenerateId(const UHttpRequest & ur) {
         assert(ur.SpRequest == srSwitchTo);
         boost::uuids::random_generator rgen;
         boost::uuids::uuid u = rgen();
@@ -203,14 +204,14 @@ namespace UHTTP {
         docRes.AddMember(UHTTP::CHttpContext::HTTP_JS_GROUPS.c_str(), SPA::MakeJsonValue(pGroup, count, docRes.GetAllocator()), docRes.GetAllocator());
     }
 
-    void CWebResponseProcessor::SetOwnBaseResponseInfo(SPA::UJsonDocument &docRes) {
+    void CWebResponseProcessor::SetOwnBaseResponseInfo(SPA::UJsonDocument & docRes) {
         docRes.AddMember(CHttpContext::SP_REQUEST_CI.c_str(), m_pWebRequestProcessor->m_CurrentIndex, docRes.GetAllocator());
         if (m_pWebRequestProcessor->m_CurrentErrCode != seOk)
             docRes.AddMember(CHttpContext::SP_RESPONSE_CODE.c_str(), m_pWebRequestProcessor->m_CurrentErrCode, docRes.GetAllocator());
         docRes.AddMember(CHttpContext::HTTP_RESPONSE_SELF.c_str(), 1, docRes.GetAllocator());
     }
 
-    unsigned int CWebResponseProcessor::SendExceptionResult(const wchar_t* errMessage, const char* errWhere, unsigned short requestId, unsigned int errCode, SPA::CUQueue &Response) {
+    unsigned int CWebResponseProcessor::SendExceptionResult(const wchar_t* errMessage, const char* errWhere, unsigned short requestId, unsigned int errCode, SPA::CUQueue & Response) {
         SPA::CScopeUQueue su;
         SPA::UJsonDocument docRes;
         docRes.SetObject();
@@ -233,7 +234,7 @@ namespace UHTTP {
         return 30 * 1000; //DEFAULT_WEBSOCKET_PING_TIME;
     }
 
-    void CWebResponseProcessor::ProcessClose(SPA::CUQueue &Response) {
+    void CWebResponseProcessor::ProcessClose(SPA::CUQueue & Response) {
         SPA::UJsonDocument docRes;
         CHttpContext *pHC = m_pWebRequestProcessor->GetHttpContext();
         if (!pHC->IsWebSocket())
@@ -246,32 +247,32 @@ namespace UHTTP {
             Connection::CConnectionContext::RemoveConnectionContext(m_pWebRequestProcessor->GetUHttpRequest().Id);
     }
 
-    unsigned int CWebResponseProcessor::Enter(const char *senderAddr, unsigned short senderClientPort, const wchar_t *sendUserId, unsigned int senderServiceId, const unsigned int *pGroups, unsigned int count, SPA::CUQueue &Response) {
+    unsigned int CWebResponseProcessor::Enter(const char *senderAddr, unsigned short senderClientPort, const wchar_t *sendUserId, unsigned int senderServiceId, const unsigned int *pGroups, unsigned int count, SPA::CUQueue & Response) {
         assert(false); //should not come here
         return 0;
     }
 
-    unsigned int CWebResponseProcessor::Exit(const char *senderAddr, unsigned short senderClientPort, const wchar_t *sendUserId, unsigned int senderServiceId, const unsigned int *pGroups, unsigned int count, SPA::CUQueue &Response) {
+    unsigned int CWebResponseProcessor::Exit(const char *senderAddr, unsigned short senderClientPort, const wchar_t *sendUserId, unsigned int senderServiceId, const unsigned int *pGroups, unsigned int count, SPA::CUQueue & Response) {
         assert(false); //should not come here
         return 0;
     }
 
-    unsigned int CWebResponseProcessor::Speak(const char *senderAddr, unsigned short senderClientPort, const wchar_t *sendUserId, unsigned int senderServiceId, const SPA::UVariant &vtMsg, const unsigned int *pGroups, unsigned int count, SPA::CUQueue &Response) {
+    unsigned int CWebResponseProcessor::Speak(const char *senderAddr, unsigned short senderClientPort, const wchar_t *sendUserId, unsigned int senderServiceId, const SPA::UVariant &vtMsg, const unsigned int *pGroups, unsigned int count, SPA::CUQueue & Response) {
         assert(false); //should not come here
         return 0;
     }
 
-    unsigned int CWebResponseProcessor::SendUserMessage(const char *senderAddr, unsigned short senderClientPort, const wchar_t *sendUserId, unsigned int senderServiceId, const SPA::UVariant &vtMsg, const unsigned int *pGroups, unsigned int count, SPA::CUQueue &Response) {
+    unsigned int CWebResponseProcessor::SendUserMessage(const char *senderAddr, unsigned short senderClientPort, const wchar_t *sendUserId, unsigned int senderServiceId, const SPA::UVariant &vtMsg, const unsigned int *pGroups, unsigned int count, SPA::CUQueue & Response) {
         assert(false); //should not come here
         return 0;
     }
 
-    CJavaScriptResponseProcessor::CJavaScriptResponseProcessor(CJavaScriptRequestProcessor *pJavaScriptRequestProcessor)
-    : CWebResponseProcessor(pJavaScriptRequestProcessor) {
+    CJavaScriptResponseProcessor::CJavaScriptResponseProcessor(CJavaScriptRequestProcessor * pJavaScriptRequestProcessor)
+            : CWebResponseProcessor(pJavaScriptRequestProcessor) {
         assert(pJavaScriptRequestProcessor->GetHttpContext()->GetTransport() == SPA::ServerSide::tagTransport::tScript);
     }
 
-    void CJavaScriptResponseProcessor::SetResponse(SPA::UJsonDocument &docRes, SPA::CUQueue &Response) {
+    void CJavaScriptResponseProcessor::SetResponse(SPA::UJsonDocument &docRes, SPA::CUQueue & Response) {
         SPA::CScopeUQueue su;
         if (Response.GetTailSize() > su->GetMaxSize())
             su->ReallocBuffer(Response.GetTailSize());
@@ -286,7 +287,7 @@ namespace UHTTP {
             p->PrepareResponse(su->GetBuffer(), su->GetSize(), Response);
     }
 
-    void CJavaScriptResponseProcessor::WriteEnd(SPA::UJsonDocument &docRes, SPA::CUQueue &Response) {
+    void CJavaScriptResponseProcessor::WriteEnd(SPA::UJsonDocument &docRes, SPA::CUQueue & Response) {
         const UHttpRequest &ur = m_pWebRequestProcessor->GetUHttpRequest();
         Connection::CConnectionContext::SharedPtr sp = Connection::CConnectionContext::SeekConnectionContext(ur.Id);
         if (ur.SpRequest != UHTTP::srSwitchTo) {
@@ -308,12 +309,12 @@ namespace UHTTP {
         Response.SetNull();
     }
 
-    CAjaxResponseProcessor::CAjaxResponseProcessor(CAjaxRequestProcessor *pAjaxRequestProcessor)
-    : CWebResponseProcessor(pAjaxRequestProcessor) {
+    CAjaxResponseProcessor::CAjaxResponseProcessor(CAjaxRequestProcessor * pAjaxRequestProcessor)
+            : CWebResponseProcessor(pAjaxRequestProcessor) {
         assert(pAjaxRequestProcessor->GetHttpContext()->GetTransport() == SPA::ServerSide::tagTransport::tAjax);
     }
 
-    void CAjaxResponseProcessor::SetResponse(SPA::UJsonDocument &docRes, SPA::CUQueue &Response) {
+    void CAjaxResponseProcessor::SetResponse(SPA::UJsonDocument &docRes, SPA::CUQueue & Response) {
         SPA::CScopeUQueue su;
         if (Response.GetTailSize() > su->GetMaxSize())
             su->ReallocBuffer(Response.GetTailSize());
@@ -324,7 +325,7 @@ namespace UHTTP {
         }
     }
 
-    void CAjaxResponseProcessor::WriteEnd(SPA::UJsonDocument &docRes, SPA::CUQueue &Response) {
+    void CAjaxResponseProcessor::WriteEnd(SPA::UJsonDocument &docRes, SPA::CUQueue & Response) {
         const UHttpRequest &ur = m_pWebRequestProcessor->GetUHttpRequest();
         Connection::CConnectionContext::SharedPtr sp = Connection::CConnectionContext::SeekConnectionContext(ur.Id);
         if (ur.SpRequest != UHTTP::srSwitchTo) {
@@ -352,12 +353,12 @@ namespace UHTTP {
         }
     }
 
-    CWebSocketResponseProcessor::CWebSocketResponseProcessor(CWebSocketRequestProcessor *pWebSocketRequestProcessor)
-    : CWebResponseProcessor(pWebSocketRequestProcessor) {
+    CWebSocketResponseProcessor::CWebSocketResponseProcessor(CWebSocketRequestProcessor * pWebSocketRequestProcessor)
+            : CWebResponseProcessor(pWebSocketRequestProcessor) {
         assert(pWebSocketRequestProcessor->GetHttpContext()->GetTransport() == SPA::ServerSide::tagTransport::tWebSocket);
     }
 
-    void CWebSocketResponseProcessor::WriteEnd(SPA::UJsonDocument &docRes, SPA::CUQueue &Response) {
+    void CWebSocketResponseProcessor::WriteEnd(SPA::UJsonDocument &docRes, SPA::CUQueue & Response) {
         SPA::CScopeUQueue su;
         if (Response.GetTailSize() > su->GetMaxSize())
             su->ReallocBuffer(Response.GetTailSize());
@@ -366,12 +367,12 @@ namespace UHTTP {
         GetRequestProcessor()->GetHttpContext()->PrepareWSResponseMessage(su->GetBuffer(), su->GetSize(), ocTextMsg, Response);
     }
 
-    void CWebSocketResponseProcessor::SetResponse(SPA::UJsonDocument &docRes, SPA::CUQueue &Response) {
+    void CWebSocketResponseProcessor::SetResponse(SPA::UJsonDocument &docRes, SPA::CUQueue & Response) {
         WriteEnd(docRes, Response);
         Response.SetNull();
     }
 
-    unsigned int CWebSocketResponseProcessor::Enter(const char *senderAddr, unsigned short senderClientPort, const wchar_t *sendUserId, unsigned int senderServiceId, const unsigned int *pGroups, unsigned int count, SPA::CUQueue &Response) {
+    unsigned int CWebSocketResponseProcessor::Enter(const char *senderAddr, unsigned short senderClientPort, const wchar_t *sendUserId, unsigned int senderServiceId, const unsigned int *pGroups, unsigned int count, SPA::CUQueue & Response) {
         unsigned int start = Response.GetSize();
         SPA::UJsonDocument docRes;
         docRes.SetObject();
@@ -381,7 +382,7 @@ namespace UHTTP {
         return (Response.GetSize() - start);
     }
 
-    unsigned int CWebSocketResponseProcessor::Exit(const char *senderAddr, unsigned short senderClientPort, const wchar_t *sendUserId, unsigned int senderServiceId, const unsigned int *pGroups, unsigned int count, SPA::CUQueue &Response) {
+    unsigned int CWebSocketResponseProcessor::Exit(const char *senderAddr, unsigned short senderClientPort, const wchar_t *sendUserId, unsigned int senderServiceId, const unsigned int *pGroups, unsigned int count, SPA::CUQueue & Response) {
         unsigned int start = Response.GetSize();
         SPA::UJsonDocument docRes;
         docRes.SetObject();
@@ -391,7 +392,7 @@ namespace UHTTP {
         return (Response.GetSize() - start);
     }
 
-    unsigned int CWebSocketResponseProcessor::Speak(const char *senderAddr, unsigned short senderClientPort, const wchar_t *sendUserId, unsigned int senderServiceId, const SPA::UVariant &vtMsg, const unsigned int *pGroups, unsigned int count, SPA::CUQueue &Response) {
+    unsigned int CWebSocketResponseProcessor::Speak(const char *senderAddr, unsigned short senderClientPort, const wchar_t *sendUserId, unsigned int senderServiceId, const SPA::UVariant &vtMsg, const unsigned int *pGroups, unsigned int count, SPA::CUQueue & Response) {
         unsigned int start = Response.GetSize();
         SPA::UJsonDocument docRes;
         docRes.SetObject();
@@ -402,7 +403,7 @@ namespace UHTTP {
         return (Response.GetSize() - start);
     }
 
-    unsigned int CWebSocketResponseProcessor::SendUserMessage(const char *senderAddr, unsigned short senderClientPort, const wchar_t *sendUserId, unsigned int senderServiceId, const SPA::UVariant &vtMsg, const unsigned int *pGroups, unsigned int count, SPA::CUQueue &Response) {
+    unsigned int CWebSocketResponseProcessor::SendUserMessage(const char *senderAddr, unsigned short senderClientPort, const wchar_t *sendUserId, unsigned int senderServiceId, const SPA::UVariant &vtMsg, const unsigned int *pGroups, unsigned int count, SPA::CUQueue & Response) {
         unsigned int start = Response.GetSize();
         SPA::UJsonDocument docRes;
         docRes.SetObject();

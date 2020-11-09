@@ -7,10 +7,11 @@
 #include "../core_shared/shared/streamhead.h"
 #include "httpcontext.h"
 
-namespace UHTTP {
+namespace UHTTP
+{
 
-    CWebRequestProcessor::CWebRequestProcessor(CHttpContext *pHttpContext)
-    : m_CurrentIndex(0), m_CurrentErrCode(seOk), m_doc(nullptr), m_pHttpContext(pHttpContext) {
+    CWebRequestProcessor::CWebRequestProcessor(CHttpContext * pHttpContext)
+            : m_CurrentIndex(0), m_CurrentErrCode(seOk), m_doc(nullptr), m_pHttpContext(pHttpContext) {
         ::memset(&m_ur, 0, sizeof (m_ur));
     }
 
@@ -18,11 +19,11 @@ namespace UHTTP {
         delete m_doc;
     }
 
-    CHttpContext* CWebRequestProcessor::GetHttpContext() const {
+    CHttpContext * CWebRequestProcessor::GetHttpContext() const {
         return m_pHttpContext;
     }
 
-    SPA::UJsonDocument& CWebRequestProcessor::GetDoc() const {
+    SPA::UJsonDocument & CWebRequestProcessor::GetDoc() const {
         return *m_doc;
     }
 
@@ -42,7 +43,7 @@ namespace UHTTP {
         return out;
     }
 
-    UHttpRequest CWebRequestProcessor::ProcessChildRequest(const SPA::UJsonValue &doc) {
+    UHttpRequest CWebRequestProcessor::ProcessChildRequest(const SPA::UJsonValue & doc) {
         UHttpRequest UReq;
         UReq.SpRequest = srUnknown;
         rapidjson::SizeType size = doc.MemberSize();
@@ -133,7 +134,7 @@ namespace UHTTP {
         return srRequest;
     }
 
-    void CWebRequestProcessor::MakeChatGroup(const SPA::UJsonValue &groups, bool bEnter, SPA::CUQueue &q) {
+    void CWebRequestProcessor::MakeChatGroup(const SPA::UJsonValue &groups, bool bEnter, SPA::CUQueue & q) {
         SPA::CScopeUQueue su;
         if (groups.IsArray()) {
             unsigned int n, m = groups.Size();
@@ -152,7 +153,7 @@ namespace UHTTP {
         q.Push(su->GetBuffer(), su->GetSize());
     }
 
-    void CWebRequestProcessor::MakeMsg(const SPA::UJsonValue &msg, SPA::CUQueue &q) {
+    void CWebRequestProcessor::MakeMsg(const SPA::UJsonValue &msg, SPA::CUQueue & q) {
         SPA::UVariant vtMsg;
         switch (msg.GetType()) {
             case rapidjson::kArrayType:
@@ -168,7 +169,7 @@ namespace UHTTP {
                 doc.Accept(writer);
                 su->SetNull();
                 SPA::Utilities::ToWide((const char*) su->GetBuffer(), su->GetSize(), *su2);
-                const wchar_t *str = (const wchar_t*)su2->GetBuffer();
+                const wchar_t *str = (const wchar_t*) su2->GetBuffer();
 
                 //don't use vtMsg and remove one memory copy
                 q.Push((const unsigned char*) &vt, sizeof (vt));
@@ -181,7 +182,7 @@ namespace UHTTP {
                 SPA::CScopeUQueue su;
                 const char *src = msg.GetString();
                 SPA::Utilities::ToWide(msg.GetString(), ::strlen(src), *su);
-                const wchar_t *str = (const wchar_t*)su->GetBuffer();
+                const wchar_t *str = (const wchar_t*) su->GetBuffer();
 
                 //don't use vtMsg and remove one memory copy
                 q.Push((const unsigned char*) &vt, sizeof (vt));
@@ -218,7 +219,7 @@ namespace UHTTP {
         }
     }
 
-    void CWebRequestProcessor::MakeForSpeak(const UHttpRequest &ur, SPA::CUQueue &q) {
+    void CWebRequestProcessor::MakeForSpeak(const UHttpRequest &ur, SPA::CUQueue & q) {
         unsigned int count = ur.GetArgCount();
         if (count > 1) {
             const SPA::UJsonValue &groups = ur.GetArg(1);
@@ -239,7 +240,7 @@ namespace UHTTP {
         }
     }
 
-    void CWebRequestProcessor::MakeForSendUserMessage(const UHttpRequest &ur, SPA::CUQueue &q) {
+    void CWebRequestProcessor::MakeForSendUserMessage(const UHttpRequest &ur, SPA::CUQueue & q) {
         unsigned int count = ur.GetArgCount();
         if (count) {
             if (ur.GetArg(0).IsString()) {
@@ -247,7 +248,7 @@ namespace UHTTP {
                 SPA::CScopeUQueue su;
                 if (str)
                     SPA::Utilities::ToWide(str, ::strlen(str), *su);
-                q << (const wchar_t*)su->GetBuffer();
+                q << (const wchar_t*) su->GetBuffer();
             }
         } else {
             q << L"";
@@ -262,7 +263,7 @@ namespace UHTTP {
         }
     }
 
-    void CWebRequestProcessor::MakeForEnter(const UHttpRequest &ur, SPA::CUQueue &q) {
+    void CWebRequestProcessor::MakeForEnter(const UHttpRequest &ur, SPA::CUQueue & q) {
         unsigned short vt = (VT_ARRAY | VT_UINT);
         q << vt;
         unsigned int count = ur.GetArgCount();
@@ -273,7 +274,7 @@ namespace UHTTP {
             q << count;
     }
 
-    void CWebRequestProcessor::MakeForDoRequest(const UHttpRequest &ur, SPA::CUQueue &q) {
+    void CWebRequestProcessor::MakeForDoRequest(const UHttpRequest &ur, SPA::CUQueue & q) {
         unsigned int n, count = ur.GetArgCount();
         q << ur.ReqName;
         q << count;
@@ -304,19 +305,19 @@ namespace UHTTP {
         }
     }
 
-    void CWebRequestProcessor::MakeBinaryRequest(const UHttpRequest &ur, SPA::CUQueue &q) {
+    void CWebRequestProcessor::MakeBinaryRequest(const UHttpRequest &ur, SPA::CUQueue & q) {
         SPA::CStreamHeader reqInfo;
         switch (ur.SpRequest) {
             case srPing:
-                reqInfo.RequestId = (unsigned short)SPA::tagBaseRequestID::idPing;
+                reqInfo.RequestId = (unsigned short) SPA::tagBaseRequestID::idPing;
                 break;
             case srExit:
                 q << ur.CallIndex;
                 q << ur.ErrCode;
-                reqInfo.RequestId = (unsigned short)SPA::tagChatRequestID::idExit;
+                reqInfo.RequestId = (unsigned short) SPA::tagChatRequestID::idExit;
                 break;
             case srEnter:
-                reqInfo.RequestId = (unsigned short)SPA::tagChatRequestID::idEnter;
+                reqInfo.RequestId = (unsigned short) SPA::tagChatRequestID::idEnter;
                 MakeForEnter(ur, q);
             {
                 SPA::CScopeUQueue su;
@@ -326,7 +327,7 @@ namespace UHTTP {
             }
                 break;
             case srSpeak:
-                reqInfo.RequestId = (unsigned short)SPA::tagChatRequestID::idSpeak;
+                reqInfo.RequestId = (unsigned short) SPA::tagChatRequestID::idSpeak;
                 MakeForSpeak(ur, q);
             {
                 SPA::CScopeUQueue su;
@@ -336,7 +337,7 @@ namespace UHTTP {
             }
                 break;
             case srSendUserMessage:
-                reqInfo.RequestId = (unsigned short)SPA::tagChatRequestID::idSendUserMessage;
+                reqInfo.RequestId = (unsigned short) SPA::tagChatRequestID::idSendUserMessage;
                 MakeForSendUserMessage(ur, q);
             {
                 SPA::CScopeUQueue su;
@@ -346,10 +347,10 @@ namespace UHTTP {
             }
                 break;
             case srSwitchTo:
-                reqInfo.RequestId = (unsigned short)SPA::tagBaseRequestID::idSwitchTo;
+                reqInfo.RequestId = (unsigned short) SPA::tagBaseRequestID::idSwitchTo;
                 break;
             case srRequest:
-                reqInfo.RequestId = (unsigned short)SPA::ServerSide::tagHttpRequestID::idUserRequest;
+                reqInfo.RequestId = (unsigned short) SPA::ServerSide::tagHttpRequestID::idUserRequest;
                 MakeForDoRequest(ur, q);
             {
                 SPA::CScopeUQueue su;
@@ -359,7 +360,7 @@ namespace UHTTP {
             }
                 break;
             case srClose:
-                reqInfo.RequestId = (unsigned short)SPA::tagBaseRequestID::idHttpClose;
+                reqInfo.RequestId = (unsigned short) SPA::tagBaseRequestID::idHttpClose;
                 break;
             default:
                 assert(false);
@@ -369,7 +370,7 @@ namespace UHTTP {
         q.Insert((const unsigned char*) &reqInfo, sizeof (reqInfo), 0);
     }
 
-    void CWebRequestProcessor::CheckRequest(const SPA::UJsonValue &json, UHttpRequest &ur) {
+    void CWebRequestProcessor::CheckRequest(const SPA::UJsonValue &json, UHttpRequest & ur) {
         rapidjson::SizeType size = json.MemberSize();
         if (size != 5) {
             ur.ErrCode = seBadNumberOfArgs;
@@ -478,21 +479,21 @@ namespace UHTTP {
         m_CurrentErrCode = m_ur.ErrCode;
     }
 
-    const UHttpRequest& CWebRequestProcessor::GetUHttpRequest() const {
+    const UHttpRequest & CWebRequestProcessor::GetUHttpRequest() const {
         return m_ur;
     }
 
-    const SPA::CUQueue& CWebRequestProcessor::GetBinaryRequests() const {
+    const SPA::CUQueue & CWebRequestProcessor::GetBinaryRequests() const {
         return *m_qRequest;
     }
 
-    CJavaScriptRequestProcessor::CJavaScriptRequestProcessor(CHttpContext *pHttpContext)
-    : CWebRequestProcessor(pHttpContext) {
+    CJavaScriptRequestProcessor::CJavaScriptRequestProcessor(CHttpContext * pHttpContext)
+            : CWebRequestProcessor(pHttpContext) {
         assert(pHttpContext);
         assert(pHttpContext->GetTransport() == SPA::ServerSide::tagTransport::tScript);
     }
 
-    const UHttpRequest& CJavaScriptRequestProcessor::Parse() {
+    const UHttpRequest & CJavaScriptRequestProcessor::Parse() {
         m_jsData->SetSize(0);
         m_jsData->Push(m_pHttpContext->GetUJSData());
         m_jsData->SetNull();
@@ -509,13 +510,13 @@ namespace UHTTP {
         return m_jsData->GetSize();
     }
 
-    CAjaxRequestProcessor::CAjaxRequestProcessor(CHttpContext *pHttpContext)
-    : CWebRequestProcessor(pHttpContext) {
+    CAjaxRequestProcessor::CAjaxRequestProcessor(CHttpContext * pHttpContext)
+            : CWebRequestProcessor(pHttpContext) {
         assert(pHttpContext);
         assert(pHttpContext->GetTransport() == SPA::ServerSide::tagTransport::tAjax);
     }
 
-    const UHttpRequest& CAjaxRequestProcessor::Parse() {
+    const UHttpRequest & CAjaxRequestProcessor::Parse() {
         if (m_qPost->GetTailSize() > 5 * 1460 && m_qPost->GetSize() < 2 * 1460) {
             m_qPost->ReallocBuffer(2 * 1460 + sizeof (wchar_t));
         }
@@ -535,13 +536,13 @@ namespace UHTTP {
         m_qPost->SetNull();
     }
 
-    CWebSocketRequestProcessor::CWebSocketRequestProcessor(CHttpContext *pHttpContext)
-    : CWebRequestProcessor(pHttpContext) {
+    CWebSocketRequestProcessor::CWebSocketRequestProcessor(CHttpContext * pHttpContext)
+            : CWebRequestProcessor(pHttpContext) {
         assert(pHttpContext);
         assert(pHttpContext->IsWebSocket());
     }
 
-    const UHttpRequest& CWebSocketRequestProcessor::Parse() {
+    const UHttpRequest & CWebSocketRequestProcessor::Parse() {
         SPA::CUQueue &q = m_pHttpContext->GetWebSocketMsg()->Content;
         q.SetNull();
         delete m_doc;

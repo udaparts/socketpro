@@ -2,7 +2,8 @@
 #include "httpgrammar.h"
 #include "../core_shared/pinc/hpdefines.h"
 
-namespace UHTTP {
+namespace UHTTP
+{
 
     const char HEX2DEC[256] = {
         /*       0  1  2  3   4  5  6  7   8  9  A  B   C  D  E  F */
@@ -64,7 +65,7 @@ namespace UHTTP {
     std::string CONTENT_TYPE("Content-Type");
     std::string CHUNKED("chunked");
 
-    const char* ParseHttp(const char *request, unsigned int len, CRequestContext &rc) {
+    const char* ParseHttp(const char *request, unsigned int len, CRequestContext & rc) {
         rc.Initialize();
         if (!request)
             return nullptr;
@@ -73,10 +74,10 @@ namespace UHTTP {
 
 #ifdef USE_SPIRIT_CLSSICAL_FOR_MULTIPART
 
-	CRule R_CRLF = str_p("\r\n");
-	CRule R_HEADER_END = R_CRLF >> R_CRLF;
-	CRule R_HEADER = +(anychar_p - (ch_p(':') | space_p | ch_p((char)0)));
-	CRule R_VALUE = +(anychar_p - R_CRLF);
+    CRule R_CRLF = str_p("\r\n");
+    CRule R_HEADER_END = R_CRLF >> R_CRLF;
+    CRule R_HEADER = +(anychar_p - (ch_p(':') | space_p | ch_p((char) 0)));
+    CRule R_VALUE = +(anychar_p - R_CRLF);
 
 #endif
 }
