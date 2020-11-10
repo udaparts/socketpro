@@ -139,7 +139,7 @@ vector<CSqlFuture> TestBatch(shared_ptr<CSqlite> sqlite, CRowsetArray &ra) {
     //select * from EMPLOYEE where EMPLOYEEID=2;
     //select * from EMPLOYEE where EMPLOYEEID=3
     //ok = sqlite->EndTrans();
-    vF.push_back(sqlite->executeBatch(tagTransactionIsolation::tiReadUncommited, u"Select datetime('now');select * from COMPANY where ID=?;Select datetime('now');select * from EMPLOYEE where EMPLOYEEID=?",
+    vF.push_back(sqlite->executeBatch(tagTransactionIsolation::tiReadCommited, u"Select datetime('now');select * from COMPANY where ID=?;Select datetime('now');select * from EMPLOYEE where EMPLOYEEID=?",
         vParam, [&ra](CSqlite &handler, CDBVariantArray & vData) {
             //rowset data come here
             assert((vData.size() % handler.GetColumnInfo().size()) == 0);

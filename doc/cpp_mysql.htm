@@ -358,15 +358,15 @@ CSqlFuture TestBatch(PMySQL pMysql, CRowsetArray&ra, CDBVariantArray &vData) {
     CSQLHandler::DRowsetHeader batchHeader = [](CSQLHandler & handler) {
         cout << "Batch header comes here" << endl;
     };
-    //first, start a manual transaction with isolation level to ReadUncommited
+    //first, start a manual transaction with isolation level to ReadCommited
     //second, execute delete from employee;delete from company
     //third, prepare and three sets of INSERT INTO company VALUES(?,?,?,?)
     //fourth, prepare and three sets of insert into employee values(?,?,?,?,?,?)
     //fifth, SELECT * from company;select * from employee;select curtime()
     //sixth, prepare and three sets of call sp_TestProc(?,?,?)
     //last, commit if no error happens or rollback if there is an error
-    return pMysql->executeBatch(tiReadUncommited, sql.c_str(),
-        vData, r, rh, u"|", batchHeader);
+    return pMysql->executeBatch(tagTransactionIsolation::tiReadCommited,
+        sql.c_str(), vData, r, rh, u"|", batchHeader);
 }
 </pre>
 </td>

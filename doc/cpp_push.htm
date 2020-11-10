@@ -68,7 +68,7 @@ protected:
     virtual bool OnSettingServer(unsigned int listeningPort,
         unsigned int maxBacklog, bool v6) {
         //amIntegrated and amMixed not supported yet
-        CSocketProServer::Config::SetAuthenticationMethod(amOwn);
+        CSocketProServer::Config::SetAuthenticationMethod(tagAuthenticationMethod::amOwn);
 
         //add service(s) into SocketPro server
         AddService();
@@ -98,7 +98,7 @@ private:
 private:
     void AddService() {
         //No COM -- taNone; STA COM -- taApartment; and Free COM -- taFree
-        bool ok = m_HelloWorld.AddMe(sidHelloWorld, taNone);
+        bool ok = m_HelloWorld.AddMe(sidHelloWorld, tagThreadApartment::taNone);
         ok = m_HelloWorld.AddSlowRequest(idSleep);
     }
 };
@@ -271,7 +271,7 @@ int main(int argc, char* argv[]) {
     typedef CSocketPool&lt;HelloWorld&gt; CMyPool;
     CMyPool spHw;
 
-    cc.EncrytionMethod = TLSv1;
+    cc.EncrytionMethod = tagEncryptionMethod::TLSv1;
 #ifdef WIN32_64
     //for windows platforms, you can just use windows system store instead
     //assuming ca.cert.pem at root, my, my@currentuser or root@localmachine

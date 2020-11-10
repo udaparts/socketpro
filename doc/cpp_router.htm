@@ -127,7 +127,7 @@ protected:
 
     virtual bool OnSettingServer(unsigned int listeningPort,
         unsigned int maxBacklog, bool v6) {
-        Config::SetAuthenticationMethod(amOwn);
+        Config::SetAuthenticationMethod(tagAuthenticationMethod::amOwn);
 
         //add service(s) into SocketPro server
         AddServices();
@@ -195,10 +195,10 @@ private:
         //Copy uloader.js & uwebsocket.js at ../socketpro/bin/js and
         //earthcity.jpg & ws0.htm at ../socketpro/tutorials/webtests into
         //the directory where this application is located
-        ok = m_myHttp.AddMe(SPA::sidHTTP);
-        ok = m_myHttp.AddSlowRequest(idGet);
-        ok = m_myHttp.AddSlowRequest(idPost);
-        ok = m_myHttp.AddSlowRequest(idUserRequest);
+        ok = m_myHttp.AddMe((unsigned int)SPA::tagServiceID::sidHTTP);
+        ok = m_myHttp.AddSlowRequest((unsigned short)tagHttpRequestID::idGet);
+        ok = m_myHttp.AddSlowRequest((unsigned short)tagHttpRequestID::idPost);
+        ok = m_myHttp.AddSlowRequest((unsigned short)tagHttpRequestID::idUserRequest);
     }
 };
 
