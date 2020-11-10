@@ -577,7 +577,7 @@ unsigned int CServer::GetServices(unsigned int *pServiceId, unsigned int count) 
 void CServer::PutThreadBackIntoPool(CServerThread *pThread) {
     if (pThread == nullptr)
         return;
-    if (pThread->GetThreadApartment() == SPA::tagThreadApartment::taNone) {
+    if (pThread->GetThreadApartment() == SPA::tagThreadApartment::taApartment) {
         delete pThread;
         return;
     }
@@ -605,7 +605,7 @@ void CServer::RemoveThread(CServerThread *pThread) {
 
 CServerThread *CServer::GetOneThread(SPA::tagThreadApartment ta) {
     CServerThread *p = nullptr;
-    if (ta != SPA::tagThreadApartment::taNone) {
+    if (ta != SPA::tagThreadApartment::taApartment) {
         int n, size;
         SPA::CSpinAutoLock sl(m_mTP);
         size = (int) m_vThreadPool.size();
