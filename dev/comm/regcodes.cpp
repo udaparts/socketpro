@@ -17,10 +17,10 @@ static bool reg = false;
 			}
 
 static bool reg = false;
-			if (!reg) {
-				SPA::ServerSide::ServerCoreLoader.RegisterMe(SPA::sidFile, 0x4f00990088000077);
-				reg = true;
-			}
+            if (!reg) {
+                SPA::ServerSide::ServerCoreLoader.RegisterMe((unsigned int) SPA::tagServiceID::sidFile, 0x4f00990088000077);
+                reg = true;
+            }
 
 b2 runtime-link=static address-model=32
 
