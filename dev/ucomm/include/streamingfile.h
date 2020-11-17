@@ -89,7 +89,7 @@ namespace SPA {
 #endif
                 }
 
-                inline bool IsOpen() const {
+                inline bool IsOpen() const noexcept {
 #ifdef WIN32_64
                     return (File != INVALID_HANDLE_VALUE);
 #else
@@ -97,7 +97,7 @@ namespace SPA {
 #endif
                 }
 
-                inline bool HasError() const {
+                inline bool HasError() const noexcept {
                     return (ErrorCode || ErrMsg.size());
                 }
 
@@ -124,12 +124,12 @@ namespace SPA {
                 return CAsyncServiceHandler::CleanCallbacks();
             }
 
-            unsigned int GetFilesStreamed() {
+            unsigned int GetFilesStreamed() noexcept {
                 CAutoLock al(m_csFile);
                 return m_MaxDownloading;
             }
 
-            void SetFilesStreamed(unsigned int max) {
+            void SetFilesStreamed(unsigned int max) noexcept {
                 if (max == 0) {
                     max = 1;
                 } else if (max > MAX_FILES_STREAMED) {
@@ -139,12 +139,12 @@ namespace SPA {
                 m_MaxDownloading = max;
             }
 
-            size_t GetFilesQueued() {
+            size_t GetFilesQueued() noexcept {
                 CAutoLock al(m_csFile);
                 return m_vContext.size();
             }
 
-            UINT64 GetFileSize() {
+            UINT64 GetFileSize() noexcept {
                 UINT64 file_size = (~0);
                 CAutoLock al(m_csFile);
                 if (m_vContext.size()) {

@@ -39,9 +39,9 @@ namespace SPA {
 #endif
 
         //no copy constructor
-        CSpinLock(const CSpinLock &sl);
+        CSpinLock(const CSpinLock &sl) = delete;
         //no assignment operator
-        CSpinLock& operator=(const CSpinLock &sl);
+        CSpinLock& operator=(const CSpinLock &sl) = delete;
 
 #if defined(MONITORING_SPIN_CONTENTION) && defined(ATOMIC_AVAILABLE)
     public:
@@ -52,7 +52,7 @@ namespace SPA {
 
         static const UINT64 MAX_CYCLE = (UINT64) (~0);
 
-        CSpinLock()
+        CSpinLock() noexcept
         : m_locked(0)
 #if defined(MONITORING_SPIN_CONTENTION) && defined(ATOMIC_AVAILABLE)
         ,
@@ -66,7 +66,7 @@ namespace SPA {
          * @param max_cycle The max spin number
          * @return true if the locking is successful. Otherwise, the locking is failed
          */
-        inline bool lock(UINT64 max_cycle = MAX_CYCLE) volatile {
+        inline bool lock(UINT64 max_cycle = MAX_CYCLE) volatile noexcept {
 #ifndef ATOMIC_AVAILABLE
             while (::_InterlockedCompareExchange(&m_locked, 1, 0)) {
 #else
@@ -90,7 +90,7 @@ namespace SPA {
          * Try to lock a critical section
          * @return True if successful, and false if failed
          */
-        inline bool try_lock() volatile {
+        inline bool try_lock() volatile noexcept {
             return lock(1);
         }
 
@@ -98,7 +98,7 @@ namespace SPA {
          * Unlock a critical section
          * @remark Must call the method lock first before calling this method
          */
-        inline void unlock() volatile {
+        inline void unlock() volatile noexcept {
             assert(m_locked); //must call the method lock first
 #ifdef ATOMIC_AVAILABLE
             m_locked.store(0, std::memory_order_release);
@@ -114,29 +114,29 @@ namespace SPA {
         /**
          * Create an instance of CSpinAutoLock, and automatically lock a critical section
          */
-        CSpinAutoLock(CSpinLock &cs, UINT64 max_cycle = CSpinLock::MAX_CYCLE)
+        CSpinAutoLock(CSpinLock &cs, UINT64 max_cycle = CSpinLock::MAX_CYCLE) noexcept
         : m_cs(cs), m_locked(cs.lock(max_cycle)) {
         }
 
         /**
          * Destroy an instance of CSpinAutoLock, and automatically unlock a critical section
          */
-        ~CSpinAutoLock() {
+        ~CSpinAutoLock() noexcept {
             if (m_locked) {
                 m_cs.unlock();
             }
         }
 
-        inline operator bool() const {
+        inline operator bool() const noexcept {
             return m_locked;
         }
 
     private:
         /// Copy constructor disabled
-        CSpinAutoLock(const CSpinAutoLock &al);
+        CSpinAutoLock(const CSpinAutoLock &al) = delete;
 
         /// Assignment operator disabled
-        CSpinAutoLock& operator=(const CSpinAutoLock &al);
+        CSpinAutoLock& operator=(const CSpinAutoLock &al) = delete;
 
         CSpinLock &m_cs;
         bool m_locked;

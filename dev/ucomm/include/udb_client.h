@@ -93,65 +93,65 @@ namespace SPA {
 
         public:
 
-            inline int GetLastDBErrorCode() {
+            inline int GetLastDBErrorCode() noexcept {
                 CAutoLock al(m_csDB);
                 return m_dbErrCode;
             }
 
-            inline std::wstring GetLastDBErrorMessage() {
+            inline std::wstring GetLastDBErrorMessage() noexcept {
                 CAutoLock al(m_csDB);
                 return m_dbErrMsg;
             }
 
-            inline std::wstring GetConnection() {
+            inline std::wstring GetConnection() noexcept {
                 CAutoLock al(m_csDB);
                 return m_strConnection;
             }
 
-            inline INT64 GetLastAffected() {
+            inline INT64 GetLastAffected() noexcept {
                 CAutoLock al(m_csDB);
                 return m_affected;
             }
 
-            inline const CDBColumnInfoArray& GetColumnInfo() {
+            inline const CDBColumnInfoArray& GetColumnInfo() noexcept {
                 CAutoLock al(m_csDB);
                 return m_vColInfo;
             }
 
-            inline bool IsOpened() {
+            inline bool IsOpened() noexcept {
                 CAutoLock al(m_csDB);
                 return (m_strConnection.size() > 0 && m_lastReqId > 0);
             }
 
-            inline tagManagementSystem GetDBManagementSystem() {
+            inline tagManagementSystem GetDBManagementSystem() noexcept {
                 CAutoLock al(m_csDB);
                 return m_ms;
             }
 
-            inline unsigned int GetParameters() {
+            inline unsigned int GetParameters() noexcept {
                 CAutoLock al(m_csDB);
                 return m_parameters;
             }
 
-            inline unsigned int GetOutputs() {
+            inline unsigned int GetOutputs() noexcept {
                 CAutoLock al(m_csDB);
                 return m_outputs;
             }
 
-            inline bool GetCallReturn() {
+            inline bool GetCallReturn() noexcept {
                 CAutoLock al(m_csDB);
                 return m_bCallReturn;
             }
 
 #ifdef NO_OUTPUT_BINDING
 
-            inline const CDBVariant& GetRetValue() {
+            inline const CDBVariant& GetRetValue() noexcept {
                 CAutoLock al(m_csDB);
                 assert(m_bCallReturn);
                 return m_vtRet;
             }
 
-            inline bool IsProc() {
+            inline bool IsProc() noexcept {
                 CAutoLock al(m_csDB);
                 return m_bProc;
             }
@@ -161,7 +161,7 @@ namespace SPA {
              * Check if the object will automatically convert utf8 string into Unicode string when loading a ASCII string by VARIANT.
              * @return true if the object will do automatic converting, and false if the object will not
              */
-            inline bool Utf8ToW() {
+            inline bool Utf8ToW() noexcept {
                 CAutoLock al(m_csDB);
                 return m_Blob.Utf8ToW();
             }
@@ -170,7 +170,7 @@ namespace SPA {
              * Enable or disable the object to automatically convert utf8 string into Unicode string when loading a ASCII string by VARIANT.
              * @param bUtf8ToW true for enabling, and false for disabling
              */
-            inline void Utf8ToW(bool bUtf8ToW) {
+            inline void Utf8ToW(bool bUtf8ToW) noexcept {
                 CAutoLock al(m_csDB);
 #if defined(PHP_ADAPTER_PROJECT) || defined(NODE_JS_ADAPTER_PROJECT)
                 m_vData.Utf8ToW(bUtf8ToW);

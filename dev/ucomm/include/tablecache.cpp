@@ -20,11 +20,11 @@ namespace SPA {
     m_bDataCaseSensitive(tbl.m_bDataCaseSensitive) {
     }
 
-    const UDB::CDBColumnInfoArray & CTable::GetMeta() const {
+    const UDB::CDBColumnInfoArray & CTable::GetMeta() const noexcept {
         return first;
     }
 
-    const CDataMatrix & CTable::GetDataMatrix() const {
+    const CDataMatrix & CTable::GetDataMatrix() const noexcept {
         return second;
     }
 
@@ -325,7 +325,7 @@ namespace SPA {
         return 1;
     }
 
-    unsigned int CTable::FindOrdinal(const UTF16 * str) const {
+    unsigned int CTable::FindOrdinal(const UTF16 * str) const noexcept {
         if (!str)
             return INVALID_ORDINAL;
         unsigned int ordinal = 0;
@@ -337,7 +337,7 @@ namespace SPA {
         return INVALID_ORDINAL;
     }
 
-    unsigned int CTable::FindOrdinal(const char *str) const {
+    unsigned int CTable::FindOrdinal(const char *str) const noexcept {
         if (!str)
             return INVALID_ORDINAL;
         CScopeUQueue sb;
@@ -708,7 +708,7 @@ namespace SPA {
     m_bDataCaseSensitive(false) {
     }
 
-    void CDataSet::Swap(CDataSet & tc) {
+    void CDataSet::Swap(CDataSet & tc) noexcept {
         CAutoLock al(m_cs);
         m_ds.swap(tc.m_ds);
         m_strIp.swap(tc.m_strIp);
@@ -1058,7 +1058,7 @@ namespace SPA {
         return dt.ToDBString();
     }
 
-    CKeyMap CDataSet::FindKeys(const UTF16 *dbName, const UTF16 * tblName) {
+    CKeyMap CDataSet::FindKeys(const UTF16 *dbName, const UTF16 * tblName) noexcept {
         {
             CAutoLock al(m_cs);
             for (auto it = m_ds.cbegin(), end = m_ds.cend(); it != end; ++it) {
@@ -1081,72 +1081,72 @@ namespace SPA {
         return UDB::CDBColumnInfoArray();
     }
 
-    bool CDataSet::IsEmpty() {
+    bool CDataSet::IsEmpty() noexcept {
         CAutoLock al(m_cs);
         return (m_ds.size() == 0);
     }
 
-    void CDataSet::Empty() {
+    void CDataSet::Empty() noexcept {
         CAutoLock al(m_cs);
         return m_ds.clear();
     }
 
-    UDB::tagManagementSystem CDataSet::GetDBManagementSystem() {
+    UDB::tagManagementSystem CDataSet::GetDBManagementSystem() noexcept {
         CAutoLock al(m_cs);
         return m_ms;
     }
 
-    std::string CDataSet::GetDBServerIp() {
+    std::string CDataSet::GetDBServerIp() noexcept {
         CAutoLock al(m_cs);
         return m_strIp;
     }
 
-    std::wstring CDataSet::GetDBServerName() {
+    std::wstring CDataSet::GetDBServerName() noexcept {
         CAutoLock al(m_cs);
         return m_strHostName;
     }
 
-    std::wstring CDataSet::GetUpdater() {
+    std::wstring CDataSet::GetUpdater() noexcept {
         CAutoLock al(m_cs);
         return m_strUpdater;
     }
 
-    void CDataSet::SetDBNameCaseSensitive(bool bCaseSensitive) {
+    void CDataSet::SetDBNameCaseSensitive(bool bCaseSensitive) noexcept {
         CAutoLock al(m_cs);
         m_bDBNameCaseSensitive = bCaseSensitive;
     }
 
-    void CDataSet::SetTableNameCaseSensitive(bool bCaseSensitive) {
+    void CDataSet::SetTableNameCaseSensitive(bool bCaseSensitive) noexcept {
         CAutoLock al(m_cs);
         m_bTableNameCaseSensitive = bCaseSensitive;
     }
 
-    void CDataSet::SetFieldNameCaseSensitive(bool bCaseSensitive) {
+    void CDataSet::SetFieldNameCaseSensitive(bool bCaseSensitive) noexcept {
         CAutoLock al(m_cs);
         m_bFieldNameCaseSensitive = bCaseSensitive;
     }
 
-    void CDataSet::SetDataCaseSensitive(bool bCaseSensitive) {
+    void CDataSet::SetDataCaseSensitive(bool bCaseSensitive) noexcept {
         CAutoLock al(m_cs);
         m_bDataCaseSensitive = bCaseSensitive;
     }
 
-    bool CDataSet::GetDBNameCaseSensitive() {
+    bool CDataSet::GetDBNameCaseSensitive() noexcept {
         CAutoLock al(m_cs);
         return m_bDBNameCaseSensitive;
     }
 
-    bool CDataSet::GetTableNameCaseSensitive() {
+    bool CDataSet::GetTableNameCaseSensitive() noexcept {
         CAutoLock al(m_cs);
         return m_bTableNameCaseSensitive;
     }
 
-    bool CDataSet::GetFieldNameCaseSensitive() {
+    bool CDataSet::GetFieldNameCaseSensitive() noexcept {
         CAutoLock al(m_cs);
         return m_bFieldNameCaseSensitive;
     }
 
-    bool CDataSet::GetDataCaseSensitive() {
+    bool CDataSet::GetDataCaseSensitive() noexcept {
         CAutoLock al(m_cs);
         return m_bDataCaseSensitive;
     }
@@ -1248,7 +1248,7 @@ namespace SPA {
         return CTable::NO_TABLE_FOUND;
     }
 
-    unsigned int CDataSet::FindOrdinal(const UTF16 *dbName, const UTF16 *tblName, const UTF16 * str) {
+    unsigned int CDataSet::FindOrdinal(const UTF16 *dbName, const UTF16 *tblName, const UTF16 * str) noexcept {
         if (!tblName || !str)
             return CTable::INVALID_ORDINAL;
         if (!dbName)
@@ -1264,7 +1264,7 @@ namespace SPA {
         return CTable::NO_TABLE_FOUND;
     }
 
-    unsigned int CDataSet::FindOrdinal(const char *dbName, const char *tblName, const char *str) {
+    unsigned int CDataSet::FindOrdinal(const char *dbName, const char *tblName, const char *str) noexcept {
         if (!tblName || !str) {
             return CTable::INVALID_ORDINAL;
         }
@@ -1296,7 +1296,7 @@ namespace SPA {
         }
     }
 
-    size_t CDataSet::GetColumnCount(const UTF16 *dbName, const UTF16 * tblName) {
+    size_t CDataSet::GetColumnCount(const UTF16 *dbName, const UTF16 * tblName) noexcept {
         CAutoLock al(m_cs);
         for (auto it = m_ds.cbegin(), end = m_ds.cend(); it != end; ++it) {
             if (!Is(*it, dbName, tblName)) {
@@ -1308,7 +1308,7 @@ namespace SPA {
         return CTable::NO_TABLE_FOUND;
     }
 
-    size_t CDataSet::GetRowCount(const UTF16 *dbName, const UTF16 * tblName) {
+    size_t CDataSet::GetRowCount(const UTF16 *dbName, const UTF16 * tblName) noexcept {
         CAutoLock al(m_cs);
         for (auto it = m_ds.cbegin(), end = m_ds.cend(); it != end; ++it) {
             if (!Is(*it, dbName, tblName)) {
@@ -1327,19 +1327,19 @@ namespace SPA {
         return GetColumMeta(db.c_str(), tb.c_str());
     }
 
-    size_t CDataSet::GetRowCount(const wchar_t *dbName, const wchar_t * tblName) {
+    size_t CDataSet::GetRowCount(const wchar_t *dbName, const wchar_t * tblName) noexcept {
         CDBString db = dbName ? Utilities::ToUTF16(dbName) : u"";
         CDBString tb = tblName ? Utilities::ToUTF16(tblName) : u"";
         return GetRowCount(db.c_str(), tb.c_str());
     }
 
-    size_t CDataSet::GetColumnCount(const wchar_t *dbName, const wchar_t * tblName) {
+    size_t CDataSet::GetColumnCount(const wchar_t *dbName, const wchar_t * tblName) noexcept {
         CDBString db = dbName ? Utilities::ToUTF16(dbName) : u"";
         CDBString tb = tblName ? Utilities::ToUTF16(tblName) : u"";
         return GetColumnCount(db.c_str(), tb.c_str());
     }
 
-    unsigned int CDataSet::FindOrdinal(const wchar_t *dbName, const wchar_t *tblName, const wchar_t * colName) {
+    unsigned int CDataSet::FindOrdinal(const wchar_t *dbName, const wchar_t *tblName, const wchar_t * colName) noexcept {
         CDBString db = colName ? Utilities::ToUTF16(dbName) : u"";
         CDBString tb = tblName ? Utilities::ToUTF16(tblName) : u"";
         CDBString col = colName ? Utilities::ToUTF16(colName) : u"";

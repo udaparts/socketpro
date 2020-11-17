@@ -204,8 +204,8 @@ namespace SPA {
             virtual ~CSocketPeer();
 
         public:
-            const CBaseService* GetBaseService() const;
-            USocket_Server_Handle GetSocketHandle() const;
+            const CBaseService* GetBaseService() const noexcept;
+            USocket_Server_Handle GetSocketHandle() const noexcept;
             UINT64 GetSocketNativeHandle() const;
             std::wstring GetUID() const;
             unsigned short GetCurrentRequestID() const;
@@ -300,10 +300,10 @@ namespace SPA {
             virtual unsigned int SendResult(const char16_t *str, unsigned int chars = (~0)) const;
 #endif
         public:
-            IPush& GetPush();
-            const std::string& GetUserRequestName() const;
-            const std::vector<UVariant>& GetArgs() const;
-            bool IsAuthenticated() const;
+            IPush& GetPush() noexcept;
+            const std::string& GetUserRequestName() const noexcept;
+            const std::vector<UVariant>& GetArgs() const noexcept;
+            bool IsAuthenticated() const noexcept;
             bool SetResponseCode(unsigned int errCode) const;
             bool SetResponseHeader(const char *uft8Header, const char *utf8Value) const;
             unsigned int GetRequestHeaders(CHttpHeaderValue *HeaderValue, unsigned int count) const;
@@ -532,7 +532,7 @@ namespace SPA {
             void SetZipLevel(tagZipLevel zl) const;
             tagZipLevel GetZipLevel() const;
             bool IsDequeueRequest() const;
-            IPushEx& GetPush();
+            IPushEx& GetPush() noexcept;
             void AbortDequeuedMessage() const;
             bool IsDequeuedMessageAborted() const;
             bool NotifyInterrupt(UINT64 options) const;
@@ -586,7 +586,7 @@ namespace SPA {
         public:
             virtual bool AddMe(unsigned int nServiceId, tagThreadApartment ta = tagThreadApartment::taNone);
             void RemoveMe();
-            unsigned int GetSvsID() const;
+            unsigned int GetSvsID() const noexcept;
             unsigned int GetCountOfSlowRequests() const;
             std::vector<unsigned short> GetAllSlowRequestIds() const;
             static CSvsContext GetSvsContext(unsigned int serviceId);
@@ -602,7 +602,7 @@ namespace SPA {
             bool AddAlphaRequest(unsigned short reqId) const;
             std::vector<unsigned short> GetAlphaRequestIds() const;
 
-            CSocketPeer* Seek(USocket_Server_Handle h);
+            CSocketPeer* Seek(USocket_Server_Handle h) noexcept;
             static CBaseService* SeekService(unsigned int nServiceId);
             static CBaseService* SeekService(USocket_Server_Handle h);
 
