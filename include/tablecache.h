@@ -45,8 +45,8 @@ namespace SPA {
 
     public:
         CTable& operator=(const CTable &tbl);
-        const UDB::CDBColumnInfoArray& GetMeta() const;
-        const CDataMatrix& GetDataMatrix() const;
+        const UDB::CDBColumnInfoArray& GetMeta() const noexcept;
+        const CDataMatrix& GetDataMatrix() const noexcept;
         CKeyMap GetKeys() const;
 
         int Find(unsigned int ordinal, Operator op, const CComVariant &vt, CTable &tbl, bool copyData = false) const;
@@ -58,8 +58,8 @@ namespace SPA {
         int Between(unsigned int ordinal, const VARIANT &vt0, const VARIANT &vt1, CTable &tbl, bool copyData = false) const;
         int Append(const CTable &tbl);
         int Sort(unsigned int ordinal, bool desc = false);
-        unsigned int FindOrdinal(const UTF16 *colName) const;
-        unsigned int FindOrdinal(const char *colName) const;
+        unsigned int FindOrdinal(const UTF16 *colName) const noexcept;
+        unsigned int FindOrdinal(const char *colName) const noexcept;
 
     private:
         int gt(const VARIANT &vt0, const VARIANT &vt1) const;
@@ -91,28 +91,28 @@ namespace SPA {
     public:
         std::vector<CPDbTable> GetDBTablePair();
         UDB::CDBColumnInfoArray GetColumMeta(const UTF16 *dbName, const UTF16 *tblName);
-        size_t GetRowCount(const UTF16 *dbName, const UTF16 *tblName);
-        size_t GetColumnCount(const UTF16 *dbName, const UTF16 *tblName);
-        std::string GetDBServerIp();
-        std::wstring GetDBServerName();
-        std::wstring GetUpdater();
-        bool IsEmpty();
-        UDB::tagManagementSystem GetDBManagementSystem();
+        size_t GetRowCount(const UTF16 *dbName, const UTF16 *tblName) noexcept;
+        size_t GetColumnCount(const UTF16 *dbName, const UTF16 *tblName) noexcept;
+        std::string GetDBServerIp() noexcept;
+        std::wstring GetDBServerName() noexcept;
+        std::wstring GetUpdater() noexcept;
+        bool IsEmpty() noexcept;
+        UDB::tagManagementSystem GetDBManagementSystem() noexcept;
         void Set(const char *strIp, UDB::tagManagementSystem ms);
         void SetDBServerName(const wchar_t *strDBServerName);
         void SetUpdater(const wchar_t *strUpdater);
-        void Empty();
-        CKeyMap FindKeys(const UTF16 *dbName, const UTF16 *tblName);
-        void SetDBNameCaseSensitive(bool bCaseSensitive);
-        void SetTableNameCaseSensitive(bool bCaseSensitive);
-        void SetFieldNameCaseSensitive(bool bCaseSensitive);
-        void SetDataCaseSensitive(bool bCaseSensitive);
-        bool GetDBNameCaseSensitive();
-        bool GetTableNameCaseSensitive();
-        bool GetFieldNameCaseSensitive();
-        bool GetDataCaseSensitive();
-        unsigned int FindOrdinal(const UTF16 *dbName, const UTF16 *tblName, const UTF16 *colName);
-        unsigned int FindOrdinal(const char *dbName, const char *tblName, const char *colName);
+        void Empty() noexcept;
+        CKeyMap FindKeys(const UTF16 *dbName, const UTF16 *tblName) noexcept;
+        void SetDBNameCaseSensitive(bool bCaseSensitive) noexcept;
+        void SetTableNameCaseSensitive(bool bCaseSensitive) noexcept;
+        void SetFieldNameCaseSensitive(bool bCaseSensitive) noexcept;
+        void SetDataCaseSensitive(bool bCaseSensitive) noexcept;
+        bool GetDBNameCaseSensitive() noexcept;
+        bool GetTableNameCaseSensitive() noexcept;
+        bool GetFieldNameCaseSensitive() noexcept;
+        bool GetDataCaseSensitive() noexcept;
+        unsigned int FindOrdinal(const UTF16 *dbName, const UTF16 *tblName, const UTF16 *colName) noexcept;
+        unsigned int FindOrdinal(const char *dbName, const char *tblName, const char *colName) noexcept;
         int Find(const UTF16 *dbName, const UTF16 *tblName, unsigned int ordinal, CTable::Operator op, const CComVariant &vt, CTable &tbl);
         int Find(const UTF16 *dbName, const UTF16 *tblName, unsigned int ordinal, CTable::Operator op, const VARIANT &vt, CTable &tbl);
         int FindNull(const UTF16 *dbName, const UTF16 *tblName, unsigned int ordinal, CTable &tbl);
@@ -129,7 +129,7 @@ namespace SPA {
          * Swap internal data structure with tc. Track cache data initialization event by overriding this method
          * @param tc A valid Dataset object
          */
-        virtual void Swap(CDataSet &tc);
+        virtual void Swap(CDataSet &tc) noexcept;
 
         /**
          * Add an empty rowset from a given column meta data for cache. Track the event that a new rowset is added into a cache by overriding this method
@@ -187,9 +187,9 @@ namespace SPA {
 
 #if defined(WCHAR32) || _MSC_VER >= 1900
         UDB::CDBColumnInfoArray GetColumMeta(const wchar_t *dbName, const wchar_t *tblName);
-        size_t GetRowCount(const wchar_t *dbName, const wchar_t *tblName);
-        size_t GetColumnCount(const wchar_t *dbName, const wchar_t *tblName);
-        unsigned int FindOrdinal(const wchar_t *dbName, const wchar_t *tblName, const wchar_t *colName);
+        size_t GetRowCount(const wchar_t *dbName, const wchar_t *tblName) noexcept;
+        size_t GetColumnCount(const wchar_t *dbName, const wchar_t *tblName) noexcept;
+        unsigned int FindOrdinal(const wchar_t *dbName, const wchar_t *tblName, const wchar_t *colName) noexcept;
         int Find(const wchar_t *dbName, const wchar_t *tblName, unsigned int ordinal, CTable::Operator op, const CComVariant &vt, CTable &tbl);
         int Find(const wchar_t *dbName, const wchar_t *tblName, unsigned int ordinal, CTable::Operator op, const VARIANT &vt, CTable &tbl);
         int FindNull(const wchar_t *dbName, const wchar_t *tblName, unsigned int ordinal, CTable &tbl);

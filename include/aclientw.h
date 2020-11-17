@@ -407,7 +407,7 @@ namespace SPA {
             }
 #else
 
-            bool operator==(const CConnectionContext &cc) const {
+            bool operator==(const CConnectionContext &cc) const noexcept {
                 if (this == &cc)
                     return true;
                 return (Host == cc.Host &&
@@ -584,7 +584,7 @@ namespace SPA {
 
             void Close() const;
             void Shutdown(tagShutdownType st = tagShutdownType::stBoth) const;
-            bool operator==(const CClientSocket &cs) const;
+            bool operator==(const CClientSocket &cs) const noexcept;
             void SetZip(bool zip) const;
             bool GetZip() const;
             void SetZipLevel(SPA::tagZipLevel zl) const;
@@ -602,13 +602,13 @@ namespace SPA {
             bool IgnoreLastRequest(unsigned short reqId) const;
             unsigned int GetRouteeCount() const;
 
-            inline bool IsRouting() const {
+            inline bool IsRouting() const noexcept {
                 return m_routing;
             }
             unsigned int GetCountOfRequestsInQueue() const;
             unsigned short GetCurrentRequestID() const;
 
-            inline unsigned int GetCurrentServiceID() const {
+            inline unsigned int GetCurrentServiceID() const noexcept {
                 return m_nCurrSvsId;
             }
             unsigned short GetServerPingTime() const;
@@ -631,7 +631,7 @@ namespace SPA {
             bool WaitAll(unsigned int nTimeout = (~0)) const;
             bool Cancel(unsigned int requestsQueued = (~0)) const;
 
-            inline bool IsRandom() const {
+            inline bool IsRandom() const noexcept {
                 return m_bRandom;
             }
             unsigned int GetBytesInSendingBuffer() const;
@@ -643,8 +643,8 @@ namespace SPA {
             std::wstring GetUID() const;
             void SetPassword(const wchar_t *password) const;
             UINT64 GetSocketNativeHandle() const;
-            CPushImpl& GetPush();
-            IClientQueue& GetClientQueue();
+            CPushImpl& GetPush() noexcept;
+            IClientQueue& GetClientQueue() noexcept;
             tagOperationSystem GetPeerOs(bool *endian = nullptr) const;
 
             bool DoEcho() const;
@@ -855,33 +855,33 @@ namespace SPA {
 
 #if defined(MONITORING_SPIN_CONTENTION) && defined(ATOMIC_AVAILABLE)
 
-            UINT64 GetContention() {
+            UINT64 GetContention() noexcept {
                 return m_cs.Contention; //m_vBatching & m_vCallback
             }
 
-            UINT64 GetCbContention() {
+            UINT64 GetCbContention() noexcept {
                 return m_csCb.Contention; //callbacks
             }
 
-            static UINT64 GetCacheContention() {
+            static UINT64 GetCacheContention() noexcept {
                 return m_rrStack.contention(); //m_rrStack
             }
 #endif
             unsigned int GetRequestsQueued();
             void ShrinkDeque();
 
-            inline unsigned int GetSvsID() const {
+            inline unsigned int GetSvsID() const noexcept {
                 return m_nServiceId;
             }
             void SetSvsID(unsigned int serviceId);
             virtual bool SendRequest(unsigned short reqId, const unsigned char *pBuffer, unsigned int size, const DResultHandler& rh, const DDiscarded& discarded = nullptr, const DServerException& serverException = nullptr);
             bool SendRequest(unsigned short reqId, const DResultHandler& rh = nullptr, const DDiscarded& discarded = nullptr, const DServerException& se = nullptr);
 
-            inline CClientSocket *GetAttachedClientSocket() {
+            inline CClientSocket *GetAttachedClientSocket() noexcept {
                 return m_pClientSocket;
             }
 
-            inline CClientSocket *GetSocket() {
+            inline CClientSocket *GetSocket() noexcept {
                 return m_pClientSocket;
             }
             virtual bool WaitAll(unsigned int timeOut = (~0));
@@ -1208,7 +1208,7 @@ namespace SPA {
             bool Attach(CClientSocket *cs);
             void Detach();
 
-            inline USocket_Client_Handle GetClientSocketHandle() const;
+            inline USocket_Client_Handle GetClientSocketHandle() const noexcept;
 
             bool GetAsyncResultHandler(unsigned short usReqId, PRR_PAIR &p);
             void OnRR(unsigned short reqId, CUQueue &mc);
@@ -1420,11 +1420,11 @@ namespace SPA {
 
             DDoSslAuthentication DoSslServerAuthentication;
 
-            inline const CMapSocketHandler& GetSocketHandlerMap() const {
+            inline const CMapSocketHandler& GetSocketHandlerMap() const noexcept {
                 return m_mapSocketHandler;
             }
 
-            inline CUCriticalSection& GetCriticalSection() {
+            inline CUCriticalSection& GetCriticalSection() noexcept {
                 return m_cs;
             }
 
@@ -1557,7 +1557,7 @@ namespace SPA {
                 }
             }
 
-            inline bool GetAutoConn() {
+            inline bool GetAutoConn() noexcept {
                 CAutoLock al(m_cs);
                 return m_autoConn;
             }
@@ -1578,7 +1578,7 @@ namespace SPA {
                 }
             }
 
-            inline unsigned int GetRecvTimeout() {
+            inline unsigned int GetRecvTimeout() noexcept {
                 CAutoLock al(m_cs);
                 return m_recvTimeout;
             }
@@ -1599,7 +1599,7 @@ namespace SPA {
                 }
             }
 
-            inline unsigned int GetConnTimeout() {
+            inline unsigned int GetConnTimeout() noexcept {
                 CAutoLock al(m_cs);
                 return m_connTimeout;
             }
@@ -1620,12 +1620,12 @@ namespace SPA {
                 ClientCoreLoader.SetQueueAutoMergeByPool(m_nPoolId, autoMerger);
             }
 
-            inline unsigned int GetSocketsCreated() {
+            inline unsigned int GetSocketsCreated() noexcept {
                 CAutoLock al(m_cs);
                 return (unsigned int) m_mapSocketHandler.size();
             }
 
-            inline unsigned int GetPoolId() {
+            inline unsigned int GetPoolId() noexcept {
                 return m_nPoolId;
             }
 
@@ -1731,7 +1731,7 @@ namespace SPA {
                 m_nPoolId = 0;
             }
 
-            const std::string& GetQueueName() {
+            const std::string& GetQueueName() noexcept {
                 CAutoLock al(m_cs);
                 return m_qName;
             }
@@ -1790,7 +1790,7 @@ namespace SPA {
                 return ClientCoreLoader.DisconnectAll(poolId);
             }
 
-            PHandler FindClosedOne() {
+            PHandler FindClosedOne() noexcept {
                 CAutoLock al(m_cs);
                 for (auto it = m_mapSocketHandler.begin(), end = m_mapSocketHandler.end(); it != end; ++it) {
                     if (!it->first->IsConnected() && it->second.unique())
@@ -1888,7 +1888,7 @@ namespace SPA {
                 return true;
             }
 
-            PHandler MapToHandler(USocket_Client_Handle h) {
+            PHandler MapToHandler(USocket_Client_Handle h) noexcept {
                 CAutoLock al(m_cs);
                 for (auto it = m_mapSocketHandler.begin(), end = m_mapSocketHandler.end(); it != end; ++it) {
                     if (it->first->GetHandle() == h)
@@ -2124,11 +2124,11 @@ namespace SPA {
                 return m_pool.GetConnectedSockets();
             }
 
-            inline bool IsReplicable() const {
+            inline bool IsReplicable() const noexcept {
                 return m_mapQNameConn.size() > 1;
             }
 
-            inline PHandler GetSourceHandler() const {
+            inline PHandler GetSourceHandler() const noexcept {
                 return m_SourceHandler;
             }
 
@@ -2139,11 +2139,11 @@ namespace SPA {
                 return nullptr;
             }
 
-            const std::vector<PHandler>& GetTargetHandlers() const {
+            const std::vector<PHandler>& GetTargetHandlers() const noexcept {
                 return m_vTargetHandlers;
             }
 
-            const std::vector<IClientQueue*>& GetTargetQueues() const {
+            const std::vector<IClientQueue*>& GetTargetQueues() const noexcept {
                 return m_vTargetQueues;
             }
 
@@ -2164,11 +2164,11 @@ namespace SPA {
                 return src->AppendTo(vHandles.data(), (unsigned int) vHandles.size());
             }
 
-            inline size_t GetHosts() const {
+            inline size_t GetHosts() const noexcept {
                 return m_mapQNameConn.size();
             }
 
-            inline const ReplicationSetting& GetReplicationSetting() const {
+            inline const ReplicationSetting& GetReplicationSetting() const noexcept {
                 return m_rs;
             }
 

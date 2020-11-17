@@ -31,7 +31,7 @@ namespace SPA {
             /**
              * Dequeue batch size in bytes
              */
-            unsigned int GetDequeueBatchSize() {
+            unsigned int GetDequeueBatchSize() noexcept {
                 CSpinAutoLock al(m_csQ);
                 return (m_nBatchSize & 0xffffff);
             }
@@ -39,7 +39,7 @@ namespace SPA {
             /**
              * Check if remote queue server is able to automatically notify a client when a message is enqueued at server side
              */
-            bool GetEnqueueNotified() {
+            bool GetEnqueueNotified() noexcept {
                 CSpinAutoLock al(m_csQ);
                 return ((m_nBatchSize >> 24) == 0);
             }
@@ -47,7 +47,7 @@ namespace SPA {
             /**
              * Get last dequeue callback
              */
-            DDequeue GetLastDequeueCallback() {
+            DDequeue GetLastDequeueCallback() noexcept {
                 CSpinAutoLock al(m_csQ);
                 return m_dDequeue;
             }
@@ -55,7 +55,7 @@ namespace SPA {
             /**
              * set last dequeue callback
              */
-            void SetLastDequeueCallback(DDequeue deq = nullptr) {
+            void SetLastDequeueCallback(DDequeue deq = nullptr) noexcept {
                 CSpinAutoLock al(m_csQ);
                 m_dDequeue = deq;
             }

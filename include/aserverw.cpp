@@ -25,19 +25,19 @@ namespace SPA
 
         }
 
-        IPush & CHttpPeerBase::GetPush() {
+        IPush & CHttpPeerBase::GetPush() noexcept {
             return m_PushImpl;
         }
 
-        const std::string & CHttpPeerBase::GetUserRequestName() const {
+        const std::string & CHttpPeerBase::GetUserRequestName() const noexcept {
             return m_WebRequestName;
         }
 
-        const std::vector<UVariant>& CHttpPeerBase::GetArgs() const {
+        const std::vector<UVariant>& CHttpPeerBase::GetArgs() const noexcept {
             return m_vArg;
         }
 
-        bool CHttpPeerBase::IsAuthenticated() const {
+        bool CHttpPeerBase::IsAuthenticated() const noexcept {
             return m_bHttpOk;
         }
 
@@ -129,11 +129,11 @@ namespace SPA
 
         }
 
-        const CBaseService * CSocketPeer::GetBaseService() const {
+        const CBaseService * CSocketPeer::GetBaseService() const noexcept {
             return m_pBase;
         }
 
-        USocket_Server_Handle CSocketPeer::GetSocketHandle() const {
+        USocket_Server_Handle CSocketPeer::GetSocketHandle() const noexcept {
             CSpinAutoLock sl(CBaseService::m_mutex);
             return m_hHandler;
         }
@@ -327,7 +327,7 @@ namespace SPA
             ServerCoreLoader.SetUserID(m_hHandler, userId.data());
         }
 
-        IPushEx & CClientPeer::GetPush() {
+        IPushEx & CClientPeer::GetPush() noexcept {
             return m_PushImpl;
         }
 
@@ -890,7 +890,7 @@ namespace SPA
             m_nServiceId = 0;
         }
 
-        unsigned int CBaseService::GetSvsID() const {
+        unsigned int CBaseService::GetSvsID() const noexcept {
             return m_nServiceId;
         }
 
@@ -996,7 +996,7 @@ namespace SPA
             return p;
         }
 
-        CSocketPeer * CBaseService::Seek(USocket_Server_Handle h) {
+        CSocketPeer * CBaseService::Seek(USocket_Server_Handle h) noexcept {
             CAutoLock sl(m_cs);
             size_t size = m_vPeer.size();
             const PSocketPeer *start = m_vPeer.data();

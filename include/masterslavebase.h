@@ -18,7 +18,7 @@ namespace SPA {
 
     public:
 
-        inline const std::wstring& GetDefaultDBName() const {
+        inline const std::wstring& GetDefaultDBName() const noexcept {
             return m_dbDefalut;
         }
 

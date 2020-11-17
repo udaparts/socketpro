@@ -392,7 +392,7 @@ namespace SPA {
             return total;
         }
 
-        USocket_Client_Handle CAsyncServiceHandler::GetClientSocketHandle() const {
+        USocket_Client_Handle CAsyncServiceHandler::GetClientSocketHandle() const noexcept {
             assert(m_pClientSocket);
             return m_pClientSocket->GetHandle();
         }
@@ -599,11 +599,11 @@ namespace SPA {
             return ClientCoreLoader.SetPassword(m_hSocket, password);
         }
 
-        CClientSocket::CPushImpl & CClientSocket::GetPush() {
+        CClientSocket::CPushImpl & CClientSocket::GetPush() noexcept {
             return m_PushImpl;
         }
 
-        IClientQueue & CClientSocket::GetClientQueue() {
+        IClientQueue & CClientSocket::GetClientQueue() noexcept {
             return m_QueueImpl;
         }
 
@@ -685,7 +685,7 @@ namespace SPA {
             ClientCoreLoader.SetZip(m_hSocket, zip);
         }
 
-        bool CClientSocket::operator==(const CClientSocket & cs) const {
+        bool CClientSocket::operator==(const CClientSocket & cs) const noexcept {
             return (m_hSocket == cs.m_hSocket);
         }
 

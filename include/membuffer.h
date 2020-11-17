@@ -136,7 +136,7 @@ namespace SPA {
         /** 
          * Ensure releasing its internal memory and destruct the object
          */
-        virtual ~CUQueue() {
+        virtual ~CUQueue() noexcept {
             Empty();
         }
 
@@ -253,7 +253,7 @@ namespace SPA {
          * Set big or little endian
          * @param bigEndian, true for big endian and false for little endian
          */
-        inline void SetEndian(bool bigEndian = IsBigEndian()) {
+        inline void SetEndian(bool bigEndian = IsBigEndian()) noexcept {
             m_bSameEndian = (bigEndian == IsBigEndian());
         }
 
@@ -261,7 +261,7 @@ namespace SPA {
          * Set the operation system
          * @param os The operation system
          */
-        inline void SetOS(tagOperationSystem os) {
+        inline void SetOS(tagOperationSystem os) noexcept {
             m_os = os;
         }
 
@@ -269,7 +269,7 @@ namespace SPA {
          * Check the operation system
          * @return The operation system
          */
-        inline tagOperationSystem GetOS() const {
+        inline tagOperationSystem GetOS() const noexcept {
             return m_os;
         }
 
@@ -278,14 +278,14 @@ namespace SPA {
          * @see SetEndian()
          * @return True for big endian and false for little endian
          */
-        inline bool GetEndian() const {
+        inline bool GetEndian() const noexcept {
             return (m_bSameEndian != SPA::IsBigEndian());
         }
 
         /**
          * Release memory buffer, and zero all members except endian equality.
          */
-        inline void Empty() {
+        inline void Empty() noexcept {
             if (m_pBuffer) {
                 ::free(m_pBuffer);
                 m_pBuffer = nullptr;
@@ -300,7 +300,7 @@ namespace SPA {
          * @param offset Offset to internal buffer in byte with default equal to 0
          * @return Internal buffer pointer
          */
-        inline const unsigned char* const GetBuffer(unsigned int offset = 0) const {
+        inline const unsigned char* const GetBuffer(unsigned int offset = 0) const noexcept {
             if (offset > m_nSize) {
                 offset = m_nSize;
             }
@@ -311,7 +311,7 @@ namespace SPA {
          * Get content size in byte.
          * @return Content length in byte
          */
-        inline unsigned int GetSize() const {
+        inline unsigned int GetSize() const noexcept {
             return m_nSize;
         }
 
@@ -319,7 +319,7 @@ namespace SPA {
          * Get unused buffer size in byte.
          * @return Unused buffer length in byte
          */
-        inline unsigned int GetIdleSize() const {
+        inline unsigned int GetIdleSize() const noexcept {
             return (m_nMaxBuffer - m_nSize);
         }
 
@@ -327,7 +327,7 @@ namespace SPA {
          * Get unused tail buffer size in byte.
          * @return Unused tail buffer length in byte
          */
-        inline unsigned int GetTailSize() const {
+        inline unsigned int GetTailSize() const noexcept {
             return (m_nMaxBuffer - m_nSize - m_nHeadPos);
         }
 
@@ -335,7 +335,7 @@ namespace SPA {
          * Check if the object will automatically convert utf8 string into Unicode string when loading a ASCII string by VARIANT.
          * @return true if the object will do automatic converting, and false if the object will not
          */
-        inline bool Utf8ToW() const {
+        inline bool Utf8ToW() const noexcept {
             return m_8ToW;
         }
 
@@ -343,7 +343,7 @@ namespace SPA {
          * Enable or disable the object to automatically convert utf8 string into Unicode string when loading a ASCII string by VARIANT.
          * @param bUtf8ToW true for enabling, and false for disabling
          */
-        inline void Utf8ToW(bool bUtf8ToW) {
+        inline void Utf8ToW(bool bUtf8ToW) noexcept {
             m_8ToW = bUtf8ToW;
         }
 
@@ -351,7 +351,7 @@ namespace SPA {
          * Check if the object will automatically convert UTF16-LE string into utf8 string when loading an unicode string by VARIANT.
          * @return true if the object will do automatic converting, and false if the object will not
          */
-        inline bool ToUtf8() const {
+        inline bool ToUtf8() const noexcept {
             return m_ToUtf8;
         }
 
@@ -359,7 +359,7 @@ namespace SPA {
          * Enable or disable the object to automatically convert UTF16-LE string into utf8 string when loading an unicode string by VARIANT.
          * @param bToUtf8 true for enabling, and false for disabling
          */
-        inline void ToUtf8(bool bToUtf8) {
+        inline void ToUtf8(bool bToUtf8) noexcept {
             m_ToUtf8 = bToUtf8;
         }
 
@@ -369,7 +369,7 @@ namespace SPA {
          * Check if the object will use high-precision time when saving or loading a ASCII string by VARIANT.
          * @return true if the object will use high-precision time, and false if the object will not
          */
-        inline bool TimeEx() const {
+        inline bool TimeEx() const noexcept {
             return m_TimeEx;
         }
 
@@ -377,14 +377,14 @@ namespace SPA {
          * Enable or disable the object to use high-precision time when saving or loading a ASCII string by VARIANT.
          * @param timeEx true for enabling, and false for disabling
          */
-        inline void TimeEx(bool timeEx) {
+        inline void TimeEx(bool timeEx) noexcept {
             m_TimeEx = timeEx;
         }
 #endif
 
 #ifndef WINCE
 
-        CUQueue(CUQueue && q)
+        CUQueue(CUQueue && q) noexcept
         : m_nMaxBuffer(q.m_nMaxBuffer),
         m_nSize(q.m_nSize),
         m_nHeadPos(q.m_nHeadPos),
@@ -412,7 +412,7 @@ namespace SPA {
 #endif
         }
 
-        CUQueue& operator=(CUQueue && q) {
+        CUQueue& operator=(CUQueue && q) noexcept {
             if (this != &q) {
                 Swap(q);
             }
@@ -424,7 +424,7 @@ namespace SPA {
          * Swap two memory buffer 
          * @param q A reference to a memory buffer object that will be swapped with this object
          */
-        void Swap(CUQueue &q) {
+        void Swap(CUQueue &q) noexcept {
             bool b = m_bSameEndian;
             m_bSameEndian = q.m_bSameEndian;
             q.m_bSameEndian = b;
@@ -494,7 +494,7 @@ namespace SPA {
          * @see ReallocBuffer()
          * @return The totally allocated buffer size in byte
          */
-        inline unsigned int GetMaxSize() const {
+        inline unsigned int GetMaxSize() const noexcept {
             return m_nMaxBuffer;
         }
 
@@ -502,7 +502,7 @@ namespace SPA {
          * Check the buffer block size in byte
          * @return The buffer block size in byte
          */
-        inline unsigned int GetBlockSize() const {
+        inline unsigned int GetBlockSize() const noexcept {
             return m_nBlockSize;
         }
 
@@ -510,7 +510,7 @@ namespace SPA {
          * Reset the buffer block size in byte
          * @param blockSize A new buffer block size in byte with default to 1024
          */
-        inline void SetBlockSize(unsigned int blockSize = DEFAULT_MEMORY_BUFFER_BLOCK_SIZE) {
+        inline void SetBlockSize(unsigned int blockSize = DEFAULT_MEMORY_BUFFER_BLOCK_SIZE) noexcept {
             if (blockSize == 0) {
                 blockSize = DEFAULT_MEMORY_BUFFER_BLOCK_SIZE;
             }
@@ -530,7 +530,7 @@ namespace SPA {
          * Check the header position of content. If there is no content available, the method returns 0
          * @return The header position of content in byte
          */
-        inline unsigned int GetHeadPosition() const {
+        inline unsigned int GetHeadPosition() const noexcept {
             return m_nHeadPos;
         }
 
@@ -549,7 +549,7 @@ namespace SPA {
         /**
          * Zero all of buffer except content
          */
-        inline void CleanTrack() {
+        inline void CleanTrack() noexcept {
             assert(m_nMaxBuffer >= (m_nHeadPos + m_nSize));
             if (m_pBuffer && m_nMaxBuffer > 0) {
                 if (m_nHeadPos > 0) {
@@ -1560,7 +1560,7 @@ namespace SPA {
         /** 
          * Ensure recycling its internal memory buffer object if available into memory buffer pool for reuse, and destruct this object
          */
-        ~CScopeUQueueEx() {
+        ~CScopeUQueueEx() noexcept {
             Unlock(m_pUQueue);
         }
 #ifndef WINCE
@@ -1568,7 +1568,7 @@ namespace SPA {
         /** 
          * Movable copy constructor
          */
-        CScopeUQueueEx(CScopeUQueueEx && su)
+        CScopeUQueueEx(CScopeUQueueEx && su) noexcept
         : m_pUQueue(su.m_pUQueue) {
             su.m_pUQueue = nullptr;
         }
@@ -1581,7 +1581,7 @@ namespace SPA {
         /** 
          * Movable assignment operator
          */
-        CScopeUQueueEx& operator=(CScopeUQueueEx && su) {
+        CScopeUQueueEx& operator=(CScopeUQueueEx && su) noexcept {
             if (this != &su) {
                 Swap(su);
             }
@@ -1600,7 +1600,7 @@ namespace SPA {
          * Return a pointer to an internal memory buffer object. The method will return nullptr if no internal memory buffer object is available
          * @return A pointer to an internal memory buffer object
          */
-        inline mb* operator->() const {
+        inline mb* operator->() const noexcept {
             return m_pUQueue;
         }
 
@@ -1608,7 +1608,7 @@ namespace SPA {
          * Return a pointer to an internal memory buffer object. The method will return nullptr if no internal memory buffer object is available
          * @return A pointer to an internal memory buffer object
          */
-        inline mb* Get() const {
+        inline mb* Get() const noexcept {
             return m_pUQueue;
         }
 
@@ -1616,7 +1616,7 @@ namespace SPA {
          * Return a pointer to an internal memory buffer object. The method will return nullptr if no internal memory buffer object is available
          * @return A pointer to an internal memory buffer object
          */
-        inline operator PMB() const {
+        inline operator PMB() const noexcept {
             return m_pUQueue;
         }
 
@@ -1632,7 +1632,7 @@ namespace SPA {
          * Check if there is an internal memory buffer object available
          * @return True or false
          */
-        inline bool Available() const {
+        inline bool Available() const noexcept {
             return (m_pUQueue != nullptr);
         }
 
@@ -1640,7 +1640,7 @@ namespace SPA {
          * Swap internal memory buffer objects between two instances of CScopeUQueueEx
          * @param sb A reference to a CScopeUQueueEx object
          */
-        inline void Swap(CScopeUQueueEx& sb) {
+        inline void Swap(CScopeUQueueEx& sb) noexcept {
             mb *p = sb.m_pUQueue;
             sb.m_pUQueue = m_pUQueue;
             m_pUQueue = p;
@@ -1650,7 +1650,7 @@ namespace SPA {
          * Detach internal memory buffer object from this CScopeUQueueEx object
          * @return A pointer to a memory buffer object
          */
-        inline mb* Detach() {
+        inline mb* Detach() noexcept {
             mb *p = m_pUQueue;
             m_pUQueue = nullptr;
             return p;
@@ -1660,7 +1660,7 @@ namespace SPA {
          * Recycle an existing memory buffer object into its pool if available, and attach a new memory buffer object
          * @param p A pointer to a new memory buffer object
          */
-        inline void Attach(mb *p) {
+        inline void Attach(mb *p) noexcept {
             Unlock(m_pUQueue);
             m_pUQueue = p;
         }

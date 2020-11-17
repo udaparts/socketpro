@@ -167,17 +167,17 @@ namespace SPA {
         public:
             tagVTExt VtExt;
 
-            CDBVariant(CDBVariant &&vtData) {
+            CDBVariant(CDBVariant &&vtData) noexcept {
                 *this = (tagVARIANT&&)vtData;
                 VtExt = vtData.VtExt;
                 vtData.VtExt = tagVTExt::vteNormal;
             }
 
-            CDBVariant(CComVariant &&vtData) {
+            CDBVariant(CComVariant &&vtData) noexcept {
                 *this = (tagVARIANT&&)vtData;
             }
 
-            CDBVariant(tagVARIANT &&vtData) {
+            CDBVariant(tagVARIANT &&vtData) noexcept {
                 *this = (tagVARIANT&&)vtData;
             }
 
@@ -334,7 +334,7 @@ namespace SPA {
                 return *this;
             }
 
-            CDBVariant(double dblSrc, VARTYPE vtSrc = VT_R8/* or VT_DATE*/, unsigned short us = 0) : CComVariant(dblSrc), VtExt(tagVTExt::vteNormal) {
+            CDBVariant(double dblSrc, VARTYPE vtSrc = VT_R8/* or VT_DATE*/, unsigned short us = 0) noexcept : CComVariant(dblSrc), VtExt(tagVTExt::vteNormal) {
                 if (vtSrc == VT_DATE) {
                     //convert variant date to high precision time on window system
                     UDateTime udt(dblSrc, us);
@@ -600,7 +600,7 @@ namespace SPA {
                 return *this;
             }
 
-            CDBVariant& operator=(const DECIMAL& src) {
+            CDBVariant& operator=(const DECIMAL& src) noexcept {
                 ::VariantClear(this);
                 decVal = src;
                 vt = VT_DECIMAL;
@@ -608,7 +608,7 @@ namespace SPA {
                 return *this;
             }
 
-            CDBVariant& operator=(const UDateTime &dt) {
+            CDBVariant& operator=(const UDateTime &dt) noexcept {
                 ::VariantClear(this);
                 vt = VT_DATE;
                 ullVal = dt.time;
@@ -616,7 +616,7 @@ namespace SPA {
                 return *this;
             }
 
-            CDBVariant& operator=(const SYSTEMTIME &st) {
+            CDBVariant& operator=(const SYSTEMTIME &st) noexcept {
                 ::VariantClear(this);
                 vt = VT_DATE;
                 ullVal = UDateTime(st).time;
@@ -624,7 +624,7 @@ namespace SPA {
                 return *this;
             }
 
-            CDBVariant& operator=(const std::tm &st) {
+            CDBVariant& operator=(const std::tm &st) noexcept {
                 ::VariantClear(this);
                 vt = VT_DATE;
                 ullVal = UDateTime(st).time;
@@ -643,12 +643,12 @@ namespace SPA {
                 return *this;
             }
 
-            CDBVariant& operator=(CComVariant &&vtData) {
+            CDBVariant& operator=(CComVariant &&vtData) noexcept {
                 *this = (tagVARIANT&&)vtData;
                 return *this;
             }
 
-            CDBVariant& operator=(tagVARIANT &&vtData) {
+            CDBVariant& operator=(tagVARIANT &&vtData) noexcept {
                 if (this == &vtData) {
                     return *this;
                 }
@@ -714,7 +714,7 @@ namespace SPA {
                 return *this;
             }
 
-            CDBVariant& operator=(CDBVariant &&vtData) {
+            CDBVariant& operator=(CDBVariant &&vtData) noexcept {
                 if (this != &vtData) {
                     tagVTExt ve = VtExt;
                     *this = (tagVARIANT&&)vtData;
@@ -873,7 +873,7 @@ namespace SPA {
 
             }
 
-            CDBColumnInfo(CDBColumnInfo &&info)
+            CDBColumnInfo(CDBColumnInfo &&info) noexcept
             : DBPath(std::move(info.DBPath)),
             TablePath(std::move(info.TablePath)),
             DisplayName(std::move(info.DisplayName)),
@@ -906,7 +906,7 @@ namespace SPA {
                 return *this;
             }
 
-            CDBColumnInfo& operator=(CDBColumnInfo &&info) {
+            CDBColumnInfo& operator=(CDBColumnInfo &&info) noexcept {
                 if (this == &info) {
                     return *this;
                 }
@@ -924,7 +924,7 @@ namespace SPA {
                 return *this;
             }
 
-            bool operator==(const CDBColumnInfo &info) const {
+            bool operator==(const CDBColumnInfo &info) const noexcept {
                 return (DBPath == info.DBPath &&
                         TablePath == info.TablePath &&
                         DisplayName == info.DisplayName &&
@@ -938,7 +938,7 @@ namespace SPA {
                         Scale == info.Scale);
             }
 
-            bool operator!=(const CDBColumnInfo &info) const {
+            bool operator!=(const CDBColumnInfo &info) const noexcept {
                 return (!(*this == info));
             }
 
