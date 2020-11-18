@@ -1040,34 +1040,25 @@ namespace SPA {
                     CWaiterContext& operator=(CWaiterContext&& wc) = delete;
 
                     bool await_ready() noexcept {
-                        m_cs.lock();
-                        bool done = m_done;
-                        m_cs.unlock();
-                        return done;
+                        CSpinAutoLock al(m_cs);
+                        return m_done;
                     }
 
                     bool await_suspend(CRHandle rh) noexcept {
-                        m_cs.lock();
+                        CSpinAutoLock al(m_cs);
                         if (!m_done) {
                             m_rh = rh;
-                            m_cs.unlock();
                             return true;
                         }
-                        m_cs.unlock();
                         return false;
                     }
 
                     void resume() noexcept {
-                        m_cs.lock();
-                        if (m_done) {
-                            m_cs.unlock();
-                        } else {
+                        CSpinAutoLock al(m_cs);
+                        if (!m_done) {
                             m_done = true;
                             if (m_rh) {
-                                m_cs.unlock();
                                 m_rh.resume();
-                            } else {
-                                m_cs.unlock();
                             }
                         }
                     }
