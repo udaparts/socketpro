@@ -25,9 +25,6 @@ public class UFuture<V> implements Future<V>, IUFExtra, AutoCloseable {
      * @param h An optional async service handler.
      */
     public UFuture(short reqId, CAsyncServiceHandler h) {
-        if (reqId == 0) {
-            throw new IllegalArgumentException("Request id cannot be zero");
-        }
         m_reqId = reqId;
         m_handler = h;
     }
@@ -38,9 +35,6 @@ public class UFuture<V> implements Future<V>, IUFExtra, AutoCloseable {
      * @param reqId A required request id which cannot be zero
      */
     public UFuture(short reqId) {
-        if (reqId == 0) {
-            throw new IllegalArgumentException("Request id cannot be zero");
-        }
         m_reqId = reqId;
     }
 

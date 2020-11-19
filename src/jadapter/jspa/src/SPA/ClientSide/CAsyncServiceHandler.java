@@ -172,6 +172,9 @@ public class CAsyncServiceHandler implements AutoCloseable {
 
     public boolean SendRequest(short reqId, java.nio.ByteBuffer data, int len, DAsyncResultHandler ash, DDiscarded discarded, DOnExceptionFromServer exception) {
         int offset;
+        if (reqId >= 0 && reqId <= SPA.tagBaseRequestID.idReservedTwo) {
+            throw new IllegalArgumentException("Request id must be larger than 0x2001 or a negative short value");
+        }
         if (data == null || len < 0) {
             len = 0;
             offset = 0;
@@ -396,9 +399,6 @@ public class CAsyncServiceHandler implements AutoCloseable {
      * @throws CSocketError if communication channel is not sendable
      */
     public void raise(short reqId) throws CSocketError {
-        if (reqId == 0) {
-            throw new IllegalArgumentException("Request id cannot be zero");
-        }
         CClientSocket cs = getSocket();
         int ec = cs.getErrorCode();
         if (ec == 0) {
