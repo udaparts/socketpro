@@ -225,6 +225,12 @@ namespace SPA {
             PRR_PAIR p = nullptr;
             bool batching = false;
             bool sent = false;
+#if defined(PHP_ADAPTER_PROJECT) || defined(NODE_JS_ADAPTER_PROJECT)
+#else
+            if (reqId <= (unsigned short) tagBaseRequestID::idReservedTwo) {
+                throw std::invalid_argument("Request id must be larger than 0x2001");
+            }
+#endif
             USocket_Client_Handle h = GetClientSocketHandle();
             if (rh || discarded || serverException) {
                 p = m_rrStack.Reuse();

@@ -24,26 +24,26 @@ deque<RWaiter<wstring>> CreateAwaitables(CMyPool::PHandler& hw) {
     auto aw2 = hw->wait_send<std::wstring>(idSayHello, L"Donald", L"Trump");
     auto aw3 = hw->wait_send<std::wstring>(idSayHello, L"Joe", L"Biden");
     auto aw4 = hw->wait_send<std::wstring>(idSayHello, L"Mike", L"Pence");
-    return {aw0, aw1, aw2, aw3, aw4};
+    return { aw0, aw1, aw2, aw3, aw4 };
 }
 
 CAwTask MyTest(CMyPool::PHandler& hw) {
     try {
         //requests/results streamed with inline batching
         auto qWaiter = CreateAwaitables(hw);
-        auto ws = hw->wait_sendRequest(idSleep, (unsigned int)5000);
-        auto wms = hw->wait_send<CMyStruct>(idEcho, ms0);
+        BWaiter ws = hw->wait_sendRequest(idSleep, (unsigned int)5000);
+        RWaiter<CMyStruct> wms = hw->wait_send<CMyStruct>(idEcho, ms0);
 
         //co_await for all results
-        while(qWaiter.size()) {
+        while (qWaiter.size()) {
             wcout << co_await qWaiter.front() << "\n";
             qWaiter.pop_front();
         }
         wcout << "Waiting sleep ......\n";
-        auto sb = co_await ws;
+        CScopeUQueue sb = co_await ws;
         //sleep request returns nothing
         assert(sb->GetSize() == 0);
-        auto ms = co_await wms;
+        CMyStruct ms = co_await wms;
         wcout << "(ms == ms0): " << ((ms == ms0) ? 1 : 0)
             << "\nAll requests processed\n";
     }

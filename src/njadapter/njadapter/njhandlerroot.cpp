@@ -172,7 +172,7 @@ namespace NJA {
             }
             unsigned int reqId = p0->Uint32Value(isolate->GetCurrentContext()).ToChecked();
             if (reqId > 0xffff || reqId <= (unsigned short) SPA::tagBaseRequestID::idReservedTwo) {
-                ThrowException(isolate, "An unsigned short request id expected");
+                ThrowException(isolate, "Request id must be larger than 0x2001 but less than 0x10000");
                 return;
             }
             NJQueue *njq = nullptr;

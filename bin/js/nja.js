@@ -771,6 +771,8 @@ class CHandler {
      * @returns true if successful, and false if communication channel is not sendable
      */
     SendRequest(reqId, buff, cb, discarded = null, serverException = null) {
+        if (reqId <= exports.BaseID.idReservedTwo)
+            throw 'Request id must be larger than 0x2001';
         return this.handler.SendRequest(reqId, buff, cb, discarded, serverException);
     }
 
@@ -784,6 +786,8 @@ class CHandler {
      * @throws A server, socket close or request canceled exception
      */
     sendRequest(reqId, buff) {
+        if (reqId <= exports.BaseID.idReservedTwo)
+            throw 'Request id must be larger than 0x2001';
         return new Promise((res, rej) => {
             var ok = this.handler.SendRequest(reqId, buff, (q, id) => {
                 res(q, id);

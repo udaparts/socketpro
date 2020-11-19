@@ -102,10 +102,6 @@ namespace SocketProAdapter
 
             public void raise(ushort req_id)
             {
-                if (req_id == 0)
-                {
-                    throw new ArgumentException("Request id cannot be zero");
-                }
                 CClientSocket cs = Socket;
                 int ec = cs.ErrorCode;
                 if (ec != 0)
@@ -2137,6 +2133,10 @@ namespace SocketProAdapter
             public virtual bool SendRequest(ushort reqId, byte[] data, uint len, DAsyncResultHandler ash, DDiscarded discarded, DOnExceptionFromServer exception)
             {
                 bool sent;
+                if (reqId <= (ushort)tagBaseRequestID.idReservedTwo)
+                {
+                    throw new ArgumentException("Request id must be larger than 0x2001");
+                }
                 if (null == m_ClientSocket)
                     return false;
                 IntPtr h = m_ClientSocket.Handle;

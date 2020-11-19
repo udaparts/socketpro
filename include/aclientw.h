@@ -910,9 +910,6 @@ namespace SPA {
 #else
 
             void raise(unsigned short req_id) {
-                if (!req_id) {
-                    throw std::invalid_argument("Request id cannot be zero");
-                }
                 CClientSocket *cs = GetSocket();
                 int ec = cs->GetErrorCode();
                 if (ec) {
@@ -954,9 +951,6 @@ namespace SPA {
 
             template<typename R>
             static DDiscarded get_aborted(const std::shared_ptr<std::promise<R> >& prom, unsigned short req_id) {
-                if (!req_id) {
-                    throw std::invalid_argument("Request id cannot be zero");
-                }
                 return [prom, req_id](CAsyncServiceHandler *h, bool canceled) {
                     try {
                         if (canceled) {
@@ -1029,9 +1023,6 @@ namespace SPA {
 
                     CWaiterContext(unsigned short reqId)
                     : m_done(false), m_reqId(reqId) {
-                        if (!reqId) {
-                            throw std::invalid_argument("Request id cannot be zero");
-                        }
                     }
 
                     CWaiterContext(const CWaiterContext& wc) = delete;

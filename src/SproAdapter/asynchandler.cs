@@ -860,6 +860,10 @@ namespace SocketProAdapter
                 bool sent;
                 byte batching;
                 MyKeyValue<ushort, CResultCb> kv;
+                if (reqId <= (ushort)tagBaseRequestID.idReservedTwo)
+                {
+                    throw new ArgumentException("Request id must be larger than 0x2001");
+                }
                 if (null == m_ClientSocket)
                     return false;
                 IntPtr h = m_ClientSocket.Handle;
@@ -934,10 +938,6 @@ namespace SocketProAdapter
 
             public void raise(ushort req_id)
             {
-                if (req_id == 0)
-                {
-                    throw new ArgumentException("Request id cannot be zero");
-                }
                 CClientSocket cs = Socket;
                 int ec = cs.ErrorCode;
                 if (ec != 0)
@@ -964,10 +964,6 @@ namespace SocketProAdapter
 
             public static DDiscarded get_aborted<R>(TaskCompletionSource<R> tcs, ushort req_id)
             {
-                if (req_id == 0)
-                {
-                    throw new ArgumentException("Request id cannot be zero");
-                }
                 DDiscarded aborted = (h, canceled) =>
                 {
                     if (canceled)
