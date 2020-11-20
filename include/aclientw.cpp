@@ -2,6 +2,10 @@
 
 #ifdef NODE_JS_ADAPTER_PROJECT
 
+#include <node.h>
+#if NODE_VERSION_AT_LEAST(12,13,0)
+#define BOOL_ISOLATE
+#endif
 #include "../src/njadapter/njadapter/njobjects.h"
 
 #endif
