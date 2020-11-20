@@ -203,11 +203,7 @@ std::future&lt;R&gt; send(unsigned short reqId,
 <?prettify linenums=1?>
 <pre class="prettyprint">
 template&lt;typename R&gt;
-static DDiscarded get_aborted(std::shared_ptr&lt;std::promise&lt;R&gt; &gt; prom,
-    unsigned short req_id) {
-    if (!req_id) {
-        throw std::invalid_argument("Request id cannot be zero");
-    }
+static DDiscarded get_aborted(std::shared_ptr&lt;std::promise&lt;R&gt; &gt; prom, unsigned short req_id) {
     return [prom, req_id](CAsyncServiceHandler *h, bool canceled) {
         try {
             if (canceled) {
@@ -239,19 +235,19 @@ static DDiscarded get_aborted(std::shared_ptr&lt;std::promise&lt;R&gt; &gt; prom
         <ol>
             <li>
                 SocketPro has a feature named as Cancel. Calling it will leads to request cancel exception.
-                You can test the feature by uncommenting line 35 within the above code snippet 1. Doing so will lead to execute the code at lines 10 and 11.
+                You can test the feature by uncommenting line 35 within the above code snippet 1. Doing so will lead to execute the code at lines 6 and 7.
             </li>
             <li>
-                We use the code line 15 through 23 to set a CSocketError exception.
-                First, if session is not closed gracefully (ec != 0), we use socket system error message at line 16 through 18.
-                Otherwise, we construct an error message at line 20 through 22.
+                We use the code line 9 through 19 to set a CSocketError exception.
+                First, if session is not closed gracefully (ec != 0), we use socket system error message at line 12 through 14.
+                Otherwise, we construct an error message at line 16 through 18.
             </li>
             <li>
                 It is noted that the two events ALWAYS happens with a pool worker thread.
                 Also, it always happens after sending a request.
-                Therefore, the last input parameter will be false when initializing an instance of CSocketError, as shown at lines 11, 18 and 22.
+                Therefore, the last input parameter will be false when initializing an instance of CSocketError, as shown at lines 7, 14 and 18.
             </li>
-            <li>The method returns a lambda expression at line 7.</li>
+            <li>The method returns a lambda expression at line 3.</li>
         </ol>
         </td>
     </tr>

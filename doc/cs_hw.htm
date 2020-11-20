@@ -222,10 +222,6 @@ public Task&lt;CScopeUQueue&gt; sendRequest(ushort reqId, byte[] data, uint len)
 <pre class="prettyprint">
 public static DDiscarded get_aborted&lt;R&gt;(TaskCompletionSource&lt;R&gt; tcs, ushort req_id)
 {
-    if (req_id == 0)
-    {
-        throw new ArgumentException("Request id cannot be zero");
-    }
     DDiscarded aborted = (h, canceled) =>
     {
         if (canceled)
@@ -259,19 +255,19 @@ public static DDiscarded get_aborted&lt;R&gt;(TaskCompletionSource&lt;R&gt; tcs,
         <ol>
             <li>
                 SocketPro has a feature named as Cancel. Calling it will leads to request cancel exception.
-                You can test the feature by uncommenting line 39 within the above code snippet 1. Doing so will lead to execute the code at lines 15 and 16.
+                You can test the feature by uncommenting line 39 within the above code snippet 1. Doing so will lead to execute the code at lines 7 and 8.
             </li>
             <li>
-                We use the code line 18 through 27 to set a CSocketError exception.
-                First, if session is not closed gracefully (ec != 0), we use socket system error message at lines 20 and 21.
-                Otherwise, we construct an error message with a given request name at lines 25 and 26.
+                We use the code line 12 through 23 to set a CSocketError exception.
+                First, if session is not closed gracefully (ec != 0), we use socket system error message at lines 16 and 17.
+                Otherwise, we construct an error message with a given request name at lines 21 and 22.
             </li>
             <li>
                 It is noted that the two events ALWAYS happens with a pool worker thread.
                 Also, it always happens after sending a request.
-                Therefore, the last input parameter will be false when initializing an instance of CSocketError, as shown at lines 12, 21 and 26.
+                Therefore, the last input parameter will be false when initializing an instance of CSocketError, as shown at lines 8, 17 and 22.
             </li>
-            <li>The method returns a lambda expression at line 30.</li>
+            <li>The method returns a lambda expression at line 26.</li>
         </ol>
         </td>
     </tr>
@@ -310,10 +306,6 @@ public static DOnExceptionFromServer get_se&lt;R&gt;(TaskCompletionSource&lt;R&g
 <pre class="prettyprint">
 public void raise(ushort req_id)
 {
-    if (req_id == 0)
-    {
-        throw new ArgumentException("Request id cannot be zero");
-    }
     CClientSocket cs = Socket;
     int ec = cs.ErrorCode;
     if (ec != 0)
@@ -333,10 +325,10 @@ public void raise(ushort req_id)
         <p>Under many cases, a session is already closed before sending a request. The left code snippet 5 shows the implementation of the method <i>raise</i>.
         If it is this situation, we call the left method <i>raise</i> to throw an exception immediately as shown at line 12 in the above code snippet 2.</p>
         <p>
-        Again, we need to check if a session is closed gracefully. If it does, we use the code lines 16 and 17 to throw it directly as it happens from a calling thread.
-        If a session is not closed gracefully (ec != 0), we use socket system error message instead at lines 11 and 12.</p>
+        Again, we need to check if a session is closed gracefully. If it does, we use the code lines 12 and 13 to throw it directly as it happens from a calling thread.
+        If a session is not closed gracefully (ec != 0), we use socket system error message instead at lines 7 and 8.</p>
         <p>
-        It is noted that the exception indicates session is already closed before sending a request. Therefore, the last input parameter is true as shown at lines 12 and 17.</p>
+        It is noted that the exception indicates session is already closed before sending a request. Therefore, the last input parameter is true as shown at lines 8 and 13.</p>
         </td>
     </tr>
 </table>

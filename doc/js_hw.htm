@@ -195,6 +195,8 @@ Similarly, SocketPro <a href="get_started.htm" title="Get Started With SocketPro
 * @throws A server, socket close or request canceled exception
 */
 sendRequest(reqId, buff) {
+    if (reqId <= exports.BaseID.idReservedTwo)
+        throw 'Request id must be larger than 0x2001';
     return new Promise((res, rej) => {
         var ok = this.handler.SendRequest(reqId, buff, (q, id) => {
             res(q, id);
@@ -211,16 +213,16 @@ sendRequest(reqId, buff) {
 </pre>
 </td>
 <td>
-    <p>Let us dig into the method <i>sendRequest</i> as defined at the left code snippet 2. The method returns a promise at line 10.
-    Inside the promise, we call the method <i>SendRequest</i>, which takes a request id <i>reqId</i>, an input buffer <i>buff</i> for request data, and three lambda expressions at line 11, 13 and 15.
+    <p>Let us dig into the method <i>sendRequest</i> as defined at the left code snippet 2. The method returns a promise at line 12.
+    Inside the promise, we call the method <i>SendRequest</i>, which takes a request id <i>reqId</i>, an input buffer <i>buff</i> for request data, and three lambda expressions at line 13, 15 and 17.
     </p>
-    <p>We set an instance <i>q</i> of CUQueue from server returning result and a request id <i>id</i> at line 12 within the first lambda expression, if node.js client detects its result from server.
-    The second lambda expression at line 13 through 15 will be called if the underlying socket is closed or a request is canceled by calling the method <i>Cancel</i> at line 69 of the above snippet 1.
-    If this happens, we raise an exception at line 14 by calling the method <i>set_aborted</i>.
-    If a remote server responses an exception, the third lambda expression at line 15 through 16 will be called.
-    If this situation happens, we raise a server exception by calling the method <i>set_exception</i>.
+    <p>We set an instance <i>q</i> of CUQueue from server returning result and a request id <i>id</i> at line 14 within the first lambda expression, if node.js client detects its result from server.
+    The second lambda expression at line 15 through 17 will be called if the underlying socket is closed or a request is canceled by calling the method <i>Cancel</i> at line 69 of the above snippet 1.
+    If this happens, we raise an exception at line 16 by calling the method <i>set_aborted</i>.
+    If a remote server responses an exception, the third lambda expression at line 17 through 19 will be called.
+    If this situation happens, we raise a server exception by calling the method <i>set_exception</i> at line 18.
     Occasionally, the method <i>SendRequest</i> returns false and finds that the underlying socket is already closed.
-    Under such a condition, we also raise an exception by calling the method <i>raise</i> as shown at line 19.
+    Under such a condition, we also raise an exception by calling the method <i>raise</i> as shown at line 21.
     </p>
     <p>In short, you can rely on a returned promise to deal with all types of errors or exceptions.
     We will descuss the three types of errors such as <i>set_aborted</i>, <i>set_exception</i> and <i>raise</i> within coming code snippets</p>
