@@ -227,6 +227,8 @@ class CAsyncServiceHandler(object):
         :param efs: A callback for tracking an exception from server
         :return: True if communication channel is sendable, and False if communication channel is not sendable
         """
+        if reqId <= tagBaseRequestID.idReservedTwo:
+            raise ValueError('Request id must be larger than 0x2001')
         delay = q
         if isinstance(q, CScopeUQueue):
             q = q.UQueue
