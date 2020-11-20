@@ -90,10 +90,11 @@ namespace NJA {
         if (p0->IsArray()) {
             Local<Array> jsArr = Local<Array>::Cast(p0);
             unsigned int count = jsArr->Length();
+            Local<Context> ctx = isolate->GetCurrentContext();
             SPA::CAutoLock al(g_cs);
             g_KeyAllowed.clear();
             for (unsigned int n = 0; n < count; ++n) {
-                auto v = jsArr->Get(n);
+                auto v = jsArr->Get(ctx, n).ToLocalChecked();
                 if (v->IsString()) {
 #if NODE_MODULE_VERSION < 57
                     String::Utf8Value str(v);

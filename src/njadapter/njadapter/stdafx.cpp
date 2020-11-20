@@ -216,10 +216,11 @@ namespace NJA {
     bool ToGroups(Isolate* isolate, const Local<Value>& p, std::vector<unsigned int> &v) {
         v.clear();
         if (p->IsArray()) {
+            auto ctx = isolate->GetCurrentContext();
             Local<Array> jsArr = Local<Array>::Cast(p);
             unsigned int count = jsArr->Length();
             for (unsigned int n = 0; n < count; ++n) {
-                auto d = jsArr->Get(n);
+                auto d = jsArr->Get(ctx, n).ToLocalChecked();
                 if (d->IsUint32()) {
                     v.push_back(d->Uint32Value(isolate->GetCurrentContext()).ToChecked());
                 } else {
@@ -532,10 +533,11 @@ namespace NJA {
             }
         } else if (v->IsArray()) {
             tagDataType dt = tagDataType::dtUnknown;
+            auto ctx = isolate->GetCurrentContext();
             Local<Array> jsArr = Local<Array>::Cast(v);
             unsigned int count = jsArr->Length();
             for (unsigned int n = 0; n < count; ++n) {
-                auto d = jsArr->Get(n);
+                auto d = jsArr->Get(ctx, n).ToLocalChecked();
                 if (d->IsBoolean()) {
                     if (dt != tagDataType::dtUnknown && dt != tagDataType::dtBool) {
                         return false;
@@ -574,7 +576,7 @@ namespace NJA {
                     return false;
                 }
             }
-            VARTYPE vtType;
+            VARTYPE vtType = VT_EMPTY;
             switch (dt) {
                 case tagDataType::dtString:
                     vtType = VT_BSTR;
@@ -606,7 +608,7 @@ namespace NJA {
             vt.parray = SafeArrayCreate(vtType, 1, sab);
             SafeArrayAccessData(vt.parray, &p);
             for (unsigned int n = 0; n < count; ++n) {
-                auto d = jsArr->Get(n);
+                auto d = jsArr->Get(ctx, n).ToLocalChecked();
                 switch (vtType) {
                     case VT_BSTR:
                     {
@@ -1118,11 +1120,12 @@ namespace NJA {
             ToArray(p, len, v);
         } else if (data->IsArray()) {
             bool ok = true;
+            auto ctx = isolate->GetCurrentContext();
             tagDataType dt = tagDataType::dtUnknown;
             Local<Array> jsArr = Local<Array>::Cast(data);
             unsigned int count = jsArr->Length();
             for (unsigned int n = 0; n < count && ok; ++n) {
-                auto d = jsArr->Get(n);
+                auto d = jsArr->Get(ctx, n).ToLocalChecked();
                 if (d->IsBoolean()) {
                     if (dt != tagDataType::dtUnknown && dt != tagDataType::dtBool)
                         ok = false;
@@ -1164,7 +1167,7 @@ namespace NJA {
                 return false;
             }
             for (unsigned int n = 0; n < count; ++n) {
-                auto d = jsArr->Get(n);
+                auto d = jsArr->Get(ctx, n).ToLocalChecked();
                 switch (dt) {
                     case tagDataType::dtString:
                         v.push_back(ToStr(isolate, d).c_str());
@@ -1210,17 +1213,18 @@ namespace NJA {
     bool ToPInfoArray(Isolate* isolate, const Local<Value> &p0, CParameterInfoArray & vInfo) {
         vInfo.clear();
         if (p0->IsArray()) {
+            auto ctx = isolate->GetCurrentContext();
             Local<Array> jsArr = Local<Array>::Cast(p0);
             unsigned int count = jsArr->Length();
             for (unsigned int n = 0; n < count; ++n) {
-                auto jsP = jsArr->Get(n);
+                auto jsP = jsArr->Get(ctx, n).ToLocalChecked();
                 if (!jsP->IsObject()) {
                     ThrowException(isolate, "Invalid parameter meta found");
                     return false;
                 }
                 auto pi = jsP->ToObject(isolate->GetCurrentContext()).ToLocalChecked();
                 CParameterInfo pInfo;
-                auto v = pi->Get(ToStr(isolate, u"Direction", 9));
+                auto v = pi->Get(ctx, ToStr(isolate, u"Direction", 9)).ToLocalChecked();
                 if (v->IsInt32()) {
                     int d = v->Int32Value(isolate->GetCurrentContext()).ToChecked();
                     if (d < (int) tagParameterDirection::pdInput || d > (int) tagParameterDirection::pdReturnValue) {
@@ -1232,7 +1236,7 @@ namespace NJA {
                     ThrowException(isolate, "An integer value expected for parameter direction");
                     return false;
                 }
-                v = pi->Get(ToStr(isolate, u"DataType", 8));
+                v = pi->Get(ctx, ToStr(isolate, u"DataType", 8)).ToLocalChecked();
                 if (v->IsUint32()) {
                     unsigned int d = v->Uint32Value(isolate->GetCurrentContext()).ToChecked();
                     pInfo.DataType = (VARTYPE) d;
@@ -1240,7 +1244,7 @@ namespace NJA {
                     ThrowException(isolate, "An integer value expected for parameter data type");
                     return false;
                 }
-                v = pi->Get(ToStr(isolate, u"ColumnSize", 10));
+                v = pi->Get(ctx, ToStr(isolate, u"ColumnSize", 10)).ToLocalChecked();
                 if (v->IsInt32()) {
                     int d = v->Int32Value(isolate->GetCurrentContext()).ToChecked();
                     /*
@@ -1254,7 +1258,7 @@ namespace NJA {
                     ThrowException(isolate, "An integer value expected for parameter column size");
                     return false;
                 }
-                v = pi->Get(ToStr(isolate, u"Precision", 9));
+                v = pi->Get(ctx, ToStr(isolate, u"Precision", 9)).ToLocalChecked();
                 if (v->IsInt32()) {
                     int d = v->Int32Value(isolate->GetCurrentContext()).ToChecked();
                     if (d < 0 || d > 64) {
@@ -1266,7 +1270,7 @@ namespace NJA {
                     ThrowException(isolate, "An integer value expected for parameter data precision");
                     return false;
                 }
-                v = pi->Get(ToStr(isolate, u"Scale", 5));
+                v = pi->Get(ctx, ToStr(isolate, u"Scale", 5)).ToLocalChecked();
                 if (v->IsInt32()) {
                     int d = v->Int32Value(isolate->GetCurrentContext()).ToChecked();
                     if (d < 0 || d > 64) {
@@ -1278,7 +1282,7 @@ namespace NJA {
                     ThrowException(isolate, "An integer value expected for parameter data scale");
                     return false;
                 }
-                v = pi->Get(ToStr(isolate, u"ParameterName", 13));
+                v = pi->Get(ctx, ToStr(isolate, u"ParameterName", 13)).ToLocalChecked();
                 if (v->IsString()) {
                     pInfo.ParameterName = ToStr(isolate, v);
                 } else if (!IsNullOrUndefined(v)) {
@@ -1294,7 +1298,7 @@ namespace NJA {
     }
 
     Local<Array> ToMeta(Isolate* isolate, const CDBColumnInfoArray & v) {
-        Local<Value> vN[] ={
+        Local<Value> vN[] = {
             ToStr(isolate, u"DBPath", 6),
             ToStr(isolate, u"TablePath", 9),
             ToStr(isolate, u"DisplayName", 11),
@@ -1329,7 +1333,7 @@ namespace NJA {
     }
 
     Local<Array> ToMeta(Isolate* isolate, const SPA::CKeyMap & mapkey) {
-        Local<Value> vN[] ={
+        Local<Value> vN[] = {
             ToStr(isolate, u"DBPath", 6),
             ToStr(isolate, u"TablePath", 9),
             ToStr(isolate, u"DisplayName", 11),

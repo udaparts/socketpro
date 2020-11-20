@@ -1080,8 +1080,8 @@ namespace NJA {
             ThrowException(isolate, "Invalid connection context");
             return false;
         }
-
-        auto v = obj->Get(ToStr(isolate, u"Host", 4));
+        auto ctx = isolate->GetCurrentContext();
+        auto v = obj->Get(ctx, ToStr(isolate, u"Host", 4)).ToLocalChecked();
         if (!v->IsString()) {
             ThrowException(isolate, "Invalid host string");
             return false;
@@ -1093,14 +1093,14 @@ namespace NJA {
 #endif
         cc.Host = *host;
 
-        v = obj->Get(ToStr(isolate, u"Port", 4));
+        v = obj->Get(ctx, ToStr(isolate, u"Port", 4)).ToLocalChecked();
         if (!v->IsUint32()) {
             ThrowException(isolate, "Invalid port number");
             return false;
         }
-        cc.Port = v->Uint32Value(isolate->GetCurrentContext()).ToChecked();
+        cc.Port = v->Uint32Value(ctx).ToChecked();
 
-        v = obj->Get(ToStr(isolate, u"User", 4));
+        v = obj->Get(ctx, ToStr(isolate, u"User", 4)).ToLocalChecked();
         if (!v->IsString()) {
             ThrowException(isolate, "Invalid user id string");
             return false;
@@ -1112,7 +1112,7 @@ namespace NJA {
 #endif
         cc.UserId = Utilities::ToWide(*uid);
 
-        v = obj->Get(ToStr(isolate, u"Pwd", 3));
+        v = obj->Get(ctx, ToStr(isolate, u"Pwd", 3)).ToLocalChecked();
         if (!v->IsString()) {
             ThrowException(isolate, "Invalid password string");
             return false;
@@ -1124,7 +1124,7 @@ namespace NJA {
 #endif
         cc.Password = Utilities::ToWide(*pwd);
         unsigned int em = 0;
-        v = obj->Get(ToStr(isolate, u"EM", 2));
+        v = obj->Get(ctx, ToStr(isolate, u"EM", 2)).ToLocalChecked();
         if (v->IsUint32()) {
             em = v->Uint32Value(isolate->GetCurrentContext()).ToChecked();
         } else if (!IsNullOrUndefined(v)) {
@@ -1137,7 +1137,7 @@ namespace NJA {
         }
         cc.EncrytionMethod = (tagEncryptionMethod) em;
 
-        v = obj->Get(ToStr(isolate, u"Zip", 3));
+        v = obj->Get(ctx, ToStr(isolate, u"Zip", 3)).ToLocalChecked();
         if (v->IsBoolean() || v->IsUint32()) {
 #ifdef BOOL_ISOLATE
             cc.Zip = v->BooleanValue(isolate);
@@ -1149,7 +1149,7 @@ namespace NJA {
             return false;
         }
 
-        v = obj->Get(ToStr(isolate, u"V6", 2));
+        v = obj->Get(ctx, ToStr(isolate, u"V6", 2)).ToLocalChecked();
         if (v->IsBoolean() || v->IsUint32()) {
 #ifdef BOOL_ISOLATE
             cc.V6 = v->BooleanValue(isolate);
@@ -1161,7 +1161,7 @@ namespace NJA {
             return false;
         }
 
-        v = obj->Get(ToStr(isolate, u"AnyData", 7));
+        v = obj->Get(ctx, ToStr(isolate, u"AnyData", 7)).ToLocalChecked();
         if (!From(isolate, v, "", cc.AnyData)) {
             ThrowException(isolate, "Invalid data for AnyData");
             return false;
@@ -1191,15 +1191,16 @@ namespace NJA {
         std::vector<SPA::ClientSide::CConnectionContext> vCC;
         auto p0 = args[0];
         if (p0->IsArray()) {
+            Local<Context> ctx = isolate->GetCurrentContext();
             Local<Array> jsArr = Local<Array>::Cast(p0);
             unsigned int count = jsArr->Length();
             for (unsigned int n = 0; n < count; ++n) {
-                auto v = jsArr->Get(n);
+                auto v = jsArr->Get(ctx, n).ToLocalChecked();
                 if (!v->IsObject()) {
                     ThrowException(isolate, "Invalid connection context found");
                     return;
                 }
-                Local<Object> obj = jsArr->Get(n)->ToObject(isolate->GetCurrentContext()).ToLocalChecked();
+                Local<Object> obj = jsArr->Get(ctx, n).ToLocalChecked()->ToObject(isolate->GetCurrentContext()).ToLocalChecked();
                 SPA::ClientSide::CConnectionContext cc;
                 if (!To(isolate, obj, cc)) {
                     return;

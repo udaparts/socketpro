@@ -93,7 +93,7 @@ namespace PA
     Php::Value CPhpBaseHandler::SendRequest(Php::Parameters & params) {
         int64_t id = params[0].numericValue();
         if (id <= (unsigned short) SPA::tagBaseRequestID::idReservedTwo || id > 0xffff) {
-            throw Php::Exception("Bad request id");
+            throw Php::Exception("Request id must be larger than 0x2001 but less than 0x10000");
         }
         unsigned short reqId = (unsigned short) id;
         unsigned int timeout = (~0);

@@ -219,10 +219,11 @@ namespace NJA {
             CDBVariantArray vParam;
             p = args[2];
             if (p->IsArray()) {
+                auto ctx = isolate->GetCurrentContext();
                 Local<Array> jsArr = Local<Array>::Cast(p);
                 unsigned int count = jsArr->Length();
                 for (unsigned int n = 0; n < count; ++n) {
-                    auto d = jsArr->Get(n);
+                    auto d = jsArr->Get(ctx, n).ToLocalChecked();
                     CDBVariant vt;
                     if (!From(isolate, d, "", vt)) {
                         ThrowException(isolate, UNSUPPORTED_TYPE);
@@ -292,10 +293,11 @@ namespace NJA {
             Local<Value> argv[] = {args[1], args[2], args[3], args[4], args[5], args[6]};
             if (p->IsArray()) {
                 CDBVariantArray vParam;
+                auto ctx = isolate->GetCurrentContext();
                 Local<Array> jsArr = Local<Array>::Cast(p);
                 unsigned int count = jsArr->Length();
                 for (unsigned int n = 0; n < count; ++n) {
-                    auto d = jsArr->Get(n);
+                    auto d = jsArr->Get(ctx, n).ToLocalChecked();
                     CDBVariant vt;
                     if (!From(isolate, d, "", vt)) {
                         ThrowException(isolate, UNSUPPORTED_TYPE);

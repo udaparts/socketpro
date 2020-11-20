@@ -80,9 +80,9 @@ namespace NJA {
         NODE_SET_PROTOTYPE_METHOD(tpl, "getPush", getPush);
         NODE_SET_PROTOTYPE_METHOD(tpl, "getQueue", getQueue);
         NODE_SET_PROTOTYPE_METHOD(tpl, "getPoolId", getPoolId);
-
-        constructor.Reset(isolate, tpl->GetFunction(isolate->GetCurrentContext()).ToLocalChecked());
-        exports->Set(ToStr(isolate, u"CSocket", 7), tpl->GetFunction(isolate->GetCurrentContext()).ToLocalChecked());
+        auto ctx = isolate->GetCurrentContext();
+        constructor.Reset(isolate, tpl->GetFunction(ctx).ToLocalChecked());
+        exports->Set(ctx, ToStr(isolate, u"CSocket", 7), tpl->GetFunction(ctx).ToLocalChecked());
     }
 
     Local<Object> NJSocket::New(Isolate* isolate, CClientSocket *ash, bool setCb) {

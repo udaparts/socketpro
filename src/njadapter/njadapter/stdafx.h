@@ -5,6 +5,8 @@
 
 
 #ifdef WIN32_64
+#pragma warning(disable:4275) //warning C4275: non dll-interface class 'v8::ArrayBuffer::Allocator' used as base for dll-interface class 'node::ArrayBufferAllocator'
+#pragma warning(disable:4251) //warning C4251: 'node::CallbackScope::try_catch_': class 'v8::TryCatch' needs to have dll-interface to be used by clients of class
 
 #include "targetver.h"
 #define WIN32_LEAN_AND_MEAN		// Exclude rarely-used stuff from Windows headers
@@ -15,9 +17,6 @@
 #else
 #define USE_BOOST_LARGE_INTEGER_FOR_DECIMAL
 #endif
-
-#include "../../../include/tablecache.h"
-#include "dbreqcb.h"
 
 #include <node.h>
 
@@ -32,6 +31,9 @@
 #if NODE_VERSION_AT_LEAST(12,13,0)
 #define BOOL_ISOLATE
 #endif
+
+#include "../../../include/tablecache.h"
+#include "dbreqcb.h"
 
 #include <node_object_wrap.h>
 #include <node_buffer.h>

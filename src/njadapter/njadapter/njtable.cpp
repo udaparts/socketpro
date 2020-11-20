@@ -58,9 +58,9 @@ namespace NJA {
         NODE_SET_PROTOTYPE_METHOD(tpl, "getMeta", getMeta);
         NODE_SET_PROTOTYPE_METHOD(tpl, "getRows", getRows);
         NODE_SET_PROTOTYPE_METHOD(tpl, "getColumns", getColumns);
-
-        constructor.Reset(isolate, tpl->GetFunction(isolate->GetCurrentContext()).ToLocalChecked());
-        exports->Set(ToStr(isolate, u"CTable", 6), tpl->GetFunction(isolate->GetCurrentContext()).ToLocalChecked());
+        auto ctx = isolate->GetCurrentContext();
+        constructor.Reset(isolate, tpl->GetFunction(ctx).ToLocalChecked());
+        exports->Set(ctx, ToStr(isolate, u"CTable", 6), tpl->GetFunction(ctx).ToLocalChecked());
         m_tpl.Reset(isolate, tpl);
     }
 

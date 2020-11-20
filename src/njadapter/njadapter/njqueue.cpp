@@ -1006,10 +1006,11 @@ namespace NJA {
         } else if (p0->IsArray()) {
             SPA::CScopeUQueue sb;
             tagDataType dt = tagDataType::dtUnknown;
+            auto ctx = isolate->GetCurrentContext();
             Local<Array> jsArr = Local<Array>::Cast(p0);
             unsigned int count = jsArr->Length();
             for (unsigned int n = 0; n < count; ++n) {
-                auto d = jsArr->Get(n);
+                auto d = jsArr->Get(ctx, n).ToLocalChecked();
                 if (d->IsBoolean()) {
                     if (dt != tagDataType::dtUnknown && dt != tagDataType::dtBool) {
                         ThrowException(isolate, UNSUPPORTED_ARRAY_TYPE);
