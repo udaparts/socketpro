@@ -1034,7 +1034,7 @@ namespace SPA {
                         CSpinAutoLock al(m_cs);
                         return m_done;
                     }
-
+                    //call this method from pool worker thread only
                     void resume() noexcept {
                         CSpinAutoLock al(m_cs);
                         if (!m_done) {
