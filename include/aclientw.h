@@ -1035,15 +1035,6 @@ namespace SPA {
                         return m_done;
                     }
 
-                    bool await_suspend(CRHandle rh) noexcept {
-                        CSpinAutoLock al(m_cs);
-                        if (!m_done) {
-                            m_rh = rh;
-                            return true;
-                        }
-                        return false;
-                    }
-
                     void resume() noexcept {
                         CSpinAutoLock al(m_cs);
                         if (!m_done) {
@@ -1062,10 +1053,20 @@ namespace SPA {
                     std::exception_ptr m_ex;
 
                 private:
+                    bool await_suspend(CRHandle rh) noexcept {
+                        CSpinAutoLock al(m_cs);
+                        if (!m_done) {
+                            m_rh = rh;
+                            return true;
+                        }
+                        return false;
+                    }
+
                     CSpinLock m_cs;
                     bool m_done; //protected by m_cs
                     CRHandle m_rh; //protected by m_cs
                     unsigned short m_reqId;
+                    friend struct CWaiterBase;
                 };
 
                 CWaiterBase(unsigned short reqId)
