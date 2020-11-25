@@ -1,4 +1,11 @@
 #include <iostream>
+#if __has_include(<coroutine>)
+#include <coroutine>
+#elif __has_include(<experimental/coroutine>)
+#include <experimental/coroutine>
+#else
+static_assert(false, "No co_await support");
+#endif
 #include <future>
 #include "clienthandler.h"
 #include <chrono>
@@ -7,9 +14,19 @@ using namespace std;
 using namespace chrono;
 typedef nanoseconds ns;
 
+const unsigned int TEST_CYCLES = 400000;
+
+CAwTask MyTest(CLatencyPool::PHandler& lp) {
+    system_clock::time_point start = system_clock::now();
+    for (unsigned int n = 0; n < TEST_CYCLES; ++n) {
+        auto res = co_await lp->wait_send<unsigned int>(idEchoInt1, n);
+    }
+    ns d = duration_cast<ns>(system_clock::now() - start);
+    cout << "Latency for co_await sync/fast: " << d.count() / TEST_CYCLES << " ns\n\n";
+}
+
 int main(int argc, char* argv[]) {
     unsigned int res = 0, n = 0;
-    const unsigned int TEST_CYCLES = 100000;
 
     CConnectionContext cc;
     cout << "Remote host? \n";
@@ -33,7 +50,6 @@ int main(int argc, char* argv[]) {
     system_clock::time_point stop = system_clock::now();
     ns d = duration_cast<ns>(stop - start);
     cout << "Latency for sync/fast: " << d.count() / TEST_CYCLES << " ns\n\n";
-
     cout << "Test latency for sync/slow ......\n";
     start = system_clock::now();
     for (n = 0; n < TEST_CYCLES; ++n) {
@@ -66,7 +82,7 @@ int main(int argc, char* argv[]) {
     stop = system_clock::now();
     d = duration_cast<ns>(stop - start);
     cout << "Latency for send/slow: " << d.count() / TEST_CYCLES << " ns\n\n";
-
+    MyTest(latency);
     cout << "Press a key to kill the demo ......\n";
     getchar();
     return 0;
