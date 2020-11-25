@@ -1,0 +1,479 @@
+﻿<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="utf-8" />
+    <title>Using C++20 co_await with SocketPro Real Samples</title>
+    <link rel="stylesheet" type="text/css" href="codepretty/sons-of-obsidian.css">
+    <script type="text/javascript" src="codepretty/prettify.js"></script>
+    <style>
+        ol, ul {border-left: 0px solid white;}
+        table {border-left: 20px solid white;border-right: 10px solid white;}
+        table th, td {border:1px solid black;}
+        table th {font-size: large;}
+        p {border-left: 20px solid white; }
+        h2 {border-left: 40px solid white; }
+        .slang
+        {
+            color: #0000CC;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body onload="PR.prettyPrint()">
+<h2>Using C++20 co_await with SocketPro Real Samples</h2>
+<hr />
+<h4>Introduction</h4>
+<p>C++20 has introduced a set of new features which will change the way we design and write  applications by use of modern C++.
+It is believed that coroutine is the most important one among these C++20 new features.
+C++20 coroutine is involved with a lot of new concepts such as awaitable object, task, promise type, co_await, co_yield, co_return, and so on.
+However, there are not many real samples available at such an early stage for learning on the web sides yet.</p>
+<p>UDAParts has developed a powerful and secure communication framework named as SocketPro,
+which is written with continuous inline request/result batching and real-time stream processing capabilities by use of asynchronous data transferring and parallel computation for the best network efficiency, development simplicity, performance, scalability, and many great and even unique features at the <a href="https://github.com/udaparts/socketpro" title="GitHub - udaparts/socketpro: A public repository for UDAParts (www.udaparts.com) SocketPro async communication framework">github site</a>.
+The framework well supports modern language development features such as anonymous function, closure, Lambda expression, async/await, future, promise, yield and so on.
+It is already integrated with the C++20 coroutine feature with many samples for client/server communication, database accessing, file exchanging between client and server, and persistent message queue.
+It is believed that these samples can certainly assist you to understand the C++20 coroutine.
+</p>
+<p>
+This short article will touch all of these concepts except co_yield and co_return. However, it will mainly focus on awaitable object, task and co_await.
+Further, this article comes with a real demo sample to demonstrate streaming both requests and responses between client and server with the best network efficiency.
+The provided sample code as well as others listed at end can be compiled with GCC 10.0.1 and Visual C++ 2017 or later.
+</p>
+<h4>Preparation</h4>
+<p>The original sample code is located at the file ../socketpro/tutorials/cplusplus/hello_world/client/cw_hw.cpp.
+It is highly recommended that you read <a href="cpp_hw.htm" title="SocketPro Client Server Application Development">this article</a> and play its sample code first before learning C++20 co_await feature.
+Also, make sure that you have already distribute all required components as described at <a href="get_started.htm" title="Get Started With SocketPro">this article</a> because we are going to use the sample server application <i>all_servers</i> for the coming testings.
+</p>
+<p>Now, run the sample server application <i>all_servers</i> now for the coming testings.</p>
+<h4>Main Test Code</h4>
+<table style="width:100%;">
+<tr>
+<td style="width:30%;">
+<?prettify linenums=1?>
+<pre class="prettyprint">
+#if __has_include(&lt;coroutine&gt;)
+#include &lt;coroutine&gt; //GCC 10.0.1 or later
+                     //Visual C++ 2019 16.8.0 preview 3.1 or later
+#elif __has_include(&lt;experimental/coroutine&gt;)
+#include &lt;experimental/coroutine&gt; //Visual C++ 2017 & 2019 16.8.0 before
+#else
+static_assert(false, "No co_await support");
+#endif
+#include &lt;iostream&gt;
+#include &lt;deque&gt;
+#include "../../uqueue_demo/mystruct.h"
+#include "HW.h"
+
+using namespace std;
+using namespace SPA;
+using namespace SPA::ClientSide;
+
+CMyStruct ms0;
+typedef CSocketPool&lt;HelloWorld&gt; CMyPool;
+
+deque&lt;RWaiter&lt;wstring&gt;&gt; CreateAwaitables(CMyPool::PHandler& hw) {
+    // ......
+}
+
+CAwTask MyTest(CMyPool::PHandler& hw) {
+    // ......
+}
+
+//compile options
+//Visual C++ 2017 & 2019 16.8.0 before -- /await
+//Visual C++ 2019 16.8.0 preview 3.1 or later -- /std:c++latest
+//GCC 10.0.1 or later -- -std=c++20 -fcoroutines -ldl -pthread
+int main(int argc, char* argv[]) {
+    CMyPool spHw;
+    CConnectionContext cc("localhost", 20901, L"MyUserId", L"MyPassword");
+    //spHw.SetQueueName("qhw");
+    if (!spHw.StartSocketPool(cc, 1)) {
+        wcout << "No connection to remote helloworld server\n";
+    }
+    else {
+        auto hw = spHw.Seek();
+        SetMyStruct(ms0);
+        MyTest(hw);
+    }
+
+    wcout << L"Press a key to kill the demo ......\n";
+    ::getchar();
+    return 0;
+}
+</pre>
+</td>
+<td>
+<p>The left code snippet 1 shows the main unit test code related with C++20 coroutine task and awaitable objects queue.
+First of all, it is required to refer C++20 coroutine header file <i>coroutine</i> as shown at line 1 through 8.
+We are going to focus the two functions <i>CreateAwaitables</i> and <i>MyTest</i> later.
+The first one will return an instance of deque containing an array of C++20 awaitable objects <i>RWaiter&lt;wstring&gt;</i> as shown at line 21.
+The second one will return a C++20 task <i>CAwTask</i>, which is really similar to the key word <i>async</i> in functionality within other development languages such as .NET, javascript and Python.
+We will discuss them later.
+</p>
+<p>
+Now, let us move to the main function. Inside the function at line 37, we create socket pool having one non-blocking socket session which is hosted within one worker thread at line 37.
+It is noted that a socket pool can have any number of worker threads. Each of these worker threads can host any number of non-blocking socket sessions to different remote servers.
+Here, for code clarity we use one non-blocking socket session hosted within one worker thread for this demonstration.
+In reality, it is recommended that a socket pool have one worker thread under most cases.
+</p>
+<p>At end, we call the method <i>MyTest</i> at line 43 for demonstration of C++20 corountine and co_wait.
+You can compile the small piece of code with compile options at line 30 through 32, and test this sample client application againt the above mentioned server <i>all_servers</i>.</p>
+</td>
+</tr>
+</table>
+<p>Code snippet 1: Main unit test code involved with C++20 coroutine task and awaitable objects queue</p>
+<h4>Dissecting <i>MyTest</i>, <i>CAwTask</i> and <i>CreateAwaitables</i></h4>
+<table style="width:100%;">
+<tr>
+<td style="width:30%;">
+<?prettify linenums=1?>
+<pre class="prettyprint">
+struct CAwTask {
+    struct promise_type {
+        CAwTask get_return_object() {
+            return { }; //called once a coroutine is going to be called
+        }
+        std::suspend_never initial_suspend() {
+            return { };
+        }
+        std::suspend_never final_suspend() {
+            return { }; //called when a coroutine is about to exit
+        }
+        void return_void() {
+        }
+        void unhandled_exception() {
+        }
+    };
+};
+
+deque&lt;RWaiter&lt;wstring&gt;&gt; CreateAwaitables(CMyPool::PHandler& hw) {
+    auto aw0 = hw->wait_send&lt;wstring&gt;(idSayHello, L"John", L"Dole");
+    auto aw1 = hw->wait_send&lt;wstring&gt;(idSayHello, L"Hillary", L"Clinton");
+    auto aw2 = hw->wait_send&lt;wstring&gt;(idSayHello, L"Donald", L"Trump");
+    auto aw3 = hw->wait_send&lt;wstring&gt;(idSayHello, L"Joe", L"Biden");
+    auto aw4 = hw->wait_send&lt;wstring&gt;(idSayHello, L"Mike", L"Pence");
+    //auto aw4 = hw->wait_send&lt;wstring&gt;(idSayHello, L"", L"Pence");
+    return {aw0, aw1, aw2, aw3, aw4};
+}
+CAwTask MyTest(CMyPool::PHandler& hw) {
+    try {
+        //requests/results streamed with inline batching
+        auto qWaiter = CreateAwaitables(hw);
+        BWaiter ws = hw->wait_sendRequest(idSleep, (int)5000);
+        RWaiter&lt;CMyStruct&gt; wms = hw->wait_send&lt;CMyStruct&gt;(idEcho, ms0);
+
+        //co_await for all results
+        while(qWaiter.size()) {
+            wcout << co_await qWaiter.front() << "\n";
+            qWaiter.pop_front();
+        }
+        wcout << "Waiting sleep ......\n";
+        CScopeUQueue sb = co_await ws;
+        //sleep request returns nothing
+        assert(sb->GetSize() == 0);
+        CMyStruct ms = co_await wms;
+        wcout << "(ms == ms0): " << ((ms == ms0) ? 1 : 0)
+            << "\nAll requests processed\n";
+    }
+    catch (CServerError& ex) {
+        wcout << ex.ToString() << "\n";
+    }
+    catch (CSocketError& ex) {
+        wcout << ex.ToString() << "\n";
+    }
+    catch (exception& ex) {
+        wcout << "Unexpected error: " << ex.what() << "\n";
+    }
+}
+</pre>
+</td>
+<td>
+<p>
+First of all, the method <i>MyTest</i> within the left code snippet 2 is a C++20 coroutine, which always returns an instance of <i>CAwTask</i>.
+In functionality, <i>CAwTask</i> is similar to the key word <i>async</i> of other languages such as .NET, javascript and Python.
+However, we can customize the class <i>CAwTask</i> and its inner class <i>promise_type</i> within C++20 as shown at line 1 through 17.
+Under most cases, the class definition here will be fine to your needs without any modification.
+For details, you may refer to <a href="https://www.modernescpp.com/index.php/c-20-an-infinite-data-stream-with-coroutines">this article</a>.
+Pay attention to comments at lines 4 and 10.
+Once a coroutine is going to be called, an instance of <i>CAwTask</i> will be created by calling the method <i>promise_type::get_return_object</i>.
+At end, the method <i>promise_type::final_suspend</i> will be called when the C++20 coroutine <i>MyTest</i> is about to exit.
+It is recommended you put debug break points and step through them.
+</p>
+
+<p>Here, we use the method <i>CreateAwaitables</i> as shown at line 31 to create five awaitable objects (<i>aw0, aw1, aw2, aw3 and aw4</i>) as shown at line 20 through 26.
+Each of these awaitable objects corresponds to one request from client to server and an expected wstring from SocketPro server will be put into an instance of <i>RWaiter&lt;wstring&gt;</i>.
+We put them into a deque container for later use.
+Further, we obtain two extra awaitable objects at lines 32 and 33 by sending two requests to server for processing.
+All of seven requests and expected responses are streamed.
+SocketPro internally uses its inline batching algorithm to batch these requests and responses data at both client and server sides.
+SocketPro well supports streaming both requests and responses for the best network efficiency by design, which significantly boosts application both performance and scalability.
+Our study results show that performance improvements could be easily from 90% for local area network up to 30000% for wide area network.
+This feature is one of SocketPro shining points. You can hardly find this excellent feature within other frameworks.
+</p>
+<p>
+After collecting all awaitable objects, we start to co_await them at line 36 through 44.
+It is noted that all <i>RWaiter&lt;wstring&gt;</i>, <i>BWaiter</i> and <i>RWaiter&lt;CMyStruct&gt;</i> awaitable objects are copyable and moveable.
+You can put them into standard library containers such as vector, deque, stack, map, and so on.
+</p>
+<p>Inside the C++20 coroutine function <i>MyTest</i>, you can use try/catch for exception handling as shown at line 48 through 56.
+The error <i>CServerError</i> comes an exception from a remote SocketPro server.
+For example, you will get such an exception if you uncomment line 25 but comment out line 24.
+Alternatively, you can also get a <i>CServerError</i> exception by giving a negative value instead of positive 5000 for the second input at line 32.
+SocketPro client adapter will also throw a <i>CSocketError</i> communication error in case either an underlying socket is closed or a request is canceled.
+To test the exception <i>CSocketError</i>, you can brutally kill the test sample server application <i>all_servers</i> right after running this client application.
+</p>
+</td>
+</tr>
+</table>
+<p>Code snippet 2: <i>CreateAwaitables</i> and <i>MyTest</i> for demonstration of C++20 coroutine task and awaitable objects</p>
+<h4>Uncovering <i>RWaiter/wait_send</i> and <i>BWaiter/wait_sendRequest</i></h4>
+<table style="width:100%;">
+<tr>
+<td style="width:30%;">
+<?prettify linenums=1?>
+<pre class="prettyprint">
+template&lt;typename R&gt;
+struct RWaiter : public CWaiterBase&lt;R&gt; {
+    RWaiter(CAsyncServiceHandler* ash, unsigned short reqId,
+        const unsigned char* pBuffer, unsigned int size)
+    : CWaiterBase&lt;R&gt;(reqId) {
+        auto& wc = this->m_wc;
+        if (!ash->SendRequest(reqId, pBuffer, size, [wc](CAsyncResult & ar) {
+                try {
+                    ar >> wc->m_r; //unpack ar buffer into m_r (R) directly
+                } catch (...) { //de-serialization or other errors
+                    wc->m_ex = std::current_exception();
+                }
+                //resume coroutine from a socket pool worker thread
+                wc->resume();
+            }, this->get_aborted(), this->get_se())) {
+            //throw CSocketError exception if socket already closed
+            ash->raise(reqId);
+        }
+    }
+};
+
+// ......
+
+template&lt;typename R, typename ... Ts&gt;
+RWaiter&lt;R&gt; wait_send(unsigned short reqId, const Ts& ... args) {
+    CScopeUQueue sb;
+    sb->Save(args ...);
+    return RWaiter&lt;R&gt;(this, reqId, sb->GetBuffer(), sb->GetSize());
+}
+
+struct BWaiter : public CWaiterBase&lt;CScopeUQueue&gt; {
+    BWaiter(CAsyncServiceHandler* ash, unsigned short reqId,
+        const unsigned char* pBuffer, unsigned int size)
+    : CWaiterBase&lt;CScopeUQueue&gt;(reqId) {
+        auto& wc = m_wc;
+        if (!ash->SendRequest(reqId, pBuffer, size, [wc](CAsyncResult & ar) {
+                //move server returned buffer from ar into m_r (CScopeUQueue)
+                wc->m_r->Swap(ar.UQueue);
+                //resume coroutine from a socket pool worker thread
+                wc->resume();
+            }, get_aborted(), get_se())) {
+            //throw CSocketError exception if socket already closed
+            ash->raise(reqId);
+        }
+    }
+};
+
+// ......
+
+template&lt;typename ... Ts&gt;
+BWaiter wait_sendRequest(unsigned short reqId, const Ts& ... args) {
+    CScopeUQueue sb;
+    sb->Save(args ...);
+    return BWaiter(this, reqId, sb->GetBuffer(), sb->GetSize());
+}
+</pre>
+</td>
+<td>
+<p>The left code snippet 3 shows definitions for two awaitable classes, <i>RWaiter</i> and <i>BWaiter</i> at lines 2 and 31, respectively.
+The first one is a template class which derives from a base awaitable class <i>CWaiterBase&lt;R&gt;</i>,
+but the second one is a regular class deriving from <i>CWaiterBase&lt;CScopeUQueue&gt;</i>.
+Here, template argument <i>R</i> and <i>CScopeUQueue</i> represents an expected returning data and an array of bytes from a remote SocketPro server, respectively.
+It is noted that the array of bytes will be used to de-serialize zero, one or more different types of data later.
+</p>
+<p>After having looked at the two awaitable class constructors, you will find that SocketPro always sends a request from client to server with a request id <i>reqId</i>, an array of bytes <i>pBuffer</i> having a given length <i>size</i>, and three callbacks (a lambda expression <i>[wc](CAsyncResult & ar) {......}</i>, <i>get_aborted</i> and <i>get_se</i>).
+The first lambda expression callback is used to monitor an expected returning result from server.
+Inside the callback, it is a must to resume a coroutine by calling the method <i>resume</i> (<i>wc->resume()</i>) after processing server returned result as commented.
+The second callback <i>get_aborted</i> is used to monitor the two events, request canceled and socket session closed.
+The last callback <i>get_se</i> is used to track an exception error from remote server.
+In short, the three callbacks cover all communication errors and possible results (expected result and exception error) from server.
+We will discuss the two callbacks <i>get_aborted</i> and <i>get_se</i> within the coming code snippet 4.
+</p>
+<p>
+Before ending this section, it is worthing to noting that all the three callbacks are always called within a socket pool worker thread.
+You can use the two template methods <i>wait_send</i> and <i>wait_sendRequest</i> to send any types of requests onto remote SocketPro server.
+They will immediately return C++20 awaitable objects without waiting for server response, which will be co_awaited later for any types of expected results or possible different types of exceptions.
+</p>
+</td>
+</tr>
+</table>
+<p>Code snippet 3: Decoding <i>RWaiter/wait_send</i> and <i>BWaiter/wait_sendRequest</i></p>
+<h4>Decoding template class <i>CWaiterBase</i></h4>
+<table style="width:100%;">
+<tr>
+<td style="width:30%;">
+<?prettify linenums=1?>
+<pre class="prettyprint">
+typedef std::coroutine_handle<> CRHandle;
+
+template&lt;typename R&gt;
+struct CWaiterBase {
+
+    struct CWaiterContext {
+
+        CWaiterContext(unsigned short reqId)
+        : m_done(false), m_reqId(reqId) {
+        }
+
+        CWaiterContext(const CWaiterContext& wc) = delete;
+        CWaiterContext(CWaiterContext&& wc) = delete;
+        CWaiterContext& operator=(const CWaiterContext& wc) = delete;
+        CWaiterContext& operator=(CWaiterContext&& wc) = delete;
+
+        bool await_ready() noexcept {
+            CSpinAutoLock al(m_cs);
+            return m_done;
+        }
+
+        //always call this method from pool worker thread
+        void resume() noexcept {
+            CSpinAutoLock al(m_cs);
+            if (!m_done) {
+                m_done = true;
+                if (m_rh) {
+                    m_rh.resume();
+                }
+            }
+        }
+
+        unsigned short get_id() {
+            return m_reqId;
+        }
+
+        R m_r;
+        std::exception_ptr m_ex;
+
+    private:
+        bool await_suspend(CRHandle rh) noexcept {
+            CSpinAutoLock al(m_cs);
+            if (!m_done) {
+                m_rh = rh;
+                return true; //will resume from worker thread
+            }
+            return false; //resume immediately
+        }
+        CSpinLock m_cs;
+        bool m_done; //protected by m_cs
+        CRHandle m_rh; //protected by m_cs
+        unsigned short m_reqId;
+        friend struct CWaiterBase;
+    };
+
+    CWaiterBase(unsigned short reqId)
+    : m_wc(new CWaiterContext(reqId)) {
+    }
+
+    bool await_suspend(CRHandle rh) noexcept {
+        return m_wc->await_suspend(rh);
+    }
+
+    //R should support moveable (preferred) or copy constructor
+    R&& await_resume() {
+        if (m_wc->m_ex) {
+            std::rethrow_exception(m_wc->m_ex);
+        }
+        return std::move(m_wc->m_r);
+    }
+
+    bool await_ready() noexcept {
+        return m_wc->await_ready();
+    }
+
+protected:
+
+    DServerException get_se() noexcept {
+        auto& wc = m_wc;
+        return [wc](CAsyncServiceHandler* ash, unsigned short reqId, const
+            wchar_t* errMsg, const char* errWhere, unsigned int errCode) {
+            wc->m_ex = std::make_exception_ptr(
+                CServerError(errCode, errMsg, errWhere, reqId));
+            wc->resume();
+        };
+    }
+
+    DDiscarded get_aborted() noexcept {
+        auto& wc = m_wc;
+        return [wc](CAsyncServiceHandler* h, bool canceled) {
+            if (canceled) {
+                wc->m_ex = std::make_exception_ptr(CSocketError(
+                   REQUEST_CANCELED, REQUEST_CANCELED_ERR_MSG, wc->get_id(), false));
+            } else {
+                CClientSocket* cs = h->GetSocket();
+                int ec = cs->GetErrorCode();
+                if (ec) {
+                    std::string em = cs->GetErrorMsg();
+                    wc->m_ex = std::make_exception_ptr(
+                  CSocketError(ec,Utilities::ToWide(em).c_str(),wc->get_id(),false));
+                } else {
+                 wc->m_ex =std::make_exception_ptr(CSocketError(SESSION_CLOSED_AFTER,
+                    SESSION_CLOSED_AFTER_ERR_MSG, wc->get_id(), false));
+                }
+            }
+            wc->resume();
+        };
+    }
+
+    std::shared_ptr&lt;CWaiterContext&gt; m_wc;
+};
+</pre>
+</td>
+<td>
+<p>The left code snippet 4 shows implementation of SocketPro C++20 awaitable located at the file ../socketpro/include/aclientw.h.
+First of all, see the code line 78 through 110, which generates the two callbacks <i>DDiscarded</i> and <i>DServerException</i> by calling the two methods <i>get_abored</i> and <i>get_se</i>, respectively.
+As shown at the previous code snippet 3, they are also reused within SocketPro remoting file (../socketpro/include/streamingfile.h), server persistent message queue (../socketpro/include/aqhandler.h) and database handlers (../socketpro/include/udb_client.h). 
+It is noted that the generated two callbacks will be called by socket poool worker threads. Further, C++20 coroutine handler will be always called to resume at end after setting an exception properly, as shown at lines 84 and 106.
+</p>
+<p>A C++20 awaitable class must be implemented with three required methods, <i>await_ready</i>, <i>await_suspend</i> and <i>await_resume</i> which are used by operator co_await.
+When co_awaiting an awaitable object, the method <i>await_ready</i> will be called at first to check if an expecting result is already available.
+If this method returns true, it means that result is available now, and co_awaiting will immediately call the method <i>await_resume</i> for returning result without creating a coroutine handle or calling the method <i>await_suspend</i> at all.
+This situation may often happen with SocketPro communication framework, when there are multiple requests streamed as shown with this example.
+Contrarily, If the method <i>await_ready</i> returns false under most of cases, it means that result is not available at the moment, and co_awaiting will create a coroutine handle (resume point) and call the method <i>await_suspend</i>.
+</p>
+<p>The method <i>await_suspend</i> here returns a bool value. Further, the method can be also defined to return void or coroutine handle.
+If the method returns true or void under most of cases, a coroutine handle is remembered as shown at line 44, and co_awaiting will return with a resume point.
+It is expected that a socket pool worker thread will resume from the resume point later by calling the coroutine handle method <i>resume</i> at line 28.
+In case the method returns false, co_awaiting will immediately resume, and also immediately call the method await_resume for an expected result or exception.
+This situation may also happen with SocketPro, although chances are low.
+The method <i>await_suspend</i> could be also defined to return a customerized coroutine handle, which is beyond this short article.
+</p>
+<p>At end, the method <i>await_resume</i> will be called through operator co_await after one of the following three cases happen.</p>
+<ol>
+<li>await_ready returns true</li>
+<li>await_suspend returns false</li>
+<li>Call coroutine handler method resume as shown at line 28 from a socket pool worker thread</li>
+</ol>
+<p>
+Inside the method <i>await_resume</i>, it is possible to throw an exception as shown at line 67 if there is indeed an exception recorded.
+Here, the method returns a rvalue. It is expected that the template argument <i>R</i> should support moveable or copy constructor.
+However, moveable constructor is preferred over copy constructor to avoid memory copy.
+It is also noted that the method <i>await_resume</i> can be also defined to return void if there is no result expected.
+</p>
+</td>
+</tr>
+</table>
+<p>Code snippet 4: Implementation of SocketPro C++20 awaitable base object</p>
+<h4>Other Examples</h4>
+<p>After understanding all things above, you can do your own studies about C++20 coroutine feature further to the other below samples with help of the sample SocketPro server <i>all_servers</i>.</p>
+<ol>
+    <li>file exchanging between client and server: ../socketpro/tutorials/cplusplus/remote_file/client/rf_cw.cpp</li>
+    <li>server persistent queue: ../socketpro/tutorials/cplusplus/server_queue/client/sq_cw.cpp</li>
+    <li>SQLite database: ../socketpro/stream_sql/usqlite/test_csqlite/cw_sqlite.cpp</li>
+    <li>MySQL database: ../socketpro/stream_sql/mysql/test_cmysql/cw_mysql.cpp</li>
+</ol>
+<hr />
+</body>
+</html>
