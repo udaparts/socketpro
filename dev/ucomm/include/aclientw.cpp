@@ -2,6 +2,10 @@
 
 #ifdef NODE_JS_ADAPTER_PROJECT
 
+#include <node.h>
+#if NODE_VERSION_AT_LEAST(12,13,0)
+#define BOOL_ISOLATE
+#endif
 #include "../src/njadapter/njadapter/njobjects.h"
 
 #endif
@@ -69,7 +73,7 @@ namespace SPA {
 #endif
         }
 
-        UINT64 CAsyncServiceHandler::GetCallIndex() {
+        UINT64 CAsyncServiceHandler::GetCallIndex() noexcept {
             m_csIndex.lock();
             UINT64 index = ++m_CallIndex;
             m_csIndex.unlock();
@@ -80,7 +84,7 @@ namespace SPA {
             m_rrStack.ClearResultCallbackPool(remaining);
         }
 
-        unsigned int CAsyncServiceHandler::CountResultCallbacksInPool() {
+        unsigned int CAsyncServiceHandler::CountResultCallbacksInPool() noexcept {
             return (unsigned int) m_rrStack.size();
         }
 
@@ -114,7 +118,7 @@ namespace SPA {
 
         }
 
-        void CAsyncServiceHandler::SetSvsID(unsigned int serviceId) {
+        void CAsyncServiceHandler::SetSvsID(unsigned int serviceId) noexcept {
             assert(0 == m_nServiceId);
             assert(serviceId);
             m_nServiceId = serviceId;
@@ -208,7 +212,7 @@ namespace SPA {
             return ClientCoreLoader.IsBatching(GetClientSocketHandle());
         }
 
-        bool CAsyncServiceHandler::Remove(CUQueue &q, PRR_PAIR p) {
+        bool CAsyncServiceHandler::Remove(CUQueue &q, PRR_PAIR p) noexcept {
             int count = (int) (q.GetSize() / sizeof (PRR_PAIR));
             PRR_PAIR *pp = (PRR_PAIR*) q.GetBuffer();
             for (int n = count - 1; n >= 0; --n) {
@@ -225,6 +229,12 @@ namespace SPA {
             PRR_PAIR p = nullptr;
             bool batching = false;
             bool sent = false;
+#if defined(PHP_ADAPTER_PROJECT) || defined(NODE_JS_ADAPTER_PROJECT)
+#else
+            if (reqId <= (unsigned short) tagBaseRequestID::idReservedTwo) {
+                throw std::invalid_argument("Request id must be larger than 0x2001");
+            }
+#endif
             USocket_Client_Handle h = GetClientSocketHandle();
             if (rh || discarded || serverException) {
                 p = m_rrStack.Reuse();
@@ -273,7 +283,7 @@ namespace SPA {
             return true;
         }
 
-        void CAsyncServiceHandler::SetNULL() {
+        void CAsyncServiceHandler::SetNULL() noexcept {
             m_pClientSocket = nullptr;
         }
 
@@ -342,7 +352,7 @@ namespace SPA {
             m_rrStack.Recycle(p);
         }
 
-        unsigned int CAsyncServiceHandler::GetRequestsQueued() {
+        unsigned int CAsyncServiceHandler::GetRequestsQueued() noexcept {
             m_cs.lock();
             unsigned int count = m_vCallback.GetSize() / sizeof (PRR_PAIR);
             m_cs.unlock();
@@ -397,7 +407,7 @@ namespace SPA {
             return m_pClientSocket->GetHandle();
         }
 
-        bool CAsyncServiceHandler::GetAsyncResultHandler(unsigned short usReqId, PRR_PAIR & p) {
+        bool CAsyncServiceHandler::GetAsyncResultHandler(unsigned short usReqId, PRR_PAIR & p) noexcept {
             CSpinAutoLock al(m_cs);
             assert((m_vCallback.GetSize() % sizeof (PRR_PAIR)) == 0);
             unsigned int count = m_vCallback.GetSize() / sizeof (PRR_PAIR);
@@ -433,7 +443,7 @@ namespace SPA {
         }
 #endif
 
-        CClientSocket::CClientSocket()
+        CClientSocket::CClientSocket() noexcept
         : m_hSocket((USocket_Client_Handle) nullptr), m_pHandler(nullptr), m_bRandom(false), m_endian(false),
         m_os(MY_OPERATION_SYSTEM), m_nCurrSvsId((unsigned int) tagServiceID::sidStartup), m_routing(false),
         SocketClosed(m_implClosed), HandShakeCompleted(m_implHSC), SocketConnected(m_implConnected),
@@ -512,7 +522,7 @@ namespace SPA {
             return true;
         }
 
-        CAsyncServiceHandler * CClientSocket::GetCurrentHandler() {
+        CAsyncServiceHandler * CClientSocket::GetCurrentHandler() noexcept {
             return m_pHandler;
         }
 
@@ -522,7 +532,7 @@ namespace SPA {
             }
         }
 
-        const CConnectionContext & CClientSocket::GetConnectionContext() const {
+        const CConnectionContext & CClientSocket::GetConnectionContext() const noexcept {
             return m_cc;
         }
 
@@ -536,7 +546,7 @@ namespace SPA {
             ClientCoreLoader.SetLastCallInfo(buff);
         }
 
-        CClientSocket * CClientSocket::Seek(USocket_Client_Handle h) {
+        CClientSocket * CClientSocket::Seek(USocket_Client_Handle h) noexcept {
             CClientSocket *p = nullptr;
             m_mutex.lock();
             size_t count = m_vClientSocket.size();

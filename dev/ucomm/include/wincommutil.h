@@ -65,7 +65,7 @@ namespace SPA {
 
     public:
 
-        virtual const char * what() const {
+        virtual const char * what() const noexcept {
             return m_msg.c_str();
         }
 
@@ -99,7 +99,7 @@ namespace SPA {
          * Get error code, and -1 means there is no error code available
          * @return An error code
          */
-        int GetErrCode() const {
+        int GetErrCode() const noexcept {
             return m_errCode;
         }
 
@@ -107,7 +107,7 @@ namespace SPA {
          * Get error stack
          * @return An error stack describing error location
          */
-        const std::string& GetStack() const {
+        const std::string& GetStack() const noexcept {
             return m_stack;
         }
 
