@@ -135,7 +135,7 @@ namespace SPA {
                 return DoMeta(SPA::Odbc::idSQLTables, CatalogName, SchemaName, TableName, TableType, handler, row, rh, discarded, se);
             }
 
-            CComVariant GetInfo(unsigned short infoType) {
+            CComVariant GetInfo(unsigned short infoType) noexcept {
                 CComVariant infoValue;
                 m_csDB.lock();
                 if (m_mapInfo.find(infoType) != m_mapInfo.end()) {

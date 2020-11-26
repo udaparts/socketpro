@@ -376,7 +376,7 @@ namespace SPA {
 
         struct CConnectionContext {
 
-            CConnectionContext()
+            CConnectionContext() noexcept
             : Port(0),
             EncrytionMethod(tagEncryptionMethod::NoEncryption),
             V6(false),
@@ -447,7 +447,7 @@ namespace SPA {
             virtual ~CClientSocket();
 
         protected:
-            CClientSocket();
+            CClientSocket() noexcept;
 
         private:
             bool Attach(CAsyncServiceHandler *p);
@@ -509,7 +509,7 @@ namespace SPA {
             class CPushImpl : public IPushEx {
             private:
 
-                CPushImpl()
+                CPushImpl() noexcept
                 : m_cs(nullptr), OnSendUserMessage(m_lstUser), OnSendUserMessageEx(m_lstUserEx),
                 OnPublish(m_lstPublish), OnPublishEx(m_lstPublishEx), OnSubscribe(m_lstSub),
                 OnUnsubscribe(m_lstUnsub) {
@@ -624,8 +624,8 @@ namespace SPA {
             }
 
             unsigned int GetPoolId() const;
-            const CConnectionContext& GetConnectionContext() const;
-            static CClientSocket* Seek(USocket_Client_Handle h);
+            const CConnectionContext& GetConnectionContext() const noexcept;
+            static CClientSocket* Seek(USocket_Client_Handle h) noexcept;
 
             //If socket is closed, batching requests or timed out, it will return false
             bool WaitAll(unsigned int nTimeout = (~0)) const;
@@ -692,7 +692,7 @@ namespace SPA {
             static void WINAPI OnAllRequestsProcessed(USocket_Client_Handle handler, unsigned short lastRequestId);
             static void WINAPI OnPostProcessing(USocket_Client_Handle handler, unsigned int hint, SPA::UINT64 data);
 
-            CAsyncServiceHandler *GetCurrentHandler();
+            CAsyncServiceHandler *GetCurrentHandler() noexcept;
 
         private:
             CSpinLock m_cs;
@@ -811,7 +811,7 @@ namespace SPA {
             class CRR : public CSafeDeque<PRR_PAIR> {
             public:
 
-                inline PRR_PAIR Reuse() {
+                inline PRR_PAIR Reuse() noexcept {
                     PRR_PAIR pp;
                     if (!pop_front(pp)) {
                         pp = nullptr;
@@ -867,13 +867,13 @@ namespace SPA {
                 return m_rrStack.contention(); //m_rrStack
             }
 #endif
-            unsigned int GetRequestsQueued();
+            unsigned int GetRequestsQueued() noexcept;
             void ShrinkDeque();
 
             inline unsigned int GetSvsID() const noexcept {
                 return m_nServiceId;
             }
-            void SetSvsID(unsigned int serviceId);
+            void SetSvsID(unsigned int serviceId) noexcept;
             virtual bool SendRequest(unsigned short reqId, const unsigned char *pBuffer, unsigned int size, const DResultHandler& rh, const DDiscarded& discarded = nullptr, const DServerException& serverException = nullptr);
             bool SendRequest(unsigned short reqId, const DResultHandler& rh = nullptr, const DDiscarded& discarded = nullptr, const DServerException& se = nullptr);
 
@@ -896,8 +896,8 @@ namespace SPA {
             bool IsDequeuedMessageAborted();
             bool IsRouteeRequest();
             static void ClearResultCallbackPool(unsigned int remaining);
-            static unsigned int CountResultCallbacksInPool();
-            static UINT64 GetCallIndex();
+            static unsigned int CountResultCallbacksInPool() noexcept;
+            static UINT64 GetCallIndex() noexcept;
 
             template<typename ...Ts>
             bool SendRequest(unsigned short reqId, const DResultHandler& rh, const DDiscarded& discarded, const DServerException& se, const Ts& ...t) {
@@ -1019,7 +1019,7 @@ namespace SPA {
 
                 struct CWaiterContext {
 
-                    CWaiterContext(unsigned short reqId)
+                    CWaiterContext(unsigned short reqId) noexcept
                     : m_done(false), m_reqId(reqId) {
                     }
 
@@ -1043,7 +1043,7 @@ namespace SPA {
                         }
                     }
 
-                    unsigned short get_id() {
+                    unsigned short get_id() noexcept {
                         return m_reqId;
                     }
 
@@ -1191,13 +1191,13 @@ namespace SPA {
 
             inline USocket_Client_Handle GetClientSocketHandle() const noexcept;
 
-            bool GetAsyncResultHandler(unsigned short usReqId, PRR_PAIR &p);
+            bool GetAsyncResultHandler(unsigned short usReqId, PRR_PAIR &p) noexcept;
             void OnRR(unsigned short reqId, CUQueue &mc);
             void OnSE(unsigned short requestId, const wchar_t *errMessage, const char* errWhere, unsigned int errCode);
-            void SetNULL();
+            void SetNULL() noexcept;
             void EraseBack(unsigned int count);
             void AppendTo(CAsyncServiceHandler &from);
-            static bool Remove(CUQueue &q, PRR_PAIR p);
+            static bool Remove(CUQueue &q, PRR_PAIR p) noexcept;
 
         protected:
             virtual void OnPostProcessing(unsigned int hint, UINT64 data);

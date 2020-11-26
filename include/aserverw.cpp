@@ -902,7 +902,7 @@ namespace SPA
             return ServerCoreLoader.GetSvsContext(serviceId);
         }
 
-        const CSvsContext & CBaseService::GetSvsContext() const {
+        const CSvsContext & CBaseService::GetSvsContext() const noexcept {
             return m_SvsContext;
         }
 
@@ -964,7 +964,7 @@ namespace SPA
             return SeekService(serviceId);
         }
 
-        CBaseService * CBaseService::SeekService(unsigned int nServiceId) {
+        CBaseService * CBaseService::SeekService(unsigned int nServiceId) noexcept {
             size_t count = m_vService.size();
             PBaseService *start = m_vService.data();
             for (size_t it = 0; it < count; ++it) {
@@ -1385,6 +1385,14 @@ namespace SPA
 
         unsigned int CSocketProServer::Config::GetPingInterval() {
             return ServerCoreLoader.GetPingInterval();
+        }
+
+        void CSocketProServer::Config::SetDefaultZip(bool bZip) {
+            ServerCoreLoader.SetDefaultZip(bZip);
+        }
+
+        bool CSocketProServer::Config::GetDefaultZip() {
+            return ServerCoreLoader.GetDefaultZip();
         }
 
         void CSocketProServer::Config::SetPingInterval(unsigned int pingInterval) {

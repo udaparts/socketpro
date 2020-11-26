@@ -45,7 +45,7 @@ namespace SPA {
             }
         }
 
-        CSafeDeque(CSafeDeque &&sd) : m_capacity(INITIAL_CAPACITY), m_header(0), m_count(0), m_p((T*)::malloc(INITIAL_CAPACITY * sizeof (T))) {
+        CSafeDeque(CSafeDeque &&sd) noexcept : m_capacity(INITIAL_CAPACITY), m_header(0), m_count(0), m_p((T*)::malloc(INITIAL_CAPACITY * sizeof (T))) {
             CSpinAutoLock al(sd.m_sl);
             T *p = m_p;
             m_p = sd.m_p;
@@ -85,21 +85,21 @@ namespace SPA {
         }
 #endif
 
-        inline size_t size() {
+        inline size_t size() noexcept {
             m_sl.lock();
             size_t count = m_count;
             m_sl.unlock();
             return count;
         }
 
-        inline size_t max_size() {
+        inline size_t max_size() noexcept {
             m_sl.lock();
             size_t max = m_capacity;
             m_sl.unlock();
             return max;
         }
 
-        inline bool empty() {
+        inline bool empty() noexcept {
             return (!size());
         }
 
@@ -135,36 +135,36 @@ namespace SPA {
             return pushfront(&value, 1, cycle);
         }
 
-        inline size_t pop_back(T* p, size_t count, UINT64 cycle = MAX_CYCLE) {
+        inline size_t pop_back(T* p, size_t count, UINT64 cycle = MAX_CYCLE) noexcept {
             if (!p || !count) {
                 return 0;
             }
             return popback(p, count, cycle);
         }
 
-        inline size_t pop_back(T& value, UINT64 cycle = MAX_CYCLE) {
+        inline size_t pop_back(T& value, UINT64 cycle = MAX_CYCLE) noexcept {
             return popback(&value, 1, cycle);
         }
 
-        inline size_t pop_front(T* p, size_t count, UINT64 cycle = MAX_CYCLE) {
+        inline size_t pop_front(T* p, size_t count, UINT64 cycle = MAX_CYCLE) noexcept {
             if (!p || !count) {
                 return 0;
             }
             return popfront(p, count, cycle);
         }
 
-        inline size_t pop_front(T& value, UINT64 cycle = MAX_CYCLE) {
+        inline size_t pop_front(T& value, UINT64 cycle = MAX_CYCLE) noexcept {
             return popfront(&value, 1, cycle);
         }
 
-        inline void clear() {
+        inline void clear() noexcept {
             m_sl.lock();
             m_count = 0;
             m_header = 0;
             m_sl.unlock();
         }
 
-        void swap(CSafeDeque &sd) {
+        void swap(CSafeDeque &sd) noexcept {
             if (this == &sd) {
                 return;
             }
@@ -186,7 +186,7 @@ namespace SPA {
             }
         }
 
-        inline CSafeDeque &operator=(CSafeDeque &&sd) {
+        inline CSafeDeque &operator=(CSafeDeque &&sd) noexcept {
             swap(sd);
             return *this;
         }
@@ -228,7 +228,7 @@ namespace SPA {
 
     private:
 
-        size_t popfront(T* p, size_t count, UINT64 cycle) {
+        size_t popfront(T* p, size_t count, UINT64 cycle) noexcept {
             if (!m_sl.lock(cycle)) {
                 return 0;
             }
@@ -250,7 +250,7 @@ namespace SPA {
             return count;
         }
 
-        size_t popback(T* p, size_t count, UINT64 cycle) {
+        size_t popback(T* p, size_t count, UINT64 cycle) noexcept {
             if (!m_sl.lock(cycle)) {
                 return 0;
             }

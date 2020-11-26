@@ -590,7 +590,7 @@ namespace SPA {
             unsigned int GetCountOfSlowRequests() const;
             std::vector<unsigned short> GetAllSlowRequestIds() const;
             static CSvsContext GetSvsContext(unsigned int serviceId);
-            const CSvsContext& GetSvsContext() const;
+            const CSvsContext& GetSvsContext() const noexcept;
             bool GetReturnRandom() const;
             void SetReturnRandom(bool random) const;
 
@@ -603,7 +603,7 @@ namespace SPA {
             std::vector<unsigned short> GetAlphaRequestIds() const;
 
             CSocketPeer* Seek(USocket_Server_Handle h) noexcept;
-            static CBaseService* SeekService(unsigned int nServiceId);
+            static CBaseService* SeekService(unsigned int nServiceId) noexcept;
             static CBaseService* SeekService(USocket_Server_Handle h);
 
         protected:
