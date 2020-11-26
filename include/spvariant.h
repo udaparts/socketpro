@@ -184,7 +184,7 @@ namespace SPA {
      * @param v A reference to a variant instance
      * @return MS VARIANT data type
      */
-    inline static unsigned short Map2VarintType(const UVariant &v) {
+    inline static unsigned short Map2VarintType(const UVariant &v) noexcept {
         return v.vt;
     }
 };

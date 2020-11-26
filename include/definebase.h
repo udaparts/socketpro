@@ -123,7 +123,7 @@ namespace SPA {
     typedef __int64 INT64;
     typedef unsigned __int64 UINT64;
 
-    static double ToVariantDate(INT64 ms) {
+    static double ToVariantDate(INT64 ms) noexcept {
         double dt(DAYS_DIFF_EPOCH_VDATE);
         INT64 days = ms / MILLISECONDS_PER_DAY;
         dt += days;
@@ -132,7 +132,7 @@ namespace SPA {
         return dt;
     }
 
-    static INT64 ToEpoch(double vtDate) {
+    static INT64 ToEpoch(double vtDate) noexcept {
         vtDate += 0.5 / MILLISECONDS_PER_DAY; //rounded to ms
         vtDate -= DAYS_DIFF_EPOCH_VDATE;
         vtDate *= MILLISECONDS_PER_DAY;
@@ -182,7 +182,7 @@ namespace SPA {
 typedef struct tagCY {
     int64_t int64;
 
-    inline bool operator==(const tagCY & cy) const {
+    inline bool operator==(const tagCY & cy) const noexcept {
         return (int64 == cy.int64);
     }
 } CY;
@@ -197,7 +197,7 @@ typedef struct tagDEC {
     //make sure this is the same with windows
 #if 0
 
-    tagDEC() : wReserved(0), signscale(0), Hi32(0), Lo64(0) {
+    tagDEC() : wReserved(0), signscale(0), Hi32(0), Lo64(0) noexcept {
     }
 #endif
 
@@ -220,7 +220,7 @@ typedef struct tagDEC {
         uint64_t Lo64;
     };
 
-    inline bool operator==(const tagDEC & dec) const {
+    inline bool operator==(const tagDEC & dec) const noexcept {
         return (Lo64 == dec.Lo64 && Hi32 == dec.Hi32 && signscale == dec.signscale);
     }
 } DECIMAL;
@@ -315,7 +315,7 @@ namespace SPA {
      * @param os Operation system
      * @return The size of wide char in byte
      */
-    static inline unsigned char GetWCharSize(tagOperationSystem os) {
+    static inline unsigned char GetWCharSize(tagOperationSystem os) noexcept {
         switch (os) {
             case tagOperationSystem::osWin:
             case tagOperationSystem::osWinCE:
@@ -332,7 +332,7 @@ namespace SPA {
      * @param os Operation system
      * @return True or false
      */
-    static inline bool IsWinOs(tagOperationSystem os) {
+    static inline bool IsWinOs(tagOperationSystem os) noexcept {
         switch (os) {
             case tagOperationSystem::osWin:
             case tagOperationSystem::osWinCE:
@@ -566,10 +566,10 @@ namespace SPA {
     public:
         UINT64 time; //in micro-second
 
-        UDateTime(UINT64 t = 0) : time(t) {
+        UDateTime(UINT64 t = 0) noexcept : time(t) {
         }
 
-        UDateTime(const std::tm &dt, unsigned int us = 0) {
+        UDateTime(const std::tm &dt, unsigned int us = 0) noexcept {
             Set(dt, us);
         }
 
@@ -581,29 +581,29 @@ namespace SPA {
             }
         }
 
-        UDateTime& operator=(const UDateTime& dt) {
+        UDateTime& operator=(const UDateTime& dt) noexcept {
             if (this != &dt)
                 time = dt.time;
             return *this;
         }
 
-        inline bool operator==(const UDateTime & t) const {
+        inline bool operator==(const UDateTime & t) const noexcept {
             return (time == t.time);
         }
 
-        inline bool operator!=(const UDateTime & t) const {
+        inline bool operator!=(const UDateTime & t) const noexcept {
             return (time != t.time);
         }
 
-        inline unsigned int HasMicrosecond() const {
+        inline unsigned int HasMicrosecond() const noexcept {
             return (unsigned int) (time & MICRO_SECONDS);
         }
 
-        inline unsigned int HasDate() const {
+        inline unsigned int HasDate() const noexcept {
             return (unsigned int) (time >> 37);
         }
 
-        inline unsigned int HasTime() const {
+        inline unsigned int HasTime() const noexcept {
             return (unsigned int) ((time >> 20) & 0x1ffff);
         }
 
@@ -619,7 +619,7 @@ namespace SPA {
 
         //convert UDateTime datetime back to std::tm structure and micro-seconds
 
-        std::tm GetCTime(unsigned int *us = nullptr) const {
+        std::tm GetCTime(unsigned int *us = nullptr) const noexcept {
             std::tm datetime;
             ::memset(&datetime, 0, sizeof (datetime));
             datetime.tm_isdst = -1;
@@ -642,7 +642,7 @@ namespace SPA {
             return datetime;
         }
 
-        void Set(const std::tm &dt, unsigned int us = 0) {
+        void Set(const std::tm &dt, unsigned int us = 0) noexcept {
             assert(us < 1000000);
             if (us >= 1000000) {
                 us = 999999;
@@ -795,7 +795,7 @@ namespace SPA {
 
 #ifdef WIN32_64
 
-        UDateTime(const SYSTEMTIME &dt, unsigned short us = 0) {
+        UDateTime(const SYSTEMTIME &dt, unsigned short us = 0) noexcept {
             Set(dt, us);
         }
 
@@ -805,7 +805,7 @@ namespace SPA {
             Set(vtDate, us);
         }
 
-        void Set(const SYSTEMTIME &dt, unsigned short us = 0) {
+        void Set(const SYSTEMTIME &dt, unsigned short us = 0) noexcept {
             //micro-second must be less than 1000
             assert(us < 1000);
             if (us >= 1000) {
@@ -846,7 +846,7 @@ namespace SPA {
             Set(st, us);
         }
 
-        SYSTEMTIME GetSysTime(unsigned short *microseconds = nullptr) const {
+        SYSTEMTIME GetSysTime(unsigned short *microseconds = nullptr) const noexcept {
             SYSTEMTIME datetime;
             ::memset(&datetime, 0, sizeof (datetime));
             UINT64 dt = (UINT64) time;

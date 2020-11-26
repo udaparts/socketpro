@@ -324,7 +324,7 @@ namespace SPA {
         ParseDec_long(str, dec);
     }
 
-    static inline void ToDecimal(INT64 n, DECIMAL &dec) {
+    static inline void ToDecimal(INT64 n, DECIMAL &dec) noexcept {
         memset(&dec, 0, sizeof (dec));
         if (n < 0) {
             dec.sign = 0x80;
