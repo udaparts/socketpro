@@ -158,9 +158,7 @@ std::future&lt;R&gt; send(unsigned short reqId,
     DServerException se = get_se(prom);
     DResultHandler rh = [prom](CAsyncResult & ar) {
         try {
-            R r;
-            ar >> r;
-            prom->set_value(std::move(r));
+            prom->set_value(ar.Load&lt;R&gt;());
         } catch (std::future_error&) {
             //ignore it
         } catch (...) {
@@ -183,8 +181,8 @@ std::future&lt;R&gt; send(unsigned short reqId,
     First, we could use a static method <i>get_aborted</i>, as shown at the below code snippet 3, to create DDiscarded callback.
     It will be used to monitor either request cancel or communication channel close event.
     Next, we use a static method <i>get_se</i> to create a DServerException callback, as shown at the following code snippet 4, for tracking an exception from server side.
-    Third, we create a callback to monitor a server result at line 7 through 17. When a server result comes, it will be stored within the variable <i>ar</i>.
-    Afterwards, we unpack a data <i>r</i> from the variable <i>ar</i> at line 10. At end, set the value into the promise at line 11.
+    Third, we create a callback to monitor a server result at line 7 through 15. When a server result comes, it will be stored within the variable <i>ar</i>.
+    Afterwards, we load a data from the variable <i>ar</i> at line 9 by calling the template method <i>Load</i>. Afterwards, we set the value into the promise at line 9 by calling the method <i>set_value</i>.
     </li>
     <li>
     After preparing the above three callbacks, we call a new method <i>SendRequest</i> for a request with the three callbacks as inputs at line 18.

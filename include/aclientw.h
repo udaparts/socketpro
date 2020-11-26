@@ -987,9 +987,7 @@ namespace SPA {
                 std::shared_ptr<std::promise<R> > prom(new std::promise<R>);
                 if (!SendRequest(reqId, pBuffer, size, [prom](CAsyncResult & ar) {
                         try {
-                            R r;
-                            ar >> r;
-                            prom->set_value(std::move(r));
+                            prom->set_value(ar.Load<R>());
                         } catch (std::future_error&) {
                             //ignore it
                         } catch (...) {
