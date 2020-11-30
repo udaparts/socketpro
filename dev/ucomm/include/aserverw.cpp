@@ -1165,7 +1165,7 @@ namespace SPA
         : m_handle(handle) {
         }
 
-        unsigned int CServerQueue::GetHandle() const {
+        unsigned int CServerQueue::GetHandle() const noexcept {
             return m_handle;
         }
 

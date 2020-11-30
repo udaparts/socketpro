@@ -30,7 +30,7 @@ namespace SPA {
             CServerQueue(unsigned int handle);
 
         public:
-            unsigned int GetHandle() const;
+            unsigned int GetHandle() const noexcept;
             bool AppendTo(const IServerQueue &serverQueue) const;
             bool AppendTo(const unsigned int *handles, unsigned int count) const;
             bool EnsureAppending(const IServerQueue & serverQueue) const;
