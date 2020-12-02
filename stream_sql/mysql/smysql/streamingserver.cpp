@@ -182,7 +182,11 @@ void* CSetGlobals::ThreadProc(void *lpParameter) {
         if (pos == key.size() - 4) {
             g_pStreamingServer->UseSSL(CSetGlobals::Globals.ssl_key.c_str(), "", CSetGlobals::Globals.ssl_pwd.c_str());
         } else {
+#ifdef WIN32_64
             g_pStreamingServer->UseSSL(CSetGlobals::Globals.ssl_key.c_str(), CSetGlobals::Globals.ssl_cert.c_str(), "");
+#else
+            g_pStreamingServer->UseSSL(CSetGlobals::Globals.ssl_cert.c_str(), CSetGlobals::Globals.ssl_key.c_str(), CSetGlobals::Globals.ssl_pwd.c_str());
+#endif
         }
         CSetGlobals::Globals.ssl_pwd.clear();
     }
