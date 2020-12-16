@@ -10,6 +10,11 @@
         table th {font-size: large;}
         p {border-left: 20px solid white; }
         h2 {border-left: 40px solid white; }
+        .slabel
+        {
+            color: #6600CC;
+            font-weight: bold;
+        }
     </style>
 </head>
 <body>
@@ -20,21 +25,21 @@
 <th>Key points</th>
 </tr>
 <tr>
-<td><a href="py_buffer.htm" title="SocketPro Request Parameters Packing and Result Unpacking">SocketPro Request Parameters Packing and Result Unpacking</a></td>
+<td><span class="slabel">Great Interoperability among Programming Languages</span><hr /><a href="py_buffer.htm" title="SocketPro Request Parameters Packing and Result Unpacking">Request Parameters Packing and Result Unpacking</a></td>
 <td><ol><li>Utility classes, <i>CUQueue</i> and <i>CScopeUQueue</i></li>
     <li>Serialization and de-serialization of primitive types, <i>UUID</i>, <i>Decimal</i> and <i>Date</i></li><li>Serialization and de-serialization of string types (strings for unicode and ASCII)</li>
     <li>Serialization and de-serialization of Object</li><li>Serialization and de-serialization of complex structures implemented with interface <i>IUSerializer</i></li></ol>
 </td>
 </tr>
 <tr>
-<td><a href="py_hw.htm" title="SocketPro Client Server Application Development">SocketPro Client Server Application Development</a></td>
+<td><span class="slabel">Client/server Communication Pattern within SocketPro</span><hr /><a href="py_hw.htm" title="SocketPro Client Server Application Development">Hello World Client/server Application</a></td>
 <td><ol><li>Start one or more socket pools</li><li>Decoding generic function <i>sendRequest</i> within client service handler</li><li>Converting asynchronous requests into synchronous ones</li>
     <li>Requests streaming with inline batching for the best network efficiency</li><li>Error handling within SocketPro framework at client side</li>
     <li>Client message queue for request backup, fault tolerance and failure auto recovery</li></ol>
 </td>
 </tr>
 <tr>
-<td><a href="py_push.htm" title="SocketPro Secure Communication and Publish/Subscribe Messaging">SocketPro Secure Communication and Publish/Subscribe Messaging</a></td>
+<td><span class="slabel">TLSv1.x and Subscribe/publish Communication Pattern</span><hr /><a href="py_push.htm" title="SocketPro Secure Communication and Publish/Subscribe Messaging">Secure Communication and Publish/Subscribe Messaging</a></td>
 <td><ol><li>Starting a SocketPro server</li><li>Making a SocketPro server secure with industrial standard TLSv1.x</li>
     <li>Register a service and set slow requests at server side</li><li>Managing subscribe/publish messaging through topics at server side</li>
     <li>Authenticating a client from user id and password</li><li>Subscribing topics and publishing messages at server side</li>
@@ -45,7 +50,7 @@
 </td>
 </tr>
 <tr>
-<td><a href="py_web.htm" title="SocketPro WebSocket for Client/server and Subscribe/publish Messaging on Browsers">SocketPro WebSocket for Client/server and Subscribe/publish Messaging on Browsers</a></td>
+<td><span class="slabel">Client/server and Subscribe/publish Patterns on Browsers</span><hr /><a href="py_web.htm" title="SocketPro WebSocket for Client/server and Subscribe/publish Messaging on Browsers">Client/server and Subscribe/publish Messaging by WebSockets</a></td>
 <td><ol><li>Loading SocketPro Javascript adapter into web browsers</li><li>Client/server communication pattern on web browsers</li><li>Subscribe/publish messaging on web browsers</li>
     <li>Decoding SocketPro Javascript adapter</li><li>Tracking messages published from other clients or server on web browsers</li>
     <li>Publishing messages onto one or more topics or sending messages to a specific client from web browsers</li>
@@ -55,7 +60,7 @@
 </td>
 </tr>
 <tr>
-<td><a href="py_serverqueue.htm" title="SocketPro Server Persistent Message Queue">SocketPro Server Persistent Message Queue</a></td>
+<td><span class="slabel">Extensible High-performant Persistent Message Queue</span><hr /><a href="py_serverqueue.htm" title="SocketPro Server Persistent Message Queue">Server Persistent Message Queue</a></td>
 <td><ol><li>Enqueuing a set of different messages onto a server persistent message queue file</li><li>Dequeuing messages recursively with better concurrency and performance from a server persistent message queue file in batch</li>
     <li>How to implement task for dequeuing all messages recursively with better concurrency and performance between client and server sides</li>
     <li>How to use a client queue for eliminating potential message losses with SocketPro</li>
@@ -63,7 +68,7 @@
 </td>
 </tr>
 <tr>
-<td><a href="py_router.htm" title="SocketPro Server Routing Communication Pattern and Microservices">SocketPro Server Routing Communication Pattern and Microservices</a></td>
+<td><span class="slabel">Load Balancing for Better Scalability by Server Routing</span><hr /><a href="py_router.htm" title="SocketPro Server Routing Communication Pattern and Microservices">Server Routing Communication Pattern and Microservices</a></td>
 <td><ol><li>Computing π value with numerical integration by sending an array of requests onto a SocketPro server</li>
         <li>How to enable SocketPro routing as load balancing at server side</li>
         <li>How to register multiple microservices at server side</li>
@@ -74,7 +79,7 @@
 </td>
 </tr>
 <tr>
-<td><a href="py_sqlite.htm" title="SQL Requests Streaming For SQLite">SQL Requests Streaming For SQLite</a></td>
+<td><span class="slabel">SQL Requests Streaming -- 1</span><hr /><a href="py_sqlite.htm" title="SQL Requests Streaming For SQLite">SocketPro Server Plugin -- SQLite</a></td>
 <td><ol><li>Two basic structures, <i>ErrInfo</i> and <i>SQLExeInfo</i> for various database requests</li>
         <li>Basic database requests, <i>open</i>, <i>closeDb</i>, <i>beginTrans</i>, <i>endTrans</i>, <i>prepare</i>, <i>execute</i> and <i>executeBatch</i></li>
         <li>Executing SQL statements without returning records</li>
@@ -85,7 +90,7 @@
 </td>
 </tr>
 <tr>
-<td><a href="py_mysql.htm" title="SQL Requests Streaming For MySQL/Mariadb">SQL Requests Streaming For MySQL/Mariadb</a></td>
+<td><span class="slabel">SQL Requests Streaming -- 2</span><hr /><a href="py_mysql.htm" title="SQL Requests Streaming For MySQL/Mariadb">SocketPro/Database Server Plugins -- MySQL/MariaDB</a></td>
 <td><ol><li>Executing SQL statements without returning records</li>
         <li>Preparing statements and executing SQL with array of parameters</li>
         <li>Preparing statements and executing SQL with array of parameters related with BLOBs and long texts</li>
