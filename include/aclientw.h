@@ -773,11 +773,11 @@ namespace SPA {
             virtual ~CAsyncServiceHandler();
 
 #ifndef SAFE_RESULT_RETURN_EVENT
-            typedef std::function<void(CAsyncServiceHandler *ash, unsigned short) > DBaseRequestProcessed;
+            typedef std::function<void(CAsyncServiceHandler *ash, unsigned short reqId) > DBaseRequestProcessed;
             typedef std::function<bool(CAsyncServiceHandler *ash, unsigned short reqId, CUQueue& mb) > DResultReturned;
             typedef std::function<void(CAsyncServiceHandler *ash, unsigned short requestId, const wchar_t *errMessage, const char* errWhere, unsigned int errCode) > DServerException;
 #else
-            typedef void(*DBaseRequestProcessed)(CAsyncServiceHandler *ash, unsigned short);
+            typedef void(*DBaseRequestProcessed)(CAsyncServiceHandler *ash, unsigned short reqId);
             typedef bool(*DResultReturned)(CAsyncServiceHandler *ash, unsigned short reqId, CUQueue& buff);
             typedef void(*DServerException)(CAsyncServiceHandler *ash, unsigned short requestId, const wchar_t *errMessage, const char* errWhere, unsigned int errCode);
 #endif
@@ -1277,6 +1277,10 @@ namespace SPA {
         };
 
         typedef CAsyncServiceHandler* PAsyncServiceHandler;
+        using DBaseRequestProcessed = CAsyncServiceHandler::DBaseRequestProcessed;
+        using DServerException = CAsyncServiceHandler::DServerException;
+        using DResultReturned = CAsyncServiceHandler::DResultReturned;
+        using DDiscarded = CAsyncServiceHandler::DDiscarded;
 
 #if defined(PHP_ADAPTER_PROJECT) || defined(NODE_JS_ADAPTER_PROJECT)
 #else
