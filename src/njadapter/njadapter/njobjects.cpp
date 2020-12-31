@@ -218,7 +218,7 @@ namespace NJA {
         NODE_SET_PROTOTYPE_METHOD(tpl, "setQueueName", setQueueName);
         NODE_SET_PROTOTYPE_METHOD(tpl, "getQueues", getQueues);
         NODE_SET_PROTOTYPE_METHOD(tpl, "getSockets", getSockets);
-        NODE_SET_PROTOTYPE_METHOD(tpl, "getTotalSockets", getSocketsPerThread);
+        NODE_SET_PROTOTYPE_METHOD(tpl, "getTotalSockets", getTotalSockets);
         NODE_SET_PROTOTYPE_METHOD(tpl, "getStarted", getStarted);
         NODE_SET_PROTOTYPE_METHOD(tpl, "getCache", getCache);
 
@@ -853,11 +853,11 @@ namespace NJA {
         }
     }
 
-    void NJSocketPool::getSocketsPerThread(const FunctionCallbackInfo<Value>& args) {
+    void NJSocketPool::getTotalSockets(const FunctionCallbackInfo<Value>& args) {
         Isolate* isolate = args.GetIsolate();
         NJSocketPool* obj = ObjectWrap::Unwrap<NJSocketPool>(args.Holder());
         if (obj->IsValid(isolate)) {
-            unsigned int data = obj->Handler->GetSocketsPerThread();
+            unsigned int data = obj->Handler->GetSocketsCreated();
             args.GetReturnValue().Set(Uint32::New(isolate, data));
         }
     }

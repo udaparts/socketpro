@@ -82,7 +82,7 @@ namespace NJA {
         static void setQueueName(const FunctionCallbackInfo<Value>& args);
         static void getQueues(const FunctionCallbackInfo<Value>& args);
         static void getSockets(const FunctionCallbackInfo<Value>& args);
-        static void getSocketsPerThread(const FunctionCallbackInfo<Value>& args);
+        static void getTotalSockets(const FunctionCallbackInfo<Value>& args);
         static void getStarted(const FunctionCallbackInfo<Value>& args);
         static void getThreadsCreated(const FunctionCallbackInfo<Value>& args);
         static void getCache(const FunctionCallbackInfo<Value>& args);
