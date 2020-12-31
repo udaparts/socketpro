@@ -229,7 +229,7 @@ namespace NJA {
         NODE_SET_PROTOTYPE_METHOD(tpl, "setBaseReqProcessed", setBaseRequestProcessed);
         NODE_SET_PROTOTYPE_METHOD(tpl, "setServerException", setServerException);
 
-        //NODE_SET_PROTOTYPE_METHOD(tpl, "getThreads", getThreadsCreated);
+        NODE_SET_PROTOTYPE_METHOD(tpl, "getThreads", getThreadsCreated);
         //NODE_SET_PROTOTYPE_METHOD(tpl, "getIdleSockets", getIdleSockets);
         //NODE_SET_PROTOTYPE_METHOD(tpl, "getAvg", getAvg);
         //NODE_SET_PROTOTYPE_METHOD(tpl, "getLockedSockets", getLockedSockets);
@@ -1174,6 +1174,10 @@ namespace NJA {
         NJSocketPool* obj = ObjectWrap::Unwrap<NJSocketPool>(args.Holder());
         if (!obj->IsValid(isolate))
             return;
+        if (obj->Handler->IsStarted()) {
+            ThrowException(isolate, "The socket pool already started");
+            return;
+        }
         auto p1 = args[1];
         if (!p1->IsUint32()) {
             ThrowException(isolate, "An unsigned int number expected for client sockets");
@@ -1184,9 +1188,19 @@ namespace NJA {
             ThrowException(isolate, "The number of client sockets cannot be zero");
             return;
         }
-        if (obj->Handler->IsStarted()) {
-            ThrowException(isolate, "The socket pool already started");
+        unsigned int threads = 1;
+        auto p2 = args[2];
+        if (IsNullOrUndefined(p2)) {
+        }
+        else if (!p2->IsUint32()) {
+            ThrowException(isolate, "An unsigned int number expected for socket pool threads");
             return;
+        }
+        else {
+            threads = p2->Uint32Value(isolate->GetCurrentContext()).ToChecked();
+            if (!threads) {
+                threads = 1;
+            }
         }
         std::vector<SPA::ClientSide::CConnectionContext> vCC;
         auto p0 = args[0];
@@ -1231,8 +1245,11 @@ namespace NJA {
         obj->m_errSSL = 0;
         obj->m_errMsg.clear();
         typedef CConnectionContext* PCConnectionContext;
-        PCConnectionContext ppCCs[] = {vCCs.data()};
-        bool ok = obj->Handler->StartSocketPool(ppCCs, sessions, 1);
+        PCConnectionContext* ppCCs = new PCConnectionContext[threads];
+        for (unsigned int n = 0; n < threads; ++n) {
+            ppCCs[n] = vCCs.data();
+        }
+        bool ok = obj->Handler->StartSocketPool(ppCCs, sessions, threads);
         obj->m_cs.lock();
         if (!ok && !obj->m_errSSL) {
             auto cs = obj->Handler->GetSockets()[0];
@@ -1243,6 +1260,7 @@ namespace NJA {
         }
         obj->m_cs.unlock();
         args.GetReturnValue().Set(Boolean::New(isolate, ok));
+        delete []ppCCs;
     }
 
     void NJSocketPool::Unlock(const FunctionCallbackInfo<Value>& args) {

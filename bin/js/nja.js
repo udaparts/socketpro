@@ -477,6 +477,10 @@ class CSocketPool {
         return this.pool.getStarted();
     }
 
+    get Threads() {
+        return this.pool.getThreads();
+    }
+
     get Cache() {
         var cache = this.pool.getCache();
         if (cache)
@@ -639,9 +643,10 @@ class CSocketPool {
         return h;
     }
 
-    Start(cc, sessions) {
+    Start(cc, sessions, threads = 1) {
         assert(typeof sessions === 'number');
-        return this.pool.Start(cc, sessions);
+        assert(typeof threads === 'number' || threads === null || threads === undefined);
+        return this.pool.Start(cc, sessions, threads);
     }
 
     Shutdown() {
@@ -2261,7 +2266,9 @@ class CJsManager {
             if (!obj || typeof obj !== 'object') {
                 throw 'A pair of key/Pool context expected';
             }
-            obj.Threads = 1;
+            if (!obj.Threads || typeof obj.Threads !== 'number') {
+                obj.Threads = 1;
+            }
             var queue = '';
             if (obj.Queue !== undefined) {
                 if (typeof obj.Queue === 'string') {
@@ -2365,7 +2372,12 @@ class CJsManager {
                     s.PoolType = 1;
                     s.SvsId = obj.SvsId;
                     s.DefaultDb = obj.DefaultDb;
-                    s.Threads = 1;
+                    if (one.Threads && typeof one.Threads === 'number') {
+                        s.Threads = one.Threads;
+                    }
+                    else {
+                        s.Threads = 1;
+                    }
                     s.Queue = '';
                     if (one.Queue !== undefined) {
                         if (typeof one.Queue === 'string') {
@@ -2500,7 +2512,7 @@ class CJsManager {
             var key = pc.Hosts[n];
             sessions.push(jcObject.Hosts[key]);
         }
-        var ok = pool.Start(sessions, sessions.length);
+        var ok = pool.Start(sessions, sessions.length, pc.Threads);
         pool.AutoMerge = pc.AutoMerge;
         return pool;
     }
