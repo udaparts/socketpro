@@ -1781,8 +1781,7 @@ namespace SPA {
                 bad = false;
                 DRowsetHeader rh;
                 if (header->IsFunction()) {
-                    std::shared_ptr<CNJFunc> func(new CNJFunc);
-                    func->Reset(isolate, Local<Function>::Cast(header));
+                    std::shared_ptr<CNJFunc> func(new CNJFunc(isolate, Local<Function>::Cast(header)));
                     Backup(func);
                     rh = [func](CAsyncDBHandler& db, const unsigned char* start, unsigned int bytes) {
                         assert(!bytes);
@@ -1823,8 +1822,7 @@ namespace SPA {
                 bad = false;
                 DRowsetHeader rh;
                 if (header->IsFunction()) {
-                    std::shared_ptr<CNJFunc> func(new CNJFunc);
-                    func->Reset(isolate, Local<Function>::Cast(header));
+                    std::shared_ptr<CNJFunc> func(new CNJFunc(isolate, Local<Function>::Cast(header)));
                     Backup(func);
                     rh = [func](CAsyncDBHandler& db, const unsigned char* start, unsigned int bytes) {
                         DBCb cb;
@@ -1850,8 +1848,7 @@ namespace SPA {
                 bad = false;
                 DRows rows;
                 if (r->IsFunction()) {
-                    std::shared_ptr<CNJFunc> func(new CNJFunc);
-                    func->Reset(isolate, Local<Function>::Cast(r));
+                    std::shared_ptr<CNJFunc> func(new CNJFunc(isolate, Local<Function>::Cast(r)));
                     Backup(func);
                     rows = [func](CAsyncDBHandler& db, CUQueue & vData) {
                         DBCb cb;
@@ -1887,8 +1884,7 @@ namespace SPA {
                 bad = false;
                 DExecuteResult result;
                 if (er->IsFunction()) {
-                    std::shared_ptr<CNJFunc> func(new CNJFunc);
-                    func->Reset(isolate, Local<Function>::Cast(er));
+                    std::shared_ptr<CNJFunc> func(new CNJFunc(isolate, Local<Function>::Cast(er)));
                     Backup(func);
                     result = [func](CAsyncDBHandler& db, int errCode, const std::wstring& errMsg, INT64 affected, UINT64 fail_ok, CDBVariant & vtId) {
                         DBCb cb;
@@ -1913,8 +1909,7 @@ namespace SPA {
                 bad = false;
                 DResult result;
                 if (res->IsFunction()) {
-                    std::shared_ptr<CNJFunc> func(new CNJFunc);
-                    func->Reset(isolate, Local<Function>::Cast(res));
+                    std::shared_ptr<CNJFunc> func(new CNJFunc(isolate, Local<Function>::Cast(res)));
                     Backup(func);
                     result = [func](CAsyncDBHandler& db, int errCode, const std::wstring & errMsg) {
                         DBCb cb;
@@ -1939,8 +1934,7 @@ namespace SPA {
                 bad = false;
                 DDiscarded dd;
                 if (abort->IsFunction()) {
-                    std::shared_ptr<CNJFunc> func(new CNJFunc);
-                    func->Reset(isolate, Local<Function>::Cast(abort));
+                    std::shared_ptr<CNJFunc> func(new CNJFunc(isolate, Local<Function>::Cast(abort)));
                     Backup(func);
                     dd = [func](CAsyncServiceHandler* db, bool canceled) {
                         DBCb cb;
@@ -1965,8 +1959,7 @@ namespace SPA {
                 bad = false;
                 SPA::ClientSide::CAsyncServiceHandler::DServerException dSe;
                 if (se->IsFunction()) {
-                    std::shared_ptr<CNJFunc> func(new CNJFunc);
-                    func->Reset(isolate, Local<Function>::Cast(se));
+                    std::shared_ptr<CNJFunc> func(new CNJFunc(isolate, Local<Function>::Cast(se)));
                     Backup(func);
                     dSe = [func](CAsyncServiceHandler* db, unsigned short requestId, const wchar_t* errMessage, const char* errWhere, unsigned int errCode) {
                         DBCb cb;

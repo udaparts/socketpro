@@ -323,7 +323,7 @@ namespace SPA {
         }
 
         void CAsyncServiceHandler::OnSE(unsigned short requestId, const wchar_t *errMessage, const char* errWhere, unsigned int errCode) {
-            PRR_PAIR p = nullptr;
+            PRR_PAIR p;
             OnExceptionFromServer(requestId, errMessage, errWhere, errCode);
             if (GetAsyncResultHandler(requestId, p)) {
                 if (p->second->ExceptionFromServer) {
@@ -341,15 +341,15 @@ namespace SPA {
                 OnInterrupted(options);
                 return;
             }
-            PRR_PAIR p = nullptr;
+            PRR_PAIR p;
             if (GetAsyncResultHandler(reqId, p) && p->second->AsyncResultHandler) {
                 CAsyncResult ar(this, reqId, mc, p->second->AsyncResultHandler);
                 p->second->AsyncResultHandler(ar);
+                m_rrStack.Recycle(p);
             } else if (m_rrImpl.Invoke(this, reqId, mc)) {
             } else {
                 OnResultReturned(reqId, mc);
             }
-            m_rrStack.Recycle(p);
         }
 
         unsigned int CAsyncServiceHandler::GetRequestsQueued() noexcept {
@@ -425,8 +425,6 @@ namespace SPA {
                 if (p->first == usReqId) {
                     m_vCallback.Pop((unsigned int) sizeof (PRR_PAIR));
                     return true;
-                } else {
-                    p = nullptr;
                 }
             }
             return false;

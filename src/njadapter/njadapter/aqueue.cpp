@@ -23,8 +23,7 @@ namespace NJA {
         bad = false;
         DDiscarded dd;
         if (abort->IsFunction()) {
-            std::shared_ptr<CNJFunc> func(new CNJFunc);
-            func->Reset(isolate, Local<Function>::Cast(abort));
+            std::shared_ptr<CNJFunc> func(new CNJFunc(isolate, Local<Function>::Cast(abort)));
             Backup(func);
             dd = [func](CAsyncServiceHandler *aq, bool canceled) {
                 QueueCb qcb;
@@ -49,8 +48,7 @@ namespace NJA {
         bad = false;
         SPA::ClientSide::CAsyncServiceHandler::DServerException dSe;
         if (se->IsFunction()) {
-            std::shared_ptr<CNJFunc> func(new CNJFunc);
-            func->Reset(isolate, Local<Function>::Cast(se));
+            std::shared_ptr<CNJFunc> func(new CNJFunc(isolate, Local<Function>::Cast(se)));
             Backup(func);
             dSe = [func](CAsyncServiceHandler* aq, unsigned short requestId, const wchar_t* errMessage, const char* errWhere, unsigned int errCode) {
                 QueueCb qcb;
@@ -208,8 +206,7 @@ namespace NJA {
     void CAQueue::SetRR(Isolate* isolate, Local<Value> rr) {
         if (rr->IsFunction()) {
             CAutoLock al(m_csJQ);
-            m_rr.reset(new CNJFunc);
-            m_rr->Reset(isolate, Local<Function>::Cast(rr));
+            m_rr.reset(new CNJFunc(isolate, Local<Function>::Cast(rr)));
         } else if (IsNullOrUndefined(rr)) {
             CAutoLock al(m_csJQ);
             m_rr.reset();
@@ -244,8 +241,7 @@ namespace NJA {
         DServerException se;
         if (args > 0) {
             if (argv[0]->IsFunction()) {
-                std::shared_ptr<CNJFunc> func(new CNJFunc);
-                func->Reset(isolate, Local<Function>::Cast(argv[0]));
+                std::shared_ptr<CNJFunc> func(new CNJFunc(isolate, Local<Function>::Cast(argv[0])));
                 Backup(func);
                 gk = [func](CAsyncQueue *aq, std::vector<std::string>& v) {
                     QueueCb qcb;
@@ -289,8 +285,7 @@ namespace NJA {
         DServerException se;
         if (args > 0) {
             if (argv[0]->IsFunction()) {
-                std::shared_ptr<CNJFunc> func(new CNJFunc);
-                func->Reset(isolate, Local<Function>::Cast(argv[0]));
+                std::shared_ptr<CNJFunc> func(new CNJFunc(isolate, Local<Function>::Cast(argv[0])));
                 Backup(func);
                 qt = [func](CAsyncQueue *aq, int errCode) {
                     QueueCb qcb;
@@ -331,8 +326,7 @@ namespace NJA {
         DServerException se;
         if (args > 0) {
             if (argv[0]->IsFunction()) {
-                std::shared_ptr<CNJFunc> func(new CNJFunc);
-                func->Reset(isolate, Local<Function>::Cast(argv[0]));
+                std::shared_ptr<CNJFunc> func(new CNJFunc(isolate, Local<Function>::Cast(argv[0])));
                 Backup(func);
                 qt = [func](CAsyncQueue *aq, int errCode) {
                     QueueCb qcb;
@@ -373,8 +367,7 @@ namespace NJA {
         DServerException se;
         if (args > 0) {
             if (argv[0]->IsFunction()) {
-                std::shared_ptr<CNJFunc> func(new CNJFunc);
-                func->Reset(isolate, Local<Function>::Cast(argv[0]));
+                std::shared_ptr<CNJFunc> func(new CNJFunc(isolate, Local<Function>::Cast(argv[0])));
                 Backup(func);
                 c = [func](CAsyncQueue *aq, int errCode) {
                     QueueCb qcb;
@@ -415,8 +408,7 @@ namespace NJA {
         DServerException se;
         if (args > 0) {
             if (argv[0]->IsFunction()) {
-                std::shared_ptr<CNJFunc> func(new CNJFunc);
-                func->Reset(isolate, Local<Function>::Cast(argv[0]));
+                std::shared_ptr<CNJFunc> func(new CNJFunc(isolate, Local<Function>::Cast(argv[0])));
                 Backup(func);
                 f = [func](CAsyncQueue *aq, SPA::UINT64 messageCount, SPA::UINT64 fileSize) {
                     QueueCb qcb;
@@ -457,8 +449,7 @@ namespace NJA {
         DServerException se;
         if (args > 0) {
             if (argv[0]->IsFunction()) {
-                std::shared_ptr<CNJFunc> func(new CNJFunc);
-                func->Reset(isolate, Local<Function>::Cast(argv[0]));
+                std::shared_ptr<CNJFunc> func(new CNJFunc(isolate, Local<Function>::Cast(argv[0])));
                 Backup(func);
                 d = [func](CAsyncQueue *aq, SPA::UINT64 messageCount, SPA::UINT64 fileSize, unsigned int messagesDequeuedInBatch, unsigned int bytesDequeuedInBatch) {
                     QueueCb qcb;
@@ -503,8 +494,7 @@ namespace NJA {
         DServerException se;
         if (args > 0) {
             if (argv[0]->IsFunction()) {
-                std::shared_ptr<CNJFunc> func(new CNJFunc);
-                func->Reset(isolate, Local<Function>::Cast(argv[0]));
+                std::shared_ptr<CNJFunc> func(new CNJFunc(isolate, Local<Function>::Cast(argv[0])));
                 Backup(func);
                 e = [func](CAsyncQueue *aq, SPA::UINT64 indexMessage) {
                     QueueCb qcb;
@@ -545,8 +535,7 @@ namespace NJA {
         DServerException se;
         if (args > 0) {
             if (argv[0]->IsFunction()) {
-                std::shared_ptr<CNJFunc> func(new CNJFunc);
-                func->Reset(isolate, Local<Function>::Cast(argv[0]));
+                std::shared_ptr<CNJFunc> func(new CNJFunc(isolate, Local<Function>::Cast(argv[0])));
                 Backup(func);
                 e = [func](CAsyncQueue *aq, SPA::UINT64 indexMessage) {
                     QueueCb qcb;

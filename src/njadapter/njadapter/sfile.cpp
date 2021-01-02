@@ -21,8 +21,7 @@ namespace NJA {
         DServerException se;
         if (args > 0) {
             if (argv[0]->IsFunction()) {
-                std::shared_ptr<CNJFunc> func(new CNJFunc);
-                func->Reset(isolate, Local<Function>::Cast(argv[0]));
+                std::shared_ptr<CNJFunc> func(new CNJFunc(isolate, Local<Function>::Cast(argv[0])));
                 Backup(func);
                 dd = [func, download](CStreamingFile *file, int res, const std::wstring & errMsg) {
                     FileCb fcb;
@@ -44,8 +43,7 @@ namespace NJA {
         }
         if (args > 1) {
             if (argv[1]->IsFunction()) {
-                std::shared_ptr<CNJFunc> func(new CNJFunc);
-                func->Reset(isolate, Local<Function>::Cast(argv[1]));
+                std::shared_ptr<CNJFunc> func(new CNJFunc(isolate, Local<Function>::Cast(argv[1])));
                 Backup(func);
                 trans = [func, download](CStreamingFile *file, SPA::UINT64 transferred) {
                     FileCb fcb;
@@ -67,8 +65,7 @@ namespace NJA {
         }
         if (args > 2) {
             if (argv[2]->IsFunction()) {
-                std::shared_ptr<CNJFunc> func(new CNJFunc);
-                func->Reset(isolate, Local<Function>::Cast(argv[2]));
+                std::shared_ptr<CNJFunc> func(new CNJFunc(isolate, Local<Function>::Cast(argv[2])));
                 Backup(func);
                 aborted = [func, download](CAsyncServiceHandler *file, bool canceled) {
                     FileCb fcb;
@@ -90,8 +87,7 @@ namespace NJA {
         }
         if (args > 3) {
             if (argv[3]->IsFunction()) {
-                std::shared_ptr<CNJFunc> func(new CNJFunc);
-                func->Reset(isolate, Local<Function>::Cast(argv[3]));
+                std::shared_ptr<CNJFunc> func(new CNJFunc(isolate, Local<Function>::Cast(argv[3])));
                 Backup(func);
                 se = [func, download](CAsyncServiceHandler* file, unsigned short requestId, const wchar_t* errMessage, const char* errWhere, unsigned int errCode) {
                     FileCb fcb;

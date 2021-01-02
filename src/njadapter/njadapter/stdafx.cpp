@@ -20,8 +20,7 @@ namespace SPA {
             UINT64 callIndex = GetCallIndex();
             if (args > 0) {
                 if (argv[0]->IsFunction()) {
-                    std::shared_ptr<CNJFunc> func(new CNJFunc);
-                    func->Reset(isolate, Local<Function>::Cast(argv[0]));
+                    std::shared_ptr<CNJFunc> func(new CNJFunc(isolate, Local<Function>::Cast(argv[0])));
                     Backup(func);
                     rh = [this, func](CAsyncResult & ar) {
                         ReqCb cb;
@@ -46,8 +45,7 @@ namespace SPA {
             }
             if (args > 1) {
                 if (argv[1]->IsFunction()) {
-                    std::shared_ptr<CNJFunc> func(new CNJFunc);
-                    func->Reset(isolate, Local<Function>::Cast(argv[1]));
+                    std::shared_ptr<CNJFunc> func(new CNJFunc(isolate, Local<Function>::Cast(argv[1])));
                     Backup(func);
                     dd = [this, func, reqId](CAsyncServiceHandler *ash, bool canceled) {
                         ReqCb cb;
@@ -70,8 +68,7 @@ namespace SPA {
             }
             if (args > 2) {
                 if (argv[2]->IsFunction()) {
-                    std::shared_ptr<CNJFunc> func(new CNJFunc);
-                    func->Reset(isolate, Local<Function>::Cast(argv[2]));
+                    std::shared_ptr<CNJFunc> func(new CNJFunc(isolate, Local<Function>::Cast(argv[2])));
                     Backup(func);
                     se = [this, func](CAsyncServiceHandler *ash, unsigned short reqId, const wchar_t *errMsg, const char *errWhere, unsigned int errCode) {
                         ReqCb cb;
