@@ -21,23 +21,20 @@ namespace SPA {
             if (args > 0) {
                 if (argv[0]->IsFunction()) {
                     std::shared_ptr<CNJFunc> func(new CNJFunc(isolate, Local<Function>::Cast(argv[0])));
-                    Backup(func);
                     rh = [this, func](CAsyncResult & ar) {
-                        ReqCb cb;
-                        cb.ReqId = ar.RequestId;
-                        cb.Type = tagEvent::eResult;
+                        ReqCb cb(ar, tagEvent::eResult);
                         cb.Func = func;
                         PAsyncServiceHandler h = ar.AsyncServiceHandler;
-                        cb.Buffer = CScopeUQueue::Lock(ar.UQueue.GetOS(), ar.UQueue.GetEndian());
                         *cb.Buffer << h;
                         cb.Buffer->Push(ar.UQueue.GetBuffer(), ar.UQueue.GetSize());
                         ar.UQueue.SetSize(0);
                         this->m_cs.lock();
-                        this->m_deqReqCb.push_back(cb);
+                        this->m_deqReqCb.push_back(std::move(cb));
                         this->m_cs.unlock();
                         int fail = uv_async_send(&this->m_typeReq);
                         assert(!fail);
                     };
+                    Backup(func);
                 } else if (!IsNullOrUndefined(argv[0])) {
                     ThrowException(isolate, "A callback expected for tracking returned results");
                     return 0;
@@ -46,21 +43,18 @@ namespace SPA {
             if (args > 1) {
                 if (argv[1]->IsFunction()) {
                     std::shared_ptr<CNJFunc> func(new CNJFunc(isolate, Local<Function>::Cast(argv[1])));
-                    Backup(func);
                     dd = [this, func, reqId](CAsyncServiceHandler *ash, bool canceled) {
-                        ReqCb cb;
-                        cb.ReqId = reqId;
-                        cb.Type = tagEvent::eDiscarded;
+                        ReqCb cb(reqId, tagEvent::eDiscarded);
                         cb.Func = func;
                         PAsyncServiceHandler h = ash;
-                        cb.Buffer = CScopeUQueue::Lock();
                         *cb.Buffer << h << canceled;
                         this->m_cs.lock();
-                        this->m_deqReqCb.push_back(cb);
+                        this->m_deqReqCb.push_back(std::move(cb));
                         this->m_cs.unlock();
                         int fail = uv_async_send(&this->m_typeReq);
                         assert(!fail);
                     };
+                    Backup(func);
                 } else if (!IsNullOrUndefined(argv[1])) {
                     ThrowException(isolate, "A callback expected for tracking socket closed or canceled events");
                     return 0;
@@ -69,21 +63,18 @@ namespace SPA {
             if (args > 2) {
                 if (argv[2]->IsFunction()) {
                     std::shared_ptr<CNJFunc> func(new CNJFunc(isolate, Local<Function>::Cast(argv[2])));
-                    Backup(func);
                     se = [this, func](CAsyncServiceHandler *ash, unsigned short reqId, const wchar_t *errMsg, const char *errWhere, unsigned int errCode) {
-                        ReqCb cb;
-                        cb.ReqId = reqId;
-                        cb.Type = tagEvent::eException;
+                        ReqCb cb(reqId, tagEvent::eException);
                         cb.Func = func;
                         PAsyncServiceHandler h = ash;
-                        cb.Buffer = CScopeUQueue::Lock();
                         *cb.Buffer << h << errMsg << errWhere << errCode;
                         this->m_cs.lock();
-                        this->m_deqReqCb.push_back(cb);
+                        this->m_deqReqCb.push_back(std::move(cb));
                         this->m_cs.unlock();
                         int fail = uv_async_send(&this->m_typeReq);
                         assert(!fail);
                     };
+                    Backup(func);
                 } else if (!IsNullOrUndefined(argv[2])) {
                     ThrowException(isolate, "A callback expected for tracking exceptions from server");
                     return 0;
@@ -104,7 +95,7 @@ namespace SPA {
             {
                 obj->m_cs.lock();
                 while (obj->m_deqReqCb.size()) {
-                    ReqCb cb = obj->m_deqReqCb.front();
+                    ReqCb cb(std::move(obj->m_deqReqCb.front()));
                     obj->m_deqReqCb.pop_front();
                     obj->m_cs.unlock();
                     PAsyncServiceHandler processor = nullptr;

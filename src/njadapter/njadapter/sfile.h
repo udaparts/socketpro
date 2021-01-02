@@ -34,6 +34,17 @@ namespace NJA {
             tagFileEvent EventType;
             SPA::PUQueue Buffer;
             std::shared_ptr<CNJFunc> Func;
+
+            FileCb(bool download, tagFileEvent et) : Download(download), EventType(et), Buffer(SPA::CScopeUQueue::Lock()) {
+            }
+
+            FileCb(FileCb&& fcb) noexcept : Download(fcb.Download), EventType(fcb.EventType), Buffer(fcb.Buffer), Func(std::move(fcb.Func)) {
+                fcb.Buffer = nullptr;
+            }
+
+            FileCb(const FileCb& fcb) = delete;
+            FileCb& operator=(const FileCb& fcb) = delete;
+            FileCb& operator=(FileCb&& fcb) = delete;
         };
 
         uv_async_t m_fileType;

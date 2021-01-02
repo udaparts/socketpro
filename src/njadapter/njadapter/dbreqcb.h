@@ -84,7 +84,7 @@ namespace SPA {
             {
                 obj->m_csDB.lock();
                 while (obj->m_deqDBCb.size()) {
-                    DBCb cb = obj->m_deqDBCb.front();
+                    DBCb cb(std::move(obj->m_deqDBCb.front()));
                     obj->m_deqDBCb.pop_front();
                     obj->m_csDB.unlock();
                     PAsyncDBHandler processor = nullptr;

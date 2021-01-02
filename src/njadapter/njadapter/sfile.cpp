@@ -22,20 +22,17 @@ namespace NJA {
         if (args > 0) {
             if (argv[0]->IsFunction()) {
                 std::shared_ptr<CNJFunc> func(new CNJFunc(isolate, Local<Function>::Cast(argv[0])));
-                Backup(func);
                 dd = [func, download](CStreamingFile *file, int res, const std::wstring & errMsg) {
-                    FileCb fcb;
-                    fcb.Download = download;
-                    fcb.EventType = tagFileEvent::feExchange;
+                    FileCb fcb(download, tagFileEvent::feExchange);
                     fcb.Func = func;
-                    fcb.Buffer = CScopeUQueue::Lock();
                     PSFile f = (PSFile) file;
                     *fcb.Buffer << f << res << errMsg;
                     CAutoLock al(f->m_csFile);
-                    f->m_deqFileCb.push_back(fcb);
+                    f->m_deqFileCb.push_back(std::move(fcb));
                     int fail = uv_async_send(&f->m_fileType);
                     assert(!fail);
                 };
+                Backup(func);
             } else if (!IsNullOrUndefined(argv[0])) {
                 ThrowException(isolate, "A callback expected for file exchange end result");
                 return 0;
@@ -44,20 +41,17 @@ namespace NJA {
         if (args > 1) {
             if (argv[1]->IsFunction()) {
                 std::shared_ptr<CNJFunc> func(new CNJFunc(isolate, Local<Function>::Cast(argv[1])));
-                Backup(func);
                 trans = [func, download](CStreamingFile *file, SPA::UINT64 transferred) {
-                    FileCb fcb;
-                    fcb.Download = download;
-                    fcb.EventType = tagFileEvent::feTrans;
+                    FileCb fcb(download, tagFileEvent::feTrans);
                     fcb.Func = func;
-                    fcb.Buffer = CScopeUQueue::Lock();
                     PSFile f = (PSFile) file;
                     *fcb.Buffer << f << transferred << file->GetFileSize();
                     CAutoLock al(f->m_csFile);
-                    f->m_deqFileCb.push_back(fcb);
+                    f->m_deqFileCb.push_back(std::move(fcb));
                     int fail = uv_async_send(&f->m_fileType);
                     assert(!fail);
                 };
+                Backup(func);
             } else if (!IsNullOrUndefined(argv[1])) {
                 ThrowException(isolate, "A callback expected for monitoring file transferring progress");
                 return 0;
@@ -66,20 +60,17 @@ namespace NJA {
         if (args > 2) {
             if (argv[2]->IsFunction()) {
                 std::shared_ptr<CNJFunc> func(new CNJFunc(isolate, Local<Function>::Cast(argv[2])));
-                Backup(func);
                 aborted = [func, download](CAsyncServiceHandler *file, bool canceled) {
-                    FileCb fcb;
-                    fcb.Download = download;
-                    fcb.EventType = tagFileEvent::feDiscarded;
+                    FileCb fcb(download, tagFileEvent::feDiscarded);
                     fcb.Func = func;
-                    fcb.Buffer = CScopeUQueue::Lock();
                     PSFile f = (PSFile) file;
                     *fcb.Buffer << f << canceled;
                     CAutoLock al(f->m_csFile);
-                    f->m_deqFileCb.push_back(fcb);
+                    f->m_deqFileCb.push_back(std::move(fcb));
                     int fail = uv_async_send(&f->m_fileType);
                     assert(!fail);
                 };
+                Backup(func);
             } else if (!IsNullOrUndefined(argv[2])) {
                 ThrowException(isolate, "A callback expected for tracking socket closed or canceled events");
                 return 0;
@@ -88,20 +79,17 @@ namespace NJA {
         if (args > 3) {
             if (argv[3]->IsFunction()) {
                 std::shared_ptr<CNJFunc> func(new CNJFunc(isolate, Local<Function>::Cast(argv[3])));
-                Backup(func);
                 se = [func, download](CAsyncServiceHandler* file, unsigned short requestId, const wchar_t* errMessage, const char* errWhere, unsigned int errCode) {
-                    FileCb fcb;
-                    fcb.Download = download;
-                    fcb.EventType = tagFileEvent::feException;
+                    FileCb fcb(download, tagFileEvent::feException);
                     fcb.Func = func;
-                    fcb.Buffer = CScopeUQueue::Lock();
                     PSFile f = (PSFile) file;
                     *fcb.Buffer << f << requestId << errMessage << errWhere << errCode;
                     CAutoLock al(f->m_csFile);
-                    f->m_deqFileCb.push_back(fcb);
+                    f->m_deqFileCb.push_back(std::move(fcb));
                     int fail = uv_async_send(&f->m_fileType);
                     assert(!fail);
                 };
+                Backup(func);
             } else if (!IsNullOrUndefined(argv[3])) {
                 ThrowException(isolate, "A callback expected for tracking exception from server");
                 return 0;
@@ -121,7 +109,7 @@ namespace NJA {
         {
             obj->m_csFile.lock();
             while (obj->m_deqFileCb.size()) {
-                FileCb cb = obj->m_deqFileCb.front();
+                FileCb cb(std::move(obj->m_deqFileCb.front()));
                 obj->m_deqFileCb.pop_front();
                 obj->m_csFile.unlock();
                 PSFile processor;

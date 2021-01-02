@@ -999,6 +999,7 @@ namespace SPA {
                         return m_done;
                     }
                     //call this method from pool worker thread only
+
                     void resume() noexcept {
                         CSpinAutoLock al(m_cs);
                         if (!m_done) {
@@ -1017,6 +1018,7 @@ namespace SPA {
                     std::exception_ptr m_ex;
 
                 private:
+
                     bool await_suspend(CRHandle rh) noexcept {
                         CSpinAutoLock al(m_cs);
                         if (!m_done) {
@@ -1184,9 +1186,9 @@ namespace SPA {
 
             virtual SPA::UINT64 SendRequest(Isolate* isolate, int args, Local<Value> *argv, unsigned short reqId, const unsigned char *pBuffer, unsigned int size);
 
-            void Backup(const std::shared_ptr<CNJFunc>& f) {
+            void Backup(std::shared_ptr<CNJFunc>& f) {
                 CSpinAutoLock al(m_cs);
-                m_fBackup.push_back(f);
+                m_fBackup.push_back(std::move(f));
             }
 
             void CleanFuncBackups() {
@@ -1208,6 +1210,20 @@ namespace SPA {
                 tagEvent Type;
                 PUQueue Buffer;
                 std::shared_ptr<CNJFunc> Func;
+
+                ReqCb(CAsyncResult& ar, tagEvent type) : ReqId(ar.RequestId), Type(type), Buffer(CScopeUQueue::Lock(ar.UQueue.GetOS(), ar.UQueue.GetEndian())) {
+                }
+
+                ReqCb(unsigned short reqId, tagEvent type) : ReqId(reqId), Type(type), Buffer(CScopeUQueue::Lock()) {
+                }
+
+                ReqCb(ReqCb&& rcb) noexcept : ReqId(rcb.ReqId), Type(rcb.Type), Buffer(rcb.Buffer), Func(std::move(rcb.Func)) {
+                    rcb.Buffer = nullptr;
+                }
+
+                ReqCb(const ReqCb& rcb) = delete;
+                ReqCb& operator=(const ReqCb& rcb) = delete;
+                ReqCb& operator=(ReqCb&& rcb) = delete;
             };
             std::deque<ReqCb> m_deqReqCb; //protected by m_cs;
             uv_async_t m_typeReq; //SendRequest events

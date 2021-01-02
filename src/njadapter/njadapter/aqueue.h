@@ -52,7 +52,19 @@ namespace NJA {
             tagQueueEvent EventType;
             SPA::PUQueue Buffer;
             std::shared_ptr<CNJFunc> Func;
+
+            QueueCb(tagQueueEvent et) : EventType(et), Buffer(SPA::CScopeUQueue::Lock()) {
+            }
+
+            QueueCb(QueueCb&& qcb) noexcept : EventType(qcb.EventType), Buffer(qcb.Buffer), Func(std::move(qcb.Func)) {
+                qcb.Buffer = nullptr;
+            }
+
+            QueueCb(const QueueCb& qcb) = delete;
+            QueueCb& operator=(const QueueCb& qcb) = delete;
+            QueueCb& operator=(QueueCb&& qcb) = delete;
         };
+
         typedef SPA::CSpinAutoLock CAutoLock;
         SPA::CSpinLock m_csJQ;
         uv_async_t m_qType;

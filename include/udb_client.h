@@ -350,12 +350,12 @@ namespace SPA {
                     //in case a client asynchronously sends lots of requests without use of client side queue.
                     CAutoLock al(m_csDB);
                     if (rowset || meta) {
-                        m_mapRowset[callIndex] = CRowsetHandler(rh, row);
+                        m_mapRowset.emplace(callIndex, CRowsetHandler(rh, row));
                     }
 #ifndef NO_OUTPUT_BINDING
                     m_mapParameterCall[callIndex] = &vParam;
 #endif
-                    m_mapHandler[callIndex] = batchHeader;
+                    m_mapHandler.emplace(callIndex, batchHeader);
                     sb << m_strConnection << m_flags;
                 }
                 sb << callIndex << vPInfo;
@@ -416,7 +416,7 @@ namespace SPA {
                     //don't make m_csDB locked across calling SendRequest, which may lead to client dead-lock in case a client asynchronously sends lots of requests without use of client side queue.
                     CAutoLock al(m_csDB);
                     if (rowset || meta) {
-                        m_mapRowset[callIndex] = CRowsetHandler(rh, row);
+                        m_mapRowset.emplace(callIndex, CRowsetHandler(rh, row));
                     }
 #ifndef NO_OUTPUT_BINDING
                     m_mapParameterCall[callIndex] = &vParam;
@@ -466,7 +466,7 @@ namespace SPA {
                     //in case a client asynchronously sends lots of requests without use of client side queue.
                     CAutoLock al(m_csDB);
                     if (rowset || meta) {
-                        m_mapRowset[index] = CRowsetHandler(rh, row);
+                        m_mapRowset.emplace(index, CRowsetHandler(rh, row));
                     }
                 }
                 sb << sql << rowset << meta << lastInsertId << index;
@@ -566,12 +566,12 @@ namespace SPA {
                     //in case a client asynchronously sends lots of requests without use of client side queue.
                     CAutoLock al(m_csDB);
                     if (rowset || meta) {
-                        m_mapRowset[callIndex] = CRowsetHandler(rh, row);
+                        m_mapRowset.emplace(callIndex, CRowsetHandler(rh, row));
                     }
 #ifndef NO_OUTPUT_BINDING
                     m_mapParameterCall[callIndex] = &vParam;
 #endif
-                    m_mapHandler[callIndex] = batchHeader;
+                    m_mapHandler.emplace(callIndex, batchHeader);
                     sb << m_strConnection << m_flags;
                 }
                 sb << callIndex << vPInfo;
@@ -619,7 +619,7 @@ namespace SPA {
                     //in case a client asynchronously sends lots of requests without use of client side queue.
                     CAutoLock al(m_csDB);
                     if (rowset || meta) {
-                        m_mapRowset[index] = CRowsetHandler(rh, row);
+                        m_mapRowset.emplace(index, CRowsetHandler(rh, row));
                     }
                 }
                 sb << sql << rowset << meta << lastInsertId << index;
@@ -1772,6 +1772,17 @@ namespace SPA {
                 PUQueue Buffer;
                 std::shared_ptr<CNJFunc> Func;
                 std::shared_ptr<CUQueue> VData;
+
+                DBCb(tagDBEvent type) : Type(type), Buffer(CScopeUQueue::Lock()) {
+                }
+
+                DBCb(DBCb&& dbcb) noexcept : Type(dbcb.Type), Buffer(dbcb.Buffer), Func(std::move(dbcb.Func)), VData(std::move(dbcb.VData)) {
+                    dbcb.Buffer = nullptr;
+                }
+
+                DBCb(const DBCb& dbcb) = delete;
+                DBCb& operator=(const DBCb& dbcb) = delete;
+                DBCb& operator=(DBCb&& dbcb) = delete;
             };
 
             std::deque<DBCb> m_deqDBCb; //protected by m_csDB;
@@ -1782,20 +1793,18 @@ namespace SPA {
                 DRowsetHeader rh;
                 if (header->IsFunction()) {
                     std::shared_ptr<CNJFunc> func(new CNJFunc(isolate, Local<Function>::Cast(header)));
-                    Backup(func);
                     rh = [func](CAsyncDBHandler& db, const unsigned char* start, unsigned int bytes) {
                         assert(!bytes);
-                        DBCb cb;
-                        cb.Type = tagDBEvent::eBatchHeader;
+                        DBCb cb(tagDBEvent::eBatchHeader);
                         cb.Func = func;
-                        cb.Buffer = CScopeUQueue::Lock();
                         PAsyncDBHandler ash = &db;
                         *cb.Buffer << ash;
                         CAutoLock al(ash->m_csDB);
-                        ash->m_deqDBCb.push_back(cb);
+                        ash->m_deqDBCb.push_back(std::move(cb));
                         int fail = uv_async_send(&ash->m_typeDB);
                         assert(!fail);
                     };
+                    Backup(func);
                 } else if (!NJA::IsNullOrUndefined(header)) {
                     NJA::ThrowException(isolate, "A callback expected for batch header");
                     bad = true;
@@ -1823,20 +1832,18 @@ namespace SPA {
                 DRowsetHeader rh;
                 if (header->IsFunction()) {
                     std::shared_ptr<CNJFunc> func(new CNJFunc(isolate, Local<Function>::Cast(header)));
-                    Backup(func);
                     rh = [func](CAsyncDBHandler& db, const unsigned char* start, unsigned int bytes) {
-                        DBCb cb;
-                        cb.Type = tagDBEvent::eRowsetHeader;
+                        DBCb cb(tagDBEvent::eRowsetHeader);
                         cb.Func = func;
-                        cb.Buffer = CScopeUQueue::Lock();
                         PAsyncDBHandler ash = &db;
                         *cb.Buffer << ash;
                         cb.Buffer->Push(start, bytes);
                         CAutoLock al(ash->m_csDB);
-                        ash->m_deqDBCb.push_back(cb);
+                        ash->m_deqDBCb.push_back(std::move(cb));
                         int fail = uv_async_send(&ash->m_typeDB);
                         assert(!fail);
                     };
+                    Backup(func);
                 } else if (!NJA::IsNullOrUndefined(header)) {
                     NJA::ThrowException(isolate, "A callback expected for record meta");
                     bad = true;
@@ -1849,12 +1856,9 @@ namespace SPA {
                 DRows rows;
                 if (r->IsFunction()) {
                     std::shared_ptr<CNJFunc> func(new CNJFunc(isolate, Local<Function>::Cast(r)));
-                    Backup(func);
                     rows = [func](CAsyncDBHandler& db, CUQueue & vData) {
-                        DBCb cb;
-                        cb.Type = tagDBEvent::eRows;
+                        DBCb cb(tagDBEvent::eRows);
                         cb.Func = func;
-                        cb.Buffer = CScopeUQueue::Lock();
                         CUQueue* p = CScopeUQueue::Lock();
                         bool proc = db.IsProc();
                         if (proc && db.GetCallReturn()) {
@@ -1869,10 +1873,11 @@ namespace SPA {
                         PAsyncDBHandler ash = &db;
                         *cb.Buffer << ash << proc << (int) db.GetColumnInfo().size();
                         CAutoLock al(ash->m_csDB);
-                        ash->m_deqDBCb.push_back(cb);
+                        ash->m_deqDBCb.push_back(std::move(cb));
                         int fail = uv_async_send(&ash->m_typeDB);
                         assert(!fail);
                     };
+                    Backup(func);
                 } else if (!NJA::IsNullOrUndefined(r)) {
                     NJA::ThrowException(isolate, "A callback expected for row data");
                     bad = true;
@@ -1885,19 +1890,17 @@ namespace SPA {
                 DExecuteResult result;
                 if (er->IsFunction()) {
                     std::shared_ptr<CNJFunc> func(new CNJFunc(isolate, Local<Function>::Cast(er)));
-                    Backup(func);
                     result = [func](CAsyncDBHandler& db, int errCode, const std::wstring& errMsg, INT64 affected, UINT64 fail_ok, CDBVariant & vtId) {
-                        DBCb cb;
-                        cb.Type = tagDBEvent::eExecuteResult;
+                        DBCb cb(tagDBEvent::eExecuteResult);
                         cb.Func = func;
-                        cb.Buffer = CScopeUQueue::Lock();
                         PAsyncDBHandler ash = &db;
                         *cb.Buffer << ash << errCode << errMsg << affected << fail_ok << vtId;
                         CAutoLock al(ash->m_csDB);
-                        ash->m_deqDBCb.push_back(cb);
+                        ash->m_deqDBCb.push_back(std::move(cb));
                         int fail = uv_async_send(&ash->m_typeDB);
                         assert(!fail);
                     };
+                    Backup(func);
                 } else if (!NJA::IsNullOrUndefined(er)) {
                     NJA::ThrowException(isolate, "A callback expected for Execute end result");
                     bad = true;
@@ -1910,19 +1913,17 @@ namespace SPA {
                 DResult result;
                 if (res->IsFunction()) {
                     std::shared_ptr<CNJFunc> func(new CNJFunc(isolate, Local<Function>::Cast(res)));
-                    Backup(func);
                     result = [func](CAsyncDBHandler& db, int errCode, const std::wstring & errMsg) {
-                        DBCb cb;
-                        cb.Type = tagDBEvent::eResult;
+                        DBCb cb(tagDBEvent::eResult);
                         cb.Func = func;
-                        cb.Buffer = CScopeUQueue::Lock();
                         PAsyncDBHandler ash = &db;
                         *cb.Buffer << ash << errCode << errMsg;
                         CAutoLock al(ash->m_csDB);
-                        ash->m_deqDBCb.push_back(cb);
+                        ash->m_deqDBCb.push_back(std::move(cb));
                         int fail = uv_async_send(&ash->m_typeDB);
                         assert(!fail);
                     };
+                    Backup(func);
                 } else if (!NJA::IsNullOrUndefined(res)) {
                     NJA::ThrowException(isolate, "A callback expected for end result");
                     bad = true;
@@ -1935,19 +1936,17 @@ namespace SPA {
                 DDiscarded dd;
                 if (abort->IsFunction()) {
                     std::shared_ptr<CNJFunc> func(new CNJFunc(isolate, Local<Function>::Cast(abort)));
-                    Backup(func);
                     dd = [func](CAsyncServiceHandler* db, bool canceled) {
-                        DBCb cb;
-                        cb.Type = tagDBEvent::eDiscarded;
+                        DBCb cb(tagDBEvent::eDiscarded);
                         cb.Func = func;
-                        cb.Buffer = CScopeUQueue::Lock();
                         PAsyncDBHandler ash = (PAsyncDBHandler) db;
                         *cb.Buffer << ash << canceled;
                         CAutoLock al(ash->m_csDB);
-                        ash->m_deqDBCb.push_back(cb);
+                        ash->m_deqDBCb.push_back(std::move(cb));
                         int fail = uv_async_send(&ash->m_typeDB);
                         assert(!fail);
                     };
+                    Backup(func);
                 } else if (!NJA::IsNullOrUndefined(abort)) {
                     NJA::ThrowException(isolate, "A callback expected for tracking socket closed or canceled events");
                     bad = true;
@@ -1960,19 +1959,17 @@ namespace SPA {
                 SPA::ClientSide::CAsyncServiceHandler::DServerException dSe;
                 if (se->IsFunction()) {
                     std::shared_ptr<CNJFunc> func(new CNJFunc(isolate, Local<Function>::Cast(se)));
-                    Backup(func);
                     dSe = [func](CAsyncServiceHandler* db, unsigned short requestId, const wchar_t* errMessage, const char* errWhere, unsigned int errCode) {
-                        DBCb cb;
-                        cb.Type = tagDBEvent::eException;
+                        DBCb cb(tagDBEvent::eException);
                         cb.Func = func;
-                        cb.Buffer = CScopeUQueue::Lock();
                         PAsyncDBHandler ash = (PAsyncDBHandler) db;
                         *cb.Buffer << ash << requestId << errMessage << errWhere << errCode;
                         CAutoLock al(ash->m_csDB);
-                        ash->m_deqDBCb.push_back(cb);
+                        ash->m_deqDBCb.push_back(std::move(cb));
                         int fail = uv_async_send(&ash->m_typeDB);
                         assert(!fail);
                     };
+                    Backup(func);
                 } else if (!NJA::IsNullOrUndefined(se)) {
                     NJA::ThrowException(isolate, "A callback expected for tracking exception from server");
                     bad = true;

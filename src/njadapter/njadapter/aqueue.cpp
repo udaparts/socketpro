@@ -24,19 +24,17 @@ namespace NJA {
         DDiscarded dd;
         if (abort->IsFunction()) {
             std::shared_ptr<CNJFunc> func(new CNJFunc(isolate, Local<Function>::Cast(abort)));
-            Backup(func);
             dd = [func](CAsyncServiceHandler *aq, bool canceled) {
-                QueueCb qcb;
-                qcb.EventType = tagQueueEvent::qeDiscarded;
+                QueueCb qcb(tagQueueEvent::qeDiscarded);
                 qcb.Func = func;
-                qcb.Buffer = CScopeUQueue::Lock();
                 PAQueue ash = (PAQueue) aq;
                 *qcb.Buffer << ash << canceled;
                 CAutoLock al(ash->m_csJQ);
-                ash->m_deqQCb.push_back(qcb);
+                ash->m_deqQCb.push_back(std::move(qcb));
                 int fail = uv_async_send(&ash->m_qType);
                 assert(!fail);
             };
+            Backup(func);
         } else if (!IsNullOrUndefined(abort)) {
             ThrowException(isolate, "A callback expected for tracking socket closed or canceled events");
             bad = true;
@@ -49,19 +47,17 @@ namespace NJA {
         SPA::ClientSide::CAsyncServiceHandler::DServerException dSe;
         if (se->IsFunction()) {
             std::shared_ptr<CNJFunc> func(new CNJFunc(isolate, Local<Function>::Cast(se)));
-            Backup(func);
             dSe = [func](CAsyncServiceHandler* aq, unsigned short requestId, const wchar_t* errMessage, const char* errWhere, unsigned int errCode) {
-                QueueCb qcb;
-                qcb.EventType = tagQueueEvent::qeException;
+                QueueCb qcb(tagQueueEvent::qeException);
                 qcb.Func = func;
-                qcb.Buffer = CScopeUQueue::Lock();
                 PAQueue ash = (PAQueue) aq;
                 *qcb.Buffer << ash << requestId << errMessage << errWhere << errCode;
                 CAutoLock al(ash->m_csJQ);
-                ash->m_deqQCb.push_back(qcb);
+                ash->m_deqQCb.push_back(std::move(qcb));
                 int fail = uv_async_send(&ash->m_qType);
                 assert(!fail);
             };
+            Backup(func);
         } else if (!IsNullOrUndefined(se)) {
             ThrowException(isolate, "A callback expected for tracking exception from server");
             bad = true;
@@ -79,7 +75,7 @@ namespace NJA {
         {
             obj->m_csJQ.lock();
             while (obj->m_deqQCb.size()) {
-                QueueCb cb = obj->m_deqQCb.front();
+                QueueCb cb(std::move(obj->m_deqQCb.front()));
                 obj->m_deqQCb.pop_front();
                 obj->m_csJQ.unlock();
                 PAQueue processor = nullptr;
@@ -217,15 +213,13 @@ namespace NJA {
         if (reqId > Queue::idEnqueueBatch && reqId != Queue::idBatchSizeNotified) {
             CAutoLock al(m_csJQ);
             if (m_rr) {
-                QueueCb qcb;
-                qcb.EventType = tagQueueEvent::qeResultReturned;
-                qcb.Buffer = CScopeUQueue::Lock();
+                QueueCb qcb(tagQueueEvent::qeResultReturned);
                 PAQueue ash = this;
                 *qcb.Buffer << ash << reqId;
                 qcb.Buffer->Push(mc.GetBuffer(), mc.GetSize());
                 qcb.Func = m_rr;
                 mc.SetSize(0);
-                ash->m_deqQCb.push_back(qcb);
+                ash->m_deqQCb.push_back(std::move(qcb));
                 int fail = uv_async_send(&ash->m_qType);
                 assert(!fail);
             }
@@ -242,22 +236,20 @@ namespace NJA {
         if (args > 0) {
             if (argv[0]->IsFunction()) {
                 std::shared_ptr<CNJFunc> func(new CNJFunc(isolate, Local<Function>::Cast(argv[0])));
-                Backup(func);
                 gk = [func](CAsyncQueue *aq, std::vector<std::string>& v) {
-                    QueueCb qcb;
-                    qcb.EventType = tagQueueEvent::qeGetKeys;
+                    QueueCb qcb(tagQueueEvent::qeGetKeys);
                     qcb.Func = func;
-                    qcb.Buffer = CScopeUQueue::Lock();
                     PAQueue ash = (PAQueue) aq;
                     *qcb.Buffer << ash << (unsigned int) v.size();
                     for (auto it = v.begin(), end = v.end(); it != end; ++it) {
                         *qcb.Buffer << *it;
                     }
                     CAutoLock al(ash->m_csJQ);
-                    ash->m_deqQCb.push_back(qcb);
+                    ash->m_deqQCb.push_back(std::move(qcb));
                     int fail = uv_async_send(&ash->m_qType);
                     assert(!fail);
                 };
+                Backup(func);
             } else if (!IsNullOrUndefined(argv[0])) {
                 ThrowException(isolate, "A callback expected for GetKeys end result");
                 return 0;
@@ -286,19 +278,17 @@ namespace NJA {
         if (args > 0) {
             if (argv[0]->IsFunction()) {
                 std::shared_ptr<CNJFunc> func(new CNJFunc(isolate, Local<Function>::Cast(argv[0])));
-                Backup(func);
                 qt = [func](CAsyncQueue *aq, int errCode) {
-                    QueueCb qcb;
-                    qcb.EventType = tagQueueEvent::qeStartQueueTrans;
+                    QueueCb qcb(tagQueueEvent::qeStartQueueTrans);
                     qcb.Func = func;
-                    qcb.Buffer = CScopeUQueue::Lock();
                     PAQueue ash = (PAQueue) aq;
                     *qcb.Buffer << ash << errCode;
                     CAutoLock al(ash->m_csJQ);
-                    ash->m_deqQCb.push_back(qcb);
+                    ash->m_deqQCb.push_back(std::move(qcb));
                     int fail = uv_async_send(&ash->m_qType);
                     assert(!fail);
                 };
+                Backup(func);
             } else if (!IsNullOrUndefined(argv[0])) {
                 ThrowException(isolate, "A callback expected for StartTrans end result");
                 return 0;
@@ -327,19 +317,17 @@ namespace NJA {
         if (args > 0) {
             if (argv[0]->IsFunction()) {
                 std::shared_ptr<CNJFunc> func(new CNJFunc(isolate, Local<Function>::Cast(argv[0])));
-                Backup(func);
                 qt = [func](CAsyncQueue *aq, int errCode) {
-                    QueueCb qcb;
-                    qcb.EventType = tagQueueEvent::qeEndQueueTrans;
+                    QueueCb qcb(tagQueueEvent::qeEndQueueTrans);
                     qcb.Func = func;
-                    qcb.Buffer = CScopeUQueue::Lock();
                     PAQueue ash = (PAQueue) aq;
                     *qcb.Buffer << ash << errCode;
                     CAutoLock al(ash->m_csJQ);
-                    ash->m_deqQCb.push_back(qcb);
+                    ash->m_deqQCb.push_back(std::move(qcb));
                     int fail = uv_async_send(&ash->m_qType);
                     assert(!fail);
                 };
+                Backup(func);
             } else if (!IsNullOrUndefined(argv[0])) {
                 ThrowException(isolate, "A callback expected for EndTrans end result");
                 return 0;
@@ -368,19 +356,17 @@ namespace NJA {
         if (args > 0) {
             if (argv[0]->IsFunction()) {
                 std::shared_ptr<CNJFunc> func(new CNJFunc(isolate, Local<Function>::Cast(argv[0])));
-                Backup(func);
                 c = [func](CAsyncQueue *aq, int errCode) {
-                    QueueCb qcb;
-                    qcb.EventType = tagQueueEvent::qeCloseQueue;
+                    QueueCb qcb(tagQueueEvent::qeCloseQueue);
                     qcb.Func = func;
-                    qcb.Buffer = CScopeUQueue::Lock();
                     PAQueue ash = (PAQueue) aq;
                     *qcb.Buffer << ash << errCode;
                     CAutoLock al(ash->m_csJQ);
-                    ash->m_deqQCb.push_back(qcb);
+                    ash->m_deqQCb.push_back(std::move(qcb));
                     int fail = uv_async_send(&ash->m_qType);
                     assert(!fail);
                 };
+                Backup(func);
             } else if (!IsNullOrUndefined(argv[0])) {
                 ThrowException(isolate, "A callback expected for Close end result");
                 return 0;
@@ -409,19 +395,17 @@ namespace NJA {
         if (args > 0) {
             if (argv[0]->IsFunction()) {
                 std::shared_ptr<CNJFunc> func(new CNJFunc(isolate, Local<Function>::Cast(argv[0])));
-                Backup(func);
                 f = [func](CAsyncQueue *aq, SPA::UINT64 messageCount, SPA::UINT64 fileSize) {
-                    QueueCb qcb;
-                    qcb.EventType = tagQueueEvent::qeFlushQueue;
+                    QueueCb qcb(tagQueueEvent::qeFlushQueue);
                     qcb.Func = func;
-                    qcb.Buffer = CScopeUQueue::Lock();
                     PAQueue ash = (PAQueue) aq;
                     *qcb.Buffer << ash << messageCount << fileSize;
                     CAutoLock al(ash->m_csJQ);
-                    ash->m_deqQCb.push_back(qcb);
+                    ash->m_deqQCb.push_back(std::move(qcb));
                     int fail = uv_async_send(&ash->m_qType);
                     assert(!fail);
                 };
+                Backup(func);
             } else if (!IsNullOrUndefined(argv[0])) {
                 ThrowException(isolate, "A callback expected for Flush end result");
                 return 0;
@@ -450,19 +434,17 @@ namespace NJA {
         if (args > 0) {
             if (argv[0]->IsFunction()) {
                 std::shared_ptr<CNJFunc> func(new CNJFunc(isolate, Local<Function>::Cast(argv[0])));
-                Backup(func);
                 d = [func](CAsyncQueue *aq, SPA::UINT64 messageCount, SPA::UINT64 fileSize, unsigned int messagesDequeuedInBatch, unsigned int bytesDequeuedInBatch) {
-                    QueueCb qcb;
-                    qcb.EventType = tagQueueEvent::qeDequeue;
+                    QueueCb qcb(tagQueueEvent::qeDequeue);
                     qcb.Func = func;
-                    qcb.Buffer = CScopeUQueue::Lock();
                     PAQueue ash = (PAQueue) aq;
                     *qcb.Buffer << ash << messageCount << fileSize << messagesDequeuedInBatch << bytesDequeuedInBatch;
                     CAutoLock al(ash->m_csJQ);
-                    ash->m_deqQCb.push_back(qcb);
+                    ash->m_deqQCb.push_back(std::move(qcb));
                     int fail = uv_async_send(&ash->m_qType);
                     assert(!fail);
                 };
+                Backup(func);
             } else if (!IsNullOrUndefined(argv[0])) {
                 ThrowException(isolate, "A callback expected for Dequeue end result");
                 return 0;
@@ -495,19 +477,17 @@ namespace NJA {
         if (args > 0) {
             if (argv[0]->IsFunction()) {
                 std::shared_ptr<CNJFunc> func(new CNJFunc(isolate, Local<Function>::Cast(argv[0])));
-                Backup(func);
                 e = [func](CAsyncQueue *aq, SPA::UINT64 indexMessage) {
-                    QueueCb qcb;
-                    qcb.EventType = tagQueueEvent::qeEnqueue;
+                    QueueCb qcb(tagQueueEvent::qeEnqueue);
                     qcb.Func = func;
-                    qcb.Buffer = CScopeUQueue::Lock();
                     PAQueue ash = (PAQueue) aq;
                     *qcb.Buffer << ash << indexMessage;
                     CAutoLock al(ash->m_csJQ);
-                    ash->m_deqQCb.push_back(qcb);
+                    ash->m_deqQCb.push_back(std::move(qcb));
                     int fail = uv_async_send(&ash->m_qType);
                     assert(!fail);
                 };
+                Backup(func);
             } else if (!IsNullOrUndefined(argv[0])) {
                 ThrowException(isolate, "A callback expected for Enqueue end result");
                 return 0;
@@ -536,19 +516,17 @@ namespace NJA {
         if (args > 0) {
             if (argv[0]->IsFunction()) {
                 std::shared_ptr<CNJFunc> func(new CNJFunc(isolate, Local<Function>::Cast(argv[0])));
-                Backup(func);
                 e = [func](CAsyncQueue *aq, SPA::UINT64 indexMessage) {
-                    QueueCb qcb;
-                    qcb.EventType = tagQueueEvent::qeEnqueueBatch;
+                    QueueCb qcb(tagQueueEvent::qeEnqueueBatch);
                     qcb.Func = func;
-                    qcb.Buffer = CScopeUQueue::Lock();
                     PAQueue ash = (PAQueue) aq;
                     *qcb.Buffer << ash << indexMessage;
                     CAutoLock al(ash->m_csJQ);
-                    ash->m_deqQCb.push_back(qcb);
+                    ash->m_deqQCb.push_back(std::move(qcb));
                     int fail = uv_async_send(&ash->m_qType);
                     assert(!fail);
                 };
+                Backup(func);
             } else if (!IsNullOrUndefined(argv[0])) {
                 ThrowException(isolate, "A callback expected for EnqueueBatch end result");
                 return 0;
