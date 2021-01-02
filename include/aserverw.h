@@ -637,7 +637,7 @@ namespace SPA {
             CSvsContext m_SvsContext;
             std::vector<CSocketPeer*> m_vPeer;
             std::deque<CSocketPeer*> m_vDeadPeer;
-            CSpinLock m_cs;
+            CUCriticalSection m_cs;
             unsigned int m_nServiceId;
             static U_MODULE_HIDDEN CSpinLock m_mutex;
             static U_MODULE_HIDDEN std::vector<CBaseService*> m_vService;
