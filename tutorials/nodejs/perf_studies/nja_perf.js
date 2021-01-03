@@ -18,13 +18,13 @@ function TestPerf() {
     var start = new Date();
     for (var n = 0; n < count; ++n) {
         db.Execute(stmt, (res, err, affected, fails, oks, id) => {
-        }, (data) => {
+        }, (data, proc, cols) => {
         });
     }
     db.Execute(stmt, (res, err, affected, fails, oks, id) => {
         console.log('Time required: ' + (new Date() - start));
-    }, (data) => {
-        //console.log(data);
+    }, (data, proc, cols) => {
+        //console.log({ data: data, proc: proc, cols: cols });
     });
 }
 setInterval(TestPerf, 500);
