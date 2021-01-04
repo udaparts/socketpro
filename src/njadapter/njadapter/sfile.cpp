@@ -29,8 +29,10 @@ namespace NJA {
                     *fcb.Buffer << f << res << errMsg;
                     CAutoLock al(f->m_csFile);
                     f->m_deqFileCb.push_back(std::move(fcb));
-                    int fail = uv_async_send(&f->m_fileType);
-                    assert(!fail);
+                    if (f->m_deqFileCb.size() < 2) {
+                        int fail = uv_async_send(&f->m_fileType);
+                        assert(!fail);
+                    }
                 };
             } else if (!IsNullOrUndefined(argv[0])) {
                 ThrowException(isolate, "A callback expected for file exchange end result");
@@ -47,8 +49,10 @@ namespace NJA {
                     *fcb.Buffer << f << transferred << file->GetFileSize();
                     CAutoLock al(f->m_csFile);
                     f->m_deqFileCb.push_back(std::move(fcb));
-                    int fail = uv_async_send(&f->m_fileType);
-                    assert(!fail);
+                    if (f->m_deqFileCb.size() < 2) {
+                        int fail = uv_async_send(&f->m_fileType);
+                        assert(!fail);
+                    }
                 };
             } else if (!IsNullOrUndefined(argv[1])) {
                 ThrowException(isolate, "A callback expected for monitoring file transferring progress");
@@ -65,8 +69,10 @@ namespace NJA {
                     *fcb.Buffer << f << canceled;
                     CAutoLock al(f->m_csFile);
                     f->m_deqFileCb.push_back(std::move(fcb));
-                    int fail = uv_async_send(&f->m_fileType);
-                    assert(!fail);
+                    if (f->m_deqFileCb.size() < 2) {
+                        int fail = uv_async_send(&f->m_fileType);
+                        assert(!fail);
+                    }
                 };
             } else if (!IsNullOrUndefined(argv[2])) {
                 ThrowException(isolate, "A callback expected for tracking socket closed or canceled events");
@@ -83,8 +89,10 @@ namespace NJA {
                     *fcb.Buffer << f << requestId << errMessage << errWhere << errCode;
                     CAutoLock al(f->m_csFile);
                     f->m_deqFileCb.push_back(std::move(fcb));
-                    int fail = uv_async_send(&f->m_fileType);
-                    assert(!fail);
+                    if (f->m_deqFileCb.size() < 2) {
+                        int fail = uv_async_send(&f->m_fileType);
+                        assert(!fail);
+                    }
                 };
             } else if (!IsNullOrUndefined(argv[3])) {
                 ThrowException(isolate, "A callback expected for tracking exception from server");
@@ -103,11 +111,12 @@ namespace NJA {
         Isolate* isolate = Isolate::GetCurrent();
         v8::HandleScope handleScope(isolate); //required for Node 4.x
         {
-            obj->m_csFile.lock();
+            CUCriticalSection& cs = obj->m_csFile;
+            cs.lock();
             while (obj->m_deqFileCb.size()) {
                 FileCb cb(std::move(obj->m_deqFileCb.front()));
                 obj->m_deqFileCb.pop_front();
-                obj->m_csFile.unlock();
+                cs.unlock();
                 PSFile processor;
                 *cb.Buffer >> processor;
                 assert(processor);
@@ -164,9 +173,9 @@ namespace NJA {
                         break;
                 }
                 CScopeUQueue::Unlock(cb.Buffer);
-                obj->m_csFile.lock();
+                cs.lock();
             }
-            obj->m_csFile.unlock();
+            cs.unlock();
         }
         isolate->RunMicrotasks(); //may speed up pumping
     }

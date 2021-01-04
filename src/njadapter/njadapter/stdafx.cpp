@@ -30,9 +30,11 @@ namespace SPA {
                         ar.UQueue.SetSize(0);
                         this->m_cs.lock();
                         this->m_deqReqCb.push_back(std::move(cb));
+                        if (this->m_deqReqCb.size() < 2) {
+                            int fail = uv_async_send(&this->m_typeReq);
+                            assert(!fail);
+                        }
                         this->m_cs.unlock();
-                        int fail = uv_async_send(&this->m_typeReq);
-                        assert(!fail);
                     };
                 } else if (!IsNullOrUndefined(argv[0])) {
                     ThrowException(isolate, "A callback expected for tracking returned results");
@@ -49,9 +51,11 @@ namespace SPA {
                         *cb.Buffer << h << canceled;
                         this->m_cs.lock();
                         this->m_deqReqCb.push_back(std::move(cb));
+                        if (this->m_deqReqCb.size() < 2) {
+                            int fail = uv_async_send(&this->m_typeReq);
+                            assert(!fail);
+                        }
                         this->m_cs.unlock();
-                        int fail = uv_async_send(&this->m_typeReq);
-                        assert(!fail);
                     };
                 } else if (!IsNullOrUndefined(argv[1])) {
                     ThrowException(isolate, "A callback expected for tracking socket closed or canceled events");
@@ -68,9 +72,11 @@ namespace SPA {
                         *cb.Buffer << h << errMsg << errWhere << errCode;
                         this->m_cs.lock();
                         this->m_deqReqCb.push_back(std::move(cb));
+                        if (this->m_deqReqCb.size() < 2) {
+                            int fail = uv_async_send(&this->m_typeReq);
+                            assert(!fail);
+                        }
                         this->m_cs.unlock();
-                        int fail = uv_async_send(&this->m_typeReq);
-                        assert(!fail);
                     };
                 } else if (!IsNullOrUndefined(argv[2])) {
                     ThrowException(isolate, "A callback expected for tracking exceptions from server");
@@ -90,11 +96,12 @@ namespace SPA {
             Isolate* isolate = Isolate::GetCurrent();
             HandleScope handleScope(isolate); //required for Node 4.x
             {
-                obj->m_cs.lock();
+                CSpinLock& cs = obj->m_cs;
+                cs.lock();
                 while (obj->m_deqReqCb.size()) {
                     ReqCb cb(std::move(obj->m_deqReqCb.front()));
                     obj->m_deqReqCb.pop_front();
-                    obj->m_cs.unlock();
+                    cs.unlock();
                     PAsyncServiceHandler processor;
                     *cb.Buffer >> processor;
                     assert(processor);
@@ -147,9 +154,9 @@ namespace SPA {
                             assert(false); //shouldn't come here
                             break;
                     }
-                    obj->m_cs.lock();
+                    cs.lock();
                 }
-                obj->m_cs.unlock();
+                cs.unlock();
             }
             isolate->RunMicrotasks(); //may speed up pumping
         }

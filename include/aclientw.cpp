@@ -1093,18 +1093,23 @@ namespace SPA {
                 NJA::NJSocketPool *pool = (NJA::NJSocketPool *)p->m_asyncType->data;
                 if (!pool)
                     return;
+                {
+                    CSpinAutoLock al(pool->m_cs);
+                    if (pool->m_rr.IsEmpty())
+                        return;
+                }
                 NJA::SocketEvent se;
-                CAutoLock al(pool->m_cs);
-                if (pool->m_rr.IsEmpty())
-                    return;
                 CUQueue *q2 = CScopeUQueue::Lock();
                 *q2 << ash << requestId;
                 q2->Push(q.GetBuffer(), q.GetSize());
                 se.QData = q2;
                 se.Se = NJA::tagSocketEvent::seResultReturned;
+                CSpinAutoLock al(pool->m_cs);
                 pool->m_deqSocketEvent.push_back(se);
-                int fail = uv_async_send(p->m_asyncType);
-                assert(!fail);
+                if (pool->m_deqSocketEvent.size() < 2) {
+                    int fail = uv_async_send(p->m_asyncType);
+                    assert(!fail);
+                }
 #endif
             }
         }
@@ -1116,25 +1121,28 @@ namespace SPA {
             p->GetPush().m_lstSub.Invoke(p, sender, pGroup, count);
             p->OnSubscribe(sender, pGroup, count);
 #ifdef NODE_JS_ADAPTER_PROJECT
-            do {
-                VARTYPE vt = (VT_ARRAY | VT_UI4);
-                unsigned short reqId = (unsigned short) tagChatRequestID::idEnter;
-                NJA::NJSocketPool *pool = (NJA::NJSocketPool *)p->m_asyncType->data;
-                if (!pool)
-                    break;
-                CAutoLock al(pool->m_cs);
+            VARTYPE vt = (VT_ARRAY | VT_UI4);
+            unsigned short reqId = (unsigned short) tagChatRequestID::idEnter;
+            NJA::NJSocketPool *pool = (NJA::NJSocketPool *)p->m_asyncType->data;
+            if (!pool)
+                return;
+            {
+                CSpinAutoLock al(pool->m_cs);
                 if (pool->m_push.IsEmpty())
-                    break;
-                CUQueue *q = CScopeUQueue::Lock();
-                *q << p->GetCurrentHandler() << reqId << sender << vt << count;
-                q->Push((const unsigned char*) pGroup, count * sizeof (unsigned int));
-                NJA::SocketEvent se;
-                se.QData = q;
-                se.Se = NJA::tagSocketEvent::seChatEnter;
-                pool->m_deqSocketEvent.push_back(se);
+                    return;
+            }
+            CUQueue *q = CScopeUQueue::Lock();
+            *q << p->GetCurrentHandler() << reqId << sender << vt << count;
+            q->Push((const unsigned char*) pGroup, count * sizeof (unsigned int));
+            NJA::SocketEvent se;
+            se.QData = q;
+            se.Se = NJA::tagSocketEvent::seChatEnter;
+            pool->m_deqSocketEvent.push_back(se);
+            CSpinAutoLock al(pool->m_cs);
+            if (pool->m_deqSocketEvent.size() < 2) {
                 int fail = uv_async_send(p->m_asyncType);
                 assert(!fail);
-            } while (false);
+            }
 #endif
         }
 
@@ -1145,25 +1153,28 @@ namespace SPA {
             p->GetPush().m_lstUnsub.Invoke(p, sender, pGroup, count);
             p->OnUnsubscribe(sender, pGroup, count);
 #ifdef NODE_JS_ADAPTER_PROJECT
-            do {
-                VARTYPE vt = (VT_ARRAY | VT_UI4);
-                unsigned short reqId = (unsigned short) tagChatRequestID::idExit;
-                NJA::NJSocketPool *pool = (NJA::NJSocketPool *)p->m_asyncType->data;
-                if (!pool)
-                    break;
-                CAutoLock al(pool->m_cs);
+            VARTYPE vt = (VT_ARRAY | VT_UI4);
+            unsigned short reqId = (unsigned short) tagChatRequestID::idExit;
+            NJA::NJSocketPool *pool = (NJA::NJSocketPool *)p->m_asyncType->data;
+            if (!pool)
+                return;
+            {
+                CSpinAutoLock al(pool->m_cs);
                 if (pool->m_push.IsEmpty())
-                    break;
-                CUQueue *q = CScopeUQueue::Lock();
-                *q << p->GetCurrentHandler() << reqId << sender << vt << count;
-                q->Push((const unsigned char*) pGroup, count * sizeof (unsigned int));
-                NJA::SocketEvent se;
-                se.QData = q;
-                se.Se = NJA::tagSocketEvent::seChatExit;
-                pool->m_deqSocketEvent.push_back(se);
+                    return;
+            }
+            CUQueue *q = CScopeUQueue::Lock();
+            *q << p->GetCurrentHandler() << reqId << sender << vt << count;
+            q->Push((const unsigned char*) pGroup, count * sizeof (unsigned int));
+            NJA::SocketEvent se;
+            se.QData = q;
+            se.Se = NJA::tagSocketEvent::seChatExit;
+            CSpinAutoLock al(pool->m_cs);
+            pool->m_deqSocketEvent.push_back(se);
+            if (pool->m_deqSocketEvent.size() < 2) {
                 int fail = uv_async_send(p->m_asyncType);
                 assert(!fail);
-            } while (false);
+            }
 #endif
         }
 
@@ -1178,26 +1189,29 @@ namespace SPA {
             p->GetPush().m_lstPublish.Invoke(p, sender, pGroup, count, vtMessage);
             p->OnPublish(sender, pGroup, count, vtMessage);
 #ifdef NODE_JS_ADAPTER_PROJECT
-            do {
-                VARTYPE vt = (VT_ARRAY | VT_UI4);
-                unsigned short reqId = (unsigned short) tagChatRequestID::idSpeak;
-                NJA::NJSocketPool *pool = (NJA::NJSocketPool *)p->m_asyncType->data;
-                if (!pool)
-                    break;
-                CAutoLock al(pool->m_cs);
+            VARTYPE vt = (VT_ARRAY | VT_UI4);
+            unsigned short reqId = (unsigned short) tagChatRequestID::idSpeak;
+            NJA::NJSocketPool *pool = (NJA::NJSocketPool *)p->m_asyncType->data;
+            if (!pool)
+                return;
+            {
+                CSpinAutoLock al(pool->m_cs);
                 if (pool->m_push.IsEmpty())
-                    break;
-                CUQueue *q = CScopeUQueue::Lock();
-                *q << p->GetCurrentHandler() << reqId << sender << vt << count;
-                q->Push((const unsigned char*) pGroup, count * sizeof (unsigned int));
-                q->Push(pMessage, size);
-                NJA::SocketEvent se;
-                se.QData = q;
-                se.Se = NJA::tagSocketEvent::sePublish;
-                pool->m_deqSocketEvent.push_back(se);
+                    return;
+            }
+            CUQueue *q = CScopeUQueue::Lock();
+            *q << p->GetCurrentHandler() << reqId << sender << vt << count;
+            q->Push((const unsigned char*) pGroup, count * sizeof (unsigned int));
+            q->Push(pMessage, size);
+            NJA::SocketEvent se;
+            se.QData = q;
+            se.Se = NJA::tagSocketEvent::sePublish;
+            CSpinAutoLock al(pool->m_cs);
+            pool->m_deqSocketEvent.push_back(se);
+            if (pool->m_deqSocketEvent.size() < 2) {
                 int fail = uv_async_send(p->m_asyncType);
                 assert(!fail);
-            } while (false);
+            }
 #endif
         }
 
@@ -1208,26 +1222,29 @@ namespace SPA {
             p->GetPush().m_lstPublishEx.Invoke(p, sender, pGroup, count, pMessage, size);
             p->OnPublishEx(sender, pGroup, count, pMessage, size);
 #ifdef NODE_JS_ADAPTER_PROJECT
-            do {
-                VARTYPE vt = (VT_ARRAY | VT_UI4);
-                unsigned short reqId = (unsigned short) tagChatRequestID::idSpeakEx;
-                NJA::NJSocketPool *pool = (NJA::NJSocketPool *)p->m_asyncType->data;
-                if (!pool)
-                    break;
-                CAutoLock al(pool->m_cs);
+            VARTYPE vt = (VT_ARRAY | VT_UI4);
+            unsigned short reqId = (unsigned short) tagChatRequestID::idSpeakEx;
+            NJA::NJSocketPool *pool = (NJA::NJSocketPool *)p->m_asyncType->data;
+            if (!pool)
+                return;
+            {
+                CSpinAutoLock al(pool->m_cs);
                 if (pool->m_push.IsEmpty())
-                    break;
-                CUQueue *q = CScopeUQueue::Lock();
-                *q << p->GetCurrentHandler() << reqId << sender << vt << count;
-                q->Push((const unsigned char*) pGroup, count * sizeof (unsigned int));
-                q->Push(pMessage, size);
-                NJA::SocketEvent se;
-                se.QData = q;
-                se.Se = NJA::tagSocketEvent::sePublishEx;
-                pool->m_deqSocketEvent.push_back(se);
+                    return;
+            }
+            CUQueue *q = CScopeUQueue::Lock();
+            *q << p->GetCurrentHandler() << reqId << sender << vt << count;
+            q->Push((const unsigned char*) pGroup, count * sizeof (unsigned int));
+            q->Push(pMessage, size);
+            NJA::SocketEvent se;
+            se.QData = q;
+            se.Se = NJA::tagSocketEvent::sePublishEx;
+            CSpinAutoLock al(pool->m_cs);
+            pool->m_deqSocketEvent.push_back(se);
+            if (pool->m_deqSocketEvent.size() < 2) {
                 int fail = uv_async_send(p->m_asyncType);
                 assert(!fail);
-            } while (false);
+            }
 #endif
         }
 
@@ -1242,24 +1259,27 @@ namespace SPA {
             p->GetPush().m_lstUser.Invoke(p, sender, vtMessage);
             p->OnSendUserMessage(sender, vtMessage);
 #ifdef NODE_JS_ADAPTER_PROJECT
-            do {
-                unsigned short reqId = (unsigned short) tagChatRequestID::idSendUserMessage;
-                NJA::NJSocketPool *pool = (NJA::NJSocketPool *)p->m_asyncType->data;
-                if (!pool)
-                    break;
-                CAutoLock al(pool->m_cs);
+            unsigned short reqId = (unsigned short) tagChatRequestID::idSendUserMessage;
+            NJA::NJSocketPool *pool = (NJA::NJSocketPool *)p->m_asyncType->data;
+            if (!pool)
+                return;
+            {
+                CSpinAutoLock al(pool->m_cs);
                 if (pool->m_push.IsEmpty())
-                    break;
-                CUQueue *q = CScopeUQueue::Lock();
-                *q << p->GetCurrentHandler() << reqId << sender;
-                q->Push(pMessage, size);
-                NJA::SocketEvent se;
-                se.QData = q;
-                se.Se = NJA::tagSocketEvent::sePostUserMessage;
-                pool->m_deqSocketEvent.push_back(se);
+                    return;
+            }
+            CUQueue *q = CScopeUQueue::Lock();
+            *q << p->GetCurrentHandler() << reqId << sender;
+            q->Push(pMessage, size);
+            NJA::SocketEvent se;
+            se.QData = q;
+            se.Se = NJA::tagSocketEvent::sePostUserMessage;
+            CSpinAutoLock al(pool->m_cs);
+            pool->m_deqSocketEvent.push_back(se);
+            if (pool->m_deqSocketEvent.size() < 2) {
                 int fail = uv_async_send(p->m_asyncType);
                 assert(!fail);
-            } while (false);
+            }
 #endif
         }
 
@@ -1270,24 +1290,27 @@ namespace SPA {
             p->GetPush().m_lstUserEx.Invoke(p, sender, pMessage, size);
             p->OnSendUserMessageEx(sender, pMessage, size);
 #ifdef NODE_JS_ADAPTER_PROJECT
-            do {
-                unsigned short reqId = (unsigned short) tagChatRequestID::idSendUserMessageEx;
-                NJA::NJSocketPool *pool = (NJA::NJSocketPool *)p->m_asyncType->data;
-                if (!pool)
-                    break;
-                NJA::SocketEvent se;
-                CAutoLock al(pool->m_cs);
+            unsigned short reqId = (unsigned short) tagChatRequestID::idSendUserMessageEx;
+            NJA::NJSocketPool *pool = (NJA::NJSocketPool *)p->m_asyncType->data;
+            if (!pool)
+                return;
+            NJA::SocketEvent se;
+            {
+                CSpinAutoLock al(pool->m_cs);
                 if (pool->m_push.IsEmpty())
-                    break;
-                CUQueue *q = CScopeUQueue::Lock();
-                *q << p->GetCurrentHandler() << reqId << sender;
-                q->Push(pMessage, size);
-                se.QData = q;
-                se.Se = NJA::tagSocketEvent::sePostUserMessageEx;
-                pool->m_deqSocketEvent.push_back(se);
+                    return;
+            }
+            CUQueue *q = CScopeUQueue::Lock();
+            *q << p->GetCurrentHandler() << reqId << sender;
+            q->Push(pMessage, size);
+            se.QData = q;
+            se.Se = NJA::tagSocketEvent::sePostUserMessageEx;
+            CSpinAutoLock al(pool->m_cs);
+            pool->m_deqSocketEvent.push_back(se);
+            if (pool->m_deqSocketEvent.size() < 2) {
                 int fail = uv_async_send(p->m_asyncType);
                 assert(!fail);
-            } while (false);
+            }
 #endif
         }
 
@@ -1325,10 +1348,12 @@ namespace SPA {
             *q << ash << lastRequestId;
             se.QData = q;
             se.Se = NJA::tagSocketEvent::seAllProcessed;
-            CAutoLock al(pool->m_cs);
+            CSpinAutoLock al(pool->m_cs);
             pool->m_deqSocketEvent.push_back(se);
-            int fail = uv_async_send(p->m_asyncType);
-            assert(!fail);
+            if (pool->m_deqSocketEvent.size() < 2) {
+                int fail = uv_async_send(p->m_asyncType);
+                assert(!fail);
+            }
 #endif
         }
 
@@ -1359,17 +1384,22 @@ namespace SPA {
             NJA::NJSocketPool *pool = (NJA::NJSocketPool *)p->m_asyncType->data;
             if (!pool)
                 return;
+            {
+                CSpinAutoLock al(pool->m_cs);
+                if (pool->m_brp.IsEmpty())
+                    return;
+            }
             NJA::SocketEvent se;
-            CAutoLock al(pool->m_cs);
-            if (pool->m_brp.IsEmpty())
-                return;
             CUQueue *q = CScopeUQueue::Lock();
             *q << ash << requestId;
             se.QData = q;
             se.Se = NJA::tagSocketEvent::seBaseRequestProcessed;
+            CSpinAutoLock al(pool->m_cs);
             pool->m_deqSocketEvent.push_back(se);
-            int fail = uv_async_send(p->m_asyncType);
-            assert(!fail);
+            if (pool->m_deqSocketEvent.size() < 2) {
+                int fail = uv_async_send(p->m_asyncType);
+                assert(!fail);
+            }
 #endif
         }
 
@@ -1388,17 +1418,22 @@ namespace SPA {
             NJA::NJSocketPool *pool = (NJA::NJSocketPool *)p->m_asyncType->data;
             if (!pool)
                 return;
+            {
+                CSpinAutoLock al(pool->m_cs);
+                if (pool->m_se.IsEmpty())
+                    return;
+            }
             NJA::SocketEvent se;
-            CAutoLock al(pool->m_cs);
-            if (pool->m_se.IsEmpty())
-                return;
             CUQueue *q = CScopeUQueue::Lock();
             *q << ash << requestId << errMessage << errWhere << errCode;
             se.QData = q;
             se.Se = NJA::tagSocketEvent::seServerException;
+            CSpinAutoLock al(pool->m_cs);
             pool->m_deqSocketEvent.push_back(se);
-            int fail = uv_async_send(p->m_asyncType);
-            assert(!fail);
+            if (pool->m_deqSocketEvent.size() < 2) {
+                int fail = uv_async_send(p->m_asyncType);
+                assert(!fail);
+            }
 #endif
         }
     }//ClientSide

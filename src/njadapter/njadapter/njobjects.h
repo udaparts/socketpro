@@ -118,7 +118,7 @@ namespace NJA {
             SPA::ClientSide::CSocketPool<CSFile> *File;
             SPA::ClientSide::CSocketPool<CAQueue> *Queue;
         };
-        SPA::CUCriticalSection m_cs;
+        SPA::CSpinLock m_cs;
         typedef Persistent<Function, v8::NJANonCopyablePersistentTraits<Function> > CNJFunc;
         CNJFunc m_rr; //OnResultReturned protected by m_cs
         CNJFunc m_brp; //OnBaseRequestProcessed by m_cs

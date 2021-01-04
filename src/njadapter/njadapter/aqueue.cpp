@@ -31,8 +31,10 @@ namespace NJA {
                 *qcb.Buffer << ash << canceled;
                 CAutoLock al(ash->m_csJQ);
                 ash->m_deqQCb.push_back(std::move(qcb));
-                int fail = uv_async_send(&ash->m_qType);
-                assert(!fail);
+                if (ash->m_deqQCb.size() < 2) {
+                    int fail = uv_async_send(&ash->m_qType);
+                    assert(!fail);
+                }
             };
         } else if (!IsNullOrUndefined(abort)) {
             ThrowException(isolate, "A callback expected for tracking socket closed or canceled events");
@@ -53,8 +55,10 @@ namespace NJA {
                 *qcb.Buffer << ash << requestId << errMessage << errWhere << errCode;
                 CAutoLock al(ash->m_csJQ);
                 ash->m_deqQCb.push_back(std::move(qcb));
-                int fail = uv_async_send(&ash->m_qType);
-                assert(!fail);
+                if (ash->m_deqQCb.size() < 2) {
+                    int fail = uv_async_send(&ash->m_qType);
+                    assert(!fail);
+                }
             };
         } else if (!IsNullOrUndefined(se)) {
             ThrowException(isolate, "A callback expected for tracking exception from server");
@@ -71,11 +75,12 @@ namespace NJA {
         v8::HandleScope handleScope(isolate); //required for Node 4.x
         auto ctx = isolate->GetCurrentContext();
         {
-            obj->m_csJQ.lock();
+            SPA::CSpinLock& cs = obj->m_csJQ;
+            cs.lock();
             while (obj->m_deqQCb.size()) {
                 QueueCb cb(std::move(obj->m_deqQCb.front()));
                 obj->m_deqQCb.pop_front();
-                obj->m_csJQ.unlock();
+                cs.unlock();
                 PAQueue processor;
                 *cb.Buffer >> processor;
                 assert(processor);
@@ -190,9 +195,9 @@ namespace NJA {
                         break;
                 }
                 CScopeUQueue::Unlock(cb.Buffer);
-                obj->m_csJQ.lock();
+                cs.lock();
             }
-            obj->m_csJQ.unlock();
+            cs.unlock();
         }
         isolate->RunMicrotasks();
     }
@@ -218,8 +223,10 @@ namespace NJA {
                 qcb.Func = m_rr;
                 mc.SetSize(0);
                 ash->m_deqQCb.push_back(std::move(qcb));
-                int fail = uv_async_send(&ash->m_qType);
-                assert(!fail);
+                if (ash->m_deqQCb.size() < 2) {
+                    int fail = uv_async_send(&ash->m_qType);
+                    assert(!fail);
+                }
             }
         } else {
             CAsyncQueue::OnResultReturned(reqId, mc);
@@ -244,8 +251,10 @@ namespace NJA {
                     }
                     CAutoLock al(ash->m_csJQ);
                     ash->m_deqQCb.push_back(std::move(qcb));
-                    int fail = uv_async_send(&ash->m_qType);
-                    assert(!fail);
+                    if (ash->m_deqQCb.size() < 2) {
+                        int fail = uv_async_send(&ash->m_qType);
+                        assert(!fail);
+                    }
                 };
             } else if (!IsNullOrUndefined(argv[0])) {
                 ThrowException(isolate, "A callback expected for GetKeys end result");
@@ -282,8 +291,10 @@ namespace NJA {
                     *qcb.Buffer << ash << errCode;
                     CAutoLock al(ash->m_csJQ);
                     ash->m_deqQCb.push_back(std::move(qcb));
-                    int fail = uv_async_send(&ash->m_qType);
-                    assert(!fail);
+                    if (ash->m_deqQCb.size() < 2) {
+                        int fail = uv_async_send(&ash->m_qType);
+                        assert(!fail);
+                    }
                 };
             } else if (!IsNullOrUndefined(argv[0])) {
                 ThrowException(isolate, "A callback expected for StartTrans end result");
@@ -320,8 +331,10 @@ namespace NJA {
                     *qcb.Buffer << ash << errCode;
                     CAutoLock al(ash->m_csJQ);
                     ash->m_deqQCb.push_back(std::move(qcb));
-                    int fail = uv_async_send(&ash->m_qType);
-                    assert(!fail);
+                    if (ash->m_deqQCb.size() < 2) {
+                        int fail = uv_async_send(&ash->m_qType);
+                        assert(!fail);
+                    }
                 };
             } else if (!IsNullOrUndefined(argv[0])) {
                 ThrowException(isolate, "A callback expected for EndTrans end result");
@@ -358,8 +371,10 @@ namespace NJA {
                     *qcb.Buffer << ash << errCode;
                     CAutoLock al(ash->m_csJQ);
                     ash->m_deqQCb.push_back(std::move(qcb));
-                    int fail = uv_async_send(&ash->m_qType);
-                    assert(!fail);
+                    if (ash->m_deqQCb.size() < 2) {
+                        int fail = uv_async_send(&ash->m_qType);
+                        assert(!fail);
+                    }
                 };
             } else if (!IsNullOrUndefined(argv[0])) {
                 ThrowException(isolate, "A callback expected for Close end result");
@@ -396,8 +411,10 @@ namespace NJA {
                     *qcb.Buffer << ash << messageCount << fileSize;
                     CAutoLock al(ash->m_csJQ);
                     ash->m_deqQCb.push_back(std::move(qcb));
-                    int fail = uv_async_send(&ash->m_qType);
-                    assert(!fail);
+                    if (ash->m_deqQCb.size() < 2) {
+                        int fail = uv_async_send(&ash->m_qType);
+                        assert(!fail);
+                    }
                 };
             } else if (!IsNullOrUndefined(argv[0])) {
                 ThrowException(isolate, "A callback expected for Flush end result");
@@ -434,8 +451,10 @@ namespace NJA {
                     *qcb.Buffer << ash << messageCount << fileSize << messagesDequeuedInBatch << bytesDequeuedInBatch;
                     CAutoLock al(ash->m_csJQ);
                     ash->m_deqQCb.push_back(std::move(qcb));
-                    int fail = uv_async_send(&ash->m_qType);
-                    assert(!fail);
+                    if (ash->m_deqQCb.size() < 2) {
+                        int fail = uv_async_send(&ash->m_qType);
+                        assert(!fail);
+                    }
                 };
             } else if (!IsNullOrUndefined(argv[0])) {
                 ThrowException(isolate, "A callback expected for Dequeue end result");
@@ -476,8 +495,10 @@ namespace NJA {
                     *qcb.Buffer << ash << indexMessage;
                     CAutoLock al(ash->m_csJQ);
                     ash->m_deqQCb.push_back(std::move(qcb));
-                    int fail = uv_async_send(&ash->m_qType);
-                    assert(!fail);
+                    if (ash->m_deqQCb.size() < 2) {
+                        int fail = uv_async_send(&ash->m_qType);
+                        assert(!fail);
+                    }
                 };
             } else if (!IsNullOrUndefined(argv[0])) {
                 ThrowException(isolate, "A callback expected for Enqueue end result");
@@ -514,8 +535,10 @@ namespace NJA {
                     *qcb.Buffer << ash << indexMessage;
                     CAutoLock al(ash->m_csJQ);
                     ash->m_deqQCb.push_back(std::move(qcb));
-                    int fail = uv_async_send(&ash->m_qType);
-                    assert(!fail);
+                    if (ash->m_deqQCb.size() < 2) {
+                        int fail = uv_async_send(&ash->m_qType);
+                        assert(!fail);
+                    }
                 };
             } else if (!IsNullOrUndefined(argv[0])) {
                 ThrowException(isolate, "A callback expected for EnqueueBatch end result");

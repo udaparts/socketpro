@@ -94,19 +94,24 @@ namespace NJA {
             default:
                 break;
         }
-        SPA::CAutoLock al(m_cs);
-        if (m_evPool.IsEmpty())
-            return;
+        {
+            SPA::CSpinAutoLock al(m_cs);
+            if (m_evPool.IsEmpty())
+                return;
+        }
         PoolEvent pe;
         pe.Spe = spe;
         pe.Handler = handler;
+        SPA::CSpinAutoLock al(m_cs);
         m_deqPoolEvent.push_back(pe);
-        int fail = uv_async_send(&m_asyncType);
-        assert(!fail);
+        if (m_deqPoolEvent.size() < 2) {
+            int fail = uv_async_send(&m_asyncType);
+            assert(!fail);
+        }
     }
 
     bool NJSocketPool::DoAuthentication(IUcert *cert) {
-        SPA::CAutoLock al(m_cs);
+        SPA::CSpinAutoLock al(m_cs);
         if (!cert->Validity) {
             m_errMsg = "Certificate not valid";
             m_errSSL = -1;
@@ -147,7 +152,7 @@ namespace NJA {
                     delete Handler;
                     break;
             }
-            SPA::CAutoLock al(m_cs);
+            SPA::CSpinAutoLock al(m_cs);
             Handler = nullptr;
             uv_close((uv_handle_t*) & m_asyncType, nullptr);
             uv_close((uv_handle_t*) & m_csType, nullptr);
@@ -345,9 +350,12 @@ namespace NJA {
         assert(obj);
         if (!obj) return;
         {
-            SPA::CAutoLock al(obj->m_cs);
+            SPA::CSpinLock& cs = obj->m_cs;
+            cs.lock();
             while (obj->m_deqPoolEvent.size()) {
-                const PoolEvent &pe = obj->m_deqPoolEvent.front();
+                PoolEvent pe = obj->m_deqPoolEvent.front();
+                obj->m_deqPoolEvent.pop_front();
+                cs.unlock();
                 if (!obj->m_evPool.IsEmpty()) {
                     Local<Value> argv[2];
                     argv[0] = Int32::New(isolate, (int) pe.Spe);
@@ -376,8 +384,9 @@ namespace NJA {
                     Local<Function> cb = Local<Function>::New(isolate, obj->m_evPool);
                     cb->Call(isolate->GetCurrentContext(), Null(isolate), 2, argv);
                 }
-                obj->m_deqPoolEvent.pop_front();
+                cs.lock();
             }
+            cs.unlock();
         }
         isolate->RunMicrotasks(); //may speed up pumping
     }
@@ -391,11 +400,12 @@ namespace NJA {
         Isolate* isolate = Isolate::GetCurrent();
         HandleScope handleScope(isolate); //required for Node 4.x or later
         {
-            obj->m_cs.lock();
+            SPA::CSpinLock& cs = obj->m_cs;
+            cs.lock();
             while (obj->m_deqSocketEvent.size()) {
                 SocketEvent se = obj->m_deqSocketEvent.front();
                 obj->m_deqSocketEvent.pop_front();
-                obj->m_cs.unlock();
+                cs.unlock();
                 SPA::ClientSide::PAsyncServiceHandler ash;
                 *se.QData >> ash >> reqId;
                 assert(ash);
@@ -560,9 +570,9 @@ namespace NJA {
                     }
                 }
                 CScopeUQueue::Unlock(se.QData);
-                obj->m_cs.lock();
+                cs.lock();
             }
-            obj->m_cs.unlock();
+            cs.unlock();
         }
         if (run_micro)
             isolate->RunMicrotasks();
@@ -1276,10 +1286,10 @@ namespace NJA {
         if (obj->IsValid(isolate)) {
             auto p = args[0];
             if (p->IsFunction()) {
-                SPA::CAutoLock al(obj->m_cs);
+                SPA::CSpinAutoLock al(obj->m_cs);
                 obj->m_evPool.Reset(isolate, Local<Function>::Cast(p));
             } else if (IsNullOrUndefined(p)) {
-                SPA::CAutoLock al(obj->m_cs);
+                SPA::CSpinAutoLock al(obj->m_cs);
                 obj->m_evPool.Empty();
             } else {
                 ThrowException(isolate, "A callback expected for tracking pool event");
@@ -1293,10 +1303,10 @@ namespace NJA {
         if (obj->IsValid(isolate)) {
             auto p = args[0];
             if (p->IsFunction()) {
-                SPA::CAutoLock al(obj->m_cs);
+                SPA::CSpinAutoLock al(obj->m_cs);
                 obj->m_rr.Reset(isolate, Local<Function>::Cast(p));
             } else if (IsNullOrUndefined(p)) {
-                SPA::CAutoLock al(obj->m_cs);
+                SPA::CSpinAutoLock al(obj->m_cs);
                 obj->m_rr.Empty();
             } else {
                 ThrowException(isolate, "A callback expected for tracking request returned result");
@@ -1310,10 +1320,10 @@ namespace NJA {
         if (obj->IsValid(isolate)) {
             auto p = args[0];
             if (p->IsFunction()) {
-                SPA::CAutoLock al(obj->m_cs);
+                SPA::CSpinAutoLock al(obj->m_cs);
                 obj->m_ap.Reset(isolate, Local<Function>::Cast(p));
             } else if (IsNullOrUndefined(p)) {
-                SPA::CAutoLock al(obj->m_cs);
+                SPA::CSpinAutoLock al(obj->m_cs);
                 obj->m_ap.Empty();
             } else {
                 ThrowException(isolate, "A callback expected for tracking event that all requests are processed");
@@ -1327,10 +1337,10 @@ namespace NJA {
         if (obj->IsValid(isolate)) {
             auto p = args[0];
             if (p->IsFunction()) {
-                SPA::CAutoLock al(obj->m_cs);
+                SPA::CSpinAutoLock al(obj->m_cs);
                 obj->m_push.Reset(isolate, Local<Function>::Cast(p));
             } else if (IsNullOrUndefined(p)) {
-                SPA::CAutoLock al(obj->m_cs);
+                SPA::CSpinAutoLock al(obj->m_cs);
                 obj->m_push.Empty();
             } else {
                 ThrowException(isolate, "A callback expected for tracking online message from server");
@@ -1344,10 +1354,10 @@ namespace NJA {
         if (obj->IsValid(isolate)) {
             auto p = args[0];
             if (p->IsFunction()) {
-                SPA::CAutoLock al(obj->m_cs);
+                SPA::CSpinAutoLock al(obj->m_cs);
                 obj->m_se.Reset(isolate, Local<Function>::Cast(p));
             } else if (IsNullOrUndefined(p)) {
-                SPA::CAutoLock al(obj->m_cs);
+                SPA::CSpinAutoLock al(obj->m_cs);
                 obj->m_se.Empty();
             } else {
                 ThrowException(isolate, "A callback expected for tracking exception from server");
@@ -1361,10 +1371,10 @@ namespace NJA {
         if (obj->IsValid(isolate)) {
             auto p = args[0];
             if (p->IsFunction()) {
-                SPA::CAutoLock al(obj->m_cs);
+                SPA::CSpinAutoLock al(obj->m_cs);
                 obj->m_brp.Reset(isolate, Local<Function>::Cast(p));
             } else if (IsNullOrUndefined(p)) {
-                SPA::CAutoLock al(obj->m_cs);
+                SPA::CSpinAutoLock al(obj->m_cs);
                 obj->m_brp.Empty();
             } else {
                 ThrowException(isolate, "A callback expected for tracking the event of base request processed");

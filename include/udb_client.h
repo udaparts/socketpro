@@ -1801,8 +1801,10 @@ namespace SPA {
                         *cb.Buffer << ash;
                         CAutoLock al(ash->m_csDB);
                         ash->m_deqDBCb.push_back(std::move(cb));
-                        int fail = uv_async_send(&ash->m_typeDB);
-                        assert(!fail);
+                        if (ash->m_deqDBCb.size() < 2) {
+                            int fail = uv_async_send(&ash->m_typeDB);
+                            assert(!fail);
+                        }
                     };
                 } else if (!NJA::IsNullOrUndefined(header)) {
                     NJA::ThrowException(isolate, "A callback expected for batch header");
@@ -1839,8 +1841,10 @@ namespace SPA {
                         cb.Buffer->Push(start, bytes);
                         CAutoLock al(ash->m_csDB);
                         ash->m_deqDBCb.push_back(std::move(cb));
-                        int fail = uv_async_send(&ash->m_typeDB);
-                        assert(!fail);
+                        if (ash->m_deqDBCb.size() < 2) {
+                            int fail = uv_async_send(&ash->m_typeDB);
+                            assert(!fail);
+                        }
                     };
                     //prevent from crash dbreqcb.h (126): SPA::ClientSide::CAsyncDBHandler<0>::req_cb
                     //api.cc (4875): v8::Function::Call
@@ -1875,8 +1879,10 @@ namespace SPA {
                         *cb.Buffer << ash << proc << (int) db.GetColumnInfo().size();
                         CAutoLock al(ash->m_csDB);
                         ash->m_deqDBCb.push_back(std::move(cb));
-                        int fail = uv_async_send(&ash->m_typeDB);
-                        assert(!fail);
+                        if (ash->m_deqDBCb.size() < 2) {
+                            int fail = uv_async_send(&ash->m_typeDB);
+                            assert(!fail);
+                        }
                     };
                     //prevent from crash dbreqcb.h (126): SPA::ClientSide::CAsyncDBHandler<0>::req_cb
                     //api.cc (4875): v8::Function::Call
@@ -1900,8 +1906,10 @@ namespace SPA {
                         *cb.Buffer << ash << errCode << errMsg << affected << fail_ok << vtId;
                         CAutoLock al(ash->m_csDB);
                         ash->m_deqDBCb.push_back(std::move(cb));
-                        int fail = uv_async_send(&ash->m_typeDB);
-                        assert(!fail);
+                        if (ash->m_deqDBCb.size() < 2) {
+                            int fail = uv_async_send(&ash->m_typeDB);
+                            assert(!fail);
+                        }
                     };
                 } else if (!NJA::IsNullOrUndefined(er)) {
                     NJA::ThrowException(isolate, "A callback expected for Execute end result");
@@ -1922,8 +1930,10 @@ namespace SPA {
                         *cb.Buffer << ash << errCode << errMsg;
                         CAutoLock al(ash->m_csDB);
                         ash->m_deqDBCb.push_back(std::move(cb));
-                        int fail = uv_async_send(&ash->m_typeDB);
-                        assert(!fail);
+                        if (ash->m_deqDBCb.size() < 2) {
+                            int fail = uv_async_send(&ash->m_typeDB);
+                            assert(!fail);
+                        }
                     };
                 } else if (!NJA::IsNullOrUndefined(res)) {
                     NJA::ThrowException(isolate, "A callback expected for end result");
@@ -1944,8 +1954,10 @@ namespace SPA {
                         *cb.Buffer << ash << canceled;
                         CAutoLock al(ash->m_csDB);
                         ash->m_deqDBCb.push_back(std::move(cb));
-                        int fail = uv_async_send(&ash->m_typeDB);
-                        assert(!fail);
+                        if (ash->m_deqDBCb.size() < 2) {
+                            int fail = uv_async_send(&ash->m_typeDB);
+                            assert(!fail);
+                        }
                     };
                 } else if (!NJA::IsNullOrUndefined(abort)) {
                     NJA::ThrowException(isolate, "A callback expected for tracking socket closed or canceled events");
@@ -1966,8 +1978,10 @@ namespace SPA {
                         *cb.Buffer << ash << requestId << errMessage << errWhere << errCode;
                         CAutoLock al(ash->m_csDB);
                         ash->m_deqDBCb.push_back(std::move(cb));
-                        int fail = uv_async_send(&ash->m_typeDB);
-                        assert(!fail);
+                        if (ash->m_deqDBCb.size() < 2) {
+                            int fail = uv_async_send(&ash->m_typeDB);
+                            assert(!fail);
+                        }
                     };
                 } else if (!NJA::IsNullOrUndefined(se)) {
                     NJA::ThrowException(isolate, "A callback expected for tracking exception from server");

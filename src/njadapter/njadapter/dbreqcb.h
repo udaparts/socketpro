@@ -82,11 +82,12 @@ namespace SPA {
             HandleScope handleScope(isolate); //required for Node 4.x
             auto ctx = isolate->GetCurrentContext();
             {
-                obj->m_csDB.lock();
+                CSpinLock& cs = obj->m_csDB;
+                cs.lock();
                 while (obj->m_deqDBCb.size()) {
                     DBCb cb(std::move(obj->m_deqDBCb.front()));
                     obj->m_deqDBCb.pop_front();
-                    obj->m_csDB.unlock();
+                    cs.unlock();
                     PAsyncDBHandler processor;
                     *cb.Buffer >> processor;
                     assert(processor);
@@ -192,9 +193,9 @@ namespace SPA {
                             break;
                     }
                     CScopeUQueue::Unlock(cb.Buffer);
-                    obj->m_csDB.lock();
+                    cs.lock();
                 }
-                obj->m_csDB.unlock();
+                cs.unlock();
             }
             isolate->RunMicrotasks(); //may speed up pumping
         }
