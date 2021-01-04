@@ -396,7 +396,7 @@ namespace NJA {
                 SocketEvent se = obj->m_deqSocketEvent.front();
                 obj->m_deqSocketEvent.pop_front();
                 obj->m_cs.unlock();
-                SPA::ClientSide::PAsyncServiceHandler ash = nullptr;
+                SPA::ClientSide::PAsyncServiceHandler ash;
                 *se.QData >> ash >> reqId;
                 assert(ash);
                 assert(reqId);

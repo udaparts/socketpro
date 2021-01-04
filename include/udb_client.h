@@ -1804,7 +1804,6 @@ namespace SPA {
                         int fail = uv_async_send(&ash->m_typeDB);
                         assert(!fail);
                     };
-                    Backup(func);
                 } else if (!NJA::IsNullOrUndefined(header)) {
                     NJA::ThrowException(isolate, "A callback expected for batch header");
                     bad = true;
@@ -1900,7 +1899,6 @@ namespace SPA {
                         int fail = uv_async_send(&ash->m_typeDB);
                         assert(!fail);
                     };
-                    Backup(func);
                 } else if (!NJA::IsNullOrUndefined(er)) {
                     NJA::ThrowException(isolate, "A callback expected for Execute end result");
                     bad = true;
@@ -1923,7 +1921,6 @@ namespace SPA {
                         int fail = uv_async_send(&ash->m_typeDB);
                         assert(!fail);
                     };
-                    Backup(func);
                 } else if (!NJA::IsNullOrUndefined(res)) {
                     NJA::ThrowException(isolate, "A callback expected for end result");
                     bad = true;
@@ -1946,7 +1943,6 @@ namespace SPA {
                         int fail = uv_async_send(&ash->m_typeDB);
                         assert(!fail);
                     };
-                    Backup(func);
                 } else if (!NJA::IsNullOrUndefined(abort)) {
                     NJA::ThrowException(isolate, "A callback expected for tracking socket closed or canceled events");
                     bad = true;
@@ -1969,7 +1965,6 @@ namespace SPA {
                         int fail = uv_async_send(&ash->m_typeDB);
                         assert(!fail);
                     };
-                    Backup(func);
                 } else if (!NJA::IsNullOrUndefined(se)) {
                     NJA::ThrowException(isolate, "A callback expected for tracking exception from server");
                     bad = true;

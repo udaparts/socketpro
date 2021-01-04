@@ -34,7 +34,6 @@ namespace SPA {
                         int fail = uv_async_send(&this->m_typeReq);
                         assert(!fail);
                     };
-                    Backup(func);
                 } else if (!IsNullOrUndefined(argv[0])) {
                     ThrowException(isolate, "A callback expected for tracking returned results");
                     return 0;
@@ -54,7 +53,6 @@ namespace SPA {
                         int fail = uv_async_send(&this->m_typeReq);
                         assert(!fail);
                     };
-                    Backup(func);
                 } else if (!IsNullOrUndefined(argv[1])) {
                     ThrowException(isolate, "A callback expected for tracking socket closed or canceled events");
                     return 0;
@@ -74,7 +72,6 @@ namespace SPA {
                         int fail = uv_async_send(&this->m_typeReq);
                         assert(!fail);
                     };
-                    Backup(func);
                 } else if (!IsNullOrUndefined(argv[2])) {
                     ThrowException(isolate, "A callback expected for tracking exceptions from server");
                     return 0;
@@ -98,7 +95,7 @@ namespace SPA {
                     ReqCb cb(std::move(obj->m_deqReqCb.front()));
                     obj->m_deqReqCb.pop_front();
                     obj->m_cs.unlock();
-                    PAsyncServiceHandler processor = nullptr;
+                    PAsyncServiceHandler processor;
                     *cb.Buffer >> processor;
                     assert(processor);
                     Local<Value> jsReqId = Uint32::New(isolate, cb.ReqId);

@@ -87,7 +87,7 @@ namespace SPA {
                     DBCb cb(std::move(obj->m_deqDBCb.front()));
                     obj->m_deqDBCb.pop_front();
                     obj->m_csDB.unlock();
-                    PAsyncDBHandler processor = nullptr;
+                    PAsyncDBHandler processor;
                     *cb.Buffer >> processor;
                     assert(processor);
                     Local<Function> func;
@@ -107,7 +107,7 @@ namespace SPA {
                                 int cols;
                                 *cb.Buffer >> bProc >> cols;
                                 assert(!cb.Buffer->GetSize());
-                                Local<Array> v = Array::New(isolate);
+                                Local<Array> v = Array::New(isolate, (int) cols);
                                 if (cb.VData) {
                                     unsigned int index = 0;
                                     SPA::CUQueue &buff = *cb.VData;
