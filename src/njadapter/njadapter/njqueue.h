@@ -15,6 +15,7 @@ namespace NJA {
             return m_Buffer;
         }
         void Release();
+        void Move(SPA::PUQueue& q);
         NJQueue& operator=(const NJQueue &jq) = delete;
         static bool IsUQueue(Local<Object> obj);
         static bool ToParamArray(NJQueue *obj, SPA::UDB::CDBVariantArray &vParam);

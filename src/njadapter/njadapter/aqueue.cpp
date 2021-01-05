@@ -181,12 +181,13 @@ namespace NJA {
                     {
                         unsigned short reqId;
                         *cb.Buffer >> reqId;
-                        Local<Object> q = NJQueue::New(isolate, cb.Buffer);
+                        Local<Object> q = Local<Object>::New(isolate, g_buff);
+                        NJQueue* obj = node::ObjectWrap::Unwrap<NJQueue>(q);
+                        obj->Move(cb.Buffer);
                         Local<Value> jsReqid = Uint32::New(isolate, reqId);
                         //Local<Object> njQ = NJAsyncQueue::New(isolate, processor, true);
                         Local<Value> argv[] = {jsReqid, q};
                         func->Call(ctx, Null(isolate), 2, argv);
-                        auto obj = node::ObjectWrap::Unwrap<NJQueue>(q);
                         obj->Release();
                     }
                         break;

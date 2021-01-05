@@ -538,17 +538,12 @@ namespace NJA {
                                 Local<Value> argv[3];
                                 argv[0] = njAsh;
                                 argv[1] = jsReqId;
-                                Local<Object> q;
-                                if (se.QData->GetSize()) {
-                                    q = NJQueue::New(isolate, se.QData);
-                                } else {
-                                    SPA::PUQueue buffer = nullptr;
-                                    q = NJQueue::New(isolate, buffer);
-                                }
+                                Local<Object> q = Local<Object>::New(isolate, g_buff);
+                                NJQueue* obj = node::ObjectWrap::Unwrap<NJQueue>(q);
+                                obj->Move(se.QData);
                                 argv[2] = q;
                                 cb->Call(isolate->GetCurrentContext(), Null(isolate), 3, argv);
-                                auto objQueue = ObjectWrap::Unwrap<NJQueue>(q);
-                                objQueue->Release();
+                                obj->Release();
                             }
                             break;
                         case tagSocketEvent::seServerException:
@@ -1201,12 +1196,10 @@ namespace NJA {
         unsigned int threads = 1;
         auto p2 = args[2];
         if (IsNullOrUndefined(p2)) {
-        }
-        else if (!p2->IsUint32()) {
+        } else if (!p2->IsUint32()) {
             ThrowException(isolate, "An unsigned int number expected for socket pool threads");
             return;
-        }
-        else {
+        } else {
             threads = p2->Uint32Value(isolate->GetCurrentContext()).ToChecked();
             if (!threads) {
                 threads = 1;
@@ -1268,6 +1261,10 @@ namespace NJA {
             ok = false;
         }
         obj->m_cs.unlock();
+        if (g_buff.IsEmpty()) {
+            CUQueue* p = nullptr;
+            g_buff.Reset(isolate, NJQueue::New(isolate, p));
+        }
         args.GetReturnValue().Set(Boolean::New(isolate, ok));
         delete []ppCCs;
     }

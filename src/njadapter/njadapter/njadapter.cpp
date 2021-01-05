@@ -9,6 +9,8 @@
 
 namespace NJA {
 
+    Persistent<Object> g_buff;
+
     void GetVersion(const FunctionCallbackInfo<Value>& args) {
         auto isolate = args.GetIsolate();
         auto v = ToStr(isolate, ClientCoreLoader.GetUClientSocketVersion());

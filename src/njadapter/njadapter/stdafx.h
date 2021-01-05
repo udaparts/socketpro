@@ -78,6 +78,8 @@ namespace NJA {
     extern const char* BOOLEAN_EXPECTED;
     extern const char* BAD_DATA_TYPE;
     extern const char* INTEGER_EXPECTED;
+
+    extern Persistent<Object> g_buff;
 };
 
 #endif

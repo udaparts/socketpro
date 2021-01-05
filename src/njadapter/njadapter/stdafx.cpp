@@ -20,12 +20,26 @@ namespace SPA {
             UINT64 callIndex = GetCallIndex();
             if (args > 0) {
                 if (argv[0]->IsFunction()) {
+                    bool delay = false;
+                    Local<Value> d = argv[3];
+                    if (!IsNullOrUndefined(d)) {
+                        if (d->IsBoolean() || d->IsUint32()) {
+#ifdef BOOL_ISOLATE
+                            delay = d->BooleanValue(isolate);
+#else
+                            delay = m->BooleanValue(isolate->GetCurrentContext()).ToChecked();
+#endif
+                        } else if (!NJA::IsNullOrUndefined(d)) {
+                            NJA::ThrowException(isolate, "A boolean value expected for parameter delay");
+                            return 0;
+                        }
+                    }
                     std::shared_ptr<CNJFunc> func(new CNJFunc(isolate, Local<Function>::Cast(argv[0])));
-                    rh = [this, func](CAsyncResult & ar) {
+                    rh = [this, func, delay](CAsyncResult & ar) {
                         ReqCb cb(ar, tagEvent::eResult);
                         cb.Func = func;
                         PAsyncServiceHandler h = ar.AsyncServiceHandler;
-                        *cb.Buffer << h;
+                        *cb.Buffer << h << delay;
                         cb.Buffer->Push(ar.UQueue.GetBuffer(), ar.UQueue.GetSize());
                         ar.UQueue.SetSize(0);
                         this->m_cs.lock();
@@ -112,14 +126,23 @@ namespace SPA {
                         func = Local<Function>::New(isolate, *cb.Func);
                     switch (cb.Type) {
                         case tagEvent::eResult:
-                        if (!func.IsEmpty()) {
-                            Local<Object> q = NJQueue::New(isolate, cb.Buffer);
-                            Local<Value> argv[] = {q, jsReqId};
-                            func->Call(isolate->GetCurrentContext(), Null(isolate), 2, argv);
-                        }
-                        else {
-                            CScopeUQueue::Unlock(cb.Buffer);
-                        }
+                            if (!func.IsEmpty()) {
+                                bool delay = cb.Buffer->Load<bool>();
+                                if (delay) {
+                                    Local<Value> argv[2] = {NJQueue::New(isolate, cb.Buffer), jsReqId};
+                                    func->Call(isolate->GetCurrentContext(), Null(isolate), 2, argv);
+                                } else {
+                                    Local<Object> q = Local<Object>::New(isolate, g_buff);
+                                    NJQueue* obj = node::ObjectWrap::Unwrap<NJQueue>(q);
+                                    obj->Move(cb.Buffer);
+                                    Local<Value> argv[2] = {q, jsReqId};
+                                    func->Call(isolate->GetCurrentContext(), Null(isolate), 2, argv);
+                                    obj->Release();
+                                }
+                            }
+                            if (cb.Buffer) {
+                                CScopeUQueue::Unlock(cb.Buffer);
+                            }
                             break;
                         case tagEvent::eDiscarded:
                         {
@@ -127,8 +150,8 @@ namespace SPA {
                             *cb.Buffer >> canceled;
                             assert(!cb.Buffer->GetSize());
                             CScopeUQueue::Unlock(cb.Buffer);
-                            auto b = Boolean::New(isolate, canceled);
                             if (!func.IsEmpty()) {
+                                auto b = Boolean::New(isolate, canceled);
                                 Local<Value> argv[] = {b, jsReqId};
                                 func->Call(isolate->GetCurrentContext(), Null(isolate), 2, argv);
                             }

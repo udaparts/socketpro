@@ -25,6 +25,12 @@ namespace NJA {
         CScopeUQueue::Unlock(m_Buffer);
     }
 
+    void NJQueue::Move(SPA::PUQueue& q) {
+        CScopeUQueue::Unlock(m_Buffer);
+        m_Buffer = q;
+        q = nullptr;
+    }
+
     void NJQueue::Ensure() {
         if (!m_Buffer) {
             m_Buffer = CScopeUQueue::Lock(SPA::GetOS(), SPA::IsBigEndian(), m_initSize, m_blockSize);

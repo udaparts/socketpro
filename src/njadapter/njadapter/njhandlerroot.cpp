@@ -192,13 +192,15 @@ namespace NJA {
                     ++index;
                 }
             }
-            Local<Value> argv[3];
+            Local<Value> argv[4];
             argv[0] = args[index];
             ++index;
             argv[1] = args[index];
             ++index;
             argv[2] = args[index];
-            auto res = obj->m_ash->SendRequest(isolate, 3, argv, reqId, buffer, bytes);
+            ++index;
+            argv[3] = args[index];
+            auto res = obj->m_ash->SendRequest(isolate, 4, argv, reqId, buffer, bytes);
             if (njq)
                 njq->Release();
             args.GetReturnValue().Set(Boolean::New(isolate, (res && res != INVALID_NUMBER)));
