@@ -112,12 +112,13 @@ namespace SPA {
                         func = Local<Function>::New(isolate, *cb.Func);
                     switch (cb.Type) {
                         case tagEvent::eResult:
-                        {
+                        if (!func.IsEmpty()) {
                             Local<Object> q = NJQueue::New(isolate, cb.Buffer);
-                            if (!func.IsEmpty()) {
-                                Local<Value> argv[] = {q, jsReqId};
-                                func->Call(isolate->GetCurrentContext(), Null(isolate), 2, argv);
-                            }
+                            Local<Value> argv[] = {q, jsReqId};
+                            func->Call(isolate->GetCurrentContext(), Null(isolate), 2, argv);
+                        }
+                        else {
+                            CScopeUQueue::Unlock(cb.Buffer);
                         }
                             break;
                         case tagEvent::eDiscarded:
