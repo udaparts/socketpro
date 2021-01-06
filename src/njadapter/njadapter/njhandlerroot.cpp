@@ -202,8 +202,8 @@ namespace NJA {
             argv[2] = args[4];
             argv[3] = args[5];
             auto res = obj->m_ash->SendRequest(isolate, 4, argv, (unsigned short) reqId, buffer, bytes);
-            if (njq)
-                njq->Release();
+            if (njq && buffer)
+                njq->get()->SetSize(0);
             args.GetReturnValue().Set(Boolean::New(isolate, (res && res != INVALID_NUMBER)));
         }
     }

@@ -137,7 +137,6 @@ namespace SPA {
                                     obj->Move(cb.Buffer);
                                     Local<Value> argv[2] = {q, jsReqId};
                                     func->Call(isolate->GetCurrentContext(), Null(isolate), 2, argv);
-                                    obj->Release();
                                 }
                             }
                             if (cb.Buffer) {

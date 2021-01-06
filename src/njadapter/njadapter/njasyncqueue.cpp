@@ -315,8 +315,8 @@ namespace NJA {
             }
             Local<Value> argv[] = {args[3], args[4], args[5]};
             SPA::UINT64 index = obj->m_aq->Enqueue(isolate, 3, argv, key.c_str(), (unsigned short) reqId, buffer, size);
-            if (njq)
-                njq->Release();
+            if (njq && buffer)
+                njq->get()->SetSize(0);
             if (index) {
                 args.GetReturnValue().Set(Boolean::New(isolate, index != INVALID_NUMBER));
             }
@@ -357,10 +357,10 @@ namespace NJA {
                     SPA::CUQueue *q = njq->get();
                     if (q) {
                         CAsyncQueue::BatchMessage(reqId, q->GetBuffer(), q->GetSize(), *obj->m_qBatch);
+                        q->SetSize(0);
                     } else {
                         CAsyncQueue::BatchMessage(reqId, (const unsigned char*) nullptr, 0, *obj->m_qBatch);
                     }
-                    njq->Release();
                     return;
                 }
             }

@@ -366,8 +366,6 @@ namespace NJA {
         } else {
             args.GetReturnValue().Set(node::Buffer::Copy(isolate, (const char*) "", 0).ToLocalChecked());
         }
-        if (obj->get() && !obj->get()->GetSize())
-            obj->Release();
     }
 
     void NJQueue::LoadBytes(const FunctionCallbackInfo<Value>& args) {
@@ -391,10 +389,8 @@ namespace NJA {
                     ThrowException(isolate, "Bad data for loading byte array");
                 }
             }
-            if (obj->m_Buffer && !obj->m_Buffer->GetSize())
-                obj->Release();
         } catch (std::exception &err) {
-            obj->Release();
+            obj->get()->SetSize(0);
             ThrowException(isolate, err.what());
         }
     }
@@ -420,10 +416,8 @@ namespace NJA {
                     ThrowException(isolate, "Bad data for loading ASCII string");
                 }
             }
-            if (obj->m_Buffer && !obj->m_Buffer->GetSize())
-                obj->Release();
         } catch (std::exception &err) {
-            obj->Release();
+            obj->get()->SetSize(0);
             ThrowException(isolate, err.what());
         }
     }
@@ -448,10 +442,8 @@ namespace NJA {
                 ThrowException(isolate, "Bad unicode string found");
                 obj->m_Buffer->SetSize(0);
             }
-            if (obj->m_Buffer && !obj->m_Buffer->GetSize())
-                obj->Release();
         } catch (std::exception &err) {
-            obj->Release();
+            obj->get()->SetSize(0);
             ThrowException(isolate, err.what());
         }
     }
@@ -723,12 +715,9 @@ namespace NJA {
         try {
             unsigned int start = m_Buffer->GetSize();
             *m_Buffer >> vt;
-            unsigned int size = (start - m_Buffer->GetSize());
-            if (!m_Buffer->GetSize())
-                Release();
-            return size;
+            return (start - m_Buffer->GetSize());
         } catch (std::exception &err) {
-            Release();
+            m_Buffer->SetSize(0);
             ThrowException(isolate, err.what());
         }
         return 0;
@@ -743,10 +732,8 @@ namespace NJA {
             Local<Function> cb = Local<Function>::Cast(args[0]);
             Local<Value> argv[] = {args.Holder()};
             args.GetReturnValue().Set(cb->Call(isolate->GetCurrentContext(), Null(isolate), 1, argv).ToLocalChecked());
-            if (obj->m_Buffer && !obj->m_Buffer->GetSize())
-                obj->Release();
         } else {
-            obj->Release();
+            obj->get()->SetSize(0);
             ThrowException(isolate, "An function expected for class or struct de-serialization");
         }
     }

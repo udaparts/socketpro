@@ -531,7 +531,6 @@ namespace NJA {
                                 obj->Move(se.QData);
                                 argv[2] = q;
                                 cb->Call(isolate->GetCurrentContext(), Null(isolate), 3, argv);
-                                obj->Release();
                             }
                             break;
                         case tagSocketEvent::seServerException:

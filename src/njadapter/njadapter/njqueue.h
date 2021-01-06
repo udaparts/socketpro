@@ -33,13 +33,12 @@ namespace NJA {
         unsigned int Load(Isolate* isolate, ctype &buffer) {
             if (!m_Buffer || m_Buffer->GetSize() < sizeof (ctype)) {
                 ThrowException(isolate, NO_BUFFER_AVAILABLE);
-                Release();
+                if (m_Buffer) {
+                    m_Buffer->SetSize(0);
+                }
                 return 0;
             }
-            unsigned int size = m_Buffer->Pop((unsigned char*) &buffer, sizeof (ctype), 0);
-            if (!m_Buffer->GetSize())
-                Release();
-            return size;
+            return m_Buffer->Pop((unsigned char*) &buffer, sizeof (ctype), 0);
         }
 
         template <class ctype>

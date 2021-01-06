@@ -87,7 +87,9 @@ namespace NJA {
                     bool ok = obj->m_p->Publish(vtMsg, groups.data(), (unsigned int) groups.size());
                     args.GetReturnValue().Set(Boolean::New(isolate, ok));
                 }
-                njq->Release();
+                CUQueue* q = njq->get();
+                if (q)
+                    q->SetSize(0);
             } else {
                 ThrowException(isolate, BAD_MESSAGE_SENT);
             }
@@ -156,7 +158,9 @@ namespace NJA {
                     bool ok = obj->m_p->SendUserMessage(vtMsg, user.c_str());
                     args.GetReturnValue().Set(Boolean::New(isolate, ok));
                 }
-                njq->Release();
+                CUQueue* q = njq->get();
+                if (q)
+                    q->SetSize(0);
             } else {
                 ThrowException(isolate, BAD_MESSAGE_SENT);
             }

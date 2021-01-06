@@ -235,12 +235,13 @@ namespace NJA {
                 Local<Object> qObj = p->ToObject(isolate->GetCurrentContext()).ToLocalChecked();
                 if (NJQueue::IsUQueue(isolate, qObj)) {
                     NJQueue *njq = ObjectWrap::Unwrap<NJQueue>(qObj);
+                    CUQueue* q = njq->get();
                     if (!NJQueue::ToParamArray(njq, vParam)) {
-                        njq->Release();
+                        if (q) q->SetSize(0);
                         ThrowException(isolate, "Data must be serialized by calling the method SaveObject");
                         return;
                     }
-                    njq->Release();
+                    if (q) q->SetSize(0);
                 } else {
                     ThrowException(isolate, "An array of parameter data expected");
                     return;
@@ -310,13 +311,14 @@ namespace NJA {
                 Local<Object> qObj = p->ToObject(isolate->GetCurrentContext()).ToLocalChecked();
                 if (NJQueue::IsUQueue(isolate, qObj)) {
                     NJQueue *njq = ObjectWrap::Unwrap<NJQueue>(qObj);
+                    CUQueue* q = njq->get();
                     CDBVariantArray vParam;
                     if (!NJQueue::ToParamArray(njq, vParam)) {
-                        njq->Release();
+                        if (q) q->SetSize(0);
                         ThrowException(isolate, "Data must be serialized by calling the method SaveObject");
                         return;
                     }
-                    njq->Release();
+                    if (q) q->SetSize(0);
                     index = obj->m_db->Execute(isolate, 6, argv, vParam);
                 } else {
                     ThrowException(isolate, "A SQL statement string or an array of parameter data expected");

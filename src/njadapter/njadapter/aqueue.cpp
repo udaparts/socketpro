@@ -188,7 +188,6 @@ namespace NJA {
                         //Local<Object> njQ = NJAsyncQueue::New(isolate, processor, true);
                         Local<Value> argv[] = {jsReqid, q};
                         func->Call(ctx, Null(isolate), 2, argv);
-                        obj->Release();
                     }
                         break;
                     default:
