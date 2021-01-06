@@ -436,10 +436,8 @@ namespace NJA {
                             if (!obj->m_push.IsEmpty()) {
                                 Local<String> jsName = ToStr(isolate, u"Subscribe", 9);
                                 auto sender = ToMessageSender(isolate, *se.QData);
-                                CComVariant vt;
-                                *se.QData >> vt;
+                                auto groups = DbFrom(isolate, *se.QData);
                                 assert(!se.QData->GetSize());
-                                auto groups = From(isolate, vt);
                                 Local<Value> argv[] = {jsName, groups, sender, njAsh};
                                 Local<Function> cb = Local<Function>::New(isolate, obj->m_push);
                                 cb->Call(isolate->GetCurrentContext(), Null(isolate), 4, argv);
@@ -449,10 +447,8 @@ namespace NJA {
                             if (!obj->m_push.IsEmpty()) {
                                 Local<String> jsName = ToStr(isolate, u"Unsubscribe", 11);
                                 auto sender = ToMessageSender(isolate, *se.QData);
-                                CComVariant vt;
-                                *se.QData >> vt;
+                                auto groups = DbFrom(isolate, *se.QData);
                                 assert(!se.QData->GetSize());
-                                auto groups = From(isolate, vt);
                                 Local<Value> argv[] = {jsName, groups, sender, njAsh};
                                 Local<Function> cb = Local<Function>::New(isolate, obj->m_push);
                                 cb->Call(isolate->GetCurrentContext(), Null(isolate), 4, argv);
@@ -462,13 +458,9 @@ namespace NJA {
                             if (!obj->m_push.IsEmpty()) {
                                 Local<String> jsName = ToStr(isolate, u"Publish", 7);
                                 auto sender = ToMessageSender(isolate, *se.QData);
-                                CComVariant vt;
-                                *se.QData >> vt;
-                                auto groups = From(isolate, vt);
-                                vt.Clear();
-                                *se.QData >> vt;
+                                auto groups = DbFrom(isolate, *se.QData);
+                                auto msg = DbFrom(isolate, *se.QData);
                                 assert(!se.QData->GetSize());
-                                auto msg = From(isolate, vt);
                                 Local<Value> argv[] = {jsName, groups, msg, sender, njAsh};
                                 Local<Function> cb = Local<Function>::New(isolate, obj->m_push);
                                 cb->Call(isolate->GetCurrentContext(), Null(isolate), 5, argv);
@@ -478,9 +470,7 @@ namespace NJA {
                             if (!obj->m_push.IsEmpty()) {
                                 Local<String> jsName = ToStr(isolate, u"PublishEx", 9);
                                 auto sender = ToMessageSender(isolate, *se.QData);
-                                CComVariant vt;
-                                *se.QData >> vt;
-                                auto groups = From(isolate, vt);
+                                auto groups = DbFrom(isolate, *se.QData);
                                 unsigned int len = se.QData->GetSize();
                                 auto bytes = node::Buffer::Copy(isolate, (const char*) se.QData->GetBuffer(), len).ToLocalChecked();
                                 se.QData->SetSize(0);
@@ -493,9 +483,7 @@ namespace NJA {
                             if (!obj->m_push.IsEmpty()) {
                                 Local<String> jsName = ToStr(isolate, u"SendMessage", 11);
                                 auto sender = ToMessageSender(isolate, *se.QData);
-                                CComVariant vt;
-                                *se.QData >> vt;
-                                auto msg = From(isolate, vt);
+                                auto msg = DbFrom(isolate, *se.QData);
                                 assert(!se.QData->GetSize());
                                 Local<Value> argv[] = {jsName, msg, sender, njAsh};
                                 Local<Function> cb = Local<Function>::New(isolate, obj->m_push);

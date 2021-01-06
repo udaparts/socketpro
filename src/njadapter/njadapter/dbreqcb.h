@@ -131,15 +131,14 @@ namespace SPA {
                                 SPA::CDBString errMsg;
                                 INT64 affected;
                                 unsigned int fails, oks;
-                                CDBVariant vtId;
-                                *cb.Buffer >> res >> errMsg >> affected >> fails >> oks >> vtId;
-                                assert(!cb.Buffer->GetSize());
+                                *cb.Buffer >> res >> errMsg >> affected >> fails >> oks;
                                 auto njRes = Int32::New(isolate, res);
                                 auto njMsg = ToStr(isolate, errMsg.c_str(), errMsg.size());
                                 auto njAffected = Number::New(isolate, (double) affected);
                                 auto njFails = Number::New(isolate, fails);
                                 auto njOks = Number::New(isolate, oks);
-                                auto njId = From(isolate, vtId);
+                                auto njId = DbFrom(isolate, *cb.Buffer);
+                                assert(!cb.Buffer->GetSize());
                                 Local<Value> argv[] = {njRes, njMsg, njAffected, njOks, njFails, njId};
                                 func->Call(ctx, Null(isolate), 6, argv);
                             }

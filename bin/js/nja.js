@@ -800,7 +800,7 @@ class CHandler {
                 this.set_aborted(rej, reqId, canceled);
             }, (errMsg, errCode, errWhere, id) => {
                 this.set_exception(rej, errMsg, errCode, errWhere, id);
-            });
+            }, true);
             if (!ok) {
                 this.raise(rej, reqId);
             }

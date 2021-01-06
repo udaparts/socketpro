@@ -753,23 +753,26 @@ namespace NJA {
     }
 
     void NJQueue::LoadObject(const FunctionCallbackInfo<Value>& args) {
-        SPA::UDB::CDBVariant vt;
         Isolate* isolate = args.GetIsolate();
         NJQueue* obj = ObjectWrap::Unwrap<NJQueue>(args.Holder());
-        if (obj->m_Buffer && obj->m_Buffer->GetSize() >= sizeof (VARTYPE)) {
-            VARTYPE *pvt = (VARTYPE*) obj->m_Buffer->GetBuffer();
+        CUQueue* buff = obj->m_Buffer;
+        if (!buff || buff->GetSize() < sizeof (VARTYPE)) {
+            ThrowException(isolate, NO_BUFFER_AVAILABLE);
+        }
+        try {
+            VARTYPE* pvt = (VARTYPE*) buff->GetBuffer();
             if (*pvt == SPA::VT_USERIALIZER_OBJECT) {
-                obj->m_Buffer->Pop((unsigned int) sizeof (VARTYPE));
+                buff->Pop((unsigned int) sizeof (VARTYPE));
                 LoadByClass(args);
                 return;
             }
-        }
-        if (obj->Load(isolate, vt)) {
-            auto v = From(isolate, vt);
+            auto v = DbFrom(isolate, *buff);
             if (v->IsUndefined())
                 ThrowException(isolate, UNSUPPORTED_TYPE);
             else
                 args.GetReturnValue().Set(v);
+        } catch (std::exception& ex) {
+            ThrowException(isolate, ex.what());
         }
     }
 
