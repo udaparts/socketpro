@@ -17,7 +17,7 @@ namespace NJA {
         void Release();
         void Move(SPA::PUQueue& q);
         NJQueue& operator=(const NJQueue &jq) = delete;
-        static bool IsUQueue(Local<Object> obj);
+        static bool IsUQueue(Isolate* isolate, Local<Object> obj);
         static bool ToParamArray(NJQueue *obj, SPA::UDB::CDBVariantArray &vParam);
         static void Init(Local<Object> exports);
         static Local<Object> New(Isolate* isolate, SPA::PUQueue &q);

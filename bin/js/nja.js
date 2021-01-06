@@ -787,20 +787,35 @@ class CHandler {
      * Send a request onto a remote server for processing, and return immediately without blocking
      * @param {unsigned short} reqId An unique request id within a service handler
      * @param {CUQueue, null or undefined} buff null, undefined or an instance of CUQueue
+     * @param {function} cb an optional callback which takes an instance of CUQueue containing data and request id.
+     *     It is noted that the optional callback may increase performance.
+     *     Otherwise, promise will get an instance of CUQueue containing data and request id.
      * @returns A promise for an instance of CUQueue
      * @throws A server, socket close or request canceled exception
      */
-    sendRequest(reqId, buff) {
+    sendRequest(reqId, buff, cb = null) {
         if (reqId <= exports.BaseID.idReservedTwo)
             throw 'Request id must be larger than 0x2001';
         return new Promise((res, rej) => {
-            var ok = this.handler.SendRequest(reqId, buff, (q, id) => {
-                res(q, id);
-            }, (canceled, id) => {
+            var rh, delay;
+            if (typeof cb === 'function') {
+                //this will make performance better about 6%
+                delay = false;
+                rh = (q, id) => {
+                    res(cb(q, id), id);
+                }
+            }
+            else {
+                delay = true;
+                rh = (q, id) => {
+                    res(q, id);
+                }
+            }
+            var ok = this.handler.SendRequest(reqId, buff, rh, (canceled, id) => {
                 this.set_aborted(rej, reqId, canceled);
             }, (errMsg, errCode, errWhere, id) => {
                 this.set_exception(rej, errMsg, errCode, errWhere, id);
-            }, true);
+            }, delay);
             if (!ok) {
                 this.raise(rej, reqId);
             }

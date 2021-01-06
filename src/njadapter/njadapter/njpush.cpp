@@ -80,7 +80,7 @@ namespace NJA {
             args.GetReturnValue().Set(Boolean::New(isolate, ok));
         } else if (p0->IsObject()) {
             Local<Object> qObj = p0->ToObject(isolate->GetCurrentContext()).ToLocalChecked();
-            if (NJQueue::IsUQueue(qObj)) {
+            if (NJQueue::IsUQueue(isolate, qObj)) {
                 NJQueue* njq = ObjectWrap::Unwrap<NJQueue>(qObj);
                 CDBVariant vtMsg;
                 if (njq->Load(isolate, vtMsg)) {
@@ -149,7 +149,7 @@ namespace NJA {
             args.GetReturnValue().Set(Boolean::New(isolate, ok));
         } else if (p1->IsObject()) {
             Local<Object> qObj = p1->ToObject(isolate->GetCurrentContext()).ToLocalChecked();
-            if (NJQueue::IsUQueue(qObj)) {
+            if (NJQueue::IsUQueue(isolate, qObj)) {
                 NJQueue* njq = ObjectWrap::Unwrap<NJQueue>(qObj);
                 CDBVariant vtMsg;
                 if (njq->Load(isolate, vtMsg)) {

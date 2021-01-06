@@ -178,29 +178,30 @@ namespace NJA {
             NJQueue *njq = nullptr;
             const unsigned char *buffer = nullptr;
             unsigned int bytes = 0;
-            int index = 1;
             auto p1 = args[1];
             if (p1->IsObject()) {
                 auto qObj = p1->ToObject(isolate->GetCurrentContext()).ToLocalChecked();
-                if (NJQueue::IsUQueue(qObj)) {
+                if (NJQueue::IsUQueue(isolate, qObj)) {
                     njq = ObjectWrap::Unwrap<NJQueue>(qObj);
                     SPA::CUQueue *q = njq->get();
                     if (q) {
                         buffer = q->GetBuffer();
                         bytes = q->GetSize();
                     }
-                    ++index;
+                } else {
+                    NJA::ThrowException(isolate, "A CUQueue, null, or undefined expected for the second parameter within the method SendRequest");
+                    return;
                 }
+            } else if (!IsNullOrUndefined(p1)) {
+                NJA::ThrowException(isolate, "A CUQueue, null, or undefined expected for the second parameter within the method SendRequest");
+                return;
             }
             Local<Value> argv[4];
-            argv[0] = args[index];
-            ++index;
-            argv[1] = args[index];
-            ++index;
-            argv[2] = args[index];
-            ++index;
-            argv[3] = args[index];
-            auto res = obj->m_ash->SendRequest(isolate, 4, argv, reqId, buffer, bytes);
+            argv[0] = args[2];
+            argv[1] = args[3];
+            argv[2] = args[4];
+            argv[3] = args[5];
+            auto res = obj->m_ash->SendRequest(isolate, 4, argv, (unsigned short) reqId, buffer, bytes);
             if (njq)
                 njq->Release();
             args.GetReturnValue().Set(Boolean::New(isolate, (res && res != INVALID_NUMBER)));

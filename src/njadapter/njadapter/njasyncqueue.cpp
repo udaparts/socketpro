@@ -298,7 +298,7 @@ namespace NJA {
             const unsigned char *buffer = nullptr;
             if (p->IsObject()) {
                 auto qObj = p->ToObject(isolate->GetCurrentContext()).ToLocalChecked();
-                if (NJQueue::IsUQueue(qObj)) {
+                if (NJQueue::IsUQueue(isolate, qObj)) {
                     njq = ObjectWrap::Unwrap<NJQueue>(qObj);
                     SPA::CUQueue *q = njq->get();
                     if (q) {
@@ -352,7 +352,7 @@ namespace NJA {
                 return;
             } else if (p1->IsObject()) {
                 auto qObj = p1->ToObject(isolate->GetCurrentContext()).ToLocalChecked();
-                if (NJQueue::IsUQueue(qObj)) {
+                if (NJQueue::IsUQueue(isolate, qObj)) {
                     NJQueue *njq = ObjectWrap::Unwrap<NJQueue>(qObj);
                     SPA::CUQueue *q = njq->get();
                     if (q) {

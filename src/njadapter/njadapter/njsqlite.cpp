@@ -233,7 +233,7 @@ namespace NJA {
                 }
             } else if (p->IsObject()) {
                 Local<Object> qObj = p->ToObject(isolate->GetCurrentContext()).ToLocalChecked();
-                if (NJQueue::IsUQueue(qObj)) {
+                if (NJQueue::IsUQueue(isolate, qObj)) {
                     NJQueue *njq = ObjectWrap::Unwrap<NJQueue>(qObj);
                     if (!NJQueue::ToParamArray(njq, vParam)) {
                         njq->Release();
@@ -308,7 +308,7 @@ namespace NJA {
                 index = obj->m_db->Execute(isolate, 6, argv, vParam);
             } else if (p->IsObject() && !p->IsString()) {
                 Local<Object> qObj = p->ToObject(isolate->GetCurrentContext()).ToLocalChecked();
-                if (NJQueue::IsUQueue(qObj)) {
+                if (NJQueue::IsUQueue(isolate, qObj)) {
                     NJQueue *njq = ObjectWrap::Unwrap<NJQueue>(qObj);
                     CDBVariantArray vParam;
                     if (!NJQueue::ToParamArray(njq, vParam)) {

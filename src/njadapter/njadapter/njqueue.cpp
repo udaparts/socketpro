@@ -58,8 +58,7 @@ namespace NJA {
         return true;
     }
 
-    bool NJQueue::IsUQueue(Local<Object> obj) {
-        Isolate* isolate = Isolate::GetCurrent();
+    bool NJQueue::IsUQueue(Isolate* isolate, Local<Object> obj) {
         HandleScope handleScope(isolate); //required for Node 4.x or later
         Local<FunctionTemplate> cb = Local<FunctionTemplate>::New(isolate, m_tpl);
         return cb->HasInstance(obj);
