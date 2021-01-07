@@ -996,22 +996,22 @@ SPA::UINT64 WINAPI GetInterruptOptions(USocket_Server_Handle h) {
 }
 
 bool WINAPI GetOnceOnly(USocket_Server_Handle h) {
-	unsigned int index;
-	CServerSession *pSession = GetSvrSession(h, index);
-	if (index == 0 || index != pSession->GetConnIndex())
-		return true;
-	if (pSession)
-		return pSession->GetOnceOnly();
-	return true;
+    unsigned int index;
+    CServerSession *pSession = GetSvrSession(h, index);
+    if (index == 0 || index != pSession->GetConnIndex())
+        return true;
+    if (pSession)
+        return pSession->GetOnceOnly();
+    return true;
 }
 
 void WINAPI SetOnceOnly(USocket_Server_Handle h, bool onceOnly) {
-	unsigned int index;
-	CServerSession *pSession = GetSvrSession(h, index);
-	if (index == 0 || index != pSession->GetConnIndex())
-		return;
-	if (pSession)
-		pSession->SetOnceOnly(onceOnly);
+    unsigned int index;
+    CServerSession *pSession = GetSvrSession(h, index);
+    if (index == 0 || index != pSession->GetConnIndex())
+        return;
+    if (pSession)
+        pSession->SetOnceOnly(onceOnly);
 }
 
 SPA::IUcert* WINAPI GetUCertEx(USocket_Server_Handle h) {

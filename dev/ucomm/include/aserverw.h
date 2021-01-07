@@ -537,8 +537,8 @@ namespace SPA {
             bool IsDequeuedMessageAborted() const;
             bool NotifyInterrupt(UINT64 options) const;
             UINT64 GetInterruptOptions() const;
-			bool GetOnceOnly() const;
-			void SetOnceOnly(bool onceOnly) const;
+            bool GetOnceOnly() const;
+            void SetOnceOnly(bool onceOnly) const;
 
         protected:
             virtual void OnPublishEx(const unsigned int *pGroup, unsigned int count, const unsigned char *pMessage, unsigned int size);
