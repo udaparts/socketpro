@@ -195,7 +195,8 @@ m_routingRequestCount(0),
 m_bCloseInternal(false),
 m_bChatting(false),
 m_indexCall(0),
-m_InterruptOptions(0) {
+m_InterruptOptions(0),
+m_bMore(false) {
     memset(&m_ReqInfo, 0, sizeof (m_ReqInfo));
     memset(&m_ClientInfo, 0, sizeof (m_ClientInfo));
 }
@@ -274,6 +275,7 @@ void CServerSession::Initialize() {
     m_bRouteBatching = false;
     m_routingRequestCount = 0;
     m_bCloseInternal = false;
+    m_bMore = false;
 }
 
 void CServerSession::SetPeerDequeueFailed(bool fail) {
@@ -673,6 +675,14 @@ SPA::UINT64 CServerSession::GetCallIndex() {
 
 SPA::UINT64 CServerSession::GetInterruptOptions() {
     return m_InterruptOptions;
+}
+
+bool CServerSession::GetOnceOnly() {
+	return (!m_bMore);
+}
+
+void CServerSession::SetOnceOnly(bool onceOnly) {
+	m_bMore = (!onceOnly);
 }
 
 unsigned int CServerSession::NotifyInterrupt(SPA::UINT64 options) {
@@ -3415,31 +3425,33 @@ bool CServerSession::Process() {
                 m_qa.MessagePos -= MQ_FILE::QAttr::RANGE_DEQUEUED_POSITION_END;
             }
             m_ReqInfo.Size -= sizeof (m_qa);
-            MQ_FILE::QAttr seek = m_pQLastIndex->Seek(m_ClientQFile.Qs);
-
-            //check if previous message index is already dequeued because of sudden socket disconnection, exception and others
-            if (seek.MessageIndex != INVALID_NUMBER &&
-                    seek.MessageIndex >= m_qa.MessageIndex &&
-                    seek.MessagePos != INVALID_NUMBER &&
-                    seek.MessagePos >= m_qa.MessagePos &&
-                    m_qa.MessageIndex > 1) {
+			if (!m_bMore) {
+				MQ_FILE::QAttr seek = m_pQLastIndex->Seek(m_ClientQFile.Qs);
+				//check if previous message index is already dequeued because of sudden socket disconnection, exception and others
+				if (seek.MessageIndex != INVALID_NUMBER &&
+					seek.MessageIndex >= m_qa.MessageIndex &&
+					seek.MessagePos != INVALID_NUMBER &&
+					seek.MessagePos >= m_qa.MessagePos &&
+					m_qa.MessageIndex > 1) {
 #ifndef NDEBUG
-                std::cout << "++++ ReqId = " << m_ReqInfo.RequestId << ", len = " << m_ReqInfo.Size << ", msg index = " << m_qa.MessageIndex << ", pos = " << m_qa.MessagePos;
-                std::cout << ", seek msg index = " << seek.MessageIndex << ", seek pos = " << seek.MessagePos << std::endl;
-                if (m_ReqInfo.RequestId == (unsigned short) SPA::tagBaseRequestID::idStartJob) {
-                    ++m_nJobRequest;
-                } else if (m_ReqInfo.RequestId == (unsigned short) SPA::tagBaseRequestID::idEndJob) {
-                    --m_nJobRequest;
-                }
+					std::cout << "++++ ReqId = " << m_ReqInfo.RequestId << ", len = " << m_ReqInfo.Size << ", msg index = " << m_qa.MessageIndex << ", pos = " << m_qa.MessagePos;
+					std::cout << ", seek msg index = " << seek.MessageIndex << ", seek pos = " << seek.MessagePos << std::endl;
+					if (m_ReqInfo.RequestId == (unsigned short)SPA::tagBaseRequestID::idStartJob) {
+						++m_nJobRequest;
+					}
+					else if (m_ReqInfo.RequestId == (unsigned short)SPA::tagBaseRequestID::idEndJob) {
+						--m_nJobRequest;
+					}
 #endif
-                m_bFail = false;
-                SendExceptionResultInternal(L"The queued request already dequeued", "Inside request processing loop", m_ReqInfo.RequestId, MB_ALREADY_DEQUEUED);
-                NotifyDequeued();
-                m_qRead.Pop(m_ReqInfo.Size);
-                m_ReqInfo.Size = 0;
-                m_ReqInfo.RequestId = 0;
-                continue;
-            }
+					m_bFail = false;
+					SendExceptionResultInternal(L"The queued request already dequeued", "Inside request processing loop", m_ReqInfo.RequestId, MB_ALREADY_DEQUEUED);
+					NotifyDequeued();
+					m_qRead.Pop(m_ReqInfo.Size);
+					m_ReqInfo.Size = 0;
+					m_ReqInfo.RequestId = 0;
+					continue;
+				}
+			}
         }
 
         if (Decompress()) {

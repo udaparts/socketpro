@@ -885,11 +885,14 @@ namespace SPA
                 q.SetNull();
                 return;
             }
-            size_t req_len;
+#if 1
+            size_t req_len = len * 3 + sizeof(wchar_t);
+#else
 #ifdef WIN32_64
             req_len = (size_t)::WideCharToMultiByte(CP_UTF8, 0, str, (int) len, nullptr, 0, nullptr, nullptr) + sizeof (wchar_t);
 #else
             req_len = (len + 1) * sizeof (wchar_t);
+#endif
 #endif
             if ((unsigned int) req_len > q.GetTailSize()) {
                 q.ReallocBuffer((unsigned int) req_len + q.GetSize());

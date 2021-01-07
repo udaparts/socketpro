@@ -197,6 +197,8 @@ public:
     static bool IsBuiltinAllowed(unsigned int sid);
     SPA::UINT64 GetCallIndex();
     SPA::UINT64 GetInterruptOptions();
+	bool GetOnceOnly();
+	void SetOnceOnly(bool onceOnly);
 
 private:
     static unsigned int CompressResultTo(bool old, unsigned short reqId, SPA::tagZipLevel zl, const unsigned char *buffer, unsigned int size, SPA::CUQueue &q);
@@ -318,8 +320,8 @@ private:
 
     CMapIndex m_mapIndex;
     SPA::UINT64 m_indexCall;
-    atomic <SPA::UINT64> m_InterruptOptions;
-
+    atomic<SPA::UINT64> m_InterruptOptions;
+	atomic<bool> m_bMore;
     static std::mutex m_mutexRouteRequestId;
     static SPA::CUQueue m_qRouteRequestId;
 

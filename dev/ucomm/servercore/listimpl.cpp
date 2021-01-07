@@ -21,7 +21,7 @@ extern bool g_bRegistered;
 
 CServerSession *GetSvrSession(USocket_Server_Handle h, unsigned int &index);
 
-std::string g_strVersion("6.3.1.9");
+std::string g_strVersion("6.3.1.10");
 
 const char* WINAPI GetUServerSocketVersion() {
     return g_strVersion.c_str();
@@ -993,6 +993,25 @@ SPA::UINT64 WINAPI GetInterruptOptions(USocket_Server_Handle h) {
     if (pSession)
         return pSession->GetInterruptOptions();
     return 0;
+}
+
+bool WINAPI GetOnceOnly(USocket_Server_Handle h) {
+	unsigned int index;
+	CServerSession *pSession = GetSvrSession(h, index);
+	if (index == 0 || index != pSession->GetConnIndex())
+		return true;
+	if (pSession)
+		return pSession->GetOnceOnly();
+	return true;
+}
+
+void WINAPI SetOnceOnly(USocket_Server_Handle h, bool onceOnly) {
+	unsigned int index;
+	CServerSession *pSession = GetSvrSession(h, index);
+	if (index == 0 || index != pSession->GetConnIndex())
+		return;
+	if (pSession)
+		pSession->SetOnceOnly(onceOnly);
 }
 
 SPA::IUcert* WINAPI GetUCertEx(USocket_Server_Handle h) {

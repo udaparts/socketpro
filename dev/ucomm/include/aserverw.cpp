@@ -365,6 +365,14 @@ namespace SPA
             return ServerCoreLoader.GetInterruptOptions(GetSocketHandle());
         }
 
+		bool CClientPeer::GetOnceOnly() const {
+			return ServerCoreLoader.GetOnceOnly(GetSocketHandle());
+		}
+
+		void CClientPeer::SetOnceOnly(bool onceOnly) const {
+			ServerCoreLoader.SetOnceOnly(GetSocketHandle(), onceOnly);
+		}
+
         std::vector<unsigned int> CSocketPeer::GetChatGroups() const {
             CScopeUQueue sb;
             std::vector<unsigned int> vChatGroups;
@@ -1001,8 +1009,9 @@ namespace SPA
             size_t size = m_vPeer.size();
             const PSocketPeer *start = m_vPeer.data();
             for (size_t it = 0; it < size; ++it) {
-                if (start[it]->m_hHandler == h) {
-                    return start[it];
+                PSocketPeer peer = start[it];
+                if (peer->m_hHandler == h) {
+                    return peer;
                 }
             }
             return nullptr;

@@ -230,14 +230,7 @@ namespace SPA {
             virtual void operator+=(const Del& d) {
                 if (d) {
                     m_cs->lock();
-#ifdef SAFE_RESULT_RETURN_EVENT
-                    auto pos = std::find(m_vD.cbegin(), m_vD.cend(), d);
-                    if (pos == m_vD.cend()) {
-                        m_vD.push_back(d);
-                    }
-#else
                     m_vD.push_back(d);
-#endif
                     m_cs->unlock();
                 }
             }
@@ -245,14 +238,7 @@ namespace SPA {
             virtual void operator-=(const Del& d) {
                 if (d) {
                     m_cs->lock();
-#ifdef SAFE_RESULT_RETURN_EVENT
-                    auto pos = std::find(m_vD.cbegin(), m_vD.cend(), d);
-                    if (pos == m_vD.cend()) {
-                        m_vD.push_back(d);
-                    }
-#else
                     m_vD.push_back(d);
-#endif
                     m_cs->unlock();
                 }
             }
@@ -516,19 +502,11 @@ namespace SPA {
                 }
 
             public:
-#ifndef SAFE_RESULT_RETURN_EVENT
                 typedef std::function<void(CClientSocket*, const CMessageSender&, const unsigned int*, unsigned int) > DOnSubscribe;
                 typedef std::function<void(CClientSocket*, const CMessageSender&, const SPA::UVariant&) > DOnSendUserMessage;
                 typedef std::function<void(CClientSocket*, const CMessageSender&, const unsigned char*, unsigned int) > DOnSendUserMessageEx;
                 typedef std::function<void(CClientSocket*, const CMessageSender&, const unsigned int*, unsigned int, const SPA::UVariant&) > DOnPublish;
                 typedef std::function<void(CClientSocket*, const CMessageSender&, const unsigned int*, unsigned int, const unsigned char*, unsigned int) > DOnPublishEx;
-#else
-                typedef void(*DOnSubscribe)(CClientSocket*, const CMessageSender&, const unsigned int*, unsigned int);
-                typedef void(*DOnSendUserMessage)(CClientSocket*, const CMessageSender&, const SPA::UVariant&);
-                typedef void(*DOnSendUserMessageEx)(CClientSocket*, const CMessageSender&, const unsigned char*, unsigned int);
-                typedef void(*DOnPublish)(CClientSocket*, const CMessageSender&, const unsigned int*, unsigned int, const SPA::UVariant&);
-                typedef void(*DOnPublishEx)(CClientSocket*, const CMessageSender&, const unsigned int*, unsigned int, const unsigned char*, unsigned int);
-#endif
                 typedef DOnSubscribe DOnUnsubscribe;
 
             public:
@@ -654,13 +632,9 @@ namespace SPA {
             bool SetZipLevelAtSvr(SPA::tagZipLevel zipLevel) const;
             std::string GetPeerName(unsigned int *port) const;
 
-#ifndef SAFE_RESULT_RETURN_EVENT
             typedef std::function<void(CClientSocket*, int) > DSocketEvent;
             typedef std::function<void(CClientSocket*, unsigned short, const wchar_t*, const char*, unsigned int) > DExceptionFromServer;
-#else
-            typedef void(*DSocketEvent)(CClientSocket*, int);
-            typedef void(*DExceptionFromServer)(CClientSocket*, unsigned short, const wchar_t*, const char*, unsigned int);
-#endif
+
         protected:
             virtual void OnSocketClosed(int nError);
             virtual void OnHandShakeCompleted(int nError);
@@ -728,15 +702,12 @@ namespace SPA {
             IUDel<DSocketEvent>& HandShakeCompleted;
             IUDel<DSocketEvent>& SocketConnected;
             IUDel<DExceptionFromServer>& ExceptionFromServer;
+
 #ifdef ENABLE_SOCKET_REQUEST_AND_ALL_EVENTS
         public:
-#ifndef SAFE_RESULT_RETURN_EVENT
             typedef std::function<void(CClientSocket*, unsigned short) > DRequestEvent;
             typedef std::function<void(CClientSocket*, unsigned short, CUQueue &) > DRequestProcessed;
-#else
-            typedef void(*DRequestEvent)(CClientSocket*, unsigned short);
-            typedef void(*DRequestProcessed)(CClientSocket*, unsigned short, CUQueue &);
-#endif
+
         private:
             IUDelImpl<DRequestEvent> m_implBRP;
             IUDelImpl<DRequestEvent> m_implARP;
@@ -772,15 +743,10 @@ namespace SPA {
 
             virtual ~CAsyncServiceHandler();
 
-#ifndef SAFE_RESULT_RETURN_EVENT
-            typedef std::function<void(CAsyncServiceHandler *ash, unsigned short) > DBaseRequestProcessed;
+            typedef std::function<void(CAsyncServiceHandler *ash, unsigned short reqId) > DBaseRequestProcessed;
             typedef std::function<bool(CAsyncServiceHandler *ash, unsigned short reqId, CUQueue& mb) > DResultReturned;
             typedef std::function<void(CAsyncServiceHandler *ash, unsigned short requestId, const wchar_t *errMessage, const char* errWhere, unsigned int errCode) > DServerException;
-#else
-            typedef void(*DBaseRequestProcessed)(CAsyncServiceHandler *ash, unsigned short);
-            typedef bool(*DResultReturned)(CAsyncServiceHandler *ash, unsigned short reqId, CUQueue& buff);
-            typedef void(*DServerException)(CAsyncServiceHandler *ash, unsigned short requestId, const wchar_t *errMessage, const char* errWhere, unsigned int errCode);
-#endif
+
             typedef std::function<void(CAsyncServiceHandler *ash, bool canceled) > DDiscarded;
             static DServerException NULL_SE;
             static DDiscarded NULL_ABORTED;
@@ -1033,6 +999,7 @@ namespace SPA {
                         return m_done;
                     }
                     //call this method from pool worker thread only
+
                     void resume() noexcept {
                         CSpinAutoLock al(m_cs);
                         if (!m_done) {
@@ -1051,6 +1018,7 @@ namespace SPA {
                     std::exception_ptr m_ex;
 
                 private:
+
                     bool await_suspend(CRHandle rh) noexcept {
                         CSpinAutoLock al(m_cs);
                         if (!m_done) {
@@ -1218,9 +1186,9 @@ namespace SPA {
 
             virtual SPA::UINT64 SendRequest(Isolate* isolate, int args, Local<Value> *argv, unsigned short reqId, const unsigned char *pBuffer, unsigned int size);
 
-            void Backup(std::shared_ptr<CNJFunc> f) {
+            void Backup(std::shared_ptr<CNJFunc>& f) {
                 CSpinAutoLock al(m_cs);
-                m_fBackup.push_back(f);
+                m_fBackup.push_back(std::move(f));
             }
 
             void CleanFuncBackups() {
@@ -1242,6 +1210,20 @@ namespace SPA {
                 tagEvent Type;
                 PUQueue Buffer;
                 std::shared_ptr<CNJFunc> Func;
+
+                ReqCb(CAsyncResult& ar, tagEvent type) : ReqId(ar.RequestId), Type(type), Buffer(CScopeUQueue::Lock(ar.UQueue.GetOS(), ar.UQueue.GetEndian())) {
+                }
+
+                ReqCb(unsigned short reqId, tagEvent type) : ReqId(reqId), Type(type), Buffer(CScopeUQueue::Lock()) {
+                }
+
+                ReqCb(ReqCb&& rcb) noexcept : ReqId(rcb.ReqId), Type(rcb.Type), Buffer(rcb.Buffer), Func(std::move(rcb.Func)) {
+                    rcb.Buffer = nullptr;
+                }
+
+                ReqCb(const ReqCb& rcb) = delete;
+                ReqCb& operator=(const ReqCb& rcb) = delete;
+                ReqCb& operator=(ReqCb&& rcb) = delete;
             };
             std::deque<ReqCb> m_deqReqCb; //protected by m_cs;
             uv_async_t m_typeReq; //SendRequest events
@@ -1277,6 +1259,10 @@ namespace SPA {
         };
 
         typedef CAsyncServiceHandler* PAsyncServiceHandler;
+        using DBaseRequestProcessed = CAsyncServiceHandler::DBaseRequestProcessed;
+        using DServerException = CAsyncServiceHandler::DServerException;
+        using DResultReturned = CAsyncServiceHandler::DResultReturned;
+        using DDiscarded = CAsyncServiceHandler::DDiscarded;
 
 #if defined(PHP_ADAPTER_PROJECT) || defined(NODE_JS_ADAPTER_PROJECT)
 #else
@@ -1340,11 +1326,8 @@ namespace SPA {
             typedef std::shared_ptr<TCS> PClientSocket;
             typedef std::function<bool(CSocketPool*, TCS*) > DDoSslAuthentication;
             typedef THandler Handler;
-#ifndef SAFE_RESULT_RETURN_EVENT
             typedef std::function<void(CSocketPool*, tagSocketPoolEvent, THandler*) > DSocketPoolEvent;
-#else
-            typedef void(*DSocketPoolEvent)(CSocketPool*, tagSocketPoolEvent, THandler*);
-#endif
+
         private:
 
             struct cs_hash : public std::hash < PClientSocket > {

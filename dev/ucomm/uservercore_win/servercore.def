@@ -201,4 +201,5 @@ EXPORTS
 	GetCurrentRequestIndex @205
 	NotifyInterrupt @206
 	GetInterruptOptions @207
-	
+	GetOnceOnly @208
+	SetOnceOnly @209

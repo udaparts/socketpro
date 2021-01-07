@@ -746,11 +746,8 @@ namespace SPA {
             DDequeue m_dDequeue; //protected by m_csQ
 
         public:
-#ifndef SAFE_RESULT_RETURN_EVENT
             typedef std::function<void(CAsyncQueue *aq) > DMessageQueued;
-#else
-            typedef void(*DMessageQueued)(CAsyncQueue *aq);
-#endif
+
         private:
             IUDelImpl<DMessageQueued> m_mq;
 
