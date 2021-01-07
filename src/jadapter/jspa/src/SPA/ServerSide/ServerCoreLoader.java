@@ -245,6 +245,10 @@ final class ServerCoreLoader {
 
     static native boolean GetDefaultZip();
 
+    static native void SetOnceOnly(long h, boolean onceOnly);
+
+    static native boolean GetOnceOnly(long h);
+
     static native void SetMaxConnectionsPerClient(int maxConnectionsPerClient);
 
     static native int GetMaxConnectionsPerClient();

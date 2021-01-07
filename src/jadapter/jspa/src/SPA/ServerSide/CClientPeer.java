@@ -287,6 +287,14 @@ public class CClientPeer extends CSocketPeer {
         ServerCoreLoader.SetZip(getHandle(), value);
     }
 
+    public final boolean getOnceOnly() {
+        return ServerCoreLoader.GetOnceOnly(getHandle());
+    }
+
+    public final void setOnceOnly(boolean value) {
+        ServerCoreLoader.SetOnceOnly(getHandle(), value);
+    }
+
     public final boolean getDequeuedMessageAborted() {
         return ServerCoreLoader.IsDequeuedMessageAborted(getHandle());
     }
