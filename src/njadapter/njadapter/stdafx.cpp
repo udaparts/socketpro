@@ -27,7 +27,7 @@ namespace SPA {
 #ifdef BOOL_ISOLATE
                             delay = d->BooleanValue(isolate);
 #else
-                            delay = m->BooleanValue(isolate->GetCurrentContext()).ToChecked();
+                            delay = d->BooleanValue(isolate->GetCurrentContext()).ToChecked();
 #endif
                         } else if (!NJA::IsNullOrUndefined(d)) {
                             NJA::ThrowException(isolate, "A boolean value expected for parameter delay");
