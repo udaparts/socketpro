@@ -203,6 +203,8 @@ namespace SPA {
         typedef SPA::UINT64(WINAPI *PGetCurrentRequestIndex)(USocket_Server_Handle h);
         typedef unsigned int (WINAPI *PNotifyInterrupt)(USocket_Server_Handle h, SPA::UINT64 options);
         typedef SPA::UINT64(WINAPI *PGetInterruptOptions)(USocket_Server_Handle h);
+        typedef bool (WINAPI *PGetOnceOnly)(USocket_Server_Handle h);
+        typedef void (WINAPI *PSetOnceOnly)(USocket_Server_Handle h, bool onceOnly);
 
         namespace Internal {
 
@@ -416,6 +418,8 @@ namespace SPA {
                 PGetCurrentRequestIndex GetCurrentRequestIndex;
                 PNotifyInterrupt NotifyInterrupt;
                 PGetInterruptOptions GetInterruptOptions;
+                PGetOnceOnly GetOnceOnly;
+                PSetOnceOnly SetOnceOnly;
 
             public:
 
@@ -632,6 +636,8 @@ namespace SPA {
                     GetCurrentRequestIndex = (PGetCurrentRequestIndex)::GetProcAddress(m_hServerCore, "GetCurrentRequestIndex");
                     NotifyInterrupt = (PNotifyInterrupt)::GetProcAddress(m_hServerCore, "NotifyInterrupt");
                     GetInterruptOptions = (PGetInterruptOptions)::GetProcAddress(m_hServerCore, "GetInterruptOptions");
+                    GetOnceOnly = (PGetOnceOnly)::GetProcAddress(m_hServerCore, "GetOnceOnly");
+                    SetOnceOnly = (PSetOnceOnly)::GetProcAddress(m_hServerCore, "SetOnceOnly");
                 }
 
             private:

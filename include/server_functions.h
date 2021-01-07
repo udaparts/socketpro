@@ -437,6 +437,8 @@ extern "C" {
     SPA::UINT64 WINAPI GetCurrentRequestIndex(USocket_Server_Handle h);
     unsigned int WINAPI NotifyInterrupt(USocket_Server_Handle h, SPA::UINT64 options);
     SPA::UINT64 WINAPI GetInterruptOptions(USocket_Server_Handle h);
+    bool WINAPI GetOnceOnly(USocket_Server_Handle h);
+    void WINAPI SetOnceOnly(USocket_Server_Handle h, bool onceOnly);
 
 #ifdef __cplusplus
 }

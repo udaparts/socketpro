@@ -365,6 +365,14 @@ namespace SPA
             return ServerCoreLoader.GetInterruptOptions(GetSocketHandle());
         }
 
+        bool CClientPeer::GetOnceOnly() const {
+            return ServerCoreLoader.GetOnceOnly(GetSocketHandle());
+        }
+
+        void CClientPeer::SetOnceOnly(bool onceOnly) const {
+            ServerCoreLoader.SetOnceOnly(GetSocketHandle(), onceOnly);
+        }
+
         std::vector<unsigned int> CSocketPeer::GetChatGroups() const {
             CScopeUQueue sb;
             std::vector<unsigned int> vChatGroups;
