@@ -933,6 +933,15 @@ namespace SocketProAdapter
                 }
             }
 
+            public bool OnceOnly {
+                get {
+                    return ServerCoreLoader.GetOnceOnly(Handle);
+                }
+                set {
+                    ServerCoreLoader.SetOnceOnly(Handle, value);
+                }
+            }
+
             public bool DequeuedMessageAborted {
                 get {
                     return ServerCoreLoader.IsDequeuedMessageAborted(Handle);

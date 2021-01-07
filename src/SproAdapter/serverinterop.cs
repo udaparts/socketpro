@@ -541,6 +541,14 @@ namespace SocketProAdapter
             internal static extern bool GetZip(ulong h);
 
             [DllImport(SERVER_CORE_DLL)]
+            [return: MarshalAs(UnmanagedType.I1)]
+            internal static extern void SetOnceOnly(ulong h, bool onceOnly);
+
+            [DllImport(SERVER_CORE_DLL)]
+            [return: MarshalAs(UnmanagedType.I1)]
+            internal static extern bool GetOnceOnly(ulong h);
+
+            [DllImport(SERVER_CORE_DLL)]
             internal static extern void SetZipLevel(ulong h, tagZipLevel zl);
 
             [DllImport(SERVER_CORE_DLL)]

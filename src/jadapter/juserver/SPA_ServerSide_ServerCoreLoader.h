@@ -1558,6 +1558,22 @@ JNIEXPORT jlong JNICALL Java_SPA_ServerSide_ServerCoreLoader_GetInterruptOptions
 JNIEXPORT jint JNICALL Java_SPA_ServerSide_ServerCoreLoader_NotifyInterrupt
 (JNIEnv *, jclass, jlong, jlong);
 
+/*
+ * Class:     SPA_ServerSide_ServerCoreLoader
+ * Method:    GetOnceOnly
+ * Signature: (J)Z
+ */
+JNIEXPORT jboolean JNICALL Java_SPA_ServerSide_ServerCoreLoader_GetOnceOnly
+(JNIEnv *, jclass, jlong);
+
+
+/*
+ * Class:     SPA_ServerSide_ServerCoreLoader
+ * Method:    SetOnceOnly
+ * Signature: (JZ)Z
+ */
+JNIEXPORT void JNICALL Java_SPA_ServerSide_ServerCoreLoader_SetOnceOnly
+(JNIEnv *, jclass, jlong, jboolean);
 
 #ifdef __cplusplus
 }

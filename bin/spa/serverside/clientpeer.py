@@ -149,6 +149,14 @@ class CClientPeer(CSocketPeer):
         scl.SetZip(self.Handle, value)
 
     @property
+    def OnceOnly(self):
+        return scl.GetOnceOnly(self.Handle)
+
+    @OnceOnly.setter
+    def OnceOnly(self, value):
+        scl.SetOnceOnly(self.Handle, value)
+
+    @property
     def BytesBatched(self):
         return scl.GetBytesBatched(self.Handle)
 

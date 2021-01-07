@@ -1150,6 +1150,14 @@ JNIEXPORT jboolean JNICALL Java_SPA_ServerSide_ServerCoreLoader_GetZip(JNIEnv *,
     return GetZip((USocket_Server_Handle) h);
 }
 
+JNIEXPORT void JNICALL Java_SPA_ServerSide_ServerCoreLoader_SetOnceOnly(JNIEnv *, jclass, jlong h, jboolean zip) {
+	SetOnceOnly((USocket_Server_Handle)h, zip ? true : false);
+}
+
+JNIEXPORT jboolean JNICALL Java_SPA_ServerSide_ServerCoreLoader_GetOnceOnly(JNIEnv *, jclass, jlong h) {
+	return GetOnceOnly((USocket_Server_Handle)h);
+}
+
 JNIEXPORT void JNICALL Java_SPA_ServerSide_ServerCoreLoader_SetZipLevel(JNIEnv *, jclass, jlong h, jint zl) {
     SetZipLevel((USocket_Server_Handle) h, (SPA::tagZipLevel)zl);
 }

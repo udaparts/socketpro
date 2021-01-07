@@ -10,7 +10,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("UDAParts")]
 [assembly: AssemblyProduct("SocketPro adapter for .NET 3.5 or later")]
-[assembly: AssemblyCopyright("Copyright © UDAParts 2002-2020")]
+[assembly: AssemblyCopyright("Copyright © UDAParts 2002-2021")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
@@ -32,5 +32,5 @@ using System.Runtime.InteropServices;
 // You can specify all the values or you can default the Build and Revision Numbers 
 // by using the '*' as shown below:
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("4.3.1.16")]
-[assembly: AssemblyFileVersion("2.3.1.16")]
+[assembly: AssemblyVersion("4.3.1.17")]
+[assembly: AssemblyFileVersion("2.3.1.17")]

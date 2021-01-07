@@ -798,6 +798,16 @@ class SCoreLoader(object):
     GetZip.argtypes = [c_uint64]
     GetZip.restype = c_bool
 
+    # void WINAPI SetOnceOnly(USocket_Server_Handle h, bool onceOnly);
+    SetOnceOnly = _ussLib_.SetOnceOnly
+    SetOnceOnly.argtypes = [c_uint64, c_bool]
+    SetOnceOnly.restype = None
+
+    # bool WINAPI GetOnceOnly(USocket_Server_Handle h);
+    GetOnceOnly = _ussLib_.GetOnceOnly
+    GetOnceOnly.argtypes = [c_uint64]
+    GetOnceOnly.restype = c_bool
+
     #void WINAPI SetZipLevel(USocket_Server_Handle h, SPA::tagZipLevel zl);
     SetZipLevel = _ussLib_.SetZipLevel
     SetZipLevel.argtypes = [c_uint64, c_int]
