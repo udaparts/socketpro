@@ -344,18 +344,16 @@ namespace SPA {
                 OnInterrupted(options);
                 return;
             }
-            PRR_PAIR p;
-            if (GetAsyncResultHandler(reqId, p)) {
+            PRR_PAIR p = nullptr;
+            if (GetAsyncResultHandler(reqId, p) && p->second->AsyncResultHandler) {
                 CResultCb *rcb = p->second;
-                if (rcb->AsyncResultHandler) {
-                    CAsyncResult ar(this, reqId, mc, rcb->AsyncResultHandler);
-                    rcb->AsyncResultHandler(ar);
-                }
-                m_rrStack.Recycle(p);
+                CAsyncResult ar(this, reqId, mc, rcb->AsyncResultHandler);
+                rcb->AsyncResultHandler(ar);
             } else if (m_rrImpl.Invoke(this, reqId, mc)) {
             } else {
                 OnResultReturned(reqId, mc);
             }
+            m_rrStack.Recycle(p);
         }
 
         unsigned int CAsyncServiceHandler::GetRequestsQueued() noexcept {
