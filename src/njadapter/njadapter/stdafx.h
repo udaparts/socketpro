@@ -80,6 +80,7 @@ namespace NJA {
     extern const char* INTEGER_EXPECTED;
 
     extern Persistent<Object> g_buff;
+    extern SPA::CScopeUQueue g_sb;
 };
 
 #endif

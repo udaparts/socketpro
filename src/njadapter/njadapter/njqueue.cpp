@@ -999,7 +999,8 @@ namespace NJA {
             }
             args.GetReturnValue().Set(args.Holder());
         } else if (p0->IsArray()) {
-            SPA::CScopeUQueue sb;
+            SPA::CUQueue &sb = *g_sb;
+            sb.SetSize(0);
             tagDataType dt = tagDataType::dtUnknown;
             auto ctx = isolate->GetCurrentContext();
             Local<Array> jsArr = Local<Array>::Cast(p0);
@@ -1064,7 +1065,7 @@ namespace NJA {
                     unsigned int len = (unsigned int) str.length();
                     len *= sizeof (uint16_t);
                     sb << len;
-                    sb->Push((const unsigned char*) (*str), len);
+                    sb.Push((const unsigned char*) (*str), len);
                 } else {
                     ThrowException(isolate, UNSUPPORTED_ARRAY_TYPE);
                     return;
@@ -1097,7 +1098,7 @@ namespace NJA {
                     break;
             }
             *obj->m_Buffer << vtType << count;
-            obj->m_Buffer->Push(sb->GetBuffer(), sb->GetSize());
+            obj->m_Buffer->Push(sb.GetBuffer(), sb.GetSize());
             args.GetReturnValue().Set(args.Holder());
         } else {
             ThrowException(isolate, UNSUPPORTED_TYPE);

@@ -10,6 +10,7 @@
 namespace NJA {
 
     Persistent<Object> g_buff;
+    SPA::CScopeUQueue g_sb;
 
     void GetVersion(const FunctionCallbackInfo<Value>& args) {
         auto isolate = args.GetIsolate();
