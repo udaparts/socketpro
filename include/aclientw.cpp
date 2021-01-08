@@ -326,8 +326,9 @@ namespace SPA {
             PRR_PAIR p;
             OnExceptionFromServer(requestId, errMessage, errWhere, errCode);
             if (GetAsyncResultHandler(requestId, p)) {
-                if (p->second->ExceptionFromServer) {
-                    p->second->ExceptionFromServer(this, requestId, errMessage, errWhere, errCode);
+                CResultCb *cbs = p->second;
+                if (cbs->ExceptionFromServer) {
+                    cbs->ExceptionFromServer(this, requestId, errMessage, errWhere, errCode);
                 }
                 m_rrStack.Recycle(p);
             }
