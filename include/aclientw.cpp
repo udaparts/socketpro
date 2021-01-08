@@ -328,9 +328,9 @@ namespace SPA {
             PRR_PAIR p;
             OnExceptionFromServer(requestId, errMessage, errWhere, errCode);
             if (GetAsyncResultHandler(requestId, p)) {
-                CResultCb *cbs = p->second;
-                if (cbs->ExceptionFromServer) {
-                    cbs->ExceptionFromServer(this, requestId, errMessage, errWhere, errCode);
+                CResultCb * rcb = p->second;
+                if (rcb->ExceptionFromServer) {
+                    rcb->ExceptionFromServer(this, requestId, errMessage, errWhere, errCode);
                 }
                 m_rrStack.Recycle(p);
             }
@@ -345,10 +345,12 @@ namespace SPA {
                 return;
             }
             PRR_PAIR p;
-            if (GetAsyncResultHandler(reqId, p) && p->second->AsyncResultHandler) {
-                CResultCb *cbs = p->second;
-                CAsyncResult ar(this, reqId, mc, cbs->AsyncResultHandler);
-                cbs->AsyncResultHandler(ar);
+            if (GetAsyncResultHandler(reqId, p)) {
+                CResultCb *rcb = p->second;
+                if (rcb->AsyncResultHandler) {
+                    CAsyncResult ar(this, reqId, mc, rcb->AsyncResultHandler);
+                    rcb->AsyncResultHandler(ar);
+                }
                 m_rrStack.Recycle(p);
             } else if (m_rrImpl.Invoke(this, reqId, mc)) {
             } else {
