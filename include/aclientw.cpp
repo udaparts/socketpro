@@ -343,8 +343,9 @@ namespace SPA {
             }
             PRR_PAIR p;
             if (GetAsyncResultHandler(reqId, p) && p->second->AsyncResultHandler) {
-                CAsyncResult ar(this, reqId, mc, p->second->AsyncResultHandler);
-                p->second->AsyncResultHandler(ar);
+                CResultCb *cbs = p->second;
+                CAsyncResult ar(this, reqId, mc, cbs->AsyncResultHandler);
+                cbs->AsyncResultHandler(ar);
                 m_rrStack.Recycle(p);
             } else if (m_rrImpl.Invoke(this, reqId, mc)) {
             } else {
