@@ -310,10 +310,12 @@ namespace SPA {
             PRR_PAIR *pp = (PRR_PAIR*) m_vCallback.GetBuffer();
             unsigned int start = total - count;
             for (; start != count; ++start) {
-                if (pp[start]->second->Discarded) {
-                    pp[start]->second->Discarded(this, true);
+                PRR_PAIR p = pp[start];
+                CResultCb *rcb = p->second;
+                if (rcb->Discarded) {
+                    rcb->Discarded(this, true);
                 }
-                m_rrStack.Recycle(pp[start]);
+                m_rrStack.Recycle(p);
             }
             m_vCallback.SetSize(m_vCallback.GetSize() - count * sizeof (PRR_PAIR));
         }
@@ -387,16 +389,18 @@ namespace SPA {
             unsigned int total = count;
             PRR_PAIR *pp = (PRR_PAIR*) vBatching.GetBuffer();
             for (unsigned int it = 0; it < count; ++it) {
-                if (pp[it]->second->Discarded) {
-                    pp[it]->second->Discarded(this, GetSocket()->GetCurrentRequestID() == (unsigned short) tagBaseRequestID::idCancel);
+                CResultCb *rcb = pp[it]->second;
+                if (rcb->Discarded) {
+                    rcb->Discarded(this, GetSocket()->GetCurrentRequestID() == (unsigned short) tagBaseRequestID::idCancel);
                 }
             }
             CleanQueue(vBatching);
             count = vCallback.GetSize() / sizeof (PRR_PAIR);
             pp = (PRR_PAIR*) vCallback.GetBuffer();
             for (unsigned int it = 0; it < count; ++it) {
-                if (pp[it]->second->Discarded) {
-                    pp[it]->second->Discarded(this, GetSocket()->GetCurrentRequestID() == (unsigned short) tagBaseRequestID::idCancel);
+                CResultCb *rcb = pp[it]->second;
+                if (rcb->Discarded) {
+                    rcb->Discarded(this, GetSocket()->GetCurrentRequestID() == (unsigned short) tagBaseRequestID::idCancel);
                 }
             }
             CleanQueue(vCallback);
