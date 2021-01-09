@@ -344,7 +344,7 @@ namespace SPA {
                 OnInterrupted(options);
                 return;
             }
-            PRR_PAIR p = nullptr;
+            PRR_PAIR p;
             if (GetAsyncResultHandler(reqId, p) && p->second->AsyncResultHandler) {
                 CResultCb *rcb = p->second;
                 CAsyncResult ar(this, reqId, mc, rcb->AsyncResultHandler);
@@ -353,7 +353,9 @@ namespace SPA {
             } else {
                 OnResultReturned(reqId, mc);
             }
-            m_rrStack.Recycle(p);
+            if (p) {
+                m_rrStack.Recycle(p);
+            }
         }
 
         unsigned int CAsyncServiceHandler::GetRequestsQueued() noexcept {
@@ -433,6 +435,7 @@ namespace SPA {
                     return true;
                 }
             }
+            p = nullptr;
             return false;
         }
 
