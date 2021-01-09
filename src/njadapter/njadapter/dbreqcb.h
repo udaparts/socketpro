@@ -81,7 +81,7 @@ namespace SPA {
             Isolate* isolate = Isolate::GetCurrent();
             HandleScope handleScope(isolate); //required for Node 4.x
             {
-                Local<Context> ctx = isolate->GetCurrentContext();
+                auto ctx = isolate->GetCurrentContext();
                 Local<Value> null = Null(isolate);
                 CSpinLock& cs = obj->m_csDB;
                 cs.lock();
