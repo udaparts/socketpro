@@ -1186,8 +1186,6 @@ namespace SPA {
 
             virtual SPA::UINT64 SendRequest(Isolate* isolate, int args, Local<Value> *argv, unsigned short reqId, const unsigned char *pBuffer, unsigned int size);
 
-#ifndef WIN32_64
-
             void Backup(std::shared_ptr<CNJFunc>& f) {
                 CSpinAutoLock al(m_cs);
                 m_fBackup.push_back(std::move(f));
@@ -1197,7 +1195,6 @@ namespace SPA {
                 CSpinAutoLock al(m_cs);
                 m_fBackup.clear();
             }
-#endif
 
         private:
 
@@ -1230,9 +1227,7 @@ namespace SPA {
             };
             std::deque<ReqCb> m_deqReqCb; //protected by m_cs;
             uv_async_t m_typeReq; //SendRequest events
-#ifndef WIN32_64
             std::deque<std::shared_ptr<CNJFunc> > m_fBackup;
-#endif
 #endif
         private:
             CSpinLock m_csCb;

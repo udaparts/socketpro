@@ -1881,9 +1881,7 @@ namespace SPA {
                             assert(!fail);
                         }
                     };
-#ifndef WIN32_64
-                    Backup(func); //A fix for a bug somewhere on Linux platforms
-#endif
+                    Backup(func);
                 } else if (!NJA::IsNullOrUndefined(r)) {
                     NJA::ThrowException(isolate, "A callback expected for row data");
                     bad = true;
