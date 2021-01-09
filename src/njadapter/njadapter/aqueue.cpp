@@ -40,7 +40,7 @@ namespace NJA {
             ThrowException(isolate, "A callback expected for tracking socket closed or canceled events");
             bad = true;
         }
-        return dd;
+        return std::move(dd);
     }
 
     SPA::ClientSide::CAsyncServiceHandler::DServerException CAQueue::GetSE(Isolate* isolate, Local<Value> se, bool& bad) {
@@ -64,7 +64,7 @@ namespace NJA {
             ThrowException(isolate, "A callback expected for tracking exception from server");
             bad = true;
         }
-        return dSe;
+        return std::move(dSe);
     }
 
     void CAQueue::queue_cb(uv_async_t* handle) {

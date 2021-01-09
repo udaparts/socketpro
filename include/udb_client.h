@@ -1810,7 +1810,7 @@ namespace SPA {
                     NJA::ThrowException(isolate, "A callback expected for batch header");
                     bad = true;
                 }
-                return rh;
+                return std::move(rh);
             }
 
             bool GetMeta(Isolate* isolate, Local<Value> m, bool& bad) {
@@ -1853,7 +1853,7 @@ namespace SPA {
                     NJA::ThrowException(isolate, "A callback expected for record meta");
                     bad = true;
                 }
-                return rh;
+                return std::move(rh);
             }
 
             DRows GetRows(Isolate* isolate, Local<Value> r, bool& bad) {
@@ -1891,7 +1891,7 @@ namespace SPA {
                     NJA::ThrowException(isolate, "A callback expected for row data");
                     bad = true;
                 }
-                return rows;
+                return std::move(rows);
             }
 
             DExecuteResult GetExecuteResult(Isolate* isolate, Local<Value> er, bool& bad) {
@@ -1915,7 +1915,7 @@ namespace SPA {
                     NJA::ThrowException(isolate, "A callback expected for Execute end result");
                     bad = true;
                 }
-                return result;
+                return std::move(result);
             }
 
             DResult GetResult(Isolate* isolate, Local<Value> res, bool& bad) {
@@ -1939,7 +1939,7 @@ namespace SPA {
                     NJA::ThrowException(isolate, "A callback expected for end result");
                     bad = true;
                 }
-                return result;
+                return std::move(result);
             }
 
             DDiscarded Get(Isolate* isolate, Local<Value> abort, bool& bad) {
@@ -1963,7 +1963,7 @@ namespace SPA {
                     NJA::ThrowException(isolate, "A callback expected for tracking socket closed or canceled events");
                     bad = true;
                 }
-                return dd;
+                return std::move(dd);
             }
 
             DServerException GetSE(Isolate* isolate, Local<Value> se, bool& bad) {
@@ -1987,7 +1987,7 @@ namespace SPA {
                     NJA::ThrowException(isolate, "A callback expected for tracking exception from server");
                     bad = true;
                 }
-                return dSe;
+                return std::move(dSe);
             }
 
         private:
