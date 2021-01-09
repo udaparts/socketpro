@@ -1846,6 +1846,9 @@ namespace SPA {
                             assert(!fail);
                         }
                     };
+                    //prevent from crash dbreqcb.h (126): SPA::ClientSide::CAsyncDBHandler<0>::req_cb
+                    //api.cc (4875): v8::Function::Call
+                    Backup(func);
                 } else if (!NJA::IsNullOrUndefined(header)) {
                     NJA::ThrowException(isolate, "A callback expected for record meta");
                     bad = true;
@@ -1881,6 +1884,8 @@ namespace SPA {
                             assert(!fail);
                         }
                     };
+                    //prevent from crash dbreqcb.h (126): SPA::ClientSide::CAsyncDBHandler<0>::req_cb
+                    //api.cc (4875): v8::Function::Call
                     Backup(func);
                 } else if (!NJA::IsNullOrUndefined(r)) {
                     NJA::ThrowException(isolate, "A callback expected for row data");
