@@ -1186,16 +1186,6 @@ namespace SPA {
 
             virtual SPA::UINT64 SendRequest(Isolate* isolate, int args, Local<Value> *argv, unsigned short reqId, const unsigned char *pBuffer, unsigned int size);
 
-            void Backup(std::shared_ptr<CNJFunc>& f) {
-                CSpinAutoLock al(m_cs);
-                m_fBackup.push_back(std::move(f));
-            }
-
-            void CleanFuncBackups() {
-                CSpinAutoLock al(m_cs);
-                m_fBackup.clear();
-            }
-
         private:
 
             enum class tagEvent {
@@ -1227,7 +1217,6 @@ namespace SPA {
             };
             std::deque<ReqCb> m_deqReqCb; //protected by m_cs;
             uv_async_t m_typeReq; //SendRequest events
-            std::deque<std::shared_ptr<CNJFunc> > m_fBackup;
 #endif
         private:
             CSpinLock m_csCb;
