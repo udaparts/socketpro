@@ -73,8 +73,9 @@ namespace NJA {
         if (!obj) return;
         Isolate* isolate = Isolate::GetCurrent();
         v8::HandleScope handleScope(isolate); //required for Node 4.x
-        auto ctx = isolate->GetCurrentContext();
         {
+            Local<Context> ctx = isolate->GetCurrentContext();
+            Local<Value> null = Null(isolate);
             SPA::CSpinLock& cs = obj->m_csJQ;
             cs.lock();
             while (obj->m_deqQCb.size()) {
@@ -98,7 +99,7 @@ namespace NJA {
                             Local<String> jsWhere = ToStr(isolate, errWhere.c_str());
                             Local<Value> jsCode = Number::New(isolate, errCode);
                             Local<Value> argv[] = {jsCode, jsMsg, jsWhere, Number::New(isolate, reqId)};
-                            func->Call(isolate->GetCurrentContext(), Null(isolate), 4, argv);
+                            func->Call(ctx, null, 4, argv);
                         }
                         break;
                     case tagQueueEvent::qeDiscarded:
@@ -107,7 +108,7 @@ namespace NJA {
                         *cb.Buffer >> canceled;
                         assert(!cb.Buffer->GetSize());
                         Local<Value> argv[] = {Boolean::New(isolate, canceled)};
-                        func->Call(ctx, Null(isolate), 1, argv);
+                        func->Call(ctx, null, 1, argv);
                     }
                         break;
                     case tagQueueEvent::qeGetKeys:
@@ -125,7 +126,7 @@ namespace NJA {
                         }
                         assert(index == size);
                         Local<Value> argv[] = {jsKeys};
-                        func->Call(ctx, Null(isolate), 1, argv);
+                        func->Call(ctx, null, 1, argv);
                     }
                         break;
                     case tagQueueEvent::qeEnqueueBatch:
@@ -136,7 +137,7 @@ namespace NJA {
                         assert(!cb.Buffer->GetSize());
                         Local<Value> im = Number::New(isolate, (double) indexMessage);
                         Local<Value> argv[] = {im};
-                        func->Call(ctx, Null(isolate), 1, argv);
+                        func->Call(ctx, null, 1, argv);
                     }
                         break;
                     case tagQueueEvent::qeCloseQueue:
@@ -148,7 +149,7 @@ namespace NJA {
                         assert(!cb.Buffer->GetSize());
                         Local<Value> jsCode = Int32::New(isolate, errCode);
                         Local<Value> argv[] = {jsCode};
-                        func->Call(ctx, Null(isolate), 1, argv);
+                        func->Call(ctx, null, 1, argv);
                     }
                         break;
                     case tagQueueEvent::qeFlushQueue:
@@ -160,7 +161,7 @@ namespace NJA {
                         Local<Value> mc = Number::New(isolate, (double) messageCount);
                         Local<Value> fs = Number::New(isolate, (double) fileSize);
                         Local<Value> argv[] = {mc, fs};
-                        func->Call(ctx, Null(isolate), 2, argv);
+                        func->Call(ctx, null, 2, argv);
                     }
                         break;
                     case tagQueueEvent::qeDequeue:
@@ -174,7 +175,7 @@ namespace NJA {
                         Local<Value> mdib = Uint32::New(isolate, messagesDequeuedInBatch);
                         Local<Value> bdib = Uint32::New(isolate, bytesDequeuedInBatch);
                         Local<Value> argv[] = {mc, fs, mdib, bdib};
-                        func->Call(ctx, Null(isolate), 4, argv);
+                        func->Call(ctx, null, 4, argv);
                     }
                         break;
                     case tagQueueEvent::qeResultReturned:
@@ -187,7 +188,7 @@ namespace NJA {
                         Local<Value> jsReqid = Uint32::New(isolate, reqId);
                         //Local<Object> njQ = NJAsyncQueue::New(isolate, processor, true);
                         Local<Value> argv[] = {jsReqid, q};
-                        func->Call(ctx, Null(isolate), 2, argv);
+                        func->Call(ctx, null, 2, argv);
                     }
                         break;
                     default:

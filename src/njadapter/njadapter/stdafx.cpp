@@ -110,6 +110,8 @@ namespace SPA {
             Isolate* isolate = Isolate::GetCurrent();
             HandleScope handleScope(isolate); //required for Node 4.x
             {
+                Local<Context> ctx = isolate->GetCurrentContext();
+                Local<Value> null = Null(isolate);
                 CSpinLock& cs = obj->m_cs;
                 cs.lock();
                 while (obj->m_deqReqCb.size()) {
@@ -136,7 +138,7 @@ namespace SPA {
                                     NJQueue* obj = node::ObjectWrap::Unwrap<NJQueue>(q);
                                     obj->Move(cb.Buffer);
                                     Local<Value> argv[2] = {q, jsReqId};
-                                    func->Call(isolate->GetCurrentContext(), Null(isolate), 2, argv);
+                                    func->Call(ctx, null, 2, argv);
                                 }
                             }
                             if (cb.Buffer) {
@@ -152,7 +154,7 @@ namespace SPA {
                             if (!func.IsEmpty()) {
                                 auto b = Boolean::New(isolate, canceled);
                                 Local<Value> argv[] = {b, jsReqId};
-                                func->Call(isolate->GetCurrentContext(), Null(isolate), 2, argv);
+                                func->Call(ctx, null, 2, argv);
                             }
                         }
                             break;
@@ -168,7 +170,7 @@ namespace SPA {
                                 Local<String> jsWhere = ToStr(isolate, errWhere.c_str());
                                 Local<Value> jsCode = Number::New(isolate, errCode);
                                 Local<Value> argv[] = {jsMsg, jsCode, jsWhere, jsReqId};
-                                func->Call(isolate->GetCurrentContext(), Null(isolate), 4, argv);
+                                func->Call(ctx, null, 4, argv);
                             } else {
                                 CScopeUQueue::Unlock(cb.Buffer);
                             }

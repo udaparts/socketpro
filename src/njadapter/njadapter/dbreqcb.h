@@ -80,8 +80,9 @@ namespace SPA {
             if (!obj) return;
             Isolate* isolate = Isolate::GetCurrent();
             HandleScope handleScope(isolate); //required for Node 4.x
-            auto ctx = isolate->GetCurrentContext();
             {
+                Local<Context> ctx = isolate->GetCurrentContext();
+                Local<Value> null = Null(isolate);
                 CSpinLock& cs = obj->m_csDB;
                 cs.lock();
                 while (obj->m_deqDBCb.size()) {
@@ -99,7 +100,7 @@ namespace SPA {
                         case tagDBEvent::eBatchHeader:
                         {
                             assert(!cb.Buffer->GetSize());
-                            func->Call(ctx, Null(isolate), 0, nullptr);
+                            func->Call(ctx, null, 0, nullptr);
                         }
                             break;
                         case tagDBEvent::eRows:
@@ -122,7 +123,7 @@ namespace SPA {
                                     }
                                 }
                                 Local<Value> argv[] = {v, Boolean::New(isolate, bProc), Int32::New(isolate, cols)};
-                                func->Call(ctx, Null(isolate), 3, argv);
+                                func->Call(ctx, null, 3, argv);
                             }
                             break;
                         case tagDBEvent::eExecuteResult:
@@ -140,7 +141,7 @@ namespace SPA {
                                 auto njId = DbFrom(isolate, *cb.Buffer);
                                 assert(!cb.Buffer->GetSize());
                                 Local<Value> argv[] = {njRes, njMsg, njAffected, njOks, njFails, njId};
-                                func->Call(ctx, Null(isolate), 6, argv);
+                                func->Call(ctx, null, 6, argv);
                             }
                             break;
                         case tagDBEvent::eResult:
@@ -152,7 +153,7 @@ namespace SPA {
                                 auto njRes = Int32::New(isolate, res);
                                 auto njMsg = ToStr(isolate, errMsg.c_str(), errMsg.size());
                                 Local<Value> argv[] = {njRes, njMsg};
-                                func->Call(ctx, Null(isolate), 2, argv);
+                                func->Call(ctx, null, 2, argv);
                             }
                             break;
                         case tagDBEvent::eRowsetHeader:
@@ -160,7 +161,7 @@ namespace SPA {
                                 Local<Array> jsMeta = ToMeta(isolate, *cb.Buffer);
                                 assert(!cb.Buffer->GetSize());
                                 Local<Value> argv[] = {jsMeta};
-                                func->Call(ctx, Null(isolate), 1, argv);
+                                func->Call(ctx, null, 1, argv);
                             }
                             break;
                         case tagDBEvent::eDiscarded:
@@ -170,7 +171,7 @@ namespace SPA {
                                 assert(!cb.Buffer->GetSize());
                                 auto b = Boolean::New(isolate, canceled);
                                 Local<Value> argv[] = {b};
-                                func->Call(ctx, Null(isolate), 1, argv);
+                                func->Call(ctx, null, 1, argv);
                             }
                             break;
                         case tagDBEvent::eException:
@@ -185,7 +186,7 @@ namespace SPA {
                                 Local<String> jsWhere = ToStr(isolate, errWhere.c_str());
                                 Local<Value> jsCode = Number::New(isolate, errCode);
                                 Local<Value> argv[] = {jsCode, jsMsg, jsWhere, Number::New(isolate, reqId)};
-                                func->Call(isolate->GetCurrentContext(), Null(isolate), 4, argv);
+                                func->Call(ctx, null, 4, argv);
                             }
                         default:
                             assert(false);

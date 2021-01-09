@@ -344,12 +344,14 @@ namespace NJA {
     }
 
     void NJSocketPool::async_cb(uv_async_t* handle) {
-        Isolate* isolate = Isolate::GetCurrent();
-        HandleScope handleScope(isolate); //required for Node 4.x
         NJSocketPool* obj = (NJSocketPool*) handle->data;
         assert(obj);
         if (!obj) return;
+        Isolate* isolate = Isolate::GetCurrent();
+        HandleScope handleScope(isolate); //required for Node 4.x
         {
+            Local<Context> ctx = isolate->GetCurrentContext();
+            Local<Value> null = Null(isolate);
             SPA::CSpinLock& cs = obj->m_cs;
             cs.lock();
             while (obj->m_deqPoolEvent.size()) {
@@ -379,10 +381,10 @@ namespace NJA {
                                 break;
                         }
                     } else {
-                        argv[1] = Null(isolate);
+                        argv[1] = null;
                     }
                     Local<Function> cb = Local<Function>::New(isolate, obj->m_evPool);
-                    cb->Call(isolate->GetCurrentContext(), Null(isolate), 2, argv);
+                    cb->Call(ctx, null, 2, argv);
                 }
                 cs.lock();
             }
@@ -400,6 +402,8 @@ namespace NJA {
         Isolate* isolate = Isolate::GetCurrent();
         HandleScope handleScope(isolate); //required for Node 4.x or later
         {
+            Local<Context> ctx = isolate->GetCurrentContext();
+            Local<Value> null = Null(isolate);
             SPA::CSpinLock& cs = obj->m_cs;
             cs.lock();
             while (obj->m_deqSocketEvent.size()) {
@@ -440,7 +444,7 @@ namespace NJA {
                                 assert(!se.QData->GetSize());
                                 Local<Value> argv[] = {jsName, groups, sender, njAsh};
                                 Local<Function> cb = Local<Function>::New(isolate, obj->m_push);
-                                cb->Call(isolate->GetCurrentContext(), Null(isolate), 4, argv);
+                                cb->Call(ctx, null, 4, argv);
                             }
                             break;
                         case tagSocketEvent::seChatExit:
@@ -451,7 +455,7 @@ namespace NJA {
                                 assert(!se.QData->GetSize());
                                 Local<Value> argv[] = {jsName, groups, sender, njAsh};
                                 Local<Function> cb = Local<Function>::New(isolate, obj->m_push);
-                                cb->Call(isolate->GetCurrentContext(), Null(isolate), 4, argv);
+                                cb->Call(ctx, null, 4, argv);
                             }
                             break;
                         case tagSocketEvent::sePublish:
@@ -463,7 +467,7 @@ namespace NJA {
                                 assert(!se.QData->GetSize());
                                 Local<Value> argv[] = {jsName, groups, msg, sender, njAsh};
                                 Local<Function> cb = Local<Function>::New(isolate, obj->m_push);
-                                cb->Call(isolate->GetCurrentContext(), Null(isolate), 5, argv);
+                                cb->Call(ctx, null, 5, argv);
                             }
                             break;
                         case tagSocketEvent::sePublishEx:
@@ -476,7 +480,7 @@ namespace NJA {
                                 se.QData->SetSize(0);
                                 Local<Value> argv[] = {jsName, groups, bytes, sender, njAsh};
                                 Local<Function> cb = Local<Function>::New(isolate, obj->m_push);
-                                cb->Call(isolate->GetCurrentContext(), Null(isolate), 5, argv);
+                                cb->Call(ctx, null, 5, argv);
                             }
                             break;
                         case tagSocketEvent::sePostUserMessage:
@@ -487,7 +491,7 @@ namespace NJA {
                                 assert(!se.QData->GetSize());
                                 Local<Value> argv[] = {jsName, msg, sender, njAsh};
                                 Local<Function> cb = Local<Function>::New(isolate, obj->m_push);
-                                cb->Call(isolate->GetCurrentContext(), Null(isolate), 4, argv);
+                                cb->Call(ctx, null, 4, argv);
                             }
                             break;
                         case tagSocketEvent::sePostUserMessageEx:
@@ -499,7 +503,7 @@ namespace NJA {
                                 se.QData->SetSize(0);
                                 Local<Value> argv[] = {jsName, bytes, sender, njAsh};
                                 Local<Function> cb = Local<Function>::New(isolate, obj->m_push);
-                                cb->Call(isolate->GetCurrentContext(), Null(isolate), 4, argv);
+                                cb->Call(ctx, null, 4, argv);
                             }
                             break;
                         case tagSocketEvent::seAllProcessed:
@@ -510,14 +514,14 @@ namespace NJA {
                             if (!obj->m_ap.IsEmpty()) {
                                 Local<Value> argv[] = {njAsh, jsReqId};
                                 Local<Function> cb = Local<Function>::New(isolate, obj->m_ap);
-                                cb->Call(isolate->GetCurrentContext(), Null(isolate), 2, argv);
+                                cb->Call(ctx, null, 2, argv);
                             }
                             break;
                         case tagSocketEvent::seBaseRequestProcessed:
                             if (!obj->m_brp.IsEmpty()) {
                                 Local<Value> argv[] = {njAsh, jsReqId};
                                 Local<Function> cb = Local<Function>::New(isolate, obj->m_brp);
-                                cb->Call(isolate->GetCurrentContext(), Null(isolate), 2, argv);
+                                cb->Call(ctx, null, 2, argv);
                             }
                             break;
                         case tagSocketEvent::seResultReturned:
@@ -530,7 +534,7 @@ namespace NJA {
                                 NJQueue* obj = node::ObjectWrap::Unwrap<NJQueue>(q);
                                 obj->Move(se.QData);
                                 argv[2] = q;
-                                cb->Call(isolate->GetCurrentContext(), Null(isolate), 3, argv);
+                                cb->Call(ctx, null, 3, argv);
                             }
                             break;
                         case tagSocketEvent::seServerException:
@@ -544,7 +548,7 @@ namespace NJA {
                                 Local<Value> jsCode = Number::New(isolate, errCode);
                                 Local<Value> argv[] = {njAsh, jsReqId, jsMsg, jsCode, jsWhere};
                                 Local<Function> cb = Local<Function>::New(isolate, obj->m_se);
-                                cb->Call(isolate->GetCurrentContext(), Null(isolate), 5, argv);
+                                cb->Call(ctx, null, 5, argv);
                             }
                             break;
                         default:

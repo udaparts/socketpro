@@ -111,6 +111,8 @@ namespace NJA {
         Isolate* isolate = Isolate::GetCurrent();
         v8::HandleScope handleScope(isolate); //required for Node 4.x
         {
+            Local<Context> ctx = isolate->GetCurrentContext();
+            Local<Value> null = Null(isolate);
             CUCriticalSection& cs = obj->m_csFile;
             cs.lock();
             while (obj->m_deqFileCb.size()) {
@@ -132,7 +134,7 @@ namespace NJA {
                         Local<Value> jsRes = v8::Int32::New(isolate, res);
                         Local<v8::String> jsMsg = ToStr(isolate, errMsg.c_str(), errMsg.size());
                         Local<Value> argv[] = {jsMsg, jsRes, download};
-                        func->Call(isolate->GetCurrentContext(), Null(isolate), 3, argv);
+                        func->Call(ctx, null, 3, argv);
                     }
                         break;
                     case tagFileEvent::feTrans:
@@ -141,7 +143,7 @@ namespace NJA {
                         *cb.Buffer >> pos >> size;
                         assert(!cb.Buffer->GetSize());
                         Local<Value> argv[] = {v8::Number::New(isolate, (double) pos), v8::Number::New(isolate, (double) size), download};
-                        func->Call(isolate->GetCurrentContext(), Null(isolate), 3, argv);
+                        func->Call(ctx, null, 3, argv);
                     }
                         break;
                     case tagFileEvent::feDiscarded:
@@ -150,7 +152,7 @@ namespace NJA {
                         *cb.Buffer >> canceled;
                         assert(!cb.Buffer->GetSize());
                         Local<Value> argv[] = {v8::Boolean::New(isolate, canceled), download};
-                        func->Call(isolate->GetCurrentContext(), Null(isolate), 2, argv);
+                        func->Call(ctx, null, 2, argv);
                     }
                         break;
                     case tagFileEvent::feException:
@@ -165,7 +167,7 @@ namespace NJA {
                             Local<String> jsWhere = ToStr(isolate, errWhere.c_str());
                             Local<Value> jsCode = Number::New(isolate, errCode);
                             Local<Value> argv[] = {jsMsg, jsCode, jsWhere, Number::New(isolate, reqId), download};
-                            func->Call(isolate->GetCurrentContext(), Null(isolate), 5, argv);
+                            func->Call(ctx, null, 5, argv);
                         }
                         break;
                     default:
