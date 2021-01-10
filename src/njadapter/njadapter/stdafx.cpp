@@ -1483,17 +1483,17 @@ namespace NJA {
 
     Local<Array> ToMeta(Isolate* isolate, const CDBColumnInfoArray& v) {
         Local<Value> vN[] = {
-            ToStr(isolate, u"DBPath", 6),
-            ToStr(isolate, u"TablePath", 9),
-            ToStr(isolate, u"DisplayName", 11),
-            ToStr(isolate, u"OriginalName", 12),
-            ToStr(isolate, u"DeclaredType", 12),
-            ToStr(isolate, u"Collation", 9),
-            ToStr(isolate, u"ColumnSize", 10),
-            ToStr(isolate, u"Flags", 5),
-            ToStr(isolate, u"DataType", 8),
-            ToStr(isolate, u"Precision", 9),
-            ToStr(isolate, u"Scale", 5)
+            Local<String>::New(isolate, DBPath),
+            Local<String>::New(isolate, TablePath),
+            Local<String>::New(isolate, DisplayName),
+            Local<String>::New(isolate, OriginalName),
+            Local<String>::New(isolate, DeclaredType),
+            Local<String>::New(isolate, Collation),
+            Local<String>::New(isolate, ColumnSize),
+            Local<String>::New(isolate, Flags),
+            Local<String>::New(isolate, DataType),
+            Local<String>::New(isolate, Precision),
+            Local<String>::New(isolate, Scale)
         };
         auto ctx = isolate->GetCurrentContext();
         Local<Array> jsMeta = Array::New(isolate, (int) v.size());
@@ -1518,19 +1518,18 @@ namespace NJA {
 
     Local<Array> ToMeta(Isolate* isolate, const SPA::CKeyMap& mapkey) {
         Local<Value> vN[] = {
-            ToStr(isolate, u"DBPath", 6),
-            ToStr(isolate, u"TablePath", 9),
-            ToStr(isolate, u"DisplayName", 11),
-            ToStr(isolate, u"OriginalName", 12),
-            ToStr(isolate, u"DeclaredType", 12),
-            ToStr(isolate, u"Collation", 9),
-            ToStr(isolate, u"ColumnSize", 10),
-            ToStr(isolate, u"Flags", 5),
-            ToStr(isolate, u"DataType", 8),
-            ToStr(isolate, u"Precision", 9),
-            ToStr(isolate, u"Scale", 5)
+            Local<String>::New(isolate, DBPath),
+            Local<String>::New(isolate, TablePath),
+            Local<String>::New(isolate, DisplayName),
+            Local<String>::New(isolate, OriginalName),
+            Local<String>::New(isolate, DeclaredType),
+            Local<String>::New(isolate, Collation),
+            Local<String>::New(isolate, ColumnSize),
+            Local<String>::New(isolate, Flags),
+            Local<String>::New(isolate, DataType),
+            Local<String>::New(isolate, Precision),
+            Local<String>::New(isolate, Scale)
         };
-
         auto ctx = isolate->GetCurrentContext();
         Local<Array> jsMeta = Array::New(isolate, (int) mapkey.size());
         unsigned int index = 0;

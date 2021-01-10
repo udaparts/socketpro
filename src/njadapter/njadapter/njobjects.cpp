@@ -1165,6 +1165,24 @@ namespace NJA {
         return true;
     }
 
+    void SetPersistentObjects(Isolate* isolate) {
+        if (g_buff.IsEmpty()) {
+            CUQueue* p = nullptr;
+            g_buff.Reset(isolate, NJQueue::New(isolate, p));
+            DBPath.Reset(isolate, ToStr(isolate, u"DBPath", 6));
+            TablePath.Reset(isolate, ToStr(isolate, u"TablePath", 9));
+            DisplayName.Reset(isolate, ToStr(isolate, u"DisplayName", 11));
+            OriginalName.Reset(isolate, ToStr(isolate, u"OriginalName", 12));
+            DeclaredType.Reset(isolate, ToStr(isolate, u"DeclaredType", 12));
+            Collation.Reset(isolate, ToStr(isolate, u"Collation", 9));
+            ColumnSize.Reset(isolate, ToStr(isolate, u"ColumnSize", 10));
+            Flags.Reset(isolate, ToStr(isolate, u"Flags", 5));
+            DataType.Reset(isolate, ToStr(isolate, u"DataType", 8));
+            Precision.Reset(isolate, ToStr(isolate, u"Precision", 9));
+            Scale.Reset(isolate, ToStr(isolate, u"Scale", 5));
+        }
+    }
+
     void NJSocketPool::StartSocketPool(const FunctionCallbackInfo<Value>& args) {
         Isolate* isolate = args.GetIsolate();
         NJSocketPool* obj = ObjectWrap::Unwrap<NJSocketPool>(args.Holder());
@@ -1252,10 +1270,7 @@ namespace NJA {
             ok = false;
         }
         obj->m_cs.unlock();
-        if (g_buff.IsEmpty()) {
-            CUQueue* p = nullptr;
-            g_buff.Reset(isolate, NJQueue::New(isolate, p));
-        }
+        SetPersistentObjects(isolate);
         args.GetReturnValue().Set(Boolean::New(isolate, ok));
         delete []ppCCs;
     }

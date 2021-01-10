@@ -3,6 +3,20 @@
 #include "../../../include/udb_client.h"
 #include <node_version.h>
 
+namespace NJA {
+    extern Persistent<String> DBPath;
+    extern Persistent<String> TablePath;
+    extern Persistent<String> DisplayName;
+    extern Persistent<String> OriginalName;
+    extern Persistent<String> DeclaredType;
+    extern Persistent<String> Collation;
+    extern Persistent<String> ColumnSize;
+    extern Persistent<String> Flags;
+    extern Persistent<String> DataType;
+    extern Persistent<String> Precision;
+    extern Persistent<String> Scale;
+};
+
 namespace SPA {
     namespace ClientSide {
         using namespace NJA;
@@ -11,18 +25,18 @@ namespace SPA {
 
         static Local<Array> ToMeta(Isolate* isolate, CUQueue &v) {
             int length;
-            Local<v8::Value> vN[] = {
-                ToStr(isolate, u"DBPath", 6),
-                ToStr(isolate, u"TablePath", 9),
-                ToStr(isolate, u"DisplayName", 11),
-                ToStr(isolate, u"OriginalName", 12),
-                ToStr(isolate, u"DeclaredType", 12),
-                ToStr(isolate, u"Collation", 9),
-                ToStr(isolate, u"ColumnSize", 10),
-                ToStr(isolate, u"Flags", 5),
-                ToStr(isolate, u"DataType", 8),
-                ToStr(isolate, u"Precision", 9),
-                ToStr(isolate, u"Scale", 5)
+            Local<Value> vN[] = {
+                Local<String>::New(isolate, DBPath),
+                Local<String>::New(isolate, TablePath),
+                Local<String>::New(isolate, DisplayName),
+                Local<String>::New(isolate, OriginalName),
+                Local<String>::New(isolate, DeclaredType),
+                Local<String>::New(isolate, Collation),
+                Local<String>::New(isolate, ColumnSize),
+                Local<String>::New(isolate, Flags),
+                Local<String>::New(isolate, DataType),
+                Local<String>::New(isolate, Precision),
+                Local<String>::New(isolate, Scale)
             };
             auto ctx = isolate->GetCurrentContext();
             v >> length;

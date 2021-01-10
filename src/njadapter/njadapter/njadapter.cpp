@@ -10,6 +10,18 @@
 namespace NJA {
 
     Persistent<Object> g_buff;
+    Persistent<String> DBPath;
+    Persistent<String> TablePath;
+    Persistent<String> DisplayName;
+    Persistent<String> OriginalName;
+    Persistent<String> DeclaredType;
+    Persistent<String> Collation;
+    Persistent<String> ColumnSize;
+    Persistent<String> Flags;
+    Persistent<String> DataType;
+    Persistent<String> Precision;
+    Persistent<String> Scale;
+
     SPA::CScopeUQueue g_sb;
 
     void GetVersion(const FunctionCallbackInfo<Value>& args) {
