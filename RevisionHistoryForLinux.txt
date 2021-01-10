@@ -11,6 +11,7 @@
 	(j) Fix a crash within libuservercore.so when publishing a message from web browsers
 	(k) Use enum class to replace enum within C/C++ code for better type safety
 	(l) Add OnceOnly property to server peer for client message queue
+	(m) Nodejs adapter profiled and improved with better performance
 
 24.	SocketPro Version 6.3.1.1
 	(a) Core libraries are added with a new feature Interrupt, which could be used to interrupt a looping processing at the other end
