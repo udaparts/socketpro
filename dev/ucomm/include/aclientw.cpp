@@ -310,10 +310,12 @@ namespace SPA {
             PRR_PAIR *pp = (PRR_PAIR*) m_vCallback.GetBuffer();
             unsigned int start = total - count;
             for (; start != count; ++start) {
-                if (pp[start]->second->Discarded) {
-                    pp[start]->second->Discarded(this, true);
+                PRR_PAIR p = pp[start];
+                CResultCb *rcb = p->second;
+                if (rcb->Discarded) {
+                    rcb->Discarded(this, true);
                 }
-                m_rrStack.Recycle(pp[start]);
+                m_rrStack.Recycle(p);
             }
             m_vCallback.SetSize(m_vCallback.GetSize() - count * sizeof (PRR_PAIR));
         }
@@ -326,8 +328,9 @@ namespace SPA {
             PRR_PAIR p;
             OnExceptionFromServer(requestId, errMessage, errWhere, errCode);
             if (GetAsyncResultHandler(requestId, p)) {
-                if (p->second->ExceptionFromServer) {
-                    p->second->ExceptionFromServer(this, requestId, errMessage, errWhere, errCode);
+                CResultCb * rcb = p->second;
+                if (rcb->ExceptionFromServer) {
+                    rcb->ExceptionFromServer(this, requestId, errMessage, errWhere, errCode);
                 }
                 m_rrStack.Recycle(p);
             }
@@ -343,12 +346,15 @@ namespace SPA {
             }
             PRR_PAIR p;
             if (GetAsyncResultHandler(reqId, p) && p->second->AsyncResultHandler) {
-                CAsyncResult ar(this, reqId, mc, p->second->AsyncResultHandler);
-                p->second->AsyncResultHandler(ar);
-                m_rrStack.Recycle(p);
+                CResultCb *rcb = p->second;
+                CAsyncResult ar(this, reqId, mc, rcb->AsyncResultHandler);
+                rcb->AsyncResultHandler(ar);
             } else if (m_rrImpl.Invoke(this, reqId, mc)) {
             } else {
                 OnResultReturned(reqId, mc);
+            }
+            if (p) {
+                m_rrStack.Recycle(p);
             }
         }
 
@@ -385,16 +391,18 @@ namespace SPA {
             unsigned int total = count;
             PRR_PAIR *pp = (PRR_PAIR*) vBatching.GetBuffer();
             for (unsigned int it = 0; it < count; ++it) {
-                if (pp[it]->second->Discarded) {
-                    pp[it]->second->Discarded(this, GetSocket()->GetCurrentRequestID() == (unsigned short) tagBaseRequestID::idCancel);
+                CResultCb *rcb = pp[it]->second;
+                if (rcb->Discarded) {
+                    rcb->Discarded(this, GetSocket()->GetCurrentRequestID() == (unsigned short) tagBaseRequestID::idCancel);
                 }
             }
             CleanQueue(vBatching);
             count = vCallback.GetSize() / sizeof (PRR_PAIR);
             pp = (PRR_PAIR*) vCallback.GetBuffer();
             for (unsigned int it = 0; it < count; ++it) {
-                if (pp[it]->second->Discarded) {
-                    pp[it]->second->Discarded(this, GetSocket()->GetCurrentRequestID() == (unsigned short) tagBaseRequestID::idCancel);
+                CResultCb *rcb = pp[it]->second;
+                if (rcb->Discarded) {
+                    rcb->Discarded(this, GetSocket()->GetCurrentRequestID() == (unsigned short) tagBaseRequestID::idCancel);
                 }
             }
             CleanQueue(vCallback);
@@ -427,6 +435,7 @@ namespace SPA {
                     return true;
                 }
             }
+            p = nullptr;
             return false;
         }
 
