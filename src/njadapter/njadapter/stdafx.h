@@ -34,11 +34,11 @@
 
 #ifndef WIN32_64
 #define LINUX_STRING_BUG
-#endif
-
-#if NODE_VERSION_AT_LEAST(14,15,1)
+#if NODE_VERSION_AT_LEAST(14,15,0)
 #undef LINUX_STRING_BUG
 #endif
+#endif
+
 
 #include "../../../include/tablecache.h"
 #include "dbreqcb.h"
