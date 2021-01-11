@@ -32,11 +32,12 @@
 #define BOOL_ISOLATE
 #endif
 
-#if NODE_VERSION_AT_LEAST(14,15,1)
-#else
 #ifndef WIN32_64
 #define LINUX_STRING_BUG
 #endif
+
+#if NODE_VERSION_AT_LEAST(14,15,1)
+#undef LINUX_STRING_BUG
 #endif
 
 #include "../../../include/tablecache.h"
