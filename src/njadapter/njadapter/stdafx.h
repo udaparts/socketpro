@@ -32,13 +32,15 @@
 #define BOOL_ISOLATE
 #endif
 
-#ifndef WIN32_64
-#define LINUX_STRING_BUG
 #if NODE_VERSION_AT_LEAST(14,15,0)
-#undef LINUX_STRING_BUG
-#endif
+#define AT_LEAST_NODE_14_15_0
 #endif
 
+#ifndef WIN32_64
+#ifndef AT_LEAST_NODE_14_15_0
+#define LINUX_STRING_BUG
+#endif
+#endif
 
 #include "../../../include/tablecache.h"
 #include "dbreqcb.h"
