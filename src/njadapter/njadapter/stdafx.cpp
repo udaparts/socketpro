@@ -274,7 +274,11 @@ namespace NJA {
         } else if (len == (size_t) INVALID_NUMBER) {
             len = SPA::Utilities::GetLen(str);
         }
+#ifdef LINUX_STRING_BUG
+        return String::NewFromTwoByte(isolate, (const uint16_t*) str, v8::NewStringType::kInternalized, (int) len).ToLocalChecked();
+#else
         return String::NewFromTwoByte(isolate, (const uint16_t*) str, v8::NewStringType::kNormal, (int) len).ToLocalChecked();
+#endif
     }
 
     SPA::CDBString ToStr(Isolate* isolate, const Local<Value>& s) {
