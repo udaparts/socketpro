@@ -135,8 +135,9 @@ namespace NJA {
 
     void NJQueue::getOS(const FunctionCallbackInfo<Value>& args) {
         NJQueue* obj = ObjectWrap::Unwrap<NJQueue>(args.Holder());
-        if (obj->m_Buffer)
-            args.GetReturnValue().Set(Int32::New(args.GetIsolate(), (int) obj->m_Buffer->GetOS()));
+        CUQueue* buff = obj->m_Buffer;
+        if (buff)
+            args.GetReturnValue().Set(Int32::New(args.GetIsolate(), (int) buff->GetOS()));
         else
             args.GetReturnValue().Set(Int32::New(args.GetIsolate(), (int) SPA::GetOS()));
     }
@@ -145,8 +146,9 @@ namespace NJA {
         NJQueue* obj = ObjectWrap::Unwrap<NJQueue>(args.Holder());
         unsigned int ret = 0;
         Isolate* isolate = args.GetIsolate();
-        if (obj->m_Buffer && args[0]->IsUint32()) {
-            ret = obj->m_Buffer->Pop((unsigned int) args[0]->Uint32Value(isolate->GetCurrentContext()).ToChecked());
+        CUQueue* buff = obj->m_Buffer;
+        if (buff && args[0]->IsUint32()) {
+            ret = buff->Pop((unsigned int) args[0]->Uint32Value(isolate->GetCurrentContext()).ToChecked());
         }
         args.GetReturnValue().Set(Uint32::New(isolate, ret));
     }
@@ -162,9 +164,10 @@ namespace NJA {
             return;
         }
         unsigned int ret = 0;
-        if (obj->m_Buffer) {
-            obj->m_Buffer->SetSize(size);
-            ret = obj->m_Buffer->GetSize();
+        CUQueue* buff = obj->m_Buffer;
+        if (buff) {
+            buff->SetSize(size);
+            ret = buff->GetSize();
         }
         args.GetReturnValue().Set(Uint32::New(isolate, ret));
     }
@@ -172,8 +175,9 @@ namespace NJA {
     void NJQueue::getMaxBufferSize(const FunctionCallbackInfo<Value>& args) {
         NJQueue* obj = ObjectWrap::Unwrap<NJQueue>(args.Holder());
         unsigned int ret = 0;
-        if (obj->m_Buffer)
-            ret = obj->m_Buffer->GetMaxSize();
+        CUQueue* buff = obj->m_Buffer;
+        if (buff)
+            ret = buff->GetMaxSize();
         args.GetReturnValue().Set(Uint32::New(args.GetIsolate(), ret));
     }
 
@@ -187,10 +191,11 @@ namespace NJA {
             return;
         }
         NJQueue* obj = ObjectWrap::Unwrap<NJQueue>(args.Holder());
-        if (obj->m_Buffer)
-            obj->m_Buffer->ReallocBuffer(size);
+        CUQueue* buff = obj->m_Buffer;
+        if (buff)
+            buff->ReallocBuffer(size);
         else
-            obj->m_Buffer = CScopeUQueue::Lock(SPA::GetOS(), SPA::IsBigEndian(), size, obj->m_blockSize);
+            buff = CScopeUQueue::Lock(SPA::GetOS(), SPA::IsBigEndian(), size, obj->m_blockSize);
     }
 
     void NJQueue::UseStrForDec(const FunctionCallbackInfo<Value>& args) {
@@ -214,8 +219,9 @@ namespace NJA {
     void NJQueue::getSize(const FunctionCallbackInfo<Value>& args) {
         NJQueue* obj = ObjectWrap::Unwrap<NJQueue>(args.Holder());
         unsigned int ret = 0;
-        if (obj->m_Buffer)
-            ret = obj->m_Buffer->GetSize();
+        CUQueue* buff = obj->m_Buffer;
+        if (buff)
+            ret = buff->GetSize();
         args.GetReturnValue().Set(Uint32::New(args.GetIsolate(), ret));
     }
 
@@ -353,16 +359,17 @@ namespace NJA {
         NJQueue* obj = ObjectWrap::Unwrap<NJQueue>(args.Holder());
         unsigned int size = 0;
         unsigned int all = (~0);
-        if (obj->m_Buffer) {
-            size = obj->m_Buffer->GetSize();
+        CUQueue* buff = obj->m_Buffer;
+        if (buff) {
+            size = buff->GetSize();
         }
         if (args.Length() && args[0]->IsUint32())
             all = args[0]->Uint32Value(isolate->GetCurrentContext()).ToChecked();
         if (size > all)
             size = all;
         if (size) {
-            args.GetReturnValue().Set(node::Buffer::Copy(isolate, (const char*) obj->m_Buffer->GetBuffer(), size).ToLocalChecked());
-            obj->m_Buffer->Pop(size);
+            args.GetReturnValue().Set(node::Buffer::Copy(isolate, (const char*) buff->GetBuffer(), size).ToLocalChecked());
+            buff->Pop(size);
         } else {
             args.GetReturnValue().Set(node::Buffer::Copy(isolate, (const char*) "", 0).ToLocalChecked());
         }
@@ -371,26 +378,27 @@ namespace NJA {
     void NJQueue::LoadBytes(const FunctionCallbackInfo<Value>& args) {
         Isolate* isolate = args.GetIsolate();
         NJQueue* obj = ObjectWrap::Unwrap<NJQueue>(args.Holder());
-        if (!obj->m_Buffer) {
+        CUQueue* buff = obj->m_Buffer;
+        if (!buff) {
             ThrowException(isolate, NO_BUFFER_AVAILABLE);
             return;
         }
         try {
             unsigned int len;
-            *obj->m_Buffer >> len;
+            *buff >> len;
             if (len == (unsigned int) (~0)) {
                 args.GetReturnValue().SetNull();
             } else {
-                if (len <= obj->m_Buffer->GetSize()) {
-                    args.GetReturnValue().Set(node::Buffer::Copy(isolate, (const char*) obj->m_Buffer->GetBuffer(), len).ToLocalChecked());
-                    obj->m_Buffer->Pop(len);
+                if (len <= buff->GetSize()) {
+                    args.GetReturnValue().Set(node::Buffer::Copy(isolate, (const char*) buff->GetBuffer(), len).ToLocalChecked());
+                    buff->Pop(len);
                 } else {
-                    obj->m_Buffer->Pop(len);
+                    buff->Pop(len);
                     ThrowException(isolate, "Bad data for loading byte array");
                 }
             }
         } catch (std::exception &err) {
-            obj->get()->SetSize(0);
+            buff->SetSize(0);
             ThrowException(isolate, err.what());
         }
     }
@@ -398,26 +406,27 @@ namespace NJA {
     void NJQueue::LoadAString(const FunctionCallbackInfo<Value>& args) {
         Isolate* isolate = args.GetIsolate();
         NJQueue* obj = ObjectWrap::Unwrap<NJQueue>(args.Holder());
-        if (!obj->m_Buffer) {
+        CUQueue* buff = obj->m_Buffer;
+        if (!buff) {
             ThrowException(isolate, NO_BUFFER_AVAILABLE);
             return;
         }
         try {
             unsigned int len;
-            *obj->m_Buffer >> len;
+            *buff >> len;
             if (len == (unsigned int) (~0)) {
                 args.GetReturnValue().SetNull();
             } else {
-                if (len <= obj->m_Buffer->GetSize()) {
-                    args.GetReturnValue().Set(ToStr(isolate, (const char*) obj->m_Buffer->GetBuffer(), len));
-                    obj->m_Buffer->Pop(len);
+                if (len <= buff->GetSize()) {
+                    args.GetReturnValue().Set(ToStr(isolate, (const char*) buff->GetBuffer(), len));
+                    buff->Pop(len);
                 } else {
-                    obj->m_Buffer->Pop(len);
+                    buff->Pop(len);
                     ThrowException(isolate, "Bad data for loading ASCII string");
                 }
             }
         } catch (std::exception &err) {
-            obj->get()->SetSize(0);
+            buff->SetSize(0);
             ThrowException(isolate, err.what());
         }
     }
@@ -425,25 +434,26 @@ namespace NJA {
     void NJQueue::LoadString(const FunctionCallbackInfo<Value>& args) {
         Isolate* isolate = args.GetIsolate();
         NJQueue* obj = ObjectWrap::Unwrap<NJQueue>(args.Holder());
-        if (!obj->m_Buffer) {
+        CUQueue* buff = obj->m_Buffer;
+        if (!buff) {
             ThrowException(isolate, NO_BUFFER_AVAILABLE);
             return;
         }
         try {
             unsigned int len;
-            *obj->m_Buffer >> len;
+            *buff >> len;
             if (len == (unsigned int) (~0)) {
                 args.GetReturnValue().SetNull();
-            } else if (len <= obj->m_Buffer->GetSize()) {
-                const UTF16 *str = (const UTF16 *) obj->m_Buffer->GetBuffer();
+            } else if (len <= buff->GetSize()) {
+                const UTF16 *str = (const UTF16 *) buff->GetBuffer();
                 args.GetReturnValue().Set(ToStr(isolate, str, len / sizeof (SPA::UTF16)));
-                obj->m_Buffer->Pop(len);
+                buff->Pop(len);
             } else {
                 ThrowException(isolate, "Bad unicode string found");
-                obj->m_Buffer->SetSize(0);
+                buff->SetSize(0);
             }
         } catch (std::exception &err) {
-            obj->get()->SetSize(0);
+            buff->SetSize(0);
             ThrowException(isolate, err.what());
         }
     }
@@ -575,15 +585,16 @@ namespace NJA {
             auto p = args[0];
             NJQueue* obj = ObjectWrap::Unwrap<NJQueue>(args.Holder());
             obj->Ensure();
+            CUQueue* buff = obj->m_Buffer;
             if (IsNullOrUndefined(p)) {
-                *obj->m_Buffer << (const char *) nullptr;
+                *buff << (const char *) nullptr;
                 args.GetReturnValue().Set(args.Holder());
                 return;
             } else if (node::Buffer::HasInstance(p)) {
                 char *bytes = node::Buffer::Data(p);
                 unsigned int len = (unsigned int) node::Buffer::Length(p);
-                *obj->m_Buffer << len;
-                obj->m_Buffer->Push((const unsigned char*) bytes, len);
+                *buff << len;
+                buff->Push((const unsigned char*) bytes, len);
                 args.GetReturnValue().Set(args.Holder());
                 return;
             }
@@ -617,8 +628,9 @@ namespace NJA {
             NJQueue* obj = ObjectWrap::Unwrap<NJQueue>(args.Holder());
             obj->Ensure();
             auto p = args[0];
+            CUQueue* buff = obj->m_Buffer;
             if (IsNullOrUndefined(p)) {
-                *obj->m_Buffer << (const char*) nullptr;
+                *buff << (const char*) nullptr;
             } else {
                 if (!p->IsString())
                     p = p->ToString(isolate->GetCurrentContext()).ToLocalChecked();
@@ -628,8 +640,8 @@ namespace NJA {
                 String::Utf8Value str(isolate, p);
 #endif
                 unsigned int len = (unsigned int) str.length();
-                *obj->m_Buffer << len;
-                obj->m_Buffer->Push((const unsigned char*) (*str), len);
+                *buff << len;
+                buff->Push((const unsigned char*) (*str), len);
             }
             args.GetReturnValue().Set(args.Holder());
         } else {
@@ -643,8 +655,9 @@ namespace NJA {
             NJQueue* obj = ObjectWrap::Unwrap<NJQueue>(args.Holder());
             obj->Ensure();
             auto p = args[0];
+            CUQueue* buff = obj->m_Buffer;
             if (IsNullOrUndefined(p)) {
-                *obj->m_Buffer << (const wchar_t *)nullptr;
+                *buff << (const wchar_t *)nullptr;
             } else {
                 if (!p->IsString())
                     p = p->ToString(isolate->GetCurrentContext()).ToLocalChecked();
@@ -655,8 +668,8 @@ namespace NJA {
 #endif
                 unsigned int len = (unsigned int) str.length();
                 len *= sizeof (uint16_t);
-                *obj->m_Buffer << len;
-                obj->m_Buffer->Push((const unsigned char*) (*str), len);
+                *buff << len;
+                buff->Push((const unsigned char*) (*str), len);
             }
             args.GetReturnValue().Set(args.Holder());
         } else {
@@ -726,14 +739,15 @@ namespace NJA {
     void NJQueue::LoadByClass(const FunctionCallbackInfo<Value>& args) {
         Isolate* isolate = args.GetIsolate();
         NJQueue* obj = ObjectWrap::Unwrap<NJQueue>(args.Holder());
-        if (!obj->m_Buffer) {
+        CUQueue* buff = obj->m_Buffer;
+        if (!buff) {
             ThrowException(isolate, NO_BUFFER_AVAILABLE);
         } else if (args[0]->IsFunction()) {
             Local<Function> cb = Local<Function>::Cast(args[0]);
             Local<Value> argv[] = {args.Holder()};
             args.GetReturnValue().Set(cb->Call(isolate->GetCurrentContext(), Null(isolate), 1, argv).ToLocalChecked());
         } else {
-            obj->get()->SetSize(0);
+            buff->SetSize(0);
             ThrowException(isolate, "An function expected for class or struct de-serialization");
         }
     }
@@ -794,120 +808,121 @@ namespace NJA {
             id.assign(s, str.length());
             std::transform(id.begin(), id.end(), id.begin(), ::tolower);
         }
+        CUQueue* buff = obj->m_Buffer;
         auto p0 = args[0];
         if (IsNullOrUndefined(p0)) {
             vt = VT_NULL;
-            *obj->m_Buffer << vt;
+            *buff << vt;
             args.GetReturnValue().Set(args.Holder());
         } else if (p0->IsFunction()) {
             vt = SPA::VT_USERIALIZER_OBJECT;
-            *obj->m_Buffer << vt;
+            *buff << vt;
             SaveByClass(args);
         } else if (p0->IsDate()) {
             vt = VT_DATE;
-            *obj->m_Buffer << vt;
+            *buff << vt;
             SaveDate(args);
         } else if (p0->IsBoolean()) {
             vt = VT_BOOL;
             short v = p0->IsTrue() ? -1 : 0;
-            *obj->m_Buffer << vt << v;
+            *buff << vt << v;
             args.GetReturnValue().Set(args.Holder());
         } else if (p0->IsString()) {
             if (id.size()) {
                 if (id == "a" || id == "ascii") {
                     vt = (VT_ARRAY | VT_I1);
-                    *obj->m_Buffer << vt;
+                    *buff << vt;
                     SaveAString(args);
                 } else if (id == "dec" || id == "decimal") {
                     vt = VT_DECIMAL;
-                    *obj->m_Buffer << vt;
+                    *buff << vt;
                     SaveDecimal(args);
                 } else {
                     vt = VT_BSTR;
-                    *obj->m_Buffer << vt;
+                    *buff << vt;
                     SaveString(args);
                 }
             } else {
                 vt = VT_BSTR;
-                *obj->m_Buffer << vt;
+                *buff << vt;
                 SaveString(args);
             }
         } else if (p0->IsInt32() && id == "") {
             vt = VT_I4;
-            *obj->m_Buffer << vt;
+            *buff << vt;
             SaveInt(args);
         }
 #ifdef HAS_BIGINT
         else if (p0->IsBigInt() && id == "") {
             vt = VT_I8;
-            *obj->m_Buffer << vt;
+            *buff << vt;
             SaveLong(args);
         }
 #endif
         else if (p0->IsNumber()) {
             if (id == "f" || id == "float") {
                 vt = VT_R4;
-                *obj->m_Buffer << vt;
+                *buff << vt;
                 SaveFloat(args);
             } else if (id == "d" || id == "double") {
                 vt = VT_R8;
-                *obj->m_Buffer << vt;
+                *buff << vt;
                 SaveDouble(args);
             } else if (id == "i" || id == "int") {
                 vt = VT_I4;
-                *obj->m_Buffer << vt;
+                *buff << vt;
                 SaveInt(args);
             } else if (id == "ui" || id == "uint") {
                 vt = VT_UI4;
-                *obj->m_Buffer << vt;
+                *buff << vt;
                 SaveUInt(args);
             } else if (id == "l" || id == "long") {
                 vt = VT_I8;
-                *obj->m_Buffer << vt;
+                *buff << vt;
                 SaveLong(args);
             } else if (id == "ul" || id == "ulong") {
                 vt = VT_UI8;
-                *obj->m_Buffer << vt;
+                *buff << vt;
                 SaveULong(args);
             } else if (id == "s" || id == "short") {
                 vt = VT_I2;
-                *obj->m_Buffer << vt;
+                *buff << vt;
                 SaveShort(args);
             } else if (id == "us" || id == "ushort") {
                 vt = VT_UI2;
-                *obj->m_Buffer << vt;
+                *buff << vt;
                 SaveUShort(args);
             } else if (id == "dec" || id == "decimal") {
                 vt = VT_DECIMAL;
-                *obj->m_Buffer << vt;
+                *buff << vt;
                 SaveDecimal(args);
             } else if (id == "c" || id == "char") {
                 vt = VT_I1;
-                *obj->m_Buffer << vt;
+                *buff << vt;
                 SaveAChar(args);
             } else if (id == "b" || id == "byte") {
                 vt = VT_UI1;
-                *obj->m_Buffer << vt;
+                *buff << vt;
                 SaveByte(args);
             } else if (id == "date") {
                 vt = VT_DATE;
-                *obj->m_Buffer << vt;
+                *buff << vt;
                 SaveDate(args);
             } else if (p0->IsInt32()) {
                 vt = VT_I4;
-                *obj->m_Buffer << vt;
+                *buff << vt;
                 SaveInt(args);
             }
 #ifdef HAS_BIGINT
             else if (p0->IsBigInt()) {
                 vt = VT_I8;
-                *obj->m_Buffer << vt;
+                *buff << vt;
                 SaveLong(args);
             }
 #endif
             else {
                 vt = VT_R8;
-                *obj->m_Buffer << vt;
+                *buff << vt;
                 SaveDouble(args);
             }
         } else if (p0->IsInt8Array()) {
@@ -915,8 +930,8 @@ namespace NJA {
             Local<v8::Int8Array> vInt = Local<v8::Int8Array>::Cast(p0);
             const char *p = (const char*) vInt->Buffer()->GetContents().Data();
             unsigned int count = (unsigned int) vInt->Length();
-            *obj->m_Buffer << vt << count;
-            obj->m_Buffer->Push((const unsigned char*) p, count * sizeof (char));
+            *buff << vt << count;
+            buff->Push((const unsigned char*) p, count * sizeof (char));
             args.GetReturnValue().Set(args.Holder());
 
         } else if (p0->IsInt16Array()) {
@@ -924,32 +939,32 @@ namespace NJA {
             Local<v8::Int16Array> vInt = Local<v8::Int16Array>::Cast(p0);
             const short *p = (const short*) vInt->Buffer()->GetContents().Data();
             unsigned int count = (unsigned int) vInt->Length();
-            *obj->m_Buffer << vt << count;
-            obj->m_Buffer->Push((const unsigned char*) p, count * sizeof (short));
+            *buff << vt << count;
+            buff->Push((const unsigned char*) p, count * sizeof (short));
             args.GetReturnValue().Set(args.Holder());
         } else if (p0->IsInt32Array()) {
             vt = (VT_ARRAY | VT_I4);
             Local<v8::Int32Array> vInt = Local<v8::Int32Array>::Cast(p0);
             const int *p = (const int*) vInt->Buffer()->GetContents().Data();
             unsigned int count = (unsigned int) vInt->Length();
-            *obj->m_Buffer << vt << count;
-            obj->m_Buffer->Push((const unsigned char*) p, count * sizeof (int));
+            *buff << vt << count;
+            buff->Push((const unsigned char*) p, count * sizeof (int));
             args.GetReturnValue().Set(args.Holder());
         } else if (p0->IsUint16Array()) {
             vt = (VT_ARRAY | VT_UI2);
             Local<v8::Uint16Array> vInt = Local<v8::Uint16Array>::Cast(p0);
             const unsigned short *p = (const unsigned short*) vInt->Buffer()->GetContents().Data();
             unsigned int count = (unsigned int) vInt->Length();
-            *obj->m_Buffer << vt << count;
-            obj->m_Buffer->Push((const unsigned char*) p, count * sizeof (unsigned short));
+            *buff << vt << count;
+            buff->Push((const unsigned char*) p, count * sizeof (unsigned short));
             args.GetReturnValue().Set(args.Holder());
         } else if (p0->IsUint32Array()) {
             vt = (VT_ARRAY | VT_UI4);
             Local<v8::Uint32Array> vInt = Local<v8::Uint32Array>::Cast(p0);
             const unsigned int *p = (const unsigned int*) vInt->Buffer()->GetContents().Data();
             unsigned int count = (unsigned int) vInt->Length();
-            *obj->m_Buffer << vt << count;
-            obj->m_Buffer->Push((const unsigned char*) p, count * sizeof (unsigned int));
+            *buff << vt << count;
+            buff->Push((const unsigned char*) p, count * sizeof (unsigned int));
             args.GetReturnValue().Set(args.Holder());
 #ifdef HAS_BIGINT
         } else if (p0->IsBigUint64Array()) {
@@ -957,16 +972,16 @@ namespace NJA {
             char *bytes = node::Buffer::Data(p0);
             Local<v8::BigUint64Array> vInt = Local<v8::BigUint64Array>::Cast(p0);
             unsigned int count = (unsigned int) vInt->Length();
-            *obj->m_Buffer << vt << count;
-            obj->m_Buffer->Push((const unsigned char*) bytes, count * sizeof (uint64_t));
+            *buff << vt << count;
+            buff->Push((const unsigned char*) bytes, count * sizeof (uint64_t));
             args.GetReturnValue().Set(args.Holder());
         } else if (p0->IsBigInt64Array()) {
             vt = (VT_ARRAY | VT_UI4);
             char *bytes = node::Buffer::Data(p0);
             Local<v8::BigInt64Array> vInt = Local<v8::BigInt64Array>::Cast(p0);
             unsigned int count = (unsigned int) vInt->Length();
-            *obj->m_Buffer << vt << count;
-            obj->m_Buffer->Push((const unsigned char*) bytes, count * sizeof (int64_t));
+            *buff << vt << count;
+            buff->Push((const unsigned char*) bytes, count * sizeof (int64_t));
             args.GetReturnValue().Set(args.Holder());
 #endif
         } else if (p0->IsFloat32Array()) {
@@ -974,28 +989,28 @@ namespace NJA {
             Local<v8::Float32Array> vInt = Local<v8::Float32Array>::Cast(p0);
             unsigned int count = (unsigned int) vInt->Length();
             const float *p = (const float*) vInt->Buffer()->GetContents().Data();
-            *obj->m_Buffer << vt << count;
-            obj->m_Buffer->Push((const unsigned char*) p, count * sizeof (float));
+            *buff << vt << count;
+            buff->Push((const unsigned char*) p, count * sizeof (float));
             args.GetReturnValue().Set(args.Holder());
         } else if (p0->IsFloat64Array()) {
             vt = (VT_ARRAY | VT_R8);
             Local<v8::Float64Array> vInt = Local<v8::Float64Array>::Cast(p0);
             const double *p = (const double*) vInt->Buffer()->GetContents().Data();
             unsigned int count = (unsigned int) vInt->Length();
-            *obj->m_Buffer << vt << count;
-            obj->m_Buffer->Push((const unsigned char*) p, count * sizeof (double));
+            *buff << vt << count;
+            buff->Push((const unsigned char*) p, count * sizeof (double));
             args.GetReturnValue().Set(args.Holder());
         } else if (node::Buffer::HasInstance(p0)) {
             char *bytes = node::Buffer::Data(p0);
             unsigned int len = (unsigned int) node::Buffer::Length(p0);
             if (len == sizeof (GUID) && (id == "u" || id == "uuid")) {
                 vt = VT_CLSID;
-                *obj->m_Buffer << vt;
-                obj->m_Buffer->Push((const unsigned char*) bytes, len);
+                *buff << vt;
+                buff->Push((const unsigned char*) bytes, len);
             } else {
                 vt = (VT_ARRAY | VT_UI1);
-                *obj->m_Buffer << vt << len;
-                obj->m_Buffer->Push((const unsigned char*) bytes, len);
+                *buff << vt << len;
+                buff->Push((const unsigned char*) bytes, len);
             }
             args.GetReturnValue().Set(args.Holder());
         } else if (p0->IsArray()) {
@@ -1097,8 +1112,8 @@ namespace NJA {
                     assert(false); //shouldn't come here
                     break;
             }
-            *obj->m_Buffer << vtType << count;
-            obj->m_Buffer->Push(sb.GetBuffer(), sb.GetSize());
+            *buff << vtType << count;
+            buff->Push(sb.GetBuffer(), sb.GetSize());
             args.GetReturnValue().Set(args.Holder());
         } else {
             ThrowException(isolate, UNSUPPORTED_TYPE);
