@@ -782,7 +782,7 @@ namespace NJA {
         obj->Ensure();
         auto p0 = args[0];
         if (p0->IsFunction()) {
-            Local<Function> cb = Local<Function>::Cast(args[0]);
+            Local<Function> cb = Local<Function>::Cast(p0);
             Local<Value> argv[] = {args.Holder()};
             cb->Call(isolate->GetCurrentContext(), Null(isolate), 1, argv);
             args.GetReturnValue().Set(args.Holder());
@@ -808,211 +808,231 @@ namespace NJA {
             id.assign(s, str.length());
             std::transform(id.begin(), id.end(), id.begin(), ::tolower);
         }
-        CUQueue* buff = obj->m_Buffer;
+        CUQueue &buff = *obj->m_Buffer;
         auto p0 = args[0];
         if (IsNullOrUndefined(p0)) {
             vt = VT_NULL;
-            *buff << vt;
-            args.GetReturnValue().Set(args.Holder());
+            buff << vt;
         } else if (p0->IsFunction()) {
             vt = SPA::VT_USERIALIZER_OBJECT;
-            *buff << vt;
-            SaveByClass(args);
+            buff << vt;
+            Local<Function> cb = Local<Function>::Cast(p0);
+            Local<Value> argv[] = {args.Holder()};
+            cb->Call(isolate->GetCurrentContext(), Null(isolate), 1, argv);
         } else if (p0->IsDate()) {
             vt = VT_DATE;
-            *buff << vt;
-            SaveDate(args);
+            SPA::UINT64 d = ToDate(isolate, p0);
+            buff << vt << d;
         } else if (p0->IsBoolean()) {
             vt = VT_BOOL;
             short v = p0->IsTrue() ? -1 : 0;
-            *buff << vt << v;
-            args.GetReturnValue().Set(args.Holder());
+            buff << vt << v;
         } else if (p0->IsString()) {
-            if (id.size()) {
+            if (id.size() && (id == "a" || id == "ascii" || id == "dec" || id == "decimal")) {
+#if NODE_MODULE_VERSION < 57
+                String::Utf8Value str(p0);
+#else
+                String::Utf8Value str(isolate, p0);
+#endif
                 if (id == "a" || id == "ascii") {
                     vt = (VT_ARRAY | VT_I1);
-                    *buff << vt;
-                    SaveAString(args);
-                } else if (id == "dec" || id == "decimal") {
-                    vt = VT_DECIMAL;
-                    *buff << vt;
-                    SaveDecimal(args);
+                    unsigned int len = (unsigned int) str.length();
+                    buff << vt << len;
+                    buff.Push((const unsigned char*) (*str), len);
                 } else {
-                    vt = VT_BSTR;
-                    *buff << vt;
-                    SaveString(args);
+                    vt = VT_DECIMAL;
+                    const char* s = *str;
+                    DECIMAL dec;
+                    SPA::ParseDec_long(s, dec);
+                    buff << vt << dec;
                 }
             } else {
                 vt = VT_BSTR;
-                *buff << vt;
-                SaveString(args);
+#if NODE_MODULE_VERSION < 57
+                String::Value str(p0);
+#else
+                String::Value str(isolate, p0);
+#endif
+                unsigned int len = (unsigned int) str.length();
+                len <<= 1;
+                buff << vt << len;
+                buff.Push((const unsigned char*) (*str), len);
             }
         } else if (p0->IsInt32() && id == "") {
             vt = VT_I4;
-            *buff << vt;
-            SaveInt(args);
+            buff << vt << p0->Int32Value(isolate->GetCurrentContext()).ToChecked();
         }
 #ifdef HAS_BIGINT
         else if (p0->IsBigInt() && id == "") {
             vt = VT_I8;
-            *buff << vt;
-            SaveLong(args);
+            buff << vt << p0->IntegerValue(isolate->GetCurrentContext()).ToChecked();
         }
 #endif
         else if (p0->IsNumber()) {
-            if (id == "f" || id == "float") {
-                vt = VT_R4;
-                *buff << vt;
-                SaveFloat(args);
-            } else if (id == "d" || id == "double") {
-                vt = VT_R8;
-                *buff << vt;
-                SaveDouble(args);
-            } else if (id == "i" || id == "int") {
-                vt = VT_I4;
-                *buff << vt;
-                SaveInt(args);
-            } else if (id == "ui" || id == "uint") {
-                vt = VT_UI4;
-                *buff << vt;
-                SaveUInt(args);
-            } else if (id == "l" || id == "long") {
-                vt = VT_I8;
-                *buff << vt;
-                SaveLong(args);
-            } else if (id == "ul" || id == "ulong") {
-                vt = VT_UI8;
-                *buff << vt;
-                SaveULong(args);
-            } else if (id == "s" || id == "short") {
-                vt = VT_I2;
-                *buff << vt;
-                SaveShort(args);
-            } else if (id == "us" || id == "ushort") {
-                vt = VT_UI2;
-                *buff << vt;
-                SaveUShort(args);
-            } else if (id == "dec" || id == "decimal") {
-                vt = VT_DECIMAL;
-                *buff << vt;
-                SaveDecimal(args);
-            } else if (id == "c" || id == "char") {
-                vt = VT_I1;
-                *buff << vt;
-                SaveAChar(args);
-            } else if (id == "b" || id == "byte") {
-                vt = VT_UI1;
-                *buff << vt;
-                SaveByte(args);
-            } else if (id == "date") {
-                vt = VT_DATE;
-                *buff << vt;
-                SaveDate(args);
-            } else if (p0->IsInt32()) {
-                vt = VT_I4;
-                *buff << vt;
-                SaveInt(args);
-            }
+            do {
+                if (id.size()) {
+                    if (id == "f" || id == "float") {
+                        vt = VT_R4;
+                        buff << vt << (float) p0->NumberValue(isolate->GetCurrentContext()).ToChecked();
+                        break;
+                    } else if (id == "d" || id == "double") {
+                        vt = VT_R8;
+                        buff << vt << p0->NumberValue(isolate->GetCurrentContext()).ToChecked();
+                        break;
+                    } else if (id == "i" || id == "int") {
+                        vt = VT_I4;
+                        buff << vt << p0->Int32Value(isolate->GetCurrentContext()).ToChecked();
+                        break;
+                    } else if (id == "ui" || id == "uint") {
+                        vt = VT_UI4;
+                        buff << vt << p0->Uint32Value(isolate->GetCurrentContext()).ToChecked();
+                        break;
+                    } else if (id == "l" || id == "long") {
+                        vt = VT_I8;
+                        buff << vt << p0->IntegerValue(isolate->GetCurrentContext()).ToChecked();
+                        break;
+                    } else if (id == "ul" || id == "ulong") {
+                        vt = VT_UI8;
+                        buff << vt << (SPA::UINT64)p0->IntegerValue(isolate->GetCurrentContext()).ToChecked();
+                        break;
+                    } else if (id == "s" || id == "short") {
+                        vt = VT_I2;
+                        buff << vt << (short) p0->Int32Value(isolate->GetCurrentContext()).ToChecked();
+                        break;
+                    } else if (id == "us" || id == "ushort") {
+                        vt = VT_UI2;
+                        buff << vt << (unsigned short) p0->Uint32Value(isolate->GetCurrentContext()).ToChecked();
+                        break;
+                    } else if (id == "dec" || id == "decimal") {
+                        vt = VT_DECIMAL;
+                        buff << vt;
+                        SaveDecimal(args);
+                        return;
+                    } else if (id == "c" || id == "char") {
+                        vt = VT_I1;
+                        buff << vt << (char) p0->Int32Value(isolate->GetCurrentContext()).ToChecked();
+                        break;
+                    } else if (id == "b" || id == "byte") {
+                        vt = VT_UI1;
+                        buff << vt << (unsigned char) p0->Uint32Value(isolate->GetCurrentContext()).ToChecked();
+                        break;
+                    } else if (id == "date") {
+                        SPA::UINT64 d = ToDate(isolate, p0);
+                        if (d == INVALID_NUMBER) {
+                            ThrowException(isolate, BAD_DATA_TYPE);
+                            return;
+                        }
+                        vt = VT_DATE;
+                        buff << vt << d;
+                        break;
+                    }
+                }
+                if (p0->IsInt32()) {
+                    vt = VT_I4;
+                    buff << vt << p0->Int32Value(isolate->GetCurrentContext()).ToChecked();
+                }
 #ifdef HAS_BIGINT
-            else if (p0->IsBigInt()) {
-                vt = VT_I8;
-                *buff << vt;
-                SaveLong(args);
-            }
+                else if (p0->IsBigInt()) {
+                    vt = VT_I8;
+                    buff << vt << p0->IntegerValue(isolate->GetCurrentContext()).ToChecked();
+                }
 #endif
-            else {
-                vt = VT_R8;
-                *buff << vt;
-                SaveDouble(args);
-            }
-        } else if (p0->IsInt8Array()) {
-            vt = (VT_ARRAY | VT_I1);
-            Local<v8::Int8Array> vInt = Local<v8::Int8Array>::Cast(p0);
-            const char *p = (const char*) vInt->Buffer()->GetContents().Data();
-            unsigned int count = (unsigned int) vInt->Length();
-            *buff << vt << count;
-            buff->Push((const unsigned char*) p, count * sizeof (char));
-            args.GetReturnValue().Set(args.Holder());
-
-        } else if (p0->IsInt16Array()) {
-            vt = (VT_ARRAY | VT_I2);
-            Local<v8::Int16Array> vInt = Local<v8::Int16Array>::Cast(p0);
-            const short *p = (const short*) vInt->Buffer()->GetContents().Data();
-            unsigned int count = (unsigned int) vInt->Length();
-            *buff << vt << count;
-            buff->Push((const unsigned char*) p, count * sizeof (short));
-            args.GetReturnValue().Set(args.Holder());
-        } else if (p0->IsInt32Array()) {
-            vt = (VT_ARRAY | VT_I4);
-            Local<v8::Int32Array> vInt = Local<v8::Int32Array>::Cast(p0);
-            const int *p = (const int*) vInt->Buffer()->GetContents().Data();
-            unsigned int count = (unsigned int) vInt->Length();
-            *buff << vt << count;
-            buff->Push((const unsigned char*) p, count * sizeof (int));
-            args.GetReturnValue().Set(args.Holder());
-        } else if (p0->IsUint16Array()) {
-            vt = (VT_ARRAY | VT_UI2);
-            Local<v8::Uint16Array> vInt = Local<v8::Uint16Array>::Cast(p0);
-            const unsigned short *p = (const unsigned short*) vInt->Buffer()->GetContents().Data();
-            unsigned int count = (unsigned int) vInt->Length();
-            *buff << vt << count;
-            buff->Push((const unsigned char*) p, count * sizeof (unsigned short));
-            args.GetReturnValue().Set(args.Holder());
-        } else if (p0->IsUint32Array()) {
-            vt = (VT_ARRAY | VT_UI4);
-            Local<v8::Uint32Array> vInt = Local<v8::Uint32Array>::Cast(p0);
-            const unsigned int *p = (const unsigned int*) vInt->Buffer()->GetContents().Data();
-            unsigned int count = (unsigned int) vInt->Length();
-            *buff << vt << count;
-            buff->Push((const unsigned char*) p, count * sizeof (unsigned int));
-            args.GetReturnValue().Set(args.Holder());
-#ifdef HAS_BIGINT
-        } else if (p0->IsBigUint64Array()) {
-            vt = (VT_ARRAY | VT_UI8);
-            char *bytes = node::Buffer::Data(p0);
-            Local<v8::BigUint64Array> vInt = Local<v8::BigUint64Array>::Cast(p0);
-            unsigned int count = (unsigned int) vInt->Length();
-            *buff << vt << count;
-            buff->Push((const unsigned char*) bytes, count * sizeof (uint64_t));
-            args.GetReturnValue().Set(args.Holder());
-        } else if (p0->IsBigInt64Array()) {
-            vt = (VT_ARRAY | VT_UI4);
-            char *bytes = node::Buffer::Data(p0);
-            Local<v8::BigInt64Array> vInt = Local<v8::BigInt64Array>::Cast(p0);
-            unsigned int count = (unsigned int) vInt->Length();
-            *buff << vt << count;
-            buff->Push((const unsigned char*) bytes, count * sizeof (int64_t));
-            args.GetReturnValue().Set(args.Holder());
-#endif
-        } else if (p0->IsFloat32Array()) {
-            vt = (VT_ARRAY | VT_R4);
-            Local<v8::Float32Array> vInt = Local<v8::Float32Array>::Cast(p0);
-            unsigned int count = (unsigned int) vInt->Length();
-            const float *p = (const float*) vInt->Buffer()->GetContents().Data();
-            *buff << vt << count;
-            buff->Push((const unsigned char*) p, count * sizeof (float));
-            args.GetReturnValue().Set(args.Holder());
-        } else if (p0->IsFloat64Array()) {
-            vt = (VT_ARRAY | VT_R8);
-            Local<v8::Float64Array> vInt = Local<v8::Float64Array>::Cast(p0);
-            const double *p = (const double*) vInt->Buffer()->GetContents().Data();
-            unsigned int count = (unsigned int) vInt->Length();
-            *buff << vt << count;
-            buff->Push((const unsigned char*) p, count * sizeof (double));
-            args.GetReturnValue().Set(args.Holder());
+                else {
+                    vt = VT_R8;
+                    buff << vt << p0->NumberValue(isolate->GetCurrentContext()).ToChecked();
+                }
+            } while (false);
         } else if (node::Buffer::HasInstance(p0)) {
-            char *bytes = node::Buffer::Data(p0);
+            char* bytes = node::Buffer::Data(p0);
             unsigned int len = (unsigned int) node::Buffer::Length(p0);
             if (len == sizeof (GUID) && (id == "u" || id == "uuid")) {
                 vt = VT_CLSID;
-                *buff << vt;
-                buff->Push((const unsigned char*) bytes, len);
+                buff << vt;
+                buff.Push((const unsigned char*) bytes, len);
             } else {
                 vt = (VT_ARRAY | VT_UI1);
-                *buff << vt << len;
-                buff->Push((const unsigned char*) bytes, len);
+                buff << vt << len;
+                buff.Push((const unsigned char*) bytes, len);
             }
-            args.GetReturnValue().Set(args.Holder());
+        } else if (p0->IsTypedArray()) {
+            if (p0->IsInt32Array()) {
+                vt = (VT_ARRAY | VT_I4);
+                Local<v8::Int32Array> vInt = Local<v8::Int32Array>::Cast(p0);
+                const int* p = (const int*) vInt->Buffer()->GetContents().Data();
+                unsigned int count = (unsigned int) vInt->Length();
+                buff << vt << count;
+                buff.Push((const unsigned char*) p, count * sizeof (int));
+            } else if (p0->IsFloat64Array()) {
+                vt = (VT_ARRAY | VT_R8);
+                Local<v8::Float64Array> vInt = Local<v8::Float64Array>::Cast(p0);
+                const double* p = (const double*) vInt->Buffer()->GetContents().Data();
+                unsigned int count = (unsigned int) vInt->Length();
+                buff << vt << count;
+                buff.Push((const unsigned char*) p, count * sizeof (double));
+            } else if (p0->IsUint8Array()) {
+                vt = (VT_ARRAY | VT_I1);
+                Local<v8::Uint8Array> vInt = Local<v8::Uint8Array>::Cast(p0);
+                const unsigned char* p = (const unsigned char*) vInt->Buffer()->GetContents().Data();
+                unsigned int count = (unsigned int) vInt->Length();
+                buff << vt << count;
+                buff.Push((const unsigned char*) p, count * sizeof (char));
+            } else if (p0->IsInt8Array()) {
+                vt = (VT_ARRAY | VT_I1);
+                Local<v8::Int8Array> vInt = Local<v8::Int8Array>::Cast(p0);
+                const char* p = (const char*) vInt->Buffer()->GetContents().Data();
+                unsigned int count = (unsigned int) vInt->Length();
+                buff << vt << count;
+                buff.Push((const unsigned char*) p, count * sizeof (char));
+            } else if (p0->IsInt16Array()) {
+                vt = (VT_ARRAY | VT_I2);
+                Local<v8::Int16Array> vInt = Local<v8::Int16Array>::Cast(p0);
+                const short* p = (const short*) vInt->Buffer()->GetContents().Data();
+                unsigned int count = (unsigned int) vInt->Length();
+                buff << vt << count;
+                buff.Push((const unsigned char*) p, count * sizeof (short));
+            } else if (p0->IsUint16Array()) {
+                vt = (VT_ARRAY | VT_UI2);
+                Local<v8::Uint16Array> vInt = Local<v8::Uint16Array>::Cast(p0);
+                const unsigned short* p = (const unsigned short*) vInt->Buffer()->GetContents().Data();
+                unsigned int count = (unsigned int) vInt->Length();
+                buff << vt << count;
+                buff.Push((const unsigned char*) p, count * sizeof (unsigned short));
+            } else if (p0->IsUint32Array()) {
+                vt = (VT_ARRAY | VT_UI4);
+                Local<v8::Uint32Array> vInt = Local<v8::Uint32Array>::Cast(p0);
+                const unsigned int* p = (const unsigned int*) vInt->Buffer()->GetContents().Data();
+                unsigned int count = (unsigned int) vInt->Length();
+                buff << vt << count;
+                buff.Push((const unsigned char*) p, count * sizeof (unsigned int));
+            }
+#ifdef HAS_BIGINT
+            else if (p0->IsBigUint64Array()) {
+                vt = (VT_ARRAY | VT_UI8);
+                char* bytes = node::Buffer::Data(p0);
+                Local<v8::BigUint64Array> vInt = Local<v8::BigUint64Array>::Cast(p0);
+                unsigned int count = (unsigned int) vInt->Length();
+                buff << vt << count;
+                buff.Push((const unsigned char*) bytes, count * sizeof (uint64_t));
+            } else if (p0->IsBigInt64Array()) {
+                vt = (VT_ARRAY | VT_UI4);
+                char* bytes = node::Buffer::Data(p0);
+                Local<v8::BigInt64Array> vInt = Local<v8::BigInt64Array>::Cast(p0);
+                unsigned int count = (unsigned int) vInt->Length();
+                buff << vt << count;
+                buff.Push((const unsigned char*) bytes, count * sizeof (int64_t));
+            }
+#endif
+            else if (p0->IsFloat32Array()) {
+                vt = (VT_ARRAY | VT_R4);
+                Local<v8::Float32Array> vInt = Local<v8::Float32Array>::Cast(p0);
+                unsigned int count = (unsigned int) vInt->Length();
+                const float* p = (const float*) vInt->Buffer()->GetContents().Data();
+                buff << vt << count;
+                buff.Push((const unsigned char*) p, count * sizeof (float));
+            } else {
+                ThrowException(isolate, UNSUPPORTED_ARRAY_TYPE);
+                return;
+            }
         } else if (p0->IsArray()) {
             SPA::CUQueue &sb = *g_sb;
             sb.SetSize(0);
@@ -1112,12 +1132,13 @@ namespace NJA {
                     assert(false); //shouldn't come here
                     break;
             }
-            *buff << vtType << count;
-            buff->Push(sb.GetBuffer(), sb.GetSize());
-            args.GetReturnValue().Set(args.Holder());
+            buff << vtType << count;
+            buff.Push(sb.GetBuffer(), sb.GetSize());
         } else {
             ThrowException(isolate, UNSUPPORTED_TYPE);
+            return;
         }
+        args.GetReturnValue().Set(args.Holder());
     }
 
     void NJQueue::Empty(const FunctionCallbackInfo<Value>& args) {
