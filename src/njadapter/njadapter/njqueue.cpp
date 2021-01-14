@@ -791,25 +791,8 @@ namespace NJA {
         }
     }
 
-    void NJQueue::SaveObject(const FunctionCallbackInfo<Value>& args) {
-        Isolate* isolate = args.GetIsolate();
+    bool NJQueue::SaveObject(Isolate* isolate, Local<Value> p0, Local<Value> holder, const std::string& id, CUQueue& buff) {
         VARTYPE vt;
-        NJQueue* obj = ObjectWrap::Unwrap<NJQueue>(args.Holder());
-        obj->Ensure();
-        std::string id;
-        auto p1 = args[1];
-        if (p1->IsString()) {
-#if NODE_MODULE_VERSION < 57
-            String::Utf8Value str(p1);
-#else
-            String::Utf8Value str(isolate, p1);
-#endif
-            const char *s = *str;
-            id.assign(s, str.length());
-            std::transform(id.begin(), id.end(), id.begin(), ::tolower);
-        }
-        CUQueue &buff = *obj->m_Buffer;
-        auto p0 = args[0];
         if (IsNullOrUndefined(p0)) {
             vt = VT_NULL;
             buff << vt;
@@ -817,7 +800,7 @@ namespace NJA {
             vt = SPA::VT_USERIALIZER_OBJECT;
             buff << vt;
             Local<Function> cb = Local<Function>::Cast(p0);
-            Local<Value> argv[] = {args.Holder()};
+            Local<Value> argv[] = {holder};
             cb->Call(isolate->GetCurrentContext(), Null(isolate), 1, argv);
         } else if (p0->IsDate()) {
             vt = VT_DATE;
@@ -858,12 +841,12 @@ namespace NJA {
                 buff << vt << len;
                 buff.Push((const unsigned char*) (*str), len);
             }
-        } else if (p0->IsInt32() && id == "") {
+        } else if (p0->IsInt32() && !id.size()) {
             vt = VT_I4;
             buff << vt << p0->Int32Value(isolate->GetCurrentContext()).ToChecked();
         }
 #ifdef HAS_BIGINT
-        else if (p0->IsBigInt() && id == "") {
+        else if (p0->IsBigInt() && !id.size()) {
             vt = VT_I8;
             buff << vt << p0->IntegerValue(isolate->GetCurrentContext()).ToChecked();
         }
@@ -905,9 +888,15 @@ namespace NJA {
                         break;
                     } else if (id == "dec" || id == "decimal") {
                         vt = VT_DECIMAL;
-                        buff << vt;
-                        SaveDecimal(args);
-                        return;
+#if NODE_MODULE_VERSION < 57
+                        String::Utf8Value str(p0);
+#else
+                        String::Utf8Value str(isolate, p0);
+#endif
+                        const char* s = *str;
+                        DECIMAL dec;
+                        SPA::ParseDec_long(s, dec);
+                        buff << vt << dec;
                     } else if (id == "c" || id == "char") {
                         vt = VT_I1;
                         buff << vt << (char) p0->Int32Value(isolate->GetCurrentContext()).ToChecked();
@@ -920,7 +909,7 @@ namespace NJA {
                         SPA::UINT64 d = ToDate(isolate, p0);
                         if (d == INVALID_NUMBER) {
                             ThrowException(isolate, BAD_DATA_TYPE);
-                            return;
+                            return false;
                         }
                         vt = VT_DATE;
                         buff << vt << d;
@@ -1031,114 +1020,46 @@ namespace NJA {
                 buff.Push((const unsigned char*) p, count * sizeof (float));
             } else {
                 ThrowException(isolate, UNSUPPORTED_ARRAY_TYPE);
-                return;
+                return false;
             }
         } else if (p0->IsArray()) {
-            SPA::CUQueue &sb = *g_sb;
-            sb.SetSize(0);
-            tagDataType dt = tagDataType::dtUnknown;
+            vt = (VT_ARRAY | VT_VARIANT);
             auto ctx = isolate->GetCurrentContext();
             Local<Array> jsArr = Local<Array>::Cast(p0);
             unsigned int count = jsArr->Length();
+            buff << vt << count;
             for (unsigned int n = 0; n < count; ++n) {
-                auto d = jsArr->Get(ctx, n).ToLocalChecked();
-                if (d->IsBoolean()) {
-                    if (dt != tagDataType::dtUnknown && dt != tagDataType::dtBool) {
-                        ThrowException(isolate, UNSUPPORTED_ARRAY_TYPE);
-                        return;
-                    } else {
-                        dt = tagDataType::dtBool;
-                    }
-#ifdef BOOL_ISOLATE
-                    VARIANT_BOOL b = d->BooleanValue(isolate) ? VARIANT_TRUE : VARIANT_FALSE;
-#else
-                    VARIANT_BOOL b = d->BooleanValue(isolate->GetCurrentContext()).ToChecked() ? VARIANT_TRUE : VARIANT_FALSE;
-#endif
-                    sb << b;
-                } else if (d->IsDate()) {
-                    if (dt != tagDataType::dtUnknown && dt != tagDataType::dtDate) {
-                        ThrowException(isolate, UNSUPPORTED_ARRAY_TYPE);
-                        return;
-                    } else
-                        dt = tagDataType::dtDate;
-                    SPA::UINT64 time = ToDate(isolate, d);
-                    sb << time;
-#ifdef HAS_BIGINT
-                } else if (d->IsBigInt() || id == "l" || id == "long") {
-                    if (dt != tagDataType::dtUnknown && dt != tagDataType::dtInt64) {
-                        ThrowException(isolate, UNSUPPORTED_ARRAY_TYPE);
-                        return;
-                    } else
-                        dt = tagDataType::dtInt64;
-                    sb << d->IntegerValue(isolate->GetCurrentContext()).ToChecked();
-#endif
-                } else if (d->IsInt32() || id == "i" || id == "int") {
-                    if (dt != tagDataType::dtUnknown && dt != tagDataType::dtInt32) {
-                        ThrowException(isolate, UNSUPPORTED_ARRAY_TYPE);
-                        return;
-                    } else
-                        dt = tagDataType::dtInt32;
-                    sb << d->Int32Value(isolate->GetCurrentContext()).ToChecked();
-                } else if (d->IsNumber()) {
-                    if (dt != tagDataType::dtUnknown && dt != tagDataType::dtDouble) {
-                        ThrowException(isolate, UNSUPPORTED_ARRAY_TYPE);
-                        return;
-                    } else
-                        dt = tagDataType::dtDouble;
-                    sb << d->NumberValue(isolate->GetCurrentContext()).ToChecked();
-                } else if (d->IsString()) {
-                    if (dt != tagDataType::dtUnknown && dt != tagDataType::dtString) {
-                        ThrowException(isolate, UNSUPPORTED_ARRAY_TYPE);
-                        return;
-                    } else
-                        dt = tagDataType::dtString;
-#if NODE_MODULE_VERSION < 57
-                    String::Value str(d);
-#else
-                    String::Value str(isolate, d);
-#endif
-                    unsigned int len = (unsigned int) str.length();
-                    len *= sizeof (uint16_t);
-                    sb << len;
-                    sb.Push((const unsigned char*) (*str), len);
-                } else {
-                    ThrowException(isolate, UNSUPPORTED_ARRAY_TYPE);
-                    return;
+                if (!SaveObject(isolate, jsArr->Get(ctx, n).ToLocalChecked(), holder, id, buff)) {
+                    return false;
                 }
             }
-            VARTYPE vtType = VT_ARRAY;
-            switch (dt) {
-                case tagDataType::dtString:
-                    vtType |= VT_BSTR;
-                    break;
-                case tagDataType::dtBool:
-                    vtType |= VT_BOOL;
-                    break;
-                case tagDataType::dtDate:
-                    vtType |= VT_DATE;
-                    break;
-#ifdef HAS_BIGINT
-                case tagDataType::dtInt64:
-                    vtType |= VT_I8;
-                    break;
-#endif
-                case tagDataType::dtInt32:
-                    vtType |= VT_I4;
-                    break;
-                case tagDataType::dtDouble:
-                    vtType |= VT_R8;
-                    break;
-                default:
-                    assert(false); //shouldn't come here
-                    break;
-            }
-            buff << vtType << count;
-            buff.Push(sb.GetBuffer(), sb.GetSize());
         } else {
             ThrowException(isolate, UNSUPPORTED_TYPE);
-            return;
+            return false;
         }
-        args.GetReturnValue().Set(args.Holder());
+        return true;
+    }
+
+    void NJQueue::SaveObject(const FunctionCallbackInfo<Value>& args) {
+        Isolate* isolate = args.GetIsolate();
+        NJQueue* obj = ObjectWrap::Unwrap<NJQueue>(args.Holder());
+        obj->Ensure();
+        std::string id;
+        auto p1 = args[1];
+        if (p1->IsString()) {
+#if NODE_MODULE_VERSION < 57
+            String::Utf8Value str(p1);
+#else
+            String::Utf8Value str(isolate, p1);
+#endif
+            const char *s = *str;
+            id.assign(s, str.length());
+            std::transform(id.begin(), id.end(), id.begin(), ::tolower);
+        }
+        CUQueue &buff = *obj->m_Buffer;
+        if (SaveObject(isolate, args[0], args.Holder(), id, buff)) {
+            args.GetReturnValue().Set(args.Holder());
+        }
     }
 
     void NJQueue::Empty(const FunctionCallbackInfo<Value>& args) {

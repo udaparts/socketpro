@@ -97,6 +97,7 @@ namespace NJA {
         static void SaveUUID(const FunctionCallbackInfo<Value>& args);
         static void SaveByClass(const FunctionCallbackInfo<Value>& args);
         static void SaveObject(const FunctionCallbackInfo<Value>& args);
+        static bool SaveObject(Isolate* isolate, Local<Value> v, Local<Value> holder, const std::string &id, CUQueue& buff);
 
     private:
         static Persistent<Function> constructor;
