@@ -667,7 +667,7 @@ namespace NJA {
                 String::Value str(isolate, p);
 #endif
                 unsigned int len = (unsigned int) str.length();
-                len *= sizeof (uint16_t);
+                len <<= 1;
                 *buff << len;
                 buff->Push((const unsigned char*) (*str), len);
             }
@@ -791,7 +791,7 @@ namespace NJA {
         }
     }
 
-    bool NJQueue::SaveObject(Isolate* isolate, Local<Value> p0, Local<Value> holder, const std::string& id, CUQueue& buff) {
+    bool NJQueue::SaveObject(Isolate* isolate, const Local<Value>& p0, const Local<Object>& holder, const std::string& id, CUQueue& buff) {
         VARTYPE vt;
         if (IsNullOrUndefined(p0)) {
             vt = VT_NULL;

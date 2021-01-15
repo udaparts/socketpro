@@ -377,7 +377,7 @@ namespace NJA {
                 String::Value str(isolate, v);
 #endif
 #ifdef WIN32_64
-                vt.bstrVal = SysAllocString((const wchar_t*) * str);
+                vt.bstrVal = SysAllocStringLen((const wchar_t*) *str, (unsigned int)str.length());
 #else
                 vt.bstrVal = SysAllocStringLen((const UTF16*) *str, (unsigned int) str.length());
 #endif
@@ -640,7 +640,7 @@ namespace NJA {
                         String::Value str(isolate, d);
 #endif
 #ifdef WIN32_64
-                        pbstr[n] = ::SysAllocString((const wchar_t*) * str);
+                        pbstr[n] = ::SysAllocStringLen((const wchar_t*) *str, (unsigned int)str.length());
 #else
                         pbstr[n] = ::SysAllocStringLen((const UTF16*) *str, (unsigned int) str.length());
 #endif
