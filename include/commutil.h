@@ -244,7 +244,7 @@ namespace SPA {
             size_t pos = s.length() - decVal.scale;
             s.insert(pos, 1, '.');
         }
-        return s;
+        return std::move(s);
     }
 #endif
 
@@ -295,24 +295,21 @@ namespace SPA {
     }
 
     static inline void ToDecimal(double d, DECIMAL &dec, int precision = -1) {
+#ifdef WIN32_64
+        HRESULT hr = ::VarDecFromR8(d, &dec);
+        dec.wReserved = 0;
+#else
         if (precision > 28) {
             precision = 28;
         }
         char str[64] = {0};
         if (precision < 0) {
-#if defined (WIN32_64) && _MSC_VER >= 1600 
-            sprintf_s(str, sizeof (str), "%f", d);
-#else
             sprintf(str, "%f", d);
-#endif
         } else {
-#if defined (WIN32_64) && _MSC_VER >= 1600 
-            sprintf_s(str, sizeof (str), "%.*f", precision, d);
-#else
             sprintf(str, "%.*f", precision, d);
-#endif
         }
         ParseDec_long(str, dec);
+#endif
     }
 
     static inline void ToDecimal(INT64 n, DECIMAL &dec) noexcept {
