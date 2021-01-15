@@ -299,13 +299,13 @@ namespace SPA {
         HRESULT hr = ::VarDecFromR8(d, &dec);
         dec.wReserved = 0;
 #else
-        if (precision > 28) {
-            precision = 28;
-        }
         char str[64] = {0};
         if (precision < 0) {
             sprintf(str, "%f", d);
         } else {
+            if (precision > 28) {
+                precision = 28;
+            }
             sprintf(str, "%.*f", precision, d);
         }
         ParseDec_long(str, dec);
