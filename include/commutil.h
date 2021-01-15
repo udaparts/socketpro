@@ -182,9 +182,6 @@ namespace SPA {
             return false;
         }
 #ifdef WIN32_64
-        VARIANT vtSrc, vtDes;
-        vtDes.vt = VT_EMPTY;
-        vtSrc.vt = VT_BSTR;
         wchar_t buffer[64] = {0};
         size_t len = ::strlen(data);
         assert(len < sizeof (buffer) / sizeof (wchar_t));
@@ -194,13 +191,11 @@ namespace SPA {
         for (size_t n = 0; n < len; ++n) {
             buffer[n] = data[n];
         }
-        vtSrc.bstrVal = ::SysAllocStringLen(buffer, (unsigned int) len);
-        HRESULT hr = ::VariantChangeType(&vtDes, &vtSrc, 0, VT_DECIMAL);
-        ::VariantClear(&vtSrc);
+        HRESULT hr = ::VarDecFromStr(buffer, ::GetThreadLocale(), 0, &dec);
         if (FAILED(hr)) {
             return false;
         }
-        dec = vtDes.decVal;
+        dec.wReserved = 0;
 #else
 #ifdef BOOST_MP_CPP_INT_HPP
         dec.Hi32 = 0;
@@ -255,15 +250,11 @@ namespace SPA {
 
     static std::string ToString_long(const DECIMAL &decVal) {
 #ifdef WIN32_64
-        VARIANT vtSrc, vtDes;
-        vtSrc.decVal = decVal;
-        vtSrc.vt = VT_DECIMAL;
-        vtDes.vt = VT_EMPTY;
-        ::VariantChangeType(&vtDes, &vtSrc, 0, VT_BSTR);
-        unsigned int len = ::SysStringLen(vtDes.bstrVal);
-        std::string s(vtDes.bstrVal, vtDes.bstrVal + len);
-        VariantClear(&vtDes);
-        return s;
+        BSTR bstr;
+        ::VarBstrFromDec(&decVal, ::GetThreadLocale(), 0, &bstr);
+        std::string s(bstr, bstr + ::SysStringLen(bstr));
+        ::SysFreeString(bstr);
+        return std::move(s);
 #else
 #ifdef BOOST_MP_CPP_INT_HPP
         uint96_t v = decVal.Hi32;
