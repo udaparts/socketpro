@@ -888,15 +888,11 @@ namespace NJA {
                         break;
                     } else if (id == "dec" || id == "decimal") {
                         vt = VT_DECIMAL;
-#if NODE_MODULE_VERSION < 57
-                        String::Utf8Value str(p0);
-#else
-                        String::Utf8Value str(isolate, p0);
-#endif
-                        const char* s = *str;
+                        double d = p0->NumberValue(isolate->GetCurrentContext()).ToChecked();
                         DECIMAL dec;
-                        SPA::ParseDec_long(s, dec);
+                        SPA::ToDecimal(d, dec);
                         buff << vt << dec;
+                        break;
                     } else if (id == "c" || id == "char") {
                         vt = VT_I1;
                         buff << vt << (char) p0->Int32Value(isolate->GetCurrentContext()).ToChecked();
