@@ -2011,9 +2011,6 @@ namespace SPA
                 else
                     ok = PushRecords(hstmt, vInfo, false, res, errMsg);
                 ++m_oks;
-                if (!ok) {
-                    return;
-                }
             } while (false);
             fail_ok = ((m_fails - fails) << 32);
             fail_ok += (unsigned int) (m_oks - oks);
@@ -2078,9 +2075,6 @@ namespace SPA
                 else
                     ok = PushRecords(hstmt, vInfo, false, res, errMsg);
                 ++m_oks;
-                if (!ok) {
-                    return;
-                }
             } while (false);
             fail_ok = ((m_fails - fails) << 32);
             fail_ok += (unsigned int) (m_oks - oks);
@@ -2145,9 +2139,6 @@ namespace SPA
                 else
                     ok = PushRecords(hstmt, vInfo, false, res, errMsg);
                 ++m_oks;
-                if (!ok) {
-                    return;
-                }
             } while (false);
             fail_ok = ((m_fails - fails) << 32);
             fail_ok += (unsigned int) (m_oks - oks);
@@ -2214,9 +2205,6 @@ namespace SPA
                 else
                     ok = PushRecords(hstmt, vInfo, false, res, errMsg);
                 ++m_oks;
-                if (!ok) {
-                    return;
-                }
             } while (false);
             fail_ok = ((m_fails - fails) << 32);
             fail_ok += (unsigned int) (m_oks - oks);
@@ -2280,9 +2268,6 @@ namespace SPA
                 else
                     ok = PushRecords(hstmt, vInfo, false, res, errMsg);
                 ++m_oks;
-                if (!ok) {
-                    return;
-                }
             } while (false);
             fail_ok = ((m_fails - fails) << 32);
             fail_ok += (unsigned int) (m_oks - oks);
@@ -2345,9 +2330,6 @@ namespace SPA
                 else
                     ok = PushRecords(hstmt, vInfo, false, res, errMsg);
                 ++m_oks;
-                if (!ok) {
-                    return;
-                }
             } while (false);
             fail_ok = ((m_fails - fails) << 32);
             fail_ok += (unsigned int) (m_oks - oks);
@@ -2410,9 +2392,6 @@ namespace SPA
                 else
                     ok = PushRecords(hstmt, vInfo, false, res, errMsg);
                 ++m_oks;
-                if (!ok) {
-                    return;
-                }
             } while (false);
             fail_ok = ((m_fails - fails) << 32);
             fail_ok += (unsigned int) (m_oks - oks);
@@ -2475,9 +2454,6 @@ namespace SPA
                 else
                     ok = PushRecords(hstmt, vInfo, false, res, errMsg);
                 ++m_oks;
-                if (!ok) {
-                    return;
-                }
             } while (false);
             fail_ok = ((m_fails - fails) << 32);
             fail_ok += (unsigned int) (m_oks - oks);
@@ -2540,9 +2516,6 @@ namespace SPA
                 else
                     ok = PushRecords(hstmt, vInfo, false, res, errMsg);
                 ++m_oks;
-                if (!ok) {
-                    return;
-                }
             } while (false);
             fail_ok = ((m_fails - fails) << 32);
             fail_ok += (unsigned int) (m_oks - oks);
@@ -2611,9 +2584,6 @@ namespace SPA
                 else
                     ok = PushRecords(hstmt, vInfo, false, res, errMsg);
                 ++m_oks;
-                if (!ok) {
-                    return;
-                }
             } while (false);
             fail_ok = ((m_fails - fails) << 32);
             fail_ok += (unsigned int) (m_oks - oks);
