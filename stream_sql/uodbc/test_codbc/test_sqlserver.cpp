@@ -193,39 +193,39 @@ void TestBatch(shared_ptr<CMyHandler> pOdbc, CRowsetArray& ra, CDBVariantArray& 
     //return direction can be ignorable
 
     info.DataType = VT_I4;
-    info.Direction = pdInput;
+    info.Direction = tagParameterDirection::pdInput;
     vPInfo.push_back(info);
 
     info.DataType = SPA::VT_XML;
-    info.Direction = pdInputOutput;
+    info.Direction = tagParameterDirection::pdInputOutput;
     vPInfo.push_back(info);
 
     info.DataType = VT_CLSID;
-    info.Direction = pdInputOutput;
+    info.Direction = tagParameterDirection::pdInputOutput;
     vPInfo.push_back(info);
 
     info.DataType = VT_VARIANT;
-    info.Direction = pdOutput;
+    info.Direction = tagParameterDirection::pdOutput;
     vPInfo.push_back(info);
 
     info.DataType = VT_I4;
-    info.Direction = pdInput;
+    info.Direction = tagParameterDirection::pdInput;
     vPInfo.push_back(info);
 
     info.DataType = VT_R8;
-    info.Direction = pdOutput;
+    info.Direction = tagParameterDirection::pdOutput;
     vPInfo.push_back(info);
 
     info.DataType = VT_DATE;
-    info.Direction = pdOutput;
+    info.Direction = tagParameterDirection::pdOutput;
     vPInfo.push_back(info);
 
     //process multiple sets of parameters in one shot
-    bool ok = pOdbc->ExecuteBatch(tiUnspecified, u"select getdate();{?=call sp_TestRare1(?,?,?,?)};{call sqltestdb.dbo.sp_TestProc(?,?,?)}", vPData, [](CSender& handler, int res, const wstring& errMsg, SPA::INT64 affected, SPA::UINT64 fail_ok, CDBVariant& vtId) {
+    bool ok = pOdbc->ExecuteBatch(tagTransactionIsolation::tiUnspecified, u"select getdate();{?=call sp_TestRare1(?,?,?,?)};{call sqltestdb.dbo.sp_TestProc(?,?,?)}", vPData, [](CSender& handler, int res, const wstring& errMsg, SPA::INT64 affected, SPA::UINT64 fail_ok, CDBVariant& vtId) {
         cout << "affected = " << affected << ", fails = " << (unsigned int)(fail_ok >> 32) << ", oks = " << fail_ok << ", res = " << res << ", errMsg: ";
         wcout << errMsg << endl;
         }, r, rh, u";", [](CSender& handler) {
-        }, nullptr, false, rpDefault, vPInfo);
+        }, nullptr, false, tagRollbackPlan::rpDefault, vPInfo);
 }
 
 void InsertBLOBByPreparedStatement(shared_ptr<CMyHandler> pOdbc) {
@@ -453,19 +453,19 @@ void TestStoredProcedure_2(shared_ptr<CMyHandler> pOdbc, CRowsetArray& ra, CDBVa
     //return direction can be ignorable
 
     info.DataType = VT_I4;
-    info.Direction = pdInput;
+    info.Direction = tagParameterDirection::pdInput;
     vPInfo.push_back(info);
 
     info.DataType = SPA::VT_XML;
-    info.Direction = pdInputOutput;
+    info.Direction = tagParameterDirection::pdInputOutput;
     vPInfo.push_back(info);
 
     info.DataType = VT_CLSID;
-    info.Direction = pdInputOutput;
+    info.Direction = tagParameterDirection::pdInputOutput;
     vPInfo.push_back(info);
 
     info.DataType = VT_VARIANT;
-    info.Direction = pdOutput;
+    info.Direction = tagParameterDirection::pdOutput;
     vPInfo.push_back(info);
 
     bool ok = pOdbc->Prepare(L"{?=call sp_TestRare1(?, ?, ?, ?)}", [](CSender& handler, int res, const wstring& errMsg) {
