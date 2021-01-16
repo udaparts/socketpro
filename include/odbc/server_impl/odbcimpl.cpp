@@ -668,8 +668,7 @@ namespace SPA
             m_vBindInfo.clear();
             bool hasBlob = false;
             bool hasVariant = false;
-            SQLCHAR colname[256] =
-            {0}; // column name
+            SQLCHAR colname[256] = {0}; // column name
             m_nRecordSize = 0;
             SQLSMALLINT colnamelen = 0; // length of column name
             SQLSMALLINT nullable = 0; // whether column can have NULL value
@@ -916,7 +915,7 @@ namespace SPA
                 m_vBindInfo.clear();
                 m_nRecordSize = 0;
             }
-            return vCols;
+            return std::move(vCols);
         }
 
         unsigned int COdbcImpl::ToCTime(const TIMESTAMP_STRUCT &d, std::tm & tm) {
