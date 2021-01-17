@@ -1559,8 +1559,10 @@ namespace SPA
             if (!SQL_SUCCEEDED(retcode) && retcode != SQL_NO_DATA) {
                 res = Odbc::ER_ERROR;
                 GetErrMsg(SQL_HANDLE_STMT, hstmt, errMsg);
+                SQLFreeStmt(hstmt, SQL_UNBIND);
                 return false;
             }
+            SQLFreeStmt(hstmt, SQL_UNBIND);
             return true;
         }
 
@@ -2645,10 +2647,10 @@ namespace SPA
                             } else {
                                 ok = true;
                             }
-                            ++m_oks;
                             if (!ok) {
                                 return;
                             }
+                            ++m_oks;
                         }
                     } else {
                         SQLLEN rows = 0;
