@@ -107,6 +107,7 @@ namespace SPA {
             bool SendUText(SQLHSTMT hstmt, SQLUSMALLINT index, CUQueue &qTemp, CUQueue &q, bool &blob);
 
         private:
+            SQLHSTMT ResetStmt();
             void CleanDBObjects();
             CDBColumnInfoArray GetColInfo(SQLHSTMT hstmt, SQLSMALLINT columns, bool meta);
             bool PushRecords(SQLHSTMT hstmt, const CDBColumnInfoArray &vColInfo, bool output, int &res, CDBString &errMsg);
@@ -114,7 +115,7 @@ namespace SPA {
             bool PushInfo(SQLHDBC hdbc);
             bool PreprocessPreparedStatement();
             bool SetInputParamInfo();
-            bool BindParameters(unsigned int r, SQLLEN *pLenInd);
+            bool BindParameters(SQLHSTMT hstmt, unsigned int r, SQLLEN *pLenInd);
             unsigned int ComputeOutputMaxSize();
             bool PushOutputParameters(unsigned int r, UINT64 index);
             void ResetMemories();
@@ -156,11 +157,8 @@ namespace SPA {
             //ODBC connection handle
             std::shared_ptr<void> m_pOdbc;
 
-            //parameterized statement
-            std::shared_ptr<void> m_pPrepare;
-
             //executing statement
-            std::shared_ptr<void> m_pExcuting;
+            std::shared_ptr<void> m_stmt;
 
             SQLSMALLINT m_parameters;
             bool m_bCall;

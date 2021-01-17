@@ -10,21 +10,6 @@ namespace SPA
 
         SQLHENV COdbcImpl::g_hEnv = nullptr;
 
-#ifndef NATIVE_UTF16_SUPPORTED
-        const UTF16 * COdbcImpl::NO_DB_OPENED_YET = L"No ODBC database opened yet";
-        const UTF16 * COdbcImpl::BAD_END_TRANSTACTION_PLAN = L"Bad end transaction plan";
-        const UTF16 * COdbcImpl::NO_PARAMETER_SPECIFIED = L"No parameter specified";
-        const UTF16 * COdbcImpl::BAD_PARAMETER_DATA_ARRAY_SIZE = L"Bad parameter data array length";
-        const UTF16 * COdbcImpl::BAD_PARAMETER_COLUMN_SIZE = L"Bad parameter column size";
-        const UTF16 * COdbcImpl::DATA_TYPE_NOT_SUPPORTED = L"Data type not supported";
-        const UTF16 * COdbcImpl::NO_DB_NAME_SPECIFIED = L"No database name specified";
-        const UTF16 * COdbcImpl::ODBC_ENVIRONMENT_NOT_INITIALIZED = L"ODBC system library not initialized";
-        const UTF16 * COdbcImpl::BAD_MANUAL_TRANSACTION_STATE = L"Bad manual transaction state";
-        const UTF16 * COdbcImpl::BAD_INPUT_PARAMETER_DATA_TYPE = L"Bad input parameter data type";
-        const UTF16 * COdbcImpl::BAD_PARAMETER_DIRECTION_TYPE = L"Bad parameter direction type";
-        const UTF16 * COdbcImpl::CORRECT_PARAMETER_INFO_NOT_PROVIDED_YET = L"Correct parameter information not provided yet";
-        const UTF16 * COdbcImpl::ODBC_GLOBAL_CONNECTION_STRING = L"ODBC_GLOBAL_CONNECTION_STRING";
-#else
         const UTF16 * COdbcImpl::NO_DB_OPENED_YET = u"No ODBC database opened yet";
         const UTF16 * COdbcImpl::BAD_END_TRANSTACTION_PLAN = u"Bad end transaction plan";
         const UTF16 * COdbcImpl::NO_PARAMETER_SPECIFIED = u"No parameter specified";
@@ -38,7 +23,7 @@ namespace SPA
         const UTF16 * COdbcImpl::BAD_PARAMETER_DIRECTION_TYPE = u"Bad parameter direction type";
         const UTF16 * COdbcImpl::CORRECT_PARAMETER_INFO_NOT_PROVIDED_YET = u"Correct parameter information not provided yet";
         const UTF16 * COdbcImpl::ODBC_GLOBAL_CONNECTION_STRING = u"ODBC_GLOBAL_CONNECTION_STRING";
-#endif
+
         CUCriticalSection COdbcImpl::m_csPeer;
         CDBString COdbcImpl::m_strGlobalConnection;
 
@@ -239,7 +224,6 @@ namespace SPA
             M_I0_R0(idTransferring, Transferring)
             M_I0_R0(idEndRows, EndRows)
             END_SWITCH
-            m_pExcuting.reset();
         }
 
         int COdbcImpl::OnSlowRequestArrive(unsigned short reqId, unsigned int len) {
@@ -263,7 +247,25 @@ namespace SPA
             M_I4_R3(Odbc::idSQLTablePrivileges, DoSQLTablePrivileges, CDBString, CDBString, CDBString, UINT64, int, CDBString, UINT64)
             M_I5_R3(Odbc::idSQLTables, DoSQLTables, CDBString, CDBString, CDBString, CDBString, UINT64, int, CDBString, UINT64)
             END_SWITCH
-            m_pExcuting.reset();
+            switch (reqId) {
+                case idExecute:
+                case idExecuteParameters:
+                case idExecuteBatch:
+                    switch (m_msDriver) {
+                        case SPA::UDB::tagManagementSystem::msMysql:
+                        case SPA::UDB::tagManagementSystem::msMsSQL:
+                            //no need to do anything here
+                            break;
+                        default:
+                            SQLFreeStmt(m_stmt.get(), SQL_RESET_PARAMS);
+                            SQLFreeStmt(m_stmt.get(), SQL_UNBIND);
+                            SQLFreeStmt(m_stmt.get(), SQL_CLOSE);
+                            break;
+                    }
+                    break;
+                default:
+                    break;
+            }
             if (reqId == idExecuteParameters || reqId == idExecuteBatch) {
                 m_vParam.clear();
             }
@@ -277,7 +279,7 @@ namespace SPA
                     std::cout << "Cancel called" << std::endl;
 #endif
                     do {
-                        std::shared_ptr<void> pExcuting = m_pExcuting;
+                        std::shared_ptr<void> pExcuting = m_stmt;
                         if (pExcuting)
                             SQLCancel(pExcuting.get());
                         if (m_ti == tagTransactionIsolation::tiUnspecified)
@@ -292,8 +294,7 @@ namespace SPA
         }
 
         void COdbcImpl::CleanDBObjects() {
-            m_pExcuting.reset();
-            m_pPrepare.reset();
+            m_stmt.reset();
             m_pOdbc.reset();
             m_vParam.clear();
             ResetMemories();
@@ -668,7 +669,8 @@ namespace SPA
             m_vBindInfo.clear();
             bool hasBlob = false;
             bool hasVariant = false;
-            SQLCHAR colname[256] = {0}; // column name
+            SQLCHAR colname[256] =
+            {0}; // column name
             m_nRecordSize = 0;
             SQLSMALLINT colnamelen = 0; // length of column name
             SQLSMALLINT nullable = 0; // whether column can have NULL value
@@ -1221,11 +1223,7 @@ namespace SPA
             }
             CDBString s_copy = s;
             transform(s.begin(), s.end(), s.begin(), ::tolower);
-#ifndef NATIVE_UTF16_SUPPORTED
-            m_bCall = (s.find(L"call ") == 0);
-#else
             m_bCall = (s.find(u"call ") == 0);
-#endif
             if (m_bCall) {
                 auto pos = s_copy.find('(');
                 if (pos != CDBString::npos) {
@@ -1464,7 +1462,6 @@ namespace SPA
                 if (!SQL_SUCCEEDED(retcode)) {
                     res = Odbc::ER_ERROR;
                     GetErrMsg(SQL_HANDLE_STMT, hstmt, errMsg);
-                    SQLFreeStmt(hstmt, SQL_UNBIND);
                     return false;
                 }
             }
@@ -1562,10 +1559,8 @@ namespace SPA
             if (!SQL_SUCCEEDED(retcode) && retcode != SQL_NO_DATA) {
                 res = Odbc::ER_ERROR;
                 GetErrMsg(SQL_HANDLE_STMT, hstmt, errMsg);
-                SQLFreeStmt(hstmt, SQL_UNBIND);
                 return false;
             }
-            retcode = SQLFreeStmt(hstmt, SQL_UNBIND);
             return true;
         }
 
@@ -1967,20 +1962,14 @@ namespace SPA
             UINT64 oks = m_oks;
             SQLHSTMT hstmt = nullptr;
             SQLRETURN retcode = SQLAllocHandle(SQL_HANDLE_STMT, m_pOdbc.get(), &hstmt);
-            do {
-                std::shared_ptr<void> pStmt(hstmt, [](SQLHSTMT h) {
-                    if (h) {
-                        SQLRETURN ret = SQLFreeHandle(SQL_HANDLE_STMT, h);
-                        assert(ret == SQL_SUCCESS);
-                    }
-                });
-                if (!SQL_SUCCEEDED(retcode)) {
-                    res = Odbc::ER_ERROR;
-                    GetErrMsg(SQL_HANDLE_DBC, m_pOdbc.get(), errMsg);
-                    ++m_fails;
-                    break;
+            assert(SQL_SUCCEEDED(retcode));
+            std::shared_ptr<void> p(hstmt, [](SQLHSTMT h) {
+                if (h) {
+                    SQLRETURN ret = SQLFreeHandle(SQL_HANDLE_STMT, h);
+                    assert(ret == SQL_SUCCESS);
                 }
-                m_pExcuting = pStmt;
+            });
+            do {
                 std::string cn = Utilities::ToUTF8(catalogName);
                 std::string sn = Utilities::ToUTF8(schemaName);
                 std::string tn = Utilities::ToUTF8(tableName);
@@ -2031,20 +2020,14 @@ namespace SPA
             UINT64 oks = m_oks;
             SQLHSTMT hstmt = nullptr;
             SQLRETURN retcode = SQLAllocHandle(SQL_HANDLE_STMT, m_pOdbc.get(), &hstmt);
-            do {
-                std::shared_ptr<void> pStmt(hstmt, [](SQLHSTMT h) {
-                    if (h) {
-                        SQLRETURN ret = SQLFreeHandle(SQL_HANDLE_STMT, h);
-                        assert(ret == SQL_SUCCESS);
-                    }
-                });
-                if (!SQL_SUCCEEDED(retcode)) {
-                    res = Odbc::ER_ERROR;
-                    GetErrMsg(SQL_HANDLE_DBC, m_pOdbc.get(), errMsg);
-                    ++m_fails;
-                    break;
+            assert(SQL_SUCCEEDED(retcode));
+            std::shared_ptr<void> p(hstmt, [](SQLHSTMT h) {
+                if (h) {
+                    SQLRETURN ret = SQLFreeHandle(SQL_HANDLE_STMT, h);
+                    assert(ret == SQL_SUCCESS);
                 }
-                m_pExcuting = pStmt;
+            });
+            do {
                 std::string cn = Utilities::ToUTF8(catalogName);
                 std::string sn = Utilities::ToUTF8(schemaName);
                 std::string tn = Utilities::ToUTF8(tableName);
@@ -2095,20 +2078,14 @@ namespace SPA
             UINT64 oks = m_oks;
             SQLHSTMT hstmt = nullptr;
             SQLRETURN retcode = SQLAllocHandle(SQL_HANDLE_STMT, m_pOdbc.get(), &hstmt);
-            do {
-                std::shared_ptr<void> pStmt(hstmt, [](SQLHSTMT h) {
-                    if (h) {
-                        SQLRETURN ret = SQLFreeHandle(SQL_HANDLE_STMT, h);
-                        assert(ret == SQL_SUCCESS);
-                    }
-                });
-                if (!SQL_SUCCEEDED(retcode)) {
-                    res = Odbc::ER_ERROR;
-                    GetErrMsg(SQL_HANDLE_DBC, m_pOdbc.get(), errMsg);
-                    ++m_fails;
-                    break;
+            assert(SQL_SUCCEEDED(retcode));
+            std::shared_ptr<void> p(hstmt, [](SQLHSTMT h) {
+                if (h) {
+                    SQLRETURN ret = SQLFreeHandle(SQL_HANDLE_STMT, h);
+                    assert(ret == SQL_SUCCESS);
                 }
-                m_pExcuting = pStmt;
+            });
+            do {
                 std::string cn = Utilities::ToUTF8(catalogName);
                 std::string sn = Utilities::ToUTF8(schemaName);
                 std::string tn = Utilities::ToUTF8(tableName);
@@ -2159,20 +2136,14 @@ namespace SPA
             UINT64 oks = m_oks;
             SQLHSTMT hstmt = nullptr;
             SQLRETURN retcode = SQLAllocHandle(SQL_HANDLE_STMT, m_pOdbc.get(), &hstmt);
-            do {
-                std::shared_ptr<void> pStmt(hstmt, [](SQLHSTMT h) {
-                    if (h) {
-                        SQLRETURN ret = SQLFreeHandle(SQL_HANDLE_STMT, h);
-                        assert(ret == SQL_SUCCESS);
-                    }
-                });
-                if (!SQL_SUCCEEDED(retcode)) {
-                    res = Odbc::ER_ERROR;
-                    GetErrMsg(SQL_HANDLE_DBC, m_pOdbc.get(), errMsg);
-                    ++m_fails;
-                    break;
+            assert(SQL_SUCCEEDED(retcode));
+            std::shared_ptr<void> p(hstmt, [](SQLHSTMT h) {
+                if (h) {
+                    SQLRETURN ret = SQLFreeHandle(SQL_HANDLE_STMT, h);
+                    assert(ret == SQL_SUCCESS);
                 }
-                m_pExcuting = pStmt;
+            });
+            do {
                 std::string cn = Utilities::ToUTF8(catalogName);
                 std::string sn = Utilities::ToUTF8(schemaName);
                 std::string pn = Utilities::ToUTF8(procName);
@@ -2225,20 +2196,14 @@ namespace SPA
             UINT64 oks = m_oks;
             SQLHSTMT hstmt = nullptr;
             SQLRETURN retcode = SQLAllocHandle(SQL_HANDLE_STMT, m_pOdbc.get(), &hstmt);
-            do {
-                std::shared_ptr<void> pStmt(hstmt, [](SQLHSTMT h) {
-                    if (h) {
-                        SQLRETURN ret = SQLFreeHandle(SQL_HANDLE_STMT, h);
-                        assert(ret == SQL_SUCCESS);
-                    }
-                });
-                if (!SQL_SUCCEEDED(retcode)) {
-                    res = Odbc::ER_ERROR;
-                    GetErrMsg(SQL_HANDLE_DBC, m_pOdbc.get(), errMsg);
-                    ++m_fails;
-                    break;
+            assert(SQL_SUCCEEDED(retcode));
+            std::shared_ptr<void> p(hstmt, [](SQLHSTMT h) {
+                if (h) {
+                    SQLRETURN ret = SQLFreeHandle(SQL_HANDLE_STMT, h);
+                    assert(ret == SQL_SUCCESS);
                 }
-                m_pExcuting = pStmt;
+            });
+            do {
                 std::string cn = Utilities::ToUTF8(catalogName);
                 std::string sn = Utilities::ToUTF8(schemaName);
                 std::string tn = Utilities::ToUTF8(tableName);
@@ -2288,20 +2253,14 @@ namespace SPA
             UINT64 oks = m_oks;
             SQLHSTMT hstmt = nullptr;
             SQLRETURN retcode = SQLAllocHandle(SQL_HANDLE_STMT, m_pOdbc.get(), &hstmt);
-            do {
-                std::shared_ptr<void> pStmt(hstmt, [](SQLHSTMT h) {
-                    if (h) {
-                        SQLRETURN ret = SQLFreeHandle(SQL_HANDLE_STMT, h);
-                        assert(ret == SQL_SUCCESS);
-                    }
-                });
-                if (!SQL_SUCCEEDED(retcode)) {
-                    res = Odbc::ER_ERROR;
-                    GetErrMsg(SQL_HANDLE_DBC, m_pOdbc.get(), errMsg);
-                    ++m_fails;
-                    break;
+            assert(SQL_SUCCEEDED(retcode));
+            std::shared_ptr<void> p(hstmt, [](SQLHSTMT h) {
+                if (h) {
+                    SQLRETURN ret = SQLFreeHandle(SQL_HANDLE_STMT, h);
+                    assert(ret == SQL_SUCCESS);
                 }
-                m_pExcuting = pStmt;
+            });
+            do {
                 std::string cn = Utilities::ToUTF8(catalogName);
                 std::string sn = Utilities::ToUTF8(schemaName);
                 std::string tn = Utilities::ToUTF8(tableName);
@@ -2350,20 +2309,14 @@ namespace SPA
             UINT64 oks = m_oks;
             SQLHSTMT hstmt = nullptr;
             SQLRETURN retcode = SQLAllocHandle(SQL_HANDLE_STMT, m_pOdbc.get(), &hstmt);
-            do {
-                std::shared_ptr<void> pStmt(hstmt, [](SQLHSTMT h) {
-                    if (h) {
-                        SQLRETURN ret = SQLFreeHandle(SQL_HANDLE_STMT, h);
-                        assert(ret == SQL_SUCCESS);
-                    }
-                });
-                if (!SQL_SUCCEEDED(retcode)) {
-                    res = Odbc::ER_ERROR;
-                    GetErrMsg(SQL_HANDLE_DBC, m_pOdbc.get(), errMsg);
-                    ++m_fails;
-                    break;
+            assert(SQL_SUCCEEDED(retcode));
+            std::shared_ptr<void> p(hstmt, [](SQLHSTMT h) {
+                if (h) {
+                    SQLRETURN ret = SQLFreeHandle(SQL_HANDLE_STMT, h);
+                    assert(ret == SQL_SUCCESS);
                 }
-                m_pExcuting = pStmt;
+            });
+            do {
                 std::string cn = Utilities::ToUTF8(catalogName);
                 std::string sn = Utilities::ToUTF8(schemaName);
                 std::string tn = Utilities::ToUTF8(tableName);
@@ -2412,20 +2365,14 @@ namespace SPA
             UINT64 oks = m_oks;
             SQLHSTMT hstmt = nullptr;
             SQLRETURN retcode = SQLAllocHandle(SQL_HANDLE_STMT, m_pOdbc.get(), &hstmt);
-            do {
-                std::shared_ptr<void> pStmt(hstmt, [](SQLHSTMT h) {
-                    if (h) {
-                        SQLRETURN ret = SQLFreeHandle(SQL_HANDLE_STMT, h);
-                        assert(ret == SQL_SUCCESS);
-                    }
-                });
-                if (!SQL_SUCCEEDED(retcode)) {
-                    res = Odbc::ER_ERROR;
-                    GetErrMsg(SQL_HANDLE_DBC, m_pOdbc.get(), errMsg);
-                    ++m_fails;
-                    break;
+            assert(SQL_SUCCEEDED(retcode));
+            std::shared_ptr<void> p(hstmt, [](SQLHSTMT h) {
+                if (h) {
+                    SQLRETURN ret = SQLFreeHandle(SQL_HANDLE_STMT, h);
+                    assert(ret == SQL_SUCCESS);
                 }
-                m_pExcuting = pStmt;
+            });
+            do {
                 std::string cn = Utilities::ToUTF8(catalogName);
                 std::string sn = Utilities::ToUTF8(schemaName);
                 std::string pn = Utilities::ToUTF8(procName);
@@ -2474,20 +2421,14 @@ namespace SPA
             UINT64 oks = m_oks;
             SQLHSTMT hstmt = nullptr;
             SQLRETURN retcode = SQLAllocHandle(SQL_HANDLE_STMT, m_pOdbc.get(), &hstmt);
-            do {
-                std::shared_ptr<void> pStmt(hstmt, [](SQLHSTMT h) {
-                    if (h) {
-                        SQLRETURN ret = SQLFreeHandle(SQL_HANDLE_STMT, h);
-                        assert(ret == SQL_SUCCESS);
-                    }
-                });
-                if (!SQL_SUCCEEDED(retcode)) {
-                    res = Odbc::ER_ERROR;
-                    GetErrMsg(SQL_HANDLE_DBC, m_pOdbc.get(), errMsg);
-                    ++m_fails;
-                    break;
+            assert(SQL_SUCCEEDED(retcode));
+            std::shared_ptr<void> p(hstmt, [](SQLHSTMT h) {
+                if (h) {
+                    SQLRETURN ret = SQLFreeHandle(SQL_HANDLE_STMT, h);
+                    assert(ret == SQL_SUCCESS);
                 }
-                m_pExcuting = pStmt;
+            });
+            do {
                 std::string cn = Utilities::ToUTF8(catalogName);
                 std::string sn = Utilities::ToUTF8(schemaName);
                 std::string tn = Utilities::ToUTF8(tableName);
@@ -2536,20 +2477,14 @@ namespace SPA
             UINT64 oks = m_oks;
             SQLHSTMT hstmt = nullptr;
             SQLRETURN retcode = SQLAllocHandle(SQL_HANDLE_STMT, m_pOdbc.get(), &hstmt);
-            do {
-                std::shared_ptr<void> pStmt(hstmt, [](SQLHSTMT h) {
-                    if (h) {
-                        SQLRETURN ret = SQLFreeHandle(SQL_HANDLE_STMT, h);
-                        assert(ret == SQL_SUCCESS);
-                    }
-                });
-                if (!SQL_SUCCEEDED(retcode)) {
-                    res = Odbc::ER_ERROR;
-                    GetErrMsg(SQL_HANDLE_DBC, m_pOdbc.get(), errMsg);
-                    ++m_fails;
-                    break;
+            assert(SQL_SUCCEEDED(retcode));
+            std::shared_ptr<void> p(hstmt, [](SQLHSTMT h) {
+                if (h) {
+                    SQLRETURN ret = SQLFreeHandle(SQL_HANDLE_STMT, h);
+                    assert(ret == SQL_SUCCESS);
                 }
-                m_pExcuting = pStmt;
+            });
+            do {
                 std::string pk_cn = Utilities::ToUTF8(pkCatalogName);
                 std::string pk_sn = Utilities::ToUTF8(pkSchemaName);
                 std::string pk_tn = Utilities::ToUTF8(pkTableName);
@@ -2597,11 +2532,7 @@ namespace SPA
             int res = 0;
             CDBString errMsg, strSqlCache;
             CDBVariant vtId;
-#ifndef NATIVE_UTF16_SUPPORTED
-            CDBString sql = L"SELECT name FROM master.dbo.sysdatabases where name NOT IN('master','tempdb','model','msdb')";
-#else
             CDBString sql = u"SELECT name FROM master.dbo.sysdatabases where name NOT IN('master','tempdb','model','msdb')";
-#endif
             m_pNoSending = &q;
             do {
                 Execute(sql, rowset, false, lastInsertId, index, affected, res, errMsg, vtId, fail_ok);
@@ -2614,17 +2545,10 @@ namespace SPA
                     vDb.push_back(std::move(vt));
                 }
                 for (auto it = vDb.cbegin(), end = vDb.cend(); it != end; ++it) {
-#ifndef NATIVE_UTF16_SUPPORTED
-                    sql = L"USE [";
-                    sql += it->bstrVal;
-                    sql += L"];";
-                    sql += L"select object_schema_name(parent_id),OBJECT_NAME(parent_id)from sys.assembly_modules as am,sys.triggers as t where t.object_id=am.object_id and assembly_method like 'PublishDMLEvent%' and assembly_class='USqlStream'";
-#else
                     sql = u"USE [";
                     sql += (const UTF16*) it->bstrVal;
                     sql += u"];";
                     sql += u"select object_schema_name(parent_id),OBJECT_NAME(parent_id)from sys.assembly_modules as am,sys.triggers as t where t.object_id=am.object_id and assembly_method like 'PublishDMLEvent%' and assembly_class='USqlStream'";
-#endif
                     Execute(sql, rowset, false, lastInsertId, index, affected, res, errMsg, vtId, fail_ok);
                     if (res)
                         continue;
@@ -2633,15 +2557,6 @@ namespace SPA
                     CDBVariant vtSchema, vtTable;
                     while (q.GetSize()) {
                         q >> vtSchema >> vtTable;
-#ifndef NATIVE_UTF16_SUPPORTED
-                        strSqlCache += L"SELECT * FROM [";
-                        strSqlCache += it->bstrVal;
-                        strSqlCache += L"].[";
-                        strSqlCache += vtSchema.bstrVal;
-                        strSqlCache += L"].[";
-                        strSqlCache += vtTable.bstrVal;
-                        strSqlCache += L"] FOR BROWSE";
-#else
                         strSqlCache += u"SELECT * FROM [";
                         strSqlCache += (const UTF16*) it->bstrVal;
                         strSqlCache += u"].[";
@@ -2649,17 +2564,12 @@ namespace SPA
                         strSqlCache += u"].[";
                         strSqlCache += (const UTF16*) vtTable.bstrVal;
                         strSqlCache += u"] FOR BROWSE";
-#endif
                         if (q.GetSize())
                             strSqlCache.push_back(';');
                     }
                 }
             } while (false);
-#ifndef NATIVE_UTF16_SUPPORTED
-            sql = L"USE [" + m_dbName + L"]";
-#else
             sql = u"USE [" + m_dbName + u"]";
-#endif
             Execute(sql, false, false, lastInsertId, index, affected, res, errMsg, vtId, fail_ok);
             m_pNoSending = nullptr;
             return strSqlCache;
@@ -2691,22 +2601,9 @@ namespace SPA
             }
             UINT64 fails = m_fails;
             UINT64 oks = m_oks;
-            SQLHSTMT hstmt = nullptr;
-            SQLRETURN retcode = SQLAllocHandle(SQL_HANDLE_STMT, m_pOdbc.get(), &hstmt);
+            SQLHSTMT hstmt = ResetStmt();
             do {
-                std::shared_ptr<void> pStmt(hstmt, [](SQLHSTMT h) {
-                    if (h) {
-                        SQLRETURN ret = SQLFreeHandle(SQL_HANDLE_STMT, h);
-                        assert(ret == SQL_SUCCESS);
-                    }
-                });
-                if (!SQL_SUCCEEDED(retcode)) {
-                    res = Odbc::ER_ERROR;
-                    GetErrMsg(SQL_HANDLE_DBC, m_pOdbc.get(), errMsg);
-                    ++m_fails;
-                    break;
-                }
-                m_pExcuting = pStmt;
+                SQLRETURN retcode;
                 if (meta) {
                     switch (m_msDriver) {
                         case tagManagementSystem::msMsSQL:
@@ -2776,23 +2673,6 @@ namespace SPA
         }
 
         void COdbcImpl::SetOracleCallParams(const std::vector<tagParameterDirection> &vPD, int &res, CDBString & errMsg) {
-#ifndef NATIVE_UTF16_SUPPORTED
-            CDBString sql(L"SELECT in_out,data_type FROM SYS.ALL_ARGUMENTS WHERE data_type<>'REF CURSOR' AND owner='");
-            std::transform(m_userName.begin(), m_userName.end(), m_userName.begin(), ::toupper);
-            sql += m_userName;
-            sql += L"' AND object_name='";
-            std::transform(m_procName.begin(), m_procName.end(), m_procName.begin(), ::toupper);
-            sql += m_procName;
-            if (m_procCatalogSchema.size()) {
-                sql += L"' AND package_name='";
-                std::transform(m_procCatalogSchema.begin(), m_procCatalogSchema.end(), m_procCatalogSchema.begin(), ::toupper);
-                sql += m_procCatalogSchema;
-                sql += L"'";
-            } else {
-                sql += L"' AND package_name IS NULL";
-            }
-            sql += L" ORDER BY position";
-#else
             CDBString sql(u"SELECT in_out,data_type FROM SYS.ALL_ARGUMENTS WHERE data_type<>'REF CURSOR' AND owner='");
             std::transform(m_userName.begin(), m_userName.end(), m_userName.begin(), ::toupper);
             sql += m_userName;
@@ -2808,7 +2688,6 @@ namespace SPA
                 sql += u"' AND package_name IS NULL";
             }
             sql += u" ORDER BY position";
-#endif
             CDBVariant vtId;
             UINT64 index = 0, fail_ok = 0;
             INT64 affected = 0;
@@ -2851,7 +2730,6 @@ namespace SPA
                     assert(false); //shouldn't come here
                 }
                 pos = (unsigned int) (r * cols + 1);
-#ifdef NATIVE_UTF16_SUPPORTED
                 SPA::CDBString dt = (const UTF16*) vData[pos].bstrVal;
                 if (dt == u"NUMBER") {
                     pi.DataType = VT_DECIMAL;
@@ -2913,69 +2791,6 @@ namespace SPA
                 } else {
                     continue; //not supported
                 }
-#else
-                std::wstring dt = vData[pos].bstrVal;
-                if (dt == L"NUMBER") {
-                    pi.DataType = VT_DECIMAL;
-                    pi.Precision = MAX_DECIMAL_PRECISION;
-                } else if (dt == L"BINARY_FLOAT") {
-                    pi.DataType = VT_R4;
-                } else if (dt == L"BINARY_DOUBLE") {
-                    pi.DataType = VT_R8;
-                } else if (dt == L"CHAR") {
-                    pi.ColumnSize = DEFAULT_UNICODE_CHAR_SIZE;
-                    pi.DataType = (VT_ARRAY | VT_I1);
-                } else if (dt == L"VARCHAR") {
-                    pi.ColumnSize = DEFAULT_UNICODE_CHAR_SIZE;
-                    pi.DataType = (VT_ARRAY | VT_I1);
-                } else if (dt == L"VARCHAR2") {
-                    pi.ColumnSize = MAX_ORACLE_VARCHAR2;
-                    pi.DataType = (VT_ARRAY | VT_I1);
-                } else if (dt == L"NCHAR") {
-                    pi.DataType = VT_BSTR;
-                    pi.ColumnSize = DEFAULT_UNICODE_CHAR_SIZE;
-                } else if (dt == L"NVARCHAR2") {
-                    pi.DataType = VT_BSTR;
-                    pi.ColumnSize = DEFAULT_UNICODE_CHAR_SIZE;
-                } else if (dt == L"DATE") {
-                    pi.DataType = VT_DATE;
-                } else if (dt == L"TIMESTAMP") {
-                    pi.DataType = VT_DATE;
-                    pi.Scale = MAX_TIME_DIGITS;
-                } else if (dt == L"TIMESTAMP WITH TIME ZONE") {
-                    pi.DataType = VT_DATE;
-                    pi.Scale = MAX_TIME_DIGITS;
-                } else if (dt == L"TIMESTAMP WITH LOCAL TIME ZONE") {
-                    pi.DataType = VT_DATE;
-                    pi.Scale = MAX_TIME_DIGITS;
-                } else if (dt == L"LONG") {
-                    pi.ColumnSize = (~0);
-                    pi.DataType = (VT_ARRAY | VT_UI1);
-                } else if (dt == L"BLOB") {
-                    pi.ColumnSize = (~0);
-                    pi.DataType = (VT_ARRAY | VT_UI1);
-                } else if (dt == L"CLOB") {
-                    pi.ColumnSize = (~0);
-                    pi.DataType = (VT_ARRAY | VT_I1);
-                } else if (dt == L"NCLOB") {
-                    pi.ColumnSize = (~0);
-                    pi.DataType = VT_BSTR;
-                } else if (dt == L"RAW") {
-                    pi.ColumnSize = DEFAULT_UNICODE_CHAR_SIZE;
-                    pi.DataType = (VT_ARRAY | VT_UI1);
-                } else if (dt == L"LONG RAW") {
-                    pi.ColumnSize = (~0);
-                    pi.DataType = (VT_ARRAY | VT_UI1);
-                } else if (dt == L"ROWID") {
-                    pi.ColumnSize = DECIMAL_STRING_BUFFER_SIZE; //set to 32
-                    pi.DataType = (VT_ARRAY | VT_UI1);
-                } else if (dt == L"UROWID") {
-                    pi.ColumnSize = DECIMAL_STRING_BUFFER_SIZE; //set to 32
-                    pi.DataType = (VT_ARRAY | VT_UI1);
-                } else {
-                    continue; //not supported
-                }
-#endif
                 m_vPInfo.push_back(pi);
             }
         }
@@ -3143,6 +2958,21 @@ namespace SPA
             }
         }
 
+        SQLHSTMT COdbcImpl::ResetStmt() {
+            if (!m_stmt || m_msDriver == tagManagementSystem::msMsSQL) {
+                SQLHSTMT hstmt = nullptr;
+                SQLRETURN retcode = SQLAllocHandle(SQL_HANDLE_STMT, m_pOdbc.get(), &hstmt);
+                m_stmt.reset(hstmt, [](SQLHSTMT h) {
+                    if (h) {
+                        SQLRETURN ret = SQLFreeHandle(SQL_HANDLE_STMT, h);
+                        assert(ret == SQL_SUCCESS);
+                    }
+                });
+                return hstmt;
+            }
+            return m_stmt.get();
+        }
+
         void COdbcImpl::Prepare(const CDBString& wsql, CParameterInfoArray& params, int &res, CDBString &errMsg, unsigned int &parameters) {
             ResetMemories();
             m_vPInfo = params;
@@ -3156,7 +2986,6 @@ namespace SPA
             }
             m_parameters = 0;
             m_outputs = 0;
-            m_pPrepare.reset();
             m_sqlPrepare = wsql;
             m_bCall = false;
             m_procName.clear();
@@ -3167,7 +2996,7 @@ namespace SPA
             SQLHSTMT hstmt = nullptr;
             SQLRETURN retcode = SQLAllocHandle(SQL_HANDLE_STMT, m_pOdbc.get(), &hstmt);
             do {
-                m_pPrepare.reset(hstmt, [](SQLHSTMT h) {
+                std::shared_ptr<void> pPrepare(hstmt, [](SQLHSTMT h) {
                     if (h) {
                         SQLRETURN ret = SQLFreeHandle(SQL_HANDLE_STMT, h);
                         assert(ret == SQL_SUCCESS);
@@ -3178,7 +3007,6 @@ namespace SPA
                     GetErrMsg(SQL_HANDLE_DBC, m_pOdbc.get(), errMsg);
                     break;
                 }
-                m_pExcuting = m_pPrepare;
                 retcode = SQLPrepareW(hstmt, (SQLWCHAR*) m_sqlPrepare.c_str(), (SQLINTEGER) m_sqlPrepare.size());
                 if (!SQL_SUCCEEDED(retcode)) {
                     res = Odbc::ER_ERROR;
@@ -3225,6 +3053,9 @@ namespace SPA
                             errMsg = BAD_PARAMETER_COLUMN_SIZE;
                             break;
                         }
+                    }
+                    if (m_msDriver != tagManagementSystem::msMsSQL) {
+                        m_stmt = pPrepare;
                     }
                 }
                 for (auto it = m_vPInfo.begin(), end = m_vPInfo.end(); it != end; ++it) {
@@ -3286,12 +3117,12 @@ namespace SPA
                 parameters += (unsigned short) m_parameters;
             } while (false);
             if (res) {
-                m_pExcuting.reset();
-                m_pPrepare.reset();
+                m_stmt.reset();
                 m_vPInfo.clear();
                 m_parameters = 0;
                 m_outputs = 0;
                 parameters = 0;
+                m_sqlPrepare.clear();
             }
         }
 
@@ -3562,7 +3393,7 @@ namespace SPA
             return true;
         }
 
-        bool COdbcImpl::BindParameters(unsigned int r, SQLLEN * pLenInd) {
+        bool COdbcImpl::BindParameters(SQLHSTMT hstmt, unsigned int r, SQLLEN * pLenInd) {
             unsigned int output_pos = 0;
             for (SQLSMALLINT col = 0; col < m_parameters; ++col) {
                 CDBVariant &vtD = m_vParam[r * (unsigned int) m_parameters + (unsigned int) col];
@@ -3678,7 +3509,7 @@ namespace SPA
                                     sql_type = SQL_TYPE_TIMESTAMP;
                                     ParameterValuePtr = (SQLPOINTER) (m_Blob.GetBuffer() + output_pos);
                                     BufferLength = info.ColumnSize;
-                                    ColumnSize = 20 + info.Scale;
+                                    ColumnSize = (unsigned short) 20 + info.Scale;
                                     c_type = SQL_C_CHAR;
                                     output_pos += (unsigned int) BufferLength;
                                     if (info.Scale)
@@ -3902,7 +3733,7 @@ namespace SPA
                                     sql_type = SQL_TYPE_TIMESTAMP;
                                     if (info.Scale) {
                                         DecimalDigits = info.Scale;
-                                        ColumnSize = 20 + info.Scale;
+                                        ColumnSize = (unsigned short) 20 + info.Scale;
                                     }
                                     break;
                             }
@@ -3930,7 +3761,7 @@ namespace SPA
                                     sql_type = SQL_TYPE_TIMESTAMP;
                                     if (info.Scale) {
                                         DecimalDigits = info.Scale;
-                                        ColumnSize = 20 + info.Scale;
+                                        ColumnSize = (unsigned short) 20 + info.Scale;
                                     }
                                     break;
                             }
@@ -4127,7 +3958,7 @@ namespace SPA
                         assert(false);
                         break;
                 }
-                SQLRETURN retcode = SQLBindParameter(m_pPrepare.get(), (SQLUSMALLINT) (col + 1), InputOutputType,
+                SQLRETURN retcode = SQLBindParameter(hstmt, (SQLUSMALLINT) (col + 1), InputOutputType,
                         c_type, sql_type, ColumnSize, DecimalDigits, ParameterValuePtr, BufferLength,
                         pLenInd + col);
                 if (!SQL_SUCCEEDED(retcode)) {
@@ -4425,7 +4256,7 @@ namespace SPA
                     ++m_fails;
                     break;
                 }
-                if (!m_pPrepare) {
+                if (!m_sqlPrepare.size()) {
                     res = Odbc::ER_NO_PARAMETER_SPECIFIED;
                     errMsg = NO_PARAMETER_SPECIFIED;
                     ++m_fails;
@@ -4448,6 +4279,8 @@ namespace SPA
                     }
                 }
                 res = SQL_SUCCESS;
+                SQLRETURN retcode;
+                SQLHSTMT hstmt = ResetStmt();
                 if (m_parameters) {
                     bool output_sent = false;
                     unsigned int rows = (unsigned int) (m_vParam.size() / (unsigned short) m_parameters);
@@ -4469,27 +4302,33 @@ namespace SPA
                     SQLLEN *pLenInd = (SQLLEN*) qLenInd.GetBuffer();
                     for (unsigned int r = 0; r < rows; ++r) {
                         output_sent = false;
-                        if (!BindParameters(r, pLenInd)) {
+                        if (!BindParameters(hstmt, r, pLenInd)) {
                             res = Odbc::ER_ERROR;
-                            GetErrMsg(SQL_HANDLE_STMT, m_pPrepare.get(), errMsg);
+                            GetErrMsg(SQL_HANDLE_STMT, hstmt, errMsg);
                             ++m_fails;
                             continue;
                         }
-                        SQLRETURN retcode;
                         if (meta) {
                             switch (m_msDriver) {
                                 case tagManagementSystem::msMsSQL:
-                                    retcode = SQLSetStmtAttr(m_pPrepare.get(), SQL_SOPT_SS_HIDDEN_COLUMNS, (SQLPOINTER) SQL_HC_ON, 0);
+                                    retcode = SQLSetStmtAttr(hstmt, SQL_SOPT_SS_HIDDEN_COLUMNS, (SQLPOINTER) SQL_HC_ON, 0);
                                     break;
                                 default:
                                     break;
                             }
                         }
-                        retcode = SQLExecute(m_pPrepare.get());
+                        switch (m_msDriver) {
+                            case tagManagementSystem::msMsSQL:
+                                retcode = SQLExecDirectW(hstmt, (SQLWCHAR*) m_sqlPrepare.c_str(), (SQLINTEGER) m_sqlPrepare.size());
+                                break;
+                            default:
+                                retcode = SQLExecute(hstmt);
+                                break;
+                        }
                         if (!SQL_SUCCEEDED(retcode)) {
                             if (!res) {
                                 res = Odbc::ER_ERROR;
-                                GetErrMsg(SQL_HANDLE_STMT, m_pPrepare.get(), errMsg);
+                                GetErrMsg(SQL_HANDLE_STMT, hstmt, errMsg);
                             }
                             ++m_fails;
                             continue;
@@ -4499,10 +4338,10 @@ namespace SPA
                             temp = 0;
                             CDBString errTemp;
                             SQLSMALLINT columns = 0;
-                            retcode = SQLNumResultCols(m_pPrepare.get(), &columns);
+                            retcode = SQLNumResultCols(hstmt, &columns);
                             assert(SQL_SUCCEEDED(retcode));
                             if (columns) {
-                                CDBColumnInfoArray vInfo = GetColInfo(m_pPrepare.get(), columns, (meta || m_bCall));
+                                CDBColumnInfoArray vInfo = GetColInfo(hstmt, columns, (meta || m_bCall));
                                 bool output = (m_bCall && vInfo[0].TablePath == m_procName && (size_t) m_parameters >= vInfo.size());
                                 if (output || rowset || meta) {
                                     unsigned int outputs = output ? ((unsigned int) vInfo.size()) : 0;
@@ -4514,12 +4353,12 @@ namespace SPA
                                     bool ok;
                                     if (m_nRecordSize && !output) {
                                         if (rowset) {
-                                            ok = PushRecords(m_pPrepare.get(), res, errMsg);
+                                            ok = PushRecords(hstmt, res, errMsg);
                                         } else {
                                             ok = true;
                                         }
                                     } else if (output || rowset) {
-                                        ok = PushRecords(m_pPrepare.get(), vInfo, output, temp, errTemp);
+                                        ok = PushRecords(hstmt, vInfo, output, temp, errTemp);
                                     } else {
                                         ok = true;
                                     }
@@ -4535,13 +4374,13 @@ namespace SPA
                                 }
                             } else {
                                 SQLLEN rows = 0;
-                                retcode = SQLRowCount(m_pPrepare.get(), &rows);
+                                retcode = SQLRowCount(hstmt, &rows);
                                 assert(SQL_SUCCEEDED(retcode));
                                 if (rows > 0) {
                                     affected += rows;
                                 }
                             }
-                        } while (SQLMoreResults(m_pPrepare.get()) == SQL_SUCCESS);
+                        } while (SQLMoreResults(hstmt) == SQL_SUCCESS);
                         if (temp) {
                             ++m_fails;
                         } else {
@@ -4552,21 +4391,28 @@ namespace SPA
                         }
                     }
                 } else {
-                    SQLRETURN retcode = SQLExecute(m_pPrepare.get());
+                    switch (m_msDriver) {
+                        case tagManagementSystem::msMsSQL:
+                            retcode = SQLExecDirectW(hstmt, (SQLWCHAR*) m_sqlPrepare.c_str(), (SQLINTEGER) m_sqlPrepare.size());
+                            break;
+                        default:
+                            retcode = SQLExecute(hstmt);
+                            break;
+                    }
                     if (!SQL_SUCCEEDED(retcode)) {
                         res = Odbc::ER_ERROR;
-                        GetErrMsg(SQL_HANDLE_STMT, m_pPrepare.get(), errMsg);
+                        GetErrMsg(SQL_HANDLE_STMT, hstmt, errMsg);
                         ++m_fails;
                         break;
                     }
                     do {
                         SQLSMALLINT columns = 0;
-                        retcode = SQLNumResultCols(m_pPrepare.get(), &columns);
+                        retcode = SQLNumResultCols(hstmt, &columns);
                         assert(SQL_SUCCEEDED(retcode));
                         if (columns) {
                             if (rowset || meta) {
                                 unsigned int ret;
-                                CDBColumnInfoArray vInfo = GetColInfo(m_pPrepare.get(), columns, meta);
+                                CDBColumnInfoArray vInfo = GetColInfo(hstmt, columns, meta);
                                 ret = SendResult(idRowsetHeader, vInfo, index);
                                 if (ret == REQUEST_CANCELED || ret == SOCKET_NOT_FOUND) {
                                     m_vParam.clear();
@@ -4574,7 +4420,7 @@ namespace SPA
                                 }
                                 bool ok;
                                 if (rowset) {
-                                    ok = PushRecords(m_pPrepare.get(), vInfo, false, res, errMsg);
+                                    ok = PushRecords(hstmt, vInfo, false, res, errMsg);
                                 } else {
                                     ok = true;
                                 }
@@ -4590,14 +4436,14 @@ namespace SPA
                             }
                         } else {
                             SQLLEN rows = 0;
-                            retcode = SQLRowCount(m_pPrepare.get(), &rows);
+                            retcode = SQLRowCount(hstmt, &rows);
                             assert(SQL_SUCCEEDED(retcode));
                             if (rows > 0) {
                                 affected += rows;
                             }
                             ++m_oks;
                         }
-                    } while (SQLMoreResults(m_pPrepare.get()) == SQL_SUCCESS);
+                    } while (SQLMoreResults(hstmt) == SQL_SUCCESS);
                 }
             } while (false);
             fail_ok = ((m_fails - fails) << 32);
@@ -4667,15 +4513,9 @@ namespace SPA
         }
 
         void COdbcImpl::GetErrMsg(SQLSMALLINT HandleType, SQLHANDLE Handle, CDBString & errMsg) {
-#ifndef NATIVE_UTF16_SUPPORTED
-            static CDBString SQLSTATE(L"SQLSTATE=");
-            static CDBString NATIVE_ERROR(L":NATIVE=");
-            static CDBString ERROR_MESSAGE(L":ERROR_MESSAGE=");
-#else
             static CDBString SQLSTATE(u"SQLSTATE=");
             static CDBString NATIVE_ERROR(u":NATIVE=");
             static CDBString ERROR_MESSAGE(u":ERROR_MESSAGE=");
-#endif
             errMsg.clear();
             SQLSMALLINT i = 1, MsgLen = 0;
             SQLINTEGER NativeError = 0;
