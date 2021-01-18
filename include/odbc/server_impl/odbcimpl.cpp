@@ -3036,7 +3036,7 @@ namespace SPA
                         m_vPD = GetCallDirections(m_sqlPrepare);
                         if (m_bReturn) {
                             //{?=CALL .....}
-                            m_vPD.insert(m_vPD.begin(), tagParameterDirection::pdInput);
+                            m_vPD.insert(m_vPD.begin(), tagParameterDirection::pdReturnValue);
                         }
                         switch (m_msDriver) {
                             case tagManagementSystem::msOracle:
@@ -4062,7 +4062,7 @@ namespace SPA
             if (not_empty) {
                 vPD.push_back(quest ? tagParameterDirection::pdInput : tagParameterDirection::pdUnknown);
             }
-            return vPD;
+            return std::move(vPD);
         }
 
         size_t COdbcImpl::ComputeParameters(const CDBString & sql) {
