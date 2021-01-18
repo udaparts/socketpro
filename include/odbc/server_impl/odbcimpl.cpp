@@ -259,7 +259,6 @@ namespace SPA
                         default:
                             SQLFreeStmt(m_stmt.get(), SQL_RESET_PARAMS);
                             SQLFreeStmt(m_stmt.get(), SQL_UNBIND);
-                            SQLFreeStmt(m_stmt.get(), SQL_CLOSE);
                             break;
                     }
                     break;
@@ -280,8 +279,10 @@ namespace SPA
 #endif
                     do {
                         std::shared_ptr<void> pExcuting = m_stmt;
-                        if (pExcuting)
+                        if (pExcuting) {
                             SQLCancel(pExcuting.get());
+                            SQLFreeStmt(pExcuting.get(), SQL_CLOSE);
+                        }
                         if (m_ti == tagTransactionIsolation::tiUnspecified)
                             break;
                         SQLEndTran(SQL_HANDLE_DBC, m_pOdbc.get(), SQL_ROLLBACK);
