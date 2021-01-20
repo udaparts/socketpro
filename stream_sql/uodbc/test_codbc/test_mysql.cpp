@@ -388,7 +388,7 @@ void TestCreateTables(shared_ptr<CMyHandler> pOdbc) {
         wcout << errMsg << endl;
     });
 
-    const wchar_t *create_proc = L"CREATE PROCEDURE sp_TestProc(in p_company_id int,inout p_sum_salary decimal(15,2),out p_last_dt datetime)BEGIN select * from employee where companyid >= p_company_id;select sum(salary)+p_sum_salary into p_sum_salary from employee where companyid>=p_company_id;select now()into p_last_dt;END";
+    const wchar_t *create_proc = L"CREATE PROCEDURE sp_TestProc(in p_company_id int,inout p_sum_salary decimal(15,2),out p_last_dt datetime)BEGIN select * from company where id >= p_company_id;select sum(salary)+p_sum_salary into p_sum_salary from employee where companyid>=p_company_id;select now()into p_last_dt;END";
     ok = pOdbc->Execute(create_proc, [](CSender &handler, int res, const wstring &errMsg, SPA::INT64 affected, SPA::UINT64 fail_ok, CDBVariant & vtId) {
         cout << "affected = " << affected << ", fails = " << (unsigned int) (fail_ok >> 32) << ", oks = " << (unsigned int) fail_ok << ", res = " << res << ", errMsg: ";
         wcout << errMsg << endl;

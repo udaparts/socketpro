@@ -110,8 +110,7 @@ namespace SPA {
             SQLHSTMT ResetStmt();
             void CleanDBObjects();
             CDBColumnInfoArray GetColInfo(SQLHSTMT hstmt, SQLSMALLINT columns, bool meta);
-            bool PushRecords(SQLHSTMT hstmt, const CDBColumnInfoArray &vColInfo, bool output, int &res, CDBString &errMsg);
-            bool PushRecords(SQLHSTMT hstmt, int &res, CDBString &errMsg);
+            bool PushRecords(SQLHSTMT hstmt, int &res, CDBString &errMsg, bool output = false);
             bool PushInfo(SQLHDBC hdbc);
             bool PreprocessPreparedStatement();
             bool SetInputParamInfo();
@@ -147,12 +146,14 @@ namespace SPA {
             CDBVariantArray m_vParam;
 
         private:
+            CScopeUQueue m_sbRecord;
             CDBString m_dbName;
             CDBString m_dbms;
             CDBString m_userName;
             CScopeUQueue m_sb;
             bool m_global;
             CUQueue &m_Blob;
+            CUQueue &m_BlobRecord;
 
             //ODBC connection handle
             std::shared_ptr<void> m_pOdbc;
@@ -178,6 +179,7 @@ namespace SPA {
             SQLUSMALLINT m_bPrimaryKeys;
             SQLUSMALLINT m_bProcedureColumns;
             std::vector<tagParameterDirection> m_vPD;
+            std::vector<SQLUSMALLINT> m_vBCol;
 
             static const UTF16* NO_DB_OPENED_YET;
             static const UTF16* BAD_END_TRANSTACTION_PLAN;
