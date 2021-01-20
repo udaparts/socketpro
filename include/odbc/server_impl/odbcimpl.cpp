@@ -205,17 +205,22 @@ namespace SPA
             m_oks = 0;
             m_fails = 0;
             m_ti = tagTransactionIsolation::tiUnspecified;
+            USocket_Server_Handle me = GetSocketHandle();
             CAutoLock al(m_csPeer);
-            SQLHDBC hdbc = m_mapConnection[GetSocketHandle()];
-            if (hdbc) {
-                m_pOdbc.reset(hdbc, [](SQLHDBC h) {
-                    if (h) {
-                        SQLRETURN ret = SQLDisconnect(h);
-                        assert(ret == SQL_SUCCESS);
-                        ret = SQLFreeHandle(SQL_HANDLE_DBC, h);
-                        assert(ret == SQL_SUCCESS);
-                    }
-                });
+            auto it = m_mapConnection.find(me);
+            if (it != m_mapConnection.end()) {
+                SQLHDBC hdbc = it->second;
+                if (hdbc) {
+                    m_pOdbc.reset(hdbc, [](SQLHDBC h) {
+                        if (h) {
+                            SQLRETURN ret = SQLDisconnect(h);
+                            assert(ret == SQL_SUCCESS);
+                            ret = SQLFreeHandle(SQL_HANDLE_DBC, h);
+                            assert(ret == SQL_SUCCESS);
+                        }
+                    });
+                }
+                m_mapConnection.erase(me);
             }
         }
 
