@@ -1567,12 +1567,6 @@
             Check if it is replicable.
             </summary>
         </member>
-        <member name="M:SocketProAdapter.ClientSide.CSqlServer.#ctor(System.UInt32)">
-            <summary>
-            You may use the protected constructor when extending this class
-            </summary>
-            <param name="sid">A service id</param>
-        </member>
         <member name="F:SocketProAdapter.ClientSide.CSqlite.DATABASE_AUTO_ATTACHED">
             <summary>
             A flag used with the method CAsyncDBHandler.Open for automatically attaching the opening database onto current session
@@ -2004,6 +1998,21 @@
         </member>
         <member name="F:SocketProAdapter.tagThreadApartment.taFree">
             MTA (free) or neutral apartments
+        </member>
+        <member name="F:SocketProAdapter.BaseServiceID.sidReserved">
+            <remarks>
+            Your non-db service ids should be between (sidReserved + 1) and (sidDB_RESERVED - 1)
+            </remarks>
+        </member>
+        <member name="F:SocketProAdapter.BaseServiceID.sidDB_RESERVED">
+            <remarks>
+            Your db streaming service ids must be between sidDB_RESERVED and (sidDB_UDAParts_RESERVED - 1)
+            </remarks>
+        </member>
+        <member name="F:SocketProAdapter.BaseServiceID.sidDB_UDAParts_RESERVED">
+            <remarks>
+            UDAParts reserved sidODBC and db streaming service ids from sidDB_UDAParts_RESERVED through sidDB_MAX
+            </remarks>
         </member>
         <member name="F:SocketProAdapter.tagQueueStatus.qsNormal">
             <summary>

@@ -6,24 +6,6 @@ namespace SocketProAdapter
 {
     namespace ClientSide
     {
-        public class CSqlServer : CAsyncDBHandler
-        {
-            public const uint sidMsSql = SocketProAdapter.BaseServiceID.sidReserved + 0x6FFFFFF2; //asynchronous MS SQL stream service id
-            public CSqlServer()
-                : base(sidMsSql)
-            {
-            }
-
-            /// <summary>
-            /// You may use the protected constructor when extending this class
-            /// </summary>
-            /// <param name="sid">A service id</param>
-            protected CSqlServer(uint sid)
-                : base(sid)
-            {
-            }
-        }
-
         public class CSqlite : CAsyncDBHandler
         {
             public const uint sidSqlite = SocketProAdapter.BaseServiceID.sidReserved + 0x6FFFFFF0; //asynchronous sqlite service id

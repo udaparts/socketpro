@@ -9,6 +9,12 @@ class BaseServiceID(object):
     sidODBC = 260
     sidReserved = 0x10000000
     sidQueue = 257
+    # Your non-db service ids should be between (sidReserved + 1) and (sidDB_RESERVED - 1)
+    sidDB_RESERVED = (sidReserved + 0x6FFFFF00)
+    # Your db streaming service ids must be between sidDB_RESERVED and (sidDB_UDAParts_RESERVED - 1)
+    sidDB_UDAParts_RESERVED = (sidReserved + 0x6FFFFFD0)
+    # UDAParts reserved sidODBC and db streaming service ids from sidDB_UDAParts_RESERVED through sidDB_MAX
+    sidDB_MAX = (sidReserved + 0x6FFFFFFF)
 
 class tagBaseRequestID(object):
     idUnknown = 0

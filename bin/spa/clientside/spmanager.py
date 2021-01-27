@@ -87,10 +87,6 @@ class SpManager(object):
                 pass
             elif svsId == BaseServiceID.sidODBC:
                 pass
-            elif svsId == CSqlite.sidSqlite:
-                pass
-            elif svsId == CMysql.sidMysql:
-                pass
             elif svsId > BaseServiceID.sidReserved:
                 pass
             else:

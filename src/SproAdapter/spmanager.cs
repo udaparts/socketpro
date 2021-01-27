@@ -196,8 +196,6 @@ namespace SocketProAdapter.ClientSide {
                         throw new Exception("Remote file service does not support master or slave pool");
                     break;
                 case BaseServiceID.sidODBC:
-                case CSqlite.sidSqlite:
-                case CMysql.sidMysql:
                     break;
                 default:
                     if (SvsId <= BaseServiceID.sidReserved)

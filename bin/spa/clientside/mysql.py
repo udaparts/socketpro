@@ -24,9 +24,3 @@ class CMysql(CAsyncDBHandler):
 
     def __init__(self, sid=sidMysql):
         super(CMysql, self).__init__(sid)
-
-class CSqlServer(CAsyncDBHandler):
-    sidMsSql = BaseServiceID.sidReserved + 0x6FFFFFF2  # asynchronous MS SQL stream service id
-
-    def __init__(self, sid=sidMsSql):
-        super(CSqlServer, self).__init__(sid)

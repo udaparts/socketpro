@@ -140,8 +140,23 @@ namespace SocketProAdapter
         public const uint sidHTTP = (sidChat + 1);
         public const uint sidFile = (sidHTTP + 1);
         public const uint sidODBC = (sidFile + 1);
+
+        /// <remarks>
+        /// Your non-db service ids should be between (sidReserved + 1) and (sidDB_RESERVED - 1)
+        /// </remarks>
         public const uint sidReserved = 0x10000000;
         public const uint sidQueue = sidChat;
+
+        /// <remarks>
+        /// Your db streaming service ids must be between sidDB_RESERVED and (sidDB_UDAParts_RESERVED - 1)
+        /// </remarks>
+        public const uint sidDB_RESERVED = (sidReserved + 0x6FFFFF00);
+
+        /// <remarks>
+        /// UDAParts reserved sidODBC and db streaming service ids from sidDB_UDAParts_RESERVED through sidDB_MAX
+        /// </remarks>
+        public const uint sidDB_UDAParts_RESERVED = (sidReserved + 0x6FFFFFD0);
+        public const uint sidDB_MAX = (sidReserved + 0x6FFFFFFF);
     }
 
     public static class BaseExceptionCode
