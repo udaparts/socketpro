@@ -21,29 +21,8 @@ namespace PA
 
     Php::Value CPhpSocketPool::Seek() {
         switch (m_nSvsId) {
-            case SPA::Mysql::sidMysql:
-            case SPA::Odbc::sidOdbc:
-            case SPA::Sqlite::sidSqlite:
-            {
-                auto handler = m_qName.size() ? Db->SeekByQueue() : Db->Seek();
-                if (!handler)
-                    throw Php::Exception("Database handler not found");
-                Php::Object obj((SPA_CS_NS + PHP_DB_HANDLER).c_str(), new CPhpDb(handler.get(), false));
-                return obj;
-            }
-                break;
             case SPA::Queue::sidQueue:
                 throw Php::Exception("Persistent message queue handler doesn't support Seek method within PHP adapter at this time. Use the method Lock instead");
-                /*
-                {
-                    auto handler = m_qName.size() ? Queue->SeekByQueue() : Queue->Seek();
-                    if (!handler)
-                        throw Php::Exception("Persistent message queue handler not found");
-                    Php::Object obj((SPA_CS_NS + PHP_QUEUE_HANDLER).c_str(), new CPhpQueue(Queue->GetPoolId(), handler.get(), false));
-                    return obj;
-                }
-                break;
-                 */
             case SPA::SFile::sidFile:
             {
                 auto handler = m_qName.size() ? File->SeekByQueue() : File->Seek();
@@ -54,6 +33,13 @@ namespace PA
             }
                 break;
             default:
+                if (SPA::IsDBService(m_nSvsId)) {
+                    auto handler = m_qName.size() ? Db->SeekByQueue() : Db->Seek();
+                    if (!handler)
+                        throw Php::Exception("Database handler not found");
+                    Php::Object obj((SPA_CS_NS + PHP_DB_HANDLER).c_str(), new CPhpDb(handler.get(), false));
+                    return obj;
+                }
                 break;
         }
         auto handler = m_qName.size() ? Handler->SeekByQueue() : Handler->Seek();
@@ -68,17 +54,6 @@ namespace PA
             timeout = (unsigned int) params[0].numericValue();
         }
         switch (m_nSvsId) {
-            case SPA::Mysql::sidMysql:
-            case SPA::Odbc::sidOdbc:
-            case SPA::Sqlite::sidSqlite:
-            {
-                auto handler = Db->Lock(timeout);
-                if (!handler)
-                    throw Php::Exception("No database handler locked");
-                Php::Object obj((SPA_CS_NS + PHP_DB_HANDLER).c_str(), new CPhpDb(handler.get(), true));
-                return obj;
-            }
-                break;
             case SPA::Queue::sidQueue:
             {
                 auto handler = Queue->Lock(timeout);
@@ -98,6 +73,13 @@ namespace PA
             }
                 break;
             default:
+                if (SPA::IsDBService(m_nSvsId)) {
+                    auto handler = Db->Lock(timeout);
+                    if (!handler)
+                        throw Php::Exception("No database handler locked");
+                    Php::Object obj((SPA_CS_NS + PHP_DB_HANDLER).c_str(), new CPhpDb(handler.get(), true));
+                    return obj;
+                }
                 break;
         }
         auto handler = Handler->Lock(timeout);
@@ -118,18 +100,6 @@ namespace PA
         if (name == "Handlers" || name == "AsyncHandlers") {
             Php::Array harray;
             switch (m_nSvsId) {
-                case SPA::Mysql::sidMysql:
-                case SPA::Odbc::sidOdbc:
-                case SPA::Sqlite::sidSqlite:
-                {
-                    auto vH = Db->GetAsyncHandlers();
-                    for (auto it = vH.cbegin(), end = vH.cend(); it != end; ++it, ++key) {
-                        CDBHandler *db = (*it).get();
-                        Php::Object objDb((SPA_CS_NS + PHP_DB_HANDLER).c_str(), new CPhpDb(db, false));
-                        harray.set(key, objDb);
-                    }
-                }
-                    break;
                 case SPA::Queue::sidQueue:
                 {
                     auto vH = Queue->GetAsyncHandlers();
@@ -151,14 +121,21 @@ namespace PA
                 }
                     break;
                 default:
-                {
-                    auto vH = Handler->GetAsyncHandlers();
-                    for (auto it = vH.cbegin(), end = vH.cend(); it != end; ++it, ++key) {
-                        CAsyncHandler *ah = (*it).get();
-                        Php::Object objHandler((SPA_CS_NS + PHP_ASYNC_HANDLER).c_str(), new CPhpHandler(ah, false));
-                        harray.set(key, objHandler);
+                    if (SPA::IsDBService(m_nSvsId)) {
+                        auto vH = Db->GetAsyncHandlers();
+                        for (auto it = vH.cbegin(), end = vH.cend(); it != end; ++it, ++key) {
+                            CDBHandler* db = (*it).get();
+                            Php::Object objDb((SPA_CS_NS + PHP_DB_HANDLER).c_str(), new CPhpDb(db, false));
+                            harray.set(key, objDb);
+                        }
+                    } else {
+                        auto vH = Handler->GetAsyncHandlers();
+                        for (auto it = vH.cbegin(), end = vH.cend(); it != end; ++it, ++key) {
+                            CAsyncHandler *ah = (*it).get();
+                            Php::Object objHandler((SPA_CS_NS + PHP_ASYNC_HANDLER).c_str(), new CPhpHandler(ah, false));
+                            harray.set(key, objHandler);
+                        }
                     }
-                }
                     break;
             }
             return harray;
@@ -166,11 +143,6 @@ namespace PA
             Php::Array harray;
             std::vector<std::shared_ptr < CClientSocket>> ss;
             switch (m_nSvsId) {
-                case SPA::Mysql::sidMysql:
-                case SPA::Odbc::sidOdbc:
-                case SPA::Sqlite::sidSqlite:
-                    ss = Db->GetSockets();
-                    break;
                 case (unsigned int) SPA::tagServiceID::sidChat:
                     ss = Queue->GetSockets();
                     break;
@@ -178,7 +150,11 @@ namespace PA
                     ss = File->GetSockets();
                     break;
                 default:
-                    ss = Handler->GetSockets();
+                    if (SPA::IsDBService(m_nSvsId)) {
+                        ss = Db->GetSockets();
+                    } else {
+                        ss = Handler->GetSockets();
+                    }
                     break;
             }
             int key = 0;
@@ -226,25 +202,20 @@ namespace PA
                 throw Php::Exception("Non-master pool doesn't have cache");
             }
             switch (m_nSvsId) {
-                case SPA::Mysql::sidMysql:
-                case SPA::Odbc::sidOdbc:
-                case SPA::Sqlite::sidSqlite:
-                {
-                    CSQLMaster *master = (CSQLMaster *) Db;
-                    Php::Object cache((SPA_NS + PHP_DATASET).c_str(), new CPhpDataSet(master->Cache));
-                    return cache;
-                }
-                    break;
                 case (unsigned int) SPA::tagServiceID::sidFile:
                 case (unsigned int) SPA::tagServiceID::sidChat:
                     assert(false); //shouldn't come here
                     break;
                 default:
-                {
-                    CMasterPool *master = (CMasterPool *) Handler;
-                    Php::Object cache((SPA_NS + PHP_DATASET).c_str(), new CPhpDataSet(master->Cache));
-                    return cache;
-                }
+                    if (SPA::IsDBService(m_nSvsId)) {
+                        CSQLMaster* master = (CSQLMaster*) Db;
+                        Php::Object cache((SPA_NS + PHP_DATASET).c_str(), new CPhpDataSet(master->Cache));
+                        return cache;
+                    } else {
+                        CMasterPool *master = (CMasterPool *) Handler;
+                        Php::Object cache((SPA_NS + PHP_DATASET).c_str(), new CPhpDataSet(master->Cache));
+                        return cache;
+                    }
                     break;
             }
         }

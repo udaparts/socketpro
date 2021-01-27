@@ -92,8 +92,6 @@ namespace PA
                     }
                     break;
                 case (unsigned int) SPA::tagServiceID::sidODBC:
-                case SPA::Mysql::sidMysql:
-                case SPA::Sqlite::sidSqlite:
                     break;
                 default:
                     if (psc.SvsId <= (unsigned int) SPA::tagServiceID::sidReserved) {

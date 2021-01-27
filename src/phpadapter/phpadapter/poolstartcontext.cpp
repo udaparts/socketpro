@@ -16,11 +16,6 @@ namespace PA
     void CPoolStartContext::Clean() {
         if (PhpHandler) {
             switch (SvsId) {
-                case (unsigned int) SPA::tagServiceID::sidODBC:
-                case SPA::Sqlite::sidSqlite:
-                case SPA::Mysql::sidMysql:
-                    delete PhpDb;
-                    break;
                 case (unsigned int) SPA::tagServiceID::sidChat:
                     delete PhpQueue;
                     break;
@@ -28,7 +23,11 @@ namespace PA
                     delete PhpFile;
                     break;
                 default:
-                    delete PhpHandler;
+                    if (SPA::IsDBService(SvsId)) {
+                        delete PhpDb;
+                    } else {
+                        delete PhpHandler;
+                    }
                     break;
             }
             PhpHandler = nullptr;
@@ -85,39 +84,6 @@ namespace PA
         assert(!PhpHandler);
         std::wstring dfltDb = SPA::Utilities::ToWide(DefaultDb);
         switch (SvsId) {
-            case (unsigned int) SPA::tagServiceID::sidODBC:
-            case SPA::Sqlite::sidSqlite:
-            case SPA::Mysql::sidMysql:
-                switch (PoolType) {
-                    case PA::tagPoolType::Regular:
-                        PhpDb = new CPhpDbPool(AutoConn, RecvTimeout, ConnTimeout, SvsId);
-                        break;
-                    case PA::tagPoolType::Slave:
-                        PhpDb = new CSQLMaster::CSlavePool(dfltDb.c_str(), RecvTimeout, SvsId);
-                        PhpDb->SetConnTimeout(ConnTimeout);
-                        PhpDb->SetAutoConn(AutoConn);
-                        break;
-                    case PA::tagPoolType::Master:
-                        PhpDb = new CSQLMaster(dfltDb.c_str(), RecvTimeout, SvsId);
-                        PhpDb->SetConnTimeout(ConnTimeout);
-                        PhpDb->SetAutoConn(AutoConn);
-                        break;
-                    default:
-                        assert(false);
-                        break;
-                }
-                if (Queue.size()) {
-                    PhpDb->SetQueueName(Queue.c_str());
-                }
-                PhpDb->DoSslServerAuthentication = [this](CPhpDbPool *pool, CClientSocket * cs)->bool {
-                    return this->DoSSLAuth(cs);
-                };
-#ifdef REQUIRE_POOL_EVENT
-                PhpDb->SocketPoolEvent = [this](CPhpDbPool *pool, tagSocketPoolEvent spe, CDBHandler * handler) {
-                    this->DealWithPoolEvents(spe);
-                };
-#endif
-                break;
             case (unsigned int) SPA::tagServiceID::sidChat:
                 PhpQueue = new CPhpQueuePool(AutoConn, RecvTimeout, ConnTimeout, SvsId);
                 PhpQueue->DoSslServerAuthentication = [this](CPhpQueuePool *pool, CClientSocket * cs)->bool {
@@ -147,34 +113,66 @@ namespace PA
                 }
                 break;
             default:
-                switch (PoolType) {
-                    case PA::tagPoolType::Regular:
-                        PhpHandler = new CPhpPool(AutoConn, RecvTimeout, ConnTimeout, SvsId);
-                        break;
-                    case PA::tagPoolType::Slave:
-                        PhpHandler = new CMasterPool::CSlavePool(dfltDb.c_str(), RecvTimeout, SvsId);
-                        PhpHandler->SetConnTimeout(ConnTimeout);
-                        PhpHandler->SetAutoConn(AutoConn);
-                        break;
-                    case PA::tagPoolType::Master:
-                        PhpHandler = new CMasterPool(dfltDb.c_str(), RecvTimeout, SvsId);
-                        PhpHandler->SetConnTimeout(ConnTimeout);
-                        PhpHandler->SetAutoConn(AutoConn);
-                        break;
-                    default:
-                        assert(false);
-                        break;
-                }
-                PhpHandler->DoSslServerAuthentication = [this](CPhpPool *pool, CClientSocket * cs)->bool {
-                    return this->DoSSLAuth(cs);
-                };
+                if (SPA::IsDBService(SvsId)) {
+                    switch (PoolType) {
+                        case PA::tagPoolType::Regular:
+                            PhpDb = new CPhpDbPool(AutoConn, RecvTimeout, ConnTimeout, SvsId);
+                            break;
+                        case PA::tagPoolType::Slave:
+                            PhpDb = new CSQLMaster::CSlavePool(dfltDb.c_str(), RecvTimeout, SvsId);
+                            PhpDb->SetConnTimeout(ConnTimeout);
+                            PhpDb->SetAutoConn(AutoConn);
+                            break;
+                        case PA::tagPoolType::Master:
+                            PhpDb = new CSQLMaster(dfltDb.c_str(), RecvTimeout, SvsId);
+                            PhpDb->SetConnTimeout(ConnTimeout);
+                            PhpDb->SetAutoConn(AutoConn);
+                            break;
+                        default:
+                            assert(false);
+                            break;
+                    }
+                    if (Queue.size()) {
+                        PhpDb->SetQueueName(Queue.c_str());
+                    }
+                    PhpDb->DoSslServerAuthentication = [this](CPhpDbPool* pool, CClientSocket * cs)->bool {
+                        return this->DoSSLAuth(cs);
+                    };
 #ifdef REQUIRE_POOL_EVENT
-                PhpHandler->SocketPoolEvent = [this](CPhpPool *pool, tagSocketPoolEvent spe, CAsyncHandler * handler) {
-                    this->DealWithPoolEvents(spe);
-                };
+                    PhpDb->SocketPoolEvent = [this](CPhpDbPool* pool, tagSocketPoolEvent spe, CDBHandler * handler) {
+                        this->DealWithPoolEvents(spe);
+                    };
 #endif
-                if (Queue.size()) {
-                    PhpHandler->SetQueueName(Queue.c_str());
+                } else {
+                    switch (PoolType) {
+                        case PA::tagPoolType::Regular:
+                            PhpHandler = new CPhpPool(AutoConn, RecvTimeout, ConnTimeout, SvsId);
+                            break;
+                        case PA::tagPoolType::Slave:
+                            PhpHandler = new CMasterPool::CSlavePool(dfltDb.c_str(), RecvTimeout, SvsId);
+                            PhpHandler->SetConnTimeout(ConnTimeout);
+                            PhpHandler->SetAutoConn(AutoConn);
+                            break;
+                        case PA::tagPoolType::Master:
+                            PhpHandler = new CMasterPool(dfltDb.c_str(), RecvTimeout, SvsId);
+                            PhpHandler->SetConnTimeout(ConnTimeout);
+                            PhpHandler->SetAutoConn(AutoConn);
+                            break;
+                        default:
+                            assert(false);
+                            break;
+                    }
+                    PhpHandler->DoSslServerAuthentication = [this](CPhpPool* pool, CClientSocket * cs)->bool {
+                        return this->DoSSLAuth(cs);
+                    };
+#ifdef REQUIRE_POOL_EVENT
+                    PhpHandler->SocketPoolEvent = [this](CPhpPool* pool, tagSocketPoolEvent spe, CAsyncHandler * handler) {
+                        this->DealWithPoolEvents(spe);
+                    };
+#endif
+                    if (Queue.size()) {
+                        PhpHandler->SetQueueName(Queue.c_str());
+                    }
                 }
                 break;
         }
@@ -197,14 +195,6 @@ namespace PA
         }
         bool ok = false;
         switch (SvsId) {
-            case SPA::Mysql::sidMysql:
-            case SPA::Odbc::sidOdbc:
-            case SPA::Sqlite::sidSqlite:
-                ok = PhpDb->StartSocketPool(ppCCs, socketsPerThread, threads);
-                if (AutoMerge) {
-                    PhpDb->SetQueueAutoMerge(true);
-                }
-                break;
             case SPA::Queue::sidQueue:
                 ok = PhpQueue->StartSocketPool(ppCCs, socketsPerThread, threads);
                 if (AutoMerge) {
@@ -218,9 +208,16 @@ namespace PA
                 }
                 break;
             default:
-                ok = PhpHandler->StartSocketPool(ppCCs, socketsPerThread, threads);
-                if (AutoMerge) {
-                    PhpHandler->SetQueueAutoMerge(true);
+                if (SPA::IsDBService(SvsId)) {
+                    ok = PhpDb->StartSocketPool(ppCCs, socketsPerThread, threads);
+                    if (AutoMerge) {
+                        PhpDb->SetQueueAutoMerge(true);
+                    }
+                } else {
+                    ok = PhpHandler->StartSocketPool(ppCCs, socketsPerThread, threads);
+                    if (AutoMerge) {
+                        PhpHandler->SetQueueAutoMerge(true);
+                    }
                 }
                 break;
         }

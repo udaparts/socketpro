@@ -2011,6 +2011,8 @@ namespace SPA {
         template<typename THandler, typename TCS>
         std::vector<CSocketPool<THandler, TCS>* > CSocketPool<THandler, TCS>::m_vPool;
 
+        typedef CSocketPool<CASHandler<0> > CBasePool;
+
         struct ReplicationSetting {
             static const unsigned int DEAFULT_TTL = 720 * 3600; //30 days
 
