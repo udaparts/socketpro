@@ -30,20 +30,10 @@ namespace SPA
         CAsyncServiceHandler * CSpConfig::SeekHandler(const std::string & poolKey) {
             unsigned int svsId;
             void *pool = GetPool(poolKey, &svsId);
-            switch (svsId) {
-                case SPA::SFile::sidFile:
-                    return ((CStreamingFilePool*) pool)->Seek().get();
-                case SPA::Queue::sidQueue:
-                    return ((CAsyncQueuePool*) pool)->Seek().get();
-                case SPA::Mysql::sidMysql:
-                    return ((CMysqlPool*) pool)->Seek().get();
-                case SPA::Sqlite::sidSqlite:
-                    return ((CSqlitePool*) pool)->Seek().get();
-                case SPA::Odbc::sidOdbc:
-                    return ((COdbcPool*) pool)->Seek().get();
-                default:
-                    return ((CPoolConfig::CMyPool*)pool)->Seek().get();
+            if (!pool) {
+                return nullptr;
             }
+            return ((CBasePool*)pool)->Seek().get();
         }
 
         CAsyncServiceHandler * CSpConfig::SeekHandlerByQueue(const std::string & poolKey) {
@@ -52,20 +42,10 @@ namespace SPA
             if (!m_pp.at(poolKey)->Queue.size()) {
                 throw std::runtime_error(("Client queue is not availeble for pool " + poolKey).c_str());
             }
-            switch (svsId) {
-                case SPA::SFile::sidFile:
-                    return ((CStreamingFilePool*) pool)->SeekByQueue().get();
-                case SPA::Queue::sidQueue:
-                    return ((CAsyncQueuePool*) pool)->SeekByQueue().get();
-                case SPA::Mysql::sidMysql:
-                    return ((CMysqlPool*) pool)->SeekByQueue().get();
-                case SPA::Sqlite::sidSqlite:
-                    return ((CSqlitePool*) pool)->SeekByQueue().get();
-                case SPA::Odbc::sidOdbc:
-                    return ((COdbcPool*) pool)->SeekByQueue().get();
-                default:
-                    return ((CPoolConfig::CMyPool*)pool)->SeekByQueue().get();
+            if (!pool) {
+                return nullptr;
             }
+            return ((CBasePool*)pool)->SeekByQueue().get();
         }
 
         void* CSpConfig::GetPool(const std::string &poolKey, unsigned int *pSvsId) {

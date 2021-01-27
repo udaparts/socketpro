@@ -17,24 +17,6 @@ namespace NJA {
     : SvsId(id), m_errSSL(0) {
         std::wstring dfltDb(defaultDb ? defaultDb : L"");
         switch (id) {
-            case SPA::Mysql::sidMysql:
-            case SPA::Odbc::sidOdbc:
-            case SPA::Sqlite::sidSqlite:
-                if (dfltDb.size()) {
-                    Db = new CSQLMasterPool<false, CNjDb>(dfltDb.c_str(), SPA::ClientSide::DEFAULT_RECV_TIMEOUT, id);
-                    m_defaultDb = dfltDb;
-                } else if (slave) {
-                    Db = new CSQLMasterPool<false, CNjDb>::CSlavePool(dfltDb.c_str(), SPA::ClientSide::DEFAULT_RECV_TIMEOUT, id);
-                } else {
-                    Db = new CSocketPool<CNjDb>(true, SPA::ClientSide::DEFAULT_RECV_TIMEOUT, SPA::ClientSide::DEFAULT_CONN_TIMEOUT, id);
-                }
-                Db->DoSslServerAuthentication = [this](CSocketPool<CNjDb> *pool, SPA::ClientSide::CClientSocket * cs)->bool {
-                    return this->DoAuthentication(cs->GetUCert());
-                };
-                Db->SocketPoolEvent = [this](CSocketPool<CNjDb> *pool, tagSocketPoolEvent spe, CNjDb * handler) {
-                    this->SendPoolEvent(spe, handler);
-                };
-                break;
             case SPA::Queue::sidQueue:
                 assert(!slave);
                 Queue = new CSocketPool<CAQueue>(true, SPA::ClientSide::DEFAULT_RECV_TIMEOUT, SPA::ClientSide::DEFAULT_CONN_TIMEOUT);
@@ -56,20 +38,37 @@ namespace NJA {
                 };
                 break;
             default:
-                if (dfltDb.size()) {
-                    Handler = new CMasterPool<false, CAsyncHandler>(dfltDb.c_str(), SPA::ClientSide::DEFAULT_RECV_TIMEOUT, id);
-                    m_defaultDb = dfltDb;
-                } else if (slave) {
-                    Handler = new CMasterPool<false, CAsyncHandler>::CSlavePool(dfltDb.c_str(), SPA::ClientSide::DEFAULT_RECV_TIMEOUT, id);
+                if (SPA::IsDBService(id)) {
+                    if (dfltDb.size()) {
+                        Db = new CSQLMasterPool<false, CNjDb>(dfltDb.c_str(), SPA::ClientSide::DEFAULT_RECV_TIMEOUT, id);
+                        m_defaultDb = dfltDb;
+                    } else if (slave) {
+                        Db = new CSQLMasterPool<false, CNjDb>::CSlavePool(dfltDb.c_str(), SPA::ClientSide::DEFAULT_RECV_TIMEOUT, id);
+                    } else {
+                        Db = new CSocketPool<CNjDb>(true, SPA::ClientSide::DEFAULT_RECV_TIMEOUT, SPA::ClientSide::DEFAULT_CONN_TIMEOUT, id);
+                    }
+                    Db->DoSslServerAuthentication = [this](CSocketPool<CNjDb>* pool, SPA::ClientSide::CClientSocket * cs)->bool {
+                        return this->DoAuthentication(cs->GetUCert());
+                    };
+                    Db->SocketPoolEvent = [this](CSocketPool<CNjDb>* pool, tagSocketPoolEvent spe, CNjDb * handler) {
+                        this->SendPoolEvent(spe, handler);
+                    };
                 } else {
-                    Handler = new CSocketPool<CAsyncHandler>(true, SPA::ClientSide::DEFAULT_RECV_TIMEOUT, SPA::ClientSide::DEFAULT_CONN_TIMEOUT, id);
+                    if (dfltDb.size()) {
+                        Handler = new CMasterPool<false, CAsyncHandler>(dfltDb.c_str(), SPA::ClientSide::DEFAULT_RECV_TIMEOUT, id);
+                        m_defaultDb = dfltDb;
+                    } else if (slave) {
+                        Handler = new CMasterPool<false, CAsyncHandler>::CSlavePool(dfltDb.c_str(), SPA::ClientSide::DEFAULT_RECV_TIMEOUT, id);
+                    } else {
+                        Handler = new CSocketPool<CAsyncHandler>(true, SPA::ClientSide::DEFAULT_RECV_TIMEOUT, SPA::ClientSide::DEFAULT_CONN_TIMEOUT, id);
+                    }
+                    Handler->DoSslServerAuthentication = [this](CSocketPool<CAsyncHandler>* pool, SPA::ClientSide::CClientSocket * cs)->bool {
+                        return this->DoAuthentication(cs->GetUCert());
+                    };
+                    Handler->SocketPoolEvent = [this](CSocketPool<CAsyncHandler>* pool, tagSocketPoolEvent spe, CAsyncHandler * handler) {
+                        this->SendPoolEvent(spe, handler);
+                    };
                 }
-                Handler->DoSslServerAuthentication = [this](CSocketPool<CAsyncHandler> *pool, SPA::ClientSide::CClientSocket * cs)->bool {
-                    return this->DoAuthentication(cs->GetUCert());
-                };
-                Handler->SocketPoolEvent = [this](CSocketPool<CAsyncHandler> *pool, tagSocketPoolEvent spe, CAsyncHandler * handler) {
-                    this->SendPoolEvent(spe, handler);
-                };
                 break;
         }
         ::memset(&m_asyncType, 0, sizeof (m_asyncType));
@@ -137,11 +136,6 @@ namespace NJA {
     void NJSocketPool::Release() {
         if (Handler) {
             switch (SvsId) {
-                case SPA::Sqlite::sidSqlite:
-                case SPA::Mysql::sidMysql:
-                case SPA::Odbc::sidOdbc:
-                    delete Db;
-                    break;
                 case SPA::Queue::sidQueue:
                     delete Queue;
                     break;
@@ -149,7 +143,11 @@ namespace NJA {
                     delete File;
                     break;
                 default:
-                    delete Handler;
+                    if (SPA::IsDBService(SvsId)) {
+                        delete Db;
+                    } else {
+                        delete Handler;
+                    }
                     break;
             }
             SPA::CSpinAutoLock al(m_cs);
@@ -164,20 +162,17 @@ namespace NJA {
         NJSocketPool* obj = ObjectWrap::Unwrap<NJSocketPool>(args.Holder());
         if (obj->IsValid(isolate)) {
             switch (obj->SvsId) {
-                case SPA::Mysql::sidMysql:
-                case SPA::Odbc::sidOdbc:
-                case SPA::Sqlite::sidSqlite:
-                    if (obj->m_defaultDb.size()) {
-                        auto pool = (CSQLMasterPool<false, CNjDb>*) obj->Db;
-                        args.GetReturnValue().Set(NJCache::New(isolate, &pool->Cache, true));
-                        return;
-                    }
-                    break;
                 case SPA::Queue::sidQueue:
                 case SPA::SFile::sidFile:
                     break;
                 default:
-                    if (obj->m_defaultDb.size()) {
+                    if (SPA::IsDBService(obj->SvsId)) {
+                        if (obj->m_defaultDb.size()) {
+                            auto pool = (CSQLMasterPool<false, CNjDb>*) obj->Db;
+                            args.GetReturnValue().Set(NJCache::New(isolate, &pool->Cache, true));
+                            return;
+                        }
+                    } else if (obj->m_defaultDb.size()) {
                         auto pool = (CMasterPool<false, CAsyncHandler>*) obj->Handler;
                         args.GetReturnValue().Set(NJCache::New(isolate, &pool->Cache, true));
                         return;
@@ -368,16 +363,15 @@ namespace NJA {
                             case SPA::Queue::sidQueue:
                                 argv[1] = NJAsyncQueue::New(isolate, (NJA::CAQueue*)handler, true);
                                 break;
-                            case SPA::Mysql::sidMysql:
-                            case SPA::Odbc::sidOdbc:
-                            case SPA::Sqlite::sidSqlite:
-                                argv[1] = NJSqlite::New(isolate, (NJA::CNjDb*)handler, true);
-                                break;
                             case SPA::SFile::sidFile:
                                 argv[1] = NJFile::New(isolate, (NJA::CSFile*)handler, true);
                                 break;
                             default:
-                                argv[1] = NJHandler::New(isolate, handler, true);
+                                if (SPA::IsDBService(svsId)) {
+                                    argv[1] = NJSqlite::New(isolate, (NJA::CNjDb*)handler, true);
+                                } else {
+                                    argv[1] = NJHandler::New(isolate, handler, true);
+                                }
                                 break;
                         }
                     } else {
@@ -417,11 +411,6 @@ namespace NJA {
                 Local<Object> njAsh;
                 unsigned int sid = ash->GetSvsID();
                 switch (sid) {
-                    case SPA::Odbc::sidOdbc:
-                    case SPA::Mysql::sidMysql:
-                    case SPA::Sqlite::sidSqlite:
-                        njAsh = NJSqlite::New(isolate, (CNjDb*) ash, true);
-                        break;
                     case SPA::Queue::sidQueue:
                         njAsh = NJAsyncQueue::New(isolate, (CAQueue*) ash, true);
                         break;
@@ -429,7 +418,11 @@ namespace NJA {
                         njAsh = NJFile::New(isolate, (CSFile*) ash, true);
                         break;
                     default:
-                        njAsh = NJHandler::New(isolate, ash, true);
+                        if (SPA::IsDBService(sid)) {
+                            njAsh = NJSqlite::New(isolate, (CNjDb*) ash, true);
+                        } else {
+                            njAsh = NJHandler::New(isolate, ash, true);
+                        }
                         break;
                 }
                 Local<Value> jsReqId = Uint32::New(isolate, reqId);
@@ -594,17 +587,6 @@ namespace NJA {
                     }
                 }
                     break;
-                case SPA::Mysql::sidMysql:
-                case SPA::Odbc::sidOdbc:
-                case SPA::Sqlite::sidSqlite:
-                {
-                    auto handlers = obj->Db->GetAsyncHandlers();
-                    for (auto it = handlers.begin(), end = handlers.end(); it != end; ++it, ++index) {
-                        v->Set(ctx, index, NJSqlite::New(isolate, it->get(), true));
-                    }
-                }
-                    break;
-                    break;
                 case SPA::SFile::sidFile:
                 {
                     auto handlers = obj->File->GetAsyncHandlers();
@@ -614,12 +596,17 @@ namespace NJA {
                 }
                     break;
                 default:
-                {
-                    auto handlers = obj->Handler->GetAsyncHandlers();
-                    for (auto it = handlers.begin(), end = handlers.end(); it != end; ++it, ++index) {
-                        v->Set(ctx, index, NJHandler::New(isolate, it->get(), true));
+                    if (SPA::IsDBService(obj->SvsId)) {
+                        auto handlers = obj->Db->GetAsyncHandlers();
+                        for (auto it = handlers.begin(), end = handlers.end(); it != end; ++it, ++index) {
+                            v->Set(ctx, index, NJSqlite::New(isolate, it->get(), true));
+                        }
+                    } else {
+                        auto handlers = obj->Handler->GetAsyncHandlers();
+                        for (auto it = handlers.begin(), end = handlers.end(); it != end; ++it, ++index) {
+                            v->Set(ctx, index, NJHandler::New(isolate, it->get(), true));
+                        }
                     }
-                }
                     break;
             }
             args.GetReturnValue().Set(v);
@@ -891,14 +878,6 @@ namespace NJA {
                     args.GetReturnValue().Set(NJAsyncQueue::New(isolate, p.get(), true));
                 }
                     break;
-                case SPA::Mysql::sidMysql:
-                case SPA::Odbc::sidOdbc:
-                case SPA::Sqlite::sidSqlite:
-                {
-                    auto p = obj->Db->Lock(timeout);
-                    args.GetReturnValue().Set(NJSqlite::New(isolate, p.get(), true));
-                }
-                    break;
                 case SPA::SFile::sidFile:
                 {
                     auto p = obj->File->Lock(timeout);
@@ -906,10 +885,13 @@ namespace NJA {
                 }
                     break;
                 default:
-                {
-                    auto p = obj->Handler->Lock(timeout);
-                    args.GetReturnValue().Set(NJHandler::New(isolate, p.get(), true));
-                }
+                    if (SPA::IsDBService(obj->SvsId)) {
+                        auto p = obj->Db->Lock(timeout);
+                        args.GetReturnValue().Set(NJSqlite::New(isolate, p.get(), true));
+                    } else {
+                        auto p = obj->Handler->Lock(timeout);
+                        args.GetReturnValue().Set(NJHandler::New(isolate, p.get(), true));
+                    }
                     break;
             }
         }
@@ -929,17 +911,6 @@ namespace NJA {
                         args.GetReturnValue().SetNull();
                 }
                     break;
-                case SPA::Mysql::sidMysql:
-                case SPA::Odbc::sidOdbc:
-                case SPA::Sqlite::sidSqlite:
-                {
-                    auto p = obj->Db->Seek();
-                    if (p)
-                        args.GetReturnValue().Set(NJSqlite::New(isolate, p.get(), true));
-                    else
-                        args.GetReturnValue().SetNull();
-                }
-                    break;
                 case SPA::SFile::sidFile:
                 {
                     auto p = obj->File->Seek();
@@ -950,13 +921,19 @@ namespace NJA {
                 }
                     break;
                 default:
-                {
-                    auto p = obj->Handler->Seek();
-                    if (p)
-                        args.GetReturnValue().Set(NJHandler::New(isolate, p.get(), true));
-                    else
-                        args.GetReturnValue().SetNull();
-                }
+                    if (SPA::IsDBService(obj->SvsId)) {
+                        auto p = obj->Db->Seek();
+                        if (p)
+                            args.GetReturnValue().Set(NJSqlite::New(isolate, p.get(), true));
+                        else
+                            args.GetReturnValue().SetNull();
+                    } else {
+                        auto p = obj->Handler->Seek();
+                        if (p)
+                            args.GetReturnValue().Set(NJHandler::New(isolate, p.get(), true));
+                        else
+                            args.GetReturnValue().SetNull();
+                    }
                     break;
             }
         }
@@ -978,17 +955,6 @@ namespace NJA {
                             args.GetReturnValue().SetNull();
                     }
                         break;
-                    case SPA::Odbc::sidOdbc:
-                    case SPA::Mysql::sidMysql:
-                    case SPA::Sqlite::sidSqlite:
-                    {
-                        auto p = obj->Db->SeekByQueue();
-                        if (p)
-                            args.GetReturnValue().Set(NJSqlite::New(isolate, p.get(), true));
-                        else
-                            args.GetReturnValue().SetNull();
-                    }
-                        break;
                     case SPA::SFile::sidFile:
                     {
                         auto p = obj->File->SeekByQueue();
@@ -999,13 +965,19 @@ namespace NJA {
                     }
                         break;
                     default:
-                    {
-                        auto p = obj->Handler->SeekByQueue();
-                        if (p)
-                            args.GetReturnValue().Set(NJHandler::New(isolate, p.get(), true));
-                        else
-                            args.GetReturnValue().SetNull();
-                    }
+                        if (SPA::IsDBService(obj->SvsId)) {
+                            auto p = obj->Db->SeekByQueue();
+                            if (p)
+                                args.GetReturnValue().Set(NJSqlite::New(isolate, p.get(), true));
+                            else
+                                args.GetReturnValue().SetNull();
+                        } else {
+                            auto p = obj->Handler->SeekByQueue();
+                            if (p)
+                                args.GetReturnValue().Set(NJHandler::New(isolate, p.get(), true));
+                            else
+                                args.GetReturnValue().SetNull();
+                        }
                         break;
                 }
             } else if (p->IsString()) {
@@ -1026,17 +998,6 @@ namespace NJA {
                             args.GetReturnValue().SetNull();
                     }
                         break;
-                    case SPA::Mysql::sidMysql:
-                    case SPA::Odbc::sidOdbc:
-                    case SPA::Sqlite::sidSqlite:
-                    {
-                        auto p = obj->Db->SeekByQueue(qname);
-                        if (p)
-                            args.GetReturnValue().Set(NJSqlite::New(isolate, p.get(), true));
-                        else
-                            args.GetReturnValue().SetNull();
-                    }
-                        break;
                     case SPA::SFile::sidFile:
                     {
                         auto p = obj->File->SeekByQueue(qname);
@@ -1047,13 +1008,19 @@ namespace NJA {
                     }
                         break;
                     default:
-                    {
-                        auto p = obj->Handler->SeekByQueue(qname);
-                        if (p)
-                            args.GetReturnValue().Set(NJHandler::New(isolate, p.get(), true));
-                        else
-                            args.GetReturnValue().SetNull();
-                    }
+                        if (SPA::IsDBService(obj->SvsId)) {
+                            auto p = obj->Db->SeekByQueue(qname);
+                            if (p)
+                                args.GetReturnValue().Set(NJSqlite::New(isolate, p.get(), true));
+                            else
+                                args.GetReturnValue().SetNull();
+                        } else {
+                            auto p = obj->Handler->SeekByQueue(qname);
+                            if (p)
+                                args.GetReturnValue().Set(NJHandler::New(isolate, p.get(), true));
+                            else
+                                args.GetReturnValue().SetNull();
+                        }
                         break;
                 }
             } else {

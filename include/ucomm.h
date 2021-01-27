@@ -67,9 +67,13 @@ namespace SPA {
         //Your db streaming service ids must be between sidDB_RESERVED and (sidDB_UDAParts_RESERVED - 1)
 
         sidDB_UDAParts_RESERVED = (sidReserved + 0x6FFFFFD0),
-        //UDAParts reserved sidODBC and db streaming service ids from sidDB_UDAParts_RESERVED through sidDB_STREAMING_MAX
-        sidDB_STREAMING_MAX = (sidReserved + 0x6FFFFFFF)
+        //UDAParts reserved sidODBC and db streaming service ids from sidDB_UDAParts_RESERVED through sidDB_MAX
+        sidDB_MAX = (sidReserved + 0x6FFFFFFF)
     };
+
+    static bool IsDBService(unsigned int svsId) {
+        return ((svsId >= (unsigned int) tagServiceID::sidDB_RESERVED && svsId <= (unsigned int) tagServiceID::sidDB_MAX) || (svsId == (unsigned int) tagServiceID::sidODBC));
+    }
 
     enum class tagEncryptionMethod {
         NoEncryption = 0,
