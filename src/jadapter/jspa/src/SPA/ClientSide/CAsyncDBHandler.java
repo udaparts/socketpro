@@ -109,7 +109,7 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
 
     public final boolean getOpened() {
         synchronized (m_csDB) {
-            return (m_strConnection != null && m_strConnection.length() > 0 && m_lastReqId > 0);
+            return (m_strConnection != null && m_strConnection.length() > 0);
         }
     }
 
