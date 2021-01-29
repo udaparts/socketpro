@@ -120,7 +120,7 @@ namespace SPA {
 
             inline bool IsOpened() noexcept {
                 CAutoLock al(m_csDB);
-                return (m_strConnection.size() > 0 && m_lastReqId > 0);
+                return (m_strConnection.size() > 0);
             }
 
             inline tagManagementSystem GetDBManagementSystem() noexcept {

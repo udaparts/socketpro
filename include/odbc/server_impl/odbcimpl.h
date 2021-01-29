@@ -1,16 +1,22 @@
-
 #pragma once
 
 #ifndef SQL_NOUNICODEMAP
 #define SQL_NOUNICODEMAP
 #endif
 
-#include "../uodbc_server.h"
 #include "../../udatabase.h"
 #include "../../aserverw.h"
 #include<unordered_map>
-#include <sqlext.h>
 #include <memory>
+
+#ifdef SP_DB2_PLUGIN
+#include "../../db2/udb2_server.h"
+#undef UNICODE
+#include <sqlcli1.h>
+#else
+#include "../uodbc_server.h"
+#include <sqlext.h>
+#endif
 
 namespace SPA {
     namespace ServerSide {
@@ -120,7 +126,9 @@ namespace SPA {
             void ResetMemories();
             void SetVParam(CDBVariantArray& vAll, size_t parameters, size_t pos, size_t ps);
             void SetCallParams(const std::vector<tagParameterDirection> &vPD, int &res, CDBString &errMsg);
+#ifndef SP_DB2_PLUGIN
             void SetOracleCallParams(const std::vector<tagParameterDirection> &vPD, int &res, CDBString &errMsg);
+#endif
             CDBString GenerateMsSqlForCachedTables();
             static CParameterInfoArray GetVInfo(const CParameterInfoArray& vPInfo, size_t pos, size_t ps);
             static std::vector<CDBString> Split(const CDBString &sql, const CDBString &delimiter);

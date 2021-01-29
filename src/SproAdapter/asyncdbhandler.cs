@@ -448,7 +448,7 @@ namespace SocketProAdapter
                 get {
                     lock (m_csDB)
                     {
-                        return (m_strConnection != null && m_strConnection.Length > 0 && m_lastReqId > 0);
+                        return (m_strConnection != null && m_strConnection.Length > 0);
                     }
                 }
             }

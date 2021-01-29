@@ -106,7 +106,7 @@ class CAsyncDBHandler(CAsyncServiceHandler):
     @property
     def Opened(self):
         with self._csDB:
-            return self._strConnection != None and self._lastReqId > 0
+            return (!!self._strConnection)
 
     @property
     def ColumnInfo(self):
@@ -499,13 +499,13 @@ class CAsyncDBHandler(CAsyncServiceHandler):
             with self._csDB:
                 self._flags = flags
                 self._deqResult.append(cb)
-                if not strConnection is None:
+                if strConnection:
                     s = self._strConnection
                     self._strConnection = strConnection
             ok = self.SendRequest(DB_CONSTS.idOpen, q, None, discarded, se)
             if not ok:
                 with self._csDB:
-                    if not strConnection is None:
+                    if strConnection:
                         self._strConnection = s
                     self._deqResult.remove(cb)
         CScopeUQueue.Unlock(q)

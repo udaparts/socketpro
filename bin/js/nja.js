@@ -582,13 +582,13 @@ class CSocketPool {
                     case exports.SID.sidQueue:
                         vh.push(new CAsyncQueue(h));
                         break;
-                    case exports.SID.sidOdbc:
-                    case exports.SID.sidSqlite:
-                    case exports.SID.sidMysql:
-                        vh.push(new CDb(h));
-                        break;
                     default:
-                        vh.push(new CHandler(h));
+                        if (exports.isDBService(svsId)) {
+                            vh.push(new CDb(h));
+                        }
+                        else {
+                            vh.push(new CHandler(h));
+                        }
                         break;
                 }
             }
@@ -599,6 +599,7 @@ class CSocketPool {
     Seek() {
         var h = this.pool.Seek();
         if (h) {
+            var sid = h.getSvsId();
             switch (h.getSvsId()) {
                 case exports.SID.sidFile:
                     h = new CAsyncFile(h);
@@ -606,13 +607,13 @@ class CSocketPool {
                 case exports.SID.sidQueue:
                     h = new CAsyncQueue(h);
                     break;
-                case exports.SID.sidOdbc:
-                case exports.SID.sidSqlite:
-                case exports.SID.sidMysql:
-                    h = new CDb(h);
-                    break;
                 default:
-                    h = new CHandler(h);
+                    if (exports.isDBService(sid)) {
+                        h = new CDb(h);
+                    }
+                    else {
+                        h = new CHandler(h);
+                    }
                     break;
             }
         }
@@ -623,7 +624,8 @@ class CSocketPool {
         assert(qn === null || qn === undefined || typeof qn === 'string');
         var h = this.pool.SeekByQueue(qn);
         if (h) {
-            switch (h.getSvsId()) {
+            var sid = h.getSvsId();
+            switch (sid) {
                 case exports.SID.sidFile:
                     h = new CAsyncFile(h);
                     break;
@@ -636,7 +638,12 @@ class CSocketPool {
                     h = new CDb(h);
                     break;
                 default:
-                    h = new CHandler(h);
+                    if (exports.isDBService(sid)) {
+                        h = new CDb(h);
+                    }
+                    else {
+                        h = new CHandler(h);
+                    }
                     break;
             }
         }
@@ -944,8 +951,22 @@ exports.SID = {
     sidFile: 259, //files streaming service
     sidOdbc: 260, //ODBC SQL-streaming service
     sidReserved: 0x10000000,
-    sidSqlite: 2147483632, //SQLite SQL-streaming services
-    sidMysql: 2147483633 //MySQL/Mariadb SQL-streaming services
+
+    //Your non-db service ids should be between (sidReserved + 1) and (sidDB_RESERVED - 1)
+    sidDB_RESERVED: 0x7FFFFF00,
+
+    //Your db streaming service ids must be between sidDB_RESERVED and (sidDB_UDAParts_RESERVED - 1)
+    sidDB_UDAParts_RESERVED: 0x7FFFFFD0,
+
+    //UDAParts reserved sidODBC and db streaming service ids from sidDB_UDAParts_RESERVED through sidDB_MAX
+    sidSqlite: 2147483632, //SQLite SQL-streaming service
+    sidMysql: 2147483633, //MySQL/Mariadb SQL-streaming service
+    sidDB2: 2147483635, //DB2 CLI SQL-streaming service
+    sidDB_MAX: 0x7FFFFFFF
+};
+
+exports.isDBService = function (sid) {
+    return ((sid >= exports.SID.sidDB_RESERVED && sid <= exports.SID.sidDB_MAX) || sid == exports.SID.sidOdbc);
 };
 
 class CAsyncQueue extends CHandler {
@@ -1390,7 +1411,7 @@ class CDb extends CHandler {
     constructor(h) {
         super(h);
         var sid = h.getSvsId();
-        assert(sid === exports.SID.sidOdbc || sid === exports.SID.sidSqlite || sid === exports.SID.sidMysql);
+        assert(exports.isDBService(sid));
     }
 
     /**
@@ -1753,20 +1774,21 @@ exports.CS = {
     //wrap native handler into accessable handler
     wrap: function (h) {
         if (h) {
-            switch (h.getSvsId()) {
+            var sid = h.getSvsId();
+            switch (sid) {
                 case exports.SID.sidFile:
                     h = new CAsyncFile(h);
                     break;
                 case exports.SID.sidQueue:
                     h = new CAsyncQueue(h);
                     break;
-                case exports.SID.sidOdbc:
-                case exports.SID.sidSqlite:
-                case exports.SID.sidMysql:
-                    h = new CDb(h);
-                    break;
                 default:
-                    h = new CHandler(h);
+                    if (exports.isDBService(sid)) {
+                        h = new CDb(h);
+                    }
+                    else {
+                        h = new CHandler(h);
+                    }
                     break;
             }
         }
@@ -2359,9 +2381,7 @@ class CJsManager {
                     if (defaultDb || typeof obj.Slaves === 'object')
                         throw 'Remote file service does not support master or slave pool';
                     break;
-                case exports.SID.sidMysql:
                 case exports.SID.sidOdbc:
-                case exports.SID.sidSqlite:
                     break;
                 default:
                     if (svsId <= exports.SID.sidReserved)

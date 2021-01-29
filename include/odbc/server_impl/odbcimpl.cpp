@@ -7,9 +7,7 @@
 namespace SPA
 {
     namespace ServerSide{
-
         SQLHENV COdbcImpl::g_hEnv = nullptr;
-
         const UTF16 * COdbcImpl::NO_DB_OPENED_YET = u"No ODBC database opened yet";
         const UTF16 * COdbcImpl::BAD_END_TRANSTACTION_PLAN = u"Bad end transaction plan";
         const UTF16 * COdbcImpl::NO_PARAMETER_SPECIFIED = u"No parameter specified";
@@ -110,7 +108,7 @@ namespace SPA
             connection_string.clear();
             if (s)
                 connection_string = s;
-            if (!wcsstr(s, L"="))
+            if (!s || !wcsstr(s, L"="))
                 return;
             wstringstream ss(s ? s : L"");
             wstring item;
@@ -177,7 +175,12 @@ namespace SPA
         : m_oks(0), m_fails(0), m_ti(tagTransactionIsolation::tiUnspecified), m_global(true),
         m_Blob(*m_sb), m_BlobRecord(*m_sbRecord), m_parameters(0), m_bCall(false), m_bReturn(false),
         m_outputs(0), m_nRecordSize(0), m_pNoSending(nullptr),
-        m_msDriver(tagManagementSystem::msODBC), m_EnableMessages(false),
+#ifdef SP_DB2_PLUGIN
+        m_msDriver(tagManagementSystem::msDB2),
+#else
+        m_msDriver(tagManagementSystem::msODBC),
+#endif
+        m_EnableMessages(false),
         m_bPrimaryKeys(SQL_FALSE), m_bProcedureColumns(SQL_FALSE) {
         }
 
@@ -290,7 +293,11 @@ namespace SPA
             m_pOdbc.reset();
             m_vParam.clear();
             ResetMemories();
+#ifdef SP_DB2_PLUGIN
+            m_msDriver = tagManagementSystem::msDB2;
+#else
             m_msDriver = tagManagementSystem::msODBC;
+#endif
             m_EnableMessages = false;
             m_bPrimaryKeys = SQL_FALSE;
             m_bProcedureColumns = SQL_FALSE;
@@ -302,44 +309,34 @@ namespace SPA
                 m_EnableMessages = GetPush().Subscribe(&STREAMING_SQL_CHAT_GROUP_ID, 1);
             if (m_pOdbc.get()) {
                 PushInfo(m_pOdbc.get());
-                if (strConnection.size()) {
+#ifndef SP_DB2_PLUGIN
+                CDBString defaultDb = strConnection;
+                SPA::Trim(defaultDb);
+                if (defaultDb.size() && defaultDb.find(u'=') == CDBString::npos && !SPA::IsEqual(defaultDb.c_str(), m_dbName.c_str(), false)) {
                     CDBString sql;
-#if defined(WIN32_64) && _MSC_VER < 1900
-                    if (m_dbms == L"microsoft sql server") {
-                        sql = L"USE [" + strConnection + L"]";
-                    } else if (m_dbms == L"mysql") {
-                        sql = L"USE " + strConnection;
-                    } else if (m_dbms == L"oracle") {
-                        sql = L"ALTER SESSION SET current_schema=" + strConnection;
-                    } else if (m_dbms.find(L"db2") != CDBString::npos) {
-                        sql = L"SET SCHEMA " + strConnection;
-                    } else if (m_dbms.find(L"postgre") == 0) {
-                        sql = L"SET search_path=" + strConnection;
-                    }
-#else
                     if (m_dbms == u"microsoft sql server") {
-                        sql = u"USE [" + strConnection + u"]";
+                        sql = u"USE [" + defaultDb + u"]";
                     } else if (m_dbms == u"mysql") {
-                        sql = u"USE " + strConnection;
+                        sql = u"USE " + defaultDb;
                     } else if (m_dbms == u"oracle") {
-                        sql = u"ALTER SESSION SET current_schema=" + strConnection;
-                    } else if (m_dbms.find(u"db2") != CDBString::npos) {
-                        sql = u"SET SCHEMA " + strConnection;
+                        sql = u"ALTER SESSION SET current_schema=" + defaultDb;
                     } else if (m_dbms.find(u"postgre") == 0) {
-                        sql = u"SET search_path=" + strConnection;
+                        sql = u"SET search_path=" + defaultDb;
                     }
-#endif
                     if (sql.size()) {
                         INT64 affected = 0;
                         UDB::CDBVariant vtId;
                         UINT64 fail_ok = 0;
                         Execute(sql, false, false, false, 0, affected, res, errMsg, vtId, fail_ok);
                         if (!res) {
-                            errMsg = strConnection;
-                            m_dbName = strConnection;
+                            errMsg = defaultDb;
+                            m_dbName = defaultDb;
+                        } else {
+                            m_pOdbc.reset();
                         }
                     }
                 }
+#endif
                 if (!res && !errMsg.size()) {
                     errMsg = m_dbName;
                 }
@@ -890,6 +887,7 @@ namespace SPA
                     info.Flags |= CDBColumnInfo::FLAG_NOT_NULL;
                     primary_key_set = true;
                 } else if (!primary_key_set) {
+#ifndef SP_DB2_PLUGIN
                     switch (m_msDriver) {
                         case tagManagementSystem::msMsSQL:
                             retcode = SQLColAttribute(hstmt, (SQLUSMALLINT) (n + 1), SQL_CA_SS_COLUMN_KEY, nullptr, 0, nullptr, &displaysize);
@@ -900,6 +898,7 @@ namespace SPA
                         default:
                             break;
                     }
+#endif
                 }
                 retcode = SQLColAttribute(hstmt, (SQLUSMALLINT) (n + 1), SQL_DESC_UPDATABLE, nullptr, 0, nullptr, &displaysize);
                 assert(SQL_SUCCEEDED(retcode));
@@ -2199,6 +2198,7 @@ namespace SPA
             SQLHSTMT hstmt = ResetStmt();
             do {
                 SQLRETURN retcode;
+#ifndef SP_DB2_PLUGIN
                 if (meta) {
                     switch (m_msDriver) {
                         case tagManagementSystem::msMsSQL:
@@ -2208,6 +2208,7 @@ namespace SPA
                             break;
                     }
                 }
+#endif
                 retcode = SQLExecDirectW(hstmt, (SQLWCHAR*) sql.c_str(), (SQLINTEGER) sql.size());
                 if (!SQL_SUCCEEDED(retcode) && retcode != SQL_NO_DATA) {
                     res = Odbc::ER_ERROR;
@@ -2270,6 +2271,8 @@ namespace SPA
             fail_ok = ((m_fails - fails) << 32);
             fail_ok += (unsigned int) (m_oks - oks);
         }
+
+#ifndef SP_DB2_PLUGIN
 
         void COdbcImpl::SetOracleCallParams(const std::vector<tagParameterDirection> &vPD, int &res, CDBString & errMsg) {
             CDBString sql(u"SELECT in_out,data_type FROM SYS.ALL_ARGUMENTS WHERE data_type<>'REF CURSOR' AND owner='");
@@ -2394,6 +2397,7 @@ namespace SPA
                 m_vPInfo.push_back(pi);
             }
         }
+#endif
 
         void COdbcImpl::SetCallParams(const std::vector<tagParameterDirection> &vPD, int &res, CDBString & errMsg) {
             res = 0;
@@ -2643,9 +2647,11 @@ namespace SPA
                             m_vPD.insert(m_vPD.begin(), tagParameterDirection::pdReturnValue);
                         }
                         switch (m_msDriver) {
+#ifndef SP_DB2_PLUGIN
                             case tagManagementSystem::msOracle:
                                 SetOracleCallParams(m_vPD, res, errMsg);
                                 break;
+#endif
                             default:
                                 if (m_bProcedureColumns) {
                                     SetCallParams(m_vPD, res, errMsg);
@@ -3914,6 +3920,7 @@ namespace SPA
                             ++m_fails;
                             continue;
                         }
+#ifndef SP_DB2_PLUGIN
                         if (meta) {
                             switch (m_msDriver) {
                                 case tagManagementSystem::msMsSQL:
@@ -3923,6 +3930,7 @@ namespace SPA
                                     break;
                             }
                         }
+#endif
                         switch (m_msDriver) {
                             case tagManagementSystem::msMsSQL:
                                 retcode = SQLExecDirectW(hstmt, (SQLWCHAR*) m_sqlPrepare.c_str(), (SQLINTEGER) m_sqlPrepare.size());
@@ -4117,7 +4125,7 @@ namespace SPA
             {0}, Msg[SQL_MAX_MESSAGE_LENGTH + 1] =
             {0};
             SQLRETURN res = SQLGetDiagRec(HandleType, Handle, i, SqlState, &NativeError, Msg, sizeof (Msg) / sizeof (SQLCHAR), &MsgLen);
-            while (res != SQL_NO_DATA) {
+            while (SQL_SUCCEEDED(res) && res != SQL_NO_DATA && strlen((const char*) Msg)) {
                 if (errMsg.size()) {
                     errMsg.push_back(';');
                 }
