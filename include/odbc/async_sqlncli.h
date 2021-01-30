@@ -28,6 +28,8 @@
 #define  SQL_DBCLOB                     -350
 #define  SQL_XML                        -370
 
+#define SQL_ATTR_CURRENT_SCHEMA			1254
+
 #define SQL_SOPT_SS_BASE                            1225
 #define SQL_SOPT_SS_HIDDEN_COLUMNS                  (SQL_SOPT_SS_BASE+2) // Expose FOR BROWSE hidden columns
 

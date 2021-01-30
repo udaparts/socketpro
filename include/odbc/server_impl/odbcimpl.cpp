@@ -309,19 +309,29 @@ namespace SPA
                 m_EnableMessages = GetPush().Subscribe(&STREAMING_SQL_CHAT_GROUP_ID, 1);
             if (m_pOdbc.get()) {
                 PushInfo(m_pOdbc.get());
-#ifndef SP_DB2_PLUGIN
                 CDBString defaultDb = strConnection;
                 SPA::Trim(defaultDb);
-                if (defaultDb.size() && defaultDb.find(u'=') == CDBString::npos && !SPA::IsEqual(defaultDb.c_str(), m_dbName.c_str(), false)) {
+                if (defaultDb.size() && defaultDb.find(u'=') == CDBString::npos) {
                     CDBString sql;
-                    if (m_dbms == u"microsoft sql server") {
-                        sql = u"USE [" + defaultDb + u"]";
-                    } else if (m_dbms == u"mysql") {
-                        sql = u"USE " + defaultDb;
-                    } else if (m_dbms == u"oracle") {
-                        sql = u"ALTER SESSION SET current_schema=" + defaultDb;
-                    } else if (m_dbms.find(u"postgre") == 0) {
-                        sql = u"SET search_path=" + defaultDb;
+                    if (m_msDriver == tagManagementSystem::msDB2) {
+                        sql = u"SET SCHEMA " + defaultDb; //assume using a new schema instead of database name
+                    } else if (!SPA::IsEqual(defaultDb.c_str(), m_dbName.c_str(), false)) {
+                        switch (m_msDriver) {
+                            case tagManagementSystem::msMsSQL:
+                                sql = u"USE [" + defaultDb + u"]";
+                                break;
+                            case tagManagementSystem::msOracle:
+                                sql = u"ALTER SESSION SET current_schema=" + defaultDb;
+                                break;
+                            case tagManagementSystem::msMysql:
+                                sql = u"USE " + defaultDb;
+                                break;
+                            case tagManagementSystem::msPostgreSQL:
+                                sql = u"SET search_path=" + defaultDb;
+                                break;
+                            default:
+                                break;
+                        }
                     }
                     if (sql.size()) {
                         INT64 affected = 0;
@@ -336,7 +346,6 @@ namespace SPA
                         }
                     }
                 }
-#endif
                 if (!res && !errMsg.size()) {
                     errMsg = m_dbName;
                 }
@@ -433,7 +442,7 @@ namespace SPA
         }
 
         void COdbcImpl::BeginTrans(int isolation, const CDBString &dbConn, unsigned int flags, int &res, CDBString &errMsg, int &ms) {
-            ms = (int) tagManagementSystem::msODBC;
+            ms = (int) m_msDriver;
             if (m_ti != tagTransactionIsolation::tiUnspecified || isolation == (int) tagTransactionIsolation::tiUnspecified) {
                 errMsg = BAD_MANUAL_TRANSACTION_STATE;
                 res = Odbc::ER_BAD_MANUAL_TRANSACTION_STATE;
@@ -445,7 +454,6 @@ namespace SPA
                     return;
                 }
             }
-            ms = (int) m_msDriver;
             SQLINTEGER attr;
             switch ((tagTransactionIsolation) isolation) {
                 case tagTransactionIsolation::tiReadUncommited:
@@ -1024,19 +1032,6 @@ namespace SPA
             if (mapInfo.find(SQL_DBMS_NAME) != mapInfo.end()) {
                 m_dbms = (const UTF16*) mapInfo[SQL_DBMS_NAME].bstrVal;
                 std::transform(m_dbms.begin(), m_dbms.end(), m_dbms.begin(), ::tolower); //microsoft sql server, oracle, mysql
-#if defined(WIN32_64) && _MSC_VER < 1900
-                if (m_dbms == L"microsoft sql server") {
-                    m_msDriver = tagManagementSystem::msMsSQL;
-                } else if (m_dbms == L"mysql") {
-                    m_msDriver = tagManagementSystem::msMysql;
-                } else if (m_dbms == L"oracle") {
-                    m_msDriver = tagManagementSystem::msOracle;
-                } else if (m_dbms.find(L"db2") != std::wstring::npos) {
-                    m_msDriver = tagManagementSystem::msDB2;
-                } else if (m_dbms.find(L"postgre") == 0) {
-                    m_msDriver = tagManagementSystem::msPostgreSQL;
-                }
-#else
                 if (m_dbms == u"microsoft sql server") {
                     m_msDriver = tagManagementSystem::msMsSQL;
                 } else if (m_dbms == u"mysql") {
@@ -1048,7 +1043,6 @@ namespace SPA
                 } else if (m_dbms.find(u"postgre") == 0) {
                     m_msDriver = tagManagementSystem::msPostgreSQL;
                 }
-#endif
             } else {
                 m_dbms.clear();
             }
@@ -3329,7 +3323,7 @@ namespace SPA
                             ParameterValuePtr = (SQLPOINTER) (m_Blob.GetBuffer() + output_pos);
                             BufferLength = info.ColumnSize;
                             dt.ToDBString((char*) ParameterValuePtr, (unsigned int) BufferLength);
-                            ColumnSize = ::strlen((const char*) ParameterValuePtr);
+                            ColumnSize = (SQLUINTEGER) ::strlen((const char*) ParameterValuePtr);
                             switch (ColumnSize) {
                                 case 10:
                                     sql_type = SQL_TYPE_DATE;
@@ -3739,7 +3733,7 @@ namespace SPA
                 errMsg = NO_DB_OPENED_YET;
                 fail_ok = vSql.size();
                 fail_ok <<= 32;
-                SendResult(idSqlBatchHeader, res, errMsg, (int) tagManagementSystem::msODBC, (unsigned int) parameters, callIndex);
+                SendResult(idSqlBatchHeader, res, errMsg, (int) m_msDriver, (unsigned int) parameters, callIndex);
                 return;
             }
             size_t rows = 0;
@@ -3750,7 +3744,7 @@ namespace SPA
                     m_fails += vSql.size();
                     fail_ok = vSql.size();
                     fail_ok <<= 32;
-                    SendResult(idSqlBatchHeader, res, errMsg, (int) tagManagementSystem::msODBC, (unsigned int) parameters, callIndex);
+                    SendResult(idSqlBatchHeader, res, errMsg, (int) m_msDriver, (unsigned int) parameters, callIndex);
                     return;
                 }
                 if ((m_vParam.size() % (unsigned short) parameters)) {
@@ -3759,7 +3753,7 @@ namespace SPA
                     m_fails += vSql.size();
                     fail_ok = vSql.size();
                     fail_ok <<= 32;
-                    SendResult(idSqlBatchHeader, res, errMsg, (int) tagManagementSystem::msODBC, (unsigned int) parameters, callIndex);
+                    SendResult(idSqlBatchHeader, res, errMsg, (int) m_msDriver, (unsigned int) parameters, callIndex);
                     return;
                 }
                 rows = m_vParam.size() / parameters;
@@ -3769,7 +3763,7 @@ namespace SPA
                     m_fails += vSql.size();
                     fail_ok = vSql.size();
                     fail_ok <<= 32;
-                    SendResult(idSqlBatchHeader, res, errMsg, (int) tagManagementSystem::msODBC, (unsigned int) parameters, callIndex);
+                    SendResult(idSqlBatchHeader, res, errMsg, (int) m_msDriver, (unsigned int) parameters, callIndex);
                     return;
                 }
             }
@@ -3780,7 +3774,7 @@ namespace SPA
                     m_fails += vSql.size();
                     fail_ok = vSql.size();
                     fail_ok <<= 32;
-                    SendResult(idSqlBatchHeader, res, errMsg, (int) tagManagementSystem::msODBC, (unsigned int) parameters, callIndex);
+                    SendResult(idSqlBatchHeader, res, errMsg, (int) m_msDriver, (unsigned int) parameters, callIndex);
                     return;
                 } else if (IsCanceled() || !IsOpened())
                     return;
@@ -3791,7 +3785,7 @@ namespace SPA
                     errMsg = ODBC_GLOBAL_CONNECTION_STRING;
                 }
             }
-            unsigned int ret = SendResult(idSqlBatchHeader, res, errMsg, (int) tagManagementSystem::msODBC, (unsigned int) parameters, callIndex);
+            unsigned int ret = SendResult(idSqlBatchHeader, res, errMsg, (int) m_msDriver, (unsigned int) parameters, callIndex);
             if (ret == REQUEST_CANCELED || ret == SOCKET_NOT_FOUND) {
                 return;
             }
