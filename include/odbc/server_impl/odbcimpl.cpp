@@ -262,6 +262,13 @@ namespace SPA
             if (reqId == idExecuteParameters || reqId == idExecuteBatch) {
                 m_vParam.clear();
             }
+#ifndef SP_DB2_PLUGIN
+            if (m_msDriver == tagManagementSystem::msOracle) {
+                if (reqId >= Odbc::idSQLColumnPrivileges && reqId <= Odbc::idSQLTables) {
+                    m_nRecordSize = 0; //for oracle invalid cursor position
+                }
+            }
+#endif
             return 0;
         }
 
@@ -1387,11 +1394,13 @@ namespace SPA
                             {
                                 unsigned char boolean = 0;
                                 retcode = SQLGetData(hstmt, (SQLUSMALLINT) (i + 1), SQL_C_BIT, &boolean, sizeof (boolean), &len_or_null);
-                                if (len_or_null == SQL_NULL_DATA) {
-                                    q << (VARTYPE) VT_NULL;
-                                } else {
-                                    VARIANT_BOOL ok = boolean ? VARIANT_TRUE : VARIANT_FALSE;
-                                    q << vt << ok;
+                                if (SQL_SUCCEEDED(retcode)) {
+                                    if (len_or_null == SQL_NULL_DATA) {
+                                        q << (VARTYPE) VT_NULL;
+                                    } else {
+                                        VARIANT_BOOL ok = boolean ? VARIANT_TRUE : VARIANT_FALSE;
+                                        q << vt << ok;
+                                    }
                                 }
                             }
                                 break;
@@ -1413,12 +1422,14 @@ namespace SPA
                                     unsigned int* plen = (unsigned int*) (pvt + 1);
                                     unsigned char* pos = (unsigned char*) (plen + 1);
                                     retcode = SQLGetData(hstmt, (SQLUSMALLINT) (i + 1), SQL_C_WCHAR, pos, q.GetTailSize() - sizeof (unsigned int) - sizeof (VARTYPE), &len_or_null);
-                                    if (SQL_NULL_DATA == len_or_null) {
-                                        q << (VARTYPE) VT_NULL;
-                                    } else {
-                                        *pvt = vt;
-                                        *plen = (unsigned int) len_or_null;
-                                        q.SetSize(q.GetSize() + *plen + sizeof (unsigned int) + sizeof (VARTYPE));
+                                    if (SQL_SUCCEEDED(retcode)) {
+                                        if (SQL_NULL_DATA == len_or_null) {
+                                            q << (VARTYPE) VT_NULL;
+                                        } else {
+                                            *pvt = vt;
+                                            *plen = (unsigned int) len_or_null;
+                                            q.SetSize(q.GetSize() + *plen + sizeof (unsigned int) + sizeof (VARTYPE));
+                                        }
                                     }
                                 }
                                 break;
@@ -1428,14 +1439,16 @@ namespace SPA
                                     {
                                         DATE_STRUCT d;
                                         retcode = SQLGetData(hstmt, (SQLUSMALLINT) (i + 1), SQL_C_TYPE_DATE, &d, sizeof (d), &len_or_null);
-                                        if (len_or_null == SQL_NULL_DATA) {
-                                            q << (VARTYPE) VT_NULL;
-                                        } else {
-                                            q << vt;
-                                            std::tm st;
-                                            unsigned int us = ToCTime(d, st);
-                                            UDateTime dt(st, us);
-                                            q << dt.time;
+                                        if (SQL_SUCCEEDED(retcode)) {
+                                            if (len_or_null == SQL_NULL_DATA) {
+                                                q << (VARTYPE) VT_NULL;
+                                            } else {
+                                                q << vt;
+                                                std::tm st;
+                                                unsigned int us = ToCTime(d, st);
+                                                UDateTime dt(st, us);
+                                                q << dt.time;
+                                            }
                                         }
                                     }
                                         break;
@@ -1443,14 +1456,16 @@ namespace SPA
                                     {
                                         TIME_STRUCT d;
                                         retcode = SQLGetData(hstmt, (SQLUSMALLINT) (i + 1), SQL_C_TYPE_TIME, &d, sizeof (d), &len_or_null);
-                                        if (len_or_null == SQL_NULL_DATA) {
-                                            q << (VARTYPE) VT_NULL;
-                                        } else {
-                                            q << vt;
-                                            std::tm st;
-                                            unsigned int us = ToCTime(d, st);
-                                            UDateTime dt(st, us);
-                                            q << dt.time;
+                                        if (SQL_SUCCEEDED(retcode)) {
+                                            if (len_or_null == SQL_NULL_DATA) {
+                                                q << (VARTYPE) VT_NULL;
+                                            } else {
+                                                q << vt;
+                                                std::tm st;
+                                                unsigned int us = ToCTime(d, st);
+                                                UDateTime dt(st, us);
+                                                q << dt.time;
+                                            }
                                         }
                                     }
                                         break;
@@ -1458,14 +1473,16 @@ namespace SPA
                                     {
                                         TIMESTAMP_STRUCT d;
                                         retcode = SQLGetData(hstmt, (SQLUSMALLINT) (i + 1), SQL_C_TYPE_TIMESTAMP, &d, sizeof (d), &len_or_null);
-                                        if (len_or_null == SQL_NULL_DATA) {
-                                            q << (VARTYPE) VT_NULL;
-                                        } else {
-                                            q << vt;
-                                            std::tm st;
-                                            unsigned int us = ToCTime(d, st);
-                                            UDateTime dt(st, us);
-                                            q << dt.time;
+                                        if (SQL_SUCCEEDED(retcode)) {
+                                            if (len_or_null == SQL_NULL_DATA) {
+                                                q << (VARTYPE) VT_NULL;
+                                            } else {
+                                                q << vt;
+                                                std::tm st;
+                                                unsigned int us = ToCTime(d, st);
+                                                UDateTime dt(st, us);
+                                                q << dt.time;
+                                            }
                                         }
                                     }
                                         break;
@@ -1504,11 +1521,13 @@ namespace SPA
                             {
                                 char d;
                                 retcode = SQLGetData(hstmt, (SQLUSMALLINT) (i + 1), SQL_C_TINYINT, &d, sizeof (d), &len_or_null);
-                                if (len_or_null == SQL_NULL_DATA) {
-                                    q << (VARTYPE) VT_NULL;
-                                } else {
-                                    q << vt;
-                                    q.Push((const unsigned char*) &d, sizeof (d));
+                                if (SQL_SUCCEEDED(retcode)) {
+                                    if (len_or_null == SQL_NULL_DATA) {
+                                        q << (VARTYPE) VT_NULL;
+                                    } else {
+                                        q << vt;
+                                        q.Push((const unsigned char*) &d, sizeof (d));
+                                    }
                                 }
                             }
                                 break;
@@ -1516,11 +1535,13 @@ namespace SPA
                             {
                                 unsigned char d;
                                 retcode = SQLGetData(hstmt, (SQLUSMALLINT) (i + 1), SQL_C_UTINYINT, &d, sizeof (d), &len_or_null);
-                                if (len_or_null == SQL_NULL_DATA) {
-                                    q << (VARTYPE) VT_NULL;
-                                } else {
-                                    q << vt;
-                                    q.Push((const unsigned char*) &d, sizeof (d));
+                                if (SQL_SUCCEEDED(retcode)) {
+                                    if (len_or_null == SQL_NULL_DATA) {
+                                        q << (VARTYPE) VT_NULL;
+                                    } else {
+                                        q << vt;
+                                        q.Push((const unsigned char*) &d, sizeof (d));
+                                    }
                                 }
                             }
                                 break;
@@ -1528,10 +1549,12 @@ namespace SPA
                             {
                                 short d;
                                 retcode = SQLGetData(hstmt, (SQLUSMALLINT) (i + 1), SQL_C_SHORT, &d, sizeof (d), &len_or_null);
-                                if (len_or_null == SQL_NULL_DATA) {
-                                    q << (VARTYPE) VT_NULL;
-                                } else {
-                                    q << vt << d;
+                                if (SQL_SUCCEEDED(retcode)) {
+                                    if (len_or_null == SQL_NULL_DATA) {
+                                        q << (VARTYPE) VT_NULL;
+                                    } else {
+                                        q << vt << d;
+                                    }
                                 }
                             }
                                 break;
@@ -1539,10 +1562,12 @@ namespace SPA
                             {
                                 unsigned short d;
                                 retcode = SQLGetData(hstmt, (SQLUSMALLINT) (i + 1), SQL_C_USHORT, &d, sizeof (d), &len_or_null);
-                                if (len_or_null == SQL_NULL_DATA) {
-                                    q << (VARTYPE) VT_NULL;
-                                } else {
-                                    q << vt << d;
+                                if (SQL_SUCCEEDED(retcode)) {
+                                    if (len_or_null == SQL_NULL_DATA) {
+                                        q << (VARTYPE) VT_NULL;
+                                    } else {
+                                        q << vt << d;
+                                    }
                                 }
                             }
                                 break;
@@ -1550,10 +1575,12 @@ namespace SPA
                             {
                                 int d;
                                 retcode = SQLGetData(hstmt, (SQLUSMALLINT) (i + 1), SQL_C_LONG, &d, sizeof (d), &len_or_null);
-                                if (len_or_null == SQL_NULL_DATA) {
-                                    q << (VARTYPE) VT_NULL;
-                                } else {
-                                    q << vt << d;
+                                if (SQL_SUCCEEDED(retcode)) {
+                                    if (len_or_null == SQL_NULL_DATA) {
+                                        q << (VARTYPE) VT_NULL;
+                                    } else {
+                                        q << vt << d;
+                                    }
                                 }
                             }
                                 break;
@@ -1561,10 +1588,12 @@ namespace SPA
                             {
                                 unsigned int d;
                                 retcode = SQLGetData(hstmt, (SQLUSMALLINT) (i + 1), SQL_C_ULONG, &d, sizeof (d), &len_or_null);
-                                if (len_or_null == SQL_NULL_DATA) {
-                                    q << (VARTYPE) VT_NULL;
-                                } else {
-                                    q << vt << d;
+                                if (SQL_SUCCEEDED(retcode)) {
+                                    if (len_or_null == SQL_NULL_DATA) {
+                                        q << (VARTYPE) VT_NULL;
+                                    } else {
+                                        q << vt << d;
+                                    }
                                 }
                             }
                                 break;
@@ -1572,10 +1601,12 @@ namespace SPA
                             {
                                 float d;
                                 retcode = SQLGetData(hstmt, (SQLUSMALLINT) (i + 1), SQL_C_FLOAT, &d, sizeof (d), &len_or_null);
-                                if (len_or_null == SQL_NULL_DATA) {
-                                    q << (VARTYPE) VT_NULL;
-                                } else {
-                                    q << vt << d;
+                                if (SQL_SUCCEEDED(retcode)) {
+                                    if (len_or_null == SQL_NULL_DATA) {
+                                        q << (VARTYPE) VT_NULL;
+                                    } else {
+                                        q << vt << d;
+                                    }
                                 }
                             }
                                 break;
@@ -1583,10 +1614,12 @@ namespace SPA
                             {
                                 INT64 d;
                                 retcode = SQLGetData(hstmt, (SQLUSMALLINT) (i + 1), SQL_C_SBIGINT, &d, sizeof (d), &len_or_null);
-                                if (len_or_null == SQL_NULL_DATA) {
-                                    q << (VARTYPE) VT_NULL;
-                                } else {
-                                    q << vt << d;
+                                if (SQL_SUCCEEDED(retcode)) {
+                                    if (len_or_null == SQL_NULL_DATA) {
+                                        q << (VARTYPE) VT_NULL;
+                                    } else {
+                                        q << vt << d;
+                                    }
                                 }
                             }
                                 break;
@@ -1594,10 +1627,12 @@ namespace SPA
                             {
                                 UINT64 d;
                                 retcode = SQLGetData(hstmt, (SQLUSMALLINT) (i + 1), SQL_C_UBIGINT, &d, sizeof (d), &len_or_null);
-                                if (len_or_null == SQL_NULL_DATA) {
-                                    q << (VARTYPE) VT_NULL;
-                                } else {
-                                    q << vt << d;
+                                if (SQL_SUCCEEDED(retcode)) {
+                                    if (len_or_null == SQL_NULL_DATA) {
+                                        q << (VARTYPE) VT_NULL;
+                                    } else {
+                                        q << vt << d;
+                                    }
                                 }
                             }
                                 break;
@@ -1605,10 +1640,12 @@ namespace SPA
                             {
                                 GUID d;
                                 retcode = SQLGetData(hstmt, (SQLUSMALLINT) (i + 1), SQL_C_GUID, &d, sizeof (d), &len_or_null);
-                                if (len_or_null == SQL_NULL_DATA) {
-                                    q << (VARTYPE) VT_NULL;
-                                } else {
-                                    q << vt << d;
+                                if (SQL_SUCCEEDED(retcode)) {
+                                    if (len_or_null == SQL_NULL_DATA) {
+                                        q << (VARTYPE) VT_NULL;
+                                    } else {
+                                        q << vt << d;
+                                    }
                                 }
                             }
                                 break;
@@ -1616,21 +1653,25 @@ namespace SPA
                             {
                                 double d;
                                 retcode = SQLGetData(hstmt, (SQLUSMALLINT) (i + 1), SQL_C_DOUBLE, &d, sizeof (d), &len_or_null);
-                                if (len_or_null == SQL_NULL_DATA) {
-                                    q << (VARTYPE) VT_NULL;
-                                } else {
-                                    q << vt << d;
+                                if (SQL_SUCCEEDED(retcode)) {
+                                    if (len_or_null == SQL_NULL_DATA) {
+                                        q << (VARTYPE) VT_NULL;
+                                    } else {
+                                        q << vt << d;
+                                    }
                                 }
                             }
                                 break;
                             case (VT_ARRAY | VT_I1):
                                 if (colInfo.ColumnSize < 2 * DEFAULT_BIG_FIELD_CHUNK_SIZE) {
                                     retcode = SQLGetData(hstmt, (SQLUSMALLINT) (i + 1), SQL_C_CHAR, (SQLPOINTER) sbTemp->GetBuffer(), sbTemp->GetMaxSize(), &len_or_null);
-                                    if (SQL_NULL_DATA == len_or_null) {
-                                        q << (VARTYPE) VT_NULL;
-                                    } else {
-                                        q << vt << (unsigned int) len_or_null;
-                                        q.Push(sbTemp->GetBuffer(), (unsigned int) len_or_null);
+                                    if (SQL_SUCCEEDED(retcode)) {
+                                        if (SQL_NULL_DATA == len_or_null) {
+                                            q << (VARTYPE) VT_NULL;
+                                        } else {
+                                            q << vt << (unsigned int) len_or_null;
+                                            q.Push(sbTemp->GetBuffer(), (unsigned int) len_or_null);
+                                        }
                                     }
                                 } else {
                                     if (!SendBlob(hstmt, (SQLUSMALLINT) (i + 1), vt, *sbTemp, q, blob)) {
@@ -1641,19 +1682,23 @@ namespace SPA
                             case (VT_ARRAY | VT_UI1):
                                 if (colInfo.Precision == sizeof (GUID)) {
                                     retcode = SQLGetData(hstmt, (SQLUSMALLINT) (i + 1), SQL_C_GUID, (SQLPOINTER) sbTemp->GetBuffer(), sbTemp->GetMaxSize(), &len_or_null);
-                                    if (SQL_NULL_DATA == len_or_null) {
-                                        q << (VARTYPE) VT_NULL;
-                                    } else {
-                                        q << vt;
-                                        q.Push(sbTemp->GetBuffer(), sizeof (GUID));
+                                    if (SQL_SUCCEEDED(retcode)) {
+                                        if (SQL_NULL_DATA == len_or_null) {
+                                            q << (VARTYPE) VT_NULL;
+                                        } else {
+                                            q << vt;
+                                            q.Push(sbTemp->GetBuffer(), sizeof (GUID));
+                                        }
                                     }
                                 } else if (colInfo.ColumnSize < 2 * DEFAULT_BIG_FIELD_CHUNK_SIZE) {
                                     retcode = SQLGetData(hstmt, (SQLUSMALLINT) (i + 1), SQL_C_BINARY, (SQLPOINTER) sbTemp->GetBuffer(), sbTemp->GetMaxSize(), &len_or_null);
-                                    if (SQL_NULL_DATA == len_or_null) {
-                                        q << (VARTYPE) VT_NULL;
-                                    } else {
-                                        q << vt << (unsigned int) len_or_null;
-                                        q.Push(sbTemp->GetBuffer(), (unsigned int) len_or_null);
+                                    if (SQL_SUCCEEDED(retcode)) {
+                                        if (SQL_NULL_DATA == len_or_null) {
+                                            q << (VARTYPE) VT_NULL;
+                                        } else {
+                                            q << vt << (unsigned int) len_or_null;
+                                            q.Push(sbTemp->GetBuffer(), (unsigned int) len_or_null);
+                                        }
                                     }
                                 } else {
                                     if (!SendBlob(hstmt, (SQLUSMALLINT) (i + 1), vt, *sbTemp, q, blob)) {
@@ -1668,15 +1713,17 @@ namespace SPA
                                     {
                                         char str[DECIMAL_STRING_BUFFER_SIZE] = {0};
                                         retcode = SQLGetData(hstmt, (SQLUSMALLINT) (i + 1), SQL_C_CHAR, (SQLPOINTER) str, sizeof (str), &len_or_null);
-                                        if (len_or_null == SQL_NULL_DATA) {
-                                            q << (VARTYPE) VT_NULL;
-                                        } else {
-                                            DECIMAL dec;
-                                            if (len_or_null <= 19)
-                                                ParseDec(str, dec);
-                                            else
-                                                ParseDec_long(str, dec);
-                                            q << vt << dec;
+                                        if (SQL_SUCCEEDED(retcode)) {
+                                            if (len_or_null == SQL_NULL_DATA) {
+                                                q << (VARTYPE) VT_NULL;
+                                            } else {
+                                                DECIMAL dec;
+                                                if (len_or_null <= 19)
+                                                    ParseDec(str, dec);
+                                                else
+                                                    ParseDec_long(str, dec);
+                                                q << vt << dec;
+                                            }
                                         }
                                     }
                                         break;
@@ -1687,17 +1734,19 @@ namespace SPA
                                 break;
                             case VT_VARIANT:
                                 retcode = SQLGetData(hstmt, (SQLUSMALLINT) (i + 1), SQL_C_BINARY, (SQLPOINTER) sbTemp->GetBuffer(), 0, &len_or_null);
-                                if (len_or_null == SQL_NULL_DATA) {
-                                    q << (VARTYPE) VT_NULL;
-                                } else {
-                                    assert(retcode == SQL_SUCCESS_WITH_INFO);
-                                    SQLLEN c_type = 0;
-                                    retcode = SQLColAttribute(hstmt, (SQLUSMALLINT) (i + 1), SQL_CA_SS_VARIANT_TYPE, nullptr, 0, nullptr, &c_type);
-                                    assert(SQL_SUCCEEDED(retcode));
-                                    SQLLEN mylen;
-                                    retcode = SQLGetData(hstmt, (SQLUSMALLINT) (i + 1), (SQLSMALLINT) c_type, (SQLPOINTER) sbTemp->GetBuffer(), sbTemp->GetMaxSize(), &mylen);
-                                    assert(SQL_SUCCEEDED(retcode));
-                                    SaveSqlServerVariant(sbTemp->GetBuffer(), (unsigned int) mylen, (SQLSMALLINT) c_type, q);
+                                if (SQL_SUCCEEDED(retcode)) {
+                                    if (len_or_null == SQL_NULL_DATA) {
+                                        q << (VARTYPE) VT_NULL;
+                                    } else {
+                                        assert(retcode == SQL_SUCCESS_WITH_INFO);
+                                        SQLLEN c_type = 0;
+                                        retcode = SQLColAttribute(hstmt, (SQLUSMALLINT) (i + 1), SQL_CA_SS_VARIANT_TYPE, nullptr, 0, nullptr, &c_type);
+                                        assert(SQL_SUCCEEDED(retcode));
+                                        SQLLEN mylen;
+                                        retcode = SQLGetData(hstmt, (SQLUSMALLINT) (i + 1), (SQLSMALLINT) c_type, (SQLPOINTER) sbTemp->GetBuffer(), sbTemp->GetMaxSize(), &mylen);
+                                        assert(SQL_SUCCEEDED(retcode));
+                                        SaveSqlServerVariant(sbTemp->GetBuffer(), (unsigned int) mylen, (SQLSMALLINT) c_type, q);
+                                    }
                                 }
                                 break;
                             default:
@@ -1706,22 +1755,25 @@ namespace SPA
                                     sb->ReallocBuffer(16 * 1024);
                                 }
                                 retcode = SQLGetData(hstmt, (SQLUSMALLINT) (i + 1), SQL_C_WCHAR, (SQLPOINTER) sbTemp->GetBuffer(), sbTemp->GetMaxSize(), &len_or_null);
-                                if (!SQL_SUCCEEDED(retcode)) {
-                                    break;
-                                } else if (len_or_null == SQL_NULL_DATA) {
-                                    q << (VARTYPE) VT_NULL;
-                                } else {
-                                    unsigned int len = (unsigned int) len_or_null;
-                                    q << (VARTYPE) VT_BSTR << len;
-                                    q.Push(sbTemp->GetBuffer(), len);
-                                    sbTemp->SetSize(0);
+                                if (SQL_SUCCEEDED(retcode)) {
+                                    if (!SQL_SUCCEEDED(retcode)) {
+                                        break;
+                                    } else if (len_or_null == SQL_NULL_DATA) {
+                                        q << (VARTYPE) VT_NULL;
+                                    } else {
+                                        unsigned int len = (unsigned int) len_or_null;
+                                        q << (VARTYPE) VT_BSTR << len;
+                                        q.Push(sbTemp->GetBuffer(), len);
+                                        sbTemp->SetSize(0);
+                                    }
                                 }
                             }
                                 break;
-                        } //for loop
+                        } //switch
                         if (!SQL_SUCCEEDED(retcode)) {
                             res = Odbc::ER_ERROR;
                             GetErrMsg(SQL_HANDLE_STMT, hstmt, errMsg);
+                            return false;
                         }
                     }
                 } else {
@@ -2576,6 +2628,12 @@ namespace SPA
             }
             UINT64 fails = m_fails;
             UINT64 oks = m_oks;
+#ifndef SP_DB2_PLUGIN
+            if (m_msDriver == tagManagementSystem::msOracle && m_nRecordSize) {
+                //A hack for the oracle's issue SQLSTATE=HY109:NATIVE=1:ERROR_MESSAGE=[Oracle][ODBC][Ora]Invalid cursor position when coming recordset has BLOBs or long text
+                m_stmt.reset();
+            }
+#endif
             SQLHSTMT hstmt = ResetStmt();
             do {
                 SQLRETURN retcode;
@@ -2617,12 +2675,12 @@ namespace SPA
                             CDBString errMsgTemp;
                             if (rowset) {
                                 if (m_nRecordSize) {
-                                    ok = PushRecords(hstmt, res, errMsg);
+                                    ok = PushRecords(hstmt, resTemp, errMsgTemp);
                                 } else {
-                                    ok = PushRecords(hstmt, vInfo, false, res, errMsg);
+                                    ok = PushRecords(hstmt, vInfo, false, resTemp, errMsgTemp);
                                 }
                             }
-                            if (!ok) {
+                            if (!ok && !resTemp) {
                                 return;
                             }
                             if (resTemp) {
@@ -3036,6 +3094,7 @@ namespace SPA
 #ifndef SP_DB2_PLUGIN
                             case tagManagementSystem::msOracle:
                                 SetOracleCallParams(m_vPD, res, errMsg);
+                                m_nRecordSize = 0; //for oracle invalid cursor position
                                 break;
 #endif
                             default:
@@ -4353,7 +4412,7 @@ namespace SPA
                                     bool ok;
                                     if (m_nRecordSize && !output) {
                                         if (rowset) {
-                                            ok = PushRecords(hstmt, res, errMsg);
+                                            ok = PushRecords(hstmt, temp, errTemp);
                                         } else {
                                             ok = true;
                                         }
@@ -4363,7 +4422,7 @@ namespace SPA
                                         ok = true;
                                     }
                                     output_sent = output;
-                                    if (!ok) {
+                                    if (!ok && !temp) {
                                         m_vParam.clear();
                                         return;
                                     }
@@ -4449,6 +4508,9 @@ namespace SPA
             fail_ok = ((m_fails - fails) << 32);
             fail_ok += (unsigned int) (m_oks - oks);
             m_vParam.clear();
+#ifndef SP_DB2_PLUGIN
+            m_nRecordSize = 0; //for oracle invalid cursor position
+#endif
         }
 
         void COdbcImpl::StartBLOB(unsigned int lenExpected) {
