@@ -117,6 +117,7 @@ namespace SPA {
             void CleanDBObjects();
             CDBColumnInfoArray GetColInfo(SQLHSTMT hstmt, SQLSMALLINT columns, bool meta);
             bool PushRecords(SQLHSTMT hstmt, int &res, CDBString &errMsg, bool output = false);
+            bool PushRecords(SQLHSTMT hstmt, const CDBColumnInfoArray& vColInfo, bool output, int& res, CDBString& errMsg);
             bool PushInfo(SQLHDBC hdbc);
             bool PreprocessPreparedStatement();
             bool SetInputParamInfo();
@@ -187,7 +188,6 @@ namespace SPA {
             SQLUSMALLINT m_bPrimaryKeys;
             SQLUSMALLINT m_bProcedureColumns;
             std::vector<tagParameterDirection> m_vPD;
-            std::vector<SQLUSMALLINT> m_vBCol;
 
             static const UTF16* NO_DB_OPENED_YET;
             static const UTF16* BAD_END_TRANSTACTION_PLAN;
