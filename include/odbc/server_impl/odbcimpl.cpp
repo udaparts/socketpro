@@ -2949,7 +2949,8 @@ namespace SPA
 
         SQLHSTMT COdbcImpl::ResetStmt() {
             switch (m_msDriver) {
-                case tagManagementSystem::msMsSQL:
+                case tagManagementSystem::msMsSQL: //better performance by use of new statement handle
+                case tagManagementSystem::msMysql: //solve BLOB and text issues for MySQL ODBC driver
                     m_stmt.reset();
                     break;
                 default:
@@ -4316,7 +4317,8 @@ namespace SPA
                         }
 #endif
                         switch (m_msDriver) {
-                            case tagManagementSystem::msMsSQL:
+                            case tagManagementSystem::msMsSQL: //better performance by use of new statement handle
+                            case tagManagementSystem::msMysql: //solve BLOB and text issues for MySQL ODBC driver
                                 retcode = SQLExecDirectW(hstmt, (SQLWCHAR*) m_sqlPrepare.c_str(), (SQLINTEGER) m_sqlPrepare.size());
                                 break;
                             default:
