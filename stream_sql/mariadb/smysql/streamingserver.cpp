@@ -252,8 +252,6 @@ CStreamingServer::CStreamingServer(int nParam) : CSocketProServer(nParam) {
 }
 
 bool CHttpPeer::DoAuthentication(const wchar_t *userId, const wchar_t *password) {
-    if (GetTransport() != tagTransport::tWebSocket)
-        return true;
     return CMysqlImpl::DoSQLAuthentication(GetSocketHandle(), userId, password, (unsigned int) SPA::tagServiceID::sidHTTP, DEFAULT_LOCAL_CONNECTION_STRING);
 }
 

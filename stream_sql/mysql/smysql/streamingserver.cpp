@@ -278,8 +278,6 @@ CStreamingServer::CStreamingServer(int nParam)
 }
 
 bool CHttpPeer::DoAuthentication(const wchar_t *userId, const wchar_t *password) {
-    if (GetTransport() != SPA::ServerSide::tagTransport::tWebSocket)
-        return true;
     unsigned int port = 0;
     std::string ip = this->GetPeerName(&port);
     if (ip == "127.0.0.1" || ip == "::ffff:127.0.0.1" || ip == "::1")
