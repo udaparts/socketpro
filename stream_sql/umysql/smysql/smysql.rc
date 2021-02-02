@@ -68,12 +68,12 @@ BEGIN
         BLOCK "040904b0"
         BEGIN
             VALUE "CompanyName", "UDAParts"
-            VALUE "FileDescription", "SocketPro Plugin for ODBC drivers"
+            VALUE "FileDescription", "SocketPro Plugin for MySQL/MariaDB"
             VALUE "FileVersion", "1.0.0.1"
-            VALUE "InternalName", "sodbc.dll"
+            VALUE "InternalName", "smysql.dll"
             VALUE "LegalCopyright", "Copyright (C) UDAParts 2016-2021. All rights reserved."
-            VALUE "OriginalFilename", "sodbc.dll"
-            VALUE "ProductName", "ODBC SocketPro Plugin"
+            VALUE "OriginalFilename", "smysql.dll"
+            VALUE "ProductName", "MySQL/MariaDB SocketPro Plugin"
             VALUE "ProductVersion", "1.0.0.1"
         END
     END

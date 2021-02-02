@@ -7,24 +7,27 @@
 extern "C" {
 #endif
     /**
-     * Returns a plugin version string like "1.0.0.1"
-     * @return 1: authentication permitted, 0: authentication denied, -1: authentication not implemented, -2: authentication failed due to an internal error
+     * Returns a plugin version string like "1.0.0.1 for this plugin"
+     * @return a plugin version string like "2.1.0.7"
      */
     const char* const U_MODULE_OPENED WINAPI GetSPluginVersion();
 
     /**
-     * Set one or more pairs of settings (key/value) by a json string
+     * Set zero, one or more pairs of settings (key/value) by a json string
+     * @param jsonUtf8Options A utf8 JSON string containing zero, one or more pairs of settings (key/value). Specifically, all supported settings will be set to default states when setting an empty JSON object string
+     * @return true if it is successful; Otherwise, false if a non-json string is passed in
+     * @remark It will silently ignore all pairs of unknown or unsupported settings (key/value)
      */
-    void U_MODULE_OPENED WINAPI SetSPluginGlobalOptions(const char *jsonOptions);
+    bool U_MODULE_OPENED WINAPI SetSPluginGlobalOptions(const char *jsonUtf8Options);
 
     /**
      * Get a json string object having zero, one or more pair of settings (key/value)
-     * @param json A buffer to receive output json string
+     * @param jsonUtf8 A buffer to receive output json string
      * @param buffer_size The buffer size
-     * @return The number of characters
-     * @remark It is noted that calling the method will still return a json string and show all supported settings, even though the method SetSPluginGlobalOptions has not been called yet.
+     * @return The number of characters received
+     * @remark It is noted that calling the method will still return a json string and show all supported settings even though the method SetSPluginGlobalOptions has not been called yet
      */
-    unsigned int U_MODULE_OPENED WINAPI GetSPluginGlobalOptions(char *json, unsigned int buffer_size);
+    unsigned int U_MODULE_OPENED WINAPI GetSPluginGlobalOptions(char *jsonUtf8, unsigned int buffer_size);
 
     /**
      * Provide authentication at server side by use of this plugin.
@@ -32,7 +35,7 @@ extern "C" {
      * @param userId a user identification string from client
      * @param password a password string from client
      * @param nSvsId a service identification number
-     * @param options an optional string
+     * @param options an optional or required connection string without user id or password
      * @return 1: authentication permitted, 0: authentication denied, -1: authentication not implemented, -2: authentication failed due to an internal error
      */
     int U_MODULE_OPENED WINAPI DoSPluginAuthentication(SPA::UINT64 hSocket, const wchar_t *userId, const wchar_t *password, unsigned int nSvsId, const wchar_t *options);
@@ -42,8 +45,8 @@ extern "C" {
 #endif
 
 typedef const char* const (WINAPI *PGetSPluginVersion)();
-typedef void (WINAPI *PSetSPluginGlobalOptions)(const char *jsonOptions);
-typedef unsigned int (WINAPI *PGetSPluginGlobalOptions)(const char *json, unsigned int buffer_size);
+typedef bool (WINAPI *PSetSPluginGlobalOptions)(const char *jsonUtf8Options);
+typedef unsigned int (WINAPI *PGetSPluginGlobalOptions)(const char *jsonUtf8, unsigned int buffer_size);
 typedef int (WINAPI *PDoSPluginAuthentication)(SPA::UINT64 hSocket, const wchar_t *userId, const wchar_t *password, unsigned int nSvsId, const wchar_t* options);
 
 #define GLOBAL_CONNECTION_STRING    "global_connection_string"

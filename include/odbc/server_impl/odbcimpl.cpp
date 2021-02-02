@@ -59,6 +59,7 @@ namespace SPA
             SQLSMALLINT cbConnStrOut = 0;
             std::string strConn = Utilities::ToUTF8(conn);
             retcode = SQLDriverConnect(hdbc, nullptr, (SQLCHAR*) strConn.c_str(), (SQLSMALLINT) strConn.size(), (SQLCHAR*) sb->GetBuffer(), (SQLSMALLINT) sb->GetMaxSize(), &cbConnStrOut, SQL_DRIVER_NOPROMPT);
+            sb->CleanTrack(); //clean password
             if (!SQL_SUCCEEDED(retcode)) {
                 SQLFreeHandle(SQL_HANDLE_DBC, hdbc);
                 return false;
@@ -405,6 +406,7 @@ namespace SPA
                     SQLCHAR *ConnStrOut = (SQLCHAR *) sb->GetBuffer();
                     SQLSMALLINT cbConnStrOut = 0;
                     retcode = SQLDriverConnect(hdbc, nullptr, ConnStrIn, (SQLSMALLINT) conn.size(), ConnStrOut, (SQLSMALLINT) sb->GetMaxSize(), &cbConnStrOut, SQL_DRIVER_NOPROMPT);
+                    sb->CleanTrack(); //clean password
                     if (!SQL_SUCCEEDED(retcode)) {
                         res = Odbc::ER_ERROR;
                         GetErrMsg(SQL_HANDLE_DBC, hdbc, errMsg);

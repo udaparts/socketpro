@@ -2,7 +2,7 @@
 #include "../../3rdparty/rapidjson/include/rapidjson/document.h"
 #include "../../3rdparty/rapidjson/include/rapidjson/stringbuffer.h"
 #include "../../3rdparty/rapidjson/include/rapidjson/writer.h"
-#include "odbcimpl.h"
+#include "mysqlimpl.h"
 
 using namespace rapidjson;
 using namespace SPA;
@@ -26,9 +26,9 @@ bool U_MODULE_OPENED WINAPI SetSPluginGlobalOptions(const char* jsonOptions) {
         std::string s = doc[GLOBAL_CONNECTION_STRING].GetString();
         std::wstring ws = Utilities::ToWide(s);
         Trim(ws);
-        COdbcImpl::SetGlobalConnectionString(ws.c_str());
+        CMysqlImpl::SetDBGlobalConnectionString(ws.c_str(), false);
     } else {
-        COdbcImpl::SetGlobalConnectionString(L"");
+        CMysqlImpl::SetDBGlobalConnectionString(L"", false);
     }
     return true;
 }
@@ -41,9 +41,9 @@ unsigned int U_MODULE_OPENED WINAPI GetSPluginGlobalOptions(char* json, unsigned
     Writer<StringBuffer> writer(buffer);
     writer.StartObject();
     writer.Key(GLOBAL_CONNECTION_STRING);
-    COdbcImpl::m_csPeer.lock();
-    std::string str = Utilities::ToUTF8(COdbcImpl::m_strGlobalConnection);
-    COdbcImpl::m_csPeer.unlock();
+    CMysqlImpl::m_csPeer.lock();
+    std::string str = Utilities::ToUTF8(CMysqlImpl::m_strGlobalConnection);
+    CMysqlImpl::m_csPeer.unlock();
     writer.String(str.c_str(), (SizeType) str.size());
     writer.EndObject();
     std::string s = buffer.GetString();
@@ -58,41 +58,36 @@ unsigned int U_MODULE_OPENED WINAPI GetSPluginGlobalOptions(char* json, unsigned
     return (unsigned int) len;
 }
 
-int U_MODULE_OPENED WINAPI DoSPluginAuthentication(SPA::UINT64 hSocket, const wchar_t* userId, const wchar_t* password, unsigned int nSvsId, const wchar_t* dsn) {
-    SQLHDBC hdbc = nullptr;
-    if (!COdbcImpl::g_hEnv) {
+int U_MODULE_OPENED WINAPI DoSPluginAuthentication(SPA::UINT64 hSocket, const wchar_t* userId, const wchar_t* password, unsigned int nSvsId, const wchar_t* dbConnection) {
+    if (!CMysqlImpl::m_bInitMysql) {
         return -2;
     }
-    SQLRETURN retcode = SQLAllocHandle(SQL_HANDLE_DBC, COdbcImpl::g_hEnv, &hdbc);
-    if (!SQL_SUCCEEDED(retcode)) {
-        return -2;
+    CMysqlImpl impl;
+    std::wstring db(dbConnection ? dbConnection : L"");
+    if (!db.size()) {
+        db = L"host=localhost;port=3306;timeout=30";
     }
-    std::wstring conn(dsn ? dsn : L"");
     if (userId && ::wcslen(userId)) {
-        if (conn.size()) conn.push_back(L';');
-        conn += L"UID=";
-        conn += userId;
+        db += L";uid=";
+        db += userId;
     }
-    if (conn.size()) conn.push_back(L';');
-    conn += L"PWD=";
-    conn += (password ? password : L"");
-
-    CScopeUQueue sb;
-    SQLSMALLINT cbConnStrOut = 0;
-    std::string strConn = Utilities::ToUTF8(conn);
-    retcode = SQLDriverConnect(hdbc, nullptr, (SQLCHAR*) strConn.c_str(), (SQLSMALLINT) strConn.size(), (SQLCHAR*) sb->GetBuffer(), (SQLSMALLINT) sb->GetMaxSize(), &cbConnStrOut, SQL_DRIVER_NOPROMPT);
-    sb->CleanTrack(); //clean password
-    if (!SQL_SUCCEEDED(retcode)) {
-        SQLFreeHandle(SQL_HANDLE_DBC, hdbc);
+    if (password && ::wcslen(password)) {
+        db += L";pwd=";
+        db += password;
+    }
+    int res = 0, ms = 0;
+    CDBString errMsg;
+    CDBString conn = Utilities::ToUTF16(db);
+    impl.Open(conn, 0, res, errMsg, ms);
+    if (res) {
         return 0;
     }
-    if (nSvsId == Odbc::sidOdbc) {
-        COdbcImpl::m_csPeer.lock();
-        COdbcImpl::m_mapConnection[hSocket] = hdbc;
-        COdbcImpl::m_csPeer.unlock();
-    } else {
-        retcode = SQLDisconnect(hdbc);
-        retcode = SQLFreeHandle(SQL_HANDLE_DBC, hdbc);
+    if (nSvsId == SPA::Mysql::sidMysql) {
+        CMysqlImpl::MyStruct ms;
+        ms.Handle = impl.GetDBConnHandle();
+        ms.DefaultDB = impl.GetDefaultDBName();
+        CAutoLock al(CMysqlImpl::m_csPeer);
+        CMysqlImpl::m_mapConnection[hSocket] = ms;
     }
     return 1;
 }

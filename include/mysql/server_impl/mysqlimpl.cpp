@@ -29,18 +29,7 @@ namespace SPA
         my_bool CMysqlImpl::B_IS_NULL = 1;
         CDBString CMysqlImpl::m_strGlobalConnection;
         bool CMysqlImpl::m_bInitMysql = false;
-#ifndef NATIVE_UTF16_SUPPORTED
-        const UTF16 * CMysqlImpl::NO_DB_OPENED_YET = L"No mysql database opened yet";
-        const UTF16 * CMysqlImpl::BAD_END_TRANSTACTION_PLAN = L"Bad end transaction plan";
-        const UTF16 * CMysqlImpl::NO_PARAMETER_SPECIFIED = L"No parameter specified";
-        const UTF16 * CMysqlImpl::BAD_PARAMETER_DATA_ARRAY_SIZE = L"Bad parameter data array length";
-        const UTF16 * CMysqlImpl::BAD_PARAMETER_COLUMN_SIZE = L"Bad parameter column size";
-        const UTF16 * CMysqlImpl::DATA_TYPE_NOT_SUPPORTED = L"Data type not supported";
-        const UTF16 * CMysqlImpl::NO_DB_NAME_SPECIFIED = L"No mysql database name specified";
-        const UTF16 * CMysqlImpl::MYSQL_LIBRARY_NOT_INITIALIZED = L"Mysql library not initialized";
-        const UTF16 * CMysqlImpl::BAD_MANUAL_TRANSACTION_STATE = L"Bad manual transaction state";
-        const UTF16 * CMysqlImpl::MYSQL_GLOBAL_CONNECTION_STRING = L"MYSQL_GLOBAL_CONNECTION_STRING";
-#else
+
         const UTF16 * CMysqlImpl::NO_DB_OPENED_YET = u"No mysql database opened yet";
         const UTF16 * CMysqlImpl::BAD_END_TRANSTACTION_PLAN = u"Bad end transaction plan";
         const UTF16 * CMysqlImpl::NO_PARAMETER_SPECIFIED = u"No parameter specified";
@@ -51,9 +40,6 @@ namespace SPA
         const UTF16 * CMysqlImpl::MYSQL_LIBRARY_NOT_INITIALIZED = u"Mysql library not initialized";
         const UTF16 * CMysqlImpl::BAD_MANUAL_TRANSACTION_STATE = u"Bad manual transaction state";
         const UTF16 * CMysqlImpl::MYSQL_GLOBAL_CONNECTION_STRING = u"MYSQL_GLOBAL_CONNECTION_STRING";
-#endif
-
-        unsigned int CMysqlImpl::m_nParam = 0;
 
         CMysqlLoader CMysqlImpl::m_remMysql;
         CMysqlImpl::CMyMap CMysqlImpl::m_mapConnection;
@@ -563,6 +549,14 @@ namespace SPA
                 m_vParam.clear();
             }
             return 0;
+        }
+
+        std::shared_ptr<MYSQL> CMysqlImpl::GetDBConnHandle() {
+            return m_pMysql;
+        }
+
+        CDBString CMysqlImpl::GetDefaultDBName() {
+            return m_dbNameOpened;
         }
 
         void CMysqlImpl::Open(const CDBString &strConnection, unsigned int flags, int &res, CDBString &errMsg, int &ms) {

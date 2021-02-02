@@ -92,6 +92,8 @@ namespace SPA {
             static void UnloadMysql();
             static bool InitMySql();
             static bool DoSQLAuthentication(USocket_Server_Handle hSocket, const wchar_t *userId, const wchar_t *password, unsigned int nSvsId, const wchar_t *dbConnection);
+            std::shared_ptr<MYSQL> GetDBConnHandle();
+            CDBString GetDefaultDBName();
 
 #ifdef MM_DB_SERVER_PLUGIN
             static std::string ToString(const CDBVariant &vtUTF8);
@@ -196,21 +198,19 @@ namespace SPA {
             static const UTF16* BAD_MANUAL_TRANSACTION_STATE;
 
             static const UTF16* MYSQL_GLOBAL_CONNECTION_STRING;
+            static CMysqlLoader m_remMysql;
 
-            static CUCriticalSection m_csPeer;
-            static CDBString m_strGlobalConnection; //remote mysql server, protected by m_csPeer
-            static bool m_bInitMysql; //protected by m_csPeer
-
+        public:
             struct MyStruct {
                 std::shared_ptr<MYSQL> Handle;
                 CDBString DefaultDB;
             };
+
+            static CUCriticalSection m_csPeer;
+            static bool m_bInitMysql; //protected by m_csPeer
+            static CDBString m_strGlobalConnection; //remote mysql server, protected by m_csPeer
             typedef std::unordered_map<USocket_Server_Handle, MyStruct> CMyMap;
             static CMyMap m_mapConnection; //protected by m_csPeer
-
-            static CMysqlLoader m_remMysql;
-        public:
-            static unsigned int m_nParam;
         };
 
         typedef CSocketProService<CMysqlImpl> CMysqlService;
