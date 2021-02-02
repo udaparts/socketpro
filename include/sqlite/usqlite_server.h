@@ -6,18 +6,6 @@
 #ifndef _SQLITE_MODULE_IMPLEMENTATION_BASIC_HEADER_H_
 #define _SQLITE_MODULE_IMPLEMENTATION_BASIC_HEADER_H_
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-    void U_MODULE_OPENED WINAPI SetSqliteDBGlobalConnectionString(const wchar_t *dbConnection);
-
-#ifdef __cplusplus
-}
-#endif
-
-typedef void (WINAPI *PSetSqliteDBGlobalConnectionString)(const wchar_t *dbConnection);
-
 namespace SPA {
     namespace ServerSide {
         namespace Sqlite {
@@ -46,5 +34,6 @@ namespace SPA {
     } //namespace ServerSide
 } //namespace SPA
 
+#define MONITORED_TABLES   "monitored_tables"
 
 #endif

@@ -27,6 +27,9 @@ namespace SPA {
             bool IsGloballyConnected() const;
             static void SetDBGlobalConnectionString(const UTF16 *dbConnection);
             static void SetInitialParam(unsigned int param);
+            static void SetCachedTables(const UTF16* dbConnection);
+            static std::string GetCachedTables();
+            static CDBString GetDBGlobalConnectionString();
 
         protected:
             virtual void OnFastRequestArrive(unsigned short reqId, unsigned int len);
@@ -114,7 +117,7 @@ namespace SPA {
             size_t m_parameters;
             CUQueue m_Blob;
 
-            static CUCriticalSection m_csPeer;
+
             static const UTF16* NO_DB_OPENED_YET;
             static const UTF16* BAD_END_TRANSTACTION_PLAN;
             static const UTF16* NO_PARAMETER_SPECIFIED;
@@ -126,14 +129,15 @@ namespace SPA {
             //sqlite handles
             std::shared_ptr<sqlite3> m_pSqlite;
             std::vector<std::shared_ptr<sqlite3_stmt> > m_vPreparedStatements;
-
             static unsigned int m_nParam;
-            static CDBString m_strGlobalConnection; //protected by m_csPeer
             static const int SLEEP_TIME = 1; //ms
-            static std::unordered_map<std::string, std::vector<std::string>> m_mapCache;
 
             static std::string DIU_TRIGGER_PREFIX;
             static std::string DIU_TRIGGER_FUNC;
+
+            static CUCriticalSection m_csPeer;
+            static CDBString m_strGlobalConnection; //protected by m_csPeer
+            static std::unordered_map<std::string, std::vector<std::string>> m_mapCache; //protected by m_csPeer
         };
 
         typedef CSocketProService<CSqliteImpl> CSqliteService;

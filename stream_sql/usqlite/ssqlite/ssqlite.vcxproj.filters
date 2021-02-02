@@ -47,6 +47,9 @@
     <ClInclude Include="..\..\..\include\sqlite\usqlite_server.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="resource.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\include\aserverw.cpp">
@@ -64,5 +67,13 @@
     <ClCompile Include="..\..\..\include\sqlite\server_impl\ssqlite.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\include\sqlite\server_impl\sexports.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="ssqlite.rc">
+      <Filter>Resource Files</Filter>
+    </ResourceCompile>
   </ItemGroup>
 </Project>

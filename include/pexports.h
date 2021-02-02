@@ -46,7 +46,7 @@ extern "C" {
 
 typedef const char* const (WINAPI *PGetSPluginVersion)();
 typedef bool (WINAPI *PSetSPluginGlobalOptions)(const char *jsonUtf8Options);
-typedef unsigned int (WINAPI *PGetSPluginGlobalOptions)(const char *jsonUtf8, unsigned int buffer_size);
+typedef unsigned int (WINAPI *PGetSPluginGlobalOptions)(char *jsonUtf8, unsigned int buffer_size);
 typedef int (WINAPI *PDoSPluginAuthentication)(SPA::UINT64 hSocket, const wchar_t *userId, const wchar_t *password, unsigned int nSvsId, const wchar_t* options);
 
 #define GLOBAL_CONNECTION_STRING    "global_connection_string"

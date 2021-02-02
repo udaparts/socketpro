@@ -9,15 +9,7 @@
 namespace SPA
 {
     namespace ServerSide{
-#ifndef NATIVE_UTF16_SUPPORTED
-        const UTF16 * CSqliteImpl::NO_DB_OPENED_YET = L"No sqlite database opened yet";
-        const UTF16 * CSqliteImpl::BAD_END_TRANSTACTION_PLAN = L"Bad end transaction plan";
-        const UTF16 * CSqliteImpl::NO_PARAMETER_SPECIFIED = L"No parameter specified";
-        const UTF16 * CSqliteImpl::BAD_PARAMETER_DATA_ARRAY_SIZE = L"Bad parameter data array length";
-        const UTF16 * CSqliteImpl::BAD_PARAMETER_COLUMN_SIZE = L"Bad parameter column size";
-        const UTF16 * CSqliteImpl::DATA_TYPE_NOT_SUPPORTED = L"Data type not supported";
-        const UTF16 * CSqliteImpl::NO_DB_FILE_SPECIFIED = L"No sqlite database file specified";
-#else
+
         const UTF16 * CSqliteImpl::NO_DB_OPENED_YET = u"No sqlite database opened yet";
         const UTF16 * CSqliteImpl::BAD_END_TRANSTACTION_PLAN = u"Bad end transaction plan";
         const UTF16 * CSqliteImpl::NO_PARAMETER_SPECIFIED = u"No parameter specified";
@@ -25,7 +17,7 @@ namespace SPA
         const UTF16 * CSqliteImpl::BAD_PARAMETER_COLUMN_SIZE = u"Bad parameter column size";
         const UTF16 * CSqliteImpl::DATA_TYPE_NOT_SUPPORTED = u"Data type not supported";
         const UTF16 * CSqliteImpl::NO_DB_FILE_SPECIFIED = u"No sqlite database file specified";
-#endif
+
         CDBString CSqliteImpl::m_strGlobalConnection;
 
         unsigned int CSqliteImpl::m_nParam = 0;
@@ -200,16 +192,18 @@ namespace SPA
             sql += ");END";
             char *err_msg = nullptr;
             int rc = sqlite3_exec(db, sql.c_str(), nullptr, nullptr, &err_msg);
-            if (rc != SQLITE_OK && err_msg)
+            if (rc != SQLITE_OK && err_msg) {
                 sqlite3_free(err_msg);
+            }
             return rc == SQLITE_OK;
         }
 
         size_t CSqliteImpl::HasKey(const std::vector<std::pair<std::string, char> > &vCol) {
             size_t keys = 0;
             for (auto it = vCol.begin(), end = vCol.end(); it != end; ++it) {
-                if (it->second != '0')
+                if (it->second != '0') {
                     ++keys;
+                }
             }
             return keys;
         }
@@ -217,8 +211,9 @@ namespace SPA
         void CSqliteImpl::DropATrigger(sqlite3 *db, const std::string & sql) {
             char *err_msg = nullptr;
             int rc = sqlite3_exec(db, sql.c_str(), nullptr, nullptr, &err_msg);
-            if (rc != SQLITE_OK && err_msg)
+            if (rc != SQLITE_OK && err_msg) {
                 sqlite3_free(err_msg);
+            }
         }
 
         void CSqliteImpl::DropAllTriggers(sqlite3 * db, const std::vector<std::string> &vTable) {
@@ -281,24 +276,47 @@ namespace SPA
         }
 
         void CSqliteImpl::SetDBGlobalConnectionString(const UTF16 * dbConnection) {
-#ifndef NATIVE_UTF16_SUPPORTED
-            std::wstring str = dbConnection ? dbConnection : L"";
-            std::transform(str.begin(), str.end(), str.begin(), ::tolower);
-#else
             CDBString str = dbConnection ? dbConnection : u"";
-#endif
             SPA::CAutoLock al(m_csPeer);
-            m_mapCache.clear();
             m_strGlobalConnection.clear();
             size_t pos = str.find('+');
-            if (pos == CDBString::npos)
+            if (pos == CDBString::npos) {
                 m_strGlobalConnection = str;
-            else {
+            } else {
+                //old connection string may contain cached tables
+                m_mapCache.clear();
                 m_strGlobalConnection = str.substr(0, pos);
                 str = str.substr(pos + 1);
                 SetCacheTables(str);
                 SetTriggers();
             }
+        }
+
+        CDBString CSqliteImpl::GetDBGlobalConnectionString() {
+            SPA::CAutoLock al(m_csPeer);
+            return m_strGlobalConnection;
+        }
+
+        std::string CSqliteImpl::GetCachedTables() {
+            std::string str;
+            SPA::CAutoLock al(m_csPeer);
+            for (auto it = m_mapCache.cbegin(), end = m_mapCache.cend(); it != end; ++it) {
+                const std::string &dbName = it->first;
+                const auto& vTables = it->second;
+                for (auto n = vTables.cbegin(), nend = vTables.cend(); n != nend; ++n) {
+                    if (str.size()) str.push_back(';');
+                    str += (dbName + '.' + *n);
+                }
+            }
+            return std::move(str);
+        }
+
+        void CSqliteImpl::SetCachedTables(const UTF16 * cachedTables) {
+            CDBString str = cachedTables ? cachedTables : u"";
+            SPA::CAutoLock al(m_csPeer);
+            m_mapCache.clear();
+            SetCacheTables(str);
+            SetTriggers();
         }
 
         void CSqliteImpl::XFunc(sqlite3_context *context, int count, sqlite3_value **pp) {
