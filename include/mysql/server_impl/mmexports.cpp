@@ -87,6 +87,7 @@ int U_MODULE_OPENED WINAPI DoSPluginAuthentication(SPA::UINT64 hSocket, const wc
         ms.Handle = impl.GetDBConnHandle();
         ms.DefaultDB = impl.GetDefaultDBName();
         CAutoLock al(CMysqlImpl::m_csPeer);
+        //reuse connection handle without building new one if service id equals sidMysql
         CMysqlImpl::m_mapConnection[hSocket] = ms;
     }
     return 1;

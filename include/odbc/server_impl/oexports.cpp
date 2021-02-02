@@ -88,9 +88,10 @@ int U_MODULE_OPENED WINAPI DoSPluginAuthentication(SPA::UINT64 hSocket, const wc
     }
     if (nSvsId == Odbc::sidOdbc) {
         COdbcImpl::m_csPeer.lock();
-        COdbcImpl::m_mapConnection[hSocket] = hdbc;
+        COdbcImpl::m_mapConnection[hSocket] = hdbc; //reuse the handle for coming ODBC requests
         COdbcImpl::m_csPeer.unlock();
     } else {
+        //we don't need it anymore and just close the ODBC connection handle
         retcode = SQLDisconnect(hdbc);
         retcode = SQLFreeHandle(SQL_HANDLE_DBC, hdbc);
     }

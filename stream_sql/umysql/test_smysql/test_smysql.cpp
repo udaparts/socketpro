@@ -10,8 +10,6 @@ protected:
         DoSPluginAuthentication = nullptr;
         m_h = SPA::ServerSide::CSocketProServer::DllManager::AddALibrary("smysql");
         if (m_h) {
-            PSetSPluginGlobalOptions SetSPluginGlobalOptions = (PSetSPluginGlobalOptions) GetProcAddress(m_h, "SetSPluginGlobalOptions");
-            SetSPluginGlobalOptions("{\"global_connection_string\":\"host=localhost;uid=root;database=sakila;pwd=Smash123;port=3306;timeout=20\"}");
             DoSPluginAuthentication = (PDoSPluginAuthentication) GetProcAddress(m_h, "DoSPluginAuthentication");
         }
         return true;

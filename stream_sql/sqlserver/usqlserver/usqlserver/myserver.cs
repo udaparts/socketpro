@@ -1,5 +1,4 @@
-﻿
-using System;
+﻿using System;
 using SocketProAdapter;
 using SocketProAdapter.ServerSide;
 using System.Runtime.InteropServices;
@@ -12,8 +11,7 @@ public class CSqlPlugin : CSocketProServer
     }
 
     [DllImport("sodbc")]
-    [return: MarshalAs(UnmanagedType.I1)]
-    private static extern bool DoODBCAuthentication(ulong hSocket, [MarshalAs(UnmanagedType.LPWStr)]string userId, [MarshalAs(UnmanagedType.LPWStr)]string password, uint nSvsId, [MarshalAs(UnmanagedType.LPWStr)]string odbcDriver, [MarshalAs(UnmanagedType.LPWStr)]string dsn);
+    private static extern int DoSPluginAuthentication(ulong hSocket, [MarshalAs(UnmanagedType.LPWStr)] string userId, [MarshalAs(UnmanagedType.LPWStr)] string password, uint nSvsId, [MarshalAs(UnmanagedType.LPWStr)] string dsn);
 
 #if PLUGIN_DEV
 
@@ -43,12 +41,12 @@ public class CSqlPlugin : CSocketProServer
     protected override bool OnIsPermitted(ulong hSocket, string userId, string password, uint nSvsID)
     {
 #if PLUGIN_DEV
-        return DoODBCAuthentication(hSocket, userId, password, nSvsID, "{SQL Server Native Client 11.0}", "");
+        return (DoSPluginAuthentication(hSocket, userId, password, nSvsID, "DRIVER={SQL Server Native Client 11.0};Server=(local)") > 0);
 #else
         if (nSvsID == BaseServiceID.sidHTTP)
             return true; //do authentication inside the method CMyHttpPeer.DoAuthentication
-        string driver = SQLConfig.ODBCDriver;
-        return DoODBCAuthentication(hSocket, userId, password, nSvsID, driver, "");
+        string driver = "DRIVER=" + SQLConfig.ODBCDriver + ";Server=(local)";
+        return (DoSPluginAuthentication(hSocket, userId, password, nSvsID, driver) > 0);
 #endif
     }
 }
