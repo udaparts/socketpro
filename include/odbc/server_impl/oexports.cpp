@@ -10,8 +10,6 @@ using namespace SPA::ServerSide;
 
 std::string g_version("1.0.0.1");
 
-#define GLOBAL_CONNECTION_STRING    "global_connection_string"
-
 const char* const U_MODULE_OPENED WINAPI GetSPluginVersion() {
     return g_version.c_str();
 }
@@ -80,7 +78,7 @@ int U_MODULE_OPENED WINAPI DoSPluginAuthentication(SPA::UINT64 hSocket, const wc
     CScopeUQueue sb;
     SQLSMALLINT cbConnStrOut = 0;
     std::string strConn = Utilities::ToUTF8(conn);
-    retcode = SQLDriverConnect(hdbc, nullptr, (SQLCHAR*) strConn.c_str(), (SQLSMALLINT) strConn.size(), (SQLCHAR*) sb->GetBuffer(), (SQLSMALLINT) sb->GetSize(), &cbConnStrOut, SQL_DRIVER_NOPROMPT);
+    retcode = SQLDriverConnect(hdbc, nullptr, (SQLCHAR*) strConn.c_str(), (SQLSMALLINT) strConn.size(), (SQLCHAR*) sb->GetBuffer(), (SQLSMALLINT) sb->GetMaxSize(), &cbConnStrOut, SQL_DRIVER_NOPROMPT);
     if (!SQL_SUCCEEDED(retcode)) {
         SQLFreeHandle(SQL_HANDLE_DBC, hdbc);
         return 0;

@@ -58,7 +58,7 @@ namespace SPA
             CScopeUQueue sb;
             SQLSMALLINT cbConnStrOut = 0;
             std::string strConn = Utilities::ToUTF8(conn);
-            retcode = SQLDriverConnect(hdbc, nullptr, (SQLCHAR*) strConn.c_str(), (SQLSMALLINT) strConn.size(), (SQLCHAR*) sb->GetBuffer(), (SQLSMALLINT) sb->GetSize(), &cbConnStrOut, SQL_DRIVER_NOPROMPT);
+            retcode = SQLDriverConnect(hdbc, nullptr, (SQLCHAR*) strConn.c_str(), (SQLSMALLINT) strConn.size(), (SQLCHAR*) sb->GetBuffer(), (SQLSMALLINT) sb->GetMaxSize(), &cbConnStrOut, SQL_DRIVER_NOPROMPT);
             if (!SQL_SUCCEEDED(retcode)) {
                 SQLFreeHandle(SQL_HANDLE_DBC, hdbc);
                 return false;
@@ -398,19 +398,13 @@ namespace SPA
                         retcode = SQLSetConnectAttr(hdbc, SQL_ATTR_CURRENT_CATALOG, (SQLPOINTER) db.c_str(), (SQLINTEGER) (db.size() * sizeof (SQLCHAR)));
                     }
 
-                    //retcode = SQLSetConnectAttr(hdbc, SQL_ATTR_ASYNC_ENABLE, (SQLPOINTER) (ocs.async ? SQL_ASYNC_ENABLE_ON : SQL_ASYNC_ENABLE_OFF), 0);
-                    //std::string host = Utilities::ToUTF8(ocs.host);
-                    //std::string user = Utilities::ToUTF8(ocs.user);
-                    //std::string pwd = Utilities::ToUTF8(ocs.password);
-
                     std::string conn = Utilities::ToUTF8(ocs.connection_string);
 
                     CScopeUQueue sb;
                     SQLCHAR *ConnStrIn = (SQLCHAR *) conn.c_str();
                     SQLCHAR *ConnStrOut = (SQLCHAR *) sb->GetBuffer();
-                    SQLSMALLINT cbConnStrOut;
-                    retcode = SQLDriverConnect(hdbc, nullptr, ConnStrIn, (SQLSMALLINT) conn.size(), ConnStrOut, (SQLSMALLINT) sb->GetSize(), &cbConnStrOut, SQL_DRIVER_NOPROMPT);
-                    //retcode = SQLConnect(hdbc, (SQLCHAR*) host.c_str(), (SQLSMALLINT) host.size(), (SQLCHAR *) user.c_str(), (SQLSMALLINT) user.size(), (SQLCHAR *) pwd.c_str(), (SQLSMALLINT) pwd.size());
+                    SQLSMALLINT cbConnStrOut = 0;
+                    retcode = SQLDriverConnect(hdbc, nullptr, ConnStrIn, (SQLSMALLINT) conn.size(), ConnStrOut, (SQLSMALLINT) sb->GetMaxSize(), &cbConnStrOut, SQL_DRIVER_NOPROMPT);
                     if (!SQL_SUCCEEDED(retcode)) {
                         res = Odbc::ER_ERROR;
                         GetErrMsg(SQL_HANDLE_DBC, hdbc, errMsg);
