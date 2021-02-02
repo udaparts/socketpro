@@ -51,11 +51,7 @@ class Program
             try
             {
                 //stream all requests with in-line batching for the best network efficiency
-#if FOR_MIDDLE_SERVER
-                var tOpen = mysql.open("user=root;pwd=Smash123;db=mysqldb");
-#else
                 var tOpen = mysql.open("");
-#endif
                 var vT = TestCreateTables(mysql);
                 var tDs = mysql.execute("delete from employee;delete from company");
                 var tP0 = TestPreparedStatements(mysql);

@@ -41,9 +41,7 @@ unsigned int U_MODULE_OPENED WINAPI GetSPluginGlobalOptions(char* json, unsigned
     Writer<StringBuffer> writer(buffer);
     writer.StartObject();
     writer.Key(GLOBAL_CONNECTION_STRING);
-    CMysqlImpl::m_csPeer.lock();
-    std::string str = Utilities::ToUTF8(CMysqlImpl::m_strGlobalConnection);
-    CMysqlImpl::m_csPeer.unlock();
+    std::string str = Utilities::ToUTF8(CMysqlImpl::GetDBGlobalConnectionString());
     writer.String(str.c_str(), (SizeType) str.size());
     writer.EndObject();
     std::string s = buffer.GetString();
@@ -59,36 +57,8 @@ unsigned int U_MODULE_OPENED WINAPI GetSPluginGlobalOptions(char* json, unsigned
 }
 
 int U_MODULE_OPENED WINAPI DoSPluginAuthentication(SPA::UINT64 hSocket, const wchar_t* userId, const wchar_t* password, unsigned int nSvsId, const wchar_t* dbConnection) {
-    if (!CMysqlImpl::m_bInitMysql) {
+    if (!CMysqlImpl::IsMysqlInitialized()) {
         return -2;
     }
-    CMysqlImpl impl;
-    std::wstring db(dbConnection ? dbConnection : L"");
-    if (!db.size()) {
-        db = L"host=localhost;port=3306;timeout=30";
-    }
-    if (userId && ::wcslen(userId)) {
-        db += L";uid=";
-        db += userId;
-    }
-    if (password && ::wcslen(password)) {
-        db += L";pwd=";
-        db += password;
-    }
-    int res = 0, ms = 0;
-    CDBString errMsg;
-    CDBString conn = Utilities::ToUTF16(db);
-    impl.Open(conn, 0, res, errMsg, ms);
-    if (res) {
-        return 0;
-    }
-    if (nSvsId == SPA::Mysql::sidMysql) {
-        CMysqlImpl::MyStruct ms;
-        ms.Handle = impl.GetDBConnHandle();
-        ms.DefaultDB = impl.GetDefaultDBName();
-        CAutoLock al(CMysqlImpl::m_csPeer);
-        //reuse connection handle without building new one if service id equals sidMysql
-        CMysqlImpl::m_mapConnection[hSocket] = ms;
-    }
-    return 1;
+    return CMysqlImpl::DoSQLAuthentication(hSocket, userId, password, nSvsId, dbConnection) ? 1 : 0;
 }

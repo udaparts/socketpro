@@ -73,11 +73,7 @@ int main(int argc, char* argv[]) {
     };
 
     try{
-#ifdef FOR_MIDDLE_SERVER
-        auto fopen = pMysql->open(u"mysqldb");
-#else
         auto fopen = pMysql->open(u"");
-#endif
         auto vF = TestCreateTables(pMysql);
         auto fD = pMysql->execute(u"delete from employee;delete from company");
         auto fP0 = TestPreparedStatements(pMysql);

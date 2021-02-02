@@ -94,6 +94,8 @@ namespace SPA {
             static bool DoSQLAuthentication(USocket_Server_Handle hSocket, const wchar_t *userId, const wchar_t *password, unsigned int nSvsId, const wchar_t *dbConnection);
             std::shared_ptr<MYSQL> GetDBConnHandle();
             CDBString GetDefaultDBName();
+            static CDBString GetDBGlobalConnectionString();
+            static bool IsMysqlInitialized();
 
 #ifdef MM_DB_SERVER_PLUGIN
             static std::string ToString(const CDBVariant &vtUTF8);
@@ -200,7 +202,6 @@ namespace SPA {
             static const UTF16* MYSQL_GLOBAL_CONNECTION_STRING;
             static CMysqlLoader m_remMysql;
 
-        public:
             struct MyStruct {
                 std::shared_ptr<MYSQL> Handle;
                 CDBString DefaultDB;

@@ -495,6 +495,16 @@ namespace SPA
             m_csPeer.unlock();
         }
 
+        CDBString CMysqlImpl::GetDBGlobalConnectionString() {
+            SPA::CAutoLock al(m_csPeer);
+            return m_strGlobalConnection;
+        }
+
+        bool CMysqlImpl::IsMysqlInitialized() {
+            SPA::CAutoLock al(m_csPeer);
+            return m_bInitMysql;
+        }
+
         void CMysqlImpl::OnReleaseSource(bool bClosing, unsigned int info) {
             CleanDBObjects();
             m_global = true;
@@ -2738,17 +2748,6 @@ namespace SPA
 
         bool CMysqlImpl::DoSQLAuthentication(USocket_Server_Handle hSocket, const wchar_t *userId, const wchar_t *password, unsigned int nSvsId, const wchar_t * dbConnection) {
             CMysqlImpl impl;
-#ifndef NATIVE_UTF16_SUPPORTED
-            CDBString db(dbConnection ? dbConnection : L"host=localhost;port=3306;timeout=30");
-            if (userId && ::wcslen(userId)) {
-                db += L";uid=";
-                db += userId;
-            }
-            if (password && ::wcslen(password)) {
-                db += L";pwd=";
-                db += password;
-            }
-#else
             CDBString db(dbConnection ? Utilities::ToUTF16(dbConnection) : u"host=localhost;port=3306;timeout=30");
             if (userId && ::wcslen(userId)) {
                 db += u";uid=";
@@ -2758,7 +2757,6 @@ namespace SPA
                 db += u";pwd=";
                 db += Utilities::ToUTF16(password);
             }
-#endif
             int res = 0, ms = 0;
             CDBString errMsg;
             impl.Open(db, 0, res, errMsg, ms);

@@ -16,7 +16,7 @@ maria_declare_plugin(async_sql) {
             0x0100 /* 1.0 */,
             nullptr, /* status variables */
             nullptr, /* system variables */
-            "1.0", /* string version */
+            "1.0.1.1", /* string version */
             MariaDB_PLUGIN_MATURITY_STABLE /* maturity */
 }
 maria_declare_plugin_end;
