@@ -1,15 +1,6 @@
-
 #include "odbcimpl.h"
 
 std::shared_ptr<SPA::ServerSide::COdbcService> g_pOdbc;
-
-bool WINAPI DoODBCAuthentication(USocket_Server_Handle hSocket, const wchar_t *userId, const wchar_t *password, unsigned int nSvsId, const wchar_t *odbcDriver, const wchar_t *dsn) {
-    return SPA::ServerSide::COdbcImpl::DoSQLAuthentication(hSocket, userId, password, nSvsId, odbcDriver, dsn);
-}
-
-void WINAPI SetOdbcDBGlobalConnectionString(const wchar_t *dbConnection) {
-    SPA::ServerSide::COdbcImpl::SetGlobalConnectionString(dbConnection);
-}
 
 bool WINAPI InitServerLibrary(int param) {
     if (!SPA::ServerSide::COdbcImpl::SetODBCEnv(param))
