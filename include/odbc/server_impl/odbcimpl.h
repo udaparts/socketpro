@@ -201,11 +201,10 @@ namespace SPA {
             static const UTF16* BAD_INPUT_PARAMETER_DATA_TYPE;
             static const UTF16* BAD_PARAMETER_DIRECTION_TYPE;
             static const UTF16* CORRECT_PARAMETER_INFO_NOT_PROVIDED_YET;
-
-            static SQLHENV g_hEnv;
-
             static const UTF16* ODBC_GLOBAL_CONNECTION_STRING;
 
+        public:
+            static SQLHENV g_hEnv;
             static CUCriticalSection m_csPeer;
             static CDBString m_strGlobalConnection; //ODBC source, protected by m_csPeer
             static std::unordered_map<USocket_Server_Handle, SQLHDBC> m_mapConnection; //protected by m_csPeer

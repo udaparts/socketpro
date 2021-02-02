@@ -149,6 +149,7 @@
     <ClInclude Include="..\..\..\include\odbc\server_impl\odbcimpl.h" />
     <ClInclude Include="..\..\..\include\odbc\uodbc.h" />
     <ClInclude Include="..\..\..\include\odbc\uodbc_server.h" />
+    <ClInclude Include="resource.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />
   </ItemGroup>
@@ -156,6 +157,7 @@
     <ClCompile Include="..\..\..\include\aserverw.cpp" />
     <ClCompile Include="..\..\..\include\membuffer.cpp" />
     <ClCompile Include="..\..\..\include\odbc\server_impl\odbcimpl.cpp" />
+    <ClCompile Include="..\..\..\include\odbc\server_impl\oexports.cpp" />
     <ClCompile Include="..\..\..\include\odbc\server_impl\sodbc.cpp" />
     <ClCompile Include="dllmain.cpp">
       <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</CompileAsManaged>
@@ -171,12 +173,9 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
       </PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="stdafx.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
-    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="sodbc.rc" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

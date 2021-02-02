@@ -64,7 +64,7 @@ int main(int argc, char* argv[]) {
         ra.push_back(column_rowset_pair);
     };
 
-    ok = pOdbc->Open(u"dsn=ToMySQL;uid=root;pwd=Smash123", dr);
+    ok = pOdbc->Open(u"", dr);
     TestCreateTables(pOdbc);
     ok = pOdbc->Execute(u"delete from employee", er);
     ok = pOdbc->Execute(u"delete from company", er);

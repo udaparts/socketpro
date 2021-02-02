@@ -11,3 +11,8 @@ EXPORTS
     GetOneSlowRequestID	@7
 	SetOdbcDBGlobalConnectionString @8
 	DoODBCAuthentication @9
+	GetSPluginVersion @10
+	SetSPluginGlobalOptions @11
+	GetSPluginGlobalOptions @12
+	DoSPluginAuthentication @13
+	

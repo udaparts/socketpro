@@ -1,35 +1,49 @@
 
 #include "stdafx.h"
 #include <iostream>
-
-#include "../../../include/odbc/uodbc_server.h"
+#include "../../../include/pexports.h"
 
 class CMySocketProServer : public SPA::ServerSide::CSocketProServer
 {
 
 protected:
+    virtual bool OnIsPermitted(USocket_Server_Handle h, const wchar_t* userId, const wchar_t* password, unsigned int serviceId) {
+        assert(DoSPluginAuthentication);
+        //A cheap but quick way to do authentication against a database server by use of ODBC plugin
+        int res = DoSPluginAuthentication(h, userId, password, serviceId, L"dsn=ToMySQL");
+        switch (res) {
+            case 0:
+                return false;
+            case 1:
+                return true;
+            case -1:
+                std::cout << "Authentication not implemented yet\n";
+                return false;
+            case -2:
+                std::cout << "Internal error!\n";
+                return false;
+            default:
+                assert(false);
+                break;
+        }
+        return false;
+    }
+
     virtual bool OnSettingServer(unsigned int listeningPort, unsigned int maxBacklog, bool v6) {
+        DoSPluginAuthentication = nullptr;
         m_h = SPA::ServerSide::CSocketProServer::DllManager::AddALibrary("sodbc");
         if (m_h) {
-            PSetOdbcDBGlobalConnectionString SetOdbcDBGlobalConnectionString = (PSetOdbcDBGlobalConnectionString) GetProcAddress(m_h, "SetOdbcDBGlobalConnectionString");
-#ifdef WIN32_64
-            SetOdbcDBGlobalConnectionString(L"dsn=ToSqlServer64;uid=sa;pwd=Smash123");
-#else
-            SetOdbcDBGlobalConnectionString(L"dsn=ToMySQL;uid=root;pwd=Smash123");
-#endif
+            DoSPluginAuthentication = (PDoSPluginAuthentication) GetProcAddress(m_h, "DoSPluginAuthentication");
         }
         return true;
     }
 
 private:
     HINSTANCE m_h;
+    PDoSPluginAuthentication DoSPluginAuthentication;
 };
 
 int main(int argc, char* argv[]) {
-    const char* str = "1234.567";
-    DECIMAL dec;
-    SPA::ParseDec_long(str, dec);
-    std::string sdec = SPA::ToString_long(dec);
     CMySocketProServer server;
     if (!server.Run(20901)) {
         int errCode = server.GetErrorCode();
