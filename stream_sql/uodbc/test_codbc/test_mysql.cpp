@@ -63,7 +63,7 @@ int main(int argc, char* argv[]) {
         column_rowset_pair.first = vColInfo;
         ra.push_back(column_rowset_pair);
     };
-
+    //connection string should be something like 'dsn=ToMySQL;uid=MyUserID;pwd=MyPassword;database=sakila' if there is no DB authentication at server side
     ok = pOdbc->Open(u"", dr);
     TestCreateTables(pOdbc);
     ok = pOdbc->Execute(u"delete from employee", er);

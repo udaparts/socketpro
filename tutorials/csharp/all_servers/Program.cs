@@ -5,8 +5,14 @@ using System.Runtime.InteropServices;
 
 public class CMySocketProServer : CSocketProServer
 {
-    [DllImport("ssqlite")]
-    static extern void SetSqliteDBGlobalConnectionString([In] [MarshalAs(UnmanagedType.LPWStr)] string sqliteDbFile);
+    [DllImport("ssqlite", EntryPoint="SetSPluginGlobalOptions")]
+    static extern void SQLite_SetSPluginGlobalOptions([In] [MarshalAs(UnmanagedType.LPStr)] string jsonUtf8);
+
+    [DllImport("smysql", EntryPoint = "DoSPluginAuthentication")]
+    static extern int MySQL_Authentication(ulong hSocket, [In][MarshalAs(UnmanagedType.LPWStr)] string userId, [In][MarshalAs(UnmanagedType.LPWStr)] string password, uint svsId, [In][MarshalAs(UnmanagedType.LPWStr)] string toMysql);
+
+    [DllImport("sodbc", EntryPoint = "DoSPluginAuthentication")]
+    static extern int ODBC_Authentication(ulong hSocket, [In][MarshalAs(UnmanagedType.LPWStr)] string userId, [In][MarshalAs(UnmanagedType.LPWStr)] string password, uint svsId, [In][MarshalAs(UnmanagedType.LPWStr)] string dsn);
 
     [ServiceAttr(hwConst.sidHelloWorld)]
     private CSocketProService<HelloWorldPeer> m_HelloWorld = new CSocketProService<HelloWorldPeer>();
@@ -65,7 +71,7 @@ public class CMySocketProServer : CSocketProServer
         if (p.ToInt64() != 0) 
         {
             //monitoring sakila.db table events (DELETE, INSERT and UPDATE) for tables actor, language, category, country and film_actor
-            SetSqliteDBGlobalConnectionString("usqlite.db+sakila.db.actor;sakila.db.language;sakila.db.category;sakila.db.country;sakila.db.film_actor");
+            SQLite_SetSPluginGlobalOptions("{\"global_connection_string\":\"usqlite.db\",\"monitored_tables\":\"sakila.db.actor;sakila.db.language;sakila.db.category;sakila.db.country;sakila.db.film_actor\"}");
         }
         //load socketPro asynchronous persistent message queue library at the directory ../bin/free_services/queue
         p = CSocketProServer.DllManager.AddALibrary("uasyncqueue", 24 * 1024); //24 * 1024 batch dequeuing size in bytes
@@ -86,6 +92,7 @@ public class CMySocketProServer : CSocketProServer
 
     protected override bool OnIsPermitted(ulong hSocket, string userId, string password, uint nSvsID)
     {
+        //you can use database for authentication by calling MySQL_Authentication or ODBC_Authentication
         Console.WriteLine("Ask for a service " + nSvsID + " from user " + userId + " with password = " + password);
         return true;
     }

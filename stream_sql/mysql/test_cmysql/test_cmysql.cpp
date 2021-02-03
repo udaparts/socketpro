@@ -73,6 +73,7 @@ int main(int argc, char* argv[]) {
     };
 
     try{
+        //connection string should be something like 'host=localhost;port=3306;timeout=30;uid=MyUserID;pwd=MyPassword;database=sakila' if there is no DB authentication at server side
         auto fopen = pMysql->open(u"");
         auto vF = TestCreateTables(pMysql);
         auto fD = pMysql->execute(u"delete from employee;delete from company");

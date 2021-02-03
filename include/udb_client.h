@@ -1152,9 +1152,9 @@ namespace SPA {
                 return prom->get_future();
             }
 
-            std::future<ErrInfo> open(const char16_t* sql, unsigned int flags = 0) {
+            std::future<ErrInfo> open(const char16_t* db, unsigned int flags = 0) {
                 std::shared_ptr<std::promise<ErrInfo> > prom(new std::promise<ErrInfo>);
-                if (!Open(sql, get_d(prom), flags, get_aborted(prom, idOpen), get_se(prom))) {
+                if (!Open(db, get_d(prom), flags, get_aborted(prom, idOpen), get_se(prom))) {
                     raise(idOpen);
                 }
                 return prom->get_future();

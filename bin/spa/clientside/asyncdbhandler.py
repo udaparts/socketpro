@@ -106,7 +106,7 @@ class CAsyncDBHandler(CAsyncServiceHandler):
     @property
     def Opened(self):
         with self._csDB:
-            return (!!self._strConnection)
+            return (len(self._strConnection) > 0)
 
     @property
     def ColumnInfo(self):
