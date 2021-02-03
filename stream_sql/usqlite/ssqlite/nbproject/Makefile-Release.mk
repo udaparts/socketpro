@@ -37,6 +37,7 @@ OBJECTDIR=${CND_BUILDDIR}/${CND_CONF}/${CND_PLATFORM}
 OBJECTFILES= \
 	${OBJECTDIR}/_ext/932346631/aserverw.o \
 	${OBJECTDIR}/_ext/932346631/membuffer.o \
+	${OBJECTDIR}/_ext/1689552657/sexports.o \
 	${OBJECTDIR}/_ext/1689552657/sqlite3.o \
 	${OBJECTDIR}/_ext/1689552657/sqliteimpl.o \
 	${OBJECTDIR}/_ext/1689552657/ssqlite.o
@@ -75,6 +76,11 @@ ${OBJECTDIR}/_ext/932346631/membuffer.o: ../../../include/membuffer.cpp
 	${MKDIR} -p ${OBJECTDIR}/_ext/932346631
 	${RM} "$@.d"
 	$(COMPILE.c) -O3 -s -DHAVE_GMTIME_R -DHAVE_LOCALTIME_S -DNDEBUG -DSQLITE_DEFAULT_FOREIGN_KEYS=1 -DSQLITE_ENABLE_COLUMN_METADATA -DSQLITE_ENABLE_FTS4 -DSQLITE_ENABLE_JSON1 -DSQLITE_ENABLE_RTREE -DSQLITE_OMIT_LOOKASIDE -DSQLITE_THREADSAFE=1 -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/932346631/membuffer.o ../../../include/membuffer.cpp
+
+${OBJECTDIR}/_ext/1689552657/sexports.o: ../../../include/sqlite/server_impl/sexports.cpp 
+	${MKDIR} -p ${OBJECTDIR}/_ext/1689552657
+	${RM} "$@.d"
+	$(COMPILE.c) -O3 -s -DHAVE_GMTIME_R -DHAVE_LOCALTIME_S -DNDEBUG -DSQLITE_DEFAULT_FOREIGN_KEYS=1 -DSQLITE_ENABLE_COLUMN_METADATA -DSQLITE_ENABLE_FTS4 -DSQLITE_ENABLE_JSON1 -DSQLITE_ENABLE_RTREE -DSQLITE_OMIT_LOOKASIDE -DSQLITE_THREADSAFE=1 -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/1689552657/sexports.o ../../../include/sqlite/server_impl/sexports.cpp
 
 ${OBJECTDIR}/_ext/1689552657/sqlite3.o: ../../../include/sqlite/server_impl/sqlite3.c 
 	${MKDIR} -p ${OBJECTDIR}/_ext/1689552657

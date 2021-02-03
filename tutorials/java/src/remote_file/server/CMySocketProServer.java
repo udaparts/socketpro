@@ -8,9 +8,11 @@ public class CMySocketProServer extends CSocketProServer {
     protected boolean OnSettingServer() {
         long handle = CSocketProServer.DllManager.AddALibrary("ustreamfile");
         if (handle != 0) {
+            /*
             if (SPA.CUQueue.DEFAULT_OS == SPA.tagOperationSystem.osWin) {
                 Sfile.SetRootDirectory("C:\\boost_1_60_0\\stage\\lib64");
             }
+            */
         }
         return true;
     }

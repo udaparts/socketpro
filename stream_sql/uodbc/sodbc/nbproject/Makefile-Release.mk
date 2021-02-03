@@ -38,6 +38,7 @@ OBJECTFILES= \
 	${OBJECTDIR}/_ext/932346631/aserverw.o \
 	${OBJECTDIR}/_ext/932346631/membuffer.o \
 	${OBJECTDIR}/_ext/1865912263/odbcimpl.o \
+	${OBJECTDIR}/_ext/1865912263/oexports.o \
 	${OBJECTDIR}/_ext/1865912263/sodbc.o \
 	${OBJECTDIR}/stdafx.o
 
@@ -80,6 +81,11 @@ ${OBJECTDIR}/_ext/1865912263/odbcimpl.o: ../../../include/odbc/server_impl/odbci
 	${MKDIR} -p ${OBJECTDIR}/_ext/1865912263
 	${RM} "$@.d"
 	$(COMPILE.c) -O3 -s -DNDEBUG -DUSE_BOOST_LARGE_INTEGER_FOR_DECIMAL -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/1865912263/odbcimpl.o ../../../include/odbc/server_impl/odbcimpl.cpp
+
+${OBJECTDIR}/_ext/1865912263/oexports.o: ../../../include/odbc/server_impl/oexports.cpp 
+	${MKDIR} -p ${OBJECTDIR}/_ext/1865912263
+	${RM} "$@.d"
+	$(COMPILE.c) -O3 -s -DNDEBUG -DUSE_BOOST_LARGE_INTEGER_FOR_DECIMAL -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/1865912263/oexports.o ../../../include/odbc/server_impl/oexports.cpp
 
 ${OBJECTDIR}/_ext/1865912263/sodbc.o: ../../../include/odbc/server_impl/sodbc.cpp 
 	${MKDIR} -p ${OBJECTDIR}/_ext/1865912263

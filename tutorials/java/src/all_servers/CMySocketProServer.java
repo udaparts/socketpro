@@ -10,8 +10,8 @@ public class CMySocketProServer extends CSocketProServer {
 
     @Override
     protected boolean OnIsPermitted(long hSocket, String userId, String password, int nSvsID) {
-        System.out.println("Ask for a service " + nSvsID +
-                " from user " + userId + " with password = " + password);
+        System.out.println("Ask for a service " + nSvsID
+                + " from user " + userId + " with password = " + password);
         return true;
     }
 
@@ -50,8 +50,8 @@ public class CMySocketProServer extends CSocketProServer {
             if (handle != 0) {
                 //monitoring sakila.db table events (DELETE, INSERT and UPDATE)
                 //for tables actor, language, category, country and film_actor
-                Sqlite.SetSqliteDBGlobalConnectionString("usqlite.db+sakila.db.actor;"
-                        + "sakila.db.language;sakila.db.category;sakila.db.country;sakila.db.film_actor");
+                String jsonOptions = "{\"global_connection_string\":\"usqlite.db\",\"monitored_tables\":\"sakila.db.language;sakila.db.category;sakila.db.country;sakila.db.film_actor\"}";
+                boolean ok = Plugin.SetSPluginGlobalOptions("ssqlite", jsonOptions);
             }
             //load async persistent message queue library at the directory ../bin/free_services/queue
             //24 * 1024 batch dequeuing size in bytes

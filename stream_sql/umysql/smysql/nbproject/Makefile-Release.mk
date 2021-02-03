@@ -37,6 +37,7 @@ OBJECTDIR=${CND_BUILDDIR}/${CND_CONF}/${CND_PLATFORM}
 OBJECTFILES= \
 	${OBJECTDIR}/_ext/932346631/aserverw.o \
 	${OBJECTDIR}/_ext/932346631/membuffer.o \
+	${OBJECTDIR}/_ext/1165644825/mmexports.o \
 	${OBJECTDIR}/_ext/1165644825/mysqlimpl.o \
 	${OBJECTDIR}/_ext/1165644825/smysql.o
 
@@ -74,6 +75,11 @@ ${OBJECTDIR}/_ext/932346631/membuffer.o: ../../../include/membuffer.cpp
 	${MKDIR} -p ${OBJECTDIR}/_ext/932346631
 	${RM} "$@.d"
 	$(COMPILE.c) -O3 -s -DNDEBUG -DUSE_BOOST_LARGE_INTEGER_FOR_DECIMAL -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/932346631/membuffer.o ../../../include/membuffer.cpp
+
+${OBJECTDIR}/_ext/1165644825/mmexports.o: ../../../include/mysql/server_impl/mmexports.cpp 
+	${MKDIR} -p ${OBJECTDIR}/_ext/1165644825
+	${RM} "$@.d"
+	$(COMPILE.c) -O3 -s -DNDEBUG -DUSE_BOOST_LARGE_INTEGER_FOR_DECIMAL -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/1165644825/mmexports.o ../../../include/mysql/server_impl/mmexports.cpp
 
 ${OBJECTDIR}/_ext/1165644825/mysqlimpl.o: ../../../include/mysql/server_impl/mysqlimpl.cpp 
 	${MKDIR} -p ${OBJECTDIR}/_ext/1165644825

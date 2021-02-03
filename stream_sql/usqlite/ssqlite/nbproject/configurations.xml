@@ -21,6 +21,7 @@
                    projectFiles="true">
       <itemPath>../../../include/aserverw.cpp</itemPath>
       <itemPath>../../../include/membuffer.cpp</itemPath>
+      <itemPath>../../../include/sqlite/server_impl/sexports.cpp</itemPath>
       <itemPath>../../../include/sqlite/server_impl/sqlite3.c</itemPath>
       <itemPath>../../../include/sqlite/server_impl/sqliteimpl.cpp</itemPath>
       <itemPath>../../../include/sqlite/server_impl/ssqlite.cpp</itemPath>
@@ -89,6 +90,11 @@
       <item path="../../../include/membuffer.cpp" ex="false" tool="0" flavor2="0">
       </item>
       <item path="../../../include/membuffer.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../../include/sqlite/server_impl/sexports.cpp"
+            ex="false"
+            tool="0"
+            flavor2="0">
       </item>
       <item path="../../../include/sqlite/server_impl/sqlite3.c"
             ex="false"
@@ -188,6 +194,11 @@
       <item path="../../../include/membuffer.cpp" ex="false" tool="0" flavor2="0">
       </item>
       <item path="../../../include/membuffer.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../../../include/sqlite/server_impl/sexports.cpp"
+            ex="false"
+            tool="0"
+            flavor2="0">
       </item>
       <item path="../../../include/sqlite/server_impl/sqlite3.c"
             ex="false"

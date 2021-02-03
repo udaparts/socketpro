@@ -23,6 +23,7 @@
       <itemPath>../../../include/aserverw.cpp</itemPath>
       <itemPath>../../../include/membuffer.cpp</itemPath>
       <itemPath>../../../include/odbc/server_impl/odbcimpl.cpp</itemPath>
+      <itemPath>../../../include/odbc/server_impl/oexports.cpp</itemPath>
       <itemPath>../../../include/odbc/server_impl/sodbc.cpp</itemPath>
       <itemPath>stdafx.cpp</itemPath>
     </logicalFolder>
@@ -86,6 +87,11 @@
       <item path="../../../include/odbc/server_impl/odbcimpl.h"
             ex="false"
             tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../../include/odbc/server_impl/oexports.cpp"
+            ex="false"
+            tool="0"
             flavor2="0">
       </item>
       <item path="../../../include/odbc/server_impl/sodbc.cpp"
@@ -167,6 +173,11 @@
       <item path="../../../include/odbc/server_impl/odbcimpl.h"
             ex="false"
             tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../../include/odbc/server_impl/oexports.cpp"
+            ex="false"
+            tool="0"
             flavor2="0">
       </item>
       <item path="../../../include/odbc/server_impl/sodbc.cpp"
