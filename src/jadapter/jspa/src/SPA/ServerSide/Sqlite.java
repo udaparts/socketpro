@@ -1,9 +1,6 @@
 package SPA.ServerSide;
 
 public final class Sqlite {
-
-    public final static native void SetSqliteDBGlobalConnectionString(String dbSqlite);
-
     /**
      * Don't use sqlite update hook at server side by default. If update hook is
      * enabled, all connected clients will be notified when there is a record

@@ -1494,53 +1494,6 @@ JNIEXPORT void JNICALL Java_SPA_ServerSide_ServerCoreLoader_SetLastCallInfo
  */
 JNIEXPORT jint JNICALL Java_SPA_ServerSide_ServerCoreLoader_GetMainThreads
   (JNIEnv *, jclass);
-  
-  
-/*
- * Class:     SPA_ServerSide_Sqlite
- * Method:    SetSqliteDBGlobalConnectionString
- * Signature: (Ljava/lang/String;)V
- */
-JNIEXPORT void JNICALL Java_SPA_ServerSide_Sqlite_SetSqliteDBGlobalConnectionString
-  (JNIEnv *, jclass, jstring);
-
-
-/*
- * Class:     SPA_ServerSide_Sfile
- * Method:    SetRootDirectory
- * Signature: (Ljava/lang/String;)V
- */
-JNIEXPORT void JNICALL Java_SPA_ServerSide_Sfile_SetRootDirectory(JNIEnv *env, jclass pClass, jstring root);
-
-/*
- * Class:     SPA_ServerSide_Mysql
- * Method:    SetMysqlDBGlobalConnectionString
- * Signature: (Ljava/lang/String;Z)V
- */
-JNIEXPORT void JNICALL Java_SPA_ServerSide_Mysql_SetMysqlDBGlobalConnectionString
-  (JNIEnv *, jclass, jstring, jboolean);
-
-/*
- * Class:     SPA_ServerSide_Mysql
- * Method:    SetMysqlEmbeddedOptions
- * Signature: (Ljava/lang/String;)Ljava/lang/String;
- */
-JNIEXPORT jstring JNICALL Java_SPA_ServerSide_Mysql_SetMysqlEmbeddedOptions
-  (JNIEnv *, jclass, jstring);
-
-
-JNIEXPORT jboolean JNICALL Java_SPA_ServerSide_Mysql_DoMySQLAuthentication(JNIEnv *, jclass, jlong, jstring, jstring, jint, jstring);
-
-/*
- * Class:     SPA_ServerSide_Odbc
- * Method:    SetOdbcGlobalConnectionString
- * Signature: (Ljava/lang/String;Z)V
- */
-JNIEXPORT void JNICALL Java_SPA_ServerSide_Odbc_SetOdbcDBGlobalConnectionString
-  (JNIEnv *, jclass, jstring);
-
-
-JNIEXPORT jboolean JNICALL Java_SPA_ServerSide_Odbc_DoODBCAuthentication(JNIEnv *, jclass, jlong, jstring, jstring, jint, jstring, jstring);
 
 /*
  * Class:     SPA_ServerSide_ServerCoreLoader
@@ -1574,6 +1527,12 @@ JNIEXPORT jboolean JNICALL Java_SPA_ServerSide_ServerCoreLoader_GetOnceOnly
  */
 JNIEXPORT void JNICALL Java_SPA_ServerSide_ServerCoreLoader_SetOnceOnly
 (JNIEnv *, jclass, jlong, jboolean);
+
+
+JNIEXPORT jint JNICALL Java_SPA_ServerSide_Plugin_DoSPluginAuthentication(JNIEnv*, jclass, jstring, jlong, jstring, jstring, jint, jstring);
+JNIEXPORT jboolean JNICALL Java_SPA_ServerSide_Plugin_SetSPluginGlobalOptions(JNIEnv*, jclass, jstring, jstring);
+JNIEXPORT jstring JNICALL Java_SPA_ServerSide_Plugin_GetSPluginVersion(JNIEnv*, jclass, jstring);
+JNIEXPORT jstring JNICALL Java_SPA_ServerSide_Plugin_GetSPluginGlobalOptions(JNIEnv*, jclass, jstring, jint);
 
 #ifdef __cplusplus
 }
