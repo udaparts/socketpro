@@ -20,6 +20,7 @@
       <itemPath>../../../include/aserverw.cpp</itemPath>
       <itemPath>../../../include/queue/server_impl/asyncqueueimpl.cpp</itemPath>
       <itemPath>../../../include/membuffer.cpp</itemPath>
+      <itemPath>../../../include/queue/server_impl/qexports.cpp</itemPath>
       <itemPath>../../../include/queue/server_impl/uasyncqueue.cpp</itemPath>
     </logicalFolder>
     <logicalFolder name="TestFiles"
@@ -73,6 +74,11 @@
       <item path="../../../include/queue/server_impl/asyncqueueimpl.h"
             ex="false"
             tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../../include/queue/server_impl/qexports.cpp"
+            ex="false"
+            tool="0"
             flavor2="0">
       </item>
       <item path="../../../include/queue/server_impl/uasyncqueue.cpp"
@@ -145,6 +151,11 @@
       <item path="../../../include/queue/server_impl/asyncqueueimpl.h"
             ex="false"
             tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../../include/queue/server_impl/qexports.cpp"
+            ex="false"
+            tool="0"
             flavor2="0">
       </item>
       <item path="../../../include/queue/server_impl/uasyncqueue.cpp"

@@ -38,6 +38,7 @@ OBJECTFILES= \
 	${OBJECTDIR}/_ext/932346631/aserverw.o \
 	${OBJECTDIR}/_ext/932346631/membuffer.o \
 	${OBJECTDIR}/_ext/431783432/asyncqueueimpl.o \
+	${OBJECTDIR}/_ext/431783432/qexports.o \
 	${OBJECTDIR}/_ext/431783432/uasyncqueue.o
 
 
@@ -79,6 +80,11 @@ ${OBJECTDIR}/_ext/431783432/asyncqueueimpl.o: ../../../include/queue/server_impl
 	${MKDIR} -p ${OBJECTDIR}/_ext/431783432
 	${RM} "$@.d"
 	$(COMPILE.c) -O3 -s -DNDEBUG -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/431783432/asyncqueueimpl.o ../../../include/queue/server_impl/asyncqueueimpl.cpp
+
+${OBJECTDIR}/_ext/431783432/qexports.o: ../../../include/queue/server_impl/qexports.cpp 
+	${MKDIR} -p ${OBJECTDIR}/_ext/431783432
+	${RM} "$@.d"
+	$(COMPILE.c) -O3 -s -DNDEBUG -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/431783432/qexports.o ../../../include/queue/server_impl/qexports.cpp
 
 ${OBJECTDIR}/_ext/431783432/uasyncqueue.o: ../../../include/queue/server_impl/uasyncqueue.cpp 
 	${MKDIR} -p ${OBJECTDIR}/_ext/431783432
