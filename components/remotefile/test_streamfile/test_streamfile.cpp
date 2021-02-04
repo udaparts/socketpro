@@ -1,6 +1,7 @@
 
 #include "stdafx.h"
 #include "../../../include/file/ufile_server.h"
+#include "../../../include/pexports.h"
 
 class CMySocketProServer : public SPA::ServerSide::CSocketProServer
 {
@@ -10,8 +11,8 @@ protected:
         m_h = SPA::ServerSide::CSocketProServer::DllManager::AddALibrary("ustreamfile");
         if (m_h) {
 #ifdef WIN32_64
-            PSetRootDirectory SetRootDirectory = (PSetRootDirectory) GetProcAddress(m_h, "SetRootDirectory");
-            SetRootDirectory(L"C:\\cyetest\\nodejsdemos\\file_test\\");
+            PSetSPluginGlobalOptions SetSPluginGlobalOptions = (PSetSPluginGlobalOptions) GetProcAddress(m_h, "SetSPluginGlobalOptions");
+            SetSPluginGlobalOptions("{\"root_directory\":\"C:\\\\cyetest\\\\nodejsdemos\\\\file_test\"}");
 #endif
         }
         return true;
