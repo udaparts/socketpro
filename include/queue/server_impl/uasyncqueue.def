@@ -9,3 +9,7 @@ EXPORTS
     GetOneSvsContext	@5
     GetNumOfSlowRequests	@6
     GetOneSlowRequestID	@7
+	GetSPluginVersion @8
+	SetSPluginGlobalOptions @9
+	GetSPluginGlobalOptions @10
+    DoSPluginAuthentication @11
