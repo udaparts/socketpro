@@ -10,15 +10,16 @@ if _IsWin_:
 else:
     _ussLib_ = CDLL('libustreamfile.so')
 
-# void WINAPI SetRootDirectory(const wchar_t *pathRoot);
-SetRootDirectory = _ussLib_.SetRootDirectory
-SetRootDirectory.argtypes = [c_wchar_p]
-SetRootDirectory.restype = None
+# bool U_MODULE_OPENED WINAPI SetSPluginGlobalOptions(const char *jsonUtf8Options);
+SetSPluginGlobalOptions = _ussLib_.SetSPluginGlobalOptions
+SetSPluginGlobalOptions.argtypes = [c_char_p]
+SetSPluginGlobalOptions.restype = c_bool
 
 with CSocketProServer() as server:
+    ok = True
     handle = CSocketProServer.DllManager.AddALibrary('ustreamfile')
     if handle:
-        SetRootDirectory('C:\\boost_1_60_0\\stage\\lib64')
+        ok = SetSPluginGlobalOptions('{"root_directory":"D:\\\\socketpro\\\\include"}'.encode('utf-8'))
     ok = server.Run(20901)
     if not ok:
         print('Error message = ' + CSocketProServer.ErrorMessage)
