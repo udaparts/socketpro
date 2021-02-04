@@ -416,6 +416,10 @@ namespace SPA
             m_nParam = param;
         }
 
+        unsigned int CSqliteImpl::GetInitialParam() {
+            return m_nParam;
+        }
+
         CSqliteImpl::~CSqliteImpl() {
             Clean();
         }

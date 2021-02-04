@@ -34,6 +34,10 @@ namespace SPA {
     } //namespace ServerSide
 } //namespace SPA
 
-#define MONITORED_TABLES   "monitored_tables"
+#define MONITORED_TABLES                "monitored_tables"
+#define SQLITE_UTF8_ENCODING            "sqlite_utf8_encoding"
+#define DISABLE_SQLITE_EX_ERROR         "disable_extended_error_code"
+#define ENABLE_SQLITE_UPDATE_HOOK       "enable_sqlite_update_hook"
+#define USE_SQLITE_SHARED_CACHE_MODE    "use_sqlite_shared_cache_mode"
 
 #endif

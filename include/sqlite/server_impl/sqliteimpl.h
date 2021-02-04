@@ -27,6 +27,7 @@ namespace SPA {
             bool IsGloballyConnected() const;
             static void SetDBGlobalConnectionString(const UTF16 *dbConnection);
             static void SetInitialParam(unsigned int param);
+            static unsigned int GetInitialParam();
             static void SetCachedTables(const UTF16* dbConnection);
             static std::string GetCachedTables();
             static CDBString GetDBGlobalConnectionString();

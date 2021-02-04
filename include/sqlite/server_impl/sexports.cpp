@@ -46,9 +46,18 @@ unsigned int U_MODULE_OPENED WINAPI GetSPluginGlobalOptions(char* json, unsigned
     if (!json || !buffer_size) {
         return 0;
     }
+    unsigned int nParam = CSqliteImpl::GetInitialParam();
     StringBuffer buffer;
     Writer<StringBuffer> writer(buffer);
     writer.StartObject();
+    writer.Key(SQLITE_UTF8_ENCODING);
+    writer.Bool(true);
+    writer.Key(DISABLE_SQLITE_EX_ERROR);
+    writer.Bool(((nParam & SPA::ServerSide::Sqlite::DO_NOT_USE_EXTENDED_ERROR_CODE) == SPA::ServerSide::Sqlite::DO_NOT_USE_EXTENDED_ERROR_CODE));
+    writer.Key(ENABLE_SQLITE_UPDATE_HOOK);
+    writer.Bool(true);
+    writer.Key(USE_SQLITE_SHARED_CACHE_MODE);
+    writer.Bool(((nParam & SPA::ServerSide::Sqlite::USE_SHARED_CACHE_MODE) == SPA::ServerSide::Sqlite::USE_SHARED_CACHE_MODE));
     writer.Key(GLOBAL_CONNECTION_STRING);
     std::string str = Utilities::ToUTF8(CSqliteImpl::GetDBGlobalConnectionString());
     writer.String(str.c_str(), (SizeType) str.size());
