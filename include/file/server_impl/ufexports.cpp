@@ -4,6 +4,10 @@
 #include "../../3rdparty/rapidjson/include/rapidjson/writer.h"
 #include "sfileimpl.h"
 
+#ifndef WIN32_64
+#include <sys/stat.h>
+#endif
+
 using namespace rapidjson;
 using namespace SPA;
 using namespace SPA::ServerSide;

@@ -1,4 +1,3 @@
-
 #include "sfileimpl.h"
 #include <system_error>
 #ifndef WIN32_64
@@ -11,9 +10,9 @@
 #include <memory>
 #endif
 
-namespace SPA{
-    namespace ServerSide
-    {
+namespace SPA
+{
+    namespace ServerSide{
         CUCriticalSection CSFileImpl::m_cs;
         std::wstring CSFileImpl::m_pathRoot;
 
@@ -22,7 +21,7 @@ namespace SPA{
             return m_pathRoot;
         }
 
-        void CSFileImpl::SetRootDirectory(const wchar_t* pathRoot) {
+        void CSFileImpl::SetRootDirectory(const wchar_t * pathRoot) {
             CAutoLock al(m_cs);
             if (pathRoot && ::wcslen(pathRoot))
                 m_pathRoot = pathRoot;

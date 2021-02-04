@@ -19,6 +19,7 @@
       <itemPath>../../../include/aserverw.cpp</itemPath>
       <itemPath>../../../include/membuffer.cpp</itemPath>
       <itemPath>../../../include/file/server_impl/sfileimpl.cpp</itemPath>
+      <itemPath>../../../include/file/server_impl/ufexports.cpp</itemPath>
       <itemPath>../../../include/file/server_impl/ustreamfile.cpp</itemPath>
     </logicalFolder>
     <logicalFolder name="TestFiles"
@@ -68,6 +69,11 @@
       <item path="../../../include/file/server_impl/sfileimpl.h"
             ex="false"
             tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../../include/file/server_impl/ufexports.cpp"
+            ex="false"
+            tool="0"
             flavor2="0">
       </item>
       <item path="../../../include/file/server_impl/ustreamfile.cpp"
@@ -135,6 +141,11 @@
       <item path="../../../include/file/server_impl/sfileimpl.h"
             ex="false"
             tool="3"
+            flavor2="0">
+      </item>
+      <item path="../../../include/file/server_impl/ufexports.cpp"
+            ex="false"
+            tool="0"
             flavor2="0">
       </item>
       <item path="../../../include/file/server_impl/ustreamfile.cpp"

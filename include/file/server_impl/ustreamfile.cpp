@@ -11,9 +11,9 @@ bool WINAPI InitServerLibrary(int param) {
     ::GetCurrentDirectoryW(sb->GetMaxSize() / sizeof (wchar_t), (wchar_t*) sb->GetBuffer());
 #else
     char* s = get_current_dir_name();
-    SPA::Utilities::ToWide((const char*)s, ::strlen((const char*)s, *sb);
+    SPA::Utilities::ToWide((const char*) s, ::strlen((const char*) s), *sb);
 #endif
-    SPA::ServerSide::CSFileImpl::SetRootDirectory((const wchar_t *)sb->GetBuffer());
+    SPA::ServerSide::CSFileImpl::SetRootDirectory((const wchar_t *) sb->GetBuffer());
     g_pFile.reset(new SPA::ServerSide::CSFileService(SPA::SFile::sidFile, SPA::tagThreadApartment::taNone));
     return true;
 }

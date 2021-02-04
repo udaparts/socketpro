@@ -37,6 +37,7 @@ OBJECTDIR=${CND_BUILDDIR}/${CND_CONF}/${CND_PLATFORM}
 OBJECTFILES= \
 	${OBJECTDIR}/_ext/932346631/aserverw.o \
 	${OBJECTDIR}/_ext/329294815/sfileimpl.o \
+	${OBJECTDIR}/_ext/329294815/ufexports.o \
 	${OBJECTDIR}/_ext/329294815/ustreamfile.o \
 	${OBJECTDIR}/_ext/932346631/membuffer.o
 
@@ -74,6 +75,11 @@ ${OBJECTDIR}/_ext/329294815/sfileimpl.o: ../../../include/file/server_impl/sfile
 	${MKDIR} -p ${OBJECTDIR}/_ext/329294815
 	${RM} "$@.d"
 	$(COMPILE.c) -O3 -s -DNDEBUG -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/329294815/sfileimpl.o ../../../include/file/server_impl/sfileimpl.cpp
+
+${OBJECTDIR}/_ext/329294815/ufexports.o: ../../../include/file/server_impl/ufexports.cpp 
+	${MKDIR} -p ${OBJECTDIR}/_ext/329294815
+	${RM} "$@.d"
+	$(COMPILE.c) -O3 -s -DNDEBUG -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/329294815/ufexports.o ../../../include/file/server_impl/ufexports.cpp
 
 ${OBJECTDIR}/_ext/329294815/ustreamfile.o: ../../../include/file/server_impl/ustreamfile.cpp 
 	${MKDIR} -p ${OBJECTDIR}/_ext/329294815
