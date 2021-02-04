@@ -32,6 +32,7 @@ bool U_MODULE_OPENED WINAPI SetSPluginGlobalOptions(const char* jsonOptions) {
 #ifdef WIN32_64
         std::wstring ws = Utilities::ToWide(s);
         DWORD dwAttrs = GetFileAttributesW(ws.c_str());
+        if (dwAttrs == INVALID_FILE_ATTRIBUTES) return false;
         if ((dwAttrs & FILE_ATTRIBUTE_DIRECTORY) != FILE_ATTRIBUTE_DIRECTORY) return false;
 #else
         struct stat sb;
