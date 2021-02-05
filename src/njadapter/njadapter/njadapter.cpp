@@ -118,7 +118,7 @@ namespace NJA {
 #endif
                     std::string s = *str;
                     Trim(s);
-                    std::transform(s.begin(), s.end(), s.begin(), ::tolower);
+                    ToLower(s);
                     g_KeyAllowed.push_back(std::move(s));
                 }
             }

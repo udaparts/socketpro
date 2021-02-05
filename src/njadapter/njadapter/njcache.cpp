@@ -370,7 +370,7 @@ namespace NJA {
                     String::Utf8Value str(isolate, p5);
 #endif
                     hint = *str;
-                    std::transform(hint.begin(), hint.end(), hint.begin(), ::tolower);
+                    ToLower(hint);
                 }
                 CComVariant vt;
                 if (!From(isolate, p4, hint, vt)) {

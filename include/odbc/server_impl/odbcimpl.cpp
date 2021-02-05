@@ -125,7 +125,7 @@ namespace SPA
                 wstring right = it->substr(pos + 1);
                 Utilities::Trim(left);
                 Utilities::Trim(right);
-                transform(left.begin(), left.end(), left.begin(), ::tolower);
+                ToLower(left);
                 if (left == L"connect-timeout" || left == L"timeout" || left == L"connection-timeout") {
 #ifdef WIN32_64
                     timeout = (unsigned int) _wtoi(right.c_str());
@@ -1040,7 +1040,7 @@ namespace SPA
             SetStringInfo(hdbc, SQL_DBMS_NAME, mapInfo);
             if (mapInfo.find(SQL_DBMS_NAME) != mapInfo.end()) {
                 m_dbms = (const UTF16*) mapInfo[SQL_DBMS_NAME].bstrVal;
-                std::transform(m_dbms.begin(), m_dbms.end(), m_dbms.begin(), ::tolower); //microsoft sql server, oracle, mysql
+                ToLower(m_dbms); //microsoft sql server, oracle, mysql
                 if (m_dbms == u"microsoft sql server") {
                     m_msDriver = tagManagementSystem::msMsSQL;
                 } else if (m_dbms == u"mysql") {
@@ -1218,7 +1218,7 @@ namespace SPA
                 Utilities::Trim(s);
             }
             CDBString s_copy = s;
-            transform(s.begin(), s.end(), s.begin(), ::tolower);
+            ToLower(s);
             m_bCall = (s.find(u"call ") == 0);
             if (m_bCall) {
                 auto pos = s_copy.find('(');
@@ -2715,14 +2715,14 @@ namespace SPA
 
         void COdbcImpl::SetOracleCallParams(const std::vector<tagParameterDirection> &vPD, int &res, CDBString & errMsg) {
             CDBString sql(u"SELECT in_out,data_type FROM SYS.ALL_ARGUMENTS WHERE data_type<>'REF CURSOR' AND owner='");
-            std::transform(m_userName.begin(), m_userName.end(), m_userName.begin(), ::toupper);
+            ToUpper(m_userName);
             sql += m_userName;
             sql += u"' AND object_name='";
-            std::transform(m_procName.begin(), m_procName.end(), m_procName.begin(), ::toupper);
+            ToUpper(m_procName);
             sql += m_procName;
             if (m_procCatalogSchema.size()) {
                 sql += u"' AND package_name='";
-                std::transform(m_procCatalogSchema.begin(), m_procCatalogSchema.end(), m_procCatalogSchema.begin(), ::toupper);
+                ToUpper(m_procCatalogSchema);
                 sql += m_procCatalogSchema;
                 sql += u"'";
             } else {

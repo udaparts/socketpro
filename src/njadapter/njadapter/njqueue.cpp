@@ -1050,7 +1050,7 @@ namespace NJA {
 #endif
             const char *s = *str;
             id.assign(s, str.length());
-            std::transform(id.begin(), id.end(), id.begin(), ::tolower);
+            ToLower(id);
         }
         CUQueue &buff = *obj->m_Buffer;
         if (SaveObject(isolate, args[0], args.Holder(), id, buff)) {

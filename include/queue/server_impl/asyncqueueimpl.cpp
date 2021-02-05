@@ -304,7 +304,7 @@ namespace SPA
 
         void CAsyncQueueImpl::Pretreat(std::string & key) {
 #ifdef WIN32_64
-            std::transform(key.begin(), key.end(), key.begin(), ::tolower);
+            ToLower(key);
             while (key.back() == '\\') {
 #else
             if (key.back() == '/') {

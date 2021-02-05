@@ -8,7 +8,7 @@ using namespace rapidjson;
 using namespace SPA;
 using namespace SPA::ServerSide;
 
-std::string g_version("1.0.0.1");
+std::string g_version("1.0.0.2");
 
 const char* const U_MODULE_OPENED WINAPI GetSPluginVersion() {
     return g_version.c_str();
@@ -58,7 +58,7 @@ unsigned int U_MODULE_OPENED WINAPI GetSPluginGlobalOptions(char* json, unsigned
 
 int U_MODULE_OPENED WINAPI DoSPluginAuthentication(SPA::UINT64 hSocket, const wchar_t* userId, const wchar_t* password, unsigned int nSvsId, const wchar_t* dbConnection) {
     if (!CMysqlImpl::IsMysqlInitialized()) {
-        return -2;
+        return SP_PLUGIN_AUTH_INTERNAL_ERROR;
     }
-    return CMysqlImpl::DoSQLAuthentication(hSocket, userId, password, nSvsId, dbConnection) ? 1 : 0;
+    return CMysqlImpl::DoSQLAuthentication(hSocket, userId, password, nSvsId, dbConnection) ? SP_PLUGIN_AUTH_OK : SP_PLUGIN_AUTH_FAILED;
 }

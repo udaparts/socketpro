@@ -663,7 +663,7 @@ namespace PA
         if (params.size() > 1) {
             auto id = params[1].stringValue();
             Trim(id);
-            std::transform(id.begin(), id.end(), id.begin(), ::tolower);
+            SPA::ToLower(id);
         }
         EnsureBuffer();
         SaveObject(data, id);

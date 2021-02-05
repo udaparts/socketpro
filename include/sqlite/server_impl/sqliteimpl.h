@@ -22,7 +22,7 @@ namespace SPA {
             ~CSqliteImpl();
             unsigned int GetParameters() const;
             size_t GetParameterStatements() const;
-            sqlite3* GetDBHandle() const;
+            std::shared_ptr<sqlite3> GetDBHandle() const;
             const std::vector<std::shared_ptr<sqlite3_stmt> >& GetPreparedStatements() const;
             bool IsGloballyConnected() const;
             static void SetDBGlobalConnectionString(const UTF16 *dbConnection);
@@ -31,6 +31,8 @@ namespace SPA {
             static void SetCachedTables(const UTF16* dbConnection);
             static std::string GetCachedTables();
             static CDBString GetDBGlobalConnectionString();
+            static void CacheHandle(UINT64 hSocket, const CDBString &dbName, std::shared_ptr<sqlite3> sqlite);
+            virtual void Open(const CDBString& strConnection, unsigned int flags, int& res, CDBString& errMsg, int& ms);
 
         protected:
             virtual void OnFastRequestArrive(unsigned short reqId, unsigned int len);
@@ -40,7 +42,6 @@ namespace SPA {
             virtual void OnBaseRequestArrive(unsigned short requestId);
 
         protected:
-            virtual void Open(const CDBString &strConnection, unsigned int flags, int &res, CDBString &errMsg, int &ms);
             virtual void CloseDb(int &res, CDBString &errMsg);
             virtual void BeginTrans(int isolation, const CDBString &dbConn, unsigned int flags, int &res, CDBString &errMsg, int &ms);
             virtual void EndTrans(int plan, int &res, CDBString &errMsg);
@@ -117,7 +118,7 @@ namespace SPA {
             bool m_global;
             size_t m_parameters;
             CUQueue m_Blob;
-
+            CDBString m_dbNameOpened;
 
             static const UTF16* NO_DB_OPENED_YET;
             static const UTF16* BAD_END_TRANSTACTION_PLAN;
@@ -136,9 +137,15 @@ namespace SPA {
             static std::string DIU_TRIGGER_PREFIX;
             static std::string DIU_TRIGGER_FUNC;
 
+            struct MyStruct {
+                std::shared_ptr<sqlite3> Handle;
+                CDBString DefaultDB;
+            };
+
             static CUCriticalSection m_csPeer;
             static CDBString m_strGlobalConnection; //protected by m_csPeer
             static std::unordered_map<std::string, std::vector<std::string>> m_mapCache; //protected by m_csPeer
+            static std::unordered_map<USocket_Server_Handle, MyStruct> m_mapSqlite; //protected by m_csPeer
         };
 
         typedef CSocketProService<CSqliteImpl> CSqliteService;

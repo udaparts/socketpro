@@ -74,7 +74,7 @@ namespace SPA
             if (cc.HasMember("Host") && cc["Host"].IsString()) {
                 ctx.Host = cc["Host"].GetString();
                 Trim(ctx.Host);
-                std::transform(ctx.Host.begin(), ctx.Host.end(), ctx.Host.begin(), ::tolower);
+                ToLower(ctx.Host);
             }
             if (cc.HasMember("Port") && cc["Port"].IsUint()) {
                 ctx.Port = cc["Port"].GetUint();
@@ -106,7 +106,7 @@ namespace SPA
                 pc.Queue = pool["Queue"].GetString();
                 Trim(pc.Queue);
 #ifdef WIN32_64
-                std::transform(pc.Queue.begin(), pc.Queue.end(), pc.Queue.begin(), ::tolower);
+                ToLower(pc.Queue);
 #endif
             }
             if (pool.HasMember("DefaultDb") && pool["DefaultDb"].IsString()) {
@@ -476,7 +476,7 @@ namespace SPA
                     std::string s = it->GetString();
                     Trim(s);
                     if (s.size()) {
-                        std::transform(s.begin(), s.end(), s.begin(), ::tolower);
+                        ToLower(s);
                         CPoolConfig::KeysAllowed.push_back(std::move(s));
                     }
                 }

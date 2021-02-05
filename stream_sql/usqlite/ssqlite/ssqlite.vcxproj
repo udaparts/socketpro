@@ -164,12 +164,10 @@
   <ItemGroup>
     <ClInclude Include="..\..\..\include\aserverw.h" />
     <ClInclude Include="..\..\..\include\membuffer.h" />
-    <ClInclude Include="..\..\..\include\spa_module.h" />
     <ClInclude Include="..\..\..\include\sqlite\server_impl\sqliteimpl.h" />
     <ClInclude Include="..\..\..\include\sqlite\usqlite.h" />
     <ClInclude Include="..\..\..\include\sqlite\usqlite_server.h" />
     <ClInclude Include="..\..\..\include\udatabase.h" />
-    <ClInclude Include="resource.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />
   </ItemGroup>

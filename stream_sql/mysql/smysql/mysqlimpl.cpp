@@ -1212,7 +1212,7 @@ namespace SPA
                 impl.m_qSend >> vtKey >> vtValue;
                 std::string s0 = ToString(vtKey);
                 std::string s1 = ToString(vtValue);
-                std::transform(s0.begin(), s0.end(), s0.begin(), ::tolower);
+                ToLower(s0);
                 Utilities::Trim(s0);
                 Utilities::Trim(s1);
                 map[s0] = s1;

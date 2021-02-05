@@ -402,7 +402,7 @@ namespace PA
             psc.Queue = vPool[KEY_QUEUE_NAME].GetString();
             Trim(psc.Queue);
 #ifdef WIN32_64
-            std::transform(psc.Queue.begin(), psc.Queue.end(), psc.Queue.begin(), ::tolower);
+            SPA::ToLower(psc.Queue);
 #endif
         }
         if (vPool.HasMember(KEY_DEFAULT_DB) && vPool[KEY_DEFAULT_DB].IsString()) {
@@ -511,7 +511,7 @@ namespace PA
                         std::string s = v.GetString();
                         Trim(s);
                         if (s.size()) {
-                            std::transform(s.begin(), s.end(), s.begin(), ::tolower);
+                            SPA::ToLower(s);
                             Manager.m_vKeyAllowed.push_back(s);
                         }
                     }

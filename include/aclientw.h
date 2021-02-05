@@ -1480,7 +1480,7 @@ namespace SPA {
                 if (0 == qn.size())
                     return h;
 #ifdef WIN32_64
-                std::transform(qn.begin(), qn.end(), qn.begin(), ::tolower);
+                ToLower(qn);
 #endif
                 CAutoLock al(m_cs);
                 for (auto it = m_mapSocketHandler.begin(), end = m_mapSocketHandler.end(); it != end; ++it) {
@@ -1702,7 +1702,7 @@ namespace SPA {
                 std::string s(qName ? qName : "");
                 Utilities::Trim(s);
 #ifdef WIN32_64
-                std::transform(s.begin(), s.end(), s.begin(), ::tolower);
+                ToLower(s);
 #endif
                 CAutoLock al(m_cs);
                 if (m_qName != s) {
@@ -2243,12 +2243,12 @@ namespace SPA {
             bool DoesQueueExist(const std::string &qName) {
                 std::string str1Cpy(qName);
 #ifdef WIN32_64
-                std::transform(str1Cpy.begin(), str1Cpy.end(), str1Cpy.begin(), ::tolower);
+                ToLower(str1Cpy);
 #endif
                 for (auto it = m_mapQNameConn.cbegin(), end = m_mapQNameConn.cend(); it != end; ++it) {
                     std::string str2Cpy(it->first);
 #ifdef WIN32_64
-                    std::transform(str2Cpy.begin(), str2Cpy.end(), str2Cpy.begin(), ::tolower);
+                    ToLower(str2Cpy);
 #endif
                     if (str2Cpy == str1Cpy)
                         return true;

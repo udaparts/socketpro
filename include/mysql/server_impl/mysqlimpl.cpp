@@ -77,7 +77,7 @@ namespace SPA
                 string right = it->substr(pos + 1);
                 Utilities::Trim(left);
                 Utilities::Trim(right);
-                transform(left.begin(), left.end(), left.begin(), ::tolower);
+                ToLower(left);
                 if (left == "connect-timeout" || left == "timeout" || left == "connection-timeout")
                     timeout = (unsigned int) std::atoi(right.c_str());
                 else if (left == "database" || left == "db")
@@ -587,8 +587,8 @@ namespace SPA
                     errMsg = m_dbNameOpened;
                 } else {
 #ifdef WIN32_64
-                    std::transform(db.begin(), db.end(), db.begin(), ::tolower);
-                    std::transform(m_dbNameOpened.begin(), m_dbNameOpened.end(), m_dbNameOpened.begin(), ::tolower);
+                    ToLower(db);
+                    ToLower(m_dbNameOpened);
 #endif
                     if (!db.size()) {
 #ifndef NATIVE_UTF16_SUPPORTED
@@ -1855,7 +1855,7 @@ namespace SPA
 
         void CMysqlImpl::PreprocessPreparedStatement() {
             std::string s = m_sqlPrepare;
-            transform(s.begin(), s.end(), s.begin(), ::tolower);
+            ToLower(s);
             m_bCall = (s.find("call ") == 0);
             if (m_bCall) {
                 auto pos = m_sqlPrepare.find('(');

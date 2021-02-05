@@ -3,6 +3,12 @@
 
 #include "definebase.h"
 
+#define SP_PLUGIN_AUTH_OK                   ((int)1)
+#define SP_PLUGIN_AUTH_FAILED               ((int)0)
+#define SP_PLUGIN_AUTH_NOT_IMPLEMENTED      ((int)-1)
+#define SP_PLUGIN_AUTH_INTERNAL_ERROR       ((int)-2)
+#define SP_PLUGIN_AUTH_PROCESSED            ((int)-3) //authentication not implemented, but processed in some way
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -36,7 +42,7 @@ extern "C" {
      * @param password a password string from client
      * @param nSvsId a service identification number
      * @param options an optional or required connection string without user id or password
-     * @return 1: authentication permitted, 0: authentication denied, -1: authentication not implemented, -2: authentication failed due to an internal error
+     * @return 1: authentication permitted, 0: authentication denied, -1: authentication not implemented, -2: authentication failed due to an internal error, -3: authentication not implemented, but processed in some way
      */
     int U_MODULE_OPENED WINAPI DoSPluginAuthentication(SPA::UINT64 hSocket, const wchar_t *userId, const wchar_t *password, unsigned int nSvsId, const wchar_t *options);
 

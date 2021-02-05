@@ -32,7 +32,7 @@ void CConfig::Update(std::unordered_map<std::string, std::string> &mapConfig) {
                 CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Empty value found in file %s for key (%s)", STREAM_DB_CONFIG_FILE, key.c_str());
                 continue;
             }
-            std::transform(key.begin(), key.end(), key.begin(), ::tolower);
+            SPA::ToLower(key);
             auto it = mapConfig.find(key);
             if (it == mapConfig.end()) {
                 CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Key (%s) not supported in file %s", key.c_str(), STREAM_DB_CONFIG_FILE);

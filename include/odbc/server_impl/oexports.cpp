@@ -8,7 +8,7 @@ using namespace rapidjson;
 using namespace SPA;
 using namespace SPA::ServerSide;
 
-std::string g_version("1.0.0.1");
+std::string g_version("1.0.0.2");
 
 const char* const U_MODULE_OPENED WINAPI GetSPluginVersion() {
     return g_version.c_str();
@@ -61,11 +61,11 @@ unsigned int U_MODULE_OPENED WINAPI GetSPluginGlobalOptions(char* json, unsigned
 int U_MODULE_OPENED WINAPI DoSPluginAuthentication(SPA::UINT64 hSocket, const wchar_t* userId, const wchar_t* password, unsigned int nSvsId, const wchar_t* dsn) {
     SQLHDBC hdbc = nullptr;
     if (!COdbcImpl::g_hEnv) {
-        return -2;
+        return SP_PLUGIN_AUTH_INTERNAL_ERROR;
     }
     SQLRETURN retcode = SQLAllocHandle(SQL_HANDLE_DBC, COdbcImpl::g_hEnv, &hdbc);
     if (!SQL_SUCCEEDED(retcode)) {
-        return -2;
+        return SP_PLUGIN_AUTH_INTERNAL_ERROR;
     }
     std::wstring conn(dsn ? dsn : L"");
     if (userId && ::wcslen(userId)) {
@@ -84,7 +84,7 @@ int U_MODULE_OPENED WINAPI DoSPluginAuthentication(SPA::UINT64 hSocket, const wc
     sb->CleanTrack(); //clean password
     if (!SQL_SUCCEEDED(retcode)) {
         SQLFreeHandle(SQL_HANDLE_DBC, hdbc);
-        return 0;
+        return SP_PLUGIN_AUTH_FAILED;
     }
     if (nSvsId == Odbc::sidOdbc) {
         COdbcImpl::m_csPeer.lock();
@@ -95,5 +95,5 @@ int U_MODULE_OPENED WINAPI DoSPluginAuthentication(SPA::UINT64 hSocket, const wc
         retcode = SQLDisconnect(hdbc);
         retcode = SQLFreeHandle(SQL_HANDLE_DBC, hdbc);
     }
-    return 1;
+    return SP_PLUGIN_AUTH_OK;
 }

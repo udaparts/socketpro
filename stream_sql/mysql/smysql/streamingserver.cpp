@@ -177,7 +177,7 @@ void* CSetGlobals::ThreadProc(void *lpParameter) {
     }
     if (CSetGlobals::Globals.ssl_key.size() && (CSetGlobals::Globals.ssl_cert.size() || CSetGlobals::Globals.ssl_pwd.size())) {
         std::string key = CSetGlobals::Globals.ssl_key;
-        std::transform(key.begin(), key.end(), key.begin(), ::tolower);
+        SPA::ToLower(key);
         auto pos = key.find_last_of(".pfx");
         if (pos == key.size() - 4) {
             g_pStreamingServer->UseSSL(CSetGlobals::Globals.ssl_key.c_str(), "", CSetGlobals::Globals.ssl_pwd.c_str());
