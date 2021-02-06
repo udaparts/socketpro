@@ -2018,12 +2018,22 @@ namespace SPA
         std::shared_ptr<MYSQL_BIND> CMysqlImpl::PrepareBindResultBuffer(MYSQL_RES *result, const CDBColumnInfoArray &vColInfo, int &res, CDBString &errMsg, std::shared_ptr<MYSQL_BIND_RESULT_FIELD> &field) {
             std::shared_ptr<MYSQL_BIND> p(new MYSQL_BIND[vColInfo.size()], [](MYSQL_BIND * b) {
                 if (b) {
-                    delete []b;
+                    try{
+                        delete[]b;
+                    }
+
+                    catch(...) {
+                    }
                 }
             });
             field.reset(new MYSQL_BIND_RESULT_FIELD[vColInfo.size()], [](MYSQL_BIND_RESULT_FIELD * f) {
                 if (f) {
-                    delete []f;
+                    try{
+                        delete[]f;
+                    }
+
+                    catch(...) {
+                    }
                 }
             });
             MYSQL_BIND *ps_params = p.get();
@@ -2042,8 +2052,8 @@ namespace SPA
                                 f.ResetMaxBuffer(2 * DEFAULT_BIG_FIELD_CHUNK_SIZE);
                             }
                         } else {
-                            if (it->ColumnSize > f.buffer_length) {
-                                f.ResetMaxBuffer((unsigned int) it->ColumnSize);
+                            if (it->ColumnSize + 1 > f.buffer_length) {
+                                f.ResetMaxBuffer(it->ColumnSize + 1);
                             }
                         }
                         if (vt == (VT_ARRAY | VT_I1)) {

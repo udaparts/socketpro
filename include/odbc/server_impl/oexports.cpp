@@ -68,7 +68,7 @@ int U_MODULE_OPENED WINAPI DoSPluginAuthentication(SPA::UINT64 hSocket, const wc
         return SP_PLUGIN_AUTH_INTERNAL_ERROR;
     }
     std::wstring conn(dsn ? dsn : L"");
-    if (conn.size()) {
+    if (!conn.size()) {
         COdbcImpl::m_csPeer.lock();
         conn = Utilities::ToWide(COdbcImpl::m_strGlobalConnection);
         COdbcImpl::m_csPeer.unlock();
@@ -78,10 +78,11 @@ int U_MODULE_OPENED WINAPI DoSPluginAuthentication(SPA::UINT64 hSocket, const wc
         conn += L"UID=";
         conn += userId;
     }
-    if (conn.size()) conn.push_back(L';');
-    conn += L"PWD=";
-    conn += (password ? password : L"");
-
+    if (password && ::wcslen(password)) {
+        if (conn.size()) conn.push_back(L';');
+        conn += L"PWD=";
+        conn += (password ? password : L"");
+    }
     CScopeUQueue sb;
     SQLSMALLINT cbConnStrOut = 0;
     std::string strConn = Utilities::ToUTF8(conn);

@@ -22,9 +22,9 @@ namespace SPA {
             //no assignment operator
             CMysqlImpl& operator=(const CMysqlImpl &impl);
 
-            struct MYSQL_BIND_RESULT_FIELD {
+            class MYSQL_BIND_RESULT_FIELD {
             private:
-                static const unsigned int DEFAULT_BUFFER_SIZE = 1024;
+                static const unsigned int DEFAULT_BUFFER_SIZE = 128;
 
             private:
                 static_assert(sizeof (MYSQL_TIME) <= DEFAULT_BUFFER_SIZE, "Bad default buffer size");
