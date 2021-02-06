@@ -583,33 +583,14 @@ namespace SPA
                 res = 0;
                 CDBString db(strConnection);
                 Utilities::Trim(db);
-                if (m_dbNameOpened.size() && !db.size()) {
+                if (!db.size() || SPA::IsEqual(db.c_str(), m_dbNameOpened.c_str(), false)) {
                     errMsg = m_dbNameOpened;
+                    return;
                 } else {
-#ifdef WIN32_64
-                    ToLower(db);
-                    ToLower(m_dbNameOpened);
-#endif
-                    if (!db.size()) {
-#ifndef NATIVE_UTF16_SUPPORTED
-                        db = L"mysql"; //default to mysql database
-#else
-                        db = u"mysql"; //default to mysql database
-#endif
-                    }
-                    if (db == m_dbNameOpened) {
-                        errMsg = db;
-                        return;
-                    }
                     INT64 affected;
                     CDBVariant vtId;
                     UINT64 fail_ok;
-#ifndef NATIVE_UTF16_SUPPORTED
-                    CDBString sql(L"USE ");
-#else
-                    CDBString sql(u"USE ");
-#endif
-                    sql += db;
+                    CDBString sql(u"USE " + db);
                     Execute(sql, false, false, false, 0, affected, res, errMsg, vtId, fail_ok);
                     if (res) {
                         int r;
@@ -637,13 +618,6 @@ namespace SPA
                     conn.Parse(Utilities::ToUTF8(db).c_str());
                     int failed = m_remMysql.mysql_options(mysql, MYSQL_OPT_CONNECT_TIMEOUT, &conn.timeout);
                     assert(!failed);
-#if 0 //def WIN32_64
-                    unsigned int sm = MYSQL_PROTOCOL_MEMORY;
-                    failed = m_remMysql.mysql_options(mysql, MYSQL_OPT_PROTOCOL, &sm);
-                    assert(!failed);
-                    failed = m_remMysql.mysql_options(mysql, MYSQL_SHARED_MEMORY_BASE_NAME, "MYSQL");
-                    assert(!failed);
-#endif
 #ifndef WIN32_64
                     if (conn.socket.size()) {
                         unsigned int socket = MYSQL_PROTOCOL_SOCKET;
@@ -691,6 +665,8 @@ namespace SPA
                     } else {
                         errMsg = MYSQL_GLOBAL_CONNECTION_STRING;
                     }
+                    if (!m_dbNameOpened.size()) m_dbNameOpened = u"mysql";
+                    if (!errMsg.size()) errMsg = m_dbNameOpened;
                 } while (false);
                 if (!res) {
                     m_pMysql.reset(mysql, [](MYSQL * mysql) {

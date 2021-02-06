@@ -427,6 +427,7 @@ namespace SPA
                     } else {
                         errMsg = ODBC_GLOBAL_CONNECTION_STRING;
                     }
+                    if (!errMsg.size()) errMsg = m_dbName;
                 } while (false);
             }
             ms = (int) m_msDriver;

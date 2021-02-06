@@ -68,6 +68,11 @@ int U_MODULE_OPENED WINAPI DoSPluginAuthentication(SPA::UINT64 hSocket, const wc
         return SP_PLUGIN_AUTH_INTERNAL_ERROR;
     }
     std::wstring conn(dsn ? dsn : L"");
+    if (conn.size()) {
+        COdbcImpl::m_csPeer.lock();
+        conn = Utilities::ToWide(COdbcImpl::m_strGlobalConnection);
+        COdbcImpl::m_csPeer.unlock();
+    }
     if (userId && ::wcslen(userId)) {
         if (conn.size()) conn.push_back(L';');
         conn += L"UID=";
