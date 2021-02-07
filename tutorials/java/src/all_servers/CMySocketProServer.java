@@ -10,9 +10,37 @@ public class CMySocketProServer extends CSocketProServer {
 
     @Override
     protected boolean OnIsPermitted(long hSocket, String userId, String password, int nSvsID) {
-        System.out.println("Ask for a service " + nSvsID
-                + " from user " + userId + " with password = " + password);
-        return true;
+        int res = 0;
+        switch (nSvsID) {
+            case hello_world.hwConst.sidHelloWorld:
+            case SPA.BaseServiceID.sidHTTP:
+            case piConst.sidPi:
+            case piConst.sidPiWorker:
+            case SPA.BaseServiceID.sidFile:
+            case SPA.BaseServiceID.sidQueue:
+                res = 1; //give permision to known services without authentication
+                break;
+            case SPA.BaseServiceID.sidODBC:
+                res = Plugin.DoSPluginAuthentication("sodbc", hSocket, userId, password, nSvsID, "DRIVER={SQL Server Native Client 11.0};Server=(local)");
+                break;
+            case SPA.ClientSide.CMysql.sidMysql:
+                res = Plugin.DoSPluginAuthentication("smysql", hSocket, userId, password, nSvsID, "database=sakila;server=localhost");
+                break;
+            case SPA.ClientSide.CSqlite.sidSqlite:
+                res = Plugin.DoSPluginAuthentication("ssqlite", hSocket, userId, password, nSvsID, "usqlite.db");
+                if (res == -3) { //-3 authentication not implemented, but opened db handle cached and processed in some way
+                    res = 1; //give permision without authentication
+                }
+                break;
+            default:
+                break;
+        }
+        if (res > 0) {
+            System.out.println(userId + "'s connecting permitted");
+        } else {
+            System.out.println(userId + "'s connecting denied because of failed database authentication, unknown service or other");
+        }
+        return (res > 0);
     }
 
     @ServiceAttr(ServiceID = hello_world.hwConst.sidHelloWorld)
@@ -50,7 +78,7 @@ public class CMySocketProServer extends CSocketProServer {
             if (handle != 0) {
                 //monitoring sakila.db table events (DELETE, INSERT and UPDATE)
                 //for tables actor, language, category, country and film_actor
-                String jsonOptions = "{\"global_connection_string\":\"usqlite.db\",\"monitored_tables\":\"sakila.db.language;sakila.db.category;sakila.db.country;sakila.db.film_actor\"}";
+                String jsonOptions = "{\"monitored_tables\":\"sakila.db.language;sakila.db.category;sakila.db.country;sakila.db.film_actor\"}";
                 boolean ok = Plugin.SetSPluginGlobalOptions("ssqlite", jsonOptions);
             }
             //load async persistent message queue library at the directory ../bin/free_services/queue
