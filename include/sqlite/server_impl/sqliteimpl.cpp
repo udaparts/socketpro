@@ -1570,11 +1570,11 @@ namespace SPA
             m_vPreparedStatements.clear();
             ResetMemories();
 #ifdef WIN32_64
-            bool case_insensitive = true;
+            bool case_sensitive = false;
 #else
-            bool case_insensitive = false;
+            bool case_sensitive = true;
 #endif
-            if ((!strConn.size() || SPA::IsEqual(strConn.c_str(), m_dbNameOpened.c_str(), case_insensitive)) && m_pSqlite) {
+            if ((!strConn.size() || SPA::IsEqual(strConn.c_str(), m_dbNameOpened.c_str(), case_sensitive)) && m_pSqlite) {
                 return;
             }
             m_pSqlite.reset();

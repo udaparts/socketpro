@@ -8,11 +8,59 @@ public class CMySocketProServer : CSocketProServer
     [DllImport("ssqlite", EntryPoint="SetSPluginGlobalOptions")]
     static extern void SQLite_SetSPluginGlobalOptions([In] [MarshalAs(UnmanagedType.LPStr)] string jsonUtf8);
 
+    [DllImport("ssqlite", EntryPoint = "DoSPluginAuthentication")]
+    static extern int SQLite_Authentication(ulong hSocket, [In][MarshalAs(UnmanagedType.LPWStr)] string userId, [In][MarshalAs(UnmanagedType.LPWStr)] string password, uint svsId, [In][MarshalAs(UnmanagedType.LPWStr)] string defaultDb);
+
     [DllImport("smysql", EntryPoint = "DoSPluginAuthentication")]
     static extern int MySQL_Authentication(ulong hSocket, [In][MarshalAs(UnmanagedType.LPWStr)] string userId, [In][MarshalAs(UnmanagedType.LPWStr)] string password, uint svsId, [In][MarshalAs(UnmanagedType.LPWStr)] string toMysql);
 
     [DllImport("sodbc", EntryPoint = "DoSPluginAuthentication")]
     static extern int ODBC_Authentication(ulong hSocket, [In][MarshalAs(UnmanagedType.LPWStr)] string userId, [In][MarshalAs(UnmanagedType.LPWStr)] string password, uint svsId, [In][MarshalAs(UnmanagedType.LPWStr)] string dsn);
+
+    protected override bool OnIsPermitted(ulong hSocket, string userId, string password, uint nSvsID)
+    {
+        int res = 0;
+        switch(nSvsID)
+        {
+            case hwConst.sidHelloWorld:
+            case BaseServiceID.sidHTTP:
+            case BaseServiceID.sidQueue:
+            case BaseServiceID.sidFile:
+            case piConst.sidPi:
+            case piConst.sidPiWorker:
+            case radoConst.sidRAdo:
+            case repConst.sidRAdoRep:
+                //give permision to known services without authentication
+                res = 1;
+                break;
+            case BaseServiceID.sidODBC:
+                res = ODBC_Authentication(hSocket, userId, password, nSvsID, "DRIVER={SQL Server Native Client 11.0};Server=(local)");
+                break;
+            case SocketProAdapter.ClientSide.CMysql.sidMysql:
+                res = MySQL_Authentication(hSocket, userId, password, nSvsID, "database=sakila;server=localhost");
+                break;
+            case SocketProAdapter.ClientSide.CSqlite.sidSqlite:
+                res = SQLite_Authentication(hSocket, userId, password, nSvsID, "usqlite.db");
+                //-3 authentication not implemented, but opened db handle cached and processed in some way
+                if (res == -3)
+                {
+                    //give permision without authentication
+                    res = 1;
+                }
+                break;
+            default:
+                break;
+        }
+        if (res > 0)
+        {
+            Console.WriteLine(userId + "'s connecting permitted");
+        }
+        else
+        {
+            Console.WriteLine(userId + "'s connecting denied because of failed database authentication, unknown service or other");
+        }
+        return (res > 0);
+    }
 
     [ServiceAttr(hwConst.sidHelloWorld)]
     private CSocketProService<HelloWorldPeer> m_HelloWorld = new CSocketProService<HelloWorldPeer>();
@@ -71,7 +119,7 @@ public class CMySocketProServer : CSocketProServer
         if (p.ToInt64() != 0) 
         {
             //monitoring sakila.db table events (DELETE, INSERT and UPDATE) for tables actor, language, category, country and film_actor
-            SQLite_SetSPluginGlobalOptions("{\"global_connection_string\":\"usqlite.db\",\"monitored_tables\":\"sakila.db.actor;sakila.db.language;sakila.db.category;sakila.db.country;sakila.db.film_actor\"}");
+            SQLite_SetSPluginGlobalOptions("{\"monitored_tables\":\"sakila.db.actor;sakila.db.language;sakila.db.category;sakila.db.country;sakila.db.film_actor\"}");
         }
         //load socketPro asynchronous persistent message queue library at the directory ../bin/free_services/queue
         p = CSocketProServer.DllManager.AddALibrary("uasyncqueue", 24 * 1024); //24 * 1024 batch dequeuing size in bytes
@@ -88,13 +136,6 @@ public class CMySocketProServer : CSocketProServer
         bool ok = CSocketProServer.Router.SetRouting(piConst.sidPi, piConst.sidPiWorker);
 
         return true; //true -- ok; false -- no listening server
-    }
-
-    protected override bool OnIsPermitted(ulong hSocket, string userId, string password, uint nSvsID)
-    {
-        //you can use database for authentication by calling MySQL_Authentication or ODBC_Authentication
-        Console.WriteLine("Ask for a service " + nSvsID + " from user " + userId + " with password = " + password);
-        return true;
     }
 
     protected override void OnClose(ulong hSocket, int nError)

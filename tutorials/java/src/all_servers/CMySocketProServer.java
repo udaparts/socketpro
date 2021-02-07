@@ -28,7 +28,8 @@ public class CMySocketProServer extends CSocketProServer {
                 break;
             case SPA.ClientSide.CSqlite.sidSqlite:
                 res = Plugin.DoSPluginAuthentication("ssqlite", hSocket, userId, password, nSvsID, "usqlite.db");
-                if (res == -3) { //-3 authentication not implemented, but opened db handle cached and processed in some way
+                //-3 authentication not implemented, but opened db handle cached and processed in some way
+                if (res == -3) {
                     res = 1; //give permision without authentication
                 }
                 break;
