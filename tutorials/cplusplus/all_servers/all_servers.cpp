@@ -24,7 +24,11 @@ protected:
         switch (serviceId) {
             case Odbc::sidOdbc:
                 if (ODBC_DoAuth) {
+#ifdef WIN32_64
                     res = ODBC_DoAuth(h, userId, password, serviceId, L"DRIVER={SQL Server Native Client 11.0};Server=(local)");
+#else
+                    res = ODBC_DoAuth(h, userId, password, serviceId, L"DRIVER={ODBC Driver 17 for SQL Server};Server=windesk");
+#endif
                 }
                 break;
             case Mysql::sidMysql:

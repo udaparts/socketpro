@@ -21,7 +21,7 @@ public class CMySocketProServer extends CSocketProServer {
                 res = 1; //give permision to known services without authentication
                 break;
             case SPA.BaseServiceID.sidODBC:
-                res = Plugin.DoSPluginAuthentication("sodbc", hSocket, userId, password, nSvsID, "DRIVER={SQL Server Native Client 11.0};Server=(local)");
+                res = Plugin.DoSPluginAuthentication("sodbc", hSocket, userId, password, nSvsID, "DRIVER={ODBC Driver 17 for SQL Server};Server=(local)");
                 break;
             case SPA.ClientSide.CMysql.sidMysql:
                 res = Plugin.DoSPluginAuthentication("smysql", hSocket, userId, password, nSvsID, "database=sakila;server=localhost");
