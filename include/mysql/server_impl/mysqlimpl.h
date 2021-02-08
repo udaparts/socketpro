@@ -153,7 +153,6 @@ namespace SPA {
             void SetVParam(CDBVariantArray& vAll, size_t parameters, size_t pos, size_t ps);
 
             //mysql specific functions
-            static UINT64 ConvertBitsToInt(const unsigned char *s, unsigned int bytes);
             static void ConvertToUTF8OrDouble(CDBVariant &vt);
             static UINT64 ToUDateTime(const MYSQL_TIME &td);
             static std::vector<CDBString> Split(const CDBString &sql, const CDBString &delimiter);

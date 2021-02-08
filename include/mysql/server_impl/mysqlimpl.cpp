@@ -1516,17 +1516,6 @@ namespace SPA
             }
         }
 
-        UINT64 CMysqlImpl::ConvertBitsToInt(const unsigned char *s, unsigned int bytes) {
-            UINT64 n = 0;
-            for (unsigned int i = 0; i < bytes; ++i) {
-                if (i) {
-                    n <<= 8;
-                }
-                n += s[i];
-            }
-            return n;
-        }
-
         bool CMysqlImpl::PushRecords(MYSQL_RES *result, const CDBColumnInfoArray &vColInfo, int &res, CDBString & errMsg) {
             VARTYPE vt;
             CScopeUQueue sb;
@@ -1536,6 +1525,7 @@ namespace SPA
                 bool blob = false;
                 unsigned long *lengths = m_remMysql.mysql_fetch_lengths(result);
                 for (size_t i = 0; i < fields; ++i) {
+                    const char* end = nullptr;
                     const CDBColumnInfo &colInfo = vColInfo[i];
                     vt = colInfo.DataType;
                     unsigned int len = (unsigned int) (lengths[i]);
@@ -1588,94 +1578,60 @@ namespace SPA
                                 break;
                             case VT_I1:
                             {
-                                const char *end;
                                 char c = (char) SPA::atoi(data, end);
                                 sb->Push((const unsigned char*) &c, sizeof (c));
                             }
                                 break;
                             case VT_UI1:
                             {
-                                unsigned char c;
-                                if (colInfo.ColumnSize) {
-                                    //bit
-                                    c = (unsigned char) (data[0]);
-                                } else {
-                                    const char *end;
-                                    c = (unsigned char) SPA::atoui(data, end);
-                                }
+                                unsigned char c = (unsigned char) SPA::atoui(data, end);
                                 sb->Push(&c, sizeof (c));
                             }
                                 break;
                             case VT_UI2:
                             {
-                                unsigned short c;
-                                if (colInfo.ColumnSize)
-                                    //bit
-                                    c = (unsigned short) ConvertBitsToInt((unsigned char*) data, len);
-                                else {
-                                    const char *end;
-                                    c = (unsigned short) SPA::atoui(data, end);
-                                }
+                                unsigned short c = (unsigned short) SPA::atoui(data, end);
                                 sb->Push((const unsigned char*) &c, sizeof (c));
                             }
                                 break;
                             case VT_I2:
                             {
-                                const char *end;
                                 short c = (short) SPA::atoi(data, end);
                                 sb->Push((const unsigned char*) &c, sizeof (c));
                             }
                                 break;
                             case VT_UI4:
                             {
-                                unsigned int c;
-                                if (colInfo.ColumnSize)
-                                    //bit
-                                    c = (unsigned int) ConvertBitsToInt((unsigned char*) data, len);
-                                else {
-                                    const char *end;
-                                    c = SPA::atoui(data, end);
-                                }
+                                unsigned int c = SPA::atoui(data, end);
                                 sb->Push((const unsigned char*) &c, sizeof (c));
                             }
                                 break;
                             case VT_I4:
                             {
-                                const char *end;
                                 int c = SPA::atoi(data, end);
                                 sb->Push((const unsigned char*) &c, sizeof (c));
                             }
                                 break;
                             case VT_UI8:
                             {
-                                UINT64 c;
-                                if (colInfo.ColumnSize)
-                                    //bit
-                                    c = ConvertBitsToInt((unsigned char*) data, len);
-                                else {
-                                    const char *end;
-                                    c = SPA::atoull(data, end);
-                                }
+                                UINT64 c = SPA::atoull(data, end);
                                 sb->Push((const unsigned char*) &c, sizeof (UINT64));
                             }
                                 break;
                             case VT_I8:
                             {
-                                const char *end;
                                 INT64 c = SPA::atoll(data, end);
                                 sb->Push((const unsigned char*) &c, sizeof (INT64));
                             }
                                 break;
                             case VT_R4:
                             {
-                                const char *end;
                                 float c = (float) SPA::atof(data, end);
                                 sb->Push((const unsigned char*) &c, sizeof (c));
                             }
                                 break;
                             case VT_R8:
                             {
-                                const char *end;
                                 double c = SPA::atof(data, end);
                                 sb->Push((const unsigned char*) &c, sizeof (c));
                             }
@@ -2063,30 +2019,30 @@ namespace SPA
                         }
                         break;
                     case VT_UI1:
-                        b.buffer_type = MYSQL_TYPE_BIT;
+                        b.buffer_type = MYSQL_TYPE_TINY;
                         break;
                     case VT_I1:
                         b.buffer_type = MYSQL_TYPE_TINY;
                         break;
                     case VT_UI2:
-                        b.buffer_type = MYSQL_TYPE_BIT;
+                        b.buffer_type = MYSQL_TYPE_SHORT;
                         break;
                     case VT_I2:
                         b.buffer_type = MYSQL_TYPE_SHORT;
                         break;
                     case VT_BOOL:
-                        b.buffer_type = MYSQL_TYPE_BIT;
+                        b.buffer_type = MYSQL_TYPE_TINY;
                         break;
                     case VT_UINT:
                     case VT_UI4:
-                        b.buffer_type = MYSQL_TYPE_BIT;
+                        b.buffer_type = MYSQL_TYPE_LONG;
                         break;
                     case VT_INT:
                     case VT_I4:
                         b.buffer_type = MYSQL_TYPE_LONG;
                         break;
                     case VT_UI8:
-                        b.buffer_type = MYSQL_TYPE_BIT;
+                        b.buffer_type = MYSQL_TYPE_LONGLONG;
                         break;
                     case VT_I8:
                         b.buffer_type = MYSQL_TYPE_LONGLONG;
@@ -2224,15 +2180,9 @@ namespace SPA
                             }
                                 break;
                             case VT_I2:
-                                assert(*b.length == sizeof (short));
-                                sb->Push((const unsigned char*) b.buffer, sizeof (short));
-                                break;
                             case VT_UI2:
-                            {
-                                unsigned int len = *b.length;
-                                unsigned short c = (unsigned short) ConvertBitsToInt((unsigned char*) b.buffer, len);
-                                sb->Push((const unsigned char*) &c, sizeof (c));
-                            }
+                                assert(*b.length == sizeof (short));
+                                sb->Push((const unsigned char*) b.buffer, 2);
                                 break;
                             case VT_BOOL:
                                 assert(*b.length == sizeof (char));
@@ -2243,29 +2193,17 @@ namespace SPA
                                 break;
                             case VT_UI4:
                             case VT_UINT:
-                            {
-                                unsigned int len = *b.length;
-                                unsigned int c = (unsigned int) ConvertBitsToInt((unsigned char*) b.buffer, len);
-                                sb->Push((const unsigned char*) &c, sizeof (c));
-                            }
-                                break;
                             case VT_I4:
                             case VT_INT:
                             case VT_R4:
                                 assert(*b.length == sizeof (int));
-                                sb->Push((const unsigned char*) b.buffer, sizeof (int));
+                                sb->Push((const unsigned char*) b.buffer, 4);
                                 break;
                             case VT_UI8:
-                            {
-                                unsigned int len = *b.length;
-                                UINT64 c = ConvertBitsToInt((unsigned char*) b.buffer, len);
-                                sb->Push((const unsigned char*) &c, sizeof (c));
-                            }
-                                break;
                             case VT_R8:
                             case VT_I8:
-                                assert(*b.length == sizeof (INT64));
-                                sb->Push((const unsigned char*) b.buffer, sizeof (INT64));
+                                assert(*b.length == 8);
+                                sb->Push((const unsigned char*) b.buffer, 8);
                                 break;
                             case VT_DATE:
                             {
