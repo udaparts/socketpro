@@ -24,7 +24,7 @@ namespace SPA {
 
             class MYSQL_BIND_RESULT_FIELD {
             private:
-                static const unsigned int DEFAULT_BUFFER_SIZE = 128;
+                static const unsigned int DEFAULT_BUFFER_SIZE = 256;
 
             private:
                 static_assert(sizeof (MYSQL_TIME) <= DEFAULT_BUFFER_SIZE, "Bad default buffer size");
