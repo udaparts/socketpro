@@ -1849,17 +1849,16 @@ namespace SPA
             }
             unsigned int size = sizeof (MYSQL_BIND);
             size *= (unsigned int) m_parameters;
-            SPA::CScopeUQueue sb;
-            if (size > sb->GetMaxSize()) {
-                sb->ReallocBuffer(size);
+            if (size > m_sbBind->GetMaxSize()) {
+                m_sbBind->ReallocBuffer(size);
             }
-            sb->CleanTrack();
+            m_sbBind->CleanTrack();
             qBufferSize.SetSize(0);
             if ((m_parameters + 1) * sizeof (unsigned long) > qBufferSize.GetMaxSize()) {
                 qBufferSize.ReallocBuffer((unsigned int) ((m_parameters + 1) * sizeof (unsigned long)));
             }
             unsigned int indexBS = 0;
-            MYSQL_BIND *pBind = (MYSQL_BIND*) sb->GetBuffer();
+            MYSQL_BIND *pBind = (MYSQL_BIND*) m_sbBind->GetBuffer();
             for (size_t n = 0; n < m_parameters; ++n) {
                 CDBVariant &data = m_vParam[row * m_parameters + n];
                 unsigned short vt = data.Type();
@@ -2606,8 +2605,6 @@ namespace SPA
                     ++m_fails;
                 else
                     ++m_oks;
-                my_bool myfail = m_remMysql.mysql_stmt_reset(m_pPrepare.get());
-                assert(!myfail);
             }
             if (!header_sent && (rowset || meta)) {
                 CDBColumnInfoArray vInfo;

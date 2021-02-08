@@ -181,6 +181,7 @@ namespace SPA {
             bool m_EnableMessages;
             CUQueue *m_pNoSending;
             CDBString m_dbNameOpened;
+            SPA::CScopeUQueue m_sbBind;
 
             static const int IS_BINARY = 63;
             static const int MYSQL_TINYBLOB = 0xff;
