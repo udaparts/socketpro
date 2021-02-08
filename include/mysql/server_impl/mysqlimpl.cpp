@@ -2658,6 +2658,7 @@ namespace SPA
         bool CMysqlImpl::DoSQLAuthentication(USocket_Server_Handle hSocket, const wchar_t *userId, const wchar_t *password, unsigned int nSvsId, const wchar_t * dbConnection) {
             CMysqlImpl impl;
             CDBString db(dbConnection ? Utilities::ToUTF16(dbConnection) : u"");
+            Trim(db);
             if (!db.size()) {
                 m_csPeer.lock();
                 db = m_strGlobalConnection;
