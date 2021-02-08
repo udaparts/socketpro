@@ -35,12 +35,13 @@ namespace SPA {
 
             public:
 
-                MYSQL_BIND_RESULT_FIELD() : is_null(0), buffer_length(m_sb->GetMaxSize()), length(0) {
+                MYSQL_BIND_RESULT_FIELD() : is_null(0), buffer_length(m_sb->GetMaxSize()), length(0), error(0) {
                 }
 
                 my_bool is_null;
                 unsigned long buffer_length;
                 unsigned long length;
+                my_bool error;
 
                 inline unsigned char* GetBuffer() {
                     return (unsigned char*) m_sb->GetBuffer();
@@ -128,6 +129,7 @@ namespace SPA {
             virtual void Prepare(const CDBString& sql, CParameterInfoArray& params, int &res, CDBString &errMsg, unsigned int &parameters);
             virtual void ExecuteParameters(bool rowset, bool meta, bool lastInsertId, UINT64 index, INT64 &affected, int &res, CDBString &errMsg, CDBVariant &vtId, UINT64 &fail_ok);
             virtual void ExecuteBatch(const CDBString& sql, const CDBString& delimiter, int isolation, int plan, bool rowset, bool meta, bool lastInsertId, const CDBString &dbConn, unsigned int flags, UINT64 index, INT64 &affected, int &res, CDBString &errMsg, CDBVariant &vtId, UINT64 &fail_ok);
+            void PParameters(bool rowset, bool meta, bool lastInsertId, UINT64 index, INT64& affected, int& res, CDBString& errMsg, CDBVariant& vtId, UINT64& fail_ok);
 
         private:
             void StartBLOB(unsigned int lenExpected);
@@ -182,6 +184,7 @@ namespace SPA {
             CUQueue *m_pNoSending;
             CDBString m_dbNameOpened;
             SPA::CScopeUQueue m_sbBind;
+            CDBColumnInfoArray m_vInfoPrepare;
 
             static const int IS_BINARY = 63;
             static const int MYSQL_TINYBLOB = 0xff;

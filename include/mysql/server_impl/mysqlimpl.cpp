@@ -1530,6 +1530,7 @@ namespace SPA
                 errMsg = NO_DB_OPENED_YET;
                 return;
             }
+            m_vInfoPrepare.clear();
             m_pPrepare.reset();
             m_vParam.clear();
             m_parameters = 0;
@@ -1543,8 +1544,16 @@ namespace SPA
                 errMsg = Utilities::ToUTF16(m_remMysql.mysql_stmt_error(stmt));
                 m_remMysql.mysql_stmt_close(stmt);
             } else {
-                res = 0;
                 m_parameters = m_remMysql.mysql_stmt_param_count(stmt);
+                if (!m_bCall) {
+                    MYSQL_RES *prepare_meta_result = m_remMysql.mysql_stmt_result_metadata(stmt);
+                    if (prepare_meta_result) {
+                        auto column_count = m_remMysql.mysql_num_fields(prepare_meta_result);
+                        m_vInfoPrepare = GetColInfo(prepare_meta_result, column_count, true);
+                        m_remMysql.mysql_free_result(prepare_meta_result);
+                    }
+                }
+                res = 0;
                 m_pPrepare.reset(stmt, [](MYSQL_STMT * stmt) {
                     if (stmt) {
                         m_remMysql.mysql_stmt_close(stmt);
@@ -1566,20 +1575,30 @@ namespace SPA
             }
             m_sbBind->CleanTrack();
             qBufferSize.SetSize(0);
-            if ((m_parameters + 1) * sizeof (unsigned long) > qBufferSize.GetMaxSize()) {
-                qBufferSize.ReallocBuffer((unsigned int) ((m_parameters + 1) * sizeof (unsigned long)));
+
+            //is_null/my_bool, length/unsigned long, error/my_bool
+            if ((m_parameters + 1) * (sizeof (unsigned long) + 2) > qBufferSize.GetMaxSize()) {
+                qBufferSize.ReallocBuffer((unsigned int) ((m_parameters + 1) * (sizeof (unsigned long) + 2)));
             }
-            unsigned int indexBS = 0;
+            qBufferSize.CleanTrack();
+            unsigned int offset = 0;
+            unsigned char* start = (unsigned char*) qBufferSize.GetBuffer();
             MYSQL_BIND *pBind = (MYSQL_BIND*) m_sbBind->GetBuffer();
             for (size_t n = 0; n < m_parameters; ++n) {
                 CDBVariant &data = m_vParam[row * m_parameters + n];
                 unsigned short vt = data.Type();
                 MYSQL_BIND &bind = pBind[n];
+                bind.is_null = (my_bool*) (start);
+                ++start;
+                bind.error = (my_bool*) (start);
+                ++start;
+                bind.length = (unsigned long*) start;
+                start += sizeof (unsigned long);
                 switch (vt) {
                     case VT_NULL:
                     case VT_EMPTY:
                         bind.buffer_type = MYSQL_TYPE_NULL;
-                        bind.is_null = &CMysqlImpl::B_IS_NULL;
+                        *bind.is_null = (my_bool) 1;
                         break;
                     case VT_I1:
                         bind.buffer_type = MYSQL_TYPE_TINY;
@@ -1650,9 +1669,7 @@ namespace SPA
                         bind.buffer_length = data.parray->rgsabound->cElements;
                         ::SafeArrayAccessData(data.parray, &bind.buffer);
                         ::SafeArrayUnaccessData(data.parray);
-                        qBufferSize << bind.buffer_length;
-                        bind.length = (unsigned long*) qBufferSize.GetBuffer(indexBS * sizeof (unsigned long));
-                        ++indexBS;
+                        *bind.length = bind.buffer_length;
                         break;
                     case VT_BYTES:
                     case (VT_ARRAY | VT_UI1):
@@ -1660,9 +1677,7 @@ namespace SPA
                         bind.buffer_length = data.parray->rgsabound->cElements;
                         ::SafeArrayAccessData(data.parray, &bind.buffer);
                         ::SafeArrayUnaccessData(data.parray);
-                        qBufferSize << bind.buffer_length;
-                        bind.length = (unsigned long*) qBufferSize.GetBuffer(indexBS * sizeof (unsigned long));
-                        ++indexBS;
+                        *bind.length = bind.buffer_length;
                         break;
                     default:
                         assert(false); //not implemented
@@ -1672,6 +1687,7 @@ namespace SPA
                         }
                         break;
                 }
+                offset += (sizeof (unsigned long) + 2);
             }
             if (!res && m_remMysql.mysql_stmt_bind_param(m_pPrepare.get(), pBind)) {
                 res = m_remMysql.mysql_stmt_errno(m_pPrepare.get());
@@ -1775,6 +1791,7 @@ namespace SPA
                 b.buffer_length = f.buffer_length;
                 b.length = &f.length;
                 b.is_null = &f.is_null;
+                b.error = &f.error;
             }
             my_bool fail = m_remMysql.mysql_stmt_bind_result(m_pPrepare.get(), ps_params);
             if (fail) {
@@ -2164,6 +2181,94 @@ namespace SPA
             }
         }
 
+        void CMysqlImpl::PParameters(bool rowset, bool meta, bool lastInsertId, UINT64 index, INT64& affected, int& res, CDBString& errMsg, CDBVariant& vtId, UINT64 & fail_ok) {
+            res = 0;
+            CScopeUQueue sb;
+            UINT64 fails = m_fails;
+            UINT64 oks = m_oks;
+            bool header_sent = false;
+            int rows = (int) (m_vParam.size() / m_parameters);
+            for (int row = 0; row < rows; ++row) {
+                CDBString err;
+                int my_res = Bind(*sb, row, err);
+                if (my_res) {
+                    if (!res) {
+                        res = my_res;
+                        errMsg = err;
+                    }
+                    ++m_fails;
+                    continue;
+                }
+                my_res = m_remMysql.mysql_stmt_execute(m_pPrepare.get());
+                if (my_res) {
+                    if (!res) {
+                        res = m_remMysql.mysql_stmt_errno(m_pPrepare.get());
+                        errMsg = Utilities::ToUTF16(m_remMysql.mysql_stmt_error(m_pPrepare.get()));
+                    }
+                    ++m_fails;
+                    continue;
+                }
+                //For SELECT statements, mysql_stmt_affected_rows() works like mysql_num_rows().
+                my_ulonglong affected_rows = m_remMysql.mysql_stmt_affected_rows(m_pPrepare.get());
+                if (affected_rows != (my_ulonglong) (~0) && affected_rows) {
+                    affected += affected_rows;
+                } else if (m_vInfoPrepare.size()) {
+                    if (rowset || meta) {
+                        unsigned int sent = SendResult(idRowsetHeader, m_vInfoPrepare, index, 0);
+                        header_sent = true;
+                        if (sent == REQUEST_CANCELED || sent == SOCKET_NOT_FOUND) {
+                            my_res = m_remMysql.mysql_stmt_free_result(m_pPrepare.get());
+                            return;
+                        }
+                    }
+                    if (rowset) {
+                        std::shared_ptr<MYSQL_BIND_RESULT_FIELD> fields;
+                        std::shared_ptr<MYSQL_BIND> pBinds = PrepareBindResultBuffer(m_vInfoPrepare, my_res, err, fields);
+                        if (my_res) {
+                            if (!res) {
+                                res = my_res;
+                                errMsg = err;
+                            }
+                            ++m_fails;
+                            continue;
+                        }
+                        my_res = m_remMysql.mysql_stmt_store_result(m_pPrepare.get());
+                        if (my_res) {
+                            if (!res) {
+                                res = m_remMysql.mysql_stmt_errno(m_pPrepare.get());
+                                errMsg = Utilities::ToUTF16(m_remMysql.mysql_stmt_error(m_pPrepare.get()));
+                            }
+                            ++m_fails;
+                            continue;
+                        }
+                        MYSQL_BIND* mybind = pBinds.get();
+                        MYSQL_BIND_RESULT_FIELD* myfield = fields.get();
+                        if (!PushRecords(index, mybind, myfield, m_vInfoPrepare, rowset, false, my_res, err)) {
+                            return;
+                        }
+                        if (my_res) {
+                            if (!res) {
+                                res = my_res;
+                                errMsg = err;
+                            }
+                            ++m_fails;
+                            continue;
+                        }
+                    }
+                }
+                ++m_oks;
+            }
+            if (!header_sent && (rowset || meta)) {
+                CDBColumnInfoArray vInfo;
+                SendResult(idRowsetHeader, vInfo, index);
+            }
+            if (lastInsertId) {
+                vtId = (INT64) m_remMysql.mysql_stmt_insert_id(m_pPrepare.get());
+            }
+            fail_ok = ((m_fails - fails) << 32);
+            fail_ok += (unsigned int) (m_oks - oks);
+        }
+
         void CMysqlImpl::ExecuteParameters(bool rowset, bool meta, bool lastInsertId, UINT64 index, INT64 &affected, int &res, CDBString &errMsg, CDBVariant &vtId, UINT64 & fail_ok) {
             assert(!m_pNoSending);
             fail_ok = 0;
@@ -2201,8 +2306,11 @@ namespace SPA
                 fail_ok <<= 32;
                 return;
             }
-
             res = 0;
+            if (!m_bCall) {
+                PParameters(rowset, meta, lastInsertId, index, affected, res, errMsg, vtId, fail_ok);
+                return;
+            }
             CScopeUQueue sb;
             UINT64 fails = m_fails;
             UINT64 oks = m_oks;
