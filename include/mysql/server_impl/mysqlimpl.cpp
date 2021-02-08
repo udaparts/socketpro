@@ -1868,7 +1868,7 @@ namespace SPA
                     case VT_NULL:
                     case VT_EMPTY:
                         bind.buffer_type = MYSQL_TYPE_NULL;
-                        bind.is_null = (my_bool*) & CMysqlImpl::B_IS_NULL;
+                        bind.is_null = &CMysqlImpl::B_IS_NULL;
                         break;
                     case VT_I1:
                         bind.buffer_type = MYSQL_TYPE_TINY;
@@ -1971,25 +1971,15 @@ namespace SPA
             return res;
         }
 
-        std::shared_ptr<MYSQL_BIND> CMysqlImpl::PrepareBindResultBuffer(MYSQL_RES *result, const CDBColumnInfoArray &vColInfo, int &res, CDBString &errMsg, std::shared_ptr<MYSQL_BIND_RESULT_FIELD> &field) {
+        std::shared_ptr<MYSQL_BIND> CMysqlImpl::PrepareBindResultBuffer(const CDBColumnInfoArray &vColInfo, int &res, CDBString &errMsg, std::shared_ptr<MYSQL_BIND_RESULT_FIELD> &field) {
             std::shared_ptr<MYSQL_BIND> p(new MYSQL_BIND[vColInfo.size()], [](MYSQL_BIND * b) {
                 if (b) {
-                    try{
-                        delete[]b;
-                    }
-
-                    catch(...) {
-                    }
+                    delete[]b;
                 }
             });
             field.reset(new MYSQL_BIND_RESULT_FIELD[vColInfo.size()], [](MYSQL_BIND_RESULT_FIELD * f) {
                 if (f) {
-                    try{
-                        delete[]f;
-                    }
-
-                    catch(...) {
-                    }
+                    delete[]f;
                 }
             });
             MYSQL_BIND *ps_params = p.get();
@@ -2524,21 +2514,24 @@ namespace SPA
 
                 unsigned int cols = m_remMysql.mysql_stmt_field_count(m_pPrepare.get());
                 bool output = (m_pMysql.get()->server_status & SERVER_PS_OUT_PARAMS) ? true : false;
-                MYSQL_RES *result = m_remMysql.mysql_stmt_result_metadata(m_pPrepare.get());
+                std::shared_ptr<MYSQL_RES> result(m_remMysql.mysql_stmt_result_metadata(m_pPrepare.get()), [](MYSQL_RES * r) {
+                    if (r) {
+                        m_remMysql.mysql_free_result(r);
+                    }
+                });
 #ifndef NDEBUG
                 if (cols) {
                     assert(result);
                 }
 #endif
                 while (result && cols) {
-                    CDBColumnInfoArray vInfo = GetColInfo(result, cols, (meta || m_bCall));
-
+                    CDBColumnInfoArray vInfo = GetColInfo(result.get(), cols, (meta || m_bCall));
+                    result.reset();
                     if (!output) {
                         //Mysql + Mariadb server_status & SERVER_PS_OUT_PARAMS does NOT work correctly for an unknown reason
                         //This is a hack solution for detecting output result, which may be wrong if a table name is EXACTLY the same as stored procedure name
                         output = (m_bCall && (vInfo[0].TablePath == Utilities::ToUTF16(m_procName)));
                     }
-
                     //we push stored procedure output parameter meta data onto client to follow common approach for output parameter data
                     if (output || rowset || meta) {
                         unsigned int outputs = 0;
@@ -2553,7 +2546,8 @@ namespace SPA
                         }
                     }
                     std::shared_ptr<MYSQL_BIND_RESULT_FIELD> fields;
-                    std::shared_ptr<MYSQL_BIND> pBinds = PrepareBindResultBuffer(result, vInfo, res, errMsg, fields);
+                    std::shared_ptr<MYSQL_BIND> pBinds = PrepareBindResultBuffer(vInfo, res, errMsg, fields);
+
                     MYSQL_BIND *mybind = pBinds.get();
                     MYSQL_BIND_RESULT_FIELD *myfield = fields.get();
                     if (pBinds && (output || rowset)) {
@@ -2573,9 +2567,7 @@ namespace SPA
                             break;
                         }
                     }
-                    m_remMysql.mysql_stmt_free_result(m_pPrepare.get());
-                    pBinds.reset();
-                    fields.reset();
+                    ret = m_remMysql.mysql_stmt_free_result(m_pPrepare.get());
                     ret = m_remMysql.mysql_stmt_next_result(m_pPrepare.get());
                     if (ret == 0) {
                         //continue for the next set
@@ -2596,7 +2588,11 @@ namespace SPA
                     }
                     cols = m_remMysql.mysql_stmt_field_count(m_pPrepare.get());
                     output = (m_pMysql.get()->server_status & SERVER_PS_OUT_PARAMS) ? true : false;
-                    result = m_remMysql.mysql_stmt_result_metadata(m_pPrepare.get());
+                    result.reset(m_remMysql.mysql_stmt_result_metadata(m_pPrepare.get()), [](MYSQL_RES * r) {
+                        if (r) {
+                            m_remMysql.mysql_free_result(r);
+                        }
+                    });
                 }
                 int ret2 = m_remMysql.mysql_stmt_free_result(m_pPrepare.get());
                 if (ret2) {

@@ -145,7 +145,7 @@ namespace SPA {
             CDBColumnInfoArray GetColInfo(MYSQL_RES *result, unsigned int cols, bool meta);
             bool PushRecords(MYSQL_RES *result, const CDBColumnInfoArray &vColInfo, int &res, CDBString &errMsg);
             int Bind(CUQueue &qBufferSize, int row, CDBString &errMsg);
-            std::shared_ptr<MYSQL_BIND> PrepareBindResultBuffer(MYSQL_RES *result, const CDBColumnInfoArray &vColInfo, int &res, CDBString &errMsg, std::shared_ptr<MYSQL_BIND_RESULT_FIELD> &field);
+            std::shared_ptr<MYSQL_BIND> PrepareBindResultBuffer(const CDBColumnInfoArray &vColInfo, int &res, CDBString &errMsg, std::shared_ptr<MYSQL_BIND_RESULT_FIELD> &field);
             bool PushRecords(UINT64 index, MYSQL_BIND *binds, MYSQL_BIND_RESULT_FIELD *fields, const CDBColumnInfoArray &vColInfo, bool rowset, bool output, int &res, CDBString &errMsg);
             void PreprocessPreparedStatement();
             void CleanDBObjects();
