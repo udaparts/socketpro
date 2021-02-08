@@ -889,35 +889,35 @@ namespace SPA
                 MYSQL_FIELD &f = field[n];
                 if (meta) {
                     if (f.name) {
-                        info.DisplayName.assign(f.name, f.name + ::strlen(f.name));
+                        info.DisplayName.assign(f.name, f.name + f.name_length);
                     } else {
                         info.DisplayName.clear();
                     }
                     if (f.org_name) {
-                        info.OriginalName.assign(f.org_name, f.org_name + ::strlen(f.org_name));
+                        info.OriginalName.assign(f.org_name, f.org_name + f.org_name_length);
                     } else {
                         info.OriginalName = info.DisplayName;
                     }
 
                     if (f.table) {
-                        info.TablePath.assign(f.table, f.table + ::strlen(f.table));
+                        info.TablePath.assign(f.table, f.table + f.table_length);
                     } else if (f.org_table) {
-                        info.TablePath.assign(f.org_table, f.org_table + ::strlen(f.org_table));
+                        info.TablePath.assign(f.org_table, f.org_table + f.org_table_length);
                     } else {
                         info.TablePath.clear();
                     }
                     if (f.db) {
-                        info.DBPath.assign(f.db, f.db + ::strlen(f.db));
+                        info.DBPath.assign(f.db, f.db + f.db_length);
                     } else {
                         info.DBPath.clear();
                     }
 
                     if (f.org_table && (f.org_table != f.table)) {
-                        info.Collation.assign(f.org_table, f.org_table + ::strlen(f.org_table));
+                        info.Collation.assign(f.org_table, f.org_table + f.org_table_length);
                     } else if (f.catalog) {
-                        info.Collation.assign(f.catalog, f.catalog + ::strlen(f.catalog));
+                        info.Collation.assign(f.catalog, f.catalog + f.catalog_length);
                     } else if (f.def) {
-                        info.Collation.assign(f.def, f.def + ::strlen(f.def));
+                        info.Collation.assign(f.def, f.def + f.def_length);
                     } else {
                         info.Collation.clear();
                     }
@@ -2596,6 +2596,7 @@ namespace SPA
                     ++m_fails;
                 else
                     ++m_oks;
+                assert(!ret);
             }
             if (!header_sent && (rowset || meta)) {
                 CDBColumnInfoArray vInfo;
