@@ -748,7 +748,7 @@ namespace SocketProAdapter
             public byte[] PublicKey;
             public byte[] Algorithm;
             public byte[] SerialNumber;
-        };
+        }
 
         public abstract class IUcert : CertInfo
         {
@@ -763,7 +763,7 @@ namespace SocketProAdapter
             csClosing,
             csConnected,
             csSwitched
-        };
+        }
 
         public enum tagSocketPoolEvent : int
         {
@@ -794,6 +794,34 @@ namespace SocketProAdapter
 #else
     namespace ServerSide
     {
+        public static class Plugin
+        {
+            /// <summary>
+            /// Authentication permitted, and DB handle opened and cached
+            /// </summary>
+            public const int AUTHENTICATION_OK = 1;
+
+            /// <summary>
+            /// Authentication failed, and no handle opened or cached
+            /// </summary>
+            public const int AUTHENTICATION_FAILED = 0;
+
+            /// <summary>
+            /// Authentication not implemented at all
+            /// </summary>
+            public const int AUTHENTICATION_NOT_IMPLEMENTED = -1;
+
+            /// <summary>
+            /// Authentication cannot be made due to an internal error, and no handle opened or cached
+            /// </summary>
+            public const int AUTHENTICATION_INTERNAL_ERROR = -2;
+
+            /// <summary>
+            /// Authentication can not be made, but DB handle opened and cached
+            /// </summary>
+            public const int AUTHENTICATION_PROCESSED = -3;
+        }
+
         public enum tagAuthenticationMethod
         {
             amOwn = 0,
@@ -801,7 +829,6 @@ namespace SocketProAdapter
             amIntegrated = (amMixed + 1),
             amTrusted = (amIntegrated + 1)
         }
-        ;
 
         public enum tagHttpMethod
         {
@@ -814,7 +841,7 @@ namespace SocketProAdapter
             hmOptions = 6,
             hmTrace = 7,
             hmConnect = 8,
-        };
+        }
 
         public enum tagTransport
         {
@@ -823,7 +850,7 @@ namespace SocketProAdapter
             tFlash = 1,
             tAjax = 2,
             tScript = 3,
-        };
+        }
 
         public enum tagTransferEncoding
         {
@@ -833,7 +860,7 @@ namespace SocketProAdapter
             teDeflate = 3,
             teGZip = 4,
             teIdentity = 5,
-        };
+        }
 
         public enum tagContentMultiplax
         {
@@ -848,14 +875,14 @@ namespace SocketProAdapter
             cmEncrypted = 8,
             cmRelated = 9,
             cmByteRanges = 10,
-        };
+        }
 
         public enum tagRoutingAlgorithm
         {
             raDefault = 0,
             raRandom,
             raAverage,
-        };
+        }
 
         public enum tagThreadEvent
         {

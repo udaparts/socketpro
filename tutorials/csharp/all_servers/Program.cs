@@ -5,8 +5,8 @@ using System.Runtime.InteropServices;
 
 public class CMySocketProServer : CSocketProServer
 {
-    [DllImport("ssqlite", EntryPoint="SetSPluginGlobalOptions")]
-    static extern void SQLite_SetSPluginGlobalOptions([In] [MarshalAs(UnmanagedType.LPStr)] string jsonUtf8);
+    [DllImport("ssqlite", EntryPoint = "SetSPluginGlobalOptions")]
+    static extern void SQLite_SetSPluginGlobalOptions([In][MarshalAs(UnmanagedType.LPStr)] string jsonUtf8);
 
     [DllImport("ssqlite", EntryPoint = "DoSPluginAuthentication")]
     static extern int SQLite_Authentication(ulong hSocket, [In][MarshalAs(UnmanagedType.LPWStr)] string userId, [In][MarshalAs(UnmanagedType.LPWStr)] string password, uint svsId, [In][MarshalAs(UnmanagedType.LPWStr)] string defaultDb);
@@ -19,8 +19,8 @@ public class CMySocketProServer : CSocketProServer
 
     protected override bool OnIsPermitted(ulong hSocket, string userId, string password, uint nSvsID)
     {
-        int res = 0;
-        switch(nSvsID)
+        int res = Plugin.AUTHENTICATION_NOT_IMPLEMENTED;
+        switch (nSvsID)
         {
             case hwConst.sidHelloWorld:
             case BaseServiceID.sidHTTP:
@@ -31,7 +31,7 @@ public class CMySocketProServer : CSocketProServer
             case radoConst.sidRAdo:
             case repConst.sidRAdoRep:
                 //give permision to known services without authentication
-                res = 1;
+                res = Plugin.AUTHENTICATION_OK;
                 break;
             case BaseServiceID.sidODBC:
                 res = ODBC_Authentication(hSocket, userId, password, nSvsID, "DRIVER={SQL Server Native Client 11.0};Server=(local)");
@@ -41,23 +41,39 @@ public class CMySocketProServer : CSocketProServer
                 break;
             case SocketProAdapter.ClientSide.CSqlite.sidSqlite:
                 res = SQLite_Authentication(hSocket, userId, password, nSvsID, "usqlite.db");
-                //-3 authentication not implemented, but opened db handle cached and processed in some way
-                if (res == -3)
+                if (res == Plugin.AUTHENTICATION_PROCESSED)
                 {
                     //give permision without authentication
-                    res = 1;
+                    res = Plugin.AUTHENTICATION_OK;
                 }
                 break;
             default:
                 break;
         }
-        if (res > 0)
+        if (res >= Plugin.AUTHENTICATION_OK)
         {
-            Console.WriteLine(userId + "'s connecting permitted");
+            Console.WriteLine(userId + "'s connecting permitted, and DB handle opened and cached");
         }
         else
         {
-            Console.WriteLine(userId + "'s connecting denied because of failed database authentication, unknown service or other");
+            switch (res)
+            {
+                case Plugin.AUTHENTICATION_FAILED:
+                    Console.WriteLine(userId + "'s connecting failed: bad password");
+                    break;
+                case Plugin.AUTHENTICATION_NOT_IMPLEMENTED:
+                    Console.WriteLine(userId + "'s connecting failed: no authentication implemented");
+                    break;
+                case Plugin.AUTHENTICATION_INTERNAL_ERROR:
+                    Console.WriteLine(userId + "'s connecting failed: plugin internal error");
+                    break;
+                case Plugin.AUTHENTICATION_PROCESSED:
+                    Console.WriteLine(userId + "'s connecting failed: no authentication implemented but DB handle opened and cached");
+                    break;
+                default:
+                    Console.WriteLine(userId + "'s connecting failed: unknown reseaon with res -- " + res.ToString());
+                    break;
+            }
         }
         return (res > 0);
     }
@@ -116,7 +132,7 @@ public class CMySocketProServer : CSocketProServer
 
         //load socketpro async sqlite library located at the directory ../bin/free_services/sqlite
         IntPtr p = CSocketProServer.DllManager.AddALibrary("ssqlite");
-        if (p.ToInt64() != 0) 
+        if (p.ToInt64() != 0)
         {
             //monitoring sakila.db table events (DELETE, INSERT and UPDATE) for tables actor, language, category, country and film_actor
             SQLite_SetSPluginGlobalOptions("{\"monitored_tables\":\"sakila.db.actor;sakila.db.language;sakila.db.category;sakila.db.country;sakila.db.film_actor\"}");
