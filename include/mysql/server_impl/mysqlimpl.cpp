@@ -2216,16 +2216,18 @@ namespace SPA
             bool header_sent = false;
             int rows = (int) (m_vParam.size() / m_parameters);
             for (int row = 0; row < rows; ++row) {
-                int ret = Bind(*sb, row, errMsg);
-                if (ret) {
+                CDBString err;
+                int my_res = Bind(*sb, row, err);
+                if (my_res) {
                     if (!res) {
-                        res = ret;
+                        res = my_res;
+                        errMsg = err;
                     }
                     ++m_fails;
                     continue;
                 }
-                ret = m_remMysql.mysql_stmt_execute(m_pPrepare.get());
-                if (ret) {
+                my_res = m_remMysql.mysql_stmt_execute(m_pPrepare.get());
+                if (my_res) {
                     if (!res) {
                         res = m_remMysql.mysql_stmt_errno(m_pPrepare.get());
                         errMsg = Utilities::ToUTF16(m_remMysql.mysql_stmt_error(m_pPrepare.get()));
@@ -2276,14 +2278,19 @@ namespace SPA
                         }
                     }
                     std::shared_ptr<MYSQL_BIND_RESULT_FIELD> fields;
-                    std::shared_ptr<MYSQL_BIND> pBinds = PrepareBindResultBuffer(vInfo, res, errMsg, fields);
+                    std::shared_ptr<MYSQL_BIND> pBinds = PrepareBindResultBuffer(vInfo, my_res, err, fields);
+                    if (my_res) {
+                        if (!res) {
+                            res = my_res;
+                            errMsg = err;
+                        }
+                        break;
+                    }
                     MYSQL_BIND *mybind = pBinds.get();
                     MYSQL_BIND_RESULT_FIELD *myfield = fields.get();
                     if (pBinds && (output || rowset)) {
-                        int my_res = 0;
-                        CDBString err;
                         if (!PushRecords(index, mybind, myfield, vInfo, rowset, output, my_res, err)) {
-                            ret = m_remMysql.mysql_stmt_free_result(m_pPrepare.get());
+                            my_res = m_remMysql.mysql_stmt_free_result(m_pPrepare.get());
                             return;
                         }
                         else if (my_res) {
@@ -2295,15 +2302,15 @@ namespace SPA
                     }
                     fields.reset();
                     pBinds.reset();
-                    ret = m_remMysql.mysql_stmt_free_result(m_pPrepare.get());
-                    ret = m_remMysql.mysql_stmt_next_result(m_pPrepare.get());
-                    if (ret == 0) {
+                    my_res = m_remMysql.mysql_stmt_free_result(m_pPrepare.get());
+                    my_res = m_remMysql.mysql_stmt_next_result(m_pPrepare.get());
+                    if (my_res == 0) {
                         //continue for the next set
-                    } else if (ret == -1) {
+                    } else if (my_res == -1) {
                         //no more result
-                        ret = 0;
+                        my_res = 0;
                         break;
-                    } else if (ret > 0) {
+                    } else if (my_res > 0) {
                         //error
                         if (!res) {
                             res = m_remMysql.mysql_stmt_errno(m_pPrepare.get());
@@ -2324,7 +2331,7 @@ namespace SPA
                         });
                     }
                 }
-                if (ret)
+                if (my_res)
                     ++m_fails;
                 else
                     ++m_oks;
