@@ -76,7 +76,7 @@ protected:
                 break;
             }
         }
-        return (res > 0);
+        return (res >= SP_PLUGIN_AUTH_OK);
     }
 
     virtual bool OnSettingServer(unsigned int listeningPort, unsigned int maxBacklog, bool v6) {

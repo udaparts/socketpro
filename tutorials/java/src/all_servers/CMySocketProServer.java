@@ -56,7 +56,7 @@ public class CMySocketProServer extends CSocketProServer {
                     break;
             }
         }
-        return (res > 0);
+        return (res >= Plugin.AUTHENTICATION_OK);
     }
 
     @ServiceAttr(ServiceID = hello_world.hwConst.sidHelloWorld)

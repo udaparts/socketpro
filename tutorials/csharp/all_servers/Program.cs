@@ -75,7 +75,7 @@ public class CMySocketProServer : CSocketProServer
                     break;
             }
         }
-        return (res > 0);
+        return (res >= Plugin.AUTHENTICATION_OK);
     }
 
     [ServiceAttr(hwConst.sidHelloWorld)]
