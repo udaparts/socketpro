@@ -26,7 +26,6 @@ namespace SPA
     namespace ServerSide{
 
         CUCriticalSection CMysqlImpl::m_csPeer;
-        my_bool CMysqlImpl::B_IS_NULL = 1;
         CDBString CMysqlImpl::m_strGlobalConnection;
         bool CMysqlImpl::m_bInitMysql = false;
 
@@ -1530,7 +1529,6 @@ namespace SPA
                 errMsg = NO_DB_OPENED_YET;
                 return;
             }
-            m_vInfoPrepare.clear();
             m_pPrepare.reset();
             m_vParam.clear();
             m_parameters = 0;
@@ -1544,16 +1542,8 @@ namespace SPA
                 errMsg = Utilities::ToUTF16(m_remMysql.mysql_stmt_error(stmt));
                 m_remMysql.mysql_stmt_close(stmt);
             } else {
-                m_parameters = m_remMysql.mysql_stmt_param_count(stmt);
-                if (!m_bCall) {
-                    MYSQL_RES *prepare_meta_result = m_remMysql.mysql_stmt_result_metadata(stmt);
-                    if (prepare_meta_result) {
-                        auto column_count = m_remMysql.mysql_num_fields(prepare_meta_result);
-                        m_vInfoPrepare = GetColInfo(prepare_meta_result, column_count, true);
-                        m_remMysql.mysql_free_result(prepare_meta_result);
-                    }
-                }
                 res = 0;
+                m_parameters = m_remMysql.mysql_stmt_param_count(stmt);
                 m_pPrepare.reset(stmt, [](MYSQL_STMT * stmt) {
                     if (stmt) {
                         m_remMysql.mysql_stmt_close(stmt);
@@ -2181,94 +2171,6 @@ namespace SPA
             }
         }
 
-        void CMysqlImpl::PParameters(bool rowset, bool meta, bool lastInsertId, UINT64 index, INT64& affected, int& res, CDBString& errMsg, CDBVariant& vtId, UINT64 & fail_ok) {
-            res = 0;
-            CScopeUQueue sb;
-            UINT64 fails = m_fails;
-            UINT64 oks = m_oks;
-            bool header_sent = false;
-            int rows = (int) (m_vParam.size() / m_parameters);
-            for (int row = 0; row < rows; ++row) {
-                CDBString err;
-                int my_res = Bind(*sb, row, err);
-                if (my_res) {
-                    if (!res) {
-                        res = my_res;
-                        errMsg = err;
-                    }
-                    ++m_fails;
-                    continue;
-                }
-                my_res = m_remMysql.mysql_stmt_execute(m_pPrepare.get());
-                if (my_res) {
-                    if (!res) {
-                        res = m_remMysql.mysql_stmt_errno(m_pPrepare.get());
-                        errMsg = Utilities::ToUTF16(m_remMysql.mysql_stmt_error(m_pPrepare.get()));
-                    }
-                    ++m_fails;
-                    continue;
-                }
-                //For SELECT statements, mysql_stmt_affected_rows() works like mysql_num_rows().
-                my_ulonglong affected_rows = m_remMysql.mysql_stmt_affected_rows(m_pPrepare.get());
-                if (affected_rows != (my_ulonglong) (~0) && affected_rows) {
-                    affected += affected_rows;
-                } else if (m_vInfoPrepare.size()) {
-                    if (rowset || meta) {
-                        unsigned int sent = SendResult(idRowsetHeader, m_vInfoPrepare, index, 0);
-                        header_sent = true;
-                        if (sent == REQUEST_CANCELED || sent == SOCKET_NOT_FOUND) {
-                            my_res = m_remMysql.mysql_stmt_free_result(m_pPrepare.get());
-                            return;
-                        }
-                    }
-                    if (rowset) {
-                        std::shared_ptr<MYSQL_BIND_RESULT_FIELD> fields;
-                        std::shared_ptr<MYSQL_BIND> pBinds = PrepareBindResultBuffer(m_vInfoPrepare, my_res, err, fields);
-                        if (my_res) {
-                            if (!res) {
-                                res = my_res;
-                                errMsg = err;
-                            }
-                            ++m_fails;
-                            continue;
-                        }
-                        my_res = m_remMysql.mysql_stmt_store_result(m_pPrepare.get());
-                        if (my_res) {
-                            if (!res) {
-                                res = m_remMysql.mysql_stmt_errno(m_pPrepare.get());
-                                errMsg = Utilities::ToUTF16(m_remMysql.mysql_stmt_error(m_pPrepare.get()));
-                            }
-                            ++m_fails;
-                            continue;
-                        }
-                        MYSQL_BIND* mybind = pBinds.get();
-                        MYSQL_BIND_RESULT_FIELD* myfield = fields.get();
-                        if (!PushRecords(index, mybind, myfield, m_vInfoPrepare, rowset, false, my_res, err)) {
-                            return;
-                        }
-                        if (my_res) {
-                            if (!res) {
-                                res = my_res;
-                                errMsg = err;
-                            }
-                            ++m_fails;
-                            continue;
-                        }
-                    }
-                }
-                ++m_oks;
-            }
-            if (!header_sent && (rowset || meta)) {
-                CDBColumnInfoArray vInfo;
-                SendResult(idRowsetHeader, vInfo, index);
-            }
-            if (lastInsertId) {
-                vtId = (INT64) m_remMysql.mysql_stmt_insert_id(m_pPrepare.get());
-            }
-            fail_ok = ((m_fails - fails) << 32);
-            fail_ok += (unsigned int) (m_oks - oks);
-        }
-
         void CMysqlImpl::ExecuteParameters(bool rowset, bool meta, bool lastInsertId, UINT64 index, INT64 &affected, int &res, CDBString &errMsg, CDBVariant &vtId, UINT64 & fail_ok) {
             assert(!m_pNoSending);
             fail_ok = 0;
@@ -2306,11 +2208,8 @@ namespace SPA
                 fail_ok <<= 32;
                 return;
             }
+            std::shared_ptr<MYSQL_RES> metadata;
             res = 0;
-            if (!m_bCall) {
-                PParameters(rowset, meta, lastInsertId, index, affected, res, errMsg, vtId, fail_ok);
-                return;
-            }
             CScopeUQueue sb;
             UINT64 fails = m_fails;
             UINT64 oks = m_oks;
@@ -2343,17 +2242,19 @@ namespace SPA
 
                 unsigned int cols = m_remMysql.mysql_stmt_field_count(m_pPrepare.get());
                 bool output = (m_pMysql.get()->server_status & SERVER_PS_OUT_PARAMS) ? true : false;
-                std::shared_ptr<MYSQL_RES> metadata(m_remMysql.mysql_stmt_result_metadata(m_pPrepare.get()), [](MYSQL_RES * r) {
-                    if (r) {
-                        m_remMysql.mysql_free_result(r);
-                    }
-                });
+                if (cols) {
+                    metadata.reset(m_remMysql.mysql_stmt_result_metadata(m_pPrepare.get()), [](MYSQL_RES* r) {
+                        if (r) {
+                            m_remMysql.mysql_free_result(r);
+                        }
+                    });
+                }
 #ifndef NDEBUG
                 if (cols) {
                     assert(metadata);
                 }
 #endif
-                while (metadata && cols) {
+                while (cols) {
                     CDBColumnInfoArray vInfo = GetColInfo(metadata.get(), cols, (meta || m_bCall));
                     metadata.reset();
                     if (!output) {
@@ -2385,16 +2286,15 @@ namespace SPA
                             ret = m_remMysql.mysql_stmt_free_result(m_pPrepare.get());
                             return;
                         }
-                        if (my_res) {
-                            ret = m_remMysql.mysql_stmt_free_result(m_pPrepare.get());
+                        else if (my_res) {
                             if (!res) {
                                 res = my_res;
                                 errMsg = err;
                             }
-                            ret = 1;
-                            break;
                         }
                     }
+                    fields.reset();
+                    pBinds.reset();
                     ret = m_remMysql.mysql_stmt_free_result(m_pPrepare.get());
                     ret = m_remMysql.mysql_stmt_next_result(m_pPrepare.get());
                     if (ret == 0) {
@@ -2416,11 +2316,13 @@ namespace SPA
                     }
                     cols = m_remMysql.mysql_stmt_field_count(m_pPrepare.get());
                     output = (m_pMysql.get()->server_status & SERVER_PS_OUT_PARAMS) ? true : false;
-                    metadata.reset(m_remMysql.mysql_stmt_result_metadata(m_pPrepare.get()), [](MYSQL_RES * r) {
-                        if (r) {
-                            m_remMysql.mysql_free_result(r);
-                        }
-                    });
+                    if (cols) {
+                        metadata.reset(m_remMysql.mysql_stmt_result_metadata(m_pPrepare.get()), [](MYSQL_RES* r) {
+                            if (r) {
+                                m_remMysql.mysql_free_result(r);
+                            }
+                        });
+                    }
                 }
                 if (ret)
                     ++m_fails;

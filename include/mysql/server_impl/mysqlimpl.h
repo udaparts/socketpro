@@ -122,14 +122,13 @@ namespace SPA {
             virtual void OnBaseRequestArrive(unsigned short requestId);
 
         private:
-            virtual void CloseDb(int &res, CDBString &errMsg);
-            virtual void BeginTrans(int isolation, const CDBString &dbConn, unsigned int flags, int &res, CDBString &errMsg, int &ms);
-            virtual void EndTrans(int plan, int &res, CDBString &errMsg);
-            virtual void Execute(const CDBString& sql, bool rowset, bool meta, bool lastInsertId, UINT64 index, INT64 &affected, int &res, CDBString &errMsg, CDBVariant &vtId, UINT64 &fail_ok);
-            virtual void Prepare(const CDBString& sql, CParameterInfoArray& params, int &res, CDBString &errMsg, unsigned int &parameters);
-            virtual void ExecuteParameters(bool rowset, bool meta, bool lastInsertId, UINT64 index, INT64 &affected, int &res, CDBString &errMsg, CDBVariant &vtId, UINT64 &fail_ok);
-            virtual void ExecuteBatch(const CDBString& sql, const CDBString& delimiter, int isolation, int plan, bool rowset, bool meta, bool lastInsertId, const CDBString &dbConn, unsigned int flags, UINT64 index, INT64 &affected, int &res, CDBString &errMsg, CDBVariant &vtId, UINT64 &fail_ok);
-            void PParameters(bool rowset, bool meta, bool lastInsertId, UINT64 index, INT64& affected, int& res, CDBString& errMsg, CDBVariant& vtId, UINT64& fail_ok);
+            void CloseDb(int &res, CDBString &errMsg);
+            void BeginTrans(int isolation, const CDBString &dbConn, unsigned int flags, int &res, CDBString &errMsg, int &ms);
+            void EndTrans(int plan, int &res, CDBString &errMsg);
+            void Execute(const CDBString& sql, bool rowset, bool meta, bool lastInsertId, UINT64 index, INT64 &affected, int &res, CDBString &errMsg, CDBVariant &vtId, UINT64 &fail_ok);
+            void Prepare(const CDBString& sql, CParameterInfoArray& params, int &res, CDBString &errMsg, unsigned int &parameters);
+            void ExecuteParameters(bool rowset, bool meta, bool lastInsertId, UINT64 index, INT64 &affected, int &res, CDBString &errMsg, CDBVariant &vtId, UINT64 &fail_ok);
+            void ExecuteBatch(const CDBString& sql, const CDBString& delimiter, int isolation, int plan, bool rowset, bool meta, bool lastInsertId, const CDBString &dbConn, unsigned int flags, UINT64 index, INT64 &affected, int &res, CDBString &errMsg, CDBVariant &vtId, UINT64 &fail_ok);
 
         private:
             void StartBLOB(unsigned int lenExpected);
@@ -184,13 +183,11 @@ namespace SPA {
             CUQueue *m_pNoSending;
             CDBString m_dbNameOpened;
             SPA::CScopeUQueue m_sbBind;
-            CDBColumnInfoArray m_vInfoPrepare;
 
             static const int IS_BINARY = 63;
             static const int MYSQL_TINYBLOB = 0xff;
             static const int MYSQL_BLOB = 0xffff;
             static const int MYSQL_MIDBLOB = 0xffffff;
-            static my_bool B_IS_NULL;
 
             static const UTF16* NO_DB_OPENED_YET;
             static const UTF16* BAD_END_TRANSTACTION_PLAN;
