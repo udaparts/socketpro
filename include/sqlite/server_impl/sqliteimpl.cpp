@@ -1566,6 +1566,7 @@ namespace SPA
         }
 
         void CSqliteImpl::Open(const CDBString &strConn, unsigned int flags, int &res, CDBString &errMsg, int &ms) {
+            res = 0;
             ms = (int) tagManagementSystem::msSqlite;
             m_vPreparedStatements.clear();
             ResetMemories();
