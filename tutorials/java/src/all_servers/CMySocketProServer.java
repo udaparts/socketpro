@@ -10,7 +10,7 @@ public class CMySocketProServer extends CSocketProServer {
 
     @Override
     protected boolean OnIsPermitted(long hSocket, String userId, String password, int nSvsID) {
-        int res = 0;
+        int res = Plugin.AUTHENTICATION_NOT_IMPLEMENTED;
         switch (nSvsID) {
             case hello_world.hwConst.sidHelloWorld:
             case SPA.BaseServiceID.sidHTTP:
@@ -18,7 +18,7 @@ public class CMySocketProServer extends CSocketProServer {
             case piConst.sidPiWorker:
             case SPA.BaseServiceID.sidFile:
             case SPA.BaseServiceID.sidQueue:
-                res = 1; //give permision to known services without authentication
+                res = Plugin.AUTHENTICATION_OK; //give permision to known services without authentication
                 break;
             case SPA.BaseServiceID.sidODBC:
                 res = Plugin.DoSPluginAuthentication("sodbc", hSocket, userId, password, nSvsID, "DRIVER={ODBC Driver 17 for SQL Server};Server=(local)");
@@ -28,18 +28,33 @@ public class CMySocketProServer extends CSocketProServer {
                 break;
             case SPA.ClientSide.CSqlite.sidSqlite:
                 res = Plugin.DoSPluginAuthentication("ssqlite", hSocket, userId, password, nSvsID, "usqlite.db");
-                //-3 authentication not implemented, but opened db handle cached and processed in some way
-                if (res == -3) {
-                    res = 1; //give permision without authentication
+                if (res == Plugin.AUTHENTICATION_PROCESSED) {
+                    res = Plugin.AUTHENTICATION_OK; //give permision without authentication
                 }
                 break;
             default:
                 break;
         }
-        if (res > 0) {
-            System.out.println(userId + "'s connecting permitted");
+        if (res >= Plugin.AUTHENTICATION_OK) {
+            System.out.println(userId + "'s connecting permitted, and DB handle opened and cached");
         } else {
-            System.out.println(userId + "'s connecting denied because of failed database authentication, unknown service or other");
+            switch (res) {
+                case Plugin.AUTHENTICATION_FAILED:
+                    System.out.println(userId + "'s connecting denied: bad password");
+                    break;
+                case Plugin.AUTHENTICATION_NOT_IMPLEMENTED:
+                    System.out.println(userId + "'s connecting denied: no authentication implemented");
+                    break;
+                case Plugin.AUTHENTICATION_INTERNAL_ERROR:
+                    System.out.println(userId + "'s connecting denied: plugin internal error");
+                    break;
+                case Plugin.AUTHENTICATION_PROCESSED:
+                    System.out.println(userId + "'s connecting denied: no authentication implemented but DB handle opened and cached");
+                    break;
+                default:
+                    System.out.println(userId + "'s connecting denied: unknown reseaon with res -- " + res);
+                    break;
+            }
         }
         return (res > 0);
     }
