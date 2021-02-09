@@ -56,7 +56,7 @@ protected:
                 break;
         }
         if (res > 0) {
-            std::wcout << userId << "'s connecting permitted\n";
+            std::wcout << userId << "'s connecting permitted, and DB handle opened and cached\n";
         } else {
             switch (res) {
             case SP_PLUGIN_AUTH_FAILED:
