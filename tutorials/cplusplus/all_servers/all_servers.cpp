@@ -20,7 +20,7 @@ public:
 
 protected:
     virtual bool OnIsPermitted(USocket_Server_Handle h, const wchar_t* userId, const wchar_t* password, unsigned int serviceId) {
-        int res = 0;
+        int res = SP_PLUGIN_AUTH_NOT_IMPLEMENTED;
         switch (serviceId) {
             case Odbc::sidOdbc:
                 if (ODBC_DoAuth) {
@@ -58,7 +58,23 @@ protected:
         if (res > 0) {
             std::wcout << userId << "'s connecting permitted\n";
         } else {
-            std::wcout << userId << "'s connecting denied because of failed database authentication, unknown service or other\n";
+            switch (res) {
+            case SP_PLUGIN_AUTH_FAILED:
+                std::wcout << userId << "'s connecting denied: bad password\n";
+                break;
+            case SP_PLUGIN_AUTH_NOT_IMPLEMENTED:
+                std::wcout << userId << "'s connecting denied: no authentication implemented\n";
+                break;
+            case SP_PLUGIN_AUTH_INTERNAL_ERROR:
+                std::wcout << userId << "'s connecting denied: plugin internal error\n";
+                break;
+            case SP_PLUGIN_AUTH_PROCESSED:
+                std::wcout << userId << "'s connecting denied: no authentication implemented but DB handle opened and cached\n";
+                break;
+            default:
+                std::wcout << userId << "'s connecting denied: unknown reseaon with res -- " << res << "\n";
+                break;
+            }
         }
         return (res > 0);
     }
