@@ -9,15 +9,7 @@
 namespace SPA
 {
     namespace ServerSide{
-#ifndef NATIVE_UTF16_SUPPORTED
-        const UTF16 * CSqliteImpl::NO_DB_OPENED_YET = L"No sqlite database opened yet";
-        const UTF16 * CSqliteImpl::BAD_END_TRANSTACTION_PLAN = L"Bad end transaction plan";
-        const UTF16 * CSqliteImpl::NO_PARAMETER_SPECIFIED = L"No parameter specified";
-        const UTF16 * CSqliteImpl::BAD_PARAMETER_DATA_ARRAY_SIZE = L"Bad parameter data array length";
-        const UTF16 * CSqliteImpl::BAD_PARAMETER_COLUMN_SIZE = L"Bad parameter column size";
-        const UTF16 * CSqliteImpl::DATA_TYPE_NOT_SUPPORTED = L"Data type not supported";
-        const UTF16 * CSqliteImpl::NO_DB_FILE_SPECIFIED = L"No sqlite database file specified";
-#else
+
         const UTF16 * CSqliteImpl::NO_DB_OPENED_YET = u"No sqlite database opened yet";
         const UTF16 * CSqliteImpl::BAD_END_TRANSTACTION_PLAN = u"Bad end transaction plan";
         const UTF16 * CSqliteImpl::NO_PARAMETER_SPECIFIED = u"No parameter specified";
@@ -25,13 +17,14 @@ namespace SPA
         const UTF16 * CSqliteImpl::BAD_PARAMETER_COLUMN_SIZE = u"Bad parameter column size";
         const UTF16 * CSqliteImpl::DATA_TYPE_NOT_SUPPORTED = u"Data type not supported";
         const UTF16 * CSqliteImpl::NO_DB_FILE_SPECIFIED = u"No sqlite database file specified";
-#endif
+
         CDBString CSqliteImpl::m_strGlobalConnection;
 
         unsigned int CSqliteImpl::m_nParam = 0;
 
         CUCriticalSection CSqliteImpl::m_csPeer;
         std::unordered_map<std::string, std::vector < std::string >> CSqliteImpl::m_mapCache;
+        std::unordered_map<USocket_Server_Handle, CSqliteImpl::MyStruct> CSqliteImpl::m_mapSqlite;
         std::string CSqliteImpl::DIU_TRIGGER_PREFIX("sp_streaming_db_trigger_");
         std::string CSqliteImpl::DIU_TRIGGER_FUNC("sp_sqlite_db_event_func");
 
@@ -64,7 +57,7 @@ namespace SPA
             std::string s = dbFile;
             Utilities::Trim(s);
 #ifdef WIN32
-            std::transform(s.begin(), s.end(), s.begin(), ::tolower);
+            ToLower(s);
 #endif
             for (auto it = m_mapCache.cbegin(), end = m_mapCache.cend(); it != end; ++it) {
                 size_t pos = s.rfind(it->first);
@@ -200,16 +193,18 @@ namespace SPA
             sql += ");END";
             char *err_msg = nullptr;
             int rc = sqlite3_exec(db, sql.c_str(), nullptr, nullptr, &err_msg);
-            if (rc != SQLITE_OK && err_msg)
+            if (rc != SQLITE_OK && err_msg) {
                 sqlite3_free(err_msg);
+            }
             return rc == SQLITE_OK;
         }
 
         size_t CSqliteImpl::HasKey(const std::vector<std::pair<std::string, char> > &vCol) {
             size_t keys = 0;
             for (auto it = vCol.begin(), end = vCol.end(); it != end; ++it) {
-                if (it->second != '0')
+                if (it->second != '0') {
                     ++keys;
+                }
             }
             return keys;
         }
@@ -217,8 +212,9 @@ namespace SPA
         void CSqliteImpl::DropATrigger(sqlite3 *db, const std::string & sql) {
             char *err_msg = nullptr;
             int rc = sqlite3_exec(db, sql.c_str(), nullptr, nullptr, &err_msg);
-            if (rc != SQLITE_OK && err_msg)
+            if (rc != SQLITE_OK && err_msg) {
                 sqlite3_free(err_msg);
+            }
         }
 
         void CSqliteImpl::DropAllTriggers(sqlite3 * db, const std::vector<std::string> &vTable) {
@@ -281,24 +277,55 @@ namespace SPA
         }
 
         void CSqliteImpl::SetDBGlobalConnectionString(const UTF16 * dbConnection) {
-#ifndef NATIVE_UTF16_SUPPORTED
-            std::wstring str = dbConnection ? dbConnection : L"";
-            std::transform(str.begin(), str.end(), str.begin(), ::tolower);
-#else
             CDBString str = dbConnection ? dbConnection : u"";
-#endif
             SPA::CAutoLock al(m_csPeer);
-            m_mapCache.clear();
             m_strGlobalConnection.clear();
             size_t pos = str.find('+');
-            if (pos == CDBString::npos)
+            if (pos == CDBString::npos) {
                 m_strGlobalConnection = str;
-            else {
+            } else {
+                //old connection string may contain cached tables
+                m_mapCache.clear();
                 m_strGlobalConnection = str.substr(0, pos);
                 str = str.substr(pos + 1);
                 SetCacheTables(str);
                 SetTriggers();
             }
+        }
+
+        CDBString CSqliteImpl::GetDBGlobalConnectionString() {
+            SPA::CAutoLock al(m_csPeer);
+            return m_strGlobalConnection;
+        }
+
+        void CSqliteImpl::CacheHandle(UINT64 hSocket, const CDBString &db, std::shared_ptr<sqlite3> sqlite) {
+            MyStruct ms;
+            ms.DefaultDB = db;
+            ms.Handle = sqlite;
+            SPA::CAutoLock al(m_csPeer);
+            m_mapSqlite[hSocket] = ms;
+        }
+
+        std::string CSqliteImpl::GetCachedTables() {
+            std::string str;
+            SPA::CAutoLock al(m_csPeer);
+            for (auto it = m_mapCache.cbegin(), end = m_mapCache.cend(); it != end; ++it) {
+                const std::string &dbName = it->first;
+                const auto& vTables = it->second;
+                for (auto n = vTables.cbegin(), nend = vTables.cend(); n != nend; ++n) {
+                    if (str.size()) str.push_back(';');
+                    str += (dbName + '.' + *n);
+                }
+            }
+            return std::move(str);
+        }
+
+        void CSqliteImpl::SetCachedTables(const UTF16 * cachedTables) {
+            CDBString str = cachedTables ? cachedTables : u"";
+            SPA::CAutoLock al(m_csPeer);
+            m_mapCache.clear();
+            SetCacheTables(str);
+            SetTriggers();
         }
 
         void CSqliteImpl::XFunc(sqlite3_context *context, int count, sqlite3_value **pp) {
@@ -398,6 +425,10 @@ namespace SPA
             m_nParam = param;
         }
 
+        unsigned int CSqliteImpl::GetInitialParam() {
+            return m_nParam;
+        }
+
         CSqliteImpl::~CSqliteImpl() {
             Clean();
         }
@@ -438,6 +469,7 @@ namespace SPA
             Clean();
             m_global = true;
             m_EnableMessages = false;
+            m_dbNameOpened.clear();
         }
 
         void CSqliteImpl::ResetMemories() {
@@ -515,6 +547,14 @@ namespace SPA
             m_oks = 0;
             m_fails = 0;
             m_ti = tagTransactionIsolation::tiUnspecified;
+            USocket_Server_Handle hSocket = GetSocketHandle();
+            CAutoLock al(m_csPeer);
+            auto it = m_mapSqlite.find(hSocket);
+            if (it != m_mapSqlite.end()) {
+                m_pSqlite = it->second.Handle;
+                m_dbNameOpened = it->second.DefaultDB;
+                m_mapSqlite.erase(hSocket);
+            }
         }
 
         void CSqliteImpl::OnFastRequestArrive(unsigned short reqId, unsigned int len) {
@@ -860,7 +900,7 @@ namespace SPA
             if (!m_pSqlite) {
                 CDBString s = dbConn;
 #ifdef WIN32_64
-                std::transform(s.begin(), s.end(), s.begin(), ::tolower);
+                ToLower(s);
 #endif
                 if (!s.size() && m_global) {
                     m_csPeer.lock();
@@ -1256,8 +1296,8 @@ namespace SPA
             return m_vPreparedStatements.size();
         }
 
-        sqlite3 * CSqliteImpl::GetDBHandle() const {
-            return m_pSqlite.get();
+        std::shared_ptr<sqlite3> CSqliteImpl::GetDBHandle() const {
+            return m_pSqlite;
         }
 
         const std::vector<std::shared_ptr<sqlite3_stmt> >& CSqliteImpl::GetPreparedStatements() const {
@@ -1351,6 +1391,7 @@ namespace SPA
                 GetPush().Unsubscribe();
                 m_EnableMessages = false;
             }
+            m_dbNameOpened.clear();
         }
 
         void CSqliteImpl::BeginTrans(int isolation, const CDBString &dbConn, unsigned int flags, int &res, CDBString &errMsg, int &ms) {
@@ -1358,7 +1399,7 @@ namespace SPA
             if (!m_pSqlite) {
                 CDBString s = dbConn;
 #ifdef WIN32_64
-                std::transform(s.begin(), s.end(), s.begin(), ::tolower);
+                ToLower(s);
 #endif
                 if (!s.size() && m_global) {
                     m_csPeer.lock();
@@ -1518,17 +1559,28 @@ namespace SPA
                     assert(ret == SQLITE_OK);
                 }
             });
+            if (!res) {
+                m_dbNameOpened = strConnection;
+            }
             return res;
         }
 
         void CSqliteImpl::Open(const CDBString &strConn, unsigned int flags, int &res, CDBString &errMsg, int &ms) {
             ms = (int) tagManagementSystem::msSqlite;
             m_vPreparedStatements.clear();
-            m_pSqlite.reset();
             ResetMemories();
+#ifdef WIN32_64
+            bool case_sensitive = false;
+#else
+            bool case_sensitive = true;
+#endif
+            if ((!strConn.size() || SPA::IsEqual(strConn.c_str(), m_dbNameOpened.c_str(), case_sensitive)) && m_pSqlite) {
+                return;
+            }
+            m_pSqlite.reset();
             CDBString strConnection = strConn;
 #ifdef WIN32_64
-            std::transform(strConnection.begin(), strConnection.end(), strConnection.begin(), ::tolower);
+            ToLower(strConnection);
 #endif
             if (strConnection.size()) {
                 m_global = false;
@@ -1544,7 +1596,8 @@ namespace SPA
                 return;
             }
             res = DoSafeOpen(strConnection, flags);
-            sqlite3 *db = m_pSqlite.get();
+            sqlite3* db = m_pSqlite.get();
+            const char* strFile = sqlite3_db_filename(db, nullptr);
             if (res) {
                 if (db) {
                     const char *str = sqlite3_errmsg(db);
@@ -1583,7 +1636,7 @@ namespace SPA
         void CSqliteImpl::SetDataType(const char *str, CDBColumnInfo & info) {
             if (str) {
                 std::string datatype(str);
-                std::transform(datatype.begin(), datatype.end(), datatype.begin(), ::toupper);
+                ToUpper(datatype);
                 if (datatype.find("CHAR") != (size_t) - 1/*VARCHAR*/) {
                     info.DataType = (VT_I1 | VT_ARRAY);
                     SetLen(datatype, info);

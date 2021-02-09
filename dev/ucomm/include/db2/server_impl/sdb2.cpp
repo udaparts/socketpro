@@ -1,11 +1,11 @@
-#include "odbcimpl.h"
+#include "../../odbc/server_impl/odbcimpl.h"
 
 std::shared_ptr<SPA::ServerSide::COdbcService> g_pOdbc;
 
 bool WINAPI InitServerLibrary(int param) {
     if (!SPA::ServerSide::COdbcImpl::SetODBCEnv(param))
         return false;
-    g_pOdbc.reset(new SPA::ServerSide::COdbcService(SPA::Odbc::sidOdbc, SPA::tagThreadApartment::taNone));
+    g_pOdbc.reset(new SPA::ServerSide::COdbcService(SPA::Db2::sidDB2, SPA::tagThreadApartment::taNone));
     return true;
 }
 
@@ -20,13 +20,13 @@ unsigned short WINAPI GetNumOfServices() {
 
 unsigned int WINAPI GetAServiceID(unsigned short index) {
     if (index == 0)
-        return SPA::Odbc::sidOdbc;
+        return SPA::Db2::sidDB2;
     return 0;
 }
 
 CSvsContext WINAPI GetOneSvsContext(unsigned int serviceId) {
     CSvsContext sc;
-    if (g_pOdbc && serviceId == SPA::Odbc::sidOdbc)
+    if (g_pOdbc && serviceId == SPA::Db2::sidDB2)
         sc = g_pOdbc->GetSvsContext();
     else
         memset(&sc, 0, sizeof (sc));

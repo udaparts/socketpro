@@ -3,10 +3,6 @@ using namespace SPA::ServerSide;
 
 std::shared_ptr<CSqliteService> g_pSqlite;
 
-void WINAPI SetSqliteDBGlobalConnectionString(const wchar_t *dbConnection) {
-    CSqliteImpl::SetDBGlobalConnectionString(SPA::Utilities::ToUTF16(dbConnection).c_str());
-}
-
 bool WINAPI InitServerLibrary(int param) {
     CSqliteImpl::SetInitialParam((unsigned int) param);
     g_pSqlite.reset(new CSqliteService(SPA::Sqlite::sidSqlite, SPA::tagThreadApartment::taNone));

@@ -26,21 +26,9 @@ namespace SPA
     namespace ServerSide{
 
         CUCriticalSection CMysqlImpl::m_csPeer;
-        my_bool CMysqlImpl::B_IS_NULL = 1;
         CDBString CMysqlImpl::m_strGlobalConnection;
         bool CMysqlImpl::m_bInitMysql = false;
-#ifndef NATIVE_UTF16_SUPPORTED
-        const UTF16 * CMysqlImpl::NO_DB_OPENED_YET = L"No mysql database opened yet";
-        const UTF16 * CMysqlImpl::BAD_END_TRANSTACTION_PLAN = L"Bad end transaction plan";
-        const UTF16 * CMysqlImpl::NO_PARAMETER_SPECIFIED = L"No parameter specified";
-        const UTF16 * CMysqlImpl::BAD_PARAMETER_DATA_ARRAY_SIZE = L"Bad parameter data array length";
-        const UTF16 * CMysqlImpl::BAD_PARAMETER_COLUMN_SIZE = L"Bad parameter column size";
-        const UTF16 * CMysqlImpl::DATA_TYPE_NOT_SUPPORTED = L"Data type not supported";
-        const UTF16 * CMysqlImpl::NO_DB_NAME_SPECIFIED = L"No mysql database name specified";
-        const UTF16 * CMysqlImpl::MYSQL_LIBRARY_NOT_INITIALIZED = L"Mysql library not initialized";
-        const UTF16 * CMysqlImpl::BAD_MANUAL_TRANSACTION_STATE = L"Bad manual transaction state";
-        const UTF16 * CMysqlImpl::MYSQL_GLOBAL_CONNECTION_STRING = L"MYSQL_GLOBAL_CONNECTION_STRING";
-#else
+
         const UTF16 * CMysqlImpl::NO_DB_OPENED_YET = u"No mysql database opened yet";
         const UTF16 * CMysqlImpl::BAD_END_TRANSTACTION_PLAN = u"Bad end transaction plan";
         const UTF16 * CMysqlImpl::NO_PARAMETER_SPECIFIED = u"No parameter specified";
@@ -51,9 +39,6 @@ namespace SPA
         const UTF16 * CMysqlImpl::MYSQL_LIBRARY_NOT_INITIALIZED = u"Mysql library not initialized";
         const UTF16 * CMysqlImpl::BAD_MANUAL_TRANSACTION_STATE = u"Bad manual transaction state";
         const UTF16 * CMysqlImpl::MYSQL_GLOBAL_CONNECTION_STRING = u"MYSQL_GLOBAL_CONNECTION_STRING";
-#endif
-
-        unsigned int CMysqlImpl::m_nParam = 0;
 
         CMysqlLoader CMysqlImpl::m_remMysql;
         CMysqlImpl::CMyMap CMysqlImpl::m_mapConnection;
@@ -91,7 +76,7 @@ namespace SPA
                 string right = it->substr(pos + 1);
                 Utilities::Trim(left);
                 Utilities::Trim(right);
-                transform(left.begin(), left.end(), left.begin(), ::tolower);
+                ToLower(left);
                 if (left == "connect-timeout" || left == "timeout" || left == "connection-timeout")
                     timeout = (unsigned int) std::atoi(right.c_str());
                 else if (left == "database" || left == "db")
@@ -136,11 +121,7 @@ namespace SPA
         }
 
         bool CMysqlImpl::SetPublishDBEvent(CMysqlImpl & impl) {
-#ifndef NATIVE_UTF16_SUPPORTED
-            CDBString wsql = L"CREATE FUNCTION PublishDBEvent RETURNS INTEGER SONAME 'smysql.dll'";
-#else
             CDBString wsql = u"CREATE FUNCTION PublishDBEvent RETURNS INTEGER SONAME 'libsmysql.so'";
-#endif
             int res = 0;
             INT64 affected;
             SPA::UDB::CDBVariant vtId;
@@ -168,13 +149,8 @@ namespace SPA
         }
 
         bool CMysqlImpl::RemoveUnusedTriggers(const std::vector<std::string> &vecTables) {
-#ifndef NATIVE_UTF16_SUPPORTED
-            CDBString prefix(STREAMING_DB_TRIGGER_PREFIX);
-            CDBString sql_existing = L"SELECT event_object_schema,trigger_name,EVENT_OBJECT_TABLE FROM INFORMATION_SCHEMA.TRIGGERS where TRIGGER_NAME like '" + prefix + L"%' order by event_object_schema,EVENT_OBJECT_TABLE";
-#else
             CDBString prefix(STREAMING_DB_TRIGGER_PREFIX);
             CDBString sql_existing = u"SELECT event_object_schema,trigger_name,EVENT_OBJECT_TABLE FROM INFORMATION_SCHEMA.TRIGGERS where TRIGGER_NAME like '" + prefix + u"%' order by event_object_schema,EVENT_OBJECT_TABLE";
-#endif
             int res = 0;
             INT64 affected;
             SPA::UDB::CDBVariant vtId;
@@ -202,20 +178,12 @@ namespace SPA
                     return (trigger_db_table == s);
                 });
                 if (ret == vec.end()) {
-#ifndef NATIVE_UTF16_SUPPORTED
-                    CDBString wsql = L"USE `" + Utilities::ToWide(schema) + L"`";
-#else
                     CDBString wsql = u"USE `" + CDBString(Utilities::ToUTF16(schema)) + u"`";
-#endif
                     Execute(wsql, false, false, false, 0, affected, res, errMsg, vtId, fail_ok);
                     res = 0;
 
                     //trigger not needed any more as it is not found inside sp_streaming_db.config.cached_tables
-#ifndef NATIVE_UTF16_SUPPORTED
-                    wsql = L"drop trigger " + Utilities::ToWide(name);
-#else
                     wsql = u"drop trigger " + CDBString(Utilities::ToUTF16(name));
-#endif
                     Execute(wsql, false, false, false, 0, affected, res, errMsg, vtId, fail_ok);
                     if (res) {
                         CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Removing the unused trigger %s failed(errCode=%d; errMsg=%s)", name.c_str(), res, Utilities::ToUTF8(errMsg).c_str());
@@ -231,21 +199,12 @@ namespace SPA
             bool bDelete = false, bInsert = false, bUpdate = false;
             CDBString wSchema = Utilities::ToUTF16(schema);
             CDBString wTable = Utilities::ToUTF16(table);
-#ifndef NATIVE_UTF16_SUPPORTED
-            CDBString prefix(STREAMING_DB_TRIGGER_PREFIX);
-            CDBString sql_existing = L"SELECT EVENT_MANIPULATION, TRIGGER_NAME FROM INFORMATION_SCHEMA.TRIGGERS WHERE ";
-            sql_existing += L"EVENT_OBJECT_SCHEMA='" + wSchema + L"'";
-            sql_existing += L" AND EVENT_OBJECT_TABLE='" + wTable + L"'";
-            sql_existing += L" AND ACTION_TIMING='AFTER'";
-            sql_existing += L" AND TRIGGER_NAME LIKE '" + prefix + L"%' ORDER BY EVENT_MANIPULATION";
-#else
             CDBString prefix(STREAMING_DB_TRIGGER_PREFIX);
             CDBString sql_existing = u"SELECT EVENT_MANIPULATION, TRIGGER_NAME FROM INFORMATION_SCHEMA.TRIGGERS WHERE ";
             sql_existing += u"EVENT_OBJECT_SCHEMA='" + wSchema + u"'";
             sql_existing += u" AND EVENT_OBJECT_TABLE='" + wTable + u"'";
             sql_existing += u" AND ACTION_TIMING='AFTER'";
             sql_existing += u" AND TRIGGER_NAME LIKE '" + prefix + u"%' ORDER BY EVENT_MANIPULATION";
-#endif
             int res = 0;
             INT64 affected;
             SPA::UDB::CDBVariant vtId;
@@ -274,15 +233,9 @@ namespace SPA
             }
             if (bInsert && bDelete && bUpdate)
                 return false;
-#ifndef NATIVE_UTF16_SUPPORTED
-            CDBString sql = L"SELECT COLUMN_NAME,COLUMN_KEY FROM information_schema.COLUMNS WHERE TABLE_SCHEMA='";
-            sql += (wSchema + L"' AND TABLE_NAME='");
-            sql += (wTable + L"' ORDER BY TABLE_NAME,ORDINAL_POSITION");
-#else
             CDBString sql = u"SELECT COLUMN_NAME,COLUMN_KEY FROM information_schema.COLUMNS WHERE TABLE_SCHEMA='";
             sql += (wSchema + u"' AND TABLE_NAME='");
             sql += (wTable + u"' ORDER BY TABLE_NAME,ORDINAL_POSITION");
-#endif
             m_pNoSending = &q;
             Execute(sql, true, true, false, 0, affected, res, errMsg, vtId, fail_ok);
             m_pNoSending = nullptr;
@@ -306,11 +259,7 @@ namespace SPA
                     pk.Pri = false;
                 vKey.push_back(pk);
             }
-#ifndef NATIVE_UTF16_SUPPORTED
-            sql = L"USE `" + wSchema + L"`";
-#else
             sql = u"USE `" + wSchema + u"`";
-#endif
             Execute(sql, false, false, false, 0, affected, res, errMsg, vtId, fail_ok);
             if (!bInsert) {
                 sql = GetCreateTriggerSQL(wSchema.c_str(), wTable.c_str(), vKey, tagUpdateEvent::ueInsert);
@@ -356,58 +305,6 @@ namespace SPA
                     *it = '_';
                 }
             }
-#ifndef NATIVE_UTF16_SUPPORTED
-            sql = L"CREATE TRIGGER ";
-            sql += STREAMING_DB_TRIGGER_PREFIX;
-            sql += (strDB + L"_");
-            sql += (strTable + L"_");
-            switch (eventType) {
-                case tagUpdateEvent::ueDelete:
-                    sql += L"DELETE AFTER DELETE ON `";
-                    for (auto it = vPriKey.begin(), end = vPriKey.end(); it != end; ++it) {
-                        if (it->Pri) {
-                            vDelKey.push_back(*it);
-                        }
-                    }
-                    if (vDelKey.size()) {
-                        pKey = &vDelKey;
-                    }
-                    break;
-                case tagUpdateEvent::ueInsert:
-                    sql += L"INSERT AFTER INSERT ON `";
-                    break;
-                default: //update
-                    sql += L"UPDATE AFTER UPDATE ON `";
-                    break;
-            }
-            sql += db;
-            sql += L"`.`";
-            sql += table;
-            sql += L"` FOR EACH ROW BEGIN DECLARE res BIGINT;";
-            sql += L"SELECT PublishDBEvent(" + std::to_wstring((SPA::INT64)eventType);
-            sql += L",USER(),DATABASE(),'";
-            sql += table;
-            sql += L"'";
-            for (auto it = pKey->begin(), end = pKey->end(); it != end; ++it) {
-                switch (eventType) {
-                    case tagUpdateEvent::ueDelete:
-                        sql += L",old.`";
-                        break;
-                    case tagUpdateEvent::ueInsert:
-                        sql += L",new.`";
-                        break;
-                    default: //update
-                        sql += L",old.`";
-                        break;
-                }
-                sql += (Utilities::ToWide(it->ColumnName.c_str(), it->ColumnName.size()) + L"`");
-                if (eventType == tagUpdateEvent::ueUpdate) {
-                    sql += L",new.`";
-                    sql += (Utilities::ToWide(it->ColumnName.c_str(), it->ColumnName.size()) + L"`");
-                }
-            }
-            sql += L")INTO res;END";
-#else
             sql = u"CREATE TRIGGER ";
             sql += STREAMING_DB_TRIGGER_PREFIX;
             sql += (strDB + u"_");
@@ -458,7 +355,6 @@ namespace SPA
                 }
             }
             sql += u")INTO res;END";
-#endif
             return sql;
         }
 #endif
@@ -507,6 +403,16 @@ namespace SPA
                 m_strGlobalConnection.clear();
             }
             m_csPeer.unlock();
+        }
+
+        CDBString CMysqlImpl::GetDBGlobalConnectionString() {
+            SPA::CAutoLock al(m_csPeer);
+            return m_strGlobalConnection;
+        }
+
+        bool CMysqlImpl::IsMysqlInitialized() {
+            SPA::CAutoLock al(m_csPeer);
+            return m_bInitMysql;
         }
 
         void CMysqlImpl::OnReleaseSource(bool bClosing, unsigned int info) {
@@ -565,6 +471,14 @@ namespace SPA
             return 0;
         }
 
+        std::shared_ptr<MYSQL> CMysqlImpl::GetDBConnHandle() {
+            return m_pMysql;
+        }
+
+        CDBString CMysqlImpl::GetDefaultDBName() {
+            return m_dbNameOpened;
+        }
+
         void CMysqlImpl::Open(const CDBString &strConnection, unsigned int flags, int &res, CDBString &errMsg, int &ms) {
             ms = (int) tagManagementSystem::msMysql;
             if ((flags & ENABLE_TABLE_UPDATE_MESSAGES) == ENABLE_TABLE_UPDATE_MESSAGES) {
@@ -579,33 +493,14 @@ namespace SPA
                 res = 0;
                 CDBString db(strConnection);
                 Utilities::Trim(db);
-                if (m_dbNameOpened.size() && !db.size()) {
+                if (!db.size() || SPA::IsEqual(db.c_str(), m_dbNameOpened.c_str(), false)) {
                     errMsg = m_dbNameOpened;
+                    return;
                 } else {
-#ifdef WIN32_64
-                    std::transform(db.begin(), db.end(), db.begin(), ::tolower);
-                    std::transform(m_dbNameOpened.begin(), m_dbNameOpened.end(), m_dbNameOpened.begin(), ::tolower);
-#endif
-                    if (!db.size()) {
-#ifndef NATIVE_UTF16_SUPPORTED
-                        db = L"mysql"; //default to mysql database
-#else
-                        db = u"mysql"; //default to mysql database
-#endif
-                    }
-                    if (db == m_dbNameOpened) {
-                        errMsg = db;
-                        return;
-                    }
                     INT64 affected;
                     CDBVariant vtId;
                     UINT64 fail_ok;
-#ifndef NATIVE_UTF16_SUPPORTED
-                    CDBString sql(L"USE ");
-#else
-                    CDBString sql(u"USE ");
-#endif
-                    sql += db;
+                    CDBString sql(u"USE " + db);
                     Execute(sql, false, false, false, 0, affected, res, errMsg, vtId, fail_ok);
                     if (res) {
                         int r;
@@ -633,13 +528,6 @@ namespace SPA
                     conn.Parse(Utilities::ToUTF8(db).c_str());
                     int failed = m_remMysql.mysql_options(mysql, MYSQL_OPT_CONNECT_TIMEOUT, &conn.timeout);
                     assert(!failed);
-#if 0 //def WIN32_64
-                    unsigned int sm = MYSQL_PROTOCOL_MEMORY;
-                    failed = m_remMysql.mysql_options(mysql, MYSQL_OPT_PROTOCOL, &sm);
-                    assert(!failed);
-                    failed = m_remMysql.mysql_options(mysql, MYSQL_SHARED_MEMORY_BASE_NAME, "MYSQL");
-                    assert(!failed);
-#endif
 #ifndef WIN32_64
                     if (conn.socket.size()) {
                         unsigned int socket = MYSQL_PROTOCOL_SOCKET;
@@ -687,6 +575,8 @@ namespace SPA
                     } else {
                         errMsg = MYSQL_GLOBAL_CONNECTION_STRING;
                     }
+                    if (!m_dbNameOpened.size()) m_dbNameOpened = u"mysql";
+                    if (!errMsg.size()) errMsg = m_dbNameOpened;
                 } while (false);
                 if (!res) {
                     m_pMysql.reset(mysql, [](MYSQL * mysql) {
@@ -909,35 +799,35 @@ namespace SPA
                 MYSQL_FIELD &f = field[n];
                 if (meta) {
                     if (f.name) {
-                        info.DisplayName.assign(f.name, f.name + ::strlen(f.name));
+                        info.DisplayName.assign(f.name, f.name + f.name_length);
                     } else {
                         info.DisplayName.clear();
                     }
                     if (f.org_name) {
-                        info.OriginalName.assign(f.org_name, f.org_name + ::strlen(f.org_name));
+                        info.OriginalName.assign(f.org_name, f.org_name + f.org_name_length);
                     } else {
                         info.OriginalName = info.DisplayName;
                     }
 
                     if (f.table) {
-                        info.TablePath.assign(f.table, f.table + ::strlen(f.table));
+                        info.TablePath.assign(f.table, f.table + f.table_length);
                     } else if (f.org_table) {
-                        info.TablePath.assign(f.org_table, f.org_table + ::strlen(f.org_table));
+                        info.TablePath.assign(f.org_table, f.org_table + f.org_table_length);
                     } else {
                         info.TablePath.clear();
                     }
                     if (f.db) {
-                        info.DBPath.assign(f.db, f.db + ::strlen(f.db));
+                        info.DBPath.assign(f.db, f.db + f.db_length);
                     } else {
                         info.DBPath.clear();
                     }
 
                     if (f.org_table && (f.org_table != f.table)) {
-                        info.Collation.assign(f.org_table, f.org_table + ::strlen(f.org_table));
+                        info.Collation.assign(f.org_table, f.org_table + f.org_table_length);
                     } else if (f.catalog) {
-                        info.Collation.assign(f.catalog, f.catalog + ::strlen(f.catalog));
+                        info.Collation.assign(f.catalog, f.catalog + f.catalog_length);
                     } else if (f.def) {
-                        info.Collation.assign(f.def, f.def + ::strlen(f.def));
+                        info.Collation.assign(f.def, f.def + f.def_length);
                     } else {
                         info.Collation.clear();
                     }
@@ -973,11 +863,8 @@ namespace SPA
                     case MYSQL_TYPE_NEWDECIMAL:
                     case MYSQL_TYPE_DECIMAL:
                         if (meta) {
-#ifndef NATIVE_UTF16_SUPPORTED
-                            info.DeclaredType = L"DECIMAL"; //The maximum number of digits for DECIMAL is 65, but the actual range for a given DECIMAL column can be constrained by the precision or scale for a given column.
-#else
+                            //The maximum number of digits for DECIMAL is 65, but the actual range for a given DECIMAL column can be constrained by the precision or scale for a given column.
                             info.DeclaredType = u"DECIMAL";
-#endif
                         }
                         info.DataType = (VT_I1 | VT_ARRAY); //string
                         info.Scale = (unsigned char) f.decimals;
@@ -985,11 +872,7 @@ namespace SPA
                         break;
                     case MYSQL_TYPE_TINY:
                         if (meta) {
-#ifndef NATIVE_UTF16_SUPPORTED
-                            info.DeclaredType = L"TINYINT";
-#else
                             info.DeclaredType = u"TINYINT";
-#endif
                         }
                         if ((f.flags & UNSIGNED_FLAG) == UNSIGNED_FLAG)
                             info.DataType = VT_UI1;
@@ -998,11 +881,7 @@ namespace SPA
                         break;
                     case MYSQL_TYPE_SHORT:
                         if (meta) {
-#ifndef NATIVE_UTF16_SUPPORTED
-                            info.DeclaredType = L"SMALLINT";
-#else
                             info.DeclaredType = u"SMALLINT";
-#endif
                         }
                         if ((f.flags & UNSIGNED_FLAG) == UNSIGNED_FLAG)
                             info.DataType = VT_UI2;
@@ -1011,11 +890,7 @@ namespace SPA
                         break;
                     case MYSQL_TYPE_LONG:
                         if (meta) {
-#ifndef NATIVE_UTF16_SUPPORTED
-                            info.DeclaredType = L"INT";
-#else
                             info.DeclaredType = u"INT";
-#endif
                         }
                         if ((f.flags & UNSIGNED_FLAG) == UNSIGNED_FLAG)
                             info.DataType = VT_UI4;
@@ -1024,42 +899,26 @@ namespace SPA
                         break;
                     case MYSQL_TYPE_FLOAT:
                         if (meta) {
-#ifndef NATIVE_UTF16_SUPPORTED
-                            info.DeclaredType = L"FLOAT";
-#else
                             info.DeclaredType = u"FLOAT";
-#endif
                         }
                         info.DataType = VT_R4;
                         break;
                     case MYSQL_TYPE_DOUBLE:
                         if (meta) {
-#ifndef NATIVE_UTF16_SUPPORTED
-                            info.DeclaredType = L"DOUBLE";
-#else
                             info.DeclaredType = u"DOUBLE";
-#endif
                         }
                         info.DataType = VT_R8;
                         break;
                     case MYSQL_TYPE_TIMESTAMP:
                         if (meta) {
-#ifndef NATIVE_UTF16_SUPPORTED
-                            info.DeclaredType = L"TIMESTAMP";
-#else
                             info.DeclaredType = u"TIMESTAMP";
-#endif
                         }
                         info.Scale = (unsigned char) f.decimals;
                         info.DataType = VT_DATE;
                         break;
                     case MYSQL_TYPE_LONGLONG:
                         if (meta) {
-#ifndef NATIVE_UTF16_SUPPORTED
-                            info.DeclaredType = L"BIGINT";
-#else
                             info.DeclaredType = u"BIGINT";
-#endif
                         }
                         if ((f.flags & UNSIGNED_FLAG) == UNSIGNED_FLAG)
                             info.DataType = VT_UI8;
@@ -1068,63 +927,39 @@ namespace SPA
                         break;
                     case MYSQL_TYPE_INT24:
                         if (meta) {
-#ifndef NATIVE_UTF16_SUPPORTED
-                            info.DeclaredType = L"MEDIUMINT";
-#else
                             info.DeclaredType = u"MEDIUMINT";
-#endif
                         }
                         info.DataType = VT_I4;
                         break;
                     case MYSQL_TYPE_DATE:
                         if (meta) {
-#ifndef NATIVE_UTF16_SUPPORTED
-                            info.DeclaredType = L"DATE";
-#else
                             info.DeclaredType = u"DATE";
-#endif
                         }
                         info.DataType = VT_DATE;
                         break;
                     case MYSQL_TYPE_TIME:
                         if (meta) {
-#ifndef NATIVE_UTF16_SUPPORTED
-                            info.DeclaredType = L"TIME";
-#else
                             info.DeclaredType = u"TIME";
-#endif
                         }
                         info.Scale = (unsigned char) f.decimals;
                         info.DataType = VT_DATE;
                         break;
                     case MYSQL_TYPE_DATETIME: //#define DATETIME_MAX_DECIMALS 6
                         if (meta) {
-#ifndef NATIVE_UTF16_SUPPORTED
-                            info.DeclaredType = L"DATETIME";
-#else
                             info.DeclaredType = u"DATETIME";
-#endif
                         }
                         info.Scale = (unsigned char) f.decimals;
                         info.DataType = VT_DATE;
                         break;
                     case MYSQL_TYPE_YEAR:
                         if (meta) {
-#ifndef NATIVE_UTF16_SUPPORTED
-                            info.DeclaredType = L"YEAR";
-#else
                             info.DeclaredType = u"YEAR";
-#endif
                         }
                         info.DataType = VT_I2;
                         break;
                     case MYSQL_TYPE_NEWDATE:
                         if (meta) {
-#ifndef NATIVE_UTF16_SUPPORTED
-                            info.DeclaredType = L"NEWDATE";
-#else
                             info.DeclaredType = u"NEWDATE";
-#endif
                         }
                         info.DataType = VT_DATE;
                         break;
@@ -1132,20 +967,12 @@ namespace SPA
                         info.ColumnSize = f.length;
                         if (f.charsetnr == IS_BINARY) {
                             if (meta) {
-#ifndef NATIVE_UTF16_SUPPORTED
-                                info.DeclaredType = L"VARBINARY";
-#else
                                 info.DeclaredType = u"VARBINARY";
-#endif
                             }
                             info.DataType = (VT_UI1 | VT_ARRAY); //binary
                         } else {
                             if (meta) {
-#ifndef NATIVE_UTF16_SUPPORTED
-                                info.DeclaredType = L"VARCHAR";
-#else
                                 info.DeclaredType = u"VARCHAR";
-#endif
                             }
                             info.DataType = (VT_I1 | VT_ARRAY); //string
                         }
@@ -1153,11 +980,7 @@ namespace SPA
                     case MYSQL_TYPE_BIT:
                         info.ColumnSize = f.length;
                         if (meta) {
-#ifndef NATIVE_UTF16_SUPPORTED
-                            info.DeclaredType = L"BIT";
-#else
                             info.DeclaredType = u"BIT";
-#endif
                         }
                         info.Flags |= CDBColumnInfo::FLAG_IS_BIT;
                         if (f.length == 1)
@@ -1175,50 +998,10 @@ namespace SPA
                         }
                         break;
 #if defined(MYSQL_VERSION_ID) && MYSQL_VERSION_ID > 50700
-                    case MYSQL_TYPE_TIMESTAMP2:
-                        info.ColumnSize = f.length;
-                        if (meta) {
-#ifndef NATIVE_UTF16_SUPPORTED
-                            info.DeclaredType = L"TIMESTAMP2";
-#else
-                            info.DeclaredType = u"TIMESTAMP2";
-#endif
-                        }
-                        info.Scale = (unsigned char) f.decimals;
-                        info.DataType = VT_DATE;
-                        break;
-                    case MYSQL_TYPE_DATETIME2:
-                        info.ColumnSize = f.length;
-                        if (meta) {
-#ifndef NATIVE_UTF16_SUPPORTED
-                            info.DeclaredType = L"DATETIME2";
-#else
-                            info.DeclaredType = u"DATETIME2";
-#endif
-                        }
-                        info.Scale = (unsigned char) f.decimals;
-                        info.DataType = VT_DATE;
-                        break;
-                    case MYSQL_TYPE_TIME2:
-                        info.ColumnSize = f.length;
-                        if (meta) {
-#ifndef NATIVE_UTF16_SUPPORTED
-                            info.DeclaredType = L"TIME2";
-#else
-                            info.DeclaredType = u"TIME2";
-#endif
-                        }
-                        info.Scale = (unsigned char) f.decimals;
-                        info.DataType = VT_DATE;
-                        break;
                     case MYSQL_TYPE_JSON:
                         info.ColumnSize = f.length;
                         if (meta) {
-#ifndef NATIVE_UTF16_SUPPORTED
-                            info.DeclaredType = L"JSON";
-#else
                             info.DeclaredType = u"JSON";
-#endif
                         }
                         info.DataType = (VT_I1 | VT_ARRAY); //string
                         break;
@@ -1226,22 +1009,14 @@ namespace SPA
                     case MYSQL_TYPE_ENUM:
                         info.ColumnSize = f.length;
                         if (meta) {
-#ifndef NATIVE_UTF16_SUPPORTED
-                            info.DeclaredType = L"ENUM";
-#else
                             info.DeclaredType = u"ENUM";
-#endif
                         }
                         info.DataType = (VT_I1 | VT_ARRAY); //string
                         break;
                     case MYSQL_TYPE_SET:
                         info.ColumnSize = f.length;
                         if (meta) {
-#ifndef NATIVE_UTF16_SUPPORTED
-                            info.DeclaredType = L"SET";
-#else
                             info.DeclaredType = u"SET";
-#endif
                         }
                         info.DataType = (VT_I1 | VT_ARRAY); //string
                         break;
@@ -1249,20 +1024,12 @@ namespace SPA
                         info.ColumnSize = f.length;
                         if (f.charsetnr == IS_BINARY) {
                             if (meta) {
-#ifndef NATIVE_UTF16_SUPPORTED
-                                info.DeclaredType = L"TINYBLOB";
-#else
                                 info.DeclaredType = u"TINYBLOB";
-#endif
                             }
                             info.DataType = (VT_UI1 | VT_ARRAY); //binary
                         } else {
                             if (meta) {
-#ifndef NATIVE_UTF16_SUPPORTED
-                                info.DeclaredType = L"TINYTEXT";
-#else
                                 info.DeclaredType = u"TINYTEXT";
-#endif
                             }
                             info.DataType = (VT_I1 | VT_ARRAY); //text
                         }
@@ -1271,20 +1038,12 @@ namespace SPA
                         info.ColumnSize = f.length;
                         if (f.charsetnr == IS_BINARY) {
                             if (meta) {
-#ifndef NATIVE_UTF16_SUPPORTED
-                                info.DeclaredType = L"MEDIUMBLOB";
-#else
                                 info.DeclaredType = u"MEDIUMBLOB";
-#endif
                             }
                             info.DataType = (VT_UI1 | VT_ARRAY); //binary
                         } else {
                             if (meta) {
-#ifndef NATIVE_UTF16_SUPPORTED
-                                info.DeclaredType = L"MEDIUMTEXT";
-#else
                                 info.DeclaredType = u"MEDIUMTEXT";
-#endif
                             }
                             info.DataType = (VT_I1 | VT_ARRAY); //text
                         }
@@ -1293,20 +1052,12 @@ namespace SPA
                         info.ColumnSize = f.length;
                         if (f.charsetnr == IS_BINARY) {
                             if (meta) {
-#ifndef NATIVE_UTF16_SUPPORTED
-                                info.DeclaredType = L"LONGBLOB";
-#else
                                 info.DeclaredType = u"LONGBLOB";
-#endif
                             }
                             info.DataType = (VT_UI1 | VT_ARRAY); //binary
                         } else {
                             if (meta) {
-#ifndef NATIVE_UTF16_SUPPORTED
-                                info.DeclaredType = L"LONGTEXT";
-#else
                                 info.DeclaredType = u"LONGTEXT";
-#endif
                             }
                             info.DataType = (VT_I1 | VT_ARRAY); //text
                         }
@@ -1316,58 +1067,26 @@ namespace SPA
                         if (f.charsetnr == IS_BINARY) {
                             if (meta) {
                                 if (f.length == MYSQL_TINYBLOB) {
-#ifndef NATIVE_UTF16_SUPPORTED
-                                    info.DeclaredType = L"TINYBLOB";
-#else
                                     info.DeclaredType = u"TINYBLOB";
-#endif
                                 } else if (f.length == MYSQL_MIDBLOB) {
-#ifndef NATIVE_UTF16_SUPPORTED
-                                    info.DeclaredType = L"MEDIUMBLOB";
-#else
                                     info.DeclaredType = u"MEDIUMBLOB";
-#endif
                                 } else if (f.length == MYSQL_BLOB) {
-#ifndef NATIVE_UTF16_SUPPORTED
-                                    info.DeclaredType = L"BLOB";
-#else
                                     info.DeclaredType = u"BLOB";
-#endif
                                 } else {
-#ifndef NATIVE_UTF16_SUPPORTED
-                                    info.DeclaredType = L"LONGBLOB";
-#else
                                     info.DeclaredType = u"LONGBLOB";
-#endif
                                 }
                             }
                             info.DataType = (VT_UI1 | VT_ARRAY); //binary
                         } else {
                             if (meta) {
                                 if (f.length == MYSQL_TINYBLOB) {
-#ifndef NATIVE_UTF16_SUPPORTED
-                                    info.DeclaredType = L"TINYTEXT";
-#else
                                     info.DeclaredType = u"TINYTEXT";
-#endif
                                 } else if (f.length == MYSQL_MIDBLOB) {
-#ifndef NATIVE_UTF16_SUPPORTED
-                                    info.DeclaredType = L"MEDIUMTEXT";
-#else
                                     info.DeclaredType = u"MEDIUMTEXT";
-#endif
                                 } else if (f.length == MYSQL_BLOB) {
-#ifndef NATIVE_UTF16_SUPPORTED
-                                    info.DeclaredType = L"TEXT";
-#else
                                     info.DeclaredType = u"TEXT";
-#endif
                                 } else {
-#ifndef NATIVE_UTF16_SUPPORTED
-                                    info.DeclaredType = L"LONGTEXT";
-#else
                                     info.DeclaredType = u"LONGTEXT";
-#endif
                                 }
                             }
                             info.DataType = (VT_I1 | VT_ARRAY); //text
@@ -1377,21 +1096,13 @@ namespace SPA
                         info.ColumnSize = f.length;
                         if (f.charsetnr == IS_BINARY) {
                             if (meta) {
-#ifndef NATIVE_UTF16_SUPPORTED
-                                info.DeclaredType = L"VARBINARY";
-#else
                                 info.DeclaredType = u"VARBINARY";
-#endif
                             }
 
                             info.DataType = (VT_UI1 | VT_ARRAY);
                         } else {
                             if (meta) {
-#ifndef NATIVE_UTF16_SUPPORTED
-                                info.DeclaredType = L"VARCHAR";
-#else
                                 info.DeclaredType = u"VARCHAR";
-#endif
                             }
                             info.DataType = (VT_I1 | VT_ARRAY); //string
                         }
@@ -1400,39 +1111,23 @@ namespace SPA
                         info.ColumnSize = f.length;
                         if ((f.flags & ENUM_FLAG) == ENUM_FLAG) {
                             if (meta) {
-#ifndef NATIVE_UTF16_SUPPORTED
-                                info.DeclaredType = L"ENUM";
-#else
                                 info.DeclaredType = u"ENUM";
-#endif
                             }
                             info.DataType = (VT_I1 | VT_ARRAY); //string
                         } else if ((f.flags & SET_FLAG) == SET_FLAG) {
                             if (meta) {
-#ifndef NATIVE_UTF16_SUPPORTED
-                                info.DeclaredType = L"SET";
-#else
                                 info.DeclaredType = u"SET";
-#endif
                             }
                             info.DataType = (VT_I1 | VT_ARRAY); //string
                         } else {
                             if (f.charsetnr == IS_BINARY) {
                                 if (meta) {
-#ifndef NATIVE_UTF16_SUPPORTED
-                                    info.DeclaredType = L"BINARY";
-#else
                                     info.DeclaredType = u"BINARY";
-#endif
                                 }
                                 info.DataType = (VT_UI1 | VT_ARRAY);
                             } else {
                                 if (meta) {
-#ifndef NATIVE_UTF16_SUPPORTED
-                                    info.DeclaredType = L"CHAR";
-#else
                                     info.DeclaredType = u"CHAR";
-#endif
                                 }
                                 info.DataType = (VT_I1 | VT_ARRAY); //string
                             }
@@ -1442,11 +1137,7 @@ namespace SPA
                     case MYSQL_TYPE_GEOMETRY:
                         info.ColumnSize = f.length;
                         if (meta) {
-#ifndef NATIVE_UTF16_SUPPORTED
-                            info.DeclaredType = L"GEOMETRY";
-#else
                             info.DeclaredType = u"GEOMETRY";
-#endif
                         }
                         info.DataType = (VT_UI1 | VT_ARRAY); //binary array
                         break;
@@ -1536,17 +1227,6 @@ namespace SPA
             }
         }
 
-        UINT64 CMysqlImpl::ConvertBitsToInt(const unsigned char *s, unsigned int bytes) {
-            UINT64 n = 0;
-            for (unsigned int i = 0; i < bytes; ++i) {
-                if (i) {
-                    n <<= 8;
-                }
-                n += s[i];
-            }
-            return n;
-        }
-
         bool CMysqlImpl::PushRecords(MYSQL_RES *result, const CDBColumnInfoArray &vColInfo, int &res, CDBString & errMsg) {
             VARTYPE vt;
             CScopeUQueue sb;
@@ -1556,6 +1236,7 @@ namespace SPA
                 bool blob = false;
                 unsigned long *lengths = m_remMysql.mysql_fetch_lengths(result);
                 for (size_t i = 0; i < fields; ++i) {
+                    const char* end = nullptr;
                     const CDBColumnInfo &colInfo = vColInfo[i];
                     vt = colInfo.DataType;
                     unsigned int len = (unsigned int) (lengths[i]);
@@ -1608,94 +1289,60 @@ namespace SPA
                                 break;
                             case VT_I1:
                             {
-                                const char *end;
                                 char c = (char) SPA::atoi(data, end);
                                 sb->Push((const unsigned char*) &c, sizeof (c));
                             }
                                 break;
                             case VT_UI1:
                             {
-                                unsigned char c;
-                                if (colInfo.ColumnSize) {
-                                    //bit
-                                    c = (unsigned char) (data[0]);
-                                } else {
-                                    const char *end;
-                                    c = (unsigned char) SPA::atoui(data, end);
-                                }
+                                unsigned char c = (unsigned char) SPA::atoui(data, end);
                                 sb->Push(&c, sizeof (c));
                             }
                                 break;
                             case VT_UI2:
                             {
-                                unsigned short c;
-                                if (colInfo.ColumnSize)
-                                    //bit
-                                    c = (unsigned short) ConvertBitsToInt((unsigned char*) data, len);
-                                else {
-                                    const char *end;
-                                    c = (unsigned short) SPA::atoui(data, end);
-                                }
+                                unsigned short c = (unsigned short) SPA::atoui(data, end);
                                 sb->Push((const unsigned char*) &c, sizeof (c));
                             }
                                 break;
                             case VT_I2:
                             {
-                                const char *end;
                                 short c = (short) SPA::atoi(data, end);
                                 sb->Push((const unsigned char*) &c, sizeof (c));
                             }
                                 break;
                             case VT_UI4:
                             {
-                                unsigned int c;
-                                if (colInfo.ColumnSize)
-                                    //bit
-                                    c = (unsigned int) ConvertBitsToInt((unsigned char*) data, len);
-                                else {
-                                    const char *end;
-                                    c = SPA::atoui(data, end);
-                                }
+                                unsigned int c = SPA::atoui(data, end);
                                 sb->Push((const unsigned char*) &c, sizeof (c));
                             }
                                 break;
                             case VT_I4:
                             {
-                                const char *end;
                                 int c = SPA::atoi(data, end);
                                 sb->Push((const unsigned char*) &c, sizeof (c));
                             }
                                 break;
                             case VT_UI8:
                             {
-                                UINT64 c;
-                                if (colInfo.ColumnSize)
-                                    //bit
-                                    c = ConvertBitsToInt((unsigned char*) data, len);
-                                else {
-                                    const char *end;
-                                    c = SPA::atoull(data, end);
-                                }
+                                UINT64 c = SPA::atoull(data, end);
                                 sb->Push((const unsigned char*) &c, sizeof (UINT64));
                             }
                                 break;
                             case VT_I8:
                             {
-                                const char *end;
                                 INT64 c = SPA::atoll(data, end);
                                 sb->Push((const unsigned char*) &c, sizeof (INT64));
                             }
                                 break;
                             case VT_R4:
                             {
-                                const char *end;
                                 float c = (float) SPA::atof(data, end);
                                 sb->Push((const unsigned char*) &c, sizeof (c));
                             }
                                 break;
                             case VT_R8:
                             {
-                                const char *end;
                                 double c = SPA::atof(data, end);
                                 sb->Push((const unsigned char*) &c, sizeof (c));
                             }
@@ -1851,7 +1498,7 @@ namespace SPA
 
         void CMysqlImpl::PreprocessPreparedStatement() {
             std::string s = m_sqlPrepare;
-            transform(s.begin(), s.end(), s.begin(), ::tolower);
+            ToLower(s);
             m_bCall = (s.find("call ") == 0);
             if (m_bCall) {
                 auto pos = m_sqlPrepare.find('(');
@@ -1913,26 +1560,35 @@ namespace SPA
             }
             unsigned int size = sizeof (MYSQL_BIND);
             size *= (unsigned int) m_parameters;
-            SPA::CScopeUQueue sb;
-            if (size > sb->GetMaxSize()) {
-                sb->ReallocBuffer(size);
+            if (size > m_sbBind->GetMaxSize()) {
+                m_sbBind->ReallocBuffer(size);
             }
-            sb->CleanTrack();
+            m_sbBind->CleanTrack();
             qBufferSize.SetSize(0);
-            if ((m_parameters + 1) * sizeof (unsigned long) > qBufferSize.GetMaxSize()) {
-                qBufferSize.ReallocBuffer((unsigned int) ((m_parameters + 1) * sizeof (unsigned long)));
+
+            //is_null/my_bool, length/unsigned long, error/my_bool
+            if ((m_parameters + 1) * (sizeof (unsigned long) + 2) > qBufferSize.GetMaxSize()) {
+                qBufferSize.ReallocBuffer((unsigned int) ((m_parameters + 1) * (sizeof (unsigned long) + 2)));
             }
-            unsigned int indexBS = 0;
-            MYSQL_BIND *pBind = (MYSQL_BIND*) sb->GetBuffer();
+            qBufferSize.CleanTrack();
+            unsigned int offset = 0;
+            unsigned char* start = (unsigned char*) qBufferSize.GetBuffer();
+            MYSQL_BIND *pBind = (MYSQL_BIND*) m_sbBind->GetBuffer();
             for (size_t n = 0; n < m_parameters; ++n) {
                 CDBVariant &data = m_vParam[row * m_parameters + n];
                 unsigned short vt = data.Type();
                 MYSQL_BIND &bind = pBind[n];
+                bind.is_null = (my_bool*) (start);
+                ++start;
+                bind.error = (my_bool*) (start);
+                ++start;
+                bind.length = (unsigned long*) start;
+                start += sizeof (unsigned long);
                 switch (vt) {
                     case VT_NULL:
                     case VT_EMPTY:
                         bind.buffer_type = MYSQL_TYPE_NULL;
-                        bind.is_null = (my_bool*) & CMysqlImpl::B_IS_NULL;
+                        *bind.is_null = (my_bool) 1;
                         break;
                     case VT_I1:
                         bind.buffer_type = MYSQL_TYPE_TINY;
@@ -2003,9 +1659,7 @@ namespace SPA
                         bind.buffer_length = data.parray->rgsabound->cElements;
                         ::SafeArrayAccessData(data.parray, &bind.buffer);
                         ::SafeArrayUnaccessData(data.parray);
-                        qBufferSize << bind.buffer_length;
-                        bind.length = (unsigned long*) qBufferSize.GetBuffer(indexBS * sizeof (unsigned long));
-                        ++indexBS;
+                        *bind.length = bind.buffer_length;
                         break;
                     case VT_BYTES:
                     case (VT_ARRAY | VT_UI1):
@@ -2013,9 +1667,7 @@ namespace SPA
                         bind.buffer_length = data.parray->rgsabound->cElements;
                         ::SafeArrayAccessData(data.parray, &bind.buffer);
                         ::SafeArrayUnaccessData(data.parray);
-                        qBufferSize << bind.buffer_length;
-                        bind.length = (unsigned long*) qBufferSize.GetBuffer(indexBS * sizeof (unsigned long));
-                        ++indexBS;
+                        *bind.length = bind.buffer_length;
                         break;
                     default:
                         assert(false); //not implemented
@@ -2025,6 +1677,7 @@ namespace SPA
                         }
                         break;
                 }
+                offset += (sizeof (unsigned long) + 2);
             }
             if (!res && m_remMysql.mysql_stmt_bind_param(m_pPrepare.get(), pBind)) {
                 res = m_remMysql.mysql_stmt_errno(m_pPrepare.get());
@@ -2035,15 +1688,25 @@ namespace SPA
             return res;
         }
 
-        std::shared_ptr<MYSQL_BIND> CMysqlImpl::PrepareBindResultBuffer(MYSQL_RES *result, const CDBColumnInfoArray &vColInfo, int &res, CDBString &errMsg, std::shared_ptr<MYSQL_BIND_RESULT_FIELD> &field) {
+        std::shared_ptr<MYSQL_BIND> CMysqlImpl::PrepareBindResultBuffer(const CDBColumnInfoArray &vColInfo, int &res, CDBString &errMsg, std::shared_ptr<MYSQL_BIND_RESULT_FIELD> &field) {
             std::shared_ptr<MYSQL_BIND> p(new MYSQL_BIND[vColInfo.size()], [](MYSQL_BIND * b) {
-                if (b) {
-                    delete []b;
+                if (b != nullptr) {
+                    try{
+                        delete[]b;
+                    }
+
+                    catch(...) {
+                    }
                 }
             });
             field.reset(new MYSQL_BIND_RESULT_FIELD[vColInfo.size()], [](MYSQL_BIND_RESULT_FIELD * f) {
-                if (f) {
-                    delete []f;
+                if (f != nullptr) {
+                    try{
+                        delete[]f;
+                    }
+
+                    catch(...) {
+                    }
                 }
             });
             MYSQL_BIND *ps_params = p.get();
@@ -2062,8 +1725,8 @@ namespace SPA
                                 f.ResetMaxBuffer(2 * DEFAULT_BIG_FIELD_CHUNK_SIZE);
                             }
                         } else {
-                            if (it->ColumnSize > f.buffer_length) {
-                                f.ResetMaxBuffer((unsigned int) it->ColumnSize);
+                            if (it->ColumnSize + 1 > f.buffer_length) {
+                                f.ResetMaxBuffer(it->ColumnSize + 1);
                             }
                         }
                         if (vt == (VT_ARRAY | VT_I1)) {
@@ -2073,30 +1736,30 @@ namespace SPA
                         }
                         break;
                     case VT_UI1:
-                        b.buffer_type = MYSQL_TYPE_BIT;
+                        b.buffer_type = MYSQL_TYPE_TINY;
                         break;
                     case VT_I1:
                         b.buffer_type = MYSQL_TYPE_TINY;
                         break;
                     case VT_UI2:
-                        b.buffer_type = MYSQL_TYPE_BIT;
+                        b.buffer_type = MYSQL_TYPE_SHORT;
                         break;
                     case VT_I2:
                         b.buffer_type = MYSQL_TYPE_SHORT;
                         break;
                     case VT_BOOL:
-                        b.buffer_type = MYSQL_TYPE_BIT;
+                        b.buffer_type = MYSQL_TYPE_TINY;
                         break;
                     case VT_UINT:
                     case VT_UI4:
-                        b.buffer_type = MYSQL_TYPE_BIT;
+                        b.buffer_type = MYSQL_TYPE_LONG;
                         break;
                     case VT_INT:
                     case VT_I4:
                         b.buffer_type = MYSQL_TYPE_LONG;
                         break;
                     case VT_UI8:
-                        b.buffer_type = MYSQL_TYPE_BIT;
+                        b.buffer_type = MYSQL_TYPE_LONGLONG;
                         break;
                     case VT_I8:
                         b.buffer_type = MYSQL_TYPE_LONGLONG;
@@ -2118,6 +1781,7 @@ namespace SPA
                 b.buffer_length = f.buffer_length;
                 b.length = &f.length;
                 b.is_null = &f.is_null;
+                b.error = &f.error;
             }
             my_bool fail = m_remMysql.mysql_stmt_bind_result(m_pPrepare.get(), ps_params);
             if (fail) {
@@ -2234,15 +1898,9 @@ namespace SPA
                             }
                                 break;
                             case VT_I2:
-                                assert(*b.length == sizeof (short));
-                                sb->Push((const unsigned char*) b.buffer, sizeof (short));
-                                break;
                             case VT_UI2:
-                            {
-                                unsigned int len = *b.length;
-                                unsigned short c = (unsigned short) ConvertBitsToInt((unsigned char*) b.buffer, len);
-                                sb->Push((const unsigned char*) &c, sizeof (c));
-                            }
+                                assert(*b.length == sizeof (short));
+                                sb->Push((const unsigned char*) b.buffer, 2);
                                 break;
                             case VT_BOOL:
                                 assert(*b.length == sizeof (char));
@@ -2253,29 +1911,17 @@ namespace SPA
                                 break;
                             case VT_UI4:
                             case VT_UINT:
-                            {
-                                unsigned int len = *b.length;
-                                unsigned int c = (unsigned int) ConvertBitsToInt((unsigned char*) b.buffer, len);
-                                sb->Push((const unsigned char*) &c, sizeof (c));
-                            }
-                                break;
                             case VT_I4:
                             case VT_INT:
                             case VT_R4:
                                 assert(*b.length == sizeof (int));
-                                sb->Push((const unsigned char*) b.buffer, sizeof (int));
+                                sb->Push((const unsigned char*) b.buffer, 4);
                                 break;
                             case VT_UI8:
-                            {
-                                unsigned int len = *b.length;
-                                UINT64 c = ConvertBitsToInt((unsigned char*) b.buffer, len);
-                                sb->Push((const unsigned char*) &c, sizeof (c));
-                            }
-                                break;
                             case VT_R8:
                             case VT_I8:
-                                assert(*b.length == sizeof (INT64));
-                                sb->Push((const unsigned char*) b.buffer, sizeof (INT64));
+                                assert(*b.length == 8);
+                                sb->Push((const unsigned char*) b.buffer, 8);
                                 break;
                             case VT_DATE:
                             {
@@ -2562,7 +2208,7 @@ namespace SPA
                 fail_ok <<= 32;
                 return;
             }
-
+            std::shared_ptr<MYSQL_RES> metadata;
             res = 0;
             CScopeUQueue sb;
             UINT64 fails = m_fails;
@@ -2570,16 +2216,18 @@ namespace SPA
             bool header_sent = false;
             int rows = (int) (m_vParam.size() / m_parameters);
             for (int row = 0; row < rows; ++row) {
-                int ret = Bind(*sb, row, errMsg);
-                if (ret) {
+                CDBString err;
+                int my_res = Bind(*sb, row, err);
+                if (my_res) {
                     if (!res) {
-                        res = ret;
+                        res = my_res;
+                        errMsg = err;
                     }
                     ++m_fails;
                     continue;
                 }
-                ret = m_remMysql.mysql_stmt_execute(m_pPrepare.get());
-                if (ret) {
+                my_res = m_remMysql.mysql_stmt_execute(m_pPrepare.get());
+                if (my_res) {
                     if (!res) {
                         res = m_remMysql.mysql_stmt_errno(m_pPrepare.get());
                         errMsg = Utilities::ToUTF16(m_remMysql.mysql_stmt_error(m_pPrepare.get()));
@@ -2596,21 +2244,26 @@ namespace SPA
 
                 unsigned int cols = m_remMysql.mysql_stmt_field_count(m_pPrepare.get());
                 bool output = (m_pMysql.get()->server_status & SERVER_PS_OUT_PARAMS) ? true : false;
-                MYSQL_RES *result = m_remMysql.mysql_stmt_result_metadata(m_pPrepare.get());
+                if (cols) {
+                    metadata.reset(m_remMysql.mysql_stmt_result_metadata(m_pPrepare.get()), [](MYSQL_RES* r) {
+                        if (r) {
+                            m_remMysql.mysql_free_result(r);
+                        }
+                    });
+                }
 #ifndef NDEBUG
                 if (cols) {
-                    assert(result);
+                    assert(metadata);
                 }
 #endif
-                while (result && cols) {
-                    CDBColumnInfoArray vInfo = GetColInfo(result, cols, (meta || m_bCall));
-
+                while (cols) {
+                    CDBColumnInfoArray vInfo = GetColInfo(metadata.get(), cols, (meta || m_bCall));
+                    metadata.reset();
                     if (!output) {
                         //Mysql + Mariadb server_status & SERVER_PS_OUT_PARAMS does NOT work correctly for an unknown reason
                         //This is a hack solution for detecting output result, which may be wrong if a table name is EXACTLY the same as stored procedure name
                         output = (m_bCall && (vInfo[0].TablePath == Utilities::ToUTF16(m_procName)));
                     }
-
                     //we push stored procedure output parameter meta data onto client to follow common approach for output parameter data
                     if (output || rowset || meta) {
                         unsigned int outputs = 0;
@@ -2625,37 +2278,39 @@ namespace SPA
                         }
                     }
                     std::shared_ptr<MYSQL_BIND_RESULT_FIELD> fields;
-                    std::shared_ptr<MYSQL_BIND> pBinds = PrepareBindResultBuffer(result, vInfo, res, errMsg, fields);
+                    std::shared_ptr<MYSQL_BIND> pBinds = PrepareBindResultBuffer(vInfo, my_res, err, fields);
+                    if (my_res) {
+                        if (!res) {
+                            res = my_res;
+                            errMsg = err;
+                        }
+                        break;
+                    }
                     MYSQL_BIND *mybind = pBinds.get();
                     MYSQL_BIND_RESULT_FIELD *myfield = fields.get();
                     if (pBinds && (output || rowset)) {
-                        int my_res = 0;
-                        CDBString err;
                         if (!PushRecords(index, mybind, myfield, vInfo, rowset, output, my_res, err)) {
-                            ret = m_remMysql.mysql_stmt_free_result(m_pPrepare.get());
+                            my_res = m_remMysql.mysql_stmt_free_result(m_pPrepare.get());
                             return;
                         }
-                        if (my_res) {
-                            ret = m_remMysql.mysql_stmt_free_result(m_pPrepare.get());
+                        else if (my_res) {
                             if (!res) {
                                 res = my_res;
                                 errMsg = err;
                             }
-                            ret = 1;
-                            break;
                         }
                     }
-                    m_remMysql.mysql_stmt_free_result(m_pPrepare.get());
-                    pBinds.reset();
                     fields.reset();
-                    ret = m_remMysql.mysql_stmt_next_result(m_pPrepare.get());
-                    if (ret == 0) {
+                    pBinds.reset();
+                    my_res = m_remMysql.mysql_stmt_free_result(m_pPrepare.get());
+                    my_res = m_remMysql.mysql_stmt_next_result(m_pPrepare.get());
+                    if (my_res == 0) {
                         //continue for the next set
-                    } else if (ret == -1) {
+                    } else if (my_res == -1) {
                         //no more result
-                        ret = 0;
+                        my_res = 0;
                         break;
-                    } else if (ret > 0) {
+                    } else if (my_res > 0) {
                         //error
                         if (!res) {
                             res = m_remMysql.mysql_stmt_errno(m_pPrepare.get());
@@ -2668,22 +2323,18 @@ namespace SPA
                     }
                     cols = m_remMysql.mysql_stmt_field_count(m_pPrepare.get());
                     output = (m_pMysql.get()->server_status & SERVER_PS_OUT_PARAMS) ? true : false;
-                    result = m_remMysql.mysql_stmt_result_metadata(m_pPrepare.get());
-                }
-                int ret2 = m_remMysql.mysql_stmt_free_result(m_pPrepare.get());
-                if (ret2) {
-                    ret = 1;
-                    if (!res) {
-                        res = m_remMysql.mysql_stmt_errno(m_pPrepare.get());
-                        errMsg = Utilities::ToUTF16(m_remMysql.mysql_stmt_error(m_pPrepare.get()));
+                    if (cols) {
+                        metadata.reset(m_remMysql.mysql_stmt_result_metadata(m_pPrepare.get()), [](MYSQL_RES* r) {
+                            if (r) {
+                                m_remMysql.mysql_free_result(r);
+                            }
+                        });
                     }
                 }
-                if (ret)
+                if (my_res)
                     ++m_fails;
                 else
                     ++m_oks;
-                my_bool myfail = m_remMysql.mysql_stmt_reset(m_pPrepare.get());
-                assert(!myfail);
             }
             if (!header_sent && (rowset || meta)) {
                 CDBColumnInfoArray vInfo;
@@ -2744,18 +2395,16 @@ namespace SPA
 
         bool CMysqlImpl::DoSQLAuthentication(USocket_Server_Handle hSocket, const wchar_t *userId, const wchar_t *password, unsigned int nSvsId, const wchar_t * dbConnection) {
             CMysqlImpl impl;
-#ifndef NATIVE_UTF16_SUPPORTED
-            CDBString db(dbConnection ? dbConnection : L"host=localhost;port=3306;timeout=30");
-            if (userId && ::wcslen(userId)) {
-                db += L";uid=";
-                db += userId;
+            CDBString db(dbConnection ? Utilities::ToUTF16(dbConnection) : u"");
+            Trim(db);
+            if (!db.size()) {
+                m_csPeer.lock();
+                db = m_strGlobalConnection;
+                m_csPeer.unlock();
             }
-            if (password && ::wcslen(password)) {
-                db += L";pwd=";
-                db += password;
+            if (!db.size()) {
+                db = u"host=localhost;timeout=30";
             }
-#else
-            CDBString db(dbConnection ? Utilities::ToUTF16(dbConnection) : u"host=localhost;port=3306;timeout=30");
             if (userId && ::wcslen(userId)) {
                 db += u";uid=";
                 db += Utilities::ToUTF16(userId);
@@ -2764,7 +2413,6 @@ namespace SPA
                 db += u";pwd=";
                 db += Utilities::ToUTF16(password);
             }
-#endif
             int res = 0, ms = 0;
             CDBString errMsg;
             impl.Open(db, 0, res, errMsg, ms);

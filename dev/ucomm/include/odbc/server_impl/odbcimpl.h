@@ -1,16 +1,22 @@
-
 #pragma once
 
 #ifndef SQL_NOUNICODEMAP
 #define SQL_NOUNICODEMAP
 #endif
 
-#include "../uodbc_server.h"
 #include "../../udatabase.h"
 #include "../../aserverw.h"
 #include<unordered_map>
-#include <sqlext.h>
 #include <memory>
+
+#ifdef SP_DB2_PLUGIN
+#include "../../db2/udb2_server.h"
+#undef UNICODE
+#include <sqlcli1.h>
+#else
+#include "../uodbc_server.h"
+#include <sqlext.h>
+#endif
 
 namespace SPA {
     namespace ServerSide {
@@ -107,20 +113,23 @@ namespace SPA {
             bool SendUText(SQLHSTMT hstmt, SQLUSMALLINT index, CUQueue &qTemp, CUQueue &q, bool &blob);
 
         private:
+            SQLHSTMT ResetStmt();
             void CleanDBObjects();
             CDBColumnInfoArray GetColInfo(SQLHSTMT hstmt, SQLSMALLINT columns, bool meta);
-            bool PushRecords(SQLHSTMT hstmt, const CDBColumnInfoArray &vColInfo, bool output, int &res, CDBString &errMsg);
-            bool PushRecords(SQLHSTMT hstmt, int &res, CDBString &errMsg);
+            bool PushRecords(SQLHSTMT hstmt, int &res, CDBString &errMsg, bool output = false);
+            bool PushRecords(SQLHSTMT hstmt, const CDBColumnInfoArray& vColInfo, bool output, int& res, CDBString& errMsg);
             bool PushInfo(SQLHDBC hdbc);
             bool PreprocessPreparedStatement();
             bool SetInputParamInfo();
-            bool BindParameters(unsigned int r, SQLLEN *pLenInd);
+            bool BindParameters(SQLHSTMT hstmt, unsigned int r, SQLLEN *pLenInd);
             unsigned int ComputeOutputMaxSize();
             bool PushOutputParameters(unsigned int r, UINT64 index);
             void ResetMemories();
             void SetVParam(CDBVariantArray& vAll, size_t parameters, size_t pos, size_t ps);
             void SetCallParams(const std::vector<tagParameterDirection> &vPD, int &res, CDBString &errMsg);
+#ifndef SP_DB2_PLUGIN
             void SetOracleCallParams(const std::vector<tagParameterDirection> &vPD, int &res, CDBString &errMsg);
+#endif
             CDBString GenerateMsSqlForCachedTables();
             static CParameterInfoArray GetVInfo(const CParameterInfoArray& vPInfo, size_t pos, size_t ps);
             static std::vector<CDBString> Split(const CDBString &sql, const CDBString &delimiter);
@@ -146,21 +155,20 @@ namespace SPA {
             CDBVariantArray m_vParam;
 
         private:
+            CScopeUQueue m_sbRecord;
             CDBString m_dbName;
             CDBString m_dbms;
             CDBString m_userName;
             CScopeUQueue m_sb;
             bool m_global;
             CUQueue &m_Blob;
+            CUQueue &m_BlobRecord;
 
             //ODBC connection handle
             std::shared_ptr<void> m_pOdbc;
 
-            //parameterized statement
-            std::shared_ptr<void> m_pPrepare;
-
             //executing statement
-            std::shared_ptr<void> m_pExcuting;
+            std::shared_ptr<void> m_stmt;
 
             SQLSMALLINT m_parameters;
             bool m_bCall;
@@ -193,11 +201,10 @@ namespace SPA {
             static const UTF16* BAD_INPUT_PARAMETER_DATA_TYPE;
             static const UTF16* BAD_PARAMETER_DIRECTION_TYPE;
             static const UTF16* CORRECT_PARAMETER_INFO_NOT_PROVIDED_YET;
-
-            static SQLHENV g_hEnv;
-
             static const UTF16* ODBC_GLOBAL_CONNECTION_STRING;
 
+        public:
+            static SQLHENV g_hEnv;
             static CUCriticalSection m_csPeer;
             static CDBString m_strGlobalConnection; //ODBC source, protected by m_csPeer
             static std::unordered_map<USocket_Server_Handle, SQLHDBC> m_mapConnection; //protected by m_csPeer

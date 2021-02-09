@@ -1,4 +1,3 @@
-
 #ifndef _SOCKETPRO_FILE_STREAMING_IMPL_H_
 #define _SOCKETPRO_FILE_STREAMING_IMPL_H_
 
@@ -18,6 +17,8 @@ namespace SPA {
 
         public:
             CSFileImpl();
+            static std::wstring GetRootDirectory();
+            static void SetRootDirectory(const wchar_t* pathRoot);
 
         protected:
             virtual void OnFastRequestArrive(unsigned short reqId, unsigned int len);
@@ -42,7 +43,9 @@ namespace SPA {
             HANDLE m_of;
 #else
             int m_of;
-#endif  
+#endif
+            static CUCriticalSection m_cs;
+            static std::wstring m_pathRoot;
         };
 
         typedef CSocketProService<CSFileImpl> CSFileService;

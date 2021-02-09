@@ -1,14 +1,8 @@
-
 #include "mysqlimpl.h"
 
 std::shared_ptr<SPA::ServerSide::CMysqlService> g_pMysql;
 
-void WINAPI SetMysqlDBGlobalConnectionString(const wchar_t *dbConnection, bool remote) {
-    SPA::ServerSide::CMysqlImpl::SetDBGlobalConnectionString(dbConnection, remote);
-}
-
 bool WINAPI InitServerLibrary(int param) {
-    SPA::ServerSide::CMysqlImpl::m_nParam = 0;
     SPA::ServerSide::CMysqlImpl::InitMySql();
     g_pMysql.reset(new SPA::ServerSide::CMysqlService(SPA::Mysql::sidMysql, SPA::tagThreadApartment::taNone));
     return true;
@@ -65,8 +59,4 @@ unsigned short WINAPI GetOneSlowRequestID(unsigned int serviceId, unsigned short
             break;
     }
     return 0;
-}
-
-bool WINAPI DoMySQLAuthentication(USocket_Server_Handle hSocket, const wchar_t *userId, const wchar_t *password, unsigned int nSvsId, const wchar_t *dbConnection) {
-    return SPA::ServerSide::CMysqlImpl::DoSQLAuthentication(hSocket, userId, password, nSvsId, dbConnection);
 }

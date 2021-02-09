@@ -42,6 +42,16 @@ namespace SPA {
             s.erase(s.begin());
         }
     }
+
+    template<typename TChar>
+    void ToLower(std::basic_string<TChar>& s) {
+        std::transform(s.begin(), s.end(), s.begin(), ::tolower);
+    }
+
+    template<typename TChar>
+    void ToUpper(std::basic_string<TChar>& s) {
+        std::transform(s.begin(), s.end(), s.begin(), ::toupper);
+    }
 #endif
 
     class CUQueue;

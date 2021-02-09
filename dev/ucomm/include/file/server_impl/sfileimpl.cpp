@@ -1,4 +1,3 @@
-
 #include "sfileimpl.h"
 #include <system_error>
 #ifndef WIN32_64
@@ -11,11 +10,30 @@
 #include <memory>
 #endif
 
-extern std::wstring g_pathRoot;
+namespace SPA
+{
+    namespace ServerSide{
+        CUCriticalSection CSFileImpl::m_cs;
+        std::wstring CSFileImpl::m_pathRoot;
 
-namespace SPA{
-    namespace ServerSide
-    {
+        std::wstring CSFileImpl::GetRootDirectory() {
+            CAutoLock al(m_cs);
+            return m_pathRoot;
+        }
+
+        void CSFileImpl::SetRootDirectory(const wchar_t * pathRoot) {
+            CAutoLock al(m_cs);
+            if (pathRoot && ::wcslen(pathRoot))
+                m_pathRoot = pathRoot;
+#ifdef WIN32_64
+            if (m_pathRoot.back() != L'\\')
+                m_pathRoot += L'\\';
+#else
+            if (m_pathRoot.back() != L'/')
+                m_pathRoot += L'/';
+#endif
+        }
+
         CSFileImpl::CSFileImpl() : m_oFileSize(0), m_oPos(0), InitSize(-1),
 #ifdef WIN32_64
         m_of(INVALID_HANDLE_VALUE)
@@ -180,7 +198,7 @@ namespace SPA{
             if (absoulute) {
                 m_oFilePath = filePath;
             } else {
-                m_oFilePath = g_pathRoot + filePath;
+                m_oFilePath = GetRootDirectory() + filePath;
             }
             bool existing = false;
 #ifdef WIN32_64
@@ -280,7 +298,7 @@ namespace SPA{
             if (absoulute) {
                 m_oFilePath = filePath;
             } else {
-                m_oFilePath = g_pathRoot + filePath;
+                m_oFilePath = GetRootDirectory() + filePath;
             }
             bool existing = false;
 #ifdef WIN32_64
@@ -374,7 +392,7 @@ namespace SPA{
             if (absoulute) {
                 path = filePath;
             } else {
-                path = g_pathRoot + filePath;
+                path = GetRootDirectory() + filePath;
             }
 #ifdef WIN32_64
             DWORD sm = 0;
