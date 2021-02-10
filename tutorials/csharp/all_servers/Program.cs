@@ -34,7 +34,7 @@ public class CMySocketProServer : CSocketProServer
                 res = Plugin.AUTHENTICATION_OK;
                 break;
             case BaseServiceID.sidODBC:
-                res = ODBC_Authentication(hSocket, userId, password, nSvsID, "DRIVER={SQL Server Native Client 11.0};Server=(local)");
+                res = ODBC_Authentication(hSocket, userId, password, nSvsID, "DRIVER={SQL Server Native Client 11.0};Server=(local);database=sakila");
                 break;
             case SocketProAdapter.ClientSide.CMysql.sidMysql:
                 res = MySQL_Authentication(hSocket, userId, password, nSvsID, "database=sakila;server=localhost");
