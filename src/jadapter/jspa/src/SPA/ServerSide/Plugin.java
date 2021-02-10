@@ -57,28 +57,28 @@ public final class Plugin {
     public final static native int DoSPluginAuthentication(String pName, long hSocket, String userId, String password, int nSvsId, String connString);
 
     /**
-     * Authentication permitted and handle opened and cached
+     * Authentication permitted and DB handle opened and cached
      */
     public final static int AUTHENTICATION_OK = 1;
 
     /**
-     * Authentication failed, and no handle opened or cached
+     * Authentication can not be made, but DB handle opened and cached
      */
-    public final static int AUTHENTICATION_FAILED = 0;
+    public final static int AUTHENTICATION_PROCESSED = 0;
 
     /**
-     * Authentication not implemented at all
+     * Authentication failed, and no DB handle opened or cached
      */
-    public final static int AUTHENTICATION_NOT_IMPLEMENTED = -1;
+    public final static int AUTHENTICATION_FAILED = -1;
 
     /**
-     * Authentication cannot be made due to an internal error, and no handle
+     * Authentication cannot be made due to an internal error, and no DB handle
      * opened or cached
      */
     public final static int AUTHENTICATION_INTERNAL_ERROR = -2;
 
     /**
-     * Authentication can not be made, but handle opened and cached
+     * Authentication not implemented at all
      */
-    public final static int AUTHENTICATION_PROCESSED = -3;
+    public final static int AUTHENTICATION_NOT_IMPLEMENTED = -3;
 }

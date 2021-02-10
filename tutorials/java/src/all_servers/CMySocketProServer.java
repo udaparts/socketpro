@@ -21,7 +21,7 @@ public class CMySocketProServer extends CSocketProServer {
                 res = Plugin.AUTHENTICATION_OK; //give permision to known services without authentication
                 break;
             case SPA.BaseServiceID.sidODBC:
-                res = Plugin.DoSPluginAuthentication("sodbc", hSocket, userId, password, nSvsID, "DRIVER={ODBC Driver 17 for SQL Server};Server=(local)");
+                res = Plugin.DoSPluginAuthentication("sodbc", hSocket, userId, password, nSvsID, "DRIVER={ODBC Driver 17 for SQL Server};Server=(local);database=sakila");
                 break;
             case SPA.ClientSide.CMysql.sidMysql:
                 res = Plugin.DoSPluginAuthentication("smysql", hSocket, userId, password, nSvsID, "database=sakila;server=localhost");
@@ -39,17 +39,17 @@ public class CMySocketProServer extends CSocketProServer {
             System.out.println(userId + "'s connecting permitted, and DB handle opened and cached");
         } else {
             switch (res) {
+                case Plugin.AUTHENTICATION_PROCESSED:
+                    System.out.println(userId + "'s connecting denied: no authentication implemented but DB handle opened and cached");
+                    break;
                 case Plugin.AUTHENTICATION_FAILED:
                     System.out.println(userId + "'s connecting denied: bad password");
-                    break;
-                case Plugin.AUTHENTICATION_NOT_IMPLEMENTED:
-                    System.out.println(userId + "'s connecting denied: no authentication implemented");
                     break;
                 case Plugin.AUTHENTICATION_INTERNAL_ERROR:
                     System.out.println(userId + "'s connecting denied: plugin internal error");
                     break;
-                case Plugin.AUTHENTICATION_PROCESSED:
-                    System.out.println(userId + "'s connecting denied: no authentication implemented but DB handle opened and cached");
+                case Plugin.AUTHENTICATION_NOT_IMPLEMENTED:
+                    System.out.println(userId + "'s connecting denied: no authentication implemented");
                     break;
                 default:
                     System.out.println(userId + "'s connecting denied: unknown reseaon with res -- " + res);

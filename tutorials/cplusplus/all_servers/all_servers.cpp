@@ -25,9 +25,9 @@ protected:
             case Odbc::sidOdbc:
                 if (ODBC_DoAuth) {
 #ifdef WIN32_64
-                    res = ODBC_DoAuth(h, userId, password, serviceId, L"DRIVER={SQL Server Native Client 11.0};Server=(local)");
+                    res = ODBC_DoAuth(h, userId, password, serviceId, L"DRIVER={SQL Server Native Client 11.0};Server=(local);database=sakila");
 #else
-                    res = ODBC_DoAuth(h, userId, password, serviceId, L"DRIVER={ODBC Driver 17 for SQL Server};Server=windesk");
+                    res = ODBC_DoAuth(h, userId, password, serviceId, L"DRIVER={ODBC Driver 17 for SQL Server};Server=windesk;database=sakila");
 #endif
                 }
                 break;
