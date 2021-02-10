@@ -10,12 +10,14 @@
 #include "../../../include/sqlite/usqlite.h"
 #include "../../../include/queue/uasyncqueue.h"
 #include "../../../include/file/ufile.h"
+using namespace std;
 
 class CMyServer : public CSocketProServer
 {
 
 public:
-    CMyServer(int nParam = 0) : CSocketProServer(nParam), SQLite_DoAuth(nullptr), MySQL_DoAuth(nullptr), ODBC_DoAuth(nullptr) {
+    CMyServer(int nParam = 0) : CSocketProServer(nParam), SQLite_DoAuth(nullptr),
+        MySQL_DoAuth(nullptr), ODBC_DoAuth(nullptr) {
     }
 
 protected:
@@ -40,7 +42,8 @@ protected:
                 if (SQLite_DoAuth) {
                     res = SQLite_DoAuth(h, userId, password, serviceId, L"usqlite.db");
                     if (res == SP_PLUGIN_AUTH_PROCESSED) {
-                        res = SP_PLUGIN_AUTH_OK; //give permision without authentication
+                        //give permision without authentication
+                        res = SP_PLUGIN_AUTH_OK;
                     }
                 }
                 break;
@@ -50,29 +53,30 @@ protected:
             case sidPi:
             case sidPiWorker:
             case sidHelloWorld:
-                res = SP_PLUGIN_AUTH_OK; //give permision to known services without authentication
+                //give permision to known services without authentication
+                res = SP_PLUGIN_AUTH_OK;
                 break;
             default:
                 break;
         }
         if (res >= SP_PLUGIN_AUTH_OK) {
-            std::wcout << userId << "'s connecting permitted, and DB handle opened and cached\n";
+            wcout << userId << "'s connecting permitted, and DB handle opened and cached\n";
         } else {
             switch (res) {
             case SP_PLUGIN_AUTH_PROCESSED:
-                std::wcout << userId << "'s connecting denied: no authentication implemented but DB handle opened and cached\n";
+                wcout << userId << "'s connecting denied: no authentication implemented but DB handle opened and cached\n";
                 break;
             case SP_PLUGIN_AUTH_FAILED:
-                std::wcout << userId << "'s connecting denied: bad password\n";
+                wcout << userId << "'s connecting denied: bad password\n";
                 break;
             case SP_PLUGIN_AUTH_INTERNAL_ERROR:
-                std::wcout << userId << "'s connecting denied: plugin internal error\n";
+                wcout << userId << "'s connecting denied: plugin internal error\n";
                 break;
             case SP_PLUGIN_AUTH_NOT_IMPLEMENTED:
-                std::wcout << userId << "'s connecting denied: no authentication implemented\n";
+                wcout << userId << "'s connecting denied: no authentication implemented\n";
                 break;
             default:
-                std::wcout << userId << "'s connecting denied: unknown reseaon with res -- " << res << "\n";
+                wcout << userId << "'s connecting denied: unknown reseaon with res -- " << res << "\n";
                 break;
             }
         }
@@ -91,7 +95,7 @@ protected:
         ok = PushManager::AddAChatGroup(7, L"HR Department");
         ok = PushManager::AddAChatGroup(SPA::UDB::STREAMING_SQL_CHAT_GROUP_ID, L"Subscribe/publish for front clients");
 
-        //load socketpro async sqlite library located at the directory ../bin/free_services/sqlite
+        //load Socketpro sqlite library located at the directory ../bin/free_services/sqlite
         auto h = DllManager::AddALibrary("ssqlite");
         if (h) {
             PSetSPluginGlobalOptions SetSPluginGlobalOptions = (PSetSPluginGlobalOptions) GetProcAddress(h, "SetSPluginGlobalOptions");
@@ -100,19 +104,20 @@ protected:
 
             SQLite_DoAuth = (PDoSPluginAuthentication) GetProcAddress(h, "DoSPluginAuthentication");
         }
-        //load socketPro asynchronous persistent message queue library at the directory ../bin/free_services/queue
-        h = DllManager::AddALibrary("uasyncqueue", 24 * 1024); //24 * 1024 batch dequeuing size in bytes
+        //load SocketPro message queue library at the directory ../bin/free_services/queue
+        //24 * 1024 batch dequeuing size in bytes
+        h = DllManager::AddALibrary("uasyncqueue", 24 * 1024);
 
-        //load socketPro file streaming library at the directory ../bin/free_services/file
+        //load SocketPro file streaming library at the directory ../bin/free_services/file
         h = DllManager::AddALibrary("ustreamfile");
 
-        //load MySQL/MariaDB socketPro server plugin library at the directory ../bin/free_services/mm_middle
+        //load MySQL/MariaDB plugin library at the directory ../bin/linux or ../bin/win
         h = DllManager::AddALibrary("smysql");
         if (h) {
             MySQL_DoAuth = (PDoSPluginAuthentication) GetProcAddress(h, "DoSPluginAuthentication");
         }
 
-        //load ODBC socketPro server plugin library at the directory ../bin/win or ../bin/linux
+        //load ODBC plugin library at the directory ../bin/win or ../bin/linux
         h = DllManager::AddALibrary("sodbc");
         if (h) {
             ODBC_DoAuth = (PDoSPluginAuthentication) GetProcAddress(h, "DoSPluginAuthentication");
@@ -145,7 +150,8 @@ private:
         ok = m_HelloWorld.AddSlowRequest(idSleep);
 
         //HTTP and WebSocket services
-        //Copy uloader.js & uwebsocket.js at ../socketpro/bin/js and earthcity.jpg & ws0.htm ../socketpro/tutorials/webtests into the directory where the application is located
+        //Copy uloader.js & uwebsocket.js at ../socketpro/bin/js, and earthcity.jpg & ws0.htm
+        //at ../socketpro/tutorials/webtests into the directory where the application is located
         ok = m_myHttp.AddMe((unsigned int) tagServiceID::sidHTTP);
         ok = m_myHttp.AddSlowRequest((unsigned short) tagHttpRequestID::idGet);
         ok = m_myHttp.AddSlowRequest((unsigned short) tagHttpRequestID::idPost);
@@ -157,9 +163,9 @@ int main(int argc, char* argv[]) {
     CMyServer server;
     if (!server.Run(20901)) {
         int errCode = server.GetErrorCode();
-        std::cout << "Error code: " << errCode << "\n";
+        cout << "Error code: " << errCode << "\n";
     }
-    std::cout << "Press a key to stop the server ......\n";
+    cout << "Press a key to stop the server ......\n";
     ::getchar();
     return 0;
 }
