@@ -98,7 +98,9 @@ Code snippet 1: A client demo sample for computing π value with numerical integ
 <pre class="prettyprint">
 # .../socketpro/tutorials/python/all_servers/all_servers.py
 from consts import piConst, hwConst
-from spa.serverside import CSocketProServer, CSocketProService, CClientPeer, BaseServiceID
+from spa.serverside import CSocketProServer, CSocketProService,\
+    CClientPeer, BaseServiceID, Plugin
+from spa.clientside import CAsyncQueue, CStreamingFile, CMysql, COdbc, CSqlite
 from spa.udb import DB_CONSTS
 from pub_sub.ps_server.hwpeer import CHelloWorldPeer
 from webdemo.myhttppeer import CMyHttpPeer
@@ -106,16 +108,41 @@ import sys
 from ctypes import *
 from sys import platform as os
 
-# void WINAPI SetSqliteDBGlobalConnectionString(const wchar_t *dbConnection);
+# bool U_MODULE_OPENED WINAPI SetSPluginGlobalOptions(const char *jsonUtf8Options);
 sqlite_lib = None
 if os == "win32":
     sqlite_lib = WinDLL("ssqlite.dll")
 else:
     sqlite_lib = WinDLL("libssqlite.so")
 
-SetSqliteGlobalConnStr = sqlite_lib.SetSqliteDBGlobalConnectionString
-SetSqliteGlobalConnStr.argtypes = [c_wchar_p]
-SetSqliteGlobalConnStr.restype = None
+SetSPluginGlobalOptions = sqlite_lib.SetSPluginGlobalOptions
+SetSPluginGlobalOptions.argtypes = [c_char_p]
+SetSPluginGlobalOptions.restype = c_bool
+
+# int U_MODULE_OPENED WINAPI DoSPluginAuthentication(SPA::UINT64 hSocket,
+#   const wchar_t *userId, const wchar_t *password, unsigned int nSvsId,
+#   const wchar_t *options);
+SQLite_Auth = sqlite_lib.DoSPluginAuthentication
+SQLite_Auth.argtypes = [c_uint64, c_wchar_p, c_wchar_p, c_uint, c_wchar_p]
+SQLite_Auth.restype = c_int
+
+mysql_lib = None
+if os == "win32":
+    mysql_lib = WinDLL("smysql.dll")
+else:
+    mysql_lib = WinDLL("libsmysql.so")
+MySQL_Auth = mysql_lib.DoSPluginAuthentication
+MySQL_Auth.argtypes = [c_uint64, c_wchar_p, c_wchar_p, c_uint, c_wchar_p]
+MySQL_Auth.restype = c_int
+
+odbc_lib = None
+if os == "win32":
+    odbc_lib = WinDLL("sodbc.dll")
+else:
+    odbc_lib = WinDLL("libsodbc.so")
+ODBC_Auth = odbc_lib.DoSPluginAuthentication
+ODBC_Auth.argtypes = [c_uint64, c_wchar_p, c_wchar_p, c_uint, c_wchar_p]
+ODBC_Auth.restype = c_int
 
 with CSocketProServer() as server:
     def OnClose(hSocket, errCode):
@@ -126,8 +153,40 @@ with CSocketProServer() as server:
     server.OnClose = OnClose
 
     def OnIsPermitted(hSocket, userId, pwd, svsId):
-        print('Ask for a service ' + str(svsId) + ' from user ' + userId + ' with password = ' + pwd)
-        return True  # True == permitted and False == denied
+        auth_res = Plugin.AUTHENTICATION_NOT_IMPLEMENTED
+        if svsId == hwConst.sidHelloWorld or svsId == BaseServiceID.sidHTTP \
+                or svsId == piConst.sidPi or svsId == piConst.sidPiWorker:
+            # give permission to known services without authentication
+            auth_res = Plugin.AUTHENTICATION_OK
+        elif svsId == CAsyncQueue.sidQueue or svsId == CStreamingFile.sidFile:
+            # give permission to known services without authentication
+            auth_res = Plugin.AUTHENTICATION_OK
+        elif svsId == COdbc.sidOdbc:
+            auth_res = ODBC_Auth(hSocket, userId, pwd, svsId, \
+            'DRIVER={ODBC Driver 13 for SQL Server};Server=windesk;database=sakila')
+        elif svsId == CMysql.sidMysql:
+            auth_res = MySQL_Auth(hSocket, userId, pwd, svsId, \
+                                  'database=sakila;server=windesk')
+        elif svsId == CSqlite.sidSqlite:
+            auth_res = SQLite_Auth(hSocket, userId, pwd, svsId, 'usqlite.db')
+            if auth_res == Plugin.AUTHENTICATION_PROCESSED:
+                # give permission without authentication
+                auth_res = Plugin.AUTHENTICATION_OK
+        if auth_res >= Plugin.AUTHENTICATION_OK:
+            print(userId + "'s connecting permitted, and DB handle opened and cached")
+        elif auth_res == Plugin.AUTHENTICATION_PROCESSED:
+            print(userId + \
+"'s connecting denied: no authentication implemented but DB handle opened and cached")
+        elif auth_res == Plugin.AUTHENTICATION_FAILED:
+            print(userId + "'s connecting denied: bad password or user id")
+        elif auth_res == Plugin.AUTHENTICATION_INTERNAL_ERROR:
+            print(userId + "'s connecting denied: plugin internal error")
+        elif auth_res == Plugin.AUTHENTICATION_NOT_IMPLEMENTED:
+            print(userId + "'s connecting denied: no authentication implemented")
+        else:
+            print(userId + \
+                  "'s connecting denied: unknown reseaon with res --" + str(auth_res))
+        return auth_res >= Plugin.AUTHENTICATION_OK
     server.OnIsPermitted = OnIsPermitted
 
     def do_configuration():
@@ -135,7 +194,8 @@ with CSocketProServer() as server:
         CSocketProServer.PushManager.AddAChatGroup(2, "Sales Department")
         CSocketProServer.PushManager.AddAChatGroup(3, "Management Department")
         CSocketProServer.PushManager.AddAChatGroup(7, "HR Department")
-        CSocketProServer.PushManager.AddAChatGroup(DB_CONSTS.CACHE_UPDATE_CHAT_GROUP_ID, "Subscribe/publish for front clients")
+        CSocketProServer.PushManager.AddAChatGroup( \
+            DB_CONSTS.CACHE_UPDATE_CHAT_GROUP_ID, "Subscribe/publish for front clients")
         return True # True -- ok; False -- no listening server
     server.OnSettingServer = do_configuration
 
@@ -162,8 +222,11 @@ with CSocketProServer() as server:
     # load async sqlite library located at the directory ../bin/free_services/sqlite
     server.sqlite = CSocketProServer.DllManager.AddALibrary("ssqlite")
     if server.sqlite:
-        # monitoring sakila.db table events (DELETE, INSERT and UPDATE) for tables actor, language, category, country and film_actor
-        SetSqliteGlobalConnStr('usqlite.db+sakila.db.actor;sakila.db.language;sakila.db.category;sakila.db.country;sakila.db.film_actor')
+        # monitoring sakila.db table events (DELETE, INSERT and UPDATE) for
+        # tables actor, language, category, country and film_actor
+        jsonOptions = '{"global_connection_string":"usqlite.db","monitored_tables":\
+"sakila.db.actor;sakila.db.language;sakila.db.category;sakila.db.country;sakila.db.film_actor"}'
+        SetSPluginGlobalOptions(jsonOptions.encode('utf-8'))
 
     # load persistent message queue library at the directory ../bin/free_services/queue
     server.file = CSocketProServer.DllManager.AddALibrary('ustreamfile')
@@ -184,24 +247,31 @@ with CSocketProServer() as server:
 <p>The left code snippet 2 shows implementation of microservices and how to enable SocketPro built-in feature routing. The code comes from the file .../socketpro/tutorials/python/all_servers/all_servers.py.</p>
 <hr />
 <h3>Micro services</h3>
-<p>A SocketPro server can support any number of services. As shown at the code snippet 2 of <a title="SocketPro Secure Communication and Publish/Subscribe Messaging" href="py_push.htm">the previous article</a>, we register and set hello world service at line 49.
-Next, we register and set HTTP/websocket service at line 52 as shown at the code snippet 2 of <a href="py_web.htm" title="SocketPro WebSocket for Client/server and Subscribe/publish Messaging on Browsers">this article for web browser developments</a>.
+<p>A SocketPro server can support any number of services. As shown at the code snippet 2 of <a title="SocketPro Secure Communication and Publish/Subscribe Messaging" href="py_push.htm">the previous article</a>, we register and set hello world service at line 109.
+Next, we register and set HTTP/websocket service at line 112 as shown at the code snippet 2 of <a href="py_web.htm" title="SocketPro WebSocket for Client/server and Subscribe/publish Messaging on Browsers">this article for web browser developments</a>.
 
 </p>
 <hr />
 <h3>SocketPro Built-in Feature Routing</h3>
-<p>Also, we simply register the two srvices, sidPi and sidPiWorker at line 55 and 56, respectively.
-Afterwards, we can call the method <i>SetRouting</i> at line 57 to enable the built-in feature routing so that this demo server also function as a load balancer.
+<p>Also, we simply register the two srvices, sidPi and sidPiWorker at line 115 and 116, respectively.
+Afterwards, we can call the method <i>SetRouting</i> at line 117 to enable the built-in feature routing so that this demo server also function as a load balancer.
 So far we have registered four services with one particular feature for server load balancing.</p>
 <hr />
 <h3>Loading SocketPro server plugins</h3>
 <p>At this time, you can only use C/C++ to write server plugins as shown at <a href="cpp_serverqueue.htm" title="SocketPro Server Persistent Message Queue">the code snippet 4 of the previous article</a>.
-The five server plugins can be loaded into a server for reuse, as shown at line 62 through 77 of the left code snippet 2.
+The five server plugins can be loaded into a server for reuse, as shown at line 125 through 140 of the left code snippet 2.
 The five plugins are described with more details at <a href="get_started.htm" title="Get Started With SocketPro">this article</a> before.
-The left code snippet supports nine micro services totally.
+The left code snippet supports nine micro-services totally.
 </p>
-<p>It is noted that SocketPro comes with a number of pre-compiled plugins for you to experiment and learn. They are not completely ready for resue within your commercial applications yet.
-However, they are good examples and reusable as development basis for your commercial or enterprise applications.</p>
+<p>It is noted that SocketPro comes with a number of pre-compiled plugins for you to experiment and learn.
+Some of them are ready for resue within your commercial applications at this time.
+However, all of them are good examples and reusable for your commercial or enterprise applications.</p>
+<p>SocketPro comes with two ODBC and MySQL/MariaDB server plugins.
+We can use them for authenticating client credentials by use of database accounts so that you don't have to write your own code for authentication as shown at line 57 through 91.
+If you set a default database within a connection string as done from the line 66 through 76, a client is able to omit the request Open (or open) call for opening a database.
+It is noted that all the five plugins export the global method DoSPluginAuthentication. However, SQLite plugin is partially implemented, and is not able to be used for authenticating.
+The other two plugins, message queue (asyncqueue) and file (ustreamfile), are not implemented for authenticating at all at this time.
+</p>
 </td>
 </tr>
 </table>

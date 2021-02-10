@@ -30,7 +30,7 @@ public class CMySocketProServer : CSocketProServer
             case piConst.sidPiWorker:
             case radoConst.sidRAdo:
             case repConst.sidRAdoRep:
-                //give permision to known services without authentication
+                //give permission to known services without authentication
                 res = Plugin.AUTHENTICATION_OK;
                 break;
             case BaseServiceID.sidODBC:
@@ -43,7 +43,7 @@ public class CMySocketProServer : CSocketProServer
                 res = SQLite_Authentication(hSocket, userId, password, nSvsID, "usqlite.db");
                 if (res == Plugin.AUTHENTICATION_PROCESSED)
                 {
-                    //give permision without authentication
+                    //give permission without authentication
                     res = Plugin.AUTHENTICATION_OK;
                 }
                 break;

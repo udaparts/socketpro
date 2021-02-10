@@ -116,8 +116,85 @@ using System.Runtime.InteropServices;
 
 public class CMySocketProServer : CSocketProServer
 {
-    [DllImport("ssqlite")]
-    static extern void SetSqliteDBGlobalConnectionString([In] [MarshalAs(UnmanagedType.LPWStr)] string sqliteDbFile);
+    [DllImport("ssqlite", EntryPoint = "SetSPluginGlobalOptions")]
+    static extern void SQLite_SetSPluginGlobalOptions([In][MarshalAs(UnmanagedType.LPStr)] string jsonUtf8);
+
+    [DllImport("ssqlite", EntryPoint = "DoSPluginAuthentication")]
+    static extern int SQLite_Authentication(ulong hSocket, [In][MarshalAs(UnmanagedType.LPWStr)] string userId,
+[In][MarshalAs(UnmanagedType.LPWStr)]string password,uint svsId,[In][MarshalAs(UnmanagedType.LPWStr)]string defaultDb);
+
+    [DllImport("smysql", EntryPoint = "DoSPluginAuthentication")]
+    static extern int MySQL_Authentication(ulong hSocket, [In][MarshalAs(UnmanagedType.LPWStr)] string userId,
+[In][MarshalAs(UnmanagedType.LPWStr)]string password,uint svsId,[In][MarshalAs(UnmanagedType.LPWStr)]string defaultDb);
+
+    [DllImport("sodbc", EntryPoint = "DoSPluginAuthentication")]
+    static extern int ODBC_Authentication(ulong hSocket, [In][MarshalAs(UnmanagedType.LPWStr)] string userId,
+[In][MarshalAs(UnmanagedType.LPWStr)]string password,uint svsId,[In][MarshalAs(UnmanagedType.LPWStr)]string defaultDb);
+
+    protected override bool OnIsPermitted(ulong hSocket, string userId, string password, uint nSvsID)
+    {
+        int res = Plugin.AUTHENTICATION_NOT_IMPLEMENTED;
+        switch (nSvsID)
+        {
+            case hwConst.sidHelloWorld:
+            case BaseServiceID.sidHTTP:
+            case BaseServiceID.sidQueue:
+            case BaseServiceID.sidFile:
+            case piConst.sidPi:
+            case piConst.sidPiWorker:
+            case radoConst.sidRAdo:
+            case repConst.sidRAdoRep:
+                //give permission to known services without authentication
+                res = Plugin.AUTHENTICATION_OK;
+                break;
+            case BaseServiceID.sidODBC:
+                res = ODBC_Authentication(hSocket, userId, password, nSvsID,
+                    "DRIVER={SQL Server Native Client 11.0};Server=(local);database=sakila");
+                break;
+            case SocketProAdapter.ClientSide.CMysql.sidMysql:
+                res = MySQL_Authentication(hSocket, userId, password, nSvsID,
+                    "database=sakila;server=localhost");
+                break;
+            case SocketProAdapter.ClientSide.CSqlite.sidSqlite:
+                res = SQLite_Authentication(hSocket, userId, password, nSvsID, "usqlite.db");
+                if (res == Plugin.AUTHENTICATION_PROCESSED)
+                {
+                    //give permission without authentication
+                    res = Plugin.AUTHENTICATION_OK;
+                }
+                break;
+            default:
+                break;
+        }
+        if (res >= Plugin.AUTHENTICATION_OK)
+        {
+            Console.WriteLine(userId + "'s connecting permitted, and DB handle opened and cached");
+        }
+        else
+        {
+            switch (res)
+            {
+                case Plugin.AUTHENTICATION_FAILED:
+                    Console.WriteLine(userId + "'s connecting failed: bad password");
+                    break;
+                case Plugin.AUTHENTICATION_NOT_IMPLEMENTED:
+                    Console.WriteLine(userId + "'s connecting failed: no authentication implemented");
+                    break;
+                case Plugin.AUTHENTICATION_INTERNAL_ERROR:
+                    Console.WriteLine(userId + "'s connecting failed: plugin internal error");
+                    break;
+                case Plugin.AUTHENTICATION_PROCESSED:
+                    Console.WriteLine(userId + 
+                        "'s connecting failed: no authentication implemented but DB handle opened and cached");
+                    break;
+                default:
+                    Console.WriteLine(userId +
+                        "'s connecting failed: unknown reseaon with res -- " + res.ToString());
+                    break;
+            }
+        }
+        return (res >= Plugin.AUTHENTICATION_OK);
+    }
 
     [ServiceAttr(hwConst.sidHelloWorld)]
     private CSocketProService&lt;HelloWorldPeer&gt; m_HelloWorld = new CSocketProService&lt;HelloWorldPeer&gt;();
@@ -169,25 +246,29 @@ public class CMySocketProServer : CSocketProServer
         PushManager.AddAChatGroup(2, "Sales Department");
         PushManager.AddAChatGroup(3, "Management Department");
         PushManager.AddAChatGroup(7, "HR Department");
-        PushManager.AddAChatGroup(SocketProAdapter.UDB.DB_CONSTS.CACHE_UPDATE_CHAT_GROUP_ID, "Subscribe/publish for front clients");
+        PushManager.AddAChatGroup(SocketProAdapter.UDB.DB_CONSTS.CACHE_UPDATE_CHAT_GROUP_ID,
+            "Subscribe/publish for front clients");
 
         //load socketpro async sqlite library located at the directory ../bin/free_services/sqlite
         IntPtr p = CSocketProServer.DllManager.AddALibrary("ssqlite");
-        if (p.ToInt64() != 0) 
+        if (p.ToInt64() != 0)
         {
-            //monitoring sakila.db table events (DELETE, INSERT and UPDATE) for tables actor, language, category, country and film_actor
-SetSqliteDBGlobalConnectionString("usqlite.db+sakila.db.actor;sakila.db.language;sakila.db.category;sakila.db.country;sakila.db.film_actor");
+            //monitoring sakila.db table events (DELETE, INSERT and UPDATE) for tables
+            //actor, language, category, country and film_actor
+            SQLite_SetSPluginGlobalOptions(
+"{\"monitored_tables\":\"sakila.db.actor;sakila.db.language;sakila.db.category;sakila.db.country;sakila.db.film_actor\"}");
         }
-        //load socketPro asynchronous persistent message queue library at the directory ../bin/free_services/queue
-        p = CSocketProServer.DllManager.AddALibrary("uasyncqueue", 24 * 1024); //24 * 1024 batch dequeuing size in bytes
+        //load persistent message queue library at the directory ../bin/free_services/queue
+        //24 * 1024 batch dequeuing size in bytes
+        p = CSocketProServer.DllManager.AddALibrary("uasyncqueue", 24 * 1024);
 
-        //load socketPro file streaming library at the directory ../bin/free_services/file
+        //load file streaming library at the directory ../bin/free_services/file
         p = CSocketProServer.DllManager.AddALibrary("ustreamfile");
 
-        //load MySQL/MariaDB socketPro server plugin library at the directory ../bin/free_services/mm_middle
+        //load MySQL/MariaDB plugin library at the directory ../bin/win or ../bin/linux
         p = CSocketProServer.DllManager.AddALibrary("smysql");
 
-        //load ODBC socketPro server plugin library at the directory ../bin/win or ../bin/linux
+        //load ODBC plugin library at the directory ../bin/win or ../bin/linux
         p = CSocketProServer.DllManager.AddALibrary("sodbc");
 
         bool ok = CSocketProServer.Router.SetRouting(piConst.sidPi, piConst.sidPiWorker);
@@ -195,15 +276,14 @@ SetSqliteDBGlobalConnectionString("usqlite.db+sakila.db.actor;sakila.db.language
         return true; //true -- ok; false -- no listening server
     }
 
-    protected override bool OnIsPermitted(ulong hSocket, string userId, string password, uint nSvsID)
-    {
-        Console.WriteLine("Ask for a service " + nSvsID + " from user " + userId + " with password = " + password);
-        return true;
-    }
-
     protected override void OnClose(ulong hSocket, int nError)
     {
-        // ......
+        CBaseService bs = CBaseService.SeekService(hSocket);
+        if (bs != null)
+        {
+            CSocketPeer sp = bs.Seek(hSocket);
+            // ......
+        }
     }
 }
 </pre>
@@ -212,24 +292,31 @@ SetSqliteDBGlobalConnectionString("usqlite.db+sakila.db.actor;sakila.db.language
 <p>The left code snippet 2 shows implementation of microservices and how to enable SocketPro built-in feature routing. The code comes from the file ../socketpro/tutorial/csharp/all_servers/Programs.cs.</p>
 <hr />
 <h3>Micro services</h3>
-<p>A SocketPro server can support any number of services. As shown at the code snippet 2 of <a title="SocketPro Secure Communication and Publish/Subscribe Messaging" href="cs_push.htm">the previous article</a>, we register and set hello world service at lines 12 and 13.
-Next, we register and set HTTP/websocket service at lines 15 and 16 as shown at the code snippet 2 of <a href="cs_web.htm" title="SocketPro WebSocket for Client/server and Subscribe/publish Messaging on Browsers">this article for web browser developments</a>.
+<p>A SocketPro server can support any number of services. As shown at the code snippet 2 of <a title="SocketPro Secure Communication and Publish/Subscribe Messaging" href="cs_push.htm">the previous article</a>, we register and set hello world service at lines 89 and 90.
+Next, we register and set HTTP/websocket service at lines 92 and 93 here, as shown at the code snippet 2 of <a href="cs_web.htm" title="SocketPro WebSocket for Client/server and Subscribe/publish Messaging on Browsers">this article for web browser developments</a>.
 
 </p>
 <hr />
 <h3>SocketPro Built-in Feature Routing</h3>
-<p>Also, we simply register the two srvices, sidPi and sidPiWorker, at line 19 through 22.
-Afterwards, we can call the method <i>SetRouting</i> at line 83 to enable the built-in feature routing so that this demo server also function as a load balancer inside the virtual function <i>OnSettingServer</i>.
+<p>Also, we simply register the two srvices, sidPi and sidPiWorker, at line 96 through 99.
+Afterwards, we can call the method <i>SetRouting</i> at line 164 to enable the built-in feature routing so that this demo server also function as a load balancer inside the virtual function <i>OnSettingServer</i>.
 So far we have registered four services with one particular feature for server load balancing.</p>
 <hr />
 <h3>Loading SocketPro server plugins</h3>
 <p>At this time, you can only use C/C++ to write server plugins as shown at <a href="cpp_serverqueue.htm" title="SocketPro Server Persistent Message Queue">the code snippet 4 of the previous article</a>.
-The five server plugins can be loaded into a server for reuse, as shown at line 65 through 81 of the left code snippet 2.
+The five server plugins can be loaded into a server for reuse, as shown at line 143 through 162 of the left code snippet 2.
 The five plugins are described with more details at <a href="get_started.htm" title="Get Started With SocketPro">this article</a> before.
-The left code snippet supports eleven micro services totally.
+The left code snippet supports eleven micro-services totally.
 </p>
-<p>It is noted that SocketPro comes with a number of pre-compiled plugins for you to experiment and learn. They are not completely ready for resue within your commercial applications yet.
-However, they are good examples and reusable as development basis for your commercial or enterprise applications.</p>
+<p>It is noted that SocketPro comes with a number of pre-compiled plugins for you to experiment and learn.
+Some of them are ready for resue within your commercial applications at this time.
+However, all of them are good examples and reusable for your commercial or enterprise applications.</p>
+<p>SocketPro comes with two ODBC and MySQL/MariaDB server plugins.
+We can use them for authenticating client credentials by use of database accounts so that you don't have to write your own code for authentication as shown at line 24 through 87.
+If you set a default database within a connection string as done from the line 40 through 55, a client is able to omit the request Open (or open) call for opening a database.
+It is noted that all the five plugins export the global method DoSPluginAuthentication. However, SQLite plugin is partially implemented, and is not able to be used for authenticating.
+The other two plugins, message queue (asyncqueue) and file (ustreamfile), are not implemented for authenticating at all at this time.
+</p>
 </td>
 </tr>
 </table>

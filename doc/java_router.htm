@@ -115,6 +115,8 @@ Code snippet 1: A client demo sample for computing π value with numerical integ
 <?prettify linenums=1?>
 <pre class="prettyprint">
 //../socketpro/tutorials/java/src/all_servers/CMySocketProServer.java
+package all_servers;
+
 import SPA.ServerSide.*;
 import pub_sub.server.HelloWorldPeer;
 import loading_balance.piConst;
@@ -125,13 +127,65 @@ public class CMySocketProServer extends CSocketProServer {
 
     @Override
     protected boolean OnIsPermitted(long hSocket, String userId, String password, int nSvsID) {
-        System.out.println("Ask for a service " + nSvsID +
-                " from user " + userId + " with password = " + password);
-        return true;
+        int res = Plugin.AUTHENTICATION_NOT_IMPLEMENTED;
+        switch (nSvsID) {
+            case hello_world.hwConst.sidHelloWorld:
+            case SPA.BaseServiceID.sidHTTP:
+            case piConst.sidPi:
+            case piConst.sidPiWorker:
+            case SPA.BaseServiceID.sidFile:
+            case SPA.BaseServiceID.sidQueue:
+                //give permission to known services without authentication
+                res = Plugin.AUTHENTICATION_OK;
+                break;
+            case SPA.BaseServiceID.sidODBC:
+                res = Plugin.DoSPluginAuthentication("sodbc", hSocket, userId, password, nSvsID,
+                    "DRIVER={ODBC Driver 17 for SQL Server};Server=(local);database=sakila");
+                break;
+            case SPA.ClientSide.CMysql.sidMysql:
+                res = Plugin.DoSPluginAuthentication("smysql", hSocket, userId, password, nSvsID,
+                    "database=sakila;server=localhost");
+                break;
+            case SPA.ClientSide.CSqlite.sidSqlite:
+                res = Plugin.DoSPluginAuthentication("ssqlite", hSocket, userId, password, nSvsID,
+                    "usqlite.db");
+                if (res == Plugin.AUTHENTICATION_PROCESSED) {
+                    res = Plugin.AUTHENTICATION_OK; //give permission without authentication
+                }
+                break;
+            default:
+                break;
+        }
+        if (res >= Plugin.AUTHENTICATION_OK) {
+            System.out.println(userId + "'s connecting permitted, and DB handle opened and cached");
+        } else {
+            switch (res) {
+                case Plugin.AUTHENTICATION_PROCESSED:
+                    System.out.println(userId +
+            "'s connecting denied: no authentication implemented but DB handle opened and cached");
+                    break;
+                case Plugin.AUTHENTICATION_FAILED:
+                    System.out.println(userId + "'s connecting denied: bad password");
+                    break;
+                case Plugin.AUTHENTICATION_INTERNAL_ERROR:
+                    System.out.println(userId + "'s connecting denied: plugin internal error");
+                    break;
+                case Plugin.AUTHENTICATION_NOT_IMPLEMENTED:
+                    System.out.println(userId +
+                        "'s connecting denied: no authentication implemented");
+                    break;
+                default:
+                    System.out.println(userId +
+                        "'s connecting denied: unknown reseaon with res -- " + res);
+                    break;
+            }
+        }
+        return (res >= Plugin.AUTHENTICATION_OK);
     }
 
     @ServiceAttr(ServiceID = hello_world.hwConst.sidHelloWorld)
-    private final CSocketProService&lt;HelloWorldPeer&gt; m_HelloWorld = new CSocketProService&lt;&gt;(HelloWorldPeer.class);
+    private final CSocketProService&lt;HelloWorldPeer&gt; m_HelloWorld =
+        new CSocketProService&lt;&gt;(HelloWorldPeer.class);
 
     @ServiceAttr(ServiceID = SPA.BaseServiceID.sidHTTP)
     private final CSocketProService&lt;CMyHttpPeer&gt; m_http = new CSocketProService&lt;&gt;(CMyHttpPeer.class);
@@ -160,13 +214,14 @@ public class CMySocketProServer extends CSocketProServer {
 
     public static void main(String[] args) {
         try (CMySocketProServer server = new CMySocketProServer()) {
-            //load async sqlite library located at the directory ../bin/free_services/sqlite
+            //load socketpro async sqlite library located at the directory ../bin/free_services/sqlite
             long handle = CSocketProServer.DllManager.AddALibrary("ssqlite");
             if (handle != 0) {
                 //monitoring sakila.db table events (DELETE, INSERT and UPDATE)
                 //for tables actor, language, category, country and film_actor
-                Sqlite.SetSqliteDBGlobalConnectionString("usqlite.db+sakila.db.actor;"
-                    + "sakila.db.language;sakila.db.category;sakila.db.country;sakila.db.film_actor");
+                String jsonOptions =
+"{\"monitored_tables\":\"sakila.db.language;sakila.db.category;sakila.db.country;sakila.db.film_actor\"}";
+                boolean ok = Plugin.SetSPluginGlobalOptions("ssqlite", jsonOptions);
             }
             //load async persistent message queue library at the directory ../bin/free_services/queue
             //24 * 1024 batch dequeuing size in bytes
@@ -203,24 +258,30 @@ public class CMySocketProServer extends CSocketProServer {
 <p>The left code snippet 2 shows implementation of microservices and how to enable SocketPro built-in feature routing. The code comes from the file ../socketpro/tutorial/java/src/all_servers/CMySocketProServer.java.</p>
 <hr />
 <h3>Micro services</h3>
-<p>A SocketPro server can support any number of services. As shown at the code snippet 2 of <a title="SocketPro Secure Communication and Publish/Subscribe Messaging" href="java_push.htm">the previous article</a>, we register and set hello world service at lines 17 and 18.
-Next, we register and set HTTP/websocket service at lines 20 and 21 as shown at the code snippet 2 of <a href="java_web.htm" title="SocketPro WebSocket for Client/server and Subscribe/publish Messaging on Browsers">this article for web browser developments</a>.
+<p>A SocketPro server can support any number of services. As shown at the code snippet 2 of <a title="SocketPro Secure Communication and Publish/Subscribe Messaging" href="java_push.htm">the previous article</a>, we register and set hello world service at lines 70 through 72.
+Next, we register and set HTTP/websocket service at lines 74 and 75 here as shown at the code snippet 2 of <a href="java_web.htm" title="SocketPro WebSocket for Client/server and Subscribe/publish Messaging on Browsers">this article for web browser developments</a>.
 
 </p>
 <hr />
 <h3>SocketPro Built-in Feature Routing</h3>
-<p>Also, we simply register the two srvices, sidPi and sidPiWorker, at line 24 through 27.
-Afterwards, we can call the method <i>SetRouting</i> at line 42 to enable the built-in feature routing so that this demo server also function as a load balancer inside the virtual function <i>OnSettingServer</i>.
+<p>Also, we simply register the two srvices, sidPi and sidPiWorker, at line 78 through 81.
+Afterwards, we can call the method <i>SetRouting</i> at line 96 to enable the built-in feature routing so that this demo server also function as a load balancer inside the virtual function <i>OnSettingServer</i>.
 So far we have registered four services with one particular feature for server load balancing.</p>
 <hr />
 <h3>Loading SocketPro server plugins</h3>
 <p>At this time, you can only use C/C++ to write server plugins as shown at <a href="cpp_serverqueue.htm" title="SocketPro Server Persistent Message Queue">the code snippet 4 of the previous article</a>.
-The five server plugins can be loaded into a server for reuse, as shown at line 48 through 66 of the left code snippet 2.
+The five server plugins can be loaded into a server for reuse, as shown at line 102 through 121 of the left code snippet 2.
 The five plugins are described with more details at <a href="get_started.htm" title="Get Started With SocketPro">this article</a> before.
-The left code snippet supports nine micro services totally.
+The left code snippet supports nine micro-services totally.
 </p>
-<p>It is noted that SocketPro comes with a number of pre-compiled plugins for you to experiment and learn. They are not completely ready for resue within your commercial applications yet.
-However, they are good examples and reusable as development basis for your commercial or enterprise applications.</p>
+<p>It is noted that SocketPro comes with a number of pre-compiled plugins for you to experiment and learn. Some of them are ready for resue within your commercial applications at this time.
+However, all of them are good examples and reusable for your commercial or enterprise applications.</p>
+<p>SocketPro comes with two ODBC and MySQL/MariaDB server plugins.
+We can use them for authenticating client credentials by use of database accounts so that you don't have to write your own code for authentication as shown at line 13 through 68.
+If you set a default database within a connection string as done from the line 25 through 39, a client is able to omit the request Open (or open) call for opening a database.
+It is noted that all the five plugins export the global method DoSPluginAuthentication. However, SQLite plugin is partially implemented, and is not able to be used for authenticating.
+The other two plugins, message queue (asyncqueue) and file (ustreamfile), are not implemented for authenticating at all at this time.
+</p>
 </td>
 </tr>
 </table>

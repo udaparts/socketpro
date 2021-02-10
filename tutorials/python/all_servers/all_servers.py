@@ -1,5 +1,6 @@
 from consts import piConst, hwConst
-from spa.serverside import CSocketProServer, CSocketProService, CClientPeer, BaseServiceID, Plugin
+from spa.serverside import CSocketProServer, CSocketProService,\
+    CClientPeer, BaseServiceID, Plugin
 from spa.clientside import CAsyncQueue, CStreamingFile, CMysql, COdbc, CSqlite
 from spa.udb import DB_CONSTS
 from pub_sub.ps_server.hwpeer import CHelloWorldPeer
@@ -19,7 +20,9 @@ SetSPluginGlobalOptions = sqlite_lib.SetSPluginGlobalOptions
 SetSPluginGlobalOptions.argtypes = [c_char_p]
 SetSPluginGlobalOptions.restype = c_bool
 
-# int U_MODULE_OPENED WINAPI DoSPluginAuthentication(SPA::UINT64 hSocket, const wchar_t *userId, const wchar_t *password, unsigned int nSvsId, const wchar_t *options);
+# int U_MODULE_OPENED WINAPI DoSPluginAuthentication(SPA::UINT64 hSocket,
+#   const wchar_t *userId, const wchar_t *password, unsigned int nSvsId,
+#   const wchar_t *options);
 SQLite_Auth = sqlite_lib.DoSPluginAuthentication
 SQLite_Auth.argtypes = [c_uint64, c_wchar_p, c_wchar_p, c_uint, c_wchar_p]
 SQLite_Auth.restype = c_int
@@ -52,25 +55,29 @@ with CSocketProServer() as server:
 
     def OnIsPermitted(hSocket, userId, pwd, svsId):
         auth_res = Plugin.AUTHENTICATION_NOT_IMPLEMENTED
-        if svsId == hwConst.sidHelloWorld or svsId == BaseServiceID.sidHTTP or svsId == piConst.sidPi or svsId == piConst.sidPiWorker:
-            # give permision to known services without authentication
+        if svsId == hwConst.sidHelloWorld or svsId == BaseServiceID.sidHTTP \
+                or svsId == piConst.sidPi or svsId == piConst.sidPiWorker:
+            # give permission to known services without authentication
             auth_res = Plugin.AUTHENTICATION_OK
         elif svsId == CAsyncQueue.sidQueue or svsId == CStreamingFile.sidFile:
-            # give permision to known services without authentication
+            # give permission to known services without authentication
             auth_res = Plugin.AUTHENTICATION_OK
         elif svsId == COdbc.sidOdbc:
-            auth_res = ODBC_Auth(hSocket, userId, pwd, svsId, 'DRIVER={ODBC Driver 13 for SQL Server};Server=windesk;database=sakila')
+            auth_res = ODBC_Auth(hSocket, userId, pwd, svsId, \
+            'DRIVER={ODBC Driver 13 for SQL Server};Server=windesk;database=sakila')
         elif svsId == CMysql.sidMysql:
-            auth_res = MySQL_Auth(hSocket, userId, pwd, svsId, 'database=sakila;server=windesk')
+            auth_res = MySQL_Auth(hSocket, userId, pwd, svsId, \
+                                  'database=sakila;server=windesk')
         elif svsId == CSqlite.sidSqlite:
             auth_res = SQLite_Auth(hSocket, userId, pwd, svsId, 'usqlite.db')
             if auth_res == Plugin.AUTHENTICATION_PROCESSED:
-                # give permision without authentication
+                # give permission without authentication
                 auth_res = Plugin.AUTHENTICATION_OK
         if auth_res >= Plugin.AUTHENTICATION_OK:
             print(userId + "'s connecting permitted, and DB handle opened and cached")
         elif auth_res == Plugin.AUTHENTICATION_PROCESSED:
-            print(userId + "'s connecting denied: no authentication implemented but DB handle opened and cached")
+            print(userId + \
+"'s connecting denied: no authentication implemented but DB handle opened and cached")
         elif auth_res == Plugin.AUTHENTICATION_FAILED:
             print(userId + "'s connecting denied: bad password or user id")
         elif auth_res == Plugin.AUTHENTICATION_INTERNAL_ERROR:
@@ -78,7 +85,8 @@ with CSocketProServer() as server:
         elif auth_res == Plugin.AUTHENTICATION_NOT_IMPLEMENTED:
             print(userId + "'s connecting denied: no authentication implemented")
         else:
-            print(userId + "'s connecting denied: unknown reseaon with res --" + str(auth_res))
+            print(userId + \
+                  "'s connecting denied: unknown reseaon with res --" + str(auth_res))
         return auth_res >= Plugin.AUTHENTICATION_OK
     server.OnIsPermitted = OnIsPermitted
 
@@ -87,7 +95,8 @@ with CSocketProServer() as server:
         CSocketProServer.PushManager.AddAChatGroup(2, "Sales Department")
         CSocketProServer.PushManager.AddAChatGroup(3, "Management Department")
         CSocketProServer.PushManager.AddAChatGroup(7, "HR Department")
-        CSocketProServer.PushManager.AddAChatGroup(DB_CONSTS.CACHE_UPDATE_CHAT_GROUP_ID, "Subscribe/publish for front clients")
+        CSocketProServer.PushManager.AddAChatGroup( \
+            DB_CONSTS.CACHE_UPDATE_CHAT_GROUP_ID, "Subscribe/publish for front clients")
         return True # True -- ok; False -- no listening server
     server.OnSettingServer = do_configuration
 
@@ -114,8 +123,10 @@ with CSocketProServer() as server:
     # load async sqlite library located at the directory ../bin/free_services/sqlite
     server.sqlite = CSocketProServer.DllManager.AddALibrary("ssqlite")
     if server.sqlite:
-        # monitoring sakila.db table events (DELETE, INSERT and UPDATE) for tables actor, language, category, country and film_actor
-        jsonOptions = '{"global_connection_string":"usqlite.db","monitored_tables":"sakila.db.actor;sakila.db.language;sakila.db.category;sakila.db.country;sakila.db.film_actor"}'
+        # monitoring sakila.db table events (DELETE, INSERT and UPDATE) for
+        # tables actor, language, category, country and film_actor
+        jsonOptions = '{"global_connection_string":"usqlite.db","monitored_tables":\
+"sakila.db.actor;sakila.db.language;sakila.db.category;sakila.db.country;sakila.db.film_actor"}'
         SetSPluginGlobalOptions(jsonOptions.encode('utf-8'))
 
     # load persistent message queue library at the directory ../bin/free_services/queue

@@ -112,21 +112,93 @@ Code snippet 1: A client demo sample for computing π value with numerical integ
 #include "../pub_sub/server/HWImpl.h"
 #include "../Loading_balance/pi_i.h"
 #include "../webdemo/httppeer.h"
-#include "../../../include/sqlite/usqlite_server.h"
 #include "../../../include/udatabase.h"
+#include "../../../include/pexports.h"
+#include "../../../include/odbc/uodbc.h"
+#include "../../../include/mysql/umysql.h"
+#include "../../../include/sqlite/usqlite.h"
+#include "../../../include/queue/uasyncqueue.h"
+#include "../../../include/file/ufile.h"
+using namespace std;
 
-class CMyServer : public CSocketProServer {
-protected:
+class CMyServer : public CSocketProServer
+{
 
-    virtual bool OnIsPermitted(USocket_Server_Handle h, const wchar_t*
-        userId, const wchar_t* password, unsigned int serviceId) {
-        std::wcout << L"Ask for a service " << serviceId << L" from user "
-            << userId << L" with password = " << password << "\n";
-        return true;
+public:
+    CMyServer(int nParam = 0) : CSocketProServer(nParam), SQLite_DoAuth(nullptr),
+        MySQL_DoAuth(nullptr), ODBC_DoAuth(nullptr) {
     }
 
-    virtual bool OnSettingServer(unsigned int listeningPort,
-        unsigned int maxBacklog, bool v6) {
+protected:
+    virtual bool OnIsPermitted(USocket_Server_Handle h, const wchar_t* userId,
+        const wchar_t* password, unsigned int serviceId) {
+        int res = SP_PLUGIN_AUTH_NOT_IMPLEMENTED;
+        switch (serviceId) {
+            case Odbc::sidOdbc:
+                if (ODBC_DoAuth) {
+#ifdef WIN32_64
+                    res = ODBC_DoAuth(h, userId, password, serviceId,
+                        L"DRIVER={SQL Server Native Client 11.0};Server=(local);database=sakila");
+#else
+                    res = ODBC_DoAuth(h, userId, password, serviceId,
+                        L"DRIVER={ODBC Driver 17 for SQL Server};Server=windesk;database=sakila");
+#endif
+                }
+                break;
+            case Mysql::sidMysql:
+                if (MySQL_DoAuth) {
+                    res = MySQL_DoAuth(h, userId, password, serviceId,
+                        L"database=sakila;server=localhost");
+                }
+                break;
+            case Sqlite::sidSqlite:
+                if (SQLite_DoAuth) {
+                    res = SQLite_DoAuth(h, userId, password, serviceId, L"usqlite.db");
+                    if (res == SP_PLUGIN_AUTH_PROCESSED) {
+                        //give permission without authentication
+                        res = SP_PLUGIN_AUTH_OK;
+                    }
+                }
+                break;
+            case Queue::sidQueue:
+            case SFile::sidFile:
+            case (unsigned int) tagServiceID::sidHTTP:
+            case sidPi:
+            case sidPiWorker:
+            case sidHelloWorld:
+                //give permission to known services without authentication
+                res = SP_PLUGIN_AUTH_OK;
+                break;
+            default:
+                break;
+        }
+        if (res >= SP_PLUGIN_AUTH_OK) {
+            wcout << userId << "'s connecting permitted, and DB handle opened and cached\n";
+        } else {
+            switch (res) {
+            case SP_PLUGIN_AUTH_PROCESSED:
+                wcout << userId << 
+        "'s connecting denied: no authentication implemented but DB handle opened and cached\n";
+                break;
+            case SP_PLUGIN_AUTH_FAILED:
+                wcout << userId << "'s connecting denied: bad password\n";
+                break;
+            case SP_PLUGIN_AUTH_INTERNAL_ERROR:
+                wcout << userId << "'s connecting denied: plugin internal error\n";
+                break;
+            case SP_PLUGIN_AUTH_NOT_IMPLEMENTED:
+                wcout << userId << "'s connecting denied: no authentication implemented\n";
+                break;
+            default:
+                wcout << userId <<
+                "'s connecting denied: unknown reseaon with res -- " << res << "\n";
+                break;
+            }
+        }
+        return (res >= SP_PLUGIN_AUTH_OK);
+    }
+
+    virtual bool OnSettingServer(unsigned int listeningPort, unsigned int maxBacklog, bool v6) {
         Config::SetAuthenticationMethod(tagAuthenticationMethod::amOwn);
 
         //add service(s) into SocketPro server
@@ -136,55 +208,60 @@ protected:
         ok = PushManager::AddAChatGroup(2, L"Sales Department");
         ok = PushManager::AddAChatGroup(3, L"Management Department");
         ok = PushManager::AddAChatGroup(7, L"HR Department");
-        
-    ok = PushManager::AddAChatGroup(SPA::UDB::STREAMING_SQL_CHAT_GROUP_ID,
+        ok = PushManager::AddAChatGroup(SPA::UDB::STREAMING_SQL_CHAT_GROUP_ID,
             L"Subscribe/publish for front clients");
 
-        //load socketpro async sqlite library located at the
-        //directory ../socketpro/bin/free_services/sqlite
+        //load Socketpro sqlite library located at the directory ../bin/free_services/sqlite
         auto h = DllManager::AddALibrary("ssqlite");
         if (h) {
-  PSetSqliteDBGlobalConnectionString f=(PSetSqliteDBGlobalConnectionString)
-                GetProcAddress(h, "SetSqliteDBGlobalConnectionString");
-            //monitoring sakila.db table events (DELETE, INSERT and UPDATE)
-            //for tables actor, language, category, country and film_actor
-     f(L"usqlite.db+sakila.db.actor;sakila.db.language;sakila.db.category;\
-                sakila.db.country;sakila.db.film_actor");
+            PSetSPluginGlobalOptions SetSPluginGlobalOptions = 
+                (PSetSPluginGlobalOptions) GetProcAddress(h, "SetSPluginGlobalOptions");
+            //monitoring sakila.db table events (DELETE, INSERT and UPDATE) for
+            //tables actor, language, category and country
+            ok = SetSPluginGlobalOptions(
+"{\"monitored_tables\":\"sakila.db.actor;sakila.db.language;sakila.db.category;sakila.db.country\"}");
+
+            SQLite_DoAuth = (PDoSPluginAuthentication) GetProcAddress(h, "DoSPluginAuthentication");
         }
-        //load socketPro server message queue library
-        //at the directory ../socketpro/bin/free_services/queue
+        //load SocketPro message queue library at the directory ../bin/free_services/queue
         //24 * 1024 batch dequeuing size in bytes
         h = DllManager::AddALibrary("uasyncqueue", 24 * 1024);
 
-        //load socketPro file streaming library at the
-        //directory ../socketpro/bin/free_services/file
+        //load SocketPro file streaming library at the directory ../bin/free_services/file
         h = DllManager::AddALibrary("ustreamfile");
 
-        //load MySQL/MariaDB socketPro server plugin library at the
-        //directory ../socketpro/bin/free_services/mm_middle
+        //load MySQL/MariaDB plugin library at the directory ../bin/linux or ../bin/win
         h = DllManager::AddALibrary("smysql");
+        if (h) {
+            MySQL_DoAuth = (PDoSPluginAuthentication) GetProcAddress(h, "DoSPluginAuthentication");
+        }
 
-        //load ODBC socketPro server plugin library at the
-        //directory ../socketpro/bin/win or ../bin/linux
+        //load ODBC plugin library at the directory ../bin/win or ../bin/linux
         h = DllManager::AddALibrary("sodbc");
-
+        if (h) {
+            ODBC_DoAuth = (PDoSPluginAuthentication) GetProcAddress(h, "DoSPluginAuthentication");
+        }
         return true; //true -- ok; false -- no listening server
     }
+
 private:
-    //client/server and subscribe/publish messaging
     CSocketProService&lt;HelloWorldPeer&gt; m_HelloWorld;
 
     //SocketPro server routing demo
     CSocketProService&lt;CDummyPeer&gt; m_Pi;
     CSocketProService&lt;CDummyPeer&gt; m_PiWorker;
 
-    //HTTP/websocket + client/server and subscribe/publish messaging
     CSocketProService&lt;CHttpPeer&gt; m_myHttp;
+
+    PDoSPluginAuthentication SQLite_DoAuth;
+    PDoSPluginAuthentication MySQL_DoAuth;
+    PDoSPluginAuthentication ODBC_DoAuth;
+
 private:
 
     void AddServices() {
-        bool ok = m_Pi.AddMe(sidPi); //load balance/routing client
-        ok = m_PiWorker.AddMe(sidPiWorker); //load balance/routing worker
+        bool ok = m_Pi.AddMe(sidPi);
+        ok = m_PiWorker.AddMe(sidPiWorker);
         ok = Router::SetRouting(sidPi, sidPiWorker);
 
         //Hello World
@@ -192,13 +269,12 @@ private:
         ok = m_HelloWorld.AddSlowRequest(idSleep);
 
         //HTTP and WebSocket services
-        //Copy uloader.js & uwebsocket.js at ../socketpro/bin/js and
-        //earthcity.jpg & ws0.htm at ../socketpro/tutorials/webtests into
-        //the directory where this application is located
-        ok = m_myHttp.AddMe((unsigned int)SPA::tagServiceID::sidHTTP);
-        ok = m_myHttp.AddSlowRequest((unsigned short)tagHttpRequestID::idGet);
-        ok = m_myHttp.AddSlowRequest((unsigned short)tagHttpRequestID::idPost);
-        ok = m_myHttp.AddSlowRequest((unsigned short)tagHttpRequestID::idUserRequest);
+        //Copy uloader.js & uwebsocket.js at ../socketpro/bin/js, and earthcity.jpg & ws0.htm
+        //at ../socketpro/tutorials/webtests into the directory where the application is located
+        ok = m_myHttp.AddMe((unsigned int) tagServiceID::sidHTTP);
+        ok = m_myHttp.AddSlowRequest((unsigned short) tagHttpRequestID::idGet);
+        ok = m_myHttp.AddSlowRequest((unsigned short) tagHttpRequestID::idPost);
+        ok = m_myHttp.AddSlowRequest((unsigned short) tagHttpRequestID::idUserRequest);
     }
 };
 
@@ -206,35 +282,43 @@ int main(int argc, char* argv[]) {
     CMyServer server;
     if (!server.Run(20901)) {
         int errCode = server.GetErrorCode();
-        std::cout << "Error code: " << errCode << "\n";
+        cout << "Error code: " << errCode << "\n";
     }
-    std::cout << "Press a key to stop the server ......\n";
-    ::getchar(); return 0;
+    cout << "Press a key to stop the server ......\n";
+    ::getchar();
+    return 0;
 }
+
 </pre>
 </td>
 <td>
 <p>The left code snippet 2 shows implementation of microservices and how to enable SocketPro built-in feature routing. The code comes from the file ../socketpro/tutorial/cplusplus/all_servers/all_servers.cpp.</p>
 <hr />
 <h3>Micro services</h3>
-<p>A SocketPro server can support any number of services. As shown at the code snippet 2 of <a title="SocketPro Secure Communication and Publish/Subscribe Messaging" href="cpp_push.htm">the previous article</a>, we register and set hello world service at lines 83 and 84.
-Next, we register and set HTTP/websocket service at line 90 through 93 as shown at the code snippet 2 of <a href="cpp_web.htm" title="SocketPro WebSocket for Client/server and Subscribe/publish Messaging on Browsers">this article for web browser developments</a>.
+<p>A SocketPro server can support any number of services. As shown at the code snippet 2 of <a title="SocketPro Secure Communication and Publish/Subscribe Messaging" href="cpp_push.htm">the previous article</a>, we register and set hello world service at lines 160 and 161.
+Next, we register and set HTTP/websocket service at line 166 through 169 as shown at the code snippet 2 of <a href="cpp_web.htm" title="SocketPro WebSocket for Client/server and Subscribe/publish Messaging on Browsers">this article for web browser developments</a>.
 
 </p>
 <hr />
 <h3>SocketPro Built-in Feature Routing</h3>
-<p>Also, we simply register the two srvices, sidPi and sidPiWorker, at lines 78 and 79, respectively.
-Afterwards, we call the method <i>SetRouting</i> at line 80 to enable the built-in feature routing so that this demo server also function as a load balancer.
+<p>Also, we simply register the two srvices, sidPi and sidPiWorker, at lines 155 and 156, respectively.
+Afterwards, we call the method <i>SetRouting</i> at line 157 to enable the built-in feature routing so that this demo server also function as a load balancer.
 So far we have registered four services with one particular feature for server load balancing.</p>
 <hr />
 <h3>Loading SocketPro server plugins</h3>
 <p>At this time, you can use C/C++ to write server plugins as shown at <a href="cpp_serverqueue.htm" title="SocketPro Server Persistent Message Queue">the code snippet 4 of the previous article</a>.
-The five server plugins can be loaded into a server for reuse, as shown at line 37 through 61 of the left code snippet 2.
+The five server plugins can be loaded into a server for reuse, as shown at line 107 through 135 of the left code snippet 2.
 The five plugins are described with more details at <a href="get_started.htm" title="Get Started With SocketPro">this article</a> before. A plugin requires exposing seven pre-defined functions at least.
-However, we can expose more functions for other purposes as shown at line 39 through 44. We will talk a few plugins more in the coming articles.
+However, we can expose more functions for other purposes as shown at line 109 through 116. We will talk a few plugins more in the coming articles.
 </p>
-<p>It is noted that SocketPro comes with a number of pre-compiled plugins for you to experiment and learn. They are not completely ready for resue within your commercial applications yet.
-However, they are good examples and reusable as development basis for your commercial or enterprise applications.</p>
+<p>It is noted that SocketPro comes with a number of pre-compiled plugins for you to experiment and learn. Some of them are ready for resue within your commercial applications at this time.
+However, all of them are good examples and reusable for your commercial or enterprise applications.</p>
+<p>SocketPro comes with two ODBC and MySQL/MariaDB server plugins.
+We can use them for authenticating client credentials by use of database accounts so that you don't have to write your own code for authentication as shown at line 25 through 91.
+If you set a default database within a connection string as done from the line 30 through 53, a client is able to omit the request Open (or open) call for opening a database.
+It is noted that all the five plugins export the global method DoSPluginAuthentication. However, SQLite plugin is partially implemented, and is not able to be used for authenticating.
+The other two plugins, message queue (asyncqueue) and file (ustreamfile), are not implemented for authenticating at all at this time.
+</p>
 </td>
 </tr>
 </table>

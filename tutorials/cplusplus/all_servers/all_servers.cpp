@@ -42,7 +42,7 @@ protected:
                 if (SQLite_DoAuth) {
                     res = SQLite_DoAuth(h, userId, password, serviceId, L"usqlite.db");
                     if (res == SP_PLUGIN_AUTH_PROCESSED) {
-                        //give permision without authentication
+                        //give permission without authentication
                         res = SP_PLUGIN_AUTH_OK;
                     }
                 }
@@ -53,7 +53,7 @@ protected:
             case sidPi:
             case sidPiWorker:
             case sidHelloWorld:
-                //give permision to known services without authentication
+                //give permission to known services without authentication
                 res = SP_PLUGIN_AUTH_OK;
                 break;
             default:

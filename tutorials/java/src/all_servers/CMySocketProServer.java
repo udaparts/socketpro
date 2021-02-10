@@ -18,7 +18,7 @@ public class CMySocketProServer extends CSocketProServer {
             case piConst.sidPiWorker:
             case SPA.BaseServiceID.sidFile:
             case SPA.BaseServiceID.sidQueue:
-                res = Plugin.AUTHENTICATION_OK; //give permision to known services without authentication
+                res = Plugin.AUTHENTICATION_OK; //give permission to known services without authentication
                 break;
             case SPA.BaseServiceID.sidODBC:
                 res = Plugin.DoSPluginAuthentication("sodbc", hSocket, userId, password, nSvsID, "DRIVER={ODBC Driver 17 for SQL Server};Server=(local);database=sakila");
@@ -29,7 +29,7 @@ public class CMySocketProServer extends CSocketProServer {
             case SPA.ClientSide.CSqlite.sidSqlite:
                 res = Plugin.DoSPluginAuthentication("ssqlite", hSocket, userId, password, nSvsID, "usqlite.db");
                 if (res == Plugin.AUTHENTICATION_PROCESSED) {
-                    res = Plugin.AUTHENTICATION_OK; //give permision without authentication
+                    res = Plugin.AUTHENTICATION_OK; //give permission without authentication
                 }
                 break;
             default:
