@@ -360,8 +360,8 @@ namespace SPA
 #endif
 
         CMysqlImpl::CMysqlImpl() : m_oks(0), m_fails(0), m_ti(tagTransactionIsolation::tiUnspecified),
-        m_global(true), m_Blob(*m_sb), m_parameters(0),
-        m_bCall(false), m_bManual(false), m_EnableMessages(false), m_pNoSending(nullptr) {
+        m_global(true), m_Blob(*m_sb), m_parameters(0), m_bCall(false), m_bManual(false), m_EnableMessages(false),
+        m_pNoSending(nullptr), m_nSelectPreparedUsed(0) {
             m_Blob.ToUtf8(true);
 #ifdef WIN32_64
             m_UQueue.TimeEx(true); //use high-precision datetime
@@ -1536,6 +1536,7 @@ namespace SPA
             Utilities::Trim(m_sqlPrepare);
             MYSQL_STMT *stmt = m_remMysql.mysql_stmt_init(m_pMysql.get());
             PreprocessPreparedStatement();
+            m_nSelectPreparedUsed = 0;
             my_bool fail = m_remMysql.mysql_stmt_prepare(stmt, m_sqlPrepare.c_str(), (unsigned long) m_sqlPrepare.size());
             if (fail) {
                 res = m_remMysql.mysql_stmt_errno(stmt);
@@ -2216,6 +2217,17 @@ namespace SPA
             bool header_sent = false;
             int rows = (int) (m_vParam.size() / m_parameters);
             for (int row = 0; row < rows; ++row) {
+                //a hack solution to prevent parameterized select from crash
+                if (m_nSelectPreparedUsed) {
+                    m_pPrepare.reset();
+                    MYSQL_STMT* stmt = m_remMysql.mysql_stmt_init(m_pMysql.get());
+                    m_remMysql.mysql_stmt_prepare(stmt, m_sqlPrepare.c_str(), (unsigned long)m_sqlPrepare.size());
+                    m_pPrepare.reset(stmt, [](MYSQL_STMT* stmt) {
+                        if (stmt) {
+                            m_remMysql.mysql_stmt_close(stmt);
+                        }
+                    });
+                }
                 CDBString err;
                 int my_res = Bind(*sb, row, err);
                 if (my_res) {
@@ -2241,22 +2253,15 @@ namespace SPA
                 if (affected_rows != (my_ulonglong) (~0) && affected_rows) {
                     affected += affected_rows;
                 }
-
                 unsigned int cols = m_remMysql.mysql_stmt_field_count(m_pPrepare.get());
+                bool rowset_found = (cols > 0);
                 bool output = (m_pMysql.get()->server_status & SERVER_PS_OUT_PARAMS) ? true : false;
-                if (cols) {
+                while (cols) {
                     metadata.reset(m_remMysql.mysql_stmt_result_metadata(m_pPrepare.get()), [](MYSQL_RES* r) {
                         if (r) {
                             m_remMysql.mysql_free_result(r);
                         }
                     });
-                }
-#ifndef NDEBUG
-                if (cols) {
-                    assert(metadata);
-                }
-#endif
-                while (cols) {
                     CDBColumnInfoArray vInfo = GetColInfo(metadata.get(), cols, (meta || m_bCall));
                     metadata.reset();
                     if (!output) {
@@ -2273,7 +2278,7 @@ namespace SPA
                         unsigned int sent = SendResult(idRowsetHeader, vInfo, index, outputs);
                         header_sent = true;
                         if (sent == REQUEST_CANCELED || sent == SOCKET_NOT_FOUND) {
-                            m_remMysql.mysql_stmt_free_result(m_pPrepare.get());
+                            m_pPrepare.reset();
                             return;
                         }
                     }
@@ -2290,7 +2295,7 @@ namespace SPA
                     MYSQL_BIND_RESULT_FIELD *myfield = fields.get();
                     if (pBinds && (output || rowset)) {
                         if (!PushRecords(index, mybind, myfield, vInfo, rowset, output, my_res, err)) {
-                            my_res = m_remMysql.mysql_stmt_free_result(m_pPrepare.get());
+                            m_pPrepare.reset();
                             return;
                         }
                         else if (my_res) {
@@ -2302,7 +2307,8 @@ namespace SPA
                     }
                     fields.reset();
                     pBinds.reset();
-                    my_res = m_remMysql.mysql_stmt_free_result(m_pPrepare.get());
+                    if (!m_bCall) break;
+                    m_remMysql.mysql_stmt_free_result(m_pPrepare.get());
                     my_res = m_remMysql.mysql_stmt_next_result(m_pPrepare.get());
                     if (my_res == 0) {
                         //continue for the next set
@@ -2323,18 +2329,14 @@ namespace SPA
                     }
                     cols = m_remMysql.mysql_stmt_field_count(m_pPrepare.get());
                     output = (m_pMysql.get()->server_status & SERVER_PS_OUT_PARAMS) ? true : false;
-                    if (cols) {
-                        metadata.reset(m_remMysql.mysql_stmt_result_metadata(m_pPrepare.get()), [](MYSQL_RES* r) {
-                            if (r) {
-                                m_remMysql.mysql_free_result(r);
-                            }
-                        });
-                    }
                 }
                 if (my_res)
                     ++m_fails;
                 else
                     ++m_oks;
+                if (rowset_found && !m_bCall) {
+                    ++m_nSelectPreparedUsed;
+                }
             }
             if (!header_sent && (rowset || meta)) {
                 CDBColumnInfoArray vInfo;
