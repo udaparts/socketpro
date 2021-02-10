@@ -61,6 +61,22 @@ class tagHttpRequestID(object):
     idMultiPart = 137 #HTTP POST MUTIPLE PART
     idUserRequest = 138 #SocketPro HTTP User Request
 
+class Plugin(object):
+    # Authentication permitted and DB handle opened and cached
+    AUTHENTICATION_OK = 1
+
+    # Authentication can not be done, but DB handle opened and cached
+    AUTHENTICATION_PROCESSED = 0
+
+    # Authentication failed, and no DB handle opened or cached
+    AUTHENTICATION_FAILED = -1
+
+    # Authentication cannot be made due to an internal error, and no DB handle opened or cached
+    AUTHENTICATION_INTERNAL_ERROR = -2
+
+    # Authentication not implemented at all
+    AUTHENTICATION_NOT_IMPLEMENTED = -3
+
 from spa import *
 IServerQueue = IMessageQueueBasic
 
