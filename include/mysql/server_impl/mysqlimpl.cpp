@@ -2219,14 +2219,7 @@ namespace SPA
             for (int row = 0; row < rows; ++row) {
                 //a hack solution to prevent parameterized select from crash
                 if (m_nSelectPreparedUsed) {
-                    m_pPrepare.reset();
-                    MYSQL_STMT* stmt = m_remMysql.mysql_stmt_init(m_pMysql.get());
-                    m_remMysql.mysql_stmt_prepare(stmt, m_sqlPrepare.c_str(), (unsigned long)m_sqlPrepare.size());
-                    m_pPrepare.reset(stmt, [](MYSQL_STMT* stmt) {
-                        if (stmt) {
-                            m_remMysql.mysql_stmt_close(stmt);
-                        }
-                    });
+                    m_remMysql.mysql_stmt_reset(m_pPrepare.get());
                 }
                 CDBString err;
                 int my_res = Bind(*sb, row, err);
@@ -2278,7 +2271,7 @@ namespace SPA
                         unsigned int sent = SendResult(idRowsetHeader, vInfo, index, outputs);
                         header_sent = true;
                         if (sent == REQUEST_CANCELED || sent == SOCKET_NOT_FOUND) {
-                            m_pPrepare.reset();
+                            m_remMysql.mysql_stmt_reset(m_pPrepare.get());
                             return;
                         }
                     }
@@ -2295,7 +2288,7 @@ namespace SPA
                     MYSQL_BIND_RESULT_FIELD *myfield = fields.get();
                     if (pBinds && (output || rowset)) {
                         if (!PushRecords(index, mybind, myfield, vInfo, rowset, output, my_res, err)) {
-                            m_pPrepare.reset();
+                            m_remMysql.mysql_stmt_reset(m_pPrepare.get());
                             return;
                         }
                         else if (my_res) {
