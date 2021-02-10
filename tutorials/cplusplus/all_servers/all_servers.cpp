@@ -59,17 +59,17 @@ protected:
             std::wcout << userId << "'s connecting permitted, and DB handle opened and cached\n";
         } else {
             switch (res) {
+            case SP_PLUGIN_AUTH_PROCESSED:
+                std::wcout << userId << "'s connecting denied: no authentication implemented but DB handle opened and cached\n";
+                break;
             case SP_PLUGIN_AUTH_FAILED:
                 std::wcout << userId << "'s connecting denied: bad password\n";
-                break;
-            case SP_PLUGIN_AUTH_NOT_IMPLEMENTED:
-                std::wcout << userId << "'s connecting denied: no authentication implemented\n";
                 break;
             case SP_PLUGIN_AUTH_INTERNAL_ERROR:
                 std::wcout << userId << "'s connecting denied: plugin internal error\n";
                 break;
-            case SP_PLUGIN_AUTH_PROCESSED:
-                std::wcout << userId << "'s connecting denied: no authentication implemented but DB handle opened and cached\n";
+            case SP_PLUGIN_AUTH_NOT_IMPLEMENTED:
+                std::wcout << userId << "'s connecting denied: no authentication implemented\n";
                 break;
             default:
                 std::wcout << userId << "'s connecting denied: unknown reseaon with res -- " << res << "\n";

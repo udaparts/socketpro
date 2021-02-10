@@ -3,11 +3,11 @@
 
 #include "definebase.h"
 
-#define SP_PLUGIN_AUTH_OK                   ((int)1) //authentication permitted and opened handle cached
-#define SP_PLUGIN_AUTH_FAILED               ((int)0)
-#define SP_PLUGIN_AUTH_NOT_IMPLEMENTED      ((int)-1)
-#define SP_PLUGIN_AUTH_INTERNAL_ERROR       ((int)-2)
-#define SP_PLUGIN_AUTH_PROCESSED            ((int)-3) //authentication not implemented, but opened handle cached and processed in some way
+#define SP_PLUGIN_AUTH_OK                   ((int)1) //authentication permitted, and DB handle opened and cached
+#define SP_PLUGIN_AUTH_PROCESSED            ((int)0) //authentication not implemented, but DB handle opened and cached
+#define SP_PLUGIN_AUTH_FAILED               ((int)-1) //authentication failed
+#define SP_PLUGIN_AUTH_INTERNAL_ERROR       ((int)-2) //authentication failed due to an intenal error 
+#define SP_PLUGIN_AUTH_NOT_IMPLEMENTED      ((int)-3) //authentication not implemented at all
 
 #ifdef __cplusplus
 extern "C" {

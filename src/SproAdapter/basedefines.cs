@@ -802,14 +802,14 @@ namespace SocketProAdapter
             public const int AUTHENTICATION_OK = 1;
 
             /// <summary>
-            /// Authentication failed, and no handle opened or cached
+            /// Authentication can not be made, but DB handle opened and cached
             /// </summary>
-            public const int AUTHENTICATION_FAILED = 0;
+            public const int AUTHENTICATION_PROCESSED = 0;
 
             /// <summary>
-            /// Authentication not implemented at all
+            /// Authentication failed, and no handle opened or cached
             /// </summary>
-            public const int AUTHENTICATION_NOT_IMPLEMENTED = -1;
+            public const int AUTHENTICATION_FAILED = -1;
 
             /// <summary>
             /// Authentication cannot be made due to an internal error, and no handle opened or cached
@@ -817,9 +817,9 @@ namespace SocketProAdapter
             public const int AUTHENTICATION_INTERNAL_ERROR = -2;
 
             /// <summary>
-            /// Authentication can not be made, but DB handle opened and cached
+            /// Authentication not implemented at all
             /// </summary>
-            public const int AUTHENTICATION_PROCESSED = -3;
+            public const int AUTHENTICATION_NOT_IMPLEMENTED = -3;
         }
 
         public enum tagAuthenticationMethod

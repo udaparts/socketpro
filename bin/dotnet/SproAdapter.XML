@@ -9,14 +9,14 @@
             Authentication permitted, and DB handle opened and cached
             </summary>
         </member>
+        <member name="F:SocketProAdapter.ServerSide.Plugin.AUTHENTICATION_PROCESSED">
+            <summary>
+            Authentication can not be made, but DB handle opened and cached
+            </summary>
+        </member>
         <member name="F:SocketProAdapter.ServerSide.Plugin.AUTHENTICATION_FAILED">
             <summary>
             Authentication failed, and no handle opened or cached
-            </summary>
-        </member>
-        <member name="F:SocketProAdapter.ServerSide.Plugin.AUTHENTICATION_NOT_IMPLEMENTED">
-            <summary>
-            Authentication not implemented at all
             </summary>
         </member>
         <member name="F:SocketProAdapter.ServerSide.Plugin.AUTHENTICATION_INTERNAL_ERROR">
@@ -24,9 +24,9 @@
             Authentication cannot be made due to an internal error, and no handle opened or cached
             </summary>
         </member>
-        <member name="F:SocketProAdapter.ServerSide.Plugin.AUTHENTICATION_PROCESSED">
+        <member name="F:SocketProAdapter.ServerSide.Plugin.AUTHENTICATION_NOT_IMPLEMENTED">
             <summary>
-            Authentication can not be made, but DB handle opened and cached
+            Authentication not implemented at all
             </summary>
         </member>
         <member name="M:SocketProAdapter.ServerSide.CClientPeer.Dequeue(System.UInt32,System.UInt32,System.Boolean)">
