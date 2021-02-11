@@ -20,6 +20,10 @@ CStreamingServer *g_pStreamingServer = nullptr;
 
 int async_sql_plugin_init(void *p) {
     CMysqlImpl::InitMySql();
+    if (!CMysqlImpl::IsMysqlInitialized()) {
+        CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Required MySQL/MariaDB client library not available");
+        return 1;
+    }
     CSetGlobals::Globals.Plugin = (const void *) p;
     if (!CSetGlobals::Globals.StartListening()) {
         return 1;

@@ -121,7 +121,11 @@ namespace SPA
         }
 
         bool CMysqlImpl::SetPublishDBEvent(CMysqlImpl & impl) {
+#ifdef WIN32_64
+            CDBString wsql = u"CREATE FUNCTION PublishDBEvent RETURNS INTEGER SONAME 'smysql.dll'";
+#else
             CDBString wsql = u"CREATE FUNCTION PublishDBEvent RETURNS INTEGER SONAME 'libsmysql.so'";
+#endif
             int res = 0;
             INT64 affected;
             SPA::UDB::CDBVariant vtId;
