@@ -183,7 +183,10 @@ namespace SPA {
             CUQueue *m_pNoSending;
             CDBString m_dbNameOpened;
             SPA::CScopeUQueue m_sbBind;
-            unsigned int m_nSelectPreparedUsed;
+            std::shared_ptr<MYSQL_BIND_RESULT_FIELD> m_sFields;
+            std::shared_ptr<MYSQL_BIND> m_sBinds;
+            CDBColumnInfoArray m_vSCol;
+            bool m_bPSelect;
 
             static const int IS_BINARY = 63;
             static const int MYSQL_TINYBLOB = 0xff;
