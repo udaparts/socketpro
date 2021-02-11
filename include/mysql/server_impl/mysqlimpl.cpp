@@ -147,7 +147,7 @@ namespace SPA
                 auto pos = it->find_last_of('.');
                 std::string schema = it->substr(0, pos);
                 std::string table = it->substr(pos + 1);
-                if (!impl.CreateTriggers(schema, table)) return false;
+                impl.CreateTriggers(schema, table);
             }
             return true;
         }
@@ -236,7 +236,7 @@ namespace SPA
                     bUpdate = true;
             }
             if (bInsert && bDelete && bUpdate)
-                return false;
+                return true; //all created already
             CDBString sql = u"SELECT COLUMN_NAME,COLUMN_KEY FROM information_schema.COLUMNS WHERE TABLE_SCHEMA='";
             sql += (wSchema + u"' AND TABLE_NAME='");
             sql += (wTable + u"' ORDER BY TABLE_NAME,ORDINAL_POSITION");
@@ -244,7 +244,7 @@ namespace SPA
             Execute(sql, true, true, false, 0, affected, res, errMsg, vtId, fail_ok);
             m_pNoSending = nullptr;
             if (res) {
-                CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Querying the table %s.%s failed for creating triggers(errCode=%d; errMsg=%s)", schema.c_str(), table.c_str(), res, Utilities::ToUTF8(errMsg).c_str());
+                CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Querying the table %s.%s key information failed for creating triggers(errCode=%d; errMsg=%s)", schema.c_str(), table.c_str(), res, Utilities::ToUTF8(errMsg).c_str());
                 return false;
             }
             if (!q.GetSize()) {
@@ -270,7 +270,6 @@ namespace SPA
                 Execute(sql, false, false, false, 0, affected, res, errMsg, vtId, fail_ok);
                 if (res) {
                     CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Unable to create insert trigger for the table %s.%s(errCode=%d; errMsg=%s)", schema.c_str(), table.c_str(), res, Utilities::ToUTF8(errMsg).c_str());
-                    return false;
                 }
             }
             if (!bDelete) {
@@ -278,7 +277,6 @@ namespace SPA
                 Execute(sql, false, false, false, 0, affected, res, errMsg, vtId, fail_ok);
                 if (res) {
                     CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Unable to create delete trigger for the table %s.%s(errCode=%d; errMsg=%s)", schema.c_str(), table.c_str(), res, Utilities::ToUTF8(errMsg).c_str());
-                    return false;
                 }
             }
             if (!bUpdate) {
@@ -286,7 +284,6 @@ namespace SPA
                 Execute(sql, false, false, false, 0, affected, res, errMsg, vtId, fail_ok);
                 if (res) {
                     CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Unable to create update trigger for the table %s.%s(errCode=%d; errMsg=%s)", schema.c_str(), table.c_str(), res, Utilities::ToUTF8(errMsg).c_str());
-                    return false;
                 }
             }
             return true;
