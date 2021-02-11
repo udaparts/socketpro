@@ -2217,9 +2217,15 @@ namespace SPA
             bool header_sent = false;
             int rows = (int) (m_vParam.size() / m_parameters);
             for (int row = 0; row < rows; ++row) {
-                //a hack solution to prevent parameterized select from crash
                 if (m_nSelectPreparedUsed) {
-                    m_remMysql.mysql_stmt_reset(m_pPrepare.get());
+                    //a hack solution to prevent parameterized select from crash with performance panelty!
+                    MYSQL_STMT* stmt = m_remMysql.mysql_stmt_init(m_pMysql.get());
+                    m_remMysql.mysql_stmt_prepare(stmt, m_sqlPrepare.c_str(), (unsigned long)m_sqlPrepare.size());
+                    m_pPrepare.reset(stmt, [](MYSQL_STMT* stmt) {
+                        if (stmt) {
+                            m_remMysql.mysql_stmt_close(stmt);
+                        }
+                    });
                 }
                 CDBString err;
                 int my_res = Bind(*sb, row, err);
@@ -2271,7 +2277,7 @@ namespace SPA
                         unsigned int sent = SendResult(idRowsetHeader, vInfo, index, outputs);
                         header_sent = true;
                         if (sent == REQUEST_CANCELED || sent == SOCKET_NOT_FOUND) {
-                            m_remMysql.mysql_stmt_reset(m_pPrepare.get());
+                            m_pPrepare.reset();
                             return;
                         }
                     }
@@ -2288,7 +2294,7 @@ namespace SPA
                     MYSQL_BIND_RESULT_FIELD *myfield = fields.get();
                     if (pBinds && (output || rowset)) {
                         if (!PushRecords(index, mybind, myfield, vInfo, rowset, output, my_res, err)) {
-                            m_remMysql.mysql_stmt_reset(m_pPrepare.get());
+                            m_pPrepare.reset();
                             return;
                         }
                         else if (my_res) {
@@ -2300,7 +2306,6 @@ namespace SPA
                     }
                     fields.reset();
                     pBinds.reset();
-                    if (!m_bCall) break;
                     m_remMysql.mysql_stmt_free_result(m_pPrepare.get());
                     my_res = m_remMysql.mysql_stmt_next_result(m_pPrepare.get());
                     if (my_res == 0) {
