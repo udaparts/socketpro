@@ -803,36 +803,37 @@ namespace SPA
                 CDBColumnInfo &info = vCols[n];
                 MYSQL_FIELD &f = field[n];
                 if (meta) {
+                    //mariadb: wrong f.xxx_length value! use strlen instead.
                     if (f.name) {
-                        info.DisplayName.assign(f.name, f.name + f.name_length);
+                        info.DisplayName.assign(f.name, f.name + ::strlen(f.name));
                     } else {
                         info.DisplayName.clear();
                     }
                     if (f.org_name) {
-                        info.OriginalName.assign(f.org_name, f.org_name + f.org_name_length);
+                        info.OriginalName.assign(f.org_name, f.org_name + ::strlen(f.org_name));
                     } else {
                         info.OriginalName = info.DisplayName;
                     }
 
                     if (f.table) {
-                        info.TablePath.assign(f.table, f.table + f.table_length);
+                        info.TablePath.assign(f.table, f.table + ::strlen(f.table));
                     } else if (f.org_table) {
-                        info.TablePath.assign(f.org_table, f.org_table + f.org_table_length);
+                        info.TablePath.assign(f.org_table, f.org_table + ::strlen(f.org_table));
                     } else {
                         info.TablePath.clear();
                     }
                     if (f.db) {
-                        info.DBPath.assign(f.db, f.db + f.db_length);
+                        info.DBPath.assign(f.db, f.db + ::strlen(f.db));
                     } else {
                         info.DBPath.clear();
                     }
 
                     if (f.org_table && (f.org_table != f.table)) {
-                        info.Collation.assign(f.org_table, f.org_table + f.org_table_length);
+                        info.Collation.assign(f.org_table, f.org_table + ::strlen(f.org_table));
                     } else if (f.catalog) {
-                        info.Collation.assign(f.catalog, f.catalog + f.catalog_length);
+                        info.Collation.assign(f.catalog, f.catalog + ::strlen(f.catalog));
                     } else if (f.def) {
-                        info.Collation.assign(f.def, f.def + f.def_length);
+                        info.Collation.assign(f.def, f.def + ::strlen(f.def));
                     } else {
                         info.Collation.clear();
                     }
