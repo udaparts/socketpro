@@ -57,8 +57,17 @@ m_hModule(nullptr), Plugin(nullptr), enable_http_websocket(false) {
 #else
     m_hModule = ::dlopen(nullptr, RTLD_LAZY);
 #endif
+    HINSTANCE hModule = nullptr;
     if (m_hModule) {
         server_version = (const char*) ::GetProcAddress(m_hModule, "server_version");
+        if (!server_version) {
+#ifdef WIN32_64
+            hModule = ::GetModuleHandleW(L"server.dll"); //mariadb
+#endif
+            if (hModule) {
+                server_version = (const char*) ::GetProcAddress(hModule, "server_version");
+            }
+        }
         if (!server_version) {
             LogMsg(__FILE__, __LINE__, "Variable server_version not found inside mysqld application");
         } else {
@@ -93,6 +102,9 @@ m_hModule(nullptr), Plugin(nullptr), enable_http_websocket(false) {
         }
     }
     UpdateLog();
+    if (hModule) {
+        ::FreeLibrary(hModule);
+    }
 }
 
 void CSetGlobals::LogMsg(const char *file, int fileLineNumber, const char *format ...) {
