@@ -5,7 +5,7 @@
 
 namespace SPA {
     namespace ClientSide {
-        typedef CBaseOdbc<SPA::Odbc::sidOdbc> COdbc;
+        typedef CBaseOdbc COdbc;
         typedef CAsyncDBHandler<SPA::Odbc::sidOdbc> COdbcBase;
         typedef CSocketPool<COdbc> COdbcPool;
     } //namespace ClientSide

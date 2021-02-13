@@ -23,6 +23,9 @@ namespace SPA {
             static const unsigned int ONE_MEGA_BYTES = 0x100000;
             static const unsigned int BLOB_LENGTH_NOT_AVAILABLE = 0xffffffe0;
 
+            CAsyncDBHandler(const CAsyncDBHandler &db) = delete;
+            CAsyncDBHandler& operator=(const CAsyncDBHandler &db) = delete;
+
         protected:
             //you may use this constructor for extending the class
 
