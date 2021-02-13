@@ -6,8 +6,15 @@
 
 namespace SPA {
     namespace ClientSide {
-        typedef CBaseOdbc<SPA::Db2::sidDB2> CDb2;
-        typedef CAsyncDBHandler<SPA::Db2::sidDB2> CDb2Base;
+        class CDb2 : public CBaseOdbc {
+            CDb2(const CDb2& db) = delete;
+            CDb2& operator=(const CDb2& db) = delete;
+
+        public:
+            CDb2(CClientSocket* cs) : CBaseOdbc(Db2::sidDB2, cs) {
+            }
+        };
+        typedef COdbcBase CDb2Base;
         typedef CSocketPool<CDb2> CDb2Pool;
     } //namespace ClientSide
 } //namespace SPA
