@@ -133,13 +133,8 @@ long long SetSQLStreamingPlugin(UDF_INIT *initid, UDF_ARGS *args, char *is_null,
         return 0;
     unsigned int len = (unsigned int) args->lengths[0];
     char *str = args->args[0];
-#ifndef NATIVE_UTF16_SUPPORTED
-    SPA::CDBString dbConn = SPA::Utilities::ToWide(str, len);
-    dbConn += L";server=localhost";
-#else
     SPA::CDBString dbConn = SPA::Utilities::ToUTF16(str, len);
     dbConn += u";server=localhost";
-#endif
     CMysqlImpl impl;
     int res = 0, ms = 0;
     SPA::CDBString errMsg;
