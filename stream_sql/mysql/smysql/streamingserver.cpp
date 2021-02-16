@@ -486,7 +486,7 @@ bool CStreamingServer::OnIsPermitted(USocket_Server_Handle h, const wchar_t* use
     if (ip == "127.0.0.1" || ip == "::ffff:127.0.0.1" || ip == "::1")
         ip = "localhost";
     if (!SPA::ServerSide::CMysqlImpl::Authenticate(userId, password, ip, serviceId)) {
-        CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "AUthentication failed for user ", SPA::Utilities::ToUTF8(userId).c_str());
+        CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, ("Authentication failed for user " + SPA::Utilities::ToUTF8(userId)).c_str());
         return false;
     }
     return true;
