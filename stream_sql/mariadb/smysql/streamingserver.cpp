@@ -409,7 +409,11 @@ CStreamingServer::CStreamingServer(int nParam) : CSocketProServer(nParam) {
 }
 
 bool CStreamingServer::OnIsPermitted(USocket_Server_Handle h, const wchar_t* userId, const wchar_t *password, unsigned int serviceId) {
-    return CMysqlImpl::DoSQLAuthentication(h, userId, password, serviceId, DEFAULT_LOCAL_CONNECTION_STRING);
+    if (!CMysqlImpl::DoSQLAuthentication(h, userId, password, serviceId, DEFAULT_LOCAL_CONNECTION_STRING)) {
+        CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "AUthentication failed for user ", SPA::Utilities::ToUTF8(userId).c_str());
+        return false;
+    }
+    return true;
 }
 
 void CStreamingServer::ConfigServices() {
@@ -482,9 +486,7 @@ bool CStreamingServer::OnSettingServer(unsigned int listeningPort, unsigned int 
     CSocketProServer::Config::SetAuthenticationMethod(tagAuthenticationMethod::amOwn);
 
     //register streaming sql database events
-    if (CSetGlobals::Globals.cached_tables.size()) {
-        PushManager::AddAChatGroup(SPA::UDB::STREAMING_SQL_CHAT_GROUP_ID, L"Streaming SQL Database Events");
-    }
+    PushManager::AddAChatGroup(SPA::UDB::STREAMING_SQL_CHAT_GROUP_ID, L"Streaming SQL Database Events");
 
     ConfigServices();
 
