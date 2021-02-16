@@ -1,14 +1,38 @@
-
 #include "streamingserver.h"
 #include "../../../include/scloader.h"
+#include "../../../include/3rdparty/rapidjson/include/rapidjson/filereadstream.h"
+#include "../../../include/3rdparty/rapidjson/include/rapidjson/stringbuffer.h"
+#include "../../../include/3rdparty/rapidjson/include/rapidjson/prettywriter.h"
+#include "../../../include/pexports.h"
+#include "../../../include/membuffer.h"
 
-#define STREAM_DB_LOG_FILE "streaming_db.log"
+#define STREAM_DB_LOG_FILE                  "streaming_db.log"
+#define STREAM_DB_CONFIG_FILE	            "sp_streaming_db_config.json"
+
+#define STREAMING_DB_PORT		    "port"
+#define STREAMING_DB_MAIN_THREADS	    "main_threads"
+#define STREAMING_DB_NO_IPV6		    "disable_ipv6"
+#define STREAMING_DB_CACHE_TABLES	    "cached_tables"
+#define STREAMING_DB_SERVICES		    "services"
+#define STREAMING_DB_WORKING_DIR            "working_dir"
+#define STREAMING_DB_SERVICES_CONFIG        "services_config"
+
+#ifdef WIN32_64
+#define STREAMING_DB_STORE		    "cert_root_store"
+#define STREAMING_DB_SUBJECT_CN             "cert_subject_cn"
+#else
+#define STREAMING_DB_SSL_KEY                "ssl_key"
+#define STREAMING_DB_SSL_CERT               "ssl_cert"
+#define STREAMING_DB_SSL_PASSWORD           "ssl_key_password"
+#endif
 
 CStreamingServer *g_pStreamingServer = nullptr;
+CSetGlobals CSetGlobals::Globals;
 
 int async_sql_plugin_init(void *p) {
     CSetGlobals::Globals.Plugin = (const void *) p;
     if (!CSetGlobals::Globals.StartListening()) {
+        CSetGlobals::Globals.UpdateLog();
         return 1;
     }
     return 0;
@@ -28,9 +52,7 @@ int async_sql_plugin_deinit(void *p) {
     return 0;
 }
 
-CSetGlobals::CSetGlobals() : m_fLog(nullptr), m_nParam(0), DisableV6(false), Port(20902),
-server_version(nullptr),
-m_hModule(nullptr), Plugin(nullptr), enable_http_websocket(false) {
+CSetGlobals::CSetGlobals() : m_fLog(nullptr), server_version(nullptr), m_hModule(nullptr), Plugin(nullptr) {
     unsigned int version = MYSQL_VERSION_ID;
     async_sql_plugin.interface_version = (version << 8);
     //defaults
@@ -50,17 +72,7 @@ m_hModule(nullptr), Plugin(nullptr), enable_http_websocket(false) {
         LogMsg(__FILE__, __LINE__, "m_hModule is nullptr");
     }
     UpdateLog();
-
-    DefaultConfig[STREAMING_DB_PORT] = "20902";
-    DefaultConfig[STREAMING_DB_MAIN_THREADS] = "1";
-    DefaultConfig[STREAMING_DB_NO_IPV6] = "0";
-    DefaultConfig[STREAMING_DB_SSL_KEY] = "";
-    DefaultConfig[STREAMING_DB_SSL_CERT] = "";
-    DefaultConfig[STREAMING_DB_SSL_PASSWORD] = "";
-    DefaultConfig[STREAMING_DB_CACHE_TABLES] = "";
-    DefaultConfig[STREAMING_DB_SERVICES] = "";
-    DefaultConfig[STREAMING_DB_HTTP_WEBSOCKET] = "0";
-
+    SetConfig();
     if (server_version && strlen(server_version)) {
         version = GetVersion(server_version);
         if (!version) {
@@ -164,35 +176,25 @@ void* CSetGlobals::ThreadProc(void *lpParameter) {
         }
     }
     std::unique_ptr<SPA::ServerSide::CMysqlImpl> impl(new SPA::ServerSide::CMysqlImpl);
-    std::unordered_map<std::string, std::string> mapConfig = SPA::ServerSide::CMysqlImpl::ConfigStreamingDB(*impl);
-    if (!mapConfig.size()) {
-        srv_session_deinit_thread();
-        return nullptr;
-    }
-    CSetGlobals::SetConfig(mapConfig);
     SPA::ServerSide::CMysqlImpl::SetPublishDBEvent(*impl);
     SPA::ServerSide::CMysqlImpl::CreateTriggers(*impl, CSetGlobals::Globals.cached_tables);
     if (!g_pStreamingServer) {
-        g_pStreamingServer = new CStreamingServer(CSetGlobals::Globals.m_nParam);
+        g_pStreamingServer = new CStreamingServer(CSetGlobals::Globals.Config.main_threads);
     }
-    if (CSetGlobals::Globals.ssl_key.size() && (CSetGlobals::Globals.ssl_cert.size() || CSetGlobals::Globals.ssl_pwd.size())) {
-        std::string key = CSetGlobals::Globals.ssl_key;
-        SPA::ToLower(key);
-        auto pos = key.find_last_of(".pfx");
-        if (pos == key.size() - 4) {
-            g_pStreamingServer->UseSSL(CSetGlobals::Globals.ssl_key.c_str(), "", CSetGlobals::Globals.ssl_pwd.c_str());
-        } else {
 #ifdef WIN32_64
-            g_pStreamingServer->UseSSL(CSetGlobals::Globals.ssl_key.c_str(), CSetGlobals::Globals.ssl_cert.c_str(), "");
-#else
-            g_pStreamingServer->UseSSL(CSetGlobals::Globals.ssl_cert.c_str(), CSetGlobals::Globals.ssl_key.c_str(), CSetGlobals::Globals.ssl_pwd.c_str());
-#endif
-        }
-        CSetGlobals::Globals.ssl_pwd.clear();
+    if (CSetGlobals::Globals.Config.store.size() && CSetGlobals::Globals.Config.subject_cn.size()) {
+        g_pStreamingServer->UseSSL(CSetGlobals::Globals.Config.store.c_str(), CSetGlobals::Globals.Config.subject_cn.c_str(), "");
     }
-    SPA::ServerSide::CMysqlImpl::ConfigServices(*impl);
+#else
+    if (CSetGlobals::Globals.Config.ssl_key.size() && CSetGlobals::Globals.Config.ssl_cert.size()) {
+        g_pStreamingServer->UseSSL(CSetGlobals::Globals.Config.ssl_cert.c_str(), CSetGlobals::Globals.Config.ssl_key.c_str(), CSetGlobals::Globals.Config.ssl_key_password.c_str());
+    }
+#endif
+    if (CSetGlobals::Globals.Config.working_dir.size()) {
+        SPA::ServerSide::ServerCoreLoader.SetServerWorkDirectory(CSetGlobals::Globals.Config.working_dir.c_str());
+    }
     SPA::ServerSide::ServerCoreLoader.SetThreadEvent(SPA::ServerSide::CMysqlImpl::OnThreadEvent);
-    bool ok = g_pStreamingServer->Run(CSetGlobals::Globals.Port, 32, !CSetGlobals::Globals.DisableV6);
+    bool ok = g_pStreamingServer->Run(CSetGlobals::Globals.Config.port, 32, !CSetGlobals::Globals.Config.disable_ipv6);
     impl.reset();
     srv_session_deinit_thread();
     if (!ok) {
@@ -201,140 +203,279 @@ void* CSetGlobals::ThreadProc(void *lpParameter) {
     return nullptr;
 }
 
-void CSetGlobals::SetConfig(const std::unordered_map<std::string, std::string>& mapConfig) {
-    auto it = mapConfig.find(STREAMING_DB_PORT);
-    if (it != mapConfig.end()) {
-        std::string s = it->second;
-        int port = std::atoi(s.c_str());
-        if (port > 0) {
-            CSetGlobals::Globals.Port = (unsigned int) port;
+void CSetGlobals::SetConfig() {
+    std::shared_ptr<FILE> fp(fopen(STREAM_DB_CONFIG_FILE, "r"), [](FILE * f) {
+        if (f) {
+            ::fclose(f);
         }
+    });
+    if (!fp || ferror(fp.get())) {
+        LogMsg(__FILE__, __LINE__, ("Can not open DB streaming configuration file " + std::string(STREAM_DB_CONFIG_FILE) + " for read").c_str());
+        fp.reset();
+        UpdateConfigFile();
+        return;
     }
-    it = mapConfig.find(STREAMING_DB_MAIN_THREADS);
-    if (it != mapConfig.end()) {
-        std::string s = it->second;
-        int n = std::atoi(s.c_str());
-        if (n > 0) {
-            CSetGlobals::Globals.m_nParam = (unsigned int) n;
+    fseek(fp.get(), 0, SEEK_END);
+    long size = ftell(fp.get()) + sizeof (wchar_t);
+    fseek(fp.get(), 0, SEEK_SET);
+    SPA::CScopeUQueue sb(SPA::GetOS(), SPA::IsBigEndian(), (unsigned int) size);
+    sb->CleanTrack();
+    FileReadStream is(fp.get(), (char*) sb->GetBuffer(), sb->GetMaxSize());
+    std::string json = (const char*) sb->GetBuffer();
+    SPA::Trim(json);
+    if (json.size()) {
+        Document& doc = Config.doc;
+        ParseResult ok = doc.Parse(json.c_str(), json.size());
+        if (!ok) {
+            LogMsg(__FILE__, __LINE__, ("Bad JSON configuration file " + std::string(STREAM_DB_CONFIG_FILE) + " found").c_str());
+        } else {
+            if (doc.HasMember(STREAMING_DB_PORT) && doc[STREAMING_DB_PORT].IsUint()) {
+                Config.port = doc[STREAMING_DB_PORT].GetUint();
+            }
+            if (doc.HasMember(STREAMING_DB_MAIN_THREADS) && doc[STREAMING_DB_MAIN_THREADS].IsInt()) {
+                Config.main_threads = doc[STREAMING_DB_MAIN_THREADS].GetInt();
+                if (Config.main_threads <= 0) Config.main_threads = 1;
+            }
+            if (doc.HasMember(STREAMING_DB_NO_IPV6) && doc[STREAMING_DB_NO_IPV6].IsBool()) {
+                Config.disable_ipv6 = doc[STREAMING_DB_NO_IPV6].GetBool();
+            }
+            if (doc.HasMember(STREAMING_DB_WORKING_DIR) && doc[STREAMING_DB_WORKING_DIR].IsString()) {
+                Config.working_dir = doc[STREAMING_DB_WORKING_DIR].GetString();
+                SPA::Trim(Config.working_dir);
+            }
+            if (doc.HasMember(STREAMING_DB_SERVICES) && doc[STREAMING_DB_SERVICES].IsString()) {
+                Config.services = doc[STREAMING_DB_SERVICES].GetString();
+                SPA::Trim(Config.services);
+                if (Config.services.size()) {
+                    std::string tok;
+                    std::stringstream ss(Config.services);
+                    while (std::getline(ss, tok, ';')) {
+                        SPA::Trim(tok);
+                        if (tok.size()) {
+                            services[tok] = nullptr;
+                        }
+                    }
+                }
+            }
+            if (doc.HasMember(STREAMING_DB_CACHE_TABLES) && doc[STREAMING_DB_CACHE_TABLES].IsString()) {
+                std::string tok;
+                Config.cached_tables = doc[STREAMING_DB_CACHE_TABLES].GetString();
+                SPA::Trim(Config.cached_tables);
+                std::stringstream ss(Config.cached_tables);
+                while (std::getline(ss, tok, ';')) {
+                    SPA::Trim(tok);
+                    if (tok.size()) {
+                        cached_tables.push_back(tok);
+                    }
+                }
+            }
+#ifdef WIN32_64
+            if (doc.HasMember(STREAMING_DB_STORE) && doc[STREAMING_DB_STORE].IsString()) {
+                Config.store = doc[STREAMING_DB_STORE].GetString();
+                SPA::Trim(Config.store);
+            }
+            if (doc.HasMember(STREAMING_DB_SUBJECT_CN) && doc[STREAMING_DB_SUBJECT_CN].IsString()) {
+                Config.subject_cn = doc[STREAMING_DB_SUBJECT_CN].GetString();
+                SPA::Trim(Config.subject_cn);
+            }
+#else
+            if (doc.HasMember(STREAMING_DB_SSL_KEY) && doc[STREAMING_DB_SSL_KEY].IsString()) {
+                Config.ssl_key = doc[STREAMING_DB_SSL_KEY].GetString();
+                SPA::Trim(Config.ssl_key);
+            }
+            if (doc.HasMember(STREAMING_DB_SSL_CERT) && doc[STREAMING_DB_SSL_CERT].IsString()) {
+                Config.ssl_cert = doc[STREAMING_DB_SSL_CERT].GetString();
+                SPA::Trim(Config.ssl_cert);
+            }
+            if (doc.HasMember(STREAMING_DB_SSL_PASSWORD) && doc[STREAMING_DB_SSL_PASSWORD].IsString()) {
+                Config.ssl_key_password = doc[STREAMING_DB_SSL_PASSWORD].GetString();
+                SPA::Trim(Config.ssl_key_password);
+            }
+#endif   
         }
-    }
-    it = mapConfig.find(STREAMING_DB_NO_IPV6);
-    if (it != mapConfig.end()) {
-        std::string s = it->second;
-        int n = std::atoi(s.c_str());
-        CSetGlobals::Globals.DisableV6 = n ? true : false;
-    }
-    it = mapConfig.find(STREAMING_DB_HTTP_WEBSOCKET);
-    if (it != mapConfig.end()) {
-        std::string s = it->second;
-        int n = std::atoi(s.c_str());
-        CSetGlobals::Globals.enable_http_websocket = n ? true : false;
-    }
-    it = mapConfig.find(STREAMING_DB_SSL_KEY);
-    if (it != mapConfig.end()) {
-        CSetGlobals::Globals.ssl_key = it->second;
-        SPA::Utilities::Trim(CSetGlobals::Globals.ssl_key);
-    }
-    it = mapConfig.find(STREAMING_DB_SSL_CERT);
-    if (it != mapConfig.end()) {
-        CSetGlobals::Globals.ssl_cert = it->second;
-        SPA::Utilities::Trim(CSetGlobals::Globals.ssl_cert);
-    }
-    it = mapConfig.find(STREAMING_DB_SSL_PASSWORD);
-    if (it != mapConfig.end()) {
-        CSetGlobals::Globals.ssl_pwd = it->second;
-        SPA::Utilities::Trim(CSetGlobals::Globals.ssl_pwd);
-    }
-    it = mapConfig.find(STREAMING_DB_CACHE_TABLES);
-    if (it != mapConfig.end()) {
-        std::string tok;
-        std::string s = it->second;
-        SPA::Utilities::Trim(s);
-        std::stringstream ss(s);
-        while (std::getline(ss, tok, ';')) {
-            SPA::Utilities::Trim(tok);
-            if (tok.size())
-                CSetGlobals::Globals.cached_tables.push_back(tok);
-        }
-    }
-    it = mapConfig.find(STREAMING_DB_SERVICES);
-    if (it != mapConfig.end()) {
-        std::string tok;
-        std::string s = it->second;
-        SPA::Utilities::Trim(s);
-        std::stringstream ss(s);
-        while (std::getline(ss, tok, ';')) {
-            SPA::Utilities::Trim(tok);
-            if (tok.size())
-                CSetGlobals::Globals.services.push_back(tok);
-        }
+    } else {
+        fp.reset();
+        UpdateConfigFile();
     }
 }
 
-CSetGlobals CSetGlobals::Globals;
+void CSetGlobals::UpdateConfigFile() {
+    std::shared_ptr<FILE> fp(fopen(STREAM_DB_CONFIG_FILE, "w"), [](FILE * f) {
+        if (f) {
+            ::fclose(f);
+        }
+    });
+    if (!fp || ferror(fp.get())) {
+        LogMsg(__FILE__, __LINE__, ("Can not open DB streaming configuration file " + std::string(STREAM_DB_CONFIG_FILE) + " for write").c_str());
+        return;
+    }
+    Document doc;
+    doc.SetObject();
+    Document::AllocatorType& allocator = doc.GetAllocator();
+    {
+        Value cs;
+        cs.SetUint(Config.port);
+        doc.AddMember(STREAMING_DB_PORT, cs, allocator);
+    }
+    {
+        Value cs;
+        cs.SetInt(Config.main_threads);
+        doc.AddMember(STREAMING_DB_MAIN_THREADS, cs, allocator);
+    }
+    {
+        Value cs;
+        cs.SetBool(Config.disable_ipv6);
+        doc.AddMember(STREAMING_DB_NO_IPV6, cs, allocator);
+    }
+    {
+        Value cs;
+        cs.SetString(Config.working_dir.c_str(), (SizeType) Config.working_dir.size());
+        doc.AddMember(STREAMING_DB_WORKING_DIR, cs, allocator);
+    }
+    {
+        Value cs;
+        cs.SetString(Config.services.c_str(), (SizeType) Config.services.size());
+        doc.AddMember(STREAMING_DB_SERVICES, cs, allocator);
+    }
+    {
+        Value cs;
+        cs.SetString(Config.cached_tables.c_str(), (SizeType) Config.cached_tables.size());
+        doc.AddMember(STREAMING_DB_CACHE_TABLES, cs, allocator);
+    }
+#ifdef WIN32_64
+    {
+        Value cs;
+        cs.SetString(Config.store.c_str(), (SizeType) Config.store.size());
+        doc.AddMember(STREAMING_DB_STORE, cs, allocator);
+    }
+    {
+        Value cs;
+        cs.SetString(Config.subject_cn.c_str(), (SizeType) Config.subject_cn.size());
+        doc.AddMember(STREAMING_DB_SUBJECT_CN, cs, allocator);
+    }
+#else
+    {
+        Value cs;
+        cs.SetString(Config.ssl_key.c_str(), (SizeType) Config.ssl_key.size());
+        doc.AddMember(STREAMING_DB_SSL_KEY, cs, allocator);
+    }
+    {
+        Value cs;
+        cs.SetString(Config.ssl_cert.c_str(), (SizeType) Config.ssl_cert.size());
+        doc.AddMember(STREAMING_DB_SSL_CERT, cs, allocator);
+    }
+    {
+        Value cs;
+        cs.SetString(Config.ssl_key_password.c_str(), (SizeType) Config.ssl_key_password.size());
+        doc.AddMember(STREAMING_DB_SSL_PASSWORD, cs, allocator);
+    }
+#endif
+    {
+        SPA::CScopeUQueue sb;
+        if (sb->GetMaxSize() < 16 * SPA::DEFAULT_INITIAL_MEMORY_BUFFER_SIZE) {
+            sb->ReallocBuffer(16 * SPA::DEFAULT_INITIAL_MEMORY_BUFFER_SIZE);
+        }
+        sb->CleanTrack();
+        Value cs(kObjectType);
+        for (auto it = services.cbegin(), end = services.cend(); it != end; ++it) {
+            do {
+                if (!it->second) {
+                    break;
+                }
+                PGetSPluginGlobalOptions GetSPluginGlobalOptions = (PGetSPluginGlobalOptions) ::GetProcAddress(it->second, "GetSPluginGlobalOptions");
+                if (!GetSPluginGlobalOptions) {
+                    break;
+                }
+                unsigned int len = GetSPluginGlobalOptions((char*) sb->GetBuffer(), sb->GetMaxSize());
+                sb->SetSize(len);
+                sb->SetNull();
+                Document d;
+                ParseResult ok = d.Parse((const char*) sb->GetBuffer(), sb->GetSize());
+                if (!ok) {
+                    LogMsg(__FILE__, __LINE__, ("Plugin " + it->first + " has a wrong JSON global options").c_str());
+                    break;
+                }
+                Value vJson(kObjectType);
+                for (auto m = d.MemberBegin(), mend = d.MemberEnd(); m != mend; ++m) {
+                    std::string ks = m->name.GetString();
+                    Value k(ks.c_str(), (SizeType) ks.size(), allocator);
+                    vJson.AddMember(k, m->value, allocator);
+                }
+                Value key(it->first.c_str(), (SizeType) it->first.size(), allocator);
+                cs.AddMember(key, vJson, allocator);
+            } while (false);
+        }
+        doc.AddMember(STREAMING_DB_SERVICES_CONFIG, cs, allocator);
+    }
+    StringBuffer buffer;
+    PrettyWriter<StringBuffer> writer(buffer);
+    doc.Accept(writer);
+    fprintf(fp.get(), "%s", buffer.GetString());
+}
 
 CStreamingServer::CStreamingServer(int nParam)
 : SPA::ServerSide::CSocketProServer(nParam) {
 }
 
-bool CHttpPeer::DoAuthentication(const wchar_t *userId, const wchar_t *password) {
-    unsigned int port = 0;
-    std::string ip = this->GetPeerName(&port);
-    if (ip == "127.0.0.1" || ip == "::ffff:127.0.0.1" || ip == "::1")
-        ip = "localhost";
-    return SPA::ServerSide::CMysqlImpl::Authenticate(userId, password, ip, (unsigned int)SPA::tagServiceID::sidHTTP);
-}
-
-void CHttpPeer::OnFastRequestArrive(unsigned short requestId, unsigned int len) {
-    switch (requestId) {
-        case (unsigned short)SPA::ServerSide::tagHttpRequestID::idDelete:
-        case (unsigned short)SPA::ServerSide::tagHttpRequestID::idPut:
-        case (unsigned short)SPA::ServerSide::tagHttpRequestID::idTrace:
-        case (unsigned short)SPA::ServerSide::tagHttpRequestID::idOptions:
-        case (unsigned short)SPA::ServerSide::tagHttpRequestID::idHead:
-        case (unsigned short)SPA::ServerSide::tagHttpRequestID::idMultiPart:
-        case (unsigned short)SPA::ServerSide::tagHttpRequestID::idConnect:
-            SetResponseCode(501);
-            SendResult("Server doesn't support DELETE, PUT, TRACE, OPTIONS, HEAD, CONNECT and POST with multipart");
-            break;
-        default:
-            SetResponseCode(405);
-            SendResult("Server only supports GET and POST without multipart");
-            break;
-    }
-}
-
-int CHttpPeer::OnSlowRequestArrive(unsigned short requestId, unsigned int len) {
-    switch (requestId) {
-        case (unsigned short)SPA::ServerSide::tagHttpRequestID::idGet:
-        {
-            const char *path = GetPath();
-            if (::strstr(path, "."))
-                DownloadFile(path + 1);
-            else
-                SendResult("Unsupported GET request");
+void CStreamingServer::ConfigServices() {
+    bool changed = false;
+    for (auto p = CSetGlobals::Globals.services.begin(), end = CSetGlobals::Globals.services.end(); p != end; ++p) {
+        HINSTANCE hModule = SPA::ServerSide::CSocketProServer::DllManager::AddALibrary(p->first.c_str(), 0);
+        if (!hModule) {
+#ifdef WIN32_64
+            CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Not able to load server plugin %s", p->first.c_str());
+#else
+            CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Not able to load server plugin %s (%s)", p->first.c_str(), dlerror());
+#endif
+            changed = true;
+        } else {
+            p->second = hModule;
+            do {
+                PSetSPluginGlobalOptions SetSPluginGlobalOptions = (PSetSPluginGlobalOptions)::GetProcAddress(hModule, "SetSPluginGlobalOptions");
+                if (!SetSPluginGlobalOptions) {
+                    break;
+                }
+                auto& doc = CSetGlobals::Globals.Config.doc;
+                if (!(doc.HasMember(STREAMING_DB_SERVICES_CONFIG) && doc[STREAMING_DB_SERVICES_CONFIG].IsObject())) {
+                    changed = true;
+                    break;
+                }
+                auto obj = doc[STREAMING_DB_SERVICES_CONFIG].GetObject();
+                if (!obj.HasMember(p->first.c_str())) {
+                    changed = true;
+                    break;
+                }
+                auto setting = obj.FindMember(p->first.c_str());
+                StringBuffer sb;
+                Writer<StringBuffer> writer(sb);
+                setting->value.Accept(writer);
+                std::string s = sb.GetString();
+                if (!SetSPluginGlobalOptions(s.c_str())) {
+                    CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Not able to set global options for plugin %s", p->first.c_str());
+                }
+            } while (false);
         }
-            break;
-        case (unsigned short)SPA::ServerSide::tagHttpRequestID::idPost:
-            SendResult("Unsupported POST request");
-            break;
-        case (unsigned short)SPA::ServerSide::tagHttpRequestID::idUserRequest:
-        {
-            const std::string &RequestName = GetUserRequestName();
-            if (RequestName == "subscribeTableEvents") {
-                GetPush().Subscribe(&SPA::UDB::STREAMING_SQL_CHAT_GROUP_ID, 1);
-                SendResult("ok");
-            } else if (RequestName == "unsubscribeTableEvents") {
-                GetPush().Unsubscribe();
-                SendResult("ok");
-            } else
-                SendResult("Unsupported user request");
-        }
-            break;
-        default:
-            break;
     }
-    return 0;
+    if (changed) {
+        while (changed) {
+            //remove all unloaded plugin
+            changed = false;
+            for (auto p = CSetGlobals::Globals.services.begin(), end = CSetGlobals::Globals.services.end(); p != end; ++p) {
+                if (!p->second) {
+                    CSetGlobals::Globals.services.erase(p->first);
+                    changed = true;
+                    break;
+                }
+            }
+        }
+        std::string services;
+        for (auto p = CSetGlobals::Globals.services.begin(), end = CSetGlobals::Globals.services.end(); p != end; ++p) {
+            if (services.size()) services.push_back(';');
+            services += p->first;
+        }
+        CSetGlobals::Globals.Config.services = services;
+        CSetGlobals::Globals.UpdateConfigFile();
+    }
 }
 
 bool CStreamingServer::OnIsPermitted(USocket_Server_Handle h, const wchar_t* userId, const wchar_t *password, unsigned int serviceId) {
@@ -344,12 +485,9 @@ bool CStreamingServer::OnIsPermitted(USocket_Server_Handle h, const wchar_t* use
     std::string ip(strIp);
     if (ip == "127.0.0.1" || ip == "::ffff:127.0.0.1" || ip == "::1")
         ip = "localhost";
-    switch (serviceId) {
-        case (unsigned int)SPA::tagServiceID::sidHTTP:
-            break;
-        default:
-            return SPA::ServerSide::CMysqlImpl::Authenticate(userId, password, ip, serviceId);
-            break;
+    if (!SPA::ServerSide::CMysqlImpl::Authenticate(userId, password, ip, serviceId)) {
+        CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "AUthentication failed for user ", SPA::Utilities::ToUTF8(userId).c_str());
+        return false;
     }
     return true;
 }
@@ -364,6 +502,8 @@ bool CStreamingServer::OnSettingServer(unsigned int listeningPort, unsigned int 
 
     //register streaming sql database events
     PushManager::AddAChatGroup(SPA::UDB::STREAMING_SQL_CHAT_GROUP_ID, L"Streaming SQL Database Events");
+
+    ConfigServices();
 
     //add MySQL streaming service into SocketPro server
     return AddService();
@@ -395,20 +535,6 @@ bool CStreamingServer::AddService() {
     if (!ok)
         return false;
     ok = m_MySql.AddSlowRequest(SPA::UDB::idClose);
-    if (!ok)
-        return false;
-    if (!CSetGlobals::Globals.enable_http_websocket)
-        return true;
-    ok = m_myHttp.AddMe((unsigned int)SPA::tagServiceID::sidHTTP);
-    if (!ok)
-        return false;
-    ok = m_myHttp.AddSlowRequest((unsigned short)SPA::ServerSide::tagHttpRequestID::idGet);
-    if (!ok)
-        return false;
-    ok = m_myHttp.AddSlowRequest((unsigned short)SPA::ServerSide::tagHttpRequestID::idPost);
-    if (!ok)
-        return false;
-    ok = m_myHttp.AddSlowRequest((unsigned short)SPA::ServerSide::tagHttpRequestID::idUserRequest);
     if (!ok)
         return false;
     return true;

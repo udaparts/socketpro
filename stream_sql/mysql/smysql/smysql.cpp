@@ -11,7 +11,7 @@ mysql_declare_plugin(async_sql) {
             async_sql_plugin_init, /* Plugin Init */
             nullptr,
             async_sql_plugin_deinit, /* Plugin Deinit */
-            0x0100 /* 1.0 */,
+            0x0151 /* 1.0 */,
             nullptr, /* status variables */
             nullptr, /* system variables */
             nullptr, /* config options */

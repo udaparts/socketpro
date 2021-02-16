@@ -16,16 +16,6 @@ typedef int socklen_t;
 #endif
 #include "mysql/plugin.h"
 
-#define STREAMING_DB_PORT		"port"
-#define STREAMING_DB_MAIN_THREADS	"main_threads"
-#define STREAMING_DB_NO_IPV6		"disable_ipv6"
-#define STREAMING_DB_SSL_KEY		"ssl_key_or_store"
-#define STREAMING_DB_SSL_CERT		"ssl_cert"
-#define STREAMING_DB_SSL_PASSWORD	"ssl_key_password"
-#define STREAMING_DB_CACHE_TABLES	"cached_tables"
-#define STREAMING_DB_SERVICES		"services"
-#define STREAMING_DB_HTTP_WEBSOCKET     "enable_http_websocket"
-
 namespace SPA {
     namespace ServerSide {
         using namespace UDB;
@@ -57,10 +47,8 @@ namespace SPA {
             unsigned int GetParameters() const;
             static bool Authenticate(const std::wstring &userName, const wchar_t *password, const std::string &ip, unsigned int svsId = SPA::Mysql::sidMysql);
             static void CALLBACK OnThreadEvent(SPA::ServerSide::tagThreadEvent te);
-            static std::unordered_map<std::string, std::string> ConfigStreamingDB(CMysqlImpl &impl);
             static void CreateTriggers(CMysqlImpl &impl, const std::vector<std::string> &vecTables);
             static void SetPublishDBEvent(CMysqlImpl &impl);
-            static void ConfigServices(CMysqlImpl &impl);
 
         protected:
             virtual void OnFastRequestArrive(unsigned short reqId, unsigned int len);

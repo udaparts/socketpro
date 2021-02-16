@@ -1072,163 +1072,6 @@ namespace SPA
             }
         }
 
-        void CMysqlImpl::ConfigServices(CMysqlImpl & impl) {
-            int res = 0;
-            INT64 affected;
-            SPA::UDB::CDBVariant vtId;
-            UINT64 fail_ok;
-            impl.m_NoSending = true;
-            CDBString errMsg;
-            if (!impl.m_pMysql && !impl.OpenSession(u"root", "localhost"))
-                return;
-            CDBString wsql = u"USE sp_streaming_db;CREATE TABLE IF NOT EXISTS service(id INT UNSIGNED PRIMARY KEY NOT NULL,library VARCHAR(2048)NOT NULL,param INT NULL,description VARCHAR(2048)NULL)";
-            impl.Execute(wsql, true, true, false, 0, affected, res, errMsg, vtId, fail_ok);
-            if (res) {
-                CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Creating the table service failed(errCode=%d; errMsg=%s)", res, Utilities::ToUTF8(errMsg).c_str());
-                return;
-            }
-            wsql = u"CREATE TABLE IF NOT EXISTS permission(svsid INT UNSIGNED NOT NULL,user VARCHAR(32)NOT NULL,PRIMARY KEY(svsid,user),FOREIGN KEY(svsid)REFERENCES service(id)ON DELETE CASCADE ON UPDATE CASCADE)";
-            impl.Execute(wsql, true, true, false, 0, affected, res, errMsg, vtId, fail_ok);
-            if (res) {
-                CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Creating the table permission failed(errCode=%d; errMsg=%s)", res, Utilities::ToUTF8(errMsg).c_str());
-                return;
-            }
-            std::vector<CService> vService;
-            wsql = u"select id,library,param,description from service";
-            impl.Execute(wsql, true, true, false, 0, affected, res, errMsg, vtId, fail_ok);
-            SPA::UDB::CDBVariant vtLib, vtParam, vtDesc;
-            while (impl.m_qSend.GetSize() && !res) {
-                impl.m_qSend >> vtId >> vtLib >> vtParam >> vtDesc;
-                CService svs;
-                svs.ServiceId = vtId.uintVal;
-                svs.Library = ToString(vtLib);
-                switch (vtParam.Type()) {
-                    case VT_I4:
-                    case VT_INT:
-                    case VT_I8:
-                    case VT_UI4:
-                    case VT_UINT:
-                    case VT_UI8:
-                        svs.Param = (int) vtParam.lVal;
-                        break;
-                    default:
-                        svs.Param = 0;
-                        break;
-                }
-                if (vtDesc.Type() == (VT_I1 | VT_ARRAY))
-                    svs.Description = ToString(vtDesc);
-                vService.push_back(svs);
-            }
-            auto it = std::find_if(vService.begin(), vService.end(), [](const CService & svs)->bool {
-                return (svs.ServiceId == SPA::Mysql::sidMysql);
-            });
-            if (it == vService.end()) {
-                wsql = u"INSERT INTO service VALUES(" + CDBString(Utilities::ToUTF16(std::to_wstring((UINT64) Mysql::sidMysql))) +
-                        u",'libsmysql.so'" +
-                        u",0,'Continous SQL streaming processing service')";
-                impl.Execute(wsql, true, true, false, 0, affected, res, errMsg, vtId, fail_ok);
-                if (res) {
-                    CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Inserting the table service failed(errCode=%d; errMsg=%s)", res, Utilities::ToUTF8(errMsg).c_str());
-                }
-            }
-
-            it = std::find_if(vService.begin(), vService.end(), [](const CService & svs)->bool {
-                return (svs.ServiceId == (unsigned int) SPA::tagServiceID::sidHTTP);
-            });
-            if (it == vService.end()) {
-                wsql = u"INSERT INTO service VALUES(" + CDBString(Utilities::ToUTF16(std::to_wstring((UINT64) SPA::tagServiceID::sidHTTP))) +
-                        u",'libuservercore.so'" +
-                        u",0,'HTTP/Websocket processing service')";
-                impl.Execute(wsql, true, true, false, 0, affected, res, errMsg, vtId, fail_ok);
-                if (res) {
-                    CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Inserting the table service failed(errCode=%d; errMsg=%s)", res, Utilities::ToUTF8(errMsg).c_str());
-                }
-            }
-
-            for (auto p = CSetGlobals::Globals.services.begin(), end = CSetGlobals::Globals.services.end(); p != end; ++p) {
-                auto found = std::find_if(vService.begin(), vService.end(), [p](const CService & svs)->bool {
-                    if (!p->size() || !svs.Library.size())
-                        return false;
-                    return (::strstr(svs.Library.c_str(), p->c_str()) != nullptr);
-                });
-                int param = 0;
-                if (found != vService.end())
-                    param = found->Param;
-                HINSTANCE hModule = CSocketProServer::DllManager::AddALibrary(p->c_str(), param);
-                if (!hModule) {
-                    CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Not able o load server plugin %s", p->c_str());
-                    continue;
-                }
-                PGetNumOfServices GetNumOfServices = (PGetNumOfServices)::GetProcAddress(hModule, "GetNumOfServices");
-                PGetAServiceID GetAServiceID = (PGetAServiceID)::GetProcAddress(hModule, "GetAServiceID");
-                unsigned short count = GetNumOfServices();
-                for (unsigned short n = 0; n < count; ++n) {
-                    unsigned int svsId = GetAServiceID(n);
-                    it = std::find_if(vService.begin(), vService.end(), [svsId](const CService & svs)->bool {
-                        return (svs.ServiceId == svsId);
-                    });
-                    if (it == vService.end()) {
-                        wsql = u"INSERT INTO service(id,library,param,description)VALUES(" + CDBString(Utilities::ToUTF16(std::to_wstring((UINT64) svsId))) + u",'" +
-                                CDBString(Utilities::ToUTF16(p->c_str(), p->size())) + u"'," + CDBString(Utilities::ToUTF16(std::to_wstring((INT64) param))) + u",'')";
-                        impl.Execute(wsql, true, true, false, 0, affected, res, errMsg, vtId, fail_ok);
-                        if (res) {
-                            CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Inserting the table service failed(errCode=%d; errMsg=%s)", res, Utilities::ToUTF8(errMsg).c_str());
-                        }
-                    }
-                }
-            }
-        }
-
-        std::unordered_map<std::string, std::string> CMysqlImpl::ConfigStreamingDB(CMysqlImpl & impl) {
-            std::unordered_map<std::string, std::string> map;
-            if (!impl.m_pMysql && !impl.OpenSession(u"root", "localhost"))
-                return map;
-            CDBString wsql = u"Create database if not exists sp_streaming_db character set utf8 collate utf8_general_ci;USE sp_streaming_db";
-            int res = 0;
-            INT64 affected;
-            SPA::UDB::CDBVariant vtId;
-            UINT64 fail_ok;
-            impl.m_NoSending = true;
-            CDBString errMsg;
-            impl.Execute(wsql, true, true, false, 0, affected, res, errMsg, vtId, fail_ok);
-            if (res) {
-                CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Configuring streaming DB failed(errCode=%d; errMsg=%s)", res, Utilities::ToUTF8(errMsg).c_str());
-                return map;
-            }
-            wsql = u"CREATE TABLE IF NOT EXISTS config(mykey varchar(32)PRIMARY KEY NOT NULL,value text not null)";
-            impl.Execute(wsql, true, true, false, 0, affected, res, errMsg, vtId, fail_ok);
-            if (res) {
-                CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Configuring streaming DB failed(errCode=%d; errMsg=%s)", res, Utilities::ToUTF8(errMsg).c_str());
-                return map;
-            }
-            wsql = u"select mykey,value from config";
-            impl.Execute(wsql, true, true, false, 0, affected, res, errMsg, vtId, fail_ok);
-            if (res) {
-                CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Configuring streaming DB failed(errCode=%d; errMsg=%s)", res, Utilities::ToUTF8(errMsg).c_str());
-                return map;
-            }
-            SPA::UDB::CDBVariant vtKey, vtValue;
-            while (impl.m_qSend.GetSize() && !res) {
-                impl.m_qSend >> vtKey >> vtValue;
-                std::string s0 = ToString(vtKey);
-                std::string s1 = ToString(vtValue);
-                ToLower(s0);
-                Utilities::Trim(s0);
-                Utilities::Trim(s1);
-                map[s0] = s1;
-            }
-            std::unordered_map<std::string, std::string> &config = CSetGlobals::Globals.DefaultConfig;
-            for (auto it = config.begin(), end = config.end(); it != end; ++it) {
-                auto found = map.find(it->first);
-                if (found == map.end()) {
-                    wsql = u"insert into config values('" + CDBString(Utilities::ToUTF16(it->first)) + u"','" + CDBString(Utilities::ToUTF16(it->second)) + u"')";
-                    impl.Execute(wsql, true, true, false, 0, affected, res, errMsg, vtId, fail_ok);
-                    map[it->first] = it->second;
-                }
-            }
-            return map;
-        }
-
         bool CMysqlImpl::Authenticate(const std::wstring &userName, const wchar_t *password, const std::string &ip, unsigned int svsId) {
             std::unique_ptr<CMysqlImpl> impl(new CMysqlImpl);
             if (!impl->OpenSession(u"root", "localhost")) {
@@ -1264,17 +1107,6 @@ namespace SPA
             }
             if (svsId == SPA::Mysql::sidMysql)
                 return true;
-            wsql = u"SELECT user from sp_streaming_db.permission where svsid=" + CDBString(Utilities::ToUTF16(std::to_string((UINT64) svsId))) + u" AND user='" + CDBString(Utilities::ToUTF16(userName)) + u"'";
-            impl->Execute(wsql, true, true, false, 0, affected, res, errMsg, vtId, fail_ok);
-            if (res) {
-                std::string user = Utilities::ToUTF8(userName.c_str(), userName.size());
-                CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Authentication failed as service %d is not set for user %s yet (errCode=%d; errMsg=%s)", svsId, user.c_str(), res, Utilities::ToUTF8(errMsg).c_str());
-                return false;
-            } else if (!impl->m_qSend.GetSize()) {
-                std::string user = Utilities::ToUTF8(userName.c_str(), userName.size());
-                CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Authentication failed as service %d is not set for user %s yet", svsId, user.c_str());
-                return false;
-            }
             return true;
         }
 
@@ -1292,7 +1124,7 @@ namespace SPA
             std::string salt = hash.substr(7, 20);
             std::string digest = hash.substr(27);
             char buffer[CRYPT_MAX_PASSWORD_SIZE + 1] =
-            { 0};
+            {0};
             unsigned int iterations = 5000; //CACHING_SHA2_PASSWORD_ITERATIONS;
             my_crypt_genhash(buffer, CRYPT_MAX_PASSWORD_SIZE, pwd.c_str(), pwd.length(), salt.c_str(), nullptr, &iterations);
             std::string s(buffer);
@@ -1305,7 +1137,7 @@ namespace SPA
             m_indexCall = 0;
             unsigned int port;
             res = 0;
-            ms = (int)tagManagementSystem::msMysql;
+            ms = (int) tagManagementSystem::msMysql;
             m_EnableMessages = false;
             CleanDBObjects();
             std::string ip = GetPeerName(&port);
@@ -1375,7 +1207,7 @@ namespace SPA
 
         void CMysqlImpl::OnBaseRequestArrive(unsigned short requestId) {
             switch (requestId) {
-                case (unsigned short)tagBaseRequestID::idCancel:
+                case (unsigned short) tagBaseRequestID::idCancel:
 #ifndef NDEBUG
                     std::cout << "Cancel called" << std::endl;
 #endif
@@ -1385,7 +1217,7 @@ namespace SPA
                     if (m_pMysql) {
                         srv_session_attach(m_pMysql.get(), nullptr);
                     }
-                    EndTrans((int)tagRollbackPlan::rpRollbackAlways, res, errMsg);
+                    EndTrans((int) tagRollbackPlan::rpRollbackAlways, res, errMsg);
                     if (m_pMysql) {
                         srv_session_detach(m_pMysql.get());
                     }
@@ -1397,7 +1229,7 @@ namespace SPA
         }
 
         void CMysqlImpl::BeginTrans(int isolation, const CDBString &dbConn, unsigned int flags, int &res, CDBString &errMsg, int &ms) {
-            ms = (int)tagManagementSystem::msMysql;
+            ms = (int) tagManagementSystem::msMysql;
             m_indexCall = 0;
             if (m_bManual) {
                 errMsg = BAD_MANUAL_TRANSACTION_STATE;
@@ -1464,7 +1296,7 @@ namespace SPA
                 res = SPA::Mysql::ER_BAD_MANUAL_TRANSACTION_STATE;
                 return;
             }
-            if (plan < 0 || plan > (int)tagRollbackPlan::rpRollbackAlways) {
+            if (plan < 0 || plan > (int) tagRollbackPlan::rpRollbackAlways) {
                 res = SPA::Mysql::ER_BAD_END_TRANSTACTION_PLAN;
                 errMsg = BAD_END_TRANSTACTION_PLAN;
                 return;
@@ -1929,7 +1761,7 @@ namespace SPA
                 errMsg = NO_DB_OPENED_YET;
                 fail_ok = vSql.size();
                 fail_ok <<= 32;
-                SendResult(idSqlBatchHeader, res, errMsg, (int)tagManagementSystem::msMysql, (unsigned int) parameters, callIndex);
+                SendResult(idSqlBatchHeader, res, errMsg, (int) tagManagementSystem::msMysql, (unsigned int) parameters, callIndex);
                 return;
             }
             size_t rows = 0;
@@ -1940,7 +1772,7 @@ namespace SPA
                     m_fails += vSql.size();
                     fail_ok = vSql.size();
                     fail_ok <<= 32;
-                    SendResult(idSqlBatchHeader, res, errMsg, (int)tagManagementSystem::msMysql, (unsigned int) parameters, callIndex);
+                    SendResult(idSqlBatchHeader, res, errMsg, (int) tagManagementSystem::msMysql, (unsigned int) parameters, callIndex);
                     return;
                 }
                 if ((m_vParam.size() % (unsigned short) parameters)) {
@@ -1949,26 +1781,26 @@ namespace SPA
                     m_fails += vSql.size();
                     fail_ok = vSql.size();
                     fail_ok <<= 32;
-                    SendResult(idSqlBatchHeader, res, errMsg, (int)tagManagementSystem::msMysql, (unsigned int) parameters, callIndex);
+                    SendResult(idSqlBatchHeader, res, errMsg, (int) tagManagementSystem::msMysql, (unsigned int) parameters, callIndex);
                     return;
                 }
                 rows = m_vParam.size() / parameters;
             }
-            if (isolation != (int)tagTransactionIsolation::tiUnspecified) {
+            if (isolation != (int) tagTransactionIsolation::tiUnspecified) {
                 int ms;
                 BeginTrans(isolation, dbConn, flags, res, errMsg, ms);
                 if (res) {
                     m_fails += vSql.size();
                     fail_ok = vSql.size();
                     fail_ok <<= 32;
-                    SendResult(idSqlBatchHeader, res, errMsg, (int)tagManagementSystem::msMysql, (unsigned int) parameters, callIndex);
+                    SendResult(idSqlBatchHeader, res, errMsg, (int) tagManagementSystem::msMysql, (unsigned int) parameters, callIndex);
                     return;
                 }
             } else {
                 LEX_CSTRING db_name = srv_session_info_get_current_db(m_pMysql.get());
                 errMsg = Utilities::ToUTF16(db_name.str, db_name.length);
             }
-            SendResult(idSqlBatchHeader, res, errMsg, (int)tagManagementSystem::msMysql, (unsigned int) parameters, callIndex);
+            SendResult(idSqlBatchHeader, res, errMsg, (int) tagManagementSystem::msMysql, (unsigned int) parameters, callIndex);
             errMsg.clear();
             CDBVariantArray vAll;
             m_vParam.swap(vAll);
@@ -2009,12 +1841,12 @@ namespace SPA
                     res = r;
                     errMsg = err;
                 }
-                if (r && isolation != (int)tagTransactionIsolation::tiUnspecified && plan == (int)tagRollbackPlan::rpDefault)
+                if (r && isolation != (int) tagTransactionIsolation::tiUnspecified && plan == (int) tagRollbackPlan::rpDefault)
                     break;
                 affected += aff;
                 fail_ok += fo;
             }
-            if (isolation != (int)tagTransactionIsolation::tiUnspecified) {
+            if (isolation != (int) tagTransactionIsolation::tiUnspecified) {
                 EndTrans(plan, r, err);
                 if (r && !res) {
                     res = r;

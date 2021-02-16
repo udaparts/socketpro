@@ -55,6 +55,7 @@ int async_sql_plugin_deinit(void *p) {
         ::FreeLibrary(CSetGlobals::Globals.m_hModule);
         CSetGlobals::Globals.m_hModule = nullptr;
     }
+    CSetGlobals::Globals.UpdateLog();
     return 0;
 }
 

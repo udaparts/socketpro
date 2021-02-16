@@ -2,13 +2,32 @@
 #pragma once
 
 #include "mysqlimpl.h"
-#include "httppeer.h"
+#include "../../../include/3rdparty/rapidjson/include/rapidjson/document.h"
+#include <unordered_map>
+using namespace rapidjson;
 
-struct U_MODULE_HIDDEN CService {
-    unsigned int ServiceId;
-    std::string Library;
-    int Param;
-    std::string Description;
+class U_MODULE_HIDDEN UConfig {
+public:
+
+    UConfig() : port(20902), main_threads(1), disable_ipv6(false) {
+        doc.SetObject();
+    }
+    unsigned int port;
+    int main_threads;
+    bool disable_ipv6;
+
+#ifdef WIN32_64
+    std::string store;
+    std::string subject_cn;
+#else
+    std::string ssl_key;
+    std::string ssl_cert;
+    std::string ssl_key_password;
+#endif
+    std::string cached_tables;
+    std::string services;
+    std::string working_dir;
+    Document doc;
 };
 
 class U_MODULE_HIDDEN CStreamingServer : public SPA::ServerSide::CSocketProServer {
@@ -22,14 +41,14 @@ protected:
 
 private:
     bool AddService();
+    void ConfigServices();
 
 private:
     SPA::ServerSide::CMysqlService m_MySql;
-    SPA::ServerSide::CSocketProService<CHttpPeer> m_myHttp;
 
 private:
-    CStreamingServer(const CStreamingServer &ss);
-    CStreamingServer& operator=(const CStreamingServer &ss);
+    CStreamingServer(const CStreamingServer &ss) = delete;
+    CStreamingServer& operator=(const CStreamingServer &ss) = delete;
 };
 
 extern CStreamingServer *g_pStreamingServer;
@@ -43,25 +62,17 @@ private:
     CSetGlobals();
     void LogEntry(const char* file, int fileLineNumber, const char* szBuf);
     static unsigned int GetVersion(const char *prog);
-    static void SetConfig(const std::unordered_map<std::string, std::string>& mapConfig);
     static void* ThreadProc(void *lpParameter);
+    void SetConfig();
 
 public:
-    int m_nParam;
-    bool DisableV6;
-    unsigned int Port;
     const char *server_version;
     st_mysql_daemon async_sql_plugin;
     HINSTANCE m_hModule;
     const void *Plugin;
-    std::string ssl_key;
-    std::string ssl_cert;
-    std::string ssl_pwd;
     std::vector<std::string> cached_tables;
-    std::vector<std::string> services;
-    std::unordered_map<std::string, std::string> DefaultConfig;
-    std::vector<CService> table_service;
-    bool enable_http_websocket;
+    std::unordered_map<std::string, HINSTANCE> services;
+    UConfig Config;
     my_thread_handle m_thread;
 
     static CSetGlobals Globals;
@@ -70,6 +81,7 @@ public:
     bool StartListening();
     void LogMsg(const char *file, int fileLineNumber, const char *format ...);
     void UpdateLog();
+    void UpdateConfigFile();
 };
 
 int async_sql_plugin_init(void *p);
