@@ -9,6 +9,7 @@
 #include "../../../include/server_functions.h"
 #include "crypt_genhash_impl.h"
 #include <algorithm>
+#include "streamingserver.h"
 
 namespace SPA
 {
@@ -1057,7 +1058,7 @@ namespace SPA
 #else
             CDBString wsql = u"CREATE FUNCTION PublishDBEvent RETURNS INTEGER SONAME 'libsmysql.so'";
 #endif
-            if (!impl.m_pMysql && !impl.OpenSession(u"root", "localhost"))
+            if (!impl.m_pMysql && !impl.OpenSession(CSetGlobals::Globals.Config.auth_account.c_str(), "localhost"))
                 return;
             impl.m_NoSending = true;
             int res = 0;
@@ -1074,8 +1075,8 @@ namespace SPA
 
         bool CMysqlImpl::Authenticate(const std::wstring &userName, const wchar_t *password, const std::string &ip, unsigned int svsId) {
             std::unique_ptr<CMysqlImpl> impl(new CMysqlImpl);
-            if (!impl->OpenSession(u"root", "localhost")) {
-                CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Authentication failed as root account not available");
+            if (!impl->OpenSession(CSetGlobals::Globals.Config.auth_account.c_str(), "localhost")) {
+                CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Authentication failed as authentication account not available");
                 return false;
             }
             CDBString host = u"localhost";
@@ -1102,7 +1103,7 @@ namespace SPA
             std::string hash((const char*) auth_id, vtAuth.parray->rgsabound->cElements);
             ::SafeArrayUnaccessData(vtAuth.parray);
             if (!DoAuthentication(password, hash)) {
-                CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Authentication failed as wrong password for user %s (errCode=%d; errMsg=%s)", user.c_str(), res, Utilities::ToUTF8(errMsg).c_str());
+                CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Authentication failed as wrong password for user %s", user.c_str());
                 return false;
             }
             if (svsId == SPA::Mysql::sidMysql)

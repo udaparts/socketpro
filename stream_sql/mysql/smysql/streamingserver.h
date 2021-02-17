@@ -6,10 +6,13 @@
 #include <unordered_map>
 using namespace rapidjson;
 
+#define DEAFULT_AUTH_ACCOUNT                u"root"
+#define DEFAULT_LISTENING_PORT              20902
+
 class U_MODULE_HIDDEN UConfig {
 public:
 
-    UConfig() : port(20902), main_threads(1), disable_ipv6(false) {
+    UConfig() : port(DEFAULT_LISTENING_PORT), main_threads(1), disable_ipv6(false), auth_account(DEAFULT_AUTH_ACCOUNT) {
         doc.SetObject();
     }
     unsigned int port;
@@ -24,6 +27,7 @@ public:
     std::string ssl_cert;
     std::string ssl_key_password;
 #endif
+    SPA::CDBString auth_account;
     std::string cached_tables;
     std::string services;
     std::string working_dir;

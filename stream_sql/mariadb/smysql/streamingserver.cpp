@@ -14,7 +14,7 @@
 #define STREAMING_DB_PORT		    "port"
 #define STREAMING_DB_MAIN_THREADS	    "main_threads"
 #define STREAMING_DB_NO_IPV6		    "disable_ipv6"
-#define STREAMING_DB_CACHE_TABLES	    "cached_tables"
+#define STREAMING_DB_CACHE_TABLES	    "monitored_tables"
 #define STREAMING_DB_SERVICES		    "services"
 #define STREAMING_DB_WORKING_DIR            "working_dir"
 #define STREAMING_DB_SERVICES_CONFIG        "services_config"
@@ -336,6 +336,9 @@ void CSetGlobals::SetConfig() {
         } else {
             if (doc.HasMember(STREAMING_DB_PORT) && doc[STREAMING_DB_PORT].IsUint()) {
                 Config.port = doc[STREAMING_DB_PORT].GetUint();
+                if (!Config.port) {
+                    Config.port = DEFAULT_LISTENING_PORT;
+                }
             }
             if (doc.HasMember(STREAMING_DB_MAIN_THREADS) && doc[STREAMING_DB_MAIN_THREADS].IsInt()) {
                 Config.main_threads = doc[STREAMING_DB_MAIN_THREADS].GetInt();

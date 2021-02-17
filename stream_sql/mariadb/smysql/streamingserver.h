@@ -8,6 +8,32 @@
 using namespace rapidjson;
 using namespace SPA::ServerSide;
 
+#define DEFAULT_LISTENING_PORT              20902
+
+class U_MODULE_HIDDEN UConfig {
+public:
+
+    UConfig() : port(DEFAULT_LISTENING_PORT), main_threads(1), disable_ipv6(false) {
+        doc.SetObject();
+    }
+    unsigned int port;
+    int main_threads;
+    bool disable_ipv6;
+
+#ifdef WIN32_64
+    std::string store;
+    std::string subject_cn;
+#else
+    std::string ssl_key;
+    std::string ssl_cert;
+    std::string ssl_key_password;
+#endif
+    std::string cached_tables;
+    std::string services;
+    std::string working_dir;
+    Document doc;
+};
+
 class U_MODULE_HIDDEN CStreamingServer : public CSocketProServer {
 public:
     CStreamingServer(int nParam = 0);
@@ -30,30 +56,6 @@ private:
 };
 
 extern CStreamingServer *g_pStreamingServer;
-
-class U_MODULE_HIDDEN UConfig {
-public:
-
-    UConfig() : port(20902), main_threads(1), disable_ipv6(false) {
-        doc.SetObject();
-    }
-    unsigned int port;
-    int main_threads;
-    bool disable_ipv6;
-
-#ifdef WIN32_64
-    std::string store;
-    std::string subject_cn;
-#else
-    std::string ssl_key;
-    std::string ssl_cert;
-    std::string ssl_key_password;
-#endif
-    std::string cached_tables;
-    std::string services;
-    std::string working_dir;
-    Document doc;
-};
 
 class U_MODULE_HIDDEN CSetGlobals {
 private:

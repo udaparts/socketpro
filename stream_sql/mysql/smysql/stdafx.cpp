@@ -120,7 +120,7 @@ namespace SPA{
         }
 
         void CMysqlImpl::CreateTriggers(CMysqlImpl &impl, const std::vector<std::string> &vecTables) {
-            if (!impl.m_pMysql && !impl.OpenSession(u"root", "localhost"))
+            if (!impl.m_pMysql && !impl.OpenSession(CSetGlobals::Globals.Config.auth_account.c_str(), "localhost"))
                 return;
             impl.m_NoSending = true;
             impl.RemoveUnusedTriggers(vecTables);
