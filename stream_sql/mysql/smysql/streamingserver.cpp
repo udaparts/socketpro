@@ -341,7 +341,7 @@ void CSetGlobals::UpdateConfigFile() {
     {
         Value cs;
         std::string s = SPA::Utilities::ToUTF8(Config.auth_account);
-        cs.SetString(s.c_str(), (SizeType)s.size());
+        cs.SetString(s.c_str(), (SizeType) s.size());
         doc.AddMember(STREAMING_DB_AUTH_ACCOUNT, cs, allocator);
     }
     {
@@ -436,6 +436,7 @@ CStreamingServer::CStreamingServer(int nParam)
 
 void CStreamingServer::ConfigServices() {
     bool changed = false;
+    auto& doc = CSetGlobals::Globals.Config.doc;
     for (auto p = CSetGlobals::Globals.services.begin(), end = CSetGlobals::Globals.services.end(); p != end; ++p) {
         HINSTANCE hModule = SPA::ServerSide::CSocketProServer::DllManager::AddALibrary(p->first.c_str(), 0);
         if (!hModule) {
@@ -452,7 +453,6 @@ void CStreamingServer::ConfigServices() {
                 if (!SetSPluginGlobalOptions) {
                     break;
                 }
-                auto& doc = CSetGlobals::Globals.Config.doc;
                 if (!(doc.HasMember(STREAMING_DB_SERVICES_CONFIG) && doc[STREAMING_DB_SERVICES_CONFIG].IsObject())) {
                     changed = true;
                     break;
@@ -472,6 +472,10 @@ void CStreamingServer::ConfigServices() {
                 }
             } while (false);
         }
+    }
+    if (!changed && CSetGlobals::Globals.services.size()) {
+        auto obj = doc[STREAMING_DB_SERVICES_CONFIG].GetObject();
+        changed = (CSetGlobals::Globals.services.size() != (size_t) obj.MemberCount());
     }
     if (changed) {
         while (changed) {

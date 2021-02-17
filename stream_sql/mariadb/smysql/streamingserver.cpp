@@ -422,6 +422,7 @@ bool CStreamingServer::OnIsPermitted(USocket_Server_Handle h, const wchar_t* use
 
 void CStreamingServer::ConfigServices() {
     bool changed = false;
+    auto& doc = CSetGlobals::Globals.Config.doc;
     for (auto p = CSetGlobals::Globals.services.begin(), end = CSetGlobals::Globals.services.end(); p != end; ++p) {
         HINSTANCE hModule = CSocketProServer::DllManager::AddALibrary(p->first.c_str(), 0);
         if (!hModule) {
@@ -438,7 +439,6 @@ void CStreamingServer::ConfigServices() {
                 if (!SetSPluginGlobalOptions) {
                     break;
                 }
-                auto& doc = CSetGlobals::Globals.Config.doc;
                 if (!(doc.HasMember(STREAMING_DB_SERVICES_CONFIG) && doc[STREAMING_DB_SERVICES_CONFIG].IsObject())) {
                     changed = true;
                     break;
@@ -458,6 +458,10 @@ void CStreamingServer::ConfigServices() {
                 }
             } while (false);
         }
+    }
+    if (!changed && CSetGlobals::Globals.services.size()) {
+        auto obj = doc[STREAMING_DB_SERVICES_CONFIG].GetObject();
+        changed = (CSetGlobals::Globals.services.size() != (size_t)obj.MemberCount());
     }
     if (changed) {
         while (changed) {
