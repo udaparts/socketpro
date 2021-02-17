@@ -4,8 +4,8 @@ namespace SPA
 {
     namespace ServerSide{
 
-        unsigned int CAsyncQueueImpl::m_nBatchSize = 0;
-        unsigned char CAsyncQueueImpl::m_bNoAuto = 0;
+        std::atomic<unsigned int> CAsyncQueueImpl::m_nBatchSize = 0;
+        std::atomic<unsigned char> CAsyncQueueImpl::m_bNoAuto = 0;
         CSpinLock CAsyncQueueImpl::m_cs;
         std::unordered_map<std::string, std::shared_ptr < CAsyncQueueImpl::CMyQueue >> CAsyncQueueImpl::m_mapKeyQueue;
         unsigned int CAsyncQueueImpl::m_clients = 0;

@@ -8,14 +8,31 @@ using namespace rapidjson;
 using namespace SPA;
 using namespace SPA::ServerSide;
 
-std::string g_version("1.0.0.3");
+std::string g_version("1.0.0.4");
 
 const char* const U_MODULE_OPENED WINAPI GetSPluginVersion() {
     return g_version.c_str();
 }
 
 bool U_MODULE_OPENED WINAPI SetSPluginGlobalOptions(const char* jsonOptions) {
-    //no key/value implemented yet
+    if (!jsonOptions) return false;
+    Document doc;
+    doc.SetObject();
+    ParseResult ok = doc.Parse(jsonOptions, ::strlen(jsonOptions));
+    if (!ok) {
+        return false;
+    }
+    if (doc.HasMember(DEQUEUE_BATCH_SIZE) && doc[DEQUEUE_BATCH_SIZE].IsUint()) {
+        unsigned int bs = doc[DEQUEUE_BATCH_SIZE].GetUint();
+        bs &= 0xffffff;
+        if (bs < MIN_DEQUEUE_BATCH_SIZE) bs = MIN_DEQUEUE_BATCH_SIZE;
+        CAsyncQueueImpl::m_nBatchSize = bs;
+    }
+    if (doc.HasMember(DISABLE_AUTO_NOTIFICATION) && doc[DISABLE_AUTO_NOTIFICATION].IsUint()) {
+        unsigned int disable_auto_notification = doc[DISABLE_AUTO_NOTIFICATION].GetUint();
+        disable_auto_notification &= 0xff;
+        CAsyncQueueImpl::m_bNoAuto = disable_auto_notification;
+    }
     return true;
 }
 
@@ -27,9 +44,9 @@ unsigned int U_MODULE_OPENED WINAPI GetSPluginGlobalOptions(char* json, unsigned
     Writer<StringBuffer> writer(buffer);
     writer.StartObject();
     writer.Key(DEQUEUE_BATCH_SIZE);
-    writer.Int((int) CAsyncQueueImpl::m_nBatchSize);
+    writer.Uint(CAsyncQueueImpl::m_nBatchSize);
     writer.Key(DISABLE_AUTO_NOTIFICATION);
-    writer.Int((int) CAsyncQueueImpl::m_bNoAuto);
+    writer.Uint(CAsyncQueueImpl::m_bNoAuto);
     writer.EndObject();
     std::string s = buffer.GetString();
     size_t len = s.size();
