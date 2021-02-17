@@ -414,7 +414,7 @@ CStreamingServer::CStreamingServer(int nParam) : CSocketProServer(nParam) {
 
 bool CStreamingServer::OnIsPermitted(USocket_Server_Handle h, const wchar_t* userId, const wchar_t *password, unsigned int serviceId) {
     if (!CMysqlImpl::DoSQLAuthentication(h, userId, password, serviceId, DEFAULT_LOCAL_CONNECTION_STRING)) {
-        CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "AUthentication failed for user ", SPA::Utilities::ToUTF8(userId).c_str());
+        CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, ("Authentication failed for user " + SPA::Utilities::ToUTF8(userId)).c_str());
         return false;
     }
     return true;

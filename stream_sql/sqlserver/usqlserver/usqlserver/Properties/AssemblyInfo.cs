@@ -6,14 +6,14 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("SQL stream plugin for MS SQL Server")]
-[assembly: AssemblyDescription("SQL stream processing and responsing for Microsoft SQL Server")]
+[assembly: AssemblyTitle("SocketPro MS SQL Server Plugin")]
+[assembly: AssemblyDescription("Microsoft SQL server Plugin for SocketPro SQL Streaming Processing")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("UDAParts")]
-[assembly: AssemblyProduct("MS SQL stream for SQL Server 2008 or later")]
-[assembly: AssemblyCopyright("Copyright ©  UDAParts 2018")]
+[assembly: AssemblyProduct("SocketPro DB server plugin for SQL Server 2008 or later")]
+[assembly: AssemblyCopyright("Copyright ©  UDAParts 2018-2021, All rights reserved.")]
 [assembly: AssemblyTrademark("")]
-[assembly: AssemblyCulture("")]
+[assembly: AssemblyCulture("en")]
 
 [assembly: ComVisible(false)]
 
@@ -27,8 +27,8 @@ using System.Runtime.InteropServices;
 //
 // You can specify all the values or you can default the Revision and Build Numbers
 // by using the '*' as shown below:
-[assembly: AssemblyVersion("1.0.0.2")]
-[assembly: AssemblyFileVersion("1.0.0.2")]
+[assembly: AssemblyVersion("1.5.0.1")]
+[assembly: AssemblyFileVersion("1.5.0.1")]
 [assembly: System.Resources.NeutralResourcesLanguageAttribute("en")]
 
 
