@@ -340,6 +340,12 @@ void CSetGlobals::UpdateConfigFile() {
     }
     {
         Value cs;
+        std::string s = SPA::Utilities::ToUTF8(Config.auth_account);
+        cs.SetString(s.c_str(), (SizeType)s.size());
+        doc.AddMember(STREAMING_DB_AUTH_ACCOUNT, cs, allocator);
+    }
+    {
+        Value cs;
         cs.SetString(Config.working_dir.c_str(), (SizeType) Config.working_dir.size());
         doc.AddMember(STREAMING_DB_WORKING_DIR, cs, allocator);
     }
