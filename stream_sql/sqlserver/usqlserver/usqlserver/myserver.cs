@@ -1,196 +1,48 @@
 ﻿using System;
-using SocketProAdapter;
 using SocketProAdapter.ServerSide;
 using System.Runtime.InteropServices;
-using System.Web.Script.Serialization;
 using System.Collections.Generic;
-using System.IO;
-
-public class UConfig
-{
-    public static readonly uint DEFAULT_PORT = 20903;
-    public static readonly string DEFAULT_DRIVER = "{ODBC Driver 17 for SQL Server}";
-    public uint port = DEFAULT_PORT;
-    public int main_threads = 1;
-    public bool disable_ipv6 = false;
-    public string cert_root_store = "";
-    public string cert_subject_cn = "";
-    public string monitored_tables = "";
-    public string services = "";
-    public string working_dir = "";
-    public Dictionary<string, Dictionary<string, object>> services_config = new Dictionary<string, Dictionary<string, object>>();
-    public string odbc_driver = DEFAULT_DRIVER;
-    public string default_db = "";
-};
+using TinyJson;
 
 public class CSqlPlugin : CSocketProServer
 {
-    private UConfig m_Config;
-    private bool m_changed = false;
-    public static readonly string STREAM_DB_CONFIG_FILE = "sp_streaming_db_config.json";
-    public static readonly string STREAM_DB_LOG_FILE = "streaming_db.log";
-    private object m_cs = new object();
-    private StreamWriter m_sw = null; //protected by m_cs
-
-    public void LogMsg(string lineText, string file = "", int fileLineNumber = 0)
+    private UConfig m_Config = new UConfig();
+    public CSqlPlugin(UConfig config) : base(config.main_threads)
     {
-        lock (m_cs)
-        {
-            OpenLogFile();
-            if (m_sw != null)
-            {
-                string message = string.Format("{0} - {1}:{2} - {3}", DateTime.Now.ToString(), file, fileLineNumber, lineText);
-                try
-                {
-                    m_sw.WriteLine(message);
-                }
-                finally
-                {
-                }
-            }
-        }
-    }
-
-    private void OpenLogFile()
-    {
-        try
-        {
-            if (m_sw == null)
-            {
-                m_sw = new StreamWriter(CSqlPlugin.STREAM_DB_LOG_FILE, true, System.Text.Encoding.UTF8);
-            }
-        }
-        catch (Exception)
-        {
-            m_sw = null;
-        }
-    }
-
-    public void UpdateLog()
-    {
-        lock (m_cs)
-        {
-            if (m_sw != null)
-            {
-                try
-                {
-                    m_sw.Flush();
-                    m_sw.Close();
-                }
-                finally
-                {
-                    m_sw = null;
-                }
-            }
-        }
-    }
-
-    public CSqlPlugin(int param = 0)
-        : base(param)
-    {
-        try
-        {
-            string json = File.ReadAllText(STREAM_DB_CONFIG_FILE);
-            JavaScriptSerializer serializer = new JavaScriptSerializer();
-            m_Config = serializer.Deserialize<UConfig>(json);
-            if (m_Config.main_threads <= 0)
-            {
-                m_Config.main_threads = 1;
-                m_changed = true;
-            }
-            if (m_Config.port == 0 || m_Config.port > 0xffff)
-            {
-                m_Config.port = UConfig.DEFAULT_PORT;
-                m_changed = true;
-            }
-            string str = m_Config.odbc_driver.Trim();
-            if (m_Config.odbc_driver != str || str.Length == 0)
-            {
-                m_Config.odbc_driver = UConfig.DEFAULT_DRIVER;
-                m_changed = true;
-            }
-            str = m_Config.default_db.Trim();
-            if (str != m_Config.default_db)
-            {
-                m_Config.default_db = str;
-                m_changed = true;
-            }
-            str = m_Config.services.Trim();
-            if (str != m_Config.services)
-            {
-                m_Config.services = str;
-                m_changed = true;
-            }
-            str = m_Config.cert_root_store.Trim();
-            if (str != m_Config.cert_root_store)
-            {
-                m_Config.cert_root_store = str;
-                m_changed = true;
-            }
-            str = m_Config.cert_subject_cn.Trim();
-            if (str != m_Config.cert_subject_cn)
-            {
-                m_Config.cert_subject_cn = str;
-                m_changed = true;
-            }
-        }
-        catch (Exception ex)
-        {
-            LogMsg(ex.Message, "myserver.cs", 112); //line 112
-            m_Config = new UConfig();
-            m_changed = true;
-        }
-        finally
-        {
-            UpdateConfigFile();
-            UpdateLog();
-        }
+        m_Config.CopyFrom(config);
     }
 
     protected override void OnIdle(ulong milliseconds)
     {
-        UpdateLog();
-    }
-
-    private void UpdateConfigFile()
-    {
-        if (m_changed)
-        {
-            try
-            {
-                JavaScriptSerializer serializer = new JavaScriptSerializer();
-                string json = serializer.Serialize(m_Config);
-                File.WriteAllText(STREAM_DB_CONFIG_FILE, json);
-                m_changed = false;
-            }
-            catch (Exception ex)
-            {
-                LogMsg(ex.Message, "myserver.cs", 112); //line 135
-            }
-            finally
-            {
-            }
-        }
+        UConfig.UpdateLog();
     }
 
     [DllImport("sodbc")]
     private static extern int DoSPluginAuthentication(ulong hSocket, [MarshalAs(UnmanagedType.LPWStr)] string userId, [MarshalAs(UnmanagedType.LPWStr)] string password, uint nSvsId, [MarshalAs(UnmanagedType.LPWStr)] string dsn);
 
+    [DllImport("kernel32", CharSet = CharSet.Ansi, ExactSpelling = true, SetLastError = true)]
+    static extern IntPtr GetProcAddress(IntPtr hModule, string procName);
+
     public override bool Run(uint port, uint maxBacklog, bool v6Supported)
     {
         IntPtr p = CSocketProServer.DllManager.AddALibrary("sodbc");
-#if PLUGIN_DEV
-
-#else
-        string[] vService = SQLConfig.Services.Split(';');
-        foreach (string s in vService)
+        if (p.ToInt64() == 0)
         {
-            if (s.Length > 0)
-                DllManager.AddALibrary(s);
+            UConfig.LogMsg("Cannot load SocketPro ODBC plugin!", "CSqlPlugin::Run", 202); //line 202
+            UConfig.UpdateLog();
+            return false;
         }
-#endif
+        ConfigServices();
+        SetTriggers();
         PushManager.AddAChatGroup(SocketProAdapter.UDB.DB_CONSTS.STREAMING_SQL_CHAT_GROUP_ID, "Subscribe/publish for MS SQL SERVER Table events, DELETE, INSERT and UPDATE");
-        return base.Run(port, maxBacklog, v6Supported);
+        bool ok = base.Run(port, maxBacklog, v6Supported);
+        if (!ok)
+        {
+            string errMsg = string.Format("Starting listening socket failed (errCode={0}; errMsg={1})", CSocketProServer.LastSocketError, CSocketProServer.ErrorMessage);
+            UConfig.LogMsg(errMsg, "CSqlPlugin::Run", 212); //line 212
+            UConfig.UpdateLog();
+        }
+        return ok;
     }
 
     protected override bool OnIsPermitted(ulong hSocket, string userId, string password, uint nSvsID)
@@ -204,8 +56,113 @@ public class CSqlPlugin : CSocketProServer
         if (res <= 0)
         {
             string message = "Authentication failed for user " + userId + ", res: " + res;
-            LogMsg(message, "myserver.cs", 179); //line 179
+            UConfig.LogMsg(message, "CSqlPlugin::OnIsPermitted", 229); //line 229
         }
         return (res > 0);
+    }
+
+    //typedef bool (WINAPI *PSetSPluginGlobalOptions)(const char *jsonUtf8Options);
+    private delegate bool DSetSPluginGlobalOptions([MarshalAs(UnmanagedType.LPStr)] string jsonUtf8Options);
+
+    //typedef unsigned int (WINAPI *PGetSPluginGlobalOptions)(char *jsonUtf8, unsigned int buffer_size);
+    private delegate uint DGetSPluginGlobalOptions([MarshalAs(UnmanagedType.LPArray)] byte[] jsonUtf8, int buffer_size);
+
+    private void ConfigServices()
+    {
+        bool changed = false;
+        string[] vService = m_Config.services.Split(';');
+        List<string> vP = new List<string>();
+        foreach (string s in vService)
+        {
+            string p_name = s.Trim();
+            do
+            {
+                if (p_name.Length == 0)
+                {
+                    break;
+                }
+                IntPtr h = DllManager.AddALibrary(p_name);
+                if (h.ToInt64() == 0)
+                {
+                    string message = "Not able to load server plugin " + p_name;
+                    UConfig.LogMsg(message, "CSqlPlugin::ConfigServices", 229); //line 229
+                    break;
+                }
+                vP.Add(p_name);
+                bool having = m_Config.services_config.ContainsKey(p_name);
+                if (!having)
+                {
+                    changed = true;
+                    IntPtr addr = GetProcAddress(h, "GetSPluginGlobalOptions");
+                    if (addr.ToInt64() > 0)
+                    {
+                        try
+                        {
+                            DGetSPluginGlobalOptions GetSPluginGlobalOptions = (DGetSPluginGlobalOptions)Marshal.GetDelegateForFunctionPointer(addr, typeof(DGetSPluginGlobalOptions));
+                            byte[] bytes = new byte[65536];
+                            uint res = GetSPluginGlobalOptions(bytes, bytes.Length);
+                            string jsonutf8 = System.Text.Encoding.UTF8.GetString(bytes, 0, (int)res);
+                            Dictionary<string, object> v = jsonutf8.FromJson<Dictionary<string, object>>();
+                            m_Config.services_config.Add(p_name, v);
+                        }
+                        catch(Exception ex)
+                        {
+                            UConfig.LogMsg(ex.Message, "CSqlPlugin::ConfigServices", 229); //line 229
+                            m_Config.services_config.Add(p_name, new Dictionary<string, object>());
+                        }
+                    }
+                    else
+                    {
+                        m_Config.services_config.Add(p_name, new Dictionary<string, object>());
+                    }
+                    break;
+                }
+                Dictionary<string, object> jsonDic = m_Config.services_config[p_name];
+                if (jsonDic.Count == 0)
+                {
+                    break;
+                }
+                IntPtr fAddr = GetProcAddress(h, "SetSPluginGlobalOptions");
+                if (fAddr.ToInt64() == 0)
+                {
+                    break;
+                }
+                try
+                {
+                    DSetSPluginGlobalOptions func = (DSetSPluginGlobalOptions)Marshal.GetDelegateForFunctionPointer(fAddr, typeof(DSetSPluginGlobalOptions));
+                    if (!func(jsonDic.ToJson()))
+                    {
+                        UConfig.LogMsg("Not able to set global options for plugin " + p_name, "CSqlPlugin::ConfigServices", 229); //line 229
+                    }
+                }
+                catch(Exception ex)
+                {
+                    UConfig.LogMsg(ex.Message, "CSqlPlugin::ConfigServices", 229); //line 229
+                }
+            } while (false);
+        }
+        if (vP.Count != vService.Length)
+        {
+            string str = "";
+            foreach (string item in vP)
+            {
+                if (str.Length > 0)
+                {
+                    str += ";";
+                }
+                str += item;
+            }
+            m_Config.services = str;
+            changed = true;
+        }
+        if (changed)
+        {
+            UConfig.UpdateConfigFile(m_Config);
+        }
+    }
+
+    private void SetTriggers()
+    {
+
     }
 }

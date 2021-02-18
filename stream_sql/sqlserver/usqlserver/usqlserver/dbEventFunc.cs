@@ -44,7 +44,7 @@ public static class USqlStream
                         {
                             ServerCoreLoader.SetOnIdle(null);
                             Plugin.StopSocketProServer();
-                            res += 10;
+                            res += 1;
                         }
                         Plugin.Dispose();
                         Plugin = null;
@@ -54,7 +54,7 @@ public static class USqlStream
             }
             catch (Exception err)
             {
-                LogError(conn, err.Message);
+                UConfig.LogMsg(err.Message, "USqlStream::StopSPServer", 57); //line 57
             }
             finally
             {
@@ -73,41 +73,61 @@ public static class USqlStream
             {
                 lock (m_cs)
                 {
+                    UConfig config;
+                    try
+                    {
+                        if (!Directory.Exists(UConfig.DEFAULT_WORKING_DIRECTORY))
+                            Directory.CreateDirectory(UConfig.DEFAULT_WORKING_DIRECTORY);
+                        Directory.SetCurrentDirectory(UConfig.DEFAULT_WORKING_DIRECTORY);
+                    }
+                    catch (Exception ex)
+                    {
+                        UConfig.LogMsg(ex.Message, "USqlStream::StartSPServer", 90); //line 90
+                    }
+                    finally { }
+
+                    try
+                    {
+                        string json = System.IO.File.ReadAllText(UConfig.DEFAULT_WORKING_DIRECTORY + UConfig.STREAM_DB_CONFIG_FILE);
+                        config = new UConfig(json);
+                    }
+                    catch(Exception ex)
+                    {
+                        UConfig.LogMsg(ex.Message, "USqlStream::StartSPServer", 96); //line 96
+                        config = new UConfig();
+                        UConfig.UpdateConfigFile(config);
+                        UConfig.UpdateLog();
+                    }
                     if (Plugin == null)
                     {
-                        if (!Directory.Exists(SQLConfig.WorkingDirectory))
-                            Directory.CreateDirectory(SQLConfig.WorkingDirectory);
-                        Directory.SetCurrentDirectory(SQLConfig.WorkingDirectory);
-                        Plugin = new CSqlPlugin(SQLConfig.Param);
-                        res = 1;
+                        Plugin = new CSqlPlugin(config);
                     }
+                    res = 1;
                     if (!ServerCoreLoader.IsRunning())
                     {
-                        res += 10;
-                        if (SQLConfig.StoreOrPfx != null && SQLConfig.SubjectOrPassword != null && SQLConfig.StoreOrPfx.Length > 0 && SQLConfig.SubjectOrPassword.Length > 0)
+                        if (config.cert_root_store.Length > 0 && config.cert_subject_cn.Length > 0)
                         {
-                            if (SQLConfig.StoreOrPfx.IndexOf(".pfx") == -1)
-                            {
-                                //load cert and private key from windows system cert store
-                                Plugin.UseSSL(SQLConfig.StoreOrPfx/*"my"*/, SQLConfig.SubjectOrPassword, "");
-                            }
-                            else
-                            {
-                                Plugin.UseSSL(SQLConfig.StoreOrPfx, "", SQLConfig.SubjectOrPassword);
-                            }
+                            Plugin.UseSSL(config.cert_root_store, config.cert_subject_cn, "");
                         }
-                        Plugin.Run(SQLConfig.Port, 16, !SQLConfig.NoV6);
+                        if (Plugin.Run(config.port, 16, !config.disable_ipv6))
+                        {
+                            res += 1;
+                        }
+                        else
+                        {
+                            res = 0;
+                        }
                     }
                 }
             }
             catch (Exception err)
             {
-                LogError(conn, err.Message);
+                UConfig.LogMsg(err.Message, "USqlStream::StartSPServer", 116); //line 116
                 Plugin = null;
             }
             finally
             {
-                if (res == 11 && ServerCoreLoader.IsRunning())
+                if (res == 2 && ServerCoreLoader.IsRunning())
                 {
                     AppDomain.CurrentDomain.DomainUnload += (sender, args) =>
                     {
@@ -304,23 +324,6 @@ public static class USqlStream
         return "";
     }
 
-    public static int LogError(SqlConnection conn, string errMsg)
-    {
-        if (errMsg == null)
-            errMsg = "";
-        if (conn == null || conn.State != ConnectionState.Open)
-            return -1;
-        try
-        {
-            string sql = string.Format("UPDATE sp_streaming_db.dbo.config set value='{0}' WHERE mykey='{1}'", errMsg, "usql_streaming_last_error");
-            SqlCommand cmd = new SqlCommand(sql, conn);
-            return cmd.ExecuteNonQuery();
-        }
-        finally
-        {
-        }
-    }
-
     private static bool Publish(object Message, params uint[] Groups)
     {
         uint len;
@@ -462,6 +465,10 @@ public static class USqlStream
             finally
             {
                 conn.Close();
+                if (errMsg.Length > 0)
+                {
+                    UConfig.LogMsg(errMsg, "USqkStream::PublishDMEvent", 455); //line 455
+                }
             }
         }
     }
