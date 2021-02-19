@@ -5,7 +5,7 @@ using System.Reflection;
 using System.Text;
 
 //refer to https://github.com/zanders3/json
-//remove IgnoreDataMemberAttribute and DataMemberAttribute
+//remove IgnoreDataMemberAttribute and DataMemberAttribute, and make json string pretty
 
 namespace TinyJson
 {
@@ -17,12 +17,13 @@ namespace TinyJson
     {
         public static string ToJson(this object item)
         {
+            int indent = 0;
             StringBuilder stringBuilder = new StringBuilder();
-            AppendValue(stringBuilder, item);
+            AppendValue(stringBuilder, item, ref indent);
             return stringBuilder.ToString();
         }
 
-        static void AppendValue(StringBuilder stringBuilder, object item)
+        static void AppendValue(StringBuilder stringBuilder, object item, ref int indent)
         {
             if (item == null)
             {
@@ -98,7 +99,7 @@ namespace TinyJson
                         isFirst = false;
                     else
                         stringBuilder.Append(',');
-                    AppendValue(stringBuilder, list[i]);
+                    AppendValue(stringBuilder, list[i], ref indent);
                 }
                 stringBuilder.Append(']');
             }
@@ -112,8 +113,8 @@ namespace TinyJson
                     stringBuilder.Append("{}");
                     return;
                 }
-
-                stringBuilder.Append('{');
+                string s;
+                stringBuilder.Append("{\n"); ++indent;
                 IDictionary dict = item as IDictionary;
                 bool isFirst = true;
                 foreach (object key in dict.Keys)
@@ -121,18 +122,25 @@ namespace TinyJson
                     if (isFirst)
                         isFirst = false;
                     else
-                        stringBuilder.Append(',');
+                        stringBuilder.Append(",\n");
+                    s = new string('\t', indent);
+                    stringBuilder.Append(s);
                     stringBuilder.Append('\"');
                     stringBuilder.Append((string)key);
                     stringBuilder.Append("\":");
-                    AppendValue(stringBuilder, dict[key]);
+                    AppendValue(stringBuilder, dict[key], ref indent);
                 }
+                --indent;
+                stringBuilder.Append('\n');
+                s = new string('\t', indent);
+                stringBuilder.Append(s);
                 stringBuilder.Append('}');
             }
             else
             {
-                stringBuilder.Append('{');
-
+                string s = new string('\t', indent);
+                stringBuilder.Append(s);
+                stringBuilder.Append("{\n"); ++indent;
                 bool isFirst = true;
                 FieldInfo[] fieldInfos = type.GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.FlattenHierarchy);
                 for (int i = 0; i < fieldInfos.Length; i++)
@@ -146,11 +154,13 @@ namespace TinyJson
                         if (isFirst)
                             isFirst = false;
                         else
-                            stringBuilder.Append(',');
+                            stringBuilder.Append(",\n");
+                        s = new string('\t', indent);
+                        stringBuilder.Append(s);
                         stringBuilder.Append('\"');
                         stringBuilder.Append(GetMemberName(fieldInfos[i]));
                         stringBuilder.Append("\":");
-                        AppendValue(stringBuilder, value);
+                        AppendValue(stringBuilder, value, ref indent);
                     }
                 }
                 PropertyInfo[] propertyInfo = type.GetProperties(BindingFlags.Instance | BindingFlags.Public | BindingFlags.FlattenHierarchy);
@@ -165,14 +175,19 @@ namespace TinyJson
                         if (isFirst)
                             isFirst = false;
                         else
-                            stringBuilder.Append(',');
+                            stringBuilder.Append(",\n");
+                        s = new string('\t', indent);
+                        stringBuilder.Append(s);
                         stringBuilder.Append('\"');
                         stringBuilder.Append(GetMemberName(propertyInfo[i]));
                         stringBuilder.Append("\":");
-                        AppendValue(stringBuilder, value);
+                        AppendValue(stringBuilder, value, ref indent);
                     }
                 }
-
+                --indent;
+                stringBuilder.Append('\n');
+                s = new string('\t', indent);
+                stringBuilder.Append(s);
                 stringBuilder.Append('}');
             }
         }
