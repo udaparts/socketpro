@@ -19,7 +19,7 @@ public class UConfig
     public string cert_root_store = DEFAULT_CA_ROOT;
     public string cert_subject_cn = "";
     public string services = "";
-    public Dictionary<string, Dictionary<string, object>> services_config = new Dictionary<string, Dictionary<string, object>>(StringComparer.OrdinalIgnoreCase);
+    public Dictionary<string, Dictionary<string, object>> services_config = new Dictionary<string, Dictionary<string, object>>();
     public string odbc_driver = DEFAULT_DRIVER;
     public string default_db = "";
 
