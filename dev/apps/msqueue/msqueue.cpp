@@ -147,7 +147,7 @@ void TestSimpleEnqueue(const char *str) {
 #if defined(__ANDROID__) || defined(ANDROID)
 	MQ_FILE::CMqFile mqFile("/data/data/com.android_native_test/files/test_simple_enq", 30 * 24 * 3600, SPA::oMemoryCached, false);
 #else
-    MQ_FILE::CMqFile mqFile("test_simple_enq", 30 * 24 * 3600, SPA::oMemoryCached, false);
+    MQ_FILE::CMqFile mqFile("test_simple_enq", 30 * 24 * 3600, SPA::tagOptimistic::oMemoryCached, false);
 #endif
     SPA::CStreamHeader sh;
     sh.RequestId = 10240;
@@ -183,31 +183,31 @@ void TestReplication() {
     sh.RequestId = 500;
     sh.Size = sizeof (res);
 #if defined(__ANDROID__) || defined(ANDROID)
-	MQ_FILE::CMqFileEx qFile0("/data/data/com.android_native_test/files/q0", 30 * 24 * 3600, SPA::oSystemMemoryCached, L"socketPro", L"MyPassword", nullptr);
-	MQ_FILE::CMqFileEx qFile1("/data/data/com.android_native_test/files/q1", 30 * 24 * 3600, SPA::oSystemMemoryCached, L"socketPro", L"MyPassword", nullptr);
-	MQ_FILE::CMqFileEx qFile2("/data/data/com.android_native_test/files/q2", 30 * 24 * 3600, SPA::oSystemMemoryCached, L"socketPro", L"MyPassword", nullptr);
+	MQ_FILE::CMqFileEx qFile0("/data/data/com.android_native_test/files/q0", 30 * 24 * 3600, SPA::tagOptimistic::oSystemMemoryCached, L"socketPro", L"MyPassword", nullptr);
+	MQ_FILE::CMqFileEx qFile1("/data/data/com.android_native_test/files/q1", 30 * 24 * 3600, SPA::tagOptimistic::oSystemMemoryCached, L"socketPro", L"MyPassword", nullptr);
+	MQ_FILE::CMqFileEx qFile2("/data/data/com.android_native_test/files/q2", 30 * 24 * 3600, SPA::tagOptimistic::oSystemMemoryCached, L"socketPro", L"MyPassword", nullptr);
 
 	MQ_FILE::CMqFileEx::PMqFile mqFiles[3] = { &qFile0, &qFile1, &qFile2 };
 
 	MQ_FILE::CMqFileEx qSrc("/data/data/com.android_native_test/files/qsrc", 30 * 24 * 3600, SPA::oSystemMemoryCached, L"socketPro", L"MyPassword", nullptr);
 
 #else
-    MQ_FILE::CMqFileEx qFile0("q0", 30 * 24 * 3600, SPA::oSystemMemoryCached, L"socketPro", L"MyPassword", nullptr);
-    MQ_FILE::CMqFileEx qFile1("q1", 30 * 24 * 3600, SPA::oSystemMemoryCached, L"socketPro", L"MyPassword", nullptr);
-    MQ_FILE::CMqFileEx qFile2("q2", 30 * 24 * 3600, SPA::oSystemMemoryCached, L"socketPro", L"MyPassword", nullptr);
+    MQ_FILE::CMqFileEx qFile0("q0", 30 * 24 * 3600, SPA::tagOptimistic::oSystemMemoryCached, L"socketPro", L"MyPassword", nullptr);
+    MQ_FILE::CMqFileEx qFile1("q1", 30 * 24 * 3600, SPA::tagOptimistic::oSystemMemoryCached, L"socketPro", L"MyPassword", nullptr);
+    MQ_FILE::CMqFileEx qFile2("q2", 30 * 24 * 3600, SPA::tagOptimistic::oSystemMemoryCached, L"socketPro", L"MyPassword", nullptr);
 
     MQ_FILE::CMqFileEx::PMqFile mqFiles[3] = {&qFile0, &qFile1, &qFile2};
 
-    MQ_FILE::CMqFileEx qSrc("qsrc", 30 * 24 * 3600, SPA::oSystemMemoryCached, L"socketPro", L"MyPassword", nullptr);
+    MQ_FILE::CMqFileEx qSrc("qsrc", 30 * 24 * 3600, SPA::tagOptimistic::oSystemMemoryCached, L"socketPro", L"MyPassword", nullptr);
 #endif
 
-    if (qSrc.GetQueueOpenStatus() == SPA::qsMergePushing) {
+    if (qSrc.GetQueueOpenStatus() == SPA::tagQueueStatus::qsMergePushing) {
         std::vector<MQ_FILE::CMqFile::PMqFile> vQs;
-        if (qFile0.GetQueueOpenStatus() != SPA::qsMergeComplete)
+        if (qFile0.GetQueueOpenStatus() != SPA::tagQueueStatus::qsMergeComplete)
             vQs.push_back(&qFile0);
-        if (qFile1.GetQueueOpenStatus() != SPA::qsMergeComplete)
+        if (qFile1.GetQueueOpenStatus() != SPA::tagQueueStatus::qsMergeComplete)
             vQs.push_back(&qFile1);
-        if (qFile2.GetQueueOpenStatus() != SPA::qsMergeComplete)
+        if (qFile2.GetQueueOpenStatus() != SPA::tagQueueStatus::qsMergeComplete)
             vQs.push_back(&qFile2);
 
         if (vQs.size()) {
@@ -277,7 +277,7 @@ int DeqThreadProc() {
     pos = g_mqFile->Dequeue(q, mqIndex, waitTime);
     while (pos != INVALID_NUMBER) {
         q >> sh;
-        if (sh.RequestId == SPA::idStartJob || sh.RequestId == SPA::idEndJob) {
+        if (sh.RequestId == (unsigned short)SPA::tagBaseRequestID::idStartJob || sh.RequestId == (unsigned short)SPA::tagBaseRequestID::idEndJob) {
             assert(q.GetSize() == 0);
             ok = g_mqFile->ConfirmDequeue(pos, mqIndex, false);
             pos = g_mqFile->Dequeue(q, mqIndex, waitTime);
@@ -315,7 +315,7 @@ int BatchDeqThreadProc() {
         MQ_FILE::QAttr *qattr = (MQ_FILE::QAttr *)qAttr->GetBuffer();
         for (std::vector<unsigned int>::iterator it = vSize.begin(), end = vSize.end(); it != end; ++it) {
             qRequests >> sh;
-            if (sh.RequestId == SPA::idStartJob || sh.RequestId == SPA::idEndJob) {
+            if (sh.RequestId == (unsigned short)SPA::tagBaseRequestID::idStartJob || sh.RequestId == (unsigned short)SPA::tagBaseRequestID::idEndJob) {
                 ok = g_mqFile->ConfirmDequeue(qattr->MessagePos, qattr->MessageIndex, false);
                 ++qattr;
                 continue;
@@ -356,7 +356,7 @@ int MaxDeqThreadProc() {
         for (std::vector<unsigned int>::iterator it = vSize.begin(), end = vSize.end(); it != end; ++it) {
             qRequests >> sh;
             assert(qattr->MessageIndex < MQ_FILE::QAttr::RANGE_DEQUEUED_END);
-            if (sh.RequestId == SPA::idStartJob || sh.RequestId == SPA::idEndJob) {
+            if (sh.RequestId == (unsigned short)SPA::tagBaseRequestID::idStartJob || sh.RequestId == (unsigned short)SPA::tagBaseRequestID::idEndJob) {
                 ok = g_mqFile->ConfirmDequeue(qattr->MessagePos, qattr->MessageIndex, false);
                 ++qattr;
                 continue;
@@ -386,7 +386,7 @@ void TestRegistration() {
     char secret[10] = {'1', '2', '3', '4', '5', 0};
     SPA::ServerSide::URegistration reg;
 #ifndef WINCE
-    std::string s = SPA::ServerSide::CreateKey("c:\\userver", true, secret, SPA::osWin);
+    std::string s = SPA::ServerSide::CreateKey("c:\\userver", true, secret, SPA::tagOperationSystem::osWin);
     std::ofstream outfile("key.txt");
     if (outfile) {
         outfile << s;
@@ -437,14 +437,14 @@ void TestZip() {
 
     unsigned int destSize = su->GetMaxSize();
 
-    bool ok = SPA::Compress(SPA::zlDefault, sample_str, (unsigned int) ::strlen(sample_str), (void*) su->GetBuffer(), destSize);
+    bool ok = SPA::Compress(SPA::tagZipLevel::zlDefault, sample_str, (unsigned int) ::strlen(sample_str), (void*) su->GetBuffer(), destSize);
 
     su->SetSize(destSize);
     su->SetNull();
 
     destSize = out->GetMaxSize();
 
-    ok = SPA::Decompress(SPA::zlDefault, su->GetBuffer(), su->GetSize(), (void*) out->GetBuffer(), destSize);
+    ok = SPA::Decompress(SPA::tagZipLevel::zlDefault, su->GetBuffer(), su->GetSize(), (void*) out->GetBuffer(), destSize);
 
     out->SetSize(destSize);
     out->SetNull();
@@ -463,7 +463,7 @@ void TestEnqueue() {
 	MQ_FILE::CMqFile mqFile("/data/data/com.android_native_test/files/test_enq", 30 * 24 * 3600, SPA::oMemoryCached, false);
 #else
 	static const unsigned int TEST_CYCLES = 4 * 1024 * 1024;
-    MQ_FILE::CMqFile mqFile("test_enq", 30 * 24 * 3600, SPA::oMemoryCached, false);
+    MQ_FILE::CMqFile mqFile("test_enq", 30 * 24 * 3600, SPA::tagOptimistic::oMemoryCached, false);
 #endif
     SPA::CStreamHeader sh;
     for (n = 0; n < TEST_CYCLES; ++n) {
@@ -486,7 +486,7 @@ void TestEnqueue3() {
 #if defined(__ANDROID__) || defined(ANDROID)
 	MQ_FILE::CMqFile mqFile("/data/data/com.android_native_test/files/test_enq3", 30 * 24 * 3600, SPA::oDiskCommitted, false);
 #else
-    MQ_FILE::CMqFile mqFile("test_enq3", 30 * 24 * 3600, SPA::oDiskCommitted, false);
+    MQ_FILE::CMqFile mqFile("test_enq3", 30 * 24 * 3600, SPA::tagOptimistic::oDiskCommitted, false);
 #endif
     SPA::CStreamHeader sh;
     for (n = 0; n < TEST_CYCLES; ++n) {
@@ -505,7 +505,7 @@ void TestEnqueue2() {
 #if defined(__ANDROID__) || defined(ANDROID)
 	MQ_FILE::CMqFile mqFile("/data/data/com.android_native_test/files/test_enq2", 30 * 24 * 3600, SPA::oSystemMemoryCached, false);
 #else
-    MQ_FILE::CMqFile mqFile("test_enq2", 30 * 24 * 3600, SPA::oSystemMemoryCached, false);
+    MQ_FILE::CMqFile mqFile("test_enq2", 30 * 24 * 3600, SPA::tagOptimistic::oSystemMemoryCached, false);
 #endif
     SPA::CStreamHeader sh;
     for (n = 0; n < BATCH_SIZE; ++n) {
@@ -524,7 +524,7 @@ MQ_FILE::CQueueInitialInfo TestQueue() {
 	MQ_FILE::CMqFile mqFile("/data/data/com.android_native_test/files/cyetest", 30 * 24 * 3600, SPA::oSystemMemoryCached, false);
 	//MQ_FILE::CMqFileEx mqFile("cyetest", 30 * 24 * 3600, SPA::oSystemMemoryCached, L"socketPro", L"MyPassword", nullptr);
 #else
-    MQ_FILE::CMqFile mqFile("cyetest", 30 * 24 * 3600, SPA::oSystemMemoryCached, false);
+    MQ_FILE::CMqFile mqFile("cyetest", 30 * 24 * 3600, SPA::tagOptimistic::oSystemMemoryCached, false);
     //MQ_FILE::CMqFileEx mqFile("cyetest", 30 * 24 * 3600, SPA::oSystemMemoryCached, L"socketPro", L"MyPassword", nullptr);
 #endif
     g_mqFile = &mqFile;
@@ -550,7 +550,7 @@ MQ_FILE::CQueueInitialInfo TestQueue() {
         index = mqFile.Enqueue(sh, (const unsigned char*) &index, sizeof (index));
     }
     index = mqFile.EndJob();
-    unsigned short ids[3] = {SPA::idStartJob, 1, SPA::idEndJob};
+    unsigned short ids[3] = {(unsigned short)SPA::tagBaseRequestID::idStartJob, 1, (unsigned short)SPA::tagBaseRequestID::idEndJob};
     count = mqFile.CancelQueuedRequests(ids, 3);
     count = mqFile.GetMessageCount();
 
