@@ -121,7 +121,11 @@ namespace SPA
         }
 
         bool CMysqlImpl::SetPublishDBEvent(CMysqlImpl & impl) {
+#ifdef WIN32_64
+            CDBString wsql = u"CREATE FUNCTION PublishDBEvent RETURNS INTEGER SONAME 'smysql.dll'";
+#else
             CDBString wsql = u"CREATE FUNCTION PublishDBEvent RETURNS INTEGER SONAME 'libsmysql.so'";
+#endif
             int res = 0;
             INT64 affected;
             SPA::UDB::CDBVariant vtId;
@@ -143,7 +147,7 @@ namespace SPA
                 auto pos = it->find_last_of('.');
                 std::string schema = it->substr(0, pos);
                 std::string table = it->substr(pos + 1);
-                if (!impl.CreateTriggers(schema, table)) return false;
+                impl.CreateTriggers(schema, table);
             }
             return true;
         }
@@ -232,7 +236,7 @@ namespace SPA
                     bUpdate = true;
             }
             if (bInsert && bDelete && bUpdate)
-                return false;
+                return true; //all created already
             CDBString sql = u"SELECT COLUMN_NAME,COLUMN_KEY FROM information_schema.COLUMNS WHERE TABLE_SCHEMA='";
             sql += (wSchema + u"' AND TABLE_NAME='");
             sql += (wTable + u"' ORDER BY TABLE_NAME,ORDINAL_POSITION");
@@ -240,7 +244,7 @@ namespace SPA
             Execute(sql, true, true, false, 0, affected, res, errMsg, vtId, fail_ok);
             m_pNoSending = nullptr;
             if (res) {
-                CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Querying the table %s.%s failed for creating triggers(errCode=%d; errMsg=%s)", schema.c_str(), table.c_str(), res, Utilities::ToUTF8(errMsg).c_str());
+                CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Querying the table %s.%s key information failed for creating triggers(errCode=%d; errMsg=%s)", schema.c_str(), table.c_str(), res, Utilities::ToUTF8(errMsg).c_str());
                 return false;
             }
             if (!q.GetSize()) {
@@ -266,7 +270,6 @@ namespace SPA
                 Execute(sql, false, false, false, 0, affected, res, errMsg, vtId, fail_ok);
                 if (res) {
                     CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Unable to create insert trigger for the table %s.%s(errCode=%d; errMsg=%s)", schema.c_str(), table.c_str(), res, Utilities::ToUTF8(errMsg).c_str());
-                    return false;
                 }
             }
             if (!bDelete) {
@@ -274,7 +277,6 @@ namespace SPA
                 Execute(sql, false, false, false, 0, affected, res, errMsg, vtId, fail_ok);
                 if (res) {
                     CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Unable to create delete trigger for the table %s.%s(errCode=%d; errMsg=%s)", schema.c_str(), table.c_str(), res, Utilities::ToUTF8(errMsg).c_str());
-                    return false;
                 }
             }
             if (!bUpdate) {
@@ -282,7 +284,6 @@ namespace SPA
                 Execute(sql, false, false, false, 0, affected, res, errMsg, vtId, fail_ok);
                 if (res) {
                     CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Unable to create update trigger for the table %s.%s(errCode=%d; errMsg=%s)", schema.c_str(), table.c_str(), res, Utilities::ToUTF8(errMsg).c_str());
-                    return false;
                 }
             }
             return true;
@@ -360,8 +361,8 @@ namespace SPA
 #endif
 
         CMysqlImpl::CMysqlImpl() : m_oks(0), m_fails(0), m_ti(tagTransactionIsolation::tiUnspecified),
-        m_global(true), m_Blob(*m_sb), m_parameters(0),
-        m_bCall(false), m_bManual(false), m_EnableMessages(false), m_pNoSending(nullptr) {
+        m_global(true), m_Blob(*m_sb), m_parameters(0), m_bCall(false), m_bManual(false), m_EnableMessages(false),
+        m_pNoSending(nullptr), m_bPSelect(false) {
             m_Blob.ToUtf8(true);
 #ifdef WIN32_64
             m_UQueue.TimeEx(true); //use high-precision datetime
@@ -599,6 +600,10 @@ namespace SPA
         }
 
         void CMysqlImpl::CleanDBObjects() {
+            m_bPSelect = false;
+            m_vSCol.clear();
+            m_sFields.reset();
+            m_sBinds.reset();
             m_pPrepare.reset();
             m_pMysql.reset();
             m_vParam.clear();
@@ -798,36 +803,37 @@ namespace SPA
                 CDBColumnInfo &info = vCols[n];
                 MYSQL_FIELD &f = field[n];
                 if (meta) {
+                    //mariadb: wrong f.xxx_length value! use strlen instead.
                     if (f.name) {
-                        info.DisplayName.assign(f.name, f.name + f.name_length);
+                        info.DisplayName.assign(f.name, f.name + ::strlen(f.name));
                     } else {
                         info.DisplayName.clear();
                     }
                     if (f.org_name) {
-                        info.OriginalName.assign(f.org_name, f.org_name + f.org_name_length);
+                        info.OriginalName.assign(f.org_name, f.org_name + ::strlen(f.org_name));
                     } else {
                         info.OriginalName = info.DisplayName;
                     }
 
                     if (f.table) {
-                        info.TablePath.assign(f.table, f.table + f.table_length);
+                        info.TablePath.assign(f.table, f.table + ::strlen(f.table));
                     } else if (f.org_table) {
-                        info.TablePath.assign(f.org_table, f.org_table + f.org_table_length);
+                        info.TablePath.assign(f.org_table, f.org_table + ::strlen(f.org_table));
                     } else {
                         info.TablePath.clear();
                     }
                     if (f.db) {
-                        info.DBPath.assign(f.db, f.db + f.db_length);
+                        info.DBPath.assign(f.db, f.db + ::strlen(f.db));
                     } else {
                         info.DBPath.clear();
                     }
 
                     if (f.org_table && (f.org_table != f.table)) {
-                        info.Collation.assign(f.org_table, f.org_table + f.org_table_length);
+                        info.Collation.assign(f.org_table, f.org_table + ::strlen(f.org_table));
                     } else if (f.catalog) {
-                        info.Collation.assign(f.catalog, f.catalog + f.catalog_length);
+                        info.Collation.assign(f.catalog, f.catalog + ::strlen(f.catalog));
                     } else if (f.def) {
-                        info.Collation.assign(f.def, f.def + f.def_length);
+                        info.Collation.assign(f.def, f.def + ::strlen(f.def));
                     } else {
                         info.Collation.clear();
                     }
@@ -1529,6 +1535,10 @@ namespace SPA
                 errMsg = NO_DB_OPENED_YET;
                 return;
             }
+            m_vSCol.clear();
+            m_sFields.reset();
+            m_sBinds.reset();
+            m_bPSelect = false;
             m_pPrepare.reset();
             m_vParam.clear();
             m_parameters = 0;
@@ -1550,6 +1560,10 @@ namespace SPA
                     }
                 });
                 parameters = (unsigned int) m_parameters;
+                if (!m_bCall) {
+                    unsigned int cols = m_remMysql.mysql_stmt_field_count(m_pPrepare.get());
+                    m_bPSelect = (cols > 0);
+                }
             }
         }
 
@@ -2208,7 +2222,6 @@ namespace SPA
                 fail_ok <<= 32;
                 return;
             }
-            std::shared_ptr<MYSQL_RES> metadata;
             res = 0;
             CScopeUQueue sb;
             UINT64 fails = m_fails;
@@ -2241,44 +2254,49 @@ namespace SPA
                 if (affected_rows != (my_ulonglong) (~0) && affected_rows) {
                     affected += affected_rows;
                 }
-
                 unsigned int cols = m_remMysql.mysql_stmt_field_count(m_pPrepare.get());
                 bool output = (m_pMysql.get()->server_status & SERVER_PS_OUT_PARAMS) ? true : false;
-                if (cols) {
-                    metadata.reset(m_remMysql.mysql_stmt_result_metadata(m_pPrepare.get()), [](MYSQL_RES* r) {
-                        if (r) {
+                while (cols) {
+                    if (m_bPSelect) {
+                        if (!m_vSCol.size()) {
+                            auto r = m_remMysql.mysql_stmt_result_metadata(m_pPrepare.get());
+                            m_vSCol = GetColInfo(r, cols, (meta || m_bCall));
                             m_remMysql.mysql_free_result(r);
                         }
-                    });
-                }
-#ifndef NDEBUG
-                if (cols) {
-                    assert(metadata);
-                }
-#endif
-                while (cols) {
-                    CDBColumnInfoArray vInfo = GetColInfo(metadata.get(), cols, (meta || m_bCall));
-                    metadata.reset();
+                    } else {
+                        auto r = m_remMysql.mysql_stmt_result_metadata(m_pPrepare.get());
+                        m_vSCol = GetColInfo(r, cols, (meta || m_bCall));
+                        m_remMysql.mysql_free_result(r);
+                    }
                     if (!output) {
                         //Mysql + Mariadb server_status & SERVER_PS_OUT_PARAMS does NOT work correctly for an unknown reason
                         //This is a hack solution for detecting output result, which may be wrong if a table name is EXACTLY the same as stored procedure name
-                        output = (m_bCall && (vInfo[0].TablePath == Utilities::ToUTF16(m_procName)));
+                        output = (m_bCall && (m_vSCol[0].TablePath == Utilities::ToUTF16(m_procName)));
                     }
                     //we push stored procedure output parameter meta data onto client to follow common approach for output parameter data
                     if (output || rowset || meta) {
                         unsigned int outputs = 0;
                         if (output) {
-                            outputs = (unsigned int) vInfo.size();
+                            outputs = (unsigned int) m_vSCol.size();
                         }
-                        unsigned int sent = SendResult(idRowsetHeader, vInfo, index, outputs);
+                        unsigned int sent = SendResult(idRowsetHeader, m_vSCol, index, outputs);
                         header_sent = true;
                         if (sent == REQUEST_CANCELED || sent == SOCKET_NOT_FOUND) {
-                            m_remMysql.mysql_stmt_free_result(m_pPrepare.get());
+                            m_pPrepare.reset();
                             return;
                         }
                     }
                     std::shared_ptr<MYSQL_BIND_RESULT_FIELD> fields;
-                    std::shared_ptr<MYSQL_BIND> pBinds = PrepareBindResultBuffer(vInfo, my_res, err, fields);
+                    std::shared_ptr<MYSQL_BIND> pBinds;
+                    if (m_bPSelect) {
+                        if (!m_sFields) {
+                            m_sBinds = PrepareBindResultBuffer(m_vSCol, my_res, err, m_sFields);
+                        }
+                        fields = m_sFields;
+                        pBinds = m_sBinds;
+                    } else {
+                        pBinds = PrepareBindResultBuffer(m_vSCol, my_res, err, fields);
+                    }
                     if (my_res) {
                         if (!res) {
                             res = my_res;
@@ -2289,11 +2307,10 @@ namespace SPA
                     MYSQL_BIND *mybind = pBinds.get();
                     MYSQL_BIND_RESULT_FIELD *myfield = fields.get();
                     if (pBinds && (output || rowset)) {
-                        if (!PushRecords(index, mybind, myfield, vInfo, rowset, output, my_res, err)) {
-                            my_res = m_remMysql.mysql_stmt_free_result(m_pPrepare.get());
+                        if (!PushRecords(index, mybind, myfield, m_vSCol, rowset, output, my_res, err)) {
+                            m_pPrepare.reset();
                             return;
-                        }
-                        else if (my_res) {
+                        } else if (my_res) {
                             if (!res) {
                                 res = my_res;
                                 errMsg = err;
@@ -2302,7 +2319,7 @@ namespace SPA
                     }
                     fields.reset();
                     pBinds.reset();
-                    my_res = m_remMysql.mysql_stmt_free_result(m_pPrepare.get());
+                    m_remMysql.mysql_stmt_free_result(m_pPrepare.get());
                     my_res = m_remMysql.mysql_stmt_next_result(m_pPrepare.get());
                     if (my_res == 0) {
                         //continue for the next set
@@ -2323,13 +2340,6 @@ namespace SPA
                     }
                     cols = m_remMysql.mysql_stmt_field_count(m_pPrepare.get());
                     output = (m_pMysql.get()->server_status & SERVER_PS_OUT_PARAMS) ? true : false;
-                    if (cols) {
-                        metadata.reset(m_remMysql.mysql_stmt_result_metadata(m_pPrepare.get()), [](MYSQL_RES* r) {
-                            if (r) {
-                                m_remMysql.mysql_free_result(r);
-                            }
-                        });
-                    }
                 }
                 if (my_res)
                     ++m_fails;

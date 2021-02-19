@@ -7,15 +7,20 @@
 namespace SPA {
     namespace ClientSide {
 
-        template<unsigned int serviceId>
-        class CBaseOdbc : public CAsyncDBHandler<serviceId> {
+        typedef CAsyncDBHandler<SPA::Odbc::sidOdbc> COdbcBase;
+
+        class CBaseOdbc : public COdbcBase {
             CBaseOdbc(const CBaseOdbc& ao) = delete;
             CBaseOdbc& operator=(const CBaseOdbc& ao) = delete;
 
+        protected:
+
+            CBaseOdbc(unsigned int svsId, CClientSocket *cs) : COdbcBase(svsId, cs) {
+            }
+
         public:
 
-            CBaseOdbc(CClientSocket *cs) : CAsyncDBHandler(cs) {
-
+            CBaseOdbc(CClientSocket *cs) : COdbcBase(SPA::Odbc::sidOdbc, cs) {
             }
 
         public:

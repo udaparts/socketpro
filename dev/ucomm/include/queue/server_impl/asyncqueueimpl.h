@@ -5,7 +5,11 @@
 #include "../../aserverw.h"
 #include <unordered_map>
 #include "../../scloader.h"
-#include<memory>
+#include <memory>
+#include <atomic>
+
+static const unsigned int DEFAULT_DEQUEUE_BATCH_SIZE = 16384;
+static const unsigned int MIN_DEQUEUE_BATCH_SIZE = 2048;
 
 namespace SPA {
     namespace ServerSide {
@@ -13,8 +17,8 @@ namespace SPA {
         class CAsyncQueueImpl : public CClientPeer {
         public:
             //The following two static members are set within the method bool WINAPI InitServerLibrary(int param)
-            static unsigned int m_nBatchSize;
-            static unsigned char m_bNoAuto;
+            static std::atomic<unsigned int> m_nBatchSize;
+            static std::atomic<unsigned char> m_bNoAuto;
 
             CAsyncQueueImpl();
 
@@ -142,9 +146,9 @@ namespace SPA {
 
         private:
             //no copy constructor
-            CAsyncQueueImpl(const CAsyncQueueImpl &aq);
+            CAsyncQueueImpl(const CAsyncQueueImpl &aq) = delete;
             //no assignment operator
-            CAsyncQueueImpl& operator=(const CAsyncQueueImpl &aq);
+            CAsyncQueueImpl& operator=(const CAsyncQueueImpl &aq) = delete;
 
             void NotifyBatchSize(unsigned int &batchSize);
             void Flush(std::string &key, int option, UINT64 &messageCount, UINT64 &fileSize);
