@@ -158,6 +158,19 @@ public class CSqlPlugin : CSocketProServer
             m_Config.services = str;
             changed = true;
         }
+        List<string> unused = new List<string>();
+        foreach (var entry in m_Config.services_config)
+        {
+            if (!vP.Contains(entry.Key))
+            {
+                unused.Add(entry.Key);
+            }
+        }
+        foreach (string key in unused)
+        {
+            m_Config.services_config.Remove(key);
+            changed = true;
+        }
         if (changed)
         {
             UConfig.UpdateConfigFile(m_Config);
