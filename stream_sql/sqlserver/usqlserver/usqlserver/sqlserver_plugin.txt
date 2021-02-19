@@ -1,11 +1,8 @@
 
-Create database sp_streaming_db
+use sakila
 GO
 
-EXEC sp_changedbowner 'sa' ALTER DATABASE sp_streaming_db SET TRUSTWORTHY ON
-GO
-
-USE sp_streaming_db
+EXEC sp_changedbowner 'sa' ALTER DATABASE sakila SET TRUSTWORTHY ON
 GO
 
 sp_configure 'clr enabled', 1
@@ -14,13 +11,12 @@ GO
 RECONFIGURE
 GO
 
--- Load usqlserver.dll into SQL server
+-- Load usqlserver.dll into SQL server sakila database
 CREATE ASSEMBLY usqlserver
 AUTHORIZATION [dbo]
 FROM 'C:\my_directory\usqlserver.dll' -- make sure the path to usqlserver.dll is correct!
 WITH PERMISSION_SET = UNSAFE
 GO
-
 
 CREATE PROCEDURE StartSPServer(@res int output)As EXTERNAL NAME usqlserver.USqlStream.StartSPServer
 GO
@@ -28,16 +24,16 @@ GO
 CREATE PROCEDURE StopSPServer(@res int output)As EXTERNAL NAME usqlserver.USqlStream.StopSPServer
 GO	
 
-CREATE TRIGGER tr_config ON config AFTER INSERT,DELETE,UPDATE AS EXTERNAL NAME usqlserver.USqlStream.PublishDMLEvent
+CREATE TRIGGER tr_actor ON actor AFTER INSERT,DELETE,UPDATE AS EXTERNAL NAME usqlserver.USqlStream.PublishDMLEvent
 GO
 
 DECLARE @res int
-EXEC sp_streaming_db.dbo.StartSPServer @res OUTPUT -- assuming the procedure created within sp_streaming_db
+EXEC sakila.dbo.StartSPServer @res OUTPUT
 print @res
 GO
 
 DECLARE @res int
-EXEC sp_streaming_db.dbo.StopSPServer @res OUTPUT -- assuming the procedure created within sp_streaming_db
+EXEC sakila.dbo.StopSPServer @res OUTPUT
 print @res
 GO
 
@@ -47,7 +43,7 @@ FOR LOGON
 AS
 BEGIN
 	DECLARE @res int
-	EXEC sp_streaming_db.dbo.StartSPServer @res OUTPUT -- assuming the procedure created within sp_streaming_db
+	EXEC sakila.dbo.StartSPServer @res OUTPUT -- assuming the procedure created within sakila
 	if @res < 0
 		BEGIN
 			ROLLBACK;

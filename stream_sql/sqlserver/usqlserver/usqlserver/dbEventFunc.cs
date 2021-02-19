@@ -82,7 +82,7 @@ public static class USqlStream
                     }
                     catch (Exception ex)
                     {
-                        UConfig.LogMsg(ex.Message, "USqlStream::StartSPServer", 90); //line 90
+                        UConfig.LogMsg(ex.Message, "USqlStream::StartSPServer", 85); //line 85
                     }
                     finally { }
 
@@ -93,7 +93,7 @@ public static class USqlStream
                     }
                     catch(Exception ex)
                     {
-                        UConfig.LogMsg(ex.Message, "USqlStream::StartSPServer", 96); //line 96
+                        UConfig.LogMsg(ex.Message, "USqlStream::StartSPServer", 95); //line 95
                         config = new UConfig();
                         UConfig.UpdateConfigFile(config);
                         UConfig.UpdateLog();
@@ -122,7 +122,7 @@ public static class USqlStream
             }
             catch (Exception err)
             {
-                UConfig.LogMsg(err.Message, "USqlStream::StartSPServer", 116); //line 116
+                UConfig.LogMsg(err.Message, "USqlStream::StartSPServer", 125); //line 125
                 Plugin = null;
             }
             finally
@@ -467,7 +467,7 @@ public static class USqlStream
                 conn.Close();
                 if (errMsg.Length > 0)
                 {
-                    UConfig.LogMsg(errMsg, "USqkStream::PublishDMEvent", 455); //line 455
+                    UConfig.LogMsg(errMsg, "USqkStream::PublishDMEvent", 470); //line 470
                 }
             }
         }

@@ -28,18 +28,17 @@ public class CSqlPlugin : CSocketProServer
         IntPtr p = CSocketProServer.DllManager.AddALibrary("sodbc");
         if (p.ToInt64() == 0)
         {
-            UConfig.LogMsg("Cannot load SocketPro ODBC plugin!", "CSqlPlugin::Run", 202); //line 202
+            UConfig.LogMsg("Cannot load SocketPro ODBC plugin!", "CSqlPlugin::Run", 31); //line 31
             UConfig.UpdateLog();
             return false;
         }
         ConfigServices();
-        SetTriggers();
         PushManager.AddAChatGroup(SocketProAdapter.UDB.DB_CONSTS.STREAMING_SQL_CHAT_GROUP_ID, "Subscribe/publish for MS SQL SERVER Table events, DELETE, INSERT and UPDATE");
         bool ok = base.Run(port, maxBacklog, v6Supported);
         if (!ok)
         {
             string errMsg = string.Format("Starting listening socket failed (errCode={0}; errMsg={1})", CSocketProServer.LastSocketError, CSocketProServer.ErrorMessage);
-            UConfig.LogMsg(errMsg, "CSqlPlugin::Run", 212); //line 212
+            UConfig.LogMsg(errMsg, "CSqlPlugin::Run", 41); //line 41
             UConfig.UpdateLog();
         }
         return ok;
@@ -56,7 +55,7 @@ public class CSqlPlugin : CSocketProServer
         if (res <= 0)
         {
             string message = "Authentication failed for user " + userId + ", res: " + res;
-            UConfig.LogMsg(message, "CSqlPlugin::OnIsPermitted", 229); //line 229
+            UConfig.LogMsg(message, "CSqlPlugin::OnIsPermitted", 58); //line 58
         }
         return (res > 0);
     }
@@ -81,11 +80,15 @@ public class CSqlPlugin : CSocketProServer
                 {
                     break;
                 }
+                if (p_name.Equals("sodbc", StringComparison.OrdinalIgnoreCase) || p_name.Equals("sodbc.dll", StringComparison.OrdinalIgnoreCase))
+                {
+                    break; //cannot load odbc plugin again
+                }
                 IntPtr h = DllManager.AddALibrary(p_name);
                 if (h.ToInt64() == 0)
                 {
                     string message = "Not able to load server plugin " + p_name;
-                    UConfig.LogMsg(message, "CSqlPlugin::ConfigServices", 229); //line 229
+                    UConfig.LogMsg(message, "CSqlPlugin::ConfigServices", 91); //line 91
                     break;
                 }
                 vP.Add(p_name);
@@ -105,9 +108,9 @@ public class CSqlPlugin : CSocketProServer
                             Dictionary<string, object> v = jsonutf8.FromJson<Dictionary<string, object>>();
                             m_Config.services_config.Add(p_name, v);
                         }
-                        catch(Exception ex)
+                        catch (Exception ex)
                         {
-                            UConfig.LogMsg(ex.Message, "CSqlPlugin::ConfigServices", 229); //line 229
+                            UConfig.LogMsg(ex.Message, "CSqlPlugin::ConfigServices", 113); //line 113
                             m_Config.services_config.Add(p_name, new Dictionary<string, object>());
                         }
                     }
@@ -132,12 +135,12 @@ public class CSqlPlugin : CSocketProServer
                     DSetSPluginGlobalOptions func = (DSetSPluginGlobalOptions)Marshal.GetDelegateForFunctionPointer(fAddr, typeof(DSetSPluginGlobalOptions));
                     if (!func(jsonDic.ToJson()))
                     {
-                        UConfig.LogMsg("Not able to set global options for plugin " + p_name, "CSqlPlugin::ConfigServices", 229); //line 229
+                        UConfig.LogMsg("Not able to set global options for plugin " + p_name, "CSqlPlugin::ConfigServices", 138); //line 138
                     }
                 }
-                catch(Exception ex)
+                catch (Exception ex)
                 {
-                    UConfig.LogMsg(ex.Message, "CSqlPlugin::ConfigServices", 229); //line 229
+                    UConfig.LogMsg(ex.Message, "CSqlPlugin::ConfigServices", 143); //line 143
                 }
             } while (false);
         }
@@ -159,10 +162,5 @@ public class CSqlPlugin : CSocketProServer
         {
             UConfig.UpdateConfigFile(m_Config);
         }
-    }
-
-    private void SetTriggers()
-    {
-
     }
 }

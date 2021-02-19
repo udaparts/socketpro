@@ -11,13 +11,13 @@ public class UConfig
     public static readonly string STREAM_DB_CONFIG_FILE = "sp_streaming_db_config.json";
     public static readonly string STREAM_DB_LOG_FILE = "streaming_db.log";
     public static readonly string DEFAULT_WORKING_DIRECTORY = "C:\\ProgramData\\MSSQL\\";
+    public static readonly string DEFAULT_CA_ROOT = "root";
 
     public uint port = DEFAULT_PORT;
     public int main_threads = DEFAULT_MAIN_THREADS;
     public bool disable_ipv6 = false;
-    public string cert_root_store = "";
+    public string cert_root_store = DEFAULT_CA_ROOT;
     public string cert_subject_cn = "";
-    public string monitored_tables = "";
     public string services = "";
     public Dictionary<string, Dictionary<string, object>> services_config = new Dictionary<string, Dictionary<string, object>>(StringComparer.OrdinalIgnoreCase);
     public string odbc_driver = DEFAULT_DRIVER;
@@ -78,7 +78,7 @@ public class UConfig
         }
         catch (Exception ex)
         {
-            LogMsg(ex.Message, "UConfig::UConfig(string json)", 84); //line 84
+            LogMsg(ex.Message, "UConfig::UConfig(string json)", 84); //line 80
             changed = true;
         }
         finally
@@ -117,7 +117,7 @@ public class UConfig
         }
         catch (Exception ex)
         {
-            LogMsg(ex.Message, "UConfig::UpdateConfigFile", 124); //line 124
+            LogMsg(ex.Message, "UConfig::UpdateConfigFile", 119); //line 119
         }
     }
 
@@ -128,7 +128,6 @@ public class UConfig
         disable_ipv6 = config.disable_ipv6;
         cert_root_store = config.cert_root_store;
         cert_subject_cn = config.cert_subject_cn;
-        monitored_tables = config.monitored_tables;
         services = config.services;
         services_config = config.services_config;
         odbc_driver = config.odbc_driver;
