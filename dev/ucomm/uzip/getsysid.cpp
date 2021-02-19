@@ -64,6 +64,7 @@ namespace SPA {
         const std::string Other("Other");
         const std::string MachineID("MachineId");
         const std::string Key("Key");
+	    const std::string Services("Services");
 
         typedef rapidjson::PrettyWriter<CUQueue> UJsonPrettyWriter;
 
@@ -99,28 +100,29 @@ namespace SPA {
 
         std::string MakeString(const char *strAppName, unsigned char manyMachine, const char *secret, const URegistration &reg) {
             std::string s;
-            if (manyMachine)
-                s = boost::str(boost::format("%1%%2%%3%%4%%5%%6%%7%%8%%9%") % reg.CompanyName
-                    % reg.EndDate
-                    % reg.Endian
-                    % reg.JavaScript
-                    % reg.ManyClients
-                    % reg.MaxSpeed
-                    % reg.Other
-                    % reg.Routing
-                    % reg.RequestQueue);
-            else
-                s = boost::str(boost::format("%1%%2%%3%%4%%5%%6%%7%%8%%9%%10%") % reg.CompanyName
-                    % reg.EndDate
-                    % reg.Endian
-                    % reg.JavaScript
-                    % reg.ManyClients
-                    % reg.MaxSpeed
-                    % reg.Other
-                    % reg.Routing
-                    % reg.RequestQueue
-                    % reg.MachineID);
-
+			if (manyMachine) {
+				s = boost::str(boost::format("%1%%2%%3%%4%%5%%6%%7%%8%%9%") % reg.CompanyName
+					% reg.EndDate
+					% reg.Endian
+					% reg.JavaScript
+					% reg.ManyClients
+					% reg.MaxSpeed
+					% reg.Other
+					% reg.Routing
+					% reg.RequestQueue);
+			}
+			else {
+				s = boost::str(boost::format("%1%%2%%3%%4%%5%%6%%7%%8%%9%%10%") % reg.CompanyName
+					% reg.EndDate
+					% reg.Endian
+					% reg.JavaScript
+					% reg.ManyClients
+					% reg.MaxSpeed
+					% reg.Other
+					% reg.Routing
+					% reg.RequestQueue
+					% reg.MachineID);
+			}
             std::vector<std::string>::const_iterator it, end = reg.Platforms.end();
             for (it = reg.Platforms.begin(); it != end; ++it) {
                 s += *it;
@@ -129,6 +131,9 @@ namespace SPA {
             if (manyMachine <= 1) {
                 s += strAppName;
             }
+			for (auto sit = reg.Services.cbegin(), send = reg.Services.cend(); sit != send; ++sit) {
+				s += std::to_string(*sit);
+			}
             return s;
         }
 
@@ -137,8 +142,9 @@ namespace SPA {
             std::string name(appName);
 #ifdef WIN32_64
             pos = name.find_last_of('\\');
-            if (pos == std::string::npos)
-                pos = name.find_last_of('/');
+			if (pos == std::string::npos) {
+				pos = name.find_last_of('/');
+			}
 #else
             pos = name.find_last_of('/');
 #endif
@@ -212,6 +218,9 @@ namespace SPA {
             aOs.PushBack("android", docRes.GetAllocator());
             aOs.PushBack("wince", docRes.GetAllocator());
 
+			SPA::UJsonValue aServices;
+			aServices.SetArray();
+
             time(&t);
 #if defined(__ANDROID__) || defined(ANDROID) || defined(WINCE)
             tm *p = ::gmtime(&t);
@@ -230,6 +239,7 @@ namespace SPA {
             docRes.AddMember(CompanyName.c_str(), DefaultCompanyNameValue.c_str(), docRes.GetAllocator());
             docRes.AddMember(JavaScript.c_str(), 1, docRes.GetAllocator());
             docRes.AddMember(Platforms.c_str(), aOs, docRes.GetAllocator());
+			docRes.AddMember(Services.c_str(), aServices, docRes.GetAllocator());
             docRes.AddMember(RequestQueue.c_str(), 1, docRes.GetAllocator());
             docRes.AddMember(ManyClients.c_str(), MAX_CLIENTS, docRes.GetAllocator());
             docRes.AddMember(MaxSpeed.c_str(), MAX_REQ_SPEED, docRes.GetAllocator());
@@ -281,7 +291,15 @@ namespace SPA {
                     reg.Platforms.push_back(it->GetString());
                 }
             }
-
+			const SPA::UJsonValue &jServices = json[Services.c_str()];
+			if (jServices.IsArray()) {
+				SPA::UJsonValue::ConstValueIterator it, end = jServices.End();
+				for (it = jServices.Begin(); it != end; ++it) {
+					if (!it->IsUint())
+						continue;
+					reg.Services.push_back(it->GetUint());
+				}
+			}
             if (json[JavaScript.c_str()].IsUint())
                 reg.JavaScript = json[JavaScript.c_str()].GetUint() ? 1 : 0;
             else
@@ -344,6 +362,9 @@ namespace SPA {
             t = GetLastWriteTime(RegFileName.c_str());
             if (t > tEnd + 12 * 3600)
                 return false;
+			if (reg.Services.size()) {
+				//unsigned char 
+			}
             if (GetHashId(MakeString(RegFileName.c_str(), (unsigned char) 2, secret, reg), SPA::GetOS()) == reg.Key)
                 return true;
             if (GetHashId(MakeString(RegFileName.c_str(), (unsigned char) 1, secret, reg), SPA::GetOS()) == reg.Key)

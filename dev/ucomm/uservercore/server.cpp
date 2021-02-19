@@ -824,10 +824,18 @@ void CServer::StartIOPumpInternal() {
         CAutoLock al(m_mutex);
         g_bRegistered = SPA::ServerSide::IsRegisterred(secret, m_reg);
         m_reg.SetOSs();
-
         if (m_pAcceptor == nullptr) {
             return;
         }
+		if (g_bRegistered && m_reg.Services.size()) {
+			for (auto it = m_reg.Services.cbegin(), end = m_reg.Services.cend(); it != end; ++it) {
+				std::vector<CServiceContext*>::iterator sctx = SeekSC(*it);
+				if (sctx != m_vSC.end()) {
+					(*sctx)->m_bRegisterred = true;
+				}
+			}
+			g_bRegistered = false;
+		}
         m_tStart = GetTimeTick();
         StartTimer();
     }

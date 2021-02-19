@@ -37,6 +37,7 @@ namespace SPA {
             std::string Key;
             std::string EndDate;
             std::vector<std::string> Platforms;
+			std::vector<unsigned int> Services;
 
         private:
             URegistration(const URegistration &reg);
