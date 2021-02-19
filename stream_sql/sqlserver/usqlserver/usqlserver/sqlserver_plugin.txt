@@ -1,4 +1,4 @@
-
+-- use sakila as a sample database
 use sakila
 GO
 
@@ -14,7 +14,7 @@ GO
 -- Load usqlserver.dll into SQL server sakila database
 CREATE ASSEMBLY usqlserver
 AUTHORIZATION [dbo]
-FROM 'C:\my_directory\usqlserver.dll' -- make sure the path to usqlserver.dll is correct!
+FROM 'D:\mydev\socketpro\bin\dotnet\usqlserver.dll' -- make sure the path to usqlserver.dll is correct!
 WITH PERMISSION_SET = UNSAFE
 GO
 
@@ -28,12 +28,12 @@ CREATE TRIGGER tr_actor ON actor AFTER INSERT,DELETE,UPDATE AS EXTERNAL NAME usq
 GO
 
 DECLARE @res int
-EXEC sakila.dbo.StartSPServer @res OUTPUT
+EXEC StartSPServer @res OUTPUT
 print @res
 GO
 
 DECLARE @res int
-EXEC sakila.dbo.StopSPServer @res OUTPUT
+EXEC StopSPServer @res OUTPUT
 print @res
 GO
 
