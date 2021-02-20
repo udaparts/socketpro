@@ -11,6 +11,9 @@
 	(j) Use enum class to replace enum within C/C++ code for better type safety
 	(k) Add OnceOnly property to server peer for client message queue
 	(l) Nodejs adapter profiled and improved with better performance
+	(m) Server core lib improved to supports service-based license
+	(n) All DB server plugins use a json file for configuration
+	(O) All SocketPro server plugins export new four functions for version info, global configuration options and authentication
 
 86.	SocketPro Version 6.3.1.1
 	(a) Core libraries are added with a new feature Interrupt, which could be used to interrupt a looping processing at the other end
