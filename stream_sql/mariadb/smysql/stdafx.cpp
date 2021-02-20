@@ -144,5 +144,6 @@ long long SetSQLStreamingPlugin(UDF_INIT *initid, UDF_ARGS *args, char *is_null,
     }
     if (!CMysqlImpl::SetPublishDBEvent(impl))
         return 0;
+    CSetGlobals::Globals.SetConfig(); //update Config
     return (CMysqlImpl::CreateTriggers(impl, CSetGlobals::Globals.cached_tables) ? 1 : 0);
 }

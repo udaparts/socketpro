@@ -68,7 +68,6 @@ private:
     CSetGlobals();
     void LogEntry(const char* file, int fileLineNumber, const char* szBuf);
     static unsigned int GetVersion(const char *prog);
-    void SetConfig();
 
 public:
     const char *server_version;
@@ -78,7 +77,7 @@ public:
     std::vector<std::string> cached_tables;
     std::unordered_map<std::string, HINSTANCE> services;
     UConfig Config;
-
+    void SetConfig();
     static CSetGlobals Globals;
 
 public:

@@ -357,6 +357,7 @@ void CSetGlobals::SetConfig() {
                 SPA::Trim(Config.working_dir);
             }
 #endif
+            services.clear();
             if (doc.HasMember(STREAMING_DB_SERVICES) && doc[STREAMING_DB_SERVICES].IsString()) {
                 Config.services = doc[STREAMING_DB_SERVICES].GetString();
                 SPA::Trim(Config.services);
@@ -371,6 +372,7 @@ void CSetGlobals::SetConfig() {
                     }
                 }
             }
+            cached_tables.clear();
             if (doc.HasMember(STREAMING_DB_CACHE_TABLES) && doc[STREAMING_DB_CACHE_TABLES].IsString()) {
                 std::string tok;
                 Config.cached_tables = doc[STREAMING_DB_CACHE_TABLES].GetString();
