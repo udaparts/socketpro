@@ -1009,6 +1009,7 @@ void CServer::OnTimerSM(const CErrorCode& Error) {
 
 void CServer::OnTimer(const CErrorCode& Error) {
     SPA::INT64 ms;
+    if (m_bStopped) return;
     HandleThreadPoolInternal();
     SPA::UINT64 tNow = GetTimeTick();
     ms = (tNow - m_tStart);
@@ -1023,7 +1024,7 @@ void CServer::OnTimer(const CErrorCode& Error) {
     m_Timer.async_wait(boost::bind(&CServer::OnTimer, this, nsPlaceHolders::error));
     m_nRequestCountLast = m_nRequestCount;
     //CAutoLock sl(m_mutex); //dead lock within multi-main-threads environment
-    if (m_pOnIdle) {
+    if (m_pOnIdle && !m_bStopped) {
         m_pOnIdle(ms);
     }
 }
