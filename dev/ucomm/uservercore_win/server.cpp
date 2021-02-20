@@ -718,8 +718,6 @@ void CServer::StartIOPumpInternal() {
         (*it)(SPA::ServerSide::tagThreadEvent::teStarted);
     }
     {
-        m_reg.Platforms.clear();
-        m_reg.Services.clear();
         CAutoLock al(m_mutex);
         g_bRegistered = SPA::ServerSide::IsRegisterred(secret, m_reg);
         m_reg.SetOSs();
@@ -901,6 +899,7 @@ void CServer::OnTimerSM(const CErrorCode& Error) {
 
 void CServer::OnTimer(const CErrorCode& Error) {
     SPA::INT64 ms;
+    if (m_bStopped) return;
     HandleThreadPoolInternal();
     SPA::UINT64 tNow = GetTimeTick();
     ms = (tNow - m_tStart);
@@ -915,7 +914,7 @@ void CServer::OnTimer(const CErrorCode& Error) {
     m_Timer.async_wait(boost::bind(&CServer::OnTimer, this, nsPlaceHolders::error));
     m_nRequestCountLast = m_nRequestCount;
     //CAutoLock sl(m_mutex); //dead lock within multi-main-threads environment
-    if (m_pOnIdle) {
+    if (!m_bStopped && m_pOnIdle) {
         m_pOnIdle(ms);
     }
 }

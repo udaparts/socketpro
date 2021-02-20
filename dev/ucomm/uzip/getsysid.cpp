@@ -337,6 +337,8 @@ namespace SPA {
         }
 
         bool IsRegisterred(const char *secret, URegistration &reg) {
+            reg.Platforms.clear();
+            reg.Services.clear();
             std::string appName = GetAppName();
             std::string RegFileName = appName + "_sp.json";
             std::ifstream RegFile(RegFileName.c_str());
