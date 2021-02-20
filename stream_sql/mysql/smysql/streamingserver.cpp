@@ -191,9 +191,11 @@ void* CSetGlobals::ThreadProc(void *lpParameter) {
         g_pStreamingServer->UseSSL(CSetGlobals::Globals.Config.ssl_cert.c_str(), CSetGlobals::Globals.Config.ssl_key.c_str(), CSetGlobals::Globals.Config.ssl_key_password.c_str());
     }
 #endif
+#ifdef ENABLE_WORKING_DIRECTORY
     if (CSetGlobals::Globals.Config.working_dir.size()) {
         SPA::ServerSide::ServerCoreLoader.SetServerWorkDirectory(CSetGlobals::Globals.Config.working_dir.c_str());
     }
+#endif
     SPA::ServerSide::ServerCoreLoader.SetThreadEvent(SPA::ServerSide::CMysqlImpl::OnThreadEvent);
     bool ok = g_pStreamingServer->Run(CSetGlobals::Globals.Config.port, 32, !CSetGlobals::Globals.Config.disable_ipv6);
     impl.reset();
@@ -250,10 +252,12 @@ void CSetGlobals::SetConfig() {
                     Config.auth_account = DEAFULT_AUTH_ACCOUNT;
                 }
             }
+#ifdef ENABLE_WORKING_DIRECTORY
             if (doc.HasMember(STREAMING_DB_WORKING_DIR) && doc[STREAMING_DB_WORKING_DIR].IsString()) {
                 Config.working_dir = doc[STREAMING_DB_WORKING_DIR].GetString();
                 SPA::Trim(Config.working_dir);
             }
+#endif
             if (doc.HasMember(STREAMING_DB_SERVICES) && doc[STREAMING_DB_SERVICES].IsString()) {
                 Config.services = doc[STREAMING_DB_SERVICES].GetString();
                 SPA::Trim(Config.services);
@@ -338,17 +342,19 @@ void CSetGlobals::UpdateConfigFile() {
         cs.SetBool(Config.disable_ipv6);
         doc.AddMember(STREAMING_DB_NO_IPV6, cs, allocator);
     }
+    std::string s = SPA::Utilities::ToUTF8(Config.auth_account); //make sure s existing before calling doc.Accept(writer);
     {
         Value cs;
-        std::string s = SPA::Utilities::ToUTF8(Config.auth_account);
         cs.SetString(s.c_str(), (SizeType) s.size());
         doc.AddMember(STREAMING_DB_AUTH_ACCOUNT, cs, allocator);
     }
+#ifdef ENABLE_WORKING_DIRECTORY
     {
         Value cs;
         cs.SetString(Config.working_dir.c_str(), (SizeType) Config.working_dir.size());
         doc.AddMember(STREAMING_DB_WORKING_DIR, cs, allocator);
     }
+#endif
     {
         Value cs;
         cs.SetString(Config.services.c_str(), (SizeType) Config.services.size());
