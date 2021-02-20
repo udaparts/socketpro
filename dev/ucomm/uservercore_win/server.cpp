@@ -718,6 +718,8 @@ void CServer::StartIOPumpInternal() {
         (*it)(SPA::ServerSide::tagThreadEvent::teStarted);
     }
     {
+        m_reg.Platforms.clear();
+        m_reg.Services.clear();
         CAutoLock al(m_mutex);
         g_bRegistered = SPA::ServerSide::IsRegisterred(secret, m_reg);
         m_reg.SetOSs();
