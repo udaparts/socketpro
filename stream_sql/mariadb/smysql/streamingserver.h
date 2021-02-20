@@ -30,7 +30,9 @@ public:
 #endif
     std::string cached_tables;
     std::string services;
+#ifdef ENABLE_WORKING_DIRECTORY
     std::string working_dir;
+#endif
     Document doc;
 };
 

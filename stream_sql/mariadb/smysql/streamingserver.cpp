@@ -183,9 +183,11 @@ bool CSetGlobals::StartListening() {
         g_pStreamingServer->UseSSL(CSetGlobals::Globals.Config.ssl_cert.c_str(), CSetGlobals::Globals.Config.ssl_key.c_str(), CSetGlobals::Globals.Config.ssl_key_password.c_str());
     }
 #endif
+#ifdef ENABLE_WORKING_DIRECTORY
     if (CSetGlobals::Globals.Config.working_dir.size()) {
         ServerCoreLoader.SetServerWorkDirectory(CSetGlobals::Globals.Config.working_dir.c_str());
     }
+#endif
     ServerCoreLoader.SetThreadEvent(CMysqlImpl::OnThreadEvent);
     bool ok = g_pStreamingServer->Run(CSetGlobals::Globals.Config.port, 32, !CSetGlobals::Globals.Config.disable_ipv6);
     if (!ok) {
@@ -222,11 +224,13 @@ void CSetGlobals::UpdateConfigFile() {
         cs.SetBool(Config.disable_ipv6);
         doc.AddMember(STREAMING_DB_NO_IPV6, cs, allocator);
     }
+#ifdef ENABLE_WORKING_DIRECTORY
     {
         Value cs;
         cs.SetString(Config.working_dir.c_str(), (SizeType) Config.working_dir.size());
         doc.AddMember(STREAMING_DB_WORKING_DIR, cs, allocator);
     }
+#endif
     {
         Value cs;
         cs.SetString(Config.services.c_str(), (SizeType) Config.services.size());
@@ -347,10 +351,12 @@ void CSetGlobals::SetConfig() {
             if (doc.HasMember(STREAMING_DB_NO_IPV6) && doc[STREAMING_DB_NO_IPV6].IsBool()) {
                 Config.disable_ipv6 = doc[STREAMING_DB_NO_IPV6].GetBool();
             }
+#ifdef ENABLE_WORKING_DIRECTORY
             if (doc.HasMember(STREAMING_DB_WORKING_DIR) && doc[STREAMING_DB_WORKING_DIR].IsString()) {
                 Config.working_dir = doc[STREAMING_DB_WORKING_DIR].GetString();
                 SPA::Trim(Config.working_dir);
             }
+#endif
             if (doc.HasMember(STREAMING_DB_SERVICES) && doc[STREAMING_DB_SERVICES].IsString()) {
                 Config.services = doc[STREAMING_DB_SERVICES].GetString();
                 SPA::Trim(Config.services);
