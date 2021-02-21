@@ -469,7 +469,7 @@ void CStreamingServer::ConfigServices() {
     }
     if (!changed && CSetGlobals::Globals.services.size()) {
         auto obj = doc[STREAMING_DB_SERVICES_CONFIG].GetObject();
-        changed = (CSetGlobals::Globals.services.size() != (size_t)obj.MemberCount());
+        changed = (CSetGlobals::Globals.services.size() != (size_t) obj.MemberCount());
     }
     if (changed) {
         while (changed) {

@@ -38,7 +38,6 @@ OBJECTFILES= \
 	${OBJECTDIR}/_ext/932346631/aserverw.o \
 	${OBJECTDIR}/_ext/932346631/membuffer.o \
 	${OBJECTDIR}/_ext/1165644825/mysqlimpl.o \
-	${OBJECTDIR}/config.o \
 	${OBJECTDIR}/smysql.o \
 	${OBJECTDIR}/stdafx.o \
 	${OBJECTDIR}/streamingserver.o
@@ -82,11 +81,6 @@ ${OBJECTDIR}/_ext/1165644825/mysqlimpl.o: ../../../include/mysql/server_impl/mys
 	${MKDIR} -p ${OBJECTDIR}/_ext/1165644825
 	${RM} "$@.d"
 	$(COMPILE.c) -O3 -s -DMM_DB_SERVER_PLUGIN -DMYSQL_DYNAMIC_PLUGIN -DNDEBUG -DUSE_BOOST_LARGE_INTEGER_FOR_DECIMAL -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/1165644825/mysqlimpl.o ../../../include/mysql/server_impl/mysqlimpl.cpp
-
-${OBJECTDIR}/config.o: config.cpp 
-	${MKDIR} -p ${OBJECTDIR}
-	${RM} "$@.d"
-	$(COMPILE.c) -O3 -s -DMM_DB_SERVER_PLUGIN -DMYSQL_DYNAMIC_PLUGIN -DNDEBUG -DUSE_BOOST_LARGE_INTEGER_FOR_DECIMAL -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/config.o config.cpp
 
 ${OBJECTDIR}/smysql.o: smysql.cpp 
 	${MKDIR} -p ${OBJECTDIR}

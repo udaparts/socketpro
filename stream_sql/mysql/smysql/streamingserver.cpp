@@ -10,16 +10,16 @@
 #define STREAM_DB_CONFIG_FILE	            "sp_streaming_db_config.json"
 
 #define STREAMING_DB_AUTH_ACCOUNT           "authentication_account"
-#define STREAMING_DB_PORT		            "port"
-#define STREAMING_DB_MAIN_THREADS	        "main_threads"
-#define STREAMING_DB_NO_IPV6		        "disable_ipv6"
-#define STREAMING_DB_CACHE_TABLES	        "monitored_tables"
-#define STREAMING_DB_SERVICES		        "services"
+#define STREAMING_DB_PORT		    "port"
+#define STREAMING_DB_MAIN_THREADS	    "main_threads"
+#define STREAMING_DB_NO_IPV6		    "disable_ipv6"
+#define STREAMING_DB_CACHE_TABLES	    "monitored_tables"
+#define STREAMING_DB_SERVICES		    "services"
 #define STREAMING_DB_WORKING_DIR            "working_dir"
 #define STREAMING_DB_SERVICES_CONFIG        "services_config"
 
 #ifdef WIN32_64
-#define STREAMING_DB_STORE		            "cert_root_store"
+#define STREAMING_DB_STORE		    "cert_root_store"
 #define STREAMING_DB_SUBJECT_CN             "cert_subject_cn"
 #else
 #define STREAMING_DB_SSL_KEY                "ssl_key"
