@@ -335,8 +335,7 @@ void CSetGlobals::SetConfig() {
     SPA::Trim(json);
     if (json.size()) {
         Document& doc = Config.doc;
-        ParseResult ok = doc.Parse(json.c_str(), json.size());
-        if (!ok) {
+        if (doc.Parse(json.c_str(), json.size()).HasParseError()) {
             LogMsg(__FILE__, __LINE__, ("Bad JSON configuration file " + std::string(STREAM_DB_CONFIG_FILE) + " found").c_str());
         } else {
             if (doc.HasMember(STREAMING_DB_PORT) && doc[STREAMING_DB_PORT].IsUint()) {
