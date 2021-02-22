@@ -73,7 +73,6 @@ CSetGlobals::CSetGlobals() : m_fLog(nullptr), server_version(nullptr), m_hModule
         LogMsg(__FILE__, __LINE__, "m_hModule is nullptr");
     }
     UpdateLog();
-    SetConfig();
     if (server_version && strlen(server_version)) {
         version = GetVersion(server_version);
         if (!version) {
@@ -163,6 +162,7 @@ bool CSetGlobals::StartListening() {
 }
 
 void* CSetGlobals::ThreadProc(void *lpParameter) {
+    CSetGlobals::Globals.SetConfig();
     int fail = srv_session_init_thread(CSetGlobals::Globals.Plugin);
     assert(!fail);
     {

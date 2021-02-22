@@ -79,7 +79,6 @@ public:
     std::unordered_map<std::string, HINSTANCE> services;
     UConfig Config;
     my_thread_handle m_thread;
-
     static CSetGlobals Globals;
 
 public:
