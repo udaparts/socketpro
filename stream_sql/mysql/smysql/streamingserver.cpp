@@ -162,7 +162,9 @@ bool CSetGlobals::StartListening() {
 }
 
 void* CSetGlobals::ThreadProc(void *lpParameter) {
-    CSetGlobals::Globals.SetConfig();
+#ifdef WIN32_64
+    CSetGlobals::Globals.SetConfig(); //temporarily disable the call on linux
+#endif
     int fail = srv_session_init_thread(CSetGlobals::Globals.Plugin);
     assert(!fail);
     {
@@ -221,7 +223,7 @@ void CSetGlobals::SetConfig() {
     fseek(fp.get(), 0, SEEK_END);
     long size = ftell(fp.get()) + sizeof (wchar_t);
     fseek(fp.get(), 0, SEEK_SET);
-    SPA::CScopeUQueue sb(SPA::GetOS(), SPA::IsBigEndian(), (unsigned int) size + sizeof(wchar_t));
+    SPA::CScopeUQueue sb(SPA::GetOS(), SPA::IsBigEndian(), (unsigned int) size + sizeof (wchar_t));
     sb->CleanTrack();
     FileReadStream is(fp.get(), (char*) sb->GetBuffer(), sb->GetMaxSize());
     fp.reset();
