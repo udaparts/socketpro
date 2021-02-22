@@ -221,14 +221,15 @@ void CSetGlobals::SetConfig() {
     fseek(fp.get(), 0, SEEK_END);
     long size = ftell(fp.get()) + sizeof (wchar_t);
     fseek(fp.get(), 0, SEEK_SET);
-    SPA::CScopeUQueue sb(SPA::GetOS(), SPA::IsBigEndian(), (unsigned int) size);
+    SPA::CScopeUQueue sb(SPA::GetOS(), SPA::IsBigEndian(), (unsigned int) size + sizeof(wchar_t));
     sb->CleanTrack();
     FileReadStream is(fp.get(), (char*) sb->GetBuffer(), sb->GetMaxSize());
+    fp.reset();
     std::string json = (const char*) sb->GetBuffer();
     SPA::Trim(json);
     if (json.size()) {
         Document& doc = Config.doc;
-        ParseResult ok = doc.Parse(json.c_str(), json.size());
+        bool ok = doc.Parse(json.c_str(), json.size()).HasParseError();
         if (!ok) {
             LogMsg(__FILE__, __LINE__, ("Bad JSON configuration file " + std::string(STREAM_DB_CONFIG_FILE) + " found").c_str());
         } else {
@@ -309,7 +310,6 @@ void CSetGlobals::SetConfig() {
 #endif   
         }
     } else {
-        fp.reset();
         UpdateConfigFile();
     }
 }

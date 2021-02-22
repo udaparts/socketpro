@@ -13,7 +13,6 @@ class U_MODULE_HIDDEN UConfig {
 public:
 
     UConfig() : port(DEFAULT_LISTENING_PORT), main_threads(1), disable_ipv6(false), auth_account(DEAFULT_AUTH_ACCOUNT) {
-        doc.SetObject();
     }
     unsigned int port;
     int main_threads;

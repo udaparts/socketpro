@@ -327,9 +327,10 @@ void CSetGlobals::SetConfig() {
     fseek(fp.get(), 0, SEEK_END);
     long size = ftell(fp.get()) + sizeof (wchar_t);
     fseek(fp.get(), 0, SEEK_SET);
-    SPA::CScopeUQueue sb(SPA::GetOS(), SPA::IsBigEndian(), (unsigned int) size);
+    SPA::CScopeUQueue sb(SPA::GetOS(), SPA::IsBigEndian(), (unsigned int) size + sizeof(wchar_t));
     sb->CleanTrack();
     FileReadStream is(fp.get(), (char*) sb->GetBuffer(), sb->GetMaxSize());
+    fp.reset();
     std::string json = (const char*) sb->GetBuffer();
     SPA::Trim(json);
     if (json.size()) {
@@ -410,7 +411,6 @@ void CSetGlobals::SetConfig() {
 #endif   
         }
     } else {
-        fp.reset();
         UpdateConfigFile();
     }
 }
