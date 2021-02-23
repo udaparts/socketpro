@@ -2,7 +2,7 @@
 #define _SOCKETPRO_JSON_VALUE_H_
 
 #include "commutil.h"
-#include <unordered_map>
+#include <map>
 #include <vector>
 
 namespace SPA {
@@ -101,7 +101,7 @@ namespace SPA {
 
         class JValue;
 
-        typedef std::unordered_map<std::string, JValue> JObject;
+        typedef std::map<std::string, JValue> JObject;
         typedef std::vector<JValue> JArray;
 
         static JValue* Parse(const char* data);
@@ -210,7 +210,7 @@ namespace SPA {
             }
 
         public:
-            static const unsigned int DEFAULT_INDENT_CHARS = 4;
+            static const unsigned int DEFAULT_INDENT_CHARS = 2;
 
             inline enumType GetType() const {
                 return type;

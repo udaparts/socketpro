@@ -166,6 +166,7 @@
   <ItemGroup>
     <ClInclude Include="..\..\..\include\aserverw.h" />
     <ClInclude Include="..\..\..\include\commutil.h" />
+    <ClInclude Include="..\..\..\include\jsonvalue.h" />
     <ClInclude Include="..\..\..\include\membuffer.h" />
     <ClInclude Include="httppeer.h" />
     <ClInclude Include="mysqlimpl.h" />

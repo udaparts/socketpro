@@ -2,9 +2,9 @@
 #pragma once
 
 #include "mysqlimpl.h"
-#include "../../../include/3rdparty/rapidjson/include/rapidjson/document.h"
+#include "../../../include/jsonvalue.h"
 #include <unordered_map>
-using namespace rapidjson;
+using namespace SPA::JSON;
 
 #define DEAFULT_AUTH_ACCOUNT                u"root"
 #define DEFAULT_LISTENING_PORT              20902
@@ -32,7 +32,7 @@ public:
 #ifdef ENABLE_WORKING_DIRECTORY
     std::string working_dir;
 #endif
-    Document doc;
+    std::shared_ptr<JValue> doc;
 };
 
 class U_MODULE_HIDDEN CStreamingServer : public SPA::ServerSide::CSocketProServer {
