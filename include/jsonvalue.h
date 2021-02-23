@@ -104,6 +104,8 @@ namespace SPA {
         typedef std::unordered_map<std::string, JValue> JObject;
         typedef std::vector<JValue> JArray;
 
+        static JValue* Parse(const char* data);
+
         class JValue {
         public:
 
@@ -325,6 +327,11 @@ namespace SPA {
                 return std::move(keys);
             }
 
+            std::string Stringify(bool pretty = true, unsigned int indent_chars = DEFAULT_INDENT_CHARS) const {
+                unsigned int indent = 0;
+                return Stringify(indent, pretty, indent_chars);
+            }
+
             std::string Stringify(unsigned int& indent, bool pretty = true, unsigned int indent_chars = DEFAULT_INDENT_CHARS) const {
                 std::string ret_string;
                 switch (type) {
@@ -354,7 +361,10 @@ namespace SPA {
                     }
                     case enumType::Array:
                     {
-                        ret_string = "[\n";
+                        ret_string.push_back('[');
+                        if (pretty) {
+                            ret_string.push_back('\n');
+                        }
                         ++indent;
                         JArray::const_iterator iter = arrValue->begin();
                         while (iter != arrValue->end()) {
@@ -379,7 +389,10 @@ namespace SPA {
                     }
                     case enumType::Object:
                     {
-                        ret_string = "{\n";
+                        ret_string.push_back('{');
+                        if (pretty) {
+                            ret_string.push_back('\n');
+                        }
                         ++indent;
                         JObject::const_iterator iter = objValue->begin();
                         while (iter != objValue->end()) {
@@ -632,7 +645,7 @@ namespace SPA {
                         return nullptr;
                     }
                     if (*data != '.') {
-                        return new JValue(int64);
+                        return new JValue(neg ? -int64 : int64);
                     }
                     double number = int64;
                     if (*data == '.') {
@@ -657,10 +670,7 @@ namespace SPA {
                             number = neg_expo ? (number / 10) : (number * 10);
                         }
                     }
-                    if (neg) {
-                        number *= -1;
-                    }
-                    return new JValue(number);
+                    return new JValue(neg ? -number : number);
                 } else if (*data == '{') {
                     JObject object;
                     ++data;
