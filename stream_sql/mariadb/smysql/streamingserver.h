@@ -2,10 +2,10 @@
 
 #include "../../../include/mysql/include/plugin.h"
 #include "../../../include/mysql/server_impl/mysqlimpl.h"
-#include "../../../include/3rdparty/rapidjson/include/rapidjson/document.h"
+#include "../../../include/jsonvalue.h"
 #include <unordered_map>
 
-using namespace rapidjson;
+using namespace SPA::JSON;
 using namespace SPA::ServerSide;
 
 #define DEFAULT_LISTENING_PORT              20902
@@ -32,7 +32,7 @@ public:
 #ifdef ENABLE_WORKING_DIRECTORY
     std::string working_dir;
 #endif
-    Document doc;
+    std::shared_ptr<JValue> doc;
 };
 
 class U_MODULE_HIDDEN CStreamingServer : public CSocketProServer {

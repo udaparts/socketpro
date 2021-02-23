@@ -1,8 +1,5 @@
 #include "streamingserver.h"
 #include "../../../include/scloader.h"
-#include "../../../include/3rdparty/rapidjson/include/rapidjson/filereadstream.h"
-#include "../../../include/3rdparty/rapidjson/include/rapidjson/stringbuffer.h"
-#include "../../../include/3rdparty/rapidjson/include/rapidjson/prettywriter.h"
 #include "../../../include/pexports.h"
 #include "../../../include/membuffer.h"
 
@@ -197,7 +194,7 @@ bool CSetGlobals::StartListening() {
 }
 
 void CSetGlobals::UpdateConfigFile() {
-    std::shared_ptr<FILE> fp(fopen(STREAM_DB_CONFIG_FILE, "w"), [](FILE * f) {
+    std::shared_ptr<FILE> fp(fopen(STREAM_DB_CONFIG_FILE, "w"), [](FILE* f) {
         if (f) {
             ::fclose(f);
         }
@@ -206,76 +203,30 @@ void CSetGlobals::UpdateConfigFile() {
         LogMsg(__FILE__, __LINE__, ("Can not open DB streaming configuration file " + std::string(STREAM_DB_CONFIG_FILE) + " for write").c_str());
         return;
     }
-    Document doc;
-    doc.SetObject();
-    Document::AllocatorType& allocator = doc.GetAllocator();
-    {
-        Value cs;
-        cs.SetUint(Config.port);
-        doc.AddMember(STREAMING_DB_PORT, cs, allocator);
-    }
-    {
-        Value cs;
-        cs.SetInt(Config.main_threads);
-        doc.AddMember(STREAMING_DB_MAIN_THREADS, cs, allocator);
-    }
-    {
-        Value cs;
-        cs.SetBool(Config.disable_ipv6);
-        doc.AddMember(STREAMING_DB_NO_IPV6, cs, allocator);
-    }
+    JObject obj;
+    obj[STREAMING_DB_PORT] = Config.port;
+    obj[STREAMING_DB_MAIN_THREADS] = Config.main_threads;
+    obj[STREAMING_DB_NO_IPV6] = Config.disable_ipv6;
 #ifdef ENABLE_WORKING_DIRECTORY
-    {
-        Value cs;
-        cs.SetString(Config.working_dir.c_str(), (SizeType) Config.working_dir.size());
-        doc.AddMember(STREAMING_DB_WORKING_DIR, cs, allocator);
-    }
+    obj[STREAMING_DB_WORKING_DIR] = Config.working_dir;
 #endif
-    {
-        Value cs;
-        cs.SetString(Config.services.c_str(), (SizeType) Config.services.size());
-        doc.AddMember(STREAMING_DB_SERVICES, cs, allocator);
-    }
-    {
-        Value cs;
-        cs.SetString(Config.cached_tables.c_str(), (SizeType) Config.cached_tables.size());
-        doc.AddMember(STREAMING_DB_CACHE_TABLES, cs, allocator);
-    }
+    obj[STREAMING_DB_SERVICES] = Config.services;
+    obj[STREAMING_DB_CACHE_TABLES] = Config.cached_tables;
 #ifdef WIN32_64
-    {
-        Value cs;
-        cs.SetString(Config.store.c_str(), (SizeType) Config.store.size());
-        doc.AddMember(STREAMING_DB_STORE, cs, allocator);
-    }
-    {
-        Value cs;
-        cs.SetString(Config.subject_cn.c_str(), (SizeType) Config.subject_cn.size());
-        doc.AddMember(STREAMING_DB_SUBJECT_CN, cs, allocator);
-    }
+    obj[STREAMING_DB_STORE] = Config.store;
+    obj[STREAMING_DB_SUBJECT_CN] = Config.subject_cn;
 #else
-    {
-        Value cs;
-        cs.SetString(Config.ssl_key.c_str(), (SizeType) Config.ssl_key.size());
-        doc.AddMember(STREAMING_DB_SSL_KEY, cs, allocator);
-    }
-    {
-        Value cs;
-        cs.SetString(Config.ssl_cert.c_str(), (SizeType) Config.ssl_cert.size());
-        doc.AddMember(STREAMING_DB_SSL_CERT, cs, allocator);
-    }
-    {
-        Value cs;
-        cs.SetString(Config.ssl_key_password.c_str(), (SizeType) Config.ssl_key_password.size());
-        doc.AddMember(STREAMING_DB_SSL_PASSWORD, cs, allocator);
-    }
+    obj[STREAMING_DB_SSL_KEY] = Config.ssl_key;
+    obj[STREAMING_DB_SSL_CERT] = Config.ssl_cert;
+    obj[STREAMING_DB_SSL_PASSWORD] = Config.ssl_key_password;
 #endif
+    JValue jobj(std::move(obj));
     {
         SPA::CScopeUQueue sb;
         if (sb->GetMaxSize() < 16 * SPA::DEFAULT_INITIAL_MEMORY_BUFFER_SIZE) {
             sb->ReallocBuffer(16 * SPA::DEFAULT_INITIAL_MEMORY_BUFFER_SIZE);
         }
         sb->CleanTrack();
-        Value cs(kObjectType);
         for (auto it = services.cbegin(), end = services.cend(); it != end; ++it) {
             do {
                 if (!it->second) {
@@ -285,35 +236,24 @@ void CSetGlobals::UpdateConfigFile() {
                 if (!GetSPluginGlobalOptions) {
                     break;
                 }
-                unsigned int len = GetSPluginGlobalOptions((char*) sb->GetBuffer(), sb->GetMaxSize());
+                unsigned int len = GetSPluginGlobalOptions((char*)sb->GetBuffer(), sb->GetMaxSize());
                 sb->SetSize(len);
                 sb->SetNull();
-                Document d;
-                ParseResult ok = d.Parse((const char*) sb->GetBuffer(), sb->GetSize());
-                if (!ok) {
+                std::shared_ptr<JValue> jv(Parse((const char*)sb->GetBuffer()));
+                if (!jv || jv->GetType() != enumType::Object) {
                     LogMsg(__FILE__, __LINE__, ("Plugin " + it->first + " has a wrong JSON global options").c_str());
                     break;
                 }
-                Value vJson(kObjectType);
-                for (auto m = d.MemberBegin(), mend = d.MemberEnd(); m != mend; ++m) {
-                    std::string ks = m->name.GetString();
-                    Value k(ks.c_str(), (SizeType) ks.size(), allocator);
-                    vJson.AddMember(k, m->value, allocator);
-                }
-                Value key(it->first.c_str(), (SizeType) it->first.size(), allocator);
-                cs.AddMember(key, vJson, allocator);
+                obj[it->first] = std::move(*jv);
             } while (false);
         }
-        doc.AddMember(STREAMING_DB_SERVICES_CONFIG, cs, allocator);
     }
-    StringBuffer buffer;
-    PrettyWriter<StringBuffer> writer(buffer);
-    doc.Accept(writer);
-    fprintf(fp.get(), "%s", buffer.GetString());
+    jobj.AsObject()[STREAMING_DB_SERVICES_CONFIG] = std::move(obj);
+    fprintf(fp.get(), "%s", jobj.Stringify().c_str());
 }
 
 void CSetGlobals::SetConfig() {
-    std::shared_ptr<FILE> fp(fopen(STREAM_DB_CONFIG_FILE, "r"), [](FILE * f) {
+    std::shared_ptr<FILE> fp(fopen(STREAM_DB_CONFIG_FILE, "r"), [](FILE* f) {
         if (f) {
             ::fclose(f);
         }
@@ -325,41 +265,49 @@ void CSetGlobals::SetConfig() {
         return;
     }
     fseek(fp.get(), 0, SEEK_END);
-    long size = ftell(fp.get()) + sizeof (wchar_t);
+    long size = ftell(fp.get()) + sizeof(wchar_t);
     fseek(fp.get(), 0, SEEK_SET);
-    SPA::CScopeUQueue sb(SPA::GetOS(), SPA::IsBigEndian(), (unsigned int) size + sizeof(wchar_t));
+    SPA::CScopeUQueue sb(SPA::GetOS(), SPA::IsBigEndian(), (unsigned int)size + sizeof(wchar_t));
     sb->CleanTrack();
-    FileReadStream is(fp.get(), (char*) sb->GetBuffer(), sb->GetMaxSize());
+    auto res = ::fread((char*)sb->GetBuffer(), 1, sb->GetMaxSize(), fp.get());
     fp.reset();
-    std::string json = (const char*) sb->GetBuffer();
+    sb->SetSize((unsigned int)res);
+    sb->SetNull();
+    std::string json = (const char*)sb->GetBuffer();
     SPA::Trim(json);
     if (json.size()) {
-        Document& doc = Config.doc;
-        if (doc.Parse(json.c_str(), json.size()).HasParseError()) {
+        Config.doc.reset(Parse(json.c_str()));
+        auto& doc = Config.doc;
+        if (!doc || doc->GetType() != enumType::Object) {
             LogMsg(__FILE__, __LINE__, ("Bad JSON configuration file " + std::string(STREAM_DB_CONFIG_FILE) + " found").c_str());
-        } else {
-            if (doc.HasMember(STREAMING_DB_PORT) && doc[STREAMING_DB_PORT].IsUint()) {
-                Config.port = doc[STREAMING_DB_PORT].GetUint();
+        }
+        else {
+            JValue* v = doc->Child(STREAMING_DB_PORT);
+            if (v && v->GetType() == enumType::Int64) {
+                Config.port = (unsigned short)v->AsInt64();
                 if (!Config.port) {
                     Config.port = DEFAULT_LISTENING_PORT;
                 }
             }
-            if (doc.HasMember(STREAMING_DB_MAIN_THREADS) && doc[STREAMING_DB_MAIN_THREADS].IsInt()) {
-                Config.main_threads = doc[STREAMING_DB_MAIN_THREADS].GetInt();
+            v = doc->Child(STREAMING_DB_MAIN_THREADS);
+            if (v && v->GetType() == enumType::Int64) {
+                Config.main_threads = (int)v->AsInt64();
                 if (Config.main_threads <= 0) Config.main_threads = 1;
             }
-            if (doc.HasMember(STREAMING_DB_NO_IPV6) && doc[STREAMING_DB_NO_IPV6].IsBool()) {
-                Config.disable_ipv6 = doc[STREAMING_DB_NO_IPV6].GetBool();
+            v = doc->Child(STREAMING_DB_NO_IPV6);
+            if (v && v->GetType() == enumType::Bool) {
+                Config.disable_ipv6 = v->AsBool();
             }
 #ifdef ENABLE_WORKING_DIRECTORY
-            if (doc.HasMember(STREAMING_DB_WORKING_DIR) && doc[STREAMING_DB_WORKING_DIR].IsString()) {
-                Config.working_dir = doc[STREAMING_DB_WORKING_DIR].GetString();
+            v = doc->Child(STREAMING_DB_WORKING_DIR);
+            if (v && v->GetType() == enumType::String) {
+                Config.working_dir = v->AsString();
                 SPA::Trim(Config.working_dir);
             }
 #endif
-            services.clear();
-            if (doc.HasMember(STREAMING_DB_SERVICES) && doc[STREAMING_DB_SERVICES].IsString()) {
-                Config.services = doc[STREAMING_DB_SERVICES].GetString();
+            v = doc->Child(STREAMING_DB_SERVICES);
+            if (v && v->GetType() == enumType::String) {
+                Config.services = v->AsString();
                 SPA::Trim(Config.services);
                 if (Config.services.size()) {
                     std::string tok;
@@ -372,10 +320,10 @@ void CSetGlobals::SetConfig() {
                     }
                 }
             }
-            cached_tables.clear();
-            if (doc.HasMember(STREAMING_DB_CACHE_TABLES) && doc[STREAMING_DB_CACHE_TABLES].IsString()) {
+            v = doc->Child(STREAMING_DB_CACHE_TABLES);
+            if (v && v->GetType() == enumType::String) {
                 std::string tok;
-                Config.cached_tables = doc[STREAMING_DB_CACHE_TABLES].GetString();
+                Config.cached_tables = v->AsString();
                 SPA::Trim(Config.cached_tables);
                 std::stringstream ss(Config.cached_tables);
                 while (std::getline(ss, tok, ';')) {
@@ -386,30 +334,36 @@ void CSetGlobals::SetConfig() {
                 }
             }
 #ifdef WIN32_64
-            if (doc.HasMember(STREAMING_DB_STORE) && doc[STREAMING_DB_STORE].IsString()) {
-                Config.store = doc[STREAMING_DB_STORE].GetString();
+            v = doc->Child(STREAMING_DB_STORE);
+            if (v && v->GetType() == enumType::String) {
+                Config.store = v->AsString();
                 SPA::Trim(Config.store);
             }
-            if (doc.HasMember(STREAMING_DB_SUBJECT_CN) && doc[STREAMING_DB_SUBJECT_CN].IsString()) {
-                Config.subject_cn = doc[STREAMING_DB_SUBJECT_CN].GetString();
+            v = doc->Child(STREAMING_DB_SUBJECT_CN);
+            if (v && v->GetType() == enumType::String) {
+                Config.subject_cn = v->AsString();
                 SPA::Trim(Config.subject_cn);
             }
 #else
-            if (doc.HasMember(STREAMING_DB_SSL_KEY) && doc[STREAMING_DB_SSL_KEY].IsString()) {
-                Config.ssl_key = doc[STREAMING_DB_SSL_KEY].GetString();
+            v = doc->Child(STREAMING_DB_SSL_KEY);
+            if (v && v->GetType() == enumType::String) {
+                Config.ssl_key = v->AsString();
                 SPA::Trim(Config.ssl_key);
             }
-            if (doc.HasMember(STREAMING_DB_SSL_CERT) && doc[STREAMING_DB_SSL_CERT].IsString()) {
-                Config.ssl_cert = doc[STREAMING_DB_SSL_CERT].GetString();
+            v = doc->Child(STREAMING_DB_SSL_CERT);
+            if (v && v->GetType() == enumType::String) {
+                Config.ssl_cert = v->AsString();
                 SPA::Trim(Config.ssl_cert);
             }
-            if (doc.HasMember(STREAMING_DB_SSL_PASSWORD) && doc[STREAMING_DB_SSL_PASSWORD].IsString()) {
-                Config.ssl_key_password = doc[STREAMING_DB_SSL_PASSWORD].GetString();
+            v = doc->Child(STREAMING_DB_SSL_PASSWORD);
+            if (v && v->GetType() == enumType::String) {
+                Config.ssl_key_password = v->AsString();
                 SPA::Trim(Config.ssl_key_password);
             }
 #endif   
         }
-    } else {
+    }
+    else {
         UpdateConfigFile();
     }
 }
@@ -430,8 +384,11 @@ bool CStreamingServer::OnIsPermitted(USocket_Server_Handle h, const wchar_t* use
 void CStreamingServer::ConfigServices() {
     bool changed = false;
     auto& doc = CSetGlobals::Globals.Config.doc;
+    if (!doc) {
+        return;
+    }
     for (auto p = CSetGlobals::Globals.services.begin(), end = CSetGlobals::Globals.services.end(); p != end; ++p) {
-        HINSTANCE hModule = CSocketProServer::DllManager::AddALibrary(p->first.c_str(), 0);
+        HINSTANCE hModule = SPA::ServerSide::CSocketProServer::DllManager::AddALibrary(p->first.c_str(), 0);
         if (!hModule) {
 #ifdef WIN32_64
             CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Not able to load server plugin %s", p->first.c_str());
@@ -439,36 +396,34 @@ void CStreamingServer::ConfigServices() {
             CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Not able to load server plugin %s (%s)", p->first.c_str(), dlerror());
 #endif
             changed = true;
-        } else {
+        }
+        else {
             p->second = hModule;
             do {
                 PSetSPluginGlobalOptions SetSPluginGlobalOptions = (PSetSPluginGlobalOptions)::GetProcAddress(hModule, "SetSPluginGlobalOptions");
                 if (!SetSPluginGlobalOptions) {
                     break;
                 }
-                if (!(doc.HasMember(STREAMING_DB_SERVICES_CONFIG) && doc[STREAMING_DB_SERVICES_CONFIG].IsObject())) {
+                JValue* jv = doc->Child(STREAMING_DB_SERVICES_CONFIG);
+                if (!(jv && jv->GetType() == enumType::Object)) {
                     changed = true;
                     break;
                 }
-                auto obj = doc[STREAMING_DB_SERVICES_CONFIG].GetObject();
-                if (!obj.HasMember(p->first.c_str())) {
+                jv = jv->Child(p->first.c_str());
+                if (!(jv && jv->GetType() == enumType::Object)) {
                     changed = true;
                     break;
                 }
-                auto setting = obj.FindMember(p->first.c_str());
-                StringBuffer sb;
-                Writer<StringBuffer> writer(sb);
-                setting->value.Accept(writer);
-                std::string s = sb.GetString();
+                std::string s = jv->Stringify();
                 if (!SetSPluginGlobalOptions(s.c_str())) {
                     CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Not able to set global options for plugin %s", p->first.c_str());
                 }
-            } while (false);
-        }
+        } while (false);
     }
+}
     if (!changed && CSetGlobals::Globals.services.size()) {
-        auto obj = doc[STREAMING_DB_SERVICES_CONFIG].GetObject();
-        changed = (CSetGlobals::Globals.services.size() != (size_t) obj.MemberCount());
+        JValue* jv = doc->Child(STREAMING_DB_SERVICES_CONFIG);
+        changed = (CSetGlobals::Globals.services.size() != jv->CountChildren());
     }
     if (changed) {
         while (changed) {
