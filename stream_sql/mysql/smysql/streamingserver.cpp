@@ -222,6 +222,8 @@ void CSetGlobals::SetConfig() {
     sb->CleanTrack();
     auto res = ::fread((char*) sb->GetBuffer(), 1, sb->GetMaxSize(), fp.get());
     fp.reset();
+    sb->SetSize((unsigned int) res);
+    sb->SetNull();
     std::string json = (const char*) sb->GetBuffer();
     SPA::Trim(json);
     if (json.size()) {

@@ -709,7 +709,7 @@ namespace SPA {
                         }
                         if (*data == '}') {
                             ++data;
-                            return new JValue(object);
+                            return new JValue(std::move(object));
                         }
                         if (*data != ',') {
                             return nullptr;
@@ -739,7 +739,7 @@ namespace SPA {
                         }
                         if (*data == ']') {
                             ++data;
-                            return new JValue(array);
+                            return new JValue(std::move(array));
                         }
                         if (*data != ',') {
                             return nullptr;
