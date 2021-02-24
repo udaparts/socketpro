@@ -2,27 +2,11 @@
 #include "../../../include/scloader.h"
 #include "../../../include/pexports.h"
 #include "../../../include/membuffer.h"
+#include "../../../include/udb_macros.h"
 
-#define STREAM_DB_LOG_FILE                  "streaming_db.log"
-#define STREAM_DB_CONFIG_FILE             "sp_streaming_db_config.json"
+#define MY_VERSION                          "1.5.0.1" //this DB plugin version
 
 #define STREAMING_DB_AUTH_ACCOUNT           "authentication_account"
-#define STREAMING_DB_PORT      "port"
-#define STREAMING_DB_MAIN_THREADS     "main_threads"
-#define STREAMING_DB_NO_IPV6      "disable_ipv6"
-#define STREAMING_DB_CACHE_TABLES     "monitored_tables"
-#define STREAMING_DB_SERVICES      "services"
-#define STREAMING_DB_WORKING_DIR            "working_dir"
-#define STREAMING_DB_SERVICES_CONFIG        "services_config"
-
-#ifdef WIN32_64
-#define STREAMING_DB_STORE      "cert_root_store"
-#define STREAMING_DB_SUBJECT_CN             "cert_subject_cn"
-#else
-#define STREAMING_DB_SSL_KEY                "ssl_key"
-#define STREAMING_DB_SSL_CERT               "ssl_cert"
-#define STREAMING_DB_SSL_PASSWORD           "ssl_key_password"
-#endif
 
 CStreamingServer *g_pStreamingServer = nullptr;
 CSetGlobals CSetGlobals::Globals;
@@ -336,6 +320,7 @@ void CSetGlobals::UpdateConfigFile() {
         return;
     }
     JObject obj;
+    obj[STREAMING_DB_VERSION] = MY_VERSION;
     obj[STREAMING_DB_PORT] = Config.port;
     obj[STREAMING_DB_MAIN_THREADS] = Config.main_threads;
     obj[STREAMING_DB_NO_IPV6] = Config.disable_ipv6;
@@ -366,18 +351,21 @@ void CSetGlobals::UpdateConfigFile() {
                     break;
                 }
                 PGetSPluginGlobalOptions GetSPluginGlobalOptions = (PGetSPluginGlobalOptions) ::GetProcAddress(it->second, "GetSPluginGlobalOptions");
-                if (!GetSPluginGlobalOptions) {
+                if (GetSPluginGlobalOptions) {
+                    unsigned int len = GetSPluginGlobalOptions((char*) sb->GetBuffer(), sb->GetMaxSize());
+                    sb->SetSize(len);
+                    sb->SetNull();
+                    std::unique_ptr<JValue> jv(Parse((const char*) sb->GetBuffer()));
+                    if (!jv || jv->GetType() != enumType::Object) {
+                        LogMsg(__FILE__, __LINE__, ("Plugin " + it->first + " has a wrong JSON global options").c_str());
+                    }
+                    obj[it->first] = std::move(*jv);
+                }
+                PGetSPluginVersion GetSPluginVersion = (PGetSPluginVersion)::GetProcAddress(it->second, "GetSPluginVersion");
+                if (!GetSPluginVersion) {
                     break;
                 }
-                unsigned int len = GetSPluginGlobalOptions((char*) sb->GetBuffer(), sb->GetMaxSize());
-                sb->SetSize(len);
-                sb->SetNull();
-                std::shared_ptr<JValue> jv(Parse((const char*) sb->GetBuffer()));
-                if (!jv || jv->GetType() != enumType::Object) {
-                    LogMsg(__FILE__, __LINE__, ("Plugin " + it->first + " has a wrong JSON global options").c_str());
-                    break;
-                }
-                obj[it->first] = std::move(*jv);
+                obj[STREAMING_DB_VERSION] = GetSPluginVersion();
             } while (false);
         }
     }
@@ -394,6 +382,10 @@ void CStreamingServer::ConfigServices() {
     auto& doc = CSetGlobals::Globals.Config.doc;
     if (!doc) {
         return;
+    }
+    JValue* jv = doc->Child(STREAMING_DB_VERSION);
+    if (!jv || jv->AsString() != MY_VERSION) {
+        changed = true;
     }
     for (auto p = CSetGlobals::Globals.services.begin(), end = CSetGlobals::Globals.services.end(); p != end; ++p) {
         HINSTANCE hModule = SPA::ServerSide::CSocketProServer::DllManager::AddALibrary(p->first.c_str(), 0);
@@ -424,6 +416,15 @@ void CStreamingServer::ConfigServices() {
                 std::string s = jv->Stringify();
                 if (!SetSPluginGlobalOptions(s.c_str())) {
                     CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Not able to set global options for plugin %s", p->first.c_str());
+                }
+                PGetSPluginVersion GetSPluginVersion = (PGetSPluginVersion)::GetProcAddress(hModule, "GetSPluginVersion");
+                if (!GetSPluginVersion) {
+                    break;
+                }
+                auto version = GetSPluginVersion();
+                JValue *v = jv->Child(STREAMING_DB_VERSION);
+                if (!v || v->GetType() != enumType::String || !version || v->AsString() != version) {
+                    changed = true;
                 }
             } while (false);
         }

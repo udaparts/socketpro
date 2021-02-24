@@ -2,28 +2,11 @@
 #include "../../../include/scloader.h"
 #include "../../../include/pexports.h"
 #include "../../../include/membuffer.h"
+#include "../../../include/udb_macros.h"
 
+#define MY_VERSION                          "1.5.0.1" //this DB plugin version
 
 #define DEFAULT_LOCAL_CONNECTION_STRING     L"host=localhost;port=3306;timeout=30"
-#define STREAM_DB_LOG_FILE                  "streaming_db.log"
-#define STREAM_DB_CONFIG_FILE	            "sp_streaming_db_config.json"
-
-#define STREAMING_DB_PORT		    "port"
-#define STREAMING_DB_MAIN_THREADS	    "main_threads"
-#define STREAMING_DB_NO_IPV6		    "disable_ipv6"
-#define STREAMING_DB_CACHE_TABLES	    "monitored_tables"
-#define STREAMING_DB_SERVICES		    "services"
-#define STREAMING_DB_WORKING_DIR            "working_dir"
-#define STREAMING_DB_SERVICES_CONFIG        "services_config"
-
-#ifdef WIN32_64
-#define STREAMING_DB_STORE		    "cert_root_store"
-#define STREAMING_DB_SUBJECT_CN             "cert_subject_cn"
-#else
-#define STREAMING_DB_SSL_KEY                "ssl_key"
-#define STREAMING_DB_SSL_CERT               "ssl_cert"
-#define STREAMING_DB_SSL_PASSWORD           "ssl_key_password"
-#endif
 
 CStreamingServer *g_pStreamingServer = nullptr;
 
@@ -194,7 +177,7 @@ bool CSetGlobals::StartListening() {
 }
 
 void CSetGlobals::UpdateConfigFile() {
-    std::shared_ptr<FILE> fp(fopen(STREAM_DB_CONFIG_FILE, "w"), [](FILE* f) {
+    std::shared_ptr<FILE> fp(fopen(STREAM_DB_CONFIG_FILE, "w"), [](FILE * f) {
         if (f) {
             ::fclose(f);
         }
@@ -204,6 +187,7 @@ void CSetGlobals::UpdateConfigFile() {
         return;
     }
     JObject obj;
+    obj[STREAMING_DB_VERSION] = MY_VERSION;
     obj[STREAMING_DB_PORT] = Config.port;
     obj[STREAMING_DB_MAIN_THREADS] = Config.main_threads;
     obj[STREAMING_DB_NO_IPV6] = Config.disable_ipv6;
@@ -233,18 +217,21 @@ void CSetGlobals::UpdateConfigFile() {
                     break;
                 }
                 PGetSPluginGlobalOptions GetSPluginGlobalOptions = (PGetSPluginGlobalOptions) ::GetProcAddress(it->second, "GetSPluginGlobalOptions");
-                if (!GetSPluginGlobalOptions) {
+                if (GetSPluginGlobalOptions) {
+                    unsigned int len = GetSPluginGlobalOptions((char*) sb->GetBuffer(), sb->GetMaxSize());
+                    sb->SetSize(len);
+                    sb->SetNull();
+                    std::unique_ptr<JValue> jv(Parse((const char*) sb->GetBuffer()));
+                    if (!jv || jv->GetType() != enumType::Object) {
+                        LogMsg(__FILE__, __LINE__, ("Plugin " + it->first + " has a wrong JSON global options").c_str());
+                    }
+                    obj[it->first] = std::move(*jv);
+                }
+                PGetSPluginVersion GetSPluginVersion = (PGetSPluginVersion)::GetProcAddress(it->second, "GetSPluginVersion");
+                if (!GetSPluginVersion) {
                     break;
                 }
-                unsigned int len = GetSPluginGlobalOptions((char*)sb->GetBuffer(), sb->GetMaxSize());
-                sb->SetSize(len);
-                sb->SetNull();
-                std::shared_ptr<JValue> jv(Parse((const char*)sb->GetBuffer()));
-                if (!jv || jv->GetType() != enumType::Object) {
-                    LogMsg(__FILE__, __LINE__, ("Plugin " + it->first + " has a wrong JSON global options").c_str());
-                    break;
-                }
-                obj[it->first] = std::move(*jv);
+                obj[STREAMING_DB_VERSION] = GetSPluginVersion();
             } while (false);
         }
     }
@@ -253,7 +240,7 @@ void CSetGlobals::UpdateConfigFile() {
 }
 
 void CSetGlobals::SetConfig() {
-    std::shared_ptr<FILE> fp(fopen(STREAM_DB_CONFIG_FILE, "r"), [](FILE* f) {
+    std::shared_ptr<FILE> fp(fopen(STREAM_DB_CONFIG_FILE, "r"), [](FILE * f) {
         if (f) {
             ::fclose(f);
         }
@@ -265,33 +252,32 @@ void CSetGlobals::SetConfig() {
         return;
     }
     fseek(fp.get(), 0, SEEK_END);
-    long size = ftell(fp.get()) + sizeof(wchar_t);
+    long size = ftell(fp.get()) + sizeof (wchar_t);
     fseek(fp.get(), 0, SEEK_SET);
-    SPA::CScopeUQueue sb(SPA::GetOS(), SPA::IsBigEndian(), (unsigned int)size + sizeof(wchar_t));
+    SPA::CScopeUQueue sb(SPA::GetOS(), SPA::IsBigEndian(), (unsigned int) size + sizeof (wchar_t));
     sb->CleanTrack();
-    auto res = ::fread((char*)sb->GetBuffer(), 1, sb->GetMaxSize(), fp.get());
+    auto res = ::fread((char*) sb->GetBuffer(), 1, sb->GetMaxSize(), fp.get());
     fp.reset();
-    sb->SetSize((unsigned int)res);
+    sb->SetSize((unsigned int) res);
     sb->SetNull();
-    std::string json = (const char*)sb->GetBuffer();
+    std::string json = (const char*) sb->GetBuffer();
     SPA::Trim(json);
     if (json.size()) {
         Config.doc.reset(Parse(json.c_str()));
         auto& doc = Config.doc;
         if (!doc || doc->GetType() != enumType::Object) {
             LogMsg(__FILE__, __LINE__, ("Bad JSON configuration file " + std::string(STREAM_DB_CONFIG_FILE) + " found").c_str());
-        }
-        else {
+        } else {
             JValue* v = doc->Child(STREAMING_DB_PORT);
             if (v && v->GetType() == enumType::Int64) {
-                Config.port = (unsigned short)v->AsInt64();
+                Config.port = (unsigned short) v->AsInt64();
                 if (!Config.port) {
                     Config.port = DEFAULT_LISTENING_PORT;
                 }
             }
             v = doc->Child(STREAMING_DB_MAIN_THREADS);
             if (v && v->GetType() == enumType::Int64) {
-                Config.main_threads = (int)v->AsInt64();
+                Config.main_threads = (int) v->AsInt64();
                 if (Config.main_threads <= 0) Config.main_threads = 1;
             }
             v = doc->Child(STREAMING_DB_NO_IPV6);
@@ -362,8 +348,7 @@ void CSetGlobals::SetConfig() {
             }
 #endif   
         }
-    }
-    else {
+    } else {
         UpdateConfigFile();
     }
 }
@@ -387,6 +372,10 @@ void CStreamingServer::ConfigServices() {
     if (!doc) {
         return;
     }
+    JValue* jv = doc->Child(STREAMING_DB_VERSION);
+    if (!jv || jv->AsString() != MY_VERSION) {
+        changed = true;
+    }
     for (auto p = CSetGlobals::Globals.services.begin(), end = CSetGlobals::Globals.services.end(); p != end; ++p) {
         HINSTANCE hModule = SPA::ServerSide::CSocketProServer::DllManager::AddALibrary(p->first.c_str(), 0);
         if (!hModule) {
@@ -396,8 +385,7 @@ void CStreamingServer::ConfigServices() {
             CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Not able to load server plugin %s (%s)", p->first.c_str(), dlerror());
 #endif
             changed = true;
-        }
-        else {
+        } else {
             p->second = hModule;
             do {
                 PSetSPluginGlobalOptions SetSPluginGlobalOptions = (PSetSPluginGlobalOptions)::GetProcAddress(hModule, "SetSPluginGlobalOptions");
@@ -418,9 +406,18 @@ void CStreamingServer::ConfigServices() {
                 if (!SetSPluginGlobalOptions(s.c_str())) {
                     CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Not able to set global options for plugin %s", p->first.c_str());
                 }
-        } while (false);
+                PGetSPluginVersion GetSPluginVersion = (PGetSPluginVersion)::GetProcAddress(hModule, "GetSPluginVersion");
+                if (!GetSPluginVersion) {
+                    break;
+                }
+                auto version = GetSPluginVersion();
+                JValue* v = jv->Child(STREAMING_DB_VERSION);
+                if (!v || v->GetType() != enumType::String || !version || v->AsString() != version) {
+                    changed = true;
+                }
+            } while (false);
+        }
     }
-}
     if (!changed && CSetGlobals::Globals.services.size()) {
         JValue* jv = doc->Child(STREAMING_DB_SERVICES_CONFIG);
         changed = (CSetGlobals::Globals.services.size() != jv->Size());

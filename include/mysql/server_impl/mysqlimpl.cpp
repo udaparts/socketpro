@@ -1,4 +1,3 @@
-
 #include "mysqlimpl.h"
 #include <sstream>
 #ifndef NDEBUG

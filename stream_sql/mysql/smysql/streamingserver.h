@@ -1,4 +1,3 @@
-
 #pragma once
 
 #include "mysqlimpl.h"
@@ -17,7 +16,6 @@ public:
     unsigned int port;
     int main_threads;
     bool disable_ipv6;
-
 #ifdef WIN32_64
     std::string store;
     std::string subject_cn;

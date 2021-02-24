@@ -1,14 +1,11 @@
 #include "../../pexports.h"
-#include "../../3rdparty/rapidjson/include/rapidjson/document.h"
-#include "../../3rdparty/rapidjson/include/rapidjson/stringbuffer.h"
-#include "../../3rdparty/rapidjson/include/rapidjson/writer.h"
+#include "../../jsonvalue.h"
 #include "sqliteimpl.h"
 
-using namespace rapidjson;
 using namespace SPA;
 using namespace SPA::ServerSide;
 
-std::string g_version("1.0.0.4");
+std::string g_version("1.0.0.5");
 
 const char* const U_MODULE_OPENED WINAPI GetSPluginVersion() {
     return g_version.c_str();
@@ -16,24 +13,21 @@ const char* const U_MODULE_OPENED WINAPI GetSPluginVersion() {
 
 bool U_MODULE_OPENED WINAPI SetSPluginGlobalOptions(const char* jsonOptions) {
     if (!jsonOptions) return false;
-    Document doc;
-    doc.SetObject();
-    ParseResult ok = doc.Parse(jsonOptions, ::strlen(jsonOptions));
-    if (!ok) {
+    std::unique_ptr<JSON::JValue> jv(JSON::Parse(jsonOptions));
+    if (!jv) {
         return false;
     }
-    if (doc.HasMember(MONITORED_TABLES) && doc[MONITORED_TABLES].IsString()) {
-        std::string s = doc[MONITORED_TABLES].GetString();
-        CDBString ws = Utilities::ToUTF16(s);
+    JSON::JValue* v = jv->Child(MONITORED_TABLES);
+    if (v && v->GetType() == JSON::enumType::String) {
+        CDBString ws = Utilities::ToUTF16(v->AsString());
         Trim(ws);
         CSqliteImpl::SetCachedTables(ws.c_str());
     } else {
         CSqliteImpl::SetCachedTables(u"");
     }
-
-    if (doc.HasMember(GLOBAL_CONNECTION_STRING) && doc[GLOBAL_CONNECTION_STRING].IsString()) {
-        std::string s = doc[GLOBAL_CONNECTION_STRING].GetString();
-        CDBString ws = Utilities::ToUTF16(s);
+    v = jv->Child(GLOBAL_CONNECTION_STRING);
+    if (v && v->GetType() == JSON::enumType::String) {
+        CDBString ws = Utilities::ToUTF16(v->AsString());
         Trim(ws);
         CSqliteImpl::SetDBGlobalConnectionString(ws.c_str());
     } else {
@@ -47,25 +41,15 @@ unsigned int U_MODULE_OPENED WINAPI GetSPluginGlobalOptions(char* json, unsigned
         return 0;
     }
     unsigned int nParam = CSqliteImpl::GetInitialParam();
-    StringBuffer buffer;
-    Writer<StringBuffer> writer(buffer);
-    writer.StartObject();
-    writer.Key(SQLITE_UTF8_ENCODING);
-    writer.Bool(true);
-    writer.Key(DISABLE_SQLITE_EX_ERROR);
-    writer.Bool(((nParam & ServerSide::Sqlite::DO_NOT_USE_EXTENDED_ERROR_CODE) == ServerSide::Sqlite::DO_NOT_USE_EXTENDED_ERROR_CODE));
-    writer.Key(ENABLE_SQLITE_UPDATE_HOOK);
-    writer.Bool(true);
-    writer.Key(USE_SQLITE_SHARED_CACHE_MODE);
-    writer.Bool(((nParam & ServerSide::Sqlite::USE_SHARED_CACHE_MODE) == ServerSide::Sqlite::USE_SHARED_CACHE_MODE));
-    writer.Key(GLOBAL_CONNECTION_STRING);
-    std::string str = Utilities::ToUTF8(CSqliteImpl::GetDBGlobalConnectionString());
-    writer.String(str.c_str(), (SizeType) str.size());
-    writer.Key(MONITORED_TABLES);
-    str = CSqliteImpl::GetCachedTables();
-    writer.String(str.c_str(), (SizeType) str.size());
-    writer.EndObject();
-    std::string s = buffer.GetString();
+    JSON::JObject obj;
+    obj[SQLITE_UTF8_ENCODING] = true;
+    obj[DISABLE_SQLITE_EX_ERROR] = ((nParam & ServerSide::Sqlite::DO_NOT_USE_EXTENDED_ERROR_CODE) == ServerSide::Sqlite::DO_NOT_USE_EXTENDED_ERROR_CODE);
+    obj[ENABLE_SQLITE_UPDATE_HOOK] = true;
+    obj[USE_SQLITE_SHARED_CACHE_MODE] = ((nParam & ServerSide::Sqlite::USE_SHARED_CACHE_MODE) == ServerSide::Sqlite::USE_SHARED_CACHE_MODE);
+    obj[GLOBAL_CONNECTION_STRING] = Utilities::ToUTF8(CSqliteImpl::GetDBGlobalConnectionString());
+    obj[MONITORED_TABLES] = CSqliteImpl::GetCachedTables();
+    JSON::JValue jv(std::move(obj));
+    std::string s = jv.Stringify(false);
     size_t len = s.size();
     if (len > buffer_size - 1) {
         len = buffer_size - 1;

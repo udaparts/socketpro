@@ -1,18 +1,15 @@
 #include "../../pexports.h"
-#include "../../3rdparty/rapidjson/include/rapidjson/document.h"
-#include "../../3rdparty/rapidjson/include/rapidjson/stringbuffer.h"
-#include "../../3rdparty/rapidjson/include/rapidjson/writer.h"
+#include "../../jsonvalue.h"
 #include "sfileimpl.h"
 
 #ifndef WIN32_64
 #include <sys/stat.h>
 #endif
 
-using namespace rapidjson;
 using namespace SPA;
 using namespace SPA::ServerSide;
 
-std::string g_version("1.0.0.3");
+std::string g_version("1.0.0.4");
 
 const char* const U_MODULE_OPENED WINAPI GetSPluginVersion() {
     return g_version.c_str();
@@ -20,14 +17,13 @@ const char* const U_MODULE_OPENED WINAPI GetSPluginVersion() {
 
 bool U_MODULE_OPENED WINAPI SetSPluginGlobalOptions(const char* jsonOptions) {
     if (!jsonOptions) return false;
-    Document doc;
-    doc.SetObject();
-    ParseResult ok = doc.Parse(jsonOptions, ::strlen(jsonOptions));
-    if (!ok) {
+    std::unique_ptr<JSON::JValue> jv(JSON::Parse(jsonOptions));
+    if (!jv) {
         return false;
     }
-    if (doc.HasMember(UFILE_ROOT_DIRECTORY) && doc[UFILE_ROOT_DIRECTORY].IsString()) {
-        std::string s = doc[UFILE_ROOT_DIRECTORY].GetString();
+    JSON::JValue* v = jv->Child(UFILE_ROOT_DIRECTORY);
+    if (v && v->GetType() == JSON::enumType::String) {
+        std::string s = v->AsString();
         Trim(s);
 #ifdef WIN32_64
         std::wstring ws = Utilities::ToWide(s);
@@ -49,14 +45,10 @@ unsigned int U_MODULE_OPENED WINAPI GetSPluginGlobalOptions(char* json, unsigned
     if (!json || !buffer_size) {
         return 0;
     }
-    StringBuffer buffer;
-    Writer<StringBuffer> writer(buffer);
-    writer.StartObject();
-    writer.Key(UFILE_ROOT_DIRECTORY);
-    std::string str = Utilities::ToUTF8(CSFileImpl::GetRootDirectory());
-    writer.String(str.c_str(), (SizeType) str.size());
-    writer.EndObject();
-    std::string s = buffer.GetString();
+    JSON::JObject obj;
+    obj[UFILE_ROOT_DIRECTORY] = Utilities::ToUTF8(CSFileImpl::GetRootDirectory());
+    JSON::JValue jv(std::move(obj));
+    std::string s = jv.Stringify(false);
     size_t len = s.size();
     if (len > buffer_size - 1) {
         len = buffer_size - 1;
