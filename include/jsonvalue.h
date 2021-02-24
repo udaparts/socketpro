@@ -197,12 +197,12 @@ namespace SPA {
                 return type;
             }
 
-            inline std::string& AsString() {
+            inline std::string& AsString() const noexcept {
                 assert(type == enumType::String);
                 return (*strValue);
             }
 
-            bool AsBool() const noexcept {
+            inline bool AsBool() const noexcept {
                 switch (type) {
                     case enumType::Bool:
                         return bValue;
@@ -223,7 +223,7 @@ namespace SPA {
                 return false;
             }
 
-            double AsNumber() const noexcept {
+            inline double AsNumber() const noexcept {
                 switch (type) {
                     case enumType::Bool:
                         return bValue ? 1.0 : 0.0;
@@ -238,7 +238,7 @@ namespace SPA {
                 return 0.0;
             }
 
-            INT64 AsInt64() const noexcept {
+            inline INT64 AsInt64() const noexcept {
                 switch (type) {
                     case enumType::Bool:
                         return bValue ? 1 : 0;
@@ -253,17 +253,17 @@ namespace SPA {
                 return 0;
             }
 
-            JArray& AsArray() const {
+            inline JArray& AsArray() const noexcept {
                 assert(type == enumType::Array);
                 return (*arrValue);
             }
 
-            JObject& AsObject() const {
+            inline JObject& AsObject() const noexcept {
                 assert(type == enumType::Object);
                 return (*objValue);
             }
 
-            std::size_t Size() const noexcept {
+            inline std::size_t Size() const noexcept {
                 switch (type) {
                     case enumType::Array:
                         return arrValue->size();
@@ -725,7 +725,7 @@ namespace SPA {
                 return nullptr;
             }
 
-            void Clean() {
+            inline void Clean() {
                 switch (type) {
                     case enumType::Array:
                         delete arrValue;
