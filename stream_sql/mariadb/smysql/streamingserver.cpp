@@ -423,7 +423,7 @@ void CStreamingServer::ConfigServices() {
 }
     if (!changed && CSetGlobals::Globals.services.size()) {
         JValue* jv = doc->Child(STREAMING_DB_SERVICES_CONFIG);
-        changed = (CSetGlobals::Globals.services.size() != jv->CountChildren());
+        changed = (CSetGlobals::Globals.services.size() != jv->Size());
     }
     if (changed) {
         while (changed) {

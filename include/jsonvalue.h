@@ -17,9 +17,7 @@ namespace SPA {
             }
 
             static bool AtLeastChars(const char* s, size_t n) {
-                if (!s) {
-                    return false;
-                }
+                if (!s) return false;
                 const char* str = s;
                 for (; *str && n; ++str, --n) {
                 }
@@ -27,8 +25,7 @@ namespace SPA {
             }
 
             static double ParseDecimal(const char*& data) {
-                double decimal = 0;
-                double factor = 0.1;
+                double decimal = 0, factor = 0.1;
                 while (*data != 0 && *data >= '0' && *data <= '9') {
                     int digit = (*data++ -'0');
                     decimal = decimal + digit * factor;
@@ -109,7 +106,7 @@ namespace SPA {
         class JValue {
         public:
 
-            JValue() noexcept : type(enumType::Null), int64Value(0) {
+            JValue() noexcept : type(enumType::Null) {
             }
 
             JValue(const char* str) {
@@ -118,7 +115,6 @@ namespace SPA {
                     strValue = new std::string(str);
                 } else {
                     type = enumType::Null;
-                    int64Value = 0;
                 }
             }
 
@@ -161,25 +157,12 @@ namespace SPA {
                         dValue = src.dValue;
                         break;
                     case enumType::Array:
-                    {
-                        JArray* source_array = src.arrValue;
-                        arrValue = new JArray;
-                        for (auto iter = source_array->cbegin(), cend = source_array->cend(); iter != cend; ++iter) {
-                            arrValue->push_back(*iter);
-                        }
+                        arrValue = new JArray(*src.arrValue);
                         break;
-                    }
                     case enumType::Object:
-                    {
-                        JObject* source_object = src.objValue;
-                        objValue = new JObject;
-                        for (auto iter = source_object->cbegin(), cend = source_object->cend(); iter != cend; ++iter) {
-                            (*objValue)[iter->first] = iter->second;
-                        }
+                        objValue = new JObject(*src.objValue);
                         break;
-                    }
                     case enumType::Null:
-                        int64Value = 0;
                         break;
                     default:
                         assert(false);
@@ -201,7 +184,6 @@ namespace SPA {
 
             JValue(JValue&& src) noexcept : type(src.type), int64Value(src.int64Value) {
                 src.type = enumType::Null;
-                src.int64Value = 0;
             }
 
             ~JValue() {
@@ -271,17 +253,17 @@ namespace SPA {
                 return 0;
             }
 
-            JArray& AsArray() {
+            JArray& AsArray() const {
                 assert(type == enumType::Array);
                 return (*arrValue);
             }
 
-            JObject& AsObject() {
+            JObject& AsObject() const {
                 assert(type == enumType::Object);
                 return (*objValue);
             }
 
-            std::size_t CountChildren() const noexcept {
+            std::size_t Size() const noexcept {
                 switch (type) {
                     case enumType::Array:
                         return arrValue->size();
@@ -293,7 +275,6 @@ namespace SPA {
                 return 0;
             }
 
-            //array
             JValue* Child(std::size_t index) const noexcept {
                 if (type != enumType::Array) return nullptr;
                 if (index < arrValue->size()) {
@@ -302,7 +283,6 @@ namespace SPA {
                 return nullptr;
             }
 
-            //object
             JValue* Child(const char* name) const noexcept {
                 if (type != enumType::Object) return nullptr;
                 JObject::iterator it = objValue->find(name);
@@ -315,10 +295,8 @@ namespace SPA {
             std::vector<std::string> ObjectKeys() const {
                 std::vector<std::string> keys;
                 if (type == enumType::Object) {
-                    JObject::const_iterator iter = objValue->begin();
-                    while (iter != objValue->end()) {
-                        keys.push_back(iter->first);
-                        ++iter;
+                    for (auto it = objValue->cbegin(), end = objValue->cend(); it != end; ++it) {
+                        keys.push_back(it->first);
                     }
                 }
                 return std::move(keys);
@@ -514,7 +492,6 @@ namespace SPA {
                     strValue = new std::string(str);
                 } else {
                     type = enumType::Null;
-                    int64Value = 0;
                 }
                 return *this;
             }
@@ -609,7 +586,7 @@ namespace SPA {
                     }
                     ++iter;
                 }
-                str_out += "\"";
+                str_out += '"';
                 return str_out;
             }
 
@@ -641,7 +618,7 @@ namespace SPA {
                     } else {
                         return nullptr;
                     }
-                    if (*data != '.') {
+                    if (*data != '.' && *data != 'e' && *data != 'E') {
                         return new JValue(neg ? -int64 : int64);
                     }
                     double number = int64;
@@ -794,7 +771,7 @@ namespace SPA {
             }
             return value;
         }
-    }; //namespace JSON
-}; //namespace SPA
+    } //namespace JSON
+} //namespace SPA
 
 #endif
