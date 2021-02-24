@@ -109,7 +109,7 @@ namespace SPA {
         class JValue {
         public:
 
-            JValue() : type(enumType::Null), int64Value(0) {
+            JValue() noexcept : type(enumType::Null), int64Value(0) {
             }
 
             JValue(const char* str) {
@@ -125,19 +125,19 @@ namespace SPA {
             JValue(const std::string& str) : type(enumType::String), strValue(new std::string(str)) {
             }
 
-            JValue(bool value) : type(enumType::Bool), bValue(value) {
+            JValue(bool value) noexcept : type(enumType::Bool), bValue(value) {
             }
 
-            JValue(double d) : type(enumType::Number), dValue(d) {
+            JValue(double d) noexcept : type(enumType::Number), dValue(d) {
             }
 
             JValue(unsigned int n) : type(enumType::Int64), int64Value(n) {
             }
 
-            JValue(int n) : type(enumType::Int64), int64Value(n) {
+            JValue(int n) noexcept : type(enumType::Int64), int64Value(n) {
             }
 
-            JValue(INT64 n) : type(enumType::Int64), int64Value(n) {
+            JValue(INT64 n) noexcept : type(enumType::Int64), int64Value(n) {
             }
 
             JValue(const JArray& arr) : type(enumType::Array), arrValue(new JArray(arr)) {
@@ -146,8 +146,7 @@ namespace SPA {
             JValue(const JObject& obj) : type(enumType::Object), objValue(new JObject(obj)) {
             }
 
-            JValue(const JValue& src) {
-                type = src.type;
+            JValue(const JValue& src) : type(src.type) {
                 switch (type) {
                     case enumType::String:
                         strValue = new std::string(*src.strValue);
@@ -200,7 +199,7 @@ namespace SPA {
                 strValue->swap(src);
             }
 
-            JValue(JValue&& src) : type(src.type), int64Value(src.int64Value) {
+            JValue(JValue&& src) noexcept : type(src.type), int64Value(src.int64Value) {
                 src.type = enumType::Null;
                 src.int64Value = 0;
             }
@@ -212,7 +211,7 @@ namespace SPA {
         public:
             static const unsigned int DEFAULT_INDENT_CHARS = 2;
 
-            inline enumType GetType() const {
+            inline enumType GetType() const noexcept {
                 return type;
             }
 
@@ -221,7 +220,7 @@ namespace SPA {
                 return (*strValue);
             }
 
-            bool AsBool() const {
+            bool AsBool() const noexcept {
                 switch (type) {
                     case enumType::Bool:
                         return bValue;
@@ -242,7 +241,7 @@ namespace SPA {
                 return false;
             }
 
-            double AsNumber() const {
+            double AsNumber() const noexcept {
                 switch (type) {
                     case enumType::Bool:
                         return bValue ? 1.0 : 0.0;
@@ -257,7 +256,7 @@ namespace SPA {
                 return 0.0;
             }
 
-            INT64 AsInt64() const {
+            INT64 AsInt64() const noexcept {
                 switch (type) {
                     case enumType::Bool:
                         return bValue ? 1 : 0;
@@ -282,7 +281,7 @@ namespace SPA {
                 return (*objValue);
             }
 
-            std::size_t CountChildren() const {
+            std::size_t CountChildren() const noexcept {
                 switch (type) {
                     case enumType::Array:
                         return arrValue->size();
@@ -295,9 +294,8 @@ namespace SPA {
             }
 
             //array
-
-            JValue* Child(std::size_t index) {
-                assert(type == enumType::Array);
+            JValue* Child(std::size_t index) const noexcept {
+                if (type != enumType::Array) return nullptr;
                 if (index < arrValue->size()) {
                     return &arrValue->at(index);
                 }
@@ -305,9 +303,8 @@ namespace SPA {
             }
 
             //object
-
-            JValue* Child(const char* name) {
-                assert(type != enumType::Object);
+            JValue* Child(const char* name) const noexcept {
+                if (type != enumType::Object) return nullptr;
                 JObject::iterator it = objValue->find(name);
                 if (it != objValue->end()) {
                     return &(it->second);
@@ -462,7 +459,7 @@ namespace SPA {
                 return *this;
             }
 
-            JValue& operator=(JValue&& src) {
+            JValue& operator=(JValue&& src) noexcept {
                 if (this == &src) {
                     return *this;
                 }
