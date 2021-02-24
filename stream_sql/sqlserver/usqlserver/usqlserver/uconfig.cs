@@ -2,10 +2,11 @@
 using System.Collections.Generic;
 using TinyJson;
 using System.IO;
-using System.Reflection;
 
 public class UConfig
 {
+    public static readonly string MY_VERSION = "1.5.0.1";
+
     public static readonly int DEFAULT_MAIN_THREADS = 1;
     public static readonly uint DEFAULT_PORT = 20903;
     public static readonly string DEFAULT_DRIVER = "{ODBC Driver 17 for SQL Server}";
@@ -13,7 +14,6 @@ public class UConfig
     public static readonly string STREAM_DB_LOG_FILE = "streaming_db.log";
     public static readonly string DEFAULT_WORKING_DIRECTORY = "C:\\ProgramData\\MSSQL\\";
     public static readonly string DEFAULT_CA_ROOT = "root";
-
     public uint port = DEFAULT_PORT;
     public int main_threads = DEFAULT_MAIN_THREADS;
     public bool disable_ipv6 = false;
@@ -26,13 +26,7 @@ public class UConfig
     public string version = "";
     public UConfig()
     {
-        string fn = Assembly.GetEntryAssembly().FullName;
-        int start = fn.IndexOf(", Version=");
-        int coma = fn.IndexOf(',', start + 10);
-        if (start > 0 && coma > 0)
-        {
-            version = fn.Substring(start + 10, coma - start - 10);
-        }
+        version = MY_VERSION;
     }
 
     public UConfig(string json)
@@ -42,17 +36,9 @@ public class UConfig
         {
             UConfig config = json.FromJson<UConfig>();
             CopyFrom(config);
-            string fn = Assembly.GetEntryAssembly().FullName;
-            int start = fn.IndexOf(", Version=");
-            int coma = fn.IndexOf(',', start + 10);
-            string v = "";
-            if (start > 0 && coma > 0)
+            if (version != MY_VERSION)
             {
-                v = fn.Substring(start + 10, coma - start - 10);
-            }
-            if (version != v)
-            {
-                version = v;
+                version = MY_VERSION;
                 changed = true;
             }
             if (main_threads <= 0)
@@ -98,7 +84,7 @@ public class UConfig
         }
         catch (Exception ex)
         {
-            LogMsg(ex.Message, "UConfig::UConfig(string json)", 84); //line 80
+            LogMsg(ex.Message, "UConfig::UConfig(string json)", 87); //line 87
             changed = true;
         }
         finally
@@ -137,7 +123,7 @@ public class UConfig
         }
         catch (Exception ex)
         {
-            LogMsg(ex.Message, "UConfig::UpdateConfigFile", 119); //line 119
+            LogMsg(ex.Message, "UConfig::UpdateConfigFile", 126); //line 126
         }
     }
 
