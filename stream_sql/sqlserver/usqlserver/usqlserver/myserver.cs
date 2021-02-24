@@ -66,6 +66,9 @@ public class CSqlPlugin : CSocketProServer
     //typedef unsigned int (WINAPI *PGetSPluginGlobalOptions)(char *jsonUtf8, unsigned int buffer_size);
     private delegate uint DGetSPluginGlobalOptions([MarshalAs(UnmanagedType.LPArray)] byte[] jsonUtf8, int buffer_size);
 
+    //typedef const char* const (WINAPI *PGetSPluginVersion)();
+    private delegate IntPtr DGetSPluginVersion();
+
     private void ConfigServices()
     {
         bool changed = false;
@@ -88,7 +91,7 @@ public class CSqlPlugin : CSocketProServer
                 if (h.ToInt64() == 0)
                 {
                     string message = "Not able to load server plugin " + p_name;
-                    UConfig.LogMsg(message, "CSqlPlugin::ConfigServices", 91); //line 91
+                    UConfig.LogMsg(message, "CSqlPlugin::ConfigServices", 94); //line 94
                     break;
                 }
                 vP.Add(p_name);
@@ -97,7 +100,7 @@ public class CSqlPlugin : CSocketProServer
                 {
                     changed = true;
                     IntPtr addr = GetProcAddress(h, "GetSPluginGlobalOptions");
-                    if (addr.ToInt64() > 0)
+                    if (addr.ToInt64() != 0)
                     {
                         try
                         {
@@ -110,7 +113,7 @@ public class CSqlPlugin : CSocketProServer
                         }
                         catch (Exception ex)
                         {
-                            UConfig.LogMsg(ex.Message, "CSqlPlugin::ConfigServices", 113); //line 113
+                            UConfig.LogMsg(ex.Message, "CSqlPlugin::ConfigServices/GetSPluginGlobalOptions", 116); //line 116
                             m_Config.services_config.Add(p_name, new Dictionary<string, object>());
                         }
                     }
@@ -118,29 +121,47 @@ public class CSqlPlugin : CSocketProServer
                     {
                         m_Config.services_config.Add(p_name, new Dictionary<string, object>());
                     }
-                    break;
                 }
                 Dictionary<string, object> jsonDic = m_Config.services_config[p_name];
-                if (jsonDic.Count == 0)
-                {
-                    break;
-                }
                 IntPtr fAddr = GetProcAddress(h, "SetSPluginGlobalOptions");
-                if (fAddr.ToInt64() == 0)
+                if (fAddr.ToInt64() != 0)
                 {
-                    break;
-                }
-                try
-                {
-                    DSetSPluginGlobalOptions func = (DSetSPluginGlobalOptions)Marshal.GetDelegateForFunctionPointer(fAddr, typeof(DSetSPluginGlobalOptions));
-                    if (!func(jsonDic.ToJson()))
+                    try
                     {
-                        UConfig.LogMsg("Not able to set global options for plugin " + p_name, "CSqlPlugin::ConfigServices", 138); //line 138
+                        DSetSPluginGlobalOptions func = (DSetSPluginGlobalOptions)Marshal.GetDelegateForFunctionPointer(fAddr, typeof(DSetSPluginGlobalOptions));
+                        if (!func(jsonDic.ToJson(false)))
+                        {
+                            UConfig.LogMsg("Not able to set global options for plugin " + p_name, "CSqlPlugin::ConfigServices", 134); //line 134
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        UConfig.LogMsg(ex.Message, "CSqlPlugin::ConfigServices/SetSPluginGlobalOptions", 139); //line 139
                     }
                 }
-                catch (Exception ex)
+                //DGetSPluginVersion
+                fAddr = GetProcAddress(h, "GetSPluginVersion");
+                if (fAddr.ToInt64() != 0)
                 {
-                    UConfig.LogMsg(ex.Message, "CSqlPlugin::ConfigServices", 143); //line 143
+                    try
+                    {
+                        DGetSPluginVersion func = (DGetSPluginVersion)Marshal.GetDelegateForFunctionPointer(fAddr, typeof(GetSPluginVersion));
+                        string v = return System.Runtime.InteropServices.Marshal.PtrToStringAnsi(func());
+                        string vOld = null;
+                        if (jsonDic.ContainsKey("version") && jsonDic["version"] is string)
+                        {
+                            vOld = (string)jsonDic["version"];
+                        }
+                        if (v == null || v != vOld)
+                        {
+                            jsonDic["version"] = v;
+                            changed = true;
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        UConfig.LogMsg(ex.Message, "CSqlPlugin::ConfigServices/GetSPluginVersion", 163); //line 163
+                    }
                 }
             } while (false);
         }

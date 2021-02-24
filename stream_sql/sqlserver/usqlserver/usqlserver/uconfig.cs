@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using TinyJson;
 using System.IO;
+using System.Reflection;
 
 public class UConfig
 {
@@ -22,10 +23,16 @@ public class UConfig
     public Dictionary<string, Dictionary<string, object>> services_config = new Dictionary<string, Dictionary<string, object>>();
     public string odbc_driver = DEFAULT_DRIVER;
     public string default_db = "";
-
+    public string version = "";
     public UConfig()
     {
-
+        string fn = Assembly.GetEntryAssembly().FullName;
+        int start = fn.IndexOf(", Version=");
+        int coma = fn.IndexOf(',', start + 10);
+        if (start > 0 && coma > 0)
+        {
+            version = fn.Substring(start + 10, coma - start - 10);
+        }
     }
 
     public UConfig(string json)
@@ -35,6 +42,19 @@ public class UConfig
         {
             UConfig config = json.FromJson<UConfig>();
             CopyFrom(config);
+            string fn = Assembly.GetEntryAssembly().FullName;
+            int start = fn.IndexOf(", Version=");
+            int coma = fn.IndexOf(',', start + 10);
+            string v = "";
+            if (start > 0 && coma > 0)
+            {
+                v = fn.Substring(start + 10, coma - start - 10);
+            }
+            if (version != v)
+            {
+                version = v;
+                changed = true;
+            }
             if (main_threads <= 0)
             {
                 main_threads = DEFAULT_MAIN_THREADS;
