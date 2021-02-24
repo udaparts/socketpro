@@ -226,12 +226,14 @@ void CSetGlobals::UpdateConfigFile() {
                         LogMsg(__FILE__, __LINE__, ("Plugin " + it->first + " has a wrong JSON global options").c_str());
                     }
                     obj[it->first] = std::move(*jv);
+                } else {
+                    obj[it->first] = JObject();
                 }
                 PGetSPluginVersion GetSPluginVersion = (PGetSPluginVersion)::GetProcAddress(it->second, "GetSPluginVersion");
                 if (!GetSPluginVersion) {
                     break;
                 }
-                obj[STREAMING_DB_VERSION] = GetSPluginVersion();
+                obj[it->first].AsObject()[STREAMING_DB_VERSION] = GetSPluginVersion();
             } while (false);
         }
     }
