@@ -7,9 +7,17 @@ using namespace SPA::ServerSide;
 
 std::string g_version("1.0.0.4");
 
+#ifdef WIN32_64
+
 const char* const U_MODULE_OPENED WINAPI GetSPluginVersion() {
     return g_version.c_str();
 }
+#else
+
+SPA::INT64 U_MODULE_OPENED WINAPI GetSPluginVersion() {
+    return (SPA::INT64)g_version.c_str();
+}
+#endif
 
 bool U_MODULE_OPENED WINAPI SetSPluginGlobalOptions(const char* jsonOptions) {
     if (!jsonOptions) return false;

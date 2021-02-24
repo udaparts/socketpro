@@ -16,7 +16,11 @@ extern "C" {
      * Returns a plugin version string like "1.0.0.1 for this plugin"
      * @return a plugin version string like "2.1.0.7"
      */
+#ifdef WIN32_64
     const char* const U_MODULE_OPENED WINAPI GetSPluginVersion();
+#else
+    SPA::INT64 U_MODULE_OPENED WINAPI GetSPluginVersion();
+#endif
 
     /**
      * Set zero, one or more pairs of settings (key/value) by a json string
