@@ -16,6 +16,7 @@
 #define STREAMING_DB_VERSION                "version"
 
 #ifdef WIN32_64
+#define DEFAULT_CA_ROOT                     "root"
 #define STREAMING_DB_STORE		    "cert_root_store"
 #define STREAMING_DB_SUBJECT_CN             "cert_subject_cn"
 #else
@@ -23,5 +24,6 @@
 #define STREAMING_DB_SSL_CERT               "ssl_cert"
 #define STREAMING_DB_SSL_PASSWORD           "ssl_key_password"
 #endif
+#define SP_SERVER_CORE_VERSION              "sp_server_core_version"
 
 #endif

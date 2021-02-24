@@ -93,7 +93,7 @@ public static class USqlStream
                     }
                     catch(Exception ex)
                     {
-                        UConfig.LogMsg(ex.Message, "USqlStream::StartSPServer", 95); //line 95
+                        UConfig.LogMsg(ex.Message, "USqlStream::StartSPServer", 96); //line 96
                         config = new UConfig();
                         UConfig.UpdateConfigFile(config);
                         UConfig.UpdateLog();

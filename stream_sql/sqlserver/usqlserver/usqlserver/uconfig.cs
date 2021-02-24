@@ -14,16 +14,19 @@ public class UConfig
     public static readonly string STREAM_DB_LOG_FILE = "streaming_db.log";
     public static readonly string DEFAULT_WORKING_DIRECTORY = "C:\\ProgramData\\MSSQL\\";
     public static readonly string DEFAULT_CA_ROOT = "root";
-    public uint port = DEFAULT_PORT;
-    public int main_threads = DEFAULT_MAIN_THREADS;
-    public bool disable_ipv6 = false;
     public string cert_root_store = DEFAULT_CA_ROOT;
     public string cert_subject_cn = "";
+    public string default_db = "";
+    public bool disable_ipv6 = false;
+    public int main_threads = DEFAULT_MAIN_THREADS;
+    public string odbc_driver = DEFAULT_DRIVER;
+    public string odbc_plugin_version = "";
+    public uint port = DEFAULT_PORT;
     public string services = "";
     public Dictionary<string, Dictionary<string, object>> services_config = new Dictionary<string, Dictionary<string, object>>();
-    public string odbc_driver = DEFAULT_DRIVER;
-    public string default_db = "";
+    public string sp_server_core_version = "";
     public string version = "";
+
     public UConfig()
     {
         version = MY_VERSION;
@@ -84,7 +87,7 @@ public class UConfig
         }
         catch (Exception ex)
         {
-            LogMsg(ex.Message, "UConfig::UConfig(string json)", 87); //line 87
+            LogMsg(ex.Message, "UConfig::UConfig(string json)", 90); //line 90
             changed = true;
         }
         finally
@@ -123,7 +126,7 @@ public class UConfig
         }
         catch (Exception ex)
         {
-            LogMsg(ex.Message, "UConfig::UpdateConfigFile", 126); //line 126
+            LogMsg(ex.Message, "UConfig::UpdateConfigFile", 129); //line 129
         }
     }
 
@@ -138,6 +141,9 @@ public class UConfig
         services_config = config.services_config;
         odbc_driver = config.odbc_driver;
         default_db = config.default_db;
+        version = config.version;
+        odbc_plugin_version = config.odbc_plugin_version;
+        sp_server_core_version = config.sp_server_core_version;
     }
 
     public static void LogMsg(string lineText, string file = "", int fileLineNumber = 0)

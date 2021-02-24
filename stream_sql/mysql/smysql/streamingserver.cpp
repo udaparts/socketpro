@@ -320,6 +320,7 @@ void CSetGlobals::UpdateConfigFile() {
         return;
     }
     JObject obj;
+    obj[SP_SERVER_CORE_VERSION] = SPA::ServerSide::ServerCoreLoader.GetUServerSocketVersion();
     obj[STREAMING_DB_VERSION] = MY_VERSION;
     obj[STREAMING_DB_PORT] = Config.port;
     obj[STREAMING_DB_MAIN_THREADS] = Config.main_threads;
@@ -384,7 +385,11 @@ void CStreamingServer::ConfigServices() {
         return;
     }
     JValue* jv = doc->Child(STREAMING_DB_VERSION);
-    if (!jv || jv->AsString() != MY_VERSION) {
+    if (!jv || jv->GetType() != enumType::String || jv->AsString() != MY_VERSION) {
+        changed = true;
+    }
+    jv = doc->Child(SP_SERVER_CORE_VERSION);
+    if (!jv || jv->GetType() != enumType::String || jv->AsString() != SPA::ServerSide::ServerCoreLoader.GetUServerSocketVersion()) {
         changed = true;
     }
     for (auto p = CSetGlobals::Globals.services.begin(), end = CSetGlobals::Globals.services.end(); p != end; ++p) {

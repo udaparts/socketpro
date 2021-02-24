@@ -2,6 +2,7 @@
 
 #include "mysqlimpl.h"
 #include "../../../include/jsonvalue.h"
+#include "../../../include/udb_macros.h"
 #include <unordered_map>
 using namespace SPA::JSON;
 
@@ -11,11 +12,18 @@ using namespace SPA::JSON;
 class U_MODULE_HIDDEN UConfig {
 public:
 
-    UConfig() : port(DEFAULT_LISTENING_PORT), main_threads(1), disable_ipv6(false), auth_account(DEAFULT_AUTH_ACCOUNT) {
+    UConfig() : port(DEFAULT_LISTENING_PORT), main_threads(1), disable_ipv6(false), auth_account(DEAFULT_AUTH_ACCOUNT)
+#ifdef WIN32_64
+    , store(DEFAULT_CA_ROOT)
+#endif 
+    {
     }
     unsigned int port;
     int main_threads;
     bool disable_ipv6;
+    SPA::CDBString auth_account;
+    std::string cached_tables;
+    std::string services;
 #ifdef WIN32_64
     std::string store;
     std::string subject_cn;
@@ -24,9 +32,6 @@ public:
     std::string ssl_cert;
     std::string ssl_key_password;
 #endif
-    SPA::CDBString auth_account;
-    std::string cached_tables;
-    std::string services;
 #ifdef ENABLE_WORKING_DIRECTORY
     std::string working_dir;
 #endif

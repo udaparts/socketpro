@@ -18,6 +18,9 @@ public class CSqlPlugin : CSocketProServer
     }
 
     [DllImport("sodbc")]
+    private static extern IntPtr GetSPluginVersion();
+
+    [DllImport("sodbc")]
     private static extern int DoSPluginAuthentication(ulong hSocket, [MarshalAs(UnmanagedType.LPWStr)] string userId, [MarshalAs(UnmanagedType.LPWStr)] string password, uint nSvsId, [MarshalAs(UnmanagedType.LPWStr)] string dsn);
 
     [DllImport("kernel32", CharSet = CharSet.Ansi, ExactSpelling = true, SetLastError = true)]
@@ -28,7 +31,7 @@ public class CSqlPlugin : CSocketProServer
         IntPtr p = CSocketProServer.DllManager.AddALibrary("sodbc");
         if (p.ToInt64() == 0)
         {
-            UConfig.LogMsg("Cannot load SocketPro ODBC plugin!", "CSqlPlugin::Run", 31); //line 31
+            UConfig.LogMsg("Cannot load SocketPro ODBC plugin!", "CSqlPlugin::Run", 35); //line 35
             UConfig.UpdateLog();
             return false;
         }
@@ -38,7 +41,7 @@ public class CSqlPlugin : CSocketProServer
         if (!ok)
         {
             string errMsg = string.Format("Starting listening socket failed (errCode={0}; errMsg={1})", CSocketProServer.LastSocketError, CSocketProServer.ErrorMessage);
-            UConfig.LogMsg(errMsg, "CSqlPlugin::Run", 41); //line 41
+            UConfig.LogMsg(errMsg, "CSqlPlugin::Run", 45); //line 45
             UConfig.UpdateLog();
         }
         return ok;
@@ -55,7 +58,7 @@ public class CSqlPlugin : CSocketProServer
         if (res <= 0)
         {
             string message = "Authentication failed for user " + userId + ", res: " + res;
-            UConfig.LogMsg(message, "CSqlPlugin::OnIsPermitted", 58); //line 58
+            UConfig.LogMsg(message, "CSqlPlugin::OnIsPermitted", 62); //line 62
         }
         return (res > 0);
     }
@@ -72,26 +75,38 @@ public class CSqlPlugin : CSocketProServer
     private void ConfigServices()
     {
         bool changed = false;
+        string odbc_plugin_version = Marshal.PtrToStringAnsi(GetSPluginVersion());
+        if (m_Config.odbc_plugin_version != odbc_plugin_version)
+        {
+            m_Config.odbc_plugin_version = odbc_plugin_version;
+            changed = true;
+        }
+        string server_core_version = Version;
+        if (m_Config.sp_server_core_version != server_core_version)
+        {
+            m_Config.sp_server_core_version = server_core_version;
+            changed = true;
+        }
         string[] vService = m_Config.services.Split(';');
         List<string> vP = new List<string>();
         foreach (string s in vService)
         {
             string p_name = s.Trim();
+            if (p_name.Length == 0)
+            {
+                continue;
+            }
+            if (p_name.Equals("sodbc", StringComparison.OrdinalIgnoreCase) || p_name.Equals("sodbc.dll", StringComparison.OrdinalIgnoreCase))
+            {
+                continue; //cannot load odbc plugin again
+            }
             do
             {
-                if (p_name.Length == 0)
-                {
-                    break;
-                }
-                if (p_name.Equals("sodbc", StringComparison.OrdinalIgnoreCase) || p_name.Equals("sodbc.dll", StringComparison.OrdinalIgnoreCase))
-                {
-                    break; //cannot load odbc plugin again
-                }
                 IntPtr h = DllManager.AddALibrary(p_name);
                 if (h.ToInt64() == 0)
                 {
                     string message = "Not able to load server plugin " + p_name;
-                    UConfig.LogMsg(message, "CSqlPlugin::ConfigServices", 94); //line 94
+                    UConfig.LogMsg(message, "CSqlPlugin::ConfigServices", 110); //line 110
                     break;
                 }
                 vP.Add(p_name);
@@ -113,7 +128,7 @@ public class CSqlPlugin : CSocketProServer
                         }
                         catch (Exception ex)
                         {
-                            UConfig.LogMsg(ex.Message, "CSqlPlugin::ConfigServices/GetSPluginGlobalOptions", 116); //line 116
+                            UConfig.LogMsg(ex.Message, "CSqlPlugin::ConfigServices/GetSPluginGlobalOptions", 132); //line 132
                             m_Config.services_config.Add(p_name, new Dictionary<string, object>());
                         }
                     }
@@ -131,12 +146,12 @@ public class CSqlPlugin : CSocketProServer
                         DSetSPluginGlobalOptions func = (DSetSPluginGlobalOptions)Marshal.GetDelegateForFunctionPointer(fAddr, typeof(DSetSPluginGlobalOptions));
                         if (!func(jsonDic.ToJson(false)))
                         {
-                            UConfig.LogMsg("Not able to set global options for plugin " + p_name, "CSqlPlugin::ConfigServices", 134); //line 134
+                            UConfig.LogMsg("Not able to set global options for plugin " + p_name, "CSqlPlugin::ConfigServices", 150); //line 150
                         }
                     }
                     catch (Exception ex)
                     {
-                        UConfig.LogMsg(ex.Message, "CSqlPlugin::ConfigServices/SetSPluginGlobalOptions", 139); //line 139
+                        UConfig.LogMsg(ex.Message, "CSqlPlugin::ConfigServices/SetSPluginGlobalOptions", 155); //line 155
                     }
                 }
                 //DGetSPluginVersion
@@ -160,7 +175,7 @@ public class CSqlPlugin : CSocketProServer
                     }
                     catch (Exception ex)
                     {
-                        UConfig.LogMsg(ex.Message, "CSqlPlugin::ConfigServices/GetSPluginVersion", 163); //line 163
+                        UConfig.LogMsg(ex.Message, "CSqlPlugin::ConfigServices/GetSPluginVersion", 179); //line 179
                     }
                 }
             } while (false);

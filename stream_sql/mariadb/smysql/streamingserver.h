@@ -3,6 +3,7 @@
 #include "../../../include/mysql/include/plugin.h"
 #include "../../../include/mysql/server_impl/mysqlimpl.h"
 #include "../../../include/jsonvalue.h"
+#include "../../../include/udb_macros.h"
 #include <unordered_map>
 
 using namespace SPA::JSON;
@@ -13,7 +14,11 @@ using namespace SPA::ServerSide;
 class U_MODULE_HIDDEN UConfig {
 public:
 
-    UConfig() : port(DEFAULT_LISTENING_PORT), main_threads(1), disable_ipv6(false) {
+    UConfig() : port(DEFAULT_LISTENING_PORT), main_threads(1), disable_ipv6(false)
+#ifdef WIN32_64
+    , store(DEFAULT_CA_ROOT)
+#endif 
+    {
     }
     unsigned int port;
     int main_threads;
