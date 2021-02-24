@@ -15,16 +15,21 @@ namespace TinyJson
     //- Will only output public fields and property getters on objects
     public static class JSONWriter
     {
-        public static string ToJson(this object item)
+        public const int DEFAULT_INDENT_CHARS = 2;
+        public static string ToJson(this object item, bool pretty = true, int indent_chars = DEFAULT_INDENT_CHARS)
         {
             int indent = 0;
             StringBuilder stringBuilder = new StringBuilder();
-            AppendValue(stringBuilder, item, ref indent);
+            AppendValue(stringBuilder, item, ref indent, pretty, indent_chars);
             return stringBuilder.ToString();
         }
 
-        static void AppendValue(StringBuilder stringBuilder, object item, ref int indent)
+        static void AppendValue(StringBuilder stringBuilder, object item, ref int indent, bool pretty = true, int indent_chars = DEFAULT_INDENT_CHARS)
         {
+            if (indent_chars <= 0)
+            {
+                indent_chars = DEFAULT_INDENT_CHARS;
+            }
             if (item == null)
             {
                 stringBuilder.Append("null");
@@ -90,7 +95,13 @@ namespace TinyJson
             }
             else if (item is IList)
             {
+                string s;
                 stringBuilder.Append('[');
+                if (pretty)
+                {
+                    stringBuilder.Append('\n');
+                }
+                ++indent;
                 bool isFirst = true;
                 IList list = item as IList;
                 for (int i = 0; i < list.Count; i++)
@@ -98,8 +109,26 @@ namespace TinyJson
                     if (isFirst)
                         isFirst = false;
                     else
+                    {
                         stringBuilder.Append(',');
-                    AppendValue(stringBuilder, list[i], ref indent);
+                        if (pretty)
+                        {
+                            stringBuilder.Append('\n');
+                        }
+                    }
+                    if (pretty)
+                    {
+                        s = new string(' ', indent * indent_chars);
+                        stringBuilder.Append(s);
+                    }
+                    AppendValue(stringBuilder, list[i], ref indent, pretty, indent_chars);
+                }
+                --indent;
+                if (pretty)
+                {
+                    stringBuilder.Append('\n');
+                    s = new string(' ', indent * indent_chars);
+                    stringBuilder.Append(s);
                 }
                 stringBuilder.Append(']');
             }
@@ -114,7 +143,12 @@ namespace TinyJson
                     return;
                 }
                 string s;
-                stringBuilder.Append("{\n"); ++indent;
+                stringBuilder.Append('{');
+                if (pretty)
+                {
+                    stringBuilder.Append('\n');
+                }
+                ++indent;
                 IDictionary dict = item as IDictionary;
                 bool isFirst = true;
                 foreach (object key in dict.Keys)
@@ -122,25 +156,46 @@ namespace TinyJson
                     if (isFirst)
                         isFirst = false;
                     else
-                        stringBuilder.Append(",\n");
-                    s = new string('\t', indent);
-                    stringBuilder.Append(s);
+                    {
+                        stringBuilder.Append(',');
+                        if (pretty)
+                        {
+                            stringBuilder.Append('\n');
+                        }
+                    }
+                    if (pretty)
+                    {
+                        s = new string(' ', indent * indent_chars);
+                        stringBuilder.Append(s);
+                    }
                     stringBuilder.Append('\"');
                     stringBuilder.Append((string)key);
                     stringBuilder.Append("\":");
-                    AppendValue(stringBuilder, dict[key], ref indent);
+                    AppendValue(stringBuilder, dict[key], ref indent, pretty, indent_chars);
                 }
                 --indent;
-                stringBuilder.Append('\n');
-                s = new string('\t', indent);
-                stringBuilder.Append(s);
+                if (pretty)
+                {
+                    stringBuilder.Append('\n');
+                    s = new string(' ', indent * indent_chars);
+                    stringBuilder.Append(s);
+                }
                 stringBuilder.Append('}');
             }
             else
             {
-                string s = new string('\t', indent);
-                stringBuilder.Append(s);
-                stringBuilder.Append("{\n"); ++indent;
+                string s;
+                if (pretty)
+                {
+                    s = new string(' ', indent * indent_chars);
+                    stringBuilder.Append(s);
+                }
+                stringBuilder.Append('{');
+                if (pretty)
+                {
+                    stringBuilder.Append('\n');
+                }
+                ++indent;
                 bool isFirst = true;
                 FieldInfo[] fieldInfos = type.GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.FlattenHierarchy);
                 for (int i = 0; i < fieldInfos.Length; i++)
@@ -154,13 +209,22 @@ namespace TinyJson
                         if (isFirst)
                             isFirst = false;
                         else
-                            stringBuilder.Append(",\n");
-                        s = new string('\t', indent);
-                        stringBuilder.Append(s);
+                        {
+                            stringBuilder.Append(',');
+                            if (pretty)
+                            {
+                                stringBuilder.Append('\n');
+                            }
+                        }
+                        if (pretty)
+                        {
+                            s = new string(' ', indent * indent_chars);
+                            stringBuilder.Append(s);
+                        }
                         stringBuilder.Append('\"');
                         stringBuilder.Append(GetMemberName(fieldInfos[i]));
                         stringBuilder.Append("\":");
-                        AppendValue(stringBuilder, value, ref indent);
+                        AppendValue(stringBuilder, value, ref indent, pretty, indent_chars);
                     }
                 }
                 PropertyInfo[] propertyInfo = type.GetProperties(BindingFlags.Instance | BindingFlags.Public | BindingFlags.FlattenHierarchy);
@@ -175,19 +239,31 @@ namespace TinyJson
                         if (isFirst)
                             isFirst = false;
                         else
-                            stringBuilder.Append(",\n");
-                        s = new string('\t', indent);
-                        stringBuilder.Append(s);
+                        {
+                            stringBuilder.Append(',');
+                            if (pretty)
+                            {
+                                stringBuilder.Append('\n');
+                            }
+                        }
+                        if (pretty)
+                        {
+                            s = new string(' ', indent * indent_chars);
+                            stringBuilder.Append(s);
+                        }
                         stringBuilder.Append('\"');
                         stringBuilder.Append(GetMemberName(propertyInfo[i]));
                         stringBuilder.Append("\":");
-                        AppendValue(stringBuilder, value, ref indent);
+                        AppendValue(stringBuilder, value, ref indent, pretty, indent_chars);
                     }
                 }
                 --indent;
-                stringBuilder.Append('\n');
-                s = new string('\t', indent);
-                stringBuilder.Append(s);
+                if (pretty)
+                {
+                    stringBuilder.Append('\n');
+                    s = new string(' ', indent * indent_chars);
+                    stringBuilder.Append(s);
+                }
                 stringBuilder.Append('}');
             }
         }
