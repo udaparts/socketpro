@@ -145,8 +145,8 @@ public class CSqlPlugin : CSocketProServer
                 {
                     try
                     {
-                        DGetSPluginVersion func = (DGetSPluginVersion)Marshal.GetDelegateForFunctionPointer(fAddr, typeof(GetSPluginVersion));
-                        string v = return System.Runtime.InteropServices.Marshal.PtrToStringAnsi(func());
+                        DGetSPluginVersion func = (DGetSPluginVersion)Marshal.GetDelegateForFunctionPointer(fAddr, typeof(DGetSPluginVersion));
+                        string v = Marshal.PtrToStringAnsi(func());
                         string vOld = null;
                         if (jsonDic.ContainsKey("version") && jsonDic["version"] is string)
                         {
