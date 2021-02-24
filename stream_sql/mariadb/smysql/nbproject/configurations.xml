@@ -5,8 +5,6 @@
                    displayName="Header Files"
                    projectFiles="true">
       <itemPath>../../../include/aserverw.h</itemPath>
-      <itemPath>config.h</itemPath>
-      <itemPath>httppeer.h</itemPath>
       <itemPath>../../../include/membuffer.h</itemPath>
       <itemPath>../../../include/mysql/server_impl/mysqlimpl.h</itemPath>
       <itemPath>streamingserver.h</itemPath>
@@ -89,10 +87,6 @@
             tool="3"
             flavor2="0">
       </item>
-      <item path="config.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="httppeer.h" ex="false" tool="3" flavor2="0">
-      </item>
       <item path="smysql.cpp" ex="false" tool="0" flavor2="0">
       </item>
       <item path="stdafx.cpp" ex="false" tool="0" flavor2="0">
@@ -165,10 +159,6 @@
             ex="false"
             tool="3"
             flavor2="0">
-      </item>
-      <item path="config.h" ex="false" tool="3" flavor2="0">
-      </item>
-      <item path="httppeer.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="smysql.cpp" ex="false" tool="0" flavor2="0">
       </item>

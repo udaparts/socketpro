@@ -2,6 +2,9 @@
 #define _SOCKETPRO_JSON_VALUE_H_
 
 #include "commutil.h"
+#ifndef WIN32_64
+#include <math.h>
+#endif
 #include <map>
 #include <vector>
 
