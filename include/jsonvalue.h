@@ -599,7 +599,7 @@ namespace SPA {
                     if (!Internal::ExtractString(++data, str)) {
                         return nullptr;
                     } else {
-                        return new JValue(str);
+                        return new JValue(std::move(str));
                     }
                 } else if ((Internal::AtLeastChars(data, 4) && ::strncmp(data, "true", 4) == 0) || (Internal::AtLeastChars(data, 5) && ::strncmp(data, "false", 5) == 0)) {
                     bool value = (::strncmp(data, "true", 4) == 0);
@@ -679,7 +679,7 @@ namespace SPA {
                         if (value == nullptr) {
                             return nullptr;
                         }
-                        object[name] = std::move(*value);
+                        object[std::move(name)] = std::move(*value);
                         delete value;
                         if (!Internal::SkipWhitespace(data)) {
                             return nullptr;
