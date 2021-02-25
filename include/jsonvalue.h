@@ -54,9 +54,7 @@ namespace SPA {
                                 next = *data;
                                 break;
                             case 'u':
-                                if (!AtLeastChars(data, 5)) {
-                                    return false;
-                                }
+                                if (!AtLeastChars(data, 5)) return false;
                                 next = 0;
                                 for (int i = 0; i < 4; ++i) {
                                     ++data;
@@ -334,9 +332,7 @@ namespace SPA {
                             ret_string += iter->Stringify(indent, pretty, df, indent_chars);
                             if (++iter != end) {
                                 ret_string.push_back(',');
-                                if (pretty) {
-                                    ret_string.push_back('\n');
-                                }
+                                if (pretty) ret_string.push_back('\n');
                             }
                         }
                         --indent;
