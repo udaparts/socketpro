@@ -291,12 +291,12 @@ namespace SPA {
                 return std::move(keys);
             }
 
-            std::string Stringify(bool pretty = true, unsigned int indent_chars = DEFAULT_INDENT_CHARS) const {
+            std::string Stringify(bool pretty = true, const char* df = "%lf", unsigned int indent_chars = DEFAULT_INDENT_CHARS) const {
                 unsigned int indent = 0;
-                return Stringify(indent, pretty, indent_chars);
+                return Stringify(indent, pretty, df, indent_chars);
             }
 
-            std::string Stringify(unsigned int& indent, bool pretty = true, unsigned int indent_chars = DEFAULT_INDENT_CHARS) const {
+            std::string Stringify(unsigned int& indent, bool pretty = true, const char* df = "%lf", unsigned int indent_chars = DEFAULT_INDENT_CHARS) const {
                 std::string ret_string;
                 switch (type) {
                     case enumType::Int64:
@@ -314,10 +314,13 @@ namespace SPA {
                         if (isinf(dValue) || isnan(dValue)) {
                             ret_string = "null";
                         } else {
-                            std::stringstream ss;
-                            ss.precision(17);
-                            ss << dValue;
-                            ret_string = ss.str();
+                            char str[64]; //don't give me a too long precision!!!
+#ifdef WIN32_64
+                            ::sprintf_s(str, df, dValue);
+#else
+                            sprintf(str, df, dValue);
+#endif
+                            ret_string = str;
                         }
                         break;
                     case enumType::Array:
@@ -328,7 +331,7 @@ namespace SPA {
                         JArray::const_iterator iter = arrValue->begin(), end = arrValue->end();
                         while (iter != end) {
                             if (pretty) ret_string += std::string((size_t) indent * indent_chars, ' ');
-                            ret_string += iter->Stringify(indent, pretty, indent_chars);
+                            ret_string += iter->Stringify(indent, pretty, df, indent_chars);
                             if (++iter != end) {
                                 ret_string.push_back(',');
                                 if (pretty) {
@@ -354,9 +357,8 @@ namespace SPA {
                             if (pretty) ret_string += std::string((size_t) indent * indent_chars, ' ');
                             ret_string.push_back('"');
                             ret_string.append(iter->first);
-                            ret_string.push_back('"');
-                            ret_string.push_back(':');
-                            ret_string += iter->second.Stringify(indent, pretty, indent_chars);
+                            ret_string += "\":";
+                            ret_string += iter->second.Stringify(indent, pretty, df, indent_chars);
                             if (++iter != end) {
                                 ret_string.push_back(',');
                                 if (pretty) ret_string.push_back('\n');
