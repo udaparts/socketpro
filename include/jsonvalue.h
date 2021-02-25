@@ -38,27 +38,20 @@ namespace SPA {
             }
 
             static bool ExtractString(const char*& data, std::string& str) {
-                str.clear();
+                const char* start = data;
                 while (*data != 0) {
                     char next = *data;
                     if (next == '\\') {
                         ++data;
                         switch (*data) {
-                            case '"': next = '"';
-                                break;
-                            case '\\': next = '\\';
-                                break;
-                            case '/': next = '/';
-                                break;
-                            case 'b': next = '\b';
-                                break;
-                            case 'f': next = '\f';
-                                break;
-                            case 'n': next = '\n';
-                                break;
-                            case 'r': next = '\r';
-                                break;
-                            case 't': next = '\t';
+                            case '"':
+                            case '\\':
+                            case 'b':
+                            case 'f':
+                            case 'n':
+                            case 'r':
+                            case 't':
+                                next = *data;
                                 break;
                             case 'u':
                                 if (!AtLeastChars(data, 5)) {
@@ -83,12 +76,12 @@ namespace SPA {
                                 return false;
                         }
                     } else if (next == '"') {
+                        str.append(start, data);
                         ++data;
                         return true;
                     } else if (next < ' ' && next != '\t') {
                         return false;
                     }
-                    str += next;
                     ++data;
                 }
                 return false;
@@ -320,7 +313,9 @@ namespace SPA {
                         ret_string = std::to_string(int64Value);
                         break;
                     case enumType::String:
-                        ret_string = Stringify(*strValue);
+                        ret_string.push_back('"');
+                        ret_string.append(*strValue);
+                        ret_string.push_back('"');
                         break;
                     case enumType::Bool:
                         ret_string = bValue ? "true" : "false";
@@ -377,7 +372,9 @@ namespace SPA {
                             if (pretty) {
                                 ret_string += std::string((size_t) indent * indent_chars, ' ');
                             }
-                            ret_string += Stringify(iter->first);
+                            ret_string.push_back('"');
+                            ret_string.append(iter->first);
+                            ret_string.push_back('"');
                             ret_string.push_back(':');
                             ret_string += iter->second.Stringify(indent, pretty, indent_chars);
 
@@ -555,43 +552,6 @@ namespace SPA {
             }
 
         private:
-
-            static std::string Stringify(const std::string& str) {
-                std::string str_out("\"");
-                std::string::const_iterator iter = str.cbegin();
-                while (iter != str.cend()) {
-                    char chr = *iter;
-                    if (chr == '"' || chr == '\\' || chr == '/') {
-                        str_out += '\\';
-                        str_out += chr;
-                    } else if (chr == '\b') {
-                        str_out += "\\b";
-                    } else if (chr == '\f') {
-                        str_out += "\\f";
-                    } else if (chr == '\n') {
-                        str_out += "\\n";
-                    } else if (chr == '\r') {
-                        str_out += "\\r";
-                    } else if (chr == '\t') {
-                        str_out += "\\t";
-                    } else if (chr < ' ' || chr > 126) {
-                        str_out += "\\u";
-                        for (int i = 0; i < 4; i++) {
-                            int value = (chr >> 12) & 0xf;
-                            if (value >= 0 && value <= 9)
-                                str_out += (char) ('0' + value);
-                            else if (value >= 10 && value <= 15)
-                                str_out += (char) ('A' + (value - 10));
-                            chr <<= 4;
-                        }
-                    } else {
-                        str_out += chr;
-                    }
-                    ++iter;
-                }
-                str_out += '"';
-                return str_out;
-            }
 
             static JValue* Parse(const char*& data) {
                 if (*data == '"') {
