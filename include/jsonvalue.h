@@ -158,10 +158,7 @@ namespace SPA {
                     case enumType::Object:
                         objValue = new JObject(*src.objValue);
                         break;
-                    case enumType::Null:
-                        break;
-                    default:
-                        assert(false);
+                    default: //null
                         break;
                 }
             }
@@ -273,18 +270,14 @@ namespace SPA {
 
             JValue* Child(std::size_t index) const noexcept {
                 if (type != enumType::Array) return nullptr;
-                if (index < arrValue->size()) {
-                    return &arrValue->at(index);
-                }
+                if (index < arrValue->size()) return &arrValue->at(index);
                 return nullptr;
             }
 
             JValue* Child(const char* name) const noexcept {
                 if (type != enumType::Object) return nullptr;
                 JObject::iterator it = objValue->find(name);
-                if (it != objValue->end()) {
-                    return &(it->second);
-                }
+                if (it != objValue->end()) return &(it->second);
                 return nullptr;
             }
 
@@ -306,9 +299,6 @@ namespace SPA {
             std::string Stringify(unsigned int& indent, bool pretty = true, unsigned int indent_chars = DEFAULT_INDENT_CHARS) const {
                 std::string ret_string;
                 switch (type) {
-                    case enumType::Null:
-                        ret_string = "null";
-                        break;
                     case enumType::Int64:
                         ret_string = std::to_string(int64Value);
                         break;
@@ -318,10 +308,9 @@ namespace SPA {
                         ret_string.push_back('"');
                         break;
                     case enumType::Bool:
-                        ret_string = bValue ? "true" : "false";
+                        ret_string = (bValue ? "true" : "false");
                         break;
                     case enumType::Number:
-                    {
                         if (isinf(dValue) || isnan(dValue)) {
                             ret_string = "null";
                         } else {
@@ -331,21 +320,16 @@ namespace SPA {
                             ret_string = ss.str();
                         }
                         break;
-                    }
                     case enumType::Array:
                     {
                         ret_string.push_back('[');
-                        if (pretty) {
-                            ret_string.push_back('\n');
-                        }
+                        if (pretty) ret_string.push_back('\n');
                         ++indent;
-                        JArray::const_iterator iter = arrValue->begin();
-                        while (iter != arrValue->end()) {
-                            if (pretty) {
-                                ret_string += std::string((size_t) indent * indent_chars, ' ');
-                            }
+                        JArray::const_iterator iter = arrValue->begin(), end = arrValue->end();
+                        while (iter != end) {
+                            if (pretty) ret_string += std::string((size_t) indent * indent_chars, ' ');
                             ret_string += iter->Stringify(indent, pretty, indent_chars);
-                            if (++iter != arrValue->end()) {
+                            if (++iter != end) {
                                 ret_string.push_back(',');
                                 if (pretty) {
                                     ret_string.push_back('\n');
@@ -363,27 +347,19 @@ namespace SPA {
                     case enumType::Object:
                     {
                         ret_string.push_back('{');
-                        if (pretty) {
-                            ret_string.push_back('\n');
-                        }
+                        if (pretty) ret_string.push_back('\n');
                         ++indent;
-                        JObject::const_iterator iter = objValue->begin();
-                        while (iter != objValue->end()) {
-                            if (pretty) {
-                                ret_string += std::string((size_t) indent * indent_chars, ' ');
-                            }
+                        JObject::const_iterator iter = objValue->begin(), end = objValue->end();
+                        while (iter != end) {
+                            if (pretty) ret_string += std::string((size_t) indent * indent_chars, ' ');
                             ret_string.push_back('"');
                             ret_string.append(iter->first);
                             ret_string.push_back('"');
                             ret_string.push_back(':');
                             ret_string += iter->second.Stringify(indent, pretty, indent_chars);
-
-                            // Not at the end - add a separator
-                            if (++iter != objValue->end()) {
+                            if (++iter != end) {
                                 ret_string.push_back(',');
-                                if (pretty) {
-                                    ret_string.push_back('\n');
-                                }
+                                if (pretty) ret_string.push_back('\n');
                             }
                         }
                         --indent;
@@ -394,8 +370,8 @@ namespace SPA {
                         ret_string.push_back('}');
                         break;
                     }
-                    default:
-                        assert(false);
+                    default: //null
+                        ret_string = "null";
                         break;
                 }
                 return std::move(ret_string);
@@ -438,9 +414,7 @@ namespace SPA {
             }
 
             JValue& operator=(JValue&& src) noexcept {
-                if (this == &src) {
-                    return *this;
-                }
+                if (this == &src) return *this;
                 enumType t = type;
                 INT64 int64 = int64Value;
                 type = src.type;
@@ -518,14 +492,10 @@ namespace SPA {
             }
 
             JValue& operator=(const JValue& src) {
-                if (this == &src) {
-                    return *this;
-                }
+                if (this == &src) return *this;
                 Clean();
                 type = src.type;
                 switch (type) {
-                    case enumType::Null:
-                        break;
                     case enumType::String:
                         strValue = new std::string(*src.strValue);
                         break;
@@ -544,8 +514,7 @@ namespace SPA {
                     case enumType::Object:
                         objValue = new JObject(*src.objValue);
                         break;
-                    default:
-                        assert(false);
+                    default: //null
                         break;
                 }
                 return *this;
@@ -556,11 +525,8 @@ namespace SPA {
             static JValue* Parse(const char*& data) {
                 if (*data == '"') {
                     std::string str;
-                    if (!Internal::ExtractString(++data, str)) {
-                        return nullptr;
-                    } else {
-                        return new JValue(std::move(str));
-                    }
+                    if (!Internal::ExtractString(++data, str)) return nullptr;
+                    return new JValue(std::move(str));
                 } else if ((Internal::AtLeastChars(data, 4) && ::strncmp(data, "true", 4) == 0) || (Internal::AtLeastChars(data, 5) && ::strncmp(data, "false", 5) == 0)) {
                     bool value = (::strncmp(data, "true", 4) == 0);
                     data += value ? 4 : 5;
@@ -570,9 +536,7 @@ namespace SPA {
                     return new JValue();
                 } else if (*data == '-' || (*data >= '0' && *data <= '9')) {
                     bool neg = *data == '-';
-                    if (neg) {
-                        ++data;
-                    }
+                    if (neg) ++data;
                     INT64 int64 = 0;
                     if (*data == '0') {
                         ++data;
@@ -581,27 +545,21 @@ namespace SPA {
                     } else {
                         return nullptr;
                     }
-                    if (*data != '.' && *data != 'e' && *data != 'E') {
-                        return new JValue(neg ? -int64 : int64);
-                    }
+                    if (*data != '.' && *data != 'e' && *data != 'E') return new JValue(neg ? -int64 : int64);
                     double number = int64;
                     if (*data == '.') {
                         ++data;
-                        if (!(*data >= '0' && *data <= '9')) {
-                            return nullptr;
-                        }
+                        if (!(*data >= '0' && *data <= '9')) return nullptr;
                         number += Internal::ParseDecimal(data);
                     }
                     if (*data == 'E' || *data == 'e') {
                         ++data;
                         bool neg_expo = false;
                         if (*data == '-' || *data == '+') {
-                            neg_expo = *data == '-';
+                            neg_expo = (*data == '-');
                             ++data;
                         }
-                        if (!(*data >= '0' && *data <= '9')) {
-                            return nullptr;
-                        }
+                        if (!(*data >= '0' && *data <= '9')) return nullptr;
                         double expo = atoll(data, data);
                         for (double i = 0.0; i < expo; ++i) {
                             number = neg_expo ? (number / 10) : (number * 10);
@@ -612,45 +570,27 @@ namespace SPA {
                     JObject object;
                     ++data;
                     while (*data) {
-                        if (!Internal::SkipWhitespace(data)) {
-                            return nullptr;
-                        }
+                        if (!Internal::SkipWhitespace(data)) return nullptr;
                         if (object.size() == 0 && *data == '}') {
                             ++data;
                             return new JValue(object);
                         }
-                        if (*data != '"') {
-                            return nullptr;
-                        }
+                        if (*data != '"') return nullptr;
                         std::string name;
-                        if (!Internal::ExtractString(++data, name)) {
-                            return nullptr;
-                        }
-                        if (!Internal::SkipWhitespace(data)) {
-                            return nullptr;
-                        }
-                        if (*data++ != ':') {
-                            return nullptr;
-                        }
-                        if (!Internal::SkipWhitespace(data)) {
-                            return nullptr;
-                        }
+                        if (!Internal::ExtractString(++data, name)) return nullptr;
+                        if (!Internal::SkipWhitespace(data)) return nullptr;
+                        if (*data++ != ':') return nullptr;
+                        if (!Internal::SkipWhitespace(data)) return nullptr;
                         JValue* value = Parse(data);
-                        if (value == nullptr) {
-                            return nullptr;
-                        }
+                        if (value == nullptr) return nullptr;
                         object[std::move(name)] = std::move(*value);
                         delete value;
-                        if (!Internal::SkipWhitespace(data)) {
-                            return nullptr;
-                        }
+                        if (!Internal::SkipWhitespace(data)) return nullptr;
                         if (*data == '}') {
                             ++data;
                             return new JValue(std::move(object));
                         }
-                        if (*data != ',') {
-                            return nullptr;
-                        }
+                        if (*data != ',') return nullptr;
                         ++data;
                     }
                     return nullptr;
@@ -658,29 +598,21 @@ namespace SPA {
                     JArray array;
                     ++data;
                     while (*data) {
-                        if (!Internal::SkipWhitespace(data)) {
-                            return nullptr;
-                        }
+                        if (!Internal::SkipWhitespace(data)) return nullptr;
                         if (array.size() == 0 && *data == ']') {
                             ++data;
                             return new JValue(array);
                         }
                         JValue* value = Parse(data);
-                        if (value == nullptr) {
-                            return nullptr;
-                        }
+                        if (value == nullptr) return nullptr;
                         array.push_back(std::move(*value));
                         delete value;
-                        if (!Internal::SkipWhitespace(data)) {
-                            return nullptr;
-                        }
+                        if (!Internal::SkipWhitespace(data)) return nullptr;
                         if (*data == ']') {
                             ++data;
                             return new JValue(std::move(array));
                         }
-                        if (*data != ',') {
-                            return nullptr;
-                        }
+                        if (*data != ',') return nullptr;
                         ++data;
                     }
                     return nullptr;
@@ -718,16 +650,10 @@ namespace SPA {
         };
 
         static JValue* Parse(const char* data) {
-            if (!data) {
-                return nullptr;
-            }
-            if (!Internal::SkipWhitespace(data)) {
-                return nullptr;
-            }
+            if (!data) return nullptr;
+            if (!Internal::SkipWhitespace(data)) return nullptr;
             JValue* value = JValue::Parse(data);
-            if (value == nullptr) {
-                return nullptr;
-            }
+            if (value == nullptr) return nullptr;
             if (Internal::SkipWhitespace(data)) {
                 delete value;
                 return nullptr;
