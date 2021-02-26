@@ -26,7 +26,7 @@ namespace SPA
             if (!pool) {
                 return nullptr;
             }
-            return ((CBasePool*)pool)->Seek().get();
+            return ((CBasePool*) pool)->Seek().get();
         }
 
         CAsyncServiceHandler * CSpConfig::SeekHandlerByQueue(const std::string & poolKey) {
@@ -38,7 +38,7 @@ namespace SPA
             if (!pool) {
                 return nullptr;
             }
-            return ((CBasePool*)pool)->SeekByQueue().get();
+            return ((CBasePool*) pool)->SeekByQueue().get();
         }
 
         void* CSpConfig::GetPool(const std::string &poolKey, unsigned int *pSvsId) {
@@ -62,7 +62,7 @@ namespace SPA
             return pc->Pool.get();
         }
 
-        CConnectionContext GetCC(const JObject &cc) {
+        CConnectionContext GetCC(const JObject & cc) {
             CConnectionContext ctx;
             auto it = cc.find("Host"), end = cc.end();
             if (it != end && it->second.GetType() == enumType::String) {
@@ -72,7 +72,7 @@ namespace SPA
             }
             it = cc.find("Port");
             if (it != end && it->second.GetType() == enumType::Int64) {
-                ctx.Port = (unsigned short)it->second.AsInt64();
+                ctx.Port = (unsigned short) it->second.AsInt64();
             }
             it = cc.find("UserId");
             if (it != end && it->second.GetType() == enumType::String) {
@@ -100,7 +100,7 @@ namespace SPA
             return ctx;
         }
 
-        CPoolConfig GetPool(bool main, const JValue &pool) {
+        CPoolConfig GetPool(bool main, const JValue & pool) {
             CPoolConfig pc;
             JValue* jv = pool.Child("Queue");
             if (jv && jv->GetType() == enumType::String) {
@@ -126,19 +126,19 @@ namespace SPA
             }
             jv = pool.Child("SvsId");
             if (jv && jv->GetType() == enumType::Int64) {
-                pc.SvsId = (unsigned int)jv->AsInt64();
+                pc.SvsId = (unsigned int) jv->AsInt64();
             }
             jv = pool.Child("Threads");
             if (jv && jv->GetType() == enumType::Int64) {
-                pc.Threads = (unsigned int)jv->AsInt64();
+                pc.Threads = (unsigned int) jv->AsInt64();
             }
             jv = pool.Child("RecvTimeout");
             if (jv && jv->GetType() == enumType::Int64) {
-                pc.RecvTimeout = (unsigned int)jv->AsInt64();
+                pc.RecvTimeout = (unsigned int) jv->AsInt64();
             }
             jv = pool.Child("ConnTimeout");
             if (jv && jv->GetType() == enumType::Int64) {
-                pc.ConnTimeout = (unsigned int)jv->AsInt64();
+                pc.ConnTimeout = (unsigned int) jv->AsInt64();
             }
             jv = pool.Child("AutoConn");
             if (jv && jv->GetType() == enumType::Bool) {
@@ -312,7 +312,7 @@ namespace SPA
                 obj["UserId"] = JValue(Utilities::ToUTF8(ctx.UserId), false);
                 obj["Password"] = JValue(Utilities::ToUTF8(ctx.Password), false);
                 obj["Port"] = ctx.Port;
-                obj["EncrytionMethod"] = (int)ctx.EncrytionMethod;
+                obj["EncrytionMethod"] = (int) ctx.EncrytionMethod;
                 obj["Zip"] = ctx.Zip;
                 obj["V6"] = ctx.V6;
                 vH[it->first] = std::move(obj);
@@ -360,12 +360,12 @@ namespace SPA
                         obj["RecvTimeout"] = psc.RecvTimeout;
                         obj["ConnTimeout"] = psc.ConnTimeout;
                         obj["DefaultDb"] = psc.DefaultDb;
-                        obj["PoolType"] = (int)psc.PoolType;
+                        obj["PoolType"] = (int) psc.PoolType;
                         vS[one->first] = std::move(obj);
                     }
                     objMain["Slaves"] = std::move(vS);
                 }
-                objMain["PoolType"] = (int)pscMain.PoolType;
+                objMain["PoolType"] = (int) pscMain.PoolType;
                 vP[it->first] = std::move(objMain);
             }
             jvRoot.AsObject()["Pools"] = std::move(vP);
@@ -392,15 +392,18 @@ namespace SPA
             if (errCode) {
                 m_errMsg = "Cannot open configuration file " + jsFile;
                 return false;
-            }
-            else if (!jv) {
+            } else if (!jv) {
                 m_errMsg = "Bad JSON configuration object";
                 return false;
             }
             JValue* v = jv->Child("WorkingDir");
             if (v && v->GetType() == enumType::String) {
                 std::string dir = v->AsString();
+#ifdef WIN32_64
                 Trim(Unescape(dir));
+#else
+                Trim(dir);
+#endif
                 SPA::ClientSide::CClientSocket::QueueConfigure::SetWorkDirectory(dir.c_str());
             }
             v = jv->Child("CertStore");
