@@ -495,7 +495,7 @@ namespace SPA {
                         ++indent;
                         JArray::const_iterator iter = arrValue->begin(), end = arrValue->end();
                         while (iter != end) {
-                            if (pretty) ret_str += std::string((size_t) indent * indent_chars, ' ');
+                            if (pretty) ret_str.append((size_t) indent * indent_chars, ' ');
                             iter->Stringify(ret_str, indent, pretty, df, indent_chars);
                             if (++iter != end) {
                                 ret_str.push_back(',');
@@ -505,7 +505,7 @@ namespace SPA {
                         --indent;
                         if (pretty) {
                             ret_str.push_back('\n');
-                            ret_str += std::string((size_t) indent * indent_chars, ' ');
+                            ret_str.append((size_t) indent * indent_chars, ' ');
                         }
                         ret_str.push_back(']');
                         break;
@@ -517,7 +517,7 @@ namespace SPA {
                         ++indent;
                         JObject::const_iterator iter = objValue->begin(), end = objValue->end();
                         while (iter != end) {
-                            if (pretty) ret_str += std::string((size_t) indent * indent_chars, ' ');
+                            if (pretty) ret_str.append((size_t) indent * indent_chars, ' ');
                             ret_str.push_back('"');
                             ret_str.append(iter->first);
                             ret_str += "\":";
@@ -530,7 +530,7 @@ namespace SPA {
                         --indent;
                         if (pretty) {
                             ret_str.push_back('\n');
-                            ret_str += std::string((size_t) indent * indent_chars, ' ');
+                            ret_str.append((size_t) indent * indent_chars, ' ');
                         }
                         ret_str.push_back('}');
                         break;
