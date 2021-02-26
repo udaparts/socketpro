@@ -188,125 +188,105 @@ void* CSetGlobals::ThreadProc(void *lpParameter) {
 }
 
 void CSetGlobals::SetConfig() {
-    std::shared_ptr<FILE> fp(fopen(STREAM_DB_CONFIG_FILE, "r"), [](FILE * f) {
-        if (f) {
-            ::fclose(f);
-        }
-    });
-    if (!fp || ferror(fp.get())) {
+    int errCode = 0;
+    Config.doc.reset(ParseFromFile(STREAM_DB_CONFIG_FILE, errCode));
+    if (errCode) {
         LogMsg(__FILE__, __LINE__, ("Can not open DB streaming configuration file " + std::string(STREAM_DB_CONFIG_FILE) + " for read").c_str());
-        fp.reset();
+        UpdateConfigFile();
+        return;
+    } else if (!Config.doc || Config.doc->GetType() != enumType::Object) {
+        LogMsg(__FILE__, __LINE__, ("Bad JSON configuration file " + std::string(STREAM_DB_CONFIG_FILE) + " found").c_str());
         UpdateConfigFile();
         return;
     }
-    fseek(fp.get(), 0, SEEK_END);
-    long size = ftell(fp.get()) + sizeof (wchar_t);
-    fseek(fp.get(), 0, SEEK_SET);
-    SPA::CScopeUQueue sb(SPA::GetOS(), SPA::IsBigEndian(), (unsigned int) size + sizeof (wchar_t));
-    sb->CleanTrack();
-    auto res = ::fread((char*) sb->GetBuffer(), 1, sb->GetMaxSize(), fp.get());
-    fp.reset();
-    sb->SetSize((unsigned int) res);
-    sb->SetNull();
-    std::string json = (const char*) sb->GetBuffer();
-    SPA::Trim(json);
-    if (json.size()) {
-        Config.doc.reset(Parse(json.c_str()));
-        auto &doc = Config.doc;
-        if (!doc || doc->GetType() != enumType::Object) {
-            LogMsg(__FILE__, __LINE__, ("Bad JSON configuration file " + std::string(STREAM_DB_CONFIG_FILE) + " found").c_str());
-        } else {
-            JValue *v = doc->Child(STREAMING_DB_PORT);
-            if (v && v->GetType() == enumType::Int64) {
-                Config.port = (unsigned short) v->AsInt64();
-                if (!Config.port) {
-                    Config.port = DEFAULT_LISTENING_PORT;
-                }
-            }
-            v = doc->Child(STREAMING_DB_MAIN_THREADS);
-            if (v && v->GetType() == enumType::Int64) {
-                Config.main_threads = (int) v->AsInt64();
-                if (Config.main_threads <= 0) Config.main_threads = 1;
-            }
-            v = doc->Child(STREAMING_DB_NO_IPV6);
-            if (v && v->GetType() == enumType::Bool) {
-                Config.disable_ipv6 = v->AsBool();
-            }
-            v = doc->Child(STREAMING_DB_AUTH_ACCOUNT);
-            if (v && v->GetType() == enumType::String) {
-                Config.auth_account = SPA::Utilities::ToUTF16(v->AsString());
-                SPA::Trim(Config.auth_account);
-                if (!Config.auth_account.size()) {
-                    Config.auth_account = DEAFULT_AUTH_ACCOUNT;
-                }
-            }
-#ifdef ENABLE_WORKING_DIRECTORY
-            v = doc->Child(STREAMING_DB_WORKING_DIR);
-            if (v && v->GetType() == enumType::String) {
-                Config.working_dir = v->AsString();
-                SPA::Trim(Config.working_dir);
-            }
-#endif
-            v = doc->Child(STREAMING_DB_SERVICES);
-            if (v && v->GetType() == enumType::String) {
-                Config.services = v->AsString();
-                SPA::Trim(Config.services);
-                if (Config.services.size()) {
-                    std::string tok;
-                    std::stringstream ss(Config.services);
-                    while (std::getline(ss, tok, ';')) {
-                        SPA::Trim(tok);
-                        if (tok.size()) {
-                            services[tok] = nullptr;
-                        }
-                    }
-                }
-            }
-            v = doc->Child(STREAMING_DB_CACHE_TABLES);
-            if (v && v->GetType() == enumType::String) {
-                std::string tok;
-                Config.cached_tables = v->AsString();
-                SPA::Trim(Config.cached_tables);
-                std::stringstream ss(Config.cached_tables);
-                while (std::getline(ss, tok, ';')) {
-                    SPA::Trim(tok);
-                    if (tok.size()) {
-                        cached_tables.push_back(tok);
-                    }
-                }
-            }
-#ifdef WIN32_64
-            v = doc->Child(STREAMING_DB_STORE);
-            if (v && v->GetType() == enumType::String) {
-                Config.store = v->AsString();
-                SPA::Trim(Config.store);
-            }
-            v = doc->Child(STREAMING_DB_SUBJECT_CN);
-            if (v && v->GetType() == enumType::String) {
-                Config.subject_cn = v->AsString();
-                SPA::Trim(Config.subject_cn);
-            }
-#else
-            v = doc->Child(STREAMING_DB_SSL_KEY);
-            if (v && v->GetType() == enumType::String) {
-                Config.ssl_key = v->AsString();
-                SPA::Trim(Config.ssl_key);
-            }
-            v = doc->Child(STREAMING_DB_SSL_CERT);
-            if (v && v->GetType() == enumType::String) {
-                Config.ssl_cert = v->AsString();
-                SPA::Trim(Config.ssl_cert);
-            }
-            v = doc->Child(STREAMING_DB_SSL_PASSWORD);
-            if (v && v->GetType() == enumType::String) {
-                Config.ssl_key_password = v->AsString();
-                SPA::Trim(Config.ssl_key_password);
-            }
-#endif   
+    auto &doc = Config.doc;
+    JValue *v = doc->Child(STREAMING_DB_PORT);
+    if (v && v->GetType() == enumType::Int64) {
+        Config.port = (unsigned short) v->AsInt64();
+        if (!Config.port) {
+            Config.port = DEFAULT_LISTENING_PORT;
         }
-    } else {
-        UpdateConfigFile();
     }
+    v = doc->Child(STREAMING_DB_MAIN_THREADS);
+    if (v && v->GetType() == enumType::Int64) {
+        Config.main_threads = (int) v->AsInt64();
+        if (Config.main_threads <= 0) Config.main_threads = 1;
+    }
+    v = doc->Child(STREAMING_DB_NO_IPV6);
+    if (v && v->GetType() == enumType::Bool) {
+        Config.disable_ipv6 = v->AsBool();
+    }
+    v = doc->Child(STREAMING_DB_AUTH_ACCOUNT);
+    if (v && v->GetType() == enumType::String) {
+        Config.auth_account = SPA::Utilities::ToUTF16(v->AsString());
+        SPA::Trim(Config.auth_account);
+        if (!Config.auth_account.size()) {
+            Config.auth_account = DEAFULT_AUTH_ACCOUNT;
+        }
+    }
+#ifdef ENABLE_WORKING_DIRECTORY
+    v = doc->Child(STREAMING_DB_WORKING_DIR);
+    if (v && v->GetType() == enumType::String) {
+        Config.working_dir = v->AsString();
+        SPA::Trim(Config.working_dir);
+    }
+#endif
+    v = doc->Child(STREAMING_DB_SERVICES);
+    if (v && v->GetType() == enumType::String) {
+        Config.services = v->AsString();
+        SPA::Trim(Config.services);
+        if (Config.services.size()) {
+            std::string tok;
+            std::stringstream ss(Config.services);
+            while (std::getline(ss, tok, ';')) {
+                SPA::Trim(tok);
+                if (tok.size()) {
+                    services[tok] = nullptr;
+                }
+            }
+        }
+    }
+    v = doc->Child(STREAMING_DB_CACHE_TABLES);
+    if (v && v->GetType() == enumType::String) {
+        std::string tok;
+        Config.cached_tables = v->AsString();
+        SPA::Trim(Config.cached_tables);
+        std::stringstream ss(Config.cached_tables);
+        while (std::getline(ss, tok, ';')) {
+            SPA::Trim(tok);
+            if (tok.size()) {
+                cached_tables.push_back(tok);
+            }
+        }
+    }
+#ifdef WIN32_64
+    v = doc->Child(STREAMING_DB_STORE);
+    if (v && v->GetType() == enumType::String) {
+        Config.store = v->AsString();
+        SPA::Trim(Config.store);
+    }
+    v = doc->Child(STREAMING_DB_SUBJECT_CN);
+    if (v && v->GetType() == enumType::String) {
+        Config.subject_cn = v->AsString();
+        SPA::Trim(Config.subject_cn);
+    }
+#else
+    v = doc->Child(STREAMING_DB_SSL_KEY);
+    if (v && v->GetType() == enumType::String) {
+        Config.ssl_key = v->AsString();
+        SPA::Trim(Config.ssl_key);
+    }
+    v = doc->Child(STREAMING_DB_SSL_CERT);
+    if (v && v->GetType() == enumType::String) {
+        Config.ssl_cert = v->AsString();
+        SPA::Trim(Config.ssl_cert);
+    }
+    v = doc->Child(STREAMING_DB_SSL_PASSWORD);
+    if (v && v->GetType() == enumType::String) {
+        Config.ssl_key_password = v->AsString();
+        SPA::Trim(Config.ssl_key_password);
+    }
+#endif
 }
 
 void CSetGlobals::UpdateConfigFile() {

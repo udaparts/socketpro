@@ -734,10 +734,9 @@ namespace SPA {
             fp.reset();
             sb->SetSize((unsigned int) res);
             sb->SetNull();
-            unsigned char byte_order_mark[] = {0xef, 0xbb, 0xbf};
             const char* json = (const char*) sb->GetBuffer();
             if (res >= 3) {
-                //UTF8 BOM
+                unsigned char byte_order_mark[] = { 0xef, 0xbb, 0xbf }; //UTF8 BOM
                 if (::memcmp(byte_order_mark, json, sizeof (byte_order_mark)) == 0) json += 3;
             }
             return Parse(json);
