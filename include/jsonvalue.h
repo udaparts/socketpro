@@ -113,6 +113,30 @@ namespace SPA {
             return Escape(s);
         }
 
+        static std::string&& Unescape(std::string& str) {
+            char prev = 0;
+            for (size_t pos = 0, len = str.size(); pos < len; ++pos) {
+                if (prev == '\\') {
+                    switch (str[pos]) {
+                    case '\\': case '\b': case '\f': case '"':
+                    case '\t': case '\r': case '\n':
+                        str.erase(--pos, 1);
+                        --len;
+                        break;
+                    default:
+                        break;
+                    }
+                }
+                prev = str[pos];
+            }
+            return std::move(str);
+        }
+
+        static std::string Unescape(const char* str) {
+            std::string s(str ? str : "");
+            return Unescape(s);
+        }
+
         class JValue {
         public:
 
@@ -678,6 +702,45 @@ namespace SPA {
                 return nullptr;
             }
             return value;
+        }
+
+        static JValue* ParseFromFile(const char* filePath, int &errCode) {
+            errCode = 0;
+#ifdef WIN32_64
+            FILE* f = nullptr;
+            errCode = ::fopen_s(&f, filePath, "r");
+            if (!f) return nullptr;
+            std::shared_ptr<FILE> fp(f, [](FILE* f) {
+                if (f) {
+                    ::fclose(f);
+                }
+            });
+#else
+            std::shared_ptr<FILE> fp(fopen(filePath, "r"), [](FILE* f) {
+                if (f) {
+                    ::fclose(f);
+                }
+            });
+            if (!fp) {
+                errCode = errno;
+                return nullptr;
+            }
+#endif
+            fseek(fp.get(), 0, SEEK_END);
+            long size = ::ftell(fp.get());
+            fseek(fp.get(), 0, SEEK_SET);
+            SPA::CScopeUQueue sb(SPA::GetOS(), SPA::IsBigEndian(), (unsigned int)size + sizeof(wchar_t));
+            auto res = ::fread((char*)sb->GetBuffer(), 1, (size_t)size, fp.get());
+            fp.reset();
+            sb->SetSize((unsigned int)res);
+            sb->SetNull();
+            unsigned char byte_order_mark[] = { 0xef, 0xbb, 0xbf };
+            const char* json = (const char*)sb->GetBuffer();
+            if (res >= 3) {
+                //UTF8 BOM
+                if (::memcmp(byte_order_mark, json, sizeof(byte_order_mark)) == 0) json += 3;
+            }
+            return Parse(json);
         }
     } //namespace JSON
 } //namespace SPA

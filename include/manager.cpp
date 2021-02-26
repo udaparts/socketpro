@@ -1,18 +1,11 @@
 #include <stdexcept>
 #include "manager.h"
-#include "3rdparty/rapidjson/include/rapidjson/filereadstream.h"
-#include "3rdparty/rapidjson/include/rapidjson/document.h"
-#include "3rdparty/rapidjson/include/rapidjson/stringbuffer.h"
-#include "3rdparty/rapidjson/include/rapidjson/writer.h"
-
-#ifdef WIN32_64
-#pragma warning(disable: 4996) //warning C4996: 'fopen': This function or variable may be unsafe. Consider using fopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS.
-#endif
+#include "jsonvalue.h"
 
 namespace SPA
 {
     namespace ClientSide{
-        using namespace rapidjson;
+        using namespace JSON;
         using Utilities::Trim;
 
         std::vector<std::string> CPoolConfig::KeysAllowed;
@@ -69,48 +62,57 @@ namespace SPA
             return pc->Pool.get();
         }
 
-        CConnectionContext GetCC(const GenericValue<UTF8<>> &cc) {
+        CConnectionContext GetCC(const JObject &cc) {
             CConnectionContext ctx;
-            if (cc.HasMember("Host") && cc["Host"].IsString()) {
-                ctx.Host = cc["Host"].GetString();
+            auto it = cc.find("Host"), end = cc.end();
+            if (it != end && it->second.GetType() == enumType::String) {
+                ctx.Host = it->second.AsString();
                 Trim(ctx.Host);
                 ToLower(ctx.Host);
             }
-            if (cc.HasMember("Port") && cc["Port"].IsUint()) {
-                ctx.Port = cc["Port"].GetUint();
+            it = cc.find("Port");
+            if (it != end && it->second.GetType() == enumType::Int64) {
+                ctx.Port = (unsigned short)it->second.AsInt64();
             }
-            if (cc.HasMember("UserId") && cc["UserId"].IsString()) {
-                std::string s = cc["UserId"].GetString();
+            it = cc.find("UserId");
+            if (it != end && it->second.GetType() == enumType::String) {
+                std::string s = it->second.AsString();
                 Trim(s);
                 ctx.UserId = SPA::Utilities::ToWide(s);
             }
-            if (cc.HasMember("Password") && cc["Password"].IsString()) {
-                std::string s = cc["Password"].GetString();
+            it = cc.find("Password");
+            if (it != end && it->second.GetType() == enumType::String) {
+                std::string s = it->second.AsString();
                 ctx.Password = SPA::Utilities::ToWide(s);
             }
-            if (cc.HasMember("EncrytionMethod") && cc["EncrytionMethod"].IsUint()) {
-                ctx.EncrytionMethod = cc["EncrytionMethod"].GetUint() ? SPA::tagEncryptionMethod::TLSv1 : SPA::tagEncryptionMethod::NoEncryption;
+            it = cc.find("EncrytionMethod");
+            if (it != end && it->second.GetType() == enumType::Int64) {
+                ctx.EncrytionMethod = it->second.AsInt64() ? SPA::tagEncryptionMethod::TLSv1 : SPA::tagEncryptionMethod::NoEncryption;
             }
-            if (cc.HasMember("Zip")) {
-                ctx.Zip = cc["Zip"].GetBool();
+            it = cc.find("Zip");
+            if (it != end && it->second.GetType() == enumType::Bool) {
+                ctx.Zip = it->second.AsBool();
             }
-            if (cc.HasMember("V6")) {
-                ctx.Zip = cc["V6"].GetBool();
+            it = cc.find("V6");
+            if (it != end && it->second.GetType() == enumType::Bool) {
+                ctx.Zip = it->second.AsBool();
             }
             return ctx;
         }
 
-        CPoolConfig GetPool(bool main, const GenericValue<UTF8<>> &pool) {
+        CPoolConfig GetPool(bool main, const JValue &pool) {
             CPoolConfig pc;
-            if (pool.HasMember("Queue") && pool["Queue"].IsString()) {
-                pc.Queue = pool["Queue"].GetString();
+            JValue* jv = pool.Child("Queue");
+            if (jv && jv->GetType() == enumType::String) {
+                pc.Queue = jv->AsString();
                 Trim(pc.Queue);
 #ifdef WIN32_64
                 ToLower(pc.Queue);
 #endif
             }
-            if (pool.HasMember("DefaultDb") && pool["DefaultDb"].IsString()) {
-                pc.DefaultDb = pool["DefaultDb"].GetString();
+            jv = pool.Child("DefaultDb");
+            if (jv && jv->GetType() == enumType::String) {
+                pc.DefaultDb = jv->AsString();
                 Trim(pc.DefaultDb);
             }
             if (main) {
@@ -122,40 +124,47 @@ namespace SPA
             } else {
                 pc.PoolType = tagPoolType::Slave;
             }
-            if (pool.HasMember("SvsId") && pool["SvsId"].IsUint()) {
-                pc.SvsId = pool["SvsId"].GetUint();
+            jv = pool.Child("SvsId");
+            if (jv && jv->GetType() == enumType::Int64) {
+                pc.SvsId = (unsigned int)jv->AsInt64();
             }
-            if (pool.HasMember("Threads") && pool["Threads"].IsUint()) {
-                pc.Threads = pool["Threads"].GetUint();
+            jv = pool.Child("Threads");
+            if (jv && jv->GetType() == enumType::Int64) {
+                pc.Threads = (unsigned int)jv->AsInt64();
             }
-            if (pool.HasMember("RecvTimeout") && pool["RecvTimeout"].IsUint()) {
-                pc.RecvTimeout = pool["RecvTimeout"].GetUint();
+            jv = pool.Child("RecvTimeout");
+            if (jv && jv->GetType() == enumType::Int64) {
+                pc.RecvTimeout = (unsigned int)jv->AsInt64();
             }
-            if (pool.HasMember("ConnTimeout") && pool["ConnTimeout"].IsUint()) {
-                pc.ConnTimeout = pool["ConnTimeout"].GetUint();
+            jv = pool.Child("ConnTimeout");
+            if (jv && jv->GetType() == enumType::Int64) {
+                pc.ConnTimeout = (unsigned int)jv->AsInt64();
             }
-            if (pool.HasMember("AutoConn") && pool["AutoConn"].IsBool()) {
-                pc.AutoConn = pool["AutoConn"].GetBool();
+            jv = pool.Child("AutoConn");
+            if (jv && jv->GetType() == enumType::Bool) {
+                pc.AutoConn = jv->AsBool();
             }
-            if (pool.HasMember("AutoMerge") && pool["AutoMerge"].IsBool()) {
-                pc.AutoMerge = pool["AutoMerge"].GetBool();
+            jv = pool.Child("AutoMerge");
+            if (jv && jv->GetType() == enumType::Bool) {
+                pc.AutoMerge = jv->AsBool();
             }
-            if (pool.HasMember("Hosts") && pool["Hosts"].IsArray()) {
-                const auto& vH = pool["Hosts"].GetArray();
-                for (auto it = vH.Begin(), end = vH.End(); it != end; ++it) {
-                    if (!it->IsString()) {
+            jv = pool.Child("Hosts");
+            if (jv && jv->GetType() == enumType::Array) {
+                const auto& vH = jv->AsArray();
+                for (auto it = vH.cbegin(), end = vH.cend(); it != end; ++it) {
+                    if (it->GetType() != enumType::String) {
                         continue;
                     }
-                    pc.Hosts.push_back(it->GetString());
+                    pc.Hosts.push_back(it->AsString());
                 }
             }
             if (pc.PoolType == tagPoolType::Master) {
-                if (pool.HasMember("Slaves") && pool["Slaves"].IsObject()) {
-                    const auto& vSlave = pool["Slaves"].GetObject();
-                    for (auto it = vSlave.MemberBegin(), end = vSlave.MemberEnd(); it != end; ++it) {
-                        const char* skey = it->name.GetString();
-                        const auto& cc = it->value;
-                        if (!cc.IsObject()) {
+                jv = pool.Child("Slaves");
+                if (jv && jv->GetType() == enumType::Object) {
+                    const auto& vSlave = jv->AsObject();
+                    for (auto it = vSlave.cbegin(), end = vSlave.cend(); it != end; ++it) {
+                        const auto& cc = it->second;
+                        if (cc.GetType() != enumType::Object) {
                             continue;
                         }
                         CPoolConfig slave = GetPool(false, cc);
@@ -163,7 +172,7 @@ namespace SPA
                         if (!slave.DefaultDb.size()) {
                             slave.DefaultDb = pc.DefaultDb;
                         }
-                        pc.Slaves[skey] = slave;
+                        pc.Slaves[it->first] = slave;
                     }
                 }
             }
@@ -283,130 +292,84 @@ namespace SPA
         }
 
         std::string CSpConfig::GetConfig() {
-            Document doc;
-            doc.SetObject();
-            Document::AllocatorType& allocator = doc.GetAllocator();
+            JObject objRoot;
             {
                 SPA::CAutoLock al(m_cs);
                 if (!Pools.size()) {
                     return "";
                 }
             }
-            if (CertStore.size()) {
-                Value cs;
-                cs.SetString(CertStore.c_str(), (SizeType) CertStore.size());
-                doc.AddMember("CertStore", cs, allocator);
-            }
-            std::string dir = CClientSocket::QueueConfigure::GetWorkDirectory();
-            if (dir.size()) {
-                Value wd;
-                wd.SetString(dir.c_str(), (SizeType) dir.size());
-                doc.AddMember("WorkingDir", wd, allocator);
-            }
-            doc.AddMember("QueuePassword", m_bQP, allocator);
-            Value vH(kObjectType);
+            objRoot["CertStore"] = JValue(CertStore, false);
+            objRoot["WorkingDir"] = CClientSocket::QueueConfigure::GetWorkDirectory();
+            objRoot["QueuePassword"] = m_bQP;
+            JValue jvRoot(std::move(objRoot));
+            JObject vH;
             for (auto it = Hosts.cbegin(), end = Hosts.cend(); it != end; ++it) {
-                Value key(it->first.c_str(), (SizeType) it->first.size(), allocator);
-
                 auto &ctx = it->second;
-                Value obj(kObjectType);
-
-                Value s(ctx.Host.c_str(), (SizeType) ctx.Host.size(), allocator);
-                obj.AddMember("Host", s, allocator);
-
-                obj.AddMember("Port", ctx.Port, doc.GetAllocator());
-
-                std::string str = Utilities::ToUTF8(ctx.UserId);
-                s.SetString(str.c_str(), (SizeType) str.size(), allocator);
-                obj.AddMember("UserId", s, allocator);
-
-                str = SPA::Utilities::ToUTF8(ctx.Password);
-                s.SetString(str.c_str(), (SizeType) str.size(), allocator);
-                obj.AddMember("Password", s, allocator);
-
-                obj.AddMember("EncrytionMethod", (int) ctx.EncrytionMethod, allocator);
-                obj.AddMember("Zip", ctx.Zip, allocator);
-                obj.AddMember("V6", ctx.V6, allocator);
-                vH.AddMember(key, obj, allocator);
+                JObject obj;
+                obj["Host"] = ctx.Host;
+                obj["Port"] = ctx.Port;
+                obj["UserId"] = JValue(Utilities::ToUTF8(ctx.UserId), false);
+                obj["Password"] = JValue(Utilities::ToUTF8(ctx.Password), false);
+                obj["Port"] = ctx.Port;
+                obj["EncrytionMethod"] = (int)ctx.EncrytionMethod;
+                obj["Zip"] = ctx.Zip;
+                obj["V6"] = ctx.V6;
+                vH[it->first] = std::move(obj);
             }
-            doc.AddMember("Hosts", vH, allocator);
-            if (CPoolConfig::KeysAllowed.size()) {
-                Value vKA(kArrayType);
-                for (auto it = CPoolConfig::KeysAllowed.cbegin(), end = CPoolConfig::KeysAllowed.cend(); it != end; ++it) {
-                    Value key(it->c_str(), (SizeType) it->size(), allocator);
-                    vKA.PushBack(key, allocator);
-                }
-                doc.AddMember("KeysAllowed", vKA, allocator);
+            jvRoot.AsObject()["Hosts"] = std::move(vH);
+            JArray vKA;
+            for (auto it = CPoolConfig::KeysAllowed.cbegin(), end = CPoolConfig::KeysAllowed.cend(); it != end; ++it) {
+                vKA.push_back(JValue(*it, false));
             }
-
-            Value vP(kObjectType);
+            jvRoot.AsObject()["KeysAllowed"] = std::move(vKA);
+            JObject vP;
             for (auto it = Pools.cbegin(), end = Pools.cend(); it != end; ++it) {
-                Value key(it->first.c_str(), (SizeType) it->first.size(), allocator);
                 const CPoolConfig &pscMain = it->second;
-                Value objMain(kObjectType);
-                objMain.AddMember("SvsId", pscMain.SvsId, allocator);
-
-                Value vH(kArrayType);
+                JObject objMain;
+                objMain["SvsId"] = pscMain.SvsId;
+                JArray vH;
                 for (auto h = pscMain.Hosts.cbegin(), he = pscMain.Hosts.cend(); h != he; ++h) {
-                    Value s(h->c_str(), (SizeType) h->size(), allocator);
-                    vH.PushBack(s, allocator);
+                    vH.push_back(JValue(*h, false));
                 }
-                objMain.AddMember("Hosts", vH, allocator);
+                objMain["Hosts"] = std::move(vH);
+                objMain["Threads"] = pscMain.Threads;
+                objMain["Queue"] = pscMain.Queue;
+                objMain["AutoConn"] = pscMain.AutoConn;
+                objMain["AutoMerge"] = pscMain.AutoMerge;
+                objMain["RecvTimeout"] = pscMain.RecvTimeout;
+                objMain["ConnTimeout"] = pscMain.RecvTimeout;
+                objMain["DefaultDb"] = pscMain.DefaultDb;
 
-                objMain.AddMember("Threads", pscMain.Threads, allocator);
-                if (pscMain.Queue.size()) {
-                    Value s(pscMain.Queue.c_str(), (SizeType) pscMain.Queue.size(), allocator);
-                    objMain.AddMember("Queue", s, allocator);
-                }
-                objMain.AddMember("AutoConn", pscMain.AutoConn, allocator);
-                objMain.AddMember("AutoMerge", pscMain.AutoMerge, allocator);
-                objMain.AddMember("RecvTimeout", pscMain.RecvTimeout, allocator);
-                objMain.AddMember("ConnTimeout", pscMain.RecvTimeout, allocator);
-                if (pscMain.DefaultDb.size()) {
-                    Value s(pscMain.DefaultDb.c_str(), (SizeType) pscMain.DefaultDb.size(), allocator);
-                    objMain.AddMember("DefaultDb", s, allocator);
-                }
                 //Slaves
                 if (pscMain.Slaves.size()) {
-                    Value vS(kObjectType);
+                    JObject vS;
                     for (auto one = pscMain.Slaves.cbegin(), onee = pscMain.Slaves.cend(); one != onee; ++one) {
-                        Value key(one->first.c_str(), (SizeType) one->first.size(), allocator);
                         const CPoolConfig &psc = one->second;
-                        Value obj(kObjectType);
-                        obj.AddMember("SvsId", psc.SvsId, allocator);
-
-                        Value vH(kArrayType);
+                        JObject obj;
+                        obj["SvsId"] = psc.SvsId;
+                        JArray vH;
                         for (auto h = psc.Hosts.cbegin(), he = psc.Hosts.cend(); h != he; ++h) {
-                            Value s(h->c_str(), (SizeType) h->size(), allocator);
-                            vH.PushBack(s, allocator);
+                            vH.push_back(*h);
                         }
-                        obj.AddMember("Hosts", vH, allocator);
-
-                        obj.AddMember("Threads", psc.Threads, allocator);
-                        if (psc.Queue.size()) {
-                            Value s(psc.Queue.c_str(), (SizeType) psc.Queue.size(), allocator);
-                            obj.AddMember("Queue", s, allocator);
-                        }
-                        obj.AddMember("AutoConn", psc.AutoConn, allocator);
-                        obj.AddMember("AutoMerge", psc.AutoMerge, allocator);
-                        obj.AddMember("RecvTimeout", psc.RecvTimeout, allocator);
-                        obj.AddMember("ConnTimeout", psc.RecvTimeout, allocator);
-                        Value s(psc.DefaultDb.c_str(), (SizeType) psc.DefaultDb.size(), allocator);
-                        obj.AddMember("DefaultDb", s, allocator);
-                        obj.AddMember("PoolType", (int) psc.PoolType, allocator);
-                        vS.AddMember(key, obj, allocator);
+                        obj["Hosts"] = std::move(vH);
+                        obj["Threads"] = psc.Threads;
+                        obj["Queue"] = psc.Queue;
+                        obj["AutoConn"] = psc.AutoConn;
+                        obj["AutoMerge"] = psc.AutoMerge;
+                        obj["RecvTimeout"] = psc.RecvTimeout;
+                        obj["ConnTimeout"] = psc.ConnTimeout;
+                        obj["DefaultDb"] = psc.DefaultDb;
+                        obj["PoolType"] = (int)psc.PoolType;
+                        vS[one->first] = std::move(obj);
                     }
-                    objMain.AddMember("Slaves", vS, allocator);
+                    objMain["Slaves"] = std::move(vS);
                 }
-                objMain.AddMember("PoolType", (int) pscMain.PoolType, allocator);
-                vP.AddMember(key, objMain, allocator);
+                objMain["PoolType"] = (int)pscMain.PoolType;
+                vP[it->first] = std::move(objMain);
             }
-            doc.AddMember("Pools", vP, allocator);
-
-            StringBuffer buffer;
-            Writer<StringBuffer> writer(buffer);
-            doc.Accept(writer);
-            return buffer.GetString();
+            jvRoot.AsObject()["Pools"] = std::move(vP);
+            return jvRoot.Stringify();
         }
 
         bool CSpConfig::Parse(bool midTier, const char *jsonConfig) {
@@ -419,90 +382,79 @@ namespace SPA
             CertStore.clear();
             m_bQP = 0;
             m_pp.clear();
-            Document doc;
-            doc.SetObject();
             std::string jsFile(jsonConfig ? jsonConfig : "");
             Trim(jsFile);
             if (!jsFile.size()) {
                 jsFile = "sp_config.json";
             }
-            std::shared_ptr<FILE> fp(fopen(jsFile.c_str(), "rb"), [](FILE * f) {
-                if (f) {
-                    ::fclose(f);
-                }
-            });
-            if (!fp || ferror(fp.get())) {
+            int errCode = 0;
+            std::unique_ptr<JValue> jv(JSON::ParseFromFile(jsFile.c_str(), errCode));
+            if (errCode) {
                 m_errMsg = "Cannot open configuration file " + jsFile;
                 return false;
             }
-            fseek(fp.get(), 0, SEEK_END);
-            long size = ftell(fp.get()) + sizeof (wchar_t);
-            fseek(fp.get(), 0, SEEK_SET);
-            SPA::CScopeUQueue sb(SPA::GetOS(), SPA::IsBigEndian(), (unsigned int) size);
-            sb->CleanTrack();
-            FileReadStream is(fp.get(), (char*) sb->GetBuffer(), sb->GetMaxSize());
-            const char *json = (const char*) sb->GetBuffer();
-            ParseResult ok = doc.Parse(json, ::strlen(json));
-            if (!ok) {
+            else if (!jv) {
                 m_errMsg = "Bad JSON configuration object";
                 return false;
             }
-            if (doc.HasMember("WorkingDir") && doc["WorkingDir"].IsString()) {
-                std::string dir = doc["WorkingDir"].GetString();
-                Trim(dir);
+            JValue* v = jv->Child("WorkingDir");
+            if (v && v->GetType() == enumType::String) {
+                std::string dir = v->AsString();
+                Trim(Unescape(dir));
                 SPA::ClientSide::CClientSocket::QueueConfigure::SetWorkDirectory(dir.c_str());
             }
-            if (doc.HasMember("CertStore") && doc["CertStore"].IsString()) {
-                CertStore = doc["CertStore"].GetString();
+            v = jv->Child("CertStore");
+            if (v && v->GetType() == enumType::String) {
+                CertStore = v->AsString();
                 Trim(CertStore);
                 if (CertStore.size()) {
                     CClientSocket::SSL::SetVerifyLocation(CertStore.c_str());
                 }
             }
-            if (doc.HasMember("QueuePassword") && doc["QueuePassword"].IsString()) {
-                std::string qp = doc["QueuePassword"].GetString();
+            v = jv->Child("QueuePassword");
+            if (v && v->GetType() == enumType::String) {
+                std::string qp = v->AsString();
                 Trim(qp);
                 if (qp.size()) {
                     SPA::ClientSide::CClientSocket::QueueConfigure::SetMessageQueuePassword(qp.c_str());
                     m_bQP = 1;
                 }
             }
-            if (doc.HasMember("KeysAllowed") && doc["KeysAllowed"].IsArray()) {
-                const auto& arr = doc["KeysAllowed"].GetArray();
-                for (auto it = arr.Begin(), end = arr.End(); it != end; ++it) {
-                    if (!it->IsString()) {
+            v = jv->Child("KeysAllowed");
+            if (v && v->GetType() == enumType::Array) {
+                const auto& arr = v->AsArray();
+                for (auto it = arr.cbegin(), end = arr.cend(); it != end; ++it) {
+                    if (it->GetType() != enumType::String) {
                         continue;
                     }
-                    std::string s = it->GetString();
+                    std::string s = it->AsString();
                     Trim(s);
                     if (s.size()) {
                         ToLower(s);
                         CPoolConfig::KeysAllowed.push_back(std::move(s));
                     }
                 }
-            } else {
-                CPoolConfig::KeysAllowed.clear();
             }
-            if (doc.HasMember("Hosts") && doc["Hosts"].IsObject()) {
-                const auto &arr = doc["Hosts"].GetObject();
-                for (auto it = arr.MemberBegin(), end = arr.MemberEnd(); it != end; ++it) {
-                    const char *key = it->name.GetString();
-                    const auto &cc = it->value;
-                    if (!cc.IsObject()) {
+            v = jv->Child("Hosts");
+            if (v && v->GetType() == enumType::Object) {
+                const auto& arr = v->AsObject();
+                for (auto it = arr.cbegin(), end = arr.cend(); it != end; ++it) {
+                    const auto& cc = it->second;
+                    if (cc.GetType() != enumType::Object) {
                         continue;
                     }
-                    Hosts[key] = GetCC(cc);
+                    Hosts[it->first] = GetCC(cc.AsObject());
                 }
             }
-            if (doc.HasMember("Pools") && doc["Pools"].IsObject()) {
-                const auto &arr = doc["Pools"].GetObject();
-                for (auto it = arr.MemberBegin(), end = arr.MemberEnd(); it != end; ++it) {
-                    const char *key = it->name.GetString();
-                    const auto &cc = it->value;
-                    if (!cc.IsObject()) {
+            v = jv->Child("Pools");
+            if (v && v->GetType() == enumType::Object) {
+                const auto& arr = v->AsObject();
+                for (auto it = arr.cbegin(), end = arr.cend(); it != end; ++it) {
+                    const auto& cc = it->second;
+                    if (cc.GetType() != enumType::Object) {
                         continue;
                     }
-                    Pools[key] = ClientSide::GetPool(true, cc);
+                    Pools[it->first] = ClientSide::GetPool(true, cc);
                 }
             }
             Normalize();
