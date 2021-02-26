@@ -44,13 +44,8 @@ namespace SPA {
                     if (next == '\\') {
                         ++data;
                         switch (*data) {
-                            case '"':
-                            case '\\':
-                            case 'b':
-                            case 'f':
-                            case 'n':
-                            case 'r':
-                            case 't':
+                            case '"': case '\\': case 'b': case 'f':
+                            case 'n': case 'r': case 't':
                                 next = *data;
                                 break;
                             case 'u':
@@ -97,22 +92,45 @@ namespace SPA {
 
         static JValue* Parse(const char* data);
 
+        static std::string&& Escape(std::string& str) {
+            for (size_t pos = 0, len = str.size(); pos < len; ++pos) {
+                switch (str[pos]) {
+                    case '\\': case '\b': case '\f': case '"':
+                    case '\t': case '\r': case '\n':
+                        str.insert(pos, 1, '\\');
+                        ++pos;
+                        ++len;
+                        break;
+                    default:
+                        break;
+                }
+            }
+            return std::move(str);
+        }
+
+        static std::string Escape(const char *str) {
+            std::string s(str ? str : "");
+            return Escape(s);
+        }
+
         class JValue {
         public:
 
             JValue() noexcept : type(enumType::Null) {
             }
 
-            JValue(const char* str) {
+            JValue(const char* str, bool escape = true) {
                 if (str) {
                     type = enumType::String;
                     strValue = new std::string(str);
+                    if (escape) Escape(*strValue);
                 } else {
                     type = enumType::Null;
                 }
             }
 
-            JValue(const std::string& str) : type(enumType::String), strValue(new std::string(str)) {
+            JValue(const std::string& str, bool escape = true) : type(enumType::String), strValue(new std::string(str)) {
+                if (escape) Escape(*strValue);
             }
 
             JValue(bool value) noexcept : type(enumType::Bool), bValue(value) {
@@ -169,8 +187,9 @@ namespace SPA {
                 objValue->swap(obj);
             }
 
-            JValue(std::string&& src) : type(enumType::String), strValue(new std::string) {
+            JValue(std::string&& src, bool escape = true) : type(enumType::String), strValue(new std::string) {
                 strValue->swap(src);
+                if (escape) Escape(*strValue);
             }
 
             JValue(JValue&& src) noexcept : type(src.type), int64Value(src.int64Value) {
@@ -207,8 +226,7 @@ namespace SPA {
                         return objValue->size();
                     case enumType::String:
                         return strValue->size();
-                    default:
-                        assert(false); //unexpected error
+                    default: //null
                         break;
                 }
                 return false;
@@ -279,7 +297,7 @@ namespace SPA {
                 return nullptr;
             }
 
-            std::vector<std::string> ObjectKeys() const {
+            std::vector<std::string> ObjKeys() const {
                 std::vector<std::string> keys;
                 if (type == enumType::Object) {
                     for (auto it = objValue->cbegin(), end = objValue->cend(); it != end; ++it) {
@@ -290,89 +308,10 @@ namespace SPA {
             }
 
             std::string Stringify(bool pretty = true, const char* df = "%lf", unsigned int indent_chars = DEFAULT_INDENT_CHARS) const {
+                std::string ret_str;
                 unsigned int indent = 0;
-                return Stringify(indent, pretty, df, indent_chars);
-            }
-
-            std::string Stringify(unsigned int& indent, bool pretty = true, const char* df = "%lf", unsigned int indent_chars = DEFAULT_INDENT_CHARS) const {
-                std::string ret_string;
-                switch (type) {
-                    case enumType::Int64:
-                        ret_string = std::to_string(int64Value);
-                        break;
-                    case enumType::String:
-                        ret_string.push_back('"');
-                        ret_string.append(*strValue);
-                        ret_string.push_back('"');
-                        break;
-                    case enumType::Bool:
-                        ret_string = (bValue ? "true" : "false");
-                        break;
-                    case enumType::Number:
-                        if (isinf(dValue) || isnan(dValue)) {
-                            ret_string = "null";
-                        } else {
-                            char str[64]; //don't give me a too long precision!!!
-#ifdef WIN32_64
-                            ::sprintf_s(str, df, dValue);
-#else
-                            sprintf(str, df, dValue);
-#endif
-                            ret_string = str;
-                        }
-                        break;
-                    case enumType::Array:
-                    {
-                        ret_string.push_back('[');
-                        if (pretty) ret_string.push_back('\n');
-                        ++indent;
-                        JArray::const_iterator iter = arrValue->begin(), end = arrValue->end();
-                        while (iter != end) {
-                            if (pretty) ret_string += std::string((size_t) indent * indent_chars, ' ');
-                            ret_string += iter->Stringify(indent, pretty, df, indent_chars);
-                            if (++iter != end) {
-                                ret_string.push_back(',');
-                                if (pretty) ret_string.push_back('\n');
-                            }
-                        }
-                        --indent;
-                        if (pretty) {
-                            ret_string.push_back('\n');
-                            ret_string += std::string((size_t) indent * indent_chars, ' ');
-                        }
-                        ret_string.push_back(']');
-                        break;
-                    }
-                    case enumType::Object:
-                    {
-                        ret_string.push_back('{');
-                        if (pretty) ret_string.push_back('\n');
-                        ++indent;
-                        JObject::const_iterator iter = objValue->begin(), end = objValue->end();
-                        while (iter != end) {
-                            if (pretty) ret_string += std::string((size_t) indent * indent_chars, ' ');
-                            ret_string.push_back('"');
-                            ret_string.append(iter->first);
-                            ret_string += "\":";
-                            ret_string += iter->second.Stringify(indent, pretty, df, indent_chars);
-                            if (++iter != end) {
-                                ret_string.push_back(',');
-                                if (pretty) ret_string.push_back('\n');
-                            }
-                        }
-                        --indent;
-                        if (pretty) {
-                            ret_string.push_back('\n');
-                            ret_string += std::string((size_t) indent * indent_chars, ' ');
-                        }
-                        ret_string.push_back('}');
-                        break;
-                    }
-                    default: //null
-                        ret_string = "null";
-                        break;
-                }
-                return std::move(ret_string);
+                Stringify(ret_str, indent, pretty, df, indent_chars);
+                return std::move(ret_str);
             }
 
             JValue& operator=(JArray&& arr) {
@@ -408,6 +347,7 @@ namespace SPA {
                     strValue = new std::string;
                     strValue->swap(src);
                 }
+                Escape(*strValue);
                 return *this;
             }
 
@@ -462,6 +402,7 @@ namespace SPA {
                 if (str) {
                     type = enumType::String;
                     strValue = new std::string(str);
+                    Escape(*strValue);
                 } else {
                     type = enumType::Null;
                 }
@@ -472,6 +413,7 @@ namespace SPA {
                 Clean();
                 type = enumType::String;
                 strValue = new std::string(str);
+                Escape(*strValue);
                 return *this;
             }
 
@@ -520,11 +462,90 @@ namespace SPA {
 
         private:
 
+            void Stringify(std::string& ret_str, unsigned int& indent, bool pretty = true, const char* df = "%lf", unsigned int indent_chars = DEFAULT_INDENT_CHARS) const {
+                switch (type) {
+                    case enumType::Int64:
+                        ret_str += std::to_string(int64Value);
+                        break;
+                    case enumType::String:
+                        ret_str.push_back('"');
+                        ret_str.append(*strValue);
+                        ret_str.push_back('"');
+                        break;
+                    case enumType::Bool:
+                        ret_str += (bValue ? "true" : "false");
+                        break;
+                    case enumType::Number:
+                        if (isinf(dValue) || isnan(dValue)) {
+                            ret_str += "null";
+                        } else {
+                            char str[64]; //don't give me a too long precision!!!
+#ifdef WIN32_64
+                            ::sprintf_s(str, df, dValue);
+#else
+                            sprintf(str, df, dValue);
+#endif
+                            ret_str += str;
+                        }
+                        break;
+                    case enumType::Array:
+                    {
+                        ret_str.push_back('[');
+                        if (pretty) ret_str.push_back('\n');
+                        ++indent;
+                        JArray::const_iterator iter = arrValue->begin(), end = arrValue->end();
+                        while (iter != end) {
+                            if (pretty) ret_str += std::string((size_t) indent * indent_chars, ' ');
+                            iter->Stringify(ret_str, indent, pretty, df, indent_chars);
+                            if (++iter != end) {
+                                ret_str.push_back(',');
+                                if (pretty) ret_str.push_back('\n');
+                            }
+                        }
+                        --indent;
+                        if (pretty) {
+                            ret_str.push_back('\n');
+                            ret_str += std::string((size_t) indent * indent_chars, ' ');
+                        }
+                        ret_str.push_back(']');
+                        break;
+                    }
+                    case enumType::Object:
+                    {
+                        ret_str.push_back('{');
+                        if (pretty) ret_str.push_back('\n');
+                        ++indent;
+                        JObject::const_iterator iter = objValue->begin(), end = objValue->end();
+                        while (iter != end) {
+                            if (pretty) ret_str += std::string((size_t) indent * indent_chars, ' ');
+                            ret_str.push_back('"');
+                            ret_str.append(iter->first);
+                            ret_str += "\":";
+                            iter->second.Stringify(ret_str, indent, pretty, df, indent_chars);
+                            if (++iter != end) {
+                                ret_str.push_back(',');
+                                if (pretty) ret_str.push_back('\n');
+                            }
+                        }
+                        --indent;
+                        if (pretty) {
+                            ret_str.push_back('\n');
+                            ret_str += std::string((size_t) indent * indent_chars, ' ');
+                        }
+                        ret_str.push_back('}');
+                        break;
+                    }
+                    default: //null
+                        ret_str += "null";
+                        break;
+                }
+            }
+
             static JValue* Parse(const char*& data) {
                 if (*data == '"') {
                     std::string str;
                     if (!Internal::ExtractString(++data, str)) return nullptr;
-                    return new JValue(std::move(str));
+                    return new JValue(std::move(str), false);
                 } else if ((Internal::AtLeastChars(data, 4) && ::strncmp(data, "true", 4) == 0) || (Internal::AtLeastChars(data, 5) && ::strncmp(data, "false", 5) == 0)) {
                     bool value = (::strncmp(data, "true", 4) == 0);
                     data += value ? 4 : 5;
