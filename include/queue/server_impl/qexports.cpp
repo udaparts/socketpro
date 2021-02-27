@@ -26,15 +26,15 @@ bool U_MODULE_OPENED WINAPI SetSPluginGlobalOptions(const char* jsonOptions) {
         return false;
     }
     JSON::JValue* v = jv->Child(DEQUEUE_BATCH_SIZE);
-    if (v && v->GetType() == JSON::enumType::Int64) {
-        unsigned int bs = (unsigned int) v->AsInt64();
+    if (v && v->GetType() == JSON::enumType::Uint64) {
+        unsigned int bs = (unsigned int) v->AsUint64();
         bs &= 0xffffff;
         if (bs < MIN_DEQUEUE_BATCH_SIZE) bs = MIN_DEQUEUE_BATCH_SIZE;
         CAsyncQueueImpl::m_nBatchSize = bs;
     }
     v = jv->Child(DISABLE_AUTO_NOTIFICATION);
-    if (v && v->GetType() == JSON::enumType::Int64) {
-        unsigned int disable_auto_notification = (unsigned int) v->AsInt64();
+    if (v && v->GetType() == JSON::enumType::Uint64) {
+        unsigned int disable_auto_notification = (unsigned int) v->AsUint64();
         disable_auto_notification &= 0xff;
         CAsyncQueueImpl::m_bNoAuto = disable_auto_notification;
     }

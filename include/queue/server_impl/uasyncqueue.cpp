@@ -5,7 +5,7 @@ std::shared_ptr<CSocketProService<CAsyncQueueImpl> > g_pAsyncQueue;
 
 bool WINAPI InitServerLibrary(int param) {
     unsigned int options = (unsigned int) param;
-    CAsyncQueueImpl::m_bNoAuto = (unsigned char) (options >> 24);
+    CAsyncQueueImpl::m_bNoAuto = (options >> 24);
     unsigned int batchSize = (options & 0xffffff);
     if (!batchSize) {
         batchSize = DEFAULT_DEQUEUE_BATCH_SIZE;

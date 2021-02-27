@@ -255,15 +255,15 @@ void CSetGlobals::SetConfig() {
     }
     auto& doc = Config.doc;
     JValue* v = doc->Child(STREAMING_DB_PORT);
-    if (v && v->GetType() == enumType::Int64) {
-        Config.port = (unsigned short) v->AsInt64();
+    if (v && v->GetType() == enumType::Uint64) {
+        Config.port = (unsigned short) v->AsUint64();
         if (!Config.port) {
             Config.port = DEFAULT_LISTENING_PORT;
         }
     }
     v = doc->Child(STREAMING_DB_MAIN_THREADS);
-    if (v && v->GetType() == enumType::Int64) {
-        Config.main_threads = (int) v->AsInt64();
+    if (v && v->GetType() == enumType::Uint64) {
+        Config.main_threads = (int) v->AsUint64();
         if (Config.main_threads <= 0) Config.main_threads = 1;
     }
     v = doc->Child(STREAMING_DB_NO_IPV6);

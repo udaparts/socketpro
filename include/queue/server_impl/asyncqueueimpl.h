@@ -18,7 +18,7 @@ namespace SPA {
         public:
             //The following two static members are set within the method bool WINAPI InitServerLibrary(int param)
             static std::atomic<unsigned int> m_nBatchSize;
-            static std::atomic<unsigned char> m_bNoAuto;
+            static std::atomic<unsigned int> m_bNoAuto;
 
             CAsyncQueueImpl();
 

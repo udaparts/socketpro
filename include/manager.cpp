@@ -71,8 +71,8 @@ namespace SPA
                 ToLower(ctx.Host);
             }
             it = cc.find("Port");
-            if (it != end && it->second.GetType() == enumType::Int64) {
-                ctx.Port = (unsigned short) it->second.AsInt64();
+            if (it != end && it->second.GetType() == enumType::Uint64) {
+                ctx.Port = (unsigned short) it->second.AsUint64();
             }
             it = cc.find("UserId");
             if (it != end && it->second.GetType() == enumType::String) {
@@ -86,8 +86,8 @@ namespace SPA
                 ctx.Password = SPA::Utilities::ToWide(s);
             }
             it = cc.find("EncrytionMethod");
-            if (it != end && it->second.GetType() == enumType::Int64) {
-                ctx.EncrytionMethod = it->second.AsInt64() ? SPA::tagEncryptionMethod::TLSv1 : SPA::tagEncryptionMethod::NoEncryption;
+            if (it != end && it->second.GetType() == enumType::Uint64) {
+                ctx.EncrytionMethod = it->second.AsUint64() ? SPA::tagEncryptionMethod::TLSv1 : SPA::tagEncryptionMethod::NoEncryption;
             }
             it = cc.find("Zip");
             if (it != end && it->second.GetType() == enumType::Bool) {
@@ -125,20 +125,20 @@ namespace SPA
                 pc.PoolType = tagPoolType::Slave;
             }
             jv = pool.Child("SvsId");
-            if (jv && jv->GetType() == enumType::Int64) {
-                pc.SvsId = (unsigned int) jv->AsInt64();
+            if (jv && jv->GetType() == enumType::Uint64) {
+                pc.SvsId = (unsigned int) jv->AsUint64();
             }
             jv = pool.Child("Threads");
-            if (jv && jv->GetType() == enumType::Int64) {
-                pc.Threads = (unsigned int) jv->AsInt64();
+            if (jv && jv->GetType() == enumType::Uint64) {
+                pc.Threads = (unsigned int) jv->AsUint64();
             }
             jv = pool.Child("RecvTimeout");
-            if (jv && jv->GetType() == enumType::Int64) {
-                pc.RecvTimeout = (unsigned int) jv->AsInt64();
+            if (jv && jv->GetType() == enumType::Uint64) {
+                pc.RecvTimeout = (unsigned int) jv->AsUint64();
             }
             jv = pool.Child("ConnTimeout");
-            if (jv && jv->GetType() == enumType::Int64) {
-                pc.ConnTimeout = (unsigned int) jv->AsInt64();
+            if (jv && jv->GetType() == enumType::Uint64) {
+                pc.ConnTimeout = (unsigned int) jv->AsUint64();
             }
             jv = pool.Child("AutoConn");
             if (jv && jv->GetType() == enumType::Bool) {

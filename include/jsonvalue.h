@@ -13,25 +13,17 @@ namespace SPA {
         namespace Internal {
 
             static bool SkipWhitespace(const char*& data) {
-                while (*data != 0 && (*data == ' ' || *data == '\t' || *data == '\r' || *data == '\n')) {
+                while (*data == ' ' || *data == '\n' || *data == '\r' || *data == '\t') {
                     ++data;
                 }
-                return *data != 0;
-            }
-
-            static bool AtLeastChars(const char* s, size_t n) {
-                if (!s) return false;
-                const char* str = s;
-                for (; *str && n; ++str, --n) {
-                }
-                return (n == 0 || *str > 0);
+                return *data;
             }
 
             static double ParseDecimal(const char*& data) {
-                double decimal = 0, factor = 0.1;
-                while (*data != 0 && *data >= '0' && *data <= '9') {
-                    int digit = (*data++ -'0');
-                    decimal = decimal + digit * factor;
+                double decimal = 0.0, factor = 0.1;
+                while (*data >= '0' && *data <= '9') {
+                    int diff = (*data++ -'0');
+                    decimal += diff * factor;
                     factor *= 0.1;
                 }
                 return decimal;
@@ -39,7 +31,7 @@ namespace SPA {
 
             static bool ExtractString(const char*& data, std::string& str) {
                 const char* start = data;
-                while (*data != 0) {
+                while (*data) {
                     char next = *data;
                     if (next == '\\') {
                         ++data;
@@ -49,7 +41,6 @@ namespace SPA {
                                 next = *data;
                                 break;
                             case 'u':
-                                if (!AtLeastChars(data, 5)) return false;
                                 next = 0;
                                 for (int i = 0; i < 4; ++i) {
                                     ++data;
@@ -82,7 +73,7 @@ namespace SPA {
         }
 
         enum class enumType {
-            Null, String, Bool, Number, Array, Object, Int64
+            Null, String, Bool, Number, Array, Object, Int64, Uint64
         };
 
         class JValue;
@@ -163,13 +154,18 @@ namespace SPA {
             JValue(double d) noexcept : type(enumType::Number), dValue(d) {
             }
 
-            JValue(unsigned int n) : type(enumType::Int64), int64Value(n) {
+            JValue(unsigned int n) : type(enumType::Uint64), uint64Value(n) {
             }
 
-            JValue(int n) noexcept : type(enumType::Int64), int64Value(n) {
+            JValue(UINT64 n) : type(enumType::Uint64), uint64Value(n) {
             }
 
-            JValue(INT64 n) noexcept : type(enumType::Int64), int64Value(n) {
+            JValue(int n) noexcept : type(enumType::Uint64), int64Value(n) {
+                if (n < 0) type = enumType::Int64;
+            }
+
+            JValue(INT64 n) noexcept : type(enumType::Uint64), int64Value(n) {
+                if (n < 0) type = enumType::Int64;
             }
 
             JValue(const JArray& arr) : type(enumType::Array), arrValue(new JArray(arr)) {
@@ -188,6 +184,9 @@ namespace SPA {
                         break;
                     case enumType::Int64:
                         int64Value = src.int64Value;
+                        break;
+                    case enumType::Uint64:
+                        uint64Value = src.uint64Value;
                         break;
                     case enumType::Number:
                         dValue = src.dValue;
@@ -244,6 +243,8 @@ namespace SPA {
                         return dValue;
                     case enumType::Int64:
                         return int64Value;
+                    case enumType::Uint64:
+                        return uint64Value;
                     case enumType::Array:
                         return arrValue->size();
                     case enumType::Object:
@@ -264,6 +265,8 @@ namespace SPA {
                         return dValue;
                     case enumType::Int64:
                         return (double) int64Value;
+                    case enumType::Uint64:
+                        return (double) uint64Value;
                     default:
                         assert(false); //unexpected error
                         break;
@@ -278,7 +281,24 @@ namespace SPA {
                     case enumType::Number:
                         return (INT64) dValue;
                     case enumType::Int64:
+                    case enumType::Uint64:
                         return int64Value;
+                    default:
+                        assert(false); //unexpected error
+                        break;
+                }
+                return 0;
+            }
+
+            inline UINT64 AsUint64() const noexcept {
+                switch (type) {
+                    case enumType::Bool:
+                        return bValue ? 1 : 0;
+                    case enumType::Number:
+                        return (UINT64) dValue;
+                    case enumType::Int64:
+                    case enumType::Uint64:
+                        return uint64Value;
                     default:
                         assert(false); //unexpected error
                         break;
@@ -378,11 +398,11 @@ namespace SPA {
             JValue& operator=(JValue&& src) noexcept {
                 if (this == &src) return *this;
                 enumType t = type;
-                INT64 int64 = int64Value;
+                UINT64 int64 = uint64Value;
                 type = src.type;
-                int64Value = src.int64Value;
+                uint64Value = src.uint64Value;
                 src.type = t;
-                src.int64Value = int64;
+                src.uint64Value = int64;
                 return *this;
             }
 
@@ -402,22 +422,29 @@ namespace SPA {
 
             JValue& operator=(int n) {
                 Clean();
-                type = enumType::Int64;
+                type = (n < 0) ? enumType::Int64 : enumType::Uint64;
                 int64Value = n;
                 return *this;
             }
 
             JValue& operator=(unsigned int n) {
                 Clean();
-                type = enumType::Int64;
-                int64Value = n;
+                type = enumType::Uint64;
+                uint64Value = n;
                 return *this;
             }
 
             JValue& operator=(INT64 n) {
                 Clean();
-                type = enumType::Int64;
+                type = (n < 0) ? enumType::Int64 : enumType::Uint64;
                 int64Value = n;
+                return *this;
+            }
+
+            JValue& operator=(UINT64 n) {
+                Clean();
+                type = enumType::Uint64;
+                uint64Value = n;
                 return *this;
             }
 
@@ -469,6 +496,9 @@ namespace SPA {
                     case enumType::Int64:
                         int64Value = src.int64Value;
                         break;
+                    case enumType::Uint64:
+                        uint64Value = src.uint64Value;
+                        break;
                     case enumType::Number:
                         dValue = src.dValue;
                         break;
@@ -490,6 +520,9 @@ namespace SPA {
                 switch (type) {
                     case enumType::Int64:
                         ret_str += std::to_string(int64Value);
+                        break;
+                    case enumType::Uint64:
+                        ret_str += std::to_string(uint64Value);
                         break;
                     case enumType::String:
                         ret_str.push_back('"');
@@ -570,26 +603,39 @@ namespace SPA {
                     std::string str;
                     if (!Internal::ExtractString(++data, str)) return nullptr;
                     return new JValue(std::move(str), false);
-                } else if ((Internal::AtLeastChars(data, 4) && ::strncmp(data, "true", 4) == 0) || (Internal::AtLeastChars(data, 5) && ::strncmp(data, "false", 5) == 0)) {
-                    bool value = (::strncmp(data, "true", 4) == 0);
-                    data += value ? 4 : 5;
-                    return new JValue(value);
-                } else if (Internal::AtLeastChars(data, 4) && ::strncmp(data, "null", 4) == 0) {
+                } else if (data[0] == 'f' && data[1] == 'a' && data[2] == 'l' && data[3] == 's' && data[4] == 'e') {
+                    data += 5;
+                    return new JValue(false);
+                } else if (data[0] == 't' && data[1] == 'r' && data[2] == 'u' && data[3] == 'e') {
+                    data += 4;
+                    return new JValue(true);
+                } else if (data[0] == 'n' && data[1] == 'u' && data[2] == 'l' && data[3] == 'l') {
                     data += 4;
                     return new JValue();
                 } else if (*data == '-' || (*data >= '0' && *data <= '9')) {
                     bool neg = *data == '-';
                     if (neg) ++data;
                     INT64 int64 = 0;
+                    UINT64 uint64 = 0;
                     if (*data == '0') {
                         ++data;
                     } else if (*data >= '1' && *data <= '9') {
-                        int64 = atoll(data, data);
+                        if (neg) {
+                            int64 = atoll(data, data);
+                        } else {
+                            uint64 = atoull(data, data);
+                        }
                     } else {
                         return nullptr;
                     }
-                    if (*data != '.' && *data != 'e' && *data != 'E') return new JValue(neg ? -int64 : int64);
-                    double number = int64;
+                    if (*data != '.' && *data != 'e' && *data != 'E') {
+                        if (neg) {
+                            return new JValue(-int64);
+                        } else {
+                            return new JValue(uint64);
+                        }
+                    }
+                    double number = neg ? (double) int64 : (double) uint64;
                     if (*data == '.') {
                         ++data;
                         if (!(*data >= '0' && *data <= '9')) return nullptr;
@@ -684,6 +730,7 @@ namespace SPA {
             union {
                 bool bValue;
                 INT64 int64Value;
+                UINT64 uint64Value;
                 double dValue;
                 std::string* strValue;
                 JArray* arrValue;
@@ -736,7 +783,7 @@ namespace SPA {
             sb->SetNull();
             const char* json = (const char*) sb->GetBuffer();
             if (res >= 3) {
-                unsigned char byte_order_mark[] = { 0xef, 0xbb, 0xbf }; //UTF8 BOM
+                unsigned char byte_order_mark[] = {0xef, 0xbb, 0xbf}; //UTF8 BOM
                 if (::memcmp(byte_order_mark, json, sizeof (byte_order_mark)) == 0) json += 3;
             }
             return Parse(json);
