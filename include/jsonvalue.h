@@ -1,7 +1,7 @@
 #ifndef _SOCKETPRO_JSON_VALUE_H_
 #define _SOCKETPRO_JSON_VALUE_H_
 
-#include "commutil.h"
+#include "membuffer.h"
 #ifndef WIN32_64
 #include <math.h>
 #endif
@@ -72,7 +72,7 @@ namespace SPA {
                         str.append(start, data);
                         ++data;
                         return true;
-                    } else if (next < ' ' && next != '\t') {
+                    } else if (next > 0 && next < ' ' && next != '\t') {
                         return false;
                     }
                     ++data;
