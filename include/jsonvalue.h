@@ -662,17 +662,14 @@ namespace SPA {
                         break;
                     case enumType::Bool:
                         if (bValue) {
-                            TChar str[] = {'t', 'r', 'u', 'e'};
-                            ret_str.append(str, 4);
+                            ret_str.append(JTrue.c_str(), (size_t) 4);
                         } else {
-                            TChar str[] = {'f', 'a', 'l', 's', 'e'};
-                            ret_str.append(str, 5);
+                            ret_str.append(JFalse.c_str(), (size_t) 5);
                         }
                         break;
                     case enumType::Number:
                         if (isinf(dValue) || isnan(dValue)) {
-                            TChar str[] = {'n', 'u', 'l', 'l'};
-                            ret_str.append(str, 4);
+                            ret_str.append(JNull.c_str(), (size_t) 4);
                         } else {
                             TChar str[64]; //don't give me a too long precision!!!
                             unsigned char chars = (unsigned char) (sizeof (str) / sizeof (TChar));
@@ -704,7 +701,6 @@ namespace SPA {
                     }
                     case enumType::Object:
                     {
-                        TChar str[] = {'"', ':'};
                         ret_str.push_back('{');
                         if (pretty) ret_str.push_back('\n');
                         ++indent;
@@ -713,7 +709,7 @@ namespace SPA {
                             if (pretty) ret_str.append((size_t) indent * indent_chars, ' ');
                             ret_str.push_back('"');
                             ret_str.append(iter->first);
-                            ret_str.append(str, (size_t) 2);
+                            ret_str.append(JMVSep.c_str(), (size_t) 2);
                             iter->second.Stringify(ret_str, indent, scale, pretty, indent_chars);
                             if (++iter != end) {
                                 ret_str.push_back(',');
@@ -729,10 +725,7 @@ namespace SPA {
                         break;
                     }
                     default: //null
-                    {
-                        TChar str[] = {'n', 'u', 'l', 'l'};
-                        ret_str.append(str, 4);
-                    }
+                        ret_str.append(JNull.c_str(), (size_t) 4);
                         break;
                 }
             }
@@ -764,7 +757,21 @@ namespace SPA {
                 JArray<TChar>* arrValue;
                 JObject<TChar>* objValue;
             };
+
+            static JString JFalse;
+            static JString JTrue;
+            static JString JNull;
+            static JString JMVSep;
         };
+
+        template <typename TChar>
+        typename JValue<TChar>::JString JValue<TChar>::JFalse({'f', 'a', 'l', 's', 'e'});
+        template <typename TChar>
+        typename JValue<TChar>::JString JValue<TChar>::JTrue({'t', 'r', 'u', 'e'});
+        template <typename TChar>
+        typename JValue<TChar>::JString JValue<TChar>::JNull({'n', 'u', 'l', 'l'});
+        template <typename TChar>
+        typename JValue<TChar>::JString JValue<TChar>::JMVSep({'"', ':'});
 
         template <typename TChar>
         JValue<TChar>* Parse(const TChar* data) {
