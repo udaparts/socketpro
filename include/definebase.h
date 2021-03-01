@@ -631,10 +631,9 @@ namespace SPA {
         return buff + start;
     }
 
-    //max precision 16, and no support to double number larger than 1e17 or smaller than -1e17
-
     template<typename TChar>
     const TChar* ToString(double d, TChar* str, unsigned char& chars, unsigned char scale) {
+        static double dMax = 1.5e19, dMin = -1.5e19;
         static double powers[] = {0.5, 0.05, 0.005, 0.0005, 0.00005, 0.000005, 0.0000005, 0.00000005, 0.000000005,
             5e-10, 5e-11, 5e-12, 5e-13, 5e-14, 5e-15, 5e-16, 5e-17, 5e-18, 5e-19, 5e-20, 5e-21, 5e-22};
         if (!str || !chars) return nullptr;
@@ -655,6 +654,29 @@ namespace SPA {
             return str;
         }
         chars = 0;
+        if (d > dMax || d < dMin || (d > -0.1 && d < 0.1)) {
+            char data[64];
+            char format[8];
+            format[0] = '%';
+            format[1] = '.';
+#ifdef WIN32_64
+            int len = sprintf_s(format + 2, sizeof (format) - 2, "%d", (int) scale);
+#else
+            int len = sprintf(format + 2, "%d", (int) scale);
+#endif
+            format[len + 2] = 'e';
+            format[len + 3] = 0;
+#ifdef WIN32_64
+            len = sprintf_s(data, sizeof (data), format, d);
+#else
+            len = sprintf(data, format, d);
+#endif
+            for (int n = 0; n < len && n <= total; ++n) {
+                str[n] = data[n];
+                ++chars;
+            }
+            return str;
+        }
         if (scale < (unsigned char) (sizeof (powers) / sizeof (double))) {
             if (d > 0) {
                 d += powers[scale];
