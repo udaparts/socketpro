@@ -200,7 +200,7 @@ void CSetGlobals::SetConfig() {
         return;
     }
     auto &doc = Config.doc;
-    JValue *v = doc->Child(STREAMING_DB_PORT);
+    JValue<char> *v = doc->Child(STREAMING_DB_PORT);
     if (v && v->GetType() == enumType::Uint64) {
         Config.port = (unsigned short) v->AsUint64();
         if (!Config.port) {
@@ -299,7 +299,7 @@ void CSetGlobals::UpdateConfigFile() {
         LogMsg(__FILE__, __LINE__, ("Can not open DB streaming configuration file " + std::string(STREAM_DB_CONFIG_FILE) + " for write").c_str());
         return;
     }
-    JObject obj;
+    JObject<char> obj;
     obj[SP_SERVER_CORE_VERSION] = SPA::ServerSide::ServerCoreLoader.GetUServerSocketVersion();
     obj[STREAMING_DB_VERSION] = MY_VERSION;
     obj[STREAMING_DB_PORT] = Config.port;
@@ -319,7 +319,7 @@ void CSetGlobals::UpdateConfigFile() {
     obj[STREAMING_DB_SSL_CERT] = Config.ssl_cert;
     obj[STREAMING_DB_SSL_PASSWORD] = Config.ssl_key_password;
 #endif
-    JValue jobj(std::move(obj));
+    JValue<char> jobj(std::move(obj));
     {
         SPA::CScopeUQueue sb;
         if (sb->GetMaxSize() < 16 * SPA::DEFAULT_INITIAL_MEMORY_BUFFER_SIZE) {
@@ -336,13 +336,13 @@ void CSetGlobals::UpdateConfigFile() {
                     unsigned int len = GetSPluginGlobalOptions((char*) sb->GetBuffer(), sb->GetMaxSize());
                     sb->SetSize(len);
                     sb->SetNull();
-                    std::unique_ptr<JValue> jv(Parse((const char*) sb->GetBuffer()));
+                    std::unique_ptr<JValue<char>> jv(Parse((const char*) sb->GetBuffer()));
                     if (!jv || jv->GetType() != enumType::Object) {
                         LogMsg(__FILE__, __LINE__, ("Plugin " + it->first + " has a wrong JSON global options").c_str());
                     }
                     obj[it->first] = std::move(*jv);
                 } else {
-                    obj[it->first] = JObject();
+                    obj[it->first] = JObject<char>();
                 }
                 PGetSPluginVersion GetSPluginVersion = (PGetSPluginVersion)::GetProcAddress(it->second, "GetSPluginVersion");
                 if (!GetSPluginVersion) {
@@ -366,7 +366,7 @@ void CStreamingServer::ConfigServices() {
     if (!doc) {
         return;
     }
-    JValue* jv = doc->Child(STREAMING_DB_VERSION);
+    JValue<char>* jv = doc->Child(STREAMING_DB_VERSION);
     if (!jv || jv->GetType() != enumType::String || jv->AsString() != MY_VERSION) {
         changed = true;
     }
@@ -390,7 +390,7 @@ void CStreamingServer::ConfigServices() {
                 if (!SetSPluginGlobalOptions) {
                     break;
                 }
-                JValue *jv = doc->Child(STREAMING_DB_SERVICES_CONFIG);
+                JValue<char> *jv = doc->Child(STREAMING_DB_SERVICES_CONFIG);
                 if (!(jv && jv->GetType() == enumType::Object)) {
                     changed = true;
                     break;
@@ -409,7 +409,7 @@ void CStreamingServer::ConfigServices() {
                     break;
                 }
                 auto version = GetSPluginVersion();
-                JValue *v = jv->Child(STREAMING_DB_VERSION);
+                JValue<char> *v = jv->Child(STREAMING_DB_VERSION);
                 if (!v || v->GetType() != enumType::String || !version || v->AsString() != version) {
                     changed = true;
                 }
@@ -417,7 +417,7 @@ void CStreamingServer::ConfigServices() {
         }
     }
     if (!changed && CSetGlobals::Globals.services.size()) {
-        JValue *jv = doc->Child(STREAMING_DB_SERVICES_CONFIG);
+        JValue<char> *jv = doc->Child(STREAMING_DB_SERVICES_CONFIG);
         changed = (CSetGlobals::Globals.services.size() != jv->Size());
     }
     if (changed) {

@@ -7,6 +7,7 @@
 #include <vector>
 #include <string>
 #include <ctime>
+#include <math.h>
 #if defined(WINCE) || defined(UNDER_CE) || defined(_WIN32_WCE)
 #include <time.h>
 #if (_MSC_VER < 1600)
@@ -526,6 +527,172 @@ namespace SPA {
             r = -r;
         }
         return r;
+    }
+
+    //slower than itoa butter faster than std::to_string
+
+    template<typename TChar>
+    const TChar* ToString(int x, TChar* buff, unsigned char& chars) {
+        assert(buff && chars > 11);
+        if (!x) {
+            buff[0] = '0';
+            buff[1] = 0;
+            chars = 1;
+            return buff;
+        }
+        buff[11] = 0;
+        unsigned char start = 10;
+        bool neg = (x < 0);
+        if (neg) x *= -1;
+        while (x) {
+            buff[start] = (x % 10 + '0');
+            x /= 10;
+            --start;
+        }
+        chars = 10 - start;
+        if (neg) {
+            buff[start] = '-';
+            ++chars;
+        } else {
+            ++start;
+        }
+        return buff + start;
+    }
+
+    //slower than itoa butter faster than std::to_string
+
+    template<typename TChar>
+    const TChar* ToString(unsigned int x, TChar* buff, unsigned char& chars) {
+        assert(buff && chars > 10);
+        if (!x) {
+            buff[0] = '0';
+            buff[1] = 0;
+            chars = 1;
+            return buff;
+        }
+        buff[10] = 0;
+        unsigned char start = 9;
+        while (x) {
+            buff[start] = (x % 10 + '0');
+            x /= 10;
+            --start;
+        }
+        chars = 9 - start;
+        ++start;
+        return buff + start;
+    }
+
+    template<typename TChar>
+    const TChar* ToString(INT64 x, TChar* buff, unsigned char& chars) {
+        assert(buff && chars > 20);
+        if (!x) {
+            buff[0] = '0';
+            buff[1] = 0;
+            chars = 1;
+            return buff;
+        }
+        buff[20] = 0;
+        unsigned char start = 19;
+        bool neg = (x < 0);
+        if (neg) x *= -1;
+        while (x) {
+            buff[start] = (x % 10 + '0');
+            x /= 10;
+            --start;
+        }
+        chars = 19 - start;
+        if (neg) {
+            buff[start] = '-';
+            ++chars;
+        } else {
+            ++start;
+        }
+        return buff + start;
+    }
+
+    template<typename TChar>
+    const TChar* ToString(UINT64 x, TChar* buff, unsigned char& chars) {
+        assert(buff && chars > 20);
+        if (!x) {
+            buff[0] = '0';
+            buff[1] = 0;
+            chars = 1;
+            return buff;
+        }
+        buff[20] = 0;
+        unsigned char start = 19;
+        while (x) {
+            buff[start] = (x % 10 + '0');
+            x /= 10;
+            --start;
+        }
+        chars = 19 - start;
+        ++start;
+        return buff + start;
+    }
+
+    //max precision 16, and no support to double number larger than 1e17 or smaller than -1e17
+
+    template<typename TChar>
+    const TChar* ToString(double d, TChar* str, unsigned char& chars, unsigned char scale) {
+        if (!str || !chars) return nullptr;
+        memset(str, 0, chars * sizeof(TChar));
+        if (chars == 1) {
+            chars = 0;
+            return str;
+        }
+        --chars; //reserve one for null terminated
+        unsigned char total = chars;
+        if (!d) {
+            str[0] = '0';
+            if (chars > 2) {
+                str[1] = '.';
+                str[2] = '0';
+            }
+            chars = 3;
+            return str;
+        }
+        chars = 0;
+        if (scale) {
+            if (d > 0) {
+                d += 0.5 / pow(10, scale);
+            } else {
+                d -= 0.5 / pow(10, scale);
+                d = -d;
+                str[chars++] = '-';
+                --total;
+            }
+        }
+        if (!total) return str;
+        UINT64 num = (UINT64) d;
+        d -= num;
+        if (num) {
+            char temp[24] = {0};
+            char pos = 0;
+            while (num) {
+                temp[pos++] = (char) ((num % 10) + '0');
+                num /= 10;
+            }
+            for (char n = pos - 1; n >= 0 && total; --n) {
+                str[chars++] = temp[n];
+                --total;
+            }
+        } else {
+            str[chars++] = '0';
+            --total;
+        }
+        if (total < 2 || !scale) return str;
+        str[chars++] = '.';
+        --total;
+        while (scale && total) {
+            --scale;
+            --total;
+            d *= 10;
+            char int_part = (char) d;
+            d -= int_part;
+            str[chars++] = '0' + int_part;
+        }
+        return str;
     }
 
 #pragma pack(push,1)

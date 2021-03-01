@@ -37,7 +37,7 @@ public:
 #ifdef ENABLE_WORKING_DIRECTORY
     std::string working_dir;
 #endif
-    std::shared_ptr<JValue> doc;
+    std::shared_ptr<JValue<char>> doc;
 };
 
 class U_MODULE_HIDDEN CStreamingServer : public CSocketProServer {

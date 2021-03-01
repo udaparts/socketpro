@@ -21,11 +21,11 @@ SPA::INT64 U_MODULE_OPENED WINAPI GetSPluginVersion() {
 
 bool U_MODULE_OPENED WINAPI SetSPluginGlobalOptions(const char* jsonOptions) {
     if (!jsonOptions) return false;
-    std::unique_ptr<JSON::JValue> jv(JSON::Parse(jsonOptions));
+    std::unique_ptr<JSON::JValue<char>> jv(JSON::Parse(jsonOptions));
     if (!jv) {
         return false;
     }
-    JSON::JValue* v = jv->Child(DEQUEUE_BATCH_SIZE);
+    JSON::JValue<char>* v = jv->Child(DEQUEUE_BATCH_SIZE);
     if (v && v->GetType() == JSON::enumType::Uint64) {
         unsigned int bs = (unsigned int) v->AsUint64();
         bs &= 0xffffff;
@@ -45,10 +45,10 @@ unsigned int U_MODULE_OPENED WINAPI GetSPluginGlobalOptions(char* json, unsigned
     if (!json || !buffer_size) {
         return 0;
     }
-    JSON::JObject obj;
+    JSON::JObject<char> obj;
     obj[DEQUEUE_BATCH_SIZE] = CAsyncQueueImpl::m_nBatchSize;
     obj[DISABLE_AUTO_NOTIFICATION] = CAsyncQueueImpl::m_bNoAuto;
-    JSON::JValue jv(std::move(obj));
+    JSON::JValue<char> jv(std::move(obj));
     std::string s = jv.Stringify(false);
     size_t len = s.size();
     if (len > buffer_size - 1) {

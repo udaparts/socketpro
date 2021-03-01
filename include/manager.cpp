@@ -62,7 +62,7 @@ namespace SPA
             return pc->Pool.get();
         }
 
-        CConnectionContext GetCC(const JObject & cc) {
+        CConnectionContext GetCC(const JObject<char> & cc) {
             CConnectionContext ctx;
             auto it = cc.find("Host"), end = cc.end();
             if (it != end && it->second.GetType() == enumType::String) {
@@ -100,9 +100,9 @@ namespace SPA
             return ctx;
         }
 
-        CPoolConfig GetPool(bool main, const JValue & pool) {
+        CPoolConfig GetPool(bool main, const JValue<char> & pool) {
             CPoolConfig pc;
-            JValue* jv = pool.Child("Queue");
+            JValue<char>* jv = pool.Child("Queue");
             if (jv && jv->GetType() == enumType::String) {
                 pc.Queue = jv->AsString();
                 Trim(pc.Queue);
@@ -292,25 +292,25 @@ namespace SPA
         }
 
         std::string CSpConfig::GetConfig() {
-            JObject objRoot;
+            JObject<char> objRoot;
             {
                 SPA::CAutoLock al(m_cs);
                 if (!Pools.size()) {
                     return "";
                 }
             }
-            objRoot["CertStore"] = JValue(CertStore, false);
+            objRoot["CertStore"] = JValue<char>(CertStore, false);
             objRoot["WorkingDir"] = CClientSocket::QueueConfigure::GetWorkDirectory();
             objRoot["QueuePassword"] = m_bQP;
-            JValue jvRoot(std::move(objRoot));
-            JObject vH;
+            JValue<char> jvRoot(std::move(objRoot));
+            JObject<char> vH;
             for (auto it = Hosts.cbegin(), end = Hosts.cend(); it != end; ++it) {
                 auto &ctx = it->second;
-                JObject obj;
+                JObject<char> obj;
                 obj["Host"] = ctx.Host;
                 obj["Port"] = ctx.Port;
-                obj["UserId"] = JValue(Utilities::ToUTF8(ctx.UserId), false);
-                obj["Password"] = JValue(Utilities::ToUTF8(ctx.Password), false);
+                obj["UserId"] = JValue<char>(Utilities::ToUTF8(ctx.UserId), false);
+                obj["Password"] = JValue<char>(Utilities::ToUTF8(ctx.Password), false);
                 obj["Port"] = ctx.Port;
                 obj["EncrytionMethod"] = (int) ctx.EncrytionMethod;
                 obj["Zip"] = ctx.Zip;
@@ -318,19 +318,19 @@ namespace SPA
                 vH[it->first] = std::move(obj);
             }
             jvRoot.AsObject()["Hosts"] = std::move(vH);
-            JArray vKA;
+            JArray<char> vKA;
             for (auto it = CPoolConfig::KeysAllowed.cbegin(), end = CPoolConfig::KeysAllowed.cend(); it != end; ++it) {
-                vKA.push_back(JValue(*it, false));
+                vKA.push_back(JValue<char>(*it, false));
             }
             jvRoot.AsObject()["KeysAllowed"] = std::move(vKA);
-            JObject vP;
+            JObject<char> vP;
             for (auto it = Pools.cbegin(), end = Pools.cend(); it != end; ++it) {
                 const CPoolConfig &pscMain = it->second;
-                JObject objMain;
+                JObject<char> objMain;
                 objMain["SvsId"] = pscMain.SvsId;
-                JArray vH;
+                JArray<char> vH;
                 for (auto h = pscMain.Hosts.cbegin(), he = pscMain.Hosts.cend(); h != he; ++h) {
-                    vH.push_back(JValue(*h, false));
+                    vH.push_back(JValue<char>(*h, false));
                 }
                 objMain["Hosts"] = std::move(vH);
                 objMain["Threads"] = pscMain.Threads;
@@ -343,12 +343,12 @@ namespace SPA
 
                 //Slaves
                 if (pscMain.Slaves.size()) {
-                    JObject vS;
+                    JObject<char> vS;
                     for (auto one = pscMain.Slaves.cbegin(), onee = pscMain.Slaves.cend(); one != onee; ++one) {
                         const CPoolConfig &psc = one->second;
-                        JObject obj;
+                        JObject<char> obj;
                         obj["SvsId"] = psc.SvsId;
-                        JArray vH;
+                        JArray<char> vH;
                         for (auto h = psc.Hosts.cbegin(), he = psc.Hosts.cend(); h != he; ++h) {
                             vH.push_back(*h);
                         }
@@ -388,7 +388,7 @@ namespace SPA
                 jsFile = "sp_config.json";
             }
             int errCode = 0;
-            std::unique_ptr<JValue> jv(JSON::ParseFromFile(jsFile.c_str(), errCode));
+            std::unique_ptr<JValue<char>> jv(JSON::ParseFromFile(jsFile.c_str(), errCode));
             if (errCode) {
                 m_errMsg = "Cannot open configuration file " + jsFile;
                 return false;
@@ -396,7 +396,7 @@ namespace SPA
                 m_errMsg = "Bad JSON configuration object";
                 return false;
             }
-            JValue* v = jv->Child("WorkingDir");
+            JValue<char>* v = jv->Child("WorkingDir");
             if (v && v->GetType() == enumType::String) {
                 std::string dir = v->AsString();
 #ifdef WIN32_64

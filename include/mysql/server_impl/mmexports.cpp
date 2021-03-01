@@ -21,11 +21,11 @@ SPA::INT64 U_MODULE_OPENED WINAPI GetSPluginVersion() {
 
 bool U_MODULE_OPENED WINAPI SetSPluginGlobalOptions(const char* jsonOptions) {
     if (!jsonOptions) return false;
-    std::unique_ptr<JSON::JValue> jv(JSON::Parse(jsonOptions));
+    std::unique_ptr<JSON::JValue<char>> jv(JSON::Parse(jsonOptions));
     if (!jv) {
         return false;
     }
-    JSON::JValue* v = jv->Child(GLOBAL_CONNECTION_STRING);
+    JSON::JValue<char>* v = jv->Child(GLOBAL_CONNECTION_STRING);
     if (v && v->GetType() == JSON::enumType::String) {
         std::string& s = v->AsString();
         std::wstring ws = Utilities::ToWide(s);
@@ -41,9 +41,9 @@ unsigned int U_MODULE_OPENED WINAPI GetSPluginGlobalOptions(char* json, unsigned
     if (!json || !buffer_size) {
         return 0;
     }
-    JSON::JObject obj;
+    JSON::JObject<char> obj;
     obj[GLOBAL_CONNECTION_STRING] = Utilities::ToUTF8(CMysqlImpl::GetDBGlobalConnectionString());
-    JSON::JValue jv(std::move(obj));
+    JSON::JValue<char> jv(std::move(obj));
     std::string s = jv.Stringify(false);
     size_t len = s.size();
     if (len > buffer_size - 1) {

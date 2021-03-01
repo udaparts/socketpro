@@ -21,11 +21,11 @@ SPA::INT64 U_MODULE_OPENED WINAPI GetSPluginVersion() {
 
 bool U_MODULE_OPENED WINAPI SetSPluginGlobalOptions(const char* jsonOptions) {
     if (!jsonOptions) return false;
-    std::unique_ptr<JSON::JValue> jv(JSON::Parse(jsonOptions));
+    std::unique_ptr<JSON::JValue<char>> jv(JSON::Parse(jsonOptions));
     if (!jv) {
         return false;
     }
-    JSON::JValue* v = jv->Child(MONITORED_TABLES);
+    JSON::JValue<char>* v = jv->Child(MONITORED_TABLES);
     if (v && v->GetType() == JSON::enumType::String) {
         CDBString ws = Utilities::ToUTF16(v->AsString());
         Trim(ws);
@@ -49,14 +49,14 @@ unsigned int U_MODULE_OPENED WINAPI GetSPluginGlobalOptions(char* json, unsigned
         return 0;
     }
     unsigned int nParam = CSqliteImpl::GetInitialParam();
-    JSON::JObject obj;
+    JSON::JObject<char> obj;
     obj[SQLITE_UTF8_ENCODING] = true;
     obj[DISABLE_SQLITE_EX_ERROR] = ((nParam & ServerSide::Sqlite::DO_NOT_USE_EXTENDED_ERROR_CODE) == ServerSide::Sqlite::DO_NOT_USE_EXTENDED_ERROR_CODE);
     obj[ENABLE_SQLITE_UPDATE_HOOK] = true;
     obj[USE_SQLITE_SHARED_CACHE_MODE] = ((nParam & ServerSide::Sqlite::USE_SHARED_CACHE_MODE) == ServerSide::Sqlite::USE_SHARED_CACHE_MODE);
     obj[GLOBAL_CONNECTION_STRING] = Utilities::ToUTF8(CSqliteImpl::GetDBGlobalConnectionString());
     obj[MONITORED_TABLES] = CSqliteImpl::GetCachedTables();
-    JSON::JValue jv(std::move(obj));
+    JSON::JValue<char> jv(std::move(obj));
     std::string s = jv.Stringify(false);
     size_t len = s.size();
     if (len > buffer_size - 1) {
