@@ -635,6 +635,8 @@ namespace SPA {
 
     template<typename TChar>
     const TChar* ToString(double d, TChar* str, unsigned char& chars, unsigned char scale) {
+        static double powers[] = {0.5, 0.05, 0.005, 0.0005, 0.00005, 0.000005, 0.0000005, 0.00000005, 0.000000005,
+            5e-10, 5e-11, 5e-12, 5e-13, 5e-14, 5e-15, 5e-16, 5e-17, 5e-18, 5e-19, 5e-20, 5e-21, 5e-22};
         if (!str || !chars) return nullptr;
         memset(str, 0, chars * sizeof (TChar));
         if (chars == 1) {
@@ -653,7 +655,16 @@ namespace SPA {
             return str;
         }
         chars = 0;
-        if (scale) {
+        if (scale < (unsigned char) (sizeof (powers) / sizeof (double))) {
+            if (d > 0) {
+                d += powers[scale];
+            } else {
+                d -= powers[scale];
+                d = -d;
+                str[chars++] = '-';
+                --total;
+            }
+        } else {
             if (d > 0) {
                 d += 0.5 / pow(10, scale);
             } else {
