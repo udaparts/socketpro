@@ -511,7 +511,7 @@ namespace SPA {
                         ++data;
                         switch (*data) {
                             case '"': case '\\': case 'b': case 'f':
-                            case 'n': case 'r': case 't':
+                            case 'n': case 'r': case 't': case '/':
                                 next = *data;
                                 break;
                             case 'u':
