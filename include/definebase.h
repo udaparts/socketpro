@@ -636,7 +636,7 @@ namespace SPA {
     template<typename TChar>
     const TChar* ToString(double d, TChar* str, unsigned char& chars, unsigned char scale) {
         if (!str || !chars) return nullptr;
-        memset(str, 0, chars * sizeof(TChar));
+        memset(str, 0, chars * sizeof (TChar));
         if (chars == 1) {
             chars = 0;
             return str;
