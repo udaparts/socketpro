@@ -259,17 +259,17 @@ namespace SPA {
                 return (*objValue);
             }
 
-            JValue& operator[](size_t index) {
+            JValue& operator[](size_t index) const {
                 assert(type == enumType::Array);
                 return AsArray()[index];
             }
 
-            JValue& operator[](const JString& key) {
+            JValue& operator[](const JString& key) const {
                 assert(type == enumType::Object);
                 return AsObject()[key];
             }
 
-            JValue& operator[](JString&& key) {
+            JValue& operator[](JString&& key) const {
                 assert(type == enumType::Object);
                 return AsObject()[key];
             }
