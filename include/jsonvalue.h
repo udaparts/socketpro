@@ -2,78 +2,11 @@
 #define _SOCKETPRO_JSON_VALUE_H_
 
 #include "membuffer.h"
-#ifndef WIN32_64
-#include <math.h>
-#endif
 #include <map>
 #include <vector>
 
 namespace SPA {
     namespace JSON {
-        namespace Internal {
-
-            template<typename TChar>
-            bool SkipWhitespace(const TChar*& data) {
-                while (*data == ' ' || *data == '\n' || *data == '\r' || *data == '\t') {
-                    ++data;
-                }
-                return *data;
-            }
-
-            template<typename TChar>
-            double ParseDecimal(const TChar*& data) {
-                double decimal = 0.0, factor = 0.1;
-                while (*data >= '0' && *data <= '9') {
-                    int diff = (*data++ -'0');
-                    decimal += diff * factor;
-                    factor *= 0.1;
-                }
-                return decimal;
-            }
-
-            template<typename TChar>
-            bool ExtractString(const TChar*& data, std::basic_string<TChar>& str) {
-                const TChar* start = data;
-                while (*data) {
-                    char next = *data;
-                    if (next == '\\') {
-                        ++data;
-                        switch (*data) {
-                            case '"': case '\\': case 'b': case 'f':
-                            case 'n': case 'r': case 't':
-                                next = *data;
-                                break;
-                            case 'u':
-                                next = 0;
-                                for (int i = 0; i < 4; ++i) {
-                                    ++data;
-                                    next <<= 4;
-                                    if (*data >= '0' && *data <= '9')
-                                        next |= (*data - '0');
-                                    else if (*data >= 'A' && *data <= 'F')
-                                        next |= (10 + (*data - 'A'));
-                                    else if (*data >= 'a' && *data <= 'f')
-                                        next |= (10 + (*data - 'a'));
-                                    else {
-                                        return false;
-                                    }
-                                }
-                                break;
-                            default:
-                                return false;
-                        }
-                    } else if (next == '"') {
-                        str.append(start, data);
-                        ++data;
-                        return true;
-                    } else if (next > 0 && next < ' ' && next != '\t') {
-                        return false;
-                    }
-                    ++data;
-                }
-                return false;
-            }
-        }
 
         template<typename TChar>
         std::basic_string<TChar>&& Escape(std::basic_string<TChar>& str) {
@@ -240,7 +173,7 @@ namespace SPA {
                 return type;
             }
 
-            inline JString& AsString() const noexcept {
+            inline JString& AsString() const {
                 assert(type == enumType::String);
                 return (*strValue);
             }
@@ -316,14 +249,29 @@ namespace SPA {
                 return 0;
             }
 
-            inline JArray<TChar>& AsArray() const noexcept {
+            inline JArray<TChar>& AsArray() const {
                 assert(type == enumType::Array);
                 return (*arrValue);
             }
 
-            inline JObject<TChar>& AsObject() const noexcept {
+            inline JObject<TChar>& AsObject() const {
                 assert(type == enumType::Object);
                 return (*objValue);
+            }
+
+            JValue& operator[](size_t index) {
+                assert(type == enumType::Array);
+                return AsArray()[index];
+            }
+
+            JValue& operator[](const JString& key) {
+                assert(type == enumType::Object);
+                return AsObject()[key];
+            }
+
+            JValue& operator[](JString&& key) {
+                assert(type == enumType::Object);
+                return AsObject()[key];
             }
 
             inline std::size_t Size() const noexcept {
@@ -524,10 +472,83 @@ namespace SPA {
                 return *this;
             }
 
-            static JValue* Parse(const TChar*& data) {
+            static JValue* Parse(const TChar* data) {
+                if (!data) return nullptr;
+                if (!SkipWhitespace(data)) return nullptr;
+                auto value = ParseStr(data);
+                if (value == nullptr) return nullptr;
+                if (SkipWhitespace(data)) {
+                    delete value;
+                    return nullptr;
+                }
+                return value;
+            }
+
+        private:
+
+            static bool SkipWhitespace(const TChar*& data) {
+                while (*data == ' ' || *data == '\n' || *data == '\r' || *data == '\t') {
+                    ++data;
+                }
+                return *data;
+            }
+
+            static double ParseDecimal(const TChar*& data) {
+                double decimal = 0.0, factor = 0.1;
+                while (*data >= '0' && *data <= '9') {
+                    int diff = (*data++ -'0');
+                    decimal += diff * factor;
+                    factor *= 0.1;
+                }
+                return decimal;
+            }
+
+            static bool ExtractString(const TChar*& data, std::basic_string<TChar>& str) {
+                const TChar* start = data;
+                while (*data) {
+                    char next = *data;
+                    if (next == '\\') {
+                        ++data;
+                        switch (*data) {
+                            case '"': case '\\': case 'b': case 'f':
+                            case 'n': case 'r': case 't':
+                                next = *data;
+                                break;
+                            case 'u':
+                                next = 0;
+                                for (int i = 0; i < 4; ++i) {
+                                    ++data;
+                                    next <<= 4;
+                                    if (*data >= '0' && *data <= '9')
+                                        next |= (*data - '0');
+                                    else if (*data >= 'A' && *data <= 'F')
+                                        next |= (10 + (*data - 'A'));
+                                    else if (*data >= 'a' && *data <= 'f')
+                                        next |= (10 + (*data - 'a'));
+                                    else {
+                                        return false;
+                                    }
+                                }
+                                break;
+                            default:
+                                return false;
+                        }
+                    } else if (next == '"') {
+                        str.append(start, data);
+                        ++data;
+                        return true;
+                    } else if (next > 0 && next < ' ' && next != '\t') {
+                        return false;
+                    }
+                    ++data;
+                }
+                return false;
+            }
+
+            static JValue* ParseStr(const TChar*& data) {
                 if (*data == '"') {
                     JString str;
-                    if (!Internal::ExtractString(++data, str)) return nullptr;
+                    if (!ExtractString(++data, str)) return nullptr;
                     return new JValue(std::move(str), false);
                 } else if (data[0] == 'f' && data[1] == 'a' && data[2] == 'l' && data[3] == 's' && data[4] == 'e') {
                     data += 5;
@@ -565,7 +586,7 @@ namespace SPA {
                     if (*data == '.') {
                         ++data;
                         if (!(*data >= '0' && *data <= '9')) return nullptr;
-                        number += Internal::ParseDecimal(data);
+                        number += ParseDecimal(data);
                     }
                     if (*data == 'E' || *data == 'e') {
                         ++data;
@@ -585,22 +606,22 @@ namespace SPA {
                     JObject<TChar> object;
                     ++data;
                     while (*data) {
-                        if (!Internal::SkipWhitespace(data)) return nullptr;
+                        if (!SkipWhitespace(data)) return nullptr;
                         if (object.size() == 0 && *data == '}') {
                             ++data;
                             return new JValue(object);
                         }
                         if (*data != '"') return nullptr;
                         JString name;
-                        if (!Internal::ExtractString(++data, name)) return nullptr;
-                        if (!Internal::SkipWhitespace(data)) return nullptr;
+                        if (!ExtractString(++data, name)) return nullptr;
+                        if (!SkipWhitespace(data)) return nullptr;
                         if (*data++ != ':') return nullptr;
-                        if (!Internal::SkipWhitespace(data)) return nullptr;
-                        JValue* value = Parse(data);
+                        if (!SkipWhitespace(data)) return nullptr;
+                        JValue* value = ParseStr(data);
                         if (value == nullptr) return nullptr;
                         object[std::move(name)] = std::move(*value);
                         delete value;
-                        if (!Internal::SkipWhitespace(data)) return nullptr;
+                        if (!SkipWhitespace(data)) return nullptr;
                         if (*data == '}') {
                             ++data;
                             return new JValue(std::move(object));
@@ -613,16 +634,16 @@ namespace SPA {
                     JArray<TChar> array;
                     ++data;
                     while (*data) {
-                        if (!Internal::SkipWhitespace(data)) return nullptr;
+                        if (!SkipWhitespace(data)) return nullptr;
                         if (array.size() == 0 && *data == ']') {
                             ++data;
                             return new JValue(array);
                         }
-                        JValue* value = Parse(data);
+                        JValue* value = ParseStr(data);
                         if (value == nullptr) return nullptr;
                         array.push_back(std::move(*value));
                         delete value;
-                        if (!Internal::SkipWhitespace(data)) return nullptr;
+                        if (!SkipWhitespace(data)) return nullptr;
                         if (*data == ']') {
                             ++data;
                             return new JValue(std::move(array));
@@ -634,8 +655,6 @@ namespace SPA {
                 }
                 return nullptr;
             }
-
-        private:
 
             void Stringify(JString& ret_str, unsigned int& indent, unsigned char scale, bool pretty, unsigned int indent_chars) const {
                 switch (type) {
@@ -775,15 +794,7 @@ namespace SPA {
 
         template <typename TChar>
         JValue<TChar>* Parse(const TChar* data) {
-            if (!data) return nullptr;
-            if (!Internal::SkipWhitespace(data)) return nullptr;
-            auto value = JValue<TChar>::Parse(data);
-            if (value == nullptr) return nullptr;
-            if (Internal::SkipWhitespace(data)) {
-                delete value;
-                return nullptr;
-            }
-            return value;
+            return JValue<TChar>::Parse(data);
         }
 
         static JValue<char>* ParseFromFile(const char* filePath, int &errCode) {
