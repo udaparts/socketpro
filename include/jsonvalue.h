@@ -13,7 +13,7 @@ namespace SPA {
             for (size_t pos = 0, len = str.size(); pos < len; ++pos) {
                 switch (str[pos]) {
                     case '\\': case '\b': case '\f': case '"':
-                    case '\t': case '\r': case '\n':
+                    case '\t': case '\r': case '\n': case '/':
                         str.insert(pos, 1, '\\');
                         ++pos;
                         ++len;
@@ -39,7 +39,7 @@ namespace SPA {
                 if (prev == '\\') {
                     switch (str[pos]) {
                         case '\\': case '\b': case '\f': case '"':
-                        case '\t': case '\r': case '\n':
+                        case '\t': case '\r': case '\n': case '/':
                             str.erase(--pos, 1);
                             --len;
                             break;
