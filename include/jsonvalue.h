@@ -292,7 +292,7 @@ namespace SPA {
                 return nullptr;
             }
 
-            JValue* Child(const char* name) const noexcept {
+            JValue* Child(const JString& name) const noexcept {
                 if (type != enumType::Object) return nullptr;
                 auto it = objValue->find(name);
                 if (it != objValue->end()) return &(it->second);
