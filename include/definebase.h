@@ -633,6 +633,7 @@ namespace SPA {
 
     template<typename TChar>
     const TChar* ToString(double d, TChar* str, unsigned char& chars, unsigned char scale) {
+        static const unsigned char MAX_SCALE = 0x1f; //31
         static double dMax = 1.5e19, dMin = -1.5e19;
         static double powers[] = {0.5, 0.05, 0.005, 0.0005, 0.00005, 0.000005, 0.0000005, 0.00000005, 0.000000005,
             5e-10, 5e-11, 5e-12, 5e-13, 5e-14, 5e-15, 5e-16, 5e-17, 5e-18, 5e-19, 5e-20, 5e-21, 5e-22};
@@ -642,6 +643,9 @@ namespace SPA {
             chars = 0;
             return str;
         }
+        //bool enable_e = (scale > MAX_SCALE);
+        bool enable_g = true;
+        scale &= MAX_SCALE;
         --chars; //reserve one for null terminated
         unsigned char total = chars;
         if (!d) {
@@ -654,7 +658,7 @@ namespace SPA {
             return str;
         }
         chars = 0;
-        if (d > dMax || d < dMin || (d > -0.1 && d < 0.1)) {
+        if (enable_g || d > dMax || d < dMin) {
             char data[64];
             char format[8];
             format[0] = '%';
@@ -664,7 +668,7 @@ namespace SPA {
 #else
             int len = sprintf(format + 2, "%d", (int) scale);
 #endif
-            format[len + 2] = 'e';
+            format[len + 2] = 'g';
             format[len + 3] = 0;
 #ifdef WIN32_64
             len = sprintf_s(data, sizeof (data), format, d);
