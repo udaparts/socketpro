@@ -168,6 +168,7 @@ namespace SPA {
 
         public:
             static const unsigned int DEFAULT_INDENT_CHARS = 2;
+            static const unsigned int DEFAULT_DOUBLE_PRECISION = 16;
 
             inline enumType GetType() const noexcept {
                 return type;
@@ -309,7 +310,7 @@ namespace SPA {
                 return std::move(keys);
             }
 
-            JString Stringify(bool pretty = true, unsigned char precision = 17, unsigned int indent_chars = DEFAULT_INDENT_CHARS) const {
+            JString Stringify(bool pretty = true, unsigned char precision = DEFAULT_DOUBLE_PRECISION, unsigned int indent_chars = DEFAULT_INDENT_CHARS) const {
                 JString ret_str;
                 unsigned int indent = 0;
                 Stringify(ret_str, indent, precision, pretty, indent_chars);
