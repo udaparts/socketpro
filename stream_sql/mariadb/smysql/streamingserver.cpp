@@ -16,6 +16,8 @@ int async_sql_plugin_init(void *p) {
         CSetGlobals::Globals.UpdateLog();
         return 1;
     }
+    CSetGlobals::Globals.SetConfig();
+    CSetGlobals::Globals.UpdateLog();
     CSetGlobals::Globals.Plugin = (const void *) p;
     if (!CSetGlobals::Globals.StartListening()) {
         CSetGlobals::Globals.UpdateLog();
@@ -67,8 +69,6 @@ CSetGlobals::CSetGlobals() : m_fLog(nullptr), server_version(nullptr), m_hModule
     } else {
         LogMsg(__FILE__, __LINE__, "m_hModule is nullptr");
     }
-    UpdateLog();
-    SetConfig();
     if (server_version && strlen(server_version)) {
         version = GetVersion(server_version);
         if (!version) {
