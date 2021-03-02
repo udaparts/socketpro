@@ -632,103 +632,40 @@ namespace SPA {
     }
 
     template<typename TChar>
-    const TChar* ToString(double d, TChar* str, unsigned char& chars, unsigned char scale) {
-        static const unsigned char MAX_SCALE = 0x1f; //31
-        static double dMax = 1.5e19, dMin = -1.5e19;
-        static double powers[] = {0.5, 0.05, 0.005, 0.0005, 0.00005, 0.000005, 0.0000005, 0.00000005, 0.000000005,
-            5e-10, 5e-11, 5e-12, 5e-13, 5e-14, 5e-15, 5e-16, 5e-17, 5e-18, 5e-19, 5e-20, 5e-21, 5e-22};
-        if (!str || !chars) return nullptr;
-        memset(str, 0, chars * sizeof (TChar));
-        if (chars == 1) {
+    const TChar* ToString(double d, TChar* str, unsigned char& chars, unsigned char precision) {
+        if (!str || !chars) {
             chars = 0;
-            return str;
+            return nullptr;
         }
-        //bool enable_e = (scale > MAX_SCALE);
-        bool enable_g = true;
-        scale &= MAX_SCALE;
-        --chars; //reserve one for null terminated
+        --chars;
         unsigned char total = chars;
-        if (!d) {
-            str[0] = '0';
-            if (chars > 2) {
-                str[1] = '.';
-                str[2] = '0';
-            }
-            chars = 3;
-            return str;
-        }
         chars = 0;
-        if (enable_g || d > dMax || d < dMin) {
-            char data[64];
-            char format[8];
-            format[0] = '%';
-            format[1] = '.';
-#ifdef WIN32_64
-            int len = sprintf_s(format + 2, sizeof (format) - 2, "%d", (int) scale);
-#else
-            int len = sprintf(format + 2, "%d", (int) scale);
-#endif
-            format[len + 2] = 'g';
-            format[len + 3] = 0;
-#ifdef WIN32_64
-            len = sprintf_s(data, sizeof (data), format, d);
-#else
-            len = sprintf(data, format, d);
-#endif
-            for (int n = 0; n < len && n <= total; ++n) {
-                str[n] = data[n];
-                ++chars;
-            }
-            return str;
-        }
-        if (scale < (unsigned char) (sizeof (powers) / sizeof (double))) {
-            if (d > 0) {
-                d += powers[scale];
-            } else {
-                d -= powers[scale];
-                d = -d;
-                str[chars++] = '-';
-                --total;
-            }
+        char format[6];
+        char data[64];
+        if (precision > 57) precision = 57; //57 = 64 - 6(-.e308) - 1(null)
+        format[0] = '%';
+        format[1] = '.';
+        if (precision >= 10) {
+            format[2] = precision / 10 + '0';
+            format[3] = (precision % 10) + '0';
+            format[4] = 'g';
+            format[5] = 0;
         } else {
-            if (d > 0) {
-                d += 0.5 / pow(10, scale);
-            } else {
-                d -= 0.5 / pow(10, scale);
-                d = -d;
-                str[chars++] = '-';
-                --total;
-            }
+            format[2] = (precision % 10) + '0';
+            format[3] = 'g';
+            format[4] = 0;
         }
-        if (!total) return str;
-        UINT64 num = (UINT64) d;
-        d -= num;
-        if (num) {
-            char temp[24] = {0};
-            char pos = 0;
-            while (num) {
-                temp[pos++] = (char) ((num % 10) + '0');
-                num /= 10;
-            }
-            for (char n = pos - 1; n >= 0 && total; --n) {
-                str[chars++] = temp[n];
-                --total;
-            }
-        } else {
-            str[chars++] = '0';
-            --total;
+#ifdef WIN32_64
+        int len = sprintf_s(data, sizeof (data), format, d);
+#else
+        int len = sprintf(data, format, d);
+#endif
+        if (len > total) len = total; //truncated because of recv memory
+        for (int n = 0; n < len; ++n) {
+            str[n] = data[n];
+            ++chars;
         }
-        if (total < 2 || !scale) return str;
-        str[chars++] = '.';
-        --total;
-        while (scale && total) {
-            --scale;
-            --total;
-            d *= 10;
-            char int_part = (char) d;
-            d -= int_part;
-            str[chars++] = '0' + int_part;
-        }
+        str[chars] = 0;
         return str;
     }
 

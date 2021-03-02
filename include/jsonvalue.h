@@ -309,10 +309,10 @@ namespace SPA {
                 return std::move(keys);
             }
 
-            JString Stringify(bool pretty = true, unsigned char scale = 0, unsigned int indent_chars = DEFAULT_INDENT_CHARS) const {
+            JString Stringify(bool pretty = true, unsigned char precision = 17, unsigned int indent_chars = DEFAULT_INDENT_CHARS) const {
                 JString ret_str;
                 unsigned int indent = 0;
-                Stringify(ret_str, indent, scale, pretty, indent_chars);
+                Stringify(ret_str, indent, precision, pretty, indent_chars);
                 return std::move(ret_str);
             }
 
@@ -656,7 +656,7 @@ namespace SPA {
                 return nullptr;
             }
 
-            void Stringify(JString& ret_str, unsigned int& indent, unsigned char scale, bool pretty, unsigned int indent_chars) const {
+            void Stringify(JString& ret_str, unsigned int& indent, unsigned char precision, bool pretty, unsigned int indent_chars) const {
                 switch (type) {
                     case enumType::Int64:
                     {
@@ -692,7 +692,7 @@ namespace SPA {
                         } else {
                             TChar str[64]; //don't give me a too long precision!!!
                             unsigned char chars = (unsigned char) (sizeof (str) / sizeof (TChar));
-                            auto head = ToString(dValue, str, chars, scale);
+                            auto head = ToString(dValue, str, chars, precision);
                             ret_str.append(head, (size_t) chars);
                         }
                         break;
@@ -704,7 +704,7 @@ namespace SPA {
                         auto iter = arrValue->cbegin(), end = arrValue->cend();
                         while (iter != end) {
                             if (pretty) ret_str.append((size_t) indent * indent_chars, ' ');
-                            iter->Stringify(ret_str, indent, scale, pretty, indent_chars);
+                            iter->Stringify(ret_str, indent, precision, pretty, indent_chars);
                             if (++iter != end) {
                                 ret_str.push_back(',');
                                 if (pretty) ret_str.push_back('\n');
@@ -729,7 +729,7 @@ namespace SPA {
                             ret_str.push_back('"');
                             ret_str.append(iter->first);
                             ret_str.append(JMVSep.c_str(), (size_t) 2);
-                            iter->second.Stringify(ret_str, indent, scale, pretty, indent_chars);
+                            iter->second.Stringify(ret_str, indent, precision, pretty, indent_chars);
                             if (++iter != end) {
                                 ret_str.push_back(',');
                                 if (pretty) ret_str.push_back('\n');
