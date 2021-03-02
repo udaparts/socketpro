@@ -18,9 +18,9 @@ namespace SPA {
 
         class U_MODULE_HIDDEN CMysqlImpl : public CClientPeer {
             //no copy constructor
-            CMysqlImpl(const CMysqlImpl &impl);
+            CMysqlImpl(const CMysqlImpl &impl) = delete;
             //no assignment operator
-            CMysqlImpl& operator=(const CMysqlImpl &impl);
+            CMysqlImpl& operator=(const CMysqlImpl &impl) = delete;
 
             class MYSQL_BIND_RESULT_FIELD {
             private:
@@ -30,8 +30,8 @@ namespace SPA {
                 static_assert(sizeof (MYSQL_TIME) <= DEFAULT_BUFFER_SIZE, "Bad default buffer size");
                 typedef CScopeUQueueEx<DEFAULT_BUFFER_SIZE, DEFAULT_MEMORY_BUFFER_BLOCK_SIZE> CScopeUQueue;
                 CScopeUQueue m_sb;
-                MYSQL_BIND_RESULT_FIELD(const MYSQL_BIND_RESULT_FIELD &field);
-                MYSQL_BIND_RESULT_FIELD& operator=(const MYSQL_BIND_RESULT_FIELD &field);
+                MYSQL_BIND_RESULT_FIELD(const MYSQL_BIND_RESULT_FIELD &field) = delete;
+                MYSQL_BIND_RESULT_FIELD& operator=(const MYSQL_BIND_RESULT_FIELD &field) = delete;
 
             public:
 
@@ -97,6 +97,7 @@ namespace SPA {
             CDBString GetDefaultDBName();
             static CDBString GetDBGlobalConnectionString();
             static bool IsMysqlInitialized();
+            static const std::string& GetClientLibName();
 
 #ifdef MM_DB_SERVER_PLUGIN
             static std::string ToString(const CDBVariant &vtUTF8);

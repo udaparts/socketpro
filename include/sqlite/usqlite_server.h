@@ -39,5 +39,6 @@ namespace SPA {
 #define DISABLE_SQLITE_EX_ERROR         "disable_extended_error_code"
 #define ENABLE_SQLITE_UPDATE_HOOK       "enable_sqlite_update_hook"
 #define USE_SQLITE_SHARED_CACHE_MODE    "use_sqlite_shared_cache_mode"
+#define SQLITE_CODE_VERSION             "sqlite_code_version"
 
 #endif

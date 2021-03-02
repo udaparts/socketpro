@@ -383,6 +383,10 @@ namespace SPA
             }
         }
 
+        const std::string& CMysqlImpl::GetClientLibName() {
+            return m_remMysql.m_libName;
+        }
+
         bool CMysqlImpl::InitMySql() {
             SPA::CAutoLock al(m_csPeer);
             if (m_bInitMysql) {

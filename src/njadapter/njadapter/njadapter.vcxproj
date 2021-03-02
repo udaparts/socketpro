@@ -22,7 +22,7 @@
     <ProjectGuid>{B11CFED7-3E27-483B-855D-66D14BB35FC8}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>njadapter</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0.19041.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">

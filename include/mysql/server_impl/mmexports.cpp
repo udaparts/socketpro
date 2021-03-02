@@ -43,7 +43,7 @@ unsigned int U_MODULE_OPENED WINAPI GetSPluginGlobalOptions(char* json, unsigned
     }
     JSON::JObject<char> obj;
     obj[GLOBAL_CONNECTION_STRING] = Utilities::ToUTF8(CMysqlImpl::GetDBGlobalConnectionString());
-    obj[STREAMING_DB_MYSQL_CLIENT_LIB] = SPA::ServerSide::Mysql::g_libName;
+    obj[STREAMING_DB_MYSQL_CLIENT_LIB] = CMysqlImpl::GetClientLibName();
     JSON::JValue<char> jv(std::move(obj));
     std::string s = jv.Stringify(false);
     size_t len = s.size();

@@ -187,7 +187,7 @@ void CSetGlobals::UpdateConfigFile() {
     }
     JObject<char> obj;
     obj[SP_SERVER_CORE_VERSION] = SPA::ServerSide::ServerCoreLoader.GetUServerSocketVersion();
-    obj[STREAMING_DB_MYSQL_CLIENT_LIB] = SPA::ServerSide::Mysql::g_libName;
+    obj[STREAMING_DB_MYSQL_CLIENT_LIB] = CMysqlImpl::GetClientLibName();
     obj[STREAMING_DB_VERSION] = MY_VERSION;
     obj[STREAMING_DB_PORT] = Config.port;
     obj[STREAMING_DB_MAIN_THREADS] = Config.main_threads;
@@ -360,7 +360,7 @@ void CStreamingServer::ConfigServices() {
         changed = true;
     }
     jv = doc->Child(STREAMING_DB_MYSQL_CLIENT_LIB);
-    if (!jv || jv->GetType() != enumType::String || jv->AsString() != SPA::ServerSide::Mysql::g_libName) {
+    if (!jv || jv->GetType() != enumType::String || jv->AsString() != CMysqlImpl::GetClientLibName()) {
         changed = true;
     }
     jv = doc->Child(SP_SERVER_CORE_VERSION);

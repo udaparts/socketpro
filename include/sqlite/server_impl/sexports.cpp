@@ -50,6 +50,7 @@ unsigned int U_MODULE_OPENED WINAPI GetSPluginGlobalOptions(char* json, unsigned
     }
     unsigned int nParam = CSqliteImpl::GetInitialParam();
     JSON::JObject<char> obj;
+    obj[SQLITE_CODE_VERSION] = sqlite3_version;
     obj[SQLITE_UTF8_ENCODING] = true;
     obj[DISABLE_SQLITE_EX_ERROR] = ((nParam & ServerSide::Sqlite::DO_NOT_USE_EXTENDED_ERROR_CODE) == ServerSide::Sqlite::DO_NOT_USE_EXTENDED_ERROR_CODE);
     obj[ENABLE_SQLITE_UPDATE_HOOK] = true;

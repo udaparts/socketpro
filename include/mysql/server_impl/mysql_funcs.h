@@ -11,8 +11,6 @@ namespace SPA {
     namespace ServerSide {
         namespace Mysql {
 
-            static std::string g_libName;
-
             typedef int (STDCALL *Pmysql_server_init)(int argc, char **argv, char **groups);
             typedef void (STDCALL *Pmysql_server_end)(void);
             typedef my_bool(STDCALL *Pmysql_thread_init)(void);
@@ -125,8 +123,11 @@ namespace SPA {
             struct CMysqlLoader {
             private:
                 HINSTANCE m_hMysql;
-                CMysqlLoader(const CMysqlLoader&);
-                CMysqlLoader& operator=(const CMysqlLoader&);
+                CMysqlLoader(const CMysqlLoader&) = delete;
+                CMysqlLoader& operator=(const CMysqlLoader&) = delete;
+
+            public:
+                std::string m_libName;
 
             public:
 
@@ -205,22 +206,22 @@ namespace SPA {
                         return true;
                     }
 #ifdef WIN32_64
-                    g_libName = "libmysql.dll";
+                    m_libName = "libmysql.dll";
                     m_hMysql = ::LoadLibraryW(L"libmysql.dll");
                     if (!m_hMysql) {
-                        g_libName = "libmariadb.dll";
+                        m_libName = "libmariadb.dll";
                         m_hMysql = ::LoadLibraryW(L"libmariadb.dll");
                     }
 #else
-                    g_libName = "libmysqlclient.so";
+                    m_libName = "libmysqlclient.so";
                     m_hMysql = ::dlopen("libmysqlclient.so", RTLD_LAZY);
                     if (!m_hMysql) {
-                        g_libName = "libmariadb.so";
+                        m_libName = "libmariadb.so";
                         m_hMysql = ::dlopen("libmariadb.so", RTLD_LAZY);
                     }
 #endif
                     if (!m_hMysql) {
-                        g_libName.clear();
+                        m_libName.clear();
                         return false;
                     }
                     mysql_server_init = (Pmysql_server_init)::GetProcAddress(m_hMysql, "mysql_server_init");
