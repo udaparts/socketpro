@@ -333,73 +333,77 @@ Code snippet 3: Call executeBatch against a MySQL/MariaDB database with user def
 <hr />
 
 <p>We are going to install database plugins within MySQL version 8 or later, MySQL version 5.7 or earlier, and MariaDB.
-However, it is a must that you have already distributed other components as described at <a href="get_started.htm" title="Get Started With SocketPro">this article</a>.</p>
+However, it is a must that you have already distributed server core library (libuservercore.so for linux or uservercore.dll for windows) as described at <a href="get_started.htm" title="Get Started With SocketPro">this article</a>.</p>
 
 <ul>
-<li>Install sample database <i>sakila</i>
-<p>If your MySQL/MariaDB doesn’t have sakila database installed, you can get it from a site by searching github and sakila.
+<li>Copy SocketPro MySQL/MariaDB DB plugin into database plugin dirtectory, and install the plugin
+    <ol>
+        <p>
+        <li>Finding MySQL/MariaDB database plugin directory by executing statement <i><b>show variables where variable_name='plugin_dir'</b></i></li>
+        <li>Copying MySQL/MariaDB plugin into database plugin directory and installing the plugin
+            <ul>
+                <li><b>Windows</b>: Copy smysql.dll at ../socketpro/bin/free_services/(mysql8_0_11|mysql5_7_22|mariadb)/win64 (or win86) into the above found database plugin directory.
+                Afterwards, execute the statement <i><b>INSTALL PLUGIN UDAParts_SQL_Streaming SONAME 'smysql.dll'</b></i>.</li>
+                <li><b>Linux</b>: Copy libsmysql.so at ../socketpro/bin/free_services/(mysql8_0_11|mysql5_7_22|mariadb)/ into the above found database plugin directory.
+                Afterwards, execute the statement <i><b>INSTALL PLUGIN UDAParts_SQL_Streaming SONAME 'libsmysql.so'</b></i>.</li>
+            </ul>
+            Make sure there is no error output before continuing to the next step. The directories, <i>mysql8_0_11</i>, <i>mysql5_7_22</i> and <i>mariadb</i>, contain one DB plugin for MySQL 8 or later, MySQL 5.7 or earlier, and MariaDB, respectively. Don't make a mistake here.
+        </li>
+        <li>Go to MySQL/MariaDB database data directory, which can be found by executing the query <i><b>show variables where variable_name='datadir'</b></i>.
+        Afterwards, you can find the two generated files, sp_streaming_db_config.json and streaming_db.log, for other advanced settings and error outputs, respectively.
+        In case there is an error output, the file streaming_db.log will very likely give you a hint to help.
+        By this time, you can successfully run the test sample application after compiling.</li>
+        </p>
+    </ol>
+</li>
+<li>Install a sample database <i>sakila</i>
+<p>This step is optional. However, it is highly recommended because we extensively use sakila as a sample database.
+If your MySQL/MariaDB doesn’t have sakila database installed, you can get it from a site by searching github and sakila.
 You will find many sites having SQL scripts for installing the famous sample database <i>sakila</i>.
 As an example, <a href="https://github.com/ivanceras/sakila" title="GitHub - ivanceras/sakila: Sakila sample database for each database platform">this site</a> may work for you.
 </p>
 </li>
-<li>Copying SocketPro MySQL/MariaDB DB plugin into database plugin dirtectory and installing the plugin
-    <ol>
-        <li>Finding MySQL/MariaDB database plugin directory by executing statement <i>show variables where variable_name='plugin_dir'</i></li>
-        <li>Copying MySQL/MariaDB plugin into database plugin directory and installing the plugin
-            <ul>
-                <li><b>Windows</b>: Copy smysql.dll at ../socketpro/bin/free_services/(mysql8_0_11|mysql5_7_22|mariadb)/win64 or win86 into the above found database plugin directory. Afterwards, execute the statement <i>INSTALL PLUGIN UDAParts_SQL_Streaming SONAME 'smysql.dll'</i>.</li>
-                <li><b>Linux</b>: Copy libsmysql.so at ../socketpro/bin/free_services/(mysql8_0_11|mysql5_7_22|mariadb)/ into the above found database plugin directory. Afterwards, execute the statement <i>INSTALL PLUGIN UDAParts_SQL_Streaming SONAME 'libsmysql.so'</i>.</li>
-            </ul>
-            <p>Make sure there is no error output before continuing to the next step. The directories, <i>mysql8_0_11</i>, <i>mysql5_7_22</i> and <i>mariadb</i>, contain one DB plugin for MySQL 8 or later, MySQL 5.7 or earlier, and MariaDB, respectively. Don't make a mistake here.</p>
-        </li>
-    </ol>
-</li>
 
-<li>Configuring SocketPro MySQL/MariaDB DB plugin
+<li>Configure SocketPro MySQL/MariaDB DB plugin for advanced features by modifying the file sp_streaming_db_config.json
+    <p>The coming configurations are also optional. They are presented here for advanced features and other services.</p>
 <ol>
-    <li>If you use MySQL <b>8.0.11 or later</b>, you can see a new database created with the name <i>sp_streaming_db</i> as shown in the below Figure 1.
-    <p />
-    <img alt="SocketPro SQL-streaming configuration database sp_streaming_db and table config" src="images/mysql_sp_streaming_config.png" />
-    <p><i>Figure 1: SocketPro SQL-streaming configuration database sp_streaming_db and table config</i></p>
-    <p>The configuration database has three simple tables, <i>config</i>, <i>service</i> and <i>permission</i> as shown in the above Figure 1. 
-    It is expected that SocketPro MySQL SQL-streaming plugin supports industrial security standard TLSv1.x to secure communication between client and server.
-    By default, a SocketPro client can use either IP v4 or v6 to access MySQL database at port number 20902.
-    Pay attention to the record <i>cached_tables</i>. If you set its value properly, all connected SocketPro clients can see data changes within these tables (for example, table actor, country, category and language within database sakila) in real time.
-    Referring to the .NET sample test_cache at directory ../socketpro/stream_sql/mysql, you can use the real-time cache feature to improve your middle tier performance and scalability by reducing data trips between middle tier and database.</p>
-    <p>One SocketPro server is capable of supporting many services at the same time by use of one TCP listening port.
-    If you like, you can enable websocket from SocketPro MySQL SQL-streaming plugin by setting value to '1' for the record <i>enable_http_websocket</i>.
-    Further, you can also embed other services by setting value properly of record services as shown in the above Figure 1.
-    Once changing any one or more values within the table <i>config</i>, you should restart MySQL.
-    Otherwise, the changes will not function correctly.</p>
-    <p>In regards to the table <i>permission</i>, SocketPro MySQL SQL-streaming technology uses its records to authenticate clients for embedded services as shown in the following Figure 2.
-    MySQL SQL-streaming plugin uses the two tables <i>mysql.user</i> and <i>sp_streaming_db.permission</i> to authenticate all clients for all services.
-    However, its SQL-streaming service does not use records within the table <i>sp_streaming_db.permission</i> for authentication.</p>
-    <p />
-    <img alt="Three users (root, user_one and user_two) allowed for SocketPro asynchronous persistent message queue service (service id=257)" src="images/mysql_permission.png" />
-    <p><i>Figure 2: Three users (root, user_one and user_two) allowed for SocketPro asynchronous persistent message queue service (service id=257)</i></p>
-    <p>Under most cases, you are not required to touch the table <i>service</i>.</p>
+    <li>First of all, find entry <i><b>services</b></i>, and change its string value to <i>ssqlite;uasyncqueue</i>.
+    The MySQL/MariaDB database server plugin is going to load the two services <a href="get_started.htm" title="Get Started With SocketPro">(sqlite and server persistent queue)</a>.
+    You can do so for other services. Each of services should be separated by the charactor semi-colon.
     </li>
-    <li>If you use MySQL <b>5.7 or earlier</b>, or MariaDB, follow the following steps to do configurations:
-        <p>First, copy the file <i>sp_streaming_db_config.txt</i> inside the directory ../socketpro/stream_sql/mariadb into MySQL or MariaDB data directory, which can be found by executing statement <i>show variables where variable_name='datadir'</i>.
-        It is noted that the entries within the above Figure 1 are the same as ones within the file <i>sp_streaming_db_config.txt</i>. The both configurations are exactly the same.</p> 
-        <p>Afterwards, restart MySQL or MariaDB.</p>
-        <p>Next, register a user defined function <i>SetSQLStreamingPlugin</i> by executing the statement <i>CREATE FUNCTION SetSQLStreamingPlugin RETURNS INTEGER SONAME 'libsmysql.so'</i> and <i>CREATE FUNCTION SetSQLStreamingPlugin RETURNS INTEGER SONAME 'smysql.dll'</i>, respectively on Linux and Windows platforms.</p>
-        <p>At last, call the user defined function <i>SetSQLStreamingPlugin</i> by executing a statement like <i>select SetSQLStreamingPlugin('uid=root;pwd=Smash123')</i>. Here, the parameters <i>uid</i> and <i>pwd</i> represent user id and password, respectively.</p>
+    <li>
+    Next, find entry <i><b>monitored_tables</b></i>, and change its string value to <i>sakila.actor;sakila.country;sakila.category;sakila.language</i>.
+    Doing so will force the MySQL/MariaDB database server plugin to monitor insert, update and delete trigger events for the four tables, actor, country, category and language.
+    SocketPro use these trigger events for real-time cache at client or middle tier side.
     </li>
+    <li>Stop MySQL/MariaDB database server, and restart it. By this time, the configuartion file will be updated.
+    In case there is an error, the log file streaming_db.log will help you out.
+    </li>
+    <li>The following steps are NOT necessary for MySQL 8 or later at all. However, if you use MySQL <b>5.7 or earlier</b>, or MariaDB, follow the following two steps to complete the previous setting 2:
+        <p>Register a user defined function <i><b>SetSQLStreamingPlugin</b></i> by executing the statement <i><b>CREATE FUNCTION SetSQLStreamingPlugin RETURNS INTEGER SONAME 'libsmysql.so'</b></i> and <i><b>CREATE FUNCTION SetSQLStreamingPlugin RETURNS INTEGER SONAME 'smysql.dll'</b></i>, respectively on Linux and Windows platforms.</p>
+        <p>At last, call the user defined function <i><b>SetSQLStreamingPlugin</b></i> by executing a statement like <i><b>select SetSQLStreamingPlugin('uid=root;pwd=Smash123')</b></i>.
+        Here, the parameters <i>uid</i> and <i>pwd</i> represent user id and password, respectively.</p>
+    </li>
+    <li>In case you know C#, you can compile the real-time cache feature by compiling and running the test project at the directory ../socketpro/stream_sql/mysql/test_cache.</li>
 </ol>
-    If the above configurations are completed correctly without any error, these SocketPro DB server plugins will support both SQL requests streaming processing and real-time updateable cache.
+    <br />
+    If the above configurations are completed correctly without any error, these SocketPro DB server plugins will support SocketPro server persistent message, SQLite, SQL requests streaming processing, and real-time updateable cache services.
+    Further, these SocketPro DB server plugins will use database accounts to authenticate clients for all of these services.
+    <br /><br />
+    Certainly, you can turn on SSL/TSLv1.x for secure communication, change listening port, and modify settings for SocketPro server persistent message and SQLite services too.
+    It is noted that some of entries within the configuration file is read-only just for your information.
 </li>
 </ul>
 <hr />
-<p>By this time, you can compile the sample unit test code and run against a MySQL or MariaDB database.
-Further, set break point at line 81 of the above snippet 1 to see the changes in variables <i>vPData</i>, <i>vData</i>, <i>ra</i> and various future objects as well as console outputs.
+<p>By this time, you can set break point at line 81 of the above snippet 1 to see the changes in variables <i>vPData</i>, <i>vData</i>, <i>ra</i> and various future objects as well as console outputs.
 At end, SocketPro MySQL/MariaDB DB plugins are written from C/C++.
 Their projects are located at the directories ../socketpro/stream_sql/mysql/smysql and ../socketpro/stream_sql/mariadb/smysql.
 Like SocketPro SQLite plugin, the MySQL/MariaDB plugins are not complicate at all in implementation.
 In fact, they are small, simple and understandable to a middle or senior level of C++ software engineer.</p>
 
-<p>In addition, there is a plugin log file <i>streaming_db.log</i> inside MySQL or MariaDB data directory. For example, it is located at the directory C:\ProgramData\MySQL\MySQL Server 8.0\Data for MySQL 8 on windows platforms.
-If you meet an issue like connection, you can check the log file <i>streaming_db.log</i> for help. If you can understand C/C++ code, you can quickly and accurately find the cause of a connection issue by looking at a line code of cpp file from the log file.
+<p>
+If you meet an issue like connecting issue, you can check the log file <i>streaming_db.log</i> for help.
+If you can understand C/C++ code, you can quickly and accurately find the cause of a connection issue by looking at a line code of cpp file from the log file.
 </p>
 
 <p>
