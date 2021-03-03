@@ -9,15 +9,21 @@ namespace SPA {
     namespace JSON {
 
         template<typename TChar>
-        std::basic_string<TChar>&& Escape(std::basic_string<TChar>& str) {
+        std::basic_string<TChar>&& Escape(std::basic_string<TChar>& str, bool escape_fowardslash = false) {
             for (size_t pos = 0, len = str.size(); pos < len; ++pos) {
                 switch (str[pos]) {
                     case '\\': case '\b': case '\f': case '"':
-                    case '\t': case '\r': case '\n': case '/':
+                    case '\t': case '\r': case '\n':
                         str.insert(pos, 1, '\\');
                         ++pos;
                         ++len;
                         break;
+                    case '/':
+                        if (escape_fowardslash) {
+                            str.insert(pos, 1, '\\');
+                            ++pos;
+                            ++len;
+                        }
                     default:
                         break;
                 }
@@ -26,10 +32,10 @@ namespace SPA {
         }
 
         template<typename TChar>
-        std::basic_string<TChar> Escape(const TChar* str) {
+        std::basic_string<TChar> Escape(const TChar* str, bool escape_fowardslash = false) {
             std::basic_string<TChar> s;
             if (str) s.assign(str);
-            return Escape(s);
+            return Escape(s, escape_fowardslash);
         }
 
         template<typename TChar>
@@ -77,18 +83,18 @@ namespace SPA {
             JValue() noexcept : type(enumType::Null) {
             }
 
-            JValue(const TChar* str, bool escape = true) {
+            JValue(const TChar* str, bool escape = true, bool escape_fowardslash = false) {
                 if (str) {
                     type = enumType::String;
                     strValue = new JString(str);
-                    if (escape) Escape(*strValue);
+                    if (escape) Escape(*strValue, escape_fowardslash);
                 } else {
                     type = enumType::Null;
                 }
             }
 
-            JValue(const JString& str, bool escape = true) : type(enumType::String), strValue(new JString(str)) {
-                if (escape) Escape(*strValue);
+            JValue(const JString& str, bool escape = true, bool escape_fowardslash = false) : type(enumType::String), strValue(new JString(str)) {
+                if (escape) Escape(*strValue, escape_fowardslash);
             }
 
             JValue(bool value) noexcept : type(enumType::Bool), bValue(value) {
@@ -153,9 +159,9 @@ namespace SPA {
                 objValue->swap(obj);
             }
 
-            JValue(JString&& src, bool escape = true) : type(enumType::String), strValue(new JString) {
+            JValue(JString&& src, bool escape = true, bool escape_fowardslash = false) : type(enumType::String), strValue(new JString) {
                 strValue->swap(src);
-                if (escape) Escape(*strValue);
+                if (escape) Escape(*strValue, escape_fowardslash);
             }
 
             JValue(JValue&& src) noexcept : type(src.type), int64Value(src.int64Value) {
