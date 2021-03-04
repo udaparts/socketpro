@@ -67,7 +67,7 @@ namespace SPA
             auto it = cc.find("Host"), end = cc.end();
             if (it != end && it->second.GetType() == enumType::String) {
                 ctx.Host = it->second.AsString();
-                Trim(ctx.Host);
+                Trim(JSON::Unescape(ctx.Host));
                 ToLower(ctx.Host);
             }
             it = cc.find("Port");
@@ -77,12 +77,13 @@ namespace SPA
             it = cc.find("UserId");
             if (it != end && it->second.GetType() == enumType::String) {
                 std::string s = it->second.AsString();
-                Trim(s);
+                Trim(JSON::Unescape(s));
                 ctx.UserId = SPA::Utilities::ToWide(s);
             }
             it = cc.find("Password");
             if (it != end && it->second.GetType() == enumType::String) {
                 std::string s = it->second.AsString();
+                JSON::Unescape(s);
                 ctx.Password = SPA::Utilities::ToWide(s);
             }
             it = cc.find("EncrytionMethod");
@@ -105,7 +106,7 @@ namespace SPA
             JValue<char>* jv = pool.Child("Queue");
             if (jv && jv->GetType() == enumType::String) {
                 pc.Queue = jv->AsString();
-                Trim(pc.Queue);
+                Trim(JSON::Unescape(pc.Queue));
 #ifdef WIN32_64
                 ToLower(pc.Queue);
 #endif
@@ -113,7 +114,7 @@ namespace SPA
             jv = pool.Child("DefaultDb");
             if (jv && jv->GetType() == enumType::String) {
                 pc.DefaultDb = jv->AsString();
-                Trim(pc.DefaultDb);
+                Trim(JSON::Unescape(pc.DefaultDb));
             }
             if (main) {
                 if (pc.DefaultDb.size()) {
@@ -150,20 +151,22 @@ namespace SPA
             }
             jv = pool.Child("Hosts");
             if (jv && jv->GetType() == enumType::Array) {
-                const auto& vH = jv->AsArray();
-                for (auto it = vH.cbegin(), end = vH.cend(); it != end; ++it) {
+                auto& vH = jv->AsArray();
+                for (auto it = vH.begin(), end = vH.end(); it != end; ++it) {
                     if (it->GetType() != enumType::String) {
                         continue;
                     }
-                    pc.Hosts.push_back(it->AsString());
+                    std::string s = it->AsString();
+                    Trim(JSON::Unescape(s));
+                    pc.Hosts.push_back(std::move(s));
                 }
             }
             if (pc.PoolType == tagPoolType::Master) {
                 jv = pool.Child("Slaves");
                 if (jv && jv->GetType() == enumType::Object) {
-                    const auto& vSlave = jv->AsObject();
-                    for (auto it = vSlave.cbegin(), end = vSlave.cend(); it != end; ++it) {
-                        const auto& cc = it->second;
+                    auto& vSlave = jv->AsObject();
+                    for (auto it = vSlave.begin(), end = vSlave.end(); it != end; ++it) {
+                        auto& cc = it->second;
                         if (cc.GetType() != enumType::Object) {
                             continue;
                         }
@@ -291,7 +294,7 @@ namespace SPA
             CheckPoolErrors();
         }
 
-        std::string CSpConfig::GetConfig() {
+        std::string CSpConfig::GetConfig(bool pretty) {
             JObject<char> objRoot;
             {
                 SPA::CAutoLock al(m_cs);
@@ -299,7 +302,7 @@ namespace SPA
                     return "";
                 }
             }
-            objRoot["CertStore"] = JValue<char>(CertStore, false);
+            objRoot["CertStore"] = CertStore;
             objRoot["WorkingDir"] = CClientSocket::QueueConfigure::GetWorkDirectory();
             objRoot["QueuePassword"] = m_bQP;
             JValue<char> jvRoot(std::move(objRoot));
@@ -309,20 +312,20 @@ namespace SPA
                 JObject<char> obj;
                 obj["Host"] = ctx.Host;
                 obj["Port"] = ctx.Port;
-                obj["UserId"] = JValue<char>(Utilities::ToUTF8(ctx.UserId), false);
-                obj["Password"] = JValue<char>(Utilities::ToUTF8(ctx.Password), false);
+                obj["UserId"] = Utilities::ToUTF8(ctx.UserId);
+                obj["Password"] = Utilities::ToUTF8(ctx.Password);
                 obj["Port"] = ctx.Port;
                 obj["EncrytionMethod"] = (int) ctx.EncrytionMethod;
                 obj["Zip"] = ctx.Zip;
                 obj["V6"] = ctx.V6;
                 vH[it->first] = std::move(obj);
             }
-            jvRoot.AsObject()["Hosts"] = std::move(vH);
+            jvRoot["Hosts"] = std::move(vH);
             JArray<char> vKA;
             for (auto it = CPoolConfig::KeysAllowed.cbegin(), end = CPoolConfig::KeysAllowed.cend(); it != end; ++it) {
-                vKA.push_back(JValue<char>(*it, false));
+                vKA.push_back(*it);
             }
-            jvRoot.AsObject()["KeysAllowed"] = std::move(vKA);
+            jvRoot["KeysAllowed"] = std::move(vKA);
             JObject<char> vP;
             for (auto it = Pools.cbegin(), end = Pools.cend(); it != end; ++it) {
                 const CPoolConfig &pscMain = it->second;
@@ -330,7 +333,7 @@ namespace SPA
                 objMain["SvsId"] = pscMain.SvsId;
                 JArray<char> vH;
                 for (auto h = pscMain.Hosts.cbegin(), he = pscMain.Hosts.cend(); h != he; ++h) {
-                    vH.push_back(JValue<char>(*h, false));
+                    vH.push_back(*h);
                 }
                 objMain["Hosts"] = std::move(vH);
                 objMain["Threads"] = pscMain.Threads;
@@ -368,8 +371,8 @@ namespace SPA
                 objMain["PoolType"] = (int) pscMain.PoolType;
                 vP[it->first] = std::move(objMain);
             }
-            jvRoot.AsObject()["Pools"] = std::move(vP);
-            return jvRoot.Stringify();
+            jvRoot["Pools"] = std::move(vP);
+            return jvRoot.Stringify(pretty);
         }
 
         bool CSpConfig::Parse(bool midTier, const char *jsonConfig) {
@@ -399,17 +402,13 @@ namespace SPA
             JValue<char>* v = jv->Child("WorkingDir");
             if (v && v->GetType() == enumType::String) {
                 std::string dir = v->AsString();
-#ifdef WIN32_64
                 Trim(Unescape(dir));
-#else
-                Trim(dir);
-#endif
                 SPA::ClientSide::CClientSocket::QueueConfigure::SetWorkDirectory(dir.c_str());
             }
             v = jv->Child("CertStore");
             if (v && v->GetType() == enumType::String) {
                 CertStore = v->AsString();
-                Trim(CertStore);
+                Trim(JSON::Unescape(CertStore));
                 if (CertStore.size()) {
                     CClientSocket::SSL::SetVerifyLocation(CertStore.c_str());
                 }
@@ -418,6 +417,7 @@ namespace SPA
             if (v && v->GetType() == enumType::String) {
                 std::string qp = v->AsString();
                 Trim(qp);
+                JSON::Unescape(qp);
                 if (qp.size()) {
                     SPA::ClientSide::CClientSocket::QueueConfigure::SetMessageQueuePassword(qp.c_str());
                     m_bQP = 1;
@@ -425,8 +425,8 @@ namespace SPA
             }
             v = jv->Child("KeysAllowed");
             if (v && v->GetType() == enumType::Array) {
-                const auto& arr = v->AsArray();
-                for (auto it = arr.cbegin(), end = arr.cend(); it != end; ++it) {
+                auto& arr = v->AsArray();
+                for (auto it = arr.begin(), end = arr.end(); it != end; ++it) {
                     if (it->GetType() != enumType::String) {
                         continue;
                     }
@@ -440,9 +440,9 @@ namespace SPA
             }
             v = jv->Child("Hosts");
             if (v && v->GetType() == enumType::Object) {
-                const auto& arr = v->AsObject();
-                for (auto it = arr.cbegin(), end = arr.cend(); it != end; ++it) {
-                    const auto& cc = it->second;
+                auto& arr = v->AsObject();
+                for (auto it = arr.begin(), end = arr.end(); it != end; ++it) {
+                    auto& cc = it->second;
                     if (cc.GetType() != enumType::Object) {
                         continue;
                     }
@@ -451,9 +451,9 @@ namespace SPA
             }
             v = jv->Child("Pools");
             if (v && v->GetType() == enumType::Object) {
-                const auto& arr = v->AsObject();
-                for (auto it = arr.cbegin(), end = arr.cend(); it != end; ++it) {
-                    const auto& cc = it->second;
+                auto& arr = v->AsObject();
+                for (auto it = arr.begin(), end = arr.end(); it != end; ++it) {
+                    auto& cc = it->second;
                     if (cc.GetType() != enumType::Object) {
                         continue;
                     }

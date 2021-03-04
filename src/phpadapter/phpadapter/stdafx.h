@@ -64,10 +64,7 @@
 #include "../../../include/mysql/umysql.h"
 #include "../../../include/sqlite/usqlite.h"
 #include "../../../include/odbc/uodbc.h"
-#include "../../../include/3rdparty/rapidjson/include/rapidjson/filereadstream.h"
-#include "../../../include/3rdparty/rapidjson/include/rapidjson/document.h"
-#include "../../../include/3rdparty/rapidjson/include/rapidjson/stringbuffer.h"
-#include "../../../include/3rdparty/rapidjson/include/rapidjson/writer.h"
+#include "../../../include/jsonvalue.h"
 
 namespace PA {
 

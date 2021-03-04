@@ -36,8 +36,8 @@ namespace PA {
         bool FindHostKey(const std::string &key);
         void SetSettings();
         static size_t ComputeDiff(const std::vector<std::string> &v);
-        static CConnectionContext GetCC(const rapidjson::Value& cc);
-        static CPoolStartContext GetPool(const rapidjson::Value& cc);
+        static CConnectionContext GetCC(const SPA::JSON::JValue<char>& cc);
+        static CPoolStartContext GetPool(const SPA::JSON::JValue<char>& cc);
 
     private:
         SPA::CUCriticalSection m_cs;

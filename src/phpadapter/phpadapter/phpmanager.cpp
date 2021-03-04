@@ -186,119 +186,80 @@ namespace PA
         if (m_jsonConfig.size()) {
             return m_jsonConfig;
         }
-        rapidjson::Document doc;
-        doc.SetObject();
-        rapidjson::Document::AllocatorType& allocator = doc.GetAllocator();
-
-        rapidjson::Value cs;
-        cs.SetString(CertStore.c_str(), (rapidjson::SizeType)CertStore.size());
-        doc.AddMember(KEY_CERT_STORE, cs, allocator);
-
-        rapidjson::Value wd;
+        SPA::JSON::JObject<char> objRoot;
+        objRoot[KEY_CERT_STORE] = CertStore;
         std::string dir = SPA::ClientSide::CClientSocket::QueueConfigure::GetWorkDirectory();
         Trim(dir);
-        wd.SetString(dir.c_str(), (rapidjson::SizeType)dir.size());
-        doc.AddMember(KEY_WORKING_DIR, wd, allocator);
-
-        doc.AddMember(KEY_QUEUE_PASSWORD, m_bQP, allocator);
-
-        rapidjson::Value vH(rapidjson::kObjectType);
+        objRoot[KEY_WORKING_DIR] = dir;
+        objRoot[KEY_QUEUE_PASSWORD] = m_bQP;
+        SPA::JSON::JObject<char> vH;
         for (auto &h : Hosts) {
-            rapidjson::Value key(h.first.c_str(), (rapidjson::SizeType)h.first.size(), allocator);
-
+            SPA::JSON::JObject<char> obj;
             auto &ctx = h.second;
-            rapidjson::Value obj(rapidjson::kObjectType);
-
-            rapidjson::Value s(ctx.Host.c_str(), (rapidjson::SizeType)ctx.Host.size(), allocator);
-            obj.AddMember(KEY_HOST, s, allocator);
-
-            obj.AddMember(KEY_PORT, ctx.Port, doc.GetAllocator());
-
-            std::string str = SPA::Utilities::ToUTF8(ctx.UserId);
-            s.SetString(str.c_str(), (rapidjson::SizeType)str.size(), allocator);
-            obj.AddMember(KEY_USER_ID, s, allocator);
-
-            str = SPA::Utilities::ToUTF8(ctx.Password);
-            s.SetString(str.c_str(), (rapidjson::SizeType)str.size(), allocator);
-            obj.AddMember(KEY_PASSWORD, s, allocator);
-
-            obj.AddMember(KEY_ENCRYPTION_METHOD, (int) ctx.EncrytionMethod, allocator);
-            obj.AddMember(KEY_ZIP, ctx.Zip, allocator);
-            obj.AddMember(KEY_V6, ctx.V6, allocator);
-            vH.AddMember(key, obj, allocator);
+            obj[KEY_HOST] = ctx.Host;
+            obj[KEY_PORT] = ctx.Port;
+            obj[KEY_USER_ID] = SPA::Utilities::ToUTF8(ctx.UserId);
+            obj[KEY_PASSWORD] = SPA::Utilities::ToUTF8(ctx.Password);
+            obj[KEY_ENCRYPTION_METHOD] = (int) ctx.EncrytionMethod;
+            obj[KEY_ZIP] = ctx.Zip;
+            obj[KEY_V6] = ctx.V6;
+            vH[h.first] = std::move(obj);
         }
-        doc.AddMember(KEY_HOSTS, vH, allocator);
-
-        rapidjson::Value vKA(rapidjson::kArrayType);
+        objRoot[KEY_HOSTS] = std::move(vH);
+        SPA::JSON::JArray<char> vKA;
         for (auto &ka : m_vKeyAllowed) {
-            rapidjson::Value key(ka.c_str(), (rapidjson::SizeType)ka.size(), allocator);
-            vKA.PushBack(key, allocator);
+            vKA.push_back(ka);
         }
-        doc.AddMember(KEY_KEYS_ALLOWED, vKA, allocator);
-
-        rapidjson::Value vP(rapidjson::kObjectType);
+        objRoot[KEY_KEYS_ALLOWED] = std::move(vKA);
+        SPA::JSON::JObject<char> vP;
         for (auto &p : Pools) {
-            rapidjson::Value key(p.first.c_str(), (rapidjson::SizeType)p.first.size(), allocator);
             const CPoolStartContext &pscMain = p.second;
-            rapidjson::Value objMain(rapidjson::kObjectType);
-            objMain.AddMember(KEY_SVS_ID, pscMain.SvsId, allocator);
-
-            rapidjson::Value vH(rapidjson::kArrayType);
+            SPA::JSON::JObject<char> objMain;
+            objMain[KEY_SVS_ID] = pscMain.SvsId;
+            SPA::JSON::JArray<char> vH;
             for (auto &h : pscMain.Hosts) {
-                rapidjson::Value s(h.c_str(), (rapidjson::SizeType)h.size(), allocator);
-                vH.PushBack(s, allocator);
+                vH.push_back(h);
             }
-            objMain.AddMember(KEY_HOSTS, vH, allocator);
-
-            objMain.AddMember(KEY_THREADS, pscMain.Threads, allocator);
-            rapidjson::Value s(pscMain.Queue.c_str(), (rapidjson::SizeType)pscMain.Queue.size(), allocator);
-            objMain.AddMember(KEY_QUEUE_NAME, s, allocator);
-            objMain.AddMember(KEY_AUTO_CONN, pscMain.AutoConn, allocator);
-            objMain.AddMember(KEY_AUTO_MERGE, pscMain.AutoMerge, allocator);
-            objMain.AddMember(KEY_RECV_TIMEOUT, pscMain.RecvTimeout, allocator);
-            objMain.AddMember(KEY_CONN_TIMEOUT, pscMain.RecvTimeout, allocator);
-            s.SetString(pscMain.DefaultDb.c_str(), (rapidjson::SizeType)pscMain.DefaultDb.size(), allocator);
-            objMain.AddMember(KEY_DEFAULT_DB, s, allocator);
+            objMain[KEY_HOSTS] = std::move(vH);
+            objMain[KEY_THREADS] = pscMain.Threads;
+            objMain[KEY_QUEUE_NAME] = pscMain.Queue;
+            objMain[KEY_AUTO_CONN] = pscMain.AutoConn;
+            objMain[KEY_AUTO_MERGE] = pscMain.AutoMerge;
+            objMain[KEY_RECV_TIMEOUT] = pscMain.RecvTimeout;
+            objMain[KEY_CONN_TIMEOUT] = pscMain.ConnTimeout;
+            objMain[KEY_DEFAULT_DB] = pscMain.DefaultDb;
 
             //Slaves
             if (pscMain.Slaves.size()) {
-                rapidjson::Value vS(rapidjson::kObjectType);
+                SPA::JSON::JObject<char> vS;
                 for (auto &one : pscMain.Slaves) {
-                    rapidjson::Value key(one.first.c_str(), (rapidjson::SizeType)one.first.size(), allocator);
                     const CPoolStartContext &psc = one.second;
-                    rapidjson::Value obj(rapidjson::kObjectType);
-                    obj.AddMember(KEY_SVS_ID, psc.SvsId, allocator);
-
-                    rapidjson::Value vH(rapidjson::kArrayType);
+                    SPA::JSON::JObject<char> obj;
+                    obj[KEY_SVS_ID] = psc.SvsId;
+                    SPA::JSON::JArray<char> vH;
                     for (auto &h : psc.Hosts) {
-                        rapidjson::Value s(h.c_str(), (rapidjson::SizeType)h.size(), allocator);
-                        vH.PushBack(s, allocator);
+                        vH.push_back(h);
                     }
-                    obj.AddMember(KEY_HOSTS, vH, allocator);
+                    obj[KEY_HOSTS] = std::move(vH);
+                    obj[KEY_THREADS] = psc.Threads;
+                    obj[KEY_QUEUE_NAME] = psc.Queue;
 
-                    obj.AddMember(KEY_THREADS, psc.Threads, allocator);
-                    rapidjson::Value s(psc.Queue.c_str(), (rapidjson::SizeType)psc.Queue.size(), allocator);
-                    obj.AddMember(KEY_QUEUE_NAME, s, allocator);
-                    obj.AddMember(KEY_AUTO_CONN, psc.AutoConn, allocator);
-                    obj.AddMember(KEY_AUTO_MERGE, psc.AutoMerge, allocator);
-                    obj.AddMember(KEY_RECV_TIMEOUT, psc.RecvTimeout, allocator);
-                    obj.AddMember(KEY_CONN_TIMEOUT, psc.RecvTimeout, allocator);
-                    s.SetString(psc.DefaultDb.c_str(), (rapidjson::SizeType)psc.DefaultDb.size(), allocator);
-                    obj.AddMember(KEY_DEFAULT_DB, s, allocator);
-                    obj.AddMember(KEY_POOL_TYPE, (int) psc.PoolType, allocator);
-                    vS.AddMember(key, obj, allocator);
+                    obj[KEY_AUTO_CONN] = psc.AutoConn;
+                    obj[KEY_AUTO_MERGE] = psc.AutoMerge;
+                    obj[KEY_RECV_TIMEOUT] = psc.RecvTimeout;
+                    obj[KEY_CONN_TIMEOUT] = psc.ConnTimeout;
+                    obj[KEY_DEFAULT_DB] = psc.DefaultDb;
+                    obj[KEY_POOL_TYPE] = (int) psc.PoolType;
+                    vS[one.first] = std::move(obj);
                 }
-                objMain.AddMember(KEY_SLAVES, vS, allocator);
+                objMain[KEY_SLAVES] = std::move(vS);
             }
-            objMain.AddMember(KEY_POOL_TYPE, (int) pscMain.PoolType, allocator);
-            vP.AddMember(key, objMain, allocator);
+            objMain[KEY_POOL_TYPE] = (int) pscMain.PoolType;
+            vP[p.first] = std::move(objMain);
         }
-        doc.AddMember(KEY_POOLS, vP, allocator);
-
-        rapidjson::StringBuffer buffer;
-        rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
-        doc.Accept(writer);
-        m_jsonConfig = buffer.GetString();
+        objRoot[KEY_POOLS] = std::move(vP);
+        SPA::JSON::JValue<char> jv(std::move(objRoot));
+        m_jsonConfig = jv.Stringify();
         return m_jsonConfig;
     }
 
@@ -365,80 +326,99 @@ namespace PA
         cs.add(manager);
     }
 
-    CConnectionContext CPhpManager::GetCC(const rapidjson::Value & cc) {
+    CConnectionContext CPhpManager::GetCC(const SPA::JSON::JValue<char> &cc) {
         CConnectionContext ctx;
-        if (cc.HasMember(KEY_HOST) && cc[KEY_HOST].IsString()) {
-            ctx.Host = cc[KEY_HOST].GetString();
-            Trim(ctx.Host);
+        auto jv = cc.Child(KEY_HOST);
+        if (jv && jv->GetType() == SPA::JSON::enumType::String) {
+            ctx.Host = jv->AsString();
+            Trim(SPA::JSON::Unescape(ctx.Host));
         }
-        if (cc.HasMember(KEY_PORT) && cc[KEY_PORT].IsUint()) {
-            ctx.Port = cc[KEY_PORT].GetUint();
+        jv = cc.Child(KEY_PORT);
+        if (jv && jv->GetType() == SPA::JSON::enumType::Uint64) {
+            ctx.Port = (unsigned short) jv->AsUint64();
         }
-        if (cc.HasMember(KEY_USER_ID) && cc[KEY_USER_ID].IsString()) {
-            std::string s = cc[KEY_USER_ID].GetString();
-            Trim(s);
+        jv = cc.Child(KEY_USER_ID);
+        if (jv && jv->GetType() == SPA::JSON::enumType::String) {
+            std::string s = jv->AsString();
+            Trim(SPA::JSON::Unescape(s));
             ctx.UserId = SPA::Utilities::ToWide(s);
         }
-        if (cc.HasMember(KEY_PASSWORD) && cc[KEY_PASSWORD].IsString()) {
-            std::string s = cc[KEY_PASSWORD].GetString();
-            Trim(s);
+        jv = cc.Child(KEY_PASSWORD);
+        if (jv && jv->GetType() == SPA::JSON::enumType::String) {
+            std::string s = jv->AsString();
+            Trim(SPA::JSON::Unescape(s));
             ctx.Password = SPA::Utilities::ToWide(s);
         }
-        if (cc.HasMember(KEY_ENCRYPTION_METHOD) && cc[KEY_ENCRYPTION_METHOD].IsUint()) {
-            ctx.EncrytionMethod = cc[KEY_ENCRYPTION_METHOD].GetUint() ? SPA::tagEncryptionMethod::TLSv1 : SPA::tagEncryptionMethod::NoEncryption;
+        jv = cc.Child(KEY_ENCRYPTION_METHOD);
+        if (jv && jv->GetType() == SPA::JSON::enumType::Uint64) {
+            ctx.EncrytionMethod = jv->AsUint64() ? SPA::tagEncryptionMethod::TLSv1 : SPA::tagEncryptionMethod::NoEncryption;
         }
-        if (cc.HasMember(KEY_ZIP)) {
-            ctx.Zip = cc[KEY_ZIP].GetBool();
+        jv = cc.Child(KEY_ZIP);
+        if (jv && jv->GetType() == SPA::JSON::enumType::Bool) {
+            ctx.Zip = jv->AsBool();
         }
-        if (cc.HasMember(KEY_V6)) {
-            ctx.Zip = cc[KEY_V6].GetBool();
+        jv = cc.Child(KEY_V6);
+        if (jv && jv->GetType() == SPA::JSON::enumType::Bool) {
+            ctx.V6 = jv->AsBool();
         }
         return ctx;
     }
 
-    CPoolStartContext CPhpManager::GetPool(const rapidjson::Value & vPool) {
+    CPoolStartContext CPhpManager::GetPool(const SPA::JSON::JValue<char>& cc) {
         CPoolStartContext psc;
-        if (vPool.HasMember(KEY_QUEUE_NAME) && vPool[KEY_QUEUE_NAME].IsString()) {
-            psc.Queue = vPool[KEY_QUEUE_NAME].GetString();
-            Trim(psc.Queue);
+        auto jv = cc.Child(KEY_QUEUE_NAME);
+        if (jv && jv->GetType() == SPA::JSON::enumType::String) {
+            psc.Queue = jv->AsString();
+            Trim(SPA::JSON::Unescape(psc.Queue));
 #ifdef WIN32_64
             SPA::ToLower(psc.Queue);
 #endif
         }
-        if (vPool.HasMember(KEY_DEFAULT_DB) && vPool[KEY_DEFAULT_DB].IsString()) {
-            psc.DefaultDb = vPool[KEY_DEFAULT_DB].GetString();
-            Trim(psc.DefaultDb);
+        jv = cc.Child(KEY_DEFAULT_DB);
+        if (jv && jv->GetType() == SPA::JSON::enumType::String) {
+            psc.DefaultDb = jv->AsString();
+            Trim(SPA::JSON::Unescape(psc.DefaultDb));
         }
-        if (vPool.HasMember(KEY_SVS_ID) && vPool[KEY_SVS_ID].IsUint()) {
-            psc.SvsId = vPool[KEY_SVS_ID].GetUint();
+
+        jv = cc.Child(KEY_SVS_ID);
+        if (jv && jv->GetType() == SPA::JSON::enumType::Uint64) {
+            psc.SvsId = (unsigned int) jv->AsUint64();
         }
-        if (vPool.HasMember(KEY_THREADS) && vPool[KEY_THREADS].IsUint()) {
-            psc.Threads = vPool[KEY_THREADS].GetUint();
+        jv = cc.Child(KEY_THREADS);
+        if (jv && jv->GetType() == SPA::JSON::enumType::Uint64) {
+            psc.Threads = (unsigned int) jv->AsUint64();
         }
-        if (vPool.HasMember(KEY_RECV_TIMEOUT) && vPool[KEY_RECV_TIMEOUT].IsUint()) {
-            psc.RecvTimeout = vPool[KEY_RECV_TIMEOUT].GetUint();
+        jv = cc.Child(KEY_RECV_TIMEOUT);
+        if (jv && jv->GetType() == SPA::JSON::enumType::Uint64) {
+            psc.RecvTimeout = (unsigned int) jv->AsUint64();
         }
-        if (vPool.HasMember(KEY_CONN_TIMEOUT) && vPool[KEY_CONN_TIMEOUT].IsUint()) {
-            psc.ConnTimeout = vPool[KEY_CONN_TIMEOUT].GetUint();
+        jv = cc.Child(KEY_CONN_TIMEOUT);
+        if (jv && jv->GetType() == SPA::JSON::enumType::Uint64) {
+            psc.ConnTimeout = (unsigned int) jv->AsUint64();
         }
-        if (vPool.HasMember(KEY_AUTO_CONN) && vPool[KEY_AUTO_CONN].IsBool()) {
-            psc.AutoConn = vPool[KEY_AUTO_CONN].GetBool();
+        jv = cc.Child(KEY_AUTO_CONN);
+        if (jv && jv->GetType() == SPA::JSON::enumType::Bool) {
+            psc.AutoConn = jv->AsBool();
         }
-        if (vPool.HasMember(KEY_AUTO_MERGE) && vPool[KEY_AUTO_MERGE].IsBool()) {
-            psc.AutoMerge = vPool[KEY_AUTO_MERGE].GetBool();
+        jv = cc.Child(KEY_AUTO_MERGE);
+        if (jv && jv->GetType() == SPA::JSON::enumType::Bool) {
+            psc.AutoMerge = jv->AsBool();
         }
-        if (vPool.HasMember(KEY_HOSTS) && vPool[KEY_HOSTS].IsArray()) {
-            const auto& vH = vPool[KEY_HOSTS].GetArray();
+        jv = cc.Child(KEY_HOSTS);
+        if (jv && jv->GetType() == SPA::JSON::enumType::Array) {
+            auto& vH = jv->AsArray();
             for (const auto& h : vH) {
-                psc.Hosts.push_back(h.GetString());
+                if (h.GetType() == SPA::JSON::enumType::String) {
+                    std::string host = h.AsString();
+                    Trim(SPA::JSON::Unescape(host));
+                    psc.Hosts.push_back(std::move(host));
+                }
             }
         }
         return psc;
     }
 
     Php::Value CPhpManager::Parse() {
-        rapidjson::Document doc;
-        doc.SetObject();
         SPA::CAutoLock al(Manager.m_cs);
         if (!Manager.m_ConfigPath.size()) {
             std::string jsFile = Php::ini_get(SP_CONFIG_DIR.c_str());
@@ -468,47 +448,41 @@ namespace PA
         }
         do {
             try{
-                std::shared_ptr<FILE> fp(fopen(Manager.m_ConfigPath.c_str(), "rb"), [](FILE * f) {
-                    if (f) ::fclose(f);
-                });
-                if (!fp || ferror(fp.get())) {
+                int errCode = 0;
+                std::shared_ptr<SPA::JSON::JValue<char>> config(SPA::JSON::ParseFromFile(Manager.m_ConfigPath.c_str(), errCode));
+                if (errCode) {
                     throw Php::Exception("Cannot open " + SP_CONFIG);
-                }
-                fseek(fp.get(), 0, SEEK_END);
-                long size = ftell(fp.get()) + sizeof (wchar_t);
-                fseek(fp.get(), 0, SEEK_SET);
-                SPA::CScopeUQueue sb(SPA::GetOS(), SPA::IsBigEndian(), (unsigned int) size);
-                sb->CleanTrack();
-                rapidjson::FileReadStream is(fp.get(), (char*) sb->GetBuffer(), sb->GetMaxSize());
-                const char *json = (const char*) sb->GetBuffer();
-                rapidjson::ParseResult ok = doc.Parse(json, ::strlen(json));
-                if (!ok) {
+                } else if (!config) {
                     throw Php::Exception("Bad JSON configuration object");
                 }
-                if (doc.HasMember(KEY_WORKING_DIR) && doc[KEY_WORKING_DIR].IsString()) {
-                    std::string dir = doc[KEY_WORKING_DIR].GetString();
-                    Trim(dir);
+                auto jv = config->Child(KEY_WORKING_DIR);
+                if (jv && jv->GetType() == SPA::JSON::enumType::String) {
+                    std::string dir = jv->AsString();
+                    Trim(SPA::JSON::Unescape(dir));
                     SPA::ClientSide::CClientSocket::QueueConfigure::SetWorkDirectory(dir.c_str());
                 }
-                if (doc.HasMember(KEY_CERT_STORE) && doc[KEY_CERT_STORE].IsString()) {
-                    Manager.CertStore = doc[KEY_CERT_STORE].GetString();
-                    Trim(Manager.CertStore);
+                jv = config->Child(KEY_CERT_STORE);
+                if (jv && jv->GetType() == SPA::JSON::enumType::String) {
+                    Manager.CertStore = jv->AsString();
+                    Trim(SPA::JSON::Unescape(Manager.CertStore));
                 }
-                if (doc.HasMember(KEY_QUEUE_PASSWORD) && doc[KEY_QUEUE_PASSWORD].IsString()) {
-                    std::string qp = doc[KEY_QUEUE_PASSWORD].GetString();
-                    Trim(qp);
+                jv = config->Child(KEY_QUEUE_PASSWORD);
+                if (jv && jv->GetType() == SPA::JSON::enumType::String) {
+                    std::string qp = jv->AsString();
+                    Trim(SPA::JSON::Unescape(qp));
                     if (qp.size()) {
                         SPA::ClientSide::CClientSocket::QueueConfigure::SetMessageQueuePassword(qp.c_str());
                         Manager.m_bQP = 1;
                     }
                 }
-                if (doc.HasMember(KEY_KEYS_ALLOWED) && doc[KEY_KEYS_ALLOWED].IsArray()) {
-                    const auto& arr = doc[KEY_KEYS_ALLOWED].GetArray();
-                    for (const auto& v : arr) {
-                        if (!v.IsString()) {
+                jv = config->Child(KEY_KEYS_ALLOWED);
+                if (jv && jv->GetType() == SPA::JSON::enumType::Array) {
+                    auto& arr = jv->AsArray();
+                    for (auto& v : arr) {
+                        if (v.GetType() != SPA::JSON::enumType::String) {
                             continue;
                         }
-                        std::string s = v.GetString();
+                        std::string s = v.AsString();
                         Trim(s);
                         if (s.size()) {
                             SPA::ToLower(s);
@@ -517,23 +491,23 @@ namespace PA
                     }
                 }
                 SPA::ClientSide::CClientSocket::SSL::SetVerifyLocation(Manager.CertStore.c_str());
-                if (doc.HasMember(KEY_HOSTS) && doc[KEY_HOSTS].IsObject()) {
-                    const auto& arr = doc[KEY_HOSTS].GetObject();
-                    for (auto it = arr.MemberBegin(), end = arr.MemberEnd(); it != end; ++it) {
-                        const char* key = it->name.GetString();
-                        const auto& cc = it->value;
-                        if (!cc.IsObject()) {
+                jv = config->Child(KEY_HOSTS);
+                if (jv && jv->GetType() == SPA::JSON::enumType::Object) {
+                    auto& arr = jv->AsObject();
+                    for (auto it = arr.begin(), end = arr.end(); it != end; ++it) {
+                        auto& cc = it->second;
+                        if (cc.GetType() != SPA::JSON::enumType::Object) {
                             continue;
                         }
-                        Manager.Hosts[key] = GetCC(cc);
+                        Manager.Hosts[it->first] = GetCC(cc);
                     }
                 }
-                if (doc.HasMember(KEY_POOLS) && doc[KEY_POOLS].IsObject()) {
-                    const auto& arr = doc[KEY_POOLS].GetObject();
-                    for (auto it = arr.MemberBegin(), end = arr.MemberEnd(); it != end; ++it) {
-                        const char* key = it->name.GetString();
-                        const auto& ccMain = it->value;
-                        if (!ccMain.IsObject()) {
+                jv = config->Child(KEY_POOLS);
+                if (jv && jv->GetType() == SPA::JSON::enumType::Object) {
+                    auto& arr = jv->AsObject();
+                    for (auto it = arr.begin(), end = arr.end(); it != end; ++it) {
+                        auto& ccMain = it->second;
+                        if (ccMain.GetType() != SPA::JSON::enumType::Object) {
                             continue;
                         }
                         CPoolStartContext psc = GetPool(ccMain);
@@ -542,12 +516,11 @@ namespace PA
                         } else {
                             psc.PoolType = tagPoolType::Regular;
                         }
-                        if (psc.DefaultDb.size() && ccMain.HasMember(KEY_SLAVES) && ccMain[KEY_SLAVES].IsObject()) {
-                            const auto& vSlave = ccMain[KEY_SLAVES].GetObject();
-                            for (auto it = vSlave.MemberBegin(), end = vSlave.MemberEnd(); it != end; ++it) {
-                                const char* skey = it->name.GetString();
-                                const auto& cc = it->value;
-                                if (!cc.IsObject()) {
+                        if (psc.DefaultDb.size() && ccMain.Child(KEY_SLAVES) && ccMain.Child(KEY_SLAVES)->GetType() == SPA::JSON::enumType::Object) {
+                            auto& vSlave = ccMain[KEY_SLAVES].AsObject();
+                            for (auto it = vSlave.begin(), end = vSlave.end(); it != end; ++it) {
+                                auto& cc = it->second;
+                                if (cc.GetType() != SPA::JSON::enumType::Object) {
                                     continue;
                                 }
                                 CPoolStartContext ps = GetPool(cc);
@@ -556,10 +529,10 @@ namespace PA
                                     ps.DefaultDb = psc.DefaultDb;
                                 }
                                 ps.PoolType = tagPoolType::Slave;
-                                psc.Slaves[skey] = ps;
+                                psc.Slaves[it->first] = ps;
                             }
                         }
-                        Manager.Pools[key] = psc;
+                        Manager.Pools[it->first] = psc;
                     }
                 }
             }
