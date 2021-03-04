@@ -479,6 +479,33 @@ namespace SPA {
                 return *this;
             }
 
+            bool operator==(const JValue& jv) const noexcept {
+                if (type != jv.type) return false;
+                switch (type) {
+                    case enumType::String:
+                        return (*strValue == *src.strValue);
+                    case enumType::Bool:
+                        return (bValue == src.bValue);
+                    case enumType::Int64:
+                        return (int64Value == src.int64Value);
+                    case enumType::Uint64:
+                        return (uint64Value == src.uint64Value);
+                    case enumType::Number:
+                        return (dValue == src.dValue);
+                    case enumType::Array:
+                        return (*arrValue == *src.arrValue);
+                    case enumType::Object:
+                        return (*objValue == *src.objValue);
+                    default: //null
+                        break;
+                }
+                return true;
+            }
+
+            bool operator!=(const JValue& jv) const noexcept {
+                return (!(*this == jv));
+            }
+
             static JValue* Parse(const TChar* data) {
                 if (!data) return nullptr;
                 if (!SkipWhitespace(data)) return nullptr;
