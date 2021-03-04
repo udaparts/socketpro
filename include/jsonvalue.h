@@ -103,10 +103,10 @@ namespace SPA {
             JValue(double d) noexcept : type(enumType::Number), dValue(d) {
             }
 
-            JValue(unsigned int n) : type(enumType::Uint64), uint64Value(n) {
+            JValue(unsigned int n) noexcept : type(enumType::Uint64), uint64Value(n) {
             }
 
-            JValue(UINT64 n) : type(enumType::Uint64), uint64Value(n) {
+            JValue(UINT64 n) noexcept : type(enumType::Uint64), uint64Value(n) {
             }
 
             JValue(int n) noexcept : type(enumType::Uint64), int64Value(n) {
