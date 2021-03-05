@@ -168,7 +168,7 @@ namespace SPA {
                 src.type = enumType::Null;
             }
 
-            ~JValue() {
+            ~JValue() noexcept {
                 Clean();
             }
 
@@ -517,14 +517,14 @@ namespace SPA {
 
         private:
 
-            static bool SkipWhitespace(const TChar*& data) {
+            static bool SkipWhitespace(const TChar*& data) noexcept {
                 while (*data == ' ' || *data == '\n' || *data == '\r' || *data == '\t') {
                     ++data;
                 }
                 return *data;
             }
 
-            static double ParseDecimal(const TChar*& data) {
+            static double ParseDecimal(const TChar*& data) noexcept {
                 double decimal = 0.0, factor = 0.1;
                 while (*data >= '0' && *data <= '9') {
                     int diff = (*data++ -'0');
@@ -534,7 +534,7 @@ namespace SPA {
                 return decimal;
             }
 
-            static bool ExtractString(const TChar*& data, std::basic_string<TChar>& str) {
+            static bool ExtractString(const TChar*& data, std::basic_string<TChar>& str) noexcept {
                 const TChar* start = data;
                 while (*data) {
                     char next = *data;
