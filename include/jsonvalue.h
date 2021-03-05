@@ -181,7 +181,7 @@ namespace SPA {
             }
 
             inline JString& AsString() const {
-                assert(type == enumType::String);
+                if (type != enumType::String) throw std::runtime_error("Not a json string");
                 return (*strValue);
             }
 
@@ -218,8 +218,7 @@ namespace SPA {
                     case enumType::Uint64:
                         return (double) uint64Value;
                     default:
-                        assert(false); //unexpected error
-                        break;
+                        throw std::runtime_error("Cannot convert to a number");
                 }
                 return 0.0;
             }
@@ -234,8 +233,7 @@ namespace SPA {
                     case enumType::Uint64:
                         return int64Value;
                     default:
-                        assert(false); //unexpected error
-                        break;
+                        throw std::runtime_error("Cannot convert to an integer");
                 }
                 return 0;
             }
@@ -250,35 +248,34 @@ namespace SPA {
                     case enumType::Uint64:
                         return uint64Value;
                     default:
-                        assert(false); //unexpected error
-                        break;
+                        throw std::runtime_error("Cannot convert to a unsigned integer");
                 }
                 return 0;
             }
 
             inline JArray<TChar>& AsArray() const {
-                assert(type == enumType::Array);
+                if (type != enumType::Array) throw std::runtime_error("Not a json array");
                 return (*arrValue);
             }
 
             inline JObject<TChar>& AsObject() const {
-                assert(type == enumType::Object);
+                if (type != enumType::Object) throw std::runtime_error("Not a json object");
                 return (*objValue);
             }
 
             JValue& operator[](size_t index) const {
-                assert(type == enumType::Array);
+                if (type != enumType::Array) throw std::runtime_error("Not a json array");
                 return AsArray()[index];
             }
 
             JValue& operator[](const JString& key) const {
-                assert(type == enumType::Object);
-                return AsObject()[key];
+                if (type != enumType::Object) throw std::runtime_error("Not a json object");
+                return (*objValue)[key];
             }
 
             JValue& operator[](JString&& key) const {
-                assert(type == enumType::Object);
-                return AsObject()[key];
+                if (type != enumType::Object) throw std::runtime_error("Not a json object");
+                return (*objValue)[key];
             }
 
             inline std::size_t Size() const noexcept {
@@ -371,42 +368,42 @@ namespace SPA {
                 return *this;
             }
 
-            JValue& operator=(bool b) {
+            JValue& operator=(bool b) noexcept {
                 Clean();
                 type = enumType::Bool;
                 bValue = b;
                 return *this;
             }
 
-            JValue& operator=(double d) {
+            JValue& operator=(double d) noexcept {
                 Clean();
                 type = enumType::Number;
                 dValue = d;
                 return *this;
             }
 
-            JValue& operator=(int n) {
+            JValue& operator=(int n) noexcept {
                 Clean();
                 type = (n < 0) ? enumType::Int64 : enumType::Uint64;
                 int64Value = n;
                 return *this;
             }
 
-            JValue& operator=(unsigned int n) {
+            JValue& operator=(unsigned int n) noexcept {
                 Clean();
                 type = enumType::Uint64;
                 uint64Value = n;
                 return *this;
             }
 
-            JValue& operator=(INT64 n) {
+            JValue& operator=(INT64 n) noexcept {
                 Clean();
                 type = (n < 0) ? enumType::Int64 : enumType::Uint64;
                 int64Value = n;
                 return *this;
             }
 
-            JValue& operator=(UINT64 n) {
+            JValue& operator=(UINT64 n) noexcept {
                 Clean();
                 type = enumType::Uint64;
                 uint64Value = n;
@@ -483,19 +480,19 @@ namespace SPA {
                 if (type != jv.type) return false;
                 switch (type) {
                     case enumType::String:
-                        return (*strValue == *src.strValue);
+                        return (*strValue == *(jv.strValue));
                     case enumType::Bool:
-                        return (bValue == src.bValue);
+                        return (bValue == jv.bValue);
                     case enumType::Int64:
-                        return (int64Value == src.int64Value);
+                        return (int64Value == jv.int64Value);
                     case enumType::Uint64:
-                        return (uint64Value == src.uint64Value);
+                        return (uint64Value == jv.uint64Value);
                     case enumType::Number:
-                        return (dValue == src.dValue);
+                        return (dValue == jv.dValue);
                     case enumType::Array:
-                        return (*arrValue == *src.arrValue);
+                        return (*arrValue == *(jv.arrValue));
                     case enumType::Object:
-                        return (*objValue == *src.objValue);
+                        return (*objValue == *(jv.objValue));
                     default: //null
                         break;
                 }
@@ -783,7 +780,7 @@ namespace SPA {
                 }
             }
 
-            inline void Clean() {
+            inline void Clean() noexcept {
                 switch (type) {
                     case enumType::Array:
                         delete arrValue;
