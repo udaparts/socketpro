@@ -662,8 +662,7 @@ namespace PA
         const auto &data = params[0];
         if (params.size() > 1) {
             auto id = params[1].stringValue();
-            Trim(id);
-            SPA::ToLower(id);
+            SPA::ToLower(Trim(id));
         }
         EnsureBuffer();
         SaveObject(data, id);

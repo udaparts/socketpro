@@ -166,8 +166,7 @@ namespace PA
     Php::Value CPhpDb::Open(Php::Parameters & params) {
         unsigned int timeout = (~0);
         std::string aconn = params[0].stringValue();
-        Trim(aconn);
-        SPA::CDBString conn = SPA::Utilities::ToUTF16(aconn);
+        SPA::CDBString conn = SPA::Utilities::ToUTF16(Trim(aconn));
         CQPointer pV;
         size_t args = params.size();
         CDBHandler::DResult Dr;

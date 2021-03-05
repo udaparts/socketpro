@@ -207,7 +207,7 @@ namespace SPA {
                 return false;
             }
 
-            inline double AsNumber() const noexcept {
+            inline double AsNumber() const {
                 switch (type) {
                     case enumType::Bool:
                         return bValue ? 1.0 : 0.0;
@@ -223,7 +223,7 @@ namespace SPA {
                 return 0.0;
             }
 
-            inline INT64 AsInt64() const noexcept {
+            inline INT64 AsInt64() const {
                 switch (type) {
                     case enumType::Bool:
                         return bValue ? 1 : 0;
@@ -238,7 +238,7 @@ namespace SPA {
                 return 0;
             }
 
-            inline UINT64 AsUint64() const noexcept {
+            inline UINT64 AsUint64() const {
                 switch (type) {
                     case enumType::Bool:
                         return bValue ? 1 : 0;

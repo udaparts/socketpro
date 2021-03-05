@@ -340,14 +340,12 @@ namespace PA
         jv = cc.Child(KEY_USER_ID);
         if (jv && jv->GetType() == SPA::JSON::enumType::String) {
             std::string s = jv->AsString();
-            Trim(SPA::JSON::Unescape(s));
-            ctx.UserId = SPA::Utilities::ToWide(s);
+            ctx.UserId = SPA::Utilities::ToWide(Trim(SPA::JSON::Unescape(s)));
         }
         jv = cc.Child(KEY_PASSWORD);
         if (jv && jv->GetType() == SPA::JSON::enumType::String) {
             std::string s = jv->AsString();
-            Trim(SPA::JSON::Unescape(s));
-            ctx.Password = SPA::Utilities::ToWide(s);
+            ctx.Password = SPA::Utilities::ToWide(Trim(SPA::JSON::Unescape(s)));
         }
         jv = cc.Child(KEY_ENCRYPTION_METHOD);
         if (jv && jv->GetType() == SPA::JSON::enumType::Uint64) {
@@ -410,8 +408,7 @@ namespace PA
             for (const auto& h : vH) {
                 if (h.GetType() == SPA::JSON::enumType::String) {
                     std::string host = h.AsString();
-                    Trim(SPA::JSON::Unescape(host));
-                    psc.Hosts.push_back(std::move(host));
+                    psc.Hosts.push_back(std::move(Trim(SPA::JSON::Unescape(host))));
                 }
             }
         }
@@ -486,7 +483,7 @@ namespace PA
                         Trim(s);
                         if (s.size()) {
                             SPA::ToLower(s);
-                            Manager.m_vKeyAllowed.push_back(s);
+                            Manager.m_vKeyAllowed.push_back(std::move(s));
                         }
                     }
                 }
