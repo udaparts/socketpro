@@ -102,14 +102,14 @@
         {
             width: 2376px;
             background-color: #FFFFCC;
-            height: 44px;
+            height: 15px;
         }
         .style10
         {
             width: 447px;
             text-align: right;
             background-color: #FFFFCC;
-            height: 44px;
+            height: 15px;
         }
         .style11
         {
@@ -117,6 +117,7 @@
             font-weight: bold;
             font-size: medium;
             background-color: #CCFFFF;
+            height: 51px;
         }
         .style13
         {
@@ -124,6 +125,7 @@
             text-align: right;
             font-weight: bold;
             background-color: #CCFFFF;
+            height: 51px;
         }
         .style14
         {
@@ -190,20 +192,21 @@
         }
         .style37
         {
-            width: 188px;
+            width: 143px;
             font-weight: bold;
             font-size: medium;
             background-color: #CCFFFF;
+            height: 51px;
         }
         .style38
         {
-            width: 188px;
+            width: 143px;
             background-color: #FFFFCC;
-            height: 44px;
+            height: 15px;
         }
         .style39
         {
-            width: 188px;
+            width: 143px;
             height: 233px;
         }
         .style40
@@ -230,6 +233,14 @@
             width: 324px;
             height: 26px;
         }
+        #rService
+        {
+            width: 30px;
+        }
+        #rServiceApp
+        {
+            width: 30px;
+        }
     </style>
     
     <script language="javascript" type="text/javascript">
@@ -242,6 +253,9 @@
             reg.ce = document.getElementById('chkWinCe').checked ? 1 : 0;
             reg.y = parseInt(document.getElementById('txtYears').value);
             reg.app = document.getElementById('rApp').checked ? 1 : 0;
+            reg.svr_app = document.getElementById('rServerApp').checked ? 1 : 0;
+            reg.service = document.getElementById('rService').checked ? 1 : 0;
+            reg.svs_app = document.getElementById('rServiceApp').checked ? 1 : 0;
             return reg;
         }
 
@@ -259,47 +273,62 @@
         }
 
         function setPrice() {
-
             var reg = getReg();
             var oss = reg.nix + reg.win + reg.ce;
-            if (oss == 0)
-                oss = 1;
-            var price = oss * 200;
-            if (oss > 1)
-                price += (oss - 1) * 50
-            if (reg.ce)
-                price += 150;
-
-            if (reg.y >= 8.0)
-                price *= 3.2;
-            else if (reg.y >= 7.0)
-                price *= 3.1;
-            else if (reg.y >= 6.0)
-                price *= 3.0;
-            else if (reg.y >= 5.0)
-                price *= 2.8;
-            else if (reg.y >= 4.0)
-                price *= 2.5;
-            else if (reg.y >= 3.0)
-                price *= 2.1;
-            else if (reg.y >= 2.0)
-                price *= 1.6;
-            price = parseInt(price + '');
-
-            if (reg.app) {
-                price *= 4.5;
-                price = parseInt(price + '');
+            if (oss == 0) oss = 1;
+            var basic = 49;
+            if (reg.app || reg.svr_app) {
+                basic = 149;
             }
+            var price = basic;
+            if (oss > 1) price += (oss - 1) * basic / 2;
+            if (reg.y >= 10)
+                price *= 6.0;
+            else if (reg.y >= 9.0)
+                price *= 5.7;
+            else if (reg.y >= 8.0)
+                price *= 5.4;
+            else if (reg.y >= 7.0)
+                price *= 5.0;
+            else if (reg.y >= 6.0)
+                price *= 4.5;
+            else if (reg.y >= 5.0)
+                price *= 4.0;
+            else if (reg.y >= 4.0)
+                price *= 3.3;
+            else if (reg.y >= 3.0)
+                price *= 2.7;
+            else if (reg.y >= 2.0)
+                price *= 1.9;
+            price = parseInt(price + '');
             if (bMany) {
-                if (price > 9999.0) {
-                    price = 9999.0;
+                if (reg.service) {
+                    price *= 2.5;
+                    price = parseInt(price + '');
+                    if (price > 899) price = 899;
+                    if (reg.ce) price += 350;
+                }
+                else {
+                    price *= 3.5;
+                    price = parseInt(price + '');
+                    if (price > 4499.0) {
+                        price = 4499.0;
+                    }
+                    if (reg.ce) price += 350;
                 }
             }
             else {
-                if (price > 2499.0) {
-                    price = 2499.0;
+                if (reg.svs_app) {
+                    
                 }
+                else {
+                    if (price > 999.0) {
+                        price = 999.0;
+                    }
+                }
+                if (reg.ce) price += 150;
             }
+            
             document.getElementById('txtPrice').value = price + '.00';
             document.getElementById('sp_amount').value = price + '.00';
             setFeatures(reg);
@@ -317,40 +346,6 @@
             setPrice();
         }
 
-        function chkJavaScript_onclick() {
-            setPrice();
-        }
-
-        function chkQueue_onclick() {
-            setPrice();
-        }
-
-        function chkRouting_onclick() {
-            setPrice();
-        }
-
-        function chkPlugin_onclick() {
-            setPrice();
-        }
-
-        function txtMaxConn_onchange() {
-            var val = parseInt(document.getElementById('txtMaxConn').value);
-            if (val < 2500)
-                document.getElementById('txtMaxConn').value = '2500';
-            else
-                document.getElementById('txtMaxConn').value = val + '';
-            setPrice();
-        }
-
-        function txtMaxSpeed_onchange() {
-            var val = parseInt(document.getElementById('txtMaxSpeed').value);
-            if (val < 2500)
-                document.getElementById('txtMaxSpeed').value = '2500';
-            else
-                document.getElementById('txtMaxSpeed').value = val + '';
-            setPrice();
-        }
-
         function txtYears_onchange() {
             var val = parseInt(document.getElementById('txtYears').value);
             if (val < 1)
@@ -365,7 +360,17 @@
             setPrice();
         }
 
+        function rService_onclick() {
+            bMany = true;
+            setPrice();
+        }
+
         function rServerApp_onclick() {
+            bMany = false;
+            setPrice();
+        }
+
+        function rServiceApp_onclick() {
             bMany = false;
             setPrice();
         }
@@ -448,19 +453,18 @@
                 <span class="style14">(USA $)</span></td>
         </tr>
         <tr>
-            <td class="style38">Free/trial version of SocketPro</td>
+            <td class="style38"><a href="freelicense.htm">Free/trial version of SocketPro</a></td>
             <td class="style9">
                 <ul>
                     <li>Unlimited connections and time of evaluation</li>
-                    <li>The following components are completely <strong>free</strong> to you with open source codes:
+                    <li>The following components are completely <strong>free</strong> to an individual person with open source codes for evaluation:
                         <ol>
-                            <li>Superior performance asynchronous message persistent queue</li>
+                            <li>SocketPro asynchronous server message persistent queue</li>
                             <li>High performance file streaming</li>
                             <li>SQL streaming for SQLite 3.11.1 or later</li>
                             <li>SQL streaming database server plugin for MySQL 8.0.11 or later</li>
-                            <li>SQL streaming database server plugin for MySQL 5.7.22 or older</li>
+                            <li>SQL streaming database server plugin for MySQL 5.7.x or older</li>
                             <li>SQL streaming database server plugin for Mariadb</li>
-                            <li>SQL streaming for MySQL/Mariadb middle tier</li>
                         </ol>
                     </li>
                 </ul>
@@ -473,42 +477,60 @@
                     <tbody><tr>
                         <td colspan="2" class="style31">
                         <form action="https://www.paypal.com/cgi-bin/webscr" method="post" target="_top">
-                        <input type="hidden" name="cmd" value="_xclick">
-                        <input type="hidden" name="business" value="cye@udaparts.com">
-                        <input type="hidden" name="lc" value="US">
-                        <input type="hidden" name="item_name" value="SocketPro">
-                        <input id="sp_amount" type="hidden" name="amount" value="200.00">
-                        <input type="hidden" name="currency_code" value="USD">
-                        <input type="hidden" name="button_subtype" value="services">
-                        <input type="hidden" name="no_note" value="0">
-                        <input type="hidden" name="bn" value="PP-BuyNowBF:btn_buynowCC_LG.gif:NonHostedGuest">
+                        <input type="hidden" name="cmd" value="_xclick" />
+                        <input type="hidden" name="business" value="cye@udaparts.com" />
+                        <input type="hidden" name="lc" value="US" />
+                        <input type="hidden" name="item_name" value="SocketPro" />
+                        <input id="sp_amount" type="hidden" name="amount" value="49.00" />
+                        <input type="hidden" name="currency_code" value="USD" />
+                        <input type="hidden" name="button_subtype" value="services" />
+                        <input type="hidden" name="no_note" value="0" />
+                        <input type="hidden" name="bn" value="PP-BuyNowBF:btn_buynowCC_LG.gif:NonHostedGuest" />
                         <table>
                             <tr>
-                                <td><input type="hidden" name="on0" value="Features">Licenses</tr>
+                                <td><input type="hidden" name="on0" value="Features" />Licenses</td></tr>
                             <tr>
                                 <td><input id="sp_features" type="text" name="os0" maxlength="200" 
-                                        readonly="readonly" value="win=1,y=1"></td>
+                                        readonly="readonly" value="win=1,y=1,svs_app=1" /></td>
                             </tr>
                         </table>
-                        <input type="image" src="https://www.paypalobjects.com/en_US/i/btn/btn_buynowCC_LG.gif" border="0" name="submit" alt="PayPal - The safer, easier way to pay online!">
-                        <img alt="" border="0" src="https://www.paypalobjects.com/en_US/i/scr/pixel.gif" width="1" height="1">
+                        <input type="image" src="https://www.paypalobjects.com/en_US/i/btn/btn_buynowCC_LG.gif" border="0" name="submit" alt="PayPal - The safer, easier way to pay online!" />
+                        <img alt="" border="0" src="https://www.paypalobjects.com/en_US/i/scr/pixel.gif" width="1" height="1" />
                         </form>
 
                         </td>
                     </tr>
                     <tr>
                         <td class="style30">
-                            <input id="rServerApp" checked="checked" name="R1" type="radio" value="V1" onclick="return rServerApp_onclick()"></td>
+                            <input id="rServiceApp" checked="checked" name="R1" type="radio" value="V1" onclick="return rServiceApp_onclick()" />
+                        </td>
                         <td>
-                            <a href="singlelicense.htm">Per-server/application</a><br>
-                            license for single server ($2499.00 max)</td>
+                            <a href="singleservicelicense.htm">Per-service&application/server</a><br/>
+                            license for one server & one service
+                         </td>
                     </tr>
                     <tr>
                         <td class="style30">
-                            <input id="rApp" name="R1" type="radio" value="V1" onclick="return rApp_onclick()"></td>
+                            <input id="rService" name="R1" type="radio" value="V1" onclick="return rService_onclick()" />
+                        </td>
                         <td>
-                            <a href="manylicense.htm">Per-application</a><br>
-                            license for many servers ($9999.00 max)</td>
+                            <a href="manyservicelicense.htm">Per-service&application</a><br/>
+                            license for many servers & one service
+                         </td>
+                    </tr>
+                    <tr>
+                        <td class="style30">
+                            <input id="rServerApp" name="R1" type="radio" value="V1" onclick="return rServerApp_onclick()" /></td>
+                        <td>
+                            <a href="singlelicense.htm">Per-server/application</a><br/>
+                            license for one server & many services</td>
+                    </tr>
+                    <tr>
+                        <td class="style30">
+                            <input id="rApp" name="R1" type="radio" value="V1" onclick="return rApp_onclick()" /></td>
+                        <td>
+                            <a href="manylicense.htm">Per-application</a><br/>
+                            license for many servers & many services</td>
                     </tr>
                     <tr>
                         <td class="style30">
@@ -525,65 +547,65 @@
                 <table>
                     <tbody><tr>
                         <td class="style1">
-                            <input id="chkWin" checked="checked" type="checkbox" onclick="return chkWin_onclick()"></td>
+                            <input id="chkWin" checked="checked" type="checkbox" onclick="return chkWin_onclick()" /></td>
                         <td class="style40">Windows</td>
                     </tr>
                     <tr>
                         <td class="style42">
-                            <input id="chkLinux" type="checkbox" onclick="return chkLinux_onclick()"></td>
+                            <input id="chkLinux" type="checkbox" onclick="return chkLinux_onclick()" /></td>
                         <td class="style43">Linuxs</td>
                     </tr>
                     <tr>
                         <td class="style1">
-                            <input id="txtYears" type="text" value="1" onchange="return txtYears_onchange()"></td>
+                            <input id="txtYears" type="text" value="1" onchange="return txtYears_onchange()" /></td>
                         <td class="style40">License working time in years</td>
                     </tr>
                     <tr>
                         <td class="style1">
                             <input id="txtMaxConn" type="text" value="1024000" 
-                                onchange="return txtMaxConn_onchange()" readonly="readonly"></td>
+                               readonly="readonly" /></td>
                         <td class="style40">Max connections per server</td>
                     </tr>
                     <tr>
                         <td class="style1">
-                            <input id="txtMaxSpeed" spellcheck="False" type="text" value="5120000" 
-                                onchange="return txtMaxSpeed_onchange()" readonly="readonly"></td>
+                            <input id="txtMaxSpeed" type="text" value="5120000" 
+                               readonly="readonly" /></td>
                         <td class="style40">Max requests per second per server</td>
                     </tr>
                     <tr>
                         <td class="style1">
-                            <input id="chkWinCe" type="checkbox" onclick="return chkWinCe_onclick()"></td>
+                            <input id="chkWinCe" type="checkbox" onclick="return chkWinCe_onclick()" /></td>
                         <td class="style3">Window devices</td>
                     </tr>
                     <tr>
                         <td class="style1">
                             <input id="chkJavaScript" type="checkbox" 
-                                onclick="return chkJavaScript_onclick()" checked="checked" disabled="disabled"></td>
+                                checked="checked" disabled="disabled" /></td>
                         <td class="style3">Browser/JavaScript/WebSocket</td>
                     </tr>
                     <tr>
                         <td class="style1">
-                            <input id="chkQueue" type="checkbox" onclick="return chkQueue_onclick()" 
-                                checked="checked" disabled="disabled"></td>
+                            <input id="chkQueue" type="checkbox" 
+                                checked="checked" disabled="disabled" /></td>
                         <td class="style40">Persistent message queue</td>
                     </tr>
                     <tr>
                         <td class="style1">
-                            <input id="chkRouting" type="checkbox" onclick="return chkRouting_onclick()" 
-                                checked="checked" disabled="disabled"></td>
+                            <input id="chkRouting" type="checkbox"
+                                checked="checked" disabled="disabled" /></td>
                         <td class="style40">Server load balancing with session sticking support</td>
                     </tr>
                     <tr>
                         <td class="style1">
-                            <input id="chkPlugin" type="checkbox" onclick="return chkPlugin_onclick()" 
-                                checked="checked" disabled="disabled"></td>
+                            <input id="chkPlugin" type="checkbox"
+                                checked="checked" disabled="disabled" /></td>
                         <td class="style40">All SocketPro server and database plug-ins customizable and 
                             extensible for your requirements</td>
                     </tr>
                 </tbody></table>
             </td>
             <td class="style5">
-                <input id="txtPrice" readonly="readonly" type="text" value="200.00"></td>
+                <input id="txtPrice" readonly="readonly" type="text" value="49.00" /></td>
         </tr>
     </tbody></table>
 
@@ -602,10 +624,10 @@
     <p style="margin-left: 40px">
         <img alt="" src="sample_lock.jpg" style="height: 368px; width: 596px" /></p>
     <p style="margin-left: 40px">
-        Send us your above lock file 
-        plus your <span class="style36"><strong><em>company name</em></strong></span> to <a href="mailto:support@udaparts.com">
+        Send us your above <b><i>lock file</i> </b>and <span class="style36"><strong><em>company name</em></strong></span> to <a href="mailto:support@udaparts.com">
         support@udaparts.com</a> 
-        for creating a key to unlock the lock file. Note the key will be enabled with 
+        for creating a key to unlock the lock file. Also, send us your <b><i>service id</i></b> 
+        (an integer number to indentify your service) only if you order a <a href="singleservicelicense.htm">Per-service&application/server</a> or <a href="manyservicelicense.htm">Per-service&application</a> license. Note the key will be enabled with 
         extra features supported.</p>
 
     <p style="height: 27px">
@@ -621,7 +643,7 @@
         features you select from the above step 1. Further, the license is valid until 
         Auguest 19, 2029 as an example. After getting such a json file from
         <a href="mailto:support@udaparts.com">support@udaparts.com</a>, use it with your 
-        server at last. At the moment, the registration is completely done.</p>
+        server. At the moment, the registration is completely done.</p>
 
 
 </body></html>
