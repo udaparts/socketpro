@@ -9,7 +9,7 @@ namespace SPA {
     namespace JSON {
 
         template<typename TChar>
-        std::basic_string<TChar>&& Escape(std::basic_string<TChar>& str, bool escape_fowardslash = false) {
+        std::basic_string<TChar>& Escape(std::basic_string<TChar>& str, bool escape_fowardslash = false) {
             for (size_t pos = 0, len = str.size(); pos < len; ++pos) {
                 switch (str[pos]) {
                     case '\\': case '\b': case '\f': case '"':
@@ -28,18 +28,18 @@ namespace SPA {
                         break;
                 }
             }
-            return std::move(str);
+            return str;
         }
 
         template<typename TChar>
         std::basic_string<TChar> Escape(const TChar* str, bool escape_fowardslash = false) {
             std::basic_string<TChar> s;
             if (str) s.assign(str);
-            return Escape(s, escape_fowardslash);
+            return std::move(Escape(s, escape_fowardslash));
         }
 
         template<typename TChar>
-        std::basic_string<TChar>&& Unescape(std::basic_string<TChar>& str) {
+        std::basic_string<TChar>& Unescape(std::basic_string<TChar>& str) {
             char prev = 0;
             for (size_t pos = 0, len = str.size(); pos < len; ++pos) {
                 if (prev == '\\') {
@@ -55,14 +55,14 @@ namespace SPA {
                 }
                 prev = str[pos];
             }
-            return std::move(str);
+            return str;
         }
 
         template<typename TChar>
         std::basic_string<TChar> Unescape(const TChar* str) {
             std::basic_string<TChar> s;
             if (str) s.assign(str);
-            return Unescape(s);
+            return std::move(Unescape(s));
         }
 
         enum class enumType {
