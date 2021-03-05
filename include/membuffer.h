@@ -34,23 +34,26 @@ namespace SPA {
 #ifndef WINCE
 
     template<typename TChar>
-    void Trim(std::basic_string<TChar> &s) {
+    std::basic_string<TChar> & Trim(std::basic_string<TChar> &s) {
         while (s.size() && ::isspace(s.back())) {
             s.pop_back();
         }
         while (s.size() && ::isspace(s.front())) {
             s.erase(s.begin());
         }
+        return s;
     }
 
     template<typename TChar>
-    void ToLower(std::basic_string<TChar>& s) {
+    std::basic_string<TChar> & ToLower(std::basic_string<TChar>& s) {
         std::transform(s.begin(), s.end(), s.begin(), ::tolower);
+        return s;
     }
 
     template<typename TChar>
-    void ToUpper(std::basic_string<TChar>& s) {
+    std::basic_string<TChar> & ToUpper(std::basic_string<TChar>& s) {
         std::transform(s.begin(), s.end(), s.begin(), ::toupper);
+        return s;
     }
 #endif
 

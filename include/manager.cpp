@@ -67,8 +67,7 @@ namespace SPA
             auto it = cc.find("Host"), end = cc.end();
             if (it != end && it->second.GetType() == enumType::String) {
                 ctx.Host = it->second.AsString();
-                Trim(JSON::Unescape(ctx.Host));
-                ToLower(ctx.Host);
+                ToLower(Trim(JSON::Unescape(ctx.Host)));
             }
             it = cc.find("Port");
             if (it != end && it->second.GetType() == enumType::Uint64) {
@@ -77,14 +76,12 @@ namespace SPA
             it = cc.find("UserId");
             if (it != end && it->second.GetType() == enumType::String) {
                 std::string s = it->second.AsString();
-                Trim(JSON::Unescape(s));
-                ctx.UserId = SPA::Utilities::ToWide(s);
+                ctx.UserId = SPA::Utilities::ToWide(Trim(JSON::Unescape(s)));
             }
             it = cc.find("Password");
             if (it != end && it->second.GetType() == enumType::String) {
                 std::string s = it->second.AsString();
-                JSON::Unescape(s);
-                ctx.Password = SPA::Utilities::ToWide(s);
+                ctx.Password = SPA::Utilities::ToWide(JSON::Unescape(s));
             }
             it = cc.find("EncrytionMethod");
             if (it != end && it->second.GetType() == enumType::Uint64) {
@@ -157,8 +154,7 @@ namespace SPA
                         continue;
                     }
                     std::string s = it->AsString();
-                    Trim(JSON::Unescape(s));
-                    pc.Hosts.push_back(std::move(s));
+                    pc.Hosts.push_back(std::move(Trim(JSON::Unescape(s))));
                 }
             }
             if (pc.PoolType == tagPoolType::Master) {
@@ -416,8 +412,7 @@ namespace SPA
             v = jv->Child("QueuePassword");
             if (v && v->GetType() == enumType::String) {
                 std::string qp = v->AsString();
-                Trim(qp);
-                JSON::Unescape(qp);
+                Trim(JSON::Unescape(qp));
                 if (qp.size()) {
                     SPA::ClientSide::CClientSocket::QueueConfigure::SetMessageQueuePassword(qp.c_str());
                     m_bQP = 1;
