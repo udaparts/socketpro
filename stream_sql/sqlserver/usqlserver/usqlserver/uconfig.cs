@@ -151,6 +151,7 @@ public class UConfig
         version = config.version;
         odbc_plugin_version = config.odbc_plugin_version;
         sp_server_core_version = config.sp_server_core_version;
+        service_id = config.service_id;
     }
 
     public static void LogMsg(string lineText, string file = "", int fileLineNumber = 0)

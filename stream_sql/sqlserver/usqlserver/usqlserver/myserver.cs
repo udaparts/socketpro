@@ -128,6 +128,11 @@ public class CSqlPlugin : CSocketProServer
                         Dictionary<string, object> v = jsonutf8.FromJson<Dictionary<string, object>>();
                         if (m_Config.services_config.ContainsKey(p_name))
                         {
+                            Dictionary<string, object> old = m_Config.services_config[p_name];
+                            if (old.ContainsKey("version"))
+                            {
+                                v["version"] = old["version"];
+                            }
                             m_Config.services_config[p_name] = v;
                         }
                         else
@@ -137,7 +142,7 @@ public class CSqlPlugin : CSocketProServer
                     }
                     catch (Exception ex)
                     {
-                        UConfig.LogMsg(ex.Message, "CSqlPlugin::ConfigServices/GetSPluginGlobalOptions", 140); //line 140
+                        UConfig.LogMsg(ex.Message, "CSqlPlugin::ConfigServices/GetSPluginGlobalOptions", 145); //line 145
                         m_Config.services_config.Add(p_name, new Dictionary<string, object>());
                     }
                 }
@@ -156,12 +161,12 @@ public class CSqlPlugin : CSocketProServer
                             DSetSPluginGlobalOptions func = (DSetSPluginGlobalOptions)Marshal.GetDelegateForFunctionPointer(addr, typeof(DSetSPluginGlobalOptions));
                             if (!func(jsonDic.ToJson(false)))
                             {
-                                UConfig.LogMsg("Not able to set global options for plugin " + p_name, "CSqlPlugin::ConfigServices", 159); //line 159
+                                UConfig.LogMsg("Not able to set global options for plugin " + p_name, "CSqlPlugin::ConfigServices", 164); //line 164
                             }
                         }
                         catch (Exception ex)
                         {
-                            UConfig.LogMsg(ex.Message, "CSqlPlugin::ConfigServices/SetSPluginGlobalOptions", 164); //line 164
+                            UConfig.LogMsg(ex.Message, "CSqlPlugin::ConfigServices/SetSPluginGlobalOptions", 169); //line 169
                         }
                     }
                 }
@@ -178,7 +183,7 @@ public class CSqlPlugin : CSocketProServer
                         {
                             vOld = (string)jsonDic["version"];
                         }
-                        if (v == null || vOld == null || v != vOld)
+                        if (v != null && (vOld == null || v != vOld))
                         {
                             jsonDic["version"] = v;
                             changed = true;
@@ -186,7 +191,7 @@ public class CSqlPlugin : CSocketProServer
                     }
                     catch (Exception ex)
                     {
-                        UConfig.LogMsg(ex.Message, "CSqlPlugin::ConfigServices/GetSPluginVersion", 189); //line 189
+                        UConfig.LogMsg(ex.Message, "CSqlPlugin::ConfigServices/GetSPluginVersion", 194); //line 194
                     }
                 }
             } while (false);
