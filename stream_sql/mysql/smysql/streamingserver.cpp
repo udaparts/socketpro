@@ -300,6 +300,7 @@ void CSetGlobals::UpdateConfigFile() {
         return;
     }
     JObject<char> obj;
+    obj[PLUGIN_SERVICE_ID] = SPA::Mysql::sidMysql;
     obj[SP_SERVER_CORE_VERSION] = SPA::ServerSide::ServerCoreLoader.GetUServerSocketVersion();
     obj[STREAMING_DB_VERSION] = MY_VERSION;
     obj[STREAMING_DB_PORT] = Config.port;

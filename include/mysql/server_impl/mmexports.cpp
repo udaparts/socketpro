@@ -5,7 +5,7 @@
 using namespace SPA;
 using namespace SPA::ServerSide;
 
-std::string g_version("1.0.0.8");
+std::string g_version("1.0.0.9");
 
 #ifdef WIN32_64
 
@@ -44,6 +44,7 @@ unsigned int U_MODULE_OPENED WINAPI GetSPluginGlobalOptions(char* json, unsigned
     JSON::JObject<char> obj;
     obj[GLOBAL_CONNECTION_STRING] = Utilities::ToUTF8(CMysqlImpl::GetDBGlobalConnectionString());
     obj[STREAMING_DB_MYSQL_CLIENT_LIB] = CMysqlImpl::GetClientLibName();
+    obj[PLUGIN_SERVICE_ID] = SPA::Mysql::sidMysql;
     JSON::JValue<char> jv(std::move(obj));
     std::string s = jv.Stringify(false);
     size_t len = s.size();

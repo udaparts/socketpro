@@ -5,7 +5,7 @@
 using namespace SPA;
 using namespace SPA::ServerSide;
 
-std::string g_version("1.0.0.4");
+std::string g_version("1.0.0.5");
 
 #ifdef WIN32_64
 
@@ -43,6 +43,7 @@ unsigned int U_MODULE_OPENED WINAPI GetSPluginGlobalOptions(char* json, unsigned
     JSON::JObject<char> obj;
     COdbcImpl::m_csPeer.lock();
     obj[GLOBAL_CONNECTION_STRING] = Utilities::ToUTF8(COdbcImpl::m_strGlobalConnection);
+    obj[PLUGIN_SERVICE_ID] = SPA::Odbc::sidOdbc;
     COdbcImpl::m_csPeer.unlock();
     JSON::JValue<char> jv(std::move(obj));
     std::string s = jv.Stringify(false);

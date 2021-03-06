@@ -5,7 +5,7 @@
 using namespace SPA;
 using namespace SPA::ServerSide;
 
-std::string g_version("1.0.0.5");
+std::string g_version("1.0.0.6");
 
 #ifdef WIN32_64
 
@@ -50,6 +50,7 @@ unsigned int U_MODULE_OPENED WINAPI GetSPluginGlobalOptions(char* json, unsigned
     }
     unsigned int nParam = CSqliteImpl::GetInitialParam();
     JSON::JObject<char> obj;
+    obj[PLUGIN_SERVICE_ID] = SPA::Sqlite::sidSqlite;
     obj[SQLITE_CODE_VERSION] = sqlite3_version;
     obj[SQLITE_UTF8_ENCODING] = true;
     obj[DISABLE_SQLITE_EX_ERROR] = ((nParam & ServerSide::Sqlite::DO_NOT_USE_EXTENDED_ERROR_CODE) == ServerSide::Sqlite::DO_NOT_USE_EXTENDED_ERROR_CODE);

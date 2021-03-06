@@ -9,7 +9,7 @@
 using namespace SPA;
 using namespace SPA::ServerSide;
 
-std::string g_version("1.0.0.4");
+std::string g_version("1.0.0.5");
 
 #ifdef WIN32_64
 
@@ -55,6 +55,7 @@ unsigned int U_MODULE_OPENED WINAPI GetSPluginGlobalOptions(char* json, unsigned
     }
     JSON::JObject<char> obj;
     obj[UFILE_ROOT_DIRECTORY] = Utilities::ToUTF8(CSFileImpl::GetRootDirectory());
+    obj[PLUGIN_SERVICE_ID] = SPA::SFile::sidFile;
     JSON::JValue<char> jv(std::move(obj));
     std::string s = jv.Stringify(false);
     size_t len = s.size();

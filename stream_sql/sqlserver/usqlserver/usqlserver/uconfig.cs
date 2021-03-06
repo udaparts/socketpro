@@ -5,7 +5,7 @@ using System.IO;
 
 public class UConfig
 {
-    public static readonly string MY_VERSION = "1.5.0.1";
+    public static readonly string MY_VERSION = "1.5.0.2";
 
     public static readonly int DEFAULT_MAIN_THREADS = 1;
     public static readonly uint DEFAULT_PORT = 20903;
@@ -26,10 +26,10 @@ public class UConfig
     public Dictionary<string, Dictionary<string, object>> services_config = new Dictionary<string, Dictionary<string, object>>();
     public string sp_server_core_version = "";
     public string version = "";
+    public uint service_id = 0;
 
     public UConfig()
     {
-        version = MY_VERSION;
     }
 
     public UConfig(string json)
@@ -42,6 +42,11 @@ public class UConfig
             if (version != MY_VERSION)
             {
                 version = MY_VERSION;
+                changed = true;
+            }
+            if (service_id != SocketProAdapter.BaseServiceID.sidODBC)
+            {
+                service_id = SocketProAdapter.BaseServiceID.sidODBC;
                 changed = true;
             }
             if (main_threads <= 0)

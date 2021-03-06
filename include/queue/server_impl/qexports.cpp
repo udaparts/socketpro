@@ -5,7 +5,7 @@
 using namespace SPA;
 using namespace SPA::ServerSide;
 
-std::string g_version("1.0.0.4");
+std::string g_version("1.0.0.5");
 
 #ifdef WIN32_64
 
@@ -48,6 +48,7 @@ unsigned int U_MODULE_OPENED WINAPI GetSPluginGlobalOptions(char* json, unsigned
     JSON::JObject<char> obj;
     obj[DEQUEUE_BATCH_SIZE] = CAsyncQueueImpl::m_nBatchSize;
     obj[DISABLE_AUTO_NOTIFICATION] = CAsyncQueueImpl::m_bNoAuto;
+    obj[PLUGIN_SERVICE_ID] = SPA::Queue::sidQueue;
     JSON::JValue<char> jv(std::move(obj));
     std::string s = jv.Stringify(false);
     size_t len = s.size();
