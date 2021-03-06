@@ -3,7 +3,7 @@
 #include "../../../include/pexports.h"
 #include "../../../include/membuffer.h"
 
-#define MY_VERSION                          "1.5.0.1" //this DB plugin version
+#define MY_VERSION                          "1.5.0.2" //this DB plugin version
 
 #define DEFAULT_LOCAL_CONNECTION_STRING     L"host=localhost;port=3306;timeout=30"
 
@@ -234,11 +234,11 @@ void CSetGlobals::UpdateConfigFile() {
                 if (!GetSPluginVersion) {
                     break;
                 }
-                obj[it->first].AsObject()[STREAMING_DB_VERSION] = GetSPluginVersion();
+                obj[it->first][STREAMING_DB_VERSION] = GetSPluginVersion();
             } while (false);
         }
     }
-    jobj.AsObject()[STREAMING_DB_SERVICES_CONFIG] = std::move(obj);
+    jobj[STREAMING_DB_SERVICES_CONFIG] = std::move(obj);
     fprintf(fp.get(), "%s", jobj.Stringify().c_str());
 }
 

@@ -4,7 +4,7 @@
 #include "../../../include/membuffer.h"
 #include "../../../include/udb_macros.h"
 
-#define MY_VERSION                          "1.5.0.1" //this DB plugin version
+#define MY_VERSION                          "1.5.0.2" //this DB plugin version
 
 #define STREAMING_DB_AUTH_ACCOUNT           "authentication_account"
 
@@ -348,11 +348,11 @@ void CSetGlobals::UpdateConfigFile() {
                 if (!GetSPluginVersion) {
                     break;
                 }
-                obj[it->first].AsObject()[STREAMING_DB_VERSION] = GetSPluginVersion();
+                obj[it->first][STREAMING_DB_VERSION] = GetSPluginVersion();
             } while (false);
         }
     }
-    jobj.AsObject()[STREAMING_DB_SERVICES_CONFIG] = std::move(obj);
+    jobj[STREAMING_DB_SERVICES_CONFIG] = std::move(obj);
     fprintf(fp.get(), "%s", jobj.Stringify().c_str());
 }
 

@@ -1058,8 +1058,11 @@ namespace SPA
 #else
             CDBString wsql = u"CREATE FUNCTION PublishDBEvent RETURNS INTEGER SONAME 'libsmysql.so'";
 #endif
-            if (!impl.m_pMysql && !impl.OpenSession(CSetGlobals::Globals.Config.auth_account.c_str(), "localhost"))
+            if (!impl.m_pMysql && !impl.OpenSession(CSetGlobals::Globals.Config.auth_account.c_str(), "localhost")) {
+                std::string ac = Utilities::ToUTF8(CSetGlobals::Globals.Config.auth_account);
+                CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Creating function PublishDBEvent failed as authentication account %s not available", ac.c_str());
                 return;
+            }
             impl.m_NoSending = true;
             int res = 0;
             INT64 affected;
@@ -1076,7 +1079,8 @@ namespace SPA
         bool CMysqlImpl::Authenticate(const std::wstring &userName, const wchar_t *password, const std::string &ip, unsigned int svsId) {
             std::unique_ptr<CMysqlImpl> impl(new CMysqlImpl);
             if (!impl->OpenSession(CSetGlobals::Globals.Config.auth_account.c_str(), "localhost")) {
-                CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Authentication failed as authentication account not available");
+                std::string ac = Utilities::ToUTF8(CSetGlobals::Globals.Config.auth_account);
+                CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Authentication failed as authentication account %s not available", ac.c_str());
                 return false;
             }
             CDBString host = u"localhost";
