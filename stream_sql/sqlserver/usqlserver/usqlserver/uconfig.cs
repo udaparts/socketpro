@@ -30,6 +30,8 @@ public class UConfig
 
     public UConfig()
     {
+        version = MY_VERSION;
+        service_id = SocketProAdapter.BaseServiceID.sidODBC;
     }
 
     public UConfig(string json)
@@ -92,7 +94,7 @@ public class UConfig
         }
         catch (Exception ex)
         {
-            LogMsg(ex.Message, "UConfig::UConfig(string json)", 90); //line 90
+            LogMsg(ex.Message, "UConfig::UConfig(string json)", 97); //line 97
             changed = true;
         }
         finally
@@ -131,7 +133,7 @@ public class UConfig
         }
         catch (Exception ex)
         {
-            LogMsg(ex.Message, "UConfig::UpdateConfigFile", 129); //line 129
+            LogMsg(ex.Message, "UConfig::UpdateConfigFile", 136); //line 136
         }
     }
 
