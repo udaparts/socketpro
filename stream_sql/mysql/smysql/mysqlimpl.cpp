@@ -1072,7 +1072,8 @@ namespace SPA
             impl.Execute(wsql, true, true, false, 0, affected, res, errMsg, vtId, fail_ok);
             //Setting streaming DB events failed(errCode=1125; errMsg=Function 'PublishDBEvent' already exists)
             if (res && res != ER_UDF_EXISTS) {
-                CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Setting streaming DB events failed(errCode=%d; errMsg=%s)", res, Utilities::ToUTF8(errMsg).c_str());
+                std::string em = Utilities::ToUTF8(errMsg);
+                CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Setting streaming DB events failed(errCode=%d; errMsg=%s)", res, em.c_str());
             }
         }
 
@@ -1097,7 +1098,8 @@ namespace SPA
             CDBString errMsg;
             impl->Execute(wsql, true, true, false, 0, affected, res, errMsg, vtId, fail_ok);
             if (res || !impl->m_qSend.GetSize()) {
-                CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Authentication failed as user %s not found (errCode=%d; errMsg=%s)", user.c_str(), res, Utilities::ToUTF8(errMsg).c_str());
+                std::string em = Utilities::ToUTF8(errMsg);
+                CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Authentication failed as user %s not found (errCode=%d; errMsg=%s)", user.c_str(), res, em.c_str());
                 return false;
             }
             SPA::UDB::CDBVariant vtAuth;

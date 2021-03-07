@@ -4,7 +4,7 @@
 #include "../../../include/membuffer.h"
 #include "../../../include/udb_macros.h"
 
-#define MY_VERSION                          "1.5.0.2" //this DB plugin version
+#define MY_VERSION                          "1.5.0.3" //this DB plugin version
 
 #define STREAMING_DB_AUTH_ACCOUNT           "authentication_account"
 
@@ -182,7 +182,8 @@ void* CSetGlobals::ThreadProc(void *lpParameter) {
     impl.reset();
     srv_session_deinit_thread();
     if (!ok) {
-        CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Starting listening socket failed(errCode=%d; errMsg=%s)", g_pStreamingServer->GetErrorCode(), g_pStreamingServer->GetErrorMessage().c_str());
+        std::string em = g_pStreamingServer->GetErrorMessage();
+        CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, "Starting listening socket failed(errCode=%d; errMsg=%s)", g_pStreamingServer->GetErrorCode(), em.c_str());
     }
     return nullptr;
 }
@@ -191,11 +192,13 @@ void CSetGlobals::SetConfig() {
     int errCode = 0;
     Config.doc.reset(ParseFromFile(STREAM_DB_CONFIG_FILE, errCode));
     if (errCode) {
-        LogMsg(__FILE__, __LINE__, ("Can not open DB streaming configuration file " + std::string(STREAM_DB_CONFIG_FILE) + " for read").c_str());
+        std::string em = "Can not open DB streaming configuration file " + std::string(STREAM_DB_CONFIG_FILE) + " for read";
+        LogMsg(__FILE__, __LINE__, em.c_str());
         UpdateConfigFile();
         return;
     } else if (!Config.doc || Config.doc->GetType() != enumType::Object) {
-        LogMsg(__FILE__, __LINE__, ("Bad JSON configuration file " + std::string(STREAM_DB_CONFIG_FILE) + " found").c_str());
+        std::string em = "Bad JSON configuration file " + std::string(STREAM_DB_CONFIG_FILE) + " found";
+        LogMsg(__FILE__, __LINE__, em.c_str());
         UpdateConfigFile();
         return;
     }
@@ -296,7 +299,8 @@ void CSetGlobals::UpdateConfigFile() {
         }
     });
     if (!fp || ferror(fp.get())) {
-        LogMsg(__FILE__, __LINE__, ("Can not open DB streaming configuration file " + std::string(STREAM_DB_CONFIG_FILE) + " for write").c_str());
+        std::string em = "Can not open DB streaming configuration file " + std::string(STREAM_DB_CONFIG_FILE) + " for write";
+        LogMsg(__FILE__, __LINE__, em.c_str());
         return;
     }
     JObject<char> obj;
@@ -339,7 +343,8 @@ void CSetGlobals::UpdateConfigFile() {
                     sb->SetNull();
                     std::unique_ptr<JValue<char>> jv(Parse((const char*) sb->GetBuffer()));
                     if (!jv || jv->GetType() != enumType::Object) {
-                        LogMsg(__FILE__, __LINE__, ("Plugin " + it->first + " has a wrong JSON global options").c_str());
+                        std::string em = "Plugin " + it->first + " has a wrong JSON global options";
+                        LogMsg(__FILE__, __LINE__, em.c_str());
                     }
                     obj[it->first] = std::move(*jv);
                 } else {
@@ -451,7 +456,8 @@ bool CStreamingServer::OnIsPermitted(USocket_Server_Handle h, const wchar_t* use
     if (ip == "127.0.0.1" || ip == "::ffff:127.0.0.1" || ip == "::1")
         ip = "localhost";
     if (!SPA::ServerSide::CMysqlImpl::Authenticate(userId, password, ip, serviceId)) {
-        CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, ("Authentication failed for user " + SPA::Utilities::ToUTF8(userId)).c_str());
+        std::string em = "Authentication failed for user " + SPA::Utilities::ToUTF8(userId);
+        CSetGlobals::Globals.LogMsg(__FILE__, __LINE__, em.c_str());
         return false;
     }
     return true;
