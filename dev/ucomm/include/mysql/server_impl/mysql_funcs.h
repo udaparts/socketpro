@@ -5,6 +5,8 @@
 #include "../../userver.h"
 #include "../include/mysql.h"
 
+#define STREAMING_DB_MYSQL_CLIENT_LIB    "client_lib"
+
 namespace SPA {
     namespace ServerSide {
         namespace Mysql {
@@ -121,8 +123,11 @@ namespace SPA {
             struct CMysqlLoader {
             private:
                 HINSTANCE m_hMysql;
-                CMysqlLoader(const CMysqlLoader&);
-                CMysqlLoader& operator=(const CMysqlLoader&);
+                CMysqlLoader(const CMysqlLoader&) = delete;
+                CMysqlLoader& operator=(const CMysqlLoader&) = delete;
+
+            public:
+                std::string m_libName;
 
             public:
 
@@ -201,15 +206,22 @@ namespace SPA {
                         return true;
                     }
 #ifdef WIN32_64
+                    m_libName = "libmysql.dll";
                     m_hMysql = ::LoadLibraryW(L"libmysql.dll");
-                    if (!m_hMysql)
+                    if (!m_hMysql) {
+                        m_libName = "libmariadb.dll";
                         m_hMysql = ::LoadLibraryW(L"libmariadb.dll");
+                    }
 #else
+                    m_libName = "libmysqlclient.so";
                     m_hMysql = ::dlopen("libmysqlclient.so", RTLD_LAZY);
-                    if (!m_hMysql)
+                    if (!m_hMysql) {
+                        m_libName = "libmariadb.so";
                         m_hMysql = ::dlopen("libmariadb.so", RTLD_LAZY);
+                    }
 #endif
                     if (!m_hMysql) {
+                        m_libName.clear();
                         return false;
                     }
                     mysql_server_init = (Pmysql_server_init)::GetProcAddress(m_hMysql, "mysql_server_init");

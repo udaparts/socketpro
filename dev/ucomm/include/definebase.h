@@ -7,6 +7,7 @@
 #include <vector>
 #include <string>
 #include <ctime>
+#include <math.h>
 #if defined(WINCE) || defined(UNDER_CE) || defined(_WIN32_WCE)
 #include <time.h>
 #if (_MSC_VER < 1600)
@@ -526,6 +527,146 @@ namespace SPA {
             r = -r;
         }
         return r;
+    }
+
+    //slower than itoa butter faster than std::to_string
+
+    template<typename TChar>
+    const TChar* ToString(int x, TChar* buff, unsigned char& chars) {
+        assert(buff && chars > 11);
+        if (!x) {
+            buff[0] = '0';
+            buff[1] = 0;
+            chars = 1;
+            return buff;
+        }
+        buff[11] = 0;
+        unsigned char start = 10;
+        bool neg = (x < 0);
+        if (neg) x *= -1;
+        while (x) {
+            buff[start] = (x % 10 + '0');
+            x /= 10;
+            --start;
+        }
+        chars = 10 - start;
+        if (neg) {
+            buff[start] = '-';
+            ++chars;
+        } else {
+            ++start;
+        }
+        return buff + start;
+    }
+
+    //slower than itoa butter faster than std::to_string
+
+    template<typename TChar>
+    const TChar* ToString(unsigned int x, TChar* buff, unsigned char& chars) {
+        assert(buff && chars > 10);
+        if (!x) {
+            buff[0] = '0';
+            buff[1] = 0;
+            chars = 1;
+            return buff;
+        }
+        buff[10] = 0;
+        unsigned char start = 9;
+        while (x) {
+            buff[start] = (x % 10 + '0');
+            x /= 10;
+            --start;
+        }
+        chars = 9 - start;
+        ++start;
+        return buff + start;
+    }
+
+    template<typename TChar>
+    const TChar* ToString(INT64 x, TChar* buff, unsigned char& chars) {
+        assert(buff && chars > 20);
+        if (!x) {
+            buff[0] = '0';
+            buff[1] = 0;
+            chars = 1;
+            return buff;
+        }
+        buff[20] = 0;
+        unsigned char start = 19;
+        bool neg = (x < 0);
+        if (neg) x *= -1;
+        while (x) {
+            buff[start] = (x % 10 + '0');
+            x /= 10;
+            --start;
+        }
+        chars = 19 - start;
+        if (neg) {
+            buff[start] = '-';
+            ++chars;
+        } else {
+            ++start;
+        }
+        return buff + start;
+    }
+
+    template<typename TChar>
+    const TChar* ToString(UINT64 x, TChar* buff, unsigned char& chars) {
+        assert(buff && chars > 20);
+        if (!x) {
+            buff[0] = '0';
+            buff[1] = 0;
+            chars = 1;
+            return buff;
+        }
+        buff[20] = 0;
+        unsigned char start = 19;
+        while (x) {
+            buff[start] = (x % 10 + '0');
+            x /= 10;
+            --start;
+        }
+        chars = 19 - start;
+        ++start;
+        return buff + start;
+    }
+
+    template<typename TChar>
+    const TChar* ToString(double d, TChar* str, unsigned char& chars, unsigned char precision) {
+        if (!str || !chars) {
+            chars = 0;
+            return nullptr;
+        }
+        --chars;
+        unsigned char total = chars;
+        chars = 0;
+        char format[6];
+        char data[64];
+        if (precision > 57) precision = 57; //57 = 64 - 6(-.e308) - 1(null)
+        format[0] = '%';
+        format[1] = '.';
+        if (precision >= 10) {
+            format[2] = precision / 10 + '0';
+            format[3] = (precision % 10) + '0';
+            format[4] = 'g';
+            format[5] = 0;
+        } else {
+            format[2] = (precision % 10) + '0';
+            format[3] = 'g';
+            format[4] = 0;
+        }
+#ifdef WIN32_64
+        int len = sprintf_s(data, sizeof (data), format, d);
+#else
+        int len = sprintf(data, format, d);
+#endif
+        if (len > total) len = total; //truncated because of recv memory
+        for (int n = 0; n < len; ++n) {
+            str[n] = data[n];
+            ++chars;
+        }
+        str[chars] = 0;
+        return str;
     }
 
 #pragma pack(push,1)

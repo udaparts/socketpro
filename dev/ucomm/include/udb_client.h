@@ -324,7 +324,7 @@ namespace SPA {
              * @param se a callback for tracking an exception from server
              * @return true if request is successfully sent or queued; and false if request is NOT successfully sent or queued
              */
-            virtual bool ExecuteBatch(tagTransactionIsolation isolation, const wchar_t* sql, CDBVariantArray& vParam = CDBVariantArray(),
+            virtual bool ExecuteBatch(tagTransactionIsolation isolation, const wchar_t* sql, CDBVariantArray& vParam,
                     const DExecuteResult& handler = nullptr, const DRows& row = nullptr, const DRowsetHeader& rh = nullptr, const wchar_t* delimiter = L";",
                     const DRowsetHeader& batchHeader = nullptr, const DDiscarded& discarded = nullptr, bool meta = true, tagRollbackPlan plan = tagRollbackPlan::rpDefault,
                     const CParameterInfoArray& vPInfo = CParameterInfoArray(), bool lastInsertId = true, const DServerException& se = nullptr) {
@@ -540,7 +540,7 @@ namespace SPA {
              * @param se a callback for tracking an exception from server
              * @return true if request is successfully sent or queued; and false if request is NOT successfully sent or queued
              */
-            virtual bool ExecuteBatch(tagTransactionIsolation isolation, const char16_t* sql, CDBVariantArray& vParam = CDBVariantArray(),
+            virtual bool ExecuteBatch(tagTransactionIsolation isolation, const char16_t* sql, CDBVariantArray& vParam,
                     const DExecuteResult& handler = nullptr, const DRows& row = nullptr, const DRowsetHeader& rh = nullptr, const char16_t* delimiter = u";",
                     const DRowsetHeader& batchHeader = nullptr, const DDiscarded& discarded = nullptr, bool meta = true, tagRollbackPlan plan = tagRollbackPlan::rpDefault,
                     const CParameterInfoArray& vPInfo = CParameterInfoArray(), bool lastInsertId = true, const DServerException& se = nullptr) {
@@ -1058,13 +1058,13 @@ namespace SPA {
                 return SqlWaiter(this, sql, row, rh, meta, lastInsertId);
             }
 
-            SqlWaiter wait_executeBatch(tagTransactionIsolation isolation, const wchar_t* sql, CDBVariantArray& vParam = CDBVariantArray(),
+            SqlWaiter wait_executeBatch(tagTransactionIsolation isolation, const wchar_t* sql, CDBVariantArray& vParam,
                     const DRows& row = nullptr, const DRowsetHeader& rh = nullptr, const wchar_t* delimiter = L";", const DRowsetHeader& batchHeader = nullptr,
                     bool meta = true, tagRollbackPlan plan = tagRollbackPlan::rpDefault, const CParameterInfoArray& vPInfo = CParameterInfoArray(), bool lastInsertId = true) {
                 return SqlWaiter(this, isolation, sql, vParam, row, rh, delimiter, batchHeader, meta, plan, vPInfo, lastInsertId);
             }
 
-            SqlWaiter wait_executeBatch(tagTransactionIsolation isolation, const char16_t* sql, CDBVariantArray& vParam = CDBVariantArray(),
+            SqlWaiter wait_executeBatch(tagTransactionIsolation isolation, const char16_t* sql, CDBVariantArray& vParam,
                     const DRows& row = nullptr, const DRowsetHeader& rh = nullptr, const char16_t* delimiter = u";", const DRowsetHeader& batchHeader = nullptr,
                     bool meta = true, tagRollbackPlan plan = tagRollbackPlan::rpDefault, const CParameterInfoArray& vPInfo = CParameterInfoArray(), bool lastInsertId = true) {
                 return SqlWaiter(this, isolation, sql, vParam, row, rh, delimiter, batchHeader, meta, plan, vPInfo, lastInsertId);
@@ -1127,7 +1127,7 @@ namespace SPA {
                 return prom->get_future();
             }
 
-            std::future<SQLExeInfo> executeBatch(tagTransactionIsolation isolation, const wchar_t* sql, CDBVariantArray& vParam = CDBVariantArray(),
+            std::future<SQLExeInfo> executeBatch(tagTransactionIsolation isolation, const wchar_t* sql, CDBVariantArray& vParam,
                     const DRows& row = nullptr, const DRowsetHeader& rh = nullptr, const wchar_t* delimiter = L";", const DRowsetHeader& batchHeader = nullptr,
                     bool meta = true, tagRollbackPlan plan = tagRollbackPlan::rpDefault, const CParameterInfoArray& vPInfo = CParameterInfoArray(), bool lastInsertId = true) {
                 std::shared_ptr<std::promise<SQLExeInfo> > prom(new std::promise<SQLExeInfo>);
@@ -1163,7 +1163,7 @@ namespace SPA {
                 return prom->get_future();
             }
 
-            std::future<SQLExeInfo> executeBatch(tagTransactionIsolation isolation, const char16_t* sql, CDBVariantArray& vParam = CDBVariantArray(),
+            std::future<SQLExeInfo> executeBatch(tagTransactionIsolation isolation, const char16_t* sql, CDBVariantArray& vParam,
                     const DRows& row = nullptr, const DRowsetHeader& rh = nullptr, const char16_t* delimiter = u";", const DRowsetHeader& batchHeader = nullptr,
                     bool meta = true, tagRollbackPlan plan = tagRollbackPlan::rpDefault, const CParameterInfoArray& vPInfo = CParameterInfoArray(), bool lastInsertId = true) {
                 std::shared_ptr<std::promise<SQLExeInfo> > prom(new std::promise<SQLExeInfo>);

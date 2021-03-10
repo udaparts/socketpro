@@ -16,7 +16,11 @@ extern "C" {
      * Returns a plugin version string like "1.0.0.1 for this plugin"
      * @return a plugin version string like "2.1.0.7"
      */
+#ifdef WIN32_64
     const char* const U_MODULE_OPENED WINAPI GetSPluginVersion();
+#else
+    SPA::INT64 U_MODULE_OPENED WINAPI GetSPluginVersion();
+#endif
 
     /**
      * Set zero, one or more pairs of settings (key/value) by a json string
@@ -56,6 +60,7 @@ typedef bool (WINAPI *PSetSPluginGlobalOptions)(const char *jsonUtf8Options);
 typedef unsigned int (WINAPI *PGetSPluginGlobalOptions)(char *jsonUtf8, unsigned int buffer_size);
 typedef int (WINAPI *PDoSPluginAuthentication)(SPA::UINT64 hSocket, const wchar_t *userId, const wchar_t *password, unsigned int nSvsId, const wchar_t* options);
 
-#define GLOBAL_CONNECTION_STRING    "global_connection_string"
+#define GLOBAL_CONNECTION_STRING       "global_connection_string"
+#define PLUGIN_SERVICE_ID              "service_id"
 
 #endif

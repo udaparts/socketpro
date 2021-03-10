@@ -1,29 +1,33 @@
 #include "../../pexports.h"
-#include "../../3rdparty/rapidjson/include/rapidjson/document.h"
-#include "../../3rdparty/rapidjson/include/rapidjson/stringbuffer.h"
-#include "../../3rdparty/rapidjson/include/rapidjson/writer.h"
+#include "../../jsonvalue.h"
 #include "mysqlimpl.h"
 
-using namespace rapidjson;
 using namespace SPA;
 using namespace SPA::ServerSide;
 
-std::string g_version("1.0.0.7");
+std::string g_version("1.0.0.9");
+
+#ifdef WIN32_64
 
 const char* const U_MODULE_OPENED WINAPI GetSPluginVersion() {
     return g_version.c_str();
 }
+#else
+
+SPA::INT64 U_MODULE_OPENED WINAPI GetSPluginVersion() {
+    return (SPA::INT64)g_version.c_str();
+}
+#endif
 
 bool U_MODULE_OPENED WINAPI SetSPluginGlobalOptions(const char* jsonOptions) {
     if (!jsonOptions) return false;
-    Document doc;
-    doc.SetObject();
-    ParseResult ok = doc.Parse(jsonOptions, ::strlen(jsonOptions));
-    if (!ok) {
+    std::unique_ptr<JSON::JValue<char>> jv(JSON::Parse(jsonOptions));
+    if (!jv) {
         return false;
     }
-    if (doc.HasMember(GLOBAL_CONNECTION_STRING) && doc[GLOBAL_CONNECTION_STRING].IsString()) {
-        std::string s = doc[GLOBAL_CONNECTION_STRING].GetString();
+    JSON::JValue<char>* v = jv->Child(GLOBAL_CONNECTION_STRING);
+    if (v && v->GetType() == JSON::enumType::String) {
+        std::string& s = v->AsString();
         std::wstring ws = Utilities::ToWide(s);
         Trim(ws);
         CMysqlImpl::SetDBGlobalConnectionString(ws.c_str(), false);
@@ -37,14 +41,12 @@ unsigned int U_MODULE_OPENED WINAPI GetSPluginGlobalOptions(char* json, unsigned
     if (!json || !buffer_size) {
         return 0;
     }
-    StringBuffer buffer;
-    Writer<StringBuffer> writer(buffer);
-    writer.StartObject();
-    writer.Key(GLOBAL_CONNECTION_STRING);
-    std::string str = Utilities::ToUTF8(CMysqlImpl::GetDBGlobalConnectionString());
-    writer.String(str.c_str(), (SizeType) str.size());
-    writer.EndObject();
-    std::string s = buffer.GetString();
+    JSON::JObject<char> obj;
+    obj[GLOBAL_CONNECTION_STRING] = Utilities::ToUTF8(CMysqlImpl::GetDBGlobalConnectionString());
+    obj[STREAMING_DB_MYSQL_CLIENT_LIB] = CMysqlImpl::GetClientLibName();
+    obj[PLUGIN_SERVICE_ID] = SPA::Mysql::sidMysql;
+    JSON::JValue<char> jv(std::move(obj));
+    std::string s = jv.Stringify(false);
     size_t len = s.size();
     if (len > buffer_size - 1) {
         len = buffer_size - 1;

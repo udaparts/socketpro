@@ -17,7 +17,7 @@ namespace SPA {
             CAsyncServiceHandler* SeekHandler(const std::string &poolKey);
             CAsyncServiceHandler* SeekHandlerByQueue(const std::string &poolKey);
             const std::string& GetErrMsg();
-            std::string GetConfig();
+            std::string GetConfig(bool pretty = true);
 
         private:
             bool Parse(bool midTier, const char *jsonConfig);
