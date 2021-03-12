@@ -79,6 +79,7 @@ namespace SPA {
         class JValue {
         public:
             typedef std::basic_string<TChar> JString;
+            typedef std::initializer_list<std::pair<JString, JValue>> CJVList;
 
             JValue() noexcept : type(enumType::Null) {
             }
@@ -121,6 +122,13 @@ namespace SPA {
             }
 
             JValue(const JObject<TChar>& obj) : type(enumType::Object), objValue(new JObject<TChar>(obj)) {
+            }
+
+            JValue(const CJVList& init) : type(enumType::Object), objValue(new JObject<TChar>) {
+                JObject<TChar>& obj = *objValue;
+                for (auto it = init.begin(), end = init.end(); it != end; ++it) {
+                    obj[it->first] = it->second;
+                }
             }
 
             JValue(const JValue& src) : type(src.type) {
@@ -441,6 +449,17 @@ namespace SPA {
                 Clean();
                 type = enumType::Object;
                 objValue = new JObject<TChar>(obj);
+                return *this;
+            }
+
+            JValue& operator=(const CJVList& init) {
+                if (type == enumType::Object) {
+                    *objValue = init;
+                } else {
+                    Clean();
+                    type = enumType::Object;
+                    objValue = new JObject<TChar>(init);
+                }
                 return *this;
             }
 
