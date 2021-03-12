@@ -1448,7 +1448,9 @@ namespace SPA
             }
             UINT64 fails = m_fails;
             UINT64 oks = m_oks;
-            std::string sql = Utilities::ToUTF8(wsql);
+            m_qSend.SetSize(0);
+            Utilities::ToUTF8(wsql.c_str(), wsql.size(), m_qSend);
+            std::string sql = (const char*) m_qSend.GetBuffer();
             if (m_EnableMessages && !sql.size() && CSetGlobals::Globals.cached_tables.size()) {
                 //client side is asking for data from cached tables
                 for (auto it = CSetGlobals::Globals.cached_tables.begin(), end = CSetGlobals::Globals.cached_tables.end(); it != end; ++it) {
@@ -1463,7 +1465,7 @@ namespace SPA
                     sql += "`";
                 }
             }
-            InitMysqlSession();
+            InitMysqlSession(); //m_qSend reset to zero in size
             COM_DATA cmd;
             ::memset(&cmd, 0, sizeof (cmd));
             cmd.com_query.query = sql.c_str();

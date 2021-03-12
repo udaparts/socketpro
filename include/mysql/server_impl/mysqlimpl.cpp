@@ -1459,7 +1459,7 @@ namespace SPA
         void CMysqlImpl::Execute(const CDBString& wsql, bool rowset, bool meta, bool lastInsertId, UINT64 index, INT64 &affected, int &res, CDBString &errMsg, CDBVariant &vtId, UINT64 & fail_ok) {
             fail_ok = 0;
             affected = 0;
-            ResetMemories();
+            ResetMemories(); //m_Blob reset to zero in size
             if (!m_pMysql) {
                 res = SPA::Mysql::ER_NO_DB_OPENED_YET;
                 errMsg = NO_DB_OPENED_YET;
@@ -1473,7 +1473,9 @@ namespace SPA
             vtId = (INT64) 0;
             UINT64 fails = m_fails;
             UINT64 oks = m_oks;
-            std::string sql = Utilities::ToUTF8(wsql);
+            Utilities::ToUTF8(wsql.c_str(), wsql.size(), m_Blob); //use existing buffer for conversion
+            std::string sql = (const char*) m_Blob.GetBuffer();
+            m_Blob.SetSize(0);
             Utilities::Trim(sql);
 #ifdef MM_DB_SERVER_PLUGIN
             if (m_EnableMessages && !sql.size()) {

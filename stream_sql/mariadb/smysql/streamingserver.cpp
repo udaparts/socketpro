@@ -3,7 +3,7 @@
 #include "../../../include/pexports.h"
 #include "../../../include/membuffer.h"
 
-#define MY_VERSION                          "1.5.0.3" //this DB plugin version
+#define MY_VERSION                          "1.5.0.4" //this DB plugin version
 
 #define DEFAULT_LOCAL_CONNECTION_STRING     L"host=localhost;port=3306;timeout=30"
 

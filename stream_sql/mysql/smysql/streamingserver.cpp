@@ -4,7 +4,7 @@
 #include "../../../include/membuffer.h"
 #include "../../../include/udb_macros.h"
 
-#define MY_VERSION                          "1.5.0.3" //this DB plugin version
+#define MY_VERSION                          "1.5.0.4" //this DB plugin version
 
 #define STREAMING_DB_AUTH_ACCOUNT           "authentication_account"
 
