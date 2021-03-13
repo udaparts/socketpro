@@ -454,11 +454,15 @@ namespace SPA {
 
             JValue& operator=(const CJVList& init) {
                 if (type == enumType::Object) {
-                    *objValue = init;
+                    objValue->clear();
                 } else {
                     Clean();
                     type = enumType::Object;
-                    objValue = new JObject<TChar>(init);
+                    objValue = new JObject<TChar>;
+                }
+                JObject<TChar>& obj = *objValue;
+                for (auto it = init.begin(), end = init.end(); it != end; ++it) {
+                    obj[it->first] = it->second;
                 }
                 return *this;
             }
