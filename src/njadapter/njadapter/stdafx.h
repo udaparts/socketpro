@@ -20,10 +20,6 @@
 
 #include <node.h>
 
-#if NODE_VERSION_AT_LEAST(8,0,0)
-#define HAS_NULLORUNDEFINED_FUNC
-#endif
-
 #if NODE_VERSION_AT_LEAST(10,4,0)
 #define HAS_BIGINT
 #endif

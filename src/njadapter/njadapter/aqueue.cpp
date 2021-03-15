@@ -36,7 +36,7 @@ namespace NJA {
                     assert(!fail);
                 }
             };
-        } else if (!IsNullOrUndefined(abort)) {
+        } else if (!abort->IsNullOrUndefined()) {
             ThrowException(isolate, "A callback expected for tracking socket closed or canceled events");
             bad = true;
         }
@@ -60,7 +60,7 @@ namespace NJA {
                     assert(!fail);
                 }
             };
-        } else if (!IsNullOrUndefined(se)) {
+        } else if (!se->IsNullOrUndefined()) {
             ThrowException(isolate, "A callback expected for tracking exception from server");
             bad = true;
         }
@@ -207,7 +207,7 @@ namespace NJA {
         if (rr->IsFunction()) {
             CAutoLock al(m_csJQ);
             m_rr.reset(new CNJFunc(isolate, Local<Function>::Cast(rr)));
-        } else if (IsNullOrUndefined(rr)) {
+        } else if (rr->IsNullOrUndefined()) {
             CAutoLock al(m_csJQ);
             m_rr.reset();
         }
@@ -257,7 +257,7 @@ namespace NJA {
                         assert(!fail);
                     }
                 };
-            } else if (!IsNullOrUndefined(argv[0])) {
+            } else if (!argv[0]->IsNullOrUndefined()) {
                 ThrowException(isolate, "A callback expected for GetKeys end result");
                 return 0;
             }
@@ -297,7 +297,7 @@ namespace NJA {
                         assert(!fail);
                     }
                 };
-            } else if (!IsNullOrUndefined(argv[0])) {
+            } else if (!argv[0]->IsNullOrUndefined()) {
                 ThrowException(isolate, "A callback expected for StartTrans end result");
                 return 0;
             }
@@ -337,7 +337,7 @@ namespace NJA {
                         assert(!fail);
                     }
                 };
-            } else if (!IsNullOrUndefined(argv[0])) {
+            } else if (!argv[0]->IsNullOrUndefined()) {
                 ThrowException(isolate, "A callback expected for EndTrans end result");
                 return 0;
             }
@@ -377,7 +377,7 @@ namespace NJA {
                         assert(!fail);
                     }
                 };
-            } else if (!IsNullOrUndefined(argv[0])) {
+            } else if (!argv[0]->IsNullOrUndefined()) {
                 ThrowException(isolate, "A callback expected for Close end result");
                 return 0;
             }
@@ -417,7 +417,7 @@ namespace NJA {
                         assert(!fail);
                     }
                 };
-            } else if (!IsNullOrUndefined(argv[0])) {
+            } else if (!argv[0]->IsNullOrUndefined()) {
                 ThrowException(isolate, "A callback expected for Flush end result");
                 return 0;
             }
@@ -457,7 +457,7 @@ namespace NJA {
                         assert(!fail);
                     }
                 };
-            } else if (!IsNullOrUndefined(argv[0])) {
+            } else if (!argv[0]->IsNullOrUndefined()) {
                 ThrowException(isolate, "A callback expected for Dequeue end result");
                 return 0;
             }
@@ -501,7 +501,7 @@ namespace NJA {
                         assert(!fail);
                     }
                 };
-            } else if (!IsNullOrUndefined(argv[0])) {
+            } else if (!argv[0]->IsNullOrUndefined()) {
                 ThrowException(isolate, "A callback expected for Enqueue end result");
                 return 0;
             }
@@ -541,7 +541,7 @@ namespace NJA {
                         assert(!fail);
                     }
                 };
-            } else if (!IsNullOrUndefined(argv[0])) {
+            } else if (!argv[0]->IsNullOrUndefined()) {
                 ThrowException(isolate, "A callback expected for EnqueueBatch end result");
                 return 0;
             }

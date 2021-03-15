@@ -111,7 +111,7 @@ namespace NJA {
 #else
             secure = p->BooleanValue(isolate->GetCurrentContext()).ToChecked();
 #endif
-        } else if (!IsNullOrUndefined(p)) {
+        } else if (!p->IsNullOrUndefined()) {
             ThrowException(isolate, "A boolean expected for client queue security");
             return;
         }
@@ -119,7 +119,7 @@ namespace NJA {
         unsigned int ttl = 24 * 3600;
         if (p->IsUint32()) {
             ttl = p->Uint32Value(isolate->GetCurrentContext()).ToChecked();
-        } else if (!IsNullOrUndefined(p)) {
+        } else if (!p->IsNullOrUndefined()) {
             ThrowException(isolate, "An unsigned int value expected for message time-to-live");
             return;
         }
@@ -138,7 +138,7 @@ namespace NJA {
 #else
             permanent = p->BooleanValue(isolate->GetCurrentContext()).ToChecked();
 #endif
-        } else if (!IsNullOrUndefined(p)) {
+        } else if (!p->IsNullOrUndefined()) {
             ThrowException(isolate, BOOLEAN_EXPECTED);
             return;
         }
@@ -288,7 +288,7 @@ namespace NJA {
 #else
             enabled = p->BooleanValue(isolate->GetCurrentContext()).ToChecked();
 #endif
-        } else if (!IsNullOrUndefined(p)) {
+        } else if (!p->IsNullOrUndefined()) {
             ThrowException(isolate, BOOLEAN_EXPECTED);
             return;
         }

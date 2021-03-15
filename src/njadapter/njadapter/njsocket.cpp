@@ -168,7 +168,7 @@ namespace NJA {
 #else
                 zip = p->BooleanValue(isolate->GetCurrentContext()).ToChecked();
 #endif
-            } else if (!IsNullOrUndefined(p)) {
+            } else if (!p->IsNullOrUndefined()) {
                 ThrowException(isolate, BOOLEAN_EXPECTED);
                 return;
             }
@@ -198,7 +198,7 @@ namespace NJA {
                     return;
                 }
                 zip = (tagZipLevel) data;
-            } else if (!IsNullOrUndefined(p)) {
+            } else if (!p->IsNullOrUndefined()) {
                 ThrowException(isolate, INTEGER_EXPECTED);
                 return;
             }
@@ -223,7 +223,7 @@ namespace NJA {
             auto p = args[0];
             if (p->IsUint32()) {
                 timeout = p->Uint32Value(isolate->GetCurrentContext()).ToChecked();
-            } else if (!IsNullOrUndefined(p)) {
+            } else if (!p->IsNullOrUndefined()) {
                 ThrowException(isolate, "An unsigned int value expected");
                 return;
             }
@@ -248,7 +248,7 @@ namespace NJA {
             auto p = args[0];
             if (p->IsUint32()) {
                 timeout = p->Uint32Value(isolate->GetCurrentContext()).ToChecked();
-            } else if (!IsNullOrUndefined(p)) {
+            } else if (!p->IsNullOrUndefined()) {
                 ThrowException(isolate, "An unsigned int valaue expected");
                 return;
             }
@@ -277,7 +277,7 @@ namespace NJA {
 #else
                 ac = p->BooleanValue(isolate->GetCurrentContext()).ToChecked();
 #endif
-            } else if (!IsNullOrUndefined(p)) {
+            } else if (!p->IsNullOrUndefined()) {
                 ThrowException(isolate, BOOLEAN_EXPECTED);
                 return;
             }
@@ -572,7 +572,7 @@ namespace NJA {
 #else
                 zip = p->BooleanValue(isolate->GetCurrentContext()).ToChecked();
 #endif
-            } else if (!IsNullOrUndefined(p)) {
+            } else if (!p->IsNullOrUndefined()) {
                 ThrowException(isolate, BOOLEAN_EXPECTED);
                 return;
             }
@@ -588,7 +588,7 @@ namespace NJA {
             auto p = args[0];
             if (p->IsInt32()) {
                 zl = p->Int32Value(isolate->GetCurrentContext()).ToChecked();
-            } else if (!IsNullOrUndefined(p)) {
+            } else if (!p->IsNullOrUndefined()) {
                 ThrowException(isolate, INTEGER_EXPECTED);
                 return;
             }

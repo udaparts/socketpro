@@ -95,7 +95,7 @@ namespace NJA {
             auto p = args[0];
             if (p->IsNumber())
                 options = (SPA::UINT64)(p->IntegerValue(isolate->GetCurrentContext()).ToChecked());
-            else if (!IsNullOrUndefined(p)) {
+            else if (!p->IsNullOrUndefined()) {
                 ThrowException(isolate, BAD_DATA_TYPE);
                 return;
             }
@@ -116,7 +116,7 @@ namespace NJA {
 #else
                 server_commit = p->BooleanValue(isolate->GetCurrentContext()).ToChecked();
 #endif
-            } else if (!IsNullOrUndefined(p)) {
+            } else if (!p->IsNullOrUndefined()) {
                 ThrowException(isolate, BOOLEAN_EXPECTED);
                 return;
             }
@@ -192,7 +192,7 @@ namespace NJA {
                     NJA::ThrowException(isolate, "A CUQueue, null, or undefined expected for the second parameter within the method SendRequest");
                     return;
                 }
-            } else if (!IsNullOrUndefined(p1)) {
+            } else if (!p1->IsNullOrUndefined()) {
                 NJA::ThrowException(isolate, "A CUQueue, null, or undefined expected for the second parameter within the method SendRequest");
                 return;
             }

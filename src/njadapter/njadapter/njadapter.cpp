@@ -107,7 +107,7 @@ namespace NJA {
                 }
             }
             args.GetReturnValue().SetNull();
-        } else if (IsNullOrUndefined(p0)) {
+        } else if (p0->IsNullOrUndefined()) {
             SPA::CAutoLock al(g_cs);
             g_KeyAllowed.clear();
             args.GetReturnValue().SetNull();

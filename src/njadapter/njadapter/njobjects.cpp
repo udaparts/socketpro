@@ -257,7 +257,7 @@ namespace NJA {
                 if (s.size()) {
                     defaultDb = s;
                 }
-            } else if (!IsNullOrUndefined(p)) {
+            } else if (!p->IsNullOrUndefined()) {
                 ThrowException(isolate, "A default database name string expected");
                 return;
             }
@@ -303,7 +303,7 @@ namespace NJA {
 #else
                 slave = args[2]->BooleanValue(isolate->GetCurrentContext()).ToChecked();
 #endif
-            } else if (!IsNullOrUndefined(args[2])) {
+            } else if (!args[2]->IsNullOrUndefined()) {
                 ThrowException(isolate, "Must be a boolean value for slave pool");
                 return;
             }
@@ -936,7 +936,7 @@ namespace NJA {
         NJSocketPool* obj = ObjectWrap::Unwrap<NJSocketPool>(args.Holder());
         if (obj->IsValid(isolate)) {
             auto p = args[0];
-            if (IsNullOrUndefined(p)) {
+            if (p->IsNullOrUndefined()) {
                 switch (obj->SvsId) {
                     case SPA::Queue::sidQueue:
                     {
@@ -1065,7 +1065,7 @@ namespace NJA {
         v = obj->Get(ctx, ToStr(isolate, u"EM", 2)).ToLocalChecked();
         if (v->IsUint32()) {
             em = v->Uint32Value(isolate->GetCurrentContext()).ToChecked();
-        } else if (!IsNullOrUndefined(v)) {
+        } else if (!v->IsNullOrUndefined()) {
             ThrowException(isolate, "An integer for encryption method expected");
             return false;
         }
@@ -1082,7 +1082,7 @@ namespace NJA {
 #else
             cc.Zip = v->BooleanValue(isolate->GetCurrentContext()).ToChecked();
 #endif
-        } else if (!IsNullOrUndefined(v)) {
+        } else if (!v->IsNullOrUndefined()) {
             ThrowException(isolate, "Boolean value expected for Zip");
             return false;
         }
@@ -1094,7 +1094,7 @@ namespace NJA {
 #else
             cc.V6 = v->BooleanValue(isolate->GetCurrentContext()).ToChecked();
 #endif
-        } else if (!IsNullOrUndefined(v)) {
+        } else if (!v->IsNullOrUndefined()) {
             ThrowException(isolate, "Boolean value expected for V6");
             return false;
         }
@@ -1146,7 +1146,7 @@ namespace NJA {
         }
         unsigned int threads = 1;
         auto p2 = args[2];
-        if (IsNullOrUndefined(p2)) {
+        if (p2->IsNullOrUndefined()) {
         } else if (!p2->IsUint32()) {
             ThrowException(isolate, "An unsigned int number expected for socket pool threads");
             return;
@@ -1233,7 +1233,7 @@ namespace NJA {
             if (p->IsFunction()) {
                 SPA::CSpinAutoLock al(obj->m_cs);
                 obj->m_evPool.Reset(isolate, Local<Function>::Cast(p));
-            } else if (IsNullOrUndefined(p)) {
+            } else if (p->IsNullOrUndefined()) {
                 SPA::CSpinAutoLock al(obj->m_cs);
                 obj->m_evPool.Empty();
             } else {
@@ -1250,7 +1250,7 @@ namespace NJA {
             if (p->IsFunction()) {
                 SPA::CSpinAutoLock al(obj->m_cs);
                 obj->m_rr.Reset(isolate, Local<Function>::Cast(p));
-            } else if (IsNullOrUndefined(p)) {
+            } else if (p->IsNullOrUndefined()) {
                 SPA::CSpinAutoLock al(obj->m_cs);
                 obj->m_rr.Empty();
             } else {
@@ -1267,7 +1267,7 @@ namespace NJA {
             if (p->IsFunction()) {
                 SPA::CSpinAutoLock al(obj->m_cs);
                 obj->m_ap.Reset(isolate, Local<Function>::Cast(p));
-            } else if (IsNullOrUndefined(p)) {
+            } else if (p->IsNullOrUndefined()) {
                 SPA::CSpinAutoLock al(obj->m_cs);
                 obj->m_ap.Empty();
             } else {
@@ -1284,7 +1284,7 @@ namespace NJA {
             if (p->IsFunction()) {
                 SPA::CSpinAutoLock al(obj->m_cs);
                 obj->m_push.Reset(isolate, Local<Function>::Cast(p));
-            } else if (IsNullOrUndefined(p)) {
+            } else if (p->IsNullOrUndefined()) {
                 SPA::CSpinAutoLock al(obj->m_cs);
                 obj->m_push.Empty();
             } else {
@@ -1301,7 +1301,7 @@ namespace NJA {
             if (p->IsFunction()) {
                 SPA::CSpinAutoLock al(obj->m_cs);
                 obj->m_se.Reset(isolate, Local<Function>::Cast(p));
-            } else if (IsNullOrUndefined(p)) {
+            } else if (p->IsNullOrUndefined()) {
                 SPA::CSpinAutoLock al(obj->m_cs);
                 obj->m_se.Empty();
             } else {
@@ -1318,7 +1318,7 @@ namespace NJA {
             if (p->IsFunction()) {
                 SPA::CSpinAutoLock al(obj->m_cs);
                 obj->m_brp.Reset(isolate, Local<Function>::Cast(p));
-            } else if (IsNullOrUndefined(p)) {
+            } else if (p->IsNullOrUndefined()) {
                 SPA::CSpinAutoLock al(obj->m_cs);
                 obj->m_brp.Empty();
             } else {

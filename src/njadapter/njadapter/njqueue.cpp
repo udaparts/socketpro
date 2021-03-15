@@ -201,13 +201,14 @@ namespace NJA {
     void NJQueue::UseStrForDec(const FunctionCallbackInfo<Value>& args) {
         NJQueue* obj = ObjectWrap::Unwrap<NJQueue>(args.Holder());
         Isolate* isolate = args.GetIsolate();
-        if (args[0]->IsBoolean() || args[0]->IsUint32()) {
+        auto p = args[0];
+        if (p->IsBoolean() || p->IsUint32()) {
 #ifdef BOOL_ISOLATE
-            obj->m_StrForDec = args[0]->BooleanValue(isolate);
+            obj->m_StrForDec = p->BooleanValue(isolate);
 #else
-            obj->m_StrForDec = args[0]->BooleanValue(isolate->GetCurrentContext()).ToChecked();
+            obj->m_StrForDec = p->BooleanValue(isolate->GetCurrentContext()).ToChecked();
 #endif
-        } else if (IsNullOrUndefined(args[0]))
+        } else if (p->IsNullOrUndefined())
             obj->m_StrForDec = false;
         else {
             ThrowException(isolate, BOOLEAN_EXPECTED);
@@ -586,7 +587,7 @@ namespace NJA {
             NJQueue* obj = ObjectWrap::Unwrap<NJQueue>(args.Holder());
             obj->Ensure();
             CUQueue* buff = obj->m_Buffer;
-            if (IsNullOrUndefined(p)) {
+            if (p->IsNullOrUndefined()) {
                 *buff << (const char *) nullptr;
                 args.GetReturnValue().Set(args.Holder());
                 return;
@@ -629,7 +630,7 @@ namespace NJA {
             obj->Ensure();
             auto p = args[0];
             CUQueue* buff = obj->m_Buffer;
-            if (IsNullOrUndefined(p)) {
+            if (p->IsNullOrUndefined()) {
                 *buff << (const char*) nullptr;
             } else {
                 if (!p->IsString())
@@ -652,7 +653,7 @@ namespace NJA {
             obj->Ensure();
             auto p = args[0];
             CUQueue* buff = obj->m_Buffer;
-            if (IsNullOrUndefined(p)) {
+            if (p->IsNullOrUndefined()) {
                 *buff << (const wchar_t *)nullptr;
             } else {
                 if (!p->IsString())
@@ -781,7 +782,7 @@ namespace NJA {
 
     bool NJQueue::SaveObject(Isolate* isolate, const Local<Value>& p0, const Local<Object>& holder, const std::string& id, CUQueue& buff) {
         VARTYPE vt;
-        if (IsNullOrUndefined(p0)) {
+        if (p0->IsNullOrUndefined()) {
             vt = VT_NULL;
             buff << vt;
         } else if (p0->IsFunction()) {

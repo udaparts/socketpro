@@ -1809,7 +1809,7 @@ namespace SPA {
                             assert(!fail);
                         }
                     };
-                } else if (!NJA::IsNullOrUndefined(header)) {
+                } else if (!header->IsNullOrUndefined()) {
                     NJA::ThrowException(isolate, "A callback expected for batch header");
                     bad = true;
                 }
@@ -1824,7 +1824,7 @@ namespace SPA {
 #else
                     return m->BooleanValue(isolate->GetCurrentContext()).ToChecked();
 #endif
-                } else if (!NJA::IsNullOrUndefined(m)) {
+                } else if (!m->IsNullOrUndefined()) {
                     NJA::ThrowException(isolate, "A boolean value expected");
                     bad = true;
                 }
@@ -1852,7 +1852,7 @@ namespace SPA {
                     //prevent from crash dbreqcb.h (126): SPA::ClientSide::CAsyncDBHandler<0>::req_cb
                     //api.cc (4875): v8::Function::Call
                     Backup(func);
-                } else if (!NJA::IsNullOrUndefined(header)) {
+                } else if (!header->IsNullOrUndefined()) {
                     NJA::ThrowException(isolate, "A callback expected for record meta");
                     bad = true;
                 }
@@ -1890,7 +1890,7 @@ namespace SPA {
                     //prevent from crash dbreqcb.h (126): SPA::ClientSide::CAsyncDBHandler<0>::req_cb
                     //api.cc (4875): v8::Function::Call
                     Backup(func);
-                } else if (!NJA::IsNullOrUndefined(r)) {
+                } else if (!r->IsNullOrUndefined()) {
                     NJA::ThrowException(isolate, "A callback expected for row data");
                     bad = true;
                 }
@@ -1914,7 +1914,7 @@ namespace SPA {
                             assert(!fail);
                         }
                     };
-                } else if (!NJA::IsNullOrUndefined(er)) {
+                } else if (!er->IsNullOrUndefined()) {
                     NJA::ThrowException(isolate, "A callback expected for Execute end result");
                     bad = true;
                 }
@@ -1938,7 +1938,7 @@ namespace SPA {
                             assert(!fail);
                         }
                     };
-                } else if (!NJA::IsNullOrUndefined(res)) {
+                } else if (!res->IsNullOrUndefined()) {
                     NJA::ThrowException(isolate, "A callback expected for end result");
                     bad = true;
                 }
@@ -1962,7 +1962,7 @@ namespace SPA {
                             assert(!fail);
                         }
                     };
-                } else if (!NJA::IsNullOrUndefined(abort)) {
+                } else if (!abort->IsNullOrUndefined()) {
                     NJA::ThrowException(isolate, "A callback expected for tracking socket closed or canceled events");
                     bad = true;
                 }
@@ -1986,7 +1986,7 @@ namespace SPA {
                             assert(!fail);
                         }
                     };
-                } else if (!NJA::IsNullOrUndefined(se)) {
+                } else if (!se->IsNullOrUndefined()) {
                     NJA::ThrowException(isolate, "A callback expected for tracking exception from server");
                     bad = true;
                 }

@@ -34,7 +34,7 @@ namespace NJA {
                         assert(!fail);
                     }
                 };
-            } else if (!IsNullOrUndefined(argv[0])) {
+            } else if (!argv[0]->IsNullOrUndefined()) {
                 ThrowException(isolate, "A callback expected for file exchange end result");
                 return 0;
             }
@@ -54,7 +54,7 @@ namespace NJA {
                         assert(!fail);
                     }
                 };
-            } else if (!IsNullOrUndefined(argv[1])) {
+            } else if (!argv[1]->IsNullOrUndefined()) {
                 ThrowException(isolate, "A callback expected for monitoring file transferring progress");
                 return 0;
             }
@@ -74,7 +74,7 @@ namespace NJA {
                         assert(!fail);
                     }
                 };
-            } else if (!IsNullOrUndefined(argv[2])) {
+            } else if (!argv[2]->IsNullOrUndefined()) {
                 ThrowException(isolate, "A callback expected for tracking socket closed or canceled events");
                 return 0;
             }
@@ -94,7 +94,7 @@ namespace NJA {
                         assert(!fail);
                     }
                 };
-            } else if (!IsNullOrUndefined(argv[3])) {
+            } else if (!argv[3]->IsNullOrUndefined()) {
                 ThrowException(isolate, "A callback expected for tracking exception from server");
                 return 0;
             }

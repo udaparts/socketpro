@@ -22,14 +22,14 @@ namespace SPA {
                 if (argv[0]->IsFunction()) {
                     bool delay = false;
                     Local<Value> d = argv[3];
-                    if (!IsNullOrUndefined(d)) {
+                    if (!d->IsNullOrUndefined()) {
                         if (d->IsBoolean() || d->IsUint32()) {
 #ifdef BOOL_ISOLATE
                             delay = d->BooleanValue(isolate);
 #else
                             delay = d->BooleanValue(isolate->GetCurrentContext()).ToChecked();
 #endif
-                        } else if (!NJA::IsNullOrUndefined(d)) {
+                        } else if (!d->IsNullOrUndefined()) {
                             NJA::ThrowException(isolate, "A boolean value expected for parameter delay");
                             return 0;
                         }
@@ -50,7 +50,7 @@ namespace SPA {
                         }
                         this->m_cs.unlock();
                     };
-                } else if (!IsNullOrUndefined(argv[0])) {
+                } else if (!argv[0]->IsNullOrUndefined()) {
                     ThrowException(isolate, "A callback expected for tracking returned results");
                     return 0;
                 }
@@ -71,7 +71,7 @@ namespace SPA {
                         }
                         this->m_cs.unlock();
                     };
-                } else if (!IsNullOrUndefined(argv[1])) {
+                } else if (!argv[1]->IsNullOrUndefined()) {
                     ThrowException(isolate, "A callback expected for tracking socket closed or canceled events");
                     return 0;
                 }
@@ -92,7 +92,7 @@ namespace SPA {
                         }
                         this->m_cs.unlock();
                     };
-                } else if (!IsNullOrUndefined(argv[2])) {
+                } else if (!argv[2]->IsNullOrUndefined()) {
                     ThrowException(isolate, "A callback expected for tracking exceptions from server");
                     return 0;
                 }
@@ -218,14 +218,6 @@ namespace NJA {
         return (int) difftime(utcTime, std::mktime(ptm));
     }
 
-    bool IsNullOrUndefined(const Local<Value>& v) {
-#ifdef HAS_NULLORUNDEFINED_FUNC
-        return v->IsNullOrUndefined();
-#else
-        return (v->IsNull() || v->IsUndefined());
-#endif
-    }
-
     void ThrowException(Isolate* isolate, const char* str) {
         isolate->ThrowException(Exception::TypeError(ToStr(isolate, str)));
     }
@@ -326,7 +318,7 @@ namespace NJA {
 
     bool From(Isolate* isolate, const Local<Value>& v, const std::string& id, CComVariant& vt) {
         vt.Clear();
-        if (IsNullOrUndefined(v))
+        if (v->IsNullOrUndefined())
             vt.vt = VT_NULL;
         else if (v->IsDate()) {
             vt.vt = VT_DATE;
@@ -1392,7 +1384,7 @@ namespace NJA {
                         return false;
                     }
                     pInfo.Direction = (tagParameterDirection) d;
-                } else if (!IsNullOrUndefined(v)) {
+                } else if (!v->IsNullOrUndefined()) {
                     ThrowException(isolate, "An integer value expected for parameter direction");
                     return false;
                 }
@@ -1400,7 +1392,7 @@ namespace NJA {
                 if (v->IsUint32()) {
                     unsigned int d = v->Uint32Value(isolate->GetCurrentContext()).ToChecked();
                     pInfo.DataType = (VARTYPE) d;
-                } else if (!IsNullOrUndefined(v)) {
+                } else if (!v->IsNullOrUndefined()) {
                     ThrowException(isolate, "An integer value expected for parameter data type");
                     return false;
                 }
@@ -1414,7 +1406,7 @@ namespace NJA {
                     }
                      */
                     pInfo.ColumnSize = (unsigned int) d;
-                } else if (!IsNullOrUndefined(v)) {
+                } else if (!v->IsNullOrUndefined()) {
                     ThrowException(isolate, "An integer value expected for parameter column size");
                     return false;
                 }
@@ -1426,7 +1418,7 @@ namespace NJA {
                         return false;
                     }
                     pInfo.Precision = (unsigned char) d;
-                } else if (!IsNullOrUndefined(v)) {
+                } else if (!v->IsNullOrUndefined()) {
                     ThrowException(isolate, "An integer value expected for parameter data precision");
                     return false;
                 }
@@ -1438,19 +1430,19 @@ namespace NJA {
                         return false;
                     }
                     pInfo.Precision = (unsigned char) d;
-                } else if (!IsNullOrUndefined(v)) {
+                } else if (!v->IsNullOrUndefined()) {
                     ThrowException(isolate, "An integer value expected for parameter data scale");
                     return false;
                 }
                 v = pi->Get(ctx, ToStr(isolate, u"ParameterName", 13)).ToLocalChecked();
                 if (v->IsString()) {
                     pInfo.ParameterName = ToStr(isolate, v);
-                } else if (!IsNullOrUndefined(v)) {
+                } else if (!v->IsNullOrUndefined()) {
                     ThrowException(isolate, "An integer value expected for parameter data scale");
                     return false;
                 }
             }
-        } else if (!IsNullOrUndefined(p0)) {
+        } else if (!p0->IsNullOrUndefined()) {
             ThrowException(isolate, "An array of parameter meta data expected");
             return false;
         }

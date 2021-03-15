@@ -115,7 +115,7 @@ namespace NJA {
             if (p->IsUint32()) {
                 max = p->Uint32Value(isolate->GetCurrentContext()).ToChecked();
                 obj->m_file->SetFilesStreamed(max);
-            } else if (!IsNullOrUndefined(p)) {
+            } else if (!p->IsNullOrUndefined()) {
                 ThrowException(isolate, "An unsigned int value expected");
                 return;
             }
@@ -167,7 +167,7 @@ namespace NJA {
             auto p2 = args[5];
             if (p2->IsUint32())
                 flags = p2->Uint32Value(isolate->GetCurrentContext()).ToChecked();
-            else if (!IsNullOrUndefined(p2)) {
+            else if (!p2->IsNullOrUndefined()) {
                 ThrowException(isolate, "Unsigned int required for file creating flags");
                 return;
             }

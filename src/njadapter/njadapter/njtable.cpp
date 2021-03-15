@@ -228,7 +228,7 @@ namespace NJA {
 #else
                 desc = p1->BooleanValue(isolate->GetCurrentContext()).ToChecked();
 #endif
-            } else if (!IsNullOrUndefined(p1)) {
+            } else if (!p1->IsNullOrUndefined()) {
                 NJA::ThrowException(isolate, BOOLEAN_EXPECTED);
                 return;
             }
@@ -290,7 +290,7 @@ namespace NJA {
 #else
                 copy = p3->BooleanValue(isolate->GetCurrentContext()).ToChecked();
 #endif
-            } else if (!IsNullOrUndefined(p3)) {
+            } else if (!p3->IsNullOrUndefined()) {
                 NJA::ThrowException(isolate, BOOLEAN_EXPECTED);
                 return;
             }
@@ -324,7 +324,7 @@ namespace NJA {
 #else
                 copy = p1->BooleanValue(isolate->GetCurrentContext()).ToChecked();
 #endif
-            } else if (!IsNullOrUndefined(p1)) {
+            } else if (!p1->IsNullOrUndefined()) {
                 NJA::ThrowException(isolate, BOOLEAN_EXPECTED);
                 return;
             }
@@ -363,7 +363,7 @@ namespace NJA {
 #else
                 copy = p2->BooleanValue(isolate->GetCurrentContext()).ToChecked();
 #endif
-            } else if (!IsNullOrUndefined(p2)) {
+            } else if (!p2->IsNullOrUndefined()) {
                 NJA::ThrowException(isolate, BOOLEAN_EXPECTED);
                 return;
             }
@@ -411,7 +411,7 @@ namespace NJA {
 #else
                 copy = p3->BooleanValue(isolate->GetCurrentContext()).ToChecked();
 #endif
-            } else if (!IsNullOrUndefined(p3)) {
+            } else if (!p3->IsNullOrUndefined()) {
                 NJA::ThrowException(isolate, BOOLEAN_EXPECTED);
                 return;
             }
@@ -450,7 +450,7 @@ namespace NJA {
 #else
                 copy = p2->BooleanValue(isolate->GetCurrentContext()).ToChecked();
 #endif
-            } else if (!IsNullOrUndefined(p2)) {
+            } else if (!p2->IsNullOrUndefined()) {
                 NJA::ThrowException(isolate, BOOLEAN_EXPECTED);
                 return;
             }
