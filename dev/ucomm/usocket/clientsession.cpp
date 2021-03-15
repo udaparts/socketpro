@@ -1127,8 +1127,6 @@ void CClientSession::Write(const SPA::CStreamHeader &sh, const unsigned char *s,
     if (!s) nSize = 0;
     if (m_ConnState < SPA::ClientSide::tagConnectionState::csConnected)
         return;
-    if (m_qWrite.GetTailSize() < (nSize + sizeof (sh)) && m_qWrite.GetHeadPosition() > (nSize + sizeof (sh)))
-        m_qWrite.SetHeadPosition();
     if (m_bWBLocked) {
         m_qWrite << sh;
         m_qWrite.Push(s, nSize);
@@ -1170,8 +1168,6 @@ void CClientSession::Write(const unsigned char *s, unsigned int nSize) {
     if (!s) nSize = 0;
     if (m_ConnState < SPA::ClientSide::tagConnectionState::csConnected)
         return;
-    if (m_qWrite.GetTailSize() < nSize && nSize < m_qWrite.GetHeadPosition())
-        m_qWrite.SetHeadPosition();
     if (m_bWBLocked) {
         m_qWrite.Push(s, nSize);
         return;
@@ -2668,8 +2664,6 @@ void CClientSession::OnReadCompleted(const CErrorCode& Error, size_t nLen) {
         }
         if (len > 0) {
             m_ulRead += len;
-            if (m_qRead.GetTailSize() < len && m_qRead.GetHeadPosition() >= len)
-                m_qRead.SetHeadPosition();
             m_qRead.Push(m_ReadBuffer, len);
         }
         m_bRBLocked = false;
@@ -2910,7 +2904,7 @@ void CClientSession::OnWriteCompleted(const CErrorCode& Error, size_t bytes_tran
             if (bQueue && m_ConnState >= SPA::ClientSide::tagConnectionState::csSwitched) {
                 WriteFromQueueFile();
             }
-            Write(nullptr, 0);
+            if (m_qWrite.GetSize()) Write(nullptr, 0);
         }
     } else {
         m_ec = Error;

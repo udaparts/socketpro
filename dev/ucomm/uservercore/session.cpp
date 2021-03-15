@@ -1372,8 +1372,6 @@ unsigned int CServerSession::Write(const unsigned char *s, unsigned int nSize) {
     if (s == nullptr)
         nSize = 0;
     if (m_bWBLocked) {
-        if (m_qWrite.GetTailSize() < nSize && m_qWrite.GetHeadPosition() >= nSize)
-            m_qWrite.SetHeadPosition();
         m_qWrite.Push(s, nSize);
         return nSize;
     }
@@ -3523,9 +3521,6 @@ void CServerSession::OnReadCompleted(const CErrorCode& Error, size_t nLen) {
                 len = m_pSsl->Decrypt(m_ReadBuffer, len, *sb);
                 m_mutex.lock();
                 m_ccb.RecvTime = (GetTimeTick() - g_pServer->m_tStart);
-                if (m_qRead.GetTailSize() < nLen && m_qRead.GetHeadPosition() >= nLen) {
-                    m_qRead.SetHeadPosition();
-                }
                 m_qRead.Push(sb->GetBuffer(), len);
                 m_ccb.m_ulRead += len;
             } else {
@@ -3575,9 +3570,6 @@ void CServerSession::OnReadCompleted(const CErrorCode& Error, size_t nLen) {
         } else {
             m_mutex.lock();
             m_ccb.RecvTime = (GetTimeTick() - g_pServer->m_tStart);
-            if (m_qRead.GetTailSize() < nLen && m_qRead.GetHeadPosition() >= nLen) {
-                m_qRead.SetHeadPosition();
-            }
             m_qRead.Push(m_ReadBuffer, len);
             m_ccb.m_ulRead += len;
         }
@@ -3658,7 +3650,7 @@ void CServerSession::OnWriteCompleted(const CErrorCode& Error, size_t bytes_tran
         m_pSocket->async_write_some(boost::asio::buffer(m_WriteBuffer, ulLen), boost::bind(&CServerSession::OnWriteCompleted, this, nsPlaceHolders::error, nsPlaceHolders::bytes_transferred));
     } else {
         m_bWBLocked = 0;
-        Write(nullptr, 0);
+        if (m_qWrite.GetSize()) Write(nullptr, 0);
     }
     if (m_senderHandle && m_qWrite.GetSize() < IO_BUFFER_SIZE) {
         unsigned int index;
