@@ -1224,8 +1224,6 @@ void CClientSession::Write(const SPA::CStreamHeader &sh, const unsigned char *s,
         nSize = 0;
     if (m_ConnState < SPA::ClientSide::tagConnectionState::csConnected)
         return;
-    if (m_qWrite.GetTailSize() < (nSize + sizeof (sh)) && m_qWrite.GetHeadPosition() > (nSize + sizeof (sh)))
-        m_qWrite.SetHeadPosition();
     if (m_pSspi) {
         SPA::CScopeUQueue su;
         su << sh;
@@ -1270,8 +1268,6 @@ void CClientSession::Write(const unsigned char *s, unsigned int nSize) {
         nSize = 0;
     if (m_ConnState < SPA::ClientSide::tagConnectionState::csSslShaking)
         return;
-    if (m_qWrite.GetTailSize() < nSize && nSize < m_qWrite.GetHeadPosition())
-        m_qWrite.SetHeadPosition();
     if (m_bWBLocked) {
         m_qWrite.Push(s, nSize);
         return;
@@ -1310,9 +1306,9 @@ void CClientSession::Write(const unsigned char *s, unsigned int nSize) {
 }
 
 void CClientSession::Read() {
-    if (m_pThread && m_pThread->GetPool()->IsKilling())
-        return;
     if (m_bRBLocked || m_ConnState < SPA::ClientSide::tagConnectionState::csSslShaking || m_bRoutingWait)
+        return;
+    if (m_pThread && m_pThread->GetPool()->IsKilling())
         return;
     m_bRBLocked = true;
     m_pSocket->async_read_some(boost::asio::buffer(m_ReadBuffer, IO_BUFFER_SIZE), boost::bind(&CClientSession::OnReadCompleted, this, nsPlaceHolders::error, nsPlaceHolders::bytes_transferred));
@@ -2740,8 +2736,6 @@ void CClientSession::OnReadCompleted(const CErrorCode& Error, size_t nLen) {
         return;
     }
     CAutoLock sl(m_mutex);
-    if (m_qRead.GetTailSize() < len && m_qRead.GetHeadPosition() >= len)
-        m_qRead.SetHeadPosition();
     if (m_pSspi) {
         if (m_pSspi->GetHandshakeState() == SPA::hsDone) {
             nLen = m_qRead.GetSize();
@@ -3105,7 +3099,6 @@ void CClientSession::OnWriteCompleted(const CErrorCode& Error, size_t bytes_tran
         return;
     }
     if (!Error) {
-
         if (m_bWBLocked > bytes_transferred) {
             //m_bWBLocked -= (unsigned int)bytes_transferred;
             unsigned int ulLen = (unsigned int) (m_bWBLocked - bytes_transferred);
@@ -3118,7 +3111,7 @@ void CClientSession::OnWriteCompleted(const CErrorCode& Error, size_t bytes_tran
             if (bQueue && m_ConnState >= SPA::ClientSide::tagConnectionState::csSwitched) {
                 WriteFromQueueFile();
             }
-            Write(nullptr, 0);
+            if (m_qWrite.GetSize()) Write(nullptr, 0);
         }
     } else {
         m_ec = Error;
