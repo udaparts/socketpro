@@ -291,11 +291,7 @@ namespace NJA {
             }
             std::wstring db;
             if (args[1]->IsString()) {
-#if NODE_MODULE_VERSION < 57
-                String::Value str(args[1]);
-#else
                 String::Value str(isolate, args[1]);
-#endif
                 unsigned int len = (unsigned int) str.length();
                 if (len)
                     db.assign(*str, *str + len);
@@ -799,11 +795,7 @@ namespace NJA {
         if (obj->IsValid(isolate)) {
             auto p = args[0];
             if (p->IsString()) {
-#if NODE_MODULE_VERSION <57
-                String::Utf8Value str(p);
-#else
                 String::Utf8Value str(isolate, p);
-#endif
                 obj->Handler->SetQueueName(*str);
             } else {
                 ThrowException(isolate, BOOLEAN_EXPECTED);
@@ -981,13 +973,8 @@ namespace NJA {
                         break;
                 }
             } else if (p->IsString()) {
-                std::string qname;
-#if NODE_MODULE_VERSION <57
-                String::Utf8Value str(p);
-#else
                 String::Utf8Value str(isolate, p);
-#endif
-                qname = *str;
+                std::string qname = *str;
                 switch (obj->SvsId) {
                     case SPA::Queue::sidQueue:
                     {
@@ -1049,11 +1036,7 @@ namespace NJA {
             ThrowException(isolate, "Invalid host string");
             return false;
         }
-#if NODE_MODULE_VERSION <57
-        String::Utf8Value host(v);
-#else
         String::Utf8Value host(isolate, v);
-#endif
         cc.Host = *host;
 
         v = obj->Get(ctx, ToStr(isolate, u"Port", 4)).ToLocalChecked();
@@ -1068,11 +1051,7 @@ namespace NJA {
             ThrowException(isolate, "Invalid user id string");
             return false;
         }
-#if NODE_MODULE_VERSION < 57
-        String::Utf8Value uid(v);
-#else
         String::Utf8Value uid(isolate, v);
-#endif
         cc.UserId = Utilities::ToWide(*uid);
 
         v = obj->Get(ctx, ToStr(isolate, u"Pwd", 3)).ToLocalChecked();
@@ -1080,11 +1059,7 @@ namespace NJA {
             ThrowException(isolate, "Invalid password string");
             return false;
         }
-#if NODE_MODULE_VERSION < 57
-        String::Utf8Value pwd(v);
-#else
         String::Utf8Value pwd(isolate, v);
-#endif
         cc.Password = Utilities::ToWide(*pwd);
         unsigned int em = 0;
         v = obj->Get(ctx, ToStr(isolate, u"EM", 2)).ToLocalChecked();

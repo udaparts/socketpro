@@ -364,11 +364,7 @@ namespace NJA {
                 auto p4 = args[4];
                 auto p5 = args[5];
                 if (p5->IsString()) {
-#if NODE_MODULE_VERSION < 57	
-                    String::Utf8Value str(p5);
-#else
                     String::Utf8Value str(isolate, p5);
-#endif
                     hint = *str;
                     ToLower(hint);
                 }

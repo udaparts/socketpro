@@ -149,11 +149,7 @@ namespace NJA {
             ThrowException(isolate, "A valid key string required to find a queue file at server side");
             return "";
         }
-#if NODE_MODULE_VERSION < 57		
-        String::Utf8Value str(jsKey);
-#else
         String::Utf8Value str(isolate, jsKey);
-#endif
         std::string s(*str);
         if (!s.size()) {
             ThrowException(isolate, "A valid key string required to find a queue file at server side");

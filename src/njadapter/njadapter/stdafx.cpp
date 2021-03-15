@@ -283,21 +283,13 @@ namespace NJA {
 
     SPA::CDBString ToStr(Isolate* isolate, const Local<Value>& s) {
         assert(s->IsString());
-#if NODE_MODULE_VERSION < 57
-        String::Value str(s);
-#else
         String::Value str(isolate, s);
-#endif
         return (const UTF16*) *str;
     }
 
     std::string ToAStr(Isolate* isolate, const Local<Value>& s) {
         assert(s->IsString());
-#if NODE_MODULE_VERSION < 57
-        String::Utf8Value str(s);
-#else
         String::Utf8Value str(isolate, s);
-#endif
         return *str;
     }
 
@@ -350,11 +342,7 @@ namespace NJA {
             if (id == "a" || id == "ascii") {
                 char* p;
                 vt.vt = (VT_ARRAY | VT_I1);
-#if NODE_MODULE_VERSION <57
-                String::Utf8Value str(v);
-#else
                 String::Utf8Value str(isolate, v);
-#endif
                 unsigned int len = (unsigned int) str.length();
                 SAFEARRAYBOUND sab[] = {len, 0};
                 vt.parray = SafeArrayCreate(VT_I1, 1, sab);
@@ -362,20 +350,12 @@ namespace NJA {
                 memcpy(p, *str, len);
                 SafeArrayUnaccessData(vt.parray);
             } else if (id == "dec" || id == "decimal") {
-#if NODE_MODULE_VERSION <57
-                String::Utf8Value str(v);
-#else
                 String::Utf8Value str(isolate, v);
-#endif
                 vt.vt = VT_DECIMAL;
                 SPA::ParseDec(*str, vt.decVal);
             } else {
                 vt.vt = VT_BSTR;
-#if NODE_MODULE_VERSION <57
-                String::Value str(v);
-#else
                 String::Value str(isolate, v);
-#endif
 #ifdef WIN32_64
                 vt.bstrVal = SysAllocStringLen((const wchar_t*) *str, (unsigned int)str.length());
 #else
@@ -419,11 +399,7 @@ namespace NJA {
                 vt.iVal = (unsigned short) v->Uint32Value(isolate->GetCurrentContext()).ToChecked();
             } else if (id == "dec" || id == "decimal") {
                 vt.vt = VT_DECIMAL;
-#if NODE_MODULE_VERSION < 57
-                String::Utf8Value str(v);
-#else
                 String::Utf8Value str(isolate, v);
-#endif
                 ParseDec(*str, vt.decVal);
             } else if (id == "c" || id == "char") {
                 vt.vt = VT_I1;
@@ -634,11 +610,7 @@ namespace NJA {
                     case VT_BSTR:
                     {
                         BSTR* pbstr = (BSTR*) p;
-#if NODE_MODULE_VERSION < 57
-                        String::Value str(d);
-#else
                         String::Value str(isolate, d);
-#endif
 #ifdef WIN32_64
                         pbstr[n] = ::SysAllocStringLen((const wchar_t*) *str, (unsigned int)str.length());
 #else

@@ -634,11 +634,7 @@ namespace NJA {
             } else {
                 if (!p->IsString())
                     p = p->ToString(isolate->GetCurrentContext()).ToLocalChecked();
-#if NODE_MODULE_VERSION < 57
-                String::Utf8Value str(p);
-#else
                 String::Utf8Value str(isolate, p);
-#endif
                 unsigned int len = (unsigned int) str.length();
                 *buff << len;
                 buff->Push((const unsigned char*) (*str), len);
@@ -661,11 +657,7 @@ namespace NJA {
             } else {
                 if (!p->IsString())
                     p = p->ToString(isolate->GetCurrentContext()).ToLocalChecked();
-#if NODE_MODULE_VERSION < 57
-                String::Value str(p);
-#else
                 String::Value str(isolate, p);
-#endif
                 unsigned int len = (unsigned int) str.length();
                 len <<= 1;
                 *buff << len;
@@ -686,11 +678,7 @@ namespace NJA {
             if (p->IsNumber() || p->IsString()) {
                 if (!p->IsString())
                     p = p->ToString(isolate->GetCurrentContext()).ToLocalChecked();
-#if NODE_MODULE_VERSION < 57
-                String::Utf8Value str(p);
-#else
                 String::Utf8Value str(isolate, p);
-#endif
                 const char *s = *str;
                 DECIMAL dec;
                 SPA::ParseDec_long(s, dec);
@@ -812,11 +800,7 @@ namespace NJA {
             buff << vt << v;
         } else if (p0->IsString()) {
             if (id.size() && (id == "a" || id == "ascii" || id == "dec" || id == "decimal")) {
-#if NODE_MODULE_VERSION < 57
-                String::Utf8Value str(p0);
-#else
                 String::Utf8Value str(isolate, p0);
-#endif
                 if (id == "a" || id == "ascii") {
                     vt = (VT_ARRAY | VT_I1);
                     unsigned int len = (unsigned int) str.length();
@@ -831,11 +815,7 @@ namespace NJA {
                 }
             } else {
                 vt = VT_BSTR;
-#if NODE_MODULE_VERSION < 57
-                String::Value str(p0);
-#else
                 String::Value str(isolate, p0);
-#endif
                 unsigned int len = (unsigned int) str.length();
                 len <<= 1;
                 buff << vt << len;
@@ -1043,11 +1023,7 @@ namespace NJA {
         std::string id;
         auto p1 = args[1];
         if (p1->IsString()) {
-#if NODE_MODULE_VERSION < 57
-            String::Utf8Value str(p1);
-#else
             String::Utf8Value str(isolate, p1);
-#endif
             const char *s = *str;
             id.assign(s, str.length());
             ToLower(id);

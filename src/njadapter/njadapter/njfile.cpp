@@ -146,11 +146,7 @@ namespace NJA {
                 ThrowException(isolate, "A local file path required");
                 return;
             }
-#if NODE_MODULE_VERSION < 57
-            String::Utf8Value str0(p0);
-#else
             String::Utf8Value str0(isolate, p0);
-#endif
             std::wstring local = Utilities::ToWide(*str0);
             if (!local.size()) {
                 ThrowException(isolate, "A local file path cannot be empty");
@@ -161,11 +157,7 @@ namespace NJA {
                 ThrowException(isolate, "A remote file path required");
                 return;
             }
-#if NODE_MODULE_VERSION < 57
-            String::Utf8Value str1(p1);
-#else
             String::Utf8Value str1(isolate, p1);
-#endif
             std::wstring remote = Utilities::ToWide(*str1);
             if (!remote.size()) {
                 ThrowException(isolate, "A remote file path cannot be empty");

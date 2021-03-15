@@ -247,11 +247,7 @@ namespace NJA {
         if (obj->IsValid(isolate)) {
             auto p = args[0];
             if (p->IsString()) {
-#if NODE_MODULE_VERSION < 57
-                String::Utf8Value str(p);
-#else
                 String::Utf8Value str(isolate, p);
-#endif
                 int res = (int) obj->m_table->FindOrdinal(*str);
                 args.GetReturnValue().Set(Int32::New(isolate, res));
             } else {
