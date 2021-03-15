@@ -104,7 +104,6 @@ namespace NJA {
     Local<Value> DbFrom(Isolate* isolate, SPA::CUQueue &buff);
     Local<String> ToStr(Isolate* isolate, const char *str, size_t len = (size_t) INVALID_NUMBER);
     Local<String> ToStr(Isolate* isolate, const SPA::UTF16 *str, size_t len = (size_t) INVALID_NUMBER);
-    bool IsNullOrUndefined(const Local<Value> &v);
 }
 #endif
 

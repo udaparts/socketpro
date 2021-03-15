@@ -228,7 +228,7 @@ namespace SPA {
 
     private:
 
-        size_t popfront(T* p, size_t count, UINT64 cycle) noexcept {
+        inline size_t popfront(T* p, size_t count, UINT64 cycle) noexcept {
             if (!m_sl.lock(cycle)) {
                 return 0;
             }
@@ -250,7 +250,7 @@ namespace SPA {
             return count;
         }
 
-        size_t popback(T* p, size_t count, UINT64 cycle) noexcept {
+        inline size_t popback(T* p, size_t count, UINT64 cycle) noexcept {
             if (!m_sl.lock(cycle)) {
                 return 0;
             }
@@ -270,7 +270,7 @@ namespace SPA {
             return count;
         }
 
-        size_t pushback(const T* p, size_t count, UINT64 cycle) {
+        inline size_t pushback(const T* p, size_t count, UINT64 cycle) {
             if (!m_sl.lock(cycle)) {
                 return 0;
             }
@@ -296,7 +296,7 @@ namespace SPA {
             return count;
         }
 
-        size_t pushfront(const T* p, size_t count, UINT64 cycle) {
+        inline size_t pushfront(const T* p, size_t count, UINT64 cycle) {
             if (!m_sl.lock(cycle)) {
                 return 0;
             }

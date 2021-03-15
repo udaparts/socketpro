@@ -863,9 +863,8 @@ namespace SPA {
          * @return The actual size of content popped in byte
          */
         inline unsigned int Pop(unsigned char* buffer, unsigned int len, unsigned int position = 0) {
-            if (m_nSize < position || 0 == len || nullptr == buffer) {
-                return 0;
-            }
+            assert(len);
+            assert(buffer);
             if (m_nSize < (len + position)) {
                 throw CUException("Remaining data in size smaller than expected size", __FILE__, __LINE__, __FUNCTION__, MB_BAD_DESERIALIZATION);
             }
