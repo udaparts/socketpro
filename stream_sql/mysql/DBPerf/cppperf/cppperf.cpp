@@ -88,7 +88,7 @@ int main(int argc, char* argv[]) {
         auto &vColInfo = handler.GetColumnInfo();
         CPColumnRowset column_rowset_pair;
         column_rowset_pair.first = vColInfo;
-        ra.push_back(column_rowset_pair);
+        ra.push_back(std::move(column_rowset_pair));
     };
 
     ok = pMysql->Open(dbName.c_str(), dr);
