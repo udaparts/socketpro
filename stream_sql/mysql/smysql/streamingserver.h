@@ -83,6 +83,8 @@ public:
     UConfig Config;
     my_thread_handle m_thread;
     static CSetGlobals Globals;
+    static unsigned int MySQL_Version;
+    static unsigned int PS_PARAM_SIZE;
 
 public:
     bool StartListening();

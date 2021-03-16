@@ -32,7 +32,7 @@ namespace SPA {
                 }
                 unsigned long stmt_id;
                 size_t parameters;
-                std::shared_ptr<PS_PARAM> m_pParam;
+                std::shared_ptr<unsigned char> m_pParam;
             };
 
             struct PriKey {

@@ -1531,8 +1531,9 @@ namespace SPA
                     CloseStmt();
                 } else {
                     res = 0;
-                    m_stmt.m_pParam.reset(new PS_PARAM[parameters], [](PS_PARAM * p) {
-                        delete[]p;
+                    unsigned char* ps_param = (unsigned char*) ::malloc(parameters * CSetGlobals::PS_PARAM_SIZE);
+                    m_stmt.m_pParam.reset(ps_param, [](unsigned char *p) {
+                        if (p) ::free(p);
                     });
                 }
             }
@@ -1557,20 +1558,17 @@ namespace SPA
 
         int CMysqlImpl::SetParams(int row, CDBString & errMsg) {
             int res = 0;
-            PS_PARAM *pParam = m_stmt.m_pParam.get();
-            for (size_t n = 0; n < m_stmt.parameters; ++n, ++pParam) {
-                pParam->null_bit = false;
-                pParam->unsigned_type = false;
+            for (size_t n = 0; n < m_stmt.parameters; ++n) {
+                PS_PARAM *pParam = (PS_PARAM*) (m_stmt.m_pParam.get() + n * CSetGlobals::PS_PARAM_SIZE);
+                ::memset(pParam, 0, CSetGlobals::PS_PARAM_SIZE);
                 size_t pos = row * m_stmt.parameters + n;
                 CDBVariant &data = m_vParam[pos];
                 unsigned short vt = data.Type();
                 switch (vt) {
                     case VT_NULL:
                     case VT_EMPTY:
-                        pParam->length = 0;
                         pParam->type = MYSQL_TYPE_NULL;
                         pParam->null_bit = true;
-                        pParam->value = nullptr;
                         break;
                     case VT_I1:
                         pParam->length = sizeof (char);
@@ -1634,14 +1632,6 @@ namespace SPA
                         pParam->type = MYSQL_TYPE_DOUBLE;
                         pParam->value = (const unsigned char *) &data.dblVal;
                         break;
-                        /*
-                        case VT_DECIMAL:
-                                pParam->type = MYSQL_TYPE_NEWDECIMAL;
-                                break;
-                        case VT_DATE:
-                                pParam->type = MYSQL_TYPE_DATETIME;
-                                break;
-                         */
                     case VT_STR:
                     case (VT_ARRAY | VT_I1):
                         pParam->type = MYSQL_TYPE_VAR_STRING;
@@ -1916,7 +1906,7 @@ namespace SPA
                     continue;
                 }
                 cmd.com_stmt_execute.stmt_id = m_stmt.stmt_id;
-                cmd.com_stmt_execute.parameters = m_stmt.m_pParam.get();
+                cmd.com_stmt_execute.parameters = (PS_PARAM*) m_stmt.m_pParam.get();
                 cmd.com_stmt_execute.parameter_count = (unsigned long) m_stmt.parameters;
                 cmd.com_stmt_execute.has_new_types = true;
                 cmd.com_stmt_execute.open_cursor = false;

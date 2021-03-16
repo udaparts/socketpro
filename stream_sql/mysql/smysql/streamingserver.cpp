@@ -4,12 +4,24 @@
 #include "../../../include/membuffer.h"
 #include "../../../include/udb_macros.h"
 
-#define MY_VERSION                          "1.5.0.4" //this DB plugin version
+#define MY_VERSION                          "1.5.0.5" //this DB plugin version
 
 #define STREAMING_DB_AUTH_ACCOUNT           "authentication_account"
 
 CStreamingServer *g_pStreamingServer = nullptr;
 CSetGlobals CSetGlobals::Globals;
+unsigned int CSetGlobals::MySQL_Version = MYSQL_VERSION_ID;
+unsigned int CSetGlobals::PS_PARAM_SIZE = sizeof(PS_PARAM);
+
+struct PS_PARAM_8_0_23 {
+    unsigned char null_bit;
+    enum enum_field_types type;
+    unsigned char unsigned_type;
+    const unsigned char* value;
+    unsigned long length;
+    const unsigned char* name;
+    unsigned long name_length;
+};
 
 int async_sql_plugin_init(void *p) {
     CSetGlobals::Globals.Plugin = (const void *) p;
@@ -35,8 +47,7 @@ int async_sql_plugin_deinit(void *p) {
 }
 
 CSetGlobals::CSetGlobals() : m_fLog(nullptr), server_version(nullptr), m_hModule(nullptr), Plugin(nullptr) {
-    unsigned int version = MYSQL_VERSION_ID;
-    async_sql_plugin.interface_version = (version << 8);
+    async_sql_plugin.interface_version = (MySQL_Version << 8);
     //defaults
 #ifdef WIN32_64
     m_hModule = ::GetModuleHandle(nullptr);
@@ -55,13 +66,16 @@ CSetGlobals::CSetGlobals() : m_fLog(nullptr), server_version(nullptr), m_hModule
     }
     UpdateLog();
     if (server_version && strlen(server_version)) {
-        version = GetVersion(server_version);
-        if (!version) {
+        MySQL_Version = GetVersion(server_version);
+        if (!MySQL_Version) {
             LogMsg(__FILE__, __LINE__, "Version not found inside mysqld application");
         } else {
-            LogMsg(__FILE__, __LINE__, "Version %d found inside mysqld application", version);
+            LogMsg(__FILE__, __LINE__, "Version %d found inside mysqld application", MySQL_Version);
             //set interface_version
-            async_sql_plugin.interface_version = (version << 8);
+            async_sql_plugin.interface_version = (MySQL_Version << 8);
+            if (MySQL_Version >= 80023) {
+                PS_PARAM_SIZE = sizeof(PS_PARAM_8_0_23);
+            }
         }
         UpdateLog();
     }
