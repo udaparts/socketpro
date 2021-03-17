@@ -1,4 +1,4 @@
-24.	SocketPro Version 6.3.1.2-6.3.2.1
+24.	SocketPro Version 6.3.1.2-6.3.2.2
 	(a) Add support to char16_t and slightly improve performance of nodejs adapter or C/C++ application on linux
 	(b) Recompile all libraries after adding support of char16_t
 	(c) C++ Samples and tutorials updated because of the above change (a)
@@ -13,8 +13,10 @@
 	(l) Add OnceOnly property to server peer for client message queue
 	(m) Nodejs adapter profiled and improved with better performance
 	(n) Server core lib improved to supports service-based license
-	(O) All DB server plugins use a json file for configuration
-	(P) All SocketPro server plugins export new four functions for version info, global configuration options and authentication
+	(o) All DB server plugins use a json file for configuration
+	(p) All SocketPro server plugins export new four functions for version info, global configuration options and authentication
+	(q) Minor improvements on core libs
+	(r) Fix MySQL8.023 DB plugin crash on parameterized statements
 
 24.	SocketPro Version 6.3.1.1
 	(a) Core libraries are added with a new feature Interrupt, which could be used to interrupt a looping processing at the other end
