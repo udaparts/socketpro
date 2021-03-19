@@ -13,7 +13,7 @@
 
 namespace SPA
 {
-    namespace ServerSide {
+    namespace ServerSide{
         std::atomic<tagMaualBatching> CMysqlImpl::m_mb(tagMaualBatching::mbNothing);
         const UTF16 * CMysqlImpl::NO_DB_OPENED_YET = u"No mysql database opened yet";
         const UTF16 * CMysqlImpl::BAD_END_TRANSTACTION_PLAN = u"Bad end transaction plan";

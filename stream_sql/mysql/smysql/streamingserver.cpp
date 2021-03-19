@@ -11,7 +11,7 @@
 CStreamingServer *g_pStreamingServer = nullptr;
 CSetGlobals CSetGlobals::Globals;
 unsigned int CSetGlobals::MySQL_Version = MYSQL_VERSION_ID;
-unsigned int CSetGlobals::PS_PARAM_SIZE = sizeof(PS_PARAM);
+unsigned int CSetGlobals::PS_PARAM_SIZE = sizeof (PS_PARAM);
 
 struct PS_PARAM_8_0_23 {
     unsigned char null_bit;
@@ -74,7 +74,7 @@ CSetGlobals::CSetGlobals() : m_fLog(nullptr), server_version(nullptr), m_hModule
             //set interface_version
             async_sql_plugin.interface_version = (MySQL_Version << 8);
             if (MySQL_Version >= 80023) {
-                PS_PARAM_SIZE = sizeof(PS_PARAM_8_0_23);
+                PS_PARAM_SIZE = sizeof (PS_PARAM_8_0_23);
             }
         }
         UpdateLog();
@@ -226,7 +226,7 @@ void CSetGlobals::SetConfig() {
     }
     v = doc->Child(MANUAL_BATCHING);
     if (v && v->GetType() == enumType::Uint64) {
-        int mb = (int)v->AsUint64();
+        int mb = (int) v->AsUint64();
         SPA::ServerSide::CMysqlImpl::m_mb = (SPA::ServerSide::tagMaualBatching)mb;
     }
     v = doc->Child(STREAMING_DB_MAIN_THREADS);
