@@ -58,8 +58,7 @@ void WINAPI UninitSocketProServer() {
         StopSocketProServer();
         sleep(boost::posix_time::milliseconds(10));
         delete g_pServer;
-        g_pServer = nullptr;
-    }
+        g_pServer = nullptr;}
 
     catch(...) {
 
@@ -1015,22 +1014,22 @@ void WINAPI SetOnceOnly(USocket_Server_Handle h, bool onceOnly) {
 }
 
 SPA::ServerSide::tagMaualBatching WINAPI GetInlineBatchingOption(USocket_Server_Handle h) {
-	unsigned int index;
-	CServerSession *pSession = GetSvrSession(h, index);
-	if (index == 0 || index != pSession->GetConnIndex())
-		return SPA::ServerSide::tagMaualBatching::mbNothing;
-	if (pSession)
-		return pSession->GetInlineBatchingOption();
-	return SPA::ServerSide::tagMaualBatching::mbNothing;
+    unsigned int index;
+    CServerSession *pSession = GetSvrSession(h, index);
+    if (index == 0 || index != pSession->GetConnIndex())
+        return SPA::ServerSide::tagMaualBatching::mbNothing;
+    if (pSession)
+        return pSession->GetInlineBatchingOption();
+    return SPA::ServerSide::tagMaualBatching::mbNothing;
 }
 
 void WINAPI SetInlineBatchingOption(USocket_Server_Handle h, SPA::ServerSide::tagMaualBatching option) {
-	unsigned int index;
-	CServerSession *pSession = GetSvrSession(h, index);
-	if (index == 0 || index != pSession->GetConnIndex())
-		return;
-	if (pSession)
-		pSession->SetInlineBatchingOption(option);
+    unsigned int index;
+    CServerSession *pSession = GetSvrSession(h, index);
+    if (index == 0 || index != pSession->GetConnIndex())
+        return;
+    if (pSession)
+        pSession->SetInlineBatchingOption(option);
 }
 
 SPA::IUcert* WINAPI GetUCertEx(USocket_Server_Handle h) {

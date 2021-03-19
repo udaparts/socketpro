@@ -600,8 +600,7 @@ void CServer::StopSocketProServer() {
         CAutoLock sl(m_mutex);
         DeleteSslContex();
         delete m_pAcceptor;
-        m_pAcceptor = nullptr;
-    }
+        m_pAcceptor = nullptr;}
 
     catch(...) {
 
@@ -654,8 +653,7 @@ void CServer::StartSubThread() {
         (*it)(SPA::ServerSide::tagThreadEvent::teStarted);
     }
     try{
-        m_IoService.run(m_ec);
-    }
+        m_IoService.run(m_ec);}
 
     catch(boost::system::system_error & err) {
         //#ifndef NDEBUG
@@ -746,8 +744,7 @@ void CServer::StartIOPumpInternal() {
     }
     try{
         m_IoService.reset();
-        m_IoService.run(m_ec);
-    }
+        m_IoService.run(m_ec);}
 
     catch(boost::system::system_error & err) {
         //#ifndef NDEBUG
@@ -1739,8 +1736,7 @@ void CServer::OnAccepted(CServerSession* pSession, const CErrorCode& Error) {
             boost::uint64_t handler = pSession->MakeHandlerInternal();
             try{
                 CRAutoLock ral(m_mutex, chatting);
-                m_pOnAccept(handler, m_ec.value());
-            }
+                m_pOnAccept(handler, m_ec.value());}
 
             catch(...) {
             }
@@ -1763,8 +1759,7 @@ void CServer::OnAccepted(CServerSession* pSession, const CErrorCode& Error) {
             boost::uint64_t handler = pSession->MakeHandlerInternal();
             try{
                 CRAutoLock ral(m_mutex, chatting);
-                m_pOnAccept(handler, m_ec.value());
-            }
+                m_pOnAccept(handler, m_ec.value());}
 
             catch(...) {
             }

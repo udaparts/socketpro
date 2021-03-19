@@ -55,7 +55,7 @@ private:
 #endif
 
 #define SOCKET_CLOSE_EVENT              (WM_CONTINUE_PROCESSING + 0x10)
-#define MEMOREY_QUEUE_HEADER_REST_SIZE	(8*1460)
+#define MEMOREY_QUEUE_HEADER_REST_SIZE (8*1460)
 
 /*
 #define DEFAULT_MAX_REQUEST_SIZE        ((unsigned int)(100*1460))
@@ -92,7 +92,7 @@ public:
     CServerSession& operator=(const CServerSession &ss);
 
 public:
-	static const unsigned int DELAY_SIZE = 1460;
+    static const unsigned int DELAY_SIZE = 1460;
     SPA::tagOperationSystem WINAPI GetPeerOs(bool *endian);
     CSocket& GetSocket();
     void Start();
@@ -200,8 +200,8 @@ public:
     SPA::UINT64 GetInterruptOptions();
     bool GetOnceOnly();
     void SetOnceOnly(bool onceOnly);
-	void SetInlineBatchingOption(SPA::ServerSide::tagMaualBatching option);
-	SPA::ServerSide::tagMaualBatching GetInlineBatchingOption();
+    void SetInlineBatchingOption(SPA::ServerSide::tagMaualBatching option);
+    SPA::ServerSide::tagMaualBatching GetInlineBatchingOption();
 
 private:
     static unsigned int CompressResultTo(bool old, unsigned short reqId, SPA::tagZipLevel zl, const unsigned char *buffer, unsigned int size, SPA::CUQueue &q);
@@ -264,7 +264,7 @@ private:
     unsigned int RemoveDequeueCache(unsigned int handle, SPA::UINT64 index);
     void PutOntoWire();
     void PutOntoWireInternal();
-	bool ComputeDelayWrite(unsigned short reqId);
+    inline bool ComputeDelayWrite(unsigned short reqId);
 
 private:
     CServerThread *m_pUThread;
@@ -326,7 +326,7 @@ private:
     SPA::UINT64 m_indexCall;
     atomic<SPA::UINT64> m_InterruptOptions;
     atomic<bool> m_bMore;
-	atomic<SPA::ServerSide::tagMaualBatching> m_delayOptions;
+    atomic<SPA::ServerSide::tagMaualBatching> m_delayOptions;
     static std::mutex m_mutexRouteRequestId;
     static SPA::CUQueue m_qRouteRequestId;
 

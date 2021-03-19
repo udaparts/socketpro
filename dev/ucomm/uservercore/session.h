@@ -57,7 +57,7 @@ private:
 #endif
 
 #define SOCKET_CLOSE_EVENT              (WM_CONTINUE_PROCESSING + 0x10)
-#define MEMOREY_QUEUE_HEADER_REST_SIZE	(8*1460)
+#define MEMOREY_QUEUE_HEADER_REST_SIZE (8*1460)
 
 /*
 #define DEFAULT_MAX_REQUEST_SIZE        ((unsigned int)(100*1460))
@@ -97,6 +97,7 @@ public:
     CServerSession& operator=(const CServerSession &ss);
 
 public:
+    static const unsigned int DELAY_SIZE = 1460;
     SPA::tagOperationSystem WINAPI GetPeerOs(bool *endian);
     CSocket& GetSocket();
     void Start();
@@ -127,7 +128,7 @@ public:
     bool CommitBatching();
     bool AbortBatching();
     bool Wait(unsigned int nTimeout = 5);
-    int __attribute__((visibility("default"))) ExecuteSlowRequestFromThreadPool(unsigned short sReqId);
+    int __attribute__ ((visibility("default"))) ExecuteSlowRequestFromThreadPool(unsigned short sReqId);
     void SetUserID(const wchar_t *strUserId);
     unsigned int GetUID(wchar_t *strUserId, unsigned int chars);
     void SetPassword(const wchar_t *strPassword);
@@ -204,6 +205,8 @@ public:
     SPA::UINT64 GetInterruptOptions();
     bool GetOnceOnly();
     void SetOnceOnly(bool onceOnly);
+    void SetInlineBatchingOption(SPA::ServerSide::tagMaualBatching option);
+    SPA::ServerSide::tagMaualBatching GetInlineBatchingOption();
 
 private:
     static unsigned int CompressResultTo(bool old, unsigned short reqId, SPA::tagZipLevel zl, const unsigned char *buffer, unsigned int size, SPA::CUQueue &q);
@@ -239,22 +242,22 @@ private:
     SPA::UINT64 GetLatestTime() const;
     void OnRA();
     void SetContext();
-    void __attribute__((visibility("default"))) OnSslHandShake(const CErrorCode& Error);
+    void __attribute__ ((visibility("default"))) OnSslHandShake(const CErrorCode& Error);
     void OnReadCompleted(const CErrorCode& Error, size_t bytes_transferred);
     void OnWriteCompleted(const CErrorCode& Error, size_t bytes_transferred);
-    void __attribute__((visibility("default"))) OnClose();
+    void __attribute__ ((visibility("default"))) OnClose();
     void Read();
     unsigned int Write(const SPA::CStreamHeader &sh, const unsigned char *s, unsigned int nSize);
-    unsigned int Write(const unsigned char *s, unsigned int nSize);
-    void __attribute__((visibility("default"))) OnSlowRequestProcessed(unsigned int res, unsigned short usRequestId);
-    void __attribute__((visibility("default"))) OnBaseRequestArrive();
-    void __attribute__((visibility("default"))) OnNonBaseRequestArrive();
-    void __attribute__((visibility("default"))) OnChatRequestArrive();
-    void __attribute__((visibility("default"))) OnChatVariantRequestArrive();
+    unsigned int Write(const unsigned char *s, unsigned int nSize, unsigned short reqRefId = 0);
+    void __attribute__ ((visibility("default"))) OnSlowRequestProcessed(unsigned int res, unsigned short usRequestId);
+    void __attribute__ ((visibility("default"))) OnBaseRequestArrive();
+    void __attribute__ ((visibility("default"))) OnNonBaseRequestArrive();
+    void __attribute__ ((visibility("default"))) OnChatRequestArrive();
+    void __attribute__ ((visibility("default"))) OnChatVariantRequestArrive();
     static unsigned char* GetIoBuffer();
     static void ReleaseIoBuffer(unsigned char *buffer);
     bool DoAuthentication(unsigned int ServiceId);
-    void __attribute__((visibility("default"))) OnSwitchTo(unsigned int OldServiceId, unsigned int NewServiceId);
+    void __attribute__ ((visibility("default"))) OnSwitchTo(unsigned int OldServiceId, unsigned int NewServiceId);
     bool Decompress();
     bool SetServerInfoInternal(SPA::CSwitchInfo *pServerInfo);
     void NotifyDequeued();
@@ -265,6 +268,7 @@ private:
     unsigned int RemoveDequeueCache(unsigned int handle, SPA::UINT64 index);
     void PutOntoWire();
     void PutOntoWireInternal();
+    inline bool ComputeDelayWrite(unsigned short reqId);
 
 private:
     CServerThread *m_pUThread;
@@ -324,6 +328,7 @@ private:
     SPA::UINT64 m_indexCall;
     std::atomic<SPA::UINT64> m_InterruptOptions;
     std::atomic<bool> m_bMore;
+    std::atomic<SPA::ServerSide::tagMaualBatching> m_delayOptions;
     static mutex m_mutexRouteRequestId;
     static SPA::CUQueue m_qRouteRequestId;
 
