@@ -439,6 +439,8 @@ extern "C" {
     SPA::UINT64 WINAPI GetInterruptOptions(USocket_Server_Handle h);
     bool WINAPI GetOnceOnly(USocket_Server_Handle h);
     void WINAPI SetOnceOnly(USocket_Server_Handle h, bool onceOnly);
+    SPA::ServerSide::tagMaualBatching WINAPI GetInlineBatchingOption(USocket_Server_Handle h);
+    void WINAPI SetInlineBatchingOption(USocket_Server_Handle h, SPA::ServerSide::tagMaualBatching option);
 
 #ifdef __cplusplus
 }

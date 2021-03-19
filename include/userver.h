@@ -4,11 +4,11 @@
 #include "ucomm.h"
 
 //errors for the client method SwitchTo
-#define ERROR_WRONG_SWITCH			(0x7FFFF100)
-#define ERROR_AUTHENTICATION_FAILED		(0x7FFFF101)
-#define ERROR_SERVICE_NOT_FOUND_AT_SERVER_SIDE	(0x7FFFF102)
-#define ERROR_NOT_SWITCHED_YET			(0x7FFFF103)
-#define ERROR_BAD_REQUEST			(0x7FFFF104)
+#define ERROR_WRONG_SWITCH   (0x7FFFF100)
+#define ERROR_AUTHENTICATION_FAILED  (0x7FFFF101)
+#define ERROR_SERVICE_NOT_FOUND_AT_SERVER_SIDE (0x7FFFF102)
+#define ERROR_NOT_SWITCHED_YET   (0x7FFFF103)
+#define ERROR_BAD_REQUEST   (0x7FFFF104)
 
 namespace SPA {
     namespace ServerSide {
@@ -107,13 +107,18 @@ namespace SPA {
             teKilling = 1
         };
 
+        enum class tagMaualBatching {
+            mbNothing = 0,
+            mbRequest,
+            mbSession
+        };
     }; //ServerSide
 }; //namespace SPA
 
-#define	SOCKET_NOT_FOUND		(0xFFFFFFFF)
-#define REQUEST_CANCELED		(0xFFFFFFFE)
-#define RESULT_SENDING_FAILED	(0xFFFFFFFD)
-#define BAD_OPERATION			(0xFFFFFFFC)
+#define SOCKET_NOT_FOUND  (0xFFFFFFFF)
+#define REQUEST_CANCELED  (0xFFFFFFFE)
+#define RESULT_SENDING_FAILED (0xFFFFFFFD)
+#define BAD_OPERATION   (0xFFFFFFFC)
 
 #ifdef __cplusplus
 extern "C" {

@@ -373,6 +373,14 @@ namespace SPA
             ServerCoreLoader.SetOnceOnly(GetSocketHandle(), onceOnly);
         }
 
+        tagMaualBatching CClientPeer::GetInlineBatchingOption() const {
+            return ServerCoreLoader.GetInlineBatchingOption(GetSocketHandle());
+        }
+
+        void CClientPeer::SetInlineBatchingOption(tagMaualBatching option) const {
+            ServerCoreLoader.SetInlineBatchingOption(GetSocketHandle(), option);
+        }
+
         std::vector<unsigned int> CSocketPeer::GetChatGroups() const {
             CScopeUQueue sb;
             std::vector<unsigned int> vChatGroups;

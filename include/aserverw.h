@@ -539,6 +539,8 @@ namespace SPA {
             UINT64 GetInterruptOptions() const;
             bool GetOnceOnly() const;
             void SetOnceOnly(bool onceOnly) const;
+            tagMaualBatching GetInlineBatchingOption() const;
+            void SetInlineBatchingOption(tagMaualBatching option) const;
 
         protected:
             virtual void OnPublishEx(const unsigned int *pGroup, unsigned int count, const unsigned char *pMessage, unsigned int size);
