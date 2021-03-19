@@ -5,7 +5,7 @@
 using namespace SPA;
 using namespace SPA::ServerSide;
 
-std::string g_version("1.0.0.10");
+std::string g_version("1.0.0.11");
 
 #ifdef WIN32_64
 
@@ -34,6 +34,11 @@ bool U_MODULE_OPENED WINAPI SetSPluginGlobalOptions(const char* jsonOptions) {
     } else {
         CMysqlImpl::SetDBGlobalConnectionString(L"", false);
     }
+    v = jv->Child(MANUAL_BATCHING);
+    if (v && v->GetType() == JSON::enumType::Uint64) {
+        int mb = (int) v->AsUint64();
+        CMysqlImpl::m_mb = (SPA::ServerSide::tagMaualBatching) mb;
+    }
     return true;
 }
 
@@ -45,6 +50,8 @@ unsigned int U_MODULE_OPENED WINAPI GetSPluginGlobalOptions(char* json, unsigned
     obj[GLOBAL_CONNECTION_STRING] = Utilities::ToUTF8(CMysqlImpl::GetDBGlobalConnectionString());
     obj[STREAMING_DB_MYSQL_CLIENT_LIB] = CMysqlImpl::GetClientLibName();
     obj[PLUGIN_SERVICE_ID] = SPA::Mysql::sidMysql;
+    SPA::ServerSide::tagMaualBatching mb = CMysqlImpl::m_mb;
+    obj[MANUAL_BATCHING] = (int) mb;
     JSON::JValue<char> jv(std::move(obj));
     std::string s = jv.Stringify(false);
     size_t len = s.size();

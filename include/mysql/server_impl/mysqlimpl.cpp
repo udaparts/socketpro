@@ -27,7 +27,11 @@ namespace SPA
         CUCriticalSection CMysqlImpl::m_csPeer;
         CDBString CMysqlImpl::m_strGlobalConnection;
         bool CMysqlImpl::m_bInitMysql = false;
-
+#ifdef MM_DB_SERVER_PLUGIN
+        std::atomic<SPA::ServerSide::tagMaualBatching> CMysqlImpl::m_mb(SPA::ServerSide::tagMaualBatching::mbRequest);
+#else
+        std::atomic<SPA::ServerSide::tagMaualBatching> CMysqlImpl::m_mb(SPA::ServerSide::tagMaualBatching::mbNothing);
+#endif
         const UTF16 * CMysqlImpl::NO_DB_OPENED_YET = u"No mysql database opened yet";
         const UTF16 * CMysqlImpl::BAD_END_TRANSTACTION_PLAN = u"Bad end transaction plan";
         const UTF16 * CMysqlImpl::NO_PARAMETER_SPECIFIED = u"No parameter specified";
@@ -445,6 +449,7 @@ namespace SPA
             m_fails = 0;
             m_ti = tagTransactionIsolation::tiUnspecified;
             m_bManual = false;
+            SetInlineBatchingOption(m_mb);
             USocket_Server_Handle hSocket = GetSocketHandle();
             CAutoLock al(m_csPeer);
             CMyMap::iterator it = m_mapConnection.find(hSocket);

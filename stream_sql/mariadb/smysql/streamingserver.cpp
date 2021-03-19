@@ -3,7 +3,7 @@
 #include "../../../include/pexports.h"
 #include "../../../include/membuffer.h"
 
-#define MY_VERSION                          "1.5.0.4" //this DB plugin version
+#define MY_VERSION                          "1.5.0.5" //this DB plugin version
 
 #define DEFAULT_LOCAL_CONNECTION_STRING     L"host=localhost;port=3306;timeout=30"
 
@@ -188,6 +188,8 @@ void CSetGlobals::UpdateConfigFile() {
         return;
     }
     JObject<char> obj;
+    SPA::ServerSide::tagMaualBatching mb = SPA::ServerSide::CMysqlImpl::m_mb;
+    obj[MANUAL_BATCHING] = (int) mb;
     obj[PLUGIN_SERVICE_ID] = SPA::Mysql::sidMysql;
     obj[SP_SERVER_CORE_VERSION] = SPA::ServerSide::ServerCoreLoader.GetUServerSocketVersion();
     obj[STREAMING_DB_MYSQL_CLIENT_LIB] = CMysqlImpl::GetClientLibName();
@@ -267,6 +269,11 @@ void CSetGlobals::SetConfig() {
         if (!Config.port) {
             Config.port = DEFAULT_LISTENING_PORT;
         }
+    }
+    v = doc->Child(MANUAL_BATCHING);
+    if (v && v->GetType() == enumType::Uint64) {
+        int mb = (int)v->AsUint64();
+        SPA::ServerSide::CMysqlImpl::m_mb = (SPA::ServerSide::tagMaualBatching) mb;
     }
     v = doc->Child(STREAMING_DB_MAIN_THREADS);
     if (v && v->GetType() == enumType::Uint64) {

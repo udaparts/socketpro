@@ -10,6 +10,7 @@
 #include "../../udatabase.h"
 #include "../../aserverw.h"
 #include <unordered_map>
+#include "../../userver.h"
 
 namespace SPA {
     namespace ServerSide {
@@ -98,6 +99,7 @@ namespace SPA {
             static CDBString GetDBGlobalConnectionString();
             static bool IsMysqlInitialized();
             static const std::string& GetClientLibName();
+            static std::atomic<SPA::ServerSide::tagMaualBatching> m_mb;
 
 #ifdef MM_DB_SERVER_PLUGIN
             static std::string ToString(const CDBVariant &vtUTF8);
