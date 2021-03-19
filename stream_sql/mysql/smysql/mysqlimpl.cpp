@@ -58,7 +58,6 @@ namespace SPA
         m_bBlob(false), m_cmd(COM_SLEEP), m_NoRowset(false), m_meta(false) {
             m_qSend.ToUtf8(true); //convert UNICODE into UTF8 automatically
             m_UQueue.ToUtf8(true); //convert UNICODE into UTF8 automatically
-            SetInlineBatchingOption(m_mb);
         }
 
         CMysqlImpl::~CMysqlImpl() {
@@ -95,6 +94,7 @@ namespace SPA
             m_fails = 0;
             m_ti = tagTransactionIsolation::tiUnspecified;
             m_bManual = false;
+            SetInlineBatchingOption(m_mb);
         }
 
         void CMysqlImpl::OnFastRequestArrive(unsigned short reqId, unsigned int len) {
