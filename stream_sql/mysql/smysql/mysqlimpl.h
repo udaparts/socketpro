@@ -22,9 +22,9 @@ namespace SPA {
 
         class U_MODULE_HIDDEN CMysqlImpl : public CClientPeer {
             //no copy constructor
-            CMysqlImpl(const CMysqlImpl &impl);
+            CMysqlImpl(const CMysqlImpl &impl) = delete;
             //no assignment operator
-            CMysqlImpl& operator=(const CMysqlImpl &impl);
+            CMysqlImpl& operator=(const CMysqlImpl &impl) = delete;
 
             struct Stmt {
 
@@ -49,6 +49,7 @@ namespace SPA {
             static void CALLBACK OnThreadEvent(SPA::ServerSide::tagThreadEvent te);
             static void CreateTriggers(CMysqlImpl &impl, const std::vector<std::string> &vecTables);
             static void SetPublishDBEvent(CMysqlImpl &impl);
+            static std::atomic<tagMaualBatching> m_mb;
 
         protected:
             virtual void OnFastRequestArrive(unsigned short reqId, unsigned int len);

@@ -13,7 +13,8 @@
 
 namespace SPA
 {
-    namespace ServerSide{
+    namespace ServerSide {
+        std::atomic<tagMaualBatching> CMysqlImpl::m_mb(tagMaualBatching::mbNothing);
         const UTF16 * CMysqlImpl::NO_DB_OPENED_YET = u"No mysql database opened yet";
         const UTF16 * CMysqlImpl::BAD_END_TRANSTACTION_PLAN = u"Bad end transaction plan";
         const UTF16 * CMysqlImpl::NO_PARAMETER_SPECIFIED = u"No parameter specified";
@@ -57,6 +58,7 @@ namespace SPA
         m_bBlob(false), m_cmd(COM_SLEEP), m_NoRowset(false), m_meta(false) {
             m_qSend.ToUtf8(true); //convert UNICODE into UTF8 automatically
             m_UQueue.ToUtf8(true); //convert UNICODE into UTF8 automatically
+            SetInlineBatchingOption(m_mb);
         }
 
         CMysqlImpl::~CMysqlImpl() {
