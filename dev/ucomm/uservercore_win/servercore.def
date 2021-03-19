@@ -203,3 +203,5 @@ EXPORTS
 	GetInterruptOptions @207
 	GetOnceOnly @208
 	SetOnceOnly @209
+    GetInlineBatchingOption @210
+    SetInlineBatchingOption @211

@@ -21,7 +21,7 @@ extern bool g_bRegistered;
 
 CServerSession *GetSvrSession(USocket_Server_Handle h, unsigned int &index);
 
-std::string g_strVersion("6.3.2.2");
+std::string g_strVersion("6.4.0.1");
 
 const char* WINAPI GetUServerSocketVersion() {
     return g_strVersion.c_str();
@@ -1012,6 +1012,25 @@ void WINAPI SetOnceOnly(USocket_Server_Handle h, bool onceOnly) {
         return;
     if (pSession)
         pSession->SetOnceOnly(onceOnly);
+}
+
+SPA::ServerSide::tagMaualBatching WINAPI GetInlineBatchingOption(USocket_Server_Handle h) {
+	unsigned int index;
+	CServerSession *pSession = GetSvrSession(h, index);
+	if (index == 0 || index != pSession->GetConnIndex())
+		return SPA::ServerSide::tagMaualBatching::mbNothing;
+	if (pSession)
+		return pSession->GetInlineBatchingOption();
+	return SPA::ServerSide::tagMaualBatching::mbNothing;
+}
+
+void WINAPI SetInlineBatchingOption(USocket_Server_Handle h, SPA::ServerSide::tagMaualBatching option) {
+	unsigned int index;
+	CServerSession *pSession = GetSvrSession(h, index);
+	if (index == 0 || index != pSession->GetConnIndex())
+		return;
+	if (pSession)
+		pSession->SetInlineBatchingOption(option);
 }
 
 SPA::IUcert* WINAPI GetUCertEx(USocket_Server_Handle h) {
