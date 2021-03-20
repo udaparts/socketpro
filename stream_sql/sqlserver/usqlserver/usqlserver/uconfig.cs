@@ -3,9 +3,14 @@ using System.Collections.Generic;
 using TinyJson;
 using System.IO;
 
+public class ODBCConfig
+{
+    public uint manual_batching = 0;
+}
+
 public class UConfig
 {
-    public static readonly string MY_VERSION = "1.5.0.2";
+    public static readonly string MY_VERSION = "1.5.0.3";
 
     public static readonly int DEFAULT_MAIN_THREADS = 1;
     public static readonly uint DEFAULT_PORT = 20903;
@@ -19,6 +24,7 @@ public class UConfig
     public string default_db = "";
     public bool disable_ipv6 = false;
     public int main_threads = DEFAULT_MAIN_THREADS;
+    public uint manual_batching = 1;
     public string odbc_driver = DEFAULT_DRIVER;
     public string odbc_plugin_version = "";
     public uint port = DEFAULT_PORT;
@@ -94,7 +100,7 @@ public class UConfig
         }
         catch (Exception ex)
         {
-            LogMsg(ex.Message, "UConfig::UConfig(string json)", 97); //line 97
+            LogMsg(ex.Message, "UConfig::UConfig(string json)", 103); //line 103
             changed = true;
         }
         finally
@@ -133,7 +139,7 @@ public class UConfig
         }
         catch (Exception ex)
         {
-            LogMsg(ex.Message, "UConfig::UpdateConfigFile", 136); //line 136
+            LogMsg(ex.Message, "UConfig::UpdateConfigFile", 142); //line 142
         }
     }
 
@@ -152,6 +158,7 @@ public class UConfig
         odbc_plugin_version = config.odbc_plugin_version;
         sp_server_core_version = config.sp_server_core_version;
         service_id = config.service_id;
+        manual_batching = config.manual_batching;
     }
 
     public static void LogMsg(string lineText, string file = "", int fileLineNumber = 0)

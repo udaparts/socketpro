@@ -909,7 +909,14 @@ namespace SocketProAdapter
             idConnect = 136,
             idMultiPart = 137, //HTTP POST MUTIPLE PART
             idUserRequest = 138, //SocketPro HTTP User Request
-        };
+        }
+
+        public enum tagMaualBatching : uint
+        {
+            mbNothing = 0,
+            mbRequest,
+            mbSession
+        }
     }
 #endif
 }

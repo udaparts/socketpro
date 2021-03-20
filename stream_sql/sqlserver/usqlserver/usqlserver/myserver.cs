@@ -27,12 +27,15 @@ public class CSqlPlugin : CSocketProServer
     [DllImport("kernel32", CharSet = CharSet.Ansi, ExactSpelling = true, SetLastError = true)]
     static extern IntPtr GetProcAddress(IntPtr hModule, string procName);
 
+    [DllImport("sodbc")]
+    private static extern bool SetSPluginGlobalOptions([MarshalAs(UnmanagedType.LPStr)] string jsonUtf8Options);
+
     public override bool Run(uint port, uint maxBacklog, bool v6Supported)
     {
         IntPtr p = CSocketProServer.DllManager.AddALibrary("sodbc");
         if (p.ToInt64() == 0)
         {
-            UConfig.LogMsg("Cannot load SocketPro ODBC plugin!", "CSqlPlugin::Run", 35); //line 35
+            UConfig.LogMsg("Cannot load SocketPro ODBC plugin!", "CSqlPlugin::Run", 38); //line 38
             UConfig.UpdateLog();
             return false;
         }
@@ -42,7 +45,7 @@ public class CSqlPlugin : CSocketProServer
         if (!ok)
         {
             string errMsg = string.Format("Starting listening socket failed (errCode={0}; errMsg={1})", CSocketProServer.LastSocketError, CSocketProServer.ErrorMessage);
-            UConfig.LogMsg(errMsg, "CSqlPlugin::Run", 45); //line 45
+            UConfig.LogMsg(errMsg, "CSqlPlugin::Run", 48); //line 48
             UConfig.UpdateLog();
         }
         return ok;
@@ -59,7 +62,7 @@ public class CSqlPlugin : CSocketProServer
         if (res <= 0)
         {
             string message = "Authentication failed for user " + userId + ", res: " + res;
-            UConfig.LogMsg(message, "CSqlPlugin::OnIsPermitted", 62); //line 62
+            UConfig.LogMsg(message, "CSqlPlugin::OnIsPermitted", 65); //line 65
         }
         return (res > 0);
     }
@@ -88,6 +91,10 @@ public class CSqlPlugin : CSocketProServer
             m_Config.sp_server_core_version = server_core_version;
             changed = true;
         }
+        ODBCConfig oconfig = new ODBCConfig();
+        oconfig.manual_batching = m_Config.manual_batching;
+        string json = oconfig.ToJson();
+        bool ok = SetSPluginGlobalOptions(json);
         string[] vService = m_Config.services.Split(';');
         List<string> vP = new List<string>();
         foreach (string s in vService)
@@ -107,7 +114,7 @@ public class CSqlPlugin : CSocketProServer
                 if (h.ToInt64() == 0)
                 {
                     string message = "Not able to load server plugin " + p_name;
-                    UConfig.LogMsg(message, "CSqlPlugin::ConfigServices", 110); //line 110
+                    UConfig.LogMsg(message, "CSqlPlugin::ConfigServices", 117); //line 117
                     break;
                 }
                 vP.Add(p_name);
@@ -142,7 +149,7 @@ public class CSqlPlugin : CSocketProServer
                     }
                     catch (Exception ex)
                     {
-                        UConfig.LogMsg(ex.Message, "CSqlPlugin::ConfigServices/GetSPluginGlobalOptions", 145); //line 145
+                        UConfig.LogMsg(ex.Message, "CSqlPlugin::ConfigServices/GetSPluginGlobalOptions", 152); //line 152
                         m_Config.services_config.Add(p_name, new Dictionary<string, object>());
                     }
                 }
@@ -161,12 +168,12 @@ public class CSqlPlugin : CSocketProServer
                             DSetSPluginGlobalOptions func = (DSetSPluginGlobalOptions)Marshal.GetDelegateForFunctionPointer(addr, typeof(DSetSPluginGlobalOptions));
                             if (!func(jsonDic.ToJson(false)))
                             {
-                                UConfig.LogMsg("Not able to set global options for plugin " + p_name, "CSqlPlugin::ConfigServices", 164); //line 164
+                                UConfig.LogMsg("Not able to set global options for plugin " + p_name, "CSqlPlugin::ConfigServices", 171); //line 171
                             }
                         }
                         catch (Exception ex)
                         {
-                            UConfig.LogMsg(ex.Message, "CSqlPlugin::ConfigServices/SetSPluginGlobalOptions", 169); //line 169
+                            UConfig.LogMsg(ex.Message, "CSqlPlugin::ConfigServices/SetSPluginGlobalOptions", 176); //line 176
                         }
                     }
                 }
@@ -191,7 +198,7 @@ public class CSqlPlugin : CSocketProServer
                     }
                     catch (Exception ex)
                     {
-                        UConfig.LogMsg(ex.Message, "CSqlPlugin::ConfigServices/GetSPluginVersion", 194); //line 194
+                        UConfig.LogMsg(ex.Message, "CSqlPlugin::ConfigServices/GetSPluginVersion", 201); //line 201
                     }
                 }
             } while (false);

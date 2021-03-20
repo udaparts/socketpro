@@ -942,6 +942,17 @@ namespace SocketProAdapter
                 }
             }
 
+            public tagMaualBatching InlineBatchingOption {
+                get {
+                    uint mb = ServerCoreLoader.GetInlineBatchingOption(Handle);
+                    return (tagMaualBatching)mb;
+                }
+                set {
+                    uint mb = (uint)value;
+                    ServerCoreLoader.SetInlineBatchingOption(Handle, mb);
+                }
+            }
+
             public bool DequeuedMessageAborted {
                 get {
                     return ServerCoreLoader.IsDequeuedMessageAborted(Handle);
