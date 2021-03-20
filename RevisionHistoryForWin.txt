@@ -1,3 +1,7 @@
+88.	SocketPro Version 6.4.0.1
+	(a) Add a new feature, inline manual batching, to improve server performance on requests having multiple results under some situations.
+	(b) Plugins file, sqlite, odbc and MySQL/MariaDB plugins are updated to support inline manual batching
+
 87.	SocketPro Version 6.3.1.2-6.3.2.2
 	(a) Add support to char16_t
 	(b) Recompile all libraries after adding support of char16_t
