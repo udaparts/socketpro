@@ -13,9 +13,9 @@ namespace SPA {
 
         class CSqliteImpl : public CClientPeer {
             //no copy constructor
-            CSqliteImpl(const CSqliteImpl &impl);
+            CSqliteImpl(const CSqliteImpl &impl) = delete;
             //no assignment operator
-            CSqliteImpl& operator=(const CSqliteImpl &impl);
+            CSqliteImpl& operator=(const CSqliteImpl &impl) = delete;
 
         public:
             CSqliteImpl();

@@ -37,7 +37,7 @@ bool U_MODULE_OPENED WINAPI SetSPluginGlobalOptions(const char* jsonOptions) {
     v = jv->Child(MANUAL_BATCHING);
     if (v && v->GetType() == JSON::enumType::Uint64) {
         int mb = (int) v->AsUint64();
-        CMysqlImpl::m_mb = (SPA::ServerSide::tagMaualBatching) mb;
+        CMysqlImpl::m_mb = (tagMaualBatching) mb;
     }
     return true;
 }
@@ -50,7 +50,7 @@ unsigned int U_MODULE_OPENED WINAPI GetSPluginGlobalOptions(char* json, unsigned
     obj[GLOBAL_CONNECTION_STRING] = Utilities::ToUTF8(CMysqlImpl::GetDBGlobalConnectionString());
     obj[STREAMING_DB_MYSQL_CLIENT_LIB] = CMysqlImpl::GetClientLibName();
     obj[PLUGIN_SERVICE_ID] = SPA::Mysql::sidMysql;
-    SPA::ServerSide::tagMaualBatching mb = CMysqlImpl::m_mb;
+    tagMaualBatching mb = CMysqlImpl::m_mb;
     obj[MANUAL_BATCHING] = (int) mb;
     JSON::JValue<char> jv(std::move(obj));
     std::string s = jv.Stringify(false);

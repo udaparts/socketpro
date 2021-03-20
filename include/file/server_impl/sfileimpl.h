@@ -11,9 +11,9 @@ namespace SPA {
 
         class CSFileImpl : public CClientPeer {
             //no copy constructor
-            CSFileImpl(const CSFileImpl &sf);
+            CSFileImpl(const CSFileImpl &sf) = delete;
             //no assignment operator
-            CSFileImpl& operator=(const CSFileImpl &sf);
+            CSFileImpl& operator=(const CSFileImpl &sf) = delete;
 
         public:
             CSFileImpl();

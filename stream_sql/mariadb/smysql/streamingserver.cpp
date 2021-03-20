@@ -272,7 +272,7 @@ void CSetGlobals::SetConfig() {
     }
     v = doc->Child(MANUAL_BATCHING);
     if (v && v->GetType() == enumType::Uint64) {
-        int mb = (int)v->AsUint64();
+        int mb = (int) v->AsUint64();
         SPA::ServerSide::CMysqlImpl::m_mb = (SPA::ServerSide::tagMaualBatching) mb;
     }
     v = doc->Child(STREAMING_DB_MAIN_THREADS);

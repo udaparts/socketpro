@@ -24,9 +24,9 @@ namespace SPA {
 
         class COdbcImpl : public CClientPeer {
             //no copy constructor
-            COdbcImpl(const COdbcImpl &impl);
+            COdbcImpl(const COdbcImpl &impl) = delete;
             //no assignment operator
-            COdbcImpl& operator=(const COdbcImpl &impl);
+            COdbcImpl& operator=(const COdbcImpl &impl) = delete;
 
             static const unsigned int DEFAULT_UNICODE_CHAR_SIZE = 4 * 1024;
             static const unsigned int DEFAULT_OUTPUT_BUFFER_SIZE = 8 * 1024; //bytes

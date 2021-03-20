@@ -35,8 +35,8 @@ bool U_MODULE_OPENED WINAPI SetSPluginGlobalOptions(const char* jsonOptions) {
     }
     v = jv->Child(MANUAL_BATCHING);
     if (v && v->GetType() == JSON::enumType::Uint64) {
-        int mb = (int)v->AsUint64();
-        COdbcImpl::m_mb = (tagMaualBatching)mb;
+        int mb = (int) v->AsUint64();
+        COdbcImpl::m_mb = (tagMaualBatching) mb;
     }
     return true;
 }
@@ -47,7 +47,7 @@ unsigned int U_MODULE_OPENED WINAPI GetSPluginGlobalOptions(char* json, unsigned
     }
     JSON::JObject<char> obj;
     tagMaualBatching mb = COdbcImpl::m_mb;
-    obj[MANUAL_BATCHING] = (int)mb;
+    obj[MANUAL_BATCHING] = (int) mb;
     COdbcImpl::m_csPeer.lock();
     obj[GLOBAL_CONNECTION_STRING] = Utilities::ToUTF8(COdbcImpl::m_strGlobalConnection);
     obj[PLUGIN_SERVICE_ID] = SPA::Odbc::sidOdbc;
