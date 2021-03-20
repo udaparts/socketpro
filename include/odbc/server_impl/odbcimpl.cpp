@@ -8,6 +8,7 @@ namespace SPA
 {
     namespace ServerSide{
         SQLHENV COdbcImpl::g_hEnv = nullptr;
+        std::atomic<tagMaualBatching> COdbcImpl::m_mb(tagMaualBatching::mbNothing);
         const UTF16 * COdbcImpl::NO_DB_OPENED_YET = u"No ODBC database opened yet";
         const UTF16 * COdbcImpl::BAD_END_TRANSTACTION_PLAN = u"Bad end transaction plan";
         const UTF16 * COdbcImpl::NO_PARAMETER_SPECIFIED = u"No parameter specified";
@@ -209,6 +210,7 @@ namespace SPA
             m_oks = 0;
             m_fails = 0;
             m_ti = tagTransactionIsolation::tiUnspecified;
+            SetInlineBatchingOption(m_mb);
             USocket_Server_Handle me = GetSocketHandle();
             CAutoLock al(m_csPeer);
             auto it = m_mapConnection.find(me);

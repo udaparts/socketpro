@@ -19,12 +19,14 @@ namespace SPA {
             CSFileImpl();
             static std::wstring GetRootDirectory();
             static void SetRootDirectory(const wchar_t* pathRoot);
+            static std::atomic<tagMaualBatching> m_mb;
 
         protected:
             virtual void OnFastRequestArrive(unsigned short reqId, unsigned int len);
             virtual int OnSlowRequestArrive(unsigned short reqId, unsigned int len);
             virtual void OnReleaseSource(bool bClosing, unsigned int info);
             virtual void OnBaseRequestArrive(unsigned short requestId);
+            virtual void OnSwitchFrom(unsigned int nOldServiceId);
 
         private:
             void Download(const std::wstring &localFile, const std::wstring &filePath, unsigned int flags, INT64 initSize, int &res, std::wstring &errMsg);

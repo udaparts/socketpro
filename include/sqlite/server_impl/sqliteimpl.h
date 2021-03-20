@@ -33,6 +33,7 @@ namespace SPA {
             static CDBString GetDBGlobalConnectionString();
             static void CacheHandle(UINT64 hSocket, const CDBString &dbName, std::shared_ptr<sqlite3> sqlite);
             virtual void Open(const CDBString& strConnection, unsigned int flags, int& res, CDBString& errMsg, int& ms);
+            static std::atomic<tagMaualBatching> m_mb;
 
         protected:
             virtual void OnFastRequestArrive(unsigned short reqId, unsigned int len);
