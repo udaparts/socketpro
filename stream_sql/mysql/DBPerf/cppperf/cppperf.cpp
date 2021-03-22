@@ -105,7 +105,7 @@ int main(int argc, char* argv[]) {
         sql += L" where " + filter;
     }
 #endif
-    unsigned int count = 500000;
+    unsigned int count = 10000;
 #ifdef WIN32_64
     DWORD dwStart = ::GetTickCount();
 #else
@@ -139,7 +139,7 @@ int main(int argc, char* argv[]) {
     ok = pMysql->Prepare(sql_insert_parameter, dr);
     ok = pMysql->WaitAll();
     int index = 0;
-    count = 2500000;
+    count = 50000;
     std::cout << std::endl;
     std::cout << "Going to insert " << count << " records into the table mysqldb.company" << std::endl;
 #ifdef WIN32_64
