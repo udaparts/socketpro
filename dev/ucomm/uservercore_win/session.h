@@ -325,7 +325,7 @@ private:
     SPA::UINT64 m_indexCall;
     atomic<SPA::UINT64> m_InterruptOptions;
     atomic<bool> m_bMore;
-    atomic<bool> m_mb;
+    bool m_mb;
     static std::mutex m_mutexRouteRequestId;
     static SPA::CUQueue m_qRouteRequestId;
 
