@@ -687,7 +687,7 @@ void CServerSession::SetOnceOnly(bool onceOnly) {
 }
 
 void CServerSession::SetInlineBatching(bool batching) {
-	m_mb = batching;
+    m_mb = batching;
 }
 
 bool CServerSession::GetInlineBatching() {
@@ -696,21 +696,21 @@ bool CServerSession::GetInlineBatching() {
 
 bool CServerSession::ComputeDelayWrite(unsigned short reqId) {
     switch (reqId) {
-    case (unsigned short)SPA::tagBaseRequestID::idUnknown: //0
-    case (unsigned short)SPA::tagBaseRequestID::idRouteeChanged:
-    case (unsigned short)SPA::tagBaseRequestID::idCancel:
-    case (unsigned short)SPA::tagBaseRequestID::idDoEcho:
-    case (unsigned short)SPA::tagBaseRequestID::idPing:
-    case (unsigned short)SPA::tagBaseRequestID::idInterrupt:
-    case (unsigned short)SPA::tagBaseRequestID::idHttpClose:
-    case (unsigned short)SPA::tagBaseRequestID::idCommitBatching:
-    case (unsigned short)SPA::tagBaseRequestID::idEndJob:
-    case (unsigned short)SPA::tagBaseRequestID::idDequeueConfirmed:
-    case (unsigned short)SPA::tagBaseRequestID::idServerException:
-    case (unsigned short)SPA::tagBaseRequestID::idRoutePeerUnavailable:
-        return false;
-    default:
-        break;
+        case (unsigned short) SPA::tagBaseRequestID::idUnknown: //0
+        case (unsigned short) SPA::tagBaseRequestID::idRouteeChanged:
+        case (unsigned short) SPA::tagBaseRequestID::idCancel:
+        case (unsigned short) SPA::tagBaseRequestID::idDoEcho:
+        case (unsigned short) SPA::tagBaseRequestID::idPing:
+        case (unsigned short) SPA::tagBaseRequestID::idInterrupt:
+        case (unsigned short) SPA::tagBaseRequestID::idHttpClose:
+        case (unsigned short) SPA::tagBaseRequestID::idCommitBatching:
+        case (unsigned short) SPA::tagBaseRequestID::idEndJob:
+        case (unsigned short) SPA::tagBaseRequestID::idDequeueConfirmed:
+        case (unsigned short) SPA::tagBaseRequestID::idServerException:
+        case (unsigned short) SPA::tagBaseRequestID::idRoutePeerUnavailable:
+            return false;
+        default:
+            break;
     }
     if (m_mb) {
         return (reqId != m_ReqInfo.RequestId || m_ReqInfo.GetQueued());
@@ -1398,7 +1398,7 @@ unsigned int CServerSession::Write(const unsigned char *s, unsigned int nSize, u
     }
     ulLen = m_qWrite.GetSize();
     bool delay = ComputeDelayWrite(reqIdRef);
-    if (ulLen == 0 && s && nSize > 0 && (!delay || nSize >= DELAY_SIZE)) {
+    if (ulLen == 0 && nSize && (!delay || nSize >= DELAY_SIZE)) {
         if (nSize <= IO_BUFFER_SIZE) {
             ::memcpy(m_WriteBuffer, s, nSize);
             ulLen = nSize;
@@ -3154,7 +3154,7 @@ void CServerSession::NotifyFailRoutes(SPA::UINT64 receiver, CServiceContext *pSe
                 q.SetSize(0);
                 q << sh << dci;
                 pSession->m_mutex.lock();
-                pSession->Write(q.GetBuffer(), q.GetSize(), (unsigned short)SPA::tagBaseRequestID::idDequeueConfirmed);
+                pSession->Write(q.GetBuffer(), q.GetSize(), (unsigned short) SPA::tagBaseRequestID::idDequeueConfirmed);
                 pSession->m_mutex.unlock();
 #ifndef NDEBUG
                 std::cout << "+++ Failed index=" << rm.Qa.MessageIndex << ", pos=" << rm.Qa.MessagePos << std::endl;
@@ -3247,7 +3247,7 @@ bool CServerSession::Route() {
                     MQ_FILE::CDequeueConfirmInfo dci(rm.Qa, false, rm.RequestId);
                     q << sh << dci;
                     CAutoLock al(sender->m_mutex);
-                    sender->Write(q.GetBuffer(), q.GetSize(), (unsigned short)SPA::tagBaseRequestID::idDequeueConfirmed);
+                    sender->Write(q.GetBuffer(), q.GetSize(), (unsigned short) SPA::tagBaseRequestID::idDequeueConfirmed);
                 } else {
 #ifndef NDEBUG
                     std::cout << "**** Map failed ****" << std::endl;

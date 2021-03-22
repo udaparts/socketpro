@@ -439,20 +439,35 @@ void CServerSession::SetOnceOnly(bool onceOnly) {
 }
 
 void CServerSession::SetInlineBatching(bool batching) {
-    CAutoLock sl(m_mutex);
-    if (batching != m_mb) {
-        m_mb = batching;
-        if (!batching) {
-            Write(nullptr, 0);
-        }
-    }
+    m_mb = batching;
 }
 
 bool CServerSession::GetInlineBatching() {
-    m_mutex.lock();
-    bool delay = m_mb;
-    m_mutex.unlock();
-    return delay;
+    return m_mb;
+}
+
+bool CServerSession::ComputeDelayWrite(unsigned short reqId) {
+    switch (reqId) {
+        case (unsigned short) SPA::tagBaseRequestID::idUnknown: //0
+        case (unsigned short) SPA::tagBaseRequestID::idRouteeChanged:
+        case (unsigned short) SPA::tagBaseRequestID::idCancel:
+        case (unsigned short) SPA::tagBaseRequestID::idDoEcho:
+        case (unsigned short) SPA::tagBaseRequestID::idPing:
+        case (unsigned short) SPA::tagBaseRequestID::idInterrupt:
+        case (unsigned short) SPA::tagBaseRequestID::idHttpClose:
+        case (unsigned short) SPA::tagBaseRequestID::idCommitBatching:
+        case (unsigned short) SPA::tagBaseRequestID::idEndJob:
+        case (unsigned short) SPA::tagBaseRequestID::idDequeueConfirmed:
+        case (unsigned short) SPA::tagBaseRequestID::idServerException:
+        case (unsigned short) SPA::tagBaseRequestID::idRoutePeerUnavailable:
+            return false;
+        default:
+            break;
+    }
+    if (m_mb) {
+        return (reqId != m_ReqInfo.RequestId || m_ReqInfo.GetQueued());
+    }
+    return false;
 }
 
 unsigned int CServerSession::NotifyInterrupt(SPA::UINT64 options) {
@@ -1381,10 +1396,10 @@ unsigned int CServerSession::Write(const SPA::CStreamHeader &sh, const unsigned 
     SPA::CScopeUQueue sb;
     sb << sh;
     sb->Push(s, nSize);
-    return Write(sb->GetBuffer(), sb->GetSize());
+    return Write(sb->GetBuffer(), sb->GetSize(), sh.RequestId);
 }
 
-unsigned int CServerSession::Write(const unsigned char *s, unsigned int nSize) {
+unsigned int CServerSession::Write(const unsigned char *s, unsigned int nSize, unsigned short reqIdRef) {
     unsigned int ulLen;
     if (m_cs < csSslShaking)
         return 0;
@@ -1395,7 +1410,8 @@ unsigned int CServerSession::Write(const unsigned char *s, unsigned int nSize) {
         return nSize;
     }
     ulLen = m_qWrite.GetSize();
-    if (ulLen == 0 && s && nSize > 0 && (!m_mb || nSize >= DELAY_SIZE)) {
+    bool delay = ComputeDelayWrite(reqIdRef);
+    if (ulLen == 0 && nSize && (!delay || nSize >= DELAY_SIZE)) {
         if (nSize <= IO_BUFFER_SIZE) {
             ::memcpy(m_WriteBuffer, s, nSize);
             ulLen = nSize;
@@ -1411,7 +1427,7 @@ unsigned int CServerSession::Write(const unsigned char *s, unsigned int nSize) {
         ulLen = m_qWrite.GetSize();
         if (ulLen == 0)
             return nSize;
-        if (m_mb && ulLen < DELAY_SIZE) {
+        if (delay && ulLen < DELAY_SIZE) {
             return nSize;
         }
         if (ulLen > IO_BUFFER_SIZE)
@@ -3128,7 +3144,7 @@ void CServerSession::NotifyFailRoutes(SPA::UINT64 receiver, CServiceContext *pSe
                 q.SetSize(0);
                 q << sh << dci;
                 pSession->m_mutex.lock();
-                pSession->Write(q.GetBuffer(), q.GetSize());
+                pSession->Write(q.GetBuffer(), q.GetSize(), (unsigned short) SPA::tagBaseRequestID::idDequeueConfirmed);
                 pSession->m_mutex.unlock();
 #ifndef NDEBUG
                 std::cout << "+++ Failed index=" << rm.Qa.MessageIndex << ", pos=" << rm.Qa.MessagePos << std::endl;
@@ -3221,7 +3237,7 @@ bool CServerSession::Route() {
                     MQ_FILE::CDequeueConfirmInfo dci(rm.Qa, false, rm.RequestId);
                     q << sh << dci;
                     CAutoLock al(sender->m_mutex);
-                    sender->Write(q.GetBuffer(), q.GetSize());
+                    sender->Write(q.GetBuffer(), q.GetSize(), (unsigned short) SPA::tagBaseRequestID::idDequeueConfirmed);
                 } else {
 #ifndef NDEBUG
                     std::cout << "**** Map failed ****" << std::endl;

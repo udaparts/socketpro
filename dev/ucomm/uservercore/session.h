@@ -248,7 +248,7 @@ private:
     void __attribute__((visibility("default"))) OnClose();
     void Read();
     unsigned int Write(const SPA::CStreamHeader &sh, const unsigned char *s, unsigned int nSize);
-    unsigned int Write(const unsigned char *s, unsigned int nSize);
+    unsigned int Write(const unsigned char *s, unsigned int nSize, unsigned short reqIdRef = 0);
     void __attribute__((visibility("default"))) OnSlowRequestProcessed(unsigned int res, unsigned short usRequestId);
     void __attribute__((visibility("default"))) OnBaseRequestArrive();
     void __attribute__((visibility("default"))) OnNonBaseRequestArrive();
@@ -268,6 +268,7 @@ private:
     unsigned int RemoveDequeueCache(unsigned int handle, SPA::UINT64 index);
     void PutOntoWire();
     void PutOntoWireInternal();
+    inline bool ComputeDelayWrite(unsigned short reqId);
 
 private:
     CServerThread *m_pUThread;
@@ -328,7 +329,7 @@ private:
     SPA::UINT64 m_indexCall;
     std::atomic<SPA::UINT64> m_InterruptOptions;
     std::atomic<bool> m_bMore;
-    bool m_mb;
+    std::atomic<bool> m_mb;
     static mutex m_mutexRouteRequestId;
     static SPA::CUQueue m_qRouteRequestId;
 
