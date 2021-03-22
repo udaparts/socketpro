@@ -99,7 +99,7 @@ namespace SPA {
             static CDBString GetDBGlobalConnectionString();
             static bool IsMysqlInitialized();
             static const std::string& GetClientLibName();
-            static std::atomic<SPA::ServerSide::tagMaualBatching> m_mb;
+            static std::atomic<unsigned int> m_mb;
 
 #ifdef MM_DB_SERVER_PLUGIN
             static std::string ToString(const CDBVariant &vtUTF8);

@@ -19,7 +19,7 @@ namespace SPA {
             CSFileImpl();
             static std::wstring GetRootDirectory();
             static void SetRootDirectory(const wchar_t* pathRoot);
-            static std::atomic<tagMaualBatching> m_mb;
+            static std::atomic<unsigned int> m_mb;
 
         protected:
             virtual void OnFastRequestArrive(unsigned short reqId, unsigned int len);

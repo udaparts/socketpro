@@ -48,8 +48,7 @@ bool U_MODULE_OPENED WINAPI SetSPluginGlobalOptions(const char* jsonOptions) {
     }
     v = jv->Child(MANUAL_BATCHING);
     if (v && v->GetType() == JSON::enumType::Uint64) {
-        int mb = (int) v->AsUint64();
-        CSFileImpl::m_mb = (tagMaualBatching) mb;
+        CSFileImpl::m_mb = (unsigned int) v->AsUint64();
     }
     return true;
 }
@@ -59,8 +58,7 @@ unsigned int U_MODULE_OPENED WINAPI GetSPluginGlobalOptions(char* json, unsigned
         return 0;
     }
     JSON::JObject<char> obj;
-    tagMaualBatching mb = CSFileImpl::m_mb;
-    obj[MANUAL_BATCHING] = (int) mb;
+    obj[MANUAL_BATCHING] = CSFileImpl::m_mb;
     obj[UFILE_ROOT_DIRECTORY] = Utilities::ToUTF8(CSFileImpl::GetRootDirectory());
     obj[PLUGIN_SERVICE_ID] = SPA::SFile::sidFile;
     JSON::JValue<char> jv(std::move(obj));

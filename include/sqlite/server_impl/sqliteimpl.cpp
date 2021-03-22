@@ -9,7 +9,7 @@
 namespace SPA
 {
     namespace ServerSide{
-        std::atomic<tagMaualBatching> CSqliteImpl::m_mb(tagMaualBatching::mbRequest);
+        std::atomic<unsigned int> CSqliteImpl::m_mb = 1;
         const UTF16 * CSqliteImpl::NO_DB_OPENED_YET = u"No sqlite database opened yet";
         const UTF16 * CSqliteImpl::BAD_END_TRANSTACTION_PLAN = u"Bad end transaction plan";
         const UTF16 * CSqliteImpl::NO_PARAMETER_SPECIFIED = u"No parameter specified";
@@ -547,7 +547,7 @@ namespace SPA
             m_oks = 0;
             m_fails = 0;
             m_ti = tagTransactionIsolation::tiUnspecified;
-            SetInlineBatchingOption(m_mb);
+            SetInlineBatching(m_mb ? true : false);
             USocket_Server_Handle hSocket = GetSocketHandle();
             CAutoLock al(m_csPeer);
             auto it = m_mapSqlite.find(hSocket);
