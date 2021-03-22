@@ -205,8 +205,8 @@ namespace SPA {
         typedef SPA::UINT64(WINAPI *PGetInterruptOptions)(USocket_Server_Handle h);
         typedef bool (WINAPI *PGetOnceOnly)(USocket_Server_Handle h);
         typedef void (WINAPI *PSetOnceOnly)(USocket_Server_Handle h, bool onceOnly);
-        typedef tagMaualBatching (WINAPI *PGetInlineBatchingOption)(USocket_Server_Handle h);
-        typedef void (WINAPI *PSetInlineBatchingOption)(USocket_Server_Handle h, tagMaualBatching option);
+        typedef bool (WINAPI *PGetInlineBatching)(USocket_Server_Handle h);
+        typedef void (WINAPI *PSetInlineBatching)(USocket_Server_Handle h, bool manualBatching);
 
         namespace Internal {
 
@@ -422,8 +422,8 @@ namespace SPA {
                 PGetInterruptOptions GetInterruptOptions;
                 PGetOnceOnly GetOnceOnly;
                 PSetOnceOnly SetOnceOnly;
-                PGetInlineBatchingOption GetInlineBatchingOption;
-                PSetInlineBatchingOption SetInlineBatchingOption;
+                PGetInlineBatching GetInlineBatching;
+                PSetInlineBatching SetInlineBatching;
 
             public:
 
@@ -642,8 +642,8 @@ namespace SPA {
                     GetInterruptOptions = (PGetInterruptOptions)::GetProcAddress(m_hServerCore, "GetInterruptOptions");
                     GetOnceOnly = (PGetOnceOnly)::GetProcAddress(m_hServerCore, "GetOnceOnly");
                     SetOnceOnly = (PSetOnceOnly)::GetProcAddress(m_hServerCore, "SetOnceOnly");
-                    GetInlineBatchingOption = (PGetInlineBatchingOption)::GetProcAddress(m_hServerCore, "GetInlineBatchingOption");
-                    SetInlineBatchingOption = (PSetInlineBatchingOption)::GetProcAddress(m_hServerCore, "SetInlineBatchingOption");
+                    GetInlineBatching = (PGetInlineBatching)::GetProcAddress(m_hServerCore, "GetInlineBatching");
+                    SetInlineBatching = (PSetInlineBatching)::GetProcAddress(m_hServerCore, "SetInlineBatching");
                 }
 
             private:

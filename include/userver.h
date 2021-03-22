@@ -106,12 +106,6 @@ namespace SPA {
             teStarted = 0,
             teKilling = 1
         };
-
-        enum class tagMaualBatching {
-            mbNothing = 0,
-            mbRequest,
-            mbSession
-        };
     }; //ServerSide
 }; //namespace SPA
 
