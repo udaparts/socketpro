@@ -549,10 +549,11 @@ namespace SocketProAdapter
             internal static extern bool GetOnceOnly(ulong h);
 
             [DllImport(SERVER_CORE_DLL)]
-            internal static extern void SetInlineBatchingOption(ulong h, uint mb);
+            internal static extern void SetInlineBatching(ulong h, bool manualBatching);
 
             [DllImport(SERVER_CORE_DLL)]
-            internal static extern uint GetInlineBatchingOption(ulong h);
+            [return: MarshalAs(UnmanagedType.I1)]
+            internal static extern bool GetInlineBatching(ulong h);
 
             [DllImport(SERVER_CORE_DLL)]
             internal static extern void SetZipLevel(ulong h, tagZipLevel zl);

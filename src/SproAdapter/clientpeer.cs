@@ -942,14 +942,12 @@ namespace SocketProAdapter
                 }
             }
 
-            public tagMaualBatching InlineBatchingOption {
+            public bool ManualBatching {
                 get {
-                    uint mb = ServerCoreLoader.GetInlineBatchingOption(Handle);
-                    return (tagMaualBatching)mb;
+                    return ServerCoreLoader.GetInlineBatching(Handle);
                 }
                 set {
-                    uint mb = (uint)value;
-                    ServerCoreLoader.SetInlineBatchingOption(Handle, mb);
+                    ServerCoreLoader.SetInlineBatching(Handle, value);
                 }
             }
 
