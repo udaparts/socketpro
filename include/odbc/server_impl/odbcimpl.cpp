@@ -8,7 +8,7 @@ namespace SPA
 {
     namespace ServerSide{
         SQLHENV COdbcImpl::g_hEnv = nullptr;
-        std::atomic<unsigned int> COdbcImpl::m_mb = 0;
+        std::atomic<unsigned int> COdbcImpl::m_mb(0);
         const UTF16 * COdbcImpl::NO_DB_OPENED_YET = u"No ODBC database opened yet";
         const UTF16 * COdbcImpl::BAD_END_TRANSTACTION_PLAN = u"Bad end transaction plan";
         const UTF16 * COdbcImpl::NO_PARAMETER_SPECIFIED = u"No parameter specified";

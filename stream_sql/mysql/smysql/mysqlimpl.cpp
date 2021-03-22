@@ -14,7 +14,7 @@
 namespace SPA
 {
     namespace ServerSide{
-        std::atomic<unsigned int> CMysqlImpl::m_mb = 1;
+        std::atomic<unsigned int> CMysqlImpl::m_mb(1);
         const UTF16 * CMysqlImpl::NO_DB_OPENED_YET = u"No mysql database opened yet";
         const UTF16 * CMysqlImpl::BAD_END_TRANSTACTION_PLAN = u"Bad end transaction plan";
         const UTF16 * CMysqlImpl::NO_PARAMETER_SPECIFIED = u"No parameter specified";

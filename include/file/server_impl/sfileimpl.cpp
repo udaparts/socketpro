@@ -13,7 +13,7 @@
 namespace SPA
 {
     namespace ServerSide{
-        std::atomic<unsigned int> CSFileImpl::m_mb = 0;
+        std::atomic<unsigned int> CSFileImpl::m_mb(0);
         CUCriticalSection CSFileImpl::m_cs;
         std::wstring CSFileImpl::m_pathRoot;
 
