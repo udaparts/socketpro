@@ -9,7 +9,7 @@
 namespace SPA
 {
     namespace ServerSide{
-        std::atomic<unsigned int> CSqliteImpl::m_mb = 1;
+        std::atomic<unsigned int> CSqliteImpl::m_mb(1);
         const UTF16 * CSqliteImpl::NO_DB_OPENED_YET = u"No sqlite database opened yet";
         const UTF16 * CSqliteImpl::BAD_END_TRANSTACTION_PLAN = u"Bad end transaction plan";
         const UTF16 * CSqliteImpl::NO_PARAMETER_SPECIFIED = u"No parameter specified";
