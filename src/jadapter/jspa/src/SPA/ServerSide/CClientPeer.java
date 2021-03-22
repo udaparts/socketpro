@@ -295,6 +295,14 @@ public class CClientPeer extends CSocketPeer {
         ServerCoreLoader.SetOnceOnly(getHandle(), value);
     }
 
+    public final boolean getManualBatching() {
+        return ServerCoreLoader.GetInlineBatching(getHandle());
+    }
+
+    public final void setManualBatching(boolean value) {
+        ServerCoreLoader.SetInlineBatching(getHandle(), value);
+    }
+
     public final boolean getDequeuedMessageAborted() {
         return ServerCoreLoader.IsDequeuedMessageAborted(getHandle());
     }
