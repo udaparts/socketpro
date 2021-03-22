@@ -151,7 +151,6 @@ namespace SPA {
             enum_server_command m_cmd;
             bool m_NoRowset;
             bool m_meta;
-            bool m_manualBatching;
             static st_command_service_cbs m_sql_cbs;
 
             static const int IS_BINARY = 63;
