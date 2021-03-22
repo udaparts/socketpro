@@ -1013,23 +1013,23 @@ void WINAPI SetOnceOnly(USocket_Server_Handle h, bool onceOnly) {
         pSession->SetOnceOnly(onceOnly);
 }
 
-SPA::ServerSide::tagMaualBatching WINAPI GetInlineBatchingOption(USocket_Server_Handle h) {
+bool WINAPI GetInlineBatching(USocket_Server_Handle h) {
     unsigned int index;
     CServerSession *pSession = GetSvrSession(h, index);
     if (index == 0 || index != pSession->GetConnIndex())
-        return SPA::ServerSide::tagMaualBatching::mbNothing;
+        return false;
     if (pSession)
-        return pSession->GetInlineBatchingOption();
-    return SPA::ServerSide::tagMaualBatching::mbNothing;
+        return pSession->GetInlineBatching();
+    return false;
 }
 
-void WINAPI SetInlineBatchingOption(USocket_Server_Handle h, SPA::ServerSide::tagMaualBatching option) {
+void WINAPI SetInlineBatching(USocket_Server_Handle h, bool batching) {
     unsigned int index;
     CServerSession *pSession = GetSvrSession(h, index);
     if (index == 0 || index != pSession->GetConnIndex())
         return;
     if (pSession)
-        pSession->SetInlineBatchingOption(option);
+        pSession->SetInlineBatching(batching);
 }
 
 SPA::IUcert* WINAPI GetUCertEx(USocket_Server_Handle h) {

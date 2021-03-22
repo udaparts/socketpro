@@ -200,8 +200,8 @@ public:
     SPA::UINT64 GetInterruptOptions();
     bool GetOnceOnly();
     void SetOnceOnly(bool onceOnly);
-    void SetInlineBatchingOption(SPA::ServerSide::tagMaualBatching option);
-    SPA::ServerSide::tagMaualBatching GetInlineBatchingOption();
+    void SetInlineBatching(bool option);
+    bool GetInlineBatching();
 
 private:
     static unsigned int CompressResultTo(bool old, unsigned short reqId, SPA::tagZipLevel zl, const unsigned char *buffer, unsigned int size, SPA::CUQueue &q);
@@ -244,7 +244,7 @@ private:
     void OnClose();
     void Read();
     unsigned int Write(const SPA::CStreamHeader &sh, const unsigned char *s, unsigned int nSize);
-    unsigned int Write(const unsigned char *s, unsigned int nSize, unsigned short reqRefId = 0);
+    unsigned int Write(const unsigned char *s, unsigned int nSize);
     void OnSlowRequestProcessed(unsigned int res, unsigned short usRequestId);
     void OnBaseRequestArrive();
     void OnNonBaseRequestArrive();
@@ -264,7 +264,6 @@ private:
     unsigned int RemoveDequeueCache(unsigned int handle, SPA::UINT64 index);
     void PutOntoWire();
     void PutOntoWireInternal();
-    inline bool ComputeDelayWrite(unsigned short reqId);
 
 private:
     CServerThread *m_pUThread;
@@ -326,7 +325,7 @@ private:
     SPA::UINT64 m_indexCall;
     atomic<SPA::UINT64> m_InterruptOptions;
     atomic<bool> m_bMore;
-    atomic<SPA::ServerSide::tagMaualBatching> m_delayOptions;
+    atomic<bool> m_mb;
     static std::mutex m_mutexRouteRequestId;
     static SPA::CUQueue m_qRouteRequestId;
 

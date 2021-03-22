@@ -373,12 +373,12 @@ namespace SPA
             ServerCoreLoader.SetOnceOnly(GetSocketHandle(), onceOnly);
         }
 
-        tagMaualBatching CClientPeer::GetInlineBatchingOption() const {
-            return ServerCoreLoader.GetInlineBatchingOption(GetSocketHandle());
+        bool CClientPeer::GetInlineBatching() const {
+            return ServerCoreLoader.GetInlineBatching(GetSocketHandle());
         }
 
-        void CClientPeer::SetInlineBatchingOption(tagMaualBatching option) const {
-            ServerCoreLoader.SetInlineBatchingOption(GetSocketHandle(), option);
+        void CClientPeer::SetInlineBatching(bool manualBatching) const {
+            ServerCoreLoader.SetInlineBatching(GetSocketHandle(), manualBatching);
         }
 
         std::vector<unsigned int> CSocketPeer::GetChatGroups() const {
