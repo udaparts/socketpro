@@ -248,6 +248,10 @@ final class ServerCoreLoader {
     static native void SetOnceOnly(long h, boolean onceOnly);
 
     static native boolean GetOnceOnly(long h);
+    
+    static native void SetInlineBatching(long h, boolean manualBatching);
+
+    static native boolean GetInlineBatching(long h);
 
     static native void SetMaxConnectionsPerClient(int maxConnectionsPerClient);
 

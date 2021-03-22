@@ -1171,6 +1171,14 @@ JNIEXPORT jboolean JNICALL Java_SPA_ServerSide_ServerCoreLoader_GetOnceOnly(JNIE
     return GetOnceOnly((USocket_Server_Handle) h);
 }
 
+JNIEXPORT void JNICALL Java_SPA_ServerSide_ServerCoreLoader_SetInlineBatching(JNIEnv*, jclass, jlong h, jboolean manualBatching) {
+    SetOnceOnly((USocket_Server_Handle)h, manualBatching ? true : false);
+}
+
+JNIEXPORT jboolean JNICALL Java_SPA_ServerSide_ServerCoreLoader_GetInlineBatching(JNIEnv*, jclass, jlong h) {
+    return GetInlineBatching((USocket_Server_Handle)h);
+}
+
 JNIEXPORT void JNICALL Java_SPA_ServerSide_ServerCoreLoader_SetZipLevel(JNIEnv*, jclass, jlong h, jint zl) {
     SetZipLevel((USocket_Server_Handle) h, (SPA::tagZipLevel)zl);
 }

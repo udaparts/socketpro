@@ -1523,10 +1523,28 @@ JNIEXPORT jboolean JNICALL Java_SPA_ServerSide_ServerCoreLoader_GetOnceOnly
 /*
  * Class:     SPA_ServerSide_ServerCoreLoader
  * Method:    SetOnceOnly
- * Signature: (JZ)Z
+ * Signature: (JZ)V
  */
 JNIEXPORT void JNICALL Java_SPA_ServerSide_ServerCoreLoader_SetOnceOnly
 (JNIEnv *, jclass, jlong, jboolean);
+
+
+/*
+ * Class:     SPA_ServerSide_ServerCoreLoader
+ * Method:    GetInlineBatching
+ * Signature: (J)Z
+ */
+JNIEXPORT jboolean JNICALL Java_SPA_ServerSide_ServerCoreLoader_GetInlineBatching
+(JNIEnv*, jclass, jlong);
+
+
+/*
+ * Class:     SPA_ServerSide_ServerCoreLoader
+ * Method:    SetOnceOnly
+ * Signature: (JZ)V
+ */
+JNIEXPORT void JNICALL Java_SPA_ServerSide_ServerCoreLoader_SetInlineBatching
+(JNIEnv*, jclass, jlong, jboolean);
 
 
 JNIEXPORT jint JNICALL Java_SPA_ServerSide_Plugin_DoSPluginAuthentication(JNIEnv*, jclass, jstring, jlong, jstring, jstring, jint, jstring);
