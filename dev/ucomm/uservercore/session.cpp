@@ -196,7 +196,7 @@ m_bChatting(false),
 m_indexCall(0),
 m_InterruptOptions(0),
 m_bMore(false),
-m_delayOptions(SPA::ServerSide::tagMaualBatching::mbNothing) {
+m_mb(false) {
     memset(&m_ReqInfo, 0, sizeof (m_ReqInfo));
     memset(&m_ClientInfo, 0, sizeof (m_ClientInfo));
 }
@@ -210,7 +210,8 @@ CServerSession::~CServerSession() {
         m_pSsl.reset();
         delete m_pSocket;
         ReleaseIoBuffer(m_ReadBuffer);
-        ReleaseIoBuffer(m_WriteBuffer);}
+        ReleaseIoBuffer(m_WriteBuffer);
+    }
 
     catch(...) {
     }
@@ -437,39 +438,21 @@ void CServerSession::SetOnceOnly(bool onceOnly) {
     m_bMore = (!onceOnly);
 }
 
-void CServerSession::SetInlineBatchingOption(SPA::ServerSide::tagMaualBatching option) {
-    m_delayOptions = option;
+void CServerSession::SetInlineBatching(bool batching) {
+    CAutoLock sl(m_mutex);
+    if (batching != m_mb) {
+        m_mb = batching;
+        if (!batching) {
+            Write(nullptr, 0);
+        }
+    }
 }
 
-SPA::ServerSide::tagMaualBatching CServerSession::GetInlineBatchingOption() {
-    return m_delayOptions;
-}
-
-bool CServerSession::ComputeDelayWrite(unsigned short reqId) {
-    switch (reqId) {
-        case (unsigned short) SPA::tagBaseRequestID::idUnknown: //0
-        case (unsigned short) SPA::tagBaseRequestID::idRouteeChanged:
-        case (unsigned short) SPA::tagBaseRequestID::idCancel:
-        case (unsigned short) SPA::tagBaseRequestID::idDoEcho:
-        case (unsigned short) SPA::tagBaseRequestID::idPing:
-        case (unsigned short) SPA::tagBaseRequestID::idInterrupt:
-        case (unsigned short) SPA::tagBaseRequestID::idHttpClose:
-        case (unsigned short) SPA::tagBaseRequestID::idCommitBatching:
-        case (unsigned short) SPA::tagBaseRequestID::idEndJob:
-        case (unsigned short) SPA::tagBaseRequestID::idDequeueConfirmed:
-        case (unsigned short) SPA::tagBaseRequestID::idServerException:
-        case (unsigned short) SPA::tagBaseRequestID::idRoutePeerUnavailable:
-            return false;
-        default:
-            break;
-    }
-    SPA::ServerSide::tagMaualBatching delay_options = m_delayOptions;
-    if (delay_options == SPA::ServerSide::tagMaualBatching::mbRequest) {
-        return (reqId != m_ReqInfo.RequestId || m_ReqInfo.GetQueued());
-    } else if (delay_options == SPA::ServerSide::tagMaualBatching::mbSession) {
-        return (m_qRead.GetSize() != 0 || reqId != m_ReqInfo.RequestId || m_ReqInfo.GetQueued());
-    }
-    return false;
+bool CServerSession::GetInlineBatching() {
+    m_mutex.lock();
+    bool delay = m_mb;
+    m_mutex.unlock();
+    return delay;
 }
 
 unsigned int CServerSession::NotifyInterrupt(SPA::UINT64 options) {
@@ -626,7 +609,8 @@ int CServerSession::ExecuteSlowRequestFromThreadPool(unsigned short sReqId) {
     PSLOW_PROCESS p = m_ccb.SvsContext.m_SlowProcess;
     if (p != nullptr) {
         try{
-            res = p(sReqId, m_ReqInfo.Size, MakeHandlerInternal());}
+            res = p(sReqId, m_ReqInfo.Size, MakeHandlerInternal());
+        }
 
         catch(SPA::CUException & err) {
             SendExceptionResult(err.what(), err.GetStack().c_str(), sReqId, err.GetErrCode());
@@ -865,7 +849,8 @@ void CServerSession::OnSlowRequestProcessed(unsigned int res, unsigned short usR
             bool chatting = false;
             USocket_Server_Handle index = MakeHandlerInternal();
             CRAutoLock ral(m_mutex, chatting);
-            p(index, usRequestId);}
+            p(index, usRequestId);
+        }
 
         catch(SPA::CUException & err) {
             SendExceptionResultInternal(err.what(), err.GetStack().c_str(), usRequestId, err.GetErrCode());
@@ -890,7 +875,7 @@ CSocket& CServerSession::GetSocket() {
 }
 
 void CServerSession::Start() {
-    m_delayOptions = SPA::ServerSide::tagMaualBatching::mbNothing;
+    m_mb = false;
     boost::asio::ip::tcp::no_delay nodelay(true);
     boost::asio::socket_base::keep_alive option(false);
     CAutoLock rl(m_mutex);
@@ -926,7 +911,8 @@ void CServerSession::OnSslHandShake(const CErrorCode& Error) {
         try{
             USocket_Server_Handle index = MakeHandlerInternal();
             CRAutoLock rsl(m_mutex, m_bChatting);
-            p(index, Error.value());}
+            p(index, Error.value());
+        }
 
         catch(...) {
         }
@@ -947,7 +933,8 @@ void CServerSession::OnClose() {
     CRAutoLock rsl(m_mutex, m_bChatting);
     if (p != nullptr) {
         try{
-            p(index, errCode);}
+            p(index, errCode);
+        }
 
         catch(...) {
         }
@@ -955,7 +942,8 @@ void CServerSession::OnClose() {
     p = g_pServer->m_pOnClose;
     if (p != nullptr) {
         try{
-            p(index, errCode);}
+            p(index, errCode);
+        }
 
         catch(...) {
         }
@@ -1393,10 +1381,10 @@ unsigned int CServerSession::Write(const SPA::CStreamHeader &sh, const unsigned 
     SPA::CScopeUQueue sb;
     sb << sh;
     sb->Push(s, nSize);
-    return Write(sb->GetBuffer(), sb->GetSize(), sh.RequestId);
+    return Write(sb->GetBuffer(), sb->GetSize());
 }
 
-unsigned int CServerSession::Write(const unsigned char *s, unsigned int nSize, unsigned short reqRefId) {
+unsigned int CServerSession::Write(const unsigned char *s, unsigned int nSize) {
     unsigned int ulLen;
     if (m_cs < csSslShaking)
         return 0;
@@ -1407,8 +1395,7 @@ unsigned int CServerSession::Write(const unsigned char *s, unsigned int nSize, u
         return nSize;
     }
     ulLen = m_qWrite.GetSize();
-    bool delay = ComputeDelayWrite(reqRefId);
-    if (ulLen == 0 && s && nSize > 0 && (!delay || nSize >= DELAY_SIZE)) {
+    if (ulLen == 0 && s && nSize > 0 && (!m_mb || nSize >= DELAY_SIZE)) {
         if (nSize <= IO_BUFFER_SIZE) {
             ::memcpy(m_WriteBuffer, s, nSize);
             ulLen = nSize;
@@ -1424,7 +1411,7 @@ unsigned int CServerSession::Write(const unsigned char *s, unsigned int nSize, u
         ulLen = m_qWrite.GetSize();
         if (ulLen == 0)
             return nSize;
-        if (delay && ulLen < DELAY_SIZE) {
+        if (m_mb && ulLen < DELAY_SIZE) {
             return nSize;
         }
         if (ulLen > IO_BUFFER_SIZE)
@@ -3141,7 +3128,7 @@ void CServerSession::NotifyFailRoutes(SPA::UINT64 receiver, CServiceContext *pSe
                 q.SetSize(0);
                 q << sh << dci;
                 pSession->m_mutex.lock();
-                pSession->Write(q.GetBuffer(), q.GetSize(), (unsigned short) SPA::tagBaseRequestID::idDequeueConfirmed);
+                pSession->Write(q.GetBuffer(), q.GetSize());
                 pSession->m_mutex.unlock();
 #ifndef NDEBUG
                 std::cout << "+++ Failed index=" << rm.Qa.MessageIndex << ", pos=" << rm.Qa.MessagePos << std::endl;
@@ -3234,7 +3221,7 @@ bool CServerSession::Route() {
                     MQ_FILE::CDequeueConfirmInfo dci(rm.Qa, false, rm.RequestId);
                     q << sh << dci;
                     CAutoLock al(sender->m_mutex);
-                    sender->Write(q.GetBuffer(), q.GetSize(), sh.RequestId);
+                    sender->Write(q.GetBuffer(), q.GetSize());
                 } else {
 #ifndef NDEBUG
                     std::cout << "**** Map failed ****" << std::endl;
@@ -3499,7 +3486,8 @@ bool CServerSession::Process() {
         //preprocess unziping, debatching or both
 
         try{
-            OnRA();}
+            OnRA();
+        }
 
         catch(boost::system::system_error & err) {
             SendExceptionResultInternal(err.what(), "System runtime error inside request processing loop", m_ReqInfo.RequestId, MB_STL_EXCEPTION);

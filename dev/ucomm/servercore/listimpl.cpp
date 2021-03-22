@@ -58,7 +58,8 @@ void WINAPI UninitSocketProServer() {
         StopSocketProServer();
         sleep(boost::posix_time::milliseconds(10));
         delete g_pServer;
-        g_pServer = nullptr;}
+        g_pServer = nullptr;
+    }
 
     catch(...) {
 

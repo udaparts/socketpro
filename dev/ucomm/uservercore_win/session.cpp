@@ -562,7 +562,8 @@ int CServerSession::ExecuteSlowRequestFromThreadPool(unsigned short sReqId) {
     PSLOW_PROCESS p = m_ccb.SvsContext.m_SlowProcess;
     if (p != nullptr) {
         try{
-            res = p(sReqId, m_ReqInfo.Size, MakeHandlerInternal());}
+            res = p(sReqId, m_ReqInfo.Size, MakeHandlerInternal());
+        }
 
         catch(SPA::CUException & err) {
             SendExceptionResult(err.what(), err.GetStack().c_str(), sReqId, err.GetErrCode());
@@ -686,20 +687,20 @@ void CServerSession::SetOnceOnly(bool onceOnly) {
 }
 
 void CServerSession::SetInlineBatching(bool batching) {
-	CAutoLock sl(m_mutex);
-	if (batching != m_mb) {
-		m_mb = batching;
-		if (!batching) {
-			Write(nullptr, 0);
-		}
-	}
+    CAutoLock sl(m_mutex);
+    if (batching != m_mb) {
+        m_mb = batching;
+        if (!batching) {
+            Write(nullptr, 0);
+        }
+    }
 }
 
 bool CServerSession::GetInlineBatching() {
-	m_mutex.lock();
+    m_mutex.lock();
     bool delay = m_mb;
-	m_mutex.unlock();
-	return delay;
+    m_mutex.unlock();
+    return delay;
 }
 
 unsigned int CServerSession::NotifyInterrupt(SPA::UINT64 options) {
@@ -851,7 +852,8 @@ void CServerSession::OnSlowRequestProcessed(unsigned int res, unsigned short usR
             bool chatting = false;
             USocket_Server_Handle index = MakeHandlerInternal();
             CRAutoLock ral(m_mutex, chatting);
-            p(index, usRequestId);}
+            p(index, usRequestId);
+        }
 
         catch(SPA::CUException & err) {
             SendExceptionResultInternal(err.what(), err.GetStack().c_str(), usRequestId, err.GetErrCode());
@@ -913,7 +915,8 @@ void CServerSession::OnSslHandShake(const CErrorCode& Error) {
         try{
             USocket_Server_Handle index = MakeHandlerInternal();
             CRAutoLock ral(m_mutex, m_bChatting);
-            p(index, Error.value());}
+            p(index, Error.value());
+        }
 
         catch(...) {
         }
@@ -933,7 +936,8 @@ void CServerSession::OnClose() {
     CRAutoLock ral(m_mutex, m_bChatting);
     if (p != nullptr) {
         try{
-            p(index, errCode);}
+            p(index, errCode);
+        }
 
         catch(...) {
         }
@@ -941,7 +945,8 @@ void CServerSession::OnClose() {
     p = g_pServer->m_pOnClose;
     if (p != nullptr) {
         try{
-            p(index, errCode);}
+            p(index, errCode);
+        }
 
         catch(...) {
         }
@@ -3500,7 +3505,8 @@ bool CServerSession::Process() {
                 ::exit(RECEIVING_CRASH_CODE);
             }
 #endif
-            OnRA();}
+            OnRA();
+        }
 
         catch(boost::system::system_error & err) {
             SendExceptionResultInternal(err.what(), "System runtime error inside request processing loop", m_ReqInfo.RequestId, MB_STL_EXCEPTION);
