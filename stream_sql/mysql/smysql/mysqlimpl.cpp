@@ -14,7 +14,7 @@
 namespace SPA
 {
     namespace ServerSide{
-        std::atomic<tagMaualBatching> CMysqlImpl::m_mb(tagMaualBatching::mbRequest);
+        std::atomic<unsigned int> CMysqlImpl::m_mb = 1;
         const UTF16 * CMysqlImpl::NO_DB_OPENED_YET = u"No mysql database opened yet";
         const UTF16 * CMysqlImpl::BAD_END_TRANSTACTION_PLAN = u"Bad end transaction plan";
         const UTF16 * CMysqlImpl::NO_PARAMETER_SPECIFIED = u"No parameter specified";
@@ -55,7 +55,7 @@ namespace SPA
         m_bManual(false), m_qSend(*m_sb), m_NoSending(false), m_sql_errno(0),
         m_sql_resultcs(nullptr), m_ColIndex(0), m_sql_flags(0), m_affected_rows(0),
         m_last_insert_id(0), m_server_status(0), m_statement_warn_count(0), m_indexCall(0),
-        m_bBlob(false), m_cmd(COM_SLEEP), m_NoRowset(false), m_meta(false) {
+        m_bBlob(false), m_cmd(COM_SLEEP), m_NoRowset(false), m_meta(false), m_manualBatching(false) {
             m_qSend.ToUtf8(true); //convert UNICODE into UTF8 automatically
             m_UQueue.ToUtf8(true); //convert UNICODE into UTF8 automatically
         }
@@ -94,10 +94,15 @@ namespace SPA
             m_fails = 0;
             m_ti = tagTransactionIsolation::tiUnspecified;
             m_bManual = false;
-            SetInlineBatchingOption(m_mb);
+            m_manualBatching = false;
         }
 
         void CMysqlImpl::OnFastRequestArrive(unsigned short reqId, unsigned int len) {
+            if (reqId == idBeginRows && !m_manualBatching && m_mb) {
+                //turn on inline manual batching for ExecuteBatch & ExecuteParameters
+                m_manualBatching = true;
+                SetInlineBatching(true);
+            }
             BEGIN_SWITCH(reqId)
             M_I1_R0(idStartBLOB, StartBLOB, unsigned int)
             M_I0_R0(idChunk, Chunk)
@@ -114,6 +119,20 @@ namespace SPA
             if (m_pMysql) {
                 srv_session_attach(m_pMysql.get(), nullptr);
             }
+            switch (reqId)
+            {
+            case idExecute:
+            case idExecuteParameters:
+            case idExecuteBatch:
+                if (reqId == idBeginRows && !m_manualBatching && m_mb) {
+                    //turn on inline manual batching for Execute, ExecuteBatch & ExecuteParameters
+                    m_manualBatching = true;
+                    SetInlineBatching(true);
+                }
+                break;
+            default:
+                break;
+            }
             BEGIN_SWITCH(reqId)
             M_I2_R3(idOpen, Open, CDBString, unsigned int, int, CDBString, int)
             M_I3_R3(idBeginTrans, BeginTrans, int, CDBString, unsigned int, int, CDBString, int)
@@ -124,6 +143,10 @@ namespace SPA
             M_I10_R5(idExecuteBatch, ExecuteBatch, CDBString, CDBString, int, int, bool, bool, bool, CDBString, unsigned int, UINT64, INT64, int, CDBString, CDBVariant, UINT64)
             M_I0_R2(idClose, CloseDb, int, CDBString)
             END_SWITCH
+            if (m_manualBatching) {
+                m_manualBatching = false;
+                SetInlineBatching(false);
+            }
             if (reqId == idExecuteParameters || reqId == idExecuteBatch)
                 m_vParam.clear();
             m_server_status = 0;

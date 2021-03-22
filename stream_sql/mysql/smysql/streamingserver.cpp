@@ -226,8 +226,7 @@ void CSetGlobals::SetConfig() {
     }
     v = doc->Child(MANUAL_BATCHING);
     if (v && v->GetType() == enumType::Uint64) {
-        int mb = (int) v->AsUint64();
-        SPA::ServerSide::CMysqlImpl::m_mb = (SPA::ServerSide::tagMaualBatching)mb;
+        SPA::ServerSide::CMysqlImpl::m_mb = (unsigned int)v->AsUint64();
     }
     v = doc->Child(STREAMING_DB_MAIN_THREADS);
     if (v && v->GetType() == enumType::Uint64) {
@@ -323,8 +322,7 @@ void CSetGlobals::UpdateConfigFile() {
         return;
     }
     JObject<char> obj;
-    SPA::ServerSide::tagMaualBatching mb = SPA::ServerSide::CMysqlImpl::m_mb;
-    obj[MANUAL_BATCHING] = (int) mb;
+    obj[MANUAL_BATCHING] = SPA::ServerSide::CMysqlImpl::m_mb;
     obj[PLUGIN_SERVICE_ID] = SPA::Mysql::sidMysql;
     obj[SP_SERVER_CORE_VERSION] = SPA::ServerSide::ServerCoreLoader.GetUServerSocketVersion();
     obj[STREAMING_DB_VERSION] = MY_VERSION;

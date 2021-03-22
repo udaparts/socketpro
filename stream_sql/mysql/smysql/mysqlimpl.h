@@ -49,7 +49,7 @@ namespace SPA {
             static void CALLBACK OnThreadEvent(SPA::ServerSide::tagThreadEvent te);
             static void CreateTriggers(CMysqlImpl &impl, const std::vector<std::string> &vecTables);
             static void SetPublishDBEvent(CMysqlImpl &impl);
-            static std::atomic<tagMaualBatching> m_mb;
+            static std::atomic<unsigned int> m_mb;
 
         protected:
             virtual void OnFastRequestArrive(unsigned short reqId, unsigned int len);
@@ -151,6 +151,7 @@ namespace SPA {
             enum_server_command m_cmd;
             bool m_NoRowset;
             bool m_meta;
+            bool m_manualBatching;
             static st_command_service_cbs m_sql_cbs;
 
             static const int IS_BINARY = 63;
