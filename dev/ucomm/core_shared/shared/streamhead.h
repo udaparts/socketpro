@@ -91,8 +91,21 @@ namespace SPA {
         Treat(((unsigned char) SPA::GetOS() << 4) + ((unsigned char) SPA::IsBigEndian() << 3)),
         Ratio(0),
         Size(0) {
-
         }
+
+		CStreamHeader(unsigned short reqId)
+		: RequestId(reqId),
+		Treat(((unsigned char)SPA::GetOS() << 4) + ((unsigned char)SPA::IsBigEndian() << 3)),
+		Ratio(0),
+		Size(0) {
+		}
+
+		CStreamHeader(unsigned short reqId, unsigned int size)
+		: RequestId(reqId),
+		Treat(((unsigned char)SPA::GetOS() << 4) + ((unsigned char)SPA::IsBigEndian() << 3)),
+		Ratio(0),
+		Size(size) {
+		}
 
         inline bool IsSpecial(bool old = false) const {
             if (old || IsFake())
