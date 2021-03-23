@@ -808,6 +808,16 @@ class SCoreLoader(object):
     GetOnceOnly.argtypes = [c_uint64]
     GetOnceOnly.restype = c_bool
 
+    # bool WINAPI GetInlineBatching(USocket_Server_Handleh);
+    GetInlineBatching = _ussLib_.GetInlineBatching
+    GetInlineBatching.argtypes = [c_uint64]
+    GetInlineBatching.restype = c_bool
+
+    # void WINAPI SetInlineBatching(USocket_Server_Handle h, bool manual_batching);
+    SetInlineBatching = _ussLib_.SetInlineBatching
+    SetInlineBatching.argtypes = [c_uint64, c_bool]
+    SetInlineBatching.restype = None
+
     #void WINAPI SetZipLevel(USocket_Server_Handle h, SPA::tagZipLevel zl);
     SetZipLevel = _ussLib_.SetZipLevel
     SetZipLevel.argtypes = [c_uint64, c_int]

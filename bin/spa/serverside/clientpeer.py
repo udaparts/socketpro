@@ -157,6 +157,14 @@ class CClientPeer(CSocketPeer):
         scl.SetOnceOnly(self.Handle, value)
 
     @property
+    def ManualBatching(self):
+        return scl.GetInlineBatching(self.Handle)
+
+    @ManualBatching.setter
+    def ManualBatching(self, value):
+        scl.SetInlineBatching(self.Handle, value)
+
+    @property
     def BytesBatched(self):
         return scl.GetBytesBatched(self.Handle)
 
