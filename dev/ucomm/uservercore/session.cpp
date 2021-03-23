@@ -447,23 +447,8 @@ bool CServerSession::GetInlineBatching() {
 }
 
 bool CServerSession::ComputeDelayWrite(unsigned short reqId) {
-    switch (reqId) {
-        case (unsigned short) SPA::tagBaseRequestID::idUnknown: //0
-        case (unsigned short) SPA::tagBaseRequestID::idRouteeChanged:
-        case (unsigned short) SPA::tagBaseRequestID::idCancel:
-        case (unsigned short) SPA::tagBaseRequestID::idDoEcho:
-        case (unsigned short) SPA::tagBaseRequestID::idPing:
-        case (unsigned short) SPA::tagBaseRequestID::idInterrupt:
-        case (unsigned short) SPA::tagBaseRequestID::idHttpClose:
-        case (unsigned short) SPA::tagBaseRequestID::idCommitBatching:
-        case (unsigned short) SPA::tagBaseRequestID::idEndJob:
-        case (unsigned short) SPA::tagBaseRequestID::idDequeueConfirmed:
-        case (unsigned short) SPA::tagBaseRequestID::idServerException:
-        case (unsigned short) SPA::tagBaseRequestID::idRoutePeerUnavailable:
-            return false;
-        default:
-            break;
-    }
+    if (reqId <= (unsigned short) SPA::tagBaseRequestID::idReservedTwo)
+        return false;
     if (m_mb) {
         return (reqId != m_ReqInfo.RequestId || m_ReqInfo.GetQueued());
     }
