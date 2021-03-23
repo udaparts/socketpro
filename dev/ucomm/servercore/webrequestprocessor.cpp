@@ -378,11 +378,11 @@ namespace UHTTP
         }
 
         if (!json.HasMember(CHttpContext::SP_REQUEST_NAME.c_str()) ||
-                !json.HasMember(CHttpContext::SP_REQUEST_CI.c_str()) ||
-                !json.HasMember(CHttpContext::SP_REQUEST_VERSION.c_str()) ||
-                !json.HasMember(CHttpContext::SP_REQUEST_ARGS.c_str()) ||
-                !json.HasMember(CHttpContext::SP_REQUEST_ID.c_str())
-                ) {
+            !json.HasMember(CHttpContext::SP_REQUEST_CI.c_str()) ||
+            !json.HasMember(CHttpContext::SP_REQUEST_VERSION.c_str()) ||
+            !json.HasMember(CHttpContext::SP_REQUEST_ARGS.c_str()) ||
+            !json.HasMember(CHttpContext::SP_REQUEST_ID.c_str())
+            ) {
             ur.ErrCode = seBadArgs;
             return;
         }

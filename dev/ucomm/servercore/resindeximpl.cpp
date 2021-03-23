@@ -132,10 +132,8 @@ SPA::UINT64 CResIndexImpl::SendAll() {
 #endif
             session->m_bDequeueTrans = true;
             assert(m_qa.IsValid());
-            SPA::CStreamHeader sh;
-            sh.RequestId = (unsigned short) SPA::tagBaseRequestID::idDequeueConfirmed;
             MQ_FILE::CDequeueConfirmInfo dci(m_qa, session->m_bFail, m_uReqId);
-            sh.Size = sizeof (dci);
+			SPA::CStreamHeader sh((unsigned short)SPA::tagBaseRequestID::idDequeueConfirmed, sizeof(dci));
             *m_pQ << sh << dci;
             POnBaseRequestCame p = session->m_ccb.SvsContext.m_OnBaseRequestCame;
             if (p != nullptr) {
@@ -152,10 +150,8 @@ SPA::UINT64 CResIndexImpl::SendAll() {
 #endif
             session->m_bDequeueTrans = false;
             assert(m_qa.IsValid());
-            SPA::CStreamHeader sh;
-            sh.RequestId = (unsigned short) SPA::tagBaseRequestID::idDequeueConfirmed;
-            MQ_FILE::CDequeueConfirmInfo dci(m_qa, session->m_bFail, m_uReqId);
-            sh.Size = sizeof (dci);
+			MQ_FILE::CDequeueConfirmInfo dci(m_qa, session->m_bFail, m_uReqId);
+            SPA::CStreamHeader sh((unsigned short)SPA::tagBaseRequestID::idDequeueConfirmed, sizeof(dci));
             *m_pQ << sh << dci;
             POnBaseRequestCame p = session->m_ccb.SvsContext.m_OnBaseRequestCame;
             if (p != nullptr) {

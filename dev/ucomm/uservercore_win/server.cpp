@@ -1903,8 +1903,7 @@ SPA::UINT64 CServer::BatchEnqueue(unsigned int qHandle, unsigned int count, cons
         CAutoLock sl(m_mQ);
         CMapQNotified::iterator mi = m_mapQNotified.find(qHandle);
         if (mi != m_mapQNotified.end()) {
-            SPA::CStreamHeader sh;
-            sh.RequestId = (unsigned short) SPA::tagBaseRequestID::idMessageQueued;
+            SPA::CStreamHeader sh((unsigned short)SPA::tagBaseRequestID::idMessageQueued);
             std::vector<CSNotified> &v = mi->second;
             std::vector<CSNotified>::iterator s, end = v.end();
             for (s = v.begin(); s != end; ++s) {
@@ -1926,11 +1925,9 @@ SPA::UINT64 CServer::Enqueue(unsigned int qHandle, unsigned short reqId, const u
     SPA::UINT64 qIndex = 0;
     if (reqId < (unsigned short) SPA::tagBaseRequestID::idReservedTwo)
         return qIndex;
-    SPA::CStreamHeader ReqInfo;
-    if (!buffer)
-        size = 0;
-    ReqInfo.Size = size;
-    ReqInfo.RequestId = reqId;
+	if (!buffer)
+		size = 0;
+    SPA::CStreamHeader ReqInfo(reqId, size);
     std::shared_ptr<MQ_FILE::CMqFile> queue;
     {
         CAutoLock sl(m_mQ);
@@ -1953,8 +1950,7 @@ SPA::UINT64 CServer::Enqueue(unsigned int qHandle, unsigned short reqId, const u
         CAutoLock sl(m_mQ);
         CMapQNotified::iterator mi = m_mapQNotified.find(qHandle);
         if (mi != m_mapQNotified.end()) {
-            SPA::CStreamHeader sh;
-            sh.RequestId = (unsigned short) SPA::tagBaseRequestID::idMessageQueued;
+            SPA::CStreamHeader sh((unsigned short)SPA::tagBaseRequestID::idMessageQueued);
             std::vector<CSNotified> &v = mi->second;
             std::vector<CSNotified>::iterator s, end = v.end();
             for (s = v.begin(); s != end; ++s) {
@@ -2045,10 +2041,8 @@ SPA::UINT64 CServer::Dequeue(unsigned int qHandle, USocket_Server_Handle h, unsi
         CAutoLock al(pSession->m_mutex);
         if (pSession->m_cs >= csConnected && pSession->GetConnIndex() == index) {
             if (pSession->m_mapDequeue.find(qHandle) == pSession->m_mapDequeue.end()) {
-                SPA::CStreamHeader sh;
-                buffer << qii;
-                sh.RequestId = (unsigned short) SPA::tagBaseRequestID::idStartQueue;
-                sh.Size = buffer.GetSize();
+				buffer << qii;
+                SPA::CStreamHeader sh((unsigned short)SPA::tagBaseRequestID::idStartQueue, buffer.GetSize());
                 buffer.Insert((const unsigned char*) &sh, sizeof (sh));
                 pSession->Write(buffer.GetBuffer(), buffer.GetSize());
             }
@@ -2165,10 +2159,8 @@ SPA::UINT64 CServer::Dequeue2(unsigned int qHandle, USocket_Server_Handle h, uns
         CAutoLock al(pSession->m_mutex);
         if (pSession->m_cs >= csConnected && pSession->GetConnIndex() == index) {
             if (pSession->m_mapDequeue.find(qHandle) == pSession->m_mapDequeue.end()) {
-                SPA::CStreamHeader sh;
-                buffer << qii;
-                sh.RequestId = (unsigned short) SPA::tagBaseRequestID::idStartQueue;
-                sh.Size = buffer.GetSize();
+				buffer << qii;
+                SPA::CStreamHeader sh((unsigned short)SPA::tagBaseRequestID::idStartQueue, buffer.GetSize());
                 buffer.Insert((const unsigned char*) &sh, sizeof (sh));
                 pSession->Write(buffer.GetBuffer(), buffer.GetSize());
             }
@@ -2428,8 +2420,7 @@ bool CServer::EndJob(unsigned int qHandle) {
     if (ok && msgCount == (jobSize + pending) && jobSize > 1) {
         CMapQNotified::iterator mi = m_mapQNotified.find(qHandle);
         if (mi != m_mapQNotified.end()) {
-            SPA::CStreamHeader sh;
-            sh.RequestId = (unsigned short) SPA::tagBaseRequestID::idMessageQueued;
+            SPA::CStreamHeader sh((unsigned short)SPA::tagBaseRequestID::idMessageQueued);
             std::vector<CSNotified> &v = mi->second;
             std::vector<CSNotified>::iterator s, end = v.end();
             for (s = v.begin(); s != end; ++s) {
