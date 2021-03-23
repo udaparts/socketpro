@@ -273,7 +273,7 @@ size_t CServiceContext::GetRouteeSize() {
 void CServiceContext::NotifyRouteeChanged(unsigned int count) {
     SPA::CScopeUQueue su;
     SPA::CUQueue &q = *su;
-    SPA::CStreamHeader sh((unsigned short)SPA::tagBaseRequestID::idRouteeChanged, sizeof(count));
+    SPA::CStreamHeader sh((unsigned short) SPA::tagBaseRequestID::idRouteeChanged, sizeof (count));
     q << sh << count;
     CAutoLock al(m_mutex);
     std::vector<CServerSession*>::iterator it, end = m_vRoutee.end();

@@ -600,7 +600,8 @@ void CServer::StopSocketProServer() {
         CAutoLock sl(m_mutex);
         DeleteSslContex();
         delete m_pAcceptor;
-        m_pAcceptor = nullptr;}
+        m_pAcceptor = nullptr;
+    }
 
     catch(...) {
 
@@ -653,7 +654,8 @@ void CServer::StartSubThread() {
         (*it)(SPA::ServerSide::tagThreadEvent::teStarted);
     }
     try{
-        m_IoService.run(m_ec);}
+        m_IoService.run(m_ec);
+    }
 
     catch(boost::system::system_error & err) {
         //#ifndef NDEBUG
@@ -744,7 +746,8 @@ void CServer::StartIOPumpInternal() {
     }
     try{
         m_IoService.reset();
-        m_IoService.run(m_ec);}
+        m_IoService.run(m_ec);
+    }
 
     catch(boost::system::system_error & err) {
         //#ifndef NDEBUG
@@ -1736,7 +1739,8 @@ void CServer::OnAccepted(CServerSession* pSession, const CErrorCode& Error) {
             boost::uint64_t handler = pSession->MakeHandlerInternal();
             try{
                 CRAutoLock ral(m_mutex, chatting);
-                m_pOnAccept(handler, m_ec.value());}
+                m_pOnAccept(handler, m_ec.value());
+            }
 
             catch(...) {
             }
@@ -1759,7 +1763,8 @@ void CServer::OnAccepted(CServerSession* pSession, const CErrorCode& Error) {
             boost::uint64_t handler = pSession->MakeHandlerInternal();
             try{
                 CRAutoLock ral(m_mutex, chatting);
-                m_pOnAccept(handler, m_ec.value());}
+                m_pOnAccept(handler, m_ec.value());
+            }
 
             catch(...) {
             }
@@ -1903,7 +1908,7 @@ SPA::UINT64 CServer::BatchEnqueue(unsigned int qHandle, unsigned int count, cons
         CAutoLock sl(m_mQ);
         CMapQNotified::iterator mi = m_mapQNotified.find(qHandle);
         if (mi != m_mapQNotified.end()) {
-            SPA::CStreamHeader sh((unsigned short)SPA::tagBaseRequestID::idMessageQueued);
+            SPA::CStreamHeader sh((unsigned short) SPA::tagBaseRequestID::idMessageQueued);
             std::vector<CSNotified> &v = mi->second;
             std::vector<CSNotified>::iterator s, end = v.end();
             for (s = v.begin(); s != end; ++s) {
@@ -1925,8 +1930,8 @@ SPA::UINT64 CServer::Enqueue(unsigned int qHandle, unsigned short reqId, const u
     SPA::UINT64 qIndex = 0;
     if (reqId < (unsigned short) SPA::tagBaseRequestID::idReservedTwo)
         return qIndex;
-	if (!buffer)
-		size = 0;
+    if (!buffer)
+        size = 0;
     SPA::CStreamHeader ReqInfo(reqId, size);
     std::shared_ptr<MQ_FILE::CMqFile> queue;
     {
@@ -1950,7 +1955,7 @@ SPA::UINT64 CServer::Enqueue(unsigned int qHandle, unsigned short reqId, const u
         CAutoLock sl(m_mQ);
         CMapQNotified::iterator mi = m_mapQNotified.find(qHandle);
         if (mi != m_mapQNotified.end()) {
-            SPA::CStreamHeader sh((unsigned short)SPA::tagBaseRequestID::idMessageQueued);
+            SPA::CStreamHeader sh((unsigned short) SPA::tagBaseRequestID::idMessageQueued);
             std::vector<CSNotified> &v = mi->second;
             std::vector<CSNotified>::iterator s, end = v.end();
             for (s = v.begin(); s != end; ++s) {
@@ -2041,8 +2046,8 @@ SPA::UINT64 CServer::Dequeue(unsigned int qHandle, USocket_Server_Handle h, unsi
         CAutoLock al(pSession->m_mutex);
         if (pSession->m_cs >= csConnected && pSession->GetConnIndex() == index) {
             if (pSession->m_mapDequeue.find(qHandle) == pSession->m_mapDequeue.end()) {
-				buffer << qii;
-                SPA::CStreamHeader sh((unsigned short)SPA::tagBaseRequestID::idStartQueue, buffer.GetSize());
+                buffer << qii;
+                SPA::CStreamHeader sh((unsigned short) SPA::tagBaseRequestID::idStartQueue, buffer.GetSize());
                 buffer.Insert((const unsigned char*) &sh, sizeof (sh));
                 pSession->Write(buffer.GetBuffer(), buffer.GetSize());
             }
@@ -2159,8 +2164,8 @@ SPA::UINT64 CServer::Dequeue2(unsigned int qHandle, USocket_Server_Handle h, uns
         CAutoLock al(pSession->m_mutex);
         if (pSession->m_cs >= csConnected && pSession->GetConnIndex() == index) {
             if (pSession->m_mapDequeue.find(qHandle) == pSession->m_mapDequeue.end()) {
-				buffer << qii;
-                SPA::CStreamHeader sh((unsigned short)SPA::tagBaseRequestID::idStartQueue, buffer.GetSize());
+                buffer << qii;
+                SPA::CStreamHeader sh((unsigned short) SPA::tagBaseRequestID::idStartQueue, buffer.GetSize());
                 buffer.Insert((const unsigned char*) &sh, sizeof (sh));
                 pSession->Write(buffer.GetBuffer(), buffer.GetSize());
             }
@@ -2420,7 +2425,7 @@ bool CServer::EndJob(unsigned int qHandle) {
     if (ok && msgCount == (jobSize + pending) && jobSize > 1) {
         CMapQNotified::iterator mi = m_mapQNotified.find(qHandle);
         if (mi != m_mapQNotified.end()) {
-            SPA::CStreamHeader sh((unsigned short)SPA::tagBaseRequestID::idMessageQueued);
+            SPA::CStreamHeader sh((unsigned short) SPA::tagBaseRequestID::idMessageQueued);
             std::vector<CSNotified> &v = mi->second;
             std::vector<CSNotified>::iterator s, end = v.end();
             for (s = v.begin(); s != end; ++s) {

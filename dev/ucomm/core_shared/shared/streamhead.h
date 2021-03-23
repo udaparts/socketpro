@@ -43,13 +43,13 @@ namespace SPA {
     struct U_MODULE_HIDDEN CSwitchInfo {
 
         CSwitchInfo()
-        : ServiceId((unsigned int)SPA::tagServiceID::sidStartup),
+        : ServiceId((unsigned int) SPA::tagServiceID::sidStartup),
         MajorVersion(6),
         MinorVersion(0),
         SockMajorVersion(1),
         SockMinorVersion(8),
         Param0(0),
-        Param1((unsigned int)SPA::GetOS()),
+        Param1((unsigned int) SPA::GetOS()),
         Param2(0),
         SwitchTime(0) {
         }
@@ -93,19 +93,19 @@ namespace SPA {
         Size(0) {
         }
 
-		CStreamHeader(unsigned short reqId)
-		: RequestId(reqId),
-		Treat(((unsigned char)SPA::GetOS() << 4) + ((unsigned char)SPA::IsBigEndian() << 3)),
-		Ratio(0),
-		Size(0) {
-		}
+        CStreamHeader(unsigned short reqId)
+        : RequestId(reqId),
+        Treat(((unsigned char) SPA::GetOS() << 4) + ((unsigned char) SPA::IsBigEndian() << 3)),
+        Ratio(0),
+        Size(0) {
+        }
 
-		CStreamHeader(unsigned short reqId, unsigned int size)
-		: RequestId(reqId),
-		Treat(((unsigned char)SPA::GetOS() << 4) + ((unsigned char)SPA::IsBigEndian() << 3)),
-		Ratio(0),
-		Size(size) {
-		}
+        CStreamHeader(unsigned short reqId, unsigned int size)
+        : RequestId(reqId),
+        Treat(((unsigned char) SPA::GetOS() << 4) + ((unsigned char) SPA::IsBigEndian() << 3)),
+        Ratio(0),
+        Size(size) {
+        }
 
         inline bool IsSpecial(bool old = false) const {
             if (old || IsFake())

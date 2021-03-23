@@ -456,9 +456,7 @@ bool CServerSession::ComputeDelayWrite(unsigned short reqId) {
 }
 
 unsigned int CServerSession::NotifyInterrupt(SPA::UINT64 options) {
-    SPA::CStreamHeader reqInfo;
-    reqInfo.RequestId = (unsigned short) SPA::tagBaseRequestID::idInterrupt;
-    reqInfo.Size = sizeof (options);
+    SPA::CStreamHeader reqInfo((unsigned short) SPA::tagBaseRequestID::idInterrupt, sizeof (options));
     CAutoLock sl(m_mutex);
     if (m_cs < csConnected || g_pServer->m_bStopped) {
         return SOCKET_NOT_FOUND;
@@ -713,12 +711,10 @@ bool CServerSession::IsCanceledInternally() {
 }
 
 bool CServerSession::FakeAClientRequest(unsigned short reqId, const unsigned char *pBuffer, unsigned int nBufferSize) {
-    SPA::CStreamHeader reqInfo;
-    reqInfo.MakeFake();
-    reqInfo.RequestId = reqId;
     if (pBuffer == nullptr)
         nBufferSize = 0;
-    reqInfo.Size = nBufferSize;
+    SPA::CStreamHeader reqInfo(reqId, nBufferSize);
+    reqInfo.MakeFake();
     SPA::CScopeUQueue sb;
     sb << reqInfo;
     if (nBufferSize > 0)
@@ -1036,15 +1032,11 @@ bool CServerSession::IsRoutable(unsigned short reqId) {
 }
 
 void CServerSession::EnableClientDequeue(bool enable) {
-    SPA::CStreamHeader sh;
-    sh.RequestId = (unsigned short) SPA::tagBaseRequestID::idEnableClientDequeue;
-    sh.Size = 1;
-    SPA::CScopeUQueue sb;
-    sb << sh << enable;
+    SPA::CStreamHeader sh((unsigned short) SPA::tagBaseRequestID::idEnableClientDequeue, sizeof (bool));
     CAutoLock sl(m_mutex);
     if (ServiceId == (unsigned int) SPA::tagServiceID::sidHTTP || ServiceId == (unsigned int) SPA::tagServiceID::sidStartup)
         return;
-    Write(sb->GetBuffer(), sb->GetSize());
+    Write(sh, (const unsigned char*) &enable, sizeof (bool));
 }
 
 void CServerSession::SetZip(bool bZip) {
@@ -1093,10 +1085,8 @@ unsigned int CServerSession::CompressResultTo(bool old, unsigned short reqId, SP
     unsigned int start = q.GetSize();
     if (!buffer)
         size = 0;
-    SPA::CStreamHeader sh;
-    sh.RequestId = reqId;
+    SPA::CStreamHeader sh(reqId, size);
     zSize = size;
-    sh.Size = size;
     q << sh;
     switch (zl) {
         case SPA::tagZipLevel::zlDefault:
@@ -1542,15 +1532,11 @@ unsigned int CServerSession::SendReturnDataInternal(unsigned short usReqId, cons
     if (usReqId != (unsigned short) SPA::tagBaseRequestID::idCancel && m_bCanceled)
         return REQUEST_CANCELED;
     if (m_pQBatch) {
-        SPA::CStreamHeader sh;
-        sh.RequestId = usReqId;
-        sh.Size = ulBufferSize;
+        SPA::CStreamHeader sh(usReqId, ulBufferSize);
         *m_pQBatch << sh;
         m_pQBatch->Push(pBuffer, ulBufferSize);
     } else if (!m_bZip) {
-        SPA::CStreamHeader sh;
-        sh.RequestId = usReqId;
-        sh.Size = ulBufferSize;
+        SPA::CStreamHeader sh(usReqId, ulBufferSize);
         Write(sh, pBuffer, ulBufferSize);
     } else { //zipped
         if (m_pSsl) {
@@ -2771,9 +2757,8 @@ bool CServerSession::ProcessAjaxRequest() {
     switch (ur.SpRequest) {
         case UHTTP::srClose:
         {
-            SPA::CStreamHeader reqInfo;
+            SPA::CStreamHeader reqInfo((unsigned short) SPA::tagChatRequestID::idExit);
             reqInfo.MakeFake();
-            reqInfo.RequestId = (unsigned short) SPA::tagChatRequestID::idExit;
             m_qRead << reqInfo;
             ++m_nHttpCallCount;
             b = true;
@@ -2802,8 +2787,7 @@ bool CServerSession::ProcessJavaScriptRequest() {
     switch (ur.SpRequest) {
         case UHTTP::srClose:
         {
-            SPA::CStreamHeader reqInfo;
-            reqInfo.RequestId = (unsigned short) SPA::tagChatRequestID::idExit;
+            SPA::CStreamHeader reqInfo((unsigned short) SPA::tagChatRequestID::idExit);
             reqInfo.MakeFake();
             m_qRead << reqInfo;
             ++m_nHttpCallCount;
@@ -2940,8 +2924,7 @@ bool CServerSession::ProcessHttpRequest() {
                 return ProcessJavaScriptRequest();
             } else { //Non-SocketPro JavaScript request
                 assert(m_qRead.GetSize() == 0);
-                SPA::CStreamHeader reqInfo;
-                reqInfo.RequestId = (unsigned short) SPA::ServerSide::tagHttpRequestID::idGet;
+                SPA::CStreamHeader reqInfo((unsigned short) SPA::ServerSide::tagHttpRequestID::idGet);
                 m_qRead.Insert((const unsigned char*) &reqInfo, sizeof (reqInfo), m_ReqInfo.Size);
                 ++m_nHttpCallCount;
                 return true;
@@ -2970,9 +2953,7 @@ bool CServerSession::ProcessHttpRequest() {
                             return false;
                     } else //Non-SocketPro JavaScript request
                     {
-                        SPA::CStreamHeader reqInfo;
-                        reqInfo.RequestId = (unsigned short) SPA::ServerSide::tagHttpRequestID::idPost;
-                        reqInfo.Size = (unsigned int) m_pHttpContext->GetContentLength();
+                        SPA::CStreamHeader reqInfo((unsigned short) SPA::ServerSide::tagHttpRequestID::idPost, (unsigned int) m_pHttpContext->GetContentLength());
                         m_qRead.Insert((const unsigned char*) &reqInfo, sizeof (reqInfo), m_ReqInfo.Size);
                         ++m_nHttpCallCount;
                     }
@@ -3077,10 +3058,8 @@ bool CServerSession::Decompress() {
 }
 
 void CServerSession::NotifyDequeued() {
-    SPA::CStreamHeader sh;
-    sh.RequestId = (unsigned short) SPA::tagBaseRequestID::idDequeueConfirmed;
     MQ_FILE::CDequeueConfirmInfo dci(m_qa, m_bFail, m_ReqInfo.RequestId);
-    sh.Size = sizeof (dci);
+    SPA::CStreamHeader sh((unsigned short) SPA::tagBaseRequestID::idDequeueConfirmed, sizeof (dci));
     Write(sh, (const unsigned char*) &dci, sizeof (dci));
 }
 
@@ -3093,9 +3072,7 @@ void CServerSession::NotifyFailRoutes(SPA::UINT64 receiver, CServiceContext *pSe
     RouteMap *rms = nullptr;
     SPA::CScopeUQueue sb, sbOk, sbFail;
     SPA::CUQueue &q = *sb;
-    SPA::CStreamHeader sh;
-    sh.RequestId = (unsigned short) SPA::tagBaseRequestID::idDequeueConfirmed;
-    sh.Size = sizeof (MQ_FILE::CDequeueConfirmInfo);
+    SPA::CStreamHeader sh((unsigned short) SPA::tagBaseRequestID::idDequeueConfirmed, sizeof (MQ_FILE::CDequeueConfirmInfo));
     {
         CAutoLock al(m_mutexRouteRequestId);
         assert((m_qRouteRequestId.GetSize() % sizeof (RouteMap)) == 0);
@@ -3182,9 +3159,7 @@ bool CServerSession::Route() {
             m_qRead.Pop(m_ReqInfo.Size);
             m_ReqInfo.RequestId = 0;
             m_ReqInfo.Size = 0;
-            SPA::CStreamHeader sh;
-            sh.RequestId = (unsigned short) SPA::tagBaseRequestID::idRoutePeerUnavailable;
-            sh.Size = sizeof (handle);
+            SPA::CStreamHeader sh((unsigned short) SPA::tagBaseRequestID::idRoutePeerUnavailable, sizeof (handle));
             Write(sh, (const unsigned char*) &handle, sizeof (handle));
             return true;
         }
@@ -3216,10 +3191,8 @@ bool CServerSession::Route() {
                 rm.Sender = handle;
                 rm.RequestId = reqId;
                 if (RemoveARouteMap(rm)) {
-                    SPA::CStreamHeader sh;
-                    sh.RequestId = (unsigned short) SPA::tagBaseRequestID::idDequeueConfirmed;
-                    sh.Size = sizeof (MQ_FILE::CDequeueConfirmInfo);
                     MQ_FILE::CDequeueConfirmInfo dci(rm.Qa, false, rm.RequestId);
+                    SPA::CStreamHeader sh((unsigned short) SPA::tagBaseRequestID::idDequeueConfirmed, sizeof (dci));
                     q << sh << dci;
                     CAutoLock al(sender->m_mutex);
                     sender->Write(q.GetBuffer(), q.GetSize(), (unsigned short) SPA::tagBaseRequestID::idDequeueConfirmed);
@@ -3278,7 +3251,6 @@ bool CServerSession::Route() {
 
     USocket_Server_Handle h = MakeHandlerInternal();
     if (routeeSize < 5 * IO_BUFFER_SIZE) {
-        SPA::CStreamHeader sh;
         SPA::CScopeUQueue sb;
         SPA::CUQueue &q = *sb;
         assert(m_receiverHandle);
@@ -3298,7 +3270,7 @@ bool CServerSession::Route() {
             m_qRouteRequestId << rm;
         }
 
-        sh.RequestId = (unsigned short) SPA::tagBaseRequestID::idRoutingData;
+        SPA::CStreamHeader sh((unsigned short) SPA::tagBaseRequestID::idRoutingData);
         sh.Size = m_ReqInfo.Size + sizeof (m_ReqInfo) + sizeof (h);
 
         q << sh << h << m_ReqInfo;
