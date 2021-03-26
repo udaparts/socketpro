@@ -419,8 +419,13 @@ namespace SPA
             return ServerCoreLoader.SendExceptionResultIndex(m_hHandler, index, errMessage, errWhere, requestId, errCode);
         }
 
-        unsigned int CSocketPeer::SendExceptionResult(const char* errMessage, const char* errWhere, unsigned int errCode, unsigned short requestId, UINT64 index) const {
+        unsigned int CSocketPeer::SendExceptionResult(const char* errMessage, const char* errWhere, unsigned int errCode, unsigned short requestId, UINT64 index) {
+#ifndef NO_SHARED_SENDING_BUFFER
+            CScopeUQueue &q = m_sbSend;
+            q->SetSize(0);
+#else
             CScopeUQueue q;
+#endif
             Utilities::ToWide(errMessage, ::strlen(errMessage), *q);
             return SendExceptionResult((const wchar_t*) q->GetBuffer(), errWhere, errCode, requestId, index);
         }
@@ -510,37 +515,37 @@ namespace SPA
         }
 #endif
 
-        unsigned int CClientPeer::SendResult(unsigned short reqId, const unsigned char* pResult, unsigned int size) const {
+        unsigned int CClientPeer::SendResult(unsigned short reqId, const unsigned char* pResult, unsigned int size) {
             if (!m_bRandom)
                 return ServerCoreLoader.SendReturnData(GetSocketHandle(), reqId, size, pResult);
             return ServerCoreLoader.SendReturnDataIndex(GetSocketHandle(), GetCurrentRequestIndex(), reqId, size, pResult);
         }
 
-        unsigned int CClientPeer::SendResult(unsigned short reqId, const CUQueue & mc) const {
+        unsigned int CClientPeer::SendResult(unsigned short reqId, const CUQueue & mc) {
             return SendResult(reqId, mc.GetBuffer(), mc.GetSize());
         }
 
-        unsigned int CClientPeer::SendResult(unsigned short reqId, const CScopeUQueue & sb) const {
+        unsigned int CClientPeer::SendResult(unsigned short reqId, const CScopeUQueue & sb) {
             return SendResult(reqId, sb->GetBuffer(), sb->GetSize());
         }
 
-        unsigned int CClientPeer::SendResult(unsigned short reqId) const {
+        unsigned int CClientPeer::SendResult(unsigned short reqId) {
             return SendResult(reqId, (const unsigned char*) nullptr, (unsigned int) 0);
         }
 
-        unsigned int CClientPeer::SendResultIndex(UINT64 callIndex, unsigned short reqId, const unsigned char* pResult, unsigned int size) const {
+        unsigned int CClientPeer::SendResultIndex(UINT64 callIndex, unsigned short reqId, const unsigned char* pResult, unsigned int size) {
             return ServerCoreLoader.SendReturnDataIndex(GetSocketHandle(), callIndex, reqId, size, pResult);
         }
 
-        unsigned int CClientPeer::SendResultIndex(UINT64 callIndex, unsigned short reqId, const CUQueue & mc) const {
+        unsigned int CClientPeer::SendResultIndex(UINT64 callIndex, unsigned short reqId, const CUQueue & mc) {
             return SendResultIndex(callIndex, reqId, mc.GetBuffer(), mc.GetSize());
         }
 
-        unsigned int CClientPeer::SendResultIndex(UINT64 callIndex, unsigned short reqId, const CScopeUQueue & sb) const {
+        unsigned int CClientPeer::SendResultIndex(UINT64 callIndex, unsigned short reqId, const CScopeUQueue & sb) {
             return SendResultIndex(callIndex, reqId, sb->GetBuffer(), sb->GetSize());
         }
 
-        unsigned int CClientPeer::SendResultIndex(UINT64 callIndex, unsigned short reqId) const {
+        unsigned int CClientPeer::SendResultIndex(UINT64 callIndex, unsigned short reqId) {
             return SendResultIndex(callIndex, reqId, (const unsigned char*) nullptr, (unsigned int) 0);
         }
 
@@ -1013,7 +1018,7 @@ namespace SPA
         }
 
         CSocketPeer * CBaseService::Seek(USocket_Server_Handle h) noexcept {
-            CAutoLock sl(m_cs);
+            CSpinAutoLock sl(m_cs);
             size_t size = m_vPeer.size();
             const PSocketPeer *start = m_vPeer.data();
             for (size_t it = 0; it < size; ++it) {
@@ -1027,7 +1032,7 @@ namespace SPA
 
         void CBaseService::ReleasePeer(USocket_Server_Handle h, bool bClosing, unsigned int info) {
             std::vector<CSocketPeer*>::iterator it;
-            CAutoLock sl(m_cs);
+            CSpinAutoLock sl(m_cs);
             std::vector<CSocketPeer*>::iterator end = m_vPeer.end();
             for (it = m_vPeer.begin(); it != end; ++it) {
                 CSocketPeer *pPeer = *it;
@@ -1067,7 +1072,7 @@ namespace SPA
                 }
                 m_vDeadPeer.clear();
             }
-            CAutoLock al(m_cs);
+            CSpinAutoLock al(m_cs);
             for (auto it = m_vPeer.begin(), end = m_vPeer.end(); it != end; ++it) {
                 //comment out the below call to avoid crashing here
                 //::PostClose((*it)->m_hHandler); 

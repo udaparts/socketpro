@@ -652,14 +652,24 @@ namespace SPA {
                     assert(false);
                     return false;
                 }
+#ifdef NODE_JS_ADAPTER_PROJECT
+                CScopeUQueue& sb = m_sbSend;
+                sb->SetSize(0);
+#else
                 CScopeUQueue sb;
+#endif
                 sb << key;
                 sb->Push(buffer, size);
                 return SendRequest(Queue::idEnqueueBatch, sb->GetBuffer(), sb->GetSize(), GetRH(e), discarded, se);
             }
 
             bool Enqueue(const char *key, unsigned short idMessage, const unsigned char *buffer, unsigned int size, const DEnqueue& e = nullptr, const DDiscarded& discarded = nullptr, const DServerException& se = nullptr) {
+#ifdef NODE_JS_ADAPTER_PROJECT
+                CScopeUQueue& sb = m_sbSend;
+                sb->SetSize(0);
+#else
                 CScopeUQueue sb;
+#endif
                 sb << key << idMessage;
                 sb->Push(buffer, size);
                 return SendRequest(Queue::idEnqueue, sb->GetBuffer(), sb->GetSize(), GetRH(e), discarded, se);
@@ -671,7 +681,12 @@ namespace SPA {
 
             template<typename ...Ts>
             bool Enqueue(const char* key, unsigned short idMessage, const DEnqueue& e, const DDiscarded& discarded, const DServerException& se, const Ts& ...t) {
+#ifdef NODE_JS_ADAPTER_PROJECT
+                CScopeUQueue& sb = m_sbSend;
+                sb->SetSize(0);
+#else
                 CScopeUQueue sb;
+#endif
                 sb << key << idMessage;
                 sb->Save(t ...);
                 return SendRequest(Queue::idEnqueue, sb->GetBuffer(), sb->GetSize(), GetRH(e), discarded, se);
@@ -679,7 +694,12 @@ namespace SPA {
 
             template<typename ...Ts>
             bool Enqueue(const char* key, unsigned short idMessage, const DEnqueue& e, const DDiscarded& discarded, const Ts& ...t) {
+#ifdef NODE_JS_ADAPTER_PROJECT
+                CScopeUQueue& sb = m_sbSend;
+                sb->SetSize(0);
+#else
                 CScopeUQueue sb;
+#endif
                 sb << key << idMessage;
                 sb->Save(t ...);
                 return SendRequest(Queue::idEnqueue, sb->GetBuffer(), sb->GetSize(), GetRH(e), discarded, NULL_SE);
@@ -687,7 +707,12 @@ namespace SPA {
 
             template<typename ...Ts>
             bool Enqueue(const char* key, unsigned short idMessage, const DEnqueue& e, const Ts& ...t) {
+#ifdef NODE_JS_ADAPTER_PROJECT
+                CScopeUQueue& sb = m_sbSend;
+                sb->SetSize(0);
+#else
                 CScopeUQueue sb;
+#endif
                 sb << key << idMessage;
                 sb->Save(t ...);
                 return SendRequest(Queue::idEnqueue, sb->GetBuffer(), sb->GetSize(), GetRH(e), NULL_ABORTED, NULL_SE);
@@ -695,7 +720,12 @@ namespace SPA {
 
             template<typename ...Ts>
             bool Enqueue(const char* key, unsigned short idMessage, const Ts& ...t) {
+#ifdef NODE_JS_ADAPTER_PROJECT
+                CScopeUQueue& sb = m_sbSend;
+                sb->SetSize(0);
+#else
                 CScopeUQueue sb;
+#endif
                 sb << key << idMessage;
                 sb->Save(t ...);
                 return SendRequest(Queue::idEnqueue, sb->GetBuffer(), sb->GetSize(), NULL_RH, NULL_ABORTED, NULL_SE);

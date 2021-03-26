@@ -747,11 +747,20 @@ namespace SPA {
         }
 
         bool CClientSocket::CQueueImpl::StartQueue(const char *qName, unsigned int ttl, bool secure, bool dequeueShared) const {
-            return ClientCoreLoader.StartQueue(m_hSocket, qName, secure, dequeueShared, ttl);
+            CAsyncServiceHandler* ash = CClientSocket::Seek(m_hSocket)->GetCurrentHandler();
+            bool ok = ClientCoreLoader.StartQueue(m_hSocket, qName, secure, dequeueShared, ttl);
+            if (ash) {
+                ash->m_qStarted = ok;
+            }
+            return ok;
         }
 
         void CClientSocket::CQueueImpl::StopQueue(bool permanent) {
+            CAsyncServiceHandler* ash = CClientSocket::Seek(m_hSocket)->GetCurrentHandler();
             ClientCoreLoader.StopQueue(m_hSocket, permanent);
+            if (ash) {
+                ash->m_qStarted = false;
+            }
         }
 
         unsigned int CClientSocket::CQueueImpl::GetTTL() const {

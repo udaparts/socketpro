@@ -228,7 +228,7 @@ namespace SPA {
             unsigned int GetCountOfJoinedChatGroups() const;
             std::vector<unsigned int> GetChatGroups() const;
             unsigned int SendExceptionResult(const wchar_t* errMessage, const char* errWhere, unsigned int errCode = 0, unsigned short requestId = 0, UINT64 callIndex = INVALID_NUMBER) const;
-            unsigned int SendExceptionResult(const char* errMessage, const char* errWhere, unsigned int errCode = 0, unsigned short requestId = 0, UINT64 callIndex = INVALID_NUMBER) const;
+            unsigned int SendExceptionResult(const char* errMessage, const char* errWhere, unsigned int errCode = 0, unsigned short requestId = 0, UINT64 callIndex = INVALID_NUMBER);
             bool MakeRequest(unsigned short requestId, const unsigned char *request, unsigned int size) const;
             static bool IsMainThread();
             static UINT64 GetRequestCount();
@@ -261,7 +261,9 @@ namespace SPA {
         protected:
             CUQueue &m_UQueue;
             bool m_bRandom;
-
+#ifndef NO_SHARED_SENDING_BUFFER
+            CScopeUQueue m_sbSend;
+#endif
         private:
             friend class CBaseService;
         };
@@ -548,29 +550,39 @@ namespace SPA {
             virtual void OnInterrupted(UINT64 options);
 
         public:
-            virtual unsigned int SendResult(unsigned short reqId, const unsigned char* pResult, unsigned int size) const;
-            unsigned int SendResult(unsigned short reqId, const CUQueue &mc) const;
-            unsigned int SendResult(unsigned short reqId, const CScopeUQueue &sb) const;
-            unsigned int SendResult(unsigned short reqId) const;
-            virtual unsigned int SendResultIndex(UINT64 callIndex, unsigned short reqId, const unsigned char* pResult, unsigned int size) const;
-            unsigned int SendResultIndex(UINT64 callIndex, unsigned short reqId, const CUQueue &mc) const;
-            unsigned int SendResultIndex(UINT64 callIndex, unsigned short reqId, const CScopeUQueue &sb) const;
-            unsigned int SendResultIndex(UINT64 callIndex, unsigned short reqId) const;
+            virtual unsigned int SendResult(unsigned short reqId, const unsigned char* pResult, unsigned int size);
+            unsigned int SendResult(unsigned short reqId, const CUQueue &mc);
+            unsigned int SendResult(unsigned short reqId, const CScopeUQueue &sb);
+            unsigned int SendResult(unsigned short reqId);
+            virtual unsigned int SendResultIndex(UINT64 callIndex, unsigned short reqId, const unsigned char* pResult, unsigned int size);
+            unsigned int SendResultIndex(UINT64 callIndex, unsigned short reqId, const CUQueue &mc);
+            unsigned int SendResultIndex(UINT64 callIndex, unsigned short reqId, const CScopeUQueue &sb);
+            unsigned int SendResultIndex(UINT64 callIndex, unsigned short reqId);
 
             UINT64 Dequeue(unsigned int qHandle, unsigned int messageCount, bool bNotifiedWhenAvailable, unsigned int waitTime = 0) const;
             UINT64 Dequeue(unsigned int qHandle, bool bNotifiedWhenAvailable, unsigned int maxBytes = 8 * 1024, unsigned int waitTime = 0) const;
             void EnableClientDequeue(bool enable) const;
 
             template<typename ...Ts>
-            unsigned int SendResult(unsigned short reqId, const Ts& ...data) const {
+            unsigned int SendResult(unsigned short reqId, const Ts& ...data) {
+#ifndef NO_SHARED_SENDING_BUFFER
+                CScopeUQueue& sb = m_sbSend;
+                sb->SetSize(0);
+#else
                 CScopeUQueue sb;
+#endif
                 sb->Save(data ...);
                 return SendResult(reqId, sb->GetBuffer(), sb->GetSize());
             }
 
             template<typename ...Ts>
-            unsigned int SendResultIndex(UINT64 callIndex, unsigned short reqId, const Ts& ...data) const {
+            unsigned int SendResultIndex(UINT64 callIndex, unsigned short reqId, const Ts& ...data) {
+#ifndef NO_SHARED_SENDING_BUFFER
+                CScopeUQueue& sb = m_sbSend;
+                sb->SetSize(0);
+#else
                 CScopeUQueue sb;
+#endif
                 sb->Save(data ...);
                 return SendResultIndex(callIndex, reqId, sb->GetBuffer(), sb->GetSize());
             }
@@ -623,7 +635,6 @@ namespace SPA {
             void ReleasePeer(USocket_Server_Handle h, bool bClosing, unsigned int info);
             void Clean();
 
-
         private:
             static void CALLBACK OnReqArrive(USocket_Server_Handle hSocket, unsigned short usRequestID, unsigned int len);
             static void CALLBACK OnFast(USocket_Server_Handle hSocket, unsigned short usRequestID, unsigned int len);
@@ -641,7 +652,7 @@ namespace SPA {
             CSvsContext m_SvsContext;
             std::vector<CSocketPeer*> m_vPeer;
             std::deque<CSocketPeer*> m_vDeadPeer;
-            CUCriticalSection m_cs;
+            CSpinLock m_cs;
             unsigned int m_nServiceId;
             static U_MODULE_HIDDEN CSpinLock m_mutex;
             static U_MODULE_HIDDEN std::vector<CBaseService*> m_vService;

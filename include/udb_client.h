@@ -242,11 +242,11 @@ namespace SPA {
                 return true;
             }
 
-            bool SendParametersData(const CDBVariantArray& vParam) {
+            bool SendParametersData(CScopeUQueue& sb, const CDBVariantArray& vParam) {
                 size_t size = vParam.size();
                 if (size) {
+                    assert(!sb->GetSize());
                     bool firstRow = true;
-                    CScopeUQueue sb;
                     for (size_t n = 0; n < size; ++n) {
                         const CDBVariant& vt = vParam[n];
                         unsigned short dt = vt.Type();
@@ -330,9 +330,12 @@ namespace SPA {
                     const CParameterInfoArray& vPInfo = CParameterInfoArray(), bool lastInsertId = true, const DServerException& se = nullptr) {
                 bool rowset = (row) ? true : false;
                 meta = (meta && rh);
+#ifdef NODE_JS_ADAPTER_PROJECT
+                CScopeUQueue& sb = m_sbSend;
+                sb->SetSize(0);
+#else
                 CScopeUQueue sb;
-                sb << sql << delimiter << (int) isolation << (int) plan << rowset << meta << lastInsertId;
-
+#endif
                 UINT64 callIndex;
                 bool queueOk = false;
 
@@ -344,10 +347,12 @@ namespace SPA {
                 if (vParam.size())
                     queueOk = GetSocket()->GetClientQueue().StartJob();
                 {
-                    if (!SendParametersData(vParam)) {
+                    if (!SendParametersData(sb, vParam)) {
                         Clean();
                         return false;
                     }
+                    sb->SetSize(0);
+                    sb << sql << delimiter << (int)isolation << (int)plan << rowset << meta << lastInsertId;
                     callIndex = GetCallIndex();
                     //don't make m_csDB locked across calling SendRequest, which may lead to client dead-lock
                     //in case a client asynchronously sends lots of requests without use of client side queue.
@@ -397,9 +402,12 @@ namespace SPA {
                     bool meta = true, bool lastInsertId = true, const DDiscarded& discarded = nullptr, const DServerException& se = nullptr) {
                 bool rowset = (row) ? true : false;
                 meta = (meta && rh);
+#ifdef NODE_JS_ADAPTER_PROJECT
+                CScopeUQueue& sb = m_sbSend;
+                sb->SetSize(0);
+#else
                 CScopeUQueue sb;
-                sb << rowset << meta << lastInsertId;
-
+#endif
                 UINT64 callIndex;
                 bool queueOk = false;
                 //make sure all parameter data sending and ExecuteParameters sending as one combination sending
@@ -409,12 +417,14 @@ namespace SPA {
 #endif
                 {
                     if (vParam.size()) {
-                        queueOk = GetSocket()->GetClientQueue().StartJob();
-                        if (!SendParametersData(vParam)) {
+                        queueOk = (IsQueueStarted() && GetSocket()->GetClientQueue().StartJob());
+                        if (!SendParametersData(sb, vParam)) {
                             Clean();
                             return false;
                         }
+                        sb->SetSize(0);
                     }
+                    sb << rowset << meta << lastInsertId;
                     callIndex = GetCallIndex();
                     //don't make m_csDB locked across calling SendRequest, which may lead to client dead-lock in case a client asynchronously sends lots of requests without use of client side queue.
                     CAutoLock al(m_csDB);
@@ -498,7 +508,12 @@ namespace SPA {
              * @return true if request is successfully sent or queued; and false if request is NOT successfully sent or queued
              */
             virtual bool Prepare(const char16_t* sql, const DResult& handler = nullptr, const CParameterInfoArray& vParameterInfo = CParameterInfoArray(), const DDiscarded& discarded = nullptr, const DServerException& se = nullptr) {
+#ifdef NODE_JS_ADAPTER_PROJECT
+                CScopeUQueue& sb = m_sbSend;
+                sb->SetSize(0);
+#else
                 CScopeUQueue sb;
+#endif
                 DResultHandler arh = [handler](CAsyncResult & ar) {
                     int res;
                     std::wstring errMsg;
@@ -546,9 +561,12 @@ namespace SPA {
                     const CParameterInfoArray& vPInfo = CParameterInfoArray(), bool lastInsertId = true, const DServerException& se = nullptr) {
                 bool rowset = (row) ? true : false;
                 meta = (meta && rh);
+#ifdef NODE_JS_ADAPTER_PROJECT
+                CScopeUQueue &sb = m_sbSend;
+                sb->SetSize(0);
+#else
                 CScopeUQueue sb;
-                sb << sql << delimiter << (int) isolation << (int) plan << rowset << meta << lastInsertId;
-
+#endif
                 UINT64 callIndex;
                 bool queueOk = false;
 
@@ -558,12 +576,14 @@ namespace SPA {
                 SPA::CAutoLock alOne(m_csOneSending);
 #endif
                 if (vParam.size())
-                    queueOk = GetSocket()->GetClientQueue().StartJob();
+                    queueOk = (IsQueueStarted() && GetSocket()->GetClientQueue().StartJob());
                 {
-                    if (!SendParametersData(vParam)) {
+                    if (!SendParametersData(sb, vParam)) {
                         Clean();
                         return false;
                     }
+                    sb->SetSize(0);
+                    sb << sql << delimiter << (int)isolation << (int)plan << rowset << meta << lastInsertId;
                     callIndex = GetCallIndex();
                     //don't make m_csDB locked across calling SendRequest, which may lead to client dead-lock
                     //in case a client asynchronously sends lots of requests without use of client side queue.
@@ -612,8 +632,13 @@ namespace SPA {
             virtual bool Execute(const char16_t* sql, const DExecuteResult& handler = nullptr, const DRows& row = nullptr, const DRowsetHeader& rh = nullptr, bool meta = true, bool lastInsertId = true, const DDiscarded& discarded = nullptr, const DServerException& se = nullptr) {
                 bool rowset = (row) ? true : false;
                 meta = (meta && rh);
+#ifdef NODE_JS_ADAPTER_PROJECT
+                CScopeUQueue &sb = m_sbSend;
+                sb->SetSize(0);
+                sb << sql << rowset << meta << lastInsertId;
+#else
                 CScopeUQueue sb;
-#ifndef NODE_JS_ADAPTER_PROJECT
+                sb << sql << rowset << meta << lastInsertId;
                 SPA::CAutoLock alOne(m_csOneSending);
 #endif
                 UINT64 index = GetCallIndex();
@@ -625,7 +650,7 @@ namespace SPA {
                         m_mapRowset.emplace(index, CRowsetHandler(rh, row));
                     }
                 }
-                sb << sql << rowset << meta << lastInsertId << index;
+                sb << index;
                 DResultHandler arh = [index, handler, this](CAsyncResult & ar) {
                     Process(handler, ar, idExecute, index);
                 };
@@ -827,7 +852,12 @@ namespace SPA {
             virtual bool BeginTrans(tagTransactionIsolation isolation = tagTransactionIsolation::tiReadCommited, const DResult& handler = nullptr, const DDiscarded& discarded = nullptr, const DServerException& se = nullptr) {
                 unsigned int flags;
                 std::wstring connection;
+#ifdef NODE_JS_ADAPTER_PROJECT
+                CScopeUQueue& sb = m_sbSend;
+                sb->SetSize(0);
+#else
                 CScopeUQueue sb;
+#endif
                 DResultHandler arh = [handler](CAsyncResult & ar) {
                     int res, ms;
                     std::wstring errMsg;
@@ -863,7 +893,7 @@ namespace SPA {
 
                 sb << (int) isolation << connection << flags;
                 //associate begin transaction with underlying client persistent message queue
-                m_queueOk = GetSocket()->GetClientQueue().StartJob();
+                m_queueOk = (IsQueueStarted() && GetSocket()->GetClientQueue().StartJob());
                 return SendRequest(idBeginTrans, sb->GetBuffer(), sb->GetSize(), arh, discarded, se);
             }
 
@@ -876,8 +906,7 @@ namespace SPA {
              * @return true if request is successfully sent or queued; and false if request is NOT successfully sent or queued
              */
             virtual bool EndTrans(tagRollbackPlan plan = tagRollbackPlan::rpDefault, const DResult& handler = nullptr, const DDiscarded& discarded = nullptr, const DServerException& se = nullptr) {
-                CScopeUQueue sb;
-                sb << (int) plan;
+                int p = (int)plan;
                 DResultHandler arh = [handler](CAsyncResult & ar) {
                     int res;
                     std::wstring errMsg;
@@ -898,7 +927,7 @@ namespace SPA {
 #ifndef NODE_JS_ADAPTER_PROJECT
                 SPA::CAutoLock alOne(m_csOneSending);
 #endif
-                if (SendRequest(idEndTrans, sb->GetBuffer(), sb->GetSize(), arh, discarded, se)) {
+                if (SendRequest(idEndTrans, (const unsigned char*)&p, sizeof(p), arh, discarded, se)) {
                     if (m_queueOk) {
                         //associate end transaction with underlying client persistent message queue
                         GetSocket()->GetClientQueue().EndJob();
