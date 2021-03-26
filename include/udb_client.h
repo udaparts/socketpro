@@ -352,7 +352,7 @@ namespace SPA {
                         return false;
                     }
                     sb->SetSize(0);
-                    sb << sql << delimiter << (int)isolation << (int)plan << rowset << meta << lastInsertId;
+                    sb << sql << delimiter << (int) isolation << (int) plan << rowset << meta << lastInsertId;
                     callIndex = GetCallIndex();
                     //don't make m_csDB locked across calling SendRequest, which may lead to client dead-lock
                     //in case a client asynchronously sends lots of requests without use of client side queue.
@@ -583,7 +583,7 @@ namespace SPA {
                         return false;
                     }
                     sb->SetSize(0);
-                    sb << sql << delimiter << (int)isolation << (int)plan << rowset << meta << lastInsertId;
+                    sb << sql << delimiter << (int) isolation << (int) plan << rowset << meta << lastInsertId;
                     callIndex = GetCallIndex();
                     //don't make m_csDB locked across calling SendRequest, which may lead to client dead-lock
                     //in case a client asynchronously sends lots of requests without use of client side queue.
@@ -906,7 +906,7 @@ namespace SPA {
              * @return true if request is successfully sent or queued; and false if request is NOT successfully sent or queued
              */
             virtual bool EndTrans(tagRollbackPlan plan = tagRollbackPlan::rpDefault, const DResult& handler = nullptr, const DDiscarded& discarded = nullptr, const DServerException& se = nullptr) {
-                int p = (int)plan;
+                int p = (int) plan;
                 DResultHandler arh = [handler](CAsyncResult & ar) {
                     int res;
                     std::wstring errMsg;
@@ -927,7 +927,7 @@ namespace SPA {
 #ifndef NODE_JS_ADAPTER_PROJECT
                 SPA::CAutoLock alOne(m_csOneSending);
 #endif
-                if (SendRequest(idEndTrans, (const unsigned char*)&p, sizeof(p), arh, discarded, se)) {
+                if (SendRequest(idEndTrans, (const unsigned char*) &p, sizeof (p), arh, discarded, se)) {
                     if (m_queueOk) {
                         //associate end transaction with underlying client persistent message queue
                         GetSocket()->GetClientQueue().EndJob();

@@ -863,6 +863,7 @@ namespace SPA {
             static void ClearResultCallbackPool(unsigned int remaining);
             static unsigned int CountResultCallbacksInPool() noexcept;
             static UINT64 GetCallIndex() noexcept;
+
             inline bool IsQueueStarted() const noexcept {
                 return m_qStarted;
             }
