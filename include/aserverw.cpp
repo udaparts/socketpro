@@ -1018,7 +1018,11 @@ namespace SPA
         }
 
         CSocketPeer * CBaseService::Seek(USocket_Server_Handle h) noexcept {
+#ifdef MANY_CLIENT_SESSIONS
+            CAutoLock sl(m_cs);
+#else
             CSpinAutoLock sl(m_cs);
+#endif
             size_t size = m_vPeer.size();
             const PSocketPeer *start = m_vPeer.data();
             for (size_t it = 0; it < size; ++it) {
@@ -1032,7 +1036,11 @@ namespace SPA
 
         void CBaseService::ReleasePeer(USocket_Server_Handle h, bool bClosing, unsigned int info) {
             std::vector<CSocketPeer*>::iterator it;
+#ifdef MANY_CLIENT_SESSIONS
+            CAutoLock sl(m_cs);
+#else
             CSpinAutoLock sl(m_cs);
+#endif
             std::vector<CSocketPeer*>::iterator end = m_vPeer.end();
             for (it = m_vPeer.begin(); it != end; ++it) {
                 CSocketPeer *pPeer = *it;
@@ -1072,7 +1080,11 @@ namespace SPA
                 }
                 m_vDeadPeer.clear();
             }
+#ifdef MANY_CLIENT_SESSIONS
+            CAutoLock al(m_cs);
+#else
             CSpinAutoLock al(m_cs);
+#endif
             for (auto it = m_vPeer.begin(), end = m_vPeer.end(); it != end; ++it) {
                 //comment out the below call to avoid crashing here
                 //::PostClose((*it)->m_hHandler); 
