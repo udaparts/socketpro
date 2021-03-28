@@ -229,11 +229,9 @@ function TestBatch(db) {
         }
     }, meta => {
         console.log(meta);
-    }, () => {
+    }, '|', () => {
         console.log('Batch header comes');
-    }, canceled => {
-        console.log(canceled ? 'Request canceled' : 'Session closed');
-    }, SPA.DB.RollbackPlan.rpDefault, "|")) {
+    })) {
         console.log(db.Socket.Error);
         return false;
     }
