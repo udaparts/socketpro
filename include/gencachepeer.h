@@ -17,13 +17,13 @@ namespace SPA {
             CCacheBasePeer() {
             }
 
-            bool SendMeta(const SPA::UDB::CDBColumnInfoArray &meta, SPA::UINT64 index) const {
+            bool SendMeta(const SPA::UDB::CDBColumnInfoArray &meta, SPA::UINT64 index) {
                 //A client expects a rowset meta data and call index
                 unsigned int ret = SendResult(SPA::UDB::idRowsetHeader, meta, index);
                 return (ret != REQUEST_CANCELED && ret != SOCKET_NOT_FOUND);
             }
 
-            bool SendRows(const SPA::UDB::CDBVariantArray &vData) const {
+            bool SendRows(const SPA::UDB::CDBVariantArray &vData) {
                 unsigned int len;
                 SPA::CScopeUQueue sb;
                 for (auto it = vData.begin(), end = vData.end(); it != end; ++it) {
@@ -72,7 +72,7 @@ namespace SPA {
         protected:
             virtual void GetCachedTables(const CDBString &defaultDb, unsigned int flags, UINT64 index, int &dbMS, int &res, std::wstring &errMsg) = 0;
 
-            bool SendBlob(unsigned short data_type, const unsigned char *buffer, unsigned int bytes) const {
+            bool SendBlob(unsigned short data_type, const unsigned char *buffer, unsigned int bytes) {
                 unsigned int ret = SendResult(UDB::idStartBLOB,
                         (unsigned int) (bytes + sizeof (unsigned short) + sizeof (unsigned int) + sizeof (unsigned int))/* extra 4 bytes for string null termination*/,
                         data_type, bytes);
@@ -95,7 +95,7 @@ namespace SPA {
                 return true;
             }
 
-            bool SendRows(CScopeUQueue& sb, bool transferring) const {
+            bool SendRows(CScopeUQueue& sb, bool transferring) {
                 bool batching = (GetBytesBatched() >= UDB::DEFAULT_RECORD_BATCH_SIZE);
                 if (batching) {
                     CommitBatching();
