@@ -41,6 +41,7 @@ OBJECTFILES= \
 	${OBJECTDIR}/_ext/1719658846/uthread.o \
 	${OBJECTDIR}/_ext/262068057/membuffer.o \
 	${OBJECTDIR}/_ext/648362257/connectioncontext.o \
+	${OBJECTDIR}/_ext/648362257/fastujson.o \
 	${OBJECTDIR}/_ext/648362257/httpcontext.o \
 	${OBJECTDIR}/_ext/648362257/httpgrammar.o \
 	${OBJECTDIR}/_ext/648362257/jsloader.o \
@@ -113,6 +114,11 @@ ${OBJECTDIR}/_ext/648362257/connectioncontext.o: ../servercore/connectioncontext
 	${MKDIR} -p ${OBJECTDIR}/_ext/648362257
 	${RM} "$@.d"
 	$(COMPILE.c) -g -DUSE_SPIRIT_CLSSICAL_FOR_MULTIPART `pkg-config --cflags libcrypto`   -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/648362257/connectioncontext.o ../servercore/connectioncontext.cpp
+
+${OBJECTDIR}/_ext/648362257/fastujson.o: ../servercore/fastujson.cpp 
+	${MKDIR} -p ${OBJECTDIR}/_ext/648362257
+	${RM} "$@.d"
+	$(COMPILE.c) -g -DUSE_SPIRIT_CLSSICAL_FOR_MULTIPART `pkg-config --cflags libcrypto`   -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/648362257/fastujson.o ../servercore/fastujson.cpp
 
 ${OBJECTDIR}/_ext/648362257/httpcontext.o: ../servercore/httpcontext.cpp 
 	${MKDIR} -p ${OBJECTDIR}/_ext/648362257

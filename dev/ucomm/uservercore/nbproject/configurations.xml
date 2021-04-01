@@ -31,6 +31,7 @@
                    displayName="Source Files"
                    projectFiles="true">
       <itemPath>../servercore/connectioncontext.cpp</itemPath>
+      <itemPath>../servercore/fastujson.cpp</itemPath>
       <itemPath>../servercore/httpcontext.cpp</itemPath>
       <itemPath>../servercore/httpgrammar.cpp</itemPath>
       <itemPath>../core_shared/shared/includes.cpp</itemPath>
@@ -139,6 +140,8 @@
             flavor2="0">
       </item>
       <item path="../servercore/connectioncontext.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../servercore/fastujson.cpp" ex="false" tool="0" flavor2="0">
       </item>
       <item path="../servercore/httpcontext.cpp" ex="false" tool="0" flavor2="0">
       </item>
@@ -280,6 +283,8 @@
             flavor2="0">
       </item>
       <item path="../servercore/connectioncontext.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="../servercore/fastujson.cpp" ex="false" tool="0" flavor2="0">
       </item>
       <item path="../servercore/httpcontext.cpp" ex="false" tool="0" flavor2="0">
       </item>

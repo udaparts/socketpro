@@ -47,7 +47,6 @@ OBJECTFILES= \
 	${OBJECTDIR}/compress.o \
 	${OBJECTDIR}/crc32.o \
 	${OBJECTDIR}/deflate.o \
-	${OBJECTDIR}/fastujson.o \
 	${OBJECTDIR}/getsysid.o \
 	${OBJECTDIR}/infback.o \
 	${OBJECTDIR}/inffast.o \
@@ -147,11 +146,6 @@ ${OBJECTDIR}/deflate.o: deflate.c
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
 	$(COMPILE.c) -g -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/deflate.o deflate.c
-
-${OBJECTDIR}/fastujson.o: fastujson.cpp 
-	${MKDIR} -p ${OBJECTDIR}
-	${RM} "$@.d"
-	$(COMPILE.cc) -g -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/fastujson.o fastujson.cpp
 
 ${OBJECTDIR}/getsysid.o: getsysid.cpp 
 	${MKDIR} -p ${OBJECTDIR}

@@ -189,23 +189,23 @@ namespace SPA {
             tagOperationSystem os = GetOS();
             switch (os) {
                 case tagOperationSystem::osWin:
-					aOs = { "win", "apple" };
+                    aOs = {"win", "apple"};
                     break;
                 case tagOperationSystem::osApple:
                     aOs.push_back("apple");
                     break;
                 case tagOperationSystem::osUnix:
-					aOs = { "unix", "apple" };
+                    aOs = {"unix", "apple"};
                     break;
                     break;
                 default:
                     break;
             }
-			aOs.push_back("android");
-			aOs.push_back("wince");
+            aOs.push_back("android");
+            aOs.push_back("wince");
             JSON::JArray<char> aServices;
-			time_t t;
-			char strDate[128] = { 0 };
+            time_t t;
+            char strDate[128] = {0};
             time(&t);
 #if defined(__ANDROID__) || defined(ANDROID) || defined(WINCE)
             tm *p = ::gmtime(&t);
@@ -219,29 +219,29 @@ namespace SPA {
             tm *p = ::gmtime(&t);
             ::sprintf(strDate, "%.4d/%.2d/%.2d", p->tm_year + 1900, p->tm_mon + 1, p->tm_mday);
 #endif
-			std::string id = GetSysId();
-			SPA::JSON::JObject<char> jobj;
-			jobj[EndDate] = strDate;
-			jobj[CompanyName] = DefaultCompanyNameValue;
-			jobj[JavaScript] = 1;
-			jobj[CompanyName] = DefaultCompanyNameValue;
-			jobj[Platforms] = std::move(aOs);
-			jobj[Services] = std::move(aServices);
-			jobj[RequestQueue] = 1;
-			jobj[ManyClients] = MAX_CLIENTS;
-			jobj[MaxSpeed] = MAX_REQ_SPEED;
-			jobj[Routing] = 1;
-			jobj[Endian] = 1;
-			jobj[Other] = 0;
-			jobj[MachineID] = std::move(id);
-			jobj[Key] = "";
-			JSON::JValue<char> jv(std::move(jobj));
+            std::string id = GetSysId();
+            SPA::JSON::JObject<char> jobj;
+            jobj[EndDate] = strDate;
+            jobj[CompanyName] = DefaultCompanyNameValue;
+            jobj[JavaScript] = 1;
+            jobj[CompanyName] = DefaultCompanyNameValue;
+            jobj[Platforms] = std::move(aOs);
+            jobj[Services] = std::move(aServices);
+            jobj[RequestQueue] = 1;
+            jobj[ManyClients] = MAX_CLIENTS;
+            jobj[MaxSpeed] = MAX_REQ_SPEED;
+            jobj[Routing] = 1;
+            jobj[Endian] = 1;
+            jobj[Other] = 0;
+            jobj[MachineID] = std::move(id);
+            jobj[Key] = "";
+            JSON::JValue<char> jv(std::move(jobj));
 
             std::string appName = GetAppName();
             std::string RegFileName = appName + "_sp.json";
             std::ofstream outfile(RegFileName.c_str());
             if (outfile) {
-				outfile << jv.Stringify();
+                outfile << jv.Stringify();
                 outfile.close();
                 return true;
             }
@@ -249,106 +249,99 @@ namespace SPA {
         }
 
         bool SetRegistration(const char *str, URegistration &reg) {
-			std::shared_ptr<JSON::JValue<char>> root(JSON::Parse<char>(str));
+            std::shared_ptr<JSON::JValue<char>> root(JSON::Parse<char>(str));
             if (!root)
                 return false;
-			JSON::JValue<char> *jv = root->Child(EndDate);
-			if (jv && jv->GetType() == JSON::enumType::String) {
-				reg.EndDate = jv->AsString();
-			}
+            JSON::JValue<char> *jv = root->Child(EndDate);
+            if (jv && jv->GetType() == JSON::enumType::String) {
+                reg.EndDate = jv->AsString();
+            }
 
-			jv = root->Child(CompanyName);
-			if (jv && jv->GetType() == JSON::enumType::String) {
-				reg.CompanyName = jv->AsString();
-			}
+            jv = root->Child(CompanyName);
+            if (jv && jv->GetType() == JSON::enumType::String) {
+                reg.CompanyName = jv->AsString();
+            }
 
-			jv = root->Child(MachineID);
-			if (jv && jv->GetType() == JSON::enumType::String) {
-				reg.MachineID = jv->AsString();
-			}
+            jv = root->Child(MachineID);
+            if (jv && jv->GetType() == JSON::enumType::String) {
+                reg.MachineID = jv->AsString();
+            }
 
-			jv = root->Child(Key);
-			if (jv && jv->GetType() == JSON::enumType::String) {
-				reg.Key = jv->AsString();
-			}
+            jv = root->Child(Key);
+            if (jv && jv->GetType() == JSON::enumType::String) {
+                reg.Key = jv->AsString();
+            }
 
-			jv = root->Child(Platforms);
-			if (jv && jv->GetType() == JSON::enumType::Array) {
-				auto &arr = jv->AsArray();
-				for (auto it = arr.begin(), end = arr.end(); it != end; ++it) {
-					if (it->GetType() != JSON::enumType::String) {
-						continue;
-					}
-					reg.Platforms.push_back(it->AsString());
-				}
-			}
+            jv = root->Child(Platforms);
+            if (jv && jv->GetType() == JSON::enumType::Array) {
+                auto &arr = jv->AsArray();
+                for (auto it = arr.begin(), end = arr.end(); it != end; ++it) {
+                    if (it->GetType() != JSON::enumType::String) {
+                        continue;
+                    }
+                    reg.Platforms.push_back(it->AsString());
+                }
+            }
 
-			jv = root->Child(Services);
-			if (jv && jv->GetType() == JSON::enumType::Array) {
-				auto &arr = jv->AsArray();
-				for (auto it = arr.begin(), end = arr.end(); it != end; ++it) {
-					if (it->GetType() != JSON::enumType::Uint64) {
-						continue;
-					}
-					reg.Services.push_back((unsigned int)it->AsUint64());
-				}
-			}
-			
-			jv = root->Child(JavaScript);
-			if (jv && jv->GetType() == JSON::enumType::Uint64) {
-				reg.JavaScript = (unsigned int)jv->AsUint64();
-			}
-			else {
-				reg.JavaScript = 1;
-			}
+            jv = root->Child(Services);
+            if (jv && jv->GetType() == JSON::enumType::Array) {
+                auto &arr = jv->AsArray();
+                for (auto it = arr.begin(), end = arr.end(); it != end; ++it) {
+                    if (it->GetType() != JSON::enumType::Uint64) {
+                        continue;
+                    }
+                    reg.Services.push_back((unsigned int) it->AsUint64());
+                }
+            }
 
-			jv = root->Child(RequestQueue);
-			if (jv && jv->GetType() == JSON::enumType::Uint64) {
-				reg.RequestQueue = (unsigned int)jv->AsUint64();
-			}
-			else {
-				reg.RequestQueue = 1;
-			}
+            jv = root->Child(JavaScript);
+            if (jv && jv->GetType() == JSON::enumType::Uint64) {
+                reg.JavaScript = (unsigned int) jv->AsUint64();
+            } else {
+                reg.JavaScript = 1;
+            }
 
-			jv = root->Child(ManyClients);
-			if (jv && jv->GetType() == JSON::enumType::Uint64) {
-				reg.ManyClients = (unsigned int)jv->AsUint64();
-			}
-			else {
-				reg.ManyClients = MAX_CLIENTS;
-			}
+            jv = root->Child(RequestQueue);
+            if (jv && jv->GetType() == JSON::enumType::Uint64) {
+                reg.RequestQueue = (unsigned int) jv->AsUint64();
+            } else {
+                reg.RequestQueue = 1;
+            }
 
-			jv = root->Child(MaxSpeed);
-			if (jv && jv->GetType() == JSON::enumType::Uint64) {
-				reg.MaxSpeed = (unsigned int)jv->AsUint64();
-			}
-			else {
-				reg.MaxSpeed = MAX_REQ_SPEED;
-			}
+            jv = root->Child(ManyClients);
+            if (jv && jv->GetType() == JSON::enumType::Uint64) {
+                reg.ManyClients = (unsigned int) jv->AsUint64();
+            } else {
+                reg.ManyClients = MAX_CLIENTS;
+            }
 
-			jv = root->Child(Routing);
-			if (jv && jv->GetType() == JSON::enumType::Uint64) {
-				reg.Routing = (unsigned int)jv->AsUint64();
-			}
-			else {
-				reg.Routing = 1;
-			}
+            jv = root->Child(MaxSpeed);
+            if (jv && jv->GetType() == JSON::enumType::Uint64) {
+                reg.MaxSpeed = (unsigned int) jv->AsUint64();
+            } else {
+                reg.MaxSpeed = MAX_REQ_SPEED;
+            }
 
-			jv = root->Child(Endian);
-			if (jv && jv->GetType() == JSON::enumType::Uint64) {
-				reg.Endian = (unsigned int)jv->AsUint64();
-			}
-			else {
-				reg.Endian = 1;
-			}
+            jv = root->Child(Routing);
+            if (jv && jv->GetType() == JSON::enumType::Uint64) {
+                reg.Routing = (unsigned int) jv->AsUint64();
+            } else {
+                reg.Routing = 1;
+            }
 
-			jv = root->Child(Other);
-			if (jv && jv->GetType() == JSON::enumType::Uint64) {
-				reg.Other = (unsigned int)jv->AsUint64();
-			}
-			else {
-				reg.Other = 0;
-			}
+            jv = root->Child(Endian);
+            if (jv && jv->GetType() == JSON::enumType::Uint64) {
+                reg.Endian = (unsigned int) jv->AsUint64();
+            } else {
+                reg.Endian = 1;
+            }
+
+            jv = root->Child(Other);
+            if (jv && jv->GetType() == JSON::enumType::Uint64) {
+                reg.Other = (unsigned int) jv->AsUint64();
+            } else {
+                reg.Other = 0;
+            }
             return true;
         }
 
