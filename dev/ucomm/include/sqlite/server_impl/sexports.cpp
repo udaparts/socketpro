@@ -5,7 +5,7 @@
 using namespace SPA;
 using namespace SPA::ServerSide;
 
-std::string g_version("1.0.0.6");
+std::string g_version("1.0.0.9");
 
 #ifdef WIN32_64
 
@@ -41,6 +41,10 @@ bool U_MODULE_OPENED WINAPI SetSPluginGlobalOptions(const char* jsonOptions) {
     } else {
         CSqliteImpl::SetDBGlobalConnectionString(u"");
     }
+    v = jv->Child(MANUAL_BATCHING);
+    if (v && v->GetType() == JSON::enumType::Uint64) {
+        CSqliteImpl::m_mb = (unsigned int) v->AsUint64();
+    }
     return true;
 }
 
@@ -50,6 +54,7 @@ unsigned int U_MODULE_OPENED WINAPI GetSPluginGlobalOptions(char* json, unsigned
     }
     unsigned int nParam = CSqliteImpl::GetInitialParam();
     JSON::JObject<char> obj;
+    obj[MANUAL_BATCHING] = CSqliteImpl::m_mb;
     obj[PLUGIN_SERVICE_ID] = SPA::Sqlite::sidSqlite;
     obj[SQLITE_CODE_VERSION] = sqlite3_version;
     obj[SQLITE_UTF8_ENCODING] = true;

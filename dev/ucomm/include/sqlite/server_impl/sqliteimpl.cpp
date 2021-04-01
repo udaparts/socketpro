@@ -9,7 +9,7 @@
 namespace SPA
 {
     namespace ServerSide{
-
+        std::atomic<unsigned int> CSqliteImpl::m_mb(1);
         const UTF16 * CSqliteImpl::NO_DB_OPENED_YET = u"No sqlite database opened yet";
         const UTF16 * CSqliteImpl::BAD_END_TRANSTACTION_PLAN = u"Bad end transaction plan";
         const UTF16 * CSqliteImpl::NO_PARAMETER_SPECIFIED = u"No parameter specified";
@@ -547,6 +547,7 @@ namespace SPA
             m_oks = 0;
             m_fails = 0;
             m_ti = tagTransactionIsolation::tiUnspecified;
+            SetInlineBatching(m_mb ? true : false);
             USocket_Server_Handle hSocket = GetSocketHandle();
             CAutoLock al(m_csPeer);
             auto it = m_mapSqlite.find(hSocket);
@@ -1249,7 +1250,7 @@ namespace SPA
         }
 
         void CSqliteImpl::Execute(const CDBString& wsql, bool rowset, bool meta, bool lastInsertId, UINT64 index, INT64 &affected, int &res, CDBString &errMsg, CDBVariant &vtId, UINT64 & fail_ok) {
-            ResetMemories();
+            ResetMemories(); //reset m_Blob size to zero
             fail_ok = 0;
             affected = 0;
             if (!m_pSqlite) {
@@ -1260,7 +1261,9 @@ namespace SPA
                 fail_ok <<= 32;
                 return;
             }
-            std::string sql = Utilities::ToUTF8(wsql);
+            Utilities::ToUTF8(wsql.c_str(), wsql.size(), m_Blob);
+            std::string sql = (const char*) m_Blob.GetBuffer();
+            m_Blob.SetSize(0);
             UINT64 fails = m_fails;
             UINT64 oks = m_oks;
             int start = sqlite3_total_changes(m_pSqlite.get());

@@ -24,9 +24,9 @@ namespace SPA {
 
         class COdbcImpl : public CClientPeer {
             //no copy constructor
-            COdbcImpl(const COdbcImpl &impl);
+            COdbcImpl(const COdbcImpl &impl) = delete;
             //no assignment operator
-            COdbcImpl& operator=(const COdbcImpl &impl);
+            COdbcImpl& operator=(const COdbcImpl &impl) = delete;
 
             static const unsigned int DEFAULT_UNICODE_CHAR_SIZE = 4 * 1024;
             static const unsigned int DEFAULT_OUTPUT_BUFFER_SIZE = 8 * 1024; //bytes
@@ -73,6 +73,7 @@ namespace SPA {
             static void FreeODBCEnv();
             static void SetGlobalConnectionString(const wchar_t *str);
             static bool DoSQLAuthentication(USocket_Server_Handle hSocket, const wchar_t *userId, const wchar_t *password, unsigned int nSvsId, const wchar_t *odbcDriver, const wchar_t *dsn);
+            static std::atomic<unsigned int> m_mb;
 
         protected:
             virtual void OnFastRequestArrive(unsigned short reqId, unsigned int len);

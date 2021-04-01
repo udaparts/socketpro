@@ -13,9 +13,9 @@ namespace SPA {
 
         class CSqliteImpl : public CClientPeer {
             //no copy constructor
-            CSqliteImpl(const CSqliteImpl &impl);
+            CSqliteImpl(const CSqliteImpl &impl) = delete;
             //no assignment operator
-            CSqliteImpl& operator=(const CSqliteImpl &impl);
+            CSqliteImpl& operator=(const CSqliteImpl &impl) = delete;
 
         public:
             CSqliteImpl();
@@ -33,6 +33,7 @@ namespace SPA {
             static CDBString GetDBGlobalConnectionString();
             static void CacheHandle(UINT64 hSocket, const CDBString &dbName, std::shared_ptr<sqlite3> sqlite);
             virtual void Open(const CDBString& strConnection, unsigned int flags, int& res, CDBString& errMsg, int& ms);
+            static std::atomic<unsigned int> m_mb;
 
         protected:
             virtual void OnFastRequestArrive(unsigned short reqId, unsigned int len);

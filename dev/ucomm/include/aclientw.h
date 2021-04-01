@@ -864,9 +864,18 @@ namespace SPA {
             static unsigned int CountResultCallbacksInPool() noexcept;
             static UINT64 GetCallIndex() noexcept;
 
+            inline bool IsQueueStarted() const noexcept {
+                return m_qStarted;
+            }
+
             template<typename ...Ts>
             bool SendRequest(unsigned short reqId, const DResultHandler& rh, const DDiscarded& discarded, const DServerException& se, const Ts& ...t) {
+#ifdef NODE_JS_ADAPTER_PROJECT
+                CScopeUQueue& sb = m_sbSend;
+                sb->SetSize(0);
+#else
                 CScopeUQueue sb;
+#endif
                 sb->Save(t ...);
                 return SendRequest(reqId, sb->GetBuffer(), sb->GetSize(), rh, discarded, se);
             }
@@ -1180,6 +1189,8 @@ namespace SPA {
             }
 
 #if defined(NODE_JS_ADAPTER_PROJECT)
+            CScopeUQueue m_sbSend;
+
         public:
             typedef Persistent<Function, v8::NJANonCopyablePersistentTraits<Function> > CNJFunc;
 
@@ -1233,6 +1244,8 @@ namespace SPA {
             CUQueue &m_vBatching; //protected by m_cs;
             unsigned int m_nServiceId;
             CClientSocket *m_pClientSocket;
+            std::atomic<bool> m_qStarted;
+
 #ifndef NODE_JS_ADAPTER_PROJECT
             CUCriticalSection m_csSend;
 #endif
@@ -1274,28 +1287,28 @@ namespace SPA {
 
             struct promise_type {
 
-                CAwTask get_return_object() {
+                CAwTask get_return_object() noexcept {
                     return
                     {
                     };
                 }
 
-                std::suspend_never initial_suspend() {
+                std::suspend_never initial_suspend() noexcept {
                     return
                     {
                     };
                 }
 
-                std::suspend_never final_suspend() {
+                std::suspend_never final_suspend() noexcept {
                     return
                     {
                     };
                 }
 
-                void return_void() {
+                void return_void() noexcept {
                 }
 
-                void unhandled_exception() {
+                void unhandled_exception() noexcept {
                 }
             };
         };

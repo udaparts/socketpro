@@ -13,6 +13,7 @@
 namespace SPA
 {
     namespace ServerSide{
+        std::atomic<unsigned int> CSFileImpl::m_mb(0);
         CUCriticalSection CSFileImpl::m_cs;
         std::wstring CSFileImpl::m_pathRoot;
 
@@ -42,6 +43,11 @@ namespace SPA
 #endif
         {
 
+        }
+
+        void CSFileImpl::OnSwitchFrom(unsigned int nOldServiceId) {
+            //improve performance in downloading many small files if m_mb set to mbRequest or mbSession
+            SetInlineBatching(m_mb ? true : false);
         }
 
         void CSFileImpl::OnReleaseSource(bool bClosing, unsigned int info) {
