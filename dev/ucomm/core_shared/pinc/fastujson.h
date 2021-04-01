@@ -17,6 +17,3 @@ namespace SPA {
     UJsonValue MakeJsonValue(const UVariant &vtData, UMemoryPoolAllocator &allocator);
 
 }; //namespace SPA
-
-
-

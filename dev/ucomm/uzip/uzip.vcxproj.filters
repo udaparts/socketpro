@@ -54,9 +54,6 @@
     <ClCompile Include="blowfish.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="fastujson.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="getsysid.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -147,6 +144,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\core_shared\pinc\mqfile.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\jsonvalue.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

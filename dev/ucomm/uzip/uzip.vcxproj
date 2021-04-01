@@ -158,7 +158,6 @@
     <ClCompile Include="compress.c" />
     <ClCompile Include="crc32.c" />
     <ClCompile Include="deflate.c" />
-    <ClCompile Include="fastujson.cpp" />
     <ClCompile Include="getsysid.cpp" />
     <ClCompile Include="infback.c" />
     <ClCompile Include="inffast.c" />
@@ -179,6 +178,7 @@
     <ClInclude Include="..\core_shared\pinc\fastujson.h" />
     <ClInclude Include="..\core_shared\pinc\getsysid.h" />
     <ClInclude Include="..\core_shared\pinc\mqfile.h" />
+    <ClInclude Include="..\include\jsonvalue.h" />
     <ClInclude Include="..\include\membuffer.h" />
     <ClInclude Include="crc32.h" />
     <ClInclude Include="deflate.h" />

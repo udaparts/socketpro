@@ -4,7 +4,7 @@
 #include "../core_shared/pinc/getsysid.h"
 #include <algorithm>
 #include <boost/algorithm/string/find.hpp>
-#include "../core_shared/pinc/prettywriter.h"
+#include "../include/jsonvalue.h"
 #include "../core_shared/pinc/base64.h"
 #include "../core_shared/pinc/sha1.h"
 #include <fstream>
@@ -14,7 +14,6 @@
 #elif defined(WINCE)
 #include <Iphlpapi.h>
 #else
-#include "../core_shared/pinc/uvariant2rj.h"
 #endif
 #include <boost/format.hpp>
 #include <boost/algorithm/string.hpp>
@@ -49,7 +48,7 @@ namespace SPA {
     std::string GetPythonCmd(const std::string &all);
 
     namespace ServerSide {
-        bool SetRegistration(char *str, URegistration &reg);
+        bool SetRegistration(const char *str, URegistration &reg);
 
         const std::string EndDate("EndDate");
         const std::string CompanyName("CompanyName");
@@ -65,8 +64,6 @@ namespace SPA {
         const std::string MachineID("MachineId");
         const std::string Key("Key");
         const std::string Services("Services");
-
-        typedef rapidjson::PrettyWriter<CUQueue> UJsonPrettyWriter;
 
         URegistration::URegistration() :
         JavaScript(1),
@@ -188,38 +185,27 @@ namespace SPA {
 #else
 
         bool CreateEmptyRegistrationFile() {
-            time_t t;
-            char strDate[128];
-            std::string strOs;
-            std::string id = GetSysId();
-            SPA::CScopeUQueue su;
-
-            SPA::UJsonDocument docRes;
-            SPA::UJsonValue aOs;
-            aOs.SetArray();
+            JSON::JArray<char> aOs;
             tagOperationSystem os = GetOS();
             switch (os) {
                 case tagOperationSystem::osWin:
-                    aOs.PushBack("win", docRes.GetAllocator());
-                    aOs.PushBack("apple", docRes.GetAllocator());
+					aOs = { "win", "apple" };
                     break;
                 case tagOperationSystem::osApple:
-                    aOs.PushBack("apple", docRes.GetAllocator());
+                    aOs.push_back("apple");
                     break;
                 case tagOperationSystem::osUnix:
-                    aOs.PushBack("unix", docRes.GetAllocator());
-                    aOs.PushBack("apple", docRes.GetAllocator());
+					aOs = { "unix", "apple" };
                     break;
                     break;
                 default:
                     break;
             }
-            aOs.PushBack("android", docRes.GetAllocator());
-            aOs.PushBack("wince", docRes.GetAllocator());
-
-            SPA::UJsonValue aServices;
-            aServices.SetArray();
-
+			aOs.push_back("android");
+			aOs.push_back("wince");
+            JSON::JArray<char> aServices;
+			time_t t;
+			char strDate[128] = { 0 };
             time(&t);
 #if defined(__ANDROID__) || defined(ANDROID) || defined(WINCE)
             tm *p = ::gmtime(&t);
@@ -233,106 +219,136 @@ namespace SPA {
             tm *p = ::gmtime(&t);
             ::sprintf(strDate, "%.4d/%.2d/%.2d", p->tm_year + 1900, p->tm_mon + 1, p->tm_mday);
 #endif
-            docRes.SetObject();
-            docRes.AddMember(EndDate.c_str(), strDate, docRes.GetAllocator());
-            docRes.AddMember(CompanyName.c_str(), DefaultCompanyNameValue.c_str(), docRes.GetAllocator());
-            docRes.AddMember(JavaScript.c_str(), 1, docRes.GetAllocator());
-            docRes.AddMember(Platforms.c_str(), aOs, docRes.GetAllocator());
-            docRes.AddMember(Services.c_str(), aServices, docRes.GetAllocator());
-            docRes.AddMember(RequestQueue.c_str(), 1, docRes.GetAllocator());
-            docRes.AddMember(ManyClients.c_str(), MAX_CLIENTS, docRes.GetAllocator());
-            docRes.AddMember(MaxSpeed.c_str(), MAX_REQ_SPEED, docRes.GetAllocator());
-            docRes.AddMember(Routing.c_str(), 1, docRes.GetAllocator());
-            docRes.AddMember(Endian.c_str(), 1, docRes.GetAllocator());
-            docRes.AddMember(Other.c_str(), 0, docRes.GetAllocator());
-            docRes.AddMember(MachineID.c_str(), id.c_str(), docRes.GetAllocator());
-            docRes.AddMember(Key.c_str(), "", docRes.GetAllocator());
+			std::string id = GetSysId();
+			SPA::JSON::JObject<char> jobj;
+			jobj[EndDate] = strDate;
+			jobj[CompanyName] = DefaultCompanyNameValue;
+			jobj[JavaScript] = 1;
+			jobj[CompanyName] = DefaultCompanyNameValue;
+			jobj[Platforms] = std::move(aOs);
+			jobj[Services] = std::move(aServices);
+			jobj[RequestQueue] = 1;
+			jobj[ManyClients] = MAX_CLIENTS;
+			jobj[MaxSpeed] = MAX_REQ_SPEED;
+			jobj[Routing] = 1;
+			jobj[Endian] = 1;
+			jobj[Other] = 0;
+			jobj[MachineID] = std::move(id);
+			jobj[Key] = "";
+			JSON::JValue<char> jv(std::move(jobj));
 
-            su->SetSize(0);
-            UJsonPrettyWriter writer(*su);
-            docRes.Accept(writer);
-            su->SetNull();
             std::string appName = GetAppName();
             std::string RegFileName = appName + "_sp.json";
             std::ofstream outfile(RegFileName.c_str());
             if (outfile) {
-                outfile << (const char*) su->GetBuffer();
+				outfile << jv.Stringify();
                 outfile.close();
                 return true;
             }
             return false;
         }
 
-        bool SetRegistration(char *str, URegistration &reg) {
-            SPA::UJsonDocument doc;
-            const SPA::UJsonDocument::ValueType &json = doc.ParseInsitu < 0 > (str);
-            if (doc.HasParseError())
+        bool SetRegistration(const char *str, URegistration &reg) {
+			std::shared_ptr<JSON::JValue<char>> root(JSON::Parse<char>(str));
+            if (!root)
                 return false;
+			JSON::JValue<char> *jv = root->Child(EndDate);
+			if (jv && jv->GetType() == JSON::enumType::String) {
+				reg.EndDate = jv->AsString();
+			}
 
-            if (json[EndDate.c_str()].IsString())
-                reg.EndDate = json[EndDate.c_str()].GetString();
+			jv = root->Child(CompanyName);
+			if (jv && jv->GetType() == JSON::enumType::String) {
+				reg.CompanyName = jv->AsString();
+			}
 
-            if (json[CompanyName.c_str()].IsString())
-                reg.CompanyName = json[CompanyName.c_str()].GetString();
+			jv = root->Child(MachineID);
+			if (jv && jv->GetType() == JSON::enumType::String) {
+				reg.MachineID = jv->AsString();
+			}
 
-            if (json[MachineID.c_str()].IsString())
-                reg.MachineID = json[MachineID.c_str()].GetString();
+			jv = root->Child(Key);
+			if (jv && jv->GetType() == JSON::enumType::String) {
+				reg.Key = jv->AsString();
+			}
 
-            if (json[Key.c_str()].IsString())
-                reg.Key = json[Key.c_str()].GetString();
+			jv = root->Child(Platforms);
+			if (jv && jv->GetType() == JSON::enumType::Array) {
+				auto &arr = jv->AsArray();
+				for (auto it = arr.begin(), end = arr.end(); it != end; ++it) {
+					if (it->GetType() != JSON::enumType::String) {
+						continue;
+					}
+					reg.Platforms.push_back(it->AsString());
+				}
+			}
 
-            const SPA::UJsonValue &os = json[Platforms.c_str()];
-            if (os.IsArray()) {
-                SPA::UJsonValue::ConstValueIterator it, end = os.End();
-                for (it = os.Begin(); it != end; ++it) {
-                    if (!it->IsString())
-                        continue;
-                    reg.Platforms.push_back(it->GetString());
-                }
-            }
-            const SPA::UJsonValue &jServices = json[Services.c_str()];
-            if (jServices.IsArray()) {
-                SPA::UJsonValue::ConstValueIterator it, end = jServices.End();
-                for (it = jServices.Begin(); it != end; ++it) {
-                    if (!it->IsUint())
-                        continue;
-                    reg.Services.push_back(it->GetUint());
-                }
-            }
-            if (json[JavaScript.c_str()].IsUint())
-                reg.JavaScript = json[JavaScript.c_str()].GetUint() ? 1 : 0;
-            else
-                reg.JavaScript = 1;
+			jv = root->Child(Services);
+			if (jv && jv->GetType() == JSON::enumType::Array) {
+				auto &arr = jv->AsArray();
+				for (auto it = arr.begin(), end = arr.end(); it != end; ++it) {
+					if (it->GetType() != JSON::enumType::Uint64) {
+						continue;
+					}
+					reg.Services.push_back((unsigned int)it->AsUint64());
+				}
+			}
+			
+			jv = root->Child(JavaScript);
+			if (jv && jv->GetType() == JSON::enumType::Uint64) {
+				reg.JavaScript = (unsigned int)jv->AsUint64();
+			}
+			else {
+				reg.JavaScript = 1;
+			}
 
-            if (json[RequestQueue.c_str()].IsUint())
-                reg.RequestQueue = json[RequestQueue.c_str()].GetUint();
-            else
-                reg.RequestQueue = 1;
+			jv = root->Child(RequestQueue);
+			if (jv && jv->GetType() == JSON::enumType::Uint64) {
+				reg.RequestQueue = (unsigned int)jv->AsUint64();
+			}
+			else {
+				reg.RequestQueue = 1;
+			}
 
-            if (json[ManyClients.c_str()].IsUint())
-                reg.ManyClients = json[ManyClients.c_str()].GetUint();
-            else
-                reg.ManyClients = MAX_CLIENTS;
+			jv = root->Child(ManyClients);
+			if (jv && jv->GetType() == JSON::enumType::Uint64) {
+				reg.ManyClients = (unsigned int)jv->AsUint64();
+			}
+			else {
+				reg.ManyClients = MAX_CLIENTS;
+			}
 
-            if (json[MaxSpeed.c_str()].IsUint())
-                reg.MaxSpeed = json[MaxSpeed.c_str()].GetUint();
-            else
-                reg.MaxSpeed = MAX_REQ_SPEED;
+			jv = root->Child(MaxSpeed);
+			if (jv && jv->GetType() == JSON::enumType::Uint64) {
+				reg.MaxSpeed = (unsigned int)jv->AsUint64();
+			}
+			else {
+				reg.MaxSpeed = MAX_REQ_SPEED;
+			}
 
-            if (json[Routing.c_str()].IsUint())
-                reg.Routing = json[Routing.c_str()].GetUint() ? 1 : 0;
-            else
-                reg.Routing = 1;
+			jv = root->Child(Routing);
+			if (jv && jv->GetType() == JSON::enumType::Uint64) {
+				reg.Routing = (unsigned int)jv->AsUint64();
+			}
+			else {
+				reg.Routing = 1;
+			}
 
-            if (json[Endian.c_str()].IsUint())
-                reg.Endian = json[Endian.c_str()].GetUint() ? 1 : 0;
-            else
-                reg.Endian = 1;
+			jv = root->Child(Endian);
+			if (jv && jv->GetType() == JSON::enumType::Uint64) {
+				reg.Endian = (unsigned int)jv->AsUint64();
+			}
+			else {
+				reg.Endian = 1;
+			}
 
-            if (json[Other.c_str()].IsUint())
-                reg.Other = json[Other.c_str()].GetUint() ? 1 : 0;
-            else
-                reg.Other = 0;
+			jv = root->Child(Other);
+			if (jv && jv->GetType() == JSON::enumType::Uint64) {
+				reg.Other = (unsigned int)jv->AsUint64();
+			}
+			else {
+				reg.Other = 0;
+			}
             return true;
         }
 
