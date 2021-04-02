@@ -21,12 +21,12 @@ m_nMaxThreadIdleTimeBeforeSuicide(nMaxThreadIdleTimeBeforeSuicide + THREAD_SAFE_
 }
 
 CServerThread::~CServerThread() {
-	CAutoLock sl(m_mutex);
-	while (m_qThreadMessage.size()) {
-		CUThreadMessage &message = m_qThreadMessage.front();
-		SPA::CScopeUQueue::Unlock(message.m_pMessageBuffer);
-		m_qThreadMessage.pop();
-	}
+    CAutoLock sl(m_mutex);
+    while (m_qThreadMessage.size()) {
+        CUThreadMessage &message = m_qThreadMessage.front();
+        SPA::CScopeUQueue::Unlock(message.m_pMessageBuffer);
+        m_qThreadMessage.pop();
+    }
 }
 
 unsigned int CServerThread::ProcessSlowRequest(CServerSession *pSession, unsigned short reqId) {

@@ -1037,7 +1037,7 @@ void CServer::StartTimer() {
 void CServer::OnMessage() {
     size_t size;
     PSession pSession;
-    SPA::CUThreadMessage message;
+    CUThreadMessage message;
     {
         SPA::CSpinAutoLock sl(m_mTH);
         size = m_qThreadMessage.size();
@@ -1111,7 +1111,7 @@ bool CServer::PostSproMessage(CServerSession *pSession, unsigned int nMsgId, int
 }
 
 bool CServer::PostSproMessage(CServerSession *pSession, unsigned int nMsgId, const void *pBuffer, unsigned int nSize) {
-    SPA::CUThreadMessage message;
+    CUThreadMessage message;
     message.m_nMsgId = nMsgId;
     message.m_uRequestId = 0;
     message.m_pMessageBuffer = SPA::CScopeUQueue::Lock();
@@ -1122,15 +1122,15 @@ bool CServer::PostSproMessage(CServerSession *pSession, unsigned int nMsgId, con
     if (pBuffer && nSize)
         message.m_pMessageBuffer->Push((const unsigned char*) pBuffer, (unsigned int) nSize);
     m_mTH.lock();
-    m_qThreadMessage.push(message);
+    m_qThreadMessage.push(std::move(message));
     m_mTH.unlock();
     m_IoService.post(boost::bind(&CServer::OnMessage, this));
     return true;
 }
 
-void CServer::PostSproMessage(SPA::CUThreadMessage message) {
+void CServer::PostSproMessage(CUThreadMessage &message) {
     m_mTH.lock();
-    m_qThreadMessage.push(message);
+    m_qThreadMessage.push(std::move(message));
     m_mTH.unlock();
     m_IoService.post(boost::bind(&CServer::OnMessage, this));
 }
