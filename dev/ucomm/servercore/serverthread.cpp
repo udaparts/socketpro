@@ -20,8 +20,17 @@ m_nMaxThreadIdleTimeBeforeSuicide(nMaxThreadIdleTimeBeforeSuicide + THREAD_SAFE_
     m_tWorking = GetTimeTick();
 }
 
-unsigned int CServerThread::ProcessSlowRequest(CServerSession *pSession, SPA::CUThreadMessage ThreadMessage) {
-    int res = pSession->ExecuteSlowRequestFromThreadPool(ThreadMessage.m_uRequestId);
+CServerThread::~CServerThread() {
+	CAutoLock sl(m_mutex);
+	while (m_qThreadMessage.size()) {
+		CUThreadMessage &message = m_qThreadMessage.front();
+		SPA::CScopeUQueue::Unlock(message.m_pMessageBuffer);
+		m_qThreadMessage.pop();
+	}
+}
+
+unsigned int CServerThread::ProcessSlowRequest(CServerSession *pSession, unsigned short reqId) {
+    int res = pSession->ExecuteSlowRequestFromThreadPool(reqId);
     return (unsigned int) res;
 }
 
@@ -34,7 +43,7 @@ void CServerThread::Handle() {
             m_sl.unlock();
             return;
         }
-        SPA::CUThreadMessage message = m_qThreadMessage.front();
+        CUThreadMessage message = m_qThreadMessage.front();
         m_qThreadMessage.pop();
         m_sl.unlock();
         unsigned int res;
@@ -44,7 +53,7 @@ void CServerThread::Handle() {
         *(message.m_pMessageBuffer) >> pSession;
         switch (nMsgId) {
             case WM_ASK_FOR_PROCESSING:
-                res = ProcessSlowRequest(pSession, message);
+                res = ProcessSlowRequest(pSession, message.m_uRequestId);
                 break;
             default:
                 res = 0;
@@ -85,7 +94,7 @@ void CServerThread::OnThreadEnded() {
 }
 
 bool CServerThread::PostMessage(CServerSession *pSession, unsigned short uRequestId, unsigned int nMsgId, const void *pBuffer, unsigned int nSize) {
-    SPA::CUThreadMessage message(nMsgId, SPA::CScopeUQueue::Lock(), uRequestId);
+    CUThreadMessage message(nMsgId, SPA::CScopeUQueue::Lock(), uRequestId);
     PSession session = pSession;
     *(message.m_pMessageBuffer) << session;
     if (pBuffer && nSize) {
@@ -96,7 +105,7 @@ bool CServerThread::PostMessage(CServerSession *pSession, unsigned short uReques
         m_sl.unlock();
         return false;
     }
-    m_qThreadMessage.push(message);
+    m_qThreadMessage.push(std::move(message));
     if (m_qThreadMessage.size() == 1) {//if queue has two or more message we don't dispatch a handle
         boost::asio::post(GetIoService(), boost::bind(&CServerThread::Handle, this));
     }

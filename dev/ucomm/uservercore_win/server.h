@@ -46,7 +46,7 @@ public:
     void PostQuitPump();
     bool StartIOPump();
     bool StartServerInternal(unsigned int uiPort, unsigned int uiMaxBacklog, bool v6);
-    void PostSproMessage(SPA::CUThreadMessage message);
+    void PostSproMessage(CUThreadMessage& message);
     bool PostSproMessage(CServerSession *pSession, unsigned int nMsgId, int nEvent, int nData);
     bool PostSproMessage(CServerSession *pSession, unsigned int nMsgId, const void *pBuffer, unsigned int nSize);
     void SetPrivateKeyFile(const char *keyFile);
@@ -266,7 +266,7 @@ private:
     unsigned int m_nPort;
 
     SPA::CSpinLock m_mTH;
-    std::queue<SPA::CUThreadMessage> m_qThreadMessage;
+    std::queue<CUThreadMessage> m_qThreadMessage;
 
     //Queue
     typedef std::map<unsigned int, std::shared_ptr<MQ_FILE::CMqFile> > CMapQueue;

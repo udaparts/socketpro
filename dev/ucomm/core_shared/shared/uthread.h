@@ -12,33 +12,6 @@
 
 namespace SPA {
 
-    struct U_MODULE_HIDDEN CUThreadMessage {
-        unsigned int m_nMsgId;
-        SPA::CUQueue *m_pMessageBuffer;
-        unsigned short m_uRequestId;
-
-        CUThreadMessage() : m_nMsgId(0), m_pMessageBuffer(nullptr), m_uRequestId(0) {
-
-        }
-
-        CUThreadMessage(unsigned int nMsgId, SPA::CUQueue *pUQueue, unsigned short reqId)
-        : m_nMsgId(nMsgId), m_pMessageBuffer(pUQueue), m_uRequestId(reqId) {
-
-        }
-
-        CUThreadMessage(const CUThreadMessage &msg)
-        : m_nMsgId(msg.m_nMsgId), m_pMessageBuffer(msg.m_pMessageBuffer), m_uRequestId(msg.m_uRequestId) {
-        }
-
-        CUThreadMessage &operator=(const CUThreadMessage &msg) {
-            if (this == &msg)
-                return *this;
-            m_nMsgId = msg.m_nMsgId;
-            m_pMessageBuffer = msg.m_pMessageBuffer;
-            m_uRequestId = msg.m_uRequestId;
-            return *this;
-        }
-    };
 #ifndef WINCE
     using mutex = std::mutex;
 #else
@@ -79,7 +52,6 @@ namespace SPA {
         CIoService m_io;
         CErrorCode m_ec;
         mutex m_mutex;
-        std::queue<CUThreadMessage> m_qThreadMessage;
         tagThreadApartment m_ta;
         thread *m_pThread;
 

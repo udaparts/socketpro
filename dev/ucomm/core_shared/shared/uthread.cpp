@@ -21,12 +21,6 @@ namespace SPA
 
     CUCommThread::~CUCommThread() {
         Kill();
-        CAutoLock sl(m_mutex);
-        while (m_qThreadMessage.size()) {
-            CUThreadMessage message = m_qThreadMessage.front();
-            SPA::CScopeUQueue::Unlock(message.m_pMessageBuffer);
-            m_qThreadMessage.pop();
-        }
     }
 
     tagThreadApartment CUCommThread::GetThreadApartment() {
