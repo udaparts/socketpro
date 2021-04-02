@@ -26,12 +26,14 @@ struct U_MODULE_HIDDEN CUThreadMessage {
 
     CUThreadMessage(const CUThreadMessage &msg)
     : m_nMsgId(msg.m_nMsgId), m_pMessageBuffer(msg.m_pMessageBuffer), m_uRequestId(msg.m_uRequestId) {
+        //use it carefully to m_pMessageBuffer
     }
 
     CUThreadMessage &operator=(const CUThreadMessage &msg) {
         if (this == &msg) {
             return *this;
         }
+        //use it carefully to m_pMessageBuffer
         m_nMsgId = msg.m_nMsgId;
         m_pMessageBuffer = msg.m_pMessageBuffer;
         m_uRequestId = msg.m_uRequestId;
@@ -49,9 +51,10 @@ struct U_MODULE_HIDDEN CUThreadMessage {
             return *this;
         }
         m_nMsgId = msg.m_nMsgId;
+        SPA::CUQueue *p = m_pMessageBuffer;
         m_pMessageBuffer = msg.m_pMessageBuffer;
         m_uRequestId = msg.m_uRequestId;
-        msg.m_pMessageBuffer = nullptr;
+        msg.m_pMessageBuffer = p;
         return *this;
     }
 };
