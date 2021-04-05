@@ -161,6 +161,9 @@
   <ItemGroup>
     <ClCompile Include="test_raw.cpp" />
   </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\urawsocket\rawclient.h" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
