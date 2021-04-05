@@ -133,7 +133,7 @@ namespace SPA
         do {
             if (m_pThread == nullptr) {
                 m_mutex.unlock();
-                break;
+                return false;
             }
             {
                 thread *p = m_pThread;

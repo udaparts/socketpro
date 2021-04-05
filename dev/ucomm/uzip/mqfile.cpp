@@ -70,8 +70,8 @@ std::string Backtrace(int skip = 2) {
 
 using namespace std;
 
-MQ_FILE::mutex g_csLCI;
-SPA::CUQueue g_LastCallInfo;
+extern MQ_FILE::mutex g_csLCI;
+extern SPA::CUQueue g_LastCallInfo;
 
 void WINAPI SetLastCallInfo(const char *str) {
     MQ_FILE::CAutoLock al(g_csLCI);

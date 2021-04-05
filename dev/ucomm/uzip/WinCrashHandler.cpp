@@ -5,8 +5,8 @@
 #include "StackWalker.h"
 #include <new.h>
 
-extern MQ_FILE::mutex g_csLCI;
-extern SPA::CUQueue g_LastCallInfo;
+MQ_FILE::mutex g_csLCI;
+SPA::CUQueue g_LastCallInfo;
 
 #ifndef _AddressOfReturnAddress
 
@@ -161,6 +161,7 @@ void CCrashHandler::GetExceptionPointers(DWORD dwExceptionCode,
 // This method creates minidump of the process
 
 void CCrashHandler::CreateMiniDump(EXCEPTION_POINTERS* pExcPtrs) {
+#ifndef NO_MQ_FILE
     {
         MQ_FILE::CAutoLock al(MQ_FILE::g_csQFile);
         for (auto it = MQ_FILE::g_vQFile.begin(), end = MQ_FILE::g_vQFile.end(); it != end; ++it) {
@@ -170,7 +171,7 @@ void CCrashHandler::CreateMiniDump(EXCEPTION_POINTERS* pExcPtrs) {
             (*it)->FinalSave();
         }
     }
-
+#endif
     std::string s("last call info = ");
     StackWalker sw;
     {
