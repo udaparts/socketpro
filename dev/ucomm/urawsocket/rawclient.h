@@ -17,6 +17,7 @@ public:
 	virtual bool IsConnected() = 0;
 	virtual void Close() = 0;
 	virtual int Send(const unsigned char *data, unsigned int bytes) = 0;
+	virtual SPA::IUcert* GetUCert() = 0;
 };
 typedef USessionBase *USessionHandle;
 
@@ -59,7 +60,7 @@ enum class tagSessionEvent {
 
 enum class tagSessionState {
 	ssClosed = 0,
-	ssSslShaked,
+	ssSslShaking,
 	ssConnected
 };
 
@@ -68,5 +69,7 @@ typedef void(CALLBACK *PDataArrive) (USessionHandle, const unsigned char*, unsig
 
 PIRawThread WINAPI CreateSessions(PDataArrive da, PSessionCallback sc, unsigned int sessions, SPA::tagThreadApartment ta);
 
+void WINAPI SetCertVerifyCallback(PCertificateVerifyCallback cvc);
+bool WINAPI SetVerify(const char *certFile);
 
 #endif

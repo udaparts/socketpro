@@ -20,6 +20,13 @@ void CALLBACK events(PIRawThread thread, tagSessionEvent se, USessionHandle sh) 
 		break;
 	case tagSessionEvent::seConnected:
 		std::cout << "tagSessionEvent::seConnected\n";
+		{
+			char em[1024];
+			int errCode = sh->GetErrorCode(em, sizeof(em));
+			if (errCode) {
+				std::cout << "ec: " << errCode << ", em: " << em << "\n";
+			}
+		}
 		break;
 	case tagSessionEvent::seKillingThread:
 		std::cout << "tagSessionEvent::seKillingThread\n";
@@ -41,6 +48,13 @@ void CALLBACK events(PIRawThread thread, tagSessionEvent se, USessionHandle sh) 
 		break;
 	case tagSessionEvent::seSessionClosed:
 		std::cout << "tagSessionEvent::seSessionClosed\n";
+		{
+			char em[1024];
+			int errCode = sh->GetErrorCode(em, sizeof(em));
+			if (errCode) {
+				std::cout << "ec: " << errCode << ", em: " << em << "\n";
+			}
+		}
 		break;
 	case tagSessionEvent::seSessionDestroyed:
 		std::cout << "tagSessionEvent::seSessionDestroyed\n";
@@ -73,8 +87,9 @@ int main()
 		std::shared_ptr<IRawThread> pIRawThread(CreateSessions(OnAvailable, events, 3, SPA::tagThreadApartment::taNone));
 		ok = pIRawThread->Start();
 		auto channel = pIRawThread->FindAClosedSession();
-		ok = channel->Connect("udaparts.com", 80, SPA::tagEncryptionMethod::NoEncryption, false, true, 5000);
-		const char *http_req = "GET /index.html HTTP/1.1\r\nHost: udaparts.com\r\n\r\n";
+		ok = channel->Connect("microsoft.com", 443, SPA::tagEncryptionMethod::TLSv1, false, true, 5000);
+#if 0
+		const char *http_req = "GET / HTTP/1.1\r\nHost: google.com\r\n\r\n";
 		int res = channel->Send((const unsigned char*)http_req, (unsigned int)::strlen(http_req));
 		http_req = "GET /events.htm HTTP/1.1\r\nHost: udaparts.com\r\n\r\n";
 		res = channel->Send((const unsigned char*)http_req, (unsigned int)::strlen(http_req));
@@ -82,6 +97,7 @@ int main()
 		res = channel->Send((const unsigned char*)http_req, (unsigned int)::strlen(http_req));
 		http_req = "GET /socketprofaqs.htm HTTP/1.1\r\nHost: udaparts.com\r\n\r\n";
 		res = channel->Send((const unsigned char*)http_req, (unsigned int)::strlen(http_req));
+#endif
 		std::cout << "Press a key to shut down the application ......\n";
 		::getchar();
 	}

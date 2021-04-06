@@ -1,6 +1,25 @@
 #include "pch.h"
 #include "rawthread.h"
 
+std::mutex g_mutexCvc;
+PCertificateVerifyCallback g_cvc = nullptr;
+
+void WINAPI SetCertVerifyCallback(PCertificateVerifyCallback cvc) {
+	CAutoLock al(g_mutexCvc);
+	g_cvc = cvc;
+#ifndef WIN32_64
+
+#endif
+}
+
+bool WINAPI SetVerify(const char *certFile) {
+#ifdef WIN32_64
+	return SPA::CCertificateImpl::SetVerifyLocation(certFile);
+#else
+	return CUCertImpl::SetVerifyLocation(certFile);
+#endif
+}
+
 CRawThread::CRawThread(PDataArrive da, PSessionCallback sc, unsigned int session, SPA::tagThreadApartment ta) : SPA::CUCommThread(ta), m_da(da), m_sc(sc), m_session(session), m_id(0) {
 	if (m_sc) {
 		m_sc(this, tagSessionEvent::seStarted, nullptr);

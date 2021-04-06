@@ -33,6 +33,7 @@ public:
 	void Close();
 	int Send(const unsigned char *data, unsigned int bytes);
 	unsigned int GetSendBufferSize();
+	SPA::IUcert* GetUCert();
 
 private:
 	int SendInternal(const unsigned char *data, unsigned int bytes);
@@ -53,7 +54,9 @@ private:
 	static std::vector<unsigned char*> m_aBuffer;
 
 	SPA::CScopeUQueue m_sbWrite;
+	SPA::CScopeUQueue m_sbRead;
 	SPA::CUQueue &m_qWrite;
+	SPA::CUQueue &m_qRead;
 
 	CIoService &m_io;
 	CRawThread &m_rt;
@@ -78,8 +81,11 @@ private:
 
 #ifdef WIN32_64
 	void FreeCredHandle();
+	SECURITY_STATUS OpenCred();
 	CredHandle m_hCreds;
 	SPA::CSspiPtr m_pSspi;
+	SPA::CCertificateImplPtr m_pCert;
+	SPA::CCertificateImplPtr m_pSelfCert;
 #else
 
 

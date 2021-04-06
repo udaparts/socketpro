@@ -29,7 +29,7 @@ void CRawSession::ReleaseIoBuffer(unsigned char *buffer) {
 	m_csBuffer.unlock();
 }
 
-CRawSession::CRawSession(CIoService &IoService, CRawThread &rt, PDataArrive da) : m_qWrite(*m_sbWrite), m_io(IoService), m_rt(rt), m_da(da), m_socket(IoService),
+CRawSession::CRawSession(CIoService &IoService, CRawThread &rt, PDataArrive da) : m_qWrite(*m_sbWrite), m_qRead(*m_sbRead), m_io(IoService), m_rt(rt), m_da(da), m_socket(IoService),
 	m_nPort(0), m_b6(false), m_bSync(false), m_ss(tagSessionState::ssClosed), m_secure(SPA::tagEncryptionMethod::NoEncryption), m_ReadBuffer(GetIoBuffer()),
 	m_bRBLocked(false), m_WriteBuffer(GetIoBuffer()), m_bWBLocked(0), m_bWaiting(false)
 {
@@ -90,19 +90,48 @@ void CRawSession::OnPostProcessing(unsigned int hint, SPA::UINT64 data) {
 				if (ec || iterator == CResolver::iterator()) {
 					m_ec = ec;
 					m_ss = tagSessionState::ssClosed;
-					se = tagSessionEvent::seSessionClosed;
+					se = tagSessionEvent::seConnected;
 					break;
 				}
 				m_socket.connect(iterator->endpoint(), ec);
 				if (ec) {
 					m_ec = ec;
 					m_ss = tagSessionState::ssClosed;
-					se = tagSessionEvent::seSessionClosed;
+					se = tagSessionEvent::seConnected;
 					break;
 				}
+				m_qRead.SetSize(0);
 				m_qWrite.SetSize(0);
+				m_bRBLocked = false;
+				m_bWBLocked = 0;
+				m_pCert.reset();
 				if (m_secure == SPA::tagEncryptionMethod::TLSv1) {
+#ifdef WIN32_64
+					SECURITY_STATUS ss = OpenCred();
+					if (ss != SEC_E_OK) {
+						m_ec.assign(ss, boost::system::system_category());
+						m_ss = tagSessionState::ssClosed;
+						se = tagSessionEvent::seConnected;
+						m_socket.shutdown(nsIP::tcp::socket::shutdown_type::shutdown_both, ec);
+						m_socket.close(ec);
+						break;
+					}
+					m_pSspi.reset(new SPA::CSspi(true, &m_hCreds, false));
+					if (!m_pSspi->DoHandshake(nullptr, 0, m_qWrite)) {
+						m_ec.assign(m_pSspi->GetLastStatus(), boost::system::system_category());
+						m_ss = tagSessionState::ssClosed;
+						se = tagSessionEvent::seConnected;
+						m_socket.shutdown(nsIP::tcp::socket::shutdown_type::shutdown_both, ec);
+						m_socket.close(ec);
+						break;
+					}
+#else
 
+#endif
+					m_ss = tagSessionState::ssSslShaking;
+					SendInternal(nullptr, 0);
+					Read();
+					return;
 				}
 				se = tagSessionEvent::seConnected;
 				m_ss = tagSessionState::ssConnected;
@@ -126,7 +155,7 @@ void CRawSession::OnPostProcessing(unsigned int hint, SPA::UINT64 data) {
 
 bool CRawSession::Shutdown(SPA::tagShutdownType st) {
 	CAutoLock sl(m_cs);
-	if (m_ss < tagSessionState::ssSslShaked) {
+	if (m_ss < tagSessionState::ssSslShaking) {
 		m_ec.assign(boost::system::errc::not_connected, boost::system::generic_category());
 		return false;
 	}
@@ -176,6 +205,15 @@ bool CRawSession::IsConnected() {
 	return (m_ss >= tagSessionState::ssConnected);
 }
 
+SPA::IUcert* CRawSession::GetUCert() {
+	CAutoLock sl(m_cs);
+#ifdef WIN32_64
+	return m_pCert.get();
+#else
+
+#endif
+}
+
 int CRawSession::GetErrorCode(char *em, unsigned int len) {
 	CAutoLock sl(m_cs);
 	int ec = m_ec.value();
@@ -199,9 +237,46 @@ void CRawSession::OnReadCompleted(const CErrorCode& ec, size_t nLen) {
 	}
 	else {
 		if (m_secure == SPA::tagEncryptionMethod::TLSv1) {
+#ifdef WIN32_64
+			if (m_pSspi->GetHandshakeState() == SPA::hsDone) {
+				SPA::CScopeUQueue sb;
+				if (!m_pSspi->Decrypt(m_ReadBuffer, (unsigned int)nLen, *sb)) {
+					m_cs.lock();
+					m_ec.assign(m_pSspi->GetLastStatus(), boost::system::system_category());
+					m_cs.unlock();
+					Close();
+					return;
+				}
+				m_da(this, sb->GetBuffer(), sb->GetSize());
+			}
+			else {
+				SPA::CScopeUQueue sb;
+				m_qRead.Push(m_ReadBuffer, (unsigned int)nLen);
+				if (!m_pSspi->DoHandshake(m_qRead.GetBuffer(), m_qRead.GetSize(), *sb)) {
+					m_cs.lock();
+					m_ec.assign(m_pSspi->GetLastStatus(), boost::system::system_category());
+					m_cs.unlock();
+					Close();
+					return;
+				}
+				if (m_pSspi->GetHandshakeState() == SPA::hsDone) {
+					m_ss = tagSessionState::ssConnected;
+				}
+				if (sb->GetSize()) {
+					Send(sb->GetBuffer(), sb->GetSize());
+					m_qRead.SetSize(0);
+				}
+				else {
 
+				}
+			}
+#else
+
+#endif
 		}
-		m_da(this, m_ReadBuffer, (unsigned int)nLen);
+		else {
+			m_da(this, m_ReadBuffer, (unsigned int)nLen);
+		}
 		CAutoLock sl(m_cs);
 		m_bRBLocked = false;
 		Read();
@@ -209,7 +284,7 @@ void CRawSession::OnReadCompleted(const CErrorCode& ec, size_t nLen) {
 }
 
 void CRawSession::Read() {
-	if (m_bRBLocked || m_ss < tagSessionState::ssConnected)
+	if (m_bRBLocked && m_ss < tagSessionState::ssSslShaking)
 		return;
 	m_bRBLocked = true;
 	m_socket.async_read_some(boost::asio::buffer(m_ReadBuffer, IO_BUFFER_SIZE), boost::bind(&CRawSession::OnReadCompleted, this, nsPlaceHolders::error, nsPlaceHolders::bytes_transferred));
@@ -218,7 +293,7 @@ void CRawSession::Read() {
 void CRawSession::OnWriteCompleted(const CErrorCode& ec, size_t bytes_transferred) {
 	do {
 		m_cs.lock();
-		if (m_ss < tagSessionState::ssConnected) {
+		if (m_ss < tagSessionState::ssSslShaking) {
 			m_cs.unlock();
 			break;
 		}
@@ -253,8 +328,10 @@ unsigned int CRawSession::GetSendBufferSize() {
 }
 
 int CRawSession::SendInternal(const unsigned char *s, unsigned int nSize) {
-	if (m_ss < tagSessionState::ssConnected) {
-		m_ec.assign(boost::system::errc::connection_aborted, boost::system::generic_category());
+	if (m_ss < tagSessionState::ssSslShaking) {
+		if (!m_ec) {
+			m_ec.assign(boost::system::errc::not_connected, boost::system::generic_category());
+		}
 		return m_ec.value();
 	}
 	if (m_bWBLocked) {
@@ -285,12 +362,12 @@ int CRawSession::SendInternal(const unsigned char *s, unsigned int nSize) {
 			ulLen = IO_BUFFER_SIZE;
 		m_qWrite.Pop(m_WriteBuffer, ulLen);
 	}
-	if (m_secure == SPA::tagEncryptionMethod::TLSv1) {
+	if (m_secure == SPA::tagEncryptionMethod::TLSv1 && m_pSspi->GetHandshakeState() == SPA::tagSslHandshakeState::hsDone) {
 
 	}
 	m_bWBLocked = ulLen;
 	m_socket.async_write_some(boost::asio::buffer(m_WriteBuffer, ulLen), boost::bind(&CRawSession::OnWriteCompleted, this, nsPlaceHolders::error, nsPlaceHolders::bytes_transferred));
-	return (int) ulLen;
+	return 0;
 }
 
 int CRawSession::Send(const unsigned char *data, unsigned int bytes) {
@@ -305,25 +382,35 @@ void CRawSession::Close() {
 #else
 	auto id = ::pthread_self();
 #endif
-	m_cs.lock();
-	do {
-		if (m_ss == tagSessionState::ssClosed) {
-			break;
+	tagSessionEvent se = tagSessionEvent::seSessionClosed;
+	{
+		std::unique_lock<std::mutex> sl(m_mutex);
+		m_cs.lock();
+		do {
+			if (m_ss == tagSessionState::ssClosed) {
+				break;
+			}
+			if (id == m_rt.GetThreadId()) {
+				CErrorCode ec;
+				m_socket.shutdown(nsIP::tcp::socket::shutdown_type::shutdown_both, ec);
+				m_socket.close(ec);
+				if (m_ss == tagSessionState::ssSslShaking) {
+					se = tagSessionEvent::seConnected;
+				}
+				m_ss = tagSessionState::ssClosed;
+				sc = m_rt.GetSessionCallback();
+			}
+			else {
+				PostProcessing(HINT_CLOSE, 0);
+			}
+		} while (false);
+		m_cs.unlock();
+		if (m_bWaiting) {
+			m_cv.notify_all();
 		}
-		if (id == m_rt.GetThreadId()) {
-			CErrorCode ec;
-			m_socket.shutdown(nsIP::tcp::socket::shutdown_type::shutdown_both, ec);
-			m_socket.close(ec);
-			m_ss = tagSessionState::ssClosed;
-			sc = m_rt.GetSessionCallback();
-		}
-		else {
-			PostProcessing(HINT_CLOSE, 0);
-		}
-	} while (false);
-	m_cs.unlock();
+	}
 	if (sc) {
-		sc(&m_rt, tagSessionEvent::seSessionClosed, this);
+		sc(&m_rt, se, this);
 	}
 }
 
@@ -333,6 +420,35 @@ void CRawSession::FreeCredHandle() {
 		::FreeCredentialsHandle(&m_hCreds);
 		::memset(&m_hCreds, 0, sizeof(m_hCreds));
 	}
+}
+
+SECURITY_STATUS CRawSession::OpenCred() {
+	FreeCredHandle();
+	SECURITY_STATUS Status = SEC_E_OK;
+	SCHANNEL_CRED SchannelCred;
+	::memset(&SchannelCred, 0, sizeof(SchannelCred));
+
+	PCCERT_CONTEXT pCertContext = nullptr;
+	if (m_pSelfCert) {
+		pCertContext = m_pSelfCert->GetCertContext();
+	}
+	if (pCertContext) {
+		SchannelCred.cCreds = 1;
+		SchannelCred.paCred = &pCertContext;
+	}
+	SchannelCred.dwVersion = SCHANNEL_CRED_VERSION;
+	SchannelCred.grbitEnabledProtocols = SP_PROT_TLS1_X_CLIENT;
+	SchannelCred.dwFlags = (SCH_CRED_NO_DEFAULT_CREDS | SCH_CRED_MANUAL_CRED_VALIDATION | SCH_CRED_REVOCATION_CHECK_CHAIN/* | SCH_SEND_ROOT_CERT*/);
+	SECURITY_STATUS ss = ::AcquireCredentialsHandle(nullptr,
+		(LPWSTR)UNISP_NAME,
+		SECPKG_CRED_OUTBOUND,
+		nullptr,
+		&SchannelCred,
+		nullptr,
+		nullptr,
+		&m_hCreds,
+		nullptr);
+	return ss;
 }
 #else
 
