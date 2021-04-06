@@ -4,6 +4,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 VisualStudioVersion = 15.0.28307.1433
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "test_raw", "test_raw\test_raw.vcxproj", "{07315380-2AE0-4028-8EA9-456E011BC59E}"
+	ProjectSection(ProjectDependencies) = postProject
+		{D2C19D4E-60CA-4BAE-99EE-49736BBA7750} = {D2C19D4E-60CA-4BAE-99EE-49736BBA7750}
+	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "urawsocket", "urawsocket\urawsocket.vcxproj", "{D2C19D4E-60CA-4BAE-99EE-49736BBA7750}"
 EndProject

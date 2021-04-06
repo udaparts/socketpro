@@ -18,9 +18,15 @@
     <ClCompile Include="test_raw.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\include\membuffer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\urawsocket\rawclient.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\membuffer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

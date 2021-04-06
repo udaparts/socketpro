@@ -1,6 +1,8 @@
-
 #include <iostream>
 #include "../urawsocket/rawclient.h"
+#include "../include/membuffer.h"
+
+SPA::CUQueue g_buffer;
 
 void CALLBACK events(PIRawThread thread, tagSessionEvent se, USessionHandle sh) {
 	switch (se)
@@ -16,9 +18,8 @@ void CALLBACK events(PIRawThread thread, tagSessionEvent se, USessionHandle sh) 
 	case tagSessionEvent::seThreadCreated:
 		std::cout << "tagSessionEvent::seThreadCreated\n";
 		break;
-	case tagSessionEvent::seConnecting:
-		break;
 	case tagSessionEvent::seConnected:
+		std::cout << "tagSessionEvent::seConnected\n";
 		break;
 	case tagSessionEvent::seKillingThread:
 		std::cout << "tagSessionEvent::seKillingThread\n";
@@ -35,17 +36,14 @@ void CALLBACK events(PIRawThread thread, tagSessionEvent se, USessionHandle sh) 
 		break;
 	case tagSessionEvent::seUnlocked:
 		break;
-	case tagSessionEvent::seThreadKilled:
-		std::cout << "tagSessionEvent::seThreadKilled\n";
-		break;
-	case tagSessionEvent::seClosingSession:
-		std::cout << "tagSessionEvent::seClosingSession\n";
+	case tagSessionEvent::seThreadDestroyed:
+		std::cout << "tagSessionEvent::seThreadDestroyed\n";
 		break;
 	case tagSessionEvent::seSessionClosed:
 		std::cout << "tagSessionEvent::seSessionClosed\n";
 		break;
-	case tagSessionEvent::seSessionKilled:
-		std::cout << "tagSessionEvent::seSessionKilled\n";
+	case tagSessionEvent::seSessionDestroyed:
+		std::cout << "tagSessionEvent::seSessionDestroyed\n";
 		break;
 	case tagSessionEvent::seTimer:
 		break;
@@ -54,18 +52,40 @@ void CALLBACK events(PIRawThread thread, tagSessionEvent se, USessionHandle sh) 
 	}
 }
 
+void CALLBACK OnAvailable(USessionHandle sh, const unsigned char *data, unsigned int bytes) {
+	g_buffer.Push(data, bytes);
+#if 0
+	g_buffer.SetNull();
+	const char *start = (const char*)g_buffer.GetBuffer();
+	const char *headers = strstr(start, "\r\n\r\n");
+	if (headers) {
+		unsigned int len = headers - start + 4;
+		std::string headers(start, len);
+		g_buffer.Pop(len);
+	}
+#endif
+}
+
 int main()
 {
-	std::shared_ptr<IRawThread> pIRawThread(CreateSessions(events, 10, SPA::tagThreadApartment::taNone));
-	bool ok = pIRawThread->IsStarted();
-	ok = pIRawThread->Start();
-	ok = pIRawThread->AddSession();
-	ok = pIRawThread->IsStarted();
-	unsigned int sessions = pIRawThread->GetSessions();
-	ok = pIRawThread->IsBusy();
-	ok = pIRawThread->Kill();
-	ok = pIRawThread->IsStarted();
-	sessions = pIRawThread->GetSessions();
-	pIRawThread.reset();
-    std::cout << "Hello World!\n";
+	bool ok;
+	{
+		std::shared_ptr<IRawThread> pIRawThread(CreateSessions(OnAvailable, events, 3, SPA::tagThreadApartment::taNone));
+		ok = pIRawThread->Start();
+		auto channel = pIRawThread->FindAClosedSession();
+		ok = channel->Connect("udaparts.com", 80, SPA::tagEncryptionMethod::NoEncryption, false, true, 5000);
+		const char *http_req = "GET /index.html HTTP/1.1\r\nHost: udaparts.com\r\n\r\n";
+		int res = channel->Send((const unsigned char*)http_req, (unsigned int)::strlen(http_req));
+		http_req = "GET /events.htm HTTP/1.1\r\nHost: udaparts.com\r\n\r\n";
+		res = channel->Send((const unsigned char*)http_req, (unsigned int)::strlen(http_req));
+		http_req = "GET /registration.htm HTTP/1.1\r\nHost: udaparts.com\r\n\r\n";
+		res = channel->Send((const unsigned char*)http_req, (unsigned int)::strlen(http_req));
+		http_req = "GET /socketprofaqs.htm HTTP/1.1\r\nHost: udaparts.com\r\n\r\n";
+		res = channel->Send((const unsigned char*)http_req, (unsigned int)::strlen(http_req));
+		std::cout << "Press a key to shut down the application ......\n";
+		::getchar();
+	}
+	g_buffer.SetNull();
+	std::cout << (const char*)g_buffer.GetBuffer() << "\n";
+	return 0;
 }

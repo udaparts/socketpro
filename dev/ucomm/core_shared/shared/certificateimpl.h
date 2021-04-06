@@ -23,8 +23,8 @@ namespace SPA {
 
     private:
         //disable copy constructor and assignment operator
-        CCertificateImpl(const CCertificateImpl &cert);
-        CCertificateImpl& operator=(const CCertificateImpl &cert);
+        CCertificateImpl(const CCertificateImpl &cert) = delete;
+        CCertificateImpl& operator=(const CCertificateImpl &cert) = delete;
 
         void SetPerm();
         void SetSessionInfo();

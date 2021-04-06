@@ -1,15 +1,23 @@
 #ifndef _U_RAW_CLIENT_SOCKET_HEADER_H_
 #define _U_RAW_CLIENT_SOCKET_HEADER_H_
 
-#include "../include/commutil.h"
+#include "../include/ucomm.h"
+
+static const unsigned int LARGE_SENDING_BUFFER = 0x40000; //256 kilo bytes
 
 struct USessionBase {
 public:
 
 	virtual ~USessionBase() {
 	}
-};
 
+	virtual bool Connect(const char *strHost, unsigned int nPort, SPA::tagEncryptionMethod secure, bool b6, bool bSync, unsigned int timeout) = 0;
+	virtual bool Shutdown(SPA::tagShutdownType st) = 0;
+	virtual int GetErrorCode(char *em, unsigned int len) = 0;
+	virtual bool IsConnected() = 0;
+	virtual void Close() = 0;
+	virtual int Send(const unsigned char *data, unsigned int bytes) = 0;
+};
 typedef USessionBase *USessionHandle;
 
 struct IRawThread {
@@ -26,6 +34,7 @@ struct IRawThread {
 	virtual USessionHandle Lock(unsigned int timeout) = 0;
 	virtual bool Unlock(USessionHandle session) = 0;
 	virtual void CloseAll() = 0;
+	virtual unsigned int ConnectAll(const char *strHost, unsigned int nPort, SPA::tagEncryptionMethod secure, bool b6) = 0;
 };
 
 typedef IRawThread *PIRawThread;
@@ -35,7 +44,6 @@ enum class tagSessionEvent {
 	seStarted = 0,
 	seCreatingThread,
 	seThreadCreated,
-	seConnecting,
 	seConnected,
 	seKillingThread,
 	seShutdown,
@@ -43,15 +51,22 @@ enum class tagSessionEvent {
 	seHandShakeCompleted,
 	seLocked,
 	seUnlocked,
-	seThreadKilled,
-	seClosingSession,
+	seThreadDestroyed,
 	seSessionClosed,
-	seSessionKilled,
+	seSessionDestroyed,
 	seTimer
 };
 
-typedef void(CALLBACK *PSessionCallback) (PIRawThread, tagSessionEvent, USessionHandle);
+enum class tagSessionState {
+	ssClosed = 0,
+	ssSslShaked,
+	ssConnected
+};
 
-PIRawThread WINAPI CreateSessions(PSessionCallback sc, unsigned int sessions, SPA::tagThreadApartment ta);
+typedef void(CALLBACK *PSessionCallback) (PIRawThread, tagSessionEvent, USessionHandle);
+typedef void(CALLBACK *PDataArrive) (USessionHandle, const unsigned char*, unsigned int);
+
+PIRawThread WINAPI CreateSessions(PDataArrive da, PSessionCallback sc, unsigned int sessions, SPA::tagThreadApartment ta);
+
 
 #endif

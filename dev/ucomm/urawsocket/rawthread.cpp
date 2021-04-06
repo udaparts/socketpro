@@ -1,7 +1,7 @@
 #include "pch.h"
 #include "rawthread.h"
 
-CRawThread::CRawThread(PSessionCallback sc, unsigned int session, SPA::tagThreadApartment ta) : SPA::CUCommThread(ta), m_sc(sc), m_session(session) {
+CRawThread::CRawThread(PDataArrive da, PSessionCallback sc, unsigned int session, SPA::tagThreadApartment ta) : SPA::CUCommThread(ta), m_da(da), m_sc(sc), m_session(session), m_id(0) {
 	if (m_sc) {
 		m_sc(this, tagSessionEvent::seStarted, nullptr);
 	}
@@ -19,6 +19,11 @@ bool CRawThread::IsBusy() {
 }
 
 void CRawThread::OnThreadStarted() {
+#ifdef WIN32_64
+	m_id = ::GetCurrentThreadId();
+#else
+	m_id = ::pthread_self();
+#endif
 	if (m_sc) {
 		m_sc(this, tagSessionEvent::seThreadCreated, nullptr);
 	}
@@ -28,6 +33,11 @@ void CRawThread::OnThreadEnded() {
 	if (m_sc) {
 		m_sc(this, tagSessionEvent::seKillingThread, nullptr);
 	}
+	m_id = 0;
+}
+
+UTHREAD_ID CRawThread::GetThreadId() {
+	return m_id;
 }
 
 PSessionCallback CRawThread::GetSessionCallback() {
@@ -46,7 +56,7 @@ bool CRawThread::AddSession() {
 	bool bStart = CUCommThread::Start();
 	if (bStart) {
 		LockState ls(this);
-		PRawSession p = new CRawSession(GetIoService(), this);
+		PRawSession p = new CRawSession(GetIoService(), *this, m_da);
 		m_mutex.lock();
 		m_mapSession.push_back(CSessionState(p, ls));
 		m_mutex.unlock();
@@ -54,12 +64,15 @@ bool CRawThread::AddSession() {
 	return bStart;
 }
 
-USessionHandle CRawThread::FindAClosedSession() {
-	return nullptr;
-}
-
 unsigned int CRawThread::GetConnectedSessions() {
-	return 0;
+	unsigned int data = 0;
+	CAutoLock al(m_mutex);
+	for (CMapSession::iterator it = m_mapSession.begin(), end = m_mapSession.end(); it != end; ++it) {
+		if (it->first->IsConnected()) {
+			++data;
+		}
+	}
+	return data;
 }
 
 bool CRawThread::Start() {
@@ -73,7 +86,7 @@ bool CRawThread::Start() {
 		unsigned int session = m_session;
 		while (session) {
 			LockState ls(this);
-			PRawSession p = new CRawSession(GetIoService(), this);
+			PRawSession p = new CRawSession(GetIoService(), *this, m_da);
 			m_mutex.lock();
 			m_mapSession.push_back(CSessionState(p, ls));
 			m_mutex.unlock();
@@ -84,6 +97,7 @@ bool CRawThread::Start() {
 }
 
 bool CRawThread::Kill() {
+	CloseAll();
 	bool ok = CUCommThread::Kill();
 	{
 		CMapSession map;
@@ -96,7 +110,7 @@ bool CRawThread::Kill() {
 		}
 	}
 	if (ok && m_sc) {
-		m_sc(this, tagSessionEvent::seThreadKilled, nullptr);
+		m_sc(this, tagSessionEvent::seThreadDestroyed, nullptr);
 	}
 	return ok;
 }
@@ -110,9 +124,43 @@ bool CRawThread::Unlock(USessionHandle session) {
 }
 
 void CRawThread::CloseAll() {
-
+	CAutoLock al(m_mutex);
+	for (CMapSession::iterator it = m_mapSession.begin(), end = m_mapSession.end(); it != end; ++it) {
+		auto session = it->first;
+		if (!session->IsConnected()) {
+			continue;
+		}
+		session->Close();
+	}
 }
 
 bool CRawThread::IsStarted() {
 	return SPA::CUCommThread::IsStarted();
+}
+
+USessionHandle CRawThread::FindAClosedSession() {
+	CAutoLock al(m_mutex);
+	for (CMapSession::iterator it = m_mapSession.begin(), end = m_mapSession.end(); it != end; ++it) {
+		auto session = it->first;
+		if (!session->IsConnected()) {
+			return session;
+		}
+	}
+	return nullptr;
+}
+
+unsigned int CRawThread::ConnectAll(const char *strHost, unsigned int nPort, SPA::tagEncryptionMethod secure, bool b6) {
+	unsigned int count = 0;
+	{
+		CAutoLock al(m_mutex);
+		for (CMapSession::iterator it = m_mapSession.begin(), end = m_mapSession.end(); it != end; ++it) {
+			auto session = it->first;
+			if (!session->IsConnected()) {
+				if (session->Connect(strHost, nPort, secure, b6, false, 0)) {
+					++count;
+				}
+			}
+		}
+	}
+	return count;
 }

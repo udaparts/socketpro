@@ -7,7 +7,7 @@
 class U_MODULE_HIDDEN CRawThread : public IRawThread, public SPA::CUCommThread {
 
 public:
-	CRawThread(PSessionCallback sc, unsigned int session, SPA::tagThreadApartment ta);
+	CRawThread(PDataArrive da, PSessionCallback sc, unsigned int session, SPA::tagThreadApartment ta);
 	CRawThread(const CRawThread &rt) = delete;
 	~CRawThread();
 
@@ -24,6 +24,7 @@ public:
 	typedef std::vector<CSessionState> CMapSession;
 
 public:
+	UTHREAD_ID GetThreadId();
 	CRawThread& operator=(const CRawThread &rt) = delete;
 	bool IsBusy();
 	unsigned int GetSessions();
@@ -37,15 +38,18 @@ public:
 	PSessionCallback GetSessionCallback();
 	void CloseAll();
 	bool IsStarted();
+	unsigned int ConnectAll(const char *strHost, unsigned int nPort, SPA::tagEncryptionMethod secure, bool b6);
 
 protected:
 	virtual void OnThreadStarted();
 	virtual void OnThreadEnded();
 
 private:
+	PDataArrive m_da;
 	PSessionCallback m_sc;
 	unsigned int m_session;
 	CMapSession m_mapSession;
+	std::atomic<UTHREAD_ID> m_id;
 };
 
 #endif
