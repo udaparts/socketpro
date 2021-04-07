@@ -11,16 +11,16 @@ void CALLBACK events(SessionPoolHandle thread, tagSessionPoolEvent se, SessionHa
         case tagSessionPoolEvent::seUnknown:
             break;
         case tagSessionPoolEvent::seStarted:
-            std::cout << "tagSessionPoolEvent::seStarted\n";
+            std::cout << "seStarted\n";
             break;
         case tagSessionPoolEvent::seCreatingThread:
-            std::cout << "tagSessionPoolEvent::seCreatingThread\n";
+            std::cout << "seCreatingThread\n";
             break;
         case tagSessionPoolEvent::seThreadCreated:
-            std::cout << "tagSessionPoolEvent::seThreadCreated\n";
+            std::cout << "seThreadCreated\n";
             break;
         case tagSessionPoolEvent::seConnected:
-            std::cout << "tagSessionPoolEvent::seConnected\n";
+            std::cout << "seConnected\n";
         {
             char em[1024];
             int errCode = sh->GetErrorCode(em, sizeof (em));
@@ -30,28 +30,28 @@ void CALLBACK events(SessionPoolHandle thread, tagSessionPoolEvent se, SessionHa
         }
             break;
         case tagSessionPoolEvent::seKillingThread:
-            std::cout << "tagSessionPoolEvent::seKillingThread\n";
+            std::cout << "seKillingThread\n";
             break;
         case tagSessionPoolEvent::seShutdown:
-            std::cout << "tagSessionPoolEvent::seShutdown\n";
+            std::cout << "seShutdown\n";
             break;
         case tagSessionPoolEvent::seSessionCreated:
-            std::cout << "tagSessionPoolEvent::seSessionCreated\n";
+            std::cout << "seSessionCreated\n";
             break;
         case tagSessionPoolEvent::seSslShaking:
-            std::cout << "tagSessionPoolEvent::seSslShaking\n";
+            std::cout << "seSslShaking\n";
             break;
         case tagSessionPoolEvent::seLocked:
-            std::cout << "tagSessionPoolEvent::seLocked\n";
+            std::cout << "seLocked\n";
             break;
         case tagSessionPoolEvent::seUnlocked:
-            std::cout << "tagSessionPoolEvent::seUnlocked\n";
+            std::cout << "seUnlocked\n";
             break;
         case tagSessionPoolEvent::seThreadDestroyed:
-            std::cout << "tagSessionPoolEvent::seThreadDestroyed\n";
+            std::cout << "seThreadDestroyed\n";
             break;
         case tagSessionPoolEvent::seSessionClosed:
-            std::cout << "tagSessionPoolEvent::seSessionClosed\n";
+            std::cout << "seSessionClosed\n";
         {
             char em[1024];
             int errCode = sh->GetErrorCode(em, sizeof (em));
@@ -61,7 +61,7 @@ void CALLBACK events(SessionPoolHandle thread, tagSessionPoolEvent se, SessionHa
         }
             break;
         case tagSessionPoolEvent::seSessionDestroyed:
-            std::cout << "tagSessionPoolEvent::seSessionDestroyed\n";
+            std::cout << "seSessionDestroyed\n";
             break;
         case tagSessionPoolEvent::seTimer:
             break;

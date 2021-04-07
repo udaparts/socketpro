@@ -169,7 +169,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\include\membuffer.h" />
-    <ClInclude Include="..\urawsocket\rawclient.h" />
+    <ClInclude Include="..\include\rawclient.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

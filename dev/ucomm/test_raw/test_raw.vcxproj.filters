@@ -23,10 +23,10 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\urawsocket\rawclient.h">
+    <ClInclude Include="..\include\membuffer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\membuffer.h">
+    <ClInclude Include="..\include\rawclient.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
