@@ -44,6 +44,18 @@ namespace SPA {
         bool IsStarted();
         unsigned int ConnectAll(const char *strHost, unsigned int nPort, tagEncryptionMethod secure, bool b6);
 
+#ifndef NOT_USE_OPENSSL
+        CSslContext& GetSslContext();
+        static bool verify_certificate_cb(bool preverified, boost::asio::ssl::verify_context& ctx);
+        static CSslContext m_sslContext;
+
+        struct MyTimerSet {
+            static struct CRYPTO_dynlock_value *dyn_create_function(const char *file, int line);
+            static void dyn_lock_function(int mode, struct CRYPTO_dynlock_value *l, const char *file, int line);
+            static void dyn_destroy_function(struct CRYPTO_dynlock_value *l, const char *file, int line);
+        };
+#endif
+
     protected:
         virtual void OnThreadStarted();
         virtual void OnThreadEnded();

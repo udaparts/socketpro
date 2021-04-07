@@ -126,7 +126,14 @@ namespace SPA
                                 break;
                             }
 #else
-
+                            m_pSsl.reset(new CMyOpenSSL(m_rt.GetSslContext().native_handle(), true));
+                            if (m_pSsl->DoHandshake(nullptr, 0, m_qWrite)) {
+                                m_ec.assign(SSL_ERROR_SSL, boost::system::system_category());
+                                m_ss = tagSessionState::ssClosed;
+                                m_socket.shutdown(nsIP::tcp::socket::shutdown_type::shutdown_both, ec);
+                                m_socket.close(ec);
+                                break;
+                            }
 #endif
                             m_ss = tagSessionState::ssSslShaking;
                             se = tagSessionPoolEvent::seSslShaking;
@@ -238,9 +245,9 @@ namespace SPA
             Close();
         } else {
             if (m_secure == tagEncryptionMethod::TLSv1) {
+                CScopeUQueue sb;
 #ifdef WIN32_64
                 if (m_pSspi->GetHandshakeState() == hsDone) {
-                    CScopeUQueue sb;
                     if (!m_pSspi->Decrypt(m_ReadBuffer, (unsigned int) nLen, *sb)) {
                         m_cs.lock();
                         m_ec.assign(m_pSspi->GetLastStatus(), boost::system::system_category());
@@ -250,7 +257,6 @@ namespace SPA
                     }
                     m_da(this, sb->GetBuffer(), sb->GetSize());
                 } else {
-                    CScopeUQueue sb;
                     if (!m_pSspi->DoHandshake(m_ReadBuffer, (unsigned int) nLen, *sb)) {
                         m_cs.lock();
                         m_ec.assign(m_pSspi->GetLastStatus(), boost::system::system_category());
@@ -335,7 +341,46 @@ namespace SPA
                     }
                 }
 #else
-
+                if (m_pSsl->Done()) {
+                    if (!m_pSsl->DoHandshake(m_ReadBuffer, nLen, *sb)) {
+                        m_cs.lock();
+                        m_ec.assign(SSL_ERROR_SSL, boost::system::system_category());
+                        m_cs.unlock();
+                        Close();
+                        return;
+                    }
+                    m_da(this, sb->GetBuffer(), sb->GetSize());
+                } else {
+                    if (!m_pSsl->DoHandshake(m_ReadBuffer, nLen, *sb)) {
+                        m_cs.lock();
+                        m_ec.assign(SSL_ERROR_SSL, boost::system::system_category());
+                        m_cs.unlock();
+                        Close();
+                        return;
+                    }
+                    if (sb->GetSize()) {
+                        Send(sb->GetBuffer(), sb->GetSize());
+                    }
+                    if (m_pSsl->Done()) {
+                        m_cs.lock();
+                        m_ec.clear();
+                        m_ss = tagSessionState::ssConnected;
+                        m_cs.unlock();
+                        PSessionCallback sc = m_rt.GetSessionCallback();
+                        if (sc) {
+                            sc(&m_rt, tagSessionPoolEvent::seConnected, this);
+                        }
+                        std::unique_lock<std::mutex> sl(m_mutex);
+                        if (m_bWaiting) {
+                            m_cv.notify_all();
+                        }
+                    } else {
+                        auto sc = m_rt.GetSessionCallback();
+                        if (sc) {
+                            sc(&m_rt, tagSessionPoolEvent::seSslShaking, this);
+                        }
+                    }
+                }
 #endif
             } else {
                 m_da(this, m_ReadBuffer, (unsigned int) nLen);

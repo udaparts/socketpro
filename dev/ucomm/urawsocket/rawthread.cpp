@@ -7,8 +7,14 @@ PCertificateVerifyCallback g_cvc = nullptr;
 void WINAPI SetCertVerifyCallback(PCertificateVerifyCallback cvc) {
     CAutoLock al(g_mutexCvc);
     g_cvc = cvc;
-#ifndef WIN32_64
-
+#ifndef NOT_USE_OPENSSL
+    if (g_cvc != nullptr) {
+        SPA::CRawThread::m_sslContext.set_verify_mode(boost::asio::ssl::verify_peer);
+        SPA::CRawThread::m_sslContext.set_verify_callback(boost::bind(&SPA::CRawThread::verify_certificate_cb, _1, _2));
+    } else {
+        SPA::CRawThread::m_sslContext.set_verify_mode(boost::asio::ssl::verify_none);
+        //SPA::CRawThread::m_sslContext.set_verify_callback(nullptr);
+    }
 #endif
 }
 
@@ -21,6 +27,48 @@ bool WINAPI SetVerify(const char *certFile) {
 }
 
 namespace SPA{
+
+#ifndef NOT_USE_OPENSSL
+    CSslContext CRawThread::m_sslContext(CSslContext::tls_client);
+
+    struct CRYPTO_dynlock_value * CRawThread::MyTimerSet::dyn_create_function(const char *file, int line) {
+        boost::mutex *p = new boost::mutex;
+        return (struct CRYPTO_dynlock_value*) p;
+    }
+
+    void CRawThread::MyTimerSet::dyn_lock_function(int mode, struct CRYPTO_dynlock_value *lock, const char *file, int line) {
+        boost::mutex *p = (boost::mutex *)lock;
+        if (mode & CRYPTO_LOCK) {
+            p->lock();
+        } else {
+            p->unlock();
+        }
+    }
+
+    void CRawThread::MyTimerSet::dyn_destroy_function(struct CRYPTO_dynlock_value *lock, const char *file, int line) {
+        boost::mutex *p = (boost::mutex *)lock;
+        delete p;
+    }
+
+    bool CRawThread::verify_certificate_cb(bool preverified, boost::asio::ssl::verify_context & ctx) {
+        CAutoLock al(g_mutexCvc);
+        if (g_cvc) {
+            X509_STORE_CTX *cts = ctx.native_handle();
+            X509* cert = ::X509_STORE_CTX_get_current_cert(cts);
+            int depth = ::X509_STORE_CTX_get_error_depth(cts);
+            int errCode = X509_STORE_CTX_get_error(cts);
+            const char *errMsg = X509_verify_cert_error_string(errCode);
+            CCertificateImplPtr pCert(new CUCertImpl(cert));
+            return g_cvc(preverified, depth, errCode, errMsg, pCert.get());
+        }
+        return true;
+    }
+
+    CSslContext & CRawThread::GetSslContext() {
+        return m_sslContext;
+    }
+
+#endif
 
     CRawThread::CRawThread(PDataArrive da, PSessionCallback sc, unsigned int sessions, tagThreadApartment ta) : CUCommThread(ta), m_da(da), m_sc(sc), m_id(0) {
         if (m_sc) {
