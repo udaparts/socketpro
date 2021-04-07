@@ -37,11 +37,14 @@ void CALLBACK events(PIRawThread thread, tagSessionEvent se, USessionHandle sh) 
 	case tagSessionEvent::seSessionCreated:
 		std::cout << "tagSessionEvent::seSessionCreated\n";
 		break;
-	case tagSessionEvent::seHandShakeCompleted:
+	case tagSessionEvent::seSslShaking:
+		std::cout << "tagSessionEvent::seSslShaking\n";
 		break;
 	case tagSessionEvent::seLocked:
+		std::cout << "tagSessionEvent::seLocked\n";
 		break;
 	case tagSessionEvent::seUnlocked:
+		std::cout << "tagSessionEvent::seUnlocked\n";
 		break;
 	case tagSessionEvent::seThreadDestroyed:
 		std::cout << "tagSessionEvent::seThreadDestroyed\n";
@@ -91,12 +94,13 @@ int main()
 	{
 		SetCertVerifyCallback(CVCallback);
 		std::shared_ptr<IRawThread> pIRawThread(CreateSessions(OnAvailable, events, 3, SPA::tagThreadApartment::taNone));
-		ok = pIRawThread->Start();
 		auto channel = pIRawThread->FindAClosedSession();
 		ok = channel->Connect("news.yahoo.com", 443, SPA::tagEncryptionMethod::TLSv1, false, true, 10000);
 		auto cert = channel->GetUCert();
 		std::string em = cert->Verify(&ec);
 		std::cout << "em: " << em << ", ec: " << ec << "\n";
+		unsigned int count = pIRawThread->ConnectAll("news.yahoo.com", 443, SPA::tagEncryptionMethod::TLSv1, false);
+		channel = pIRawThread->Lock(100);
 		const char *http_req = "GET /coronavirus HTTP/1.1\r\nHost: news.yahoo.com\r\n\r\n";
 		int res = channel->Send((const unsigned char*)http_req, (unsigned int)::strlen(http_req));
 		http_req = "GET /us HTTP/1.1\r\nHost: news.yahoo.com\r\n\r\n";
@@ -106,6 +110,7 @@ int main()
 		http_req = "GET /world HTTP/1.1\r\nHost: news.yahoo.com\r\n\r\n";
 		res = channel->Send((const unsigned char*)http_req, (unsigned int)::strlen(http_req));
 		std::cout << "Press a key to shut down the application ......\n";
+		ok = pIRawThread->Unlock(channel);
 		::getchar();
 	}
 	g_buffer.SetNull();

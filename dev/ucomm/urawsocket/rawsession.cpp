@@ -77,6 +77,7 @@ void CRawSession::OnPostProcessing(unsigned int hint, SPA::UINT64 data) {
 		break;
 	case HINT_CONNECT:
 	{
+		tagSessionEvent se = tagSessionEvent::seConnected;
 		PSessionCallback sc = m_rt.GetSessionCallback();
 		CErrorCode ec;
 		{
@@ -97,6 +98,10 @@ void CRawSession::OnPostProcessing(unsigned int hint, SPA::UINT64 data) {
 					m_ss = tagSessionState::ssClosed;
 					break;
 				}
+				boost::asio::socket_base::keep_alive option(false);
+				boost::asio::ip::tcp::no_delay nodelay(true);
+				m_socket.set_option(option, ec);
+				m_socket.set_option(nodelay, ec);
 				m_qWrite.SetSize(0);
 				m_bRBLocked = false;
 				m_bWBLocked = 0;
@@ -123,20 +128,21 @@ void CRawSession::OnPostProcessing(unsigned int hint, SPA::UINT64 data) {
 
 #endif
 					m_ss = tagSessionState::ssSslShaking;
+					se = tagSessionEvent::seSslShaking;
 					SendInternal(nullptr, 0);
 					Read();
-					return;
+					break;
 				}
 				m_ss = tagSessionState::ssConnected;
 				m_ec.clear();
 				Read();
 			} while (false);
-			if (m_bWaiting) {
+			if (m_bWaiting && se != tagSessionEvent::seSslShaking) {
 				m_cv.notify_all();
 			}
 		}
 		if (sc) {
-			sc(&m_rt, tagSessionEvent::seConnected, this);
+			sc(&m_rt, se, this);
 		}
 	}
 		break;
@@ -321,6 +327,12 @@ void CRawSession::OnReadCompleted(const CErrorCode& ec, size_t nLen) {
 					std::unique_lock<std::mutex> sl(m_mutex);
 					if (m_bWaiting) {
 						m_cv.notify_all();
+					}
+				}
+				else {
+					auto sc = m_rt.GetSessionCallback();
+					if (sc) {
+						sc(&m_rt, tagSessionEvent::seSslShaking, this);
 					}
 				}
 			}

@@ -18,20 +18,18 @@ public:
 	virtual void Close() = 0;
 	virtual int Send(const unsigned char *data, unsigned int bytes) = 0;
 	virtual SPA::IUcert* GetUCert() = 0;
+	virtual unsigned int GetSendBufferSize() = 0;
 };
 typedef USessionBase *USessionHandle;
 
 struct IRawThread {
 	virtual ~IRawThread() {
 	}
-	virtual bool IsStarted() = 0;
 	virtual bool IsBusy() = 0;
 	virtual unsigned int GetSessions() = 0;
 	virtual bool AddSession() = 0;
 	virtual USessionHandle FindAClosedSession() = 0;
 	virtual unsigned int GetConnectedSessions() = 0;
-	virtual bool Start() = 0;
-	virtual bool Kill() = 0;
 	virtual USessionHandle Lock(unsigned int timeout) = 0;
 	virtual bool Unlock(USessionHandle session) = 0;
 	virtual void CloseAll() = 0;
@@ -49,7 +47,7 @@ enum class tagSessionEvent {
 	seKillingThread,
 	seShutdown,
 	seSessionCreated,
-	seHandShakeCompleted,
+	seSslShaking,
 	seLocked,
 	seUnlocked,
 	seThreadDestroyed,

@@ -53,6 +53,7 @@ private:
 	unsigned int m_session;
 	CMapSession m_mapSession;
 	std::atomic<UTHREAD_ID> m_id;
+	CConditionVariable m_cv;
 };
 
 #endif

@@ -24,6 +24,7 @@ CRawThread::CRawThread(PDataArrive da, PSessionCallback sc, unsigned int session
 	if (m_sc) {
 		m_sc(this, tagSessionEvent::seStarted, nullptr);
 	}
+	Start();
 }
 
 CRawThread::~CRawThread() {
@@ -135,11 +136,58 @@ bool CRawThread::Kill() {
 }
 
 USessionHandle CRawThread::Lock(unsigned int timeout) {
-	return nullptr;
+	PRawSession s = nullptr;
+	PSessionCallback sc = nullptr;
+	unsigned int actives;
+	{
+		CAutoLock al(m_mutex);
+		do {
+			actives = 0;
+			for (CMapSession::iterator it = m_mapSession.begin(), end = m_mapSession.end(); it != end; ++it) {
+				auto session = it->first;
+				if (session->IsConnected()) {
+					++actives;
+					if (!it->second.Locked) {
+						it->second.Locked = true;
+						sc = m_sc;
+						s = session;
+						break;
+					}
+				}
+				else {
+					it->second.Locked = false;
+				}
+			}
+		} while (actives && !s && m_cv.wait_for(al, ms(timeout)) != std::cv_status::timeout);
+	}
+	if (sc) {
+		sc(this, tagSessionEvent::seLocked, s);
+	}
+	return s;
 }
 
 bool CRawThread::Unlock(USessionHandle session) {
-	return false;
+	if (!session) {
+		return false;
+	}
+	USessionHandle s = nullptr;
+	PSessionCallback sc = nullptr;
+	{
+		CAutoLock al(m_mutex);
+		for (CMapSession::iterator it = m_mapSession.begin(), end = m_mapSession.end(); it != end; ++it) {
+			if (session == it->first) {
+				it->second.Locked = false;
+				sc = m_sc;
+				s = session;
+				m_cv.notify_all();
+				break;
+			}
+		}
+	}
+	if (sc) {
+		sc(this, tagSessionEvent::seUnlocked, session);
+	}
+	return (s != nullptr);
 }
 
 void CRawThread::CloseAll() {
