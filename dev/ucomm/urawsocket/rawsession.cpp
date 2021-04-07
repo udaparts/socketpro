@@ -474,6 +474,8 @@ namespace SPA
         if (m_secure == tagEncryptionMethod::TLSv1 && m_pSsl->Done()) {
             SPA::CScopeUQueue sb;
             ulLen = m_pSsl->Encrypt(m_WriteBuffer, ulLen, *sb);
+            assert(ulLen);
+            assert(ulLen == sb->GetSize());
             assert(ulLen <= IO_BUFFER_SIZE + IO_ENCRYPTION_PADDING);
             ::memcpy(m_WriteBuffer, sb->GetBuffer(), ulLen);
         }
