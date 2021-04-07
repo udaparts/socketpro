@@ -18,7 +18,7 @@ namespace SPA {
 
 	class CRawThread;
 
-	class CRawSession : public USessionBase {
+	class CRawSession : public ISession {
 
 	public:
 		CRawSession(CIoService &IoService, CRawThread &rt, PDataArrive da);

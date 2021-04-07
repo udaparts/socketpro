@@ -9,7 +9,7 @@ extern PCertificateVerifyCallback g_cvc;
 
 namespace SPA {
 
-	class U_MODULE_HIDDEN CRawThread : public IRawThread, public CUCommThread {
+	class U_MODULE_HIDDEN CRawThread : public ISessionPool, public CUCommThread {
 
 	public:
 		CRawThread(PDataArrive da, PSessionCallback sc, unsigned int sessions, tagThreadApartment ta);
@@ -34,12 +34,12 @@ namespace SPA {
 		bool IsBusy();
 		unsigned int GetSessions();
 		bool AddSession();
-		USessionHandle FindAClosedSession();
+		SessionHandle FindAClosedSession();
 		unsigned int GetConnectedSessions();
 		bool Start(unsigned int sessions);
 		bool Kill();
-		USessionHandle Lock(unsigned int timeout);
-		bool Unlock(USessionHandle session);
+		SessionHandle Lock(unsigned int timeout);
+		bool Unlock(SessionHandle session);
 		PSessionCallback GetSessionCallback();
 		void CloseAll();
 		bool IsStarted();

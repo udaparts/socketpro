@@ -24,7 +24,7 @@ namespace SPA {
 
 	CRawThread::CRawThread(PDataArrive da, PSessionCallback sc, unsigned int sessions, tagThreadApartment ta) : CUCommThread(ta), m_da(da), m_sc(sc), m_id(0) {
 		if (m_sc) {
-			m_sc(this, tagSessionEvent::seStarted, nullptr);
+			m_sc(this, tagSessionPoolEvent::seStarted, nullptr);
 		}
 		Start(sessions);
 	}
@@ -32,7 +32,7 @@ namespace SPA {
 	CRawThread::~CRawThread() {
 		Kill();
 		if (m_sc) {
-			m_sc(this, tagSessionEvent::seShutdown, nullptr);
+			m_sc(this, tagSessionPoolEvent::seShutdown, nullptr);
 		}
 	}
 
@@ -47,13 +47,13 @@ namespace SPA {
 		m_id = ::pthread_self();
 #endif
 		if (m_sc) {
-			m_sc(this, tagSessionEvent::seThreadCreated, nullptr);
+			m_sc(this, tagSessionPoolEvent::seThreadCreated, nullptr);
 		}
 	}
 
 	void CRawThread::OnThreadEnded() {
 		if (m_sc) {
-			m_sc(this, tagSessionEvent::seKillingThread, nullptr);
+			m_sc(this, tagSessionPoolEvent::seKillingThread, nullptr);
 		}
 		m_id = 0;
 	}
@@ -100,7 +100,7 @@ namespace SPA {
 	bool CRawThread::Start(unsigned int sessions) {
 		if (!IsStarted()) {
 			if (m_sc) {
-				m_sc(this, tagSessionEvent::seCreatingThread, nullptr);
+				m_sc(this, tagSessionPoolEvent::seCreatingThread, nullptr);
 			}
 		}
 		bool bStart = CUCommThread::Start();
@@ -131,12 +131,12 @@ namespace SPA {
 			}
 		}
 		if (ok && m_sc) {
-			m_sc(this, tagSessionEvent::seThreadDestroyed, nullptr);
+			m_sc(this, tagSessionPoolEvent::seThreadDestroyed, nullptr);
 		}
 		return ok;
 	}
 
-	USessionHandle CRawThread::Lock(unsigned int timeout) {
+	SessionHandle CRawThread::Lock(unsigned int timeout) {
 		PRawSession s = nullptr;
 		PSessionCallback sc = nullptr;
 		unsigned int actives;
@@ -162,16 +162,16 @@ namespace SPA {
 			} while (actives && !s && m_cv.wait_for(al, ms(timeout)) != std::cv_status::timeout);
 		}
 		if (sc) {
-			sc(this, tagSessionEvent::seLocked, s);
+			sc(this, tagSessionPoolEvent::seLocked, s);
 		}
 		return s;
 	}
 
-	bool CRawThread::Unlock(USessionHandle session) {
+	bool CRawThread::Unlock(SessionHandle session) {
 		if (!session) {
 			return false;
 		}
-		USessionHandle s = nullptr;
+		SessionHandle s = nullptr;
 		PSessionCallback sc = nullptr;
 		{
 			CAutoLock al(m_mutex);
@@ -186,7 +186,7 @@ namespace SPA {
 			}
 		}
 		if (sc) {
-			sc(this, tagSessionEvent::seUnlocked, session);
+			sc(this, tagSessionPoolEvent::seUnlocked, session);
 		}
 		return (s != nullptr);
 	}
@@ -206,7 +206,7 @@ namespace SPA {
 		return CUCommThread::IsStarted();
 	}
 
-	USessionHandle CRawThread::FindAClosedSession() {
+	SessionHandle CRawThread::FindAClosedSession() {
 		CAutoLock al(m_mutex);
 		for (CMapSession::iterator it = m_mapSession.begin(), end = m_mapSession.end(); it != end; ++it) {
 			auto session = it->first;

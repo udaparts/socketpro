@@ -6,22 +6,22 @@ using namespace SPA;
 
 CUQueue g_buffer;
 
-void CALLBACK events(PIRawThread thread, tagSessionEvent se, USessionHandle sh) {
+void CALLBACK events(SessionPoolHandle thread, tagSessionPoolEvent se, SessionHandle sh) {
 	switch (se)
 	{
-	case tagSessionEvent::seUnknown:
+	case tagSessionPoolEvent::seUnknown:
 		break;
-	case tagSessionEvent::seStarted:
-		std::cout << "tagSessionEvent::seStarted\n";
+	case tagSessionPoolEvent::seStarted:
+		std::cout << "tagSessionPoolEvent::seStarted\n";
 		break;
-	case tagSessionEvent::seCreatingThread:
-		std::cout << "tagSessionEvent::seCreatingThread\n";
+	case tagSessionPoolEvent::seCreatingThread:
+		std::cout << "tagSessionPoolEvent::seCreatingThread\n";
 		break;
-	case tagSessionEvent::seThreadCreated:
-		std::cout << "tagSessionEvent::seThreadCreated\n";
+	case tagSessionPoolEvent::seThreadCreated:
+		std::cout << "tagSessionPoolEvent::seThreadCreated\n";
 		break;
-	case tagSessionEvent::seConnected:
-		std::cout << "tagSessionEvent::seConnected\n";
+	case tagSessionPoolEvent::seConnected:
+		std::cout << "tagSessionPoolEvent::seConnected\n";
 		{
 			char em[1024];
 			int errCode = sh->GetErrorCode(em, sizeof(em));
@@ -30,29 +30,29 @@ void CALLBACK events(PIRawThread thread, tagSessionEvent se, USessionHandle sh) 
 			}
 		}
 		break;
-	case tagSessionEvent::seKillingThread:
-		std::cout << "tagSessionEvent::seKillingThread\n";
+	case tagSessionPoolEvent::seKillingThread:
+		std::cout << "tagSessionPoolEvent::seKillingThread\n";
 		break;
-	case tagSessionEvent::seShutdown:
-		std::cout << "tagSessionEvent::seShutdown\n";
+	case tagSessionPoolEvent::seShutdown:
+		std::cout << "tagSessionPoolEvent::seShutdown\n";
 		break;
-	case tagSessionEvent::seSessionCreated:
-		std::cout << "tagSessionEvent::seSessionCreated\n";
+	case tagSessionPoolEvent::seSessionCreated:
+		std::cout << "tagSessionPoolEvent::seSessionCreated\n";
 		break;
-	case tagSessionEvent::seSslShaking:
-		std::cout << "tagSessionEvent::seSslShaking\n";
+	case tagSessionPoolEvent::seSslShaking:
+		std::cout << "tagSessionPoolEvent::seSslShaking\n";
 		break;
-	case tagSessionEvent::seLocked:
-		std::cout << "tagSessionEvent::seLocked\n";
+	case tagSessionPoolEvent::seLocked:
+		std::cout << "tagSessionPoolEvent::seLocked\n";
 		break;
-	case tagSessionEvent::seUnlocked:
-		std::cout << "tagSessionEvent::seUnlocked\n";
+	case tagSessionPoolEvent::seUnlocked:
+		std::cout << "tagSessionPoolEvent::seUnlocked\n";
 		break;
-	case tagSessionEvent::seThreadDestroyed:
-		std::cout << "tagSessionEvent::seThreadDestroyed\n";
+	case tagSessionPoolEvent::seThreadDestroyed:
+		std::cout << "tagSessionPoolEvent::seThreadDestroyed\n";
 		break;
-	case tagSessionEvent::seSessionClosed:
-		std::cout << "tagSessionEvent::seSessionClosed\n";
+	case tagSessionPoolEvent::seSessionClosed:
+		std::cout << "tagSessionPoolEvent::seSessionClosed\n";
 		{
 			char em[1024];
 			int errCode = sh->GetErrorCode(em, sizeof(em));
@@ -61,17 +61,17 @@ void CALLBACK events(PIRawThread thread, tagSessionEvent se, USessionHandle sh) 
 			}
 		}
 		break;
-	case tagSessionEvent::seSessionDestroyed:
-		std::cout << "tagSessionEvent::seSessionDestroyed\n";
+	case tagSessionPoolEvent::seSessionDestroyed:
+		std::cout << "tagSessionPoolEvent::seSessionDestroyed\n";
 		break;
-	case tagSessionEvent::seTimer:
+	case tagSessionPoolEvent::seTimer:
 		break;
 	default:
 		break;
 	}
 }
 
-void CALLBACK OnAvailable(USessionHandle sh, const unsigned char *data, unsigned int bytes) {
+void CALLBACK OnAvailable(SessionHandle sh, const unsigned char *data, unsigned int bytes) {
 	g_buffer.Push(data, bytes);
 #if 0
 	g_buffer.SetNull();
@@ -95,13 +95,13 @@ int main()
 	int ec;
 	{
 		SetCertVerifyCallback(CVCallback);
-		std::shared_ptr<IRawThread> pIRawThread(CreateSessions(OnAvailable, events, 3, tagThreadApartment::taNone));
+		std::shared_ptr<ISessionPool> pIRawThread(CreateASessionPool(OnAvailable, events, 3));
 		auto channel = pIRawThread->FindAClosedSession();
-		ok = channel->Connect("news.yahoo.com", 443, tagEncryptionMethod::TLSv1, false, true, 10000);
+		ok = channel->Connect("news.yahoo.com", 443, tagEncryptionMethod::TLSv1, false, true);
 		auto cert = channel->GetUCert();
 		std::string em = cert->Verify(&ec);
 		std::cout << "em: " << em << ", ec: " << ec << "\n";
-		unsigned int count = pIRawThread->ConnectAll("news.yahoo.com", 443, tagEncryptionMethod::TLSv1, false);
+		unsigned int count = pIRawThread->ConnectAll("news.yahoo.com", 443, tagEncryptionMethod::TLSv1);
 		channel = pIRawThread->Lock(100);
 		const char *http_req = "GET /coronavirus HTTP/1.1\r\nHost: news.yahoo.com\r\n\r\n";
 		int res = channel->Send((const unsigned char*)http_req, (unsigned int)::strlen(http_req));

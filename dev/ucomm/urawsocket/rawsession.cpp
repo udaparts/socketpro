@@ -42,7 +42,7 @@ namespace SPA {
 #endif
 		auto sc = rt.GetSessionCallback();
 		if (sc) {
-			sc(&rt, tagSessionEvent::seSessionCreated, this);
+			sc(&rt, tagSessionPoolEvent::seSessionCreated, this);
 		}
 	}
 
@@ -51,7 +51,7 @@ namespace SPA {
 		if (sc) {
 			//bool chatting = false;
 			//CRAutoLock sl(m_mutex, chatting);
-			sc(&m_rt, tagSessionEvent::seSessionDestroyed, this);
+			sc(&m_rt, tagSessionPoolEvent::seSessionDestroyed, this);
 		}
 		ReleaseIoBuffer(m_WriteBuffer);
 		ReleaseIoBuffer(m_ReadBuffer);
@@ -79,7 +79,7 @@ namespace SPA {
 			break;
 		case HINT_CONNECT:
 		{
-			tagSessionEvent se = tagSessionEvent::seConnected;
+			tagSessionPoolEvent se = tagSessionPoolEvent::seConnected;
 			PSessionCallback sc = m_rt.GetSessionCallback();
 			CErrorCode ec;
 			{
@@ -130,7 +130,7 @@ namespace SPA {
 
 #endif
 						m_ss = tagSessionState::ssSslShaking;
-						se = tagSessionEvent::seSslShaking;
+						se = tagSessionPoolEvent::seSslShaking;
 						SendInternal(nullptr, 0);
 						Read();
 						break;
@@ -139,7 +139,7 @@ namespace SPA {
 					m_ec.clear();
 					Read();
 				} while (false);
-				if (m_bWaiting && se != tagSessionEvent::seSslShaking) {
+				if (m_bWaiting && se != tagSessionPoolEvent::seSslShaking) {
 					m_cv.notify_all();
 				}
 			}
@@ -324,7 +324,7 @@ namespace SPA {
 						}
 						PSessionCallback sc = m_rt.GetSessionCallback();
 						if (sc) {
-							sc(&m_rt, tagSessionEvent::seConnected, this);
+							sc(&m_rt, tagSessionPoolEvent::seConnected, this);
 						}
 						std::unique_lock<std::mutex> sl(m_mutex);
 						if (m_bWaiting) {
@@ -334,7 +334,7 @@ namespace SPA {
 					else {
 						auto sc = m_rt.GetSessionCallback();
 						if (sc) {
-							sc(&m_rt, tagSessionEvent::seSslShaking, this);
+							sc(&m_rt, tagSessionPoolEvent::seSslShaking, this);
 						}
 					}
 				}
@@ -454,7 +454,7 @@ namespace SPA {
 #else
 		auto id = ::pthread_self();
 #endif
-		tagSessionEvent se = tagSessionEvent::seSessionClosed;
+		tagSessionPoolEvent se = tagSessionPoolEvent::seSessionClosed;
 		{
 			std::unique_lock<std::mutex> sl(m_mutex);
 			m_cs.lock();
@@ -467,7 +467,7 @@ namespace SPA {
 					m_socket.shutdown(nsIP::tcp::socket::shutdown_type::shutdown_both, ec);
 					m_socket.close(ec);
 					if (m_ss == tagSessionState::ssSslShaking) {
-						se = tagSessionEvent::seConnected;
+						se = tagSessionPoolEvent::seConnected;
 					}
 					m_ss = tagSessionState::ssClosed;
 					sc = m_rt.GetSessionCallback();

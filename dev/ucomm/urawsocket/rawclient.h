@@ -6,13 +6,13 @@
 namespace SPA {
 	static const unsigned int LARGE_SENDING_BUFFER = 0x40000; //256 kilo bytes
 
-	struct USessionBase {
+	struct ISession {
 	public:
 
-		virtual ~USessionBase() {
+		virtual ~ISession() {
 		}
 
-		virtual bool Connect(const char *strHost, unsigned int nPort, tagEncryptionMethod secure, bool b6, bool bSync, unsigned int timeout) = 0;
+		virtual bool Connect(const char *host, unsigned int port, tagEncryptionMethod secure = tagEncryptionMethod::NoEncryption, bool v6 = false, bool sync = false, unsigned int timeout = 30000) = 0;
 		virtual bool Shutdown(tagShutdownType st) = 0;
 		virtual int GetErrorCode(char *em, unsigned int len) = 0;
 		virtual bool IsConnected() = 0;
@@ -21,25 +21,25 @@ namespace SPA {
 		virtual IUcert* GetUCert() = 0;
 		virtual unsigned int GetSendBufferSize() = 0;
 	};
-	typedef USessionBase *USessionHandle;
+	typedef ISession *SessionHandle;
 
-	struct IRawThread {
-		virtual ~IRawThread() {
+	struct ISessionPool {
+		virtual ~ISessionPool() {
 		}
 		virtual bool IsBusy() = 0;
 		virtual unsigned int GetSessions() = 0;
 		virtual bool AddSession() = 0;
-		virtual USessionHandle FindAClosedSession() = 0;
+		virtual SessionHandle FindAClosedSession() = 0;
 		virtual unsigned int GetConnectedSessions() = 0;
-		virtual USessionHandle Lock(unsigned int timeout) = 0;
-		virtual bool Unlock(USessionHandle session) = 0;
+		virtual SessionHandle Lock(unsigned int timeout) = 0;
+		virtual bool Unlock(SessionHandle session) = 0;
 		virtual void CloseAll() = 0;
-		virtual unsigned int ConnectAll(const char *strHost, unsigned int nPort, tagEncryptionMethod secure, bool b6) = 0;
+		virtual unsigned int ConnectAll(const char *host, unsigned int port, tagEncryptionMethod secure = tagEncryptionMethod::NoEncryption, bool v6 = false) = 0;
 	};
 
-	typedef IRawThread *PIRawThread;
+	typedef ISessionPool *SessionPoolHandle;
 
-	enum class tagSessionEvent {
+	enum class tagSessionPoolEvent {
 		seUnknown = -1,
 		seStarted = 0,
 		seCreatingThread,
@@ -63,14 +63,15 @@ namespace SPA {
 		ssConnected
 	};
 
-	typedef void(CALLBACK *PSessionCallback) (PIRawThread, tagSessionEvent, USessionHandle);
-	typedef void(CALLBACK *PDataArrive) (USessionHandle, const unsigned char*, unsigned int);
+	typedef void(CALLBACK *PSessionCallback) (SessionPoolHandle, tagSessionPoolEvent, SessionHandle);
+	typedef void(CALLBACK *PDataArrive) (SessionHandle, const unsigned char*, unsigned int);
 
 }; //namespace SPA
 
-SPA::PIRawThread WINAPI CreateSessions(SPA::PDataArrive da, SPA::PSessionCallback sc, unsigned int sessions, SPA::tagThreadApartment ta);
+SPA::SessionPoolHandle WINAPI CreateASessionPool(SPA::PDataArrive da, SPA::PSessionCallback sc, unsigned int sessions, SPA::tagThreadApartment ta = SPA::tagThreadApartment::taNone);
 
 void WINAPI SetCertVerifyCallback(PCertificateVerifyCallback cvc);
 bool WINAPI SetVerify(const char *certFile);
 
 #endif
+
