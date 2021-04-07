@@ -1,0 +1,2 @@
+all:
+	g++ -o myclient ../include/membuffer.cpp test_raw.cpp -std=c++11 -lstdc++ -pthread ../urawsocket/dist/Release/GNU-Linux-x86/liburawsocket.a `pkg-config --libs libcrypto` `pkg-config --libs libssl`
