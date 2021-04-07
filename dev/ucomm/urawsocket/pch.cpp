@@ -1,10 +1,10 @@
 #include "pch.h"
 #include "rawthread.h"
 
-PIRawThread WINAPI CreateSessions(PDataArrive da, PSessionCallback sc, unsigned int sessions, SPA::tagThreadApartment ta) {
+SPA::PIRawThread WINAPI CreateSessions(SPA::PDataArrive da, SPA::PSessionCallback sc, unsigned int sessions, SPA::tagThreadApartment ta) {
 	if (!da) {
 		return nullptr;
 	}
-	PIRawThread rt = new CRawThread(da, sc, sessions, ta);
+	SPA::PIRawThread rt = new SPA::CRawThread(da, sc, sessions, ta);
 	return rt;
 }

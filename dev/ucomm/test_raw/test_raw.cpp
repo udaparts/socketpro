@@ -2,7 +2,9 @@
 #include "../urawsocket/rawclient.h"
 #include "../include/membuffer.h"
 
-SPA::CUQueue g_buffer;
+using namespace SPA;
+
+CUQueue g_buffer;
 
 void CALLBACK events(PIRawThread thread, tagSessionEvent se, USessionHandle sh) {
 	switch (se)
@@ -93,13 +95,13 @@ int main()
 	int ec;
 	{
 		SetCertVerifyCallback(CVCallback);
-		std::shared_ptr<IRawThread> pIRawThread(CreateSessions(OnAvailable, events, 3, SPA::tagThreadApartment::taNone));
+		std::shared_ptr<IRawThread> pIRawThread(CreateSessions(OnAvailable, events, 3, tagThreadApartment::taNone));
 		auto channel = pIRawThread->FindAClosedSession();
-		ok = channel->Connect("news.yahoo.com", 443, SPA::tagEncryptionMethod::TLSv1, false, true, 10000);
+		ok = channel->Connect("news.yahoo.com", 443, tagEncryptionMethod::TLSv1, false, true, 10000);
 		auto cert = channel->GetUCert();
 		std::string em = cert->Verify(&ec);
 		std::cout << "em: " << em << ", ec: " << ec << "\n";
-		unsigned int count = pIRawThread->ConnectAll("news.yahoo.com", 443, SPA::tagEncryptionMethod::TLSv1, false);
+		unsigned int count = pIRawThread->ConnectAll("news.yahoo.com", 443, tagEncryptionMethod::TLSv1, false);
 		channel = pIRawThread->Lock(100);
 		const char *http_req = "GET /coronavirus HTTP/1.1\r\nHost: news.yahoo.com\r\n\r\n";
 		int res = channel->Send((const unsigned char*)http_req, (unsigned int)::strlen(http_req));
