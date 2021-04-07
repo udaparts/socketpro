@@ -2725,13 +2725,11 @@ void CClientSession::OnReadCompleted(const CErrorCode& Error, size_t nLen) {
         } else {
             SPA::CScopeUQueue sb;
             m_tRecv = GetTimeTick();
-            m_qRead.Push(m_ReadBuffer, len);
-            if (!m_pSspi->DoHandshake(m_qRead.GetBuffer(), m_qRead.GetSize(), *sb)) {
+            if (!m_pSspi->DoHandshake(m_ReadBuffer, len, *sb)) {
                 CloseInternal(m_pSspi->GetLastStatus());
                 return;
             }
             if (sb->GetSize()) {
-                m_qRead.SetSize(0);
 #if 0 //def BAD_COMM_ENVIRONMENT
                 srand((unsigned int) time(nullptr));
                 int random = rand();
@@ -2766,7 +2764,6 @@ void CClientSession::OnReadCompleted(const CErrorCode& Error, size_t nLen) {
 #endif
             }
             if (m_pSspi->GetHandshakeState() == SPA::hsDone) {
-                m_qRead.SetSize(0);
                 g_mutexCvc.lock();
                 PCertificateVerifyCallback cvc = g_cvc;
                 g_mutexCvc.unlock();
