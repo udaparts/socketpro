@@ -12,6 +12,8 @@
 #elif defined(WIN32_64)
 #include <io.h>
 #include "../core_shared/pinc/WinCrashHandler.h"
+extern MQ_FILE::mutex g_csLCI;
+extern SPA::CUQueue g_LastCallInfo;
 #else
 
 #include <unistd.h>
@@ -23,6 +25,9 @@
 #include <cxxabi.h>   // for __cxa_demangle
 #include <execinfo.h>
 #include <boost/thread/thread_time.hpp>
+
+MQ_FILE::mutex g_csLCI;
+SPA::CUQueue g_LastCallInfo;
 
 // This function produces a stack backtrace with demangled function & method names.
 
@@ -69,9 +74,6 @@ std::string Backtrace(int skip = 2) {
 #endif
 
 using namespace std;
-
-extern MQ_FILE::mutex g_csLCI;
-extern SPA::CUQueue g_LastCallInfo;
 
 void WINAPI SetLastCallInfo(const char *str) {
     MQ_FILE::CAutoLock al(g_csLCI);

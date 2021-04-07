@@ -17,7 +17,7 @@ void ChangeUInt32Endian(unsigned int *pGroup, unsigned int count) {
     }
 }
 
-SPA::CUQueue& operator << (SPA::CUQueue &mc, const SPA::CSwitchInfo &si) {
+SPA::CUQueue& operator<<(SPA::CUQueue &mc, const SPA::CSwitchInfo &si) {
     mc << si.SockMajorVersion;
     mc << si.ServiceId;
     mc << si.MajorVersion;

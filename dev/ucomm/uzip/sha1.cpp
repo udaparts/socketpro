@@ -42,7 +42,8 @@
 // Disable compiler warning 'Conditional expression is constant'
 #pragma warning(disable: 4127)
 
-namespace SPA {
+namespace SPA
+{
 
     CSHA1::CSHA1() {
         m_block = (SHA1_WORKSPACE_BLOCK*) m_workspace;
@@ -66,7 +67,7 @@ namespace SPA {
         m_count[1] = 0;
     }
 
-    void CSHA1::Transform(UINT_32* pState, const UINT_8* pBuffer) {
+    void CSHA1::Transform(UINT_32* pState, const UINT_8 * pBuffer) {
         UINT_32 a = pState[0], b = pState[1], c = pState[2], d = pState[3], e = pState[4];
 
         memcpy(m_block, pBuffer, 64);
@@ -192,7 +193,7 @@ namespace SPA {
 
 #ifdef SHA1_UTILITY_FUNCTIONS
 
-    bool CSHA1::HashFile(const TCHAR* tszFileName) {
+    bool CSHA1::HashFile(const TCHAR * tszFileName) {
         if (tszFileName == NULL) return false;
 
         FILE* fpIn = _tfopen(tszFileName, _T("rb"));
@@ -291,7 +292,7 @@ namespace SPA {
     }
 #endif
 
-    bool CSHA1::GetHash(UINT_8* pbDest20) const {
+    bool CSHA1::GetHash(UINT_8 * pbDest20) const {
         if (pbDest20 == NULL) return false;
         memcpy(pbDest20, m_digest, 20);
         return true;

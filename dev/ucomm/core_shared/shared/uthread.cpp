@@ -11,8 +11,7 @@
 
 #endif
 
-namespace SPA
-{
+namespace SPA {
 
     //CIoService CUCommThread::m_io;
 
@@ -54,34 +53,24 @@ namespace SPA
 
 #endif
         OnThreadStarted();
-        try{
+        try {
             m_io.post([this]() {
                 CAutoLock sl(m_mutex);
                 m_cv.notify_all();
             });
             m_io.run();
 #ifndef NDEBUG
-        }
-
-        catch(boost::system::system_error & err) {
+        } catch (boost::system::system_error & err) {
             std::cout << "boost::system_error " << err.what() << ", " << __FUNCTION__ << std::endl;
-        }
-
-        catch(SPA::CUException & err) {
+        } catch (SPA::CUException & err) {
             std::cout << "SPA::CUException " << err.what() << ", " << __FUNCTION__ << std::endl;
-        }
-
-        catch(std::exception & err) {
+        } catch (std::exception & err) {
             std::cout << "std::exception " << err.what() << ", " << __FUNCTION__ << std::endl;
-        }
-
-        catch(...) {
+        } catch (...) {
             std::cout << "Unknown exception " << ", " << __FUNCTION__ << std::endl;
         }
 #else
-        }
-
-        catch(...) {
+        } catch (...) {
         }
 #endif
 

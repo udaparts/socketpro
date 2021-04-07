@@ -429,7 +429,7 @@ namespace SPA
     }
 
     bool CSspi::DoHandshake(const unsigned char *buffer, DWORD dwSize, CUQueue & token) {
-		//assert(!IsInitialized());
+        //assert(!IsInitialized());
         SecBufferDesc InBuffer;
         SecBuffer InBuffers[2];
         SecBufferDesc OutBuffer;
@@ -474,7 +474,7 @@ namespace SPA
             }
         }
 
-		m_qIn.Push(buffer, (unsigned int) dwSize);
+        m_qIn.Push(buffer, (unsigned int) dwSize);
 
         // Set up the input buffers. Buffer 0 is used to pass in data
         // received from the server. Schannel will consume some or all
@@ -536,18 +536,17 @@ namespace SPA
             case SEC_E_OK:
                 ss = ::QueryContextAttributes(&m_CtxHandle, SECPKG_ATTR_STREAM_SIZES, &m_StreamSizes);
                 if (OutBuffers[0].cbBuffer && OutBuffers[0].pvBuffer) {
-					assert(OutBuffers[0].BufferType == SECBUFFER_TOKEN);
+                    assert(OutBuffers[0].BufferType == SECBUFFER_TOKEN);
                     token.Push((const unsigned char*) (OutBuffers[0].pvBuffer), (unsigned int) (OutBuffers[0].cbBuffer));
                     ss = ::FreeContextBuffer(OutBuffers[0].pvBuffer);
                 }
-				if (InBuffers[1].cbBuffer) {
-					assert(InBuffers[1].BufferType == SECBUFFER_EXTRA);
-					unsigned int used = m_qIn.GetSize() - (unsigned int)InBuffers[1].cbBuffer;
-					m_qIn.Pop(used);
-				}
-				else {
-					m_qIn.SetSize(0);
-				}
+                if (InBuffers[1].cbBuffer) {
+                    assert(InBuffers[1].BufferType == SECBUFFER_EXTRA);
+                    unsigned int used = m_qIn.GetSize() - (unsigned int) InBuffers[1].cbBuffer;
+                    m_qIn.Pop(used);
+                } else {
+                    m_qIn.SetSize(0);
+                }
                 m_hs = hsDone;
                 break;
             case SEC_I_COMPLETE_AND_CONTINUE:
@@ -555,41 +554,39 @@ namespace SPA
                 m_hs = hsShaking;
                 m_ss = ::CompleteAuthToken(&m_CtxHandle, &OutBuffer);
                 if (OutBuffers[0].cbBuffer && OutBuffers[0].pvBuffer) {
-					assert(OutBuffers[0].BufferType == SECBUFFER_TOKEN);
+                    assert(OutBuffers[0].BufferType == SECBUFFER_TOKEN);
                     token.Push((const unsigned char*) (OutBuffers[0].pvBuffer), (unsigned int) (OutBuffers[0].cbBuffer));
                     ss = ::FreeContextBuffer(OutBuffers[0].pvBuffer);
                 }
-				if (InBuffers[1].cbBuffer) {
-					assert(InBuffers[1].BufferType == SECBUFFER_EXTRA);
-					unsigned int used = m_qIn.GetSize() - (unsigned int)InBuffers[1].cbBuffer;
-					m_qIn.Pop(used);
-				}
-				else {
-					m_qIn.SetSize(0);
-				}
+                if (InBuffers[1].cbBuffer) {
+                    assert(InBuffers[1].BufferType == SECBUFFER_EXTRA);
+                    unsigned int used = m_qIn.GetSize() - (unsigned int) InBuffers[1].cbBuffer;
+                    m_qIn.Pop(used);
+                } else {
+                    m_qIn.SetSize(0);
+                }
                 if (!SUCCEEDED(m_ss)) {
                     return false;
                 }
                 break;
             case SEC_I_CONTINUE_NEEDED:
                 if (OutBuffers[0].cbBuffer && OutBuffers[0].pvBuffer) {
-					assert(OutBuffers[0].BufferType == SECBUFFER_TOKEN);
+                    assert(OutBuffers[0].BufferType == SECBUFFER_TOKEN);
                     token.Push((const unsigned char*) (OutBuffers[0].pvBuffer), (unsigned int) (OutBuffers[0].cbBuffer));
                     ss = ::FreeContextBuffer(OutBuffers[0].pvBuffer);
                 }
-				if (InBuffers[1].cbBuffer) {
-					assert(InBuffers[1].BufferType == SECBUFFER_EXTRA);
-					unsigned int used = m_qIn.GetSize() - (unsigned int)InBuffers[1].cbBuffer;
-					m_qIn.Pop(used);
-				}
-				else {
-					m_qIn.SetSize(0);
-				}
+                if (InBuffers[1].cbBuffer) {
+                    assert(InBuffers[1].BufferType == SECBUFFER_EXTRA);
+                    unsigned int used = m_qIn.GetSize() - (unsigned int) InBuffers[1].cbBuffer;
+                    m_qIn.Pop(used);
+                } else {
+                    m_qIn.SetSize(0);
+                }
                 m_hs = hsShaking;
                 break;
             case SEC_E_INCOMPLETE_MESSAGE:
-				assert(InBuffers[0].BufferType == SECBUFFER_TOKEN);
-				assert(InBuffers[1].BufferType == SECBUFFER_MISSING);
+                assert(InBuffers[0].BufferType == SECBUFFER_TOKEN);
+                assert(InBuffers[1].BufferType == SECBUFFER_MISSING);
                 m_hs = hsShaking;
                 break;
             case SEC_I_INCOMPLETE_CREDENTIALS:

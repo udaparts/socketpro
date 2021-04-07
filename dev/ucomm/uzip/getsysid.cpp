@@ -28,12 +28,12 @@ extern const char *__progname;
 #define MAX_REQ_SPEED 5120000
 #define MAX_CLIENTS 1024000
 
-namespace SPA {
+namespace SPA{
     std::string UAppName;
 #if defined(__ANDROID__) || defined(ANDROID)
     std::string g_strAndroidId;
 
-    void SetAndroidId(JNIEnv *env) {
+    void SetAndroidId(JNIEnv * env) {
         jclass cls = env->FindClass("android/provider/Settings$Secure");
         jfieldID android_id = env->GetStaticFieldID(cls, "ANDROID_ID", "Ljava/lang/String;");
         jstring objAndroidId = (jstring) env->GetStaticObjectField(cls, android_id);
@@ -42,13 +42,14 @@ namespace SPA {
         env->ReleaseStringUTFChars(objAndroidId, s);
     }
 #endif
-    std::string GetManagedAppCmd(const std::string &appName);
+    std::string GetManagedAppCmd(const std::string & appName);
     std::string GetHashId(const std::string &id, SPA::tagOperationSystem os);
-    std::string GetJavaCmd(const std::string &all);
-    std::string GetPythonCmd(const std::string &all);
+    std::string GetJavaCmd(const std::string & all);
+    std::string GetPythonCmd(const std::string & all);
 
-    namespace ServerSide {
-        bool SetRegistration(const char *str, URegistration &reg);
+    namespace ServerSide
+    {
+        bool SetRegistration(const char *str, URegistration & reg);
 
         const std::string EndDate("EndDate");
         const std::string CompanyName("CompanyName");
@@ -95,7 +96,7 @@ namespace SPA {
             return std::mktime(&tmDate);
         }
 
-        std::string MakeString(const char *strAppName, unsigned char manyMachine, const char *secret, const URegistration &reg) {
+        std::string MakeString(const char *strAppName, unsigned char manyMachine, const char *secret, const URegistration & reg) {
             std::string s;
             if (manyMachine) {
                 s = boost::str(boost::format("%1%%2%%3%%4%%5%%6%%7%%8%%9%") % reg.CompanyName
@@ -169,7 +170,7 @@ namespace SPA {
 
 #if defined(__ANDROID__) || defined(ANDROID) || defined(WINCE)
 
-        bool SetRegistration(char *str, URegistration &reg) {
+        bool SetRegistration(char *str, URegistration & reg) {
             return false;
         }
 
@@ -179,7 +180,7 @@ namespace SPA {
         }
          */
 
-        bool IsRegisterred(const char *secret, URegistration &reg) {
+        bool IsRegisterred(const char *secret, URegistration & reg) {
             return false;
         }
 #else
@@ -205,7 +206,8 @@ namespace SPA {
             aOs.push_back("wince");
             JSON::JArray<char> aServices;
             time_t t;
-            char strDate[128] = {0};
+            char strDate[128] =
+            {0};
             time(&t);
 #if defined(__ANDROID__) || defined(ANDROID) || defined(WINCE)
             tm *p = ::gmtime(&t);
@@ -248,7 +250,7 @@ namespace SPA {
             return false;
         }
 
-        bool SetRegistration(const char *str, URegistration &reg) {
+        bool SetRegistration(const char *str, URegistration & reg) {
             std::shared_ptr<JSON::JValue<char>> root(JSON::Parse<char>(str));
             if (!root)
                 return false;
@@ -345,7 +347,7 @@ namespace SPA {
             return true;
         }
 
-        bool IsRegisterred(const char *secret, URegistration &reg) {
+        bool IsRegisterred(const char *secret, URegistration & reg) {
             reg.Platforms.clear();
             reg.Services.clear();
             std::string appName = GetAppName();
@@ -385,8 +387,10 @@ namespace SPA {
     } //namespace ServerSide
 
     std::string GetHashId(const std::string &id, SPA::tagOperationSystem os) {
-        char str[64] = {0};
-        unsigned char bytes[32] = {0};
+        char str[64] =
+        {0};
+        unsigned char bytes[32] =
+        {0};
         unsigned int Salt = 0x4567FB21;
         SPA::CScopeUQueue su;
         su->Push((const unsigned char*) id.c_str(), (unsigned int) id.length());
@@ -410,7 +414,8 @@ namespace SPA {
 #elif defined(WIN32_64) 
 
     std::string PrintProcessNameAndID(DWORD processID) {
-        char szProcessName[MAX_PATH] = {0};
+        char szProcessName[MAX_PATH] =
+        {0};
         HANDLE hProcess = ::OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, FALSE, processID);
 
         // Get the process name.
@@ -427,7 +432,8 @@ namespace SPA {
 
     std::string ReadFromPipe(const char *cmd) {
         const unsigned int BUFFER_SIZE = 2048;
-        char Buffer[BUFFER_SIZE + 1] = {0};
+        char Buffer[BUFFER_SIZE + 1] =
+        {0};
         std::string s;
         DWORD aProcesses[1024], cbNeeded, cProcesses;
         if (!EnumProcesses(aProcesses, sizeof (aProcesses), &cbNeeded)) {
@@ -447,7 +453,8 @@ namespace SPA {
 
     std::string ReadFromPipe(const char *cmd) {
         const unsigned int BUFFER_SIZE = 2048;
-        char Buffer[BUFFER_SIZE + 1] = {0};
+        char Buffer[BUFFER_SIZE + 1] =
+        {0};
         std::string s;
         FILE *pipe = ::popen(cmd, "r");
         if (pipe == nullptr)
@@ -527,7 +534,8 @@ namespace SPA {
     std::string GetSysId() {
         DWORD ret;
         DWORD size;
-        char str[64] = {0};
+        char str[64] =
+        {0};
         SPA::CScopeUQueue su;
         PMIB_IFTABLE pi = (PMIB_IFTABLE) su->GetBuffer();
         size = su->GetMaxSize();
@@ -563,7 +571,8 @@ namespace SPA {
         }
         std::wstring name;
         std::wstring wAppName;
-        wchar_t strBuffer[4096 + 1] = {0};
+        wchar_t strBuffer[4096 + 1] =
+        {0};
         ::GetModuleFileNameW(nullptr, strBuffer, sizeof (strBuffer) / sizeof (wchar_t));
         name = strBuffer;
         std::wstring::size_type pos = name.rfind('\\');
@@ -595,7 +604,8 @@ namespace SPA {
         std::string s;
         int n;
         cmd = "tasklist";
-        char strBuffer[4096 + 1] = {0};
+        char strBuffer[4096 + 1] =
+        {0};
         ::GetModuleFileNameA(nullptr, strBuffer, sizeof (strBuffer));
         int len = (int) ::strlen(strBuffer);
         for (n = len - 1; n >= 0; --n) {
@@ -848,13 +858,13 @@ namespace SPA {
 
 #if defined(__ANDROID__) || defined(ANDROID) || defined(WINCE)
 
-    std::string GetManagedAppCmd(const std::string &appName) {
+    std::string GetManagedAppCmd(const std::string & appName) {
         return "";
     }
 
 #elif defined(WIN32_64)
 
-    std::string GetManagedAppCmd(const std::string &appName) {
+    std::string GetManagedAppCmd(const std::string & appName) {
         DWORD pid = ::GetCurrentProcessId();
         HRESULT hr;
         ULONG res = 0;
@@ -925,7 +935,7 @@ namespace SPA {
     }
 #else
 
-    std::string GetManagedAppCmd(const std::string &appName) {
+    std::string GetManagedAppCmd(const std::string & appName) {
         pid_t pid = getpid();
         std::string cmd = "ps -fp ";
         cmd += std::to_string(pid);
@@ -936,7 +946,7 @@ namespace SPA {
     }
 #endif
 
-    std::string GetJavaCmd(const std::string &all) {
+    std::string GetJavaCmd(const std::string & all) {
         size_t move = 12;
         size_t pos = all.find(" -classpath ");
         if (pos == std::string::npos) {
@@ -956,7 +966,7 @@ namespace SPA {
         return str;
     }
 
-    std::string GetPythonCmd(const std::string &all) {
+    std::string GetPythonCmd(const std::string & all) {
         size_t pos = all.rfind(".py");
         std::string str = all.substr(0, pos);
         pos = str.rfind(' ');

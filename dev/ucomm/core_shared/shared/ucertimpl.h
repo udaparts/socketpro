@@ -54,4 +54,3 @@ typedef std::shared_ptr<CUCertImpl> CCertificateImplPtr;
 #else
 typedef boost::shared_ptr<CCertificateImpl> CCertificateImplPtr;
 #endif
-
