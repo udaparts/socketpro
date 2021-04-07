@@ -4,6 +4,9 @@
 #include "../core_shared/shared/uthread.h"
 #include "rawsession.h"
 
+extern std::mutex g_mutexCvc;
+extern PCertificateVerifyCallback g_cvc;
+
 class U_MODULE_HIDDEN CRawThread : public IRawThread, public SPA::CUCommThread {
 
 public:

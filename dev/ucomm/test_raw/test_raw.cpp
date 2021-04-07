@@ -80,24 +80,31 @@ void CALLBACK OnAvailable(USessionHandle sh, const unsigned char *data, unsigned
 #endif
 }
 
+bool CALLBACK CVCallback(bool preverified, int depth, int errorCode, const char *errMessage, SPA::CertInfo * ci) {
+	return true;
+}
+
 int main()
 {
 	bool ok;
+	int ec;
 	{
+		SetCertVerifyCallback(CVCallback);
 		std::shared_ptr<IRawThread> pIRawThread(CreateSessions(OnAvailable, events, 3, SPA::tagThreadApartment::taNone));
 		ok = pIRawThread->Start();
 		auto channel = pIRawThread->FindAClosedSession();
-		ok = channel->Connect("microsoft.com", 443, SPA::tagEncryptionMethod::TLSv1, false, true, 5000);
-#if 0
-		const char *http_req = "GET / HTTP/1.1\r\nHost: google.com\r\n\r\n";
+		ok = channel->Connect("news.yahoo.com", 443, SPA::tagEncryptionMethod::TLSv1, false, true, 10000);
+		auto cert = channel->GetUCert();
+		std::string em = cert->Verify(&ec);
+		std::cout << "em: " << em << ", ec: " << ec << "\n";
+		const char *http_req = "GET /coronavirus HTTP/1.1\r\nHost: news.yahoo.com\r\n\r\n";
 		int res = channel->Send((const unsigned char*)http_req, (unsigned int)::strlen(http_req));
-		http_req = "GET /events.htm HTTP/1.1\r\nHost: udaparts.com\r\n\r\n";
+		http_req = "GET /us HTTP/1.1\r\nHost: news.yahoo.com\r\n\r\n";
 		res = channel->Send((const unsigned char*)http_req, (unsigned int)::strlen(http_req));
-		http_req = "GET /registration.htm HTTP/1.1\r\nHost: udaparts.com\r\n\r\n";
+		http_req = "GET /politics HTTP/1.1\r\nHost: news.yahoo.com\r\n\r\n";
 		res = channel->Send((const unsigned char*)http_req, (unsigned int)::strlen(http_req));
-		http_req = "GET /socketprofaqs.htm HTTP/1.1\r\nHost: udaparts.com\r\n\r\n";
+		http_req = "GET /world HTTP/1.1\r\nHost: news.yahoo.com\r\n\r\n";
 		res = channel->Send((const unsigned char*)http_req, (unsigned int)::strlen(http_req));
-#endif
 		std::cout << "Press a key to shut down the application ......\n";
 		::getchar();
 	}
