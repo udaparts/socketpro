@@ -342,14 +342,10 @@ namespace SPA
                 }
 #else
                 if (m_pSsl->Done()) {
-                    if (!m_pSsl->DoHandshake(m_ReadBuffer, nLen, *sb)) {
-                        m_cs.lock();
-                        m_ec.assign(SSL_ERROR_SSL, boost::asio::error::get_ssl_category());
-                        m_cs.unlock();
-                        Close();
-                        return;
+                    m_pSsl->Decrypt(m_ReadBuffer, nLen, *sb);
+                    if (sb->GetSize()) {
+                        m_da(this, sb->GetBuffer(), sb->GetSize());
                     }
-                    m_da(this, sb->GetBuffer(), sb->GetSize());
                 } else {
                     if (!m_pSsl->DoHandshake(m_ReadBuffer, nLen, *sb)) {
                         m_cs.lock();
@@ -470,15 +466,15 @@ namespace SPA
         if (m_secure == tagEncryptionMethod::TLSv1 && m_pSspi->GetHandshakeState() == tagSslHandshakeState::hsDone) {
             CScopeUQueue sb;
             m_pSspi->Encrypt(m_WriteBuffer, ulLen, *sb);
-            m_bWBLocked = ulLen = sb->GetSize();
-            assert(m_bWBLocked <= IO_BUFFER_SIZE + IO_ENCRYPTION_PADDING);
+            ulLen = sb->GetSize();
+            assert(ulLen <= IO_BUFFER_SIZE + IO_ENCRYPTION_PADDING);
             ::memcpy(m_WriteBuffer, sb->GetBuffer(), ulLen);
         }
 #else
         if (m_secure == tagEncryptionMethod::TLSv1 && m_pSsl->Done()) {
             SPA::CScopeUQueue sb;
-            m_bWBLocked = ulLen = m_pSsl->Encrypt(m_WriteBuffer, ulLen, *sb);
-            assert(m_bWBLocked <= IO_BUFFER_SIZE + IO_ENCRYPTION_PADDING);
+            ulLen = m_pSsl->Encrypt(m_WriteBuffer, ulLen, *sb);
+            assert(ulLen <= IO_BUFFER_SIZE + IO_ENCRYPTION_PADDING);
             ::memcpy(m_WriteBuffer, sb->GetBuffer(), ulLen);
         }
 #endif
