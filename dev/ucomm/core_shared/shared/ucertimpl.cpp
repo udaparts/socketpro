@@ -1,9 +1,12 @@
 
 #include "ucertimpl.h"
 #ifdef USE_SPIRIT_CLSSICAL_FOR_MULTIPART
-#include "../../uservercore/server.h"
+#else
+#ifdef U_RAW_SOCKET
+#include "../../urawsocket/rawthread.h"
 #else
 #include "../../clientcore/clientthread.h"
+#endif
 #endif
 
 const char* CUCertImpl::m_empty = "";
@@ -109,6 +112,13 @@ bool CUCertImpl::SetVerifyLocation(const char *caFile) {
     if (!caFile)
         return false;
     std::string ca(caFile);
+#ifdef U_RAW_SOCKET
+    if (ca.rfind(".pem") == ca.size() - 4) {
+        res = ::SSL_CTX_load_verify_locations(SPA::CRawThread::m_sslContext.native_handle(), caFile, nullptr);
+    } else {
+        res = ::SSL_CTX_load_verify_locations(SPA::CRawThread::m_sslContext.native_handle(), nullptr, caFile);
+    }
+#else
     if (ca.rfind(".pem") == ca.size() - 4) {
 #ifdef USE_SPIRIT_CLSSICAL_FOR_MULTIPART
         if (g_pServer && g_pServer->m_pSslContext)
@@ -124,6 +134,7 @@ bool CUCertImpl::SetVerifyLocation(const char *caFile) {
         res = ::SSL_CTX_load_verify_locations(CClientThread::m_sslContext.native_handle(), nullptr, caFile);
 #endif
     }
+#endif
     return (res > 0);
 }
 

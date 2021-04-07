@@ -127,8 +127,8 @@ namespace SPA
                             }
 #else
                             m_pSsl.reset(new CMyOpenSSL(m_rt.GetSslContext().native_handle(), true));
-                            if (m_pSsl->DoHandshake(nullptr, 0, m_qWrite)) {
-                                m_ec.assign(SSL_ERROR_SSL, boost::system::system_category());
+                            if (!m_pSsl->DoHandshake(nullptr, 0, m_qWrite)) {
+                                m_ec.assign(SSL_ERROR_SSL, boost::system::generic_category());
                                 m_ss = tagSessionState::ssClosed;
                                 m_socket.shutdown(nsIP::tcp::socket::shutdown_type::shutdown_both, ec);
                                 m_socket.close(ec);

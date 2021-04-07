@@ -31,6 +31,18 @@ namespace SPA{
 #ifndef NOT_USE_OPENSSL
     CSslContext CRawThread::m_sslContext(CSslContext::tls_client);
 
+    CRawThread::MyTimerSet::MyTimerSet() {
+        CRYPTO_set_dynlock_create_callback(dyn_create_function);
+        CRYPTO_set_dynlock_lock_callback(dyn_lock_function);
+        CRYPTO_set_dynlock_destroy_callback(dyn_destroy_function);
+    }
+
+    CRawThread::MyTimerSet::~MyTimerSet() {
+        CRYPTO_set_dynlock_create_callback(nullptr);
+        CRYPTO_set_dynlock_lock_callback(nullptr);
+        CRYPTO_set_dynlock_destroy_callback(nullptr);
+    }
+
     struct CRYPTO_dynlock_value * CRawThread::MyTimerSet::dyn_create_function(const char *file, int line) {
         boost::mutex *p = new boost::mutex;
         return (struct CRYPTO_dynlock_value*) p;
@@ -67,6 +79,8 @@ namespace SPA{
     CSslContext & CRawThread::GetSslContext() {
         return m_sslContext;
     }
+
+    CRawThread::MyTimerSet CRawThread::MyTimerSet::ms;
 
 #endif
 

@@ -50,6 +50,9 @@ namespace SPA {
         static CSslContext m_sslContext;
 
         struct MyTimerSet {
+            MyTimerSet();
+            ~MyTimerSet();
+            static MyTimerSet ms;
             static struct CRYPTO_dynlock_value *dyn_create_function(const char *file, int line);
             static void dyn_lock_function(int mode, struct CRYPTO_dynlock_value *l, const char *file, int line);
             static void dyn_destroy_function(struct CRYPTO_dynlock_value *l, const char *file, int line);
