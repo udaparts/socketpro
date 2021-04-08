@@ -100,18 +100,18 @@ protected:
             case (unsigned short) SPA::ServerSide::tagHttpRequestID::idGet:
             {
                 const char *path = GetPath();
-                if (chunkedTest == path) {
+                if (path && chunkedTest == path) {
                     static std::string chunk0 = "var ar = 123456789, msg = 'this is a test message from server ';";
                     static std::string chunk1 = "alert(msg + ar);";
                     SetResponseHeader("Content-Type", "application/x-javascript");
                     unsigned int res = StartChunkResponse();
                     res = SendChunk((const unsigned char*) chunk0.c_str(), (unsigned int) chunk0.size());
                     res = EndChunkResponse((const unsigned char*) chunk1.c_str(), (unsigned int) chunk1.size());
-                } else if (::strstr(path, ".")) {
+                } else if (path && ::strstr(path, ".")) {
                     SPA::ServerSide::CHttpHeaderValue pHeaderValule[20] = {0};
                     unsigned int res = GetRequestHeaders(pHeaderValule, 20);
                     DownloadFile(path + 1);
-                } else {
+                } else if (path) {
                     const std::string &RequestName = GetUserRequestName();
                     const std::vector<SPA::UVariant> &args = GetArgs();
                     unsigned int res = SendResult("test result --- GET ---");

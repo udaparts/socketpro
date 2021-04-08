@@ -2897,12 +2897,10 @@ bool CServerSession::ProcessHttpRequest() {
     switch (hm) {
         case SPA::ServerSide::tagHttpMethod::hmGet:
         {
-            assert(m_qRead.GetSize() == 0);
             m_pHttpContext->SetPostPS();
             UHTTP::tagHttpRequestType request_type = m_pHttpContext->GetHttpRequestType();
             if (request_type == UHTTP::hrtDownloadAdapter) {//download spadapter.js
                 unsigned int len;
-                assert(m_qRead.GetSize() == 0);
                 UHTTP::CUJsLoader loader(m_pHttpContext->GetUserAgent(),
                         m_pHttpContext->GetParams().Start,
                         m_pHttpContext->GetHost(),
@@ -2919,7 +2917,6 @@ bool CServerSession::ProcessHttpRequest() {
                 }
                 return false;
             } else if (request_type == UHTTP::hrtDownloadLoader) { //download uloader.js
-                assert(m_qRead.GetSize() == 0);
                 if (m_pSspi) {
                     SPA::CScopeUQueue sb;
                     m_pHttpContext->StartDownloadFile(m_pHttpContext->GetUrl().Start + 1, *sb);
@@ -2930,10 +2927,8 @@ bool CServerSession::ProcessHttpRequest() {
                 }
                 return false;
             } else if (request_type == UHTTP::hrtJsRequest) {
-                assert(m_qRead.GetSize() == 0);
                 return ProcessJavaScriptRequest();
             } else { //Non-SocketPro JavaScript request
-                assert(m_qRead.GetSize() == 0);
                 SPA::CStreamHeader reqInfo((unsigned short) SPA::ServerSide::tagHttpRequestID::idGet);
                 m_qRead.Insert((const unsigned char*) &reqInfo, sizeof (reqInfo), m_ReqInfo.Size);
                 ++m_nHttpCallCount;
