@@ -254,12 +254,12 @@ namespace SPA
                         Close();
                         return;
                     }
-					if (m_rt.m_buff.GetSize()) {
-						m_da(this, m_rt.m_buff.GetBuffer(), m_rt.m_buff.GetSize());
-						m_rt.m_buff.SetSize(0);
-					}
+                    if (m_rt.m_buff.GetSize()) {
+                        m_da(this, m_rt.m_buff.GetBuffer(), m_rt.m_buff.GetSize());
+                        m_rt.m_buff.SetSize(0);
+                    }
                 } else {
-					CScopeUQueue sb;
+                    CScopeUQueue sb;
                     if (!m_pSspi->DoHandshake(m_ReadBuffer, (unsigned int) nLen, *sb)) {
                         m_cs.lock();
                         m_ec.assign(m_pSspi->GetLastStatus(), boost::system::system_category());
@@ -346,12 +346,12 @@ namespace SPA
 #else
                 if (m_pSsl->Done()) {
                     m_pSsl->Decrypt(m_ReadBuffer, nLen, m_rt.m_buff);
-					if (m_rt.m_buff.GetSize()) {
-						m_da(this, m_rt.m_buff.GetBuffer(), m_rt.m_buff.GetSize());
-						m_rt.m_buff.SetSize(0);
-					}
+                    if (m_rt.m_buff.GetSize()) {
+                        m_da(this, m_rt.m_buff.GetBuffer(), m_rt.m_buff.GetSize());
+                        m_rt.m_buff.SetSize(0);
+                    }
                 } else {
-					CScopeUQueue sb;
+                    CScopeUQueue sb;
                     if (!m_pSsl->DoHandshake(m_ReadBuffer, nLen, *sb)) {
                         m_cs.lock();
                         m_ec.assign(SSL_ERROR_SSL, boost::asio::error::get_ssl_category());
@@ -469,7 +469,7 @@ namespace SPA
         }
 #ifdef WIN32_64
         if (m_secure == tagEncryptionMethod::TLSv1 && m_pSspi->GetHandshakeState() == tagSslHandshakeState::hsDone) {
-			m_qSsl.SetSize(0);
+            m_qSsl.SetSize(0);
             m_pSspi->Encrypt(m_WriteBuffer, ulLen, m_qSsl);
             ulLen = m_qSsl.GetSize();
             assert(ulLen <= IO_BUFFER_SIZE + IO_ENCRYPTION_PADDING);
@@ -477,7 +477,7 @@ namespace SPA
         }
 #else
         if (m_secure == tagEncryptionMethod::TLSv1 && m_pSsl->Done()) {
-			m_qSsl.SetSize(0);
+            m_qSsl.SetSize(0);
             ulLen = m_pSsl->Encrypt(m_WriteBuffer, ulLen, m_qSsl);
             assert(ulLen);
             assert(ulLen == m_qSsl.GetSize());

@@ -19,7 +19,7 @@ namespace SPA {
 
     class CRawThread;
 
-    class CRawSession : public ISession {
+    class U_MODULE_HIDDEN CRawSession : public ISession {
     public:
         CRawSession(CIoService &IoService, CRawThread &rt, PDataArrive da);
         CRawSession(const CRawSession &rs) = delete;
@@ -54,10 +54,10 @@ namespace SPA {
     private:
         static CSpinLock m_csBuffer;
         static std::vector<unsigned char*> m_aBuffer;
-		CScopeUQueue m_sbSsl;
-		CScopeUQueue m_sbWrite;
-		CUQueue &m_qWrite;
-		CUQueue &m_qSsl;
+        CScopeUQueue m_sbSsl;
+        CScopeUQueue m_sbWrite;
+        CUQueue &m_qWrite;
+        CUQueue &m_qSsl;
         CIoService &m_io;
         CRawThread &m_rt;
         PDataArrive m_da;

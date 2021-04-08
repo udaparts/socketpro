@@ -20,13 +20,13 @@ void CALLBACK events(SessionPoolHandle thread, tagSessionPoolEvent se, SessionHa
             break;
         case tagSessionPoolEvent::seSslShaking:
             std::cout << "seSslShaking\n";
-		{
-			char em[1024];
-			int errCode = sh->GetErrorCode(em, sizeof(em));
-			if (errCode) {
-				std::cout << "ec: " << errCode << ", em: " << em << "\n";
-			}
-		}
+        {
+            char em[1024];
+            int errCode = sh->GetErrorCode(em, sizeof (em));
+            if (errCode) {
+                std::cout << "ec: " << errCode << ", em: " << em << "\n";
+            }
+        }
             break;
         case tagSessionPoolEvent::seLocked:
             std::cout << "seLocked\n";
@@ -64,6 +64,7 @@ void CALLBACK OnAvailable(SessionHandle sh, const unsigned char *data, unsigned 
 }
 
 bool CALLBACK CVCallback(bool preverified, int depth, int errorCode, const char *errMessage, SPA::CertInfo * ci) {
+    std::cout << "depth: " << depth << ", errCode: " << errMessage << "\n";
     return true;
 }
 
@@ -72,24 +73,25 @@ int main() {
     int ec;
     {
 #ifndef WIN32_64
-        ok = SetVerify("/etc/ssl/certs");
+        ok = SetVerify("ca.cert.pem");
 #endif
         SetCertVerifyCallback(CVCallback);
-        std::shared_ptr<ISessionPool> pIRawThread(CreateASessionPool(OnAvailable, events, 3));
+        std::shared_ptr<ISessionPool> pIRawThread(CreateASessionPool(OnAvailable, events, 1));
         auto channel = pIRawThread->FindAClosedSession();
-        ok = channel->Connect("news.yahoo.com", 443, tagEncryptionMethod::TLSv1, false, true);
+        ok = channel->Connect("windesk", 20901, tagEncryptionMethod::TLSv1, false, true);
         auto cert = channel->GetUCert();
         std::string em = cert->Verify(&ec);
         std::cout << "em: " << em << ", ec: " << ec << "\n";
-        unsigned int count = pIRawThread->ConnectAll("news.yahoo.com", 443, tagEncryptionMethod::TLSv1);
+        unsigned int count = pIRawThread->ConnectAll("windesk", 20901, tagEncryptionMethod::TLSv1);
+        std::cout << "count: " << count << "\n";
         channel = pIRawThread->Lock(100);
-        const char *http_req = "GET /coronavirus HTTP/1.1\r\nHost: news.yahoo.com\r\n\r\n";
+        const char *http_req = "GET /index.html HTTP/1.1\r\nHost: windesk\r\n\r\n";
         int res = channel->Send((const unsigned char*) http_req, (unsigned int) ::strlen(http_req));
-        http_req = "GET /us HTTP/1.1\r\nHost: news.yahoo.com\r\n\r\n";
+        http_req = "GET /ws0.htm HTTP/1.1\r\nHost: windesk\r\n\r\n";
         res = channel->Send((const unsigned char*) http_req, (unsigned int) ::strlen(http_req));
-        http_req = "GET /politics HTTP/1.1\r\nHost: news.yahoo.com\r\n\r\n";
+        http_req = "GET /events.htm HTTP/1.1\r\nHost: windesk\r\n\r\n";
         res = channel->Send((const unsigned char*) http_req, (unsigned int) ::strlen(http_req));
-        http_req = "GET /world HTTP/1.1\r\nHost: news.yahoo.com\r\n\r\n";
+        http_req = "GET /socketprofaqs.htm HTTP/1.1\r\nHost: windesk\r\n\r\n";
         res = channel->Send((const unsigned char*) http_req, (unsigned int) ::strlen(http_req));
         std::cout << "Press a key to shut down the application ......\n";
         ok = pIRawThread->Unlock(channel);
