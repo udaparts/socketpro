@@ -66,6 +66,7 @@ protected:
 
     int OnSlowRequestArrive(unsigned short requestId, unsigned int len) {
         const char *path = GetPath();
+        if (!path) return -1;
         const std::string &RequestName = GetUserRequestName();
         const std::vector<SPA::UVariant> &args = GetArgs();
         switch (requestId) {
