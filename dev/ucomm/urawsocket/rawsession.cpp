@@ -224,32 +224,32 @@ namespace SPA
         return m_pCert.get();
     }
 
-	bool CRawSession::GetPeerName(unsigned int *port, char *addr, unsigned int chars) {
-		unsigned int n = 0;
-		CErrorCode ec;
-		boost::asio::ip::tcp::endpoint ep;
-		CAutoLock sl(m_cs);
-		ep = m_socket.remote_endpoint(ec);
-		if (ec) {
-			return false;
-		}
-		if (port) {
-			*port = ep.port();
-		}
-		if (!addr || !chars) {
-			return true;
-		}
-		--chars;
-		if (chars) {
-			std::string str = ep.address().to_string();
-			unsigned int max = (unsigned int)str.size();
-			for (n = 0; n < max && n < chars; ++n) {
-				addr[n] = str[n];
-			}
-		}
-		addr[n] = 0;
-		return true;
-	}
+    bool CRawSession::GetPeerName(unsigned int *port, char *addr, unsigned int chars) {
+        unsigned int n = 0;
+        CErrorCode ec;
+        boost::asio::ip::tcp::endpoint ep;
+        CAutoLock sl(m_cs);
+        ep = m_socket.remote_endpoint(ec);
+        if (ec) {
+            return false;
+        }
+        if (port) {
+            *port = ep.port();
+        }
+        if (!addr || !chars) {
+            return true;
+        }
+        --chars;
+        if (chars) {
+            std::string str = ep.address().to_string();
+            unsigned int max = (unsigned int) str.size();
+            for (n = 0; n < max && n < chars; ++n) {
+                addr[n] = str[n];
+            }
+        }
+        addr[n] = 0;
+        return true;
+    }
 
     int CRawSession::GetErrorCode(char *em, unsigned int len) {
         CAutoLock sl(m_cs);
