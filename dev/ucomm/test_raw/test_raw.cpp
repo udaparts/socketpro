@@ -76,7 +76,7 @@ int main() {
         ok = SetVerify("ca.cert.pem");
 #endif
         SetCertVerifyCallback(CVCallback);
-        std::shared_ptr<ISessionPool> pIRawThread(CreateASessionPool(OnAvailable, events, 1));
+        std::shared_ptr<ISessionPool> pIRawThread(CreateASessionPool(OnAvailable, events, 3));
         auto channel = pIRawThread->FindAClosedSession();
         ok = channel->Connect("windesk", 20901, tagEncryptionMethod::TLSv1, false, true);
         auto cert = channel->GetUCert();
