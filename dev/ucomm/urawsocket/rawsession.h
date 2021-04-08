@@ -34,8 +34,9 @@ namespace SPA {
         bool IsConnected();
         void Close();
         int Send(const unsigned char *data, unsigned int bytes);
-        unsigned int GetSendBufferSize();
+        unsigned int GetOutBufferSize();
         IUcert* GetUCert();
+		bool GetPeerName(unsigned int *port, char *addr, unsigned int chars);
 
     private:
         int SendInternal(const unsigned char *data, unsigned int bytes);

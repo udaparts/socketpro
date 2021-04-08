@@ -19,7 +19,8 @@ namespace SPA {
         virtual void Close() = 0;
         virtual int Send(const unsigned char *data, unsigned int bytes) = 0;
         virtual IUcert* GetUCert() = 0;
-        virtual unsigned int GetSendBufferSize() = 0;
+        virtual unsigned int GetOutBufferSize() = 0;
+		virtual bool GetPeerName(unsigned int *port, char *addr, unsigned int chars) = 0;
     };
     typedef ISession *SessionHandle;
 
