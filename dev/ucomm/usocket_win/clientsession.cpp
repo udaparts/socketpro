@@ -2807,7 +2807,7 @@ void CClientSession::OnReadCompleted(const CErrorCode& Error, size_t nLen) {
                         }
                         ::CertFreeCertificateChain(pChainContext);
                         if (!ok) {
-                            CloseInternal((int) ::GetLastError());
+                            CloseInternal(SEC_E_UNTRUSTED_ROOT);
                             return;
                         }
                     }

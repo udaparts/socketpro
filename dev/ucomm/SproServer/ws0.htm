@@ -6,71 +6,112 @@
             {
                 width: 100px;
             }
-            #Button1
-            {
-                width: 111px;
-            }
             #btnReconnect
             {
                 width: 107px;
             }
+            #btnSleep
+            {
+                width: 74px;
+            }
+            #btnPublish
+            {
+                height: 27px;
+                width: 54px;
+            }
+            #txtMessage
+            {
+                width: 552px;
+            }
+            #btnSendUserMessage
+            {
+                width: 139px;
+            }
+            #txtReceiver
+            {
+                width: 100px;
+            }
         </style>
     </head>
     <script type="text/javascript">
-        var ws;
+        function getBrowserName() {
+            var agent = navigator.userAgent;
+            if (agent.indexOf("Opera") != -1 || agent.indexOf(" OPR/") != -1)
+                return 'Opera';
+            else if (agent.indexOf("MSIE") != -1 || agent.indexOf("Trident") != -1)
+                return 'MSIE';
+            else if (agent.indexOf(" Edg/") != -1)
+                return 'Edge';
+            else if (agent.indexOf("Chrome") != -1)
+                return 'Chrome';
+            else if (agent.indexOf("Safari") != -1)
+                return 'Safari';
+            else if (agent.indexOf("Firefox") != -1)
+                return 'FireFox';
+            else
+               return 'Browser';
+        }
 
+        //a global function to track the event
+        //that SocketPro adapter for JavaScript is just loaded.
         function onUHTTPLoaded() {
             btnReconnect_onclick();
         }
+
+        var ws, push;
         function btnClose_onclick() {
             ws.close();
         }
-
-        function btnSendRequest_onclick() {
-            ws.sendRequest('doRequest', 2, false, [1, false, 'te"st'], new Date(), 23423.45679, '岛礁上共有11名士兵', { obj: 'test"Object' }, null, 'again', function (res) {
-                res = JSON.stringify(res);
-                //SPA.log(res);
-            });
-        }
-
         function btnReconnect_onclick() {
-            if (ws && ws.isOpen())
-                return;
-            ws = UHTTP.connect('socketpro', 'PassOne', 
-                function () {
-                    //SPA.log('Web socket opened!');
-                    document.getElementById('btnSendRequest').disabled = "";
-                },
-			    function () {
-				    document.getElementById('btnSendRequest').disabled = "disabled";
-				    //SPA.log('socket closed');
-			    });
-				ws.onError = function (e) {
-				    //SPA.log('Error = ' + e.toString());
-			    };
-            ws.push.onMessage = function (msg) {
-                //SPA.log(JSON.stringify(msg));
+            if (ws && ws.isOpen()) return;
+            ws = UHTTP.connect(getBrowserName(), 'MyPassword', () => {
+                document.getElementById('btnSayHello').disabled = "";
+                document.getElementById('btnSleep').disabled = "";
+                document.getElementById('btnPublish').disabled = "";
+                document.getElementById('btnSendUserMessage').disabled = "";
+            }, () => {
+                document.getElementById('btnSayHello').disabled = "disabled";
+                document.getElementById('btnSleep').disabled = "disabled";
+                document.getElementById('btnPublish').disabled = "disabled";
+                document.getElementById('btnSendUserMessage').disabled = "disabled";
+			});
+            push = ws.push;
+            push.onMessage = (msg) => {
+                document.getElementById('txtMessage').value = JSON.stringify(msg);
             };
         }
-        </script>
+        function btnSleep_onclick() {
+            ws.sendRequest('sleep', 2000, (res) => {
+                res = JSON.stringify(res);
+                alert(res);
+            });
+        }
+		function btnSayHello_onclick() {
+            ws.sendRequest('sayHello', 'Jack', 'Smith', (res) => {
+                res = JSON.stringify(res);
+                alert(res);
+            });
+        }
+		
+        function btnPublish_onclick() {
+            push.speak(document.getElementById('txtMessage').value, [1,2,7]);
+        }
+        function btnSendUserMessage_onclick() {
+            push.sendUserMessage(document.getElementById('txtMessage').value, document.getElementById('txtReceiver').value);
+        }
+    </script>
     
-    <body>
-    	<div id="content">
-    	current user => <span id="num">
-            <br />
-            <br />
-            </span>
-    	    <!--<img id="idEB" alt="" src="earth.bmp" style="height: 304px; width: 299px" />
-            <img id="idEC" alt="" src="earthcity.jpg" style="height: 548px; width: 663px" /> -->
-            <br />
-            <input id="btnClose" type="button" value="Close" onclick="return btnClose_onclick()" /><input 
-                id="btnSendRequest" type="button" value="Send Request" 
-                onclick="return btnSendRequest_onclick()" disabled="disabled" /><input 
-                id="btnReconnect" type="button" value="Re-connect" onclick="return btnReconnect_onclick()" /></div>
-
-        <p>
-            &nbsp;</p>
+<body>
+    <img id="idEC" alt="" src="earthcity.jpg" style="height: 548px; width: 663px" />
+    <br />A image loaded from SocketPro HTTP/WebSocket server<br />
+    <input id="btnClose" type="button" value="Close" onclick="return btnClose_onclick()" />
+    <input id="btnSayHello" type="button" value="Say Hello" onclick="return btnSayHello_onclick()" disabled="disabled" />
+    <input id="btnSleep" type="button" value="Sleep" disabled="disabled" onclick="return btnSleep_onclick()" />
+    <input id="btnReconnect" type="button" value="Re-connect" onclick="return btnReconnect_onclick()" /><br />
+    <input id="btnPublish" disabled="disabled" type="button" value="Publish" onclick="return btnPublish_onclick()" />
+    <input id="txtMessage" type="text" /> message<br />
+    <input id="btnSendUserMessage" disabled="disabled" type="button" value="SendUserMessage" onclick="return btnSendUserMessage_onclick()" />
+    <input id="txtReceiver" type="text" />&lt;= receiver
     <script type="text/javascript" src = "uloader.js"></script>
-    </body>
-
+</body>
 </html>
