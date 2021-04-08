@@ -1,6 +1,9 @@
 
 #include "ucertimpl.h"
 #ifdef USE_SPIRIT_CLSSICAL_FOR_MULTIPART
+#ifndef WIN32_64
+#include "../../uservercore/server.h"
+#endif
 #else
 #ifdef U_RAW_SOCKET
 #include "../../urawsocket/rawthread.h"
