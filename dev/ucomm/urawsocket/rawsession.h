@@ -54,10 +54,10 @@ namespace SPA {
     private:
         static CSpinLock m_csBuffer;
         static std::vector<unsigned char*> m_aBuffer;
-
-        CScopeUQueue m_sbWrite;
-        CUQueue &m_qWrite;
-
+		CScopeUQueue m_sbSsl;
+		CScopeUQueue m_sbWrite;
+		CUQueue &m_qWrite;
+		CUQueue &m_qSsl;
         CIoService &m_io;
         CRawThread &m_rt;
         PDataArrive m_da;

@@ -10,6 +10,8 @@ extern PCertificateVerifyCallback g_cvc;
 namespace SPA {
 
     class U_MODULE_HIDDEN CRawThread : public ISessionPool, public CUCommThread {
+		CScopeUQueue m_sb;
+
     public:
         CRawThread(PDataArrive da, PSessionCallback sc, unsigned int sessions, tagThreadApartment ta);
         CRawThread(const CRawThread &rt) = delete;
@@ -62,6 +64,9 @@ namespace SPA {
     protected:
         virtual void OnThreadStarted();
         virtual void OnThreadEnded();
+
+	public:
+		SPA::CUQueue &m_buff;
 
     private:
         PDataArrive m_da;

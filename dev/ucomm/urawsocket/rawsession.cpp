@@ -32,7 +32,7 @@ namespace SPA
         m_csBuffer.unlock();
     }
 
-    CRawSession::CRawSession(CIoService &IoService, CRawThread &rt, PDataArrive da) : m_qWrite(*m_sbWrite), m_io(IoService), m_rt(rt), m_da(da), m_socket(IoService),
+    CRawSession::CRawSession(CIoService &IoService, CRawThread &rt, PDataArrive da) : m_qWrite(*m_sbWrite), m_qSsl(*m_sbSsl), m_io(IoService), m_rt(rt), m_da(da), m_socket(IoService),
             m_nPort(0), m_b6(false), m_bSync(false), m_ss(tagSessionState::ssClosed), m_secure(tagEncryptionMethod::NoEncryption), m_ReadBuffer(GetIoBuffer()),
             m_bRBLocked(false), m_WriteBuffer(GetIoBuffer()), m_bWBLocked(0), m_bWaiting(false) {
 #ifdef WIN32_64
@@ -245,18 +245,21 @@ namespace SPA
             Close();
         } else {
             if (m_secure == tagEncryptionMethod::TLSv1) {
-                CScopeUQueue sb;
 #ifdef WIN32_64
                 if (m_pSspi->GetHandshakeState() == hsDone) {
-                    if (!m_pSspi->Decrypt(m_ReadBuffer, (unsigned int) nLen, *sb)) {
+                    if (!m_pSspi->Decrypt(m_ReadBuffer, (unsigned int) nLen, m_rt.m_buff)) {
                         m_cs.lock();
                         m_ec.assign(m_pSspi->GetLastStatus(), boost::system::system_category());
                         m_cs.unlock();
                         Close();
                         return;
                     }
-                    m_da(this, sb->GetBuffer(), sb->GetSize());
+					if (m_rt.m_buff.GetSize()) {
+						m_da(this, m_rt.m_buff.GetBuffer(), m_rt.m_buff.GetSize());
+						m_rt.m_buff.SetSize(0);
+					}
                 } else {
+					CScopeUQueue sb;
                     if (!m_pSspi->DoHandshake(m_ReadBuffer, (unsigned int) nLen, *sb)) {
                         m_cs.lock();
                         m_ec.assign(m_pSspi->GetLastStatus(), boost::system::system_category());
@@ -318,7 +321,7 @@ namespace SPA
                                 ::CertFreeCertificateChain(pChainContext);
                                 if (!ok) {
                                     m_cs.lock();
-                                    m_ec.assign(::GetLastError(), boost::system::system_category());
+                                    m_ec.assign(SEC_E_UNTRUSTED_ROOT, boost::system::system_category());
                                     m_cs.unlock();
                                     Close();
                                     return;
@@ -342,11 +345,13 @@ namespace SPA
                 }
 #else
                 if (m_pSsl->Done()) {
-                    m_pSsl->Decrypt(m_ReadBuffer, nLen, *sb);
-                    if (sb->GetSize()) {
-                        m_da(this, sb->GetBuffer(), sb->GetSize());
-                    }
+                    m_pSsl->Decrypt(m_ReadBuffer, nLen, m_rt.m_buff);
+					if (m_rt.m_buff.GetSize()) {
+						m_da(this, m_rt.m_buff.GetBuffer(), m_rt.m_buff.GetSize());
+						m_rt.m_buff.SetSize(0);
+					}
                 } else {
+					CScopeUQueue sb;
                     if (!m_pSsl->DoHandshake(m_ReadBuffer, nLen, *sb)) {
                         m_cs.lock();
                         m_ec.assign(SSL_ERROR_SSL, boost::asio::error::get_ssl_category());
@@ -464,20 +469,20 @@ namespace SPA
         }
 #ifdef WIN32_64
         if (m_secure == tagEncryptionMethod::TLSv1 && m_pSspi->GetHandshakeState() == tagSslHandshakeState::hsDone) {
-            CScopeUQueue sb;
-            m_pSspi->Encrypt(m_WriteBuffer, ulLen, *sb);
-            ulLen = sb->GetSize();
+			m_qSsl.SetSize(0);
+            m_pSspi->Encrypt(m_WriteBuffer, ulLen, m_qSsl);
+            ulLen = m_qSsl.GetSize();
             assert(ulLen <= IO_BUFFER_SIZE + IO_ENCRYPTION_PADDING);
-            ::memcpy(m_WriteBuffer, sb->GetBuffer(), ulLen);
+            ::memcpy(m_WriteBuffer, m_qSsl.GetBuffer(), ulLen);
         }
 #else
         if (m_secure == tagEncryptionMethod::TLSv1 && m_pSsl->Done()) {
-            SPA::CScopeUQueue sb;
-            ulLen = m_pSsl->Encrypt(m_WriteBuffer, ulLen, *sb);
+			m_qSsl.SetSize(0);
+            ulLen = m_pSsl->Encrypt(m_WriteBuffer, ulLen, m_qSsl);
             assert(ulLen);
-            assert(ulLen == sb->GetSize());
+            assert(ulLen == m_qSsl.GetSize());
             assert(ulLen <= IO_BUFFER_SIZE + IO_ENCRYPTION_PADDING);
-            ::memcpy(m_WriteBuffer, sb->GetBuffer(), ulLen);
+            ::memcpy(m_WriteBuffer, m_qSsl.GetBuffer(), ulLen);
         }
 #endif
         m_bWBLocked = ulLen;

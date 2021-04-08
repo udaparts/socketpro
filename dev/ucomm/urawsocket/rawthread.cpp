@@ -84,7 +84,7 @@ namespace SPA{
 
 #endif
 
-    CRawThread::CRawThread(PDataArrive da, PSessionCallback sc, unsigned int sessions, tagThreadApartment ta) : CUCommThread(ta), m_da(da), m_sc(sc), m_id(0) {
+    CRawThread::CRawThread(PDataArrive da, PSessionCallback sc, unsigned int sessions, tagThreadApartment ta) : CUCommThread(ta), m_buff(*m_sb), m_da(da), m_sc(sc), m_id(0) {
         if (m_sc) {
             m_sc(this, tagSessionPoolEvent::seStarted, nullptr);
         }

@@ -8,17 +8,6 @@ CUQueue g_buffer;
 
 void CALLBACK events(SessionPoolHandle thread, tagSessionPoolEvent se, SessionHandle sh) {
     switch (se) {
-        case tagSessionPoolEvent::seUnknown:
-            break;
-        case tagSessionPoolEvent::seStarted:
-            std::cout << "seStarted\n";
-            break;
-        case tagSessionPoolEvent::seCreatingThread:
-            std::cout << "seCreatingThread\n";
-            break;
-        case tagSessionPoolEvent::seThreadCreated:
-            std::cout << "seThreadCreated\n";
-            break;
         case tagSessionPoolEvent::seConnected:
             std::cout << "seConnected\n";
         {
@@ -29,26 +18,21 @@ void CALLBACK events(SessionPoolHandle thread, tagSessionPoolEvent se, SessionHa
             }
         }
             break;
-        case tagSessionPoolEvent::seKillingThread:
-            std::cout << "seKillingThread\n";
-            break;
-        case tagSessionPoolEvent::seShutdown:
-            std::cout << "seShutdown\n";
-            break;
-        case tagSessionPoolEvent::seSessionCreated:
-            std::cout << "seSessionCreated\n";
-            break;
         case tagSessionPoolEvent::seSslShaking:
             std::cout << "seSslShaking\n";
+		{
+			char em[1024];
+			int errCode = sh->GetErrorCode(em, sizeof(em));
+			if (errCode) {
+				std::cout << "ec: " << errCode << ", em: " << em << "\n";
+			}
+		}
             break;
         case tagSessionPoolEvent::seLocked:
             std::cout << "seLocked\n";
             break;
         case tagSessionPoolEvent::seUnlocked:
             std::cout << "seUnlocked\n";
-            break;
-        case tagSessionPoolEvent::seThreadDestroyed:
-            std::cout << "seThreadDestroyed\n";
             break;
         case tagSessionPoolEvent::seSessionClosed:
             std::cout << "seSessionClosed\n";
@@ -59,11 +43,6 @@ void CALLBACK events(SessionPoolHandle thread, tagSessionPoolEvent se, SessionHa
                 std::cout << "ec: " << errCode << ", em: " << em << "\n";
             }
         }
-            break;
-        case tagSessionPoolEvent::seSessionDestroyed:
-            std::cout << "seSessionDestroyed\n";
-            break;
-        case tagSessionPoolEvent::seTimer:
             break;
         default:
             break;
