@@ -61,7 +61,10 @@ bool CALLBACK CVCallback(bool preverified, int depth, int errorCode, const char 
 
 int main()
 {
-	tds::tagRequest req(tds::tagRequest::rPrelogin);
+	unsigned short s = 0x1551;
+	s = tds::ChangeEndian(s);
+
+	tds::PacketHeader ph;
 	std::shared_ptr<ISessionPool> pIRawThread(CreateASessionPool(OnAvailable, events, 1));
 	auto channel = pIRawThread->FindAClosedSession();
 	bool ok = channel->Connect("windesk", 1433, tagEncryptionMethod::NoEncryption, false, true);

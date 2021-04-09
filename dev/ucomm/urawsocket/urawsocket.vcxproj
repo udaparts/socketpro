@@ -170,9 +170,9 @@
     <ClInclude Include="..\core_shared\shared\certificateimpl.h" />
     <ClInclude Include="..\core_shared\shared\scsspi.h" />
     <ClInclude Include="..\core_shared\shared\uthread.h" />
+    <ClInclude Include="..\include\rawclient.h" />
     <ClInclude Include="framework.h" />
     <ClInclude Include="pch.h" />
-    <ClInclude Include="rawclient.h" />
     <ClInclude Include="rawsession.h" />
     <ClInclude Include="rawthread.h" />
   </ItemGroup>
