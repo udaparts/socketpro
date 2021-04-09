@@ -1,7 +1,11 @@
 #ifndef _H_SQL_TDS_DEFINES_H_
 #define _H_SQL_TDS_DEFINES_H_
 
+#include "../include/commutil.h"
+
 namespace tds {
+	static const unsigned short BUILD_VERSION = 0x0100;
+	static const unsigned int TDS_VERSION = 0x04000074;
 
 	enum class tagPacketType : unsigned char {
 		ptBatch = 1, //SQL batch
@@ -12,9 +16,9 @@ namespace tds {
 		ptBulk = 7, //Bulk load data
 		ptFederated = 8, //Federated Authentication Token
 		ptTransaction = 14, //Transaction manager request
-		rLogin7 = 16, //TDS7 Login
-		rSspi = 17,
-		rPrelogin = 18 //Pre-Login
+		ptLogin7 = 16, //TDS7 Login
+		ptSspi = 17,
+		ptPrelogin = 18 //Pre-Login
 	};
 
 	enum class tagPacketStatus : unsigned char {
@@ -33,9 +37,50 @@ namespace tds {
 		ttVariableCount
 	};
 
+	enum class tagDataType : unsigned char {
+		SQL_NULL = 0x1F,
+		IMAGE = 0x22,
+		TEXT = 0x23,
+		UNIQUEIDENTIFIER = 0x24,
+		INTN = 0x26, //INTNTYPE
+		DATEN = 0x28,
+		TIMEN = 0x29,
+		DATETIME2N = 0x2A,
+		DATETIMEOFFSETN = 0x2B, //timezone offset -840 ~ 840
+		TINYINT = 0x30, //INT1
+		BIT = 0x32,
+		SMALLINT = 0x34,
+		INT = 0x38,
+		DATETIM4 = 0x3A, //SmallDateTime
+		REAL = 0x3B, //Real, float
+		MONEY = 0x3C, //8 bytes
+		DATETIME = 0x3D,
+		FLOAT = 0x3E, //Float, double
+		SQL_VARIANT = 0x62, //max length 8009 (8000 for strings)
+		NTEXT = 0x63,
+		BITN = 0x68,
+		DECIMAL = 0x6A,
+		NUMERIC = 0x6C,
+		FLTN = 0x6D,
+		MONEYN = 0x6E,
+		DATETIMN = 0x6F,
+		SMALLMONEY = 0x7A, //MONEY4, SmallMoney, 4 bytes
+		BIGINT = 0x7F,
+		VARBINARY = 0xA5,
+		VARCHAR = 0xA7,
+		BINARY = 0xAD,
+		CHAR = 0xAF,
+		NVARCHAR = 0xE7,
+		NCHAR = 0xEF,
+		UDT = 0xF0,
+		XML = 0xF1,
+	};
+
 	typedef unsigned short Packet_Length; //big-endian 512 - 32,767
 	typedef unsigned short SPID; //big-endian
 	typedef unsigned char Token;
+
+	static const Token TOKEN_TERMINATOR = 0xff;
 
 	static inline unsigned short ChangeEndian(unsigned short s) {
 		return ((s & 0xff) << 8) + (s >> 8);
@@ -93,11 +138,22 @@ namespace tds {
 		return ChangeEndian((SPID)tid);
 	}
 
+	static unsigned int GetThreadId() {
+#ifdef WIN32_64
+		UTHREAD_ID tid = ::GetCurrentThreadId();
+#else
+		UTHREAD_ID tid = pthread_self();
+#endif
+		return (unsigned int)tid;
+	}
+
 	struct PacketHeader {
+		PacketHeader(tagPacketType type, unsigned char packetId) : Type(type), PacketID(packetId) {
+		}
 		tagPacketType Type;
 		tagPacketStatus Status = tagPacketStatus::psEOM;
 		Packet_Length Length;
-		SPID Spid = GetSPID();
+		SPID Spid;
 		unsigned char PacketID;
 		unsigned char Window = 0; //ignored
 	};

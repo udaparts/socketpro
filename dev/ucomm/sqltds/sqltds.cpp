@@ -1,6 +1,6 @@
 #include "../include/membuffer.h"
 #include "../include/rawclient.h"
-#include "tdsdef.h"
+#include "prelogin.h"
 #include <iostream>
 
 using namespace SPA;
@@ -61,14 +61,14 @@ bool CALLBACK CVCallback(bool preverified, int depth, int errorCode, const char 
 
 int main()
 {
-	unsigned short s = 0x1551;
-	s = tds::ChangeEndian(s);
-
-	tds::PacketHeader ph;
+	tds::Prelogin pl(1, true);
+	SPA::CScopeUQueue sb;
+	bool ok = pl.GetPreloginMessage(*sb);
 	std::shared_ptr<ISessionPool> pIRawThread(CreateASessionPool(OnAvailable, events, 1));
 	auto channel = pIRawThread->FindAClosedSession();
-	bool ok = channel->Connect("windesk", 1433, tagEncryptionMethod::NoEncryption, false, true);
+	ok = channel->Connect("windesk", 1433, tagEncryptionMethod::NoEncryption, false, true);
 	channel = pIRawThread->Lock(100);
+	channel->Send(sb->GetBuffer(), sb->GetSize());
 	std::cout << "Press a key to shut down the application ......\n";
 	ok = pIRawThread->Unlock(channel);
 	::getchar();
