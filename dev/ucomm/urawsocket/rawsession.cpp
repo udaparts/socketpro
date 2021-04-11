@@ -82,7 +82,6 @@ namespace SPA
                 PSessionCallback sc = m_rt.GetSessionCallback();
                 CErrorCode ec;
                 {
-                    std::unique_lock<std::mutex> sl(m_mutex);
                     do {
                         CAutoLock sl(m_cs);
                         CResolver::query ipAddr(m_b6 ? nsIP::tcp::v6() : nsIP::tcp::v4(), m_strhost, boost::lexical_cast<std::string> (m_nPort));
@@ -145,6 +144,7 @@ namespace SPA
                         m_ec.clear();
                         Read();
                     } while (false);
+					std::unique_lock<std::mutex> sl(m_mutex);
                     if (m_bWaiting && se != tagSessionPoolEvent::seSslShaking) {
                         m_cv.notify_all();
                     }
@@ -172,7 +172,6 @@ namespace SPA
     }
 
     bool CRawSession::Connect(const char *strHost, unsigned int nPort, tagEncryptionMethod secure, bool b6, bool bSync, unsigned int timeout) {
-        std::unique_lock<std::mutex> sl(m_mutex);
         {
             CAutoLock sl(m_cs);
             if (m_ss > tagSessionState::ssClosed) {
@@ -191,8 +190,11 @@ namespace SPA
                 m_ec.assign(boost::system::errc::not_supported, boost::system::generic_category());
                 return false;
             }
-            if (m_ss >= tagSessionState::ssConnected)
-                return true;
+			if (m_ss >= tagSessionState::ssConnected)
+				return true;
+			std::unique_lock<std::mutex> sl(m_mutex);
+			if (m_ss >= tagSessionState::ssConnected)
+				return true;
             m_bWaiting = true;
             bool b = false;
             do {
@@ -438,6 +440,13 @@ namespace SPA
                 m_cs.unlock();
                 Close();
             } else {
+				unsigned int bytes = m_qWrite.GetSize();
+				if (m_ss >= tagSessionState::ssConnected && bytes > IO_BUFFER_SIZE && bytes <= (IO_BUFFER_SIZE >> 1)) {
+					std::unique_lock<std::mutex> sl(m_mutex);
+					if (m_bWaiting) {
+						m_cv.notify_all();
+					}
+				}
                 if (m_bWBLocked > bytes_transferred) {
                     //m_bWBLocked -= (unsigned int)bytes_transferred;
                     unsigned int ulLen = (unsigned int) (m_bWBLocked - bytes_transferred);
@@ -447,7 +456,7 @@ namespace SPA
                 } else {
                     assert(m_bWBLocked == bytes_transferred);
                     m_bWBLocked = 0;
-                    if (m_qWrite.GetSize()) {
+                    if (bytes) {
                         SendInternal(nullptr, 0);
                     }
                 }
@@ -470,8 +479,7 @@ namespace SPA
         }
         if (m_bWBLocked) {
             m_qWrite.Push(s, nSize);
-            unsigned len = m_qWrite.GetSize();
-            return (len >= LARGE_SENDING_BUFFER) ? len : 0;
+			return 0;
         }
         unsigned int ulLen = m_qWrite.GetSize();
         if (ulLen == 0 && s && nSize) {
@@ -488,8 +496,9 @@ namespace SPA
         } else {
             m_qWrite.Push(s, nSize);
             ulLen = m_qWrite.GetSize();
-            if (ulLen == 0)
-                return 0;
+			if (ulLen == 0) {
+				return 0;
+			}
             if (ulLen > IO_BUFFER_SIZE)
                 ulLen = IO_BUFFER_SIZE;
             m_qWrite.Pop(m_WriteBuffer, ulLen);
@@ -518,6 +527,14 @@ namespace SPA
     }
 
     int CRawSession::Send(const unsigned char *data, unsigned int bytes) {
+		if (!IsSameThread() && GetOutBufferSize() >= LARGE_SENDING_BUFFER) {
+			std::unique_lock<std::mutex> sl(m_mutex);
+			m_bWaiting = true;
+			while (m_cv.wait_for(sl, ms(10)) == std::cv_status::timeout && GetOutBufferSize() >= (LARGE_SENDING_BUFFER >> 4)) {
+
+			}
+			m_bWaiting = false;
+		}
         CAutoLock sl(m_cs);
         return SendInternal(data, bytes);
     }
@@ -531,7 +548,6 @@ namespace SPA
 #endif
         tagSessionPoolEvent se = tagSessionPoolEvent::seSessionClosed;
         {
-            std::unique_lock<std::mutex> sl(m_mutex);
             m_cs.lock();
             do {
                 if (m_ss == tagSessionState::ssClosed) {
@@ -551,6 +567,7 @@ namespace SPA
                 }
             } while (false);
             m_cs.unlock();
+			std::unique_lock<std::mutex> sl(m_mutex);
             if (m_bWaiting) {
                 m_cv.notify_all();
             }
