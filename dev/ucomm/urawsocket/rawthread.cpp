@@ -156,10 +156,10 @@ namespace SPA{
         return data;
     }
 
-	bool CRawThread::Start(unsigned int sessions) {
-		if (!sessions) {
-			return false;
-		}
+    bool CRawThread::Start(unsigned int sessions) {
+        if (!sessions) {
+            return false;
+        }
         if (!IsStarted()) {
             if (m_sc) {
                 m_sc(this, tagSessionPoolEvent::seCreatingThread, nullptr);

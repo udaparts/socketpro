@@ -9,17 +9,17 @@ bool CALLBACK CVCallback(bool preverified, int depth, int errorCode, const char 
     return true;
 }
 
-class CHttp : public CBaseHandler {
-public:
-	CHttp(SessionHandle sh) : CBaseHandler(sh) {
-	}
-	CUQueue m_buff;
+class CHttp : public CBaseHandler{
+    public :
+    CHttp(SessionHandle sh) : CBaseHandler(sh) {
+    }
+    CUQueue m_buff;
 
 protected:
-	void OnAvailable(const unsigned char *data, unsigned int bytes) {
-		m_buff.Push(data, bytes);
-		m_buff.SetNull();
-	}
+    void OnAvailable(const unsigned char *data, unsigned int bytes) {
+        m_buff.Push(data, bytes);
+        m_buff.SetNull();
+    }
 };
 
 int main() {
@@ -30,8 +30,8 @@ int main() {
         ok = SetVerify("ca.cert.pem");
 #endif
         SetCertVerifyCallback(CVCallback);
-		CSessionPool<CHttp> pool(3);
-		auto channel = pool.FindAClosedHandler();
+        CSessionPool<CHttp> pool(3);
+        auto channel = pool.FindAClosedHandler();
         ok = channel->Connect("windesk", 20901, tagEncryptionMethod::TLSv1, false, true);
         auto cert = channel->GetUCert();
         std::string em = cert->Verify(&ec);
@@ -48,10 +48,10 @@ int main() {
         http_req = "GET /socketprofaqs.htm HTTP/1.1\r\nHost: windesk\r\n\r\n";
         res = channel->Send((const unsigned char*) http_req, (unsigned int) ::strlen(http_req));
         ok = pool.Unlock(channel);
-		std::cout << "Press a key to shut down the application ......\n";
+        std::cout << "Press a key to shut down the application ......\n";
         ::getchar();
-		std::cout << (const char*)channel->m_buff.GetBuffer() << "\n";
-		::getchar();
+        std::cout << (const char*) channel->m_buff.GetBuffer() << "\n";
+        ::getchar();
     }
     return 0;
 }

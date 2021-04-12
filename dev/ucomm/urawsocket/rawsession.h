@@ -1,7 +1,6 @@
 #ifndef _U_RAW_SESSION_H_
 #define _U_RAW_SESSION_H_
 
-
 #include <atomic>
 #include "../include/rawclient.h"
 #include "../core_shared/shared/includes.h"
@@ -25,11 +24,11 @@ namespace SPA {
         CRawSession(const CRawSession &rs) = delete;
         ~CRawSession();
 
-		static const unsigned int LARGE_SENDING_BUFFER = 0x40000; //256 kilo bytes
+        static const unsigned int LARGE_SENDING_BUFFER = 0x40000; //256 kilo bytes
 
     public:
         CRawSession& operator=(const CRawSession &rs) = delete;
-        
+
         bool Connect(const char *strHost, unsigned int nPort, tagEncryptionMethod secure, bool b6, bool bSync, unsigned int timeout);
         bool Shutdown(tagShutdownType st);
         int GetErrorCode(char *em, unsigned int len);
@@ -41,7 +40,7 @@ namespace SPA {
         bool GetPeerName(unsigned int *port, char *addr, unsigned int chars);
 
     private:
-		void PostProcessing(unsigned int hint, UINT64 data);
+        void PostProcessing(unsigned int hint, UINT64 data);
         int SendInternal(const unsigned char *data, unsigned int bytes);
         bool IsSameThread();
         void OnPostProcessing(unsigned int hint, UINT64 data);

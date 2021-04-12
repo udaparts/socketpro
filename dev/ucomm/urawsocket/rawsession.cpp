@@ -144,7 +144,7 @@ namespace SPA
                         m_ec.clear();
                         Read();
                     } while (false);
-					std::unique_lock<std::mutex> sl(m_mutex);
+                    std::unique_lock<std::mutex> sl(m_mutex);
                     if (m_bWaiting && se != tagSessionPoolEvent::seSslShaking) {
                         m_cv.notify_all();
                     }
@@ -190,11 +190,11 @@ namespace SPA
                 m_ec.assign(boost::system::errc::not_supported, boost::system::generic_category());
                 return false;
             }
-			if (m_ss >= tagSessionState::ssConnected)
-				return true;
-			std::unique_lock<std::mutex> sl(m_mutex);
-			if (m_ss >= tagSessionState::ssConnected)
-				return true;
+            if (m_ss >= tagSessionState::ssConnected)
+                return true;
+            std::unique_lock<std::mutex> sl(m_mutex);
+            if (m_ss >= tagSessionState::ssConnected)
+                return true;
             m_bWaiting = true;
             bool b = false;
             do {
@@ -376,7 +376,7 @@ namespace SPA
                 if (m_pSsl->Done()) {
                     m_pSsl->Decrypt(m_ReadBuffer, nLen, m_rt.m_buff);
                     if (m_rt.m_buff.GetSize()) {
-                        m_da(this, m_rt.m_buff.GetBuffer(), m_rt.m_buff.GetSize());
+                        m_da(&m_rt, this, m_rt.m_buff.GetBuffer(), m_rt.m_buff.GetSize());
                         m_rt.m_buff.SetSize(0);
                     }
                 } else {
@@ -440,13 +440,13 @@ namespace SPA
                 m_cs.unlock();
                 Close();
             } else {
-				unsigned int bytes = m_qWrite.GetSize();
-				if (m_ss >= tagSessionState::ssConnected && bytes > IO_BUFFER_SIZE && bytes <= (IO_BUFFER_SIZE >> 1)) {
-					std::unique_lock<std::mutex> sl(m_mutex);
-					if (m_bWaiting) {
-						m_cv.notify_all();
-					}
-				}
+                unsigned int bytes = m_qWrite.GetSize();
+                if (m_ss >= tagSessionState::ssConnected && bytes > IO_BUFFER_SIZE && bytes <= (IO_BUFFER_SIZE >> 1)) {
+                    std::unique_lock<std::mutex> sl(m_mutex);
+                    if (m_bWaiting) {
+                        m_cv.notify_all();
+                    }
+                }
                 if (m_bWBLocked > bytes_transferred) {
                     //m_bWBLocked -= (unsigned int)bytes_transferred;
                     unsigned int ulLen = (unsigned int) (m_bWBLocked - bytes_transferred);
@@ -479,7 +479,7 @@ namespace SPA
         }
         if (m_bWBLocked) {
             m_qWrite.Push(s, nSize);
-			return 0;
+            return 0;
         }
         unsigned int ulLen = m_qWrite.GetSize();
         if (ulLen == 0 && s && nSize) {
@@ -496,9 +496,9 @@ namespace SPA
         } else {
             m_qWrite.Push(s, nSize);
             ulLen = m_qWrite.GetSize();
-			if (ulLen == 0) {
-				return 0;
-			}
+            if (ulLen == 0) {
+                return 0;
+            }
             if (ulLen > IO_BUFFER_SIZE)
                 ulLen = IO_BUFFER_SIZE;
             m_qWrite.Pop(m_WriteBuffer, ulLen);
@@ -527,14 +527,14 @@ namespace SPA
     }
 
     int CRawSession::Send(const unsigned char *data, unsigned int bytes) {
-		if (!IsSameThread() && GetOutBufferSize() >= LARGE_SENDING_BUFFER) {
-			std::unique_lock<std::mutex> sl(m_mutex);
-			m_bWaiting = true;
-			while (m_cv.wait_for(sl, ms(10)) == std::cv_status::timeout && GetOutBufferSize() >= (LARGE_SENDING_BUFFER >> 4)) {
+        if (!IsSameThread() && GetOutBufferSize() >= LARGE_SENDING_BUFFER) {
+            std::unique_lock<std::mutex> sl(m_mutex);
+            m_bWaiting = true;
+            while (m_cv.wait_for(sl, ms(10)) == std::cv_status::timeout && GetOutBufferSize() >= (LARGE_SENDING_BUFFER >> 4)) {
 
-			}
-			m_bWaiting = false;
-		}
+            }
+            m_bWaiting = false;
+        }
         CAutoLock sl(m_cs);
         return SendInternal(data, bytes);
     }
@@ -567,7 +567,7 @@ namespace SPA
                 }
             } while (false);
             m_cs.unlock();
-			std::unique_lock<std::mutex> sl(m_mutex);
+            std::unique_lock<std::mutex> sl(m_mutex);
             if (m_bWaiting) {
                 m_cv.notify_all();
             }
