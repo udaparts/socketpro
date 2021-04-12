@@ -217,10 +217,10 @@ namespace SPA
     IUcert * CRawSession::GetUCert() {
         CAutoLock sl(m_cs);
 #ifdef WIN32_64
-        if (!m_pCert && m_pSspi)
+        if (!m_pCert && m_pSspi && m_pSspi->GetHandshakeState() == tagSslHandshakeState::hsDone)
             m_pCert.reset(new CCertificateImpl(m_pSspi, ""));
 #else
-        if (!m_pCert && m_pSsl)
+        if (!m_pCert && m_pSsl && m_pSsl->Done())
             m_pCert.reset(new CUCertImpl(m_pSsl->GetSSL()));
 #endif
         return m_pCert.get();
@@ -284,7 +284,7 @@ namespace SPA
                         return;
                     }
                     if (m_rt.m_buff.GetSize()) {
-                        m_da(this, m_rt.m_buff.GetBuffer(), m_rt.m_buff.GetSize());
+                        m_da(&m_rt, this, m_rt.m_buff.GetBuffer(), m_rt.m_buff.GetSize());
                         m_rt.m_buff.SetSize(0);
                     }
                 } else {
@@ -413,7 +413,7 @@ namespace SPA
                 }
 #endif
             } else {
-                m_da(this, m_ReadBuffer, (unsigned int) nLen);
+                m_da(&m_rt, this, m_ReadBuffer, (unsigned int) nLen);
             }
             CAutoLock sl(m_cs);
             m_bRBLocked = false;

@@ -62,4 +62,3 @@ namespace SPA {
 };
 
 #endif
-

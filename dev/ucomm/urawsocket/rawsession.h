@@ -25,9 +25,11 @@ namespace SPA {
         CRawSession(const CRawSession &rs) = delete;
         ~CRawSession();
 
+		static const unsigned int LARGE_SENDING_BUFFER = 0x40000; //256 kilo bytes
+
     public:
         CRawSession& operator=(const CRawSession &rs) = delete;
-        void PostProcessing(unsigned int hint, UINT64 data);
+        
         bool Connect(const char *strHost, unsigned int nPort, tagEncryptionMethod secure, bool b6, bool bSync, unsigned int timeout);
         bool Shutdown(tagShutdownType st);
         int GetErrorCode(char *em, unsigned int len);
@@ -39,6 +41,7 @@ namespace SPA {
         bool GetPeerName(unsigned int *port, char *addr, unsigned int chars);
 
     private:
+		void PostProcessing(unsigned int hint, UINT64 data);
         int SendInternal(const unsigned char *data, unsigned int bytes);
         bool IsSameThread();
         void OnPostProcessing(unsigned int hint, UINT64 data);
@@ -89,9 +92,7 @@ namespace SPA {
 #else
         CCertificateImplPtr m_pCert;
         std::shared_ptr<CMyOpenSSL> m_pSsl;
-
 #endif
-
     };
 
     typedef CRawSession *PRawSession;

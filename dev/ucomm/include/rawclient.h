@@ -4,23 +4,12 @@
 #include "../include/ucomm.h"
 
 namespace SPA {
-    static const unsigned int LARGE_SENDING_BUFFER = 0x40000; //256 kilo bytes
-
+    
     struct ISession {
     public:
 
         virtual ~ISession() {
         }
-
-        virtual bool Connect(const char *host, unsigned int port, tagEncryptionMethod secure = tagEncryptionMethod::NoEncryption, bool v6 = false, bool sync = false, unsigned int timeout = 30000) = 0;
-        virtual bool Shutdown(tagShutdownType st) = 0;
-        virtual int GetErrorCode(char *em, unsigned int len) = 0;
-        virtual bool IsConnected() = 0;
-        virtual void Close() = 0;
-        virtual int Send(const unsigned char *data, unsigned int bytes) = 0;
-        virtual IUcert* GetUCert() = 0;
-        virtual unsigned int GetOutBufferSize() = 0;
-        virtual bool GetPeerName(unsigned int *port, char *addr, unsigned int chars) = 0;
     };
     typedef ISession *SessionHandle;
 
@@ -28,15 +17,6 @@ namespace SPA {
 
         virtual ~ISessionPool() {
         }
-        virtual bool IsBusy() = 0;
-        virtual unsigned int GetSessions() = 0;
-        virtual bool AddSession() = 0;
-        virtual SessionHandle FindAClosedSession() = 0;
-        virtual unsigned int GetConnectedSessions() = 0;
-        virtual SessionHandle Lock(unsigned int timeout) = 0;
-        virtual bool Unlock(SessionHandle session) = 0;
-        virtual void CloseAll() = 0;
-        virtual unsigned int ConnectAll(const char *host, unsigned int port, tagEncryptionMethod secure = tagEncryptionMethod::NoEncryption, bool v6 = false) = 0;
     };
 
     typedef ISessionPool *SessionPoolHandle;
@@ -66,14 +46,45 @@ namespace SPA {
     };
 
     typedef void(CALLBACK *PSessionCallback) (SessionPoolHandle, tagSessionPoolEvent, SessionHandle);
-    typedef void(CALLBACK *PDataArrive) (SessionHandle, const unsigned char*, unsigned int);
+    typedef void(CALLBACK *PDataArrive) (SessionPoolHandle, SessionHandle, const unsigned char*, unsigned int);
 
 }; //namespace SPA
 
-SPA::SessionPoolHandle WINAPI CreateASessionPool(SPA::PDataArrive da, SPA::PSessionCallback sc, unsigned int sessions, SPA::tagThreadApartment ta = SPA::tagThreadApartment::taNone);
+#ifdef __cplusplus
+extern "C" {
+#endif
 
+SPA::SessionPoolHandle WINAPI CreateASessionPool(SPA::PDataArrive da, SPA::PSessionCallback sc, unsigned int sessions, SPA::tagThreadApartment ta = SPA::tagThreadApartment::taNone);
+void WINAPI DestroyASessionPool(SPA::SessionPoolHandle sph);
 void WINAPI SetCertVerifyCallback(PCertificateVerifyCallback cvc);
 bool WINAPI SetVerify(const char *certFile);
+
+//session pool
+unsigned int WINAPI SPH_GetSessions(SPA::SessionPoolHandle sph);
+bool WINAPI SPH_AddSession(SPA::SessionPoolHandle sph);
+SPA::SessionHandle WINAPI SPH_FindAClosedSession(SPA::SessionPoolHandle sph);
+unsigned int WINAPI SPH_GetConnectedSessions(SPA::SessionPoolHandle sph);
+SPA::SessionHandle WINAPI SPH_Lock(SPA::SessionPoolHandle sph, unsigned int msTimeout);
+bool WINAPI SPH_Unlock(SPA::SessionPoolHandle sph, SPA::SessionHandle session);
+void WINAPI SPH_CloseAll(SPA::SessionPoolHandle sph);
+unsigned int WINAPI SPH_ConnectAll(SPA::SessionPoolHandle sph, const char *host, unsigned int port, SPA::tagEncryptionMethod secure = SPA::tagEncryptionMethod::NoEncryption, bool v6 = false);
+bool WINAPI SPH_Kill(SPA::SessionPoolHandle sph);
+
+//session
+bool WINAPI SH_Connect(SPA::SessionHandle session, const char *host, unsigned int port, SPA::tagEncryptionMethod secure = SPA::tagEncryptionMethod::NoEncryption, bool v6 = false, bool sync = false, unsigned int msTimeout = 30000);
+bool WINAPI SH_Shutdown(SPA::SessionHandle session, SPA::tagShutdownType st);
+int WINAPI SH_GetErrorCode(SPA::SessionHandle session, char *em, unsigned int len);
+bool WINAPI SH_IsConnected(SPA::SessionHandle session);
+void WINAPI SH_Close(SPA::SessionHandle session);
+int WINAPI SH_Send(SPA::SessionHandle session, const unsigned char *data, unsigned int bytes);
+SPA::IUcert* WINAPI SH_GetUCert(SPA::SessionHandle session);
+unsigned int WINAPI SH_GetOutBufferSize(SPA::SessionHandle session);
+bool WINAPI SH_GetPeerName(SPA::SessionHandle session, unsigned int *port, char *addr, unsigned int chars);
+
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif
 

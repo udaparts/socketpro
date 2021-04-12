@@ -135,17 +135,14 @@ namespace SPA{
 
     bool CRawThread::AddSession() {
         if (!IsStarted()) {
-            return false;
+            return Start(1);
         }
-        bool bStart = CUCommThread::Start();
-        if (bStart) {
-            LockState ls(this);
-            PRawSession p = new CRawSession(GetIoService(), *this, m_da);
-            m_mutex.lock();
-            m_mapSession.push_back(CSessionState(p, ls));
-            m_mutex.unlock();
-        }
-        return bStart;
+        LockState ls(this);
+        PRawSession p = new CRawSession(GetIoService(), *this, m_da);
+        m_mutex.lock();
+        m_mapSession.push_back(CSessionState(p, ls));
+        m_mutex.unlock();
+        return true;
     }
 
     unsigned int CRawThread::GetConnectedSessions() {
@@ -159,7 +156,10 @@ namespace SPA{
         return data;
     }
 
-    bool CRawThread::Start(unsigned int sessions) {
+	bool CRawThread::Start(unsigned int sessions) {
+		if (!sessions) {
+			return false;
+		}
         if (!IsStarted()) {
             if (m_sc) {
                 m_sc(this, tagSessionPoolEvent::seCreatingThread, nullptr);
