@@ -12,14 +12,15 @@ namespace tds {
 		ptBatch = 1, //SQL batch
 		ptPre7Login = 2, //Pre-TDS7 Login
 		ptRpc = 3,
-		ptTabular = 4, //Tabular result, server-only response type
+		ptResponse = 4, //Tabular result, server-only response type
 		ptAttention = 6, //Attention signal
 		ptBulk = 7, //Bulk load data
 		ptFederated = 8, //Federated Authentication Token
 		ptTransaction = 14, //Transaction manager request
 		ptLogin7 = 16, //TDS7 Login
 		ptSspi = 17,
-		ptPrelogin = 18 //Pre-Login
+		ptPrelogin = 18, //Pre-Login
+		ptFedAuthInfo = 238
 	};
 
 	enum class tagPacketStatus : unsigned char {

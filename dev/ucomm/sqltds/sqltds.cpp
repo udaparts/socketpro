@@ -1,6 +1,8 @@
 #include "../include/membuffer.h"
 #include "../include/channelpool.h"
 #include "prelogin.h"
+#include <deque>
+
 #include <iostream>
 
 using namespace SPA;
@@ -12,37 +14,45 @@ bool CALLBACK CVCallback(bool preverified, int depth, int errorCode, const char 
 
 class CTdsClient : public CBaseHandler {
 public:
-	CTdsClient(SessionHandle sh) : CBaseHandler(sh), m_ph(tds::tagPacketType::ptInitial, 0) {}
+	CTdsClient(SessionHandle sh) : CBaseHandler(sh) {}
+
+	std::deque<tds::CReqBase *> m_deq;
+
 	CUQueue m_buff;
-
-	tds::PacketHeader m_ph;
-
-	bool IsCompleted() {
-		return (m_ph.Type != tds::tagPacketType::ptInitial && m_ph.Length == (sizeof(m_ph) + m_buff.GetSize()));
-	}
 
 protected:
 	void OnAvailable(const unsigned char *data, unsigned int bytes) {
 		m_buff.Push(data, bytes);
-		if (m_buff.GetSize() >= sizeof(m_ph)) {
-			m_buff >> m_ph;
-			m_ph.Length = tds::ChangeEndian(m_ph.Length);
-		}
+		do {
+			if (m_buff.GetSize() < sizeof(tds::PacketHeader))
+				break;
+			tds::PacketHeader *ph = (tds::PacketHeader*)m_buff.GetBuffer();
+			unsigned int len = tds::ChangeEndian(ph->Length);
+			if (m_buff.GetSize() < len)
+				break;
+			if (!m_deq.size())
+				break;
+			tds::CReqBase *rb = m_deq.front();
+			m_deq.pop_front();
+			rb->OnResponse(m_buff.GetBuffer(), len);
+			m_buff.Pop(len);
+		} while (false);
 	}
 };
 
 int main()
 {
-	tds::Prelogin pl(0, true);
+	tds::Prelogin pl(true);
 	SPA::CScopeUQueue sb;
-	bool ok = pl.GetPreloginMessage(*sb);
+	bool ok = pl.GetClientMessage(1, *sb);
 	CSessionPool<CTdsClient> pool(1);
 	auto handler = pool.FindAClosedHandler();
 	ok = handler->Connect("windesk", 1433, tagEncryptionMethod::NoEncryption, false, true);
+	handler->m_deq.push_back(&pl);
 	int res = handler->Send(sb->GetBuffer(), sb->GetSize());
 	::getchar();
+	ok = handler->IsConnected();
 	CUQueue &buffer = handler->m_buff;
-	ok = handler->IsCompleted();
 	std::cout << "Press a key to shut down the application ......\n";
 	::getchar();
 	return 0;

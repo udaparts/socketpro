@@ -24,6 +24,12 @@
     <ClCompile Include="prelogin.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="reqbase.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="login7.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\include\membuffer.h">
@@ -33,6 +39,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="prelogin.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="reqbase.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="login7.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

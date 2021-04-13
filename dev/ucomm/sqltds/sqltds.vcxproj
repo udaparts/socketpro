@@ -160,12 +160,16 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\include\membuffer.cpp" />
+    <ClCompile Include="login7.cpp" />
     <ClCompile Include="prelogin.cpp" />
+    <ClCompile Include="reqbase.cpp" />
     <ClCompile Include="sqltds.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\include\membuffer.h" />
+    <ClInclude Include="login7.h" />
     <ClInclude Include="prelogin.h" />
+    <ClInclude Include="reqbase.h" />
     <ClInclude Include="tdsdef.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
