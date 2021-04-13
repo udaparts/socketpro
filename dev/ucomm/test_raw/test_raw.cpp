@@ -9,13 +9,15 @@ bool CALLBACK CVCallback(bool preverified, int depth, int errorCode, const char 
     return true;
 }
 
-class CHttp : public CBaseHandler{
-    public :
+class CHttp : public CBaseHandler {
+public:
+
     CHttp(SessionHandle sh) : CBaseHandler(sh) {
     }
     CUQueue m_buff;
 
 protected:
+
     void OnAvailable(const unsigned char *data, unsigned int bytes) {
         m_buff.Push(data, bytes);
         m_buff.SetNull();

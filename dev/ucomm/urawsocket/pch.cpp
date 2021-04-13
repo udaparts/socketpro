@@ -2,7 +2,7 @@
 #include "rawthread.h"
 
 SPA::SessionPoolHandle WINAPI CreateASessionPool(SPA::PDataArrive da, SPA::PSessionCallback sc, unsigned int sessions, SPA::tagThreadApartment ta) {
-	if (!da) {
+    if (!da) {
         return nullptr;
     }
     return new SPA::CRawThread(da, sc, sessions, ta);

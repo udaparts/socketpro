@@ -34,26 +34,26 @@ bool WINAPI SetVerify(const char *certFile) {
 
 namespace SPA{
 
-	CRawThread::MyTimerSet CRawThread::MyTimerSet::ms;
+    CRawThread::MyTimerSet CRawThread::MyTimerSet::ms;
 
-	CRawThread::MyTimerSet::MyTimerSet() {
+    CRawThread::MyTimerSet::MyTimerSet() {
 #ifndef WIN32_64
-		CRYPTO_set_dynlock_create_callback(dyn_create_function);
-		CRYPTO_set_dynlock_lock_callback(dyn_lock_function);
-		CRYPTO_set_dynlock_destroy_callback(dyn_destroy_function);
+        CRYPTO_set_dynlock_create_callback(dyn_create_function);
+        CRYPTO_set_dynlock_lock_callback(dyn_lock_function);
+        CRYPTO_set_dynlock_destroy_callback(dyn_destroy_function);
 #else
-		CCrashHandler::SetProcessExceptionHandlers();
-		CCrashHandler::SetThreadExceptionHandlers();
+        CCrashHandler::SetProcessExceptionHandlers();
+        CCrashHandler::SetThreadExceptionHandlers();
 #endif
-	}
+    }
 
-	CRawThread::MyTimerSet::~MyTimerSet() {
+    CRawThread::MyTimerSet::~MyTimerSet() {
 #ifndef WIN32_64
-		CRYPTO_set_dynlock_create_callback(nullptr);
-		CRYPTO_set_dynlock_lock_callback(nullptr);
-		CRYPTO_set_dynlock_destroy_callback(nullptr);
+        CRYPTO_set_dynlock_create_callback(nullptr);
+        CRYPTO_set_dynlock_lock_callback(nullptr);
+        CRYPTO_set_dynlock_destroy_callback(nullptr);
 #endif
-	}
+    }
 
 #ifndef WIN32_64
     CSslContext CRawThread::m_sslContext(CSslContext::tls_client);

@@ -89,8 +89,12 @@ namespace SPA {
             SPH_Kill(m_sph);
             {
                 CAutoLock al(m_cs);
-                auto me = std::find(m_vP.begin(), m_vP.end(), this);
-                m_vP.erase(me, me + 1);
+                for (auto it = m_vP.begin(), end = m_vP.end(); it != end; ++it) {
+                    if (*it == this) {
+                        m_vP.erase(it);
+                        break;
+                    }
+                }
             }
             DestroyASessionPool(m_sph);
         }
@@ -194,7 +198,7 @@ namespace SPA {
                     }
                 {
                     CAutoLock al(sp->m_sl);
-                    for (auto it = sp->m_vHandlers.cbegin(), end = sp->m_vHandlers.cend(); it != end; ++it) {
+                    for (auto it = sp->m_vHandlers.begin(), end = sp->m_vHandlers.end(); it != end; ++it) {
                         THandler *h = *it;
                         if (h->m_session == sh) {
                             sp->m_vHandlers.erase(it);
@@ -255,7 +259,7 @@ namespace SPA {
     private:
         SessionPoolHandle m_sph;
         static CSpinLock m_cs;
-        static std::vector<CSessionPool*> m_vP;
+        static std::vector<CSessionPool<THandler>*> m_vP;
     };
 
     template<typename THandler>

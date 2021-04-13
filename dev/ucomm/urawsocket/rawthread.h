@@ -51,6 +51,7 @@ namespace SPA {
         static bool verify_certificate_cb(bool preverified, boost::asio::ssl::verify_context& ctx);
         static CSslContext m_sslContext;
 #endif
+
         struct MyTimerSet {
             MyTimerSet();
             ~MyTimerSet();
