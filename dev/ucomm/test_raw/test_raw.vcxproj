@@ -170,7 +170,6 @@
   <ItemGroup>
     <ClInclude Include="..\include\channelpool.h" />
     <ClInclude Include="..\include\membuffer.h" />
-    <ClInclude Include="..\include\rawclient.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

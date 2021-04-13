@@ -29,9 +29,6 @@
     <ClInclude Include="..\include\membuffer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\rawclient.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="tdsdef.h">
       <Filter>Header Files</Filter>
     </ClInclude>

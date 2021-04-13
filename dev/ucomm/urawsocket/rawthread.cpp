@@ -1,13 +1,19 @@
 #include "pch.h"
 #include "rawthread.h"
 
+#ifdef WIN32_64
+#include "../core_shared/pinc/WinCrashHandler.h"
+#else
+
+#endif
+
 std::mutex g_mutexCvc;
 PCertificateVerifyCallback g_cvc = nullptr;
 
 void WINAPI SetCertVerifyCallback(PCertificateVerifyCallback cvc) {
     CAutoLock al(g_mutexCvc);
     g_cvc = cvc;
-#ifndef NOT_USE_OPENSSL
+#ifndef WIN32_64
     if (g_cvc != nullptr) {
         SPA::CRawThread::m_sslContext.set_verify_mode(boost::asio::ssl::verify_peer);
         SPA::CRawThread::m_sslContext.set_verify_callback(boost::bind(&SPA::CRawThread::verify_certificate_cb, _1, _2));
@@ -28,20 +34,29 @@ bool WINAPI SetVerify(const char *certFile) {
 
 namespace SPA{
 
-#ifndef NOT_USE_OPENSSL
+	CRawThread::MyTimerSet CRawThread::MyTimerSet::ms;
+
+	CRawThread::MyTimerSet::MyTimerSet() {
+#ifndef WIN32_64
+		CRYPTO_set_dynlock_create_callback(dyn_create_function);
+		CRYPTO_set_dynlock_lock_callback(dyn_lock_function);
+		CRYPTO_set_dynlock_destroy_callback(dyn_destroy_function);
+#else
+		CCrashHandler::SetProcessExceptionHandlers();
+		CCrashHandler::SetThreadExceptionHandlers();
+#endif
+	}
+
+	CRawThread::MyTimerSet::~MyTimerSet() {
+#ifndef WIN32_64
+		CRYPTO_set_dynlock_create_callback(nullptr);
+		CRYPTO_set_dynlock_lock_callback(nullptr);
+		CRYPTO_set_dynlock_destroy_callback(nullptr);
+#endif
+	}
+
+#ifndef WIN32_64
     CSslContext CRawThread::m_sslContext(CSslContext::tls_client);
-
-    CRawThread::MyTimerSet::MyTimerSet() {
-        CRYPTO_set_dynlock_create_callback(dyn_create_function);
-        CRYPTO_set_dynlock_lock_callback(dyn_lock_function);
-        CRYPTO_set_dynlock_destroy_callback(dyn_destroy_function);
-    }
-
-    CRawThread::MyTimerSet::~MyTimerSet() {
-        CRYPTO_set_dynlock_create_callback(nullptr);
-        CRYPTO_set_dynlock_lock_callback(nullptr);
-        CRYPTO_set_dynlock_destroy_callback(nullptr);
-    }
 
     struct CRYPTO_dynlock_value * CRawThread::MyTimerSet::dyn_create_function(const char *file, int line) {
         boost::mutex *p = new boost::mutex;
@@ -79,8 +94,6 @@ namespace SPA{
     CSslContext & CRawThread::GetSslContext() {
         return m_sslContext;
     }
-
-    CRawThread::MyTimerSet CRawThread::MyTimerSet::ms;
 
 #endif
 

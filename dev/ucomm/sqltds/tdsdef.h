@@ -8,6 +8,7 @@ namespace tds {
 	static const unsigned int TDS_VERSION = 0x04000074;
 
 	enum class tagPacketType : unsigned char {
+		ptInitial = 0,
 		ptBatch = 1, //SQL batch
 		ptPre7Login = 2, //Pre-TDS7 Login
 		ptRpc = 3,

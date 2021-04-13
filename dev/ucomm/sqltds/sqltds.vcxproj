@@ -165,7 +165,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\include\membuffer.h" />
-    <ClInclude Include="..\include\rawclient.h" />
     <ClInclude Include="prelogin.h" />
     <ClInclude Include="tdsdef.h" />
   </ItemGroup>
