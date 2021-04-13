@@ -1,4 +1,5 @@
-#pragma once
+#ifndef _U_SPA_CHANNEL_POOL_H_
+#define _U_SPA_CHANNEL_POOL_H_
 
 #include "../include/rawclient.h"
 #include <vector>
@@ -188,13 +189,13 @@ namespace SPA {
                 case tagSessionPoolEvent::seUnlocked:
                 case tagSessionPoolEvent::seThreadDestroyed:
                 case tagSessionPoolEvent::seSessionClosed:
-                    if (sp->SessionPoolEvent) {
-                        sp->SessionPoolEvent(spe, sp->FindHandler(sh));
+                    if (sp->PoolEvent) {
+                        sp->PoolEvent(spe, sp->FindHandler(sh));
                     }
                     break;
                 case tagSessionPoolEvent::seSessionDestroyed:
-                    if (sp->SessionPoolEvent) {
-                        sp->SessionPoolEvent(spe, sp->FindHandler(sh));
+                    if (sp->PoolEvent) {
+                        sp->PoolEvent(spe, sp->FindHandler(sh));
                     }
                 {
                     CAutoLock al(sp->m_sl);
@@ -214,8 +215,8 @@ namespace SPA {
                     CAutoLock al(sp->m_sl);
                     sp->m_vHandlers.push_back(h);
                 }
-                    if (sp->SessionPoolEvent) {
-                        sp->SessionPoolEvent(spe, sp->FindHandler(sh));
+                    if (sp->PoolEvent) {
+                        sp->PoolEvent(spe, sp->FindHandler(sh));
                     }
                     break;
                 default:
@@ -250,16 +251,16 @@ namespace SPA {
 
 
     public:
-        DSessionPoolEvent SessionPoolEvent;
+        DSessionPoolEvent PoolEvent;
 
     protected:
         CSpinLock m_sl;
-        std::vector<THandler*> m_vHandlers;
+        std::vector<THandler*> m_vHandlers; //protected by m_sl
 
     private:
         SessionPoolHandle m_sph;
         static CSpinLock m_cs;
-        static std::vector<CSessionPool<THandler>*> m_vP;
+        static std::vector<CSessionPool<THandler>*> m_vP; //protected by m_cs
     };
 
     template<typename THandler>
@@ -268,3 +269,5 @@ namespace SPA {
     template<typename THandler>
     std::vector<CSessionPool<THandler>*> CSessionPool<THandler>::m_vP;
 }
+
+#endif
