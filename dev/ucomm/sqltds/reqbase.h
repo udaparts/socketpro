@@ -10,6 +10,7 @@ namespace tds {
 	{
 	public:
 		CReqBase();
+		virtual ~CReqBase();
 
 	public:
 		virtual void OnResponse(const unsigned char *data, unsigned int bytes) = 0;

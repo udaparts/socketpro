@@ -30,6 +30,9 @@
     <ClCompile Include="login7.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="sessionstate.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\include\membuffer.h">
@@ -45,6 +48,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="login7.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="sessionstate.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

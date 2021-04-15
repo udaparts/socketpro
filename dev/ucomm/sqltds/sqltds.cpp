@@ -1,8 +1,9 @@
+#include <time.h>
 #include "../include/membuffer.h"
 #include "../include/channelpool.h"
 #include "prelogin.h"
+#include "login7.h"
 #include <deque>
-
 #include <iostream>
 
 using namespace SPA;
@@ -15,9 +16,7 @@ bool CALLBACK CVCallback(bool preverified, int depth, int errorCode, const char 
 class CTdsClient : public CBaseHandler {
 public:
 	CTdsClient(SessionHandle sh) : CBaseHandler(sh) {}
-
 	std::deque<tds::CReqBase *> m_deq;
-
 	CUQueue m_buff;
 
 protected:
@@ -42,7 +41,9 @@ protected:
 
 int main()
 {
-	tds::Prelogin pl(true);
+	tds::CPrelogin pl(true);
+	tds::CLogin7 login;
+
 	SPA::CScopeUQueue sb;
 	bool ok = pl.GetClientMessage(1, *sb);
 	CSessionPool<CTdsClient> pool(1);

@@ -5,7 +5,7 @@
 
 namespace tds {
 
-	class Prelogin : public CReqBase
+	class CPrelogin : public CReqBase
 	{
 	public:
 		enum tagOptionToken : unsigned char {
@@ -19,6 +19,21 @@ namespace tds {
 			NONCEOPT = 7
 		};
 
+		enum tagFedAuth : unsigned char
+		{
+			faNotRequired = 0x00,
+			faRequired = 0x01,
+			faIllegal = 0x02
+		};
+
+		enum tagEncryptionType : unsigned char
+		{
+			etOff = 0x00,
+			etOn = 0x01,
+			etNotSupported = 0x02,
+			etRequired = 0x03
+		};
+
 #pragma pack(push,1)
 		struct Option {
 			tagOptionToken Token;
@@ -29,22 +44,22 @@ namespace tds {
 		static_assert(sizeof(Option) == 5, "Wrong Option size");
 
 	public:
-		Prelogin(bool mars_enabled = false, bool fed_auth_required = false);
+		CPrelogin(bool mars_enabled = false, tagFedAuth fa = tagFedAuth::faNotRequired);
 		bool GetClientMessage(unsigned char packet_id, SPA::CUQueue &buffer);
 		void OnResponse(const unsigned char *data, unsigned int bytes);
 
 	private:
 		unsigned char m_bInst;
 		unsigned char m_bMars;
-		unsigned char m_bFed;
+		tagFedAuth m_bFed;
 		unsigned int Version;
 		unsigned short SubBuild;
-		unsigned char m_bEncryption;
+		tagEncryptionType m_bEncryption;
 		unsigned int m_nThreadId;
 		unsigned char ClientTraceID[16];
 		unsigned char ActivityID[20];
 		unsigned char Nonce[32];
-		std::vector<tds::Prelogin::Option> Options;
+		std::vector<tds::CPrelogin::Option> Options;
 	};
 
 

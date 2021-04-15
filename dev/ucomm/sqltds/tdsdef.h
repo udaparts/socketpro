@@ -1,11 +1,12 @@
 #ifndef _H_SQL_TDS_DEFINES_H_
 #define _H_SQL_TDS_DEFINES_H_
 
-#include "../include/commutil.h"
+#include "../include/membuffer.h"
 
 namespace tds {
 	static const unsigned short BUILD_VERSION = 0x0100;
 	static const unsigned int TDS_VERSION = 0x04000074;
+	static const unsigned int CLIENT_PROG_VERSION = 0x01000001; //1.0.0.1
 
 	enum class tagPacketType : unsigned char {
 		ptInitial = 0,
@@ -81,11 +82,34 @@ namespace tds {
 	typedef unsigned short Packet_Length; //big-endian 512 - 32,767
 	typedef unsigned short SPID; //big-endian
 	typedef unsigned char Token;
+	typedef std::u16string CDBString;
 
 	static const Token TOKEN_TERMINATOR = 0xff;
 
 	static inline unsigned short ChangeEndian(unsigned short s) {
 		return ((s & 0xff) << 8) + (s >> 8);
+	}
+
+	static inline unsigned int ChangeEndian(unsigned int s) {
+		unsigned char *p = (unsigned char *)&s;
+		unsigned char b = p[0];
+		p[0] = p[3];
+		p[3] = b;
+		b = p[1];
+		p[1] = p[2];
+		p[2] = b;
+		return s;
+	}
+
+	static inline int ChangeEndian(int s) {
+		unsigned char *p = (unsigned char *)&s;
+		unsigned char b = p[0];
+		p[0] = p[3];
+		p[3] = b;
+		b = p[1];
+		p[1] = p[2];
+		p[2] = b;
+		return s;
 	}
 
 	static inline tagTokenType GetTokenType(Token token) {
@@ -161,6 +185,14 @@ namespace tds {
 	};
 
 	static_assert(sizeof(PacketHeader) == 8, "Wrong PacketHeader size");
+
+	struct ISerialize {
+		virtual bool SaveTo(SPA::CUQueue &buff) = 0;
+	};
+
+	struct IDeserialize {
+		virtual bool LoadFrom(SPA::CUQueue &buff) = 0;
+	};
 };
 
 
