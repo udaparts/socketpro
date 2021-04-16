@@ -2,15 +2,20 @@
 
 namespace tds {
 
-	CLogin7::CLogin7(bool integrated, bool dump, unsigned int packet_size) : TDSVersion(TDS_VERSION), PacketSize(packet_size), ClientProgVer(CLIENT_PROG_VERSION),
-		ClientPID(0), ConnectionID(0), Option1({ 0 }), Option2({ 0 }), TypeFlags({ 0 }), Option3({ 0 }), ClientTimeZone(0), ClientLCID(0), SSPI(nullptr), SSPILong(0) {
+	CLogin7::CLogin7(FeatureExtension fe, bool integrated, bool dump, unsigned int packet_size, bool readOnlyIntent) 
+		: m_fe(fe), TDSVersion(TDS_VERSION), PacketSize(packet_size), ClientProgVer(CLIENT_PROG_VERSION),
+		ClientPID(0), ConnectionID(0), ClientTimeZone(0), ClientLCID(0), SSPI(nullptr), SSPILong(0) {
 		memset(ClientID, 0, sizeof(ClientID));
 		Option1.fDumpLoad = (dump ? 0 : 1);
 		Option1.fUseDB = 1;
+		Option1.fDatabase = 1;
 		Option1.fSetLang = 1;
+		Option2.fLanguage = 1;
 		Option2.fODBC = 1;
-		Option2.fIntSecurity = (integrated ? 1 : 0);
+		Option2.fIntSecurity = (integrated ? 1 : 0); //SSPI
 		TypeFlags.fOLEDB = 1;
+		TypeFlags.fReadOnlyIntent = (readOnlyIntent ? 1 : 0);
+		if (fe.GetValue()) Option3.fExtension = 1;
 	}
 
 	bool CLogin7::GetClientMessage(unsigned char packet_id, SPA::CUQueue &buffer) {
@@ -46,7 +51,7 @@ namespace tds {
 		sb->Push(data, bytes);
 		SPA::CUQueue &buff = *sb;
 		buff >> ResponseHeader;
-		ResponseHeader.Length = tds::ChangeEndian(ResponseHeader.Length);
+		ResponseHeader.Length = ChangeEndian(ResponseHeader.Length);
 	}
 
 }

@@ -7,7 +7,7 @@ namespace tds {
 	CReqBase::~CReqBase() {
 	}
 
-	const PacketHeader& CReqBase::GetResponseHeader() {
+	const PacketHeader& CReqBase::GetResponseHeader() const {
 		return ResponseHeader;
 	}
 }

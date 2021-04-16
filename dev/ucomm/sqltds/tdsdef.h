@@ -4,7 +4,7 @@
 #include "../include/membuffer.h"
 
 namespace tds {
-	static const unsigned short BUILD_VERSION = 0x0100;
+	static const unsigned short BUILD_VERSION = 0x0001; //Little Endian
 	static const unsigned int TDS_VERSION = 0x04000074;
 	static const unsigned int CLIENT_PROG_VERSION = 0x01000001; //1.0.0.1
 
@@ -193,6 +193,42 @@ namespace tds {
 	struct IDeserialize {
 		virtual bool LoadFrom(SPA::CUQueue &buff) = 0;
 	};
+
+	// Obfuscate password to be sent to SQL Server
+	// Blurb from the TDS spec at https://msdn.microsoft.com/en-us/library/dd304523.aspx
+	// "Before submitting a password from the client to the server, for every byte in the password buffer 
+	// starting with the position pointed to by IbPassword, the client SHOULD first swap the four high bits 
+	// with the four low bits and then do a bit-XOR with 0xA5 (10100101). After reading a submitted password, 
+	// for every byte in the password buffer starting with the position pointed to by IbPassword, the server SHOULD 
+	// first do a bit-XOR with 0xA5 (10100101) and then swap the four high bits with the four low bits."
+	// The password exchange during Login phase happens over a secure channel i.e. SSL/TLS 
+	// Note: The same logic is used in SNIPacketSetData (SniManagedWrapper) to encrypt passwords stored in SecureString
+	//       If this logic changed, SNIPacketSetData needs to be changed as well
+	static std::vector<unsigned char> ObfuscatePassword(const CDBString &password) {
+		std::vector<unsigned char> v(password.size() << 1);
+		unsigned char *bObfuscated = &v.front();
+		unsigned char bLo, bHi;
+		for (size_t n = 0, len = password.size(); n < len; ++n) {
+			char16_t c16 = password[n];
+			bLo = (unsigned char)(c16 & 0xff);
+			bHi = (unsigned char)((c16 >> 8) & 0xff);
+			bObfuscated[n << 1] = (unsigned char)((((bLo & 0x0f) << 4) | (bLo >> 4)) ^ 0xa5);
+			bObfuscated[(n << 1) + 1] = (unsigned char)((((bHi & 0x0f) << 4) | (bHi >> 4)) ^ 0xa5);
+		}
+		return v;
+	}
+
+	static unsigned char* ObfuscatePassword(unsigned char* password, unsigned int bytes)
+	{
+		unsigned char bLo, bHi;
+		for (unsigned int i = 0; i < bytes; i++)
+		{
+			bLo = (password[i] & 0x0f);
+			bHi = (password[i] & 0xf0);
+			password[i] = (((bHi >> 4) | (bLo << 4)) ^ 0xa5);
+		}
+		return password;
+	}
 };
 
 

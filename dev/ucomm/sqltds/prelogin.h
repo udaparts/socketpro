@@ -7,8 +7,9 @@ namespace tds {
 
 	class CPrelogin : public CReqBase
 	{
+		static std::atomic<unsigned int> g_sequence;
 	public:
-		enum tagOptionToken : unsigned char {
+		enum class tagOptionToken : unsigned char {
 			VERSION = 0,
 			ENCRYPTION = 1,
 			INSTOPT = 2,
@@ -16,17 +17,18 @@ namespace tds {
 			MARS = 4,
 			TRACEID = 5,
 			FEDAUTHREQUIRED = 6,
-			NONCEOPT = 7
+			NONCEOPT = 7,
+			TOKEN_TERMINATOR = 0xff
 		};
 
-		enum tagFedAuth : unsigned char
+		enum class tagFedAuth : unsigned char
 		{
 			faNotRequired = 0x00,
 			faRequired = 0x01,
 			faIllegal = 0x02
 		};
 
-		enum tagEncryptionType : unsigned char
+		enum class tagEncryptionType : unsigned char
 		{
 			etOff = 0x00,
 			etOn = 0x01,
@@ -44,22 +46,24 @@ namespace tds {
 		static_assert(sizeof(Option) == 5, "Wrong Option size");
 
 	public:
-		CPrelogin(bool mars_enabled = false, tagFedAuth fa = tagFedAuth::faNotRequired);
-		bool GetClientMessage(unsigned char packet_id, SPA::CUQueue &buffer);
+		CPrelogin(bool mars_enabled = false, tagEncryptionType et = tagEncryptionType::etOff);
+		bool GetClientMessage(unsigned char packet_id, SPA::CUQueue &buffer, const char *instanceName = "") const;
 		void OnResponse(const unsigned char *data, unsigned int bytes);
+		bool IsDone() const { return (Version != 0); }
+
+		inline bool MarEnabled() const { return m_bMars ? true : false; }
+		inline tagEncryptionType GetEncryptionType() const {return m_bEncryption; }
+		inline bool IsInstFailed() const {return InstFailed ? true : false;}
+		inline unsigned int GetVersion() const { return Version; }
+		
 
 	private:
-		unsigned char m_bInst;
 		unsigned char m_bMars;
 		tagFedAuth m_bFed;
 		unsigned int Version;
 		unsigned short SubBuild;
 		tagEncryptionType m_bEncryption;
-		unsigned int m_nThreadId;
-		unsigned char ClientTraceID[16];
-		unsigned char ActivityID[20];
-		unsigned char Nonce[32];
-		std::vector<tds::CPrelogin::Option> Options;
+		unsigned char InstFailed;
 	};
 
 

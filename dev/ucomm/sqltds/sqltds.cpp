@@ -41,11 +41,15 @@ protected:
 
 int main()
 {
-	tds::CPrelogin pl(true);
-	tds::CLogin7 login;
+	tds::CLogin7::FeatureExtension fe;
+	fe.SessionRecovery = 1;
+	fe.UTF8Support = 1;
+
+	tds::CPrelogin pl(true/*, tds::CPrelogin::tagEncryptionType::etOn*/);
+	tds::CLogin7 login(fe);
 
 	SPA::CScopeUQueue sb;
-	bool ok = pl.GetClientMessage(1, *sb);
+	bool ok = pl.GetClientMessage(1, *sb, "MSSQLSERVER");
 	CSessionPool<CTdsClient> pool(1);
 	auto handler = pool.FindAClosedHandler();
 	ok = handler->Connect("windesk", 1433, tagEncryptionMethod::NoEncryption, false, true);
