@@ -5,8 +5,37 @@
 #include "sessionstate.h"
 
 namespace tds {
+
+	struct SqlCredential {
+		CDBString UserId;
+		CDBString Password; //SecureString
+	};
+
+	struct SqlLogin
+	{
+		SqlAuthenticationMethod authentication = SqlAuthenticationMethod::NotSpecified;  // Authentication type
+		unsigned int timeout;                                    // login timeout
+		bool userInstance = false;                               // user instance
+		CDBString hostName;                                      // client machine name
+		CDBString userName;                                      // user id
+		CDBString password;                                      // password
+		CDBString applicationName = ApplicationName;             // application name
+		CDBString serverName;                                    // server name
+		CDBString language;                                      // initial language
+		CDBString database;                                      // initial database
+		CDBString attachDBFilename;                              // DB filename to be attached
+		bool useReplication = false;                             // user login for replication
+		CDBString newPassword;                                   // new password for reset password
+		bool useSSPI = false;                                    // use integrated security
+		unsigned int packetSize = DEFAULT_PACKET_SIZE;			 // packet size
+		bool readOnlyIntent = false;                             // read-only intent
+		SqlCredential credential;                                // user id and password in SecureString
+		CDBString newSecurePassword;
+	};
+
 	class CLogin7 : public CReqBase
 	{
+		static const unsigned int YUKON_LOG_REC_FIXED_LEN = 0x5e;
 	public:
 #pragma pack(push,1)
 		struct OptionalFlags1 {
@@ -86,99 +115,18 @@ namespace tds {
 			fiFederatedAuthentication = 0x02 //Federated authentication, introduced in TDS 7.4
 		};
 
-		class FeatureOptionToken : public ISerialize, public IDeserialize {
-		public:
-			FeatureOptionToken(tagFeatureID fi) : FeatureID(fi) {}
-
-		public:
-			tagFeatureID GetFeatureID() const { return FeatureID; }
-
-		protected:
-			void SetFeatureID(tagFeatureID fi) { FeatureID = fi; }
-
-		private:
-			tagFeatureID FeatureID;
-		};
-
-		class SessionRecoveryOptionToken : public FeatureOptionToken {
-		public:
-			SessionRecoveryOptionToken() : FeatureOptionToken(tagFeatureID::fiSessionRecovery) {
-			}
-
-		public:
-			bool SaveTo(SPA::CUQueue &buff) {
-				return false;
-			}
-
-			bool LoadFrom(const unsigned char *data, unsigned int bytes) {
-				return false;
-			}
-
-		public:
-			
-		};
-
-		CLogin7(FeatureExtension requestedFeatures, bool integrated = false, bool dump = false, unsigned int packet_size = 8000, bool readOnlyIntent = false);
+		CLogin7();
 
 	public:
-		bool GetClientMessage(unsigned char packet_id, SPA::CUQueue &buffer);
+		bool GetClientMessage(unsigned char packet_id, const SqlLogin &rec, FeatureExtension requestedFeatures, SPA::CUQueue &buffer);
 		void OnResponse(const unsigned char *data, unsigned int bytes);
 		bool IsDone() const { return false; }
 
 	private:
-		FeatureExtension m_fe;
-		unsigned int TDSVersion;
-		unsigned int PacketSize;
-		unsigned int ClientProgVer;
-		unsigned int ClientPID;
-		unsigned int ConnectionID;
-		OptionalFlags1 Option1;
-		OptionalFlags2 Option2;
-		TypeFlags TypeFlags;
-		OptionalFlags3 Option3;
-		int ClientTimeZone;
-		unsigned int ClientLCID; //LCID ColFlags Version
-		CDBString HostName; //Client machine name
-		CDBString UserID;
-		CDBString Password;
-		CDBString AppName;
-		CDBString ServerName;
-		CDBString LibraryName; //Client library name
-		CDBString Language; //User language
-		CDBString Database;
-		unsigned char ClientID[6];
-		unsigned char *SSPI;
-		CDBString AttchDBFile; //introduced in TDS 7.2
-		CDBString ChangePassword; //introduced in TDS 7.2
-		int SSPILong; //introduced in TDS 7.2
+		static CDBString LibraryName; //Client library name
 
 	private:
-		static const unsigned short FixedPacketLength = sizeof(unsigned int)  // Length
-			+ sizeof(unsigned int)  // TDSVersion
-			+ sizeof(unsigned int)  // PacketSize
-			+ sizeof(unsigned int)  // ClientProgramVersion
-			+ sizeof(unsigned int)  // ClientPID
-			+ sizeof(unsigned int)  // ConnectionID
-			+ sizeof(OptionalFlags1)  // OptionalFlags1
-			+ sizeof(OptionalFlags2)  // OptionalFlags2
-			+ sizeof(TypeFlags)  // TypeFlags
-			+ sizeof(OptionalFlags3)  // OptionalFlags3
-			+ sizeof(int)  // ClientTimeZone
-			+ sizeof(unsigned int)  // ClientLCID
-			+ sizeof(unsigned short) + sizeof(unsigned short)  // HostName
-			+ sizeof(unsigned short) + sizeof(unsigned short)  // UserID
-			+ sizeof(unsigned short) + sizeof(unsigned short)  // Password
-			+ sizeof(unsigned short) + sizeof(unsigned short)  // ApplicationName
-			+ sizeof(unsigned short) + sizeof(unsigned short)  // ServerName
-			+ sizeof(unsigned short) + sizeof(unsigned short)  // Unused
-			+ sizeof(unsigned short) + sizeof(unsigned short)  // LibraryName
-			+ sizeof(unsigned short) + sizeof(unsigned short)  // Language
-			+ sizeof(unsigned short) + sizeof(unsigned short)  // Database
-			+ sizeof(ClientID)  // ClientID
-			+ sizeof(unsigned short) + sizeof(unsigned short)  // SSPI
-			+ sizeof(unsigned short) + sizeof(unsigned short)  // AttachDatabaseFile
-			+ sizeof(unsigned short) + sizeof(unsigned short)  // ChangePassword
-			+ sizeof(unsigned int);  // LongSSPI;
+		
 	};
 
 }

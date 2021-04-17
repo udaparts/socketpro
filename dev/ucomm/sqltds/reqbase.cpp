@@ -2,6 +2,8 @@
 
 namespace tds {
 	CReqBase::CReqBase() : ResponseHeader(tagPacketType::ptInitial, 0) {
+		ResponseHeader.Spid = 0;
+		ResponseHeader.Length = 0;
 	}
 
 	CReqBase::~CReqBase() {

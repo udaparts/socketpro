@@ -2,7 +2,7 @@
 #include "prelogin.h"
 
 namespace tds {
-	std::atomic<unsigned int> CPrelogin::g_sequence(0);
+	std::atomic<unsigned int> CPrelogin::g_sequence(1);
 	CPrelogin::CPrelogin(bool mars_enabled, tagEncryptionType et)
 		: m_bMars(mars_enabled ? 1 : 0),
 		m_bFed(tagFedAuth::faRequired),
@@ -18,7 +18,7 @@ namespace tds {
 		option.Len = 6;
 		SPA::CScopeUQueue sbData;
 		sbHeader << option;
-		sbData << TDS_VERSION << BUILD_VERSION; //BUILD_VERSION little endian
+		sbData << ChangeEndian(CLIENT_EXE_VERSION) << BUILD_VERSION; //BUILD_VERSION little endian
 
 		option.Token = tagOptionToken::ENCRYPTION;
 		option.Len = 1;
@@ -38,12 +38,10 @@ namespace tds {
 		sbHeader << option;
 		sbData << ChangeEndian(GetThreadId());
 
-		if (m_bMars) {
-			option.Token = tagOptionToken::MARS;
-			option.Len = 1;
-			sbHeader << option;
-			sbData << m_bMars;
-		}
+		option.Token = tagOptionToken::MARS;
+		option.Len = 1;
+		sbHeader << option;
+		sbData << m_bMars;
 
 		option.Token = tagOptionToken::TRACEID;
 		option.Len = 36;
@@ -54,12 +52,10 @@ namespace tds {
 		unsigned int seqId = ++g_sequence;
 		sbData << guid0 << guid1 << seqId; //seqId little endian
 
-		if (m_bFed == tagFedAuth::faRequired) {
-			option.Token = tagOptionToken::FEDAUTHREQUIRED;
-			option.Len = 1;
-			sbHeader << option;
-			sbData << m_bFed;
-		}
+		option.Token = tagOptionToken::FEDAUTHREQUIRED;
+		option.Len = 1;
+		sbHeader << option;
+		sbData << m_bFed;
 
 		unsigned int options = sbHeader->GetSize() / sizeof(Option);
 
@@ -67,7 +63,7 @@ namespace tds {
 		unsigned short total_len = (unsigned short) (sbHeader->GetSize() + sbData->GetSize() + sizeof(PacketHeader));
 		Option *op = (Option*)sbHeader->GetBuffer();
 		PacketHeader ph(tagPacketType::ptPrelogin, packet_id);
-		ph.Spid = GetSPID();
+		ph.Spid = 0; //GetSPID();
 		ph.Length = ChangeEndian(total_len);
 		unsigned short offset = (unsigned short) sbHeader->GetSize();
 		for (unsigned int n = 0; n < options; ++n) {

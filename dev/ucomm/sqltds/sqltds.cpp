@@ -39,26 +39,67 @@ protected:
 	}
 };
 
+void ShowBuffer(const SPA::CUQueue &buffer);
+
 int main()
 {
-	tds::CLogin7::FeatureExtension fe;
-	fe.SessionRecovery = 1;
-	fe.UTF8Support = 1;
-
-	tds::CPrelogin pl(true/*, tds::CPrelogin::tagEncryptionType::etOn*/);
-	tds::CLogin7 login(fe);
+	tds::CPrelogin pl(false/*, tds::CPrelogin::tagEncryptionType::etOn*/);
+	tds::CLogin7 login;
 
 	SPA::CScopeUQueue sb;
-	bool ok = pl.GetClientMessage(1, *sb, "MSSQLSERVER");
 	CSessionPool<CTdsClient> pool(1);
 	auto handler = pool.FindAClosedHandler();
-	ok = handler->Connect("windesk", 1433, tagEncryptionMethod::NoEncryption, false, true);
+	bool ok = handler->Connect("windesk", 1433, tagEncryptionMethod::NoEncryption, false, true);
 	handler->m_deq.push_back(&pl);
+	handler->m_deq.push_back(&login);
+	ok = pl.GetClientMessage(1, *sb);
 	int res = handler->Send(sb->GetBuffer(), sb->GetSize());
-	::getchar();
-	ok = handler->IsConnected();
-	CUQueue &buffer = handler->m_buff;
+	ShowBuffer(*sb);
+	sb->SetSize(0);
+	tds::SqlLogin rec;
+	rec.database = u"sakila";
+	rec.timeout = 11;
+	rec.hostName = u"WINDESK"; //client machine name
+	rec.userName = u"sa";
+	rec.password = u"Smash123";
+	rec.serverName = u"windesk";
+	tds::CLogin7::FeatureExtension fe;
+	ok = login.GetClientMessage(1, rec, fe, *sb);
+	ShowBuffer(*sb);
+	res = handler->Send(sb->GetBuffer(), sb->GetSize());
 	std::cout << "Press a key to shut down the application ......\n";
 	::getchar();
 	return 0;
+}
+
+void ShowBuffer(const SPA::CUQueue &buffer) {
+	int n = 0, len = (int)buffer.GetSize();
+	const unsigned char *data = buffer.GetBuffer();
+	for (n = 0; n < 8; ++n)
+	{
+		char str[8] = { 0 };
+		sprintf_s(str, "%02X", data[n]);
+		if (n == 7)
+		{
+			std::cout << str << "\n";
+		}
+		else
+		{
+			std::cout << str << " ";
+		}
+	}
+	for (; n < len; ++n)
+	{
+		char str[8] = { 0 };
+		sprintf_s(str, "%02X", data[n]);
+		if (((n - 7) % 16) == 0)
+		{
+			std::cout << str << "\n";
+		}
+		else
+		{
+			std::cout << str << " ";
+		}
+	}
+	std::cout << "\n";
 }

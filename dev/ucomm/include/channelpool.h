@@ -189,6 +189,13 @@ namespace SPA {
                 case tagSessionPoolEvent::seUnlocked:
                 case tagSessionPoolEvent::seThreadDestroyed:
                 case tagSessionPoolEvent::seSessionClosed:
+#ifndef NDEBUG
+					if (spe == tagSessionPoolEvent::seSessionClosed) {
+						char errMsg[1024];
+						int errCode = SH_GetErrorCode(sh, errMsg, sizeof(errMsg));
+						std::cout << "Session closed: error code=" << errCode << ", error message=" << errMsg << "\n";
+					}
+#endif
                     if (sp->PoolEvent) {
                         sp->PoolEvent(spe, sp->FindHandler(sh));
                     }

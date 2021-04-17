@@ -4,9 +4,17 @@
 #include "../include/membuffer.h"
 
 namespace tds {
-	static const unsigned short BUILD_VERSION = 0x0001; //Little Endian
-	static const unsigned int TDS_VERSION = 0x04000074;
-	static const unsigned int CLIENT_PROG_VERSION = 0x01000001; //1.0.0.1
+	static const unsigned int CLIENT_EXE_VERSION = 0x01000000;
+	static const unsigned short BUILD_VERSION = 0x0000; //Little Endian
+
+	static const unsigned int CLIENT_DLL_VERSION = 0x01000001; //1.0.0.1
+	static const unsigned int TDS_VERSION = 0x74000004;
+	
+	typedef std::u16string CDBString;
+	//static const CDBString ApplicationName(u"UDAParts Core MSSQL Data Provider");
+	static const CDBString ApplicationName(u"Core Microsoft SqlClient Data Provider");
+
+	static std::vector<unsigned char> TDS_NIC_ADDRESS({ 0x99, 0x86, 0x60, 0x88, 0x99, 0xaf });
 
 	enum class tagPacketType : unsigned char {
 		ptInitial = 0,
@@ -79,12 +87,43 @@ namespace tds {
 		XML = 0xF1,
 	};
 
+	enum class SqlAuthenticationMethod
+	{
+		/// <include file='../../../../../../../doc/snippets/Microsoft.Data.SqlClient/SqlAuthenticationMethod.xml' path='docs/members[@name="SqlAuthenticationMethod"]/NotSpecified/*'/>
+		NotSpecified = 0,
+
+		/// <include file='../../../../../../../doc/snippets/Microsoft.Data.SqlClient/SqlAuthenticationMethod.xml' path='docs/members[@name="SqlAuthenticationMethod"]/SqlPassword/*'/>
+		SqlPassword,
+
+		/// <include file='../../../../../../../doc/snippets/Microsoft.Data.SqlClient/SqlAuthenticationMethod.xml' path='docs/members[@name="SqlAuthenticationMethod"]/ActiveDirectoryPassword/*'/>
+		ActiveDirectoryPassword,
+
+		/// <include file='../../../../../../../doc/snippets/Microsoft.Data.SqlClient/SqlAuthenticationMethod.xml' path='docs/members[@name="SqlAuthenticationMethod"]/ActiveDirectoryIntegrated/*'/>
+		ActiveDirectoryIntegrated,
+
+		/// <include file='../../../../../../../doc/snippets/Microsoft.Data.SqlClient/SqlAuthenticationMethod.xml' path='docs/members[@name="SqlAuthenticationMethod"]/ActiveDirectoryInteractive/*'/>
+		ActiveDirectoryInteractive,
+
+		/// <include file='../../../../../../../doc/snippets/Microsoft.Data.SqlClient/SqlAuthenticationMethod.xml' path='docs/members[@name="SqlAuthenticationMethod"]/ActiveDirectoryServicePrincipal/*'/>
+		ActiveDirectoryServicePrincipal,
+
+		/// <include file='../../../../../../../doc/snippets/Microsoft.Data.SqlClient/SqlAuthenticationMethod.xml' path='docs/members[@name="SqlAuthenticationMethod"]/ActiveDirectoryDeviceCodeFlow/*'/>
+		ActiveDirectoryDeviceCodeFlow,
+
+		/// <include file='../../../../../../../doc/snippets/Microsoft.Data.SqlClient/SqlAuthenticationMethod.xml' path='docs/members[@name="SqlAuthenticationMethod"]/ActiveDirectoryManagedIdentity/*'/>
+		ActiveDirectoryManagedIdentity,
+
+		/// <include file='../../../../../../../doc/snippets/Microsoft.Data.SqlClient/SqlAuthenticationMethod.xml' path='docs/members[@name="SqlAuthenticationMethod"]/ActiveDirectoryMSI/*'/>
+		ActiveDirectoryMSI
+	};
+
 	typedef unsigned short Packet_Length; //big-endian 512 - 32,767
 	typedef unsigned short SPID; //big-endian
 	typedef unsigned char Token;
-	typedef std::u16string CDBString;
+	
 
 	static const Token TOKEN_TERMINATOR = 0xff;
+	static const unsigned short DEFAULT_PACKET_SIZE = 8000;
 
 	static inline unsigned short ChangeEndian(unsigned short s) {
 		return ((s & 0xff) << 8) + (s >> 8);
@@ -205,6 +244,7 @@ namespace tds {
 	// Note: The same logic is used in SNIPacketSetData (SniManagedWrapper) to encrypt passwords stored in SecureString
 	//       If this logic changed, SNIPacketSetData needs to be changed as well
 	static std::vector<unsigned char> ObfuscatePassword(const CDBString &password) {
+#if 1
 		std::vector<unsigned char> v(password.size() << 1);
 		unsigned char *bObfuscated = &v.front();
 		unsigned char bLo, bHi;
@@ -215,6 +255,10 @@ namespace tds {
 			bObfuscated[n << 1] = (unsigned char)((((bLo & 0x0f) << 4) | (bLo >> 4)) ^ 0xa5);
 			bObfuscated[(n << 1) + 1] = (unsigned char)((((bHi & 0x0f) << 4) | (bHi >> 4)) ^ 0xa5);
 		}
+#else
+		const unsigned char *start = (const unsigned char *)password.data();
+		std::vector<unsigned char> v(start, start + (password.size() << 1));
+#endif
 		return v;
 	}
 

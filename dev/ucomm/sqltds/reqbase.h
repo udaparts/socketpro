@@ -1,7 +1,6 @@
 #ifndef _U_TDS_REQUEST_BASE_H_
 #define _U_TDS_REQUEST_BASE_H_
 
-#include "../include/membuffer.h"
 #include "tdsdef.h"
 
 namespace tds {
