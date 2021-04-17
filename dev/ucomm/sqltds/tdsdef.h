@@ -7,7 +7,7 @@ namespace tds {
 	static const unsigned int CLIENT_EXE_VERSION = 0x01000000;
 	static const unsigned short BUILD_VERSION = 0x0000; //Little Endian
 
-	static const unsigned int CLIENT_DLL_VERSION = 0x01000001; //1.0.0.1
+	static const unsigned int CLIENT_DLL_VERSION = 0x06000000; //1.0.0.1
 	static const unsigned int TDS_VERSION = 0x74000004;
 	
 	typedef std::u16string CDBString;
