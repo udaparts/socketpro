@@ -8,7 +8,12 @@ namespace tds {
 		
 	}
 
+	bool CLogin7::IsDone() const {
+		return (m_Done.Status != tagDoneStatus::dsInitial);
+	}
+
 	bool CLogin7::GetClientMessage(unsigned char packet_id, const SqlLogin &rec, FeatureExtension requestedFeatures, SPA::CUQueue &buffer) {
+		m_Done.Status = tagDoneStatus::dsInitial;
 		CDBString userName;
 		std::vector<unsigned char> encryptedPassword;
 		unsigned short encryptedPasswordLengthInBytes = 0;
@@ -309,18 +314,110 @@ namespace tds {
 		PacketHeader ph(tagPacketType::ptLogin7, packet_id);
 		ph.Length = (Packet_Length)(sb->GetSize() + sizeof(PacketHeader));
 		ph.Length = ChangeEndian(ph.Length);
-		ph.Spid = 0; //GetSPID();
+		ph.Spid = GetSPID();
 		buffer << ph;
 		buffer.Push(sb->GetBuffer(), sb->GetSize());
 		return true;
 	}
 
 	void CLogin7::OnResponse(const unsigned char *data, unsigned int bytes) {
+		m_vEventChange.clear();
+		m_vInfo.clear();
 		SPA::CScopeUQueue sb;
 		sb->Push(data, bytes);
 		SPA::CUQueue &buff = *sb;
 		buff >> ResponseHeader;
 		ResponseHeader.Length = ChangeEndian(ResponseHeader.Length);
+		assert(ResponseHeader.Length == bytes);
+		while (buff.GetSize()) {
+			tagTokenType tt;
+			buff >> tt;
+			switch (tt)
+			{
+			case tagTokenType::ttTDS_ERROR:
+			case tagTokenType::ttINFO:
+			{
+				unsigned short len;
+				TokenInfo ti;
+				buff >> len >> ti.SQLErrorNumber >> ti.State >> ti.Class;
+				buff >> len;
+				const char16_t *str = (const char16_t *)buff.GetBuffer();
+				ti.ErrorMessage.assign(str, str + len);
+				buff.Pop(((unsigned int)len) << 1);
+				unsigned char byteLen;
+				buff >> byteLen;
+				str = (const char16_t *)buff.GetBuffer();
+				ti.ServerName.assign(str, str + byteLen);
+				buff.Pop(((unsigned int)byteLen) << 1);
+				buff >> ti.ProcessNameLength >> ti.LineNumber;
+				m_vInfo.push_back(ti);
+			}
+			break;
+			case tagTokenType::ttLOGINACK:
+			{
+				unsigned short len;
+				unsigned char b; 
+				buff >> len >> b >> m_LoginAck.Tds_Version;
+				assert(b == 1); //Interface
+				buff >> b; //byte length
+				const char16_t *str = (const char16_t *)buff.GetBuffer();
+				m_LoginAck.ServerName.assign(str, str + b);
+				buff.Pop((unsigned int)(m_LoginAck.ServerName.size()<< 1));
+				buff >> m_LoginAck.ServerVersion;
+			}
+				break;
+			case tagTokenType::ttENVCHANGE:
+			{
+				unsigned short len;
+				unsigned char b;
+				tagEnvchangeType type;
+				buff >> len >> type;
+				switch (type) {
+				case tagEnvchangeType::packet_size:
+				case tagEnvchangeType::database:
+				case tagEnvchangeType::language:
+				{
+					TokenEventChange tec;
+					buff >> b;
+					tec.Type = type;
+					const char16_t *str = (const char16_t *)buff.GetBuffer();
+					tec.NewValue.assign(str, str + b);
+					buff.Pop(((unsigned int)b) << 1);
+					buff >> b;
+					if (b) {
+						str = (const char16_t *)buff.GetBuffer();
+						tec.OldValue.assign(str, str + b);
+						buff.Pop(((unsigned int)b) << 1);
+					}
+					m_vEventChange.push_back(tec);
+				}
+					break;
+				case tagEnvchangeType::collation:
+				{
+					buff >> b;
+					assert(b == 5);
+					buff >> m_CollationChange.NewValue;
+					buff >> b;
+					if (b) {
+						buff >> m_CollationChange.OldValue;
+					}
+				}
+					break;
+				default:
+					break;
+				}
+			}
+			break;
+			case tagTokenType::ttDONE:
+				buff >> m_Done;
+				assert(!buff.GetSize());
+				break;
+			default:
+				assert(false);
+				break;
+			}
+		}
+
 	}
 
 }

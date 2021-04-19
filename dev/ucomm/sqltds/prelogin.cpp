@@ -5,7 +5,7 @@ namespace tds {
 	std::atomic<unsigned int> CPrelogin::g_sequence(1);
 	CPrelogin::CPrelogin(bool mars_enabled, tagEncryptionType et)
 		: m_bMars(mars_enabled ? 1 : 0),
-		m_bFed(tagFedAuth::faRequired),
+		m_bFed(tagFedAuth::faRequired), //must be tagFedAuth::faRequired
 		Version(0), SubBuild(0),
 		m_bEncryption(et),
 		InstFailed(0) {
@@ -84,6 +84,7 @@ namespace tds {
 		SPA::CUQueue &buff = *sb;
 		buff >> ResponseHeader;
 		ResponseHeader.Length = ChangeEndian(ResponseHeader.Length);
+		assert(ResponseHeader.Length == bytes);
 		std::vector<Option> Options;
 #ifndef NDEBUG
 		unsigned int data_len = 0;
@@ -119,7 +120,6 @@ namespace tds {
 			case tagOptionToken::ENCRYPTION:
 				assert(it->Len == sizeof(m_bEncryption));
 				buff >> m_bEncryption;
-				assert(m_bEncryption == tagEncryptionType::etOn || m_bEncryption == tagEncryptionType::etOff);
 				break;
 			case tagOptionToken::INSTOPT:
 				assert(it->Len == sizeof(InstFailed)); //little endian

@@ -5,6 +5,7 @@
 #include "login7.h"
 #include <deque>
 #include <iostream>
+#include <ws2tcpip.h>
 
 using namespace SPA;
 
@@ -40,33 +41,59 @@ protected:
 };
 
 void ShowBuffer(const SPA::CUQueue &buffer);
+std::vector<unsigned char> GetSSPI();
 
 int main()
 {
-	tds::CPrelogin pl(false/*, tds::CPrelogin::tagEncryptionType::etOn*/);
+	struct addrinfo hints;
+	memset(&hints, 0, sizeof(hints));
+	hints.ai_family = AF_UNSPEC;
+	hints.ai_socktype = SOCK_STREAM;
+	hints.ai_protocol = IPPROTO_TCP;
+	struct addrinfo* resAddr;
+	int ret = getaddrinfo("acer", nullptr, &hints, &resAddr);
+
+	tds::CPrelogin pl(true);
 	tds::CLogin7 login;
 
 	SPA::CScopeUQueue sb;
 	CSessionPool<CTdsClient> pool(1);
 	auto handler = pool.FindAClosedHandler();
-	bool ok = handler->Connect("windesk", 1433, tagEncryptionMethod::NoEncryption, false, true);
+	bool ok = handler->Connect("acer", 1433, tagEncryptionMethod::NoEncryption, false, true);
+
+	char serverName[128];
+	handler->GetServerName(serverName, sizeof(serverName));
+
 	handler->m_deq.push_back(&pl);
 	handler->m_deq.push_back(&login);
 	ok = pl.GetClientMessage(1, *sb);
 	int res = handler->Send(sb->GetBuffer(), sb->GetSize());
-	ShowBuffer(*sb);
+	//ShowBuffer(*sb);
 	sb->SetSize(0);
 	tds::SqlLogin rec;
 	rec.database = u"sakila";
 	rec.timeout = 11;
-	rec.hostName = u"WINDESK"; //client machine name
-	rec.userName = u"sa";
+	rec.userName = u"CharlieYe";
 	rec.password = u"Smash123";
-	rec.serverName = u"windesk";
+	rec.serverName = tds::CDBString(serverName, serverName + strlen(serverName));
 	tds::CLogin7::FeatureExtension fe;
-	ok = login.GetClientMessage(1, rec, fe, *sb);
-	ShowBuffer(*sb);
+	ok = login.GetClientMessage(2, rec, fe, *sb);
+	//ShowBuffer(*sb);
 	res = handler->Send(sb->GetBuffer(), sb->GetSize());
+	/*
+	sb->SetSize(0);
+	tds::CPrelogin pl2(true);
+	tds::CLogin7 login2;
+	handler->m_deq.push_back(&pl2);
+	handler->m_deq.push_back(&login2);
+	ok = pl2.GetClientMessage(3, *sb);
+	res = handler->Send(sb->GetBuffer(), sb->GetSize());
+	sb->SetSize(0);
+	rec.userName = u"sa";
+	rec.database = u"sqltestdb";
+	ok = login2.GetClientMessage(4, rec, fe, *sb);
+	res = handler->Send(sb->GetBuffer(), sb->GetSize());
+	*/
 	std::cout << "Press a key to shut down the application ......\n";
 	::getchar();
 	return 0;
@@ -102,4 +129,10 @@ void ShowBuffer(const SPA::CUQueue &buffer) {
 		}
 	}
 	std::cout << "\n";
+}
+
+std::vector<unsigned char> GetSSPI() {
+	std::vector<unsigned char> vSSPI;
+
+	return vSSPI;
 }

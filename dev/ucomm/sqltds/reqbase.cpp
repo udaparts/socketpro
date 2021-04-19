@@ -12,4 +12,8 @@ namespace tds {
 	const PacketHeader& CReqBase::GetResponseHeader() const {
 		return ResponseHeader;
 	}
+
+	bool CReqBase::IsDone() const{
+		return (ResponseHeader.Type != tagPacketType::ptInitial);
+	}
 }

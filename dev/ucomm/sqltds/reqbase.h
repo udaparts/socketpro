@@ -13,7 +13,7 @@ namespace tds {
 
 	public:
 		virtual void OnResponse(const unsigned char *data, unsigned int bytes) = 0;
-		virtual bool IsDone() const = 0;
+		virtual bool IsDone() const;
 		const PacketHeader& GetResponseHeader() const;
 
 	protected:

@@ -60,6 +60,10 @@ namespace SPA {
             return m_session;
         }
 
+		bool GetServerName(char *name, unsigned int chars) const {
+			return SH_GetServerName(m_session, name, chars);
+		}
+
     protected:
         virtual void OnAvailable(const unsigned char *data, unsigned int bytes) = 0;
 
