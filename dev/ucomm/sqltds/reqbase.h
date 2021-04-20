@@ -17,6 +17,9 @@ namespace tds {
 		const PacketHeader& GetResponseHeader() const;
 
 	protected:
+		virtual void Reset();
+
+	protected:
 		PacketHeader ResponseHeader;
 	};
 

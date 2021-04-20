@@ -8,13 +8,13 @@ namespace myclienttests
     {
         static void Main(string[] args)
         {
-            string strConn = "Server=windesk;Database=AdventureWorks;user id=sa;password=Smash123;Packet Size=2920";
+            string strConn = "Server=windesk;Database=sakila;user id=sa;password=Smash123;Packet Size=2920";
             try
             {
                 using (SqlConnection conn = new SqlConnection(strConn))
                 {
                     conn.Open();
-                    string sql = "use sqltestdb;select employeeid,MyImAGE from employee where employeeid=1";
+                    string sql = "select * from actor where 1=0";
                     SqlCommand cmd = new SqlCommand(sql, conn);
                     SqlDataReader reader = cmd.ExecuteReader();
                     do

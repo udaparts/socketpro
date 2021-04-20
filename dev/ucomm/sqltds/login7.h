@@ -107,55 +107,12 @@ namespace tds {
 			}
 		};
 
-		enum class tagEnvchangeType : unsigned char {
-			database = 1,
-			language,
-			charset,
-			packet_size,
-			unicode_data_sort_local_id,
-			unicode_data_sort_comparison_flags,
-			collation,
-			begin_trans,
-			commit_trans,
-			rollback_trans,
-			enlist_dist_trans,
-			defect_trans,
-			log_shipping,
-			promote_trans = 15,
-			trans_man_address,
-			trans_ended,
-			reset_completion_acknowledgement,
-			user_instance_started,
-			routing
-		};
-
 #pragma pack(pop)
 		static_assert(sizeof(OptionalFlags1) == 1, "Wrong OptionalFlags1 size");
 		static_assert(sizeof(OptionalFlags2) == 1, "Wrong OptionalFlags2 size");
 		static_assert(sizeof(TypeFlags) == 1, "Wrong TypeFlags size");
 		static_assert(sizeof(OptionalFlags3) == 1, "Wrong OptionalFlags3 size");
 		static_assert(sizeof(FeatureExtension) == 4, "Wrong FeatureExtension size");
-
-		struct TokenEventChange {
-			tagEnvchangeType Type;
-			CDBString NewValue;
-			CDBString OldValue;
-		};
-
-		struct CollationChange {
-			Collation NewValue;
-			Collation OldValue;
-		};
-
-		struct TokenInfo {
-			unsigned int SQLErrorNumber = 0;
-			unsigned char State = 0;
-			unsigned char Class = 0;
-			CDBString ErrorMessage;
-			CDBString ServerName;
-			unsigned char ProcessNameLength = 0;
-			unsigned int LineNumber = 0;
-		};
 
 		struct LoginAck {
 			unsigned int Tds_Version = 0;
@@ -174,7 +131,10 @@ namespace tds {
 	public:
 		bool GetClientMessage(unsigned char packet_id, const SqlLogin &rec, FeatureExtension requestedFeatures, SPA::CUQueue &buffer);
 		void OnResponse(const unsigned char *data, unsigned int bytes);
-		bool IsDone() const;
+
+	protected:
+		void Reset();
+
 	private:
 		static CDBString LibraryName; //Client library name
 

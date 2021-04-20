@@ -164,14 +164,17 @@
     <ClCompile Include="prelogin.cpp" />
     <ClCompile Include="reqbase.cpp" />
     <ClCompile Include="sessionstate.cpp" />
+    <ClCompile Include="sqlbatch.cpp" />
     <ClCompile Include="sqltds.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\include\membuffer.h" />
+    <ClInclude Include="..\include\udatabase.h" />
     <ClInclude Include="login7.h" />
     <ClInclude Include="prelogin.h" />
     <ClInclude Include="reqbase.h" />
     <ClInclude Include="sessionstate.h" />
+    <ClInclude Include="sqlbatch.h" />
     <ClInclude Include="tdsdef.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

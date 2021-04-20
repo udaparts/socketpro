@@ -2,18 +2,22 @@
 
 namespace tds {
 
-	CDBString CLogin7::LibraryName(u"utds_client");
+	CDBString CLogin7::LibraryName(u"udaparts_client");
 
 	CLogin7::CLogin7() {
 		
 	}
 
-	bool CLogin7::IsDone() const {
-		return (m_Done.Status != tagDoneStatus::dsInitial);
+	void CLogin7::Reset() {
+		memset(&m_CollationChange, 0, sizeof(m_CollationChange));
+		memset(&m_Done, 0, sizeof(m_Done));
+		m_vEventChange.clear();
+		m_vInfo.clear();
+		CReqBase::Reset();
 	}
 
 	bool CLogin7::GetClientMessage(unsigned char packet_id, const SqlLogin &rec, FeatureExtension requestedFeatures, SPA::CUQueue &buffer) {
-		m_Done.Status = tagDoneStatus::dsInitial;
+		Reset();
 		CDBString userName;
 		std::vector<unsigned char> encryptedPassword;
 		unsigned short encryptedPasswordLengthInBytes = 0;
@@ -314,15 +318,13 @@ namespace tds {
 		PacketHeader ph(tagPacketType::ptLogin7, packet_id);
 		ph.Length = (Packet_Length)(sb->GetSize() + sizeof(PacketHeader));
 		ph.Length = ChangeEndian(ph.Length);
-		ph.Spid = GetSPID();
+		ph.Spid = 0;
 		buffer << ph;
 		buffer.Push(sb->GetBuffer(), sb->GetSize());
 		return true;
 	}
 
 	void CLogin7::OnResponse(const unsigned char *data, unsigned int bytes) {
-		m_vEventChange.clear();
-		m_vInfo.clear();
 		SPA::CScopeUQueue sb;
 		sb->Push(data, bytes);
 		SPA::CUQueue &buff = *sb;
@@ -404,6 +406,7 @@ namespace tds {
 				}
 					break;
 				default:
+					assert(false);
 					break;
 				}
 			}

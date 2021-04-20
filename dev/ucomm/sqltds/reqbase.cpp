@@ -14,6 +14,10 @@ namespace tds {
 	}
 
 	bool CReqBase::IsDone() const{
-		return (ResponseHeader.Type != tagPacketType::ptInitial);
+		return (ResponseHeader.Status == tagPacketStatus::psEOM);
+	}
+
+	void CReqBase::Reset() {
+		::memset(&ResponseHeader, 0, sizeof(ResponseHeader));
 	}
 }

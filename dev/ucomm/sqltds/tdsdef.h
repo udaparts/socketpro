@@ -1,7 +1,9 @@
 #ifndef _H_SQL_TDS_DEFINES_H_
 #define _H_SQL_TDS_DEFINES_H_
 
-#include "../include/membuffer.h"
+#include "../include/udatabase.h"
+
+using namespace SPA::UDB;
 
 namespace tds {
 	static const unsigned int CLIENT_EXE_VERSION = 0x01000000;
@@ -108,6 +110,28 @@ namespace tds {
 		XML = 0xF1,
 	};
 
+	enum class tagEnvchangeType : unsigned char {
+		database = 1,
+		language,
+		charset,
+		packet_size,
+		unicode_data_sort_local_id,
+		unicode_data_sort_comparison_flags,
+		collation,
+		begin_trans,
+		commit_trans,
+		rollback_trans,
+		enlist_dist_trans,
+		defect_trans,
+		log_shipping,
+		promote_trans = 15,
+		trans_man_address,
+		trans_ended,
+		reset_completion_acknowledgement,
+		user_instance_started,
+		routing
+	};
+
 	enum class SqlAuthenticationMethod
 	{
 		/// <include file='../../../../../../../doc/snippets/Microsoft.Data.SqlClient/SqlAuthenticationMethod.xml' path='docs/members[@name="SqlAuthenticationMethod"]/NotSpecified/*'/>
@@ -144,7 +168,7 @@ namespace tds {
 	
 
 	static const Token TOKEN_TERMINATOR = 0xff;
-	static const unsigned short DEFAULT_PACKET_SIZE = 8000;
+	static const unsigned short DEFAULT_PACKET_SIZE = 2920;
 
 	static inline unsigned short ChangeEndian(unsigned short s) {
 		return ((s & 0xff) << 8) + (s >> 8);
@@ -243,10 +267,14 @@ namespace tds {
 		unsigned char Window = 0; //ignored
 	};
 
-	enum class tagDoneStatus : unsigned short {
+	enum tagDoneStatus : unsigned short {
 		dsFinal = 0,
-		dsMore = 1,
-		dsError = 2,
+		dsMore = 0x01,
+		dsError = 0x02,
+		dsInTrans = 0x04,
+		dsCount = 0x10,
+		dsAttention = 0x20,
+		dsSrvError = 0x100,
 		dsInitial = 0xffff
 	};
 
@@ -257,16 +285,35 @@ namespace tds {
 	};
 
 	struct Collation {
-		unsigned short CodePage = 0;
+		unsigned short CodePage = 0; //LCID
 		unsigned short Flags = 0;
 		unsigned char CharsetId = 0;
 	};
-
+#pragma pack(pop)
+	static_assert(sizeof(PacketHeader) == 8, "Wrong PacketHeader size");
 	static_assert(sizeof(TokenDone) == 12, "Wrong TokenDone size");
 	static_assert(sizeof(Collation) == 5, "Wrong Collation size");
 
-#pragma pack(pop)
-	static_assert(sizeof(PacketHeader) == 8, "Wrong PacketHeader size");
+	struct TokenEventChange {
+		tagEnvchangeType Type;
+		CDBString NewValue;
+		CDBString OldValue;
+	};
+
+	struct CollationChange {
+		Collation NewValue;
+		Collation OldValue;
+	};
+
+	struct TokenInfo {
+		unsigned int SQLErrorNumber = 0;
+		unsigned char State = 0;
+		unsigned char Class = 0;
+		CDBString ErrorMessage;
+		CDBString ServerName;
+		unsigned char ProcessNameLength = 0;
+		unsigned int LineNumber = 0;
+	};
 
 	struct ISerialize {
 		virtual bool SaveTo(SPA::CUQueue &buff) = 0;

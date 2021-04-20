@@ -3,6 +3,7 @@
 #include "../include/channelpool.h"
 #include "prelogin.h"
 #include "login7.h"
+#include "sqlbatch.h"
 #include <deque>
 #include <iostream>
 #include <ws2tcpip.h>
@@ -33,9 +34,11 @@ protected:
 			if (!m_deq.size())
 				break;
 			tds::CReqBase *rb = m_deq.front();
-			m_deq.pop_front();
 			rb->OnResponse(m_buff.GetBuffer(), len);
 			m_buff.Pop(len);
+			if (ph->Status == tds::tagPacketStatus::psEOM) {
+				m_deq.pop_front();
+			}
 		} while (false);
 	}
 };
@@ -45,21 +48,13 @@ std::vector<unsigned char> GetSSPI();
 
 int main()
 {
-	struct addrinfo hints;
-	memset(&hints, 0, sizeof(hints));
-	hints.ai_family = AF_UNSPEC;
-	hints.ai_socktype = SOCK_STREAM;
-	hints.ai_protocol = IPPROTO_TCP;
-	struct addrinfo* resAddr;
-	int ret = getaddrinfo("acer", nullptr, &hints, &resAddr);
-
 	tds::CPrelogin pl(true);
 	tds::CLogin7 login;
 
 	SPA::CScopeUQueue sb;
 	CSessionPool<CTdsClient> pool(1);
 	auto handler = pool.FindAClosedHandler();
-	bool ok = handler->Connect("acer", 1433, tagEncryptionMethod::NoEncryption, false, true);
+	bool ok = handler->Connect("windesk", 1433, tagEncryptionMethod::NoEncryption, false, true);
 
 	char serverName[128];
 	handler->GetServerName(serverName, sizeof(serverName));
@@ -73,27 +68,19 @@ int main()
 	tds::SqlLogin rec;
 	rec.database = u"sakila";
 	rec.timeout = 11;
-	rec.userName = u"CharlieYe";
+	rec.userName = u"sa";
 	rec.password = u"Smash123";
 	rec.serverName = tds::CDBString(serverName, serverName + strlen(serverName));
 	tds::CLogin7::FeatureExtension fe;
-	ok = login.GetClientMessage(2, rec, fe, *sb);
+	ok = login.GetClientMessage(1, rec, fe, *sb);
 	//ShowBuffer(*sb);
 	res = handler->Send(sb->GetBuffer(), sb->GetSize());
-	/*
 	sb->SetSize(0);
-	tds::CPrelogin pl2(true);
-	tds::CLogin7 login2;
-	handler->m_deq.push_back(&pl2);
-	handler->m_deq.push_back(&login2);
-	ok = pl2.GetClientMessage(3, *sb);
+	tds::CSqlBatch sqlbatch(true);
+	handler->m_deq.push_back(&sqlbatch);
+	sqlbatch.GetClientMessage(1, u"select * from actor where 1=0", *sb);
 	res = handler->Send(sb->GetBuffer(), sb->GetSize());
-	sb->SetSize(0);
-	rec.userName = u"sa";
-	rec.database = u"sqltestdb";
-	ok = login2.GetClientMessage(4, rec, fe, *sb);
-	res = handler->Send(sb->GetBuffer(), sb->GetSize());
-	*/
+	ShowBuffer(*sb);
 	std::cout << "Press a key to shut down the application ......\n";
 	::getchar();
 	return 0;
