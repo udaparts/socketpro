@@ -160,3 +160,11 @@ bool WINAPI SH_GetPeerName(SPA::SessionHandle session, unsigned int *port, char 
     }
     return rs->GetPeerName(port, addr, chars);
 }
+
+bool WINAPI SH_GetServerName(SPA::SessionHandle session, char *name, unsigned int chars) {
+	SPA::CRawSession *rs = (SPA::CRawSession*)session;
+	if (!rs) {
+		return false;
+	}
+	return rs->GetServerName(name, chars);
+}

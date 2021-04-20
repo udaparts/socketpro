@@ -46,7 +46,7 @@ namespace tds {
 		static_assert(sizeof(Option) == 5, "Wrong Option size");
 
 	public:
-		CPrelogin(bool mars_enabled = false, tagEncryptionType et = tagEncryptionType::etOff);
+		CPrelogin(bool mars_enabled = false, tagEncryptionType et = tagEncryptionType::etNotSupported);
 		bool GetClientMessage(unsigned char packet_id, SPA::CUQueue &buffer, const char *instanceName = "") const;
 		void OnResponse(const unsigned char *data, unsigned int bytes);
 		bool IsDone() const { return (Version != 0); }

@@ -38,6 +38,7 @@ namespace SPA {
         unsigned int GetOutBufferSize();
         IUcert* GetUCert();
         bool GetPeerName(unsigned int *port, char *addr, unsigned int chars);
+		bool GetServerName(char *name, unsigned int chars);
 
     private:
         void PostProcessing(unsigned int hint, UINT64 data);

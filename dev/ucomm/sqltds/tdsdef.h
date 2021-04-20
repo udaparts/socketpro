@@ -5,16 +5,15 @@
 
 namespace tds {
 	static const unsigned int CLIENT_EXE_VERSION = 0x01000000;
-	static const unsigned short BUILD_VERSION = 0x0000; //Little Endian
+	static const unsigned short BUILD_VERSION = 0x0001; //Little Endian
 
-	static const unsigned int CLIENT_DLL_VERSION = 0x06000000; //1.0.0.1
+	static const unsigned int CLIENT_DLL_VERSION = 0x01000001; //1.0.0.1
 	static const unsigned int TDS_VERSION = 0x74000004;
 	
 	typedef std::u16string CDBString;
-	//static const CDBString ApplicationName(u"UDAParts Core MSSQL Data Provider");
-	static const CDBString ApplicationName(u"Core Microsoft SqlClient Data Provider");
+	static const CDBString ApplicationName(u"UDAParts Core MSSQL Data Provider");
 
-	static std::vector<unsigned char> TDS_NIC_ADDRESS({ 0x99, 0x86, 0x60, 0x88, 0x99, 0xaf });
+	static std::vector<unsigned char> TDS_NIC_ADDRESS({ 0x12, 0x34, 0x56, 0x78, 0x9a, 0xbc });
 
 	enum class tagPacketType : unsigned char {
 		ptInitial = 0,
@@ -40,12 +39,34 @@ namespace tds {
 		psResetConnectionSkipTran = 16, //client ==> server
 	};
 
-	enum class tagTokenType : char {
-		ttUnknown = -1,
+	enum class tagTokenType : unsigned char {
 		ttZero = 0,
 		ttFixedLength,
 		ttVariableLength,
-		ttVariableCount
+		ttVariableCount,
+		ttOFFSET = 0x78,
+		ttRETURNSTATUS = 0x79,
+		ttCOLMETADATA = 0x81,
+		ttALTMETADATA = 0x88,
+		ttDATACLASSIFICATION = 0xa3,
+		ttTABNAME = 0xa4,
+		ttCOLINFO = 0xa5,
+		ttORDER = 0xa9,
+		ttTDS_ERROR = 0xaa,
+		ttINFO = 0xab,
+		ttRETURNVALUE = 0xac,
+		ttLOGINACK = 0xad,
+		ttFEATUREEXTACK = 0xae,
+		ttROW = 0xd1,
+		ttNBCROW = 0xd2,
+		ttALTROW = 0xd3,
+		ttENVCHANGE = 0xe3,
+		ttSESSIONSTATE = 0xe4,
+		ttSSPI = 0xed,
+		ttFEDAUTHINFO = 0xee,
+		ttDONE = 0xfd,
+		ttDONEPROC = 0xfe,
+		ttDONEINPROC = 0xff
 	};
 
 	enum class tagDataType : unsigned char {
@@ -150,7 +171,7 @@ namespace tds {
 		p[2] = b;
 		return s;
 	}
-
+	/*
 	static inline tagTokenType GetTokenType(Token token) {
 		token &= 12;
 		switch (token)
@@ -167,12 +188,11 @@ namespace tds {
 			// followed by 1, 2, 4, or 8 bytes of data
 			return tagTokenType::ttFixedLength;
 		default:
-			assert(false); //shouldn't come here
 			break;
 		}
 		return tagTokenType::ttUnknown;
 	}
-
+	*/
 	static inline unsigned char GetFixLen(Token token) {
 		assert((token & 12) == 12);
 		token <<= 4;
@@ -211,7 +231,7 @@ namespace tds {
 #endif
 		return (unsigned int)tid;
 	}
-
+#pragma pack(push,1)
 	struct PacketHeader {
 		PacketHeader(tagPacketType type, unsigned char packetId) : Type(type), PacketID(packetId) {
 		}
@@ -223,6 +243,29 @@ namespace tds {
 		unsigned char Window = 0; //ignored
 	};
 
+	enum class tagDoneStatus : unsigned short {
+		dsFinal = 0,
+		dsMore = 1,
+		dsError = 2,
+		dsInitial = 0xffff
+	};
+
+	struct TokenDone {
+		tagDoneStatus Status = tagDoneStatus::dsInitial;
+		unsigned short Operation = 0;
+		UINT64 RowCount = 0;
+	};
+
+	struct Collation {
+		unsigned short CodePage = 0;
+		unsigned short Flags = 0;
+		unsigned char CharsetId = 0;
+	};
+
+	static_assert(sizeof(TokenDone) == 12, "Wrong TokenDone size");
+	static_assert(sizeof(Collation) == 5, "Wrong Collation size");
+
+#pragma pack(pop)
 	static_assert(sizeof(PacketHeader) == 8, "Wrong PacketHeader size");
 
 	struct ISerialize {

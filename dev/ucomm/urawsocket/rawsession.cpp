@@ -179,6 +179,7 @@ namespace SPA
                 return false;
             }
             m_strhost = strHost ? strHost : "";
+			SPA::Trim(m_strhost);
             m_nPort = nPort;
             m_bSync = bSync;
             m_b6 = b6;
@@ -226,14 +227,69 @@ namespace SPA
         return m_pCert.get();
     }
 
+	bool CRawSession::GetServerName(char *name, unsigned int chars) {
+		int res;
+		if (!name || !chars) return true;
+		name[0] = 0;
+		--chars;
+		if (!chars) return true;
+		std::string host;
+		boost::asio::ip::tcp::endpoint ep;
+		do
+		{
+			CAutoLock sl(m_cs);
+			m_ec.clear();
+			ep = m_socket.remote_endpoint(m_ec);
+			if (m_ec) {
+				return false;
+			}
+			nsIP::address addr = ep.address();
+			std::string saddr = addr.to_string();
+			if (saddr != m_strhost) {
+				host = m_strhost;
+				break;
+			}
+			char hostname[NI_MAXHOST] = { 0 };
+			if (addr.is_v4()) {
+				struct sockaddr_in saGNI;
+				::memset(&saGNI, 0, sizeof(struct sockaddr));
+				memset(&saGNI.sin_addr, 0, sizeof(struct in_addr));
+				res = inet_pton(AF_INET, saddr.c_str(), &saGNI.sin_addr);
+				saGNI.sin_family = AF_INET;
+				if (res == 1) {
+					res = ::getnameinfo((struct sockaddr *) &saGNI, sizeof(struct sockaddr), hostname, sizeof(hostname), nullptr, 0, NI_NAMEREQD);
+				}
+			}
+			else {
+				nsIP::address_v6::bytes_type bytes = addr.to_v6().to_bytes();
+				struct sockaddr_in6 saGNI;
+				saGNI.sin6_family = AF_INET6;
+				memcpy(saGNI.sin6_addr.u.Byte, bytes.data(), bytes.size());
+				res = ::getnameinfo((struct sockaddr *) &saGNI, sizeof(struct sockaddr_in6), hostname, sizeof(hostname), nullptr, 0, NI_NAMEREQD);
+			}
+			if (res == 0) {
+				host = hostname;
+			}
+			else {
+				host = m_strhost;
+			}
+		} while (false);
+		unsigned int n = 0, len = (unsigned int) host.size();
+		for (; n < len && n < chars; ++n) {
+			name[n] = host[n];
+		}
+		name[n] = 0;
+		return true;
+	}
+
     bool CRawSession::GetPeerName(unsigned int *port, char *addr, unsigned int chars) {
         unsigned int n = 0;
-        CErrorCode ec;
         boost::asio::ip::tcp::endpoint ep;
         CAutoLock sl(m_cs);
-        ep = m_socket.remote_endpoint(ec);
-        if (ec) {
-            return false;
+		m_ec.clear();
+        ep = m_socket.remote_endpoint(m_ec);
+        if (m_ec) {
+			return false;
         }
         if (port) {
             *port = ep.port();
