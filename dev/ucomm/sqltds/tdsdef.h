@@ -97,7 +97,7 @@ namespace tds {
 		NUMERIC = 0x6C,
 		FLTN = 0x6D,
 		MONEYN = 0x6E,
-		DATETIMN = 0x6F,
+		DATETIMN = 0x6F, //smalldatetime
 		SMALLMONEY = 0x7A, //MONEY4, SmallMoney, 4 bytes
 		BIGINT = 0x7F,
 		VARBINARY = 0xA5,
@@ -185,6 +185,144 @@ namespace tds {
 		return s;
 	}
 
+	static inline VARTYPE GetVarType(tagDataType dt) {
+		switch (dt)
+		{
+		case tagDataType::IMAGE:
+			return VT_ARRAY | VT_UI1;
+		case tagDataType::TEXT:
+			return VT_ARRAY | VT_I1;
+		case tagDataType::UNIQUEIDENTIFIER:
+			return VT_CLSID;
+		case tagDataType::INTN:
+		case tagDataType::TINYINT:
+			return VT_UI1;
+		case tagDataType::BIT:
+			return VT_BOOL;
+		case tagDataType::SMALLINT:
+			return VT_I2;
+		case tagDataType::INT:
+			return VT_INT;
+		case tagDataType::REAL:
+			return VT_R4;
+		case tagDataType::MONEYN:
+		case tagDataType::MONEY:
+			return VT_DECIMAL;
+		case tagDataType::DATETIMEOFFSETN:
+		case tagDataType::TIMEN:
+		case tagDataType::DATEN:
+		case tagDataType::DATETIMN: //smalldatetime
+		case tagDataType::DATETIME:
+		case tagDataType::DATETIME2N: //datetime2
+			return VT_DATE;
+		case tagDataType::FLOAT:
+			return VT_R8;
+		case tagDataType::SQL_VARIANT:
+			return VT_VARIANT;
+		case tagDataType::NTEXT:
+			return VT_BSTR;
+		case tagDataType::DECIMAL:
+		case tagDataType::NUMERIC:
+			return VT_DECIMAL;
+		case tagDataType::SMALLMONEY:
+			return VT_DECIMAL;
+		case tagDataType::BIGINT:
+			return VT_I8;
+		case tagDataType::CHAR:
+		case tagDataType::VARCHAR:
+			return VT_ARRAY | VT_I1;
+		case tagDataType::VARBINARY:
+		case tagDataType::BINARY:
+			return VT_ARRAY | VT_UI1;
+		case tagDataType::NVARCHAR:
+		case tagDataType::NCHAR:
+			return VT_BSTR;
+		case tagDataType::UDT:
+			return VT_ARRAY | VT_UI1;
+		case tagDataType::XML:
+			return VT_BSTR;
+		default:
+			assert(false);
+			break;
+		}
+		return VT_VARIANT;
+	}
+
+	static inline CDBString GetSqlDeclaredType(tagDataType dt, unsigned char bytes) {
+		switch (dt)
+		{
+		case tagDataType::IMAGE:
+			return u"image";
+		case tagDataType::TEXT:
+			return u"text";
+		case tagDataType::UNIQUEIDENTIFIER:
+			return u"uniqueidentifier";
+		case tagDataType::INTN:
+		case tagDataType::TINYINT:
+			return u"tinyint";
+		case tagDataType::BIT:
+			return u"bit";
+		case tagDataType::SMALLINT:
+			return u"smallint";
+		case tagDataType::INT:
+			return u"int";
+		case tagDataType::REAL:
+			return u"real";
+		case tagDataType::MONEYN:
+			if (bytes > 4)
+				return u"money";
+			return u"smallmoney";
+		case tagDataType::MONEY:
+			return u"money";
+		case tagDataType::DATETIMEOFFSETN:
+			return u"datetimeoffset";
+		case tagDataType::TIMEN:
+			return u"time";
+		case tagDataType::DATEN:
+			return u"date";
+		case tagDataType::DATETIMN: //smalldatetime
+			return u"smalldatetime";
+		case tagDataType::DATETIME:
+			return u"datetime";
+		case tagDataType::DATETIME2N: //datetime2
+			return u"datetime2";
+		case tagDataType::FLOAT:
+			return u"float";
+		case tagDataType::SQL_VARIANT:
+			return u"sql_variant";
+		case tagDataType::NTEXT:
+			return u"ntext";
+		case tagDataType::DECIMAL:
+			return u"decimal";
+		case tagDataType::NUMERIC:
+			return u"numeric";
+		case tagDataType::SMALLMONEY:
+			return u"smallmoney";
+		case tagDataType::BIGINT:
+			return u"bigint";
+		case tagDataType::CHAR:
+			return u"char";
+		case tagDataType::VARCHAR:
+			return u"varchar";
+		case tagDataType::VARBINARY:
+			return u"varbinary";
+		case tagDataType::BINARY:
+			return u"binary";
+		case tagDataType::NVARCHAR:
+			return u"nvarchar";
+		case tagDataType::NCHAR:
+			return u"nchar";
+		case tagDataType::UDT:
+			return u"udt";
+		case tagDataType::XML:
+			return u"xml";
+		default:
+			assert(false);
+			break;
+		}
+		return u"sql_variant";
+	}
+
 	static inline int ChangeEndian(int s) {
 		unsigned char *p = (unsigned char *)&s;
 		unsigned char b = p[0];
@@ -255,6 +393,7 @@ namespace tds {
 #endif
 		return (unsigned int)tid;
 	}
+
 #pragma pack(push,1)
 	struct PacketHeader {
 		PacketHeader(tagPacketType type, unsigned char packetId) : Type(type), PacketID(packetId) {
@@ -289,10 +428,50 @@ namespace tds {
 		unsigned short Flags = 0;
 		unsigned char CharsetId = 0;
 	};
+
+	struct ColFlag {
+		ColFlag() {
+			::memset(this, 0, sizeof(ColFlag));
+		}
+		unsigned short Nullable : 1;
+		unsigned short CaseSensitivity : 1;
+		unsigned short Updateable : 2;
+		unsigned short Identity : 1;
+		unsigned short Computed : 1;
+		unsigned short ReservedODBC : 2;
+		unsigned short FixedLenCLRType : 1;
+		unsigned short SparseColumnSet : 1;
+		unsigned short Encrypted : 1;
+		unsigned short Hidden : 1;
+		unsigned short Key : 1;
+		unsigned short NullableUnknown : 1;
+	};
+
 #pragma pack(pop)
 	static_assert(sizeof(PacketHeader) == 8, "Wrong PacketHeader size");
 	static_assert(sizeof(TokenDone) == 12, "Wrong TokenDone size");
 	static_assert(sizeof(Collation) == 5, "Wrong Collation size");
+	static_assert(sizeof(ColFlag) == 2, "Wrong ColFlag size");
+
+	static unsigned int ToUDBFlags(ColFlag cf) {
+		unsigned int flags = 0;
+		if (cf.CaseSensitivity) {
+			flags |= CDBColumnInfo::FLAG_CASE_SENSITIVE;
+		}
+		if (!cf.Nullable) {
+			flags |= CDBColumnInfo::FLAG_NOT_NULL;
+		}
+		if (cf.Identity) {
+			flags |= CDBColumnInfo::FLAG_NOT_NULL;
+			flags |= CDBColumnInfo::FLAG_AUTOINCREMENT;
+			flags |= CDBColumnInfo::FLAG_PRIMARY_KEY;
+			flags |= CDBColumnInfo::FLAG_UNIQUE;
+		}
+		if (cf.Updateable == 0) {
+			flags |= CDBColumnInfo::FLAG_NOT_WRITABLE;
+		}
+		return flags;
+	}
 
 	struct TokenEventChange {
 		tagEnvchangeType Type;

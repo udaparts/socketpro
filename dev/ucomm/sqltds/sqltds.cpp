@@ -48,7 +48,7 @@ std::vector<unsigned char> GetSSPI();
 
 int main()
 {
-	tds::CPrelogin pl(true);
+	tds::CPrelogin pl(false);
 	tds::CLogin7 login;
 
 	SPA::CScopeUQueue sb;
@@ -66,7 +66,7 @@ int main()
 	//ShowBuffer(*sb);
 	sb->SetSize(0);
 	tds::SqlLogin rec;
-	rec.database = u"sakila";
+	rec.database = u"sqltestdb";
 	rec.timeout = 11;
 	rec.userName = u"sa";
 	rec.password = u"Smash123";
@@ -78,7 +78,7 @@ int main()
 	sb->SetSize(0);
 	tds::CSqlBatch sqlbatch(true);
 	handler->m_deq.push_back(&sqlbatch);
-	sqlbatch.GetClientMessage(1, u"select * from actor where 1=0", *sb);
+	sqlbatch.GetClientMessage(1, u"select * from test_rare1 where 1=0", *sb);
 	res = handler->Send(sb->GetBuffer(), sb->GetSize());
 	ShowBuffer(*sb);
 	std::cout << "Press a key to shut down the application ......\n";
