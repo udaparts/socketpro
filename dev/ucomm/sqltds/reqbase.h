@@ -5,23 +5,22 @@
 
 namespace tds {
 
-	class CReqBase
-	{
-	public:
-		CReqBase();
-		virtual ~CReqBase();
+    class CReqBase {
+    public:
+        CReqBase();
+        virtual ~CReqBase();
 
-	public:
-		virtual void OnResponse(const unsigned char *data, unsigned int bytes) = 0;
-		virtual bool IsDone() const;
-		const PacketHeader& GetResponseHeader() const;
+    public:
+        virtual void OnResponse(const unsigned char *data, unsigned int bytes) = 0;
+        virtual bool IsDone() const;
+        const PacketHeader& GetResponseHeader() const;
 
-	protected:
-		virtual void Reset();
+    protected:
+        virtual void Reset();
 
-	protected:
-		PacketHeader ResponseHeader;
-	};
+    protected:
+        PacketHeader ResponseHeader;
+    };
 
 }
 

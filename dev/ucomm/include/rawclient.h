@@ -80,7 +80,7 @@ extern "C" {
     SPA::IUcert* WINAPI SH_GetUCert(SPA::SessionHandle session);
     unsigned int WINAPI SH_GetOutBufferSize(SPA::SessionHandle session);
     bool WINAPI SH_GetPeerName(SPA::SessionHandle session, unsigned int *port, char *addr, unsigned int chars);
-	bool WINAPI SH_GetServerName(SPA::SessionHandle session, char *name, unsigned int chars);
+    bool WINAPI SH_GetServerName(SPA::SessionHandle session, char *name, unsigned int chars);
 
 #ifdef __cplusplus
 }

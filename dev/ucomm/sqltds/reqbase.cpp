@@ -1,23 +1,25 @@
 #include "reqbase.h"
 
-namespace tds {
-	CReqBase::CReqBase() : ResponseHeader(tagPacketType::ptInitial, 0) {
-		ResponseHeader.Spid = 0;
-		ResponseHeader.Length = 0;
-	}
+namespace tds
+{
 
-	CReqBase::~CReqBase() {
-	}
+    CReqBase::CReqBase() : ResponseHeader(tagPacketType::ptInitial, 0) {
+        ResponseHeader.Spid = 0;
+        ResponseHeader.Length = 0;
+    }
 
-	const PacketHeader& CReqBase::GetResponseHeader() const {
-		return ResponseHeader;
-	}
+    CReqBase::~CReqBase() {
+    }
 
-	bool CReqBase::IsDone() const{
-		return (ResponseHeader.Status == tagPacketStatus::psEOM);
-	}
+    const PacketHeader & CReqBase::GetResponseHeader() const {
+        return ResponseHeader;
+    }
 
-	void CReqBase::Reset() {
-		::memset(&ResponseHeader, 0, sizeof(ResponseHeader));
-	}
+    bool CReqBase::IsDone() const {
+        return (ResponseHeader.Status == tagPacketStatus::psEOM);
+    }
+
+    void CReqBase::Reset() {
+        ::memset(&ResponseHeader, 0, sizeof (ResponseHeader));
+    }
 }

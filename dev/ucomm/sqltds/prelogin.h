@@ -5,65 +5,75 @@
 
 namespace tds {
 
-	class CPrelogin : public CReqBase
-	{
-		static std::atomic<unsigned int> g_sequence;
-	public:
-		enum class tagOptionToken : unsigned char {
-			VERSION = 0,
-			ENCRYPTION = 1,
-			INSTOPT = 2,
-			THREADID = 3,
-			MARS = 4,
-			TRACEID = 5,
-			FEDAUTHREQUIRED = 6,
-			NONCEOPT = 7,
-			TOKEN_TERMINATOR = 0xff
-		};
+    class CPrelogin : public CReqBase {
+        static std::atomic<unsigned int> g_sequence;
+    public:
 
-		enum class tagFedAuth : unsigned char
-		{
-			faNotRequired = 0x00,
-			faRequired = 0x01,
-			faIllegal = 0x02
-		};
+        enum class tagOptionToken : unsigned char {
+            VERSION = 0,
+            ENCRYPTION = 1,
+            INSTOPT = 2,
+            THREADID = 3,
+            MARS = 4,
+            TRACEID = 5,
+            FEDAUTHREQUIRED = 6,
+            NONCEOPT = 7,
+            TOKEN_TERMINATOR = 0xff
+        };
 
-		enum class tagEncryptionType : unsigned char
-		{
-			etOff = 0x00,
-			etOn = 0x01,
-			etNotSupported = 0x02,
-			etRequired = 0x03
-		};
+        enum class tagFedAuth : unsigned char {
+            faNotRequired = 0x00,
+            faRequired = 0x01,
+            faIllegal = 0x02
+        };
+
+        enum class tagEncryptionType : unsigned char {
+            etOff = 0x00,
+            etOn = 0x01,
+            etNotSupported = 0x02,
+            etRequired = 0x03
+        };
 
 #pragma pack(push,1)
-		struct Option {
-			tagOptionToken Token;
-			unsigned short Offset; //big endian
-			unsigned short Len; //Big endian
-		};
+
+        struct Option {
+            tagOptionToken Token;
+            unsigned short Offset; //big endian
+            unsigned short Len; //Big endian
+        };
 #pragma pack(pop)
-		static_assert(sizeof(Option) == 5, "Wrong Option size");
+        static_assert(sizeof (Option) == 5, "Wrong Option size");
 
-	public:
-		CPrelogin(bool mars_enabled = false, tagEncryptionType et = tagEncryptionType::etNotSupported);
-		bool GetClientMessage(unsigned char packet_id, SPA::CUQueue &buffer, const char *instanceName = "");
-		void OnResponse(const unsigned char *data, unsigned int bytes);
+    public:
+        CPrelogin(bool mars_enabled = false, tagEncryptionType et = tagEncryptionType::etNotSupported);
+        bool GetClientMessage(unsigned char packet_id, SPA::CUQueue &buffer, const char *instanceName = "");
+        void OnResponse(const unsigned char *data, unsigned int bytes);
 
-		inline bool MarEnabled() const { return m_bMars ? true : false; }
-		inline tagEncryptionType GetEncryptionType() const {return m_bEncryption; }
-		inline bool IsInstFailed() const {return InstFailed ? true : false;}
-		inline unsigned int GetVersion() const { return Version; }
-		
+        inline bool MarEnabled() const {
+            return m_bMars ? true : false;
+        }
 
-	private:
-		unsigned char m_bMars;
-		tagFedAuth m_bFed;
-		unsigned int Version;
-		unsigned short SubBuild;
-		tagEncryptionType m_bEncryption;
-		unsigned char InstFailed;
-	};
+        inline tagEncryptionType GetEncryptionType() const {
+            return m_bEncryption;
+        }
+
+        inline bool IsInstFailed() const {
+            return InstFailed ? true : false;
+        }
+
+        inline unsigned int GetVersion() const {
+            return Version;
+        }
+
+
+    private:
+        unsigned char m_bMars;
+        tagFedAuth m_bFed;
+        unsigned int Version;
+        unsigned short SubBuild;
+        tagEncryptionType m_bEncryption;
+        unsigned char InstFailed;
+    };
 
 
 }
