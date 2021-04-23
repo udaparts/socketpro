@@ -185,7 +185,7 @@ namespace tds {
 		return s;
 	}
 
-	static inline VARTYPE GetVarType(tagDataType dt) {
+	static inline VARTYPE GetVarType(tagDataType dt, unsigned char money_bytes) {
 		switch (dt)
 		{
 		case tagDataType::IMAGE:
@@ -202,12 +202,13 @@ namespace tds {
 		case tagDataType::SMALLINT:
 			return VT_I2;
 		case tagDataType::INT:
-			return VT_INT;
+			return VT_I4;
 		case tagDataType::REAL:
 			return VT_R4;
 		case tagDataType::MONEYN:
+			return (money_bytes > 4) ? VT_I8 : VT_I4;
 		case tagDataType::MONEY:
-			return VT_DECIMAL;
+			return VT_I8;
 		case tagDataType::DATETIMEOFFSETN:
 		case tagDataType::TIMEN:
 		case tagDataType::DATEN:
@@ -225,20 +226,20 @@ namespace tds {
 		case tagDataType::NUMERIC:
 			return VT_DECIMAL;
 		case tagDataType::SMALLMONEY:
-			return VT_DECIMAL;
+			return VT_I4;
 		case tagDataType::BIGINT:
 			return VT_I8;
 		case tagDataType::CHAR:
 		case tagDataType::VARCHAR:
-			return VT_ARRAY | VT_I1;
+			return (VT_ARRAY | VT_I1);
 		case tagDataType::VARBINARY:
 		case tagDataType::BINARY:
-			return VT_ARRAY | VT_UI1;
+			return (VT_ARRAY | VT_UI1);
 		case tagDataType::NVARCHAR:
 		case tagDataType::NCHAR:
 			return VT_BSTR;
 		case tagDataType::UDT:
-			return VT_ARRAY | VT_UI1;
+			return (VT_ARRAY | VT_UI1);
 		case tagDataType::XML:
 			return VT_BSTR;
 		default:
@@ -248,7 +249,7 @@ namespace tds {
 		return VT_VARIANT;
 	}
 
-	static inline CDBString GetSqlDeclaredType(tagDataType dt, unsigned char bytes) {
+	static inline CDBString GetSqlDeclaredType(tagDataType dt, unsigned char money_bytes) {
 		switch (dt)
 		{
 		case tagDataType::IMAGE:
@@ -269,9 +270,7 @@ namespace tds {
 		case tagDataType::REAL:
 			return u"real";
 		case tagDataType::MONEYN:
-			if (bytes > 4)
-				return u"money";
-			return u"smallmoney";
+			return ((money_bytes > 4) ? u"money" : u"smallmoney");
 		case tagDataType::MONEY:
 			return u"money";
 		case tagDataType::DATETIMEOFFSETN:
@@ -280,8 +279,8 @@ namespace tds {
 			return u"time";
 		case tagDataType::DATEN:
 			return u"date";
-		case tagDataType::DATETIMN: //smalldatetime
-			return u"smalldatetime";
+		case tagDataType::DATETIMN:
+			return ((money_bytes > 4) ? u"datetime" : u"smalldatetime");
 		case tagDataType::DATETIME:
 			return u"datetime";
 		case tagDataType::DATETIME2N: //datetime2
@@ -427,6 +426,22 @@ namespace tds {
 		unsigned short CodePage = 0; //LCID
 		unsigned short Flags = 0;
 		unsigned char CharsetId = 0;
+		inline bool operator==(const Collation & c) const noexcept {
+			return (!::memcmp(this, &c, sizeof(c)));
+		}
+		inline bool operator!=(const Collation & c) const noexcept {
+			return ::memcmp(this, &c, sizeof(c));
+		}
+		CDBString GetString() const {
+			char str[16];
+#ifdef WIN32_64
+			sprintf_s(str, "%x|%x|%x", CodePage, Flags, CharsetId);
+#else
+			sprintf(str, "%x|%x|%x", CodePage, Flags, CharsetId);
+#endif
+			size_t len = ::strlen(str);
+			return CDBString(str, str + len);
+		}
 	};
 
 	struct ColFlag {

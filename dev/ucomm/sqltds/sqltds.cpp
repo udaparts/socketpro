@@ -78,7 +78,7 @@ int main()
 	sb->SetSize(0);
 	tds::CSqlBatch sqlbatch(true);
 	handler->m_deq.push_back(&sqlbatch);
-	sqlbatch.GetClientMessage(1, u"select * from test_rare1 where 1=0", *sb);
+	sqlbatch.GetClientMessage(1, u"select * from test_rare1 where 0=1", *sb);
 	res = handler->Send(sb->GetBuffer(), sb->GetSize());
 	ShowBuffer(*sb);
 	std::cout << "Press a key to shut down the application ......\n";
