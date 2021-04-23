@@ -11,6 +11,9 @@ namespace tds {
         SPA::CScopeUQueue m_sbOut;
 
         static constexpr unsigned short INVALID_COL = (~0);
+		static constexpr unsigned int UINT_NULL_LEN = (~0);
+		static constexpr unsigned short USHORT_NULL_LEN = (~0);
+		static constexpr unsigned short VAR_MAX = (~0);
 
     public:
         CSqlBatch(bool meta);
@@ -37,6 +40,9 @@ namespace tds {
         bool ParseErrorInfo();
         bool ParseRow();
         bool ParseNBCRow();
+		bool ParseDone();
+		bool ParseData(tagDataType dt, CDBColumnInfo *cinfo);
+		bool ParseOrder();
 
     private:
         SPA::CUQueue &m_buffer;
@@ -44,7 +50,6 @@ namespace tds {
         TokenDone m_Done;
         std::vector<TokenEventChange> m_vEventChange;
         std::vector<TokenInfo> m_vInfo;
-
         tagTokenType m_tt;
         CDBColumnInfoArray m_vCol;
         bool m_meta;
@@ -53,6 +58,9 @@ namespace tds {
         std::vector<tagDataType> m_vDT;
         Collation m_collation;
         std::vector<unsigned char> m_vNull;
+		UINT64 m_lenLarge;
+		unsigned int m_endLarge;
+		std::vector<unsigned short> m_vOrder;
     };
 
 }

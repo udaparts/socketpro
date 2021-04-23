@@ -5,7 +5,7 @@ namespace tds
 
     CDBString CLogin7::LibraryName(u"udaparts_client");
 
-    CLogin7::CLogin7() {
+    CLogin7::CLogin7() : m_buffer(*m_sb){
 
     }
 
@@ -312,12 +312,17 @@ namespace tds
     }
 
     void CLogin7::OnResponse(const unsigned char *data, unsigned int bytes) {
-        SPA::CScopeUQueue sb;
-        sb->Push(data, bytes);
-        SPA::CUQueue &buff = *sb;
-        buff >> ResponseHeader;
+		::memcpy(&ResponseHeader, data, sizeof(ResponseHeader));
         ResponseHeader.Length = ChangeEndian(ResponseHeader.Length);
         assert(ResponseHeader.Length == bytes);
+		ResponseHeader.Spid = ChangeEndian(ResponseHeader.Spid);
+		data += sizeof(ResponseHeader);
+		bytes -= sizeof(ResponseHeader);
+		m_buffer.Push(data, bytes);
+		if (!IsDone()) {
+			return;
+		}
+		SPA::CUQueue &buff = m_buffer;
         while (buff.GetSize()) {
             tagTokenType tt;
             buff >> tt;

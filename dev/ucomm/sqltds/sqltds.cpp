@@ -34,7 +34,18 @@ protected:
             if (!m_deq.size())
                 break;
             tds::CReqBase *rb = m_deq.front();
-            rb->OnResponse(m_buff.GetBuffer(), len);
+			try {
+				rb->OnResponse(m_buff.GetBuffer(), len);
+			}
+			catch (SPA::CUException &ex) {
+				std::cout << "serialization error: " << ex.what() << "\n";
+			}
+			catch (std::exception &ex) {
+				std::cout << "stl error: " << ex.what() << "\n";
+			}
+			catch (...) {
+				std::cout << "Unknown error\n";
+			}
             m_buff.Pop(len);
             if (ph->Status == tds::tagPacketStatus::psEOM) {
                 m_deq.pop_front();
@@ -65,7 +76,7 @@ int main() {
     //ShowBuffer(*sb);
     sb->SetSize(0);
     tds::SqlLogin rec;
-    rec.database = u"sqltestdb";
+    rec.database = u"AdventureWorks";
     rec.timeout = 11;
     rec.userName = u"sa";
     rec.password = u"Smash123";
@@ -77,7 +88,7 @@ int main() {
     sb->SetSize(0);
     tds::CSqlBatch sqlbatch(true);
     handler->m_deq.push_back(&sqlbatch);
-    sqlbatch.GetClientMessage(1, u"select * from test_rare1 where 0=1", *sb);
+    sqlbatch.GetClientMessage(1, u"select ProductPhotoID, ThumbNailPhoto from Production.ProductPhoto order by ProductPhotoID", *sb);
     res = handler->Send(sb->GetBuffer(), sb->GetSize());
     ShowBuffer(*sb);
     std::cout << "Press a key to shut down the application ......\n";
