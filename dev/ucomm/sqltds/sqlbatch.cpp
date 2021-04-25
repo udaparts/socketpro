@@ -449,6 +449,10 @@ namespace tds
 			case tagDataType::NUMERIC:
 			case tagDataType::DATETIME2N:
 			case tagDataType::DATETIMN:
+			case tagDataType::TIMEN:
+			case tagDataType::INTN:
+			case tagDataType::DATEN:
+			case tagDataType::DATETIMEOFFSETN:
 			{
 				unsigned char bytes;
 				m_buffer >> bytes;
@@ -467,6 +471,8 @@ namespace tds
 			case tagDataType::BIGINT:
 			case tagDataType::DATETIME:
 			case tagDataType::FLOAT:
+			case tagDataType::REAL:
+			case tagDataType::BIT:
 			{
 				unsigned char bytes = 0;
 				if (nullable)
@@ -495,6 +501,14 @@ namespace tds
 	bool CSqlBatch::ParseData(tagDataType dt, unsigned char bytes, unsigned char scale) {
 		switch (dt)
 		{
+		case tagDataType::BIT:
+		{
+			unsigned char b;
+			m_buffer >> b;
+			VARIANT_BOOL vb = b ? VARIANT_TRUE : VARIANT_FALSE;
+			m_out << (VARTYPE)VT_BOOL << vb;
+		}
+			break;
 		case tagDataType::TINYINT:
 			m_out << (VARTYPE)VT_UI1;
 			m_out.Push(m_buffer.GetBuffer(), 1);
@@ -556,6 +570,28 @@ namespace tds
 			m_out << (VARTYPE)VT_DATE << dt;
 		}
 		break;
+		case tagDataType::DATETIMEOFFSETN:
+		{
+			DateTime2 dt;
+			if (scale >= 5 && scale <= 7) {
+				unsigned char time[6] = { 0 };
+				m_buffer.Pop(time, 5);
+				m_buffer >> dt.Date;
+			}
+			else if (scale == 3 || scale == 4) {
+				m_buffer >> dt;
+			}
+			else {
+				unsigned char time[3] = { 0 };
+				m_buffer.Pop(time, 3);
+				m_buffer >> dt.Date;
+			}
+			unsigned short offset = 0;
+			m_buffer >> offset;
+			UINT64 udt = *(UINT64*)&dt;
+			m_out << (VARTYPE)VT_DATE << udt;
+		}
+		break;
 		case tagDataType::DATETIME2N:
 		case tagDataType::DATETIMN:
 		{
@@ -577,10 +613,45 @@ namespace tds
 			m_out << (VARTYPE)VT_DATE << udt;
 		}
 		break;
+		case tagDataType::TIMEN:
+		{
+			DateTime2 dt;
+			if (scale >= 5 && scale <= 7) {
+				assert(bytes == 5);
+				unsigned char time[6] = { 0 };
+				m_buffer.Pop(time, 5);
+			}
+			else if (scale == 3 || scale == 4) {
+				assert(bytes == 4);
+				m_buffer >> dt.Time;
+			}
+			else {
+				unsigned char time[3] = { 0 };
+				assert(bytes == 3);
+				m_buffer.Pop(time, 3);
+			}
+			UINT64 udt = *(UINT64*)&dt;
+			m_out << (VARTYPE)VT_DATE << udt;
+		}
+			break;
 		case tagDataType::FLOAT:
 			m_out << (VARTYPE)VT_R8;
 			m_out.Push(m_buffer.GetBuffer(), 8);
 			m_buffer.Pop(8);
+			break;
+		case tagDataType::REAL:
+			m_out << (VARTYPE)VT_R4;
+			m_out.Push(m_buffer.GetBuffer(), 4);
+			m_buffer.Pop(4);
+			break;
+		case tagDataType::DATEN:
+			assert(bytes == 3);
+			{
+				UINT64 dt = 0;
+				Date date;
+				m_buffer >> date;
+				m_out << (VARTYPE)VT_DATE << dt;
+			}
 			break;
 		default:
 			assert(false);
@@ -724,10 +795,14 @@ namespace tds
 				if (!ParseData(dt, cinfo)) {
 					return false;
 				}
+				break;
 			case tagDataType::DATETIME2N:
 			case tagDataType::DATETIMN:
 			case tagDataType::DECIMAL:
 			case tagDataType::NUMERIC:
+			case tagDataType::TIMEN:
+			case tagDataType::INTN:
+			case tagDataType::DATEN:
 			{
 				unsigned char bytes;
 				m_buffer >> bytes;
