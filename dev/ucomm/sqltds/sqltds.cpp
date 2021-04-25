@@ -76,7 +76,7 @@ int main() {
     //ShowBuffer(*sb);
     sb->SetSize(0);
     tds::SqlLogin rec;
-    rec.database = u"AdventureWorks";
+    rec.database = u"sqltestdb";
     rec.timeout = 11;
     rec.userName = u"sa";
     rec.password = u"Smash123";
@@ -88,7 +88,7 @@ int main() {
     sb->SetSize(0);
     tds::CSqlBatch sqlbatch(true);
     handler->m_deq.push_back(&sqlbatch);
-    sqlbatch.GetClientMessage(1, u"select ProductPhotoID, ThumbNailPhoto from Production.ProductPhoto order by ProductPhotoID", *sb);
+    sqlbatch.GetClientMessage(1, u"select * from employee", *sb);
     res = handler->Send(sb->GetBuffer(), sb->GetSize());
     ShowBuffer(*sb);
     std::cout << "Press a key to shut down the application ......\n";

@@ -25,6 +25,40 @@ namespace tds {
             ColFlag Flags;
             tagDataType SqlType = tagDataType::SQL_NULL;
         };
+
+		struct SmallDateTime {
+			//days since January 1, 1900
+			unsigned short Date;
+			unsigned short Minute;
+		};
+
+		struct DateTime {
+			//days January 1, 1900
+			int Day;
+			unsigned int SecCount; //300 counts per second
+		};
+
+		//days since January 1, year 1
+		struct Date {
+			unsigned short Low;
+			unsigned char High;
+		};
+
+		//10-n second increments since 12 AM within a day
+		typedef unsigned int Time;	// 3 bytes if 0 <= n < = 2.
+									// 4 bytes if 3 <= n < = 4.
+									// 5 bytes if 5 <= n < = 7.
+
+		struct DateTime2 {
+			Time Time;
+			Date Date;
+		};
+
+		struct DateTimeOffset : public DateTime2 {
+			//time zone offset MUST be between -840 and 840
+			short Zone;
+		};
+
 #pragma pack(pop)
 
     public:
@@ -43,6 +77,7 @@ namespace tds {
 		bool ParseDone();
 		bool ParseData(tagDataType dt, CDBColumnInfo *cinfo);
 		bool ParseOrder();
+		bool ParseData(tagDataType dt, unsigned char bytes, unsigned char scale);
 
     private:
         SPA::CUQueue &m_buffer;
