@@ -64,7 +64,7 @@ int main() {
     SPA::CScopeUQueue sb;
     CSessionPool<CTdsClient> pool(1);
     auto handler = pool.FindAClosedHandler();
-    bool ok = handler->Connect("windesk", 1433, tagEncryptionMethod::NoEncryption, false, true);
+    bool ok = handler->Connect("acer", 1433, tagEncryptionMethod::NoEncryption, false, true);
 
     char serverName[128];
     handler->GetServerName(serverName, sizeof (serverName));
@@ -76,7 +76,7 @@ int main() {
     //ShowBuffer(*sb);
     sb->SetSize(0);
     tds::SqlLogin rec;
-    rec.database = u"sqltestdb";
+    rec.database = u"pubs";
     rec.timeout = 11;
     rec.userName = u"sa";
     rec.password = u"Smash123";
@@ -88,9 +88,9 @@ int main() {
     sb->SetSize(0);
     tds::CSqlBatch sqlbatch(true);
     handler->m_deq.push_back(&sqlbatch);
-    sqlbatch.GetClientMessage(1, u"select * from employee", *sb);
-    res = handler->Send(sb->GetBuffer(), sb->GetSize());
-    ShowBuffer(*sb);
+    sqlbatch.GetClientMessage(1, u"Select * from pub_info/* where EmployeeID=1*/", *sb);
+	ShowBuffer(*sb);
+	res = handler->Send(sb->GetBuffer(), sb->GetSize());
     std::cout << "Press a key to shut down the application ......\n";
     ::getchar();
     return 0;

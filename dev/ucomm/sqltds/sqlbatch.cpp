@@ -412,6 +412,8 @@ namespace tds
 		for (unsigned short n = m_posCol; n < cols; ++n, ++cinfo, ++m_posCol) {
 			if (!done) {
 				if (m_buffer.GetSize() <= sizeof(PacketHeader) + sizeof(m_Done) + sizeof(tagTokenType)) {
+					/*UINT64 len = *(UINT64*)m_buffer.GetBuffer();
+					unsigned int size = *(unsigned int*)m_buffer.GetBuffer(sizeof(UINT64));*/
 					return false;
 				}
 			}
@@ -419,6 +421,52 @@ namespace tds
 			unsigned char nullable = (!(cinfo->Flags & CDBColumnInfo::FLAG_NOT_NULL));
 			switch (dt)
 			{
+			case tagDataType::NTEXT:
+				if (cinfo->ColumnSize == MAX_NTEXT_LEN) {
+					unsigned int len = *(unsigned int*)m_buffer.GetBuffer();
+					if (len == UINT_NULL_LEN) {
+						m_out << (VARTYPE)VT_NULL;
+						m_buffer.Pop(4);
+						continue;
+					}
+				}
+				else {
+					assert(false);
+				}
+				if (!ParseData(dt, cinfo)) {
+					return false;
+				}
+				break;
+			case tagDataType::TEXT:
+			case tagDataType::IMAGE:
+				if (cinfo->ColumnSize == MAX_IMAGE_LEN) {
+					unsigned int len = *(unsigned int*)m_buffer.GetBuffer();
+					if (len == UINT_NULL_LEN) {
+						m_out << (VARTYPE)VT_NULL;
+						m_buffer.Pop(4);
+						continue;
+					}
+				}
+				else {
+					assert(false);
+				}
+				if (!ParseData(dt, cinfo)) {
+					return false;
+				}
+				break;
+			case tagDataType::XML:
+			{
+				unsigned int len = *(unsigned int*)m_buffer.GetBuffer();
+				if (len == UINT_NULL_LEN) {
+					m_out << (VARTYPE)VT_NULL;
+					m_buffer.Pop(4);
+					continue;
+				}
+				if (!ParseData(dt, cinfo)) {
+					return false;
+				}
+			}
+				break;
 			case tagDataType::NVARCHAR:
 			case tagDataType::NCHAR:
 			case tagDataType::BINARY:
@@ -453,6 +501,7 @@ namespace tds
 			case tagDataType::INTN:
 			case tagDataType::DATEN:
 			case tagDataType::DATETIMEOFFSETN:
+			case tagDataType::MONEYN:
 			{
 				unsigned char bytes;
 				m_buffer >> bytes;
@@ -465,32 +514,22 @@ namespace tds
 				}
 			}
 			break;
-			case tagDataType::TINYINT:
-			case tagDataType::SMALLINT:
-			case tagDataType::INT:
-			case tagDataType::BIGINT:
-			case tagDataType::DATETIME:
-			case tagDataType::FLOAT:
-			case tagDataType::REAL:
-			case tagDataType::BIT:
-			{
-				unsigned char bytes = 0;
-				if (nullable)
+			default:
 				{
-					m_buffer >> bytes;
-					if (!bytes) {
-						m_out << (VARTYPE)VT_NULL;
-						continue;
+					unsigned char bytes = 0;
+					if (nullable)
+					{
+						m_buffer >> bytes;
+						if (!bytes) {
+							m_out << (VARTYPE)VT_NULL;
+							continue;
+						}
+					}
+					if (!ParseData(dt, bytes, cinfo->Scale)) {
+						return false;
 					}
 				}
-				if (!ParseData(dt, bytes, cinfo->Scale)) {
-					return false;
-				}
-			}
-				break;
-			default:
-				assert(false);
-				break;
+			break;
 			}
 		}
 		m_posCol = INVALID_COL;
@@ -501,6 +540,77 @@ namespace tds
 	bool CSqlBatch::ParseData(tagDataType dt, unsigned char bytes, unsigned char scale) {
 		switch (dt)
 		{
+		case tagDataType::INTN: {
+			switch (bytes)
+			{
+			case 1:
+			{
+				unsigned char n;
+				m_buffer >> n;
+				m_out << (VARTYPE)VT_UI1 << n;
+			}
+				break;
+			case 2:
+			{
+				short n;
+				m_buffer >> n;
+				m_out << (VARTYPE)VT_I2 << n;
+			}
+				break;
+			case 4:
+			{
+				int n;
+				m_buffer >> n;
+				m_out << (VARTYPE)VT_I4 << n;
+			}
+				break;
+			case 8:
+			{
+				INT64 n;
+				m_buffer >> n;
+				m_out << (VARTYPE)VT_I8 << n;
+			}
+				break;
+			default:
+				assert(false);
+				break;
+			}
+		}
+			break;
+		case tagDataType::MONEYN:
+		{
+			switch (bytes)
+			{
+			case 4:
+			{
+				int money;
+				m_buffer >> money;
+				m_out << (VARTYPE)VT_I4 << money;
+			}
+				break;
+			case 8:
+			{
+				unsigned int high, low;
+				m_buffer >> high >> low;
+				INT64 money = high;
+				money <<= 32;
+				money += low;
+				m_out << (VARTYPE)VT_I8 << money;
+			}
+				break;
+			default:
+				assert(false);
+				break;
+			}
+		}
+			break;
+		case tagDataType::UNIQUEIDENTIFIER:
+		{
+			GUID guid;
+			m_buffer >> guid;
+			m_out << (VARTYPE)VT_CLSID << guid;
+		}
+			break;
 		case tagDataType::BIT:
 		{
 			unsigned char b;
@@ -663,6 +773,69 @@ namespace tds
 	bool CSqlBatch::ParseData(tagDataType dt, CDBColumnInfo *cinfo) {
 		switch (dt)
 		{
+		case tagDataType::XML:
+			if (m_out.GetSize()) {
+				std::cout << "Blob size: " << m_out.GetSize() - 6 << "\n";
+				m_out.SetSize(0);
+			}
+			{
+				unsigned int remain;
+				m_buffer >> m_lenLarge >> remain;
+				assert(remain > 0 && remain <= DEFAULT_PACKET_SIZE - sizeof(m_lenLarge) - sizeof(remain));
+				m_out << cinfo->DataType;
+				bool all_fetched = (m_buffer.GetSize() >= (remain + sizeof(remain)));
+				if (all_fetched) {
+					m_buffer << remain;
+				}
+				else {
+					m_out << (unsigned int)m_lenLarge;
+				}
+				m_out.Push(m_buffer.GetBuffer(), remain);
+				m_buffer.Pop(remain);
+				if (all_fetched) {
+#ifndef NDEBUG
+					remain = *(unsigned int*)m_buffer.GetBuffer();
+					assert(!remain);
+#endif
+					m_buffer.Pop(sizeof(remain));
+					assert(m_lenLarge == UNKNOWN_XML_LEN);
+					m_lenLarge = 0;
+					return true;
+				}
+				assert(!m_buffer.GetSize());
+				return false;
+			}
+			break;
+		case tagDataType::NTEXT:
+		case tagDataType::IMAGE:
+		case tagDataType::TEXT:
+		{
+			if (m_out.GetSize()) {
+				std::cout << "Blob size: " << m_out.GetSize() - 6 << "\n";
+				m_out.SetSize(0);
+			}
+			unsigned char skipped_bytes;
+			m_buffer >> skipped_bytes;
+			m_buffer.Pop(skipped_bytes);
+			UINT64 timestamp;
+			m_buffer >> timestamp;
+			unsigned int image_bytes;
+			m_buffer >> image_bytes;
+			m_lenLarge = image_bytes;
+			m_out << cinfo->DataType << (unsigned int)m_lenLarge;
+			if (image_bytes > m_buffer.GetSize()) {
+				image_bytes = m_buffer.GetSize();
+			}
+			m_out.Push(m_buffer.GetBuffer(), image_bytes);
+			m_buffer.Pop(image_bytes);
+			m_lenLarge -= image_bytes;
+			if (m_lenLarge) {
+				assert(!m_endLarge);
+				m_endLarge = (dt == tagDataType::NTEXT) ? MAX_NTEXT_LEN : MAX_IMAGE_LEN;
+				return false;
+			}
+		}
+			break;
 		case tagDataType::NCHAR:
 		case tagDataType::NVARCHAR:
 		case tagDataType::CHAR:
@@ -705,43 +878,9 @@ namespace tds
 				m_buffer.Pop(len);
 			}
 			break;
-		case tagDataType::IMAGE:
-			break;
-		case tagDataType::TEXT:
-			break;
-		case tagDataType::UNIQUEIDENTIFIER:
-			break;
-		case tagDataType::INTN:
-			break;
-		case tagDataType::DATEN:
-			break;
-		case tagDataType::TIMEN:
-			break;
-		case tagDataType::DATETIMEOFFSETN:
-			break;
-		case tagDataType::BIT:
-			break;
-		case tagDataType::DATETIM4:
-			break;
-		case tagDataType::REAL:
-			break;
-		case tagDataType::MONEY:
-			break;
 		case tagDataType::SQL_VARIANT:
 			break;
-		case tagDataType::NTEXT:
-			break;
-		case tagDataType::BITN:
-			break;
-		case tagDataType::FLTN:
-			break;
-		case tagDataType::MONEYN:
-			break;
-		case tagDataType::SMALLMONEY:
-			break;
 		case tagDataType::UDT:
-			break;
-		case tagDataType::XML:
 			break;
 		default:
 			assert(false);
@@ -786,6 +925,10 @@ namespace tds
 			}
 			switch (dt)
 			{
+			case tagDataType::TEXT:
+			case tagDataType::NTEXT:
+			case tagDataType::IMAGE:
+			case tagDataType::XML:
 			case tagDataType::BINARY:
 			case tagDataType::CHAR:
 			case tagDataType::VARBINARY:
@@ -849,32 +992,84 @@ namespace tds
 		data += sizeof(ResponseHeader);
 		length -= sizeof(ResponseHeader);
 		m_buffer.Push(data, length);
-		while (m_lenLarge && m_buffer.GetSize()) {
+		if (m_lenLarge == UNKNOWN_XML_LEN) {
 			unsigned int len;
 			m_buffer >> len;
 			assert(len > 0 && len <= DEFAULT_PACKET_SIZE - 12);
 			assert(m_buffer.GetSize() >= len);
 			m_out.Push(m_buffer.GetBuffer(), len);
 			m_buffer.Pop(len);
-			m_lenLarge -= len;
-			if (!m_lenLarge) {
-				++m_posCol;
-				if (m_posCol == m_vCol.size()) {
-					m_posCol = INVALID_COL;
-					m_tt = tagTokenType::ttZero;
+			if (m_buffer.GetSize() >= sizeof(len)) {
+				len = *(unsigned int*)m_buffer.GetBuffer();
+				if (len == 0) {
+					m_buffer.Pop(sizeof(len));
+					m_lenLarge = 0;
+					++m_posCol;
+					if (m_posCol == m_vCol.size()) {
+						m_posCol = INVALID_COL;
+						m_tt = tagTokenType::ttZero;
+					}
+				}
+				else {
+					return;
 				}
 			}
 			else {
-				assert(m_lenLarge < 0x7fffffff);
+				return;
 			}
 		}
-		if (!m_lenLarge && m_endLarge == UINT_NULL_LEN) {
-			if (m_buffer.GetSize() >= sizeof(m_endLarge)) {
-				m_buffer >> m_endLarge;
-				assert(!m_endLarge);
+		else {
+			if (m_lenLarge && (m_endLarge == MAX_IMAGE_LEN || m_endLarge == MAX_NTEXT_LEN)) {
+				unsigned int len = *(unsigned int*)m_buffer.GetBuffer();
+				len = m_buffer.GetSize();
+				if (len > m_lenLarge) {
+					len = (unsigned int)m_lenLarge;
+				}
+				m_out.Push(m_buffer.GetBuffer(), len);
+				m_buffer.Pop(len);
+				m_lenLarge -= len;
+				if (!m_lenLarge) {
+					assert(m_endLarge == MAX_IMAGE_LEN || m_endLarge == MAX_NTEXT_LEN);
+					m_endLarge = 0;
+					++m_posCol;
+					if (m_posCol == m_vCol.size()) {
+						m_posCol = INVALID_COL;
+						m_tt = tagTokenType::ttZero;
+					}
+				}
+				else {
+					assert(!m_buffer.GetSize());
+				}
 			}
 			else {
-				return;
+				while (m_lenLarge && m_buffer.GetSize()) {
+					unsigned int len;
+					m_buffer >> len;
+					assert(len > 0 && len <= DEFAULT_PACKET_SIZE - 12);
+					assert(m_buffer.GetSize() >= len);
+					m_out.Push(m_buffer.GetBuffer(), len);
+					m_buffer.Pop(len);
+					m_lenLarge -= len;
+					if (!m_lenLarge) {
+						++m_posCol;
+						if (m_posCol == m_vCol.size()) {
+							m_posCol = INVALID_COL;
+							m_tt = tagTokenType::ttZero;
+						}
+					}
+					else {
+						assert(m_lenLarge < 0x7fffffff);
+					}
+				}
+				if (!m_lenLarge && m_endLarge == UINT_NULL_LEN) {
+					if (m_buffer.GetSize() >= sizeof(m_endLarge)) {
+						m_buffer >> m_endLarge;
+						assert(!m_endLarge);
+					}
+					else {
+						return;
+					}
+				}
 			}
 		}
 		while (m_buffer.GetSize()) {
@@ -916,6 +1111,10 @@ namespace tds
 			case tagTokenType::ttDONE:
 				if (!ParseDone()) {
 					return;
+				}
+				else if (IsDone() && m_buffer.GetSize()) {
+					std::cout << "Remaining bytes: " << m_buffer.GetSize() << "\n";
+					m_buffer.SetSize(0);
 				}
 				break;
 			default:
