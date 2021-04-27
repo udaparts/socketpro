@@ -10,8 +10,6 @@ namespace tds
 		memset(&m_Done, 0, sizeof(m_Done));
 		m_vEventChange.clear();
 		m_vInfo.clear();
-		m_vEventChange.clear();
-		m_vInfo.clear();
 		m_tt = tagTokenType::ttZero;
 		m_vCol.clear();
 		m_cols = 0;
@@ -439,7 +437,7 @@ namespace tds
 				break;
 			case tagDataType::TEXT:
 			case tagDataType::IMAGE:
-				if (cinfo->ColumnSize == MAX_IMAGE_LEN) {
+				if (cinfo->ColumnSize == MAX_IMAGE_TEXT_LEN) {
 					unsigned int len = *(unsigned int*)m_buffer.GetBuffer();
 					if (len == UINT_NULL_LEN) {
 						m_out << (VARTYPE)VT_NULL;
@@ -502,6 +500,7 @@ namespace tds
 			case tagDataType::DATEN:
 			case tagDataType::DATETIMEOFFSETN:
 			case tagDataType::MONEYN:
+			case tagDataType::UNIQUEIDENTIFIER:
 			{
 				unsigned char bytes;
 				m_buffer >> bytes;
@@ -577,6 +576,8 @@ namespace tds
 			}
 		}
 			break;
+		case tagDataType::MONEY:
+			bytes = 8; //use MONEYN
 		case tagDataType::MONEYN:
 		{
 			switch (bytes)
@@ -676,7 +677,7 @@ namespace tds
 		case tagDataType::DATETIME:
 		{
 			DateTime dt;
-			m_buffer >> dt;
+			m_buffer >> dt; //already tested
 			m_out << (VARTYPE)VT_DATE << dt;
 		}
 		break;
@@ -704,18 +705,27 @@ namespace tds
 		break;
 		case tagDataType::DATETIME2N:
 		case tagDataType::DATETIMN:
+			if (bytes == 8 && scale == 0) {
+				UINT64 datetime;
+				m_buffer >> datetime;
+				m_out << (VARTYPE)VT_DATE << datetime;
+			}
+			else
 		{
 			DateTime2 dt;
 			if (scale >= 5 && scale <= 7) {
+				assert(bytes == 8);
 				unsigned char time[6] = { 0 };
 				m_buffer.Pop(time, 5);
 				m_buffer >> dt.Date;
 			}
 			else if (scale == 3 || scale == 4) {
+				assert(bytes == 7);
 				m_buffer >> dt;
 			}
 			else {
 				unsigned char time[3] = { 0 };
+				assert(bytes == 6);
 				m_buffer.Pop(time, 3);
 				m_buffer >> dt.Date;
 			}
@@ -831,7 +841,7 @@ namespace tds
 			m_lenLarge -= image_bytes;
 			if (m_lenLarge) {
 				assert(!m_endLarge);
-				m_endLarge = (dt == tagDataType::NTEXT) ? MAX_NTEXT_LEN : MAX_IMAGE_LEN;
+				m_endLarge = (dt == tagDataType::NTEXT) ? MAX_NTEXT_LEN : MAX_IMAGE_TEXT_LEN;
 				return false;
 			}
 		}
@@ -920,9 +930,6 @@ namespace tds
 				}
 			}
 			tagDataType dt = pdt[m_posCol];
-			if (m_buffer.GetSize() <= sizeof(PacketHeader) + sizeof(m_Done) + sizeof(tagTokenType)) {
-				return false;
-			}
 			switch (dt)
 			{
 			case tagDataType::TEXT:
@@ -946,6 +953,9 @@ namespace tds
 			case tagDataType::TIMEN:
 			case tagDataType::INTN:
 			case tagDataType::DATEN:
+			case tagDataType::UNIQUEIDENTIFIER:
+			case tagDataType::MONEYN:
+			case tagDataType::DATETIMEOFFSETN:
 			{
 				unsigned char bytes;
 				m_buffer >> bytes;
@@ -955,7 +965,7 @@ namespace tds
 			}
 			break;
 			default:
-				if (!ParseData(dt, 0, cinfo->Scale)) {
+				if (!ParseData(dt, cinfo->ColumnSize, cinfo->Scale)) {
 					return false;
 				}
 				break;
@@ -1019,7 +1029,7 @@ namespace tds
 			}
 		}
 		else {
-			if (m_lenLarge && (m_endLarge == MAX_IMAGE_LEN || m_endLarge == MAX_NTEXT_LEN)) {
+			if (m_lenLarge && (m_endLarge == MAX_IMAGE_TEXT_LEN || m_endLarge == MAX_NTEXT_LEN)) {
 				unsigned int len = *(unsigned int*)m_buffer.GetBuffer();
 				len = m_buffer.GetSize();
 				if (len > m_lenLarge) {
@@ -1029,7 +1039,7 @@ namespace tds
 				m_buffer.Pop(len);
 				m_lenLarge -= len;
 				if (!m_lenLarge) {
-					assert(m_endLarge == MAX_IMAGE_LEN || m_endLarge == MAX_NTEXT_LEN);
+					assert(m_endLarge == MAX_IMAGE_TEXT_LEN || m_endLarge == MAX_NTEXT_LEN);
 					m_endLarge = 0;
 					++m_posCol;
 					if (m_posCol == m_vCol.size()) {
@@ -1112,10 +1122,15 @@ namespace tds
 				if (!ParseDone()) {
 					return;
 				}
+				/*
 				else if (IsDone() && m_buffer.GetSize()) {
 					std::cout << "Remaining bytes: " << m_buffer.GetSize() << "\n";
+					PacketHeader *ph = (PacketHeader *)m_buffer.GetBuffer();
+					const unsigned char *p = m_buffer.GetBuffer();
+
 					m_buffer.SetSize(0);
 				}
+				*/
 				break;
 			default:
 				assert(false);
@@ -1131,7 +1146,7 @@ namespace tds
 		if (m_buffer.GetSize() >= sizeof(m_Done)) {
 			m_buffer >> m_Done;
 			m_tt = tagTokenType::ttZero;
-			if (m_Done.Status == tagDoneStatus::dsFinal || (m_Done.Status & tagDoneStatus::dsMore) == tagDoneStatus::dsMore) {
+			if (m_Done.Status == tagDoneStatus::dsFinal || (m_Done.Status & tagDoneStatus::dsMore) == tagDoneStatus::dsMore || (m_Done.Status & tagDoneStatus::dsCount) == tagDoneStatus::dsCount) {
 				m_posCol = INVALID_COL;
 				memset(&m_collation, 0, sizeof(m_collation));
 				m_cols = 0;

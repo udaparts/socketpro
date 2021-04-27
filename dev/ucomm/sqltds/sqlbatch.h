@@ -15,7 +15,7 @@ namespace tds {
 		static constexpr unsigned short USHORT_NULL_LEN = (~0);
 		static constexpr unsigned short VAR_MAX = (~0);
 		static constexpr UINT64 UNKNOWN_XML_LEN = 0xfffffffffffffffe;
-		static constexpr unsigned int MAX_IMAGE_LEN = 0x7fffffff;
+		static constexpr unsigned int MAX_IMAGE_TEXT_LEN = 0x7fffffff;
 		static constexpr unsigned int MAX_NTEXT_LEN = 0x7ffffffe;
 
     public:
