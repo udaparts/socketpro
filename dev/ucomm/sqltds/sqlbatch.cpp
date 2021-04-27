@@ -398,6 +398,35 @@ namespace tds
 		return true;
 	}
 
+	bool CSqlBatch::ParseVariant() {
+		unsigned int bytes, prop_bytes;
+		tagDataType dt;
+		m_buffer >> bytes >> dt >> prop_bytes;
+		bytes -= (prop_bytes + sizeof(prop_bytes) + sizeof(dt));
+		VARTYPE vt = GetVarType(dt, (unsigned char)bytes);
+		m_out << vt;
+		switch (dt)
+		{
+		case tds::tagDataType::DATEN:
+		case tds::tagDataType::TIMEN:
+		case tds::tagDataType::DATETIME2N:
+		case tds::tagDataType::DATETIMEOFFSETN:
+		case tds::tagDataType::BIT:
+		case tds::tagDataType::DATETIM4:
+		case tds::tagDataType::DATETIME:
+		case tds::tagDataType::BITN:
+		case tds::tagDataType::DECIMAL:
+		case tds::tagDataType::NUMERIC:
+		case tds::tagDataType::MONEYN:
+		case tds::tagDataType::DATETIMN:
+			return ParseData(dt, bytes, 0);
+		default:
+			m_out.Push(m_buffer.GetBuffer(), bytes);
+			break;
+		}
+		return true;
+	}
+
 	bool CSqlBatch::ParseRow() {
 		bool done = IsDone();
 		unsigned short cols = (unsigned short)m_vCol.size();
@@ -453,6 +482,19 @@ namespace tds
 				}
 				break;
 			case tagDataType::XML:
+			{
+				unsigned int len = *(unsigned int*)m_buffer.GetBuffer();
+				if (len == UINT_NULL_LEN) {
+					m_out << (VARTYPE)VT_NULL;
+					m_buffer.Pop(4);
+					continue;
+				}
+				if (!ParseData(dt, cinfo)) {
+					return false;
+				}
+			}
+				break;
+			case tagDataType::UDT:
 			{
 				unsigned int len = *(unsigned int*)m_buffer.GetBuffer();
 				if (len == UINT_NULL_LEN) {
@@ -846,6 +888,35 @@ namespace tds
 			}
 		}
 			break;
+		case tagDataType::UDT:
+		{
+			if (m_out.GetSize()) {
+				std::cout << "Blob size: " << m_out.GetSize() - 6 << "\n";
+				m_out.SetSize(0);
+			}
+			unsigned int remain;
+			m_buffer >> m_lenLarge >> remain;
+			assert(remain <= DEFAULT_PACKET_SIZE - sizeof(m_lenLarge) - sizeof(remain));
+			m_out << cinfo->DataType << (unsigned int)m_lenLarge;
+			if (!remain) {
+				return true; //no data
+			}
+			m_out.Push(m_buffer.GetBuffer(), remain);
+			m_buffer.Pop(remain);
+			m_lenLarge -= remain;
+			m_endLarge = UINT_NULL_LEN;
+			if (m_lenLarge) {
+				return false;
+			}
+			if (m_buffer.GetSize() >= sizeof(unsigned int)) {
+				m_buffer >> m_endLarge;
+				assert(!m_endLarge);
+			}
+			else {
+				return false;
+			}
+		}
+		break;
 		case tagDataType::NCHAR:
 		case tagDataType::NVARCHAR:
 		case tagDataType::CHAR:
@@ -890,8 +961,6 @@ namespace tds
 			break;
 		case tagDataType::SQL_VARIANT:
 			break;
-		case tagDataType::UDT:
-			break;
 		default:
 			assert(false);
 			break;
@@ -932,6 +1001,7 @@ namespace tds
 			tagDataType dt = pdt[m_posCol];
 			switch (dt)
 			{
+			case tagDataType::UDT:
 			case tagDataType::TEXT:
 			case tagDataType::NTEXT:
 			case tagDataType::IMAGE:

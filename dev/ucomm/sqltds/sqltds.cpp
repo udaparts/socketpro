@@ -88,7 +88,7 @@ int main() {
     sb->SetSize(0);
     tds::CSqlBatch sqlbatch(true);
     handler->m_deq.push_back(&sqlbatch);
-    sqlbatch.GetClientMessage(1, u"select testid,myguid,mydate,mybool,mytime,mymoney,mydatetime2,mysmallmoney,mysmalldatetime,mytinyint,mydateimeoffset,mytimestamp,mynum,mybinary,myntext from test_rare1", *sb);
+    sqlbatch.GetClientMessage(1, u"select * from SpatialTable", *sb);
 	ShowBuffer(*sb);
 	res = handler->Send(sb->GetBuffer(), sb->GetSize());
     std::cout << "Press a key to shut down the application ......\n";

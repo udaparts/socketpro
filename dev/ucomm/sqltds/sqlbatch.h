@@ -81,6 +81,7 @@ namespace tds {
 		bool ParseData(tagDataType dt, CDBColumnInfo *cinfo);
 		bool ParseOrder();
 		bool ParseData(tagDataType dt, unsigned char bytes, unsigned char scale);
+		bool ParseVariant();
 
     private:
         SPA::CUQueue &m_buffer;
