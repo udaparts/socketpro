@@ -39,8 +39,8 @@ namespace tds {
     };
 
     class CLogin7 : public CReqBase {
-	private:
-		SPA::CScopeUQueue m_sb;
+    private:
+        SPA::CScopeUQueue m_sb;
         static const unsigned int YUKON_LOG_REC_FIXED_LEN = 0x5e;
     public:
 #pragma pack(push,1)
@@ -146,7 +146,7 @@ namespace tds {
         static CDBString LibraryName; //Client library name
 
     private:
-		SPA::CUQueue &m_buffer;
+        SPA::CUQueue &m_buffer;
         TokenDone m_Done;
         std::vector<TokenEventChange> m_vEventChange;
         std::vector<TokenInfo> m_vInfo;

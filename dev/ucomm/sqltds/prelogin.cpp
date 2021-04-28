@@ -88,7 +88,7 @@ namespace tds
         buff >> ResponseHeader;
         ResponseHeader.Length = ChangeEndian(ResponseHeader.Length);
         assert(ResponseHeader.Length == bytes);
-		ResponseHeader.Spid = ChangeEndian(ResponseHeader.Spid);
+        ResponseHeader.Spid = ChangeEndian(ResponseHeader.Spid);
         std::vector<Option> Options;
 #ifndef NDEBUG
         unsigned int data_len = 0;
