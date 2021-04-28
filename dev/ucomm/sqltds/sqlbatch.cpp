@@ -398,31 +398,68 @@ namespace tds
 		return true;
 	}
 
-	bool CSqlBatch::ParseVariant() {
-		unsigned int bytes, prop_bytes;
+	bool CSqlBatch::ParseVariant(CDBColumnInfo *cinfo) {
+		unsigned int bytes;
+		unsigned char prop_bytes;
 		tagDataType dt;
 		m_buffer >> bytes >> dt >> prop_bytes;
 		bytes -= (prop_bytes + sizeof(prop_bytes) + sizeof(dt));
-		VARTYPE vt = GetVarType(dt, (unsigned char)bytes);
-		m_out << vt;
 		switch (dt)
 		{
-		case tds::tagDataType::DATEN:
-		case tds::tagDataType::TIMEN:
-		case tds::tagDataType::DATETIME2N:
-		case tds::tagDataType::DATETIMEOFFSETN:
-		case tds::tagDataType::BIT:
-		case tds::tagDataType::DATETIM4:
-		case tds::tagDataType::DATETIME:
-		case tds::tagDataType::BITN:
-		case tds::tagDataType::DECIMAL:
-		case tds::tagDataType::NUMERIC:
-		case tds::tagDataType::MONEYN:
-		case tds::tagDataType::DATETIMN:
-			return ParseData(dt, bytes, 0);
-		default:
-			m_out.Push(m_buffer.GetBuffer(), bytes);
+		case tagDataType::BINARY:
+		case tagDataType::VARBINARY:
+			if (prop_bytes > 2) {
+				m_buffer.Pop(prop_bytes - 2, 2); //skip unknown properties
+			}
+			return ParseData(dt, cinfo);
+		case tagDataType::CHAR:
+		case tagDataType::VARCHAR:
+		case tagDataType::NCHAR:
+		case tagDataType::NVARCHAR:
+		{
+			assert(prop_bytes == 7);
+			m_buffer.Pop(sizeof(Collation)); //skip collation
+			prop_bytes -= sizeof(Collation);
+			if (prop_bytes > 2) {
+				m_buffer.Pop(prop_bytes - 2, 2); //skip unknown properties
+			}
+			return ParseData(dt, cinfo);
+		}
 			break;
+		case tagDataType::TIMEN:
+		case tagDataType::DATETIME2N:
+		case tagDataType::DATETIMEOFFSETN:
+		{
+			assert(prop_bytes == 1);
+			unsigned char scale;
+			m_buffer >> scale;
+			--prop_bytes;
+			if (prop_bytes) {
+				m_buffer.Pop(prop_bytes); //skip unknown properties
+			}
+			return ParseData(dt, (unsigned char)bytes, scale);
+		}
+			break;
+		case tagDataType::DECIMAL:
+		case tagDataType::NUMERIC:
+		{
+			unsigned char precision, scale;
+			m_buffer >> precision >> scale;
+			prop_bytes -= 2;
+			if (prop_bytes) {
+				m_buffer.Pop(prop_bytes); //skip unknwon properties
+			}
+			return ParseData(dt, (unsigned char)bytes, scale);
+		}
+			break;
+		case tagDataType::DATEN:
+		case tagDataType::DATETIM4:
+		case tagDataType::DATETIME:
+		case tagDataType::BITN:
+		case tagDataType::MONEYN:
+			return ParseData(dt, (unsigned char)bytes, 0);
+		default:
+			return ParseData(dt, (unsigned char)bytes, 0);
 		}
 		return true;
 	}
@@ -448,6 +485,11 @@ namespace tds
 			unsigned char nullable = (!(cinfo->Flags & CDBColumnInfo::FLAG_NOT_NULL));
 			switch (dt)
 			{
+			case tagDataType::SQL_VARIANT:
+				if (!ParseVariant(cinfo)) {
+					return false;
+				}
+				break;
 			case tagDataType::NTEXT:
 				if (cinfo->ColumnSize == MAX_NTEXT_LEN) {
 					unsigned int len = *(unsigned int*)m_buffer.GetBuffer();
@@ -756,18 +798,18 @@ namespace tds
 		{
 			DateTime2 dt;
 			if (scale >= 5 && scale <= 7) {
-				assert(bytes == 8);
+				//assert(bytes == 8);
 				unsigned char time[6] = { 0 };
 				m_buffer.Pop(time, 5);
 				m_buffer >> dt.Date;
 			}
 			else if (scale == 3 || scale == 4) {
-				assert(bytes == 7);
+				//assert(bytes == 7);
 				m_buffer >> dt;
 			}
 			else {
 				unsigned char time[3] = { 0 };
-				assert(bytes == 6);
+				//assert(bytes == 6);
 				m_buffer.Pop(time, 3);
 				m_buffer >> dt.Date;
 			}
@@ -954,12 +996,10 @@ namespace tds
 					return false;
 				}
 				m_buffer.Pop(2);
-				m_out << cinfo->DataType << (unsigned int)len;
+				m_out << GetVarType(dt, 0) << (unsigned int)len;
 				m_out.Push(m_buffer.GetBuffer(), len);
 				m_buffer.Pop(len);
 			}
-			break;
-		case tagDataType::SQL_VARIANT:
 			break;
 		default:
 			assert(false);
