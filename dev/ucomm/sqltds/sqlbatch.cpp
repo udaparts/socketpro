@@ -408,6 +408,7 @@ namespace tds
 		{
 		case tagDataType::BINARY:
 		case tagDataType::VARBINARY:
+			assert(prop_bytes == 2);
 			if (prop_bytes > 2) {
 				m_buffer.Pop(prop_bytes - 2, 2); //skip unknown properties
 			}
@@ -444,6 +445,7 @@ namespace tds
 		case tagDataType::NUMERIC:
 		{
 			unsigned char precision, scale;
+			assert(prop_bytes == 2);
 			m_buffer >> precision >> scale;
 			prop_bytes -= 2;
 			if (prop_bytes) {
@@ -875,6 +877,7 @@ namespace tds
 			{
 				unsigned int remain;
 				m_buffer >> m_lenLarge >> remain;
+				assert(m_lenLarge == UNKNOWN_XML_LEN);
 				assert(remain > 0 && remain <= DEFAULT_PACKET_SIZE - sizeof(m_lenLarge) - sizeof(remain));
 				m_out << cinfo->DataType;
 				bool all_fetched = (m_buffer.GetSize() >= (remain + sizeof(remain)));
@@ -1041,6 +1044,11 @@ namespace tds
 			tagDataType dt = pdt[m_posCol];
 			switch (dt)
 			{
+			case tagDataType::SQL_VARIANT:
+				if (!ParseVariant(cinfo)) {
+					return false;
+				}
+				break;
 			case tagDataType::UDT:
 			case tagDataType::TEXT:
 			case tagDataType::NTEXT:
@@ -1232,18 +1240,16 @@ namespace tds
 				if (!ParseDone()) {
 					return;
 				}
-				/*
-				else if (IsDone() && m_buffer.GetSize()) {
+				break;
+			default:
+				if (IsDone() && m_buffer.GetSize()) {
+#ifndef NDEBUG
 					std::cout << "Remaining bytes: " << m_buffer.GetSize() << "\n";
 					PacketHeader *ph = (PacketHeader *)m_buffer.GetBuffer();
 					const unsigned char *p = m_buffer.GetBuffer();
-
+#endif
 					m_buffer.SetSize(0);
 				}
-				*/
-				break;
-			default:
-				assert(false);
 				break;
 			}
 			if (m_tt != tagTokenType::ttZero) {
