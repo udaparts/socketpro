@@ -419,11 +419,16 @@ namespace tds
 		case tagDataType::NVARCHAR:
 		{
 			assert(prop_bytes == 7);
-			m_buffer.Pop(sizeof(Collation)); //skip collation
+			Collation collation;
+			m_buffer >> collation; //skip collation
 			prop_bytes -= sizeof(Collation);
 			if (prop_bytes > 2) {
 				m_buffer.Pop(prop_bytes - 2, 2); //skip unknown properties
 			}
+			unsigned short max_len;
+			m_buffer >> max_len;
+			max_len = (unsigned short)bytes;
+			m_buffer.Insert(&max_len, 0);
 			return ParseData(dt, cinfo);
 		}
 			break;
@@ -882,7 +887,7 @@ namespace tds
 				m_out << cinfo->DataType;
 				bool all_fetched = (m_buffer.GetSize() >= (remain + sizeof(remain)));
 				if (all_fetched) {
-					m_buffer << remain;
+					m_out << remain;
 				}
 				else {
 					m_out << (unsigned int)m_lenLarge;
@@ -994,6 +999,7 @@ namespace tds
 			}
 			else
 			{
+				const wchar_t *str = (const wchar_t*)m_buffer.GetBuffer();
 				unsigned short len = *(unsigned short*)m_buffer.GetBuffer();
 				if (len > m_buffer.GetSize() - sizeof(len)) {
 					return false;
@@ -1240,8 +1246,14 @@ namespace tds
 				if (!ParseDone()) {
 					return;
 				}
+				else if (m_buffer.GetSize()) {
+#ifndef NDEBUG
+					std::cout << "Remaining bytes: " << m_buffer.GetSize() << "\n";
+#endif
+				}
 				break;
 			default:
+				assert(false);
 				if (IsDone() && m_buffer.GetSize()) {
 #ifndef NDEBUG
 					std::cout << "Remaining bytes: " << m_buffer.GetSize() << "\n";
