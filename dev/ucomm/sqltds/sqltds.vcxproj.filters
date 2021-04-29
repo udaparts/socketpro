@@ -36,6 +36,9 @@
     <ClCompile Include="sqlbatch.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="transmanager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\include\membuffer.h">
@@ -60,6 +63,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\include\udatabase.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="transmanager.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

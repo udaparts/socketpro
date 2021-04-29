@@ -40,7 +40,6 @@ namespace tds {
 
     class CLogin7 : public CReqBase {
     private:
-        SPA::CScopeUQueue m_sb;
         static const unsigned int YUKON_LOG_REC_FIXED_LEN = 0x5e;
     public:
 #pragma pack(push,1)
@@ -137,19 +136,16 @@ namespace tds {
 
     public:
         bool GetClientMessage(unsigned char packet_id, const SqlLogin &rec, FeatureExtension requestedFeatures, SPA::CUQueue &buffer);
-        void OnResponse(const unsigned char *data, unsigned int bytes);
 
     protected:
         void Reset();
+		bool ParseStream();
 
     private:
         static CDBString LibraryName; //Client library name
 
     private:
-        SPA::CUQueue &m_buffer;
-        TokenDone m_Done;
-        std::vector<TokenEventChange> m_vEventChange;
-        std::vector<TokenInfo> m_vInfo;
+        std::vector<StringEventChange> m_vEventChange;
         CollationChange m_CollationChange;
         LoginAck m_LoginAck;
     };

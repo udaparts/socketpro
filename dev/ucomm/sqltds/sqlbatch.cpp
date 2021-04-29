@@ -5,9 +5,7 @@ namespace tds
 {
 
     CSqlBatch::CSqlBatch(bool meta)
-            : m_buffer(*m_sb),
-            m_out(*m_sbOut),
-            m_tt(tagTokenType::ttZero),
+            : m_out(*m_sbOut),
             m_meta(meta),
             m_cols(0),
             m_posCol(INVALID_COL),
@@ -16,15 +14,12 @@ namespace tds
     }
 
     void CSqlBatch::Reset() {
-        memset(&m_Done, 0, sizeof (m_Done));
-        m_vEventChange.clear();
-        m_vInfo.clear();
-        m_tt = tagTokenType::ttZero;
+		m_vEventChange.clear();
         m_vCol.clear();
         m_cols = 0;
         m_vDT.clear();
         m_posCol = INVALID_COL;
-        CReqBase::Reset();
+		CTransManager::Reset();
     }
 
     bool CSqlBatch::GetClientMessage(unsigned char packet_id, const char16_t *sql, SPA::CUQueue & buffer) {
@@ -1098,212 +1093,184 @@ namespace tds
         return true;
     }
 
-    void CSqlBatch::OnResponse(const unsigned char *data, unsigned int length) {
-        assert(length >= sizeof (ResponseHeader));
-        memcpy(&ResponseHeader, data, sizeof (ResponseHeader));
-        ResponseHeader.Length = ChangeEndian(ResponseHeader.Length);
-        assert(ResponseHeader.Length == length);
-        ResponseHeader.Spid = ChangeEndian(ResponseHeader.Spid);
-        data += sizeof (ResponseHeader);
-        length -= sizeof (ResponseHeader);
-        m_buffer.Push(data, length);
-        if (m_lenLarge == UNKNOWN_XML_LEN) {
-            unsigned int len;
-            m_buffer >> len;
-            assert(len > 0 && len <= DEFAULT_PACKET_SIZE - 12);
-            assert(m_buffer.GetSize() >= len);
-            m_out.Push(m_buffer.GetBuffer(), len);
-            m_buffer.Pop(len);
-            if (m_buffer.GetSize() >= sizeof (len)) {
-                len = *(unsigned int*) m_buffer.GetBuffer();
-                if (len == 0) {
-                    m_buffer.Pop(sizeof (len));
-                    m_lenLarge = 0;
-                    ++m_posCol;
-                    if (m_posCol == m_vCol.size()) {
-                        m_posCol = INVALID_COL;
-                        m_tt = tagTokenType::ttZero;
-                    }
-                } else {
-                    return;
-                }
-            } else {
-                return;
-            }
-        } else {
-            if (m_lenLarge && (m_endLarge == MAX_IMAGE_TEXT_LEN || m_endLarge == MAX_NTEXT_LEN)) {
-                unsigned int len = *(unsigned int*) m_buffer.GetBuffer();
-                len = m_buffer.GetSize();
-                if (len > m_lenLarge) {
-                    len = (unsigned int) m_lenLarge;
-                }
-                m_out.Push(m_buffer.GetBuffer(), len);
-                m_buffer.Pop(len);
-                m_lenLarge -= len;
-                if (!m_lenLarge) {
-                    assert(m_endLarge == MAX_IMAGE_TEXT_LEN || m_endLarge == MAX_NTEXT_LEN);
-                    m_endLarge = 0;
-                    ++m_posCol;
-                    if (m_posCol == m_vCol.size()) {
-                        m_posCol = INVALID_COL;
-                        m_tt = tagTokenType::ttZero;
-                    }
-                } else {
-                    assert(!m_buffer.GetSize());
-                }
-            } else {
-                while (m_lenLarge && m_buffer.GetSize()) {
-                    unsigned int len;
-                    m_buffer >> len;
-                    assert(len > 0 && len <= DEFAULT_PACKET_SIZE - 12);
-                    assert(m_buffer.GetSize() >= len);
-                    m_out.Push(m_buffer.GetBuffer(), len);
-                    m_buffer.Pop(len);
-                    m_lenLarge -= len;
-                    if (!m_lenLarge) {
-                        ++m_posCol;
-                        if (m_posCol == m_vCol.size()) {
-                            m_posCol = INVALID_COL;
-                            m_tt = tagTokenType::ttZero;
-                        }
-                    } else {
-                        assert(m_lenLarge < 0x7fffffff);
-                    }
-                }
-                if (!m_lenLarge && m_endLarge == UINT_NULL_LEN) {
-                    if (m_buffer.GetSize() >= sizeof (m_endLarge)) {
-                        m_buffer >> m_endLarge;
-                        assert(!m_endLarge);
-                    } else {
-                        return;
-                    }
-                }
-            }
-        }
-        while (m_buffer.GetSize()) {
-            if (m_tt == tagTokenType::ttZero) {
-                m_buffer >> m_tt;
-            }
-            switch (m_tt) {
-                case tagTokenType::ttORDER:
-                    if (!ParseOrder()) {
-                        return;
-                    }
-                    break;
-                case tagTokenType::ttNBCROW:
-                    if (!ParseNBCRow()) {
-                        return;
-                    }
-                    break;
-                case tagTokenType::ttROW:
-                    if (!ParseRow()) {
-                        return;
-                    }
-                    break;
-                case tagTokenType::ttCOLMETADATA:
-                    if (!ParseMeta()) {
-                        return;
-                    }
-                    break;
-                case tagTokenType::ttTDS_ERROR:
-                case tagTokenType::ttINFO:
-                    if (!ParseErrorInfo()) {
-                        return;
-                    }
-                    break;
-                case tagTokenType::ttENVCHANGE:
-                    if (!ParseEventChange()) {
-                        return;
-                    }
-                    break;
-                case tagTokenType::ttDONE:
-                    if (!ParseDone()) {
-                        return;
-                    } else if (IsDone() && m_buffer.GetSize()) {
+	bool CSqlBatch::ParseStream() {
+		if (m_lenLarge == UNKNOWN_XML_LEN) {
+			unsigned int len;
+			m_buffer >> len;
+			assert(len > 0 && len <= DEFAULT_PACKET_SIZE - 12);
+			assert(m_buffer.GetSize() >= len);
+			m_out.Push(m_buffer.GetBuffer(), len);
+			m_buffer.Pop(len);
+			if (m_buffer.GetSize() >= sizeof(len)) {
+				len = *(unsigned int*)m_buffer.GetBuffer();
+				if (len == 0) {
+					m_buffer.Pop(sizeof(len));
+					m_lenLarge = 0;
+					++m_posCol;
+					if (m_posCol == m_vCol.size()) {
+						m_posCol = INVALID_COL;
+						m_tt = tagTokenType::ttZero;
+					}
+				}
+				else {
+					return false;
+				}
+			}
+			else {
+				return false;
+			}
+		}
+		else {
+			if (m_lenLarge && (m_endLarge == MAX_IMAGE_TEXT_LEN || m_endLarge == MAX_NTEXT_LEN)) {
+				unsigned int len = *(unsigned int*)m_buffer.GetBuffer();
+				len = m_buffer.GetSize();
+				if (len > m_lenLarge) {
+					len = (unsigned int)m_lenLarge;
+				}
+				m_out.Push(m_buffer.GetBuffer(), len);
+				m_buffer.Pop(len);
+				m_lenLarge -= len;
+				if (!m_lenLarge) {
+					assert(m_endLarge == MAX_IMAGE_TEXT_LEN || m_endLarge == MAX_NTEXT_LEN);
+					m_endLarge = 0;
+					++m_posCol;
+					if (m_posCol == m_vCol.size()) {
+						m_posCol = INVALID_COL;
+						m_tt = tagTokenType::ttZero;
+					}
+				}
+				else {
+					assert(!m_buffer.GetSize());
+				}
+			}
+			else {
+				while (m_lenLarge && m_buffer.GetSize()) {
+					unsigned int len;
+					m_buffer >> len;
+					assert(len > 0 && len <= DEFAULT_PACKET_SIZE - 12);
+					assert(m_buffer.GetSize() >= len);
+					m_out.Push(m_buffer.GetBuffer(), len);
+					m_buffer.Pop(len);
+					m_lenLarge -= len;
+					if (!m_lenLarge) {
+						++m_posCol;
+						if (m_posCol == m_vCol.size()) {
+							m_posCol = INVALID_COL;
+							m_tt = tagTokenType::ttZero;
+						}
+					}
+					else {
+						assert(m_lenLarge < 0x7fffffff);
+					}
+				}
+				if (!m_lenLarge && m_endLarge == UINT_NULL_LEN) {
+					if (m_buffer.GetSize() >= sizeof(m_endLarge)) {
+						m_buffer >> m_endLarge;
+						assert(!m_endLarge);
+					}
+					else {
+						return false;
+					}
+				}
+			}
+		}
+		while (m_buffer.GetSize()) {
+			if (m_tt == tagTokenType::ttZero) {
+				m_buffer >> m_tt;
+			}
+			switch (m_tt) {
+			case tagTokenType::ttORDER:
+				if (!ParseOrder()) {
+					return false;
+				}
+				break;
+			case tagTokenType::ttNBCROW:
+				if (!ParseNBCRow()) {
+					return false;
+				}
+				break;
+			case tagTokenType::ttROW:
+				if (!ParseRow()) {
+					return false;
+				}
+				break;
+			case tagTokenType::ttCOLMETADATA:
+				if (!ParseMeta()) {
+					return false;
+				}
+				break;
+			case tagTokenType::ttTDS_ERROR:
+			case tagTokenType::ttINFO:
+				if (!ParseErrorInfo()) {
+					return false;
+				}
+				break;
+			case tagTokenType::ttENVCHANGE:
+				if (!ParseEventChange()) {
+					return false;
+				}
+				break;
+			case tagTokenType::ttDONE:
+				if (!ParseDone()) {
+					return false;
+				}
+				else if (IsDone() && !HasMore() && m_buffer.GetSize()) {
 #ifndef NDEBUG
-                        std::cout << "Remaining bytes: " << m_buffer.GetSize() << "\n";
+					std::cout << "CSqlBatch::ParseStream/Remaining bytes: " << m_buffer.GetSize() << "\n";
 #endif
-                    }
-                    break;
-                default:
-                    assert(false);
-                    break;
-            }
-            if (m_tt != tagTokenType::ttZero) {
-                break;
-            }
-        }
-    }
+				}
+				break;
+			default:
+				assert(false);
+				break;
+			}
+			if (m_tt != tagTokenType::ttZero) {
+				assert(false); //shouldn't come here
+				return false;;
+			}
+		}
+		return true;
+	}
 
     bool CSqlBatch::ParseDone() {
-        if (m_buffer.GetSize() >= sizeof (m_Done)) {
-            m_buffer >> m_Done;
-            m_tt = tagTokenType::ttZero;
-            if (m_Done.Status == tagDoneStatus::dsFinal || (m_Done.Status & tagDoneStatus::dsMore) == tagDoneStatus::dsMore || (m_Done.Status & tagDoneStatus::dsCount) == tagDoneStatus::dsCount) {
-                m_posCol = INVALID_COL;
-                memset(&m_collation, 0, sizeof (m_collation));
-                m_cols = 0;
-                m_vCol.clear();
-                m_vDT.clear();
-                m_vNull.clear();
-                m_out.SetSize(0);
-            }
-            return true;
-        }
-        return false;
-    }
-
-    bool CSqlBatch::ParseErrorInfo() {
-        if (m_buffer.GetSize() > 2) {
-            unsigned short *header = (unsigned short *) m_buffer.GetBuffer();
-            if (*header <= m_buffer.GetSize()) {
-                unsigned short len;
-                TokenInfo ti;
-                m_buffer >> len >> ti.SQLErrorNumber >> ti.State >> ti.Class;
-                m_buffer >> len;
-                const char16_t *str = (const char16_t *) m_buffer.GetBuffer();
-                ti.ErrorMessage.assign(str, str + len);
-                m_buffer.Pop(((unsigned int) len) << 1);
-                unsigned char byteLen;
-                m_buffer >> byteLen;
-                str = (const char16_t *) m_buffer.GetBuffer();
-                ti.ServerName.assign(str, str + byteLen);
-                m_buffer.Pop(((unsigned int) byteLen) << 1);
-                m_buffer >> ti.ProcessNameLength >> ti.LineNumber;
-                m_vInfo.push_back(ti);
-                m_tt = tagTokenType::ttZero;
-                return true;
-            }
-        }
+		if (CTransManager::ParseDone()) {
+			if (m_Done.Status == tagDoneStatus::dsFinal || (m_Done.Status & tagDoneStatus::dsMore) == tagDoneStatus::dsMore || (m_Done.Status & tagDoneStatus::dsCount) == tagDoneStatus::dsCount) {
+				m_posCol = INVALID_COL;
+				memset(&m_collation, 0, sizeof(m_collation));
+				m_cols = 0;
+				m_vCol.clear();
+				m_vDT.clear();
+				m_vNull.clear();
+				m_out.SetSize(0);
+			}
+			return true;
+		}
         return false;
     }
 
     bool CSqlBatch::ParseEventChange() {
         if (m_buffer.GetSize() > 2) {
-            unsigned short *header = (unsigned short *) m_buffer.GetBuffer();
-            if (*header <= m_buffer.GetSize()) {
-                unsigned short len;
-                unsigned char b;
+			unsigned short len = *(unsigned short *) m_buffer.GetBuffer();
+            if (len + sizeof(unsigned short) <= m_buffer.GetSize()) {
                 tagEnvchangeType type;
                 m_buffer >> len >> type;
                 switch (type) {
                     case tagEnvchangeType::database:
                     {
-                        TokenEventChange tec;
-                        m_buffer >> b;
-                        tec.Type = type;
-                        const char16_t *str = (const char16_t *) m_buffer.GetBuffer();
-                        tec.NewValue.assign(str, str + b);
-                        m_buffer.Pop(((unsigned int) b) << 1);
-                        m_buffer >> b;
-                        if (b) {
-                            str = (const char16_t *) m_buffer.GetBuffer();
-                            tec.OldValue.assign(str, str + b);
-                            m_buffer.Pop(((unsigned int) b) << 1);
-                        }
-                        m_vEventChange.push_back(tec);
+                        StringEventChange sec;
+						m_vEventChange.push_back(sec);
+						ParseStringChange(type, m_vEventChange.back());
                     }
                         break;
+					case tagEnvchangeType::begin_trans:
+					case tagEnvchangeType::commit_trans:
+					case tagEnvchangeType::rollback_trans:
+					{
+						TransChange tc;
+						ParseTransChange(type, tc);
+						m_vTransChange.push_back(tc);
+					}
+						break;
                     default:
                         assert(false);
                         break;

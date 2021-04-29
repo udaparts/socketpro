@@ -1,13 +1,12 @@
 #ifndef _U_TDS_SQL_BATCH_H_
 #define _U_TDS_SQL_BATCH_H_
 
-#include "reqbase.h"
+#include "transmanager.h"
 
 namespace tds {
 
-    class CSqlBatch : public CReqBase {
+    class CSqlBatch : public CTransManager {
     private:
-        SPA::CScopeUQueue m_sb;
         SPA::CScopeUQueue m_sbOut;
 
         static constexpr unsigned short INVALID_COL = (~0);
@@ -67,15 +66,14 @@ namespace tds {
 
     public:
         bool GetClientMessage(unsigned char packet_id, const char16_t *sql, SPA::CUQueue &buffer);
-        void OnResponse(const unsigned char *data, unsigned int bytes);
 
     protected:
         void Reset();
+		bool ParseStream();
 
     private:
         bool ParseMeta();
         bool ParseEventChange();
-        bool ParseErrorInfo();
         bool ParseRow();
         bool ParseNBCRow();
         bool ParseDone();
@@ -85,12 +83,8 @@ namespace tds {
         bool ParseVariant(CDBColumnInfo *cinfo);
 
     private:
-        SPA::CUQueue &m_buffer;
         SPA::CUQueue &m_out;
-        TokenDone m_Done;
-        std::vector<TokenEventChange> m_vEventChange;
-        std::vector<TokenInfo> m_vInfo;
-        tagTokenType m_tt;
+		std::vector<StringEventChange> m_vEventChange;
         CDBColumnInfoArray m_vCol;
         bool m_meta;
         unsigned short m_cols;

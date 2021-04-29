@@ -34,18 +34,7 @@ protected:
             if (!m_deq.size())
                 break;
             tds::CReqBase *rb = m_deq.front();
-			try {
-				rb->OnResponse(m_buff.GetBuffer(), len);
-			}
-			catch (SPA::CUException &ex) {
-				std::cout << "serialization error: " << ex.what() << "\n";
-			}
-			catch (std::exception &ex) {
-				std::cout << "stl error: " << ex.what() << "\n";
-			}
-			catch (...) {
-				std::cout << "Unknown error\n";
-			}
+			rb->OnResponse(m_buff.GetBuffer(), len);
             m_buff.Pop(len);
             if (ph->Status == tds::tagPacketStatus::psEOM) {
                 m_deq.pop_front();
@@ -91,7 +80,7 @@ int main() {
     //sqlbatch.GetClientMessage(1, u"SELECT testid,myguid,mydate,myvariant,mybool,mymoney,mytinyint,mydateimeoffset,mytime,mydatetime2,mysmallmoney,mysmalldatetime,mynum,mybinary,myntext,myhid,mytimestamp,myxml FROM test_rare1", *sb);
 	//ShowBuffer(*sb);
 	//sqlbatch.GetClientMessage(1, u"SELECT * FROM SpatialTable;select * from test_rare1;select * from company;select * from employee;select * from pet;select * from vtest", *sb);
-	sqlbatch.GetClientMessage(1, u"update vtest set myvt=12345678902345 where testid=8", *sb);
+	sqlbatch.GetClientMessage(1, u"BEGIN TRANSACTION;update vtest set myvt=12345678902345 where testid=8;ROLLBACK", *sb);
 	res = handler->Send(sb->GetBuffer(), sb->GetSize());
     std::cout << "Press a key to shut down the application ......\n";
     ::getchar();

@@ -43,9 +43,6 @@ namespace tds {
 
     enum class tagTokenType : unsigned char {
         ttZero = 0,
-        ttFixedLength,
-        ttVariableLength,
-        ttVariableCount,
         ttOFFSET = 0x78,
         ttRETURNSTATUS = 0x79,
         ttCOLMETADATA = 0x81,
@@ -491,11 +488,17 @@ namespace tds {
         return flags;
     }
 
-    struct TokenEventChange {
+    struct StringEventChange {
         tagEnvchangeType Type;
         CDBString NewValue;
         CDBString OldValue;
     };
+
+	struct TransChange {
+		tagEnvchangeType Type;
+		UINT64 NewValue = 0;
+		UINT64 OldValue = 0;
+	};
 
     struct CollationChange {
         Collation NewValue;

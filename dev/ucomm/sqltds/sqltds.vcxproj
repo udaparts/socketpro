@@ -166,6 +166,7 @@
     <ClCompile Include="sessionstate.cpp" />
     <ClCompile Include="sqlbatch.cpp" />
     <ClCompile Include="sqltds.cpp" />
+    <ClCompile Include="transmanager.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\include\membuffer.h" />
@@ -176,6 +177,7 @@
     <ClInclude Include="sessionstate.h" />
     <ClInclude Include="sqlbatch.h" />
     <ClInclude Include="tdsdef.h" />
+    <ClInclude Include="transmanager.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

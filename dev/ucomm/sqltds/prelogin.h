@@ -47,7 +47,6 @@ namespace tds {
     public:
         CPrelogin(bool mars_enabled = false, tagEncryptionType et = tagEncryptionType::etNotSupported);
         bool GetClientMessage(unsigned char packet_id, SPA::CUQueue &buffer, const char *instanceName = "");
-        void OnResponse(const unsigned char *data, unsigned int bytes);
 
         inline bool MarEnabled() const {
             return m_bMars ? true : false;
@@ -65,6 +64,8 @@ namespace tds {
             return Version;
         }
 
+	protected:
+		bool ParseStream();
 
     private:
         unsigned char m_bMars;
