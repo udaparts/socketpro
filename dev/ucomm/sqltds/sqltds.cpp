@@ -16,7 +16,7 @@ bool CALLBACK CVCallback(bool preverified, int depth, int errorCode, const char 
 }
 
 class CTdsClient : public CBaseHandler{
-    public :
+public :
     CTdsClient(SessionHandle sh) : CBaseHandler(sh) {}
     std::deque<tds::CReqBase *> m_deq;
     CUQueue m_buff;
@@ -88,8 +88,10 @@ int main() {
     sb->SetSize(0);
     tds::CSqlBatch sqlbatch(true);
     handler->m_deq.push_back(&sqlbatch);
-    sqlbatch.GetClientMessage(1, u"select * from SpatialTable", *sb);
-	ShowBuffer(*sb);
+    //sqlbatch.GetClientMessage(1, u"SELECT testid,myguid,mydate,myvariant,mybool,mymoney,mytinyint,mydateimeoffset,mytime,mydatetime2,mysmallmoney,mysmalldatetime,mynum,mybinary,myntext,myhid,mytimestamp,myxml FROM test_rare1", *sb);
+	//ShowBuffer(*sb);
+	//sqlbatch.GetClientMessage(1, u"SELECT * FROM SpatialTable;select * from test_rare1;select * from company;select * from employee;select * from pet;select * from vtest", *sb);
+	sqlbatch.GetClientMessage(1, u"update vtest set myvt=12345678902345 where testid=8", *sb);
 	res = handler->Send(sb->GetBuffer(), sb->GetSize());
     std::cout << "Press a key to shut down the application ......\n";
     ::getchar();
