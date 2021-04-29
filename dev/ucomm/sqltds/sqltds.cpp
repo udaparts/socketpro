@@ -49,6 +49,9 @@ std::vector<unsigned char> GetSSPI();
 int main() {
     tds::CPrelogin pl(false);
     tds::CLogin7 login;
+	tds::CTransManager tmBegin;
+	tds::CSqlBatch sqlbatch(true);
+	tds::CTransManager tmEnd;
 
     SPA::CScopeUQueue sb;
     CSessionPool<CTdsClient> pool(1);
@@ -60,10 +63,15 @@ int main() {
 
     handler->m_deq.push_back(&pl);
     handler->m_deq.push_back(&login);
+	handler->m_deq.push_back(&tmBegin);
+	handler->m_deq.push_back(&sqlbatch);
+	handler->m_deq.push_back(&tmEnd);
+
     ok = pl.GetClientMessage(1, *sb);
     int res = handler->Send(sb->GetBuffer(), sb->GetSize());
     //ShowBuffer(*sb);
     sb->SetSize(0);
+
     tds::SqlLogin rec;
     rec.database = u"sqltestdb";
     rec.timeout = 11;
@@ -75,13 +83,23 @@ int main() {
     //ShowBuffer(*sb);
     res = handler->Send(sb->GetBuffer(), sb->GetSize());
     sb->SetSize(0);
-    tds::CSqlBatch sqlbatch(true);
-    handler->m_deq.push_back(&sqlbatch);
+
+	ok = tmBegin.GetClientMessage(1, tds::CTransManager::tagRequestType::rtBeginTrans, tds::CTransManager::tagIsolationLevel::ilReadCommitted, 0, *sb);
+	res = handler->Send(sb->GetBuffer(), sb->GetSize());
+	//ShowBuffer(*sb);
+	sb->SetSize(0);
+	ok = tmBegin.Wait(100);
+
     //sqlbatch.GetClientMessage(1, u"SELECT testid,myguid,mydate,myvariant,mybool,mymoney,mytinyint,mydateimeoffset,mytime,mydatetime2,mysmallmoney,mysmalldatetime,mynum,mybinary,myntext,myhid,mytimestamp,myxml FROM test_rare1", *sb);
 	//ShowBuffer(*sb);
-	//sqlbatch.GetClientMessage(1, u"SELECT * FROM SpatialTable;select * from test_rare1;select * from company;select * from employee;select * from pet;select * from vtest", *sb);
-	sqlbatch.GetClientMessage(1, u"BEGIN TRANSACTION;update vtest set myvt=12345678902345 where testid=8;ROLLBACK", *sb);
+	sqlbatch.GetClientMessage(1, u"SELECT * FROM SpatialTable;select * from test_rare1;select * from company;select * from employee;select * from pet;select * from vtest", *sb, tmBegin.GetTransDescriptor());
+	//sqlbatch.GetClientMessage(1, u"update vtest set myvt=12345678902345 where testid=8", *sb, tmBegin.GetTransDescriptor());
 	res = handler->Send(sb->GetBuffer(), sb->GetSize());
+	sb->SetSize(0);
+
+	ok = tmEnd.GetClientMessage(1, tds::CTransManager::tagRequestType::rtRollback, tds::CTransManager::tagIsolationLevel::ilCurrent, tmBegin.GetTransDescriptor(), *sb);
+	res = handler->Send(sb->GetBuffer(), sb->GetSize());
+
     std::cout << "Press a key to shut down the application ......\n";
     ::getchar();
     return 0;

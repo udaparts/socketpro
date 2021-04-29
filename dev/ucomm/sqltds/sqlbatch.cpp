@@ -22,21 +22,16 @@ namespace tds
 		CTransManager::Reset();
     }
 
-    bool CSqlBatch::GetClientMessage(unsigned char packet_id, const char16_t *sql, SPA::CUQueue & buffer) {
+    bool CSqlBatch::GetClientMessage(unsigned char packet_id, const char16_t *sql, SPA::CUQueue & buffer, SPA::UINT64 trans_decriptor) {
         Reset();
         SPA::CScopeUQueue sb;
         //Query packet
-        unsigned int len = 22;
-        unsigned int header_length = 18;
-        unsigned short trans_decriptor_type = 2;
-        SPA::UINT64 trans_decriptor = 0;
-        unsigned int outstanding_request_count = 1;
-        sb << len << header_length << trans_decriptor_type << trans_decriptor << outstanding_request_count;
+		TransactionDescriptor td(trans_decriptor);
+        sb << td;
         sb->Push((const unsigned char*) sql, (unsigned int) (SPA::GetLen(sql) << 1));
         PacketHeader ph(tagPacketType::ptBatch, packet_id);
         ph.Length = (unsigned short) (sb->GetSize() + sizeof (ph));
         ph.Length = ChangeEndian(ph.Length);
-        ph.Spid = 0;
         buffer << ph;
         buffer.Push(sb->GetBuffer(), sb->GetSize());
         return true;

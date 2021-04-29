@@ -395,8 +395,8 @@ namespace tds {
         }
         tagPacketType Type;
         tagPacketStatus Status = tagPacketStatus::psEOM;
-        Packet_Length Length;
-        SPID Spid;
+        Packet_Length Length = 0;
+        SPID Spid = 0;
         unsigned char PacketID;
         unsigned char Window = 0; //ignored
     };
@@ -417,6 +417,16 @@ namespace tds {
         unsigned short Operation = 0;
         UINT64 RowCount = 0;
     };
+
+	struct TransactionDescriptor {
+		TransactionDescriptor(SPA::UINT64 td) : TransDescriptor(td) {
+		}
+		unsigned int TotalLength = 22;
+		unsigned int Length = 18;
+		unsigned short Type = 2;
+		SPA::UINT64 TransDescriptor;
+		unsigned int RequestCount = 1;
+	};
 
     struct Collation {
         unsigned short CodePage = 0; //LCID
@@ -467,6 +477,7 @@ namespace tds {
     static_assert(sizeof (TokenDone) == 12, "Wrong TokenDone size");
     static_assert(sizeof (Collation) == 5, "Wrong Collation size");
     static_assert(sizeof (ColFlag) == 2, "Wrong ColFlag size");
+	static_assert(sizeof(TransactionDescriptor) == 22, "Wrong TransactionDescriptor size");
 
     static unsigned int ToUDBFlags(ColFlag cf) {
         unsigned int flags = 0;

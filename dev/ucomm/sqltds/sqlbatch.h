@@ -65,7 +65,7 @@ namespace tds {
 #pragma pack(pop)
 
     public:
-        bool GetClientMessage(unsigned char packet_id, const char16_t *sql, SPA::CUQueue &buffer);
+        bool GetClientMessage(unsigned char packet_id, const char16_t *sql, SPA::CUQueue &buffer, SPA::UINT64 trans_decriptor = 0);
 
     protected:
         void Reset();

@@ -1,11 +1,14 @@
 #include "reqbase.h"
+#include <chrono>
+using namespace std::chrono_literals;
 
 namespace tds
 {
 
     CReqBase::CReqBase() : m_buffer(*m_sb), m_tt(tagTokenType::ttZero), ResponseHeader(tagPacketType::ptInitial, 0) {
-        ResponseHeader.Spid = 0;
-        ResponseHeader.Length = 0;
+		if (m_buffer.GetMaxSize() >= SPA::DEFAULT_INITIAL_MEMORY_BUFFER_SIZE) {
+			m_buffer.ReallocBuffer(SPA::DEFAULT_INITIAL_MEMORY_BUFFER_SIZE);
+		}
     }
 
     CReqBase::~CReqBase() {
@@ -100,8 +103,17 @@ namespace tds
 		return false;
 	}
 
+	bool CReqBase::Wait(unsigned int milliseconds) {
+		CAutoLock al(m_cs);
+		if (IsDone() && !HasMore()) {
+			return true;
+		}
+		return (m_cv.wait_for(al, milliseconds * 1ms) == std::cv_status::no_timeout);
+	}
+
 	void CReqBase::OnResponse(const unsigned char *data, unsigned int bytes) {
 		assert(bytes >= sizeof(ResponseHeader));
+		CAutoLock al(m_cs);
 		memcpy(&ResponseHeader, data, sizeof(ResponseHeader));
 		ResponseHeader.Length = ChangeEndian(ResponseHeader.Length);
 		assert(ResponseHeader.Length == bytes);
@@ -126,6 +138,9 @@ namespace tds
 #ifndef NDEBUG
 			std::cout << "Unknown error\n";
 #endif
+		}
+		if (IsDone() && !HasMore()) {
+			m_cv.notify_all();
 		}
 	}
 }

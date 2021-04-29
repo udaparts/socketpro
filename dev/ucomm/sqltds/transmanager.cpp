@@ -25,6 +25,24 @@ namespace tds {
 		}
 	}
 
+	bool CTransManager::GetClientMessage(unsigned char packet_id, tagRequestType rt, tagIsolationLevel il, SPA::UINT64 trans_decriptor, SPA::CUQueue &buffer) {
+		Reset();
+		TransactionDescriptor td(trans_decriptor);
+		PacketHeader ph(tagPacketType::ptTransaction, packet_id);
+		ph.Length = (Packet_Length)(sizeof(ph) + sizeof(td) + sizeof(rt) + sizeof(il));
+		ph.Length = ChangeEndian(ph.Length);
+		buffer << ph << td << rt << il;
+		return true;
+	}
+
+	UINT64 CTransManager::GetTransDescriptor() {
+		CAutoLock al(m_cs);
+		if (m_vTransChange.size()) {
+			return m_vTransChange.front().NewValue;
+		}
+		return INVALID_NUMBER;
+	}
+
 	bool CTransManager::ParseStream() {
 		while (m_buffer.GetSize()) {
 			if (m_tt == tagTokenType::ttZero) {
@@ -68,7 +86,7 @@ namespace tds {
 							break;
 						}
 						m_tt = tagTokenType::ttZero;
-						return true;
+						break;
 					}
 				}
 				return false;

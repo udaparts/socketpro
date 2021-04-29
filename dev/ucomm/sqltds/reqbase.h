@@ -2,6 +2,8 @@
 #define _U_TDS_REQUEST_BASE_H_
 
 #include "tdsdef.h"
+#include <mutex>
+#include <condition_variable>
 
 namespace tds {
 
@@ -18,6 +20,7 @@ namespace tds {
         const PacketHeader& GetResponseHeader() const;
 		bool HasMore() const;
 		UINT64 GetCount() const;
+		virtual bool Wait(unsigned int ms);
 
     protected:
         virtual void Reset();
@@ -28,6 +31,9 @@ namespace tds {
 		virtual bool ParseStream() = 0;
 
     protected:
+		typedef std::unique_lock<std::mutex> CAutoLock;
+		std::mutex m_cs;
+		std::condition_variable m_cv;
 		SPA::CUQueue &m_buffer;
 		tagTokenType m_tt;
         PacketHeader ResponseHeader;

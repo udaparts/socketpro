@@ -311,7 +311,6 @@ namespace tds
 		PacketHeader ph(tagPacketType::ptLogin7, packet_id);
 		ph.Length = (Packet_Length)(sb->GetSize() + sizeof(PacketHeader));
 		ph.Length = ChangeEndian(ph.Length);
-		ph.Spid = 0;
 		buffer << ph;
 		buffer.Push(sb->GetBuffer(), sb->GetSize());
 		return true;
