@@ -81,6 +81,8 @@ namespace tds {
         bool ParseOrder();
         bool ParseData(tagDataType dt, unsigned char bytes, unsigned char scale);
         bool ParseVariant(CDBColumnInfo *cinfo);
+		bool ParseDoneInProc();
+		bool ParseReturnStatus();
 
     private:
         SPA::CUQueue &m_out;
@@ -95,6 +97,8 @@ namespace tds {
         UINT64 m_lenLarge;
         unsigned int m_endLarge;
         std::vector<unsigned short> m_vOrder;
+		DoneInProc m_dip;
+		unsigned int m_rs; //ReturnStatus;
     };
 
 }

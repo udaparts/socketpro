@@ -418,6 +418,8 @@ namespace tds {
         UINT64 RowCount = 0;
     };
 
+	typedef TokenDone DoneInProc;
+
 	struct TransactionDescriptor {
 		TransactionDescriptor(SPA::UINT64 td) : TransDescriptor(td) {
 		}

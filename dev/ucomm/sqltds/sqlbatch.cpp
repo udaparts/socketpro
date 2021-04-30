@@ -10,7 +10,8 @@ namespace tds
             m_cols(0),
             m_posCol(INVALID_COL),
             m_lenLarge(0),
-            m_endLarge(0) {
+            m_endLarge(0),
+		m_rs(0) {
     }
 
     void CSqlBatch::Reset() {
@@ -19,6 +20,8 @@ namespace tds
         m_cols = 0;
         m_vDT.clear();
         m_posCol = INVALID_COL;
+		m_dip.Status = tagDoneStatus::dsInitial;
+		m_rs = 0;
 		CTransManager::Reset();
     }
 
@@ -36,6 +39,24 @@ namespace tds
         buffer.Push(sb->GetBuffer(), sb->GetSize());
         return true;
     }
+
+	bool CSqlBatch::ParseDoneInProc() {
+		if (m_buffer.GetSize() >= sizeof(m_dip)) {
+			m_buffer >> m_dip;
+			m_tt = tagTokenType::ttZero;
+			return true;
+		}
+		return false;
+	}
+
+	bool CSqlBatch::ParseReturnStatus() {
+		if (m_buffer.GetSize() >= sizeof(m_rs)) {
+			m_buffer >> m_rs;
+			m_tt = tagTokenType::ttZero;
+			return true;
+		}
+		return false;
+	}
 
     bool CSqlBatch::ParseMeta() {
         do {
@@ -1205,6 +1226,17 @@ namespace tds
 					return false;
 				}
 				break;
+			case tagTokenType::ttDONEINPROC:
+				if (!ParseDoneInProc()) {
+					return false;
+				}
+				break;
+			case tagTokenType::ttRETURNSTATUS:
+				if (!ParseReturnStatus()) {
+					return false;
+				}
+				break;
+			case tagTokenType::ttDONEPROC:
 			case tagTokenType::ttDONE:
 				if (!ParseDone()) {
 					return false;
