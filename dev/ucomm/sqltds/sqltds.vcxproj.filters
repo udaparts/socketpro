@@ -68,5 +68,8 @@
     <ClInclude Include="transmanager.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\include\definebase.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

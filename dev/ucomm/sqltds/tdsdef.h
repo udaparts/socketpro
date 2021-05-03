@@ -205,6 +205,7 @@ namespace tds {
             case tagDataType::MONEY:
                 return VT_I8;
             case tagDataType::DATETIMEOFFSETN:
+				return VT_ARRAY | VT_I1;
             case tagDataType::TIMEN:
             case tagDataType::DATEN:
             case tagDataType::DATETIMN: //smalldatetime
@@ -474,6 +475,40 @@ namespace tds {
         unsigned short NullableUnknown : 1;
     };
 
+	struct SmallDateTime {
+		//days since January 1, 1900
+		unsigned short Date;
+		unsigned short Minute;
+	};
+
+	struct DateTime {
+		//days January 1, 1900
+		int Day;
+		unsigned int SecCount; //300 counts per second
+	};
+
+	//days since January 1, year 1
+
+	struct Date {
+		unsigned short Low;
+		char High;
+	};
+
+	//10-n second increments since 12 AM within a day
+	typedef unsigned int Time; // 3 bytes if 0 <= n < = 2.
+	// 4 bytes if 3 <= n < = 4.
+	// 5 bytes if 5 <= n < = 7.
+
+	struct DateTime2 {
+		Time Time;
+		Date Date;
+	};
+
+	struct DateTimeOffset : public DateTime2 {
+		//time zone offset MUST be between -840 and 840
+		short Zone;
+	};
+
 #pragma pack(pop)
     static_assert(sizeof (PacketHeader) == 8, "Wrong PacketHeader size");
     static_assert(sizeof (TokenDone) == 12, "Wrong TokenDone size");
@@ -527,6 +562,69 @@ namespace tds {
         unsigned char ProcessNameLength = 0;
         unsigned int LineNumber = 0;
     };
+
+	static constexpr int TDS_JDN_OFFSET_1_1_1 = 1721426;
+	static constexpr int TDS_JDN_OFFSET_1900_1_1 = 693595;
+	static constexpr unsigned int DATETIME_HOUR_TICKET = 60 * 60 * 300;
+	static constexpr unsigned int DATETIME_MINUTE_TICKET = 60 * 300;
+	static constexpr unsigned int DATETIME_SECOND_TICKET = 300;
+
+	//https://en.wikipedia.org/wiki/Julian_day#Gregorian_calendar_from_Julian_day_number
+	static int ToTdsJDN(int year, int month, int month_day) {
+		return (1461 * (year + 4800 + (month - 14) / 12)) / 4 + (367 * (month - 2 - 12 * ((month - 14) / 12))) / 12 - (3 * ((year + 4900 + (month - 14) / 12) / 100)) / 4 + month_day - 32075 - TDS_JDN_OFFSET_1_1_1;
+	}
+
+	static void ToYMD(Date date, int &year, int &month, int &month_day) {
+		int J = date.High;
+		J <<= 16;
+		J += date.Low;
+
+		J += TDS_JDN_OFFSET_1_1_1; //offset 01/01/01
+
+		int f = J + 1401 + (((4 * J + 274277) / 146097) * 3) / 4 - 38;
+		int e = 4 * f + 3;
+		int g = (e % 1461) / 4;
+		int h = 5 * g + 2;
+		month_day = (h % 153) / 5 + 1;
+		month = ((h / 153 + 2) % 12) + 1;
+		year = (e / 1461) - 4716 + (14 - month) / 12;
+	}
+
+	static void ToDateTime(DateTime dt, int &year, int &month, int &month_day, int &hour, int &minute, int &second, unsigned int &us) {
+		int dmy = dt.Day + TDS_JDN_OFFSET_1900_1_1;
+		Date date;
+		date.Low = (dmy & 0xffff);
+		date.High = (dmy >> 16) & 0xff;
+		ToYMD(date, year, month, month_day);
+		
+		hour = dt.SecCount / DATETIME_HOUR_TICKET;
+		unsigned int remain = (dt.SecCount % DATETIME_HOUR_TICKET);
+		
+		minute = remain / DATETIME_MINUTE_TICKET;
+		remain = (remain % DATETIME_MINUTE_TICKET);
+
+		second = remain / DATETIME_SECOND_TICKET;
+		us = (remain % DATETIME_SECOND_TICKET);
+		us *= 10;
+		double d = us;
+		d = d / 3 + 0.5;
+		us = (unsigned int) d;
+		us *= 1000;
+	}
+
+	static void ToDateTime(Date dt, SPA::UINT64 time, unsigned char scale, int &year, int &month, int &month_day, int &hour, int &minute, int &second, unsigned int &us) {
+		ToYMD(dt, year, month, month_day);
+		assert(scale <= 7);
+		unsigned int p = (unsigned int)pow(10, scale);
+		unsigned int fraction = (unsigned int) (time % p);
+		unsigned int day_seconds = (unsigned int)(time / p);
+		hour = (int)(day_seconds / 3600);
+		day_seconds = (day_seconds % 3600);
+		minute = (int)(day_seconds / 60);
+		second = (day_seconds % 60);
+		double d = fraction / pow(10, (char)scale - 6) + 0.5;
+		us = (unsigned int)d;
+	}
 
     struct ISerialize {
         virtual bool SaveTo(SPA::CUQueue &buff) = 0;

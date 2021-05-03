@@ -774,74 +774,156 @@ namespace tds
                 break;
             case tagDataType::DATETIME:
             {
+				unsigned int us;
                 DateTime dt;
-                m_buffer >> dt; //already tested
-                m_out << (VARTYPE) VT_DATE << dt;
+                m_buffer >> dt;
+				std::tm tm;
+				ToDateTime(dt, tm.tm_year, tm.tm_mon, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec, us);
+				SPA::UDateTime udt(tm, us);
+                m_out << (VARTYPE) VT_DATE << udt.time;
             }
                 break;
             case tagDataType::DATETIMEOFFSETN:
             {
-                DateTime2 dt;
-                if (scale >= 5 && scale <= 7) {
-                    unsigned char time[6] = {0};
-                    m_buffer.Pop(time, 5);
-                    m_buffer >> dt.Date;
-                } else if (scale == 3 || scale == 4) {
-                    m_buffer >> dt;
-                } else {
-                    unsigned char time[3] = {0};
-                    m_buffer.Pop(time, 3);
-                    m_buffer >> dt.Date;
-                }
-                unsigned short offset = 0;
-                m_buffer >> offset;
-                UINT64 udt = *(UINT64*) & dt;
-                m_out << (VARTYPE) VT_DATE << udt;
+				short offset;
+				unsigned int us;
+				std::tm tm;
+				Date dt;
+				assert(scale <= 7);
+				if (scale >= 7) {
+
+				}
+				else if (scale >= 5 && scale < 7) {
+					unsigned int low;
+					unsigned char high;
+					m_buffer >> low >> high;
+					SPA::UINT64 time = high;
+					time <<= 32;
+					time += low;
+					m_buffer >> dt;
+					ToDateTime(dt, time, scale, tm.tm_year, tm.tm_mon, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec, us);
+				}
+				else if (scale == 3 || scale == 4) {
+					unsigned int time;
+					m_buffer >> time >> dt;
+					ToDateTime(dt, time, scale, tm.tm_year, tm.tm_mon, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec, us);
+				}
+				else {
+					unsigned short low;
+					unsigned char high;
+					m_buffer >> low >> high >> dt;
+					unsigned int time = high;
+					time <<= 16;
+					time += low;
+					ToDateTime(dt, time, scale, tm.tm_year, tm.tm_mon, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec, us);
+				}
+				char datetime[32] = { 0 };
+				tm.tm_year -= 1900;
+				tm.tm_mon -= 1;
+				SPA::UDateTime udt(tm, us);
+				udt.ToDBString(datetime, sizeof(datetime));
+				m_buffer >> offset;
+				bool neg = false;
+				if (offset < 0) {
+					offset = (-offset);
+					neg = true;
+				}
+				char os[8] = { 0 };
+#ifdef WIN32_64
+				int len = ::sprintf_s(os, sizeof(os), " %s%02d:%02d", neg ? "-" : "+", offset / 60, (offset % 60));
+#else
+				int len ::sprintf(os, " %s%02d:%02d", neg ? "-" : "+", offset / 60, (offset % 60));
+#endif
+				unsigned int len0 = (unsigned int) ::strlen(datetime);
+				m_out << (VARTYPE)(VT_ARRAY | VT_I1);
+				m_out << (len0 + (unsigned int)len);
+				m_out.Push((const unsigned char*)datetime, len0);
+				m_out.Push((const unsigned char*)os, (unsigned int)len);
             }
                 break;
             case tagDataType::DATETIME2N:
             case tagDataType::DATETIMN:
-                if (bytes == 8 && scale == 0) {
-                    UINT64 datetime;
-                    m_buffer >> datetime;
-                    m_out << (VARTYPE) VT_DATE << datetime;
-                } else {
-                    DateTime2 dt;
-                    if (scale >= 5 && scale <= 7) {
-                        //assert(bytes == 8);
-                        unsigned char time[6] = {0};
-                        m_buffer.Pop(time, 5);
-                        m_buffer >> dt.Date;
-                    } else if (scale == 3 || scale == 4) {
-                        //assert(bytes == 7);
-                        m_buffer >> dt;
-                    } else {
-                        unsigned char time[3] = {0};
-                        //assert(bytes == 6);
-                        m_buffer.Pop(time, 3);
-                        m_buffer >> dt.Date;
-                    }
-                    UINT64 udt = *(UINT64*) & dt;
-                    m_out << (VARTYPE) VT_DATE << udt;
-                }
+			{
+				unsigned int us;
+				std::tm tm;
+				if (bytes == 8 && scale == 0) {
+					DateTime dt;
+					m_buffer >> dt;
+					ToDateTime(dt, tm.tm_year, tm.tm_mon, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec, us);
+				}
+				else {
+					Date dt;
+					assert(scale <= 7);
+					if (scale >= 7) {
+
+					}
+					else if (scale >= 5 && scale < 7) {
+						unsigned int low;
+						unsigned char high;
+						m_buffer >> low >> high;
+						SPA::UINT64 time = high;
+						time <<= 32;
+						time += low;
+						m_buffer >> dt;
+						ToDateTime(dt, time, scale, tm.tm_year, tm.tm_mon, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec, us);
+					}
+					else if (scale == 3 || scale == 4) {
+						unsigned int time;
+						m_buffer >> time >> dt;
+						ToDateTime(dt, time, scale, tm.tm_year, tm.tm_mon, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec, us);
+					}
+					else {
+						unsigned short low;
+						unsigned char high;
+						m_buffer >> low >> high >> dt;
+						unsigned int time = high;
+						time <<= 16;
+						time += low;
+						ToDateTime(dt, time, scale, tm.tm_year, tm.tm_mon, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec, us);
+					}
+				}
+				tm.tm_year -= 1900;
+				tm.tm_mon -= 1;
+				SPA::UDateTime udt(tm, us);
+				m_out << (VARTYPE)VT_DATE << udt.time;
+			}
                 break;
             case tagDataType::TIMEN:
             {
-                DateTime2 dt;
-                if (scale >= 5 && scale <= 7) {
-                    assert(bytes == 5);
-                    unsigned char time[6] = {0};
-                    m_buffer.Pop(time, 5);
-                } else if (scale == 3 || scale == 4) {
-                    assert(bytes == 4);
-                    m_buffer >> dt.Time;
-                } else {
-                    unsigned char time[3] = {0};
-                    assert(bytes == 3);
-                    m_buffer.Pop(time, 3);
-                }
-                UINT64 udt = *(UINT64*) & dt;
-                m_out << (VARTYPE) VT_DATE << udt;
+				unsigned int us;
+				Date dt;
+				dt.High = 0;
+				dt.Low = 0;
+				assert(scale <= 7);
+				std::tm tm;
+				if (scale >= 7) {
+
+				}
+				else if (scale >= 5 && scale < 7) {
+					unsigned int low;
+					unsigned char high;
+					m_buffer >> low >> high;
+					SPA::UINT64 time = high;
+					time <<= 32;
+					time += low;
+					ToDateTime(dt, time, scale, tm.tm_year, tm.tm_mon, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec, us);
+				}
+				else if (scale == 3 || scale == 4) {
+					unsigned int time;
+					m_buffer >> time;
+					ToDateTime(dt, time, scale, tm.tm_year, tm.tm_mon, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec, us);
+				}
+				else {
+					unsigned short low;
+					unsigned char high;
+					m_buffer >> low >> high;
+					unsigned int time = high;
+					time <<= 16;
+					time += low;
+					ToDateTime(dt, time, scale, tm.tm_year, tm.tm_mon, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec, us);
+				}
+				SPA::UDateTime udt(tm, us);
+				m_out << (VARTYPE)VT_DATE << udt.time;
             }
                 break;
             case tagDataType::FLOAT:
@@ -860,6 +942,8 @@ namespace tds
                 UINT64 dt = 0;
                 Date date;
                 m_buffer >> date;
+				int year, month, month_day;
+				ToYMD(date, year, month, month_day);
                 m_out << (VARTYPE) VT_DATE << dt;
             }
                 break;
