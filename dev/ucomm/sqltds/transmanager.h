@@ -31,7 +31,7 @@ namespace tds {
 		static_assert(sizeof(tagIsolationLevel) == 2, "Wrong tagIsolationLevel size");
 
 	public:
-		bool GetClientMessage(unsigned char packet_id, tagRequestType rt, tagIsolationLevel il, SPA::UINT64 trans_decriptor, SPA::CUQueue &buffer);
+		bool GetClientMessage(tagRequestType rt, tagIsolationLevel il, SPA::UINT64 trans_decriptor, SPA::CUQueue &buffer);
 		UINT64 GetTransDescriptor();
 
 	protected:

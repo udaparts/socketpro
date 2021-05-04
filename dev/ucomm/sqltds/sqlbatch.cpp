@@ -25,14 +25,14 @@ namespace tds
 		CTransManager::Reset();
     }
 
-    bool CSqlBatch::GetClientMessage(unsigned char packet_id, const char16_t *sql, SPA::CUQueue & buffer, SPA::UINT64 trans_decriptor) {
+    bool CSqlBatch::GetClientMessage(const char16_t *sql, SPA::CUQueue & buffer, SPA::UINT64 trans_decriptor) {
         Reset();
         SPA::CScopeUQueue sb;
         //Query packet
 		TransactionDescriptor td(trans_decriptor);
         sb << td;
         sb->Push((const unsigned char*) sql, (unsigned int) (SPA::GetLen(sql) << 1));
-        PacketHeader ph(tagPacketType::ptBatch, packet_id);
+        PacketHeader ph(tagPacketType::ptBatch, 1);
         ph.Length = (unsigned short) (sb->GetSize() + sizeof (ph));
         ph.Length = ChangeEndian(ph.Length);
         buffer << ph;
@@ -843,7 +843,20 @@ namespace tds
 			{
 				unsigned int us;
 				std::tm tm;
-				if (bytes == 8 && scale == 0) {
+				tm.tm_isdst = -1;
+				tm.tm_wday = 0;
+				tm.tm_yday = 0;
+				if (bytes == 4 && scale == 0) { //smalldatetime
+					unsigned short days, minutes;
+					m_buffer >> days >> minutes;
+					unsigned int time = minutes;
+					time *= 18000; //60 * 300
+					DateTime dt;
+					dt.Day = days;
+					dt.SecCount = time;
+					ToDateTime(dt, tm.tm_year, tm.tm_mon, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec, us);
+				}
+				else if (bytes == 8 && scale == 0) { //datetime
 					DateTime dt;
 					m_buffer >> dt;
 					ToDateTime(dt, tm.tm_year, tm.tm_mon, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec, us);

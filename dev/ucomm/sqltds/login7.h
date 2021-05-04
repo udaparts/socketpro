@@ -135,7 +135,7 @@ namespace tds {
         CLogin7();
 
     public:
-        bool GetClientMessage(unsigned char packet_id, const SqlLogin &rec, FeatureExtension requestedFeatures, SPA::CUQueue &buffer);
+        bool GetClientMessage(const SqlLogin &rec, FeatureExtension requestedFeatures, SPA::CUQueue &buffer);
 
     protected:
         void Reset();

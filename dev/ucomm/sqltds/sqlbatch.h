@@ -20,6 +20,24 @@ namespace tds {
     public:
         CSqlBatch(bool meta);
 
+		struct RPCOption {
+			RPCOption() {
+				::memset(this, 0, sizeof(RPCOption));
+			}
+			unsigned char fWithRecomp : 1;
+			unsigned char fNoMetaData : 1;
+			unsigned char fReuseMetaData : 1;
+		};
+
+		struct RPCStatus {
+			RPCStatus() {
+				::memset(this, 0, sizeof(RPCStatus));
+			}
+			unsigned char fByRefValue : 1;
+			unsigned char fDefaultValue : 1;
+			unsigned char fEncrypted : 1;
+		};
+
 #pragma pack(push,1)
 
         struct MetaInfoHeader {
@@ -31,7 +49,7 @@ namespace tds {
 #pragma pack(pop)
 
     public:
-        bool GetClientMessage(unsigned char packet_id, const char16_t *sql, SPA::CUQueue &buffer, SPA::UINT64 trans_decriptor = 0);
+        bool GetClientMessage(const char16_t *sql, SPA::CUQueue &buffer, SPA::UINT64 trans_decriptor = 0);
 
     protected:
         void Reset();

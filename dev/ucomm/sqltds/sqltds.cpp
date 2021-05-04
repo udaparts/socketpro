@@ -104,7 +104,7 @@ int main() {
 	handler->m_deq.push_back(&sqlbatch);
 	//handler->m_deq.push_back(&tmEnd);
 
-	ok = pl.GetClientMessage(1, *sb);
+	ok = pl.GetClientMessage(*sb);
 	int res = handler->Send(sb->GetBuffer(), sb->GetSize());
 	//ShowBuffer(*sb);
 	sb->SetSize(0);
@@ -116,27 +116,27 @@ int main() {
 	rec.password = u"Smash123";
 	rec.serverName = tds::CDBString(serverName, serverName + strlen(serverName));
 	tds::CLogin7::FeatureExtension fe;
-	ok = login.GetClientMessage(1, rec, fe, *sb);
+	ok = login.GetClientMessage(rec, fe, *sb);
 	//ShowBuffer(*sb);
 	res = handler->Send(sb->GetBuffer(), sb->GetSize());
 	sb->SetSize(0);
 
-	//ok = tmBegin.GetClientMessage(1, tds::CTransManager::tagRequestType::rtBeginTrans, tds::CTransManager::tagIsolationLevel::ilReadCommitted, 0, *sb);
+	//ok = tmBegin.GetClientMessage(tds::CTransManager::tagRequestType::rtBeginTrans, tds::CTransManager::tagIsolationLevel::ilReadCommitted, 0, *sb);
 	//res = handler->Send(sb->GetBuffer(), sb->GetSize());
 	////ShowBuffer(*sb);
 	//sb->SetSize(0);
 	//ok = tmBegin.Wait(100);
 
-	//sqlbatch.GetClientMessage(1, u"SELECT testid,myguid,mydate,myvariant,mybool,mymoney,mytinyint,mydateimeoffset,mytime,mydatetime2,mysmallmoney,mysmalldatetime,mynum,mybinary,myntext,myhid,mytimestamp,myxml FROM test_rare1", *sb);
+	//sqlbatch.GetClientMessage(u"SELECT testid,myguid,mydate,myvariant,mybool,mymoney,mytinyint,mydateimeoffset,mytime,mydatetime2,mysmallmoney,mysmalldatetime,mynum,mybinary,myntext,myhid,mytimestamp,myxml FROM test_rare1", *sb);
 	//ShowBuffer(*sb);
-	//sqlbatch.GetClientMessage(1, u"SELECT * FROM SpatialTable;select * from test_rare1;select * from company;select * from employee;select * from pet;select * from vtest", *sb, tmBegin.GetTransDescriptor());
-	//sqlbatch.GetClientMessage(1, u"exec sp_sproc_columns sp_TestProc;SELECT * FROM SpatialTable;select * from test_rare1;select * from company;select * from employee", *sb, tmBegin.GetTransDescriptor());
+	//sqlbatch.GetClientMessage(u"SELECT * FROM SpatialTable;select * from test_rare1;select * from company;select * from employee;select * from pet;select * from vtest", *sb, tmBegin.GetTransDescriptor());
+	//sqlbatch.GetClientMessage(u"exec sp_sproc_columns sp_TestProc;SELECT * FROM SpatialTable;select * from test_rare1;select * from company;select * from employee", *sb, tmBegin.GetTransDescriptor());
 
-	sqlbatch.GetClientMessage(1, u"SELECT CONVERT(time, SYSDATETIME())", *sb);
+	sqlbatch.GetClientMessage(u"SELECT * from test_rare1", *sb);
 	res = handler->Send(sb->GetBuffer(), sb->GetSize());
 	sb->SetSize(0);
 
-	/*ok = tmEnd.GetClientMessage(1, tds::CTransManager::tagRequestType::rtRollback, tds::CTransManager::tagIsolationLevel::ilCurrent, tmBegin.GetTransDescriptor(), *sb);
+	/*ok = tmEnd.GetClientMessage(tds::CTransManager::tagRequestType::rtRollback, tds::CTransManager::tagIsolationLevel::ilCurrent, tmBegin.GetTransDescriptor(), *sb);
 	res = handler->Send(sb->GetBuffer(), sb->GetSize());*/
 
 	std::cout << "Press a key to shut down the application ......\n";

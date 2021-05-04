@@ -13,7 +13,7 @@ namespace tds
             InstFailed(0) {
     }
 
-    bool CPrelogin::GetClientMessage(unsigned char packet_id, SPA::CUQueue &buffer, const char *instanceName) {
+    bool CPrelogin::GetClientMessage(SPA::CUQueue &buffer, const char *instanceName) {
         Reset();
         SPA::CScopeUQueue sbHeader;
         Option option;
@@ -65,7 +65,7 @@ namespace tds
         sbHeader << TOKEN_TERMINATOR;
         unsigned short total_len = (unsigned short) (sbHeader->GetSize() + sbData->GetSize() + sizeof (PacketHeader));
         Option *op = (Option*) sbHeader->GetBuffer();
-        PacketHeader ph(tagPacketType::ptPrelogin, packet_id);
+        PacketHeader ph(tagPacketType::ptPrelogin, 1);
         ph.Length = ChangeEndian(total_len);
         unsigned short offset = (unsigned short) sbHeader->GetSize();
         for (unsigned int n = 0; n < options; ++n) {

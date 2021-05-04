@@ -15,7 +15,7 @@ namespace tds
 		CReqBase::Reset();
 	}
 
-	bool CLogin7::GetClientMessage(unsigned char packet_id, const SqlLogin &rec, FeatureExtension requestedFeatures, SPA::CUQueue & buffer) {
+	bool CLogin7::GetClientMessage(const SqlLogin &rec, FeatureExtension requestedFeatures, SPA::CUQueue & buffer) {
 		Reset();
 		CDBString userName;
 		std::vector<unsigned char> encryptedPassword;
@@ -308,7 +308,7 @@ namespace tds
 			sb << TOKEN_TERMINATOR;
 			 */
 		}
-		PacketHeader ph(tagPacketType::ptLogin7, packet_id);
+		PacketHeader ph(tagPacketType::ptLogin7, 1);
 		ph.Length = (Packet_Length)(sb->GetSize() + sizeof(PacketHeader));
 		ph.Length = ChangeEndian(ph.Length);
 		buffer << ph;
