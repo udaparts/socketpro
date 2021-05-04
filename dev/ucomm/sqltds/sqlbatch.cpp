@@ -790,10 +790,7 @@ namespace tds
 				std::tm tm;
 				Date dt;
 				assert(scale <= 7);
-				if (scale >= 7) {
-
-				}
-				else if (scale >= 5 && scale < 7) {
+				if (scale >= 5 && scale <= 7) {
 					unsigned int low;
 					unsigned char high;
 					m_buffer >> low >> high;
@@ -854,10 +851,7 @@ namespace tds
 				else {
 					Date dt;
 					assert(scale <= 7);
-					if (scale >= 7) {
-
-					}
-					else if (scale >= 5 && scale < 7) {
+					if (scale >= 5 && scale <= 7) {
 						unsigned int low;
 						unsigned char high;
 						m_buffer >> low >> high;
@@ -891,27 +885,22 @@ namespace tds
             case tagDataType::TIMEN:
             {
 				unsigned int us;
-				Date dt;
-				dt.High = 0;
-				dt.Low = 0;
 				assert(scale <= 7);
 				std::tm tm;
-				if (scale >= 7) {
-
-				}
-				else if (scale >= 5 && scale < 7) {
+				::memset(&tm, 0, sizeof(tm));
+				if (scale >= 5 && scale <= 7) {
 					unsigned int low;
 					unsigned char high;
 					m_buffer >> low >> high;
 					SPA::UINT64 time = high;
 					time <<= 32;
 					time += low;
-					ToDateTime(dt, time, scale, tm.tm_year, tm.tm_mon, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec, us);
+					ToTime(time, scale, tm.tm_hour, tm.tm_min, tm.tm_sec, us);
 				}
 				else if (scale == 3 || scale == 4) {
 					unsigned int time;
 					m_buffer >> time;
-					ToDateTime(dt, time, scale, tm.tm_year, tm.tm_mon, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec, us);
+					ToTime(time, scale, tm.tm_hour, tm.tm_min, tm.tm_sec, us);
 				}
 				else {
 					unsigned short low;
@@ -920,7 +909,7 @@ namespace tds
 					unsigned int time = high;
 					time <<= 16;
 					time += low;
-					ToDateTime(dt, time, scale, tm.tm_year, tm.tm_mon, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec, us);
+					ToTime(time, scale, tm.tm_hour, tm.tm_min, tm.tm_sec, us);
 				}
 				SPA::UDateTime udt(tm, us);
 				m_out << (VARTYPE)VT_DATE << udt.time;
@@ -943,7 +932,7 @@ namespace tds
                 Date date;
                 m_buffer >> date;
 				int year, month, month_day;
-				ToYMD(date, year, month, month_day);
+				ToDate(date, year, month, month_day);
                 m_out << (VARTYPE) VT_DATE << dt;
             }
                 break;

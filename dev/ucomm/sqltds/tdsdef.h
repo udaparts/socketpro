@@ -494,21 +494,6 @@ namespace tds {
 		char High;
 	};
 
-	//10-n second increments since 12 AM within a day
-	typedef unsigned int Time; // 3 bytes if 0 <= n < = 2.
-	// 4 bytes if 3 <= n < = 4.
-	// 5 bytes if 5 <= n < = 7.
-
-	struct DateTime2 {
-		Time Time;
-		Date Date;
-	};
-
-	struct DateTimeOffset : public DateTime2 {
-		//time zone offset MUST be between -840 and 840
-		short Zone;
-	};
-
 #pragma pack(pop)
     static_assert(sizeof (PacketHeader) == 8, "Wrong PacketHeader size");
     static_assert(sizeof (TokenDone) == 12, "Wrong TokenDone size");
@@ -574,10 +559,16 @@ namespace tds {
 		return (1461 * (year + 4800 + (month - 14) / 12)) / 4 + (367 * (month - 2 - 12 * ((month - 14) / 12))) / 12 - (3 * ((year + 4900 + (month - 14) / 12) / 100)) / 4 + month_day - 32075 - TDS_JDN_OFFSET_1_1_1;
 	}
 
-	static void ToYMD(Date date, int &year, int &month, int &month_day) {
+	static void ToDate(Date date, int &year, int &month, int &month_day) {
 		int J = date.High;
 		J <<= 16;
 		J += date.Low;
+		if (!J) {
+			year = 0;
+			month = 0;
+			month_day = 0;
+			return;
+		}
 
 		J += TDS_JDN_OFFSET_1_1_1; //offset 01/01/01
 
@@ -595,7 +586,7 @@ namespace tds {
 		Date date;
 		date.Low = (dmy & 0xffff);
 		date.High = (dmy >> 16) & 0xff;
-		ToYMD(date, year, month, month_day);
+		ToDate(date, year, month, month_day);
 		
 		hour = dt.SecCount / DATETIME_HOUR_TICKET;
 		unsigned int remain = (dt.SecCount % DATETIME_HOUR_TICKET);
@@ -612,11 +603,10 @@ namespace tds {
 		us *= 1000;
 	}
 
-	static void ToDateTime(Date dt, SPA::UINT64 time, unsigned char scale, int &year, int &month, int &month_day, int &hour, int &minute, int &second, unsigned int &us) {
-		ToYMD(dt, year, month, month_day);
+	static void ToTime(SPA::UINT64 time, unsigned char scale, int &hour, int &minute, int &second, unsigned int &us) {
 		assert(scale <= 7);
 		unsigned int p = (unsigned int)pow(10, scale);
-		unsigned int fraction = (unsigned int) (time % p);
+		unsigned int fraction = (unsigned int)(time % p);
 		unsigned int day_seconds = (unsigned int)(time / p);
 		hour = (int)(day_seconds / 3600);
 		day_seconds = (day_seconds % 3600);
@@ -624,6 +614,11 @@ namespace tds {
 		second = (day_seconds % 60);
 		double d = fraction / pow(10, (char)scale - 6) + 0.5;
 		us = (unsigned int)d;
+	}
+
+	static void ToDateTime(Date dt, SPA::UINT64 time, unsigned char scale, int &year, int &month, int &month_day, int &hour, int &minute, int &second, unsigned int &us) {
+		ToDate(dt, year, month, month_day);
+		ToTime(time, scale, hour, minute, second, us);
 	}
 
     struct ISerialize {

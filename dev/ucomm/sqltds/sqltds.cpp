@@ -54,21 +54,15 @@ struct MyDateTime {
 	SPA::UINT64 Day : 5;
 	SPA::UINT64 Month : 4;
 	SPA::UINT64 Year : 18;
-
-	MyDateTime(SPA::UINT64 dt = 0) {
-		memcpy(this, &dt, sizeof(MyDateTime));
-	}
-
-	SPA::UINT64 GetValue() {
-		return *(SPA::UINT64*)this;
-	}
-
-	void SetValue(SPA::UINT64 dt) {
-		memcpy(this, &dt, sizeof(dt));
-	}
 };
 static_assert(sizeof(MyDateTime) == sizeof(SPA::UINT64), "Wrong MyDateTime size");
 
+
+union MyDateTime2 {
+	MyDateTime DateTime;
+	SPA::UINT64 time = 0;
+};
+static_assert(sizeof(MyDateTime2) == sizeof(SPA::UINT64), "Wrong MyDateTime2 size");
 
 
 int main() {
@@ -82,23 +76,19 @@ int main() {
 	tds::CSqlBatch sqlbatch(true);
 	//tds::CTransManager tmEnd;
 
-	MyDateTime mdt;
-	mdt.Year = 121;
-	mdt.Month = 4;
-	mdt.Day = 3;
-
-	SPA::UINT64 value = mdt.GetValue();
-
-	std::tm dt;
-	memset(&dt, 0, sizeof(dt));
-	dt.tm_year = 121;
-	dt.tm_mon = 4;
-	dt.tm_mday = 3;
-	SPA::UDateTime udt;
-	udt.Set(dt);
-
-	SPA::UINT64 myvalue = udt.time;
-
+	MyDateTime2 mdt;
+	mdt.time = 8532668707717584;
+/*
+	MyDateTime &dt = mdt.DateTime;
+	dt.Year = 121;
+	dt.Month = 4;
+	dt.Day = 3;
+	dt.Hour = 10;
+	dt.Minute = 47;
+	dt.Second = 52;
+	dt.MicroSecond = 999888;
+*/
+	SPA::UINT64 value = mdt.time;
 
 	SPA::CScopeUQueue sb;
 	CSessionPool<CTdsClient> pool(1);
@@ -142,7 +132,7 @@ int main() {
 	//sqlbatch.GetClientMessage(1, u"SELECT * FROM SpatialTable;select * from test_rare1;select * from company;select * from employee;select * from pet;select * from vtest", *sb, tmBegin.GetTransDescriptor());
 	//sqlbatch.GetClientMessage(1, u"exec sp_sproc_columns sp_TestProc;SELECT * FROM SpatialTable;select * from test_rare1;select * from company;select * from employee", *sb, tmBegin.GetTransDescriptor());
 
-	sqlbatch.GetClientMessage(1, u"DECLARE @thedate datetimeoffset = '2021-05-03 18:08:10.1861538 -04:00'; select @thedate", *sb);
+	sqlbatch.GetClientMessage(1, u"SELECT CONVERT(time, SYSDATETIME())", *sb);
 	res = handler->Send(sb->GetBuffer(), sb->GetSize());
 	sb->SetSize(0);
 
