@@ -35,7 +35,7 @@ private:
 
 private:
     SSL *m_pSsl;
-    boost::mutex m_mutex;
+    std::mutex m_mutex;
     std::string m_Issuer;
     std::string m_Subject;
     std::string m_NotBefore;

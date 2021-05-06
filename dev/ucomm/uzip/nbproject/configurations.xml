@@ -42,13 +42,10 @@
       <itemPath>lz4.c</itemPath>
       <itemPath>../include/membuffer.cpp</itemPath>
       <itemPath>mqfile.cpp</itemPath>
-      <itemPath>../../../../Downloads/boost/libs/thread/src/pthread/once.cpp</itemPath>
       <itemPath>../../../../Downloads/boost/libs/filesystem/src/operations.cpp</itemPath>
       <itemPath>../../../../Downloads/boost/libs/filesystem/src/path.cpp</itemPath>
       <itemPath>sha1.cpp</itemPath>
-      <itemPath>../../../../Downloads/boost/libs/thread/src/pthread/thread.cpp</itemPath>
       <itemPath>trees.c</itemPath>
-      <itemPath>../../../../Downloads/boost/libs/thread/src/tss_null.cpp</itemPath>
       <itemPath>uncompr.c</itemPath>
       <itemPath>uzip.cpp</itemPath>
       <itemPath>zutil.c</itemPath>
@@ -89,21 +86,6 @@
             flavor2="0">
       </item>
       <item path="../../../../Downloads/boost/libs/filesystem/src/path.cpp"
-            ex="false"
-            tool="0"
-            flavor2="0">
-      </item>
-      <item path="../../../../Downloads/boost/libs/thread/src/pthread/once.cpp"
-            ex="false"
-            tool="0"
-            flavor2="0">
-      </item>
-      <item path="../../../../Downloads/boost/libs/thread/src/pthread/thread.cpp"
-            ex="false"
-            tool="0"
-            flavor2="0">
-      </item>
-      <item path="../../../../Downloads/boost/libs/thread/src/tss_null.cpp"
             ex="false"
             tool="0"
             flavor2="0">
@@ -217,21 +199,6 @@
             flavor2="0">
       </item>
       <item path="../../../../Downloads/boost/libs/filesystem/src/path.cpp"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="../../../../Downloads/boost/libs/thread/src/pthread/once.cpp"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="../../../../Downloads/boost/libs/thread/src/pthread/thread.cpp"
-            ex="false"
-            tool="1"
-            flavor2="0">
-      </item>
-      <item path="../../../../Downloads/boost/libs/thread/src/tss_null.cpp"
             ex="false"
             tool="1"
             flavor2="0">

@@ -37,9 +37,6 @@ OBJECTDIR=${CND_BUILDDIR}/${CND_CONF}/${CND_PLATFORM}
 OBJECTFILES= \
 	${OBJECTDIR}/_ext/473765425/operations.o \
 	${OBJECTDIR}/_ext/473765425/path.o \
-	${OBJECTDIR}/_ext/1761269253/once.o \
-	${OBJECTDIR}/_ext/1761269253/thread.o \
-	${OBJECTDIR}/_ext/53904016/tss_null.o \
 	${OBJECTDIR}/_ext/302208857/base64.o \
 	${OBJECTDIR}/_ext/262068057/membuffer.o \
 	${OBJECTDIR}/adler32.o \
@@ -96,21 +93,6 @@ ${OBJECTDIR}/_ext/473765425/path.o: ../../../../Downloads/boost/libs/filesystem/
 	${MKDIR} -p ${OBJECTDIR}/_ext/473765425
 	${RM} "$@.d"
 	$(COMPILE.cc) -O3 -s -DNDEBUG -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/473765425/path.o ../../../../Downloads/boost/libs/filesystem/src/path.cpp
-
-${OBJECTDIR}/_ext/1761269253/once.o: ../../../../Downloads/boost/libs/thread/src/pthread/once.cpp 
-	${MKDIR} -p ${OBJECTDIR}/_ext/1761269253
-	${RM} "$@.d"
-	$(COMPILE.cc) -O3 -s -DNDEBUG -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/1761269253/once.o ../../../../Downloads/boost/libs/thread/src/pthread/once.cpp
-
-${OBJECTDIR}/_ext/1761269253/thread.o: ../../../../Downloads/boost/libs/thread/src/pthread/thread.cpp 
-	${MKDIR} -p ${OBJECTDIR}/_ext/1761269253
-	${RM} "$@.d"
-	$(COMPILE.cc) -O3 -s -DNDEBUG -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/1761269253/thread.o ../../../../Downloads/boost/libs/thread/src/pthread/thread.cpp
-
-${OBJECTDIR}/_ext/53904016/tss_null.o: ../../../../Downloads/boost/libs/thread/src/tss_null.cpp 
-	${MKDIR} -p ${OBJECTDIR}/_ext/53904016
-	${RM} "$@.d"
-	$(COMPILE.cc) -O3 -s -DNDEBUG -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/53904016/tss_null.o ../../../../Downloads/boost/libs/thread/src/tss_null.cpp
 
 ${OBJECTDIR}/_ext/302208857/base64.o: ../core_shared/pinc/base64.cpp 
 	${MKDIR} -p ${OBJECTDIR}/_ext/302208857

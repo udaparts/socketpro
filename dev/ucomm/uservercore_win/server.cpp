@@ -116,7 +116,7 @@ void CServer::KillMainThread() {
         std::shared_ptr<std::thread> one = m_vThread.front();
         m_IoService.stop();
         while (!m_IoService.stopped()) {
-			sleep_for(std::chrono::milliseconds(1));
+            sleep_for(std::chrono::milliseconds(1));
         }
         one->join();
     }
@@ -626,7 +626,7 @@ bool CServer::StartIOPump() {
     if (m_vThread.size())
         return true;
     m_vThread.push_back(std::shared_ptr<std::thread>(new std::thread(boost::bind(&CServer::StartIOPumpInternal, this))));
-	sleep_for(std::chrono::milliseconds(100));
+    sleep_for(std::chrono::milliseconds(100));
     return !m_bStopped;
 }
 

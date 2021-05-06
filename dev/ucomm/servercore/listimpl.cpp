@@ -56,7 +56,7 @@ void WINAPI UninitSocketProServer() {
             CServerSession::m_cv.notify_all();
         }
         StopSocketProServer();
-		sleep_for(std::chrono::milliseconds(10));
+        sleep_for(std::chrono::milliseconds(10));
         delete g_pServer;
         g_pServer = nullptr;
     }
@@ -71,7 +71,7 @@ bool WINAPI StartSocketProServer(unsigned int listeningPort, unsigned int maxBac
         return true;
     if (g_pServer->StartServerInternal(listeningPort, maxBacklog, v6)) {
         g_pServer->StartIOPump();
-		sleep_for(std::chrono::milliseconds(250));
+        sleep_for(std::chrono::milliseconds(250));
         return true;
     }
     return false;

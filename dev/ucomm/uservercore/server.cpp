@@ -112,13 +112,13 @@ m_nParam(nParam) {
 
 void CServer::KillMainThread() {
     if (m_vThread.size()) {
-        std::shared_ptr<boost::thread> one = m_vThread.front();
+        std::shared_ptr<std::thread> one = m_vThread.front();
         try{
             m_IoService.stop();
             while (!m_IoService.stopped()) {
-                boost::this_thread::sleep(boost::posix_time::milliseconds(1));
+                sleep_for(std::chrono::milliseconds(1));
             }
-            one->timed_join(boost::posix_time::milliseconds(500));
+            one->join();
         }
 
         catch(...) {
@@ -129,12 +129,12 @@ void CServer::KillMainThread() {
 }
 
 struct CRYPTO_dynlock_value* CServer::dyn_create_function(const char *file, int line) {
-    boost::mutex *p = new boost::mutex;
+    std::mutex *p = new std::mutex;
     return (struct CRYPTO_dynlock_value*) p;
 }
 
 void CServer::dyn_lock_function(int mode, struct CRYPTO_dynlock_value *lock, const char *file, int line) {
-    boost::mutex *p = (boost::mutex *)lock;
+    std::mutex *p = (std::mutex *)lock;
     if (mode & CRYPTO_LOCK) {
         p->lock();
     } else {
@@ -143,7 +143,7 @@ void CServer::dyn_lock_function(int mode, struct CRYPTO_dynlock_value *lock, con
 }
 
 void CServer::dyn_destroy_function(struct CRYPTO_dynlock_value *lock, const char *file, int line) {
-    boost::mutex *p = (boost::mutex *)lock;
+    std::mutex *p = (std::mutex *)lock;
     delete p;
 }
 
@@ -741,8 +741,8 @@ std::string CServer::GetMessageQueuePassword() const {
 bool CServer::StartIOPump() {
     if (m_vThread.size())
         return true;
-    m_vThread.push_back(std::shared_ptr<boost::thread>(new boost::thread(boost::bind(&CServer::StartIOPumpInternal, this))));
-    boost::this_thread::sleep(boost::posix_time::milliseconds(100));
+    m_vThread.push_back(std::shared_ptr<std::thread>(new std::thread(boost::bind(&CServer::StartIOPumpInternal, this))));
+    sleep_for(std::chrono::milliseconds(100));
     return !m_bStopped;
 }
 
@@ -840,12 +840,12 @@ void CServer::StartIOPumpInternal() {
         StartTimer();
     }
     int sub_threads = (m_nParam & 0xffff);
-    if (sub_threads > (int) boost::thread::hardware_concurrency()) {
-        sub_threads = (int) boost::thread::hardware_concurrency();
+    if (sub_threads > (int) std::thread::hardware_concurrency()) {
+        sub_threads = (int) std::thread::hardware_concurrency();
     }
     --sub_threads;
     for (int n = 0; n < sub_threads; ++n) {
-        m_vThread.push_back(std::shared_ptr<boost::thread>(new boost::thread(boost::bind(&CServer::StartSubThread, this))));
+        m_vThread.push_back(std::shared_ptr<std::thread>(new std::thread(boost::bind(&CServer::StartSubThread, this))));
     }
     try{
         m_IoService.reset();
@@ -961,7 +961,7 @@ void CServer::HandleServerPingInternal(SPA::UINT64 tNow, std::vector<CServerSess
                 m_reg.Initialize();
                 if (m_reg.ShouldShutdown()) {
                     std::cout << "Server is going to shutdown because registration is not qualified. Please contact UDAParts for a new key." << std::endl;
-                    boost::this_thread::sleep(boost::posix_time::seconds(std::rand() % 20));
+                    sleep_for(std::chrono::seconds(std::rand() % 20));
                     PostQuitPump();
                 }
             }

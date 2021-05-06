@@ -263,7 +263,7 @@ private:
     boost::asio::deadline_timer m_Timer;
     boost::asio::deadline_timer m_TimerSM;
     POnIdle m_pOnIdle;
-    std::vector<std::shared_ptr<boost::thread> > m_vThread;
+    std::vector<std::shared_ptr<std::thread> > m_vThread;
     POnSSLHandShakeCompleted m_pOnSSLHandShakeCompleted;
     POnIsPermitted m_pOnIsPermitted;
     POnClose m_pOnClose;

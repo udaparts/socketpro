@@ -40,7 +40,7 @@ SPA::CUCommThread::thread* CClientThread::MyTimerSet::m_thread = nullptr;
 void StartTimerThread() {
     if (!CClientThread::MyTimerSet::m_thread) {
         CClientThread::MyTimerSet::m_thread = new std::thread(boost::bind(CClientThread::MyTimerSet::ThreadFunc));
-		sleep_for(std::chrono::milliseconds(10));
+        sleep_for(std::chrono::milliseconds(10));
     }
 }
 
@@ -84,7 +84,7 @@ void CClientThread::MyTimerSet::ThreadFunc() {
                 pool->PostTimerMessage();
             }
         }
-		sleep_for(std::chrono::milliseconds(100));
+        sleep_for(std::chrono::milliseconds(100));
     }
     m_stop = 0;
 }
@@ -95,12 +95,12 @@ CClientThread::MyTimerSet CClientThread::MyTimerSet::ms;
 CSslContext CClientThread::m_sslContext(CSslContext::tls_client);
 
 struct CRYPTO_dynlock_value* CClientThread::MyTimerSet::dyn_create_function(const char *file, int line) {
-    boost::mutex *p = new boost::mutex;
+    std::mutex *p = new std::mutex;
     return (struct CRYPTO_dynlock_value*) p;
 }
 
 void CClientThread::MyTimerSet::dyn_lock_function(int mode, struct CRYPTO_dynlock_value *lock, const char *file, int line) {
-    boost::mutex *p = (boost::mutex *)lock;
+    std::mutex *p = (std::mutex *)lock;
     if (mode & CRYPTO_LOCK) {
         p->lock();
     } else {
@@ -109,7 +109,7 @@ void CClientThread::MyTimerSet::dyn_lock_function(int mode, struct CRYPTO_dynloc
 }
 
 void CClientThread::MyTimerSet::dyn_destroy_function(struct CRYPTO_dynlock_value *lock, const char *file, int line) {
-    boost::mutex *p = (boost::mutex *)lock;
+    std::mutex *p = (std::mutex *)lock;
     delete p;
 }
 
