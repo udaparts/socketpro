@@ -35,9 +35,6 @@ OBJECTDIR=${CND_BUILDDIR}/${CND_CONF}/${CND_PLATFORM}
 
 # Object Files
 OBJECTFILES= \
-	${OBJECTDIR}/_ext/1761269253/once.o \
-	${OBJECTDIR}/_ext/1761269253/thread.o \
-	${OBJECTDIR}/_ext/53904016/tss_null.o \
 	${OBJECTDIR}/_ext/1719658846/includes.o \
 	${OBJECTDIR}/_ext/1719658846/myopenssl.o \
 	${OBJECTDIR}/_ext/1719658846/ucertimpl.o \
@@ -77,21 +74,6 @@ ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/liburawsocket.a: ${OBJECTFILES}
 	${RM} ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/liburawsocket.a
 	${AR} -rv ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/liburawsocket.a ${OBJECTFILES} 
 	$(RANLIB) ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/liburawsocket.a
-
-${OBJECTDIR}/_ext/1761269253/once.o: ../../../../Downloads/boost/libs/thread/src/pthread/once.cpp 
-	${MKDIR} -p ${OBJECTDIR}/_ext/1761269253
-	${RM} "$@.d"
-	$(COMPILE.c) -O2 -s -DNDEBUG -DU_RAW_SOCKET -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/1761269253/once.o ../../../../Downloads/boost/libs/thread/src/pthread/once.cpp
-
-${OBJECTDIR}/_ext/1761269253/thread.o: ../../../../Downloads/boost/libs/thread/src/pthread/thread.cpp 
-	${MKDIR} -p ${OBJECTDIR}/_ext/1761269253
-	${RM} "$@.d"
-	$(COMPILE.c) -O2 -s -DNDEBUG -DU_RAW_SOCKET -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/1761269253/thread.o ../../../../Downloads/boost/libs/thread/src/pthread/thread.cpp
-
-${OBJECTDIR}/_ext/53904016/tss_null.o: ../../../../Downloads/boost/libs/thread/src/tss_null.cpp 
-	${MKDIR} -p ${OBJECTDIR}/_ext/53904016
-	${RM} "$@.d"
-	$(COMPILE.c) -O2 -s -DNDEBUG -DU_RAW_SOCKET -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/53904016/tss_null.o ../../../../Downloads/boost/libs/thread/src/tss_null.cpp
 
 ${OBJECTDIR}/_ext/1719658846/includes.o: ../core_shared/shared/includes.cpp 
 	${MKDIR} -p ${OBJECTDIR}/_ext/1719658846

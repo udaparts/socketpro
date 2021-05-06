@@ -21,13 +21,10 @@
       <itemPath>../include/membuffer.cpp</itemPath>
       <itemPath>../uzip/mqfile.cpp</itemPath>
       <itemPath>../core_shared/shared/myopenssl.cpp</itemPath>
-      <itemPath>../../../../Downloads/boost/libs/thread/src/pthread/once.cpp</itemPath>
       <itemPath>pch.cpp</itemPath>
       <itemPath>rawsession.cpp</itemPath>
       <itemPath>rawthread.cpp</itemPath>
       <itemPath>../uzip/sha1.cpp</itemPath>
-      <itemPath>../../../../Downloads/boost/libs/thread/src/pthread/thread.cpp</itemPath>
-      <itemPath>../../../../Downloads/boost/libs/thread/src/tss_null.cpp</itemPath>
       <itemPath>../core_shared/shared/ucertimpl.cpp</itemPath>
       <itemPath>urawsocket.cpp</itemPath>
       <itemPath>../core_shared/shared/uthread.cpp</itemPath>
@@ -68,21 +65,6 @@
         <archiverTool>
         </archiverTool>
       </compileType>
-      <item path="../../../../Downloads/boost/libs/thread/src/pthread/once.cpp"
-            ex="false"
-            tool="0"
-            flavor2="0">
-      </item>
-      <item path="../../../../Downloads/boost/libs/thread/src/pthread/thread.cpp"
-            ex="false"
-            tool="0"
-            flavor2="0">
-      </item>
-      <item path="../../../../Downloads/boost/libs/thread/src/tss_null.cpp"
-            ex="false"
-            tool="0"
-            flavor2="0">
-      </item>
       <item path="../core_shared/shared/includes.cpp" ex="false" tool="0" flavor2="0">
       </item>
       <item path="../core_shared/shared/myopenssl.cpp"
@@ -156,21 +138,6 @@
         <archiverTool>
         </archiverTool>
       </compileType>
-      <item path="../../../../Downloads/boost/libs/thread/src/pthread/once.cpp"
-            ex="false"
-            tool="0"
-            flavor2="0">
-      </item>
-      <item path="../../../../Downloads/boost/libs/thread/src/pthread/thread.cpp"
-            ex="false"
-            tool="0"
-            flavor2="0">
-      </item>
-      <item path="../../../../Downloads/boost/libs/thread/src/tss_null.cpp"
-            ex="false"
-            tool="0"
-            flavor2="0">
-      </item>
       <item path="../core_shared/shared/includes.cpp" ex="false" tool="0" flavor2="0">
       </item>
       <item path="../core_shared/shared/myopenssl.cpp"

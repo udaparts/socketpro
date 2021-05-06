@@ -31,12 +31,12 @@ int main() {
 #ifndef WIN32_64
         ok = SetVerify("ca.cert.pem");
 #endif
-        SetCertVerifyCallback(CVCallback);
+        //SetCertVerifyCallback(CVCallback);
         CSessionPool<CHttp> pool(3);
         auto channel = pool.FindAClosedHandler();
         ok = channel->Connect("google.com", 443, tagEncryptionMethod::TLSv1, false, true);
-		char Hostname[1024];
-		ok = channel->GetServerName(Hostname, sizeof(Hostname));
+        char Hostname[1024];
+        ok = channel->GetServerName(Hostname, sizeof (Hostname));
 
         auto cert = channel->GetUCert();
         std::string em = cert->Verify(&ec);

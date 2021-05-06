@@ -59,12 +59,12 @@ namespace SPA{
     CSslContext CRawThread::m_sslContext(CSslContext::tls_client);
 
     struct CRYPTO_dynlock_value * CRawThread::MyTimerSet::dyn_create_function(const char *file, int line) {
-        boost::mutex *p = new boost::mutex;
+        std::mutex *p = new std::mutex;
         return (struct CRYPTO_dynlock_value*) p;
     }
 
     void CRawThread::MyTimerSet::dyn_lock_function(int mode, struct CRYPTO_dynlock_value *lock, const char *file, int line) {
-        boost::mutex *p = (boost::mutex *)lock;
+        std::mutex *p = (std::mutex *)lock;
         if (mode & CRYPTO_LOCK) {
             p->lock();
         } else {
@@ -73,7 +73,7 @@ namespace SPA{
     }
 
     void CRawThread::MyTimerSet::dyn_destroy_function(struct CRYPTO_dynlock_value *lock, const char *file, int line) {
-        boost::mutex *p = (boost::mutex *)lock;
+        std::mutex *p = (std::mutex *)lock;
         delete p;
     }
 

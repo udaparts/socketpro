@@ -262,7 +262,8 @@ namespace SPA
                 nsIP::address_v6::bytes_type bytes = addr.to_v6().to_bytes();
                 struct sockaddr_in6 saGNI;
                 saGNI.sin6_family = AF_INET6;
-                memcpy(saGNI.sin6_addr.u.Byte, bytes.data(), bytes.size());
+                //memcpy(saGNI.sin6_addr.u.Byte, bytes.data(), bytes.size());
+                memcpy(saGNI.sin6_addr.__in6_u.__u6_addr8, bytes.data(), bytes.size());
                 res = ::getnameinfo((struct sockaddr *) &saGNI, sizeof (struct sockaddr_in6), hostname, sizeof (hostname), nullptr, 0, NI_NAMEREQD);
             }
             if (res == 0) {
