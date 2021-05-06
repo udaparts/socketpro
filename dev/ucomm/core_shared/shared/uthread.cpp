@@ -89,7 +89,7 @@ namespace SPA {
         if (m_pThread != nullptr)
             return true;
         m_pThread = new thread([this]() {
-            m_io.post(boost::bind(&CUCommThread::Call, this));
+            m_io.post(std::bind(&CUCommThread::Call, this));
             m_io.run();
         });
 #ifndef WINCE
@@ -130,7 +130,7 @@ namespace SPA {
                 m_mutex.unlock();
                 m_io.stop();
                 while (!m_io.stopped()) {
-                    sleep(boost::posix_time::milliseconds(1));
+                    sleep_for(std::chrono::milliseconds(1));
                 }
                 if (p->joinable()) {
                     p->join();

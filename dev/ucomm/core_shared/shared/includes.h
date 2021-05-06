@@ -19,13 +19,17 @@ typedef pthread_t UTHREAD_ID;
 #include <mutex>
 #include <condition_variable>
 using std::atomic;
+#include <thread>
+using namespace std::this_thread;
 #else
 #include <boost/atomic.hpp>
 #include <boost/thread/condition_variable.hpp>
 using boost::atomic;
-#endif
 #include <boost/thread.hpp>
 using namespace boost::this_thread;
+
+#endif
+
 #include <boost/bind.hpp>
 #include <boost/asio.hpp>
 #ifndef NOT_USE_OPENSSL

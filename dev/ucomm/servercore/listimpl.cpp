@@ -21,7 +21,7 @@ extern bool g_bRegistered;
 
 CServerSession *GetSvrSession(USocket_Server_Handle h, unsigned int &index);
 
-std::string g_strVersion("6.4.0.3");
+std::string g_strVersion("6.4.0.4");
 
 const char* WINAPI GetUServerSocketVersion() {
     return g_strVersion.c_str();
@@ -56,7 +56,7 @@ void WINAPI UninitSocketProServer() {
             CServerSession::m_cv.notify_all();
         }
         StopSocketProServer();
-        sleep(boost::posix_time::milliseconds(10));
+		sleep_for(std::chrono::milliseconds(10));
         delete g_pServer;
         g_pServer = nullptr;
     }
@@ -71,7 +71,7 @@ bool WINAPI StartSocketProServer(unsigned int listeningPort, unsigned int maxBac
         return true;
     if (g_pServer->StartServerInternal(listeningPort, maxBacklog, v6)) {
         g_pServer->StartIOPump();
-        sleep(boost::posix_time::milliseconds(250));
+		sleep_for(std::chrono::milliseconds(250));
         return true;
     }
     return false;

@@ -39,8 +39,8 @@ SPA::CUCommThread::thread* CClientThread::MyTimerSet::m_thread = nullptr;
 
 void StartTimerThread() {
     if (!CClientThread::MyTimerSet::m_thread) {
-        CClientThread::MyTimerSet::m_thread = new boost::thread(boost::bind(CClientThread::MyTimerSet::ThreadFunc));
-        sleep(boost::posix_time::milliseconds(10));
+        CClientThread::MyTimerSet::m_thread = new std::thread(boost::bind(CClientThread::MyTimerSet::ThreadFunc));
+		sleep_for(std::chrono::milliseconds(10));
     }
 }
 
@@ -84,7 +84,7 @@ void CClientThread::MyTimerSet::ThreadFunc() {
                 pool->PostTimerMessage();
             }
         }
-        sleep(boost::posix_time::milliseconds(100));
+		sleep_for(std::chrono::milliseconds(100));
     }
     m_stop = 0;
 }

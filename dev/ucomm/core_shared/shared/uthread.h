@@ -22,7 +22,7 @@ namespace SPA {
     public:
         CUCommThread(tagThreadApartment ta);
         virtual ~CUCommThread();
-        using thread = boost::thread;
+        using thread = std::thread;
 
     public:
         CErrorCode GetErrorCode();
