@@ -31,7 +31,7 @@ int main() {
 #ifndef WIN32_64
         ok = SetVerify("ca.cert.pem");
 #endif
-        //SetCertVerifyCallback(CVCallback);
+        SetCertVerifyCallback(CVCallback);
         CSessionPool<CHttp> pool(3);
         auto channel = pool.FindAClosedHandler();
         ok = channel->Connect("google.com", 443, tagEncryptionMethod::TLSv1, false, true);
