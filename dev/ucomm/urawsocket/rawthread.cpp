@@ -16,7 +16,7 @@ void WINAPI SetCertVerifyCallback(PCertificateVerifyCallback cvc) {
 #ifndef WIN32_64
     if (g_cvc != nullptr) {
         SPA::CRawThread::m_sslContext.set_verify_mode(boost::asio::ssl::verify_peer);
-        SPA::CRawThread::m_sslContext.set_verify_callback(std::bind(&SPA::CRawThread::verify_certificate_cb, _1, _2));
+        SPA::CRawThread::m_sslContext.set_verify_callback(std::bind(&SPA::CRawThread::verify_certificate_cb, std::placeholders::_1, std::placeholders::_2));
     } else {
         SPA::CRawThread::m_sslContext.set_verify_mode(boost::asio::ssl::verify_none);
         //SPA::CRawThread::m_sslContext.set_verify_callback(nullptr);

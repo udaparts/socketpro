@@ -201,7 +201,7 @@ private:
     void __attribute__((visibility("default"))) OnHandleShakeCompleted(int errCode);
     bool IsContextSet();
     void SetContext();
-    void OnConnected(const CErrorCode &ec, CResolver::iterator ep);
+    void OnConnected(const CErrorCode &ec);
     void OnSslHandShake(const CErrorCode& Error);
     void OnReadCompleted(const CErrorCode& Error, size_t len);
     void OnWriteCompleted(const CErrorCode& Error, size_t bytes_transferred);

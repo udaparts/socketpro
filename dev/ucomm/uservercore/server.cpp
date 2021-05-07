@@ -164,7 +164,7 @@ bool CServer::StartServerInternal(unsigned int port, unsigned int uiMaxBacklog, 
             m_pSslContext->set_options(options, m_ec);
             if (m_ec)
                 break;
-            m_pSslContext->set_password_callback(boost::bind(&CServer::GetPassword, this), m_ec);
+            m_pSslContext->set_password_callback(std::bind(&CServer::GetPassword, this), m_ec);
             if (m_ec)
                 break;
 
@@ -215,7 +215,7 @@ bool CServer::StartServerInternal(unsigned int port, unsigned int uiMaxBacklog, 
         CServerSession::m_pQLastIndex.reset(new MQ_FILE::CQLastIndex(path.c_str(), false));
         m_pSession = new CServerSession();
         m_pSession->SetContext();
-        m_pAcceptor->async_accept(m_pSession->GetSocket().lowest_layer(), boost::bind(&CServer::OnAccepted, this, m_pSession, nsPlaceHolders::error));
+        m_pAcceptor->async_accept(m_pSession->GetSocket().lowest_layer(), std::bind(&CServer::OnAccepted, this, m_pSession, std::placeholders::_1));
         bSuc = true;
     } while (false);
 
@@ -703,7 +703,7 @@ void CServer::OnQuit() {
     if (size == 0)
         m_IoService.stop();
     else
-        m_IoService.post(boost::bind(&CServer::OnQuit, this));
+        m_IoService.post(std::bind(&CServer::OnQuit, this));
 }
 
 void CServer::StopSocketProServer() {
@@ -725,7 +725,7 @@ void CServer::StopSocketProServer() {
 }
 
 void CServer::PostQuitPump() {
-    m_IoService.post(boost::bind(&CServer::OnQuit, this));
+    m_IoService.post(std::bind(&CServer::OnQuit, this));
 }
 
 std::string CServer::GetPassword() const {
@@ -741,7 +741,7 @@ std::string CServer::GetMessageQueuePassword() const {
 bool CServer::StartIOPump() {
     if (m_vThread.size())
         return true;
-    m_vThread.push_back(std::shared_ptr<std::thread>(new std::thread(boost::bind(&CServer::StartIOPumpInternal, this))));
+    m_vThread.push_back(std::shared_ptr<std::thread>(new std::thread(std::bind(&CServer::StartIOPumpInternal, this))));
     sleep_for(std::chrono::milliseconds(100));
     return !m_bStopped;
 }
@@ -845,7 +845,7 @@ void CServer::StartIOPumpInternal() {
     }
     --sub_threads;
     for (int n = 0; n < sub_threads; ++n) {
-        m_vThread.push_back(std::shared_ptr<std::thread>(new std::thread(boost::bind(&CServer::StartSubThread, this))));
+        m_vThread.push_back(std::shared_ptr<std::thread>(new std::thread(std::bind(&CServer::StartSubThread, this))));
     }
     try{
         m_IoService.reset();
@@ -994,13 +994,13 @@ void CServer::OnTimerSM(const CErrorCode& Error) {
                     break;
                 default:
                     //p->ShrinkMemory(); //may deadlock
-                    m_IoService.post(boost::bind(&CServerSession::ShrinkMemory, p));
+                    m_IoService.post(std::bind(&CServerSession::ShrinkMemory, p));
                     break;
             }
         }
     }
     m_TimerSM.expires_at(m_TimerSM.expires_at() + boost::posix_time::milliseconds(m_ulSMInterval));
-    m_TimerSM.async_wait(boost::bind(&CServer::OnTimerSM, this, nsPlaceHolders::error));
+    m_TimerSM.async_wait(std::bind(&CServer::OnTimerSM, this, std::placeholders::_1));
     UHTTP::CHttpHeaderScopeUQueue::ResetSize();
     SPA::CScopeUQueue::ResetSize();
     UHTTP::CHttpDownFileBuffer::ResetSize();
@@ -1021,7 +1021,7 @@ void CServer::OnTimer(const CErrorCode& Error) {
     if (g_bRegistered && ((m_nRequestCount - m_nRequestCountLast) / m_ulTimerElapse > m_reg.MaxSpeed / 1000))
         g_bRegistered = false;
     m_Timer.expires_at(m_Timer.expires_at() + boost::posix_time::milliseconds(m_ulTimerElapse));
-    m_Timer.async_wait(boost::bind(&CServer::OnTimer, this, nsPlaceHolders::error));
+    m_Timer.async_wait(std::bind(&CServer::OnTimer, this, std::placeholders::_1));
     m_nRequestCountLast = m_nRequestCount;
     //CAutoLock sl(m_mutex); //dead lock within multi-main-threads environment
     if (m_pOnIdle && !m_bStopped) {
@@ -1030,8 +1030,8 @@ void CServer::OnTimer(const CErrorCode& Error) {
 }
 
 void CServer::StartTimer() {
-    m_Timer.async_wait(boost::bind(&CServer::OnTimer, this, nsPlaceHolders::error));
-    m_TimerSM.async_wait(boost::bind(&CServer::OnTimerSM, this, nsPlaceHolders::error));
+    m_Timer.async_wait(std::bind(&CServer::OnTimer, this, std::placeholders::_1));
+    m_TimerSM.async_wait(std::bind(&CServer::OnTimerSM, this, std::placeholders::_1));
 }
 
 void CServer::OnMessage() {
@@ -1124,7 +1124,7 @@ bool CServer::PostSproMessage(CServerSession *pSession, unsigned int nMsgId, con
     m_mTH.lock();
     m_qThreadMessage.push(std::move(message));
     m_mTH.unlock();
-    m_IoService.post(boost::bind(&CServer::OnMessage, this));
+    m_IoService.post(std::bind(&CServer::OnMessage, this));
     return true;
 }
 
@@ -1132,7 +1132,7 @@ void CServer::PostSproMessage(CUThreadMessage &message) {
     m_mTH.lock();
     m_qThreadMessage.push(std::move(message));
     m_mTH.unlock();
-    m_IoService.post(boost::bind(&CServer::OnMessage, this));
+    m_IoService.post(std::bind(&CServer::OnMessage, this));
 }
 
 bool CServer::IsSsl() {
@@ -1823,7 +1823,7 @@ void CServer::OnAccepted(CServerSession* pSession, const CErrorCode& Error) {
             m_pSession = new CServerSession();
         }
         m_pSession->SetContext();
-        m_pAcceptor->async_accept(m_pSession->GetSocket().lowest_layer(), boost::bind(&CServer::OnAccepted, this, m_pSession, nsPlaceHolders::error));
+        m_pAcceptor->async_accept(m_pSession->GetSocket().lowest_layer(), std::bind(&CServer::OnAccepted, this, m_pSession, std::placeholders::_1));
 
     } else if (pSession) {
         m_ec = Error;

@@ -1050,7 +1050,7 @@ void WINAPI SetCertificateVerifyCallback(PCertificateVerifyCallback cvc) {
         return;
     g_pServer->m_cvc = cvc;
     g_pServer->m_pSslContext->set_verify_mode(boost::asio::ssl::verify_peer);
-    g_pServer->m_pSslContext->set_verify_callback(std::bind(&CServer::verify_certificate_cb, _1, _2));
+    g_pServer->m_pSslContext->set_verify_callback(std::bind(&CServer::verify_certificate_cb, std::placeholders::_1, std::placeholders::_2));
 #elif defined(WIN32_64)
     CAutoLock al(g_mutex);
     if (g_pServer == nullptr)
@@ -1062,7 +1062,7 @@ void WINAPI SetCertificateVerifyCallback(PCertificateVerifyCallback cvc) {
         return;
     g_pServer->m_cvc = cvc;
     g_pServer->m_pSslContext->set_verify_mode(boost::asio::ssl::verify_peer);
-    g_pServer->m_pSslContext->set_verify_callback(std::bind(&CServer::verify_certificate_cb, _1, _2));
+    g_pServer->m_pSslContext->set_verify_callback(std::bind(&CServer::verify_certificate_cb, std::placeholders::_1, std::placeholders::_2));
 #endif
 }
 
