@@ -965,7 +965,7 @@ void CServerSession::PostCloseInternal(int errCode) {
     if (errCode != 0) {
         m_ec.assign(errCode, boost::asio::error::get_system_category());
     }
-    g_pServer->m_IoService.post(boost::bind(&CServerSession::Close, this));
+    g_pServer->m_IoService.post(std::bind(&CServerSession::Close, this));
 }
 
 void CServerSession::PostClose(int errCode) {
@@ -981,7 +981,7 @@ void CServerSession::PostClose(int errCode) {
             Write(nullptr, 0);
         }
     } else if (m_bChatting) {
-        g_pServer->m_IoService.post(boost::bind(&CServerSession::PostClose, this, errCode));
+        g_pServer->m_IoService.post(std::bind(&CServerSession::PostClose, this, errCode));
     } else {
         PostCloseInternal(errCode);
     }
@@ -1296,7 +1296,7 @@ void CServerSession::CloseInternal() {
                 Connection::CConnectionContext::RemoveConnectionContext(m_ccb.Id.c_str());
             }
         }
-        g_pServer->m_IoService.post(boost::bind(&CServerSession::Close, this));
+        g_pServer->m_IoService.post(std::bind(&CServerSession::Close, this));
         m_bCloseInternal = false;
         return;
     } else if (m_pUThread) {
@@ -1405,7 +1405,7 @@ unsigned int CServerSession::Write(const unsigned char *s, unsigned int nSize, u
         assert(m_bWBLocked <= IO_BUFFER_SIZE + IO_ENCRYPTION_PADDING);
         ::memcpy(m_WriteBuffer, sb->GetBuffer(), ulLen);
     }
-    m_pSocket->async_write_some(boost::asio::buffer(m_WriteBuffer, ulLen), boost::bind(&CServerSession::OnWriteCompleted, this, nsPlaceHolders::error, nsPlaceHolders::bytes_transferred));
+    m_pSocket->async_write_some(boost::asio::buffer(m_WriteBuffer, ulLen), std::bind(&CServerSession::OnWriteCompleted, this, std::placeholders::_1, std::placeholders::_2));
 #if defined(BAD_COMM_ENVIRONMENT) && defined(ENABLE_RANDOM_SENDING_CRASH)
     srand((unsigned int) time(nullptr));
     unsigned int random = (unsigned int) rand();
@@ -1427,7 +1427,7 @@ void CServerSession::Read() {
     if (IsTooMany(m_mapIndex) || (m_qRead.GetSize() > 20 * IO_BUFFER_SIZE && (m_nHttpCallCount > 1 || QueryRequestsQueuedInternally() > 1)))
         return;
     m_bRBLocked = true;
-    m_pSocket->async_read_some(boost::asio::buffer(m_ReadBuffer, IO_BUFFER_SIZE), boost::bind(&CServerSession::OnReadCompleted, this, nsPlaceHolders::error, nsPlaceHolders::bytes_transferred));
+    m_pSocket->async_read_some(boost::asio::buffer(m_ReadBuffer, IO_BUFFER_SIZE), std::bind(&CServerSession::OnReadCompleted, this, std::placeholders::_1, std::placeholders::_2));
 }
 
 unsigned int CServerSession::GetCurrentRequestLen() {
@@ -1510,7 +1510,7 @@ std::string CServerSession::GetErrorMessage() {
 
 unsigned int CServerSession::SendReturnDataInternal(unsigned short usReqId, const unsigned char *pBuffer, unsigned int ulBufferSize) {
     if (ServiceId == (unsigned int) SPA::tagServiceID::sidHTTP) {
-        g_pServer->m_IoService.post(boost::bind(&CServerSession::ProcessWithLock, this));
+        g_pServer->m_IoService.post(std::bind(&CServerSession::ProcessWithLock, this));
         return BAD_OPERATION;
     }
     if (usReqId != (unsigned short) SPA::tagBaseRequestID::idSwitchTo) {
@@ -1595,7 +1595,7 @@ void CServerSession::PutOntoWireInternal() {
         std::shared_ptr<CResIndexImpl> ri = it->second;
         unsigned short reqId = ri->GetReqId();
         if ((reqId == (unsigned short) SPA::tagBaseRequestID::idStartJob || reqId == (unsigned short) SPA::tagBaseRequestID::idEndJob) && !::IsMainThread()) {
-            g_pServer->m_IoService.post(boost::bind(&CServerSession::PutOntoWire, this));
+            g_pServer->m_IoService.post(std::bind(&CServerSession::PutOntoWire, this));
             break;
         }
         bool partial = false;
@@ -2870,7 +2870,7 @@ bool CServerSession::ProcessHttpRequest() {
                     }
                 } else {
                     m_pHttpContext->SetPostPS(UHTTP::psHeaders);
-                    g_pServer->m_IoService.post(boost::bind(&CServerSession::ProcessWithLock, this));
+                    g_pServer->m_IoService.post(std::bind(&CServerSession::ProcessWithLock, this));
                 }
                 return true;
             }
@@ -3359,7 +3359,7 @@ bool CServerSession::Process() {
         if (ServiceId == (unsigned int) SPA::tagServiceID::sidHTTP && m_nHttpCallCount == 0) {
             if (m_qWrite.GetSize() < IO_BUFFER_SIZE && m_qRead.GetSize() >= sizeof (m_ReqInfo)) //this check reduces CPU and avoid extra buffer for m_qWrite
             {
-                g_pServer->m_IoService.post(boost::bind(&CServerSession::ProcessWithLock, this));
+                g_pServer->m_IoService.post(std::bind(&CServerSession::ProcessWithLock, this));
             }
             return bOk;
         }
@@ -3545,7 +3545,7 @@ bool CServerSession::DoHandshake(size_t bytes) {
                         sb->Pop(len);
                     }
                     if (m_pSspi->GetHandshakeState() != SPA::hsDone) {
-                        m_pSocket->async_read_some(boost::asio::buffer(m_ReadBuffer, IO_ENCRYPTION_PADDING + IO_BUFFER_SIZE), boost::bind(&CServerSession::OnReadCompleted, this, nsPlaceHolders::error, nsPlaceHolders::bytes_transferred));
+                        m_pSocket->async_read_some(boost::asio::buffer(m_ReadBuffer, IO_ENCRYPTION_PADDING + IO_BUFFER_SIZE), std::bind(&CServerSession::OnReadCompleted, this, std::placeholders::_1, std::placeholders::_2));
                     }
 #else
                     if (sb->GetSize() > IO_ENCRYPTION_PADDING + IO_BUFFER_SIZE) {
@@ -3560,11 +3560,11 @@ bool CServerSession::DoHandshake(size_t bytes) {
                         }
                     });
                     if (m_pSspi->GetHandshakeState() != SPA::hsDone) {
-                        m_pSocket->async_read_some(boost::asio::buffer(m_ReadBuffer, IO_ENCRYPTION_PADDING + IO_BUFFER_SIZE), boost::bind(&CServerSession::OnReadCompleted, this, nsPlaceHolders::error, nsPlaceHolders::bytes_transferred));
+                        m_pSocket->async_read_some(boost::asio::buffer(m_ReadBuffer, IO_ENCRYPTION_PADDING + IO_BUFFER_SIZE), std::bind(&CServerSession::OnReadCompleted, this, std::placeholders::_1, std::placeholders::_2));
                     }
 #endif
                 } else if (m_pSspi->GetLastStatus() == SEC_E_INCOMPLETE_MESSAGE) {
-                    m_pSocket->async_read_some(boost::asio::buffer(m_ReadBuffer, IO_ENCRYPTION_PADDING + IO_BUFFER_SIZE), boost::bind(&CServerSession::OnReadCompleted, this, nsPlaceHolders::error, nsPlaceHolders::bytes_transferred));
+                    m_pSocket->async_read_some(boost::asio::buffer(m_ReadBuffer, IO_ENCRYPTION_PADDING + IO_BUFFER_SIZE), std::bind(&CServerSession::OnReadCompleted, this, std::placeholders::_1, std::placeholders::_2));
                 }
             } else {
                 m_qRead.SetSize(0);
@@ -3636,7 +3636,7 @@ void CServerSession::OnReadCompleted(const CErrorCode& Error, size_t nLen) {
             m_ec = Error;
             CloseInternal();
         } else {
-            g_pServer->m_IoService.post(boost::bind(&CServerSession::PostClose, this, Error.value()));
+            g_pServer->m_IoService.post(std::bind(&CServerSession::PostClose, this, Error.value()));
         }
     }
 }
@@ -3699,7 +3699,7 @@ void CServerSession::OnWriteCompleted(const CErrorCode& Error, size_t bytes_tran
         unsigned int ulLen = m_bWBLocked - (unsigned int) bytes_transferred;
         memmove(m_WriteBuffer, m_WriteBuffer + bytes_transferred, ulLen);
         m_bWBLocked = ulLen;
-        m_pSocket->async_write_some(boost::asio::buffer(m_WriteBuffer, ulLen), boost::bind(&CServerSession::OnWriteCompleted, this, nsPlaceHolders::error, nsPlaceHolders::bytes_transferred));
+        m_pSocket->async_write_some(boost::asio::buffer(m_WriteBuffer, ulLen), std::bind(&CServerSession::OnWriteCompleted, this, std::placeholders::_1, std::placeholders::_2));
     } else {
         m_bWBLocked = 0;
         if (m_qWrite.GetSize()) Write(nullptr, 0);
@@ -3708,7 +3708,7 @@ void CServerSession::OnWriteCompleted(const CErrorCode& Error, size_t bytes_tran
         unsigned int index;
         CServerSession *pSession = GetSvrSession(m_senderHandle, index);
         if (pSession && index == pSession->GetConnIndex()) {
-            g_pServer->m_IoService.post(boost::bind(&CServerSession::ProcessWithLock, pSession));
+            g_pServer->m_IoService.post(std::bind(&CServerSession::ProcessWithLock, pSession));
         }
     }
     if (!m_bChatting && len >= IO_BUFFER_SIZE && m_qWrite.GetSize() < 1460) {

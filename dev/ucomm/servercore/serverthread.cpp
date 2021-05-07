@@ -107,7 +107,7 @@ bool CServerThread::PostMessage(CServerSession *pSession, unsigned short uReques
     }
     m_qThreadMessage.push(std::move(message));
     if (m_qThreadMessage.size() == 1) {//if queue has two or more message we don't dispatch a handle
-        boost::asio::post(GetIoService(), boost::bind(&CServerThread::Handle, this));
+        boost::asio::post(GetIoService(), std::bind(&CServerThread::Handle, this));
     }
     m_sl.unlock();
     return true;

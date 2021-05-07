@@ -16,9 +16,9 @@ namespace UHTTP {
 
             definition(CMultipartGrammar const& self)
             : m_self((CMultipartGrammar&) self) {
-                CStrAction newHead(boost::bind(&definition::NewHead, this, _1, _2));
-                CStrAction newValue(boost::bind(&definition::NewValue, this, _1, _2));
-                CStrAction endHeader(boost::bind(&definition::EndHeader, this, _1, _2));
+                CStrAction newHead(std::bind(&definition::NewHead, this, std::placeholders::_1, std::placeholders::_2));
+                CStrAction newValue(std::bind(&definition::NewValue, this, std::placeholders::_1, std::placeholders::_2));
+                CStrAction endHeader(std::bind(&definition::EndHeader, this, std::placeholders::_1, std::placeholders::_2));
 
                 ::memset(&m_hv, 0, sizeof (m_hv));
 

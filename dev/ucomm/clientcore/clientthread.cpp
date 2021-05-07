@@ -27,7 +27,7 @@ void WINAPI SetCertificateVerifyCallback(PCertificateVerifyCallback cvc) {
 #ifndef NOT_USE_OPENSSL
     if (g_cvc != nullptr) {
         CClientThread::m_sslContext.set_verify_mode(boost::asio::ssl::verify_peer);
-        CClientThread::m_sslContext.set_verify_callback(boost::bind(&CClientThread::verify_certificate_cb, _1, _2));
+        CClientThread::m_sslContext.set_verify_callback(std::bind(&CClientThread::verify_certificate_cb, _1, _2));
     } else {
         CClientThread::m_sslContext.set_verify_mode(boost::asio::ssl::verify_none);
         //CClientThread::m_sslContext.set_verify_callback(nullptr);
@@ -39,7 +39,7 @@ SPA::CUCommThread::thread* CClientThread::MyTimerSet::m_thread = nullptr;
 
 void StartTimerThread() {
     if (!CClientThread::MyTimerSet::m_thread) {
-        CClientThread::MyTimerSet::m_thread = new std::thread(boost::bind(CClientThread::MyTimerSet::ThreadFunc));
+        CClientThread::MyTimerSet::m_thread = new std::thread(std::bind(CClientThread::MyTimerSet::ThreadFunc));
         sleep_for(std::chrono::milliseconds(10));
     }
 }
@@ -193,7 +193,7 @@ CSocketPool* CClientThread::GetPool() const {
 }
 
 void CClientThread::PostTimerMessage() {
-    GetIoService().post(boost::bind(&CClientThread::TimerHandler, this));
+    GetIoService().post(std::bind(&CClientThread::TimerHandler, this));
 }
 
 void CClientThread::TimerHandler() {
@@ -416,7 +416,7 @@ void CClientThread::DisconnectAll() {
     //CAutoLock al(m_mutex);
     for (CMapClientSession::iterator it = m_mapClientSession.begin(), end = m_mapClientSession.end(); it != end; ++it) {
         if (it->first->IsOpened()) {
-            //GetIoService().post(boost::bind(&CClientSession::Close, it->first.get()));
+            //GetIoService().post(std::bind(&CClientSession::Close, it->first.get()));
             it->first->Close();
         }
         m_ml.lock();

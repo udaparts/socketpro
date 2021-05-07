@@ -21,16 +21,16 @@ typedef pthread_t UTHREAD_ID;
 using std::atomic;
 #include <thread>
 using namespace std::this_thread;
+#include <functional>
 #else
 #include <boost/atomic.hpp>
 #include <boost/thread/condition_variable.hpp>
 using boost::atomic;
 #include <boost/thread.hpp>
 using namespace boost::this_thread;
-
+#include <boost/bind.hpp>
 #endif
 
-#include <boost/bind.hpp>
 #include <boost/asio.hpp>
 #ifndef WIN32_64
 #include <boost/asio/ssl.hpp>

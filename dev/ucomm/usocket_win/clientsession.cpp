@@ -158,7 +158,7 @@ void CClientSession::TimerHandler() {
         case SPA::ClientSide::tagConnectionState::csConnecting:
             if (now > lastOne + m_nConnTimeout) {
                 m_ec.assign(errorCode, boost::asio::error::get_system_category());
-                m_pIoService->post(boost::bind(&CClientSession::PostCloseInternal, this, errorCode));
+                m_pIoService->post(std::bind(&CClientSession::PostCloseInternal, this, errorCode));
             }
             break;
         case SPA::ClientSide::tagConnectionState::csSwitched:
@@ -170,7 +170,7 @@ void CClientSession::TimerHandler() {
         case SPA::ClientSide::tagConnectionState::csConnected:
             if (m_qReqIdWait.GetSize() / sizeof (SPA::CStreamHeader) > 0 && (now > lastOne + m_nRecvTimeout)) {
                 m_ec.assign(errorCode, boost::asio::error::get_system_category());
-                m_pIoService->post(boost::bind(&CClientSession::PostCloseInternal, this, errorCode));
+                m_pIoService->post(std::bind(&CClientSession::PostCloseInternal, this, errorCode));
             } else if (now > lastOne + (unsigned int) GetServerPingTimeInternal() * 1000 + m_pThread->GetTimerInterval()) {
                 if (m_qReqIdWait.GetSize() == 0 || (m_qRequest && m_qRequest->GetMessageCount() > 0)) {
 #ifdef WIN32_64
@@ -179,7 +179,7 @@ void CClientSession::TimerHandler() {
                     errorCode = ECONNREFUSED;
 #endif
                     m_ec.assign(errorCode, boost::asio::error::get_system_category());
-                    m_pIoService->post(boost::bind(&CClientSession::PostCloseInternal, this, errorCode));
+                    m_pIoService->post(std::bind(&CClientSession::PostCloseInternal, this, errorCode));
                 }
             } else if (!m_bRegistered) {
                 ::srand((unsigned int) time(nullptr));
@@ -201,7 +201,7 @@ void CClientSession::TimerHandler() {
                 m_ConnState = SPA::ClientSide::tagConnectionState::csConnecting;
                 m_tRecv = GetTimeTick();
                 m_tSend = m_tRecv;
-                m_pIoService->post(boost::bind(&CClientSession::ConnectInternally, this));
+                m_pIoService->post(std::bind(&CClientSession::ConnectInternally, this));
             }
             break;
         default:
@@ -896,7 +896,7 @@ bool CClientSession::SendRequestInternal(CAutoLock &al, unsigned short reqId, co
                     sb->Pop((unsigned int) sizeof (SPA::CStreamHeader));
                     m_qRequest->Enqueue(*p, *sb);
                     if (!m_qRequest->GetJobSize() && m_ConnState < SPA::ClientSide::tagConnectionState::csConnected)
-                        m_pIoService->post(boost::bind(&CSocketPool::OnClose, m_pThread->GetPool(), this));
+                        m_pIoService->post(std::bind(&CSocketPool::OnClose, m_pThread->GetPool(), this));
                 } else {
                     Write(sb->GetBuffer(), sb->GetSize());
                 }
@@ -908,7 +908,7 @@ bool CClientSession::SendRequestInternal(CAutoLock &al, unsigned short reqId, co
                 if (bQueue && reqId != (unsigned short) SPA::tagBaseRequestID::idSwitchTo) {
                     m_qRequest->Enqueue(reqInfo, (const unsigned char*) pBuffer, len);
                     if (!m_qRequest->GetJobSize() && m_ConnState < SPA::ClientSide::tagConnectionState::csConnected)
-                        m_pIoService->post(boost::bind(&CSocketPool::OnClose, m_pThread->GetPool(), this));
+                        m_pIoService->post(std::bind(&CSocketPool::OnClose, m_pThread->GetPool(), this));
                 } else {
                     Write(reqInfo, (const unsigned char*) pBuffer, len);
                 }
@@ -921,7 +921,7 @@ bool CClientSession::SendRequestInternal(CAutoLock &al, unsigned short reqId, co
             if (bQueue) {
                 m_qRequest->Enqueue(reqInfo, nullptr, 0);
                 if (!m_qRequest->GetJobSize() && m_ConnState < SPA::ClientSide::tagConnectionState::csConnected)
-                    m_pIoService->post(boost::bind(&CSocketPool::OnClose, m_pThread->GetPool(), this));
+                    m_pIoService->post(std::bind(&CSocketPool::OnClose, m_pThread->GetPool(), this));
             } else {
                 m_qReqIdCancel << reqInfo;
                 m_qReqIdWait << reqInfo;
@@ -1062,7 +1062,7 @@ void CClientSession::ConnectInternally() {
             return;
         }
         //async_coonect requires a new thread created
-        GetSocket()->async_connect(iterator->endpoint(), boost::bind(&CClientSession::OnConnected, this, boost::asio::placeholders::error, iterator));
+        GetSocket()->async_connect(iterator->endpoint(), std::bind(&CClientSession::OnConnected, this, std::placeholders::_1));
     }
 }
 
@@ -1098,7 +1098,7 @@ bool CClientSession::Connect(const char *strHost, unsigned int nPort, bool bSync
     m_tSend = m_tRecv;
     m_b6 = b6;
     m_bSync = bSync;
-    m_pIoService->post(boost::bind(&CClientSession::ConnectInternally, this));
+    m_pIoService->post(std::bind(&CClientSession::ConnectInternally, this));
     if (bSync) {
         return WaitConnected(sl, m_nConnTimeout);
     }
@@ -1109,7 +1109,7 @@ SPA::UINT64 CClientSession::GetLatestTime() {
     return (m_tRecv > m_tSend) ? m_tRecv : m_tSend;
 }
 
-void CClientSession::OnConnected(const CErrorCode &ec, CResolver::iterator ep) {
+void CClientSession::OnConnected(const CErrorCode &ec) {
     boost::asio::socket_base::keep_alive option(false);
     boost::asio::ip::tcp::no_delay nodelay(true);
     CAutoLock sl(m_mutex);
@@ -1130,7 +1130,8 @@ void CClientSession::OnConnected(const CErrorCode &ec, CResolver::iterator ep) {
         return;
     } else {
         m_ec.clear();
-        nsIP::address addr = ep->endpoint().address();
+		auto ep = GetSocket()->remote_endpoint(m_ec);
+        nsIP::address addr = ep.address();
         std::string saddr = addr.to_string();
         if (saddr == "127.0.0.1" || saddr == "::1") {
             m_hn = g_localhost;
@@ -1139,7 +1140,7 @@ void CClientSession::OnConnected(const CErrorCode &ec, CResolver::iterator ep) {
         } else {
             int res;
             char hostname[NI_MAXHOST] = {0};
-            if (ep->endpoint().address().is_v4()) {
+            if (ep.address().is_v4()) {
                 struct sockaddr_in saGNI;
                 saGNI.sin_family = AF_INET;
                 saGNI.sin_addr.s_addr = inet_addr(saddr.c_str()); //!!!! use inet_pton for the future when supporting windows vista or later
@@ -1193,7 +1194,7 @@ void CClientSession::OnConnected(const CErrorCode &ec, CResolver::iterator ep) {
                         OnConnectedInternal(ec.value());
                         CloseInternal(ec.value());
                     } else {
-                        m_pSocket->async_read_some(boost::asio::buffer(m_ReadBuffer, IO_ENCRYPTION_PADDING + IO_BUFFER_SIZE), boost::bind(&CClientSession::OnReadCompleted, this, nsPlaceHolders::error, nsPlaceHolders::bytes_transferred));
+                        m_pSocket->async_read_some(boost::asio::buffer(m_ReadBuffer, IO_ENCRYPTION_PADDING + IO_BUFFER_SIZE), std::bind(&CClientSession::OnReadCompleted, this, std::placeholders::_1, std::placeholders::_2));
                     }
                 });
             } else {
@@ -1250,7 +1251,7 @@ void CClientSession::Write(const SPA::CStreamHeader &sh, const unsigned char *s,
     }
     m_ulSent += ulLen;
     m_bWBLocked = ulLen;
-    m_pSocket->async_write_some(boost::asio::buffer(m_WriteBuffer, ulLen), boost::bind(&CClientSession::OnWriteCompleted, this, nsPlaceHolders::error, nsPlaceHolders::bytes_transferred));
+    m_pSocket->async_write_some(boost::asio::buffer(m_WriteBuffer, ulLen), std::bind(&CClientSession::OnWriteCompleted, this, std::placeholders::_1, std::placeholders::_2));
 }
 
 void CClientSession::Write(const unsigned char *s, unsigned int nSize) {
@@ -1290,7 +1291,7 @@ void CClientSession::Write(const unsigned char *s, unsigned int nSize) {
         assert(m_bWBLocked <= IO_BUFFER_SIZE + IO_ENCRYPTION_PADDING);
         ::memcpy(m_WriteBuffer, sb->GetBuffer(), ulLen);
     }
-    m_pSocket->async_write_some(boost::asio::buffer(m_WriteBuffer, ulLen), boost::bind(&CClientSession::OnWriteCompleted, this, nsPlaceHolders::error, nsPlaceHolders::bytes_transferred));
+    m_pSocket->async_write_some(boost::asio::buffer(m_WriteBuffer, ulLen), std::bind(&CClientSession::OnWriteCompleted, this, std::placeholders::_1, std::placeholders::_2));
 }
 
 void CClientSession::Read() {
@@ -1299,7 +1300,7 @@ void CClientSession::Read() {
     if (m_pThread && m_pThread->GetPool()->IsKilling())
         return;
     m_bRBLocked = true;
-    m_pSocket->async_read_some(boost::asio::buffer(m_ReadBuffer, IO_BUFFER_SIZE), boost::bind(&CClientSession::OnReadCompleted, this, nsPlaceHolders::error, nsPlaceHolders::bytes_transferred));
+    m_pSocket->async_read_some(boost::asio::buffer(m_ReadBuffer, IO_BUFFER_SIZE), std::bind(&CClientSession::OnReadCompleted, this, std::placeholders::_1, std::placeholders::_2));
 }
 
 void CClientSession::OnHandleShakeCompleted(int errCode) {
@@ -2178,7 +2179,7 @@ void CClientSession::OnPostProcessing(unsigned int hint, SPA::UINT64 data) {
 }
 
 void CClientSession::PostProcessing(unsigned int hint, SPA::UINT64 data) {
-    m_pIoService->post(boost::bind(&CClientSession::OnPostProcessing, this, hint, data));
+    m_pIoService->post(std::bind(&CClientSession::OnPostProcessing, this, hint, data));
 }
 
 const unsigned char* CClientSession::GetResultBuffer() {
@@ -2745,7 +2746,7 @@ void CClientSession::OnReadCompleted(const CErrorCode& Error, size_t nLen) {
                     sb->Pop(len);
                 }
                 if (m_pSspi->GetHandshakeState() != SPA::hsDone) {
-                    m_pSocket->async_read_some(boost::asio::buffer(m_ReadBuffer, IO_ENCRYPTION_PADDING + IO_BUFFER_SIZE), boost::bind(&CClientSession::OnReadCompleted, this, nsPlaceHolders::error, nsPlaceHolders::bytes_transferred));
+                    m_pSocket->async_read_some(boost::asio::buffer(m_ReadBuffer, IO_ENCRYPTION_PADDING + IO_BUFFER_SIZE), std::bind(&CClientSession::OnReadCompleted, this, std::placeholders::_1, std::placeholders::_2));
                 }
 #else
                 if (sb->GetSize() > IO_ENCRYPTION_PADDING + IO_BUFFER_SIZE) {
@@ -2758,7 +2759,7 @@ void CClientSession::OnReadCompleted(const CErrorCode& Error, size_t nLen) {
                         OnConnectedInternal(ec.value());
                         CloseInternal(ec.value());
                     } else if (m_pSspi->GetHandshakeState() != SPA::hsDone) {
-                        m_pSocket->async_read_some(boost::asio::buffer(m_ReadBuffer, IO_ENCRYPTION_PADDING + IO_BUFFER_SIZE), boost::bind(&CClientSession::OnReadCompleted, this, nsPlaceHolders::error, nsPlaceHolders::bytes_transferred));
+                        m_pSocket->async_read_some(boost::asio::buffer(m_ReadBuffer, IO_ENCRYPTION_PADDING + IO_BUFFER_SIZE), std::bind(&CClientSession::OnReadCompleted, this, std::placeholders::_1, std::placeholders::_2));
                     }
                 });
 #endif
@@ -2839,7 +2840,7 @@ void CClientSession::OnReadCompleted(const CErrorCode& Error, size_t nLen) {
                                 OnConnectedInternal(ec.value());
                                 CloseInternal(ec.value());
                             } else if (m_pSspi->GetHandshakeState() != SPA::hsDone) {
-                                m_pSocket->async_read_some(boost::asio::buffer(m_ReadBuffer, IO_ENCRYPTION_PADDING + IO_BUFFER_SIZE), boost::bind(&CClientSession::OnReadCompleted, this, nsPlaceHolders::error, nsPlaceHolders::bytes_transferred));
+                                m_pSocket->async_read_some(boost::asio::buffer(m_ReadBuffer, IO_ENCRYPTION_PADDING + IO_BUFFER_SIZE), std::bind(&CClientSession::OnReadCompleted, this, std::placeholders::_1, std::placeholders::_2));
                             }
                         });
                     }
@@ -2849,7 +2850,7 @@ void CClientSession::OnReadCompleted(const CErrorCode& Error, size_t nLen) {
                 }
             } else if (m_pSspi->GetLastStatus() == SEC_E_INCOMPLETE_MESSAGE) {
                 //this is possible when server may transferring multiple certificates for large amount of server hello messages
-                m_pSocket->async_read_some(boost::asio::buffer(m_ReadBuffer, IO_ENCRYPTION_PADDING + IO_BUFFER_SIZE), boost::bind(&CClientSession::OnReadCompleted, this, nsPlaceHolders::error, nsPlaceHolders::bytes_transferred));
+                m_pSocket->async_read_some(boost::asio::buffer(m_ReadBuffer, IO_ENCRYPTION_PADDING + IO_BUFFER_SIZE), std::bind(&CClientSession::OnReadCompleted, this, std::placeholders::_1, std::placeholders::_2));
             }
             return;
         }
@@ -3078,7 +3079,7 @@ void CClientSession::OnWriteCompleted(const CErrorCode& Error, size_t bytes_tran
             unsigned int ulLen = (unsigned int) (m_bWBLocked - bytes_transferred);
             ::memmove(m_WriteBuffer, m_WriteBuffer + bytes_transferred, ulLen);
             m_bWBLocked = ulLen;
-            m_pSocket->async_write_some(boost::asio::buffer(m_WriteBuffer, ulLen), boost::bind(&CClientSession::OnWriteCompleted, this, nsPlaceHolders::error, nsPlaceHolders::bytes_transferred));
+            m_pSocket->async_write_some(boost::asio::buffer(m_WriteBuffer, ulLen), std::bind(&CClientSession::OnWriteCompleted, this, std::placeholders::_1, std::placeholders::_2));
         } else {
             m_bWBLocked = 0;
             bool bQueue = CheckQueueAvailable();
