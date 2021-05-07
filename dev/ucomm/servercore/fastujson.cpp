@@ -1,6 +1,4 @@
 #include "../core_shared/pinc/fastujson.h"
-#include <boost/uuid/uuid_io.hpp>
-#include <boost/lexical_cast.hpp>
 
 #ifdef	___U_VARIANT_TO_RAPID_JSON___H___
 

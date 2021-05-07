@@ -1,8 +1,6 @@
 #include "webrequestprocessor.h"
 #include "../core_shared/pinc/base64.h"
-#include <boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_generators.hpp>
-#include <boost/uuid/uuid_io.hpp>
 #include "connectioncontext.h"
 #include "../core_shared/shared/streamhead.h"
 #include "httpcontext.h"

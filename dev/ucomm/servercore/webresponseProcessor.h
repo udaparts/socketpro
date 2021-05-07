@@ -5,7 +5,7 @@
 
 namespace UHTTP {
 
-    class U_MODULE_HIDDEN CWebResponseProcessor : private boost::noncopyable {
+    class U_MODULE_HIDDEN CWebResponseProcessor {
     public:
         CWebResponseProcessor(CWebRequestProcessor *pWebRequestProcessor);
         virtual ~CWebResponseProcessor();
@@ -53,6 +53,9 @@ namespace UHTTP {
         static std::string HTTP_RESPONSE_REQUEST_ID;
 
     private:
+		CWebResponseProcessor(const CWebResponseProcessor &wrp);
+		CWebResponseProcessor& operator=(const CWebResponseProcessor &wrp);
+
         static const unsigned int DEFAULT_AJAX_SCRIPT_PING_TIME = 4 * 1000; //4 seconds
         static const unsigned int DEFAULT_WEBSOCKET_PING_TIME = 30 * 1000; //30 seconds //IE10 requires ping time not more than 30 seconds
     };

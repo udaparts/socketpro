@@ -3,7 +3,6 @@
 #include "../include/membuffer.h"
 #include "../core_shared/pinc/getsysid.h"
 #include <algorithm>
-#include <boost/algorithm/string/find.hpp>
 #include "../include/jsonvalue.h"
 #include "../core_shared/pinc/base64.h"
 #include "../core_shared/pinc/sha1.h"

@@ -8,7 +8,6 @@
 #include <assert.h>
 #include "../servercore/webresponseProcessor.h"
 #include "../core_shared/pinc/uzip.h"
-#include <assert.h>
 #include "../include/mysql/umysql.h"
 #include "../include/sqlite/usqlite.h"
 

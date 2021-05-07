@@ -1,15 +1,9 @@
-
 #include "httpcontext.h"
-#include <boost/date_time/gregorian/gregorian.hpp>
-#include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/filesystem.hpp>
-#include <boost/algorithm/string/find.hpp>
 #include "../core_shared/pinc/base64.h"
 #include "../core_shared/pinc/sha1.h"
 #include <assert.h>
-#include <boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_generators.hpp>
-#include <boost/uuid/uuid_io.hpp>
 #include "jsloader.h"
 #include "connectioncontext.h"
 #include "../core_shared/pinc/getsysid.h"

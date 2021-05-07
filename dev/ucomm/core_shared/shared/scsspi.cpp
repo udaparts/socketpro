@@ -1,7 +1,6 @@
 
 #include "scsspi.h"
 #include "../pinc/base64.h"
-#include <boost/algorithm/string.hpp>
 #include <fstream>
 
 #pragma comment(lib, "crypt32.lib")
