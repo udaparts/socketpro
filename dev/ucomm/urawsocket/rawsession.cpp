@@ -58,7 +58,7 @@ namespace SPA
     }
 
     void CRawSession::PostProcessing(unsigned int hint, UINT64 data) {
-        m_io.post(boost::bind(&CRawSession::OnPostProcessing, this, hint, data));
+        m_io.post(std::bind(&CRawSession::OnPostProcessing, this, hint, data));
     }
 
     bool CRawSession::IsSameThread() {
@@ -482,7 +482,7 @@ namespace SPA
         if (m_bRBLocked && m_ss < tagSessionState::ssSslShaking)
             return;
         m_bRBLocked = true;
-        m_socket.async_read_some(boost::asio::buffer(m_ReadBuffer, IO_BUFFER_SIZE), boost::bind(&CRawSession::OnReadCompleted, this, nsPlaceHolders::error, nsPlaceHolders::bytes_transferred));
+        m_socket.async_read_some(boost::asio::buffer(m_ReadBuffer, IO_BUFFER_SIZE), std::bind(&CRawSession::OnReadCompleted, this, std::placeholders::_1, std::placeholders::_2));
     }
 
     void CRawSession::OnWriteCompleted(const CErrorCode& ec, size_t bytes_transferred) {
@@ -509,7 +509,7 @@ namespace SPA
                     unsigned int ulLen = (unsigned int) (m_bWBLocked - bytes_transferred);
                     ::memmove(m_WriteBuffer, m_WriteBuffer + bytes_transferred, ulLen);
                     m_bWBLocked = ulLen;
-                    m_socket.async_write_some(boost::asio::buffer(m_WriteBuffer, ulLen), boost::bind(&CRawSession::OnWriteCompleted, this, nsPlaceHolders::error, nsPlaceHolders::bytes_transferred));
+                    m_socket.async_write_some(boost::asio::buffer(m_WriteBuffer, ulLen), std::bind(&CRawSession::OnWriteCompleted, this, std::placeholders::_1, std::placeholders::_2));
                 } else {
                     assert(m_bWBLocked == bytes_transferred);
                     m_bWBLocked = 0;
@@ -579,7 +579,7 @@ namespace SPA
         }
 #endif
         m_bWBLocked = ulLen;
-        m_socket.async_write_some(boost::asio::buffer(m_WriteBuffer, ulLen), boost::bind(&CRawSession::OnWriteCompleted, this, nsPlaceHolders::error, nsPlaceHolders::bytes_transferred));
+        m_socket.async_write_some(boost::asio::buffer(m_WriteBuffer, ulLen), std::bind(&CRawSession::OnWriteCompleted, this, std::placeholders::_1, std::placeholders::_2));
         return 0;
     }
 

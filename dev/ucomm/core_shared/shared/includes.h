@@ -32,7 +32,7 @@ using namespace boost::this_thread;
 
 #include <boost/bind.hpp>
 #include <boost/asio.hpp>
-#ifndef NOT_USE_OPENSSL
+#ifndef WIN32_64
 #include <boost/asio/ssl.hpp>
 #endif
 
@@ -48,7 +48,7 @@ typedef nsIP::tcp::socket CSocket;
 typedef nsIP::tcp::resolver CResolver;
 typedef boost::asio::ip::tcp::resolver CResolver;
 
-#ifndef NOT_USE_OPENSSL
+#ifndef WIN32_64
 namespace nsSSL = boost::asio::ssl;
 typedef nsSSL::stream<nsIP::tcp::socket> CSslSocket;
 typedef nsSSL::context CSslContext;
