@@ -980,7 +980,7 @@ void CClientSession::ConnectInternally() {
         iterator = r.resolve(ipAddress, ec);
     }
     m_ec = ec;
-    if (ec || iterator == nsIP::tcp::resolver::iterator()) {
+    if (ec) {
         OnConnectedInternal(ec.value());
         CloseInternal(ec.value());
         return;
