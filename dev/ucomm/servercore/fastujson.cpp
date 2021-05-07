@@ -8,13 +8,13 @@ size_t rapidjson::CrtAllocator::_allocatedSize = 0;
 
 #endif
 
-namespace SPA {
+namespace SPA{
 
-    UJsonValue MakeJsonValue(const char *str, UMemoryPoolAllocator &allocator) {
+    UJsonValue MakeJsonValue(const char *str, UMemoryPoolAllocator & allocator) {
         return UJsonValue(str, allocator);
     }
 
-    UJsonValue MakeJsonValue(const wchar_t *str, UMemoryPoolAllocator &allocator) {
+    UJsonValue MakeJsonValue(const wchar_t *str, UMemoryPoolAllocator & allocator) {
         if (!str)
             str = L"";
 #if defined(__ANDROID__) || defined(ANDROID)
@@ -28,7 +28,7 @@ namespace SPA {
 
 #ifndef WIN32_64
 
-    UJsonValue MakeJsonValue(const char16_t *str, UMemoryPoolAllocator &allocator) {
+    UJsonValue MakeJsonValue(const char16_t *str, UMemoryPoolAllocator & allocator) {
         if (!str)
             str = u"";
 #if defined(__ANDROID__) || defined(ANDROID)
@@ -41,7 +41,7 @@ namespace SPA {
     }
 #endif
 
-    UJsonValue MakeJsonValue(const UVariant &vtData, UMemoryPoolAllocator &allocator) {
+    UJsonValue MakeJsonValue(const UVariant &vtData, UMemoryPoolAllocator & allocator) {
         UJsonValue jv;
         VARTYPE vt = vtData.vt;
         switch (vt) {
@@ -194,7 +194,7 @@ namespace SPA {
                                 bool b = p[n] ? true : false;
                                 su->Push((const unsigned char*) &b, sizeof (b));
                             }
-                            jv = MakeJsonValue((const bool*)su->GetBuffer(), size, allocator);
+                            jv = MakeJsonValue((const bool*) su->GetBuffer(), size, allocator);
                         }
                             break;
                         case VT_BSTR:

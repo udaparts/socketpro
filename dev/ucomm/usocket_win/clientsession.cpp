@@ -1129,7 +1129,7 @@ void CClientSession::OnConnected(const CErrorCode &ec) {
         return;
     } else {
         m_ec.clear();
-		auto ep = GetSocket()->remote_endpoint(m_ec);
+        auto ep = GetSocket()->remote_endpoint(m_ec);
         nsIP::address addr = ep.address();
         std::string saddr = addr.to_string();
         if (saddr == "127.0.0.1" || saddr == "::1") {
@@ -1332,7 +1332,7 @@ void CClientSession::SetUserID(const wchar_t *strUserId) {
         m_strUserId = strUserId;
     else
         m_strUserId.clear();
-	SPA::Trim(m_strUserId);
+    SPA::Trim(m_strUserId);
     m_mutex.unlock();
 }
 
@@ -1355,7 +1355,7 @@ void CClientSession::SetPassword(const wchar_t *strPassword) {
     std::wstring pwd;
     if (strPassword) {
         pwd = strPassword;
-		SPA::Trim(pwd);
+        SPA::Trim(pwd);
     }
 #if defined(__ANDROID__) || defined(ANDROID)
     SPA::UINT64 src = (SPA::UINT64)this;
@@ -1707,13 +1707,13 @@ bool CClientSession::StartQueueInternal(const char *qName, bool secure, bool deq
     std::wstring pwd = (const wchar_t*) tempSQ->GetBuffer();
 #endif
     std::string fn(qName);
-	SPA::Trim(fn);
+    SPA::Trim(fn);
     if (fn.size() == 0)
         return false;
     boost::filesystem::path bpath(fn);
     if (!bpath.is_absolute())
         fn = CClientSession::m_WorkingPath + fn;
-	SPA::Trim(fn);
+    SPA::Trim(fn);
     if (fn.size() == 0)
         return false;
 #ifdef WIN32_64

@@ -2,7 +2,6 @@
 #include <ctype.h>
 #include "../core_shared/pinc/uzip.h"
 #include "../core_shared/pinc/getsysid.h"
-#include <boost/algorithm/string/trim.hpp>
 #include "../clientcore/socketpool.h"
 #include <assert.h>
 #include <boost/filesystem.hpp>
@@ -1010,7 +1009,7 @@ bool CClientSession::Connect(const char *strHost, unsigned int nPort, bool bSync
     CloseInternal();
     m_strhost = strHost;
     std::transform(m_strhost.begin(), m_strhost.end(), m_strhost.begin(), ::tolower);
-    boost::trim(m_strhost);
+    SPA::Trim(m_strhost);
     m_nPort = nPort;
     m_ConnState = SPA::ClientSide::tagConnectionState::csConnecting;
     m_tRecv = GetTimeTick();
@@ -1239,7 +1238,7 @@ void CClientSession::SetUserID(const wchar_t *strUserId) {
         m_strUserId = strUserId;
     else
         m_strUserId.clear();
-    boost::trim(m_strUserId);
+    SPA::Trim(m_strUserId);
     m_mutex.unlock();
 }
 
@@ -1262,7 +1261,7 @@ void CClientSession::SetPassword(const wchar_t *strPassword) {
     std::wstring pwd;
     if (strPassword) {
         pwd = strPassword;
-        boost::trim(pwd);
+        SPA::Trim(pwd);
     }
 #if defined(__ANDROID__) || defined(ANDROID)
     SPA::UINT64 src = (SPA::UINT64)this;
@@ -1639,13 +1638,13 @@ bool CClientSession::StartQueueInternal(const char *qName, bool secure, bool deq
     std::wstring pwd = (const wchar_t*) tempSQ->GetBuffer();
 #endif
     std::string fn(qName);
-    boost::trim(fn);
+    SPA::Trim(fn);
     if (fn.size() == 0)
         return false;
     boost::filesystem::path bpath(fn);
     if (!bpath.is_absolute())
         fn = CClientSession::m_WorkingPath + fn;
-    boost::trim(fn);
+    SPA::Trim(fn);
     if (fn.size() == 0)
         return false;
 #ifdef WIN32_64
