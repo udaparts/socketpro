@@ -34,7 +34,7 @@ int main() {
         SetCertVerifyCallback(CVCallback);
         CSessionPool<CHttp> pool(3);
         auto channel = pool.FindAClosedHandler();
-        ok = channel->Connect("google.com", 443, tagEncryptionMethod::TLSv1, false, true);
+        ok = channel->Connect("windesk", 20901, tagEncryptionMethod::TLSv1, false, true);
         char Hostname[1024];
         ok = channel->GetServerName(Hostname, sizeof (Hostname));
 

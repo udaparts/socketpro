@@ -35,6 +35,8 @@ OBJECTDIR=${CND_BUILDDIR}/${CND_CONF}/${CND_PLATFORM}
 
 # Object Files
 OBJECTFILES= \
+	${OBJECTDIR}/_ext/473765425/directory.o \
+	${OBJECTDIR}/_ext/473765425/exception.o \
 	${OBJECTDIR}/_ext/473765425/operations.o \
 	${OBJECTDIR}/_ext/473765425/path.o \
 	${OBJECTDIR}/_ext/302208857/base64.o \
@@ -83,6 +85,16 @@ ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/libuzip.a: ${OBJECTFILES}
 	${RM} ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/libuzip.a
 	${AR} -rv ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/libuzip.a ${OBJECTFILES} 
 	$(RANLIB) ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/libuzip.a
+
+${OBJECTDIR}/_ext/473765425/directory.o: ../../../../Downloads/boost/libs/filesystem/src/directory.cpp 
+	${MKDIR} -p ${OBJECTDIR}/_ext/473765425
+	${RM} "$@.d"
+	$(COMPILE.c) -O3 -s -DNDEBUG -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/473765425/directory.o ../../../../Downloads/boost/libs/filesystem/src/directory.cpp
+
+${OBJECTDIR}/_ext/473765425/exception.o: ../../../../Downloads/boost/libs/filesystem/src/exception.cpp 
+	${MKDIR} -p ${OBJECTDIR}/_ext/473765425
+	${RM} "$@.d"
+	$(COMPILE.c) -O3 -s -DNDEBUG -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/473765425/exception.o ../../../../Downloads/boost/libs/filesystem/src/exception.cpp
 
 ${OBJECTDIR}/_ext/473765425/operations.o: ../../../../Downloads/boost/libs/filesystem/src/operations.cpp 
 	${MKDIR} -p ${OBJECTDIR}/_ext/473765425

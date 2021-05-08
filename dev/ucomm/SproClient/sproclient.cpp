@@ -191,6 +191,8 @@ void TestQueue(const SPA::ClientSide::CConnectionContext &cc) {
     std::cout << "A unique queue name, please?" << std::endl;
     std::cin >> qName;
 
+    sp.SetQueueName(qName.c_str());
+
     bool b = sp.StartSocketPool(cc, 1, 1);
     auto p = sp.Lock();
     if (!p) {
@@ -198,9 +200,9 @@ void TestQueue(const SPA::ClientSide::CConnectionContext &cc) {
         return;
     }
     IClientQueue &cq = p->GetAttachedClientSocket()->GetClientQueue();
-    b = cq.StartQueue(qName.c_str(), 30 * 24 * 3600, cc.EncrytionMethod != tagEncryptionMethod::NoEncryption);
+    //b = cq.StartQueue(qName.c_str(), 30 * 24 * 3600, cc.EncrytionMethod != tagEncryptionMethod::NoEncryption);
     if (b) {
-        auto found = sp.SeekByQueue(qName);
+        auto found = sp.SeekByQueue();
         assert(found);
     }
     do {

@@ -34,6 +34,8 @@
       <itemPath>compress.c</itemPath>
       <itemPath>crc32.c</itemPath>
       <itemPath>deflate.c</itemPath>
+      <itemPath>../../../../Downloads/boost/libs/filesystem/src/directory.cpp</itemPath>
+      <itemPath>../../../../Downloads/boost/libs/filesystem/src/exception.cpp</itemPath>
       <itemPath>getsysid.cpp</itemPath>
       <itemPath>infback.c</itemPath>
       <itemPath>inffast.c</itemPath>
@@ -80,6 +82,16 @@
         <archiverTool>
         </archiverTool>
       </compileType>
+      <item path="../../../../Downloads/boost/libs/filesystem/src/directory.cpp"
+            ex="false"
+            tool="0"
+            flavor2="0">
+      </item>
+      <item path="../../../../Downloads/boost/libs/filesystem/src/exception.cpp"
+            ex="false"
+            tool="0"
+            flavor2="0">
+      </item>
       <item path="../../../../Downloads/boost/libs/filesystem/src/operations.cpp"
             ex="false"
             tool="0"
@@ -193,6 +205,16 @@
         <archiverTool>
         </archiverTool>
       </compileType>
+      <item path="../../../../Downloads/boost/libs/filesystem/src/directory.cpp"
+            ex="false"
+            tool="0"
+            flavor2="0">
+      </item>
+      <item path="../../../../Downloads/boost/libs/filesystem/src/exception.cpp"
+            ex="false"
+            tool="0"
+            flavor2="0">
+      </item>
       <item path="../../../../Downloads/boost/libs/filesystem/src/operations.cpp"
             ex="false"
             tool="1"
