@@ -951,7 +951,7 @@ namespace SPA {
             CDBString Collation;
             unsigned int ColumnSize;
             unsigned int Flags;
-            unsigned short DataType;
+            VARTYPE DataType;
             unsigned char Precision;
             unsigned char Scale;
         };
