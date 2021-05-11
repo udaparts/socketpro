@@ -1,4 +1,7 @@
 #include "../core_shared/pinc/fastujson.h"
+#ifndef WIN32_64
+#include <boost/json/src.hpp>
+#endif
 
 namespace SPA
 {
@@ -193,7 +196,7 @@ namespace SPA
 #else
                             for (unsigned int n = 0; n < size; ++n) {
                                 const char16_t *s = p[n];
-                                jv.push_back(MakeJsonValue(s));
+                                v.push_back(MakeJsonValue(s));
                             }
 #endif
                             jv = std::move(v);

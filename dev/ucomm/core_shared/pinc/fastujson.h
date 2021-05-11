@@ -1,4 +1,3 @@
-
 #pragma once
 
 #include "../../include/membuffer.h"
