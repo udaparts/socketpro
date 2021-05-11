@@ -29,10 +29,10 @@ namespace UHTTP {
         virtual unsigned int SendExceptionResult(const wchar_t* errMessage, const char* errWhere, unsigned short requestId, unsigned int errCode, SPA::CUQueue &Response);
 
     protected:
-        virtual void SetResponse(SPA::UJsonDocument &docRes, SPA::CUQueue &Response) = 0;
-        virtual void WriteEnd(SPA::UJsonDocument &docRes, SPA::CUQueue &Response) = 0;
-        void SetSenderInfo(SPA::UJsonDocument &docRes, const char *senderAddr, unsigned short senderClientPort, const wchar_t *sendUserId, unsigned int senderServiceId, const unsigned int *pGroups, unsigned int count);
-        void SetOwnBaseResponseInfo(SPA::UJsonDocument &docRes);
+        virtual void SetResponse(SPA::UJsonValue &docRes, SPA::CUQueue &Response) = 0;
+        virtual void WriteEnd(SPA::UJsonValue &docRes, SPA::CUQueue &Response) = 0;
+        void SetSenderInfo(SPA::UJsonValue &docRes, const char *senderAddr, unsigned short senderClientPort, const wchar_t *sendUserId, unsigned int senderServiceId, const unsigned int *pGroups, unsigned int count);
+        void SetOwnBaseResponseInfo(SPA::UJsonValue &docRes);
         unsigned int GetPt();
 
     public:
@@ -65,8 +65,8 @@ namespace UHTTP {
         CJavaScriptResponseProcessor(CJavaScriptRequestProcessor *pJavaScriptRequestProcessor);
 
     protected:
-        virtual void SetResponse(SPA::UJsonDocument &docRes, SPA::CUQueue &Response);
-        virtual void WriteEnd(SPA::UJsonDocument &docRes, SPA::CUQueue &Response);
+        virtual void SetResponse(SPA::UJsonValue &docRes, SPA::CUQueue &Response);
+        virtual void WriteEnd(SPA::UJsonValue &docRes, SPA::CUQueue &Response);
     };
 
     class U_MODULE_HIDDEN CAjaxResponseProcessor : public CWebResponseProcessor {
@@ -74,8 +74,8 @@ namespace UHTTP {
         CAjaxResponseProcessor(CAjaxRequestProcessor *pAjaxRequestProcessor);
 
     protected:
-        virtual void SetResponse(SPA::UJsonDocument &docRes, SPA::CUQueue &Response);
-        virtual void WriteEnd(SPA::UJsonDocument &docRes, SPA::CUQueue &Response);
+        virtual void SetResponse(SPA::UJsonValue &docRes, SPA::CUQueue &Response);
+        virtual void WriteEnd(SPA::UJsonValue &docRes, SPA::CUQueue &Response);
     };
 
     class U_MODULE_HIDDEN CWebSocketResponseProcessor : public CWebResponseProcessor {
@@ -89,8 +89,8 @@ namespace UHTTP {
         virtual unsigned int SendUserMessage(const char *senderAddr, unsigned short senderClientPort, const wchar_t *sendUserId, unsigned int senderServiceId, const SPA::UVariant &vtMsg, const unsigned int *pGroups, unsigned int count, SPA::CUQueue &Response);
 
     protected:
-        virtual void WriteEnd(SPA::UJsonDocument &docRes, SPA::CUQueue &Response);
-        virtual void SetResponse(SPA::UJsonDocument &docRes, SPA::CUQueue &Response);
+        virtual void WriteEnd(SPA::UJsonValue &docRes, SPA::CUQueue &Response);
+        virtual void SetResponse(SPA::UJsonValue &docRes, SPA::CUQueue &Response);
     };
 
 };

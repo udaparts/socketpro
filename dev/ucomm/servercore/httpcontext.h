@@ -41,8 +41,8 @@ namespace UHTTP {
         static tagSpRequest MapRequest(const char *reqName);
         static std::string GenerateId(const UHttpRequest &UReq);
         void ProcessRequestBatch(const UHttpRequest &UReq, SPA::CUQueue &Response);
-        UHttpRequest ParseSPRequest(const SPA::UJsonValue &doc);
-        void ProcessSpRequest(const UHttpRequest &UReq, SPA::UJsonDocument::AllocatorType &at, rapidjson::Value &res);
+        UHttpRequest ParseSPRequest(const SPA::UJsonValue &req);
+        void ProcessSpRequest(const UHttpRequest &UReq, SPA::UJsonValue &res);
 
         void SetPt();
         bool AddSecWebSocketAcceptHeader(const char *key);

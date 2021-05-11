@@ -524,39 +524,40 @@ namespace UHTTP
         ((CAjaxRequestProcessor*) m_pWebRequestProcessor)->SetContent(data, len);
     }
 
-    tagHttpResponseStatus CHttpContext::PrepareBatchResponses(const UHttpRequest &ur, SPA::CUQueue &qResponse, tagHttpResponseFeedPlan fp) {
-        SPA::CScopeUQueue jBuffer;
-        SPA::UJsonDocument docRes;
-        rapidjson::Value docArray;
-        rapidjson::Value res;
-        SPA::UJsonDocument::AllocatorType &at = docRes.GetAllocator();
-        SPA::UJsonWriter writer(*jBuffer);
+    tagHttpResponseStatus CHttpContext::PrepareBatchResponses(const UHttpRequest &ur, SPA::CUQueue &qResponse, tagHttpResponseFeedPlan fp) { 
         const SPA::UJsonValue &args = *(ur.Args);
-        bool b = args[(unsigned int) 0].GetBool();
-        const SPA::UJsonValue &objs = args[1];
-        unsigned int n, count = objs.Size();
-        docRes.SetObject();
-        docRes.AddMember(CHttpContext::SP_REQUEST_CI.c_str(), ur.CallIndex, at);
-        docRes.AddMember(CHttpContext::SP_RESPONSE_CODE.c_str(), ur.ErrCode, docRes.GetAllocator());
-        docArray.SetArray();
-        for (n = 0; n < count; ++n) {
-            const SPA::UJsonValue &req = objs[n];
+#ifndef NDEBUG
+        bool b = args.as_array()[(unsigned int)0].as_bool();
+#endif
+        SPA::UJsonObject obj;
+        obj[CHttpContext::SP_REQUEST_CI] = ur.CallIndex;
+        obj[CHttpContext::SP_RESPONSE_CODE] = ur.ErrCode;
+        SPA::UJsonArray docArray;
+        const SPA::UJsonValue& objs = args.as_array()[1];
+        unsigned int count = (unsigned int)objs.as_array().size();
+        for (unsigned int n = 0; n < count; ++n) {
+            const SPA::UJsonValue &req = objs.as_array()[n];
             UHttpRequest urKid = ParseSPRequest(req);
-            ProcessSpRequest(urKid, at, res);
-            docArray.PushBack(res, at);
+            SPA::UJsonValue res;
+            ProcessSpRequest(urKid, res);
+            docArray.push_back(res);
         }
-        docRes.AddMember("rb", docArray, at);
-        docRes.Accept(writer);
+        obj["rb"] = std::move(docArray);
+        SPA::CScopeUQueue jBuffer;
+        SPA::UJsonValue jv(std::move(obj));
+        jBuffer << jv;
         return PrepareResponse(jBuffer->GetBuffer(), jBuffer->GetSize(), qResponse, fp);
     }
 
     void CHttpContext::PrepareBatchWSResponseMessage(const UHttpRequest &ur, tagWSOpCode oc, SPA::CUQueue & qResponse) {
         const SPA::UJsonValue &args = *(ur.Args);
-        bool b = args[(unsigned int) 0].GetBool();
-        const SPA::UJsonValue &objs = args[1];
-        unsigned int n, count = objs.Size();
-        for (n = 0; n < count; ++n) {
-            const SPA::UJsonValue &req = objs[n];
+#ifndef NDEBUG
+        bool b = args.as_array()[(unsigned int)0].as_bool();
+#endif
+        const SPA::UJsonValue& objs = args.as_array()[1];
+        unsigned int count = (unsigned int)objs.as_array().size();
+        for (unsigned int n = 0; n < count; ++n) {
+            const SPA::UJsonValue& req = objs.as_array()[n];
             SPA::CScopeUQueue jBuffer;
             UHttpRequest urKid = ParseSPRequest(req);
             ProcessSpRequest(urKid, *jBuffer);
@@ -1229,31 +1230,30 @@ namespace UHTTP
 
     void CHttpContext::ProcessRequestBatch(const UHttpRequest &UReq, SPA::CUQueue & Response) {
         SPA::UJsonValue &args = *((SPA::UJsonValue *)UReq.Args);
-        bool b = args[(unsigned int) 0].GetBool();
-        SPA::UJsonValue &objs = args[1];
-        unsigned int n, count = objs.Size();
-        for (n = 0; n < count; ++n) {
-            const SPA::UJsonValue &req = objs[n];
+#ifndef NDEBUG
+        bool b = args.as_array()[(unsigned int)0].as_bool();
+#endif
+        SPA::UJsonValue &objs = args.as_array()[1];
+        unsigned int count = (unsigned int)objs.as_array().size();
+        for (unsigned int n = 0; n < count; ++n) {
+            const SPA::UJsonValue &req = objs.as_array()[n];
             UHttpRequest ur = ParseSPRequest(req);
             ProcessSpRequest(ur, Response);
         }
     }
 
-    void CHttpContext::ProcessSpRequest(const UHttpRequest &UReq, SPA::UJsonDocument::AllocatorType &at, rapidjson::Value & res) {
-        std::string id = UReq.Id;
-        res.SetObject();
-        res.AddMember(CHttpContext::SP_REQUEST_CI.c_str(), UReq.CallIndex, at);
-        res.AddMember(CHttpContext::SP_RESPONSE_CODE.c_str(), UReq.ErrCode, at);
+    void CHttpContext::ProcessSpRequest(const UHttpRequest &UReq, SPA::UJsonValue & res) {
+        SPA::UJsonObject obj;
+        obj[CHttpContext::SP_REQUEST_CI] = UReq.CallIndex;
+        obj[CHttpContext::SP_RESPONSE_CODE] = UReq.ErrCode;
         if (UReq.ErrCode == seOk) {
             switch (UReq.SpRequest) {
                 case srSwitchTo:
                 {
-                    id = GenerateId(UReq);
-                    //!!!! there is a bug here, id must be on top scope
-                    res.AddMember(CHttpContext::SP_REQUEST_ID.c_str(), id.c_str(), at); //????
+                    obj[CHttpContext::SP_REQUEST_ID] = GenerateId(UReq);
 
                     SetPt();
-                    res.AddMember(HTTP_RESPONSE_PT.c_str(), m_pt, at); //????
+                    obj[HTTP_RESPONSE_PT] = m_pt;
                 }
                     break;
                 case srPing:
@@ -1264,13 +1264,13 @@ namespace UHTTP
                     break;
                     break;
                 default:
-                    res.AddMember(CHttpContext::SP_RESPONSE_RESULT.c_str(), "SomeData", at); //????
+                    obj[CHttpContext::SP_RESPONSE_RESULT] = "SomeData";
                     break;
             }
         } else {
             switch (UReq.SpRequest) {
                 case srSwitchTo:
-                    res.AddMember(CHttpContext::SP_REQUEST_ID.c_str(), "", at);
+                    obj[CHttpContext::SP_REQUEST_ID] = "";
                     break;
                 case srPing:
                     if (!IsWebSocket()) {
@@ -1279,10 +1279,11 @@ namespace UHTTP
                     }
                     break;
                 default:
-                    res.AddMember(CHttpContext::SP_RESPONSE_RESULT.c_str(), "", at); //????
+                    obj[CHttpContext::SP_RESPONSE_RESULT] = "";
                     break;
             }
         }
+        res = std::move(obj);
     }
 
     void CHttpContext::SetPt() {
@@ -1295,27 +1296,24 @@ namespace UHTTP
     }
 
     void CHttpContext::ProcessSpRequest(const UHttpRequest &UReq, SPA::CUQueue & Response) {
-        std::string id;
         tagSpError rc = UReq.ErrCode;
         Connection::CConnectionContext::SharedPtr pCC = Connection::CConnectionContext::SeekConnectionContext(UReq.Id);
-        SPA::UJsonDocument docRes;
-        SPA::UJsonWriter writer(Response);
-        docRes.SetObject();
-        docRes.AddMember(CHttpContext::SP_REQUEST_CI.c_str(), UReq.CallIndex, docRes.GetAllocator());
-        if (UReq.SpRequest != srSwitchTo && pCC == nullptr)
+        SPA::UJsonObject objRes;
+        objRes[CHttpContext::SP_REQUEST_CI] = UReq.CallIndex;
+        if (UReq.SpRequest != srSwitchTo && pCC == nullptr) {
             rc = seAuthenticationFailed;
-        docRes.AddMember(CHttpContext::SP_RESPONSE_CODE.c_str(), rc, docRes.GetAllocator());
+        }
+        objRes[CHttpContext::SP_RESPONSE_CODE] = rc;
         if (rc == seOk) {
             switch (UReq.SpRequest) {
                 case srSwitchTo:
                 {
                     if (pCC)
                         Connection::CConnectionContext::RemoveConnectionContext(UReq.Id);
-                    id = GenerateId(UReq);
-                    //!!!! there is a bug here, id must be on top scope
-                    docRes.AddMember(CHttpContext::SP_REQUEST_ID.c_str(), id.c_str(), docRes.GetAllocator()); //????
+                    std::string id = GenerateId(UReq);
+                    objRes[CHttpContext::SP_REQUEST_ID] = id;
                     SetPt();
-                    docRes.AddMember(HTTP_RESPONSE_PT.c_str(), m_pt, docRes.GetAllocator()); //????
+                    objRes[HTTP_RESPONSE_PT] = m_pt;
 
                     if (!IsWebSocket()) {
                         Connection::CConnectionContext::SharedPtr cc(new Connection::CConnectionContext);
@@ -1340,7 +1338,7 @@ namespace UHTTP
                     m_mapResponse[Connection] = SP_CONNECTION_CLOSE.c_str();
                     break;
                 default:
-                    docRes.AddMember(CHttpContext::SP_RESPONSE_RESULT.c_str(), "SomeData", docRes.GetAllocator()); //????
+                    objRes[CHttpContext::SP_RESPONSE_RESULT] = "SomeData";
                     break;
             }
         } else {
@@ -1350,7 +1348,7 @@ namespace UHTTP
             }
             switch (UReq.SpRequest) {
                 case srSwitchTo:
-                    docRes.AddMember(CHttpContext::SP_REQUEST_ID.c_str(), "", docRes.GetAllocator());
+                    objRes[CHttpContext::SP_REQUEST_ID] = "";
                     break;
                 case srPing:
                     break;
@@ -1359,68 +1357,80 @@ namespace UHTTP
                     m_mapResponse[Connection] = SP_CONNECTION_CLOSE.c_str();
                     break;
                 default:
-                    docRes.AddMember(CHttpContext::SP_RESPONSE_RESULT.c_str(), "", docRes.GetAllocator()); //????
+                    objRes[CHttpContext::SP_RESPONSE_RESULT] = "";
                     break;
             }
         }
         if (!IsWebSocket() && m_RequestContext.Method == SPA::ServerSide::tagHttpMethod::hmGet)
             Response.Push(HTTP_JS_CALLBACK_HEAD.c_str(), (unsigned int) HTTP_JS_CALLBACK_HEAD.size());
-        docRes.Accept(writer);
+        SPA::UJsonValue jv(std::move(objRes));
+        Response << jv;
         if (!IsWebSocket() && m_RequestContext.Method == SPA::ServerSide::tagHttpMethod::hmGet)
             Response.Push(HTTP_JS_CALLBACK_END.c_str(), (unsigned int) HTTP_JS_CALLBACK_END.size());
     }
 
-    UHttpRequest CHttpContext::ParseSPRequest(const SPA::UJsonValue & doc) {
+    UHttpRequest CHttpContext::ParseSPRequest(const SPA::UJsonValue & req) {
         UHttpRequest UReq;
         UReq.SpRequest = srUnknown;
-        rapidjson::SizeType size = doc.MemberSize();
+        if (!req.is_object()) {
+            UReq.ErrCode = seUnexpectedRequest;
+            return UReq;
+        }
+        const SPA::UJsonObject& obj = req.as_object();
+
+        size_t size = obj.size();
         if (size != 5) {
             UReq.ErrCode = seBadNumberOfArgs;
             return UReq;
         }
 
-        if (!doc.HasMember(SP_REQUEST_NAME.c_str()) ||
-                !doc.HasMember(SP_REQUEST_CI.c_str()) ||
-                !doc.HasMember(SP_REQUEST_VERSION.c_str()) ||
-                !doc.HasMember(SP_REQUEST_ARGS.c_str()) ||
-                !doc.HasMember(SP_REQUEST_ID.c_str())
+        if (!obj.contains(SP_REQUEST_NAME) ||
+                !obj.contains(SP_REQUEST_CI) ||
+                !obj.contains(SP_REQUEST_VERSION) ||
+                !obj.contains(SP_REQUEST_ARGS) ||
+                !obj.contains(SP_REQUEST_ID)
                 ) {
             UReq.ErrCode = seBadArgs;
             return UReq;
         }
 
-        const SPA::UJsonValue &reqName = doc[SP_REQUEST_NAME.c_str()];
-        if (!reqName.IsString()) {
+        const SPA::UJsonValue &reqName = obj.at(SP_REQUEST_NAME);
+        if (!reqName.is_string()) {
             UReq.ErrCode = seWrongArgType;
             return UReq;
         }
 
-        UReq.ReqName = reqName.GetString();
+        UReq.ReqName = reqName.as_string().c_str();
         UReq.SpRequest = MapRequest(UReq.ReqName);
 
-        const SPA::UJsonValue &id = doc[SP_REQUEST_ID.c_str()];
-        if (!id.IsString()) {
+        const SPA::UJsonValue &id = obj.at(SP_REQUEST_ID);
+        if (!id.is_string()) {
             UReq.ErrCode = seWrongArgType;
             return UReq;
         }
-        UReq.Id = id.GetString();
+        UReq.Id = id.as_string().c_str();
 
-        const SPA::UJsonValue &ci = doc[SP_REQUEST_CI.c_str()];
-        if (!ci.IsInt() && !ci.IsInt64()) {
+        const SPA::UJsonValue &ci = obj.at(SP_REQUEST_CI);
+        if (ci.is_int64()) {
+            UReq.CallIndex = ci.as_int64();
+        }
+        else if (ci.is_uint64()) {
+            UReq.CallIndex = (SPA::INT64)ci.as_uint64();
+        }
+        else {
             UReq.ErrCode = seWrongArgType;
             return UReq;
         }
-        UReq.CallIndex = ci.GetInt64();
 
-        const SPA::UJsonValue &v = doc[SP_REQUEST_VERSION.c_str()];
-        if (!v.IsDouble()) {
+        const SPA::UJsonValue &v = obj.at(SP_REQUEST_VERSION);
+        if (!v.is_double()) {
             UReq.ErrCode = seWrongArgType;
             return UReq;
         }
-        UReq.Version = v.GetDouble();
+        UReq.Version = v.as_double();
 
-        const SPA::UJsonValue &args = doc[SP_REQUEST_ARGS.c_str()];
-        if (!args.IsArray()) {
+        const SPA::UJsonValue &args = obj.at(SP_REQUEST_ARGS);
+        if (!args.is_array()) {
             UReq.ErrCode = seWrongArgType;
             return UReq;
         }

@@ -101,50 +101,49 @@ namespace Connection
         return it->second;
     }
 
-    void CConnectionContext::ToString(SPA::UJsonValue &jv, unsigned int approSize, SPA::CUQueue & q) {
-        if (approSize > q.GetTailSize())
+    void CConnectionContext::ToString(const SPA::UJsonValue &jv, unsigned int approSize, SPA::CUQueue & q) {
+        if (approSize > q.GetTailSize()) {
             q.ReallocBuffer(q.GetMaxSize() + approSize - q.GetTailSize());
-        SPA::UJsonWriter writer(q);
-        jv.Accept(writer);
-        q.SetNull();
+        }
+        q << jv;
     }
 
-    std::string CConnectionContext::ToString(SPA::UJsonValue &jv, unsigned int approSize) {
+    std::string CConnectionContext::ToString(const SPA::UJsonValue &jv, unsigned int approSize) {
         SPA::CScopeUQueue su;
         if (approSize > su->GetMaxSize())
             su->ReallocBuffer(approSize);
-        SPA::UJsonWriter writer(*su);
-        jv.Accept(writer);
-        su->SetNull();
+        su << jv;
         return (const char*) su->GetBuffer();
     }
 
-    void CConnectionContext::SetSenderInfo(SPA::UJsonDocument &jv, const char *senderAddr, unsigned short senderClientPort, const wchar_t *sendUserId, unsigned int senderServiceId, const unsigned int *pGroup, unsigned int count) {
+    void CConnectionContext::SetSenderInfo(boost::json::value& jv, const char *senderAddr, unsigned short senderClientPort, const wchar_t *sendUserId, unsigned int senderServiceId, const unsigned int *pGroup, unsigned int count) {
         SPA::CScopeUQueue su;
-        if (sendUserId)
+        su->SetNull();
+        if (sendUserId) {
             SPA::Utilities::ToUTF8(sendUserId, ::wcslen(sendUserId), *su);
-        jv.AddMember(UHTTP::CHttpContext::HTTP_RESPONSE_SELF.c_str(), (unsigned int) 0, jv.GetAllocator());
-        jv.AddMember(UHTTP::CWebResponseProcessor::HTTP_RESPONSE_SENDER.c_str(), SPA::MakeJsonValue((const char*) su->GetBuffer(), jv.GetAllocator()), jv.GetAllocator());
-        jv.AddMember(UHTTP::CWebResponseProcessor::HTTP_RESPONSE_SERVICE_ID.c_str(), senderServiceId, jv.GetAllocator());
-        //jv.AddMember(UHTTP::CWebResponseProcessor::HTTP_RESPONSE_IP.c_str(), SPA::MakeJsonValue(senderAddr, jv.GetAllocator()), jv.GetAllocator());
-        //jv.AddMember(UHTTP::CWebResponseProcessor::HTTP_RESPONSE_PORT.c_str(), senderClientPort, jv.GetAllocator());
-        jv.AddMember(UHTTP::CHttpContext::HTTP_JS_GROUPS.c_str(), SPA::MakeJsonValue(pGroup, count, jv.GetAllocator()), jv.GetAllocator());
+        }
+        SPA::UJsonObject& obj = jv.as_object();
+        obj[UHTTP::CHttpContext::HTTP_RESPONSE_SELF] = (unsigned int)0;
+        obj[UHTTP::CWebResponseProcessor::HTTP_RESPONSE_SENDER] = (const char*)su->GetBuffer();
+        obj[UHTTP::CWebResponseProcessor::HTTP_RESPONSE_SERVICE_ID] = senderServiceId;
+        obj[UHTTP::CHttpContext::HTTP_JS_GROUPS] = SPA::MakeJsonValue(pGroup, count);
     }
 
     unsigned int CConnectionContext::SendWSResult(unsigned short reqId, const char *res, unsigned int len, SPA::CUQueue &q, const char *callback) {
         if (!res)
             res = "";
-        SPA::CScopeUQueue su;
-        SPA::UJsonDocument jv;
+        SPA::UJsonObject obj;
         unsigned int start = q.GetSize();
-        jv.SetObject();
-        if (callback)
-            jv.AddMember("cbk", callback, jv.GetAllocator());
-        jv.AddMember(UHTTP::CWebResponseProcessor::HTTP_RESPONSE_REQUEST_ID.c_str(), reqId, jv.GetAllocator());
-        jv.AddMember(UHTTP::CHttpContext::HTTP_RESPONSE_SELF.c_str(), (unsigned int) 1, jv.GetAllocator());
-        jv.AddMember(UHTTP::CHttpContext::SP_RESPONSE_RESULT.c_str(), res, jv.GetAllocator());
-        if (len == (~0))
+        if (callback) {
+            obj["cbk"] = callback;
+        }
+        obj[UHTTP::CWebResponseProcessor::HTTP_RESPONSE_REQUEST_ID] = reqId;
+        obj[UHTTP::CHttpContext::HTTP_RESPONSE_SELF] = (unsigned int)1;
+        obj[UHTTP::CHttpContext::SP_RESPONSE_RESULT] = res;
+        if (len == (~0)) {
             len = (unsigned int) ::strlen(res);
+        }
+        SPA::UJsonValue jv(std::move(obj));
         ToString(jv, len, q);
         return (q.GetSize() - start);
     }
@@ -155,17 +154,18 @@ namespace Connection
         SPA::CAutoLock al(m_cs);
         boost::unordered_map<std::string, CConnectionContext::SharedPtr>::iterator it = m_mapCC.find(id);
         if (it != m_mapCC.end()) {
-            SPA::CScopeUQueue su;
             CConnectionContext::SharedPtr p = it->second;
-            SPA::UJsonDocument jv;
-            jv.SetObject();
-            if (callback)
-                jv.AddMember("cbk", callback, jv.GetAllocator());
-            jv.AddMember(UHTTP::CWebResponseProcessor::HTTP_RESPONSE_REQUEST_ID.c_str(), reqId, jv.GetAllocator());
-            jv.AddMember(UHTTP::CHttpContext::HTTP_RESPONSE_SELF.c_str(), (unsigned int) 1, jv.GetAllocator());
-            jv.AddMember(UHTTP::CHttpContext::SP_RESPONSE_RESULT.c_str(), res, jv.GetAllocator());
-            if (len == (~0))
+            SPA::UJsonObject obj;
+            if (callback) {
+                obj["cbk"] = callback;
+            }
+            obj[UHTTP::CWebResponseProcessor::HTTP_RESPONSE_REQUEST_ID] = reqId;
+            obj[UHTTP::CHttpContext::HTTP_RESPONSE_SELF] = (unsigned int)1;
+            obj[UHTTP::CHttpContext::SP_RESPONSE_RESULT] = res;
+            if (len == (~0)) {
                 len = (unsigned int) ::strlen(res);
+            }
+            SPA::UJsonValue jv(std::move(obj));
             std::string str = ToString(jv, len + 16);
             p->Responses.push_back(str);
             return len;
@@ -178,11 +178,11 @@ namespace Connection
         boost::unordered_map<std::string, CConnectionContext::SharedPtr>::iterator it = m_mapCC.find(id);
         if (it != m_mapCC.end()) {
             CConnectionContext::SharedPtr p = it->second;
-            SPA::UJsonDocument jv;
-            jv.SetObject();
-            jv.AddMember(UHTTP::CHttpContext::SP_REQUEST_NAME.c_str(), UHTTP::CHttpContext::SP_REQUEST_EXIT.c_str(), jv.GetAllocator());
-            jv.AddMember(UHTTP::CHttpContext::HTTP_RESPONSE_SELF.c_str(), (unsigned int) 1, jv.GetAllocator());
-            jv.AddMember(UHTTP::CHttpContext::SP_RESPONSE_RESULT.c_str(), SPA::MakeJsonValue(pGroups, count, jv.GetAllocator()), jv.GetAllocator());
+            SPA::UJsonObject obj;
+            obj[UHTTP::CHttpContext::SP_REQUEST_NAME] = UHTTP::CHttpContext::SP_REQUEST_EXIT;
+            obj[UHTTP::CHttpContext::HTTP_RESPONSE_SELF] = (unsigned int)1;
+            obj[UHTTP::CHttpContext::SP_RESPONSE_RESULT] = SPA::MakeJsonValue(pGroups, count);
+            SPA::UJsonValue jv(std::move(obj));
             p->Responses.push_back(ToString(jv, 1024));
         }
     }
@@ -192,12 +192,11 @@ namespace Connection
         boost::unordered_map<std::string, CConnectionContext::SharedPtr>::iterator it = m_mapCC.find(id);
         if (it != m_mapCC.end()) {
             CConnectionContext::SharedPtr p = it->second;
-            SPA::UJsonDocument jv;
-            jv.SetObject();
-            jv.AddMember(UHTTP::CHttpContext::SP_REQUEST_NAME.c_str(), UHTTP::CHttpContext::SP_REQUEST_SPEAK.c_str(), jv.GetAllocator());
-            jv.AddMember(UHTTP::CHttpContext::HTTP_RESPONSE_SELF.c_str(), (unsigned int) 1, jv.GetAllocator());
-            //jv.AddMember(UHTTP::CWebResponseProcessor::HTTP_RESPONSE_MSG.c_str(), SPA::MakeJsonValue(vtMsg, jv.GetAllocator()), jv.GetAllocator());
-            jv.AddMember(UHTTP::CHttpContext::SP_RESPONSE_RESULT.c_str(), SPA::MakeJsonValue(pGroups, count, jv.GetAllocator()), jv.GetAllocator());
+            SPA::UJsonObject obj;
+            obj[UHTTP::CHttpContext::SP_REQUEST_NAME] = UHTTP::CHttpContext::SP_REQUEST_SPEAK;
+            obj[UHTTP::CHttpContext::HTTP_RESPONSE_SELF] = (unsigned int)1;
+            obj[UHTTP::CHttpContext::SP_RESPONSE_RESULT] = SPA::MakeJsonValue(pGroups, count);
+            SPA::UJsonValue jv(std::move(obj));
             p->Responses.push_back(ToString(jv, 1024));
         }
     }
@@ -206,20 +205,20 @@ namespace Connection
         SPA::CAutoLock al(m_cs);
         boost::unordered_map<std::string, CConnectionContext::SharedPtr>::iterator it = m_mapCC.find(id);
         if (it != m_mapCC.end()) {
-            SPA::CScopeUQueue su;
+            unsigned int len = 0;
             CConnectionContext::SharedPtr p = it->second;
-            SPA::UJsonDocument jv;
-            jv.SetObject();
-            jv.AddMember(UHTTP::CHttpContext::HTTP_RESPONSE_SELF.c_str(), 1, jv.GetAllocator());
-            jv.AddMember("errCode", (int) errCode, jv.GetAllocator());
-            jv.AddMember(UHTTP::CWebResponseProcessor::HTTP_RESPONSE_REQUEST_ID.c_str(), requestId, jv.GetAllocator());
-            jv.AddMember("stack", errWhere, jv.GetAllocator());
-            if (errMessage)
-                SPA::Utilities::ToUTF8(errMessage, ::wcslen(errMessage), *su);
-            const char *s = (const char*) su->GetBuffer();
-            jv.AddMember("errMsg", s, jv.GetAllocator());
-            std::string str = ToString(jv, (unsigned int) (::strlen(s) + 100));
-            unsigned int len = (unsigned int) str.size();
+            SPA::UJsonObject obj;
+            obj[UHTTP::CHttpContext::HTTP_RESPONSE_SELF] = (unsigned int)1;
+            obj["errCode"] = (int)errCode;
+            obj[UHTTP::CWebResponseProcessor::HTTP_RESPONSE_REQUEST_ID] = requestId;
+            obj["stack"] = errWhere;
+            if (errMessage) {
+                len = (unsigned int)::wcslen(errMessage);
+            }
+            obj["errMsg"] = SPA::MakeJsonValue(errMessage);
+            SPA::UJsonValue jv(std::move(obj));
+            std::string str = ToString(jv, len + 100);
+            len = (unsigned int) str.size();
             p->Responses.push_back(str);
             return len;
         }
@@ -231,12 +230,11 @@ namespace Connection
         boost::unordered_map<std::string, CConnectionContext::SharedPtr>::iterator it = m_mapCC.find(id);
         if (it != m_mapCC.end()) {
             CConnectionContext::SharedPtr p = it->second;
-            SPA::UJsonDocument jv;
-            jv.SetObject();
-            jv.AddMember(UHTTP::CHttpContext::SP_REQUEST_NAME.c_str(), UHTTP::CHttpContext::SP_REQUEST_SENDUSERMESSAGE.c_str(), jv.GetAllocator());
-            jv.AddMember(UHTTP::CHttpContext::HTTP_RESPONSE_SELF.c_str(), (unsigned int) 1, jv.GetAllocator());
-            //jv.AddMember(UHTTP::CWebResponseProcessor::HTTP_RESPONSE_MSG.c_str(), SPA::MakeJsonValue(vtMsg, jv.GetAllocator()), jv.GetAllocator());
-            jv.AddMember(UHTTP::CHttpContext::SP_RESPONSE_RESULT.c_str(), SPA::MakeJsonValue(pGroups, count, jv.GetAllocator()), jv.GetAllocator());
+            SPA::UJsonObject obj;
+            obj[UHTTP::CHttpContext::SP_REQUEST_NAME] = UHTTP::CHttpContext::SP_REQUEST_SENDUSERMESSAGE;
+            obj[UHTTP::CHttpContext::HTTP_RESPONSE_SELF] = (unsigned int)1;
+            obj[UHTTP::CHttpContext::SP_RESPONSE_RESULT] = SPA::MakeJsonValue(pGroups, count);
+            SPA::UJsonValue jv(std::move(obj));
             p->Responses.push_back(ToString(jv, 1024));
         }
     }
@@ -246,11 +244,11 @@ namespace Connection
         boost::unordered_map<std::string, CConnectionContext::SharedPtr>::iterator it = m_mapCC.find(id);
         if (it != m_mapCC.end()) {
             CConnectionContext::SharedPtr p = it->second;
-            SPA::UJsonDocument jv;
-            jv.SetObject();
-            jv.AddMember(UHTTP::CHttpContext::SP_REQUEST_NAME.c_str(), UHTTP::CHttpContext::SP_REQUEST_ENTER.c_str(), jv.GetAllocator());
-            jv.AddMember(UHTTP::CHttpContext::HTTP_RESPONSE_SELF.c_str(), (unsigned int) 1, jv.GetAllocator());
-            jv.AddMember(UHTTP::CHttpContext::SP_RESPONSE_RESULT.c_str(), SPA::MakeJsonValue(pGroups, count, jv.GetAllocator()), jv.GetAllocator());
+            SPA::UJsonObject obj;
+            obj[UHTTP::CHttpContext::SP_REQUEST_NAME] = UHTTP::CHttpContext::SP_REQUEST_ENTER;
+            obj[UHTTP::CHttpContext::HTTP_RESPONSE_SELF] = (unsigned int)1;
+            obj[UHTTP::CHttpContext::SP_RESPONSE_RESULT] = SPA::MakeJsonValue(pGroups, count);
+            SPA::UJsonValue jv(std::move(obj));
             p->Responses.push_back(ToString(jv, 1024));
         }
     }
@@ -266,10 +264,9 @@ namespace Connection
             std::vector<unsigned int> &groups = p->ChatGroups;
             ChatGroupsAnd(pGroups, count, groups.data(), (unsigned int) groups.size(), vChatGroup);
             if (vChatGroup.size()) {
-                SPA::UJsonDocument jv;
-                jv.SetObject();
+                SPA::UJsonValue jv({});
                 p->SetSenderInfo(jv, senderAddr, senderClientPort, sendUserId, senderServiceId, vChatGroup.data(), (unsigned int) vChatGroup.size());
-                jv.AddMember(UHTTP::CHttpContext::SP_REQUEST_NAME.c_str(), UHTTP::CHttpContext::SP_REQUEST_ENTER.c_str(), jv.GetAllocator());
+                jv.as_object()[UHTTP::CHttpContext::SP_REQUEST_NAME] = UHTTP::CHttpContext::SP_REQUEST_ENTER;
                 p->Responses.push_back(ToString(jv, 1024));
             }
         }
@@ -286,10 +283,9 @@ namespace Connection
             std::vector<unsigned int> &groups = p->ChatGroups;
             ChatGroupsAnd(pGroups, count, groups.data(), (unsigned int) groups.size(), vChatGroup);
             if (vChatGroup.size()) {
-                SPA::UJsonDocument jv;
-                jv.SetObject();
+                SPA::UJsonValue jv({});
                 p->SetSenderInfo(jv, senderAddr, senderClientPort, sendUserId, senderServiceId, vChatGroup.data(), (unsigned int) vChatGroup.size());
-                jv.AddMember(UHTTP::CHttpContext::SP_REQUEST_NAME.c_str(), UHTTP::CHttpContext::SP_REQUEST_EXIT.c_str(), jv.GetAllocator());
+                jv.as_object()[UHTTP::CHttpContext::SP_REQUEST_NAME] = UHTTP::CHttpContext::SP_REQUEST_EXIT;
                 p->Responses.push_back(ToString(jv, 1024));
             }
         }
@@ -306,11 +302,10 @@ namespace Connection
             std::vector<unsigned int> &groups = p->ChatGroups;
             ChatGroupsAnd(pGroups, count, groups.data(), (unsigned int) groups.size(), vChatGroup);
             if (vChatGroup.size()) {
-                SPA::UJsonDocument jv;
-                jv.SetObject();
+                SPA::UJsonValue jv({});
                 p->SetSenderInfo(jv, senderAddr, senderClientPort, sendUserId, senderServiceId, vChatGroup.data(), (unsigned int) vChatGroup.size());
-                jv.AddMember(UHTTP::CHttpContext::SP_REQUEST_NAME.c_str(), UHTTP::CHttpContext::SP_REQUEST_SPEAK.c_str(), jv.GetAllocator());
-                jv.AddMember(UHTTP::CWebResponseProcessor::HTTP_RESPONSE_MSG.c_str(), SPA::MakeJsonValue(vtMsg, jv.GetAllocator()), jv.GetAllocator());
+                jv.as_object()[UHTTP::CHttpContext::SP_REQUEST_NAME] = UHTTP::CHttpContext::SP_REQUEST_SPEAK;
+                jv.as_object()[UHTTP::CWebResponseProcessor::HTTP_RESPONSE_MSG] = SPA::MakeJsonValue(vtMsg);
                 p->Responses.push_back(ToString(jv, 4 * 1024));
             }
         }
@@ -320,18 +315,18 @@ namespace Connection
         SPA::CAutoLock al(m_cs);
         boost::unordered_map<std::string, CConnectionContext::SharedPtr>::iterator it, end = m_mapCC.end();
         for (it = m_mapCC.begin(); it != end; ++it) {
-            if (it->first == id)
+            if (it->first == id) {
                 continue;
+            }
             const SharedPtr& p = it->second;
             const std::wstring &s = p->UserId;
             if (UHTTP::iequals(s.c_str(), receiver)) {
-                SPA::UJsonDocument jv;
-                jv.SetObject();
+                SPA::UJsonValue jv({});
                 p->SetSenderInfo(jv, senderAddr, senderClientPort, sendUserId, senderServiceId, pGroups, count);
-                jv.AddMember(UHTTP::CHttpContext::SP_REQUEST_NAME.c_str(), UHTTP::CHttpContext::SP_REQUEST_SENDUSERMESSAGE.c_str(), jv.GetAllocator());
-                jv.AddMember(UHTTP::CWebResponseProcessor::HTTP_RESPONSE_MSG.c_str(), SPA::MakeJsonValue(vtMsg, jv.GetAllocator()), jv.GetAllocator());
+                jv.as_object()[UHTTP::CHttpContext::SP_REQUEST_NAME] = UHTTP::CHttpContext::SP_REQUEST_SENDUSERMESSAGE;
+                jv.as_object()[UHTTP::CWebResponseProcessor::HTTP_RESPONSE_MSG] = SPA::MakeJsonValue(vtMsg);
                 p->Responses.push_back(ToString(jv, 4 * 1024));
             }
         }
     }
-};
+}

@@ -69,10 +69,10 @@ namespace UHTTP {
         inline const char* GetUID() const {
             if (SpRequest != srSwitchTo)
                 return nullptr;
-            if (Args->Size() > 0) {
+            if (Args->as_array().size()) {
                 const SPA::UJsonValue &uid = GetArg(0);
-                if (uid.IsString())
-                    return uid.GetString();
+                if (uid.is_string())
+                    return uid.as_string().c_str();
             }
             return nullptr;
         }
@@ -89,27 +89,27 @@ namespace UHTTP {
         unsigned int GetReqCount() const {
             if (SpRequest != srDoBatch)
                 return 1;
-            return GetArg(1).Size();
+            return (unsigned int) (GetArg(1).as_array().size());
         }
 
         bool IsServerBatching() const {
             if (SpRequest != srDoBatch)
                 return false;
-            return GetArg(0).GetBool();
+            return GetArg(0).as_bool();
         }
 
         const SPA::UJsonValue & GetChildRequest(unsigned int index) const {
             assert(SpRequest == srDoBatch);
-            return GetArg(1)[index];
+            return GetArg(1).as_array()[index];
         }
 
         inline const char* GetPwd() const {
             if (SpRequest != srSwitchTo)
                 return nullptr;
-            if (Args->Size() > 1) {
+            if (Args->as_array().size() > 1) {
                 const SPA::UJsonValue &pwd = GetArg(1);
-                if (pwd.IsString())
-                    return pwd.GetString();
+                if (pwd.is_string())
+                    return pwd.as_string().c_str();
             }
             return nullptr;
         }
@@ -141,11 +141,11 @@ namespace UHTTP {
         }
 
         inline unsigned int GetArgCount() const {
-            return Args->Size();
+            return (unsigned int)Args->as_array().size();
         }
 
         inline const SPA::UJsonValue & GetArg(unsigned int index) const {
-            return (*Args)[index];
+            return Args->as_array()[index];
         }
     };
 

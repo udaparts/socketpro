@@ -1,67 +1,54 @@
 #include "../core_shared/pinc/fastujson.h"
 
-#ifdef	___U_VARIANT_TO_RAPID_JSON___H___
-
-SPA::CUCriticalSection rapidjson::CrtAllocator::_cs;
-std::vector<void*> rapidjson::CrtAllocator::_vBuffer;
-size_t rapidjson::CrtAllocator::_allocatedSize = 0;
-
-#endif
-
 namespace SPA{
 
-    UJsonValue MakeJsonValue(const char *str, UMemoryPoolAllocator & allocator) {
-        return UJsonValue(str, allocator);
-    }
-
-    UJsonValue MakeJsonValue(const wchar_t *str, UMemoryPoolAllocator & allocator) {
+    UJsonValue MakeJsonValue(const wchar_t *str) {
         if (!str)
             str = L"";
 #if defined(__ANDROID__) || defined(ANDROID)
-        return MakeJsonValue(Utilities::ToUTF8(str, ::wcslen(str)).c_str(), allocator);
+        return Utilities::ToUTF8(str, ::wcslen(str)).c_str();
 #else
         CScopeUQueue su;
         Utilities::ToUTF8(str, ::wcslen(str), *su);
-        return MakeJsonValue((const char*) su->GetBuffer(), allocator);
+        return (const char*) su->GetBuffer();
 #endif
     }
 
 #ifndef WIN32_64
 
-    UJsonValue MakeJsonValue(const char16_t *str, UMemoryPoolAllocator & allocator) {
+    UJsonValue MakeJsonValue(const char16_t *str) {
         if (!str)
             str = u"";
 #if defined(__ANDROID__) || defined(ANDROID)
-        return MakeJsonValue(Utilities::ToUTF8(str, ::wcslen(str)).c_str(), allocator);
+        return Utilities::ToUTF8(str, ::wcslen(str)).c_str();
 #else
         CScopeUQueue su;
         Utilities::ToUTF8(str, GetLen(str), *su);
-        return MakeJsonValue((const char*) su->GetBuffer(), allocator);
+        return (const char*) su->GetBuffer();
 #endif
     }
 #endif
 
-    UJsonValue MakeJsonValue(const UVariant &vtData, UMemoryPoolAllocator & allocator) {
-        UJsonValue jv;
+    UJsonValue MakeJsonValue(const UVariant &vtData) {
         VARTYPE vt = vtData.vt;
         switch (vt) {
             case VT_NULL:
             case VT_EMPTY:
-                return jv;
+                return nullptr;
             case VT_I1:
-                return MakeJsonValue((int) vtData.cVal);
+                return vtData.cVal;
             case VT_I2:
-                return MakeJsonValue((int) vtData.iVal);
+                return vtData.iVal;
             case VT_INT:
             case VT_I4:
-                return MakeJsonValue((int) vtData.lVal);
+                return (int) vtData.lVal;
             case VT_UI1:
-                return MakeJsonValue((unsigned int) vtData.bVal);
+                return vtData.bVal;
             case VT_UI2:
-                return MakeJsonValue((unsigned int) vtData.uiVal);
+                return vtData.uiVal;
             case VT_UINT:
             case VT_UI4:
-                return MakeJsonValue((unsigned int) vtData.ulVal);
+                return (unsigned int) vtData.ulVal;
 #ifdef WINCE
             case VT_I8:
                 return MakeJsonValue(vtData.cyVal.int64);
@@ -69,21 +56,21 @@ namespace SPA{
                 return MakeJsonValue((UINT64) (vtData.cyVal.int64));
 #else
             case VT_I8:
-                return MakeJsonValue(vtData.llVal);
+                return vtData.llVal;
             case VT_UI8:
-                return MakeJsonValue(vtData.ullVal);
+                return vtData.ullVal;
 #endif
             case VT_BOOL:
-                return MakeJsonValue(vtData.boolVal ? true : false);
+                return (vtData.boolVal ? true : false);
             case VT_R8:
-                return MakeJsonValue(vtData.dblVal);
+                return vtData.dblVal;
             case VT_BSTR:
 #ifdef WIN32_64
-                return MakeJsonValue(vtData.bstrVal, allocator);
+                return MakeJsonValue((const wchar_t *)vtData.bstrVal);
 #else
             {
                 const char16_t *s = (const char16_t *) vtData.bstrVal;
-                return MakeJsonValue(s, allocator);
+                return MakeJsonValue(s);
             }
 #endif
             case VT_DATE:
@@ -101,21 +88,18 @@ namespace SPA{
                 SPA::UDateTime dt(vtData.ullVal);
                 dt.ToWebString(str, sizeof (str));
 #endif
-                return MakeJsonValue(str, allocator);
+                return str;
             }
             case VT_R4:
-            {
-                double d = vtData.fltVal;
-                return MakeJsonValue(d);
-            }
+                return vtData.fltVal;
             case VT_CY:
             {
                 double d = (double) vtData.cyVal.int64;
                 d /= 10000;
-                return MakeJsonValue(d);
+                return d;
             }
             case VT_DECIMAL:
-                return MakeJsonValue(SPA::ToDouble(vtData.decVal));
+                return SPA::ToDouble(vtData.decVal);
             default:
                 if ((vt & VT_ARRAY) == VT_ARRAY) {
                     bool ok = true;
@@ -133,37 +117,37 @@ namespace SPA{
                             CScopeUQueue su;
                             su->Push((const char*) pBuffer, size);
                             su->SetNull();
-                            jv = MakeJsonValue((const char*) su->GetBuffer(), allocator);
+                            jv = (const char*) su->GetBuffer();
                         }
                             break;
                         case VT_I2:
-                            jv = MakeJsonValue((const short*) pBuffer, size, allocator);
+                            jv = MakeJsonValue((const short*) pBuffer, size);
                             break;
                         case VT_I4:
                         case VT_INT:
-                            jv = MakeJsonValue((const int*) pBuffer, size, allocator);
+                            jv = MakeJsonValue((const int*) pBuffer, size);
                             break;
                         case VT_UI1:
-                            jv = MakeJsonValue((const unsigned char*) pBuffer, size, allocator);
+                            jv = MakeJsonValue((const unsigned char*) pBuffer, size);
                             break;
                         case VT_UI2:
-                            jv = MakeJsonValue((const unsigned short*) pBuffer, size, allocator);
+                            jv = MakeJsonValue((const unsigned short*) pBuffer, size);
                             break;
                         case VT_UI4:
                         case VT_UINT:
-                            jv = MakeJsonValue((const unsigned int*) pBuffer, size, allocator);
+                            jv = MakeJsonValue((const unsigned int*) pBuffer, size);
                             break;
                         case VT_I8:
-                            jv = MakeJsonValue((const SPA::INT64*) pBuffer, size, allocator);
+                            jv = MakeJsonValue((const SPA::INT64*) pBuffer, size);
                             break;
                         case VT_UI8:
-                            jv = MakeJsonValue((const SPA::UINT64*) pBuffer, size, allocator);
+                            jv = MakeJsonValue((const SPA::UINT64*) pBuffer, size);
                             break;
                         case VT_R8:
-                            jv = MakeJsonValue((const double*) pBuffer, size, allocator);
+                            jv = MakeJsonValue((const double*) pBuffer, size);
                             break;
                         case VT_R4:
-                            jv = MakeJsonValue((const float*) pBuffer, size, allocator);
+                            jv = MakeJsonValue((const float*) pBuffer, size);
                             break;
                         case VT_CY:
                         {
@@ -173,7 +157,7 @@ namespace SPA{
                                 double d = p[n].int64 / 10000.0;
                                 su << d;
                             }
-                            jv = MakeJsonValue((const double*) su->GetBuffer(), su->GetSize() / sizeof (double), allocator);
+                            jv = MakeJsonValue((const double*) su->GetBuffer(), su->GetSize() / sizeof (double));
                         }
                             break;
                         case VT_DECIMAL:
@@ -183,7 +167,7 @@ namespace SPA{
                             for (unsigned int n = 0; n < size; ++n) {
                                 su << SPA::ToDouble(p[n]);
                             }
-                            jv = MakeJsonValue((const double*) su->GetBuffer(), su->GetSize() / sizeof (double), allocator);
+                            jv = MakeJsonValue((const double*) su->GetBuffer(), su->GetSize() / sizeof (double));
                         }
                             break;
                         case VT_BOOL:
@@ -194,44 +178,46 @@ namespace SPA{
                                 bool b = p[n] ? true : false;
                                 su->Push((const unsigned char*) &b, sizeof (b));
                             }
-                            jv = MakeJsonValue((const bool*) su->GetBuffer(), size, allocator);
+                            jv = MakeJsonValue((const bool*) su->GetBuffer(), size);
                         }
                             break;
                         case VT_BSTR:
                         {
-                            jv.SetArray();
+                            UJsonArray v;
                             const BSTR *p = (const BSTR *) pBuffer;
 #ifdef WIN32_64
                             for (unsigned int n = 0; n < size; ++n) {
-                                jv.PushBack(MakeJsonValue(p[n], allocator), allocator);
+                                v.push_back(MakeJsonValue((const wchar_t *)(p[n])));
                             }
 #else
                             for (unsigned int n = 0; n < size; ++n) {
                                 const char16_t *s = p[n];
-                                jv.PushBack(MakeJsonValue(s, allocator), allocator);
+                                jv.push_back(MakeJsonValue(s));
                             }
 #endif
+                            jv = std::move(v);
                         }
                             break;
                         case VT_VARIANT:
                         {
-                            jv.SetArray();
+                            UJsonArray v;
                             const UVariant *p = (const UVariant *) pBuffer;
                             for (unsigned int n = 0; n < size; ++n) {
-                                jv.PushBack(MakeJsonValue(p[n], allocator), allocator);
+                                v.push_back(MakeJsonValue(p[n]));
                             }
+                            jv = std::move(v);
                         }
                             break;
                         case VT_DATE:
                         {
-                            jv.SetArray();
+                            UJsonArray v;
 #ifndef WIN32_64
                             const SPA::UINT64 *p = (const SPA::UINT64 *) pBuffer;
                             for (unsigned int n = 0; n < size; ++n) {
                                 char str[32] = {0};
                                 SPA::UDateTime dt(p[n]);
                                 dt.ToWebString(str, sizeof (str));
-                                jv.PushBack(MakeJsonValue(str, allocator), allocator);
+                                v.push_back(str);
                             }
 #else
                             const DATE *p = (const DATE *) pBuffer;
@@ -244,9 +230,10 @@ namespace SPA{
 #else
                                 ::sprintf_s(str, sizeof (str), "%04d-%02d-%02dT%02d:%02d:%02dZ", st.wYear, st.wMonth, st.wDay, st.wHour, st.wMinute, st.wSecond);
 #endif
-                                jv.PushBack(MakeJsonValue(str, allocator), allocator);
+                                v.push_back(str);
                             }
 #endif
+                            jv = std::move(v);
                         }
                             break;
                         default:
@@ -261,5 +248,20 @@ namespace SPA{
         }
         throw CUExCode("Data type not supported for JSON value conversion.", MB_NOT_SUPPORTED);
 
+    }
+
+    CUQueue& operator<<(CUQueue& q, const UJsonValue& jv) {
+        boost::json::serializer sr;
+        sr.reset(&jv);
+        while (!sr.done()) {
+            if (q.GetTailSize() <= (unsigned int)256) {
+                q.SetHeadPosition();
+                q.ReallocBuffer(q.GetMaxSize() + q.GetBlockSize());
+            }
+            auto sv = sr.read((char*)q.GetBuffer(q.GetSize()), q.GetTailSize());
+            q.SetSize((unsigned int)(q.GetSize() + sv.size()));
+        }
+        q.SetNull();
+        return q;
     }
 }

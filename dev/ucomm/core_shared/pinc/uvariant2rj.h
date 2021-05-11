@@ -1,23 +1,19 @@
 #ifndef	___U_VARIANT_TO_RAPID_JSON___H___
 #define ___U_VARIANT_TO_RAPID_JSON___H___
 
-#include "document.h"		// rapidjson's DOM-style API
-#include "writer.h"
+#include <boost/json.hpp>
 #include "../../include/spvariant.h"
 
 namespace SPA {
-
-    typedef rapidjson::MemoryPoolAllocator UMemoryPoolAllocator;
-    typedef rapidjson::GenericDocument<rapidjson::UTF8<>, UMemoryPoolAllocator> UJsonDocument;
-    typedef UJsonDocument::ValueType UJsonValue;
+    typedef boost::json::value UJsonValue;
+    typedef boost::json::object UJsonObject;
+    typedef boost::json::array UJsonArray;
 
 #ifndef WIN32_64
-    UJsonValue MakeJsonValue(const char16_t *str, UMemoryPoolAllocator &allocator);
+    UJsonValue MakeJsonValue(const char16_t *str);
 #endif
-
-    UJsonValue MakeJsonValue(const char *str, UMemoryPoolAllocator &allocator);
-    UJsonValue MakeJsonValue(const wchar_t *str, UMemoryPoolAllocator &allocator);
-    UJsonValue MakeJsonValue(const UVariant &vtData, UMemoryPoolAllocator &allocator);
+    UJsonValue MakeJsonValue(const wchar_t *);
+    UJsonValue MakeJsonValue(const UVariant &vtData);
 
 
     //! Construct a UJsonValue with primitive types.
@@ -31,16 +27,15 @@ namespace SPA {
     }
 
     template<typename T>
-    UJsonValue MakeJsonValue(const T *t, unsigned int count, UMemoryPoolAllocator &allocator) {
-        unsigned int n;
-        UJsonValue jv;
-        jv.SetArray();
-        if (t == NULL)
+    UJsonValue MakeJsonValue(const T *t, unsigned int count) {
+        UJsonArray jv;
+        if (!t) {
             count = 0;
-        for (n = 0; n < count; ++n) {
-            jv.PushBack(t[n], allocator);
         }
-        return jv;
+        for (unsigned int n = 0; n < count; ++n) {
+            jv.push_back(t[n]);
+        }
+        return std::move(jv);
     }
 
 };

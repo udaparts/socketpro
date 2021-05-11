@@ -72,7 +72,6 @@ namespace Connection {
         typedef std::shared_ptr<CConnectionContext> SharedPtr;
 
     public:
-        //SPA::UJsonDocument Responses;
         std::vector<std::string> Responses;
 
     public:
@@ -87,14 +86,14 @@ namespace Connection {
         static void Speak(const std::string &id, const char *senderAddr, unsigned short senderClientPort, const wchar_t *sendUserId, unsigned int senderServiceId, const SPA::UVariant &vtMsg, const unsigned int *pGroups, unsigned int count);
         static void SendUserMessage(const std::string &id, const SPA::UVariant &vtMsg, const wchar_t *receiver, const unsigned int *pGroups, unsigned int count);
         static void SendUserMessage(const std::string &id, const char *senderAddr, unsigned short senderClientPort, const wchar_t *sendUserId, unsigned int senderServiceId, const SPA::UVariant &vtMsg, const wchar_t *receiver, const unsigned int *pGroups, unsigned int count);
-        static std::string ToString(SPA::UJsonValue &jv, unsigned int approSize);
-        static void ToString(SPA::UJsonValue &jv, unsigned int approSize, SPA::CUQueue &q);
+        static std::string ToString(const SPA::UJsonValue &jv, unsigned int approSize);
+        static void ToString(const SPA::UJsonValue &jv, unsigned int approSize, SPA::CUQueue &q);
         static unsigned int SendResult(const std::string &id, unsigned short reqId, const char *res, unsigned int len, const char *callback);
         static unsigned int SendWSResult(unsigned short reqId, const char *res, unsigned int len, SPA::CUQueue &q, const char *callback);
         static unsigned int SendExceptionResult(const std::string &id, const wchar_t* errMessage, const char* errWhere, unsigned short requestId, unsigned int errCode);
 
     private:
-        static void SetSenderInfo(SPA::UJsonDocument &doc, const char *senderAddr, unsigned short senderClientPort, const wchar_t *sendUserId, unsigned int senderServiceId, const unsigned int *pGroups, unsigned int count);
+        static void SetSenderInfo(boost::json::value &doc, const char *senderAddr, unsigned short senderClientPort, const wchar_t *sendUserId, unsigned int senderServiceId, const unsigned int *pGroups, unsigned int count);
 
     private:
         static SPA::CUCriticalSection m_cs;

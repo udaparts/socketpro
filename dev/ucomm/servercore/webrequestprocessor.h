@@ -19,13 +19,13 @@ namespace UHTTP {
         CHttpContext* GetHttpContext() const;
         UHttpRequest ProcessChildRequest(const SPA::UJsonValue &childRequest);
         static std::string GenerateId();
-        SPA::UJsonDocument& GetDoc() const;
+        const SPA::UJsonValue& GetDoc();
         const SPA::CUQueue& GetBinaryRequests() const;
         void RemoveStoredResponses() const;
         void ShrinkMemory();
 
     protected:
-        void ParseSPRequest(char *str);
+        void ParseSPRequest(const char *str);
 
     private:
         void MakeBinaryRequest(const UHttpRequest &ur, SPA::CUQueue &q);
@@ -44,7 +44,7 @@ namespace UHTTP {
         tagSpError m_CurrentErrCode;
 
     protected:
-        SPA::UJsonDocument *m_doc;
+        SPA::UJsonValue m_doc;
         UHttpRequest m_ur;
         CHttpContext *m_pHttpContext;
 
