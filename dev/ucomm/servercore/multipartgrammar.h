@@ -6,6 +6,7 @@
 namespace UHTTP {
 
 #ifdef USE_SPIRIT_CLSSICAL_FOR_MULTIPART
+
     struct U_MODULE_HIDDEN CMultipartGrammar : public grammar<CMultipartGrammar> {
     public:
 
@@ -28,8 +29,8 @@ namespace UHTTP {
             }
 
         private:
-			definition(const definition &def);
-			definition& operator=(const definition &def);
+            definition(const definition &def);
+            definition& operator=(const definition &def);
 
             void EndHeader(const char* start, const char* end) {
                 m_self.m_pSub->ParseStatus = psHeaders;
@@ -85,6 +86,3 @@ namespace UHTTP {
     };
 #endif
 }
-
-
-

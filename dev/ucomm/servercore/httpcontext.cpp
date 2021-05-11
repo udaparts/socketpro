@@ -524,17 +524,17 @@ namespace UHTTP
         ((CAjaxRequestProcessor*) m_pWebRequestProcessor)->SetContent(data, len);
     }
 
-    tagHttpResponseStatus CHttpContext::PrepareBatchResponses(const UHttpRequest &ur, SPA::CUQueue &qResponse, tagHttpResponseFeedPlan fp) { 
+    tagHttpResponseStatus CHttpContext::PrepareBatchResponses(const UHttpRequest &ur, SPA::CUQueue &qResponse, tagHttpResponseFeedPlan fp) {
         const SPA::UJsonValue &args = *(ur.Args);
 #ifndef NDEBUG
-        bool b = args.as_array()[(unsigned int)0].as_bool();
+        bool b = args.as_array()[(unsigned int) 0].as_bool();
 #endif
         SPA::UJsonObject obj;
         obj[CHttpContext::SP_REQUEST_CI] = ur.CallIndex;
         obj[CHttpContext::SP_RESPONSE_CODE] = ur.ErrCode;
         SPA::UJsonArray docArray;
         const SPA::UJsonValue& objs = args.as_array()[1];
-        unsigned int count = (unsigned int)objs.as_array().size();
+        unsigned int count = (unsigned int) objs.as_array().size();
         for (unsigned int n = 0; n < count; ++n) {
             const SPA::UJsonValue &req = objs.as_array()[n];
             UHttpRequest urKid = ParseSPRequest(req);
@@ -552,10 +552,10 @@ namespace UHTTP
     void CHttpContext::PrepareBatchWSResponseMessage(const UHttpRequest &ur, tagWSOpCode oc, SPA::CUQueue & qResponse) {
         const SPA::UJsonValue &args = *(ur.Args);
 #ifndef NDEBUG
-        bool b = args.as_array()[(unsigned int)0].as_bool();
+        bool b = args.as_array()[(unsigned int) 0].as_bool();
 #endif
         const SPA::UJsonValue& objs = args.as_array()[1];
-        unsigned int count = (unsigned int)objs.as_array().size();
+        unsigned int count = (unsigned int) objs.as_array().size();
         for (unsigned int n = 0; n < count; ++n) {
             const SPA::UJsonValue& req = objs.as_array()[n];
             SPA::CScopeUQueue jBuffer;
@@ -1231,10 +1231,10 @@ namespace UHTTP
     void CHttpContext::ProcessRequestBatch(const UHttpRequest &UReq, SPA::CUQueue & Response) {
         SPA::UJsonValue &args = *((SPA::UJsonValue *)UReq.Args);
 #ifndef NDEBUG
-        bool b = args.as_array()[(unsigned int)0].as_bool();
+        bool b = args.as_array()[(unsigned int) 0].as_bool();
 #endif
         SPA::UJsonValue &objs = args.as_array()[1];
-        unsigned int count = (unsigned int)objs.as_array().size();
+        unsigned int count = (unsigned int) objs.as_array().size();
         for (unsigned int n = 0; n < count; ++n) {
             const SPA::UJsonValue &req = objs.as_array()[n];
             UHttpRequest ur = ParseSPRequest(req);
@@ -1413,11 +1413,9 @@ namespace UHTTP
         const SPA::UJsonValue &ci = obj.at(SP_REQUEST_CI);
         if (ci.is_int64()) {
             UReq.CallIndex = ci.as_int64();
-        }
-        else if (ci.is_uint64()) {
+        } else if (ci.is_uint64()) {
             UReq.CallIndex = (SPA::INT64)ci.as_uint64();
-        }
-        else {
+        } else {
             UReq.ErrCode = seWrongArgType;
             return UReq;
         }

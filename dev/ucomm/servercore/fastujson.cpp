@@ -1,8 +1,9 @@
 #include "../core_shared/pinc/fastujson.h"
 
-namespace SPA{
+namespace SPA
+{
 
-    UJsonValue MakeJsonValue(const wchar_t *str) {
+    UJsonValue MakeJsonValue(const wchar_t * str) {
         if (!str)
             str = L"";
 #if defined(__ANDROID__) || defined(ANDROID)
@@ -16,7 +17,7 @@ namespace SPA{
 
 #ifndef WIN32_64
 
-    UJsonValue MakeJsonValue(const char16_t *str) {
+    UJsonValue MakeJsonValue(const char16_t * str) {
         if (!str)
             str = u"";
 #if defined(__ANDROID__) || defined(ANDROID)
@@ -29,7 +30,7 @@ namespace SPA{
     }
 #endif
 
-    UJsonValue MakeJsonValue(const UVariant &vtData) {
+    UJsonValue MakeJsonValue(const UVariant & vtData) {
         VARTYPE vt = vtData.vt;
         switch (vt) {
             case VT_NULL:
@@ -66,7 +67,7 @@ namespace SPA{
                 return vtData.dblVal;
             case VT_BSTR:
 #ifdef WIN32_64
-                return MakeJsonValue((const wchar_t *)vtData.bstrVal);
+                return MakeJsonValue((const wchar_t *) vtData.bstrVal);
 #else
             {
                 const char16_t *s = (const char16_t *) vtData.bstrVal;
@@ -187,7 +188,7 @@ namespace SPA{
                             const BSTR *p = (const BSTR *) pBuffer;
 #ifdef WIN32_64
                             for (unsigned int n = 0; n < size; ++n) {
-                                v.push_back(MakeJsonValue((const wchar_t *)(p[n])));
+                                v.push_back(MakeJsonValue((const wchar_t *) (p[n])));
                             }
 #else
                             for (unsigned int n = 0; n < size; ++n) {
@@ -250,16 +251,16 @@ namespace SPA{
 
     }
 
-    CUQueue& operator<<(CUQueue& q, const UJsonValue& jv) {
+    CUQueue & operator << (CUQueue& q, const UJsonValue & jv) {
         boost::json::serializer sr;
         sr.reset(&jv);
         while (!sr.done()) {
-            if (q.GetTailSize() <= (unsigned int)256) {
+            if (q.GetTailSize() <= (unsigned int) 256) {
                 q.SetHeadPosition();
                 q.ReallocBuffer(q.GetMaxSize() + q.GetBlockSize());
             }
-            auto sv = sr.read((char*)q.GetBuffer(q.GetSize()), q.GetTailSize());
-            q.SetSize((unsigned int)(q.GetSize() + sv.size()));
+            auto sv = sr.read((char*) q.GetBuffer(q.GetSize()), q.GetTailSize());
+            q.SetSize((unsigned int) (q.GetSize() + sv.size()));
         }
         q.SetNull();
         return q;

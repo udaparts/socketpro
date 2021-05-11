@@ -6,6 +6,6 @@
 
 namespace SPA {
 
-	CUQueue& operator<<(CUQueue& q, const UJsonValue& jv);
+    CUQueue& operator<<(CUQueue& q, const UJsonValue& jv);
 
 }

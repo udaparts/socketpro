@@ -93,7 +93,7 @@ namespace UHTTP
         SPA::UJsonValue docRes({});
         SPA::UJsonObject& obj = docRes.as_object();
         SetOwnBaseResponseInfo(docRes);
-        
+
         //reduce one string memory copy
         obj[CHttpContext::SP_RESPONSE_RESULT] = res;
         if (res) {
@@ -123,7 +123,7 @@ namespace UHTTP
         if (se != seOk) {
             obj[CHttpContext::SP_RESPONSE_CODE] = se;
         }
-        obj[CHttpContext::HTTP_RESPONSE_SELF] = (unsigned int)1;
+        obj[CHttpContext::HTTP_RESPONSE_SELF] = (unsigned int) 1;
         CHttpContext *pHC = m_pWebRequestProcessor->GetHttpContext();
         pHC->AddResponseHeader(CHttpContext::Connection.c_str(), CHttpContext::SP_CONNECTION_CLOSE.c_str());
         UHTTP::CHttpContext *p = m_pWebRequestProcessor->GetHttpContext();
@@ -194,7 +194,7 @@ namespace UHTTP
             SPA::Utilities::ToUTF8(sendUserId, ::wcslen(sendUserId), *su);
         SPA::UJsonObject& obj = docRes.as_object();
         obj[CHttpContext::HTTP_RESPONSE_SELF] = 0;
-        obj[HTTP_RESPONSE_SENDER] = (const char*)su->GetBuffer();
+        obj[HTTP_RESPONSE_SENDER] = (const char*) su->GetBuffer();
         obj[HTTP_RESPONSE_SERVICE_ID] = senderServiceId;
         obj[UHTTP::CHttpContext::HTTP_JS_GROUPS] = SPA::MakeJsonValue(pGroup, count);
     }
@@ -213,7 +213,7 @@ namespace UHTTP
         SPA::UJsonObject& obj = docRes.as_object();
         unsigned int start = Response.GetSize();
         SetOwnBaseResponseInfo(docRes);
-        obj["errCode"] = (int)errCode;
+        obj["errCode"] = (int) errCode;
         obj[HTTP_RESPONSE_REQUEST_ID] = requestId;
         obj["stack"] = errWhere;
         SPA::CScopeUQueue su;
@@ -221,7 +221,7 @@ namespace UHTTP
         if (errMessage) {
             SPA::Utilities::ToUTF8(errMessage, ::wcslen(errMessage), *su);
         }
-        obj["errMsg"] = (const char*)su->GetBuffer();
+        obj["errMsg"] = (const char*) su->GetBuffer();
         SetResponse(docRes, Response);
         return (Response.GetSize() - start);
     }
@@ -234,7 +234,7 @@ namespace UHTTP
     }
 
     void CWebResponseProcessor::ProcessClose(SPA::CUQueue & Response) {
-        
+
         CHttpContext *pHC = m_pWebRequestProcessor->GetHttpContext();
         if (!pHC->IsWebSocket())
             pHC->AddResponseHeader(CHttpContext::Connection.c_str(), CHttpContext::SP_CONNECTION_CLOSE.c_str());
@@ -331,7 +331,7 @@ namespace UHTTP
             if (m_nReqCount == 0) {
                 Response.Push("{\"rb\":[", 7);
                 if (sp) {
-                    sp->Responses.push_back(Connection::CConnectionContext::ToString(docRes, (unsigned int)1024));
+                    sp->Responses.push_back(Connection::CConnectionContext::ToString(docRes, (unsigned int) 1024));
                     std::vector<std::string>::iterator it, end = sp->Responses.end();
                     for (it = sp->Responses.begin(); it != end; ++it) {
                         if (it != sp->Responses.begin())

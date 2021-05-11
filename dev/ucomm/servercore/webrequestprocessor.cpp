@@ -21,7 +21,7 @@ namespace UHTTP
         return m_pHttpContext;
     }
 
-    const SPA::UJsonValue& CWebRequestProcessor::GetDoc() {
+    const SPA::UJsonValue & CWebRequestProcessor::GetDoc() {
         return m_doc;
     }
 
@@ -84,11 +84,9 @@ namespace UHTTP
         const SPA::UJsonValue &ci = doc.at(CHttpContext::SP_REQUEST_CI);
         if (ci.is_int64()) {
             UReq.CallIndex = ci.as_int64();
-        }
-        else if (ci.is_uint64()) {
+        } else if (ci.is_uint64()) {
             UReq.CallIndex = (SPA::INT64)ci.as_uint64();
-        }
-        else {
+        } else {
             UReq.ErrCode = seWrongArgType;
             return UReq;
         }
@@ -146,15 +144,14 @@ namespace UHTTP
         SPA::CScopeUQueue su;
         if (groups.is_array()) {
             const SPA::UJsonArray& arr = groups.as_array();
-            unsigned int m = (unsigned int)arr.size();
+            unsigned int m = (unsigned int) arr.size();
             for (unsigned int n = 0; n < m; ++n) {
                 const SPA::UJsonValue &chatId = arr[n];
                 if (chatId.is_int64()) {
-                    unsigned int id = (unsigned int)chatId.as_int64();
+                    unsigned int id = (unsigned int) chatId.as_int64();
                     su << id;
-                }
-                else if (chatId.is_uint64()) {
-                    unsigned int id = (unsigned int)chatId.as_uint64();
+                } else if (chatId.is_uint64()) {
+                    unsigned int id = (unsigned int) chatId.as_uint64();
                     su << id;
                 }
             }
@@ -169,16 +166,16 @@ namespace UHTTP
     void CWebRequestProcessor::MakeMsg(const SPA::UJsonValue &msg, SPA::CUQueue & q) {
         SPA::UVariant vtMsg;
         switch (msg.kind()) {
-        case boost::json::kind::array:
-        case boost::json::kind::object:
+            case boost::json::kind::array:
+            case boost::json::kind::object:
             {
-               
+
                 SPA::CScopeUQueue su;
                 unsigned int approxSize = GetApproxSize();
                 if (su->GetMaxSize() < approxSize)
                     su->ReallocBuffer(approxSize);
                 su << msg;
-                
+
                 SPA::CScopeUQueue su2;
                 SPA::Utilities::ToUTF16((const char*) su->GetBuffer(), su->GetSize(), *su2);
                 const char16_t *str = (const char16_t*) su2->GetBuffer();
@@ -189,7 +186,7 @@ namespace UHTTP
                 q << str;
             }
                 break;
-        case boost::json::kind::string:
+            case boost::json::kind::string:
             {
                 SPA::CScopeUQueue su;
                 const boost::json::string& str = msg.as_string();
@@ -203,45 +200,43 @@ namespace UHTTP
                 q << s;
             }
                 break;
-        case boost::json::kind::null:
+            case boost::json::kind::null:
                 q << vtMsg;
                 break;
-        case boost::json::kind::bool_:
+            case boost::json::kind::bool_:
                 vtMsg = msg.as_bool();
                 q << vtMsg;
                 break;
 
-        case boost::json::kind::double_:
-            vtMsg = msg.as_double();
-            q << vtMsg;
-            break;
-        case boost::json::kind::uint64:
-        {
-            static constexpr unsigned int MAX_UINT = 0xffffffff;
-            SPA::UINT64 data = msg.get_uint64();
-            if (data <= MAX_UINT) {
-                vtMsg = (unsigned int)data;
+            case boost::json::kind::double_:
+                vtMsg = msg.as_double();
+                q << vtMsg;
+                break;
+            case boost::json::kind::uint64:
+            {
+                static constexpr unsigned int MAX_UINT = 0xffffffff;
+                SPA::UINT64 data = msg.get_uint64();
+                if (data <= MAX_UINT) {
+                    vtMsg = (unsigned int) data;
+                } else {
+                    vtMsg = data;
+                }
             }
-            else {
-                vtMsg = data;
+                q << vtMsg;
+                break;
+            case boost::json::kind::int64:
+            {
+                SPA::INT64 data = msg.get_int64();
+                static constexpr int MAX_INT = 0x7fffffff;
+                static constexpr int MIN_INT = -1 - MAX_INT;
+                if (data <= MAX_INT && data >= MIN_INT) {
+                    vtMsg = (int) data;
+                } else {
+                    vtMsg = data;
+                }
             }
-        }
-            q << vtMsg;
-            break;
-        case boost::json::kind::int64:
-        {
-            SPA::INT64 data = msg.get_int64();
-            static constexpr int MAX_INT = 0x7fffffff;
-            static constexpr int MIN_INT = -1 - MAX_INT;
-            if (data <= MAX_INT && data >= MIN_INT) {
-                vtMsg = (int)data;
-            }
-            else {
-                vtMsg = data;
-            }
-        }
-            q << vtMsg;
-            break;
+                q << vtMsg;
+                break;
             default:
                 assert(false);
                 break;
@@ -445,11 +440,9 @@ namespace UHTTP
         const SPA::UJsonValue &ci = json.at(CHttpContext::SP_REQUEST_CI);
         if (ci.is_int64()) {
             ur.CallIndex = ci.as_int64();
-        }
-        else if (ci.is_uint64()) {
+        } else if (ci.is_uint64()) {
             ur.CallIndex = (SPA::INT64)ci.as_uint64();
-        }
-        else {
+        } else {
             ur.ErrCode = seWrongArgType;
             return;
         }

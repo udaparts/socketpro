@@ -123,8 +123,8 @@ namespace Connection
             SPA::Utilities::ToUTF8(sendUserId, ::wcslen(sendUserId), *su);
         }
         SPA::UJsonObject& obj = jv.as_object();
-        obj[UHTTP::CHttpContext::HTTP_RESPONSE_SELF] = (unsigned int)0;
-        obj[UHTTP::CWebResponseProcessor::HTTP_RESPONSE_SENDER] = (const char*)su->GetBuffer();
+        obj[UHTTP::CHttpContext::HTTP_RESPONSE_SELF] = (unsigned int) 0;
+        obj[UHTTP::CWebResponseProcessor::HTTP_RESPONSE_SENDER] = (const char*) su->GetBuffer();
         obj[UHTTP::CWebResponseProcessor::HTTP_RESPONSE_SERVICE_ID] = senderServiceId;
         obj[UHTTP::CHttpContext::HTTP_JS_GROUPS] = SPA::MakeJsonValue(pGroup, count);
     }
@@ -138,7 +138,7 @@ namespace Connection
             obj["cbk"] = callback;
         }
         obj[UHTTP::CWebResponseProcessor::HTTP_RESPONSE_REQUEST_ID] = reqId;
-        obj[UHTTP::CHttpContext::HTTP_RESPONSE_SELF] = (unsigned int)1;
+        obj[UHTTP::CHttpContext::HTTP_RESPONSE_SELF] = (unsigned int) 1;
         obj[UHTTP::CHttpContext::SP_RESPONSE_RESULT] = res;
         if (len == (~0)) {
             len = (unsigned int) ::strlen(res);
@@ -160,7 +160,7 @@ namespace Connection
                 obj["cbk"] = callback;
             }
             obj[UHTTP::CWebResponseProcessor::HTTP_RESPONSE_REQUEST_ID] = reqId;
-            obj[UHTTP::CHttpContext::HTTP_RESPONSE_SELF] = (unsigned int)1;
+            obj[UHTTP::CHttpContext::HTTP_RESPONSE_SELF] = (unsigned int) 1;
             obj[UHTTP::CHttpContext::SP_RESPONSE_RESULT] = res;
             if (len == (~0)) {
                 len = (unsigned int) ::strlen(res);
@@ -180,7 +180,7 @@ namespace Connection
             CConnectionContext::SharedPtr p = it->second;
             SPA::UJsonObject obj;
             obj[UHTTP::CHttpContext::SP_REQUEST_NAME] = UHTTP::CHttpContext::SP_REQUEST_EXIT;
-            obj[UHTTP::CHttpContext::HTTP_RESPONSE_SELF] = (unsigned int)1;
+            obj[UHTTP::CHttpContext::HTTP_RESPONSE_SELF] = (unsigned int) 1;
             obj[UHTTP::CHttpContext::SP_RESPONSE_RESULT] = SPA::MakeJsonValue(pGroups, count);
             SPA::UJsonValue jv(std::move(obj));
             p->Responses.push_back(ToString(jv, 1024));
@@ -194,7 +194,7 @@ namespace Connection
             CConnectionContext::SharedPtr p = it->second;
             SPA::UJsonObject obj;
             obj[UHTTP::CHttpContext::SP_REQUEST_NAME] = UHTTP::CHttpContext::SP_REQUEST_SPEAK;
-            obj[UHTTP::CHttpContext::HTTP_RESPONSE_SELF] = (unsigned int)1;
+            obj[UHTTP::CHttpContext::HTTP_RESPONSE_SELF] = (unsigned int) 1;
             obj[UHTTP::CHttpContext::SP_RESPONSE_RESULT] = SPA::MakeJsonValue(pGroups, count);
             SPA::UJsonValue jv(std::move(obj));
             p->Responses.push_back(ToString(jv, 1024));
@@ -208,12 +208,12 @@ namespace Connection
             unsigned int len = 0;
             CConnectionContext::SharedPtr p = it->second;
             SPA::UJsonObject obj;
-            obj[UHTTP::CHttpContext::HTTP_RESPONSE_SELF] = (unsigned int)1;
-            obj["errCode"] = (int)errCode;
+            obj[UHTTP::CHttpContext::HTTP_RESPONSE_SELF] = (unsigned int) 1;
+            obj["errCode"] = (int) errCode;
             obj[UHTTP::CWebResponseProcessor::HTTP_RESPONSE_REQUEST_ID] = requestId;
             obj["stack"] = errWhere;
             if (errMessage) {
-                len = (unsigned int)::wcslen(errMessage);
+                len = (unsigned int) ::wcslen(errMessage);
             }
             obj["errMsg"] = SPA::MakeJsonValue(errMessage);
             SPA::UJsonValue jv(std::move(obj));
@@ -232,7 +232,7 @@ namespace Connection
             CConnectionContext::SharedPtr p = it->second;
             SPA::UJsonObject obj;
             obj[UHTTP::CHttpContext::SP_REQUEST_NAME] = UHTTP::CHttpContext::SP_REQUEST_SENDUSERMESSAGE;
-            obj[UHTTP::CHttpContext::HTTP_RESPONSE_SELF] = (unsigned int)1;
+            obj[UHTTP::CHttpContext::HTTP_RESPONSE_SELF] = (unsigned int) 1;
             obj[UHTTP::CHttpContext::SP_RESPONSE_RESULT] = SPA::MakeJsonValue(pGroups, count);
             SPA::UJsonValue jv(std::move(obj));
             p->Responses.push_back(ToString(jv, 1024));
@@ -246,7 +246,7 @@ namespace Connection
             CConnectionContext::SharedPtr p = it->second;
             SPA::UJsonObject obj;
             obj[UHTTP::CHttpContext::SP_REQUEST_NAME] = UHTTP::CHttpContext::SP_REQUEST_ENTER;
-            obj[UHTTP::CHttpContext::HTTP_RESPONSE_SELF] = (unsigned int)1;
+            obj[UHTTP::CHttpContext::HTTP_RESPONSE_SELF] = (unsigned int) 1;
             obj[UHTTP::CHttpContext::SP_RESPONSE_RESULT] = SPA::MakeJsonValue(pGroups, count);
             SPA::UJsonValue jv(std::move(obj));
             p->Responses.push_back(ToString(jv, 1024));

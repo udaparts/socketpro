@@ -2836,19 +2836,19 @@ bool CServerSession::ProcessHttpRequest() {
             m_qRead.SetHeadPosition();
             m_qRead.SetNull();
             if (ServiceId == (unsigned int) SPA::tagServiceID::sidStartup) {
-                SPA::CScopeUQueue sb;
+                SPA::CScopeUQueue sb0;
                 SPA::CSwitchInfo SwitchInfo;
                 ::memset(&SwitchInfo, 0, sizeof (SwitchInfo));
+                SPA::CUQueue& q = *sb0;
                 SwitchInfo.ServiceId = (unsigned int) SPA::tagServiceID::sidHTTP;
                 SwitchInfo.MajorVersion = 2;
-                sb << SwitchInfo;
-                sb << m_ccb.UserId;
-                sb << m_ccb.Password;
+                q << SwitchInfo;
+                q << m_ccb.UserId;
+                q << m_ccb.Password;
                 {
                     CRAutoLock ral(m_mutex, m_bChatting);
-                    FakeAClientRequest((unsigned short) SPA::tagBaseRequestID::idSwitchTo, sb->GetBuffer(), sb->GetSize());
+                    FakeAClientRequest((unsigned short) SPA::tagBaseRequestID::idSwitchTo, q.GetBuffer(), q.GetSize());
                 }
-
                 if (m_pHttpContext->IsWebSocket()) {
                     if (m_pSsl) {
                         SPA::CScopeUQueue sb;
