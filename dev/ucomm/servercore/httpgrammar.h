@@ -1,6 +1,5 @@
 #pragma once
 
-#include <boost/bind.hpp>
 #include <boost/function.hpp>
 
 #ifdef USE_SPIRIT_CLSSICAL_FOR_MULTIPART
@@ -36,4 +35,3 @@ namespace UHTTP {
 #endif
 
 };
-
