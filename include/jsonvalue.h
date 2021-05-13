@@ -854,6 +854,7 @@ namespace SPA {
         typedef JValue<wchar_t> WJValue;
         typedef JObject<wchar_t> WJObject;
         typedef JArray<wchar_t> WJArray;
+
         WJValue* Parse(const wchar_t* data) {
             return WJValue::Parse(data);
         }
@@ -861,6 +862,7 @@ namespace SPA {
         typedef JValue<char16_t> UJValue;
         typedef JObject<char16_t> UJObject;
         typedef JArray<char16_t> UJArray;
+
         UJValue* Parse(const char16_t* data) {
             return UJValue::Parse(data);
         }
@@ -868,6 +870,7 @@ namespace SPA {
         typedef JValue<char> AJValue;
         typedef JObject<char> AJObject;
         typedef JArray<char> AJArray;
+
         AJValue* Parse(const char* data) {
             return AJValue::Parse(data);
         }
