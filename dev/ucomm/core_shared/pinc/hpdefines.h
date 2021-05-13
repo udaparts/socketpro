@@ -16,37 +16,37 @@ namespace UHTTP {
     extern std::string CONTENT_TYPE;
     extern std::string CHUNKED;
 
-	static bool iequals(const char *s0, const char *s1) {
+    static bool iequals(const char *s0, const char *s1) {
 #ifdef WIN32_64
-		return (0 == ::_stricmp(s0, s1));
+        return (0 == ::_stricmp(s0, s1));
 #else
-		return (0 == ::strcasecmp(s0, s1));
+        return (0 == ::strcasecmp(s0, s1));
 #endif
-	}
-	
-	static bool iequals(const char *s0, const char *s1, size_t n) {
-#ifdef WIN32_64
-		return (0 == ::_strnicmp(s0, s1, n));
-#else
-		return (0 == ::strncasecmp(s0, s1, n));
-#endif
-	}
+    }
 
-	static bool iequals(const wchar_t *s0, const wchar_t *s1) {
+    static bool iequals(const char *s0, const char *s1, size_t n) {
 #ifdef WIN32_64
-		return (0 == ::_wcsicmp(s0, s1));
+        return (0 == ::_strnicmp(s0, s1, n));
 #else
-		return (0 == ::wcscasecmp(s0, s1));
+        return (0 == ::strncasecmp(s0, s1, n));
 #endif
-	}
+    }
 
-	static bool iequals(const wchar_t *s0, const wchar_t *s1, size_t n) {
+    static bool iequals(const wchar_t *s0, const wchar_t *s1) {
 #ifdef WIN32_64
-		return (0 == ::_wcsnicmp(s0, s1, n));
+        return (0 == ::_wcsicmp(s0, s1));
 #else
-		return (0 == ::wcsncasecmp(s0, s1, n));
+        return (0 == ::wcscasecmp(s0, s1));
 #endif
-	}
+    }
+
+    static bool iequals(const wchar_t *s0, const wchar_t *s1, size_t n) {
+#ifdef WIN32_64
+        return (0 == ::_wcsnicmp(s0, s1, n));
+#else
+        return (0 == ::wcsncasecmp(s0, s1, n));
+#endif
+    }
 
     unsigned int UriDecode(const unsigned char *strIn, unsigned int nLenIn, unsigned char *strOut);
 
@@ -56,7 +56,7 @@ namespace UHTTP {
     struct ci_equal : public std::binary_function<std::basic_string<TChar>, std::basic_string<TChar>, bool> {
         typedef std::basic_string<TChar> string;
 
-        inline bool operator() (const string &s1, const string & s2) const {
+        inline bool operator()(const string &s1, const string & s2) const {
             size_t len1 = s1.size();
             size_t len2 = s2.size();
             if (len2 != len1)
@@ -475,7 +475,7 @@ namespace UHTTP {
 
         void DealWithParticularHeader(CHeaderValue *hv) {
             const char *c = hv->Header.Start;
-			unsigned int len = hv->Header.Length;
+            unsigned int len = hv->Header.Length;
             if ((*c == 'C' || *c == 'c') && len == 14) //
             {
                 if (iequals(CONTENT_LENGTH.c_str(), c, len)) {
