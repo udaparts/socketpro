@@ -782,7 +782,7 @@ bool CServerSession::CommitBatchingInternal() {
     }
     if (!g_pServer->m_bStopped) {
         if (m_bZip) {
-            if (m_pQBatch->GetSize() && CompressResultTo(IsOld(), (unsigned short)SPA::tagBaseRequestID::idBatchZipped, m_zl, m_pQBatch->GetBuffer(), m_pQBatch->GetSize(), m_qWrite)) {
+            if (m_pQBatch->GetSize() && CompressResultTo(IsOld(), (unsigned short) SPA::tagBaseRequestID::idBatchZipped, m_zl, m_pQBatch->GetBuffer(), m_pQBatch->GetSize(), m_qWrite)) {
                 Write(nullptr, 0);
             }
         } else if (m_qWrite.GetSize() > 0 || m_pSspi) {
@@ -1350,7 +1350,7 @@ unsigned int CServerSession::Write(const SPA::CStreamHeader &sh, const unsigned 
     if (m_bWBLocked) {
         m_qWrite << sh;
         m_qWrite.Push(s, nSize);
-        return (nSize + sizeof(sh));
+        return (nSize + sizeof (sh));
     }
     SPA::CScopeUQueue sb;
     sb << sh;

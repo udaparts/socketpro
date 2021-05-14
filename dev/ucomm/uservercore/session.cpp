@@ -779,15 +779,8 @@ bool CServerSession::CommitBatchingInternal() {
     }
     if (!g_pServer->m_bStopped) {
         if (m_bZip) {
-            if (m_pSsl) {
-                SPA::CScopeUQueue sb;
-                if (m_pQBatch->GetSize() && CompressResultTo(IsOld(), (unsigned short) SPA::tagBaseRequestID::idBatchZipped, m_zl, m_pQBatch->GetBuffer(), m_pQBatch->GetSize(), *sb)) {
-                    Write(sb->GetBuffer(), sb->GetSize());
-                }
-            } else {
-                if (m_pQBatch->GetSize() && CompressResultTo(IsOld(), (unsigned short) SPA::tagBaseRequestID::idBatchZipped, m_zl, m_pQBatch->GetBuffer(), m_pQBatch->GetSize(), m_qWrite)) {
-                    Write(nullptr, 0);
-                }
+            if (m_pQBatch->GetSize() && CompressResultTo(IsOld(), (unsigned short) SPA::tagBaseRequestID::idBatchZipped, m_zl, m_pQBatch->GetBuffer(), m_pQBatch->GetSize(), m_qWrite)) {
+                Write(nullptr, 0);
             }
         } else if (m_pSsl) {
             Write(m_pQBatch->GetBuffer(), m_pQBatch->GetSize());
@@ -1368,6 +1361,11 @@ void CServerSession::DropCurrentSlowRequest() {
 }
 
 unsigned int CServerSession::Write(const SPA::CStreamHeader &sh, const unsigned char *s, unsigned int nSize) {
+    if (m_bWBLocked) {
+        m_qWrite << sh;
+        m_qWrite.Push(s, nSize);
+        return (nSize + sizeof (sh));
+    }
     SPA::CScopeUQueue sb;
     sb << sh;
     sb->Push(s, nSize);
@@ -1539,15 +1537,8 @@ unsigned int CServerSession::SendReturnDataInternal(unsigned short usReqId, cons
         SPA::CStreamHeader sh(usReqId, ulBufferSize);
         Write(sh, pBuffer, ulBufferSize);
     } else { //zipped
-        if (m_pSsl) {
-            SPA::CScopeUQueue sb;
-            if (CompressResultTo(IsOld(), usReqId, m_zl, pBuffer, ulBufferSize, *sb)) {
-                Write(sb->GetBuffer(), sb->GetSize());
-            }
-        } else {
-            if (CompressResultTo(IsOld(), usReqId, m_zl, pBuffer, ulBufferSize, m_qWrite)) {
-                Write(nullptr, 0);
-            }
+        if (CompressResultTo(IsOld(), usReqId, m_zl, pBuffer, ulBufferSize, m_qWrite)) {
+            Write(nullptr, 0);
         }
     }
     if (m_ReqInfo.GetQueued() && usReqId == m_ReqInfo.RequestId) {
