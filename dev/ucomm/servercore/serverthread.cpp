@@ -46,11 +46,12 @@ void CServerThread::Handle() {
         CUThreadMessage message = m_qThreadMessage.front();
         m_qThreadMessage.pop();
         m_sl.unlock();
+        SPA::CUQueue& q = *message.m_pMessageBuffer;
         unsigned int res;
         PSession pSession;
         m_tWorking = GetTimeTick();
         unsigned int nMsgId = message.m_nMsgId;
-        *(message.m_pMessageBuffer) >> pSession;
+        q >> pSession;
         switch (nMsgId) {
             case WM_ASK_FOR_PROCESSING:
                 res = ProcessSlowRequest(pSession, message.m_uRequestId);
@@ -60,9 +61,8 @@ void CServerThread::Handle() {
                 break;
         }
         message.m_nMsgId = WM_REQUEST_PROCESSED;
-        message.m_pMessageBuffer->SetSize(0);
-        *message.m_pMessageBuffer << pSession;
-        *message.m_pMessageBuffer << res;
+        q.SetSize(0);
+        q << pSession << res;
         g_pServer->PostSproMessage(message);
         m_tWorking = GetTimeTick();
     }

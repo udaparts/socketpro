@@ -1,7 +1,5 @@
 #include "../core_shared/pinc/fastujson.h"
-#ifndef WIN32_64
 #include <boost/json/src.hpp>
-#endif
 
 namespace SPA
 {
@@ -55,9 +53,9 @@ namespace SPA
                 return (unsigned int) vtData.ulVal;
 #ifdef WINCE
             case VT_I8:
-                return MakeJsonValue(vtData.cyVal.int64);
+                return vtData.cyVal.int64;
             case VT_UI8:
-                return MakeJsonValue((UINT64) (vtData.cyVal.int64));
+                return (UINT64) (vtData.cyVal.int64);
 #else
             case VT_I8:
                 return vtData.llVal;
