@@ -561,7 +561,7 @@ namespace SPA
             m_qWrite.Pop(m_WriteBuffer, ulLen);
         }
 #ifdef WIN32_64
-        if (m_secure == tagEncryptionMethod::TLSv1 && m_pSspi->GetHandshakeState() == tagSslHandshakeState::hsDone) {
+        if (m_secure == tagEncryptionMethod::TLSv1 && m_pSspi->GetHandshakeState() == tagSslHandshakeState::hsDone && m_ss >= tagSessionState::ssConnected) {
             m_qSsl.SetSize(0);
             m_pSspi->Encrypt(m_WriteBuffer, ulLen, m_qSsl);
             ulLen = m_qSsl.GetSize();
