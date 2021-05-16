@@ -60,9 +60,9 @@ namespace SPA {
             return m_session;
         }
 
-		bool GetServerName(char *name, unsigned int chars) const {
-			return SH_GetServerName(m_session, name, chars);
-		}
+        bool GetServerName(char *name, unsigned int chars) const {
+            return SH_GetServerName(m_session, name, chars);
+        }
 
     protected:
         virtual void OnAvailable(const unsigned char *data, unsigned int bytes) = 0;
@@ -194,11 +194,11 @@ namespace SPA {
                 case tagSessionPoolEvent::seThreadDestroyed:
                 case tagSessionPoolEvent::seSessionClosed:
 #ifndef NDEBUG
-					if (spe == tagSessionPoolEvent::seSessionClosed) {
-						char errMsg[1024];
-						int errCode = SH_GetErrorCode(sh, errMsg, sizeof(errMsg));
-						std::cout << "Session closed: error code=" << errCode << ", error message=" << errMsg << "\n";
-					}
+                    if (spe == tagSessionPoolEvent::seSessionClosed) {
+                        char errMsg[1024];
+                        int errCode = SH_GetErrorCode(sh, errMsg, sizeof (errMsg));
+                        std::cout << "Session closed: error code=" << errCode << ", error message=" << errMsg << "\n";
+                    }
 #endif
                     if (sp->PoolEvent) {
                         sp->PoolEvent(spe, sp->FindHandler(sh));

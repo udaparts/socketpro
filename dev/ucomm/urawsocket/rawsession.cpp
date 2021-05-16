@@ -569,7 +569,7 @@ namespace SPA
             ::memcpy(m_WriteBuffer, m_qSsl.GetBuffer(), ulLen);
         }
 #else
-        if (m_secure == tagEncryptionMethod::TLSv1 && m_pSsl->Done()) {
+        if (m_secure == tagEncryptionMethod::TLSv1 && m_pSsl->Done() && m_ss >= tagSessionState::ssConnected) {
             m_qSsl.SetSize(0);
             ulLen = m_pSsl->Encrypt(m_WriteBuffer, ulLen, m_qSsl);
             assert(ulLen);
@@ -614,9 +614,6 @@ namespace SPA
                     CErrorCode ec;
                     m_socket.shutdown(nsIP::tcp::socket::shutdown_type::shutdown_both, ec);
                     m_socket.close(ec);
-                    if (m_ss == tagSessionState::ssSslShaking) {
-                        se = tagSessionPoolEvent::seConnected;
-                    }
                     m_ss = tagSessionState::ssClosed;
                     sc = m_rt.GetSessionCallback();
                 } else {
