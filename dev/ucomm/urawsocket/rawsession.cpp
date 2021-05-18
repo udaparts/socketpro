@@ -1,7 +1,6 @@
 #include "pch.h"
 #include "rawsession.h"
 #include "rawthread.h"
-#include <boost/lexical_cast.hpp>
 
 namespace SPA
 {
@@ -84,7 +83,7 @@ namespace SPA
                 {
                     do {
                         CAutoLock sl(m_cs);
-                        CResolver::query ipAddr(m_b6 ? nsIP::tcp::v6() : nsIP::tcp::v4(), m_strhost, boost::lexical_cast<std::string> (m_nPort));
+                        CResolver::query ipAddr(m_b6 ? nsIP::tcp::v6() : nsIP::tcp::v4(), m_strhost, std::to_string(m_nPort));
                         CResolver r(m_io);
                         CResolver::iterator iterator = r.resolve(ipAddr, ec);
                         if (ec || iterator == CResolver::iterator()) {
