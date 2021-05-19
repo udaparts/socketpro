@@ -24,7 +24,7 @@ inline CClientSession *MapHandleToClientSession(USocket_Client_Handle h) {
     return (CClientSession*) h;
 }
 
-std::string g_strVersion("6.4.0.4");
+std::string g_strVersion("6.4.0.5");
 
 const char* WINAPI GetUClientSocketVersion() {
     return g_strVersion.c_str();
