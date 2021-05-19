@@ -5,7 +5,6 @@
 #include "../clientcore/socketpool.h"
 #include <assert.h>
 #include <boost/filesystem.hpp>
-#include <boost/lexical_cast.hpp>
 
 #ifdef NDEBUG
 #include<iostream>
@@ -52,7 +51,7 @@ CClientSession::CClientSession(CIoService &IoService, CClientThread *pClientThre
 m_nJobRequest(0),
 m_nJobConfirm(0),
 #endif
-m_qRead(INIT_BUFFER_SIZE), m_qWrite(INIT_BUFFER_SIZE, BUFFER_BLOCK_SIZE),
+m_qShared(*m_sbShared), m_qRead(INIT_BUFFER_SIZE), m_qWrite(INIT_BUFFER_SIZE, BUFFER_BLOCK_SIZE),
 m_qReqIdWait(INIT_BUFFER_SIZE, BUFFER_BLOCK_SIZE), m_qReqIdCancel(INIT_BUFFER_SIZE, BUFFER_BLOCK_SIZE),
 m_pIoService(&IoService), m_pSocket(nullptr), m_ulRead(0), m_ulSent(0),
 m_ReadBuffer(GetIoBuffer()), m_bRBLocked(false), m_WriteBuffer(GetIoBuffer()), m_bWBLocked(0),
@@ -844,24 +843,22 @@ bool CClientSession::SendRequestInternal(CAutoLock &al, unsigned short reqId, co
             m_pQBatch->Push((const unsigned char*) pBuffer, len);
         } else {
             if (m_bZip && reqId != (unsigned short) SPA::tagBaseRequestID::idSwitchTo) {
-                SPA::CScopeUQueue sb;
+                m_qShared.SetSize(0);
                 if (m_qWrite.GetTailSize() < len + sizeof (reqInfo) && m_qWrite.GetHeadPosition() > len + sizeof (reqInfo))
                     m_qWrite.SetHeadPosition();
-                unsigned int res = CompressRequestTo(reqId, m_zl, (const unsigned char*) pBuffer, len, *sb);
-                sb->SetSize(res);
+                unsigned int res = CompressRequestTo(reqId, m_zl, (const unsigned char*) pBuffer, len, m_qShared);
+                m_qShared.SetSize(res);
                 //The first sizeof(reqInfo) of bytes contains request header info
-                if (!bQueue) {
-                    m_qReqIdCancel.Push(sb->GetBuffer(), sizeof (reqInfo));
-                    m_qReqIdWait.Push(sb->GetBuffer(), sizeof (reqInfo));
-                }
                 if (bQueue) {
-                    SPA::CStreamHeader *p = (SPA::CStreamHeader*)sb->GetBuffer();
-                    sb->Pop((unsigned int) sizeof (SPA::CStreamHeader));
-                    m_qRequest->Enqueue(*p, *sb);
+                    SPA::CStreamHeader *p = (SPA::CStreamHeader*)m_qShared.GetBuffer();
+                    m_qShared.Pop((unsigned int) sizeof (SPA::CStreamHeader));
+                    m_qRequest->Enqueue(*p, m_qShared);
                     if (!m_qRequest->GetJobSize() && m_ConnState < SPA::ClientSide::tagConnectionState::csConnected)
                         m_pIoService->post(std::bind(&CSocketPool::OnClose, m_pThread->GetPool(), this));
                 } else {
-                    Write(sb->GetBuffer(), sb->GetSize());
+                    m_qReqIdCancel.Push(m_qShared.GetBuffer(), sizeof (reqInfo));
+                    m_qReqIdWait.Push(m_qShared.GetBuffer(), sizeof (reqInfo));
+                    Write(m_qShared.GetBuffer(), m_qShared.GetSize());
                 }
             } else {
                 if (!bQueue) {
@@ -969,7 +966,7 @@ void CClientSession::ConnectInternally() {
     }
     CAutoLock sl(m_mutex);
     SetContext();
-    CResolver::query ipAddress(m_b6 ? nsIP::tcp::v6() : nsIP::tcp::v4(), m_strhost, boost::lexical_cast<std::string > (m_nPort), boost::asio::ip::resolver_query_base::numeric_service);
+    CResolver::query ipAddress(m_b6 ? nsIP::tcp::v6() : nsIP::tcp::v4(), m_strhost, std::to_string(m_nPort), boost::asio::ip::resolver_query_base::numeric_service);
     CResolver r(*m_pIoService);
     nsIP::tcp::resolver::iterator iterator;
     {
@@ -1116,44 +1113,18 @@ void CClientSession::OnConnected(const CErrorCode &ec) {
 }
 
 void CClientSession::Write(const SPA::CStreamHeader &sh, const unsigned char *s, unsigned int nSize) {
-    if (!s) nSize = 0;
-    if (m_ConnState < SPA::ClientSide::tagConnectionState::csConnected)
+    if (m_ConnState < SPA::ClientSide::tagConnectionState::csSslShaking) {
         return;
+    }
     if (m_bWBLocked) {
         m_qWrite << sh;
         m_qWrite.Push(s, nSize);
-        return;
-    }
-    unsigned int ulLen = m_qWrite.GetSize();
-    if (ulLen == 0) {
-        ::memcpy(m_WriteBuffer, &sh, sizeof (sh));
-        if (nSize + sizeof (sh) <= IO_BUFFER_SIZE) {
-            if (nSize)
-                ::memcpy(m_WriteBuffer + sizeof (sh), s, nSize);
-            ulLen = nSize + sizeof (sh);
-        } else {
-            ::memcpy(m_WriteBuffer + sizeof (sh), s, IO_BUFFER_SIZE - sizeof (sh));
-            ulLen = IO_BUFFER_SIZE;
-
-            //remaining
-            m_qWrite.Push(s + (IO_BUFFER_SIZE - sizeof (sh)), nSize - (IO_BUFFER_SIZE - sizeof (sh)));
-        }
     } else {
-        m_qWrite << sh;
-        m_qWrite.Push(s, nSize);
-        ulLen = m_qWrite.GetSize();
-        if (ulLen > IO_BUFFER_SIZE)
-            ulLen = IO_BUFFER_SIZE;
-        m_qWrite.Pop(m_WriteBuffer, ulLen);
+        m_qShared.SetSize(0);
+        m_qShared << sh;
+        m_qShared.Push(s, nSize);
+        Write(m_qShared.GetBuffer(), m_qShared.GetSize());
     }
-    m_ulSent += ulLen;
-    m_bWBLocked = ulLen;
-    if (m_pSsl) {
-        SPA::CScopeUQueue sb;
-        m_bWBLocked = ulLen = m_pSsl->Encrypt(m_WriteBuffer, ulLen, *sb);
-        ::memcpy(m_WriteBuffer, sb->GetBuffer(), ulLen);
-    }
-    m_pSocket->async_write_some(boost::asio::buffer(m_WriteBuffer, ulLen), std::bind(&CClientSession::OnWriteCompleted, this, std::placeholders::_1, std::placeholders::_2));
 }
 
 void CClientSession::Write(const unsigned char *s, unsigned int nSize) {
@@ -1188,10 +1159,10 @@ void CClientSession::Write(const unsigned char *s, unsigned int nSize) {
     m_ulSent += ulLen;
     m_bWBLocked = ulLen;
     if (m_pSsl) {
-        SPA::CScopeUQueue sb;
-        m_bWBLocked = ulLen = m_pSsl->Encrypt(m_WriteBuffer, ulLen, *sb);
+        m_qShared.SetSize(0);
+        m_bWBLocked = ulLen = m_pSsl->Encrypt(m_WriteBuffer, ulLen, m_qShared);
         assert(m_bWBLocked <= IO_BUFFER_SIZE + IO_ENCRYPTION_PADDING);
-        ::memcpy(m_WriteBuffer, sb->GetBuffer(), ulLen);
+        ::memcpy(m_WriteBuffer, m_qShared.GetBuffer(), ulLen);
     }
     m_pSocket->async_write_some(boost::asio::buffer(m_WriteBuffer, ulLen), std::bind(&CClientSession::OnWriteCompleted, this, std::placeholders::_1, std::placeholders::_2));
 }
@@ -2632,21 +2603,16 @@ void CClientSession::OnReadCompleted(const CErrorCode& Error, size_t nLen) {
                 return;
             }
             len = m_pSsl->Decrypt(m_ReadBuffer, len, m_qRead);
-            m_ulRead += len;
-            m_bRBLocked = false;
         }
     } else {
         if (m_ConnState < SPA::ClientSide::tagConnectionState::csConnected) {
             return;
         }
-        if (len > 0) {
-            m_ulRead += len;
-            m_qRead.Push(m_ReadBuffer, len);
-        }
-        m_bRBLocked = false;
+        m_qRead.Push(m_ReadBuffer, len);
     }
-
     CAutoLock sl(m_mutex);
+    m_ulRead += len;
+    m_bRBLocked = false;
     m_ec = Error;
     m_tRecv = GetTimeTick();
     bool notify = (m_qReqIdWait.GetSize() > 0);

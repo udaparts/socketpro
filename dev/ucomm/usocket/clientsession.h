@@ -41,6 +41,7 @@ both windows and linux inside boost/asio/ssl/detail/io.hpp
  */
 
 class U_MODULE_HIDDEN CClientSession : public SPA::ClientSide::UClientSocketBase {
+    SPA::CScopeUQueue m_sbShared;
 #ifndef NDEBUG
     unsigned int m_nJobRequest;
     unsigned int m_nJobConfirm;
@@ -245,7 +246,7 @@ public:
 private:
     static const unsigned int BUFFER_BLOCK_SIZE = 64 * 1024;
     static const unsigned int INIT_BUFFER_SIZE = 16 * 1024;
-
+    SPA::CUQueue &m_qShared;
     SPA::CUQueue m_qRead;
     SPA::CUQueue m_qWrite;
     SPA::CUQueue m_qReqIdCancel;

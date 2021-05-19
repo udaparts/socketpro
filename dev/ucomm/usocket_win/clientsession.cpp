@@ -892,8 +892,8 @@ bool CClientSession::SendRequestInternal(CAutoLock &al, unsigned short reqId, co
                     if (!m_qRequest->GetJobSize() && m_ConnState < SPA::ClientSide::tagConnectionState::csConnected)
                         m_pIoService->post(std::bind(&CSocketPool::OnClose, m_pThread->GetPool(), this));
                 } else {
-                    m_qReqIdCancel.Push(m_qShared.GetBuffer(), sizeof(reqInfo));
-                    m_qReqIdWait.Push(m_qShared.GetBuffer(), sizeof(reqInfo));
+                    m_qReqIdCancel.Push(m_qShared.GetBuffer(), sizeof (reqInfo));
+                    m_qReqIdWait.Push(m_qShared.GetBuffer(), sizeof (reqInfo));
                     Write(m_qShared.GetBuffer(), m_qShared.GetSize());
                 }
             } else {
@@ -1210,8 +1210,7 @@ void CClientSession::Write(const SPA::CStreamHeader &sh, const unsigned char *s,
     if (m_bWBLocked) {
         m_qWrite << sh;
         m_qWrite.Push(s, nSize);
-    }
-    else {
+    } else {
         m_qShared.SetSize(0);
         m_qShared << sh;
         m_qShared.Push(s, nSize);
@@ -2687,7 +2686,7 @@ void CClientSession::OnReadCompleted(const CErrorCode& Error, size_t nLen) {
                 CloseInternal(m_pSspi->GetLastStatus());
                 return;
             }
-            len = m_qRead.GetSize() - (unsigned int)nLen;
+            len = m_qRead.GetSize() - (unsigned int) nLen;
         } else {
             SPA::CScopeUQueue sb;
             m_tRecv = GetTimeTick();
