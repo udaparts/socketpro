@@ -846,11 +846,6 @@ namespace SPA {
         template <typename TChar>
         typename JValue<TChar>::JString JValue<TChar>::JMVSep({'"', ':'});
 
-        template <typename TChar>
-        static JValue<TChar>* Parse(const TChar* data) {
-            return JValue<TChar>::Parse(data);
-        }
-
         typedef JValue<wchar_t> WJValue;
         typedef JObject<wchar_t> WJObject;
         typedef JArray<wchar_t> WJArray;
@@ -875,7 +870,7 @@ namespace SPA {
             return AJValue::Parse(data);
         }
 
-        static JValue<char>* ParseFromFile(const char* filePath, int &errCode) {
+        static AJValue* ParseFromFile(const char* filePath, int &errCode) {
             errCode = 0;
 #ifdef WIN32_64
             FILE* f = nullptr;
@@ -910,7 +905,7 @@ namespace SPA {
                 unsigned char byte_order_mark[] = {0xef, 0xbb, 0xbf}; //UTF8 BOM
                 if (::memcmp(byte_order_mark, json, sizeof (byte_order_mark)) == 0) json += 3;
             }
-            return Parse<char>(json);
+            return Parse(json);
         }
     } //namespace JSON
 } //namespace SPA
