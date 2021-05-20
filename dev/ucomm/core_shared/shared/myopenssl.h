@@ -1,4 +1,3 @@
-
 #include "../pinc/random_crash.h"
 
 #ifndef __UDAPARTS_MY_OPENSSL_H___
@@ -21,12 +20,12 @@ public:
     //int GetSSLState() const;
     bool Done() const;
     SSL* GetSSL() const;
-    static bool IsFatal(int res);
     BIO* GetRBio() const;
 
 private:
     CMyOpenSSL(const CMyOpenSSL &openssl);
     CMyOpenSSL& operator=(const CMyOpenSSL &openssl);
+    static bool IsFatal(int res);
 
 private:
     SSL *m_pSSL;

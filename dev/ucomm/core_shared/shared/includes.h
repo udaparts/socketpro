@@ -41,7 +41,6 @@ using namespace boost::this_thread;
 typedef boost::system::error_code CErrorCode;
 
 namespace nsIP = boost::asio::ip;
-namespace nsPlaceHolders = boost::asio::placeholders;
 typedef boost::asio::io_service CIoService;
 typedef nsIP::tcp::acceptor CAcceptor;
 typedef nsIP::tcp::socket CSocket;

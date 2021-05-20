@@ -3525,12 +3525,8 @@ void CServerSession::OnReadCompleted(const CErrorCode& Error, size_t nLen) {
                                 CAutoLock sl(m_mutex);
                                 m_ec = ec;
                                 CloseInternal();
-                            } else if (!m_pSsl->Done()) {
-                                m_pSocket->async_read_some(boost::asio::buffer(m_ReadBuffer, IO_ENCRYPTION_PADDING + IO_BUFFER_SIZE), std::bind(&CServerSession::OnReadCompleted, this, std::placeholders::_1, std::placeholders::_2));
                             }
                         });
-                    } else if (!m_pSsl->Done()) {
-                        m_pSocket->async_read_some(boost::asio::buffer(m_ReadBuffer, IO_ENCRYPTION_PADDING + IO_BUFFER_SIZE), std::bind(&CServerSession::OnReadCompleted, this, std::placeholders::_1, std::placeholders::_2));
                     }
                     if (m_pSsl->Done()) {
                         CErrorCode ec;
@@ -3543,6 +3539,7 @@ void CServerSession::OnReadCompleted(const CErrorCode& Error, size_t nLen) {
                             return;
                         }
                     } else {
+                        m_pSocket->async_read_some(boost::asio::buffer(m_ReadBuffer, IO_ENCRYPTION_PADDING + IO_BUFFER_SIZE), std::bind(&CServerSession::OnReadCompleted, this, std::placeholders::_1, std::placeholders::_2));
                         m_mutex.unlock();
                         return;
                     }

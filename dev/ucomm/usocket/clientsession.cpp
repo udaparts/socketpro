@@ -2586,16 +2586,14 @@ void CClientSession::OnReadCompleted(const CErrorCode& Error, size_t nLen) {
                         CAutoLock sl(m_mutex);
                         OnConnectedInternal(ec.value());
                         CloseInternal(ec.value());
-                    } else if (!m_pSsl->Done()) {
-                        m_pSocket->async_read_some(boost::asio::buffer(m_ReadBuffer, IO_BUFFER_SIZE + IO_ENCRYPTION_PADDING), std::bind(&CClientSession::OnReadCompleted, this, std::placeholders::_1, std::placeholders::_2));
                     }
                 });
-            } else if (!m_pSsl->Done()) {
-                //this is possible when server may transferring multiple certificates for large amount of server hello messages
-                m_pSocket->async_read_some(boost::asio::buffer(m_ReadBuffer, IO_BUFFER_SIZE + IO_ENCRYPTION_PADDING), std::bind(&CClientSession::OnReadCompleted, this, std::placeholders::_1, std::placeholders::_2));
             }
             if (m_pSsl->Done()) {
                 OnSslHandShake(Error);
+            } else {
+                //this is possible when server may transferring multiple certificates for large amount of server hello messages
+                m_pSocket->async_read_some(boost::asio::buffer(m_ReadBuffer, IO_BUFFER_SIZE + IO_ENCRYPTION_PADDING), std::bind(&CClientSession::OnReadCompleted, this, std::placeholders::_1, std::placeholders::_2));
             }
             return;
         } else {
