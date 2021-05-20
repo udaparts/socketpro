@@ -847,7 +847,7 @@ namespace SPA {
         typename JValue<TChar>::JString JValue<TChar>::JMVSep({'"', ':'});
 
         template <typename TChar>
-        JValue<TChar>* Parse(const TChar* data) {
+        static JValue<TChar>* Parse(const TChar* data) {
             return JValue<TChar>::Parse(data);
         }
 
@@ -855,7 +855,7 @@ namespace SPA {
         typedef JObject<wchar_t> WJObject;
         typedef JArray<wchar_t> WJArray;
 
-        WJValue* Parse(const wchar_t* data) {
+        static WJValue* Parse(const wchar_t* data) {
             return WJValue::Parse(data);
         }
 
@@ -863,7 +863,7 @@ namespace SPA {
         typedef JObject<char16_t> UJObject;
         typedef JArray<char16_t> UJArray;
 
-        UJValue* Parse(const char16_t* data) {
+        static UJValue* Parse(const char16_t* data) {
             return UJValue::Parse(data);
         }
 
@@ -871,7 +871,7 @@ namespace SPA {
         typedef JObject<char> AJObject;
         typedef JArray<char> AJArray;
 
-        AJValue* Parse(const char* data) {
+        static AJValue* Parse(const char* data) {
             return AJValue::Parse(data);
         }
 
