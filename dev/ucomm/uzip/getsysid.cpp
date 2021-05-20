@@ -236,7 +236,7 @@ namespace SPA{
             jobj[Other] = 0;
             jobj[MachineID] = std::move(id);
             jobj[Key] = "";
-            JSON::JValue<char> jv(std::move(jobj));
+            JSON::AJValue jv(std::move(jobj));
 
             std::string appName = GetAppName();
             std::string RegFileName = appName + "_sp.json";
@@ -250,10 +250,10 @@ namespace SPA{
         }
 
         bool SetRegistration(const char *str, URegistration & reg) {
-            std::shared_ptr<JSON::JValue<char>> root(JSON::Parse<char>(str));
+            std::shared_ptr<JSON::AJValue> root(JSON::Parse(str));
             if (!root)
                 return false;
-            JSON::JValue<char> *jv = root->Child(EndDate);
+            JSON::AJValue *jv = root->Child(EndDate);
             if (jv && jv->GetType() == JSON::enumType::String) {
                 reg.EndDate = jv->AsString();
             }

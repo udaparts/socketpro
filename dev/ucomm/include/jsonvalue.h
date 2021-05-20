@@ -846,16 +846,11 @@ namespace SPA {
         template <typename TChar>
         typename JValue<TChar>::JString JValue<TChar>::JMVSep({'"', ':'});
 
-        template <typename TChar>
-        JValue<TChar>* Parse(const TChar* data) {
-            return JValue<TChar>::Parse(data);
-        }
-
         typedef JValue<wchar_t> WJValue;
         typedef JObject<wchar_t> WJObject;
         typedef JArray<wchar_t> WJArray;
 
-        WJValue* Parse(const wchar_t* data) {
+        static WJValue* Parse(const wchar_t* data) {
             return WJValue::Parse(data);
         }
 
@@ -863,7 +858,7 @@ namespace SPA {
         typedef JObject<char16_t> UJObject;
         typedef JArray<char16_t> UJArray;
 
-        UJValue* Parse(const char16_t* data) {
+        static UJValue* Parse(const char16_t* data) {
             return UJValue::Parse(data);
         }
 
@@ -871,11 +866,11 @@ namespace SPA {
         typedef JObject<char> AJObject;
         typedef JArray<char> AJArray;
 
-        AJValue* Parse(const char* data) {
+        static AJValue* Parse(const char* data) {
             return AJValue::Parse(data);
         }
 
-        static JValue<char>* ParseFromFile(const char* filePath, int &errCode) {
+        static AJValue* ParseFromFile(const char* filePath, int &errCode) {
             errCode = 0;
 #ifdef WIN32_64
             FILE* f = nullptr;
@@ -910,7 +905,7 @@ namespace SPA {
                 unsigned char byte_order_mark[] = {0xef, 0xbb, 0xbf}; //UTF8 BOM
                 if (::memcmp(byte_order_mark, json, sizeof (byte_order_mark)) == 0) json += 3;
             }
-            return Parse<char>(json);
+            return Parse(json);
         }
     } //namespace JSON
 } //namespace SPA
