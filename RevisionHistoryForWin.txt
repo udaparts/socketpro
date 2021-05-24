@@ -1,4 +1,4 @@
-88.	SocketPro Version 6.4.0.1-4
+88.	SocketPro Version 6.4.0.1-5
 	(a) Add a new feature, inline manual batching, to improve server performance on requests having multiple results under some situations.
 	(b) Plugins file, sqlite, odbc and MySQL/MariaDB plugins are updated to support inline manual batching
 	(c) Fix SSL hand shaking failures with multiple chained certificates on windows platform
