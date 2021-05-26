@@ -431,9 +431,28 @@ namespace tds {
 		unsigned int RequestCount = 1;
 	};
 
+    struct CollationFlag {
+        CollationFlag() {
+            ::memset(this, 0, sizeof(CollationFlag));
+        }
+        unsigned short Reserved : 4;
+        unsigned short fIgnoreCase : 1;
+        unsigned short fIgnoreAccent : 1;
+        unsigned short fIgnoreWidth : 1;
+        unsigned short fIgnoreKana : 1;
+        unsigned short fBinary : 1;
+        unsigned short fBinary2 : 1;
+        unsigned short fUTF8 : 1;
+        unsigned short fReserved : 1;
+        unsigned short Version : 4;
+        unsigned short GetValue() const {
+            return *(unsigned short*)this;
+        }
+    };
+
     struct Collation {
         unsigned short CodePage = 0; //LCID
-        unsigned short Flags = 0;
+        CollationFlag Flags;
         unsigned char CharsetId = 0;
 
         inline bool operator==(const Collation & c) const noexcept {
@@ -447,9 +466,9 @@ namespace tds {
         CDBString GetString() const {
             char str[16];
 #ifdef WIN32_64
-            sprintf_s(str, "%x|%x|%x", CodePage, Flags, CharsetId);
+            sprintf_s(str, "%x|%x|%x", CodePage, Flags.GetValue(), CharsetId);
 #else
-            sprintf(str, "%x|%x|%x", CodePage, Flags, CharsetId);
+            sprintf(str, "%x|%x|%x", CodePage, Flags.GetValue(), CharsetId);
 #endif
             size_t len = ::strlen(str);
             return CDBString(str, str + len);

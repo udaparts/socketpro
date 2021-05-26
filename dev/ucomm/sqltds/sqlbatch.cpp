@@ -11,7 +11,7 @@ namespace tds
             m_posCol(INVALID_COL),
             m_lenLarge(0),
             m_endLarge(0),
-		m_rs(0) {
+		m_rs(0), m_outputs(0), m_returned(false){
     }
 
     void CSqlBatch::Reset() {
@@ -23,6 +23,303 @@ namespace tds
 		m_dip.Status = tagDoneStatus::dsInitial;
 		m_rs = 0;
 		CTransManager::Reset();
+    }
+
+    CDBString CSqlBatch::Prepare(const char16_t* sql, unsigned int& parameters, bool& returned, CDBString& procName, CDBString& catalogSchema) {
+        assert(sql);
+        assert(SPA::GetLen(sql));
+        catalogSchema.clear();
+        procName.clear();
+        bool called = false;
+        returned = false;
+        parameters = 0;
+        CDBString s = sql ? sql : u"";
+        SPA::Trim(s);
+        if (s.size() && s.front() == '{' && s.back() == '}') {
+            s.pop_back();
+            s.erase(s.begin(), s.begin() + 1);
+            SPA::Utilities::Trim(s);
+        }
+        if (!s.size()) {
+            return s;
+        }
+        returned = (s.front() == '?');
+        if (returned) {
+            s.erase(s.begin(), s.begin() + 1); //remove '?'
+            SPA::Utilities::Trim(s);
+            if (s.front() != '=')
+                return u"";
+            s.erase(s.begin(), s.begin() + 1); //remove '='
+            SPA::Utilities::Trim(s);
+        }
+        CDBString s_copy = s;
+        SPA::ToLower(s);
+        called = (s.find(u"call ") == 0);
+        if (called) {
+            auto pos = s_copy.find('(');
+            if (pos != CDBString::npos) {
+                if (s_copy.back() != ')')
+                    return u"";
+                procName.assign(s_copy.begin() + 5, s_copy.begin() + pos);
+            }
+            else {
+                if (s_copy.back() == ')')
+                    return u"";
+                procName = s_copy.substr(5);
+            }
+            SPA::Trim(procName);
+            pos = procName.rfind('.');
+            if (pos != CDBString::npos) {
+                catalogSchema = procName.substr(0, pos);
+                SPA::Trim(catalogSchema);
+                procName = procName.substr(pos + 1);
+                SPA::Trim(procName);
+            }
+            s = catalogSchema;
+            if (s.size()) {
+                s.push_back('.');
+            }
+            s += procName;
+            pos = s_copy.find('(');
+            if (pos != CDBString::npos) {
+                s += s_copy.substr(pos);
+            }
+        }
+        else {
+            if (returned) {
+                return u"";
+            }
+            s = s_copy;
+        }
+        const char16_t quote = '\'', slash = '\\', question = '?';
+        bool b_slash = false, balanced = true;
+        size_t len = s.size();
+        for (size_t n = 0; n < len; ++n) {
+            char16_t c = s[n];
+            if (c == slash) {
+                b_slash = true;
+                continue;
+            }
+            if (c == quote && b_slash) {
+                b_slash = false;
+                continue; //ignore a quote if there is a slash ahead
+            }
+            b_slash = false;
+            if (c == quote) {
+                balanced = (!balanced);
+                continue;
+            }
+            if (balanced) {
+                if (c == question) {
+                    s[n] = '@';
+                    std::string str = std::to_string(parameters);
+                    str = 'p' + str;
+                    auto temp = SPA::Utilities::ToUTF16(str);
+                    size_t length = temp.size();
+                    s.insert(n + 1, temp);
+                    n += length;
+                    len += length;
+                    ++parameters;
+                }
+            }
+        }
+        return std::move(s);
+    }
+
+    bool CSqlBatch::Prepare(const char16_t* sql, CParameterInfoArray& params, int& res, CDBString& errMsg, unsigned int& parameters, SPA::UINT64 trans_decriptor) {
+        res = 0;
+        m_sqlPrepare = Prepare(sql, parameters, m_returned, m_procName, m_catalogSchema);
+        if (!m_sqlPrepare.size()) {
+            return false;
+        }
+        if (params.size() && params.size() != parameters) {
+            return false;
+        }
+        m_vParamInfo = std::move(params);
+        m_outputs = 0;
+        for (auto it = m_vParamInfo.cbegin(), end = m_vParamInfo.cend(); it != end; ++it)
+        {
+            if (it->Direction != tagParameterDirection::pdInput && it->Direction != tagParameterDirection::pdUnknown) {
+                ++m_outputs;
+            }
+        }
+        unsigned short inputs = (unsigned short)(parameters - m_outputs);
+        parameters = m_outputs;
+        parameters <<= 16;
+        parameters += inputs;
+        return true;
+    }
+
+    int CSqlBatch::ToString(const CDBVariantArray& vData, CDBString& s, std::vector<CDBString>& vP) {
+        char param[16];
+        s.clear();
+        std::string str;
+        size_t size = vData.size();
+        for (size_t n = 0; n < size; ++n) {
+            if (str.size()) {
+                str.push_back(',');
+            }
+            const CDBVariant& v = vData[n];
+#ifdef WIN32_64
+            unsigned char bytes = (unsigned char)::sprintf_s(param, "@p%d", (int)n);
+#else
+            unsigned char bytes = (unsigned char)::sprintf_s(param, "@p%d", (int)n);
+#endif
+            str += param;
+            vP.push_back(CDBString(param, param + strlen(param)));
+            str.push_back(' ');
+            switch (v.vt)
+            {
+            case VT_I1:
+            case VT_UI1:
+                str += "tinyint";
+                break;
+            case VT_I2:
+            case VT_UI2:
+                str += "smallint";
+                break;
+            case VT_I4:
+            case VT_UI4:
+            case VT_INT:
+            case VT_UINT:
+                str += "int";
+                break;
+            case VT_I8:
+            case VT_UI8:
+                str += "bigint";
+                break;
+            case VT_R4:
+                str += "real";
+                break;
+            case VT_R8:
+                str += "float";
+                break;
+            case VT_BOOL:
+                str += "bit";
+                break;
+            case VT_DATE:
+                str += "datetime2";
+                break;
+            case VT_CY:
+                str += "money";
+                break;
+            case VT_DECIMAL:
+                str += "decimal";
+                break;
+            case (VT_ARRAY | VT_I1):
+                str += "varchar";
+                break;
+            case VT_BSTR:
+                str += "nvarchar";
+                break;
+            case (VT_ARRAY | VT_UI1):
+                if (v.VtExt == tagVTExt::vteGuid) {
+                    str += "uniqueidentifier";
+                }
+                else {
+                    str += "varbinary";
+                }
+                break;
+            default:
+                return -1;
+            }
+        }
+        s = SPA::Utilities::ToUTF16(str);
+        return 0;
+    }
+
+    void CSqlBatch::ToParameter(const Collation& collation, const CDBVariant& v, const CDBString &p, SPA::CUQueue& buffer, unsigned char p_status) {
+        tagDataType dt;
+        unsigned char b_len = 0;
+        unsigned char p_len = (unsigned char)p.size();
+        buffer << p_len;
+        buffer.Push(p.c_str(), (unsigned int)p.size());
+        buffer << p_status;
+        switch (v.vt)
+        {
+        case VT_I4:
+        case VT_UI4:
+        case VT_INT:
+        case VT_UINT:
+            dt = tagDataType::INTN;
+            b_len = sizeof(int);
+            buffer << dt << b_len << b_len << v.intVal;
+            break;
+        case (VT_I1|VT_ARRAY):
+            dt = tagDataType::VARCHAR;
+            {
+                unsigned short len = (unsigned short)(v.parray->rgsabound[0].cElements);
+                buffer << dt << len << collation << len;
+                const char* s;
+                SafeArrayAccessData(v.parray, (void**)&s);
+                buffer.Push(s, len);
+                SafeArrayUnaccessData(v.parray);
+            }
+            break;
+        default:
+            break;
+        }
+    }
+
+    bool CSqlBatch::GetClientMessage(CDBVariantArray& vParam, SPA::CUQueue& buffer, SPA::UINT64 trans_decriptor) {
+        assert(vParam.size());
+        assert(m_sqlPrepare.size());
+        SPA::CScopeUQueue sb;
+        //Query packet
+        TransactionDescriptor td(trans_decriptor);
+        sb << td;
+        if (m_procName.size()) {
+
+        }
+        else {
+            unsigned short p_name_length = USHORT_NULL_LEN;
+            sb << p_name_length;
+            unsigned short s_proc_id = 10; //sp_executesql
+            sb << s_proc_id;
+        }
+        unsigned short optionFlags = 0x2; //no meta data
+        sb << optionFlags;
+
+        unsigned char name_len = 0;
+        sb << name_len;
+        unsigned char status = 0;
+        sb << status;
+        tagDataType dt = tagDataType::NVARCHAR;
+        unsigned short max_len = (unsigned short)(m_sqlPrepare.size() << 1);
+        Collation collation;
+        collation.CodePage = (unsigned short)GetSystemDefaultLCID();
+        collation.Flags.fIgnoreCase = 1;
+        collation.Flags.fIgnoreWidth = 1;
+        collation.Flags.fIgnoreKana = 1;
+        collation.CharsetId = 52;
+
+        sb << dt << max_len << collation << max_len;
+        sb->Push(m_sqlPrepare.c_str(), (unsigned int)m_sqlPrepare.size());
+
+        //
+        name_len = 0;
+        status = 0;
+        sb << name_len << status << dt;
+        CDBString p;
+        std::vector<CDBString> vP;
+        int res = ToString(vParam, p, vP);
+        size_t len = p.size();
+        max_len = (unsigned short)(len << 1);
+        sb << max_len << collation << max_len;
+        sb->Push(p.c_str(), (unsigned int)len);
+
+        //
+        len = vParam.size();
+        for (size_t n = 0; n < len; ++n) {
+            ToParameter(collation, vParam[n], vP[n], *sb);
+        }
+
+        PacketHeader ph(tagPacketType::ptRpc, 1);
+        ph.Length = (unsigned short)(sb->GetSize() + sizeof(ph));
+        ph.Length = ChangeEndian(ph.Length);
+        buffer << ph;
+        buffer.Push(sb->GetBuffer(), sb->GetSize());
+        return true;
     }
 
     bool CSqlBatch::GetClientMessage(const char16_t *sql, SPA::CUQueue & buffer, SPA::UINT64 trans_decriptor) {

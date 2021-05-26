@@ -50,6 +50,8 @@ namespace tds {
 
     public:
         bool GetClientMessage(const char16_t *sql, SPA::CUQueue &buffer, SPA::UINT64 trans_decriptor = 0);
+        bool Prepare(const char16_t* sql, CParameterInfoArray& params, int& res, CDBString& errMsg, unsigned int& parameters, SPA::UINT64 trans_decriptor = 0);
+        bool GetClientMessage(CDBVariantArray &vParam, SPA::CUQueue& buffer, SPA::UINT64 trans_decriptor = 0);
 
     protected:
         void Reset();
@@ -67,6 +69,9 @@ namespace tds {
         bool ParseVariant(CDBColumnInfo *cinfo);
 		bool ParseDoneInProc();
 		bool ParseReturnStatus();
+        static CDBString Prepare(const char16_t* sql, unsigned int& parameters, bool& returned, CDBString& procName, CDBString& catalogSchema);
+        static int ToString(const CDBVariantArray& vData, CDBString& s, std::vector<CDBString> &vP);
+        static void ToParameter(const Collation& collation, const CDBVariant& v, const CDBString& p, SPA::CUQueue& buffer, unsigned char p_status = 0);
 
     private:
         SPA::CUQueue &m_out;
@@ -83,6 +88,12 @@ namespace tds {
         std::vector<unsigned short> m_vOrder;
 		DoneInProc m_dip;
 		unsigned int m_rs; //ReturnStatus;
+        CParameterInfoArray m_vParamInfo;
+        CDBString m_sqlPrepare;
+        CDBString m_procName;
+        CDBString m_catalogSchema;
+        unsigned short m_outputs;
+        bool m_returned;
     };
 
 }
