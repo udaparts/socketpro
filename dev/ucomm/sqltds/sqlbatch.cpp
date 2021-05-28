@@ -170,6 +170,9 @@ namespace tds
             str.push_back(' ');
             switch (v.vt)
             {
+            case VT_CLSID:
+                str += "uniqueidentifier";
+                break;
             case VT_I1:
             case VT_UI1:
                 str += "tinyint";
@@ -198,26 +201,73 @@ namespace tds
                 str += "bit";
                 break;
             case VT_DATE:
-                str += "datetime2";
+            {
+                SPA::UDateTime udt(v.ullVal);
+                std::tm tm = udt.GetCTime();
+                if (tm.tm_mday) {
+                    str += "datetime2(6)";
+                }
+                else {
+                    str += "time(6)";
+                }
+            }
                 break;
             case VT_CY:
                 str += "money";
                 break;
             case VT_DECIMAL:
-                str += "decimal";
+                if (v.decVal.Hi32) {
+                    str += "decimal(28,";
+                }
+                else {
+                    str += "decimal(19,";
+                }
+                str += std::to_string(v.decVal.scale);
+                str.push_back(')');
                 break;
             case (VT_ARRAY | VT_I1):
-                str += "varchar";
+                str += "varchar(";
+                {
+                    unsigned int len = v.parray->rgsabound[0].cElements;
+                    if (n > 8000) {
+                        str += "max";
+                    }
+                    else {
+                        if (!len) len = 1;
+                        str += std::to_string(len);
+                    }
+                }
+                str.push_back(')');
                 break;
             case VT_BSTR:
-                str += "nvarchar";
+                str += "nvarchar(";
+                {
+                    unsigned int len = ::SysStringLen(v.bstrVal);
+                    if (n > 4000) {
+                        str += "max";
+                    }
+                    else {
+                        if (!len) len = 1;
+                        str += std::to_string(len);
+                    }
+                }
+                str.push_back(')');
                 break;
             case (VT_ARRAY | VT_UI1):
                 if (v.VtExt == tagVTExt::vteGuid) {
                     str += "uniqueidentifier";
                 }
                 else {
-                    str += "varbinary";
+                    str += "varbinary(";
+                    unsigned int len = v.parray->rgsabound[0].cElements;
+                    if (n > 8000) {
+                        str += "max";
+                    }
+                    else {
+                        if (!len) len = 1;
+                        str += std::to_string(len);
+                    }
+                    str.push_back(')');
                 }
                 break;
             default:
@@ -231,12 +281,84 @@ namespace tds
     void CSqlBatch::ToParameter(const Collation& collation, const CDBVariant& v, const CDBString &p, SPA::CUQueue& buffer, unsigned char p_status) {
         tagDataType dt;
         unsigned char b_len = 0;
-        unsigned char p_len = (unsigned char)p.size();
+        unsigned char p_len = 0; //(unsigned char)p.size();
         buffer << p_len;
-        buffer.Push(p.c_str(), (unsigned int)p.size());
+        //buffer.Push(p.c_str(), (unsigned int)p.size());
         buffer << p_status;
         switch (v.vt)
         {
+        case VT_DATE:
+        {
+            unsigned int us;
+            SPA::UDateTime udt(v.ullVal);
+            std::tm tm = udt.GetCTime(&us);
+            if (tm.tm_mday) {
+                dt = tagDataType::DATETIME2N;
+                p_len = 6; //scale
+                b_len = 8; //length;
+                buffer << dt << p_len << b_len;
+                int dt = tds::ToTdsJDN(tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday);
+                Date d;
+                d.Low = (unsigned short)(dt & USHORT_NULL_LEN);
+                d.High = (char)((dt >> 16) & 0xff);
+                SPA::UINT64 time = tm.tm_hour * 3600 + tm.tm_min * 60 + tm.tm_sec;
+                time *= 1000000;
+                time += us;
+                unsigned int low = (unsigned int)(time & UINT_NULL_LEN);
+                time >>= 32;
+                unsigned char high = (unsigned char)(time & 0xff);
+                buffer << low << high << d;
+            }
+            else {
+                dt = tagDataType::TIMEN;
+                p_len = 6; //scale
+                b_len = 5; //length;
+                buffer << dt << p_len << b_len;
+                SPA::UINT64 time = tm.tm_hour * 3600 + tm.tm_min * 60 + tm.tm_sec;
+                time *= 1000000;
+                time += us;
+                unsigned int low = (unsigned int)(time & UINT_NULL_LEN);
+                time >>= 32;
+                unsigned char high = (unsigned char)(time & 0xff);
+                buffer << low << high;
+            }
+        }
+            break;
+        case VT_DECIMAL:
+            dt = tagDataType::DECIMAL;
+            b_len = v.decVal.Hi32 ? 13 : 9; //max length;
+            p_len = v.decVal.Hi32 ? 28 : 19; //precision;
+            buffer << dt << b_len << p_len << v.decVal.scale << b_len;
+            p_len = v.decVal.sign ? 0 : 1; //sign
+            buffer << p_len << v.decVal.Lo64;
+            if (v.decVal.Hi32) {
+                buffer << v.decVal.Hi32;
+            }
+            break;
+        case VT_BSTR:
+            dt = tagDataType::NVARCHAR;
+            {
+                unsigned int len = SysStringLen(v.bstrVal);
+                len <<= 1;
+                if (len <= 8000) {
+                    buffer << dt << (unsigned short)len << collation << (unsigned short)len;
+                    buffer.Push(v.bstrVal, len >> 1);
+                }
+                else {
+
+                }
+            }
+            break;
+        case VT_R4:
+            dt = tagDataType::FLTN;
+            b_len = sizeof(float);
+            buffer << dt << b_len << b_len << v.fltVal;
+            break;
+        case VT_R8:
+            dt = tagDataType::FLTN;
+            b_len = sizeof(double);
+            buffer << dt << b_len << b_len << v.dblVal;
+            break;
         case VT_I4:
         case VT_UI4:
         case VT_INT:
@@ -245,16 +367,63 @@ namespace tds
             b_len = sizeof(int);
             buffer << dt << b_len << b_len << v.intVal;
             break;
+        case VT_I8:
+        case VT_UI8:
+            dt = tagDataType::INTN;
+            b_len = sizeof(SPA::INT64);
+            buffer << dt << b_len << b_len << v.llVal;
+            break;
+        case VT_I2:
+        case VT_UI2:
+            dt = tagDataType::INTN;
+            b_len = sizeof(short);
+            buffer << dt << b_len << b_len << v.iVal;
+            break;
+        case VT_I1:
+        case VT_UI1:
+            dt = tagDataType::INTN;
+            b_len = sizeof(unsigned char);
+            buffer << dt << b_len << b_len << v.bVal;
+            break;
         case (VT_I1|VT_ARRAY):
             dt = tagDataType::VARCHAR;
             {
-                unsigned short len = (unsigned short)(v.parray->rgsabound[0].cElements);
-                buffer << dt << len << collation << len;
                 const char* s;
+                unsigned int len = v.parray->rgsabound[0].cElements;
                 SafeArrayAccessData(v.parray, (void**)&s);
-                buffer.Push(s, len);
+                if (len <= 8000) {
+                    buffer << dt << (unsigned short)len << collation << (unsigned short)len;
+                    buffer.Push(s, len);
+                }
+                else {
+
+                }
                 SafeArrayUnaccessData(v.parray);
             }
+            break;
+        case (VT_UI1 | VT_ARRAY):
+        {
+            const unsigned char* s;
+            unsigned int len = v.parray->rgsabound[0].cElements;
+            SafeArrayAccessData(v.parray, (void**)&s);
+            if (v.VtExt == tagVTExt::vteGuid) {
+                dt = tagDataType::UNIQUEIDENTIFIER;
+                b_len = sizeof(GUID);
+                buffer << dt << b_len << b_len;
+                buffer.Push(s, b_len);
+            }
+            else {
+                dt = tagDataType::VARBINARY;
+                if (len <= 8000) {
+                    buffer << dt << (unsigned short)len << (unsigned short)len;
+                    buffer.Push(s, len);
+                }
+                else {
+
+                }
+            }
+            SafeArrayUnaccessData(v.parray);
+        }
             break;
         default:
             break;
