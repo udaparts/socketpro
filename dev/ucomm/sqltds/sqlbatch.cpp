@@ -270,6 +270,10 @@ namespace tds
                     str.push_back(')');
                 }
                 break;
+            case VT_NULL:
+            case VT_EMPTY:
+                str += "varchar(16)";
+                break;
             default:
                 return -1;
             }
@@ -287,6 +291,11 @@ namespace tds
         buffer << p_status;
         switch (v.vt)
         {
+        case VT_CY:
+            dt = tagDataType::MONEYN;
+            b_len = sizeof(CY); //length;
+            buffer << dt << b_len << b_len << v.cyVal.Hi << v.cyVal.Lo;
+            break;
         case VT_DATE:
         {
             unsigned int us;
@@ -335,6 +344,7 @@ namespace tds
                 buffer << v.decVal.Hi32;
             }
             break;
+        case SPA::VT_XML:
         case VT_BSTR:
             dt = tagDataType::NVARCHAR;
             {
@@ -379,11 +389,29 @@ namespace tds
             b_len = sizeof(short);
             buffer << dt << b_len << b_len << v.iVal;
             break;
+        case VT_BOOL:
+            dt = tagDataType::INTN;
+            b_len = sizeof(unsigned char);
+            {
+                unsigned char c = v.boolVal ? 1 : 0;
+                buffer << dt << b_len << b_len << c;
+            }
+            break;
         case VT_I1:
         case VT_UI1:
             dt = tagDataType::INTN;
             b_len = sizeof(unsigned char);
             buffer << dt << b_len << b_len << v.bVal;
+            break;
+        case VT_NULL:
+        case VT_EMPTY:
+            dt = tagDataType::VARCHAR;
+            {
+                unsigned short len = 16;
+                buffer << dt << len << collation;
+                len = USHORT_NULL_LEN;
+                buffer << len;
+            }
             break;
         case (VT_I1|VT_ARRAY):
             dt = tagDataType::VARCHAR;
