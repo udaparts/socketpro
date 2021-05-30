@@ -18,7 +18,7 @@ namespace tds {
         static constexpr unsigned int MAX_NTEXT_LEN = 0x7ffffffe;
 
     public:
-        CSqlBatch(bool meta);
+        CSqlBatch(bool meta = true);
 
 		struct RPCOption {
 			RPCOption() {
