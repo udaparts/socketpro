@@ -16,44 +16,69 @@ bool CALLBACK CVCallback(bool preverified, int depth, int errorCode, const char 
 }
 
 class CTdsClient : public CBaseHandler {
+	SPA::CScopeUQueue m_sb;
+
 public:
-	CTdsClient(SessionHandle sh) : CBaseHandler(sh) {}
-	std::deque<tds::CReqBase *> m_deq;
-	CUQueue m_buff;
+	CTdsClient(SessionHandle sh) : CBaseHandler(sh), m_buff(*m_sb) {
+	}
+
+public:
+	virtual int Send(const unsigned char* data, unsigned int bytes, void* sender) {
+		tds::CReqBase* rb = reinterpret_cast<tds::CReqBase*>(sender);
+		assert(rb);
+		std::lock_guard<std::mutex> al(m_csSender);
+		m_cs.lock();
+		m_deq.push_back(rb);
+		m_cs.unlock();
+		int fail = CBaseHandler::Send(data, bytes, sender);
+		if (fail) {
+			m_cs.lock();
+			m_deq.pop_back();
+			m_cs.unlock();
+		}
+		return fail;
+	}
 
 protected:
 	void OnAvailable(const unsigned char *data, unsigned int bytes) {
 		m_buff.Push(data, bytes);
 		do {
-			if (m_buff.GetSize() < sizeof(tds::PacketHeader))
+			if (m_buff.GetSize() < sizeof(tds::PacketHeader)) {
 				break;
+			}
 			tds::PacketHeader *ph = (tds::PacketHeader*)m_buff.GetBuffer();
 			unsigned int len = tds::ChangeEndian(ph->Length);
-			if (m_buff.GetSize() < len)
+			if (m_buff.GetSize() < len) {
 				break;
-			if (!m_deq.size())
-				break;
-			tds::CReqBase *rb = m_deq.front();
-			rb->OnResponse(m_buff.GetBuffer(), len);
-			m_buff.Pop(len);
-			if (ph->Status == tds::tagPacketStatus::psEOM) {
-				m_deq.pop_front();
 			}
+			{
+				SPA::CSpinAutoLock al(m_cs);
+#ifndef NDEBUG
+				if (!m_deq.size()) {
+					assert(false);
+					break;
+				}
+#endif
+				tds::CReqBase* rb = m_deq.front();
+				rb->OnResponse(m_buff.GetBuffer(), len);
+				if (ph->Status == tds::tagPacketStatus::psEOM) {
+					m_deq.pop_front();
+				}
+			}
+			m_buff.Pop(len);
 		} while (false);
 	}
+
+private:
+	std::mutex m_csSender;
+	SPA::CSpinLock m_cs;
+	std::deque<tds::CReqBase*> m_deq;
+	CUQueue &m_buff;
 };
 
 void ShowBuffer(const SPA::CUQueue &buffer);
-std::vector<unsigned char> GetSSPI();
 
 int main() {
-	tds::CPrelogin pl(false);
-	tds::CLogin7 login;
-	//tds::CTransManager tmBegin;
-	tds::CSqlBatch sqlbatch(true);
-	//tds::CTransManager tmEnd;
-
-	SPA::CScopeUQueue sb;
 	CSessionPool<CTdsClient> pool(1);
 	auto handler = pool.FindAClosedHandler();
 	bool ok = handler->Connect("windesk", 1433, tagEncryptionMethod::NoEncryption, false, true);
@@ -61,16 +86,12 @@ int main() {
 	char serverName[128];
 	handler->GetServerName(serverName, sizeof(serverName));
 
-	handler->m_deq.push_back(&pl);
-	handler->m_deq.push_back(&login);
-	//handler->m_deq.push_back(&tmBegin);
-	handler->m_deq.push_back(&sqlbatch);
-	//handler->m_deq.push_back(&tmEnd);
+	tds::CPrelogin pl(*handler);
+	tds::CLogin7 login(*handler);
+	//tds::CTransManager tmBegin(*handler);
+	//tds::CTransManager tmEnd(*handler);
 
-	ok = pl.GetClientMessage(*sb);
-	int res = handler->Send(sb->GetBuffer(), sb->GetSize());
-	//ShowBuffer(*sb);
-	sb->SetSize(0);
+	int res = pl.SendMessage();
 
 	tds::SqlLogin rec;
 	rec.database = u"sakila";
@@ -79,35 +100,23 @@ int main() {
 	rec.password = u"Smash123";
 	rec.serverName = tds::CDBString(serverName, serverName + strlen(serverName));
 	tds::CLogin7::FeatureExtension fe;
-	ok = login.GetClientMessage(rec, fe, *sb);
-	//ShowBuffer(*sb);
-	res = handler->Send(sb->GetBuffer(), sb->GetSize());
-	sb->SetSize(0);
+	res = login.SendMessage(rec, fe);
+
+	tds::CSqlBatch sqlbatch(*handler);
+	res = sqlbatch.SendMessage(u"select * from actor where actor_id=10");
+
 	unsigned int parameters;
 	CParameterInfoArray vPInfo;
 	CDBString errMsg;
-	ok = sqlbatch.Prepare(u"select * from actor where actor_id<>? and first_name<>?", vPInfo, res, errMsg, parameters);
-
-	//ok = tmBegin.GetClientMessage(tds::CTransManager::tagRequestType::rtBeginTrans, tds::CTransManager::tagIsolationLevel::ilReadCommitted, 0, *sb);
-	//res = handler->Send(sb->GetBuffer(), sb->GetSize());
-	////ShowBuffer(*sb);
-	//sb->SetSize(0);
-	//ok = tmBegin.Wait(100);
-
-	//sqlbatch.GetClientMessage(u"SELECT testid,myguid,mydate,myvariant,mybool,mymoney,mytinyint,mydateimeoffset,mytime,mydatetime2,mysmallmoney,mysmalldatetime,mynum,mybinary,myntext,myhid,mytimestamp,myxml FROM test_rare1", *sb);
-	//ShowBuffer(*sb);
-	//sqlbatch.GetClientMessage(u"SELECT * FROM SpatialTable;select * from test_rare1;select * from company;select * from employee;select * from pet;select * from vtest", *sb, tmBegin.GetTransDescriptor());
-	//sqlbatch.GetClientMessage(u"exec sp_sproc_columns sp_TestProc;SELECT * FROM SpatialTable;select * from test_rare1;select * from company;select * from employee", *sb, tmBegin.GetTransDescriptor());
+	res = sqlbatch.Prepare(u"select * from actor where actor_id=? and first_name<>?;select * from actor where actor_id=? and first_name<>?", vPInfo, parameters);
+	ok = sqlbatch.Wait(1500);
 
 	CDBVariantArray vParam;
 	vParam.push_back(1);
 	vParam.push_back("NICK");
-	sqlbatch.GetClientMessage(vParam, *sb);
-	res = handler->Send(sb->GetBuffer(), sb->GetSize());
-	//sb->SetSize(0);
-
-	/*ok = tmEnd.GetClientMessage(tds::CTransManager::tagRequestType::rtRollback, tds::CTransManager::tagIsolationLevel::ilCurrent, tmBegin.GetTransDescriptor(), *sb);
-	res = handler->Send(sb->GetBuffer(), sb->GetSize());*/
+	vParam.push_back(2);
+	vParam.push_back("NICK");
+	res = sqlbatch.SendMessage(vParam);
 
 	std::cout << "Press a key to shut down the application ......\n";
 	::getchar();
@@ -138,10 +147,4 @@ void ShowBuffer(const SPA::CUQueue &buffer) {
 		}
 	}
 	std::cout << "\n";
-}
-
-std::vector<unsigned char> GetSSPI() {
-	std::vector<unsigned char> vSSPI;
-
-	return vSSPI;
 }

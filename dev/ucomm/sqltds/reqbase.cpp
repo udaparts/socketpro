@@ -5,7 +5,8 @@ using namespace std::chrono_literals;
 namespace tds
 {
 
-    CReqBase::CReqBase() : m_buffer(*m_sb), m_tt(tagTokenType::ttZero), ResponseHeader(tagPacketType::ptInitial, 0) {
+    CReqBase::CReqBase(SPA::CBaseHandler& channel) : m_channel(channel), m_buffer(*m_sb),
+		m_tt(tagTokenType::ttZero), ResponseHeader(tagPacketType::ptInitial, 0) {
 		if (m_buffer.GetMaxSize() >= SPA::DEFAULT_INITIAL_MEMORY_BUFFER_SIZE) {
 			m_buffer.ReallocBuffer(SPA::DEFAULT_INITIAL_MEMORY_BUFFER_SIZE);
 		}

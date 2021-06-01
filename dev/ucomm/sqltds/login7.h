@@ -132,10 +132,10 @@ namespace tds {
             fiFederatedAuthentication = 0x02 //Federated authentication, introduced in TDS 7.4
         };
 
-        CLogin7();
+        CLogin7(SPA::CBaseHandler& channel);
 
     public:
-        bool GetClientMessage(const SqlLogin &rec, FeatureExtension requestedFeatures, SPA::CUQueue &buffer);
+        int SendMessage(const SqlLogin &rec, FeatureExtension requestedFeatures);
 
     protected:
         void Reset();

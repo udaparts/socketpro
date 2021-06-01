@@ -18,7 +18,7 @@ namespace tds {
         static constexpr unsigned int MAX_NTEXT_LEN = 0x7ffffffe;
 
     public:
-        CSqlBatch(bool meta = true);
+        CSqlBatch(SPA::CBaseHandler& channel, bool meta = true);
 
 		struct RPCOption {
 			RPCOption() {
@@ -49,9 +49,9 @@ namespace tds {
 #pragma pack(pop)
 
     public:
-        bool GetClientMessage(const char16_t *sql, SPA::CUQueue &buffer, SPA::UINT64 trans_decriptor = 0);
-        bool Prepare(const char16_t* sql, CParameterInfoArray& params, int& res, CDBString& errMsg, unsigned int& parameters, SPA::UINT64 trans_decriptor = 0);
-        bool GetClientMessage(CDBVariantArray &vParam, SPA::CUQueue& buffer, SPA::UINT64 trans_decriptor = 0);
+        int SendMessage(const char16_t *sql, SPA::UINT64 trans_decriptor = 0);
+        int Prepare(const char16_t* sql, CParameterInfoArray& params, unsigned int& parameters, SPA::UINT64 trans_decriptor = 0);
+        int SendMessage(CDBVariantArray &vParam, SPA::UINT64 trans_decriptor = 0);
 
     protected:
         void Reset();

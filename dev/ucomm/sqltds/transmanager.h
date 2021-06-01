@@ -8,7 +8,7 @@ namespace tds {
 	class CTransManager : public CReqBase
 	{
 	public:
-		CTransManager();
+		CTransManager(SPA::CBaseHandler& channel);
 
 	public:
 		enum class tagRequestType : unsigned short
@@ -31,7 +31,7 @@ namespace tds {
 		static_assert(sizeof(tagIsolationLevel) == 2, "Wrong tagIsolationLevel size");
 
 	public:
-		bool GetClientMessage(tagRequestType rt, tagIsolationLevel il, SPA::UINT64 trans_decriptor, SPA::CUQueue &buffer);
+		int SendMessage(tagRequestType rt, tagIsolationLevel il, SPA::UINT64 trans_decriptor);
 		UINT64 GetTransDescriptor();
 
 	protected:

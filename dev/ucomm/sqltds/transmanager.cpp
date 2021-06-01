@@ -3,7 +3,7 @@
 
 namespace tds {
 
-	CTransManager::CTransManager() {
+	CTransManager::CTransManager(SPA::CBaseHandler& channel) : CReqBase(channel) {
 
 	}
 
@@ -25,14 +25,15 @@ namespace tds {
 		}
 	}
 
-	bool CTransManager::GetClientMessage(tagRequestType rt, tagIsolationLevel il, SPA::UINT64 trans_decriptor, SPA::CUQueue &buffer) {
+	int CTransManager::SendMessage(tagRequestType rt, tagIsolationLevel il, SPA::UINT64 trans_decriptor) {
 		Reset();
 		TransactionDescriptor td(trans_decriptor);
 		PacketHeader ph(tagPacketType::ptTransaction, 1);
 		ph.Length = (Packet_Length)(sizeof(ph) + sizeof(td) + sizeof(rt) + sizeof(il));
 		ph.Length = ChangeEndian(ph.Length);
-		buffer << ph << td << rt << il;
-		return true;
+		SPA::CScopeUQueue sb;
+		sb << ph << td << rt << il;
+		return m_channel.Send(sb->GetBuffer(), sb->GetSize(), this);
 	}
 
 	UINT64 CTransManager::GetTransDescriptor() {

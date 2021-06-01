@@ -24,7 +24,7 @@ namespace SPA {
             return SH_Connect(m_session, host, port, secure, v6, sync, msTimeout);
         }
 
-        virtual int Send(const unsigned char *data, unsigned int bytes) {
+        virtual int Send(const unsigned char *data, unsigned int bytes, void *sender = nullptr) {
             return SH_Send(m_session, data, bytes);
         }
 

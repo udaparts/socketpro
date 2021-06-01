@@ -4,14 +4,9 @@
 namespace tds
 {
 
-    CSqlBatch::CSqlBatch(bool meta)
-            : m_out(*m_sbOut),
-            m_meta(meta),
-            m_cols(0),
-            m_posCol(INVALID_COL),
-            m_lenLarge(0),
-            m_endLarge(0),
-		m_rs(0), m_outputs(0), m_returned(false){
+    CSqlBatch::CSqlBatch(SPA::CBaseHandler& channel, bool meta)
+        : CTransManager(channel), m_out(*m_sbOut), m_meta(meta), m_cols(0), m_posCol(INVALID_COL), m_lenLarge(0),
+        m_endLarge(0), m_rs(0), m_outputs(0), m_returned(false) {
     }
 
     void CSqlBatch::Reset() {
@@ -126,14 +121,13 @@ namespace tds
         return std::move(s);
     }
 
-    bool CSqlBatch::Prepare(const char16_t* sql, CParameterInfoArray& params, int& res, CDBString& errMsg, unsigned int& parameters, SPA::UINT64 trans_decriptor) {
-        res = 0;
+    int CSqlBatch::Prepare(const char16_t* sql, CParameterInfoArray& params, unsigned int& parameters, SPA::UINT64 trans_decriptor) {
         m_sqlPrepare = Prepare(sql, parameters, m_returned, m_procName, m_catalogSchema);
         if (!m_sqlPrepare.size()) {
-            return false;
+            return -1;
         }
         if (params.size() && params.size() != parameters) {
-            return false;
+            return -1;
         }
         m_vParamInfo = std::move(params);
         m_outputs = 0;
@@ -147,7 +141,7 @@ namespace tds
         parameters = m_outputs;
         parameters <<= 16;
         parameters += inputs;
-        return true;
+        return 0;
     }
 
     int CSqlBatch::ToString(const CDBVariantArray& vData, CDBString& s, std::vector<CDBString>& vP) {
@@ -458,7 +452,7 @@ namespace tds
         }
     }
 
-    bool CSqlBatch::GetClientMessage(CDBVariantArray& vParam, SPA::CUQueue& buffer, SPA::UINT64 trans_decriptor) {
+    int CSqlBatch::SendMessage(CDBVariantArray& vParam, SPA::UINT64 trans_decriptor) {
         assert(vParam.size());
         assert(m_sqlPrepare.size());
         SPA::CScopeUQueue sb;
@@ -512,26 +506,26 @@ namespace tds
         }
 
         PacketHeader ph(tagPacketType::ptRpc, 1);
-        ph.Length = (unsigned short)(sb->GetSize() + sizeof(ph));
+        ph.Length = (Packet_Length)(sb->GetSize() + sizeof(ph));
         ph.Length = ChangeEndian(ph.Length);
-        buffer << ph;
-        buffer.Push(sb->GetBuffer(), sb->GetSize());
-        return true;
+
+        SPA::CScopeUQueue sbEnd;
+        sbEnd << ph;
+        sbEnd->Push(sb->GetBuffer(), sb->GetSize());
+        return m_channel.Send(sbEnd->GetBuffer(), sbEnd->GetSize(), this);
     }
 
-    bool CSqlBatch::GetClientMessage(const char16_t *sql, SPA::CUQueue & buffer, SPA::UINT64 trans_decriptor) {
+    int CSqlBatch::SendMessage(const char16_t *sql, SPA::UINT64 trans_decriptor) {
         Reset();
         SPA::CScopeUQueue sb;
+        PacketHeader ph(tagPacketType::ptBatch, 1);
         //Query packet
 		TransactionDescriptor td(trans_decriptor);
-        sb << td;
+        sb << ph << td;
         sb->Push((const unsigned char*) sql, (unsigned int) (SPA::GetLen(sql) << 1));
-        PacketHeader ph(tagPacketType::ptBatch, 1);
-        ph.Length = (unsigned short) (sb->GetSize() + sizeof (ph));
-        ph.Length = ChangeEndian(ph.Length);
-        buffer << ph;
-        buffer.Push(sb->GetBuffer(), sb->GetSize());
-        return true;
+        PacketHeader* pHeader = (PacketHeader*)sb->GetBuffer();
+        pHeader->Length = ChangeEndian((Packet_Length)sb->GetSize());
+        return m_channel.Send(sb->GetBuffer(), sb->GetSize(), this);
     }
 
 	bool CSqlBatch::ParseDoneInProc() {

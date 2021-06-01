@@ -2,6 +2,7 @@
 #define _U_TDS_REQUEST_BASE_H_
 
 #include "tdsdef.h"
+#include "../include/channelpool.h"
 #include <mutex>
 #include <condition_variable>
 
@@ -10,8 +11,9 @@ namespace tds {
     class CReqBase {
 	private:
 		SPA::CScopeUQueue m_sb;
+
     public:
-        CReqBase();
+        CReqBase(SPA::CBaseHandler &channel);
         virtual ~CReqBase();
 
     public:
@@ -32,6 +34,7 @@ namespace tds {
 
     protected:
 		typedef std::unique_lock<std::mutex> CAutoLock;
+		SPA::CBaseHandler& m_channel;
 		std::mutex m_cs;
 		std::condition_variable m_cv;
 		SPA::CUQueue &m_buffer;

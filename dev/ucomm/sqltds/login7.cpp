@@ -5,7 +5,7 @@ namespace tds
 
 	CDBString CLogin7::LibraryName(u"udaparts_client");
 
-	CLogin7::CLogin7() {
+	CLogin7::CLogin7(SPA::CBaseHandler& channel) : CReqBase(channel) {
 
 	}
 
@@ -15,7 +15,7 @@ namespace tds
 		CReqBase::Reset();
 	}
 
-	bool CLogin7::GetClientMessage(const SqlLogin &rec, FeatureExtension requestedFeatures, SPA::CUQueue & buffer) {
+	int CLogin7::SendMessage(const SqlLogin &rec, FeatureExtension requestedFeatures) {
 		Reset();
 		CDBString userName;
 		std::vector<unsigned char> encryptedPassword;
@@ -41,7 +41,7 @@ namespace tds
 			encryptedChangePasswordLengthInBytes = (unsigned short)encryptedChangePassword.size();
 		}
 
-		SPA::CScopeUQueue sb, sbFeature, sbData;
+		SPA::CScopeUQueue sbFeature, sbData;
 
 		// length in bytes
 		unsigned int length = YUKON_LOG_REC_FIXED_LEN;
@@ -157,6 +157,9 @@ namespace tds
 			Option3.fExtension = 1;
 		}
 		unsigned int ClientPID = ::GetCurrentProcessId();
+		SPA::CScopeUQueue sb;
+		PacketHeader ph(tagPacketType::ptLogin7, 1);
+		sb << ph;
 		sb << length << TDS_VERSION << rec.packetSize << CLIENT_DLL_VERSION << ClientPID;
 		sb << ConnectionID << Option1 << Option2 << TypeFlags << Option3 << ClientTimeZone;
 		sb << ClientLCID;
@@ -308,12 +311,9 @@ namespace tds
 			sb << TOKEN_TERMINATOR;
 			 */
 		}
-		PacketHeader ph(tagPacketType::ptLogin7, 1);
-		ph.Length = (Packet_Length)(sb->GetSize() + sizeof(PacketHeader));
-		ph.Length = ChangeEndian(ph.Length);
-		buffer << ph;
-		buffer.Push(sb->GetBuffer(), sb->GetSize());
-		return true;
+		PacketHeader* pHeader = (PacketHeader*)sb->GetBuffer();
+		pHeader->Length = ChangeEndian((Packet_Length)sb->GetSize());
+		return m_channel.Send(sb->GetBuffer(), sb->GetSize(), this);
 	}
 
 	bool CLogin7::ParseStream() {
