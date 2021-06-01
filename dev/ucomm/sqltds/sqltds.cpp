@@ -2,7 +2,6 @@
 #include "../include/membuffer.h"
 #include "../include/channelpool.h"
 #include "prelogin.h"
-#include "login7.h"
 #include "sqlbatch.h"
 #include <deque>
 #include <iostream>
@@ -87,10 +86,8 @@ int main() {
 	handler->GetServerName(serverName, sizeof(serverName));
 
 	tds::CPrelogin pl(*handler);
-	tds::CLogin7 login(*handler);
 	//tds::CTransManager tmBegin(*handler);
 	//tds::CTransManager tmEnd(*handler);
-
 	int res = pl.SendMessage();
 
 	tds::SqlLogin rec;
@@ -99,16 +96,18 @@ int main() {
 	rec.userName = u"sa";
 	rec.password = u"Smash123";
 	rec.serverName = tds::CDBString(serverName, serverName + strlen(serverName));
-	tds::CLogin7::FeatureExtension fe;
-	res = login.SendMessage(rec, fe);
 
 	tds::CSqlBatch sqlbatch(*handler);
+
+	tds::CSqlBatch::FeatureExtension fe;
+	res = sqlbatch.SendMessage(rec, fe);
 	res = sqlbatch.SendMessage(u"select * from actor where actor_id=10");
+	ok = sqlbatch.Wait(1500);
 
 	unsigned int parameters;
 	CParameterInfoArray vPInfo;
 	CDBString errMsg;
-	res = sqlbatch.Prepare(u"select * from actor where actor_id=? and first_name<>?;select * from actor where actor_id=? and first_name<>?", vPInfo, parameters);
+	res = sqlbatch.Prepare(u"select * from actor where actor_id=? and first_name<>?", vPInfo, parameters);
 	ok = sqlbatch.Wait(1500);
 
 	CDBVariantArray vParam;

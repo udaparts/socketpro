@@ -27,21 +27,20 @@ namespace tds {
     protected:
         virtual void Reset();
 		virtual bool ParseDone();
-		virtual bool ParseErrorInfo();
-		bool ParseCollation(CollationChange &cc);
-		void ParseStringChange(tagEnvchangeType type, StringEventChange& sec);
 		virtual bool ParseStream() = 0;
 
     protected:
-		typedef std::unique_lock<std::mutex> CAutoLock;
 		SPA::CBaseHandler& m_channel;
-		std::mutex m_cs;
-		std::condition_variable m_cv;
 		SPA::CUQueue &m_buffer;
 		tagTokenType m_tt;
         PacketHeader ResponseHeader;
 		TokenDone m_Done;
-		std::vector<TokenInfo> m_vInfo;
+
+	private:
+		typedef std::unique_lock<std::mutex> CAutoLock;
+		std::mutex m_cs;
+		std::condition_variable m_cv;
+		bool m_bWaiting;
     };
 
 }

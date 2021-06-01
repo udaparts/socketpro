@@ -27,16 +27,10 @@
     <ClCompile Include="reqbase.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="login7.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="sessionstate.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="sqlbatch.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="transmanager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -53,9 +47,6 @@
     <ClInclude Include="reqbase.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="login7.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="sessionstate.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -63,9 +54,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\include\udatabase.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="transmanager.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\include\definebase.h">

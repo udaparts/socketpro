@@ -6,7 +6,7 @@ namespace tds
 {
 
     CReqBase::CReqBase(SPA::CBaseHandler& channel) : m_channel(channel), m_buffer(*m_sb),
-		m_tt(tagTokenType::ttZero), ResponseHeader(tagPacketType::ptInitial, 0) {
+		m_tt(tagTokenType::ttZero), ResponseHeader(tagPacketType::ptInitial, 0), m_bWaiting(false) {
 		if (m_buffer.GetMaxSize() >= SPA::DEFAULT_INITIAL_MEMORY_BUFFER_SIZE) {
 			m_buffer.ReallocBuffer(SPA::DEFAULT_INITIAL_MEMORY_BUFFER_SIZE);
 		}
@@ -36,7 +36,6 @@ namespace tds
 
     void CReqBase::Reset() {
         ::memset(&ResponseHeader, 0, sizeof (ResponseHeader));
-		m_vInfo.clear();
 		memset(&m_Done, 0, sizeof(m_Done));
     }
 
@@ -49,67 +48,15 @@ namespace tds
 		return false;
 	}
 
-	bool CReqBase::ParseCollation(CollationChange &cc) {
-		if (m_buffer.GetSize() >= sizeof(cc) + sizeof(unsigned char) + sizeof(unsigned char)) {
-			unsigned char b;
-			m_buffer >> b;
-			assert(b == 5);
-			m_buffer >> cc.NewValue;
-			m_buffer >> b;
-			if (b) {
-				m_buffer >> cc.OldValue;
-			}
-			m_tt = tagTokenType::ttZero;
-			return true;
-		}
-		return false;
-	}
-
-	void CReqBase::ParseStringChange(tagEnvchangeType type, StringEventChange& sec) {
-		unsigned char b;
-		m_buffer >> b;
-		sec.Type = type;
-		const char16_t *str = (const char16_t *)m_buffer.GetBuffer();
-		sec.NewValue.assign(str, str + b);
-		m_buffer.Pop(((unsigned int)b) << 1);
-		m_buffer >> b;
-		if (b) {
-			str = (const char16_t *)m_buffer.GetBuffer();
-			sec.OldValue.assign(str, str + b);
-			m_buffer.Pop(((unsigned int)b) << 1);
-		}
-	}
-
-	bool CReqBase::ParseErrorInfo() {
-		if (m_buffer.GetSize() > 2) {
-			unsigned short len = *(unsigned short *)m_buffer.GetBuffer();
-			if (len + sizeof(len) <= m_buffer.GetSize()) {
-				TokenInfo ti;
-				m_buffer >> len >> ti.SQLErrorNumber >> ti.State >> ti.Class;
-				m_buffer >> len;
-				const char16_t *str = (const char16_t *)m_buffer.GetBuffer();
-				ti.ErrorMessage.assign(str, str + len);
-				m_buffer.Pop(((unsigned int)len) << 1);
-				unsigned char byteLen;
-				m_buffer >> byteLen;
-				str = (const char16_t *)m_buffer.GetBuffer();
-				ti.ServerName.assign(str, str + byteLen);
-				m_buffer.Pop(((unsigned int)byteLen) << 1);
-				m_buffer >> ti.ProcessNameLength >> ti.LineNumber;
-				m_vInfo.push_back(ti);
-				m_tt = tagTokenType::ttZero;
-				return true;
-			}
-		}
-		return false;
-	}
-
 	bool CReqBase::Wait(unsigned int milliseconds) {
 		CAutoLock al(m_cs);
 		if (IsDone() && !HasMore()) {
 			return true;
 		}
-		return (m_cv.wait_for(al, milliseconds * 1ms) == std::cv_status::no_timeout);
+		m_bWaiting = true;
+		bool ok = (m_cv.wait_for(al, milliseconds * 1ms) == std::cv_status::no_timeout);
+		m_bWaiting = false;
+		return ok;
 	}
 
 	void CReqBase::OnResponse(const unsigned char *data, unsigned int bytes) {
@@ -140,7 +87,7 @@ namespace tds
 			std::cout << "Unknown error\n";
 #endif
 		}
-		if (IsDone() && !HasMore()) {
+		if (m_bWaiting && IsDone() && !HasMore()) {
 			m_cv.notify_all();
 		}
 	}
