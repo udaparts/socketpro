@@ -5,7 +5,7 @@ namespace tds
 {
     std::atomic<unsigned int> CPrelogin::g_sequence(1);
 
-    CPrelogin::CPrelogin(SPA::CBaseHandler& channel, bool mars_enabled, tagEncryptionType et)
+    CPrelogin::CPrelogin(CTdsChannel& channel, bool mars_enabled, tagEncryptionType et)
             : CReqBase(channel), m_bMars(mars_enabled ? 1 : 0),
             m_bFed(tagFedAuth::faRequired), //must be tagFedAuth::faRequired
             Version(0), SubBuild(0),
@@ -13,7 +13,7 @@ namespace tds
             InstFailed(0) {
     }
 
-    int CPrelogin::SendMessage(const char *instanceName) {
+    int CPrelogin::SendTDSMessage(const char *instanceName) {
         Reset();
         SPA::CScopeUQueue sbHeader;
         Option option;
@@ -79,7 +79,7 @@ namespace tds
         sb << ph;
         sb->Push(sbHeader->GetBuffer(), sbHeader->GetSize());
         sb->Push(sbData->GetBuffer(), sbData->GetSize());
-        return m_channel.Send(sb->GetBuffer(), sb->GetSize(), this);
+        return Send(sb->GetBuffer(), sb->GetSize(), 0, false);
     }
 
 	bool CPrelogin::ParseStream() {

@@ -313,7 +313,7 @@ namespace SPA
         CAutoLock sl(m_cs);
         int ec = m_ec.value();
         if (!ec) {
-            if (em) {
+            if (em && len) {
                 *em = 0;
             }
         } else if (em && len) {

@@ -1,18 +1,18 @@
 #include "sqlbatch.h"
+#include "tdschannel.h"
 #include <iostream>
 
 namespace tds
 {
     CDBString CSqlBatch::LibraryName(u"udaparts_sql_server_client");
 
-    CSqlBatch::CSqlBatch(SPA::CBaseHandler& channel, bool meta)
-        : CReqBase(channel), m_out(*m_sbOut), m_meta(meta), m_cols(0), m_posCol(INVALID_COL), m_lenLarge(0),
+    CSqlBatch::CSqlBatch(CTdsChannel& channel, bool meta)
+        : CReqBase(channel), m_out(*m_sbOut), m_timeout(0), m_meta(meta), m_cols(0), m_posCol(INVALID_COL), m_lenLarge(0),
         m_endLarge(0), m_rs(0), m_inputs(0), m_outputs(0), m_returned(false) {
     }
 
     void CSqlBatch::Reset() {
         m_vInfo.clear();
-        m_vTransChange.clear();
         memset(&m_CollationChange, 0, sizeof(m_CollationChange));
 		m_vEventChange.clear();
         m_vCol.clear();
@@ -125,7 +125,7 @@ namespace tds
         return std::move(s);
     }
 
-    int CSqlBatch::Prepare(const char16_t* sql, CParameterInfoArray& params, unsigned int& parameters, SPA::UINT64 trans_decriptor) {
+    int CSqlBatch::Prepare(const char16_t* sql, CParameterInfoArray& params, unsigned int& parameters) {
         m_sqlPrepare = Prepare(sql, parameters, m_returned, m_procName, m_catalogSchema);
         if (!m_sqlPrepare.size()) {
             return -1;
@@ -456,7 +456,7 @@ namespace tds
         }
     }
 
-    int CSqlBatch::SendMessage(const SqlLogin& rec, FeatureExtension requestedFeatures) {
+    int CSqlBatch::SendTDSMessage(const SqlLogin& rec, FeatureExtension requestedFeatures) {
         CDBString userName;
         std::vector<unsigned char> encryptedPassword;
         unsigned short encryptedPasswordLengthInBytes = 0;
@@ -753,15 +753,18 @@ namespace tds
         }
         PacketHeader* pHeader = (PacketHeader*)sb->GetBuffer();
         pHeader->Length = ChangeEndian((Packet_Length)sb->GetSize());
-        return m_channel.Send(sb->GetBuffer(), sb->GetSize(), this);
+        m_vInfo.clear();
+        m_timeout = rec.timeout;
+        return Send(sb->GetBuffer(), sb->GetSize(), m_timeout);
     }
 
-    int CSqlBatch::SendMessage(CDBVariantArray& vParam, SPA::UINT64 trans_decriptor) {
+    int CSqlBatch::SendTDSMessage(CDBVariantArray& vParam) {
         assert(vParam.size());
         assert(m_sqlPrepare.size());
         unsigned int parameters = m_inputs + m_outputs;
         assert(parameters);
         assert(0 == (vParam.size() % parameters));
+        m_vInfo.clear();
         size_t cycles = vParam.size() / parameters;
         CDBString sql = m_sqlPrepare;
         for (size_t n = 1; n < cycles; ++n) {
@@ -770,7 +773,7 @@ namespace tds
         }
         SPA::CScopeUQueue sb;
         //Query packet
-        TransactionDescriptor td(trans_decriptor);
+        TransactionDescriptor td(m_tc.NewValue);
         sb << td;
         if (m_procName.size()) {
 
@@ -825,20 +828,20 @@ namespace tds
         SPA::CScopeUQueue sbEnd;
         sbEnd << ph;
         sbEnd->Push(sb->GetBuffer(), sb->GetSize());
-        return m_channel.Send(sbEnd->GetBuffer(), sbEnd->GetSize(), this);
+        return Send(sbEnd->GetBuffer(), sbEnd->GetSize(), m_timeout);
     }
 
-    int CSqlBatch::SendMessage(const char16_t *sql, SPA::UINT64 trans_decriptor) {
-        Reset();
+    int CSqlBatch::SendTDSMessage(const char16_t *sql) {
         SPA::CScopeUQueue sb;
         PacketHeader ph(tagPacketType::ptBatch, 1);
         //Query packet
-		TransactionDescriptor td(trans_decriptor);
+		TransactionDescriptor td(m_tc.NewValue);
         sb << ph << td;
         sb->Push((const unsigned char*) sql, (unsigned int) (SPA::GetLen(sql) << 1));
         PacketHeader* pHeader = (PacketHeader*)sb->GetBuffer();
         pHeader->Length = ChangeEndian((Packet_Length)sb->GetSize());
-        return m_channel.Send(sb->GetBuffer(), sb->GetSize(), this);
+        m_vInfo.clear();
+        return Send(sb->GetBuffer(), sb->GetSize(), m_timeout);
     }
 
 	bool CSqlBatch::ParseDoneInProc() {
@@ -868,6 +871,10 @@ namespace tds
             m_buffer >> b;
             if (b) {
                 m_buffer >> cc.OldValue;
+            }
+            else {
+                Collation initial;
+                cc.OldValue = initial;
             }
             m_tt = tagTokenType::ttZero;
             return true;
@@ -2155,6 +2162,7 @@ namespace tds
 			}
 			switch (m_tt) {
 			case tagTokenType::ttORDER:
+                m_vOrder.clear();
 				if (!ParseOrder()) {
 					return false;
 				}
@@ -2230,28 +2238,33 @@ namespace tds
         if (len) {
             m_buffer >> tc.NewValue;
         }
+        else {
+            tc.NewValue = 0;
+        }
         m_buffer >> len;
         if (len) {
             m_buffer >> tc.OldValue;
         }
+        else {
+            tc.OldValue = 0;
+        }
     }
 
-    int CSqlBatch::SendMessage(tagRequestType rt, tagIsolationLevel il, SPA::UINT64 trans_decriptor) {
-        Reset();
-        TransactionDescriptor td(trans_decriptor);
+    int CSqlBatch::SendTDSMessage(tagRequestType rt, tagIsolationLevel il) {
+        TransactionDescriptor td(m_tc.NewValue);
         PacketHeader ph(tagPacketType::ptTransaction, 1);
         ph.Length = (Packet_Length)(sizeof(ph) + sizeof(td) + sizeof(rt) + sizeof(il));
         ph.Length = ChangeEndian(ph.Length);
         SPA::CScopeUQueue sb;
         sb << ph << td << rt << il;
-        return m_channel.Send(sb->GetBuffer(), sb->GetSize(), this);
+        m_vInfo.clear();
+        return Send(sb->GetBuffer(), sb->GetSize(), m_timeout);
     }
 
     bool CSqlBatch::ParseDone() {
 		if (CReqBase::ParseDone()) {
 			if (m_Done.Status == tagDoneStatus::dsFinal || (m_Done.Status & tagDoneStatus::dsMore) == tagDoneStatus::dsMore || (m_Done.Status & tagDoneStatus::dsCount) == tagDoneStatus::dsCount) {
 				m_posCol = INVALID_COL;
-				memset(&m_collation, 0, sizeof(m_collation));
 				m_cols = 0;
 				m_vCol.clear();
 				m_vDT.clear();
@@ -2270,9 +2283,12 @@ namespace tds
                 tagEnvchangeType type;
                 m_buffer >> len >> type;
                 switch (type) {
+                    case tagEnvchangeType::database:
+                        m_dbNameChange.OldValue.clear();
+                        ParseStringChange(type, m_dbNameChange);
+                        break;
                     case tagEnvchangeType::packet_size:
                     case tagEnvchangeType::language:
-                    case tagEnvchangeType::database:
                     {
                         StringEventChange sec;
 						m_vEventChange.push_back(sec);
@@ -2282,11 +2298,7 @@ namespace tds
 					case tagEnvchangeType::begin_trans:
 					case tagEnvchangeType::commit_trans:
 					case tagEnvchangeType::rollback_trans:
-					{
-						TransChange tc;
-						ParseTransChange(type, tc);
-						m_vTransChange.push_back(tc);
-					}
+						ParseTransChange(type, m_tc);
 						break;
                     case tagEnvchangeType::collation:
                         if (!ParseCollation(m_CollationChange)) {

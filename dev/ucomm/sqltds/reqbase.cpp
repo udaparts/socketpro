@@ -1,11 +1,12 @@
 #include "reqbase.h"
+#include "tdschannel.h"
 #include <chrono>
 using namespace std::chrono_literals;
 
 namespace tds
 {
 
-    CReqBase::CReqBase(SPA::CBaseHandler& channel) : m_channel(channel), m_buffer(*m_sb),
+    CReqBase::CReqBase(CTdsChannel& channel) : m_channel(channel), m_buffer(*m_sb),
 		m_tt(tagTokenType::ttZero), ResponseHeader(tagPacketType::ptInitial, 0), m_bWaiting(false) {
 		if (m_buffer.GetMaxSize() >= SPA::DEFAULT_INITIAL_MEMORY_BUFFER_SIZE) {
 			m_buffer.ReallocBuffer(SPA::DEFAULT_INITIAL_MEMORY_BUFFER_SIZE);
@@ -59,9 +60,22 @@ namespace tds
 		return ok;
 	}
 
+	int CReqBase::Send(const unsigned char* buffer, unsigned int bytes, unsigned int milliseconds, bool sync) {
+		CAutoLock al(m_cs);
+		ResponseHeader.Status = tagPacketStatus::psNormal;
+		m_Done.Status = tagDoneStatus::dsMore;
+		int fail = m_channel.Send(this, buffer, bytes);
+		if (fail || !sync) {
+			return fail;
+		}
+		m_bWaiting = true;
+		bool ok = (m_cv.wait_for(al, milliseconds * 1ms) == std::cv_status::no_timeout);
+		m_bWaiting = false;
+		return ok ? 0 : -1;
+	}
+
 	void CReqBase::OnResponse(const unsigned char *data, unsigned int bytes) {
 		assert(bytes >= sizeof(ResponseHeader));
-		CAutoLock al(m_cs);
 		memcpy(&ResponseHeader, data, sizeof(ResponseHeader));
 		ResponseHeader.Length = ChangeEndian(ResponseHeader.Length);
 		assert(ResponseHeader.Length == bytes);
@@ -87,6 +101,7 @@ namespace tds
 			std::cout << "Unknown error\n";
 #endif
 		}
+		CAutoLock al(m_cs);
 		if (m_bWaiting && IsDone() && !HasMore()) {
 			m_cv.notify_all();
 		}

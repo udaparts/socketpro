@@ -7,30 +7,33 @@
 #include <condition_variable>
 
 namespace tds {
-
+	class CTdsChannel;
     class CReqBase {
 	private:
 		SPA::CScopeUQueue m_sb;
 
     public:
-        CReqBase(SPA::CBaseHandler &channel);
+        CReqBase(CTdsChannel &channel);
         virtual ~CReqBase();
 
     public:
-        virtual void OnResponse(const unsigned char *data, unsigned int bytes);
         virtual bool IsDone() const;
         const PacketHeader& GetResponseHeader() const;
 		bool HasMore() const;
 		UINT64 GetCount() const;
 		virtual bool Wait(unsigned int ms);
+		int Send(const unsigned char* buffer, unsigned int bytes, unsigned int milliseconds, bool sync = true);
 
     protected:
         virtual void Reset();
 		virtual bool ParseDone();
 		virtual bool ParseStream() = 0;
 
+	private:
+		void OnResponse(const unsigned char* data, unsigned int bytes);
+
     protected:
-		SPA::CBaseHandler& m_channel;
+		CTdsChannel& m_channel;
 		SPA::CUQueue &m_buffer;
 		tagTokenType m_tt;
         PacketHeader ResponseHeader;
@@ -41,6 +44,7 @@ namespace tds {
 		std::mutex m_cs;
 		std::condition_variable m_cv;
 		bool m_bWaiting;
+		friend class CTdsChannel;
     };
 
 }

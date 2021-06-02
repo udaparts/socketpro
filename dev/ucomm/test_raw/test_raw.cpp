@@ -22,6 +22,18 @@ protected:
         m_buff.Push(data, bytes);
         m_buff.SetNull();
     }
+
+    void OnClosed() {
+#ifndef NDEBUG
+        char errMsg[1024];
+        int errCode = GetErrorCode(errMsg, sizeof(errMsg));
+        std::cout << "Session closed: error code=" << errCode << ", error message=" << errMsg << "\n";
+#endif
+    }
+
+    void OnConnected() {
+
+    }
 };
 
 int main() {

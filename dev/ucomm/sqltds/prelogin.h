@@ -45,8 +45,8 @@ namespace tds {
         static_assert(sizeof (Option) == 5, "Wrong Option size");
 
     public:
-        CPrelogin(SPA::CBaseHandler& channel, bool mars_enabled = false, tagEncryptionType et = tagEncryptionType::etNotSupported);
-        int SendMessage(const char *instanceName = "");
+        CPrelogin(CTdsChannel& channel, bool mars_enabled = false, tagEncryptionType et = tagEncryptionType::etNotSupported);
+        int SendTDSMessage(const char *instanceName = "");
 
         inline bool MarEnabled() const {
             return m_bMars ? true : false;

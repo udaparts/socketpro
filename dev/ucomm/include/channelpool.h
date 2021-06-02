@@ -24,7 +24,7 @@ namespace SPA {
             return SH_Connect(m_session, host, port, secure, v6, sync, msTimeout);
         }
 
-        virtual int Send(const unsigned char *data, unsigned int bytes, void *sender = nullptr) {
+        virtual int Send(const unsigned char *data, unsigned int bytes) {
             return SH_Send(m_session, data, bytes);
         }
 
@@ -66,6 +66,8 @@ namespace SPA {
 
     protected:
         virtual void OnAvailable(const unsigned char *data, unsigned int bytes) = 0;
+        virtual void OnClosed() = 0;
+        virtual void OnConnected() = 0;
 
     private:
         SessionHandle m_session;
@@ -174,7 +176,7 @@ namespace SPA {
     private:
 
         static void CALLBACK SCE(SessionPoolHandle sph, tagSessionPoolEvent spe, SessionHandle sh) {
-            CSessionPool *sp;
+            CSessionPool *sp = nullptr;
             {
                 CAutoLock al(m_cs);
                 sp = FindPool(sph);
@@ -182,56 +184,57 @@ namespace SPA {
                     return;
                 }
             }
+            THandler* h = sp->FindHandler(sh);
             switch (spe) {
-                case tagSessionPoolEvent::seCreatingThread:
-                case tagSessionPoolEvent::seThreadCreated:
                 case tagSessionPoolEvent::seConnected:
-                case tagSessionPoolEvent::seKillingThread:
-                case tagSessionPoolEvent::seShutdown:
-                case tagSessionPoolEvent::seSslShaking:
-                case tagSessionPoolEvent::seLocked:
-                case tagSessionPoolEvent::seUnlocked:
-                case tagSessionPoolEvent::seThreadDestroyed:
-                case tagSessionPoolEvent::seSessionClosed:
-#ifndef NDEBUG
-                    if (spe == tagSessionPoolEvent::seSessionClosed) {
-                        char errMsg[1024];
-                        int errCode = SH_GetErrorCode(sh, errMsg, sizeof (errMsg));
-                        std::cout << "Session closed: error code=" << errCode << ", error message=" << errMsg << "\n";
+                    assert(h);
+                    {
+                        CBaseHandler* hander = h;
+                        if (hander) {
+                            hander->OnConnected();
+                        }
                     }
-#endif
-                    if (sp->PoolEvent) {
-                        sp->PoolEvent(spe, sp->FindHandler(sh));
+                    break;
+                case tagSessionPoolEvent::seSessionClosed:
+                    assert(h);
+                    {
+                        CBaseHandler* hander = h;
+                        if (hander) {
+                            hander->OnClosed();
+                        }
                     }
                     break;
                 case tagSessionPoolEvent::seSessionDestroyed:
+                    assert(h);
                     if (sp->PoolEvent) {
-                        sp->PoolEvent(spe, sp->FindHandler(sh));
+                        sp->PoolEvent(spe, h);
                     }
-                {
-                    CAutoLock al(sp->m_sl);
-                    for (auto it = sp->m_vHandlers.begin(), end = sp->m_vHandlers.end(); it != end; ++it) {
-                        THandler *h = *it;
-                        if (h->m_session == sh) {
-                            sp->m_vHandlers.erase(it);
-                            delete h;
-                            break;
+                    {
+                        CAutoLock al(sp->m_sl);
+                        for (auto it = sp->m_vHandlers.begin(), end = sp->m_vHandlers.end(); it != end; ++it) {
+                            THandler *handler = *it;
+                            if (handler->m_session == sh) {
+                                sp->m_vHandlers.erase(it);
+                                assert(h == handler);
+                                delete handler;
+                                break;
+                            }
                         }
                     }
-                }
-                    break;
+                    return;
                 case tagSessionPoolEvent::seSessionCreated:
-                {
-                    THandler *h = new THandler(sh);
-                    CAutoLock al(sp->m_sl);
-                    sp->m_vHandlers.push_back(h);
-                }
-                    if (sp->PoolEvent) {
-                        sp->PoolEvent(spe, sp->FindHandler(sh));
+                    assert(!h);
+                    h = new THandler(sh);
+                    {
+                        CAutoLock al(sp->m_sl);
+                        sp->m_vHandlers.push_back(h);
                     }
                     break;
                 default:
                     break;
+            }
+            if (sp->PoolEvent) {
+                sp->PoolEvent(spe, h);
             }
         }
 
@@ -272,6 +275,7 @@ namespace SPA {
         SessionPoolHandle m_sph;
         static CSpinLock m_cs;
         static std::vector<CSessionPool<THandler>*> m_vP; //protected by m_cs
+        friend class CBaseHandler;
     };
 
     template<typename THandler>

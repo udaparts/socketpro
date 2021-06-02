@@ -18,7 +18,7 @@ namespace tds {
             hostName.assign(name, name + strlen(name)); //client machine name
         }
         SqlAuthenticationMethod authentication = SqlAuthenticationMethod::NotSpecified; // Authentication type
-        unsigned int timeout = 0; // login timeout
+        unsigned int timeout = 30000; // login timeout
         bool userInstance = false; // user instance
         CDBString hostName; // client machine name
         CDBString userName; // user id
@@ -51,7 +51,7 @@ namespace tds {
         static constexpr unsigned int MAX_NTEXT_LEN = 0x7ffffffe;
 
     public:
-        CSqlBatch(SPA::CBaseHandler& channel, bool meta = true);
+        CSqlBatch(CTdsChannel& channel, bool meta = true);
 
 #pragma pack(push,1)
 
@@ -188,11 +188,11 @@ namespace tds {
         static_assert(sizeof(tagIsolationLevel) == 2, "Wrong tagIsolationLevel size");
 
     public:
-        int SendMessage(const SqlLogin& rec, FeatureExtension requestedFeatures);
-        int SendMessage(tagRequestType rt, tagIsolationLevel il, SPA::UINT64 trans_decriptor);
-        int SendMessage(const char16_t *sql, SPA::UINT64 trans_decriptor = 0);
-        int Prepare(const char16_t* sql, CParameterInfoArray& params, unsigned int& parameters, SPA::UINT64 trans_decriptor = 0);
-        int SendMessage(CDBVariantArray &vParam, SPA::UINT64 trans_decriptor = 0);
+        int SendTDSMessage(const SqlLogin& rec, FeatureExtension requestedFeatures);
+        int SendTDSMessage(tagRequestType rt, tagIsolationLevel il = tagIsolationLevel::ilCurrent);
+        int SendTDSMessage(const char16_t *sql);
+        int Prepare(const char16_t* sql, CParameterInfoArray& params, unsigned int& parameters);
+        int SendTDSMessage(CDBVariantArray &vParam);
 
     protected:
         void Reset();
@@ -222,11 +222,13 @@ namespace tds {
     private:
         std::vector<TokenInfo> m_vInfo;
         SPA::CUQueue &m_out;
+        StringEventChange m_dbNameChange;
 		std::vector<StringEventChange> m_vEventChange;
         CollationChange m_CollationChange;
         LoginAck m_LoginAck;
-        std::vector<TransChange> m_vTransChange;
+        TransChange m_tc;
         CDBColumnInfoArray m_vCol;
+        unsigned int m_timeout;
         bool m_meta;
         unsigned short m_cols;
         unsigned short m_posCol;
