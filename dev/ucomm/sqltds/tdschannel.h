@@ -5,29 +5,29 @@
 #include <deque>
 
 namespace tds {
-	class CTdsChannel : public SPA::CBaseHandler
-	{
-	private:
-		SPA::CScopeUQueue m_sb;
 
-	public:
-		CTdsChannel(SPA::SessionHandle sh);
-		int Send(tds::CReqBase *sender, const unsigned char* buffer, unsigned int bytes);
+    class CTdsChannel : public SPA::CBaseHandler {
+    private:
+        SPA::CScopeUQueue m_sb;
 
-	protected:
-		void OnAvailable(const unsigned char* data, unsigned int bytes);
-		void OnClosed();
-		void OnConnected();
+    public:
+        CTdsChannel(SPA::SessionHandle sh);
+        int Send(tds::CReqBase *sender, const unsigned char* buffer, unsigned int bytes);
 
-	private:
-		void Reset();
+    protected:
+        void OnAvailable(const unsigned char* data, unsigned int bytes);
+        void OnClosed();
+        void OnConnected();
 
-	private:
-		SPA::CSpinLock m_cs;
-		std::deque<tds::CReqBase*> m_deq; //protected by m_cs
-		SPA::CUQueue& m_buff;
-		friend class CReqBase;
-	};
+    private:
+        void Reset();
+
+    private:
+        SPA::CSpinLock m_cs;
+        std::deque<tds::CReqBase*> m_deq; //protected by m_cs
+        SPA::CUQueue& m_buff;
+        friend class CReqBase;
+    };
 }
 
 #endif

@@ -138,6 +138,39 @@ namespace tds
                 if (!it->ParameterName.size()) {
                     return SPA::Odbc::ER_CORRECT_PARAMETER_INFO_NOT_PROVIDED_YET;
                 }
+                switch (it->DataType) {
+                case VT_UI1:
+                case VT_I1:
+                case VT_I2:
+                case VT_UI2:
+                case VT_I4:
+                case VT_UI4:
+                case VT_INT:
+                case VT_UINT:
+                case VT_I8:
+                case VT_UI8:
+                case VT_R4:
+                case VT_R8:
+                case VT_DATE:
+                case VT_CY:
+                case VT_CLSID:
+                case VT_BOOL:
+                    break;
+                case (VT_UI1| VT_ARRAY):
+                case (VT_I1 | VT_ARRAY):
+                case VT_BSTR:
+                    if (!it->ColumnSize) {
+                        return SPA::Odbc::ER_DATA_TYPE_NOT_SUPPORTED;
+                    }
+                    break;
+                case VT_DECIMAL:
+                    if (!it->Precision || it->Precision > 28) {
+                        return SPA::Odbc::ER_DATA_TYPE_NOT_SUPPORTED;
+                    }
+                    break;
+                default:
+                    return SPA::Odbc::ER_DATA_TYPE_NOT_SUPPORTED;
+                }
             }
         }
         m_inputs = (unsigned short) (parameters - m_outputs);
@@ -272,7 +305,111 @@ namespace tds
         return 0;
     }
 
-    void CSqlBatch::ToParameter(bool stored, const Collation& collation, const CDBVariant& v, const CDBString &p, SPA::CUQueue& buffer, SPA::UDB::tagParameterDirection pd) {
+    bool CSqlBatch::ParseReturnValue() {
+        unsigned short ordinal = *(unsigned short*)m_buffer.GetBuffer();
+        unsigned char b_len = *m_buffer.GetBuffer(sizeof(ordinal));
+        unsigned char status;
+        unsigned int user_type;
+        unsigned char flags;
+        unsigned char type_info;
+        unsigned int len = sizeof(ordinal) + sizeof(b_len);
+        if (m_buffer.GetSize() <= len) {
+            return false;
+        }
+        len += (((unsigned int)b_len) << 1) + sizeof(status) + sizeof(user_type) + sizeof(flags) + sizeof(type_info);
+        if (m_buffer.GetSize() <= len) {
+            return false;
+        }
+        tagDataType dt;
+        len += sizeof(dt);
+        if (m_buffer.GetSize() <= len + sizeof(TokenDone)) {
+            return false;
+        }
+
+        m_buffer.Pop((unsigned int)3);
+        const char16_t* pname = (const char16_t*)m_buffer.GetBuffer();
+        CDBString pName(pname, pname + b_len);
+        m_buffer.Pop((unsigned int)(b_len << 1));
+        m_buffer >> status >> user_type >> flags >> type_info >> dt;
+        switch (dt)
+        {
+        case tagDataType::INTN:
+            {
+                unsigned char bytes0, bytes1;
+                m_buffer >> bytes0 >> bytes1;
+                assert(bytes0 == bytes1);
+                switch (bytes1)
+                {
+                case sizeof(unsigned char) :
+                    m_out << (VARTYPE)VT_UI1;
+                    m_out.Push(m_buffer.GetBuffer(), sizeof(unsigned char));
+                    m_buffer.Pop(sizeof(unsigned char));
+                    break;
+                case sizeof(short) :
+                    m_out << (VARTYPE)VT_I2;
+                    m_out.Push(m_buffer.GetBuffer(), sizeof(short));
+                    m_buffer.Pop(sizeof(short));
+                    break;
+                case sizeof(int) :
+                    m_out << (VARTYPE)VT_I4;
+                    m_out.Push(m_buffer.GetBuffer(), sizeof(int));
+                    m_buffer.Pop(sizeof(int));
+                    break;
+                default:
+                    m_out << (VARTYPE)VT_I8;
+                    m_out.Push(m_buffer.GetBuffer(), sizeof(SPA::INT64));
+                    m_buffer.Pop(sizeof(SPA::INT64));
+                    break;
+                }
+            }
+            break;
+        case tagDataType::DECIMAL:
+        case tagDataType::NUMERIC:
+        {
+            unsigned char bytes, precison, scale, sign;
+            m_buffer >> bytes >> precison >> scale >> b_len >> sign;
+            m_out << (VARTYPE)VT_DECIMAL;
+            DECIMAL dec;
+            ::memset(&dec, 0, sizeof(dec));
+            if (!sign) {
+                dec.sign = 0x80;
+            }
+            switch (b_len)
+            {
+            case 5:
+                m_buffer >> dec.Lo32;
+                break;
+            case 9:
+                m_buffer >> dec.Lo64;
+                break;
+            case 13:
+                m_buffer >> dec.Lo64 >> dec.Hi32;
+                break;
+            case 17:
+                m_buffer >> dec.Lo64 >> dec.Hi32;
+                m_buffer.Pop(sizeof(unsigned int));
+                break;
+            default:
+                assert(false);
+                break;
+            }
+            m_out << dec;
+        }
+        break;
+        case tagDataType::VARCHAR:
+        {
+
+        }
+            break;
+        default:
+            return false;
+
+        }
+        m_tt = tagTokenType::ttZero;
+        return true;
+    }
+
+    void CSqlBatch::ToParameter(bool stored, const Collation& collation, const CDBVariant& v, const CDBString &p, SPA::CUQueue& buffer, SPA::UDB::CParameterInfo* pi) {
         tagDataType dt;
         unsigned char b_len = 0;
         unsigned char p_len = stored ? (unsigned char) p.size() : 0;
@@ -281,7 +418,8 @@ namespace tds
             buffer.Push(p.c_str(), p_len);
         }
         unsigned char p_status = 0;
-        switch (pd) {
+        if (pi) {
+            switch (pi->Direction) {
             case SPA::UDB::tagParameterDirection::pdOutput:
             case SPA::UDB::tagParameterDirection::pdInputOutput:
                 p_status = 1;
@@ -290,6 +428,7 @@ namespace tds
                 assert(false); //not implemented yet
             default:
                 break;
+            }
         }
         buffer << p_status;
         switch (v.vt) {
@@ -405,13 +544,16 @@ namespace tds
                 break;
             case VT_NULL:
             case VT_EMPTY:
-                dt = tagDataType::VARCHAR;
-            {
-                unsigned short len = 16;
-                buffer << dt << len << collation;
-                len = USHORT_NULL_LEN;
-                buffer << len;
-            }
+                if (pi) {
+
+                }
+                else {
+                    dt = tagDataType::VARCHAR;
+                    unsigned short len = 16;
+                    buffer << dt << len << collation;
+                    len = USHORT_NULL_LEN;
+                    buffer << len;
+                }
                 break;
             case (VT_I1 | VT_ARRAY):
                 dt = tagDataType::VARCHAR;
@@ -831,11 +973,11 @@ namespace tds
         //
         len = vParam.size();
         for (size_t n = 0; n < len; ++n) {
-            SPA::UDB::tagParameterDirection pd = SPA::UDB::tagParameterDirection::pdInput;
+            SPA::UDB::CParameterInfo* pi = nullptr;
             if (stored) {
-                pd = m_vParamInfo[n].Direction;
+                pi = m_vParamInfo.data() + n;
             }
-            ToParameter(stored, collation, vParam[n], vP[n], *sb, pd);
+            ToParameter(stored, collation, vParam[n], vP[n], *sb, pi);
         }
 
         PacketHeader ph(tagPacketType::ptRpc, 1);
@@ -875,40 +1017,6 @@ namespace tds
             m_tt = tagTokenType::ttZero;
             return true;
         }
-        return false;
-    }
-
-    bool CSqlBatch::ParseReturnValue() {
-        unsigned short ordinal = *(unsigned short*) m_buffer.GetBuffer();
-        unsigned char b_len = *m_buffer.GetBuffer(sizeof (ordinal));
-        unsigned char status;
-        unsigned int user_type;
-        unsigned char flags;
-        unsigned int len = sizeof (ordinal) + sizeof (b_len);
-        if (m_buffer.GetSize() <= len) {
-            return false;
-        }
-        len += (b_len << 1) + sizeof (status) + sizeof (user_type) + sizeof (flags);
-        if (m_buffer.GetSize() <= len) {
-            return false;
-        }
-        tagDataType dt;
-        len += sizeof (dt);
-        if (m_buffer.GetSize() <= len) {
-            return false;
-        }
-        unsigned char bytes = *m_buffer.GetBuffer(len), precision;
-        len += sizeof (bytes) + sizeof (precision) + bytes;
-        if (m_buffer.GetSize() < len) {
-            return false;
-        }
-        m_buffer.Pop((unsigned int) 3);
-        const char16_t* pname = (const char16_t*) m_buffer.GetBuffer();
-        CDBString pName(pname, pname + b_len);
-        m_buffer.Pop((unsigned int) (b_len << 1));
-        m_buffer >> status >> user_type >> flags >> dt >> bytes >> precision;
-
-
         return false;
     }
 
@@ -1435,7 +1543,7 @@ namespace tds
                     } else {
                         assert(false);
                     }
-                    if (!ParseData(dt, true)) {
+                    if (!ParseData(dt, false)) {
                         return false;
                     }
                     break;
@@ -1451,7 +1559,7 @@ namespace tds
                     } else {
                         assert(false);
                     }
-                    if (!ParseData(dt, true)) {
+                    if (!ParseData(dt, false)) {
                         return false;
                     }
                     break;
@@ -1464,7 +1572,7 @@ namespace tds
                         m_buffer.Pop(4);
                         continue;
                     }
-                    if (!ParseData(dt, true)) {
+                    if (!ParseData(dt, false)) {
                         return false;
                     }
                 }
@@ -1849,6 +1957,7 @@ namespace tds
     }
 
     bool CSqlBatch::ParseData(tagDataType dt, bool max) {
+        VARTYPE vt = GetVarType(dt, 0);
         switch (dt) {
             case tagDataType::XML:
                 if (m_out.GetSize()) {
@@ -1860,7 +1969,7 @@ namespace tds
                 m_buffer >> m_lenLarge >> remain;
                 assert(m_lenLarge == UNKNOWN_XML_LEN);
                 assert(remain > 0 && remain <= DEFAULT_PACKET_SIZE - sizeof (m_lenLarge) - sizeof (remain));
-                m_out << (VARTYPE) VT_BSTR;
+                m_out << vt;
                 bool all_fetched = (m_buffer.GetSize() >= (remain + sizeof (remain)));
                 if (all_fetched) {
                     m_out << remain;
@@ -1899,7 +2008,7 @@ namespace tds
                 unsigned int image_bytes;
                 m_buffer >> image_bytes;
                 m_lenLarge = image_bytes;
-                m_out << GetVarType(dt, 0) << (unsigned int) m_lenLarge;
+                m_out << vt << (unsigned int) m_lenLarge;
                 if (image_bytes > m_buffer.GetSize()) {
                     image_bytes = m_buffer.GetSize();
                 }
@@ -1922,7 +2031,7 @@ namespace tds
                 unsigned int remain;
                 m_buffer >> m_lenLarge >> remain;
                 assert(remain <= DEFAULT_PACKET_SIZE - sizeof (m_lenLarge) - sizeof (remain));
-                m_out << GetVarType(dt, 0) << (unsigned int) m_lenLarge;
+                m_out << vt << (unsigned int) m_lenLarge;
                 if (!remain) {
                     return true; //no data
                 }
@@ -1955,7 +2064,7 @@ namespace tds
                     unsigned int remain;
                     m_buffer >> m_lenLarge >> remain;
                     assert(remain > 0 && remain <= DEFAULT_PACKET_SIZE - sizeof (m_lenLarge) - sizeof (remain));
-                    m_out << GetVarType(dt, 0) << (unsigned int) m_lenLarge;
+                    m_out << vt << (unsigned int) m_lenLarge;
                     m_out.Push(m_buffer.GetBuffer(), remain);
                     m_buffer.Pop(remain);
                     m_lenLarge -= remain;
@@ -1976,7 +2085,7 @@ namespace tds
                         return false;
                     }
                     m_buffer.Pop(2);
-                    m_out << GetVarType(dt, 0) << (unsigned int) len;
+                    m_out << vt << (unsigned int) len;
                     m_out.Push(m_buffer.GetBuffer(), len);
                     m_buffer.Pop(len);
                 }

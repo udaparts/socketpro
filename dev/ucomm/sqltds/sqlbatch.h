@@ -218,7 +218,7 @@ namespace tds {
         void ParseTransChange(tagEnvchangeType type, TransChange& tc);
         static CDBString Prepare(const char16_t* sql, unsigned int& parameters, CDBString& procName, CDBString& catalogSchema);
         static int ToString(const CDBVariantArray& vData, CDBString& s, std::vector<CDBString> &vP);
-        static void ToParameter(bool stored, const Collation& collation, const CDBVariant& v, const CDBString& p, SPA::CUQueue& buffer, SPA::UDB::tagParameterDirection pd = SPA::UDB::tagParameterDirection::pdInput);
+        static void ToParameter(bool stored, const Collation& collation, const CDBVariant& v, const CDBString& p, SPA::CUQueue& buffer, SPA::UDB::CParameterInfo *pi = nullptr);
 
     private:
         std::vector<TokenInfo> m_vInfo;

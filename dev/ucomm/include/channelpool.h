@@ -188,47 +188,47 @@ namespace SPA {
             switch (spe) {
                 case tagSessionPoolEvent::seConnected:
                     assert(h);
-                    {
-                        CBaseHandler* hander = h;
-                        if (hander) {
-                            hander->OnConnected();
-                        }
+                {
+                    CBaseHandler* hander = h;
+                    if (hander) {
+                        hander->OnConnected();
                     }
+                }
                     break;
                 case tagSessionPoolEvent::seSessionClosed:
                     assert(h);
-                    {
-                        CBaseHandler* hander = h;
-                        if (hander) {
-                            hander->OnClosed();
-                        }
+                {
+                    CBaseHandler* hander = h;
+                    if (hander) {
+                        hander->OnClosed();
                     }
+                }
                     break;
                 case tagSessionPoolEvent::seSessionDestroyed:
                     assert(h);
                     if (sp->PoolEvent) {
                         sp->PoolEvent(spe, h);
                     }
-                    {
-                        CAutoLock al(sp->m_sl);
-                        for (auto it = sp->m_vHandlers.begin(), end = sp->m_vHandlers.end(); it != end; ++it) {
-                            THandler *handler = *it;
-                            if (handler->m_session == sh) {
-                                sp->m_vHandlers.erase(it);
-                                assert(h == handler);
-                                delete handler;
-                                break;
-                            }
+                {
+                    CAutoLock al(sp->m_sl);
+                    for (auto it = sp->m_vHandlers.begin(), end = sp->m_vHandlers.end(); it != end; ++it) {
+                        THandler *handler = *it;
+                        if (handler->m_session == sh) {
+                            sp->m_vHandlers.erase(it);
+                            assert(h == handler);
+                            delete handler;
+                            break;
                         }
                     }
+                }
                     return;
                 case tagSessionPoolEvent::seSessionCreated:
                     assert(!h);
                     h = new THandler(sh);
-                    {
-                        CAutoLock al(sp->m_sl);
-                        sp->m_vHandlers.push_back(h);
-                    }
+                {
+                    CAutoLock al(sp->m_sl);
+                    sp->m_vHandlers.push_back(h);
+                }
                     break;
                 default:
                     break;
