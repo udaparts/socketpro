@@ -11,7 +11,7 @@ const unsigned int CYCLES = 50000;
 int main() {
 	SPA::CSessionPool<tds::CTdsChannel> pool(1);
 	auto handler = pool.FindAClosedHandler();
-	bool ok = handler->Connect("windesk", 1433, SPA::tagEncryptionMethod::NoEncryption, false, true);
+	bool ok = handler->Connect("acer", 1433, SPA::tagEncryptionMethod::NoEncryption, false, true);
 
 	char serverName[128];
 	handler->GetServerName(serverName, sizeof(serverName));
@@ -53,12 +53,24 @@ int main() {
 	//res = sqlbatch.SendTDSMessage(tds::CSqlBatch::tagRequestType::rtBeginTrans, tds::CSqlBatch::tagIsolationLevel::ilReadCommitted);
 	unsigned int parameters;
 	CParameterInfoArray vPInfo;
-	res = sqlbatch.Prepare(u"select * from actor where actor_id=? and first_name<>?", vPInfo, parameters);
+	CParameterInfo pi;
+	pi.DataType = VT_I4;
+	pi.ParameterName = u"@n";
+	vPInfo.push_back(pi);
+	pi.Direction = tagParameterDirection::pdInputOutput;
+	pi.ParameterName = u"@nout";
+	vPInfo.push_back(pi);
+	pi.DataType = VT_DECIMAL;
+	pi.Direction = tagParameterDirection::pdOutput;
+	pi.ParameterName = u"@dec";
+	pi.Precision = 19;
+	pi.Scale = 2;
+	vPInfo.push_back(pi);
+	res = sqlbatch.Prepare(u"call sqltestdb.dbo.GetSomeData(?, ?, ?)", vPInfo, parameters);
 	CDBVariantArray vParam;
-	vParam.push_back(1);
-	vParam.push_back("NICKTest");
-	vParam.push_back(2);
-	vParam.push_back(u"NICKTest");
+	vParam.push_back(10);
+	vParam.push_back(12);
+	vParam.push_back((const char*)nullptr);
 	res = sqlbatch.SendTDSMessage(vParam);
 	//res = sqlbatch.SendTDSMessage(tds::CSqlBatch::tagRequestType::rtCommit);
 

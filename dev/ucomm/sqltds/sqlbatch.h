@@ -13,8 +13,8 @@ namespace tds {
     struct SqlLogin {
 
         SqlLogin() {
-            char name[128] = { 0 };
-            ::gethostname(name, sizeof(name));
+            char name[128] = {0};
+            ::gethostname(name, sizeof (name));
             hostName.assign(name, name + strlen(name)); //client machine name
         }
         SqlAuthenticationMethod authentication = SqlAuthenticationMethod::NotSpecified; // Authentication type
@@ -64,7 +64,7 @@ namespace tds {
         struct OptionalFlags1 {
 
             OptionalFlags1() {
-                ::memset(this, 0, sizeof(OptionalFlags1));
+                ::memset(this, 0, sizeof (OptionalFlags1));
             }
             unsigned char fByteOrder : 1;
             unsigned char fChar : 1;
@@ -78,7 +78,7 @@ namespace tds {
         struct OptionalFlags2 {
 
             OptionalFlags2() {
-                ::memset(this, 0, sizeof(OptionalFlags2));
+                ::memset(this, 0, sizeof (OptionalFlags2));
             }
             unsigned char fLanguage : 1;
             unsigned char fODBC : 1;
@@ -91,7 +91,7 @@ namespace tds {
         struct TypeFlags {
 
             TypeFlags() {
-                ::memset(this, 0, sizeof(TypeFlags));
+                ::memset(this, 0, sizeof (TypeFlags));
             }
             unsigned char fSQLType : 4;
             unsigned char fOLEDB : 1; //introduced in TDS 7.2
@@ -102,7 +102,7 @@ namespace tds {
         struct OptionalFlags3 {
 
             OptionalFlags3() {
-                ::memset(this, 0, sizeof(OptionalFlags3));
+                ::memset(this, 0, sizeof (OptionalFlags3));
             }
             unsigned char fChangePassword : 1; //introduced in TDS 7.2
             unsigned char fUserInstance : 1; //introduced in TDS 7.2
@@ -115,7 +115,7 @@ namespace tds {
         struct FeatureExtension {
 
             FeatureExtension() {
-                ::memset(this, 0, sizeof(FeatureExtension));
+                ::memset(this, 0, sizeof (FeatureExtension));
             }
             unsigned int SessionRecovery : 1;
             unsigned int FedAuth : 2;
@@ -127,7 +127,7 @@ namespace tds {
             unsigned int SQLDNSCaching : 1;
 
             unsigned int GetValue() {
-                return *((unsigned int*)this);
+                return *((unsigned int*) this);
             }
         };
 
@@ -136,15 +136,13 @@ namespace tds {
             fiFederatedAuthentication = 0x02 //Federated authentication, introduced in TDS 7.4
         };
 
-        enum class tagRequestType : unsigned short
-        {
+        enum class tagRequestType : unsigned short {
             rtBeginTrans = 0x05,
             rtCommit = 0x07,
             rtRollback = 0x08
         };
 
-        enum class tagIsolationLevel : unsigned short
-        {
+        enum class tagIsolationLevel : unsigned short {
             ilCurrent = 0,
             ilReadUncommitted = 0x01,
             ilReadCommitted = 0x02,
@@ -160,8 +158,9 @@ namespace tds {
         };
 
         struct RPCOption {
+
             RPCOption() {
-                ::memset(this, 0, sizeof(RPCOption));
+                ::memset(this, 0, sizeof (RPCOption));
             }
             unsigned char fWithRecomp : 1;
             unsigned char fNoMetaData : 1;
@@ -169,8 +168,9 @@ namespace tds {
         };
 
         struct RPCStatus {
+
             RPCStatus() {
-                ::memset(this, 0, sizeof(RPCStatus));
+                ::memset(this, 0, sizeof (RPCStatus));
             }
             unsigned char fByRefValue : 1;
             unsigned char fDefaultValue : 1;
@@ -179,13 +179,13 @@ namespace tds {
 
 #pragma pack(pop)
 
-        static_assert(sizeof(OptionalFlags1) == 1, "Wrong OptionalFlags1 size");
-        static_assert(sizeof(OptionalFlags2) == 1, "Wrong OptionalFlags2 size");
-        static_assert(sizeof(TypeFlags) == 1, "Wrong TypeFlags size");
-        static_assert(sizeof(OptionalFlags3) == 1, "Wrong OptionalFlags3 size");
-        static_assert(sizeof(FeatureExtension) == 4, "Wrong FeatureExtension size");
-        static_assert(sizeof(tagRequestType) == 2, "Wrong tagRequestType size");
-        static_assert(sizeof(tagIsolationLevel) == 2, "Wrong tagIsolationLevel size");
+        static_assert(sizeof (OptionalFlags1) == 1, "Wrong OptionalFlags1 size");
+        static_assert(sizeof (OptionalFlags2) == 1, "Wrong OptionalFlags2 size");
+        static_assert(sizeof (TypeFlags) == 1, "Wrong TypeFlags size");
+        static_assert(sizeof (OptionalFlags3) == 1, "Wrong OptionalFlags3 size");
+        static_assert(sizeof (FeatureExtension) == 4, "Wrong FeatureExtension size");
+        static_assert(sizeof (tagRequestType) == 2, "Wrong tagRequestType size");
+        static_assert(sizeof (tagIsolationLevel) == 2, "Wrong tagIsolationLevel size");
 
     public:
         int SendTDSMessage(const SqlLogin& rec, FeatureExtension requestedFeatures);
@@ -193,10 +193,10 @@ namespace tds {
         int SendTDSMessage(const char16_t *sql);
         int Prepare(const char16_t* sql, CParameterInfoArray& params, unsigned int& parameters);
         int SendTDSMessage(CDBVariantArray &vParam);
-        
+
     protected:
         void Reset();
-		bool ParseStream();
+        bool ParseStream();
 
     private:
         bool ParseInfo();
@@ -206,24 +206,25 @@ namespace tds {
         bool ParseRow();
         bool ParseNBCRow();
         bool ParseDone();
-        bool ParseData(tagDataType dt, CDBColumnInfo *cinfo);
+        bool ParseData(tagDataType dt, bool max);
         bool ParseOrder();
         bool ParseData(tagDataType dt, unsigned char bytes, unsigned char scale);
         bool ParseVariant(CDBColumnInfo *cinfo);
-		bool ParseDoneInProc();
-		bool ParseReturnStatus();
+        bool ParseDoneInProc();
+        bool ParseReturnStatus();
         bool ParseLoginAck();
+        bool ParseReturnValue();
         void ParseStringChange(tagEnvchangeType type, StringEventChange& sec);
         void ParseTransChange(tagEnvchangeType type, TransChange& tc);
         static CDBString Prepare(const char16_t* sql, unsigned int& parameters, CDBString& procName, CDBString& catalogSchema);
         static int ToString(const CDBVariantArray& vData, CDBString& s, std::vector<CDBString> &vP);
-        static void ToParameter(const Collation& collation, const CDBVariant& v, const CDBString& p, SPA::CUQueue& buffer, unsigned char p_status = 0);
+        static void ToParameter(bool stored, const Collation& collation, const CDBVariant& v, const CDBString& p, SPA::CUQueue& buffer, SPA::UDB::tagParameterDirection pd = SPA::UDB::tagParameterDirection::pdInput);
 
     private:
         std::vector<TokenInfo> m_vInfo;
         SPA::CUQueue &m_out;
         StringEventChange m_dbNameChange;
-		std::vector<StringEventChange> m_vEventChange;
+        std::vector<StringEventChange> m_vEventChange;
         CollationChange m_CollationChange;
         LoginAck m_LoginAck;
         TransChange m_tc;
@@ -238,8 +239,8 @@ namespace tds {
         UINT64 m_lenLarge;
         unsigned int m_endLarge;
         std::vector<unsigned short> m_vOrder;
-		DoneInProc m_dip;
-		unsigned int m_rs; //ReturnStatus;
+        DoneInProc m_dip;
+        unsigned int m_rs; //ReturnStatus;
         CParameterInfoArray m_vParamInfo;
         CDBString m_sqlPrepare;
         CDBString m_procName;

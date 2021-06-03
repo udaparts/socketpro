@@ -1,30 +1,31 @@
 #include "sqlbatch.h"
 #include "tdschannel.h"
 #include <iostream>
+#include "../include/odbc/uodbc.h"
 
 namespace tds
 {
     CDBString CSqlBatch::LibraryName(u"udaparts_sql_server_client");
 
     CSqlBatch::CSqlBatch(CTdsChannel& channel, bool meta)
-        : CReqBase(channel), m_out(*m_sbOut), m_timeout(0), m_meta(meta), m_cols(0), m_posCol(INVALID_COL), m_lenLarge(0),
-        m_endLarge(0), m_rs(0), m_inputs(0), m_outputs(0) {
+            : CReqBase(channel), m_out(*m_sbOut), m_timeout(0), m_meta(meta), m_cols(0), m_posCol(INVALID_COL), m_lenLarge(0),
+            m_endLarge(0), m_rs(0), m_inputs(0), m_outputs(0) {
     }
 
     void CSqlBatch::Reset() {
         m_vInfo.clear();
-        memset(&m_CollationChange, 0, sizeof(m_CollationChange));
-		m_vEventChange.clear();
+        memset(&m_CollationChange, 0, sizeof (m_CollationChange));
+        m_vEventChange.clear();
         m_vCol.clear();
         m_cols = 0;
         m_vDT.clear();
         m_posCol = INVALID_COL;
-		m_dip.Status = tagDoneStatus::dsInitial;
-		m_rs = 0;
+        m_dip.Status = tagDoneStatus::dsInitial;
+        m_rs = 0;
         CReqBase::Reset();
     }
 
-    CDBString CSqlBatch::Prepare(const char16_t* sql, unsigned int& parameters, CDBString& procName, CDBString& catalogSchema) {
+    CDBString CSqlBatch::Prepare(const char16_t* sql, unsigned int& parameters, CDBString& procName, CDBString & catalogSchema) {
         assert(sql);
         assert(SPA::GetLen(sql));
         catalogSchema.clear();
@@ -50,8 +51,7 @@ namespace tds
                 if (s_copy.back() != ')')
                     return u"";
                 procName.assign(s_copy.begin() + 5, s_copy.begin() + pos);
-            }
-            else {
+            } else {
                 if (s_copy.back() == ')')
                     return u"";
                 procName = s_copy.substr(5);
@@ -73,8 +73,7 @@ namespace tds
             if (pos != CDBString::npos) {
                 s += s_copy.substr(pos);
             }
-        }
-        else {
+        } else {
             s = s_copy;
         }
         const char16_t quote = '\'', slash = '\\', question = '?';
@@ -114,21 +113,34 @@ namespace tds
 
     int CSqlBatch::Prepare(const char16_t* sql, CParameterInfoArray& params, unsigned int& parameters) {
         m_sqlPrepare = Prepare(sql, parameters, m_procName, m_catalogSchema);
-        if (!m_sqlPrepare.size()) {
-            return -1;
+        if (m_procName.size() && !params.size()) {
+            return SPA::Odbc::ER_CORRECT_PARAMETER_INFO_NOT_PROVIDED_YET;
         }
         if (params.size() && params.size() != parameters) {
-            return -1;
+            return SPA::Odbc::ER_BAD_PARAMETER_COLUMN_SIZE;
         }
         m_vParamInfo = std::move(params);
         m_outputs = 0;
-        for (auto it = m_vParamInfo.cbegin(), end = m_vParamInfo.cend(); it != end; ++it)
-        {
-            if (it->Direction != tagParameterDirection::pdInput && it->Direction != tagParameterDirection::pdUnknown) {
-                ++m_outputs;
+        if (m_procName.size()) {
+            for (auto it = m_vParamInfo.cbegin(), end = m_vParamInfo.cend(); it != end; ++it) {
+                switch (it->Direction) {
+                    case tagParameterDirection::pdInput:
+                        break;
+                    case tagParameterDirection::pdInputOutput:
+                    case tagParameterDirection::pdOutput:
+                        ++m_outputs;
+                        break;
+                    case tagParameterDirection::pdReturnValue:
+                    case tagParameterDirection::pdUnknown:
+                    default:
+                        return SPA::Odbc::ER_BAD_PARAMETER_DIRECTION_TYPE;
+                }
+                if (!it->ParameterName.size()) {
+                    return SPA::Odbc::ER_CORRECT_PARAMETER_INFO_NOT_PROVIDED_YET;
+                }
             }
         }
-        m_inputs = (unsigned short)(parameters - m_outputs);
+        m_inputs = (unsigned short) (parameters - m_outputs);
         parameters = m_outputs;
         parameters <<= 16;
         parameters += m_inputs;
@@ -146,300 +158,300 @@ namespace tds
             }
             const CDBVariant& v = vData[n];
 #ifdef WIN32_64
-            unsigned char bytes = (unsigned char)::sprintf_s(param, "@p%d", (int)n);
+            unsigned char bytes = (unsigned char) ::sprintf_s(param, "@p%d", (int) n);
 #else
-            unsigned char bytes = (unsigned char)::sprintf_s(param, "@p%d", (int)n);
+            unsigned char bytes = (unsigned char) ::sprintf_s(param, "@p%d", (int) n);
 #endif
             str += param;
             vP.push_back(CDBString(param, param + strlen(param)));
             str.push_back(' ');
-            switch (v.vt)
-            {
-            case VT_CLSID:
-                str += "uniqueidentifier";
-                break;
-            case VT_I1:
-            case VT_UI1:
-                str += "tinyint";
-                break;
-            case VT_I2:
-            case VT_UI2:
-                str += "smallint";
-                break;
-            case VT_I4:
-            case VT_UI4:
-            case VT_INT:
-            case VT_UINT:
-                str += "int";
-                break;
-            case VT_I8:
-            case VT_UI8:
-                str += "bigint";
-                break;
-            case VT_R4:
-                str += "real";
-                break;
-            case VT_R8:
-                str += "float";
-                break;
-            case VT_BOOL:
-                str += "bit";
-                break;
-            case VT_DATE:
-            {
-                SPA::UDateTime udt(v.ullVal);
-                std::tm tm = udt.GetCTime();
-                if (tm.tm_mday) {
-                    str += "datetime2(6)";
+            switch (v.vt) {
+                case VT_CLSID:
+                    str += "uniqueidentifier";
+                    break;
+                case VT_I1:
+                case VT_UI1:
+                    str += "tinyint";
+                    break;
+                case VT_I2:
+                case VT_UI2:
+                    str += "smallint";
+                    break;
+                case VT_I4:
+                case VT_UI4:
+                case VT_INT:
+                case VT_UINT:
+                    str += "int";
+                    break;
+                case VT_I8:
+                case VT_UI8:
+                    str += "bigint";
+                    break;
+                case VT_R4:
+                    str += "real";
+                    break;
+                case VT_R8:
+                    str += "float";
+                    break;
+                case VT_BOOL:
+                    str += "bit";
+                    break;
+                case VT_DATE:
+                {
+                    SPA::UDateTime udt(v.ullVal);
+                    std::tm tm = udt.GetCTime();
+                    if (tm.tm_mday) {
+                        str += "datetime2(6)";
+                    } else {
+                        str += "time(6)";
+                    }
                 }
-                else {
-                    str += "time(6)";
-                }
-            }
-                break;
-            case VT_CY:
-                str += "money";
-                break;
-            case VT_DECIMAL:
-                if (v.decVal.Hi32) {
-                    str += "decimal(28,";
-                }
-                else {
-                    str += "decimal(19,";
-                }
-                str += std::to_string(v.decVal.scale);
-                str.push_back(')');
-                break;
-            case (VT_ARRAY | VT_I1):
-                str += "varchar(";
+                    break;
+                case VT_CY:
+                    str += "money";
+                    break;
+                case VT_DECIMAL:
+                    if (v.decVal.Hi32) {
+                        str += "decimal(28,";
+                    } else {
+                        str += "decimal(19,";
+                    }
+                    str += std::to_string(v.decVal.scale);
+                    str.push_back(')');
+                    break;
+                case (VT_ARRAY | VT_I1):
+                    str += "varchar(";
                 {
                     unsigned int len = v.parray->rgsabound[0].cElements;
                     if (n > 8000) {
                         str += "max";
-                    }
-                    else {
+                    } else {
                         if (!len) len = 1;
                         str += std::to_string(len);
                     }
                 }
-                str.push_back(')');
-                break;
-            case VT_BSTR:
-                str += "nvarchar(";
+                    str.push_back(')');
+                    break;
+                case VT_BSTR:
+                    str += "nvarchar(";
                 {
                     unsigned int len = ::SysStringLen(v.bstrVal);
                     if (n > 4000) {
                         str += "max";
-                    }
-                    else {
+                    } else {
                         if (!len) len = 1;
                         str += std::to_string(len);
                     }
                 }
-                str.push_back(')');
-                break;
-            case (VT_ARRAY | VT_UI1):
-                if (v.VtExt == tagVTExt::vteGuid) {
-                    str += "uniqueidentifier";
-                }
-                else {
-                    str += "varbinary(";
-                    unsigned int len = v.parray->rgsabound[0].cElements;
-                    if (n > 8000) {
-                        str += "max";
-                    }
-                    else {
-                        if (!len) len = 1;
-                        str += std::to_string(len);
-                    }
                     str.push_back(')');
-                }
-                break;
-            case VT_NULL:
-            case VT_EMPTY:
-                str += "varchar(16)";
-                break;
-            default:
-                return -1;
+                    break;
+                case (VT_ARRAY | VT_UI1):
+                    if (v.VtExt == tagVTExt::vteGuid) {
+                        str += "uniqueidentifier";
+                    } else {
+                        str += "varbinary(";
+                        unsigned int len = v.parray->rgsabound[0].cElements;
+                        if (n > 8000) {
+                            str += "max";
+                        } else {
+                            if (!len) len = 1;
+                            str += std::to_string(len);
+                        }
+                        str.push_back(')');
+                    }
+                    break;
+                case VT_NULL:
+                case VT_EMPTY:
+                    str += "varchar(16)";
+                    break;
+                default:
+                    return -1;
             }
         }
         s = SPA::Utilities::ToUTF16(str);
         return 0;
     }
 
-    void CSqlBatch::ToParameter(const Collation& collation, const CDBVariant& v, const CDBString &p, SPA::CUQueue& buffer, unsigned char p_status) {
+    void CSqlBatch::ToParameter(bool stored, const Collation& collation, const CDBVariant& v, const CDBString &p, SPA::CUQueue& buffer, SPA::UDB::tagParameterDirection pd) {
         tagDataType dt;
         unsigned char b_len = 0;
-        unsigned char p_len = 0; //(unsigned char)p.size();
+        unsigned char p_len = stored ? (unsigned char) p.size() : 0;
         buffer << p_len;
-        //buffer.Push(p.c_str(), (unsigned int)p.size());
-        buffer << p_status;
-        switch (v.vt)
-        {
-        case VT_CY:
-            dt = tagDataType::MONEYN;
-            b_len = sizeof(CY); //length;
-            buffer << dt << b_len << b_len << v.cyVal.Hi << v.cyVal.Lo;
-            break;
-        case VT_DATE:
-        {
-            unsigned int us;
-            SPA::UDateTime udt(v.ullVal);
-            std::tm tm = udt.GetCTime(&us);
-            if (tm.tm_mday) {
-                dt = tagDataType::DATETIME2N;
-                p_len = 6; //scale
-                b_len = 8; //length;
-                buffer << dt << p_len << b_len;
-                int dt = tds::ToTdsJDN(tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday);
-                Date d;
-                d.Low = (unsigned short)(dt & USHORT_NULL_LEN);
-                d.High = (char)((dt >> 16) & 0xff);
-                SPA::UINT64 time = tm.tm_hour * 3600 + tm.tm_min * 60 + tm.tm_sec;
-                time *= 1000000;
-                time += us;
-                unsigned int low = (unsigned int)(time & UINT_NULL_LEN);
-                time >>= 32;
-                unsigned char high = (unsigned char)(time & 0xff);
-                buffer << low << high << d;
-            }
-            else {
-                dt = tagDataType::TIMEN;
-                p_len = 6; //scale
-                b_len = 5; //length;
-                buffer << dt << p_len << b_len;
-                SPA::UINT64 time = tm.tm_hour * 3600 + tm.tm_min * 60 + tm.tm_sec;
-                time *= 1000000;
-                time += us;
-                unsigned int low = (unsigned int)(time & UINT_NULL_LEN);
-                time >>= 32;
-                unsigned char high = (unsigned char)(time & 0xff);
-                buffer << low << high;
-            }
+        if (stored) {
+            buffer.Push(p.c_str(), p_len);
         }
-            break;
-        case VT_DECIMAL:
-            dt = tagDataType::DECIMAL;
-            b_len = v.decVal.Hi32 ? 13 : 9; //max length;
-            p_len = v.decVal.Hi32 ? 28 : 19; //precision;
-            buffer << dt << b_len << p_len << v.decVal.scale << b_len;
-            p_len = v.decVal.sign ? 0 : 1; //sign
-            buffer << p_len << v.decVal.Lo64;
-            if (v.decVal.Hi32) {
-                buffer << v.decVal.Hi32;
+        unsigned char p_status = 0;
+        switch (pd) {
+            case SPA::UDB::tagParameterDirection::pdOutput:
+            case SPA::UDB::tagParameterDirection::pdInputOutput:
+                p_status = 1;
+                break;
+            case SPA::UDB::tagParameterDirection::pdReturnValue:
+                assert(false); //not implemented yet
+            default:
+                break;
+        }
+        buffer << p_status;
+        switch (v.vt) {
+            case VT_CY:
+                dt = tagDataType::MONEYN;
+                b_len = sizeof (CY); //length;
+                buffer << dt << b_len << b_len << v.cyVal.Hi << v.cyVal.Lo;
+                break;
+            case VT_DATE:
+            {
+                unsigned int us;
+                SPA::UDateTime udt(v.ullVal);
+                std::tm tm = udt.GetCTime(&us);
+                if (tm.tm_mday) {
+                    dt = tagDataType::DATETIME2N;
+                    p_len = 6; //scale
+                    b_len = 8; //length;
+                    buffer << dt << p_len << b_len;
+                    int dt = tds::ToTdsJDN(tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday);
+                    Date d;
+                    d.Low = (unsigned short) (dt & USHORT_NULL_LEN);
+                    d.High = (char) ((dt >> 16) & 0xff);
+                    SPA::UINT64 time = tm.tm_hour * 3600 + tm.tm_min * 60 + tm.tm_sec;
+                    time *= 1000000;
+                    time += us;
+                    unsigned int low = (unsigned int) (time & UINT_NULL_LEN);
+                    time >>= 32;
+                    unsigned char high = (unsigned char) (time & 0xff);
+                    buffer << low << high << d;
+                } else {
+                    dt = tagDataType::TIMEN;
+                    p_len = 6; //scale
+                    b_len = 5; //length;
+                    buffer << dt << p_len << b_len;
+                    SPA::UINT64 time = tm.tm_hour * 3600 + tm.tm_min * 60 + tm.tm_sec;
+                    time *= 1000000;
+                    time += us;
+                    unsigned int low = (unsigned int) (time & UINT_NULL_LEN);
+                    time >>= 32;
+                    unsigned char high = (unsigned char) (time & 0xff);
+                    buffer << low << high;
+                }
             }
-            break;
-        case SPA::VT_XML:
-        case VT_BSTR:
-            dt = tagDataType::NVARCHAR;
+                break;
+            case VT_DECIMAL:
+                dt = tagDataType::DECIMAL;
+                b_len = v.decVal.Hi32 ? 13 : 9; //max length;
+                p_len = v.decVal.Hi32 ? 28 : 19; //precision;
+                buffer << dt << b_len << p_len << v.decVal.scale << b_len;
+                p_len = v.decVal.sign ? 0 : 1; //sign
+                buffer << p_len << v.decVal.Lo64;
+                if (v.decVal.Hi32) {
+                    buffer << v.decVal.Hi32;
+                }
+                break;
+            case SPA::VT_XML:
+            case VT_BSTR:
+                dt = tagDataType::NVARCHAR;
             {
                 unsigned int len = SysStringLen(v.bstrVal);
                 len <<= 1;
                 if (len <= 8000) {
-                    buffer << dt << (unsigned short)len << collation << (unsigned short)len;
+                    buffer << dt << (unsigned short) len << collation << (unsigned short) len;
                     buffer.Push(v.bstrVal, len >> 1);
-                }
-                else {
+                } else {
 
                 }
             }
-            break;
-        case VT_R4:
-            dt = tagDataType::FLTN;
-            b_len = sizeof(float);
-            buffer << dt << b_len << b_len << v.fltVal;
-            break;
-        case VT_R8:
-            dt = tagDataType::FLTN;
-            b_len = sizeof(double);
-            buffer << dt << b_len << b_len << v.dblVal;
-            break;
-        case VT_I4:
-        case VT_UI4:
-        case VT_INT:
-        case VT_UINT:
-            dt = tagDataType::INTN;
-            b_len = sizeof(int);
-            buffer << dt << b_len << b_len << v.intVal;
-            break;
-        case VT_I8:
-        case VT_UI8:
-            dt = tagDataType::INTN;
-            b_len = sizeof(SPA::INT64);
-            buffer << dt << b_len << b_len << v.llVal;
-            break;
-        case VT_I2:
-        case VT_UI2:
-            dt = tagDataType::INTN;
-            b_len = sizeof(short);
-            buffer << dt << b_len << b_len << v.iVal;
-            break;
-        case VT_BOOL:
-            dt = tagDataType::INTN;
-            b_len = sizeof(unsigned char);
+                break;
+            case VT_R4:
+                dt = tagDataType::FLTN;
+                b_len = sizeof (float);
+                buffer << dt << b_len << b_len << v.fltVal;
+                break;
+            case VT_R8:
+                dt = tagDataType::FLTN;
+                b_len = sizeof (double);
+                buffer << dt << b_len << b_len << v.dblVal;
+                break;
+            case VT_I4:
+            case VT_UI4:
+            case VT_INT:
+            case VT_UINT:
+                dt = tagDataType::INTN;
+                b_len = sizeof (int);
+                buffer << dt << b_len << b_len << v.intVal;
+                break;
+            case VT_I8:
+            case VT_UI8:
+                dt = tagDataType::INTN;
+                b_len = sizeof (SPA::INT64);
+                buffer << dt << b_len << b_len << v.llVal;
+                break;
+            case VT_I2:
+            case VT_UI2:
+                dt = tagDataType::INTN;
+                b_len = sizeof (short);
+                buffer << dt << b_len << b_len << v.iVal;
+                break;
+            case VT_BOOL:
+                dt = tagDataType::INTN;
+                b_len = sizeof (unsigned char);
             {
                 unsigned char c = v.boolVal ? 1 : 0;
                 buffer << dt << b_len << b_len << c;
             }
-            break;
-        case VT_I1:
-        case VT_UI1:
-            dt = tagDataType::INTN;
-            b_len = sizeof(unsigned char);
-            buffer << dt << b_len << b_len << v.bVal;
-            break;
-        case VT_NULL:
-        case VT_EMPTY:
-            dt = tagDataType::VARCHAR;
+                break;
+            case VT_I1:
+            case VT_UI1:
+                dt = tagDataType::INTN;
+                b_len = sizeof (unsigned char);
+                buffer << dt << b_len << b_len << v.bVal;
+                break;
+            case VT_NULL:
+            case VT_EMPTY:
+                dt = tagDataType::VARCHAR;
             {
                 unsigned short len = 16;
                 buffer << dt << len << collation;
                 len = USHORT_NULL_LEN;
                 buffer << len;
             }
-            break;
-        case (VT_I1|VT_ARRAY):
-            dt = tagDataType::VARCHAR;
+                break;
+            case (VT_I1 | VT_ARRAY):
+                dt = tagDataType::VARCHAR;
             {
                 const char* s;
                 unsigned int len = v.parray->rgsabound[0].cElements;
-                SafeArrayAccessData(v.parray, (void**)&s);
+                SafeArrayAccessData(v.parray, (void**) &s);
                 if (len <= 8000) {
-                    buffer << dt << (unsigned short)len << collation << (unsigned short)len;
+                    buffer << dt << (unsigned short) len << collation << (unsigned short) len;
                     buffer.Push(s, len);
-                }
-                else {
+                } else {
 
                 }
                 SafeArrayUnaccessData(v.parray);
             }
-            break;
-        case (VT_UI1 | VT_ARRAY):
-        {
-            const unsigned char* s;
-            unsigned int len = v.parray->rgsabound[0].cElements;
-            SafeArrayAccessData(v.parray, (void**)&s);
-            if (v.VtExt == tagVTExt::vteGuid) {
-                dt = tagDataType::UNIQUEIDENTIFIER;
-                b_len = sizeof(GUID);
-                buffer << dt << b_len << b_len;
-                buffer.Push(s, b_len);
-            }
-            else {
-                dt = tagDataType::VARBINARY;
-                if (len <= 8000) {
-                    buffer << dt << (unsigned short)len << (unsigned short)len;
-                    buffer.Push(s, len);
-                }
-                else {
+                break;
+            case (VT_UI1 | VT_ARRAY):
+            {
+                const unsigned char* s;
+                unsigned int len = v.parray->rgsabound[0].cElements;
+                SafeArrayAccessData(v.parray, (void**) &s);
+                if (v.VtExt == tagVTExt::vteGuid) {
+                    dt = tagDataType::UNIQUEIDENTIFIER;
+                    b_len = sizeof (GUID);
+                    buffer << dt << b_len << b_len;
+                    buffer.Push(s, b_len);
+                } else {
+                    dt = tagDataType::VARBINARY;
+                    if (len <= 8000) {
+                        buffer << dt << (unsigned short) len << (unsigned short) len;
+                        buffer.Push(s, len);
+                    } else {
 
+                    }
                 }
+                SafeArrayUnaccessData(v.parray);
             }
-            SafeArrayUnaccessData(v.parray);
-        }
-            break;
-        default:
-            break;
+                break;
+            default:
+                break;
         }
     }
 
@@ -449,23 +461,21 @@ namespace tds
         unsigned short encryptedPasswordLengthInBytes = 0;
         if (rec.credential.UserId.size() || rec.credential.Password.size()) {
             userName = rec.credential.UserId;
-            encryptedPasswordLengthInBytes = (unsigned short)(rec.credential.Password.size() << 1);
-        }
-        else {
+            encryptedPasswordLengthInBytes = (unsigned short) (rec.credential.Password.size() << 1);
+        } else {
             userName = rec.userName;
             if (rec.password.size()) {
                 encryptedPassword = ObfuscatePassword(rec.password);
-                encryptedPasswordLengthInBytes = (unsigned short)encryptedPassword.size();
+                encryptedPasswordLengthInBytes = (unsigned short) encryptedPassword.size();
             }
         }
         unsigned short encryptedChangePasswordLengthInBytes = 0;
         std::vector<unsigned char> encryptedChangePassword;
         if (rec.newSecurePassword.size()) {
-            encryptedChangePasswordLengthInBytes = (unsigned short)(rec.newSecurePassword.size() << 1);
-        }
-        else if (rec.newPassword.size()) {
+            encryptedChangePasswordLengthInBytes = (unsigned short) (rec.newSecurePassword.size() << 1);
+        } else if (rec.newPassword.size()) {
             encryptedChangePassword = ObfuscatePassword(rec.newPassword);
-            encryptedChangePasswordLengthInBytes = (unsigned short)encryptedChangePassword.size();
+            encryptedChangePasswordLengthInBytes = (unsigned short) encryptedChangePassword.size();
         }
 
         SPA::CScopeUQueue sbFeature, sbData;
@@ -474,10 +484,10 @@ namespace tds
         unsigned int length = YUKON_LOG_REC_FIXED_LEN;
         CDBString clientInterfaceName = ApplicationName;
 
-        length += (unsigned int)((rec.hostName.size() + rec.applicationName.size() +
-            rec.serverName.size() + clientInterfaceName.size() +
-            rec.language.size() + rec.database.size() +
-            rec.attachDBFilename.size()) << 1);
+        length += (unsigned int) ((rec.hostName.size() + rec.applicationName.size() +
+                rec.serverName.size() + clientInterfaceName.size() +
+                rec.language.size() + rec.database.size() +
+                rec.attachDBFilename.size()) << 1);
         if (requestedFeatures.GetValue()) {
             length += 4;
         }
@@ -485,9 +495,8 @@ namespace tds
         unsigned short outSSPILength = 0;
         // only add lengths of password and username if not using SSPI or requesting federated authentication info
         if (!rec.useSSPI /*&& !(_connHandler._federatedAuthenticationInfoRequested || _connHandler._federatedAuthenticationRequested)*/) {
-            length += (unsigned int)(userName.size() << 1) + encryptedPasswordLengthInBytes + encryptedChangePasswordLengthInBytes;
-        }
-        else {
+            length += (unsigned int) (userName.size() << 1) + encryptedPasswordLengthInBytes + encryptedChangePasswordLengthInBytes;
+        } else {
             if (rec.useSSPI) {
                 /*
                 // now allocate proper length of buffer, and set length
@@ -591,29 +600,28 @@ namespace tds
         sb << ConnectionID << Option1 << Option2 << TypeFlags << Option3 << ClientTimeZone;
         sb << ClientLCID;
 
-        unsigned short str_len, offset = (unsigned short)YUKON_LOG_REC_FIXED_LEN;
-        str_len = (unsigned short)rec.hostName.size();
+        unsigned short str_len, offset = (unsigned short) YUKON_LOG_REC_FIXED_LEN;
+        str_len = (unsigned short) rec.hostName.size();
         sb << offset << str_len;
         offset += (str_len << 1);
 
         if (!rec.useSSPI /*&& !(_connHandler._federatedAuthenticationInfoRequested || _connHandler._federatedAuthenticationRequested)*/) {
-            str_len = (unsigned short)userName.size();
+            str_len = (unsigned short) userName.size();
             sb << offset << str_len;
             offset += (str_len << 1);
 
             str_len = (encryptedPasswordLengthInBytes >> 1);
             sb << offset << str_len;
             offset += (str_len << 1);
-        }
-        else {
+        } else {
             SPA::UINT64 not_used = 0;
             sb << not_used;
         }
-        str_len = (unsigned short)rec.applicationName.size();
+        str_len = (unsigned short) rec.applicationName.size();
         sb << offset << str_len;
         offset += (str_len << 1);
 
-        str_len = (unsigned short)rec.serverName.size();
+        str_len = (unsigned short) rec.serverName.size();
         sb << offset << str_len;
         offset += (str_len << 1);
 
@@ -623,83 +631,79 @@ namespace tds
             str_len = 4;
             sb << str_len;
             offset += 4;
-        }
-        else {
+        } else {
             str_len = 0;
             // unused
             sb << str_len;
         }
 
-        str_len = (unsigned short)clientInterfaceName.size();
+        str_len = (unsigned short) clientInterfaceName.size();
         sb << offset << str_len;
         offset += (str_len << 1);
 
-        str_len = (unsigned short)rec.language.size();
+        str_len = (unsigned short) rec.language.size();
         sb << offset << str_len;
         offset += (str_len << 1);
 
-        str_len = (unsigned short)rec.database.size();
+        str_len = (unsigned short) rec.database.size();
         sb << offset << str_len;
         offset += (str_len << 1);
 
         //ClientID
         assert(TDS_NIC_ADDRESS.size() == 6);
-        sb->Push(TDS_NIC_ADDRESS.data(), (unsigned int)TDS_NIC_ADDRESS.size());
+        sb->Push(TDS_NIC_ADDRESS.data(), (unsigned int) TDS_NIC_ADDRESS.size());
 
         sb << offset;
         if (rec.useSSPI) {
             sb << outSSPILength;
             offset += outSSPILength;
-        }
-        else {
+        } else {
             str_len = 0;
             sb << str_len;
         }
 
-        str_len = (unsigned short)rec.attachDBFilename.size();
+        str_len = (unsigned short) rec.attachDBFilename.size();
         sb << offset << str_len;
         offset += (str_len << 1);
 
         //reset password offset
-        str_len = (unsigned short)(encryptedChangePasswordLengthInBytes >> 1);
+        str_len = (unsigned short) (encryptedChangePasswordLengthInBytes >> 1);
         sb << offset << str_len;
 
         // reserved for chSSPI
-        sb << (unsigned int)0;
+        sb << (unsigned int) 0;
 
         // write variable length portion
-        sb->Push((const unsigned char*)rec.hostName.c_str(), (unsigned int)(rec.hostName.size() << 1));
+        sb->Push((const unsigned char*) rec.hostName.c_str(), (unsigned int) (rec.hostName.size() << 1));
 
         // if we are using SSPI, do not send over username/password, since we will use SSPI instead
         // same behavior as Luxor
         if (!rec.useSSPI /*&& !(_connHandler._federatedAuthenticationInfoRequested || _connHandler._federatedAuthenticationRequested)*/) {
-            sb->Push((const unsigned char*)userName.c_str(), (unsigned int)(userName.size() << 1));
+            sb->Push((const unsigned char*) userName.c_str(), (unsigned int) (userName.size() << 1));
             if (rec.credential.UserId.size() || rec.credential.Password.size()) {
-                sb->Push((const unsigned char*)rec.credential.Password.c_str(), (unsigned int)(rec.credential.Password.size() << 1));
-            }
-            else {
+                sb->Push((const unsigned char*) rec.credential.Password.c_str(), (unsigned int) (rec.credential.Password.size() << 1));
+            } else {
                 sb->Push(encryptedPassword.data(), encryptedPasswordLengthInBytes);
             }
         }
-        sb->Push((const unsigned char*)rec.applicationName.c_str(), (unsigned int)(rec.applicationName.size() << 1));
-        sb->Push((const unsigned char*)rec.serverName.c_str(), (unsigned int)(rec.serverName.size() << 1));
+        sb->Push((const unsigned char*) rec.applicationName.c_str(), (unsigned int) (rec.applicationName.size() << 1));
+        sb->Push((const unsigned char*) rec.serverName.c_str(), (unsigned int) (rec.serverName.size() << 1));
         if (requestedFeatures.GetValue()) {
             sb << feOffset;
         }
-        sb->Push((const unsigned char*)clientInterfaceName.c_str(), (unsigned int)(clientInterfaceName.size() << 1));
-        sb->Push((const unsigned char*)rec.language.c_str(), (unsigned int)(rec.language.size() << 1));
-        sb->Push((const unsigned char*)rec.database.c_str(), (unsigned int)(rec.database.size() << 1));
+        sb->Push((const unsigned char*) clientInterfaceName.c_str(), (unsigned int) (clientInterfaceName.size() << 1));
+        sb->Push((const unsigned char*) rec.language.c_str(), (unsigned int) (rec.language.size() << 1));
+        sb->Push((const unsigned char*) rec.database.c_str(), (unsigned int) (rec.database.size() << 1));
         // send over SSPI data if we are using SSPI
         if (rec.useSSPI) {
-            sb->Push(outSSPIBuff.data(), (unsigned int)outSSPIBuff.size());
+            sb->Push(outSSPIBuff.data(), (unsigned int) outSSPIBuff.size());
         }
-        sb->Push((const unsigned char*)rec.attachDBFilename.c_str(), (unsigned int)(rec.attachDBFilename.size() << 1));
+        sb->Push((const unsigned char*) rec.attachDBFilename.c_str(), (unsigned int) (rec.attachDBFilename.size() << 1));
         if (!rec.useSSPI/* && !(_connHandler._federatedAuthenticationInfoRequested || _connHandler._federatedAuthenticationRequested)*/) {
             if (rec.newSecurePassword.size()) {
-                sb->Push((const unsigned char*)rec.newSecurePassword.c_str(), (unsigned int)(rec.newSecurePassword.size() << 1));
-            }
-            else {
-                sb->Push(encryptedChangePassword.data(), (unsigned int)encryptedChangePasswordLengthInBytes);
+                sb->Push((const unsigned char*) rec.newSecurePassword.c_str(), (unsigned int) (rec.newSecurePassword.size() << 1));
+            } else {
+                sb->Push(encryptedChangePassword.data(), (unsigned int) encryptedChangePasswordLengthInBytes);
             }
         }
         if (requestedFeatures.GetValue()) {
@@ -738,77 +742,104 @@ namespace tds
             sb << TOKEN_TERMINATOR;
              */
         }
-        PacketHeader* pHeader = (PacketHeader*)sb->GetBuffer();
-        pHeader->Length = ChangeEndian((Packet_Length)sb->GetSize());
+        PacketHeader* pHeader = (PacketHeader*) sb->GetBuffer();
+        pHeader->Length = ChangeEndian((Packet_Length) sb->GetSize());
         m_vInfo.clear();
         m_timeout = rec.timeout;
         return Send(sb->GetBuffer(), sb->GetSize(), m_timeout);
     }
 
-    int CSqlBatch::SendTDSMessage(CDBVariantArray& vParam) {
-        assert(vParam.size());
-        assert(m_sqlPrepare.size());
+    int CSqlBatch::SendTDSMessage(CDBVariantArray & vParam) {
+        if (!vParam.size()) {
+            return SPA::Odbc::ER_NO_PARAMETER_SPECIFIED;
+        }
         unsigned int parameters = m_inputs + m_outputs;
-        assert(parameters);
-        assert(0 == (vParam.size() % parameters));
+        if (!m_sqlPrepare.size() || !parameters) {
+            return SPA::Odbc::ER_BAD_PARAMETER_COLUMN_SIZE;
+        }
+        if ((vParam.size() % parameters)) {
+            return SPA::Odbc::ER_BAD_PARAMETER_COLUMN_SIZE;
+        }
         size_t cycles = vParam.size() / parameters;
-        CDBString sql = m_sqlPrepare;
-        for (size_t n = 1; n < cycles; ++n) {
-            sql.push_back(';');
-            sql += m_sqlPrepare;
+        CDBString sql;
+        bool stored = m_procName.size() ? true : false;
+        if (stored) {
+            if (m_catalogSchema.size()) {
+                sql = m_catalogSchema;
+                sql.push_back('.');
+            }
+            sql += m_procName;
+        } else {
+            sql = m_sqlPrepare;
+            for (size_t n = 1; n < cycles; ++n) {
+                sql.push_back(';');
+                sql += m_sqlPrepare;
+            }
         }
         SPA::CScopeUQueue sb;
         //Query packet
         TransactionDescriptor td(m_tc.NewValue);
         sb << td;
+        unsigned short p_name_length;
         if (m_procName.size()) {
-
-        }
-        else {
-            unsigned short p_name_length = USHORT_NULL_LEN;
+            p_name_length = (unsigned short) sql.size();
+            sb << p_name_length;
+            sb->Push(sql.c_str(), p_name_length);
+        } else {
+            p_name_length = USHORT_NULL_LEN;
             sb << p_name_length;
             unsigned short s_proc_id = 10; //sp_executesql
             sb << s_proc_id;
         }
-        unsigned short optionFlags = 0x2; //no meta data
+        unsigned short optionFlags = 0; //no meta data
         sb << optionFlags;
 
-        unsigned char name_len = 0;
-        sb << name_len;
-        unsigned char status = 0;
-        sb << status;
-        tagDataType dt = tagDataType::NVARCHAR;
-        unsigned short max_len = (unsigned short)(sql.size() << 1);
+        size_t len;
         Collation collation;
-        collation.CodePage = (unsigned short)GetSystemDefaultLCID();
+        collation.CodePage = (unsigned short) GetSystemDefaultLCID();
         collation.Flags.fIgnoreCase = 1;
         collation.Flags.fIgnoreWidth = 1;
         collation.Flags.fIgnoreKana = 1;
         collation.CharsetId = 52;
-
-        sb << dt << max_len << collation << max_len;
-        sb->Push(sql.c_str(), (unsigned int)sql.size());
-
-        //
-        name_len = 0;
-        status = 0;
-        sb << name_len << status << dt;
-        CDBString p;
         std::vector<CDBString> vP;
-        int res = ToString(vParam, p, vP);
-        size_t len = p.size();
-        max_len = (unsigned short)(len << 1);
-        sb << max_len << collation << max_len;
-        sb->Push(p.c_str(), (unsigned int)len);
+        if (!m_procName.size()) {
+            unsigned char name_len = 0;
+            sb << name_len;
+            unsigned char status = 0;
+            sb << status;
+            tagDataType dt = tagDataType::NVARCHAR;
+            unsigned short max_len = (unsigned short) (sql.size() << 1);
 
+            sb << dt << max_len << collation << max_len;
+            sb->Push(sql.c_str(), (unsigned int) sql.size());
+
+            //
+            name_len = 0;
+            status = 0;
+            sb << name_len << status << dt;
+            CDBString p;
+            int res = ToString(vParam, p, vP);
+            len = p.size();
+            max_len = (unsigned short) (len << 1);
+            sb << max_len << collation << max_len;
+            sb->Push(p.c_str(), (unsigned int) len);
+        } else {
+            for (auto it = m_vParamInfo.begin(), end = m_vParamInfo.end(); it != end; ++it) {
+                vP.push_back(it->ParameterName);
+            }
+        }
         //
         len = vParam.size();
         for (size_t n = 0; n < len; ++n) {
-            ToParameter(collation, vParam[n], vP[n], *sb);
+            SPA::UDB::tagParameterDirection pd = SPA::UDB::tagParameterDirection::pdInput;
+            if (stored) {
+                pd = m_vParamInfo[n].Direction;
+            }
+            ToParameter(stored, collation, vParam[n], vP[n], *sb, pd);
         }
 
         PacketHeader ph(tagPacketType::ptRpc, 1);
-        ph.Length = (Packet_Length)(sb->GetSize() + sizeof(ph));
+        ph.Length = (Packet_Length) (sb->GetSize() + sizeof (ph));
         ph.Length = ChangeEndian(ph.Length);
 
         SPA::CScopeUQueue sbEnd;
@@ -817,38 +848,72 @@ namespace tds
         return Send(sbEnd->GetBuffer(), sbEnd->GetSize(), m_timeout);
     }
 
-    int CSqlBatch::SendTDSMessage(const char16_t *sql) {
+    int CSqlBatch::SendTDSMessage(const char16_t * sql) {
         SPA::CScopeUQueue sb;
         PacketHeader ph(tagPacketType::ptBatch, 1);
         //Query packet
-		TransactionDescriptor td(m_tc.NewValue);
+        TransactionDescriptor td(m_tc.NewValue);
         sb << ph << td;
         sb->Push((const unsigned char*) sql, (unsigned int) (SPA::GetLen(sql) << 1));
-        PacketHeader* pHeader = (PacketHeader*)sb->GetBuffer();
-        pHeader->Length = ChangeEndian((Packet_Length)sb->GetSize());
+        PacketHeader* pHeader = (PacketHeader*) sb->GetBuffer();
+        pHeader->Length = ChangeEndian((Packet_Length) sb->GetSize());
         return Send(sb->GetBuffer(), sb->GetSize(), m_timeout);
     }
 
-	bool CSqlBatch::ParseDoneInProc() {
-		if (m_buffer.GetSize() >= sizeof(m_dip)) {
-			m_buffer >> m_dip;
-			m_tt = tagTokenType::ttZero;
-			return true;
-		}
-		return false;
-	}
+    bool CSqlBatch::ParseDoneInProc() {
+        if (m_buffer.GetSize() >= sizeof (m_dip)) {
+            m_buffer >> m_dip;
+            m_tt = tagTokenType::ttZero;
+            return true;
+        }
+        return false;
+    }
 
-	bool CSqlBatch::ParseReturnStatus() {
-		if (m_buffer.GetSize() >= sizeof(m_rs)) {
-			m_buffer >> m_rs;
-			m_tt = tagTokenType::ttZero;
-			return true;
-		}
-		return false;
-	}
+    bool CSqlBatch::ParseReturnStatus() {
+        if (m_buffer.GetSize() >= sizeof (m_rs)) {
+            m_buffer >> m_rs;
+            m_tt = tagTokenType::ttZero;
+            return true;
+        }
+        return false;
+    }
 
-    bool CSqlBatch::ParseCollation(CollationChange& cc) {
-        if (m_buffer.GetSize() >= sizeof(cc) + sizeof(unsigned char) + sizeof(unsigned char)) {
+    bool CSqlBatch::ParseReturnValue() {
+        unsigned short ordinal = *(unsigned short*) m_buffer.GetBuffer();
+        unsigned char b_len = *m_buffer.GetBuffer(sizeof (ordinal));
+        unsigned char status;
+        unsigned int user_type;
+        unsigned char flags;
+        unsigned int len = sizeof (ordinal) + sizeof (b_len);
+        if (m_buffer.GetSize() <= len) {
+            return false;
+        }
+        len += (b_len << 1) + sizeof (status) + sizeof (user_type) + sizeof (flags);
+        if (m_buffer.GetSize() <= len) {
+            return false;
+        }
+        tagDataType dt;
+        len += sizeof (dt);
+        if (m_buffer.GetSize() <= len) {
+            return false;
+        }
+        unsigned char bytes = *m_buffer.GetBuffer(len), precision;
+        len += sizeof (bytes) + sizeof (precision) + bytes;
+        if (m_buffer.GetSize() < len) {
+            return false;
+        }
+        m_buffer.Pop((unsigned int) 3);
+        const char16_t* pname = (const char16_t*) m_buffer.GetBuffer();
+        CDBString pName(pname, pname + b_len);
+        m_buffer.Pop((unsigned int) (b_len << 1));
+        m_buffer >> status >> user_type >> flags >> dt >> bytes >> precision;
+
+
+        return false;
+    }
+
+    bool CSqlBatch::ParseCollation(CollationChange & cc) {
+        if (m_buffer.GetSize() >= sizeof (cc) + sizeof (unsigned char) + sizeof (unsigned char)) {
             unsigned char b;
             m_buffer >> b;
             assert(b == 5);
@@ -856,8 +921,7 @@ namespace tds
             m_buffer >> b;
             if (b) {
                 m_buffer >> cc.OldValue;
-            }
-            else {
+            } else {
                 Collation initial;
                 cc.OldValue = initial;
             }
@@ -867,36 +931,36 @@ namespace tds
         return false;
     }
 
-    void CSqlBatch::ParseStringChange(tagEnvchangeType type, StringEventChange& sec) {
+    void CSqlBatch::ParseStringChange(tagEnvchangeType type, StringEventChange & sec) {
         unsigned char b;
         m_buffer >> b;
         sec.Type = type;
-        const char16_t* str = (const char16_t*)m_buffer.GetBuffer();
+        const char16_t* str = (const char16_t*) m_buffer.GetBuffer();
         sec.NewValue.assign(str, str + b);
-        m_buffer.Pop(((unsigned int)b) << 1);
+        m_buffer.Pop(((unsigned int) b) << 1);
         m_buffer >> b;
         if (b) {
-            str = (const char16_t*)m_buffer.GetBuffer();
+            str = (const char16_t*) m_buffer.GetBuffer();
             sec.OldValue.assign(str, str + b);
-            m_buffer.Pop(((unsigned int)b) << 1);
+            m_buffer.Pop(((unsigned int) b) << 1);
         }
     }
 
     bool CSqlBatch::ParseInfo() {
         if (m_buffer.GetSize() > 2) {
-            unsigned short len = *(unsigned short*)m_buffer.GetBuffer();
-            if (len + sizeof(len) <= m_buffer.GetSize()) {
+            unsigned short len = *(unsigned short*) m_buffer.GetBuffer();
+            if (len + sizeof (len) <= m_buffer.GetSize()) {
                 TokenInfo ti;
                 m_buffer >> len >> ti.SQLErrorNumber >> ti.State >> ti.Class;
                 m_buffer >> len;
-                const char16_t* str = (const char16_t*)m_buffer.GetBuffer();
+                const char16_t* str = (const char16_t*) m_buffer.GetBuffer();
                 ti.ErrorMessage.assign(str, str + len);
-                m_buffer.Pop(((unsigned int)len) << 1);
+                m_buffer.Pop(((unsigned int) len) << 1);
                 unsigned char byteLen;
                 m_buffer >> byteLen;
-                str = (const char16_t*)m_buffer.GetBuffer();
+                str = (const char16_t*) m_buffer.GetBuffer();
                 ti.ServerName.assign(str, str + byteLen);
-                m_buffer.Pop(((unsigned int)byteLen) << 1);
+                m_buffer.Pop(((unsigned int) byteLen) << 1);
                 m_buffer >> ti.ProcessNameLength >> ti.LineNumber;
                 m_vInfo.push_back(ti);
                 m_tt = tagTokenType::ttZero;
@@ -1276,7 +1340,7 @@ namespace tds
                 if (prop_bytes > 2) {
                     m_buffer.Pop(prop_bytes - 2, 2); //skip unknown properties
                 }
-                return ParseData(dt, cinfo);
+                return ParseData(dt, cinfo->ColumnSize == USHORT_NULL_LEN);
             case tagDataType::CHAR:
             case tagDataType::VARCHAR:
             case tagDataType::NCHAR:
@@ -1293,7 +1357,7 @@ namespace tds
                 m_buffer >> max_len;
                 max_len = (unsigned short) bytes;
                 m_buffer.Insert(&max_len, 0);
-                return ParseData(dt, cinfo);
+                return ParseData(dt, cinfo->ColumnSize == USHORT_NULL_LEN);
             }
                 break;
             case tagDataType::TIMEN:
@@ -1371,7 +1435,7 @@ namespace tds
                     } else {
                         assert(false);
                     }
-                    if (!ParseData(dt, cinfo)) {
+                    if (!ParseData(dt, true)) {
                         return false;
                     }
                     break;
@@ -1387,10 +1451,11 @@ namespace tds
                     } else {
                         assert(false);
                     }
-                    if (!ParseData(dt, cinfo)) {
+                    if (!ParseData(dt, true)) {
                         return false;
                     }
                     break;
+                case tagDataType::UDT:
                 case tagDataType::XML:
                 {
                     unsigned int len = *(unsigned int*) m_buffer.GetBuffer();
@@ -1399,30 +1464,17 @@ namespace tds
                         m_buffer.Pop(4);
                         continue;
                     }
-                    if (!ParseData(dt, cinfo)) {
-                        return false;
-                    }
-                }
-                    break;
-                case tagDataType::UDT:
-                {
-                    unsigned int len = *(unsigned int*) m_buffer.GetBuffer();
-                    if (len == UINT_NULL_LEN) {
-                        m_out << (VARTYPE) VT_NULL;
-                        m_buffer.Pop(4);
-                        continue;
-                    }
-                    if (!ParseData(dt, cinfo)) {
+                    if (!ParseData(dt, true)) {
                         return false;
                     }
                 }
                     break;
                 case tagDataType::NVARCHAR:
                 case tagDataType::NCHAR:
-                case tagDataType::BINARY:
                 case tagDataType::CHAR:
-                case tagDataType::VARBINARY:
                 case tagDataType::VARCHAR:
+                case tagDataType::VARBINARY:
+                case tagDataType::BINARY:
                     if (cinfo->ColumnSize == VAR_MAX) {
                         unsigned int len = *(unsigned int*) m_buffer.GetBuffer();
                         if (len == UINT_NULL_LEN) {
@@ -1438,7 +1490,7 @@ namespace tds
                             continue;
                         }
                     }
-                    if (!ParseData(dt, cinfo)) {
+                    if (!ParseData(dt, cinfo->ColumnSize == VAR_MAX)) {
                         return false;
                     }
                     break;
@@ -1622,158 +1674,150 @@ namespace tds
                 break;
             case tagDataType::DATETIME:
             {
-				unsigned int us;
+                unsigned int us;
                 DateTime dt;
                 m_buffer >> dt;
-				std::tm tm;
-				ToDateTime(dt, tm.tm_year, tm.tm_mon, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec, us);
-				SPA::UDateTime udt(tm, us);
+                std::tm tm;
+                ToDateTime(dt, tm.tm_year, tm.tm_mon, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec, us);
+                SPA::UDateTime udt(tm, us);
                 m_out << (VARTYPE) VT_DATE << udt.time;
             }
                 break;
             case tagDataType::DATETIMEOFFSETN:
             {
-				short offset;
-				unsigned int us;
-				std::tm tm;
-				Date dt;
-				assert(scale <= 7);
-				if (scale >= 5 && scale <= 7) {
-					unsigned int low;
-					unsigned char high;
-					m_buffer >> low >> high;
-					SPA::UINT64 time = high;
-					time <<= 32;
-					time += low;
-					m_buffer >> dt;
-					ToDateTime(dt, time, scale, tm.tm_year, tm.tm_mon, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec, us);
-				}
-				else if (scale == 3 || scale == 4) {
-					unsigned int time;
-					m_buffer >> time >> dt;
-					ToDateTime(dt, time, scale, tm.tm_year, tm.tm_mon, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec, us);
-				}
-				else {
-					unsigned short low;
-					unsigned char high;
-					m_buffer >> low >> high >> dt;
-					unsigned int time = high;
-					time <<= 16;
-					time += low;
-					ToDateTime(dt, time, scale, tm.tm_year, tm.tm_mon, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec, us);
-				}
-				char datetime[32] = { 0 };
-				tm.tm_year -= 1900;
-				tm.tm_mon -= 1;
-				SPA::UDateTime udt(tm, us);
-				udt.ToDBString(datetime, sizeof(datetime));
-				m_buffer >> offset;
-				bool neg = false;
-				if (offset < 0) {
-					offset = (-offset);
-					neg = true;
-				}
-				char os[8] = { 0 };
+                short offset;
+                unsigned int us;
+                std::tm tm;
+                Date dt;
+                assert(scale <= 7);
+                if (scale >= 5 && scale <= 7) {
+                    unsigned int low;
+                    unsigned char high;
+                    m_buffer >> low >> high;
+                    SPA::UINT64 time = high;
+                    time <<= 32;
+                    time += low;
+                    m_buffer >> dt;
+                    ToDateTime(dt, time, scale, tm.tm_year, tm.tm_mon, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec, us);
+                } else if (scale == 3 || scale == 4) {
+                    unsigned int time;
+                    m_buffer >> time >> dt;
+                    ToDateTime(dt, time, scale, tm.tm_year, tm.tm_mon, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec, us);
+                } else {
+                    unsigned short low;
+                    unsigned char high;
+                    m_buffer >> low >> high >> dt;
+                    unsigned int time = high;
+                    time <<= 16;
+                    time += low;
+                    ToDateTime(dt, time, scale, tm.tm_year, tm.tm_mon, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec, us);
+                }
+                char datetime[32] = {0};
+                tm.tm_year -= 1900;
+                tm.tm_mon -= 1;
+                SPA::UDateTime udt(tm, us);
+                udt.ToDBString(datetime, sizeof (datetime));
+                m_buffer >> offset;
+                bool neg = false;
+                if (offset < 0) {
+                    offset = (-offset);
+                    neg = true;
+                }
+                char os[8] = {0};
 #ifdef WIN32_64
-				int len = ::sprintf_s(os, sizeof(os), " %s%02d:%02d", neg ? "-" : "+", offset / 60, (offset % 60));
+                int len = ::sprintf_s(os, sizeof (os), " %s%02d:%02d", neg ? "-" : "+", offset / 60, (offset % 60));
 #else
-				int len ::sprintf(os, " %s%02d:%02d", neg ? "-" : "+", offset / 60, (offset % 60));
+                int len::sprintf(os, " %s%02d:%02d", neg ? "-" : "+", offset / 60, (offset % 60));
 #endif
-				unsigned int len0 = (unsigned int) ::strlen(datetime);
-				m_out << (VARTYPE)(VT_ARRAY | VT_I1);
-				m_out << (len0 + (unsigned int)len);
-				m_out.Push((const unsigned char*)datetime, len0);
-				m_out.Push((const unsigned char*)os, (unsigned int)len);
+                unsigned int len0 = (unsigned int) ::strlen(datetime);
+                m_out << (VARTYPE) (VT_ARRAY | VT_I1);
+                m_out << (len0 + (unsigned int) len);
+                m_out.Push((const unsigned char*) datetime, len0);
+                m_out.Push((const unsigned char*) os, (unsigned int) len);
             }
                 break;
             case tagDataType::DATETIME2N:
             case tagDataType::DATETIMN:
-			{
-				unsigned int us;
-				std::tm tm;
-				tm.tm_isdst = -1;
-				tm.tm_wday = 0;
-				tm.tm_yday = 0;
-				if (bytes == 4 && scale == 0) { //smalldatetime
-					unsigned short days, minutes;
-					m_buffer >> days >> minutes;
-					unsigned int time = minutes;
-					time *= 18000; //60 * 300
-					DateTime dt;
-					dt.Day = days;
-					dt.SecCount = time;
-					ToDateTime(dt, tm.tm_year, tm.tm_mon, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec, us);
-				}
-				else if (bytes == 8 && scale == 0) { //datetime
-					DateTime dt;
-					m_buffer >> dt;
-					ToDateTime(dt, tm.tm_year, tm.tm_mon, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec, us);
-				}
-				else {
-					Date dt;
-					assert(scale <= 7);
-					if (scale >= 5 && scale <= 7) {
-						unsigned int low;
-						unsigned char high;
-						m_buffer >> low >> high;
-						SPA::UINT64 time = high;
-						time <<= 32;
-						time += low;
-						m_buffer >> dt;
-						ToDateTime(dt, time, scale, tm.tm_year, tm.tm_mon, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec, us);
-					}
-					else if (scale == 3 || scale == 4) {
-						unsigned int time;
-						m_buffer >> time >> dt;
-						ToDateTime(dt, time, scale, tm.tm_year, tm.tm_mon, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec, us);
-					}
-					else {
-						unsigned short low;
-						unsigned char high;
-						m_buffer >> low >> high >> dt;
-						unsigned int time = high;
-						time <<= 16;
-						time += low;
-						ToDateTime(dt, time, scale, tm.tm_year, tm.tm_mon, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec, us);
-					}
-				}
-				tm.tm_year -= 1900;
-				tm.tm_mon -= 1;
-				SPA::UDateTime udt(tm, us);
-				m_out << (VARTYPE)VT_DATE << udt.time;
-			}
+            {
+                unsigned int us;
+                std::tm tm;
+                tm.tm_isdst = -1;
+                tm.tm_wday = 0;
+                tm.tm_yday = 0;
+                if (bytes == 4 && scale == 0) { //smalldatetime
+                    unsigned short days, minutes;
+                    m_buffer >> days >> minutes;
+                    unsigned int time = minutes;
+                    time *= 18000; //60 * 300
+                    DateTime dt;
+                    dt.Day = days;
+                    dt.SecCount = time;
+                    ToDateTime(dt, tm.tm_year, tm.tm_mon, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec, us);
+                } else if (bytes == 8 && scale == 0) { //datetime
+                    DateTime dt;
+                    m_buffer >> dt;
+                    ToDateTime(dt, tm.tm_year, tm.tm_mon, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec, us);
+                } else {
+                    Date dt;
+                    assert(scale <= 7);
+                    if (scale >= 5 && scale <= 7) {
+                        unsigned int low;
+                        unsigned char high;
+                        m_buffer >> low >> high;
+                        SPA::UINT64 time = high;
+                        time <<= 32;
+                        time += low;
+                        m_buffer >> dt;
+                        ToDateTime(dt, time, scale, tm.tm_year, tm.tm_mon, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec, us);
+                    } else if (scale == 3 || scale == 4) {
+                        unsigned int time;
+                        m_buffer >> time >> dt;
+                        ToDateTime(dt, time, scale, tm.tm_year, tm.tm_mon, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec, us);
+                    } else {
+                        unsigned short low;
+                        unsigned char high;
+                        m_buffer >> low >> high >> dt;
+                        unsigned int time = high;
+                        time <<= 16;
+                        time += low;
+                        ToDateTime(dt, time, scale, tm.tm_year, tm.tm_mon, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec, us);
+                    }
+                }
+                tm.tm_year -= 1900;
+                tm.tm_mon -= 1;
+                SPA::UDateTime udt(tm, us);
+                m_out << (VARTYPE) VT_DATE << udt.time;
+            }
                 break;
             case tagDataType::TIMEN:
             {
-				unsigned int us;
-				assert(scale <= 7);
-				std::tm tm;
-				::memset(&tm, 0, sizeof(tm));
-				if (scale >= 5 && scale <= 7) {
-					unsigned int low;
-					unsigned char high;
-					m_buffer >> low >> high;
-					SPA::UINT64 time = high;
-					time <<= 32;
-					time += low;
-					ToTime(time, scale, tm.tm_hour, tm.tm_min, tm.tm_sec, us);
-				}
-				else if (scale == 3 || scale == 4) {
-					unsigned int time;
-					m_buffer >> time;
-					ToTime(time, scale, tm.tm_hour, tm.tm_min, tm.tm_sec, us);
-				}
-				else {
-					unsigned short low;
-					unsigned char high;
-					m_buffer >> low >> high;
-					unsigned int time = high;
-					time <<= 16;
-					time += low;
-					ToTime(time, scale, tm.tm_hour, tm.tm_min, tm.tm_sec, us);
-				}
-				SPA::UDateTime udt(tm, us);
-				m_out << (VARTYPE)VT_DATE << udt.time;
+                unsigned int us;
+                assert(scale <= 7);
+                std::tm tm;
+                ::memset(&tm, 0, sizeof (tm));
+                if (scale >= 5 && scale <= 7) {
+                    unsigned int low;
+                    unsigned char high;
+                    m_buffer >> low >> high;
+                    SPA::UINT64 time = high;
+                    time <<= 32;
+                    time += low;
+                    ToTime(time, scale, tm.tm_hour, tm.tm_min, tm.tm_sec, us);
+                } else if (scale == 3 || scale == 4) {
+                    unsigned int time;
+                    m_buffer >> time;
+                    ToTime(time, scale, tm.tm_hour, tm.tm_min, tm.tm_sec, us);
+                } else {
+                    unsigned short low;
+                    unsigned char high;
+                    m_buffer >> low >> high;
+                    unsigned int time = high;
+                    time <<= 16;
+                    time += low;
+                    ToTime(time, scale, tm.tm_hour, tm.tm_min, tm.tm_sec, us);
+                }
+                SPA::UDateTime udt(tm, us);
+                m_out << (VARTYPE) VT_DATE << udt.time;
             }
                 break;
             case tagDataType::FLOAT:
@@ -1792,8 +1836,8 @@ namespace tds
                 UINT64 dt = 0;
                 Date date;
                 m_buffer >> date;
-				int year, month, month_day;
-				ToDate(date, year, month, month_day);
+                int year, month, month_day;
+                ToDate(date, year, month, month_day);
                 m_out << (VARTYPE) VT_DATE << dt;
             }
                 break;
@@ -1804,7 +1848,7 @@ namespace tds
         return true;
     }
 
-    bool CSqlBatch::ParseData(tagDataType dt, CDBColumnInfo * cinfo) {
+    bool CSqlBatch::ParseData(tagDataType dt, bool max) {
         switch (dt) {
             case tagDataType::XML:
                 if (m_out.GetSize()) {
@@ -1816,7 +1860,7 @@ namespace tds
                 m_buffer >> m_lenLarge >> remain;
                 assert(m_lenLarge == UNKNOWN_XML_LEN);
                 assert(remain > 0 && remain <= DEFAULT_PACKET_SIZE - sizeof (m_lenLarge) - sizeof (remain));
-                m_out << cinfo->DataType;
+                m_out << (VARTYPE) VT_BSTR;
                 bool all_fetched = (m_buffer.GetSize() >= (remain + sizeof (remain)));
                 if (all_fetched) {
                     m_out << remain;
@@ -1855,7 +1899,7 @@ namespace tds
                 unsigned int image_bytes;
                 m_buffer >> image_bytes;
                 m_lenLarge = image_bytes;
-                m_out << cinfo->DataType << (unsigned int) m_lenLarge;
+                m_out << GetVarType(dt, 0) << (unsigned int) m_lenLarge;
                 if (image_bytes > m_buffer.GetSize()) {
                     image_bytes = m_buffer.GetSize();
                 }
@@ -1878,7 +1922,7 @@ namespace tds
                 unsigned int remain;
                 m_buffer >> m_lenLarge >> remain;
                 assert(remain <= DEFAULT_PACKET_SIZE - sizeof (m_lenLarge) - sizeof (remain));
-                m_out << cinfo->DataType << (unsigned int) m_lenLarge;
+                m_out << GetVarType(dt, 0) << (unsigned int) m_lenLarge;
                 if (!remain) {
                     return true; //no data
                 }
@@ -1903,7 +1947,7 @@ namespace tds
             case tagDataType::VARCHAR:
             case tagDataType::BINARY:
             case tagDataType::VARBINARY:
-                if (cinfo->ColumnSize == 0xffff) {
+                if (max) {
                     if (m_out.GetSize()) {
                         std::cout << "Blob size: " << m_out.GetSize() - 6 << "\n";
                         m_out.SetSize(0);
@@ -1911,7 +1955,7 @@ namespace tds
                     unsigned int remain;
                     m_buffer >> m_lenLarge >> remain;
                     assert(remain > 0 && remain <= DEFAULT_PACKET_SIZE - sizeof (m_lenLarge) - sizeof (remain));
-                    m_out << cinfo->DataType << (unsigned int) m_lenLarge;
+                    m_out << GetVarType(dt, 0) << (unsigned int) m_lenLarge;
                     m_out.Push(m_buffer.GetBuffer(), remain);
                     m_buffer.Pop(remain);
                     m_lenLarge -= remain;
@@ -1992,7 +2036,7 @@ namespace tds
                 case tagDataType::VARCHAR:
                 case tagDataType::NVARCHAR:
                 case tagDataType::NCHAR:
-                    if (!ParseData(dt, cinfo)) {
+                    if (!ParseData(dt, cinfo->ColumnSize == VAR_MAX)) {
                         return false;
                     }
                     break;
@@ -2044,205 +2088,217 @@ namespace tds
     }
 
     bool CSqlBatch::ParseLoginAck() {
-        unsigned short len = *(unsigned short*)m_buffer.GetBuffer();
-        if (len + sizeof(len) > m_buffer.GetSize()) {
+        unsigned short len = *(unsigned short*) m_buffer.GetBuffer();
+        if (len + sizeof (len) > m_buffer.GetSize()) {
             return false;
         }
         unsigned char b;
         m_buffer >> len >> b >> m_LoginAck.Tds_Version;
         assert(b == 1); //Interface
         m_buffer >> b; //byte length
-        const char16_t* str = (const char16_t*)m_buffer.GetBuffer();
+        const char16_t* str = (const char16_t*) m_buffer.GetBuffer();
         m_LoginAck.ServerName.assign(str, str + b);
-        m_buffer.Pop((unsigned int)(m_LoginAck.ServerName.size() << 1));
+        m_buffer.Pop((unsigned int) (m_LoginAck.ServerName.size() << 1));
         m_buffer >> m_LoginAck.ServerVersion;
         m_tt = tagTokenType::ttZero;
         return true;
     }
 
-	bool CSqlBatch::ParseStream() {
-		if (m_lenLarge == UNKNOWN_XML_LEN) {
-			unsigned int len;
-			m_buffer >> len;
-			assert(len > 0 && len <= DEFAULT_PACKET_SIZE - 12);
-			assert(m_buffer.GetSize() >= len);
-			m_out.Push(m_buffer.GetBuffer(), len);
-			m_buffer.Pop(len);
-			if (m_buffer.GetSize() >= sizeof(len)) {
-				len = *(unsigned int*)m_buffer.GetBuffer();
-				if (len == 0) {
-					m_buffer.Pop(sizeof(len));
-					m_lenLarge = 0;
-					++m_posCol;
-					if (m_posCol == m_vCol.size()) {
-						m_posCol = INVALID_COL;
-						m_tt = tagTokenType::ttZero;
-					}
-				}
-				else {
-					return false;
-				}
-			}
-			else {
-				return false;
-			}
-		}
-		else {
-			if (m_lenLarge && (m_endLarge == MAX_IMAGE_TEXT_LEN || m_endLarge == MAX_NTEXT_LEN)) {
-				unsigned int len = *(unsigned int*)m_buffer.GetBuffer();
-				len = m_buffer.GetSize();
-				if (len > m_lenLarge) {
-					len = (unsigned int)m_lenLarge;
-				}
-				m_out.Push(m_buffer.GetBuffer(), len);
-				m_buffer.Pop(len);
-				m_lenLarge -= len;
-				if (!m_lenLarge) {
-					assert(m_endLarge == MAX_IMAGE_TEXT_LEN || m_endLarge == MAX_NTEXT_LEN);
-					m_endLarge = 0;
-					++m_posCol;
-					if (m_posCol == m_vCol.size()) {
-						m_posCol = INVALID_COL;
-						m_tt = tagTokenType::ttZero;
-					}
-				}
-				else {
-					assert(!m_buffer.GetSize());
-				}
-			}
-			else {
-				while (m_lenLarge && m_buffer.GetSize()) {
-					unsigned int len;
-					m_buffer >> len;
-					assert(len > 0 && len <= DEFAULT_PACKET_SIZE - 12);
-					assert(m_buffer.GetSize() >= len);
-					m_out.Push(m_buffer.GetBuffer(), len);
-					m_buffer.Pop(len);
-					m_lenLarge -= len;
-					if (!m_lenLarge) {
-						++m_posCol;
-						if (m_posCol == m_vCol.size()) {
-							m_posCol = INVALID_COL;
-							m_tt = tagTokenType::ttZero;
-						}
-					}
-					else {
-						assert(m_lenLarge < 0x7fffffff);
-					}
-				}
-				if (!m_lenLarge && m_endLarge == UINT_NULL_LEN) {
-					if (m_buffer.GetSize() >= sizeof(m_endLarge)) {
-						m_buffer >> m_endLarge;
-						assert(!m_endLarge);
-					}
-					else {
-						return false;
-					}
-				}
-			}
-		}
-		while (m_buffer.GetSize()) {
-			if (m_tt == tagTokenType::ttZero) {
-				m_buffer >> m_tt;
-			}
-			switch (m_tt) {
-			case tagTokenType::ttORDER:
-                m_vOrder.clear();
-				if (!ParseOrder()) {
-					return false;
-				}
-				break;
-			case tagTokenType::ttNBCROW:
-				if (!ParseNBCRow()) {
-					return false;
-				}
-				break;
-			case tagTokenType::ttROW:
-				if (!ParseRow()) {
-					return false;
-				}
-				break;
-			case tagTokenType::ttCOLMETADATA:
-				if (!ParseMeta()) {
-					return false;
-				}
-				break;
-			case tagTokenType::ttTDS_ERROR:
-                if (!ParseError()) {
+    bool CSqlBatch::ParseStream() {
+        if (m_lenLarge == UNKNOWN_XML_LEN) {
+            unsigned int len;
+            m_buffer >> len;
+            assert(len > 0 && len <= DEFAULT_PACKET_SIZE - 12);
+            assert(m_buffer.GetSize() >= len);
+            m_out.Push(m_buffer.GetBuffer(), len);
+            m_buffer.Pop(len);
+            if (m_buffer.GetSize() >= sizeof (len)) {
+                len = *(unsigned int*) m_buffer.GetBuffer();
+                if (len == 0) {
+                    m_buffer.Pop(sizeof (len));
+                    m_lenLarge = 0;
+                    ++m_posCol;
+                    if (m_posCol == m_vCol.size()) {
+                        m_posCol = INVALID_COL;
+                        m_tt = tagTokenType::ttZero;
+                    }
+                } else {
                     return false;
                 }
-                break;
-			case tagTokenType::ttINFO:
-				if (!ParseInfo()) {
-					return false;
-				}
-				break;
-            case tagTokenType::ttLOGINACK:
-                if (!ParseLoginAck()) {
-                    return false;
+            } else {
+                return false;
+            }
+        } else {
+            if (m_lenLarge && (m_endLarge == MAX_IMAGE_TEXT_LEN || m_endLarge == MAX_NTEXT_LEN)) {
+                unsigned int len = *(unsigned int*) m_buffer.GetBuffer();
+                len = m_buffer.GetSize();
+                if (len > m_lenLarge) {
+                    len = (unsigned int) m_lenLarge;
                 }
-                break;
-			case tagTokenType::ttENVCHANGE:
-				if (!ParseEventChange()) {
-					return false;
-				}
-				break;
-			case tagTokenType::ttDONEINPROC:
-				if (!ParseDoneInProc()) {
-					return false;
-				}
-				break;
-			case tagTokenType::ttRETURNSTATUS:
-				if (!ParseReturnStatus()) {
-					return false;
-				}
-				break;
-			case tagTokenType::ttDONEPROC:
-			case tagTokenType::ttDONE:
-				if (!ParseDone()) {
-					return false;
-				}
-				else if (IsDone() && !HasMore() && m_buffer.GetSize()) {
+                m_out.Push(m_buffer.GetBuffer(), len);
+                m_buffer.Pop(len);
+                m_lenLarge -= len;
+                if (!m_lenLarge) {
+                    assert(m_endLarge == MAX_IMAGE_TEXT_LEN || m_endLarge == MAX_NTEXT_LEN);
+                    m_endLarge = 0;
+                    ++m_posCol;
+                    if (m_posCol == m_vCol.size()) {
+                        m_posCol = INVALID_COL;
+                        m_tt = tagTokenType::ttZero;
+                    }
+                } else {
+                    assert(!m_buffer.GetSize());
+                }
+            } else {
+                while (m_lenLarge && m_buffer.GetSize()) {
+                    unsigned int len;
+                    m_buffer >> len;
+                    assert(len > 0 && len <= DEFAULT_PACKET_SIZE - 12);
+                    assert(m_buffer.GetSize() >= len);
+                    m_out.Push(m_buffer.GetBuffer(), len);
+                    m_buffer.Pop(len);
+                    m_lenLarge -= len;
+                    if (!m_lenLarge) {
+                        ++m_posCol;
+                        if (m_posCol == m_vCol.size()) {
+                            m_posCol = INVALID_COL;
+                            m_tt = tagTokenType::ttZero;
+                        }
+                    } else {
+                        assert(m_lenLarge < 0x7fffffff);
+                    }
+                }
+                if (!m_lenLarge && m_endLarge == UINT_NULL_LEN) {
+                    if (m_buffer.GetSize() >= sizeof (m_endLarge)) {
+                        m_buffer >> m_endLarge;
+                        assert(!m_endLarge);
+                    } else {
+                        return false;
+                    }
+                }
+            }
+        }
+        while (m_buffer.GetSize()) {
+            if (m_tt == tagTokenType::ttZero) {
+                m_buffer >> m_tt;
+            }
+            switch (m_tt) {
+                case tagTokenType::ttORDER:
+                    m_vOrder.clear();
+                    if (!ParseOrder()) {
+                        return false;
+                    }
+                    break;
+                case tagTokenType::ttNBCROW:
+                    if (!ParseNBCRow()) {
+                        return false;
+                    }
+                    break;
+                case tagTokenType::ttROW:
+                    if (!ParseRow()) {
+                        return false;
+                    }
+                    break;
+                case tagTokenType::ttCOLMETADATA:
+                    if (!ParseMeta()) {
+                        return false;
+                    }
+                    break;
+                case tagTokenType::ttTDS_ERROR:
+                    if (!ParseError()) {
+                        return false;
+                    }
+                    break;
+                case tagTokenType::ttINFO:
+                    if (!ParseInfo()) {
+                        return false;
+                    }
+                    break;
+                case tagTokenType::ttLOGINACK:
+                    if (!ParseLoginAck()) {
+                        return false;
+                    }
+                    break;
+                case tagTokenType::ttENVCHANGE:
+                    if (!ParseEventChange()) {
+                        return false;
+                    }
+                    break;
+                case tagTokenType::ttDONEINPROC:
+                    if (!ParseDoneInProc()) {
+                        return false;
+                    }
+                    break;
+                case tagTokenType::ttRETURNSTATUS:
+                    if (!ParseReturnStatus()) {
+                        return false;
+                    }
+                    break;
+                case tagTokenType::ttRETURNVALUE:
+                    if (!ParseReturnValue()) {
+                        return false;
+                    }
+                    break;
+                case tagTokenType::ttDONEPROC:
+                case tagTokenType::ttDONE:
+                    if (!ParseDone()) {
+                        return false;
+                    } else if (IsDone() && !HasMore() && m_buffer.GetSize()) {
 #ifndef NDEBUG
-					std::cout << "CSqlBatch::ParseStream/Remaining bytes: " << m_buffer.GetSize() << "\n";
+                        std::cout << "CSqlBatch::ParseStream/Remaining bytes: " << m_buffer.GetSize() << "\n";
 #endif
-				}
-				break;
-			default:
-				assert(false);
-				break;
-			}
-			if (m_tt != tagTokenType::ttZero) {
-				assert(false); //shouldn't come here
-				return false;;
-			}
-		}
-		return true;
-	}
+                    }
+                    break;
+                default:
+                    assert(false);
+                    break;
+            }
+            if (m_tt != tagTokenType::ttZero) {
+                assert(false); //shouldn't come here
+                return false;
+                ;
+            }
+        }
+        return true;
+    }
 
-    void CSqlBatch::ParseTransChange(tagEnvchangeType type, TransChange& tc) {
+    void CSqlBatch::ParseTransChange(tagEnvchangeType type, TransChange & tc) {
         tc.Type = type;
         unsigned char len;
         m_buffer >> len;
         if (len) {
             m_buffer >> tc.NewValue;
-        }
-        else {
+        } else {
             tc.NewValue = 0;
         }
         m_buffer >> len;
         if (len) {
             m_buffer >> tc.OldValue;
-        }
-        else {
+        } else {
             tc.OldValue = 0;
         }
     }
 
     int CSqlBatch::SendTDSMessage(tagRequestType rt, tagIsolationLevel il) {
+        switch (rt) {
+            case tagRequestType::rtBeginTrans:
+                if (m_tc.NewValue) {
+                    return SPA::Odbc::ER_BAD_MANUAL_TRANSACTION_STATE;
+                }
+                break;
+            case tagRequestType::rtCommit:
+            case tagRequestType::rtRollback:
+                if (!m_tc.NewValue) {
+                    return SPA::Odbc::ER_BAD_MANUAL_TRANSACTION_STATE;
+                }
+                break;
+            default:
+                assert(false);
+                break;
+        }
         TransactionDescriptor td(m_tc.NewValue);
         PacketHeader ph(tagPacketType::ptTransaction, 1);
-        ph.Length = (Packet_Length)(sizeof(ph) + sizeof(td) + sizeof(rt) + sizeof(il));
+        ph.Length = (Packet_Length) (sizeof (ph) + sizeof (td) + sizeof (rt) + sizeof (il));
         ph.Length = ChangeEndian(ph.Length);
         SPA::CScopeUQueue sb;
         sb << ph << td << rt << il;
@@ -2250,24 +2306,24 @@ namespace tds
     }
 
     bool CSqlBatch::ParseDone() {
-		if (CReqBase::ParseDone()) {
-			if (m_Done.Status == tagDoneStatus::dsFinal || (m_Done.Status & tagDoneStatus::dsMore) == tagDoneStatus::dsMore || (m_Done.Status & tagDoneStatus::dsCount) == tagDoneStatus::dsCount) {
-				m_posCol = INVALID_COL;
-				m_cols = 0;
-				m_vCol.clear();
-				m_vDT.clear();
-				m_vNull.clear();
-				m_out.SetSize(0);
-			}
-			return true;
-		}
+        if (CReqBase::ParseDone()) {
+            if (m_Done.Status == tagDoneStatus::dsFinal || (m_Done.Status & tagDoneStatus::dsMore) == tagDoneStatus::dsMore || (m_Done.Status & tagDoneStatus::dsCount) == tagDoneStatus::dsCount) {
+                m_posCol = INVALID_COL;
+                m_cols = 0;
+                m_vCol.clear();
+                m_vDT.clear();
+                m_vNull.clear();
+                m_out.SetSize(0);
+            }
+            return true;
+        }
         return false;
     }
 
     bool CSqlBatch::ParseEventChange() {
         if (m_buffer.GetSize() > 2) {
-			unsigned short len = *(unsigned short *) m_buffer.GetBuffer();
-            if (len + sizeof(unsigned short) <= m_buffer.GetSize()) {
+            unsigned short len = *(unsigned short *) m_buffer.GetBuffer();
+            if (len + sizeof (unsigned short) <= m_buffer.GetSize()) {
                 tagEnvchangeType type;
                 m_buffer >> len >> type;
                 switch (type) {
@@ -2279,15 +2335,15 @@ namespace tds
                     case tagEnvchangeType::language:
                     {
                         StringEventChange sec;
-						m_vEventChange.push_back(sec);
-						ParseStringChange(type, m_vEventChange.back());
+                        m_vEventChange.push_back(sec);
+                        ParseStringChange(type, m_vEventChange.back());
                     }
                         break;
-					case tagEnvchangeType::begin_trans:
-					case tagEnvchangeType::commit_trans:
-					case tagEnvchangeType::rollback_trans:
-						ParseTransChange(type, m_tc);
-						break;
+                    case tagEnvchangeType::begin_trans:
+                    case tagEnvchangeType::commit_trans:
+                    case tagEnvchangeType::rollback_trans:
+                        ParseTransChange(type, m_tc);
+                        break;
                     case tagEnvchangeType::collation:
                         if (!ParseCollation(m_CollationChange)) {
                             return false;
