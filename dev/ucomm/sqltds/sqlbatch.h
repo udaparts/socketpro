@@ -193,13 +193,13 @@ namespace tds {
         int SendTDSMessage(const char16_t *sql);
         int Prepare(const char16_t* sql, CParameterInfoArray& params, unsigned int& parameters);
         int SendTDSMessage(CDBVariantArray &vParam);
-
+        
     protected:
         void Reset();
 		bool ParseStream();
 
     private:
-        bool ParseErrorInfo();
+        bool ParseInfo();
         bool ParseCollation(CollationChange& cc);
         bool ParseMeta();
         bool ParseEventChange();
@@ -215,7 +215,7 @@ namespace tds {
         bool ParseLoginAck();
         void ParseStringChange(tagEnvchangeType type, StringEventChange& sec);
         void ParseTransChange(tagEnvchangeType type, TransChange& tc);
-        static CDBString Prepare(const char16_t* sql, unsigned int& parameters, bool& returned, CDBString& procName, CDBString& catalogSchema);
+        static CDBString Prepare(const char16_t* sql, unsigned int& parameters, CDBString& procName, CDBString& catalogSchema);
         static int ToString(const CDBVariantArray& vData, CDBString& s, std::vector<CDBString> &vP);
         static void ToParameter(const Collation& collation, const CDBVariant& v, const CDBString& p, SPA::CUQueue& buffer, unsigned char p_status = 0);
 
@@ -246,7 +246,6 @@ namespace tds {
         CDBString m_catalogSchema;
         unsigned short m_inputs;
         unsigned short m_outputs;
-        bool m_returned;
 
         static CDBString LibraryName; //Client library name
     };

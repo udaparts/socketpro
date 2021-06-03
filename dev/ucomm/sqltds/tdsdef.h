@@ -565,6 +565,15 @@ namespace tds {
         CDBString ServerName;
         unsigned char ProcessNameLength = 0;
         unsigned int LineNumber = 0;
+
+        void Reset() {
+            SQLErrorNumber = 0;
+            State = 0;
+            Class = 0;
+            ErrorMessage.clear();
+            ProcessNameLength = 0;
+            LineNumber = 0;
+        }
     };
 
 	static constexpr int TDS_JDN_OFFSET_1_1_1 = 1721426;

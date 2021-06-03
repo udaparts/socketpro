@@ -8,7 +8,7 @@ namespace tds
 
     CSqlBatch::CSqlBatch(CTdsChannel& channel, bool meta)
         : CReqBase(channel), m_out(*m_sbOut), m_timeout(0), m_meta(meta), m_cols(0), m_posCol(INVALID_COL), m_lenLarge(0),
-        m_endLarge(0), m_rs(0), m_inputs(0), m_outputs(0), m_returned(false) {
+        m_endLarge(0), m_rs(0), m_inputs(0), m_outputs(0) {
     }
 
     void CSqlBatch::Reset() {
@@ -24,13 +24,12 @@ namespace tds
         CReqBase::Reset();
     }
 
-    CDBString CSqlBatch::Prepare(const char16_t* sql, unsigned int& parameters, bool& returned, CDBString& procName, CDBString& catalogSchema) {
+    CDBString CSqlBatch::Prepare(const char16_t* sql, unsigned int& parameters, CDBString& procName, CDBString& catalogSchema) {
         assert(sql);
         assert(SPA::GetLen(sql));
         catalogSchema.clear();
         procName.clear();
         bool called = false;
-        returned = false;
         parameters = 0;
         CDBString s = sql ? sql : u"";
         SPA::Trim(s);
@@ -41,15 +40,6 @@ namespace tds
         }
         if (!s.size()) {
             return s;
-        }
-        returned = (s.front() == '?');
-        if (returned) {
-            s.erase(s.begin(), s.begin() + 1); //remove '?'
-            SPA::Utilities::Trim(s);
-            if (s.front() != '=')
-                return u"";
-            s.erase(s.begin(), s.begin() + 1); //remove '='
-            SPA::Utilities::Trim(s);
         }
         CDBString s_copy = s;
         SPA::ToLower(s);
@@ -85,9 +75,6 @@ namespace tds
             }
         }
         else {
-            if (returned) {
-                return u"";
-            }
             s = s_copy;
         }
         const char16_t quote = '\'', slash = '\\', question = '?';
@@ -126,7 +113,7 @@ namespace tds
     }
 
     int CSqlBatch::Prepare(const char16_t* sql, CParameterInfoArray& params, unsigned int& parameters) {
-        m_sqlPrepare = Prepare(sql, parameters, m_returned, m_procName, m_catalogSchema);
+        m_sqlPrepare = Prepare(sql, parameters, m_procName, m_catalogSchema);
         if (!m_sqlPrepare.size()) {
             return -1;
         }
@@ -572,9 +559,9 @@ namespace tds
         OptionalFlags1 Option1;
         Option1.fUseDB = 1;
         Option1.fDatabase = 1;
-        Option1.fSetLang = 1;
+        Option1.fSetLang = 0;
         OptionalFlags2 Option2;
-        Option2.fLanguage = 1;
+        Option2.fLanguage = 0;
         Option2.fODBC = 1;
         if (rec.useReplication) {
             Option2.fUserType = 3;
@@ -764,7 +751,6 @@ namespace tds
         unsigned int parameters = m_inputs + m_outputs;
         assert(parameters);
         assert(0 == (vParam.size() % parameters));
-        m_vInfo.clear();
         size_t cycles = vParam.size() / parameters;
         CDBString sql = m_sqlPrepare;
         for (size_t n = 1; n < cycles; ++n) {
@@ -840,7 +826,6 @@ namespace tds
         sb->Push((const unsigned char*) sql, (unsigned int) (SPA::GetLen(sql) << 1));
         PacketHeader* pHeader = (PacketHeader*)sb->GetBuffer();
         pHeader->Length = ChangeEndian((Packet_Length)sb->GetSize());
-        m_vInfo.clear();
         return Send(sb->GetBuffer(), sb->GetSize(), m_timeout);
     }
 
@@ -897,7 +882,7 @@ namespace tds
         }
     }
 
-    bool CSqlBatch::ParseErrorInfo() {
+    bool CSqlBatch::ParseInfo() {
         if (m_buffer.GetSize() > 2) {
             unsigned short len = *(unsigned short*)m_buffer.GetBuffer();
             if (len + sizeof(len) <= m_buffer.GetSize()) {
@@ -2183,8 +2168,12 @@ namespace tds
 				}
 				break;
 			case tagTokenType::ttTDS_ERROR:
+                if (!ParseError()) {
+                    return false;
+                }
+                break;
 			case tagTokenType::ttINFO:
-				if (!ParseErrorInfo()) {
+				if (!ParseInfo()) {
 					return false;
 				}
 				break;
@@ -2257,7 +2246,6 @@ namespace tds
         ph.Length = ChangeEndian(ph.Length);
         SPA::CScopeUQueue sb;
         sb << ph << td << rt << il;
-        m_vInfo.clear();
         return Send(sb->GetBuffer(), sb->GetSize(), m_timeout);
     }
 
