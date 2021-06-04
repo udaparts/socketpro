@@ -55,6 +55,206 @@ namespace tds {
 
 #pragma pack(push,1)
 
+    public:
+
+        struct FeatureExtension {
+
+            FeatureExtension() {
+                ::memset(this, 0, sizeof (FeatureExtension));
+            }
+            unsigned int SessionRecovery : 1;
+            unsigned int FedAuth : 2;
+            unsigned int Tce : 1;
+            unsigned int GlobalTransactions : 4;
+            unsigned int AzureSQLSupport : 1;
+            unsigned int DataClassification : 1;
+            unsigned int UTF8Support : 1;
+            unsigned int SQLDNSCaching : 1;
+
+            unsigned int GetValue() {
+                return *((unsigned int*) this);
+            }
+        };
+
+        enum class tagIsolationLevel : unsigned short {
+            ilCurrent = 0,
+            ilReadUncommitted = 0x01,
+            ilReadCommitted = 0x02,
+            ilRepeatableRead = 0x03,
+            ilSerializable = 0x04,
+            ilSnapshot = 0x05
+        };
+
+        enum class tagRequestType : unsigned short {
+            rtBeginTrans = 0x05,
+            rtCommit = 0x07,
+            rtRollback = 0x08
+        };
+
+    private:
+
+        enum class tagDataType : unsigned char {
+            SQL_NULL = 0x1F,
+            IMAGE = 0x22,
+            TEXT = 0x23,
+            UNIQUEIDENTIFIER = 0x24,
+            INTN = 0x26, //INTNTYPE
+            DATEN = 0x28,
+            TIMEN = 0x29,
+            DATETIME2N = 0x2A,
+            DATETIMEOFFSETN = 0x2B, //timezone offset -840 ~ 840
+            TINYINT = 0x30, //INT1
+            BIT = 0x32,
+            SMALLINT = 0x34,
+            INT = 0x38,
+            DATETIM4 = 0x3A, //SmallDateTime
+            REAL = 0x3B, //Real, float
+            MONEY = 0x3C, //8 bytes
+            DATETIME = 0x3D,
+            FLOAT = 0x3E, //Float, double
+            SQL_VARIANT = 0x62, //max length 8009 (8000 for strings)
+            NTEXT = 0x63,
+            BITN = 0x68,
+            DECIMAL = 0x6A,
+            NUMERIC = 0x6C,
+            FLTN = 0x6D,
+            MONEYN = 0x6E,
+            DATETIMN = 0x6F, //smalldatetime
+            SMALLMONEY = 0x7A, //MONEY4, SmallMoney, 4 bytes
+            BIGINT = 0x7F,
+            VARBINARY = 0xA5,
+            VARCHAR = 0xA7,
+            BINARY = 0xAD,
+            CHAR = 0xAF,
+            NVARCHAR = 0xE7,
+            NCHAR = 0xEF,
+            UDT = 0xF0,
+            XML = 0xF1,
+        };
+
+        enum class tagEnvchangeType : unsigned char {
+            database = 1,
+            language,
+            charset,
+            packet_size,
+            unicode_data_sort_local_id,
+            unicode_data_sort_comparison_flags,
+            collation,
+            begin_trans,
+            commit_trans,
+            rollback_trans,
+            enlist_dist_trans,
+            defect_trans,
+            log_shipping,
+            promote_trans = 15,
+            trans_man_address,
+            trans_ended,
+            reset_completion_acknowledgement,
+            user_instance_started,
+            routing
+        };
+
+        struct SmallDateTime {
+            //days since January 1, 1900
+            unsigned short Date;
+            unsigned short Minute;
+        };
+
+        struct DateTime {
+            //days January 1, 1900
+            int Day;
+            unsigned int SecCount; //300 counts per second
+        };
+
+        //days since January 1, year 1
+
+        struct Date {
+            unsigned short Low;
+            char High;
+        };
+
+        static constexpr int TDS_JDN_OFFSET_1_1_1 = 1721426;
+        static constexpr int TDS_JDN_OFFSET_1900_1_1 = 693595;
+        static constexpr unsigned int DATETIME_HOUR_TICKET = 60 * 60 * 300;
+        static constexpr unsigned int DATETIME_MINUTE_TICKET = 60 * 300;
+        static constexpr unsigned int DATETIME_SECOND_TICKET = 300;
+
+        struct TransactionDescriptor {
+
+            TransactionDescriptor(SPA::UINT64 td) : TransDescriptor(td) {
+            }
+            unsigned int TotalLength = 22;
+            unsigned int Length = 18;
+            unsigned short Type = 2;
+            SPA::UINT64 TransDescriptor;
+            unsigned int RequestCount = 1;
+        };
+
+        struct CollationFlag {
+
+            CollationFlag() {
+                ::memset(this, 0, sizeof (CollationFlag));
+            }
+            unsigned short Reserved : 4;
+            unsigned short fIgnoreCase : 1;
+            unsigned short fIgnoreAccent : 1;
+            unsigned short fIgnoreWidth : 1;
+            unsigned short fIgnoreKana : 1;
+            unsigned short fBinary : 1;
+            unsigned short fBinary2 : 1;
+            unsigned short fUTF8 : 1;
+            unsigned short fReserved : 1;
+            unsigned short Version : 4;
+
+            unsigned short GetValue() const {
+                return *(unsigned short*) this;
+            }
+        };
+
+        struct Collation {
+            unsigned short CodePage = 0; //LCID
+            CollationFlag Flags;
+            unsigned char CharsetId = 0;
+
+            inline bool operator==(const Collation& c) const noexcept {
+                return (!::memcmp(this, &c, sizeof (c)));
+            }
+
+            inline bool operator!=(const Collation& c) const noexcept {
+                return ::memcmp(this, &c, sizeof (c));
+            }
+
+            CDBString GetString() const {
+                char str[16];
+#ifdef WIN32_64
+                sprintf_s(str, "%x|%x|%x", CodePage, Flags.GetValue(), CharsetId);
+#else
+                sprintf(str, "%x|%x|%x", CodePage, Flags.GetValue(), CharsetId);
+#endif
+                size_t len = ::strlen(str);
+                return CDBString(str, str + len);
+            }
+        };
+
+        struct ColFlag {
+
+            ColFlag() {
+                ::memset(this, 0, sizeof (ColFlag));
+            }
+            unsigned short Nullable : 1;
+            unsigned short CaseSensitivity : 1;
+            unsigned short Updateable : 2;
+            unsigned short Identity : 1;
+            unsigned short Computed : 1;
+            unsigned short ReservedODBC : 2;
+            unsigned short FixedLenCLRType : 1;
+            unsigned short SparseColumnSet : 1;
+            unsigned short Encrypted : 1;
+            unsigned short Hidden : 1;
+            unsigned short Key : 1;
+            unsigned short NullableUnknown : 1;
+        };
+
         struct LoginAck {
             unsigned int Tds_Version = 0;
             CDBString ServerName;
@@ -112,43 +312,9 @@ namespace tds {
             unsigned char fReserved : 3;
         };
 
-        struct FeatureExtension {
-
-            FeatureExtension() {
-                ::memset(this, 0, sizeof (FeatureExtension));
-            }
-            unsigned int SessionRecovery : 1;
-            unsigned int FedAuth : 2;
-            unsigned int Tce : 1;
-            unsigned int GlobalTransactions : 4;
-            unsigned int AzureSQLSupport : 1;
-            unsigned int DataClassification : 1;
-            unsigned int UTF8Support : 1;
-            unsigned int SQLDNSCaching : 1;
-
-            unsigned int GetValue() {
-                return *((unsigned int*) this);
-            }
-        };
-
         enum class tagFeatureID : unsigned char {
             fiSessionRecovery = 0x01, //Session recovery (connection resiliency), introduced in TDS 7.4
             fiFederatedAuthentication = 0x02 //Federated authentication, introduced in TDS 7.4
-        };
-
-        enum class tagRequestType : unsigned short {
-            rtBeginTrans = 0x05,
-            rtCommit = 0x07,
-            rtRollback = 0x08
-        };
-
-        enum class tagIsolationLevel : unsigned short {
-            ilCurrent = 0,
-            ilReadUncommitted = 0x01,
-            ilReadCommitted = 0x02,
-            ilRepeatableRead = 0x03,
-            ilSerializable = 0x04,
-            ilSnapshot = 0x05
         };
 
         struct MetaInfoHeader {
@@ -179,6 +345,23 @@ namespace tds {
 
 #pragma pack(pop)
 
+        struct StringEventChange {
+            tagEnvchangeType Type;
+            CDBString NewValue;
+            CDBString OldValue;
+        };
+
+        struct TransChange {
+            tagEnvchangeType Type;
+            UINT64 NewValue = 0;
+            UINT64 OldValue = 0;
+        };
+
+        struct CollationChange {
+            Collation NewValue;
+            Collation OldValue;
+        };
+
         static_assert(sizeof (OptionalFlags1) == 1, "Wrong OptionalFlags1 size");
         static_assert(sizeof (OptionalFlags2) == 1, "Wrong OptionalFlags2 size");
         static_assert(sizeof (TypeFlags) == 1, "Wrong TypeFlags size");
@@ -186,19 +369,22 @@ namespace tds {
         static_assert(sizeof (FeatureExtension) == 4, "Wrong FeatureExtension size");
         static_assert(sizeof (tagRequestType) == 2, "Wrong tagRequestType size");
         static_assert(sizeof (tagIsolationLevel) == 2, "Wrong tagIsolationLevel size");
+        static_assert(sizeof (Collation) == 5, "Wrong Collation size");
+        static_assert(sizeof (ColFlag) == 2, "Wrong ColFlag size");
+        static_assert(sizeof (TransactionDescriptor) == 22, "Wrong TransactionDescriptor size");
 
     public:
         int SendTDSMessage(const SqlLogin& rec, FeatureExtension requestedFeatures);
         int SendTDSMessage(tagRequestType rt, tagIsolationLevel il = tagIsolationLevel::ilCurrent);
         int SendTDSMessage(const char16_t *sql);
-        int Prepare(const char16_t* sql, CParameterInfoArray& params, unsigned int& parameters);
-        int SendTDSMessage(CDBVariantArray &vParam);
+        int Prepare(const char16_t* sql, SPA::UDB::CParameterInfoArray& params, unsigned int& parameters);
+        int SendTDSMessage(SPA::UDB::CDBVariantArray &vParam);
 
     protected:
         void Reset();
-        bool ParseStream();
 
     private:
+        bool ParseStream();
         bool ParseInfo();
         bool ParseCollation(CollationChange& cc);
         bool ParseMeta();
@@ -209,7 +395,7 @@ namespace tds {
         bool ParseData(tagDataType dt, bool max);
         bool ParseOrder();
         bool ParseData(tagDataType dt, unsigned char bytes, unsigned char scale);
-        bool ParseVariant(CDBColumnInfo *cinfo);
+        bool ParseVariant(SPA::UDB::CDBColumnInfo *cinfo);
         bool ParseDoneInProc();
         bool ParseReturnStatus();
         bool ParseLoginAck();
@@ -217,8 +403,18 @@ namespace tds {
         void ParseStringChange(tagEnvchangeType type, StringEventChange& sec);
         void ParseTransChange(tagEnvchangeType type, TransChange& tc);
         static CDBString Prepare(const char16_t* sql, unsigned int& parameters, CDBString& procName, CDBString& catalogSchema);
-        static int ToString(const CDBVariantArray& vData, CDBString& s, std::vector<CDBString> &vP);
-        static void ToParameter(bool stored, const Collation& collation, const CDBVariant& v, const CDBString& p, SPA::CUQueue& buffer, SPA::UDB::CParameterInfo *pi = nullptr);
+        static int ToString(const SPA::UDB::CDBVariantArray& vData, CDBString& s, std::vector<CDBString> &vP);
+        static void ToParameter(const Collation& collation, const SPA::UDB::CDBVariant& v, const CDBString& p, SPA::CUQueue& buffer, SPA::UDB::CParameterInfo *pi = nullptr);
+        static inline VARTYPE GetVarType(tagDataType dt, unsigned char money_bytes);
+        static inline CDBString GetSqlDeclaredType(tagDataType dt, unsigned char money_bytes);
+        static std::vector<unsigned char> ObfuscatePassword(const CDBString& password);
+        static unsigned char* ObfuscatePassword(unsigned char* password, unsigned int bytes);
+        static int ToTdsJDN(int year, int month, int month_day);
+        static void ToDate(Date date, int& year, int& month, int& month_day);
+        static void ToDateTime(DateTime dt, int& year, int& month, int& month_day, int& hour, int& minute, int& second, unsigned int& us);
+        static void ToTime(SPA::UINT64 time, unsigned char scale, int& hour, int& minute, int& second, unsigned int& us);
+        static void ToDateTime(Date dt, SPA::UINT64 time, unsigned char scale, int& year, int& month, int& month_day, int& hour, int& minute, int& second, unsigned int& us);
+        static unsigned int ToUDBFlags(ColFlag cf);
 
     private:
         std::vector<TokenInfo> m_vInfo;
@@ -228,7 +424,7 @@ namespace tds {
         CollationChange m_CollationChange;
         LoginAck m_LoginAck;
         TransChange m_tc;
-        CDBColumnInfoArray m_vCol;
+        SPA::UDB::CDBColumnInfoArray m_vCol;
         unsigned int m_timeout;
         bool m_meta;
         unsigned short m_cols;
@@ -241,7 +437,7 @@ namespace tds {
         std::vector<unsigned short> m_vOrder;
         DoneInProc m_dip;
         unsigned int m_rs; //ReturnStatus;
-        CParameterInfoArray m_vParamInfo;
+        SPA::UDB::CParameterInfoArray m_vParamInfo;
         CDBString m_sqlPrepare;
         CDBString m_procName;
         CDBString m_catalogSchema;

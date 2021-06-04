@@ -61,11 +61,11 @@ namespace tds
     void CTdsChannel::OnAvailable(const unsigned char* data, unsigned int bytes) {
         m_buff.Push(data, bytes);
         do {
-            if (m_buff.GetSize() < sizeof (tds::PacketHeader)) {
+            if (m_buff.GetSize() < sizeof (CReqBase::PacketHeader)) {
                 break;
             }
-            tds::PacketHeader* ph = (tds::PacketHeader*)m_buff.GetBuffer();
-            unsigned int len = tds::ChangeEndian(ph->Length);
+            CReqBase::PacketHeader* ph = (CReqBase::PacketHeader*)m_buff.GetBuffer();
+            unsigned int len = CReqBase::ChangeEndian(ph->Length);
             if (m_buff.GetSize() < len) {
                 break;
             }
@@ -80,7 +80,7 @@ namespace tds
             tds::CReqBase* rb = m_deq.front();
             m_cs.unlock();
             rb->OnResponse(m_buff.GetBuffer(), len);
-            if (ph->Status == tds::tagPacketStatus::psEOM) {
+            if (ph->Status == CReqBase::tagPacketStatus::psEOM) {
                 m_cs.lock();
                 m_deq.pop_front();
                 m_cs.unlock();

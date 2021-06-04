@@ -15,7 +15,71 @@ namespace tds{
     CReqBase::~CReqBase() {
     }
 
-    const PacketHeader & CReqBase::GetResponseHeader() const {
+    unsigned short CReqBase::ChangeEndian(unsigned short s) {
+        return ((s & 0xff) << 8) + (s >> 8);
+    }
+
+    unsigned char CReqBase::GetFixLen(Token token) {
+        assert((token & 12) == 12);
+        token <<= 4;
+        token &= 3;
+        switch (token) {
+            case 0:
+                return 1;
+            case 1:
+                return 4;
+            case 2:
+                return 2;
+            case 3:
+                return 8;
+            default:
+                assert(false); //shouldn't come here
+                break;
+        }
+        return 255;
+    }
+
+    unsigned int CReqBase::ChangeEndian(unsigned int s) {
+        unsigned char* p = (unsigned char*) &s;
+        unsigned char b = p[0];
+        p[0] = p[3];
+        p[3] = b;
+        b = p[1];
+        p[1] = p[2];
+        p[2] = b;
+        return s;
+    }
+
+    int CReqBase::ChangeEndian(int s) {
+        unsigned char* p = (unsigned char*) &s;
+        unsigned char b = p[0];
+        p[0] = p[3];
+        p[3] = b;
+        b = p[1];
+        p[1] = p[2];
+        p[2] = b;
+        return s;
+    }
+
+    unsigned int CReqBase::GetThreadId() {
+#ifdef WIN32_64
+        UTHREAD_ID tid = ::GetCurrentThreadId();
+#else
+        UTHREAD_ID tid = pthread_self();
+#endif
+        return (unsigned int) tid;
+    }
+
+    CReqBase::SPID CReqBase::GetSPID() {
+#ifdef WIN32_64
+        UTHREAD_ID tid = ::GetCurrentThreadId();
+#else
+        UTHREAD_ID tid = pthread_self();
+#endif
+        return ChangeEndian((SPID) tid);
+    }
+
+    const CReqBase::PacketHeader & CReqBase::GetResponseHeader() const {
         return ResponseHeader;
     }
 

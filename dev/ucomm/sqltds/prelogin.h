@@ -9,6 +9,14 @@ namespace tds {
         static std::atomic<unsigned int> g_sequence;
     public:
 
+        enum class tagEncryptionType : unsigned char {
+            etOff = 0x00,
+            etOn = 0x01,
+            etNotSupported = 0x02,
+            etRequired = 0x03
+        };
+
+    private:
         enum class tagOptionToken : unsigned char {
             VERSION = 0,
             ENCRYPTION = 1,
@@ -25,13 +33,6 @@ namespace tds {
             faNotRequired = 0x00,
             faRequired = 0x01,
             faIllegal = 0x02
-        };
-
-        enum class tagEncryptionType : unsigned char {
-            etOff = 0x00,
-            etOn = 0x01,
-            etNotSupported = 0x02,
-            etRequired = 0x03
         };
 
 #pragma pack(push,1)
@@ -64,7 +65,7 @@ namespace tds {
             return Version;
         }
 
-	protected:
+	private:
 		bool ParseStream();
 
     private:
