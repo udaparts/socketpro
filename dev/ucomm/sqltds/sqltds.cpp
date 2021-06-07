@@ -57,20 +57,19 @@ int main() {
     pi.DataType = VT_I4;
     pi.ParameterName = u"@n";
     vPInfo.push_back(pi);
-    pi.DataType = VT_BOOL;
+    pi.DataType = VT_I4;
     pi.Direction = SPA::UDB::tagParameterDirection::pdInputOutput;
     pi.ParameterName = u"@nout";
     vPInfo.push_back(pi);
-    pi.DataType = VT_BSTR;
-    pi.Direction = SPA::UDB::tagParameterDirection::pdInputOutput;
+    pi.DataType = VT_CLSID;
+    pi.Direction = SPA::UDB::tagParameterDirection::pdOutput;
     pi.ParameterName = u"@dec";
-    pi.ColumnSize = 0x7fffffff;
     vPInfo.push_back(pi);
     res = sqlbatch.Prepare(u"call sqltestdb.dbo.GetSomeData(?, ?, ?)", vPInfo, parameters);
     SPA::UDB::CDBVariantArray vParam;
     vParam.push_back(10);
-    vParam.push_back(false);
-    vParam.push_back(u"");
+    vParam.push_back(12);
+    vParam.push_back((const char*)nullptr);
     res = sqlbatch.SendTDSMessage(vParam);
 
 #if 0

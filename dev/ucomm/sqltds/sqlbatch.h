@@ -53,6 +53,7 @@ namespace tds {
         static const int ER_NO_PARAMETER_NAME_PROVIDED = -1993;
         static const int ER_BAD_PARAMETER_INFO_COLUMN_SIZE = -1994;
         static const int ER_NO_DECIMAL_PRECSION_PROVIDED = -1995;
+        static const int ER_BAD_OUTPUT_PARAMETER_DATA_TYPE = -1996;
 
     public:
         CSqlBatch(CTdsChannel& channel, bool meta = true);
@@ -362,7 +363,7 @@ namespace tds {
         void ParseTransChange(tagEnvchangeType type, TransChange& tc);
         bool ConvertTo(const CDBString &pn);
         const SPA::UDB::CParameterInfo* FindParameterInfo(const CDBString& pn);
-        void ToParameter(const SPA::UDB::CDBVariant& v, const CDBString& p, SPA::CUQueue& buffer, SPA::UDB::CParameterInfo* pi = nullptr);
+        bool ToParameter(const SPA::UDB::CDBVariant& v, const CDBString& p, SPA::CUQueue& buffer, SPA::UDB::CParameterInfo* pi = nullptr);
         void SendPLPData(const unsigned char* data, unsigned int bytes);
         static CDBString Prepare(const char16_t* sql, unsigned int& parameters, CDBString& procName, CDBString& catalogSchema);
         static int ToString(const SPA::UDB::CDBVariantArray& vData, CDBString& s, std::vector<CDBString> &vP);
