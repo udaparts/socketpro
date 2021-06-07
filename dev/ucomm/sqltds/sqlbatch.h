@@ -50,6 +50,10 @@ namespace tds {
         static constexpr unsigned int MAX_IMAGE_TEXT_LEN = 0x7fffffff;
         static constexpr unsigned int MAX_NTEXT_LEN = 0x7ffffffe;
 
+        static const int ER_NO_PARAMETER_NAME_PROVIDED = -1993;
+        static const int ER_BAD_PARAMETER_INFO_COLUMN_SIZE = -1994;
+        static const int ER_NO_DECIMAL_PRECSION_PROVIDED = -1995;
+
     public:
         CSqlBatch(CTdsChannel& channel, bool meta = true);
 
@@ -188,52 +192,6 @@ namespace tds {
             unsigned short Type = 2;
             SPA::UINT64 TransDescriptor;
             unsigned int RequestCount = 1;
-        };
-
-        struct CollationFlag {
-
-            CollationFlag() {
-                ::memset(this, 0, sizeof (CollationFlag));
-            }
-            unsigned short Reserved : 4;
-            unsigned short fIgnoreCase : 1;
-            unsigned short fIgnoreAccent : 1;
-            unsigned short fIgnoreWidth : 1;
-            unsigned short fIgnoreKana : 1;
-            unsigned short fBinary : 1;
-            unsigned short fBinary2 : 1;
-            unsigned short fUTF8 : 1;
-            unsigned short fReserved : 1;
-            unsigned short Version : 4;
-
-            unsigned short GetValue() const {
-                return *(unsigned short*) this;
-            }
-        };
-
-        struct Collation {
-            unsigned short CodePage = 0; //LCID
-            CollationFlag Flags;
-            unsigned char CharsetId = 0;
-
-            inline bool operator==(const Collation& c) const noexcept {
-                return (!::memcmp(this, &c, sizeof (c)));
-            }
-
-            inline bool operator!=(const Collation& c) const noexcept {
-                return ::memcmp(this, &c, sizeof (c));
-            }
-
-            CDBString GetString() const {
-                char str[16];
-#ifdef WIN32_64
-                sprintf_s(str, "%x|%x|%x", CodePage, Flags.GetValue(), CharsetId);
-#else
-                sprintf(str, "%x|%x|%x", CodePage, Flags.GetValue(), CharsetId);
-#endif
-                size_t len = ::strlen(str);
-                return CDBString(str, str + len);
-            }
         };
 
         struct ColFlag {
@@ -402,9 +360,12 @@ namespace tds {
         bool ParseReturnValue();
         void ParseStringChange(tagEnvchangeType type, StringEventChange& sec);
         void ParseTransChange(tagEnvchangeType type, TransChange& tc);
+        bool ConvertTo(const CDBString &pn);
+        const SPA::UDB::CParameterInfo* FindParameterInfo(const CDBString& pn);
+        void ToParameter(const SPA::UDB::CDBVariant& v, const CDBString& p, SPA::CUQueue& buffer, SPA::UDB::CParameterInfo* pi = nullptr);
+        void SendPLPData(const unsigned char* data, unsigned int bytes);
         static CDBString Prepare(const char16_t* sql, unsigned int& parameters, CDBString& procName, CDBString& catalogSchema);
         static int ToString(const SPA::UDB::CDBVariantArray& vData, CDBString& s, std::vector<CDBString> &vP);
-        static void ToParameter(const Collation& collation, const SPA::UDB::CDBVariant& v, const CDBString& p, SPA::CUQueue& buffer, SPA::UDB::CParameterInfo *pi = nullptr);
         static inline VARTYPE GetVarType(tagDataType dt, unsigned char money_bytes);
         static inline CDBString GetSqlDeclaredType(tagDataType dt, unsigned char money_bytes);
         static std::vector<unsigned char> ObfuscatePassword(const CDBString& password);
@@ -430,7 +391,6 @@ namespace tds {
         unsigned short m_cols;
         unsigned short m_posCol;
         std::vector<tagDataType> m_vDT;
-        Collation m_collation;
         std::vector<unsigned char> m_vNull;
         UINT64 m_lenLarge;
         unsigned int m_endLarge;

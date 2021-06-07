@@ -10,6 +10,9 @@ namespace tds{
         if (m_buffer.GetMaxSize() >= SPA::DEFAULT_INITIAL_MEMORY_BUFFER_SIZE) {
             m_buffer.ReallocBuffer(SPA::DEFAULT_INITIAL_MEMORY_BUFFER_SIZE);
         }
+
+        m_collation.CodePage = (unsigned short)GetSystemDefaultLCID();
+        m_collation.CharsetId = 52;
     }
 
     CReqBase::~CReqBase() {

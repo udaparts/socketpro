@@ -103,6 +103,52 @@ namespace tds {
             UINT64 RowCount = 0;
         };
 
+        struct CollationFlag {
+
+            CollationFlag() {
+                ::memset(this, 0, sizeof(CollationFlag));
+            }
+            unsigned short Reserved : 4;
+            unsigned short fIgnoreCase : 1;
+            unsigned short fIgnoreAccent : 1;
+            unsigned short fIgnoreWidth : 1;
+            unsigned short fIgnoreKana : 1;
+            unsigned short fBinary : 1;
+            unsigned short fBinary2 : 1;
+            unsigned short fUTF8 : 1;
+            unsigned short fReserved : 1;
+            unsigned short Version : 4;
+
+            unsigned short GetValue() const {
+                return *(unsigned short*)this;
+            }
+        };
+
+        struct Collation {
+            unsigned short CodePage = 0; //LCID
+            CollationFlag Flags;
+            unsigned char CharsetId = 0;
+
+            inline bool operator==(const Collation& c) const noexcept {
+                return (!::memcmp(this, &c, sizeof(c)));
+            }
+
+            inline bool operator!=(const Collation& c) const noexcept {
+                return ::memcmp(this, &c, sizeof(c));
+            }
+
+            CDBString GetString() const {
+                char str[16];
+#ifdef WIN32_64
+                sprintf_s(str, "%x|%x|%x", CodePage, Flags.GetValue(), CharsetId);
+#else
+                sprintf(str, "%x|%x|%x", CodePage, Flags.GetValue(), CharsetId);
+#endif
+                size_t len = ::strlen(str);
+                return CDBString(str, str + len);
+            }
+        };
+
         typedef TokenDone DoneInProc;
 
 #pragma pack(pop)
@@ -167,6 +213,7 @@ namespace tds {
         SPA::CUQueue &m_buffer;
         tagTokenType m_tt;
         TokenDone m_Done; //protected by m_cs
+        Collation m_collation;
 
     private:
         typedef std::unique_lock<std::mutex> CAutoLock;
