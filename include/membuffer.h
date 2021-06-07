@@ -548,6 +548,19 @@ namespace SPA {
         }
 
         /**
+         * Adjust header position to a previous position
+         * @param headPos a new header position value which must be less than or equal to the current header position
+         */
+        inline void SetHeadPosition(unsigned int headPos) {
+            assert(headPos <= m_nHeadPos);
+            if (headPos >= m_nHeadPos) {
+                return;
+            }
+            m_nSize += (m_nHeadPos - headPos);
+            m_nHeadPos = headPos;
+        }
+
+        /**
          * Move the header of content to very beginning.
          */
         inline void SetHeadPosition() {
