@@ -51,6 +51,7 @@ int main() {
     std::cout << "Time required: " << d.count() << " ms\n\n";
 #endif
     //res = sqlbatch.SendTDSMessage(tds::CSqlBatch::tagRequestType::rtBeginTrans, tds::CSqlBatch::tagIsolationLevel::ilReadCommitted);
+#if 0
     unsigned int parameters;
     SPA::UDB::CParameterInfoArray vPInfo;
     SPA::UDB::CParameterInfo pi;
@@ -61,8 +62,8 @@ int main() {
     pi.Direction = SPA::UDB::tagParameterDirection::pdInputOutput;
     pi.ParameterName = u"@nout";
     vPInfo.push_back(pi);
-    pi.DataType = VT_CLSID;
-    pi.Direction = SPA::UDB::tagParameterDirection::pdOutput;
+    pi.DataType = SPA::VT_XML;
+    pi.Direction = SPA::UDB::tagParameterDirection::pdInputOutput;
     pi.ParameterName = u"@dec";
     vPInfo.push_back(pi);
     res = sqlbatch.Prepare(u"call sqltestdb.dbo.GetSomeData(?, ?, ?)", vPInfo, parameters);
@@ -71,6 +72,7 @@ int main() {
     vParam.push_back(12);
     vParam.push_back((const char*)nullptr);
     res = sqlbatch.SendTDSMessage(vParam);
+#endif
 
 #if 0
     res = sqlbatch.Prepare(u"insert into mynulltest values(?,?,?,?,?)", vPInfo, parameters);
@@ -84,7 +86,7 @@ int main() {
 #endif
     //res = sqlbatch.SendTDSMessage(tds::CSqlBatch::tagRequestType::rtCommit);
 
-    //res = sqlbatch.SendTDSMessage(u"select * from pet;select * from test_rare1;select * from SpatialTable;select * from vtest");
+    res = sqlbatch.SendTDSMessage(u"select * from company;select * from mynulltest;select * from SpatialTable;Select * from test_rare1;select * from employee");
 
     std::cout << "Press a key to shut down the application ......\n";
     ::getchar();

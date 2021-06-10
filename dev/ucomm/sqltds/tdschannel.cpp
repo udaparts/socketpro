@@ -86,7 +86,7 @@ namespace tds
                 m_cs.unlock();
             }
             m_buff.Pop(len);
-        } while (false);
+        } while (true);
     }
 
 } //namespace tds

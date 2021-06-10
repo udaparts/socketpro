@@ -379,67 +379,73 @@ namespace tds
         m_inputs = 0;
         m_outputs = 0;
         m_sqlPrepare = Prepare(sql, parameters, m_procName, m_catalogSchema);
+        if (!parameters) {
+            return SPA::Odbc::ER_NO_PARAMETER_SPECIFIED;
+        }
         if (m_procName.size() && !params.size()) {
             return SPA::Odbc::ER_CORRECT_PARAMETER_INFO_NOT_PROVIDED_YET;
         }
         if (params.size() && params.size() != parameters) {
             return SPA::Odbc::ER_BAD_PARAMETER_COLUMN_SIZE;
         }
-        if (m_procName.size()) {
-            m_vParamInfo = std::move(params);
-            for (auto it = m_vParamInfo.cbegin(), end = m_vParamInfo.cend(); it != end; ++it) {
-                switch (it->Direction) {
-                    case SPA::UDB::tagParameterDirection::pdInput:
-                        break;
-                    case SPA::UDB::tagParameterDirection::pdInputOutput:
-                    case SPA::UDB::tagParameterDirection::pdOutput:
-                        ++m_outputs;
-                        break;
-                    case SPA::UDB::tagParameterDirection::pdReturnValue:
-                    case SPA::UDB::tagParameterDirection::pdUnknown:
-                    default:
-                        return SPA::Odbc::ER_BAD_PARAMETER_DIRECTION_TYPE;
+        m_vParamInfo = std::move(params);
+        if (m_procName.size() && m_vParamInfo.size() != parameters) {
+            return SPA::Odbc::ER_BAD_PARAMETER_COLUMN_SIZE;
+        }
+        for (auto it = m_vParamInfo.cbegin(), end = m_vParamInfo.cend(); it != end; ++it) {
+            switch (it->Direction) {
+            case SPA::UDB::tagParameterDirection::pdInput:
+                break;
+            case SPA::UDB::tagParameterDirection::pdInputOutput:
+            case SPA::UDB::tagParameterDirection::pdOutput:
+                if (m_procName.size()) {
+                    ++m_outputs;
                 }
-                if (!it->ParameterName.size()) {
-                    return ER_NO_PARAMETER_NAME_PROVIDED;
+                else {
+                    return SPA::Odbc::ER_BAD_PARAMETER_DIRECTION_TYPE;
                 }
-                if (it->Direction == SPA::UDB::tagParameterDirection::pdInput) {
-                    continue;
+                break;
+            case SPA::UDB::tagParameterDirection::pdReturnValue:
+            case SPA::UDB::tagParameterDirection::pdUnknown:
+            default:
+                return SPA::Odbc::ER_BAD_PARAMETER_DIRECTION_TYPE;
+            }
+            if (!it->ParameterName.size()) {
+                return ER_NO_PARAMETER_NAME_PROVIDED;
+            }
+            switch (it->DataType) {
+            case VT_UI1:
+            case VT_I1:
+            case VT_I2:
+            case VT_UI2:
+            case VT_I4:
+            case VT_UI4:
+            case VT_INT:
+            case VT_UINT:
+            case VT_I8:
+            case VT_UI8:
+            case VT_R4:
+            case VT_R8:
+            case VT_DATE:
+            case VT_CY:
+            case VT_CLSID:
+            case VT_BOOL:
+            case SPA::VT_XML:
+                break;
+            case (VT_UI1 | VT_ARRAY):
+            case (VT_I1 | VT_ARRAY):
+            case VT_BSTR:
+                if (!it->ColumnSize) {
+                    return ER_BAD_PARAMETER_INFO_COLUMN_SIZE;
                 }
-                switch (it->DataType) {
-                    case VT_UI1:
-                    case VT_I1:
-                    case VT_I2:
-                    case VT_UI2:
-                    case VT_I4:
-                    case VT_UI4:
-                    case VT_INT:
-                    case VT_UINT:
-                    case VT_I8:
-                    case VT_UI8:
-                    case VT_R4:
-                    case VT_R8:
-                    case VT_DATE:
-                    case VT_CY:
-                    case VT_CLSID:
-                    case VT_BOOL:
-                    case SPA::VT_XML:
-                        break;
-                    case (VT_UI1 | VT_ARRAY):
-                    case (VT_I1 | VT_ARRAY):
-                    case VT_BSTR:
-                        if (!it->ColumnSize) {
-                            return ER_BAD_PARAMETER_INFO_COLUMN_SIZE;
-                        }
-                        break;
-                    case VT_DECIMAL:
-                        if (!it->Precision || it->Precision > 28) {
-                            return ER_NO_DECIMAL_PRECSION_PROVIDED;
-                        }
-                        break;
-                    default:
-                        return SPA::Odbc::ER_DATA_TYPE_NOT_SUPPORTED;
+                break;
+            case VT_DECIMAL:
+                if (!it->Precision || it->Precision > 38) {
+                    return ER_NO_DECIMAL_PRECSION_PROVIDED;
                 }
+                break;
+            default:
+                return SPA::Odbc::ER_DATA_TYPE_NOT_SUPPORTED;
             }
         }
         m_inputs = (unsigned short) (parameters - m_outputs);
@@ -878,6 +884,50 @@ namespace tds
                 }
             }
                 break;
+            case tagDataType::XML:
+            {
+                unsigned char p_byte;
+                SPA::UINT64 plp_len;
+                if (m_buffer.GetSize() <= sizeof(unsigned char) + sizeof(SPA::UINT64)) {
+                    return false;
+                }
+                m_buffer >> p_byte >> plp_len;
+                assert(!p_byte);
+                if (plp_len != XML_NULL_LEN) {
+                    assert(plp_len == UNKNOWN_XML_LEN);
+                    unsigned int sub_len;
+                    if (m_buffer.GetSize() <= sizeof(sub_len)) {
+                        return false;
+                    }
+                    m_buffer >> sub_len;
+                    if (sub_len > m_buffer.GetSize()) {
+                        return false;
+                    }
+                    m_out << (VARTYPE)VT_BSTR;
+                    if (m_buffer.GetSize() >= sub_len + sizeof(unsigned int)) {
+                        m_out << sub_len;
+                        m_out.Push(m_buffer.GetBuffer(), sub_len);
+                        unsigned int plp_terminator = *(unsigned int*)m_buffer.GetBuffer(sub_len);
+                        if (plp_terminator == 0) {
+                            m_buffer.Pop(sub_len + sizeof(unsigned int));
+                        }
+                        else {
+                            m_buffer.Pop(sub_len);
+                            m_lenLarge = UNKNOWN_XML_LEN;
+                        }
+                    }
+                    else if (m_buffer.GetSize() >= sub_len) {
+                        m_out << (unsigned int)plp_len;
+                        m_out.Push(m_buffer.GetBuffer(), sub_len);
+                        m_buffer.Pop(sub_len);
+                        m_lenLarge = UNKNOWN_XML_LEN;
+                    }
+                    else {
+                        return false;
+                    }
+                }
+            }
+                break;
             default:
                 assert(false);
                 return false;
@@ -953,7 +1003,7 @@ namespace tds
         return nullptr;
     }
 
-    bool CSqlBatch::ToParameter(const SPA::UDB::CDBVariant& v, const CDBString &p, SPA::CUQueue& buffer, SPA::UDB::CParameterInfo * pi) {
+    bool CSqlBatch::SaveParameter(const SPA::UDB::CDBVariant& v, const CDBString &p, SPA::CUQueue& buffer, SPA::UDB::CParameterInfo * pi) {
         tagDataType dt;
         unsigned char b_len = 0;
         unsigned char p_len = pi ? (unsigned char) p.size() : 0;
@@ -986,7 +1036,7 @@ namespace tds
                 unsigned int us;
                 SPA::UDateTime udt(v.ullVal);
                 std::tm tm = udt.GetCTime(&us);
-                if (tm.tm_mday || (pi && pi->Direction != SPA::UDB::tagParameterDirection::pdInput)) {
+                if (tm.tm_mday) {
                     dt = tagDataType::DATETIME2N;
                     p_len = 6; //scale
                     b_len = 8; //length;
@@ -1092,9 +1142,14 @@ namespace tds
                     p_len = 0;
                     buffer << dt << b_len << p_len;
                 }
+                else if (pi && pi->DataType == SPA::VT_XML) {
+                    dt = tagDataType::XML;
+                    p_len = 0;
+                    buffer << dt << p_len << XML_NULL_LEN;
+                }
                 else {
                     unsigned short len;
-                    if (pi && pi->Direction != SPA::UDB::tagParameterDirection::pdInput) {
+                    if (pi) {
                         if (pi->DataType == VT_BSTR) {
                             dt = tagDataType::NVARCHAR;
                             if (pi->ColumnSize <= 4000) {
@@ -1140,11 +1195,20 @@ namespace tds
                     buffer << len;
                 }
                 break;
-            case SPA::VT_XML:
-                break;
             case VT_BSTR:
-                dt = tagDataType::NVARCHAR;
+                if (pi && pi->DataType == SPA::VT_XML) {
+                    dt = tagDataType::XML;
+                    p_len = 0;
+                    buffer << dt << p_len << UNKNOWN_XML_LEN;
+                    unsigned int len = SysStringLen(v.bstrVal);
+                    len <<= 1;
+                    buffer << len;
+                    buffer.Push(v.bstrVal, len >> 1);
+                    buffer << PLP_TERMINATOR;
+                }
+                else
                 {
+                    dt = tagDataType::NVARCHAR;
                     unsigned short max = VAR_MAX;
                     unsigned int len = SysStringLen(v.bstrVal);
                     len <<= 1;
@@ -1166,7 +1230,7 @@ namespace tds
                             buffer.Push(v.bstrVal, len >> 1);
                             len = 0;
                         }
-                        buffer << len;
+                        buffer << PLP_TERMINATOR;
                     }
                     else {
                         buffer << (unsigned short)len;
@@ -1199,7 +1263,7 @@ namespace tds
                         buffer.Push(s, len);
                         len = 0;
                     }
-                    buffer << len;
+                    buffer << PLP_TERMINATOR;
                 }
                 else {
                     buffer << (unsigned short)len;
@@ -1240,7 +1304,7 @@ namespace tds
                             buffer.Push(s, len);
                             len = 0;
                         }
-                        buffer << len;
+                        buffer << PLP_TERMINATOR;
                     }
                     else {
                         buffer << (unsigned short)len;
@@ -1600,6 +1664,7 @@ namespace tds
         unsigned short optionFlags = 0; //no meta data
         sb << optionFlags;
 
+        unsigned char packet_id = 1;
         size_t len;
         std::vector<CDBString> vP;
         if (!m_procName.size()) {
@@ -1652,13 +1717,13 @@ namespace tds
                     }
                 }
             }
-            ToParameter(vParam[n], vP[n], *sb, pi);
+            SaveParameter(vParam[n], vP[n], *sb, pi);
         }
 
-        PacketHeader ph(tagPacketType::ptRpc, 1);
-        ph.Length = (Packet_Length) (sb->GetSize() + sizeof (ph));
+        PacketHeader ph(tagPacketType::ptRpc, packet_id);
+        ph.Length = (Packet_Length)(sb->GetSize() + sizeof(ph));
         ph.Length = ChangeEndian(ph.Length);
-
+        ph.Spid = ChangeEndian(GetResponseHeader().Spid);
         SPA::CScopeUQueue sbEnd;
         sbEnd << ph;
         sbEnd->Push(sb->GetBuffer(), sb->GetSize());
@@ -1668,6 +1733,7 @@ namespace tds
     int CSqlBatch::SendTDSMessage(const char16_t * sql) {
         SPA::CScopeUQueue sb;
         PacketHeader ph(tagPacketType::ptBatch, 1);
+        ph.Spid = ChangeEndian(GetResponseHeader().Spid);
         //Query packet
         TransactionDescriptor td(m_tc.NewValue);
         sb << ph << td;
@@ -2932,6 +2998,7 @@ namespace tds
                     assert(!m_buffer.GetSize());
                 }
             } else {
+                //std::cout << "m_lenLarge: " << m_lenLarge << "\n";
                 while (m_lenLarge && m_buffer.GetSize()) {
                     unsigned int len;
                     m_buffer >> len;
@@ -2948,6 +3015,7 @@ namespace tds
                         }
                     } else {
                         assert(m_lenLarge < 0x7fffffff);
+                        assert(!m_buffer.GetSize());
                     }
                 }
                 if (!m_lenLarge && m_endLarge == UINT_NULL_LEN) {
@@ -3085,6 +3153,7 @@ namespace tds
         }
         TransactionDescriptor td(m_tc.NewValue);
         PacketHeader ph(tagPacketType::ptTransaction, 1);
+        ph.Spid = ChangeEndian(GetResponseHeader().Spid);
         ph.Length = (Packet_Length) (sizeof (ph) + sizeof (td) + sizeof (rt) + sizeof (il));
         ph.Length = ChangeEndian(ph.Length);
         SPA::CScopeUQueue sb;
