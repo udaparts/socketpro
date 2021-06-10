@@ -82,6 +82,10 @@ namespace tds{
         return ChangeEndian((SPID) tid);
     }
 
+    CTdsChannel& CReqBase::GetChannel() {
+        return m_channel;
+    }
+
     const CReqBase::PacketHeader & CReqBase::GetResponseHeader() const {
         return ResponseHeader;
     }
@@ -192,6 +196,14 @@ namespace tds{
         bool ok = (m_cv.wait_for(al, milliseconds * 1ms) == std::cv_status::no_timeout);
         m_bWaiting = false;
         return ok;
+    }
+
+    void CReqBase::OnChannelClosed() {
+        Reset();
+        CAutoLock al(m_cs);
+        if (m_bWaiting) {
+            m_cv.notify_all();
+        }
     }
 
     int CReqBase::Send(const unsigned char* buffer, unsigned int bytes, unsigned int milliseconds, bool sync) {

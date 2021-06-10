@@ -20,7 +20,7 @@ int main() {
     int res = pl.SendTDSMessage();
 
     tds::SqlLogin rec;
-    rec.database = u"sqltestdb";
+    rec.database = u"sakila";
     rec.userName = u"sa";
     rec.password = u"Smash123";
     rec.serverName = tds::CDBString(serverName, serverName + strlen(serverName));
@@ -51,7 +51,7 @@ int main() {
     std::cout << "Time required: " << d.count() << " ms\n\n";
 #endif
     //res = sqlbatch.SendTDSMessage(tds::CSqlBatch::tagRequestType::rtBeginTrans, tds::CSqlBatch::tagIsolationLevel::ilReadCommitted);
-#if 0
+#if 1
     unsigned int parameters;
     SPA::UDB::CParameterInfoArray vPInfo;
     SPA::UDB::CParameterInfo pi;
@@ -62,15 +62,16 @@ int main() {
     pi.Direction = SPA::UDB::tagParameterDirection::pdInputOutput;
     pi.ParameterName = u"@nout";
     vPInfo.push_back(pi);
-    pi.DataType = SPA::VT_XML;
-    pi.Direction = SPA::UDB::tagParameterDirection::pdInputOutput;
+    pi.DataType = VT_BSTR;
+    pi.Direction = SPA::UDB::tagParameterDirection::pdOutput;
+    pi.ColumnSize = 0x7fffffff;
     pi.ParameterName = u"@dec";
     vPInfo.push_back(pi);
     res = sqlbatch.Prepare(u"call sqltestdb.dbo.GetSomeData(?, ?, ?)", vPInfo, parameters);
     SPA::UDB::CDBVariantArray vParam;
     vParam.push_back(10);
     vParam.push_back(12);
-    vParam.push_back((const char*)nullptr);
+    vParam.push_back("");
     res = sqlbatch.SendTDSMessage(vParam);
 #endif
 
@@ -86,7 +87,7 @@ int main() {
 #endif
     //res = sqlbatch.SendTDSMessage(tds::CSqlBatch::tagRequestType::rtCommit);
 
-    res = sqlbatch.SendTDSMessage(u"select * from company;select * from mynulltest;select * from SpatialTable;Select * from test_rare1;select * from employee");
+    //res = sqlbatch.SendTDSMessage(u"select * from payment");
 
     std::cout << "Press a key to shut down the application ......\n";
     ::getchar();

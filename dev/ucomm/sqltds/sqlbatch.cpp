@@ -893,7 +893,7 @@ namespace tds
                 }
                 m_buffer >> p_byte >> plp_len;
                 assert(!p_byte);
-                if (plp_len != XML_NULL_LEN) {
+                if (plp_len != BLOB_NULL_LEN) {
                     assert(plp_len == UNKNOWN_XML_LEN);
                     unsigned int sub_len;
                     if (m_buffer.GetSize() <= sizeof(sub_len)) {
@@ -1003,7 +1003,7 @@ namespace tds
         return nullptr;
     }
 
-    bool CSqlBatch::SaveParameter(const SPA::UDB::CDBVariant& v, const CDBString &p, SPA::CUQueue& buffer, SPA::UDB::CParameterInfo * pi) {
+    bool CSqlBatch::SaveParameter(unsigned char& packet_id, const SPA::UDB::CDBVariant& v, const CDBString &p, SPA::CUQueue& buffer, SPA::UDB::CParameterInfo * pi) {
         tagDataType dt;
         unsigned char b_len = 0;
         unsigned char p_len = pi ? (unsigned char) p.size() : 0;
@@ -1145,7 +1145,7 @@ namespace tds
                 else if (pi && pi->DataType == SPA::VT_XML) {
                     dt = tagDataType::XML;
                     p_len = 0;
-                    buffer << dt << p_len << XML_NULL_LEN;
+                    buffer << dt << p_len << BLOB_NULL_LEN;
                 }
                 else {
                     unsigned short len;
@@ -1154,31 +1154,37 @@ namespace tds
                             dt = tagDataType::NVARCHAR;
                             if (pi->ColumnSize <= 4000) {
                                 len = pi->ColumnSize;
+                                buffer << dt << len << m_collation;
                             }
                             else {
                                 len = VAR_MAX;
+                                buffer << dt << len << m_collation << BLOB_NULL_LEN;
+                                return true;
                             }
-                            buffer << dt << len << m_collation;
                         }
                         else if (pi->DataType == (VT_ARRAY | VT_I1)) {
                             dt = tagDataType::VARCHAR;
                             if (pi->ColumnSize <= 8000) {
                                 len = pi->ColumnSize;
+                                buffer << dt << len << m_collation;
                             }
                             else {
                                 len = VAR_MAX;
+                                buffer << dt << len << m_collation << BLOB_NULL_LEN;
+                                return true;
                             }
-                            buffer << dt << len << m_collation;
                         }
                         else if (pi->DataType == (VT_ARRAY | VT_UI1)) {
                             dt = tagDataType::VARBINARY;
                             if (pi->ColumnSize <= 8000) {
                                 len = pi->ColumnSize;
+                                buffer << dt << len;
                             }
                             else {
                                 len = VAR_MAX;
+                                buffer << dt << len << BLOB_NULL_LEN;
+                                return true;
                             }
-                            buffer << dt << len;
                         }
                         else {
                             dt = tagDataType::VARCHAR;
@@ -1321,7 +1327,7 @@ namespace tds
         return true;
     }
 
-    void CSqlBatch::SendPLPData(const unsigned char* data, unsigned int bytes) {
+    void CSqlBatch::SendPLPData(unsigned char& packet_id, const unsigned char* data, unsigned int bytes) {
 
     }
 
@@ -1634,6 +1640,27 @@ namespace tds
         CDBString sql;
         bool stored = m_procName.size() ? true : false;
         if (stored) {
+            size_t len = vParam.size();
+            for (size_t n = 0; n < len; ++n) {
+                SPA::UDB::CParameterInfo* pi = m_vParamInfo.data() + n;
+                if (pi && pi->Direction != SPA::UDB::tagParameterDirection::pdInput && vParam[n].vt > VT_NULL) {
+                    if (pi->DataType != vParam[n].vt) {
+                        if (pi->DataType == SPA::VT_XML) {
+                            if (vParam[n].vt != VT_BSTR) {
+                                return ER_BAD_OUTPUT_PARAMETER_DATA_TYPE;
+                            }
+                        }
+                        else if (pi->DataType == VT_CLSID) {
+                            if (vParam[n].vt != (VT_ARRAY | VT_UI1) || vParam[n].parray->rgsabound[0].cElements != sizeof(CLSID)) {
+                                return ER_BAD_OUTPUT_PARAMETER_DATA_TYPE;
+                            }
+                        }
+                        else {
+                            return ER_BAD_OUTPUT_PARAMETER_DATA_TYPE;
+                        }
+                    }
+                }
+            }
             if (m_catalogSchema.size()) {
                 sql = m_catalogSchema;
                 sql.push_back('.');
@@ -1699,25 +1726,8 @@ namespace tds
             SPA::UDB::CParameterInfo* pi = nullptr;
             if (stored) {
                 pi = m_vParamInfo.data() + n;
-                if (pi && pi->Direction != SPA::UDB::tagParameterDirection::pdInput && vParam[n].vt > VT_NULL) {
-                    if (pi->DataType != vParam[n].vt) {
-                        if (pi->DataType == SPA::VT_XML) {
-                            if (vParam[n].vt != VT_BSTR) {
-                                return ER_BAD_OUTPUT_PARAMETER_DATA_TYPE;
-                            }
-                        }
-                        else if (pi->DataType == VT_CLSID) {
-                            if (vParam[n].vt != (VT_ARRAY | VT_UI1) || vParam[n].parray->rgsabound[0].cElements != sizeof(CLSID)) {
-                                return ER_BAD_OUTPUT_PARAMETER_DATA_TYPE;
-                            }
-                        }
-                        else {
-                            return ER_BAD_OUTPUT_PARAMETER_DATA_TYPE;
-                        }
-                    }
-                }
             }
-            SaveParameter(vParam[n], vP[n], *sb, pi);
+            SaveParameter(packet_id, vParam[n], vP[n], *sb, pi);
         }
 
         PacketHeader ph(tagPacketType::ptRpc, packet_id);
@@ -2253,8 +2263,6 @@ namespace tds
         for (unsigned short n = m_posCol; n < cols; ++n, ++cinfo, ++m_posCol) {
             if (!done) {
                 if (m_buffer.GetSize() <= sizeof (PacketHeader) + sizeof (m_Done) + sizeof (tagTokenType)) {
-                    /*UINT64 len = *(UINT64*)m_buffer.GetBuffer();
-                    unsigned int size = *(unsigned int*)m_buffer.GetBuffer(sizeof(UINT64));*/
                     return false;
                 }
             }

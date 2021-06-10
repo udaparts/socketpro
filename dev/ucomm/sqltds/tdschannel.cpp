@@ -53,9 +53,12 @@ namespace tds
 
     void CTdsChannel::Reset() {
         m_buff.SetSize(0);
-        m_cs.lock();
-        m_deq.clear();
-        m_cs.unlock();
+        SPA::CSpinAutoLock al(m_cs);
+        while (m_deq.size()) {
+            CReqBase* f = m_deq.front();
+            f->OnChannelClosed();
+            m_deq.pop_front();
+        }
     }
 
     void CTdsChannel::OnAvailable(const unsigned char* data, unsigned int bytes) {
@@ -64,7 +67,7 @@ namespace tds
             if (m_buff.GetSize() < sizeof (CReqBase::PacketHeader)) {
                 break;
             }
-            CReqBase::PacketHeader* ph = (CReqBase::PacketHeader*)m_buff.GetBuffer();
+            CReqBase::PacketHeader* ph = (CReqBase::PacketHeader *) m_buff.GetBuffer();
             unsigned int len = CReqBase::ChangeEndian(ph->Length);
             if (m_buff.GetSize() < len) {
                 break;
@@ -80,6 +83,11 @@ namespace tds
             tds::CReqBase* rb = m_deq.front();
             m_cs.unlock();
             rb->OnResponse(m_buff.GetBuffer(), len);
+#ifndef NDEBUG
+            if (rb->m_buffer.GetSize()) {
+                std::cout << "Remaining bytes: " << rb->m_buffer.GetSize() << "\n";
+            }
+#endif
             if (ph->Status == CReqBase::tagPacketStatus::psEOM) {
                 m_cs.lock();
                 m_deq.pop_front();

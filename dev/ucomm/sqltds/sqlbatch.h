@@ -47,7 +47,7 @@ namespace tds {
         static constexpr unsigned short USHORT_NULL_LEN = (~0);
         static constexpr unsigned short VAR_MAX = (~0);
         static constexpr UINT64 UNKNOWN_XML_LEN = 0xfffffffffffffffe;
-        static constexpr UINT64 XML_NULL_LEN = (~0);
+        static constexpr UINT64 BLOB_NULL_LEN = (~0);
         static constexpr unsigned int MAX_IMAGE_TEXT_LEN = 0x7fffffff;
         static constexpr unsigned int MAX_NTEXT_LEN = 0x7ffffffe;
         static constexpr unsigned int PLP_TERMINATOR = 0;
@@ -365,8 +365,8 @@ namespace tds {
         void ParseTransChange(tagEnvchangeType type, TransChange& tc);
         bool ConvertTo(const CDBString &pn);
         const SPA::UDB::CParameterInfo* FindParameterInfo(const CDBString& pn);
-        bool SaveParameter(const SPA::UDB::CDBVariant& v, const CDBString& p, SPA::CUQueue& buffer, SPA::UDB::CParameterInfo* pi = nullptr);
-        void SendPLPData(const unsigned char* data, unsigned int bytes);
+        bool SaveParameter(unsigned char &packet_id, const SPA::UDB::CDBVariant& v, const CDBString& p, SPA::CUQueue& buffer, SPA::UDB::CParameterInfo* pi = nullptr);
+        void SendPLPData(unsigned char& packet_id, const unsigned char* data, unsigned int bytes);
         static CDBString Prepare(const char16_t* sql, unsigned int& parameters, CDBString& procName, CDBString& catalogSchema);
         static int ToString(const SPA::UDB::CDBVariantArray& vData, CDBString& s, std::vector<CDBString> &vP);
         static inline VARTYPE GetVarType(tagDataType dt, unsigned char money_bytes);

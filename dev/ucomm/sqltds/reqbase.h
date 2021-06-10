@@ -188,6 +188,7 @@ namespace tds {
         virtual bool Wait(unsigned int ms);
         int Send(const unsigned char* buffer, unsigned int bytes, unsigned int milliseconds, bool sync = true);
         int GetSQLError(SPA::CDBString& errMsg);
+        CTdsChannel& GetChannel();
 
     protected:
         const PacketHeader& GetResponseHeader() const;
@@ -207,6 +208,7 @@ namespace tds {
         inline bool HasMoreInternal() const;
         inline UINT64 GetCountInternal() const;
         inline bool IsDoneInternal() const;
+        void OnChannelClosed();
 
     protected:
         CTdsChannel& m_channel;
