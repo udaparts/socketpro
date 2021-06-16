@@ -362,7 +362,7 @@ namespace tds
                 if (c == question) {
                     s[n] = '@';
                     std::string str = std::to_string(parameters);
-                    str = 'p' + str;
+                    str = "_pp" + str;
                     auto temp = SPA::Utilities::ToUTF16(str);
                     size_t length = temp.size();
                     s.insert(n + 1, temp);
@@ -388,11 +388,24 @@ namespace tds
         if (params.size() && params.size() != parameters) {
             return SPA::Odbc::ER_BAD_PARAMETER_COLUMN_SIZE;
         }
-        m_vParamInfo = std::move(params);
-        if (m_procName.size() && m_vParamInfo.size() != parameters) {
+        if (m_procName.size() && params.size() != parameters) {
             return SPA::Odbc::ER_BAD_PARAMETER_COLUMN_SIZE;
         }
-        for (auto it = m_vParamInfo.cbegin(), end = m_vParamInfo.cend(); it != end; ++it) {
+        if (m_procName.size()) {
+            m_vParamInfo = std::move(params);
+        }
+        else {
+            m_vParamInfo.clear();
+        }
+
+        CDBString sp;
+        unsigned int index = 0;
+        for (auto it = m_vParamInfo.cbegin(), end = m_vParamInfo.cend(); it != end; ++it, ++index) {
+            if (sp.size()) {
+                sp.push_back(',');
+            }
+            sp += it->ParameterName;
+            sp += u"=@_pp" + SPA::Utilities::ToUTF16(std::to_string(index));
             switch (it->Direction) {
             case SPA::UDB::tagParameterDirection::pdInput:
                 break;
@@ -404,13 +417,14 @@ namespace tds
                 else {
                     return SPA::Odbc::ER_BAD_PARAMETER_DIRECTION_TYPE;
                 }
+                sp += u" OUTPUT";
                 break;
             case SPA::UDB::tagParameterDirection::pdReturnValue:
             case SPA::UDB::tagParameterDirection::pdUnknown:
             default:
                 return SPA::Odbc::ER_BAD_PARAMETER_DIRECTION_TYPE;
             }
-            if (!it->ParameterName.size()) {
+            if (m_procName.size() && !it->ParameterName.size()) {
                 return ER_NO_PARAMETER_NAME_PROVIDED;
             }
             switch (it->DataType) {
@@ -434,8 +448,12 @@ namespace tds
                 break;
             case (VT_UI1 | VT_ARRAY):
             case (VT_I1 | VT_ARRAY):
+                if (!it->ColumnSize || (it->ColumnSize > 8000 && it->ColumnSize != MAX_IMAGE_TEXT_LEN)) {
+                    return ER_BAD_PARAMETER_INFO_COLUMN_SIZE;
+                }
+                break;
             case VT_BSTR:
-                if (!it->ColumnSize) {
+                if (!it->ColumnSize || (it->ColumnSize > 4000 && it->ColumnSize != MAX_IMAGE_TEXT_LEN)) {
                     return ER_BAD_PARAMETER_INFO_COLUMN_SIZE;
                 }
                 break;
@@ -452,6 +470,19 @@ namespace tds
         parameters = m_outputs;
         parameters <<= 16;
         parameters += m_inputs;
+        if (m_procName.size()) {
+            m_sqlPrepare = u"EXEC ";
+            if (m_catalogSchema.size()) {
+                m_sqlPrepare += m_catalogSchema;
+                m_sqlPrepare.push_back('.');
+                m_sqlPrepare += m_procName;
+            }
+            else {
+                m_sqlPrepare += m_procName;
+            }
+            m_sqlPrepare.push_back(' ');
+            m_sqlPrepare += sp;
+        }
         return 0;
     }
 
@@ -459,16 +490,21 @@ namespace tds
         char param[16];
         s.clear();
         std::string str;
+        bool stored = m_procName.size() ? true : false;
         size_t size = vData.size();
         for (size_t n = 0; n < size; ++n) {
             if (str.size()) {
                 str.push_back(',');
             }
+            SPA::UDB::CParameterInfo* pi = nullptr;
+            if (stored) {
+                pi = m_vParamInfo.data() + (n % m_vParamInfo.size());
+            }   
             const SPA::UDB::CDBVariant& v = vData[n];
 #ifdef WIN32_64
-            unsigned char bytes = (unsigned char) ::sprintf_s(param, "@p%d", (int) n);
+            unsigned char bytes = (unsigned char) ::sprintf_s(param, "@_pp%d", (int) n);
 #else
-            unsigned char bytes = (unsigned char) ::sprintf_s(param, "@p%d", (int) n);
+            unsigned char bytes = (unsigned char) ::sprintf_s(param, "@_pp%d", (int) n);
 #endif
             str += param;
             vP.push_back(CDBString(param, param + strlen(param)));
@@ -529,41 +565,69 @@ namespace tds
                     break;
                 case (VT_ARRAY | VT_I1):
                     str += "varchar(";
-                {
-                    unsigned int len = v.parray->rgsabound[0].cElements;
-                    if (n > 8000) {
-                        str += "max";
-                    } else {
-                        if (!len) len = 1;
-                        str += std::to_string(len);
+                    if (pi && pi->Direction != SPA::UDB::tagParameterDirection::pdInput) {
+                        if (pi->ColumnSize > 8000) {
+                            str += "max";
+                        }
+                        else {
+                            str += std::to_string(pi->ColumnSize);
+                        }
                     }
-                }
-                    str.push_back(')');
-                    break;
-                case VT_BSTR:
-                    str += "nvarchar(";
-                {
-                    unsigned int len = ::SysStringLen(v.bstrVal);
-                    if (n > 4000) {
-                        str += "max";
-                    } else {
-                        if (!len) len = 1;
-                        str += std::to_string(len);
-                    }
-                }
-                    str.push_back(')');
-                    break;
-                case (VT_ARRAY | VT_UI1):
-                    if (v.VtExt == SPA::UDB::tagVTExt::vteGuid) {
-                        str += "uniqueidentifier";
-                    } else {
-                        str += "varbinary(";
+                    else {
                         unsigned int len = v.parray->rgsabound[0].cElements;
                         if (n > 8000) {
                             str += "max";
                         } else {
                             if (!len) len = 1;
                             str += std::to_string(len);
+                        }
+                    }
+                    str.push_back(')');
+                    break;
+                case VT_BSTR:
+                    str += "nvarchar(";
+                    if (pi && pi->Direction != SPA::UDB::tagParameterDirection::pdInput) {
+                        if (pi->ColumnSize > 4000) {
+                            str += "max";
+                        }
+                        else {
+                            str += std::to_string(pi->ColumnSize);
+                        }
+                    }
+                    else {
+                        unsigned int len = ::SysStringLen(v.bstrVal);
+                        if (n > 4000) {
+                            str += "max";
+                        }
+                        else {
+                            if (!len) len = 1;
+                            str += std::to_string(len);
+                        }
+                    }
+                    str.push_back(')');
+                    break;
+                case (VT_ARRAY | VT_UI1):
+                    if (v.VtExt == SPA::UDB::tagVTExt::vteGuid) {
+                        str += "uniqueidentifier";
+                    } else {
+                        if (pi && pi->Direction != SPA::UDB::tagParameterDirection::pdInput) {
+                            if (pi->ColumnSize > 8000) {
+                                str += "max";
+                            }
+                            else {
+                                str += std::to_string(pi->ColumnSize);
+                            }
+                        }
+                        else {
+                            str += "varbinary(";
+                            unsigned int len = v.parray->rgsabound[0].cElements;
+                            if (n > 8000) {
+                                str += "max";
+                            }
+                            else {
+                                if (!len) len = 1;
+                                str += std::to_string(len);
+                            }
                         }
                         str.push_back(')');
                     }
@@ -574,6 +638,9 @@ namespace tds
                     break;
                 default:
                     return -1;
+            }
+            if (pi && pi->Direction != SPA::UDB::tagParameterDirection::pdInput) {
+                str += " OUTPUT";
             }
         }
         s = SPA::Utilities::ToUTF16(str);
@@ -1006,11 +1073,8 @@ namespace tds
     bool CSqlBatch::SaveParameter(unsigned char& packet_id, const SPA::UDB::CDBVariant& v, const CDBString &p, SPA::CUQueue& buffer, SPA::UDB::CParameterInfo * pi) {
         tagDataType dt;
         unsigned char b_len = 0;
-        unsigned char p_len = pi ? (unsigned char) p.size() : 0;
+        unsigned char p_len = 0;
         buffer << p_len;
-        if (pi) {
-            buffer.Push(p.c_str(), p_len);
-        }
         unsigned char p_status = 0;
         if (pi) {
             switch (pi->Direction) {
@@ -1642,7 +1706,7 @@ namespace tds
         if (stored) {
             size_t len = vParam.size();
             for (size_t n = 0; n < len; ++n) {
-                SPA::UDB::CParameterInfo* pi = m_vParamInfo.data() + n;
+                SPA::UDB::CParameterInfo* pi = m_vParamInfo.data() + (n % parameters);
                 if (pi && pi->Direction != SPA::UDB::tagParameterDirection::pdInput && vParam[n].vt > VT_NULL) {
                     if (pi->DataType != vParam[n].vt) {
                         if (pi->DataType == SPA::VT_XML) {
@@ -1661,40 +1725,34 @@ namespace tds
                     }
                 }
             }
-            if (m_catalogSchema.size()) {
-                sql = m_catalogSchema;
-                sql.push_back('.');
+        }
+        sql = m_sqlPrepare;
+        for (size_t n = 1; n < cycles; ++n) {
+            sql.push_back(';');
+            CDBString s = m_sqlPrepare;
+            for (unsigned m = 0; m < parameters; ++m) {
+                CDBString p0 = u"@_pp" + SPA::Utilities::ToUTF16(std::to_string(m));
+                CDBString p1 = u"@_pp" + SPA::Utilities::ToUTF16(std::to_string(m + n * parameters));
+                auto pos = s.find(p0);
+                s.replace(pos, p0.size(), p1);
             }
-            sql += m_procName;
-        } else {
-            sql = m_sqlPrepare;
-            for (size_t n = 1; n < cycles; ++n) {
-                sql.push_back(';');
-                sql += m_sqlPrepare;
-            }
+            sql += s;
         }
         SPA::CScopeUQueue sb;
         //Query packet
         TransactionDescriptor td(m_tc.NewValue);
         sb << td;
-        unsigned short p_name_length;
-        if (m_procName.size()) {
-            p_name_length = (unsigned short) sql.size();
-            sb << p_name_length;
-            sb->Push(sql.c_str(), p_name_length);
-        } else {
-            p_name_length = USHORT_NULL_LEN;
-            sb << p_name_length;
-            unsigned short s_proc_id = 10; //sp_executesql
-            sb << s_proc_id;
-        }
+        unsigned short p_name_length = USHORT_NULL_LEN;
+        sb << p_name_length;
+        unsigned short s_proc_id = 10; //sp_executesql
+        sb << s_proc_id;
         unsigned short optionFlags = 0; //no meta data
         sb << optionFlags;
 
         unsigned char packet_id = 1;
         size_t len;
         std::vector<CDBString> vP;
-        if (!m_procName.size()) {
+        {
             unsigned char name_len = 0;
             sb << name_len;
             unsigned char status = 0;
@@ -1715,19 +1773,17 @@ namespace tds
             max_len = (unsigned short) (len << 1);
             sb << max_len << m_collation << max_len;
             sb->Push(p.c_str(), (unsigned int) len);
-        } else {
-            for (auto it = m_vParamInfo.begin(), end = m_vParamInfo.end(); it != end; ++it) {
-                vP.push_back(it->ParameterName);
-            }
         }
         //
         len = vParam.size();
         for (size_t n = 0; n < len; ++n) {
-            SPA::UDB::CParameterInfo* pi = nullptr;
             if (stored) {
-                pi = m_vParamInfo.data() + n;
+                SPA::UDB::CParameterInfo* pi = m_vParamInfo.data() + (n % parameters);
+                SaveParameter(packet_id, vParam[n], vP[(n % parameters)], *sb, pi);
             }
-            SaveParameter(packet_id, vParam[n], vP[n], *sb, pi);
+            else {
+                SaveParameter(packet_id, vParam[n], vP[n], *sb, nullptr);
+            }
         }
 
         PacketHeader ph(tagPacketType::ptRpc, packet_id);

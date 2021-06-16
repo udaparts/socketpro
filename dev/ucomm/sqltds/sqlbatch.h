@@ -367,8 +367,9 @@ namespace tds {
         const SPA::UDB::CParameterInfo* FindParameterInfo(const CDBString& pn);
         bool SaveParameter(unsigned char &packet_id, const SPA::UDB::CDBVariant& v, const CDBString& p, SPA::CUQueue& buffer, SPA::UDB::CParameterInfo* pi = nullptr);
         void SendPLPData(unsigned char& packet_id, const unsigned char* data, unsigned int bytes);
+        int ToString(const SPA::UDB::CDBVariantArray& vData, CDBString& s, std::vector<CDBString>& vP);
         static CDBString Prepare(const char16_t* sql, unsigned int& parameters, CDBString& procName, CDBString& catalogSchema);
-        static int ToString(const SPA::UDB::CDBVariantArray& vData, CDBString& s, std::vector<CDBString> &vP);
+
         static inline VARTYPE GetVarType(tagDataType dt, unsigned char money_bytes);
         static inline CDBString GetSqlDeclaredType(tagDataType dt, unsigned char money_bytes);
         static std::vector<unsigned char> ObfuscatePassword(const CDBString& password);
