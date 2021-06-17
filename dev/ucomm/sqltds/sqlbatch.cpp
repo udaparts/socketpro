@@ -1188,6 +1188,7 @@ namespace tds
                             dt = tagDataType::NVARCHAR;
                             if (pi->ColumnSize <= 4000) {
                                 len = pi->ColumnSize;
+                                len <<= 1;
                                 buffer << dt << len << m_collation;
                             } else {
                                 len = VAR_MAX;
@@ -1224,8 +1225,7 @@ namespace tds
                         len = 2;
                         buffer << dt << len << m_collation;
                     }
-                    len = USHORT_NULL_LEN;
-                    buffer << len;
+                    buffer << USHORT_NULL_LEN;
                 }
                 break;
             case VT_BSTR:
@@ -1243,6 +1243,7 @@ namespace tds
                     len <<= 1;
                     if (pi && pi->Direction != SPA::UDB::tagParameterDirection::pdInput && pi->ColumnSize <= 4000) {
                         max = (unsigned short) pi->ColumnSize;
+                        max <<= 1;
                     }
                     if (len > 4000) {
                         max = VAR_MAX;
@@ -1712,6 +1713,8 @@ namespace tds
     }
 
     void CSqlBatch::SavePLP(const unsigned char* buffer, unsigned int bytes, SPA::CUQueue& q, unsigned char& packet_id) {
+        unsigned int size = q.GetSize();
+        assert(size < DEFAULT_PACKET_SIZE - sizeof(PacketHeader));
         PLPHeader ph(bytes, bytes);
         q << ph;
         if (bytes) {
