@@ -106,7 +106,7 @@ namespace tds {
         struct CollationFlag {
 
             CollationFlag() {
-                ::memset(this, 0, sizeof(CollationFlag));
+                ::memset(this, 0, sizeof (CollationFlag));
             }
             unsigned short Reserved : 4;
             unsigned short fIgnoreCase : 1;
@@ -120,7 +120,7 @@ namespace tds {
             unsigned short Version : 4;
 
             unsigned short GetValue() const {
-                return *(unsigned short*)this;
+                return *(unsigned short*) this;
             }
         };
 
@@ -130,11 +130,11 @@ namespace tds {
             unsigned char CharsetId = 0;
 
             inline bool operator==(const Collation& c) const noexcept {
-                return (!::memcmp(this, &c, sizeof(c)));
+                return (!::memcmp(this, &c, sizeof (c)));
             }
 
             inline bool operator!=(const Collation& c) const noexcept {
-                return ::memcmp(this, &c, sizeof(c));
+                return ::memcmp(this, &c, sizeof (c));
             }
 
             CDBString GetString() const {

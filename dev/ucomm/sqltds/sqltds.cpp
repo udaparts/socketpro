@@ -20,7 +20,7 @@ int main() {
     int res = pl.SendTDSMessage();
 
     tds::SqlLogin rec;
-    rec.database = u"sakila";
+    rec.database = u"sqltestdb";
     rec.userName = u"sa";
     rec.password = u"Smash123";
     rec.serverName = tds::CDBString(serverName, serverName + strlen(serverName));
@@ -51,10 +51,10 @@ int main() {
     std::cout << "Time required: " << d.count() << " ms\n\n";
 #endif
     //res = sqlbatch.SendTDSMessage(tds::CSqlBatch::tagRequestType::rtBeginTrans, tds::CSqlBatch::tagIsolationLevel::ilReadCommitted);
-#if 1
     unsigned int parameters;
     SPA::UDB::CParameterInfoArray vPInfo;
     SPA::UDB::CParameterInfo pi;
+#if 1
     pi.DataType = VT_I4;
     pi.ParameterName = u"@n";
     vPInfo.push_back(pi);
@@ -71,17 +71,25 @@ int main() {
     SPA::UDB::CDBVariantArray vParam;
     vParam.push_back(10);
     vParam.push_back(12);
-    vParam.push_back("");
+    vParam.push_back(u"");
+    vParam.push_back(15);
+    vParam.push_back(16);
+    vParam.push_back(u"");
     res = sqlbatch.SendTDSMessage(vParam);
 #endif
 
 #if 0
     res = sqlbatch.Prepare(u"insert into mynulltest values(?,?,?,?,?)", vPInfo, parameters);
     SPA::UDB::CDBVariantArray vParam;
-    vParam.push_back(6);
-    vParam.push_back(14);
-    vParam.push_back(127.45);
-    vParam.push_back("1900.42");
+    vParam.push_back(10);
+    vParam.push_back(201);
+    vParam.push_back(43157.68);
+    vParam.push_back("21907.42");
+    vParam.push_back(u"随着台湾疫情的愈加严峻，新冠疫苗也从乏人问津变成一剂难求。");
+    vParam.push_back(11);
+    vParam.push_back(135);
+    vParam.push_back(4127.47);
+    vParam.push_back("819067.43");
     vParam.push_back(u"随着台湾疫情的愈加严峻，新冠疫苗也从乏人问津变成一剂难求。");
     res = sqlbatch.SendTDSMessage(vParam);
 #endif

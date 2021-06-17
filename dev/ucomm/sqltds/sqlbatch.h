@@ -304,6 +304,14 @@ namespace tds {
             unsigned char fEncrypted : 1;
         };
 
+        struct PLPHeader {
+
+            PLPHeader(SPA::UINT64 h = 0, unsigned int sub_len = 0) : HEADER(h), SUB_LEN(sub_len) {
+            }
+            SPA::UINT64 HEADER;
+            unsigned int SUB_LEN;
+        };
+
 #pragma pack(pop)
 
         struct StringEventChange {
@@ -364,9 +372,10 @@ namespace tds {
         void ParseStringChange(tagEnvchangeType type, StringEventChange& sec);
         void ParseTransChange(tagEnvchangeType type, TransChange& tc);
         bool ConvertTo(const CDBString &pn);
+        bool PopPLP(VARTYPE vt);
+        void SavePLP(const unsigned char *buffer, unsigned int bytes, SPA::CUQueue& q, unsigned char &packet_id);
         const SPA::UDB::CParameterInfo* FindParameterInfo(const CDBString& pn);
         bool SaveParameter(unsigned char &packet_id, const SPA::UDB::CDBVariant& v, const CDBString& p, SPA::CUQueue& buffer, SPA::UDB::CParameterInfo* pi = nullptr);
-        void SendPLPData(unsigned char& packet_id, const unsigned char* data, unsigned int bytes);
         int ToString(const SPA::UDB::CDBVariantArray& vData, CDBString& s, std::vector<CDBString>& vP);
         static CDBString Prepare(const char16_t* sql, unsigned int& parameters, CDBString& procName, CDBString& catalogSchema);
 

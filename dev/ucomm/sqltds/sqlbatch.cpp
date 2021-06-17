@@ -298,11 +298,6 @@ namespace tds
         parameters = 0;
         CDBString s = sql ? sql : u"";
         SPA::Trim(s);
-        if (s.size() && s.front() == '{' && s.back() == '}') {
-            s.pop_back();
-            s.erase(s.begin(), s.begin() + 1);
-            SPA::Utilities::Trim(s);
-        }
         if (!s.size()) {
             return s;
         }
@@ -393,8 +388,7 @@ namespace tds
         }
         if (m_procName.size()) {
             m_vParamInfo = std::move(params);
-        }
-        else {
+        } else {
             m_vParamInfo.clear();
         }
 
@@ -407,63 +401,62 @@ namespace tds
             sp += it->ParameterName;
             sp += u"=@_pp" + SPA::Utilities::ToUTF16(std::to_string(index));
             switch (it->Direction) {
-            case SPA::UDB::tagParameterDirection::pdInput:
-                break;
-            case SPA::UDB::tagParameterDirection::pdInputOutput:
-            case SPA::UDB::tagParameterDirection::pdOutput:
-                if (m_procName.size()) {
-                    ++m_outputs;
-                }
-                else {
+                case SPA::UDB::tagParameterDirection::pdInput:
+                    break;
+                case SPA::UDB::tagParameterDirection::pdInputOutput:
+                case SPA::UDB::tagParameterDirection::pdOutput:
+                    if (m_procName.size()) {
+                        ++m_outputs;
+                    } else {
+                        return SPA::Odbc::ER_BAD_PARAMETER_DIRECTION_TYPE;
+                    }
+                    sp += u" OUT";
+                    break;
+                case SPA::UDB::tagParameterDirection::pdReturnValue:
+                case SPA::UDB::tagParameterDirection::pdUnknown:
+                default:
                     return SPA::Odbc::ER_BAD_PARAMETER_DIRECTION_TYPE;
-                }
-                sp += u" OUTPUT";
-                break;
-            case SPA::UDB::tagParameterDirection::pdReturnValue:
-            case SPA::UDB::tagParameterDirection::pdUnknown:
-            default:
-                return SPA::Odbc::ER_BAD_PARAMETER_DIRECTION_TYPE;
             }
             if (m_procName.size() && !it->ParameterName.size()) {
                 return ER_NO_PARAMETER_NAME_PROVIDED;
             }
             switch (it->DataType) {
-            case VT_UI1:
-            case VT_I1:
-            case VT_I2:
-            case VT_UI2:
-            case VT_I4:
-            case VT_UI4:
-            case VT_INT:
-            case VT_UINT:
-            case VT_I8:
-            case VT_UI8:
-            case VT_R4:
-            case VT_R8:
-            case VT_DATE:
-            case VT_CY:
-            case VT_CLSID:
-            case VT_BOOL:
-            case SPA::VT_XML:
-                break;
-            case (VT_UI1 | VT_ARRAY):
-            case (VT_I1 | VT_ARRAY):
-                if (!it->ColumnSize || (it->ColumnSize > 8000 && it->ColumnSize != MAX_IMAGE_TEXT_LEN)) {
-                    return ER_BAD_PARAMETER_INFO_COLUMN_SIZE;
-                }
-                break;
-            case VT_BSTR:
-                if (!it->ColumnSize || (it->ColumnSize > 4000 && it->ColumnSize != MAX_IMAGE_TEXT_LEN)) {
-                    return ER_BAD_PARAMETER_INFO_COLUMN_SIZE;
-                }
-                break;
-            case VT_DECIMAL:
-                if (!it->Precision || it->Precision > 38) {
-                    return ER_NO_DECIMAL_PRECSION_PROVIDED;
-                }
-                break;
-            default:
-                return SPA::Odbc::ER_DATA_TYPE_NOT_SUPPORTED;
+                case VT_UI1:
+                case VT_I1:
+                case VT_I2:
+                case VT_UI2:
+                case VT_I4:
+                case VT_UI4:
+                case VT_INT:
+                case VT_UINT:
+                case VT_I8:
+                case VT_UI8:
+                case VT_R4:
+                case VT_R8:
+                case VT_DATE:
+                case VT_CY:
+                case VT_CLSID:
+                case VT_BOOL:
+                case SPA::VT_XML:
+                    break;
+                case (VT_UI1 | VT_ARRAY):
+                case (VT_I1 | VT_ARRAY):
+                    if (!it->ColumnSize || (it->ColumnSize > 8000 && it->ColumnSize != MAX_IMAGE_TEXT_LEN)) {
+                        return ER_BAD_PARAMETER_INFO_COLUMN_SIZE;
+                    }
+                    break;
+                case VT_BSTR:
+                    if (!it->ColumnSize || (it->ColumnSize > 4000 && it->ColumnSize != MAX_IMAGE_TEXT_LEN)) {
+                        return ER_BAD_PARAMETER_INFO_COLUMN_SIZE;
+                    }
+                    break;
+                case VT_DECIMAL:
+                    if (!it->Precision || it->Precision > 38) {
+                        return ER_NO_DECIMAL_PRECSION_PROVIDED;
+                    }
+                    break;
+                default:
+                    return SPA::Odbc::ER_DATA_TYPE_NOT_SUPPORTED;
             }
         }
         m_inputs = (unsigned short) (parameters - m_outputs);
@@ -476,8 +469,7 @@ namespace tds
                 m_sqlPrepare += m_catalogSchema;
                 m_sqlPrepare.push_back('.');
                 m_sqlPrepare += m_procName;
-            }
-            else {
+            } else {
                 m_sqlPrepare += m_procName;
             }
             m_sqlPrepare.push_back(' ');
@@ -499,7 +491,7 @@ namespace tds
             SPA::UDB::CParameterInfo* pi = nullptr;
             if (stored) {
                 pi = m_vParamInfo.data() + (n % m_vParamInfo.size());
-            }   
+            }
             const SPA::UDB::CDBVariant& v = vData[n];
 #ifdef WIN32_64
             unsigned char bytes = (unsigned char) ::sprintf_s(param, "@_pp%d", (int) n);
@@ -568,12 +560,10 @@ namespace tds
                     if (pi && pi->Direction != SPA::UDB::tagParameterDirection::pdInput) {
                         if (pi->ColumnSize > 8000) {
                             str += "max";
-                        }
-                        else {
+                        } else {
                             str += std::to_string(pi->ColumnSize);
                         }
-                    }
-                    else {
+                    } else {
                         unsigned int len = v.parray->rgsabound[0].cElements;
                         if (n > 8000) {
                             str += "max";
@@ -589,17 +579,14 @@ namespace tds
                     if (pi && pi->Direction != SPA::UDB::tagParameterDirection::pdInput) {
                         if (pi->ColumnSize > 4000) {
                             str += "max";
-                        }
-                        else {
+                        } else {
                             str += std::to_string(pi->ColumnSize);
                         }
-                    }
-                    else {
+                    } else {
                         unsigned int len = ::SysStringLen(v.bstrVal);
                         if (n > 4000) {
                             str += "max";
-                        }
-                        else {
+                        } else {
                             if (!len) len = 1;
                             str += std::to_string(len);
                         }
@@ -613,18 +600,15 @@ namespace tds
                         if (pi && pi->Direction != SPA::UDB::tagParameterDirection::pdInput) {
                             if (pi->ColumnSize > 8000) {
                                 str += "max";
-                            }
-                            else {
+                            } else {
                                 str += std::to_string(pi->ColumnSize);
                             }
-                        }
-                        else {
+                        } else {
                             str += "varbinary(";
                             unsigned int len = v.parray->rgsabound[0].cElements;
                             if (n > 8000) {
                                 str += "max";
-                            }
-                            else {
+                            } else {
                                 if (!len) len = 1;
                                 str += std::to_string(len);
                             }
@@ -639,8 +623,15 @@ namespace tds
                 default:
                     return -1;
             }
-            if (pi && pi->Direction != SPA::UDB::tagParameterDirection::pdInput) {
-                str += " OUTPUT";
+            if (pi) {
+                switch (pi->Direction) {
+                    case SPA::UDB::tagParameterDirection::pdOutput:
+                    case SPA::UDB::tagParameterDirection::pdInputOutput:
+                        str += " OUT";
+                        break;
+                    default:
+                        break;
+                }
             }
         }
         s = SPA::Utilities::ToUTF16(str);
@@ -689,31 +680,29 @@ namespace tds
                     time <<= 32;
                     time += low;
                     std::tm tm;
-                    ::memset(&tm, 0, sizeof(tm));
+                    ::memset(&tm, 0, sizeof (tm));
                     tm.tm_mday = 1;
                     ToTime(time, p_len, tm.tm_hour, tm.tm_min, tm.tm_sec, us);
                     SPA::UDateTime udt(tm, us);
-                    m_out << (VARTYPE)VT_DATE << udt.time;
-                }
-                else {
-                    m_out << (VARTYPE)VT_NULL;
+                    m_out << (VARTYPE) VT_DATE << udt.time;
+                } else {
+                    m_out << (VARTYPE) VT_NULL;
                 }
             }
-            break;
+                break;
 #endif
             case tagDataType::MONEYN:
             {
                 unsigned char bytes0, bytes1;
                 m_buffer >> bytes0 >> bytes1;
-                assert(bytes0 == sizeof(CY));
+                assert(bytes0 == sizeof (CY));
                 if (bytes1) {
                     assert(bytes0 == bytes1);
                     CY cy;
                     m_buffer >> cy.Hi >> cy.Lo;
-                    m_out << (VARTYPE)VT_CY << cy;
-                }
-                else {
-                    m_out << (VARTYPE)VT_NULL;
+                    m_out << (VARTYPE) VT_CY << cy;
+                } else {
+                    m_out << (VARTYPE) VT_NULL;
                 }
             }
                 break;
@@ -721,18 +710,17 @@ namespace tds
             {
                 unsigned char bytes0, bytes1;
                 m_buffer >> bytes0 >> bytes1;
-                assert(bytes0 == sizeof(CLSID));
-                if (m_buffer.GetSize() < sizeof(CLSID)) {
+                assert(bytes0 == sizeof (CLSID));
+                if (m_buffer.GetSize() < sizeof (CLSID)) {
                     return false;
                 }
                 if (bytes1) {
                     assert(bytes0 == bytes1);
-                    m_out << (VARTYPE)VT_CLSID;
-                    m_out.Push(m_buffer.GetBuffer(), sizeof(CLSID));
-                    m_buffer.Pop(sizeof(CLSID));
-                }
-                else {
-                    m_out << (VARTYPE)VT_NULL;
+                    m_out << (VARTYPE) VT_CLSID;
+                    m_out.Push(m_buffer.GetBuffer(), sizeof (CLSID));
+                    m_buffer.Pop(sizeof (CLSID));
+                } else {
+                    m_out << (VARTYPE) VT_NULL;
                 }
             }
                 break;
@@ -756,10 +744,9 @@ namespace tds
                     tm.tm_year -= 1900;
                     tm.tm_mon -= 1;
                     SPA::UDateTime udt(tm, us);
-                    m_out << (VARTYPE)VT_DATE << udt.time;
-                }
-                else {
-                    m_out << (VARTYPE)VT_NULL;
+                    m_out << (VARTYPE) VT_DATE << udt.time;
+                } else {
+                    m_out << (VARTYPE) VT_NULL;
                 }
             }
                 break;
@@ -768,21 +755,21 @@ namespace tds
                 unsigned char bytes0, bytes1;
                 m_buffer >> bytes0 >> bytes1;
                 switch (bytes1) {
-                case 0:
-                    m_out << (VARTYPE)VT_NULL;
-                    break;
-                case sizeof(float) :
-                    assert(bytes0 == bytes1);
-                    m_out << (VARTYPE)VT_R4;
-                    m_out.Push(m_buffer.GetBuffer(), sizeof(float));
-                    m_buffer.Pop(sizeof(float));
-                    break;
-                default:
-                    assert(bytes0 == bytes1);
-                    m_out << (VARTYPE)VT_R8;
-                    m_out.Push(m_buffer.GetBuffer(), sizeof(double));
-                    m_buffer.Pop(sizeof(double));
-                    break;
+                    case 0:
+                        m_out << (VARTYPE) VT_NULL;
+                        break;
+                    case sizeof (float):
+                        assert(bytes0 == bytes1);
+                        m_out << (VARTYPE) VT_R4;
+                        m_out.Push(m_buffer.GetBuffer(), sizeof (float));
+                        m_buffer.Pop(sizeof (float));
+                        break;
+                    default:
+                        assert(bytes0 == bytes1);
+                        m_out << (VARTYPE) VT_R8;
+                        m_out.Push(m_buffer.GetBuffer(), sizeof (double));
+                        m_buffer.Pop(sizeof (double));
+                        break;
                 }
             }
                 break;
@@ -790,16 +777,16 @@ namespace tds
             {
                 unsigned char bytes0, bytes1;
                 m_buffer >> bytes0 >> bytes1;
-                assert(bytes0 == sizeof(bool));
+                assert(bytes0 == sizeof (bool));
                 switch (bytes1) {
-                case 0:
-                    m_out << (VARTYPE)VT_NULL;
-                    break;
-                default :
-                    assert(bytes0 == bytes1);
-                    m_buffer >> bytes1;
-                    m_out << (VARTYPE)VT_BOOL << (VARIANT_BOOL) (bytes1 ? VARIANT_TRUE : VARIANT_FALSE);
-                    break;
+                    case 0:
+                        m_out << (VARTYPE) VT_NULL;
+                        break;
+                    default:
+                        assert(bytes0 == bytes1);
+                        m_buffer >> bytes1;
+                        m_out << (VARTYPE) VT_BOOL << (VARIANT_BOOL) (bytes1 ? VARIANT_TRUE : VARIANT_FALSE);
+                        break;
                 }
             }
                 break;
@@ -809,7 +796,7 @@ namespace tds
                 m_buffer >> bytes0 >> bytes1;
                 switch (bytes1) {
                     case 0:
-                        m_out << (VARTYPE)VT_NULL;
+                        m_out << (VARTYPE) VT_NULL;
                         break;
                     case sizeof (unsigned char):
                         assert(bytes0 == bytes1);
@@ -880,32 +867,17 @@ namespace tds
                 unsigned short max_len;
                 m_buffer >> max_len;
                 if (max_len == VAR_MAX) {
-                    SPA::UINT64 plp_len;
-                    unsigned int sub_len;
-                    if (m_buffer.GetSize() <= sizeof(SPA::UINT64) + sizeof(unsigned int)) {
+                    if (!PopPLP(VT_ARRAY | VT_UI1)) {
                         return false;
                     }
-                    m_buffer >> plp_len >> sub_len;
-                    if (sub_len > m_buffer.GetSize()) {
-                        return false;
-                    }
-                    unsigned int blob_len = (unsigned int)plp_len;
-                    m_out << (VARTYPE)(VT_ARRAY|VT_UI1) << blob_len;
-                    m_out.Push(m_buffer.GetBuffer(), sub_len);
-                    m_buffer.Pop(sub_len);
-                    plp_len -= sub_len;
-                    if (plp_len) {
-                        m_lenLarge = UNKNOWN_XML_LEN;
-                    }
-                }
-                else {
+                } else {
                     unsigned short str_len;
                     m_buffer >> str_len;
                     if (str_len > m_buffer.GetSize()) {
                         return false;
                     }
-                    m_out << (VARTYPE)(VT_UI1 | VT_ARRAY);
-                    m_out << (unsigned int)str_len;
+                    m_out << (VARTYPE) (VT_UI1 | VT_ARRAY);
+                    m_out << (unsigned int) str_len;
                     m_out.Push(m_buffer.GetBuffer(), str_len);
                     m_buffer.Pop(str_len);
                 }
@@ -917,35 +889,20 @@ namespace tds
                 Collation collation;
                 m_buffer >> max_len >> collation;
                 if (max_len == VAR_MAX) {
-                    SPA::UINT64 plp_len;
-                    unsigned int sub_len;
-                    if (m_buffer.GetSize() <= sizeof(SPA::UINT64) + sizeof(unsigned int)) {
+                    if (!PopPLP(VT_BSTR)) {
                         return false;
                     }
-                    m_buffer >> plp_len >> sub_len;
-                    if (sub_len > m_buffer.GetSize()) {
-                        return false;
-                    }
-                    unsigned int blob_len = (unsigned int)plp_len;
-                    m_out << (VARTYPE)VT_BSTR << blob_len;
-                    m_out.Push(m_buffer.GetBuffer(), sub_len);
-                    m_buffer.Pop(sub_len);
-                    plp_len -= sub_len;
-                    if (plp_len) {
-                        m_lenLarge = UNKNOWN_XML_LEN;
-                    }
-                }
-                else {
+                } else {
                     unsigned short str_len;
                     m_buffer >> str_len;
                     if (str_len > m_buffer.GetSize()) {
                         return false;
                     }
 #ifndef NDEBUG          
-                    const char16_t* head = (const char16_t*)m_buffer.GetBuffer();
+                    const char16_t* head = (const char16_t*) m_buffer.GetBuffer();
 #endif
-                    m_out << (VARTYPE)VT_BSTR;
-                    m_out << (unsigned int)str_len;
+                    m_out << (VARTYPE) VT_BSTR;
+                    m_out << (unsigned int) str_len;
                     m_out.Push(m_buffer.GetBuffer(), str_len);
                     m_buffer.Pop(str_len);
                 }
@@ -955,7 +912,7 @@ namespace tds
             {
                 unsigned char p_byte;
                 SPA::UINT64 plp_len;
-                if (m_buffer.GetSize() <= sizeof(unsigned char) + sizeof(SPA::UINT64)) {
+                if (m_buffer.GetSize() <= sizeof (unsigned char) + sizeof (SPA::UINT64)) {
                     return false;
                 }
                 m_buffer >> p_byte >> plp_len;
@@ -963,33 +920,30 @@ namespace tds
                 if (plp_len != BLOB_NULL_LEN) {
                     assert(plp_len == UNKNOWN_XML_LEN);
                     unsigned int sub_len;
-                    if (m_buffer.GetSize() <= sizeof(sub_len)) {
+                    if (m_buffer.GetSize() <= sizeof (sub_len)) {
                         return false;
                     }
                     m_buffer >> sub_len;
                     if (sub_len > m_buffer.GetSize()) {
                         return false;
                     }
-                    m_out << (VARTYPE)VT_BSTR;
-                    if (m_buffer.GetSize() >= sub_len + sizeof(unsigned int)) {
+                    m_out << (VARTYPE) VT_BSTR;
+                    if (m_buffer.GetSize() >= sub_len + sizeof (unsigned int)) {
                         m_out << sub_len;
                         m_out.Push(m_buffer.GetBuffer(), sub_len);
-                        unsigned int plp_terminator = *(unsigned int*)m_buffer.GetBuffer(sub_len);
+                        unsigned int plp_terminator = *(unsigned int*) m_buffer.GetBuffer(sub_len);
                         if (plp_terminator == 0) {
-                            m_buffer.Pop(sub_len + sizeof(unsigned int));
-                        }
-                        else {
+                            m_buffer.Pop(sub_len + sizeof (unsigned int));
+                        } else {
                             m_buffer.Pop(sub_len);
                             m_lenLarge = UNKNOWN_XML_LEN;
                         }
-                    }
-                    else if (m_buffer.GetSize() >= sub_len) {
-                        m_out << (unsigned int)plp_len;
+                    } else if (m_buffer.GetSize() >= sub_len) {
+                        m_out << (unsigned int) plp_len;
                         m_out.Push(m_buffer.GetBuffer(), sub_len);
                         m_buffer.Pop(sub_len);
                         m_lenLarge = UNKNOWN_XML_LEN;
-                    }
-                    else {
+                    } else {
                         return false;
                     }
                 }
@@ -1004,30 +958,39 @@ namespace tds
         return true;
     }
 
-    bool CSqlBatch::ConvertTo(const CDBString& pn) {
+    bool CSqlBatch::PopPLP(VARTYPE vt) {
+        constexpr unsigned int HEADER_SIZE = sizeof (PLPHeader);
+        if (m_buffer.GetSize() <= HEADER_SIZE + sizeof (PLP_TERMINATOR)) {
+            return false;
+        }
+        PLPHeader *ph = (PLPHeader *) m_buffer.GetBuffer();
+        if (ph->SUB_LEN + HEADER_SIZE > m_buffer.GetSize()) {
+            return false;
+        }
+        PLPHeader plp_header;
+        m_buffer >> plp_header;
+        m_out << vt << (unsigned int) plp_header.HEADER;
+        m_out.Push(m_buffer.GetBuffer(), plp_header.SUB_LEN);
+        m_buffer.Pop(plp_header.SUB_LEN);
+        plp_header.HEADER -= plp_header.SUB_LEN;
+        if (plp_header.HEADER) {
+            m_lenLarge = UNKNOWN_XML_LEN;
+        } else if (m_buffer.GetSize() >= sizeof (PLP_TERMINATOR)) {
+            m_buffer >> plp_header.SUB_LEN;
+            assert(plp_header.SUB_LEN == PLP_TERMINATOR);
+        }
+        return true;
+    }
+
+    bool CSqlBatch::ConvertTo(const CDBString & pn) {
         unsigned short max_len;
         Collation collation;
         m_buffer >> max_len >> collation;
         if (max_len == VAR_MAX) {
-            SPA::UINT64 plp_len;
-            unsigned int sub_len;
-            if (m_buffer.GetSize() <= sizeof(SPA::UINT64) + sizeof(unsigned int)) {
+            if (!PopPLP(VT_ARRAY | VT_I1)) {
                 return false;
             }
-            m_buffer >> plp_len >> sub_len;
-            if (sub_len > m_buffer.GetSize()) {
-                return false;
-            }
-            unsigned int blob_len = (unsigned int)plp_len;
-            m_out << (VARTYPE)(VT_I1 | VT_ARRAY) << blob_len;
-            m_out.Push(m_buffer.GetBuffer(), sub_len);
-            m_buffer.Pop(sub_len);
-            plp_len -= sub_len;
-            if (plp_len) {
-                m_lenLarge = UNKNOWN_XML_LEN;
-            }
-        }
-        else {
+        } else {
             unsigned short str_len;
             m_buffer >> str_len;
             if (str_len > m_buffer.GetSize()) {
@@ -1035,33 +998,32 @@ namespace tds
             }
             auto pi = FindParameterInfo(pn);
             assert(pi);
-            const char* head = (const char*)m_buffer.GetBuffer();
+            const char* head = (const char*) m_buffer.GetBuffer();
             m_out << pi->DataType;
-            switch (pi->DataType)
-            {
-            case VT_I1:
-                break;
-            case (VT_I1 | VT_ARRAY):
-                m_out << (unsigned int)str_len;
-                m_out.Push(head, str_len);
-                break;
-            case VT_DATE:
-            {
-                SPA::UDateTime dt;
-                dt.ParseFromDBString(head);
-                m_out << dt.time;
-            }
-            break;
-            default:
-                assert(false);
-                break;
+            switch (pi->DataType) {
+                case VT_I1:
+                    break;
+                case (VT_I1 | VT_ARRAY):
+                    m_out << (unsigned int) str_len;
+                    m_out.Push(head, str_len);
+                    break;
+                case VT_DATE:
+                {
+                    SPA::UDateTime dt;
+                    dt.ParseFromDBString(head);
+                    m_out << dt.time;
+                }
+                    break;
+                default:
+                    assert(false);
+                    break;
             }
             m_buffer.Pop(str_len);
         }
         return true;
     }
 
-    const SPA::UDB::CParameterInfo* CSqlBatch::FindParameterInfo(const CDBString& pn) {
+    const SPA::UDB::CParameterInfo * CSqlBatch::FindParameterInfo(const CDBString & pn) {
         for (auto it = m_vParamInfo.cbegin(), end = m_vParamInfo.cend(); it != end; ++it) {
             if (it->ParameterName == pn) {
                 return &(*it);
@@ -1137,13 +1099,11 @@ namespace tds
                     p_len = pi->Precision;
                     if (p_len <= 19) {
                         b_len = 9;
-                    }
-                    else {
+                    } else {
                         b_len = 13;
                     }
                     buffer << dt << b_len << p_len << pi->Scale << b_len;
-                }
-                else {
+                } else {
                     b_len = v.decVal.Hi32 ? 13 : 9; //max length;
                     p_len = v.decVal.Hi32 ? 28 : 19; //precision;
                     buffer << dt << b_len << p_len << v.decVal.scale << b_len;
@@ -1202,16 +1162,14 @@ namespace tds
             case VT_EMPTY:
                 if (pi && pi->DataType == VT_CLSID) {
                     dt = tagDataType::UNIQUEIDENTIFIER;
-                    b_len = sizeof(CLSID);
+                    b_len = sizeof (CLSID);
                     p_len = 0;
                     buffer << dt << b_len << p_len;
-                }
-                else if (pi && pi->DataType == SPA::VT_XML) {
+                } else if (pi && pi->DataType == SPA::VT_XML) {
                     dt = tagDataType::XML;
                     p_len = 0;
                     buffer << dt << p_len << BLOB_NULL_LEN;
-                }
-                else {
+                } else {
                     unsigned short len;
                     if (pi) {
                         if (pi->DataType == VT_BSTR) {
@@ -1219,44 +1177,37 @@ namespace tds
                             if (pi->ColumnSize <= 4000) {
                                 len = pi->ColumnSize;
                                 buffer << dt << len << m_collation;
-                            }
-                            else {
+                            } else {
                                 len = VAR_MAX;
                                 buffer << dt << len << m_collation << BLOB_NULL_LEN;
                                 return true;
                             }
-                        }
-                        else if (pi->DataType == (VT_ARRAY | VT_I1)) {
+                        } else if (pi->DataType == (VT_ARRAY | VT_I1)) {
                             dt = tagDataType::VARCHAR;
                             if (pi->ColumnSize <= 8000) {
                                 len = pi->ColumnSize;
                                 buffer << dt << len << m_collation;
-                            }
-                            else {
+                            } else {
                                 len = VAR_MAX;
                                 buffer << dt << len << m_collation << BLOB_NULL_LEN;
                                 return true;
                             }
-                        }
-                        else if (pi->DataType == (VT_ARRAY | VT_UI1)) {
+                        } else if (pi->DataType == (VT_ARRAY | VT_UI1)) {
                             dt = tagDataType::VARBINARY;
                             if (pi->ColumnSize <= 8000) {
                                 len = pi->ColumnSize;
                                 buffer << dt << len;
-                            }
-                            else {
+                            } else {
                                 len = VAR_MAX;
                                 buffer << dt << len << BLOB_NULL_LEN;
                                 return true;
                             }
-                        }
-                        else {
+                        } else {
                             dt = tagDataType::VARCHAR;
                             len = 64;
                             buffer << dt << len << m_collation;
                         }
-                    }
-                    else {
+                    } else {
                         dt = tagDataType::VARCHAR;
                         len = 2;
                         buffer << dt << len << m_collation;
@@ -1269,41 +1220,28 @@ namespace tds
                 if (pi && pi->DataType == SPA::VT_XML) {
                     dt = tagDataType::XML;
                     p_len = 0;
-                    buffer << dt << p_len << UNKNOWN_XML_LEN;
+                    buffer << dt << p_len;
                     unsigned int len = SysStringLen(v.bstrVal);
                     len <<= 1;
-                    buffer << len;
-                    buffer.Push(v.bstrVal, len >> 1);
-                    buffer << PLP_TERMINATOR;
-                }
-                else
-                {
+                    SavePLP((const unsigned char*) v.bstrVal, len, buffer, packet_id);
+                } else {
                     dt = tagDataType::NVARCHAR;
                     unsigned short max = VAR_MAX;
                     unsigned int len = SysStringLen(v.bstrVal);
                     len <<= 1;
                     if (pi && pi->Direction != SPA::UDB::tagParameterDirection::pdInput && pi->ColumnSize <= 4000) {
-                        max = (unsigned short)pi->ColumnSize;
+                        max = (unsigned short) pi->ColumnSize;
                     }
                     if (len > 4000) {
                         max = VAR_MAX;
-                    }
-                    else if (len > max) {
+                    } else if (len > max) {
                         max = len;
                     }
                     buffer << dt << max << m_collation;
                     if (max == VAR_MAX) {
-                        SPA::UINT64 plp_length = len;
-                        buffer << plp_length;
-                        while (len) {
-                            buffer << len;
-                            buffer.Push(v.bstrVal, len >> 1);
-                            len = 0;
-                        }
-                        buffer << PLP_TERMINATOR;
-                    }
-                    else {
-                        buffer << (unsigned short)len;
+                        SavePLP((const unsigned char*) v.bstrVal, len, buffer, packet_id);
+                    } else {
+                        buffer << (unsigned short) len;
                         buffer.Push(v.bstrVal, len >> 1);
                     }
                 }
@@ -1315,28 +1253,19 @@ namespace tds
                 unsigned short max = VAR_MAX;
                 unsigned int len = v.parray->rgsabound[0].cElements;
                 if (pi && pi->Direction != SPA::UDB::tagParameterDirection::pdInput && pi->ColumnSize <= 8000) {
-                    max = (unsigned short)pi->ColumnSize;
+                    max = (unsigned short) pi->ColumnSize;
                 }
                 if (len > 8000) {
                     max = VAR_MAX;
-                }
-                else if (len > max) {
+                } else if (len > max) {
                     max = len;
                 }
                 buffer << dt << max << m_collation;
                 SafeArrayAccessData(v.parray, (void**) &s);
                 if (max == VAR_MAX) {
-                    SPA::UINT64 plp_length = len;
-                    buffer << plp_length;
-                    while (len) {
-                        buffer << len;
-                        buffer.Push(s, len);
-                        len = 0;
-                    }
-                    buffer << PLP_TERMINATOR;
-                }
-                else {
-                    buffer << (unsigned short)len;
+                    SavePLP((const unsigned char*) s, len, buffer, packet_id);
+                } else {
+                    buffer << (unsigned short) len;
                     buffer.Push(s, len);
                 }
                 SafeArrayUnaccessData(v.parray);
@@ -1357,27 +1286,18 @@ namespace tds
                     dt = tagDataType::VARBINARY;
                     unsigned short max = VAR_MAX;
                     if (pi && pi->Direction != SPA::UDB::tagParameterDirection::pdInput && pi->ColumnSize <= 8000) {
-                        max = (unsigned short)pi->ColumnSize;
+                        max = (unsigned short) pi->ColumnSize;
                     }
                     if (len > 8000) {
                         max = VAR_MAX;
-                    }
-                    else if (len > max) {
+                    } else if (len > max) {
                         max = len;
                     }
                     buffer << dt << max;
                     if (max == VAR_MAX) {
-                        SPA::UINT64 plp_length = len;
-                        buffer << plp_length;
-                        while (len) {
-                            buffer << len;
-                            buffer.Push(s, len);
-                            len = 0;
-                        }
-                        buffer << PLP_TERMINATOR;
-                    }
-                    else {
-                        buffer << (unsigned short)len;
+                        SavePLP(s, len, buffer, packet_id);
+                    } else {
+                        buffer << (unsigned short) len;
                         buffer.Push(s, len);
                     }
                 }
@@ -1389,10 +1309,6 @@ namespace tds
                 return false;
         }
         return true;
-    }
-
-    void CSqlBatch::SendPLPData(unsigned char& packet_id, const unsigned char* data, unsigned int bytes) {
-
     }
 
     int CSqlBatch::SendTDSMessage(const SqlLogin& rec, FeatureExtension requestedFeatures) {
@@ -1713,13 +1629,11 @@ namespace tds
                             if (vParam[n].vt != VT_BSTR) {
                                 return ER_BAD_OUTPUT_PARAMETER_DATA_TYPE;
                             }
-                        }
-                        else if (pi->DataType == VT_CLSID) {
-                            if (vParam[n].vt != (VT_ARRAY | VT_UI1) || vParam[n].parray->rgsabound[0].cElements != sizeof(CLSID)) {
+                        } else if (pi->DataType == VT_CLSID) {
+                            if (vParam[n].vt != (VT_ARRAY | VT_UI1) || vParam[n].parray->rgsabound[0].cElements != sizeof (CLSID)) {
                                 return ER_BAD_OUTPUT_PARAMETER_DATA_TYPE;
                             }
-                        }
-                        else {
+                        } else {
                             return ER_BAD_OUTPUT_PARAMETER_DATA_TYPE;
                         }
                     }
@@ -1750,50 +1664,48 @@ namespace tds
         sb << optionFlags;
 
         unsigned char packet_id = 1;
-        size_t len;
         std::vector<CDBString> vP;
         {
-            unsigned char name_len = 0;
-            sb << name_len;
-            unsigned char status = 0;
-            sb << status;
+            unsigned char name_len = 0, status = 0;
             tagDataType dt = tagDataType::NVARCHAR;
-            unsigned short max_len = (unsigned short) (sql.size() << 1);
+            unsigned short max_len = VAR_MAX;
 
-            sb << dt << max_len << m_collation << max_len;
-            sb->Push(sql.c_str(), (unsigned int) sql.size());
+            sb << name_len << status << dt << max_len << m_collation;
+            SavePLP((const unsigned char*) sql.c_str(), (unsigned int) (sql.size() << 1), *sb, packet_id);
 
             //
-            name_len = 0;
-            status = 0;
-            sb << name_len << status << dt;
+            sb << name_len << status << dt << max_len << m_collation;
             CDBString p;
             int res = ToString(vParam, p, vP);
-            len = p.size();
-            max_len = (unsigned short) (len << 1);
-            sb << max_len << m_collation << max_len;
-            sb->Push(p.c_str(), (unsigned int) len);
+            SavePLP((const unsigned char*) p.c_str(), (unsigned int) (p.size() << 1), *sb, packet_id);
         }
         //
-        len = vParam.size();
+        size_t len = vParam.size();
         for (size_t n = 0; n < len; ++n) {
+            SPA::UDB::CParameterInfo* pi = nullptr;
             if (stored) {
-                SPA::UDB::CParameterInfo* pi = m_vParamInfo.data() + (n % parameters);
-                SaveParameter(packet_id, vParam[n], vP[(n % parameters)], *sb, pi);
+                pi = m_vParamInfo.data() + (n % parameters);
             }
-            else {
-                SaveParameter(packet_id, vParam[n], vP[n], *sb, nullptr);
-            }
+            SaveParameter(packet_id, vParam[n], vP[n], *sb, pi);
         }
 
         PacketHeader ph(tagPacketType::ptRpc, packet_id);
-        ph.Length = (Packet_Length)(sb->GetSize() + sizeof(ph));
+        ph.Length = (Packet_Length) (sb->GetSize() + sizeof (ph));
         ph.Length = ChangeEndian(ph.Length);
         ph.Spid = ChangeEndian(GetResponseHeader().Spid);
         SPA::CScopeUQueue sbEnd;
         sbEnd << ph;
         sbEnd->Push(sb->GetBuffer(), sb->GetSize());
         return Send(sbEnd->GetBuffer(), sbEnd->GetSize(), m_timeout);
+    }
+
+    void CSqlBatch::SavePLP(const unsigned char* buffer, unsigned int bytes, SPA::CUQueue& q, unsigned char& packet_id) {
+        PLPHeader ph(bytes, bytes);
+        q << ph;
+        if (bytes) {
+            q.Push(buffer, bytes);
+            q << PLP_TERMINATOR;
+        }
     }
 
     int CSqlBatch::SendTDSMessage(const char16_t * sql) {
@@ -2758,10 +2670,6 @@ namespace tds
         VARTYPE vt = GetVarType(dt, 0);
         switch (dt) {
             case tagDataType::XML:
-                if (m_out.GetSize()) {
-                    std::cout << "Blob size: " << m_out.GetSize() - 6 << "\n";
-                    m_out.SetSize(0);
-                }
             {
                 unsigned int remain;
                 m_buffer >> m_lenLarge >> remain;
@@ -2794,10 +2702,6 @@ namespace tds
             case tagDataType::IMAGE:
             case tagDataType::TEXT:
             {
-                if (m_out.GetSize()) {
-                    std::cout << "Blob size: " << m_out.GetSize() - 6 << "\n";
-                    m_out.SetSize(0);
-                }
                 unsigned char skipped_bytes;
                 m_buffer >> skipped_bytes;
                 m_buffer.Pop(skipped_bytes);
@@ -2822,10 +2726,6 @@ namespace tds
                 break;
             case tagDataType::UDT:
             {
-                if (m_out.GetSize()) {
-                    std::cout << "Blob size: " << m_out.GetSize() - 6 << "\n";
-                    m_out.SetSize(0);
-                }
                 unsigned int remain;
                 m_buffer >> m_lenLarge >> remain;
                 assert(remain <= DEFAULT_PACKET_SIZE - sizeof (m_lenLarge) - sizeof (remain));
@@ -2855,10 +2755,6 @@ namespace tds
             case tagDataType::BINARY:
             case tagDataType::VARBINARY:
                 if (max) {
-                    if (m_out.GetSize()) {
-                        std::cout << "Blob size: " << m_out.GetSize() - 6 << "\n";
-                        m_out.SetSize(0);
-                    }
                     unsigned int remain;
                     m_buffer >> m_lenLarge >> remain;
                     assert(remain > 0 && remain <= DEFAULT_PACKET_SIZE - sizeof (m_lenLarge) - sizeof (remain));
@@ -3030,8 +2926,7 @@ namespace tds
                             m_posCol = INVALID_COL;
                             m_tt = tagTokenType::ttZero;
                         }
-                    }
-                    else {
+                    } else {
                         m_tt = tagTokenType::ttZero;
                     }
                 } else {
@@ -3233,7 +3128,10 @@ namespace tds
                 m_vCol.clear();
                 m_vDT.clear();
                 m_vNull.clear();
-                m_out.SetSize(0);
+                SPA::UDB::CDBVariant vt;
+                while (m_out.GetSize()) {
+                    m_out >> vt;
+                }
             }
             return true;
         }

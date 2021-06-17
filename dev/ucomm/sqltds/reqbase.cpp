@@ -11,7 +11,7 @@ namespace tds{
             m_buffer.ReallocBuffer(SPA::DEFAULT_INITIAL_MEMORY_BUFFER_SIZE);
         }
 
-        m_collation.CodePage = (unsigned short)GetSystemDefaultLCID();
+        m_collation.CodePage = (unsigned short) GetSystemDefaultLCID();
         m_collation.CharsetId = 52;
     }
 
@@ -82,7 +82,7 @@ namespace tds{
         return ChangeEndian((SPID) tid);
     }
 
-    CTdsChannel& CReqBase::GetChannel() {
+    CTdsChannel & CReqBase::GetChannel() {
         return m_channel;
     }
 
