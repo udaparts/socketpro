@@ -307,13 +307,12 @@ namespace tds
         if (called) {
             auto pos = s_copy.find('(');
             if (pos != CDBString::npos) {
-                if (s_copy.back() != ')')
+                if (s_copy.back() != ')') {
                     return u"";
+                }
                 procName.assign(s_copy.begin() + 5, s_copy.begin() + pos);
             } else {
-                if (s_copy.back() == ')')
-                    return u"";
-                procName = s_copy.substr(5);
+                return u"";
             }
             SPA::Trim(procName);
             pos = procName.rfind('.');
@@ -575,23 +574,31 @@ namespace tds
                     str.push_back(')');
                     break;
                 case VT_BSTR:
-                    str += "nvarchar(";
-                    if (pi && pi->Direction != SPA::UDB::tagParameterDirection::pdInput) {
-                        if (pi->ColumnSize > 4000) {
-                            str += "max";
-                        } else {
-                            str += std::to_string(pi->ColumnSize);
-                        }
-                    } else {
-                        unsigned int len = ::SysStringLen(v.bstrVal);
-                        if (n > 4000) {
-                            str += "max";
-                        } else {
-                            if (!len) len = 1;
-                            str += std::to_string(len);
-                        }
+                    if (pi && pi->DataType == SPA::VT_XML) {
+                        str += "xml";
                     }
-                    str.push_back(')');
+                    else {
+                        str += "nvarchar(";
+                        if (pi && pi->Direction != SPA::UDB::tagParameterDirection::pdInput) {
+                            if (pi->ColumnSize > 4000) {
+                                str += "max";
+                            }
+                            else {
+                                str += std::to_string(pi->ColumnSize);
+                            }
+                        }
+                        else {
+                            unsigned int len = ::SysStringLen(v.bstrVal);
+                            if (n > 4000) {
+                                str += "max";
+                            }
+                            else {
+                                if (!len) len = 1;
+                                str += std::to_string(len);
+                            }
+                        }
+                        str.push_back(')');
+                    }
                     break;
                 case (VT_ARRAY | VT_UI1):
                     if (v.VtExt == SPA::UDB::tagVTExt::vteGuid) {
