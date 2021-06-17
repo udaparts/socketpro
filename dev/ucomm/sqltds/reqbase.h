@@ -127,7 +127,7 @@ namespace tds {
         struct Collation {
             unsigned short CodePage = 0; //LCID
             CollationFlag Flags;
-            unsigned char CharsetId = 0;
+            unsigned char SortOrder = 0;
 
             inline bool operator==(const Collation& c) const noexcept {
                 return (!::memcmp(this, &c, sizeof (c)));
@@ -140,9 +140,9 @@ namespace tds {
             CDBString GetString() const {
                 char str[16];
 #ifdef WIN32_64
-                sprintf_s(str, "%x|%x|%x", CodePage, Flags.GetValue(), CharsetId);
+                sprintf_s(str, "%x|%x|%x", CodePage, Flags.GetValue(), SortOrder);
 #else
-                sprintf(str, "%x|%x|%x", CodePage, Flags.GetValue(), CharsetId);
+                sprintf(str, "%x|%x|%x", CodePage, Flags.GetValue(), SortOrder);
 #endif
                 size_t len = ::strlen(str);
                 return CDBString(str, str + len);

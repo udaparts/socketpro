@@ -625,7 +625,12 @@ namespace tds
                     break;
                 case VT_NULL:
                 case VT_EMPTY:
-                    str += "varchar(16)";
+                    if (pi && pi->DataType == SPA::VT_XML) {
+                        str += "xml";
+                    }
+                    else {
+                        str += "varchar(16)";
+                    }
                     break;
                 default:
                     return -1;

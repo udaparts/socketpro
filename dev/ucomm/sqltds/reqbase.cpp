@@ -12,7 +12,10 @@ namespace tds{
         }
 
         m_collation.CodePage = (unsigned short) GetSystemDefaultLCID();
-        m_collation.CharsetId = 52;
+        m_collation.Flags.fIgnoreCase = 1;
+        m_collation.Flags.fIgnoreAccent = 1;
+        m_collation.Flags.fIgnoreKana = 1;
+        m_collation.SortOrder = 52;
     }
 
     CReqBase::~CReqBase() {
