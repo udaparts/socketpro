@@ -55,6 +55,7 @@ int main() {
     SPA::UDB::CParameterInfoArray vPInfo;
     SPA::UDB::CParameterInfo pi;
 #if 1
+    system_clock::time_point start = system_clock::now();
     pi.DataType = VT_I4;
     pi.ParameterName = u"@n";
     vPInfo.push_back(pi);
@@ -64,18 +65,23 @@ int main() {
     vPInfo.push_back(pi);
     pi.DataType = VT_BSTR;
     pi.Direction = SPA::UDB::tagParameterDirection::pdOutput;
-    pi.ColumnSize = 0x7fffffff;
     pi.ParameterName = u"@dec";
+    pi.ColumnSize = 1024;
     vPInfo.push_back(pi);
     res = sqlbatch.Prepare(u"call sqltestdb.dbo.GetSomeData(?, ?, ?)", vPInfo, parameters);
     SPA::UDB::CDBVariantArray vParam;
-    vParam.push_back(10);
-    vParam.push_back(12);
-    vParam.push_back(u"");
-    vParam.push_back(15);
-    vParam.push_back(16);
-    vParam.push_back(u"");
-    res = sqlbatch.SendTDSMessage(vParam);
+    for (unsigned int n = 0; n < 10000; ++n) {
+        for (unsigned int m = 0; m < 10; ++m) {
+            vParam.push_back(10);
+            vParam.push_back(12);
+            vParam.push_back(u"");
+        }
+        res = sqlbatch.SendTDSMessage(vParam.data(), (unsigned int)vParam.size());
+        vParam.clear();
+    }
+    system_clock::time_point stop = system_clock::now();
+    ms d = duration_cast<ms>(stop - start);
+    std::cout << "Time required: " << d.count() << " ms\n\n";
 #endif
 
 #if 0
@@ -95,7 +101,7 @@ int main() {
 #endif
     //res = sqlbatch.SendTDSMessage(tds::CSqlBatch::tagRequestType::rtCommit);
 
-    //res = sqlbatch.SendTDSMessage(u"select * from payment");
+    //res = sqlbatch.SendTDSMessage(u"select * from employee;select * from mynulltest;select * from mymoneys");
 
     std::cout << "Press a key to shut down the application ......\n";
     ::getchar();

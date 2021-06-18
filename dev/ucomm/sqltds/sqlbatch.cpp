@@ -477,21 +477,20 @@ namespace tds
         return 0;
     }
 
-    int CSqlBatch::ToString(const SPA::UDB::CDBVariantArray& vData, CDBString& s, std::vector<CDBString>& vP) {
+    int CSqlBatch::ToString(const SPA::UDB::CDBVariant* pVt, unsigned int count, CDBString& s, std::vector<CDBString>& vP) const {
         char param[16];
         s.clear();
         std::string str;
         bool stored = m_procName.size() ? true : false;
-        size_t size = vData.size();
-        for (size_t n = 0; n < size; ++n) {
+        for (unsigned int n = 0; n < count; ++n) {
             if (str.size()) {
                 str.push_back(',');
             }
-            SPA::UDB::CParameterInfo* pi = nullptr;
+            const SPA::UDB::CParameterInfo* pi = nullptr;
             if (stored) {
                 pi = m_vParamInfo.data() + (n % m_vParamInfo.size());
             }
-            const SPA::UDB::CDBVariant& v = vData[n];
+            const SPA::UDB::CDBVariant& v = pVt[n];
 #ifdef WIN32_64
             unsigned char bytes = (unsigned char) ::sprintf_s(param, "@_pp%d", (int) n);
 #else
@@ -1035,7 +1034,7 @@ namespace tds
         return true;
     }
 
-    const SPA::UDB::CParameterInfo * CSqlBatch::FindParameterInfo(const CDBString & pn) {
+    const SPA::UDB::CParameterInfo * CSqlBatch::FindParameterInfo(const CDBString & pn) const {
         for (auto it = m_vParamInfo.cbegin(), end = m_vParamInfo.cend(); it != end; ++it) {
             if (it->ParameterName == pn) {
                 return &(*it);
@@ -1044,12 +1043,13 @@ namespace tds
         return nullptr;
     }
 
-    bool CSqlBatch::SaveParameter(unsigned char& packet_id, const SPA::UDB::CDBVariant& v, const CDBString &p, SPA::CUQueue& buffer, SPA::UDB::CParameterInfo * pi) {
+    int CSqlBatch::SaveParameter(unsigned char& packet_id, const SPA::UDB::CDBVariant& v, const CDBString &p, SPA::CUQueue& buffer, SPA::UDB::CParameterInfo * pi) {
         tagDataType dt;
         unsigned char b_len = 0;
         unsigned char p_len = 0;
         buffer << p_len;
         unsigned char p_status = 0;
+        int fail = 0;
         if (pi) {
             switch (pi->Direction) {
                 case SPA::UDB::tagParameterDirection::pdOutput:
@@ -1235,7 +1235,7 @@ namespace tds
                     buffer << dt << p_len;
                     unsigned int len = SysStringLen(v.bstrVal);
                     len <<= 1;
-                    SavePLP((const unsigned char*) v.bstrVal, len, buffer, packet_id);
+                    fail = SavePLP((const unsigned char*) v.bstrVal, len, buffer, packet_id);
                 } else {
                     dt = tagDataType::NVARCHAR;
                     unsigned short max = VAR_MAX;
@@ -1252,7 +1252,7 @@ namespace tds
                     }
                     buffer << dt << max << m_collation;
                     if (max == VAR_MAX) {
-                        SavePLP((const unsigned char*) v.bstrVal, len, buffer, packet_id);
+                        fail = SavePLP((const unsigned char*) v.bstrVal, len, buffer, packet_id);
                     } else {
                         buffer << (unsigned short) len;
                         buffer.Push(v.bstrVal, len >> 1);
@@ -1276,7 +1276,7 @@ namespace tds
                 buffer << dt << max << m_collation;
                 SafeArrayAccessData(v.parray, (void**) &s);
                 if (max == VAR_MAX) {
-                    SavePLP((const unsigned char*) s, len, buffer, packet_id);
+                    fail = SavePLP((const unsigned char*) s, len, buffer, packet_id);
                 } else {
                     buffer << (unsigned short) len;
                     buffer.Push(s, len);
@@ -1308,7 +1308,7 @@ namespace tds
                     }
                     buffer << dt << max;
                     if (max == VAR_MAX) {
-                        SavePLP(s, len, buffer, packet_id);
+                        fail = SavePLP(s, len, buffer, packet_id);
                     } else {
                         buffer << (unsigned short) len;
                         buffer.Push(s, len);
@@ -1319,9 +1319,9 @@ namespace tds
                 break;
             default:
                 assert(false);
-                return false;
+                return SPA::Odbc::ER_DATA_TYPE_NOT_SUPPORTED;
         }
-        return true;
+        return fail;
     }
 
     int CSqlBatch::SendTDSMessage(const SqlLogin& rec, FeatureExtension requestedFeatures) {
@@ -1618,32 +1618,32 @@ namespace tds
         return Send(sb->GetBuffer(), sb->GetSize(), m_timeout);
     }
 
-    int CSqlBatch::SendTDSMessage(SPA::UDB::CDBVariantArray & vParam) {
-        if (!vParam.size()) {
+    int CSqlBatch::SendTDSMessage(const SPA::UDB::CDBVariant* pVt, unsigned int count) {
+        if (!pVt || !count) {
             return SPA::Odbc::ER_NO_PARAMETER_SPECIFIED;
         }
         unsigned int parameters = m_inputs + m_outputs;
         if (!m_sqlPrepare.size() || !parameters) {
             return SPA::Odbc::ER_BAD_PARAMETER_COLUMN_SIZE;
         }
-        if ((vParam.size() % parameters)) {
+        if ((count % parameters)) {
             return SPA::Odbc::ER_BAD_PARAMETER_COLUMN_SIZE;
         }
-        size_t cycles = vParam.size() / parameters;
+        unsigned int cycles = count / parameters;
         CDBString sql;
         bool stored = m_procName.size() ? true : false;
         if (stored) {
-            size_t len = vParam.size();
-            for (size_t n = 0; n < len; ++n) {
+            unsigned int len = count;
+            for (unsigned int n = 0; n < len; ++n) {
                 SPA::UDB::CParameterInfo* pi = m_vParamInfo.data() + (n % parameters);
-                if (pi && pi->Direction != SPA::UDB::tagParameterDirection::pdInput && vParam[n].vt > VT_NULL) {
-                    if (pi->DataType != vParam[n].vt) {
+                if (pi && pi->Direction != SPA::UDB::tagParameterDirection::pdInput && pVt[n].vt > VT_NULL) {
+                    if (pi->DataType != pVt[n].vt) {
                         if (pi->DataType == SPA::VT_XML) {
-                            if (vParam[n].vt != VT_BSTR) {
+                            if (pVt[n].vt != VT_BSTR) {
                                 return ER_BAD_OUTPUT_PARAMETER_DATA_TYPE;
                             }
                         } else if (pi->DataType == VT_CLSID) {
-                            if (vParam[n].vt != (VT_ARRAY | VT_UI1) || vParam[n].parray->rgsabound[0].cElements != sizeof (CLSID)) {
+                            if (pVt[n].vt != (VT_ARRAY | VT_UI1) || pVt[n].parray->rgsabound[0].cElements != sizeof (CLSID)) {
                                 return ER_BAD_OUTPUT_PARAMETER_DATA_TYPE;
                             }
                         } else {
@@ -1656,11 +1656,12 @@ namespace tds
         sql = m_sqlPrepare;
         for (size_t n = 1; n < cycles; ++n) {
             sql.push_back(';');
+            size_t pos = 0;
             CDBString s = m_sqlPrepare;
             for (unsigned m = 0; m < parameters; ++m) {
                 CDBString p0 = u"@_pp" + SPA::Utilities::ToUTF16(std::to_string(m));
                 CDBString p1 = u"@_pp" + SPA::Utilities::ToUTF16(std::to_string(m + n * parameters));
-                auto pos = s.find(p0);
+                pos = s.find(p0, pos + 4);
                 s.replace(pos, p0.size(), p1);
             }
             sql += s;
@@ -1675,7 +1676,7 @@ namespace tds
         sb << s_proc_id;
         unsigned short optionFlags = 0; //no meta data
         sb << optionFlags;
-
+        int fail = 0;
         unsigned char packet_id = 1;
         std::vector<CDBString> vP;
         {
@@ -1684,22 +1685,39 @@ namespace tds
             unsigned short max_len = VAR_MAX;
 
             sb << name_len << status << dt << max_len << m_collation;
-            SavePLP((const unsigned char*) sql.c_str(), (unsigned int) (sql.size() << 1), *sb, packet_id);
-
+            fail = SavePLP((const unsigned char*) sql.c_str(), (unsigned int) (sql.size() << 1), *sb, packet_id);
+            if (fail) {
+                return fail;
+            }
             //
             sb << name_len << status << dt << max_len << m_collation;
             CDBString p;
-            int res = ToString(vParam, p, vP);
-            SavePLP((const unsigned char*) p.c_str(), (unsigned int) (p.size() << 1), *sb, packet_id);
+            fail = ToString(pVt, count, p, vP);
+            if (fail) {
+                return fail;
+            }
+            fail = SavePLP((const unsigned char*) p.c_str(), (unsigned int) (p.size() << 1), *sb, packet_id);
+            if (fail) {
+                return fail;
+            }
         }
         //
-        size_t len = vParam.size();
+        unsigned int len = count;
         for (size_t n = 0; n < len; ++n) {
             SPA::UDB::CParameterInfo* pi = nullptr;
             if (stored) {
                 pi = m_vParamInfo.data() + (n % parameters);
             }
-            SaveParameter(packet_id, vParam[n], vP[n], *sb, pi);
+            fail = SaveParameter(packet_id, pVt[n], vP[n], *sb, pi);
+            if (fail) {
+                return false;
+            }
+            if (sb->GetSize() >= PACKET_DATA_SIZE) {
+                fail = SendARpcPacket(*sb, packet_id);
+                if (fail) {
+                    return false;
+                }
+            }
         }
 
         PacketHeader ph(tagPacketType::ptRpc, packet_id);
@@ -1712,15 +1730,46 @@ namespace tds
         return Send(sbEnd->GetBuffer(), sbEnd->GetSize(), m_timeout);
     }
 
-    void CSqlBatch::SavePLP(const unsigned char* buffer, unsigned int bytes, SPA::CUQueue& q, unsigned char& packet_id) {
-        unsigned int size = q.GetSize();
-        assert(size < DEFAULT_PACKET_SIZE - sizeof(PacketHeader));
-        PLPHeader ph(bytes, bytes);
-        q << ph;
-        if (bytes) {
-            q.Push(buffer, bytes);
-            q << PLP_TERMINATOR;
+    int CSqlBatch::SendARpcPacket(SPA::CUQueue& buffer, unsigned char& packet_id) {
+        assert(buffer.GetSize() >= PACKET_DATA_SIZE);
+        PacketHeader ph(tagPacketType::ptRpc, packet_id++);
+        ph.Length = ChangeEndian(DEFAULT_PACKET_SIZE);
+        ph.Spid = ChangeEndian(GetResponseHeader().Spid);
+        ph.Status = tagPacketStatus::psNormal;
+        SPA::CScopeUQueue sb;
+        sb << ph;
+        sb->Push(buffer.GetBuffer(), PACKET_DATA_SIZE);
+        buffer.Pop(PACKET_DATA_SIZE);
+        assert(sb->GetSize() == DEFAULT_PACKET_SIZE);
+        return Send(sb->GetBuffer(), DEFAULT_PACKET_SIZE, 0, false);
+    }
+
+    int CSqlBatch::SavePLP(const unsigned char* buffer, unsigned int bytes, SPA::CUQueue& q, unsigned char& packet_id) {
+        assert(q.GetSize() < PACKET_DATA_SIZE);
+        q << (SPA::UINT64) bytes;
+        if (q.GetSize() >= PACKET_DATA_SIZE) {
+            int fail = SendARpcPacket(q, packet_id);
+            if (fail) {
+                return fail;
+            }
         }
+        while (bytes + q.GetSize() >= PACKET_DATA_SIZE - sizeof(bytes)) {
+            unsigned int sub_bytes = PACKET_DATA_SIZE - sizeof(bytes);
+            q << sub_bytes;
+            q.Push(buffer, sub_bytes);
+            buffer += sub_bytes;
+            bytes -= sub_bytes;
+            int fail = SendARpcPacket(q, packet_id);
+            if (fail) {
+                return fail;
+            }
+        }
+        if (bytes) {
+            q << bytes;
+            q.Push(buffer, bytes);
+        }
+        q << PLP_TERMINATOR;
+        return 0;
     }
 
     int CSqlBatch::SendTDSMessage(const char16_t * sql) {

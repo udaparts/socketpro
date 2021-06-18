@@ -51,6 +51,7 @@ namespace tds {
         static constexpr unsigned int MAX_IMAGE_TEXT_LEN = 0x7fffffff;
         static constexpr unsigned int MAX_NTEXT_LEN = 0x7ffffffe;
         static constexpr unsigned int PLP_TERMINATOR = 0;
+        static constexpr unsigned short PACKET_DATA_SIZE = DEFAULT_PACKET_SIZE - sizeof(PacketHeader);
 
         static const int ER_NO_PARAMETER_NAME_PROVIDED = -1993;
         static const int ER_BAD_PARAMETER_INFO_COLUMN_SIZE = -1994;
@@ -347,7 +348,7 @@ namespace tds {
         int SendTDSMessage(tagRequestType rt, tagIsolationLevel il = tagIsolationLevel::ilCurrent);
         int SendTDSMessage(const char16_t *sql);
         int Prepare(const char16_t* sql, SPA::UDB::CParameterInfoArray& params, unsigned int& parameters);
-        int SendTDSMessage(SPA::UDB::CDBVariantArray &vParam);
+        int SendTDSMessage(const SPA::UDB::CDBVariant *pVt, unsigned int count);
 
     protected:
         void Reset();
@@ -373,12 +374,13 @@ namespace tds {
         void ParseTransChange(tagEnvchangeType type, TransChange& tc);
         bool ConvertTo(const CDBString &pn);
         bool PopPLP(VARTYPE vt);
-        void SavePLP(const unsigned char *buffer, unsigned int bytes, SPA::CUQueue& q, unsigned char &packet_id);
-        const SPA::UDB::CParameterInfo* FindParameterInfo(const CDBString& pn);
-        bool SaveParameter(unsigned char &packet_id, const SPA::UDB::CDBVariant& v, const CDBString& p, SPA::CUQueue& buffer, SPA::UDB::CParameterInfo* pi = nullptr);
-        int ToString(const SPA::UDB::CDBVariantArray& vData, CDBString& s, std::vector<CDBString>& vP);
-        static CDBString Prepare(const char16_t* sql, unsigned int& parameters, CDBString& procName, CDBString& catalogSchema);
+        int ToString(const SPA::UDB::CDBVariant* pVt, unsigned int count, CDBString& s, std::vector<CDBString>& vP) const;
+        const SPA::UDB::CParameterInfo* FindParameterInfo(const CDBString& pn) const;
+        int SavePLP(const unsigned char* buffer, unsigned int bytes, SPA::CUQueue& q, unsigned char& packet_id);
+        int SaveParameter(unsigned char &packet_id, const SPA::UDB::CDBVariant& v, const CDBString& p, SPA::CUQueue& buffer, SPA::UDB::CParameterInfo* pi);
+        int SendARpcPacket(SPA::CUQueue& buffer, unsigned char& packet_id);
 
+        static CDBString Prepare(const char16_t* sql, unsigned int& parameters, CDBString& procName, CDBString& catalogSchema);
         static inline VARTYPE GetVarType(tagDataType dt, unsigned char money_bytes);
         static inline CDBString GetSqlDeclaredType(tagDataType dt, unsigned char money_bytes);
         static std::vector<unsigned char> ObfuscatePassword(const CDBString& password);
