@@ -563,7 +563,7 @@ namespace tds
                         }
                     } else {
                         unsigned int len = v.parray->rgsabound[0].cElements;
-                        if (n > 8000) {
+                        if (len > 8000) {
                             str += "max";
                         } else {
                             if (!len) len = 1;
@@ -588,7 +588,7 @@ namespace tds
                         }
                         else {
                             unsigned int len = ::SysStringLen(v.bstrVal);
-                            if (n > 4000) {
+                            if (len > 4000) {
                                 str += "max";
                             }
                             else {
@@ -612,7 +612,7 @@ namespace tds
                         } else {
                             str += "varbinary(";
                             unsigned int len = v.parray->rgsabound[0].cElements;
-                            if (n > 8000) {
+                            if (len > 8000) {
                                 str += "max";
                             } else {
                                 if (!len) len = 1;
@@ -1745,16 +1745,15 @@ namespace tds
     }
 
     int CSqlBatch::SavePLP(const unsigned char* buffer, unsigned int bytes, SPA::CUQueue& q, unsigned char& packet_id) {
-        assert(q.GetSize() < PACKET_DATA_SIZE);
         q << (SPA::UINT64) bytes;
-        if (q.GetSize() >= PACKET_DATA_SIZE) {
+        while (q.GetSize() >= PACKET_DATA_SIZE) {
             int fail = SendARpcPacket(q, packet_id);
             if (fail) {
                 return fail;
             }
         }
         while (bytes + q.GetSize() >= PACKET_DATA_SIZE - sizeof(bytes)) {
-            unsigned int sub_bytes = PACKET_DATA_SIZE - sizeof(bytes);
+            unsigned int sub_bytes = (bytes > PACKET_DATA_SIZE - sizeof(bytes)) ? (PACKET_DATA_SIZE - sizeof(bytes)) : bytes;
             q << sub_bytes;
             q.Push(buffer, sub_bytes);
             buffer += sub_bytes;

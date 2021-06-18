@@ -8,6 +8,8 @@ typedef std::chrono::milliseconds ms;
 
 const unsigned int CYCLES = 50000;
 
+int TestSqlServer(tds::CSqlBatch& sqlClient);
+
 int main() {
     SPA::CSessionPool<tds::CTdsChannel> pool(1);
     auto handler = pool.FindAClosedHandler();
@@ -54,7 +56,7 @@ int main() {
     unsigned int parameters;
     SPA::UDB::CParameterInfoArray vPInfo;
     SPA::UDB::CParameterInfo pi;
-#if 1
+#if 0
     system_clock::time_point start = system_clock::now();
     pi.DataType = VT_I4;
     pi.ParameterName = u"@n";
@@ -102,8 +104,140 @@ int main() {
     //res = sqlbatch.SendTDSMessage(tds::CSqlBatch::tagRequestType::rtCommit);
 
     //res = sqlbatch.SendTDSMessage(u"select * from employee;select * from mynulltest;select * from mymoneys");
+    TestSqlServer(sqlbatch);
 
     std::cout << "Press a key to shut down the application ......\n";
     ::getchar();
     return 0;
+}
+
+int TestSqlServer(tds::CSqlBatch& sqlClient) {
+    int fail, ec;
+    SPA::CDBString em;
+    do {
+        fail = sqlClient.SendTDSMessage(u"delete from employee;delete from company;delete from test_rare1;delete from SpatialTable;INSERT INTO SpatialTable(mygeometry, mygeography)VALUES(geometry::STGeomFromText('LINESTRING(100 100,20 180,180 180)',0),geography::Point(47.6475,-122.1393,4326))");
+        if (fail) {
+            break;
+        }
+        ec = sqlClient.GetSQLError(em);
+        fail = sqlClient.SendTDSMessage(u"INSERT INTO test_rare1(mybool,mymoney,myxml,myvariant,mydateimeoffset)values(1,23.45,'<sometest />', N'美国总统川普下个星期四','2017-05-02 00:00:00.0000000 -04:00');INSERT INTO test_rare1(mybool,mymoney,myvariant)values(0,1223.45,'This is a test for ASCII string inside sql_variant');INSERT INTO test_rare1(myvariant)values(283.45)");
+        if (fail) {
+            break;
+        }
+        ec = sqlClient.GetSQLError(em);
+        unsigned int parameters;
+        SPA::UDB::CParameterInfoArray vParamInfo;
+        fail = sqlClient.Prepare(u"INSERT INTO company(ID,NAME,ADDRESS,Income)VALUES(?,?,?,?)", vParamInfo, parameters);
+        if (fail) {
+            break;
+        }
+        ec = sqlClient.GetSQLError(em);
+        SPA::UDB::CDBVariantArray vData;
+
+        //first set
+        vData.push_back(1);
+        vData.push_back("Google Inc.");
+        vData.push_back("1600 Amphitheatre Parkway, Mountain View, CA 94043, USA");
+        vData.push_back(66000000000.0);
+
+        //second set
+        vData.push_back(2);
+        vData.push_back("Microsoft Inc.");
+        vData.push_back("700 Bellevue Way NE- 22nd Floor, Bellevue, WA 98804, USA");
+        vData.push_back(93600000000.0);
+
+        //third set
+        vData.push_back(3);
+        vData.push_back("Apple Inc.");
+        vData.push_back("1 Infinite Loop, Cupertino, CA 95014, USA");
+        vData.push_back(234000000000.0);
+
+        fail = sqlClient.SendTDSMessage(vData.data(), (unsigned int)vData.size());
+        if (fail) {
+            break;
+        }
+        ec = sqlClient.GetSQLError(em);
+        vData.clear();
+        fail = sqlClient.Prepare(u"insert into employee(EmployeeId,CompanyId,name,JoinDate,myimage,DESCRIPTION,Salary)values(?,?,?,?,?,?,?)", vParamInfo, parameters);
+        if (fail) {
+            break;
+        }
+        std::wstring wstr;
+        while (wstr.size() < 128 * 1024) {
+            wstr += L"广告做得不那么夸张的就不说了，看看这三家，都是正儿八经的公立三甲，附属医院，不是武警，也不是部队，更不是莆田，都在卫生部门直接监管下，照样明目张胆地骗人。";
+        }
+
+        std::wstring str;
+        while (str.size() < 256 * 1024) {
+            str += L"The epic takedown of his opponent on an all-important voting day was extraordinary even by the standards of the 2016 campaign -- and quickly drew a scathing response from Trump.";
+        }
+
+        SYSTEMTIME st;
+        SPA::CScopeUQueue sbBlob;
+
+        //first set of data
+        vData.push_back(1);
+        vData.push_back(1); //google company id
+        vData.push_back("Ted Cruz");
+#ifdef WIN32_64
+        ::GetLocalTime(&st);
+#else
+        ::gettimeofday(&st, nullptr);
+#endif
+        vData.push_back(st);
+        sbBlob << wstr;
+        vData.push_back(SPA::UDB::CDBVariant(sbBlob->GetBuffer(), sbBlob->GetSize()));
+        vData.push_back(wstr.c_str());
+        const char* strDec = "254000.2460";
+        DECIMAL dec;
+        SPA::ParseDec(strDec, dec);
+        vData.push_back(dec);
+
+        //second set of data
+        vData.push_back(2);
+        vData.push_back(1); //google company id
+        vData.push_back("Donald Trump");
+#ifdef WIN32_64
+        ::GetLocalTime(&st);
+#else
+        ::gettimeofday(&st, nullptr);
+#endif
+        vData.push_back(st);
+        sbBlob->SetSize(0);
+        sbBlob << str;
+        vData.push_back(SPA::UDB::CDBVariant(sbBlob->GetBuffer(), sbBlob->GetSize()));
+        vData.push_back(str.c_str());
+        strDec = "20254000.197";
+        SPA::ParseDec(strDec, dec);
+        vData.push_back(dec);
+
+        //third set of data
+        vData.push_back(3);
+        vData.push_back(2); //Microsoft company id
+        vData.push_back("Hillary Clinton");
+#ifdef WIN32_64
+        ::GetLocalTime(&st);
+#else
+        ::gettimeofday(&st, nullptr);
+#endif
+        vData.push_back(st);
+        sbBlob << wstr;
+        vData.push_back(SPA::UDB::CDBVariant(sbBlob->GetBuffer(), sbBlob->GetSize()));
+        vData.push_back(wstr.c_str());
+        //vData.push_back(6254000.572);
+        strDec = "6254000.5";
+        SPA::ParseDec(strDec, dec);
+        vData.push_back(dec);
+        fail = sqlClient.SendTDSMessage(vData.data(), (unsigned int)vData.size());
+        if (fail) {
+            break;
+        }
+        ec = sqlClient.GetSQLError(em);
+        fail = sqlClient.SendTDSMessage(u"select * from company;select * from employee");
+        if (fail) {
+            break;
+        }
+        ec = sqlClient.GetSQLError(em);
+    } while (false);
+    return fail;
 }
