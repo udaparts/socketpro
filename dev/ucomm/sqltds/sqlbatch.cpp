@@ -385,12 +385,7 @@ namespace tds
         if (m_procName.size() && params.size() != parameters) {
             return SPA::Odbc::ER_BAD_PARAMETER_COLUMN_SIZE;
         }
-        if (m_procName.size()) {
-            m_vParamInfo = std::move(params);
-        } else {
-            m_vParamInfo.clear();
-        }
-
+        m_vParamInfo = std::move(params);
         CDBString sp;
         unsigned int index = 0;
         for (auto it = m_vParamInfo.cbegin(), end = m_vParamInfo.cend(); it != end; ++it, ++index) {
@@ -416,7 +411,7 @@ namespace tds
                 default:
                     return SPA::Odbc::ER_BAD_PARAMETER_DIRECTION_TYPE;
             }
-            if (m_procName.size() && !it->ParameterName.size()) {
+            if (!it->ParameterName.size()) {
                 return ER_NO_PARAMETER_NAME_PROVIDED;
             }
             switch (it->DataType) {
@@ -499,7 +494,11 @@ namespace tds
             str += param;
             vP.push_back(CDBString(param, param + strlen(param)));
             str.push_back(' ');
-            switch (v.vt) {
+            VARTYPE vt = v.vt;
+            if (vt <= VT_NULL && pi) {
+                vt = pi->DataType;
+            }
+            switch (vt) {
                 case VT_CLSID:
                     str += "uniqueidentifier";
                     break;
@@ -595,10 +594,14 @@ namespace tds
                         str.push_back(')');
                     }
                     break;
+                case SPA::VT_XML:
+                    str += "xml";
+                    break;
                 case (VT_ARRAY | VT_UI1):
                     if (v.VtExt == SPA::UDB::tagVTExt::vteGuid) {
                         str += "uniqueidentifier";
                     } else {
+                        str += "varbinary(";
                         if (pi && pi->Direction != SPA::UDB::tagParameterDirection::pdInput) {
                             if (pi->ColumnSize > 8000) {
                                 str += "max";
@@ -606,7 +609,6 @@ namespace tds
                                 str += std::to_string(pi->ColumnSize);
                             }
                         } else {
-                            str += "varbinary(";
                             unsigned int len = v.parray->rgsabound[0].cElements;
                             if (len > 8000) {
                                 str += "max";
@@ -879,7 +881,11 @@ namespace tds
                 } else {
                     unsigned short str_len;
                     m_buffer >> str_len;
-                    if (str_len > m_buffer.GetSize()) {
+                    if (str_len == VAR_MAX) {
+                        m_out << (VARTYPE) VT_NULL;
+                        m_tt = tagTokenType::ttZero;
+                        return true;
+                    } else if (str_len > m_buffer.GetSize()) {
                         return false;
                     }
                     m_out << (VARTYPE) (VT_UI1 | VT_ARRAY);
@@ -901,7 +907,11 @@ namespace tds
                 } else {
                     unsigned short str_len;
                     m_buffer >> str_len;
-                    if (str_len > m_buffer.GetSize()) {
+                    if (str_len == VAR_MAX) {
+                        m_out << (VARTYPE) VT_NULL;
+                        m_tt = tagTokenType::ttZero;
+                        return true;
+                    } else if (str_len > m_buffer.GetSize()) {
                         return false;
                     }
 #ifndef NDEBUG          
@@ -952,6 +962,8 @@ namespace tds
                     } else {
                         return false;
                     }
+                } else {
+                    m_out << (VARTYPE) VT_NULL;
                 }
             }
                 break;
@@ -970,7 +982,11 @@ namespace tds
             return false;
         }
         PLPHeader *ph = (PLPHeader *) m_buffer.GetBuffer();
-        if (ph->SUB_LEN + HEADER_SIZE > m_buffer.GetSize()) {
+        if (ph->HEADER == BLOB_NULL_LEN) {
+            m_buffer.Pop(sizeof (SPA::UINT64));
+            m_out << (VARTYPE) VT_NULL;
+            return true;
+        } else if (ph->SUB_LEN + HEADER_SIZE > m_buffer.GetSize()) {
             return false;
         }
         PLPHeader plp_header;
@@ -999,7 +1015,10 @@ namespace tds
         } else {
             unsigned short str_len;
             m_buffer >> str_len;
-            if (str_len > m_buffer.GetSize()) {
+            if (str_len == VAR_MAX) {
+                m_out << (VARTYPE) VT_NULL;
+                return true;
+            } else if (str_len > m_buffer.GetSize()) {
                 return false;
             }
             auto pi = FindParameterInfo(pn);
@@ -3014,7 +3033,6 @@ namespace tds
                     assert(!m_buffer.GetSize());
                 }
             } else {
-                //std::cout << "m_lenLarge: " << m_lenLarge << "\n";
                 while (m_lenLarge && m_buffer.GetSize()) {
                     unsigned int len;
                     m_buffer >> len;
