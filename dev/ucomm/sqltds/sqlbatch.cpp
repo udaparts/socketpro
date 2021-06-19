@@ -161,9 +161,9 @@ namespace tds
 
     std::vector<unsigned char> CSqlBatch::ObfuscatePassword(const CDBString & password) {
 #if 1
+        unsigned char bLo, bHi;
         std::vector<unsigned char> v(password.size() << 1);
         unsigned char* bObfuscated = &v.front();
-        unsigned char bLo, bHi;
         for (size_t n = 0, len = password.size(); n < len; ++n) {
             char16_t c16 = password[n];
             bLo = (unsigned char) (c16 & 0xff);
@@ -356,7 +356,7 @@ namespace tds
                 if (c == question) {
                     s[n] = '@';
                     std::string str = std::to_string(parameters);
-                    str = "_pp" + str;
+                    str = "p" + str;
                     auto temp = SPA::Utilities::ToUTF16(str);
                     size_t length = temp.size();
                     s.insert(n + 1, temp);
@@ -398,7 +398,7 @@ namespace tds
                 sp.push_back(',');
             }
             sp += it->ParameterName;
-            sp += u"=@_pp" + SPA::Utilities::ToUTF16(std::to_string(index));
+            sp += u"=@p" + SPA::Utilities::ToUTF16(std::to_string(index));
             switch (it->Direction) {
                 case SPA::UDB::tagParameterDirection::pdInput:
                     break;
@@ -450,8 +450,8 @@ namespace tds
                     }
                     break;
                 case VT_DECIMAL:
-                    if (!it->Precision || it->Precision > 38) {
-                        return ER_NO_DECIMAL_PRECSION_PROVIDED;
+                    if (!it->Precision || it->Precision > 38 || it->Precision < it->Scale) {
+                        return ER_BAD_DECIMAL_PRECSION_PROVIDED;
                     }
                     break;
                 default:
@@ -492,9 +492,9 @@ namespace tds
             }
             const SPA::UDB::CDBVariant& v = pVt[n];
 #ifdef WIN32_64
-            unsigned char bytes = (unsigned char) ::sprintf_s(param, "@_pp%d", (int) n);
+            unsigned char bytes = (unsigned char) ::sprintf_s(param, "@p%d", (int) n);
 #else
-            unsigned char bytes = (unsigned char) ::sprintf_s(param, "@_pp%d", (int) n);
+            unsigned char bytes = (unsigned char) ::sprintf_s(param, "@p%d", (int) n);
 #endif
             str += param;
             vP.push_back(CDBString(param, param + strlen(param)));
@@ -575,23 +575,19 @@ namespace tds
                 case VT_BSTR:
                     if (pi && pi->DataType == SPA::VT_XML) {
                         str += "xml";
-                    }
-                    else {
+                    } else {
                         str += "nvarchar(";
                         if (pi && pi->Direction != SPA::UDB::tagParameterDirection::pdInput) {
                             if (pi->ColumnSize > 4000) {
                                 str += "max";
-                            }
-                            else {
+                            } else {
                                 str += std::to_string(pi->ColumnSize);
                             }
-                        }
-                        else {
+                        } else {
                             unsigned int len = ::SysStringLen(v.bstrVal);
                             if (len > 4000) {
                                 str += "max";
-                            }
-                            else {
+                            } else {
                                 if (!len) len = 1;
                                 str += std::to_string(len);
                             }
@@ -626,13 +622,12 @@ namespace tds
                 case VT_EMPTY:
                     if (pi && pi->DataType == SPA::VT_XML) {
                         str += "xml";
-                    }
-                    else {
+                    } else {
                         str += "varchar(16)";
                     }
                     break;
                 default:
-                    return -1;
+                    return SPA::Odbc::ER_DATA_TYPE_NOT_SUPPORTED;
             }
             if (pi) {
                 switch (pi->Direction) {
@@ -650,12 +645,12 @@ namespace tds
     }
 
     bool CSqlBatch::ParseReturnValue() {
-        unsigned short ordinal = *(unsigned short*) m_buffer.GetBuffer();
-        unsigned char b_len = *m_buffer.GetBuffer(sizeof (ordinal));
         unsigned char status;
         unsigned int user_type;
         unsigned char flags;
         unsigned char type_info;
+        unsigned short ordinal = *(unsigned short*) m_buffer.GetBuffer();
+        unsigned char b_len = *m_buffer.GetBuffer(sizeof (ordinal));
         unsigned int len = sizeof (ordinal) + sizeof (b_len);
         if (m_buffer.GetSize() <= len) {
             return false;
@@ -1043,7 +1038,7 @@ namespace tds
         return nullptr;
     }
 
-    int CSqlBatch::SaveParameter(unsigned char& packet_id, const SPA::UDB::CDBVariant& v, const CDBString &p, SPA::CUQueue& buffer, SPA::UDB::CParameterInfo * pi) {
+    int CSqlBatch::SaveParameter(unsigned char& packet_id, const SPA::UDB::CDBVariant& v, const CDBString &p, SPA::CUQueue& buffer, const SPA::UDB::CParameterInfo * pi) {
         tagDataType dt;
         unsigned char b_len = 0;
         unsigned char p_len = 0;
@@ -1629,12 +1624,9 @@ namespace tds
         if ((count % parameters)) {
             return SPA::Odbc::ER_BAD_PARAMETER_COLUMN_SIZE;
         }
-        unsigned int cycles = count / parameters;
-        CDBString sql;
         bool stored = m_procName.size() ? true : false;
         if (stored) {
-            unsigned int len = count;
-            for (unsigned int n = 0; n < len; ++n) {
+            for (unsigned int n = 0; n < count; ++n) {
                 SPA::UDB::CParameterInfo* pi = m_vParamInfo.data() + (n % parameters);
                 if (pi && pi->Direction != SPA::UDB::tagParameterDirection::pdInput && pVt[n].vt > VT_NULL) {
                     if (pi->DataType != pVt[n].vt) {
@@ -1653,16 +1645,18 @@ namespace tds
                 }
             }
         }
-        sql = m_sqlPrepare;
-        for (size_t n = 1; n < cycles; ++n) {
+        unsigned int cycles = count / parameters;
+        CDBString sql = m_sqlPrepare;
+        for (unsigned int n = 1; n < cycles; ++n) {
             sql.push_back(';');
             size_t pos = 0;
             CDBString s = m_sqlPrepare;
             for (unsigned m = 0; m < parameters; ++m) {
-                CDBString p0 = u"@_pp" + SPA::Utilities::ToUTF16(std::to_string(m));
-                CDBString p1 = u"@_pp" + SPA::Utilities::ToUTF16(std::to_string(m + n * parameters));
-                pos = s.find(p0, pos + 4);
+                CDBString p0 = u"@p" + SPA::Utilities::ToUTF16(std::to_string(m));
+                CDBString p1 = u"@p" + SPA::Utilities::ToUTF16(std::to_string(m + n * parameters));
+                pos = s.find(p0, pos);
                 s.replace(pos, p0.size(), p1);
+                pos += 4;
             }
             sql += s;
         }
@@ -1670,19 +1664,19 @@ namespace tds
         //Query packet
         TransactionDescriptor td(m_tc.NewValue);
         sb << td;
-        unsigned short p_name_length = USHORT_NULL_LEN;
+        constexpr unsigned short p_name_length = USHORT_NULL_LEN;
         sb << p_name_length;
-        unsigned short s_proc_id = 10; //sp_executesql
+        constexpr unsigned short s_proc_id = 10; //sp_executesql
         sb << s_proc_id;
-        unsigned short optionFlags = 0; //no meta data
+        constexpr unsigned short optionFlags = 0; //no meta data
         sb << optionFlags;
         int fail = 0;
         unsigned char packet_id = 1;
         std::vector<CDBString> vP;
         {
-            unsigned char name_len = 0, status = 0;
-            tagDataType dt = tagDataType::NVARCHAR;
-            unsigned short max_len = VAR_MAX;
+            constexpr unsigned char name_len = 0, status = 0;
+            constexpr tagDataType dt = tagDataType::NVARCHAR;
+            constexpr unsigned short max_len = VAR_MAX;
 
             sb << name_len << status << dt << max_len << m_collation;
             fail = SavePLP((const unsigned char*) sql.c_str(), (unsigned int) (sql.size() << 1), *sb, packet_id);
@@ -1703,19 +1697,19 @@ namespace tds
         }
         //
         unsigned int len = count;
-        for (size_t n = 0; n < len; ++n) {
-            SPA::UDB::CParameterInfo* pi = nullptr;
+        for (unsigned int n = 0; n < len; ++n) {
+            const SPA::UDB::CParameterInfo* pi = nullptr;
             if (stored) {
                 pi = m_vParamInfo.data() + (n % parameters);
             }
             fail = SaveParameter(packet_id, pVt[n], vP[n], *sb, pi);
             if (fail) {
-                return false;
+                return fail;
             }
-            if (sb->GetSize() >= PACKET_DATA_SIZE) {
+            while (sb->GetSize() >= PACKET_DATA_SIZE) {
                 fail = SendARpcPacket(*sb, packet_id);
                 if (fail) {
-                    return false;
+                    return fail;
                 }
             }
         }
@@ -1745,20 +1739,22 @@ namespace tds
     }
 
     int CSqlBatch::SavePLP(const unsigned char* buffer, unsigned int bytes, SPA::CUQueue& q, unsigned char& packet_id) {
+        int fail = 0;
         q << (SPA::UINT64) bytes;
         while (q.GetSize() >= PACKET_DATA_SIZE) {
-            int fail = SendARpcPacket(q, packet_id);
+            fail = SendARpcPacket(q, packet_id);
             if (fail) {
                 return fail;
             }
         }
-        while (bytes + q.GetSize() >= PACKET_DATA_SIZE - sizeof(bytes)) {
-            unsigned int sub_bytes = (bytes > PACKET_DATA_SIZE - sizeof(bytes)) ? (PACKET_DATA_SIZE - sizeof(bytes)) : bytes;
+        constexpr unsigned int MAX_SUB_SIZE = PACKET_DATA_SIZE - sizeof (bytes);
+        while (bytes + q.GetSize() >= MAX_SUB_SIZE) {
+            unsigned int sub_bytes = (bytes > MAX_SUB_SIZE) ? MAX_SUB_SIZE : bytes;
             q << sub_bytes;
             q.Push(buffer, sub_bytes);
             buffer += sub_bytes;
             bytes -= sub_bytes;
-            int fail = SendARpcPacket(q, packet_id);
+            fail = SendARpcPacket(q, packet_id);
             if (fail) {
                 return fail;
             }
@@ -2866,7 +2862,6 @@ namespace tds
             m_buffer.Pop(nulls, (unsigned int) m_vNull.size());
             m_posCol = 0;
         }
-        VARTYPE vt;
         cinfo += m_posCol;
         bool done = IsDone();
         for (unsigned short n = m_posCol; n < cols; ++n, ++m_posCol, ++cinfo) {
@@ -2875,8 +2870,7 @@ namespace tds
             }
             bool is_null = (nulls[n >> 3] & (1 << (n % 8)));
             if (is_null) {
-                vt = VT_NULL;
-                m_out << vt;
+                m_out << (VARTYPE) VT_NULL;
                 continue;
             }
             if (!done) {

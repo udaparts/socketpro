@@ -51,11 +51,11 @@ namespace tds {
         static constexpr unsigned int MAX_IMAGE_TEXT_LEN = 0x7fffffff;
         static constexpr unsigned int MAX_NTEXT_LEN = 0x7ffffffe;
         static constexpr unsigned int PLP_TERMINATOR = 0;
-        static constexpr unsigned short PACKET_DATA_SIZE = DEFAULT_PACKET_SIZE - sizeof(PacketHeader);
+        static constexpr unsigned short PACKET_DATA_SIZE = DEFAULT_PACKET_SIZE - sizeof (PacketHeader);
 
         static const int ER_NO_PARAMETER_NAME_PROVIDED = -1993;
         static const int ER_BAD_PARAMETER_INFO_COLUMN_SIZE = -1994;
-        static const int ER_NO_DECIMAL_PRECSION_PROVIDED = -1995;
+        static const int ER_BAD_DECIMAL_PRECSION_PROVIDED = -1995;
         static const int ER_BAD_OUTPUT_PARAMETER_DATA_TYPE = -1996;
 
     public:
@@ -377,7 +377,7 @@ namespace tds {
         int ToString(const SPA::UDB::CDBVariant* pVt, unsigned int count, CDBString& s, std::vector<CDBString>& vP) const;
         const SPA::UDB::CParameterInfo* FindParameterInfo(const CDBString& pn) const;
         int SavePLP(const unsigned char* buffer, unsigned int bytes, SPA::CUQueue& q, unsigned char& packet_id);
-        int SaveParameter(unsigned char &packet_id, const SPA::UDB::CDBVariant& v, const CDBString& p, SPA::CUQueue& buffer, SPA::UDB::CParameterInfo* pi);
+        int SaveParameter(unsigned char &packet_id, const SPA::UDB::CDBVariant& v, const CDBString& p, SPA::CUQueue& buffer, const SPA::UDB::CParameterInfo* pi);
         int SendARpcPacket(SPA::CUQueue& buffer, unsigned char& packet_id);
 
         static CDBString Prepare(const char16_t* sql, unsigned int& parameters, CDBString& procName, CDBString& catalogSchema);
