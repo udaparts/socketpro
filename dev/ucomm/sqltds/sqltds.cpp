@@ -32,6 +32,7 @@ int main() {
     res = sqlbatch.SendTDSMessage(rec, fe);
     SPA::CDBString errMsg;
     res = sqlbatch.GetSQLError(errMsg);
+
 #if 0
     SPA::CDBString sql;
     system_clock::time_point start = system_clock::now();
@@ -69,12 +70,12 @@ int main() {
     pi.ColumnSize = 1024;
     vPInfo.push_back(pi);
     res = sqlbatch.Prepare(u"exec GetSomeData @n=?, @nout=?, @dec=?", vPInfo, parameters);
-    vParam.push_back(10);
+    /*vParam.push_back(10);
     vParam.push_back(12);
     vParam.push_back(u"");
-    res = sqlbatch.SendTDSMessage(vParam.data(), (unsigned int)vParam.size());
-    /*for (unsigned int n = 0; n < 10000; ++n) {
-        for (unsigned int m = 0; m < 10; ++m) {
+    res = sqlbatch.SendTDSMessage(vParam.data(), (unsigned int)vParam.size());*/
+    for (unsigned int n = 0; n < 10000; ++n) {
+        for (unsigned int m = 0; m < 50; ++m) {
             vParam.push_back(10);
             vParam.push_back(12);
             vParam.push_back(u"");
@@ -84,11 +85,11 @@ int main() {
     }
     system_clock::time_point stop = system_clock::now();
     ms d = duration_cast<ms>(stop - start);
-    std::cout << "Time required: " << d.count() << " ms\n\n";*/
+    std::cout << "Time required: " << d.count() << " ms\n\n";
     vParam.clear();
 #endif
 
-#if 1
+#if 0
     vPInfo.clear();
     res = sqlbatch.Prepare(u"insert into mynulltest values(?,?,?,?,?)", vPInfo, parameters);
     vParam.push_back(16);

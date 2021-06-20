@@ -407,171 +407,170 @@ namespace tds
         return 0;
     }
 
-    int CSqlBatch::ToString(const SPA::UDB::CDBVariant* pVt, unsigned int count, CDBString& s) const {
-        char param[16];
-        std::string str;
-        str.reserve(1024);
-        unsigned int ps = (unsigned int)m_vParamInfo.size();
+    int CSqlBatch::ToString(const SPA::UDB::CDBVariant* pVt, unsigned int count, CDBString & s) const {
+        char16_t param[16];
+        s.clear();
+        unsigned int ps = (unsigned int) m_vParamInfo.size();
         for (unsigned int n = 0; n < count; ++n) {
-            if (str.size()) {
-                str.push_back(',');
+            if (s.size()) {
+                s.push_back(',');
             }
             const SPA::UDB::CParameterInfo* pi = nullptr;
             if (ps) {
                 pi = m_vParamInfo.data() + (n % ps);
             }
             const SPA::UDB::CDBVariant& v = pVt[n];
-            str.append("@p", 2);
-            unsigned char chars = sizeof(param);
-            const char* ret = SPA::ToString(n, param, chars);
-            str.append(ret, chars);
-            str.push_back(' ');
+            s.append(u"@p", 2);
+            unsigned char chars = sizeof (param) / sizeof (char16_t);
+            const char16_t* ret = SPA::ToString(n, param, chars);
+            s.append(ret, chars);
+            s.push_back(' ');
             VARTYPE vt = v.vt;
             if (vt <= VT_NULL && pi) {
                 vt = pi->DataType;
             }
             switch (vt) {
                 case VT_CLSID:
-                    str += "uniqueidentifier";
+                    s += u"uniqueidentifier";
                     break;
                 case VT_I1:
                 case VT_UI1:
-                    str += "tinyint";
+                    s += u"tinyint";
                     break;
                 case VT_I2:
                 case VT_UI2:
-                    str += "smallint";
+                    s += u"smallint";
                     break;
                 case VT_I4:
                 case VT_UI4:
                 case VT_INT:
                 case VT_UINT:
-                    str += "int";
+                    s += u"int";
                     break;
                 case VT_I8:
                 case VT_UI8:
-                    str += "bigint";
+                    s += u"bigint";
                     break;
                 case VT_R4:
-                    str += "real";
+                    s += u"real";
                     break;
                 case VT_R8:
-                    str += "float";
+                    s += u"float";
                     break;
                 case VT_BOOL:
-                    str += "bit";
+                    s += u"bit";
                     break;
                 case VT_DATE:
                 {
                     SPA::UDateTime udt(v.ullVal);
                     std::tm tm = udt.GetCTime();
                     if (tm.tm_mday) {
-                        str += "datetime2(6)";
+                        s += u"datetime2(6)";
                     } else {
-                        str += "time(6)";
+                        s += u"time(6)";
                     }
                 }
                     break;
                 case VT_CY:
-                    str += "money";
+                    s += u"money";
                     break;
                 case VT_DECIMAL:
                     if (v.decVal.Hi32) {
-                        str += "decimal(28,";
+                        s += u"decimal(28,";
                     } else {
-                        str += "decimal(19,";
+                        s += u"decimal(19,";
                     }
-                    chars = sizeof(param);
-                    ret = SPA::ToString((unsigned int)v.decVal.scale, param, chars);
-                    str.append(ret, chars);
-                    str.push_back(')');
+                    chars = sizeof (param) / sizeof (char16_t);
+                    ret = SPA::ToString((unsigned int) v.decVal.scale, param, chars);
+                    s.append(ret, chars);
+                    s.push_back(')');
                     break;
                 case (VT_ARRAY | VT_I1):
-                    str += "varchar(";
+                    s += u"varchar(";
                     if (pi && pi->Direction != SPA::UDB::tagParameterDirection::pdInput) {
                         if (pi->ColumnSize > 8000) {
-                            str += "max";
+                            s += u"max";
                         } else {
-                            chars = sizeof(param);
+                            chars = sizeof (param) / sizeof (char16_t);
                             ret = SPA::ToString(pi->ColumnSize, param, chars);
-                            str.append(ret, chars);
+                            s.append(ret, chars);
                         }
                     } else {
                         unsigned int len = v.parray->rgsabound[0].cElements;
                         if (len > 8000) {
-                            str += "max";
+                            s += u"max";
                         } else {
                             if (!len) len = 1;
-                            chars = sizeof(param);
+                            chars = sizeof (param) / sizeof (char16_t);
                             ret = SPA::ToString(len, param, chars);
-                            str.append(ret, chars);
+                            s.append(ret, chars);
                         }
                     }
-                    str.push_back(')');
+                    s.push_back(')');
                     break;
                 case VT_BSTR:
                     if (pi && pi->DataType == SPA::VT_XML) {
-                        str += "xml";
+                        s += u"xml";
                     } else {
-                        str += "nvarchar(";
+                        s += u"nvarchar(";
                         if (pi && pi->Direction != SPA::UDB::tagParameterDirection::pdInput) {
                             if (pi->ColumnSize > 4000) {
-                                str += "max";
+                                s += u"max";
                             } else {
-                                chars = sizeof(param);
+                                chars = sizeof (param) / sizeof (char16_t);
                                 ret = SPA::ToString(pi->ColumnSize, param, chars);
-                                str.append(ret, chars);
+                                s.append(ret, chars);
                             }
                         } else {
                             unsigned int len = ::SysStringLen(v.bstrVal);
                             if (len > 4000) {
-                                str += "max";
+                                s += u"max";
                             } else {
                                 if (!len) len = 1;
-                                chars = sizeof(param);
+                                chars = sizeof (param) / sizeof (char16_t);
                                 ret = SPA::ToString(len, param, chars);
-                                str.append(ret, chars);
+                                s.append(ret, chars);
                             }
                         }
-                        str.push_back(')');
+                        s.push_back(')');
                     }
                     break;
                 case SPA::VT_XML:
-                    str += "xml";
+                    s += u"xml";
                     break;
                 case (VT_ARRAY | VT_UI1):
                     if (v.VtExt == SPA::UDB::tagVTExt::vteGuid) {
-                        str += "uniqueidentifier";
+                        s += u"uniqueidentifier";
                     } else {
-                        str += "varbinary(";
+                        s += u"varbinary(";
                         if (pi && pi->Direction != SPA::UDB::tagParameterDirection::pdInput) {
                             if (pi->ColumnSize > 8000) {
-                                str += "max";
+                                s += u"max";
                             } else {
-                                chars = sizeof(param);
+                                chars = sizeof (param) / sizeof (char16_t);
                                 ret = SPA::ToString(pi->ColumnSize, param, chars);
-                                str.append(ret, chars);
+                                s.append(ret, chars);
                             }
                         } else {
                             unsigned int len = v.parray->rgsabound[0].cElements;
                             if (len > 8000) {
-                                str += "max";
+                                s += u"max";
                             } else {
                                 if (!len) len = 1;
-                                chars = sizeof(param);
+                                chars = sizeof (param) / sizeof (char16_t);
                                 ret = SPA::ToString(len, param, chars);
-                                str.append(ret, chars);
+                                s.append(ret, chars);
                             }
                         }
-                        str.push_back(')');
+                        s.push_back(')');
                     }
                     break;
                 case VT_NULL:
                 case VT_EMPTY:
                     if (pi && pi->DataType == SPA::VT_XML) {
-                        str += "xml";
+                        s += u"xml";
                     } else {
-                        str += "varchar(16)";
+                        s += u"varchar(16)";
                     }
                     break;
                 default:
@@ -581,14 +580,13 @@ namespace tds
                 switch (pi->Direction) {
                     case SPA::UDB::tagParameterDirection::pdOutput:
                     case SPA::UDB::tagParameterDirection::pdInputOutput:
-                        str += " OUT";
+                        s += u" OUT";
                         break;
                     default:
                         break;
                 }
             }
         }
-        s.assign(str.c_str(), str.c_str() + str.size());
         return 0;
     }
 
@@ -1613,27 +1611,30 @@ namespace tds
             }
         }
         unsigned int cycles = count / parameters;
-        CDBString sql = m_sqlPrepare;
-        CDBString p0, p1;
+        CDBString str = m_sqlPrepare;
+        CDBString p0, p1, s;
+        p0.reserve(16);
+        p1.reserve(16);
+        s.reserve(str.size() + 10 * parameters);
         char16_t p_num[16];
         for (unsigned int n = 1; n < cycles; ++n) {
-            sql.push_back(';');
+            str.push_back(';');
             size_t pos = 0;
-            CDBString s = m_sqlPrepare;
+            s = m_sqlPrepare;
             for (unsigned m = 0; m < parameters; ++m) {
                 p0 = u"@p";
-                unsigned char chars = sizeof(p_num) / sizeof(char16_t);
+                unsigned char chars = sizeof (p_num) / sizeof (char16_t);
                 const char16_t* ret = SPA::ToString(m, p_num, chars);
                 p0.append(ret, chars);
                 p1 = u"@p";
-                chars = sizeof(p_num) / sizeof(char16_t);
+                chars = sizeof (p_num) / sizeof (char16_t);
                 ret = SPA::ToString(m + n * parameters, p_num, chars);
                 p1.append(ret, chars);
                 pos = s.find(p0, pos);
                 s.replace(pos, p0.size(), p1);
                 pos += 4;
             }
-            sql += s;
+            str += s;
         }
         SPA::CScopeUQueue sb;
         //Query packet
@@ -1653,18 +1654,18 @@ namespace tds
         constexpr unsigned short max_len = VAR_MAX;
 
         sb << name_len << status << dt << max_len << m_collation;
-        fail = SavePLP((const unsigned char*) sql.c_str(), (unsigned int) (sql.size() << 1), *sb, packet_id);
+        fail = SavePLP((const unsigned char*) str.c_str(), (unsigned int) (str.size() << 1), *sb, packet_id);
         if (fail) {
             return fail;
         }
         //
         sb << name_len << status << dt << max_len << m_collation;
-        CDBString p;
-        fail = ToString(pVt, count, p);
+        str.clear();
+        fail = ToString(pVt, count, str);
         if (fail) {
             return fail;
         }
-        fail = SavePLP((const unsigned char*) p.c_str(), (unsigned int) (p.size() << 1), *sb, packet_id);
+        fail = SavePLP((const unsigned char*) str.c_str(), (unsigned int) (str.size() << 1), *sb, packet_id);
         if (fail) {
             return fail;
         }
