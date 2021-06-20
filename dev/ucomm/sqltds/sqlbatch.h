@@ -379,8 +379,7 @@ namespace tds {
         int SavePLP(const unsigned char* buffer, unsigned int bytes, SPA::CUQueue& q, unsigned char& packet_id);
         int SaveParameter(unsigned char &packet_id, const SPA::UDB::CDBVariant& v, const CDBString& p, SPA::CUQueue& buffer, const SPA::UDB::CParameterInfo* pi);
         int SendARpcPacket(SPA::CUQueue& buffer, unsigned char& packet_id);
-
-        static CDBString Prepare(const char16_t* sql, unsigned int& parameters, CDBString& procName, CDBString& catalogSchema);
+        CDBString Prepare(const char16_t* sql, unsigned int& parameters);
         static inline VARTYPE GetVarType(tagDataType dt, unsigned char money_bytes);
         static inline CDBString GetSqlDeclaredType(tagDataType dt, unsigned char money_bytes);
         static std::vector<unsigned char> ObfuscatePassword(const CDBString& password);
@@ -414,8 +413,6 @@ namespace tds {
         unsigned int m_rs; //ReturnStatus;
         SPA::UDB::CParameterInfoArray m_vParamInfo;
         CDBString m_sqlPrepare;
-        CDBString m_procName;
-        CDBString m_catalogSchema;
         unsigned short m_inputs;
         unsigned short m_outputs;
 
