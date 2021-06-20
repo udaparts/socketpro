@@ -407,10 +407,10 @@ namespace tds
         return 0;
     }
 
-    int CSqlBatch::ToString(const SPA::UDB::CDBVariant* pVt, unsigned int count, CDBString& s, std::vector<CDBString>& vP) const {
+    int CSqlBatch::ToString(const SPA::UDB::CDBVariant* pVt, unsigned int count, CDBString& s) const {
         char param[16];
-        s.clear();
         std::string str;
+        str.reserve(1024);
         unsigned int ps = (unsigned int)m_vParamInfo.size();
         for (unsigned int n = 0; n < count; ++n) {
             if (str.size()) {
@@ -421,13 +421,10 @@ namespace tds
                 pi = m_vParamInfo.data() + (n % ps);
             }
             const SPA::UDB::CDBVariant& v = pVt[n];
-#ifdef WIN32_64
-            unsigned char bytes = (unsigned char) ::sprintf_s(param, "@p%d", (int) n);
-#else
-            unsigned char bytes = (unsigned char) ::sprintf_s(param, "@p%d", (int) n);
-#endif
-            str += param;
-            vP.push_back(CDBString(param, param + strlen(param)));
+            str.append("@p", 2);
+            unsigned char chars = sizeof(param);
+            const char* ret = SPA::ToString(n, param, chars);
+            str.append(ret, chars);
             str.push_back(' ');
             VARTYPE vt = v.vt;
             if (vt <= VT_NULL && pi) {
@@ -484,7 +481,9 @@ namespace tds
                     } else {
                         str += "decimal(19,";
                     }
-                    str += std::to_string(v.decVal.scale);
+                    chars = sizeof(param);
+                    ret = SPA::ToString((unsigned int)v.decVal.scale, param, chars);
+                    str.append(ret, chars);
                     str.push_back(')');
                     break;
                 case (VT_ARRAY | VT_I1):
@@ -493,7 +492,9 @@ namespace tds
                         if (pi->ColumnSize > 8000) {
                             str += "max";
                         } else {
-                            str += std::to_string(pi->ColumnSize);
+                            chars = sizeof(param);
+                            ret = SPA::ToString(pi->ColumnSize, param, chars);
+                            str.append(ret, chars);
                         }
                     } else {
                         unsigned int len = v.parray->rgsabound[0].cElements;
@@ -501,7 +502,9 @@ namespace tds
                             str += "max";
                         } else {
                             if (!len) len = 1;
-                            str += std::to_string(len);
+                            chars = sizeof(param);
+                            ret = SPA::ToString(len, param, chars);
+                            str.append(ret, chars);
                         }
                     }
                     str.push_back(')');
@@ -515,7 +518,9 @@ namespace tds
                             if (pi->ColumnSize > 4000) {
                                 str += "max";
                             } else {
-                                str += std::to_string(pi->ColumnSize);
+                                chars = sizeof(param);
+                                ret = SPA::ToString(pi->ColumnSize, param, chars);
+                                str.append(ret, chars);
                             }
                         } else {
                             unsigned int len = ::SysStringLen(v.bstrVal);
@@ -523,7 +528,9 @@ namespace tds
                                 str += "max";
                             } else {
                                 if (!len) len = 1;
-                                str += std::to_string(len);
+                                chars = sizeof(param);
+                                ret = SPA::ToString(len, param, chars);
+                                str.append(ret, chars);
                             }
                         }
                         str.push_back(')');
@@ -541,7 +548,9 @@ namespace tds
                             if (pi->ColumnSize > 8000) {
                                 str += "max";
                             } else {
-                                str += std::to_string(pi->ColumnSize);
+                                chars = sizeof(param);
+                                ret = SPA::ToString(pi->ColumnSize, param, chars);
+                                str.append(ret, chars);
                             }
                         } else {
                             unsigned int len = v.parray->rgsabound[0].cElements;
@@ -549,7 +558,9 @@ namespace tds
                                 str += "max";
                             } else {
                                 if (!len) len = 1;
-                                str += std::to_string(len);
+                                chars = sizeof(param);
+                                ret = SPA::ToString(len, param, chars);
+                                str.append(ret, chars);
                             }
                         }
                         str.push_back(')');
@@ -577,7 +588,7 @@ namespace tds
                 }
             }
         }
-        s = SPA::Utilities::ToUTF16(str);
+        s.assign(str.c_str(), str.c_str() + str.size());
         return 0;
     }
 
@@ -992,7 +1003,7 @@ namespace tds
         return nullptr;
     }
 
-    int CSqlBatch::SaveParameter(unsigned char& packet_id, const SPA::UDB::CDBVariant& v, const CDBString &p, SPA::CUQueue& buffer, const SPA::UDB::CParameterInfo * pi) {
+    int CSqlBatch::SaveParameter(unsigned char& packet_id, const SPA::UDB::CDBVariant& v, SPA::CUQueue& buffer, const SPA::UDB::CParameterInfo * pi) {
         tagDataType dt;
         unsigned char b_len = 0;
         unsigned char p_len = 0;
@@ -1603,13 +1614,21 @@ namespace tds
         }
         unsigned int cycles = count / parameters;
         CDBString sql = m_sqlPrepare;
+        CDBString p0, p1;
+        char16_t p_num[16];
         for (unsigned int n = 1; n < cycles; ++n) {
             sql.push_back(';');
             size_t pos = 0;
             CDBString s = m_sqlPrepare;
             for (unsigned m = 0; m < parameters; ++m) {
-                CDBString p0 = u"@p" + SPA::Utilities::ToUTF16(std::to_string(m));
-                CDBString p1 = u"@p" + SPA::Utilities::ToUTF16(std::to_string(m + n * parameters));
+                p0 = u"@p";
+                unsigned char chars = sizeof(p_num) / sizeof(char16_t);
+                const char16_t* ret = SPA::ToString(m, p_num, chars);
+                p0.append(ret, chars);
+                p1 = u"@p";
+                chars = sizeof(p_num) / sizeof(char16_t);
+                ret = SPA::ToString(m + n * parameters, p_num, chars);
+                p1.append(ret, chars);
                 pos = s.find(p0, pos);
                 s.replace(pos, p0.size(), p1);
                 pos += 4;
@@ -1628,7 +1647,6 @@ namespace tds
         sb << optionFlags;
         int fail = 0;
         unsigned char packet_id = 1;
-        std::vector<CDBString> vP;
 
         constexpr unsigned char name_len = 0, status = 0;
         constexpr tagDataType dt = tagDataType::NVARCHAR;
@@ -1642,7 +1660,7 @@ namespace tds
         //
         sb << name_len << status << dt << max_len << m_collation;
         CDBString p;
-        fail = ToString(pVt, count, p, vP);
+        fail = ToString(pVt, count, p);
         if (fail) {
             return fail;
         }
@@ -1656,7 +1674,7 @@ namespace tds
             if (m_vParamInfo.size()) {
                 pi = m_vParamInfo.data() + (n % parameters);
             }
-            fail = SaveParameter(packet_id, pVt[n], vP[n], *sb, pi);
+            fail = SaveParameter(packet_id, pVt[n], *sb, pi);
             if (fail) {
                 return fail;
             }

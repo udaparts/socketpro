@@ -374,10 +374,10 @@ namespace tds {
         void ParseTransChange(tagEnvchangeType type, TransChange& tc);
         bool ConvertTo(const CDBString &pn);
         bool PopPLP(VARTYPE vt);
-        int ToString(const SPA::UDB::CDBVariant* pVt, unsigned int count, CDBString& s, std::vector<CDBString>& vP) const;
+        int ToString(const SPA::UDB::CDBVariant* pVt, unsigned int count, CDBString& s) const;
         const SPA::UDB::CParameterInfo* FindParameterInfo(const CDBString& pn) const;
         int SavePLP(const unsigned char* buffer, unsigned int bytes, SPA::CUQueue& q, unsigned char& packet_id);
-        int SaveParameter(unsigned char &packet_id, const SPA::UDB::CDBVariant& v, const CDBString& p, SPA::CUQueue& buffer, const SPA::UDB::CParameterInfo* pi);
+        int SaveParameter(unsigned char &packet_id, const SPA::UDB::CDBVariant& v, SPA::CUQueue& buffer, const SPA::UDB::CParameterInfo* pi);
         int SendARpcPacket(SPA::CUQueue& buffer, unsigned char& packet_id);
         CDBString Prepare(const char16_t* sql, unsigned int& parameters);
         static inline VARTYPE GetVarType(tagDataType dt, unsigned char money_bytes);
