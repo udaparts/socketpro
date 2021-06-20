@@ -45,7 +45,7 @@ namespace tds {
         ActiveDirectoryMSI
     };
 
-    static const unsigned short DEFAULT_PACKET_SIZE = 2920;
+    static const unsigned short DEFAULT_PACKET_SIZE = 5840;
 
     static inline unsigned int ChangeEndian(unsigned int s) {
         unsigned char* p = (unsigned char*) &s;

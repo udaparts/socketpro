@@ -1632,7 +1632,7 @@ namespace tds
                 p1.append(ret, chars);
                 pos = s.find(p0, pos);
                 s.replace(pos, p0.size(), p1);
-                pos += 4;
+                pos += 7; //at least 7, exec GetSomeData @n=@p0,@nout=@p1 OUT,@dec=@p2 OUT;
             }
             str += s;
         }

@@ -20,8 +20,8 @@
 #include "../../include/ucomm.h"
 
 enum tagConstance {
-    IO_BUFFER_SIZE = 1460 * 2,
-    IO_EXTRA = 386,
+    IO_BUFFER_SIZE = 1460 * 4,
+    IO_EXTRA = 512,
     IO_ENCRYPTION_PADDING = IO_EXTRA
 };
 

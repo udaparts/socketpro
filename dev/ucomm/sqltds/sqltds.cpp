@@ -69,12 +69,12 @@ int main() {
     pi.Direction = SPA::UDB::tagParameterDirection::pdOutput;
     pi.ColumnSize = 1024;
     vPInfo.push_back(pi);
-    res = sqlbatch.Prepare(u"exec GetSomeData @n=?, @nout=?, @dec=?", vPInfo, parameters);
+    res = sqlbatch.Prepare(u"exec GetSomeData @n=?,@nout=?,@dec=?", vPInfo, parameters);
     /*vParam.push_back(10);
     vParam.push_back(12);
     vParam.push_back(u"");
     res = sqlbatch.SendTDSMessage(vParam.data(), (unsigned int)vParam.size());*/
-    for (unsigned int n = 0; n < 10000; ++n) {
+    for (unsigned int n = 0; n < 100000; ++n) {
         for (unsigned int m = 0; m < 50; ++m) {
             vParam.push_back(10);
             vParam.push_back(12);
