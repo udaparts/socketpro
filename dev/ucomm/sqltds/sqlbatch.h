@@ -346,7 +346,7 @@ namespace tds {
     public:
         int SendTDSMessage(const SqlLogin& rec, FeatureExtension requestedFeatures);
         int SendTDSMessage(tagRequestType rt, tagIsolationLevel il = tagIsolationLevel::ilCurrent);
-        int SendTDSMessage(const char16_t *sql);
+        int SendTDSMessage(const char16_t *sql, unsigned int chars = SPA::UQUEUE_NULL_LENGTH);
         int Prepare(const char16_t* sql, SPA::UDB::CParameterInfoArray& params, unsigned int& parameters);
         int SendTDSMessage(const SPA::UDB::CDBVariant *pVt, unsigned int count);
 

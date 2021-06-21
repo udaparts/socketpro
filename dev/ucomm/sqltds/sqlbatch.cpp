@@ -1740,17 +1740,38 @@ namespace tds
         return 0;
     }
 
-    int CSqlBatch::SendTDSMessage(const char16_t * sql) {
+    int CSqlBatch::SendTDSMessage(const char16_t * sql, unsigned int chars) {
+        unsigned char packet_id = 1;
         SPA::CScopeUQueue sb;
-        PacketHeader ph(tagPacketType::ptBatch, 1);
-        ph.Spid = ChangeEndian(GetResponseHeader().Spid);
-        //Query packet
         TransactionDescriptor td(m_tc.NewValue);
-        sb << ph << td;
-        sb->Push((const unsigned char*) sql, (unsigned int) (SPA::GetLen(sql) << 1));
-        PacketHeader* pHeader = (PacketHeader*) sb->GetBuffer();
-        pHeader->Length = ChangeEndian((Packet_Length) sb->GetSize());
-        return Send(sb->GetBuffer(), sb->GetSize(), m_timeout);
+        sb << td;
+        if (chars == SPA::UQUEUE_NULL_LENGTH) {
+            chars = (unsigned int) SPA::GetLen(sql);
+        }
+        sb->Push((const unsigned char*) sql, chars << 1);
+        SPA::CScopeUQueue sbEnd;
+        while (sb->GetSize() >= PACKET_DATA_SIZE) {
+            PacketHeader ph(tagPacketType::ptBatch, packet_id++);
+            ph.Length = ChangeEndian(DEFAULT_PACKET_SIZE);
+            ph.Spid = ChangeEndian(GetResponseHeader().Spid);
+            ph.Status = tagPacketStatus::psNormal;
+            sbEnd << ph;
+            sbEnd->Push(sb->GetBuffer(), PACKET_DATA_SIZE);
+            assert(sbEnd->GetSize() == DEFAULT_PACKET_SIZE);
+            int fail = Send(sbEnd->GetBuffer(), DEFAULT_PACKET_SIZE, 0, false);
+            if (fail) {
+                return fail;
+            }
+            sb->Pop(PACKET_DATA_SIZE);
+            sbEnd->SetSize(0);
+        }
+        PacketHeader ph(tagPacketType::ptBatch, packet_id);
+        ph.Spid = ChangeEndian(GetResponseHeader().Spid);
+        sbEnd << ph;
+        sbEnd->Push(sb->GetBuffer(), sb->GetSize());
+        PacketHeader* pHeader = (PacketHeader*) sbEnd->GetBuffer();
+        pHeader->Length = ChangeEndian((Packet_Length) sbEnd->GetSize());
+        return Send(sbEnd->GetBuffer(), sbEnd->GetSize(), m_timeout);
     }
 
     bool CSqlBatch::ParseDoneInProc() {
@@ -3003,7 +3024,6 @@ namespace tds
                         }
                     } else {
                         assert(m_lenLarge < 0x7fffffff);
-                        assert(!m_buffer.GetSize());
                     }
                 }
                 if (!m_lenLarge && m_endLarge == UINT_NULL_LEN) {
