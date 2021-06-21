@@ -9,7 +9,7 @@ namespace tds
 
     CSqlBatch::CSqlBatch(CTdsChannel& channel, bool meta)
             : CReqBase(channel), m_out(*m_sbOut), m_timeout(0), m_meta(meta), m_cols(0), m_posCol(INVALID_COL), m_lenLarge(0),
-            m_endLarge(0), m_rs(0), m_inputs(0), m_outputs(0) {
+            m_endLarge(0), m_rs(0), m_inputs(0), m_outputs(0), m_affects(0) {
     }
 
     inline VARTYPE CSqlBatch::GetVarType(tagDataType dt, unsigned char money_bytes) {
@@ -1283,6 +1283,7 @@ namespace tds
     }
 
     int CSqlBatch::SendTDSMessage(const SqlLogin& rec, FeatureExtension requestedFeatures) {
+        m_affects = 0;
         CDBString userName;
         std::vector<unsigned char> encryptedPassword;
         unsigned short encryptedPasswordLengthInBytes = 0;
@@ -1576,7 +1577,12 @@ namespace tds
         return Send(sb->GetBuffer(), sb->GetSize(), m_timeout);
     }
 
+    SPA::UINT64 CSqlBatch::GetAffected() const {
+        return m_affects;
+    }
+
     int CSqlBatch::SendTDSMessage(const SPA::UDB::CDBVariant* pVt, unsigned int count) {
+        m_affects = 0;
         if (!pVt || !count) {
             return SPA::Odbc::ER_NO_PARAMETER_SPECIFIED;
         }
@@ -1632,7 +1638,7 @@ namespace tds
                 p1.append(ret, chars);
                 pos = s.find(p0, pos);
                 s.replace(pos, p0.size(), p1);
-                pos += 7; //at least 7, exec GetSomeData @n=@p0,@nout=@p1 OUT,@dec=@p2 OUT;
+                pos += 4;
             }
             str += s;
         }
@@ -1741,6 +1747,7 @@ namespace tds
     }
 
     int CSqlBatch::SendTDSMessage(const char16_t * sql, unsigned int chars) {
+        m_affects = 0;
         unsigned char packet_id = 1;
         SPA::CScopeUQueue sb;
         TransactionDescriptor td(m_tc.NewValue);
@@ -1777,6 +1784,9 @@ namespace tds
     bool CSqlBatch::ParseDoneInProc() {
         if (m_buffer.GetSize() >= sizeof (m_dip)) {
             m_buffer >> m_dip;
+            if (m_vCol.size() == 0 && (m_dip.Status & tagDoneStatus::dsCount) == tagDoneStatus::dsCount) {
+                m_affects += m_dip.RowCount;
+            }
             m_tt = tagTokenType::ttZero;
             return true;
         }
@@ -3143,6 +3153,7 @@ namespace tds
     }
 
     int CSqlBatch::SendTDSMessage(tagRequestType rt, tagIsolationLevel il) {
+        m_affects = 0;
         switch (rt) {
             case tagRequestType::rtBeginTrans:
                 if (m_tc.NewValue) {
@@ -3172,6 +3183,9 @@ namespace tds
     bool CSqlBatch::ParseDone() {
         if (CReqBase::ParseDone()) {
             if (m_Done.Status == tagDoneStatus::dsFinal || (m_Done.Status & tagDoneStatus::dsMore) == tagDoneStatus::dsMore || (m_Done.Status & tagDoneStatus::dsCount) == tagDoneStatus::dsCount) {
+                if (m_vCol.size() == 0 && (m_Done.Status & tagDoneStatus::dsCount) == tagDoneStatus::dsCount) {
+                    m_affects += m_Done.RowCount;
+                }
                 m_posCol = INVALID_COL;
                 m_cols = 0;
                 m_vCol.clear();

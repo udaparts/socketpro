@@ -344,11 +344,52 @@ namespace tds {
         static_assert(sizeof (TransactionDescriptor) == 22, "Wrong TransactionDescriptor size");
 
     public:
+        /**
+         * Send TDS server a login message for login authentication
+         * @param rec A structure containing SQL server login info
+         * @param requestedFeatures requested extended feature flags
+         * @return one of programming error codes (-1981 to -1996) or a positive socket error code
+         */
         int SendTDSMessage(const SqlLogin& rec, FeatureExtension requestedFeatures);
+
+        /**
+         * Send TDS server a transaction manager request for starting or ending transaction
+         * @param rt one of request types, rtBeginTrans, rtCommit and rtRollback
+         * @param il an isolation level
+         * @return one of programming error codes (-1981 to -1996) or a positive socket error code
+         */
         int SendTDSMessage(tagRequestType rt, tagIsolationLevel il = tagIsolationLevel::ilCurrent);
+
+        /**
+         * Send TDS server a SQL batch message for processing a batch of SQL statements
+         * @param sql a batch of SQL statements
+         * @param chars the number of SQL string characters
+         * @return a positive socket error code
+         */
         int SendTDSMessage(const char16_t *sql, unsigned int chars = SPA::UQUEUE_NULL_LENGTH);
+
+        /**
+         * Prepare a parameterized SQL statement which may contain multiple sub statements
+         * @param sql a parameterized SQL statement
+         * @param params an array of parameter information
+         * @param parameters the number of input and output parameters, low part for inputs and high part for outputs
+         * @return one of programming error codes (-1981 to -1996)
+         */
         int Prepare(const char16_t* sql, SPA::UDB::CParameterInfoArray& params, unsigned int& parameters);
+
+        /**
+         * Send TDS server a SQL remote procedure call message for processing a batch of SQL parameterized statements
+         * @param pVt a pointer to an array of CDBVariant
+         * @param count the number of CDBVariants
+         * @return one of programming error codes (-1981 to -1996) or a positive socket error code
+         */
         int SendTDSMessage(const SPA::UDB::CDBVariant *pVt, unsigned int count);
+
+        /**
+         * Query the number of records affected
+         * @return the number of records affected
+         */
+        SPA::UINT64 GetAffected() const;
 
     protected:
         void Reset();
@@ -415,7 +456,7 @@ namespace tds {
         CDBString m_sqlPrepare;
         unsigned short m_inputs;
         unsigned short m_outputs;
-
+        UINT64 m_affects;
         static CDBString LibraryName; //Client library name
     };
 
