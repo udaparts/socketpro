@@ -1547,6 +1547,9 @@ JNIEXPORT void JNICALL Java_SPA_ServerSide_ServerCoreLoader_SetInlineBatching
 (JNIEnv*, jclass, jlong, jboolean);
 
 
+JNIEXPORT jshort JNICALL Java_SPA_ServerSide_ServerCoreLoader_PeekNextRequest(JNIEnv*, jclass, jlong h);
+
+
 JNIEXPORT jint JNICALL Java_SPA_ServerSide_Plugin_DoSPluginAuthentication(JNIEnv*, jclass, jstring, jlong, jstring, jstring, jint, jstring);
 JNIEXPORT jboolean JNICALL Java_SPA_ServerSide_Plugin_SetSPluginGlobalOptions(JNIEnv*, jclass, jstring, jstring);
 JNIEXPORT jstring JNICALL Java_SPA_ServerSide_Plugin_GetSPluginVersion(JNIEnv*, jclass, jstring);
