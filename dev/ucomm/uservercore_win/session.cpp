@@ -586,6 +586,15 @@ bool CServerSession::IsCanceled() {
     return m_bCanceled;
 }
 
+unsigned short CServerSession::PeekNextRequest() {
+    CAutoLock sl(m_mutex);
+    if (m_qRead.GetSize() < m_ReqInfo.Size + sizeof(m_ReqInfo)) {
+        return 0;
+    }
+    SPA::CStreamHeader* sh = (SPA::CStreamHeader*) m_qRead.GetBuffer(m_ReqInfo.Size);
+    return sh->RequestId;
+}
+
 bool CServerSession::IsCanceledInternally() {
     unsigned int pos = 0;
     unsigned int lenAll = m_qRead.GetSize();

@@ -207,6 +207,7 @@ namespace SPA {
         typedef void (WINAPI *PSetOnceOnly)(USocket_Server_Handle h, bool onceOnly);
         typedef bool (WINAPI *PGetInlineBatching)(USocket_Server_Handle h);
         typedef void (WINAPI *PSetInlineBatching)(USocket_Server_Handle h, bool manualBatching);
+        typedef unsigned short (WINAPI *PPeekNextRequest)(USocket_Server_Handle h);
 
         namespace Internal {
 
@@ -424,6 +425,7 @@ namespace SPA {
                 PSetOnceOnly SetOnceOnly;
                 PGetInlineBatching GetInlineBatching;
                 PSetInlineBatching SetInlineBatching;
+                PPeekNextRequest PeekNextRequest;
 
             public:
 
@@ -644,6 +646,7 @@ namespace SPA {
                     SetOnceOnly = (PSetOnceOnly)::GetProcAddress(m_hServerCore, "SetOnceOnly");
                     GetInlineBatching = (PGetInlineBatching)::GetProcAddress(m_hServerCore, "GetInlineBatching");
                     SetInlineBatching = (PSetInlineBatching)::GetProcAddress(m_hServerCore, "SetInlineBatching");
+                    PeekNextRequest = (PPeekNextRequest)::GetProcAddress(m_hServerCore, "PeekNextRequest");
                 }
 
             private:

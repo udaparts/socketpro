@@ -361,6 +361,10 @@ namespace SPA
             return ServerCoreLoader.GetCurrentRequestIndex(m_hHandler);
         }
 
+        unsigned short CSocketPeer::PeekNextRequest() const {
+            return ServerCoreLoader.PeekNextRequest(m_hHandler);
+        }
+
         UINT64 CClientPeer::GetInterruptOptions() const {
             return ServerCoreLoader.GetInterruptOptions(GetSocketHandle());
         }

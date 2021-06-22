@@ -21,7 +21,7 @@ extern bool g_bRegistered;
 
 CServerSession *GetSvrSession(USocket_Server_Handle h, unsigned int &index);
 
-std::string g_strVersion("6.4.0.5");
+std::string g_strVersion("6.4.0.6");
 
 const char* WINAPI GetUServerSocketVersion() {
     return g_strVersion.c_str();
@@ -963,6 +963,16 @@ SPA::CertInfo* WINAPI GetUCert(USocket_Server_Handle h) {
     if (pSession)
         return pSession->GetUCert();
     return nullptr;
+}
+
+unsigned short WINAPI PeekNextRequest(USocket_Server_Handle h) {
+    unsigned int index;
+    CServerSession* pSession = GetSvrSession(h, index);
+    if (index == 0 || index != pSession->GetConnIndex())
+        return 0;
+    if (pSession)
+        return pSession->PeekNextRequest();
+    return 0;
 }
 
 SPA::UINT64 WINAPI GetCurrentRequestIndex(USocket_Server_Handle h) {

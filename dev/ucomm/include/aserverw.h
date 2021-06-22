@@ -237,6 +237,7 @@ namespace SPA {
             void* GetSSL() const;
             void DropCurrentSlowRequest() const;
             UINT64 GetCurrentRequestIndex() const;
+            unsigned short PeekNextRequest() const;
 
         protected:
             virtual void OnReleaseSource(bool bClosing, unsigned int info);

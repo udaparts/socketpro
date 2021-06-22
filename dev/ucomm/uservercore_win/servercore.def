@@ -205,3 +205,4 @@ EXPORTS
 	SetOnceOnly @209
     GetInlineBatching @210
     SetInlineBatching @211
+	PeekNextRequest @212

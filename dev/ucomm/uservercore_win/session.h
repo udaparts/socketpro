@@ -143,6 +143,7 @@ public:
     unsigned int SendExceptionResult(const char* errMessage, const char* errWhere, unsigned short requestId = 0, unsigned int errCode = 0);
     bool FakeAClientRequest(unsigned short reqId, const unsigned char *pBuffer, unsigned int nBufferSize);
     bool IsCanceled();
+    unsigned short PeekNextRequest();
 
     //HTTP
     unsigned int GetHTTPRequestHeaders(SPA::ServerSide::CHttpHeaderValue *HeaderValue, unsigned int count);
