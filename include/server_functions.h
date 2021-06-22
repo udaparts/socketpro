@@ -441,7 +441,7 @@ extern "C" {
     void WINAPI SetOnceOnly(USocket_Server_Handle h, bool onceOnly);
     bool WINAPI GetInlineBatching(USocket_Server_Handle h);
     void WINAPI SetInlineBatching(USocket_Server_Handle h, bool manual_batching);
-
+    unsigned short WINAPI PeekNextRequest(USocket_Server_Handle h);
 #ifdef __cplusplus
 }
 #endif
