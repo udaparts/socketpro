@@ -149,6 +149,7 @@ private:
     void Sleep(unsigned int ms) {
         //boost::this_thread::sleep(boost::posix_time::milliseconds(25000));
         //boost::this_thread::sleep(boost::posix_time::milliseconds(ms / 2));
+        std::cout << "Next request id: " << PeekNextRequest() << "\n";
 #if 0
         int *p = nullptr;
         srand((unsigned int) time(nullptr));
