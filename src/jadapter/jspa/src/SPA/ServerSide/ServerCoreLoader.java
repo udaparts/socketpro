@@ -392,4 +392,6 @@ final class ServerCoreLoader {
     static native int NotifyInterrupt(long h, long options);
 
     static native long GetInterruptOptions(long h);
+
+    static native short PeekNextRequest(long h);
 }

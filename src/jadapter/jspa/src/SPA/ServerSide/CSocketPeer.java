@@ -352,6 +352,15 @@ public abstract class CSocketPeer {
         return ServerCoreLoader.GetServerSocketErrorCode(m_sh);
     }
 
+    /**
+     * Peek next request id
+     *
+     * @return an id of next request, or zero if there is no request available
+     */
+    public final short getNextRequest() {
+        return ServerCoreLoader.PeekNextRequest(m_sh);
+    }
+
     public final String getErrorMessage() {
         byte[] errMsg = new byte[4097];
         int res = ServerCoreLoader.GetServerSocketErrorMessage(m_sh, errMsg, 4097);
