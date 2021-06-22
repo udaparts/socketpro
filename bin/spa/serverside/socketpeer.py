@@ -49,6 +49,10 @@ class CSocketPeer(object):
         return scl.GetServerSocketErrorCode(self._m_sh)
 
     @property
+    def NextRequest(self):
+        return scl.PeekNextRequest(self._m_sh)
+
+    @property
     def ErrorMessage(self):
         str = (c_char * 4097)()
         res = scl.GetServerSocketErrorMessage(self._m_sh, str, 4097)

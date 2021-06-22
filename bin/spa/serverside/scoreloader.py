@@ -1090,6 +1090,11 @@ class SCoreLoader(object):
     GetInterruptOptions.argtypes = [c_uint64]
     GetInterruptOptions.restype = c_uint64
 
+    #unsigned short WINAPI PeekNextRequest(USocket_Server_Handle h);
+    PeekNextRequest = _ussLib_.PeekNextRequest
+    PeekNextRequest.argtypes = [c_uint64]
+    PeekNextRequest.restype = c_ushort
+
 class CSvsContext(Structure):
     _fields_ = [("m_ta", c_int), #required with a worker thread only on window platforms
                 ("m_OnSwitchTo", SCoreLoader.POnSwitchTo),

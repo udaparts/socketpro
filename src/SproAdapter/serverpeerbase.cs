@@ -65,6 +65,12 @@ namespace SocketProAdapter
                 }
             }
 
+            public uint NextRequest {
+                get {
+                    return ServerCoreLoader.PeekNextRequest(m_sh);
+                }
+            }
+
             public int ErrorCode
             {
                 get

@@ -722,6 +722,9 @@ namespace SocketProAdapter
 
             [DllImport(SERVER_CORE_DLL)]
             internal static extern ulong GetInterruptOptions(ulong h);
+
+            [DllImport(SERVER_CORE_DLL)]
+            internal static extern uint PeekNextRequest(ulong h);
         }
     }
 }
