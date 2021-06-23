@@ -21,6 +21,12 @@ namespace tds {
 
         static const Token TOKEN_TERMINATOR = 0xff;
 
+        static const int ER_SQL_REQUEST_TIMEDOUT = -1993;
+        static const int ER_BAD_PARAMETER_INFO_COLUMN_SIZE = -1994;
+        static const int ER_BAD_DECIMAL_PRECSION_PROVIDED = -1995;
+        static const int ER_BAD_OUTPUT_PARAMETER_DATA_TYPE = -1996;
+        static const int ER_NO_PARAMETER_NAME_PROVIDED = -1997;
+
 #pragma pack(push,1)
 
         enum class tagPacketType : unsigned char {

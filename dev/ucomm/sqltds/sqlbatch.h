@@ -53,11 +53,6 @@ namespace tds {
         static constexpr unsigned int PLP_TERMINATOR = 0;
         static constexpr unsigned short PACKET_DATA_SIZE = DEFAULT_PACKET_SIZE - sizeof (PacketHeader);
 
-        static const int ER_NO_PARAMETER_NAME_PROVIDED = -1993;
-        static const int ER_BAD_PARAMETER_INFO_COLUMN_SIZE = -1994;
-        static const int ER_BAD_DECIMAL_PRECSION_PROVIDED = -1995;
-        static const int ER_BAD_OUTPUT_PARAMETER_DATA_TYPE = -1996;
-
     public:
         CSqlBatch(CTdsChannel& channel, bool meta = true);
 

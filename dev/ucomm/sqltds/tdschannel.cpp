@@ -8,6 +8,7 @@ namespace tds
 
     int CTdsChannel::Send(tds::CReqBase* rb, const unsigned char* buffer, unsigned int bytes) {
         assert(rb);
+        assert(bytes > sizeof(CReqBase::PacketHeader));
         int fail = 0;
         do {
             m_cs.lock();
@@ -88,9 +89,12 @@ namespace tds
                 std::cout << "Remaining bytes: " << rb->m_buffer.GetSize() << "\n";
             }
 #endif
-            if (ph->Status == CReqBase::tagPacketStatus::psEOM) {
+            if (rb->IsDone()) {
                 m_cs.lock();
                 m_deq.pop_front();
+                while (m_deq.size() && m_deq.front() == rb) {
+                    m_deq.pop_front();
+                }
                 m_cs.unlock();
             }
             m_buff.Pop(len);

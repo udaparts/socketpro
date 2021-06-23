@@ -223,11 +223,14 @@ namespace tds{
                 return fail;
             }
         }
+        bool ok = true;
         CAutoLock al(m_cs);
         m_bWaiting = true;
-        bool ok = (m_cv.wait_for(al, milliseconds * 1ms) == std::cv_status::no_timeout);
+        if (ResponseHeader.Status != tagPacketStatus::psEOM) {
+            ok = (m_cv.wait_for(al, milliseconds * 1ms) == std::cv_status::no_timeout);
+        }
         m_bWaiting = false;
-        return ok ? 0 : -1;
+        return ok ? 0 : ER_SQL_REQUEST_TIMEDOUT;
     }
 
     void CReqBase::OnResponse(const unsigned char *data, unsigned int bytes) {
@@ -265,7 +268,7 @@ namespace tds{
 #endif
         }
         CAutoLock al(m_cs);
-        if (m_bWaiting && IsDoneInternal() && !HasMoreInternal()) {
+        if (m_bWaiting && IsDoneInternal()) {
             m_cv.notify_all();
         }
     }
