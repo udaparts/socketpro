@@ -42,7 +42,7 @@ int main() {
         }
         sql += u"select * from actor where actor_id between 11 and 20";
         if ((n % 10) == 0) {
-            res = sqlbatch.SendTDSMessage(sql.c_str());
+            res = sqlbatch.SendTDSMessage(sql.c_str(), (unsigned int)sql.size());
             sql.clear();
             if (res) {
                 break;
@@ -86,7 +86,6 @@ int main() {
     system_clock::time_point stop = system_clock::now();
     ms d = duration_cast<ms>(stop - start);
     std::cout << "Time required: " << d.count() << " ms\n\n";
-    vParam.clear();
 #endif
 
 #if 0
@@ -106,7 +105,14 @@ int main() {
 #endif
     //res = sqlbatch.SendTDSMessage(tds::CSqlBatch::tagRequestType::rtCommit);
 
-    //res = sqlbatch.SendTDSMessage(u"select * from employee;select * from mynulltest;select * from mymoneys");
+#if 0
+    SPA::CDBString sql = u"select * from employee;select * from mynulltest;select * from mymoneys";
+    while (sql.size() <= tds::DEFAULT_PACKET_SIZE * 8) {
+        sql.push_back(';');
+        sql += u"select * from employee;select * from mynulltest;select * from mymoneys";
+    }
+    res = sqlbatch.SendTDSMessage(sql.c_str(), (unsigned int) sql.size());
+#endif
     //TestSqlServer(sqlbatch);
 
     std::cout << "Press a key to shut down the application ......\n";
