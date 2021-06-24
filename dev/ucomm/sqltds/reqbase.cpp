@@ -190,15 +190,18 @@ namespace tds{
         return false;
     }
 
-    bool CReqBase::Wait(unsigned int milliseconds) {
+    int CReqBase::Wait(unsigned int milliseconds) {
         CAutoLock al(m_cs);
-        if (IsDoneInternal() && !HasMoreInternal()) {
+        if (IsDoneInternal()) {
             return true;
         }
         m_bWaiting = true;
-        bool ok = (m_cv.wait_for(al, milliseconds * 1ms) == std::cv_status::no_timeout);
+        if (m_cv.wait_for(al, milliseconds * 1ms) != std::cv_status::no_timeout) {
+            m_bWaiting = false;
+            return ER_SQL_REQUEST_TIMEDOUT;
+        }
         m_bWaiting = false;
-        return ok;
+        return m_channel.GetErrorCode(nullptr, 0);
     }
 
     void CReqBase::OnChannelClosed() {

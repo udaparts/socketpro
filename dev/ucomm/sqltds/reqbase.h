@@ -191,7 +191,7 @@ namespace tds {
         bool IsDone();
         bool HasMore();
         UINT64 GetCount();
-        virtual bool Wait(unsigned int ms);
+        virtual int Wait(unsigned int ms);
         int Send(const unsigned char* buffer, unsigned int bytes, unsigned int milliseconds, bool sync = true);
         int GetSQLError(SPA::CDBString& errMsg);
         CTdsChannel& GetChannel();

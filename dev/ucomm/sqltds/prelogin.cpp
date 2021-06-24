@@ -14,7 +14,6 @@ namespace tds
     }
 
     int CPrelogin::SendTDSMessage(const char *instanceName) {
-        Reset();
         SPA::CScopeUQueue sbHeader;
         Option option;
         option.Token = tagOptionToken::VERSION;

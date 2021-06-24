@@ -345,7 +345,7 @@ namespace tds {
          * @param requestedFeatures requested extended feature flags
          * @return one of programming error codes (-1981 to -1996) or a positive socket error code
          */
-        int SendTDSMessage(const SqlLogin& rec, FeatureExtension requestedFeatures);
+        int SendTDSMessage(const SqlLogin& rec, FeatureExtension requestedFeatures, bool sync = true);
 
         /**
          * Send TDS server a transaction manager request for starting or ending transaction
@@ -353,7 +353,7 @@ namespace tds {
          * @param il an isolation level
          * @return one of programming error codes (-1981 to -1996) or a positive socket error code
          */
-        int SendTDSMessage(tagRequestType rt, tagIsolationLevel il = tagIsolationLevel::ilCurrent);
+        int SendTDSMessage(tagRequestType rt, tagIsolationLevel il = tagIsolationLevel::ilCurrent, bool sync = true);
 
         /**
          * Send TDS server a SQL batch message for processing a batch of SQL statements
@@ -361,7 +361,7 @@ namespace tds {
          * @param chars the number of SQL string characters
          * @return a positive socket error code
          */
-        int SendTDSMessage(const char16_t *sql, unsigned int chars = SPA::UQUEUE_NULL_LENGTH);
+        int SendTDSMessage(const char16_t *sql, unsigned int chars = SPA::UQUEUE_NULL_LENGTH, bool sync = true);
 
         /**
          * Prepare a parameterized SQL statement which may contain multiple sub statements
@@ -378,13 +378,15 @@ namespace tds {
          * @param count the number of CDBVariants
          * @return one of programming error codes (-1981 to -1996) or a positive socket error code
          */
-        int SendTDSMessage(const SPA::UDB::CDBVariant *pVt, unsigned int count);
+        int SendTDSMessage(const SPA::UDB::CDBVariant *pVt, unsigned int count, bool sync = true);
 
         /**
          * Query the number of records affected
          * @return the number of records affected
          */
         SPA::UINT64 GetAffected() const;
+
+        int Cancel(bool completed = true, bool sync = true);
 
     protected:
         void Reset();

@@ -1282,7 +1282,7 @@ namespace tds
         return fail;
     }
 
-    int CSqlBatch::SendTDSMessage(const SqlLogin& rec, FeatureExtension requestedFeatures) {
+    int CSqlBatch::SendTDSMessage(const SqlLogin& rec, FeatureExtension requestedFeatures, bool sync) {
         m_affects = 0;
         CDBString userName;
         std::vector<unsigned char> encryptedPassword;
@@ -1574,14 +1574,26 @@ namespace tds
         pHeader->Length = ChangeEndian((Packet_Length) sb->GetSize());
         m_vInfo.clear();
         m_timeout = rec.timeout;
-        return Send(sb->GetBuffer(), sb->GetSize(), m_timeout);
+        return Send(sb->GetBuffer(), sb->GetSize(), m_timeout, sync);
     }
 
     SPA::UINT64 CSqlBatch::GetAffected() const {
         return m_affects;
     }
 
-    int CSqlBatch::SendTDSMessage(const SPA::UDB::CDBVariant* pVt, unsigned int count) {
+    int CSqlBatch::Cancel(bool completed, bool sync) {
+        PacketHeader ph(tagPacketType::ptAttention, 1);
+        ph.Length = ChangeEndian((unsigned short) sizeof (ph));
+        ph.Spid = ChangeEndian(GetResponseHeader().Spid);
+        if (completed) {
+            ph.Status = tagPacketStatus::psEOM;
+        } else {
+            ph.Status = (tagPacketStatus) 0x03; //(0x01 | 0x02)
+        }
+        return Send((const unsigned char*) &ph, sizeof (ph), m_timeout, sync);
+    }
+
+    int CSqlBatch::SendTDSMessage(const SPA::UDB::CDBVariant* pVt, unsigned int count, bool sync) {
         m_affects = 0;
         if (!pVt || !count) {
             return SPA::Odbc::ER_NO_PARAMETER_SPECIFIED;
@@ -1700,7 +1712,7 @@ namespace tds
         SPA::CScopeUQueue sbEnd;
         sbEnd << ph;
         sbEnd->Push(sb->GetBuffer(), sb->GetSize());
-        return Send(sbEnd->GetBuffer(), sbEnd->GetSize(), m_timeout);
+        return Send(sbEnd->GetBuffer(), sbEnd->GetSize(), m_timeout, sync);
     }
 
     int CSqlBatch::SendARpcPacket(SPA::CUQueue& buffer, unsigned char& packet_id) {
@@ -1746,7 +1758,7 @@ namespace tds
         return 0;
     }
 
-    int CSqlBatch::SendTDSMessage(const char16_t * sql, unsigned int chars) {
+    int CSqlBatch::SendTDSMessage(const char16_t * sql, unsigned int chars, bool sync) {
         m_affects = 0;
         unsigned char packet_id = 1;
         SPA::CScopeUQueue sb;
@@ -1778,7 +1790,7 @@ namespace tds
         sbEnd->Push(sb->GetBuffer(), sb->GetSize());
         PacketHeader* pHeader = (PacketHeader*) sbEnd->GetBuffer();
         pHeader->Length = ChangeEndian((Packet_Length) sbEnd->GetSize());
-        return Send(sbEnd->GetBuffer(), sbEnd->GetSize(), m_timeout);
+        return Send(sbEnd->GetBuffer(), sbEnd->GetSize(), m_timeout, sync);
     }
 
     bool CSqlBatch::ParseDoneInProc() {
@@ -3152,7 +3164,7 @@ namespace tds
         }
     }
 
-    int CSqlBatch::SendTDSMessage(tagRequestType rt, tagIsolationLevel il) {
+    int CSqlBatch::SendTDSMessage(tagRequestType rt, tagIsolationLevel il, bool sync) {
         m_affects = 0;
         switch (rt) {
             case tagRequestType::rtBeginTrans:
@@ -3177,7 +3189,7 @@ namespace tds
         ph.Length = ChangeEndian(ph.Length);
         SPA::CScopeUQueue sb;
         sb << ph << td << rt << il;
-        return Send(sb->GetBuffer(), sb->GetSize(), m_timeout);
+        return Send(sb->GetBuffer(), sb->GetSize(), m_timeout, sync);
     }
 
     bool CSqlBatch::ParseDone() {
