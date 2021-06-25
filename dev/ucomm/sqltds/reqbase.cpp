@@ -1,5 +1,6 @@
 #include "reqbase.h"
 #include "tdschannel.h"
+#include "../include/odbc/uodbc.h"
 #include <chrono>
 using namespace std::chrono_literals;
 
@@ -156,6 +157,78 @@ namespace tds{
         return (int) ec;
     }
 
+    int CReqBase::GetError(int fail, SPA::CDBString & errMsg) {
+        if (!fail) {
+            errMsg.clear();
+            return 0;
+        } else if (fail < 0) {
+            switch (fail) {
+                case SPA::Odbc::ER_NO_DB_OPENED_YET:
+                    errMsg = u"No SQL server database opened yet";
+                    return fail;
+                case SPA::Odbc::ER_BAD_END_TRANSTACTION_PLAN:
+                    errMsg = u"Bad end transaction plan";
+                    return fail;
+                case SPA::Odbc::ER_NO_PARAMETER_SPECIFIED:
+                    errMsg = u"No parameter specified";
+                    return fail;
+                case SPA::Odbc::ER_BAD_PARAMETER_COLUMN_SIZE:
+                    errMsg = u"Bad parameter info array size found";
+                    return fail;
+                case SPA::Odbc::ER_BAD_PARAMETER_DATA_ARRAY_SIZE:
+                    errMsg = u"Bad parameter data array length";
+                    return fail;
+                case SPA::Odbc::ER_DATA_TYPE_NOT_SUPPORTED:
+                    errMsg = u"Data type not supported";
+                    return fail;
+                case SPA::Odbc::ER_NO_DB_NAME_SPECIFIED:
+                    errMsg = u"No database name specified";
+                    return fail;
+                case SPA::Odbc::ER_BAD_MANUAL_TRANSACTION_STATE:
+                    errMsg = u"Bad manual transaction state";
+                    return fail;
+                case SPA::Odbc::ER_BAD_INPUT_PARAMETER_DATA_TYPE:
+                    errMsg = u"Bad parameter data type found";
+                    return fail;
+                case SPA::Odbc::ER_BAD_PARAMETER_DIRECTION_TYPE:
+                    errMsg = u"Bad parameter direction type";
+                    return fail;
+                case SPA::Odbc::ER_CORRECT_PARAMETER_INFO_NOT_PROVIDED_YET:
+                    errMsg = u"Parameter information not provided yet";
+                    return fail;
+                case ER_SQL_REQUEST_TIMEDOUT:
+                    errMsg = u"SQL request timed out";
+                    return fail;
+                case ER_SQL_SERVER_SESSION_CLOSED_GRACEFULLY:
+                    errMsg = u"SQL server session closed gracefully";
+                    return fail;
+                case ER_BAD_DECIMAL_PRECSION_PROVIDED:
+                    errMsg = u"Decimal precision cannot be zero";
+                    return fail;
+                case ER_BAD_OUTPUT_PARAMETER_DATA_TYPE:
+                    errMsg = u"Bad output parameter data type found";
+                    return fail;
+                case ER_NO_PARAMETER_NAME_PROVIDED:
+                    errMsg = u"Stored procedure parameter name not provided yet";
+                    return fail;
+                case ER_BAD_PARAMETER_INFO_COLUMN_SIZE:
+                    errMsg = u"Wrong parameter info column size found";
+                    return fail;
+                default:
+                {
+                    int res = GetSQLError(errMsg);
+                    assert(res == fail);
+                }
+                    return fail;
+            }
+        }
+        SPA::CScopeUQueue sb;
+        fail = m_channel.GetErrorCode((char*) sb->GetBuffer(), sb->GetMaxSize());
+        const char* em = (const char*) sb->GetBuffer();
+        errMsg.assign(em, em + strlen(em));
+        return fail;
+    }
+
     bool CReqBase::ParseError() {
         if (m_buffer.GetSize() > 2) {
             unsigned short len = *(unsigned short*) m_buffer.GetBuffer();
@@ -193,7 +266,7 @@ namespace tds{
     int CReqBase::Wait(unsigned int milliseconds) {
         CAutoLock al(m_cs);
         if (IsDoneInternal()) {
-            return true;
+            return 0;
         }
         m_bWaiting = true;
         if (m_cv.wait_for(al, milliseconds * 1ms) != std::cv_status::no_timeout) {
@@ -201,7 +274,14 @@ namespace tds{
             return ER_SQL_REQUEST_TIMEDOUT;
         }
         m_bWaiting = false;
-        return m_channel.GetErrorCode(nullptr, 0);
+        int fail = m_channel.GetErrorCode(nullptr, 0);
+        if (fail) {
+            return fail;
+        }
+        if (!m_channel.IsConnected()) {
+            fail = ER_SQL_SERVER_SESSION_CLOSED_GRACEFULLY;
+        }
+        return fail;
     }
 
     void CReqBase::OnChannelClosed() {
@@ -213,30 +293,51 @@ namespace tds{
     }
 
     int CReqBase::Send(const unsigned char* buffer, unsigned int bytes, unsigned int milliseconds, bool sync) {
+        assert(buffer);
+        assert(bytes >= sizeof (PacketHeader));
+        int fail = 0;
         {
             CAutoLock al(m_csSend);
             {
                 CAutoLock al(m_cs);
+                if (!m_channel.GetQueuedPackets()) {
+                    PacketHeader* ph = (PacketHeader*) buffer;
+                    if (ph->Type == tagPacketType::ptAttention) {
+                        return 0;
+                    }
+                }
                 m_errCode.Reset();
                 ResponseHeader.Status = tagPacketStatus::psNormal;
                 m_Done.Status = tagDoneStatus::dsMore;
             }
-            int fail = m_channel.Send(this, buffer, bytes);
-            if (fail || !sync) {
+            fail = m_channel.Send(this, buffer, bytes);
+            if (fail) {
+                return fail;
+            }
+            if (!sync) {
+                if (!m_channel.IsConnected()) {
+                    fail = ER_SQL_SERVER_SESSION_CLOSED_GRACEFULLY;
+                }
                 return fail;
             }
         }
-        bool ok = true;
         CAutoLock al(m_cs);
         m_bWaiting = true;
         if (ResponseHeader.Status != tagPacketStatus::psEOM) {
-            ok = (m_cv.wait_for(al, milliseconds * 1ms) == std::cv_status::no_timeout);
+            if (m_cv.wait_for(al, milliseconds * 1ms) == std::cv_status::no_timeout) {
+                fail = m_channel.GetErrorCode(nullptr, 0);
+                if (!fail && !m_channel.IsConnected()) {
+                    fail = ER_SQL_SERVER_SESSION_CLOSED_GRACEFULLY;
+                }
+            } else {
+                fail = ER_SQL_REQUEST_TIMEDOUT;
+            }
         }
         m_bWaiting = false;
-        return ok ? 0 : ER_SQL_REQUEST_TIMEDOUT;
+        return fail;
     }
 
-    void CReqBase::OnResponse(const unsigned char *data, unsigned int bytes) {
+    void CReqBase::OnResponse(const unsigned char* data, unsigned int bytes) {
         assert(bytes >= sizeof (ResponseHeader));
         {
             CAutoLock al(m_cs);

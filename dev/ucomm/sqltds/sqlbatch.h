@@ -343,7 +343,7 @@ namespace tds {
          * Send TDS server a login message for login authentication
          * @param rec A structure containing SQL server login info
          * @param requestedFeatures requested extended feature flags
-         * @return one of programming error codes (-1981 to -1996) or a positive socket error code
+         * @return one of programming error codes, a session error code or a SQL server error code
          */
         int SendTDSMessage(const SqlLogin& rec, FeatureExtension requestedFeatures, bool sync = true);
 
@@ -351,7 +351,7 @@ namespace tds {
          * Send TDS server a transaction manager request for starting or ending transaction
          * @param rt one of request types, rtBeginTrans, rtCommit and rtRollback
          * @param il an isolation level
-         * @return one of programming error codes (-1981 to -1996) or a positive socket error code
+         * @return one of programming error codes, a session error code or a SQL server error code
          */
         int SendTDSMessage(tagRequestType rt, tagIsolationLevel il = tagIsolationLevel::ilCurrent, bool sync = true);
 
@@ -359,7 +359,7 @@ namespace tds {
          * Send TDS server a SQL batch message for processing a batch of SQL statements
          * @param sql a batch of SQL statements
          * @param chars the number of SQL string characters
-         * @return a positive socket error code
+         * @return a session error code or a SQL server error code
          */
         int SendTDSMessage(const char16_t *sql, unsigned int chars = SPA::UQUEUE_NULL_LENGTH, bool sync = true);
 
@@ -368,7 +368,7 @@ namespace tds {
          * @param sql a parameterized SQL statement
          * @param params an array of parameter information
          * @param parameters the number of input and output parameters, low part for inputs and high part for outputs
-         * @return one of programming error codes (-1981 to -1996)
+         * @return one of programming error codes, a session error code or a SQL server error code
          */
         int Prepare(const char16_t* sql, SPA::UDB::CParameterInfoArray& params, unsigned int& parameters);
 
@@ -376,7 +376,7 @@ namespace tds {
          * Send TDS server a SQL remote procedure call message for processing a batch of SQL parameterized statements
          * @param pVt a pointer to an array of CDBVariant
          * @param count the number of CDBVariants
-         * @return one of programming error codes (-1981 to -1996) or a positive socket error code
+         * @return one of programming error codes, a session error code or a SQL server error code
          */
         int SendTDSMessage(const SPA::UDB::CDBVariant *pVt, unsigned int count, bool sync = true);
 

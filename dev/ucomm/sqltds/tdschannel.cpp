@@ -30,6 +30,13 @@ namespace tds
         return fail;
     }
 
+    size_t CTdsChannel::GetQueuedPackets() {
+        m_cs.lock();
+        size_t count = m_deq.size();
+        m_cs.unlock();
+        return count;
+    }
+
     void CTdsChannel::OnClosed() {
 #ifndef NDEBUG
         char errMsg[512];

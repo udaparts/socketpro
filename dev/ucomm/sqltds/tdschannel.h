@@ -13,6 +13,7 @@ namespace tds {
     public:
         CTdsChannel(SPA::SessionHandle sh);
         int Send(tds::CReqBase *sender, const unsigned char* buffer, unsigned int bytes);
+        size_t GetQueuedPackets();
 
     protected:
         void OnAvailable(const unsigned char* data, unsigned int bytes);
