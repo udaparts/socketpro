@@ -165,6 +165,7 @@
     <ClCompile Include="sessionstate.cpp" />
     <ClCompile Include="sqlbatch.cpp" />
     <ClCompile Include="sqltds.cpp" />
+    <ClCompile Include="sspi.cpp" />
     <ClCompile Include="tdschannel.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -176,6 +177,7 @@
     <ClInclude Include="reqbase.h" />
     <ClInclude Include="sessionstate.h" />
     <ClInclude Include="sqlbatch.h" />
+    <ClInclude Include="sspi.h" />
     <ClInclude Include="tdschannel.h" />
     <ClInclude Include="tdsdef.h" />
   </ItemGroup>

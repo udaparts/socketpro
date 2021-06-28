@@ -9,7 +9,7 @@ namespace tds
 
     CSqlBatch::CSqlBatch(CTdsChannel& channel, bool meta)
             : CReqBase(channel), m_out(*m_sbOut), m_timeout(0), m_meta(meta), m_cols(0), m_posCol(INVALID_COL), m_lenLarge(0),
-            m_endLarge(0), m_rs(0), m_inputs(0), m_outputs(0), m_affects(0) {
+            m_endLarge(0), m_rs(0), m_inputs(0), m_outputs(0), m_affects(0), m_bConnected(false) {
     }
 
     inline VARTYPE CSqlBatch::GetVarType(tagDataType dt, unsigned char money_bytes) {
@@ -1320,38 +1320,38 @@ namespace tds
             length += 4;
         }
         std::vector<unsigned char> outSSPIBuff;
-        unsigned short outSSPILength = 0;
+        unsigned int outSSPILength = 0;
+#ifndef WIN32_64
+        rec.useSSPI = false;
+#endif
+        m_bConnected = true;
         // only add lengths of password and username if not using SSPI or requesting federated authentication info
         if (!rec.useSSPI /*&& !(_connHandler._federatedAuthenticationInfoRequested || _connHandler._federatedAuthenticationRequested)*/) {
             length += (unsigned int) (userName.size() << 1) + encryptedPasswordLengthInBytes + encryptedChangePasswordLengthInBytes;
         } else {
+#ifdef WIN32_64
             if (rec.useSSPI) {
-                /*
-                // now allocate proper length of buffer, and set length
-                        rentedSSPIBuff = ArrayPool<byte>.Shared.Rent((int)s_maxSSPILength);
-                        outSSPIBuff = rentedSSPIBuff;
-                        outSSPILength = s_maxSSPILength;
-
-                        // Call helper function for SSPI data and actual length.
-                        // Since we don't have SSPI data from the server, send null for the
-                        // byte[] buffer and 0 for the int length.
-                        Debug.Assert(SniContext.Snix_Login == _physicalStateObj.SniContext, $"Unexpected SniContext. Expecting Snix_Login, actual value is '{_physicalStateObj.SniContext}'");
-                        _physicalStateObj.SniContext = SniContext.Snix_LoginSspi;
-
-                        SSPIData(null, 0, ref outSSPIBuff, ref outSSPILength);
-
-                        if (outSSPILength > int.MaxValue)
-                        {
-                                throw SQL.InvalidSSPIPacketSize();  // SqlBu 332503
-                        }
-                        _physicalStateObj.SniContext = SniContext.Snix_Login;
-
-                        checked
-                        {
-                                length += (int)outSSPILength;
-                        }
-                 */
+                m_bConnected = false;
+                m_sspi.reset(new CSspi);
+                char serverName[256] = {0};
+                m_channel.GetServerName(serverName, sizeof (serverName));
+                SPA::CDBString tn = u"MSSQLSvc/" + SPA::CDBString(serverName, serverName + strlen(serverName));
+                SPA::CScopeUQueue sbSspi;
+                outSSPILength = sbSspi->GetMaxSize();
+                SECURITY_STATUS ss = m_sspi->QuerySecurityContext(tn.c_str(), nullptr, 0, (unsigned char*) sbSspi->GetBuffer(), outSSPILength);
+                if (ss < 0) {
+                    return ER_NO_SSPI_CONTEXT_AVAILABLE;
+                }
+                const char* str = (const char*) sbSspi->GetBuffer();
+                const char *found = strstr(str, "NTLMSSP");
+                if (str == found) {
+                    return ER_NO_SSPI_CONTEXT_AVAILABLE;
+                }
+                const unsigned char* start = sbSspi->GetBuffer();
+                outSSPIBuff.assign(start, start + outSSPILength);
+                length += outSSPILength;
             }
+#endif
         }
         unsigned int feOffset = length;
         if (requestedFeatures.GetValue()) {
@@ -1483,7 +1483,7 @@ namespace tds
 
         sb << offset;
         if (rec.useSSPI) {
-            sb << outSSPILength;
+            sb << (unsigned short) outSSPILength;
             offset += outSSPILength;
         } else {
             str_len = 0;
@@ -1574,7 +1574,11 @@ namespace tds
         pHeader->Length = ChangeEndian((Packet_Length) sb->GetSize());
         m_vInfo.clear();
         m_timeout = rec.timeout;
-        return Send(sb->GetBuffer(), sb->GetSize(), m_timeout, sync);
+        int fail = Send(sb->GetBuffer(), sb->GetSize(), m_timeout, sync);
+        if (fail) {
+            m_bConnected = false;
+        }
+        return fail;
     }
 
     SPA::UINT64 CSqlBatch::GetAffected() const {
@@ -3063,6 +3067,13 @@ namespace tds
                 m_buffer >> m_tt;
             }
             switch (m_tt) {
+#ifdef WIN32_64
+                case tagTokenType::ttSSPI:
+                    if (!ParseSSPI()) {
+                        return false;
+                    }
+                    break;
+#endif
                 case tagTokenType::ttORDER:
                     m_vOrder.clear();
                     if (!ParseOrder()) {
@@ -3252,4 +3263,48 @@ namespace tds
         }
         return false;
     }
+
+    bool CSqlBatch::IsTDSConnected() {
+        return m_bConnected;
+    }
+
+#ifdef WIN32_64
+
+    bool CSqlBatch::ParseSSPI() {
+        unsigned short len;
+        if (m_buffer.GetSize() <= sizeof (len)) {
+            return false;
+        }
+        len = *(unsigned short*) m_buffer.GetBuffer();
+        if (m_buffer.GetSize() < len + sizeof (len)) {
+            return false;
+        }
+        char serverName[256] = {0};
+        m_channel.GetServerName(serverName, sizeof (serverName));
+        SPA::CDBString tn = u"MSSQLSvc/" + SPA::CDBString(serverName, serverName + strlen(serverName));
+        SPA::CScopeUQueue sb;
+        unsigned int cbOut = sb->GetMaxSize();
+        SECURITY_STATUS ss = m_sspi->QuerySecurityContext(tn.c_str(), (unsigned char*) m_buffer.GetBuffer(sizeof (len)), len, (unsigned char*) sb->GetBuffer(), cbOut);
+        if (ss < 0) {
+            return false;
+        }
+        m_buffer.Pop(sizeof (len) + len);
+        if (!m_sspi->IsDone() && cbOut) {
+            PacketHeader ph(tagPacketType::ptSspi, 1);
+            ph.Spid = ChangeEndian(GetResponseHeader().Spid);
+            unsigned short length = (unsigned short) (sizeof (ph) + cbOut);
+            ph.Length = ChangeEndian(length);
+            SPA::CScopeUQueue sbEnd;
+            sbEnd << ph;
+            sbEnd->Push(sb->GetBuffer(), cbOut);
+            m_channel.Send(this, sbEnd->GetBuffer(), sbEnd->GetSize());
+        }
+        if (ss == SEC_E_OK) {
+            m_bConnected = true;
+            m_sspi.reset();
+        }
+        m_tt = tagTokenType::ttZero;
+        return true;
+    }
+#endif
 }

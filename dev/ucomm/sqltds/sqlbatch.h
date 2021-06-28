@@ -2,6 +2,9 @@
 #define _U_TDS_SQL_BATCH_H_
 
 #include "reqbase.h"
+#ifdef WIN32_64
+#include "sspi.h"
+#endif
 
 namespace tds {
 
@@ -417,6 +420,7 @@ namespace tds {
         int SavePLP(const unsigned char* buffer, unsigned int bytes, SPA::CUQueue& q, unsigned char& packet_id);
         int SaveParameter(unsigned char &packet_id, const SPA::UDB::CDBVariant& v, SPA::CUQueue& buffer, const SPA::UDB::CParameterInfo* pi);
         int SendARpcPacket(SPA::CUQueue& buffer, unsigned char& packet_id);
+        bool IsTDSConnected();
         CDBString Prepare(const char16_t* sql, unsigned int& parameters);
         static inline VARTYPE GetVarType(tagDataType dt, unsigned char money_bytes);
         static inline CDBString GetSqlDeclaredType(tagDataType dt, unsigned char money_bytes);
@@ -454,7 +458,14 @@ namespace tds {
         unsigned short m_inputs;
         unsigned short m_outputs;
         UINT64 m_affects;
+        bool m_bConnected;
         static CDBString LibraryName; //Client library name
+
+#ifdef WIN32_64
+    private:
+        std::shared_ptr<CSspi> m_sspi;
+        bool ParseSSPI();
+#endif
     };
 
 }

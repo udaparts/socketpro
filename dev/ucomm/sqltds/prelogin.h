@@ -17,6 +17,7 @@ namespace tds {
         };
 
     private:
+
         enum class tagOptionToken : unsigned char {
             VERSION = 0,
             ENCRYPTION = 1,
@@ -65,8 +66,8 @@ namespace tds {
             return Version;
         }
 
-	private:
-		bool ParseStream();
+    private:
+        bool ParseStream();
 
     private:
         unsigned char m_bMars;

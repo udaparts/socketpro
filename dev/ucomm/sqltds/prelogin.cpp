@@ -81,70 +81,70 @@ namespace tds
         return Send(sb->GetBuffer(), sb->GetSize(), 0, false);
     }
 
-	bool CPrelogin::ParseStream() {
-		if (!IsDone()) {
-			return false;
-		}
-		SPA::CUQueue &buff = m_buffer;
-		std::vector<Option> Options;
+    bool CPrelogin::ParseStream() {
+        if (!IsDone()) {
+            return false;
+        }
+        SPA::CUQueue &buff = m_buffer;
+        std::vector<Option> Options;
 #ifndef NDEBUG
-		unsigned int data_len = 0;
+        unsigned int data_len = 0;
 #endif
-		Option *op = (Option*)buff.GetBuffer();
-		while (op->Token != tagOptionToken::TOKEN_TERMINATOR) {
-			Option option;
-			buff >> option;
-			option.Len = ChangeEndian(option.Len);
+        Option *op = (Option*) buff.GetBuffer();
+        while (op->Token != tagOptionToken::TOKEN_TERMINATOR) {
+            Option option;
+            buff >> option;
+            option.Len = ChangeEndian(option.Len);
 #ifndef NDEBUG
-			data_len += option.Len;
+            data_len += option.Len;
 #endif
-			option.Offset = ChangeEndian(option.Offset);
-			Options.push_back(option);
-			op = (Option*)buff.GetBuffer();
-		}
-		buff.Pop((unsigned int)1);
+            option.Offset = ChangeEndian(option.Offset);
+            Options.push_back(option);
+            op = (Option*) buff.GetBuffer();
+        }
+        buff.Pop((unsigned int) 1);
 #ifndef NDEBUG
-		assert(data_len == buff.GetSize());
+        assert(data_len == buff.GetSize());
 #endif
-		for (auto it = Options.begin(), end = Options.end(); it != end; ++it) {
-			if (!it->Len) {
-				continue;
-			}
-			switch (it->Token) {
-			case tagOptionToken::VERSION:
-				assert(it->Len == sizeof(Version) + sizeof(SubBuild));
-				buff >> Version >> SubBuild; //SubBuild little endian
-				Version = ChangeEndian(Version);
-				break;
-			case tagOptionToken::ENCRYPTION:
-				assert(it->Len == sizeof(m_bEncryption));
-				buff >> m_bEncryption;
-				break;
-			case tagOptionToken::INSTOPT:
-				assert(it->Len == sizeof(InstFailed)); //little endian
-				buff >> InstFailed;
-				break;
-			case tagOptionToken::THREADID:
-				assert(it->Len == 4);
-				buff.Pop((unsigned int)4); //do nothing
-				break;
-			case tagOptionToken::MARS:
-				assert(it->Len == sizeof(m_bMars));
-				buff >> m_bMars;
-				break;
-			case tagOptionToken::TRACEID:
-				assert(it->Len == 4);
-				buff.Pop((unsigned int)4); //do nothing
-				break;
-			case tagOptionToken::FEDAUTHREQUIRED:
-				assert(it->Len == sizeof(m_bFed));
-				buff >> m_bFed;
-				break;
-			default:
-				assert(false);
-				break;
-			}
-		}
-		return true;
-	}
+        for (auto it = Options.begin(), end = Options.end(); it != end; ++it) {
+            if (!it->Len) {
+                continue;
+            }
+            switch (it->Token) {
+                case tagOptionToken::VERSION:
+                    assert(it->Len == sizeof (Version) + sizeof (SubBuild));
+                    buff >> Version >> SubBuild; //SubBuild little endian
+                    Version = ChangeEndian(Version);
+                    break;
+                case tagOptionToken::ENCRYPTION:
+                    assert(it->Len == sizeof (m_bEncryption));
+                    buff >> m_bEncryption;
+                    break;
+                case tagOptionToken::INSTOPT:
+                    assert(it->Len == sizeof (InstFailed)); //little endian
+                    buff >> InstFailed;
+                    break;
+                case tagOptionToken::THREADID:
+                    assert(it->Len == 4);
+                    buff.Pop((unsigned int) 4); //do nothing
+                    break;
+                case tagOptionToken::MARS:
+                    assert(it->Len == sizeof (m_bMars));
+                    buff >> m_bMars;
+                    break;
+                case tagOptionToken::TRACEID:
+                    assert(it->Len == 4);
+                    buff.Pop((unsigned int) 4); //do nothing
+                    break;
+                case tagOptionToken::FEDAUTHREQUIRED:
+                    assert(it->Len == sizeof (m_bFed));
+                    buff >> m_bFed;
+                    break;
+                default:
+                    assert(false);
+                    break;
+            }
+        }
+        return true;
+    }
 }

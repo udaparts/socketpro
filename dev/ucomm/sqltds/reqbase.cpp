@@ -214,6 +214,9 @@ namespace tds{
                 case ER_BAD_PARAMETER_INFO_COLUMN_SIZE:
                     errMsg = u"Wrong parameter info column size found";
                     return fail;
+                case ER_NO_SSPI_CONTEXT_AVAILABLE:
+                    errMsg = u"No SSPI context available";
+                    return fail;
                 default:
                 {
                     int res = GetSQLError(errMsg);
@@ -265,7 +268,7 @@ namespace tds{
 
     int CReqBase::Wait(unsigned int milliseconds) {
         CAutoLock al(m_cs);
-        if (IsDoneInternal()) {
+        if (IsDoneInternal() && !HasMoreInternal()) {
             return 0;
         }
         m_bWaiting = true;
@@ -335,6 +338,10 @@ namespace tds{
         }
         m_bWaiting = false;
         return fail;
+    }
+
+    bool CReqBase::IsTDSConnected() {
+        return false;
     }
 
     void CReqBase::OnResponse(const unsigned char* data, unsigned int bytes) {

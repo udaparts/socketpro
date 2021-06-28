@@ -27,6 +27,7 @@ namespace tds {
         static const int ER_BAD_OUTPUT_PARAMETER_DATA_TYPE = -1996;
         static const int ER_NO_PARAMETER_NAME_PROVIDED = -1997;
         static const int ER_BAD_PARAMETER_INFO_COLUMN_SIZE = -1998;
+        static const int ER_NO_SSPI_CONTEXT_AVAILABLE = -1999;
 
 #pragma pack(push,1)
 
@@ -217,6 +218,7 @@ namespace tds {
         inline UINT64 GetCountInternal() const;
         inline bool IsDoneInternal() const;
         void OnChannelClosed();
+        virtual bool IsTDSConnected();
 
     protected:
         CTdsChannel& m_channel;
