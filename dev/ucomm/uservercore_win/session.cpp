@@ -398,8 +398,8 @@ SPA::UINT64 CServerSession::GetBytesReceived() {
 
 void* CServerSession::GetSSL() {
     CAutoLock sl(m_mutex);
-    if (m_pSspi)
-        return m_pSspi->GetCtxHandle();
+    if (m_pSChannel)
+        return m_pSChannel->GetCtxHandle();
     return nullptr;
 }
 
@@ -794,7 +794,7 @@ bool CServerSession::CommitBatchingInternal() {
             if (m_pQBatch->GetSize() && CompressResultTo(IsOld(), (unsigned short) SPA::tagBaseRequestID::idBatchZipped, m_zl, m_pQBatch->GetBuffer(), m_pQBatch->GetSize(), m_qWrite)) {
                 Write(nullptr, 0);
             }
-        } else if (m_qWrite.GetSize() > 0 || m_pSspi) {
+        } else if (m_qWrite.GetSize() > 0 || m_pSChannel) {
             Write(m_pQBatch->GetBuffer(), m_pQBatch->GetSize());
         } else {
             //m_qWrite.GetSize() == 0
@@ -896,7 +896,7 @@ void CServerSession::Start() {
     m_ccb.SendTime = m_ccb.RecvTime.load();
     if (g_pServer->IsSsl()) {
         m_pCert.reset();
-        m_pSspi.reset(new SPA::CSspi(false, g_pServer->GetCredHandle(), g_pServer->m_clientCertAuth));
+        m_pSChannel.reset(new SPA::CSChannel(false, g_pServer->GetCredHandle(), g_pServer->m_clientCertAuth));
         m_cs = csSslShaking;
     } else {
         m_cs = csConnected;
@@ -973,7 +973,7 @@ void CServerSession::PostClose(int errCode) {
     CAutoLock sl(m_mutex);
     if (m_pHttpContext && m_pHttpContext->IsWebSocket()) {
         m_qRead.SetSize(0);
-        if (m_pSspi) {
+        if (m_pSChannel) {
             SPA::CScopeUQueue sb;
             m_pHttpContext->PrepareWSResponseMessage(nullptr, 0, UHTTP::ocConnectionClose, *sb);
             Write(sb->GetBuffer(), sb->GetSize());
@@ -1172,7 +1172,7 @@ unsigned int CServerSession::SendExceptionResultInternal(const wchar_t* errMessa
             pWebResponseProcessor = m_pHttpContext->GetWebResponseProcessor();
         if ((m_pHttpContext && m_pHttpContext->IsWebSocket()) || (pWebResponseProcessor && !m_ReqInfo.IsFake() && m_pHttpContext->GetResponseProgress().Status != UHTTP::hrsCompleted)) {
             unsigned int res;
-            if (m_pSspi) {
+            if (m_pSChannel) {
                 SPA::CScopeUQueue sb;
                 res = pWebResponseProcessor->SendExceptionResult(errMessage, errWhere, requestId, errCode, *sb);
                 Write(sb->GetBuffer(), 0);
@@ -1204,7 +1204,7 @@ unsigned int CServerSession::SendExceptionResult(const wchar_t* errMessage, cons
                 pWebResponseProcessor = m_pHttpContext->GetWebResponseProcessor();
             if ((m_pHttpContext && m_pHttpContext->IsWebSocket()) || (pWebResponseProcessor && !m_ReqInfo.IsFake() && m_pHttpContext->GetResponseProgress().Status != UHTTP::hrsCompleted)) {
                 unsigned int res;
-                if (m_pSspi) {
+                if (m_pSChannel) {
                     SPA::CScopeUQueue sb;
                     res = pWebResponseProcessor->SendExceptionResult(errMessage, errWhere, requestId, errCode, *sb);
                     Write(sb->GetBuffer(), sb->GetSize());
@@ -1237,7 +1237,7 @@ unsigned int CServerSession::SendExceptionResultIndex(SPA::UINT64 indexCall, con
                 pWebResponseProcessor = m_pHttpContext->GetWebResponseProcessor();
             if ((m_pHttpContext && m_pHttpContext->IsWebSocket()) || (pWebResponseProcessor && !m_ReqInfo.IsFake() && m_pHttpContext->GetResponseProgress().Status != UHTTP::hrsCompleted)) {
                 unsigned int res;
-                if (m_pSspi) {
+                if (m_pSChannel) {
                     SPA::CScopeUQueue sb;
                     res = pWebResponseProcessor->SendExceptionResult(errMessage, errWhere, requestId, errCode, *sb);
                     Write(sb->GetBuffer(), sb->GetSize());
@@ -1404,9 +1404,9 @@ unsigned int CServerSession::Write(const unsigned char *s, unsigned int nSize, u
     }
     m_ccb.m_ulSent += ulLen;
     m_bWBLocked = ulLen;
-    if (m_pSspi) {
+    if (m_pSChannel) {
         SPA::CScopeUQueue sb;
-        m_pSspi->Encrypt(m_WriteBuffer, ulLen, *sb);
+        m_pSChannel->Encrypt(m_WriteBuffer, ulLen, *sb);
         m_bWBLocked = ulLen = sb->GetSize();
         assert(m_bWBLocked <= IO_BUFFER_SIZE + IO_ENCRYPTION_PADDING);
         ::memcpy(m_WriteBuffer, sb->GetBuffer(), ulLen);
@@ -2326,7 +2326,7 @@ void CServerSession::OnChatVariantRequestArrive() {
                 if (m_pHttpContext)
                     pWebResponseProcessor = m_pHttpContext->GetWebResponseProcessor();
                 if ((m_pHttpContext && m_pHttpContext->IsWebSocket()) || (pWebResponseProcessor && !m_ReqInfo.IsFake())) {
-                    if (m_pSspi) {
+                    if (m_pSChannel) {
                         SPA::CScopeUQueue sb;
                         pWebResponseProcessor->BounceBackSpeak(vFinal.data(), nCount, *sb);
                         Write(sb->GetBuffer(), sb->GetSize());
@@ -2363,7 +2363,7 @@ void CServerSession::OnChatVariantRequestArrive() {
                 if (m_pHttpContext)
                     pWebResponseProcessor = m_pHttpContext->GetWebResponseProcessor();
                 if ((m_pHttpContext && m_pHttpContext->IsWebSocket()) || (pWebResponseProcessor && !m_ReqInfo.IsFake())) {
-                    if (m_pSspi) {
+                    if (m_pSChannel) {
                         SPA::CScopeUQueue sb;
                         pWebResponseProcessor->BounceBackSendUserMessage(*sb);
                         Write(sb->GetBuffer(), sb->GetSize());
@@ -2454,7 +2454,7 @@ void CServerSession::OnChatRequestArrive() {
                 if (m_pHttpContext)
                     pWebResponseProcessor = m_pHttpContext->GetWebResponseProcessor();
                 if ((m_pHttpContext && m_pHttpContext->IsWebSocket()) || (pWebResponseProcessor && !m_ReqInfo.IsFake())) {
-                    if (m_pSspi) {
+                    if (m_pSChannel) {
                         SPA::CScopeUQueue sb;
                         pWebResponseProcessor->BounceBackEnter(vNew.data(), nCount, *sb);
                         Write(sb->GetBuffer(), sb->GetSize());
@@ -2550,7 +2550,7 @@ void CServerSession::OnChatRequestArrive() {
                     if (m_pHttpContext)
                         pWebResponseProcessor = m_pHttpContext->GetWebResponseProcessor();
                     if ((m_pHttpContext && m_pHttpContext->IsWebSocket()) || (pWebResponseProcessor && !m_ReqInfo.IsFake())) {
-                        if (m_pSspi) {
+                        if (m_pSChannel) {
                             SPA::CScopeUQueue sb;
                             pWebResponseProcessor->BounceBackExit(v0.data(), nCount, *sb);
                             Write(sb->GetBuffer(), sb->GetSize());
@@ -2590,7 +2590,7 @@ bool CServerSession::GetPeerDequeueFailed() {
 }
 
 bool CServerSession::IsSecure() {
-    return bool(m_pSspi);
+    return bool(m_pSChannel);
 }
 
 bool CServerSession::PreocessWebRequest(SPA::CUQueue &q) {
@@ -2729,7 +2729,7 @@ bool CServerSession::ProcessWebSocketRequest() {
                 break;
             case UHTTP::ocConnectionClose:
                 m_qRead.SetSize(0);
-                if (m_pSspi) {
+                if (m_pSChannel) {
                     SPA::CScopeUQueue sb;
                     m_pHttpContext->PrepareWSResponseMessage(nullptr, 0, wsOpCode, *sb);
                     Write(sb->GetBuffer(), sb->GetSize());
@@ -2813,7 +2813,7 @@ bool CServerSession::ProcessJavaScriptRequest() {
             break;
         default:
             if (m_pHttpContext->IsSpRequest() && !m_pHttpContext->GetResponseProgress().Chunked && ur.GetReqCount() > 1) {
-                if (m_pSspi) {
+                if (m_pSChannel) {
                     SPA::CScopeUQueue sb;
                     m_pHttpContext->StartChunkedResponse(*sb);
                     Write(sb->GetBuffer(), sb->GetSize());
@@ -2860,7 +2860,7 @@ bool CServerSession::ProcessHttpRequest() {
                     FakeAClientRequest((unsigned short) SPA::tagBaseRequestID::idSwitchTo, q.GetBuffer(), q.GetSize());
                 }
                 if (m_pHttpContext->IsWebSocket()) {
-                    if (m_pSspi) {
+                    if (m_pSChannel) {
                         SPA::CScopeUQueue sb;
                         m_pHttpContext->PrepareResponse(nullptr, 0, *sb, UHTTP::hrfpAll);
                         Write(sb->GetBuffer(), sb->GetSize());
@@ -2907,7 +2907,7 @@ bool CServerSession::ProcessHttpRequest() {
                         m_pHttpContext->IsCrossDomain(),
                         IsSecure());
                 const char *code = loader.GetSPACode(len);
-                if (m_pSspi) {
+                if (m_pSChannel) {
                     SPA::CScopeUQueue sb;
                     m_pHttpContext->PrepareResponse((const unsigned char*) code, len, *sb, UHTTP::hrfpAll);
                     Write(sb->GetBuffer(), sb->GetSize());
@@ -2917,7 +2917,7 @@ bool CServerSession::ProcessHttpRequest() {
                 }
                 return false;
             } else if (request_type == UHTTP::hrtDownloadLoader) { //download uloader.js
-                if (m_pSspi) {
+                if (m_pSChannel) {
                     SPA::CScopeUQueue sb;
                     m_pHttpContext->StartDownloadFile(m_pHttpContext->GetUrl().Start + 1, *sb);
                     Write(sb->GetBuffer(), sb->GetSize());
@@ -2940,7 +2940,7 @@ bool CServerSession::ProcessHttpRequest() {
             if (m_pHttpContext->GetCM() != SPA::ServerSide::tagContentMultiplax::cmUnknown || m_pHttpContext->GetTE() != SPA::ServerSide::tagTransferEncoding::teUnknown) {
                 m_pHttpContext->SetResponseCode(501); //Not Implemented
                 m_pHttpContext->AddResponseHeader(UHTTP::CHttpContext::Connection.c_str(), UHTTP::CHttpContext::SP_CONNECTION_CLOSE.c_str());
-                if (m_pSspi) {
+                if (m_pSChannel) {
                     SPA::CScopeUQueue sb;
                     m_pHttpContext->PrepareResponse(nullptr, 0, *sb, UHTTP::hrfpAll);
                     Write(sb->GetBuffer(), sb->GetSize());
@@ -2985,7 +2985,7 @@ bool CServerSession::ProcessHttpRequest() {
             } else {
                 m_pHttpContext->SetResponseCode(501); //Not Implemented
                 m_pHttpContext->AddResponseHeader(UHTTP::CHttpContext::Connection.c_str(), UHTTP::CHttpContext::SP_CONNECTION_CLOSE.c_str());
-                if (m_pSspi) {
+                if (m_pSChannel) {
                     SPA::CScopeUQueue sb;
                     m_pHttpContext->PrepareResponse(nullptr, 0, *sb, UHTTP::hrfpAll);
                     Write(sb->GetBuffer(), sb->GetSize());
@@ -3019,7 +3019,7 @@ bool CServerSession::ProcessHttpRequest() {
         default:
             m_pHttpContext->SetResponseCode(501); //Not Implemented
             m_pHttpContext->AddResponseHeader(UHTTP::CHttpContext::Connection.c_str(), UHTTP::CHttpContext::SP_CONNECTION_CLOSE.c_str());
-            if (m_pSspi) {
+            if (m_pSChannel) {
                 SPA::CScopeUQueue sb;
                 m_pHttpContext->PrepareResponse(nullptr, 0, *sb, UHTTP::hrfpAll);
                 Write(sb->GetBuffer(), sb->GetSize());
@@ -3520,13 +3520,13 @@ bool CServerSession::Process() {
 
 bool CServerSession::DoHandshake(size_t bytes) {
     bool ok;
-    switch (m_pSspi->GetHandshakeState()) {
+    switch (m_pSChannel->GetHandshakeState()) {
         case SPA::hsStart:
         case SPA::hsShaking:
         {
             SPA::CScopeUQueue sb;
             m_qRead.Push(m_ReadBuffer, (unsigned int) bytes);
-            ok = m_pSspi->DoHandshake(m_qRead.GetBuffer(), m_qRead.GetSize(), *sb);
+            ok = m_pSChannel->DoHandshake(m_qRead.GetBuffer(), m_qRead.GetSize(), *sb);
             if (ok) {
                 if (sb->GetSize()) {
                     m_qRead.SetSize(0);
@@ -3544,7 +3544,7 @@ bool CServerSession::DoHandshake(size_t bytes) {
                         m_pSocket->send(boost::asio::buffer(buffer, len), 0, m_ec);
                         sb->Pop(len);
                     }
-                    if (m_pSspi->GetHandshakeState() != SPA::hsDone) {
+                    if (m_pSChannel->GetHandshakeState() != SPA::hsDone) {
                         m_pSocket->async_read_some(boost::asio::buffer(m_ReadBuffer, IO_ENCRYPTION_PADDING + IO_BUFFER_SIZE), std::bind(&CServerSession::OnReadCompleted, this, std::placeholders::_1, std::placeholders::_2));
                     }
 #else
@@ -3559,11 +3559,11 @@ bool CServerSession::DoHandshake(size_t bytes) {
                             CloseInternal();
                         }
                     });
-                    if (m_pSspi->GetHandshakeState() != SPA::hsDone) {
+                    if (m_pSChannel->GetHandshakeState() != SPA::hsDone) {
                         m_pSocket->async_read_some(boost::asio::buffer(m_ReadBuffer, IO_ENCRYPTION_PADDING + IO_BUFFER_SIZE), std::bind(&CServerSession::OnReadCompleted, this, std::placeholders::_1, std::placeholders::_2));
                     }
 #endif
-                } else if (m_pSspi->GetLastStatus() == SEC_E_INCOMPLETE_MESSAGE) {
+                } else if (m_pSChannel->GetLastStatus() == SEC_E_INCOMPLETE_MESSAGE) {
                     m_pSocket->async_read_some(boost::asio::buffer(m_ReadBuffer, IO_ENCRYPTION_PADDING + IO_BUFFER_SIZE), std::bind(&CServerSession::OnReadCompleted, this, std::placeholders::_1, std::placeholders::_2));
                 }
             } else {
@@ -3582,15 +3582,15 @@ bool CServerSession::DoHandshake(size_t bytes) {
 void CServerSession::OnReadCompleted(const CErrorCode& Error, size_t nLen) {
     if (!Error) {
         unsigned int len = (unsigned int) nLen;
-        if (m_pSspi) {
-            if (m_pSspi->GetHandshakeState() < SPA::hsDone) {
+        if (m_pSChannel) {
+            if (m_pSChannel->GetHandshakeState() < SPA::hsDone) {
                 CAutoLock sl(m_mutex);
                 m_ccb.RecvTime = (GetTimeTick() - g_pServer->m_tStart);
                 if (DoHandshake(nLen)) {
-                    if (m_pSspi->GetHandshakeState() == SPA::hsDone) {
+                    if (m_pSChannel->GetHandshakeState() == SPA::hsDone) {
                         m_qRead.SetSize(0);
-                        if (m_pSspi->GetCertContext()) {
-                            m_pCert.reset(new SPA::CCertificateImpl(m_pSspi, ""));
+                        if (m_pSChannel->GetCertContext()) {
+                            m_pCert.reset(new SPA::CCertificateImpl(m_pSChannel, ""));
                         }
                         CErrorCode ec;
                         m_cs = csConnected;
@@ -3599,14 +3599,14 @@ void CServerSession::OnReadCompleted(const CErrorCode& Error, size_t nLen) {
                         Read();
                     }
                 } else {
-                    PostCloseInternal(m_pSspi->GetLastStatus());
+                    PostCloseInternal(m_pSChannel->GetLastStatus());
                 }
                 return;
             }
             SPA::CScopeUQueue sb;
-            if (!m_pSspi->Decrypt(m_ReadBuffer, (DWORD) nLen, *sb)) {
+            if (!m_pSChannel->Decrypt(m_ReadBuffer, (DWORD) nLen, *sb)) {
                 CAutoLock sl(m_mutex);
-                PostCloseInternal(m_pSspi->GetLastStatus());
+                PostCloseInternal(m_pSChannel->GetLastStatus());
                 return;
             }
             len = sb->GetSize();
@@ -3679,7 +3679,7 @@ void CServerSession::OnWriteCompleted(const CErrorCode& Error, size_t bytes_tran
             }
             if (m_qWrite.GetSize() < IO_BUFFER_SIZE) {
                 m_qWrite.SetHeadPosition();
-                if (m_pSspi) {
+                if (m_pSChannel) {
                     SPA::CScopeUQueue sb;
                     m_pHttpContext->DownloadFile(*sb);
                     Write(sb->GetBuffer(), sb->GetSize());
@@ -3796,7 +3796,7 @@ bool CServerSession::DownloadFile(const char *filePath) {
     if (m_pHttpContext->GetPS() != UHTTP::psComplete)
         return false;
     bool b;
-    if (m_pSspi) {
+    if (m_pSChannel) {
         SPA::CScopeUQueue sb;
         b = m_pHttpContext->StartDownloadFile(filePath, *sb);
         Write(sb->GetBuffer(), sb->GetSize());
@@ -3845,7 +3845,7 @@ unsigned int CServerSession::StartChunkResponse() {
     if (!m_pHttpContext->AddResponseHeader(UHTTP::TRANSFER_ENCODING.c_str(), UHTTP::CHUNKED.c_str()))
         return RESULT_SENDING_FAILED;
     unsigned int start;
-    if (m_pSspi) {
+    if (m_pSChannel) {
         SPA::CScopeUQueue sb;
         m_pHttpContext->StartChunkedResponse(*sb);
         start = sb->GetSize();
@@ -3876,7 +3876,7 @@ unsigned int CServerSession::SendChunk(const unsigned char *buffer, unsigned int
     if (!chunk || !UHTTP::iequals(UHTTP::CHUNKED.c_str(), chunk))
         return BAD_OPERATION;
     unsigned int start;
-    if (m_pSspi) {
+    if (m_pSChannel) {
         SPA::CScopeUQueue sb;
         m_pHttpContext->SendChunkedData(buffer, len, *sb);
         start = sb->GetSize();
@@ -3906,7 +3906,7 @@ unsigned int CServerSession::EndChunkResponse(const unsigned char *buffer, unsig
     if (!chunk || !UHTTP::iequals(UHTTP::CHUNKED.c_str(), chunk))
         return BAD_OPERATION;
     unsigned int start;
-    if (m_pSspi) {
+    if (m_pSChannel) {
         SPA::CScopeUQueue sb;
         if (len)
             m_pHttpContext->SendChunkedData(buffer, len, *sb);
@@ -4013,7 +4013,7 @@ unsigned int CServerSession::HTTPCallbackA(const char *name, const char *str, un
     } else if (m_pHttpContext && m_pHttpContext->IsWebSocket()) {
         SPA::CScopeUQueue su;
         Connection::CConnectionContext::SendWSResult(m_ReqInfo.RequestId, str, chars, *su, name);
-        if (m_pSspi) {
+        if (m_pSChannel) {
             SPA::CScopeUQueue sb;
             m_pHttpContext->PrepareWSResponseMessage(su->GetBuffer(), su->GetSize(), UHTTP::ocTextMsg, *sb);
             res = sb->GetSize();
@@ -4046,7 +4046,7 @@ unsigned int CServerSession::SendHTTPReturnDataA(const char *str, unsigned int c
         else if (m_pHttpContext && m_pHttpContext->IsWebSocket()) {
             SPA::CScopeUQueue su;
             Connection::CConnectionContext::SendWSResult(m_ReqInfo.RequestId, str, chars, *su, (const char*) nullptr);
-            if (m_pSspi) {
+            if (m_pSChannel) {
                 SPA::CScopeUQueue sb;
                 m_pHttpContext->PrepareWSResponseMessage(su->GetBuffer(), su->GetSize(), UHTTP::ocTextMsg, *sb);
                 res = sb->GetSize();
@@ -4063,7 +4063,7 @@ unsigned int CServerSession::SendHTTPReturnDataA(const char *str, unsigned int c
             return BAD_OPERATION;
         UHTTP::CWebResponseProcessor *pWebResponseProcessor = m_pHttpContext->GetWebResponseProcessor();
         if (pWebResponseProcessor) {
-            if (m_pSspi) {
+            if (m_pSChannel) {
                 SPA::CScopeUQueue sb;
                 res = pWebResponseProcessor->ProcessUserRequest(str, *sb);
                 Write(sb->GetBuffer(), sb->GetSize());
@@ -4071,7 +4071,7 @@ unsigned int CServerSession::SendHTTPReturnDataA(const char *str, unsigned int c
                 res = pWebResponseProcessor->ProcessUserRequest(str, m_qWrite);
             }
         } else {
-            if (m_pSspi) {
+            if (m_pSChannel) {
                 SPA::CScopeUQueue sb;
                 m_pHttpContext->PrepareResponse((const unsigned char*) str, chars, *sb);
                 res = sb->GetSize();

@@ -3,13 +3,13 @@
 #define _UDAPARTS_COMM_CLIENT_CERTIFICATE_IMPL_H_
 
 #include "../../include/ucomm.h"
-#include "scsspi.h"
+#include "schannel.h"
 
 namespace SPA {
 
     class CCertificateImpl : public IUcert {
     public:
-        CCertificateImpl(CSspiPtr pSspi, const char *serverName);
+        CCertificateImpl(CSChannelPtr pSspi, const char *serverName);
         CCertificateImpl(PCCERT_CONTEXT pCertContext, const char *serverName);
         virtual ~CCertificateImpl();
 

@@ -7,6 +7,8 @@ namespace tds
 {
     CDBString CSqlBatch::LibraryName(u"udaparts_sql_server_client");
 
+    CDBString CSqlBatch::SQL_SERVER_DEFAULT_SCHEMA(u"dbo");
+
     CSqlBatch::CSqlBatch(CTdsChannel& channel, bool meta)
             : CReqBase(channel), m_out(*m_sbOut), m_timeout(0), m_meta(meta), m_cols(0), m_posCol(INVALID_COL), m_lenLarge(0),
             m_endLarge(0), m_rs(0), m_inputs(0), m_outputs(0), m_affects(0), m_bConnected(false) {
@@ -287,6 +289,36 @@ namespace tds
         m_dip.Status = tagDoneStatus::dsInitial;
         m_rs = 0;
         CReqBase::Reset();
+    }
+
+    CDBString CSqlBatch::GetSQLProc(const char16_t* procName, const char16_t* schema, const char16_t* dbName) {
+        CDBString sql_proc;
+        bool switched = false;
+        if (!schema || !SPA::GetLen(schema)) {
+            schema = SQL_SERVER_DEFAULT_SCHEMA.c_str();
+        }
+        if (dbName && SPA::GetLen(dbName)) {
+            CDBString dname = dbName;
+            SPA::Trim(dname);
+            SPA::ToLower(dname);
+            if (dname != m_dbNameChange.NewValue) {
+                sql_proc = u"use ";
+                sql_proc += dname;
+                sql_proc.push_back(';');
+                switched = true;
+            }
+        }
+        sql_proc += u"select sysp.name,parameter_id as porder,is_output,type_name(user_type_id)as type_name,max_length from sys.objects obj left join sys.parameters sysp on sysp.object_id=obj.object_id where obj.type in('P','PC')and obj.name='";
+        sql_proc += procName;
+        sql_proc += u"' and schema_name(obj.schema_id)='";
+        sql_proc += schema;
+        sql_proc += u"' order by porder";
+        if (switched) {
+            sql_proc.push_back(';');
+            sql_proc += u"use ";
+            sql_proc += m_dbNameChange.NewValue;
+        }
+        return std::move(sql_proc);
     }
 
     CDBString CSqlBatch::Prepare(const char16_t* sql, unsigned int& parameters) {
@@ -1843,11 +1875,13 @@ namespace tds
         sec.Type = type;
         const char16_t* str = (const char16_t*) m_buffer.GetBuffer();
         sec.NewValue.assign(str, str + b);
+        SPA::ToLower(sec.NewValue);
         m_buffer.Pop(((unsigned int) b) << 1);
         m_buffer >> b;
         if (b) {
             str = (const char16_t*) m_buffer.GetBuffer();
             sec.OldValue.assign(str, str + b);
+            SPA::ToLower(sec.OldValue);
             m_buffer.Pop(((unsigned int) b) << 1);
         }
     }

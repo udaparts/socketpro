@@ -282,7 +282,7 @@ private:
     SPA::CUQueue m_qConfirm;
 
     CredHandle m_hCreds;
-    SPA::CSspiPtr m_pSspi;
+    SPA::CSChannelPtr m_pSChannel;
     SPA::CCertificateImplPtr m_pSelfCert;
     std::string m_certCN;
     PCCERT_CONTEXT m_pCertContext;

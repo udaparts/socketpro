@@ -179,6 +179,8 @@ namespace tds {
             char High;
         };
 
+        static CDBString SQL_SERVER_DEFAULT_SCHEMA;
+
         static constexpr int TDS_JDN_OFFSET_1_1_1 = 1721426;
         static constexpr int TDS_JDN_OFFSET_1900_1_1 = 693595;
         static constexpr unsigned int DATETIME_HOUR_TICKET = 60 * 60 * 300;
@@ -422,6 +424,7 @@ namespace tds {
         int SendARpcPacket(SPA::CUQueue& buffer, unsigned char& packet_id);
         bool IsTDSConnected();
         CDBString Prepare(const char16_t* sql, unsigned int& parameters);
+        CDBString GetSQLProc(const char16_t* procName, const char16_t* schema, const char16_t* dbName);
         static inline VARTYPE GetVarType(tagDataType dt, unsigned char money_bytes);
         static inline CDBString GetSqlDeclaredType(tagDataType dt, unsigned char money_bytes);
         static std::vector<unsigned char> ObfuscatePassword(const CDBString& password);

@@ -168,7 +168,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="..\core_shared\shared\certificateimpl.h" />
-    <ClInclude Include="..\core_shared\shared\scsspi.h" />
+    <ClInclude Include="..\core_shared\shared\schannel.h" />
     <ClInclude Include="..\core_shared\shared\uthread.h" />
     <ClInclude Include="..\include\rawclient.h" />
     <ClInclude Include="framework.h" />
@@ -189,7 +189,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="..\core_shared\shared\scsspi.cpp">
+    <ClCompile Include="..\core_shared\shared\schannel.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>

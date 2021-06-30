@@ -318,7 +318,7 @@ private:
     bool m_bCloseInternal;
     bool m_bChatting;
 
-    SPA::CSspiPtr m_pSspi;
+    SPA::CSChannelPtr m_pSChannel;
     SPA::CCertificateImplPtr m_pCert;
 
     SPA::CUQueue m_qBatchDequeueConfirm;

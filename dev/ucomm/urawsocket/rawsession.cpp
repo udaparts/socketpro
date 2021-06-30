@@ -115,9 +115,9 @@ namespace SPA
                                 m_socket.close(ec);
                                 break;
                             }
-                            m_pSspi.reset(new CSspi(true, &m_hCreds, false));
-                            if (!m_pSspi->DoHandshake(nullptr, 0, m_qWrite)) {
-                                m_ec.assign(m_pSspi->GetLastStatus(), boost::system::system_category());
+                            m_pSChannel.reset(new CSChannel(true, &m_hCreds, false));
+                            if (!m_pSChannel->DoHandshake(nullptr, 0, m_qWrite)) {
+                                m_ec.assign(m_pSChannel->GetLastStatus(), boost::system::system_category());
                                 m_ss = tagSessionState::ssClosed;
                                 m_socket.shutdown(nsIP::tcp::socket::shutdown_type::shutdown_both, ec);
                                 m_socket.close(ec);
@@ -217,8 +217,8 @@ namespace SPA
     IUcert * CRawSession::GetUCert() {
         CAutoLock sl(m_cs);
 #ifdef WIN32_64
-        if (!m_pCert && m_pSspi && m_pSspi->GetHandshakeState() == tagSslHandshakeState::hsDone)
-            m_pCert.reset(new CCertificateImpl(m_pSspi, ""));
+        if (!m_pCert && m_pSChannel && m_pSChannel->GetHandshakeState() == tagSslHandshakeState::hsDone)
+            m_pCert.reset(new CCertificateImpl(m_pSChannel, ""));
 #else
         if (!m_pCert && m_pSsl && m_pSsl->Done())
             m_pCert.reset(new CUCertImpl(m_pSsl->GetSSL()));
@@ -331,10 +331,10 @@ namespace SPA
         } else {
             if (m_secure == tagEncryptionMethod::TLSv1) {
 #ifdef WIN32_64
-                if (m_pSspi->GetHandshakeState() == hsDone) {
-                    if (!m_pSspi->Decrypt(m_ReadBuffer, (unsigned int) nLen, m_rt.m_buff)) {
+                if (m_pSChannel->GetHandshakeState() == hsDone) {
+                    if (!m_pSChannel->Decrypt(m_ReadBuffer, (unsigned int) nLen, m_rt.m_buff)) {
                         m_cs.lock();
-                        m_ec.assign(m_pSspi->GetLastStatus(), boost::system::system_category());
+                        m_ec.assign(m_pSChannel->GetLastStatus(), boost::system::system_category());
                         m_cs.unlock();
                         Close();
                         return;
@@ -345,9 +345,9 @@ namespace SPA
                     }
                 } else {
                     CScopeUQueue sb;
-                    if (!m_pSspi->DoHandshake(m_ReadBuffer, (unsigned int) nLen, *sb)) {
+                    if (!m_pSChannel->DoHandshake(m_ReadBuffer, (unsigned int) nLen, *sb)) {
                         m_cs.lock();
-                        m_ec.assign(m_pSspi->GetLastStatus(), boost::system::system_category());
+                        m_ec.assign(m_pSChannel->GetLastStatus(), boost::system::system_category());
                         m_cs.unlock();
                         Close();
                         return;
@@ -355,7 +355,7 @@ namespace SPA
                     if (sb->GetSize()) {
                         Send(sb->GetBuffer(), sb->GetSize());
                     }
-                    if (m_pSspi->GetHandshakeState() == hsDone) {
+                    if (m_pSChannel->GetHandshakeState() == hsDone) {
                         g_mutexCvc.lock();
                         PCertificateVerifyCallback cvc = g_cvc;
                         g_mutexCvc.unlock();
@@ -375,7 +375,7 @@ namespace SPA
                             CertUsage.Usage = EnhkeyUsage;
                             ChainPara.cbSize = sizeof (CERT_CHAIN_PARA);
                             ChainPara.RequestedUsage = CertUsage;
-                            PCCERT_CONTEXT pCertContext = m_pSspi->GetCertContext();
+                            PCCERT_CONTEXT pCertContext = m_pSChannel->GetCertContext();
                             if (!::CertGetCertificateChain(nullptr, // use the default chain engine
                                     pCertContext, // pointer to the end certificate
                                     NULL, // use the default time
@@ -560,9 +560,9 @@ namespace SPA
             m_qWrite.Pop(m_WriteBuffer, ulLen);
         }
 #ifdef WIN32_64
-        if (m_secure == tagEncryptionMethod::TLSv1 && m_pSspi->GetHandshakeState() == tagSslHandshakeState::hsDone && m_ss >= tagSessionState::ssConnected) {
+        if (m_secure == tagEncryptionMethod::TLSv1 && m_pSChannel->GetHandshakeState() == tagSslHandshakeState::hsDone && m_ss >= tagSessionState::ssConnected) {
             m_qSsl.SetSize(0);
-            m_pSspi->Encrypt(m_WriteBuffer, ulLen, m_qSsl);
+            m_pSChannel->Encrypt(m_WriteBuffer, ulLen, m_qSsl);
             ulLen = m_qSsl.GetSize();
             assert(ulLen <= IO_BUFFER_SIZE + IO_ENCRYPTION_PADDING);
             ::memcpy(m_WriteBuffer, m_qSsl.GetBuffer(), ulLen);

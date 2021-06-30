@@ -87,7 +87,7 @@ namespace SPA {
         void FreeCredHandle();
         SECURITY_STATUS OpenCred();
         CredHandle m_hCreds;
-        CSspiPtr m_pSspi;
+        CSChannelPtr m_pSChannel;
         CCertificateImplPtr m_pCert;
 #else
         CCertificateImplPtr m_pCert;

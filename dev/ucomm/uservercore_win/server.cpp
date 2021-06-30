@@ -1367,7 +1367,7 @@ bool CServer::Enter(CServerSession *pSession, const unsigned int *pChatGroupId, 
                 if (p->m_pHttpContext) {
                     UHTTP::CWebResponseProcessor *pWebResponseProcessor = p->m_pHttpContext->GetWebResponseProcessor();
                     if (pWebResponseProcessor) {
-                        if (p->m_pSspi) {
+                        if (p->m_pSChannel) {
                             SPA::CScopeUQueue sb;
                             pWebResponseProcessor->Enter(ipAddrSender.c_str(), portSender, strUserID, ServiceId, vChatGroup.data(), count, *sb);
                             p->Write(sb->GetBuffer(), sb->GetSize());
@@ -1412,7 +1412,7 @@ void CServer::Exit(CServerSession *pSession, const unsigned int *pChatGroupId, u
                 if (p->m_pHttpContext) {
                     UHTTP::CWebResponseProcessor *pWebResponseProcessor = p->m_pHttpContext->GetWebResponseProcessor();
                     if (pWebResponseProcessor) {
-                        if (p->m_pSspi) {
+                        if (p->m_pSChannel) {
                             SPA::CScopeUQueue sb;
                             pWebResponseProcessor->Exit(ipAddrSender.c_str(), portSender, strUserID, ServiceId, vChatGroup.data(), count, *sb);
                             p->Write(sb->GetBuffer(), sb->GetSize());
@@ -1457,7 +1457,7 @@ bool CServer::Speak(CServerSession *pSession, const unsigned int *pChatGroupId, 
                 if (p->m_pHttpContext) {
                     UHTTP::CWebResponseProcessor *pWebResponseProcessor = p->m_pHttpContext->GetWebResponseProcessor();
                     if (pWebResponseProcessor) {
-                        if (p->m_pSspi) {
+                        if (p->m_pSChannel) {
                             SPA::CScopeUQueue sb;
                             pWebResponseProcessor->Speak(ipAddrSender.c_str(), portSender, strUserID, ServiceId, vtMsg, vChatGroup.data(), count, *sb);
                             p->Write(sb->GetBuffer(), sb->GetSize());
@@ -1499,7 +1499,7 @@ bool CServer::Speak(const unsigned int *pChatGroupId, unsigned int nCount, const
                 if (p->m_pHttpContext) {
                     UHTTP::CWebResponseProcessor *pWebResponseProcessor = p->m_pHttpContext->GetWebResponseProcessor();
                     if (pWebResponseProcessor) {
-                        if (p->m_pSspi) {
+                        if (p->m_pSChannel) {
                             SPA::CScopeUQueue sb;
                             pWebResponseProcessor->Speak("", 0, L"", 0, vtMsg, vChatGroup.data(), count, *sb);
                             p->Write(sb->GetBuffer(), sb->GetSize());
@@ -1610,7 +1610,7 @@ bool CServer::SendUserMessage(CServerSession *pSession, const wchar_t *userId, c
                 if (p->m_pHttpContext) {
                     UHTTP::CWebResponseProcessor *pWebResponseProcessor = p->m_pHttpContext->GetWebResponseProcessor();
                     if (pWebResponseProcessor) {
-                        if (p->m_pSspi) {
+                        if (p->m_pSChannel) {
                             SPA::CScopeUQueue sb;
                             pWebResponseProcessor->SendUserMessage(ipAddrSender.c_str(), portSender, strUserID, ServiceId, vtMessage, pSession->m_ccb.ChatGroups.data(), (unsigned int) pSession->m_ccb.ChatGroups.size(), *sb);
                             p->Write(sb->GetBuffer(), sb->GetSize());
@@ -1650,7 +1650,7 @@ bool CServer::SendUserMessage(const wchar_t *userId, const SPA::UVariant &vtMess
                 if (p->m_pHttpContext) {
                     UHTTP::CWebResponseProcessor *pWebResponseProcessor = p->m_pHttpContext->GetWebResponseProcessor();
                     if (pWebResponseProcessor) {
-                        if (p->m_pSspi) {
+                        if (p->m_pSChannel) {
                             SPA::CScopeUQueue sb;
                             pWebResponseProcessor->SendUserMessage("", 0, L"", 0, vtMessage, nullptr, 0, *sb);
                             p->Write(sb->GetBuffer(), sb->GetSize());

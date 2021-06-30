@@ -9,7 +9,7 @@ namespace SPA
 
     CScCert CCertificateImpl::CertStore;
 
-    CCertificateImpl::CCertificateImpl(CSspiPtr pSspi, const char *serverName)
+    CCertificateImpl::CCertificateImpl(CSChannelPtr pSspi, const char *serverName)
             : m_pCertContext(pSspi->GetCertContext()),
             m_sc(pSspi->GetCtxHandle()),
             m_strSessionInfo("SSL version: ") {

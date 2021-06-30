@@ -33,9 +33,6 @@
     <ClInclude Include="..\core_shared\shared\includes.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\core_shared\shared\scsspi.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\core_shared\shared\uthread.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -52,6 +49,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\clientcore\clientthread.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\core_shared\shared\schannel.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -74,9 +74,6 @@
     <ClCompile Include="..\core_shared\shared\includes.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\core_shared\shared\scsspi.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\core_shared\shared\uthread.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -93,6 +90,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\clientcore\csocketimpl.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\core_shared\shared\schannel.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

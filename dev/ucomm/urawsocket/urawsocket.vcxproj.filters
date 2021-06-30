@@ -33,10 +33,10 @@
     <ClInclude Include="..\core_shared\shared\certificateimpl.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\core_shared\shared\scsspi.h">
+    <ClInclude Include="..\include\rawclient.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\rawclient.h">
+    <ClInclude Include="..\core_shared\shared\schannel.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -74,10 +74,10 @@
     <ClCompile Include="..\core_shared\pinc\base64.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\core_shared\shared\scsspi.cpp">
+    <ClCompile Include="..\core_shared\shared\certificateimpl.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\core_shared\shared\certificateimpl.cpp">
+    <ClCompile Include="..\core_shared\shared\schannel.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
