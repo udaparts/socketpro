@@ -6,7 +6,7 @@ namespace tds
     CTdsChannel::CTdsChannel(SPA::SessionHandle sh) : SPA::CBaseHandler(sh), m_buff(*m_sb) {
     }
 
-    int CTdsChannel::Send(tds::CReqBase* rb, const unsigned char* buffer, unsigned int bytes) {
+    int CTdsChannel::Send(CReqBase* rb, const unsigned char* buffer, unsigned int bytes) {
         assert(rb);
         assert(bytes > sizeof (CReqBase::PacketHeader));
         int fail = 0;
@@ -88,7 +88,7 @@ namespace tds
                 break;
             }
 #endif
-            tds::CReqBase* rb = m_deq.front();
+            CReqBase* rb = m_deq.front();
             m_cs.unlock();
             rb->OnResponse(m_buff.GetBuffer(), len);
 #ifndef NDEBUG

@@ -145,7 +145,7 @@ namespace tds {
                 return ::memcmp(this, &c, sizeof (c));
             }
 
-            CDBString GetString() const {
+            SPA::CDBString GetString() const {
                 char str[16];
 #ifdef WIN32_64
                 sprintf_s(str, "%x|%x|%x", CodePage, Flags.GetValue(), SortOrder);
@@ -153,7 +153,7 @@ namespace tds {
                 sprintf(str, "%x|%x|%x", CodePage, Flags.GetValue(), SortOrder);
 #endif
                 size_t len = ::strlen(str);
-                return CDBString(str, str + len);
+                return SPA::CDBString(str, str + len);
             }
         };
 
@@ -168,10 +168,10 @@ namespace tds {
             unsigned int SQLErrorNumber = 0;
             unsigned char State = 0;
             unsigned char Class = 0;
-            CDBString ErrorMessage;
-            CDBString ServerName;
+            SPA::CDBString ErrorMessage;
+            SPA::CDBString ServerName;
             unsigned char ProcessNameLength = 0;
-            CDBString ProcName;
+            SPA::CDBString ProcName;
             unsigned int LineNumber = 0;
 
             void Reset() {

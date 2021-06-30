@@ -13,7 +13,7 @@ int TestSqlServer(tds::CSqlBatch& sqlClient);
 int main() {
     SPA::CSessionPool<tds::CTdsChannel> pool(1);
     auto handler = pool.FindAClosedHandler();
-    bool ok = handler->Connect("windesk", 1433, SPA::tagEncryptionMethod::NoEncryption, false, true);
+    bool ok = handler->Connect("acer", 1433, SPA::tagEncryptionMethod::NoEncryption, false, true);
 
     char serverName[128];
     handler->GetServerName(serverName, sizeof (serverName));
@@ -26,8 +26,8 @@ int main() {
     rec.database = u"sqltestdb";
     rec.userName = u"sa";
     rec.password = u"Smash123";
-    rec.serverName = tds::CDBString(serverName, serverName + strlen(serverName));
-    rec.useSSPI = true;
+    rec.serverName = SPA::CDBString(serverName, serverName + strlen(serverName));
+    //rec.useSSPI = true;
 
     tds::CSqlBatch sqlbatch(*handler);
     tds::CSqlBatch::FeatureExtension fe;
@@ -76,8 +76,8 @@ int main() {
     vParam.push_back(12);
     vParam.push_back(u"");
     res = sqlbatch.SendTDSMessage(vParam.data(), (unsigned int)vParam.size());*/
-    for (unsigned int n = 0; n < 200000; ++n) {
-        for (unsigned int m = 0; m < 25; ++m) {
+    for (unsigned int n = 0; n < 100000; ++n) {
+        for (unsigned int m = 0; m < 50; ++m) {
             vParam.push_back(10);
             vParam.push_back(12);
             vParam.push_back(u"");

@@ -9,8 +9,8 @@
 namespace tds {
 
     struct SqlCredential {
-        CDBString UserId;
-        CDBString Password; //SecureString
+        SPA::CDBString UserId;
+        SPA::CDBString Password; //SecureString
     };
 
     struct SqlLogin {
@@ -23,21 +23,21 @@ namespace tds {
         SqlAuthenticationMethod authentication = SqlAuthenticationMethod::NotSpecified; // Authentication type
         unsigned int timeout = 30000; // login timeout
         bool userInstance = false; // user instance
-        CDBString hostName; // client machine name
-        CDBString userName; // user id
-        CDBString password; // password
-        CDBString applicationName = ApplicationName; // application name
-        CDBString serverName; // server name
-        CDBString language; // initial language
-        CDBString database; // initial database
-        CDBString attachDBFilename; // DB filename to be attached
+        SPA::CDBString hostName; // client machine name
+        SPA::CDBString userName; // user id
+        SPA::CDBString password; // password
+        SPA::CDBString applicationName = ApplicationName; // application name
+        SPA::CDBString serverName; // server name
+        SPA::CDBString language; // initial language
+        SPA::CDBString database; // initial database
+        SPA::CDBString attachDBFilename; // DB filename to be attached
         bool useReplication = false; // user login for replication
-        CDBString newPassword; // new password for reset password
+        SPA::CDBString newPassword; // new password for reset password
         bool useSSPI = false; // use integrated security
         unsigned int packetSize = DEFAULT_PACKET_SIZE; // packet size
         bool readOnlyIntent = false; // read-only intent
         SqlCredential credential; // user id and password in SecureString
-        CDBString newSecurePassword;
+        SPA::CDBString newSecurePassword;
     };
 
     class CSqlBatch : public CReqBase {
@@ -179,7 +179,7 @@ namespace tds {
             char High;
         };
 
-        static CDBString SQL_SERVER_DEFAULT_SCHEMA;
+        static SPA::CDBString SQL_SERVER_DEFAULT_SCHEMA;
 
         static constexpr int TDS_JDN_OFFSET_1_1_1 = 1721426;
         static constexpr int TDS_JDN_OFFSET_1900_1_1 = 693595;
@@ -219,7 +219,7 @@ namespace tds {
 
         struct LoginAck {
             unsigned int Tds_Version = 0;
-            CDBString ServerName;
+            SPA::CDBString ServerName;
             unsigned int ServerVersion = 0;
         };
 
@@ -317,8 +317,8 @@ namespace tds {
 
         struct StringEventChange {
             tagEnvchangeType Type;
-            CDBString NewValue;
-            CDBString OldValue;
+            SPA::CDBString NewValue;
+            SPA::CDBString OldValue;
         };
 
         struct TransChange {
@@ -415,19 +415,19 @@ namespace tds {
         bool ParseReturnValue();
         void ParseStringChange(tagEnvchangeType type, StringEventChange& sec);
         void ParseTransChange(tagEnvchangeType type, TransChange& tc);
-        bool ConvertTo(const CDBString &pn);
+        bool ConvertTo(const SPA::CDBString &pn);
         bool PopPLP(VARTYPE vt);
-        int ToString(const SPA::UDB::CDBVariant* pVt, unsigned int count, CDBString& s) const;
-        const SPA::UDB::CParameterInfo* FindParameterInfo(const CDBString& pn) const;
+        int ToString(const SPA::UDB::CDBVariant* pVt, unsigned int count, SPA::CDBString& s) const;
+        const SPA::UDB::CParameterInfo* FindParameterInfo(const SPA::CDBString& pn) const;
         int SavePLP(const unsigned char* buffer, unsigned int bytes, SPA::CUQueue& q, unsigned char& packet_id);
         int SaveParameter(unsigned char &packet_id, const SPA::UDB::CDBVariant& v, SPA::CUQueue& buffer, const SPA::UDB::CParameterInfo* pi);
         int SendARpcPacket(SPA::CUQueue& buffer, unsigned char& packet_id);
         bool IsTDSConnected();
-        CDBString Prepare(const char16_t* sql, unsigned int& parameters);
-        CDBString GetSQLProc(const char16_t* procName, const char16_t* schema, const char16_t* dbName);
+        SPA::CDBString Prepare(const char16_t* sql, unsigned int& parameters);
+        SPA::CDBString GetSQLProc(const char16_t* procName, const char16_t* schema, const char16_t* dbName);
         static inline VARTYPE GetVarType(tagDataType dt, unsigned char money_bytes);
-        static inline CDBString GetSqlDeclaredType(tagDataType dt, unsigned char money_bytes);
-        static std::vector<unsigned char> ObfuscatePassword(const CDBString& password);
+        static inline SPA::CDBString GetSqlDeclaredType(tagDataType dt, unsigned char money_bytes);
+        static std::vector<unsigned char> ObfuscatePassword(const SPA::CDBString& password);
         static unsigned char* ObfuscatePassword(unsigned char* password, unsigned int bytes);
         static int ToTdsJDN(int year, int month, int month_day);
         static void ToDate(Date date, int& year, int& month, int& month_day);
@@ -457,12 +457,12 @@ namespace tds {
         DoneInProc m_dip;
         unsigned int m_rs; //ReturnStatus;
         SPA::UDB::CParameterInfoArray m_vParamInfo;
-        CDBString m_sqlPrepare;
+        SPA::CDBString m_sqlPrepare;
         unsigned short m_inputs;
         unsigned short m_outputs;
         UINT64 m_affects;
         bool m_bConnected;
-        static CDBString LibraryName; //Client library name
+        static SPA::CDBString LibraryName; //Client library name
 
 #ifdef WIN32_64
     private:

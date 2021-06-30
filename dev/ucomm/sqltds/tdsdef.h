@@ -11,8 +11,7 @@ namespace tds {
     static const unsigned int CLIENT_DLL_VERSION = 0x01000001; //1.0.0.1
     static const unsigned int TDS_VERSION = 0x74000004;
 
-    typedef SPA::CDBString CDBString;
-    static const CDBString ApplicationName(u"UDAParts Core MSSQL Data Provider");
+    static const SPA::CDBString ApplicationName(u"UDAParts Core MSSQL Data Provider");
 
     static std::vector<unsigned char> TDS_NIC_ADDRESS({0x12, 0x34, 0x56, 0x78, 0x9a, 0xbc});
 

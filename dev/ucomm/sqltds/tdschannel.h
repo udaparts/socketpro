@@ -12,7 +12,7 @@ namespace tds {
 
     public:
         CTdsChannel(SPA::SessionHandle sh);
-        int Send(tds::CReqBase *sender, const unsigned char* buffer, unsigned int bytes);
+        int Send(CReqBase *sender, const unsigned char* buffer, unsigned int bytes);
         size_t GetQueuedPackets();
 
     protected:
@@ -25,7 +25,7 @@ namespace tds {
 
     private:
         SPA::CSpinLock m_cs;
-        std::deque<tds::CReqBase*> m_deq; //protected by m_cs
+        std::deque<CReqBase*> m_deq; //protected by m_cs
         SPA::CUQueue& m_buff;
         friend class CReqBase;
     };

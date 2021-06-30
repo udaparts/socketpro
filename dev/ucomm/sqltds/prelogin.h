@@ -78,7 +78,6 @@ namespace tds {
         unsigned char InstFailed;
     };
 
-
 }
 
 #endif

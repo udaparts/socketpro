@@ -5,9 +5,9 @@
 
 namespace tds
 {
-    CDBString CSqlBatch::LibraryName(u"udaparts_sql_server_client");
+    SPA::CDBString CSqlBatch::LibraryName(u"udaparts_sql_server_client");
 
-    CDBString CSqlBatch::SQL_SERVER_DEFAULT_SCHEMA(u"dbo");
+    SPA::CDBString CSqlBatch::SQL_SERVER_DEFAULT_SCHEMA(u"dbo");
 
     CSqlBatch::CSqlBatch(CTdsChannel& channel, bool meta)
             : CReqBase(channel), m_out(*m_sbOut), m_timeout(0), m_meta(meta), m_cols(0), m_posCol(INVALID_COL), m_lenLarge(0),
@@ -78,7 +78,7 @@ namespace tds
         return VT_VARIANT;
     }
 
-    inline CDBString CSqlBatch::GetSqlDeclaredType(tagDataType dt, unsigned char money_bytes) {
+    inline SPA::CDBString CSqlBatch::GetSqlDeclaredType(tagDataType dt, unsigned char money_bytes) {
         switch (dt) {
             case tagDataType::IMAGE:
                 return u"image";
@@ -161,7 +161,7 @@ namespace tds
     // Note: The same logic is used in SNIPacketSetData (SniManagedWrapper) to encrypt passwords stored in SecureString
     // If this logic changed, SNIPacketSetData needs to be changed as well
 
-    std::vector<unsigned char> CSqlBatch::ObfuscatePassword(const CDBString & password) {
+    std::vector<unsigned char> CSqlBatch::ObfuscatePassword(const SPA::CDBString & password) {
 #if 1
         unsigned char bLo, bHi;
         std::vector<unsigned char> v(password.size() << 1);
@@ -291,14 +291,14 @@ namespace tds
         CReqBase::Reset();
     }
 
-    CDBString CSqlBatch::GetSQLProc(const char16_t* procName, const char16_t* schema, const char16_t* dbName) {
-        CDBString sql_proc;
+    SPA::CDBString CSqlBatch::GetSQLProc(const char16_t* procName, const char16_t* schema, const char16_t* dbName) {
+        SPA::CDBString sql_proc;
         bool switched = false;
         if (!schema || !SPA::GetLen(schema)) {
             schema = SQL_SERVER_DEFAULT_SCHEMA.c_str();
         }
         if (dbName && SPA::GetLen(dbName)) {
-            CDBString dname = dbName;
+            SPA::CDBString dname = dbName;
             SPA::Trim(dname);
             SPA::ToLower(dname);
             if (dname != m_dbNameChange.NewValue) {
@@ -321,12 +321,12 @@ namespace tds
         return std::move(sql_proc);
     }
 
-    CDBString CSqlBatch::Prepare(const char16_t* sql, unsigned int& parameters) {
+    SPA::CDBString CSqlBatch::Prepare(const char16_t* sql, unsigned int& parameters) {
         assert(sql);
         assert(SPA::GetLen(sql));
         bool called = false;
         parameters = 0;
-        CDBString s = sql ? sql : u"";
+        SPA::CDBString s = sql ? sql : u"";
         SPA::Trim(s);
         if (!s.size()) {
             return s;
@@ -439,7 +439,7 @@ namespace tds
         return 0;
     }
 
-    int CSqlBatch::ToString(const SPA::UDB::CDBVariant* pVt, unsigned int count, CDBString & s) const {
+    int CSqlBatch::ToString(const SPA::UDB::CDBVariant* pVt, unsigned int count, SPA::CDBString & s) const {
         char16_t param[16];
         s.clear();
         unsigned int ps = (unsigned int) m_vParamInfo.size();
@@ -644,7 +644,7 @@ namespace tds
         }
         m_buffer.Pop((unsigned int) 3);
         const char16_t* pname = (const char16_t*) m_buffer.GetBuffer();
-        CDBString pName(pname, pname + b_len);
+        SPA::CDBString pName(pname, pname + b_len);
         m_buffer.Pop((unsigned int) (b_len << 1));
         m_buffer >> status >> user_type >> flags >> type_info >> dt;
         switch (dt) {
@@ -980,7 +980,7 @@ namespace tds
         return true;
     }
 
-    bool CSqlBatch::ConvertTo(const CDBString & pn) {
+    bool CSqlBatch::ConvertTo(const SPA::CDBString & pn) {
         unsigned short max_len;
         Collation collation;
         m_buffer >> max_len >> collation;
@@ -1024,7 +1024,7 @@ namespace tds
         return true;
     }
 
-    const SPA::UDB::CParameterInfo * CSqlBatch::FindParameterInfo(const CDBString & pn) const {
+    const SPA::UDB::CParameterInfo * CSqlBatch::FindParameterInfo(const SPA::CDBString & pn) const {
         for (auto it = m_vParamInfo.cbegin(), end = m_vParamInfo.cend(); it != end; ++it) {
             if (it->ParameterName == pn) {
                 return &(*it);
@@ -1316,7 +1316,7 @@ namespace tds
 
     int CSqlBatch::SendTDSMessage(const SqlLogin& rec, FeatureExtension requestedFeatures, bool sync) {
         m_affects = 0;
-        CDBString userName;
+        SPA::CDBString userName;
         std::vector<unsigned char> encryptedPassword;
         unsigned short encryptedPasswordLengthInBytes = 0;
         if (rec.credential.UserId.size() || rec.credential.Password.size()) {
@@ -1342,7 +1342,7 @@ namespace tds
 
         // length in bytes
         unsigned int length = YUKON_LOG_REC_FIXED_LEN;
-        CDBString clientInterfaceName = ApplicationName;
+        SPA::CDBString clientInterfaceName = ApplicationName;
 
         length += (unsigned int) ((rec.hostName.size() + rec.applicationName.size() +
                 rec.serverName.size() + clientInterfaceName.size() +
@@ -1665,8 +1665,8 @@ namespace tds
             }
         }
         unsigned int cycles = count / parameters;
-        CDBString str = m_sqlPrepare;
-        CDBString p0, p1, s;
+        SPA::CDBString str = m_sqlPrepare;
+        SPA::CDBString p0, p1, s;
         p0.reserve(16);
         p1.reserve(16);
         s.reserve(str.size() + 10 * parameters);
@@ -2111,7 +2111,7 @@ namespace tds
                         ci.DBPath.assign((const char16_t*) m_buffer.GetBuffer(), col_len);
                     }
                     m_buffer.Pop(col_name_len);
-                    CDBString schema, assembly;
+                    SPA::CDBString schema, assembly;
                     m_buffer >> col_len;
                     col_name_len = col_len;
                     col_name_len <<= 1;
@@ -2174,7 +2174,7 @@ namespace tds
                             ci.DBPath.assign((const char16_t*) m_buffer.GetBuffer(), col_len);
                         }
                         m_buffer.Pop(col_name_len);
-                        CDBString ownerName, collection;
+                        SPA::CDBString ownerName, collection;
                         m_buffer >> col_len;
                         col_name_len = col_len;
                         col_name_len <<= 1;

@@ -126,9 +126,9 @@ namespace tds {
             }
 
         public:
-            CDBString Database;
+            SPA::CDBString Database;
             std::vector<unsigned char> Collation;
-            CDBString Language;
+            SPA::CDBString Language;
             std::vector<SessionStateOption> Options;
         };
     } //namespace SessionState
