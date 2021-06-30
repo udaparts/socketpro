@@ -298,17 +298,17 @@ namespace tds{
     int CReqBase::Send(const unsigned char* buffer, unsigned int bytes, unsigned int milliseconds, bool sync) {
         assert(buffer);
         assert(bytes >= sizeof (PacketHeader));
-        int fail = 0;
+        if (!m_channel.GetQueuedPackets()) {
+            PacketHeader* ph = (PacketHeader*)buffer;
+            if (ph->Type == tagPacketType::ptAttention) {
+                return 0;
+            }
+        }
+        int fail;
         {
             CAutoLock al(m_csSend);
             {
                 CAutoLock al(m_cs);
-                if (!m_channel.GetQueuedPackets()) {
-                    PacketHeader* ph = (PacketHeader*) buffer;
-                    if (ph->Type == tagPacketType::ptAttention) {
-                        return 0;
-                    }
-                }
                 m_errCode.Reset();
                 ResponseHeader.Status = tagPacketStatus::psNormal;
                 m_Done.Status = tagDoneStatus::dsMore;
