@@ -36,7 +36,7 @@
     <ClInclude Include="..\include\rawclient.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\core_shared\shared\schannel.h">
+    <ClInclude Include="..\core_shared\shared\uschannel.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -77,7 +77,7 @@
     <ClCompile Include="..\core_shared\shared\certificateimpl.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\core_shared\shared\schannel.cpp">
+    <ClCompile Include="..\core_shared\shared\uschannel.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

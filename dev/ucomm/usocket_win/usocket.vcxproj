@@ -178,7 +178,7 @@
     <ClInclude Include="..\core_shared\pinc\base64.h" />
     <ClInclude Include="..\core_shared\shared\certificateimpl.h" />
     <ClInclude Include="..\core_shared\shared\includes.h" />
-    <ClInclude Include="..\core_shared\shared\schannel.h" />
+    <ClInclude Include="..\core_shared\shared\uschannel.h" />
     <ClInclude Include="..\core_shared\shared\uthread.h" />
     <ClInclude Include="..\include\membuffer.h" />
     <ClInclude Include="clientsession.h" />
@@ -194,7 +194,7 @@
     <ClCompile Include="..\core_shared\pinc\base64.cpp" />
     <ClCompile Include="..\core_shared\shared\certificateimpl.cpp" />
     <ClCompile Include="..\core_shared\shared\includes.cpp" />
-    <ClCompile Include="..\core_shared\shared\schannel.cpp" />
+    <ClCompile Include="..\core_shared\shared\uschannel.cpp" />
     <ClCompile Include="..\core_shared\shared\uthread.cpp" />
     <ClCompile Include="..\include\membuffer.cpp" />
     <ClCompile Include="clientsession.cpp" />

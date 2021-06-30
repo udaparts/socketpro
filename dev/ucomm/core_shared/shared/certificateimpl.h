@@ -3,7 +3,7 @@
 #define _UDAPARTS_COMM_CLIENT_CERTIFICATE_IMPL_H_
 
 #include "../../include/ucomm.h"
-#include "schannel.h"
+#include "uschannel.h"
 
 namespace SPA {
 
