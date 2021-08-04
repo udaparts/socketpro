@@ -45,6 +45,17 @@ namespace SPA {
     }
 
     template<typename TChar>
+    std::basic_string<TChar>& Trim(std::basic_string<TChar>& s, const std::basic_string<TChar>& extra) {
+        while (s.size() && (::isspace(s.back()) || extra.find(s.back()) != std::basic_string<TChar>::npos)) {
+            s.pop_back();
+        }
+        while (s.size() && (::isspace(s.front()) || extra.find(s.front()) != std::basic_string<TChar>::npos)) {
+            s.erase(s.begin());
+        }
+        return s;
+    }
+
+    template<typename TChar>
     std::basic_string<TChar> & ToLower(std::basic_string<TChar>& s) {
         std::transform(s.begin(), s.end(), s.begin(), ::tolower);
         return s;
@@ -876,7 +887,6 @@ namespace SPA {
          * @return The actual size of content popped in byte
          */
         inline unsigned int Pop(unsigned char* buffer, unsigned int len, unsigned int position = 0) {
-            assert(len);
             assert(buffer);
             if (m_nSize < (len + position)) {
                 throw CUException("Remaining data in size smaller than expected size", __FILE__, __LINE__, __FUNCTION__, MB_BAD_DESERIALIZATION);
