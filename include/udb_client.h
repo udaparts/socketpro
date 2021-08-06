@@ -527,7 +527,6 @@ namespace SPA {
                     ash->m_dbErrMsg = errMsg;
                     ash->m_parameters = (parameters & 0xffff);
                     ash->m_outputs = (parameters >> 16);
-                    ash->m_indexProc = 0;
                     ash->m_csDB.unlock();
                     if (handler) {
                         handler(*ash, res, errMsg);
@@ -805,7 +804,6 @@ namespace SPA {
                     ash->m_dbErrMsg = errMsg;
                     ash->m_parameters = (parameters & 0xffff);
                     ash->m_outputs = (parameters >> 16);
-                    ash->m_indexProc = 0;
                     ash->m_csDB.unlock();
                     if (handler) {
                         handler(*ash, res, errMsg);
@@ -1278,7 +1276,6 @@ namespace SPA {
                         {
                             CAutoLock al(m_csDB);
                             m_vColInfo.clear();
-                            m_indexProc = 0;
                             m_lastReqId = idSqlBatchHeader;
                             m_parameters = (params & 0xffff);
                             m_outputs = 0;
@@ -1582,23 +1579,24 @@ namespace SPA {
                 CAsyncDBHandler<serviceId>* ash = (CAsyncDBHandler<serviceId>*)ar.AsyncServiceHandler;
                 ar >> affected >> res >> errMsg >> vtId >> fail_ok;
                 {
-                    CAutoLock al(m_csDB);
-                    m_lastReqId = reqId;
-                    m_affected = affected;
-                    m_dbErrCode = res;
-                    m_dbErrMsg = errMsg;
-                    auto it = m_mapRowset.find(index);
-                    if (it != m_mapRowset.end()) {
-                        m_mapRowset.erase(it);
+                    CAutoLock al(ash->m_csDB);
+                    ash->m_lastReqId = reqId;
+                    ash->m_affected = affected;
+                    ash->m_dbErrCode = res;
+                    ash->m_dbErrMsg = errMsg;
+                    ash->m_indexProc = 0;
+                    auto it = ash->m_mapRowset.find(index);
+                    if (it != ash->m_mapRowset.end()) {
+                        ash->m_mapRowset.erase(it);
                     }
 #ifndef NO_OUTPUT_BINDING
-                    auto pit = m_mapParameterCall.find(index);
-                    if (pit != m_mapParameterCall.end()) {
-                        m_mapParameterCall.erase(pit);
+                    auto pit = ash->m_mapParameterCall.find(index);
+                    if (pit != ash->m_mapParameterCall.end()) {
+                        ash->m_mapParameterCall.erase(pit);
                     }
 #endif
-                    auto ph = m_mapHandler.find(index);
-                    if (ph != m_mapHandler.end()) {
+                    auto ph = ash->m_mapHandler.find(index);
+                    if (ph != ash->m_mapHandler.end()) {
                         ash->m_mapHandler.erase(ph);
                     }
                 }
