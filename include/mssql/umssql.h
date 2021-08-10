@@ -8,9 +8,8 @@ namespace SPA {
     namespace SqlServer {
         static const unsigned int sidMsSql = (unsigned int) tagServiceID::sidReserved + 0x6FFFFFF2; //asynchronous MS SQL stream service id
 
-        static const unsigned int DISABLE_INLINE_BATCHING = 0x02;
-        static const unsigned int READ_ONLY = 0x04;
-        static const unsigned int USE_ENCRYPTION = 0x08;
+        static const unsigned int READ_ONLY = 0x20000000;
+        static const unsigned int USE_ENCRYPTION = 0x40000000;
     } //namespace SqlServer
 } //namespace SPA
 #endif
