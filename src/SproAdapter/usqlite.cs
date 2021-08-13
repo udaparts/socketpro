@@ -170,7 +170,7 @@ namespace SocketProAdapter
 
         public class CSqlServer : CAsyncDBHandler
         {
-            public const uint sidMsSql = SocketProAdapter.BaseServiceID.sidReserved + 0x6FFFFFF2; //asynchronous mysql service id
+            public const uint sidMsSql = SocketProAdapter.BaseServiceID.sidReserved + 0x6FFFFFF2; //asynchronous MS SQL service id
 
             public const uint USE_QUERY_BATCHING = 0x10000000;
             public const uint READ_ONLY = 0x20000000;
