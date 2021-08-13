@@ -1589,6 +1589,12 @@
             </summary>
             <param name="sid">A service id</param>
         </member>
+        <member name="M:SocketProAdapter.ClientSide.CSqlServer.#ctor(System.UInt32)">
+            <summary>
+            You may use the protected constructor when extending this class
+            </summary>
+            <param name="sid">A service id</param>
+        </member>
         <member name="M:SocketProAdapter.ClientSide.COdbc.#ctor(System.UInt32)">
             <summary>
             You may use the protected constructor when extending this class

@@ -1665,6 +1665,12 @@
             This define is reserved for future.
             </summary>
         </member>
+        <member name="M:SocketProAdapter.ClientSide.CSqlServer.#ctor(System.UInt32)">
+            <summary>
+            You may use the protected constructor when extending this class
+            </summary>
+            <param name="sid">A service id</param>
+        </member>
         <member name="F:SocketProAdapter.UDB.tagRollbackPlan.rpDefault">
             <summary>
             Manual transaction will rollback whenever there is an error by default

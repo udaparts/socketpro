@@ -130,7 +130,7 @@ namespace SocketProAdapter
             }
         }
 
-        public class CMysql : ClientSide.CAsyncDBHandler
+        public class CMysql : CAsyncDBHandler
         {
             public const uint sidMysql = SocketProAdapter.BaseServiceID.sidReserved + 0x6FFFFFF1; //asynchronous mysql service id
 
@@ -167,7 +167,33 @@ namespace SocketProAdapter
             public const int ER_SERVICE_COMMAND_ERROR = 1989;
             public const int ER_MYSQL_LIBRARY_NOT_INITIALIZED = 1990;
         }
+
+        public class CSqlServer : CAsyncDBHandler
+        {
+            public const uint sidMsSql = SocketProAdapter.BaseServiceID.sidReserved + 0x6FFFFFF2; //asynchronous mysql service id
+
+            public const uint USE_QUERY_BATCHING = 0x10000000;
+            public const uint READ_ONLY = 0x20000000;
+            public const uint USE_ENCRYPTION = 0x40000000;
+
+            public CSqlServer()
+                : base(sidMsSql)
+            {
+
+            }
+
+            /// <summary>
+            /// You may use the protected constructor when extending this class
+            /// </summary>
+            /// <param name="sid">A service id</param>
+            protected CSqlServer(uint sid)
+                : base(sid)
+            {
+
+            }
+        }
     }
+
 #if WINCE
 #else
     namespace ServerSide
