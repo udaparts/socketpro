@@ -18,24 +18,24 @@ public class CSqlPlugin : CSocketProServer
         UConfig.UpdateLog();
     }
 
-    [DllImport("sodbc")]
+    [DllImport("usqlsvr")]
     private static extern IntPtr GetSPluginVersion();
 
-    [DllImport("sodbc")]
-    private static extern int DoSPluginAuthentication(ulong hSocket, [MarshalAs(UnmanagedType.LPWStr)] string userId, [MarshalAs(UnmanagedType.LPWStr)] string password, uint nSvsId, [MarshalAs(UnmanagedType.LPWStr)] string dsn);
+    [DllImport("usqlsvr")]
+    private static extern int DoSPluginAuthentication(ulong hSocket, [MarshalAs(UnmanagedType.LPWStr)] string userId, [MarshalAs(UnmanagedType.LPWStr)] string password, uint nSvsId, [MarshalAs(UnmanagedType.LPWStr)] string host);
 
     [DllImport("kernel32", CharSet = CharSet.Ansi, ExactSpelling = true, SetLastError = true)]
     static extern IntPtr GetProcAddress(IntPtr hModule, string procName);
 
-    [DllImport("sodbc")]
+    [DllImport("usqlsvr")]
     private static extern bool SetSPluginGlobalOptions([MarshalAs(UnmanagedType.LPStr)] string jsonUtf8Options);
 
     public override bool Run(uint port, uint maxBacklog, bool v6Supported)
     {
-        IntPtr p = CSocketProServer.DllManager.AddALibrary("sodbc");
+        IntPtr p = CSocketProServer.DllManager.AddALibrary("usqlsvr");
         if (p.ToInt64() == 0)
         {
-            UConfig.LogMsg("Cannot load SocketPro ODBC plugin!", "CSqlPlugin::Run", 38); //line 38
+            UConfig.LogMsg("Cannot load SocketPro MS SQL plugin!", "CSqlPlugin::Run", 38); //line 38
             UConfig.UpdateLog();
             return false;
         }
@@ -53,12 +53,12 @@ public class CSqlPlugin : CSocketProServer
 
     protected override bool OnIsPermitted(ulong hSocket, string userId, string password, uint nSvsID)
     {
-        string driver = "DRIVER=" + m_Config.odbc_driver + ";Server=(local)";
-        if (m_Config.default_db != null && m_Config.default_db.Length > 0)
+        string connection_string = UConfig.DEFAULT_CONNECTION_STRING;
+        if (m_Config.default_connection_string != null && m_Config.default_connection_string.Length > 0)
         {
-            driver += (";database=" + m_Config.default_db);
+            connection_string = m_Config.default_connection_string;
         }
-        int res = DoSPluginAuthentication(hSocket, userId, password, nSvsID, driver);
+        int res = DoSPluginAuthentication(hSocket, userId, password, nSvsID, connection_string);
         if (res <= 0)
         {
             string message = "Authentication failed for user " + userId + ", res: " + res;
@@ -79,10 +79,10 @@ public class CSqlPlugin : CSocketProServer
     private void ConfigServices()
     {
         bool changed = false;
-        string odbc_plugin_version = Marshal.PtrToStringAnsi(GetSPluginVersion());
-        if (m_Config.odbc_plugin_version != odbc_plugin_version)
+        string mssql_plugin_version = Marshal.PtrToStringAnsi(GetSPluginVersion());
+        if (m_Config.mssql_plugin_version != mssql_plugin_version)
         {
-            m_Config.odbc_plugin_version = odbc_plugin_version;
+            m_Config.mssql_plugin_version = mssql_plugin_version;
             changed = true;
         }
         string server_core_version = Version;
@@ -91,7 +91,7 @@ public class CSqlPlugin : CSocketProServer
             m_Config.sp_server_core_version = server_core_version;
             changed = true;
         }
-        ODBCConfig oconfig = new ODBCConfig();
+        MsSqlConfig oconfig = new MsSqlConfig();
         oconfig.manual_batching = m_Config.manual_batching;
         string json = oconfig.ToJson();
         bool ok = SetSPluginGlobalOptions(json);
@@ -104,9 +104,9 @@ public class CSqlPlugin : CSocketProServer
             {
                 continue;
             }
-            if (p_name.Equals("sodbc", StringComparison.OrdinalIgnoreCase) || p_name.Equals("sodbc.dll", StringComparison.OrdinalIgnoreCase))
+            if (p_name.Equals("usqlsvr", StringComparison.OrdinalIgnoreCase) || p_name.Equals("usqlsvr.dll", StringComparison.OrdinalIgnoreCase))
             {
-                continue; //cannot load odbc plugin again
+                continue; //cannot load sql plugin again
             }
             do
             {

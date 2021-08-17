@@ -37,7 +37,8 @@
     <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="SproAdapter">
+    <Reference Include="SproAdapter, Version=4.4.0.3, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\..\bin\dotnet\SproAdapter.dll</HintPath>
     </Reference>
     <Reference Include="System" />

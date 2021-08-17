@@ -3,30 +3,28 @@ using System.Collections.Generic;
 using TinyJson;
 using System.IO;
 
-public class ODBCConfig
+public class MsSqlConfig
 {
     public uint manual_batching = 0;
 }
 
 public class UConfig
 {
-    public static readonly string MY_VERSION = "1.5.0.3";
-
+    public static readonly string MY_VERSION = "1.5.0.4";
+    public static readonly string DEFAULT_CONNECTION_STRING = "server=localhost;timeout=30";
     public static readonly int DEFAULT_MAIN_THREADS = 1;
     public static readonly uint DEFAULT_PORT = 20903;
-    public static readonly string DEFAULT_DRIVER = "{ODBC Driver 17 for SQL Server}";
     public static readonly string STREAM_DB_CONFIG_FILE = "sp_streaming_db_config.json";
     public static readonly string STREAM_DB_LOG_FILE = "streaming_db.log";
     public static readonly string DEFAULT_WORKING_DIRECTORY = "C:\\ProgramData\\MSSQL\\";
     public static readonly string DEFAULT_CA_ROOT = "root";
     public string cert_root_store = DEFAULT_CA_ROOT;
     public string cert_subject_cn = "";
-    public string default_db = "";
+    public string default_connection_string = DEFAULT_CONNECTION_STRING;
     public bool disable_ipv6 = false;
     public int main_threads = DEFAULT_MAIN_THREADS;
     public uint manual_batching = 1;
-    public string odbc_driver = DEFAULT_DRIVER;
-    public string odbc_plugin_version = "";
+    public string mssql_plugin_version = "";
     public uint port = DEFAULT_PORT;
     public string services = "";
     public Dictionary<string, Dictionary<string, object>> services_config = new Dictionary<string, Dictionary<string, object>>();
@@ -37,7 +35,8 @@ public class UConfig
     public UConfig()
     {
         version = MY_VERSION;
-        service_id = SocketProAdapter.BaseServiceID.sidODBC;
+        //asynchronous MS SQL service id
+        service_id = SocketProAdapter.BaseServiceID.sidReserved + 0x6FFFFFF2;
     }
 
     public UConfig(string json)
@@ -52,9 +51,9 @@ public class UConfig
                 version = MY_VERSION;
                 changed = true;
             }
-            if (service_id != SocketProAdapter.BaseServiceID.sidODBC)
+            if (service_id != SocketProAdapter.BaseServiceID.sidReserved + 0x6FFFFFF2)
             {
-                service_id = SocketProAdapter.BaseServiceID.sidODBC;
+                service_id = SocketProAdapter.BaseServiceID.sidReserved + 0x6FFFFFF2;
                 changed = true;
             }
             if (main_threads <= 0)
@@ -67,16 +66,10 @@ public class UConfig
                 port = UConfig.DEFAULT_PORT;
                 changed = true;
             }
-            string str = odbc_driver.Trim();
-            if (odbc_driver != str || str.Length == 0)
+            string str = default_connection_string.Trim();
+            if (str != default_connection_string)
             {
-                odbc_driver = UConfig.DEFAULT_DRIVER;
-                changed = true;
-            }
-            str = default_db.Trim();
-            if (str != default_db)
-            {
-                default_db = str;
+                default_connection_string = str;
                 changed = true;
             }
             str = services.Trim();
@@ -100,7 +93,7 @@ public class UConfig
         }
         catch (Exception ex)
         {
-            LogMsg(ex.Message, "UConfig::UConfig(string json)", 103); //line 103
+            LogMsg(ex.Message, "UConfig::UConfig(string json)", 96); //line 96
             changed = true;
         }
         finally
@@ -139,7 +132,7 @@ public class UConfig
         }
         catch (Exception ex)
         {
-            LogMsg(ex.Message, "UConfig::UpdateConfigFile", 142); //line 142
+            LogMsg(ex.Message, "UConfig::UpdateConfigFile", 135); //line 135
         }
     }
 
@@ -152,10 +145,9 @@ public class UConfig
         cert_subject_cn = config.cert_subject_cn;
         services = config.services;
         services_config = config.services_config;
-        odbc_driver = config.odbc_driver;
-        default_db = config.default_db;
+        default_connection_string = config.default_connection_string;
         version = config.version;
-        odbc_plugin_version = config.odbc_plugin_version;
+        mssql_plugin_version = config.mssql_plugin_version;
         sp_server_core_version = config.sp_server_core_version;
         service_id = config.service_id;
         manual_batching = config.manual_batching;

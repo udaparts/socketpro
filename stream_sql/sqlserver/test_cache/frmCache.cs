@@ -1,9 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Data;
 using System.Windows.Forms;
-using SocketProAdapter;
 using SocketProAdapter.ClientSide;
 using SocketProAdapter.UDB;
 
@@ -21,7 +19,7 @@ namespace test_cache
             txtPassword.Text = "Smash123";
         }
 
-        private CSocketPool<COdbc> m_spSql;
+        private CSocketPool<CSqlServer> m_spSql;
 
         private DataSet m_ds = null;
         private DMessage m_thread_message;
@@ -46,7 +44,7 @@ namespace test_cache
             txtMessage.Text = s;
         }
 
-        private void m_spSql_SocketPoolEvent(CSocketPool<COdbc> sender, tagSocketPoolEvent spe, COdbc AsyncServiceHandler)
+        private void m_spSql_SocketPoolEvent(CSocketPool<CSqlServer> sender, tagSocketPoolEvent spe, CSqlServer AsyncServiceHandler)
         {
             switch (spe)
             {
@@ -62,17 +60,17 @@ namespace test_cache
         private async void btnConnect_Click(object sender, EventArgs e)
         {
             CConnectionContext cc = new CConnectionContext(txtHost.Text, 20903, txtUser.Text, txtPassword.Text);
-            m_spSql = new CSocketPool<COdbc>(false);
+            m_spSql = new CSocketPool<CSqlServer>(false);
 
             //set event for MySQL/Mariadb database shutdown
-            m_spSql.SocketPoolEvent += new CSocketPool<COdbc>.DOnSocketPoolEvent(m_spSql_SocketPoolEvent);
+            m_spSql.SocketPoolEvent += new CSocketPool<CSqlServer>.DOnSocketPoolEvent(m_spSql_SocketPoolEvent);
 
             if (!m_spSql.StartSocketPool(cc, 1))
             {
                 txtMessage.Text = "No connection to " + txtHost.Text;
                 return;
             }
-            COdbc sql = m_spSql.AsyncHandlers[0];
+            CSqlServer sql = m_spSql.AsyncHandlers[0];
 
             //set event for tracking all database table update events, delete, update and insert
             m_spSql.Sockets[0].Push.OnPublish += new DOnPublish(Push_OnPublish);
@@ -86,11 +84,11 @@ namespace test_cache
             var res = await sql.execute("", (h, data) =>
             {
                 //this callback is fired from worker thread from socket pool thread
-                COdbc.AppendRowDataIntoDataTable(data, dt);
+                CSqlServer.AppendRowDataIntoDataTable(data, dt);
             }, (h) =>
             {
                 //this callback is fired from worker thread from socket pool thread
-                dt = COdbc.MakeDataTable(h.ColumnInfo);
+                dt = CSqlServer.MakeDataTable(h.ColumnInfo);
                 string name = h.ColumnInfo[0].DBPath + "." + h.ColumnInfo[0].TablePath;
                 dt.TableName = name;
                 m_ds.Tables.Add(dt);
