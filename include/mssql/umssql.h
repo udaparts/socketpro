@@ -13,4 +13,7 @@ namespace SPA {
         static const unsigned int USE_ENCRYPTION = 0x40000000;
     } //namespace SqlServer
 } //namespace SPA
+
+#define CA_FOR_MSSQL    "ca_for_mssql"
+
 #endif
