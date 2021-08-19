@@ -15,7 +15,7 @@ class Program {
         try {
             wan = int.Parse(str);
         } finally { }
-        using (CSocketPool<COdbc> spSql = new CSocketPool<COdbc>()) {
+        using (CSocketPool<CSqlServer> spSql = new CSocketPool<CSqlServer>()) {
             CConnectionContext cc = new CConnectionContext(host, 20903, "sa", "Smash123");
             if (!spSql.StartSocketPool(cc, 1)) {
                 Console.WriteLine("Failed in connecting to remote helloworld server. Press any key to close the application ......");
@@ -32,7 +32,7 @@ class Program {
             bool sync = (Console.ReadKey().KeyChar != '0');
             Console.WriteLine("");
             Console.WriteLine("Computing ......");
-            COdbc mysql = spSql.Seek();
+            CSqlServer mysql = spSql.Seek();
             CAsyncDBHandler.DResult dr = (handler, res, errMsg) => {
                 if (res != 0)
                     Console.WriteLine("res = {0}, errMsg: {1}", res, errMsg);
@@ -123,14 +123,14 @@ class Program {
                         break;
                 }
                 ++index;
-                //send 2000 sets of parameter data onto server for processing in batch
-                if (2000 == index) {
+                //send 200 sets of parameter data onto server for processing in batch
+                if (200 == index) {
                     ok = mysql.Execute(vData, er);
                     ok = mysql.EndTrans();
                     vData.Clear();
                     if (sync)
                         ok = mysql.WaitAll();
-                    Console.WriteLine("Commit {0} records into the table sqltestdb.company", index);
+                    //Console.WriteLine("Commit {0} records into the table sqltestdb.company", index);
                     ok = mysql.BeginTrans();
                     index = 0;
                 }
