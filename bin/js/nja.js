@@ -961,6 +961,7 @@ exports.SID = {
     //UDAParts reserved sidODBC and db streaming service ids from sidDB_UDAParts_RESERVED through sidDB_MAX
     sidSqlite: 2147483632, //SQLite SQL-streaming service
     sidMysql: 2147483633, //MySQL/Mariadb SQL-streaming service
+    sidMsSql: 2147483634, //MS SQL SQL-streaming service
     sidDB2: 2147483635, //DB2 CLI SQL-streaming service
     sidDB_MAX: 0x7FFFFFFF
 };
