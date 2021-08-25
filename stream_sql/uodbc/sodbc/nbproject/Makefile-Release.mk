@@ -44,11 +44,11 @@ OBJECTFILES= \
 
 
 # C Compiler Flags
-CFLAGS=-std=c++11 -static-libstdc++ -Os -fvisibility=hidden
+CFLAGS=-std=c++11 -Os -fvisibility=hidden
 
 # CC Compiler Flags
-CCFLAGS=-std=c++11 -static-libstdc++ -Os -fvisibility=hidden
-CXXFLAGS=-std=c++11 -static-libstdc++ -Os -fvisibility=hidden
+CCFLAGS=-std=c++11 -Os -fvisibility=hidden
+CXXFLAGS=-std=c++11 -Os -fvisibility=hidden
 
 # Fortran Compiler Flags
 FFLAGS=
@@ -65,37 +65,37 @@ LDLIBSOPTIONS=-luservercore -lodbc -ldl
 
 ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/libsodbc.${CND_DLIB_EXT}: ${OBJECTFILES}
 	${MKDIR} -p ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}
-	g++ -o ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/libsodbc.${CND_DLIB_EXT} ${OBJECTFILES} ${LDLIBSOPTIONS} -Wl,--no-undefined -shared -s -fPIC
+	g++ -o ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/libsodbc.${CND_DLIB_EXT} ${OBJECTFILES} ${LDLIBSOPTIONS} -lstdc++ -Wl,--no-undefined -shared -s -fPIC
 
 ${OBJECTDIR}/_ext/932346631/aserverw.o: ../../../include/aserverw.cpp 
 	${MKDIR} -p ${OBJECTDIR}/_ext/932346631
 	${RM} "$@.d"
-	$(COMPILE.c) -O3 -s -DNDEBUG -DUSE_BOOST_LARGE_INTEGER_FOR_DECIMAL -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/932346631/aserverw.o ../../../include/aserverw.cpp
+	$(COMPILE.c) -O3 -s -DNDEBUG -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/932346631/aserverw.o ../../../include/aserverw.cpp
 
 ${OBJECTDIR}/_ext/932346631/membuffer.o: ../../../include/membuffer.cpp 
 	${MKDIR} -p ${OBJECTDIR}/_ext/932346631
 	${RM} "$@.d"
-	$(COMPILE.c) -O3 -s -DNDEBUG -DUSE_BOOST_LARGE_INTEGER_FOR_DECIMAL -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/932346631/membuffer.o ../../../include/membuffer.cpp
+	$(COMPILE.c) -O3 -s -DNDEBUG -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/932346631/membuffer.o ../../../include/membuffer.cpp
 
 ${OBJECTDIR}/_ext/1865912263/odbcimpl.o: ../../../include/odbc/server_impl/odbcimpl.cpp 
 	${MKDIR} -p ${OBJECTDIR}/_ext/1865912263
 	${RM} "$@.d"
-	$(COMPILE.c) -O3 -s -DNDEBUG -DUSE_BOOST_LARGE_INTEGER_FOR_DECIMAL -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/1865912263/odbcimpl.o ../../../include/odbc/server_impl/odbcimpl.cpp
+	$(COMPILE.c) -O3 -s -DNDEBUG -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/1865912263/odbcimpl.o ../../../include/odbc/server_impl/odbcimpl.cpp
 
 ${OBJECTDIR}/_ext/1865912263/oexports.o: ../../../include/odbc/server_impl/oexports.cpp 
 	${MKDIR} -p ${OBJECTDIR}/_ext/1865912263
 	${RM} "$@.d"
-	$(COMPILE.c) -O3 -s -DNDEBUG -DUSE_BOOST_LARGE_INTEGER_FOR_DECIMAL -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/1865912263/oexports.o ../../../include/odbc/server_impl/oexports.cpp
+	$(COMPILE.c) -O3 -s -DNDEBUG -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/1865912263/oexports.o ../../../include/odbc/server_impl/oexports.cpp
 
 ${OBJECTDIR}/_ext/1865912263/sodbc.o: ../../../include/odbc/server_impl/sodbc.cpp 
 	${MKDIR} -p ${OBJECTDIR}/_ext/1865912263
 	${RM} "$@.d"
-	$(COMPILE.c) -O3 -s -DNDEBUG -DUSE_BOOST_LARGE_INTEGER_FOR_DECIMAL -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/1865912263/sodbc.o ../../../include/odbc/server_impl/sodbc.cpp
+	$(COMPILE.c) -O3 -s -DNDEBUG -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/1865912263/sodbc.o ../../../include/odbc/server_impl/sodbc.cpp
 
 ${OBJECTDIR}/stdafx.o: stdafx.cpp 
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
-	$(COMPILE.c) -O3 -s -DNDEBUG -DUSE_BOOST_LARGE_INTEGER_FOR_DECIMAL -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/stdafx.o stdafx.cpp
+	$(COMPILE.c) -O3 -s -DNDEBUG -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/stdafx.o stdafx.cpp
 
 # Subprojects
 .build-subprojects:

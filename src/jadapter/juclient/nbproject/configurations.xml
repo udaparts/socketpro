@@ -66,10 +66,9 @@
           <commandlineTool>gcc</commandlineTool>
           <linkerLibItems>
             <linkerLibStdlibItem>Mathematics</linkerLibStdlibItem>
-            <linkerLibFileItem>/usr/lib/gcc/x86_64-linux-gnu/4.8.4/libstdc++.a</linkerLibFileItem>
-            <linkerOptionItem>-lusocket</linkerOptionItem>
+            <linkerLibLibItem>usocket</linkerLibLibItem>
           </linkerLibItems>
-          <commandLine>-Wl,--no-undefined</commandLine>
+          <commandLine>-lstdc++ -Wl,--no-undefined</commandLine>
         </linkerTool>
       </compileType>
       <item path="SPA_ClientSide_ClientCoreLoader.h" ex="false" tool="3" flavor2="0">
@@ -120,10 +119,9 @@
           <commandlineTool>gcc</commandlineTool>
           <linkerLibItems>
             <linkerLibStdlibItem>Mathematics</linkerLibStdlibItem>
-            <linkerLibFileItem>/usr/lib/gcc/x86_64-linux-gnu/4.8.4/libstdc++.a</linkerLibFileItem>
-            <linkerOptionItem>-lusocket</linkerOptionItem>
+            <linkerLibLibItem>usocket</linkerLibLibItem>
           </linkerLibItems>
-          <commandLine>-Wl,--no-undefined</commandLine>
+          <commandLine>-lstdc++ -Wl,--no-undefined</commandLine>
         </linkerTool>
       </compileType>
       <item path="SPA_ClientSide_ClientCoreLoader.h" ex="false" tool="3" flavor2="0">

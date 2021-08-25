@@ -52,10 +52,9 @@
           <commandlineTool>gcc</commandlineTool>
           <linkerLibItems>
             <linkerLibStdlibItem>DynamicLinking</linkerLibStdlibItem>
-            <linkerLibFileItem>/usr/lib/gcc/x86_64-linux-gnu/4.8.4/libstdc++.a</linkerLibFileItem>
-            <linkerOptionItem>-luservercore</linkerOptionItem>
+            <linkerLibLibItem>uservercore</linkerLibLibItem>
           </linkerLibItems>
-          <commandLine>-Wl,--no-undefined</commandLine>
+          <commandLine>-lstdc++ -Wl,--no-undefined</commandLine>
         </linkerTool>
       </compileType>
       <item path="juserver.cpp" ex="false" tool="0" flavor2="0">
@@ -102,10 +101,9 @@
           <commandlineTool>gcc</commandlineTool>
           <linkerLibItems>
             <linkerLibStdlibItem>DynamicLinking</linkerLibStdlibItem>
-            <linkerLibFileItem>/usr/lib/gcc/x86_64-linux-gnu/4.8.4/libstdc++.a</linkerLibFileItem>
-            <linkerOptionItem>-luservercore</linkerOptionItem>
+            <linkerLibLibItem>uservercore</linkerLibLibItem>
           </linkerLibItems>
-          <commandLine>-Wl,--no-undefined</commandLine>
+          <commandLine>-lstdc++ -Wl,--no-undefined</commandLine>
         </linkerTool>
       </compileType>
       <item path="juserver.cpp" ex="false" tool="0" flavor2="0">

@@ -59,11 +59,11 @@ OBJECTFILES= \
 
 
 # C Compiler Flags
-CFLAGS=-std=c++11 -static-libstdc++ -Os -fvisibility=hidden
+CFLAGS=-std=c++11 -Os -fvisibility=hidden
 
 # CC Compiler Flags
-CCFLAGS=-std=c++11 -static-libstdc++ -Os -fvisibility=hidden
-CXXFLAGS=-std=c++11 -static-libstdc++ -Os -fvisibility=hidden
+CCFLAGS=-std=c++11 -Os -fvisibility=hidden
+CXXFLAGS=-std=c++11 -Os -fvisibility=hidden
 
 # Fortran Compiler Flags
 FFLAGS=
@@ -80,7 +80,7 @@ LDLIBSOPTIONS=
 
 ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/njadapter.node: ${OBJECTFILES}
 	${MKDIR} -p ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}
-	${LINK.cc} -o ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/njadapter.node ${OBJECTFILES} ${LDLIBSOPTIONS} -shared -s -fPIC
+	${LINK.cc} -o ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/njadapter.node ${OBJECTFILES} ${LDLIBSOPTIONS} -lstdc++ -shared -s -fPIC
 
 ${OBJECTDIR}/_ext/932346631/aclientw.o: ../../../include/aclientw.cpp 
 	${MKDIR} -p ${OBJECTDIR}/_ext/932346631
