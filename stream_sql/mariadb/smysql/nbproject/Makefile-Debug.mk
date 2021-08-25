@@ -57,7 +57,7 @@ FFLAGS=
 ASFLAGS=
 
 # Link Libraries and Options
-LDLIBSOPTIONS=-luservercore
+LDLIBSOPTIONS=-luservercore -lpthread -ldl
 
 # Build Targets
 .build-conf: ${BUILD_SUBPROJECTS}
@@ -65,37 +65,37 @@ LDLIBSOPTIONS=-luservercore
 
 ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/libsmysql.${CND_DLIB_EXT}: ${OBJECTFILES}
 	${MKDIR} -p ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}
-	g++ -o ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/libsmysql.${CND_DLIB_EXT} ${OBJECTFILES} ${LDLIBSOPTIONS} -std=c++11 -shared -fPIC
+	g++ -o ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/libsmysql.${CND_DLIB_EXT} ${OBJECTFILES} ${LDLIBSOPTIONS} -lstdc++ -Wl,--no-undefined -shared -fPIC
 
 ${OBJECTDIR}/_ext/932346631/aserverw.o: ../../../include/aserverw.cpp 
 	${MKDIR} -p ${OBJECTDIR}/_ext/932346631
 	${RM} "$@.d"
-	$(COMPILE.c) -g -DMM_DB_SERVER_PLUGIN -DMYSQL_DYNAMIC_PLUGIN -DUSE_BOOST_LARGE_INTEGER_FOR_DECIMAL -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/932346631/aserverw.o ../../../include/aserverw.cpp
+	$(COMPILE.c) -g -DMM_DB_SERVER_PLUGIN -DMYSQL_DYNAMIC_PLUGIN -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/932346631/aserverw.o ../../../include/aserverw.cpp
 
 ${OBJECTDIR}/_ext/932346631/membuffer.o: ../../../include/membuffer.cpp 
 	${MKDIR} -p ${OBJECTDIR}/_ext/932346631
 	${RM} "$@.d"
-	$(COMPILE.c) -g -DMM_DB_SERVER_PLUGIN -DMYSQL_DYNAMIC_PLUGIN -DUSE_BOOST_LARGE_INTEGER_FOR_DECIMAL -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/932346631/membuffer.o ../../../include/membuffer.cpp
+	$(COMPILE.c) -g -DMM_DB_SERVER_PLUGIN -DMYSQL_DYNAMIC_PLUGIN -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/932346631/membuffer.o ../../../include/membuffer.cpp
 
 ${OBJECTDIR}/_ext/1165644825/mysqlimpl.o: ../../../include/mysql/server_impl/mysqlimpl.cpp 
 	${MKDIR} -p ${OBJECTDIR}/_ext/1165644825
 	${RM} "$@.d"
-	$(COMPILE.c) -g -DMM_DB_SERVER_PLUGIN -DMYSQL_DYNAMIC_PLUGIN -DUSE_BOOST_LARGE_INTEGER_FOR_DECIMAL -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/1165644825/mysqlimpl.o ../../../include/mysql/server_impl/mysqlimpl.cpp
+	$(COMPILE.c) -g -DMM_DB_SERVER_PLUGIN -DMYSQL_DYNAMIC_PLUGIN -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/_ext/1165644825/mysqlimpl.o ../../../include/mysql/server_impl/mysqlimpl.cpp
 
 ${OBJECTDIR}/smysql.o: smysql.cpp 
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
-	$(COMPILE.c) -g -DMM_DB_SERVER_PLUGIN -DMYSQL_DYNAMIC_PLUGIN -DUSE_BOOST_LARGE_INTEGER_FOR_DECIMAL -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/smysql.o smysql.cpp
+	$(COMPILE.c) -g -DMM_DB_SERVER_PLUGIN -DMYSQL_DYNAMIC_PLUGIN -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/smysql.o smysql.cpp
 
 ${OBJECTDIR}/stdafx.o: stdafx.cpp 
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
-	$(COMPILE.c) -g -DMM_DB_SERVER_PLUGIN -DMYSQL_DYNAMIC_PLUGIN -DUSE_BOOST_LARGE_INTEGER_FOR_DECIMAL -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/stdafx.o stdafx.cpp
+	$(COMPILE.c) -g -DMM_DB_SERVER_PLUGIN -DMYSQL_DYNAMIC_PLUGIN -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/stdafx.o stdafx.cpp
 
 ${OBJECTDIR}/streamingserver.o: streamingserver.cpp 
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
-	$(COMPILE.c) -g -DMM_DB_SERVER_PLUGIN -DMYSQL_DYNAMIC_PLUGIN -DUSE_BOOST_LARGE_INTEGER_FOR_DECIMAL -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/streamingserver.o streamingserver.cpp
+	$(COMPILE.c) -g -DMM_DB_SERVER_PLUGIN -DMYSQL_DYNAMIC_PLUGIN -fPIC  -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/streamingserver.o streamingserver.cpp
 
 # Subprojects
 .build-subprojects:

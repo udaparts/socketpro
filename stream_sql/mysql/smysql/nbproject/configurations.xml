@@ -54,14 +54,12 @@
           <commandLine>-std=c++11 -Wall</commandLine>
           <preprocessorList>
             <Elem>MYSQL_DYNAMIC_PLUGIN</Elem>
-            <Elem>USE_BOOST_LARGE_INTEGER_FOR_DECIMAL</Elem>
           </preprocessorList>
         </cTool>
         <ccTool>
           <commandLine>-std=c++11 -Wall</commandLine>
           <preprocessorList>
             <Elem>MYSQL_DYNAMIC_PLUGIN</Elem>
-            <Elem>USE_BOOST_LARGE_INTEGER_FOR_DECIMAL</Elem>
           </preprocessorList>
         </ccTool>
         <linkerTool>
@@ -72,7 +70,7 @@
             <linkerLibStdlibItem>PosixThreads</linkerLibStdlibItem>
             <linkerLibLibItem>uservercore</linkerLibLibItem>
           </linkerLibItems>
-          <commandLine>-std=c++11</commandLine>
+          <commandLine>-lstdc++</commandLine>
         </linkerTool>
       </compileType>
       <item path="../../../include/aserverw.cpp" ex="false" tool="0" flavor2="0">
@@ -113,21 +111,19 @@
             <pElem>../../../../mysql-8.0.11</pElem>
             <pElem>../../../../mysql-8.0.11/libbinlogevents/export</pElem>
           </incDir>
-          <commandLine>-std=c++11 -static-libstdc++ -Os</commandLine>
+          <commandLine>-std=c++11 -Os</commandLine>
           <preprocessorList>
             <Elem>MYSQL_DYNAMIC_PLUGIN</Elem>
             <Elem>NDEBUG</Elem>
-            <Elem>USE_BOOST_LARGE_INTEGER_FOR_DECIMAL</Elem>
           </preprocessorList>
         </cTool>
         <ccTool>
           <developmentMode>6</developmentMode>
           <stripSymbols>true</stripSymbols>
-          <commandLine>-std=c++11 -static-libstdc++ -Os</commandLine>
+          <commandLine>-std=c++11 -Os</commandLine>
           <preprocessorList>
             <Elem>MYSQL_DYNAMIC_PLUGIN</Elem>
             <Elem>NDEBUG</Elem>
-            <Elem>USE_BOOST_LARGE_INTEGER_FOR_DECIMAL</Elem>
           </preprocessorList>
         </ccTool>
         <fortranCompilerTool>
@@ -145,7 +141,7 @@
             <linkerLibStdlibItem>DynamicLinking</linkerLibStdlibItem>
             <linkerLibLibItem>uservercore</linkerLibLibItem>
           </linkerLibItems>
-          <commandLine>-std=c++11 -static-libstdc++</commandLine>
+          <commandLine>-lstdc++</commandLine>
         </linkerTool>
       </compileType>
       <item path="../../../include/aserverw.cpp" ex="false" tool="0" flavor2="0">

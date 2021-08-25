@@ -43,11 +43,11 @@ OBJECTFILES= \
 
 
 # C Compiler Flags
-CFLAGS=-std=c++11 -static-libstdc++ -Os -fvisibility=hidden
+CFLAGS=-std=c++11 -Os -fvisibility=hidden
 
 # CC Compiler Flags
-CCFLAGS=-std=c++11 -static-libstdc++ -Os -fvisibility=hidden
-CXXFLAGS=-std=c++11 -static-libstdc++ -Os -fvisibility=hidden
+CCFLAGS=-std=c++11 -Os -fvisibility=hidden
+CXXFLAGS=-std=c++11 -Os -fvisibility=hidden
 
 # Fortran Compiler Flags
 FFLAGS=
@@ -56,7 +56,7 @@ FFLAGS=
 ASFLAGS=
 
 # Link Libraries and Options
-LDLIBSOPTIONS=-luservercore
+LDLIBSOPTIONS=-luservercore -ldl
 
 # Build Targets
 .build-conf: ${BUILD_SUBPROJECTS}
@@ -64,7 +64,7 @@ LDLIBSOPTIONS=-luservercore
 
 ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/libuasyncqueue.${CND_DLIB_EXT}: ${OBJECTFILES}
 	${MKDIR} -p ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}
-	g++ -o ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/libuasyncqueue.${CND_DLIB_EXT} ${OBJECTFILES} ${LDLIBSOPTIONS} -std=c++11 -static-libstdc++ -shared -s -fPIC
+	g++ -o ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/libuasyncqueue.${CND_DLIB_EXT} ${OBJECTFILES} ${LDLIBSOPTIONS} -lstdc++ -Wl,--no-undefined -shared -s -fPIC
 
 ${OBJECTDIR}/_ext/932346631/aserverw.o: ../../../include/aserverw.cpp 
 	${MKDIR} -p ${OBJECTDIR}/_ext/932346631

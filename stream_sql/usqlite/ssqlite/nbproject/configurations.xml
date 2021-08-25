@@ -51,7 +51,6 @@
           <commandLine>-std=c++11 -Wall</commandLine>
           <preprocessorList>
             <Elem>HAVE_GMTIME_R</Elem>
-            <Elem>HAVE_LOCALTIME_S</Elem>
             <Elem>SQLITE_DEFAULT_FOREIGN_KEYS=1</Elem>
             <Elem>SQLITE_ENABLE_COLUMN_METADATA</Elem>
             <Elem>SQLITE_ENABLE_FTS4</Elem>
@@ -65,7 +64,6 @@
           <commandLine>-std=c++11 -Wall</commandLine>
           <preprocessorList>
             <Elem>HAVE_GMTIME_R</Elem>
-            <Elem>HAVE_LOCALTIME_S</Elem>
             <Elem>SQLITE_DEFAULT_FOREIGN_KEYS=1</Elem>
             <Elem>SQLITE_ENABLE_COLUMN_METADATA</Elem>
             <Elem>SQLITE_ENABLE_FTS4</Elem>
@@ -79,8 +77,10 @@
           <commandlineTool>g++</commandlineTool>
           <linkerLibItems>
             <linkerLibLibItem>uservercore</linkerLibLibItem>
+            <linkerLibStdlibItem>PosixThreads</linkerLibStdlibItem>
+            <linkerLibStdlibItem>DynamicLinking</linkerLibStdlibItem>
           </linkerLibItems>
-          <commandLine>-std=c++11</commandLine>
+          <commandLine>-lstdc++ -Wl,--no-undefined</commandLine>
         </linkerTool>
       </compileType>
       <item path="../../../include/aserverw.cpp" ex="false" tool="0" flavor2="0">
@@ -141,10 +141,9 @@
         <cTool>
           <developmentMode>6</developmentMode>
           <stripSymbols>true</stripSymbols>
-          <commandLine>-std=c++11 -static-libstdc++ -Os -fvisibility=hidden</commandLine>
+          <commandLine>-std=c++11 -Os -fvisibility=hidden</commandLine>
           <preprocessorList>
             <Elem>HAVE_GMTIME_R</Elem>
-            <Elem>HAVE_LOCALTIME_S</Elem>
             <Elem>NDEBUG</Elem>
             <Elem>SQLITE_DEFAULT_FOREIGN_KEYS=1</Elem>
             <Elem>SQLITE_ENABLE_COLUMN_METADATA</Elem>
@@ -158,10 +157,9 @@
         <ccTool>
           <developmentMode>6</developmentMode>
           <stripSymbols>true</stripSymbols>
-          <commandLine>-std=c++11 -static-libstdc++ -Os -fvisibility=hidden</commandLine>
+          <commandLine>-std=c++11 -Os -fvisibility=hidden</commandLine>
           <preprocessorList>
             <Elem>HAVE_GMTIME_R</Elem>
-            <Elem>HAVE_LOCALTIME_S</Elem>
             <Elem>NDEBUG</Elem>
             <Elem>SQLITE_DEFAULT_FOREIGN_KEYS=1</Elem>
             <Elem>SQLITE_ENABLE_COLUMN_METADATA</Elem>
@@ -183,8 +181,10 @@
           <commandlineTool>g++</commandlineTool>
           <linkerLibItems>
             <linkerLibLibItem>uservercore</linkerLibLibItem>
+            <linkerLibStdlibItem>PosixThreads</linkerLibStdlibItem>
+            <linkerLibStdlibItem>DynamicLinking</linkerLibStdlibItem>
           </linkerLibItems>
-          <commandLine>-std=c++11 -static-libstdc++</commandLine>
+          <commandLine>-lstdc++ -Wl,--no-undefined</commandLine>
         </linkerTool>
       </compileType>
       <item path="../../../include/aserverw.cpp" ex="false" tool="0" flavor2="0">

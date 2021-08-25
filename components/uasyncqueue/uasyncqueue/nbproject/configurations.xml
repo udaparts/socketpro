@@ -54,8 +54,9 @@
           <commandlineTool>g++</commandlineTool>
           <linkerLibItems>
             <linkerLibLibItem>uservercore</linkerLibLibItem>
+            <linkerLibStdlibItem>DynamicLinking</linkerLibStdlibItem>
           </linkerLibItems>
-          <commandLine>-std=c++11</commandLine>
+          <commandLine>-lstdc++ -Wl,--no-undefined</commandLine>
         </linkerTool>
       </compileType>
       <item path="../../../include/aserverw.cpp" ex="false" tool="0" flavor2="0">
@@ -107,7 +108,7 @@
         <cTool>
           <developmentMode>6</developmentMode>
           <stripSymbols>true</stripSymbols>
-          <commandLine>-std=c++11 -static-libstdc++ -Os -fvisibility=hidden</commandLine>
+          <commandLine>-std=c++11 -Os -fvisibility=hidden</commandLine>
           <preprocessorList>
             <Elem>NDEBUG</Elem>
           </preprocessorList>
@@ -115,7 +116,7 @@
         <ccTool>
           <developmentMode>6</developmentMode>
           <stripSymbols>true</stripSymbols>
-          <commandLine>-std=c++11 -static-libstdc++ -Os -fvisibility=hidden</commandLine>
+          <commandLine>-std=c++11 -Os -fvisibility=hidden</commandLine>
           <preprocessorList>
             <Elem>NDEBUG</Elem>
           </preprocessorList>
@@ -131,8 +132,9 @@
           <commandlineTool>g++</commandlineTool>
           <linkerLibItems>
             <linkerLibLibItem>uservercore</linkerLibLibItem>
+            <linkerLibStdlibItem>DynamicLinking</linkerLibStdlibItem>
           </linkerLibItems>
-          <commandLine>-std=c++11 -static-libstdc++</commandLine>
+          <commandLine>-lstdc++ -Wl,--no-undefined</commandLine>
         </linkerTool>
       </compileType>
       <item path="../../../include/aserverw.cpp" ex="false" tool="0" flavor2="0">
