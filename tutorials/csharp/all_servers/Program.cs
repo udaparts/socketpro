@@ -17,6 +17,9 @@ public class CMySocketProServer : CSocketProServer
     [DllImport("sodbc", EntryPoint = "DoSPluginAuthentication")]
     static extern int ODBC_Authentication(ulong hSocket, [In][MarshalAs(UnmanagedType.LPWStr)] string userId, [In][MarshalAs(UnmanagedType.LPWStr)] string password, uint svsId, [In][MarshalAs(UnmanagedType.LPWStr)] string dsn);
 
+    [DllImport("usqlsvr", EntryPoint = "DoSPluginAuthentication")]
+    static extern int MsSql_Authentication(ulong hSocket, [In][MarshalAs(UnmanagedType.LPWStr)] string userId, [In][MarshalAs(UnmanagedType.LPWStr)] string password, uint svsId, [In][MarshalAs(UnmanagedType.LPWStr)] string dsn);
+
     protected override bool OnIsPermitted(ulong hSocket, string userId, string password, uint nSvsID)
     {
         int res = Plugin.AUTHENTICATION_NOT_IMPLEMENTED;
@@ -32,6 +35,9 @@ public class CMySocketProServer : CSocketProServer
             case repConst.sidRAdoRep:
                 //give permission to known services without authentication
                 res = Plugin.AUTHENTICATION_OK;
+                break;
+            case SocketProAdapter.ClientSide.CSqlServer.sidMsSql:
+                res = MsSql_Authentication(hSocket, userId, password, nSvsID, "database=sakila;server=localhost;timeout=45");
                 break;
             case BaseServiceID.sidODBC:
                 res = ODBC_Authentication(hSocket, userId, password, nSvsID, "DRIVER={SQL Server Native Client 11.0};Server=(local);database=sakila");
@@ -148,6 +154,9 @@ public class CMySocketProServer : CSocketProServer
 
         //load ODBC socketPro server plugin library at the directory ../bin/win or ../bin/linux
         p = CSocketProServer.DllManager.AddALibrary("sodbc");
+
+        //load MS sql server plugin library at the directory ../bin/win or ../bin/linux
+        p = CSocketProServer.DllManager.AddALibrary("usqlsvr");
 
         bool ok = CSocketProServer.Router.SetRouting(piConst.sidPi, piConst.sidPiWorker);
 

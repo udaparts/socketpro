@@ -1,7 +1,7 @@
 from consts import piConst, hwConst
 from spa.serverside import CSocketProServer, CSocketProService,\
     CClientPeer, BaseServiceID, Plugin
-from spa.clientside import CAsyncQueue, CStreamingFile, CMysql, COdbc, CSqlite
+from spa.clientside import CAsyncQueue, CStreamingFile, CMysql, COdbc, CSqlite, CSqlServer
 from spa.udb import DB_CONSTS
 from pub_sub.ps_server.hwpeer import CHelloWorldPeer
 from webdemo.myhttppeer import CMyHttpPeer
@@ -45,6 +45,15 @@ ODBC_Auth = odbc_lib.DoSPluginAuthentication
 ODBC_Auth.argtypes = [c_uint64, c_wchar_p, c_wchar_p, c_uint, c_wchar_p]
 ODBC_Auth.restype = c_int
 
+mssql_lib = None
+if os == "win32":
+    mssql_lib = WinDLL("usqlsvr.dll")
+else:
+    mssql_lib = WinDLL("libusqlsvr.so")
+MsSql_Auth = mssql_lib.DoSPluginAuthentication
+MsSql_Auth.argtypes = [c_uint64, c_wchar_p, c_wchar_p, c_uint, c_wchar_p]
+MsSql_Auth.restype = c_int
+
 with CSocketProServer() as server:
     def OnClose(hSocket, errCode):
         bs = CSocketProService.SeekService(hSocket)
@@ -55,19 +64,18 @@ with CSocketProServer() as server:
 
     def OnIsPermitted(hSocket, userId, pwd, svsId):
         auth_res = Plugin.AUTHENTICATION_NOT_IMPLEMENTED
-        if svsId == hwConst.sidHelloWorld or svsId == BaseServiceID.sidHTTP \
-                or svsId == piConst.sidPi or svsId == piConst.sidPiWorker:
+        if svsId == hwConst.sidHelloWorld or svsId == BaseServiceID.sidHTTP or svsId == piConst.sidPi or svsId == piConst.sidPiWorker:
             # give permission to known services without authentication
             auth_res = Plugin.AUTHENTICATION_OK
         elif svsId == CAsyncQueue.sidQueue or svsId == CStreamingFile.sidFile:
             # give permission to known services without authentication
             auth_res = Plugin.AUTHENTICATION_OK
+        elif svsId == CSqlServer.sidMsSql:
+            auth_res = MsSql_Auth(hSocket, userId, pwd, svsId, 'database=sakila;server=localhost;timeout=45')
         elif svsId == COdbc.sidOdbc:
-            auth_res = ODBC_Auth(hSocket, userId, pwd, svsId, \
-            'DRIVER={ODBC Driver 13 for SQL Server};Server=windesk;database=sakila')
+            auth_res = ODBC_Auth(hSocket, userId, pwd, svsId, 'DRIVER={ODBC Driver 13 for SQL Server};Server=windesk;database=sakila')
         elif svsId == CMysql.sidMysql:
-            auth_res = MySQL_Auth(hSocket, userId, pwd, svsId, \
-                                  'database=sakila;server=windesk')
+            auth_res = MySQL_Auth(hSocket, userId, pwd, svsId, 'database=sakila;server=windesk')
         elif svsId == CSqlite.sidSqlite:
             auth_res = SQLite_Auth(hSocket, userId, pwd, svsId, 'usqlite.db')
             if auth_res == Plugin.AUTHENTICATION_PROCESSED:
@@ -76,8 +84,7 @@ with CSocketProServer() as server:
         if auth_res >= Plugin.AUTHENTICATION_OK:
             print(userId + "'s connecting permitted, and DB handle opened and cached")
         elif auth_res == Plugin.AUTHENTICATION_PROCESSED:
-            print(userId + \
-"'s connecting denied: no authentication implemented but DB handle opened and cached")
+            print(userId + "'s connecting denied: no authentication implemented but DB handle opened and cached")
         elif auth_res == Plugin.AUTHENTICATION_FAILED:
             print(userId + "'s connecting denied: bad password or user id")
         elif auth_res == Plugin.AUTHENTICATION_INTERNAL_ERROR:
@@ -85,8 +92,7 @@ with CSocketProServer() as server:
         elif auth_res == Plugin.AUTHENTICATION_NOT_IMPLEMENTED:
             print(userId + "'s connecting denied: no authentication implemented")
         else:
-            print(userId + \
-                  "'s connecting denied: unknown reseaon with res --" + str(auth_res))
+            print(userId + "'s connecting denied: unknown reseaon with res --" + str(auth_res))
         return auth_res >= Plugin.AUTHENTICATION_OK
     server.OnIsPermitted = OnIsPermitted
 
@@ -95,8 +101,7 @@ with CSocketProServer() as server:
         CSocketProServer.PushManager.AddAChatGroup(2, "Sales Department")
         CSocketProServer.PushManager.AddAChatGroup(3, "Management Department")
         CSocketProServer.PushManager.AddAChatGroup(7, "HR Department")
-        CSocketProServer.PushManager.AddAChatGroup( \
-            DB_CONSTS.CACHE_UPDATE_CHAT_GROUP_ID, "Subscribe/publish for front clients")
+        CSocketProServer.PushManager.AddAChatGroup(DB_CONSTS.CACHE_UPDATE_CHAT_GROUP_ID, "Subscribe/publish for front clients")
         return True # True -- ok; False -- no listening server
     server.OnSettingServer = do_configuration
 
@@ -137,6 +142,9 @@ with CSocketProServer() as server:
 
     # load ODBC server plugin library at the directory ../bin/win or ../bin/linux
     server.odbc = CSocketProServer.DllManager.AddALibrary("sodbc")
+
+    # load MS sql server plugin library at the directory ../bin/win or ../bin/linux
+    server.mssql = CSocketProServer.DllManager.AddALibrary("usqlsvr")
 
     if not server.Run(20901):
         print('Error message = ' + CSocketProServer.ErrorMessage)

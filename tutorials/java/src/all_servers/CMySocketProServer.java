@@ -20,6 +20,9 @@ public class CMySocketProServer extends CSocketProServer {
             case SPA.BaseServiceID.sidQueue:
                 res = Plugin.AUTHENTICATION_OK; //give permission to known services without authentication
                 break;
+            case SPA.ClientSide.CSqlServer.sidMsSql:
+                res = Plugin.DoSPluginAuthentication("usqlsvr", hSocket, userId, password, nSvsID, "Server=localhost;database=sakila;timeout=45");
+                break;
             case SPA.BaseServiceID.sidODBC:
                 res = Plugin.DoSPluginAuthentication("sodbc", hSocket, userId, password, nSvsID, "DRIVER={ODBC Driver 17 for SQL Server};Server=(local);database=sakila");
                 break;
@@ -109,6 +112,12 @@ public class CMySocketProServer extends CSocketProServer {
 
             //load ODBC socketPro server plugin library at the directory ../bin/win or ../bin/linux
             handle = CSocketProServer.DllManager.AddALibrary("sodbc");
+
+            //load ODBC socketPro server plugin library at the directory ../bin/win or ../bin/linux
+            handle = CSocketProServer.DllManager.AddALibrary("sodbc");
+
+            //load MS sql server plugin library at the directory ../bin/win or ../bin/linux
+            handle = CSocketProServer.DllManager.AddALibrary("usqlsvr");
 
             //test certificate and private key files are located at ../socketpro/bin
             //if (SPA.CUQueue.DEFAULT_OS == SPA.tagOperationSystem.osWin) {

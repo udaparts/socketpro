@@ -767,6 +767,7 @@ namespace SocketProAdapter
                             CBaseService.m_bRegEvent = false;
                         }
                     }
+                    ServerCoreLoader.StopSocketProServer();
                     m_sps = null;
                 }
             }
