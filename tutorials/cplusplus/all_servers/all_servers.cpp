@@ -130,7 +130,7 @@ protected:
             ODBC_DoAuth = (PDoSPluginAuthentication) GetProcAddress(h, "DoSPluginAuthentication");
         }
 
-        //load ODBC plugin library at the directory ../bin/win or ../bin/linux
+        //load MS sql server plugin library at the directory ../bin/win or ../bin/linux
         h = DllManager::AddALibrary("usqlsvr");
         if (h) {
             MsSql_DoAuth = (PDoSPluginAuthentication)GetProcAddress(h, "DoSPluginAuthentication");
