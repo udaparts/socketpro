@@ -43,6 +43,8 @@
     <ul>
         <li><b>Windows</b>:
             <ol>
+                <li>First of all, make sure that <a href="https://support.microsoft.com/en-us/topic/the-latest-supported-visual-c-downloads-2647da03-1eea-4433-9aff-95f26a218cc0">Microsoft Visual C++ Redistributable for Visual Studio 2015, 2017 and 2019</a> is already available. The redistributable package should be already installed if you use 
+                    MS Visual Studio 2015, 17 or 19.</li>
                 <li>Copy all library files at ../socketpro/bin/win/x64 into window system directory
                     c:\windows\System32. Also, copy all library files at ../socketpro/bin/win/x86 into window system directory c:\windows\SysWOW64.</li>
                 <li>Copy <span class="bbw">sakila.db</span> from ../socketpro/bin into both directories ../socketpro/bin/win/x64 and ../socketpro/bin/win/x86.</li>
@@ -53,6 +55,7 @@
         </li>
         <li><b>Linux</b> (for example, buntu):
             <ol>
+                <li>First of all, make sure that a proper version of libstdc++.so.6 is available.</li>
                 <li>Copy all shared libaries *.so at the directory ../socketpro/bin/linux into the directory /usr/lib.</li>
                 <li>Copy <span class="bbw">sakila.db</span> from ../socketpro/bin into directory ../socketpro/bin/linux.</li>
                 <li>Copy ../socketpro/bin/free_services/file/libustreamfile.so into the directory /usr/lib.</li>
