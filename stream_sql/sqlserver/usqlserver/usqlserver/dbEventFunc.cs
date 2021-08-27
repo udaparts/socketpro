@@ -43,7 +43,7 @@ public static class USqlStream
                         if (ServerCoreLoader.IsRunning())
                         {
                             ServerCoreLoader.SetOnIdle(null);
-                            Plugin.StopSocketProServer();
+                            //Plugin.StopSocketProServer();
                             res += 1;
                         }
                         Plugin.Dispose();

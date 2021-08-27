@@ -6,6 +6,7 @@ using System.IO;
 public class MsSqlConfig
 {
     public uint manual_batching = 0;
+    public uint max_queries_batched = 0;
 }
 
 public class UConfig
@@ -24,6 +25,7 @@ public class UConfig
     public bool disable_ipv6 = false;
     public int main_threads = DEFAULT_MAIN_THREADS;
     public uint manual_batching = 1;
+    public uint max_queries_batched = 0;
     public string mssql_plugin_version = "";
     public uint port = DEFAULT_PORT;
     public string services = "";
@@ -93,7 +95,7 @@ public class UConfig
         }
         catch (Exception ex)
         {
-            LogMsg(ex.Message, "UConfig::UConfig(string json)", 96); //line 96
+            LogMsg(ex.Message, "UConfig::UConfig(string json)", 98); //line 98
             changed = true;
         }
         finally
@@ -132,7 +134,7 @@ public class UConfig
         }
         catch (Exception ex)
         {
-            LogMsg(ex.Message, "UConfig::UpdateConfigFile", 135); //line 135
+            LogMsg(ex.Message, "UConfig::UpdateConfigFile", 137); //line 137
         }
     }
 
@@ -151,6 +153,7 @@ public class UConfig
         sp_server_core_version = config.sp_server_core_version;
         service_id = config.service_id;
         manual_batching = config.manual_batching;
+        max_queries_batched = config.max_queries_batched;
     }
 
     public static void LogMsg(string lineText, string file = "", int fileLineNumber = 0)

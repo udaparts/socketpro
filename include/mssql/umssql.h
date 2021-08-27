@@ -14,6 +14,7 @@ namespace SPA {
     } //namespace SqlServer
 } //namespace SPA
 
-#define CA_FOR_MSSQL    "ca_for_mssql"
+#define CA_FOR_MSSQL            "ca_for_mssql"
+#define MAX_QUERIES_BATCHED     "max_queries_batched"
 
 #endif
