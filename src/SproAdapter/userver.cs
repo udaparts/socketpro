@@ -768,6 +768,7 @@ namespace SocketProAdapter
                         }
                     }
                     ServerCoreLoader.StopSocketProServer();
+                    ServerCoreLoader.UninitSocketProServer();
                     m_sps = null;
                 }
             }
