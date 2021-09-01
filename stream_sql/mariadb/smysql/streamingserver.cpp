@@ -3,9 +3,11 @@
 #include "../../../include/pexports.h"
 #include "../../../include/membuffer.h"
 
-#define MY_VERSION                          "1.5.0.7" //this DB plugin version
+#define MY_VERSION                          "1.6.0.1" //this DB plugin version
 
 #define DEFAULT_LOCAL_CONNECTION_STRING     L"host=localhost;port=3306;timeout=30"
+
+extern std::atomic<unsigned int> g_maxQueriesBatched;
 
 CStreamingServer *g_pStreamingServer = nullptr;
 
@@ -196,6 +198,7 @@ void CSetGlobals::UpdateConfigFile() {
     obj[STREAMING_DB_PORT] = Config.port;
     obj[STREAMING_DB_MAIN_THREADS] = Config.main_threads;
     obj[STREAMING_DB_NO_IPV6] = Config.disable_ipv6;
+    obj[MAX_QUERIES_BATCHED] = g_maxQueriesBatched;
 #ifdef ENABLE_WORKING_DIRECTORY
     obj[STREAMING_DB_WORKING_DIR] = Config.working_dir;
 #endif
@@ -277,6 +280,10 @@ void CSetGlobals::SetConfig() {
     if (v && v->GetType() == enumType::Uint64) {
         Config.main_threads = (int) v->AsUint64();
         if (Config.main_threads <= 0) Config.main_threads = 1;
+    }
+    v = doc->Child(MAX_QUERIES_BATCHED);
+    if (v && v->GetType() == enumType::Uint64) {
+        g_maxQueriesBatched = (unsigned int) v->AsUint64();
     }
     v = doc->Child(STREAMING_DB_NO_IPV6);
     if (v && v->GetType() == enumType::Bool) {
