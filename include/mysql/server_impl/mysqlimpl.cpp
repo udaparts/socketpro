@@ -382,7 +382,7 @@ namespace SPA{
 
         CMysqlImpl::CMysqlImpl() : m_oks(0), m_fails(0), m_ti(tagTransactionIsolation::tiUnspecified),
         m_global(true), m_Blob(*m_sb), m_parameters(0), m_bCall(false), m_bManual(false), m_EnableMessages(false),
-        m_pNoSending(nullptr), m_bPSelect(false), m_maxQueriesBatched(0) {
+        m_pNoSending(nullptr), m_bPSelect(false), m_maxQueriesBatched(0), m_bQueryBatching(false) {
             m_Blob.ToUtf8(true);
 #ifdef WIN32_64
             m_UQueue.TimeEx(true); //use high-precision datetime
@@ -464,6 +464,7 @@ namespace SPA{
         }
 
         void CMysqlImpl::OnSwitchFrom(unsigned int nOldServiceId) {
+            m_bQueryBatching = false;
             m_oks = 0;
             m_fails = 0;
             m_ti = tagTransactionIsolation::tiUnspecified;
@@ -550,7 +551,6 @@ namespace SPA{
                 Utilities::Trim(db);
                 if (!db.size() || SPA::IsEqual(db.c_str(), m_dbNameOpened.c_str(), false)) {
                     errMsg = m_dbNameOpened;
-                    return;
                 } else {
                     INT64 affected;
                     CDBVariant vtId;
