@@ -59,6 +59,12 @@ public class DB_CONSTS {
     public static final int ENABLE_TABLE_UPDATE_MESSAGES = 0x1;
 
     /**
+     * A flag used with idOpen to enable in-line batching query statements for
+     * better performance
+     */
+    public final static int USE_QUERY_BATCHING = 0x2;
+
+    /**
      * A chat group id used at SocketPro server side for notifying database
      * events from server to connected clients
      */

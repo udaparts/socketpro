@@ -42,7 +42,7 @@ bool U_MODULE_OPENED WINAPI SetSPluginGlobalOptions(const char* jsonOptions) {
     }
     v = jv->Child(MAX_QUERIES_BATCHED);
     if (v && v->GetType() == JSON::enumType::Uint64) {
-        g_maxQueriesBatched = (unsigned int)v->AsUint64();
+        g_maxQueriesBatched = (unsigned int) v->AsUint64();
     }
     return true;
 }

@@ -22,9 +22,9 @@
 
 std::atomic<unsigned int> g_maxQueriesBatched(8);
 
-namespace SPA
-{
-    namespace ServerSide{
+namespace SPA{
+    namespace ServerSide
+    {
 
         CUCriticalSection CMysqlImpl::m_csPeer;
         CDBString CMysqlImpl::m_strGlobalConnection;
@@ -90,8 +90,7 @@ namespace SPA
                     SPA::ToLower(right);
                     if (right == "yes" || right == "y" || right == "true") {
                         QueryBatching = true;
-                    }
-                    else if (std::atoi(right.c_str())) {
+                    } else if (std::atoi(right.c_str())) {
                         QueryBatching = true;
                     }
                 } else if (left == "port")
@@ -1443,7 +1442,7 @@ namespace SPA
         UINT64 CMysqlImpl::ExecuteSqlWithRowset(bool rowset, bool meta, UINT64 index, bool lastInsertId, int &res, CDBString &errMsg, INT64 & affected) {
             unsigned int oks = 0, fails = 0;
             UINT64 sep_fail_oks = 0;
-            CComVariant vtId((INT64)0);
+            CComVariant vtId((INT64) 0);
             do {
                 bool sep = false;
                 MYSQL_RES *result = m_remMysql.mysql_use_result(m_pMysql.get());
@@ -1468,8 +1467,7 @@ namespace SPA
                     m_remMysql.mysql_free_result(result);
                     if (!sep) {
                         ++oks;
-                    }
-                    else {
+                    } else {
                         ExecuteContext ec = PopExecContext();
                         rowset = ec.rowset;
                         meta = ec.meta;
@@ -1483,7 +1481,7 @@ namespace SPA
                         sep_fail_oks += fail_oks;
                         oks = 0;
                         fails = 0;
-                        vtId = (INT64)0;
+                        vtId = (INT64) 0;
                         if (ret == REQUEST_CANCELED || ret == SOCKET_NOT_FOUND) {
                             m_vEexcContext.clear();
                             return INVALID_NUMBER;
@@ -1503,10 +1501,10 @@ namespace SPA
                     int errCode = m_remMysql.mysql_errno(m_pMysql.get());
                     if (!errCode) {
                         ++oks;
-                        INT64 change = (INT64)m_remMysql.mysql_affected_rows(m_pMysql.get());
+                        INT64 change = (INT64) m_remMysql.mysql_affected_rows(m_pMysql.get());
                         affected += change;
                         if (change && lastInsertId && m_vEexcContext.size()) {
-                            vtId = (INT64)m_remMysql.mysql_insert_id(m_pMysql.get());
+                            vtId = (INT64) m_remMysql.mysql_insert_id(m_pMysql.get());
                         }
                     } else {
                         ++fails;
@@ -1572,10 +1570,9 @@ namespace SPA
                     sql += s.substr(pos + 1);
                     sql += "`";
                 }
-            }
-            else
+            } else
 #endif
-            if (m_maxQueriesBatched && m_bQueryBatching && m_maxQueriesBatched > m_vEexcContext.size() && PeekNextRequest() == UDB::idExecute && GetCurrentRequestID() == UDB::idExecute) {
+                if (m_maxQueriesBatched && m_bQueryBatching && m_maxQueriesBatched > m_vEexcContext.size() && PeekNextRequest() == UDB::idExecute && GetCurrentRequestID() == UDB::idExecute) {
                 ExecuteContext ec;
                 ec.sql.swap(wsql);
                 ec.rowset = rowset;
@@ -1597,7 +1594,7 @@ namespace SPA
                 rowset = ec.rowset;
                 lastInsertId = ec.lastInsertId;
                 Utilities::ToUTF8(wsql.c_str(), wsql.size(), m_Blob); //use existing buffer for conversion
-                sql = (const char*)m_Blob.GetBuffer();
+                sql = (const char*) m_Blob.GetBuffer();
                 m_Blob.SetSize(0);
             }
             UINT64 sep_fail_oks = 0;
@@ -1627,7 +1624,7 @@ namespace SPA
                 affected = 0;
                 fail_ok = 1;
                 fail_ok <<= 32;
-                vtId = (INT64)0;
+                vtId = (INT64) 0;
                 SendResult(idExecute, affected, res, errMsg, vtId, fail_ok);
                 m_vEexcContext.pop_front();
             }
@@ -2167,7 +2164,7 @@ namespace SPA
             }
         }
 
-        CDBString CMysqlImpl::MakeSQL(ExecuteContext& ec) {
+        CDBString CMysqlImpl::MakeSQL(ExecuteContext & ec) {
             CDBString sql;
             for (auto it = m_vEexcContext.begin(), end = m_vEexcContext.end(); it != end; ++it) {
                 sql += (it->sql + u";SELECT 0,0,0,0,0;");
@@ -2178,7 +2175,7 @@ namespace SPA
             return std::move(sql);
         }
 
-        bool CMysqlImpl::IsSeparator(const CDBColumnInfoArray& vCol) const {
+        bool CMysqlImpl::IsSeparator(const CDBColumnInfoArray & vCol) const {
             bool sep = (m_bQueryBatching && vCol.size() == 5);
             if (!sep) {
                 return false;
