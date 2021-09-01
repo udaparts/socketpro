@@ -5,7 +5,7 @@
 using namespace SPA;
 using namespace SPA::ServerSide;
 
-std::atomic<unsigned int> g_maxQueriesBatched(8);
+extern std::atomic<unsigned int> g_maxQueriesBatched;
 
 std::string g_version("1.0.1.1");
 

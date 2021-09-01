@@ -20,7 +20,7 @@
 #define MYSQL_OPT_SSL_CIPHER ((mysql_option) 29)
 #endif
 
-extern std::atomic<unsigned int> g_maxQueriesBatched;
+std::atomic<unsigned int> g_maxQueriesBatched(8);
 
 namespace SPA
 {
