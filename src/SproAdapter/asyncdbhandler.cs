@@ -355,6 +355,11 @@ namespace SocketProAdapter
             public const uint ENABLE_TABLE_UPDATE_MESSAGES = 0x1;
 
             /// <summary>
+            /// A flag used with idOpen to enable inline batching query statements for bettter performance
+            /// </summary>
+            public const uint USE_QUERY_BATCHING = 0x2;
+
+            /// <summary>
             /// A chat group id used at SocketPro server side for notifying database events from server to connected clients
             /// </summary>
             public const uint STREAMING_SQL_CHAT_GROUP_ID = 0x1fffffff;

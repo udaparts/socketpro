@@ -63,5 +63,6 @@ typedef int (WINAPI *PDoSPluginAuthentication)(SPA::UINT64 hSocket, const wchar_
 #define GLOBAL_CONNECTION_STRING       "global_connection_string"
 #define PLUGIN_SERVICE_ID              "service_id"
 #define MANUAL_BATCHING                "manual_batching"
+#define MAX_QUERIES_BATCHED            "max_queries_batched"
 
 #endif

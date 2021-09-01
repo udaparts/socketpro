@@ -20,6 +20,8 @@
 #define MYSQL_OPT_SSL_CIPHER ((mysql_option) 29)
 #endif
 
+extern std::atomic<unsigned int> g_maxQueriesBatched;
+
 namespace SPA
 {
     namespace ServerSide{
@@ -84,7 +86,15 @@ namespace SPA
                     timeout = (unsigned int) std::atoi(right.c_str());
                 else if (left == "database" || left == "db")
                     database = right;
-                else if (left == "port")
+                else if (left == "query batching" || left == "querybatching" || left == "querybatch" || left == "query batch") {
+                    SPA::ToLower(right);
+                    if (right == "yes" || right == "y" || right == "true") {
+                        QueryBatching = true;
+                    }
+                    else if (std::atoi(right.c_str())) {
+                        QueryBatching = true;
+                    }
+                } else if (left == "port")
                     port = (unsigned int) std::atoi(right.c_str());
                 else if (left == "pwd" || left == "password")
                     password = right;
@@ -373,7 +383,7 @@ namespace SPA
 
         CMysqlImpl::CMysqlImpl() : m_oks(0), m_fails(0), m_ti(tagTransactionIsolation::tiUnspecified),
         m_global(true), m_Blob(*m_sb), m_parameters(0), m_bCall(false), m_bManual(false), m_EnableMessages(false),
-        m_pNoSending(nullptr), m_bPSelect(false) {
+        m_pNoSending(nullptr), m_bPSelect(false), m_maxQueriesBatched(0) {
             m_Blob.ToUtf8(true);
 #ifdef WIN32_64
             m_UQueue.TimeEx(true); //use high-precision datetime
@@ -384,6 +394,16 @@ namespace SPA
         void CMysqlImpl::UnloadMysql() {
             SPA::CAutoLock al(m_csPeer);
             m_remMysql.Unload();
+        }
+
+        CMysqlImpl::ExecuteContext CMysqlImpl::PopExecContext() {
+            if (m_vEexcContext.size()) {
+                ExecuteContext ec = m_vEexcContext.front();
+                m_vEexcContext.pop_front();
+                return ec;
+            }
+            ExecuteContext ec;
+            return ec;
         }
 
         void CALLBACK CMysqlImpl::OnThreadEvent(tagThreadEvent te) {
@@ -449,6 +469,7 @@ namespace SPA
             m_fails = 0;
             m_ti = tagTransactionIsolation::tiUnspecified;
             m_bManual = false;
+            m_maxQueriesBatched = g_maxQueriesBatched;
             SetInlineBatching(m_mb ? true : false);
             USocket_Server_Handle hSocket = GetSocketHandle();
             CAutoLock al(m_csPeer);
@@ -456,6 +477,7 @@ namespace SPA
             if (it != m_mapConnection.end()) {
                 m_pMysql = it->second.Handle;
                 m_dbNameOpened = it->second.DefaultDB;
+                m_bQueryBatching = it->second.QueryBatching;
                 m_mapConnection.erase(hSocket);
             }
         }
@@ -472,12 +494,29 @@ namespace SPA
         }
 
         int CMysqlImpl::OnSlowRequestArrive(unsigned short reqId, unsigned int len) {
+            if (reqId == idExecute) {
+                CDBString sql;
+                bool rowset;
+                bool meta;
+                bool lastInsertId;
+                UINT64 index;
+                INT64 affected;
+                int res;
+                CDBString errMsg;
+                CDBVariant vtId;
+                UINT64 fail_ok;
+                m_UQueue >> sql >> rowset >> meta >> lastInsertId >> index;
+                Execute(sql, rowset, meta, lastInsertId, index, affected, res, errMsg, vtId, fail_ok);
+                if (fail_ok != INVALID_NUMBER) {
+                    SendResult(reqId, affected, res, errMsg, vtId, fail_ok);
+                }
+                return 0;
+            }
             BEGIN_SWITCH(reqId)
             M_I0_R2(idClose, CloseDb, int, CDBString)
             M_I2_R3(idOpen, Open, CDBString, unsigned int, int, CDBString, int)
             M_I3_R3(idBeginTrans, BeginTrans, int, CDBString, unsigned int, int, CDBString, int)
             M_I1_R2(idEndTrans, EndTrans, int, int, CDBString)
-            M_I5_R5(idExecute, Execute, CDBString, bool, bool, bool, UINT64, INT64, int, CDBString, CDBVariant, UINT64)
             M_I2_R3(idPrepare, Prepare, CDBString, CParameterInfoArray, int, CDBString, unsigned int)
             M_I4_R5(idExecuteParameters, ExecuteParameters, bool, bool, bool, UINT64, INT64, int, CDBString, CDBVariant, UINT64)
             M_I10_R5(idExecuteBatch, ExecuteBatch, CDBString, CDBString, int, int, bool, bool, bool, CDBString, unsigned int, UINT64, INT64, int, CDBString, CDBVariant, UINT64)
@@ -527,6 +566,9 @@ namespace SPA
                         errMsg = db;
                         m_dbNameOpened = db;
                     }
+                }
+                if ((flags & USE_QUERY_BATCHING) == USE_QUERY_BATCHING) {
+                    m_bQueryBatching = true;
                 }
             } else {
                 MYSQL *mysql = m_remMysql.mysql_init(nullptr);
@@ -585,6 +627,9 @@ namespace SPA
                         break;
                     } else {
                         res = 0;
+                        if ((flags & USE_QUERY_BATCHING) == USE_QUERY_BATCHING || conn.QueryBatching) {
+                            m_bQueryBatching = true;
+                        }
                     }
                     m_dbNameOpened = Utilities::ToUTF16(conn.database);
                     if (!m_global) {
@@ -1395,48 +1440,76 @@ namespace SPA
             return true;
         }
 
-        void CMysqlImpl::ExecuteSqlWithRowset(bool rowset, bool meta, UINT64 index, int &res, CDBString &errMsg, INT64 & affected) {
+        UINT64 CMysqlImpl::ExecuteSqlWithRowset(bool rowset, bool meta, UINT64 index, bool lastInsertId, int &res, CDBString &errMsg, INT64 & affected) {
+            unsigned int oks = 0, fails = 0;
+            UINT64 sep_fail_oks = 0;
+            CComVariant vtId((INT64)0);
             do {
+                bool sep = false;
                 MYSQL_RES *result = m_remMysql.mysql_use_result(m_pMysql.get());
                 if (result) {
                     unsigned int cols = m_remMysql.mysql_num_fields(result);
                     CDBColumnInfoArray vInfo = GetColInfo(result, cols, meta);
-                    if (!m_pNoSending) {
+                    sep = IsSeparator(vInfo);
+                    if (!m_pNoSending && !sep) {
                         unsigned int ret = SendResult(idRowsetHeader, vInfo, index);
                         if (ret == REQUEST_CANCELED || ret == SOCKET_NOT_FOUND) {
                             m_remMysql.mysql_free_result(result);
-                            return;
+                            m_vEexcContext.clear();
+                            return INVALID_NUMBER;
                         }
                     }
                     bool ok;
-                    if (rowset) {
+                    if (rowset && !sep) {
                         ok = PushRecords(result, vInfo, res, errMsg);
                     } else {
                         ok = true;
                     }
                     m_remMysql.mysql_free_result(result);
-                    ++m_oks;
-
-                    //For SELECT statements, mysql_affected_rows() works like mysql_num_rows().
-                    //affected += (INT64)m_remMysql.mysql_affected_rows(m_pMysql.get());
-
+                    if (!sep) {
+                        ++oks;
+                    }
+                    else {
+                        ExecuteContext ec = PopExecContext();
+                        rowset = ec.rowset;
+                        meta = ec.meta;
+                        index = ec.index;
+                        lastInsertId = ec.lastInsertId;
+                        UINT64 fail_oks = fails;
+                        fail_oks <<= 32;
+                        fail_oks += oks;
+                        unsigned int ret = SendResult(SPA::UDB::idExecute, affected, res, errMsg, vtId, fail_oks);
+                        affected = 0;
+                        sep_fail_oks += fail_oks;
+                        oks = 0;
+                        fails = 0;
+                        vtId = (INT64)0;
+                        if (ret == REQUEST_CANCELED || ret == SOCKET_NOT_FOUND) {
+                            m_vEexcContext.clear();
+                            return INVALID_NUMBER;
+                        }
+                    }
                     if (!ok) {
-                        return;
+                        return sep_fail_oks;
                     }
                 } else {
                     if (!m_pNoSending) {
                         CDBColumnInfoArray vInfo;
                         unsigned int ret = SendResult(idRowsetHeader, vInfo, index);
                         if (ret == REQUEST_CANCELED || ret == SOCKET_NOT_FOUND) {
-                            return;
+                            return INVALID_NUMBER;
                         }
                     }
                     int errCode = m_remMysql.mysql_errno(m_pMysql.get());
                     if (!errCode) {
-                        ++m_oks;
-                        affected += (INT64) m_remMysql.mysql_affected_rows(m_pMysql.get());
+                        ++oks;
+                        INT64 change = (INT64)m_remMysql.mysql_affected_rows(m_pMysql.get());
+                        affected += change;
+                        if (change && lastInsertId && m_vEexcContext.size()) {
+                            vtId = (INT64)m_remMysql.mysql_insert_id(m_pMysql.get());
+                        }
                     } else {
-                        ++m_fails;
+                        ++fails;
                         if (!res) {
                             res = errCode;
                             errMsg = Utilities::ToUTF16(m_remMysql.mysql_error(m_pMysql.get()));
@@ -1447,7 +1520,7 @@ namespace SPA
                 if (status == -1) {
                     break; //Successful and there are no more results
                 } else if (status > 0) {
-                    ++m_fails;
+                    ++fails;
                     if (!res) {
                         res = m_remMysql.mysql_errno(m_pMysql.get());
                         errMsg = Utilities::ToUTF16(m_remMysql.mysql_error(m_pMysql.get()));
@@ -1459,9 +1532,12 @@ namespace SPA
                     assert(false); //never come here
                 }
             } while (true);
+            m_oks += oks;
+            m_fails += fails;
+            return sep_fail_oks;
         }
 
-        void CMysqlImpl::Execute(const CDBString& wsql, bool rowset, bool meta, bool lastInsertId, UINT64 index, INT64 &affected, int &res, CDBString &errMsg, CDBVariant &vtId, UINT64 & fail_ok) {
+        void CMysqlImpl::Execute(CDBString& wsql, bool rowset, bool meta, bool lastInsertId, UINT64 index, INT64 &affected, int &res, CDBString &errMsg, CDBVariant &vtId, UINT64 & fail_ok) {
             fail_ok = 0;
             affected = 0;
             ResetMemories(); //m_Blob reset to zero in size
@@ -1475,13 +1551,13 @@ namespace SPA
             } else {
                 res = 0;
             }
+            Utilities::Trim(wsql, CDBString(u";"));
             vtId = (INT64) 0;
             UINT64 fails = m_fails;
             UINT64 oks = m_oks;
             Utilities::ToUTF8(wsql.c_str(), wsql.size(), m_Blob); //use existing buffer for conversion
             std::string sql = (const char*) m_Blob.GetBuffer();
             m_Blob.SetSize(0);
-            Utilities::Trim(sql);
 #ifdef MM_DB_SERVER_PLUGIN
             if (m_EnableMessages && !sql.size()) {
                 //client side is asking for data from cached tables
@@ -1497,7 +1573,34 @@ namespace SPA
                     sql += "`";
                 }
             }
+            else
 #endif
+            if (m_maxQueriesBatched && m_bQueryBatching && m_maxQueriesBatched > m_vEexcContext.size() && PeekNextRequest() == UDB::idExecute && GetCurrentRequestID() == UDB::idExecute) {
+                ExecuteContext ec;
+                ec.sql.swap(wsql);
+                ec.rowset = rowset;
+                ec.meta = meta;
+                ec.index = index;
+                ec.lastInsertId = lastInsertId;
+                m_vEexcContext.push_back(std::move(ec));
+                fail_ok = INVALID_NUMBER;
+                return;
+            }
+            if (m_vEexcContext.size()) {
+                ExecuteContext ec;
+                ec.index = index;
+                ec.meta = meta;
+                ec.rowset = rowset;
+                wsql = MakeSQL(ec) + wsql;
+                index = ec.index;
+                meta = ec.meta;
+                rowset = ec.rowset;
+                lastInsertId = ec.lastInsertId;
+                Utilities::ToUTF8(wsql.c_str(), wsql.size(), m_Blob); //use existing buffer for conversion
+                sql = (const char*)m_Blob.GetBuffer();
+                m_Blob.SetSize(0);
+            }
+            UINT64 sep_fail_oks = 0;
             const char *sqlUtf8 = (const char*) sql.c_str();
             int status = m_remMysql.mysql_real_query(m_pMysql.get(), sqlUtf8, (unsigned long) sql.size());
             if (status) {
@@ -1505,8 +1608,11 @@ namespace SPA
                 errMsg = Utilities::ToUTF16(m_remMysql.mysql_error(m_pMysql.get()));
                 ++m_fails;
             } else {
-                if (rowset || meta) {
-                    ExecuteSqlWithRowset(rowset, meta, index, res, errMsg, affected);
+                if (rowset || meta || m_vEexcContext.size()) {
+                    sep_fail_oks = ExecuteSqlWithRowset(rowset, meta, index, lastInsertId, res, errMsg, affected);
+                    if (sep_fail_oks == INVALID_NUMBER) {
+                        return; //request canceled or socket closed
+                    }
                 } else {
                     ExecuteSqlWithoutRowset(res, errMsg, affected);
                 }
@@ -1516,8 +1622,22 @@ namespace SPA
                     }
                 }
             }
+            UINT64 sep_fails = m_vEexcContext.size();
+            while (m_vEexcContext.size()) {
+                affected = 0;
+                fail_ok = 1;
+                fail_ok <<= 32;
+                vtId = (INT64)0;
+                SendResult(idExecute, affected, res, errMsg, vtId, fail_ok);
+                m_vEexcContext.pop_front();
+            }
             fail_ok = ((m_fails - fails) << 32);
             fail_ok += (unsigned int) (m_oks - oks);
+            if (sep_fail_oks) {
+                m_fails += (sep_fail_oks >> 32);
+                m_oks += (sep_fail_oks & 0xffffffff);
+            }
+            m_fails += sep_fails;
         }
 
         void CMysqlImpl::PreprocessPreparedStatement() {
@@ -2047,6 +2167,35 @@ namespace SPA
             }
         }
 
+        CDBString CMysqlImpl::MakeSQL(ExecuteContext& ec) {
+            CDBString sql;
+            for (auto it = m_vEexcContext.begin(), end = m_vEexcContext.end(); it != end; ++it) {
+                sql += (it->sql + u";SELECT 0,0,0,0,0;");
+            }
+            m_vEexcContext.push_back(ec);
+            ec = m_vEexcContext.front();
+            m_vEexcContext.pop_front();
+            return std::move(sql);
+        }
+
+        bool CMysqlImpl::IsSeparator(const CDBColumnInfoArray& vCol) const {
+            bool sep = (m_bQueryBatching && vCol.size() == 5);
+            if (!sep) {
+                return false;
+            }
+            const CDBColumnInfo& col0 = vCol[0];
+            const CDBColumnInfo& col1 = vCol[1];
+            const CDBColumnInfo& col2 = vCol[2];
+            const CDBColumnInfo& col3 = vCol[3];
+            const CDBColumnInfo& col4 = vCol[4];
+            sep = (col0 == col1 && col0 == col2 && col0 == col3 && col0 == col4);
+            if (!sep) {
+                return false;
+            }
+            sep = (col0.DataType == VT_I4 || col0.DataType == VT_I8);
+            return sep;
+        }
+
         std::vector<CDBString> CMysqlImpl::Split(const CDBString &sql, const CDBString & delimiter) {
             std::vector<CDBString> v;
             size_t d_len = delimiter.size();
@@ -2451,6 +2600,7 @@ namespace SPA
                 MyStruct ms;
                 ms.Handle = impl.m_pMysql;
                 ms.DefaultDB = impl.m_dbNameOpened;
+                ms.QueryBatching = impl.m_bQueryBatching;
                 CAutoLock al(m_csPeer);
                 m_mapConnection[hSocket] = ms;
             } else {

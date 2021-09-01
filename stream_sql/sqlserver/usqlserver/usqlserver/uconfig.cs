@@ -11,7 +11,7 @@ public class MsSqlConfig
 
 public class UConfig
 {
-    public static readonly string MY_VERSION = "1.5.0.4";
+    public static readonly string MY_VERSION = "1.5.0.5";
     public static readonly string DEFAULT_CONNECTION_STRING = "server=localhost;timeout=30";
     public static readonly int DEFAULT_MAIN_THREADS = 1;
     public static readonly uint DEFAULT_PORT = 20903;
@@ -25,7 +25,7 @@ public class UConfig
     public bool disable_ipv6 = false;
     public int main_threads = DEFAULT_MAIN_THREADS;
     public uint manual_batching = 1;
-    public uint max_queries_batched = 0;
+    public uint max_queries_batched = 8;
     public string mssql_plugin_version = "";
     public uint port = DEFAULT_PORT;
     public string services = "";

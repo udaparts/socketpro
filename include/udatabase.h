@@ -141,9 +141,10 @@ namespace SPA {
         static const unsigned int DEFAULT_RECORD_BATCH_SIZE = 16 * 1024;
 
         /**
-         * A flag used with idOpen for tracing database table update events
+         * Flags used with idOpen for tracing database table update events
          */
         static const unsigned int ENABLE_TABLE_UPDATE_MESSAGES = 0x1;
+        static const unsigned int USE_QUERY_BATCHING = 0x2;
 
         /**
          * A chat group id used at SocketPro server side for notifying database events from server to connected clients
@@ -153,7 +154,7 @@ namespace SPA {
         static const unsigned int CACHE_UPDATE_CHAT_GROUP_ID = STREAMING_SQL_CHAT_GROUP_ID + 1;
 
         /**
-         * VARINAT data types for OLEDB
+         * VARIANT data types for OLEDB
          */
         static const unsigned short VT_BYTES = 128; //OLEDB data type for binary array
         static const unsigned short VT_STR = 129; //OLEDB data type for ASCII string

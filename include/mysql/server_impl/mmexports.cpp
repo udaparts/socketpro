@@ -5,7 +5,9 @@
 using namespace SPA;
 using namespace SPA::ServerSide;
 
-std::string g_version("1.0.0.14");
+std::atomic<unsigned int> g_maxQueriesBatched(8);
+
+std::string g_version("1.0.1.1");
 
 #ifdef WIN32_64
 
@@ -38,6 +40,10 @@ bool U_MODULE_OPENED WINAPI SetSPluginGlobalOptions(const char* jsonOptions) {
     if (v && v->GetType() == JSON::enumType::Uint64) {
         CMysqlImpl::m_mb = (unsigned int) v->AsUint64();
     }
+    v = jv->Child(MAX_QUERIES_BATCHED);
+    if (v && v->GetType() == JSON::enumType::Uint64) {
+        g_maxQueriesBatched = (unsigned int)v->AsUint64();
+    }
     return true;
 }
 
@@ -50,6 +56,7 @@ unsigned int U_MODULE_OPENED WINAPI GetSPluginGlobalOptions(char* json, unsigned
     obj[STREAMING_DB_MYSQL_CLIENT_LIB] = CMysqlImpl::GetClientLibName();
     obj[PLUGIN_SERVICE_ID] = SPA::Mysql::sidMysql;
     obj[MANUAL_BATCHING] = CMysqlImpl::m_mb;
+    obj[MAX_QUERIES_BATCHED] = g_maxQueriesBatched;
     JSON::JValue<char> jv(std::move(obj));
     std::string s = jv.Stringify(false);
     size_t len = s.size();

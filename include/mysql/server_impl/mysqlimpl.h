@@ -60,7 +60,7 @@ namespace SPA {
 
             struct MYSQL_CONNECTION_STRING {
 
-                MYSQL_CONNECTION_STRING() : timeout(10), port(3306) {
+                MYSQL_CONNECTION_STRING() : timeout(10), port(3306), QueryBatching(false) {
                 }
                 unsigned int timeout; //timeout | connect-timeout seconds
                 std::string database; //database
@@ -74,6 +74,7 @@ namespace SPA {
                 std::string ssl_key; //file_name
                 std::string user; //user | uid
                 std::string socket;
+                bool QueryBatching;
 
                 bool IsSSL() const {
                     return (ssl_ca.size() || ssl_capath.size() || ssl_cert.size() || ssl_cipher.size() || ssl_key.size());
@@ -85,6 +86,16 @@ namespace SPA {
                 MYSQL_CONNECTION_STRING(const MYSQL_CONNECTION_STRING &conn);
                 MYSQL_CONNECTION_STRING& operator=(const MYSQL_CONNECTION_STRING &conn);
             };
+
+            struct ExecuteContext {
+                CDBString sql;
+                bool rowset = false;
+                bool meta = false;
+                UINT64 index = INVALID_NUMBER;
+                bool lastInsertId = true;
+            };
+
+            ExecuteContext PopExecContext();
 
         public:
             CMysqlImpl();
@@ -128,7 +139,7 @@ namespace SPA {
             void CloseDb(int &res, CDBString &errMsg);
             void BeginTrans(int isolation, const CDBString &dbConn, unsigned int flags, int &res, CDBString &errMsg, int &ms);
             void EndTrans(int plan, int &res, CDBString &errMsg);
-            void Execute(const CDBString& sql, bool rowset, bool meta, bool lastInsertId, UINT64 index, INT64 &affected, int &res, CDBString &errMsg, CDBVariant &vtId, UINT64 &fail_ok);
+            void Execute(CDBString& sql, bool rowset, bool meta, bool lastInsertId, UINT64 index, INT64 &affected, int &res, CDBString &errMsg, CDBVariant &vtId, UINT64 &fail_ok);
             void Prepare(const CDBString& sql, CParameterInfoArray& params, int &res, CDBString &errMsg, unsigned int &parameters);
             void ExecuteParameters(bool rowset, bool meta, bool lastInsertId, UINT64 index, INT64 &affected, int &res, CDBString &errMsg, CDBVariant &vtId, UINT64 &fail_ok);
             void ExecuteBatch(const CDBString& sql, const CDBString& delimiter, int isolation, int plan, bool rowset, bool meta, bool lastInsertId, const CDBString &dbConn, unsigned int flags, UINT64 index, INT64 &affected, int &res, CDBString &errMsg, CDBVariant &vtId, UINT64 &fail_ok);
@@ -145,7 +156,7 @@ namespace SPA {
 
         private:
             void ExecuteSqlWithoutRowset(int &res, CDBString &errMsg, INT64 &affected);
-            void ExecuteSqlWithRowset(bool rowset, bool meta, UINT64 index, int &res, CDBString &errMsg, INT64 &affected);
+            UINT64 ExecuteSqlWithRowset(bool rowset, bool meta, UINT64 index, bool lastInsertId, int &res, CDBString &errMsg, INT64 &affected);
             CDBColumnInfoArray GetColInfo(MYSQL_RES *result, unsigned int cols, bool meta);
             bool PushRecords(MYSQL_RES *result, const CDBColumnInfoArray &vColInfo, int &res, CDBString &errMsg);
             int Bind(CUQueue &qBufferSize, int row, CDBString &errMsg);
@@ -155,6 +166,8 @@ namespace SPA {
             void CleanDBObjects();
             void ResetMemories();
             void SetVParam(CDBVariantArray& vAll, size_t parameters, size_t pos, size_t ps);
+            CDBString MakeSQL(ExecuteContext& ec);
+            bool IsSeparator(const CDBColumnInfoArray& vInfo) const;
 
             //mysql specific functions
             static void ConvertToUTF8OrDouble(CDBVariant &vt);
@@ -190,6 +203,10 @@ namespace SPA {
             std::shared_ptr<MYSQL_BIND> m_sBinds;
             CDBColumnInfoArray m_vSCol;
             bool m_bPSelect;
+            unsigned int m_maxQueriesBatched;
+            bool m_bQueryBatching;
+            typedef std::deque<ExecuteContext> CEexcContextArray;
+            CEexcContextArray m_vEexcContext;
 
             static const int IS_BINARY = 63;
             static const int MYSQL_TINYBLOB = 0xff;
@@ -212,6 +229,7 @@ namespace SPA {
             struct MyStruct {
                 std::shared_ptr<MYSQL> Handle;
                 CDBString DefaultDB;
+                bool QueryBatching;
             };
 
             static CUCriticalSection m_csPeer;

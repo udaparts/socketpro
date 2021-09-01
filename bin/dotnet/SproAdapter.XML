@@ -1752,6 +1752,11 @@
             A flag used with idOpen for tracing database table update events
             </summary>
         </member>
+        <member name="F:SocketProAdapter.UDB.DB_CONSTS.USE_QUERY_BATCHING">
+            <summary>
+            A flag used with idOpen to enable inline batching query statements for bettter performance
+            </summary>
+        </member>
         <member name="F:SocketProAdapter.UDB.DB_CONSTS.STREAMING_SQL_CHAT_GROUP_ID">
             <summary>
             A chat group id used at SocketPro server side for notifying database events from server to connected clients
