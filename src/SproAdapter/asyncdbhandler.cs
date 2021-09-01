@@ -355,7 +355,7 @@ namespace SocketProAdapter
             public const uint ENABLE_TABLE_UPDATE_MESSAGES = 0x1;
 
             /// <summary>
-            /// A flag used with idOpen to enable inline batching query statements for bettter performance
+            /// A flag used with idOpen to enable in-line batching query statements for better performance
             /// </summary>
             public const uint USE_QUERY_BATCHING = 0x2;
 

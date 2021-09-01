@@ -87,7 +87,7 @@
         </member>
         <member name="F:SocketProAdapter.UDB.DB_CONSTS.USE_QUERY_BATCHING">
             <summary>
-            A flag used with idOpen to enable inline batching query statements for bettter performance
+            A flag used with idOpen to enable in-line batching query statements for better performance
             </summary>
         </member>
         <member name="F:SocketProAdapter.UDB.DB_CONSTS.STREAMING_SQL_CHAT_GROUP_ID">
