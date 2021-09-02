@@ -2177,20 +2177,20 @@ namespace SPA{
         }
 
         bool CMysqlImpl::IsSeparator(const CDBColumnInfoArray & vCol) const {
-            bool sep = (m_bQueryBatching && vCol.size() == 5);
+            bool sep = (m_bQueryBatching && vCol.size() == 5 && m_vEexcContext.size());
             if (!sep) {
                 return false;
             }
             const CDBColumnInfo& col0 = vCol[0];
-            const CDBColumnInfo& col1 = vCol[1];
-            const CDBColumnInfo& col2 = vCol[2];
-            const CDBColumnInfo& col3 = vCol[3];
-            const CDBColumnInfo& col4 = vCol[4];
-            sep = (col0 == col1 && col0 == col2 && col0 == col3 && col0 == col4);
+            sep = (col0 == vCol[1] && col0 == vCol[2] && col0 == vCol[3] && col0 == vCol[4]);
             if (!sep) {
                 return false;
             }
-            sep = (col0.DataType == VT_I4 || col0.DataType == VT_I8);
+            sep = ((col0.DataType == VT_I4 || col0.DataType == VT_I8) && !col0.OriginalName.size() && !col0.DBPath.size() && !col0.TablePath.size());
+            if (!sep) {
+                return false;
+            }
+            sep = (!col0.DisplayName.size() || col0.DisplayName == u"0");
             return sep;
         }
 
