@@ -10,6 +10,9 @@
 #include "../../../stream_sql/mariadb/smysql/streamingserver.h"
 #include "../include/mysqld_error.h"
 #include "../../../stream_sql/mariadb/smysql/umysql_udf.h"
+std::atomic<unsigned int> g_maxQueriesBatched(0);
+#else
+std::atomic<unsigned int> g_maxQueriesBatched(8);
 #endif
 
 #if defined(MYSQL_VERSION_ID) && MYSQL_VERSION_ID < 50700
@@ -19,8 +22,6 @@
 #define MYSQL_OPT_SSL_CAPATH ((mysql_option) 28)
 #define MYSQL_OPT_SSL_CIPHER ((mysql_option) 29)
 #endif
-
-std::atomic<unsigned int> g_maxQueriesBatched(8);
 
 namespace SPA{
     namespace ServerSide
