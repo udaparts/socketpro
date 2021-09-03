@@ -6,9 +6,9 @@
 
 std::atomic<unsigned int> g_maxQueriesBatched(8);
 
-namespace SPA
-{
-    namespace ServerSide{
+namespace SPA{
+    namespace ServerSide
+    {
         SQLHENV COdbcImpl::g_hEnv = nullptr;
         std::atomic<unsigned int> COdbcImpl::m_mb(0);
         const UTF16 * COdbcImpl::NO_DB_OPENED_YET = u"No ODBC database opened yet";
@@ -176,8 +176,7 @@ namespace SPA
                     std::string r = Utilities::ToUTF8(right);
                     if (r == "yes" || r == "y" || r == "true") {
                         QueryBatching = true;
-                    }
-                    else if (std::atoi(r.c_str())) {
+                    } else if (std::atoi(r.c_str())) {
                         QueryBatching = true;
                     }
                 } else {
@@ -244,53 +243,51 @@ namespace SPA
                     return false;
                 }
             }
-            switch (m_msDriver)
-            {
-            case tagManagementSystem::msPostgreSQL:
-                sep = ((col0.DataType == VT_I4 || col0.DataType == VT_I8) && col0.OriginalName == u"?column?" && !col0.DBPath.size() && !col0.TablePath.size() && col0.OriginalName == col0.DisplayName);
-                break;
-            case tagManagementSystem::msMysql:
-                sep = ((col0.DataType == VT_I4 || col0.DataType == VT_I8) && !col0.OriginalName.size() && !col0.TablePath.size());
-                break;
-            case tagManagementSystem::msMsSQL:
-                sep = ((col0.DataType == VT_I4 || col0.DataType == VT_I8) && !col0.OriginalName.size() && !col0.DBPath.size() && !col0.TablePath.size());
-                break;
-            case tagManagementSystem::msDB2:
-                if (meta) {
-                    sep = (col0.Flags == vCol[1].Flags && col0.Flags == vCol[2].Flags && col0.Flags == vCol[3].Flags && col0.Flags == vCol[4].Flags);
-                    if (!sep) {
-                        return false;
-                    }
-                    sep = (col0.DisplayName == u"1" && vCol[1].DisplayName == u"2" && vCol[2].DisplayName == u"3" && vCol[3].DisplayName == u"4" && vCol[4].DisplayName == u"5");
-                    if (!sep) {
-                        return false;
-                    }
-                }
-                sep = ((col0.DataType == VT_I4 || col0.DataType == VT_I8) && !col0.OriginalName.size() && !col0.TablePath.size());
-                break;
-            default:
-                assert(false);
-                break;
-            }
-            return sep;
-        }
-
-        CDBString COdbcImpl::MakeSQL(ExecuteContext& ec) {
-            CDBString sql;
-            for (auto it = m_vEexcContext.begin(), end = m_vEexcContext.end(); it != end; ++it) {
-                switch (m_msDriver)
-                {
+            switch (m_msDriver) {
                 case tagManagementSystem::msPostgreSQL:
+                    sep = ((col0.DataType == VT_I4 || col0.DataType == VT_I8) && col0.OriginalName == u"?column?" && !col0.DBPath.size() && !col0.TablePath.size() && col0.OriginalName == col0.DisplayName);
+                    break;
                 case tagManagementSystem::msMysql:
+                    sep = ((col0.DataType == VT_I4 || col0.DataType == VT_I8) && !col0.OriginalName.size() && !col0.TablePath.size());
+                    break;
                 case tagManagementSystem::msMsSQL:
-                    sql += (it->sql + u";SELECT 0,0,0,0,0;");
+                    sep = ((col0.DataType == VT_I4 || col0.DataType == VT_I8) && !col0.OriginalName.size() && !col0.DBPath.size() && !col0.TablePath.size());
                     break;
                 case tagManagementSystem::msDB2:
-                    sql += (it->sql + u";SELECT 0,0,0,0,0 FROM sysibm.sysdummy1;");
+                    if (meta) {
+                        sep = (col0.Flags == vCol[1].Flags && col0.Flags == vCol[2].Flags && col0.Flags == vCol[3].Flags && col0.Flags == vCol[4].Flags);
+                        if (!sep) {
+                            return false;
+                        }
+                        sep = (col0.DisplayName == u"1" && vCol[1].DisplayName == u"2" && vCol[2].DisplayName == u"3" && vCol[3].DisplayName == u"4" && vCol[4].DisplayName == u"5");
+                        if (!sep) {
+                            return false;
+                        }
+                    }
+                    sep = ((col0.DataType == VT_I4 || col0.DataType == VT_I8) && !col0.OriginalName.size() && !col0.TablePath.size());
                     break;
                 default:
                     assert(false);
                     break;
+            }
+            return sep;
+        }
+
+        CDBString COdbcImpl::MakeSQL(ExecuteContext & ec) {
+            CDBString sql;
+            for (auto it = m_vEexcContext.begin(), end = m_vEexcContext.end(); it != end; ++it) {
+                switch (m_msDriver) {
+                    case tagManagementSystem::msPostgreSQL:
+                    case tagManagementSystem::msMysql:
+                    case tagManagementSystem::msMsSQL:
+                        sql += (it->sql + u";SELECT 0,0,0,0,0;");
+                        break;
+                    case tagManagementSystem::msDB2:
+                        sql += (it->sql + u";SELECT 0,0,0,0,0 FROM sysibm.sysdummy1;");
+                        break;
+                    default:
+                        assert(false);
+                        break;
                 }
             }
             m_vEexcContext.push_back(ec);
@@ -834,9 +831,9 @@ namespace SPA
                     assert(SQL_SUCCEEDED(retcode));
                     info.TablePath += Utilities::ToUTF16((const char*) colname, (size_t) colnamelen / sizeof (SQLCHAR)); //schema.table_name
                     if (!(m_vEexcContext.size() && columns == 5 && m_msDriver == tagManagementSystem::msMysql && !info.TablePath.size())) {
-                        retcode = SQLColAttribute(hstmt, (SQLUSMALLINT)(n + 1), SQL_DESC_TYPE_NAME, colname, sizeof(colname), &colnamelen, &displaysize);
+                        retcode = SQLColAttribute(hstmt, (SQLUSMALLINT) (n + 1), SQL_DESC_TYPE_NAME, colname, sizeof (colname), &colnamelen, &displaysize);
                         assert(SQL_SUCCEEDED(retcode));
-                        info.DeclaredType = Utilities::ToUTF16((const char*)colname, (size_t)colnamelen / sizeof(SQLCHAR)); //native data type
+                        info.DeclaredType = Utilities::ToUTF16((const char*) colname, (size_t) colnamelen / sizeof (SQLCHAR)); //native data type
                     }
                     retcode = SQLColAttribute(hstmt, (SQLUSMALLINT) (n + 1), SQL_DESC_CATALOG_NAME, colname, sizeof (colname), &colnamelen, &displaysize);
                     assert(SQL_SUCCEEDED(retcode));
@@ -2832,8 +2829,7 @@ namespace SPA
                                 ++fails;
                             } else if (!sep) {
                                 ++oks;
-                            }
-                            else {
+                            } else {
                                 ExecuteContext ec = PopExecContext();
                                 rowset = ec.rowset;
                                 meta = ec.meta;
@@ -2876,7 +2872,7 @@ namespace SPA
                 affected = 0;
                 fail_ok = 1;
                 fail_ok <<= 32;
-                vtId = (INT64)0;
+                vtId = (INT64) 0;
                 SendResult(idExecute, affected, res, errMsg, vtId, fail_ok);
                 m_vEexcContext.pop_front();
             }

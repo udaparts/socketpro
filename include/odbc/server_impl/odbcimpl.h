@@ -53,6 +53,7 @@ namespace SPA {
             };
 
         public:
+
             struct ODBC_CONNECTION_STRING {
 
                 ODBC_CONNECTION_STRING() : timeout(0), port(0), async(false), QueryBatching(false) {
@@ -225,6 +226,7 @@ namespace SPA {
             static SQLHENV g_hEnv;
             static CUCriticalSection m_csPeer;
             static CDBString m_strGlobalConnection; //ODBC source, protected by m_csPeer
+
             struct CMyStruct {
                 SQLHDBC hdbc;
                 bool QueryBatching;
