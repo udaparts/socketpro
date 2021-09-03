@@ -6,6 +6,7 @@
 	(e) Add SocketPro server plugin for Microsoft SQL server
 	(f) Microsoft SQL DB server plugin (usqlserver.dll) is updated with new SocketPro server plugin usqlsvr.dll instead of sodbc.dll
 	(g) Adapters updated to support the new SocketPro server plugin usqlsvr
+	(h) SocketPro server plugins (usqlsvr, sodbc and smysql) as well as Microsoft SQL DB server plugin (usqlserver.dll) are updated to support in-line queries batch for better performance
 
 87.	SocketPro Version 6.3.1.2-6.3.2.2
 	(a) Add support to char16_t

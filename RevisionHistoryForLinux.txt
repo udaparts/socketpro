@@ -3,6 +3,7 @@
 	(b) Plugins file, sqlite, odbc and MySQL/MariaDB plugins are updated to support inline manual batching
 	(c) Server core lib is improved with a new method PeekNextRequest
 	(d) Add SocketPro server plugin for Microsoft SQL server
+	(e) SocketPro server plugins (usqlsvr, sodbc and smysql) as well as Microsoft SQL DB server plugin (usqlserver.dll) are updated to support in-line queries batch for better performance
 
 24.	SocketPro Version 6.3.1.2-6.3.2.2
 	(a) Add support to char16_t and slightly improve performance of nodejs adapter or C/C++ application on linux
