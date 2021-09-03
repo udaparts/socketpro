@@ -5,7 +5,9 @@
 using namespace SPA;
 using namespace SPA::ServerSide;
 
-std::string g_version("1.0.0.8");
+extern std::atomic<unsigned int> g_maxQueriesBatched;
+
+std::string g_version("1.0.1.1");
 
 #ifdef WIN32_64
 
@@ -37,6 +39,10 @@ bool U_MODULE_OPENED WINAPI SetSPluginGlobalOptions(const char* jsonOptions) {
     if (v && v->GetType() == JSON::enumType::Uint64) {
         COdbcImpl::m_mb = (unsigned int) v->AsUint64();
     }
+    v = jv->Child(MAX_QUERIES_BATCHED);
+    if (v && v->GetType() == JSON::enumType::Uint64) {
+        g_maxQueriesBatched = (unsigned int)v->AsUint64();
+    }
     return true;
 }
 
@@ -48,6 +54,7 @@ unsigned int U_MODULE_OPENED WINAPI GetSPluginGlobalOptions(char* json, unsigned
     obj[MANUAL_BATCHING] = COdbcImpl::m_mb;
     COdbcImpl::m_csPeer.lock();
     obj[GLOBAL_CONNECTION_STRING] = Utilities::ToUTF8(COdbcImpl::m_strGlobalConnection);
+    obj[MAX_QUERIES_BATCHED] = g_maxQueriesBatched;
     obj[PLUGIN_SERVICE_ID] = SPA::Odbc::sidOdbc;
     COdbcImpl::m_csPeer.unlock();
     JSON::JValue<char> jv(std::move(obj));
@@ -93,13 +100,18 @@ int U_MODULE_OPENED WINAPI DoSPluginAuthentication(SPA::UINT64 hSocket, const wc
     std::string strConn = Utilities::ToUTF8(conn);
     retcode = SQLDriverConnect(hdbc, nullptr, (SQLCHAR*) strConn.c_str(), (SQLSMALLINT) strConn.size(), (SQLCHAR*) sb->GetBuffer(), (SQLSMALLINT) sb->GetMaxSize(), &cbConnStrOut, SQL_DRIVER_NOPROMPT);
     sb->CleanTrack(); //clean password
-    if (!SQL_SUCCEEDED(retcode)) {
+    if (!(retcode == SQL_SUCCESS || retcode == SQL_SUCCESS_WITH_INFO)) {
         SQLFreeHandle(SQL_HANDLE_DBC, hdbc);
         return SP_PLUGIN_AUTH_FAILED;
     }
     if (nSvsId == Odbc::sidOdbc) {
+        COdbcImpl::CMyStruct ms;
+        ms.hdbc = hdbc;
+        COdbcImpl::ODBC_CONNECTION_STRING ocs;
+        ocs.Parse(conn.c_str());
+        ms.QueryBatching = ocs.QueryBatching;
         COdbcImpl::m_csPeer.lock();
-        COdbcImpl::m_mapConnection[hSocket] = hdbc; //reuse the handle for coming ODBC requests
+        COdbcImpl::m_mapConnection[hSocket] = ms; //reuse the handle for coming ODBC requests
         COdbcImpl::m_csPeer.unlock();
     } else {
         //we don't need it anymore and just close the ODBC connection handle

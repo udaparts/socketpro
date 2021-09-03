@@ -4,6 +4,8 @@
 #include "../../../include/scloader.h"
 #include <cctype>
 
+std::atomic<unsigned int> g_maxQueriesBatched(8);
+
 namespace SPA
 {
     namespace ServerSide{
@@ -26,7 +28,7 @@ namespace SPA
         CUCriticalSection COdbcImpl::m_csPeer;
         CDBString COdbcImpl::m_strGlobalConnection;
 
-        std::unordered_map<USocket_Server_Handle, SQLHDBC> COdbcImpl::m_mapConnection;
+        std::unordered_map<USocket_Server_Handle, COdbcImpl::CMyStruct> COdbcImpl::m_mapConnection;
 
         bool COdbcImpl::DoSQLAuthentication(USocket_Server_Handle hSocket, const wchar_t *userId, const wchar_t *password, unsigned int nSvsId, const wchar_t *odbcDriver, const wchar_t * dsn) {
             SQLHDBC hdbc = nullptr;
@@ -66,8 +68,13 @@ namespace SPA
                 return false;
             }
             if (nSvsId == Odbc::sidOdbc) {
+                CMyStruct ms;
+                ms.hdbc = hdbc;
+                ODBC_CONNECTION_STRING ocs;
+                ocs.Parse(conn.c_str());
+                ms.QueryBatching = ocs.QueryBatching;
                 m_csPeer.lock();
-                m_mapConnection[hSocket] = hdbc;
+                m_mapConnection[hSocket] = ms;
                 m_csPeer.unlock();
             } else {
                 retcode = SQLDisconnect(hdbc);
@@ -164,6 +171,15 @@ namespace SPA
                     wchar_t *tail = nullptr;
                     async = (wcstol(right.c_str(), &tail, 0) ? true : false);
 #endif
+                } else if (left == L"query batching" || left == L"querybatching" || left == L"querybatch" || left == L"query batch") {
+                    SPA::ToLower(right);
+                    std::string r = Utilities::ToUTF8(right);
+                    if (r == "yes" || r == "y" || r == "true") {
+                        QueryBatching = true;
+                    }
+                    else if (std::atoi(r.c_str())) {
+                        QueryBatching = true;
+                    }
                 } else {
                     if (remaining.size()) {
                         remaining += L";";
@@ -183,7 +199,7 @@ namespace SPA
         m_msDriver(tagManagementSystem::msODBC),
 #endif
         m_EnableMessages(false),
-        m_bPrimaryKeys(SQL_FALSE), m_bProcedureColumns(SQL_FALSE) {
+        m_bPrimaryKeys(SQL_FALSE), m_bProcedureColumns(SQL_FALSE), m_maxQueriesBatched(0), m_bQueryBatching(false) {
         }
 
         void COdbcImpl::OnReleaseSource(bool bClosing, unsigned int info) {
@@ -206,7 +222,86 @@ namespace SPA
             }
         }
 
+        COdbcImpl::ExecuteContext COdbcImpl::PopExecContext() {
+            if (m_vEexcContext.size()) {
+                ExecuteContext ec = m_vEexcContext.front();
+                m_vEexcContext.pop_front();
+                return ec;
+            }
+            ExecuteContext ec;
+            return ec;
+        }
+
+        bool COdbcImpl::IsSeparator(const CDBColumnInfoArray& vCol, bool meta) const {
+            bool sep = (m_bQueryBatching && vCol.size() == 5 && m_vEexcContext.size());
+            if (!sep) {
+                return false;
+            }
+            const CDBColumnInfo& col0 = vCol[0];
+            if (!(m_msDriver == tagManagementSystem::msDB2 && meta)) {
+                sep = (col0 == vCol[1] && col0 == vCol[2] && col0 == vCol[3] && col0 == vCol[4]);
+                if (!sep) {
+                    return false;
+                }
+            }
+            switch (m_msDriver)
+            {
+            case tagManagementSystem::msPostgreSQL:
+                sep = ((col0.DataType == VT_I4 || col0.DataType == VT_I8) && col0.OriginalName == u"?column?" && !col0.DBPath.size() && !col0.TablePath.size() && col0.OriginalName == col0.DisplayName);
+                break;
+            case tagManagementSystem::msMysql:
+                sep = ((col0.DataType == VT_I4 || col0.DataType == VT_I8) && !col0.OriginalName.size() && !col0.TablePath.size());
+                break;
+            case tagManagementSystem::msMsSQL:
+                sep = ((col0.DataType == VT_I4 || col0.DataType == VT_I8) && !col0.OriginalName.size() && !col0.DBPath.size() && !col0.TablePath.size());
+                break;
+            case tagManagementSystem::msDB2:
+                if (meta) {
+                    sep = (col0.Flags == vCol[1].Flags && col0.Flags == vCol[2].Flags && col0.Flags == vCol[3].Flags && col0.Flags == vCol[4].Flags);
+                    if (!sep) {
+                        return false;
+                    }
+                    sep = (col0.DisplayName == u"1" && vCol[1].DisplayName == u"2" && vCol[2].DisplayName == u"3" && vCol[3].DisplayName == u"4" && vCol[4].DisplayName == u"5");
+                    if (!sep) {
+                        return false;
+                    }
+                }
+                sep = ((col0.DataType == VT_I4 || col0.DataType == VT_I8) && !col0.OriginalName.size() && !col0.TablePath.size());
+                break;
+            default:
+                assert(false);
+                break;
+            }
+            return sep;
+        }
+
+        CDBString COdbcImpl::MakeSQL(ExecuteContext& ec) {
+            CDBString sql;
+            for (auto it = m_vEexcContext.begin(), end = m_vEexcContext.end(); it != end; ++it) {
+                switch (m_msDriver)
+                {
+                case tagManagementSystem::msPostgreSQL:
+                case tagManagementSystem::msMysql:
+                case tagManagementSystem::msMsSQL:
+                    sql += (it->sql + u";SELECT 0,0,0,0,0;");
+                    break;
+                case tagManagementSystem::msDB2:
+                    sql += (it->sql + u";SELECT 0,0,0,0,0 FROM sysibm.sysdummy1;");
+                    break;
+                default:
+                    assert(false);
+                    break;
+                }
+            }
+            m_vEexcContext.push_back(ec);
+            ec = m_vEexcContext.front();
+            m_vEexcContext.pop_front();
+            return std::move(sql);
+        }
+
         void COdbcImpl::OnSwitchFrom(unsigned int nOldServiceId) {
+            m_bQueryBatching = false;
+            m_maxQueriesBatched = g_maxQueriesBatched;
             m_oks = 0;
             m_fails = 0;
             m_ti = tagTransactionIsolation::tiUnspecified;
@@ -215,7 +310,7 @@ namespace SPA
             CAutoLock al(m_csPeer);
             auto it = m_mapConnection.find(me);
             if (it != m_mapConnection.end()) {
-                SQLHDBC hdbc = it->second;
+                SQLHDBC hdbc = it->second.hdbc;
                 if (hdbc) {
                     m_pOdbc.reset(hdbc, [](SQLHDBC h) {
                         if (h) {
@@ -225,6 +320,7 @@ namespace SPA
                             assert(ret == SQL_SUCCESS);
                         }
                     });
+                    m_bQueryBatching = it->second.QueryBatching;
                 }
                 m_mapConnection.erase(me);
             }
@@ -242,12 +338,29 @@ namespace SPA
         }
 
         int COdbcImpl::OnSlowRequestArrive(unsigned short reqId, unsigned int len) {
+            if (reqId == idExecute) {
+                CDBString sql;
+                bool rowset;
+                bool meta;
+                bool lastInsertId;
+                UINT64 index;
+                INT64 affected;
+                int res;
+                CDBString errMsg;
+                CDBVariant vtId;
+                UINT64 fail_ok;
+                m_UQueue >> sql >> rowset >> meta >> lastInsertId >> index;
+                Execute(sql, rowset, meta, lastInsertId, index, affected, res, errMsg, vtId, fail_ok);
+                if (fail_ok != INVALID_NUMBER) {
+                    SendResult(reqId, affected, res, errMsg, vtId, fail_ok);
+                }
+                return 0;
+            }
             BEGIN_SWITCH(reqId)
             M_I0_R2(idClose, CloseDb, int, CDBString)
             M_I2_R3(idOpen, Open, CDBString, unsigned int, int, CDBString, int)
             M_I3_R3(idBeginTrans, BeginTrans, int, CDBString, unsigned int, int, CDBString, int)
             M_I1_R2(idEndTrans, EndTrans, int, int, CDBString)
-            M_I5_R5(idExecute, Execute, CDBString, bool, bool, bool, UINT64, INT64, int, CDBString, CDBVariant, UINT64)
             M_I2_R3(idPrepare, Prepare, CDBString, CParameterInfoArray, int, CDBString, unsigned int)
             M_I4_R5(idExecuteParameters, ExecuteParameters, bool, bool, bool, UINT64, INT64, int, CDBString, CDBVariant, UINT64)
             M_I10_R5(idExecuteBatch, ExecuteBatch, CDBString, CDBString, int, int, bool, bool, bool, CDBString, unsigned int, UINT64, INT64, int, CDBString, CDBVariant, UINT64)
@@ -311,12 +424,17 @@ namespace SPA
             m_EnableMessages = false;
             m_bPrimaryKeys = SQL_FALSE;
             m_bProcedureColumns = SQL_FALSE;
+            m_vEexcContext.clear();
         }
 
         void COdbcImpl::Open(const CDBString &strConnection, unsigned int flags, int &res, CDBString &errMsg, int &ms) {
             res = 0;
-            if ((flags & ENABLE_TABLE_UPDATE_MESSAGES) == ENABLE_TABLE_UPDATE_MESSAGES)
+            if ((flags & ENABLE_TABLE_UPDATE_MESSAGES) == ENABLE_TABLE_UPDATE_MESSAGES) {
                 m_EnableMessages = GetPush().Subscribe(&STREAMING_SQL_CHAT_GROUP_ID, 1);
+            }
+            if ((flags & USE_QUERY_BATCHING) == USE_QUERY_BATCHING) {
+                m_bQueryBatching = true;
+            }
             if (m_pOdbc.get()) {
                 PushInfo(m_pOdbc.get());
                 CDBString defaultDb = strConnection;
@@ -715,9 +833,11 @@ namespace SPA
                     retcode = SQLColAttribute(hstmt, (SQLUSMALLINT) (n + 1), SQL_DESC_BASE_TABLE_NAME, colname, sizeof (colname), &colnamelen, &displaysize);
                     assert(SQL_SUCCEEDED(retcode));
                     info.TablePath += Utilities::ToUTF16((const char*) colname, (size_t) colnamelen / sizeof (SQLCHAR)); //schema.table_name
-                    retcode = SQLColAttribute(hstmt, (SQLUSMALLINT) (n + 1), SQL_DESC_TYPE_NAME, colname, sizeof (colname), &colnamelen, &displaysize);
-                    assert(SQL_SUCCEEDED(retcode));
-                    info.DeclaredType = Utilities::ToUTF16((const char*) colname, (size_t) colnamelen / sizeof (SQLCHAR)); //native data type
+                    if (!(m_vEexcContext.size() && columns == 5 && m_msDriver == tagManagementSystem::msMysql && !info.TablePath.size())) {
+                        retcode = SQLColAttribute(hstmt, (SQLUSMALLINT)(n + 1), SQL_DESC_TYPE_NAME, colname, sizeof(colname), &colnamelen, &displaysize);
+                        assert(SQL_SUCCEEDED(retcode));
+                        info.DeclaredType = Utilities::ToUTF16((const char*)colname, (size_t)colnamelen / sizeof(SQLCHAR)); //native data type
+                    }
                     retcode = SQLColAttribute(hstmt, (SQLUSMALLINT) (n + 1), SQL_DESC_CATALOG_NAME, colname, sizeof (colname), &colnamelen, &displaysize);
                     assert(SQL_SUCCEEDED(retcode));
                     info.DBPath = Utilities::ToUTF16((const char*) colname, (size_t) colnamelen / sizeof (SQLCHAR)); //database name
@@ -1050,10 +1170,13 @@ namespace SPA
                     m_msDriver = tagManagementSystem::msMysql;
                 } else if (m_dbms == u"oracle") {
                     m_msDriver = tagManagementSystem::msOracle;
+                    m_bQueryBatching = false; //not implemented
                 } else if (m_dbms.find(u"db2") != CDBString::npos) {
                     m_msDriver = tagManagementSystem::msDB2;
                 } else if (m_dbms.find(u"postgre") == 0) {
                     m_msDriver = tagManagementSystem::msPostgreSQL;
+                } else {
+                    m_bQueryBatching = false; //not implemented
                 }
             } else {
                 m_dbms.clear();
@@ -2601,7 +2724,7 @@ namespace SPA
             return strSqlCache;
         }
 
-        void COdbcImpl::Execute(const CDBString& wsql, bool rowset, bool meta, bool lastInsertId, UINT64 index, INT64 &affected, int &res, CDBString &errMsg, CDBVariant &vtId, UINT64 & fail_ok) {
+        void COdbcImpl::Execute(CDBString& wsql, bool rowset, bool meta, bool lastInsertId, UINT64 index, INT64 &affected, int &res, CDBString &errMsg, CDBVariant &vtId, UINT64 & fail_ok) {
             affected = 0;
             fail_ok = 0;
             ResetMemories();
@@ -2615,18 +2738,36 @@ namespace SPA
             } else {
                 res = SQL_SUCCESS;
             }
-            CDBString sql = wsql;
-            if (m_EnableMessages && !sql.size()) {
+            Utilities::Trim(wsql, CDBString(u";"));
+            if (m_EnableMessages && !wsql.size()) {
                 switch (m_msDriver) {
                     case tagManagementSystem::msMsSQL:
-                        sql = GenerateMsSqlForCachedTables();
+                        wsql = GenerateMsSqlForCachedTables();
                         break;
                     default:
                         break;
                 }
+            } else if (m_maxQueriesBatched && m_bQueryBatching && m_maxQueriesBatched > m_vEexcContext.size() && PeekNextRequest() == UDB::idExecute && GetCurrentRequestID() == UDB::idExecute) {
+                ExecuteContext ec;
+                ec.sql.swap(wsql);
+                ec.rowset = rowset;
+                ec.meta = meta;
+                ec.index = index;
+                m_vEexcContext.push_back(std::move(ec));
+                fail_ok = INVALID_NUMBER;
+                return;
             }
-            UINT64 fails = m_fails;
-            UINT64 oks = m_oks;
+            if (m_vEexcContext.size()) {
+                ExecuteContext ec;
+                ec.index = index;
+                ec.meta = meta;
+                ec.rowset = rowset;
+                wsql = MakeSQL(ec) + wsql;
+                index = ec.index;
+                meta = ec.meta;
+                rowset = ec.rowset;
+            }
+            UINT64 fails = 0, oks = 0, sep_fail_oks = 0;
 #ifndef SP_DB2_PLUGIN
             if (m_msDriver == tagManagementSystem::msOracle && m_nRecordSize) {
                 //A hack for the oracle's issue SQLSTATE=HY109:NATIVE=1:ERROR_MESSAGE=[Oracle][ODBC][Ora]Invalid cursor position when coming recordset has BLOBs or long text
@@ -2647,11 +2788,11 @@ namespace SPA
                     }
                 }
 #endif
-                retcode = SQLExecDirectW(hstmt, (SQLWCHAR*) sql.c_str(), (SQLINTEGER) sql.size());
+                retcode = SQLExecDirectW(hstmt, (SQLWCHAR*) wsql.c_str(), (SQLINTEGER) wsql.size());
                 if (!SQL_SUCCEEDED(retcode) && retcode != SQL_NO_DATA) {
                     res = Odbc::ER_ERROR;
                     GetErrMsg(SQL_HANDLE_STMT, hstmt, errMsg);
-                    ++m_fails;
+                    ++fails;
                     break;
                 }
                 do {
@@ -2661,9 +2802,10 @@ namespace SPA
                         break;
                     }
                     if (columns > 0) {
-                        if (rowset || meta) {
+                        if (rowset || meta || m_vEexcContext.size()) {
                             CDBColumnInfoArray vInfo = GetColInfo(hstmt, columns, meta);
-                            if (!m_pNoSending) {
+                            bool sep = IsSeparator(vInfo, meta);
+                            if (!m_pNoSending && !sep) {
                                 unsigned int ret = SendResult(idRowsetHeader, vInfo, index);
                                 if (ret == REQUEST_CANCELED || ret == SOCKET_NOT_FOUND) {
                                     return;
@@ -2672,7 +2814,7 @@ namespace SPA
                             bool ok = true;
                             int resTemp = 0;
                             CDBString errMsgTemp;
-                            if (rowset) {
+                            if (rowset && !sep) {
                                 if (m_nRecordSize) {
                                     ok = PushRecords(hstmt, resTemp, errMsgTemp);
                                 } else {
@@ -2687,9 +2829,23 @@ namespace SPA
                                     res = resTemp;
                                     errMsg = errMsgTemp;
                                 }
-                                ++m_fails;
-                            } else {
-                                ++m_oks;
+                                ++fails;
+                            } else if (!sep) {
+                                ++oks;
+                            }
+                            else {
+                                ExecuteContext ec = PopExecContext();
+                                rowset = ec.rowset;
+                                meta = ec.meta;
+                                index = ec.index;
+                                UINT64 fail_oks = fails;
+                                fail_oks <<= 32;
+                                fail_oks += oks;
+                                unsigned int ret = SendResult(SPA::UDB::idExecute, affected, res, errMsg, vtId, fail_oks);
+                                affected = 0;
+                                sep_fail_oks += fail_oks;
+                                oks = 0;
+                                fails = 0;
                             }
                         }
                     } else {
@@ -2699,19 +2855,40 @@ namespace SPA
                         if (rows > 0) {
                             affected += rows;
                         }
-                        ++m_oks;
+                        ++oks;
                     }
                 } while ((retcode = SQLMoreResults(hstmt)) == SQL_SUCCESS);
                 if (!SQL_SUCCEEDED(retcode) && retcode != SQL_NO_DATA) {
                     res = Odbc::ER_ERROR;
                     GetErrMsg(SQL_HANDLE_STMT, hstmt, errMsg);
-                    ++m_fails;
+                    ++fails;
                 } else {
                     assert(retcode == SQL_NO_DATA || retcode == SQL_SUCCESS_WITH_INFO || retcode == SQL_SUCCESS);
+                    if (m_msDriver == tagManagementSystem::msDB2 && retcode == SQL_SUCCESS_WITH_INFO && m_vEexcContext.size()) {
+                        res = SQL_SUCCESS_WITH_INFO;
+                        GetErrMsg(SQL_HANDLE_STMT, hstmt, errMsg);
+                        ++fails;
+                    }
                 }
             } while (false);
-            fail_ok = ((m_fails - fails) << 32);
-            fail_ok += (unsigned int) (m_oks - oks);
+            UINT64 sep_fails = m_vEexcContext.size();
+            while (m_vEexcContext.size()) {
+                affected = 0;
+                fail_ok = 1;
+                fail_ok <<= 32;
+                vtId = (INT64)0;
+                SendResult(idExecute, affected, res, errMsg, vtId, fail_ok);
+                m_vEexcContext.pop_front();
+            }
+            fail_ok = (fails << 32);
+            fail_ok += oks;
+            m_fails += fails;
+            m_oks += oks;
+            if (sep_fail_oks) {
+                m_fails += (sep_fail_oks >> 32);
+                m_oks += (sep_fail_oks & 0xffffffff);
+            }
+            m_fails += sep_fails;
         }
 
 #ifndef SP_DB2_PLUGIN

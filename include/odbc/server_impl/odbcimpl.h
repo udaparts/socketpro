@@ -45,9 +45,17 @@ namespace SPA {
                 unsigned int BufferSize;
             };
 
+            struct ExecuteContext {
+                CDBString sql;
+                bool rowset = false;
+                bool meta = false;
+                UINT64 index = INVALID_NUMBER;
+            };
+
+        public:
             struct ODBC_CONNECTION_STRING {
 
-                ODBC_CONNECTION_STRING() : timeout(0), port(0), async(false) {
+                ODBC_CONNECTION_STRING() : timeout(0), port(0), async(false), QueryBatching(false) {
                 }
                 std::wstring database; //database -- SQL_ATTR_CURRENT_CATALOG
                 std::wstring dsn; //dsn
@@ -62,10 +70,10 @@ namespace SPA {
                 unsigned int timeout; //timeout | connect-timeout in seconds -- SQL_ATTR_CONNECTION_TIMEOUT
                 unsigned int port; //????
                 bool async; //async | asynchronous -- SQL_ATTR_ASYNC_ENABLE
-
-                void Parse(const wchar_t *s);
+                bool QueryBatching;
+                void Parse(const wchar_t* s);
             };
-        public:
+
             COdbcImpl();
 
         public:
@@ -74,6 +82,7 @@ namespace SPA {
             static void SetGlobalConnectionString(const wchar_t *str);
             static bool DoSQLAuthentication(USocket_Server_Handle hSocket, const wchar_t *userId, const wchar_t *password, unsigned int nSvsId, const wchar_t *odbcDriver, const wchar_t *dsn);
             static std::atomic<unsigned int> m_mb;
+            static void GetErrMsg(SQLSMALLINT HandleType, SQLHANDLE Handle, CDBString& errMsg);
 
         protected:
             virtual void OnFastRequestArrive(unsigned short reqId, unsigned int len);
@@ -87,7 +96,7 @@ namespace SPA {
             virtual void CloseDb(int &res, CDBString &errMsg);
             virtual void BeginTrans(int isolation, const CDBString &dbConn, unsigned int flags, int &res, CDBString &errMsg, int &ms);
             virtual void EndTrans(int plan, int &res, CDBString &errMsg);
-            virtual void Execute(const CDBString& sql, bool rowset, bool meta, bool lastInsertId, UINT64 index, INT64 &affected, int &res, CDBString &errMsg, CDBVariant &vtId, UINT64 &fail_ok);
+            virtual void Execute(CDBString& sql, bool rowset, bool meta, bool lastInsertId, UINT64 index, INT64 &affected, int &res, CDBString &errMsg, CDBVariant &vtId, UINT64 &fail_ok);
             virtual void Prepare(const CDBString& sql, CParameterInfoArray& params, int &res, CDBString &errMsg, unsigned int &parameters);
             virtual void ExecuteParameters(bool rowset, bool meta, bool lastInsertId, UINT64 index, INT64 &affected, int &res, CDBString &errMsg, CDBVariant &vtId, UINT64 &fail_ok);
             virtual void ExecuteBatch(const CDBString& sql, const CDBString& delimiter, int isolation, int plan, bool rowset, bool meta, bool lastInsertId, const CDBString &dbConn, unsigned int flags, UINT64 index, INT64 &affected, int &res, CDBString &errMsg, CDBVariant &vtId, UINT64 &fail_ok);
@@ -132,6 +141,10 @@ namespace SPA {
             void SetOracleCallParams(const std::vector<tagParameterDirection> &vPD, int &res, CDBString &errMsg);
 #endif
             CDBString GenerateMsSqlForCachedTables();
+            ExecuteContext PopExecContext();
+            bool IsSeparator(const CDBColumnInfoArray& vCol, bool meta) const;
+            CDBString MakeSQL(ExecuteContext& ec);
+
             static CParameterInfoArray GetVInfo(const CParameterInfoArray& vPInfo, size_t pos, size_t ps);
             static std::vector<CDBString> Split(const CDBString &sql, const CDBString &delimiter);
             static size_t ComputeParameters(const CDBString &sql);
@@ -142,7 +155,6 @@ namespace SPA {
             static void SetStringInfo(SQLHDBC hdbc, SQLUSMALLINT infoType, std::unordered_map<SQLUSMALLINT, CComVariant> &mapInfo);
             static void SetUInt64Info(SQLHDBC hdbc, SQLUSMALLINT infoType, std::unordered_map<SQLUSMALLINT, CComVariant> &mapInfo);
             static void SetIntInfo(SQLHDBC hdbc, SQLUSMALLINT infoType, std::unordered_map<SQLUSMALLINT, CComVariant> &mapInfo);
-            static void GetErrMsg(SQLSMALLINT HandleType, SQLHANDLE Handle, CDBString &errMsg);
             static unsigned int ToCTime(const TIMESTAMP_STRUCT &d, std::tm &tm);
             static unsigned int ToCTime(const TIME_STRUCT &d, std::tm &tm);
             static unsigned int ToCTime(const DATE_STRUCT &d, std::tm &tm);
@@ -190,6 +202,11 @@ namespace SPA {
             SQLUSMALLINT m_bProcedureColumns;
             std::vector<tagParameterDirection> m_vPD;
 
+            unsigned int m_maxQueriesBatched;
+            bool m_bQueryBatching;
+            typedef std::deque<ExecuteContext> CEexcContextArray;
+            CEexcContextArray m_vEexcContext;
+
             static const UTF16* NO_DB_OPENED_YET;
             static const UTF16* BAD_END_TRANSTACTION_PLAN;
             static const UTF16* NO_PARAMETER_SPECIFIED;
@@ -208,7 +225,11 @@ namespace SPA {
             static SQLHENV g_hEnv;
             static CUCriticalSection m_csPeer;
             static CDBString m_strGlobalConnection; //ODBC source, protected by m_csPeer
-            static std::unordered_map<USocket_Server_Handle, SQLHDBC> m_mapConnection; //protected by m_csPeer
+            struct CMyStruct {
+                SQLHDBC hdbc;
+                bool QueryBatching;
+            };
+            static std::unordered_map<USocket_Server_Handle, CMyStruct> m_mapConnection; //protected by m_csPeer
         };
 
         typedef CSocketProService<COdbcImpl> COdbcService;

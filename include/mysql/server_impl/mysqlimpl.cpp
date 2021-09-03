@@ -674,6 +674,7 @@ namespace SPA{
             m_ti = tagTransactionIsolation::tiUnspecified;
             m_EnableMessages = false;
             m_dbNameOpened.clear();
+            m_vEexcContext.clear();
         }
 
         void CMysqlImpl::OnBaseRequestArrive(unsigned short requestId) {

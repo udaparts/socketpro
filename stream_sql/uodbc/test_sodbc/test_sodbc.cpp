@@ -12,16 +12,17 @@ protected:
         //A cheap but quick way to do authentication against a database server by use of ODBC plugin
         int res = DoSPluginAuthentication(h, userId, password, serviceId, L"dsn=ToMySQL;database=sakila");
         switch (res) {
-            case 0:
-                return false;
-            case 1:
+            case SP_PLUGIN_AUTH_OK:
                 return true;
-            case -1:
-                std::cout << "Authentication not implemented yet\n";
+            case SP_PLUGIN_AUTH_FAILED:
+                std::cout << "Authentication failed\n";
                 return false;
-            case -2:
+            case SP_PLUGIN_AUTH_INTERNAL_ERROR:
                 std::cout << "Internal error!\n";
                 return false;
+            case SP_PLUGIN_AUTH_NOT_IMPLEMENTED:
+                std::cout << "Authentication not implemented yet\n";
+                break;
             default:
                 assert(false);
                 break;
