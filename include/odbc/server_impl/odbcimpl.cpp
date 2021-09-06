@@ -498,6 +498,9 @@ namespace SPA{
 #else
                     ocs.Parse(Utilities::ToWide(db).c_str());
 #endif
+                    if (ocs.QueryBatching) {
+                        m_bQueryBatching = true;
+                    }
                     SQLHDBC hdbc = nullptr;
                     SQLRETURN retcode = SQLAllocHandle(SQL_HANDLE_DBC, g_hEnv, &hdbc);
                     if (!SQL_SUCCEEDED(retcode)) {
