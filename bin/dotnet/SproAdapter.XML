@@ -2357,12 +2357,12 @@
         </member>
         <member name="T:SocketProAdapter.UDateTime">
             <summary>
-            database datetime with accuracy micro-second
+            database datetime with accuracy to 100-nanosecond
             </summary>
         </member>
         <member name="F:SocketProAdapter.UDateTime.m_time">
             <summary>
-            database datetime with accuracy micro-second
+            database datetime with accuracy to 100-nanosecond
             </summary>
         </member>
         <member name="M:SocketProAdapter.UDateTime.ToString">

@@ -13,56 +13,76 @@ using System.Collections.Generic;
 namespace SocketProAdapter
 {
     /// <summary>
-    /// database datetime with accuracy micro-second
+    /// database datetime with accuracy to 100-nanosecond
     /// </summary>
     class UDateTime
     {
-        const uint MICRO_SECONDS = 0xfffff; //20 bits
         /// <summary>
-        /// database datetime with accuracy micro-second
+        /// database datetime with accuracy to 100-nanosecond
         /// </summary>
-        private ulong m_time;
+        private ulong m_time = 0;
 
-        public ulong time {
-            get {
+        public ulong time
+        {
+            get
+            {
                 return m_time;
             }
         }
 
-        public DateTime DateTime {
-            get {
+        public DateTime DateTime
+        {
+            get
+            {
                 return GetDateTime();
             }
         }
 
         private DateTime GetDateTime()
         {
-            ulong dt = m_time;
-            uint us = (uint)(dt & MICRO_SECONDS);
-            dt >>= 20;
-            int sec = (int)(dt & 0x3f);
-            dt >>= 6;
-            int min = (int)(dt & 0x3f);
-            dt >>= 6;
-            int hour = (int)(dt & 0x1f);
-            dt >>= 5;
-            int day = (int)(dt & 0x1f);
-            dt >>= 5;
-            int mon = (int)(dt & 0xf);
-            dt >>= 4;
-            int year = (int)dt;
-            DateTime datetime;
-            if (day == 0)
+            ulong time = m_time;
+            int ns100 = (int)(time & 0xffffff); //24bits
+            time >>= 24;
+            int second = (int)(time & 0x3f); //6bits
+            time >>= 6;
+            int minute = (int)(time & 0x3f); //6bits
+            time >>= 6;
+            int hour = (int)(time & 0x1f); //5bits
+            time >>= 5;
+            int day = (int)(time & 0x1f); //5bits
+            time >>= 5;
+
+            //0 - 11 instead of 1 - 12
+            int month = (int)(time & 0xf); //4bits
+            time >>= 4;
+
+            //8191 == 0x1fff, From BC 6291 (8191 - 1900) to AD 9991 (1900 + 8191)
+            int year = (int)(time & 0x1fff); //13bits
+            time >>= 13;
+
+            //It will be 1 if date time is earlier than 1900-01-01
+            int neg = (int)time;
+            if (neg > 0)
             {
-                datetime = new DateTime(1, 1, 1, hour, min, sec, (int)(us / 1000));
+                year = 1900 - year;
             }
             else
             {
-                datetime = new DateTime(year + 1900, mon + 1, day, hour, min, sec, (int)(us / 1000));
+                year += 1900;
             }
-            us %= 1000;
-            us *= 10;
-            return datetime.AddTicks(us);
+            ++month;
+            int ms = ns100 / 10000;
+            int ticks = ns100 % 10000;
+            DateTime datetime;
+            if (day == 0)
+            {
+                datetime = new DateTime(1, 1, 1, hour, minute, second, ms, DateTimeKind.Local);
+            }
+            else
+            {
+                datetime = new DateTime(year, month, day, hour, minute, second, ms, DateTimeKind.Local);
+            }
+            return datetime.AddTicks(ticks);
         }
 
         public UDateTime()
@@ -80,32 +100,76 @@ namespace SocketProAdapter
             Set(dt);
         }
 
+        public UDateTime(TimeSpan ts)
+        {
+            int hour = ts.Hours;
+            if (hour < 0)
+            {
+                throw new InvalidDataException("Hours cannot be less than zero");
+            }
+            int minute = ts.Minutes;
+            if (minute < 0)
+            {
+                throw new InvalidDataException("Minutes cannot be less than zero");
+            }
+            int second = ts.Seconds;
+            if (second < 0)
+            {
+                throw new InvalidDataException("Seconds cannot be less than zero");
+            }
+            int ms = ts.Milliseconds;
+            if (ms < 0)
+            {
+                throw new InvalidDataException("Milliseconds cannot be less than zero");
+            }
+            long ticks = ts.Ticks - new TimeSpan(0, hour, minute, second, ms).Ticks;
+            if (ticks < 0)
+            {
+                throw new InvalidDataException("Ticks cannot be less than zero");
+            }
+            ticks += ms * 1000000;
+            m_time = (ulong)hour;
+            m_time <<= 6; //minute 6bits
+            m_time += (ulong)minute;
+            m_time <<= 6; //second 6bits
+            m_time += (ulong)second;
+            m_time <<= 24; //ticks 24bits
+            m_time += (ulong)ticks;
+        }
+
         public void Set(DateTime dt)
         {
-            if (dt.Year < 1900)
+            int year = dt.Year;
+            int month = dt.Month;
+            int day = dt.Day;
+            int hour = dt.Hour;
+            int minute = dt.Minute;
+            int second = dt.Second;
+            DateTime datetime = new DateTime(year, month, day, hour, minute, second, 0, dt.Kind);
+            long ticks = dt.Ticks - datetime.Ticks;
+            if (year >= 1900)
             {
-                throw new InvalidDataException("Datetime year can not be less than 1900");
+                m_time = (ulong)(year - 1900);
             }
-            m_time = (uint)((dt.Year - 1900) & 0x3ffff);
-            m_time <<= 46; //18 bits for years
-            ulong mid = (uint)((dt.Month - 1) & 0xf); //4 bits for month
-            mid <<= 42;
-            m_time += mid;
-            mid = (uint)(dt.Day & 0x1f); //5 bits for day
-            mid <<= 37;
-            m_time += mid;
-            mid = (uint)(dt.Hour & 0x1f); //5 bits for hour
-            mid <<= 32;
-            m_time += mid;
-            mid = (uint)(dt.Minute & 0x3f); //6 bits for minute
-            mid <<= 26;
-            m_time += mid;
-            mid = (uint)(dt.Second & 0x3f); //6 bits for second
-            mid <<= 20;
-            m_time += mid;
-            uint us = (uint)dt.Millisecond * 1000;
-            us += (uint)((dt.Ticks / 10) % 1000);
-            m_time += us;
+            else
+            {
+                m_time = 1; //negative, before 1900-01-01
+                //m_time <<= 13; //year 13bits
+                m_time <<= 13;
+                m_time += (ulong)(1900 - year);
+            }
+            m_time <<= 4; //month 4bits
+            m_time += (ulong)(month - 1);
+            m_time <<= 5; //day 5bits
+            m_time += (ulong)day;
+            m_time <<= 5; //hour 5bits
+            m_time += (ulong)hour;
+            m_time <<= 6; //minute 6bits
+            m_time += (ulong)minute;
+            m_time <<= 6; //second 6bits
+            m_time += (ulong)second;
+            m_time <<= 24; //ticks 24bits
+            m_time += (ulong)ticks;
         }
 
         /// <summary>
@@ -114,22 +178,24 @@ namespace SocketProAdapter
         /// <returns>a database datetime string</returns>
         public override string ToString()
         {
-            bool micro = ((m_time & MICRO_SECONDS) > 0);
-            bool has_time = (((m_time >> 20) & 0x1ffff) > 0);
-            bool has_date = ((m_time >> 37) > 0);
+            bool ticks = ((m_time & 0xffffff) > 0);
+            bool has_time = (((m_time >> 24) & 0x1ffff) > 0);
+            bool has_date = ((m_time >> 41) > 0);
             if (m_time == 0)
                 return "";
             string format = "";
             if (has_date)
+            {
                 format = "yyyy-MM-dd";
-            if (has_time || micro)
+            }
+            if (has_time || ticks)
             {
                 if (format.Length > 0)
                     format += " ";
                 format += "HH:mm:ss";
             }
-            if (micro)
-                format += ".ffffff";
+            if (ticks)
+                format += ".fffffff";
             return GetDateTime().ToString(format);
         }
     }
@@ -220,14 +286,12 @@ namespace SocketProAdapter
             return System.Text.Encoding.UTF8.GetString(astr, 0, len);
         }
 
-        //convert dotNet DateTime into native EPOCH time in ms
         public CUQueue Save(DateTime dt)
         {
             Save(new UDateTime(dt).time);
             return this;
         }
 
-        //convert EPOCH date in ms into dotNet DateTime
         public CUQueue Load(out DateTime dt)
         {
             ulong diff;
@@ -292,20 +356,26 @@ namespace SocketProAdapter
         private tagOperationSystem m_os = Defines.OperationSystem;
         private bool m_bEndian = false;
 
-        public tagOperationSystem OS {
-            get {
+        public tagOperationSystem OS
+        {
+            get
+            {
                 return m_os;
             }
-            set {
+            set
+            {
                 m_os = value;
             }
         }
 
-        public bool Endian {
-            get {
+        public bool Endian
+        {
+            get
+            {
                 return m_bEndian;
             }
-            set {
+            set
+            {
                 m_bEndian = value;
             }
         }
@@ -383,8 +453,10 @@ namespace SocketProAdapter
         /// <summary>
         /// A property for internal buffer which contains actual data in binary format. It is more efficient than the method GetBuffer, but you must pay attention to the property HeadPosition.
         /// </summary>
-        public byte[] IntenalBuffer {
-            get {
+        public byte[] IntenalBuffer
+        {
+            get
+            {
                 return m_bytes;
             }
         }
@@ -622,8 +694,7 @@ namespace SocketProAdapter
 
         public CUQueue Save(TimeSpan dt)
         {
-            long ticks = dt.Ticks;
-            return Save(ticks);
+            return Save(new UDateTime(dt).time);
         }
 
         public unsafe CUQueue Save(Guid guid)
@@ -2277,9 +2348,9 @@ namespace SocketProAdapter
         }
         public CUQueue Load(out TimeSpan ts)
         {
-            long ticks;
+            ulong ticks;
             Load(out ticks);
-            ts = new TimeSpan(ticks);
+            ts = new UDateTime(ticks).DateTime.TimeOfDay;
             return this;
         }
 
@@ -2337,8 +2408,10 @@ namespace SocketProAdapter
             m_position = 0;
         }
 
-        public uint MaxBufferSize {
-            get {
+        public uint MaxBufferSize
+        {
+            get
+            {
                 if (m_bytes == null)
                     return 0;
 #if WINCE
@@ -2357,8 +2430,10 @@ namespace SocketProAdapter
             return this;
         }
 
-        public uint Size {
-            get {
+        public uint Size
+        {
+            get
+            {
                 return m_len;
             }
         }
@@ -2366,8 +2441,10 @@ namespace SocketProAdapter
         /// <summary>
         /// An integer value for next popping position
         /// </summary>
-        public uint HeadPosition {
-            get {
+        public uint HeadPosition
+        {
+            get
+            {
                 return m_position;
             }
         }
@@ -2375,8 +2452,10 @@ namespace SocketProAdapter
         /// <summary>
         /// An integer value for unused bytes
         /// </summary>
-        public uint TailSize {
-            get {
+        public uint TailSize
+        {
+            get
+            {
                 if (m_bytes == null)
                     return 0;
 #if WINCE

@@ -11,7 +11,7 @@ public class MsSqlConfig
 
 public class UConfig
 {
-    public static readonly string MY_VERSION = "1.5.0.5";
+    public static readonly string MY_VERSION = "1.6.0.1";
     public static readonly string DEFAULT_CONNECTION_STRING = "server=localhost;timeout=30";
     public static readonly int DEFAULT_MAIN_THREADS = 1;
     public static readonly uint DEFAULT_PORT = 20903;
