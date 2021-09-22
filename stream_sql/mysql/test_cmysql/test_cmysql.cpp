@@ -79,7 +79,7 @@ int main(int argc, char* argv[]) {
         auto fD = pMysql->execute(u"delete from employee;delete from company");
         auto fP0 = TestPreparedStatements(pMysql);
         auto fP1 = TestBLOBByPreparedStatement(pMysql);
-        auto fS = pMysql->execute(u"SELECT * from company;select * from employee;select curtime()", r, rh);
+        auto fS = pMysql->execute(u"SELECT * from company;select * from employee;select curtime(6)", r, rh);
         CDBVariantArray vPData;
         auto fP2 = TestStoredProcedure(pMysql, ra, vPData);
         CDBVariantArray vData;
@@ -189,7 +189,7 @@ CSqlFuture TestBatch(PMySQL pMysql, CRowsetArray&ra, CDBVariantArray &vData) {
     u16string sql = u"delete from employee;delete from company| \
 		INSERT INTO company(ID,NAME,ADDRESS,Income)VALUES(?,?,?,?)| \
 		insert into employee(CompanyId,name,JoinDate,image,DESCRIPTION,Salary)values(?,?,?,?,?,?)| \
-		SELECT * from company;select * from employee;select curtime()| \
+		SELECT * from company;select * from employee;select curtime(6)| \
 		call sp_TestProc(?,?,?)";
 
     SYSTEMTIME st;

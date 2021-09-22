@@ -56,7 +56,7 @@ class Program
                 var tDs = mysql.execute("delete from employee;delete from company");
                 var tP0 = TestPreparedStatements(mysql);
                 var tP1 = TestBLOBByPreparedStatement(mysql);
-                var tSs = mysql.execute("SELECT * from company;select * from employee;select curtime()", r, rh);
+                var tSs = mysql.execute("SELECT * from company;select * from employee;select curtime(6)", r, rh);
                 var tStore = TestStoredProcedure(mysql, ra, out vPData);
                 var tB = TestBatch(mysql, ra, out vData);
                 Console.WriteLine();
@@ -175,7 +175,7 @@ class Program
         string sql = @" delete from employee;delete from company|
                         INSERT INTO company(ID,NAME,ADDRESS,Income)VALUES(?,?,?,?)|
                         insert into employee(CompanyId,name,JoinDate,image,DESCRIPTION,Salary)values(?,?,?,?,?,?)|
-                        SELECT * from company;select * from employee;select curtime()|
+                        SELECT * from company;select * from employee;select curtime(6)|
                         call sp_TestProc(?,?,?)";
         vData = new CDBVariantArray();
         using (CScopeUQueue sbBlob = new CScopeUQueue())
