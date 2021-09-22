@@ -3,6 +3,7 @@
 	(b) Fix the method Cancel bugs with secure socket and message queue
 	(c) Fix a server routing error related with client message queue enabled
 	(d) SocketPro server plugins (usqlsvr, sodbc and smysql) as well as Microsoft SQL DB server plugin (usqlserver.dll) are updated to support in-line queries batch for better performance
+	(e) Upgrade SocketPro datetime to support BC 6291 to AD 9991 with time accuracy to 100-nanosecond
 
 58.	SocketPro Version 6.3.1.1
 	(a) Core libraries are added with a new feature Interrupt, which could be used to interrupt a looping processing at the other end
