@@ -38,9 +38,9 @@ function TestCreateTables(db) {
         'NULL unique,CompanyId bigint not null,name CHAR(64)NOT NULL,JoinDate DATETIME(6)default null,IMAGE ' +
         'MEDIUMBLOB,DESCRIPTION MEDIUMTEXT,Salary DECIMAL(25,2),FOREIGN KEY(CompanyId)REFERENCES company(id))');
     var pe3 = db.execute('DROP PROCEDURE IF EXISTS sp_TestProc;CREATE PROCEDURE sp_TestProc(in p_company_id int,' +
-        'inout p_sum_salary DECIMAL(25,2),out p_last_dt datetime)BEGIN select name,joindate,salary from employee ' +
+        'inout p_sum_salary DECIMAL(25,2),out p_last_dt datetime(6))BEGIN select name,joindate,salary from employee ' +
         'where companyid>=p_company_id;select sum(salary)+p_sum_salary into p_sum_salary from employee ' +
-        'where companyid>=p_company_id;select now()into p_last_dt;END');
+        'where companyid>=p_company_id;select now(6)into p_last_dt;END');
     return [pe0, pe1, pe2, pe3];
 }
 
@@ -108,7 +108,7 @@ function TestBatch(db) {
     var sql = 'delete from employee;delete from company|' +
 'INSERT INTO company(ID, NAME, ADDRESS, Income)VALUES(?,?,?,?)|' +
 'insert into employee(CompanyId,name,JoinDate,image,DESCRIPTION,Salary)values(?,?,?,?,?,?)|' +
-'SELECT * from company;select name,joindate,salary from employee;select curtime()|' +
+'SELECT * from company;select name,joindate,salary from employee;select curtime(6)|' +
 'call sp_TestProc(?,?,?)';
     var buff = SPA.newBuffer();
     var blob = SPA.newBuffer();

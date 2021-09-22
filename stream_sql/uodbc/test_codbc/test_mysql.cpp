@@ -225,12 +225,12 @@ void TestBatch(shared_ptr<CMyHandler> pOdbc, CRowsetArray&ra, CDBVariantArray &v
     //first, execute delete from employee;delete from company
     //second, three sets of INSERT INTO company(ID,NAME,ADDRESS,Income)VALUES(?,?,?,?)
     //third, three sets of insert into employee(CompanyId,name,JoinDate,image,DESCRIPTION,Salary)values(?,?,?,?,?,?)
-    //fourth, SELECT * from company;select * from employee;select curtime()
+    //fourth, SELECT * from company;select * from employee;select curtime(6)
     //last, three sets of call sp_TestProc(?,?,?)
     wstring sql = L"delete from employee;delete from company; \
                         INSERT INTO company(ID,NAME,ADDRESS,Income)VALUES(?,?,?,?); \
                         insert into employee(CompanyId,name,JoinDate,image,DESCRIPTION,Salary)values(?,?,?,?,?,?); \
-                        SELECT * from company;select * from employee;select curtime(); \
+                        SELECT * from company;select * from employee;select curtime(6); \
 						{call sp_TestProc(?,?,?)}";
     CParameterInfoArray vInfo;
     wstring wstr;
@@ -376,7 +376,7 @@ void TestCreateTables(shared_ptr<CMyHandler> pOdbc) {
         wcout << errMsg << endl;
     });
 
-    create_table = L"CREATE TABLE IF NOT EXISTS employee(EMPLOYEEID bigint AUTO_INCREMENT PRIMARY KEY NOT NULL unique,CompanyId bigint not null, name CHAR(64) NOT NULL,JoinDate DATETIME default null,IMAGE MEDIUMBLOB,DESCRIPTION MEDIUMTEXT,Salary decimal(15,2),FOREIGN KEY(CompanyId)REFERENCES company(id))";
+    create_table = L"CREATE TABLE IF NOT EXISTS employee(EMPLOYEEID bigint AUTO_INCREMENT PRIMARY KEY NOT NULL unique,CompanyId bigint not null, name CHAR(64) NOT NULL,JoinDate DATETIME(6) default null,IMAGE MEDIUMBLOB,DESCRIPTION MEDIUMTEXT,Salary decimal(15,2),FOREIGN KEY(CompanyId)REFERENCES company(id))";
     ok = pOdbc->Execute(create_table, [](CSender &handler, int res, const wstring &errMsg, SPA::INT64 affected, SPA::UINT64 fail_ok, CDBVariant & vtId) {
         cout << "affected = " << affected << ", fails = " << (unsigned int) (fail_ok >> 32) << ", oks = " << (unsigned int) fail_ok << ", res = " << res << ", errMsg: ";
         wcout << errMsg << endl;

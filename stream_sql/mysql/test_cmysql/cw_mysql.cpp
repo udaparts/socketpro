@@ -41,7 +41,7 @@ CAwTask MyTest(PMySQL& pMysql, CRowsetArray& ra, CMysql::DRows& r, CMysql::DRows
         auto wD = pMysql->wait_execute(u"delete from employee;delete from company");
         auto wP0 = TestPreparedStatements(pMysql);
         auto wP1 = TestBLOBByPreparedStatement(pMysql);
-        auto wS = pMysql->wait_execute(u"SELECT * from company;select * from employee;select curtime()", r, rh);
+        auto wS = pMysql->wait_execute(u"SELECT * from company;select * from employee;select curtime(6)", r, rh);
         CDBVariantArray vPData;
         auto wP2 = TestStoredProcedure(pMysql, ra, vPData);
         CDBVariantArray vData;
@@ -201,7 +201,7 @@ Aw TestBatch(PMySQL pMysql, CRowsetArray&ra, CDBVariantArray &vData) {
     u16string sql = u"delete from employee;delete from company| \
 		INSERT INTO company(ID,NAME,ADDRESS,Income)VALUES(?,?,?,?)| \
 		insert into employee(CompanyId,name,JoinDate,image,DESCRIPTION,Salary)values(?,?,?,?,?,?)| \
-		SELECT * from company;select * from employee;select curtime()| \
+		SELECT * from company;select * from employee;select curtime(6)| \
 		call sp_TestProc(?,?,?)";
 
     SYSTEMTIME st;
@@ -362,7 +362,7 @@ deque<Aw> TestCreateTables(PMySQL pMysql) {
     q.push_back(pMysql->wait_execute(create_table));
     create_table = u"CREATE TABLE IF NOT EXISTS employee(EMPLOYEEID bigint AUTO_INCREMENT PRIMARY KEY NOT NULL unique,CompanyId bigint not null,name CHAR(64)NOT NULL,JoinDate DATETIME(6)default null,IMAGE MEDIUMBLOB,DESCRIPTION MEDIUMTEXT,Salary DECIMAL(25,2),FOREIGN KEY(CompanyId)REFERENCES company(id))";
     q.push_back(pMysql->wait_execute(create_table));
-    const char16_t *create_proc = u"DROP PROCEDURE IF EXISTS sp_TestProc;CREATE PROCEDURE sp_TestProc(in p_company_id int, inout p_sum_salary DECIMAL(25,2),out p_last_dt datetime)BEGIN select * from employee where companyid>=p_company_id;select sum(salary)+p_sum_salary into p_sum_salary from employee where companyid>=p_company_id;select now()into p_last_dt;END";
+    const char16_t *create_proc = u"DROP PROCEDURE IF EXISTS sp_TestProc;CREATE PROCEDURE sp_TestProc(in p_company_id int, inout p_sum_salary DECIMAL(25,2),out p_last_dt datetime(6))BEGIN select * from employee where companyid>=p_company_id;select sum(salary)+p_sum_salary into p_sum_salary from employee where companyid>=p_company_id;select now(6)into p_last_dt;END";
     q.push_back(pMysql->wait_execute(create_proc));
     return q;
 }

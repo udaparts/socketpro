@@ -39,7 +39,7 @@ while (str.length < 512 * 1024) {
         var fCt0 = db.execute('Create database if not exists mysqldb character set utf8 collate utf8_general_ci;USE mysqldb');
         var fCt1 = db.execute('CREATE TABLE IF NOT EXISTS company(ID bigint PRIMARY KEY NOT NULL,name CHAR(64)NOT NULL,ADDRESS varCHAR(256)not null,Income Decimal(21,2)not null)');
         var fCt2 = db.execute('CREATE TABLE IF NOT EXISTS employee(EMPLOYEEID bigint AUTO_INCREMENT PRIMARY KEY NOT NULL unique,CompanyId bigint not null,name CHAR(64)NOT NULL,JoinDate DATETIME(6)default null,IMAGE MEDIUMBLOB,DESCRIPTION MEDIUMTEXT,Salary DECIMAL(25,2),FOREIGN KEY(CompanyId)REFERENCES company(id))');
-        var fCt3 = db.execute('DROP PROCEDURE IF EXISTS sp_TestProc;CREATE PROCEDURE sp_TestProc(in p_company_id int,inout p_sum_salary DECIMAL(25,2),out p_last_dt datetime)BEGIN select name,joindate,salary from employee where companyid>=p_company_id;select sum(salary)+p_sum_salary into p_sum_salary from employee where companyid>=p_company_id;select now()into p_last_dt;END');
+        var fCt3 = db.execute('DROP PROCEDURE IF EXISTS sp_TestProc;CREATE PROCEDURE sp_TestProc(in p_company_id int,inout p_sum_salary DECIMAL(25,2),out p_last_dt datetime(6))BEGIN select name,joindate,salary from employee where companyid>=p_company_id;select sum(salary)+p_sum_salary into p_sum_salary from employee where companyid>=p_company_id;select now(6)into p_last_dt;END');
         var fd = db.execute('delete from employee;delete from company');
         console.log(await Promise.all([fCt0, fCt1, fCt2, fCt3, fd]));
 
@@ -96,7 +96,7 @@ while (str.length < 512 * 1024) {
 
         console.log('&&&& Test a big batch of statements with manual transaction &&&&');
 
-        var sql = 'delete from employee;delete from company|INSERT INTO company(ID,NAME,ADDRESS,Income)VALUES(?,?,?,?)|insert into employee(CompanyId,name,JoinDate,image,DESCRIPTION,Salary)values(?,?,?,?,?,?)|SELECT * from company;select name,joindate,salary from employee;select curtime()|call sp_TestProc(?,?,?)';
+        var sql = 'delete from employee;delete from company|INSERT INTO company(ID,NAME,ADDRESS,Income)VALUES(?,?,?,?)|insert into employee(CompanyId,name,JoinDate,image,DESCRIPTION,Salary)values(?,?,?,?,?,?)|SELECT * from company;select name,joindate,salary from employee;select curtime(6)|call sp_TestProc(?,?,?)';
         buff = SPA.newBuffer();
         blob = SPA.newBuffer();
 
