@@ -68,7 +68,7 @@ namespace SPA {
 #ifdef WIN32_64
         if (vtTarget == VT_DATE && vtDes.date > UDB::MIN_WIN_DATETIME) {
             UDateTime dt(vtDes.date);
-            vtDes.ullVal = dt.time;
+            vtDes.ullVal = dt.Value();
         }
 #endif
         return hr;

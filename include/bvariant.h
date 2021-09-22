@@ -110,7 +110,7 @@ public:
 
     CComVariant(SPA::UDateTime dt) noexcept {
         vt = VT_DATE;
-        ullVal = dt.time;
+        ullVal = dt.Value();
     }
 
     // Assignment Operators
@@ -233,7 +233,7 @@ public:
             Clear();
             vt = VT_DATE;
         }
-        ullVal = dt.time;
+        ullVal = dt.Value();
         return *this;
     }
 

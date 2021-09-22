@@ -29,6 +29,9 @@ namespace SPA
         std::string CSqliteImpl::DIU_TRIGGER_FUNC("sp_sqlite_db_event_func");
 
         CSqliteImpl::CSqliteImpl() : m_EnableMessages(false), m_oks(0), m_fails(0), m_ti(tagTransactionIsolation::tiUnspecified), m_global(true), m_parameters(0) {
+#ifdef WIN32_64
+            m_UQueue.TimeEx(true);
+#endif
         }
 
         void CSqliteImpl::SetCacheTables(const CDBString & str) {
@@ -1928,7 +1931,7 @@ namespace SPA
                                 UDateTime udt(str);
                                 vt = VT_DATE;
                                 sb->Push((const unsigned char*) &vt, sizeof (vt));
-                                sb << udt.time;
+                                sb << udt;
                             } else {
                                 sb->Push((const unsigned char*) &vt, sizeof (vt));
                                 sb << bytes;

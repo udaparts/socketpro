@@ -5,7 +5,7 @@
 using namespace SPA;
 using namespace SPA::ServerSide;
 
-std::string g_version("1.0.0.10");
+std::string g_version("1.0.1.1");
 
 #ifdef WIN32_64
 

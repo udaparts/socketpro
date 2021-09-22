@@ -285,11 +285,11 @@ namespace SPA {
             }
 #endif
 
-            CDBVariant(const UDateTime &dt) noexcept : CComVariant(dt.time), VtExt(tagVTExt::vteNormal) {
+            CDBVariant(const UDateTime &dt) noexcept : CComVariant(dt.Value()), VtExt(tagVTExt::vteNormal) {
                 vt = VT_DATE;
             }
 
-            CDBVariant(const std::tm &st, unsigned int us = 0) noexcept : CComVariant(UDateTime(st, us).time), VtExt(tagVTExt::vteNormal) {
+            CDBVariant(const std::tm &st, unsigned int ns = 0) noexcept : CComVariant(UDateTime(st, ns).Value()), VtExt(tagVTExt::vteNormal) {
                 vt = VT_DATE;
             }
 
@@ -339,22 +339,22 @@ namespace SPA {
                 return *this;
             }
 
-            CDBVariant(double dblSrc, VARTYPE vtSrc = VT_R8/* or VT_DATE*/, unsigned short us = 0) noexcept : CComVariant(dblSrc), VtExt(tagVTExt::vteNormal) {
+            CDBVariant(double dblSrc, VARTYPE vtSrc = VT_R8/* or VT_DATE*/, unsigned int ns = 0) noexcept : CComVariant(dblSrc), VtExt(tagVTExt::vteNormal) {
                 if (vtSrc == VT_DATE) {
                     //convert variant date to high precision time on window system
-                    UDateTime udt(dblSrc, us);
-                    this->ullVal = udt.time;
+                    UDateTime udt(dblSrc, ns);
+                    this->ullVal = udt.Value();
                 }
             }
 
-            CDBVariant(const SYSTEMTIME &st, unsigned short us = 0) noexcept : CComVariant(UDateTime(st, us).time), VtExt(tagVTExt::vteNormal) {
+            CDBVariant(const SYSTEMTIME &st, unsigned int ns = 0) noexcept : CComVariant(UDateTime(st, ns).Value()), VtExt(tagVTExt::vteNormal) {
                 vt = VT_DATE;
             }
 #else
 
             CDBVariant(const SYSTEMTIME &st) noexcept : VtExt(tagVTExt::vteNormal) {
                 vt = VT_DATE;
-                ullVal = UDateTime(st).time;
+                ullVal = UDateTime(st).Value();
             }
 #endif
         public:
@@ -470,6 +470,7 @@ namespace SPA {
                     case VT_I8:
                         d = (UINT64) llVal;
                         break;
+                    case VT_DATE:
                     case VT_UI8:
                         d = ullVal;
                         break;
@@ -508,6 +509,7 @@ namespace SPA {
                     case VT_I8:
                         d0 = (UINT64) data.llVal;
                         break;
+                    case VT_DATE:
                     case VT_UI8:
                         d0 = data.ullVal;
                         break;
@@ -616,7 +618,7 @@ namespace SPA {
             CDBVariant& operator=(const UDateTime &dt) noexcept {
                 ::VariantClear(this);
                 vt = VT_DATE;
-                ullVal = dt.time;
+                ullVal = dt.Value();
                 VtExt = tagVTExt::vteNormal;
                 return *this;
             }
@@ -624,7 +626,7 @@ namespace SPA {
             CDBVariant& operator=(const SYSTEMTIME &st) noexcept {
                 ::VariantClear(this);
                 vt = VT_DATE;
-                ullVal = UDateTime(st).time;
+                ullVal = UDateTime(st).Value();
                 VtExt = tagVTExt::vteNormal;
                 return *this;
             }
@@ -632,7 +634,7 @@ namespace SPA {
             CDBVariant& operator=(const std::tm &st) noexcept {
                 ::VariantClear(this);
                 vt = VT_DATE;
-                ullVal = UDateTime(st).time;
+                ullVal = UDateTime(st).Value();
                 VtExt = tagVTExt::vteNormal;
                 return *this;
             }
@@ -810,7 +812,7 @@ namespace SPA {
                 ::SafeArrayUnaccessData(vt.parray);
             }
 #ifdef WIN32_64
-            else if (vt.vt == VT_DATE && vt.date < MIN_WIN_DATETIME) {
+            else if (vt.vt == VT_DATE && abs(vt.date) < MIN_WIN_DATETIME) {
                 q << vt.vt << vt.ullVal;
             }
 #endif
@@ -832,7 +834,7 @@ namespace SPA {
             const VARTYPE *pvt = (const VARTYPE *) q.GetBuffer();
             if (*pvt == VT_DATE) {
                 const double *dbl = (const double *) q.GetBuffer(sizeof (VARTYPE));
-                if (*dbl < MIN_WIN_DATETIME) {
+                if (abs(*dbl) < MIN_WIN_DATETIME) {
                     //high precision time
                     q >> vt.vt >> vt.ullVal;
                     return q;

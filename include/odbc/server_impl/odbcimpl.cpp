@@ -199,6 +199,9 @@ namespace SPA{
 #endif
         m_EnableMessages(false),
         m_bPrimaryKeys(SQL_FALSE), m_bProcedureColumns(SQL_FALSE), m_maxQueriesBatched(0), m_bQueryBatching(false) {
+#ifdef WIN32_64
+            m_UQueue.TimeEx(true); //use high-precision datetime
+#endif
         }
 
         void COdbcImpl::OnReleaseSource(bool bClosing, unsigned int info) {
@@ -1063,13 +1066,12 @@ namespace SPA{
             tm.tm_hour = d.hour;
             tm.tm_min = d.minute;
             tm.tm_sec = d.second;
-            return (unsigned int) (d.fraction / 1000);
+            return (unsigned int) d.fraction;
         }
 
         unsigned int COdbcImpl::ToCTime(const TIME_STRUCT &d, std::tm & tm) {
             //start from 01/01/1900
             memset(&tm, 0, sizeof (tm));
-            tm.tm_mday = 0;
             tm.tm_hour = d.hour;
             tm.tm_min = d.minute;
             tm.tm_sec = d.second;
@@ -1453,36 +1455,36 @@ namespace SPA{
                 {
                     std::tm tm;
                     TIMESTAMP_STRUCT *dt = (TIMESTAMP_STRUCT*) buffer;
-                    unsigned int us = ToCTime(*dt, tm);
-                    UDateTime udt(tm, us);
-                    q << (VARTYPE) VT_DATE << udt.time;
+                    unsigned int ns = ToCTime(*dt, tm);
+                    UDateTime udt(tm, ns);
+                    q << (VARTYPE) VT_DATE << udt;
                 }
                     break;
                 case SQL_C_TYPE_TIMESTAMP:
                 {
                     std::tm tm;
                     SQL_TIMESTAMP_STRUCT *dt = (SQL_TIMESTAMP_STRUCT*) buffer;
-                    unsigned int us = ToCTime(*dt, tm);
-                    UDateTime udt(tm, us);
-                    q << (VARTYPE) VT_DATE << udt.time;
+                    unsigned int ns = ToCTime(*dt, tm);
+                    UDateTime udt(tm, ns);
+                    q << (VARTYPE) VT_DATE << udt;
                 }
                     break;
                 case SQL_C_TYPE_DATE:
                 {
                     std::tm tm;
                     SQL_DATE_STRUCT *dt = (SQL_DATE_STRUCT*) buffer;
-                    unsigned int us = ToCTime(*dt, tm);
-                    UDateTime udt(tm, us);
-                    q << (VARTYPE) VT_DATE << udt.time;
+                    unsigned int ns = ToCTime(*dt, tm);
+                    UDateTime udt(tm, ns);
+                    q << (VARTYPE) VT_DATE << udt;
                 }
                     break;
                 case SQL_C_TYPE_TIME:
                 {
                     std::tm tm;
                     SQL_TIME_STRUCT *dt = (SQL_TIME_STRUCT*) buffer;
-                    unsigned int us = ToCTime(*dt, tm);
-                    UDateTime udt(tm, us);
-                    q << (VARTYPE) VT_DATE << udt.time;
+                    unsigned int ns = ToCTime(*dt, tm);
+                    UDateTime udt(tm, ns);
+                    q << (VARTYPE) VT_DATE << udt;
                 }
                     break;
                 case SQL_C_BIT:
@@ -1569,7 +1571,7 @@ namespace SPA{
                                                 std::tm st;
                                                 unsigned int us = ToCTime(d, st);
                                                 UDateTime dt(st, us);
-                                                q << dt.time;
+                                                q << dt;
                                             }
                                         }
                                     }
@@ -1584,9 +1586,9 @@ namespace SPA{
                                             } else {
                                                 q << vt;
                                                 std::tm st;
-                                                unsigned int us = ToCTime(d, st);
-                                                UDateTime dt(st, us);
-                                                q << dt.time;
+                                                unsigned int ns = ToCTime(d, st);
+                                                UDateTime dt(st, ns);
+                                                q << dt;
                                             }
                                         }
                                     }
@@ -1601,9 +1603,9 @@ namespace SPA{
                                             } else {
                                                 q << vt;
                                                 std::tm st;
-                                                unsigned int us = ToCTime(d, st);
-                                                UDateTime dt(st, us);
-                                                q << dt.time;
+                                                unsigned int ns = ToCTime(d, st);
+                                                UDateTime dt(st, ns);
+                                                q << dt;
                                             }
                                         }
                                     }
@@ -2102,7 +2104,7 @@ namespace SPA{
                                 q << info.DataType;
                                 const char *s = (const char*) header;
                                 UDateTime dt(s);
-                                q << dt.time;
+                                q << dt;
                             }
                                 break;
                             default:
@@ -3557,9 +3559,8 @@ namespace SPA{
                         break;
                     case VT_DATE:
                     {
-                        UDateTime dt;
-                        dt.ParseFromDBString((const char*) start);
-                        sb << dt.time;
+                        UDateTime dt((const char*)start);
+                        sb << dt;
                         start += info.ColumnSize;
                     }
                         break;

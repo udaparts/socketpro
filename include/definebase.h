@@ -37,11 +37,6 @@
 #define MAX_USERID_CHARS		255
 #define	MAX_PASSWORD_CHARS		255
 
-#define MILLISECONDS_PER_DAY         86400000
-
-// 25569 == difference between epoch (1970/01/01:00/00/00) and variant date (1899/12/30:00/00/00)
-#define DAYS_DIFF_EPOCH_VDATE   25569
-
 #ifndef	NDEBUG
 #include <iostream>
 #endif
@@ -123,22 +118,6 @@ namespace SPA {
 namespace SPA {
     typedef __int64 INT64;
     typedef unsigned __int64 UINT64;
-
-    static double ToVariantDate(INT64 ms) noexcept {
-        double dt(DAYS_DIFF_EPOCH_VDATE);
-        INT64 days = ms / MILLISECONDS_PER_DAY;
-        dt += days;
-        double millseconds = (double) (ms % MILLISECONDS_PER_DAY);
-        dt += (millseconds / MILLISECONDS_PER_DAY);
-        return dt;
-    }
-
-    static INT64 ToEpoch(double vtDate) noexcept {
-        vtDate += 0.5 / MILLISECONDS_PER_DAY; //rounded to ms
-        vtDate -= DAYS_DIFF_EPOCH_VDATE;
-        vtDate *= MILLISECONDS_PER_DAY;
-        return (INT64) vtDate;
-    }
 };
 
 #define U_MODULE_HIDDEN
@@ -180,12 +159,13 @@ namespace SPA {
 
 #pragma pack(push,1)
 
-typedef struct tagCY {
-    int64_t int64;
+typedef union tagCY {
 
-    inline bool operator==(const tagCY & cy) const noexcept {
-        return (int64 == cy.int64);
-    }
+    struct {
+        unsigned int Lo;
+        int Hi;
+    };
+    int64_t int64;
 } CY;
 
 #pragma pack(pop)
@@ -673,83 +653,100 @@ namespace SPA {
 
     struct UDateTime {
     private:
-        static const unsigned int MICRO_SECONDS = 0xfffff; //20 bits
+        static constexpr unsigned int MAX_NANO_SECONDS = 999999999;
 
     public:
-
-        static void ParseTime(const char *str, int &hour, int &min, int &second, unsigned int &us) {
+        static void ParseTime(const char *str, int &hour, int &min, int &second, unsigned int &ns) {
             const char *end;
             hour = atoi(str, end);
             min = atoi(++end, end);
             second = atoi(++end, end);
             if (*end == '.') {
-                us = (unsigned int) (atof(end, end) * 1000000 + 0.5); //rounded to 1 microsecond
+                ns = (unsigned int) (atof(end, end) * 1000000000 + 0.5); //rounded to 1 nanosecond
             } else {
-                us = 0;
+                ns = 0;
             }
         }
 
-        static void ParseDateTime(const char *str, int &year, int &month, int &day, int &hour, int &min, int &second, unsigned int &us) {
+        static void ParseDateTime(const char *str, int &year, int &month, int &day, int &hour, int &min, int &second, unsigned int &ns) {
             const char *end;
             year = atoi(str, end);
             month = atoi(++end, end);
             day = atoi(++end, end);
             if (*end == ' ') {
-                ParseTime(++end, hour, min, second, us);
+                ParseTime(++end, hour, min, second, ns);
             } else {
                 hour = 0;
                 min = 0;
                 second = 0;
-                us = 0;
+                ns = 0;
             }
         }
 
-    public:
-        UINT64 time; //in micro-second
+        UINT64 Ns100 : 24; //100-nanosecond per unit
+        UINT64 Second : 6; //0 - 59
+        UINT64 Minute : 6; //0 - 59
+        UINT64 Hour : 5; //0 - 23
+        UINT64 Day : 5; //1 - 31
+        UINT64 Month : 4; //0 - 11 instead of 1 - 12
+        UINT64 Year : 13; //8191 == 0x1fff, From BC 6291 (8191 - 1900) to AD 9991 (1900 + 8191)
+        UINT64 Neg : 1; //It will be 1 if date time is earlier than 1900-01-01
 
-        UDateTime(UINT64 t = 0) noexcept : time(t) {
+        UDateTime(UINT64 t = 0) noexcept : Ns100(0), Second(0), Minute(0), Hour(0), Day(0), Month(0), Year(0), Neg(0) {
+            ::memcpy(this, &t, sizeof (UDateTime));
         }
 
-        UDateTime(const std::tm &dt, unsigned int us = 0) noexcept {
-            Set(dt, us);
+        UDateTime(const std::tm &dt, unsigned int ns = 0) noexcept {
+            Set(dt, ns);
         }
 
-        UDateTime(const char *str) {
+        UDateTime(const char *str) : Ns100(0), Second(0), Minute(0), Hour(0), Day(0), Month(0), Year(0), Neg(0) {
             if (str) {
                 ParseFromDBString(str);
-            } else {
-                time = 0;
             }
+        }
+
+        UINT64 Value() const noexcept {
+            return *(UINT64*)this;
+        }
+
+        void Value(UINT64 t) noexcept {
+            ::memcpy(this, &t, sizeof (t));
         }
 
         UDateTime& operator=(const UDateTime& dt) noexcept {
-            if (this != &dt)
-                time = dt.time;
+            if (this != &dt) {
+                ::memcpy(this, &dt, sizeof (dt));
+            }
             return *this;
         }
 
         inline bool operator==(const UDateTime & t) const noexcept {
-            return (time == t.time);
+            return (0 == ::memcmp(this, &t, sizeof (t)));
         }
 
         inline bool operator!=(const UDateTime & t) const noexcept {
-            return (time != t.time);
+            return (0 != ::memcmp(this, &t, sizeof (t)));
         }
 
         inline unsigned int HasMicrosecond() const noexcept {
-            return (unsigned int) (time & MICRO_SECONDS);
+            return (unsigned int) (Ns100 / 10);
+        }
+
+        inline unsigned int HasHanosecond() const noexcept {
+            return (unsigned int) (Ns100 * 100);
         }
 
         inline unsigned int HasDate() const noexcept {
-            return (unsigned int) (time >> 37);
+            return (unsigned int) (Day);
         }
 
         inline unsigned int HasTime() const noexcept {
-            return (unsigned int) ((time >> 20) & 0x1ffff);
+            return (unsigned int) (Hour * 3600 + Minute * 60 + Second);
         }
 
-        std::time_t GetTime(bool& time_only, unsigned int* us = nullptr) {
-            std::tm dt = GetCTime(us);
+        std::time_t GetTime(bool& time_only, unsigned int* ns = nullptr) {
+            std::tm dt = GetCTime(ns);
             time_only = (0 == dt.tm_mday);
 #ifdef WIN32_64
             return ::_mkgmtime(&dt);
@@ -758,98 +755,96 @@ namespace SPA {
 #endif
         }
 
-        //convert UDateTime datetime back to std::tm structure and micro-seconds
+        //convert UDateTime datetime back to std::tm structure and nanoseconds
 
-        std::tm GetCTime(unsigned int *us = nullptr) const noexcept {
+        std::tm GetCTime(unsigned int *ns = nullptr) const noexcept {
             std::tm datetime;
-            ::memset(&datetime, 0, sizeof (datetime));
             datetime.tm_isdst = -1;
-            UINT64 dt = time;
-            if (us) {
-                *us = (unsigned int) (dt & MICRO_SECONDS);
+            datetime.tm_wday = 0;
+            datetime.tm_yday = 0;
+            if (ns) {
+                *ns = (unsigned int) (Ns100 * 100);
             }
-            dt >>= 20;
-            datetime.tm_sec = (int) (dt & 0x3f);
-            dt >>= 6;
-            datetime.tm_min = (int) (dt & 0x3f);
-            dt >>= 6;
-            datetime.tm_hour = (int) (dt & 0x1f);
-            dt >>= 5;
-            datetime.tm_mday = (int) (dt & 0x1f);
-            dt >>= 5;
-            datetime.tm_mon = (int) (dt & 0xf);
-            dt >>= 4;
-            datetime.tm_year = (int) dt;
+            if (Neg) {
+                datetime.tm_year = -(int) Year;
+            } else {
+                datetime.tm_year = (int) Year;
+            }
+            datetime.tm_mon = (int) Month;
+            datetime.tm_mday = (int) Day;
+            datetime.tm_hour = (int) Hour;
+            datetime.tm_min = (int) Minute;
+            datetime.tm_sec = (int) Second;
             return datetime;
         }
 
-        void Set(const std::tm &dt, unsigned int us = 0) noexcept {
-            assert(us < 1000000);
-            if (us >= 1000000) {
-                us = 999999;
+        void Set(const std::tm &dt, unsigned int ns = 0) noexcept {
+            assert(ns <= MAX_NANO_SECONDS);
+            if (ns > MAX_NANO_SECONDS) {
+                ns = MAX_NANO_SECONDS;
             }
-            assert(dt.tm_year >= 0);
-            assert(dt.tm_mon >= 0 && dt.tm_mon <= 11);
-            assert(dt.tm_mday >= 0 && dt.tm_mday < 32);
             assert(dt.tm_hour >= 0 && dt.tm_hour < 24);
             assert(dt.tm_min >= 0 && dt.tm_min < 60);
             assert(dt.tm_sec >= 0 && dt.tm_sec < 60);
-            time = (unsigned int) (dt.tm_year & 0x3ffff);
-            time <<= 46; //18 bits for years
-            UINT64 mid = (unsigned int) (dt.tm_mon & 0xf); //4 bits for month
-            mid <<= 42;
-            time += mid;
-            mid = (unsigned int) (dt.tm_mday & 0x1f); //5 bits for day
-            mid <<= 37;
-            time += mid;
-            mid = (unsigned int) (dt.tm_hour & 0x1f); //5 bits for hour
-            mid <<= 32;
-            time += mid;
-            mid = (unsigned int) (dt.tm_min & 0x3f); //6 bits for minute
-            mid <<= 26;
-            time += mid;
-            mid = (unsigned int) (dt.tm_sec & 0x3f); //6 bits for second
-            mid <<= 20;
-            time += mid;
-            time += (unsigned int) (us & MICRO_SECONDS); //20 bits for micro-seconds
+            if (dt.tm_mday) {
+                assert(dt.tm_year >= -8191 && dt.tm_year <= 8191);
+                assert(dt.tm_mon >= 0 && dt.tm_mon <= 11);
+                assert(dt.tm_mday < 32);
+                if (dt.tm_year < 0) {
+                    Neg = 1;
+                    Year = -dt.tm_year;
+                }
+                else {
+                    Neg = 0;
+                    Year = dt.tm_year;
+                }
+                Month = dt.tm_mon;
+                Day = dt.tm_mday;
+            }
+            else {
+                Neg = 0;
+                Year = 0;
+                Month = 0;
+                Day = 0;
+            }
+            Hour = dt.tm_hour;
+            Minute = dt.tm_min;
+            Second = dt.tm_sec;
+            Ns100 = ns / 100;
         }
 
         void ToDBString(char *str, unsigned int bufferSize) const {
-            unsigned int us;
             assert(str);
-            assert(bufferSize > 26); //2012-12-23 23:59:59.123456
-            std::tm tm = GetCTime(&us);
+            assert(bufferSize > 27); //2012-12-23 23:59:59.1234567
+            unsigned int ns = Ns100;
+            std::tm tm = GetCTime(nullptr);
 #if defined (WIN32_64) && _MSC_VER >= 1600 
-            if (us) {
+            if (ns) {
                 if (tm.tm_mday) {
-                    sprintf_s(str, bufferSize, "%04d-%02d-%02d %02d:%02d:%02d.%06d", tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec, us);
+                    sprintf_s(str, bufferSize, "%04d-%02d-%02d %02d:%02d:%02d.%07d", tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec, ns);
                 } else {
-                    //time with micro-seconds
-                    sprintf_s(str, bufferSize, "%02d:%02d:%02d.%06d", tm.tm_hour, tm.tm_min, tm.tm_sec, us);
+                    sprintf_s(str, bufferSize, "%02d:%02d:%02d.%07d", tm.tm_hour, tm.tm_min, tm.tm_sec, ns);
                 }
             } else if (tm.tm_hour || tm.tm_min || tm.tm_sec) {
                 if (tm.tm_mday) {
                     sprintf_s(str, bufferSize, "%04d-%02d-%02d %02d:%02d:%02d", tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec);
                 } else {
-                    //time without micro-seconds
                     sprintf_s(str, bufferSize, "%02d:%02d:%02d", tm.tm_hour, tm.tm_min, tm.tm_sec);
                 }
             } else {
                 sprintf_s(str, bufferSize, "%04d-%02d-%02d", tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday);
             }
 #else
-            if (us) {
+            if (ns) {
                 if (tm.tm_mday) {
-                    sprintf(str, "%04d-%02d-%02d %02d:%02d:%02d.%06d", tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec, us);
+                    sprintf(str, "%04d-%02d-%02d %02d:%02d:%02d.%07d", tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec, ns);
                 } else {
-                    //time with micro-seconds
-                    sprintf(str, "%02d:%02d:%02d.%06d", tm.tm_hour, tm.tm_min, tm.tm_sec, us);
+                    sprintf(str, "%02d:%02d:%02d.%07d", tm.tm_hour, tm.tm_min, tm.tm_sec, ns);
                 }
             } else if (tm.tm_hour || tm.tm_min || tm.tm_sec) {
                 if (tm.tm_mday) {
                     sprintf(str, "%04d-%02d-%02d %02d:%02d:%02d", tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec);
                 } else {
-                    //time without micro-seconds
                     sprintf(str, "%02d:%02d:%02d", tm.tm_hour, tm.tm_min, tm.tm_sec);
                 }
             } else {
@@ -865,24 +860,21 @@ namespace SPA {
         }
 
         void ToWebString(char *str, unsigned int bufferSize) const {
-            unsigned int us;
             assert(str);
             assert(bufferSize > 24); //2012-12-23T23:59:59.123Z
-            std::tm tm = GetCTime(&us);
-            unsigned int ms = us / 1000;
+            std::tm tm = GetCTime(nullptr);
+            unsigned int ms = (unsigned int) ((Ns100 + 5000) / 10000);
 #if defined (WIN32_64) && _MSC_VER >= 1600 
             if (ms) {
                 if (tm.tm_mday) {
                     sprintf_s(str, bufferSize, "%04d-%02d-%02dT%02d:%02d:%02d.%03dZ", tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec, ms);
                 } else {
-                    //time with micro-seconds
                     sprintf_s(str, bufferSize, "%02d:%02d:%02d.%03dZ", tm.tm_hour, tm.tm_min, tm.tm_sec, ms);
                 }
             } else if (tm.tm_hour || tm.tm_min || tm.tm_sec) {
                 if (tm.tm_mday) {
                     sprintf_s(str, bufferSize, "%04d-%02d-%02dT%02d:%02d:%02dZ", tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec);
                 } else {
-                    //time without micro-seconds
                     sprintf_s(str, bufferSize, "%02d:%02d:%02dZ", tm.tm_hour, tm.tm_min, tm.tm_sec);
                 }
             } else {
@@ -893,14 +885,12 @@ namespace SPA {
                 if (tm.tm_mday) {
                     sprintf(str, "%04d-%02d-%02dT%02d:%02d:%02d.%03dZ", tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec, ms);
                 } else {
-                    //time with micro-seconds
                     sprintf(str, "%02d:%02d:%02d.%03dZ", tm.tm_hour, tm.tm_min, tm.tm_sec, ms);
                 }
             } else if (tm.tm_hour || tm.tm_min || tm.tm_sec) {
                 if (tm.tm_mday) {
                     sprintf(str, "%04d-%02d-%02dT%02d:%02d:%02dZ", tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec);
                 } else {
-                    //time without micro-seconds
                     sprintf(str, "%02d:%02d:%02dZ", tm.tm_hour, tm.tm_min, tm.tm_sec);
                 }
             } else {
@@ -919,110 +909,124 @@ namespace SPA {
 
         void ParseFromDBString(const char *str) {
             assert(str);
-            unsigned int us = 0;
+            unsigned int ns = 0;
             std::tm tm;
             ::memset(&tm, 0, sizeof (tm));
             const char *pos = strchr(str, ':');
             const char *whitespace = strchr(str, ' ');
             if (!whitespace && pos) {
-                ParseTime(str, tm.tm_hour, tm.tm_min, tm.tm_sec, us);
+                ParseTime(str, tm.tm_hour, tm.tm_min, tm.tm_sec, ns);
             } else {
-                ParseDateTime(str, tm.tm_year, tm.tm_mon, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec, us);
+                ParseDateTime(str, tm.tm_year, tm.tm_mon, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec, ns);
                 tm.tm_year -= 1900;
                 tm.tm_mon -= 1;
             }
-            Set(tm, us);
+            Set(tm, ns);
         }
 
 #ifdef WIN32_64
 
-        UDateTime(const SYSTEMTIME &dt, unsigned short us = 0) noexcept {
-            Set(dt, us);
+        UDateTime(const SYSTEMTIME &dt, unsigned int ns = 0) noexcept {
+            Set(dt, ns);
         }
 
         //vtDate -- windows variant datetime with accuracy to millisecond
 
-        UDateTime(double vtDate, unsigned short us = 0) {
-            Set(vtDate, us);
+        UDateTime(DATE vtDate, unsigned int ns = 0) {
+            Set(vtDate, ns);
         }
 
-        void Set(const SYSTEMTIME &dt, unsigned short us = 0) noexcept {
-            //micro-second must be less than 1000
-            assert(us < 1000);
-            if (us >= 1000) {
-                us = 999;
+        void Set(const SYSTEMTIME &dt, unsigned int ns = 0) noexcept {
+            constexpr unsigned int MAX_VALUE = 999999;
+            assert(ns <= MAX_VALUE);
+            if (ns > MAX_VALUE) {
+                ns = MAX_VALUE;
             }
-            assert(dt.wYear >= 1900);
-            assert(dt.wMonth > 0 && dt.wMonth <= 12);
-            assert(dt.wDay > 0 && dt.wDay < 32);
-            assert(dt.wHour >= 0 && dt.wHour < 24);
-            assert(dt.wMinute >= 0 && dt.wMinute < 60);
-            assert(dt.wSecond >= 0 && dt.wSecond < 60);
-            time = (unsigned int) ((dt.wYear - 1900) & 0x3ffff);
-            time <<= 46; //18 bits for years
-            UINT64 mid = (unsigned int) ((dt.wMonth - 1) & 0xf); //4 bits for month
-            mid <<= 42;
-            time += mid;
-            mid = (unsigned int) (dt.wDay & 0x1f); //5 bits for day
-            mid <<= 37;
-            time += mid;
-            mid = (unsigned int) (dt.wHour & 0x1f); //5 bits for hour
-            mid <<= 32;
-            time += mid;
-            mid = (unsigned int) (dt.wMinute & 0x3f); //6 bits for minute
-            mid <<= 26;
-            time += mid;
-            mid = (unsigned int) (dt.wSecond & 0x3f); //6 bits for second
-            mid <<= 20;
-            time += mid;
-            unsigned int micro_second = (unsigned int) dt.wMilliseconds * 1000;
-            micro_second += us;
-            time += micro_second;
+            assert(dt.wDay < 32); //it is time, and wYear and wMonth are ignored if 0
+            assert(dt.wHour < 24);
+            assert(dt.wMinute < 60);
+            assert(dt.wSecond < 60);
+            if (dt.wDay) {
+                assert(dt.wYear <= 1900 + 8191);
+                assert(dt.wMonth && dt.wMonth <= 12);
+                if (dt.wYear < 1900) {
+                    Neg = 1;
+                    Year = 1900 - dt.wYear;
+                } else {
+                    Neg = 0;
+                    Year = dt.wYear - 1900;
+                }
+                Month = dt.wMonth - 1;
+                Day = dt.wDay;
+            } else {
+                Year = 0;
+                Month = 0;
+                Day = 0;
+                Neg = 0;
+            }
+            Hour = dt.wHour;
+            Minute = dt.wMinute;
+            Second = dt.wSecond;
+            Ns100 = dt.wMilliseconds;
+            Ns100 *= 10000;
+            Ns100 += ns / 100;
         }
 
-        void Set(double vtDate, unsigned short us = 0) {
+        void Set(DATE vtDate, unsigned int ns = 0) {
+            assert(ns <= MAX_NANO_SECONDS);
+            if (ns > MAX_NANO_SECONDS) {
+                ns = MAX_NANO_SECONDS;
+            }
             SYSTEMTIME st;
-            VariantTimeToSystemTime(vtDate, &st);
-            st.wMilliseconds = (WORD) (ToEpoch(vtDate) % 1000);
-            Set(st, us);
+            BOOL ok = VariantTimeToSystemTime(vtDate, &st);
+            assert(ok);
+            st.wMilliseconds = ns / 1000000;
+            ns = (ns % 1000000);
+            Set(st, ns);
         }
 
-        SYSTEMTIME GetSysTime(unsigned short *microseconds = nullptr) const noexcept {
+        SYSTEMTIME GetSysTime(unsigned int *ns = nullptr) const noexcept {
             SYSTEMTIME datetime;
-            ::memset(&datetime, 0, sizeof (datetime));
-            UINT64 dt = (UINT64) time;
-            unsigned int micro_seconds = (unsigned int) (dt & 0xfffff);
-            datetime.wMilliseconds = (WORD) (micro_seconds / 1000);
-            if (microseconds) {
-                *microseconds = (unsigned short) (micro_seconds % 1000);
+            datetime.wDayOfWeek = 0; //not set;
+            if (Day) {
+                if (Neg) {
+                    assert(Year <= 1900 - 1601);
+                    if (Year <= 299) {
+                        datetime.wYear = (WORD) (1900 - Year);
+                    } else {
+                        datetime.wYear = 1601;
+                    }
+                } else {
+                    datetime.wYear = (WORD) (Year + 1900);
+                }
+                datetime.wMonth = (WORD) (Month + 1);
+                datetime.wDay = (WORD) Day;
+            } else {
+                datetime.wYear = 0;
+                datetime.wMonth = 0;
+                datetime.wDay = 0;
             }
-            dt >>= 20;
-            datetime.wSecond = (WORD) (dt & 0x3f);
-            dt >>= 6;
-            datetime.wMinute = (WORD) (dt & 0x3f);
-            dt >>= 6;
-            datetime.wHour = (WORD) (dt & 0x1f);
-            dt >>= 5;
-            datetime.wDay = (WORD) (dt & 0x1f);
-            dt >>= 5;
-            datetime.wMonth = (WORD) (dt & 0xf) + 1;
-            dt >>= 4;
-            datetime.wYear = (WORD) (dt + 1900);
+            datetime.wHour = Hour;
+            datetime.wMinute = Minute;
+            datetime.wSecond = Second;
+            datetime.wMilliseconds = (WORD) (Ns100 / 10000);
+            if (ns) {
+                *ns = (unsigned int) ((Ns100 % 10000) * 100);
+            }
             return datetime;
         }
 
-        //windows variant datetime with accuracy to millisecond
-
-        double GetVariantDate(unsigned short *microseconds = nullptr) const {
-            unsigned short us;
-            SYSTEMTIME st = GetSysTime(&us);
-            double vtDate;
-            SystemTimeToVariantTime(&st, &vtDate);
-            double ms = st.wMilliseconds;
-            vtDate += ms / MILLISECONDS_PER_DAY;
-            if (microseconds) {
-                *microseconds = us;
+        DATE GetVariantDate(unsigned int *ns = nullptr) const {
+            SYSTEMTIME st = GetSysTime(ns);
+            if (ns) {
+                unsigned int ms = st.wMilliseconds;
+                ms *= 1000000;
+                *ns += ms;
             }
+            double vtDate;
+            st.wMilliseconds = 0;
+            BOOL ok = SystemTimeToVariantTime(&st, &vtDate);
+            assert(ok);
             return vtDate;
         }
 #else
@@ -1030,7 +1034,7 @@ namespace SPA {
         void Set(const timeval &tv) {
             std::tm *tm = std::localtime(&tv.tv_sec);
             unsigned int us = tv.tv_usec;
-            Set(*tm, us);
+            Set(*tm, us * 10);
         }
 
         UDateTime(const timeval &tv) {

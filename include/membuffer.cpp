@@ -6,7 +6,8 @@
 #include <iconv.h>
 #endif
 
-namespace SPA {
+namespace SPA
+{
     const UINT64 SAFE_DOUBLE = 9007199254740991ULL; //2^53-1
 
     unsigned int SHARED_BUFFER_CLEAN_SIZE = 32 * 1024;
@@ -43,7 +44,7 @@ namespace SPA {
 #endif
     }
 
-    CUQueue & CUQueue::operator>>(std::wstring & str) {
+    CUQueue & CUQueue::operator >> (std::wstring & str) {
         unsigned int size;
         Pop((unsigned char*) &size, sizeof (unsigned int));
         switch (size) {
@@ -117,7 +118,7 @@ namespace SPA {
 #endif
                 } else {
                     UDateTime time = UDateTime(vtData.date);
-                    Insert((const unsigned char*) &time.time, sizeof (time.time), position);
+                    Insert((const unsigned char*) &time, sizeof (time), position);
                 }
 #else
                 Insert((const unsigned char*) &(vtData.ullVal), sizeof (vtData.ullVal), position);
@@ -292,7 +293,7 @@ namespace SPA {
     unsigned int CUQueue::Pop(VARIANT& vtData, unsigned int position) {
         unsigned int total = 0;
 #ifndef _WIN32_WCE
-        try {
+        try{
 #endif
             if (vtData.vt == VT_BSTR) {
                 VariantClear(&vtData);
@@ -300,7 +301,9 @@ namespace SPA {
                 VariantClear(&vtData);
             }
 #ifndef _WIN32_WCE
-        } catch (...) {
+        }
+
+        catch(...) {
         }
 #endif
         total = Pop(&(vtData.vt), position);
@@ -342,8 +345,7 @@ namespace SPA {
 #endif
                 } else {
                     UDateTime dt;
-                    total += Pop((unsigned char*) &dt.time, sizeof (dt.time), position);
-                    //variant date has accuracy to millisecond
+                    total += Pop((unsigned char*) &dt, sizeof (dt), position);
                     vtData.date = dt.GetVariantDate();
                 }
 #else
@@ -650,7 +652,7 @@ namespace SPA {
         return total;
     }
 
-    namespace Utilities {
+    namespace Utilities{
 #ifdef WIN32_64
 
 #ifdef NATIVE_UTF16_SUPPORTED
@@ -686,12 +688,12 @@ namespace SPA {
         std::wstring GetErrorMessage(DWORD dwError) {
             wchar_t *lpMsgBuf = nullptr;
             DWORD res = ::FormatMessageW(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_IGNORE_INSERTS,
-                    nullptr,
-                    dwError,
-                    MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), // Default language
-                    (LPWSTR) & lpMsgBuf,
-                    0,
-                    nullptr);
+            nullptr,
+            dwError,
+            MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), // Default language
+            (LPWSTR) & lpMsgBuf,
+            0,
+            nullptr);
             std::wstring s(lpMsgBuf ? lpMsgBuf : L"");
             if (lpMsgBuf)
                 LocalFree(lpMsgBuf);
@@ -1743,7 +1745,7 @@ HRESULT VariantChangeType(VARIANT *pvargDest, const VARIANT *pvarSrc, unsigned s
                     SPA::CScopeUQueue sb;
                     SPA::Utilities::ToUTF8(pvarSrc->bstrVal, ::SysStringLen(pvarSrc->bstrVal), *sb);
                     //assuming string is correct!
-                    pvargDest->ullVal = SPA::UDateTime((const char*) sb->GetBuffer()).time;
+                    pvargDest->ullVal = SPA::UDateTime((const char*) sb->GetBuffer()).Value();
                 }
                     break;
                 default:

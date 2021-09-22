@@ -1309,29 +1309,6 @@ namespace SPA {
         }
 #endif
 
-        inline void Insert(const UDateTime &dt, unsigned int pos = 0) {
-            Insert((const unsigned char*) &dt.time, sizeof (dt.time), pos);
-        }
-
-        inline void Push(const UDateTime &dt) {
-            Insert(dt, UQUEUE_END_POSTION);
-        }
-
-        inline unsigned int Pop(UDateTime &dt, unsigned int position = 0) {
-            unsigned int res = Pop((unsigned char*) &dt.time, sizeof (dt.time), position);
-            return res;
-        }
-
-        inline CUQueue& operator<<(const UDateTime &dt) {
-            Insert(dt, UQUEUE_END_POSTION);
-            return *this;
-        }
-
-        inline CUQueue& operator>>(UDateTime &dt) {
-            Pop(dt);
-            return *this;
-        }
-
         /**
          * Insert a data into this memory object at a position
          * @param buffer Pointer to a primitive type of data or a structure

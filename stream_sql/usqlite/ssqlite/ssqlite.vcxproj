@@ -88,7 +88,7 @@
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <OmitFramePointers>
       </OmitFramePointers>
-      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -106,7 +106,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>SQLITE_ENABLE_COLUMN_METADATA;HAVE_GMTIME_R;HAVE_LOCALTIME_S;SQLITE_ENABLE_FTS4;SQLITE_ENABLE_RTREE;SQLITE_ENABLE_JSON1;SQLITE_DEFAULT_FOREIGN_KEYS=1;_WIN64;_DEBUG;_WINDOWS;_USRDLL;_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>

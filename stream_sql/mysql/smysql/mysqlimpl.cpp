@@ -1544,8 +1544,6 @@ namespace SPA
         UINT64 CMysqlImpl::ToUDateTime(const MYSQL_TIME & td) {
             std::tm date;
             if (td.time_type == MYSQL_TIMESTAMP_TIME) {
-                date.tm_year = 0;
-                date.tm_mon = 0;
                 date.tm_mday = 0;
             } else {
                 date.tm_year = td.year - 1900;
@@ -1555,7 +1553,8 @@ namespace SPA
             date.tm_hour = td.hour;
             date.tm_min = td.minute;
             date.tm_sec = td.second;
-            return SPA::UDateTime(date, td.second_part).time;
+            unsigned int ns = (unsigned int) (td.second_part * 1000);
+            return SPA::UDateTime(date, ns).Value();
         }
 
         int CMysqlImpl::SetParams(int row, CDBString & errMsg) {

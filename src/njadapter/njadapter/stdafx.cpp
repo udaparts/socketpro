@@ -286,10 +286,10 @@ namespace NJA {
     }
 
     Local<Value> ToDate(Isolate* isolate, SPA::UINT64 datetime) {
-        unsigned int us;
+        unsigned int ns;
         bool time_only;
         SPA::UDateTime dt(datetime);
-        double time = dt.GetTime(time_only, &us) * 1000.0 + us / 1000.0;
+        double time = dt.GetTime(time_only, &ns) * 1000.0 + ns / 1000000.0;
         if (time_only) {
             //time only, convert it to js string
             char s[64] = {0};
@@ -312,8 +312,8 @@ namespace NJA {
         std::time_t t = millisSinceEpoch / 1000;
         unsigned int ms = (unsigned int) (millisSinceEpoch % 1000);
         std::tm* ltime = std::gmtime(&t);
-        SPA::UDateTime dt(*ltime, ms * 1000);
-        return dt.time;
+        SPA::UDateTime dt(*ltime, ms * 1000000);
+        return dt.Value();
     }
 
     bool From(Isolate* isolate, const Local<Value>& v, const std::string& id, CComVariant& vt) {
