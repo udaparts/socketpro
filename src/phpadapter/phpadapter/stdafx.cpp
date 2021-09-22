@@ -156,7 +156,7 @@ namespace PA
                     vt.Clear();
                     Php::Value dt = data.call("format", "Y-m-d H:i:s.u");
                     SPA::UDateTime udt(dt.rawValue());
-                    vt.ullVal = udt.time; //high precision datetime
+                    vt.ullVal = udt.Value(); //high precision datetime
                     vt.vt = VT_DATE;
                     break;
                 } else {

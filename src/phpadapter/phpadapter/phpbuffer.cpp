@@ -114,7 +114,7 @@ namespace PA
     void CPhpBuffer::SaveDate(const Php::Value & param) {
         Php::Value dt = param.call("format", "Y-m-d H:i:s.u");
         SPA::UDateTime udt(dt.rawValue());
-        *m_pBuffer << udt.time;
+        *m_pBuffer << udt;
     }
 
     Php::Value CPhpBuffer::LoadDate() {
