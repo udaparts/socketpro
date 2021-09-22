@@ -58,6 +58,9 @@ namespace SPA
         m_bBlob(false), m_cmd(COM_SLEEP), m_NoRowset(false), m_meta(false) {
             m_qSend.ToUtf8(true); //convert UNICODE into UTF8 automatically
             m_UQueue.ToUtf8(true); //convert UNICODE into UTF8 automatically
+#ifdef WIN32_64
+            m_UQueue.TimeEx(true); //use high-precision datetime
+#endif
         }
 
         CMysqlImpl::~CMysqlImpl() {
