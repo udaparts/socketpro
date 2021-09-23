@@ -33,9 +33,9 @@ with CSocketPool(CMysql) as spMysql:
                     ',CompanyId bigint not null,name CHAR(64)NOT NULL,JoinDate DATETIME(6)default null,IMAGE '
                     'MEDIUMBLOB,DESCRIPTION MEDIUMTEXT,Salary decimal(18,2),FOREIGN KEY(CompanyId)REFERENCES company(id))'),
                 mysql.execute('DROP PROCEDURE IF EXISTS sp_TestProc;CREATE PROCEDURE sp_TestProc(in p_company_id int,inout '
-                    'p_sum_salary decimal(17,2),out p_last_dt datetime)BEGIN select * from employee where companyid>='
+                    'p_sum_salary decimal(17,2),out p_last_dt datetime(6))BEGIN select * from employee where companyid>='
                     'p_company_id;select sum(salary)+p_sum_salary into p_sum_salary from employee where companyid>='
-                              'p_company_id;select now() into p_last_dt;END')]
+                              'p_company_id;select now(6) into p_last_dt;END')]
 
     def TestPreparedStatements():
         mysql.prepare(u'INSERT INTO company(ID,NAME,ADDRESS,Income)VALUES(?,?,?,?)')
@@ -74,7 +74,7 @@ with CSocketPool(CMysql) as spMysql:
         sql='delete from employee;delete from company|' \
             'INSERT INTO company(ID,NAME,ADDRESS,Income)VALUES(?,?,?,?)|insert into employee' \
             '(CompanyId,name,JoinDate,image,DESCRIPTION,Salary)values(?,?,?,?,?,?)|' \
-            'SELECT * from company;select * from employee;select curtime()|' \
+            'SELECT * from company;select * from employee;select curtime(6)|' \
             'call sp_TestProc(?,?,?)'
         vData = []
         sbBlob = CUQueue()
