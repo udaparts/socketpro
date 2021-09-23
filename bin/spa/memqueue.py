@@ -7,9 +7,8 @@ import threading
 from collections import deque
 
 class UDateTime(object):
-    _MICRO_SECONDS = 0xfffff; # 20bits
     def __init__(self, dt):
-        if isinstance(dt, datetime.datetime):
+        if isinstance(dt, (datetime.datetime, datetime.date, datetime.time)):
             self.Set(dt)
         elif isinstance(dt, int):
             self.time = dt
@@ -17,59 +16,88 @@ class UDateTime(object):
             self.time = dt
 
     def Set(self, dt):
-        if dt.year < 1900:
-            raise ValueError('Datetime not supported')
-        mytime = dt.year - 1900
-        mytime <<= 46 #18 bits for years
-
-        mid = dt.month - 1 #4 bits for month
-        mid <<= 42
-        mytime += mid
-
-        mid = dt.day  # 5 bits for day
-        mid <<= 37
-        mytime += mid
-
-        mid = dt.hour  # 5 bits for hour
-        mid <<= 32
-        mytime += mid
-
-        mid = dt.minute # 6 bitsfor minute
-        mid <<= 26
-        mytime += mid
-
-        mid = dt.second # 6 bits for second
-        mid <<= 20
-        mytime += mid;
-
-        mytime += dt.microsecond
-        self.time = mytime
+        time = 0
+        year = 0
+        month = 0
+        day = 0
+        hour = 0
+        minute = 0
+        second = 0
+        ns100 = 0
+        if isinstance(dt, datetime.datetime):
+            year = dt.year
+            month = dt.month
+            day = dt.day
+            hour = dt.hour
+            minute = dt.minute
+            second = dt.second
+            ns100 = dt.microsecond * 10
+        elif isinstance(dt, datetime.date):
+            year = dt.year
+            month = dt.month
+            day = dt.day
+        elif isinstance(dt, datetime.time):
+            hour = dt.hour
+            minute = dt.minute
+            second = dt.second
+            ns100 = dt.microsecond * 10
+        if day:
+            if year >= 1900:
+                time = year - 1900
+            else:
+                time = 1 # negative, before 1900-01-01
+                time <<= 13 # year 13bits
+                time += 1900 - year
+            time <<= 4 # month 4bits
+            time += month - 1
+            time <<= 5 # day 5bits
+            time += day
+        time <<= 5 # hour 5bits
+        time += hour
+        time <<= 6 # minute 6bits
+        time += minute
+        time <<= 6  # second 6bits
+        time += second
+        time <<= 24 # ns100 24bits
+        time += ns100
+        self.time = time
 
     def Get(self):
-        dt = self.time
-        us = (dt & UDateTime._MICRO_SECONDS)
-        dt >>= 20
+        time = self.time
+        ns100 = (time & 0xffffff) # 24bits
 
-        sec = (dt & 0x3f)
-        dt >>= 6
+        time >>= 24
+        second = time & 0x3f # 6bits
+        time >>= 6
+        minute = time & 0x3f # 6bits
+        time >>= 6
+        hour = time & 0x1f # 5bits
+        time >>= 5
+        day = time & 0x1f # 5bits
+        time >>= 5
 
-        min = (dt & 0x3f)
-        dt >>= 6
+        # 0 - 11 instead of 1 - 12
+        month = time & 0xf # 4bits
+        time >>= 4
 
-        hour = (dt & 0x1f)
-        dt >>= 5
+        # 8191 == 0x1fff, From BC 6291 (8191 - 1900) to AD 9991 (1900 + 8191)
+        year = time & 0x1fff # 13bits
+        time >>= 13
 
-        day = (dt & 0x1f)
-        dt >>= 5;
-
-        mon = (dt & 0xf)
-        dt >>= 4
-        mon += 1
-
-        year = (dt + 1900)
-        if day == 0:
-            return datetime.datetime(datetime.MINYEAR, 1, 1, hour, min, sec, us)
-        return datetime.datetime(year, mon, day, hour, min, sec, us)
+        # It will be 1 if date time is earlier than 1900-01-01
+        neg = time
+        if neg:
+            year = 1900 - year
+        else:
+            year += 1900
+        month += 1
+        us = int(ns100 / 10)
+        if day:
+            if hour or minute or second or us:
+                return datetime.datetime(year, month, day, hour, minute, second, us)
+            else:
+                return datetime.date(year, month, day)
+        return datetime.time(hour, minute, second, us)
 
 class CUQueue(object):
     DEFAULT_OS = 0

@@ -190,7 +190,7 @@ with CSocketPool(CMysql) as spMysql:
         fD = mysql.execute('delete from employee;delete from company')
         fP0 = TestPreparedStatements()
         fP1 = TestBLOBByPreparedStatement()
-        fS = mysql.execute('SELECT * from company;select * from employee;select curtime()', cbRows, cbRowHeader)
+        fS = mysql.execute('SELECT * from company;select * from employee;select curtime(6)', cbRows, cbRowHeader)
         fStore, vPData = TestStoredProcedure()
         fStore1, vData = TestBatch()
 
