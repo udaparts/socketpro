@@ -3,80 +3,104 @@ package SPA;
 //java.time.LocalDateTime will be supported in the future
 class UDateTime {
 
-    public long time;
+    public long time = 0;
 
     public UDateTime(long t) {
         time = t;
     }
 
     public UDateTime(java.util.Date dt) {
-        set(dt, (short) 0);
+        set(dt, 0);
     }
 
-    public UDateTime(java.util.Date dt, short us) {
-        set(dt, us);
+    public UDateTime(java.util.Date dt, int ns) {
+        set(dt, ns);
     }
 
     public void set(java.util.Date dt) {
-        set(dt, (short) 0);
+        set(dt, 0);
     }
 
-    public void set(java.util.Date dt, short us) {
+    public final void set(java.util.Date dt, int ns) throws IllegalArgumentException {
         if (dt == null) {
-            time = 0;
-            return;
+            throw new IllegalArgumentException("Date dt can not be null");
         }
-        if (us < 0) {
-            us = 0;
-        } else if (us >= 1000) {
-            us = 999;
+        if (ns < 0 || ns >= 1000000) {
+            throw new IllegalArgumentException("Parameter ns cannot have milliseconds");
         }
         java.util.Calendar calendar = new java.util.GregorianCalendar();
         calendar.setTime(dt);
-        time = calendar.get(java.util.Calendar.YEAR) - 1900;
-        time <<= 46; //18 bits for years
-        long mid = calendar.get(java.util.Calendar.MONTH); //4 bits for month
-        mid <<= 42;
-        time += mid;
-        mid = calendar.get(java.util.Calendar.DAY_OF_MONTH); //5 bits for day
-        mid <<= 37;
-        time += mid;
-        mid = calendar.get(java.util.Calendar.HOUR_OF_DAY); //5 bits for hour
-        mid <<= 32;
-        time += mid;
-        mid = calendar.get(java.util.Calendar.MINUTE); //6 bits for minute
-        mid <<= 26;
-        time += mid;
-        mid = calendar.get(java.util.Calendar.SECOND); //6 bits for second
-        mid <<= 20;
-        time += mid;
-        //20 bits for micro-seconds
-        mid = calendar.get(java.util.Calendar.MILLISECOND);
-        mid *= 1000;
-        mid += us;
-        time += mid;
+        int year = calendar.get(java.util.Calendar.YEAR);
+        int month = calendar.get(java.util.Calendar.MONTH);
+        int day = calendar.get(java.util.Calendar.DAY_OF_MONTH);
+        if (year == 2 && month == 11 && day == 31) {
+            //treated as time only
+            time = 0;
+        } else {
+            if (year >= 1900) {
+                time = year - 1900;
+            } else {
+                time = 1; //negative, before 1900-01-01
+                //time <<= 13; //year 13bits
+                time <<= 13;
+                time += 1900 - year;
+            }
+            time <<= 4; //month 4bits
+            time += month;
+            time <<= 5; //day 5bits
+            time += day;
+        }
+        time <<= 5; //hour 5bits
+        time += calendar.get(java.util.Calendar.HOUR_OF_DAY);
+        time <<= 6; //minute 6bits
+        time += calendar.get(java.util.Calendar.MINUTE);
+        time <<= 6; //second 6bits
+        time += calendar.get(java.util.Calendar.SECOND);
+        time <<= 24; //ticks 24bits
+        long ticks = calendar.get(java.util.Calendar.MILLISECOND);
+        ticks *= 10000;
+        ticks += ns / 100;
+        time += ticks;
     }
     private static final int MICRO_SECONDS = 0xfffff; //20 bits
 
     public java.util.Date get() {
-        long dt = time;
-        long us = (dt & MICRO_SECONDS);
-        dt >>= 20;
-        int sec = (int) (dt & 0x3f);
+        long dt = this.time;
+        int ns100 = (int) (dt & 0xffffff); //24bits
+        dt >>= 24;
+        int second = (int) (dt & 0x3f); //6bits
         dt >>= 6;
-        int min = (int) (dt & 0x3f);
+        int minute = (int) (dt & 0x3f); //6bits
         dt >>= 6;
-        int hour = (int) (dt & 0x1f);
+        int hour = (int) (dt & 0x1f); //5bits
         dt >>= 5;
-        int day = (int) (dt & 0x1f);
+        int day = (int) (dt & 0x1f); //5bits
         dt >>= 5;
-        int mon = (int) (dt & 0xf);
+
+        //0 - 11 instead of 1 - 12
+        int month = (int) (dt & 0xf); //4bits
         dt >>= 4;
-        int year = (int) dt + 1900;
-        java.util.GregorianCalendar gc = new java.util.GregorianCalendar(year, mon, day, hour, min, sec);
-        dt = gc.getTime().getTime();
-        int ms = (int) (us / 1000); //milli-seconds
-        dt += ms;
-        return new java.util.Date(dt);
+
+        //8191 == 0x1fff, From BC 6291 (8191 - 1900) to AD 9991 (1900 + 8191)
+        int year = (int) (dt & 0x1fff); //13bits
+        dt >>= 13;
+
+        //It will be 1 if date time is earlier than 1900-01-01
+        int neg = (int) dt;
+        if (year == 0 && day == 0 && month == 0) {
+            year = -1900; //treated as time-only
+        }
+        if (neg != 0) {
+            year = -year;
+        }
+        int ms = ns100 / 10000;
+        java.util.GregorianCalendar gc = new java.util.GregorianCalendar(year + 1900, month, day, hour, minute, second);
+        java.util.Date date = gc.getTime();
+        if (ms != 0) {
+            dt = date.getTime();
+            dt += ms;
+            date.setTime(dt);
+        }
+        return date;
     }
 }

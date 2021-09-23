@@ -204,8 +204,8 @@ public final class CUQueue {
         if (dt == null) {
             throw new IllegalArgumentException("Timestamp dt can not be null");
         }
-        short us = (short) ((dt.getNanos() / 1000) % 1000);
-        UDateTime udt = new UDateTime(dt, us);
+        long ns = dt.getNanos() % 1000000;
+        UDateTime udt = new UDateTime(dt, (int) ns);
         return Save(udt.time);
     }
 
@@ -223,10 +223,10 @@ public final class CUQueue {
 
     public final java.sql.Timestamp LoadTimestamp() {
         long d = LoadLong();
-        long us = (d & 0xfffff);
+        long ns100 = (d & 0xffffff);
         UDateTime udt = new UDateTime(d);
         java.sql.Timestamp dt = new java.sql.Timestamp(udt.get().getTime());
-        dt.setNanos((int) (us * 1000));
+        dt.setNanos((int) (ns100 * 100));
         return dt;
     }
 
