@@ -768,12 +768,22 @@ namespace NJA {
                 return s;
             }
             case VT_CLSID:
+            {
+                constexpr unsigned int len = sizeof(GUID);
+                if (len > buff.GetSize()) {
+                    throw SPA::CUException("Bad GUID data type");
+                }
+                const char* str = (const char*)buff.GetBuffer();
+                auto bytes = node::Buffer::Copy(isolate, (const char*) str, len).ToLocalChecked();
+                buff.Pop(len);
+                return bytes;
+            }
             case (VT_UI1 | VT_ARRAY):
             {
                 unsigned int len;
                 buff >> len;
                 if (len > buff.GetSize()) {
-                    throw SPA::CUException("Bad data type");
+                    throw SPA::CUException("Bad binary array data type");
                 }
                 const char* str = (const char*) buff.GetBuffer();
                 auto bytes = node::Buffer::Copy(isolate, (const char*) str, len).ToLocalChecked();
