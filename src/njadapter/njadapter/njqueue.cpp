@@ -10,7 +10,6 @@ namespace NJA {
 
     NJQueue::NJQueue(CUQueue *buffer, unsigned int initialSize, unsigned int blockSize) : m_Buffer(buffer), m_initSize(initialSize), m_blockSize(blockSize), m_StrForDec(false) {
         if (m_Buffer) {
-            m_Buffer->ToUtf8(true);
 #ifdef WIN32_64
             m_Buffer->TimeEx(true);
 #endif
@@ -34,7 +33,6 @@ namespace NJA {
     void NJQueue::Ensure() {
         if (!m_Buffer) {
             m_Buffer = CScopeUQueue::Lock(SPA::GetOS(), SPA::IsBigEndian(), m_initSize, m_blockSize);
-            m_Buffer->ToUtf8(true);
 #ifdef WIN32_64
             m_Buffer->TimeEx(true);
 #endif
@@ -42,10 +40,10 @@ namespace NJA {
     }
 
     bool NJQueue::ToParamArray(NJQueue *obj, CDBVariantArray &vParam) {
-        CDBVariant vt;
         vParam.clear();
         if (obj && obj->m_Buffer) {
             try {
+                CDBVariant vt;
                 SPA::CUQueue &q = *obj->m_Buffer;
                 while (q.GetSize()) {
                     vParam.push_back(vt);
