@@ -1906,7 +1906,13 @@ namespace SPA {
                             CScopeUQueue::Unlock(p);
                         });
                         PAsyncDBHandler ash = &db;
-                        *cb.Buffer << ash << proc << (int) db.GetColumnInfo().size();
+                        *cb.Buffer << ash << proc;
+                        if (proc) {
+                            *cb.Buffer << db.GetOutputs();
+                        }
+                        else {
+                            *cb.Buffer << (int)db.GetColumnInfo().size();
+                        }
                         CAutoLock al(ash->m_csDB);
                         ash->m_deqDBCb.push_back(std::move(cb));
                         if (ash->m_deqDBCb.size() < 2) {

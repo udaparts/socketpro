@@ -53,7 +53,7 @@ class Program
             ok = sql.Execute("INSERT INTO test_rare1(mybool,mymoney,myxml,myvariant,mydateimeoffset)values(1,23.45,'<sometest />', N'美国总统川普下个星期四','2017-05-02 00:00:00.0000000 -04:00');INSERT INTO test_rare1(mybool,mymoney,myvariant)values(0,1223.45,'This is a test for ASCII string inside sql_variant');INSERT INTO test_rare1(myvariant)values(283.45)", er);
             TestPreparedStatements(sql);
             TestPreparedStatements_2(sql);
-            InsertBLOBByPreparedStatement(sql);
+            TestBLOBByPreparedStatement(sql);
             ok = sql.Execute("SELECT * from company;select * from employee;select CONVERT(datetime,SYSDATETIME());select * from test_rare1;select * from SpatialTable", er, r, rh);
             CDBVariantArray vPData = TestStoredProcedure(sql, ra);
             ok = sql.WaitAll();
@@ -88,7 +88,7 @@ class Program
 
     static void TestCreateTables(CSqlServer sql)
     {
-        string create_database = "use master;IF NOT EXISTS(SELECT * FROM sys.databases WHERE name='sqltestdb')BEGIN CREATE DATABASE sqltestdb END";
+        string create_database = "use master;IF NOT EXISTS(SELECT * FROM sys.databases WHERE name='sqltestdb')BEGIN CREATE DATABASE sqltestdb; END";
         bool ok = sql.Execute(create_database, er);
         string use_database = "Use sqltestdb";
         ok = sql.Execute(use_database, er);
@@ -166,7 +166,7 @@ class Program
         ok = sql.Execute(vData, er);
     }
 
-    static void InsertBLOBByPreparedStatement(CSqlServer sql)
+    static void TestBLOBByPreparedStatement(CSqlServer sql)
     {
         string wstr = "";
         while (wstr.Length < 128 * 1024)

@@ -1441,6 +1441,7 @@ namespace NJA {
                     ThrowException(isolate, "An integer value expected for parameter data scale");
                     return false;
                 }
+                vInfo.push_back(std::move(pInfo));
             }
         } else if (!p0->IsNullOrUndefined()) {
             ThrowException(isolate, "An array of parameter meta data expected");

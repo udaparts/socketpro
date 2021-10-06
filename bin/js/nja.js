@@ -1998,6 +1998,41 @@ exports.DB = {
         MongoDB: 7
     },
 
+    ParamDirection: {
+        Unknown: 0,
+        Input: 1,
+        Output: 2,
+        InputOutput: 3,
+        ReturnValue: 4
+    },
+
+    DataType: {
+        Empty: 0,
+        Null: 1,
+        Short: 2,
+        Int: 3,
+        Float: 4,
+        Double: 5,
+        Money: 6,
+        DateTime: 7,
+        WStr: 8,
+        Bool: 11,
+        Variant: 12,
+        Decimal: 14,
+        TinyInt: 16,
+        UTinyInt: 17,
+        UShort: 18,
+        UInt: 19,
+        Long: 20,
+        ULong: 21,
+        INT: 22,
+        UINT: 23,
+        Clsid: 72,
+        AStr: 8208,
+        Binary: 8209,
+        ARRAY: 0x2000
+    },
+
     //rollback hints defined for ending a manual transaction asynchronously
     RollbackPlan: {
         /// <summary>
