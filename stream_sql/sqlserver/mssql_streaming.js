@@ -224,7 +224,7 @@ function TestBatch(db) {
     buff.SaveObject(2).SaveObject('Microsoft Inc.').SaveObject('700 Bellevue Way NE- 22nd Floor, Bellevue, WA 98804, USA').SaveObject('93600000000.12');
     buff.SaveObject(2).SaveObject(1); //Google company id
     blob.SaveAString(str); //ASCII string
-    buff.SaveObject('Donald Trump').SaveObject(new Date()).SaveObject(blob.PopBytes()).SaveObject(str, 'a').SaveObject(20254000);
+    buff.SaveObject('Donald Trump').SaveObject(new Date()).SaveObject(blob.PopBytes()).SaveObject(str).SaveObject(20254000);
     buff.SaveObject(2).SaveObject(1.14).SaveObject(dt);
 
     //3rd set
