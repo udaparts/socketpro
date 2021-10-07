@@ -30,59 +30,6 @@ namespace SPA{
 
         std::unordered_map<USocket_Server_Handle, COdbcImpl::CMyStruct> COdbcImpl::m_mapConnection;
 
-        bool COdbcImpl::DoSQLAuthentication(USocket_Server_Handle hSocket, const wchar_t *userId, const wchar_t *password, unsigned int nSvsId, const wchar_t *odbcDriver, const wchar_t * dsn) {
-            SQLHDBC hdbc = nullptr;
-            if (!g_hEnv)
-                return false;
-            SQLRETURN retcode = SQLAllocHandle(SQL_HANDLE_DBC, g_hEnv, &hdbc);
-            if (!SQL_SUCCEEDED(retcode)) {
-                return false;
-            }
-            std::wstring conn;
-            if (dsn && ::wcslen(dsn)) {
-                conn = dsn;
-            } else {
-                //MS SQL Server
-                conn = L"Server=";
-                conn += L"(local)";
-            }
-            if (userId && ::wcslen(userId)) {
-                conn += L";UID=";
-                conn += userId;
-            }
-            if (password && ::wcslen(password)) {
-                conn += L";PWD=";
-                conn += password;
-            }
-            if (odbcDriver && ::wcslen(odbcDriver)) {
-                conn += L";DRIVER=";
-                conn += odbcDriver;
-            }
-            CScopeUQueue sb;
-            SQLSMALLINT cbConnStrOut = 0;
-            std::string strConn = Utilities::ToUTF8(conn);
-            retcode = SQLDriverConnect(hdbc, nullptr, (SQLCHAR*) strConn.c_str(), (SQLSMALLINT) strConn.size(), (SQLCHAR*) sb->GetBuffer(), (SQLSMALLINT) sb->GetMaxSize(), &cbConnStrOut, SQL_DRIVER_NOPROMPT);
-            sb->CleanTrack(); //clean password
-            if (!SQL_SUCCEEDED(retcode)) {
-                SQLFreeHandle(SQL_HANDLE_DBC, hdbc);
-                return false;
-            }
-            if (nSvsId == Odbc::sidOdbc) {
-                CMyStruct ms;
-                ms.hdbc = hdbc;
-                ODBC_CONNECTION_STRING ocs;
-                ocs.Parse(conn.c_str());
-                ms.QueryBatching = ocs.QueryBatching;
-                m_csPeer.lock();
-                m_mapConnection[hSocket] = ms;
-                m_csPeer.unlock();
-            } else {
-                retcode = SQLDisconnect(hdbc);
-                retcode = SQLFreeHandle(SQL_HANDLE_DBC, hdbc);
-            }
-            return true;
-        }
-
         bool COdbcImpl::SetODBCEnv(int param) {
             SQLRETURN retcode = SQLSetEnvAttr(nullptr, SQL_ATTR_CONNECTION_POOLING, (SQLPOINTER) SQL_CP_ONE_PER_DRIVER, SQL_IS_INTEGER);
             retcode = SQLAllocHandle(SQL_HANDLE_ENV, SQL_NULL_HANDLE, &g_hEnv);

@@ -81,7 +81,6 @@ namespace SPA {
             static bool SetODBCEnv(int param);
             static void FreeODBCEnv();
             static void SetGlobalConnectionString(const wchar_t *str);
-            static bool DoSQLAuthentication(USocket_Server_Handle hSocket, const wchar_t *userId, const wchar_t *password, unsigned int nSvsId, const wchar_t *odbcDriver, const wchar_t *dsn);
             static std::atomic<unsigned int> m_mb;
             static void GetErrMsg(SQLSMALLINT HandleType, SQLHANDLE Handle, CDBString& errMsg);
 
