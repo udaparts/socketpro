@@ -1587,6 +1587,7 @@ namespace SPA{
             }
             if (m_vEexcContext.size()) {
                 ExecuteContext ec;
+                ec.sql = wsql;
                 ec.index = index;
                 ec.meta = meta;
                 ec.rowset = rowset;
@@ -1621,14 +1622,12 @@ namespace SPA{
                     }
                 }
             }
-            UINT64 sep_fails = m_vEexcContext.size();
-            while (m_vEexcContext.size()) {
-                affected = 0;
-                fail_ok = 1;
-                fail_ok <<= 32;
-                vtId = (INT64) 0;
-                SendResult(idExecute, affected, res, errMsg, vtId, fail_ok);
-                m_vEexcContext.pop_front();
+            if (m_vEexcContext.size()) {
+                ExecuteContext ec = m_vEexcContext.back();
+                m_vEexcContext.pop_back();
+                CScopeUQueue sb;
+                sb << ec.sql << ec.rowset << ec.meta << ec.lastInsertId << ec.index;
+                MakeRequest(idExecute, sb->GetBuffer(), sb->GetSize());
             }
             fail_ok = ((m_fails - fails) << 32);
             fail_ok += (unsigned int) (m_oks - oks);
@@ -1636,7 +1635,6 @@ namespace SPA{
                 m_fails += (sep_fail_oks >> 32);
                 m_oks += (sep_fail_oks & 0xffffffff);
             }
-            m_fails += sep_fails;
         }
 
         void CMysqlImpl::PreprocessPreparedStatement() {

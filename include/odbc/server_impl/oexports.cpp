@@ -7,7 +7,7 @@ using namespace SPA::ServerSide;
 
 extern std::atomic<unsigned int> g_maxQueriesBatched;
 
-std::string g_version("1.0.2.2");
+std::string g_version("1.0.2.3");
 
 #ifdef WIN32_64
 
