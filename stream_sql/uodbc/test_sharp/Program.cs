@@ -278,8 +278,8 @@ class Program
         vInfo[6].DataType = tagVariantDataType.sdVT_DATE;
         vInfo[6].Direction = tagParameterDirection.pdOutput;
 
-        bool ok = sql.ExecuteBatch(tagTransactionIsolation.tiReadCommited, "select getdate();exec sp_TestRare1 ?,?,?,?;exec sqltestdb.dbo.sp_TestProc ?,?,?", vPData,
-            er, r, rh, ";", null, null, true, tagRollbackPlan.rpDefault, vInfo);
+        bool ok = sql.ExecuteBatch(tagTransactionIsolation.tiReadCommited, "select getdate()|exec sp_TestRare1 ?,?,?,?;exec sqltestdb.dbo.sp_TestProc ?,?,?", vPData,
+            er, r, rh, "|", null, null, true, tagRollbackPlan.rpDefault, vInfo);
         return vPData;
     }
 
