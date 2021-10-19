@@ -69,7 +69,6 @@ public class CSqlPlugin : CSocketProServer
 
     //typedef bool (WINAPI *PSetSPluginGlobalOptions)(const char *jsonUtf8Options);
     private delegate bool DSetSPluginGlobalOptions([MarshalAs(UnmanagedType.LPStr)] string jsonUtf8Options);
-
     //typedef unsigned int (WINAPI *PGetSPluginGlobalOptions)(char *jsonUtf8, unsigned int buffer_size);
     private delegate uint DGetSPluginGlobalOptions([MarshalAs(UnmanagedType.LPArray)] byte[] jsonUtf8, int buffer_size);
 
@@ -94,6 +93,7 @@ public class CSqlPlugin : CSocketProServer
         MsSqlConfig sql_config = new MsSqlConfig();
         sql_config.manual_batching = m_Config.manual_batching;
         sql_config.max_queries_batched = m_Config.max_queries_batched;
+        sql_config.max_sql_size = m_Config.max_sql_size;
         string json = sql_config.ToJson();
         bool ok = SetSPluginGlobalOptions(json);
         string[] vService = m_Config.services.Split(';');

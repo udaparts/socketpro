@@ -7,11 +7,12 @@ public class MsSqlConfig
 {
     public uint manual_batching = 0;
     public uint max_queries_batched = 0;
+    public uint max_sql_size = 0;
 }
 
 public class UConfig
 {
-    public static readonly string MY_VERSION = "1.6.0.1";
+    public static readonly string MY_VERSION = "1.7.0.1";
     public static readonly string DEFAULT_CONNECTION_STRING = "server=localhost;timeout=30";
     public static readonly int DEFAULT_MAIN_THREADS = 1;
     public static readonly uint DEFAULT_PORT = 20903;
@@ -26,6 +27,7 @@ public class UConfig
     public int main_threads = DEFAULT_MAIN_THREADS;
     public uint manual_batching = 1;
     public uint max_queries_batched = 8;
+    public uint max_sql_size = 4 * 1024 * 1024;
     public string mssql_plugin_version = "";
     public uint port = DEFAULT_PORT;
     public string services = "";
@@ -95,7 +97,7 @@ public class UConfig
         }
         catch (Exception ex)
         {
-            LogMsg(ex.Message, "UConfig::UConfig(string json)", 98); //line 98
+            LogMsg(ex.Message, "UConfig::UConfig(string json)", 100); //line 100
             changed = true;
         }
         finally
@@ -134,7 +136,7 @@ public class UConfig
         }
         catch (Exception ex)
         {
-            LogMsg(ex.Message, "UConfig::UpdateConfigFile", 137); //line 137
+            LogMsg(ex.Message, "UConfig::UpdateConfigFile", 139); //line 139
         }
     }
 
@@ -154,6 +156,7 @@ public class UConfig
         service_id = config.service_id;
         manual_batching = config.manual_batching;
         max_queries_batched = config.max_queries_batched;
+        max_sql_size = config.max_sql_size;
     }
 
     public static void LogMsg(string lineText, string file = "", int fileLineNumber = 0)

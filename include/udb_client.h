@@ -457,6 +457,50 @@ namespace SPA {
             /**
              * Process a complex SQL statement which may be combined with multiple basic SQL statements asynchronously.
              * @param sql a complex SQL statement which may be combined with multiple basic SQL statements
+             * @param vParam an array of parameter data which will be bounded to the sql
+             * @param handler a callback for tracking final result
+             * @param row a callback for receiving records of data
+             * @param rh a callback for tracking row set of header column informations
+             * @param meta a boolean for better or more detailed column meta details such as unique, not null, primary key, and so on
+             * @param lastInsertId a boolean for last insert record identification number
+             * @param discarded a callback for tracking socket closed or request canceled event
+             * @param se a callback for tracking an exception from server
+             * @return true if request is successfully sent or queued; and false if request is NOT successfully sent or queued
+             */
+            virtual bool Execute(const wchar_t* sql, const CDBVariantArray& vParam, const DExecuteResult& handler = nullptr, const DRows& row = nullptr, const DRowsetHeader& rh = nullptr, bool meta = true, bool lastInsertId = true, const DDiscarded& discarded = nullptr, const DServerException& se = nullptr) {
+                bool rowset = (row) ? true : false;
+                meta = (meta && rh);
+                CScopeUQueue sb;
+                sb << sql << vParam << rowset << meta << lastInsertId;
+#ifndef NODE_JS_ADAPTER_PROJECT
+                SPA::CAutoLock alOne(m_csOneSending);
+#endif
+                UINT64 index = GetCallIndex();
+                {
+                    //don't make m_csDB locked across calling SendRequest, which may lead to client dead-lock
+                    //in case a client asynchronously sends lots of requests without use of client side queue.
+                    CAutoLock al(m_csDB);
+                    if (rowset || meta) {
+                        m_mapRowset.emplace(index, CRowsetHandler(rh, row));
+                    }
+                }
+                sb << index;
+                DResultHandler arh = [index, handler, this](CAsyncResult & ar) {
+                    Process(handler, ar, idExecuteEx, index);
+                };
+                if (!SendRequest(idExecuteEx, sb->GetBuffer(), sb->GetSize(), arh, discarded, se)) {
+                    CAutoLock al(m_csDB);
+                    if (rowset || meta) {
+                        m_mapRowset.erase(index);
+                    }
+                    return false;
+                }
+                return true;
+            }
+
+            /**
+             * Process a complex SQL statement which may be combined with multiple basic SQL statements asynchronously.
+             * @param sql a complex SQL statement which may be combined with multiple basic SQL statements
              * @param handler a callback for tracking final result
              * @param row a callback for receiving records of data
              * @param rh a callback for tracking row set of header column informations
@@ -470,6 +514,7 @@ namespace SPA {
                 bool rowset = (row) ? true : false;
                 meta = (meta && rh);
                 CScopeUQueue sb;
+                sb << sql << rowset << meta << lastInsertId;
 #ifndef NODE_JS_ADAPTER_PROJECT
                 SPA::CAutoLock alOne(m_csOneSending);
 #endif
@@ -482,7 +527,7 @@ namespace SPA {
                         m_mapRowset.emplace(index, CRowsetHandler(rh, row));
                     }
                 }
-                sb << sql << rowset << meta << lastInsertId << index;
+                sb << index;
                 DResultHandler arh = [index, handler, this](CAsyncResult & ar) {
                     Process(handler, ar, idExecute, index);
                 };
@@ -613,6 +658,50 @@ namespace SPA {
                 }
                 if (queueOk)
                     GetSocket()->GetClientQueue().EndJob();
+                return true;
+            }
+
+            /**
+             * Process a complex SQL statement which may be combined with multiple basic SQL statements asynchronously.
+             * @param sql a complex SQL statement which may be combined with multiple basic SQL statements
+             * @param vParam an array of parameter data which will be bounded to the sql
+             * @param handler a callback for tracking final result
+             * @param row a callback for receiving records of data
+             * @param rh a callback for tracking row set of header column informations
+             * @param meta a boolean for better or more detailed column meta details such as unique, not null, primary key, and so on
+             * @param lastInsertId a boolean for last insert record identification number
+             * @param discarded a callback for tracking socket closed or request canceled event
+             * @param se a callback for tracking an exception from server
+             * @return true if request is successfully sent or queued; and false if request is NOT successfully sent or queued
+             */
+            virtual bool Execute(const char16_t* sql, const CDBVariantArray& vParam, const DExecuteResult& handler = nullptr, const DRows& row = nullptr, const DRowsetHeader& rh = nullptr, bool meta = true, bool lastInsertId = true, const DDiscarded& discarded = nullptr, const DServerException& se = nullptr) {
+                bool rowset = (row) ? true : false;
+                meta = (meta && rh);
+                CScopeUQueue sb;
+                sb << sql << vParam << rowset << meta << lastInsertId;
+#ifndef NODE_JS_ADAPTER_PROJECT
+                SPA::CAutoLock alOne(m_csOneSending);
+#endif
+                UINT64 index = GetCallIndex();
+                {
+                    //don't make m_csDB locked across calling SendRequest, which may lead to client dead-lock
+                    //in case a client asynchronously sends lots of requests without use of client side queue.
+                    CAutoLock al(m_csDB);
+                    if (rowset || meta) {
+                        m_mapRowset.emplace(index, CRowsetHandler(rh, row));
+                    }
+                }
+                sb << index;
+                DResultHandler arh = [index, handler, this](CAsyncResult & ar) {
+                    Process(handler, ar, idExecuteEx, index);
+                };
+                if (!SendRequest(idExecuteEx, sb->GetBuffer(), sb->GetSize(), arh, discarded, se)) {
+                    CAutoLock al(m_csDB);
+                    if (rowset || meta) {
+                        m_mapRowset.erase(index);
+                    }
+                    return false;
+                }
                 return true;
             }
 
@@ -1043,6 +1132,14 @@ namespace SPA {
                     }
                 }
 
+                template<typename TChar>
+                SqlWaiter(CAsyncDBHandler* db, const TChar* sql, const CDBVariantArray& vParam, const DRows& row, const DRowsetHeader& rh, bool meta, bool lastInsertId)
+                : CWaiter<SQLExeInfo>(idExecuteEx) {
+                    if (!db->Execute(sql, vParam, get_rh(), row, rh, meta, lastInsertId, this->get_aborted(), this->get_se())) {
+                        db->raise(idExecuteEx);
+                    }
+                }
+
                 SqlWaiter(CAsyncDBHandler* db, CDBVariantArray& vParam, const DRows& row, const DRowsetHeader& rh, bool meta, bool lastInsertId)
                 : CWaiter<SQLExeInfo>(idExecuteParameters) {
                     if (!db->Execute(vParam, get_rh(), row, rh, meta, lastInsertId, this->get_aborted(), this->get_se())) {
@@ -1083,6 +1180,11 @@ namespace SPA {
             template<typename TChar>
             SqlWaiter wait_execute(const TChar* sql, const DRows& row = nullptr, const DRowsetHeader& rh = nullptr, bool meta = true, bool lastInsertId = true) {
                 return SqlWaiter(this, sql, row, rh, meta, lastInsertId);
+            }
+
+            template<typename TChar>
+            SqlWaiter wait_execute(const TChar* sql, const CDBVariantArray& vParam, const DRows& row = nullptr, const DRowsetHeader& rh = nullptr, bool meta = true, bool lastInsertId = true) {
+                return SqlWaiter(this, sql, vParam, row, rh, meta, lastInsertId);
             }
 
             SqlWaiter wait_executeBatch(tagTransactionIsolation isolation, const wchar_t* sql, CDBVariantArray& vParam,
@@ -1138,6 +1240,14 @@ namespace SPA {
                 return prom->get_future();
             }
 
+            std::future<SQLExeInfo> execute(const wchar_t* sql, const CDBVariantArray& vParam, const DRows& row = nullptr, const DRowsetHeader& rh = nullptr, bool meta = true, bool lastInsertId = true) {
+                std::shared_ptr<std::promise<SQLExeInfo> > prom(new std::promise<SQLExeInfo>);
+                if (!Execute(sql, vParam, get_er(prom), row, rh, meta, lastInsertId, get_aborted(prom, idExecuteEx), get_se(prom))) {
+                    raise(idExecuteEx);
+                }
+                return prom->get_future();
+            }
+
             std::future<ErrInfo> prepare(const wchar_t* sql, const CParameterInfoArray& vParameterInfo = CParameterInfoArray()) {
                 std::shared_ptr<std::promise<ErrInfo> > prom(new std::promise<ErrInfo>);
                 if (!Prepare(sql, get_d(prom), vParameterInfo, get_aborted(prom, idPrepare), get_se(prom))) {
@@ -1170,6 +1280,14 @@ namespace SPA {
                 std::shared_ptr<std::promise<SQLExeInfo> > prom(new std::promise<SQLExeInfo>);
                 if (!Execute(sql, get_er(prom), row, rh, meta, lastInsertId, get_aborted(prom, idExecute), get_se(prom))) {
                     raise(idExecute);
+                }
+                return prom->get_future();
+            }
+
+            std::future<SQLExeInfo> execute(const char16_t* sql, const CDBVariantArray& vParam, const DRows& row = nullptr, const DRowsetHeader& rh = nullptr, bool meta = true, bool lastInsertId = true) {
+                std::shared_ptr<std::promise<SQLExeInfo> > prom(new std::promise<SQLExeInfo>);
+                if (!Execute(sql, vParam, get_er(prom), row, rh, meta, lastInsertId, get_aborted(prom, idExecuteEx), get_se(prom))) {
+                    raise(idExecuteEx);
                 }
                 return prom->get_future();
             }
@@ -1909,9 +2027,8 @@ namespace SPA {
                         *cb.Buffer << ash << proc;
                         if (proc) {
                             *cb.Buffer << db.GetOutputs();
-                        }
-                        else {
-                            *cb.Buffer << (int)db.GetColumnInfo().size();
+                        } else {
+                            *cb.Buffer << (int) db.GetColumnInfo().size();
                         }
                         CAutoLock al(ash->m_csDB);
                         ash->m_deqDBCb.push_back(std::move(cb));

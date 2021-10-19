@@ -187,6 +187,97 @@
             <param name="discarded">a callback for tracking cancel or socket closed event</param>
             <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
         </member>
+        <member name="M:SocketProAdapter.ClientSide.CAsyncDBHandler.Execute(System.String,SocketProAdapter.UDB.CDBVariantArray)">
+            <summary>
+            Process one set of parameterized or regular statement with an optional array of parameter data
+            </summary>
+            <param name="sql">a parameterized or regular SQL statement</param>
+            <param name="vParam">an optioal array of parameter data which will be bounded to the sql statement</param>
+            <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CAsyncDBHandler.Execute(System.String,SocketProAdapter.UDB.CDBVariantArray,SocketProAdapter.ClientSide.CAsyncDBHandler.DExecuteResult)">
+            <summary>
+            Process one set of parameterized or regular statement with an optional array of parameter data
+            </summary>
+            <param name="sql">a parameterized or regular SQL statement</param>
+            <param name="vParam">an optioal array of parameter data which will be bounded to the sql statement</param>
+            <param name="handler">a callback for tracking final result</param>
+            <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CAsyncDBHandler.Execute(System.String,SocketProAdapter.UDB.CDBVariantArray,SocketProAdapter.ClientSide.CAsyncDBHandler.DExecuteResult,SocketProAdapter.ClientSide.CAsyncDBHandler.DRows)">
+            <summary>
+            Process one set of parameterized or regular statement with an optional array of parameter data
+            </summary>
+            <param name="sql">a parameterized or regular SQL statement</param>
+            <param name="vParam">an optioal array of parameter data which will be bounded to the sql statement</param>
+            <param name="handler">a callback for tracking final result</param>
+            <param name="row">a callback for tracking record or output parameter returned data</param>
+            <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CAsyncDBHandler.Execute(System.String,SocketProAdapter.UDB.CDBVariantArray,SocketProAdapter.ClientSide.CAsyncDBHandler.DExecuteResult,SocketProAdapter.ClientSide.CAsyncDBHandler.DRows,SocketProAdapter.ClientSide.CAsyncDBHandler.DRowsetHeader)">
+            <summary>
+            Process one set of parameterized or regular statement with an optional array of parameter data
+            </summary>
+            <param name="sql">a parameterized or regular SQL statement</param>
+            <param name="vParam">an optioal array of parameter data which will be bounded to the sql statement</param>
+            <param name="handler">a callback for tracking final result</param>
+            <param name="row">a callback for tracking record or output parameter returned data</param>
+            <param name="rh">a callback for tracking row set of header column informations</param>
+            <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CAsyncDBHandler.Execute(System.String,SocketProAdapter.UDB.CDBVariantArray,SocketProAdapter.ClientSide.CAsyncDBHandler.DExecuteResult,SocketProAdapter.ClientSide.CAsyncDBHandler.DRows,SocketProAdapter.ClientSide.CAsyncDBHandler.DRowsetHeader,System.Boolean)">
+            <summary>
+            Process one set of parameterized or regular statement with an optional array of parameter data
+            </summary>
+            <param name="sql">a parameterized or regular SQL statement</param>
+            <param name="vParam">an optioal array of parameter data which will be bounded to the sql statement</param>
+            <param name="handler">a callback for tracking final result</param>
+            <param name="row">a callback for tracking record or output parameter returned data</param>
+            <param name="rh">a callback for tracking row set of header column informations</param>
+            <param name="meta">a boolean value for better or more detailed column meta details such as unique, not null, primary key, and so on. It defaults to true</param>
+            <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CAsyncDBHandler.Execute(System.String,SocketProAdapter.UDB.CDBVariantArray,SocketProAdapter.ClientSide.CAsyncDBHandler.DExecuteResult,SocketProAdapter.ClientSide.CAsyncDBHandler.DRows,SocketProAdapter.ClientSide.CAsyncDBHandler.DRowsetHeader,System.Boolean,System.Boolean)">
+            <summary>
+            Process one set of parameterized or regular statement with an optional array of parameter data
+            </summary>
+            <param name="sql">a parameterized or regular SQL statement</param>
+            <param name="vParam">an optioal array of parameter data which will be bounded to the sql statement</param>
+            <param name="handler">a callback for tracking final result</param>
+            <param name="row">a callback for tracking record or output parameter returned data</param>
+            <param name="rh">a callback for tracking row set of header column informations</param>
+            <param name="meta">a boolean value for better or more detailed column meta details such as unique, not null, primary key, and so on. It defaults to true</param>
+            <param name="lastInsertId">a boolean value for last insert record identification number. It defaults to true</param>
+            <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CAsyncDBHandler.Execute(System.String,SocketProAdapter.UDB.CDBVariantArray,SocketProAdapter.ClientSide.CAsyncDBHandler.DExecuteResult,SocketProAdapter.ClientSide.CAsyncDBHandler.DRows,SocketProAdapter.ClientSide.CAsyncDBHandler.DRowsetHeader,System.Boolean,System.Boolean,SocketProAdapter.ClientSide.CAsyncServiceHandler.DDiscarded)">
+            <summary>
+            Process one set of parameterized or regular statement with an optional array of parameter data
+            </summary>
+            <param name="sql">a parameterized or regular SQL statement</param>
+            <param name="vParam">an optioal array of parameter data which will be bounded to the sql statement</param>
+            <param name="handler">a callback for tracking final result</param>
+            <param name="row">a callback for tracking record or output parameter returned data</param>
+            <param name="rh">a callback for tracking row set of header column informations</param>
+            <param name="meta">a boolean value for better or more detailed column meta details such as unique, not null, primary key, and so on. It defaults to true</param>
+            <param name="lastInsertId">a boolean value for last insert record identification number. It defaults to true</param>
+            <param name="discarded">a callback for tracking cancel or socket closed event</param>
+            <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CAsyncDBHandler.Execute(System.String,SocketProAdapter.UDB.CDBVariantArray,SocketProAdapter.ClientSide.CAsyncDBHandler.DExecuteResult,SocketProAdapter.ClientSide.CAsyncDBHandler.DRows,SocketProAdapter.ClientSide.CAsyncDBHandler.DRowsetHeader,System.Boolean,System.Boolean,SocketProAdapter.ClientSide.CAsyncServiceHandler.DDiscarded,SocketProAdapter.ClientSide.CAsyncServiceHandler.DOnExceptionFromServer)">
+            <summary>
+            Process one set of parameterized or regular statement with an optional array of parameter data
+            </summary>
+            <param name="sql">a parameterized or regular SQL statement</param>
+            <param name="vParam">an optioal array of parameter data which will be bounded to the sql statement</param>
+            <param name="handler">a callback for tracking final result</param>
+            <param name="row">a callback for tracking record or output parameter returned data</param>
+            <param name="rh">a callback for tracking row set of header column informations</param>
+            <param name="meta">a boolean value for better or more detailed column meta details such as unique, not null, primary key, and so on. It defaults to true</param>
+            <param name="lastInsertId">a boolean value for last insert record identification number. It defaults to true</param>
+            <param name="discarded">a callback for tracking cancel or socket closed event</param>
+            <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
+        </member>
         <member name="M:SocketProAdapter.ClientSide.CAsyncDBHandler.ExecuteBatch(SocketProAdapter.UDB.tagTransactionIsolation,System.String)">
             <summary>
             Execute a batch of SQL statements on one single call

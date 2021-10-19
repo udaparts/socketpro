@@ -337,6 +337,7 @@ namespace SocketProAdapter
             public const ushort idSqlBatchHeader = idGetCachedTables + 1;
             public const ushort idExecuteBatch = idSqlBatchHeader + 1;
             public const ushort idParameterPosition = idExecuteBatch + 1;
+            public const ushort idExecuteEx = idParameterPosition + 1;
 
             /// <summary>
             /// Whenever a data size in bytes is about twice larger than the defined value,
@@ -831,6 +832,148 @@ namespace SocketProAdapter
                         Socket.ClientQueue.EndJob();
                     return true;
                 }
+            }
+
+            /// <summary>
+            /// Process one set of parameterized or regular statement with an optional array of parameter data
+            /// </summary>
+            /// <param name="sql">a parameterized or regular SQL statement</param>
+            /// <param name="vParam">an optioal array of parameter data which will be bounded to the sql statement</param>
+            /// <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
+            public bool Execute(string sql, CDBVariantArray vParam)
+            {
+                return Execute(sql, vParam, null, null, null, true, true, null, null);
+            }
+
+            /// <summary>
+            /// Process one set of parameterized or regular statement with an optional array of parameter data
+            /// </summary>
+            /// <param name="sql">a parameterized or regular SQL statement</param>
+            /// <param name="vParam">an optioal array of parameter data which will be bounded to the sql statement</param>
+            /// <param name="handler">a callback for tracking final result</param>
+            /// <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
+            public bool Execute(string sql, CDBVariantArray vParam, DExecuteResult handler)
+            {
+                return Execute(sql, vParam, handler, null, null, true, true, null, null);
+            }
+
+            /// <summary>
+            /// Process one set of parameterized or regular statement with an optional array of parameter data
+            /// </summary>
+            /// <param name="sql">a parameterized or regular SQL statement</param>
+            /// <param name="vParam">an optioal array of parameter data which will be bounded to the sql statement</param>
+            /// <param name="handler">a callback for tracking final result</param>
+            /// <param name="row">a callback for tracking record or output parameter returned data</param>
+            /// <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
+            public bool Execute(string sql, CDBVariantArray vParam, DExecuteResult handler, DRows row)
+            {
+                return Execute(sql, vParam, handler, row, null, true, true, null, null);
+            }
+
+            /// <summary>
+            /// Process one set of parameterized or regular statement with an optional array of parameter data
+            /// </summary>
+            /// <param name="sql">a parameterized or regular SQL statement</param>
+            /// <param name="vParam">an optioal array of parameter data which will be bounded to the sql statement</param>
+            /// <param name="handler">a callback for tracking final result</param>
+            /// <param name="row">a callback for tracking record or output parameter returned data</param>
+            /// <param name="rh">a callback for tracking row set of header column informations</param>
+            /// <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
+            public bool Execute(string sql, CDBVariantArray vParam, DExecuteResult handler, DRows row, DRowsetHeader rh)
+            {
+                return Execute(sql, vParam, handler, row, rh, true, true, null, null);
+            }
+
+            /// <summary>
+            /// Process one set of parameterized or regular statement with an optional array of parameter data
+            /// </summary>
+            /// <param name="sql">a parameterized or regular SQL statement</param>
+            /// <param name="vParam">an optioal array of parameter data which will be bounded to the sql statement</param>
+            /// <param name="handler">a callback for tracking final result</param>
+            /// <param name="row">a callback for tracking record or output parameter returned data</param>
+            /// <param name="rh">a callback for tracking row set of header column informations</param>
+            /// <param name="meta">a boolean value for better or more detailed column meta details such as unique, not null, primary key, and so on. It defaults to true</param>
+            /// <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
+            public bool Execute(string sql, CDBVariantArray vParam, DExecuteResult handler, DRows row, DRowsetHeader rh, bool meta)
+            {
+                return Execute(sql, vParam, handler, row, rh, meta, true, null, null);
+            }
+
+            /// <summary>
+            /// Process one set of parameterized or regular statement with an optional array of parameter data
+            /// </summary>
+            /// <param name="sql">a parameterized or regular SQL statement</param>
+            /// <param name="vParam">an optioal array of parameter data which will be bounded to the sql statement</param>
+            /// <param name="handler">a callback for tracking final result</param>
+            /// <param name="row">a callback for tracking record or output parameter returned data</param>
+            /// <param name="rh">a callback for tracking row set of header column informations</param>
+            /// <param name="meta">a boolean value for better or more detailed column meta details such as unique, not null, primary key, and so on. It defaults to true</param>
+            /// <param name="lastInsertId">a boolean value for last insert record identification number. It defaults to true</param>
+            /// <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
+            public bool Execute(string sql, CDBVariantArray vParam, DExecuteResult handler, DRows row, DRowsetHeader rh, bool meta, bool lastInsertId)
+            {
+                return Execute(sql, vParam, handler, row, rh, meta, lastInsertId, null, null);
+            }
+
+            /// <summary>
+            /// Process one set of parameterized or regular statement with an optional array of parameter data
+            /// </summary>
+            /// <param name="sql">a parameterized or regular SQL statement</param>
+            /// <param name="vParam">an optioal array of parameter data which will be bounded to the sql statement</param>
+            /// <param name="handler">a callback for tracking final result</param>
+            /// <param name="row">a callback for tracking record or output parameter returned data</param>
+            /// <param name="rh">a callback for tracking row set of header column informations</param>
+            /// <param name="meta">a boolean value for better or more detailed column meta details such as unique, not null, primary key, and so on. It defaults to true</param>
+            /// <param name="lastInsertId">a boolean value for last insert record identification number. It defaults to true</param>
+            /// <param name="discarded">a callback for tracking cancel or socket closed event</param>
+            /// <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
+            public bool Execute(string sql, CDBVariantArray vParam, DExecuteResult handler, DRows row, DRowsetHeader rh, bool meta, bool lastInsertId, DDiscarded discarded)
+            {
+                return Execute(sql, vParam, handler, row, rh, meta, lastInsertId, discarded, null);
+            }
+
+            /// <summary>
+            /// Process one set of parameterized or regular statement with an optional array of parameter data
+            /// </summary>
+            /// <param name="sql">a parameterized or regular SQL statement</param>
+            /// <param name="vParam">an optioal array of parameter data which will be bounded to the sql statement</param>
+            /// <param name="handler">a callback for tracking final result</param>
+            /// <param name="row">a callback for tracking record or output parameter returned data</param>
+            /// <param name="rh">a callback for tracking row set of header column informations</param>
+            /// <param name="meta">a boolean value for better or more detailed column meta details such as unique, not null, primary key, and so on. It defaults to true</param>
+            /// <param name="lastInsertId">a boolean value for last insert record identification number. It defaults to true</param>
+            /// <param name="discarded">a callback for tracking cancel or socket closed event</param>
+            /// <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
+            public virtual bool Execute(string sql, CDBVariantArray vParam, DExecuteResult handler, DRows row, DRowsetHeader rh, bool meta, bool lastInsertId, DDiscarded discarded, DOnExceptionFromServer se)
+            {
+                if (vParam == null) vParam = new CDBVariantArray();
+                bool rowset = (row != null);
+                meta = (meta && (rh != null));
+                ulong index = GetCallIndex();
+                //don't make m_csDB locked across calling SendRequest, which may lead to client dead-lock
+                //in case a client asynchronously sends lots of requests without use of client side queue.
+                if (rowset || meta)
+                {
+                    lock (m_csDB)
+                    {
+                        m_mapRowset[index] = new KeyValuePair<DRowsetHeader, DRows>(rh, row);
+                    }
+                }
+                if (!SendRequest(DB_CONSTS.idExecuteEx, sql, vParam, rowset, meta, lastInsertId, index, (ar) =>
+                {
+                    Process(handler, ar, DB_CONSTS.idExecuteEx, index);
+                }, discarded, se))
+                {
+                    if (rowset || meta)
+                    {
+                        lock (m_csDB)
+                        {
+                            m_mapRowset.Remove(index);
+                        }
+                    }
+                    return false;
+                }
+                return true;
             }
 
             /// <summary>
@@ -1852,6 +1995,31 @@ namespace SocketProAdapter
                 }, row, rh, meta, lastInsertId, get_aborted(tcs, DB_CONSTS.idExecute), get_se(tcs)))
                 {
                     raise(DB_CONSTS.idExecute);
+                }
+                return tcs.Task;
+            }
+
+            /// <summary>
+            /// Process one set of parameterized or regular statement with an optional array of parameter data
+            /// </summary>
+            /// <param name="sql">a parameterized or regular SQL statement</param>
+            /// <param name="vParam">an optioal array of parameter data which will be bounded to the sql statement</param>
+            /// <param name="row">a callback for tracking record or output parameter returned data</param>
+            /// <param name="rh">a callback for tracking row set of header column informations</param>
+            /// <param name="meta">a boolean value for better or more detailed column meta details such as unique, not null, primary key, and so on. It defaults to true</param>
+            /// <param name="lastInsertId">a boolean value for last insert record identification number. It defaults to true</param>
+            /// <returns>true if request is successfully sent or queued; and false if request is NOT successfully sent or queued</returns>
+            public virtual Task<SQLExeInfo> execute(string sql, CDBVariantArray vParam, DRows row = null, DRowsetHeader rh = null, bool meta = true, bool lastInsertId = true)
+            {
+                TaskCompletionSource<SQLExeInfo> tcs = new TaskCompletionSource<SQLExeInfo>();
+                if (!Execute(sql, vParam, (db, res, errMsg, affected, fail_ok, vtId) =>
+                {
+                    uint oks = (uint)(fail_ok & 0xffffffff);
+                    uint fails = (uint)(fail_ok >> 32);
+                    tcs.TrySetResult(new SQLExeInfo(res, errMsg, affected, oks, fails, vtId));
+                }, row, rh, meta, lastInsertId, get_aborted(tcs, DB_CONSTS.idExecuteEx), get_se(tcs)))
+                {
+                    raise(DB_CONSTS.idExecuteEx);
                 }
                 return tcs.Task;
             }

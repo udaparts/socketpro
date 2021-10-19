@@ -64,5 +64,6 @@ typedef int (WINAPI *PDoSPluginAuthentication)(SPA::UINT64 hSocket, const wchar_
 #define PLUGIN_SERVICE_ID              "service_id"
 #define MANUAL_BATCHING                "manual_batching"
 #define MAX_QUERIES_BATCHED            "max_queries_batched"
+#define MAX_SQL_SIZE                   "max_sql_size"
 
 #endif
