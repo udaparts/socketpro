@@ -75,6 +75,9 @@ public class CSqlPlugin : CSocketProServer
     //typedef const char* const (WINAPI *PGetSPluginVersion)();
     private delegate IntPtr DGetSPluginVersion();
 
+    //
+    //
+
     private void ConfigServices()
     {
         bool changed = false;
@@ -94,6 +97,7 @@ public class CSqlPlugin : CSocketProServer
         sql_config.manual_batching = m_Config.manual_batching;
         sql_config.max_queries_batched = m_Config.max_queries_batched;
         sql_config.max_sql_size = m_Config.max_sql_size;
+        sql_config.ca_for_mssql = m_Config.cert_root_store;
         string json = sql_config.ToJson();
         bool ok = SetSPluginGlobalOptions(json);
         string[] vService = m_Config.services.Split(';');
@@ -115,7 +119,7 @@ public class CSqlPlugin : CSocketProServer
                 if (h.ToInt64() == 0)
                 {
                     string message = "Not able to load server plugin " + p_name;
-                    UConfig.LogMsg(message, "CSqlPlugin::ConfigServices", 118); //line 118
+                    UConfig.LogMsg(message, "CSqlPlugin::ConfigServices", 122); //line 122
                     break;
                 }
                 vP.Add(p_name);
@@ -150,7 +154,7 @@ public class CSqlPlugin : CSocketProServer
                     }
                     catch (Exception ex)
                     {
-                        UConfig.LogMsg(ex.Message, "CSqlPlugin::ConfigServices/GetSPluginGlobalOptions", 153); //line 153
+                        UConfig.LogMsg(ex.Message, "CSqlPlugin::ConfigServices/GetSPluginGlobalOptions", 157); //line 157
                         m_Config.services_config.Add(p_name, new Dictionary<string, object>());
                     }
                 }
@@ -169,12 +173,12 @@ public class CSqlPlugin : CSocketProServer
                             DSetSPluginGlobalOptions func = (DSetSPluginGlobalOptions)Marshal.GetDelegateForFunctionPointer(addr, typeof(DSetSPluginGlobalOptions));
                             if (!func(jsonDic.ToJson(false)))
                             {
-                                UConfig.LogMsg("Not able to set global options for plugin " + p_name, "CSqlPlugin::ConfigServices", 172); //line 172
+                                UConfig.LogMsg("Not able to set global options for plugin " + p_name, "CSqlPlugin::ConfigServices", 176); //line 176
                             }
                         }
                         catch (Exception ex)
                         {
-                            UConfig.LogMsg(ex.Message, "CSqlPlugin::ConfigServices/SetSPluginGlobalOptions", 177); //line 177
+                            UConfig.LogMsg(ex.Message, "CSqlPlugin::ConfigServices/SetSPluginGlobalOptions", 181); //line 181
                         }
                     }
                 }
@@ -199,7 +203,7 @@ public class CSqlPlugin : CSocketProServer
                     }
                     catch (Exception ex)
                     {
-                        UConfig.LogMsg(ex.Message, "CSqlPlugin::ConfigServices/GetSPluginVersion", 202); //line 202
+                        UConfig.LogMsg(ex.Message, "CSqlPlugin::ConfigServices/GetSPluginVersion", 206); //line 206
                     }
                 }
             } while (false);

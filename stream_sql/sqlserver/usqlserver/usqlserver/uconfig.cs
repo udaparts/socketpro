@@ -8,6 +8,7 @@ public class MsSqlConfig
     public uint manual_batching = 0;
     public uint max_queries_batched = 0;
     public uint max_sql_size = 0;
+    public string ca_for_mssql;
 }
 
 public class UConfig
@@ -15,6 +16,8 @@ public class UConfig
     public static readonly string MY_VERSION = "1.7.0.1";
     public static readonly string DEFAULT_CONNECTION_STRING = "server=localhost;timeout=30";
     public static readonly int DEFAULT_MAIN_THREADS = 1;
+    public static readonly uint DEFAULT_MAX_SQL_SIZE = 4 * 1024 * 1024;
+    public static readonly uint DEFAULT_MIN_SQL_SIZE = 4 * 1024;
     public static readonly uint DEFAULT_PORT = 20903;
     public static readonly string STREAM_DB_CONFIG_FILE = "sp_streaming_db_config.json";
     public static readonly string STREAM_DB_LOG_FILE = "streaming_db.log";
@@ -27,7 +30,7 @@ public class UConfig
     public int main_threads = DEFAULT_MAIN_THREADS;
     public uint manual_batching = 1;
     public uint max_queries_batched = 8;
-    public uint max_sql_size = 4 * 1024 * 1024;
+    public uint max_sql_size = DEFAULT_MAX_SQL_SIZE;
     public string mssql_plugin_version = "";
     public uint port = DEFAULT_PORT;
     public string services = "";
@@ -35,6 +38,8 @@ public class UConfig
     public string sp_server_core_version = "";
     public string version = "";
     public uint service_id = 0;
+    //
+    //
 
     public UConfig()
     {
@@ -67,7 +72,12 @@ public class UConfig
             }
             if (port == 0 || port > 0xffff)
             {
-                port = UConfig.DEFAULT_PORT;
+                port = DEFAULT_PORT;
+                changed = true;
+            }
+            if (max_sql_size < DEFAULT_MIN_SQL_SIZE)
+            {
+                max_sql_size = DEFAULT_MIN_SQL_SIZE;
                 changed = true;
             }
             string str = default_connection_string.Trim();
@@ -97,7 +107,7 @@ public class UConfig
         }
         catch (Exception ex)
         {
-            LogMsg(ex.Message, "UConfig::UConfig(string json)", 100); //line 100
+            LogMsg(ex.Message, "UConfig::UConfig(string json)", 110); //line 110
             changed = true;
         }
         finally
@@ -136,7 +146,7 @@ public class UConfig
         }
         catch (Exception ex)
         {
-            LogMsg(ex.Message, "UConfig::UpdateConfigFile", 139); //line 139
+            LogMsg(ex.Message, "UConfig::UpdateConfigFile", 149); //line 149
         }
     }
 
