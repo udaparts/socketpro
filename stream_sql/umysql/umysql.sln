@@ -1,14 +1,11 @@
 ﻿
-Microsoft Visual Studio Solution File, Format Version 11.00
-# Visual Studio 2010
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "smysql", "smysql\smysql.vcxproj", "{4A686FB6-5E83-433A-A81D-A6E1683B3013}"
-EndProject
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.31727.386
+MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "test_cmysql", "test_cmysql\test_cmysql.vcxproj", "{57F9709A-77A9-4EE0-8C0C-2C4D14BC6386}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "test_smysql", "test_smysql\test_smysql.vcxproj", "{6D594678-20C0-4BD5-A2E5-A8382523765F}"
-	ProjectSection(ProjectDependencies) = postProject
-		{4A686FB6-5E83-433A-A81D-A6E1683B3013} = {4A686FB6-5E83-433A-A81D-A6E1683B3013}
-	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "test_sharp", "test_sharp\test_sharp.csproj", "{8F286A11-9DD6-4012-BD75-6ADDF0090426}"
 EndProject
@@ -26,22 +23,6 @@ Global
 		Release|x86 = Release|x86
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{4A686FB6-5E83-433A-A81D-A6E1683B3013}.Debug|Any CPU.ActiveCfg = Debug|x64
-		{4A686FB6-5E83-433A-A81D-A6E1683B3013}.Debug|Mixed Platforms.ActiveCfg = Debug|x64
-		{4A686FB6-5E83-433A-A81D-A6E1683B3013}.Debug|Mixed Platforms.Build.0 = Debug|x64
-		{4A686FB6-5E83-433A-A81D-A6E1683B3013}.Debug|Win32.ActiveCfg = Debug|Win32
-		{4A686FB6-5E83-433A-A81D-A6E1683B3013}.Debug|Win32.Build.0 = Debug|Win32
-		{4A686FB6-5E83-433A-A81D-A6E1683B3013}.Debug|x64.ActiveCfg = Debug|x64
-		{4A686FB6-5E83-433A-A81D-A6E1683B3013}.Debug|x64.Build.0 = Debug|x64
-		{4A686FB6-5E83-433A-A81D-A6E1683B3013}.Debug|x86.ActiveCfg = Debug|x64
-		{4A686FB6-5E83-433A-A81D-A6E1683B3013}.Release|Any CPU.ActiveCfg = Release|x64
-		{4A686FB6-5E83-433A-A81D-A6E1683B3013}.Release|Mixed Platforms.ActiveCfg = Release|x64
-		{4A686FB6-5E83-433A-A81D-A6E1683B3013}.Release|Mixed Platforms.Build.0 = Release|x64
-		{4A686FB6-5E83-433A-A81D-A6E1683B3013}.Release|Win32.ActiveCfg = Release|Win32
-		{4A686FB6-5E83-433A-A81D-A6E1683B3013}.Release|Win32.Build.0 = Release|Win32
-		{4A686FB6-5E83-433A-A81D-A6E1683B3013}.Release|x64.ActiveCfg = Release|x64
-		{4A686FB6-5E83-433A-A81D-A6E1683B3013}.Release|x64.Build.0 = Release|x64
-		{4A686FB6-5E83-433A-A81D-A6E1683B3013}.Release|x86.ActiveCfg = Release|x64
 		{57F9709A-77A9-4EE0-8C0C-2C4D14BC6386}.Debug|Any CPU.ActiveCfg = Debug|x64
 		{57F9709A-77A9-4EE0-8C0C-2C4D14BC6386}.Debug|Mixed Platforms.ActiveCfg = Debug|x64
 		{57F9709A-77A9-4EE0-8C0C-2C4D14BC6386}.Debug|Mixed Platforms.Build.0 = Debug|x64
@@ -91,5 +72,8 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {411BA327-C844-4CFE-9E58-8AB2559D66B0}
 	EndGlobalSection
 EndGlobal
