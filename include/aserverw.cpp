@@ -249,8 +249,7 @@ namespace SPA
         }
 
         std::string CSocketPeer::GetPeerName(unsigned int *port) const {
-            char strIpAddr[128] =
-            {0};
+            char strIpAddr[128] = {0};
             ServerCoreLoader.GetPeerName(m_hHandler, port, strIpAddr, sizeof (strIpAddr));
             return strIpAddr;
         }
@@ -1146,8 +1145,7 @@ namespace SPA
         }
 
         std::wstring CSocketProServer::PushManager::GetAChatGroupDescription(unsigned int groupId) {
-            wchar_t description[4097] =
-            {0};
+            wchar_t description[4097] = {0};
             ServerCoreLoader.GetAChatGroup(groupId, description, sizeof (description) / sizeof (wchar_t));
             return description;
         }
@@ -1486,8 +1484,7 @@ namespace SPA
         }
 
         std::string CSocketProServer::GetLocalName() {
-            char localname[256] =
-            {0};
+            char localname[256] = {0};
             ServerCoreLoader.GetLocalName(localname, sizeof (localname));
             return localname;
         }
@@ -1497,8 +1494,7 @@ namespace SPA
         }
 
         void SetLastCallInfo(const char *str, int data, const char *func) {
-            char buff[4097] =
-            {0};
+            char buff[4097] = {0};
 #ifdef WIN32_64
             _snprintf_s(buff, sizeof (buff), sizeof (buff), "lf: %s, what: %s, data: %d", func, str, data);
 #else
@@ -1512,15 +1508,13 @@ namespace SPA
         }
 
         std::wstring CSocketProServer::CredentialManager::GetUserID(USocket_Server_Handle h) {
-            wchar_t str[256] =
-            {0};
+            wchar_t str[256] = {0};
             ServerCoreLoader.GetUID(h, str, sizeof (str) / sizeof (wchar_t));
             return str;
         }
 
         std::wstring CSocketProServer::CredentialManager::GetPassword(USocket_Server_Handle h) {
-            wchar_t str[256] =
-            {0};
+            wchar_t str[256] = {0};
             ServerCoreLoader.GetPassword(h, str, sizeof (str) / sizeof (wchar_t));
             return str;
         }
