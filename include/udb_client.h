@@ -461,17 +461,18 @@ namespace SPA {
              * @param handler a callback for tracking final result
              * @param row a callback for receiving records of data
              * @param rh a callback for tracking row set of header column informations
+             * @param delimiter a case-sensitive delimiter string used for separating the batch SQL statements into individual SQL statements at server side for processing
              * @param meta a boolean for better or more detailed column meta details such as unique, not null, primary key, and so on
              * @param lastInsertId a boolean for last insert record identification number
              * @param discarded a callback for tracking socket closed or request canceled event
              * @param se a callback for tracking an exception from server
              * @return true if request is successfully sent or queued; and false if request is NOT successfully sent or queued
              */
-            virtual bool Execute(const wchar_t* sql, const CDBVariantArray& vParam, const DExecuteResult& handler = nullptr, const DRows& row = nullptr, const DRowsetHeader& rh = nullptr, bool meta = true, bool lastInsertId = true, const DDiscarded& discarded = nullptr, const DServerException& se = nullptr) {
+            virtual bool Execute(const wchar_t* sql, const CDBVariantArray& vParam, const DExecuteResult& handler = nullptr, const DRows& row = nullptr, const DRowsetHeader& rh = nullptr, const wchar_t* delimiter = L";", bool meta = true, bool lastInsertId = true, const DDiscarded& discarded = nullptr, const DServerException& se = nullptr) {
                 bool rowset = (row) ? true : false;
                 meta = (meta && rh);
                 CScopeUQueue sb;
-                sb << sql << vParam << rowset << meta << lastInsertId;
+                sb << sql << vParam << rowset << delimiter << meta << lastInsertId;
 #ifndef NODE_JS_ADAPTER_PROJECT
                 SPA::CAutoLock alOne(m_csOneSending);
 #endif
@@ -668,17 +669,18 @@ namespace SPA {
              * @param handler a callback for tracking final result
              * @param row a callback for receiving records of data
              * @param rh a callback for tracking row set of header column informations
+             * @param delimiter a case-sensitive delimiter string used for separating the batch SQL statements into individual SQL statements at server side for processing
              * @param meta a boolean for better or more detailed column meta details such as unique, not null, primary key, and so on
              * @param lastInsertId a boolean for last insert record identification number
              * @param discarded a callback for tracking socket closed or request canceled event
              * @param se a callback for tracking an exception from server
              * @return true if request is successfully sent or queued; and false if request is NOT successfully sent or queued
              */
-            virtual bool Execute(const char16_t* sql, const CDBVariantArray& vParam, const DExecuteResult& handler = nullptr, const DRows& row = nullptr, const DRowsetHeader& rh = nullptr, bool meta = true, bool lastInsertId = true, const DDiscarded& discarded = nullptr, const DServerException& se = nullptr) {
+            virtual bool Execute(const char16_t* sql, const CDBVariantArray& vParam, const DExecuteResult& handler = nullptr, const DRows& row = nullptr, const DRowsetHeader& rh = nullptr, const char16_t* delimiter = u";", bool meta = true, bool lastInsertId = true, const DDiscarded& discarded = nullptr, const DServerException& se = nullptr) {
                 bool rowset = (row) ? true : false;
                 meta = (meta && rh);
                 CScopeUQueue sb;
-                sb << sql << vParam << rowset << meta << lastInsertId;
+                sb << sql << vParam << rowset << delimiter << meta << lastInsertId;
 #ifndef NODE_JS_ADAPTER_PROJECT
                 SPA::CAutoLock alOne(m_csOneSending);
 #endif
@@ -1133,9 +1135,9 @@ namespace SPA {
                 }
 
                 template<typename TChar>
-                SqlWaiter(CAsyncDBHandler* db, const TChar* sql, const CDBVariantArray& vParam, const DRows& row, const DRowsetHeader& rh, bool meta, bool lastInsertId)
+                SqlWaiter(CAsyncDBHandler* db, const TChar* sql, const CDBVariantArray& vParam, const DRows& row, const DRowsetHeader& rh, const TChar* delimiter, bool meta, bool lastInsertId)
                 : CWaiter<SQLExeInfo>(idExecuteEx) {
-                    if (!db->Execute(sql, vParam, get_rh(), row, rh, meta, lastInsertId, this->get_aborted(), this->get_se())) {
+                    if (!db->Execute(sql, vParam, get_rh(), row, rh, delimiter, meta, lastInsertId, this->get_aborted(), this->get_se())) {
                         db->raise(idExecuteEx);
                     }
                 }
@@ -1182,9 +1184,12 @@ namespace SPA {
                 return SqlWaiter(this, sql, row, rh, meta, lastInsertId);
             }
 
-            template<typename TChar>
-            SqlWaiter wait_execute(const TChar* sql, const CDBVariantArray& vParam, const DRows& row = nullptr, const DRowsetHeader& rh = nullptr, bool meta = true, bool lastInsertId = true) {
-                return SqlWaiter(this, sql, vParam, row, rh, meta, lastInsertId);
+            SqlWaiter wait_execute(const wchar_t* sql, const CDBVariantArray& vParam, const DRows& row = nullptr, const DRowsetHeader& rh = nullptr, const wchar_t* delimiter = L";", bool meta = true, bool lastInsertId = true) {
+                return SqlWaiter(this, sql, vParam, row, rh, delimiter, meta, lastInsertId);
+            }
+
+            SqlWaiter wait_execute(const char16_t* sql, const CDBVariantArray& vParam, const DRows& row = nullptr, const DRowsetHeader& rh = nullptr, const char16_t* delimiter = u";", bool meta = true, bool lastInsertId = true) {
+                return SqlWaiter(this, sql, vParam, row, rh, delimiter, meta, lastInsertId);
             }
 
             SqlWaiter wait_executeBatch(tagTransactionIsolation isolation, const wchar_t* sql, CDBVariantArray& vParam,
@@ -1240,9 +1245,9 @@ namespace SPA {
                 return prom->get_future();
             }
 
-            std::future<SQLExeInfo> execute(const wchar_t* sql, const CDBVariantArray& vParam, const DRows& row = nullptr, const DRowsetHeader& rh = nullptr, bool meta = true, bool lastInsertId = true) {
+            std::future<SQLExeInfo> execute(const wchar_t* sql, const CDBVariantArray& vParam, const DRows& row = nullptr, const DRowsetHeader& rh = nullptr, const wchar_t* delimiter = L";", bool meta = true, bool lastInsertId = true) {
                 std::shared_ptr<std::promise<SQLExeInfo> > prom(new std::promise<SQLExeInfo>);
-                if (!Execute(sql, vParam, get_er(prom), row, rh, meta, lastInsertId, get_aborted(prom, idExecuteEx), get_se(prom))) {
+                if (!Execute(sql, vParam, get_er(prom), row, rh, delimiter, meta, lastInsertId, get_aborted(prom, idExecuteEx), get_se(prom))) {
                     raise(idExecuteEx);
                 }
                 return prom->get_future();
@@ -1284,9 +1289,9 @@ namespace SPA {
                 return prom->get_future();
             }
 
-            std::future<SQLExeInfo> execute(const char16_t* sql, const CDBVariantArray& vParam, const DRows& row = nullptr, const DRowsetHeader& rh = nullptr, bool meta = true, bool lastInsertId = true) {
+            std::future<SQLExeInfo> execute(const char16_t* sql, const CDBVariantArray& vParam, const DRows& row = nullptr, const DRowsetHeader& rh = nullptr, const char16_t* delimiter = u";", bool meta = true, bool lastInsertId = true) {
                 std::shared_ptr<std::promise<SQLExeInfo> > prom(new std::promise<SQLExeInfo>);
-                if (!Execute(sql, vParam, get_er(prom), row, rh, meta, lastInsertId, get_aborted(prom, idExecuteEx), get_se(prom))) {
+                if (!Execute(sql, vParam, get_er(prom), row, rh, delimiter, meta, lastInsertId, get_aborted(prom, idExecuteEx), get_se(prom))) {
                     raise(idExecuteEx);
                 }
                 return prom->get_future();
