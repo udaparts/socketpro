@@ -1140,6 +1140,368 @@ public class CAsyncDBHandler extends CAsyncServiceHandler {
     }
 
     /**
+     * Process a complex SQL statement which may be combined with multiple basic
+     * SQL statements asynchronously with an optional array of parameters
+     *
+     * @param sql a complex SQL statement which may be combined with multiple
+     * basic SQL statements
+     * @param vParam an optional array of parameter data which will be bounded
+     * to the SQL statement
+     * @return true if request is successfully sent or queued; and false if
+     * request is NOT successfully sent or queued
+     */
+    public final boolean Execute(String sql, CDBVariantArray vParam) {
+        return Execute(sql, vParam, null, null, null, ";", true, true, null, null);
+    }
+
+    /**
+     * Process a complex SQL statement which may be combined with multiple basic
+     * SQL statements asynchronously with an optional array of parameters
+     *
+     * @param sql a complex SQL statement which may be combined with multiple
+     * basic SQL statements
+     * @param vParam an optional array of parameter data which will be bounded
+     * to the SQL statement
+     * @param handler a callback for tracking final result
+     * @return true if request is successfully sent or queued; and false if
+     * request is NOT successfully sent or queued
+     */
+    public final boolean Execute(String sql, CDBVariantArray vParam, final DExecuteResult handler) {
+        return Execute(sql, vParam, handler, null, null, ";", true, true, null, null);
+    }
+
+    /**
+     * Process a complex SQL statement which may be combined with multiple basic
+     * SQL statements asynchronously with an optional array of parameters
+     *
+     * @param sql a complex SQL statement which may be combined with multiple
+     * basic SQL statements
+     * @param vParam an optional array of parameter data which will be bounded
+     * to the SQL statement
+     * @param handler a callback for tracking final result
+     * @param row a callback for tracking record or output parameter returned
+     * data
+     * @return true if request is successfully sent or queued; and false if
+     * request is NOT successfully sent or queued
+     */
+    public final boolean Execute(String sql, CDBVariantArray vParam, final DExecuteResult handler, DRows row) {
+        return Execute(sql, vParam, handler, row, null, ";", true, true, null, null);
+    }
+
+    /**
+     * Process a complex SQL statement which may be combined with multiple basic
+     * SQL statements asynchronously with an optional array of parameters
+     *
+     * @param sql a complex SQL statement which may be combined with multiple
+     * basic SQL statements
+     * @param vParam an optional array of parameter data which will be bounded
+     * to the SQL statement
+     * @param handler a callback for tracking final result
+     * @param row a callback for tracking record or output parameter returned
+     * data
+     * @param rh a callback for tracking row set of header column informations
+     * @return true if request is successfully sent or queued; and false if
+     * request is NOT successfully sent or queued
+     */
+    public final boolean Execute(String sql, CDBVariantArray vParam, final DExecuteResult handler, DRows row, DRowsetHeader rh) {
+        return Execute(sql, vParam, handler, row, rh, ";", true, true, null, null);
+    }
+
+    /**
+     * Process a complex SQL statement which may be combined with multiple basic
+     * SQL statements asynchronously with an optional array of parameters
+     *
+     * @param sql a complex SQL statement which may be combined with multiple
+     * basic SQL statements
+     * @param vParam an optional array of parameter data which will be bounded
+     * to the SQL statement
+     * @param handler a callback for tracking final result
+     * @param row a callback for tracking record or output parameter returned
+     * data
+     * @param rh a callback for tracking row set of header column informations
+     * @param delimiter a case-sensitive delimiter string used for separating
+     * the batch SQL statements into individual SQL statements at server side
+     * for processing. It defaults to the character semicolon
+     * @return true if request is successfully sent or queued; and false if
+     * request is NOT successfully sent or queued
+     */
+    public final boolean Execute(String sql, CDBVariantArray vParam, final DExecuteResult handler, DRows row, DRowsetHeader rh, String delimiter) {
+        return Execute(sql, vParam, handler, row, rh, delimiter, true, true, null, null);
+    }
+
+    /**
+     * Process a complex SQL statement which may be combined with multiple basic
+     * SQL statements asynchronously with an optional array of parameters
+     *
+     * @param sql a complex SQL statement which may be combined with multiple
+     * basic SQL statements
+     * @param vParam an optional array of parameter data which will be bounded
+     * to the SQL statement
+     * @param handler a callback for tracking final result
+     * @param row a callback for tracking record or output parameter returned
+     * data
+     * @param rh a callback for tracking row set of header column informations
+     * @param delimiter a case-sensitive delimiter string used for separating
+     * the batch SQL statements into individual SQL statements at server side
+     * for processing. It defaults to the character semicolon
+     * @param meta a boolean value for better or more detailed column meta
+     * details such as unique, not null, primary first, and so on. It defaults
+     * to true
+     * @return true if request is successfully sent or queued; and false if
+     * request is NOT successfully sent or queued
+     */
+    public final boolean Execute(String sql, CDBVariantArray vParam, final DExecuteResult handler, DRows row, DRowsetHeader rh, String delimiter, boolean meta) {
+        return Execute(sql, vParam, handler, row, rh, delimiter, meta, true, null, null);
+    }
+
+    /**
+     * Process a complex SQL statement which may be combined with multiple basic
+     * SQL statements asynchronously with an optional array of parameters
+     *
+     * @param sql a complex SQL statement which may be combined with multiple
+     * basic SQL statements
+     * @param vParam an optional array of parameter data which will be bounded
+     * to the SQL statement
+     * @param handler a callback for tracking final result
+     * @param row a callback for tracking record or output parameter returned
+     * data
+     * @param rh a callback for tracking row set of header column informations
+     * @param delimiter a case-sensitive delimiter string used for separating
+     * the batch SQL statements into individual SQL statements at server side
+     * for processing. It defaults to the character semicolon
+     * @param meta a boolean value for better or more detailed column meta
+     * details such as unique, not null, primary first, and so on. It defaults
+     * to true
+     * @param lastInsertId a boolean value for last insert record identification
+     * number. It defaults to true
+     * @return true if request is successfully sent or queued; and false if
+     * request is NOT successfully sent or queued
+     */
+    public final boolean Execute(String sql, CDBVariantArray vParam, final DExecuteResult handler, DRows row, DRowsetHeader rh, String delimiter, boolean meta, boolean lastInsertId) {
+        return Execute(sql, vParam, handler, row, rh, delimiter, meta, lastInsertId, null, null);
+    }
+
+    /**
+     * Process a complex SQL statement which may be combined with multiple basic
+     * SQL statements asynchronously with an optional array of parameters
+     *
+     * @param sql a complex SQL statement which may be combined with multiple
+     * basic SQL statements
+     * @param vParam an optional array of parameter data which will be bounded
+     * to the SQL statement
+     * @param handler a callback for tracking final result
+     * @param row a callback for tracking record or output parameter returned
+     * data
+     * @param rh a callback for tracking row set of header column informations
+     * @param delimiter a case-sensitive delimiter string used for separating
+     * the batch SQL statements into individual SQL statements at server side
+     * for processing. It defaults to the character semicolon
+     * @param meta a boolean value for better or more detailed column meta
+     * details such as unique, not null, primary first, and so on. It defaults
+     * to true
+     * @param lastInsertId a boolean value for last insert record identification
+     * number. It defaults to true
+     * @param discarded a callback for tracking cancel or socket closed event
+     * @return true if request is successfully sent or queued; and false if
+     * request is NOT successfully sent or queued
+     */
+    public final boolean Execute(String sql, CDBVariantArray vParam, final DExecuteResult handler, DRows row, DRowsetHeader rh, String delimiter, boolean meta, boolean lastInsertId, DDiscarded discarded) {
+        return Execute(sql, vParam, handler, row, rh, delimiter, meta, lastInsertId, discarded, null);
+    }
+
+    /**
+     * Process a complex SQL statement which may be combined with multiple basic
+     * SQL statements asynchronously with an optional array of parameters
+     *
+     * @param sql a complex SQL statement which may be combined with multiple
+     * basic SQL statements
+     * @param vParam an optional array of parameter data which will be bounded
+     * to the SQL statement
+     * @param handler a callback for tracking final result
+     * @param row a callback for tracking record or output parameter returned
+     * data
+     * @param rh a callback for tracking row set of header column informations
+     * @param delimiter a case-sensitive delimiter string used for separating
+     * the batch SQL statements into individual SQL statements at server side
+     * for processing. It defaults to the character semicolon
+     * @param meta a boolean value for better or more detailed column meta
+     * details such as unique, not null, primary first, and so on. It defaults
+     * to true
+     * @param lastInsertId a boolean value for last insert record identification
+     * number. It defaults to true
+     * @param discarded a callback for tracking cancel or socket closed event
+     * @param se a callback for tracking an exception from server
+     * @return true if request is successfully sent or queued; and false if
+     * request is NOT successfully sent or queued
+     */
+    public boolean Execute(String sql, CDBVariantArray vParam, final DExecuteResult handler, DRows row, DRowsetHeader rh, String delimiter, boolean meta, boolean lastInsertId, DDiscarded discarded, DOnExceptionFromServer se) {
+        boolean rowset = (row != null);
+        meta = (meta && (rh != null));
+        if (vParam == null) {
+            vParam = new CDBVariantArray();
+        }
+        try (CScopeUQueue sb = new CScopeUQueue()) {
+            sb.Save(sql);
+            sb.Save(vParam);
+            sb.Save(rowset);
+            sb.Save(delimiter);
+            sb.Save(meta);
+            sb.Save(lastInsertId);
+            synchronized (m_csOneSending) {
+                final long index = GetCallIndex();
+                sb.Save(index);
+                //don't make m_csDB locked across calling SendRequest, which may lead to client dead-lock
+                //in case a client asynchronously sends lots of requests without use of client side queue.
+                synchronized (m_csDB) {
+                    if (rowset || meta) {
+                        m_mapRowset.put(index, new Pair<>(rh, row));
+                    }
+                }
+                if (!SendRequest(DB_CONSTS.idExecuteEx, sb, new DAsyncResultHandler() {
+                    @Override
+                    public void invoke(CAsyncResult ar) {
+                        Process(handler, ar, DB_CONSTS.idExecuteEx, index);
+                    }
+                }, discarded, se)) {
+                    synchronized (m_csDB) {
+                        if (rowset || meta) {
+                            m_mapRowset.remove(index);
+                        }
+                    }
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    /**
+     * Process a complex SQL statement which may be combined with multiple basic
+     * SQL statements asynchronously with an optional array of parameters
+     *
+     * @param sql a complex SQL statement which may be combined with multiple
+     * basic SQL statements
+     * @param vParam an optional array of parameter data which will be bounded
+     * to the SQL statement
+     * @param row a callback for tracking record or output parameter returned
+     * data
+     * @param rh a callback for tracking row set of header column informations
+     * @param delimiter a case-sensitive delimiter string used for separating
+     * the batch SQL statements into individual SQL statements at server side
+     * for processing. It defaults to the character semicolon
+     * @param meta a boolean value for better or more detailed column meta
+     * details such as unique, not null, primary first, and so on. It defaults
+     * to true
+     * @param lastInsertId a boolean value for last insert record identification
+     * number. It defaults to true
+     * @return a future for SQL execution information
+     * @throws CSocketError if communication channel is not sendable
+     */
+    public UFuture<SQLExeInfo> execute(String sql, CDBVariantArray vParam, DRows row, DRowsetHeader rh, String delimiter, boolean meta, boolean lastInsertId) throws CSocketError {
+        UFuture<SQLExeInfo> f = new UFuture<>(DB_CONSTS.idExecuteEx);
+        DExecuteResult h = getSqlHandler(f);
+        if (!Execute(sql, vParam, h, row, rh, delimiter, meta, lastInsertId, get_aborted(f), get_se(f))) {
+            raise(f);
+        }
+        return f;
+    }
+
+    /**
+     * Process a complex SQL statement which may be combined with multiple basic
+     * SQL statements asynchronously with an optional array of parameters
+     *
+     * @param sql a complex SQL statement which may be combined with multiple
+     * basic SQL statements
+     * @param vParam an optional array of parameter data which will be bounded
+     * to the SQL statement
+     * @param row a callback for tracking record or output parameter returned
+     * data
+     * @param rh a callback for tracking row set of header column informations
+     * @param delimiter a case-sensitive delimiter string used for separating
+     * the batch SQL statements into individual SQL statements at server side
+     * for processing. It defaults to the character semicolon
+     * @param meta a boolean value for better or more detailed column meta
+     * details such as unique, not null, primary first, and so on. It defaults
+     * to true
+     * @return a future for SQL execution information
+     * @throws CSocketError if communication channel is not sendable
+     */
+    public final UFuture<SQLExeInfo> execute(String sql, CDBVariantArray vParam, DRows row, DRowsetHeader rh, String delimiter, boolean meta) throws CSocketError {
+        return execute(sql, vParam, row, rh, delimiter, meta, true);
+    }
+
+    /**
+     * Process a complex SQL statement which may be combined with multiple basic
+     * SQL statements asynchronously with an optional array of parameters
+     *
+     * @param sql a complex SQL statement which may be combined with multiple
+     * basic SQL statements
+     * @param vParam an optional array of parameter data which will be bounded
+     * to the SQL statement
+     * @param row a callback for tracking record or output parameter returned
+     * data
+     * @param rh a callback for tracking row set of header column informations
+     * @param delimiter a case-sensitive delimiter string used for separating
+     * the batch SQL statements into individual SQL statements at server side
+     * for processing. It defaults to the character semicolon
+     * @return a future for SQL execution information
+     * @throws CSocketError if communication channel is not sendable
+     */
+    public final UFuture<SQLExeInfo> execute(String sql, CDBVariantArray vParam, DRows row, DRowsetHeader rh, String delimiter) throws CSocketError {
+        return execute(sql, vParam, row, rh, delimiter, true, true);
+    }
+
+    /**
+     * Process a complex SQL statement which may be combined with multiple basic
+     * SQL statements asynchronously with an optional array of parameters
+     *
+     * @param sql a complex SQL statement which may be combined with multiple
+     * basic SQL statements
+     * @param vParam an optional array of parameter data which will be bounded
+     * to the SQL statement
+     * @param row a callback for tracking record or output parameter returned
+     * data
+     * @param rh a callback for tracking row set of header column informations
+     * @return a future for SQL execution information
+     * @throws CSocketError if communication channel is not sendable
+     */
+    public final UFuture<SQLExeInfo> execute(String sql, CDBVariantArray vParam, DRows row, DRowsetHeader rh) throws CSocketError {
+        return execute(sql, vParam, row, rh, ";", true, true);
+    }
+
+    /**
+     * Process a complex SQL statement which may be combined with multiple basic
+     * SQL statements asynchronously with an optional array of parameters
+     *
+     * @param sql a complex SQL statement which may be combined with multiple
+     * basic SQL statements
+     * @param vParam an optional array of parameter data which will be bounded
+     * to the SQL statement
+     * @param row a callback for tracking record or output parameter returned
+     * data
+     * @return a future for SQL execution information
+     * @throws CSocketError if communication channel is not sendable
+     */
+    public final UFuture<SQLExeInfo> execute(String sql, CDBVariantArray vParam, DRows row) throws CSocketError {
+        return execute(sql, vParam, row, null, ";", true, true);
+    }
+
+    /**
+     * Process a complex SQL statement which may be combined with multiple basic
+     * SQL statements asynchronously with an optional array of parameters
+     *
+     * @param sql a complex SQL statement which may be combined with multiple
+     * basic SQL statements
+     * @param vParam an optional array of parameter data which will be bounded
+     * to the SQL statement
+     * @return a future for SQL execution information
+     * @throws CSocketError if communication channel is not sendable
+     */
+    public final UFuture<SQLExeInfo> execute(String sql, CDBVariantArray vParam) throws CSocketError {
+        return execute(sql, vParam, null, null, ";", true, true);
+    }
+
+    /**
      * Process one or more sets of prepared statements with an array of
      * parameter data asynchronously
      *

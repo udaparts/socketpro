@@ -39,6 +39,7 @@ public class DB_CONSTS {
     public static final short idSqlBatchHeader = idGetCachedTables + 1;
     public static final short idExecuteBatch = idSqlBatchHeader + 1;
     public static final short idParameterPosition = idExecuteBatch + 1;
+    public static final short idExecuteEx = idParameterPosition + 1;
 
     /**
      * Whenever a data size in bytes is about twice larger than the defined
