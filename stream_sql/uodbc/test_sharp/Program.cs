@@ -31,9 +31,9 @@ class Program
                 return;
             }
             CSqlServer sql = spSql.Seek();
-            bool ok = sql.Open("sqltestdb", dr); //use default database
+            bool ok = sql.Open("", dr); //use default database
+            TestCreateTables(sql);
             List<KeyValuePair<CDBColumnInfoArray, CDBVariantArray>> ra = new List<KeyValuePair<CDBColumnInfoArray, CDBVariantArray>>();
-
             CSqlServer.DRows r = (handler, rowData) =>
             {
                 //rowset data come here
@@ -48,18 +48,23 @@ class Program
                 KeyValuePair<CDBColumnInfoArray, CDBVariantArray> item = new KeyValuePair<CDBColumnInfoArray, CDBVariantArray>(handler.ColumnInfo, new CDBVariantArray());
                 ra.Add(item);
             };
-            TestCreateTables(sql);
+            /*
+             * Use inline query batching feature to speed up performance if MS SQL plugin (usqlsvr) and its DB server are located at different machines.
+             * The inline query batching feature is capable to speeding up performance even if MS SQL plugin (usqlsvr) and its DB server are located at the same machine
+             */
+            ok = sql.Open("sqltestdb", dr, DB_CONSTS.USE_QUERY_BATCHING); //reset default database and enable in-line query batching
             ok = sql.Execute("delete from employee;delete from company;delete from test_rare1;delete from SpatialTable;INSERT INTO SpatialTable(mygeometry, mygeography)VALUES(geometry::STGeomFromText('LINESTRING(100 100,20 180,180 180)',0),geography::Point(47.6475,-122.1393,4326))", er);
             ok = sql.Execute("INSERT INTO test_rare1(mybool,mymoney,myxml,myvariant,mydateimeoffset)values(1,23.45,'<sometest />', N'美国总统川普下个星期四','2017-05-02 00:00:00.0000000 -04:00');INSERT INTO test_rare1(mybool,mymoney,myvariant)values(0,1223.45,'This is a test for ASCII string inside sql_variant');INSERT INTO test_rare1(myvariant)values(283.45)", er);
+            TestNewParameterizedStatement(sql, r, rh);
             TestPreparedStatements(sql);
-            TestPreparedStatements_2(sql);
             TestBLOBByPreparedStatement(sql);
+
             ok = sql.Execute("SELECT * from company;select * from employee;select CONVERT(datetime,SYSDATETIME());select * from test_rare1;select * from SpatialTable", er, r, rh);
-            CDBVariantArray vPData = TestStoredProcedure(sql, ra);
+            ok = TestNewParameterizedStoredProcedure(sql, ra);
             ok = sql.WaitAll();
             Console.WriteLine();
             Console.WriteLine("There are {0} output data returned", sql.Outputs * 2);
-            CDBVariantArray vPData2 = TestStoredProcedure_2(sql, ra);
+            CDBVariantArray vPData2 = TestStoredProcedure(sql, ra);
             ok = sql.WaitAll();
             Console.WriteLine();
             Console.WriteLine("There are {0} output data returned", sql.Outputs * 2);
@@ -138,32 +143,27 @@ class Program
         ok = sql.Execute(vData, er);
     }
 
-    static void TestPreparedStatements_2(CSqlServer sql)
+    static void TestNewParameterizedStatement(CSqlServer sql, CSqlServer.DRows row, CSqlServer.DRowsetHeader rh)
     {
-        string sql_insert_parameter = "INSERT INTO test_rare1(myguid,myxml,myvariant,mydateimeoffset)VALUES(?,?,?,?)";
-        bool ok = sql.Prepare(sql_insert_parameter, dr);
-
-        CDBVariantArray vData = new CDBVariantArray();
+        //Adventages:
+        //1. support inline-query batching to reduce network round-trips between MS SQL plugin and backend database server for the best performance
+        //2. no SQL injection attack like parameterized statements
+        //3. support complex SQL statements which are composed of different types of statements (INSERT, UPDATE, DELETE, SELECT, stored procedure ....)
+        //4. more flexible than parameterized statements
+        //5. faster than parameterized statements if inline-query batching is enabled
 
         //first set
-        vData.Add(Guid.NewGuid());
-        vData.Add("<myxmlroot_0 />");
-        vData.Add(23.456);
-        vData.Add(DateTime.Now);
+        bool ok = sql.Execute("INSERT INTO test_rare1(myguid,myxml,myvariant,mydateimeoffset)VALUES(?,?,23.456,?)", new CDBVariantArray() { Guid.NewGuid(), "<myxmlroot_0 />", DateTime.Now }, er);
 
         //second set
-        vData.Add(Guid.NewGuid());
-        vData.Add("<myxmlroot_1 />");
-        vData.Add("马拉阿歌俱乐部");
-        vData.Add(DateTime.Now.AddMinutes(1));
+        ok = sql.Execute("INSERT INTO test_rare1(myguid,myxml,myvariant,mydateimeoffset)VALUES(?,?,?,?)", new CDBVariantArray() { Guid.NewGuid(), "<myxmlroot_1 />", "马拉阿歌俱乐部", DateTime.Now.AddMinutes(1) }, er);
 
         //third set
-        vData.Add(Guid.NewGuid());
-        vData.Add("<myxmlroot_2 />");
-        vData.Add(1);
-        vData.Add(DateTime.Now.AddMinutes(-1));
+        ok = sql.Execute("INSERT INTO test_rare1(myguid,myxml,myvariant,mydateimeoffset)VALUES(?,?,1,?)", new CDBVariantArray() { Guid.NewGuid(), "<myxmlroot_2 />", DateTime.Now.AddMinutes(-1) }, er);
 
-        ok = sql.Execute(vData, er);
+        //4th & 5th
+        ok = sql.Execute("INSERT INTO test_rare1(myguid,myxml,myvariant,mydateimeoffset)VALUES(?,?,2,?);INSERT INTO test_rare1(myguid,myxml,myvariant,mydateimeoffset)VALUES(?,?,9223.456,?);select 1,2",
+            new CDBVariantArray() { Guid.NewGuid(), "<myxmlroot_3 />", DateTime.Now.AddMinutes(-2), Guid.NewGuid(), "<myxmlroot_4 />", DateTime.Now.AddMinutes(-3) }, er, row, rh);
     }
 
     static void TestBLOBByPreparedStatement(CSqlServer sql)
@@ -241,7 +241,6 @@ class Program
         vPData.Add(0.99m);//input/output
         vPData.Add(DateTime.Now);
 
-        //Parameter info array can be ignored for some ODBC drivers like MySQL, MS SQL Server, etc but performance will be degraded for code simplicity
         CSqlServer.DRows r = (handler, rowData) =>
         {
             //rowset data come here
@@ -256,6 +255,7 @@ class Program
             ra.Add(item);
         };
 
+        //Parameter info array can NOT be ignored if there is one or more out parameters involved
         CParameterInfo[] vInfo = { new CParameterInfo(), new CParameterInfo(), new CParameterInfo(), new CParameterInfo(), new CParameterInfo(), new CParameterInfo(), new CParameterInfo() };
         vInfo[0].DataType = tagVariantDataType.sdVT_I4;
 
@@ -283,31 +283,8 @@ class Program
         return vPData;
     }
 
-    static CDBVariantArray TestStoredProcedure(CSqlServer sql, List<KeyValuePair<CDBColumnInfoArray, CDBVariantArray>> ra)
+    static bool TestNewParameterizedStoredProcedure(CSqlServer sql, List<KeyValuePair<CDBColumnInfoArray, CDBVariantArray>> ra)
     {
-        CParameterInfo[] vInfo = { new CParameterInfo(), new CParameterInfo(), new CParameterInfo() };
-        vInfo[0].DataType = tagVariantDataType.sdVT_I4;
-
-        vInfo[1].DataType = tagVariantDataType.sdVT_DECIMAL;
-        vInfo[1].Precision = 15;
-        vInfo[1].Scale = 2;
-        vInfo[1].Direction = tagParameterDirection.pdInputOutput;
-
-        vInfo[2].DataType = tagVariantDataType.sdVT_DATE;
-        vInfo[2].Direction = tagParameterDirection.pdOutput;
-
-        CDBVariantArray vPData = new CDBVariantArray();
-        //first set
-        vPData.Add(1);
-        vPData.Add(2.35);//input/output
-        vPData.Add(DateTime.Now); //input/output
-
-        //second set
-        vPData.Add(2);
-        vPData.Add(0.99m);//input/output
-        vPData.Add(DateTime.Now); //input/output
-        //Parameter info array can be ignored for some ODBC drivers like MySQL, MS SQL Server, etc but performance will be degraded for code simplicity
-        bool ok = sql.Prepare("exec sp_TestProc ?,?,?", dr, vInfo);
         CSqlServer.DRows r = (handler, rowData) =>
         {
             //rowset data come here
@@ -321,13 +298,28 @@ class Program
             KeyValuePair<CDBColumnInfoArray, CDBVariantArray> item = new KeyValuePair<CDBColumnInfoArray, CDBVariantArray>(handler.ColumnInfo, new CDBVariantArray());
             ra.Add(item);
         };
-        ok = sql.Execute(vPData, er, r, rh);
-        return vPData;
+
+        CDBVariantArray vPData = new CDBVariantArray() {
+            //1st set
+            1,
+            12342.35, //input/output -- double
+            DateTime.Now, //input/output
+
+            //2nd set
+            234.99m,//input/output -- decimal
+            DateTime.Now.AddMinutes(1), //input/output
+
+            //3rd set
+            52.456, //input/output
+            DateTime.Now.AddMinutes(2) //input/output
+        };
+
+        //multiple sets of stored procedure with out for output returning parameters within one record
+        return sql.Execute("exec sp_TestProc ?, ? out, ? out;exec sp_TestProc 2, ? out, ? out;exec sp_TestProc 3, ? out, ? out", vPData, er, r, rh);
     }
 
-    static CDBVariantArray TestStoredProcedure_2(CSqlServer sql, List<KeyValuePair<CDBColumnInfoArray, CDBVariantArray>> ra)
+    static CDBVariantArray TestStoredProcedure(CSqlServer sql, List<KeyValuePair<CDBColumnInfoArray, CDBVariantArray>> ra)
     {
-        //vInfo is ignorable for MS SQL server ODBC drivers for code simplicity
         CParameterInfo[] vInfo = { new CParameterInfo(), new CParameterInfo(), new CParameterInfo(), new CParameterInfo() };
         vInfo[0].DataType = tagVariantDataType.sdVT_I4;
 

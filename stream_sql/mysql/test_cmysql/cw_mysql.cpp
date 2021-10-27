@@ -21,10 +21,10 @@ typedef shared_ptr<CMysql> PMySQL;
 using Aw = CMysql::SqlWaiter;
 
 deque<Aw> TestCreateTables(PMySQL pMysql);
-Aw TestPreparedStatements(PMySQL pMysql);
+deque<Aw> TestPreparedStatements(PMySQL pMysql);
 Aw TestBLOBByPreparedStatement(PMySQL pMysql);
-Aw TestStoredProcedure(PMySQL pMysql, CRowsetArray&ra, CDBVariantArray &vPData);
-Aw TestBatch(PMySQL pMysql, CRowsetArray&ra, CDBVariantArray &vData);
+Aw TestStoredProcedure(PMySQL pMysql, CRowsetArray& ra);
+Aw TestBatch(PMySQL pMysql, CRowsetArray& ra, CDBVariantArray& vData);
 void MakeLargeStrings();
 
 wstring g_wstr;
@@ -32,18 +32,13 @@ string g_str;
 
 CAwTask MyTest(PMySQL& pMysql, CRowsetArray& ra, CMysql::DRows& r, CMysql::DRowsetHeader& rh) {
     try {
-#ifdef FOR_MIDDLE_SERVER
-        auto wopen = pMysql->wait_open(u"mysqldb");
-#else
-        auto wopen = pMysql->wait_open(u"");
-#endif
+        auto wopen = pMysql->wait_open(u"", USE_QUERY_BATCHING);
         auto vW = TestCreateTables(pMysql);
         auto wD = pMysql->wait_execute(u"delete from employee;delete from company");
         auto wP0 = TestPreparedStatements(pMysql);
         auto wP1 = TestBLOBByPreparedStatement(pMysql);
         auto wS = pMysql->wait_execute(u"SELECT * from company;select * from employee;select curtime(6)", r, rh);
-        CDBVariantArray vPData;
-        auto wP2 = TestStoredProcedure(pMysql, ra, vPData);
+        auto wP2 = TestStoredProcedure(pMysql, ra);
         CDBVariantArray vData;
         auto wP3 = TestBatch(pMysql, ra, vData);
         cout << "All SQL requests streamed ";
@@ -54,7 +49,10 @@ CAwTask MyTest(PMySQL& pMysql, CRowsetArray& ra, CMysql::DRows& r, CMysql::DRows
             vW.pop_front();
         }
         wcout << (co_await wD).ToString() << "\n";
-        wcout << (co_await wP0).ToString() << "\n";
+        while (wP0.size()) {
+            wcout << (co_await wP0.front()).ToString() << "\n";
+            wP0.pop_front();
+        }
         wcout << (co_await wP1).ToString() << "\n";
         wcout << (co_await wS).ToString() << "\n";
         CMysql::SQLExeInfo sei0 = co_await wP2;
@@ -119,7 +117,7 @@ int main(int argc, char* argv[]) {
     auto pMysql = spMysql.Seek();
 
     CRowsetArray ra;
-    CMysql::DRows r = [&ra](CMysql &handler, CDBVariantArray & vData) {
+    CMysql::DRows r = [&ra](CMysql& handler, CDBVariantArray& vData) {
         //rowset data come here
         assert((vData.size() % handler.GetColumnInfo().size()) == 0);
         CDBVariantArray& va = ra.back().second;
@@ -129,9 +127,9 @@ int main(int argc, char* argv[]) {
             move(vData.begin(), vData.end(), back_inserter(va));
     };
 
-    CMysql::DRowsetHeader rh = [&ra](CMysql & handler) {
+    CMysql::DRowsetHeader rh = [&ra](CMysql& handler) {
         //rowset header comes here
-        auto &vColInfo = handler.GetColumnInfo();
+        auto& vColInfo = handler.GetColumnInfo();
         CPColumnRowset column_rowset_pair;
         column_rowset_pair.first = vColInfo;
         ra.push_back(column_rowset_pair);
@@ -196,7 +194,7 @@ Aw TestBLOBByPreparedStatement(PMySQL pMysql) {
     return pMysql->wait_execute(vData);
 }
 
-Aw TestBatch(PMySQL pMysql, CRowsetArray&ra, CDBVariantArray &vData) {
+Aw TestBatch(PMySQL pMysql, CRowsetArray& ra, CDBVariantArray& vData) {
     //sql with delimiter '|'
     u16string sql = u"delete from employee;delete from company| \
 		INSERT INTO company(ID,NAME,ADDRESS,Income)VALUES(?,?,?,?)| \
@@ -206,7 +204,7 @@ Aw TestBatch(PMySQL pMysql, CRowsetArray&ra, CDBVariantArray &vData) {
 
     SYSTEMTIME st;
     DECIMAL dec;
-    memset(&dec, 0, sizeof (dec));
+    memset(&dec, 0, sizeof(dec));
     vData.clear();
     SPA::CScopeUQueue sbBlob;
 
@@ -289,7 +287,7 @@ Aw TestBatch(PMySQL pMysql, CRowsetArray&ra, CDBVariantArray &vData) {
     //output not important, but they are used for receiving proper types of data on mysql
     vData.push_back(0);
 
-    CMysql::DRows r = [&ra](CMysql &handler, CDBVariantArray & vData) {
+    CMysql::DRows r = [&ra](CMysql& handler, CDBVariantArray& vData) {
         //rowset data come here
         assert((vData.size() % handler.GetColumnInfo().size()) == 0);
         CDBVariantArray& va = ra.back().second;
@@ -299,15 +297,15 @@ Aw TestBatch(PMySQL pMysql, CRowsetArray&ra, CDBVariantArray &vData) {
             move(vData.begin(), vData.end(), back_inserter(va));
     };
 
-    CMysql::DRowsetHeader rh = [&ra](CMysql & handler) {
+    CMysql::DRowsetHeader rh = [&ra](CMysql& handler) {
         //rowset header comes here
-        auto &vColInfo = handler.GetColumnInfo();
+        auto& vColInfo = handler.GetColumnInfo();
         CPColumnRowset column_rowset_pair;
         column_rowset_pair.first = vColInfo;
         ra.push_back(column_rowset_pair);
     };
 
-    CMysql::DRowsetHeader batchHeader = [](CMysql & handler) {
+    CMysql::DRowsetHeader batchHeader = [](CMysql& handler) {
         cout << "**** Batch header comes here ****\n";
     };
 
@@ -321,55 +319,44 @@ Aw TestBatch(PMySQL pMysql, CRowsetArray&ra, CDBVariantArray &vData) {
     return pMysql->wait_executeBatch(tagTransactionIsolation::tiReadUncommited, sql.c_str(), vData, r, rh, u"|", batchHeader);
 }
 
-Aw TestPreparedStatements(PMySQL pMysql) {
-    pMysql->Prepare(u"INSERT INTO company(ID,NAME,ADDRESS,Income)VALUES(?,?,?,?)");
-
-    CDBVariantArray vData;
+deque<Aw> TestPreparedStatements(PMySQL pMysql) {
     DECIMAL dec;
-    memset(&dec, 0, sizeof (dec));
-
-    //first set
-    vData.push_back(1);
-    vData.push_back("Google Inc.");
-    vData.push_back("1600 Amphitheatre Parkway, Mountain View, CA 94043, USA");
-
+    memset(&dec, 0, sizeof(dec));
     dec.scale = 2;
-    dec.Lo64 = 6600000000015;
-    vData.push_back(dec);
+    dec.Lo64 = 6600060000015;
+
+    const char* company = "Google Inc.";
+    const char* address = "1600 Amphitheatre Parkway, Mountain View, CA 94043, USA";
+
+    deque<Aw> q;
+    q.push_back(pMysql->wait_execute(u"INSERT INTO company(ID,NAME,ADDRESS,Income)VALUES(?,?,?,?)", {1, company, address, dec}));
 
     //second set
-    vData.push_back(2);
-    vData.push_back("Microsoft Inc.");
-    vData.push_back("700 Bellevue Way NE- 22nd Floor, Bellevue, WA 98804, USA");
-    dec.scale = 2;
-    dec.Lo64 = 9360000000012;
-    vData.push_back(dec);
+    company = "Microsoft Inc.";
+    address = "700 Bellevue Way NE- 22nd Floor, Bellevue, WA 98804, USA";
+    q.push_back(pMysql->wait_execute(L"INSERT INTO company(ID,NAME,ADDRESS,Income)VALUES(2,?,?,93600500000.12)", {company, address}));
 
     //third set
-    vData.push_back(3);
-    vData.push_back("Apple Inc.");
-    vData.push_back("1 Infinite Loop, Cupertino, CA 95014, USA");
-    dec.scale = 2;
-    dec.Lo64 = 23400000000014;
-    vData.push_back(dec);
-    return pMysql->wait_execute(vData);
+    company = "Apple Inc.";
+    address = "1 Infinite Loop, Cupertino, CA 95014, USA";
+    q.push_back(pMysql->wait_execute(L"INSERT INTO company(ID,NAME,ADDRESS,Income)VALUES(3,?,?,234007000000.14)", { company, address }));
+    return q;
 }
 
 deque<Aw> TestCreateTables(PMySQL pMysql) {
     deque<Aw> q;
     q.push_back(pMysql->wait_execute(u"Create database if not exists mysqldb character set utf8 collate utf8_general_ci;USE mysqldb"));
-    const char16_t *create_table = u"CREATE TABLE IF NOT EXISTS company(ID bigint PRIMARY KEY NOT NULL,name CHAR(64)NOT NULL,ADDRESS varCHAR(256)not null,Income Decimal(21,2)not null)";
+    const char16_t* create_table = u"CREATE TABLE IF NOT EXISTS company(ID bigint PRIMARY KEY NOT NULL,name CHAR(64)NOT NULL,ADDRESS varCHAR(256)not null,Income Decimal(21,2)not null)";
     q.push_back(pMysql->wait_execute(create_table));
     create_table = u"CREATE TABLE IF NOT EXISTS employee(EMPLOYEEID bigint AUTO_INCREMENT PRIMARY KEY NOT NULL unique,CompanyId bigint not null,name CHAR(64)NOT NULL,JoinDate DATETIME(6)default null,IMAGE MEDIUMBLOB,DESCRIPTION MEDIUMTEXT,Salary DECIMAL(25,2),FOREIGN KEY(CompanyId)REFERENCES company(id))";
     q.push_back(pMysql->wait_execute(create_table));
-    const char16_t *create_proc = u"DROP PROCEDURE IF EXISTS sp_TestProc;CREATE PROCEDURE sp_TestProc(in p_company_id int, inout p_sum_salary DECIMAL(25,2),out p_last_dt datetime(6))BEGIN select * from employee where companyid>=p_company_id;select sum(salary)+p_sum_salary into p_sum_salary from employee where companyid>=p_company_id;select now(6)into p_last_dt;END";
+    const char16_t* create_proc = u"DROP PROCEDURE IF EXISTS sp_TestProc;CREATE PROCEDURE sp_TestProc(in p_company_id int, inout p_sum_salary DECIMAL(25,2),out p_last_dt datetime(6))BEGIN select * from employee where companyid>=p_company_id;select sum(salary)+p_sum_salary into p_sum_salary from employee where companyid>=p_company_id;select now(6)into p_last_dt;END";
     q.push_back(pMysql->wait_execute(create_proc));
     return q;
 }
 
-Aw TestStoredProcedure(PMySQL pMysql, CRowsetArray&ra, CDBVariantArray &vPData) {
-    pMysql->Prepare(u"call mysqldb.sp_TestProc(?,?,?)");
-    CMysql::DRows r = [&ra](CMysql &handler, CDBVariantArray & vData) {
+Aw TestStoredProcedure(PMySQL pMysql, CRowsetArray& ra) {
+    CMysql::DRows r = [&ra](CMysql& handler, CDBVariantArray& vData) {
         //rowset data come here
         assert((vData.size() % handler.GetColumnInfo().size()) == 0);
         CDBVariantArray& va = ra.back().second;
@@ -378,28 +365,15 @@ Aw TestStoredProcedure(PMySQL pMysql, CRowsetArray&ra, CDBVariantArray &vPData) 
         else
             move(vData.begin(), vData.end(), back_inserter(va));
     };
-
-    CMysql::DRowsetHeader rh = [&ra](CMysql & handler) {
+    CMysql::DRowsetHeader rh = [&ra](CMysql& handler) {
         //rowset header comes here
-        auto &vColInfo = handler.GetColumnInfo();
+        auto& vColInfo = handler.GetColumnInfo();
         CPColumnRowset column_rowset_pair;
         column_rowset_pair.first = vColInfo;
         ra.push_back(column_rowset_pair);
     };
-    vPData.clear();
-    //first set
-    vPData.push_back(1);
-    vPData.push_back(1.25);
-    //output not important, but they are used for receiving proper types of data on mysql
-    vPData.push_back(0);
-
-    //second set
-    vPData.push_back(2);
-    vPData.push_back(1.14);
-    //output not important, but they are used for receiving proper types of data on mysql
-    vPData.push_back(0);
     //process multiple sets of parameters in one shot
-    return pMysql->wait_execute(vPData, r, rh);
+    return pMysql->wait_execute(u"call mysqldb.sp_TestProc(1,? out,? out)|select curtime(6)|call mysqldb.sp_TestProc(2,? out,? out)", {1.25, 0, 8.15, 0}, r, rh, u"|");
 }
 
 void MakeLargeStrings() {
