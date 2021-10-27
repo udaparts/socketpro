@@ -1862,6 +1862,24 @@ namespace SPA {
                 return Execute(sql, result, r, rh, meta, true, dd, se) ? index : INVALID_NUMBER;
             }
 
+            UINT64 Execute(Isolate* isolate, int args, Local<Value>* argv, const UTF16* sql, const CDBVariantArray &vParam, const UTF16* delimiter) {
+                bool bad;
+                SPA::UINT64 index = GetCallIndex();
+                DExecuteResult result = GetExecuteResult(isolate, argv[0], bad);
+                if (bad) return 0;
+                DRows r = GetRows(isolate, argv[1], bad);
+                if (bad) return 0;
+                DRowsetHeader rh = GetRowsetHeader(isolate, argv[2], bad);
+                if (bad) return 0;
+                DDiscarded dd = Get(isolate, argv[3], bad);
+                if (bad) return 0;
+                bool meta = GetMeta(isolate, argv[4], bad);
+                if (bad) return 0;
+                DServerException se = GetSE(isolate, argv[5], bad);
+                if (bad) return 0;
+                return Execute(sql, vParam, result, r, rh, delimiter, meta, true, dd, se) ? index : INVALID_NUMBER;
+            }
+
             UINT64 ExecuteBatch(Isolate* isolate, int args, Local<Value>* argv, tagTransactionIsolation isolation, const UTF16* sql, CDBVariantArray& vParam, tagRollbackPlan plan, const UTF16* delimiter, const CParameterInfoArray& vPInfo) {
                 bool bad;
                 SPA::UINT64 index = GetCallIndex();

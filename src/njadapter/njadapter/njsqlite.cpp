@@ -38,6 +38,7 @@ namespace NJA {
         NODE_SET_PROTOTYPE_METHOD(tpl, "Close", Close);
         NODE_SET_PROTOTYPE_METHOD(tpl, "EndTrans", EndTrans);
         NODE_SET_PROTOTYPE_METHOD(tpl, "Execute", Execute);
+        NODE_SET_PROTOTYPE_METHOD(tpl, "ExecuteEx", ExecuteEx);
         NODE_SET_PROTOTYPE_METHOD(tpl, "ExecuteBatch", ExecuteBatch);
         NODE_SET_PROTOTYPE_METHOD(tpl, "Open", Open);
         NODE_SET_PROTOTYPE_METHOD(tpl, "Prepare", Prepare);
@@ -279,6 +280,67 @@ namespace NJA {
             if (!ToPInfoArray(isolate, p, vPInfo))
                 return;
             SPA::UINT64 index = obj->m_db->ExecuteBatch(isolate, 8, argv, ti, sql.c_str(), vParam, rp, delimiter.c_str(), vPInfo);
+            if (index) {
+                args.GetReturnValue().Set(Boolean::New(isolate, index != INVALID_NUMBER));
+            }
+        }
+    }
+
+    void NJSqlite::ExecuteEx(const FunctionCallbackInfo<Value>& args) {
+        Isolate* isolate = args.GetIsolate();
+        NJSqlite* obj = ObjectWrap::Unwrap<NJSqlite>(args.Holder());
+        if (obj->IsValid(isolate)) {
+            SPA::CDBString sql;
+            auto pStr = args[0];
+            if (pStr->IsString())
+                sql = ToStr(isolate, pStr);
+            else if (!pStr->IsNullOrUndefined()) {
+                ThrowException(isolate, "A SQL statement string expected");
+                return;
+            }
+            CDBVariantArray vParam;
+            auto pParams = args[1];
+            if (pParams->IsArray()) {
+                auto ctx = isolate->GetCurrentContext();
+                Local<Array> jsArr = Local<Array>::Cast(pParams);
+                unsigned int count = jsArr->Length();
+                for (unsigned int n = 0; n < count; ++n) {
+                    auto d = jsArr->Get(ctx, n).ToLocalChecked();
+                    CDBVariant vt;
+                    if (!From(isolate, d, "", vt)) {
+                        ThrowException(isolate, UNSUPPORTED_TYPE);
+                        return;
+                    }
+                    vParam.push_back(std::move(vt));
+                }
+            }
+            else if (pParams->IsObject() && !pParams->IsString()) {
+                Local<Object> qObj = pParams->ToObject(isolate->GetCurrentContext()).ToLocalChecked();
+                if (NJQueue::IsUQueue(isolate, qObj)) {
+                    NJQueue* njq = ObjectWrap::Unwrap<NJQueue>(qObj);
+                    CUQueue* q = njq->get();
+                    if (!NJQueue::ToParamArray(njq, vParam)) {
+                        if (q) q->SetSize(0);
+                        ThrowException(isolate, "Data must be serialized by calling the method SaveObject");
+                        return;
+                    }
+                    if (q) q->SetSize(0);
+                }
+                else {
+                    ThrowException(isolate, "A SQL statement string or an array of parameter data expected");
+                    return;
+                }
+            }
+            SPA::CDBString delimiter;
+            auto pDelimiter = args[5];
+            if (pDelimiter->IsString())
+                delimiter = ToStr(isolate, pDelimiter);
+            else if (!pDelimiter->IsNullOrUndefined()) {
+                ThrowException(isolate, "A delimiter string expected");
+                return;
+            }
+            Local<Value> argv[] = { args[2], args[3], args[4], args[6], args[7], args[8] };
+            SPA::UINT64 index = obj->m_db->Execute(isolate, 6, argv, sql.c_str(), vParam, delimiter.c_str());
             if (index) {
                 args.GetReturnValue().Set(Boolean::New(isolate, index != INVALID_NUMBER));
             }

@@ -4,6 +4,8 @@ var SPA = require('njadapter');
 var assert = require('assert');
 const os = require('os');
 
+exports.version = '1.5.0.1';
+
 class CTable {
     constructor(t) {
         assert(t);
@@ -1502,8 +1504,25 @@ class CDb extends CHandler {
     }
 
     /**
+     * Process a complex SQL statement which may be combined with multiple basic SQL statements asynchronously
+     * @param {string} sql a complex SQL statement which may be combined with multiple basic SQL statements
+     * @param {[] or CUQueue} arrParam an array of parameter data, or an instance of CUQueue containing an array of parameters
+     * @param {function} cb a callback for tracking final result
+     * @param {function} rows a callback for tracking record or output parameter returned data
+     * @param {function} rh a callback for tracking row set of header column meta informations
+     * @param {string} delimiter a case-sensitive delimiter string used for separating the complex SQL statements into individual SQL statements at server side for processing
+     * @param {boolean} meta a boolean value for better or more detailed column meta details such as unique, not null, primary first, and so on. It defaults to true
+     * @param {function} discarded a callback for tracking communication channel events, close and cancel
+     * @param {function} serverException a callback for tracking an exception from server
+     * @returns true if request is successfully sent or queued; and false if request is NOT successfully sent or queued
+     */
+    ExecuteEx(sql, arrParam, cb = null, rows = null, rh = null, delimiter = ';', meta = true, discarded = null, serverException = null) {
+        return this.handler.ExecuteEx(sql, arrParam, cb, rows, rh, delimiter, discarded, meta, serverException);
+    }
+
+    /**
      * Process a complex SQL statement which may be combined with multiple basic
-     * SQL statements asynchronously
+     * SQL statements asynchronously with an optional array of parameters
      * @param {string, [] or CUQueue} sql_or_arrParam an SQL statement, an array of parameter data, or an instance of CUQueue containing an array of parameters
      * @param {function} cb a callback for tracking final result
      * @param {function} rows a callback for tracking record or output parameter returned data
@@ -1511,7 +1530,7 @@ class CDb extends CHandler {
      * @param {boolean} meta a boolean value for better or more detailed column meta
      * details such as unique, not null, primary first, and so on. It defaults to true
      * @param {function} discarded a callback for tracking communication channel events, close and cancel
-     *  @param {function} serverException a callback for tracking an exception from server
+     * @param {function} serverException a callback for tracking an exception from server
      * @returns true if request is successfully sent or queued; and false if request is NOT successfully sent or queued
      */
     Execute(sql_or_arrParam, cb = null, rows = null, rh = null, meta = true, discarded = null, serverException = null) {
@@ -1685,6 +1704,36 @@ class CDb extends CHandler {
             });
             if (!ok) {
                 this.raise(rej, sql ? exports.DB.ReqIds.idExecute : exports.DB.ReqIds.idExecuteParameters);
+            }
+        });
+    }
+
+    //Promise
+    /**
+     * Process a complex SQL statement which may be combined with multiple basic SQL statements asynchronously
+     * @param {string} sql a complex SQL statement which may be combined with multiple basic SQL statements
+     * @param {[] or CUQueue} arrParam an array of parameter data, or an instance of CUQueue containing an array of parameters
+     * @param {function} rows a callback for tracking record data or output parameter returned data
+     * @param {function} rh a callback for tracking row set of header column meta informations
+     * @param {string} delimiter a case-sensitive delimiter string used for separating the complex SQL statements into individual SQL statements at server side for processing
+     * @param {boolean} meta a boolean value for better or more detailed column meta
+     * details such as unique, not null, primary first, and so on. It defaults to true
+     * @returns a promise for SQL execution error information
+     * @throws A server, socket close or request canceled exception
+     */
+    executeEx(sql, arrParam, rows = null, rh = null, delimiter = ';', meta = true) {
+        assert(rows === null || rows === undefined || typeof rows === 'function');
+        assert(rh === null || rh === undefined || typeof rh === 'function');
+        return new Promise((res, rej) => {
+            var ok = this.handler.ExecuteEx(sql, arrParam, (errCode, errMsg, affected, fails, oks, id) => {
+                res({ ec: errCode, em: errMsg, aff: affected, oks: oks, fails: fails, lastId: id });
+            }, rows, rh, delimiter, (canceled) => {
+                this.set_aborted(rej, exports.DB.ReqIds.idExecuteEx, canceled);
+            }, meta, (errMsg, errCode, errWhere, id) => {
+                this.set_exception(rej, errMsg, errCode, errWhere, id);
+            });
+            if (!ok) {
+                this.raise(rej, exports.DB.ReqIds.idExecuteEx);
             }
         });
     }
@@ -2119,7 +2168,8 @@ exports.DB = {
 
         idSqlBatchHeader: 0x7E91, //server ==> client only
         idExecuteBatch: 0x7E92,
-        idParameterPosition: 0x7E93 //server ==> client only
+        idParameterPosition: 0x7E93, //server ==> client only
+        idExecuteEx: 0x7E94
     }
 };
 

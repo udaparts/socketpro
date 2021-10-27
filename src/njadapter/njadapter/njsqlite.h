@@ -29,6 +29,7 @@ namespace NJA {
         static void Close(const FunctionCallbackInfo<Value>& args);
         static void EndTrans(const FunctionCallbackInfo<Value>& args);
         static void Execute(const FunctionCallbackInfo<Value>& args);
+        static void ExecuteEx(const FunctionCallbackInfo<Value>& args);
         static void ExecuteBatch(const FunctionCallbackInfo<Value>& args);
         static void IsOpened(const FunctionCallbackInfo<Value>& args);
         static void Open(const FunctionCallbackInfo<Value>& args);
