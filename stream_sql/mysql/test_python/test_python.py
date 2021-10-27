@@ -178,11 +178,10 @@ with CSocketPool(CMysql) as spMysql:
             # two sets (2 * 3) of parameter data
             # 1st set -- 1, 0, 0
             # 2nd set -- 2, 0, 0
-            vData = [1, 1.5, 0, 2, 1.8, 0]
+            vData = [2341.5, 0, 2, 51234.8, 0]
 
-            mysql.prepare('call sp_TestProc(?,?,?)')
             # send multiple sets of parameter data in one shot
-            return mysql.execute(vData, cbRows, cbRowHeader), vData
+            return mysql.executeEx('call sp_TestProc(1,? out,? out);select curtime(6);call sp_TestProc(?,? out,? out)', vData, cbRows, cbRowHeader)
 
 
         fOpen = mysql.open(u'')
@@ -191,7 +190,7 @@ with CSocketPool(CMysql) as spMysql:
         fP0 = TestPreparedStatements()
         fP1 = TestBLOBByPreparedStatement()
         fS = mysql.execute('SELECT * from company;select * from employee;select curtime(6)', cbRows, cbRowHeader)
-        fStore, vPData = TestStoredProcedure()
+        fStore = TestStoredProcedure()
         fStore1, vData = TestBatch()
 
         print('SQL requests streamed, and waiting for results ......')
@@ -202,9 +201,6 @@ with CSocketPool(CMysql) as spMysql:
         print(fP1.result())
         print(fS.result())
         print(fStore.result())
-        print('vPData: ' + str(vPData))
-        print('')
-        print('There are ' + str(mysql.Outputs * 2) + ' output data returned')
         print(fStore1.result())
         # print('vPData: ' + str(vData))
         print('There are ' + str(mysql.Outputs * 3) + ' output data returned')

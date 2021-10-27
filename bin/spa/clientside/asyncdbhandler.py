@@ -580,6 +580,47 @@ class CAsyncDBHandler(CAsyncServiceHandler):
             self.throw(f)
         return f
 
+    def ExecuteEx(self, sql, vParam, handler=None, row=None, rh=None, delimiter=';', meta=True, lastInsertId=True, discarded=None, se=None):
+        """
+        Process a complex SQL statement which may be combined with multiple basic SQL statements asynchronously with an optional array of parameters
+        :param sql: a complex SQL statement which may be combined with multiple basic SQL statements
+        :param vParam: an optional array of parameters which will be bound to the complex SQL statement
+        :param handler: a callback for tracking final result
+        :param row: a callback for tracking record or output parameter returned data
+        :param rh: a callback for tracking row set of header column informations. Note that there will be NO row set data or its column informations returned if NO such a callback is set
+        :param delimiter: a delimiter string used for separating the batch SQL statements into individual SQL statements at server side for processing
+        :param meta: a boolean value for better or more detailed column meta details such as unique, not null, primary key, and so on. It defaults to true
+        :param lastInsertId: a boolean value for last insert record identification number. It defaults to true
+        :param discarded: a callback for tracking cancel or socket closed event
+        :param se a callback for tracking an exception from server
+        :return: True if communication channel is sendable, and False if communication channel is not sendable
+        """
+        if not vParam:
+            vParam = []
+        ok = True
+        rowset = isfunction(row)
+        meta = meta and isfunction(rh)
+        q = CScopeUQueue.Lock().SaveString(sql)
+        q.SaveUInt(len(vParam))
+        for d in vParam:
+            q.SaveObject(d)
+        q.SaveBool(rowset).SaveString(delimiter).SaveBool(meta).SaveBool(lastInsertId)
+        with self._csOneSending:
+            index = self.GetCallIndex()
+            q.SaveULong(index)
+            # don't make self._csDB locked across calling SendRequest, which may lead to client dead-lock in case a client asynchronously sends lots of requests without use of client side queue.
+            with self._csDB:
+                if rowset or meta:
+                    self._mapRowset[index] = Pair(rh, row)
+            ok = self.SendRequest(DB_CONSTS.idExecuteEx, q,
+                                  lambda ar: self._Process_(handler, ar, DB_CONSTS.idExecuteEx, index), discarded)
+            if not ok:
+                with self._csDB:
+                    if rowset or meta:
+                        self._mapRowset.pop(index)
+        CScopeUQueue.Unlock(q)
+        return ok
+
     def ExecuteSql(self, sql, handler=None, row=None, rh=None, meta=True, lastInsertId=True, discarded=None, se=None):
         """
         Process a complex SQL statement which may be combined with multiple basic SQL statements asynchronously
@@ -803,5 +844,15 @@ class CAsyncDBHandler(CAsyncServiceHandler):
         if not self.ExecuteBatch(isolation, sql, vParam, arh, row, rh, delimiter, batchHeader,
                                  CAsyncDBHandler.get_aborted(f, DB_CONSTS.idExecuteBatch),
                                  meta, plan, vPInfo, lastInsertId, CAsyncDBHandler.get_se(f)):
+            self.throw(f)
+        return f
+
+    def executeEx(self, sql, vParam, row=None, rh=None, delimiter=';', meta=True, lastInsertId=True):
+        f = future()
+        def arh(ah, res, err_msg, affected, fail_ok, last_id):
+            if f.done(): return
+            f.set_result({'ec': res, 'em': err_msg, 'affected': affected, 'oks': (fail_ok & 0xffffffff),
+                          'fails': (fail_ok >> 32), 'lastId': last_id})
+        if not self.ExecuteEx(sql, vParam, arh, row, rh, delimiter, meta, lastInsertId, CAsyncDBHandler.get_aborted(f, DB_CONSTS.idExecuteEx), CAsyncDBHandler.get_se(f)):
             self.throw(f)
         return f
