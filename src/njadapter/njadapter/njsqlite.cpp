@@ -313,8 +313,7 @@ namespace NJA {
                     }
                     vParam.push_back(std::move(vt));
                 }
-            }
-            else if (pParams->IsObject() && !pParams->IsString()) {
+            } else if (pParams->IsObject() && !pParams->IsString()) {
                 Local<Object> qObj = pParams->ToObject(isolate->GetCurrentContext()).ToLocalChecked();
                 if (NJQueue::IsUQueue(isolate, qObj)) {
                     NJQueue* njq = ObjectWrap::Unwrap<NJQueue>(qObj);
@@ -325,8 +324,7 @@ namespace NJA {
                         return;
                     }
                     if (q) q->SetSize(0);
-                }
-                else {
+                } else {
                     ThrowException(isolate, "A SQL statement string or an array of parameter data expected");
                     return;
                 }
@@ -339,7 +337,7 @@ namespace NJA {
                 ThrowException(isolate, "A delimiter string expected");
                 return;
             }
-            Local<Value> argv[] = { args[2], args[3], args[4], args[6], args[7], args[8] };
+            Local<Value> argv[] = {args[2], args[3], args[4], args[6], args[7], args[8]};
             SPA::UINT64 index = obj->m_db->Execute(isolate, 6, argv, sql.c_str(), vParam, delimiter.c_str());
             if (index) {
                 args.GetReturnValue().Set(Boolean::New(isolate, index != INVALID_NUMBER));
