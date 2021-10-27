@@ -9,6 +9,7 @@
 	(h) SocketPro server plugins (usqlsvr, sodbc and smysql) as well as Microsoft SQL DB server plugin (usqlserver.dll) are updated to support in-line queries batch for better performance
 	(i) Upgrade SocketPro datetime to support BC 6291 to AD 9991 with time accuracy to 100-nanosecond
 	(j) Fix a few bugs within nodejs adapter and SocketPro MS SQL plugin (usqlsvr)
+	(k) Add a new method ExecuteEx into DB APIs for all DB-related plugins. The method has a number of advantages such as in-line query batching support, no SQL injection attack and flexiblity
 
 87.	SocketPro Version 6.3.1.2-6.3.2.2
 	(a) Add support to char16_t
