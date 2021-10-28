@@ -44,15 +44,15 @@ function TestCreateTables(db) {
     return [pe0, pe1, pe2, pe3];
 }
 
-function TestPreparedStatements(db) {
-    console.log('++++ test prepare statements ++++');
-    var pp = db.prepare('INSERT INTO company(ID,NAME,ADDRESS,Income)VALUES(?,?,?,?)');
+function TestExecuteEx(db) {
     //set an array of parameter data
-    var vParam = [1, 'Google Inc.', '1600 Amphitheatre Parkway, Mountain View, CA 94043, USA', 66000000000.15,
-        2, 'Microsoft Inc.', '700 Bellevue Way NE- 22nd Floor, Bellevue, WA 98804, USA', 93600000000.12,
-        3, 'Apple Inc.', '1 Infinite Loop, Cupertino, CA 95014, USA', 234000000000.14]; //3rd set
-    var pe = db.execute(vParam);
-    return [pp, pe];
+    var vParam = [1, 'Google Inc.', '1600 Amphitheatre Parkway, Mountain View, CA 94043, USA', 66000700000.15,
+        'Microsoft Inc.', '700 Bellevue Way NE- 22nd Floor, Bellevue, WA 98804, USA',
+        'Apple Inc.', '1 Infinite Loop, Cupertino, CA 95014, USA'];
+	var sql = 'INSERT INTO company(ID,NAME,ADDRESS,Income)VALUES(?,?,?,?);' +
+		'INSERT INTO company(ID,NAME,ADDRESS,Income)VALUES(2,?,?,93600090000.12);' +
+		'INSERT INTO company(ID,NAME,ADDRESS,Income)VALUES(3,?,?,234000300000.14)';
+    return [db.executeEx(sql, vParam)];
 }
 
 function TestBLOBByPreparedStatement(db) {
@@ -77,47 +77,41 @@ function TestBLOBByPreparedStatement(db) {
     return [pp, pe];
 }
 
-function TestStoreProcedureAndOthers(db) {
-    console.log('%%%% Test three SQLs plus a procedure with rowsets %%%%');
-    var ps0 = db.execute('SELECT * from company;select curtime()',
-        (data, proc, cols) => {
-        console.log({ data: data, proc: proc, cols: cols });
-    }, meta => {
-        //console.log(meta);
-    });
-    var ps1 = db.execute('select * from employee',
-        (data, proc, cols) => {
+function TestStoreProcedureByExecuteEx(db) {
+    console.log('%%%% Test four sql statements plus a store procedure with record sets %%%%');
+    var ps1 = db.execute('select * from employee', (data, proc, cols) => {
         //console.log({ data: data, proc: proc, cols: cols });
     }, meta => {
-        //console.log(meta);
+        console.log(meta);
     });
-    var pp = db.prepare('call mysqldb.sp_TestProc(?,?,?)');
-    var vParam = [1, 1.25, null, //1st set
-        2, 1.14, null, //2nd set
-        0, 2.18, null]; //3rd set
-    var pe = db.execute(vParam, (data, proc, cols) => {
+    var vParam = [9811.25, null, //1st set
+        45321.14, null, //2nd set
+        2342.18, null]; //3rd set
+		
+	//process multiple sets of parameters in one shot & pay attention to out for returning results
+	var sql = 'SELECT * from company;call mysqldb.sp_TestProc(1,? out,? out);' +
+		'call mysqldb.sp_TestProc(2,? out,? out);select curtime();' +
+		'call mysqldb.sp_TestProc(3,? out,? out);select 1,2,3';
+    var pe = db.executeEx(sql, vParam, (data, proc, cols) => {
         console.log({ data: data, proc: proc, cols: cols });
     }, meta => {
-        //console.log(meta);
+        console.log(meta);
     });
-    return [ps0, ps1, pp, pe];
+    return [ps1, pe];
 }
 
 function TestBatch(db) {
     console.log('&&&& Test a big batch of statements with manual transaction &&&&');
-    var sql = 'delete from employee;delete from company|' +
-'INSERT INTO company(ID, NAME, ADDRESS, Income)VALUES(?,?,?,?)|' +
-'insert into employee(CompanyId,name,JoinDate,image,DESCRIPTION,Salary)values(?,?,?,?,?,?)|' +
-'SELECT * from company;select name,joindate,salary from employee;select curtime(6)|' +
-'call sp_TestProc(?,?,?)';
+    var sql = 'delete from employee;delete from company|INSERT INTO company(ID,NAME,ADDRESS,Income)VALUES(?,?,?,?)|' +
+        'insert into employee(CompanyId,name,JoinDate,image,DESCRIPTION,Salary)values(?,?,?,?,?,?)|SELECT * from ' +
+        'company;select name,joindate,salary from employee;select curtime(6)|call sp_TestProc(?,?,?)';
     var buff = SPA.newBuffer();
     var blob = SPA.newBuffer();
     //1st set
     //INSERT INTO company(ID,NAME,ADDRESS,Income)VALUES(?,?,?,?)
     buff.SaveObject(1).SaveObject('Google Inc.').
-        SaveObject('1600 Amphitheatre Parkway, Mountain View, CA 94043, USA').
-        SaveObject(66000000000.15);
-    //insert into employee(......)values(?,?,?,?,?,?)
+        SaveObject('1600 Amphitheatre Parkway, Mountain View, CA 94043, USA').SaveObject(66000000000.15);
+    //insert into employee(CompanyId,name,JoinDate,image,DESCRIPTION,Salary)values(?,?,?,?,?,?)
     buff.SaveObject(1); //Google company id
     blob.SaveString(g_wstr); //UNICODE string
     buff.SaveObject('Ted Cruz').SaveObject(new Date()).
@@ -126,8 +120,7 @@ function TestBatch(db) {
     buff.SaveObject(1).SaveObject(1.25).SaveObject();
     //2nd set
     buff.SaveObject(2).SaveObject('Microsoft Inc.').
-        SaveObject('700 Bellevue Way NE- 22nd Floor, Bellevue, WA 98804, USA').
-        SaveObject('93600000000.12');
+        SaveObject('700 Bellevue Way NE- 22nd Floor, Bellevue, WA 98804, USA').SaveObject('93600000000.12');
     buff.SaveObject(1); //Google company id
     blob.SaveAString(g_str); //ASCII string
     buff.SaveObject('Donald Trump').SaveObject(new Date()).
@@ -135,8 +128,7 @@ function TestBatch(db) {
     buff.SaveObject(2).SaveObject(1.14).SaveObject();
     //3rd set
     buff.SaveObject(3).SaveObject('Apple Inc.').
-        SaveObject('1 Infinite Loop, Cupertino, CA 95014, USA').
-        SaveObject(234000000000.14);
+        SaveObject('1 Infinite Loop, Cupertino, CA 95014, USA').SaveObject(234000000000.14);
     buff.SaveObject(2); //Microsoft company id
     blob.SaveAString(g_str).SaveString(g_wstr);
     buff.SaveObject('Hillary Clinton').SaveObject(new Date()).
@@ -145,19 +137,18 @@ function TestBatch(db) {
     //1st, start a manual transaction
     //2nd, execute delete from employee;delete from company
     //3rd, prepare a sql statement for insert into company
-    //4th, execute three sets of INSERT INTO company(......)VALUES(?,?,?,?)
+    //4th, execute three sets of INSERT INTO company(ID,NAME,ADDRESS,Income)VALUES(?,?,?,?)
     //5th, prepare a sql statement for insert into employee
     //6th, execute three sets of insert into employee
-    //      (......)values(?,?,?,?,?,?)
+    // (CompanyId, name, JoinDate, image, DESCRIPTION, Salary)values(?,?,?,?,?,?)
     //7th, SELECT * from company;select * from employee;select curtime()
     //8th, prepare sp_TestProc(?,?,?)
     //9th, three sets of call sp_TestProc(?,?,?)
     //last, end manual transaction
-    var pB = db.executeBatch(SPA.DB.TransIsolation.ReadCommited, sql, buff,
-        (data, proc, cols) => {
+    var pB = db.executeBatch(SPA.DB.TransIsolation.ReadCommited, sql, buff, (data, proc, cols) => {
         console.log({ data: data, proc: proc, cols: cols });
     }, (meta) => {
-        //console.log(meta);
+        console.log(meta);
     }, '|', () => {
         console.log('---- Batch header comes ----');
     });
@@ -173,13 +164,12 @@ function TestBatch(db) {
         }
         var vTables = TestCreateTables(db);
         var pd = [db.execute('delete from employee;delete from company')];
-        var vPs0 = TestPreparedStatements(db);
+        var vPs0 = TestExecuteEx(db);
         var vPs1 = TestBLOBByPreparedStatement(db);
-        var vPst = TestStoreProcedureAndOthers(db);
+        var vPst = TestStoreProcedureByExecuteEx(db);
         var pB = TestBatch(db);
         var all_p = [].concat(vTables, pd, vPs0, vPs1, vPst, pB);
         console.log(await Promise.all(all_p));
-        console.log('');
     } catch (ex) {
         console.log(ex);
     }
