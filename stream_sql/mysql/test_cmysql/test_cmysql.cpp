@@ -14,9 +14,9 @@ typedef vector<CPColumnRowset> CRowsetArray;
 typedef shared_ptr<CSQLHandler> PMySQL;
 
 vector<CSqlFuture> TestCreateTables(PMySQL pMysql);
-CSqlFuture TestPreparedStatements(PMySQL pMysql);
+CSqlFuture TestExecuteEx(PMySQL pMysql);
 CSqlFuture TestBLOBByPreparedStatement(PMySQL pMysql);
-CSqlFuture TestStoredProcedure(PMySQL pMysql, CRowsetArray&ra, CDBVariantArray &vPData);
+CSqlFuture TestStoredProcedureByExecuteEx(PMySQL pMysql, CRowsetArray&ra);
 CSqlFuture TestBatch(PMySQL pMysql, CRowsetArray&ra, CDBVariantArray &vData);
 
 wstring g_wstr;
@@ -74,14 +74,18 @@ int main(int argc, char* argv[]) {
 
     try{
         //connection string should be something like 'host=localhost;port=3306;timeout=30;uid=MyUserID;pwd=MyPassword;database=sakila' if there is no DB authentication at server side
+#ifdef FOR_MIDDLE_SERVER
+        //enable in-line query batching for better performance
+        auto fopen = pMysql->open(u"", SPA::UDB::USE_QUERY_BATCHING);
+#else
         auto fopen = pMysql->open(u"");
+#endif
         auto vF = TestCreateTables(pMysql);
         auto fD = pMysql->execute(u"delete from employee;delete from company");
-        auto fP0 = TestPreparedStatements(pMysql);
+        auto fP0 = TestExecuteEx(pMysql);
         auto fP1 = TestBLOBByPreparedStatement(pMysql);
         auto fS = pMysql->execute(u"SELECT * from company;select * from employee;select curtime(6)", r, rh);
-        CDBVariantArray vPData;
-        auto fP2 = TestStoredProcedure(pMysql, ra, vPData);
+        auto fP2 = TestStoredProcedureByExecuteEx(pMysql, ra);
         CDBVariantArray vData;
         auto fP3 = TestBatch(pMysql, ra, vData);
         cout << "All SQL requests streamed ";
@@ -94,9 +98,7 @@ int main(int argc, char* argv[]) {
         wcout << fP0.get().ToString() << endl;
         wcout << fP1.get().ToString() << endl;
         wcout << fS.get().ToString() << endl;
-        CSQLHandler::SQLExeInfo sei0 = fP2.get();
-        wcout << sei0.ToString() << endl;
-        cout << "There are " << 2 * sei0.oks << " output data returned\n";
+        wcout << fP2.get().ToString() << endl;
         CSQLHandler::SQLExeInfo sei1 = fP3.get();
         wcout << sei1.ToString() << endl;
         cout << "There are " << pMysql->GetOutputs() * 3 << " output data returned\n";}
@@ -308,9 +310,7 @@ CSqlFuture TestBatch(PMySQL pMysql, CRowsetArray&ra, CDBVariantArray &vData) {
     return pMysql->executeBatch(tagTransactionIsolation::tiReadCommited, sql.c_str(), vData, r, rh, u"|", batchHeader);
 }
 
-CSqlFuture TestPreparedStatements(PMySQL pMysql) {
-    pMysql->Prepare(u"INSERT INTO company(ID,NAME,ADDRESS,Income)VALUES(?,?,?,?)");
-
+CSqlFuture TestExecuteEx(PMySQL pMysql) {
     CDBVariantArray vData;
     DECIMAL dec;
     memset(&dec, 0, sizeof (dec));
@@ -319,27 +319,18 @@ CSqlFuture TestPreparedStatements(PMySQL pMysql) {
     vData.push_back(1);
     vData.push_back("Google Inc.");
     vData.push_back("1600 Amphitheatre Parkway, Mountain View, CA 94043, USA");
-
     dec.scale = 2;
-    dec.Lo64 = 6600000000015;
+    dec.Lo64 = 6600004000015;
     vData.push_back(dec);
 
     //second set
-    vData.push_back(2);
-    vData.push_back("Microsoft Inc.");
-    vData.push_back("700 Bellevue Way NE- 22nd Floor, Bellevue, WA 98804, USA");
-    dec.scale = 2;
-    dec.Lo64 = 9360000000012;
-    vData.push_back(dec);
+    vData.push_back(u"Microsoft Inc.");
+    vData.push_back(u"700 Bellevue Way NE- 22nd Floor, Bellevue, WA 98804, USA");
 
     //third set
-    vData.push_back(3);
-    vData.push_back("Apple Inc.");
-    vData.push_back("1 Infinite Loop, Cupertino, CA 95014, USA");
-    dec.scale = 2;
-    dec.Lo64 = 23400000000014;
-    vData.push_back(dec);
-    return pMysql->execute(vData);
+    vData.push_back(L"Apple Inc.");
+    vData.push_back(L"1 Infinite Loop, Cupertino, CA 95014, USA");
+    return pMysql->execute(u"INSERT INTO company(ID,NAME,ADDRESS,Income)VALUES(?,?,?,?);INSERT INTO company(ID,NAME,ADDRESS,Income)VALUES(2,?,?,93600700000.12);INSERT INTO company(ID,NAME,ADDRESS,Income)VALUES(3,?,?,234005000000.14)", vData);
 }
 
 vector<CSqlFuture> TestCreateTables(PMySQL pMysql) {
@@ -354,8 +345,7 @@ vector<CSqlFuture> TestCreateTables(PMySQL pMysql) {
     return v;
 }
 
-CSqlFuture TestStoredProcedure(PMySQL pMysql, CRowsetArray&ra, CDBVariantArray &vPData) {
-    pMysql->Prepare(u"call mysqldb.sp_TestProc(?,?,?)");
+CSqlFuture TestStoredProcedureByExecuteEx(PMySQL pMysql, CRowsetArray&ra) {
     CSQLHandler::DRows r = [&ra](CSQLHandler &handler, CDBVariantArray & vData) {
         //rowset data come here
         assert((vData.size() % handler.GetColumnInfo().size()) == 0);
@@ -373,18 +363,6 @@ CSqlFuture TestStoredProcedure(PMySQL pMysql, CRowsetArray&ra, CDBVariantArray &
         column_rowset_pair.first = vColInfo;
         ra.push_back(column_rowset_pair);
     };
-    vPData.clear();
-    //first set
-    vPData.push_back(1);
-    vPData.push_back(1.25);
-    //output not important, but they are used for receiving proper types of data on mysql
-    vPData.push_back(0);
-
-    //second set
-    vPData.push_back(2);
-    vPData.push_back(1.14);
-    //output not important, but they are used for receiving proper types of data on mysql
-    vPData.push_back(0);
-    //process multiple sets of parameters in one shot
-    return pMysql->execute(vPData, r, rh);
+    //process multiple sets of parameters in one shot & pay attention to out for returning results
+    return pMysql->execute(L"call mysqldb.sp_TestProc(?,? out,? out);select curtime(6);call mysqldb.sp_TestProc(2,? out,? out);select 1,2,3", {1, 6751.25, 0, 16785.14, 0}, r, rh);
 }
