@@ -75,7 +75,7 @@ int main(int argc, char* argv[]) {
     try{
         //connection string should be something like 'host=localhost;port=3306;timeout=30;uid=MyUserID;pwd=MyPassword;database=sakila' if there is no DB authentication at server side
 #ifdef FOR_MIDDLE_SERVER
-        //enable in-line query batching for better performance
+        //enable in-line query batching for better performance if plugin and MySQL/Mariadb are located at different machines
         auto fopen = pMysql->open(u"", SPA::UDB::USE_QUERY_BATCHING);
 #else
         auto fopen = pMysql->open(u"");
@@ -330,7 +330,10 @@ CSqlFuture TestExecuteEx(PMySQL pMysql) {
     //third set
     vData.push_back(L"Apple Inc.");
     vData.push_back(L"1 Infinite Loop, Cupertino, CA 95014, USA");
-    return pMysql->execute(u"INSERT INTO company(ID,NAME,ADDRESS,Income)VALUES(?,?,?,?);INSERT INTO company(ID,NAME,ADDRESS,Income)VALUES(2,?,?,93600700000.12);INSERT INTO company(ID,NAME,ADDRESS,Income)VALUES(3,?,?,234005000000.14)", vData);
+    const char16_t* sql = u"INSERT INTO company(ID,NAME,ADDRESS,Income)VALUES(?,?,?,?);" \
+        "INSERT INTO company(ID,NAME,ADDRESS,Income)VALUES(2,?,?,93600700000.12);"\
+        "INSERT INTO company(ID,NAME,ADDRESS,Income)VALUES(3,?,?,234005000000.14)";
+    return pMysql->execute(sql, vData);
 }
 
 vector<CSqlFuture> TestCreateTables(PMySQL pMysql) {
@@ -363,6 +366,8 @@ CSqlFuture TestStoredProcedureByExecuteEx(PMySQL pMysql, CRowsetArray&ra) {
         column_rowset_pair.first = vColInfo;
         ra.push_back(column_rowset_pair);
     };
-    //process multiple sets of parameters in one shot & pay attention to out for returning results
-    return pMysql->execute(L"call mysqldb.sp_TestProc(?,? out,? out);select curtime(6);call mysqldb.sp_TestProc(2,? out,? out);select 1,2,3", {1, 6751.25, 0, 16785.14, 0}, r, rh);
+    //process multiple sets of parameters in one shot & pay attention to out for output parameters
+    const wchar_t* sql = L"call mysqldb.sp_TestProc(?,? out,? out);select curtime(6);" \
+        "call mysqldb.sp_TestProc(2,? out,? out);call mysqldb.sp_TestProc(3,? out,? out);select 1,2,3";
+    return pMysql->execute(sql, {1, 6751.25, 0, 16785.14, 0, 54321.14, 0}, r, rh);
 }

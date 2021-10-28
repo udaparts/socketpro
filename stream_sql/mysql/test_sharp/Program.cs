@@ -32,7 +32,7 @@ class Program
                 return;
             }
             CMysql mysql = spMysql.Seek();
-            CDBVariantArray vPData = null, vData = null;
+            CDBVariantArray vData = null;
             List<KeyValue> ra = new List<KeyValue>();
             CMysql.DRows r = (handler, rowData) =>
             {
@@ -51,13 +51,18 @@ class Program
             try
             {
                 //stream all requests with in-line batching for the best network efficiency
+#if FOR_MIDDLE_SERVER
+                //enable in-line query batching for better performance if plugin and MySQL/Mariadb are located at different machines
+                var tOpen = mysql.open("", SocketProAdapter.UDB.DB_CONSTS.USE_QUERY_BATCHING);
+#else
                 var tOpen = mysql.open("");
+#endif
                 var vT = TestCreateTables(mysql);
                 var tDs = mysql.execute("delete from employee;delete from company");
-                var tP0 = TestPreparedStatements(mysql);
+                var tP0 = TestExecuteEx(mysql);
                 var tP1 = TestBLOBByPreparedStatement(mysql);
                 var tSs = mysql.execute("SELECT * from company;select * from employee;select curtime(6)", r, rh);
-                var tStore = TestStoredProcedure(mysql, ra, out vPData);
+                var tStore = TestStoredProcedureByExecuteEx(mysql, ra);
                 var tB = TestBatch(mysql, ra, out vData);
                 Console.WriteLine();
 
@@ -141,32 +146,30 @@ class Program
         return v;
     }
 
-    static Task<CAsyncDBHandler.SQLExeInfo> TestPreparedStatements(CMysql mysql)
+    static Task<CAsyncDBHandler.SQLExeInfo> TestExecuteEx(CMysql mysql)
     {
-        string sql_insert_parameter = "INSERT INTO company(ID, NAME, ADDRESS, Income) VALUES (?, ?, ?, ?)";
-        mysql.Prepare(sql_insert_parameter);
-
         CDBVariantArray vData = new CDBVariantArray();
 
         //first set
         vData.Add(1);
         vData.Add("Google Inc.");
         vData.Add("1600 Amphitheatre Parkway, Mountain View, CA 94043, USA");
-        vData.Add(66000000000.0);
+        vData.Add(66000700000.15m);
 
         //second set
-        vData.Add(2);
         vData.Add("Microsoft Inc.");
         vData.Add("700 Bellevue Way NE- 22nd Floor, Bellevue, WA 98804, USA");
-        vData.Add(93600000000.0);
+        vData.Add(93600800000.24);
 
         //third set
-        vData.Add(3);
         vData.Add("Apple Inc.");
         vData.Add("1 Infinite Loop, Cupertino, CA 95014, USA");
-        vData.Add(234000000000.0);
 
-        return mysql.execute(vData);
+        string sql = "INSERT INTO company(ID,NAME,ADDRESS,Income)VALUES(?,?,?,?);" +
+            "INSERT INTO company(ID,NAME,ADDRESS,Income)VALUES(2,?,?,?);" +
+            "INSERT INTO company(ID,NAME,ADDRESS,Income)VALUES(3,?,?,234000600000.75)";
+
+        return mysql.execute(sql, vData);
     }
 
     static Task<CAsyncDBHandler.SQLExeInfo> TestBatch(CMysql mysql, List<KeyValue> ra, out CDBVariantArray vData)
@@ -293,22 +296,8 @@ class Program
         }
     }
 
-    static Task<CAsyncDBHandler.SQLExeInfo> TestStoredProcedure(CMysql mysql, List<KeyValue> ra, out CDBVariantArray vPData)
+    static Task<CAsyncDBHandler.SQLExeInfo> TestStoredProcedureByExecuteEx(CMysql mysql, List<KeyValue> ra)
     {
-        vPData = new CDBVariantArray();
-        //first set
-        vPData.Add(1); //input
-        vPData.Add(1.4); //input-output
-        //output not important and it's used for receiving a proper data from MySQL
-        vPData.Add(0); //output
-
-        //second set
-        vPData.Add(2); //input
-        vPData.Add(2.5); //input-output
-        //output not important and it's used for receiving a proper data from MySQL
-        vPData.Add(0); //output
-
-        mysql.Prepare("call sp_TestProc(?, ?, ?)");
         CMysql.DRows r = (handler, rowData) =>
         {
             //rowset data come here
@@ -322,6 +311,9 @@ class Program
             KeyValue item = new KeyValue(handler.ColumnInfo, new CDBVariantArray());
             ra.Add(item);
         };
-        return mysql.execute(vPData, r, rh);
+        //process multiple sets of parameters in one shot & pay attention to out for output parameters
+        string sql = "call sp_TestProc(1,? out,? out);select curtime(6);" +
+            "call sp_TestProc(2,? out,? out);call sp_TestProc(3,? out,? out);select 1,2,3";
+        return mysql.execute(sql, new CDBVariantArray() { 45673.45, 0, 7345.25, 0, 16345.75, 0 }, r, rh);
     }
 }

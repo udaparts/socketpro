@@ -1897,7 +1897,14 @@ namespace SocketProAdapter
                     s += (", affected: " + affected);
                     s += (", oks: " + oks);
                     s += (", fails: " + fails);
-                    s += (", lastId: " + lastId);
+                    if (lastId == null)
+                    {
+                        s += (", lastId: null");
+                    }
+                    else
+                    {
+                        s += (", lastId: " + lastId);
+                    }
                     return s;
                 }
             }

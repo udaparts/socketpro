@@ -3,7 +3,84 @@ import SPA.UDB.*;
 import SPA.ClientSide.*;
 import java.util.ArrayList;
 
-public class Test_java {
+public class Mjava {
+
+    public static void main(String[] args) {
+        CConnectionContext cc = new CConnectionContext();
+        System.out.println("Remote host: ");
+        java.util.Scanner in = new java.util.Scanner(System.in);
+        cc.Host = in.nextLine();
+        cc.Port = 20902;
+        cc.UserId = "root";
+        cc.Password = "Smash123";
+
+        try (CSocketPool<CMysql> spMysql = new CSocketPool<>(CMysql.class)) {
+            if (!spMysql.StartSocketPool(cc, 1)) {
+                System.out.println("No connection error code = " + spMysql.getAsyncHandlers()[0].getSocket().getErrorCode());
+                in.nextLine();
+                return;
+            }
+            final ArrayList<Pair<CDBColumnInfoArray, CDBVariantArray>> ra = new ArrayList<>();
+            CMysql mysql = spMysql.getAsyncHandlers()[0];
+            try {
+                UFuture<ErrInfo> fOpen = mysql.open("");
+                UFuture<ErrInfo> fbt = mysql.beginTrans();
+                ArrayList<UFuture<CMysql.SQLExeInfo>> vC = TestCreateTables(mysql);
+                UFuture<CMysql.SQLExeInfo> fD = mysql.execute("delete from employee;delete from company");
+                UFuture<ErrInfo> fet = mysql.endTrans();
+                UFuture<CMysql.SQLExeInfo> fP0 = TestExecuteEx(mysql);
+                UFuture<CMysql.SQLExeInfo> fP1 = TestBLOBByPreparedStatement(mysql);
+                UFuture<CMysql.SQLExeInfo> fS = mysql.execute("SELECT * from company;select * from employee;select curtime(6)", (db, lstData) -> {
+                    //rowset data come here
+                    int last = ra.size() - 1;
+                    Pair<CDBColumnInfoArray, CDBVariantArray> item = ra.get(last);
+                    item.second.addAll(lstData);
+                }, (db) -> {
+                    //rowset header comes here
+                    CDBColumnInfoArray vColInfo = db.getColumnInfo();
+                    CDBVariantArray vData = new CDBVariantArray();
+                    Pair<CDBColumnInfoArray, CDBVariantArray> item = new Pair<>(vColInfo, vData);
+                    ra.add(item);
+                });
+                UFuture<CMysql.SQLExeInfo> fStore = TestStoredProcedureByExecuteEx(mysql, ra);
+                CDBVariantArray vData = new CDBVariantArray();
+                UFuture<CMysql.SQLExeInfo> fB = TestBatch(mysql, ra, vData);
+
+                System.out.println("All SQL requests are streamed, and waiting for results ......");
+                System.out.println(fOpen.get());
+                System.out.println(fbt.get());
+                for (UFuture<CMysql.SQLExeInfo> f : vC) {
+                    System.out.println(f.get());
+                }
+                System.out.println(fD.get());
+                System.out.println(fet.get());
+                System.out.println(fP0.get());
+                System.out.println(fP1.get());
+                System.out.println(fS.get());
+                System.out.println(fStore.get());
+                System.out.println(fB.get());
+            } catch (CSocketError | CServerError ex) {
+                System.out.println(ex);
+            }
+            int index = 0;
+            System.out.println();
+            System.out.println("+++++ Start rowsets +++");
+            for (Pair<CDBColumnInfoArray, CDBVariantArray> a : ra) {
+                System.out.format("Statement index = %d", index);
+                if (a.first.size() > 0) {
+                    System.out.format(", rowset with columns = %d, records = %d.", a.first.size(), a.second.size() / a.first.size());
+                    System.out.println();
+                } else {
+                    System.out.println(", no rowset received.");
+                }
+                ++index;
+            }
+            System.out.println("+++++ End rowsets +++");
+            System.out.println();
+            System.out.println("Press any key to close the application ......");
+            in.nextLine();
+        }
+    }
 
     static ArrayList<UFuture<CMysql.SQLExeInfo>> TestCreateTables(CMysql mysql) throws CSocketError {
         ArrayList<UFuture<CMysql.SQLExeInfo>> v = new ArrayList<>();
@@ -20,7 +97,7 @@ public class Test_java {
     static UFuture<CMysql.SQLExeInfo> TestBLOBByPreparedStatement(CMysql mysql) throws CSocketError {
         String wstr = "";
         while (wstr.length() < 128 * 1024) {
-            wstr += "广告�?�得�?那么夸张的就�?说了，看看这三家，都是正儿八�?的公立三甲，附属医院，�?是武警，也�?是部队，更�?是莆田，都在�?�生部门直接监管下，照样明目张胆地骗人。";
+            wstr += "广告做得不那么夸张的就不说了，看看这三家，都是正儿八经的公立三甲，附属医院，不是武警，也不是部队，更不是莆田，都在卫生部门直接监管下，照样明目张胆地骗人。";
         }
         String str = "";
         while (str.length() < 256 * 1024) {
@@ -63,8 +140,7 @@ public class Test_java {
         return mysql.execute(vData);
     }
 
-    static UFuture<CMysql.SQLExeInfo> TestPreparedStatements(CMysql mysql) throws CSocketError {
-        mysql.Prepare("INSERT INTO company(ID,NAME,ADDRESS,Income)VALUES(?,?,?,?)");
+    static UFuture<CMysql.SQLExeInfo> TestExecuteEx(CMysql mysql) throws CSocketError {
         CDBVariantArray vData = new CDBVariantArray();
 
         //first set
@@ -74,98 +150,17 @@ public class Test_java {
         vData.add(66000000000.12);
 
         //second set
-        vData.add(2);
         vData.add("Microsoft Inc.");
         vData.add("700 Bellevue Way NE- 22nd Floor, Bellevue, WA 98804, USA");
-        vData.add(93600000000.21);
 
         //third set
-        vData.add(3);
         vData.add("Apple Inc.");
         vData.add("1 Infinite Loop, Cupertino, CA 95014, USA");
-        vData.add(234000000000.14);
 
-        return mysql.execute(vData);
-    }
-
-    public static void main(String[] args) {
-        CConnectionContext cc = new CConnectionContext();
-        System.out.println("Remote host: ");
-        java.util.Scanner in = new java.util.Scanner(System.in);
-        cc.Host = in.nextLine();
-        cc.Port = 20902;
-        cc.UserId = "root";
-        cc.Password = "Smash123";
-
-        try (CSocketPool<CMysql> spMysql = new CSocketPool<>(CMysql.class)) {
-            if (!spMysql.StartSocketPool(cc, 1)) {
-                System.out.println("No connection error code = " + spMysql.getAsyncHandlers()[0].getSocket().getErrorCode());
-                in.nextLine();
-                return;
-            }
-            final ArrayList<Pair<CDBColumnInfoArray, CDBVariantArray>> ra = new ArrayList<>();
-            CMysql mysql = spMysql.getAsyncHandlers()[0];
-            try {
-                UFuture<ErrInfo> fOpen = mysql.open("");
-                UFuture<ErrInfo> fbt = mysql.beginTrans();
-                ArrayList<UFuture<CMysql.SQLExeInfo>> vC = TestCreateTables(mysql);
-                UFuture<CMysql.SQLExeInfo> fD = mysql.execute("delete from employee;delete from company");
-                UFuture<ErrInfo> fet = mysql.endTrans();
-                UFuture<CMysql.SQLExeInfo> fP0 = TestPreparedStatements(mysql);
-                UFuture<CMysql.SQLExeInfo> fP1 = TestBLOBByPreparedStatement(mysql);
-                UFuture<CMysql.SQLExeInfo> fS = mysql.execute("SELECT * from company;select * from employee;select curtime()", (db, lstData) -> {
-                    //rowset data come here
-                    int last = ra.size() - 1;
-                    Pair<CDBColumnInfoArray, CDBVariantArray> item = ra.get(last);
-                    item.second.addAll(lstData);
-                }, (db) -> {
-                    //rowset header comes here
-                    CDBColumnInfoArray vColInfo = db.getColumnInfo();
-                    CDBVariantArray vData = new CDBVariantArray();
-                    Pair<CDBColumnInfoArray, CDBVariantArray> item = new Pair<>(vColInfo, vData);
-                    ra.add(item);
-                });
-                CDBVariantArray vPData = new CDBVariantArray();
-                UFuture<CMysql.SQLExeInfo> fStore = TestStoredProcedure(mysql, ra, vPData);
-
-                CDBVariantArray vData = new CDBVariantArray();
-                UFuture<CMysql.SQLExeInfo> fB = TestBatch(mysql, ra, vData);
-
-                System.out.println("All SQL requests are streamed, and waiting for results ......");
-                System.out.println(fOpen.get());
-                System.out.println(fbt.get());
-                for (UFuture<CMysql.SQLExeInfo> f : vC) {
-                    System.out.println(f.get());
-                }
-                System.out.println(fD.get());
-                System.out.println(fet.get());
-                System.out.println(fP0.get());
-                System.out.println(fP1.get());
-                System.out.println(fS.get());
-                System.out.println(fStore.get());
-                System.out.println(fB.get());
-                System.out.println("");
-            } catch (CSocketError | CServerError ex) {
-                System.out.println(ex);
-            }
-            int index = 0;
-            System.out.println();
-            System.out.println("+++++ Start rowsets +++");
-            for (Pair<CDBColumnInfoArray, CDBVariantArray> a : ra) {
-                System.out.format("Statement index = %d", index);
-                if (a.first.size() > 0) {
-                    System.out.format(", rowset with columns: %d, records: %d.", a.first.size(), a.second.size() / a.first.size());
-                    System.out.println();
-                } else {
-                    System.out.println(", no rowset received.");
-                }
-                ++index;
-            }
-            System.out.println("+++++ End rowsets +++");
-            System.out.println();
-            System.out.println("Press any key to close the application ......");
-            in.nextLine();
-        }
+        String sql = "INSERT INTO company(ID,NAME,ADDRESS,Income)VALUES(?,?,?,?);"
+            + "INSERT INTO company(ID,NAME,ADDRESS,Income)VALUES(2,?,?,93600500000.21);"
+            + "INSERT INTO company(ID,NAME,ADDRESS,Income)VALUES(3,?,?,234000500000.14)";
+        return mysql.execute(sql, vData);
     }
 
     static UFuture<CMysql.SQLExeInfo> TestBatch(CMysql mysql, ArrayList<Pair<CDBColumnInfoArray, CDBVariantArray>> ra, CDBVariantArray vData) throws CSocketError {
@@ -173,11 +168,11 @@ public class Test_java {
         String sql = "delete from employee;delete from company|"
                 + "INSERT INTO company(ID,NAME,ADDRESS,Income)VALUES(?,?,?,?)|"
                 + "insert into employee(CompanyId,name,JoinDate,image,DESCRIPTION,Salary)values(?,?,?,?,?,?)|"
-                + "SELECT * from company;select * from employee;select curtime()|"
+                + "SELECT * from company;select * from employee;select curtime(6)|"
                 + "call sp_TestProc(?,?,?)";
         String wstr = "";
         while (wstr.length() < 128 * 1024) {
-            wstr += "广告�?�得�?那么夸张的就�?说了，看看这三家，都是正儿八�?的公立三甲，附属医院，�?是武警，也�?是部队，更�?是莆田，都在�?�生部门直接监管下，照样明目张胆地骗人。";
+            wstr += "广告做得不那么夸张的就不说了，看看这三家，都是正儿八经的公立三甲，附属医院，不是武警，也不是部队，更不是莆田，都在卫生部门直接监管下，照样明目张胆地骗人。";
         }
         String str = "";
         while (str.length() < 256 * 1024) {
@@ -245,7 +240,7 @@ public class Test_java {
             //second, execute delete from employee;delete from company
             //third, prepare and execute three sets of INSERT INTO company(ID,NAME,ADDRESS,Income)VALUES(?,?,?,?)
             //fourth, prepare and execute three sets of insert into employee(CompanyId,name,JoinDate,image,DESCRIPTION,Salary)values(?,?,?,?,?,?)
-            //fifth, SELECT * from company;select * from employee;select curtime()
+            //fifth, SELECT * from company;select * from employee;select curtime(6)
             //sixth, prepare and execute three sets of call sp_TestProc(?,?,?)
             //last, commit all transaction if no error happens, and rollback if there is an error
             return mysql.executeBatch(tagTransactionIsolation.tiReadCommited, sql, vData, (db, lstData) -> {
@@ -263,18 +258,25 @@ public class Test_java {
         }
     }
 
-    static UFuture<CMysql.SQLExeInfo> TestStoredProcedure(CMysql mysql, final ArrayList<Pair<CDBColumnInfoArray, CDBVariantArray>> ra, CDBVariantArray vPData) throws CSocketError {
-        mysql.Prepare("call sp_TestProc(?,?,?)");
-        //first set
+    static UFuture<CMysql.SQLExeInfo> TestStoredProcedureByExecuteEx(CMysql mysql, final ArrayList<Pair<CDBColumnInfoArray, CDBVariantArray>> ra) throws CSocketError {
+        CDBVariantArray vPData = new CDBVariantArray();
+        //ist set
         vPData.add(1);
-        vPData.add(1.52);
+        vPData.add(15678.52);
         vPData.add(0);
 
-        //second set
-        vPData.add(2);
-        vPData.add(2.11);
+        //2nd set
+        vPData.add(2467.11);
         vPData.add(0);
-        return mysql.execute(vPData, (db, lstData) -> {
+
+        //3rd set
+        vPData.add(921.11);
+        vPData.add(0);
+
+        //process multiple sets of parameters in one shot & pay attention to out for output parameters
+        String sql = "call sp_TestProc(?,? out,? out);select curtime(6);call sp_TestProc(2,? out,? out);"
+                + "call sp_TestProc(3,? out,? out);select 1,2,3";
+        return mysql.execute(sql, vPData, (db, lstData) -> {
             //rowset data come here
             int last = ra.size() - 1;
             Pair<CDBColumnInfoArray, CDBVariantArray> item = ra.get(last);
@@ -288,4 +290,3 @@ public class Test_java {
         });
     }
 }
-

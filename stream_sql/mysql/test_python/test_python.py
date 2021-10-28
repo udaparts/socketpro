@@ -37,24 +37,23 @@ with CSocketPool(CMysql) as spMysql:
                     'p_company_id;select sum(salary)+p_sum_salary into p_sum_salary from employee where companyid>='
                               'p_company_id;select now(6) into p_last_dt;END')]
 
-    def TestPreparedStatements():
-        mysql.prepare(u'INSERT INTO company(ID,NAME,ADDRESS,Income)VALUES(?,?,?,?)')
+    def TestExecuteEx():
         vData = []
         vData.append(1)
         vData.append("Google Inc.")
         vData.append("1600 Amphitheatre Parkway, Mountain View, CA 94043, USA")
-        vData.append(66000000000.0)
+        vData.append(66000500000.27)
 
-        vData.append(2)
         vData.append("Microsoft Inc.")
         vData.append("700 Bellevue Way NE- 22nd Floor, Bellevue, WA 98804, USA")
-        vData.append(93600000000.0)
 
-        vData.append(3)
         vData.append("Apple Inc.")
         vData.append("1 Infinite Loop, Cupertino, CA 95014, USA")
-        vData.append(234000000000.0)
-        return mysql.execute(vData)
+
+        sql = 'INSERT INTO company(ID,NAME,ADDRESS,Income)VALUES(?,?,?,?);' \
+            'INSERT INTO company(ID,NAME,ADDRESS,Income)VALUES(2,?,?,66000070000.15);' \
+            'INSERT INTO company(ID,NAME,ADDRESS,Income)VALUES(3,?,?,234000090000.82)'
+        return mysql.executeEx(sql, vData)
 
     ra = []
 
@@ -174,23 +173,24 @@ with CSocketPool(CMysql) as spMysql:
 
     try:
         # stream all SQL requests with in-line batching for the best network efficiency
-        def TestStoredProcedure():
-            # two sets (2 * 3) of parameter data
-            # 1st set -- 1, 0, 0
-            # 2nd set -- 2, 0, 0
-            vData = [2341.5, 0, 2, 51234.8, 0]
+        def TestStoredProcedureByExecuteEx():
+            # three sets of parameter data
+            vData = [2341.5, 0, 2, 51234.8, 0, 1234.56, 0]
 
-            # send multiple sets of parameter data in one shot
-            return mysql.executeEx('call sp_TestProc(1,? out,? out);select curtime(6);call sp_TestProc(?,? out,? out)', vData, cbRows, cbRowHeader)
+            sql = 'call sp_TestProc(1,? out,? out);select curtime(6);call sp_TestProc(?,? out,? out);' \
+                'call sp_TestProc(3,? out,? out);select 1,2,3'
 
+            # process multiple sets of parameters in one shot & pay attention to out for output parameters
+            return mysql.executeEx(sql, vData, cbRows, cbRowHeader)
 
-        fOpen = mysql.open(u'')
+        # enable in-line query batching for better performance if plugin and MySQL/Mariadb are located at different machines
+        fOpen = mysql.open(u'', DB_CONSTS.USE_QUERY_BATCHING)
         vF = TestCreateTables()
         fD = mysql.execute('delete from employee;delete from company')
-        fP0 = TestPreparedStatements()
+        fP0 = TestExecuteEx()
         fP1 = TestBLOBByPreparedStatement()
         fS = mysql.execute('SELECT * from company;select * from employee;select curtime(6)', cbRows, cbRowHeader)
-        fStore = TestStoredProcedure()
+        fStore = TestStoredProcedureByExecuteEx()
         fStore1, vData = TestBatch()
 
         print('SQL requests streamed, and waiting for results ......')
