@@ -13,9 +13,9 @@
 2.	After creating such a library, you can load it at runtime by calling the method SocketProAdapter.ServerSide.CSocketProServer.DllManager.AddALibrary in C#. You can do so for all other development environments similarly.
 
 3.	There are three reusable SocketPro server plugins available for you to study at this time.
-	- uodbc: Async ODBC plugin to support SQL-stream processing.
+	- uodbc: Async ODBC plugin to support SQL-stream processing. The precompiled library is located at the directory ../socketpro/bin/
 	- usqlite: Async SQLite plugin to support SQL-stream processing. Its pre-compiled plugin is free to the public. The precompiled library is located at the directory ../socketpro/bin/free_services/sqlite
-	- umysql: MySQL/MariaDB plugin to support SQL-stream processing. Its pre-compiled plugin is free to the public. The precompiled library is located at the directory ../socketpro/bin/free_services/mm_middle
+	- umysql: MySQL/MariaDB plugin to support SQL-stream processing. The precompiled library is located at the directory ../socketpro/bin/
 	
 4.	There are two reusable database plugins for you to study at this time.
 	- mysql: A MySQL (8.0.11 or later) server plugin to support SQL-stream processing. Its pre-compiled plugin is free to the public. The precompiled library is located at the directory ../socketpro/bin/free_services/mysql8_0_11
