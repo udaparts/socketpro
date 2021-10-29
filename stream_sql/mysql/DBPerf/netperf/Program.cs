@@ -23,6 +23,7 @@ class Program
         string tableName = Console.ReadLine();
         Console.WriteLine("sql filter: ");
         string filter = Console.ReadLine();
+        //20901 -- SocketPro MySQL middle tier plugin; 20902 -- SocketPro MySQL DB server plugin
         CConnectionContext cc = new CConnectionContext(host, 20902, "root", "Smash123");
         Console.WriteLine("Asynchronous execution (0) or synchronous execution (1) ?");
         bool sync = (Console.ReadKey().KeyChar != '0');
@@ -44,7 +45,7 @@ class Program
                     Console.WriteLine("res = {0}, errMsg: {1}", res, errMsg);
             };
             uint obtained = 0;
-            bool ok = mysql.Open(dbName, dr);
+            bool ok = mysql.Open(dbName, dr, DB_CONSTS.USE_QUERY_BATCHING);
             List<KeyValue> ra = new List<KeyValue>();
             CAsyncDBHandler.DExecuteResult er = (handler, res, errMsg, affected, fail_ok, id) =>
             {
@@ -137,7 +138,7 @@ class Program
                     ok = mysql.Execute(vData, er);
                     ok = mysql.EndTrans();
                     vData.Clear();
-                    Console.WriteLine("Commit {0} records into the table mysqldb.company", index);
+                    //Console.WriteLine("Commit {0} records into the table mysqldb.company", index);
                     ok = mysql.BeginTrans();
                     index = 0;
                 }
@@ -145,7 +146,7 @@ class Program
             if (vData.Count > 0)
             {
                 ok = mysql.Execute(vData, er);
-                Console.WriteLine("Commit {0} records into the table mysqldb.company", index);
+                //Console.WriteLine("Commit {0} records into the table mysqldb.company", index);
             }
             ok = mysql.EndTrans();
             ok = mysql.WaitAll();
@@ -157,4 +158,3 @@ class Program
         }
     }
 }
-

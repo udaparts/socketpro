@@ -14,8 +14,8 @@ int main(int argc, char* argv[]) {
     CMyConnContext cc;
     std::cout << "Remote host: " << std::endl;
     std::getline(std::cin, cc.Host);
-    //cc.Host = "localhost";
-    cc.Port = 20902;
+    //20901 -- SocketPro MySQL middle tier plugin; 20902 -- SocketPro MySQL DB server plugin
+    cc.Port = 20901;
     cc.UserId = L"root";
     cc.Password = L"Smash123";
     std::string s;
@@ -32,7 +32,7 @@ int main(int argc, char* argv[]) {
     std::getline(std::cin, s);
     int sync = std::atoi(s.c_str());
 
-    CMyPool spMysql(true, 600000);
+    CMyPool spMysql;
     bool ok = spMysql.StartSocketPool(cc, 1);
     if (!ok) {
         std::cout << "Failed in connecting to remote async mysql server" << std::endl;
@@ -91,7 +91,7 @@ int main(int argc, char* argv[]) {
         ra.push_back(std::move(column_rowset_pair));
     };
 
-    ok = pMysql->Open(dbName.c_str(), dr);
+    ok = pMysql->Open(dbName.c_str(), dr, SPA::UDB::USE_QUERY_BATCHING);
     ok = pMysql->WaitAll();
     obtained = 0;
 #ifdef NATIVE_UTF16_SUPPORTED
@@ -175,14 +175,14 @@ int main(int argc, char* argv[]) {
             ok = pMysql->Execute(vData, er);
             ok = pMysql->EndTrans();
             vData.clear();
-            std::cout << "Commit " << index << " records into the table mysqldb.company" << std::endl;
+            //std::cout << "Commit " << index << " records into the table mysqldb.company" << std::endl;
             ok = pMysql->BeginTrans();
             index = 0;
         }
     }
     if (vData.size()) {
         ok = pMysql->Execute(vData, er);
-        std::cout << "Commit " << index << " records into the table mysqldb.company" << std::endl;
+        //std::cout << "Commit " << index << " records into the table mysqldb.company" << std::endl;
     }
     ok = pMysql->EndTrans();
     ok = pMysql->WaitAll();

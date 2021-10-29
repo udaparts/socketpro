@@ -84,13 +84,13 @@ class Program
             if (2000 == index)
             {
                 sqlTran.Commit();
-                Console.WriteLine("Commit {0} records into the table mysqldb.company", index);
+                //Console.WriteLine("Commit {0} records into the table mysqldb.company", index);
                 sqlTran = conn.BeginTransaction();
                 index = 0;
             }
         }
         sqlTran.Commit();
-        Console.WriteLine("Commit {0} records into the table mysqldb.company", index);
+        //Console.WriteLine("Commit {0} records into the table mysqldb.company", index);
         diff = (DateTime.Now - start).TotalMilliseconds;
         Console.WriteLine("Time required = {0} milliseconds for {1} insert requests", diff, count);
         Console.WriteLine();
