@@ -24,7 +24,7 @@ class Program
         Console.WriteLine("sql filter: ");
         string filter = Console.ReadLine();
         //20901 -- SocketPro MySQL middle tier plugin; 20902 -- SocketPro MySQL DB server plugin
-        CConnectionContext cc = new CConnectionContext(host, 20902, "root", "Smash123");
+        CConnectionContext cc = new CConnectionContext(host, 20901, "root", "Smash123");
         Console.WriteLine("Asynchronous execution (0) or synchronous execution (1) ?");
         bool sync = (Console.ReadKey().KeyChar != '0');
         using (CSocketPool<CMysql> spMysql = new CSocketPool<CMysql>())
