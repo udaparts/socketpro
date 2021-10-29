@@ -28,6 +28,7 @@ class Program
         finally { }
         using (CSocketPool<CSqlServer> spSql = new CSocketPool<CSqlServer>())
         {
+            //20901 -- SocketPro MS SQL middle tier plugin; 20903 -- SocketPro MS SQL DB server plugin
             CConnectionContext cc = new CConnectionContext(host, 20901, "sa", "Smash123");
             if (!spSql.StartSocketPool(cc, 1))
             {
