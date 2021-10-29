@@ -84,16 +84,16 @@ class Program {
             }
             ++index;
             res = cmdSql.ExecuteNonQuery();
-            if (2000 == index) {
+            if (200 == index) {
                 sqlTran.Commit();
-                Console.WriteLine("Commit {0} records into the table sqltestdb.company", index);
+                //Console.WriteLine("Commit {0} records into the table sqltestdb.company", index);
                 sqlTran = conn.BeginTransaction();
                 cmdSql.Transaction = sqlTran;
                 index = 0;
             }
         }
         sqlTran.Commit();
-        Console.WriteLine("Commit {0} records into the table sqltestdb.company", index);
+        //Console.WriteLine("Commit {0} records into the table sqltestdb.company", index);
         diff = (DateTime.Now - start).TotalMilliseconds;
         Console.WriteLine("Time required = {0} milliseconds for {1} insert requests", diff, count);
         Console.WriteLine();
