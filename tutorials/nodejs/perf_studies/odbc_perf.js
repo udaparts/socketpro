@@ -2,7 +2,7 @@ const SPA = require('nja.js');
 const cs = SPA.CS; //CS == Client side
 cs.TLS.CA = 'ca.cert.pem';
 
-p = cs.newPool(SPA.SID.sidOdbc); //or sidOdbc, sidSqlite, sidMysql
+p = cs.newPool(SPA.SID.sidOdbc); //or sidOdbc, sidSqlite, sidMysql, sidMsSql
 
 if (!p.Start(cs.newCC('windesk', 20903, 'sa', 'Smash123'), 8)) {
     console.log(p.Error);
@@ -12,7 +12,7 @@ if (!p.Start(cs.newCC('windesk', 20903, 'sa', 'Smash123'), 8)) {
 function TestPerf() {
     var db = p.Seek();
     if (!db.Opened) {
-        db.Open('sakila');
+        db.Open('sakila', null, null, 2); //2, enable inline query batching
         //db.Prepare('SELECT * FROM actor where actor_id=?');
     }
     var count = 3000;

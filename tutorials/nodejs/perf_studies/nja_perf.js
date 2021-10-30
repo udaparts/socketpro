@@ -1,7 +1,7 @@
 const SPA = require('nja.js');
 const cs = SPA.CS; //CS == Client side
 
-p = cs.newPool(SPA.SID.sidMysql); //or sidOdbc, sidSqlite, sidMysql
+p = cs.newPool(SPA.SID.sidMysql); //or sidOdbc, sidSqlite, sidMysql, sidMsSql
 
 if (!p.Start(cs.newCC('windesk', 20902, 'root', 'Smash123'), 6)) {
     console.log(p.Error);
@@ -11,7 +11,7 @@ if (!p.Start(cs.newCC('windesk', 20902, 'root', 'Smash123'), 6)) {
 function TestPerf() {
     var db = p.Seek();
     if (!db.Opened) {
-        db.Open('sakila');
+        db.Open('sakila', null, null, 2); //2, enable inline query batching
     }
     var count = 3600;
     var stmt = 'SELECT * FROM actor where actor_id between 11 and 12';
