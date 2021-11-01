@@ -344,7 +344,7 @@ void TestBatch(shared_ptr<CMyHandler> pOdbc, CRowsetArray&ra, CDBVariantArray &v
         ra.push_back(column_rowset_pair);
     };
 
-    if (pOdbc->ExecuteBatch(tagTransactionIsolation::tiUnspecified, sql.c_str(), vData,
+    if (pOdbc->ExecuteBatch(tagTransactionIsolation::tiReadCommited, sql.c_str(), vData,
             [](CSender & handler, int res, const wstring & errMsg, SPA::INT64 affected, SPA::UINT64 fail_ok, CDBVariant & vtId) {
                 cout << "affected = " << affected << ", fails = " << (unsigned int) (fail_ok >> 32) << ", oks = " << (unsigned int) fail_ok << ", res = " << res << ", errMsg: ";
                 wcout << errMsg << endl;
