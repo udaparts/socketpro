@@ -61,9 +61,6 @@ class Program
 
             ok = sql.Execute("SELECT * from company;select * from employee;select CONVERT(datetime,SYSDATETIME());select * from test_rare1;select * from SpatialTable", er, r, rh);
             ok = TestNewParameterizedStoredProcedure(sql, ra);
-            ok = sql.WaitAll();
-            Console.WriteLine();
-            Console.WriteLine("There are {0} output data returned", sql.Outputs * 2);
             CDBVariantArray vPData2 = TestStoredProcedure(sql, ra);
             ok = sql.WaitAll();
             Console.WriteLine();
