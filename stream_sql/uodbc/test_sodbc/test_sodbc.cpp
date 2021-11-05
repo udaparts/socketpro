@@ -10,7 +10,7 @@ protected:
     virtual bool OnIsPermitted(USocket_Server_Handle h, const wchar_t* userId, const wchar_t* password, unsigned int serviceId) {
         assert(DoSPluginAuthentication);
         //A cheap but quick way to do authentication against a database server by use of ODBC plugin
-        int res = DoSPluginAuthentication(h, userId, password, serviceId, L"dsn=ToMySQL;database=sakila");
+        int res = DoSPluginAuthentication(h, userId, password, serviceId, L"dsn=ToMySQL;database=sakila;maxsqlsbatched=8");
         switch (res) {
             case SP_PLUGIN_AUTH_OK:
                 return true;

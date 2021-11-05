@@ -17,7 +17,7 @@ protected:
 
     virtual bool OnIsPermitted(USocket_Server_Handle h, const wchar_t* userId, const wchar_t *password, unsigned int serviceId) {
         if (DoSPluginAuthentication) {
-            return DoSPluginAuthentication(h, userId, password, serviceId, L"host=localhost;port=3306;timeout=30;database=sakila") == SP_PLUGIN_AUTH_OK;
+            return DoSPluginAuthentication(h, userId, password, serviceId, L"host=localhost;port=3306;timeout=30;database=sakila;max_queries_batched=8") == SP_PLUGIN_AUTH_OK;
         }
         return false;
     }

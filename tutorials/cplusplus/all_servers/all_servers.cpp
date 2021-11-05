@@ -28,21 +28,21 @@ protected:
         switch (serviceId) {
             case SqlServer::sidMsSql:
                 if (MsSql_DoAuth) {
-                    res = MsSql_DoAuth(h, userId, password, serviceId, L"database=sakila;server=localhost;timeout=45");
+                    res = MsSql_DoAuth(h, userId, password, serviceId, L"database=sakila;server=localhost;timeout=45;max_SQLs_batched=16");
                 }
                 break;
             case Odbc::sidOdbc:
                 if (ODBC_DoAuth) {
 #ifdef WIN32_64
-                    res = ODBC_DoAuth(h, userId, password, serviceId, L"DRIVER={SQL Server Native Client 11.0};Server=(local);database=sakila");
+                    res = ODBC_DoAuth(h, userId, password, serviceId, L"DRIVER={SQL Server Native Client 11.0};Server=(local);database=sakila;max_sqls_batched=16");
 #else
-                    res = ODBC_DoAuth(h, userId, password, serviceId, L"DRIVER={ODBC Driver 17 for SQL Server};Server=windesk;database=sakila");
+                    res = ODBC_DoAuth(h, userId, password, serviceId, L"DRIVER={ODBC Driver 17 for SQL Server};Server=windesk;database=sakila;max_sqls_batched=16");
 #endif
                 }
                 break;
             case Mysql::sidMysql:
                 if (MySQL_DoAuth) {
-                    res = MySQL_DoAuth(h, userId, password, serviceId, L"database=sakila;server=localhost");
+                    res = MySQL_DoAuth(h, userId, password, serviceId, L"database=sakila;server=localhost;max_sqls_batched=16");
                 }
                 break;
             case Sqlite::sidSqlite:
