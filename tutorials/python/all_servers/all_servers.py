@@ -71,11 +71,11 @@ with CSocketProServer() as server:
             # give permission to known services without authentication
             auth_res = Plugin.AUTHENTICATION_OK
         elif svsId == CSqlServer.sidMsSql:
-            auth_res = MsSql_Auth(hSocket, userId, pwd, svsId, 'database=sakila;server=localhost;timeout=45')
+            auth_res = MsSql_Auth(hSocket, userId, pwd, svsId, 'database=sakila;server=localhost;timeout=45;max_SQLs_batched=16')
         elif svsId == COdbc.sidOdbc:
-            auth_res = ODBC_Auth(hSocket, userId, pwd, svsId, 'DRIVER={ODBC Driver 13 for SQL Server};Server=windesk;database=sakila')
+            auth_res = ODBC_Auth(hSocket, userId, pwd, svsId, 'DRIVER={ODBC Driver 13 for SQL Server};Server=windesk;database=sakila;max_sqls_batched=16')
         elif svsId == CMysql.sidMysql:
-            auth_res = MySQL_Auth(hSocket, userId, pwd, svsId, 'database=sakila;server=windesk')
+            auth_res = MySQL_Auth(hSocket, userId, pwd, svsId, 'database=sakila;server=windesk;max_sqls_batched=16')
         elif svsId == CSqlite.sidSqlite:
             auth_res = SQLite_Auth(hSocket, userId, pwd, svsId, 'usqlite.db')
             if auth_res == Plugin.AUTHENTICATION_PROCESSED:

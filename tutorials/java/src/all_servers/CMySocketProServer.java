@@ -21,13 +21,13 @@ public class CMySocketProServer extends CSocketProServer {
                 res = Plugin.AUTHENTICATION_OK; //give permission to known services without authentication
                 break;
             case SPA.ClientSide.CSqlServer.sidMsSql:
-                res = Plugin.DoSPluginAuthentication("usqlsvr", hSocket, userId, password, nSvsID, "Server=localhost;database=sakila;timeout=45");
+                res = Plugin.DoSPluginAuthentication("usqlsvr", hSocket, userId, password, nSvsID, "Server=localhost;database=sakila;timeout=45;max_SQLs_batched=16");
                 break;
             case SPA.BaseServiceID.sidODBC:
-                res = Plugin.DoSPluginAuthentication("sodbc", hSocket, userId, password, nSvsID, "DRIVER={ODBC Driver 17 for SQL Server};Server=(local);database=sakila");
+                res = Plugin.DoSPluginAuthentication("sodbc", hSocket, userId, password, nSvsID, "DRIVER={ODBC Driver 17 for SQL Server};Server=(local);database=sakila;max_sqls_batched=16");
                 break;
             case SPA.ClientSide.CMysql.sidMysql:
-                res = Plugin.DoSPluginAuthentication("smysql", hSocket, userId, password, nSvsID, "database=sakila;server=localhost");
+                res = Plugin.DoSPluginAuthentication("smysql", hSocket, userId, password, nSvsID, "database=sakila;server=localhost;max_sqls_batched=16");
                 break;
             case SPA.ClientSide.CSqlite.sidSqlite:
                 res = Plugin.DoSPluginAuthentication("ssqlite", hSocket, userId, password, nSvsID, "usqlite.db");
