@@ -7,6 +7,8 @@
 namespace SPA {
 
     typedef std::basic_string<UTF16> CDBString;
+    static CDBString SEMICOLON_16(u";");
+    static std::string SEMICOLON_8(";");
 
     namespace UDB {
 
