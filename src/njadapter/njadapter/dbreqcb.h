@@ -211,7 +211,11 @@ namespace SPA {
                 }
                 cs.unlock();
             }
+#if NODE_MAJOR_VERSION < 16
             isolate->RunMicrotasks(); //may speed up pumping
+#else
+            isolate->PerformMicrotaskCheckpoint();
+#endif
         }
     }
 }

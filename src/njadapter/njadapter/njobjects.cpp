@@ -380,7 +380,11 @@ namespace NJA {
             }
             cs.unlock();
         }
+#if NODE_MAJOR_VERSION < 16
         isolate->RunMicrotasks(); //may speed up pumping
+#else
+        isolate->PerformMicrotaskCheckpoint();
+#endif
     }
 
     void NJSocketPool::async_cs_cb(uv_async_t* handle) {
@@ -549,8 +553,13 @@ namespace NJA {
             }
             cs.unlock();
         }
-        if (run_micro)
+        if (run_micro) {
+#if NODE_MAJOR_VERSION < 16
             isolate->RunMicrotasks();
+#else
+            isolate->PerformMicrotaskCheckpoint();
+#endif
+        }
     }
 
     void NJSocketPool::Dispose(const FunctionCallbackInfo<Value>& args) {

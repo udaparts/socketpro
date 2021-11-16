@@ -4,7 +4,7 @@ var SPA = require('njadapter');
 var assert = require('assert');
 const os = require('os');
 
-exports.version = '1.5.0.1';
+exports.version = '1.5.0.2';
 
 class CTable {
     constructor(t) {

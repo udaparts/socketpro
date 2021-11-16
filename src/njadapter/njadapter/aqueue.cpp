@@ -200,7 +200,11 @@ namespace NJA {
             }
             cs.unlock();
         }
+#if NODE_MAJOR_VERSION < 16
         isolate->RunMicrotasks();
+#else
+        isolate->PerformMicrotaskCheckpoint();
+#endif
     }
 
     void CAQueue::SetRR(Isolate* isolate, Local<Value> rr) {
