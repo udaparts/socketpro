@@ -87,7 +87,7 @@
           <incDir>
             <pElem>node</pElem>
           </incDir>
-          <commandLine>-std=c++11 -Wall</commandLine>
+          <commandLine>-std=c++14 -Wall</commandLine>
           <preprocessorList>
             <Elem>NODE_JS_ADAPTER_PROJECT</Elem>
           </preprocessorList>
@@ -96,7 +96,7 @@
           <incDir>
             <pElem>node</pElem>
           </incDir>
-          <commandLine>-std=c++11 -Wall</commandLine>
+          <commandLine>-std=c++14 -Wall</commandLine>
           <preprocessorList>
             <Elem>NODE_JS_ADAPTER_PROJECT</Elem>
           </preprocessorList>
@@ -218,7 +218,7 @@
           <incDir>
             <pElem>node</pElem>
           </incDir>
-          <commandLine>-std=c++11 -Os -fvisibility=hidden</commandLine>
+          <commandLine>-std=c++14 -Os -fvisibility=hidden</commandLine>
           <preprocessorList>
             <Elem>NDEBUG</Elem>
             <Elem>NODE_JS_ADAPTER_PROJECT</Elem>
@@ -230,7 +230,7 @@
           <incDir>
             <pElem>node</pElem>
           </incDir>
-          <commandLine>-std=c++11 -Os -fvisibility=hidden</commandLine>
+          <commandLine>-std=c++14 -Os -fvisibility=hidden</commandLine>
           <preprocessorList>
             <Elem>NDEBUG</Elem>
             <Elem>NODE_JS_ADAPTER_PROJECT</Elem>
