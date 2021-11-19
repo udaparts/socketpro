@@ -219,7 +219,7 @@ void TestCreateTables(shared_ptr<CMyHandler> pOdbc) {
         wcout << errMsg << endl;
         });
 
-    const wchar_t* create_proc = L"create or replace function mypdb.public.sp_TestProc(p_company_id int,inout p_sum_salary decimal(14,2),out p_last_dt timestamp)as $func$ select sum(salary)+p_sum_salary,localtimestamp from employee where companyid>=p_company_id $func$ language sql";
+    const wchar_t* create_proc = L"create or replace function sp_TestProc(p_company_id int,inout p_sum_salary decimal(14,2),out p_last_dt timestamp)LANGUAGE 'plpgsql' as $$ begin select sum(salary)+p_sum_salary,localtimestamp into p_sum_salary,p_last_dt from employee where companyid>=p_company_id;end;$$";
     ok = pOdbc->Execute(create_proc, [](CSender& handler, int res, const wstring& errMsg, SPA::INT64 affected, SPA::UINT64 fail_ok, CDBVariant& vtId) {
         cout << "affected = " << affected << ", fails = " << (unsigned int)(fail_ok >> 32) << ", oks = " << (unsigned int)fail_ok << ", res = " << res << ", errMsg: ";
         wcout << errMsg << endl;

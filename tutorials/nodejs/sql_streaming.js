@@ -19,11 +19,11 @@ if (!p.Start(cc, 1)) { //line 15
 
 //make long strings for testing long text and blob objects between lines 21 and 28
 var wstr = '';
-while (wstr.length < 256 * 1024) {
+while (wstr.length < 128 * 1024) {
     wstr += '广告做得不那么夸张的就不说了，看看这三家，都是正儿八经的公立三甲，附属医院，不是武警，也不是部队，更不是莆田，都在卫生部门直接监管下，照样明目张胆地骗人。';
 }
 var str = '';
-while (str.length < 512 * 1024) {
+while (str.length < 256 * 1024) {
     str += 'The epic takedown of his opponent on an all-important voting day was extraordinary even by the standards of the 2016 campaign -- and quickly drew a scathing response from Trump.';
 }
 
