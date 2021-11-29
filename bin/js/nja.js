@@ -4,7 +4,7 @@ var SPA = require('njadapter');
 var assert = require('assert');
 const os = require('os');
 
-exports.version = '1.5.0.2';
+exports.version = '1.5.0.3';
 
 class CTable {
     constructor(t) {
@@ -965,6 +965,7 @@ exports.SID = {
     sidMysql: 2147483633, //MySQL/Mariadb SQL-streaming service
     sidMsSql: 2147483634, //MS SQL SQL-streaming service
     sidDB2: 2147483635, //DB2 CLI SQL-streaming service
+    sidPostgres: 2147483636, //PostgreSQL SQL-streaming service
     sidDB_MAX: 0x7FFFFFFF
 };
 
