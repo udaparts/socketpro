@@ -864,6 +864,7 @@ namespace SPA {
             static const unsigned int FLAG_IS_SET = 0x400;
             static const unsigned int FLAG_IS_UNSIGNED = 0x800;
             static const unsigned int FLAG_IS_BIT = 0x1000;
+            static const unsigned int FLAG_FIXED_LENGTH = 0x2000;
 
             CDBColumnInfo() : ColumnSize(0), Flags(0), DataType(VT_EMPTY), Precision(0), Scale(0) {
             }
