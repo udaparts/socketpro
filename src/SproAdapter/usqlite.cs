@@ -191,6 +191,51 @@ namespace SocketProAdapter
 
             }
         }
+
+        public class CPostgres : CAsyncDBHandler
+        {
+            /// <summary>
+            /// Asynchronous and SQL streaming postgreSQL service id
+            /// </summary>
+            public const uint sidPostgres = SocketProAdapter.BaseServiceID.sidReserved + 0x6FFFFFF4;
+
+            /// <summary>
+            /// An Open flag option, which is specific to PostgreSQL plugin.
+            /// It is noted that this flag option is not implemented within SocketPro plugin yet.
+            /// </summary>
+            public const uint ROWSET_META_FLAGS_REQUIRED = 0x40000000;
+
+            /// <summary>
+            /// An Open flag option, which is specific to PostgreSQL plugin.
+            /// When the flag option is used with the method Open or open, it forces fetching data from remote PostgreSQL server to SocketPro plugin row-by-row instead of all.
+            /// The flag option should be used if there is a large number of data within a rowset.
+            /// </summary>
+            public const uint USE_SINGLE_ROW_MODE = 0x20000000;
+
+            public CPostgres()
+                : base(sidPostgres)
+            {
+
+            }
+
+            /// <summary>
+            /// You may use the protected constructor when extending this class
+            /// </summary>
+            /// <param name="sid">A service id</param>
+            protected CPostgres(uint sid)
+                : base(sid)
+            {
+
+            }
+
+            public const int ER_NO_DB_OPENED_YET = -1981;
+            public const int ER_BAD_END_TRANSTACTION_PLAN = -1982;
+            public const int ER_NO_PARAMETER_SPECIFIED = -1983;
+            public const int ER_BAD_PARAMETER_COLUMN_SIZE = -1984;
+            public const int ER_BAD_PARAMETER_DATA_ARRAY_SIZE = -1985;
+            public const int ER_DATA_TYPE_NOT_SUPPORTED = -1986;
+            public const int ER_BAD_TRANSTACTION_STAGE = -1987;
+        }
     }
 
 #if WINCE

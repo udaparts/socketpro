@@ -1791,6 +1791,30 @@
             </summary>
             <param name="sid">A service id</param>
         </member>
+        <member name="F:SocketProAdapter.ClientSide.CPostgres.sidPostgres">
+            <summary>
+            Asynchronous and SQL streaming postgreSQL service id
+            </summary>
+        </member>
+        <member name="F:SocketProAdapter.ClientSide.CPostgres.ROWSET_META_FLAGS_REQUIRED">
+            <summary>
+            An Open flag option, which is specific to PostgreSQL plugin.
+            It is noted that this flag option is not implemented within SocketPro plugin yet.
+            </summary>
+        </member>
+        <member name="F:SocketProAdapter.ClientSide.CPostgres.USE_SINGLE_ROW_MODE">
+            <summary>
+            An Open flag option, which is specific to PostgreSQL plugin.
+            When the flag option is used with the method Open or open, it forces fetching data from remote PostgreSQL server to SocketPro plugin row-by-row instead of all.
+            The flag option should be used if there is a large number of data within a rowset.
+            </summary>
+        </member>
+        <member name="M:SocketProAdapter.ClientSide.CPostgres.#ctor(System.UInt32)">
+            <summary>
+            You may use the protected constructor when extending this class
+            </summary>
+            <param name="sid">A service id</param>
+        </member>
         <member name="F:SocketProAdapter.UDB.tagRollbackPlan.rpDefault">
             <summary>
             Manual transaction will rollback whenever there is an error by default
