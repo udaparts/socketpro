@@ -20,6 +20,9 @@ public class CMySocketProServer extends CSocketProServer {
             case SPA.BaseServiceID.sidQueue:
                 res = Plugin.AUTHENTICATION_OK; //give permission to known services without authentication
                 break;
+            case SPA.ClientSide.CPostgres.sidPostgres:
+                res = Plugin.DoSPluginAuthentication("spostgres", hSocket, userId, password, nSvsID, "Server=localhost;database=sakila;timeout=45;max_SQLs_batched=16");
+                break;
             case SPA.ClientSide.CSqlServer.sidMsSql:
                 res = Plugin.DoSPluginAuthentication("usqlsvr", hSocket, userId, password, nSvsID, "Server=localhost;database=sakila;timeout=45;max_SQLs_batched=16");
                 break;
@@ -118,6 +121,9 @@ public class CMySocketProServer extends CSocketProServer {
 
             //load MS sql server plugin library at the directory ../bin/win or ../bin/linux
             handle = CSocketProServer.DllManager.AddALibrary("usqlsvr");
+
+            //load PostgreSQL plugin library at the directory ../bin/win/x64 or ../bin/linux
+            handle = CSocketProServer.DllManager.AddALibrary("spostgres");
 
             //test certificate and private key files are located at ../socketpro/bin
             //if (SPA.CUQueue.DEFAULT_OS == SPA.tagOperationSystem.osWin) {

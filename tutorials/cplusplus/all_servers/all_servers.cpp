@@ -11,6 +11,7 @@
 #include "../../../include/queue/uasyncqueue.h"
 #include "../../../include/file/ufile.h"
 #include "../../../include/mssql/umssql.h"
+#include "../../../include/postgres/upostgres.h"
 
 using namespace std;
 
@@ -19,13 +20,18 @@ class CMyServer : public CSocketProServer
 
 public:
     CMyServer(int nParam = 0) : CSocketProServer(nParam), SQLite_DoAuth(nullptr),
-        MySQL_DoAuth(nullptr), ODBC_DoAuth(nullptr), MsSql_DoAuth(nullptr) {
+        MySQL_DoAuth(nullptr), ODBC_DoAuth(nullptr), MsSql_DoAuth(nullptr), Postgres_DoAuth(nullptr) {
     }
 
 protected:
     virtual bool OnIsPermitted(USocket_Server_Handle h, const wchar_t* userId, const wchar_t* password, unsigned int serviceId) {
         int res = SP_PLUGIN_AUTH_NOT_IMPLEMENTED;
         switch (serviceId) {
+            case Postgres::sidPostgres:
+                if (Postgres_DoAuth) {
+                    res = Postgres_DoAuth(h, userId, password, serviceId, L"database=sakila;server=localhost;timeout=45;max_SQLs_batched=16");
+                }
+                break;
             case SqlServer::sidMsSql:
                 if (MsSql_DoAuth) {
                     res = MsSql_DoAuth(h, userId, password, serviceId, L"database=sakila;server=localhost;timeout=45;max_SQLs_batched=16");
@@ -130,10 +136,16 @@ protected:
             ODBC_DoAuth = (PDoSPluginAuthentication) GetProcAddress(h, "DoSPluginAuthentication");
         }
 
-        //load MS sql server plugin library at the directory ../bin/win or ../bin/linux
+        //load MS sql plugin library at the directory ../bin/win or ../bin/linux
         h = DllManager::AddALibrary("usqlsvr");
         if (h) {
-            MsSql_DoAuth = (PDoSPluginAuthentication)GetProcAddress(h, "DoSPluginAuthentication");
+            MsSql_DoAuth = (PDoSPluginAuthentication) GetProcAddress(h, "DoSPluginAuthentication");
+        }
+
+        //load PostgreSQL plugin library at the directory ../bin/win/x64 or ../bin/linux
+        h = DllManager::AddALibrary("spostgres");
+        if (h) {
+            Postgres_DoAuth = (PDoSPluginAuthentication) GetProcAddress(h, "DoSPluginAuthentication");
         }
 
         return true; //true -- ok; false -- no listening server
@@ -152,6 +164,7 @@ private:
     PDoSPluginAuthentication MySQL_DoAuth;
     PDoSPluginAuthentication ODBC_DoAuth;
     PDoSPluginAuthentication MsSql_DoAuth;
+    PDoSPluginAuthentication Postgres_DoAuth;
 
 private:
 

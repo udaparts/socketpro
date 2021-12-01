@@ -20,6 +20,9 @@ public class CMySocketProServer : CSocketProServer
     [DllImport("usqlsvr", EntryPoint = "DoSPluginAuthentication")]
     static extern int MsSql_Authentication(ulong hSocket, [In][MarshalAs(UnmanagedType.LPWStr)] string userId, [In][MarshalAs(UnmanagedType.LPWStr)] string password, uint svsId, [In][MarshalAs(UnmanagedType.LPWStr)] string dsn);
 
+    [DllImport("spostgres", EntryPoint = "DoSPluginAuthentication")]
+    static extern int Postgres_Authentication(ulong hSocket, [In][MarshalAs(UnmanagedType.LPWStr)] string userId, [In][MarshalAs(UnmanagedType.LPWStr)] string password, uint svsId, [In][MarshalAs(UnmanagedType.LPWStr)] string dsn);
+
     protected override bool OnIsPermitted(ulong hSocket, string userId, string password, uint nSvsID)
     {
         int res = Plugin.AUTHENTICATION_NOT_IMPLEMENTED;
@@ -35,6 +38,9 @@ public class CMySocketProServer : CSocketProServer
             case repConst.sidRAdoRep:
                 //give permission to known services without authentication
                 res = Plugin.AUTHENTICATION_OK;
+                break;
+            case SocketProAdapter.ClientSide.CPostgres.sidPostgres:
+                res = Postgres_Authentication(hSocket, userId, password, nSvsID, "database=sakila;server=localhost;max_sqls_batched=16");
                 break;
             case SocketProAdapter.ClientSide.CSqlServer.sidMsSql:
                 res = MsSql_Authentication(hSocket, userId, password, nSvsID, "database=sakila;server=localhost;timeout=45;max_SQLs_batched=16");
@@ -157,6 +163,9 @@ public class CMySocketProServer : CSocketProServer
 
         //load MS sql server plugin library at the directory ../bin/win or ../bin/linux
         p = CSocketProServer.DllManager.AddALibrary("usqlsvr");
+
+        //load PostgreSQL plugin library at the directory ../bin/win/x64 or ../bin/linux
+        p = CSocketProServer.DllManager.AddALibrary("spostgres");
 
         bool ok = CSocketProServer.Router.SetRouting(piConst.sidPi, piConst.sidPiWorker);
 

@@ -1,7 +1,7 @@
 from consts import piConst, hwConst
 from spa.serverside import CSocketProServer, CSocketProService,\
     CClientPeer, BaseServiceID, Plugin
-from spa.clientside import CAsyncQueue, CStreamingFile, CMysql, COdbc, CSqlite, CSqlServer
+from spa.clientside import CAsyncQueue, CStreamingFile, CMysql, COdbc, CSqlite, CSqlServer, CPostgres
 from spa.udb import DB_CONSTS
 from pub_sub.ps_server.hwpeer import CHelloWorldPeer
 from webdemo.myhttppeer import CMyHttpPeer
@@ -28,22 +28,26 @@ SQLite_Auth.argtypes = [c_uint64, c_wchar_p, c_wchar_p, c_uint, c_wchar_p]
 SQLite_Auth.restype = c_int
 
 mysql_lib = None
+MySQL_Auth = None
 if os == "win32":
     mysql_lib = WinDLL("smysql.dll")
 else:
     mysql_lib = WinDLL("libsmysql.so")
-MySQL_Auth = mysql_lib.DoSPluginAuthentication
-MySQL_Auth.argtypes = [c_uint64, c_wchar_p, c_wchar_p, c_uint, c_wchar_p]
-MySQL_Auth.restype = c_int
+if mysql_lib:
+    MySQL_Auth = mysql_lib.DoSPluginAuthentication
+    MySQL_Auth.argtypes = [c_uint64, c_wchar_p, c_wchar_p, c_uint, c_wchar_p]
+    MySQL_Auth.restype = c_int
 
 odbc_lib = None
+ODBC_Auth = None
 if os == "win32":
     odbc_lib = WinDLL("sodbc.dll")
 else:
     odbc_lib = WinDLL("libsodbc.so")
-ODBC_Auth = odbc_lib.DoSPluginAuthentication
-ODBC_Auth.argtypes = [c_uint64, c_wchar_p, c_wchar_p, c_uint, c_wchar_p]
-ODBC_Auth.restype = c_int
+if odbc_lib:
+    ODBC_Auth = odbc_lib.DoSPluginAuthentication
+    ODBC_Auth.argtypes = [c_uint64, c_wchar_p, c_wchar_p, c_uint, c_wchar_p]
+    ODBC_Auth.restype = c_int
 
 mssql_lib = None
 if os == "win32":
@@ -53,6 +57,17 @@ else:
 MsSql_Auth = mssql_lib.DoSPluginAuthentication
 MsSql_Auth.argtypes = [c_uint64, c_wchar_p, c_wchar_p, c_uint, c_wchar_p]
 MsSql_Auth.restype = c_int
+
+postgres_lib = None
+Postgres_Auth = None
+if os == "win32":
+    postgres_lib = WinDLL("spostgres.dll")
+else:
+    postgres_lib = WinDLL("libspostgres.so")
+if postgres_lib:
+    Postgres_Auth = postgres_lib.DoSPluginAuthentication
+    Postgres_Auth.argtypes = [c_uint64, c_wchar_p, c_wchar_p, c_uint, c_wchar_p]
+    Postgres_Auth.restype = c_int
 
 with CSocketProServer() as server:
     def OnClose(hSocket, errCode):
@@ -70,6 +85,8 @@ with CSocketProServer() as server:
         elif svsId == CAsyncQueue.sidQueue or svsId == CStreamingFile.sidFile:
             # give permission to known services without authentication
             auth_res = Plugin.AUTHENTICATION_OK
+        elif svsId == CPostgres.sidPostgres:
+            auth_res = Postgres_Auth(hSocket, userId, pwd, svsId, 'database=sakila;server=localhost;timeout=45;max_SQLs_batched=16')
         elif svsId == CSqlServer.sidMsSql:
             auth_res = MsSql_Auth(hSocket, userId, pwd, svsId, 'database=sakila;server=localhost;timeout=45;max_SQLs_batched=16')
         elif svsId == COdbc.sidOdbc:
@@ -145,6 +162,9 @@ with CSocketProServer() as server:
 
     # load MS sql server plugin library at the directory ../bin/win or ../bin/linux
     server.mssql = CSocketProServer.DllManager.AddALibrary("usqlsvr")
+
+    # load PostgreSQL plugin library at the directory ../bin/win/win64 or ../bin/linux
+    server.postgres = CSocketProServer.DllManager.AddALibrary("spostgres")
 
     if not server.Run(20901):
         print('Error message = ' + CSocketProServer.ErrorMessage)
