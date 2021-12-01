@@ -23,6 +23,7 @@
     - SQL streaming database server plugin for Mariadb (free)
     - SQL streaming for MySQL/Mariadb middle tier
     - SQL streaming for MS SQL server 2008 or later
+    - SQL streaming for PostgreSQL
     - SQL streaming for anyone of databases having ODBC driver
 
 4.  We use netbeans (https://netbeans.org/) for Java development on all platforms; and also for C/C++ developments on Linux platforms.
