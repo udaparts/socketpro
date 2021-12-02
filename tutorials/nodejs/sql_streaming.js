@@ -5,7 +5,7 @@ var SPA = require('nja.js'); //line 4
 var cs = SPA.CS; //CS == Client side line 5
 
 //create a socket pool object
-var p = cs.newPool(SPA.SID.sidMysql); //or sidOdbc, sidSqlite, sidMsSql; line 8
+var p = cs.newPool(SPA.SID.sidMysql); //or sidOdbc, sidSqlite, sidMsSql, sidPostgres; line 8
 global.p = p;
 
 //create an instance of connection context

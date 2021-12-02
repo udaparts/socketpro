@@ -1,7 +1,7 @@
 const SPA = require('nja.js');
 const cs = SPA.CS; //CS == Client side
 
-p = cs.newPool(SPA.SID.sidMysql); //or sidOdbc, sidSqlite, sidMysql, sidMsSql
+p = cs.newPool(SPA.SID.sidMysql); //or sidOdbc, sidSqlite, sidMysql, sidMsSql, sidPostgres
 
 if (!p.Start(cs.newCC('windesk', 20902, 'root', 'Smash123'), 6)) {
     console.log(p.Error);
