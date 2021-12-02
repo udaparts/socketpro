@@ -1,0 +1,159 @@
+'use strict';
+
+//loading SocketPro adapter (nja.js + njadapter.node) for nodejs
+var SPA = require('nja.js');
+var cs = SPA.CS; //CS == Client side
+
+//create a socket pool object
+var p = cs.newPool(SPA.SID.sidPostgres); //or sidOdbc, sidSqlite, sidMysql, sidMsSql
+global.p = p;
+//p.QueueName = 'qpostgres';
+//create a connection context
+var cc = cs.newCC('localhost', 20901, 'postgres', 'Smash123');
+
+//start a socket pool having one session to a remote server
+if (!p.Start(cc, 1)) {
+    console.log(p.Error);
+    return;
+}
+var db = p.Seek(); //seek an async DB handler
+
+//make long strings for testing long text and blob objects
+var g_wstr = '';
+while (g_wstr.length < 256 * 1024) {
+    g_wstr += '?????????????????????????????????????????????????????????????????????????????';
+}
+var g_str = '';
+while (g_str.length < 512 * 1024) {
+    g_str += 'The epic takedown of his opponent on an all-important voting day was extraordinary even by the standards of the 2016 campaign -- and quickly drew a scathing response from Trump.';
+}
+
+function TestCreateTables(db) {
+    var pe0 = db.execute('CREATE TABLE IF NOT EXISTS Company(ID bigint PRIMARY KEY NOT NULL,name CHAR(64)' +
+        'NOT NULL,ADDRESS varCHAR(256)not null,Income double precision not null)');
+    var pe1 = db.execute('CREATE TABLE IF NOT EXISTS employee(EMPLOYEEID bigserial not null,CompanyId' +
+        ' bigint not null,name char(64)NOT NULL,JoinDate TIMESTAMP default null,IMAGE bytea,DESCRIPTION' +
+        ' text,Salary DECIMAL(14,2),FOREIGN KEY(CompanyId)REFERENCES public.company(id))');
+    var pe2 = db.execute('create or replace function sp_TestProc(p_company_id int,inout ' +
+        'p_sum_salary decimal(14,2),out p_last_dt timestamp)as $func$ select sum(salary)+' +
+        'p_sum_salary,localtimestamp from employee where companyid>=p_company_id $func$ language sql');
+    var pe3 = db.execute("CREATE OR REPLACE PROCEDURE test_sp(id integer,INOUT mymoney numeric,INOUT " +
+        "dt timestamp) LANGUAGE 'plpgsql' AS $BODY$ BEGIN select mymoney+sum(salary),localtimestamp " +
+        "into mymoney,dt from employee where companyid>id;END $BODY$");
+    return [pe0, pe1, pe2, pe3];
+}
+
+function TestExecuteEx(db) {
+    //set an array of parameter data
+    var vParam = [1, 'Google Inc.', "1600 Amphith'eatre Parkway, Mountain View, CA 94043, USA", 66000700000.15,
+        2, 'Microsoft Inc.', '700 Bellevue Way NE- 22nd Floor, Bellevue, WA 98804, USA',
+        'Apple Inc.', '1 Infinite Loop, Cupertino, CA 95014, USA'];
+    var sql = 'INSERT INTO company(ID,NAME,ADDRESS,Income)VALUES(?,?,?,?);select CURRENT_TIMESTAMP(6);' +
+        'INSERT INTO company(ID,NAME,ADDRESS,Income)VALUES(?,?,?,93600090000.12)returning *;' +
+        'INSERT INTO company(ID,NAME,ADDRESS,Income)VALUES(3,?,?,234000300000.14);select 1,2,3';
+    return [db.executeEx(sql, vParam, (data, proc, cols) => {
+        console.log({ data: data, proc: proc, cols: cols });
+    }, meta => {
+        console.log(meta);
+    })];
+}
+
+function TestPreparedStatement(db) {
+    var pp = db.prepare('INSERT INTO company(ID,NAME,ADDRESS,Income)VALUES(?,?,?,?)returning *');
+    //set an array of parameter data
+    var vParam = [1, 'Google Inc.', '1600 Amphitheatre Parkway, Mountain View, CA 94043, USA', 66000700060.15,
+        2, 'Microsoft Inc.', '700 Bellevue Way NE- 22nd Floor, Bellevue, WA 98804, USA', 93600090040.12,
+        3, 'Apple Inc.', '1 Infinite Loop, Cupertino, CA 95014, USA', 234000300070.14];
+    return [db.execute(vParam, (data, proc, cols) => {
+        console.log({ data: data, proc: proc, cols: cols });
+    }, meta => {
+        console.log(meta);
+    })];
+}
+
+function TestBlobExecuteEx(db) {
+    var buff = SPA.newBuffer();
+    var blob = SPA.newBuffer();
+
+    blob.SaveString(g_wstr);
+    //1st set
+    //blob.PopBytes() -- convert all data inside blob memory into an array of bytes
+    buff.SaveObject('Ted Cruz').SaveObject(new Date()).
+        SaveObject(blob.PopBytes()).SaveObject(g_wstr).SaveObject(254090.15, "dec");
+
+    blob.SaveAString(g_str);
+    //2nd set
+    buff.SaveObject('Donald Trump').SaveObject(new Date()).
+        SaveObject(blob.PopBytes()).SaveObject(g_str).SaveObject(20254070.35, "dec");
+
+    blob.SaveAString(g_str).SaveString(g_wstr);
+    //3rd set
+    buff.SaveObject('Hillary Clinton').SaveObject(new Date()).
+        SaveObject(blob.PopBytes()).SaveObject(g_wstr);
+
+    buff.SaveObject(1276.54, "dec"); //for call test_sp with output salary in decimal
+
+    var sql = 'insert into employee(CompanyId,name,JoinDate,image,DESCRIPTION,Salary)values(1,?,?,?,?,?);' +
+        'insert into employee(CompanyId,name,JoinDate,image,DESCRIPTION,Salary)values(1,?,?,?,?,?);select 245;' +
+        'insert into employee(CompanyId,name,JoinDate,image,DESCRIPTION,Salary)values(2,?,?,?,?,6254030.42);' +
+        'call test_sp(1,?,null)';
+
+    var pe = db.executeEx(sql, buff, (data, proc, cols) => {
+        console.log({ data: data, proc: proc, cols: cols });
+    }, meta => {
+        console.log(meta);
+    });
+    return [pe];
+}
+
+function TestBLOBByPreparedStatement(db) {
+    var pp = db.prepare('insert into employee(CompanyId,name,JoinDate,image,DESCRIPTION,Salary)values(?,?,?,?,?,?)returning *');
+    var buff = SPA.newBuffer();
+    var blob = SPA.newBuffer();
+    blob.SaveString(g_wstr);
+    //1st set
+    //blob.PopBytes() -- convert all data inside blob memory into an array of bytes
+    buff.SaveObject(1).SaveObject('Ted Cruz').SaveObject(new Date()).
+        SaveObject(blob.PopBytes()).SaveObject(g_wstr).SaveObject(254020.15);
+
+    blob.SaveAString(g_str);
+    //2nd set
+    buff.SaveObject(1).SaveObject('Donald Trump').SaveObject(new Date()).
+        SaveObject(blob.PopBytes()).SaveObject(g_str).SaveObject(20254020.35);
+
+    blob.SaveAString(g_str).SaveString(g_wstr);
+    //3rd set
+    buff.SaveObject(2).SaveObject('Hillary Clinton').SaveObject(new Date()).
+        SaveObject(blob.PopBytes()).SaveObject(g_wstr).SaveObject(6254070.42);
+    var pe = db.execute(buff, (data, proc, cols) => {
+        //console.log({ data: data, proc: proc, cols: cols });
+    }, meta => {
+        //console.log(meta);
+    });
+    return [pp, pe];
+}
+
+(async () => {
+    try {
+        //open a default database with query batching enabled
+        var res = await db.open('', 2); //line 139
+        console.log(res);
+        if (res.ec) {
+            return;
+        }
+        console.log('Streaming all requests with the best network efficiency');
+        var vTables = TestCreateTables(db); //line 145
+        var pd0 = [db.execute('delete from employee;delete from company')]; //line 146
+        var pp0 = TestPreparedStatement(db); //line 147
+        var pp1 = TestBLOBByPreparedStatement(db); //line 148
+        var pd1 = [db.execute('delete from employee;delete from company')]; //line 149
+        var pex0 = TestExecuteEx(db); //line 150
+        var pex1 = TestBlobExecuteEx(db); //line 151
+
+        console.log('Waiting all responses .....');
+        var all_p = [].concat(vTables, pd0, pp0, pp1, pd1, pex0, pex1);
+        console.log(await Promise.all(all_p)); //line 155
+    } catch (ex) {
+        console.log(ex); //line 157
+    }
+})();
