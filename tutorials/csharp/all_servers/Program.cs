@@ -40,16 +40,16 @@ public class CMySocketProServer : CSocketProServer
                 res = Plugin.AUTHENTICATION_OK;
                 break;
             case SocketProAdapter.ClientSide.CPostgres.sidPostgres:
-                res = Postgres_Authentication(hSocket, userId, password, nSvsID, "database=sakila;server=localhost;max_sqls_batched=16");
+                res = Postgres_Authentication(hSocket, userId, password, nSvsID, "server=localhost;max_sqls_batched=16");
                 break;
             case SocketProAdapter.ClientSide.CSqlServer.sidMsSql:
-                res = MsSql_Authentication(hSocket, userId, password, nSvsID, "database=sakila;server=localhost;timeout=45;max_SQLs_batched=16");
+                res = MsSql_Authentication(hSocket, userId, password, nSvsID, "server=localhost;timeout=45;max_SQLs_batched=16");
                 break;
             case BaseServiceID.sidODBC:
                 res = ODBC_Authentication(hSocket, userId, password, nSvsID, "DRIVER={SQL Server Native Client 11.0};Server=(local);database=sakila;max_sqls_batched=16");
                 break;
             case SocketProAdapter.ClientSide.CMysql.sidMysql:
-                res = MySQL_Authentication(hSocket, userId, password, nSvsID, "database=sakila;server=localhost;max_sqls_batched=16");
+                res = MySQL_Authentication(hSocket, userId, password, nSvsID, "server=localhost;max_sqls_batched=16");
                 break;
             case SocketProAdapter.ClientSide.CSqlite.sidSqlite:
                 res = SQLite_Authentication(hSocket, userId, password, nSvsID, "usqlite.db");

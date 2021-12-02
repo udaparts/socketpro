@@ -29,12 +29,12 @@ protected:
         switch (serviceId) {
             case Postgres::sidPostgres:
                 if (Postgres_DoAuth) {
-                    res = Postgres_DoAuth(h, userId, password, serviceId, L"database=sakila;server=localhost;timeout=45;max_SQLs_batched=16");
+                    res = Postgres_DoAuth(h, userId, password, serviceId, L"server=localhost;timeout=45;max_SQLs_batched=16");
                 }
                 break;
             case SqlServer::sidMsSql:
                 if (MsSql_DoAuth) {
-                    res = MsSql_DoAuth(h, userId, password, serviceId, L"database=sakila;server=localhost;timeout=45;max_SQLs_batched=16");
+                    res = MsSql_DoAuth(h, userId, password, serviceId, L"server=localhost;timeout=45;max_SQLs_batched=16");
                 }
                 break;
             case Odbc::sidOdbc:
@@ -48,7 +48,7 @@ protected:
                 break;
             case Mysql::sidMysql:
                 if (MySQL_DoAuth) {
-                    res = MySQL_DoAuth(h, userId, password, serviceId, L"database=sakila;server=localhost;max_sqls_batched=16");
+                    res = MySQL_DoAuth(h, userId, password, serviceId, L"server=localhost;max_sqls_batched=16");
                 }
                 break;
             case Sqlite::sidSqlite:
