@@ -134,11 +134,11 @@ function TestBLOBByPreparedStatement(db) {
 }
 
 function TestStoreProcedureByPreparedStatement(db) {
-	var pp = db.prepare('call test_sp(?,?,?)');
+    var pp = db.prepare('call test_sp(?,?,?)');
     var vParam = [1, 9811.25, null, //1st set
         0, 45321.14, null, //2nd set
         2, 2342.18, null]; //3rd set
-	//process multiple sets of parameters in one shot
+    //process multiple sets of parameters in one shot
     var pe = db.execute(vParam, (data, proc, cols) => {
         console.log({ data: data, proc: proc, cols: cols });
     });
@@ -158,7 +158,7 @@ function TestStoreProcedureByPreparedStatement(db) {
         var pd0 = [db.execute('delete from employee;delete from company')]; //line 158
         var pp0 = TestPreparedStatement(db); //line 159
         var pp1 = TestBLOBByPreparedStatement(db); //line 160
-		var pp2 = TestStoreProcedureByPreparedStatement(db); //161
+        var pp2 = TestStoreProcedureByPreparedStatement(db); //161
         var pd1 = [db.execute('delete from employee;delete from company')]; //line 162
         var pex0 = TestExecuteEx(db); //line 163
         var pex1 = TestBlobExecuteEx(db); //line 164

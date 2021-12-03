@@ -86,8 +86,8 @@ function TestBlobExecuteEx(db) {
     //3rd set
     buff.SaveObject('Hillary Clinton').SaveObject(new Date()).
         SaveObject(blob.PopBytes()).SaveObject(g_wstr);
-	
-	//for call sp_TestProc with output salary in decimal
+
+    //for call sp_TestProc with output salary in decimal
     buff.SaveObject(1276.54, "dec").SaveObject(new Date()); //line 91
 
     var sql = 'insert into employee(CompanyId,name,JoinDate,image,DESCRIPTION,Salary)values(1,?,?,?,?,?);' +
@@ -104,11 +104,11 @@ function TestBlobExecuteEx(db) {
 }
 
 function TestStoreProcedureByPreparedStatement(db) {
-	var pp = db.prepare('call sp_TestProc(?,?,?)');
+    var pp = db.prepare('call sp_TestProc(?,?,?)');
     var vParam = [1, 9811.25, null, //1st set
         0, 45321.14, null, //2nd set
         2, 2342.18, null]; //3rd set
-	//process multiple sets of parameters in one shot
+    //process multiple sets of parameters in one shot
     var pe = db.execute(vParam, (data, proc, cols) => {
         if (proc) console.log({ data: data, proc: proc, cols: cols });
     }, meta => {
@@ -136,7 +136,7 @@ function TestBLOBByPreparedStatement(db) {
     //3rd set
     buff.SaveObject(2).SaveObject('Hillary Clinton').SaveObject(new Date()).
         SaveObject(blob.PopBytes()).SaveObject(g_wstr).SaveObject(6254070.42);
-    var pe = db.execute(buff); //line 125
+    var pe = db.execute(buff); //line 139
     return [pp, pe];
 }
 
@@ -153,7 +153,7 @@ function TestBLOBByPreparedStatement(db) {
         var pd0 = [db.execute('delete from employee;delete from company')]; //line 153
         var pp0 = TestPreparedStatement(db); //line 154
         var pp1 = TestBLOBByPreparedStatement(db); //line 155
-		var pp2 = TestStoreProcedureByPreparedStatement(db); //line 156
+        var pp2 = TestStoreProcedureByPreparedStatement(db); //line 156
         var pd1 = [db.execute('delete from employee;delete from company')]; //line 157
         var pex0 = TestExecuteEx(db); //line 158
         var pex1 = TestBlobExecuteEx(db); //line 159

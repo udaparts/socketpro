@@ -30,20 +30,20 @@ while (g_str.length < 256 * 1024) {
 
 function TestCreateTables(db) {
     var pe0 = db.execute("use master;IF NOT EXISTS(SELECT * FROM sys.databases WHERE name='mydevdb')" +
-		"BEGIN CREATE DATABASE mydevdb; END;USE mydevdb");
+        "BEGIN CREATE DATABASE mydevdb; END;USE mydevdb");
     var pe1 = db.execute("IF NOT EXISTS(SELECT * FROM sys.tables WHERE name='company')create table " +
-		"company(ID bigint PRIMARY KEY NOT NULL,name varCHAR(64)NOT NULL,ADDRESS varCHAR(256)" +
-		"not null,Income float not null)");
+        "company(ID bigint PRIMARY KEY NOT NULL,name varCHAR(64)NOT NULL,ADDRESS varCHAR(256)" +
+        "not null,Income float not null)");
     var pe2 = db.execute("IF NOT EXISTS(SELECT * FROM sys.tables WHERE name='employee')create table" +
-		" employee(EMPLOYEEID bigint identity PRIMARY KEY,CompanyId bigint not null,name varCHAR(64)" +
-		"NOT NULL,JoinDate DATETIME2(3)default null,MyIMAGE varbinary(max),DESCRIPTION nvarchar(max)" +
-		",Salary decimal(15,2),FOREIGN KEY(CompanyId)REFERENCES company(id))");
+        " employee(EMPLOYEEID bigint identity PRIMARY KEY,CompanyId bigint not null,name varCHAR(64)" +
+        "NOT NULL,JoinDate DATETIME2(3)default null,MyIMAGE varbinary(max),DESCRIPTION nvarchar(max)" +
+        ",Salary decimal(15,2),FOREIGN KEY(CompanyId)REFERENCES company(id))");
     var pe3 = db.execute("IF EXISTS(SELECT * FROM sys.procedures WHERE name='sp_TestProc')" +
-		"drop proc sp_TestProc");
-	var pe4 = db.execute("CREATE PROCEDURE sp_TestProc(@p_company_id int,@p_sum_salary float OUT," +
-		"@p_last_dt datetime2(3) out)as select * from employee where companyid>=@p_company_id;" +
-		"select @p_sum_salary=sum(salary)+@p_sum_salary from employee where companyid>=" +
-		"@p_company_id;select @p_last_dt=SYSDATETIME()");
+        "drop proc sp_TestProc");
+    var pe4 = db.execute("CREATE PROCEDURE sp_TestProc(@p_company_id int,@p_sum_salary float OUT," +
+        "@p_last_dt datetime2(3) out)as select * from employee where companyid>=@p_company_id;" +
+        "select @p_sum_salary=sum(salary)+@p_sum_salary from employee where companyid>=" +
+        "@p_company_id;select @p_last_dt=SYSDATETIME()");
     return [pe0, pe1, pe2, pe3, pe4];
 }
 
@@ -90,8 +90,8 @@ function TestBlobExecuteEx(db) {
     //3rd set
     buff.SaveObject('Hillary Clinton').SaveObject(new Date()).
         SaveObject(blob.PopBytes()).SaveObject(g_wstr);
-	
-	//for call sp_TestProc with output salary in decimal
+
+    //for call sp_TestProc with output salary in decimal
     buff.SaveObject(1276.54, "dec").SaveObject(new Date()); //line 91
 
     var sql = 'insert into employee(CompanyId,name,JoinDate,myimage,DESCRIPTION,Salary)values(1,?,?,?,?,?);' +
@@ -108,17 +108,17 @@ function TestBlobExecuteEx(db) {
 }
 
 function TestStoreProcedureByPreparedStatement(db) {
-	var types = SPA.DB.DataType;
+    var types = SPA.DB.DataType;
     var pds = SPA.DB.ParamDirection;
     //All parameter infos must be set if one or more InputOutput or Output parameters are involved
     var vParamInfo = [{ DataType: types.Int },
     { Direction: pds.InputOutput, DataType: types.Double },
     { Direction: pds.Output, DataType: types.DateTime }];
-	var pp = db.prepare('exec sp_TestProc ?,?,?', vParamInfo);
+    var pp = db.prepare('exec sp_TestProc ?,?,?', vParamInfo);
     var vParam = [1, 9811.25, null, //1st set
         0, 45321.14, null, //2nd set
         2, 2342.18, null]; //3rd set
-	//process multiple sets of parameters in one shot
+    //process multiple sets of parameters in one shot
     var pe = db.execute(vParam, (data, proc, cols) => {
         if (proc) console.log({ data: data, proc: proc, cols: cols });
     }, meta => {
@@ -146,7 +146,7 @@ function TestBLOBByPreparedStatement(db) {
     //3rd set
     buff.SaveObject(2).SaveObject('Hillary Clinton').SaveObject(new Date()).
         SaveObject(blob.PopBytes()).SaveObject(g_wstr).SaveObject(6254070.42);
-    var pe = db.execute(buff); //line 125
+    var pe = db.execute(buff); //line 149
     return [pp, pe];
 }
 
@@ -160,11 +160,11 @@ function TestBLOBByPreparedStatement(db) {
         }
         console.log('Streaming all requests with the best network efficiency');
         var vTables = TestCreateTables(db); //line 162
-		res = await db.open('', 2); //enable query batching only, line 163
+        res = await db.open('', 2); //enable query batching only, line 163
         var pd0 = [db.execute('delete from employee;delete from company')]; //line 164
         var pp0 = TestPreparedStatement(db); //line 165
         var pp1 = TestBLOBByPreparedStatement(db); //line 166
-		var pp2 = TestStoreProcedureByPreparedStatement(db); //line 167
+        var pp2 = TestStoreProcedureByPreparedStatement(db); //line 167
         var pd1 = [db.execute('delete from employee;delete from company')]; //line 168
         var pex0 = TestExecuteEx(db); //line 169
         var pex1 = TestBlobExecuteEx(db); //line 170
