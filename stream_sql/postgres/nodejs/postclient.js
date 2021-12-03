@@ -5,7 +5,7 @@ var SPA = require('nja.js');
 var cs = SPA.CS; //CS == Client side
 
 //create a socket pool object
-var p = cs.newPool(SPA.SID.sidPostgres); //or sidOdbc, sidSqlite, sidMysql, sidMsSql
+var p = cs.newPool(SPA.SID.sidPostgres); //sidMysql, sidMsSql or other
 global.p = p;
 //p.QueueName = 'qpostgres';
 //create a connection context
@@ -21,7 +21,7 @@ var db = p.Seek(); //seek an async DB handler
 //make long strings for testing long text and blob objects
 var g_wstr = '';
 while (g_wstr.length < 256 * 1024) {
-    g_wstr += '?????????????????????????????????????????????????????????????????????????????';
+    g_wstr += '广告做得不那么夸张的就不说了，看看这三家，都是正儿八经的公立三甲，附属医院，不是武警，也不是部队，更不是莆田，都在卫生部门直接监管下，照样明目张胆地骗人。';
 }
 var g_str = '';
 while (g_str.length < 512 * 1024) {
