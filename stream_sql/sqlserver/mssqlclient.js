@@ -115,9 +115,9 @@ function TestStoreProcedureByPreparedStatement(db) {
     { Direction: pds.InputOutput, DataType: types.Double },
     { Direction: pds.Output, DataType: types.DateTime }];
     var pp = db.prepare('exec sp_TestProc ?,?,?', vParamInfo);
-    var vParam = [1, 9811.25, null, //1st set
-        0, 45321.14, null, //2nd set
-        2, 2342.18, null]; //3rd set
+    var vParam = [1, 9811.25, new Date(), //1st set
+        0, 45321.14, new Date(), //2nd set
+        2, 2342.18, new Date()]; //3rd set
     //process multiple sets of parameters in one shot
     var pe = db.execute(vParam, (data, proc, cols) => {
         if (proc) console.log({ data: data, proc: proc, cols: cols });
