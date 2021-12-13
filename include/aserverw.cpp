@@ -9,7 +9,7 @@ namespace SPA
 
         CSocketProServer * CSocketProServer::m_pServer = nullptr;
 
-        CSocketPeer::CSocketPeer() : m_hHandler(0), m_pBase(nullptr), m_UQueue(*m_sb), m_bRandom(false) {
+        CSocketPeer::CSocketPeer() : m_hHandler(0), m_pBase(nullptr), m_reqId(0), m_UQueue(*m_sb), m_bRandom(false) {
 
         }
 
@@ -139,7 +139,7 @@ namespace SPA
         }
 
         unsigned short CSocketPeer::GetCurrentRequestID() const {
-            return ServerCoreLoader.GetCurrentRequestID(m_hHandler);
+            return m_reqId;
         }
 
         bool CSocketPeer::IsMainThread() {
@@ -590,6 +590,7 @@ namespace SPA
                 return;
             CSocketPeer *p = pService->Seek(hSocket);
             if (p) {
+                p->m_reqId = usRequestID;
                 CUQueue &mc = p->m_UQueue;
                 mc.SetSize(0);
                 if (ServiceId != (unsigned int) tagServiceID::sidHTTP) {
@@ -740,6 +741,7 @@ namespace SPA
                 return;
             CSocketPeer *p = pService->Seek(hSocket);
             if (p) {
+                p->m_reqId = usRequestID;
                 if (usRequestID == (unsigned short) tagBaseRequestID::idPing) {
                     if (p->m_UQueue.GetSize() == 0 && p->m_UQueue.GetMaxSize() > 4 * DEFAULT_INITIAL_MEMORY_BUFFER_SIZE) {
                         p->m_UQueue.ReallocBuffer(DEFAULT_INITIAL_MEMORY_BUFFER_SIZE);

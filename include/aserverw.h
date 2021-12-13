@@ -258,6 +258,7 @@ namespace SPA {
             CScopeUQueue m_sb;
             USocket_Server_Handle m_hHandler;
             CBaseService *m_pBase;
+            std::atomic<unsigned short> m_reqId;
 
         protected:
             CUQueue &m_UQueue;
