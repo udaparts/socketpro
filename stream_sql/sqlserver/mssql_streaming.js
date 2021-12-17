@@ -48,7 +48,7 @@ function TestCreateTables(db) {
     })) {
         return false;
     }
-    if (!db.Execute("IF NOT EXISTS(SELECT * FROM sys.tables WHERE name='employee')create table employee(EMPLOYEEID bigint PRIMARY KEY NOT NULL,CompanyId bigint not null,name varCHAR(64)NOT NULL,JoinDate DATETIME2(3)default null,MyIMAGE varbinary(max),DESCRIPTION nvarchar(max),Salary decimal(15,2),FOREIGN KEY(CompanyId)REFERENCES company(id))", (res, err) => {
+    if (!db.Execute("IF NOT EXISTS(SELECT * FROM sys.tables WHERE name='employee')create table employee(EMPLOYEEID bigint IDENTITY PRIMARY KEY,CompanyId bigint not null,name varCHAR(64)NOT NULL,JoinDate DATETIME2(3)default null,MyIMAGE varbinary(max),DESCRIPTION nvarchar(max),Salary decimal(15,2),FOREIGN KEY(CompanyId)REFERENCES company(id))", (res, err) => {
         if (res) console.log({ ec: res, em: err });
     })) {
         return false;
