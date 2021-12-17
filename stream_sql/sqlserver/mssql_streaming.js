@@ -9,7 +9,7 @@ var p = cs.newPool(SPA.SID.sidMsSql);
 global.p = p;
 
 //create a connection context to SQL Server DB plugin running at port 20903
-var cc = cs.newCC('localhost', 20903, 'sa', 'Smash123');
+var cc = cs.newCC('localhost', 20901, 'sa', 'Smash123');
 
 //start a socket pool having one session to a remote server
 if (!p.Start(cc, 1)) {
@@ -106,7 +106,7 @@ if (!TestPreparedStatements(db)) {
 
 function TestBLOBByPreparedStatement(db) {
     //No need to set parameter infos if all of them are inputs
-    if (!db.Prepare('insert into employee(EMPLOYEEID,CompanyId,name,JoinDate,myimage,DESCRIPTION,Salary)values(?,?,?,?,?,?,?)', (res, err) => {
+    if (!db.Prepare('insert into employee(CompanyId,name,JoinDate,myimage,DESCRIPTION,Salary)values(?,?,?,?,?,?)', (res, err) => {
         if (res) console.log({ ec: res, em: err });
     })) {
         return false;
@@ -117,15 +117,15 @@ function TestBLOBByPreparedStatement(db) {
     blob.SaveString(wstr);
     //1st set
     //blob.PopBytes() -- convert all data inside blob memory into an array of bytes
-    buff.SaveObject(1).SaveObject(1).SaveObject('Ted Cruz').SaveObject(new Date()).SaveObject(blob.PopBytes()).SaveObject(wstr).SaveObject('254000.15');
+    buff.SaveObject(1).SaveObject('Ted Cruz').SaveObject(new Date()).SaveObject(blob.PopBytes()).SaveObject(wstr).SaveObject('254000.15');
 
     blob.SaveAString(str);
     //2nd set
-    buff.SaveObject(2).SaveObject(1).SaveObject('Donald Trump').SaveObject(new Date()).SaveObject(blob.PopBytes()).SaveObject(str).SaveObject(20254000.35);
+    buff.SaveObject(1).SaveObject('Donald Trump').SaveObject(new Date()).SaveObject(blob.PopBytes()).SaveObject(str).SaveObject(20254000.35);
 
     blob.SaveAString(str).SaveString(wstr);
     //3rd set
-    buff.SaveObject(3).SaveObject(2).SaveObject('Hillary Clinton').SaveObject(new Date()).SaveObject(blob.PopBytes()).SaveObject(wstr).SaveObject(6254000.42);
+    buff.SaveObject(2).SaveObject('Hillary Clinton').SaveObject(new Date()).SaveObject(blob.PopBytes()).SaveObject(wstr).SaveObject(6254000.42);
 
     //send three sets in one shot
     if (!db.Execute(buff, (res, err, affected, fails, oks, id) => {
@@ -198,14 +198,14 @@ if (!TestStoredProcedure(db)) {
 }
 
 function TestBatch(db) {
-    var sql = 'delete from employee;delete from company|INSERT INTO company(ID,NAME,ADDRESS,Income)VALUES(?,?,?,?)|insert into employee(EMPLOYEEID,CompanyId,name,JoinDate,myimage,DESCRIPTION,Salary)values(?,?,?,?,?,?,?)|SELECT * from company;select name,joindate,salary from employee;select getdate()|exec mydevdb.dbo.sp_TestProc ?,?,?';
+    var sql = 'delete from employee;delete from company|INSERT INTO company(ID,NAME,ADDRESS,Income)VALUES(?,?,?,?)|insert into employee(CompanyId,name,JoinDate,myimage,DESCRIPTION,Salary)values(?,?,?,?,?,?)|SELECT * from company;select name,joindate,salary from employee;select getdate()|exec mydevdb.dbo.sp_TestProc ?,?,?';
     var buff = SPA.newBuffer();
     var blob = SPA.newBuffer();
     var types = SPA.DB.DataType;
     var pds = SPA.DB.ParamDirection;
     //All parameter infos must be set if one or more InputOutput or Output parameters are involved
     var vParamInfo = [{ DataType: types.Int }, { DataType: types.AStr, ColumnSize: 64 }, { DataType: types.AStr, ColumnSize: 256 }, { DataType: types.Double },
-    { DataType: types.Int }, { DataType: types.Int }, { DataType: types.AStr, ColumnSize: 64 }, { DataType: types.DateTime }, { DataType: types.Binary, ColumnSize: 0x7fffffff }, { DataType: types.WStr, ColumnSize: 0x7fffffff }, { DataType: types.Double },
+    { DataType: types.Int }, { DataType: types.AStr, ColumnSize: 64 }, { DataType: types.DateTime }, { DataType: types.Binary, ColumnSize: 0x7fffffff }, { DataType: types.WStr, ColumnSize: 0x7fffffff }, { DataType: types.Double },
     { DataType: types.Int }, { Direction: pds.InputOutput, DataType: types.Double }, { Direction: pds.Output, DataType: types.DateTime }];
 
     var dt = new Date(1970, 1, 1);
@@ -214,7 +214,7 @@ function TestBatch(db) {
     //INSERT INTO company(ID,NAME,ADDRESS,Income)VALUES(?,?,?,?)
     buff.SaveObject(1).SaveObject('Google Inc.').SaveObject('1600 Amphitheatre Parkway, Mountain View, CA 94043, USA').SaveObject(66000000000.15);
     //insert into employee(CompanyId,name,JoinDate,image,DESCRIPTION,Salary)values(?,?,?,?,?,?)
-    buff.SaveObject(1).SaveObject(1); //Google company id
+    buff.SaveObject(1); //Google company id
     blob.SaveString(wstr); //UNICODE string
     buff.SaveObject('Ted Cruz').SaveObject(new Date()).SaveObject(blob.PopBytes()).SaveObject(wstr).SaveObject(254000.15);
     //call sp_TestProc(?,?,?)
@@ -222,14 +222,14 @@ function TestBatch(db) {
 
     //2nd set
     buff.SaveObject(2).SaveObject('Microsoft Inc.').SaveObject('700 Bellevue Way NE- 22nd Floor, Bellevue, WA 98804, USA').SaveObject('93600000000.12');
-    buff.SaveObject(2).SaveObject(1); //Google company id
+    buff.SaveObject(1); //Google company id
     blob.SaveAString(str); //ASCII string
     buff.SaveObject('Donald Trump').SaveObject(new Date()).SaveObject(blob.PopBytes()).SaveObject(str).SaveObject(20254000);
     buff.SaveObject(2).SaveObject(1.14).SaveObject(dt);
 
     //3rd set
     buff.SaveObject(3).SaveObject('Apple Inc.').SaveObject('1 Infinite Loop, Cupertino, CA 95014, USA').SaveObject(234000000000.14);
-    buff.SaveObject(3).SaveObject(2); //Microsoft company id
+    buff.SaveObject(2); //Microsoft company id
     blob.SaveAString(str).SaveString(wstr);
     buff.SaveObject('Hillary Clinton').SaveObject(new Date()).SaveObject(blob.PopBytes()).SaveObject(wstr).SaveObject('6254000.15');
     buff.SaveObject(0).SaveObject(8.16).SaveObject(dt);

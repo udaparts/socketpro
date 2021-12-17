@@ -96,7 +96,7 @@ class Program
         ok = sql.Execute(use_database, er);
         string create_table = "IF NOT EXISTS(SELECT * FROM sys.tables WHERE name='company')create table company(ID bigint PRIMARY KEY NOT NULL,name CHAR(64)NOT NULL,ADDRESS varCHAR(256)not null,Income float not null)";
         ok = sql.Execute(create_table, er);
-        create_table = "IF NOT EXISTS(SELECT * FROM sys.tables WHERE name='employee')create table employee(EMPLOYEEID bigint PRIMARY KEY NOT NULL,CompanyId bigint not null,name CHAR(64)NOT NULL,JoinDate DATETIME2(3)default null,MyIMAGE varbinary(max),DESCRIPTION nvarchar(max),Salary decimal(15,2),FOREIGN KEY(CompanyId)REFERENCES company(id))";
+        create_table = "IF NOT EXISTS(SELECT * FROM sys.tables WHERE name='employee')create table employee(EMPLOYEEID bigint identity PRIMARY KEY,CompanyId bigint not null,name CHAR(64)NOT NULL,JoinDate DATETIME2(3)default null,MyIMAGE varbinary(max),DESCRIPTION nvarchar(max),Salary decimal(15,2),FOREIGN KEY(CompanyId)REFERENCES company(id))";
         ok = sql.Execute(create_table, er);
         create_table = "IF NOT EXISTS(SELECT * FROM sys.tables WHERE name='test_rare1')CREATE TABLE test_rare1(testid int IDENTITY(1,1)NOT NULL,myguid uniqueidentifier DEFAULT newid()NULL,mydate date DEFAULT getdate()NULL,mybool bit DEFAULT 0 NOT NULL,mymoney money default 0 NULL,mytinyint tinyint default 0 NULL,myxml xml DEFAULT '<myxml_root />' NULL,myvariant sql_variant DEFAULT 'my_variant_default' NOT NULL,mydateimeoffset datetimeoffset(4)NULL,PRIMARY KEY(testid))";
         ok = sql.Execute(create_table, er);
@@ -175,13 +175,12 @@ class Program
         {
             str += "The epic takedown of his opponent on an all-important voting day was extraordinary even by the standards of the 2016 campaign -- and quickly drew a scathing response from Trump.";
         }
-        string sqlInsert = "insert into employee(EmployeeId,CompanyId,name,JoinDate,myimage,DESCRIPTION,Salary)values(?,?,?,?,?,?,?)";
+        string sqlInsert = "insert into employee(CompanyId,name,JoinDate,myimage,DESCRIPTION,Salary)values(?,?,?,?,?,?)";
         bool ok = sql.Prepare(sqlInsert, dr);
         CDBVariantArray vData = new CDBVariantArray();
         using (CScopeUQueue sbBlob = new CScopeUQueue())
         {
             //first set of data
-            vData.Add(1);
             vData.Add(1); //google company id
             vData.Add("Ted Cruz");
             vData.Add(DateTime.Now);
@@ -191,7 +190,6 @@ class Program
             vData.Add(254000.24m);
 
             //second set of data
-            vData.Add(2);
             vData.Add(1); //google company id
             vData.Add("Donald Trump");
             vData.Add(DateTime.Now);
@@ -202,7 +200,6 @@ class Program
             vData.Add(20254000.15m);
 
             //third set of data
-            vData.Add(3);
             vData.Add(2); //Microsoft company id
             vData.Add("Hillary Clinton");
             vData.Add(DateTime.Now);
