@@ -160,7 +160,7 @@ function TestBLOBByPreparedStatement(db) {
         }
         console.log('Streaming all requests with the best network efficiency');
         var vTables = TestCreateTables(db); //line 162
-        res = await db.open('', 2); //enable query batching only, line 163
+        res = db.open('', 2); //enable query batching only, line 163
         var pd0 = [db.execute('delete from employee;delete from company')]; //line 164
         var pp0 = TestPreparedStatement(db); //line 165
         var pp1 = TestBLOBByPreparedStatement(db); //line 166
