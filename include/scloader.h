@@ -208,6 +208,8 @@ namespace SPA {
         typedef bool (WINAPI *PGetInlineBatching)(USocket_Server_Handle h);
         typedef void (WINAPI *PSetInlineBatching)(USocket_Server_Handle h, bool manualBatching);
         typedef unsigned short (WINAPI *PPeekNextRequest)(USocket_Server_Handle h);
+        typedef bool (WINAPI *PGetACCQI)(USocket_Server_Handle h);
+        typedef bool (WINAPI *PSetACCQI)(USocket_Server_Handle h, bool accqi);
 
         namespace Internal {
 
@@ -426,6 +428,8 @@ namespace SPA {
                 PGetInlineBatching GetInlineBatching;
                 PSetInlineBatching SetInlineBatching;
                 PPeekNextRequest PeekNextRequest;
+                PGetACCQI GetACCQI;
+                PSetACCQI SetACCQI;
 
             public:
 
@@ -647,6 +651,8 @@ namespace SPA {
                     GetInlineBatching = (PGetInlineBatching)::GetProcAddress(m_hServerCore, "GetInlineBatching");
                     SetInlineBatching = (PSetInlineBatching)::GetProcAddress(m_hServerCore, "SetInlineBatching");
                     PeekNextRequest = (PPeekNextRequest)::GetProcAddress(m_hServerCore, "PeekNextRequest");
+                    GetACCQI = (PGetACCQI)::GetProcAddress(m_hServerCore, "GetACCQI");
+                    SetACCQI = (PSetACCQI)::GetProcAddress(m_hServerCore, "SetACCQI");
                 }
 
             private:

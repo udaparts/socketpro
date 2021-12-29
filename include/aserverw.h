@@ -545,6 +545,8 @@ namespace SPA {
             void SetOnceOnly(bool onceOnly) const;
             bool GetInlineBatching() const;
             void SetInlineBatching(bool manualBatching) const;
+            bool GetACCQI() const;
+            bool SetACCQI(bool accqi) const;
 
         protected:
             virtual void OnPublishEx(const unsigned int *pGroup, unsigned int count, const unsigned char *pMessage, unsigned int size);

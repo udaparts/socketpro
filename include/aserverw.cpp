@@ -384,6 +384,14 @@ namespace SPA
             ServerCoreLoader.SetInlineBatching(GetSocketHandle(), manualBatching);
         }
 
+        bool CClientPeer::GetACCQI() const {
+            return ServerCoreLoader.GetACCQI(GetSocketHandle());
+        }
+
+        bool CClientPeer::SetACCQI(bool accqi) const {
+            return ServerCoreLoader.SetACCQI(GetSocketHandle(), accqi);
+        }
+
         std::vector<unsigned int> CSocketPeer::GetChatGroups() const {
             CScopeUQueue sb;
             std::vector<unsigned int> vChatGroups;

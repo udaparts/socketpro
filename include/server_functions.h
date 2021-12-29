@@ -442,6 +442,9 @@ extern "C" {
     bool WINAPI GetInlineBatching(USocket_Server_Handle h);
     void WINAPI SetInlineBatching(USocket_Server_Handle h, bool manual_batching);
     unsigned short WINAPI PeekNextRequest(USocket_Server_Handle h);
+    bool WINAPI GetACCQI(USocket_Server_Handle h);
+    bool WINAPI SetACCQI(USocket_Server_Handle h, bool accqi);
+
 #ifdef __cplusplus
 }
 #endif
