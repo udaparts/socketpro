@@ -287,6 +287,25 @@ public class CClientPeer extends CSocketPeer {
         ServerCoreLoader.SetZip(getHandle(), value);
     }
 
+    public final boolean getACCQI() {
+        return ServerCoreLoader.GetACCQI(getHandle());
+    }
+
+    /**
+     * Auto-Collecting Client Queue Index
+     *
+     * @param accqi True to enable auto-collecting client message queue index;
+     * false to disable auto-collecting client message queue index
+     * @return True if auto-collecting client message queue index is enabled;
+     * false if auto-collecting client message queue index is disabled
+     * @remarks Use the property carefully, which is used to enable client
+     * message queue if in-line requests batching is employed at SocketPro
+     * server side
+     */
+    public final boolean setACCQI(boolean accqi) {
+        return ServerCoreLoader.SetACCQI(getHandle(), accqi);
+    }
+
     public final boolean getOnceOnly() {
         return ServerCoreLoader.GetOnceOnly(getHandle());
     }
