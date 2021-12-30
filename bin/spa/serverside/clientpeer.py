@@ -133,6 +133,14 @@ class CClientPeer(CSocketPeer):
         pass
 
     @property
+    def ACCQI(self):
+        return scl.GetACCQI(self.Handle)
+
+    @ACCQI.setter
+    def ACCQI(self, value):
+        return scl.SetACCQI(self.Handle, value)
+
+    @property
     def ZipLevel(self):
         return scl.GetZipLevel(self.Handle)
 

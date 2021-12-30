@@ -1095,6 +1095,16 @@ class SCoreLoader(object):
     PeekNextRequest.argtypes = [c_uint64]
     PeekNextRequest.restype = c_ushort
 
+    #bool WINAPI GetACCQI(USocket_Server_Handle h);
+    GetACCQI = _ussLib_.GetACCQI
+    GetACCQI.argtypes = [c_uint64]
+    GetACCQI.restype = c_bool
+
+    #bool WINAPI SetACCQI(USocket_Server_Handle h, bool accqi);
+    SetACCQI = _ussLib_.SetACCQI
+    SetACCQI.argtypes = [c_uint64, c_bool]
+    SetACCQI.restype = c_bool
+
 class CSvsContext(Structure):
     _fields_ = [("m_ta", c_int), #required with a worker thread only on window platforms
                 ("m_OnSwitchTo", SCoreLoader.POnSwitchTo),
