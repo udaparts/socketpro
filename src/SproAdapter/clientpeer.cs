@@ -951,6 +951,19 @@ namespace SocketProAdapter
                 }
             }
 
+            /// <summary>
+            /// Auto-Collecting Client Queue Index
+            /// </summary>
+            /// <remarks>Use the property carefully, which is used to enable client message queue if in-line requests batching at SocketPro server side</remarks>
+            public bool ACCQI {
+                get {
+                    return ServerCoreLoader.GetACCQI(Handle);
+                }
+                set {
+                    ServerCoreLoader.SetACCQI(Handle, value);
+                }
+            }
+
             public bool DequeuedMessageAborted {
                 get {
                     return ServerCoreLoader.IsDequeuedMessageAborted(Handle);

@@ -725,6 +725,14 @@ namespace SocketProAdapter
 
             [DllImport(SERVER_CORE_DLL)]
             internal static extern uint PeekNextRequest(ulong h);
+
+            [DllImport(SERVER_CORE_DLL)]
+            [return: MarshalAs(UnmanagedType.I1)]
+            internal static extern bool GetACCQI(ulong h);
+
+            [DllImport(SERVER_CORE_DLL)]
+            [return: MarshalAs(UnmanagedType.I1)]
+            internal static extern bool SetACCQI(ulong h, bool accqi);
         }
     }
 }

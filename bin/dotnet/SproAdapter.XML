@@ -81,6 +81,12 @@
             </summary>
             <param name="enable">True for enabling client side dequeue; and false for disabling client side dequeue</param>
         </member>
+        <member name="P:SocketProAdapter.ServerSide.CClientPeer.ACCQI">
+            <summary>
+            Auto-Collecting Client Queue Index
+            </summary>
+            <remarks>Use the property carefully, which is used to enable client message queue if in-line requests batching at SocketPro server side</remarks>
+        </member>
         <member name="M:SocketProAdapter.ServerSide.IServerQueue.AppendTo(SocketProAdapter.ServerSide.IServerQueue)">
             <summary>
             Replicate all messages within this queue onto one target queue
