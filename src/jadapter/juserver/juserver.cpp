@@ -1179,6 +1179,14 @@ JNIEXPORT jshort JNICALL Java_SPA_ServerSide_ServerCoreLoader_PeekNextRequest(JN
     return (jshort) PeekNextRequest((USocket_Server_Handle) h);
 }
 
+JNIEXPORT jboolean JNICALL Java_SPA_ServerSide_ServerCoreLoader_GetACCQI(JNIEnv*, jclass, jlong h) {
+    return GetACCQI((USocket_Server_Handle) h);
+}
+
+JNIEXPORT jboolean JNICALL Java_SPA_ServerSide_ServerCoreLoader_SetACCQI(JNIEnv*, jclass, jlong h, jboolean accqi) {
+    return SetACCQI((USocket_Server_Handle) h, accqi ? true : false);
+}
+
 JNIEXPORT jboolean JNICALL Java_SPA_ServerSide_ServerCoreLoader_GetInlineBatching(JNIEnv*, jclass, jlong h) {
     return GetInlineBatching((USocket_Server_Handle) h);
 }

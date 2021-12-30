@@ -1547,13 +1547,37 @@ JNIEXPORT void JNICALL Java_SPA_ServerSide_ServerCoreLoader_SetInlineBatching
 (JNIEnv*, jclass, jlong, jboolean);
 
 
-JNIEXPORT jshort JNICALL Java_SPA_ServerSide_ServerCoreLoader_PeekNextRequest(JNIEnv*, jclass, jlong h);
+/*
+ * Class:     SPA_ServerSide_ServerCoreLoader
+ * Method:    PeekNextRequest
+ * Signature: (J)S
+ */
+JNIEXPORT jshort JNICALL Java_SPA_ServerSide_ServerCoreLoader_PeekNextRequest
+(JNIEnv*, jclass, jlong h);
+
+/*
+ * Class:     SPA_ServerSide_ServerCoreLoader
+ * Method:    GetACCQI
+ * Signature: (J)Z
+ */
+JNIEXPORT jboolean JNICALL Java_SPA_ServerSide_ServerCoreLoader_GetACCQI
+(JNIEnv*, jclass, jlong);
+
+/*
+ * Class:     SPA_ServerSide_ServerCoreLoader
+ * Method:    SetACCQI
+ * Signature: (JZ)Z
+ */
+JNIEXPORT jboolean JNICALL Java_SPA_ServerSide_ServerCoreLoader_SetACCQI
+(JNIEnv*, jclass, jlong, jboolean);
 
 
 JNIEXPORT jint JNICALL Java_SPA_ServerSide_Plugin_DoSPluginAuthentication(JNIEnv*, jclass, jstring, jlong, jstring, jstring, jint, jstring);
 JNIEXPORT jboolean JNICALL Java_SPA_ServerSide_Plugin_SetSPluginGlobalOptions(JNIEnv*, jclass, jstring, jstring);
 JNIEXPORT jstring JNICALL Java_SPA_ServerSide_Plugin_GetSPluginVersion(JNIEnv*, jclass, jstring);
 JNIEXPORT jstring JNICALL Java_SPA_ServerSide_Plugin_GetSPluginGlobalOptions(JNIEnv*, jclass, jstring, jint);
+
+
 
 #ifdef __cplusplus
 }
