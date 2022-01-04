@@ -8,7 +8,7 @@
 	(g) Fix a few bugs within nodejs adapter and SocketPro MS SQL plugin (usqlsvr)
 	(h) Add a new method ExecuteEx into DB APIs for all DB-related plugins. The method has a number of advantages such as in-line query batching support, no SQL injection attack and flexiblity
 	(i) Add SocketPro server plugin for PostgreSQL
-	(j) Add a new feture ACCQI (Auto Collecting Client message Queue Index) into server core lib to support in-line requests batching at server side with client message queue enabled
+	(j) Add a new feature ACCQI (Auto Collecting Client message Queue Index) into server core lib to support in-line requests batching at server side with client message queue enabled
 
 24.	SocketPro Version 6.3.1.2-6.3.2.2
 	(a) Add support to char16_t and slightly improve performance of nodejs adapter or C/C++ application on linux
