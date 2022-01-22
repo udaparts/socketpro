@@ -213,15 +213,13 @@ Here is the table for compatibility among six major development languages, Pytho
 </tr>
 </table>
 <p>*: SocketPro uses a unsigned long integer (8 bytes) to represent date time across different platforms and languages.
-Date time can be accurate to one microsecond.</p>
+Date time can be accurate to one 100-nanosecond.</p>
 <p>**: A null string length will be 0xffffffff for both ASCII and Unicode string. When a string is saved into an instance of <i>CUQueue</i>, an unsigned int for its length in bytes will be saved before its actual content is saved.
-In regards to an unicode string, its length will be equal to 2 * the number of characters. On Linux or unix platforms, a wide char string must be converted into UTF16 low-endian string at first if one wide char has four bytes.
-</p>
+In regards to an unicode string, its length will be equal to 2 * the number of characters. On Linux or unix platforms, a wide char string must be converted into UTF16 low-endian string at first 
+    before packing if one wide char has four bytes.</p>
 <p>***: To pack an Object into an instance of <i>CUQueue</i>, it is a must to save a data type in unsigned short (2 bytes) before saving its actual type data.
-When unpacking an Object from an instance of <i>CUQueue</i>, we unpack the data type in unsigned short first before unpacking a data indicated by its data type.
-</p>
-<p>****: See the examples at the above Section 2.
-</p>
+When unpacking an Object from an instance of <i>CUQueue</i>, we unpack the data type in unsigned short first before unpacking a data indicated by its data type.</p>
+<p>****: See the examples at the above Section 2.</p>
 <h3>5.  Use the class <i>CScopeUQueue</i> whenever proper</h3>
 <p>When sending a request or result to the other end, it always requires to create and destroy an instance of <i>CUQueue</i>, which leads to allocating and de-allocating memories.
 To reduce memory allocations, SocketPro adapters (C/C++, Java, .NET and Python) also provide a new utitility class <i>CScopeUQueue</i>. Under most cases, we use <i>CScopeUQueue</i> instead of <i>CUQueue</i>.
