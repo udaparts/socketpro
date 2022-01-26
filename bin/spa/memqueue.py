@@ -547,6 +547,8 @@ class CUQueue(object):
             length = -1
             self.SaveInt(length)
             return self
+        if  length > len(bytes):
+            length = len(bytes)
         self.SaveInt(length)
         return self.Push(bytes, length)
 
