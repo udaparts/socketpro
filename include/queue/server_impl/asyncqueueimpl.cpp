@@ -234,7 +234,7 @@ namespace SPA
         }
 
         void CAsyncQueueImpl::EnqueueBatch(std::string &key, unsigned int count, UINT64 & res) {
-            res = -1;
+            res = INVALID_NUMBER;
             std::shared_ptr<CMyQueue> p = m_qTrans;
             if (!p) {
                 p = Find(key);
@@ -251,7 +251,7 @@ namespace SPA
             if (m_bufferBatch) {
                 m_bufferBatch->Push(m_UQueue.GetBuffer(), m_UQueue.GetSize());
                 m_count += count;
-                res = count;
+                res = m_count;
             } else {
                 p->Enqueue(count, m_UQueue.GetBuffer(), res);
             }
@@ -259,6 +259,7 @@ namespace SPA
         }
 
         void CAsyncQueueImpl::Enqueue(std::string &key, unsigned short idmessage, SPA::UINT64 & index) {
+            index = INVALID_NUMBER;
             std::shared_ptr<CMyQueue> p = m_qTrans;
             if (!p) {
                 p = Find(key);
@@ -269,7 +270,6 @@ namespace SPA
                     CSpinAutoLock al(m_cs);
                     m_mapKeyQueue[key] = p;
                 } else {
-                    index = INVALID_NUMBER; // == -1
                     return;
                 }
             }
@@ -278,6 +278,7 @@ namespace SPA
                 *m_bufferBatch << idmessage << m_UQueue.GetSize();
                 m_bufferBatch->Push(m_UQueue.GetBuffer(), m_UQueue.GetSize());
                 ++m_count;
+                index = m_count;
             } else {
                 p->Enqueue(m_UQueue, idmessage, index);
             }
