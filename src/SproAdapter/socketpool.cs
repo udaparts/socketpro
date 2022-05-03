@@ -22,14 +22,17 @@ namespace SocketProAdapter
             private uint m_ServiceId = 0;
             private CConnectionContext[,] m_mcc;
             private string m_qName = "";
-            public string QueueName {
-                get {
+            public string QueueName
+            {
+                get
+                {
                     lock (m_cs)
                     {
                         return m_qName;
                     }
                 }
-                set {
+                set
+                {
                     string s = value;
                     if (s != null)
                         s = s.Trim();
@@ -97,14 +100,18 @@ namespace SocketProAdapter
                 }
             }
 
-            public static uint SocketPools {
-                get {
+            public static uint SocketPools
+            {
+                get
+                {
                     return ClientCoreLoader.GetNumberOfSocketPools();
                 }
             }
 
-            public THandler[] AsyncHandlers {
-                get {
+            public THandler[] AsyncHandlers
+            {
+                get
+                {
                     lock (m_cs)
                     {
                         int n = 0;
@@ -120,8 +127,10 @@ namespace SocketProAdapter
                 }
             }
 
-            public CClientSocket[] Sockets {
-                get {
+            public CClientSocket[] Sockets
+            {
+                get
+                {
                     lock (m_cs)
                     {
                         int n = 0;
@@ -137,8 +146,10 @@ namespace SocketProAdapter
                 }
             }
 
-            public uint PoolId {
-                get {
+            public uint PoolId
+            {
+                get
+                {
                     lock (m_cs)
                     {
                         return m_nPoolId;
@@ -149,14 +160,17 @@ namespace SocketProAdapter
             /// <summary>
             /// Enable (true) or disable (false) automatically merging requests queued inside a local/client file to a connected session within a pool of sockets when a session is disconnected. The property defaults to false.
             /// </summary>
-            public bool QueueAutoMerge {
-                get {
+            public bool QueueAutoMerge
+            {
+                get
+                {
                     lock (m_cs)
                     {
                         return ((ClientCoreLoader.GetQueueAutoMergeByPool(m_nPoolId) > 0) ? true : false);
                     }
                 }
-                set {
+                set
+                {
                     lock (m_cs)
                     {
                         ClientCoreLoader.SetQueueAutoMergeByPool(m_nPoolId, (byte)(value ? 1 : 0));
@@ -224,8 +238,10 @@ namespace SocketProAdapter
                 return h;
             }
 
-            public uint Queues {
-                get {
+            public uint Queues
+            {
+                get
+                {
                     uint q = 0;
                     lock (m_cs)
                     {
@@ -471,8 +487,28 @@ namespace SocketProAdapter
                 return true;
             }
 
-            public bool Started {
-                get {
+            /// <summary>
+            /// Get a reference to the pool underlying lock object
+            /// </summary>
+            /// <remarks>Use the property for creating your own Methods Lock, Seek, SeekByQueue within your .NET extension libraries</remarks>
+            public object PoolLock
+            {
+                get { return m_cs; }
+            }
+
+            /// <summary>
+            /// Get a reference to the pool underlying dictionary object
+            /// </summary>
+            /// <remarks>Use the property for creating your own Methods Lock, Seek, SeekByQueue within your .NET extension libraries</remarks>
+            public Dictionary<CClientSocket, THandler> UnsafeMap
+            {
+                get { return m_dicSocketHandler; }
+            }
+
+            public bool Started
+            {
+                get
+                {
                     lock (m_cs)
                     {
                         return (m_nPoolId > 0 && ClientCoreLoader.GetThreadCount(m_nPoolId) > 0);
@@ -480,8 +516,10 @@ namespace SocketProAdapter
                 }
             }
 
-            public uint LockedSockets {
-                get {
+            public uint LockedSockets
+            {
+                get
+                {
                     lock (m_cs)
                     {
                         return ClientCoreLoader.GetLockedSockets(m_nPoolId);
@@ -489,8 +527,10 @@ namespace SocketProAdapter
                 }
             }
 
-            public uint IdleSockets {
-                get {
+            public uint IdleSockets
+            {
+                get
+                {
                     lock (m_cs)
                     {
                         return ClientCoreLoader.GetIdleSockets(m_nPoolId);
@@ -498,8 +538,10 @@ namespace SocketProAdapter
                 }
             }
 
-            public uint ConnectedSockets {
-                get {
+            public uint ConnectedSockets
+            {
+                get
+                {
                     lock (m_cs)
                     {
                         return ClientCoreLoader.GetConnectedSockets(m_nPoolId);
@@ -507,8 +549,10 @@ namespace SocketProAdapter
                 }
             }
 
-            public uint ThreadsCreated {
-                get {
+            public uint ThreadsCreated
+            {
+                get
+                {
                     lock (m_cs)
                     {
                         return ClientCoreLoader.GetThreadCount(m_nPoolId);
@@ -516,8 +560,10 @@ namespace SocketProAdapter
                 }
             }
 
-            public uint DisconnectedSockets {
-                get {
+            public uint DisconnectedSockets
+            {
+                get
+                {
                     lock (m_cs)
                     {
                         return ClientCoreLoader.GetDisconnectedSockets(m_nPoolId);
@@ -525,8 +571,10 @@ namespace SocketProAdapter
                 }
             }
 
-            public uint SocketsPerThread {
-                get {
+            public uint SocketsPerThread
+            {
+                get
+                {
                     lock (m_cs)
                     {
                         return ClientCoreLoader.GetSocketsPerThread(m_nPoolId);
@@ -535,8 +583,10 @@ namespace SocketProAdapter
                 }
             }
 
-            public bool Avg {
-                get {
+            public bool Avg
+            {
+                get
+                {
                     lock (m_cs)
                     {
                         return ClientCoreLoader.IsAvg(m_nPoolId) != 0;
@@ -751,11 +801,14 @@ namespace SocketProAdapter
 
             }
             private UDelegate<DOnSocketPoolEvent> m_lstSPE;
-            public event DOnSocketPoolEvent SocketPoolEvent {
-                add {
+            public event DOnSocketPoolEvent SocketPoolEvent
+            {
+                add
+                {
                     m_lstSPE.add(value);
                 }
-                remove {
+                remove
+                {
                     m_lstSPE.remove(value);
                 }
             }

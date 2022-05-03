@@ -1613,6 +1613,18 @@
             Enable (true) or disable (false) automatically merging requests queued inside a local/client file to a connected session within a pool of sockets when a session is disconnected. The property defaults to false.
             </summary>
         </member>
+        <member name="P:SocketProAdapter.ClientSide.CSocketPool`1.PoolLock">
+            <summary>
+            Get a reference to the pool underlying lock object
+            </summary>
+            <remarks>Use the property for creating your own Methods Lock, Seek, SeekByQueue within your .NET extension libraries</remarks>
+        </member>
+        <member name="P:SocketProAdapter.ClientSide.CSocketPool`1.UnsafeMap">
+            <summary>
+            Get a reference to the pool underlying dictionary object
+            </summary>
+            <remarks>Use the property for creating your own Methods Lock, Seek, SeekByQueue within your .NET extension libraries</remarks>
+        </member>
         <member name="F:SocketProAdapter.ClientSide.ReplicationSetting.QueueDir">
             <summary>
             An absolute path to a directory containing message queue files.
@@ -2131,7 +2143,6 @@
             </summary>
             <returns>The number of elements contained in this deque.</returns>
         </member>
-        <!-- Badly formed XML comment ignored for member "F:SocketProAdapter.tagOperationSystem.osWinPhone" -->
         <member name="F:SocketProAdapter.tagThreadApartment.taNone">
             no COM apartment involved
         </member>

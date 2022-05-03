@@ -1589,6 +1589,18 @@
             </summary>
             <returns>The method always returns true.</returns>
         </member>
+        <member name="P:SocketProAdapter.ClientSide.CSocketPool`1.PoolLock">
+            <summary>
+            Get a reference to the pool underlying lock object
+            </summary>
+            <remarks>Use the property for creating your own Methods Lock, Seek, SeekByQueue within your .NET extension libraries</remarks>
+        </member>
+        <member name="P:SocketProAdapter.ClientSide.CSocketPool`1.UnsafeMap">
+            <summary>
+            Get a reference to the pool underlying dictionary object
+            </summary>
+            <remarks>Use the property for creating your own Methods Lock, Seek, SeekByQueue within your .NET extension libraries</remarks>
+        </member>
         <member name="M:SocketProAdapter.ClientSide.CSocketPool`1.StartSocketPool(SocketProAdapter.ClientSide.CConnectionContext[0:,0:])">
             <summary>
             Start a pool of sockets with a given two-dimensional matrix of connection contexts
@@ -1912,7 +1924,6 @@
             A chat group id used at SocketPro server side for notifying database events from server to connected clients
             </summary>
         </member>
-        <!-- Badly formed XML comment ignored for member "F:SocketProAdapter.tagOperationSystem.osWinPhone" -->
         <member name="F:SocketProAdapter.tagThreadApartment.taNone">
             no COM apartment involved
         </member>

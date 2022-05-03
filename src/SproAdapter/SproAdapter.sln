@@ -1,38 +1,25 @@
 ﻿
-Microsoft Visual Studio Solution File, Format Version 11.00
-# Visual Studio 2010
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SproAdapter", "SproAdapter.csproj", "{83D40134-5DCE-4396-AC69-4D155CD8E660}"
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.1.32421.90
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SproAdapter", "SproAdapter.csproj", "{D69ABBF2-A7E7-4B3A-9B15-C0A22E19B7A2}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
-		Debug|Mixed Platforms = Debug|Mixed Platforms
-		Debug|Win32 = Debug|Win32
-		Debug|x64 = Debug|x64
-		Debug|x86 = Debug|x86
 		Release|Any CPU = Release|Any CPU
-		Release|Mixed Platforms = Release|Mixed Platforms
-		Release|Win32 = Release|Win32
-		Release|x64 = Release|x64
-		Release|x86 = Release|x86
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{83D40134-5DCE-4396-AC69-4D155CD8E660}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{83D40134-5DCE-4396-AC69-4D155CD8E660}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{83D40134-5DCE-4396-AC69-4D155CD8E660}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
-		{83D40134-5DCE-4396-AC69-4D155CD8E660}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
-		{83D40134-5DCE-4396-AC69-4D155CD8E660}.Debug|Win32.ActiveCfg = Debug|Any CPU
-		{83D40134-5DCE-4396-AC69-4D155CD8E660}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{83D40134-5DCE-4396-AC69-4D155CD8E660}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{83D40134-5DCE-4396-AC69-4D155CD8E660}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{83D40134-5DCE-4396-AC69-4D155CD8E660}.Release|Any CPU.Build.0 = Release|Any CPU
-		{83D40134-5DCE-4396-AC69-4D155CD8E660}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
-		{83D40134-5DCE-4396-AC69-4D155CD8E660}.Release|Mixed Platforms.Build.0 = Release|Any CPU
-		{83D40134-5DCE-4396-AC69-4D155CD8E660}.Release|Win32.ActiveCfg = Release|Any CPU
-		{83D40134-5DCE-4396-AC69-4D155CD8E660}.Release|x64.ActiveCfg = Release|Any CPU
-		{83D40134-5DCE-4396-AC69-4D155CD8E660}.Release|x86.ActiveCfg = Release|Any CPU
+		{D69ABBF2-A7E7-4B3A-9B15-C0A22E19B7A2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D69ABBF2-A7E7-4B3A-9B15-C0A22E19B7A2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D69ABBF2-A7E7-4B3A-9B15-C0A22E19B7A2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D69ABBF2-A7E7-4B3A-9B15-C0A22E19B7A2}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {845779B0-7E19-4D6C-8590-0F6CCDACEE5D}
 	EndGlobalSection
 EndGlobal

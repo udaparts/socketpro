@@ -1,90 +1,52 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project Sdk="Microsoft.NET.Sdk">
+
   <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProductVersion>8.0.30703</ProductVersion>
-    <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>{83D40134-5DCE-4396-AC69-4D155CD8E660}</ProjectGuid>
-    <OutputType>Library</OutputType>
-    <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>SproAdapter</RootNamespace>
+	<TargetFrameworks>netcoreapp3.1;net5.0;net6.0</TargetFrameworks>
+	<TargetFrameworks Condition=" '$(OS)' == 'Windows_NT' ">$(TargetFrameworks);net452;net461</TargetFrameworks>
+	<LangVersion>7.3</LangVersion>
+    <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
+    <PackageId>SproAdapter</PackageId>
+    <Version>4.6.0.1</Version>
+    <Company>UDAParts</Company>
+    <Product>SocketPro adapter for .NET 4.5.2 or later</Product>
+    <Description>SocketPro adapter, a thin bridge between your .NET and SocketPro core components</Description>
+    <Copyright>Copyright © UDAParts 2002-2022</Copyright>
+    <PackageProjectUrl>http://www.udaparts.com</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/udaparts/socketpro</RepositoryUrl>
     <AssemblyName>SproAdapter</AssemblyName>
-    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
-    <FileAlignment>512</FileAlignment>
+    <FileVersion>2.6.0.1</FileVersion>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <DebugSymbols>true</DebugSymbols>
-    <DebugType>full</DebugType>
-    <Optimize>false</Optimize>
-    <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>TRACE;DEBUG;TASKS_ENABLED;SP_MANAGER;NO_HRESULT</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <DefineConstants>$(DefineConstants)TRACE;TASKS_ENABLED;SP_MANAGER</DefineConstants>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <DebugType>pdbonly</DebugType>
-    <Optimize>true</Optimize>
-    <OutputPath>bin\Release\</OutputPath>
-    <DefineConstants>TRACE;TASKS_ENABLED;SP_MANAGER;NO_HRESULT</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <DocumentationFile>bin\Release\SproAdapter.XML</DocumentationFile>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <DefineConstants>$(DefineConstants)TRACE;TASKS_ENABLED;SP_MANAGER</DefineConstants>
   </PropertyGroup>
+  
+  <PropertyGroup>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+  </PropertyGroup>
+
   <ItemGroup>
-    <Reference Include="System" />
-    <Reference Include="System.Core" />
-    <Reference Include="System.Data" />
-    <Reference Include="System.Runtime.Serialization" />
-    <Reference Include="System.Xml" />
+    <Compile Remove="asynchandlerlock.cs" />
+    <Compile Remove="mssqlpush.cs" />
+    <Compile Remove="Properties\AssemblyInfo.cs" />
+    <Compile Remove="Properties\AssemblyInfo35.cs" />
+    <Compile Remove="Properties\AssemblyInfo45.cs" />
+    <Compile Remove="scopeuqueuelock.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Remove="SproAdapter35.suo" />
+    <None Remove="SproAdapter4.suo" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="adoclientpeer.cs" />
-    <Compile Include="asyncadohandler.cs" />
-    <Compile Include="asyncdbhandler.cs" />
-    <Compile Include="asynchandler.cs" />
-    <Compile Include="asyncqueue.cs" />
-    <Compile Include="asyncstream.cs" />
-    <Compile Include="basedefines.cs" />
-    <Compile Include="ccachedbasehandler.cs" />
-    <Compile Include="clientinterop.cs" />
-    <Compile Include="clientpeer.cs" />
-    <Compile Include="clientsocket.cs" />
-    <Compile Include="deque.cs" />
-    <Compile Include="gencachepeer.cs" />
-    <Compile Include="genricevents.cs" />
-    <Compile Include="masterpool.cs" />
-    <Compile Include="masterslavebase.cs" />
-    <Compile Include="odbc.cs" />
-    <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="remotingadonethelper.cs" />
-    <Compile Include="replication.cs" />
-    <Compile Include="scopeuqueue.cs" />
-    <Compile Include="servererror.cs" />
-    <Compile Include="serverinterop.cs" />
-    <Compile Include="serverpeerbase.cs" />
-    <Compile Include="serverqueue.cs" />
-    <Compile Include="serversocket.cs" />
-    <Compile Include="socketerror.cs" />
-    <Compile Include="socketpool.cs" />
-    <Compile Include="sqlmasterpool.cs" />
-    <Compile Include="streamclient.cs" />
-    <Compile Include="streamserver.cs" />
-    <Compile Include="udataset.cs" />
-    <Compile Include="uhttppeer.cs" />
-    <Compile Include="uqueue.cs" />
-    <Compile Include="userver.cs" />
-    <Compile Include="usqlite.cs" />
-    <Compile Include="usvrservice.cs" />
+	<PackageReference Include="Microsoft.CSharp" Version="4.5.0" />
   </ItemGroup>
-  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
-       Other similar extension points exist, see Microsoft.Common.targets.
-  <Target Name="BeforeBuild">
-  </Target>
-  <Target Name="AfterBuild">
-  </Target>
-  -->
+  <ItemGroup>
+    <Folder Include="Properties\" />
+  </ItemGroup>
+  
 </Project>

@@ -38,7 +38,7 @@ namespace SocketProAdapter
         osLinux = osUnix,
         osBSD = osUnix,
         osAndroid = 3,
-        osWinCE = 4, /**< Old window pocket pc, ce or smart phone devices*/
+        osWinCE = 4, /*Old window pocket pc, ce or smart phone devices*/
         osWinPhone = osWinCE,
     }
 
