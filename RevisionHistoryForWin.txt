@@ -13,6 +13,7 @@
 	(l) Add SocketPro server plugin for PostgreSQL
 	(m) Add a new feature ACCQI (Auto Collecting Client message Queue Index) into server core lib to support in-line requests batching at server side with client message queue enabled
 	(n) DotNet adapter updated to support .NET core3.1, NET5.0 and NET 6.0 platforms
+	(o) Fix a potential SSL connecting bug within SocketPro MS SQL plugin
 
 87.	SocketPro Version 6.3.1.2-6.3.2.2
 	(a) Add support to char16_t
