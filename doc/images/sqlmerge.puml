@@ -1,0 +1,26 @@
+@startuml
+actor Client as client
+participant "SocketPro\nServer Plugin" as SpServer
+database Database as DB
+client -[#fc0303]> SpServer : R0
+client -[#fc0303]> SpServer : R1
+client -[#fc0303]> SpServer : R2
+client -[#fc0303]> SpServer : R...
+client -[#fc0303]> SpServer : RN
+SpServer -[#fc8803]> SpServer: Merge R0, R1, R2, R..., RN in streaming into a combined SQL 
+SpServer -> DB: Execute the combined SQL
+DB --> SpServer: Response a set of results
+SpServer --[#0373fc]> SpServer: Split the set of results into r00, r01, r02, r10, r20, r21,\nr22, r2..., r2m, r..., RN0, RN1 in streaming
+SpServer --[#0b03fc]> client: r00
+SpServer --[#0b03fc]> client: r01
+SpServer --[#0b03fc]>o client: r02
+SpServer --[#0b03fc]>o client: r10
+SpServer --[#0b03fc]> client: r20
+SpServer --[#0b03fc]> client: r21
+SpServer --[#0b03fc]> client: r22
+SpServer --[#0b03fc]> client: r2...
+SpServer --[#0b03fc]>o client: r2m
+SpServer --[#0b03fc]>o client: r...
+SpServer --[#0b03fc]> client: rN0
+SpServer --[#0b03fc]>o client: rN1
+@enduml
