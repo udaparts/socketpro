@@ -261,8 +261,8 @@ func Test_objects(t *testing.T) {
 	if un64 != un640 {
 		t.Errorf("Test_objects un640: %d, want: %d", un640, un64)
 	}
-	ndt := dt.UnixNano()
-	ndt0 := dt0.(time.Time).UnixNano()
+	ndt := dt.UnixNano() / 100
+	ndt0 := dt0.(time.Time).UnixNano() / 100
 	if ndt != ndt0 {
 		t.Errorf("Test_objects ndt0: %d, want: %d", ndt0, ndt)
 	}
