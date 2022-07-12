@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"gspa"
+	"reflect"
 	"testing"
 	"time"
 
@@ -294,5 +295,10 @@ func Test_bytes(t *testing.T) {
 	q.SaveBoolArray(arr)
 	s := q.LoadString()
 	aout := q.LoadBoolArray()
-	fmt.Println("MyTest", "==", *s, arr, "==", aout)
+	if *s != "MyTest" {
+		t.Errorf("Test string: %s, want: %s", *s, "MyTest")
+	}
+	if !reflect.DeepEqual(arr, aout) {
+		t.Errorf("Test array: %t, want: %t", aout, arr)
+	}
 }
