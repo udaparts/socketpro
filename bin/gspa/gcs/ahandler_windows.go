@@ -449,7 +449,7 @@ func (s *CAsyncHandler) CommitBatching(batchingAtServerSide ...bool) bool {
 func (s *CAsyncHandler) AbortBatching() bool {
 	h := uintptr(s.hSocket)
 	s.cs.Lock()
-	s.qBatching = deque.Deque{}
+	s.qBatching = deque.Deque[cresultCb]{}
 	s.cs.Unlock()
 	ret, _, _ := abortBatching.Call(h)
 	return byte(ret) > 0

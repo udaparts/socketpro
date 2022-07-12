@@ -39,7 +39,7 @@ const (
 
 var (
 	csBuffer    = sync.Mutex{}
-	qBufferPool = deque.Deque{}
+	qBufferPool = deque.Deque[*CUQueue]{}
 )
 
 //The following structure comes from windows C/C++ DECIMAL
@@ -219,7 +219,7 @@ func (b *CUQueue) setDefaultOS(os string) {
 func MakeBuffer() *CUQueue {
 	csBuffer.Lock()
 	if qBufferPool.Len() > 0 {
-		r := qBufferPool.PopBack().(*CUQueue)
+		r := qBufferPool.PopBack()
 		csBuffer.Unlock()
 		return r
 	}

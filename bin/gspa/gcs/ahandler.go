@@ -60,8 +60,8 @@ type cresultCb struct {
 type CAsyncHandler struct {
 	CSocket
 	csSend    sync.Mutex
-	qCallback deque.Deque
-	qBatching deque.Deque
+	qCallback deque.Deque[cresultCb]
+	qBatching deque.Deque[cresultCb]
 	mergeTo   []DMergeTo
 	clean     []DClean
 	tie       ITie
@@ -368,16 +368,16 @@ func (ah *CAsyncHandler) getARH(reqId gspa.ReqId) cresultCb {
 		return cresultCb{}
 	}
 	if ah.random {
-		index := ah.qCallback.Index(func(rcb interface{}) bool {
-			return (rcb.(cresultCb).reqId == reqId)
+		index := ah.qCallback.Index(func(rcb cresultCb) bool {
+			return (rcb.reqId == reqId)
 		})
 		if index == -1 {
 			return cresultCb{}
 		}
-		return ah.qCallback.Remove(index).(cresultCb)
+		return ah.qCallback.Remove(index)
 	}
-	if ah.qCallback.Front().(cresultCb).reqId == reqId {
-		return ah.qCallback.PopFront().(cresultCb)
+	if ah.qCallback.Front().reqId == reqId {
+		return ah.qCallback.PopFront()
 	}
 	return cresultCb{}
 }
@@ -386,8 +386,8 @@ func (ah *CAsyncHandler) CleanCallbacks(canceled bool) uint32 {
 	ah.cs.Lock()
 	cb := ah.qCallback
 	b := ah.qBatching
-	ah.qCallback = deque.Deque{}
-	ah.qBatching = deque.Deque{}
+	ah.qCallback = deque.Deque[cresultCb]{}
+	ah.qBatching = deque.Deque[cresultCb]{}
 	vClean := ah.clean
 	ah.cs.Unlock()
 	for _, cb := range vClean {
@@ -395,13 +395,13 @@ func (ah *CAsyncHandler) CleanCallbacks(canceled bool) uint32 {
 	}
 	total := b.Len() + cb.Len()
 	for b.Len() > 0 {
-		rcb := b.PopFront().(cresultCb)
+		rcb := b.PopFront()
 		if rcb.discarded != nil {
 			rcb.discarded(ah, canceled)
 		}
 	}
 	for cb.Len() > 0 {
-		rcb := cb.PopFront().(cresultCb)
+		rcb := cb.PopFront()
 		if rcb.discarded != nil {
 			rcb.discarded(ah, canceled)
 		}
