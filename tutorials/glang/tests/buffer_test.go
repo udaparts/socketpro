@@ -69,8 +69,8 @@ func Test_primitves(t *testing.T) {
 	if un64 != un640 {
 		t.Errorf("Test_primitves un640: %d, want: %d", un640, un64)
 	}
-	ndt := dt.UnixNano()
-	ndt0 := dt0.UnixNano()
+	ndt := dt.UnixNano() / 100
+	ndt0 := dt0.UnixNano() / 100
 	if ndt != ndt0 {
 		t.Errorf("Test_primitves ndt0: %d, want: %d", ndt0, ndt)
 	}
@@ -109,17 +109,42 @@ func Test_string_arr(t *testing.T) {
 	aa := gspa.AStrArray{&as}
 	aaa := []gspa.AStr{as}
 	q := gspa.MakeBuffer().Save(as).SaveAString(&as).Save(aa).Save(aaa)
-	fmt.Println(*q.LoadAString(), *q.LoadAString(), q.LoadAStringArray(), q.LoadAStringArray())
-
+	s := *q.LoadAString()
+	if as != s {
+		t.Errorf("Test_string: %s, want: %s", s, as)
+	}
+	s = *q.LoadAString()
+	if as != s {
+		t.Errorf("Test_string: %s, want: %s", s, as)
+	}
+	ar := q.LoadAStringArray()
+	if as != *ar[0] {
+		t.Errorf("Test_string: %s, want: %s", *ar[0], as)
+	}
+	ar = q.LoadAStringArray()
+	if as != *ar[0] {
+		t.Errorf("Test_string: %s, want: %s", *ar[0], as)
+	}
 	var was string = "李进进先生于3月14日在纽约不幸遇害"
 	waa := []*string{&was}
 	waaa := []string{was}
 	q = gspa.MakeBuffer().Save(was).SaveString(&was).Save(waa).Save(waaa)
-	fmt.Println(*q.LoadString(), *q.LoadString())
+	w := *q.LoadString()
+	if was != w {
+		t.Errorf("Test_string: %s, want: %s", w, was)
+	}
+	w = *q.LoadString()
+	if was != w {
+		t.Errorf("Test_string: %s, want: %s", w, was)
+	}
 	wa := q.LoadStringArray()
-	fmt.Println(*wa[0])
+	if was != *wa[0] {
+		t.Errorf("Test_string: %s, want: %s", *wa[0], was)
+	}
 	wa = q.LoadStringArray()
-	fmt.Println(*wa[0])
+	if was != *wa[0] {
+		t.Errorf("Test_string: %s, want: %s", *wa[0], was)
+	}
 }
 
 func Test_others(t *testing.T) {
@@ -269,5 +294,5 @@ func Test_bytes(t *testing.T) {
 	q.SaveBoolArray(arr)
 	s := q.LoadString()
 	aout := q.LoadBoolArray()
-	fmt.Println(*s, arr, aout)
+	fmt.Println("MyTest", "==", *s, arr, "==", aout)
 }
