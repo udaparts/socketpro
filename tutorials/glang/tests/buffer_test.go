@@ -115,7 +115,11 @@ func Test_string_arr(t *testing.T) {
 	waa := []*string{&was}
 	waaa := []string{was}
 	q = gspa.MakeBuffer().Save(was).SaveString(&was).Save(waa).Save(waaa)
-	fmt.Println(*q.LoadString(), *q.LoadString(), q.LoadStringArray(), q.LoadStringArray())
+	fmt.Println(*q.LoadString(), *q.LoadString())
+	wa := q.LoadStringArray()
+	fmt.Println(*wa[0])
+	wa = q.LoadStringArray()
+	fmt.Println(*wa[0])
 }
 
 func Test_others(t *testing.T) {
