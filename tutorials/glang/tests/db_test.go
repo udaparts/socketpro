@@ -107,6 +107,7 @@ func Test_db_execute_sql(t *testing.T) {
 	db := gdb.FindDB(sp.Seek())
 	f0 := db.Execute("select * from sakila.actor where actor_id between 11 and 20", func(db *gdb.CDBHandler, proc bool, vData []interface{}) {
 		fmt.Println("rows", len(vData)/len(*db.GetColumnInfo()), "proc", proc)
+		fmt.Println("Data: ", vData)
 	}, func(db *gdb.CDBHandler) {
 		fmt.Println("meta columns", len(*db.GetColumnInfo()))
 	})
@@ -181,7 +182,8 @@ func Test_db_with_simple_session_variables(t *testing.T) {
 	}
 	params := []interface{}{11, 15}
 	db := gdb.FindDB(sp.Seek())
-	f0 := db.ExecuteEx("select curtime(6);SELECT * FROM sakila.actor where actor_id between ? and ?;select * from sakila.not_exist",
+	f0 := db.ExecuteEx("SELECT curtime(6),CURRENT_TIMESTAMP(6),LOCALTIMESTAMP(6),UTC_TIMESTAMP(6);"+
+		"SELECT * FROM sakila.actor where actor_id between ? and ?;SELECT * from sakila.not_exist",
 		&params, func(db *gdb.CDBHandler, proc bool, vData []interface{}) {
 			fmt.Println(proc, vData)
 		}, func(db *gdb.CDBHandler) {

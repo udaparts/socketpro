@@ -768,7 +768,7 @@ func (b *CUQueue) LoadDate() time.Time {
 		year += 1900
 	}
 	month++
-	dt := time.Date(year, time.Month(month), day, hour, minute, second, ns100*100, time.Local)
+	dt := time.Date(year, time.Month(month), day, hour, minute, second, ns100*100, time.UTC)
 	return dt
 }
 
