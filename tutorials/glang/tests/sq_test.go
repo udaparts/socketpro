@@ -161,49 +161,6 @@ func Test_enqueue(t *testing.T) {
 	}
 }
 
-func Test_enqueue_ex(t *testing.T) {
-	var n int
-	var idMessage gspa.ReqId
-	buff := gspa.MakeBuffer()
-	defer buff.Recycle()
-	sp := gcs.NewPool(gspa.Chat)
-	sp.SetPoolEvent(func(spe gcs.SocketPoolEvent, h *gcs.CAsyncHandler) {
-		if spe == gcs.SpeSocketCreated {
-			aq := new(gsq.CAsyncQueue)
-			aq.Tie(h)
-		}
-	})
-	ok := sp.StartSocketPool(cc_hw, 1)
-	defer sp.ShutdownPool()
-	ah := sp.GetHandlers()[0]
-	if !ok {
-		t.Errorf("error code: %d, error message: %s", ah.GetErrorCode(), ah.GetErrorMsg())
-		return
-	}
-	aq := gsq.FindServerQueue(sp.GetHandlers()[0])
-	fmt.Printf("Going to enqueue %d messages ......", ENCQUEUE_CYCLE)
-	for n < ENCQUEUE_CYCLE {
-		str := strconv.Itoa(n) + " Object test"
-		switch n % 3 {
-		case 0:
-			idMessage = idMessage0
-		case 1:
-			idMessage = idMessage1
-		default:
-			idMessage = idMessage2
-		}
-		buff.Save("SampleName", str, int32(n))
-		if !aq.EnqueueEx(Queue_Key, idMessage, buff) {
-			t.Errorf("error code: %d, error message: %s", ah.GetErrorCode(), ah.GetErrorMsg())
-			break
-		} else {
-			n++
-			buff.SetSize(0)
-		}
-	}
-	ah.WaitAll()
-}
-
 func Test_dequeue_low_performance(t *testing.T) {
 	sp := gcs.NewPool(gspa.Chat)
 	sp.SetPoolEvent(func(spe gcs.SocketPoolEvent, h *gcs.CAsyncHandler) {
@@ -260,6 +217,50 @@ func Test_dequeue_low_performance(t *testing.T) {
 			t.Errorf("error code: %d, error message: %s", se.ErrCode, se.ErrMsg)
 		default:
 			fmt.Println("Unknown data type: ", ty)
+		}
+	}
+	//wait until all dequeue message confirmations are completed before shutting down pool
+	<-aq.GetKeys()
+}
+
+func Test_enqueue_ex(t *testing.T) {
+	var n int
+	var idMessage gspa.ReqId
+	buff := gspa.MakeBuffer()
+	defer buff.Recycle()
+	sp := gcs.NewPool(gspa.Chat)
+	sp.SetPoolEvent(func(spe gcs.SocketPoolEvent, h *gcs.CAsyncHandler) {
+		if spe == gcs.SpeSocketCreated {
+			aq := new(gsq.CAsyncQueue)
+			aq.Tie(h)
+		}
+	})
+	ok := sp.StartSocketPool(cc_hw, 1)
+	defer sp.ShutdownPool()
+	ah := sp.GetHandlers()[0]
+	if !ok {
+		t.Errorf("error code: %d, error message: %s", ah.GetErrorCode(), ah.GetErrorMsg())
+		return
+	}
+	aq := gsq.FindServerQueue(sp.GetHandlers()[0])
+	fmt.Printf("Going to enqueue %d messages ......", ENCQUEUE_CYCLE)
+	for n < ENCQUEUE_CYCLE {
+		str := strconv.Itoa(n) + " Object test"
+		switch n % 3 {
+		case 0:
+			idMessage = idMessage0
+		case 1:
+			idMessage = idMessage1
+		default:
+			idMessage = idMessage2
+		}
+		buff.Save("SampleName", str, int32(n))
+		if !aq.EnqueueEx(Queue_Key, idMessage, buff) {
+			t.Errorf("error code: %d, error message: %s", ah.GetErrorCode(), ah.GetErrorMsg())
+			break
+		} else {
+			n++
+			buff.SetSize(0)
 		}
 	}
 	//wait until all dequeue message confirmations are completed before shutting down pool
