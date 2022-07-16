@@ -263,8 +263,8 @@ func Test_enqueue_ex(t *testing.T) {
 			buff.SetSize(0)
 		}
 	}
-	//wait until all dequeue message confirmations are completed before shutting down pool
-	<-aq.GetKeys()
+	//wait until all messages are enqueued before shutting down pool
+	aq.GetHandler().WaitAll()
 }
 
 func Test_dequeue_high_performance(t *testing.T) {
