@@ -334,6 +334,10 @@ namespace SPA
             return ServerCoreLoader.MakeRequest(m_hHandler, requestId, request, size);
         }
 
+        bool CSocketPeer::MakeRequest(USocket_Server_Handle handle, unsigned short requestId, const unsigned char* request, unsigned int size) {
+            return ServerCoreLoader.MakeRequest(handle, requestId, request, size);
+        }
+
         bool CSocketPeer::IsFakeRequest() const {
             return ServerCoreLoader.IsFakeRequest(m_hHandler);
         }
