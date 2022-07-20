@@ -142,6 +142,25 @@ class CSocketPeer(object):
     def PostClose(self, errCode=0):
         scl.PostClose(self._m_sh, errCode)
 
+    def MakeRequest(self, reqId, q):
+        if isinstance(q, CScopeUQueue):
+            q = q.UQueue
+        elif q is None:
+            delay = CScopeUQueue()
+            q = delay.UQueue
+        buffer = (c_ubyte * q.GetSize()).from_buffer(q._m_bytes_, q._m_position_)
+        return scl.MakeRequest(self.Handle, reqId, buffer, q.GetSize())
+
+    @staticmethod
+    def FakeRequest(kSocket, reqId, q):
+        if isinstance(q, CScopeUQueue):
+            q = q.UQueue
+        elif q is None:
+            delay = CScopeUQueue()
+            q = delay.UQueue
+        buffer = (c_ubyte * q.GetSize()).from_buffer(q._m_bytes_, q._m_position_)
+        return scl.MakeRequest(kSocket, reqId, buffer, q.GetSize())
+
     def RequestsInQueue(self):
         return scl.QueryRequestsInQueue(self._m_sh)
 
