@@ -6,7 +6,7 @@
 	<LangVersion>7.3</LangVersion>
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
     <PackageId>SproAdapter</PackageId>
-    <Version>4.6.0.1</Version>
+    <Version>4.6.0.2</Version>
     <Company>UDAParts</Company>
     <Product>SocketPro adapter for .NET 4.5.2 or later</Product>
     <Description>SocketPro adapter, a thin bridge between your .NET and SocketPro core components</Description>
@@ -14,7 +14,7 @@
     <PackageProjectUrl>http://www.udaparts.com</PackageProjectUrl>
     <RepositoryUrl>https://github.com/udaparts/socketpro</RepositoryUrl>
     <AssemblyName>SproAdapter</AssemblyName>
-    <FileVersion>2.6.0.1</FileVersion>
+    <FileVersion>2.6.0.2</FileVersion>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">

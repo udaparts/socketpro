@@ -3239,42 +3239,6 @@ namespace SocketProAdapter
                 return SendResult(CurrentRequestID, r0, r1, r2, r3, r4);
             }
 
-            public bool MakeRequest(ushort requestId, CScopeUQueue su)
-            {
-                if (su == null)
-                    return MakeRequest(requestId);
-                return MakeRequest(requestId, su.UQueue);
-            }
-
-            public virtual bool MakeRequest(ushort requestId, CUQueue UQueue)
-            {
-                if (UQueue == null)
-                    return MakeRequest(requestId);
-                if (UQueue.HeadPosition > 0)
-                    return MakeRequest(requestId, UQueue.GetBuffer(), UQueue.GetSize());
-                return MakeRequest(requestId, UQueue.m_bytes, UQueue.GetSize());
-            }
-
-            public bool MakeRequest(ushort requestId)
-            {
-                return MakeRequest(requestId, (byte[])null, (uint)0);
-            }
-
-            public virtual bool MakeRequest(ushort requestId, byte[] data, uint len)
-            {
-                if (data == null)
-                    len = 0;
-                else if (len > (uint)data.Length)
-                    len = (uint)data.Length;
-                unsafe
-                {
-                    fixed (byte* buffer = data)
-                    {
-                        return ServerCoreLoader.MakeRequest(m_sh, requestId, buffer, len);
-                    }
-                }
-            }
-
             protected virtual uint SendResult(ushort reqId, byte[] data, uint len, uint offset)
             {
                 ulong index = Random ? CurrentRequestIndex : ulong.MaxValue;
