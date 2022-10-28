@@ -1,0 +1,350 @@
+﻿<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="utf-8" />
+    <title>Use SocketPro Requests In-line Batching and Session Variables to Boost Remote Database Accessing Performance</title>
+    <link rel="stylesheet" type="text/css" href="codepretty/sons-of-obsidian.css" />
+    <script type="text/javascript" src="codepretty/prettify.js"></script>
+</head>
+<body onload="PR.prettyPrint()">
+<h1 style="text-align: center;">Use SocketPro Requests In-line Batching and Session Variables to Boost Remote Database Accessing Performance</h1>
+<hr />
+<p>As discribed at the article <i><a href="sp_arch.htm" title="Fundamentals about SocketPro Communication Framework">Fundamentals about SocketPro Communication Framework</a></i>,
+SocketPro is written from scratch with continuous in-line request/result batching, real-time stream sending/processing and asynchronous data transferring in mind so that network transferring
+between two ends (client and server) can have the best IO efficency.
+As long as you write codes without violating SocketPro design underlying ideas, continuous in-line request/result batching, real-time stream sending/processing and asynchronous data transferring,
+your application will deliver excellent performance and scalability for sure.</p>
+
+<p>This short article is designed to show you how we can use SocketPro requests in-line batching within a SocketPro middle tier to boost remote database accessing performance.
+It also demonstrates using databse session variables within a SocketPro server middle tier plugin to avoid sql injection attack and reduce data round-trips between remote backend
+database and the plugin as well as others.</p>
+
+<p>This unit test code comes from the file ../socketpro/stream_sql/umysql/mysqlclient.js. In addition, we need the pre-distributed server application <a href="get_started.htm" title="Get Started With SocketPro">all_servers</a>
+for testing as a SocketPro server middle tier, which loads a SocketPro server side database plugin for SQL streaming processing against a remote MySQL or Mariadb databases.</p>
+<hr />
+<h3>SQL Requests In-line Batching within a SocketPro server database plugin</h3>
+<table style="width:100%;">
+<tr>
+<td style="width:30%;">
+    <p><img alt="SQL Requests In-line Batching within a SocketPro server database plugin" title="SQL Requests In-line Batching within a SocketPro server database plugin" src="images/inline_merge.png" /></p>
+</td>
+<td>
+<p>When a client continously sends a set of SQL requests (R0, R1, R2, R, ......, RN) in steaming style to a SocketPro server, the server is able to peek the coming request
+while the server is about to process the current SQL request. If proper, the server can merge the two or more requests into a combined SQL request as shown at the left Figure 1.
+Afterwards, the middle SocketPro server sends the combined SQL request into a remote database for processing in batch.
+In fact, most of database systems (For example, MySQL, MariaDB, PostgreSQL, SQL server, Sybase, DB2, and so on) well support this approach.
+</p>
+<p>
+When a remote backend database receives the combined SQL statement, it will process the statement in batch and return various types of results back to the middle SocketPro server.
+The server sends all of results (R0==>r00,r01,r02; R1==>r10; R2==>r20,r21,r22,r2...,r2m; R...==>r...; RN==>rN0,rN1) to an original client after splitting the set of database results.
+</p>
+<p>First, SQL requests in-line batching reduces the network package round trips between the middle SocketPro server and backend database.
+Second, database batch processing should be more efficient than its individual processing.
+As expected, SocketPro SQL requests in-line batching could significantly improve application performance by database batching processing and reduction of the network round trips between the middle SocketPro server and remote backend database.</p>
+</td>
+</tr>
+</table>
+<i>Figure 1: Illustration of SocketPro requests in-line batching by streaming a set of SQL statements</i>
+<hr />
+<h3>Analyzing SQL Requests In-line Batching with a Nodejs Example</h3>
+<table style="width:100%;">
+<tr>
+<td style="width:30%;">
+<?prettify linenums=1?>
+<pre class="prettyprint">
+'use strict';
+
+//loading SocketPro adapter (nja.js + njadapter.node) for nodejs
+var SPA = require('nja.js');
+var cs = SPA.CS; //CS == Client side
+
+//create a socket pool object
+var p = cs.newPool(SPA.SID.sidMysql); //sidPostgres, sidMsSql or other
+global.p = p;
+//p.QueueName = 'qmysql';
+//create a connection context
+var cc = cs.newCC('localhost', 20901, 'root', 'Smash123');
+
+//start a socket pool having one session to a remote server
+if (!p.Start(cc, 1)) {
+    console.log(p.Error);
+    return;
+}
+var db = p.Seek(); //seek an async DB handler
+
+//make long strings for testing long text and blob objects
+var g_wstr = '';
+while (g_wstr.length < 128 * 1024) {
+    g_wstr += '广告做得不那么夸张的就不说了，看看这三家，都是正儿八经的公立三甲，附属医院';
+    g_wstr += '，不是武警，也不是部队，更不是莆田，都在卫生部门直接监管下，照样明目张胆地骗人。';
+}
+var g_str = '';
+while (g_str.length < 256 * 1024) {
+    g_str += 'The epic takedown of his opponent on an all-important voting day was extraordinary';
+    g_str += ' even by the standards of the 2016 campaign -- and quickly drew a scathing response from Trump.';
+}
+
+function TestCreateTables(db) {
+    var pe0 = db.execute('Create database if not exists mysqldb character ' +
+        'set utf8 collate utf8_general_ci;USE mysqldb');
+    var pe1 = db.execute('CREATE TABLE IF NOT EXISTS company(ID bigint PRIMARY KEY NOT NULL,name CHAR(64)' +
+        'NOT NULL,ADDRESS varCHAR(256)not null,Income Decimal(21,2)not null)');
+    var pe2 = db.execute('CREATE TABLE IF NOT EXISTS employee(EMPLOYEEID bigint AUTO_INCREMENT PRIMARY KEY NOT ' +
+        'NULL unique,CompanyId bigint not null,name CHAR(64)NOT NULL,JoinDate DATETIME(6)default null,IMAGE ' +
+        'MEDIUMBLOB,DESCRIPTION MEDIUMTEXT,Salary DECIMAL(25,2),FOREIGN KEY(CompanyId)REFERENCES company(id))');
+   var pe3 = db.execute('DROP PROCEDURE IF EXISTS sp_TestProc;CREATE PROCEDURE sp_TestProc(in p_company_id int,' +
+   'inout p_sum_salary DECIMAL(25,2),out p_last_dt datetime(6))BEGIN select name,joindate,salary from employee ' +
+        'where companyid>=p_company_id;select sum(salary)+p_sum_salary into p_sum_salary from employee ' +
+        'where companyid>=p_company_id;select now(6)into p_last_dt;END');
+    return [pe0, pe1, pe2, pe3];
+}
+
+function TestExecuteEx(db) {
+    //set an array of parameter data
+    var vParam = [1, 'Google Inc.', "1600 Amphith'eatre Parkway, Mountain View, CA 94043, USA", 66000700020.15,
+        2, 'Microsoft Inc.', '700 Bellevue Way NE- 22nd Floor, Bellevue, WA 98804, USA',
+        'Apple Inc.', '1 Infinite Loop, Cupertino, CA 95014, USA'];
+    var sql = 'INSERT INTO company(ID,NAME,ADDRESS,Income)VALUES(?,?,?,?);select now(6);' +
+        'INSERT INTO company(ID,NAME,ADDRESS,Income)VALUES(?,?,?,93600090060.12);select 1,2,3;' +
+        'INSERT INTO company(ID,NAME,ADDRESS,Income)VALUES(3,?,?,234000300070.14)';
+    return [db.executeEx(sql, vParam, (data, proc, cols) => {
+        console.log({ data: data, proc: proc, cols: cols });
+    }, meta => {
+        console.log(meta);
+    })];
+}
+
+function TestPreparedStatement(db) {
+    var pp = db.prepare('INSERT INTO company(ID,NAME,ADDRESS,Income)VALUES(?,?,?,?)');
+    //set an array of parameter data
+    var vParam = [1, 'Google Inc.', '1600 Amphitheatre Parkway, Mountain View, CA 94043, USA', 66000700060.15,
+        2, 'Microsoft Inc.', '700 Bellevue Way NE- 22nd Floor, Bellevue, WA 98804, USA', 93600090040.12,
+        3, 'Apple Inc.', '1 Infinite Loop, Cupertino, CA 95014, USA', 234000300070.14];
+    return [pp, db.execute(vParam)];
+}
+
+function TestBlobExecuteEx(db) {
+    var buff = SPA.newBuffer();
+    var blob = SPA.newBuffer();
+
+    blob.SaveString(g_wstr);
+    //1st set
+    //blob.PopBytes() -- convert all data inside blob memory into an array of bytes
+    buff.SaveObject('Ted Cruz').SaveObject(new Date()).
+        SaveObject(blob.PopBytes()).SaveObject(g_wstr).SaveObject(254090.15, "dec");
+
+    blob.SaveAString(g_str);
+    //2nd set
+    buff.SaveObject('Donald Trump').SaveObject(new Date()).
+        SaveObject(blob.PopBytes()).SaveObject(g_str).SaveObject(20254070.35, "dec");
+
+    blob.SaveAString(g_str).SaveString(g_wstr);
+    //3rd set
+    buff.SaveObject('Hillary Clinton').SaveObject(new Date()).
+        SaveObject(blob.PopBytes()).SaveObject(g_wstr);
+
+    //for call sp_TestProc with output salary and datetime
+    buff.SaveObject(7.54).SaveObject().SaveObject(5.12, 'dec').SaveObject(null).SaveObject(0.5).SaveObject();
+
+    var sql = 'insert into employee(CompanyId,name,JoinDate,image,DESCRIPTION,Salary)values(1,?,?,?,?,?);' +
+        'insert into employee(CompanyId,name,JoinDate,image,DESCRIPTION,Salary)values(1,?,?,?,?,?);select 245;' +
+        'insert into employee(CompanyId,name,JoinDate,image,DESCRIPTION,Salary)values(2,?,?,?,?,6254030.42);' +
+       'call sp_TestProc(1,? out,? out);select 1;call sp_TestProc(0,? out,? out);call sp_TestProc(2,? out,? out)';
+
+    var pe = db.executeEx(sql, buff, (data, proc, cols) => {
+        console.log({ data: data, proc: proc, cols: cols });
+    }, meta => {
+        console.log(meta);
+    });
+    return [pe];
+}
+
+function TestBLOBByPreparedStatement(db) {
+  var pp = db.prepare('insert into employee(CompanyId,name,JoinDate,image,DESCRIPTION,Salary)values(?,?,?,?,?,?)');
+    var buff = SPA.newBuffer();
+    var blob = SPA.newBuffer();
+    blob.SaveString(g_wstr);
+    //1st set
+    //blob.PopBytes() -- convert all data inside blob memory into an array of bytes
+    buff.SaveObject(1).SaveObject('Ted Cruz').SaveObject(new Date()).
+        SaveObject(blob.PopBytes()).SaveObject(g_wstr).SaveObject(254020.15);
+
+    blob.SaveAString(g_str);
+    //2nd set
+    buff.SaveObject(1).SaveObject('Donald Trump').SaveObject(new Date()).
+        SaveObject(blob.PopBytes()).SaveObject(g_str).SaveObject(20254020.35);
+
+    blob.SaveAString(g_str).SaveString(g_wstr);
+    //3rd set
+    buff.SaveObject(2).SaveObject('Hillary Clinton').SaveObject(new Date()).
+        SaveObject(blob.PopBytes()).SaveObject(g_wstr).SaveObject(6254070.42);
+    var pe = db.execute(buff);
+    return [pp, pe];
+}
+
+function TestStoreProcedureByPreparedStatement(db) {
+    var pp = db.prepare('call sp_TestProc(?,?,?)');
+    var vParam = [1, 9811.25, null, //1st set
+        0, 45321.14, null, //2nd set
+        2, 2342.18, null]; //3rd set
+    //process multiple sets of parameters in one shot
+    var pe = db.execute(vParam, (data, proc, cols) => {
+        if (proc) console.log({ data: data, proc: proc, cols: cols });
+    }, meta => {
+        //console.log(meta);
+    });
+    return [pp, pe];
+}
+
+(async () => {
+    try {
+        //open a default database with inline query batching enabled
+        var res = await db.open('', 2); //2 -- enable inline query batching
+        console.log(res);
+        if (res.ec) {
+            return;
+        }
+        console.log('Streaming all requests with the best network efficiency');
+        
+        //inline query-batching happening at SocketPro server middle tier plugin
+        var vTables = TestCreateTables(db);
+        var pd0 = [db.execute('delete from employee;delete from company')];
+        
+        var pp0 = TestPreparedStatement(db);
+        var pp1 = TestBLOBByPreparedStatement(db);
+        var pp2 = TestStoreProcedureByPreparedStatement(db);
+        
+        //inline query-batching happening at SocketPro server middle tier plugin
+        var pd1 = [db.execute('delete from employee;delete from company')];
+        var pex0 = TestExecuteEx(db);
+        var pex1 = TestBlobExecuteEx(db);
+
+        console.log('Waiting all responses .....');
+        var all_p = [].concat(vTables, pd0, pp0, pp1, pp2, pd1, pex0, pex1);
+        console.log(await Promise.all(all_p));
+    } catch (ex) {
+        console.log(ex);
+    }
+})();
+</pre>
+</td>
+<td>
+<p>To understand code lines from 1 through 19 better, you can refer to the first tutorial <a href="js_hw.htm" title="SocketPro Client Server Application Development">SocketPro Client Server Application Development</a>.
+Also you may like to review the two database accessing examples, <a href="js_sqlite.htm" title="SQL Requests Streaming For SQLite">SQL Requests Streaming For SQLite</a> and <a href="js_mysql.htm" title="SQL Requests Streaming For MySQL/MariaDB">SQL Requests Streaming For MySQL/MariaDB</a>.
+</p>
+<p>Here, we would like to focus a new database client API method <i>executeEx</i> or <i>ExecuteEx</i>.</p>
+<p>First, we call the database method <i>open</i> at line 148 to open a default database with inline query batching enabled.
+Afterwards, we call the function <i>TestCreateTables</i> to prepare test database <i>mysqldb</i>, two tables (<i>company</i> and <i>employee</i>)
+and stored procedure <i>sp_TestProc</i> at line 156. Next, we empty all records inside the two tables <i>company</i> and <i>employee</i> at line 157.
+As commented at line 155, all five SQL statements ([pe0, pe1, pe2, pe3]/line 45 + pd0/line 157) are silently batched at SocketPro middle server into a combined SQL.
+Next, the server actually send the combined SQL into a remote MySQL or MariaDB for batching processing instead of individual processing.
+At end, the five promise objects are stored in the variables <i>vTables</i> and <i>pd0</i>.
+</p>
+<p>The codes at lines 159 through 161 are related with parameterized statements. You can refer to <a href="js_mysql.htm" title="SQL Requests Streaming For MySQL/MariaDB">the database example</a> for details.
+We use the three lines of codes to insert three records into tables <i>company</i> and <i>employee</i> and call stored procedure <i>sp_TestProc</i> three times by parameterized statements.
+</p>
+<p>
+Again, we empty the two tables <i>company</i> and <i>employee</i> at line 164. We use codes at two lines 165 and 166 to insert three records into tables <i>company</i> and <i>employee</i> and 
+call stored procedure <i>sp_TestProc</i> three times with help of session variables. We are going to use the below section to compare difference between parameterized statements and session variables.
+As commented at line 163, there is inline query-batching happening within SocketPro server MySQL/MariaDB plugin during calling the three lines (164 through 166) of codes.
+</p>
+<p>Now, we are going to talk about the database API method <i>executeEx</i> or <i>ExecuteEx</i>.
+First of all, let's pick up the functions <i>TestPreparedStatement</i> and <i>TestExecuteEx</i> for comparison.
+The first one is using parameterized statement to insert three records into the table <i>company</i> with preparing a statement ahead. 
+Calling the function requires four network round trips (1 for prepare + 3 for insert) between SocketPro server and remote database for individual processing.
+If we use session variables with the database API method <i>executeEx</i> or <i>ExecuteEx</i> as shown within the function <i>TestExecuteEx</i>,
+it possibly requires one network round-trips only because SocketPro server is able to send one combined SQL statement to remote database for batch processing.
+In addition, this approach doesn't require preparing a statement at all.
+Also, its sql statement can be a combined SQL statement which may consist of multiple different types of basic SQL statements.
+However, all of database systems require that a prepared SQL statement must be a single/basic SQL statement only.
+For your exercise, you can also select the functions <i>TestStoreProcedureByPreparedStatement</i>, <i>TestBLOBByPreparedStatement</i> and <i>TestBlobExecuteEx</i> for comparison.
+</p>
+<p>Now, let's talk about session variables. All client-server database systems support session variables in some way. Here, we use MySQL or MariaDB as an example.
+Suppose we call the method executeEx like <i>db.executeEx('select ?', ['my try'], ....);</i> at client side,
+SocketPro server MySQL plugin will first convert the statement having a question mark into a new SQL statement <i>SET @up0='my try';select @up0</i> after finding the parameter is a string.
+Afterwards, SocketPro server MySQL plugin uses the new SQL statement to call a remote database.
+If the parameter is not a string, the new SQL statement will be like <i>select 123</i> for numbers, <i>select '2012-12-23 23:59:59.1234567'</i> for date time, or others.
+As you can see, a SocketPro server can always do such a conversion for all question marks and parameters.
+</p>
+<p>Using session variables can lead to a number of the following advantages:
+<ol>
+<li>No SQL injection attack like parameterized statements.</li>
+<li>Better performance because of database batch processing, fewer round trips and network efficiency</li>
+<li>More flexible becuase session variable approach supports combined SQL statements which may be made of different types of basic SQL statements. However, parameterized statements are not able to do so</li>
+<li>SocketPro server DB plugins support SQL requests inline batching, which leads to further performance improvement as shown at the Figure 1</li>
+</ol>
+</p>
+</td>
+</tr>
+</table>
+<i>Code snippet 1: Main unit test code to demonstrate SocketPro inline-requests batching and session variables for boosting remote database accessing performance</i>
+<hr />
+<h3>Performance study</h3>
+<table style="width:100%;">
+<tr>
+<td style="width:30%;">
+<?prettify linenums=1?>
+<pre class="prettyprint">
+const SPA = require('nja.js');
+const cs = SPA.CS; //CS == Client side
+
+p = cs.newPool(SPA.SID.sidMysql); //sidMsSql, sidPostgres, or others
+if (!p.Start(cs.newCC('windesk', 20901, 'root', 'Smash123'), 6)) {
+    console.log(p.Error);
+    return;
+}
+
+function TestPerf() {
+    var db = p.Seek();
+    if (!db.Opened) {
+        db.Open('sakila', null, null, 2); //2, enable inline query batching
+    }
+
+    //adjust this number so that the output time (Time required: ) 
+    //is not larger than 500 ms
+    var count = 3600;
+
+    var stmt = 'SELECT * FROM actor where actor_id between 11 and 12';
+    var start = new Date();
+    for (var n = 0; n < count; ++n) {
+        db.Execute(stmt, (res, err, affected, fails, oks, id) => {
+        }, (data, proc, cols) => {
+        });
+    }
+    db.Execute(stmt, (res, err, affected, fails, oks, id) => {
+        console.log('Time required: ' + (new Date() - start));
+    }, (data, proc, cols) => {
+        //console.log({ data: data, proc: proc, cols: cols });
+    });
+}
+setInterval(TestPerf, 500);
+setInterval(TestPerf, 500);
+setInterval(TestPerf, 500);
+setInterval(TestPerf, 500);
+setInterval(TestPerf, 500);
+</pre>
+</td>
+<td>
+<p>The left code snippet 2 is presented here to measure database API performance within a nodejs environment against one of database systems such as MySQL/MariaDB, SQL server and PostgreSQL.
+If we like to use SQL query inline batch, the fourth parameter should be 2 as shown at line 13. Otherwise, this feature is disabled.
+The left code snippet starts a pool of six sockets and database sessions as shown at line 5. You can control the number of sessions in parallel.
+</p>
+<p>Also, make sure that the number of calling <i>setInterval(TestPerf, 500);</i>, as shown at lines 33 through 37, is one less than the number of sessions at line 5.
+</p>
+<p>At last, you can adjust or increase the <i>count</i> value at line 18 so that the output time (Time required: xxx) is just slightly less than 500 milliseconds.
+</p>
+<p>Summarily, you can adjust the following data to obtain the best performance value:
+<ol>
+<li>The number of sessions at line 6</li>
+<li>Enable or disable SQL query inline batching at line 13</li>
+<li>Adjust the <i>count</i> value at line 18</li>
+<li>Change SQL statement at line 20</li>
+<li>Change the number of calling <i>setInterval(TestPerf, 500);</i> at lines 33 through 37</li>
+</ol>
+</p>
+</td>
+</tr>
+</table>
+<i>Code snippet 2: Performance study with parallel SQL computation against a number of database systems (MySQL/MariaDB, SQL server and PostgreSQL)</i>
+<hr />
+<br />
