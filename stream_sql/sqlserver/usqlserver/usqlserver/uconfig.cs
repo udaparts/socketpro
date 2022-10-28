@@ -13,7 +13,7 @@ public class MsSqlConfig
 
 public class UConfig
 {
-    public static readonly string MY_VERSION = "1.7.0.2";
+    public static readonly string MY_VERSION = "1.7.0.3";
     public static readonly string DEFAULT_CONNECTION_STRING = "server=localhost;timeout=30";
     public static readonly int DEFAULT_MAIN_THREADS = 1;
     public static readonly uint DEFAULT_MAX_SQL_SIZE = 4 * 1024 * 1024;

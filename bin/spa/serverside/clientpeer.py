@@ -91,15 +91,6 @@ class CClientPeer(CSocketPeer):
         buffer = (c_ubyte * q.GetSize()).from_buffer(q._m_bytes_, q._m_position_)
         return scl.SendReturnDataIndex(self.Handle, reqIndex, reqId, q.GetSize(), buffer)
 
-    def MakeRequest(self, reqId, q):
-        if isinstance(q, CScopeUQueue):
-            q = q.UQueue
-        elif q is None:
-            delay = CScopeUQueue()
-            q = delay.UQueue
-        buffer = (c_ubyte * q.GetSize()).from_buffer(q._m_bytes_, q._m_position_)
-        return scl.MakeRequest(self.Handle, reqId, buffer, q.GetSize())
-
     def Dequeue(self, qHandle, messageCount, bNotifiedWhenAvailable, waitTime=0):
         return scl.Dequeue(qHandle, self.Handle, messageCount, bNotifiedWhenAvailable, waitTime)
 

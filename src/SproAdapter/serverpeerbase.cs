@@ -65,8 +65,10 @@ namespace SocketProAdapter
                 }
             }
 
-            public uint NextRequest {
-                get {
+            public uint NextRequest
+            {
+                get
+                {
                     return ServerCoreLoader.PeekNextRequest(m_sh);
                 }
             }
@@ -287,6 +289,78 @@ namespace SocketProAdapter
                 get
                 {
                     return ServerCoreLoader.QueryRequestsInQueue(m_sh);
+                }
+            }
+
+            public bool MakeRequest(ushort requestId, CScopeUQueue su)
+            {
+                if (su == null)
+                    return MakeRequest(requestId, (byte[])null, (uint)0);
+                return MakeRequest(requestId, su.UQueue);
+            }
+
+            public bool MakeRequest(ushort requestId, CUQueue UQueue)
+            {
+                if (UQueue == null)
+                    return MakeRequest(requestId, (byte[])null, (uint)0);
+                if (UQueue.HeadPosition > 0)
+                    return MakeRequest(requestId, UQueue.GetBuffer(), UQueue.GetSize());
+                return MakeRequest(requestId, UQueue.m_bytes, UQueue.GetSize());
+            }
+
+            public bool MakeRequest(ushort requestId)
+            {
+                return MakeRequest(requestId, (byte[])null, (uint)0);
+            }
+
+            public virtual bool MakeRequest(ushort requestId, byte[] data, uint len)
+            {
+                if (data == null)
+                    len = 0;
+                else if (len > (uint)data.Length)
+                    len = (uint)data.Length;
+                unsafe
+                {
+                    fixed (byte* buffer = data)
+                    {
+                        return ServerCoreLoader.MakeRequest(m_sh, requestId, buffer, len);
+                    }
+                }
+            }
+
+            public static bool MakeRequest(ulong hSocket, ushort requestId, CScopeUQueue su)
+            {
+                if (su == null)
+                    return MakeRequest(hSocket, requestId, (byte[])null, (uint)0);
+                return MakeRequest(hSocket, requestId, su.UQueue);
+            }
+
+            public static bool MakeRequest(ulong hSocket, ushort requestId, CUQueue UQueue)
+            {
+                if (UQueue == null)
+                    return MakeRequest(hSocket, requestId, (byte[])null, (uint)0);
+                if (UQueue.HeadPosition > 0)
+                    return MakeRequest(hSocket, requestId, UQueue.GetBuffer(), UQueue.GetSize());
+                return MakeRequest(hSocket, requestId, UQueue.m_bytes, UQueue.GetSize());
+            }
+
+            public static bool MakeRequest(ulong hSocket, ushort requestId)
+            {
+                return MakeRequest(hSocket, requestId, (byte[])null, (uint)0);
+            }
+
+            public static bool MakeRequest(ulong hSocket, ushort requestId, byte[] data, uint len)
+            {
+                if (data == null)
+                    len = 0;
+                else if (len > (uint)data.Length)
+                    len = (uint)data.Length;
+                unsafe
+                {
+                    fixed (byte* buffer = data)
+                    {
+                        return ServerCoreLoader.MakeRequest(hSocket, requestId, buffer, len);
+                    }
                 }
             }
 

@@ -462,6 +462,14 @@ public abstract class CSocketPeer {
         ServerCoreLoader.PostClose(m_sh, errCode);
     }
 
+    public final boolean MakeRequest(short requestId, byte[] buffer, int size) {
+        return ServerCoreLoader.MakeRequest(m_sh, requestId, buffer, size);
+    }
+
+    public static boolean MakeRequest(long hSocket, short requestId, byte[] buffer, int size) {
+        return ServerCoreLoader.MakeRequest(hSocket, requestId, buffer, size);
+    }
+
     public final int getRequestsInQueue() {
         return ServerCoreLoader.QueryRequestsInQueue(m_sh);
     }

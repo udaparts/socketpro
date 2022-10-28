@@ -230,6 +230,7 @@ namespace SPA {
             unsigned int SendExceptionResult(const wchar_t* errMessage, const char* errWhere, unsigned int errCode = 0, unsigned short requestId = 0, UINT64 callIndex = INVALID_NUMBER) const;
             unsigned int SendExceptionResult(const char* errMessage, const char* errWhere, unsigned int errCode = 0, unsigned short requestId = 0, UINT64 callIndex = INVALID_NUMBER);
             bool MakeRequest(unsigned short requestId, const unsigned char *request, unsigned int size) const;
+            static bool MakeRequest(USocket_Server_Handle handle, unsigned short requestId, const unsigned char* request, unsigned int size);
             static bool IsMainThread();
             static UINT64 GetRequestCount();
             bool IsFakeRequest() const;
