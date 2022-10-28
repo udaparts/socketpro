@@ -41,7 +41,7 @@ const (
 type CStreamingFile struct {
 	ah               *gcs.CAsyncHandler
 	cs               sync.Mutex
-	m_vContext       deque.Deque
+	m_vContext       deque.Deque[*cContext]
 	m_maxDownloading uint32
 }
 
@@ -171,7 +171,7 @@ func (sf *CStreamingFile) requestProcessed(reqId gspa.ReqId, buffer *gspa.CUQueu
 		var cxt *cContext
 		sf.cs.Lock()
 		if sf.m_vContext.Len() > 0 {
-			cxt = sf.m_vContext.Front().(*cContext)
+			cxt = sf.m_vContext.Front()
 			dl = cxt.Download
 			cxt.ErrCode = res
 			cxt.ErrMsg = *errMsg
@@ -203,7 +203,7 @@ func (sf *CStreamingFile) requestProcessed(reqId gspa.ReqId, buffer *gspa.CUQueu
 			sf.m_vContext.PushBack(&c)
 		}
 		sf.cs.Unlock()
-		cxt := sf.m_vContext.Front().(*cContext)
+		cxt := sf.m_vContext.Front()
 		cxt.FileSize = fileSize
 		if cxt.InitSize < 0 {
 			cxt.InitSize = 0
@@ -217,7 +217,7 @@ func (sf *CStreamingFile) requestProcessed(reqId gspa.ReqId, buffer *gspa.CUQueu
 		var cxt *cContext
 		sf.cs.Lock()
 		if sf.m_vContext.Len() > 0 {
-			cxt = sf.m_vContext.Front().(*cContext)
+			cxt = sf.m_vContext.Front()
 			progress = cxt.Transferring
 			bytes := buffer.PopBytes()
 			cxt.File.Write(bytes)
@@ -237,7 +237,7 @@ func (sf *CStreamingFile) requestProcessed(reqId gspa.ReqId, buffer *gspa.CUQueu
 		if res != 0 || len(errMsg) > 0 {
 			sf.cs.Lock()
 			if sf.m_vContext.Len() > 0 {
-				cxt = sf.m_vContext.Front().(*cContext)
+				cxt = sf.m_vContext.Front()
 				cxt.InitSize = buffer.LoadLong()
 				cxt.ErrMsg = errMsg
 				cxt.ErrCode = res
@@ -247,7 +247,7 @@ func (sf *CStreamingFile) requestProcessed(reqId gspa.ReqId, buffer *gspa.CUQueu
 			sf.cs.Lock()
 			defer sf.cs.Unlock()
 			if sf.m_vContext.Len() > 0 {
-				cxt = sf.m_vContext.Front().(*cContext)
+				cxt = sf.m_vContext.Front()
 				cxt.InitSize = buffer.LoadLong()
 				cxt.QueueOk = sf.ah.GetClientQueue().StartJob()
 				queue_enabled := sf.ah.GetClientQueue().IsAvailable()
@@ -311,7 +311,7 @@ func (sf *CStreamingFile) requestProcessed(reqId gspa.ReqId, buffer *gspa.CUQueu
 		}
 		sf.cs.Lock()
 		if sf.m_vContext.Len() > 0 {
-			context := sf.m_vContext.Front().(*cContext)
+			context := sf.m_vContext.Front()
 			progress = context.Transferring
 			if uploaded < 0 || res != 0 || len(errMsg) > 0 {
 				context.ErrCode = res
@@ -362,7 +362,7 @@ func (sf *CStreamingFile) requestProcessed(reqId gspa.ReqId, buffer *gspa.CUQueu
 		var cxt *cContext
 		sf.cs.Lock()
 		if sf.m_vContext.Len() > 0 {
-			cxt = sf.m_vContext.Front().(*cContext)
+			cxt = sf.m_vContext.Front()
 			if cxt.IsOpen() {
 				upl = cxt.Download
 			} else {
@@ -391,7 +391,7 @@ func (sf *CStreamingFile) mergeTo(to *gcs.CAsyncHandler) {
 	count := fTo.m_vContext.Len()
 	pos := count
 	for n := 0; n < count; n++ {
-		ctx := fTo.m_vContext.At(n).(*cContext)
+		ctx := fTo.m_vContext.At(n)
 		if !ctx.IsOpen() && !ctx.HasError() {
 			pos = n
 			break
@@ -414,10 +414,10 @@ func (sf *CStreamingFile) mergeTo(to *gcs.CAsyncHandler) {
 func (sf *CStreamingFile) safeClean() {
 	sf.cs.Lock()
 	vContext := sf.m_vContext
-	sf.m_vContext = deque.Deque{}
+	sf.m_vContext = deque.Deque[*cContext]{}
 	sf.cs.Unlock()
 	for vContext.Len() > 0 {
-		cx := vContext.PopFront().(*cContext)
+		cx := vContext.PopFront()
 		if cx.IsOpen() {
 			cx.File.Close()
 			cx.File = nil
@@ -437,7 +437,7 @@ func (sf *CStreamingFile) postProcessing(hint uint32, data uint64) {
 		if d >= sf.m_maxDownloading {
 			break
 		}
-		it := sf.m_vContext.At(n).(*cContext)
+		it := sf.m_vContext.At(n)
 		if it.IsOpen() {
 			if it.Uploading {
 				break
@@ -486,7 +486,7 @@ func (sf *CStreamingFile) postProcessing(hint uint32, data uint64) {
 		}
 	}
 	for sf.m_vContext.Len() > 0 {
-		it := sf.m_vContext.Front().(*cContext)
+		it := sf.m_vContext.Front()
 		if it.HasError() {
 			it.CloseFile()
 			cb := it.Download
@@ -506,7 +506,7 @@ func (sf *CStreamingFile) getFilesOpened() uint32 {
 	opened := uint32(0)
 	size := sf.m_vContext.Len()
 	for n := 0; n < size; n++ {
-		it := sf.m_vContext.At(n).(*cContext)
+		it := sf.m_vContext.At(n)
 		if it.IsOpen() {
 			opened++
 		} else if it.HasError() {
@@ -546,7 +546,7 @@ func (sf *CStreamingFile) GetFileSize() uint64 {
 	file_size := INVALID_FILE_SIZE
 	sf.cs.Lock()
 	if sf.m_vContext.Len() > 0 {
-		file_size = sf.m_vContext.Front().(*cContext).FileSize
+		file_size = sf.m_vContext.Front().FileSize
 	}
 	sf.cs.Unlock()
 	return file_size
@@ -557,7 +557,7 @@ func (sf *CStreamingFile) Cancel() uint32 {
 	sf.cs.Lock()
 	defer sf.cs.Unlock()
 	for sf.m_vContext.Len() > 0 {
-		back := sf.m_vContext.Back().(*cContext)
+		back := sf.m_vContext.Back()
 		if back.IsOpen() {
 			sf.ah.Interrupt(gcs.DEFAULT_INTERRUPT_OPTION)
 			break

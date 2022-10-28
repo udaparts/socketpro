@@ -104,12 +104,16 @@ func (db *CDBHandler) Close(handler ...DResult) <-chan interface{} {
 	return res
 }
 
-func (db *CDBHandler) Prepare(sql string, handler DResult, vPInfo ...CParameterInfo) <-chan interface{} {
+func (db *CDBHandler) Prepare(sql string, handler DResult, vPInfo ...[]CParameterInfo) <-chan interface{} {
 	sb := gspa.MakeBuffer()
 	defer sb.Recycle()
 	sb.Save(sql)
-	sb.Save(uint32(len(vPInfo)))
-	for _, p := range vPInfo {
+	var vP []CParameterInfo
+	if len(vPInfo) > 0 {
+		vP = vPInfo[0]
+	}
+	sb.Save(uint32(len(vP)))
+	for _, p := range vP {
 		p.SaveTo(sb)
 	}
 	res := make(chan interface{})
@@ -582,7 +586,7 @@ func (db *CDBHandler) GetODBCInfo(infoType uint16) interface{} {
 
 func (db *CDBHandler) clean() {
 	db.m_lastReqId = 0
-	if db.m_vColInfo == nil || len(*db.m_vColInfo) > 1 {
+	if db.m_vColInfo == nil || len(*db.m_vColInfo) > 0 {
 		db.m_vColInfo = new(CDBColumnInfoArray)
 	}
 	if len(db.m_vData) > 0 {
@@ -617,7 +621,7 @@ func (db *CDBHandler) requestProcessed(reqId gspa.ReqId, buffer *gspa.CUQueue) {
 		params := buffer.LoadUInt()
 		index := buffer.LoadULong()
 		db.cs.Lock()
-		if db.m_vColInfo == nil || len(*db.m_vColInfo) > 1 {
+		if db.m_vColInfo == nil || len(*db.m_vColInfo) > 0 {
 			db.m_vColInfo = new(CDBColumnInfoArray)
 		}
 		db.m_lastReqId = SqlBatchHeader
@@ -687,6 +691,7 @@ func (db *CDBHandler) requestProcessed(reqId gspa.ReqId, buffer *gspa.CUQueue) {
 				if db.m_outputs == 0 {
 					db.m_outputs += uint32(len(db.m_vData))
 				}
+				db.m_vColInfo = new(CDBColumnInfoArray)
 			}
 			cbs, f := db.m_mapRowset[db.m_indexRowset]
 			if f {
