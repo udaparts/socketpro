@@ -922,49 +922,77 @@ namespace NJA {
             if (p0->IsInt32Array()) {
                 vt = (VT_ARRAY | VT_I4);
                 Local<v8::Int32Array> vInt = Local<v8::Int32Array>::Cast(p0);
+#if NODE_VERSION_AT_LEAST(14,0,0)
+                const int* p = (const int*) vInt->Buffer()->GetBackingStore().get();
+#else
                 const int* p = (const int*) vInt->Buffer()->GetContents().Data();
+#endif
                 unsigned int count = (unsigned int) vInt->Length();
                 buff << vt << count;
                 buff.Push((const unsigned char*) p, count * sizeof (int));
             } else if (p0->IsFloat64Array()) {
                 vt = (VT_ARRAY | VT_R8);
                 Local<v8::Float64Array> vInt = Local<v8::Float64Array>::Cast(p0);
+#if NODE_VERSION_AT_LEAST(14,0,0)
+                const double* p = (const double*) vInt->Buffer()->GetBackingStore().get();
+#else
                 const double* p = (const double*) vInt->Buffer()->GetContents().Data();
+#endif
                 unsigned int count = (unsigned int) vInt->Length();
                 buff << vt << count;
                 buff.Push((const unsigned char*) p, count * sizeof (double));
             } else if (p0->IsUint8Array()) {
                 vt = (VT_ARRAY | VT_I1);
                 Local<v8::Uint8Array> vInt = Local<v8::Uint8Array>::Cast(p0);
+#if NODE_VERSION_AT_LEAST(14,0,0)
+                const unsigned char* p = (const unsigned char*) vInt->Buffer()->GetBackingStore().get();
+#else
                 const unsigned char* p = (const unsigned char*) vInt->Buffer()->GetContents().Data();
+#endif
                 unsigned int count = (unsigned int) vInt->Length();
                 buff << vt << count;
                 buff.Push((const unsigned char*) p, count * sizeof (char));
             } else if (p0->IsInt8Array()) {
                 vt = (VT_ARRAY | VT_I1);
                 Local<v8::Int8Array> vInt = Local<v8::Int8Array>::Cast(p0);
+#if NODE_VERSION_AT_LEAST(14,0,0)
+                const char* p = (const char*) vInt->Buffer()->GetBackingStore().get();
+#else
                 const char* p = (const char*) vInt->Buffer()->GetContents().Data();
+#endif
                 unsigned int count = (unsigned int) vInt->Length();
                 buff << vt << count;
                 buff.Push((const unsigned char*) p, count * sizeof (char));
             } else if (p0->IsInt16Array()) {
                 vt = (VT_ARRAY | VT_I2);
                 Local<v8::Int16Array> vInt = Local<v8::Int16Array>::Cast(p0);
+#if NODE_VERSION_AT_LEAST(14,0,0)
+                const short* p = (const short*) vInt->Buffer()->GetBackingStore().get();
+#else
                 const short* p = (const short*) vInt->Buffer()->GetContents().Data();
+#endif
                 unsigned int count = (unsigned int) vInt->Length();
                 buff << vt << count;
                 buff.Push((const unsigned char*) p, count * sizeof (short));
             } else if (p0->IsUint16Array()) {
                 vt = (VT_ARRAY | VT_UI2);
                 Local<v8::Uint16Array> vInt = Local<v8::Uint16Array>::Cast(p0);
+#if NODE_VERSION_AT_LEAST(14,0,0)
+                const unsigned short* p = (const unsigned short*) vInt->Buffer()->GetBackingStore().get();
+#else
                 const unsigned short* p = (const unsigned short*) vInt->Buffer()->GetContents().Data();
+#endif
                 unsigned int count = (unsigned int) vInt->Length();
                 buff << vt << count;
                 buff.Push((const unsigned char*) p, count * sizeof (unsigned short));
             } else if (p0->IsUint32Array()) {
                 vt = (VT_ARRAY | VT_UI4);
                 Local<v8::Uint32Array> vInt = Local<v8::Uint32Array>::Cast(p0);
+#if NODE_VERSION_AT_LEAST(14,0,0)
+                const unsigned int* p = (const unsigned int*) vInt->Buffer()->GetBackingStore().get();
+#else
                 const unsigned int* p = (const unsigned int*) vInt->Buffer()->GetContents().Data();
+#endif
                 unsigned int count = (unsigned int) vInt->Length();
                 buff << vt << count;
                 buff.Push((const unsigned char*) p, count * sizeof (unsigned int));
@@ -990,7 +1018,11 @@ namespace NJA {
                 vt = (VT_ARRAY | VT_R4);
                 Local<v8::Float32Array> vInt = Local<v8::Float32Array>::Cast(p0);
                 unsigned int count = (unsigned int) vInt->Length();
+#if NODE_VERSION_AT_LEAST(14,0,0)
+                const float* p = (const float*) vInt->Buffer()->GetBackingStore().get();
+#else
                 const float* p = (const float*) vInt->Buffer()->GetContents().Data();
+#endif
                 buff << vt << count;
                 buff.Push((const unsigned char*) p, count * sizeof (float));
             } else {
