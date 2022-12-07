@@ -1,4 +1,4 @@
-25.	SocketPro Version 6.4.0.1-8
+25.	SocketPro Version 6.4.0.1-9
 	(a) Add a new feature, inline manual batching, to improve server performance on requests having multiple results under some situations.
 	(b) Plugins file, sqlite, odbc and MySQL/MariaDB plugins are updated to support inline manual batching
 	(c) Server core lib is improved with a new method PeekNextRequest
@@ -11,6 +11,7 @@
 	(j) Add a new feature ACCQI (Auto Collecting Client message Queue Index) into server core lib to support in-line requests batching at server side with client message queue enabled
 	(k) DotNet adapter updated to support .NET core3.1, NET5.0 and NET 6.0 platforms
 	(l) Fix a potential SSL connecting bug within SocketPro MS SQL plugin
+	(m) Unify SSL/TLSv connection string
 
 24.	SocketPro Version 6.3.1.2-6.3.2.2
 	(a) Add support to char16_t and slightly improve performance of nodejs adapter or C/C++ application on linux
