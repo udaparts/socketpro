@@ -1,3 +1,6 @@
+60. SocketPro Version 6.4.0.9
+	(a) Unify SSL/TLSv connection string
+
 59.	SocketPro Version 6.3.1.7
 	(a) Add support of streaming downloading of multiple files for best performance over small files
 	(b) Fix the method Cancel bugs with secure socket and message queue
