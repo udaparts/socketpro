@@ -741,7 +741,7 @@ namespace SPA {
                         }
                         break;
                     case enumType::Number:
-                        if (isinf(dValue) || isnan(dValue)) {
+                        if (std::isinf(dValue) || std::isnan(dValue)) {
                             ret_str.append(JNull.c_str(), (size_t) 4);
                         } else {
                             TChar str[64]; //don't give me a too long precision!!!
