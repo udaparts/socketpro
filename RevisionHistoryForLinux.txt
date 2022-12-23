@@ -12,6 +12,7 @@
 	(k) DotNet adapter updated to support .NET core3.1, NET5.0 and NET 6.0 platforms
 	(l) Fix a potential SSL connecting bug within SocketPro MS SQL plugin
 	(m) Unify SSL/TLSv connection string
+	(n) Make SocketPro MySQL DB plugin to support MySQL 8.0.31 or later
 
 24.	SocketPro Version 6.3.1.2-6.3.2.2
 	(a) Add support to char16_t and slightly improve performance of nodejs adapter or C/C++ application on linux

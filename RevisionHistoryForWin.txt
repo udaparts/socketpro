@@ -16,6 +16,7 @@
 	(o) Fix a potential SSL connecting bug within SocketPro MS SQL plugin
 	(p) Add support of TLSv1.3 to Windows 10 version 1803 or later
 	(q) Unify SSL/TLSv connection string
+	(r) Make SocketPro MySQL DB plugin to support MySQL 8.0.31 or later
 
 87.	SocketPro Version 6.3.1.2-6.3.2.2
 	(a) Add support to char16_t
