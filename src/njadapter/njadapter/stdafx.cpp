@@ -243,7 +243,11 @@ namespace NJA {
             }
         } else if (p->IsUint32Array()) {
             Local<v8::Uint32Array> vInt = Local<v8::Uint32Array>::Cast(p);
+#if NODE_VERSION_AT_LEAST(14,0,0)
+            const unsigned int* groups = (const unsigned int*) vInt->Buffer()->GetBackingStore().get();
+#else
             const unsigned int* groups = (const unsigned int*) vInt->Buffer()->GetContents().Data();
+#endif
             unsigned int count = (unsigned int) vInt->Length();
             v.assign(groups, groups + count);
         } else {
@@ -353,7 +357,7 @@ namespace NJA {
                 vt.vt = VT_BSTR;
                 String::Value str(isolate, v);
 #ifdef WIN32_64
-                vt.bstrVal = SysAllocStringLen((const wchar_t*) *str, (unsigned int)str.length());
+                vt.bstrVal = SysAllocStringLen((const wchar_t*) * str, (unsigned int) str.length());
 #else
                 vt.bstrVal = SysAllocStringLen((const UTF16*) *str, (unsigned int) str.length());
 #endif
@@ -414,7 +418,11 @@ namespace NJA {
             char* p;
             vt.vt = (VT_ARRAY | VT_I1);
             Local<v8::Int8Array> vInt = Local<v8::Int8Array>::Cast(v);
+#if NODE_VERSION_AT_LEAST(14,0,0)
+            const char* bytes = (const char*) vInt->Buffer()->GetBackingStore().get();
+#else
             const char* bytes = (const char*) vInt->Buffer()->GetContents().Data();
+#endif
             unsigned int len = (unsigned int) vInt->Length();
             SAFEARRAYBOUND sab[] = {len, 0};
             vt.parray = SafeArrayCreate(VT_I1, 1, sab);
@@ -425,7 +433,11 @@ namespace NJA {
             short* p;
             vt.vt = (VT_ARRAY | VT_I2);
             Local<v8::Int16Array> vInt = Local<v8::Int16Array>::Cast(v);
+#if NODE_VERSION_AT_LEAST(14,0,0)
+            const short* bytes = (const short*) vInt->Buffer()->GetBackingStore().get();
+#else
             const short* bytes = (const short*) vInt->Buffer()->GetContents().Data();
+#endif
             unsigned int len = (unsigned int) vInt->Length();
             SAFEARRAYBOUND sab[] = {len, 0};
             vt.parray = SafeArrayCreate(VT_I2, 1, sab);
@@ -436,7 +448,11 @@ namespace NJA {
             unsigned short* p;
             vt.vt = (VT_ARRAY | VT_UI2);
             Local<v8::Uint16Array> vInt = Local<v8::Uint16Array>::Cast(v);
+#if NODE_VERSION_AT_LEAST(14,0,0)
+            const unsigned short* bytes = (const unsigned short*) vInt->Buffer()->GetBackingStore().get();
+#else
             const unsigned short* bytes = (const unsigned short*) vInt->Buffer()->GetContents().Data();
+#endif
             unsigned int len = (unsigned int) vInt->Length();
             SAFEARRAYBOUND sab[] = {len, 0};
             vt.parray = SafeArrayCreate(VT_UI2, 1, sab);
@@ -447,7 +463,11 @@ namespace NJA {
             int* p;
             vt.vt = (VT_ARRAY | VT_I4);
             Local<v8::Int32Array> vInt = Local<v8::Int32Array>::Cast(v);
+#if NODE_VERSION_AT_LEAST(14,0,0)
+            const int* bytes = (const int*) vInt->Buffer()->GetBackingStore().get();
+#else
             const int* bytes = (const int*) vInt->Buffer()->GetContents().Data();
+#endif
             unsigned int len = (unsigned int) vInt->Length();
             SAFEARRAYBOUND sab[] = {len, 0};
             vt.parray = SafeArrayCreate(VT_I4, 1, sab);
@@ -458,7 +478,11 @@ namespace NJA {
             unsigned int* p;
             vt = (VT_ARRAY | VT_UI4);
             Local<v8::Uint32Array> vInt = Local<v8::Uint32Array>::Cast(v);
+#if NODE_VERSION_AT_LEAST(14,0,0)
+            const unsigned int* bytes = (const unsigned int*) vInt->Buffer()->GetBackingStore().get();
+#else
             const unsigned int* bytes = (const unsigned int*) vInt->Buffer()->GetContents().Data();
+#endif
             unsigned int len = (unsigned int) vInt->Length();
             SAFEARRAYBOUND sab[] = {len, 0};
             vt.parray = SafeArrayCreate(VT_UI4, 1, sab);
@@ -493,7 +517,11 @@ namespace NJA {
             float* p;
             vt.vt = (VT_ARRAY | VT_R4);
             Local<v8::Float32Array> vInt = Local<v8::Float32Array>::Cast(v);
+#if NODE_VERSION_AT_LEAST(14,0,0)
+            const float* bytes = (const float*) vInt->Buffer()->GetBackingStore().get();
+#else
             const float* bytes = (const float*) vInt->Buffer()->GetContents().Data();
+#endif
             unsigned int len = (unsigned int) vInt->Length();
             SAFEARRAYBOUND sab[] = {len, 0};
             vt.parray = SafeArrayCreate(VT_R4, 1, sab);
@@ -504,7 +532,11 @@ namespace NJA {
             double* p;
             vt.vt = (VT_ARRAY | VT_R8);
             Local<v8::Float64Array> vInt = Local<v8::Float64Array>::Cast(v);
+#if NODE_VERSION_AT_LEAST(14,0,0)
+            const double* bytes = (const double*) vInt->Buffer()->GetBackingStore().get();
+#else
             const double* bytes = (const double*) vInt->Buffer()->GetContents().Data();
+#endif
             unsigned int len = (unsigned int) vInt->Length();
             SAFEARRAYBOUND sab[] = {len, 0};
             vt.parray = SafeArrayCreate(VT_R8, 1, sab);
@@ -608,7 +640,7 @@ namespace NJA {
                         BSTR* pbstr = (BSTR*) p;
                         String::Value str(isolate, d);
 #ifdef WIN32_64
-                        pbstr[n] = ::SysAllocStringLen((const wchar_t*) *str, (unsigned int)str.length());
+                        pbstr[n] = ::SysAllocStringLen((const wchar_t*) * str, (unsigned int) str.length());
 #else
                         pbstr[n] = ::SysAllocStringLen((const UTF16*) *str, (unsigned int) str.length());
 #endif
@@ -773,11 +805,11 @@ namespace NJA {
             }
             case VT_CLSID:
             {
-                constexpr unsigned int len = sizeof(GUID);
+                constexpr unsigned int len = sizeof (GUID);
                 if (len > buff.GetSize()) {
                     throw SPA::CUException("Bad GUID data type");
                 }
-                const char* str = (const char*)buff.GetBuffer();
+                const char* str = (const char*) buff.GetBuffer();
                 auto bytes = node::Buffer::Copy(isolate, (const char*) str, len).ToLocalChecked();
                 buff.Pop(len);
                 return bytes;
@@ -836,7 +868,11 @@ namespace NJA {
 #else
                             Local<v8::ArrayBuffer> buf = v8::ArrayBuffer::New(isolate, count * sizeof (SPA::INT64));
                             Local<v8::BigInt64Array> v = v8::BigInt64Array::New(buf, 0, count);
+#if NODE_VERSION_AT_LEAST(14,0,0)
+                            char* bytes = (char*) v->Buffer()->GetBackingStore().get();
+#else
                             char* bytes = (char*) v->Buffer()->GetContents().Data();
+#endif
                             memcpy(bytes, p, count * sizeof (SPA::INT64));
 #endif
                             buff.Pop((unsigned int) count * sizeof (SPA::INT64));
@@ -853,7 +889,11 @@ namespace NJA {
 #else
                             Local<v8::ArrayBuffer> buf = v8::ArrayBuffer::New(isolate, count * sizeof (SPA::UINT64));
                             Local<v8::BigUint64Array> v = v8::BigUint64Array::New(buf, 0, count);
+#if NODE_VERSION_AT_LEAST(14,0,0)
+                            char* bytes = (char*) v->Buffer()->GetBackingStore().get();
+#else
                             char* bytes = (char*) v->Buffer()->GetContents().Data();
+#endif
                             memcpy(bytes, p, count * sizeof (SPA::UINT64));
 #endif
                             buff.Pop((unsigned int) count * sizeof (SPA::UINT64));
@@ -864,7 +904,11 @@ namespace NJA {
                             short* p = (short*) buff.GetBuffer();
                             Local<v8::ArrayBuffer> buf = v8::ArrayBuffer::New(isolate, count * sizeof (short));
                             Local<v8::Int16Array> v = v8::Int16Array::New(buf, 0, count);
+#if NODE_VERSION_AT_LEAST(14,0,0)
+                            char* bytes = (char*) v->Buffer()->GetBackingStore().get();
+#else
                             char* bytes = (char*) v->Buffer()->GetContents().Data();
+#endif
                             memcpy(bytes, p, count * sizeof (short));
                             buff.Pop((unsigned int) count * sizeof (short));
                             return v;
@@ -874,7 +918,11 @@ namespace NJA {
                             unsigned short* p = (unsigned short*) buff.GetBuffer();
                             Local<v8::ArrayBuffer> buf = v8::ArrayBuffer::New(isolate, count * sizeof (unsigned short));
                             Local<v8::Uint16Array> v = v8::Uint16Array::New(buf, 0, count);
+#if NODE_VERSION_AT_LEAST(14,0,0)
+                            char* bytes = (char*) v->Buffer()->GetBackingStore().get();
+#else
                             char* bytes = (char*) v->Buffer()->GetContents().Data();
+#endif
                             memcpy(bytes, p, count * sizeof (unsigned short));
                             buff.Pop((unsigned int) count * sizeof (unsigned short));
                             return v;
@@ -885,7 +933,11 @@ namespace NJA {
                             int* p = (int*) buff.GetBuffer();
                             Local<v8::ArrayBuffer> buf = v8::ArrayBuffer::New(isolate, count * sizeof (int));
                             Local<v8::Int32Array> v = v8::Int32Array::New(buf, 0, count);
+#if NODE_VERSION_AT_LEAST(14,0,0)
+                            char* bytes = (char*) v->Buffer()->GetBackingStore().get();
+#else
                             char* bytes = (char*) v->Buffer()->GetContents().Data();
+#endif
                             memcpy(bytes, p, count * sizeof (int));
                             buff.Pop((unsigned int) count * sizeof (int));
                             return v;
@@ -896,7 +948,11 @@ namespace NJA {
                             unsigned int* p = (unsigned int*) buff.GetBuffer();
                             Local<v8::ArrayBuffer> buf = v8::ArrayBuffer::New(isolate, count * sizeof (unsigned int));
                             Local<v8::Uint32Array> v = v8::Uint32Array::New(buf, 0, count);
+#if NODE_VERSION_AT_LEAST(14,0,0)
+                            char* bytes = (char*) v->Buffer()->GetBackingStore().get();
+#else
                             char* bytes = (char*) v->Buffer()->GetContents().Data();
+#endif
                             memcpy(bytes, p, count * sizeof (unsigned int));
                             buff.Pop((unsigned int) count * sizeof (unsigned int));
                             return v;
@@ -916,7 +972,11 @@ namespace NJA {
                             float* p = (float*) buff.GetBuffer();
                             Local<v8::ArrayBuffer> buf = v8::ArrayBuffer::New(isolate, count * sizeof (float));
                             Local<v8::Float32Array> v = v8::Float32Array::New(buf, 0, count);
+#if NODE_VERSION_AT_LEAST(14,0,0)
+                            char* bytes = (char*) v->Buffer()->GetBackingStore().get();
+#else
                             char* bytes = (char*) v->Buffer()->GetContents().Data();
+#endif
                             memcpy(bytes, p, count * sizeof (float));
                             buff.Pop((unsigned int) count * sizeof (float));
                             return v;
@@ -926,7 +986,11 @@ namespace NJA {
                             double* p = (double*) buff.GetBuffer();
                             Local<v8::ArrayBuffer> buf = v8::ArrayBuffer::New(isolate, count * sizeof (double));
                             Local<v8::Float64Array> v = v8::Float64Array::New(buf, 0, count);
+#if NODE_VERSION_AT_LEAST(14,0,0)
+                            char* bytes = (char*) v->Buffer()->GetBackingStore().get();
+#else
                             char* bytes = (char*) v->Buffer()->GetContents().Data();
+#endif
                             memcpy(bytes, p, count * sizeof (double));
                             buff.Pop((unsigned int) count * sizeof (double));
                             return v;
@@ -1142,7 +1206,11 @@ namespace NJA {
                         {
                             Local<v8::ArrayBuffer> buf = v8::ArrayBuffer::New(isolate, count * sizeof (int));
                             Local<v8::Int32Array> v = v8::Int32Array::New(buf, 0, count);
+#if NODE_VERSION_AT_LEAST(14,0,0)
+                            char* bytes = (char*) v->Buffer()->GetBackingStore().get();
+#else
                             char* bytes = (char*) v->Buffer()->GetContents().Data();
+#endif
                             memcpy(bytes, pvt, count * sizeof (int));
                             ::SafeArrayUnaccessData(vt.parray);
                             return v;
@@ -1152,7 +1220,11 @@ namespace NJA {
                         {
                             Local<v8::ArrayBuffer> buf = v8::ArrayBuffer::New(isolate, count * sizeof (unsigned int));
                             Local<v8::Uint32Array> v = v8::Uint32Array::New(buf, 0, count);
+#if NODE_VERSION_AT_LEAST(14,0,0)
+                            char* bytes = (char*) v->Buffer()->GetBackingStore().get();
+#else
                             char* bytes = (char*) v->Buffer()->GetContents().Data();
+#endif
                             memcpy(bytes, pvt, count * sizeof (unsigned int));
                             ::SafeArrayUnaccessData(vt.parray);
                             return v;
@@ -1161,7 +1233,11 @@ namespace NJA {
                         {
                             Local<v8::ArrayBuffer> buf = v8::ArrayBuffer::New(isolate, count * sizeof (short));
                             Local<v8::Int16Array> v = v8::Int16Array::New(buf, 0, count);
+#if NODE_VERSION_AT_LEAST(14,0,0)
+                            char* bytes = (char*) v->Buffer()->GetBackingStore().get();
+#else
                             char* bytes = (char*) v->Buffer()->GetContents().Data();
+#endif
                             memcpy(bytes, pvt, count * sizeof (short));
                             ::SafeArrayUnaccessData(vt.parray);
                             return v;
@@ -1170,7 +1246,11 @@ namespace NJA {
                         {
                             Local<v8::ArrayBuffer> buf = v8::ArrayBuffer::New(isolate, count * sizeof (unsigned short));
                             Local<v8::Uint16Array> v = v8::Uint16Array::New(buf, 0, count);
+#if NODE_VERSION_AT_LEAST(14,0,0)
+                            char* bytes = (char*) v->Buffer()->GetBackingStore().get();
+#else
                             char* bytes = (char*) v->Buffer()->GetContents().Data();
+#endif
                             memcpy(bytes, pvt, count * sizeof (unsigned short));
                             ::SafeArrayUnaccessData(vt.parray);
                             return v;
@@ -1179,7 +1259,11 @@ namespace NJA {
                         {
                             Local<v8::ArrayBuffer> buf = v8::ArrayBuffer::New(isolate, count * sizeof (float));
                             Local<v8::Float32Array> v = v8::Float32Array::New(buf, 0, count);
+#if NODE_VERSION_AT_LEAST(14,0,0)
+                            char* bytes = (char*) v->Buffer()->GetBackingStore().get();
+#else
                             char* bytes = (char*) v->Buffer()->GetContents().Data();
+#endif
                             memcpy(bytes, pvt, count * sizeof (float));
                             ::SafeArrayUnaccessData(vt.parray);
                             return v;
@@ -1188,7 +1272,11 @@ namespace NJA {
                         {
                             Local<v8::ArrayBuffer> buf = v8::ArrayBuffer::New(isolate, count * sizeof (double));
                             Local<v8::Float64Array> v = v8::Float64Array::New(buf, 0, count);
+#if NODE_VERSION_AT_LEAST(14,0,0)
+                            char* bytes = (char*) v->Buffer()->GetBackingStore().get();
+#else
                             char* bytes = (char*) v->Buffer()->GetContents().Data();
+#endif
                             memcpy(bytes, pvt, count * sizeof (double));
                             ::SafeArrayUnaccessData(vt.parray);
                             return v;
@@ -1198,7 +1286,11 @@ namespace NJA {
                         {
                             Local<v8::ArrayBuffer> buf = v8::ArrayBuffer::New(isolate, count * sizeof (SPA::INT64));
                             Local<v8::BigInt64Array> v = v8::BigInt64Array::New(buf, 0, count);
+#if NODE_VERSION_AT_LEAST(14,0,0)
+                            char* bytes = (char*) v->Buffer()->GetBackingStore().get();
+#else
                             char* bytes = (char*) v->Buffer()->GetContents().Data();
+#endif
                             memcpy(bytes, pvt, count * sizeof (SPA::INT64));
                             ::SafeArrayUnaccessData(vt.parray);
                             return v;
@@ -1207,7 +1299,11 @@ namespace NJA {
                         {
                             Local<v8::ArrayBuffer> buf = v8::ArrayBuffer::New(isolate, count * sizeof (SPA::UINT64));
                             Local<v8::BigUint64Array> v = v8::BigUint64Array::New(buf, 0, count);
+#if NODE_VERSION_AT_LEAST(14,0,0)
+                            char* bytes = (char*) v->Buffer()->GetBackingStore().get();
+#else
                             char* bytes = (char*) v->Buffer()->GetContents().Data();
+#endif
                             memcpy(bytes, pvt, count * sizeof (SPA::UINT64));
                             ::SafeArrayUnaccessData(vt.parray);
                             return v;
@@ -1234,37 +1330,65 @@ namespace NJA {
     bool ToArray(Isolate* isolate, const Local<Value>& data, CDBVariantArray& v) {
         if (data->IsInt32Array()) {
             Local<v8::Int32Array> vInt = Local<v8::Int32Array>::Cast(data);
+#if NODE_VERSION_AT_LEAST(14,0,0)
+            const int* p = (const int*) vInt->Buffer()->GetBackingStore().get();
+#else
             const int* p = (const int*) vInt->Buffer()->GetContents().Data();
+#endif
             unsigned int len = (unsigned int) vInt->Length();
             ToArray(p, len, v);
         } else if (data->IsFloat64Array()) {
             Local<v8::Float64Array> vDouble = Local<v8::Float64Array>::Cast(data);
+#if NODE_VERSION_AT_LEAST(14,0,0)
+            const double* p = (const double*) vDouble->Buffer()->GetBackingStore().get();
+#else
             const double* p = (const double*) vDouble->Buffer()->GetContents().Data();
+#endif
             unsigned int len = (unsigned int) vDouble->Length();
             ToArray(p, len, v);
         } else if (data->IsFloat32Array()) {
             Local<v8::Float32Array> vDouble = Local<v8::Float32Array>::Cast(data);
+#if NODE_VERSION_AT_LEAST(14,0,0)
+            const float* p = (const float*) vDouble->Buffer()->GetBackingStore().get();
+#else
             const float* p = (const float*) vDouble->Buffer()->GetContents().Data();
+#endif
             unsigned int len = (unsigned int) vDouble->Length();
             ToArray(p, len, v);
         } else if (data->IsInt16Array()) {
             Local<v8::Int16Array> vInt = Local<v8::Int16Array>::Cast(data);
+#if NODE_VERSION_AT_LEAST(14,0,0)
+            const short* p = (const short*) vInt->Buffer()->GetBackingStore().get();
+#else
             const short* p = (const short*) vInt->Buffer()->GetContents().Data();
+#endif
             unsigned int len = (unsigned int) vInt->Length();
             ToArray(p, len, v);
         } else if (data->IsInt8Array()) {
             Local<v8::Int8Array> vInt = Local<v8::Int8Array>::Cast(data);
+#if NODE_VERSION_AT_LEAST(14,0,0)
+            const char* p = (const char*) vInt->Buffer()->GetBackingStore().get();
+#else
             const char* p = (const char*) vInt->Buffer()->GetContents().Data();
+#endif
             unsigned int len = (unsigned int) vInt->Length();
             ToArray(p, len, v);
         } else if (data->IsUint8Array()) {
             Local<v8::Uint8Array> vInt = Local<v8::Uint8Array>::Cast(data);
+#if NODE_VERSION_AT_LEAST(14,0,0)
+            const unsigned char* p = (const unsigned char*) vInt->Buffer()->GetBackingStore().get();
+#else
             const unsigned char* p = (const unsigned char*) vInt->Buffer()->GetContents().Data();
+#endif
             unsigned int len = (unsigned int) vInt->Length();
             ToArray(p, len, v);
         } else if (data->IsUint32Array()) {
             Local<v8::Uint32Array> vInt = Local<v8::Uint32Array>::Cast(data);
+#if NODE_VERSION_AT_LEAST(14,0,0)
+            const unsigned int* p = (const unsigned int*) vInt->Buffer()->GetBackingStore().get();
+#else
             const unsigned int* p = (const unsigned int*) vInt->Buffer()->GetContents().Data();
+#endif
             unsigned int len = (unsigned int) vInt->Length();
             ToArray(p, len, v);
 #ifdef HAS_BIGINT
@@ -1281,7 +1405,11 @@ namespace NJA {
 #endif
         } else if (data->IsUint16Array()) {
             Local<v8::Uint16Array> vInt = Local<v8::Uint16Array>::Cast(data);
+#if NODE_VERSION_AT_LEAST(14,0,0)
+            const unsigned short* p = (const unsigned short*) vInt->Buffer()->GetBackingStore().get();
+#else
             const unsigned short* p = (const unsigned short*) vInt->Buffer()->GetContents().Data();
+#endif
             unsigned int len = (unsigned int) vInt->Length();
             ToArray(p, len, v);
         } else if (data->IsArray()) {

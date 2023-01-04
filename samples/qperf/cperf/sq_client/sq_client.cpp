@@ -6,6 +6,7 @@ typedef std::chrono::milliseconds ms;
 
 #define TEST_QUEUE_KEY "qperf"
 static const unsigned short idMessage = (unsigned short)tagBaseRequestID::idReservedTwo + 128;
+static const unsigned int DEQUEUE_TIME_OUT = 100;
 
 typedef CSocketPool<CAsyncQueue, CClientSocket> CMyPool;
 
@@ -141,10 +142,10 @@ void DequeueFromServer(CMyPool::PHandler sq) {
     };
 
     std::cout << "Going to dequeue message ......\n";
-    bool ok = sq->Dequeue(TEST_QUEUE_KEY, d);
+    bool ok = sq->Dequeue(TEST_QUEUE_KEY, d, DEQUEUE_TIME_OUT);
     //optionally, add one or two extra to improve processing concurrency at both client and server sides for better performance and through-output
-    ok = sq->Dequeue(TEST_QUEUE_KEY, d);
-    ok = sq->Dequeue(TEST_QUEUE_KEY, d);
+    ok = sq->Dequeue(TEST_QUEUE_KEY, d, DEQUEUE_TIME_OUT);
+    ok = sq->Dequeue(TEST_QUEUE_KEY, d, DEQUEUE_TIME_OUT);
     sq->WaitAll();
     system_clock::time_point stop = system_clock::now();
     ms diff = std::chrono::duration_cast<ms>(stop - start);

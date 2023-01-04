@@ -29,18 +29,19 @@ for testing as a SocketPro server middle tier, which loads a SocketPro server si
     <p><img alt="SQL Requests In-line Batching within a SocketPro server database plugin" title="SQL Requests In-line Batching within a SocketPro server database plugin" src="images/inline_merge.png" /></p>
 </td>
 <td>
-<p>When a client continously sends a set of SQL requests (R0, R1, R2, R, ......, RN) in steaming style to a SocketPro server, the server is able to peek the coming request
+<p>When a client continously sends a set of SQL requests (R0, R1, R2, R, ......, RN) in 
+    continuous sending and steaming style to a SocketPro server, the server is able to peek the coming 
+    next request
 while the server is about to process the current SQL request. If proper, the server can merge the two or more requests into a combined SQL request as shown at the left Figure 1.
 Afterwards, the middle SocketPro server sends the combined SQL request into a remote database for processing in batch.
-In fact, most of database systems (For example, MySQL, MariaDB, PostgreSQL, SQL server, Sybase, DB2, and so on) well support this approach.
-</p>
+In fact, most of database systems (For example, MySQL, MariaDB, PostgreSQL, SQL server, Sybase, DB2, and so on) well support this approach.</p>
 <p>
 When a remote backend database receives the combined SQL statement, it will process the statement in batch and return various types of results back to the middle SocketPro server.
-The server sends all of results (R0==>r00,r01,r02; R1==>r10; R2==>r20,r21,r22,r2...,r2m; R...==>r...; RN==>rN0,rN1) to an original client after splitting the set of database results.
-</p>
-<p>First, SQL requests in-line batching reduces the network package round trips between the middle SocketPro server and backend database.
+The server sends all of results (R0==>r00,r01,r02; R1==>r10; R2==>r20,r21,r22,r2...,r2m; R...==>r...; RN==>rN0,rN1) to an original client after splitting the set of database results.</p>
+<p>First, SQL requests in-line batching leads to a large combined SQL statement 
+    which could significantly reduce the network package round trips between the middle SocketPro server and backend database.
 Second, database batch processing should be more efficient than its individual processing.
-As expected, SocketPro SQL requests in-line batching could significantly improve application performance by database batching processing and reduction of the network round trips between the middle SocketPro server and remote backend database.</p>
+As expected, SocketPro SQL requests in-line batching could significantly improve application performance between the middle SocketPro server and remote backend database.</p>
 </td>
 </tr>
 </table>
@@ -264,7 +265,7 @@ Suppose we call the method executeEx like <i>db.executeEx('select ?', ['my try']
 SocketPro server MySQL plugin will first convert the statement having a question mark into a new SQL statement <i>SET @up0='my try';select @up0</i> after finding the parameter is a string.
 Afterwards, SocketPro server MySQL plugin uses the new SQL statement to call a remote database.
 If the parameter is not a string, the new SQL statement will be like <i>select 123</i> for numbers, <i>select '2012-12-23 23:59:59.1234567'</i> for date time, or others.
-As you can see, a SocketPro server can always do such a conversion for all question marks and parameters.
+As you can see, a SocketPro server can always do such a conversion for all question marks and parameters silently at run time.
 </p>
 <p>Using session variables can lead to a number of the following advantages:
 <ol>
@@ -347,4 +348,5 @@ The left code snippet starts a pool of six sockets and database sessions as show
 </table>
 <i>Code snippet 2: Performance study with parallel SQL computation against a number of database systems (MySQL/MariaDB, SQL server and PostgreSQL)</i>
 <hr />
+<p>At last, it is noted that .NET, C/C++, Python, Java and Golang adapters aslo support requests in-line batching and session variables. There are lots of samples for you to study and experiment.</p>
 <br />
