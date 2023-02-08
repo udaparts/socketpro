@@ -17,17 +17,18 @@ const unsigned int TEST_CYCLES = 200000;
 
 #ifdef HAVE_COROUTINE
 CAwTask MyTest(CLatencyPool::PHandler& lp) {
+    unsigned int total = 0;
     system_clock::time_point start = system_clock::now();
     for (unsigned int n = 0; n < TEST_CYCLES; ++n) {
-        auto res = co_await lp->wait_send<unsigned int>(idEchoInt1, n);
+        total += co_await lp->wait_send<unsigned int>(idEchoInt1, n);
     }
     ns d = duration_cast<ns>(system_clock::now() - start);
-    cout << "Latency for co_await sync/fast: " << d.count() / TEST_CYCLES << " ns\n\n";
+    cout << "Latency for co_await sync/fast: total = " << total << ", " << d.count() / TEST_CYCLES << " ns\n\n";
 }
 #endif
 
 int main(int argc, char* argv[]) {
-    unsigned int res = 0, n = 0;
+    unsigned int n = 0, total = 0;
 
     CConnectionContext cc;
     cout << "Remote host? \n";
@@ -46,24 +47,27 @@ int main(int argc, char* argv[]) {
     cout << "Test latency for sync/fast ......\n";
     system_clock::time_point start = system_clock::now();
     for (n = 0; n < TEST_CYCLES; ++n) {
-        res = latency->send<unsigned int>(idEchoInt1, n).get();
+        total += latency->send<unsigned int>(idEchoInt1, n).get();
     }
     system_clock::time_point stop = system_clock::now();
     ns d = duration_cast<ns>(stop - start);
-    cout << "Latency for sync/fast: " << d.count() / TEST_CYCLES << " ns\n\n";
+    cout << "Latency for sync/fast: total = " << total << ", " << d.count() / TEST_CYCLES << " ns\n\n";
     cout << "Test latency for sync/slow ......\n";
+
+    total = 0;
     start = system_clock::now();
     for (n = 0; n < TEST_CYCLES; ++n) {
-        res = latency->send<unsigned int>(idEchoInt2, n).get();
+        total += latency->send<unsigned int>(idEchoInt2, n).get();
     }
     stop = system_clock::now();
     d = duration_cast<ns>(stop - start);
-    cout << "Latency for sync/slow: " << d.count() / TEST_CYCLES << " ns\n\n";
+    cout << "Latency for sync/slow: total = " << total << ", " << d.count() / TEST_CYCLES << " ns\n\n";
 
-    DResultHandler rh = [&res](CAsyncResult & ar) {
-        ar >> res;
+    DResultHandler rh = [&total](CAsyncResult & ar) {
+        total += ar.Load<unsigned int>();
     };
 
+    total = 0;
     cout << "Test latency for send/fast ......\n";
     start = system_clock::now();
     for (n = 0; n < TEST_CYCLES; ++n) {
@@ -72,8 +76,9 @@ int main(int argc, char* argv[]) {
     ok = latency->WaitAll();
     stop = system_clock::now();
     d = duration_cast<ns>(stop - start);
-    cout << "Latency for send/fast: " << d.count() / TEST_CYCLES << " ns\n\n";
+    cout << "Latency for send/fast: total = " << total << ", " << d.count() / TEST_CYCLES << " ns\n\n";
 
+    total = 0;
     cout << "Test latency for send/slow ......\n";
     start = system_clock::now();
     for (n = 0; n < TEST_CYCLES; ++n) {
@@ -82,13 +87,13 @@ int main(int argc, char* argv[]) {
     ok = latency->WaitAll();
     stop = system_clock::now();
     d = duration_cast<ns>(stop - start);
-    cout << "Latency for send/slow: " << d.count() / TEST_CYCLES << " ns\n\n";
+    cout << "Latency for send/slow: total = " << total << ", " << d.count() / TEST_CYCLES << " ns\n\n";
 
 #ifdef HAVE_COROUTINE
     MyTest(latency);
 #endif
 
     cout << "Press a key to kill the demo ......\n";
-    getchar();
+    int c = getchar();
     return 0;
 }

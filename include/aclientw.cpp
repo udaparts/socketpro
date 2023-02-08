@@ -241,13 +241,9 @@ namespace SPA {
                 if (p) {
                     p->first = reqId;
                     CResultCb *rcb = p->second;
-                    rcb->AsyncResultHandler.swap((DResultHandler&) rh); //assuming inline lambda expression for better performance
-                    if (rcb->Discarded || discarded) {
-                        rcb->Discarded.swap((DDiscarded &) discarded); //assuming inline lambda expression for better performance
-                    }
-                    if (rcb->ExceptionFromServer || serverException) {
-                        rcb->ExceptionFromServer.swap((DServerException &) serverException); //assuming inline lambda expression for better performance
-                    }
+                    rcb->AsyncResultHandler = rh;
+                    rcb->Discarded = discarded;
+                    rcb->ExceptionFromServer = serverException;
                 } else {
                     p = new std::pair<unsigned short, CResultCb*>(reqId, new CResultCb(rh, discarded, serverException));
                 }
