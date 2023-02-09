@@ -195,7 +195,7 @@ namespace SPA {
             inline R Load() {
                 R r;
                 UQueue >> r;
-                return std::move(r);
+                return r;
             }
 
         public:
