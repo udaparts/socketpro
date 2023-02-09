@@ -193,9 +193,7 @@ namespace SPA {
 
             template<typename R>
             inline R Load() {
-                R r;
-                UQueue >> r;
-                return r;
+                return UQueue.Load<R>();
             }
 
         public:

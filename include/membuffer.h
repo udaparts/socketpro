@@ -1424,7 +1424,7 @@ namespace SPA {
         inline R Load() {
             R r;
             *this >> r;
-            return std::move(r);
+            return r;
         }
 
         template<typename T>
