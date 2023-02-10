@@ -292,6 +292,14 @@ public:
         return !SPA::IsEqual(*this, varSrc);
     }
 
+    bool operator==(const CComVariant& varSrc) const noexcept {
+        return SPA::IsEqual(*this, varSrc);
+    }
+
+    bool operator!=(const CComVariant& varSrc) const noexcept {
+        return !SPA::IsEqual(*this, varSrc);
+    }
+
     // Operations
 
     inline HRESULT Clear() {
